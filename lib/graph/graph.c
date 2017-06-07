@@ -417,26 +417,15 @@ end:
 	return status;
 }
 
-enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
+static
+enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
 {
 	struct bt_component *sink;
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	enum bt_component_status comp_status;
 	GList *current_node;
 
-	if (!graph) {
-		BT_LOGW_STR("Invalid parameter: graph is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
-		goto end;
-	}
-
-	BT_LOGV("Making sink consume: addr=%p", graph);
-
-	if (graph->canceled) {
-		BT_LOGW_STR("Invalid parameter: graph is canceled.");
-		status = BT_GRAPH_STATUS_CANCELED;
-		goto end;
-	}
+	BT_LOGV("Making next sink consume: addr=%p", graph);
 
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		BT_LOGV_STR("Graph's sink queue is empty: end of graph.");
@@ -486,6 +475,29 @@ end:
 	return status;
 }
 
+enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
+{
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+
+	if (!graph) {
+		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	if (graph->canceled) {
+		BT_LOGW("Invalid parameter: graph is canceled: "
+			"graph-addr=%p", graph);
+		status = BT_GRAPH_STATUS_CANCELED;
+		goto end;
+	}
+
+	status = bt_graph_consume_no_check(graph);
+
+end:
+	return status;
+}
+
 enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 {
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
@@ -496,9 +508,29 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		goto end;
 	}
 
+	if (graph->canceled) {
+		BT_LOGW("Invalid parameter: graph is canceled: "
+			"graph-addr=%p", graph);
+		status = BT_GRAPH_STATUS_CANCELED;
+		goto end;
+	}
+
 	BT_LOGV("Running graph: addr=%p", graph);
 
 	do {
+		/*
+		 * Check if the graph is canceled at each iteration. If
+		 * the graph was canceled by another thread or by a
+		 * signal, this is not a warning nor an error, it was
+		 * intentional: log with a DEBUG level only.
+		 */
+		if (graph->canceled) {
+			BT_LOGD("Stopping the graph: graph is canceled: "
+				"graph-addr=%p", graph);
+			status = BT_GRAPH_STATUS_CANCELED;
+			goto end;
+		}
+
 		status = bt_graph_consume(graph);
 		if (status == BT_GRAPH_STATUS_AGAIN) {
 			/*
