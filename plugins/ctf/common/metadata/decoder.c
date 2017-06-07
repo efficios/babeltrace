@@ -27,15 +27,13 @@
 #include "decoder.h"
 #include "scanner.h"
 
-#define PRINT_ERR_STREAM	(mdec ? mdec->err_stream : stderr)
-#define PRINT_PREFIX		"metadata-decoder"
-#include "../print.h"
+#define BT_LOG_TAG "PLUGIN-CTF-METADATA-DECODER"
+#include "logging.h"
 
 #define TSDL_MAGIC	0x75d11d57
 
 struct ctf_metadata_decoder {
 	struct ctf_visitor_generate_ir *visitor;
-	FILE *err_stream;
 	uint8_t uuid[16];
 	bool is_uuid_set;
 	int bo;
@@ -114,22 +112,22 @@ int decode_packet(struct ctf_metadata_decoder *mdec, FILE *in_fp, FILE *out_fp,
 	}
 
 	if (header.compression_scheme) {
-		PERR("Metadata packet compression not supported yet\n");
+		BT_LOGE("Metadata packet compression not supported yet");
 		goto error;
 	}
 
 	if (header.encryption_scheme) {
-		PERR("Metadata packet encryption not supported yet\n");
+		BT_LOGE("Metadata packet encryption not supported yet");
 		goto error;
 	}
 
 	if (header.checksum || header.checksum_scheme) {
-		PERR("Metadata packet checksum verification not supported yet\n");
+		BT_LOGE("Metadata packet checksum verification not supported yet");
 		goto error;
 	}
 
 	if (!is_version_valid(header.major, header.minor)) {
-		PERR("Invalid metadata version: %u.%u\n", header.major,
+		BT_LOGE("Invalid metadata version: %u.%u", header.major,
 			header.minor);
 		goto error;
 	}
@@ -140,13 +138,13 @@ int decode_packet(struct ctf_metadata_decoder *mdec, FILE *in_fp, FILE *out_fp,
 			memcpy(mdec->uuid, header.uuid, sizeof(header.uuid));
 			mdec->is_uuid_set = true;
 		} else if (bt_uuid_compare(header.uuid, mdec->uuid)) {
-			PERR("Metadata UUID mismatch between packets of the same stream\n");
+			BT_LOGE("Metadata UUID mismatch between packets of the same stream");
 			goto error;
 		}
 	}
 
 	if ((header.content_size / CHAR_BIT) < sizeof(header)) {
-		PERR("Bad metadata packet content size: %u\n",
+		BT_LOGE("Bad metadata packet content size: %u",
 			header.content_size);
 		goto error;
 	}
@@ -157,14 +155,14 @@ int decode_packet(struct ctf_metadata_decoder *mdec, FILE *in_fp, FILE *out_fp,
 		readlen = fread(buf, sizeof(uint8_t),
 			MIN(sizeof(buf) - 1, toread), in_fp);
 		if (ferror(in_fp)) {
-			PERR("Cannot read metadata packet buffer (at position %ld)\n",
+			BT_LOGE("Cannot read metadata packet buffer (at position %ld)",
 				ftell(in_fp));
 			goto error;
 		}
 
 		writelen = fwrite(buf, sizeof(uint8_t), readlen, out_fp);
 		if (writelen < readlen || ferror(out_fp)) {
-			PERR("Cannot write decoded metadata text to buffer\n");
+			BT_LOGE("Cannot write decoded metadata text to buffer");
 			goto error;
 		}
 
@@ -177,7 +175,7 @@ int decode_packet(struct ctf_metadata_decoder *mdec, FILE *in_fp, FILE *out_fp,
 				CHAR_BIT;
 			fseek_ret = fseek(in_fp, toread, SEEK_CUR);
 			if (fseek_ret < 0) {
-				PWARN("Missing padding at the end of the metadata file\n");
+				BT_LOGW("Missing padding at the end of the metadata file");
 			}
 
 			break;
@@ -206,7 +204,7 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 
 	out_fp = bt_open_memstream(buf, &size);
 	if (out_fp == NULL) {
-		PERR("Cannot open memory stream: %s\n", strerror(errno));
+		BT_LOGE("Cannot open memory stream: %s", strerror(errno));
 		goto error;
 	}
 
@@ -217,7 +215,7 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 
 		tret = decode_packet(mdec, fp, out_fp, byte_order);
 		if (tret) {
-			PERR("Cannot decode packet #%zu\n", packet_index);
+			BT_LOGE("Cannot decode packet #%zu", packet_index);
 			goto error;
 		}
 
@@ -227,14 +225,14 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 	/* Make sure the whole string ends with a null character */
 	tret = fputc('\0', out_fp);
 	if (tret == EOF) {
-		PERR("Cannot append '\\0' to the decoded metadata buffer\n");
+		BT_LOGE("Cannot append '\\0' to the decoded metadata buffer");
 		goto error;
 	}
 
 	/* Close stream, which also flushes the buffer */
 	ret = bt_close_memstream(buf, &size, out_fp);
 	if (ret < 0) {
-		PERR("Cannot close memory stream: %s\n", strerror(errno));
+		BT_LOGE("Cannot close memory stream: %s", strerror(errno));
 		goto error;
 	}
 
@@ -265,8 +263,8 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf(
 }
 
 BT_HIDDEN
-struct ctf_metadata_decoder *ctf_metadata_decoder_create(FILE *err,
-		uint64_t clock_class_offset_ns, const char *name)
+struct ctf_metadata_decoder *ctf_metadata_decoder_create(
+		int64_t clock_class_offset_ns, const char *name)
 {
 	struct ctf_metadata_decoder *mdec =
 		g_new0(struct ctf_metadata_decoder, 1);
@@ -275,9 +273,8 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(FILE *err,
 		goto end;
 	}
 
-	mdec->err_stream = err;
-	mdec->visitor = ctf_visitor_generate_ir_create(err,
-		clock_class_offset_ns, name);
+	mdec->visitor = ctf_visitor_generate_ir_create(clock_class_offset_ns,
+			name);
 	if (!mdec->visitor) {
 		ctf_metadata_decoder_destroy(mdec);
 		mdec = NULL;
@@ -313,7 +310,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 	assert(mdec);
 
 	if (ctf_metadata_decoder_is_packetized(fp, &mdec->bo)) {
-		PDBG("Metadata stream is packetized\n");
+		BT_LOGD("Metadata stream is packetized");
 		ret = ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 			mdec, fp, &buf, mdec->bo);
 		if (ret) {
@@ -331,7 +328,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		fp = bt_fmemopen(buf, strlen(buf), "rb");
 		close_fp = true;
 		if (!fp) {
-			PERR("Cannot memory-open metadata buffer: %s\n",
+			BT_LOGE("Cannot memory-open metadata buffer: %s",
 				strerror(errno));
 			status = CTF_METADATA_DECODER_STATUS_ERROR;
 			goto end;
@@ -341,24 +338,24 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		ssize_t nr_items;
 		const long init_pos = ftell(fp);
 
-		PDBG("Metadata stream is plain text\n");
+		BT_LOGD("Metadata stream is plain text");
 
 		/* Check text-only metadata header and version */
 		nr_items = fscanf(fp, "/* CTF %10u.%10u", &major, &minor);
 		if (nr_items < 2) {
-			PWARN("Ill-shapen or missing \"/* CTF major.minor\" header in plain text metadata file stream\n");
+			BT_LOGW("Ill-shapen or missing \"/* CTF major.minor\" header in plain text metadata file stream");
 		}
 
-		PDBG("Metadata version: %u.%u\n", major, minor);
+		BT_LOGD("Metadata version: %u.%u", major, minor);
 
 		if (!is_version_valid(major, minor)) {
-			PERR("Invalid metadata version: %u.%u\n", major, minor);
+			BT_LOGE("Invalid metadata version: %u.%u", major, minor);
 			status = CTF_METADATA_DECODER_STATUS_INVAL_VERSION;
 			goto end;
 		}
 
 		if (fseek(fp, init_pos, SEEK_SET)) {
-			PERR("Cannot seek metadata file stream to initial position: %s\n",
+			BT_LOGE("Cannot seek metadata file stream to initial position: %s",
 				strerror(errno));
 			status = CTF_METADATA_DECODER_STATUS_ERROR;
 			goto end;
@@ -368,7 +365,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 	/* Allocate a scanner and append the metadata text content */
 	scanner = ctf_scanner_alloc();
 	if (!scanner) {
-		PERR("Cannot allocate a metadata lexical scanner\n");
+		BT_LOGE("Cannot allocate a metadata lexical scanner");
 		status = CTF_METADATA_DECODER_STATUS_ERROR;
 		goto end;
 	}
@@ -376,14 +373,14 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 	assert(fp);
 	ret = ctf_scanner_append_ast(scanner, fp);
 	if (ret) {
-		PERR("Cannot create the metadata AST\n");
+		BT_LOGE("Cannot create the metadata AST");
 		status = CTF_METADATA_DECODER_STATUS_INCOMPLETE;
 		goto end;
 	}
 
-	ret = ctf_visitor_semantic_check(stderr, 0, &scanner->ast->root);
+	ret = ctf_visitor_semantic_check(0, &scanner->ast->root);
 	if (ret) {
-		PERR("Metadata semantic validation failed\n");
+		BT_LOGE("Metadata semantic validation failed");
 		status = CTF_METADATA_DECODER_STATUS_ERROR;
 		goto end;
 	}
@@ -395,11 +392,11 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		/* Success */
 		break;
 	case -EINCOMPLETE:
-		PDBG("While visiting AST: incomplete data\n");
+		BT_LOGD("While visiting AST: incomplete data");
 		status = CTF_METADATA_DECODER_STATUS_INCOMPLETE;
 		goto end;
 	default:
-		PERR("Cannot visit AST node to create CTF IR objects\n");
+		BT_LOGE("Cannot visit AST node to create CTF IR objects");
 		status = CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR;
 		goto end;
 	}
@@ -411,7 +408,7 @@ end:
 
 	if (fp && close_fp) {
 		if (fclose(fp)) {
-			PERR("Cannot close metadata file stream\n");
+			BT_LOGE("Cannot close metadata file stream");
 		}
 	}
 

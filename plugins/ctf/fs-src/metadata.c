@@ -32,15 +32,13 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
 
-#define PRINT_ERR_STREAM	ctf_fs->error_fp
-#define PRINT_PREFIX		"ctf-fs-metadata"
-#define PRINT_DBG_CHECK		ctf_fs_debug
-#include "../print.h"
-
 #include "fs.h"
 #include "file.h"
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
+
+#define BT_LOG_TAG "PLUGIN-CTF-FS-METADATA-SRC"
+#include "logging.h"
 
 #define NSEC_PER_SEC 1000000000LL
 
@@ -73,10 +71,9 @@ end:
 	return fp;
 }
 
-static struct ctf_fs_file *get_file(struct ctf_fs_component *ctf_fs,
-		const char *trace_path)
+static struct ctf_fs_file *get_file(const char *trace_path)
 {
-	struct ctf_fs_file *file = ctf_fs_file_create(ctf_fs);
+	struct ctf_fs_file *file = ctf_fs_file_create();
 
 	if (!file) {
 		goto error;
@@ -85,7 +82,7 @@ static struct ctf_fs_file *get_file(struct ctf_fs_component *ctf_fs,
 	g_string_append(file->path, trace_path);
 	g_string_append(file->path, "/" CTF_FS_METADATA_FILENAME);
 
-	if (ctf_fs_file_open(ctf_fs, file, "rb")) {
+	if (ctf_fs_file_open(file, "rb")) {
 		goto error;
 	}
 
@@ -101,32 +98,37 @@ end:
 	return file;
 }
 
-int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace)
+int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
+		struct metadata_overrides *overrides)
 {
 	int ret = 0;
-	struct ctf_fs_component *ctf_fs = ctf_fs_trace->ctf_fs;
 	struct ctf_fs_file *file = NULL;
 	struct ctf_metadata_decoder *metadata_decoder = NULL;
+	int64_t clock_offset_adjustment = 0;
 
-	file = get_file(ctf_fs, ctf_fs_trace->path->str);
+	file = get_file(ctf_fs_trace->path->str);
 	if (!file) {
-		PERR("Cannot create metadata file object\n");
+		BT_LOGE("Cannot create metadata file object");
 		ret = -1;
 		goto end;
 	}
 
-	metadata_decoder = ctf_metadata_decoder_create(ctf_fs->error_fp,
-		ctf_fs->options.clock_offset * NSEC_PER_SEC +
-		ctf_fs->options.clock_offset_ns, ctf_fs_trace->name->str);
+	if (overrides) {
+		clock_offset_adjustment =
+			overrides->clock_offset_s * NSEC_PER_SEC +
+			overrides->clock_offset_ns;
+	}
+	metadata_decoder = ctf_metadata_decoder_create(clock_offset_adjustment,
+		ctf_fs_trace->name->str);
 	if (!metadata_decoder) {
-		PERR("Cannot create metadata decoder object\n");
+		BT_LOGE("Cannot create metadata decoder object");
 		ret = -1;
 		goto end;
 	}
 
 	ret = ctf_metadata_decoder_decode(metadata_decoder, file->fp);
 	if (ret) {
-		PERR("Cannot decode metadata file\n");
+		BT_LOGE("Cannot decode metadata file");
 		goto end;
 	}
 

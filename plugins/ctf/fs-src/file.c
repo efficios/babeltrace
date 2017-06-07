@@ -25,31 +25,24 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <glib.h>
-
-#define PRINT_ERR_STREAM	ctf_fs->error_fp
-#define PRINT_PREFIX		"ctf-fs-file"
-#define PRINT_DBG_CHECK		ctf_fs_debug
-#include "../print.h"
-
 #include "file.h"
+
+#define BT_LOG_TAG "PLUGIN-CTF-FS-FILE-SRC"
+#include "logging.h"
 
 BT_HIDDEN
 void ctf_fs_file_destroy(struct ctf_fs_file *file)
 {
-	struct ctf_fs_component *ctf_fs;;
-
 	if (!file) {
 		return;
 	}
 
-	ctf_fs = file->ctf_fs;
-
 	if (file->fp) {
-		PDBG("Closing file \"%s\" (%p)\n",
+		BT_LOGD("Closing file \"%s\" (%p)",
 				file->path ? file->path->str : NULL, file->fp);
 
 		if (fclose(file->fp)) {
-			PERR("Cannot close file \"%s\": %s\n",
+			BT_LOGE("Cannot close file \"%s\": %s",
 					file->path ? file->path->str : "NULL",
 					strerror(errno));
 		}
@@ -63,7 +56,7 @@ void ctf_fs_file_destroy(struct ctf_fs_file *file)
 }
 
 BT_HIDDEN
-struct ctf_fs_file *ctf_fs_file_create(struct ctf_fs_component *ctf_fs)
+struct ctf_fs_file *ctf_fs_file_create(void)
 {
 	struct ctf_fs_file *file = g_new0(struct ctf_fs_file, 1);
 
@@ -71,7 +64,6 @@ struct ctf_fs_file *ctf_fs_file_create(struct ctf_fs_component *ctf_fs)
 		goto error;
 	}
 
-	file->ctf_fs = ctf_fs;
 	file->path = g_string_new(NULL);
 	if (!file->path) {
 		goto error;
@@ -88,29 +80,28 @@ end:
 }
 
 BT_HIDDEN
-int ctf_fs_file_open(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file,
-		const char *mode)
+int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 {
 	int ret = 0;
 	struct stat stat;
 
-	PDBG("Opening file \"%s\" with mode \"%s\"\n", file->path->str, mode);
+	BT_LOGD("Opening file \"%s\" with mode \"%s\"", file->path->str, mode);
 	file->fp = fopen(file->path->str, mode);
 	if (!file->fp) {
-		PERR("Cannot open file \"%s\" with mode \"%s\": %s\n",
+		BT_LOGE("Cannot open file \"%s\" with mode \"%s\": %s",
 			file->path->str, mode, strerror(errno));
 		goto error;
 	}
 
-	PDBG("Opened file: %p\n", file->fp);
+	BT_LOGD("Opened file: %p", file->fp);
 
 	if (fstat(fileno(file->fp), &stat)) {
-		PERR("Cannot get file informations: %s\n", strerror(errno));
+		BT_LOGE("Cannot get file informations: %s", strerror(errno));
 		goto error;
 	}
 
 	file->size = stat.st_size;
-	PDBG("  File is %zu bytes\n", file->size);
+	BT_LOGD("File is %zu bytes", file->size);
 	goto end;
 
 error:
@@ -118,7 +109,7 @@ error:
 
 	if (file->fp) {
 		if (fclose(file->fp)) {
-			PERR("Cannot close file \"%s\": %s\n", file->path->str,
+			BT_LOGE("Cannot close file \"%s\": %s", file->path->str,
 				strerror(errno));
 		}
 	}

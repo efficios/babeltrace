@@ -38,16 +38,17 @@
 #include "parser.h"
 #include "ast.h"
 
+#define BT_LOG_TAG "PLUGIN-CTF-METADATA-VISITOR-SEMANTIC-VALIDATOR"
+#include "logging.h"
+
 #define _bt_list_first_entry(ptr, type, member)	\
 	bt_list_entry((ptr)->next, type, member)
 
-#define fprintf_dbg(fd, fmt, args...)	fprintf(fd, "%s: " fmt, __func__, ## args)
+static
+int _ctf_visitor_semantic_check(int depth, struct ctf_node *node);
 
 static
-int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
-
-static
-int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
+int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 {
 	struct ctf_node *iter;
 	int is_ctf_exp = 0, is_ctf_exp_left = 0;
@@ -64,8 +65,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 				 * We are only allowed to be a string.
 				 */
 				if (node->u.unary_expression.type != UNARY_STRING) {
-					fprintf(fd, "[error]: semantic error (left child of a ctf expression is only allowed to be a string)\n");
-
+					BT_LOGE("semantic error (left child of a ctf expression is only allowed to be a string)");
 					goto errperm;
 				}
 				break;
@@ -82,7 +82,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		case UNARY_STRING:
 			break;
 		default:
-			fprintf(fd, "[error]: semantic error (children of type declarator and enum can only be unsigned numeric constants or references to fields (a.b.c))\n");
+			BT_LOGE("semantic error (children of type declarator and enum can only be unsigned numeric constants or references to fields (a.b.c))");
 			goto errperm;
 		}
 		break;			/* OK */
@@ -95,7 +95,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		case UNARY_UNSIGNED_CONSTANT:
 			break;
 		default:
-			fprintf(fd, "[error]: semantic error (structure alignment attribute can only be unsigned numeric constants)\n");
+			BT_LOGE("semantic error (structure alignment attribute can only be unsigned numeric constants)");
 			goto errperm;
 		}
 		break;
@@ -109,7 +109,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		 * We disallow nested unary expressions and "sbrac" unary
 		 * expressions.
 		 */
-		fprintf(fd, "[error]: semantic error (nested unary expressions not allowed ( () and [] ))\n");
+		BT_LOGE("semantic error (nested unary expressions not allowed ( () and [] ))");
 		goto errperm;
 
 	case NODE_ROOT:
@@ -143,7 +143,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
 					  siblings) != node) {
-			fprintf(fd, "[error]: semantic error (empty link not allowed except on first node of unary expression (need to separate nodes with \".\" or \"->\")\n");
+			BT_LOGE("semantic error (empty link not allowed except on first node of unary expression (need to separate nodes with \".\" or \"->\")");
 			goto errperm;
 		}
 		break;			/* OK */
@@ -151,7 +151,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 	case UNARY_ARROWLINK:
 		/* We only allow -> and . links between children of ctf_expression. */
 		if (node->parent->type != NODE_CTF_EXPRESSION) {
-			fprintf(fd, "[error]: semantic error (links \".\" and \"->\" are only allowed as children of ctf expression)\n");
+			BT_LOGE("semantic error (links \".\" and \"->\" are only allowed as children of ctf expression)");
 			goto errperm;
 		}
 		/*
@@ -159,7 +159,7 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 		 * This includes "", '' and non-quoted identifiers.
 		 */
 		if (node->u.unary_expression.type != UNARY_STRING) {
-			fprintf(fd, "[error]: semantic error (links \".\" and \"->\" are only allowed to separate strings and identifiers)\n");
+			BT_LOGE("semantic error (links \".\" and \"->\" are only allowed to separate strings and identifiers)");
 			goto errperm;
 		}
 		/* We don't allow link on the first node of the list */
@@ -168,44 +168,44 @@ int ctf_visitor_unary_expression(FILE *fd, int depth, struct ctf_node *node)
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
 					  siblings) == node) {
-			fprintf(fd, "[error]: semantic error (links \".\" and \"->\" are not allowed before first node of the unary expression list)\n");
+			BT_LOGE("semantic error (links \".\" and \"->\" are not allowed before first node of the unary expression list)");
 			goto errperm;
 		}
 		break;
 	case UNARY_DOTDOTDOT:
 		/* We only allow ... link between children of enumerator. */
 		if (node->parent->type != NODE_ENUMERATOR) {
-			fprintf(fd, "[error]: semantic error (link \"...\" is only allowed within enumerator)\n");
+			BT_LOGE("semantic error (link \"...\" is only allowed within enumerator)");
 			goto errperm;
 		}
 		/* We don't allow link on the first node of the list */
 		if (_bt_list_first_entry(&node->parent->u.enumerator.values,
 					  struct ctf_node,
 					  siblings) == node) {
-			fprintf(fd, "[error]: semantic error (link \"...\" is not allowed on the first node of the unary expression list)\n");
+			BT_LOGE("semantic error (link \"...\" is not allowed on the first node of the unary expression list)");
 			goto errperm;
 		}
 		break;
 	default:
-		fprintf(fd, "[error] %s: unknown expression link type %d\n", __func__,
+		BT_LOGE("%s: unknown expression link type %d", __func__,
 			(int) node->u.unary_expression.link);
 		return -EINVAL;
 	}
 	return 0;
 
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
 		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	fprintf(fd, "[error] %s: semantic error (parent type %s for node type %s)\n", __func__,
+	BT_LOGE("%s: semantic error (parent type %s for node type %s)", __func__,
 		node_type(node->parent), node_type(node));
 	return -EPERM;		/* Structure not allowed */
 }
 
 static
-int ctf_visitor_type_specifier_list(FILE *fd, int depth, struct ctf_node *node)
+int ctf_visitor_type_specifier_list(int depth, struct ctf_node *node)
 {
 	switch (node->parent->type) {
 	case NODE_CTF_EXPRESSION:
@@ -240,13 +240,13 @@ int ctf_visitor_type_specifier_list(FILE *fd, int depth, struct ctf_node *node)
 	}
 	return 0;
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
 		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 }
 
 static
-int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
+int ctf_visitor_type_specifier(int depth, struct ctf_node *node)
 {
 	switch (node->parent->type) {
 	case NODE_TYPE_SPECIFIER_LIST:
@@ -281,13 +281,13 @@ int ctf_visitor_type_specifier(FILE *fd, int depth, struct ctf_node *node)
 	}
 	return 0;
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
 		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 }
 
 static
-int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
+int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 {
 	int ret = 0;
 	struct ctf_node *iter;
@@ -367,7 +367,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 
 	bt_list_for_each_entry(iter, &node->u.type_declarator.pointers,
 				siblings) {
-		ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+		ret = _ctf_visitor_semantic_check(depth + 1, iter);
 		if (ret)
 			return ret;
 	}
@@ -378,7 +378,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 	case TYPEDEC_NESTED:
 	{
 		if (node->u.type_declarator.u.nested.type_declarator) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1,
+			ret = _ctf_visitor_semantic_check(depth + 1,
 				node->u.type_declarator.u.nested.type_declarator);
 			if (ret)
 				return ret;
@@ -387,21 +387,21 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 			bt_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
 						siblings) {
 				if (iter->type != NODE_UNARY_EXPRESSION) {
-					fprintf(fd, "[error] %s: expecting unary expression as length\n", __func__);
+					BT_LOGE("%s: expecting unary expression as length", __func__);
 					return -EINVAL;
 				}
-				ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+				ret = _ctf_visitor_semantic_check(depth + 1, iter);
 				if (ret)
 					return ret;
 			}
 		} else {
 			if (node->parent->type == NODE_TYPEALIAS_TARGET) {
-				fprintf(fd, "[error] %s: abstract array declarator not permitted as target of typealias\n", __func__);
+				BT_LOGE("%s: abstract array declarator not permitted as target of typealias", __func__);
 				return -EINVAL;
 			}
 		}
 		if (node->u.type_declarator.bitfield_len) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1,
+			ret = _ctf_visitor_semantic_check(depth + 1,
 				node->u.type_declarator.bitfield_len);
 			if (ret)
 				return ret;
@@ -410,7 +410,7 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 	}
 	case TYPEDEC_UNKNOWN:
 	default:
-		fprintf(fd, "[error] %s: unknown type declarator %d\n", __func__,
+		BT_LOGE("%s: unknown type declarator %d", __func__,
 			(int) node->u.type_declarator.type);
 		return -EINVAL;
 	}
@@ -418,18 +418,18 @@ int ctf_visitor_type_declarator(FILE *fd, int depth, struct ctf_node *node)
 	return 0;
 
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
 		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	fprintf(fd, "[error] %s: semantic error (parent type %s for node type %s)\n", __func__,
+	BT_LOGE("%s: semantic error (parent type %s for node type %s)", __func__,
 		node_type(node->parent), node_type(node));
 	return -EPERM;		/* Structure not allowed */
 }
 
 static
-int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
+int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 {
 	int ret = 0;
 	struct ctf_node *iter;
@@ -440,22 +440,22 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 	switch (node->type) {
 	case NODE_ROOT:
 		bt_list_for_each_entry(iter, &node->u.root.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.root.stream, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.root.event, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -470,7 +470,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.event.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -484,7 +484,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.stream.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -498,7 +498,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.env.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -512,7 +512,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.trace.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -526,7 +526,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.clock.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -540,7 +540,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.callsite.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -581,19 +581,19 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 
 		depth++;
 		bt_list_for_each_entry(iter, &node->u.ctf_expression.left, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		bt_list_for_each_entry(iter, &node->u.ctf_expression.right, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
 		depth--;
 		break;
 	case NODE_UNARY_EXPRESSION:
-		return ctf_visitor_unary_expression(fd, depth, node);
+		return ctf_visitor_unary_expression(depth, node);
 
 	case NODE_TYPEDEF:
 		switch (node->parent->type) {
@@ -629,12 +629,12 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+		ret = _ctf_visitor_semantic_check(depth + 1,
 			node->u._typedef.type_specifier_list);
 		if (ret)
 			return ret;
 		bt_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -652,19 +652,19 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+		ret = _ctf_visitor_semantic_check(depth + 1,
 			node->u.typealias_target.type_specifier_list);
 		if (ret)
 			return ret;
 		nr_declarators = 0;
 		bt_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 			nr_declarators++;
 		}
 		if (nr_declarators > 1) {
-			fprintf(fd, "[error] %s: Too many declarators in typealias alias (%d, max is 1)\n", __func__, nr_declarators);
+			BT_LOGE("%s: Too many declarators in typealias alias (%d, max is 1)", __func__, nr_declarators);
 		
 			return -EINVAL;
 		}
@@ -683,19 +683,19 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+		ret = _ctf_visitor_semantic_check(depth + 1,
 			node->u.typealias_alias.type_specifier_list);
 		if (ret)
 			return ret;
 		nr_declarators = 0;
 		bt_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 			nr_declarators++;
 		}
 		if (nr_declarators > 1) {
-			fprintf(fd, "[error] %s: Too many declarators in typealias alias (%d, max is 1)\n", __func__, nr_declarators);
+			BT_LOGE("%s: Too many declarators in typealias alias (%d, max is 1)", __func__, nr_declarators);
 		
 			return -EINVAL;
 		}
@@ -735,21 +735,21 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 			goto errinval;
 		}
 
-		ret = _ctf_visitor_semantic_check(fd, depth + 1, node->u.typealias.target);
+		ret = _ctf_visitor_semantic_check(depth + 1, node->u.typealias.target);
 		if (ret)
 			return ret;
-		ret = _ctf_visitor_semantic_check(fd, depth + 1, node->u.typealias.alias);
+		ret = _ctf_visitor_semantic_check(depth + 1, node->u.typealias.alias);
 		if (ret)
 			return ret;
 		break;
 
 	case NODE_TYPE_SPECIFIER_LIST:
-		ret = ctf_visitor_type_specifier_list(fd, depth, node);
+		ret = ctf_visitor_type_specifier_list(depth, node);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPE_SPECIFIER:
-		ret = ctf_visitor_type_specifier(fd, depth, node);
+		ret = ctf_visitor_type_specifier(depth, node);
 		if (ret)
 			return ret;
 		break;
@@ -762,7 +762,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_TYPE_DECLARATOR:
-		ret = ctf_visitor_type_declarator(fd, depth, node);
+		ret = ctf_visitor_type_declarator(depth, node);
 		if (ret)
 			return ret;
 		break;
@@ -778,7 +778,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 			goto errperm;
 		}
 		bt_list_for_each_entry(iter, &node->u.floating_point.expressions, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -793,7 +793,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.integer.expressions, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -810,7 +810,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.string.expressions, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -837,7 +837,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
 					    || iter->u.unary_expression.link != UNARY_LINK_UNKNOWN) {
-						fprintf(fd, "[error]: semantic error (first unary expression of enumerator is unexpected)\n");
+						BT_LOGE("semantic error (first unary expression of enumerator is unexpected)");
 						goto errperm;
 					}
 					break;
@@ -845,7 +845,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
 					    || iter->u.unary_expression.link != UNARY_DOTDOTDOT) {
-						fprintf(fd, "[error]: semantic error (second unary expression of enumerator is unexpected)\n");
+						BT_LOGE("semantic error (second unary expression of enumerator is unexpected)");
 						goto errperm;
 					}
 					break;
@@ -856,7 +856,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		bt_list_for_each_entry(iter, &node->u.enumerator.values, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -873,12 +873,12 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		ret = _ctf_visitor_semantic_check(fd, depth + 1, node->u._enum.container_type);
+		ret = _ctf_visitor_semantic_check(depth + 1, node->u._enum.container_type);
 		if (ret)
 			return ret;
 
 		bt_list_for_each_entry(iter, &node->u._enum.enumerator_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -892,12 +892,12 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 		default:
 			goto errinval;
 		}
-		ret = _ctf_visitor_semantic_check(fd, depth + 1,
+		ret = _ctf_visitor_semantic_check(depth + 1,
 			node->u.struct_or_variant_declaration.type_specifier_list);
 		if (ret)
 			return ret;
 		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -913,7 +913,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 			goto errperm;
 		}
 		bt_list_for_each_entry(iter, &node->u.variant.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -930,7 +930,7 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 			goto errperm;
 		}
 		bt_list_for_each_entry(iter, &node->u._struct.declaration_list, siblings) {
-			ret = _ctf_visitor_semantic_check(fd, depth + 1, iter);
+			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
 		}
@@ -938,24 +938,24 @@ int _ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 
 	case NODE_UNKNOWN:
 	default:
-		fprintf(fd, "[error] %s: unknown node type %d\n", __func__,
+		BT_LOGE("%s: unknown node type %d", __func__,
 			(int) node->type);
 		return -EINVAL;
 	}
 	return ret;
 
 errinval:
-	fprintf(fd, "[error] %s: incoherent parent type %s for node type %s\n", __func__,
+	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
 		node_type(node->parent), node_type(node));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	fprintf(fd, "[error] %s: semantic error (parent type %s for node type %s)\n", __func__,
+	BT_LOGE("%s: semantic error (parent type %s for node type %s)", __func__,
 		node_type(node->parent), node_type(node));
 	return -EPERM;		/* Structure not allowed */
 }
 
-int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
+int ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 {
 	int ret = 0;
 
@@ -964,15 +964,18 @@ int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node)
 	 * take the safe route and recreate them at each validation, just in
 	 * case the structure has changed.
 	 */
-	printf_verbose("CTF visitor: parent links creation... ");
-	ret = ctf_visitor_parent_links(fd, depth, node);
-	if (ret)
-		return ret;
-	printf_verbose("done.\n");
-	printf_verbose("CTF visitor: semantic check... ");
-	ret = _ctf_visitor_semantic_check(fd, depth, node);
-	if (ret)
-		return ret;
-	printf_verbose("done.\n");
+	BT_LOGV("CTF visitor: parent links creation... ");
+	ret = ctf_visitor_parent_links(depth, node);
+	if (ret) {
+		goto end;
+	}
+	BT_LOGV("done.");
+	BT_LOGV("CTF visitor: semantic check... ");
+	ret = _ctf_visitor_semantic_check(depth, node);
+	if (ret) {
+		goto end;
+	}
+	BT_LOGV("done.");
+end:
 	return ret;
 }

@@ -49,10 +49,8 @@
 #include "../common/metadata/decoder.h"
 #include "query.h"
 
-#define PRINT_ERR_STREAM	ctf_fs->error_fp
-#define PRINT_PREFIX		"ctf-fs"
-#define PRINT_DBG_CHECK		ctf_fs_debug
-#include "../print.h"
+#define BT_LOG_TAG "PLUGIN-CTF-FS-SRC"
+#include "logging.h"
 
 BT_HIDDEN
 bool ctf_fs_debug;
@@ -267,13 +265,13 @@ void port_data_destroy(void *data) {
 }
 
 static
-int create_one_port_for_trace(struct ctf_fs_trace *ctf_fs_trace,
+int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
+		struct ctf_fs_trace *ctf_fs_trace,
 		struct ctf_fs_ds_file_group *ds_file_group)
 {
 	int ret = 0;
 	struct ctf_fs_port_data *port_data = NULL;
 	GString *port_name = NULL;
-	struct ctf_fs_component *ctf_fs = ctf_fs_trace->ctf_fs;
 	struct ctf_fs_ds_file_info *ds_file_info =
 		g_ptr_array_index(ds_file_group->ds_file_infos, 0);
 
@@ -290,7 +288,7 @@ int create_one_port_for_trace(struct ctf_fs_trace *ctf_fs_trace,
 	assert(ds_file_group->ds_file_infos->len > 0);
 	ds_file_info = g_ptr_array_index(ds_file_group->ds_file_infos, 0);
 	g_string_assign(port_name, ds_file_info->path->str);
-	PDBG("Creating one port named `%s`\n", port_name->str);
+	BT_LOGD("Creating one port named `%s`", port_name->str);
 
 	/* Create output port for this file */
 	port_data = g_new0(struct ctf_fs_port_data, 1);
@@ -322,10 +320,10 @@ end:
 }
 
 static
-int create_ports_for_trace(struct ctf_fs_trace *ctf_fs_trace)
+int create_ports_for_trace(struct ctf_fs_component *ctf_fs,
+		struct ctf_fs_trace *ctf_fs_trace)
 {
 	int ret = 0;
-	struct ctf_fs_component *ctf_fs = ctf_fs_trace->ctf_fs;
 	size_t i;
 
 	/* Create one output port for each stream file group */
@@ -333,9 +331,10 @@ int create_ports_for_trace(struct ctf_fs_trace *ctf_fs_trace)
 		struct ctf_fs_ds_file_group *ds_file_group =
 			g_ptr_array_index(ctf_fs_trace->ds_file_groups, i);
 
-		ret = create_one_port_for_trace(ctf_fs_trace, ds_file_group);
+		ret = create_one_port_for_trace(ctf_fs, ctf_fs_trace,
+			ds_file_group);
 		if (ret) {
-			PERR("Cannot create output port.\n");
+			BT_LOGE("Cannot create output port.");
 			goto end;
 		}
 	}
@@ -622,7 +621,6 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	struct bt_ctf_field *packet_header_field = NULL;
 	struct bt_ctf_field *packet_context_field = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
-	struct ctf_fs_component *ctf_fs = ctf_fs_trace->ctf_fs;
 	uint64_t stream_instance_id = -1ULL;
 	uint64_t begin_ns = -1ULL;
 	struct ctf_fs_ds_file_group *ds_file_group = NULL;
@@ -634,7 +632,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		ctf_fs_trace, path, &packet_header_field,
 		&packet_context_field);
 	if (ret) {
-		PERR("Cannot get stream file's first packet's header and context fields (`%s`).\n",
+		BT_LOGE("Cannot get stream file's first packet's header and context fields (`%s`).",
 			path);
 		goto error;
 	}
@@ -748,12 +746,11 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 	const char *basename;
 	GError *error = NULL;
 	GDir *dir = NULL;
-	struct ctf_fs_component *ctf_fs = ctf_fs_trace->ctf_fs;
 
 	/* Check each file in the path directory, except specific ones */
 	dir = g_dir_open(ctf_fs_trace->path->str, 0, &error);
 	if (!dir) {
-		PERR("Cannot open directory `%s`: %s (code %d)\n",
+		BT_LOGE("Cannot open directory `%s`: %s (code %d)",
 			ctf_fs_trace->path->str, error->message,
 			error->code);
 		goto error;
@@ -764,21 +761,21 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (!strcmp(basename, CTF_FS_METADATA_FILENAME)) {
 			/* Ignore the metadata stream. */
-			PDBG("Ignoring metadata file `%s/%s`\n",
+			BT_LOGD("Ignoring metadata file `%s/%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
 
 		if (basename[0] == '.') {
-			PDBG("Ignoring hidden file `%s/%s`\n",
+			BT_LOGD("Ignoring hidden file `%s/%s`",
 				ctf_fs_trace->path->str, basename);
 			continue;
 		}
 
 		/* Create the file. */
-		file = ctf_fs_file_create(ctf_fs);
+		file = ctf_fs_file_create();
 		if (!file) {
-			PERR("Cannot create stream file object for file `%s/%s`\n",
+			BT_LOGE("Cannot create stream file object for file `%s/%s`",
 				ctf_fs_trace->path->str, basename);
 			goto error;
 		}
@@ -787,22 +784,22 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		g_string_append_printf(file->path, "%s/%s",
 				ctf_fs_trace->path->str, basename);
 		if (!g_file_test(file->path->str, G_FILE_TEST_IS_REGULAR)) {
-			PDBG("Ignoring non-regular file `%s`\n",
+			BT_LOGD("Ignoring non-regular file `%s`",
 				file->path->str);
 			ctf_fs_file_destroy(file);
 			file = NULL;
 			continue;
 		}
 
-		ret = ctf_fs_file_open(ctf_fs, file, "rb");
+		ret = ctf_fs_file_open(file, "rb");
 		if (ret) {
-			PERR("Cannot open stream file `%s`\n", file->path->str);
+			BT_LOGE("Cannot open stream file `%s`", file->path->str);
 			goto error;
 		}
 
 		if (file->size == 0) {
 			/* Skip empty stream. */
-			PDBG("Ignoring empty file `%s`\n", file->path->str);
+			BT_LOGD("Ignoring empty file `%s`", file->path->str);
 			ctf_fs_file_destroy(file);
 			continue;
 		}
@@ -810,7 +807,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		ret = add_ds_file_to_ds_file_group(ctf_fs_trace,
 			file->path->str);
 		if (ret) {
-			PDBG("Cannot add stream file `%s` to stream file group\n",
+			BT_LOGD("Cannot add stream file `%s` to stream file group",
 				file->path->str);
 			ctf_fs_file_destroy(file);
 			goto error;
@@ -875,8 +872,8 @@ end:
 }
 
 static
-struct ctf_fs_trace *ctf_fs_trace_create(struct ctf_fs_component *ctf_fs,
-		const char *path, const char *name)
+struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
+		struct metadata_overrides *overrides)
 {
 	struct ctf_fs_trace *ctf_fs_trace;
 	int ret;
@@ -886,7 +883,6 @@ struct ctf_fs_trace *ctf_fs_trace_create(struct ctf_fs_component *ctf_fs,
 		goto end;
 	}
 
-	ctf_fs_trace->ctf_fs = ctf_fs;
 	ctf_fs_trace->path = g_string_new(path);
 	if (!ctf_fs_trace->path) {
 		goto error;
@@ -908,7 +904,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
-	ret = ctf_fs_metadata_set_trace(ctf_fs_trace);
+	ret = ctf_fs_metadata_set_trace(ctf_fs_trace, overrides);
 	if (ret) {
 		goto error;
 	}
@@ -919,11 +915,6 @@ struct ctf_fs_trace *ctf_fs_trace_create(struct ctf_fs_component *ctf_fs,
 	}
 
 	ret = create_cc_prio_map(ctf_fs_trace);
-	if (ret) {
-		goto error;
-	}
-
-	ret = create_ports_for_trace(ctf_fs_trace);
 	if (ret) {
 		goto error;
 	}
@@ -968,21 +959,20 @@ end:
 }
 
 static
-int add_trace_path(struct ctf_fs_component *ctf_fs, GList **trace_paths,
-		const char *path)
+int add_trace_path(GList **trace_paths, const char *path)
 {
 	GString *norm_path = NULL;
 	int ret = 0;
 
 	norm_path = bt_common_normalize_path(path, NULL);
 	if (!norm_path) {
-		PERR("Failed to normalize path `%s`.\n", path);
+		BT_LOGE("Failed to normalize path `%s`.", path);
 		ret = -1;
 		goto end;
 	}
 
 	if (strcmp(norm_path->str, "/") == 0) {
-		PERR("Opening a trace in `/` is not supported.\n");
+		BT_LOGE("Opening a trace in `/` is not supported.");
 		ret = -1;
 		goto end;
 	}
@@ -999,9 +989,8 @@ end:
 	return ret;
 }
 
-static
-int find_ctf_traces(struct ctf_fs_component *ctf_fs,
-		GList **trace_paths, const char *start_path)
+BT_HIDDEN
+int ctf_fs_find_traces(GList **trace_paths, const char *start_path)
 {
 	int ret;
 	GError *error = NULL;
@@ -1019,7 +1008,7 @@ int find_ctf_traces(struct ctf_fs_component *ctf_fs,
 		 * Stop recursion: a CTF trace cannot contain another
 		 * CTF trace.
 		 */
-		ret = add_trace_path(ctf_fs, trace_paths, start_path);
+		ret = add_trace_path(trace_paths, start_path);
 		goto end;
 	}
 
@@ -1032,12 +1021,12 @@ int find_ctf_traces(struct ctf_fs_component *ctf_fs,
 	dir = g_dir_open(start_path, 0, &error);
 	if (!dir) {
 		if (error->code == G_FILE_ERROR_ACCES) {
-			PDBG("Cannot open directory `%s`: %s (code %d): continuing\n",
+			BT_LOGD("Cannot open directory `%s`: %s (code %d): continuing",
 				start_path, error->message, error->code);
 			goto end;
 		}
 
-		PERR("Cannot open directory `%s`: %s (code %d)\n",
+		BT_LOGE("Cannot open directory `%s`: %s (code %d)",
 			start_path, error->message, error->code);
 		ret = -1;
 		goto end;
@@ -1052,7 +1041,7 @@ int find_ctf_traces(struct ctf_fs_component *ctf_fs,
 		}
 
 		g_string_printf(sub_path, "%s/%s", start_path, basename);
-		ret = find_ctf_traces(ctf_fs, trace_paths, sub_path->str);
+		ret = ctf_fs_find_traces(trace_paths, sub_path->str);
 		g_string_free(sub_path, TRUE);
 		if (ret) {
 			goto end;
@@ -1071,8 +1060,8 @@ end:
 	return ret;
 }
 
-static
-GList *create_trace_names(GList *trace_paths, const char *base_path) {
+BT_HIDDEN
+GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
 	GList *trace_names = NULL;
 	GList *node;
 	const char *last_sep;
@@ -1135,28 +1124,32 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 	GList *trace_names = NULL;
 	GList *tp_node;
 	GList *tn_node;
+	struct metadata_overrides metadata_overrides = {
+		.clock_offset_s = ctf_fs->options.clock_offset,
+		.clock_offset_ns = ctf_fs->options.clock_offset_ns,
+	};
 
 	norm_path = bt_common_normalize_path(path_param, NULL);
 	if (!norm_path) {
-		PERR("Failed to normalize path: `%s`.\n",
+		BT_LOGE("Failed to normalize path: `%s`.",
 			path_param);
 		goto error;
 	}
 
-	ret = find_ctf_traces(ctf_fs, &trace_paths, norm_path->str);
+	ret = ctf_fs_find_traces(&trace_paths, norm_path->str);
 	if (ret) {
 		goto error;
 	}
 
 	if (!trace_paths) {
-		PERR("No CTF traces recursively found in `%s`.\n",
+		BT_LOGE("No CTF traces recursively found in `%s`.",
 			path_param);
 		goto error;
 	}
 
-	trace_names = create_trace_names(trace_paths, norm_path->str);
+	trace_names = ctf_fs_create_trace_names(trace_paths, norm_path->str);
 	if (!trace_names) {
-		PERR("Cannot create trace names from trace paths.\n");
+		BT_LOGE("Cannot create trace names from trace paths.");
 		goto error;
 	}
 
@@ -1166,11 +1159,16 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
 
-		ctf_fs_trace = ctf_fs_trace_create(ctf_fs, trace_path->str,
-			trace_name->str);
+		ctf_fs_trace = ctf_fs_trace_create(trace_path->str,
+				trace_name->str, &metadata_overrides);
 		if (!ctf_fs_trace) {
-			PERR("Cannot create trace for `%s`.\n",
+			BT_LOGE("Cannot create trace for `%s`.",
 				trace_path->str);
+			goto error;
+		}
+
+		ret = create_ports_for_trace(ctf_fs, ctf_fs_trace);
+		if (ret) {
 			goto error;
 		}
 
@@ -1248,8 +1246,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		int64_t offset;
 
 		if (!bt_value_is_integer(value)) {
-			fprintf(stderr,
-				"offset-s should be an integer\n");
+			BT_LOGE("offset-s should be an integer");
 			goto error;
 		}
 		ret = bt_value_integer_get(value, &offset);
@@ -1263,8 +1260,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		int64_t offset;
 
 		if (!bt_value_is_integer(value)) {
-			fprintf(stderr,
-				"offset-ns should be an integer\n");
+			BT_LOGE("offset-ns should be an integer");
 			goto error;
 		}
 		ret = bt_value_integer_get(value, &offset);
@@ -1273,8 +1269,6 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		BT_PUT(value);
 	}
 
-	ctf_fs->error_fp = stderr;
-	ctf_fs->page_size = bt_common_get_page_size();
 	ctf_fs->port_data = g_ptr_array_new_with_free_func(port_data_destroy);
 	if (!ctf_fs->port_data) {
 		goto error;
@@ -1328,7 +1322,7 @@ struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
 	if (!strcmp(object, "metadata-info")) {
 		result = metadata_info_query(comp_class, params);
 	} else {
-		fprintf(stderr, "Unknown query object `%s`\n", object);
+		BT_LOGE("Unknown query object `%s`", object);
 		goto end;
 	}
 end:

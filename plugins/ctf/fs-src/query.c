@@ -29,6 +29,10 @@
 #include <assert.h>
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
+#include <babeltrace/common-internal.h>
+
+#define BT_LOG_TAG "PLUGIN-CTF-FS-QUERY-SRC"
+#include "logging.h"
 
 #define METADATA_TEXT_SIG	"/* CTF 1.8"
 

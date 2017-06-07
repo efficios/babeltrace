@@ -22,7 +22,9 @@ libctf_ast_la_SOURCES = \
 	scanner.h \
 	scanner-symbols.h \
 	decoder.c \
-	decoder.h
+	decoder.h \
+	logging.c \
+	logging.h
 
 libctf_ast_la_LIBADD =
 

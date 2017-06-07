@@ -32,10 +32,9 @@ BT_HIDDEN
 void ctf_fs_file_destroy(struct ctf_fs_file *file);
 
 BT_HIDDEN
-struct ctf_fs_file *ctf_fs_file_create(struct ctf_fs_component *ctf_fs);
+struct ctf_fs_file *ctf_fs_file_create(void);
 
 BT_HIDDEN
-int ctf_fs_file_open(struct ctf_fs_component *ctf_fs, struct ctf_fs_file *file,
-		const char *mode);
+int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode);
 
 #endif /* CTF_FS_FILE_H */

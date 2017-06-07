@@ -275,11 +275,9 @@ struct bt_ctf_btr_cbs {
  *
  * @param cbs		User callback functions
  * @param data		User data (passed to user callback functions)
- * @param err_stream	Error stream (can be \c NULL to disable)
  * @returns		New binary type reader on success, or \c NULL on error
  */
-struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data,
-		FILE *err_stream);
+struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data);
 
 /**
  * Destroys a CTF binary type reader, freeing all internal resources.

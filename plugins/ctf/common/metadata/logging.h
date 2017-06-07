@@ -1,8 +1,8 @@
-#ifndef CTF_FS_METADATA_H
-#define CTF_FS_METADATA_H
+#ifndef CTF_METADATA_LOGGING_H
+#define CTF_METADATA_LOGGING_H
 
 /*
- * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
+ * Copyright (c) 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,37 +23,9 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include "fs.h"
+#define BT_LOG_OUTPUT_LEVEL metadata_log_level
+#include <babeltrace/logging-internal.h>
 
-#define CTF_FS_METADATA_FILENAME	"metadata"
+BT_LOG_LEVEL_EXTERN_SYMBOL(metadata_log_level);
 
-struct metadata_overrides {
-	int64_t clock_offset_s;
-	int64_t clock_offset_ns;
-};
-
-BT_HIDDEN
-int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata);
-
-BT_HIDDEN
-void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata);
-
-BT_HIDDEN
-int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
-		struct metadata_overrides *overrides);
-
-BT_HIDDEN
-FILE *ctf_fs_metadata_open_file(const char *trace_path);
-
-BT_HIDDEN
-bool ctf_metadata_is_packetized(FILE *fp, int *byte_order);
-
-BT_HIDDEN
-int ctf_metadata_packetized_file_to_buf(struct ctf_fs_component *ctf_fs,
-		FILE *fp, uint8_t **buf, int byte_order);
-
-#endif /* CTF_FS_METADATA_H */
+#endif /* CTF_METADATA_LOGGING_H */

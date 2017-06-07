@@ -118,7 +118,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_lazy_notif_init(
 			}
 			stream->notif_iter = bt_ctf_notif_iter_create(trace->trace,
 					lttng_live->max_query_size, medops,
-					stream, stderr);
+					stream);
 			if (!stream->notif_iter) {
 				goto error;
 			}
@@ -160,7 +160,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	if (trace->trace) {
 		stream->notif_iter = bt_ctf_notif_iter_create(trace->trace,
 				lttng_live->max_query_size, medops,
-				stream, stderr);
+				stream);
 		if (!stream->notif_iter) {
 			goto error;
 		}

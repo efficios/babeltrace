@@ -43,10 +43,6 @@
 
 #include "btr.h"
 
-#define PRINT_ERR_STREAM	(btr ? btr->err_stream : stderr)
-#define PRINT_PREFIX		"ctf-btr"
-#include "../print.h"
-
 #define DIV8(_x)			((_x) >> 3)
 #define BYTES_TO_BITS(_x)		((_x) * 8)
 #define BITS_TO_BYTES_FLOOR(_x)		DIV8(_x)
@@ -94,9 +90,6 @@ enum btr_state {
 struct bt_ctf_btr {
 	/* Bisit stack */
 	struct stack *stack;
-
-	/* Error stream */
-	FILE *err_stream;
 
 	/* Current basic field type */
 	struct bt_ctf_field_type *cur_basic_field_type;
@@ -1404,8 +1397,7 @@ enum bt_ctf_btr_status handle_state(struct bt_ctf_btr *btr)
 	return status;
 }
 
-struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data,
-	FILE *err_stream)
+struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data)
 {
 	struct bt_ctf_btr *btr;
 
@@ -1427,7 +1419,6 @@ struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data,
 	btr->state = BTR_STATE_NEXT_FIELD;
 	btr->user.cbs = cbs;
 	btr->user.data = data;
-	btr->err_stream = err_stream;
 	BT_LOGD("Created BTR: addr=%p", btr);
 
 end:

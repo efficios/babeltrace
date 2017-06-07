@@ -247,7 +247,7 @@ struct bt_ctf_notif_iter_notif_event {
 BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 	size_t max_request_sz, struct bt_ctf_notif_iter_medium_ops medops,
-	void *medops_data, FILE *err_stream);
+	void *medops_data);
 
 /**
  * Destroys a CTF notification iterator, freeing all internal resources.

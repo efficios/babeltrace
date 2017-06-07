@@ -38,9 +38,6 @@ BT_HIDDEN
 extern bool ctf_fs_debug;
 
 struct ctf_fs_file {
-	/* Weak, belongs to component */
-	struct ctf_fs_component *ctf_fs;
-
 	/* Owned by this */
 	GString *path;
 
@@ -100,8 +97,8 @@ struct ctf_fs_ds_file {
 };
 
 struct ctf_fs_component_options {
-	uint64_t clock_offset;
-	uint64_t clock_offset_ns;
+	int64_t clock_offset;
+	int64_t clock_offset_ns;
 };
 
 struct ctf_fs_component {
@@ -115,14 +112,9 @@ struct ctf_fs_component {
 	GPtrArray *traces;
 
 	struct ctf_fs_component_options options;
-	FILE *error_fp;
-	size_t page_size;
 };
 
 struct ctf_fs_trace {
-	/* Weak, belongs to component */
-	struct ctf_fs_component *ctf_fs;
-
 	/* Owned by this */
 	struct ctf_fs_metadata *metadata;
 
@@ -186,13 +178,19 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 		struct bt_private_notification_iterator *it,
 		struct bt_private_port *port);
 
+BT_HIDDEN
+struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
+		const char *object, struct bt_value *params);
+
+BT_HIDDEN
+int ctf_fs_find_traces(GList **trace_paths, const char *start_path);
+
+BT_HIDDEN
+GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path);
+
 void ctf_fs_iterator_finalize(struct bt_private_notification_iterator *it);
 
 struct bt_notification_iterator_next_return ctf_fs_iterator_next(
 		struct bt_private_notification_iterator *iterator);
-
-BT_HIDDEN
-struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
-		const char *object, struct bt_value *params);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

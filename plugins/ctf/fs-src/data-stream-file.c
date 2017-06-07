@@ -36,6 +36,7 @@
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-packet.h>
+#include <babeltrace/common-internal.h>
 #include "file.h"
 #include "metadata.h"
 #include "../common/notif-iter/notif-iter.h"
@@ -43,10 +44,8 @@
 #include "data-stream-file.h"
 #include <string.h>
 
-#define PRINT_ERR_STREAM	ctf_fs->error_fp
-#define PRINT_PREFIX		"ctf-fs-data-stream"
-#define PRINT_DBG_CHECK		ctf_fs_debug
-#include "../print.h"
+#define BT_LOG_TAG "PLUGIN-CTF-FS-SRC-DS"
+#include "logging.h"
 
 static inline
 size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
@@ -58,15 +57,13 @@ static
 int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 {
 	int ret = 0;
-	struct ctf_fs_component *ctf_fs;
 
 	if (!ds_file || !ds_file->mmap_addr) {
 		goto end;
 	}
 
-	ctf_fs = ds_file->file->ctf_fs;
 	if (munmap(ds_file->mmap_addr, ds_file->mmap_len)) {
-		PERR("Cannot memory-unmap address %p (size %zu) of file \"%s\" (%p): %s\n",
+		BT_LOGE("Cannot memory-unmap address %p (size %zu) of file \"%s\" (%p): %s",
 			ds_file->mmap_addr, ds_file->mmap_len,
 			ds_file->file->path->str, ds_file->file->fp,
 			strerror(errno));
@@ -84,9 +81,9 @@ static
 enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 		struct ctf_fs_ds_file *ds_file)
 {
+	const size_t page_size = bt_common_get_page_size();
 	enum bt_ctf_notif_iter_medium_status ret =
 			BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
-	struct ctf_fs_component *ctf_fs = ds_file->file->ctf_fs;
 
 	/* Unmap old region */
 	if (ds_file->mmap_addr) {
@@ -105,15 +102,15 @@ enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 		goto end;
 	}
 	/* Round up to next page, assuming page size being a power of 2. */
-	ds_file->mmap_len = (ds_file->mmap_valid_len + ctf_fs->page_size - 1)
-			& ~(ctf_fs->page_size - 1);
+	ds_file->mmap_len = (ds_file->mmap_valid_len + page_size - 1)
+			& ~(page_size - 1);
 	/* Map new region */
 	assert(ds_file->mmap_len);
 	ds_file->mmap_addr = mmap((void *) 0, ds_file->mmap_len,
 			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
 			ds_file->mmap_offset);
 	if (ds_file->mmap_addr == MAP_FAILED) {
-		PERR("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %zu: %s\n",
+		BT_LOGE("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %zu: %s",
 				ds_file->mmap_len, ds_file->file->path->str,
 				ds_file->file->fp, ds_file->mmap_offset,
 				strerror(errno));
@@ -136,7 +133,6 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	enum bt_ctf_notif_iter_medium_status status =
 		BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
-	struct ctf_fs_component *ctf_fs = ds_file->file->ctf_fs;
 
 	if (request_sz == 0) {
 		goto end;
@@ -146,7 +142,7 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	if (remaining_mmap_bytes(ds_file) == 0) {
 		/* Are we at the end of the file? */
 		if (ds_file->mmap_offset >= ds_file->file->size) {
-			PDBG("Reached end of file \"%s\" (%p)\n",
+			BT_LOGD("Reached end of file \"%s\" (%p)",
 				ds_file->file->path->str, ds_file->file->fp);
 			status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
 			goto end;
@@ -159,7 +155,7 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 		case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF:
 			goto end;
 		default:
-			PERR("Cannot memory-map next region of file \"%s\" (%p)\n",
+			BT_LOGE("Cannot memory-map next region of file \"%s\" (%p)",
 					ds_file->file->path->str,
 					ds_file->file->fp);
 			goto error;
@@ -229,18 +225,23 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 	/* Look for index file in relative path index/name.idx. */
 	basename = g_path_get_basename(ds_file->file->path->str);
 	if (!basename) {
+		BT_LOGE("Failed to get the  basename of datastream file %s",
+				ds_file->file->path->str);
 		ret = -1;
 		goto end;
 	}
 
 	directory = g_path_get_dirname(ds_file->file->path->str);
 	if (!directory) {
+		BT_LOGE("Failed to get dirname of datastream file %s",
+				ds_file->file->path->str);
 		ret = -1;
 		goto end;
 	}
 
 	index_basename = g_string_new(basename);
 	if (!index_basename) {
+		BT_LOGE("Failed to allocate index file basename string");
 		ret = -1;
 		goto end;
 	}
@@ -250,12 +251,14 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 			index_basename->str, NULL);
 	mapped_file = g_mapped_file_new(index_file_path, FALSE, NULL);
 	if (!mapped_file) {
+		BT_LOGD("Failed to create new mapped file %s",
+				index_file_path);
 		ret = -1;
 		goto end;
 	}
 	filesize = g_mapped_file_get_length(mapped_file);
 	if (filesize < sizeof(*header)) {
-		printf_error("Invalid LTTng trace index: file size < header size");
+		BT_LOGW("Invalid LTTng trace index file: file size < header size");
 		ret = -1;
 		goto end;
 	}
@@ -265,7 +268,7 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 
 	file_pos = g_mapped_file_get_contents(mapped_file) + sizeof(*header);
 	if (be32toh(header->magic) != CTF_INDEX_MAGIC) {
-		printf_error("Invalid LTTng trace index: \"magic\" validation failed");
+		BT_LOGW("Invalid LTTng trace index: \"magic\" validation failed");
 		ret = -1;
 		goto end;
 	}
@@ -273,7 +276,7 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 	file_index_entry_size = be32toh(header->packet_index_len);
 	file_entry_count = (filesize - sizeof(*header)) / file_index_entry_size;
 	if ((filesize - sizeof(*header)) % (file_entry_count * file_index_entry_size)) {
-		printf_error("Invalid index file size; not a multiple of index entry size");
+		BT_LOGW("Invalid index file size; not a multiple of index entry size");
 		ret = -1;
 		goto end;
 	}
@@ -292,7 +295,7 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 
 		if (packet_size % CHAR_BIT) {
 			ret = -1;
-			printf_error("Invalid packet size encountered in index file");
+			BT_LOGW("Invalid packet size encountered in index file");
 			goto invalid_index;
 		}
 
@@ -302,7 +305,7 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 
 		index->offset = be64toh(file_index->offset);
 		if (i != 0 && index->offset < (index - 1)->offset) {
-			printf_error("Invalid, non-monotonic, packet offset encountered in index file");
+			BT_LOGW("Invalid, non-monotonic, packet offset encountered in index file");
 			ret = -1;
 			goto invalid_index;
 		}
@@ -310,7 +313,7 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 		index->timestamp_begin = be64toh(file_index->timestamp_begin);
 		index->timestamp_end = be64toh(file_index->timestamp_end);
 		if (index->timestamp_end < index->timestamp_begin) {
-			printf_error("Invalid packet time bounds encountered in index file");
+			BT_LOGW("Invalid packet time bounds encountered in index file");
 			ret = -1;
 			goto invalid_index;
 		}
@@ -322,7 +325,7 @@ int build_index_from_idx_file(struct ctf_fs_ds_file *ds_file)
 
 	/* Validate that the index addresses the complete stream. */
 	if (ds_file->file->size != total_packets_size) {
-		printf_error("Invalid index; indexed size != stream file size");
+		BT_LOGW("Invalid index; indexed size != stream file size");
 		ret = -1;
 		goto invalid_index;
 	}
@@ -370,13 +373,14 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		bool build_index)
 {
 	int ret;
+	const size_t page_size = bt_common_get_page_size();
 	struct ctf_fs_ds_file *ds_file = g_new0(struct ctf_fs_ds_file, 1);
 
 	if (!ds_file) {
 		goto error;
 	}
 
-	ds_file->file = ctf_fs_file_create(ctf_fs_trace->ctf_fs);
+	ds_file->file = ctf_fs_file_create();
 	if (!ds_file->file) {
 		goto error;
 	}
@@ -384,20 +388,18 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 	ds_file->stream = bt_get(stream);
 	ds_file->cc_prio_map = bt_get(ctf_fs_trace->cc_prio_map);
 	g_string_assign(ds_file->file->path, path);
-	ret = ctf_fs_file_open(ctf_fs_trace->ctf_fs, ds_file->file, "rb");
+	ret = ctf_fs_file_open(ds_file->file, "rb");
 	if (ret) {
 		goto error;
 	}
 
 	ds_file->notif_iter = bt_ctf_notif_iter_create(
-		ctf_fs_trace->metadata->trace,
-		ctf_fs_trace->ctf_fs->page_size, medops, ds_file,
-		ctf_fs_trace->ctf_fs->error_fp);
+		ctf_fs_trace->metadata->trace, page_size, medops, ds_file);
 	if (!ds_file->notif_iter) {
 		goto error;
 	}
 
-	ds_file->mmap_max_len = ctf_fs_trace->ctf_fs->page_size * 2048;
+	ds_file->mmap_max_len = page_size * 2048;
 
 	if (build_index) {
 		ret = init_stream_index(ds_file);

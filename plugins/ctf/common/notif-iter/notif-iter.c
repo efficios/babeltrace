@@ -143,9 +143,6 @@ struct bt_ctf_notif_iter {
 	/* Visit stack */
 	struct stack *stack;
 
-	/* Error stream (may be NULL) */
-	FILE *err_stream;
-
 	/*
 	 * Current dynamic scope field pointer.
 	 *
@@ -2883,8 +2880,7 @@ end:
 BT_HIDDEN
 struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		size_t max_request_sz,
-		struct bt_ctf_notif_iter_medium_ops medops,
-		void *data, FILE *err_stream)
+		struct bt_ctf_notif_iter_medium_ops medops, void *data)
 {
 	int ret;
 	struct bt_ctf_notif_iter *notit = NULL;
@@ -2932,14 +2928,13 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 	notit->medium.medops = medops;
 	notit->medium.max_request_sz = max_request_sz;
 	notit->medium.data = data;
-	notit->err_stream = err_stream;
 	notit->stack = stack_new(notit);
 	if (!notit->stack) {
 		BT_LOGE_STR("Failed to create field stack.");
 		goto error;
 	}
 
-	notit->btr = bt_ctf_btr_create(cbs, notit, err_stream);
+	notit->btr = bt_ctf_btr_create(cbs, notit);
 	if (!notit->btr) {
 		BT_LOGE_STR("Failed to create binary type reader (BTR).");
 		goto error;

@@ -308,8 +308,8 @@ struct ctf_ast {
 const char *node_type(struct ctf_node *node);
 
 BT_HIDDEN
-struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(FILE *efd,
-		uint64_t clock_class_offset_ns, const char *name);
+struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
+		int64_t clock_class_offset_ns, const char *name);
 
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 
@@ -322,9 +322,9 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		struct ctf_node *node);
 
 BT_HIDDEN
-int ctf_visitor_semantic_check(FILE *fd, int depth, struct ctf_node *node);
+int ctf_visitor_semantic_check(int depth, struct ctf_node *node);
 
 BT_HIDDEN
-int ctf_visitor_parent_links(FILE *fd, int depth, struct ctf_node *node);
+int ctf_visitor_parent_links(int depth, struct ctf_node *node);
 
 #endif /* _CTF_AST_H */
