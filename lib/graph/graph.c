@@ -80,6 +80,12 @@ void bt_graph_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying graph: addr=%p", graph);
 	obj->ref_count.count++;
 
+	/*
+	 * Cancel the graph to disallow some operations, like creating
+	 * notification iterators and adding ports to components.
+	 */
+	(void) bt_graph_cancel(graph);
+
 	if (graph->connections) {
 		BT_LOGD_STR("Destroying connections.");
 		g_ptr_array_free(graph->connections, TRUE);
