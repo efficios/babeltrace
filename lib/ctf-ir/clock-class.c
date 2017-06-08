@@ -29,6 +29,7 @@
 #define BT_LOG_TAG "CLOCK-CLASS"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
@@ -118,13 +119,6 @@ struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name)
 		}
 	}
 
-	ret = bt_uuid_generate(clock_class->uuid);
-	if (ret) {
-		BT_LOGE_STR("Failed to generate a UUID.");
-		goto error;
-	}
-
-	clock_class->uuid_set = 1;
 	BT_LOGD("Created clock class object: addr=%p, name=\"%s\"",
 		clock_class, name);
 	return clock_class;

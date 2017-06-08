@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -41,7 +42,9 @@ void bt_ctf_clock_destroy(struct bt_object *obj);
 
 struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 {
+	int ret;
 	struct bt_ctf_clock *clock = NULL;
+	unsigned char cc_uuid[BABELTRACE_UUID_LEN];
 
 	if (!name) {
 		goto error;
@@ -59,6 +62,15 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	if (!clock->clock_class) {
 		goto error;
 	}
+
+	/* Automatically set clock class's UUID. */
+	ret = bt_uuid_generate(cc_uuid);
+	if (ret) {
+		goto error;
+	}
+
+	ret = bt_ctf_clock_class_set_uuid(clock->clock_class, cc_uuid);
+	assert(ret == 0);
 	return clock;
 
 error:
