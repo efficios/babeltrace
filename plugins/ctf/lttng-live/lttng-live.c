@@ -123,6 +123,9 @@ int lttng_live_add_port(struct lttng_live_component *lttng_live,
 	ret = sprintf(name, STREAM_NAME_PREFIX "%" PRIu64, stream_iter->viewer_stream_id);
 	assert(ret > 0);
 	strcpy(stream_iter->name, name);
+	if (lttng_live_is_canceled(lttng_live)) {
+		return 0;
+	}
 	status = bt_private_component_source_add_output_private_port(
 			lttng_live->private_component, name, stream_iter,
 			&private_port);
@@ -169,6 +172,10 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 		enum bt_component_status status;
 
 		assert(!lttng_live->no_stream_port);
+
+		if (lttng_live_is_canceled(lttng_live)) {
+			return 0;
+		}
 		status = bt_private_component_source_add_output_private_port(lttng_live->private_component,
 				"no-stream", lttng_live->no_stream_iter,
 				&lttng_live->no_stream_port);
@@ -210,16 +217,18 @@ static
 void lttng_live_destroy_trace(struct bt_object *obj)
 {
 	struct lttng_live_trace *trace = container_of(obj, struct lttng_live_trace, obj);
-	int retval;
 
 	BT_LOGI("Destroy trace");
 	assert(bt_list_empty(&trace->streams));
 	bt_list_del(&trace->node);
 
-	retval = bt_ctf_trace_set_is_static(trace->trace);
-	assert(!retval);
+	if (trace->trace) {
+		int retval;
 
-	BT_PUT(trace->trace);
+		retval = bt_ctf_trace_set_is_static(trace->trace);
+		assert(!retval);
+		BT_PUT(trace->trace);
+	}
 	lttng_live_metadata_fini(trace);
 	BT_PUT(trace->cc_prio_map);
 	g_free(trace);
@@ -1108,6 +1117,9 @@ enum bt_component_status lttng_live_component_init(
 	lttng_live->no_stream_iter = g_new0(struct lttng_live_no_stream_iterator, 1);
 	lttng_live->no_stream_iter->p.type = LIVE_STREAM_TYPE_NO_STREAM;
 	lttng_live->no_stream_iter->lttng_live = lttng_live;
+	if (lttng_live_is_canceled(lttng_live)) {
+		goto end;
+	}
 	ret = bt_private_component_source_add_output_private_port(
 				lttng_live->private_component, "no-stream",
 				lttng_live->no_stream_iter,
