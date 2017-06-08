@@ -23,6 +23,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
 #include <babeltrace/graph/component.h>
+#include <babeltrace/graph/graph.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -148,6 +149,7 @@ static void test_sfs(const char *plugin_dir)
 	struct bt_value *results;
 	struct bt_value *object;
 	struct bt_value *res_params;
+	struct bt_graph *graph;
 	const char *object_str;
 	int ret;
 
@@ -218,20 +220,35 @@ static void test_sfs(const char *plugin_dir)
 
 	diag("> putting the plugin object here");
 	BT_PUT(plugin);
-	sink_component = bt_component_create(sink_comp_class, NULL, NULL);
-	ok(sink_component, "bt_component_create() still works after the plugin object is destroyed");
+	graph = bt_graph_create();
+	assert(graph);
+	ret = bt_graph_add_component(graph, sink_comp_class, "the-sink", NULL,
+		&sink_component);
+	ok(ret == 0 && sink_component,
+		"bt_graph_add_component() still works after the plugin object is destroyed");
 	BT_PUT(sink_component);
 	BT_PUT(source_comp_class);
-	sink_component = bt_component_create(sink_comp_class, NULL, NULL);
-	ok(sink_component, "bt_component_create() still works after the source component class object is destroyed");
+	bt_put(graph);
+	graph = bt_graph_create();
+	assert(graph);
+	ret = bt_graph_add_component(graph, sink_comp_class, "the-sink", NULL,
+		&sink_component);
+	ok(ret == 0 && sink_component,
+		"bt_graph_add_component() still works after the source component class object is destroyed");
 	BT_PUT(sink_component);
 	BT_PUT(filter_comp_class);
-	sink_component = bt_component_create(sink_comp_class, NULL, NULL);
-	ok(sink_component, "bt_component_create() still works after the filter component class object is destroyed");
+	bt_put(graph);
+	graph = bt_graph_create();
+	assert(graph);
+	ret = bt_graph_add_component(graph, sink_comp_class, "the-sink", NULL,
+		&sink_component);
+	ok(ret == 0 && sink_component,
+		"bt_graph_add_component() still works after the filter component class object is destroyed");
 	BT_PUT(sink_comp_class);
 	BT_PUT(sink_component);
 
 	free(sfs_path);
+	bt_put(graph);
 	bt_put(plugin_set);
 	bt_put(object);
 	bt_put(res_params);

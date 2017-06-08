@@ -45,7 +45,7 @@ void bt_component_filter_destroy(struct bt_component *component)
 
 BT_HIDDEN
 struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class, struct bt_value *params)
+		struct bt_component_class *class)
 {
 	struct bt_component_filter *filter = NULL;
 

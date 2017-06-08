@@ -1418,6 +1418,11 @@ void graph_port_added_listener(struct bt_port *port, void *data)
 		"comp-name=\"%s\", port-addr=%p, port-name=\"%s\"",
 		comp, comp ? bt_component_get_name(comp) : "",
 		port, bt_port_get_name(port));
+
+	if (!ctx->connect_ports) {
+		goto end;
+	}
+
 	if (!comp) {
 		BT_LOGW_STR("Port has no component.");
 		goto end;
@@ -1598,9 +1603,9 @@ int cmd_run_ctx_create_components_from_config_components(
 			goto error;
 		}
 
-		comp = bt_component_create(comp_cls,
-			cfg_comp->instance_name->str, cfg_comp->params);
-		if (!comp) {
+		ret = bt_graph_add_component(ctx->graph, comp_cls,
+			cfg_comp->instance_name->str, cfg_comp->params, &comp);
+		if (ret) {
 			BT_LOGE("Cannot create component: plugin-name=\"%s\", "
 				"comp-cls-name=\"%s\", comp-cls-type=%d, "
 				"comp-name=\"%s\"",
@@ -1744,8 +1749,6 @@ const char *bt_graph_status_str(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_END";
 	case BT_GRAPH_STATUS_OK:
 		return "BT_GRAPH_STATUS_OK";
-	case BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH:
-		return "BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH";
 	case BT_GRAPH_STATUS_INVALID:
 		return "BT_GRAPH_STATUS_INVALID";
 	case BT_GRAPH_STATUS_NO_SINK:

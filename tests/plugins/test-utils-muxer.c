@@ -912,7 +912,8 @@ void sink_finalize(struct bt_private_component *private_component)
 }
 
 static
-void create_source_muxer_sink(struct bt_component **source,
+void create_source_muxer_sink(struct bt_graph *graph,
+		struct bt_component **source,
 		struct bt_component **muxer,
 		struct bt_component **sink)
 {
@@ -935,15 +936,15 @@ void create_source_muxer_sink(struct bt_component **source,
 	ret = bt_component_class_source_set_notification_iterator_finalize_method(
 		src_comp_class, src_iter_finalize);
 	assert(ret == 0);
-	*source = bt_component_create(src_comp_class, "source", NULL);
-	assert(*source);
+	ret = bt_graph_add_component(graph, src_comp_class, "source", NULL, source);
+	assert(ret == 0);
 
 	/* Create muxer component */
 	muxer_comp_class = bt_plugin_find_component_class("utils", "muxer",
 		BT_COMPONENT_CLASS_TYPE_FILTER);
 	assert(muxer_comp_class);
-	*muxer = bt_component_create(muxer_comp_class, "muxer", NULL);
-	assert(*muxer);
+	ret = bt_graph_add_component(graph, muxer_comp_class, "muxer", NULL, muxer);
+	assert(ret == 0);
 
 	/* Create sink component */
 	sink_comp_class = bt_component_class_sink_create("sink", sink_consume);
@@ -955,7 +956,8 @@ void create_source_muxer_sink(struct bt_component **source,
 	ret = bt_component_class_set_port_connected_method(sink_comp_class,
 		sink_port_connected);
 	assert(ret == 0);
-	*sink = bt_component_create(sink_comp_class, "sink", NULL);
+	ret = bt_graph_add_component(graph, sink_comp_class, "sink", NULL, sink);
+	assert(ret == 0);
 
 	bt_put(src_comp_class);
 	bt_put(muxer_comp_class);
@@ -980,9 +982,9 @@ void do_std_test(enum test test, const char *name,
 	clear_test_events();
 	current_test = test;
 	diag("test: %s", name);
-	create_source_muxer_sink(&src_comp, &muxer_comp, &sink_comp);
 	graph = bt_graph_create();
 	assert(graph);
+	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
 
 	/* Connect source output ports to muxer input ports */
 	if (with_upstream) {
@@ -1454,9 +1456,9 @@ void test_single_end_then_multiple_full(void)
 	clear_test_events();
 	current_test = TEST_SINGLE_END_THEN_MULTIPLE_FULL;
 	diag("test: single end then multiple full");
-	create_source_muxer_sink(&src_comp, &muxer_comp, &sink_comp);
 	graph = bt_graph_create();
 	assert(graph);
+	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
 	graph_listener_data.graph = graph;
 	graph_listener_data.source = src_comp;
 	graph_listener_data.muxer = muxer_comp;
@@ -1582,9 +1584,9 @@ void test_single_again_end_then_multiple_full(void)
 	clear_test_events();
 	current_test = TEST_SINGLE_AGAIN_END_THEN_MULTIPLE_FULL;
 	diag("test: single again then end then multiple full");
-	create_source_muxer_sink(&src_comp, &muxer_comp, &sink_comp);
 	graph = bt_graph_create();
 	assert(graph);
+	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
 	graph_listener_data.graph = graph;
 	graph_listener_data.source = src_comp;
 	graph_listener_data.muxer = muxer_comp;

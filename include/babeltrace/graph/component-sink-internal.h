@@ -49,7 +49,7 @@ struct bt_component_sink {
  */
 BT_HIDDEN
 struct bt_component *bt_component_sink_create(
-		struct bt_component_class *class, struct bt_value *params);
+		struct bt_component_class *class);
 
 BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component);

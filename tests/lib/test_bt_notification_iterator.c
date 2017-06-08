@@ -866,7 +866,7 @@ void sink_finalize(struct bt_private_component *private_component)
 }
 
 static
-void create_source_sink(struct bt_component **source,
+void create_source_sink(struct bt_graph *graph, struct bt_component **source,
 		struct bt_component **sink)
 {
 	struct bt_component_class *src_comp_class;
@@ -887,8 +887,9 @@ void create_source_sink(struct bt_component **source,
 	ret = bt_component_class_source_set_notification_iterator_finalize_method(
 		src_comp_class, src_iter_finalize);
 	assert(ret == 0);
-	*source = bt_component_create(src_comp_class, "source", NULL);
-	assert(*source);
+	ret = bt_graph_add_component(graph, src_comp_class, "source", NULL,
+		source);
+	assert(ret == 0);
 
 	/* Create sink component */
 	sink_comp_class = bt_component_class_sink_create("sink", sink_consume);
@@ -900,7 +901,9 @@ void create_source_sink(struct bt_component **source,
 	ret = bt_component_class_set_port_connected_method(sink_comp_class,
 		sink_port_connected);
 	assert(ret == 0);
-	*sink = bt_component_create(sink_comp_class, "sink", NULL);
+	ret = bt_graph_add_component(graph, sink_comp_class, "sink", NULL,
+		sink);
+	assert(ret == 0);
 
 	bt_put(src_comp_class);
 	bt_put(sink_comp_class);
@@ -920,9 +923,9 @@ void do_std_test(enum test test, const char *name,
 	clear_test_events();
 	current_test = test;
 	diag("test: %s", name);
-	create_source_sink(&src_comp, &sink_comp);
 	graph = bt_graph_create();
 	assert(graph);
+	create_source_sink(graph, &src_comp, &sink_comp);
 
 	/* Connect source to sink */
 	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");

@@ -39,7 +39,7 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	69
+#define NR_TESTS	77
 
 enum event_type {
 	COMP_ACCEPT_PORT_CONNECTION,
@@ -588,22 +588,26 @@ void fini_test(void)
 }
 
 static
-struct bt_component *create_src(void)
+struct bt_component *create_src(struct bt_graph *graph)
 {
-	struct bt_component *comp =
-		bt_component_create(src_comp_class, "src-comp", NULL);
+	struct bt_component *comp;
+	int ret;
 
-	assert(comp);
+	ret = bt_graph_add_component(graph, src_comp_class, "src-comp", NULL,
+		&comp);
+	assert(ret == 0);
 	return comp;
 }
 
 static
-struct bt_component *create_sink(void)
+struct bt_component *create_sink(struct bt_graph *graph)
 {
-	struct bt_component *comp =
-		bt_component_create(sink_comp_class, "sink-comp", NULL);
+	struct bt_component *comp;
+	int ret;
 
-	assert(comp);
+	ret = bt_graph_add_component(graph, sink_comp_class, "sink-comp",
+		NULL, &comp);
+	assert(ret == 0);
 	return comp;
 }
 
@@ -661,9 +665,10 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 
 	prepare_test(TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT,
 		"sink removes port in consume, then source removes disconnected port");
-	src = create_src();
-	sink = create_sink();
 	graph = create_graph();
+	assert(graph);
+	src = create_src(graph);
+	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
@@ -673,8 +678,20 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	assert(status == 0);
 	assert(conn);
 
-	/* We're supposed to have 5 events so far */
-	ok(events->len == 5, "we have the expected number of events (before consume)");
+	/* We're supposed to have 7 events so far */
+	ok(events->len == 7, "we have the expected number of events (before consume)");
+
+	/* Source's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = src;
+	event.data.graph_port_added.port = src_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
+
+	/* Sink's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = sink;
+	event.data.graph_port_added.port = sink_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
 	event.type = COMP_ACCEPT_PORT_CONNECTION;
@@ -825,9 +842,10 @@ void test_sink_removes_port_in_port_connected(void)
 
 	prepare_test(TEST_SINK_REMOVES_PORT_IN_CONSUME,
 		"sink removes port in consume");
-	src = create_src();
-	sink = create_sink();
 	graph = create_graph();
+	assert(graph);
+	src = create_src(graph);
+	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
@@ -836,8 +854,20 @@ void test_sink_removes_port_in_port_connected(void)
 		&conn);
 	assert(status == 0);
 
-	/* We're supposed to have 5 events so far */
-	ok(events->len == 5, "we have the expected number of events (before consume)");
+	/* We're supposed to have 7 events so far */
+	ok(events->len == 7, "we have the expected number of events (before consume)");
+
+	/* Source's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = src;
+	event.data.graph_port_added.port = src_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
+
+	/* Sink's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = sink;
+	event.data.graph_port_added.port = sink_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
 	event.type = COMP_ACCEPT_PORT_CONNECTION;
@@ -970,9 +1000,10 @@ void test_src_adds_port_in_port_connected(void)
 
 	prepare_test(TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED,
 		"source adds port in port connected");
-	src = create_src();
-	sink = create_sink();
 	graph = create_graph();
+	assert(graph);
+	src = create_src(graph);
+	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
@@ -984,8 +1015,20 @@ void test_src_adds_port_in_port_connected(void)
 		"hello");
 	assert(src_hello_port);
 
-	/* We're supposed to have 6 events */
-	ok(events->len == 6, "we have the expected number of events");
+	/* We're supposed to have 8 events */
+	ok(events->len == 8, "we have the expected number of events");
+
+	/* Source's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = src;
+	event.data.graph_port_added.port = src_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
+
+	/* Sink's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = sink;
+	event.data.graph_port_added.port = sink_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
 	event.type = COMP_ACCEPT_PORT_CONNECTION;
@@ -1077,9 +1120,10 @@ void test_simple(void)
 	size_t graph_ports_connected_pos;
 
 	prepare_test(TEST_SIMPLE, "simple");
-	src = create_src();
-	sink = create_sink();
 	graph = create_graph();
+	assert(graph);
+	src = create_src(graph);
+	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
 	assert(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
@@ -1088,8 +1132,20 @@ void test_simple(void)
 		&conn);
 	assert(status == 0);
 
-	/* We're supposed to have 5 events */
-	ok(events->len == 5, "we have the expected number of events");
+	/* We're supposed to have 7 events */
+	ok(events->len == 7, "we have the expected number of events");
+
+	/* Source's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = src;
+	event.data.graph_port_added.port = src_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
+
+	/* Sink's port added */
+	event.type = GRAPH_PORT_ADDED;
+	event.data.graph_port_added.comp = sink;
+	event.data.graph_port_added.port = sink_def_port;
+	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
 	event.type = COMP_ACCEPT_PORT_CONNECTION;

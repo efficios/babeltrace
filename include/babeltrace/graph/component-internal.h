@@ -64,6 +64,8 @@ struct bt_component {
 
 	/* Array of struct bt_component_destroy_listener */
 	GArray *destroy_listeners;
+
+	bool initialized;
 };
 
 static inline
@@ -86,6 +88,11 @@ struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
 	assert(comp);
 	return (void *) comp->base.parent;
 }
+
+BT_HIDDEN
+enum bt_component_status bt_component_create(
+		struct bt_component_class *component_class,
+		const char *name, struct bt_component **component);
 
 BT_HIDDEN
 enum bt_component_status bt_component_accept_port_connection(

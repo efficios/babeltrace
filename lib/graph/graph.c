@@ -37,6 +37,8 @@
 #include <babeltrace/graph/port.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/values.h>
+#include <babeltrace/values-internal.h>
 #include <unistd.h>
 #include <glib.h>
 
@@ -208,8 +210,6 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
 	enum bt_component_status component_status;
-	bt_bool upstream_was_already_in_graph;
-	bt_bool downstream_was_already_in_graph;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
@@ -291,24 +291,6 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 		upstream_component, bt_component_get_name(upstream_component),
 		downstream_component, bt_component_get_name(downstream_component));
 
-	/* Ensure the components are not already part of another graph. */
-	upstream_graph = bt_component_get_graph(upstream_component);
-	if (upstream_graph && (graph != upstream_graph)) {
-		BT_LOGW("Invalid parameter: upstream port's component is already part of another graph: "
-			"other-graph-addr=%p", upstream_graph);
-		status = BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH;
-		goto end;
-	}
-	upstream_was_already_in_graph = (graph == upstream_graph);
-	downstream_graph = bt_component_get_graph(downstream_component);
-	if (downstream_graph && (graph != downstream_graph)) {
-		BT_LOGW("Invalid parameter: downstream port's component is already part of another graph: "
-			"other-graph-addr=%p", downstream_graph);
-		status = BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH;
-		goto end;
-	}
-	downstream_was_already_in_graph = (graph == downstream_graph);
-
 	/*
 	 * At this point the ports are not connected yet. Both
 	 * components need to accept an eventual connection to their
@@ -362,26 +344,6 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 	 * the connection object is transferred to the graph.
 	 */
 	g_ptr_array_add(graph->connections, connection);
-
-	if (!upstream_was_already_in_graph) {
-		g_ptr_array_add(graph->components, upstream_component);
-		bt_component_set_graph(upstream_component, graph);
-	}
-	if (!downstream_was_already_in_graph) {
-		g_ptr_array_add(graph->components, downstream_component);
-		bt_component_set_graph(downstream_component, graph);
-		if (bt_component_get_class_type(downstream_component) ==
-				BT_COMPONENT_CLASS_TYPE_SINK) {
-			g_queue_push_tail(graph->sinks_to_consume,
-					downstream_component);
-		}
-	}
-
-	/*
-	 * The graph is now the parent of these components which
-	 * garantees their existence for the duration of the graph's
-	 * lifetime.
-	 */
 
 	/*
 	 * Notify both components that their port is connected.
@@ -810,4 +772,176 @@ void bt_graph_remove_connection(struct bt_graph *graph,
 	BT_LOGV("Removing graph's connection: graph-addr=%p, conn-addr=%p",
 		graph, connection);
 	g_ptr_array_remove(graph->connections, connection);
+}
+
+enum bt_graph_status bt_graph_add_component_with_init_method_data(
+		struct bt_graph *graph,
+		struct bt_component_class *component_class,
+		const char *name, struct bt_value *params,
+		void *init_method_data,
+		struct bt_component **user_component)
+{
+	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
+	enum bt_component_status comp_status;
+	struct bt_component *component = NULL;
+	enum bt_component_class_type type;
+	size_t i;
+
+	bt_get(params);
+
+	if (!graph) {
+		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		graph_status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	if (!component_class) {
+		BT_LOGW_STR("Invalid parameter: component class is NULL.");
+		graph_status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	type = bt_component_class_get_type(component_class);
+	BT_LOGD("Adding component to graph: "
+		"graph-addr=%p, comp-cls-addr=%p, "
+		"comp-cls-type=%s, name=\"%s\", params-addr=%p, "
+		"init-method-data-addr=%p",
+		graph, component_class, bt_component_class_type_string(type),
+		name, params, init_method_data);
+
+	if (!name) {
+		BT_LOGW_STR("Invalid parameter: name is NULL.");
+		graph_status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	if (graph->canceled) {
+		BT_LOGW_STR("Invalid parameter: graph is canceled.");
+		graph_status = BT_GRAPH_STATUS_CANCELED;
+		goto end;
+	}
+
+	if (type != BT_COMPONENT_CLASS_TYPE_SOURCE &&
+			type != BT_COMPONENT_CLASS_TYPE_FILTER &&
+			type != BT_COMPONENT_CLASS_TYPE_SINK) {
+		BT_LOGW("Invalid parameter: unknown component class type: "
+			"type=%d", type);
+		graph_status = BT_GRAPH_STATUS_INVALID;
+		goto end;
+	}
+
+	for (i = 0; i < graph->components->len; i++) {
+		void *other_comp = graph->components->pdata[i];
+
+		if (strcmp(name, bt_component_get_name(other_comp)) == 0) {
+			BT_LOGW("Invalid parameter: another component with the same name already exists in the graph: "
+				"other-comp-addr=%p, name=\"%s\"",
+				other_comp, name);
+			graph_status = BT_GRAPH_STATUS_INVALID;
+			goto end;
+		}
+	}
+
+	/*
+	 * Parameters must be a map value, but we create a convenient
+	 * empty one if it's NULL.
+	 */
+	if (params) {
+		if (!bt_value_is_map(params)) {
+			BT_LOGW("Invalid parameter: initialization parameters must be a map value: "
+				"type=%s",
+				bt_value_type_string(bt_value_get_type(params)));
+			graph_status = BT_GRAPH_STATUS_INVALID;
+			goto end;
+		}
+	} else {
+		params = bt_value_map_create();
+		if (!params) {
+			BT_LOGE_STR("Cannot create map value object.");
+			graph_status = BT_GRAPH_STATUS_NOMEM;
+			goto end;
+		}
+	}
+
+	comp_status = bt_component_create(component_class, name, &component);
+	if (comp_status != BT_COMPONENT_STATUS_OK) {
+		BT_LOGE("Cannot create empty component object: status=%s",
+			bt_component_status_string(comp_status));
+		graph_status = bt_graph_status_from_component_status(
+			comp_status);
+		goto end;
+	}
+
+	/*
+	 * The user's initialization method needs to see that this
+	 * component is part of the graph. If the user method fails, we
+	 * immediately remove the component from the graph's components.
+	 */
+	g_ptr_array_add(graph->components, component);
+	bt_component_set_graph(component, graph);
+
+	if (component_class->methods.init) {
+		BT_LOGD_STR("Calling user's initialization method.");
+		comp_status = component_class->methods.init(
+			bt_private_component_from_component(component), params,
+			init_method_data);
+		BT_LOGD("User method returned: status=%s",
+			bt_component_status_string(comp_status));
+		if (comp_status != BT_COMPONENT_STATUS_OK) {
+			BT_LOGW_STR("Initialization method failed.");
+			graph_status = bt_graph_status_from_component_status(
+				comp_status);
+			bt_component_set_graph(component, NULL);
+			g_ptr_array_remove_fast(graph->components, component);
+			goto end;
+		}
+	}
+
+	/*
+	 * Mark the component as initialized so that its finalization
+	 * method is called when it is destroyed.
+	 */
+	component->initialized = true;
+
+	/*
+	 * If it's a sink component, it needs to be part of the graph's
+	 * sink queue to be consumed by bt_graph_consume().
+	 */
+	if (bt_component_is_sink(component)) {
+		g_queue_push_tail(graph->sinks_to_consume, component);
+	}
+
+	/*
+	 * Freeze the component class now that it's instantiated at
+	 * least once.
+	 */
+	BT_LOGD_STR("Freezing component class.");
+	bt_component_class_freeze(component->class);
+	BT_LOGD("Added component to graph: "
+		"graph-addr=%p, comp-cls-addr=%p, "
+		"comp-cls-type=%s, name=\"%s\", params-addr=%p, "
+		"init-method-data-addr=%p, comp-addr=%p",
+		graph, component_class, bt_component_class_type_string(type),
+		name, params, init_method_data, component);
+
+	if (user_component) {
+		/* Move reference to user */
+		*user_component = component;
+		component = NULL;
+	}
+
+end:
+	bt_put(component);
+	bt_put(params);
+	return graph_status;
+}
+
+enum bt_graph_status bt_graph_add_component(
+		struct bt_graph *graph,
+		struct bt_component_class *component_class,
+		const char *name, struct bt_value *params,
+		struct bt_component **component)
+{
+	return bt_graph_add_component_with_init_method_data(graph,
+		component_class, name, params, NULL, component);
 }

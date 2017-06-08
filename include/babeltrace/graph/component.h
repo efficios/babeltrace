@@ -44,22 +44,6 @@ struct bt_value;
 struct bt_port;
 
 /**
- * Create an instance of a component from a component class.
- *
- * @param component_class	Component class of which to create an instance
- * @param name			Name of the new component instance, optional
- * @param params		A dictionary of component parameters
- * @returns			Returns a pointer to a new component instance
- */
-extern struct bt_component *bt_component_create(
-		struct bt_component_class *component_class, const char *name,
-		struct bt_value *params);
-
-extern struct bt_component *bt_component_create_with_init_method_data(
-		struct bt_component_class *component_class, const char *name,
-		struct bt_value *params, void *init_method_data);
-
-/**
  * Get component's name.
  *
  * @param component	Component instance of which to get the name

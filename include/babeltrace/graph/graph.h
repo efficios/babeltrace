@@ -46,8 +46,6 @@ enum bt_graph_status {
 	/** Downstream component does not support multiple inputs. */
 	BT_GRAPH_STATUS_END = 1,
 	BT_GRAPH_STATUS_OK = 0,
-	/** Component is already part of another graph. */
-	BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH = -2,
 	/** Invalid arguments. */
 	BT_GRAPH_STATUS_INVALID = -22,
 	/** No sink in graph. */
@@ -70,6 +68,19 @@ typedef void (*bt_graph_ports_disconnected_listener)(
 		void *data);
 
 extern struct bt_graph *bt_graph_create(void);
+
+extern enum bt_graph_status bt_graph_add_component(
+		struct bt_graph *graph,
+		struct bt_component_class *component_class,
+		const char *name, struct bt_value *params,
+		struct bt_component **component);
+
+extern enum bt_graph_status bt_graph_add_component_with_init_method_data(
+		struct bt_graph *graph,
+		struct bt_component_class *component_class,
+		const char *name, struct bt_value *params,
+		void *init_method_data,
+		struct bt_component **component);
 
 /**
  * Creates a connection between two components using the two ports specified

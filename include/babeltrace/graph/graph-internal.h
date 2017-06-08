@@ -101,8 +101,6 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_END";
 	case BT_GRAPH_STATUS_OK:
 		return "BT_GRAPH_STATUS_OK";
-	case BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH:
-		return "BT_GRAPH_STATUS_ALREADY_IN_A_GRAPH";
 	case BT_GRAPH_STATUS_INVALID:
 		return "BT_GRAPH_STATUS_INVALID";
 	case BT_GRAPH_STATUS_NO_SINK:

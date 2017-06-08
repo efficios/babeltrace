@@ -64,7 +64,7 @@ void bt_object_release(void *ptr)
 		obj->ref_count.count);
 #endif
 
-	if (obj && obj->release && !bt_object_get_ref_count(obj)) {
+	if (obj && obj->release && bt_object_get_ref_count(obj) == 0) {
 		obj->release(obj);
 	}
 }

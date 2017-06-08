@@ -52,7 +52,7 @@
 
 static
 struct bt_component * (* const component_create_funcs[])(
-		struct bt_component_class *, struct bt_value *) = {
+		struct bt_component_class *) = {
 	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_create,
 	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_create,
 	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_create,
@@ -105,10 +105,11 @@ void bt_component_destroy(struct bt_object *obj)
 	component_class = component->class;
 
 	/*
-	 * User data is destroyed first, followed by the concrete component
-	 * instance.
+	 * User data is destroyed first, followed by the concrete
+	 * component instance. Do not finalize if the component's user
+	 * initialization method failed in the first place.
 	 */
-	if (component->class->methods.finalize) {
+	if (component->initialized && component->class->methods.finalize) {
 		BT_LOGD_STR("Calling user's finalization method.");
 		component->class->methods.finalize(
 			bt_private_component_from_component(component));
@@ -240,57 +241,26 @@ int64_t bt_component_get_output_port_count(struct bt_component *comp)
 	return (int64_t) comp->output_ports->len;
 }
 
-struct bt_component *bt_component_create_with_init_method_data(
-		struct bt_component_class *component_class, const char *name,
-		struct bt_value *params, void *init_method_data)
+enum bt_component_status bt_component_create(
+		struct bt_component_class *component_class,
+		const char *name, struct bt_component **user_component)
 {
-	int ret;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_component *component = NULL;
 	enum bt_component_class_type type;
 
-	bt_get(params);
-
-	if (!component_class) {
-		BT_LOGW_STR("Invalid parameter: component class is NULL.");
-		goto end;
-	}
+	assert(user_component);
+	assert(component_class);
+	assert(name);
 
 	type = bt_component_class_get_type(component_class);
-	if (type <= BT_COMPONENT_CLASS_TYPE_UNKNOWN ||
-			type > BT_COMPONENT_CLASS_TYPE_FILTER) {
-		BT_LOGW("Invalid parameter: unknown component class type: "
-			"type=%s", bt_component_class_type_string(type));
-		goto end;
-	}
-
-	BT_LOGD("Creating component from component class: "
-		"comp-cls-addr=%p, comp-cls-type=%s, name=\"%s\", "
-		"params-addr=%p, init-method-data-addr=%p",
-		component_class, bt_component_class_type_string(type),
-		name, params, init_method_data);
-
-	/*
-	 * Parameters must be a map value, but we create a convenient
-	 * empty one if it's NULL.
-	 */
-	if (params) {
-		if (!bt_value_is_map(params)) {
-			BT_LOGW("Invalid parameter: initialization parameters must be a map value: "
-				"type=%s",
-				bt_value_type_string(bt_value_get_type(params)));
-			goto end;
-		}
-	} else {
-		params = bt_value_map_create();
-		if (!params) {
-			BT_LOGE_STR("Cannot create map value object.");
-			goto end;
-		}
-	}
-
-	component = component_create_funcs[type](component_class, params);
+	BT_LOGD("Creating empty component from component class: "
+		"comp-cls-addr=%p, comp-cls-type=%s, name=\"%s\"",
+		component_class, bt_component_class_type_string(type), name);
+	component = component_create_funcs[type](component_class);
 	if (!component) {
 		BT_LOGE_STR("Cannot create specific component object.");
+		status = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -300,7 +270,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 	component->name = g_string_new(name);
 	if (!component->name) {
 		BT_LOGE_STR("Failed to allocate one GString.");
-		BT_PUT(component);
+		status = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -308,7 +278,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 		bt_object_release);
 	if (!component->input_ports) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
-		BT_PUT(component);
+		status = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -316,7 +286,7 @@ struct bt_component *bt_component_create_with_init_method_data(
 		bt_object_release);
 	if (!component->output_ports) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
-		BT_PUT(component);
+		status = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -324,44 +294,19 @@ struct bt_component *bt_component_create_with_init_method_data(
 		sizeof(struct bt_component_destroy_listener));
 	if (!component->destroy_listeners) {
 		BT_LOGE_STR("Failed to allocate one GArray.");
-		BT_PUT(component);
+		status = BT_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
-	if (component_class->methods.init) {
-		BT_LOGD_STR("Calling user's initialization method.");
-		ret = component_class->methods.init(
-			bt_private_component_from_component(component), params,
-			init_method_data);
-		BT_LOGD("User method returned: status=%s",
-			bt_component_status_string(ret));
-		if (ret != BT_COMPONENT_STATUS_OK) {
-			BT_LOGW_STR("Initialization method failed.");
-			BT_PUT(component);
-			goto end;
-		}
-	}
-
-	BT_LOGD_STR("Freezing component class.");
-	bt_component_class_freeze(component->class);
-	BT_LOGD("Created component from component class: "
-		"comp-cls-addr=%p, comp-cls-type=%s, name=\"%s\", "
-		"params-addr=%p, init-method-data-addr=%p, comp-addr=%p",
-		component_class, bt_component_class_type_string(type),
-		name, params, init_method_data, component);
+	BT_LOGD("Created empty component from component class: "
+		"comp-cls-addr=%p, comp-cls-type=%s, name=\"%s\", comp-addr=%p",
+		component_class, bt_component_class_type_string(type), name,
+		component);
+	BT_MOVE(*user_component, component);
 
 end:
-	bt_put(params);
-	return component;
-}
-
-struct bt_component *bt_component_create(
-		struct bt_component_class *component_class, const char *name,
-		struct bt_value *params)
-{
-	/* bt_component_create_with_init_method_data() logs details */
-	return bt_component_create_with_init_method_data(component_class, name,
-		params, NULL);
+	bt_put(component);
+	return status;
 }
 
 const char *bt_component_get_name(struct bt_component *component)
@@ -421,13 +366,7 @@ BT_HIDDEN
 void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph)
 {
-	struct bt_object *parent = bt_object_get_parent(&component->base);
-
-	assert(!parent || parent == &graph->base);
-	if (!parent) {
-		bt_object_set_parent(component, &graph->base);
-	}
-	bt_put(parent);
+	bt_object_set_parent(component, graph ? &graph->base : NULL);
 }
 
 struct bt_graph *bt_component_get_graph(
