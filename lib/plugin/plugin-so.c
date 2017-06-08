@@ -38,6 +38,7 @@
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/list-internal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -65,61 +66,49 @@ DECLARE_SECTION(struct __bt_plugin_component_class_descriptor const *, __bt_plug
 DECLARE_SECTION(struct __bt_plugin_component_class_descriptor_attribute const *, __bt_plugin_component_class_descriptor_attributes);
 
 /*
- * This hash table, global to the library, maps component class pointers
- * to shared library handles.
+ * This list, global to the library, keeps all component classes that
+ * have a reference to their shared library handles. It allows iteration
+ * on all component classes still present when the destructor executes
+ * to release the shared library handle references they might still have.
  *
- * The keys (component classes) are NOT owned by this hash table, whereas
- * the values (shared library handles) are owned by this hash table.
- *
- * The keys are the component classes created with
+ * The list items are the component classes created with
  * bt_plugin_add_component_class(). They keep the shared library handle
  * object created by their plugin alive so that the plugin's code is
  * not discarded when it could still be in use by living components
  * created from those component classes:
  *
- *     [component] --ref-> [component class] --through this HT-> [shlib handle]
+ *     [component] --ref-> [component class]-> [shlib handle]
  *
- * This hash table exists for two reasons:
- *
- * 1. To allow this application:
+ * It allows this use-case:
  *
  *        my_plugins = bt_plugin_create_all_from_file("/path/to/my-plugin.so");
  *        // instantiate components from a plugin's component classes
  *        // put plugins and free my_plugins here
  *        // user code of instantiated components still exists
  *
- * 2. To decouple the plugin subsystem from the component subsystem:
- *    while plugins objects need to know component class objects, the
- *    opposite is not necessary, thus it makes no sense for a component
- *    class to keep a reference to the plugin object from which it was
- *    created.
- *
- * An entry is removed from this HT when a component class is destroyed
- * thanks to a custom destroy listener. When the entry is removed, the
- * GLib function calls the value destroy notifier of the HT, which is
- * bt_put(). This decreases the reference count of the mapped shared
- * library handle. Assuming the original plugin object which contained
- * some component classes is put first, when the last component class is
- * removed from this HT, the shared library handle object's reference
- * count falls to zero and the shared library is finally closed.
+ * An entry is removed from this list when a component class is
+ * destroyed thanks to a custom destroy listener. When the entry is
+ * removed, the entry is removed from the list, and we release the
+ * reference on the shlib handle. Assuming the original plugin object
+ * which contained some component classes is put first, when the last
+ * component class is removed from this list, the shared library handle
+ * object's reference count falls to zero and the shared library is
+ * finally closed.
  */
-static
-GHashTable *comp_classes_to_shlib_handles;
 
-__attribute__((constructor)) static
-void init_comp_classes_to_shlib_handles(void) {
-	comp_classes_to_shlib_handles = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, bt_put);
-	assert(comp_classes_to_shlib_handles);
-	BT_LOGD_STR("Initialized component class to shared library handle hash table.");
-}
+static
+BT_LIST_HEAD(component_class_list);
 
 __attribute__((destructor)) static
-void fini_comp_classes_to_shlib_handles(void) {
-	if (comp_classes_to_shlib_handles) {
-		g_hash_table_destroy(comp_classes_to_shlib_handles);
-		BT_LOGD_STR("Destroyed component class to shared library handle hash table.");
+void fini_comp_class_list(void)
+{
+	struct bt_component_class *comp_class, *tmp;
+
+	bt_list_for_each_entry_safe(comp_class, tmp, &component_class_list, node) {
+		bt_list_del(&comp_class->node);
+		BT_PUT(comp_class->so_handle);
 	}
+	BT_LOGD_STR("Released references from all component classes to shared library handles.");
 }
 
 static
@@ -761,7 +750,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		 *
 		 * This will call back
 		 * bt_plugin_so_on_add_component_class() so that we can
-		 * add a mapping in comp_classes_to_shlib_handles when
+		 * add a mapping in the component class list when
 		 * we know the component class is successfully added.
 		 */
 		status = bt_plugin_add_component_class(plugin,
@@ -1113,10 +1102,9 @@ static
 void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
 		void *data)
 {
-	gboolean exists = g_hash_table_remove(comp_classes_to_shlib_handles,
-		comp_class);
-	assert(exists);
-	BT_LOGV("Component class destroyed: removed entry from hash table: "
+	bt_list_del(&comp_class->node);
+	BT_PUT(comp_class->so_handle);
+	BT_LOGV("Component class destroyed: removed entry from list: "
 		"comp-cls-addr=%p", comp_class);
 }
 
@@ -1129,9 +1117,8 @@ void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 	assert(plugin->spec_data);
 	assert(plugin->type == BT_PLUGIN_TYPE_SO);
 
-	/* Map component class pointer to shared lib handle in global HT */
-	g_hash_table_insert(comp_classes_to_shlib_handles, comp_class,
-		bt_get(spec->shared_lib_handle));
+	bt_list_add(&comp_class->node, &component_class_list);
+	comp_class->so_handle = bt_get(spec->shared_lib_handle);
 
 	/* Add our custom destroy listener */
 	bt_component_class_add_destroy_listener(comp_class,

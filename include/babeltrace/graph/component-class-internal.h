@@ -35,10 +35,12 @@
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/list-internal.h>
 #include <babeltrace/types.h>
 #include <glib.h>
 
 struct bt_component_class;
+struct bt_plugin_so_shared_lib_handle;
 
 typedef void (*bt_component_class_destroy_listener_func)(
 		struct bt_component_class *class, void *data);
@@ -65,6 +67,8 @@ struct bt_component_class {
 	/* Array of struct bt_component_class_destroy_listener */
 	GArray *destroy_listeners;
 	bt_bool frozen;
+	struct bt_list_head node;
+	struct bt_plugin_so_shared_lib_handle *so_handle;
 };
 
 struct bt_component_class_iterator_methods {
