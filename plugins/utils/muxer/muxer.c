@@ -21,6 +21,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
@@ -43,6 +44,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME	"assume-absolute-clock-classes"
 
@@ -56,7 +58,7 @@ struct muxer_comp {
 	size_t available_input_ports;
 	bool error;
 	bool initializing_muxer_notif_iter;
-	bool ignore_absolute;
+	bool assume_absolute_clock_classes;
 };
 
 struct muxer_upstream_notif_iter {
@@ -75,6 +77,13 @@ struct muxer_upstream_notif_iter {
 	 * is NULL (which means the upstream iterator is finished).
 	 */
 	bool is_valid;
+};
+
+enum muxer_notif_iter_clock_class_expectation {
+	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ANY = 0,
+	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE,
+	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID,
+	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID,
 };
 
 struct muxer_notif_iter {
@@ -104,6 +113,16 @@ struct muxer_notif_iter {
 
 	/* Last time returned in a notification */
 	int64_t last_returned_ts_ns;
+
+	/* Clock class expectation state */
+	enum muxer_notif_iter_clock_class_expectation clock_class_expectation;
+
+	/*
+	 * Expected clock class UUID, only valid when
+	 * clock_class_expectation is
+	 * MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID.
+	 */
+	unsigned char expected_clock_class_uuid[BABELTRACE_UUID_LEN];
 };
 
 static
@@ -232,7 +251,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 {
 	struct bt_value *default_params = NULL;
 	struct bt_value *real_params = NULL;
-	struct bt_value *ignore_absolute = NULL;
+	struct bt_value *assume_absolute_clock_classes = NULL;
 	int ret = 0;
 	bt_bool bool_val;
 
@@ -246,17 +265,17 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 		goto error;
 	}
 
-	ignore_absolute = bt_value_map_get(real_params,
+	assume_absolute_clock_classes = bt_value_map_get(real_params,
 		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
-	if (!bt_value_is_bool(ignore_absolute)) {
+	if (!bt_value_is_bool(assume_absolute_clock_classes)) {
 		goto error;
 	}
 
-	if (bt_value_bool_get(ignore_absolute, &bool_val)) {
+	if (bt_value_bool_get(assume_absolute_clock_classes, &bool_val)) {
 		goto error;
 	}
 
-	muxer_comp->ignore_absolute = (bool) bool_val;
+	muxer_comp->assume_absolute_clock_classes = (bool) bool_val;
 
 	goto end;
 
@@ -266,7 +285,7 @@ error:
 end:
 	bt_put(default_params);
 	bt_put(real_params);
-	bt_put(ignore_absolute);
+	bt_put(assume_absolute_clock_classes);
 	return ret;
 }
 
@@ -490,6 +509,7 @@ end:
 
 static
 int get_notif_ts_ns(struct muxer_comp *muxer_comp,
+		struct muxer_notif_iter *muxer_notif_iter,
 		struct bt_notification *notif, int64_t last_returned_ts_ns,
 		int64_t *ts_ns)
 {
@@ -498,6 +518,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	struct bt_ctf_clock_value *clock_value = NULL;
 	struct bt_ctf_event *event = NULL;
 	int ret = 0;
+	const unsigned char *cc_uuid;
 
 	assert(notif);
 	assert(ts_ns);
@@ -541,9 +562,76 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto error;
 	}
 
-	if (!muxer_comp->ignore_absolute &&
-			!bt_ctf_clock_class_is_absolute(clock_class)) {
-		goto error;
+	cc_uuid = bt_ctf_clock_class_get_uuid(clock_class);
+
+	if (muxer_notif_iter->clock_class_expectation ==
+			MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ANY) {
+		/*
+		 * This is the first clock class that this muxer
+		 * notification iterator encounters. Its properties
+		 * determine what to expect for the whole lifetime of
+		 * the iterator without a true
+		 * `assume-absolute-clock-classes` parameter.
+		 */
+		if (bt_ctf_clock_class_is_absolute(clock_class)) {
+			/* Expect absolute clock classes */
+			muxer_notif_iter->clock_class_expectation =
+				MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE;
+		} else {
+			if (cc_uuid) {
+				/*
+				 * Expect non-absolute clock classes
+				 * with a specific UUID.
+				 */
+				muxer_notif_iter->clock_class_expectation =
+					MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID;
+				memcpy(muxer_notif_iter->expected_clock_class_uuid,
+					cc_uuid, BABELTRACE_UUID_LEN);
+			} else {
+				/*
+				 * Expect non-absolute clock classes
+				 * with no UUID.
+				 */
+				muxer_notif_iter->clock_class_expectation =
+					MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID;
+			}
+		}
+	}
+
+	if (!muxer_comp->assume_absolute_clock_classes) {
+		switch (muxer_notif_iter->clock_class_expectation) {
+		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
+			if (!bt_ctf_clock_class_is_absolute(clock_class)) {
+				goto error;
+			}
+			break;
+		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
+			if (bt_ctf_clock_class_is_absolute(clock_class)) {
+				goto error;
+			}
+
+			if (cc_uuid) {
+				goto error;
+			}
+			break;
+		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
+			if (bt_ctf_clock_class_is_absolute(clock_class)) {
+				goto error;
+			}
+
+			if (!cc_uuid) {
+				goto error;
+			}
+
+			if (memcmp(muxer_notif_iter->expected_clock_class_uuid,
+					cc_uuid, BABELTRACE_UUID_LEN) != 0) {
+				goto error;
+			}
+			break;
+		default:
+			/* Unexpected */
+			abort();
+		}
 	}
 
 	switch (bt_notification_get_type(notif)) {
@@ -634,7 +722,7 @@ muxer_notif_iter_youngest_upstream_notif_iter(
 		notif = bt_notification_iterator_get_notification(
 			cur_muxer_upstream_notif_iter->notif_iter);
 		assert(notif);
-		ret = get_notif_ts_ns(muxer_comp, notif,
+		ret = get_notif_ts_ns(muxer_comp, muxer_notif_iter, notif,
 			muxer_notif_iter->last_returned_ts_ns, &notif_ts_ns);
 		bt_put(notif);
 		if (ret) {

@@ -697,6 +697,14 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	goto end;
 
 error:
+	if (name) {
+		*name = NULL;
+	}
+
+	*plugin = NULL;
+	*comp_cls = NULL;
+
+end:
 	if (gs_name) {
 		g_string_free(gs_name, TRUE);
 	}
@@ -709,14 +717,10 @@ error:
 		g_string_free(gs_comp_cls, TRUE);
 	}
 
-	if (name) {
-		*name = NULL;
+	if (gs_comp_cls_type) {
+		g_string_free(gs_comp_cls_type, TRUE);
 	}
 
-	*plugin = NULL;
-	*comp_cls = NULL;
-
-end:
 	return;
 }
 
