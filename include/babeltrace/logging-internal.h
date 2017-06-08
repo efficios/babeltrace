@@ -954,6 +954,8 @@ extern "C" {
  *   bt_log_set_output_v(BT_LOG_OUT_STDERR);
  */
 enum { BT_LOG_OUT_STDERR_MASK = BT_LOG_PUT_STD };
+
+BT_HIDDEN
 void bt_log_out_stderr_callback(const bt_log_message *const msg, void *arg);
 #define BT_LOG_OUT_STDERR BT_LOG_OUT_STDERR_MASK, 0, bt_log_out_stderr_callback
 
