@@ -45,6 +45,17 @@
 #include "copy.h"
 
 static
+gboolean empty_trace_map(gpointer key, gpointer value, gpointer user_data)
+{
+	struct debug_info_trace *di_trace = value;
+
+	di_trace->trace_static = 1;
+	debug_info_close_trace(di_trace->debug_it, di_trace);
+
+	return TRUE;
+}
+
+static
 void destroy_debug_info_data(struct debug_info_component *debug_info)
 {
 	free(debug_info->arg_debug_info_field_name);
@@ -76,7 +87,8 @@ end:
 static
 void unref_trace(struct debug_info_trace *di_trace)
 {
-	bt_put(di_trace->trace);
+	bt_put(di_trace->writer_trace);
+	g_free(di_trace);
 }
 
 static
@@ -90,16 +102,14 @@ void debug_info_iterator_destroy(struct bt_private_notification_iterator *it)
 	if (it_data->input_iterator_group) {
 		g_ptr_array_free(it_data->input_iterator_group, TRUE);
 	}
+
+	g_hash_table_foreach_remove(it_data->trace_map,
+			empty_trace_map, it_data);
+	g_hash_table_destroy(it_data->trace_map);
+
 	bt_put(it_data->current_notification);
 	bt_put(it_data->input_iterator);
-	g_hash_table_destroy(it_data->trace_map);
-	/*
-	 * TODO
-	g_hash_table_destroy(it_data->stream_map);
-	g_hash_table_destroy(it_data->stream_class_map);
-	g_hash_table_destroy(it_data->packet_map);
-	g_hash_table_destroy(it_data->trace_debug_map);
-	*/
+
 	g_free(it_data);
 }
 
@@ -127,6 +137,7 @@ struct bt_notification *handle_notification(FILE *err,
 				writer_packet);
 		assert(new_notification);
 		bt_put(packet);
+		bt_put(writer_packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -145,6 +156,7 @@ struct bt_notification *handle_notification(FILE *err,
 				writer_packet);
 		assert(new_notification);
 		bt_put(packet);
+		bt_put(writer_packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:

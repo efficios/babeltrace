@@ -47,6 +47,7 @@
 #include "writer.h"
 #include <assert.h>
 
+static
 gboolean empty_trace_map(gpointer key, gpointer value, gpointer user_data)
 {
 	struct fs_writer *fs_writer = value;

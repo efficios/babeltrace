@@ -53,11 +53,13 @@ void unref_stream(struct bt_ctf_stream_class *writer_stream)
 	bt_put(writer_stream);
 }
 
+static
 gboolean empty_ht(gpointer key, gpointer value, gpointer user_data)
 {
 	return TRUE;
 }
 
+static
 gboolean empty_streams_ht(gpointer key, gpointer value, gpointer user_data)
 {
 	struct bt_ctf_stream *writer_stream = value;
@@ -67,11 +69,13 @@ gboolean empty_streams_ht(gpointer key, gpointer value, gpointer user_data)
 	return TRUE;
 }
 
+static
 void destroy_stream_state_key(gpointer key)
 {
 	g_free((enum fs_writer_stream_state *) key);
 }
 
+static
 void check_completed_trace(gpointer key, gpointer value, gpointer user_data)
 {
 	enum fs_writer_stream_state *state = value;
