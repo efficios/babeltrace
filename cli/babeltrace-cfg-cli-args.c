@@ -583,25 +583,27 @@ end:
 }
 
 /*
- * Returns the plugin and component class names, and the instance name,
- * from a command-line source/filter/sink option's argument. arg must
- * have the following format:
+ * Returns the plugin name, component class name, component class type,
+ * and component name from a command-line --component option's argument.
+ * arg must have the following format:
  *
- *     [NAME:]PLUGIN.CLS
+ *     [NAME:]TYPE.PLUGIN.CLS
  *
- * where NAME is the optional component name, PLUGIN is the plugin name,
- * and CLS is the component class name.
+ * where NAME is the optional component name, TYPE is either `source`,
+ * `filter`, or `sink`, PLUGIN is the plugin name, and CLS is the
+ * component class name.
  *
  * On success, both *plugin and *component are not NULL. *plugin
  * and *component are owned by the caller. On success, *name can be NULL
- * if no component name was found.
+ * if no component name was found, and *comp_cls_type is set.
  */
 static
 void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
-		char **comp_cls)
+		char **comp_cls, enum bt_component_class_type *comp_cls_type)
 {
 	const char *at = arg;
 	GString *gs_name = NULL;
+	GString *gs_comp_cls_type = NULL;
 	GString *gs_plugin = NULL;
 	GString *gs_comp_cls = NULL;
 	size_t end_pos;
@@ -609,6 +611,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	assert(arg);
 	assert(plugin);
 	assert(comp_cls);
+	assert(comp_cls_type);
 
 	if (!bt_common_string_is_printable(arg)) {
 		printf_err("Argument contains a non-printable character\n");
@@ -628,9 +631,33 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 		g_string_assign(gs_name, "");
 	}
 
+	/* Parse the component class type */
+	gs_comp_cls_type = bt_common_string_until(at, ".:\\", ".", &end_pos);
+	if (!gs_comp_cls_type || at[end_pos] == '\0') {
+		printf_err("Missing component class type (`source`, `filter`, or `sink`)\n");
+		goto error;
+	}
+
+	if (strcmp(gs_comp_cls_type->str, "source") == 0 ||
+			strcmp(gs_comp_cls_type->str, "src") == 0) {
+		*comp_cls_type = BT_COMPONENT_CLASS_TYPE_SOURCE;
+	} else if (strcmp(gs_comp_cls_type->str, "filter") == 0 ||
+			strcmp(gs_comp_cls_type->str, "flt") == 0) {
+		*comp_cls_type = BT_COMPONENT_CLASS_TYPE_FILTER;
+	} else if (strcmp(gs_comp_cls_type->str, "sink") == 0) {
+		*comp_cls_type = BT_COMPONENT_CLASS_TYPE_SINK;
+	} else {
+		printf_err("Unknown component class type: `%s`\n",
+			gs_comp_cls_type->str);
+		goto error;
+	}
+
+	at += end_pos + 1;
+
 	/* Parse the plugin name */
 	gs_plugin = bt_common_string_until(at, ".:\\", ".", &end_pos);
 	if (!gs_plugin || gs_plugin->len == 0 || at[end_pos] == '\0') {
+		printf_err("Missing plugin name\n");
 		goto error;
 	}
 
@@ -639,6 +666,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	/* Parse the component class name */
 	gs_comp_cls = bt_common_string_until(at, ".:\\", ".", &end_pos);
 	if (!gs_comp_cls || gs_comp_cls->len == 0) {
+		printf_err("Missing component class name\n");
 		goto error;
 	}
 
@@ -790,21 +818,20 @@ end:
 }
 
 /*
- * Creates a component configuration from a command-line source/sink
+ * Creates a component configuration from a command-line --component
  * option's argument.
  */
 static
-struct bt_config_component *bt_config_component_from_arg(
-		enum bt_component_class_type type, const char *arg)
+struct bt_config_component *bt_config_component_from_arg(const char *arg)
 {
 	struct bt_config_component *cfg_comp = NULL;
 	char *name = NULL;
 	char *plugin_name = NULL;
 	char *comp_cls_name = NULL;
+	enum bt_component_class_type type;
 
-	plugin_comp_cls_names(arg, &name, &plugin_name, &comp_cls_name);
+	plugin_comp_cls_names(arg, &name, &plugin_name, &comp_cls_name, &type);
 	if (!plugin_name || !comp_cls_name) {
-		printf_err("Cannot get plugin or component class name\n");
 		goto error;
 	}
 
@@ -1272,6 +1299,7 @@ enum {
 	OPT_CLOCK_OFFSET_NS,
 	OPT_CLOCK_SECONDS,
 	OPT_COLOR,
+	OPT_COMPONENT,
 	OPT_CONNECT,
 	OPT_DEBUG,
 	OPT_DEBUG_INFO_DIR,
@@ -1279,7 +1307,6 @@ enum {
 	OPT_DEBUG_INFO_TARGET_PREFIX,
 	OPT_END,
 	OPT_FIELDS,
-	OPT_FILTER,
 	OPT_HELP,
 	OPT_INPUT_FORMAT,
 	OPT_KEY,
@@ -1290,8 +1317,8 @@ enum {
 	OPT_NO_DELTA,
 	OPT_OMIT_HOME_PLUGIN_PATH,
 	OPT_OMIT_SYSTEM_PLUGIN_PATH,
-	OPT_OUTPUT_FORMAT,
 	OPT_OUTPUT,
+	OPT_OUTPUT_FORMAT,
 	OPT_PARAMS,
 	OPT_PATH,
 	OPT_PLUGIN_PATH,
@@ -1299,8 +1326,6 @@ enum {
 	OPT_RETRY_DURATION,
 	OPT_RUN_ARGS,
 	OPT_RUN_ARGS_0,
-	OPT_SINK,
-	OPT_SOURCE,
 	OPT_STREAM_INTERSECTION,
 	OPT_TIMERANGE,
 	OPT_URL,
@@ -1735,23 +1760,18 @@ static
 void print_help_usage(FILE *fp)
 {
 	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] help [OPTIONS] PLUGIN\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --source=PLUGIN.CLS\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --filter=PLUGIN.CLS\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --sink=PLUGIN.CLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --component=TYPE.PLUGIN.CLS\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -f, --filter=PLUGIN.CLS           Get help for the filter component class\n");
-	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -c, --component=TYPE.PLUGIN.CLS   Get help for the component class CLS of\n");
+	fprintf(fp, "                                    type TYPE (`source`, `filter`, or `sink`)\n");
+	fprintf(fp, "                                    found in the plugin PLUGIN\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -S, --sink=PLUGIN.CLS             Get help for the sink component class\n");
-	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
-	fprintf(fp, "  -s, --source=PLUGIN.CLS           Get help for the source component class\n");
-	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
@@ -1762,13 +1782,11 @@ void print_help_usage(FILE *fp)
 static
 struct poptOption help_long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "filter", 'f', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
 	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ "sink", 'S', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-	{ "source", 's', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ NULL, 0, '\0', NULL, 0, NULL, NULL },
 };
 
@@ -1832,32 +1850,13 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			cfg->omit_home_plugin_path = true;
 			break;
-		case OPT_SOURCE:
-		case OPT_FILTER:
-		case OPT_SINK:
-			if (cfg->cmd_data.help.cfg_component->type !=
-					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
+		case OPT_COMPONENT:
+			if (plug_comp_cls_names) {
 				printf_err("Cannot specify more than one plugin and component class:\n    %s\n",
 					arg);
 				goto error;
 			}
 
-			switch (opt) {
-			case OPT_SOURCE:
-				cfg->cmd_data.help.cfg_component->type =
-					BT_COMPONENT_CLASS_TYPE_SOURCE;
-				break;
-			case OPT_FILTER:
-				cfg->cmd_data.help.cfg_component->type =
-					BT_COMPONENT_CLASS_TYPE_FILTER;
-				break;
-			case OPT_SINK:
-				cfg->cmd_data.help.cfg_component->type =
-					BT_COMPONENT_CLASS_TYPE_SINK;
-				break;
-			default:
-				abort();
-			}
 			plug_comp_cls_names = strdup(arg);
 			if (!plug_comp_cls_names) {
 				print_err_oom();
@@ -1888,9 +1887,8 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		if (cfg->cmd_data.help.cfg_component->type !=
-					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
-			printf_err("Cannot specify plugin name and --source/--filter/--sink component class:\n    %s\n",
+		if (!plug_comp_cls_names) {
+			printf_err("Cannot specify plugin name and --component component class:\n    %s\n",
 				leftover);
 			goto error;
 		}
@@ -1898,8 +1896,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
 			leftover);
 	} else {
-		if (cfg->cmd_data.help.cfg_component->type ==
-					BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
+		if (!plug_comp_cls_names) {
 			print_help_usage(stdout);
 			*retcode = -1;
 			BT_PUT(cfg);
@@ -1907,14 +1904,15 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		}
 
 		plugin_comp_cls_names(plug_comp_cls_names, NULL,
-			&plugin_name, &comp_cls_name);
+			&plugin_name, &comp_cls_name,
+			&cfg->cmd_data.help.cfg_component->type);
 		if (plugin_name && comp_cls_name) {
 			g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
 				plugin_name);
 			g_string_assign(cfg->cmd_data.help.cfg_component->comp_cls_name,
 				comp_cls_name);
 		} else {
-			printf_err("Invalid --source/--filter/--sink option's argument:\n    %s\n",
+			printf_err("Invalid --component option's argument:\n    %s\n",
 				plug_comp_cls_names);
 			goto error;
 		}
@@ -1949,14 +1947,13 @@ end:
 static
 void print_query_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GEN OPTS] query [OPTS] OBJECT --source=PLUGIN.CLS\n");
-	fprintf(fp, "       babeltrace [GEN OPTS] query [OPTS] OBJECT --filter=PLUGIN.CLS\n");
-	fprintf(fp, "       babeltrace [GEN OPTS] query [OPTS] OBJECT --sink=PLUGIN.CLS\n");
+	fprintf(fp, "Usage: babeltrace [GEN OPTS] query [OPTS] OBJECT --component=TYPE.PLUGIN.CLS\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -f. --filter=PLUGIN.CLS           Query object from the filter component\n");
-	fprintf(fp, "                                    class CLS found in the plugin PLUGIN\n");
+	fprintf(fp, "  -c, --component=TYPE.PLUGIN.CLS   Query the component class CLS of type TYPE\n");
+	fprintf(fp, "                                    (`source`, `filter`, or `sink`) found in\n");
+	fprintf(fp, "                                    the plugin PLUGIN\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
@@ -1964,10 +1961,6 @@ void print_query_usage(FILE *fp)
 	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -S, --sink=PLUGIN.CLS             Query object from the sink component class\n");
-	fprintf(fp, "                                    CLS found in the plugin PLUGIN\n");
-	fprintf(fp, "  -s, --source=PLUGIN.CLS           Query object from the source component\n");
-	fprintf(fp, "                                    class CLS found in the plugin PLUGIN\n");
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
 	fprintf(fp, "\n\n");
 	print_expected_params_format(fp);
@@ -1976,14 +1969,12 @@ void print_query_usage(FILE *fp)
 static
 struct poptOption query_long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "filter", 'f', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+	{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
 	{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
 	{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
-	{ "sink", 'S', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-	{ "source", 's', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ NULL, 0, '\0', NULL, 0, NULL, NULL },
 };
 
@@ -2046,36 +2037,17 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			cfg->omit_home_plugin_path = true;
 			break;
-		case OPT_SOURCE:
-		case OPT_FILTER:
-		case OPT_SINK:
-		{
-			enum bt_component_class_type type;
-
+		case OPT_COMPONENT:
 			if (cfg->cmd_data.query.cfg_component) {
 				printf_err("Cannot specify more than one plugin and component class:\n    %s\n",
 					arg);
 				goto error;
 			}
 
-			switch (opt) {
-			case OPT_SOURCE:
-				type = BT_COMPONENT_CLASS_TYPE_SOURCE;
-				break;
-			case OPT_FILTER:
-				type = BT_COMPONENT_CLASS_TYPE_FILTER;
-				break;
-			case OPT_SINK:
-				type = BT_COMPONENT_CLASS_TYPE_SINK;
-				break;
-			default:
-				abort();
-			}
-
 			cfg->cmd_data.query.cfg_component =
-				bt_config_component_from_arg(type, arg);
+				bt_config_component_from_arg(arg);
 			if (!cfg->cmd_data.query.cfg_component) {
-				printf_err("Invalid format for --source/--filter/--sink option's argument:\n    %s\n",
+				printf_err("Invalid format for --component option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
@@ -2085,7 +2057,6 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			cfg->cmd_data.query.cfg_component->params =
 				bt_value_null;
 			break;
-		}
 		case OPT_PARAMS:
 		{
 			params = bt_value_from_arg(arg);
@@ -2112,7 +2083,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	}
 
 	if (!cfg->cmd_data.query.cfg_component) {
-		printf_err("No target component class specified with --source/--filter/--sink option\n");
+		printf_err("No target component class specified with --component option\n");
 		goto error;
 	}
 
@@ -2322,12 +2293,14 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    for all the following components until\n");
 	fprintf(fp, "                                    --reset-base-params is encountered\n");
 	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
-	fprintf(fp, "  -c, --connect=CONNECTION          Connect two created components (see the\n");
+	fprintf(fp, "  -c, --component=[NAME:]TYPE.PLUGIN.CLS\n");
+	fprintf(fp, "                                    Instantiate the component class CLS of type\n");
+	fprintf(fp, "                                    TYPE (`source`, `filter`, or `sink`) found\n");
+	fprintf(fp, "                                    in the plugin PLUGIN, add it to the graph,\n");
+	fprintf(fp, "                                    and optionally name it NAME (you can also\n");
+	fprintf(fp, "                                    specify the name with --name)\n");
+	fprintf(fp, "  -C, --connect=CONNECTION          Connect two created components (see the\n");
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
-	fprintf(fp, "  -f, --filter=[NAME:]PLUGIN.CLS    Instantiate a filter component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
-	fprintf(fp, "                                    the current component, and if NAME is\n");
-	fprintf(fp, "                                    given, set its instance name to NAME\n");
 	fprintf(fp, "      --key=KEY                     Set the current initialization string\n");
 	fprintf(fp, "                                    parameter key to KEY (see --value)\n");
 	fprintf(fp, "  -n, --name=NAME                   Set the name of the current component\n");
@@ -2346,14 +2319,6 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "      --retry-duration=DUR          When babeltrace(1) needs to retry to run\n");
 	fprintf(fp, "                                    the graph later, retry in DUR µs\n");
 	fprintf(fp, "                                    (default: 100000)\n");
-	fprintf(fp, "  -S, --sink=[NAME:]PLUGIN.CLS      Instantiate a sink component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
-	fprintf(fp, "                                    the current component, and if NAME is\n");
-	fprintf(fp, "                                    given, set its instance name to NAME\n");
-	fprintf(fp, "  -s, --source=[NAME:]PLUGIN.CLS    Instantiate a source component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
-	fprintf(fp, "                                    the current component, and if NAME is\n");
-	fprintf(fp, "                                    given, set its instance name to NAME\n");
 	fprintf(fp, "      --value=VAL                   Add a string initialization parameter to\n");
 	fprintf(fp, "                                    the current component with a name given by\n");
 	fprintf(fp, "                                    the last argument of the --key option and a\n");
@@ -2426,8 +2391,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	long long retry_duration = -1;
 	struct poptOption run_long_options[] = {
 		{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
-		{ "connect", 'c', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
-		{ "filter", 'f', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
+		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
+		{ "connect", 'C', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
 		{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 		{ "key", '\0', POPT_ARG_STRING, NULL, OPT_KEY, NULL, NULL },
 		{ "name", 'n', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
@@ -2437,8 +2402,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
 		{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
 		{ "retry-duration", '\0', POPT_ARG_LONGLONG, &retry_duration, OPT_RETRY_DURATION, NULL, NULL },
-		{ "sink", 'S', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-		{ "source", 's', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 		{ "value", '\0', POPT_ARG_STRING, NULL, OPT_VALUE, NULL, NULL },
 		{ NULL, 0, '\0', NULL, 0, NULL, NULL },
 	};
@@ -2513,33 +2476,9 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			cfg->omit_home_plugin_path = true;
 			break;
-		case OPT_SOURCE:
-		case OPT_FILTER:
-		case OPT_SINK:
+		case OPT_COMPONENT:
 		{
-			enum bt_component_class_type new_comp_type;
 			enum bt_config_component_dest new_dest;
-			const char *opt_name;
-
-			switch (opt) {
-			case OPT_SOURCE:
-				new_comp_type = BT_COMPONENT_CLASS_TYPE_SOURCE;
-				new_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
-				opt_name = "--source";
-				break;
-			case OPT_FILTER:
-				new_comp_type = BT_COMPONENT_CLASS_TYPE_FILTER;
-				new_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
-				opt_name = "--filter";
-				break;
-			case OPT_SINK:
-				new_comp_type = BT_COMPONENT_CLASS_TYPE_SINK;
-				new_dest = BT_CONFIG_COMPONENT_DEST_SINK;
-				opt_name = "--sink";
-				break;
-			default:
-				abort();
-			}
 
 			if (cur_cfg_comp) {
 				ret = add_run_cfg_comp_check_name(cfg,
@@ -2551,12 +2490,25 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				}
 			}
 
-			cur_cfg_comp = bt_config_component_from_arg(
-				new_comp_type, arg);
+			cur_cfg_comp = bt_config_component_from_arg(arg);
 			if (!cur_cfg_comp) {
-				printf_err("Invalid format for %s option's argument:\n    %s\n",
-					opt_name, arg);
+				printf_err("Invalid format for --component option's argument:\n    %s\n",
+					arg);
 				goto error;
+			}
+
+			switch (cur_cfg_comp->type) {
+			case BT_COMPONENT_CLASS_TYPE_SOURCE:
+				new_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
+				break;
+			case BT_COMPONENT_CLASS_TYPE_FILTER:
+				new_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
+				break;
+			case BT_COMPONENT_CLASS_TYPE_SINK:
+				new_dest = BT_CONFIG_COMPONENT_DEST_SINK;
+				break;
+			default:
+				abort();
 			}
 
 			assert(cur_base_params);
@@ -2807,10 +2759,13 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "      --filter=[NAME:]PLUGIN.CLS    Instantiate a filter component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
-	fprintf(fp, "                                    the current component, and if NAME is\n");
-	fprintf(fp, "                                    given, set its instance name to NAME\n");
+	fprintf(fp, "  -c, --component=[NAME:]TYPE.PLUGIN.CLS\n");
+	fprintf(fp, "                                    Instantiate the component class CLS of type\n");
+	fprintf(fp, "                                    TYPE (`source`, `filter`, or `sink`) found\n");
+	fprintf(fp, "                                    in the plugin PLUGIN, add it to the\n");
+	fprintf(fp, "                                    conversion graph, and optionally name it\n");
+	fprintf(fp, "                                    NAME (you can also specify the name with\n");
+	fprintf(fp, "                                    --name)\n");
 	fprintf(fp, "      --name=NAME                   Set the name of the current component\n");
 	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
 	fprintf(fp, "                                    names of the created components)\n");
@@ -2833,14 +2788,6 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "      --run-args-0                  Print the equivalent arguments for the\n");
 	fprintf(fp, "                                    `run` command to the standard output,\n");
 	fprintf(fp, "                                    formatted for `xargs -0`, and quit\n");
-	fprintf(fp, "      --sink=[NAME:]PLUGIN.CLS      Instantiate a sink component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
-	fprintf(fp, "                                    the current component, and if NAME is\n");
-	fprintf(fp, "                                    given, set its instance name to NAME\n");
-	fprintf(fp, "      --source=[NAME:]PLUGIN.CLS    Instantiate a source component from plugin\n");
-	fprintf(fp, "                                    PLUGIN and component class CLS, set it as\n");
-	fprintf(fp, "                                    the current component, and if NAME is\n");
-	fprintf(fp, "                                    given, set its instance name to NAME\n");
 	fprintf(fp, "  -u, --url=URL                     Set the `url` string parameter of the\n");
 	fprintf(fp, "                                    current component to URL\n");
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
@@ -2909,21 +2856,21 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "  -i, --input-format=(ctf | lttng-live)\n");
 	fprintf(fp, "                                    `ctf`:\n");
-	fprintf(fp, "                                      Create an implicit `ctf.fs` source\n");
+	fprintf(fp, "                                      Create an implicit `source.ctf.fs`\n");
 	fprintf(fp, "                                      component\n");
 	fprintf(fp, "                                    `lttng-live`:\n");
-	fprintf(fp, "                                      Create an implicit `ctf.lttng-live`\n");
-	fprintf(fp, "                                      source component\n");
+	fprintf(fp, "                                      Create an implicit `source.ctf.lttng-live`\n");
+	fprintf(fp, "                                      component\n");
 	fprintf(fp, "  -o, --output-format=(text | dummy | ctf-metadata)\n");
 	fprintf(fp, "                                    `text`:\n");
-	fprintf(fp, "                                      Create an implicit `text.text` sink\n");
+	fprintf(fp, "                                      Create an implicit `sink.text.pretty`\n");
 	fprintf(fp, "                                      component\n");
 	fprintf(fp, "                                    `dummy`:\n");
-	fprintf(fp, "                                      Create an implicit `utils.dummy` sink\n");
+	fprintf(fp, "                                      Create an implicit `sink.utils.dummy`\n");
 	fprintf(fp, "                                      component\n");
 	fprintf(fp, "                                    `ctf-metadata`:\n");
-	fprintf(fp, "                                      Query the `ctf.fs` component class for\n");
-	fprintf(fp, "                                      metadata text and quit\n");
+	fprintf(fp, "                                      Query the `source.ctf.fs` component class\n");
+	fprintf(fp, "                                      for metadata text and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
 	fprintf(fp, "\n\n");
@@ -2947,13 +2894,13 @@ struct poptOption convert_long_options[] = {
 	{ "clock-offset-ns", '\0', POPT_ARG_STRING, NULL, OPT_CLOCK_OFFSET_NS, NULL, NULL },
 	{ "clock-seconds", '\0', POPT_ARG_NONE, NULL, OPT_CLOCK_SECONDS, NULL, NULL },
 	{ "color", '\0', POPT_ARG_STRING, NULL, OPT_COLOR, NULL, NULL },
+	{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
 	{ "debug", 'd', POPT_ARG_NONE, NULL, OPT_DEBUG, NULL, NULL },
 	{ "debug-info-dir", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_DIR, NULL, NULL },
 	{ "debug-info-full-path", 0, POPT_ARG_NONE, NULL, OPT_DEBUG_INFO_FULL_PATH, NULL, NULL },
 	{ "debug-info-target-prefix", 0, POPT_ARG_STRING, NULL, OPT_DEBUG_INFO_TARGET_PREFIX, NULL, NULL },
 	{ "end", 'e', POPT_ARG_STRING, NULL, OPT_END, NULL, NULL },
 	{ "fields", 'f', POPT_ARG_STRING, NULL, OPT_FIELDS, NULL, NULL },
-	{ "filter", '\0', POPT_ARG_STRING, NULL, OPT_FILTER, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
 	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
@@ -2970,8 +2917,6 @@ struct poptOption convert_long_options[] = {
 	{ "retry-duration", '\0', POPT_ARG_STRING, NULL, OPT_RETRY_DURATION, NULL, NULL },
 	{ "run-args", '\0', POPT_ARG_NONE, NULL, OPT_RUN_ARGS, NULL, NULL },
 	{ "run-args-0", '\0', POPT_ARG_NONE, NULL, OPT_RUN_ARGS_0, NULL, NULL },
-	{ "sink", '\0', POPT_ARG_STRING, NULL, OPT_SINK, NULL, NULL },
-	{ "source", '\0', POPT_ARG_STRING, NULL, OPT_SOURCE, NULL, NULL },
 	{ "stream-intersection", '\0', POPT_ARG_NONE, NULL, OPT_STREAM_INTERSECTION, NULL, NULL },
 	{ "timerange", '\0', POPT_ARG_STRING, NULL, OPT_TIMERANGE, NULL, NULL },
 	{ "url", 'u', POPT_ARG_STRING, NULL, OPT_URL, NULL, NULL },
@@ -3007,7 +2952,7 @@ end:
 
 struct implicit_component_args {
 	bool exists;
-	GString *plugin_comp_cls_arg;
+	GString *comp_arg;
 	GString *name_arg;
 	GString *params_arg;
 	struct bt_value *extra_args;
@@ -3056,7 +3001,6 @@ end:
 
 static
 int append_run_args_for_implicit_component(
-		enum bt_component_class_type type,
 		struct implicit_component_args *impl_args,
 		struct bt_value *run_args)
 {
@@ -3067,31 +3011,12 @@ int append_run_args_for_implicit_component(
 		goto end;
 	}
 
-	switch (type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		if (bt_value_array_append_string(run_args, "--source")) {
-			print_err_oom();
-			goto error;
-		}
-		break;
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		if (bt_value_array_append_string(run_args, "--filter")) {
-			print_err_oom();
-			goto error;
-		}
-		break;
-	case BT_COMPONENT_CLASS_TYPE_SINK:
-		if (bt_value_array_append_string(run_args, "--sink")) {
-			print_err_oom();
-			goto error;
-		}
-		break;
-	default:
-		abort();
+	if (bt_value_array_append_string(run_args, "--component")) {
+		print_err_oom();
+		goto error;
 	}
 
-	if (bt_value_array_append_string(run_args,
-			impl_args->plugin_comp_cls_arg->str)) {
+	if (bt_value_array_append_string(run_args, impl_args->comp_arg->str)) {
 		print_err_oom();
 		goto error;
 	}
@@ -3155,8 +3080,8 @@ void destroy_implicit_component_args(struct implicit_component_args *args)
 {
 	assert(args);
 
-	if (args->plugin_comp_cls_arg) {
-		g_string_free(args->plugin_comp_cls_arg, TRUE);
+	if (args->comp_arg) {
+		g_string_free(args->comp_arg, TRUE);
 	}
 
 	if (args->name_arg) {
@@ -3172,17 +3097,17 @@ void destroy_implicit_component_args(struct implicit_component_args *args)
 
 static
 int init_implicit_component_args(struct implicit_component_args *args,
-		const char *plugin_comp_cls_arg, bool exists)
+		const char *comp_arg, bool exists)
 {
 	int ret = 0;
 
 	args->exists = exists;
-	args->plugin_comp_cls_arg = g_string_new(plugin_comp_cls_arg);
+	args->comp_arg = g_string_new(comp_arg);
 	args->name_arg = g_string_new(NULL);
 	args->params_arg = g_string_new(NULL);
 	args->extra_args = bt_value_array_create();
 
-	if (!args->plugin_comp_cls_arg || !args->name_arg ||
+	if (!args->comp_arg || !args->name_arg ||
 			!args->params_arg || !args->extra_args) {
 		ret = -1;
 		destroy_implicit_component_args(args);
@@ -3252,7 +3177,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 	int ret = 0;
 
 	if (cur_name_prefix->len > 0) {
-		/* We're after a --source/--filter/--sink */
+		/* We're after a --component option */
 		GString *name = NULL;
 		bool append_name_opt = false;
 
@@ -3261,8 +3186,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 			 * No explicit name was provided for the user
 			 * component.
 			 */
-			name = get_component_auto_name(
-				cur_name_prefix->str,
+			name = get_component_auto_name(cur_name_prefix->str,
 				all_names);
 			append_name_opt = true;
 		} else {
@@ -3610,37 +3534,38 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	if (init_implicit_component_args(&implicit_ctf_args, "ctf.fs", false)) {
+	if (init_implicit_component_args(&implicit_ctf_args,
+			"source.ctf.fs", false)) {
 		goto error;
 	}
 
 	if (init_implicit_component_args(&implicit_lttng_live_args,
-			"ctf.lttng-live", false)) {
+			"source.ctf.lttng-live", false)) {
 		goto error;
 	}
 
-	if (init_implicit_component_args(&implicit_text_args, "text.pretty",
-			false)) {
+	if (init_implicit_component_args(&implicit_text_args,
+			"sink.text.pretty", false)) {
 		goto error;
 	}
 
-	if (init_implicit_component_args(&implicit_dummy_args, "utils.dummy",
-			false)) {
+	if (init_implicit_component_args(&implicit_dummy_args,
+			"sink.utils.dummy", false)) {
 		goto error;
 	}
 
 	if (init_implicit_component_args(&implicit_debug_info_args,
-			"lttng-utils.debug-info", !force_no_debug_info)) {
+			"filter.lttng-utils.debug-info", !force_no_debug_info)) {
 		goto error;
 	}
 
-	if (init_implicit_component_args(&implicit_muxer_args, "utils.muxer",
-			true)) {
+	if (init_implicit_component_args(&implicit_muxer_args,
+			"filter.utils.muxer", true)) {
 		goto error;
 	}
 
 	if (init_implicit_component_args(&implicit_trimmer_args,
-			"utils.trimmer", false)) {
+			"filter.utils.trimmer", false)) {
 		goto error;
 	}
 
@@ -3702,9 +3627,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		arg = poptGetOptArg(pc);
 
 		switch (opt) {
-		case OPT_SOURCE:
-		case OPT_FILTER:
-		case OPT_SINK:
+		case OPT_COMPONENT:
+		{
+			enum bt_component_class_type type;
+			const char *type_prefix;
+
 			/* Append current component's name if needed */
 			ret = convert_append_name_param(cur_comp_dest, cur_name,
 				cur_name_prefix, run_args, all_names,
@@ -3715,9 +3642,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			/* Parse the argument */
 			plugin_comp_cls_names(arg, &name, &plugin_name,
-				&comp_cls_name);
+				&comp_cls_name, &type);
 			if (!plugin_name || !comp_cls_name) {
-				printf_err("Invalid format for --source/--filter/--sink option's argument:\n    %s\n",
+				printf_err("Invalid format for --component option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
@@ -3728,36 +3655,27 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				g_string_assign(cur_name, "");
 			}
 
-			switch (opt) {
-			case OPT_SOURCE:
-				cur_comp_dest =
-					BT_CONFIG_COMPONENT_DEST_SOURCE;
-				if (bt_value_array_append_string(run_args,
-						"--source")) {
-					print_err_oom();
-					goto error;
-				}
+			switch (type) {
+			case BT_COMPONENT_CLASS_TYPE_SOURCE:
+				cur_comp_dest = BT_CONFIG_COMPONENT_DEST_SOURCE;
+				type_prefix = "source";
 				break;
-			case OPT_FILTER:
-				cur_comp_dest =
-					BT_CONFIG_COMPONENT_DEST_FILTER;
-				if (bt_value_array_append_string(run_args,
-						"--filter")) {
-					print_err_oom();
-					goto error;
-				}
+			case BT_COMPONENT_CLASS_TYPE_FILTER:
+				cur_comp_dest = BT_CONFIG_COMPONENT_DEST_FILTER;
+				type_prefix = "filter";
 				break;
-			case OPT_SINK:
-				cur_comp_dest =
-					BT_CONFIG_COMPONENT_DEST_SINK;
-				if (bt_value_array_append_string(run_args,
-						"--sink")) {
-					print_err_oom();
-					goto error;
-				}
+			case BT_COMPONENT_CLASS_TYPE_SINK:
+				cur_comp_dest = BT_CONFIG_COMPONENT_DEST_SINK;
+				type_prefix = "sink";
 				break;
 			default:
 				abort();
+			}
+
+			if (bt_value_array_append_string(run_args,
+					"--component")) {
+				print_err_oom();
+				goto error;
 			}
 
 			if (bt_value_array_append_string(run_args, arg)) {
@@ -3766,9 +3684,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			g_string_assign(cur_name_prefix, "");
-			g_string_append(cur_name_prefix, plugin_name);
-			g_string_append_c(cur_name_prefix, '.');
-			g_string_append(cur_name_prefix, comp_cls_name);
+			g_string_append_printf(cur_name_prefix, "%s.%s.%s",
+				type_prefix, plugin_name, comp_cls_name);
 			free(name);
 			free(plugin_name);
 			free(comp_cls_name);
@@ -3776,6 +3693,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			plugin_name = NULL;
 			comp_cls_name = NULL;
 			break;
+		}
 		case OPT_PARAMS:
 			if (cur_name_prefix->len == 0) {
 				printf_err("No current component of which to set parameters:\n    %s\n",
@@ -4346,29 +4264,30 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/*
-	 * Ensure mutual exclusion between implicit `ctf.fs` and
-	 * `ctf.lttng-live` sources.
+	 * Ensure mutual exclusion between implicit `source.ctf.fs` and
+	 * `source.ctf.lttng-live` components.
 	 */
 	if (implicit_ctf_args.exists && implicit_lttng_live_args.exists) {
-		printf_err("Cannot create both implicit `%s` and `%s` source components\n",
-			implicit_ctf_args.plugin_comp_cls_arg->str,
-			implicit_lttng_live_args.plugin_comp_cls_arg->str);
+		printf_err("Cannot create both implicit `%s` and `%s` components\n",
+			implicit_ctf_args.comp_arg->str,
+			implicit_lttng_live_args.comp_arg->str);
 		goto error;
 	}
 
 	/*
-	 * If the implicit `ctf.fs` or `ctf.lttng-live` source exists,
-	 * make sure there's a leftover (which is the path or URL).
+	 * If the implicit `source.ctf.fs` or `source.ctf.lttng-live`
+	 * components exists, make sure there's a leftover (which is the
+	 * path or URL).
 	 */
 	if (implicit_ctf_args.exists && !leftover) {
-		printf_err("Missing path for implicit `%s` source component\n",
-			implicit_ctf_args.plugin_comp_cls_arg->str);
+		printf_err("Missing path for implicit `%s` component\n",
+			implicit_ctf_args.comp_arg->str);
 		goto error;
 	}
 
 	if (implicit_lttng_live_args.exists && !leftover) {
-		printf_err("Missing URL for implicit `%s` source component\n",
-			implicit_lttng_live_args.plugin_comp_cls_arg->str);
+		printf_err("Missing URL for implicit `%s` component\n",
+			implicit_lttng_live_args.comp_arg->str);
 		goto error;
 	}
 
@@ -4456,46 +4375,43 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * Append the equivalent run arguments for the implicit
 	 * components.
 	 */
-	ret = append_run_args_for_implicit_component(
-		BT_COMPONENT_CLASS_TYPE_SOURCE, &implicit_ctf_args, run_args);
-	if (ret) {
-		goto error;
-	}
-
-	ret = append_run_args_for_implicit_component(
-		BT_COMPONENT_CLASS_TYPE_SOURCE, &implicit_lttng_live_args,
+	ret = append_run_args_for_implicit_component(&implicit_ctf_args,
 		run_args);
 	if (ret) {
 		goto error;
 	}
 
-	ret = append_run_args_for_implicit_component(
-		BT_COMPONENT_CLASS_TYPE_SINK, &implicit_text_args, run_args);
-	if (ret) {
-		goto error;
-	}
-
-	ret = append_run_args_for_implicit_component(
-		BT_COMPONENT_CLASS_TYPE_SINK, &implicit_dummy_args, run_args);
-	if (ret) {
-		goto error;
-	}
-
-	ret = append_run_args_for_implicit_component(
-		BT_COMPONENT_CLASS_TYPE_FILTER, &implicit_muxer_args, run_args);
-	if (ret) {
-		goto error;
-	}
-
-	ret = append_run_args_for_implicit_component(
-		BT_COMPONENT_CLASS_TYPE_FILTER, &implicit_trimmer_args,
+	ret = append_run_args_for_implicit_component(&implicit_lttng_live_args,
 		run_args);
 	if (ret) {
 		goto error;
 	}
 
-	ret = append_run_args_for_implicit_component(
-		BT_COMPONENT_CLASS_TYPE_FILTER, &implicit_debug_info_args,
+	ret = append_run_args_for_implicit_component(&implicit_text_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(&implicit_dummy_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(&implicit_muxer_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(&implicit_trimmer_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(&implicit_debug_info_args,
 		run_args);
 	if (ret) {
 		goto error;

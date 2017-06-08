@@ -178,7 +178,7 @@ const char *component_type_str(enum bt_component_class_type type)
 		return "filter";
 	case BT_COMPONENT_CLASS_TYPE_UNKNOWN:
 	default:
-		return "unknown";
+		return "(unknown)";
 	}
 }
 
@@ -199,13 +199,11 @@ void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
 		goto end;
 	}
 
-	fprintf(fh, "%s%s--%s%s %s'%s%s%s%s.%s%s%s'",
+	fprintf(fh, "'%s%s%s%s.%s%s%s.%s%s%s'",
 		bt_common_color_bold(),
 		bt_common_color_fg_cyan(),
 		component_type_str(type),
-		bt_common_color_reset(),
 		bt_common_color_fg_default(),
-		bt_common_color_bold(),
 		bt_common_color_fg_blue(),
 		shell_plugin_name->str,
 		bt_common_color_fg_default(),
