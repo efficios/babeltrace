@@ -118,10 +118,8 @@ AC_TYPE_UINT8_T
 # Checks for library functions.
 AC_FUNC_ALLOCA
 AC_FUNC_FORK
-AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_MMAP
-AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([ \
 	atexit \
@@ -150,6 +148,10 @@ AC_CHECK_FUNCS([ \
 	tzset \
 	uname \
 ])
+
+# AC_FUNC_MALLOC causes problems when cross-compiling.
+#AC_FUNC_MALLOC
+#AC_FUNC_REALLOC
 
 MINGW32=no
 DEFAULT_ENABLE_DEBUG_INFO=yes
