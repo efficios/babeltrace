@@ -98,9 +98,6 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		goto error;
 	}
 
-	/* A stream class should always have an existing event header type */
-	assert(stream_class->event_header_type);
-
 	/* The event class was frozen when added to its stream class */
 	assert(event_class->frozen);
 

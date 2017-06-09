@@ -1048,7 +1048,9 @@ enum bt_ctf_notif_iter_status set_current_packet_content_sizes(
 	struct bt_ctf_field *content_size_field = NULL;
 	uint64_t content_size = -1, packet_size = -1;
 
-	assert(notit->dscopes.stream_packet_context);
+	if (!notit->dscopes.stream_packet_context) {
+		goto end;
+	}
 
 	packet_size_field = bt_ctf_field_structure_get_field(
 		notit->dscopes.stream_packet_context, "packet_size");

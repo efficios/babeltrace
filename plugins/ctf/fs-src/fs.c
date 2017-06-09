@@ -393,7 +393,7 @@ struct bt_ctf_stream_class *stream_class_from_packet_header(
 	stream_id_field = bt_ctf_field_structure_get_field_by_name(
 		packet_header_field, "stream_id");
 	if (!stream_id_field) {
-		goto end;
+		goto single_stream_class;
 	}
 
 	ret = bt_ctf_field_unsigned_integer_get_value(stream_id_field,
@@ -835,7 +835,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		ret = add_ds_file_to_ds_file_group(ctf_fs_trace,
 			file->path->str);
 		if (ret) {
-			BT_LOGD("Cannot add stream file `%s` to stream file group",
+			BT_LOGE("Cannot add stream file `%s` to stream file group",
 				file->path->str);
 			ctf_fs_file_destroy(file);
 			goto error;

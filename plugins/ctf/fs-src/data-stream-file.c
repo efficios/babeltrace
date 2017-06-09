@@ -255,7 +255,7 @@ int get_ds_file_packet_bounds_clock_classes(struct ctf_fs_ds_file *ds_file,
 		struct bt_ctf_clock_class **_timestamp_end_cc)
 {
 	int ret;
-	struct bt_ctf_field *timestamp_field;
+	struct bt_ctf_field *timestamp_field = NULL;
 	struct bt_ctf_field *packet_context_field = NULL;
 	struct bt_ctf_clock_class *timestamp_begin_cc = NULL;
 	struct bt_ctf_clock_class *timestamp_end_cc = NULL;
@@ -283,7 +283,7 @@ int get_ds_file_packet_bounds_clock_classes(struct ctf_fs_ds_file *ds_file,
 		BT_LOGD("Cannot retrieve the clock mapped to timestamp_begin of stream \'%s\'",
 				ds_file->file->path->str);
 	}
-	bt_put(timestamp_field);
+	BT_PUT(timestamp_field);
 
 	timestamp_field = bt_ctf_field_structure_get_field_by_name(
 			packet_context_field, "timestamp_end");
