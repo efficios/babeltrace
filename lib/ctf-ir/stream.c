@@ -998,20 +998,20 @@ end:
 	return stream_class;
 }
 
-int64_t bt_ctf_stream_get_discarded_events_count(
+int bt_ctf_stream_get_discarded_events_count(
 		struct bt_ctf_stream *stream, uint64_t *count)
 {
-	int64_t ret = 0;
+	int ret = 0;
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		ret = (int64_t) -1;
+		ret = -1;
 		goto end;
 	}
 
 	if (!count) {
 		BT_LOGW_STR("Invalid parameter: count is NULL.");
-		ret = (int64_t) -1;
+		ret = -1;
 		goto end;
 	}
 
@@ -1019,7 +1019,7 @@ int64_t bt_ctf_stream_get_discarded_events_count(
 		BT_LOGW("Invalid parameter: stream is not a CTF writer stream: "
 			"stream-addr=%p, stream-name=\"%s\"",
 			stream, bt_ctf_stream_get_name(stream));
-		ret = (int64_t) -1;
+		ret = -1;
 		goto end;
 	}
 
