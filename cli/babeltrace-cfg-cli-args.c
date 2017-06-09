@@ -2796,14 +2796,14 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    current component to URL\n");
 	fprintf(fp, "  -h  --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Implicit `ctf.fs` source component options:\n");
+	fprintf(fp, "Implicit `source.ctf.fs` component options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "      --clock-offset=SEC            Set clock offset to SEC seconds\n");
 	fprintf(fp, "      --clock-offset-ns=NS          Set clock offset to NS ns\n");
 	fprintf(fp, "      --stream-intersection         Only process events when all streams\n");
 	fprintf(fp, "                                    are active\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Implicit `text.text` sink component options:\n");
+	fprintf(fp, "Implicit `sink.text.pretty` component options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "      --clock-cycles                Print timestamps in clock cycles\n");
 	fprintf(fp, "      --clock-date                  Print timestamp dates\n");
@@ -2827,12 +2827,12 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "  -w, --output=PATH                 Write output text to PATH instead of\n");
 	fprintf(fp, "                                    the standard output\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Implicit `utils.muxer` filter component options:\n");
+	fprintf(fp, "Implicit `filter.utils.muxer` component options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "      --clock-force-correlate       Assume that clocks are inherently\n");
 	fprintf(fp, "                                    correlated across traces\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Implicit `utils.trimmer` filter component options:\n");
+	fprintf(fp, "Implicit `filter.utils.trimmer` component options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "  -b, --begin=BEGIN                 Set the beginning time of the conversion\n");
 	fprintf(fp, "                                    time range to BEGIN (see the format of\n");
@@ -2843,7 +2843,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    BEGIN,END or [BEGIN,END] (literally `[` and\n");
 	fprintf(fp, "                                    `]`) (see the format of BEGIN/END below)\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Implicit `lttng-utils.debug-info` filter component options:\n");
+	fprintf(fp, "Implicit `filter.lttng-utils.debug-info` component options:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "      --debug-info-dir=DIR          Search for debug info in directory DIR\n");
 	fprintf(fp, "                                    instead of `/usr/lib/debug`\n");
@@ -2865,9 +2865,12 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    `lttng-live`:\n");
 	fprintf(fp, "                                      Create an implicit `source.ctf.lttng-live`\n");
 	fprintf(fp, "                                      component\n");
-	fprintf(fp, "  -o, --output-format=(text | dummy | ctf-metadata)\n");
+	fprintf(fp, "  -o, --output-format=(text | ctf | dummy | ctf-metadata)\n");
 	fprintf(fp, "                                    `text`:\n");
 	fprintf(fp, "                                      Create an implicit `sink.text.pretty`\n");
+	fprintf(fp, "                                      component\n");
+	fprintf(fp, "                                    `text`:\n");
+	fprintf(fp, "                                      Create an implicit `sink.ctf.fs`\n");
 	fprintf(fp, "                                      component\n");
 	fprintf(fp, "                                    `dummy`:\n");
 	fprintf(fp, "                                      Create an implicit `sink.utils.dummy`\n");
@@ -2959,7 +2962,7 @@ struct implicit_component_args {
 	GString *comp_arg;
 	GString *name_arg;
 	GString *params_arg;
-	struct bt_value *extra_args;
+	struct bt_value *extra_params;
 };
 
 static
@@ -3048,11 +3051,11 @@ int append_run_args_for_implicit_component(
 		}
 	}
 
-	for (i = 0; i < bt_value_array_size(impl_args->extra_args); i++) {
+	for (i = 0; i < bt_value_array_size(impl_args->extra_params); i++) {
 		struct bt_value *elem;
 		const char *arg;
 
-		elem = bt_value_array_get(impl_args->extra_args, i);
+		elem = bt_value_array_get(impl_args->extra_params, i);
 		if (!elem) {
 			goto error;
 		}
@@ -3096,7 +3099,7 @@ void destroy_implicit_component_args(struct implicit_component_args *args)
 		g_string_free(args->params_arg, TRUE);
 	}
 
-	bt_put(args->extra_args);
+	bt_put(args->extra_params);
 }
 
 static
@@ -3109,10 +3112,10 @@ int init_implicit_component_args(struct implicit_component_args *args,
 	args->comp_arg = g_string_new(comp_arg);
 	args->name_arg = g_string_new(NULL);
 	args->params_arg = g_string_new(NULL);
-	args->extra_args = bt_value_array_create();
+	args->extra_params = bt_value_array_create();
 
 	if (!args->comp_arg || !args->name_arg ||
-			!args->params_arg || !args->extra_args) {
+			!args->params_arg || !args->extra_params) {
 		ret = -1;
 		destroy_implicit_component_args(args);
 		print_err_oom();
@@ -3134,7 +3137,7 @@ void append_implicit_component_param(struct implicit_component_args *args,
 }
 
 static
-int append_implicit_component_extra_arg(struct implicit_component_args *args,
+int append_implicit_component_extra_param(struct implicit_component_args *args,
 		const char *key, const char *value)
 {
 	int ret = 0;
@@ -3143,25 +3146,25 @@ int append_implicit_component_extra_arg(struct implicit_component_args *args,
 	assert(key);
 	assert(value);
 
-	if (bt_value_array_append_string(args->extra_args, "--key")) {
+	if (bt_value_array_append_string(args->extra_params, "--key")) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_value_array_append_string(args->extra_args, key)) {
+	if (bt_value_array_append_string(args->extra_params, key)) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_value_array_append_string(args->extra_args, "--value")) {
+	if (bt_value_array_append_string(args->extra_params, "--value")) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_value_array_append_string(args->extra_args, value)) {
+	if (bt_value_array_append_string(args->extra_params, value)) {
 		print_err_oom();
 		ret = -1;
 		goto end;
@@ -3518,7 +3521,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	GList *source_names = NULL;
 	GList *filter_names = NULL;
 	GList *sink_names = NULL;
-	struct implicit_component_args implicit_ctf_args = { 0 };
+	struct implicit_component_args implicit_ctf_input_args = { 0 };
+	struct implicit_component_args implicit_ctf_output_args = { 0 };
 	struct implicit_component_args implicit_lttng_live_args = { 0 };
 	struct implicit_component_args implicit_dummy_args = { 0 };
 	struct implicit_component_args implicit_text_args = { 0 };
@@ -3529,6 +3533,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	char error_buf[256] = { 0 };
 	size_t i;
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
+	char *output = NULL;
 
 	*retcode = 0;
 
@@ -3538,8 +3543,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	if (init_implicit_component_args(&implicit_ctf_args,
+	if (init_implicit_component_args(&implicit_ctf_input_args,
 			"source.ctf.fs", false)) {
+		goto error;
+	}
+
+	if (init_implicit_component_args(&implicit_ctf_output_args,
+			"sink.ctf.fs", false)) {
 		goto error;
 	}
 
@@ -3924,7 +3934,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			trimmer_has_begin = true;
-			ret = append_implicit_component_extra_arg(
+			ret = append_implicit_component_extra_param(
 				&implicit_trimmer_args, "begin", arg);
 			implicit_trimmer_args.exists = true;
 			if (ret) {
@@ -3939,7 +3949,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			trimmer_has_end = true;
-			ret = append_implicit_component_extra_arg(
+			ret = append_implicit_component_extra_param(
 				&implicit_trimmer_args, "end", arg);
 			implicit_trimmer_args.exists = true;
 			if (ret) {
@@ -3964,9 +3974,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			ret = append_implicit_component_extra_arg(
+			ret = append_implicit_component_extra_param(
 				&implicit_trimmer_args, "begin", begin);
-			ret |= append_implicit_component_extra_arg(
+			ret |= append_implicit_component_extra_param(
 				&implicit_trimmer_args, "end", end);
 			implicit_trimmer_args.exists = true;
 			free(begin);
@@ -3996,17 +4006,17 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			break;
 		case OPT_CLOCK_OFFSET:
-			ret = append_implicit_component_extra_arg(
-				&implicit_ctf_args, "clock-offset-cycles", arg);
-			implicit_ctf_args.exists = true;
+			implicit_ctf_input_args.exists = true;
+			ret = append_implicit_component_extra_param(
+				&implicit_ctf_input_args, "clock-offset-cycles", arg);
 			if (ret) {
 				goto error;
 			}
 			break;
 		case OPT_CLOCK_OFFSET_NS:
-			ret = append_implicit_component_extra_arg(
-				&implicit_ctf_args, "clock-offset-ns", arg);
-			implicit_ctf_args.exists = true;
+			implicit_ctf_input_args.exists = true;
+			ret = append_implicit_component_extra_param(
+				&implicit_ctf_input_args, "clock-offset-ns", arg);
 			if (ret) {
 				goto error;
 			}
@@ -4017,9 +4027,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			break;
 		case OPT_COLOR:
-			ret = append_implicit_component_extra_arg(
-				&implicit_text_args, "color", arg);
 			implicit_text_args.exists = true;
+			ret = append_implicit_component_extra_param(
+				&implicit_text_args, "color", arg);
 			if (ret) {
 				goto error;
 			}
@@ -4028,18 +4038,21 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_debug_info_args.exists = false;
 			break;
 		case OPT_DEBUG_INFO_DIR:
-			ret = append_implicit_component_extra_arg(
+			implicit_debug_info_args.exists = true;
+			ret = append_implicit_component_extra_param(
 				&implicit_debug_info_args, "dir", arg);
 			if (ret) {
 				goto error;
 			}
 			break;
 		case OPT_DEBUG_INFO_FULL_PATH:
+			implicit_debug_info_args.exists = true;
 			append_implicit_component_param(
 				&implicit_debug_info_args, "full-path", "yes");
 			break;
 		case OPT_DEBUG_INFO_TARGET_PREFIX:
-			ret = append_implicit_component_extra_arg(
+			implicit_debug_info_args.exists = true;
+			ret = append_implicit_component_extra_param(
 				&implicit_debug_info_args,
 				"target-prefix", arg);
 			if (ret) {
@@ -4054,6 +4067,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
+			implicit_text_args.exists = true;
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
 				fields, "field");
@@ -4071,6 +4085,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
+			implicit_text_args.exists = true;
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
 				names, "name");
@@ -4094,7 +4109,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			got_input_format_opt = true;
 
 			if (strcmp(arg, "ctf") == 0) {
-				implicit_ctf_args.exists = true;
+				implicit_ctf_input_args.exists = true;
 			} else if (strcmp(arg, "lttng-live") == 0) {
 				implicit_lttng_live_args.exists = true;
 			} else {
@@ -4113,6 +4128,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			if (strcmp(arg, "text") == 0) {
 				implicit_text_args.exists = true;
+			} else if (strcmp(arg, "ctf") == 0) {
+				implicit_ctf_output_args.exists = true;
 			} else if (strcmp(arg, "dummy") == 0) {
 				implicit_dummy_args.exists = true;
 			} else if (strcmp(arg, "ctf-metadata") == 0) {
@@ -4124,10 +4141,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 			break;
 		case OPT_OUTPUT:
-			ret = append_implicit_component_extra_arg(
-				&implicit_text_args, "path", arg);
-			implicit_text_args.exists = true;
-			if (ret) {
+			if (output) {
+				printf_err("Duplicate --output option\n");
+				goto error;
+			}
+
+			output = strdup(arg);
+			if (!output) {
+				print_err_oom();
 				goto error;
 			}
 			break;
@@ -4148,9 +4169,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			print_run_args_0 = true;
 			break;
 		case OPT_STREAM_INTERSECTION:
-			append_implicit_component_param(&implicit_ctf_args,
+			append_implicit_component_param(&implicit_ctf_input_args,
 				"stream-intersection", "yes");
-			implicit_ctf_args.exists = true;
+			implicit_ctf_input_args.exists = true;
 			break;
 		case OPT_VERBOSE:
 			if (got_verbose_opt) {
@@ -4218,11 +4239,57 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/*
-	 * If -o dummy was not specified, and if there are no explicit
-	 * sink components, then use an implicit `text.text` sink.
+	 * If -o ctf was specified, make sure an output path (--output)
+	 * was also specified. --output does not imply -o ctf because
+	 * it's also used for the default, implicit -o text if -o ctf
+	 * is not specified.
 	 */
-	if (!implicit_dummy_args.exists && !sink_names) {
+	if (implicit_ctf_output_args.exists) {
+		if (!output) {
+			printf_err("--output-format=ctf specified without --output (trace output path)\n");
+			goto error;
+		}
+
+		/*
+		 * At this point we know that -o ctf AND --output were
+		 * specified. Make sure that no options were specified
+		 * which would imply -o text because --output would be
+		 * ambiguous in this case. For example, this is wrong:
+		 *
+		 *     babeltrace --names=all -o ctf --output=/tmp/path my-trace
+		 *
+		 * because --names=all implies -o text, and --output
+		 * could apply to both the sink.text.pretty and
+		 * sink.ctf.fs implicit components.
+		 */
+		if (implicit_text_args.exists) {
+			printf_err("Ambiguous --output option: --output-format=ctf specified but another option implies --output-format=text\n");
+			goto error;
+		}
+	}
+
+	/*
+	 * If -o dummy and -o ctf were not specified, and if there are
+	 * no explicit sink components, then use an implicit
+	 * `sink.text.pretty` component.
+	 */
+	if (!implicit_dummy_args.exists && !implicit_ctf_output_args.exists &&
+			!sink_names) {
 		implicit_text_args.exists = true;
+	}
+
+	/*
+	 * Set implicit `sink.text.pretty` or `sink.ctf.fs` component's
+	 * `path` parameter if --output was specified.
+	 */
+	if (output) {
+		if (implicit_text_args.exists) {
+			append_implicit_component_extra_param(&implicit_text_args,
+				"path", output);
+		} else if (implicit_ctf_output_args.exists) {
+			append_implicit_component_extra_param(&implicit_ctf_output_args,
+				"path", output);
+		}
 	}
 
 	/* Decide where the leftover argument goes */
@@ -4252,15 +4319,15 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto end;
 			}
 
-			ret = append_implicit_component_extra_arg(
+			ret = append_implicit_component_extra_param(
 				&implicit_lttng_live_args, "url", leftover);
 			if (ret) {
 				goto error;
 			}
 		} else {
-			ret = append_implicit_component_extra_arg(
-				&implicit_ctf_args, "path", leftover);
-			implicit_ctf_args.exists = true;
+			ret = append_implicit_component_extra_param(
+				&implicit_ctf_input_args, "path", leftover);
+			implicit_ctf_input_args.exists = true;
 			if (ret) {
 				goto error;
 			}
@@ -4271,9 +4338,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * Ensure mutual exclusion between implicit `source.ctf.fs` and
 	 * `source.ctf.lttng-live` components.
 	 */
-	if (implicit_ctf_args.exists && implicit_lttng_live_args.exists) {
+	if (implicit_ctf_input_args.exists && implicit_lttng_live_args.exists) {
 		printf_err("Cannot create both implicit `%s` and `%s` components\n",
-			implicit_ctf_args.comp_arg->str,
+			implicit_ctf_input_args.comp_arg->str,
 			implicit_lttng_live_args.comp_arg->str);
 		goto error;
 	}
@@ -4283,9 +4350,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * components exists, make sure there's a leftover (which is the
 	 * path or URL).
 	 */
-	if (implicit_ctf_args.exists && !leftover) {
+	if (implicit_ctf_input_args.exists && !leftover) {
 		printf_err("Missing path for implicit `%s` component\n",
-			implicit_ctf_args.comp_arg->str);
+			implicit_ctf_input_args.comp_arg->str);
 		goto error;
 	}
 
@@ -4296,8 +4363,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/* Assign names to implicit components */
-	ret = assign_name_to_implicit_component(&implicit_ctf_args,
-		"ctf-fs", all_names, &source_names, true);
+	ret = assign_name_to_implicit_component(&implicit_ctf_input_args,
+		"source-ctf-fs", all_names, &source_names, true);
 	if (ret) {
 		goto error;
 	}
@@ -4310,6 +4377,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	ret = assign_name_to_implicit_component(&implicit_text_args,
 		"pretty", all_names, &sink_names, true);
+	if (ret) {
+		goto error;
+	}
+
+	ret = assign_name_to_implicit_component(&implicit_ctf_output_args,
+		"sink-ctf-fs", all_names, &sink_names, true);
 	if (ret) {
 		goto error;
 	}
@@ -4379,7 +4452,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * Append the equivalent run arguments for the implicit
 	 * components.
 	 */
-	ret = append_run_args_for_implicit_component(&implicit_ctf_args,
+	ret = append_run_args_for_implicit_component(&implicit_ctf_input_args,
 		run_args);
 	if (ret) {
 		goto error;
@@ -4392,6 +4465,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	ret = append_run_args_for_implicit_component(&implicit_text_args,
+		run_args);
+	if (ret) {
+		goto error;
+	}
+
+	ret = append_run_args_for_implicit_component(&implicit_ctf_output_args,
 		run_args);
 	if (ret) {
 		goto error;
@@ -4493,6 +4572,7 @@ end:
 	}
 
 	free(arg);
+	free(output);
 
 	if (cur_name) {
 		g_string_free(cur_name, TRUE);
@@ -4507,7 +4587,8 @@ end:
 	destroy_glist_of_gstring(source_names);
 	destroy_glist_of_gstring(filter_names);
 	destroy_glist_of_gstring(sink_names);
-	destroy_implicit_component_args(&implicit_ctf_args);
+	destroy_implicit_component_args(&implicit_ctf_input_args);
+	destroy_implicit_component_args(&implicit_ctf_output_args);
 	destroy_implicit_component_args(&implicit_lttng_live_args);
 	destroy_implicit_component_args(&implicit_dummy_args);
 	destroy_implicit_component_args(&implicit_text_args);
