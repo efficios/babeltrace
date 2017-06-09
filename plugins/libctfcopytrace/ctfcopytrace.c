@@ -761,8 +761,13 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 
 	/* Optional field, so it can fail silently. */
 	field = bt_ctf_event_get_stream_event_context(event);
-	copy_field = bt_ctf_field_copy(field);
-	if (copy_field) {
+	if (field) {
+		copy_field = bt_ctf_field_copy(field);
+		if (!copy_field) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
 		ret = bt_ctf_event_set_stream_event_context(writer_event,
 				copy_field);
 		if (ret < 0) {
@@ -770,41 +775,46 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 					__FILE__, __LINE__);
 			goto error;
 		}
+		BT_PUT(field);
+		BT_PUT(copy_field);
 	}
-	BT_PUT(field);
-	BT_PUT(copy_field);
 
 	/* Optional field, so it can fail silently. */
 	field = bt_ctf_event_get_event_context(event);
-	copy_field = bt_ctf_field_copy(field);
-	if (copy_field) {
+	if (field) {
+		copy_field = bt_ctf_field_copy(field);
+		if (!copy_field) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
 		ret = bt_ctf_event_set_event_context(writer_event, copy_field);
 		if (ret < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
 			goto error;
 		}
+		BT_PUT(field);
+		BT_PUT(copy_field);
 	}
-	BT_PUT(field);
-	BT_PUT(copy_field);
 
 	field = bt_ctf_event_get_event_payload(event);
-	if (!field) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
-	copy_field = bt_ctf_field_copy(field);
-	if (copy_field) {
+	if (field) {
+		copy_field = bt_ctf_field_copy(field);
+		if (!copy_field) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
 		ret = bt_ctf_event_set_event_payload(writer_event, copy_field);
 		if (ret < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
 			goto error;
 		}
+		BT_PUT(field);
+		BT_PUT(copy_field);
 	}
-	BT_PUT(field);
-	BT_PUT(copy_field);
 
 	goto end;
 
