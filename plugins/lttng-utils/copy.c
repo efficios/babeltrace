@@ -1533,7 +1533,7 @@ BT_HIDDEN
 struct bt_ctf_stream *debug_info_stream_end(struct debug_info_iterator *debug_it,
 		struct bt_ctf_stream *stream)
 {
-	struct bt_ctf_stream *writer_stream;
+	struct bt_ctf_stream *writer_stream = NULL;
 	struct debug_info_trace *di_trace = NULL;
 	enum debug_info_stream_state *state;
 
