@@ -59,6 +59,20 @@
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 
+/*
+ * Known environment variable names for the log levels of the project's
+ * modules.
+ */
+static const char* log_level_env_var_names[] = {
+	"BABELTRACE_PLUGIN_CTF_BTR_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_CTF_FS_SRC_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_SRC_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_CTF_NOTIF_ITER_LOG_LEVEL",
+	"BABELTRACE_PYTHON_PLUGIN_PROVIDER_LOG_LEVEL",
+	NULL,
+};
+
 /* Application's processing graph (weak) */
 static struct bt_graph *the_graph;
 static bool canceled = false;
@@ -1917,6 +1931,7 @@ int main(int argc, const char **argv)
 	int ret;
 	int retcode;
 	struct bt_config *cfg;
+	const char **env_var_name;
 
 	init_log_level();
 	set_sigint_handler();
@@ -1942,18 +1957,34 @@ int main(int argc, const char **argv)
 		goto end;
 	}
 
+	/*
+	 * Set log levels according to --debug or --verbose. For
+	 * backward compatibility, --debug is more verbose than
+	 * --verbose. So:
+	 *
+	 *     --verbose: INFO log level
+	 *     --debug:   VERBOSE log level (includes DEBUG, which is
+	 *                is less verbose than VERBOSE in the internal
+	 *                logging framework)
+	 */
 	if (cfg->verbose) {
+		bt_cli_log_level = BT_LOGGING_LEVEL_INFO;
+		bt_logging_set_global_level(BT_LOGGING_LEVEL_INFO);
+	} else if (cfg->debug) {
 		bt_cli_log_level = BT_LOGGING_LEVEL_VERBOSE;
 		bt_logging_set_global_level(BT_LOGGING_LEVEL_VERBOSE);
-		// TODO: for backward compat., set the log level
-		//       environment variables of the known plugins
-		//       to VERBOSE
-	} else if (cfg->debug) {
-		bt_cli_log_level = BT_LOGGING_LEVEL_DEBUG;
-		bt_logging_set_global_level(BT_LOGGING_LEVEL_DEBUG);
-		// TODO: for backward compat., set the log level
-		//       environment variables of the known plugins
-		//       to DEBUG
+	}
+
+	env_var_name = log_level_env_var_names;
+
+	while (*env_var_name) {
+		if (cfg->verbose) {
+			setenv(*env_var_name, "I", 1);
+		} else if (cfg->debug) {
+			setenv(*env_var_name, "V", 1);
+		}
+
+		env_var_name++;
 	}
 
 	babeltrace_debug = cfg->debug;

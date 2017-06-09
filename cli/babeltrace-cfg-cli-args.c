@@ -4703,6 +4703,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	cfg = bt_config_run_from_args_array(run_args, retcode,
 		force_omit_system_plugin_path, force_omit_home_plugin_path,
 		initial_plugin_paths);
+	if (!cfg) {
+		goto error;
+	}
+
+	cfg->debug = got_debug_opt;
+	cfg->verbose = got_verbose_opt;
 	goto end;
 
 error:
