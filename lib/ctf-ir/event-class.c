@@ -59,12 +59,6 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 	BT_LOGD("Creating event class object: name=\"%s\"",
 		name);
 
-	if (bt_ctf_validate_identifier(name)) {
-		BT_LOGW("Invalid parameter: event class's name is not a valid CTF identifier: "
-			"name=\"%s\"", name);
-		goto error;
-	}
-
 	event_class = g_new0(struct bt_ctf_event_class, 1);
 	if (!event_class) {
 		BT_LOGE_STR("Failed to allocate one event class.");
