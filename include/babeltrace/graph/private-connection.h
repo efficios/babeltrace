@@ -34,7 +34,7 @@ struct bt_connection;
 struct bt_private_port;
 struct bt_private_connection;
 
-struct bt_connection *bt_connection_from_private_connection(
+extern struct bt_connection *bt_connection_from_private_connection(
 		struct bt_private_connection *private_connection);
 
 extern enum bt_connection_status
