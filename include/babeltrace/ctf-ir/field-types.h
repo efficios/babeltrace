@@ -831,7 +831,7 @@ extern int bt_ctf_field_type_integer_get_size(
 	the integer fields described by a given integer field type.
 */
 extern int bt_ctf_field_type_integer_set_size(
-		struct bt_ctf_field_type *int_field_type, size_t size);
+		struct bt_ctf_field_type *int_field_type, unsigned int size);
 
 /**
 @brief  Returns whether or not the @intfields described by the @intft

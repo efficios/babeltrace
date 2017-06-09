@@ -981,7 +981,7 @@ end:
 }
 
 int bt_ctf_field_type_integer_set_size(struct bt_ctf_field_type *type,
-		size_t size)
+		unsigned int size)
 {
 	int ret = 0;
 	struct bt_ctf_field_type_integer *integer;
@@ -1009,14 +1009,14 @@ int bt_ctf_field_type_integer_set_size(struct bt_ctf_field_type *type,
 
 	if (size == 0 || size > 64) {
 		BT_LOGW("Invalid parameter: size must be between 1 and 64: "
-			"addr=%p, size=%zu", type, size);
+			"addr=%p, size=%u", type, size);
 		ret = -1;
 		goto end;
 	}
 
 	integer = container_of(type, struct bt_ctf_field_type_integer, parent);
 	integer->size = size;
-	BT_LOGV("Set integer field type's size: addr=%p, size=%zu",
+	BT_LOGV("Set integer field type's size: addr=%p, size=%u",
 		type, size);
 end:
 	return ret;
