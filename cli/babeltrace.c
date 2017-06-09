@@ -58,6 +58,7 @@
 #include "babeltrace-cfg-cli-args-default.h"
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
+#define ENV_BABELTRACE_CLI_LOG_LEVEL "BABELTRACE_CLI_LOG_LEVEL"
 
 /*
  * Known environment variable names for the log levels of the project's
@@ -1909,9 +1910,77 @@ void warn_command_name_and_directory_clash(struct bt_config *cfg)
 static
 void init_log_level(void)
 {
-	bt_cli_log_level = bt_log_get_level_from_env("BABELTRACE_CLI_LOG_LEVEL");
+	bt_cli_log_level = bt_log_get_level_from_env(ENV_BABELTRACE_CLI_LOG_LEVEL);
 }
 
+static
+void set_auto_log_levels(struct bt_config *cfg)
+{
+	const char **env_var_name;
+
+	/*
+	 * Set log levels according to --debug or --verbose. For
+	 * backward compatibility, --debug is more verbose than
+	 * --verbose. So:
+	 *
+	 *     --verbose: INFO log level
+	 *     --debug:   VERBOSE log level (includes DEBUG, which is
+	 *                is less verbose than VERBOSE in the internal
+	 *                logging framework)
+	 */
+	if (!getenv("BABELTRACE_LOGGING_GLOBAL_LEVEL")) {
+		if (cfg->verbose) {
+			bt_logging_set_global_level(BT_LOGGING_LEVEL_INFO);
+		} else if (cfg->debug) {
+			bt_logging_set_global_level(BT_LOGGING_LEVEL_VERBOSE);
+		} else {
+			/*
+			 * Set library's default log level if not
+			 * explicitly specified.
+			 */
+			bt_logging_set_global_level(BT_LOGGING_LEVEL_WARN);
+		}
+	}
+
+	if (!getenv(ENV_BABELTRACE_CLI_LOG_LEVEL)) {
+		if (cfg->verbose) {
+			bt_cli_log_level = BT_LOG_INFO;
+		} else if (cfg->debug) {
+			bt_cli_log_level = BT_LOG_VERBOSE;
+		} else {
+			/*
+			 * Set CLI's default log level if not explicitly
+			 * specified.
+			 */
+			bt_cli_log_level = BT_LOG_WARN;
+		}
+	}
+
+	env_var_name = log_level_env_var_names;
+
+	while (*env_var_name) {
+		if (!getenv(*env_var_name)) {
+			if (cfg->verbose) {
+				setenv(*env_var_name, "I", 1);
+			} else if (cfg->debug) {
+				setenv(*env_var_name, "V", 1);
+			} else {
+				/*
+				 * Set module's default log level if not
+				 * explicitly specified.
+				 */
+				setenv(*env_var_name, "W", 1);
+			}
+		}
+
+		env_var_name++;
+	}
+
+	babeltrace_debug = cfg->debug;
+	babeltrace_verbose = cfg->verbose;
+}
+
+static
 void set_sigint_handler(void)
 {
 	struct sigaction new_action, old_action;
@@ -1931,7 +2000,6 @@ int main(int argc, const char **argv)
 	int ret;
 	int retcode;
 	struct bt_config *cfg;
-	const char **env_var_name;
 
 	init_log_level();
 	set_sigint_handler();
@@ -1957,38 +2025,7 @@ int main(int argc, const char **argv)
 		goto end;
 	}
 
-	/*
-	 * Set log levels according to --debug or --verbose. For
-	 * backward compatibility, --debug is more verbose than
-	 * --verbose. So:
-	 *
-	 *     --verbose: INFO log level
-	 *     --debug:   VERBOSE log level (includes DEBUG, which is
-	 *                is less verbose than VERBOSE in the internal
-	 *                logging framework)
-	 */
-	if (cfg->verbose) {
-		bt_cli_log_level = BT_LOGGING_LEVEL_INFO;
-		bt_logging_set_global_level(BT_LOGGING_LEVEL_INFO);
-	} else if (cfg->debug) {
-		bt_cli_log_level = BT_LOGGING_LEVEL_VERBOSE;
-		bt_logging_set_global_level(BT_LOGGING_LEVEL_VERBOSE);
-	}
-
-	env_var_name = log_level_env_var_names;
-
-	while (*env_var_name) {
-		if (cfg->verbose) {
-			setenv(*env_var_name, "I", 1);
-		} else if (cfg->debug) {
-			setenv(*env_var_name, "V", 1);
-		}
-
-		env_var_name++;
-	}
-
-	babeltrace_debug = cfg->debug;
-	babeltrace_verbose = cfg->verbose;
+	set_auto_log_levels(cfg);
 	print_cfg(cfg);
 
 	if (cfg->command_needs_plugins) {
