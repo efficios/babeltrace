@@ -541,6 +541,8 @@ AC_CONFIG_FILES([tests/cli/test_trace_read], [chmod +x tests/cli/test_trace_read
 AC_CONFIG_FILES([tests/cli/intersection/test_intersection], [chmod +x tests/cli/intersection/test_intersection])
 AC_CONFIG_FILES([tests/cli/intersection/bt_python_helper.py])
 AC_CONFIG_FILES([tests/lib/writer/bt_python_helper.py])
+AC_CONFIG_FILES([tests/lib/writer/test_ctf_writer_empty_packet.py])
+AC_CONFIG_FILES([tests/lib/writer/test_ctf_writer_no_packet_context.py])
 AC_CONFIG_FILES([tests/cli/test_packet_seq_num], [chmod +x tests/cli/test_packet_seq_num])
 
 AS_IF([test "x$enable_python" = "xyes"], [
