@@ -1060,20 +1060,16 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 	BT_PUT(type);
 
 	type = bt_ctf_stream_class_get_event_header_type(stream_class);
-	if (!type) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
+	if (type) {
+		ret_int = bt_ctf_stream_class_set_event_header_type(
+				writer_stream_class, type);
+		if (ret_int < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto error;
+		}
+		BT_PUT(type);
 	}
-
-	ret_int = bt_ctf_stream_class_set_event_header_type(
-			writer_stream_class, type);
-	if (ret_int < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
-	BT_PUT(type);
 
 	type = bt_ctf_stream_class_get_event_context_type(stream_class);
 	if (type) {
@@ -1852,6 +1848,11 @@ struct bt_ctf_clock_class *stream_class_get_clock_class(FILE *err,
 		goto end;
 	}
 
+	if (!bt_ctf_trace_get_clock_class_count(trace)) {
+		/* No clock. */
+		goto end;
+	}
+
 	/* FIXME multi-clock? */
 	clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
 
@@ -1903,9 +1904,8 @@ int set_event_clock_value(FILE *err, struct bt_ctf_event *event,
 
 	clock_class = event_get_clock_class(err, event);
 	if (!clock_class) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
+		/* No clock on input trace. */
+		goto end;
 	}
 
 	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
