@@ -213,7 +213,7 @@ int add_stream_ids(struct bt_value *info, struct bt_ctf_stream *stream)
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
 	enum bt_value_status status;
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_ctf_stream_class *stream_class = NULL;
 
 	stream_instance_id = bt_ctf_stream_get_id(stream);
 	if (stream_instance_id != -1) {
