@@ -567,11 +567,13 @@ enum debug_info_stream_state *insert_new_stream_state(
 	if (!v) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
+		goto end;
 	}
 	*v = DEBUG_INFO_UNKNOWN_STREAM;
 
 	g_hash_table_insert(di_trace->stream_states, stream, v);
 
+end:
 	return v;
 }
 
@@ -596,7 +598,7 @@ BT_HIDDEN
 void debug_info_close_trace(struct debug_info_iterator *debug_it,
 		struct debug_info_trace *di_trace)
 {
-	if (di_trace->static_listener_id > 0) {
+	if (di_trace->static_listener_id >= 0) {
 		bt_ctf_trace_remove_is_static_listener(di_trace->trace,
 				di_trace->static_listener_id);
 	}
@@ -1507,6 +1509,11 @@ struct bt_ctf_stream *debug_info_stream_begin(
 		}
 		state = insert_new_stream_state(debug_it, di_trace,
 				stream);
+		if (!state) {
+			fprintf(debug_it->err, "[error] Adding a new stream "
+					"on a static trace\n");
+			goto error;
+		}
 	}
 	if (*state != DEBUG_INFO_UNKNOWN_STREAM) {
 		fprintf(debug_it->err, "[error] Unexpected stream state %d\n",

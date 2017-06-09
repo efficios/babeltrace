@@ -504,7 +504,7 @@ BT_HIDDEN
 void writer_close(struct writer_component *writer_component,
 		struct fs_writer *fs_writer)
 {
-	if (fs_writer->static_listener_id > 0) {
+	if (fs_writer->static_listener_id >= 0) {
 		bt_ctf_trace_remove_is_static_listener(fs_writer->trace,
 				fs_writer->static_listener_id);
 	}
