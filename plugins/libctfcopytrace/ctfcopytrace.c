@@ -318,6 +318,22 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto error;
 		}
+		if (i < bt_ctf_stream_class_get_event_class_count(writer_stream_class)) {
+			writer_event_class = bt_ctf_stream_class_get_event_class_by_index(
+					writer_stream_class, i);
+			if (writer_event_class) {
+				/*
+				 * If the writer_event_class already exists,
+				 * just skip it. It can be used to resync the
+				 * event_classes after a trace has become
+				 * static.
+				 */
+				BT_PUT(writer_event_class);
+				BT_PUT(event_class);
+				continue;
+			}
+		}
+
 		writer_event_class = ctf_copy_event_class(err, event_class);
 		if (!writer_event_class) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,

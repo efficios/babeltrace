@@ -41,6 +41,12 @@
 #include "debug-info.h"
 
 static
+struct bt_ctf_stream *insert_new_stream(
+		struct debug_info_iterator *debug_it,
+		struct bt_ctf_stream *stream,
+		struct debug_info_trace *di_trace);
+
+static
 void unref_stream(struct bt_ctf_stream *stream)
 {
 	bt_put(stream);
@@ -622,11 +628,88 @@ void debug_info_close_trace(struct debug_info_iterator *debug_it,
 }
 
 static
+int sync_event_classes(struct debug_info_iterator *debug_it,
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_stream *writer_stream)
+{
+	int int_ret;
+	struct bt_ctf_stream_class *stream_class = NULL,
+				   *writer_stream_class = NULL;
+	enum bt_component_status ret;
+
+	stream_class = bt_ctf_stream_get_class(stream);
+	if (!stream_class) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	writer_stream_class = bt_ctf_stream_get_class(writer_stream);
+	if (!writer_stream_class) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	ret = ctf_copy_event_classes(debug_it->err, stream_class,
+			writer_stream_class);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto error;
+	}
+
+	int_ret = 0;
+	goto end;
+
+error:
+	int_ret = -1;
+end:
+	bt_put(stream_class);
+	bt_put(writer_stream_class);
+	return int_ret;
+}
+
+static
 void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
 {
 	struct debug_info_trace *di_trace = data;
-	int trace_completed = 1;
+	struct debug_info_iterator *debug_it = di_trace->debug_it;
+	int trace_completed = 1, ret, nr_stream, i;
+	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
+	struct bt_ctf_trace *writer_trace = di_trace->writer_trace;
 
+	/*
+	 * When the trace becomes static, make sure that we have all
+	 * the event classes in our stream_class copies before setting it
+	 * static as well.
+	 */
+	nr_stream = bt_ctf_trace_get_stream_count(trace);
+	for (i = 0; i < nr_stream; i++) {
+		stream = bt_ctf_trace_get_stream_by_index(trace, i);
+		if (!stream) {
+			fprintf(debug_it->err,
+					"[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		writer_stream = bt_ctf_trace_get_stream_by_index(writer_trace, i);
+		if (!writer_stream) {
+			fprintf(debug_it->err,
+					"[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		ret = sync_event_classes(di_trace->debug_it, stream, writer_stream);
+		if (ret) {
+			fprintf(debug_it->err,
+					"[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		BT_PUT(stream);
+		BT_PUT(writer_stream);
+	}
+
+	bt_ctf_trace_set_is_static(di_trace->writer_trace);
 	di_trace->trace_static = 1;
 
 	g_hash_table_foreach(di_trace->stream_states,
@@ -636,6 +719,10 @@ void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
 		g_hash_table_remove(di_trace->debug_it->trace_map,
 				di_trace->trace);
 	}
+
+error:
+	bt_put(writer_stream);
+	bt_put(stream);
 }
 
 static
@@ -645,6 +732,7 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	struct debug_info_trace *di_trace = NULL;
 	struct bt_ctf_trace *trace = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_stream *writer_stream = NULL;
 	int ret, nr_stream, i;
 
 	writer_trace = bt_ctf_trace_create();
@@ -696,6 +784,7 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 			g_direct_equal, NULL, (GDestroyNotify) unref_debug_info);
 	di_trace->stream_states = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, destroy_stream_state_key);
+	g_hash_table_insert(debug_it->trace_map, (gpointer) trace, di_trace);
 
 	/* Set all the existing streams in the unknown state. */
 	nr_stream = bt_ctf_trace_get_stream_count(trace);
@@ -708,6 +797,22 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 			goto error;
 		}
 		insert_new_stream_state(debug_it, di_trace, stream);
+		writer_stream = insert_new_stream(debug_it, stream, di_trace);
+		if (!writer_stream) {
+			fprintf(debug_it->err,
+					"[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		bt_get(writer_stream);
+		ret = sync_event_classes(debug_it, stream, writer_stream);
+		if (ret) {
+			fprintf(debug_it->err,
+					"[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		BT_PUT(writer_stream);
 		BT_PUT(stream);
 	}
 
@@ -715,6 +820,7 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	if (bt_ctf_trace_is_static(trace)) {
 		di_trace->trace_static = 1;
 		di_trace->static_listener_id = -1;
+		bt_ctf_trace_set_is_static(writer_trace);
 	} else {
 		ret = bt_ctf_trace_add_is_static_listener(trace,
 				trace_is_static_listener, di_trace);
@@ -727,7 +833,6 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 		di_trace->static_listener_id = ret;
 	}
 
-	g_hash_table_insert(debug_it->trace_map, (gpointer) trace, di_trace);
 
 	goto end;
 
@@ -736,6 +841,8 @@ error:
 	g_free(di_trace);
 	di_trace = NULL;
 end:
+	bt_put(stream);
+	bt_put(writer_stream);
 	bt_put(stream_class);
 	bt_put(trace);
 	return di_trace;
@@ -1376,7 +1483,7 @@ struct bt_ctf_stream *debug_info_stream_begin(
 		struct debug_info_iterator *debug_it,
 		struct bt_ctf_stream *stream)
 {
-	struct bt_ctf_stream *writer_stream;
+	struct bt_ctf_stream *writer_stream = NULL;
 	enum debug_info_stream_state *state;
 	struct debug_info_trace *di_trace = NULL;
 
@@ -1388,13 +1495,6 @@ struct bt_ctf_stream *debug_info_stream_begin(
 					__func__, __FILE__, __LINE__);
 			goto error;
 		}
-	}
-
-	writer_stream = lookup_stream(debug_it, stream, di_trace);
-	if (writer_stream) {
-		fprintf(debug_it->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
 	}
 
 	/* Set the stream as active */
@@ -1415,7 +1515,10 @@ struct bt_ctf_stream *debug_info_stream_begin(
 	}
 	*state = DEBUG_INFO_ACTIVE_STREAM;
 
-	writer_stream = insert_new_stream(debug_it, stream, di_trace);
+	writer_stream = lookup_stream(debug_it, stream, di_trace);
+	if (!writer_stream) {
+		writer_stream = insert_new_stream(debug_it, stream, di_trace);
+	}
 	bt_get(writer_stream);
 
 	goto end;
