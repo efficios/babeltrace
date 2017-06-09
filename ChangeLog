@@ -1,3 +1,1567 @@
+2017-06-09 babeltrace 2.0.0-pre1
+	* Set version extra to pre1
+	* Fix: debug info plugin incorrect assumption about header and clock
+	* Fix: various fixes for ctf-traces/succeed test cases
+	* configure.ac: make the minimal, build-time log level be VERBOSE
+	* cli: use WARN as the default log level when not explicitly set by user
+	* cli: set all the log level of all known loggers with -v and -d
+	* cli: convert: allow multiple paths to be passed as leftover arguments
+	* Fix: remove listener check
+	* Fix copytrace: check field exists before copy
+	* Fix: uninitialized variable
+	* Fix: event, stream names can be strings
+	* Fix: make check in out-of-tree
+	* Fix: out-of-tree build
+	* Fix: add missing files to make dist, disable python bindings
+	* Remove former logging header print.h from source.ctf.fs Makefile
+	* source.ctf.fs: implement the trace-info query
+	* plugins/lttng-utils/copy.c: fix uninitialized use warning
+	* debug-info: sync the copied trace on static change
+	* debug-info: handle the static notifications
+	* debug-info refactoring
+	* fs-sink: useless active_stream member
+	* include/babeltrace/graph/private-connection.h: add missing `extern`
+	* doc/api: add missing babeltrace-cli.png image
+	* cli: use -o ctf --output /output/path to quickly instantiate sink.ctf.fs
+	* bt_ctf_field_type_integer_set_size(): take unsigned int parameter
+	* bt_ctf_stream_get_discarded_events_count(): return int
+	* utils.muxer: expect specific clock class properties to mux
+	* ir: do not automatically generate a UUID in bt_ctf_clock_class_create()
+	* plugin-so: use list of components instead of glib hash table
+	* cli: use --component=NAME:{source,filter,sink}.PLUGIN.COMPCLS
+	* lttng-live: check graph cancel state, check ctf trace pointer
+	* Fix build with BUILT_IN_PLUGINS=1
+	* Add bt_graph_add_component(), make bt_component_create() internal
+	* lttng-live: correctly handle ctrl-c and fix leaks
+	* End connection on destruction
+	* Cancel the graph on destruction
+	* connection.c: refuse to create a notif. iter. when the graph is canceled
+	* lib/graph/{filter.c,sink.c,source.c}: fix log messages
+	* Remove dependancies on ctf.fs source component caused by former logging API
+	* Move ctf-fs source query implementations to their own file
+	* Fix: do not use BT_MOVE() when the destination memory could be uninitialized
+	* Make bt_private_connection_create_notification_iterator() return a status code
+	* Refuse to add port to component when parent graph is canceled
+	* graph.c: do not warn when the graph is canceled during bt_graph_run()
+	* Add internal bt_component_borrow_graph()
+	* Make bt_private_component_*_add_*_port() return a status code
+	* Make bt_graph_connect_ports() return a status code
+	* Add bt_connection_is_ended()
+	* plugins/ctf/common/notif-iter/notif-iter.c: add logging
+	* fs-sink: flush open packets on destroy
+	* Fix sink.ctf.fs: mark the trace as static on destroy
+	* fs-sink: fix check trace completed when static is set
+	* lttng-live: populate trace name
+	* Fix: cancel a notif. iter. finalized during its "next" method
+	* Fix: do not allow a notif. iter. to call the user's "next" method once finalized
+	* ir: do not try to create initial packet/event fields when opt. FT is NULL
+	* copy_trace: copy the trace name
+	* fs-sink: handle trace name
+	* always copy packet/content_size, they are overwritten by the lib when necessary
+	* Fix copytrace: copy the entire payload_type
+	* clock description is optional
+	* move the copy of event_context in ctf_copy_event_class
+	* Fix copytrace: packet header is optional
+	* support adding streams on non-static traces
+	* Remove dead code from the debug-info component class
+	* Fix debug-info: handle event layouts of lttng-ust traces prior to 2.9
+	* fs-sink: fix handling static notifications
+	* fs-sink: move stream and stream_class maps in fs_writer struct
+	* fs-sink: explicitely handle stream_begin notif
+	* fs-sink: trace static handling + cleanup teardown
+	* Use abort() instead of a false assertion
+	* doc/Makefile.am: do not install internal documentation
+	* lib/ctf-writer/writer.c: logging: change tag to `CTF-WRITER`
+	* Add missing include of unistd.h
+	* Port: use portable print format for size_t
+	* Port: internal logging print format for mingw
+	* Port: replace strerror_r() with glib g_strerror()
+	* Port: Use g_setenv instead of setenv
+	* Port: Plugin extension is platform specific
+	* Port: No setuid on windows
+	* Port: Use glib g_get_home_dir to get home dir on mingw
+	* Port: Dummy locking of stdout on mingw in libtap
+	* Port: Add missing includes for mingw
+	* Port: memstream compat for mingw
+	* Port: Use portable format string for ISO 8601 dates
+	* Port: add missing include for stdio.h compat
+	* Port: Add utsname.h compat for mingw
+	* Port: Add mman.h compat for mingw
+	* Port: Namespace tokens in ctf metadata parser/lexer
+	* Port: Add posix_fallocate compat for mingw
+	* Port: Add timegm compat for mingw
+	* Port: Add time.h compat for mingw
+	* Port: Disable debug info by default on mingw
+	* Port: win32 DLLs don't support hidden symbols
+	* Port: Add missing byteswap compat for mingw
+	* Port: Fix libuuid compat on mingw
+	* Port: Add AC_USE_SYSTEM_EXTENSIONS with mingw support
+	* Port: Add bt_common_get_page_size
+	* Port: Use glib portable macros to convert gpointer to int
+	* Port: use portable pointer type in bt_list_entry
+	* Fix: test-utils-muxer.c: initialize "next" return with OK status
+	* ir: do not create empty structure for optional scope field types
+	* test_ctf_writer.c: set PACKET_RESIZE_TEST_LENGTH to 100000 again
+	* utils.muxer: remove upstream notif. iter. once ended/canceled
+	* configure.ac: use $enableval in AC_ARG_ENABLE()
+	* doc/logging-guide.adoc: minor fixes + add "Instrument a module" section
+	* cli: use standard logging files and macros
+	* python-plugin-provider: use standard logging files and macros
+	* plugins/ctf/lttng-live: use standard logging files and macros
+	* plugins/ctf/common/btr: use standard logging files and macros
+	* logging-internal.h: add BT_LOG_LEVEL_EXTERN_SYMBOL(), BT_LOG_INIT_LOG_LEVEL()
+	* plugins/ctf/common/btr/btr.c: add logging
+	* Logging: require modules to define BT_LOG_OUTPUT_LEVEL
+	* bt_value_get_type(): not a warning if value is NULL
+	* bitfield-internal.h: fix negative value shifting warnings
+	* tests/lib: do not call bt_ctf_trace_set_native_byte_order() if not needed
+	* ir: add BT_CTF_BYTE_ORDER_NONE and make it the default trace's native BO
+	* ctf plugins: prepend trace's hostname, if exists, to trace name
+	* ctf.fs source: use last path parameter's element as base for trace names
+	* Docs: add informal comments to common-internal.h
+	* Add bt_common_normalize_path()
+	* stream.c: allow stream PC's `events_discarded` field to be set by user
+	* Remove remaining old test files
+	* tests/cli/Makefile.am: remove duplicate test in TESTS list
+	* Fix: test_convert_args: use util.muxer's `assume-absolute-clock-classes` param
+	* Fix: test_ir_visit.c: create valid SC PC/EH and trace packet header
+	* Fix: test_ctf_ir_ref.c: create valid SC PC/EH and trace packet header
+	* Remove warnings when using bt_plugin_create_all_from_dir()
+	* Fix: make Python plugin provider have its own log level
+	* Add bt_log_get_level_from_env() and use it
+	* configure.ac: add details to final report
+	* python-plugin-provider/python-plugin-provider.c: add logging
+	* cli: check for cancellation before running the graph, add relevant logging
+	* lib/plugin/plugin-so.c: add logging
+	* test_ctf_writer.c: add "trace is static" listener tests
+	* Add bt_ctf_trace_add_is_static_listener() and ..._remove_is_static_listener()
+	* Fix builds with built-in plugins
+	* lib/plugin/plugin.c: improve log levels
+	* text.pretty: create an event string instead of using fprintf()/fputs()
+	* Fix debug-info: prevent invalid access in the original event_context
+	* Make bt_graph_add_*_listener() function return a listener ID
+	* Rename "ignore-absolute" parameter to "assume-absolute-clock-classes"
+	* Tests: possible dereference of NULL argument to strcmp
+	* Fix: return error on empty list in get_unary_unsigned
+	* Fix: missing error code on signed clock value in trimmer
+	* Fix: uninitialized destination component on unknown args
+	* Fix: use of uninitialized value in visit_*_decl_entry
+	* Fix: return of garbage value in copy_find_clock_array_field on error
+	* Fix: return of garbage value on empty specifier list
+	* Fix: return of garbage value when trace has no stream classes
+	* Fix: NULL dereference in logging on btr allocation failure
+	* Fix: NULL dereference in logging on notit allocation failure
+	* Fix: dereference of NULL mdec when opening packetized metadata file
+	* Fix: potential NULL dereference of ctf_fs_file path
+	* Fix: ds_file_munmap must check ds_file for NULL
+	* Fix: unchecked bt_ctf_event_set_clock_value return value
+	* Clean-up: unused next_return assignation in muxer test
+	* Fix: uninitialized ret value used in set_debug_info_field
+	* Fix: possible NULL dereference of uuid in test
+	* lib/plugin/plugin.c: add logging
+	* Replace all assert(false) and assert(0) with abort()
+	* lib/graph/iterator.c: add logging
+	* lib/graph/clock-class-priority-map.c: add logging
+	* lib/graph/component-class.c: add logging
+	* lib/graph/sink.c: add logging
+	* lib/graph/filter.c: add logging
+	* lib/graph/source.c: add logging
+	* Remove useless component/iterator validation functions
+	* bt_notification_iterator_create(): assert the type of comp. class
+	* lib/graph/connection.c: add logging
+	* fix: bt_put on potentially unintialized variable
+	* fs-sink: only subscribe to relevant notifications
+	* fix: useless warning
+	* Fix debug-info leak: unbalanced get/put
+	* trimmer: cleanup the packet_map if iterator destroyed early
+	* debug_info fix: useless reference
+	* debug-info fix: remove useless get function
+	* trimmer: close when end is reached
+	* trimmer fix: notification handling
+	* debug_info: fix graph connection
+	* fix copytrace: set the byte order
+	* copytrace: option to skip the copy of packet/content size
+	* fix: optional fields
+	* lib/graph/notification/event.c: fix clock class leak
+	* lib/graph/port.c: add logging
+	* Remove component's initialization state flag
+	* lib/graph/component.c: add logging
+	* bt_ctf_stream_map_component_to_port(): log before and after
+	* Remove bt_component_set_name()
+	* lib/graph/graph.c: add logging
+	* Remove bt_graph_add_component_as_sibling()
+	* bt_ctf_trace_destroy(): logging: difference between destroying and putting
+	* bt_ctf_stream_class_destroy(): log what is being destroyed/put
+	* lib/ctf-ir/event-class.c: minor logging message edit
+	* lib/ctf-ir/validation.c: add logging
+	* ref.c: warn when the ref count goes from 0 to 18446744073709551615
+	* ref.c: do not change ref count when release function is not set
+	* lib/ctf-ir/resolve.c: add logging
+	* field-path.c: add internal function to stringify a field path
+	* lib/ctf-ir/trace.c: add logging
+	* ctf.fs source: make traces static when all streams are created
+	* plugin-so.c: use BABELTRACE_NO_DLCLOSE env. var. to avoid dlclose()
+	* ctf.fs source: add trace file rotation (stream instance ID) support
+	* ctf plugin: add bt_ctf_notif_iter_get_packet_header_context_fields()
+	* ir: add stream ID API
+	* cli: --force-correlate -> utils.muxer's `ignore-absolute` parameter
+	* Fix: do not require lttng-utils.debug-info with --disable-debug-info
+	* Fix: ctf.fs source: append all ctf_fs_trace objects to component's list
+	* ctf.fs source: recurse to find multiples CTF traces
+	* Fix warnings emitted by `gcc -Wall`
+	* Library: log version (INFO) on construction
+	* babeltrace(1): reset console after graph stops running
+	* logging-internal.h: use __attribute__((format)) to check parameters
+	* Logging: fix wrong parameters, superfluous commas, etc.
+	* lib/ctf-ir/event.c: replace some BT_LOGE() with BT_LOGW()
+	* CTF writer: stream: handle automatic fields more securely
+	* Validate CTF semantics in selected CTF IR functions
+	* Event notification: make sure contained event has a trace
+	* lib/ctf-ir/stream.c: add logging
+	* fields.c: get non-existing field: log level WARN -> VERBOSE
+	* bt_ctf_event_serialize(): do not log whole function (done in stream.c)
+	* Fix: lttng-live enum mismatch
+	* lib/ctf-ir/field-types.c: use `int`, not `int64_t` for return value
+	* Fix: lib/ctf-ir/event-class.c: fix warnings on `ret` condition
+	* Fix: g_quark_try_string() is usually not a WARN trigger
+	* Fix: set no field in event/packet without warnings or failing
+	* lttng-live: handle EINTR and graph cancelation
+	* Fix: invoke bt_ctf_trace_set_is_static only when trace is destroyed
+	* lib/ctf-ir/utils.c: add logging
+	* lib/ctf-ir/fields.c: add logging
+	* lib/values.c: add more verbose/debug logging
+	* lib/ctf-ir/packet.c: add more debug logging
+	* lib/ctf-ir/event-class.c: add more verbose/debug logging
+	* lib/ctf-ir/attributes.c: add assert()
+	* Update logging guide: more about the WARN level
+	* lib/ctf-ir/field-types.c: logging: log more details
+	* lib/ctf-ir/event.c: logging: fix log levels and more verbose/debug logging
+	* lib/ctf-ir/field-types.c: logging: log struct/var FT field destruction
+	* lib/ctf-ir/field-types.c: logging: log only specific functions
+	* lib/ctf-ir/field-types.c: logging: log more details when freezing
+	* lttng-live: change loglevel env var to BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_LOG_LEVEL
+	* lttng-live: ensure that port connections go to the same component
+	* Fix: don't call iterator finalize more than once
+	* Fix: muxer: handle CANCELED status
+	* Update logging guide
+	* lib/ctf-ir/field-types.c: add verbose logging (modifying functions)
+	* LTTng live: use common url parser
+	* Implement cmd_print_lttng_live_sessions
+	* lib/values.c: use assert() instead of checking error
+	* lib/ctf-ir/stream-class.c: logging: fix typo
+	* Logging: use WARN level where appropriate
+	* lib/ctf-ir/field-types.c: add logging
+	* cli/babeltrace.c: logging: add details in graph listeners
+	* lib/ctf-ir/field-path.c: add logging
+	* lib/values.c: logging: log original and copy addresses
+	* lib/ref.c: logging: show current count and new count in messages
+	* lib/ctf-ir/stream-class.c: add logging
+	* lib/ctf-ir/event.c: logging: remove some context given by other statement
+	* lib/values.c: logging: log array size when out of bound
+	* lib/ctf-ir/event-class.c: add logging
+	* lib/ctf-ir/event.c: add logging
+	* Add internal bt_ctf_field_type_id_string()/byte_order_string()
+	* lib/values.c: logging: log value's type name
+	* lib/ctf-ir/clock-class.c: improve logging with clock class's name
+	* Include <babeltrace/lib-logging-internal.h> before anything else
+	* cli/babeltrace.c: improve main loop's logging
+	* cli/babeltrace.c: handle usleep()'s error
+	* lib/ctf-ir/packet.c: add logging
+	* cli/babeltrace.c: do not call load_all_plugins() in commands
+	* logging-internal.h: fix include name in comments
+	* include/babeltrace/object-internal.h: add logging
+	* Collect useless graph's connections
+	* Implement logging in lttng-live component
+	* cli/babeltrace.c: add logging when the command completes
+	* babeltrace(1): handle SIGINT to cancel the graph gracefully
+	* Fix possible leaks in graph's current design
+	* BT_GRAPH_STATUS_CANCELED is not an error, thus use a positive value
+	* Implement ctf.lttng-live component
+	* Fix: IR visitor: error msg printing
+	* Move print.h header to upper level dir
+	* utils.muxer: fix ownership of objects
+	* Add graph cancellation API
+	* port.{h,c}: use `bt_bool` instead of `int` where appropriate
+	* ir: utils: use `bt_bool` instead of `int` where appropriate
+	* ir: fields/field-types: use `bt_bool` instead of `int` where appropriate
+	* ir: clock class: use bt_bool instead of int for boolean properties
+	* Do not use `bool` type; use new `bt_bool` instead
+	* Update include/babeltrace/babeltrace.h
+	* Add extras/gen-babeltrace-h.py: include/babeltrace/babeltrace.h generator
+	* Move library's version API to include/babeltrace/version.h
+	* include/Makefile.am: add titles (comments) to groups of files
+	* Remove "end of trace" notification headers
+	* Normalize public header include guards
+	* lib/ref.c: add logging
+	* lib/ctf-ir/clock-class.c: add logging
+	* test_ctf_writer.c: remove negative index tests
+	* lib/ctf-ir/attributes.c: add logging
+	* ir: attributes: fix index and count integer types
+	* lib/values.c: add logging
+	* tests/lib/Makefile.am: fix check_ vs. noinst_ prefix
+	* cli: add logging
+	* common: optimize color code functions
+	* Fix CLI to work with multiple ports and dynamically added ports
+	* Add logging API (internal to log, public to set the current log level)
+	* bt_common_shell_quote(): accept new parameter `with_single_quotes`
+	* Rename tests/bin -> tests/cli
+	* configure.ac: define BT_ENABLE_DEBUG_INFO depending on the support
+	* ctf.fs source: metadata: fix error paths
+	* tests/bin/test_convert_args: fix after updating CLI
+	* tests: put TESTS list in each Makefile.am
+	* plugins/ctf/fs-src/data-stream.c: fix text width
+	* babeltrace-internal.h: remove unused declarations
+	* Do not use printf_warning() in the library
+	* Rename writer.writer -> ctf.fs (sink) and standardize plugin descriptions
+	* Rename debug_info.debug_info -> lttng-utils.debug-info
+	* debug-info.debug-info: do not use global opt_* symbols anymore
+	* Fix: ir: bt_ctf_field_type_variant_validate(): do not compare to tag length
+	* Subscribe to notifications when creating a notif. iterator
+	* notif-iter.c: fix warnings
+	* Make bt_ctf_event_class_create() create an empty context FT
+	* Add bt_ctf_stream_class_create_empty()
+	* Remove BT_CTF_FIELD_TYPE_UNTAGGED_VARIANT
+	* Internalize trace listener API and bt_ctf_trace_get_metadata_string()
+	* ir: make bt_ctf_trace_create() create an empty packet header FT
+	* utils.muxer: add and handle `ignore-absolute` parameter
+	* Remove default port API
+	* trace.h: API doc: do not mention listener (now internal)
+	* visitor-generate-ir.c: fix some error reporting terms
+	* visitor-generate-ir.c: set trace object's UUID
+	* Rename bt_ctf_trace_get_byte_order() -> bt_ctf_trace_get_native_byte_order()
+	* ir: add trace UUID getter and setter
+	* utils.muxer: fix bad behaviour caused by notification buffering
+	* Set private port's user data on creation
+	* Remove bt_ctf_stream_class_get_event_class_by_name()
+	* test_trace_listener.c: fix: set trace's native byte order
+	* Standardize *get_*() functions
+	* Make libctfcopytrace a convenience lib. and link to it in plugins
+	* Standardize *get_*_count() functions
+	* ISO C: empty file needs at least one declaration
+	* Rename CTF IR integer FT signedness functions to use "is"
+	* Rename bt_ctf_clock_class_get_is_absolute() -> bt_ctf_clock_class_is_absolute()
+	* text.pretty: use "path" param. name instead of "output-path"
+	* Add static trace tests
+	* Add the concept of a static trace
+	* Add bt_ctf_trace_get_stream_count() and bt_ctf_trace_get_stream()
+	* Add bt_plugin_set object
+	* ctf: bt_ctf_notif_iter_get_next_notification(): require CC prio. map
+	* Use bt_clock_class_priority_map_add_clock_class() to change a priority
+	* Add bt_clock_class_priority_map_copy()
+	* field-types.h: API doc: add missing prehot{}
+	* Freeze bt_clock_class_priority_map in related notifications
+	* Add notification iterator tests
+	* Notification iterator: generate automatic notifications when missing
+	* Remove notification-schema.h: not needed for 2.0
+	* utils.dummy: handle AGAIN and END statuses correctly
+	* text.pretty: handle AGAIN status
+	* utils.muxer: fix unhandled connected ports during notif. iter. init.
+	* text.pretty: fix handle_notification()
+	* utils.muxer: fix behaviour with ports connected during next/init ops
+	* Add basic utils.muxer tests
+	* Add utils.muxer component class
+	* bt_plugin_create_append_all_from_dir(): use printf_verbose() instead of error
+	* Event notification: validate that CC in the CC prio map have a value
+	* event-class-internal.h: fix include warning
+	* text.pretty: remove unused debug info options
+	* text.pretty: use clock class with highest priority to print the timestamp
+	* Add bt_plugin_find_component_class()
+	* Fix: ctf: notif-iter.c: update_clock() uses the wrong FT sometimes
+	* ctf.fs: make clock classes absolute when it's an LTTng metadata
+	* Use the same values for different status codes
+	* Add bt_component_class_is_source/filter/sink()
+	* Add bt_port_is_input(), bt_port_is_output()
+	* Add bt_component_is_source(), bt_component_is_filter(), bt_component_is_sink()
+	* Fix a few include warnings
+	* plugins/ctf/fs/metadata.c: remove invalid return code assignment
+	* bt_component_create(): create convenient empty map parameters when NULL
+	* Add BT_NOTIFICATION_ITERATOR_STATUS_AGAIN status
+	* test_graph_topo: test both "port connected" and "accept port connection"
+	* Add "port connected" component class method
+	* Rename text.text sink CC to text.pretty
+	* Rename lib/component/ -> lib/graph/ to match include/babeltrace/graph/
+	* Add `-internal` suffix to all internal header files
+	* Add bt_version_get_*() functions to dynamically get the lib's version
+	* .gitignore: ignore gcov files
+	* ctf plugin: add CTF metadata decoder API
+	* tests/lib/common.c: add missing includes
+	* bt_notification_event_create(): validate and freeze event
+	* Add inactivity notification
+	* Add frozen property to notification objects
+	* ir: bt_ctf_event_set_clock_value(): validate clock value's class
+	* ir: make sure you can't add a SC to a trace with a native BO
+	* CTF writer: restore native byte order is the CPU's native byte order
+	* Rename bt_ctf_trace_set_byte_order() -> bt_ctf_trace_set_native_byte_order()
+	* test_bt_ctf_field_type_validation: fix compiler warnings
+	* Rename bt_ctf_type_id -> bt_ctf_field_type_id (and the enumerators)
+	* fix Makefile for libbabeltrace-ctf
+	* fix warnings
+	* fix missing libbabeltrace-ctf for libctfcopytrace
+	* fixes after rebase on eepp-jgalar/fixes-mar-7
+	* Text: handle output file
+	* text: escape control sequences characters
+	* Support for --clock-offset and --clock-offset-ns
+	* Text output identical with babeltrace 1
+	* fix: missing equal sign when printing events without colors
+	* debug-info filter plugin
+	* Make bt_ctf_field_structure_set_field public
+	* cleanup error paths in trimmer, writer and ctfcopytrace
+	* trimmer: Update the bounds of the trimmed packets
+	* Fix graph facilities handling in writer component class
+	* fix trimmer compiled library name
+	* writer: create event classes lazily
+	* libcopytrace: export ctf_copy_event_header
+	* Override clock fields in copied traces
+	* Create a library to copy a CTF trace
+	* Allow to set the size of an integer type
+	* Fix writer: leak of the event classes
+	* Fix writer: missing put ref to values and types
+	* Fix writer: leak of the header fields
+	* Rename converter/ -> cli/ (it's more than a converter now)
+	* Event notification: pass CC priority map on creation
+	* Remove Babeltrace 1 files and reorganize the tree
+	* ctf.fs: bt_ctf_notif_iter_create(): assert() that all medops exist
+	* trace.h: update API doc
+	* tests: add clock class priority map tests
+	* Add clock class priority map object
+	* ctf.fs: split streams, one per port
+	* Add user data for private port
+	* Add graph topology tests
+	* Call a single "ports connected/disconnected" graph listener instead of two
+	* Fix: call acting component's "port disconnected" method too
+	* bt_graph_connect() -> bt_graph_connect_ports()
+	* Rename <babeltrace/component/...> -> <babeltrace/graph/...>
+	* Update notification iterator's "init" function signature
+	* Remove the need to implement the notification iterator's "get" method
+	* "destroy" method -> "finalize" method
+	* Accept port connection method: take other port as parameter
+	* Visibility: split graph API into public and private interfaces
+	* Add graph event listeners
+	* Allow a component to remove a port and any user to disconnect one
+	* Put Python plugin support in a separate shared object
+	* Add `babeltrace convert` argument tests
+	* CLI: add `run` command and make `convert` command use it
+	* Fix: missing reference release in field reset
+	* Fix: bt_connection_get_*_port() must take a reference on port
+	* Fix: only remove newly added components on connection error
+	* Fix: only add components to graph if they are not already present
+	* Fix: release the reference held by a child to its former parent
+	* babeltrace-cfg.c: do not allow duplicate -v option
+	* babeltrace-cfg.c: add "Command line error" prefix to error messages
+	* babeltrace-cfg.c: do not infer text.text sink with -v
+	* babeltrace(1): add --filter option to create filter components
+	* babeltrace(1): escape '.' in PLUGIN.COMPCLS arguments
+	* common.c: bt_common_colors_supported(): add a few supported terminal prefixes
+	* Return component port counts by parameter
+	* Remove component prefix from graph, connection and port filenames
+	* Add missing include in component-sink-internal.h
+	* Build and run hard-coded component graph in babeltrace.c
+	* Use graph facilities in dummy sink component class
+	* Use graph facilities in text component class
+	* Use graph facilities in trimmer component class
+	* Use graph facilities in writer component class
+	* Add missing forward declarations to component-class.h
+	* Replace add_iterator methods by a single new_connection method
+	* Implement the component graph interface
+	* Hide bt_component_sink_consume
+	* Hide filter iterator creation functions
+	* Hide source iterator creation functions
+	* Hide filter creation functions
+	* Add ports to the source, filter and sink component interfaces
+	* Add the component port interface
+	* Text: print unknown enumeration mappings in red
+	* Implement the component connection interface
+	* Text: tone down the rainbow text color scheme
+	* Rename "query info" to "query" everywhere, and "action" to "object"
+	* text: mask some internal fields
+	* Add the verbose parameter to the legacy text options
+	* babeltrace(1): support -o metadata legacy option
+	* ctf.fs source: add `get-metadata-info` query info action
+	* babeltrace(1): print value with colors
+	* babeltrace(1): add the query-info command
+	* babeltrace-cfg: put comp. class type within struct bt_config_component
+	* bt2: test query info API
+	* bt2: add support for the "query info" API
+	* bt2: raise when bt2.create_plugin_from_name() finds nothing
+	* Add query info API tests
+	* SO plugin API: add comp. class query info method macro and use it
+	* Add bt_component_class_query_info() API
+	* babeltrace(1): handle legacy -o dummy option
+	* Add utils.dummy component class, move plugins/trimmer to plugins/utils
+	* text plugin: add color support
+	* babeltrace(1): add --connect option and connection management
+	* babeltrace convert: add --name option
+	* babeltrace(1): add help command
+	* babeltrace-cfg.c: improve error messages
+	* Make babeltrace(1)'s CLI Git-like and implement the list-plugins command
+	* babeltrace.c: replace printf_verbose() with printf() where appropriate
+	* Cleanup babeltrace-cfg, use BABELTRACE_PLUGIN_PATH
+	* bt2: test comp. class help attribute
+	* bt2: add support for comp. class help
+	* Add shared object comp. class help attribute test
+	* Shared object plugin: add component class help support
+	* Add component class help property
+	* bt2: add create_plugin_from_name()
+	* Add bt_plugin_create_from_name() tests
+	* Add bt_plugin_create_from_name()
+	* Add support for plugins written in Python
+	* Add Babeltrace 2 Python bindings tests
+	* Add Babeltrace 2 Python bindings
+	* bt_ctf_event_set_clock_value() does not need a clock class
+	* Add bt_ctf_clock_value_get_class()
+	* Install notification headers in babeltrace/component/notification
+	* component.c: return NULL when there's no name, not ""
+	* component.c: iterator init method is optional
+	* Writer fix: set packet size to 0 on flush failure
+	* Writer: only reset automatically-set fields
+	* Writer: introduce try_set_structure_integer_field
+	* Writer: set the discarded events's value before serializing
+	* Writer: validating the packet header is not necessary
+	* Tests: add empty packet writer test
+	* Fix: only serialize a field if it is set
+	* Fix: log structure field name on serialization failure
+	* Tests: rename empty packet context test
+	* Rename *create_iterator*() -> *create_notification_iterator*()
+	* Add bt_component_*_create_iterator_with_init_method_data()
+	* Remove unused bt_component_class_filter_init_iterator_method
+	* Tests: close writer object before reading the trace produced
+	* Fix: missing NULL check in ctf_fs_iterator_destroy_data
+	* Test: remove produced trace at the end of the empty packet test
+	* Clarify plug-in ABI version logging on plugin load
+	* Add missing .gitignore entries
+	* Tests: add the plugin tests to the make check target
+	* Fix: add missing NULL check in ctf_fs_destroy_data
+	* Fix Makefile.am files regarding headers
+	* Rename input.h -> component-input-internal.h
+	* Set notification iterator methods to the component class
+	* plugin-dev.h: put selector (type) close to union in structures
+	* Plugins: use UNUSED_VAR instead of casting to void
+	* Add bt_component_create_with_init_method_data()
+	* babeltrace.c: print plugin version when available
+	* Add tests for plugin version
+	* Add plugin (user) version information
+	* Add bt_component_class_freeze()
+	* Prefix {source,filter,sink}*.h file names with component-
+	* Refactor the component class and component API
+	* Move enum bt_component_type to component.h
+	* Refactor the plugin registration and loading machinery
+	* Add bt_plugin test
+	* Decouple component class from plugin subsystem, remove component factory
+	* ref.h: doc: fix typo
+	* Writer: don't allow more than one packet without packet context
+	* Tests writer: write a trace defining no packet context
+	* Writer: minimize packet padding
+	* Writer: support traces defining no packet contexts
+	* Update test_ctf_writer.c header
+	* Fix text plug-in: missing function name change
+	* API doc: document include files and how to build
+	* ref.h, values.h: doc: add #include in description
+	* API doc: update main-page.dox
+	* API doc: add more details about reference counting
+	* values.h: doc: rephrase map foreach callback ref
+	* Fix API doc's content and style for enum. FT mapping iterator
+	* Fix: bt_config_init_from_args has no ownership of cfg
+	* Fix: prepend to $program_transform_name instead overriding it
+	* Docs: document enumeration mapping iterator API
+	* Docs: add documentation for bt_ctf_field_type_enumeration_find_mappings*
+	* Add missing bt_ctf_field_type_enumeration_mapping_iterator declaration
+	* Remove bt_ctf_field_type_enumeration_get_mapping_name
+	* Modify bt_ctf_field_enumeration_get_single_mapping to return iterator
+	* Fix: memory leak when using mapping iterator
+	* Fix: check enum overlap as long as the type is not frozen
+	* Fix: allow duplicate keys and overlapping ranges in enumerations
+	* API doc: add int/float field type examples
+	* stream-class.h: doc: fix trace/packet instead of stream/event
+	* Document fields.h (API)
+	* field-types.h: doc: bt_ctf_field_type_copy(): add not frozen @post
+	* field-types.h: doc: fix missing plural
+	* doc/api/README.adoc: fix double "followed by"
+	* field-types.h: doc: add note about freezing
+	* Test fix: a stream class' clock must be associated to its writer
+	* ir: add bt_ctf_clock_class object, modify bt_ctf_clock object
+	* ir: stream: add bt_ctf_stream_is_writer()
+	* Fix: remove assert() for existing SC field types
+	* Only output configuration diagnostic information in verbose mode
+	* Update .gitignore
+	* Generate a binary looking for in-tree plug-ins
+	* Trimmer fix: don't emit end of trace on out-of-bound event
+	* Trimmer fix: forward evaluation result to downstream components
+	* Clean-up indentation in babeltrace-cfg.c
+	* ctf-fs fix: only apply timestamp end field on packet end
+	* Fix: don't attempt to mmap packet at end of file
+	* Fix: print usage even if omit arguments are received
+	* Fix: integration of legacy mode with implicit source
+	* Tests: adapt writer tests as IR now allows NULL headers and contexts
+	* Stop trimmer iteration when end bound is reached
+	* Fix: passing NULL to glib mapped file unref function is not allowed
+	* Fix IR visitor: set min alignment on structure field type
+	* Fix: don't use implicit source in legacy mode
+	* Fix: babeltrace launch wrapper script
+	* Use build tree plugins when executing from build tree
+	* Move print level of duplicate component warning to verbose
+	* Handle system and home plugin paths
+	* Fix: params arg parsing: apply to current component params
+	* Implement implicit source component
+	* Remove unused index version fields
+	* Build CTF stream indexes from LTTng index files
+	* Add timerange, begin, end parameters
+	* trimmer: error checking, reporting, begin > end check
+	* trimmer: infer end date from begin date
+	* Support standard timestamp formats for begin/end
+	* Trimmer: Filter-out packet that are not in the specified range
+	* Rename bt_notification_packet_start to "begin"
+	* Fix: handle size 0 CTF fs streams
+	* Writer fix: don't skip first notification
+	* Writer: null contexts are not an error
+	* clock working
+	* fix: missing free on error path
+	* use GString instead of non-portable char[PATH/NAME_MAX]
+	* fix: add .a of the ctf writer plugin in Makefile
+	* CTF Writer sink
+	* Add a trimmer component to the graph if begin/end options are used
+	* Additional check added to bt_component_sink_validate
+	* Implement bt_notification_iterator_set_seek_time_cb
+	* Clean-up notification iterator creation function
+	* Add filter component creation and validation callback
+	* Add branch prediction hints in ref count interface
+	* Clean-up: Add missing forward declaration
+	* Add bt_notification_iterator_seek_time_cb to notification iterator
+	* Implement the filter base class validation and creation
+	* Implement the trimmer plug-in
+	* Add a "set" attribute to component begin/end config
+	* Component iterator points to first notification on creation
+	* gitignore TAGS and cscope
+	* Clean-up component-class internal header
+	* Implement the Component Graph API
+	* field-types.h: doc: use FT/field aliases
+	* doc/api: Doxyfile: add FT/field aliases
+	* trace.h: doc: add missing end of group
+	* packet.h: doc: add missing end of group
+	* Document field-types.h (API)
+	* values.h: doc: fix doc
+	* trace.h: doc: ctfirfieldtype -> ctfirfieldtypes
+	* doc/api/dox: update pages
+	* api/doc: update Doxyfile.in and add custom layout file
+	* bt_ctf_field_type_get_byte_order(): support enum FT
+	* field-types.c: check that we don't add self FT to struct/var FT
+	* API doc: CTF IR writer -> CTF writer
+	* Add trimmer plug-in skeleton
+	* Fix compiler warnings
+	* Cleanup: object-internal.h static inlines
+	* Fix: ctf_fs debug variable should be extern
+	* Docs: allow NULL packet, stream and event headers, contexts and payloads
+	* Allow NULL bt_ctf_packet_set_header and bt_ctf_packet_set_context
+	* Handle NULL stream/packet/event headers, contexts and payloads
+	* text output plugin: print time delta
+	* text output: wire up clock options, error checking
+	* Remove callsite text output code
+	* Print other fields
+	* Allow NULL (unset) packet, stream and event headers, contexts
+	* Add time seek interface stub
+	* Move component iterator creation to base component class
+	* event.h: doc: put @cond/@endcond on single lines
+	* ref.h: doc: clarify descriptions
+	* API doc: add notes about automatic resolving
+	* Document field-path.h (API)
+	* event.h: doc: add missing parameter
+	* API doc: add missing @postrefcountsame conditions
+	* API doc: add #include line in the detailed description
+	* Document event.h (API)
+	* stream.h: doc: add missing type doc
+	* event-class.h: doc: reorder functions
+	* trace.h: doc: fix HTML tag
+	* babeltrace-cfg: add the --path option
+	* babeltrace-cfg: always copy the parameters of component instances
+	* trace.h: doc: various fixes
+	* stream-class.h: doc: add freezing postcondition
+	* stream-class.h: doc: add note about CTF IR writer-only API
+	* Document stream.h (API)
+	* Document utils.h (API)
+	* Document visitor.h (API)
+	* Rename visitor and element names
+	* Use components specified on the command line
+	* babeltrace-cfg: fix terminology (component instance vs. class)
+	* babeltrace-cfg: replace " with ` in messages
+	* babeltrace.c: show beginning and end timestamps if available
+	* babeltrace-cfg: add begin/end NS options
+	* babeltrace-cfg: add --base-params and --reset-base-params options
+	* values.c: completely initialize the bt_value_null_instance object
+	* ref-internal.h: do not increment ref count if release not set
+	* test_bt_values.c: test bt_value_map_extend()
+	* values: add bt_value_map_extend()
+	* babeltrace.c: fix printing issues
+	* babeltrace-cfg: use --params to set parameters of latest instance
+	* Document trace.h (API)
+	* Document packet.h (API)
+	* Document stream-class.h (API)
+	* Document event-class.h (API)
+	* Document values.h (API)
+	* Document ref.h (API)
+	* doc/api: add README.adoc
+	* Add Doxygen support to build system to build the API doc
+	* Allow ctf-writer to use new time-keeping facilities
+	* Add a shadow HT to query event classes by id
+	* Implement proper notification comparison
+	* Print timestamps in text plug-in
+	* Replace hackish use of bt_ctf_field_validate by is_set
+	* Fix logging typo
+	* Implement bt_ctf_field_is_set()
+	* Implement bt_ctf_clock_value interface
+	* Track clock states in notification iterator
+	* Freeze original field type copied on validation
+	* Add trace name attribute
+	* Add logging to validation and serialization failure paths
+	* fix leak in structure validation logging
+	* Handle empty strings in the notif-iter btr_string callbacks
+	* Allow stream_id change in event class attributes
+	* Add field validation logging
+	* remove double bt_put
+	* Text output plugin argument parsing
+	* Implement output text plugin (basic)
+	* Fix: documentation: refer to bt_put()
+	* fix initialize stream which may be used in error paths
+	* Coding standard clean-ups
+	* fix leak of event class
+	* fix leak of variant field path
+	* stream leak in ctf_fs_iterator_next
+	* Remove superflous set_current_packet_content_sizes
+	* Add bt_notification_get_stream interface
+	* Merge streams in ctf fs component
+	* Validate notification type before casting
+	* Remove unnecessary check of release callback on bt_ref_get
+	* Large performance improvement by caching event class name and id
+	* Fix: ensure that a stream class is not associated to a trace
+	* Fix: SIGBUS error on reading past a file's end in mmap'ed region
+	* Allow user data in heap compare function
+	* Test bt_notification_heap
+	* Implement the notification heap interface
+	* Add bt_notification_heap interface
+	* Validate ref count opt-in in bt_ref_get
+	* Null check of plug-in properties in debug output
+	* Make --plugin-path optional
+	* Add bt_ctf_field_variant_get_tag
+	* Fix space indentations
+	* Add missing line-feeds in logging
+	* Add support for statically-built plug-ins
+	* Add bt_ctf_event_get_packet
+	* Wrong file name in ctf/plugin.c header
+	* Add test_ir_visit and test_trace_listener to the test list
+	* Fix verbose and debug mode options
+	* ctf-fs: missing component->streams NULL check
+	* converter: parse 1.x and 2.0 options
+	* Fix libadd referring to text plugin
+	* Add missing text plugin files
+	* Missing btr makefile
+	* Add missing event notification implementation file
+	* allow multiple ctf streams to be open
+	* Rename correlator to muxer
+	* Fix packet switch bug
+	* Implement filter component type
+	* Add filter component type
+	* Sinks own their input iterators
+	* text: Remove stream_timestamps hashtable
+	* Docs: bt_ctf_stream_class_add_event_class comment typo
+	* text: wip event formating
+	* Fix source component memory leak
+	* add end of stream notification
+	* Plugins are alive!
+	* add debug printout
+	* Fix: uninitialized use of ctf_fs
+	* Add reading loop to babeltrace binary
+	* Implement notification iterator wrappers
+	* Implement ctf fs iterator functions
+	* Fix: path value retrieval memory leak
+	* Init ctf fs data and metadata streams
+	* Move remaining protorectoral files to ctf fs plugin
+	* Accomodate component destructor API changes in text plugin
+	* Add ctf fs iterator initialization
+	* Check for NULL user destroy in iterator
+	* Code standard cleanup
+	* Implement base iterator interface
+	* Add notification utility library
+	* Add implementation of bt_component_source_set_iterator_init_cb
+	* Cleanup ctf/fs/Makefile.am
+	* Add bt_component_source_validate() implementation
+	* Integrate ctf proto into the plugin build system
+	* destroy_text must conform to bt_component_destroy_cb
+	* Add ctf fs component skeleton
+	* Reorder bt_component_status enum
+	* Remove weird character from ctf-btr.h
+	* Remove bt_ctf_clock_create_empty() usage
+	* Add ctf-reader prototype
+	* ir: make bt_ctf_field_type_copy() public
+	* Tests: NULL clock names are now allowed
+	* Add documentation to bt_ctf_clock_set_name
+	* Allow NULL clock name
+	* ir: allow the creation of an empty clock (nameless)
+	* Workaround glib g_module_open bug
+	* Missing dirent include in component-factory.c
+	* Recursively search the plugin path
+	* Tests: add trace listener interface test
+	* trace listener test
+	* Clean-up: use COMMON_TEST_LDADD to simplify Makefile
+	* Implement trace listener interface
+	* Change "handler" terminology to the more specific listener
+	* Tests: add visitor interface test
+	* Add CTF-IR visitor interface
+	* Add trace moficiation notification handler interface
+	* Docs: fix comment
+	* Cast destroy_text to bt_component_destroy_cb
+	* Update text plugin skeleton
+	* Take ownership of component class in bt_component_source_create
+	* Implement bt_component_sink_set_handle_notification_cb
+	* Register sink components to the event notification by default
+	* Implement sink validation function
+	* Call plugin exit function before unloading
+	* Implement bt_component_set_destroy_cb
+	* Fix error check not checking for BT_COMPONENT_STATUS_OK
+	* Make component class destructor optional
+	* Update copyrights
+	* Clarify bt_component_sink_handle_notification_cb semantics
+	* Clarify bt_component_destroy_cb semantics
+	* Clean-up in babeltrace.c
+	* Leak fix
+	* Add bt_component_sink_register_notification_type
+	* Initialize component class init callback
+	* Remove bt_component_set_error_stream
+	* Warn on duplicate component class registration
+	* Don't load plug-ins recursively by default
+	* Bump library version to 2.0
+	* Install plugins in $(libdir)/babeltrace/plugins
+	* Plugins: rename reader -> fs, and symbols.c to plugin.c
+	* Plugins: remove unnecessary stuff in Makefile.am files
+	* Move plugin system sources to lib/plugin-system
+	* Strip babeltrace.c
+	* Add base plug-in skeletons
+	* List detected component classes
+	* Fix header guard
+	* Component creation
+	* Introduce public component class interface
+	* Remove specialized reference counting functions
+	* Plugin symbol resolving fix
+	* Coding style fix
+	* Build fix
+	* text plugin test
+	* Create sink plugins
+	* Discover plugins in converter.c
+	* Adapt plugin system to use unified reference counting
+	* Add ctf-text entry point initialization comment
+	* ctf-text plugin stub
+	* Resolve plugin symbols
+	* Introduce bt_plugin and bt_component_class
+	* Load plugins and components
+	* Start of bt_component_factory implementation
+	* Docs: plugin-system.h documentation
+	* Move initialization of components to init functions
+	* Missing Makefiles
+	* Add iterator and source implementations
+	* Remove unneeded __cplusplus externs from source internal header
+	* Implementation of bt_component_sink_handle_notification
+	* Build fix and sink implementation
+	* Rename plugin.c to component.c in Makefile
+	* Rename plugin implementation to component
+	* Rename to separate the plug-in and component notions
+	* Rename plugin-internal.h to component-internal.h
+	* Missing notification parameter in bt_component_sink_handle_notification
+	* More modifications
+	* Integrate modifications after plugin review
+	* Add options to ctf-text plugin
+	* Implement ctf text output plug-in stub
+	* Build system: build reader plug-in stub
+	* Add initial plug-in stubs
+	* More build fixes
+	* build fixes
+	* remove extra line in reader
+	* Implement source plugin base
+	* Error stream is now an attribute of the base plugin class
+	* Implement plugin base class
+	* Start ctf reader implementation stub
+	* Add headers to build system
+	* Notification interfaces
+	* Add notification documentation
+	* iterator documentation
+	* Add notification iterator documentation
+	* source interface documentation
+	* plugin-system.h documentation
+	* Add missing header plugin-system.h
+	* Minor fixes
+	* Add javadoc documentation of plugin-lib interface
+	* Javadoc fixes
+	* Comment plug-in error codes
+	* Document plug-in interface
+	* Plug-in system update
+	* Add discarded events notification type
+	* Plug-in API corrections
+	* Reader plugin skeleton
+	* Add plugin base implementation
+	* Add plugin interface to build system
+	* Initial plug-in interface draft
+	* Port: Add glib g_mkdtemp to mkdtemp wrapper
+	* Port: Use glib g_mkdir
+	* Cleanup: bt namespace for compat glib
+	* Cleanup: bt namespace for compat memstream.h
+	* Cleanup: bt namespace for compat timegm
+	* Cleanup: bt namespace for compat strerror_r
+	* Use glib portable macros to convert gpointer to int
+	* ax_lib_elfutils -> bt_lib_elfutils
+	* m4/ax_lib_elfutils.m4: use m4_default() for optional args.
+	* m4/ax_lib_elfutils.m4: add cache variable
+	* Fix: text output missing separator when printing the domain
+	* Fix: perform an explicit stdout flush in live even on empty packets
+	* Fix: documentation: output plugin is called ctf-metadata
+	* Fix: Use autoconf provided grep in test_formats
+	* babeltrace: add test for babeltrace --list
+	* Add empty plug-in hooks to prevent their elimination by the linker
+	* Remove useless PACKAGE_LIBS substitution
+	* Do not use g_quark_from_static_string in unloadable code
+	* CTF writer: Add function to add an integer environment field value
+	* python: Add stream event context support
+	* debug info: Call register_event_debug_infos for all events
+	* Typo: configure.ac implemenation -> implementation
+	* configure: fix uuid support detection on static build
+	* Fix: don't assert on lib unload failure
+	* Use lib unload events to prune library mappings
+	* Rename handle_dlopen_event to handle_lib_load_event
+	* Use lttng-ust's new load event to track library mappings
+	* Tests: no substitution needed for multi-trace intersection test
+	* Tests: dereference of NULL pointer on allocation failure
+	* Tests: abort dwarf test on open() failure
+	* Fix: lttng-live does not set a trace descriptor
+	* Tests: Unchecked return value in test_ctf_writer
+	* Tests: unchecked return value in test_ctf_writer
+	* Tests: Add missing --merge LOG_DRIVER_FLAGS
+	* Fix: strerror_r behavior is glibc specific
+	* sys/param.h is required for MAXNAMLEN on musl libc
+	* Tests: unchecked return values in test_ctf_writer
+	* Tests: Unchecked return values in test_ctf_writer
+	* Tests: unchecked return values in test_ctf_writer
+	* Tests: Unchecked return value in test_ctf_writer
+	* Fix: undefined bit shift operation when printing octal numbers
+	* Fix: Wrong variable checked in bin_info_child_die_has_address
+	* Fix: unchecked bt_ctf_field_type_set_alignment return value
+	* Fix: unchecked return value of bt_ctf_field_type_variant_get_field
+	* Fix: validate return value of bt_ctf_field_get_type_id
+	* Fix: Only close valid fds in is_valid_debug_file
+	* Fix: Free die_name in bin_info_lookup_cu_function_name
+	* Fix: Don't dereference null ptr in error path
+	* Standardise spelling of debug info
+	* Fix: typo in --disable-debug-info in configure error message
+	* Docs: change --clock-raw to --clock-cycles
+	* Display binary location even if source and symbol lookups fail
+	* Copy bindings sources to build directory
+	* bootstrap: Standardize on autoreconf -vi
+	* Move Python bindings to babeltrace subfolder
+	* Tests: Multi-trace stream intersection test
+	* Change behaviour of stream-intersection with multiple traces
+	* Python bindings: PEP8 mandates two blank lines before class
+	* Fix: ctf-text: signed base 8, 16 printout
+	* Fix: debug-info feature enable/disable
+	* Fix: swapped libelf and libdw names in configure error message
+	* Don't use the .so extension on test assets
+	* Fix: warnings on Solaris10
+	* Add missing generated tests to gitignore
+	* Fix: report error when lttng-live is provided with an IPv6 address
+	* Fix: invalid mix of ctf_type_id and bt_ctf_scope enums
+	* Fix: PATH_MAX requires limits.h on OS X and Solaris
+	* Static build fix: change link order of libtestcommon.la
+	* Clean-up: change space indentation to tabs
+	* Test fix: clean trace files left behind by test_ctf_ir_ref
+	* Clean-up: Missing space after cast operator
+	* Fix: overflow of signed integer results in undefined behaviour
+	* Fix: potential close() of uninitialized elf_fd
+	* Clean-up: add missing new line after end of function
+	* Clean-up: remove extra newline in bin-info.c
+	* Clean-up: fix comment style in bin-info.c
+	* Add tap-driver.sh from automake
+	* Tests: skip certain bin-info tests on failure to prevent segfault
+	* Tests: strip ELF symbols from debuginfo-data executables with separate DWARF
+	* Python bindings: add has_intersection property to TraceCollection
+	* Python bindings: make intersect_mode read-only property
+	* Tests: Add missing debuginfo files to dist
+	* Use tar-ustar format for dist
+	* Tests: Replace prove by autotools tap runner
+	* Cleanup test scripts
+	* Fix: Don't clean test scripts
+	* Fix: Make test_dwarf and test_bin_info tests work out-of-tree
+	* Handle test_ctf_writer_complete like the other tests scripts
+	* Fix: let automake handle CLEAN and DIST
+	* Fix: Remove test_seek_empty_packet and test_seek_big_trace from SCRIPT_LIST
+	* configure: introduce new macro AX_LIB_ELFUTILS
+	* Docs: fix typos in babeltrace-log(1) manpage
+	* Docs: update debuginfo doc
+	* Add configure report
+	* configure: check for elfutils (libelf and libdw) >= 0.154
+	* Set the minimal version of elfutils to 0.154
+	* Doc: Add elfutils to README
+	* Typo: succesful* -> successful*
+	* Fix: return -1 on bin_info_lookup_dwarf_function_name failure
+	* Harmonize spelling of debug-info
+	* Warning fix: pointer may be uninitialized if assertions are disabled
+	* Indicate default debug-info build settings in configure help
+	* Disable debuginfo by default on Solaris and OSX
+	* Docs: Add --debug-info-target-prefix to man page
+	* Add source and information to regenerate debuginfo-data
+	* Use bool where possible in dwarf and bin-info
+	* Rename so-info to bin-info
+	* Use printf_debug/verbose in so-info
+	* Fix: update tests for new dwarf func name output
+	* Update debuginfo to match UST event rename
+	* Use g_build_path for DWARF build_id lookup
+	* Add --debug-info-target-prefix
+	* Refactor offset string printing out of ELF and DWARF lookups
+	* Print offset relative to function when using DWARF
+	* Print bin location first
+	* Add binary location information
+	* Fix: prevent uninitialized use of elf_file
+	* Only set so info ELF file when needed
+	* Use is_pic field instead of reading ELF header
+	* Fix: make short_src_path from src_path
+	* Tests: clean generated tests scripts
+	* Tests: Add missing test scripts to gitignore
+	* Tests: Use AC_CONFIG_FILES to generate test scripts
+	* Docs: Add debug-info option to BABELTRACE(1)
+	* Print "binary+offset" when function name can't be resolved
+	* Fix: Don't skip binary path print-out in ELF-only case
+	* Show binary path as part of debug info
+	* Add --debug-info-full-path option and shorten source name
+	* Rename opt_debug_dir to opt_debug_info_dir
+	* Clean-up: mark test symbols as static
+	* Fix: Remove traces left over from ctf-writer tests
+	* Fix: cast of 64 bit addresses from trace to 32-bit pointer
+	* Tests: dynamically create test list based on enabled features
+	* Add intersect mode to python bindings
+	* Add bt_ctf_iter_create_intersect to CTF iterator API
+	* Clean-up: remove dead assignment
+	* Tests: erroneous check after bt_ctf_clock_set_offset_s
+	* Docs: add high-level debug info doc
+	* Tests: add unit tests for so_info
+	* Tests: add unit tests for bt_dwarf
+	* Initial implementation of the debuginfo API
+	* Fix: lttng-live flush when output to file
+	* Fix: lttng-live use g_free rather than free
+	* Store "tracer_name" from the trace's environment
+	* Fix: Missing pointer dereference in NULL check
+	* Fix: leak of stream intersection positions
+	* Remove useless bt_iter when creating intersection
+	* Add new test artifacts to .gitignore
+	* Tests: use templates for stream intersection and packet_seq_num
+	* Tests: fix OOT build by adding test scripts to noinst_SCRIPTS
+	* Docs: Add --stream-intersection to the BABELTRACE(1) man page
+	* Rephrase error message
+	* Test the stream intersection feature
+	* Option to only show streams' intersection
+	* Tests for packet_seq_num handling
+	* Fix: lttng-live data_size and version endianness
+	* test_ctf_ir_ref.c: fix coding style
+	* test_ctf_writer.c: test packet functions
+	* Fix: do not set event's parent to a non-writer stream
+	* ir: bt_ctf_stream_append_event(): do not always reset parent
+	* ir: bt_ctf_event_set_packet(): check for common stream class
+	* test_ctf_ir_ref.c: fix indentation
+	* test_ctf_ir_ref.c: test all permutations of put
+	* Solaris build fix: missing inclusion of endian.h
+	* ref.h: add C++ guards
+	* test_ctf_writer.c: test bt_ctf_clock_ns_from_value()
+	* Cleanup: lift function call outside of condition
+	* ir: add bt_ctf_clock_ns_from_value() utility
+	* ir: move clock value accessors to writer header
+	* test_ctf_writer.c: test writer/non-writer clock value accessors
+	* ir: move bt_ctf_stream_class_set_clock() to writer header
+	* ir: disable clock value accessors in non-writer mode
+	* ir: add bt_ctf_event_get_clock_value()
+	* ir: bt_ctf_stream_append_event(): do not append event with parent
+	* ir: remove unused event header/context fields from stream
+	* ir: add optional name property to stream
+	* test_ctf_writer.c: test bt_ctf_stream_create()
+	* ir: make bt_ctf_stream_create() public
+	* test_ctf_writer.c: test stream class clock -> trace clock
+	* ir: bt_ctf_trace_add_stream_class(): add stream class's clock
+	* ir: remove unused bt_ctf_event_copy()
+	* ir: verify stream mode in stream functions
+	* ir: freeze event on bt_ctf_stream_append_event()
+	* ir: add bt_ctf_event_freeze()
+	* ir: add bt_ctf_field_freeze()
+	* ir: remove bt_ctf_trace_get() and bt_ctf_trace_put()
+	* ir: move writer-specific declarations to writer header
+	* ir: remove event header accessors from stream
+	* ir: add bt_ctf_event_set_packet()
+	* ir: add public bt_ctf_packet object
+	* ir: move the stream event ctx field to the event
+	* ir: remove unused event_headers member from struct bt_ctf_stream
+	* ir: validate integer FT's mapped clock against signedness
+	* ir: clock: use value in cycles instead of ns
+	* ir: freeze mapped clock when freezing integer FT
+	* ir: freeze clocks when freezing a trace
+	* ir: split event files into event and event-class files
+	* ir: rename event-fields/event-types -> fields/field-types
+	* ir: rename ctf_type_id -> bt_ctf_type_id
+	* ir: rename ctf_string_encoding -> bt_ctf_string_encoding
+	* ir: rename bt_ctf_field_path_get_root()
+	* ir: rename bt_ctf_node -> bt_ctf_scope
+	* ir: add public bt_ctf_field_path object
+	* ir: rename bt_ctf_field_type_variant_set_tag()
+	* Add validation/resolving tests
+	* test_bt_values.c: fix top comment
+	* ir: freeze attributes when freezing an event
+	* Fix scan-build warning of potential NULL dereference
+	* ir: refactor FT validation and resolving
+	* ir: allow to set variant FT's tag FT even when frozen
+	* ir: add internal bt_ctf_field_path_clear()
+	* ir: validate field types on field creation
+	* values: fix indentation
+	* ref.h: fix doc
+	* values: add `_empty` prefix when relevant
+	* BT_MOVE(): call bt_put(_dst)
+	* Fix: bt_ctf_field_type_floating_point_copy(): set self references
+	* Add bt_ctf_field_type_compare(): field type deep comparison
+	* ir: event-types-internal.h: fix comment
+	* ir: add user byte order to integer/float types
+	* test_ctf_writer.c: assert() unchecked return values
+	* ir: bt_ctf_stream_class_set_byte_order(): EC is already frozen
+	* Python bindings: remove unnecessary semi-colons
+	* Python bindings: missing error check in Clock precision setter
+	* Python bindings: accomodate API changes introduced for negative time
+	* Remove stale comment from event destructor
+	* Handle negative time and offset from Epoch
+	* Fix: CTF parser: accept signed constant literals
+	* Fix: out-of-bound memory access
+	* Fix out-of-tree tests: seek tests can't find traces
+	* Tests: Fix test plans and do not skip on fail
+	* Fix: Check return value of fpathconf
+	* Fix: BABELTRACE_HAVE_LIBC_UUID misspelled as BT_HAVE_LIBC_UUID
+	* Fix: check for socket lib before function checks
+	* Port: Add OSX libuuid compat
+	* Port: Add OSX mman.h compat
+	* Port: Add OSX endian.h compat
+	* Cleanup: remove unused label 'end'
+	* Fix: Wrong variable checked for allocation failure
+	* Implement new CTF-IR reference counting scheme
+	* Use bt_put instead of bt_ctf_field_put as release callback
+	* Clean-up bt_put() implementation
+	* Object: Acquire reference to parent on first acquired reference
+	* Tests: Add CTF-IR reference counting test
+	* Return pointer when using bt_get()
+	* Add internal bt_object reference count accessor
+	* Docs: Document reference counting scheme implemented by Object
+	* Add parented object memory management to the Object interface
+	* Do not use g_list_free_full
+	* Update version to 2.0.0-pre
+	* Only compare "bison -y" to the basename of YACC variable
+	* Python bindings: work around Python 3.5 behaviour change
+	* Output a warning if packets are lost
+	* Clean-up: Use memset() to initialize packet_index
+	* Support ctf index version 1.1
+	* Cleanup: Don't hardcode include paths unnecessarily
+	* Fix: include ctf-scanner-symbols.h to prefix yy_* symbols
+	* Fix: missing includes break the out-of-tree build
+	* Fix: memstream compat layer requires use of babeltrace_close_memstream
+	* compat send no SIGPIPE: multithread-safe
+	* Fix: truncated value in fgetc() usage
+	* Fix: handle EINTR return value for bt_posix_fallocate
+	* Configure: Add missing checks
+	* Implement bt_getline
+	* Fix: initialize getline linesize argument to 0
+	* Fix: warning, may be used uninitialized
+	* Port: Replace dirent->d_type by stat S_ISREG
+	* Port: Include config.h globally trough DEFAULT_INCLUDES
+	* Port: Add compat for dirfd
+	* Port: Add compat for mkdtemp
+	* Port: Add compat for strnlen and strndup
+	* Port: Use bash to run tests
+	* Port: Implement faccessat wrapper
+	* Port: implement posix_fallocate wrapper
+	* Port: Set required compiler flags to use pthreads
+	* Port: Add configure check for __attribute__ support
+	* Port: cleanup and portability fix to configure.ac
+	* Port: Add support for linkers with no support for 'no-as-needed'
+	* Port: Add compat for platforms with no MSG_NOSIGNAL or SO_NOSIGPIPE
+	* Port: Add AX_LIB_SOCKET_NSL macro to configure.ac
+	* Port: Replace bzero() by memset()
+	* Port: Add dummy.c to libcompat
+	* Port: uname can return a positive value on success
+	* Port: Replace NAME_MAX by MAXNAMLEN
+	* Change UUID API prefix from babeltrace_ to bt_
+	* Port: Add Solaris libuuid compat
+	* Port: Add Solaris endian.h compat
+	* Port: make bootstrap script work on most shell
+	* Fix: babeltrace-log packet seek
+	* Fix: posix_fallocate() returns int > 0 on errors
+	* Configure: add check for type
+	* Configure: add check on headers
+	* Configure: add missing check for used funcs
+	* Fix: add compat for glib < 2.32
+	* Fix: make check in OOT build with absolute path
+	* Fix: make check in out of tree build
+	* Fix: 32bit values index_major/minor used as 64bit
+	* Hide the packet_seq_num field
+	* ir: add bt_ctf_field_type_sequence/array_set_element_type()
+	* ir: do not cache variant type's alignment
+	* Fix: test_ctf_writer: assert() without side effects
+	* ir: empty structures are legal in CTF
+	* ir: add field instance type ID helpers
+	* ir: add bt_ctf_field_get_type_id()
+	* ir: add field type ID helpers
+	* Unify reference counting using a common bt_object base
+	* ir: add bt_ctf_trace_get_stream_class_by_id()
+	* ir: add internal field path getters
+	* Rename bt_object to bt_value
+	* ir: add BT_CTF_MOVE()
+	* test_ctf_writer.c: use bt_ctf_put() everywhere
+	* ir: consolidate reference counting functions
+	* Fix: allow structure types to have a minimum align
+	* test_ctf_writer: add type alignment tests
+	* Fix: require power of two for type alignment
+	* Fix: do not init. BO of enums/arrays/sequences
+	* Build: Update m4 for bison & flex version check to match autoconf-archive file
+	* Build: add version check on flex
+	* Build: add version check on autoconf
+	* Build: m4 macro for Bison version check
+	* Test: Add a test to ensure multiple keywords can be used in a field path
+	* Fix: Missing postfix_expression DOT keywords in CTF grammar
+	* Fix: Create stream after adding its stream class to a trace
+	* Fix: Remove overly-strict freeze check on variants and structures
+	* Docs: A stream has no ownership of its trace
+	* Fix: Missing NULL check in bt_ctf_field_sequence_destroy
+	* Add test_bt_objects to .gitignore
+	* ir: add tests for bt_ctf_field_variant_get_current_field()
+	* ir: add bt_ctf_field_variant_get_current_field()
+	* Clean-up: get_field_type should only have one return statement
+	* Fix: bt_ctf_trace_freeze must fail if type resolving fails
+	* Fix: Return a variant's alignment as 0 (undefined).
+	* ir: copy variants and sequences when setting a field path
+	* Fix: ir: disallow setting the alignment of certain types
+	* ir: compute array, sequence and structure alignment dynamically
+	* ir: support optional parameters in bt_ctf_field_type_variant_get_field
+	* ir: support optional parameters in bt_ctf_field_type_structure_get_field
+	* Clean-up: clean multi-line function call
+	* Tests: fix possible null pointer dereference
+	* Fix: Check validity of returned ctf_type_id
+	* Fix: Missing check that token linked-list is not NULL
+	* ir: validate sequence length fields and variant tags of stream classes
+	* ir: validate sequence length fields and variant tags of event classes
+	* ir: Implement a field type visitor to resolve dynamic scopes
+	* ir: only perform trace freeze if not already frozen
+	* Clean-up: line exceeding 80 chars in trace.c
+	* Docs: add comment about bt_ctf_trace_add_stream_class validation
+	* ir: add bt_ctf_field_type_variant_set_tag()
+	* ir: add tag field path to variant field type
+	* ir: add length_field_path to sequence field type
+	* ir: add bt_ctf_field_path internal API
+	* ir: add bt_ctf_field_type_variant_get_field_name_index()
+	* ir: add bt_ctf_field_type_structure_get_field_name_index()
+	* Clean-up: Missing space in event-types-internal.h
+	* Docs: Updated available input formats on manpage
+	* ir: add tests for bt_ctf_event_copy()
+	* Fix: ir: match .h names for get/set_header()
+	* ir: add bt_ctf_event_set_payload_field()
+	* ir: add bt_ctf_event_get_payload_field()
+	* ir: add bt_ctf_event_copy() (event deep copy)
+	* ir: add tests for bt_ctf_field_copy()
+	* ir: make bt_ctf_field_copy() public
+	* Fix: ir: copy struct/seq/array NULL fields
+	* Fix: ir: incr ref of existing sequence/array field
+	* Fix: ir: return current variant's field if possible
+	* Fix: ir: seq copy: initialize internal array
+	* Fix: ir: bt_ctf_field_copy(): copy payload_set
+	* objects: Doxygen: note about frozen copy
+	* Docs: weird phrasing in Babeltrace(1)
+	* Replace g_string_insert_len() by g_string_append_len()
+	* Add tests for bt_ctf_field_string_append_len()
+	* ir: add bt_ctf_field_string_append_len()
+	* Add tests for bt_ctf_field_string_append()
+	* ir: add bt_ctf_field_string_append()
+	* Fix: return event timestamp in _timestamp_at_pos
+	* Fix: ir: make sure "stream_id" attr is always right
+	* Tests: add environment field can be added after stream creation
+	* Fix: Allow the addition of environment fields to a frozen trace
+	* Cleanup: Remove unused trace environment types
+	* Cleanup: introduce internal bt_ctf_trace_freeze()
+	* Move bt_ctf_attributes API to internal headers
+	* Remove stale file from include/Makefile.am
+	* Fix: possible NULL pointer dereference in CTF Writer/IR tests
+	* Fix: Ensure assertions have no side-effect
+	* Fix: Uninitialized return value in bt_ctf_event_class_get_id
+	* ir: add tests for bt_ctf_event's stream accessor
+	* ir: add tests for bt_ctf_stream_class trace accessor
+	* ir: add trace accessor to bt_ctf_stream_class
+	* ir: add stream accessor to bt_ctf_event
+	* Cleanup: remove unused bt_ctf_stream_set_trace function
+	* ir: add weak reference to parent trace to bt_ctf_stream_class
+	* ir: add weak reference to parent stream to bt_ctf_event
+	* ir: add tests for duplicate event classes
+	* Fix: ir: make duplicate event classes check smarter
+	* ir: add tests for event class attributes
+	* ir: add attributes support to event classes
+	* ir: make trace environment use bt_object
+	* objects: Doxygen: bt_object_type: minor fix
+	* objects: optimize loops by using i instead of x
+	* objects: Doxygen: add cross-references
+	* objects: Doxygen: more details on bt_object_null
+	* objects: add bt_object_freeze() and more statuses
+	* objects: make static functions also inline
+	* objects: Doxygen: \i -> \em
+	* objects: introduce enum bt_object_status
+	* objects tests: bt_object_array_set()
+	* objects: add bt_object_array_set()
+	* objects: simplify destroy functions
+	* objects: use GPtrArray instead of GArray
+	* Fix: remove test_bt_objects from SCRIPT_LIST
+	* Mark object type check functions as static
+	* ir: add tests for bt_ctf_stream_class_get_event_class_by_id()
+	* ir: add bt_ctf_stream_class_get_event_class_by_id()
+	* ir: add tests for bt_ctf_trace_get_clock_by_name()
+	* ir: add bt_ctf_trace_get_clock_by_name()
+	* Add basic object system tests
+	* Add basic object system
+	* Change version from 1.3.0 to 1.3.0-pre
+	* Fix: Don't increment automatic stream-id twice
+	* Implement bt_ctf_trace stream class accessors
+	* Tests: Add a bt_ctf_trace_get/set_byte_order() test
+	* Implement bt_ctf_trace_get_byte_order()
+	* Implement bt_ctf_field_type_variant_set_tag_name()
+	* Fix: CTF 1.8 mandates that event "fields" must be a structure
+	* Fix: check string payload for NULL before calling g_string_free()
+	* Implement bt_ctf_event_class_get/set_payload()
+	* Cleanup: move type_id initialization after byte order check
+	* Add Variant and Sequence IR type validation checks
+	* Remove alias getter from IR field interface
+	* Mark internal IR field function pointers as const
+	* Add bt_ctf_field_type_copy() which allows deep copy of IR types
+	* Allow unset tags on variant field types
+	* Update version to 1.3.0
+	* Fix: Ensure stream endianness is set when initializing event class
+	* Fix: Check stream fd value before closing
+	* Fix: missing allocation error check
+	* Freeze event classes as they are added to a stream class
+	* Tests: ensure that an event may be instanciated before its stream
+	* Docs: event class must have a stream class before events may be created
+	* Fix: Missing stdint.h in trace.h
+	* Fix: Missing stdint.h in stream.h
+	* Fix: Missing stdint.h in stream-class.h
+	* Fix out-of-tree build for Python bindings + doc
+	* Tests: Add tests for trace environment field accessors
+	* Add trace environment field getters
+	* Support the addition of integer trace environment fields
+	* CTF-IR: Support unnamed streams
+	* Fix: out-of-tree dist fails to find test traces
+	* Fix running tests out of tree
+	* Python: add Sphinx doc project
+	* Python: writer.IntegerBase: remove redundant prefixes
+	* Python: add reader.IntegerFieldDeclaration.size
+	* Python: document writer.Writer
+	* Python: document writer.Stream
+	* Python: document writer.StreamClass
+	* Python: document writer.Event
+	* Python: document writer.EventClass
+	* Python: document writer.StringField
+	* Python: document writer.SequenceField
+	* Python: document writer.ArrayField
+	* Python: document writer.VariantField
+	* Python: document writer.StructureField
+	* Python: document writer.FloatingPointField
+	* Python: document writer.EnumerationField
+	* Python: document writer.IntegerField
+	* Python: document writer.Field
+	* Python: document writer.StringFieldDeclaration
+	* Python: document writer.SequenceFieldDeclaration
+	* Python: document writer.ArrayFieldDeclaration
+	* Python: document writer.VariantFieldDeclaration
+	* Python: document writer.StructureFieldDeclaration
+	* Python: document writer.FloatingPointFieldDeclaration
+	* Pytnon: document writer.EnumerationFieldDeclaration
+	* Python: document writer.IntegerFieldDeclaration
+	* Python: add top-level class writer.IntegerBase
+	* Python: document writer.FieldDeclaration
+	* Python: document writer.Clock
+	* Python: document writer.EnumerationMapping
+	* Python: examples: import explicit BT modules
+	* Python: split API in reader/writer modules
+	* Python: document IntegerFieldDeclaration
+	* Python: document VariantFieldDeclaration
+	* Python: document StringFieldDeclaration
+	* Python: document StructureFieldDeclaration
+	* Python: document FloatFieldDeclaration
+	* Python: document SequenceFieldDeclaration
+	* Python: document ArrayFieldDeclaration
+	* Python: document EnumerationFieldDeclaration
+	* Python: document FieldDeclaration
+	* Python: document EventDeclaration
+	* Python: document FieldError
+	* Python: document Event
+	* Python: document CTFScope
+	* Python: document CTFTypeId
+	* Python: document ByteOrder
+	* Python: document CTFStringEncoding
+	* Python: document TraceHandle
+	* Remove print_format_list Python function
+	* Python: document TraceCollection
+	* Python: CTFWriter: forbid Stream.__init__()
+	* Python: CTFWriter: add FloatingPointFieldDeclaration
+	* Python: CTFWriter: FloatFieldingPoint -> FloatingPointField
+	* Python: bt: do not expose ClockType
+	* Python: remove useless 'return None'
+	* Python: bt.py: PEP 8 + improve readability
+	* Python: remove explicit inheritance from object
+	* Python: decouple Python iface from native binding
+	* Populate event header from mapped timestamp clock
+	* Map default event header timestamp field to the stream class' clock
+	* Fix: erroneous use of semicolon instead of comma in TSDL serialization
+	* Fix: Don't freeze field type on addition to structure
+	* Tests: fix misleading comment
+	* CTF-Writer tests: Delete trace after test
+	* Add support for clock mapping on integer field type
+	* Docs: fix bt_ctf_clock_get_offset function header
+	* ctf-ir: allow 1-bit signed integer types
+	* ctf-ir: disallow creating a 0-bit integer type
+	* Fix: missing paragraph in python bindings license (MIT)
+	* Tests: Add event packet header accessors test
+	* Tests: Don't use diag() to output errors from child processes
+	* Cleanup: line over 80 chars
+	* Add support for custom event headers
+	* Cleanup: Use a switch case instead of conditionals
+	* Fix: Field types native byte order refers to the trace
+	* Fix: duplicate function declaration in stream.h
+	* Test: Add a test that validates that empty streams are valid
+	* Fix: lazy-mmap() streams when flushing
+	* Fix: lock stream class after assigning stream id
+	* Fix: handle 64-bit trace IDs on 32-bit systems
+	* Fix: print format type mismatch warnings on 32-bit
+	* Add utility function to validate CTF identifiers
+	* Revert "Add event header accessors and support for custom event headers"
+	* Fix: missing parenthesis in offset_align_floor
+	* Add event header accessors and support for custom event headers
+	* Tests: Add tests for stream class accessor
+	* Add missing stream class accessor
+	* Cleanup: Typo in bt_ctf_field_type_integer_create's documentation
+	* Tests: Add tests for trace packet header accessors
+	* Add stream packet header accessors
+	* Add trace packet header accessors and support custom headers
+	* Fix: Only allow setting a stream class when not frozen
+	* Fix: allow empty CTF files
+	* Revert test fix: uncomment trace unlink
+	* Tests fix: Unchecked return value
+	* Tests: Add event context accessors unit tests
+	* Docs: Indicate that stream event context is sampled on event append
+	* Add event context accessors
+	* Docs: Remove extra underscore from function header
+	* Fix: Check integer signedness in packet header when auto-populating
+	* Docs: Add a comment about event validation in bt_ctf_stream_append_event
+	* Cleanup: Misplaced end label in bt_ctf_stream_get_packet_context
+	* Tests: Add unit tests for stream event context accessors
+	* Add stream_event_context accessors
+	* Cleanup: Remove unnecessary argument name
+	* Tests: Add unit tests for stream event context accessors
+	* Cleanup: Missing whitespace in comment
+	* Fix: Only allow setting a packet context on a non-frozen stream class
+	* Add stream_event_context accessors
+	* Implement bt_ctf_field deep copy
+	* Fix: Incorrect variant tag validation
+	* Fix: Missing description NULL check in bt_ctf_clock when serializing
+	* Fix: Ensure a packet context is a structure
+	* Add comment indicating the type of ctf_traces' elements
+	* Fix: sanity check in iterator creation
+	* Fix: iterate manually over each live trace to add to catch errors
+	* Remove duplicate include of unistd in test_ctf_writer
+	* Fix: make sure we can exit the get_new_metadata loop
+	* Fix: respect signed integers' length when printing in hex base
+	* Ensure types used for index and count in CTF IR API match
+	* Cleanup: Missing space after cast operator
+	* Tests: add tests for the new trace and trace clock accessors
+	* Add trace accessor to CTF Writer
+	* Add clock accessor to CTF IR Trace
+	* Reuse existing g_string instance when setting a clock name
+	* Don't automatically generate a clock UUID in _bt_ctf_clock_create
+	* Add missing trace-internal.h header file
+	* Add an alias name attribute and accessor to CTF IR field type
+	* Add internal nameless clock creation API
+	* Add Trace CTF IR type
+	* Python bindings clean-up: missing file headers style fixes
+	* Docs fix: Change bt_ctf_writer_create_stream return description
+	* Python bindings clean-up: file headers style fix
+	* Change CTF IR header descriptions from CTF Writer to CTF IR
+	* Detect Python packages directory on configure
+	* Python bindings: fail configure if python version < 3.0
+	* Add PEP8 style guide requirement to the CodingStyle
+	* Python bindings: Make bindings PEP8 compliant
+	* Python bindings: Make examples PEP8 compliant
+	* Python bindings: clarify invalid argument type exception
+	* Python bindings docs: clarify add_event_class comments
+	* Python bindings: Add packet context accessors
+	* Documentation fix: add expected types to packet context accessors
+	* Python bindings: Add UUID accessors to the Clock class
+	* Clean-up: remove extra whitespace in ctf-ir/clock.h
+	* Python bindings: cleanup whitespace
+	* Python bindings: add "datetime" property to the Event class
+	* Tests: check for < 0 rather than -1 specifically
+	* Tests: cleanup extra whitespace
+	* Tests: Add tests for new clock UUID accessors
+	* Add UUID accessors to CTF-IR clock
+	* Fix: scan-build warnings in CTF Writer/IR tests
+	* Fix: offset_s and CTF clocks with frequency != 1GHz
+	* Fix: incorrect compiler warning
+	* Fix: Don't assume that PROT_WRITE grants read permissions
+	* Fix: align objstack on 8 bytes
+	* Fix Python: Add a comment warning about an API limitation
+	* Replace usages of limits.h with the compatibility header
+	* Tests: Return from main instead of calling exit()
+	* Use BABELTRACE_HOST_NAME_MAX in test_ctf_writer.c
+	* Add limits compatibility header
+	* Fix: don't perform unaligned integer read/writes
+	* Add stream packet header accessors
+	* Reuse previously allocated string when setting value
+	* Fix: bt_ctf_field_type_structure_add_field argument validation
+	* Fix: mmap trace read the stream_id from the first packet
+	* Fix: check the lttng-relayd protocol version
+	* Fix: don't update the trace collection if no new streams were received
+	* Remove logically dead code
+	* Add Python bindings for CTF-IR stream getters
+	* Tests: Add stream getter tests
+	* Implement CTF-IR stream getters
+	* Move CTF-Writer stream to CTF-IR
+	* Add Python bindings for CTF-IR stream class getters
+	* Tests: Add stream class getter tests
+	* Implement CTF-IR stream class getters
+	* Add Python bindings for CTF-IR event getters
+	* Tests: Add event getter tests
+	* Implement CTF-IR event getters
+	* Fix: Set the stream class' id in the packet header
+	* Remove unecessary linking on libbabeltrace-ctf-text
+	* Add Python bindings for CTF-IR event-types getters
+	* Tests: Add an array type and field test
+	* Tests: Add event types getter tests
+	* Implement CTF-IR field types getters
+	* Clean-up: Remove unecessary line break
+	* Add Python bindings for CTF-IR event-field getters
+	* Update CTF-Writer and CTF-IR copyrights
+	* Tests: Test CTF-IR event-field's getters
+	* Docs: CTF-IR sequence's length field must be unsigned
+	* Implement CTF-IR event fields getters
+	* Fix: Check that enumeration container types are integers
+	* Add bt_ctf_field_type_enumeration private search functions
+	* Add Python bindings for CTF-IR clock's getters
+	* Tests: Test CTF-IR Clock's getters
+	* Implement CTF-IR Clock getters
+	* Split the CTF-Writer implementation in IR and Writer parts
+	* Split the CTF-Writer API into IR and Writer-specific parts
+	* Split ctf-writer's stream.h into stream.h and stream-class.h
+	* Fix (Python bindings): Return a string if a sequence's element are chars
+	* Fix: don't use a return code in _bt_ctf_stream_append_discarded_events
+	* Fix: Report the sequence's length field's value as length
+	* Fix: Align buffers from objstack_alloc on sizeof(void *)
+	* Add fallback for betoh/htobe if they do not exist
+	* Fix: Variable name typo in SequenceField and Event classes
+	* Fix python: remove weird char at the end of line
+	* Added bt_ctf_get_decl_event_id() API function.
+	* Fix: add missing files to gitignore
+	* Fix: ctf-text: add missing double-quotes around enum tag
+	* Use autoconf AM_MAINTAINER_MODE
+	* Fix: Support out of tree builds in babeltrace
+	* Fix: Add missing lttng_live_should_quit checks
+	* Fix: Report errors occuring in lttng_live_read
+	* Add README to dist_doc_DATA
+	* Remove outdated Python binding documentation
+	* Fix: Accept an input port in the live URL when no session is provided
+
 2014-02-28 Babeltrace 1.2.0
 	* Fix: lttng-live parse url port check
 
