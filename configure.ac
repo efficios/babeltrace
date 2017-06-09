@@ -467,6 +467,11 @@ AS_IF([test "x$enable_api_doc" = "xyes"], [
   DX_INIT_DOXYGEN([Babeltrace], [$(srcdir)/Doxyfile], [output])
 ])
 
+	#TODO: removed, work in progress
+	#bindings/python/Makefile
+	#bindings/python/babeltrace/Makefile
+	#bindings/python/bt2/Makefile
+	#bindings/python/bt2/__init__.py
 AC_CONFIG_FILES([
 	Makefile
 	common/Makefile
@@ -488,10 +493,6 @@ AC_CONFIG_FILES([
 	include/Makefile
 	logging/Makefile
 	bindings/Makefile
-	bindings/python/Makefile
-	bindings/python/babeltrace/Makefile
-	bindings/python/bt2/Makefile
-	bindings/python/bt2/__init__.py
 	tests/Makefile
 	tests/cli/Makefile
 	tests/cli/intersection/Makefile

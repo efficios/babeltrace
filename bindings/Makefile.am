@@ -1,3 +1,4 @@
 if USE_PYTHON
-SUBDIRS = python
+#Disabled temporarily (work in progress)
+#SUBDIRS = python
 endif

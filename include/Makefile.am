@@ -128,6 +128,7 @@ noinst_HEADERS = \
 	babeltrace/graph/notification-stream-internal.h \
 	babeltrace/graph/port-internal.h \
 	babeltrace/lib-logging-internal.h \
+	babeltrace/list-internal.h \
 	babeltrace/logging-internal.h \
 	babeltrace/mmap-align-internal.h \
 	babeltrace/object-internal.h \
