@@ -167,8 +167,10 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	writer->metadata_fd = open(metadata_path,
 		O_WRONLY | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-
-	// jgalar: Should we handle open() failure here?
+	if (writer->metadata_fd < 0) {
+		perror("open");
+		goto error_destroy;
+	}
 
 	g_free(metadata_path);
 	return writer;
