@@ -340,8 +340,8 @@ int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 	}
 
 	if (name) {
-		ret = bt_ctf_field_structure_set_field(event->fields_payload,
-			name, payload);
+		ret = bt_ctf_field_structure_set_field_by_name(
+			event->fields_payload, name, payload);
 	} else {
 		struct bt_ctf_field_type *payload_type;
 
