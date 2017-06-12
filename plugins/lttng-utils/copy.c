@@ -1036,7 +1036,7 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 		name = NULL;
 	}
 
-	writer_stream_class = bt_ctf_stream_class_create(name);
+	writer_stream_class = bt_ctf_stream_class_create_empty(name);
 	if (!writer_stream_class) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
@@ -1044,20 +1044,16 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 	}
 
 	type = bt_ctf_stream_class_get_packet_context_type(stream_class);
-	if (!type) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
+	if (type) {
+		ret_int = bt_ctf_stream_class_set_packet_context_type(
+				writer_stream_class, type);
+		if (ret_int < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto error;
+		}
+		BT_PUT(type);
 	}
-
-	ret_int = bt_ctf_stream_class_set_packet_context_type(
-			writer_stream_class, type);
-	if (ret_int < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
-	BT_PUT(type);
 
 	type = bt_ctf_stream_class_get_event_header_type(stream_class);
 	if (type) {
@@ -1370,6 +1366,7 @@ struct bt_ctf_packet *debug_info_new_packet(
 	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
 	struct bt_ctf_field *writer_packet_context = NULL;
 	struct bt_ctf_packet *writer_packet = NULL;
+	struct bt_ctf_field *packet_context = NULL;
 	struct debug_info_trace *di_trace;
 	int int_ret;
 
@@ -1412,12 +1409,16 @@ struct bt_ctf_packet *debug_info_new_packet(
 		goto error;
 	}
 
-	writer_packet_context = ctf_copy_packet_context(debug_it->err, packet,
-			writer_stream);
-	if (!writer_packet_context) {
-		fprintf(debug_it->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
+	packet_context = bt_ctf_packet_get_context(packet);
+	if (packet_context) {
+		writer_packet_context = ctf_copy_packet_context(debug_it->err,
+				packet, writer_stream);
+		if (!writer_packet_context) {
+			fprintf(debug_it->err, "[error] %s in %s:%d\n",
+					__func__, __FILE__, __LINE__);
+			goto error;
+		}
+		BT_PUT(packet_context);
 	}
 
 	int_ret = bt_ctf_packet_set_context(writer_packet, writer_packet_context);
@@ -1433,6 +1434,7 @@ struct bt_ctf_packet *debug_info_new_packet(
 error:
 
 end:
+	bt_put(packet_context);
 	bt_put(writer_packet_context);
 	bt_put(writer_stream);
 	bt_put(stream);
