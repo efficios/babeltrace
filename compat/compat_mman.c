@@ -57,8 +57,10 @@ struct mmap_mapping *mapping_create(void)
 	struct mmap_mapping *mapping;
 
 	mapping = malloc(sizeof(struct mmap_mapping));
-	mapping->file_handle = NULL;
-	mapping->map_handle = NULL;
+	if (mapping != NULL) {
+		mapping->file_handle = NULL;
+		mapping->map_handle = NULL;
+	}
 
 	return mapping;
 }
@@ -144,7 +146,8 @@ DWORD map_prot_flags(int prot, DWORD *dwDesiredAccess)
 	return 0;
 }
 
-void *mmap(void *addr, size_t length, int prot, int flags, int fd,
+BT_HIDDEN
+void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 		off_t offset)
 {
 	struct mmap_mapping *mapping = NULL;
@@ -244,7 +247,8 @@ error:
 	return MAP_FAILED;
 }
 
-int munmap(void *addr, size_t length)
+BT_HIDDEN
+int bt_munmap(void *addr, size_t length)
 {
 	int ret = 0;
 
