@@ -662,7 +662,7 @@ error:
 	return ret_field;
 }
 
-int bt_ctf_field_structure_set_field(struct bt_ctf_field *field,
+int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 		const char *name, struct bt_ctf_field *value)
 {
 	int ret = 0;

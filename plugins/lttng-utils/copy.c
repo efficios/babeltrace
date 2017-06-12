@@ -1805,7 +1805,8 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 				goto error;
 			}
 
-			ret = bt_ctf_field_structure_set_field(writer_event_context,
+			ret = bt_ctf_field_structure_set_field_by_name(
+					writer_event_context,
 					field_name, copy_field);
 			if (ret) {
 				fprintf(err, "[error] %s in %s:%d\n", __func__,
