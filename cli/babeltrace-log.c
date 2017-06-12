@@ -416,6 +416,10 @@ int main(int argc, char **argv)
 	}
 
 	file_path = g_build_filename(s_outputname, "datastream", NULL);
+	if (file_path == NULL) {
+		perror("g_build_filename");
+		goto error_closedir;
+	}
 	fd = open(file_path, O_RDWR|O_CREAT,
 		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
 	g_free(file_path);
@@ -425,6 +429,10 @@ int main(int argc, char **argv)
 	}
 
 	file_path = g_build_filename(s_outputname, "metadata", NULL);
+	if (file_path == NULL) {
+		perror("g_build_filename");
+		goto error_closedatastream;
+	}
 	metadata_fd = open(file_path, O_RDWR|O_CREAT,
 			     S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
 	g_free(file_path);
