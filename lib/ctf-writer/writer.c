@@ -176,7 +176,6 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	return writer;
 
 error_destroy:
-	unlink(metadata_path);
 	BT_PUT(writer);
 error:
 	g_free(metadata_path);
