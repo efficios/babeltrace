@@ -694,6 +694,10 @@ int create_stream_file(struct bt_ctf_writer *writer,
 
 	g_string_append_printf(filename, "_%" PRId64, stream->id);
 	file_path = g_build_filename(writer->path->str, filename->str, NULL);
+	if (file_path == NULL) {
+		fd = -1;
+		goto end;
+	}
 	fd = open(file_path,
 		O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
