@@ -185,10 +185,6 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 		goto end;
 	}
 
-	if (babeltrace_debug) {
-		// yydebug = 1;
-	}
-
 	fp = bt_fmemopen(metadata_buf, len_read, "rb");
 	if (!fp) {
 		BT_LOGE("Cannot memory-open metadata buffer: %s",
