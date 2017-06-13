@@ -49,8 +49,8 @@ static int check_env_var(const char *name)
 
 static void reset_test_plugin_env_vars(void)
 {
-	setenv("BT_TEST_PLUGIN_INIT_CALLED", "0", 1);
-	setenv("BT_TEST_PLUGIN_EXIT_CALLED", "0", 1);
+	g_setenv("BT_TEST_PLUGIN_INIT_CALLED", "0", 1);
+	g_setenv("BT_TEST_PLUGIN_EXIT_CALLED", "0", 1);
 }
 
 static char *get_test_plugin_path(const char *plugin_dir,

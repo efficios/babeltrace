@@ -2573,9 +2573,9 @@ void set_auto_log_levels(struct bt_config *cfg)
 	while (*env_var_name) {
 		if (!getenv(*env_var_name)) {
 			if (cfg->verbose) {
-				setenv(*env_var_name, "I", 1);
+				g_setenv(*env_var_name, "I", 1);
 			} else if (cfg->debug) {
-				setenv(*env_var_name, "V", 1);
+				g_setenv(*env_var_name, "V", 1);
 			} else {
 				char val[2] = { 0 };
 
@@ -2584,7 +2584,7 @@ void set_auto_log_levels(struct bt_config *cfg)
 				 * explicitly specified.
 				 */
 				val[0] = cfg->log_level;
-				setenv(*env_var_name, val, 1);
+				g_setenv(*env_var_name, val, 1);
 			}
 		}
 
