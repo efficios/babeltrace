@@ -1463,6 +1463,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	struct bt_ctf_stream_pos packet_context_pos;
 	struct bt_ctf_trace *trace;
 	enum bt_ctf_byte_order native_byte_order;
+	bool has_packet_size = false;
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1476,19 +1477,23 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	if (stream->flushed_packet_count == 1) {
+	if (stream->packet_context) {
 		struct bt_ctf_field *packet_size_field;
 
+		packet_size_field = bt_ctf_field_structure_get_field(
+				stream->packet_context, "packet_size");
+		has_packet_size = (packet_size_field != NULL);
+		bt_put(packet_size_field);
+	}
+
+	if (stream->flushed_packet_count == 1) {
 		if (!stream->packet_context) {
 			BT_LOGW_STR("Cannot flush a stream which has no packet context field more than once.");
 			ret = -1;
 			goto end;
 		}
 
-		packet_size_field = bt_ctf_field_structure_get_field(
-			stream->packet_context, "packet_size");
-		bt_put(packet_size_field);
-		if (!packet_size_field) {
+		if (!has_packet_size) {
 			BT_LOGW_STR("Cannot flush a stream which has no packet context's `packet_size` field more than once.");
 			ret = -1;
 			goto end;
@@ -1594,7 +1599,23 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 	}
 
+	if (!has_packet_size && stream->pos.offset % 8 != 0) {
+		BT_LOGW("Stream's packet context field type has no `packet_size` field, "
+			"but current content size is not a multiple of 8 bits: "
+			"content-size=%" PRId64 ", "
+			"packet-size=%" PRIu64,
+			stream->pos.offset,
+			stream->pos.packet_size);
+		ret = -1;
+		goto end;
+	}
+
 	assert(stream->pos.packet_size % 8 == 0);
+
+	/*
+	 * Remove extra padding bytes.
+	 */
+	stream->pos.packet_size = (stream->pos.offset + 7) & ~7;
 
 	if (stream->packet_context) {
 		/*
@@ -1648,13 +1669,26 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	g_ptr_array_set_size(stream->events, 0);
 	stream->flushed_packet_count++;
 	stream->size += stream->pos.packet_size / CHAR_BIT;
+
+	do {
+		ret = ftruncate(stream->pos.fd, stream->size);
+	} while (ret == -1 && errno == EINTR);
+	if (ret == -1) {
+		BT_LOGE_ERRNO("Cannot ftruncate() stream file to new size",
+				"size = %" PRIu64 ", name = %s",
+				stream->size,
+				stream->name ? stream->name->str : "(null)");
+	}
+
 end:
 	/* Reset automatically-set fields. */
-	reset_structure_field(stream->packet_context, "timestamp_begin");
-	reset_structure_field(stream->packet_context, "timestamp_end");
-	reset_structure_field(stream->packet_context, "packet_size");
-	reset_structure_field(stream->packet_context, "content_size");
-	reset_structure_field(stream->packet_context, "events_discarded");
+	if (stream->packet_context) {
+		reset_structure_field(stream->packet_context, "timestamp_begin");
+		reset_structure_field(stream->packet_context, "timestamp_end");
+		reset_structure_field(stream->packet_context, "packet_size");
+		reset_structure_field(stream->packet_context, "content_size");
+		reset_structure_field(stream->packet_context, "events_discarded");
+	}
 
 	if (ret < 0) {
 		/*
