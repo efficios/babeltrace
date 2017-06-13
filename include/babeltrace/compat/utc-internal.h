@@ -46,6 +46,7 @@ time_t bt_timegm(struct tm *tm)
 
 #include <string.h>
 #include <stdlib.h>
+#include <glib.h>
 
 /*
  * Note: Below implementation of timegm() is not thread safe
@@ -76,11 +77,11 @@ time_t bt_timegm(struct tm *tm)
 	}
 
 	/* Temporarily setting TZ to 1 for UTC */
-	setenv("TZ", "", 1);
+	g_setenv("TZ", "", 1);
 	tzset();
 	ret = mktime(tm);
 	if (tz) {
-		setenv("TZ", tz, 1);
+		g_setenv("TZ", tz, 1);
 		free(tz);
 	} else {
 		unsetenv("TZ");

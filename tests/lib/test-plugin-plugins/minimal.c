@@ -20,13 +20,13 @@
 
 static enum bt_plugin_status plugin_init(struct bt_plugin *plugin)
 {
-	setenv("BT_TEST_PLUGIN_INIT_CALLED", "1", 1);
+	g_setenv("BT_TEST_PLUGIN_INIT_CALLED", "1", 1);
 	return BT_PLUGIN_STATUS_OK;
 }
 
 static enum bt_plugin_status plugin_exit(void)
 {
-	setenv("BT_TEST_PLUGIN_EXIT_CALLED", "1", 1);
+	g_setenv("BT_TEST_PLUGIN_EXIT_CALLED", "1", 1);
 	return BT_PLUGIN_STATUS_OK;
 }
 
