@@ -32,6 +32,9 @@
 
 #define TSDL_MAGIC	0x75d11d57
 
+BT_HIDDEN
+int yydebug;
+
 struct ctf_metadata_decoder {
 	struct ctf_visitor_generate_ir *visitor;
 	uint8_t uuid[16];
@@ -362,6 +365,10 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		}
 	}
 
+	if (BT_LOG_ON_VERBOSE) {
+		yydebug = 1;
+	}
+
 	/* Allocate a scanner and append the metadata text content */
 	scanner = ctf_scanner_alloc();
 	if (!scanner) {
@@ -405,6 +412,8 @@ end:
 	if (scanner) {
 		ctf_scanner_free(scanner);
 	}
+
+	yydebug = 0;
 
 	if (fp && close_fp) {
 		if (fclose(fp)) {
