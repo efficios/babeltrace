@@ -25,6 +25,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-METADATA-PARSER"
+#include "logging.h"
+
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
@@ -35,14 +38,17 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <babeltrace/list-internal.h>
-#include <babeltrace/babeltrace-internal.h>
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"
 #include "objstack.h"
 
-BT_HIDDEN
-int yydebug;
+#if BT_LOG_ENABLED_VERBOSE
+# define YYDEBUG 1
+# define YYFPRINTF(_stream, _fmt, args...) BT_LOGV(_fmt, ## args)
+#else
+# define YYDEBUG 0
+#endif
 
 /* Join two lists, put "add" at the end of "head".  */
 static inline void
@@ -284,8 +290,9 @@ int import_string(struct ctf_scanner *scanner, YYSTYPE *lvalp,
 	lvalp->s = objstack_alloc(scanner->objstack, len);
 	if (src[0] == 'L') {
 		// TODO: import wide string
-		printfl_error(yyget_lineno(scanner),
-			"Wide string not supported yet.");
+		_BT_LOGE_LINENO(yyget_lineno(scanner),
+			"wide characters are not supported as of this version: "
+			"scanner-addr=%p", scanner);
 		return -1;
 	} else {
 		return import_basic_string(scanner, lvalp, len, src, delim);
@@ -309,7 +316,7 @@ static void push_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *ns;
 
-	printf_debug("push scope\n");
+	BT_LOGV("Pushing scope: scanner-addr=%p", scanner);
 	ns = malloc(sizeof(struct ctf_scanner_scope));
 	init_scope(ns, scanner->cs);
 	scanner->cs = ns;
@@ -319,7 +326,7 @@ static void pop_scope(struct ctf_scanner *scanner)
 {
 	struct ctf_scanner_scope *os;
 
-	printf_debug("pop scope\n");
+	BT_LOGV("Popping scope: scanner-addr=%p", scanner);
 	os = scanner->cs;
 	scanner->cs = os->parent;
 	finalize_scope(os);
@@ -331,7 +338,8 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 	int ret;
 
 	ret = GPOINTER_TO_INT(g_hash_table_lookup(s->types, id));
-	printf_debug("lookup %p %s %d\n", s, id, ret);
+	BT_LOGV("Looked up type: scanner-addr=%p, id=\"%s\", ret=%d",
+		s, id, ret);
 	return ret;
 }
 
@@ -347,13 +355,15 @@ int is_type(struct ctf_scanner *scanner, const char *id)
 			break;
 		}
 	}
-	printf_debug("is type %s %d\n", id, ret);
+	BT_LOGV("Found if ID is type: scanner-addr=%p, id=\"%s\", ret=%d",
+		scanner, id, ret);
 	return ret;
 }
 
 static void add_type(struct ctf_scanner *scanner, char *id)
 {
-	printf_debug("add type %s\n", id);
+	BT_LOGV("Adding type: scanner-addr=%p, id=\"%s\"",
+		scanner, id);
 	if (lookup_type(scanner->cs, id))
 		return;
 	g_hash_table_insert(scanner->cs->types, id, id);
@@ -366,7 +376,9 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 
 	node = objstack_alloc(scanner->objstack, sizeof(*node));
 	if (!node) {
-		printfl_fatal(yyget_lineno(scanner->scanner), "out of memory");
+		_BT_LOGE_LINENO(yyget_lineno(scanner->scanner),
+			"failed to allocate one stack entry: "
+			"scanner-addr=%p", scanner);
 		return &error_node;
 	}
 	node->type = type;
@@ -377,9 +389,9 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	switch (type) {
 	case NODE_ROOT:
 		node->type = NODE_ERROR;
-		printfn_fatal(node, "trying to create root node");
+		BT_LOGE("Trying to create root node: scanner-addr=%p",
+			scanner);
 		break;
-
 	case NODE_EVENT:
 		BT_INIT_LIST_HEAD(&node->u.event.declaration_list);
 		break;
@@ -398,14 +410,12 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	case NODE_CALLSITE:
 		BT_INIT_LIST_HEAD(&node->u.callsite.declaration_list);
 		break;
-
 	case NODE_CTF_EXPRESSION:
 		BT_INIT_LIST_HEAD(&node->u.ctf_expression.left);
 		BT_INIT_LIST_HEAD(&node->u.ctf_expression.right);
 		break;
 	case NODE_UNARY_EXPRESSION:
 		break;
-
 	case NODE_TYPEDEF:
 		BT_INIT_LIST_HEAD(&node->u._typedef.type_declarators);
 		break;
@@ -417,7 +427,6 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		break;
 	case NODE_TYPEALIAS:
 		break;
-
 	case NODE_TYPE_SPECIFIER:
 		break;
 	case NODE_TYPE_SPECIFIER_LIST:
@@ -428,7 +437,6 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	case NODE_TYPE_DECLARATOR:
 		BT_INIT_LIST_HEAD(&node->u.type_declarator.pointers);
 		break;
-
 	case NODE_FLOATING_POINT:
 		BT_INIT_LIST_HEAD(&node->u.floating_point.expressions);
 		break;
@@ -454,11 +462,11 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		BT_INIT_LIST_HEAD(&node->u._struct.declaration_list);
 		BT_INIT_LIST_HEAD(&node->u._struct.min_align);
 		break;
-
 	case NODE_UNKNOWN:
 	default:
 		node->type = NODE_ERROR;
-		printfn_fatal(node, "unknown node type '%d'", (int) type);
+		BT_LOGE("Unknown node type: scanner-addr=%p, node-type=%d",
+			scanner, type);
 		break;
 	}
 
@@ -517,7 +525,7 @@ static int reparent_ctf_expression(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
+		BT_LOGE("Unknown node type: node-type=%d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -574,7 +582,7 @@ static int reparent_typedef(struct ctf_node *node, struct ctf_node *parent)
 
 	case NODE_UNKNOWN:
 	default:
-		printfn_fatal(node, "unknown node type %d", parent->type);
+		BT_LOGE("Unknown node type: node-type=%d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -631,7 +639,7 @@ static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
 
 	case NODE_UNKNOWN:
 	default:
-		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
+		BT_LOGE("Unknown node type: node-type=%d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -672,7 +680,7 @@ static int reparent_type_specifier(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
+		BT_LOGE("Unknown node type: node-type=%d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -738,7 +746,7 @@ static int reparent_type_specifier_list(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
+		BT_LOGE("Unknown node type: node-type=%d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -789,7 +797,7 @@ static int reparent_type_declarator(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
+		BT_LOGE("Unknown node type: node-type=%d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -812,7 +820,7 @@ static int set_parent_node(struct ctf_node *node,
 
 	switch (node->type) {
 	case NODE_ROOT:
-		printfn_fatal(node, "trying to reparent root node");
+		BT_LOGE_STR("Trying to reparent root node.");
 		return -EINVAL;
 
 	case NODE_EVENT:
@@ -927,7 +935,7 @@ static int set_parent_node(struct ctf_node *node,
 
 	case NODE_UNKNOWN:
 	default:
-		printfn_fatal(node, "unknown node type '%d'", (int) parent->type);
+		BT_LOGE("Unknown node type: node-type=%d", parent->type);
 		return -EINVAL;
 	}
 	return 0;
@@ -936,9 +944,8 @@ static int set_parent_node(struct ctf_node *node,
 BT_HIDDEN
 void yyerror(struct ctf_scanner *scanner, yyscan_t yyscanner, const char *str)
 {
-	printfl_error(yyget_lineno(scanner->scanner),
-		"token \"%s\": %s\n",
-		yyget_text(scanner->scanner), str);
+	_BT_LOGE_LINENO(yyget_lineno(scanner->scanner),
+		"%s: token=\"%s\"", str, yyget_text(scanner->scanner));
 }
 
 BT_HIDDEN
@@ -976,10 +983,6 @@ int ctf_scanner_append_ast(struct ctf_scanner *scanner, FILE *input)
 {
 	/* Start processing new stream */
 	yyrestart(input, scanner->scanner);
-	if (yydebug)
-		fprintf(stdout, "Scanner input is a%s.\n",
-			isatty(fileno(input)) ? "n interactive tty" :
-						" noninteractive file");
 	return yyparse(scanner, scanner->scanner);
 }
 
@@ -988,15 +991,13 @@ struct ctf_scanner *ctf_scanner_alloc(void)
 	struct ctf_scanner *scanner;
 	int ret;
 
-	yydebug = babeltrace_debug;
-
 	scanner = malloc(sizeof(*scanner));
 	if (!scanner)
 		return NULL;
 	memset(scanner, 0, sizeof(*scanner));
 	ret = yylex_init_extra(scanner, &scanner->scanner);
 	if (ret) {
-		printf_fatal("yylex_init error");
+		BT_LOGE("yylex_init_extra() failed: ret=%d", ret);
 		goto cleanup_scanner;
 	}
 	scanner->objstack = objstack_create();
@@ -1015,7 +1016,8 @@ cleanup_objstack:
 cleanup_lexer:
 	ret = yylex_destroy(scanner->scanner);
 	if (!ret)
-		printf_fatal("yylex_destroy error");
+		BT_LOGE("yylex_destroy() failed: scanner-addr=%p, ret=%d",
+			scanner, ret);
 cleanup_scanner:
 	free(scanner);
 	return NULL;
@@ -1031,7 +1033,8 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 	objstack_destroy(scanner->objstack);
 	ret = yylex_destroy(scanner->scanner);
 	if (ret)
-		printf_error("yylex_destroy error");
+		BT_LOGE("yylex_destroy() failed: scanner-addr=%p, ret=%d",
+			scanner, ret);
 	free(scanner);
 }
 

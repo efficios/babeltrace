@@ -10,6 +10,7 @@ libctf_parser_la_SOURCES = lexer.l parser.y objstack.c
 # with bt_.
 libctf_parser_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(srcdir) \
 		-include $(srcdir)/scanner-symbols.h
+libctf_parser_la_CFLAGS = $(AM_CFLAGS) -Wno-unused-function
 
 libctf_ast_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)
 libctf_ast_la_SOURCES = \
