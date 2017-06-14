@@ -3762,6 +3762,67 @@ end:
 }
 
 static
+int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
+		struct bt_ctf_field_type *packet_context_field_type,
+		const char **field_names)
+{
+	_BT_CTF_FIELD_TYPE_INIT(ft);
+	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_ctf_clock_class *mapped_clock_class = NULL;
+	int ret = 0;
+	const char **field_name;
+
+	if (ctx->decoder_config.strict) {
+		goto end;
+	}
+
+	if (!packet_context_field_type) {
+		goto end;
+	}
+
+	if (!bt_ctf_field_type_is_structure(packet_context_field_type)) {
+		goto end;
+	}
+
+	if (bt_ctf_trace_get_clock_class_count(ctx->trace) != 1) {
+		goto end;
+	}
+
+	clock_class = bt_ctf_trace_get_clock_class_by_index(ctx->trace, 0);
+	assert(clock_class);
+
+	for (field_name = field_names; *field_name; field_name++) {
+		ft = bt_ctf_field_type_structure_get_field_type_by_name(
+			packet_context_field_type, *field_name);
+
+		if (ft && bt_ctf_field_type_is_integer(ft)) {
+			mapped_clock_class =
+				bt_ctf_field_type_integer_get_mapped_clock_class(ft);
+
+			if (!mapped_clock_class) {
+				ret = bt_ctf_field_type_integer_set_mapped_clock_class(
+					ft, clock_class);
+				if (ret) {
+					BT_LOGE("Cannot map field type's field to trace's clock class: "
+						"field-name=\"%s\", ret=%d",
+						*field_name, ret);
+					goto end;
+				}
+			}
+		}
+
+		BT_PUT(mapped_clock_class);
+		BT_PUT(ft);
+	}
+
+end:
+	bt_put(mapped_clock_class);
+	bt_put(clock_class);
+	bt_put(ft);
+	return ret;
+}
+
+static
 int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 	struct bt_ctf_stream_class *stream_class, int *set)
 {
@@ -3838,6 +3899,12 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			_SET(set, _STREAM_ID_SET);
 		} else if (!strcmp(left, "event.header")) {
+			const char *field_names[] = {
+				"timestamp",
+				"ts",
+				NULL,
+			};
+
 			if (_IS_SET(set, _STREAM_EVENT_HEADER_SET)) {
 				_BT_LOGE_NODE(node,
 					"Duplicate `event.header` entry in stream class.");
@@ -3857,6 +3924,13 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			assert(decl);
+			ret = auto_map_fields_to_trace_clock_class(ctx,
+				decl, field_names);
+			if (ret) {
+				_BT_LOGE_NODE(node,
+					"Cannot automatically map specific event header field type fields to trace's clock class.");
+				goto error;
+			}
 
 			ret = bt_ctf_stream_class_set_event_header_type(
 				stream_class, decl);
@@ -3900,6 +3974,12 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			_SET(set, _STREAM_EVENT_CONTEXT_SET);
 		} else if (!strcmp(left, "packet.context")) {
+			const char *field_names[] = {
+				"timestamp_begin",
+				"timestamp_end",
+				NULL,
+			};
+
 			if (_IS_SET(set, _STREAM_PACKET_CONTEXT_SET)) {
 				_BT_LOGE_NODE(node,
 					"Duplicate `packet.context` entry in stream class.");
@@ -3919,6 +3999,13 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			assert(decl);
+			ret = auto_map_fields_to_trace_clock_class(ctx,
+				decl, field_names);
+			if (ret) {
+				_BT_LOGE_NODE(node,
+					"Cannot automatically map specific packet context field type fields to trace's clock class.");
+				goto error;
+			}
 
 			ret = bt_ctf_stream_class_set_packet_context_type(
 				stream_class, decl);
