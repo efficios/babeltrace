@@ -240,12 +240,19 @@ bool bt_common_colors_supported(void)
 	static bool supports_colors = false;
 	static bool supports_colors_set = false;
 	const char *term;
+	const char *force;
 
 	if (supports_colors_set) {
 		goto end;
 	}
 
 	supports_colors_set = true;
+
+	force = getenv("BABELTRACE_FORCE_COLORS");
+	if (force && strcmp(force, "1") == 0) {
+		supports_colors = true;
+		goto end;
+	}
 
 	term = getenv("TERM");
 	if (!term) {
