@@ -1891,7 +1891,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		if (!plug_comp_cls_names) {
+		if (plug_comp_cls_names) {
 			printf_err("Cannot specify plugin name and --component component class:\n    %s\n",
 				leftover);
 			goto error;
