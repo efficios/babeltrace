@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-UTILS-TRIMMER-FLT"
+#include "logging.h"
+
 #include <babeltrace/compat/utc-internal.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/graph/component.h>
@@ -305,7 +308,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 		value_ret = bt_value_bool_get(value, &gmt);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve clock-gmt value. Expecting a boolean");
+			BT_LOGE_STR("Failed to retrieve clock-gmt value. Expecting a boolean");
 		}
 	}
 	bt_put(value);
@@ -322,7 +325,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 		if (value_ret || timestamp_from_arg(str,
 				trimmer, &trimmer->begin, gmt)) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve begin value. Expecting a timestamp string");
+			BT_LOGE_STR("Failed to retrieve begin value. Expecting a timestamp string");
 		}
 	}
 	bt_put(value);
@@ -339,14 +342,14 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 		if (value_ret || timestamp_from_arg(str,
 				trimmer, &trimmer->end, gmt)) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve end value. Expecting a timestamp string");
+			BT_LOGE_STR("Failed to retrieve end value. Expecting a timestamp string");
 		}
 	}
 	bt_put(value);
 end:
 	if (trimmer->begin.set && trimmer->end.set) {
 		if (trimmer->begin.value > trimmer->end.value) {
-			printf_error("Unexpected: time range begin value is above end value");
+			BT_LOGE_STR("Unexpected: time range begin value is above end value");
 			ret = BT_COMPONENT_STATUS_INVALID;
 		}
 	}
