@@ -52,9 +52,6 @@
 #define BT_LOG_TAG "PLUGIN-CTF-FS-SRC"
 #include "logging.h"
 
-BT_HIDDEN
-bool ctf_fs_debug;
-
 static
 int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_iter_data)
 {
@@ -1333,7 +1330,6 @@ enum bt_component_status ctf_fs_init(struct bt_private_component *priv_comp,
 	struct ctf_fs_component *ctf_fs;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	ctf_fs_debug = g_strcmp0(getenv("CTF_FS_DEBUG"), "1") == 0;
 	ctf_fs = ctf_fs_create(priv_comp, params);
 	if (!ctf_fs) {
 		ret = BT_COMPONENT_STATUS_ERROR;
