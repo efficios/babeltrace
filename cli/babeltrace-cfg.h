@@ -70,6 +70,7 @@ struct bt_config {
 	bool omit_home_plugin_path;
 	bool command_needs_plugins;
 	const char *command_name;
+	char log_level;
 	enum bt_config_command command;
 	union {
 		/* BT_CONFIG_COMMAND_RUN */

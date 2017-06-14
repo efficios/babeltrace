@@ -1938,7 +1938,31 @@ void set_auto_log_levels(struct bt_config *cfg)
 			 * Set library's default log level if not
 			 * explicitly specified.
 			 */
-			bt_logging_set_global_level(BT_LOGGING_LEVEL_WARN);
+			switch (cfg->log_level) {
+			case 'N':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_NONE);
+				break;
+			case 'V':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_VERBOSE);
+				break;
+			case 'D':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_DEBUG);
+				break;
+			case 'I':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_INFO);
+				break;
+			case 'W':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_WARN);
+				break;
+			case 'E':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_ERROR);
+				break;
+			case 'F':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_FATAL);
+				break;
+			default:
+				abort();
+			}
 		}
 	}
 
@@ -1952,7 +1976,31 @@ void set_auto_log_levels(struct bt_config *cfg)
 			 * Set CLI's default log level if not explicitly
 			 * specified.
 			 */
-			bt_cli_log_level = BT_LOG_WARN;
+			switch (cfg->log_level) {
+			case 'N':
+				bt_cli_log_level = BT_LOG_NONE;
+				break;
+			case 'V':
+				bt_cli_log_level = BT_LOG_VERBOSE;
+				break;
+			case 'D':
+				bt_cli_log_level = BT_LOG_DEBUG;
+				break;
+			case 'I':
+				bt_cli_log_level = BT_LOG_INFO;
+				break;
+			case 'W':
+				bt_cli_log_level = BT_LOG_WARN;
+				break;
+			case 'E':
+				bt_cli_log_level = BT_LOG_ERROR;
+				break;
+			case 'F':
+				bt_cli_log_level = BT_LOG_FATAL;
+				break;
+			default:
+				abort();
+			}
 		}
 	}
 
@@ -1965,11 +2013,14 @@ void set_auto_log_levels(struct bt_config *cfg)
 			} else if (cfg->debug) {
 				setenv(*env_var_name, "V", 1);
 			} else {
+				char val[2] = { 0 };
+
 				/*
 				 * Set module's default log level if not
 				 * explicitly specified.
 				 */
-				setenv(*env_var_name, "W", 1);
+				val[0] = cfg->log_level;
+				setenv(*env_var_name, val, 1);
 			}
 		}
 
