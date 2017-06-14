@@ -390,7 +390,7 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 		name = NULL;
 	}
 
-	writer_stream_class = bt_ctf_stream_class_create(name);
+	writer_stream_class = bt_ctf_stream_class_create_empty(name);
 	if (!writer_stream_class) {
 		fprintf(err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
