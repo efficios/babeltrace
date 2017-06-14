@@ -867,15 +867,28 @@ struct bt_ctf_packet *insert_new_packet(struct debug_info_iterator *debug_it,
 		struct debug_info_trace *di_trace)
 {
 	struct bt_ctf_packet *writer_packet;
+	int ret;
 
 	writer_packet = bt_ctf_packet_create(writer_stream);
 	if (!writer_packet) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
-		goto end;
+		goto error;
 	}
-	g_hash_table_insert(di_trace->packet_map, (gpointer) packet, writer_packet);
 
+	ret = ctf_packet_copy_header(debug_it->err, packet, writer_packet);
+	if (ret) {
+		fprintf(debug_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	g_hash_table_insert(di_trace->packet_map, (gpointer) packet,
+			writer_packet);
+	goto end;
+
+error:
+	BT_PUT(writer_packet);
 end:
 	return writer_packet;
 }

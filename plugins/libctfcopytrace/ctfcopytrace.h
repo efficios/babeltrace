@@ -102,6 +102,27 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
 		struct bt_ctf_field *writer_packet_context,
 		struct bt_ctf_field_type *writer_packet_context_type);
 
+
+/*
+ * Copy the packet_header from the packet passed in parameter and assign it
+ * to the writer_stream.
+ *
+ * Returns 0 on success or -1 on error.
+ */
+BT_HIDDEN
+int ctf_stream_copy_packet_header(FILE *err, struct bt_ctf_packet *packet,
+		struct bt_ctf_stream *writer_stream);
+
+/*
+ * Copy the packet_header from the packet passed in parameter and assign it
+ * to the writer_packet.
+ *
+ * Returns 0 on success or -1 on error.
+ */
+BT_HIDDEN
+int ctf_packet_copy_header(FILE *err, struct bt_ctf_packet *packet,
+		struct bt_ctf_packet *writer_packet);
+
 /*
  * Copy all the field values of the packet context from the packet passed in
  * parameter and set it to the writer_stream.
