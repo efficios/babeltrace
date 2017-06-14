@@ -1901,7 +1901,7 @@ int set_event_clock_value(FILE *err, struct bt_ctf_event *event,
 {
 	struct bt_ctf_clock_class *clock_class = NULL;
 	struct bt_ctf_clock_value *clock_value = NULL;
-	int ret;
+	int ret = 0;
 
 	clock_class = event_get_clock_class(err, event);
 	if (!clock_class) {
