@@ -24,6 +24,8 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/babeltrace-internal.h>
 
+#include "decoder.h"
+
 // the parameter name (of the reentrant 'yyparse' function)
 // data is a pointer to a 'SParserParam' structure
 //#define YYPARSE_PARAM	scanner
@@ -309,7 +311,8 @@ const char *node_type(struct ctf_node *node);
 
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
-		int64_t clock_class_offset_ns, const char *name);
+		const struct ctf_metadata_decoder_config *config,
+		const char *name);
 
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 

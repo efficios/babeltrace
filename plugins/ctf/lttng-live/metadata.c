@@ -248,7 +248,7 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 	if (!match) {
 		goto error;
 	}
-	metadata->decoder = ctf_metadata_decoder_create(0,
+	metadata->decoder = ctf_metadata_decoder_create(NULL,
 		match);
 	if (!metadata->decoder) {
 		goto error;

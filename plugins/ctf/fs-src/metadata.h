@@ -33,9 +33,10 @@
 struct ctf_fs_trace;
 struct ctf_fs_metadata;
 
-struct metadata_overrides {
-	int64_t clock_offset_s;
-	int64_t clock_offset_ns;
+struct ctf_fs_metadata_config {
+	int64_t clock_class_offset_s;
+	int64_t clock_class_offset_ns;
+	bool strict;
 };
 
 BT_HIDDEN
@@ -46,7 +47,7 @@ void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata);
 
 BT_HIDDEN
 int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
-		struct metadata_overrides *overrides);
+		struct ctf_fs_metadata_config *config);
 
 BT_HIDDEN
 FILE *ctf_fs_metadata_open_file(const char *trace_path);

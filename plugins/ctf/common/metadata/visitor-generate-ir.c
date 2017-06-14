@@ -54,6 +54,7 @@
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"
+#include "decoder.h"
 
 /* Bit value (left shift) */
 #define _BV(_val)		(1 << (_val))
@@ -200,9 +201,6 @@ struct ctx {
 	/* 1 if this is an LTTng trace */
 	bool is_lttng;
 
-	/* Offset (ns) to apply to clock classes on creation */
-	int64_t clock_class_offset_ns;
-
 	/* Eventual name suffix of the trace to set */
 	char *trace_name_suffix;
 
@@ -218,6 +216,9 @@ struct ctx {
 	 * int64_t -> struct bt_ctf_stream_class *
 	 */
 	GHashTable *stream_classes;
+
+	/* Config passed by the user */
+	struct ctf_metadata_decoder_config decoder_config;
 };
 
 /*
@@ -601,10 +602,13 @@ end:
  */
 static
 struct ctx *ctx_create(struct bt_ctf_trace *trace,
-		int64_t clock_class_offset_ns, const char *trace_name_suffix)
+		const struct ctf_metadata_decoder_config *decoder_config,
+		const char *trace_name_suffix)
 {
 	struct ctx *ctx = NULL;
 	struct ctx_decl_scope *scope = NULL;
+
+	assert(decoder_config);
 
 	ctx = g_new0(struct ctx, 1);
 	if (!ctx) {
@@ -638,7 +642,7 @@ struct ctx *ctx_create(struct bt_ctf_trace *trace,
 	ctx->current_scope = scope;
 	scope = NULL;
 	ctx->trace_bo = BT_CTF_BYTE_ORDER_NATIVE;
-	ctx->clock_class_offset_ns = clock_class_offset_ns;
+	ctx->decoder_config = *decoder_config;
 	return ctx;
 
 error:
@@ -4348,12 +4352,14 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
-			if (strcmp(left, "tracer_name") == 0) {
-				if (strncmp(right, "lttng", 5) == 0) {
-					BT_LOGI("Detected LTTng trace from `%s` environment value: "
-						"tracer-name=\"%s\"",
-						left, right);
-					ctx->is_lttng = 1;
+			if (!ctx->decoder_config.strict) {
+				if (strcmp(left, "tracer_name") == 0) {
+					if (strncmp(right, "lttng", 5) == 0) {
+						BT_LOGI("Non-strict mode: detected LTTng trace from `%s` environment value: "
+							"tracer-name=\"%s\"",
+							left, right);
+						ctx->is_lttng = 1;
+					}
 				}
 			}
 
@@ -4770,6 +4776,7 @@ int apply_clock_class_offset(struct ctx *ctx, struct bt_ctf_clock_class *clock)
 	int ret;
 	uint64_t freq;
 	int64_t offset_cycles;
+	int64_t offset_to_apply;
 
 	freq = bt_ctf_clock_class_get_frequency(clock);
 	if (freq == -1ULL) {
@@ -4785,7 +4792,10 @@ int apply_clock_class_offset(struct ctx *ctx, struct bt_ctf_clock_class *clock)
 		goto end;
 	}
 
-	offset_cycles += cycles_from_ns(freq, ctx->clock_class_offset_ns);
+	offset_to_apply =
+		ctx->decoder_config.clock_class_offset_s * 1000000000LL +
+		ctx->decoder_config.clock_class_offset_ns;
+	offset_cycles += cycles_from_ns(freq, offset_to_apply);
 	ret = bt_ctf_clock_class_set_offset_cycles(clock, offset_cycles);
 
 end:
@@ -5033,7 +5043,8 @@ end:
 
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
-		int64_t clock_class_offset_ns, const char *name)
+		const struct ctf_metadata_decoder_config *decoder_config,
+		const char *name)
 {
 	int ret;
 	struct ctx *ctx = NULL;
@@ -5053,7 +5064,7 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 	}
 
 	/* Create visitor's context */
-	ctx = ctx_create(trace, clock_class_offset_ns, name);
+	ctx = ctx_create(trace, decoder_config, name);
 	if (!ctx) {
 		BT_LOGE_STR("Cannot create visitor's context.");
 		goto error;

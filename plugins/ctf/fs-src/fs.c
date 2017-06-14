@@ -898,7 +898,7 @@ end:
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
-		struct metadata_overrides *overrides)
+		struct ctf_fs_metadata_config *metadata_config)
 {
 	struct ctf_fs_trace *ctf_fs_trace;
 	int ret;
@@ -929,7 +929,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		goto error;
 	}
 
-	ret = ctf_fs_metadata_set_trace(ctf_fs_trace, overrides);
+	ret = ctf_fs_metadata_set_trace(ctf_fs_trace, metadata_config);
 	if (ret) {
 		goto error;
 	}
@@ -1149,10 +1149,6 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 	GList *trace_names = NULL;
 	GList *tp_node;
 	GList *tn_node;
-	struct metadata_overrides metadata_overrides = {
-		.clock_offset_s = ctf_fs->options.clock_offset,
-		.clock_offset_ns = ctf_fs->options.clock_offset_ns,
-	};
 
 	norm_path = bt_common_normalize_path(path_param, NULL);
 	if (!norm_path) {
@@ -1185,7 +1181,7 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 		GString *trace_name = tn_node->data;
 
 		ctf_fs_trace = ctf_fs_trace_create(trace_path->str,
-				trace_name->str, &metadata_overrides);
+				trace_name->str, &ctf_fs->metadata_config);
 		if (!ctf_fs_trace) {
 			BT_LOGE("Cannot create trace for `%s`.",
 				trace_path->str);
@@ -1266,31 +1262,41 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	ret = bt_value_string_get(value, &path_param);
 	assert(ret == 0);
 	BT_PUT(value);
-	value = bt_value_map_get(params, "offset-s");
+	value = bt_value_map_get(params, "clock-class-offset-s");
 	if (value) {
-		int64_t offset;
-
 		if (!bt_value_is_integer(value)) {
-			BT_LOGE("offset-s should be an integer");
+			BT_LOGE("clock-class-offset-s should be an integer");
 			goto error;
 		}
-		ret = bt_value_integer_get(value, &offset);
+		ret = bt_value_integer_get(value,
+			&ctf_fs->metadata_config.clock_class_offset_s);
 		assert(ret == 0);
-		ctf_fs->options.clock_offset = offset;
 		BT_PUT(value);
 	}
 
-	value = bt_value_map_get(params, "offset-ns");
+	value = bt_value_map_get(params, "clock-class-offset-ns");
 	if (value) {
-		int64_t offset;
-
 		if (!bt_value_is_integer(value)) {
-			BT_LOGE("offset-ns should be an integer");
+			BT_LOGE("clock-class-offset-ns should be an integer");
 			goto error;
 		}
-		ret = bt_value_integer_get(value, &offset);
+		ret = bt_value_integer_get(value,
+			&ctf_fs->metadata_config.clock_class_offset_ns);
 		assert(ret == 0);
-		ctf_fs->options.clock_offset_ns = offset;
+		BT_PUT(value);
+	}
+
+	value = bt_value_map_get(params, "strict-metadata");
+	if (value) {
+		bt_bool strict;
+
+		if (!bt_value_is_bool(value)) {
+			BT_LOGE("strict-metadata should be a boolean");
+			goto error;
+		}
+		ret = bt_value_bool_get(value, &strict);
+		assert(ret == 0);
+		ctf_fs->metadata_config.strict = !!strict;
 		BT_PUT(value);
 	}
 
