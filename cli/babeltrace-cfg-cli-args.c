@@ -22,6 +22,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "CLI-CFG-CLI-ARGS"
+#include "logging.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,9 +42,6 @@
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-connect.h"
-
-#define BT_LOG_TAG "CLI-CFG-ARGS"
-#include "logging.h"
 
 /*
  * Error printf() macro which prepends "Error: " the first time it's
@@ -1411,7 +1411,7 @@ int append_env_var_plugin_paths(struct bt_value *plugin_paths)
 	const char *envvar;
 
 	if (bt_common_is_setuid_setgid()) {
-		printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+		BT_LOGI_STR("Skipping non-system plugin paths for setuid/setgid binary.");
 		goto end;
 	}
 
@@ -1438,7 +1438,7 @@ int append_home_and_system_plugin_paths(struct bt_value *plugin_paths,
 
 	if (!omit_home_plugin_path) {
 		if (bt_common_is_setuid_setgid()) {
-			printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+			BT_LOGI_STR("Skipping non-system plugin paths for setuid/setgid binary.");
 		} else {
 			char *home_plugin_dir =
 				bt_common_get_home_plugin_path();
@@ -1704,7 +1704,7 @@ int bt_config_append_plugin_paths_check_setuid_setgid(
 	int ret = 0;
 
 	if (bt_common_is_setuid_setgid()) {
-		printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+		BT_LOGI_STR("Skipping non-system plugin paths for setuid/setgid binary.");
 		goto end;
 	}
 

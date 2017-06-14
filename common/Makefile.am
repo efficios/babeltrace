@@ -4,4 +4,4 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
 
 noinst_LTLIBRARIES = libbabeltrace-common.la
 
-libbabeltrace_common_la_SOURCES = common.c
+libbabeltrace_common_la_SOURCES = common.c logging.c logging.h

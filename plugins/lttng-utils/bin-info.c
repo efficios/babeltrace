@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT-BIN-INFO"
+#include "logging.h"
+
 #include <fcntl.h>
 #include <math.h>
 #include <libgen.h>
@@ -37,7 +40,6 @@
 #include <dwarf.h>
 #include <glib.h>
 #include <errno.h>
-#include <babeltrace/babeltrace-internal.h>
 #include "dwarf.h"
 #include "bin-info.h"
 #include "crc32.h"
@@ -56,8 +58,8 @@ int bin_info_init(void)
 	int ret = 0;
 
 	if (elf_version(EV_CURRENT) == EV_NONE) {
-		printf_debug("ELF library initialization failed: %s\n",
-				elf_errmsg(-1));
+		BT_LOGD("ELF library initialization failed: %s.",
+			elf_errmsg(-1));
 		ret = -1;
 	}
 
@@ -507,19 +509,19 @@ int bin_info_set_elf_file(struct bin_info *bin)
 	elf_fd = open(bin->elf_path, O_RDONLY);
 	if (elf_fd < 0) {
 		elf_fd = -errno;
-		printf_verbose("Failed to open %s\n", bin->elf_path);
+		BT_LOGD("Failed to open ELF file: path=\"%s\"", bin->elf_path);
 		goto error;
 	}
 
 	elf_file = elf_begin(elf_fd, ELF_C_READ, NULL);
 	if (!elf_file) {
-		printf_debug("elf_begin failed: %s\n", elf_errmsg(-1));
+		BT_LOGD("elf_begin() failed: %s.", elf_errmsg(-1));
 		goto error;
 	}
 
 	if (elf_kind(elf_file) != ELF_K_ELF) {
-		printf_verbose("Error: %s is not an ELF object\n",
-				bin->elf_path);
+		BT_LOGD("ELF file is not an ELF object: path=\"%s\"",
+			bin->elf_path);
 		goto error;
 	}
 
@@ -932,7 +934,7 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 	if (!bin->dwarf_info && !bin->is_elf_only) {
 		ret = bin_info_set_dwarf_info(bin);
 		if (ret) {
-			printf_verbose("Failed to set bin dwarf info, falling back to ELF lookup.\n");
+			BT_LOGD_STR("Failed to set bin dwarf info, falling back to ELF lookup.");
 			/* Failed to set DWARF info, fallback to ELF. */
 			bin->is_elf_only = true;
 		}
@@ -952,10 +954,10 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 
 	if (bin->is_elf_only) {
 		ret = bin_info_lookup_elf_function_name(bin, addr, &_func_name);
-		printf_verbose("Failed to lookup function name (elf), error %i\n", ret);
+		BT_LOGD("Failed to lookup function name (ELF): ret=%d", ret);
 	} else {
 		ret = bin_info_lookup_dwarf_function_name(bin, addr, &_func_name);
-		printf_verbose("Failed to lookup function name (dwarf), error %i\n", ret);
+		BT_LOGD("Failed to lookup function name (DWARF): ret=%d", ret);
 	}
 
 	*func_name = _func_name;

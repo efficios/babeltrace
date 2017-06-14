@@ -8,11 +8,15 @@ libbabeltrace_plugin_trimmer_la_SOURCES = \
 	copy.c \
 	trimmer.h \
 	iterator.h \
-	copy.h
+	copy.h \
+	logging.c \
+	logging.h
 
 libbabeltrace_plugin_trimmer_la_LIBADD =
 
 if !BUILT_IN_PLUGINS
 libbabeltrace_plugin_trimmer_la_LIBADD += \
-	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
+	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la \
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la
 endif
