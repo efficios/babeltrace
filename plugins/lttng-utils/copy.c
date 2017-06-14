@@ -1364,7 +1364,6 @@ struct bt_ctf_packet *debug_info_new_packet(
 		struct bt_ctf_packet *packet)
 {
 	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_ctf_field *writer_packet_context = NULL;
 	struct bt_ctf_packet *writer_packet = NULL;
 	struct bt_ctf_field *packet_context = NULL;
 	struct debug_info_trace *di_trace;
@@ -1411,21 +1410,14 @@ struct bt_ctf_packet *debug_info_new_packet(
 
 	packet_context = bt_ctf_packet_get_context(packet);
 	if (packet_context) {
-		writer_packet_context = ctf_copy_packet_context(debug_it->err,
-				packet, writer_stream);
-		if (!writer_packet_context) {
+		int_ret = ctf_packet_copy_context(debug_it->err,
+				packet, writer_stream, writer_packet);
+		if (int_ret < 0) {
 			fprintf(debug_it->err, "[error] %s in %s:%d\n",
 					__func__, __FILE__, __LINE__);
 			goto error;
 		}
 		BT_PUT(packet_context);
-	}
-
-	int_ret = bt_ctf_packet_set_context(writer_packet, writer_packet_context);
-	if (int_ret) {
-		fprintf(debug_it->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
 	}
 
 	bt_get(writer_packet);
@@ -1435,7 +1427,6 @@ error:
 
 end:
 	bt_put(packet_context);
-	bt_put(writer_packet_context);
 	bt_put(writer_stream);
 	bt_put(stream);
 	return writer_packet;

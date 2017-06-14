@@ -648,8 +648,6 @@ enum bt_component_status writer_new_packet(
 		struct bt_ctf_packet *packet)
 {
 	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_ctf_field *writer_packet_context = NULL;
-	struct bt_ctf_field *packet_context = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	int int_ret;
 
@@ -668,27 +666,14 @@ enum bt_component_status writer_new_packet(
 	}
 	BT_PUT(stream);
 
-	packet_context = bt_ctf_packet_get_context(packet);
-	if (packet_context) {
-		writer_packet_context = ctf_copy_packet_context(
-				writer_component->err, packet, writer_stream);
-		if (!writer_packet_context) {
-			fprintf(writer_component->err, "[error] %s in %s:%d\n",
-					__func__, __FILE__, __LINE__);
-			goto error;
-		}
-		BT_PUT(packet_context);
-
-		int_ret = bt_ctf_stream_set_packet_context(writer_stream,
-				writer_packet_context);
-		if (int_ret < 0) {
-			fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
+	int_ret = ctf_stream_copy_packet_context(
+			writer_component->err, packet, writer_stream);
+	if (int_ret < 0) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
 	}
 	BT_PUT(writer_stream);
-	BT_PUT(writer_packet_context);
 
 	goto end;
 
@@ -696,8 +681,6 @@ error:
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
 	bt_put(writer_stream);
-	bt_put(packet_context);
-	bt_put(writer_packet_context);
 	bt_put(stream);
 	return ret;
 }

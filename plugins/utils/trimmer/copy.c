@@ -164,7 +164,6 @@ struct bt_ctf_packet *trimmer_new_packet(
 		struct bt_ctf_packet *packet)
 {
 	struct bt_ctf_stream *stream = NULL;
-	struct bt_ctf_field *writer_packet_context = NULL;
 	struct bt_ctf_packet *writer_packet = NULL;
 	int int_ret;
 
@@ -193,16 +192,9 @@ struct bt_ctf_packet *trimmer_new_packet(
 	}
 	bt_get(writer_packet);
 
-	writer_packet_context = ctf_copy_packet_context(trim_it->err, packet,
-			stream);
-	if (!writer_packet_context) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
-
-	int_ret = bt_ctf_packet_set_context(writer_packet, writer_packet_context);
-	if (int_ret) {
+	int_ret = ctf_packet_copy_context(trim_it->err, packet,
+			stream, writer_packet);
+	if (int_ret < 0) {
 		fprintf(trim_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
 		goto error;
@@ -213,7 +205,6 @@ struct bt_ctf_packet *trimmer_new_packet(
 error:
 	BT_PUT(writer_packet);
 end:
-	bt_put(writer_packet_context);
 	bt_put(stream);
 	return writer_packet;
 }
