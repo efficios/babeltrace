@@ -5,6 +5,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/common-internal.h>
 
 /* When defined, Android log (android/log.h) will be used by default instead of
  * stderr (ignored on non-Android platforms). Date, time, pid and tid (context)
@@ -1253,6 +1254,31 @@ static void _bt_log_write_imp(
 	msg.lvl = lvl;
 	msg.tag = tag;
 	g_buffer_cb(&msg, buf);
+	const char *rst_color_p = bt_common_color_reset();
+	const char *rst_color_e = rst_color_p + strlen(rst_color_p);
+	const char *color_p = "";
+	const char *color_e = color_p;
+
+	switch (lvl) {
+	case BT_LOG_INFO:
+		color_p = bt_common_color_fg_blue();
+		color_e = color_p + strlen(color_p);
+		break;
+	case BT_LOG_WARN:
+		color_p = bt_common_color_fg_yellow();
+		color_e = color_p + strlen(color_p);
+		break;
+	case BT_LOG_ERROR:
+	case BT_LOG_FATAL:
+		color_p = bt_common_color_fg_red();
+		color_e = color_p + strlen(color_p);
+		break;
+	default:
+		break;
+	}
+
+	msg.p = put_stringn(color_p, color_e, msg.p, msg.e);
+
 	if (BT_LOG_PUT_CTX & mask)
 	{
 		put_ctx(&msg);
@@ -1269,6 +1295,7 @@ static void _bt_log_write_imp(
 	{
 		put_msg(&msg, fmt, va);
 	}
+	msg.p = put_stringn(rst_color_p, rst_color_e, msg.p, msg.e);
 	log->output->callback(&msg, log->output->arg);
 	if (0 != mem && BT_LOG_PUT_MSG & mask)
 	{
