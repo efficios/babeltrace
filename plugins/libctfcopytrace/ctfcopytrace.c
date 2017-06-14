@@ -467,6 +467,79 @@ end:
 }
 
 BT_HIDDEN
+int ctf_stream_copy_packet_header(FILE *err, struct bt_ctf_packet *packet,
+		struct bt_ctf_stream *writer_stream)
+{
+	struct bt_ctf_field *packet_header = NULL, *writer_packet_header = NULL;
+	int ret = 0;
+
+	packet_header = bt_ctf_packet_get_header(packet);
+	if (!packet_header) {
+		goto end;
+	}
+
+	writer_packet_header = bt_ctf_field_copy(packet_header);
+	if (!writer_packet_header) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	ret = bt_ctf_stream_set_packet_header(writer_stream,
+			writer_packet_header);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+end:
+	bt_put(writer_packet_header);
+	bt_put(packet_header);
+	return ret;
+}
+
+BT_HIDDEN
+int ctf_packet_copy_header(FILE *err, struct bt_ctf_packet *packet,
+		struct bt_ctf_packet *writer_packet)
+{
+	struct bt_ctf_field *packet_header = NULL, *writer_packet_header = NULL;
+	int ret = 0;
+
+	packet_header = bt_ctf_packet_get_header(packet);
+	if (!packet_header) {
+		goto end;
+	}
+
+	writer_packet_header = bt_ctf_field_copy(packet_header);
+	if (!writer_packet_header) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	ret = bt_ctf_packet_set_header(writer_packet, writer_packet_header);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+end:
+	bt_put(packet_header);
+	bt_put(writer_packet_header);
+	return ret;
+}
+
+BT_HIDDEN
 int ctf_stream_copy_packet_context(FILE *err, struct bt_ctf_packet *packet,
 		struct bt_ctf_stream *writer_stream)
 {
@@ -813,7 +886,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 		}
 	}
 
-	header_type = bt_ctf_trace_get_packet_header_type(writer_trace);
+	header_type = bt_ctf_trace_get_packet_header_type(trace);
 	if (header_type) {
 		int_ret = bt_ctf_trace_set_packet_header_type(writer_trace, header_type);
 		BT_PUT(header_type);

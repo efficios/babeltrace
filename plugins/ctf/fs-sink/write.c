@@ -673,7 +673,14 @@ enum bt_component_status writer_new_packet(
 				__func__, __FILE__, __LINE__);
 		goto error;
 	}
-	BT_PUT(writer_stream);
+
+	ret = ctf_stream_copy_packet_header(writer_component->err,
+			packet, writer_stream);
+	if (ret != 0) {
+		fprintf(writer_component->err, "[error] %s in %s:%d\n",
+				__func__, __FILE__, __LINE__);
+		goto error;
+	}
 
 	goto end;
 

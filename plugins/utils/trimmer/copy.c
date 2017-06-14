@@ -54,15 +54,28 @@ struct bt_ctf_packet *insert_new_packet(struct trimmer_iterator *trim_it,
 		struct bt_ctf_stream *stream)
 {
 	struct bt_ctf_packet *writer_packet = NULL;
+	int ret;
 
 	writer_packet = bt_ctf_packet_create(stream);
 	if (!writer_packet) {
 		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
 				__FILE__, __LINE__);
-		goto end;
+		goto error;
 	}
-	g_hash_table_insert(trim_it->packet_map, (gpointer) packet, writer_packet);
 
+	ret = ctf_packet_copy_header(trim_it->err, packet, writer_packet);
+	if (ret) {
+		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	g_hash_table_insert(trim_it->packet_map, (gpointer) packet,
+			writer_packet);
+	goto end;
+
+error:
+	BT_PUT(writer_packet);
 end:
 	return writer_packet;
 }
