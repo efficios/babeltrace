@@ -24,6 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-METADATA-OBJSTACK"
+#include "logging.h"
+
 #include <stdlib.h>
 #include <babeltrace/list-internal.h>
 #include <babeltrace/babeltrace-internal.h>
@@ -51,11 +54,14 @@ struct objstack *objstack_create(void)
 	struct objstack_node *node;
 
 	objstack = calloc(1, sizeof(*objstack));
-	if (!objstack)
+	if (!objstack) {
+		BT_LOGE_STR("Failed to allocate one object stack.");
 		return NULL;
+	}
 	node = calloc(sizeof(struct objstack_node) + OBJSTACK_INIT_LEN,
 			sizeof(char));
 	if (!node) {
+		BT_LOGE_STR("Failed to allocate one object stack node.");
 		free(objstack);
 		return NULL;
 	}
@@ -107,6 +113,7 @@ struct objstack_node *objstack_append_node(struct objstack *objstack)
 	new_node = calloc(sizeof(struct objstack_node) + (last_node->len << 1),
 			sizeof(char));
 	if (!new_node) {
+		BT_LOGE_STR("Failed to allocate one object stack node.");
 		return NULL;
 	}
 	bt_list_add_tail(&new_node->node, &objstack->head);
