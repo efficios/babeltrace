@@ -28,6 +28,9 @@
 
 BT_LOG_LEVEL_EXTERN_SYMBOL(metadata_log_level);
 
+#define _BT_LOGV_LINENO(_lineno, _msg, args...) \
+	BT_LOGV("At line %u in metadata stream: " _msg, _lineno, ## args)
+
 #define _BT_LOGW_LINENO(_lineno, _msg, args...) \
 	BT_LOGW("At line %u in metadata stream: " _msg, _lineno, ## args)
 
