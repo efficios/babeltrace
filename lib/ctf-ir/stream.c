@@ -852,7 +852,7 @@ struct bt_ctf_stream *bt_ctf_stream_create_with_id_no_check(
 			/* Initialize events_discarded */
 			ret = try_set_structure_field_integer(
 				stream->packet_context, "events_discarded", 0);
-			if (ret != 1) {
+			if (ret < 0) {
 				BT_LOGW("Cannot set `events_discarded` field in packet context: "
 					"ret=%d, packet-context-field-addr=%p",
 					ret, stream->packet_context);
