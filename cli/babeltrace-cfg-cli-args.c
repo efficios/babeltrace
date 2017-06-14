@@ -4093,7 +4093,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_CLOCK_FORCE_CORRELATE:
 			append_implicit_component_param(
-				&implicit_muxer_args, "assume-absolute-clock-classes", "yes");
+				&implicit_muxer_args,
+				"assume-absolute-clock-classes", "yes");
 			break;
 		case OPT_CLOCK_GMT:
 			append_implicit_component_param(
@@ -4102,8 +4103,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_CLOCK_OFFSET:
 			base_implicit_ctf_input_args.exists = true;
-			ret = append_implicit_component_extra_param(
-				&base_implicit_ctf_input_args, "clock-offset-cycles", arg);
+			append_implicit_component_param(
+					&implicit_muxer_args,
+					"clock-class-offset-s", arg);
 			if (ret) {
 				goto error;
 			}
@@ -4112,7 +4114,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			base_implicit_ctf_input_args.exists = true;
 			ret = append_implicit_component_extra_param(
 				&base_implicit_ctf_input_args,
-				"clock-offset-ns", arg);
+				"clock-class-offset-ns", arg);
 			if (ret) {
 				goto error;
 			}
