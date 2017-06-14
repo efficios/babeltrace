@@ -25,6 +25,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT"
+#include "logging.h"
+
 #include <assert.h>
 #include <glib.h>
 #include "debug-info.h"
@@ -119,7 +122,7 @@ struct debug_info_source *debug_info_source_create_from_bin(struct bin_info *bin
 	if (!bin->is_elf_only || !debug_info_src->func) {
 		/* Lookup source location */
 		ret = bin_info_lookup_source_location(bin, ip, &src_loc);
-		printf_verbose("Failed to lookup source location (err: %i)\n", ret);
+		BT_LOGD("Failed to lookup source location: ret=%d", ret);
 	}
 
 	if (src_loc) {

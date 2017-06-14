@@ -1,8 +1,8 @@
-#ifndef CTF_METADATA_LOGGING_H
-#define CTF_METADATA_LOGGING_H
+#ifndef COMMON_LOGGING_H
+#define COMMON_LOGGING_H
 
 /*
- * Copyright (c) 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,9 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_OUTPUT_LEVEL metadata_log_level
+#define BT_LOG_OUTPUT_LEVEL bt_common_log_level
 #include <babeltrace/logging-internal.h>
 
-BT_LOG_LEVEL_EXTERN_SYMBOL(metadata_log_level);
+BT_LOG_LEVEL_EXTERN_SYMBOL(bt_common_log_level);
 
-#define _BT_LOGV_LINENO(_lineno, _msg, args...) \
-	BT_LOGV("At line %u in metadata stream: " _msg, _lineno, ## args)
-
-#define _BT_LOGW_LINENO(_lineno, _msg, args...) \
-	BT_LOGW("At line %u in metadata stream: " _msg, _lineno, ## args)
-
-#define _BT_LOGE_LINENO(_lineno, _msg, args...) \
-	BT_LOGE("At line %u in metadata stream: " _msg, _lineno, ## args)
-
-#endif /* CTF_METADATA_LOGGING_H */
+#endif /* COMMON_LOGGING_H */

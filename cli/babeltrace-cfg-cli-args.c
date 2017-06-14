@@ -22,6 +22,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "CLI-CFG-CLI-ARGS"
+#include "logging.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,9 +41,6 @@
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-connect.h"
-
-#define BT_LOG_TAG "CLI-CFG-ARGS"
-#include "logging.h"
 
 /*
  * Error printf() macro which prepends "Error: " the first time it's
@@ -1410,7 +1410,7 @@ int append_env_var_plugin_paths(struct bt_value *plugin_paths)
 	const char *envvar;
 
 	if (bt_common_is_setuid_setgid()) {
-		printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+		BT_LOGI_STR("Skipping non-system plugin paths for setuid/setgid binary.");
 		goto end;
 	}
 
@@ -1437,7 +1437,7 @@ int append_home_and_system_plugin_paths(struct bt_value *plugin_paths,
 
 	if (!omit_home_plugin_path) {
 		if (bt_common_is_setuid_setgid()) {
-			printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+			BT_LOGI_STR("Skipping non-system plugin paths for setuid/setgid binary.");
 		} else {
 			char *home_plugin_dir =
 				bt_common_get_home_plugin_path();
@@ -1703,7 +1703,7 @@ int bt_config_append_plugin_paths_check_setuid_setgid(
 	int ret = 0;
 
 	if (bt_common_is_setuid_setgid()) {
-		printf_debug("Skipping non-system plugin paths for setuid/setgid binary\n");
+		BT_LOGI_STR("Skipping non-system plugin paths for setuid/setgid binary.");
 		goto end;
 	}
 
@@ -1775,7 +1775,7 @@ void print_help_usage(FILE *fp)
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
 	fprintf(fp, "\n");
@@ -1890,7 +1890,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		if (!plug_comp_cls_names) {
+		if (plug_comp_cls_names) {
 			printf_err("Cannot specify plugin name and --component component class:\n    %s\n",
 				leftover);
 			goto error;
@@ -1964,7 +1964,7 @@ void print_query_usage(FILE *fp)
 	fprintf(fp, "                                    (see the expected format of PARAMS below)\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n\n");
 	print_expected_params_format(fp);
 }
@@ -2160,7 +2160,7 @@ void print_list_plugins_usage(FILE *fp)
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
-	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
 	fprintf(fp, "\n");
@@ -2326,7 +2326,7 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    the current component with a name given by\n");
 	fprintf(fp, "                                    the last argument of the --key option and a\n");
 	fprintf(fp, "                                    value set to VAL\n");
-	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
 	fprintf(fp, "\n\n");
@@ -2793,7 +2793,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    formatted for `xargs -0`, and quit\n");
 	fprintf(fp, "  -u, --url=URL                     Set the `url` string parameter of the\n");
 	fprintf(fp, "                                    current component to URL\n");
-	fprintf(fp, "  -h  --help                        Show this help and quit\n");
+	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Implicit `source.ctf.fs` component options:\n");
 	fprintf(fp, "\n");
@@ -3584,7 +3584,7 @@ static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path, bool force_no_debug_info,
-		struct bt_value *initial_plugin_paths)
+		struct bt_value *initial_plugin_paths, char *log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -3592,8 +3592,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
-	bool got_verbose_opt = false;
-	bool got_debug_opt = false;
 	bool got_input_format_opt = false;
 	bool got_output_format_opt = false;
 	bool trimmer_has_begin = false;
@@ -4095,7 +4093,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_CLOCK_FORCE_CORRELATE:
 			append_implicit_component_param(
-				&implicit_muxer_args, "assume-absolute-clock-classes", "yes");
+				&implicit_muxer_args,
+				"assume-absolute-clock-classes", "yes");
 			break;
 		case OPT_CLOCK_GMT:
 			append_implicit_component_param(
@@ -4104,8 +4103,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_CLOCK_OFFSET:
 			base_implicit_ctf_input_args.exists = true;
-			ret = append_implicit_component_extra_param(
-				&base_implicit_ctf_input_args, "clock-offset-cycles", arg);
+			append_implicit_component_param(
+					&implicit_muxer_args,
+					"clock-class-offset-s", arg);
 			if (ret) {
 				goto error;
 			}
@@ -4114,7 +4114,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			base_implicit_ctf_input_args.exists = true;
 			ret = append_implicit_component_extra_param(
 				&base_implicit_ctf_input_args,
-				"clock-offset-ns", arg);
+				"clock-class-offset-ns", arg);
 			if (ret) {
 				goto error;
 			}
@@ -4273,18 +4273,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			base_implicit_ctf_input_args.exists = true;
 			break;
 		case OPT_VERBOSE:
-			if (got_verbose_opt) {
-				printf_err("Duplicate -v/--verbose option\n");
-				goto error;
+			if (*log_level != 'V' && *log_level != 'D') {
+				*log_level = 'I';
 			}
-
-			append_implicit_component_param(&implicit_text_args,
-				"verbose", "yes");
-			implicit_text_args.exists = true;
-			got_verbose_opt = true;
 			break;
 		case OPT_DEBUG:
-			got_debug_opt = true;
+			*log_level = 'V';
 			break;
 		}
 
@@ -4297,6 +4291,16 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		printf_err("While parsing command-line options, at option %s: %s\n",
 			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
+	}
+
+	/*
+	 * Legacy behaviour: --verbose used to make the `text` output
+	 * format print more information. --verbose is now equivalent to
+	 * the INFO log level, which is why we compare to 'I' here.
+	 */
+	if (*log_level == 'I') {
+		append_implicit_component_param(&implicit_text_args,
+			"verbose", "yes");
 	}
 
 	/*
@@ -4345,8 +4349,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		cfg->debug = got_debug_opt;
-		cfg->verbose = got_verbose_opt;
 		gs_leftover = leftovers->data;
 		g_string_assign(cfg->cmd_data.print_ctf_metadata.path,
 			gs_leftover->str);
@@ -4435,8 +4437,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 					goto error;
 				}
 
-				cfg->debug = got_debug_opt;
-				cfg->verbose = got_verbose_opt;
 				g_string_assign(cfg->cmd_data.print_lttng_live_sessions.url,
 					gs_leftover->str);
 				goto end;
@@ -4706,8 +4706,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	cfg->debug = got_debug_opt;
-	cfg->verbose = got_verbose_opt;
 	goto end;
 
 error:
@@ -4763,10 +4761,12 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "General options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -d, --debug        Turn on debug mode\n");
-	fprintf(fp, "  -h  --help         Show this help and quit\n");
-	fprintf(fp, "  -v, --verbose      Turn on verbose mode\n");
-	fprintf(fp, "  -V, --version      Show version and quit\n");
+	fprintf(fp, "  -d, --debug          Enable debug mode (same as --log-level=V)\n");
+	fprintf(fp, "  -h, --help           Show this help and quit\n");
+	fprintf(fp, "      --log-level=LVL  Set all log levels to LVL (`N`, `V`, `D`,\n");
+	fprintf(fp, "                       `I`, `W` (default), `E`, or `F`)\n");
+	fprintf(fp, "  -v, --verbose        Enable verbose mode (same as --log-level=I)\n");
+	fprintf(fp, "  -V, --version        Show version and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Available commands:\n");
 	fprintf(fp, "\n");
@@ -4779,18 +4779,49 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "Use `babeltrace COMMAND --help` to show the help of COMMAND.\n");
 }
 
+static
+char log_level_from_arg(const char *arg)
+{
+	char level = 'U';
+
+	if (strcmp(arg, "VERBOSE") == 0 ||
+			strcmp(arg, "V") == 0) {
+		level = 'V';
+	} else if (strcmp(arg, "DEBUG") == 0 ||
+			strcmp(arg, "D") == 0) {
+		level = 'D';
+	} else if (strcmp(arg, "INFO") == 0 ||
+			strcmp(arg, "I") == 0) {
+		level = 'I';
+	} else if (strcmp(arg, "WARN") == 0 ||
+			strcmp(arg, "WARNING") == 0 ||
+			strcmp(arg, "W") == 0) {
+		level = 'W';
+	} else if (strcmp(arg, "ERROR") == 0 ||
+			strcmp(arg, "E") == 0) {
+		level = 'E';
+	} else if (strcmp(arg, "FATAL") == 0 ||
+			strcmp(arg, "F") == 0) {
+		level = 'F';
+	} else if (strcmp(arg, "NONE") == 0 ||
+			strcmp(arg, "N") == 0) {
+		level = 'N';
+	}
+
+	return level;
+}
+
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path, bool force_no_debug_info,
 		struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *config = NULL;
-	bool verbose = false;
-	bool debug = false;
 	int i;
 	const char **command_argv = NULL;
 	int command_argc = -1;
 	const char *command_name = NULL;
+	char log_level = 'U';
 
 	enum command_type {
 		COMMAND_TYPE_NONE = -1,
@@ -4820,13 +4851,49 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 
 	for (i = 1; i < argc; i++) {
 		const char *cur_arg = argv[i];
+		const char *next_arg = i == (argc - 1) ? NULL : argv[i + 1];
 
 		if (strcmp(cur_arg, "-d") == 0 ||
 				strcmp(cur_arg, "--debug") == 0) {
-			debug = true;
+			log_level = 'V';
 		} else if (strcmp(cur_arg, "-v") == 0 ||
 				strcmp(cur_arg, "--verbose") == 0) {
-			verbose = true;
+			if (log_level != 'V' && log_level != 'D') {
+				/*
+				 * Legacy: do not override a previous
+				 * --debug because --verbose and --debug
+				 * can be specified together (in this
+				 * case we want the lowest log level to
+				 * apply, VERBOSE).
+				 */
+				log_level = 'I';
+			}
+		} else if (strcmp(cur_arg, "--log-level") == 0) {
+			if (!next_arg) {
+				printf_err("Missing log level value for --log-level option\n");
+				*retcode = 1;
+				goto end;
+			}
+
+			log_level = log_level_from_arg(next_arg);
+			if (log_level == 'U') {
+				printf_err("Invalid argument for --log-level option:\n    %s\n",
+					next_arg);
+				*retcode = 1;
+				goto end;
+			}
+
+			i++;
+		} else if (strncmp(cur_arg, "--log-level=", 12) == 0) {
+			const char *arg = &cur_arg[12];
+
+			log_level = log_level_from_arg(arg);
+			if (log_level == 'U') {
+				printf_err("Invalid argument for --log-level option:\n    %s\n",
+					arg);
+				*retcode = 1;
+				goto end;
+			}
 		} else if (strcmp(cur_arg, "-V") == 0 ||
 				strcmp(cur_arg, "--version") == 0) {
 			print_version();
@@ -4836,12 +4903,13 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			print_gen_usage(stdout);
 			goto end;
 		} else {
-			bool has_command = true;
-
 			/*
 			 * First unknown argument: is it a known command
 			 * name?
 			 */
+			command_argv = &argv[i];
+			command_argc = argc - i;
+
 			if (strcmp(cur_arg, "convert") == 0) {
 				command_type = COMMAND_TYPE_CONVERT;
 			} else if (strcmp(cur_arg, "list-plugins") == 0) {
@@ -4855,20 +4923,13 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			} else {
 				/*
 				 * Unknown argument, but not a known
-				 * command name: assume the whole
-				 * arguments are for the default convert
-				 * command.
+				 * command name: assume the default
+				 * `convert` command.
 				 */
 				command_type = COMMAND_TYPE_CONVERT;
-				command_argv = argv;
-				command_argc = argc;
-				has_command = false;
-			}
-
-			if (has_command) {
-				command_argv = &argv[i];
-				command_argc = argc - i;
-				command_name = cur_arg;
+				command_name = "convert";
+				command_argv = &argv[i - 1];
+				command_argc = argc - i + 1;
 			}
 			break;
 		}
@@ -4898,7 +4959,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		config = bt_config_convert_from_args(command_argc, command_argv,
 			retcode, force_omit_system_plugin_path,
 			force_omit_home_plugin_path, force_no_debug_info,
-			initial_plugin_paths);
+			initial_plugin_paths, &log_level);
 		break;
 	case COMMAND_TYPE_LIST_PLUGINS:
 		config = bt_config_list_plugins_from_args(command_argc,
@@ -4920,14 +4981,11 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	}
 
 	if (config) {
-		if (verbose) {
-			config->verbose = true;
+		if (log_level == 'U') {
+			log_level = 'W';
 		}
 
-		if (debug) {
-			config->debug = true;
-		}
-
+		config->log_level = log_level;
 		config->command_name = command_name;
 	}
 

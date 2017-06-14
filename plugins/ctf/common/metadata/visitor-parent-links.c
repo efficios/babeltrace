@@ -24,6 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-METADATA-PARENT-LINKS-VISITOR"
+#include "logging.h"
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -38,9 +41,6 @@
 #include "parser.h"
 #include "ast.h"
 
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-VISITOR-PARENT-LINKS"
-#include "logging.h"
-
 static
 int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 {
@@ -53,8 +53,9 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 	case UNARY_DOTDOTDOT:
 		break;
 	default:
-		BT_LOGE("unknown expression link type %d\n",
-			(int) node->u.unary_expression.link);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown expression link type: type=%d\n",
+			node->u.unary_expression.link);
 		return -EINVAL;
 	}
 
@@ -73,8 +74,9 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 
 	case UNARY_UNKNOWN:
 	default:
-		BT_LOGE("unknown expression type %d\n",
-			(int) node->u.unary_expression.type);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown expression link type: type=%d\n",
+			node->u.unary_expression.link);
 		return -EINVAL;
 	}
 	return 0;
@@ -115,8 +117,9 @@ int ctf_visitor_type_specifier(int depth, struct ctf_node *node)
 
 	case TYPESPEC_UNKNOWN:
 	default:
-		BT_LOGE("unknown type specifier %d\n",
-			(int) node->u.type_specifier.type);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown type specifier: type=%d\n",
+			node->u.type_specifier.type);
 		return -EINVAL;
 	}
 	return 0;
@@ -168,8 +171,9 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 		break;
 	case TYPEDEC_UNKNOWN:
 	default:
-		BT_LOGE("unknown type declarator %d\n",
-			(int) node->u.type_declarator.type);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown type declarator: type=%d\n",
+			node->u.type_declarator.type);
 		return -EINVAL;
 	}
 	depth--;
@@ -454,7 +458,8 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 
 	case NODE_UNKNOWN:
 	default:
-		BT_LOGE("unknown node type %d\n", (int) node->type);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown node type: type=%d\n", node->type);
 		return -EINVAL;
 	}
 	return ret;

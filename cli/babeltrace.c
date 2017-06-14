@@ -65,11 +65,14 @@
  * modules.
  */
 static const char* log_level_env_var_names[] = {
+	"BABELTRACE_COMMON_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_BTR_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_FS_SRC_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_SRC_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_NOTIF_ITER_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_LTTNG_UTILS_DEBUG_INFO_FLT_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_UTILS_TRIMMER_FLT_LOG_LEVEL",
 	"BABELTRACE_PYTHON_PLUGIN_PROVIDER_LOG_LEVEL",
 	NULL,
 };
@@ -1919,6 +1922,19 @@ void set_auto_log_levels(struct bt_config *cfg)
 	const char **env_var_name;
 
 	/*
+	 * Override the configuration's default log level if
+	 * BABELTRACE_VERBOSE or BABELTRACE_DEBUG environment variables
+	 * are found for backward compatibility with legacy Babetrace 1.
+	 */
+	if (getenv("BABELTRACE_DEBUG") &&
+			strcmp(getenv("BABELTRACE_DEBUG"), "1") == 0) {
+		cfg->log_level = 'V';
+	} else if (getenv("BABELTRACE_VERBOSE") &&
+			strcmp(getenv("BABELTRACE_VERBOSE"), "1") == 0) {
+		cfg->log_level = 'I';
+	}
+
+	/*
 	 * Set log levels according to --debug or --verbose. For
 	 * backward compatibility, --debug is more verbose than
 	 * --verbose. So:
@@ -1938,7 +1954,31 @@ void set_auto_log_levels(struct bt_config *cfg)
 			 * Set library's default log level if not
 			 * explicitly specified.
 			 */
-			bt_logging_set_global_level(BT_LOGGING_LEVEL_WARN);
+			switch (cfg->log_level) {
+			case 'N':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_NONE);
+				break;
+			case 'V':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_VERBOSE);
+				break;
+			case 'D':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_DEBUG);
+				break;
+			case 'I':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_INFO);
+				break;
+			case 'W':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_WARN);
+				break;
+			case 'E':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_ERROR);
+				break;
+			case 'F':
+				bt_logging_set_global_level(BT_LOGGING_LEVEL_FATAL);
+				break;
+			default:
+				abort();
+			}
 		}
 	}
 
@@ -1952,7 +1992,31 @@ void set_auto_log_levels(struct bt_config *cfg)
 			 * Set CLI's default log level if not explicitly
 			 * specified.
 			 */
-			bt_cli_log_level = BT_LOG_WARN;
+			switch (cfg->log_level) {
+			case 'N':
+				bt_cli_log_level = BT_LOG_NONE;
+				break;
+			case 'V':
+				bt_cli_log_level = BT_LOG_VERBOSE;
+				break;
+			case 'D':
+				bt_cli_log_level = BT_LOG_DEBUG;
+				break;
+			case 'I':
+				bt_cli_log_level = BT_LOG_INFO;
+				break;
+			case 'W':
+				bt_cli_log_level = BT_LOG_WARN;
+				break;
+			case 'E':
+				bt_cli_log_level = BT_LOG_ERROR;
+				break;
+			case 'F':
+				bt_cli_log_level = BT_LOG_FATAL;
+				break;
+			default:
+				abort();
+			}
 		}
 	}
 
@@ -1965,19 +2029,19 @@ void set_auto_log_levels(struct bt_config *cfg)
 			} else if (cfg->debug) {
 				setenv(*env_var_name, "V", 1);
 			} else {
+				char val[2] = { 0 };
+
 				/*
 				 * Set module's default log level if not
 				 * explicitly specified.
 				 */
-				setenv(*env_var_name, "W", 1);
+				val[0] = cfg->log_level;
+				setenv(*env_var_name, val, 1);
 			}
 		}
 
 		env_var_name++;
 	}
-
-	babeltrace_debug = cfg->debug;
-	babeltrace_verbose = cfg->verbose;
 }
 
 static

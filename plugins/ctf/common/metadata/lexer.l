@@ -25,20 +25,26 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-METADATA-LEXER"
+#include "logging.h"
+
 #include <stdio.h>
 #include <ctype.h>
-#include <babeltrace/babeltrace-internal.h>
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"
+
+#define YY_FATAL_ERROR(_msg)	BT_LOGF_STR(_msg)
 
 #define PARSE_INTEGER_LITERAL(base)					\
 	do {								\
 		errno = 0;						\
 		yylval->ull = strtoull(yytext, NULL, base);		\
 		if (errno) {						\
-			printfl_perror(yylineno, "Integer literal");	\
-			return CTF_ERROR;					\
+			_BT_LOGE_LINENO(yylineno,			\
+				"Cannot parser constant integer: " 	\
+				"base=%d, text=\"%s\"", base, yytext);	\
+			return CTF_ERROR;				\
 		}							\
 	} while (0)
 
@@ -72,7 +78,7 @@ IDENTIFIER			{ID_NONDIGIT}({ID_NONDIGIT}|{DIGIT})*
 				/*
 				 * Using start conditions to deal with comments
 				 * and strings.
-				 */ 
+				 */
 
 "/*"				BEGIN(comment_ml);
 <comment_ml>[^*\n]*		/* eat anything that's not a '*' */
@@ -136,7 +142,7 @@ _Imaginary			setstring(yyextra, yylval, yytext); return CTF_IMAGINARY;
 0{OCTALDIGIT}*{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(8); return CTF_INTEGER_LITERAL;
 0[xX]{HEXDIGIT}+{INTEGER_SUFFIX}?	PARSE_INTEGER_LITERAL(16); return CTF_INTEGER_LITERAL;
 
-{IDENTIFIER}			printf_debug("<IDENTIFIER %s>\n", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
+{IDENTIFIER}			BT_LOGV("Got identifier: id=\"%s\"", yytext); setstring(yyextra, yylval, yytext); if (is_type(yyextra, yytext)) return ID_TYPE; else return IDENTIFIER;
 [ \t\r\n]			; /* ignore */
-.				printfl_error(yylineno, "invalid character '0x%02X'", yytext[0]);  return CTF_ERROR;
+.				_BT_LOGE_LINENO(yylineno, "Invalid character: char=\"%c\", val=0x%02x", isprint(yytext[0]) ? yytext[0] : '\0', yytext[0]); return CTF_ERROR;
 %%

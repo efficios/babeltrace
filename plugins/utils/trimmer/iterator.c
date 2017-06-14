@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-UTILS-TRIMMER-FLT"
+#include "logging.h"
+
 #include <babeltrace/compat/time-internal.h>
 #include <babeltrace/compat/utc-internal.h>
 #include <babeltrace/graph/notification-iterator.h>
@@ -154,7 +157,7 @@ int update_lazy_bound(struct trimmer_bound *bound, const char *name,
 	if (bound->lazy_values.gmt) {
 		/* Get day, month, year. */
 		if (!bt_gmtime_r(&timeval, &tm)) {
-			printf_error("Failure in bt_gmtime_r()");
+			BT_LOGE_STR("Failure in bt_gmtime_r()");
 			goto error;
 		}
 		tm.tm_sec = bound->lazy_values.ss;
@@ -162,14 +165,14 @@ int update_lazy_bound(struct trimmer_bound *bound, const char *name,
 		tm.tm_hour = bound->lazy_values.hh;
 		timeval = bt_timegm(&tm);
 		if (timeval < 0) {
-			printf_error("Failure in bt_timegm(), incorrectly formatted %s timestamp",
+			BT_LOGE("Failure in bt_timegm(), incorrectly formatted %s timestamp",
 					name);
 			goto error;
 		}
 	} else {
 		/* Get day, month, year. */
 		if (!bt_localtime_r(&timeval, &tm)) {
-			printf_error("Failure in bt_localtime_r()");
+			BT_LOGE_STR("Failure in bt_localtime_r()");
 			goto error;
 		}
 		tm.tm_sec = bound->lazy_values.ss;
@@ -177,7 +180,7 @@ int update_lazy_bound(struct trimmer_bound *bound, const char *name,
 		tm.tm_hour = bound->lazy_values.hh;
 		timeval = mktime(&tm);
 		if (timeval < 0) {
-			printf_error("Failure in mktime(), incorrectly formatted %s timestamp",
+			BT_LOGE("Failure in mktime(), incorrectly formatted %s timestamp",
 				name);
 			goto error;
 		}
@@ -243,14 +246,14 @@ struct bt_notification *evaluate_event_notification(
 
 	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
-		printf_error("Failed to retrieve clock value");
+		BT_LOGE_STR("Failed to retrieve clock value");
 		goto error;
 	}
 
 	clock_ret = bt_ctf_clock_value_get_value_ns_from_epoch(
 			clock_value, &ts);
 	if (clock_ret) {
-		printf_error("Failed to retrieve clock value timestamp");
+		BT_LOGE_STR("Failed to retrieve clock value timestamp");
 		goto error;
 	}
 	if (update_lazy_bound(begin, "begin", ts, &lazy_update)) {
@@ -261,7 +264,7 @@ struct bt_notification *evaluate_event_notification(
 	}
 	if (lazy_update && begin->set && end->set) {
 		if (begin->value > end->value) {
-			printf_error("Unexpected: time range begin value is above end value");
+			BT_LOGE_STR("Unexpected: time range begin value is above end value");
 			goto error;
 		}
 	}
@@ -465,7 +468,7 @@ struct bt_notification *evaluate_packet_notification(
 	}
 	if (lazy_update && begin->set && end->set) {
 		if (begin->value > end->value) {
-			printf_error("Unexpected: time range begin value is above end value");
+			BT_LOGE_STR("Unexpected: time range begin value is above end value");
 			goto end_no_notif;
 		}
 	}

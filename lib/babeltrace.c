@@ -30,17 +30,6 @@
 #include <babeltrace/types.h>
 #include <stdlib.h>
 
-bt_bool babeltrace_verbose, babeltrace_debug;
-
-static
-void __attribute__((constructor)) init_babeltrace_lib(void)
-{
-	if (getenv("BABELTRACE_VERBOSE"))
-		babeltrace_verbose = BT_TRUE;
-	if (getenv("BABELTRACE_DEBUG"))
-		babeltrace_debug = BT_TRUE;
-}
-
 int bt_version_get_major(void)
 {
 	return BT_VERSION_MAJOR;

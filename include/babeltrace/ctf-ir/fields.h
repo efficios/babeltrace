@@ -85,13 +85,14 @@ contained fields with the following getters if such fields do not exist
 yet:
 
 - bt_ctf_field_enumeration_get_container()
-- bt_ctf_field_structure_get_field()
+- bt_ctf_field_structure_get_field_by_name()
 - bt_ctf_field_array_get_field()
 - bt_ctf_field_sequence_get_field()
 - bt_ctf_field_variant_get_field()
 
 If you already have a field object, you can also assign it to a specific
-name within a @structfield with bt_ctf_field_structure_set_field().
+name within a @structfield with
+bt_ctf_field_structure_set_field_by_name().
 
 You can get a reference to the @ft which was used to create a field with
 bt_ctf_field_get_type(). You can get the
@@ -828,10 +829,10 @@ contains an ordered list of zero or more named @fields which can be
 different @fts, and which is described by a @structft.
 
 To set the value of a specific field of a structure field, you need to
-first get the field with bt_ctf_field_structure_get_field() or
+first get the field with bt_ctf_field_structure_get_field_by_name() or
 bt_ctf_field_structure_get_field_by_index(). If you already have a
 field object, you can assign it to a specific name within a structure
-field with bt_ctf_field_structure_set_field().
+field with bt_ctf_field_structure_set_field_by_name().
 
 @sa ctfirstructfieldtype
 @sa ctfirfields
@@ -861,8 +862,8 @@ exist.
 
 @sa bt_ctf_field_structure_get_field_by_index(): Returns the field of a
 	given structure field by index.
-@sa bt_ctf_field_structure_set_field(): Sets the field of a given
-	structure field.
+@sa bt_ctf_field_structure_set_field_by_name(): Sets the field of a
+	given structure field by name.
 */
 extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		struct bt_ctf_field *struct_field, const char *name);
@@ -888,10 +889,10 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 @postrefcountsame{struct_field}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_structure_get_field(): Returns the field of a
+@sa bt_ctf_field_structure_get_field_by_name(): Returns the field of a
 	given structure field by name.
-@sa bt_ctf_field_structure_set_field(): Sets the field of a given
-	structure field.
+@sa bt_ctf_field_structure_set_field_by_name(): Sets the field of a
+	given structure field by name.
 */
 extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *struct_field, uint64_t index);
@@ -933,10 +934,11 @@ bt_ctf_trace_get_packet_header_type() for the parent trace class of
 
 @sa bt_ctf_field_structure_get_field_by_index(): Returns the field of a
 	given structure field by index.
-@sa bt_ctf_field_structure_get_field(): Returns the field of a
+@sa bt_ctf_field_structure_get_field_by_name(): Returns the field of a
 	given structure field by name.
 */
-extern int bt_ctf_field_structure_set_field(struct bt_ctf_field *struct_field,
+extern int bt_ctf_field_structure_set_field_by_name(
+		struct bt_ctf_field *struct_field,
 		const char *name, struct bt_ctf_field *field);
 
 /** @} */

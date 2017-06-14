@@ -16,6 +16,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 struct bt_ctf_trace;
 
@@ -31,16 +32,23 @@ enum ctf_metadata_decoder_status {
 	CTF_METADATA_DECODER_STATUS_IR_VISITOR_ERROR	= -4,
 };
 
+/* Decoding configuration */
+struct ctf_metadata_decoder_config {
+	int64_t clock_class_offset_s;
+	int64_t clock_class_offset_ns;
+	bool strict;
+};
+
 /*
- * Creates a CTF metadata decoder. `clock_class_offset_ns` is an
- * offset to apply to the decoded clock classes's offsets. `name` is
- * this decoder's trace's name.
+ * Creates a CTF metadata decoder. `name` is this decoder's trace's
+ * name.
  *
  * Returns `NULL` on error.
  */
 BT_HIDDEN
 struct ctf_metadata_decoder *ctf_metadata_decoder_create(
-		int64_t clock_class_offset_ns, const char *name);
+		const struct ctf_metadata_decoder_config *config,
+		const char *name);
 
 /*
  * Destroys a CTF metadata decoder that you created with

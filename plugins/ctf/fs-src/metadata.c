@@ -40,8 +40,6 @@
 #define BT_LOG_TAG "PLUGIN-CTF-FS-METADATA-SRC"
 #include "logging.h"
 
-#define NSEC_PER_SEC 1000000000LL
-
 BT_HIDDEN
 FILE *ctf_fs_metadata_open_file(const char *trace_path)
 {
@@ -99,12 +97,16 @@ end:
 }
 
 int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
-		struct metadata_overrides *overrides)
+		struct ctf_fs_metadata_config *config)
 {
 	int ret = 0;
 	struct ctf_fs_file *file = NULL;
 	struct ctf_metadata_decoder *metadata_decoder = NULL;
-	int64_t clock_offset_adjustment = 0;
+	struct ctf_metadata_decoder_config decoder_config = {
+		.clock_class_offset_s = config->clock_class_offset_s,
+		.clock_class_offset_ns = config->clock_class_offset_ns,
+		.strict = config->strict,
+	};
 
 	file = get_file(ctf_fs_trace->path->str);
 	if (!file) {
@@ -113,12 +115,7 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	if (overrides) {
-		clock_offset_adjustment =
-			overrides->clock_offset_s * NSEC_PER_SEC +
-			overrides->clock_offset_ns;
-	}
-	metadata_decoder = ctf_metadata_decoder_create(clock_offset_adjustment,
+	metadata_decoder = ctf_metadata_decoder_create(&decoder_config,
 		ctf_fs_trace->name->str);
 	if (!metadata_decoder) {
 		BT_LOGE("Cannot create metadata decoder object");
