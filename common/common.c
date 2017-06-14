@@ -22,6 +22,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "COMMON"
+#include "logging.h"
+
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
@@ -110,8 +113,8 @@ static
 char *bt_secure_getenv(const char *name)
 {
 	if (bt_common_is_setuid_setgid()) {
-		printf_error("Disregarding %s environment variable for setuid/setgid binary",
-			name);
+		BT_LOGD("Disregarding environment variable for setuid/setgid binary: "
+			"name=\"%s\"", name);
 		return NULL;
 	}
 	return getenv(name);
@@ -150,15 +153,18 @@ char *bt_common_get_home_plugin_path(void)
 {
 	char *path = NULL;
 	const char *home_dir;
+	size_t length;
 
 	home_dir = bt_get_home_dir();
 	if (!home_dir) {
 		goto end;
 	}
 
-	if (strlen(home_dir) + strlen(HOME_PLUGIN_SUBPATH) + 1 >= PATH_MAX) {
-		printf_error("Home directory path is too long: `%s`\n",
-			home_dir);
+	length = strlen(home_dir) + strlen(HOME_PLUGIN_SUBPATH) + 1;
+
+	if (length >= PATH_MAX) {
+		BT_LOGW("Home directory path is too long: length=%zu",
+			length);
 		goto end;
 	}
 
@@ -1163,7 +1169,8 @@ size_t bt_common_get_page_size(void)
 
 	page_size = bt_sysconf(_SC_PAGESIZE);
 	if (page_size < 0) {
-		printf_error("Cannot get system page size.");
+		BT_LOGF("Cannot get system's page size: ret=%d",
+			page_size);
 		abort();
 	}
 

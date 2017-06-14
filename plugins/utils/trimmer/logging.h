@@ -1,11 +1,8 @@
+#ifndef PLUGINS_UTILS_TRIMMER_LOGGING_H
+#define PLUGINS_UTILS_TRIMMER_LOGGING_H
+
 /*
- * babeltrace.c
- *
- * Babeltrace Library
- *
- * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
- *
- * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,25 +23,9 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/types.h>
-#include <stdlib.h>
+#define BT_LOG_OUTPUT_LEVEL bt_plugin_utils_trimmer_log_level
+#include <babeltrace/logging-internal.h>
 
-int bt_version_get_major(void)
-{
-	return BT_VERSION_MAJOR;
-}
+BT_LOG_LEVEL_EXTERN_SYMBOL(bt_plugin_utils_trimmer_log_level);
 
-int bt_version_get_minor(void)
-{
-	return BT_VERSION_MINOR;
-}
-
-int bt_version_get_patch(void) {
-	return BT_VERSION_PATCH;
-}
-
-const char *bt_version_get_extra(void)
-{
-	return BT_VERSION_EXTRA;
-}
+#endif /* PLUGINS_UTILS_TRIMMER_LOGGING_H */

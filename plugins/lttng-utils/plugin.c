@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT"
+#include "logging.h"
+
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/graph/connection.h>
@@ -362,7 +365,7 @@ enum bt_component_status init_from_params(
 		value_ret = bt_value_string_get(value, &tmp);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve debug-info-field-name value. "
+			BT_LOGE_STR("Failed to retrieve debug-info-field-name value. "
 					"Expecting a string");
 		}
 		strcpy(debug_info_component->arg_debug_info_field_name, tmp);
@@ -372,7 +375,7 @@ enum bt_component_status init_from_params(
 			malloc(strlen("debug_info") + 1);
 		if (!debug_info_component->arg_debug_info_field_name) {
 			ret = BT_COMPONENT_STATUS_NOMEM;
-			printf_error();
+			BT_LOGE_STR("Missing field name.");
 		}
 		sprintf(debug_info_component->arg_debug_info_field_name,
 				"debug_info");
@@ -389,7 +392,7 @@ enum bt_component_status init_from_params(
 				&debug_info_component->arg_debug_dir);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve debug-dir value. "
+			BT_LOGE_STR("Failed to retrieve debug-dir value. "
 					"Expecting a string");
 		}
 	}
@@ -406,7 +409,7 @@ enum bt_component_status init_from_params(
 				&debug_info_component->arg_target_prefix);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve target-prefix value. "
+			BT_LOGE_STR("Failed to retrieve target-prefix value. "
 					"Expecting a string");
 		}
 	}
@@ -424,7 +427,7 @@ enum bt_component_status init_from_params(
 				&bool_val);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			printf_error("Failed to retrieve full-path value. "
+			BT_LOGE_STR("Failed to retrieve full-path value. "
 					"Expecting a boolean");
 		}
 

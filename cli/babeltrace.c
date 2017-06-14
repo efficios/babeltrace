@@ -65,11 +65,14 @@
  * modules.
  */
 static const char* log_level_env_var_names[] = {
+	"BABELTRACE_COMMON_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_BTR_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_FS_SRC_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_SRC_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_NOTIF_ITER_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_LTTNG_UTILS_DEBUG_INFO_FLT_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_UTILS_TRIMMER_FLT_LOG_LEVEL",
 	"BABELTRACE_PYTHON_PLUGIN_PROVIDER_LOG_LEVEL",
 	NULL,
 };
@@ -1919,6 +1922,19 @@ void set_auto_log_levels(struct bt_config *cfg)
 	const char **env_var_name;
 
 	/*
+	 * Override the configuration's default log level if
+	 * BABELTRACE_VERBOSE or BABELTRACE_DEBUG environment variables
+	 * are found for backward compatibility with legacy Babetrace 1.
+	 */
+	if (getenv("BABELTRACE_DEBUG") &&
+			strcmp(getenv("BABELTRACE_DEBUG"), "1") == 0) {
+		cfg->log_level = 'V';
+	} else if (getenv("BABELTRACE_VERBOSE") &&
+			strcmp(getenv("BABELTRACE_VERBOSE"), "1") == 0) {
+		cfg->log_level = 'I';
+	}
+
+	/*
 	 * Set log levels according to --debug or --verbose. For
 	 * backward compatibility, --debug is more verbose than
 	 * --verbose. So:
@@ -2026,9 +2042,6 @@ void set_auto_log_levels(struct bt_config *cfg)
 
 		env_var_name++;
 	}
-
-	babeltrace_debug = cfg->debug;
-	babeltrace_verbose = cfg->verbose;
 }
 
 static

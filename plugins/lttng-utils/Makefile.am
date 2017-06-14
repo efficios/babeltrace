@@ -12,7 +12,9 @@ noinst_HEADERS = \
 	dwarf.h \
 	bin-info.h \
 	utils.h \
-	copy.h
+	copy.h \
+	logging.c \
+	logging.h
 
 libbabeltrace_plugin_lttng_utils_la_SOURCES = \
 	plugin.c debug-info.h debug-info.c bin-info.c dwarf.c crc32.c utils.c \
@@ -26,5 +28,7 @@ libbabeltrace_plugin_lttng_utils_la_LDFLAGS = \
 if !BUILT_IN_PLUGINS
 libbabeltrace_plugin_lttng_utils_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
 endif
