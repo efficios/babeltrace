@@ -24,6 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-METADATA-SEMANTIC-VALIDATOR-VISITOR"
+#include "logging.h"
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -32,14 +35,10 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
-#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/list-internal.h>
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"
-
-#define BT_LOG_TAG "PLUGIN-CTF-METADATA-VISITOR-SEMANTIC-VALIDATOR"
-#include "logging.h"
 
 #define _bt_list_first_entry(ptr, type, member)	\
 	bt_list_entry((ptr)->next, type, member)
@@ -65,7 +64,8 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 				 * We are only allowed to be a string.
 				 */
 				if (node->u.unary_expression.type != UNARY_STRING) {
-					BT_LOGE("semantic error (left child of a ctf expression is only allowed to be a string)");
+					_BT_LOGE_LINENO(node->lineno,
+						"Left child of a CTF expression is only allowed to be a string.");
 					goto errperm;
 				}
 				break;
@@ -82,7 +82,8 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 		case UNARY_STRING:
 			break;
 		default:
-			BT_LOGE("semantic error (children of type declarator and enum can only be unsigned numeric constants or references to fields (a.b.c))");
+			_BT_LOGE_LINENO(node->lineno,
+				"Children of type declarator and `enum` can only be unsigned numeric constants or references to fields (e.g., `a.b.c`).");
 			goto errperm;
 		}
 		break;			/* OK */
@@ -95,7 +96,8 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 		case UNARY_UNSIGNED_CONSTANT:
 			break;
 		default:
-			BT_LOGE("semantic error (structure alignment attribute can only be unsigned numeric constants)");
+			_BT_LOGE_LINENO(node->lineno,
+				"Structure alignment attribute can only be an unsigned numeric constant.");
 			goto errperm;
 		}
 		break;
@@ -109,7 +111,8 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 		 * We disallow nested unary expressions and "sbrac" unary
 		 * expressions.
 		 */
-		BT_LOGE("semantic error (nested unary expressions not allowed ( () and [] ))");
+		_BT_LOGE_LINENO(node->lineno,
+			"Nested unary expressions not allowed (`()` and `[]`).");
 		goto errperm;
 
 	case NODE_ROOT:
@@ -143,7 +146,8 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
 					  siblings) != node) {
-			BT_LOGE("semantic error (empty link not allowed except on first node of unary expression (need to separate nodes with \".\" or \"->\")");
+			_BT_LOGE_LINENO(node->lineno,
+				"Empty link is not allowed except on first node of unary expression (need to separate nodes with `.` or `->`).");
 			goto errperm;
 		}
 		break;			/* OK */
@@ -151,7 +155,8 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 	case UNARY_ARROWLINK:
 		/* We only allow -> and . links between children of ctf_expression. */
 		if (node->parent->type != NODE_CTF_EXPRESSION) {
-			BT_LOGE("semantic error (links \".\" and \"->\" are only allowed as children of ctf expression)");
+			_BT_LOGE_LINENO(node->lineno,
+				"Links `.` and `->` are only allowed as children of CTF expression.");
 			goto errperm;
 		}
 		/*
@@ -159,7 +164,8 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 		 * This includes "", '' and non-quoted identifiers.
 		 */
 		if (node->u.unary_expression.type != UNARY_STRING) {
-			BT_LOGE("semantic error (links \".\" and \"->\" are only allowed to separate strings and identifiers)");
+			_BT_LOGE_LINENO(node->lineno,
+				"Links `.` and `->` are only allowed to separate strings and identifiers.");
 			goto errperm;
 		}
 		/* We don't allow link on the first node of the list */
@@ -168,39 +174,45 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 					  &node->parent->u.ctf_expression.right,
 					  struct ctf_node,
 					  siblings) == node) {
-			BT_LOGE("semantic error (links \".\" and \"->\" are not allowed before first node of the unary expression list)");
+			_BT_LOGE_LINENO(node->lineno,
+				"Links `.` and `->` are not allowed before first node of the unary expression list.");
 			goto errperm;
 		}
 		break;
 	case UNARY_DOTDOTDOT:
 		/* We only allow ... link between children of enumerator. */
 		if (node->parent->type != NODE_ENUMERATOR) {
-			BT_LOGE("semantic error (link \"...\" is only allowed within enumerator)");
+			_BT_LOGE_LINENO(node->lineno,
+				"Link `...` is only allowed within enumerator.");
 			goto errperm;
 		}
 		/* We don't allow link on the first node of the list */
 		if (_bt_list_first_entry(&node->parent->u.enumerator.values,
 					  struct ctf_node,
 					  siblings) == node) {
-			BT_LOGE("semantic error (link \"...\" is not allowed on the first node of the unary expression list)");
+			_BT_LOGE_LINENO(node->lineno,
+				"Link `...` is not allowed on the first node of the unary expression list.");
 			goto errperm;
 		}
 		break;
 	default:
-		BT_LOGE("%s: unknown expression link type %d", __func__,
-			(int) node->u.unary_expression.link);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown expression link type: type=%d",
+			node->u.unary_expression.link);
 		return -EINVAL;
 	}
 	return 0;
 
 errinval:
-	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	BT_LOGE("%s: semantic error (parent type %s for node type %s)", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Semantic error: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EPERM;		/* Structure not allowed */
 }
 
@@ -240,8 +252,9 @@ int ctf_visitor_type_specifier_list(int depth, struct ctf_node *node)
 	}
 	return 0;
 errinval:
-	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 }
 
@@ -281,8 +294,9 @@ int ctf_visitor_type_specifier(int depth, struct ctf_node *node)
 	}
 	return 0;
 errinval:
-	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 }
 
@@ -387,7 +401,9 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 			bt_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
 						siblings) {
 				if (iter->type != NODE_UNARY_EXPRESSION) {
-					BT_LOGE("%s: expecting unary expression as length", __func__);
+					_BT_LOGE_LINENO(node->lineno,
+						"Expecting unary expression as length: node-type=%s",
+						node_type(iter));
 					return -EINVAL;
 				}
 				ret = _ctf_visitor_semantic_check(depth + 1, iter);
@@ -396,7 +412,8 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 			}
 		} else {
 			if (node->parent->type == NODE_TYPEALIAS_TARGET) {
-				BT_LOGE("%s: abstract array declarator not permitted as target of typealias", __func__);
+				_BT_LOGE_LINENO(node->lineno,
+					"Abstract array declarator not permitted as target of type alias.");
 				return -EINVAL;
 			}
 		}
@@ -410,21 +427,24 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 	}
 	case TYPEDEC_UNKNOWN:
 	default:
-		BT_LOGE("%s: unknown type declarator %d", __func__,
-			(int) node->u.type_declarator.type);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown type declarator: type=%d",
+			node->u.type_declarator.type);
 		return -EINVAL;
 	}
 	depth--;
 	return 0;
 
 errinval:
-	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	BT_LOGE("%s: semantic error (parent type %s for node type %s)", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Semantic error: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EPERM;		/* Structure not allowed */
 }
 
@@ -664,8 +684,9 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			nr_declarators++;
 		}
 		if (nr_declarators > 1) {
-			BT_LOGE("%s: Too many declarators in typealias alias (%d, max is 1)", __func__, nr_declarators);
-		
+			_BT_LOGE_LINENO(node->lineno,
+				"Too many declarators in type alias's name (maximum is 1): count=%d",
+				nr_declarators);
 			return -EINVAL;
 		}
 		depth--;
@@ -695,8 +716,9 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			nr_declarators++;
 		}
 		if (nr_declarators > 1) {
-			BT_LOGE("%s: Too many declarators in typealias alias (%d, max is 1)", __func__, nr_declarators);
-		
+			_BT_LOGE_LINENO(node->lineno,
+				"Too many declarators in type alias's name (maximum is 1): count=%d",
+				nr_declarators);
 			return -EINVAL;
 		}
 		depth--;
@@ -837,7 +859,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
 					    || iter->u.unary_expression.link != UNARY_LINK_UNKNOWN) {
-						BT_LOGE("semantic error (first unary expression of enumerator is unexpected)");
+						_BT_LOGE_LINENO(iter->lineno,
+							"First unary expression of enumerator is unexpected.");
 						goto errperm;
 					}
 					break;
@@ -845,7 +868,8 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 					    || (iter->u.unary_expression.type != UNARY_SIGNED_CONSTANT
 						&& iter->u.unary_expression.type != UNARY_UNSIGNED_CONSTANT)
 					    || iter->u.unary_expression.link != UNARY_DOTDOTDOT) {
-						BT_LOGE("semantic error (second unary expression of enumerator is unexpected)");
+						_BT_LOGE_LINENO(iter->lineno,
+							"Second unary expression of enumerator is unexpected.");
 						goto errperm;
 					}
 					break;
@@ -938,20 +962,22 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 	case NODE_UNKNOWN:
 	default:
-		BT_LOGE("%s: unknown node type %d", __func__,
-			(int) node->type);
+		_BT_LOGE_LINENO(node->lineno,
+			"Unknown node type: type=%d", node->type);
 		return -EINVAL;
 	}
 	return ret;
 
 errinval:
-	BT_LOGE("%s: incoherent parent type %s for node type %s", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Incoherent parent node's type: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EINVAL;		/* Incoherent structure */
 
 errperm:
-	BT_LOGE("%s: semantic error (parent type %s for node type %s)", __func__,
-		node_type(node->parent), node_type(node));
+	_BT_LOGE_LINENO(node->lineno,
+		"Semantic error: node-type=%s, parent-node-type=%s",
+		node_type(node), node_type(node->parent));
 	return -EPERM;		/* Structure not allowed */
 }
 
@@ -964,18 +990,22 @@ int ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 	 * take the safe route and recreate them at each validation, just in
 	 * case the structure has changed.
 	 */
-	BT_LOGV("CTF visitor: parent links creation... ");
 	ret = ctf_visitor_parent_links(depth, node);
 	if (ret) {
+		_BT_LOGE_LINENO(node->lineno,
+			"Cannot create parent links in metadata's AST: "
+			"ret=%d", ret);
 		goto end;
 	}
-	BT_LOGV("done.");
-	BT_LOGV("CTF visitor: semantic check... ");
+
 	ret = _ctf_visitor_semantic_check(depth, node);
 	if (ret) {
+		_BT_LOGE_LINENO(node->lineno,
+			"Cannot check metadata's AST semantics: "
+			"ret=%d", ret);
 		goto end;
 	}
-	BT_LOGV("done.");
+
 end:
 	return ret;
 }
