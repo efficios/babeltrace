@@ -467,165 +467,77 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status ctf_copy_packet_context_field(FILE *err,
-		struct bt_ctf_field *field, const char *field_name,
-		struct bt_ctf_field *writer_packet_context,
-		struct bt_ctf_field_type *writer_packet_context_type)
-{
-	enum bt_component_status ret;
-	struct bt_ctf_field *writer_field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
-	int int_ret;
-	uint64_t value;
-
-	field_type = bt_ctf_field_get_type(field);
-	if (!field_type) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end;
-	}
-	/*
-	 * Only support for integers for now.
-	 */
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
-		fprintf(err, "[error] Unsupported packet context field type\n");
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto error;
-	}
-	BT_PUT(field_type);
-
-	writer_field = bt_ctf_field_structure_get_field_by_name(
-		writer_packet_context, field_name);
-	if (!writer_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end;
-	}
-
-	int_ret = bt_ctf_field_unsigned_integer_get_value(field, &value);
-	if (int_ret < 0) {
-		fprintf(err, "[error] Wrong packet_context field type\n");
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-
-	int_ret = bt_ctf_field_unsigned_integer_set_value(writer_field, value);
-	if (int_ret < 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end;
-	}
-
-	ret = BT_COMPONENT_STATUS_OK;
-
-	goto end;
-
-error:
-	bt_put(field_type);
-end:
-	bt_put(writer_field);
-	return ret;
-}
-
-BT_HIDDEN
-struct bt_ctf_field *ctf_copy_packet_context(FILE *err,
-		struct bt_ctf_packet *packet,
+int ctf_stream_copy_packet_context(FILE *err, struct bt_ctf_packet *packet,
 		struct bt_ctf_stream *writer_stream)
 {
-	enum bt_component_status ret;
 	struct bt_ctf_field *packet_context = NULL, *writer_packet_context = NULL;
-	struct bt_ctf_field_type *struct_type = NULL, *writer_packet_context_type = NULL;
-	struct bt_ctf_stream_class *writer_stream_class = NULL;
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
-	int nr_fields, i;
+	int ret = 0;
 
 	packet_context = bt_ctf_packet_get_context(packet);
 	if (!packet_context) {
 		goto end;
 	}
 
-	writer_stream_class = bt_ctf_stream_get_class(writer_stream);
-	if (!writer_stream_class) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
-
-	writer_packet_context_type = bt_ctf_stream_class_get_packet_context_type(
-			writer_stream_class);
-	BT_PUT(writer_stream_class);
-	if (!writer_packet_context_type) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
-
-	struct_type = bt_ctf_field_get_type(packet_context);
-	if (!struct_type) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
-
-	writer_packet_context = bt_ctf_field_create(writer_packet_context_type);
+	writer_packet_context = bt_ctf_field_copy(packet_context);
 	if (!writer_packet_context) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
 		goto error;
 	}
 
-	nr_fields = bt_ctf_field_type_structure_get_field_count(struct_type);
-	for (i = 0; i < nr_fields; i++) {
-		const char *field_name;
-
-		field = bt_ctf_field_structure_get_field_by_index(
-				packet_context, i);
-		if (!field) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
-		if (bt_ctf_field_type_structure_get_field_by_index(struct_type,
-					&field_name, &field_type, i) < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
-
-		if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
-			fprintf(err, "[error] Unexpected packet context field type\n");
-			goto error;
-		}
-
-		ret = ctf_copy_packet_context_field(err, field, field_name,
-				writer_packet_context, writer_packet_context_type);
-		BT_PUT(field_type);
-		BT_PUT(field);
-		if (ret != BT_COMPONENT_STATUS_OK) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
+	ret = bt_ctf_stream_set_packet_context(writer_stream,
+			writer_packet_context);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
 	}
 
 	goto end;
 
 error:
-	BT_PUT(writer_packet_context);
+	ret = -1;
 end:
-	bt_put(field);
-	bt_put(field_type);
-	bt_put(struct_type);
-	bt_put(writer_packet_context_type);
-	bt_put(writer_stream_class);
 	bt_put(packet_context);
-	return writer_packet_context;
+	bt_put(writer_packet_context);
+	return ret;
+}
+
+BT_HIDDEN
+int ctf_packet_copy_context(FILE *err, struct bt_ctf_packet *packet,
+		struct bt_ctf_stream *writer_stream,
+		struct bt_ctf_packet *writer_packet)
+{
+	struct bt_ctf_field *packet_context = NULL, *writer_packet_context = NULL;
+	int ret = 0;
+
+	packet_context = bt_ctf_packet_get_context(packet);
+	if (!packet_context) {
+		goto end;
+	}
+
+	writer_packet_context = bt_ctf_field_copy(packet_context);
+	if (!writer_packet_context) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	ret = bt_ctf_packet_set_context(writer_packet, writer_packet_context);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ret = -1;
+end:
+	bt_put(writer_packet_context);
+	bt_put(packet_context);
+	return ret;
 }
 
 BT_HIDDEN
