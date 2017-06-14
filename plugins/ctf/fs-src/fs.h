@@ -60,11 +60,6 @@ struct ctf_fs_metadata {
 	int bo;
 };
 
-struct ctf_fs_component_options {
-	int64_t clock_offset;
-	int64_t clock_offset_ns;
-};
-
 struct ctf_fs_component {
 	/* Weak, guaranteed to exist */
 	struct bt_private_component *priv_comp;
@@ -75,7 +70,7 @@ struct ctf_fs_component {
 	/* Array of struct ctf_fs_trace *, owned by this */
 	GPtrArray *traces;
 
-	struct ctf_fs_component_options options;
+	struct ctf_fs_metadata_config metadata_config;
 };
 
 struct ctf_fs_trace {
@@ -143,7 +138,7 @@ struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
-		struct metadata_overrides *overrides);
+		struct ctf_fs_metadata_config *config);
 
 BT_HIDDEN
 void ctf_fs_trace_destroy(struct ctf_fs_trace *trace);
