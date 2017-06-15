@@ -499,15 +499,33 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 		}
 	}
 	if (pretty->options.print_loglevel_field) {
-		struct bt_value *loglevel_str, *loglevel_value;
+		static const char *log_level_names[] = {
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY ] = "TRACE_EMERG",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT ] = "TRACE_ALERT",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL ] = "TRACE_CRIT",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR ] = "TRACE_ERR",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING ] = "TRACE_WARNING",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE ] = "TRACE_NOTICE",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO ] = "TRACE_INFO",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM ] = "TRACE_DEBUG_SYSTEM",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM ] = "TRACE_DEBUG_PROGRAM",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS ] = "TRACE_DEBUG_PROCESS",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE ] = "TRACE_DEBUG_MODULE",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT ] = "TRACE_DEBUG_UNIT",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION ] = "TRACE_DEBUG_FUNCTION",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE ] = "TRACE_DEBUG_LINE",
+			[ BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG ] = "TRACE_DEBUG",
+		};
+		enum bt_ctf_event_class_log_level log_level;
+		const char *log_level_str = NULL;
 
-		loglevel_str = bt_ctf_event_class_get_attribute_value_by_name(event_class,
-				"loglevel_string");
-		loglevel_value = bt_ctf_event_class_get_attribute_value_by_name(event_class,
-				"loglevel");
-		if (loglevel_str || loglevel_value) {
-			bool has_str = false;
+		log_level = bt_ctf_event_class_get_log_level(event_class);
+		assert(log_level != BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN);
+		if (log_level != BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED) {
+			log_level_str = log_level_names[log_level];
+		}
 
+		if (log_level_str) {
 			if (!pretty->start_line) {
 				g_string_append(pretty->string, ", ");
 			}
@@ -516,34 +534,17 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 			} else if (dom_print) {
 				g_string_append(pretty->string, ":");
 			}
-			if (loglevel_str) {
-				const char *str;
 
-				if (bt_value_string_get(loglevel_str, &str)
-						== BT_VALUE_STATUS_OK) {
-					g_string_append(pretty->string, str);
-					has_str = true;
-				}
-			}
-			if (loglevel_value) {
-				int64_t value;
-
-				if (bt_value_integer_get(loglevel_value, &value)
-						== BT_VALUE_STATUS_OK) {
-					g_string_append_printf(pretty->string, "%s(%" PRId64 ")",
-						has_str ? " " : "", value);
-				}
-			}
-			bt_put(loglevel_str);
-			bt_put(loglevel_value);
+			g_string_append(pretty->string, log_level_str);
+			g_string_append_printf(
+				pretty->string, " (%d)", (int) log_level);
 			dom_print = 1;
 		}
 	}
 	if (pretty->options.print_emf_field) {
-		struct bt_value *uri_str;
+		const char *uri_str;
 
-		uri_str = bt_ctf_event_class_get_attribute_value_by_name(event_class,
-				"model.emf.uri");
+		uri_str = bt_ctf_event_class_get_emf_uri(event_class);
 		if (uri_str) {
 			if (!pretty->start_line) {
 				g_string_append(pretty->string, ", ");
@@ -553,15 +554,8 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 			} else if (dom_print) {
 				g_string_append(pretty->string, ":");
 			}
-			if (uri_str) {
-				const char *str;
 
-				if (bt_value_string_get(uri_str, &str)
-						== BT_VALUE_STATUS_OK) {
-					g_string_append(pretty->string, str);
-				}
-			}
-			bt_put(uri_str);
+			g_string_append(pretty->string, uri_str);
 			dom_print = 1;
 		}
 	}

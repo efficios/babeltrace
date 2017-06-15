@@ -50,12 +50,14 @@ extern "C" {
 A CTF IR <strong><em>event class</em></strong> is a template that you
 can use to create concrete \link ctfirevent CTF IR events\endlink.
 
-An event class has the following properties, both of which \em must
-be unique amongst all the event classes contained in the same
-\link ctfirstreamclass CTF IR stream class\endlink:
+An event class has the following properties:
 
 - A \b name.
-- A numeric \b ID.
+- A numeric \b ID (\em must be unique amongst all the event classes
+  contained in the same
+  \link ctfirstreamclass CTF IR stream class\endlink).
+- A optional <strong>log level</strong>.
+- An optional <strong>Eclipse Modeling Framework URI</strong>.
 
 A CTF IR event class owns two
 \link ctfirfieldtypes field types\endlink:
@@ -114,6 +116,62 @@ struct bt_ctf_field_type;
 struct bt_ctf_stream_class;
 
 /**
+@brief	Log level of an event class.
+*/
+enum bt_ctf_event_class_log_level {
+	/// Unknown, used for errors.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN		= -1,
+
+	/// Unspecified log level.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED	= 255,
+
+	/// System is unusable.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY		= 0,
+
+	/// Action must be taken immediately.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT		= 1,
+
+	/// Critical conditions.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL		= 2,
+
+	/// Error conditions.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR		= 3,
+
+	/// Warning conditions.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING		= 4,
+
+	/// Normal, but significant, condition.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE		= 5,
+
+	/// Informational message.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO		= 6,
+
+	/// Debug information with system-level scope (set of programs).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM	= 7,
+
+	/// Debug information with program-level scope (set of processes).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM	= 8,
+
+	/// Debug information with process-level scope (set of modules).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS	= 9,
+
+	/// Debug information with module (executable/library) scope (set of units).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE	= 10,
+
+	/// Debug information with compilation unit scope (set of functions).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT		= 11,
+
+	/// Debug information with function-level scope.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION	= 12,
+
+	/// Debug information with line-level scope (default log level).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE		= 13,
+
+	/// Debug-level message.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG		= 14,
+};
+
+/**
 @name Creation and parent access functions
 @{
 */
@@ -132,6 +190,10 @@ can set it to a specific value with bt_ctf_event_class_set_id(). If it
 is still unset when you call bt_ctf_stream_class_add_event_class(), then
 the stream class assigns a unique ID to this event class before
 freezing it.
+
+The created event class's log level is initially set to
+#BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED and it has no Eclipse Modeling
+Framework URI.
 
 @param[in] name	Name of the event class to create (copied on success).
 @returns	Created event class, or \c NULL on error.
@@ -228,133 +290,99 @@ extern int bt_ctf_event_class_set_id(
 		struct bt_ctf_event_class *event_class, uint64_t id);
 
 /**
-@brief	Returns the number of attributes contained in the CTF IR event
-	class \p event_class.
+@brief	Returns the log level of the CTF IR event class \p event_class.
 
-@param[in] event_class	Event class of which to get the number
-			of contained attributes.
-@returns		Number of contained attributes in
-			\p event_class, or a negative value on error.
+@param[in] event_class	Event class of which to get the log level.
+@returns		Log level of event class \p event_class,
+			#BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED if
+			not specified, or
+			#BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN on error.
 
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_get_attribute_name_by_index(): Returns the name
-	of the attribute of a given event class at a given index.
-@sa bt_ctf_event_class_get_attribute_value_by_index(): Returns the value
-	of the attribute of a given event class at a given index.
+@sa bt_ctf_event_class_set_log_level(): Sets the log level of a given
+	event class.
 */
-extern int64_t bt_ctf_event_class_get_attribute_count(
+extern enum bt_ctf_event_class_log_level bt_ctf_event_class_get_log_level(
 		struct bt_ctf_event_class *event_class);
 
 /**
-@brief	Returns the name of the attribute at the index \p index of the
-	CTF IR event class \p event_class.
+@brief	Sets the log level of the CTF IR event class
+	\p event_class to \p log_level.
 
-On success, \p event_class remains the sole owner of the returned
-string.
-
-@param[in] event_class	Event class of which to get the name
-			of an attribute.
-@param[in] index	Index of the attribute of which to get the name.
-@returns		Attribute name, or \c NULL on error.
-
-@prenotnull{event_class}
-@pre \p index is lesser than the number of attributes contained by
-	\p event_class.
-@postrefcountsame{event_class}
-
-@sa bt_ctf_event_class_get_attribute_value_by_index(): Returns the value
-	of the attribute of a given event class at a given index.
-*/
-extern const char *
-bt_ctf_event_class_get_attribute_name_by_index(
-		struct bt_ctf_event_class *event_class, uint64_t index);
-
-/**
-@brief	Returns the value of the attribute at the index \p index of the
-	CTF IR event class \p event_class.
-
-@param[in] event_class	Event class of which to get the value
-			of an attribute.
-@param[in] index	Index of the attribute of which to get the value.
-@returns		Attribute value, or \c NULL on error.
-
-@prenotnull{event_class}
-@pre \p index is lesser than the number of attributes contained by
-	\p event_class.
-@postsuccessrefcountretinc
-@postrefcountsame{event_class}
-
-@sa bt_ctf_event_class_get_attribute_name_by_index(): Returns the name
-	of the attribute of a given event class at a given index.
-*/
-extern struct bt_value *
-bt_ctf_event_class_get_attribute_value_by_index(
-		struct bt_ctf_event_class *event_class, uint64_t index);
-
-/**
-@brief	Returns the value of the attribute named \p name of the CTF IR
-	event class \p event_class.
-
-On success, the reference count of the returned value object is
-incremented.
-
-@param[in] event_class	Event class of which to get the value
-			of an attribute.
-@param[in] name		Name of the attribute to get.
-@returns		Attribute value, or \c NULL on error.
-
-@prenotnull{event_class}
-@prenotnull{name}
-@postsuccessrefcountretinc
-@postrefcountsame{event_class}
-*/
-extern struct bt_value *
-bt_ctf_event_class_get_attribute_value_by_name(
-		struct bt_ctf_event_class *event_class, const char *name);
-
-/**
-@brief	Sets the attribute named \p name of the CTF IR event class
-	\p event_class to the value \p value.
-
-Valid attributes, as of Babeltrace \btversion, are:
-
-- <code>id</code>: \em must be an integer value object with a raw value
-  that is greater than or equal to 0. This represents the event class's
-  numeric ID and you can also set it with bt_ctf_event_class_set_id().
-
-- <code>name</code>: must be a string value object. This represents
-  the name of the event class.
-
-- <code>loglevel</code>: must be an integer value object with a raw
-  value greater than or equal to 0. This represents the numeric log level
-  associated with this event class. Log level values
-  are application-specific.
-
-- <code>model.emf.uri</code>: must be a string value object. This
-  represents the application-specific Eclipse Modeling Framework URI
-  of the event class.
-
-@param[in] event_class	Event class of which to set an
-			attribute.
-@param[in] name		Attribute name (copied on success).
-@param[in] value	Attribute value.
+@param[in] event_class	Event class of which to set the log level.
+@param[in] log_level	Log level of the event class.
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{event_class}
-@prenotnull{name}
-@prenotnull{value}
+@prehot{event_class}
+@pre \p log_level is #BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE, or
+	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG.
+@postrefcountsame{event_class}
+
+@sa bt_ctf_event_class_get_log_level(): Returns the log level of a given
+	event class.
+*/
+extern int bt_ctf_event_class_set_log_level(
+		struct bt_ctf_event_class *event_class,
+		enum bt_ctf_event_class_log_level log_level);
+
+/**
+@brief  Returns the Eclipse Modeling Framework URI of the CTF IR event
+	class \p event_class.
+
+@param[in] event_class	Event class of which to get the
+			Eclipse Modeling Framework URI.
+@returns		Eclipse Modeling Framework URI of event
+			class \p event_class, or \c NULL on error.
+
+@prenotnull{event_class}
+@postrefcountsame{event_class}
+
+@sa bt_ctf_event_class_set_emf_uri(): Sets the Eclipse Modeling
+	Framework URI of a given event class.
+*/
+extern const char *bt_ctf_event_class_get_emf_uri(
+		struct bt_ctf_event_class *event_class);
+
+/**
+@brief	Sets the Eclipse Modeling Framework URI of the CTF IR event class
+	\p event_class to \p emf_uri, or unsets the event class's EMF URI.
+
+@param[in] event_class	Event class of which to set the
+			Eclipse Modeling Framework URI.
+@param[in] emf_uri	Eclipse Modeling Framework URI of the
+			event class (copied on success), or \c NULL
+			to unset the current EMF URI.
+@returns		0 on success, or a negative value if there's
+			no EMF URI or on error.
+
+@prenotnull{event_class}
+@prenotnull{emf_uri}
 @prehot{event_class}
 @postrefcountsame{event_class}
-@postsuccessrefcountinc{value}
 
-@sa bt_ctf_event_class_get_attribute_value_by_name(): Returns the
-	attribute of a given event class having a given name.
+@sa bt_ctf_event_class_get_emf_uri(): Returns the Eclipse Modeling
+	Framework URI of a given event class.
 */
-extern int bt_ctf_event_class_set_attribute(
-		struct bt_ctf_event_class *event_class, const char *name,
-		struct bt_value *value);
+extern int bt_ctf_event_class_set_emf_uri(
+		struct bt_ctf_event_class *event_class,
+		const char *emf_uri);
 
 /** @} */
 

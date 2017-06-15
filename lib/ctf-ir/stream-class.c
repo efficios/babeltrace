@@ -283,41 +283,12 @@ struct event_class_set_stream_class_id_data {
 	int ret;
 };
 
-static
-void event_class_set_stream_id(gpointer event_class, gpointer data)
-{
-	struct event_class_set_stream_class_id_data *typed_data = data;
-
-	typed_data->ret |= bt_ctf_event_class_set_stream_id(event_class,
-		typed_data->stream_class_id);
-}
-
 BT_HIDDEN
 int bt_ctf_stream_class_set_id_no_check(
 		struct bt_ctf_stream_class *stream_class, int64_t id)
 {
-	int ret = 0;
-	struct event_class_set_stream_class_id_data data =
-		{ .stream_class_id = id, .ret = 0 };
-
-	/*
-	 * Make sure all event classes have their "stream_id" attribute
-	 * set to this value.
-	 */
-	g_ptr_array_foreach(stream_class->event_classes,
-		event_class_set_stream_id, &data);
-	ret = data.ret;
-	if (ret) {
-		BT_LOGE("Cannot set the IDs of all stream class's event classes: "
-			"addr=%p, name=\"%s\", id=%" PRId64,
-			stream_class, bt_ctf_stream_class_get_name(stream_class),
-			bt_ctf_stream_class_get_id(stream_class));
-		goto end;
-	}
-
 	_bt_ctf_stream_class_set_id(stream_class, id);
-end:
-	return ret;
+	return 0;
 }
 
 int bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
@@ -549,13 +520,6 @@ int bt_ctf_stream_class_add_event_class(
 		}
 		stream_class->next_event_id++;
 		*event_id = stream_class->next_event_id;
-	}
-
-	ret = bt_ctf_event_class_set_stream_id(event_class, stream_class->id);
-	if (ret) {
-		BT_LOGE("Cannot set event class's stream class ID attribute: ret=%d",
-			ret);
-		goto end;
 	}
 
 	bt_object_set_parent(event_class, stream_class);
