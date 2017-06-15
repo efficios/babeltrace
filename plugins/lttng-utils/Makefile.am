@@ -6,7 +6,15 @@ SUBDIRS = .
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = libbabeltrace-plugin-lttng-utils.la
 
-noinst_HEADERS = \
+libbabeltrace_plugin_lttng_utils_la_SOURCES = \
+	plugin.c \
+	debug-info.h \
+	debug-info.c \
+	bin-info.c \
+	dwarf.c \
+	crc32.c \
+	utils.c \
+	copy.c \
 	crc32.h \
 	debug-info.h \
 	dwarf.h \
@@ -15,10 +23,6 @@ noinst_HEADERS = \
 	copy.h \
 	logging.c \
 	logging.h
-
-libbabeltrace_plugin_lttng_utils_la_SOURCES = \
-	plugin.c debug-info.h debug-info.c bin-info.c dwarf.c crc32.c utils.c \
-	copy.c
 
 libbabeltrace_plugin_lttng_utils_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
