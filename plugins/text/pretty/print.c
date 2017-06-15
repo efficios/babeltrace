@@ -693,6 +693,7 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		break;
 	}
 	case BT_CTF_INTEGER_BASE_DECIMAL:
+	case BT_CTF_INTEGER_BASE_UNSPECIFIED:
 		if (!signedness) {
 			g_string_append_printf(pretty->string, "%" PRIu64, v.u);
 		} else {
