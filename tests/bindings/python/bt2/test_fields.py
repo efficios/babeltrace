@@ -595,7 +595,6 @@ def _inject_numeric_testing_methods(cls):
 
     # inject testing methods for each binary operation
     for name, binop in _BINOPS:
-
         setattr(cls, test_binop_name('invalid_unknown'), partialmethod(_TestNumericField._test_binop_invalid_unknown, op=binop))
         setattr(cls, test_binop_name('invalid_none'), partialmethod(_TestNumericField._test_binop_invalid_none, op=binop))
         setattr(cls, test_binop_name('type_true'), partialmethod(_TestNumericField._test_binop_type_true, op=binop))
@@ -767,15 +766,47 @@ class IntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
         self._def_value = 17
         self._def_new_value = -101
 
+    def tearDown(self):
+        del self._ft
+        del self._field
+        del self._def
+
 
 class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
     def setUp(self):
         self._ft = bt2.EnumerationFieldType(size=32, is_signed=True)
         self._ft.append_mapping('whole range', -(2 ** 31), (2 ** 31) - 1)
+        self._ft.append_mapping('something', 17)
+        self._ft.append_mapping('speaker', 12, 16)
+        self._ft.append_mapping('can', 18, 2540)
+        self._ft.append_mapping('zip', -45, 1001)
         self._def = self._ft()
         self._def.value = 17
         self._def_value = 17
         self._def_new_value = -101
+
+    def tearDown(self):
+        del self._ft
+        del self._def
+
+    def test_mappings(self):
+        mappings = (
+            ('whole range', -(2 ** 31), (2 ** 31) - 1),
+            ('something', 17, 17),
+            ('zip', -45, 1001),
+        )
+
+        total = 0
+        index_set = set()
+
+        for fm in self._def.mappings:
+            total += 1
+            for index, mapping in enumerate(mappings):
+                if fm.name == mapping[0] and fm.lower == mapping[1] and fm.upper == mapping[2]:
+                    index_set.add(index)
+
+        self.assertEqual(total, 3)
+        self.assertTrue(0 in index_set and 1 in index_set and 2 in index_set)
 
 
 class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
@@ -786,6 +817,11 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         self._def.value = 52.7
         self._def_value = 52.7
         self._def_new_value = -17.164857
+
+    def tearDown(self):
+        del self._ft
+        del self._field
+        del self._def
 
     def _test_invalid_op(self, cb):
         with self.assertRaises(TypeError):
@@ -870,6 +906,10 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
         self._def = self._ft()
         self._def.value = self._def_value
         self._def_new_value = 'Yes!'
+
+    def tearDown(self):
+        del self._ft
+        del self._def
 
     def test_assign_int(self):
         with self.assertRaises(TypeError):
@@ -1059,6 +1099,11 @@ class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
         self._def[1] = 1847
         self._def[2] = 1948754
 
+    def tearDown(self):
+        del self._elem_ft
+        del self._ft
+        del self._def
+
 
 class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
     def setUp(self):
@@ -1070,6 +1115,12 @@ class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
         self._def[0] = 45
         self._def[1] = 1847
         self._def[2] = 1948754
+
+    def tearDown(self):
+        del self._elem_ft
+        del self._ft
+        del self._def
+        del self._length_field
 
 
 class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
@@ -1089,6 +1140,14 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self._def['C'] = 17.5
         self._def['D'] = 16497
 
+    def tearDown(self):
+        del self._ft0
+        del self._ft1
+        del self._ft2
+        del self._ft3
+        del self._ft
+        del self._def
+
     def _modify_def(self):
         self._def['B'] = 'hola'
 
@@ -1107,6 +1166,10 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         field = self._def['A']
         self.assertIs(type(field), bt2.fields._IntegerField)
         self.assertEqual(field, -1872)
+
+    def test_at_index_out_of_bounds_after(self):
+        with self.assertRaises(IndexError):
+            self._def.at_index(len(self._ft))
 
     def test_eq(self):
         ft = bt2.StructureFieldType()
@@ -1208,3 +1271,88 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         for vkey, vval in self._def.items():
             val = orig_values[vkey]
             self.assertEqual(vval, val)
+
+
+class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
+    def setUp(self):
+        self._tag_ft = bt2.EnumerationFieldType(size=32)
+        self._tag_ft.append_mapping('corner', 23)
+        self._tag_ft.append_mapping('zoom', 17, 20)
+        self._tag_ft.append_mapping('mellotron', 1001)
+        self._tag_ft.append_mapping('giorgio', 2000, 3000)
+        self._ft0 = bt2.IntegerFieldType(32, is_signed=True)
+        self._ft1 = bt2.StringFieldType()
+        self._ft2 = bt2.FloatingPointNumberFieldType()
+        self._ft3 = bt2.IntegerFieldType(17)
+        self._ft = bt2.VariantFieldType('salut', self._tag_ft)
+        self._ft.append_field('corner', self._ft0)
+        self._ft.append_field('zoom', self._ft1)
+        self._ft.append_field('mellotron', self._ft2)
+        self._ft.append_field('giorgio', self._ft3)
+        self._def = self._ft()
+
+    def tearDown(self):
+        del self._tag_ft
+        del self._ft0
+        del self._ft1
+        del self._ft2
+        del self._ft3
+        del self._ft
+        del self._def
+
+    def test_bool_op_true(self):
+        tag_field = self._tag_ft(1001)
+        self._def.field(tag_field).value = -17.34
+        self.assertTrue(self._def)
+
+    def test_bool_op_false(self):
+        self.assertFalse(self._def)
+
+    def test_tag_field_none(self):
+        self.assertIsNone(self._def.tag_field)
+
+    def test_tag_field(self):
+        tag_field = self._tag_ft(2800)
+        self._def.field(tag_field).value = 1847
+        self.assertEqual(self._def.tag_field, tag_field)
+        self.assertEqual(self._def.tag_field.addr, tag_field.addr)
+
+    def test_selected_field_none(self):
+        self.assertIsNone(self._def.selected_field)
+
+    def test_selected_field(self):
+        var_field1 = self._ft()
+        tag_field1 = self._tag_ft(1001)
+        var_field1.field(tag_field1).value = -17.34
+        self.assertEqual(var_field1.field(), -17.34)
+        self.assertEqual(var_field1.selected_field, -17.34)
+        var_field2 = self._ft()
+        tag_field2 = self._tag_ft(2500)
+        var_field2.field(tag_field2).value = 1921
+        self.assertEqual(var_field2.field(), 1921)
+        self.assertEqual(var_field2.selected_field, 1921)
+
+    def test_eq(self):
+        tag_ft = bt2.EnumerationFieldType(size=32)
+        tag_ft.append_mapping('corner', 23)
+        tag_ft.append_mapping('zoom', 17, 20)
+        tag_ft.append_mapping('mellotron', 1001)
+        tag_ft.append_mapping('giorgio', 2000, 3000)
+        ft0 = bt2.IntegerFieldType(32, is_signed=True)
+        ft1 = bt2.StringFieldType()
+        ft2 = bt2.FloatingPointNumberFieldType()
+        ft3 = bt2.IntegerFieldType(17)
+        ft = bt2.VariantFieldType('salut', tag_ft)
+        ft.append_field('corner', ft0)
+        ft.append_field('zoom', ft1)
+        ft.append_field('mellotron', ft2)
+        ft.append_field('giorgio', ft3)
+        field = ft()
+        field_tag = tag_ft(23)
+        def_tag = self._tag_ft(23)
+        field.field(field_tag).value = 1774
+        self._def.field(def_tag).value = 1774
+        self.assertEqual(self._def, field)
+
+    def test_eq_invalid_type(self):
+        self.assertNotEqual(self._def, 23)

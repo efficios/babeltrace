@@ -19,7 +19,7 @@ class _TestFrozen:
     def test_frozen_exc(self):
         self._def.freeze()
 
-        with self.assertRaisesRegex(bt2.FrozenError, r'.* value object is frozen$') as cm:
+        with self.assertRaisesRegex(bt2.Frozen, r'.* value object is frozen$') as cm:
             self._modify_def()
 
         self.assertEqual(self._def, self._def_value)
@@ -833,6 +833,11 @@ class BoolValueTestCase(_TestFrozenSimple, _TestCopySimple, unittest.TestCase):
         self._def_value = False
         self._def_new_value = True
 
+    def tearDown(self):
+        del self._f
+        del self._t
+        del self._def
+
     def _assert_expecting_bool(self):
         return self.assertRaisesRegex(TypeError, r"expecting a 'bool' object")
 
@@ -925,6 +930,12 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
         self._def = self._ip
         self._def_value = self._pv
         self._def_new_value = -101
+
+    def tearDown(self):
+        del self._ip
+        del self._in
+        del self._def
+        del self._def_value
 
     def _assert_expecting_int(self):
         return self.assertRaisesRegex(TypeError, r'expecting a number object')
@@ -1038,6 +1049,12 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
         self._def = self._fp
         self._def_value = self._pv
         self._def_new_value = -101.88
+
+    def tearDown(self):
+        del self._fp
+        del self._fn
+        del self._def
+        del self._def_value
 
     def _assert_expecting_float(self):
         return self.assertRaisesRegex(TypeError, r"expecting a real number object")
@@ -1166,6 +1183,9 @@ class StringValueTestCase(_TestCopySimple, _TestFrozenSimple, unittest.TestCase)
         self._def = bt2.StringValue(self._def_value)
         self._def_new_value = 'Yes!'
 
+    def tearDown(self):
+        del self._def
+
     def _assert_expecting_str(self):
         return self.assertRaises(TypeError)
 
@@ -1279,6 +1299,9 @@ class ArrayValueTestCase(_TestFrozen, unittest.TestCase):
     def setUp(self):
         self._def_value = [None, False, True, -23, 0, 42, -42.4, 23.17, 'yes']
         self._def = bt2.ArrayValue(copy.deepcopy(self._def_value))
+
+    def tearDown(self):
+        del self._def
 
     def _modify_def(self):
         self._def[2] = 'xyz'
@@ -1441,6 +1464,9 @@ class MapValueTestCase(_TestFrozen, unittest.TestCase):
             'str': 'yes'
         }
         self._def = bt2.MapValue(copy.deepcopy(self._def_value))
+
+    def tearDown(self):
+        del self._def
 
     def _modify_def(self):
         self._def['zero'] = 1

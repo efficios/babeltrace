@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 from bt2 import native_bt, object, utils
 import uuid as uuidp
+import numbers
 import bt2
 
 
@@ -40,6 +41,9 @@ class ClockClassOffset:
     def cycles(self):
         return self._cycles
 
+    def __hash__(self):
+        return hash((self.seconds, self.cycles))
+
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             # not comparing apples to apples
@@ -49,10 +53,11 @@ class ClockClassOffset:
 
 
 class ClockClass(object._Object):
-    def __init__(self, name, description=None, frequency=None, precision=None,
+    def __init__(self, name, frequency, description=None, precision=None,
                  offset=None, is_absolute=None, uuid=None):
         utils._check_str(name)
-        ptr = native_bt.ctf_clock_class_create(name)
+        utils._check_uint64(frequency)
+        ptr = native_bt.ctf_clock_class_create(name, frequency)
 
         if ptr is None:
             raise bt2.CreationError('cannot create clock class object')
@@ -113,10 +118,21 @@ class ClockClass(object._Object):
         memo[id(self)] = cpy
         return cpy
 
+    def __hash__(self):
+        return hash((
+            self.name,
+            self.description,
+            self.frequency,
+            self.precision,
+            self.offset.seconds,
+            self.offset.cycles,
+            self.is_absolute,
+            self.uuid))
+
     @property
     def name(self):
         name = native_bt.ctf_clock_class_get_name(self._ptr)
-        utils._handle_ptr(name, "cannot get clock class object's name")
+        assert(name is not None)
         return name
 
     @name.setter
@@ -127,8 +143,7 @@ class ClockClass(object._Object):
 
     @property
     def description(self):
-        description = native_bt.ctf_clock_class_get_description(self._ptr)
-        return description
+        return native_bt.ctf_clock_class_get_description(self._ptr)
 
     @description.setter
     def description(self, description):
@@ -139,10 +154,7 @@ class ClockClass(object._Object):
     @property
     def frequency(self):
         frequency = native_bt.ctf_clock_class_get_frequency(self._ptr)
-
-        if utils._is_m1ull(frequency):
-            raise bt2.Error("cannot get clock class object's frequency")
-
+        assert(frequency >= 1)
         return frequency
 
     @frequency.setter
@@ -154,10 +166,7 @@ class ClockClass(object._Object):
     @property
     def precision(self):
         precision = native_bt.ctf_clock_class_get_precision(self._ptr)
-
-        if utils._is_m1ull(precision):
-            raise bt2.Error("cannot get clock class object's precision")
-
+        assert(precision >= 0)
         return precision
 
     @precision.setter
@@ -169,9 +178,9 @@ class ClockClass(object._Object):
     @property
     def offset(self):
         ret, offset_s = native_bt.ctf_clock_class_get_offset_s(self._ptr)
-        utils._handle_ret(ret, "cannot get clock class object's offset (seconds)")
+        assert(ret == 0)
         ret, offset_cycles = native_bt.ctf_clock_class_get_offset_cycles(self._ptr)
-        utils._handle_ret(ret, "cannot get clock class object's offset (cycles)")
+        assert(ret == 0)
         return ClockClassOffset(offset_s, offset_cycles)
 
     @offset.setter
@@ -184,8 +193,8 @@ class ClockClass(object._Object):
 
     @property
     def is_absolute(self):
-        is_absolute = native_bt.ctf_clock_class_get_is_absolute(self._ptr)
-        utils._handle_ret(is_absolute, "cannot get clock class object's absoluteness")
+        is_absolute = native_bt.ctf_clock_class_is_absolute(self._ptr)
+        assert(is_absolute >= 0)
         return is_absolute > 0
 
     @is_absolute.setter
@@ -199,7 +208,7 @@ class ClockClass(object._Object):
         uuid_bytes = native_bt.ctf_clock_class_get_uuid(self._ptr)
 
         if uuid_bytes is None:
-            raise bt2.Error("cannot get clock class object's UUID")
+            return
 
         return uuidp.UUID(bytes=uuid_bytes)
 
@@ -209,7 +218,7 @@ class ClockClass(object._Object):
         ret = native_bt.ctf_clock_class_set_uuid(self._ptr, uuid.bytes)
         utils._handle_ret(ret, "cannot set clock class object's UUID")
 
-    def create_clock_value(self, cycles):
+    def __call__(self, cycles):
         return _ClockValue(self._ptr, cycles)
 
 
@@ -231,13 +240,13 @@ class _ClockValue(object._Object):
     @property
     def clock_class(self):
         ptr = native_bt.ctf_clock_value_get_class(self._ptr)
-        utils._handle_ptr(ptr, "cannot get clock value object's clock class object")
+        assert(ptr)
         return ClockClass._create_from_ptr(ptr)
 
     @property
     def cycles(self):
         ret, cycles = native_bt.ctf_clock_value_get_value(self._ptr)
-        utils._handle_ret(ret, "cannot get clock value object's cycles")
+        assert(ret == 0)
         return cycles
 
     @property
@@ -247,6 +256,9 @@ class _ClockValue(object._Object):
         return ns
 
     def __eq__(self, other):
+        if isinstance(other, numbers.Integral):
+            return int(other) == self.cycles
+
         if not isinstance(other, self.__class__):
             # not comparing apples to apples
             return False
@@ -254,12 +266,12 @@ class _ClockValue(object._Object):
         if self.addr == other.addr:
             return True
 
-        self_props = self.clock_class.addr, self.cycles
-        other_props = other.clock_class.addr, other.cycles
+        self_props = self.clock_class, self.cycles
+        other_props = other.clock_class, other.cycles
         return self_props == other_props
 
     def __copy__(self):
-        return self.clock_class.create_clock_value(self.cycles)
+        return self.clock_class(self.cycles)
 
     def __deepcopy__(self, memo):
         cpy = self.__copy__()

@@ -22,10 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-ir/field-types.h>
-%}
-
 /* Type */
 struct bt_ctf_field_type;
 
@@ -42,23 +38,23 @@ enum bt_ctf_scope {
 	BT_CTF_SCOPE_EVENT_FIELDS = 6,
 };
 
-enum bt_ctf_type_id {
-	BT_CTF_TYPE_ID_UNKNOWN = CTF_TYPE_UNKNOWN,
-	BT_CTF_TYPE_ID_INTEGER = CTF_TYPE_INTEGER,
-	BT_CTF_TYPE_ID_FLOAT = CTF_TYPE_FLOAT,
-	BT_CTF_TYPE_ID_ENUM = CTF_TYPE_ENUM,
-	BT_CTF_TYPE_ID_STRING = CTF_TYPE_STRING,
-	BT_CTF_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
-	BT_CTF_TYPE_ID_UNTAGGED_VARIANT = CTF_TYPE_UNTAGGED_VARIANT,
-	BT_CTF_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
-	BT_CTF_TYPE_ID_SEQUENCE = CTF_TYPE_SEQUENCE,
-	BT_CTF_TYPE_ID_VARIANT = CTF_TYPE_VARIANT,
+enum bt_ctf_field_type_id {
+	BT_CTF_FIELD_TYPE_ID_UNKNOWN = CTF_TYPE_UNKNOWN,
+	BT_CTF_FIELD_TYPE_ID_INTEGER = CTF_TYPE_INTEGER,
+	BT_CTF_FIELD_TYPE_ID_FLOAT = CTF_TYPE_FLOAT,
+	BT_CTF_FIELD_TYPE_ID_ENUM = CTF_TYPE_ENUM,
+	BT_CTF_FIELD_TYPE_ID_STRING = CTF_TYPE_STRING,
+	BT_CTF_FIELD_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
+	BT_CTF_FIELD_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
+	BT_CTF_FIELD_TYPE_ID_SEQUENCE = CTF_TYPE_SEQUENCE,
+	BT_CTF_FIELD_TYPE_ID_VARIANT = CTF_TYPE_VARIANT,
 	BT_CTF_NR_TYPE_IDS = NR_CTF_TYPES,
 };
 
 enum bt_ctf_byte_order {
 	BT_CTF_BYTE_ORDER_UNKNOWN = -1,
 	BT_CTF_BYTE_ORDER_NATIVE = 0,
+	BT_CTF_BYTE_ORDER_UNSPECIFIED,
 	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
 	BT_CTF_BYTE_ORDER_BIG_ENDIAN,
 	BT_CTF_BYTE_ORDER_NETWORK,
@@ -72,7 +68,7 @@ enum bt_ctf_string_encoding {
 };
 
 /* Common functions */
-enum bt_ctf_type_id bt_ctf_field_type_get_type_id(
+enum bt_ctf_field_type_id bt_ctf_field_type_get_type_id(
 		struct bt_ctf_field_type *field_type);
 int bt_ctf_field_type_get_alignment(
 		struct bt_ctf_field_type *field_type);
@@ -102,9 +98,11 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_create(
 		unsigned int size);
 int bt_ctf_field_type_integer_get_size(
 		struct bt_ctf_field_type *int_field_type);
-int bt_ctf_field_type_integer_get_signed(
+int bt_ctf_field_type_integer_set_size(
+		struct bt_ctf_field_type *int_field_type, unsigned int size);
+int bt_ctf_field_type_integer_is_signed(
 		struct bt_ctf_field_type *int_field_type);
-int bt_ctf_field_type_integer_set_signed(
+int bt_ctf_field_type_integer_set_is_signed(
 		struct bt_ctf_field_type *int_field_type, int is_signed);
 enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
 		struct bt_ctf_field_type *int_field_type);
@@ -140,7 +138,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
 		struct bt_ctf_field_type *int_field_type);
 struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
 		struct bt_ctf_field_type *enum_field_type);
-int bt_ctf_field_type_enumeration_get_mapping_count(
+int64_t bt_ctf_field_type_enumeration_get_mapping_count(
 		struct bt_ctf_field_type *enum_field_type);
 int bt_ctf_field_type_enumeration_get_mapping_signed(
 		struct bt_ctf_field_type *enum_field_type, int index,
@@ -149,7 +147,7 @@ int bt_ctf_field_type_enumeration_get_mapping_unsigned(
 		struct bt_ctf_field_type *enum_field_type, int index,
 		const char **BTOUTSTR, uint64_t *OUTPUT,
 		uint64_t *OUTPUT);
-int bt_ctf_field_type_enumeration_add_mapping(
+int bt_ctf_field_type_enumeration_add_mapping_signed(
 		struct bt_ctf_field_type *enum_field_type, const char *name,
 		int64_t range_begin, int64_t range_end);
 int bt_ctf_field_type_enumeration_add_mapping_unsigned(
@@ -174,7 +172,7 @@ int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
 		const char **BTOUTSTR, int64_t *OUTPUT, int64_t *OUTPUT);
 int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
-		const char **BTOUTSTR, int64_t *OUTPUT, int64_t *OUTPUT);
+		const char **BTOUTSTR, uint64_t *OUTPUT, uint64_t *OUTPUT);
 int bt_ctf_field_type_enumeration_mapping_iterator_next(
 		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
 
@@ -188,12 +186,12 @@ int bt_ctf_field_type_string_set_encoding(
 
 /* Structure field type functions */
 struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
-int bt_ctf_field_type_structure_get_field_count(
+int64_t bt_ctf_field_type_structure_get_field_count(
 		struct bt_ctf_field_type *struct_field_type);
-int bt_ctf_field_type_structure_get_field(
+int bt_ctf_field_type_structure_get_field_by_index(
 		struct bt_ctf_field_type *struct_field_type,
 		const char **BTOUTSTR, struct bt_ctf_field_type **BTOUTFT,
-		int index);
+		uint64_t index);
 struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(
 		struct bt_ctf_field_type *struct_field_type,
 		const char *field_name);
@@ -212,14 +210,14 @@ int64_t bt_ctf_field_type_array_get_length(
 		struct bt_ctf_field_type *array_field_type);
 
 /* Sequence field type functions */
-extern struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
+struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 		struct bt_ctf_field_type *element_field_type,
 		const char *length_name);
-extern struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
+struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
 		struct bt_ctf_field_type *sequence_field_type);
-extern const char *bt_ctf_field_type_sequence_get_length_field_name(
+const char *bt_ctf_field_type_sequence_get_length_field_name(
 		struct bt_ctf_field_type *sequence_field_type);
-extern struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_path(
+struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_path(
 		struct bt_ctf_field_type *sequence_field_type);
 
 /* Variant field type functions */
@@ -235,12 +233,12 @@ int bt_ctf_field_type_variant_set_tag_name(
 		const char *tag_name);
 struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
 		struct bt_ctf_field_type *variant_field_type);
-int bt_ctf_field_type_variant_get_field_count(
+int64_t bt_ctf_field_type_variant_get_field_count(
 		struct bt_ctf_field_type *variant_field_type);
-int bt_ctf_field_type_variant_get_field(
+int bt_ctf_field_type_variant_get_field_by_index(
 		struct bt_ctf_field_type *variant_field_type,
 		const char **BTOUTSTR,
-		struct bt_ctf_field_type **BTOUTFT, int index);
+		struct bt_ctf_field_type **BTOUTFT, uint64_t index);
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
 		struct bt_ctf_field_type *variant_field_type,
 		const char *field_name);

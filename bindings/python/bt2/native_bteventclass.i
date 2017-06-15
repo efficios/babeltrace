@@ -22,12 +22,29 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-ir/event-class.h>
-%}
-
 /* Type */
 struct bt_ctf_event_class;
+
+/* Log levels */
+enum bt_ctf_event_class_log_level {
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN = -1,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED = 255,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY = 0,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT = 1,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL = 2,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR = 3,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING = 4,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE = 5,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO = 6,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM = 7,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM = 8,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS = 9,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE = 10,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT = 11,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION = 12,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE = 13,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG = 14,
+};
 
 /* Functions */
 struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
@@ -38,17 +55,17 @@ const char *bt_ctf_event_class_get_name(
 int64_t bt_ctf_event_class_get_id(
 		struct bt_ctf_event_class *event_class);
 int bt_ctf_event_class_set_id(
-		struct bt_ctf_event_class *event_class, uint32_t id);
-int bt_ctf_event_class_get_attribute_count(
+		struct bt_ctf_event_class *event_class, uint64_t id);
+enum bt_ctf_event_class_log_level bt_ctf_event_class_get_log_level(
 		struct bt_ctf_event_class *event_class);
-const char *bt_ctf_event_class_get_attribute_name(
-		struct bt_ctf_event_class *event_class, int index);
-struct bt_value *
-bt_ctf_event_class_get_attribute_value_by_name(
-		struct bt_ctf_event_class *event_class, const char *name);
-int bt_ctf_event_class_set_attribute(
-		struct bt_ctf_event_class *event_class, const char *name,
-		struct bt_value *value);
+int bt_ctf_event_class_set_log_level(
+		struct bt_ctf_event_class *event_class,
+		enum bt_ctf_event_class_log_level log_level);
+const char *bt_ctf_event_class_get_emf_uri(
+		struct bt_ctf_event_class *event_class);
+int bt_ctf_event_class_set_emf_uri(
+		struct bt_ctf_event_class *event_class,
+		const char *emf_uri);
 struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
 		struct bt_ctf_event_class *event_class);
 int bt_ctf_event_class_set_context_type(

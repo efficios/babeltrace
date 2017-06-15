@@ -5,10 +5,17 @@ omit =
     *native_*.py
     */object.py
     */utils.py
+    */logging.py
+    */py_plugin.py
 
 [report]
 exclude_lines =
     def __repr__
     raise bt2\.CreationError
     raise NotImplementedError
+    return NotImplemented
     pass
+    raise \w+Error\(['"][Uu]nexpected
+    if (self|other)\.addr == (self|other)\.addr
+    if not _NO_PRINT_TRACEBACK
+    class _PluginVersion:

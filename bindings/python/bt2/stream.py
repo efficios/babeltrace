@@ -42,18 +42,23 @@ class _StreamBase(object._Object):
     @property
     def stream_class(self):
         stream_class_ptr = native_bt.ctf_stream_get_class(self._ptr)
-        utils._handle_ptr(stream_class_ptr, "cannot get stream object's stream class object")
+        assert(stream_class_ptr)
         return bt2.StreamClass._create_from_ptr(stream_class_ptr)
 
     @property
     def name(self):
         return native_bt.ctf_stream_get_name(self._ptr)
 
+    @property
+    def id(self):
+        id = native_bt.ctf_stream_get_id(self._ptr)
+        return id if id >= 0 else None
+
     def __eq__(self, other):
         if self.addr == other.addr:
             return True
 
-        return self.name == other.name
+        return (self.name, self.id) == (other.name, other.id)
 
 
 class _Stream(_StreamBase):
@@ -72,7 +77,7 @@ class _Stream(_StreamBase):
         return _StreamBase.__eq__(self, other)
 
     def _copy(self):
-        return self.stream_class(self.name)
+        return self.stream_class(self.name, self.id)
 
     def __copy__(self):
         return self._copy()
