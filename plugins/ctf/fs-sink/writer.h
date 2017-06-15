@@ -42,6 +42,8 @@ struct writer_component {
 	FILE *err;
 	struct bt_notification_iterator *input_iterator;
 	bool error;
+	bool single_trace;
+	unsigned int nr_traces;
 };
 
 enum fs_writer_stream_state {
