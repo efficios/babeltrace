@@ -2976,8 +2976,8 @@ int main(int argc, char **argv)
 	trace = bt_ctf_writer_get_trace(writer);
 	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_NATIVE),
 		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_NATIVE");
-	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_NONE),
-		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_NONE");
+	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_UNSPECIFIED),
+		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_UNSPECIFIED");
 	ok(trace,
 		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
 	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_BIG_ENDIAN) == 0,
