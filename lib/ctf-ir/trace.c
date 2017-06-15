@@ -101,7 +101,7 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	}
 
 	BT_LOGD_STR("Creating trace object.");
-	trace->native_byte_order = BT_CTF_BYTE_ORDER_NONE;
+	trace->native_byte_order = BT_CTF_BYTE_ORDER_UNSPECIFIED;
 	bt_object_init(trace, bt_ctf_trace_destroy);
 	trace->clocks = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
@@ -1641,8 +1641,8 @@ int append_trace_metadata(struct bt_ctf_trace *trace,
 	int ret = 0;
 
 	if (trace->native_byte_order == BT_CTF_BYTE_ORDER_NATIVE ||
-			trace->native_byte_order == BT_CTF_BYTE_ORDER_NONE) {
-		BT_LOGW("Invalid parameter: trace's byte order cannot be BT_CTF_BYTE_ORDER_NATIVE or BT_CTF_BYTE_ORDER_NONE at this point; "
+			trace->native_byte_order == BT_CTF_BYTE_ORDER_UNSPECIFIED) {
+		BT_LOGW("Invalid parameter: trace's byte order cannot be BT_CTF_BYTE_ORDER_NATIVE or BT_CTF_BYTE_ORDER_UNSPECIFIED at this point; "
 			"set it with bt_ctf_trace_set_native_byte_order(): "
 			"addr=%p, name=\"%s\"",
 			trace, bt_ctf_trace_get_name(trace));
@@ -1845,8 +1845,8 @@ int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 	}
 
 	if (trace->is_created_by_writer &&
-			byte_order == BT_CTF_BYTE_ORDER_NONE) {
-		BT_LOGW("Invalid parameter: BT_CTF_BYTE_ORDER_NONE byte order is not allowed for a CTF writer trace: "
+			byte_order == BT_CTF_BYTE_ORDER_UNSPECIFIED) {
+		BT_LOGW("Invalid parameter: BT_CTF_BYTE_ORDER_UNSPECIFIED byte order is not allowed for a CTF writer trace: "
 			"addr=%p, name=\"%s\"",
 			trace, bt_ctf_trace_get_name(trace));
 		ret = -1;
