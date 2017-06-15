@@ -253,8 +253,8 @@ const char *bt_ctf_byte_order_string(enum bt_ctf_byte_order bo)
 	switch (bo) {
 	case BT_CTF_BYTE_ORDER_UNKNOWN:
 		return "BT_CTF_BYTE_ORDER_UNKNOWN";
-	case BT_CTF_BYTE_ORDER_NONE:
-		return "BT_CTF_BYTE_ORDER_NONE";
+	case BT_CTF_BYTE_ORDER_UNSPECIFIED:
+		return "BT_CTF_BYTE_ORDER_UNSPECIFIED";
 	case BT_CTF_BYTE_ORDER_NATIVE:
 		return "BT_CTF_BYTE_ORDER_NATIVE";
 	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
