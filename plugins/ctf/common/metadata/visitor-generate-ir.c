@@ -226,37 +226,6 @@ struct ctx {
  */
 struct ctf_visitor_generate_ir { };
 
-static
-const char *loglevel_str [] = {
-	[ LOGLEVEL_EMERG ] = "TRACE_EMERG",
-	[ LOGLEVEL_ALERT ] = "TRACE_ALERT",
-	[ LOGLEVEL_CRIT ] = "TRACE_CRIT",
-	[ LOGLEVEL_ERR ] = "TRACE_ERR",
-	[ LOGLEVEL_WARNING ] = "TRACE_WARNING",
-	[ LOGLEVEL_NOTICE ] = "TRACE_NOTICE",
-	[ LOGLEVEL_INFO ] = "TRACE_INFO",
-	[ LOGLEVEL_DEBUG_SYSTEM ] = "TRACE_DEBUG_SYSTEM",
-	[ LOGLEVEL_DEBUG_PROGRAM ] = "TRACE_DEBUG_PROGRAM",
-	[ LOGLEVEL_DEBUG_PROCESS ] = "TRACE_DEBUG_PROCESS",
-	[ LOGLEVEL_DEBUG_MODULE ] = "TRACE_DEBUG_MODULE",
-	[ LOGLEVEL_DEBUG_UNIT ] = "TRACE_DEBUG_UNIT",
-	[ LOGLEVEL_DEBUG_FUNCTION ] = "TRACE_DEBUG_FUNCTION",
-	[ LOGLEVEL_DEBUG_LINE ] = "TRACE_DEBUG_LINE",
-	[ LOGLEVEL_DEBUG ] = "TRACE_DEBUG",
-};
-
-static
-const char *print_loglevel(int64_t value)
-{
-	if (value < 0) {
-		return NULL;
-	}
-	if (value >= _NR_LOGLEVELS) {
-		return "<<UNKNOWN>>";
-	}
-	return loglevel_str[value];
-}
-
 /**
  * Creates a new declaration scope.
  *
@@ -3318,8 +3287,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			_SET(set, _EVENT_FIELDS_SET);
 		} else if (!strcmp(left, "loglevel")) {
 			uint64_t loglevel_value;
-			const char *loglevel_str;
-			struct bt_value *value_obj, *str_obj;
+			enum bt_ctf_event_class_log_level log_level =
+				BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED;
 
 			if (_IS_SET(set, _EVENT_LOGLEVEL_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "loglevel",
@@ -3336,39 +3305,71 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				ret = -EINVAL;
 				goto error;
 			}
-			value_obj = bt_value_integer_create_init(loglevel_value);
-			if (!value_obj) {
-				_BT_LOGE_NODE(node,
-					"Cannot create integer value object.");
-				ret = -ENOMEM;
-				goto error;
+
+			switch (loglevel_value) {
+			case 0:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY;
+				break;
+			case 1:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT;
+				break;
+			case 2:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL;
+				break;
+			case 3:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR;
+				break;
+			case 4:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING;
+				break;
+			case 5:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE;
+				break;
+			case 6:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO;
+				break;
+			case 7:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM;
+				break;
+			case 8:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM;
+				break;
+			case 9:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS;
+				break;
+			case 10:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE;
+				break;
+			case 11:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT;
+				break;
+			case 12:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION;
+				break;
+			case 13:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE;
+				break;
+			case 14:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG;
+				break;
+			default:
+				_BT_LOGW_NODE(node, "Not setting event class's log level because its value is unknown: "
+					"log-level=%" PRIu64, loglevel_value);
 			}
-			if (bt_ctf_event_class_set_attribute(event_class,
-					"loglevel", value_obj) != BT_VALUE_STATUS_OK) {
-				_BT_LOGE_NODE(node,
-					"Cannot set event class's `loglevel` attribute.");
-				ret = -EINVAL;
-				bt_put(value_obj);
-				goto error;
-			}
-			loglevel_str = print_loglevel(loglevel_value);
-			if (loglevel_str) {
-				str_obj = bt_value_string_create_init(loglevel_str);
-				if (bt_ctf_event_class_set_attribute(event_class,
-						"loglevel_string", str_obj) != BT_VALUE_STATUS_OK) {
+
+			if (log_level != BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED) {
+				ret = bt_ctf_event_class_set_log_level(
+					event_class, log_level);
+				if (ret) {
 					_BT_LOGE_NODE(node,
-						"Cannot set event class's `loglevel_string` attribute.");
-					ret = -EINVAL;
-					bt_put(str_obj);
+						"Cannot set event class's log level.");
 					goto error;
 				}
-				bt_put(str_obj);
 			}
-			bt_put(value_obj);
+
 			_SET(set, _EVENT_LOGLEVEL_SET);
 		} else if (!strcmp(left, "model.emf.uri")) {
 			char *right;
-			struct bt_value *str_obj;
 
 			if (_IS_SET(set, _EVENT_MODEL_EMF_URI_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "model.emf.uri",
@@ -3386,16 +3387,19 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			str_obj = bt_value_string_create_init(right);
-			if (bt_ctf_event_class_set_attribute(event_class,
-					"model.emf.uri", str_obj) != BT_VALUE_STATUS_OK) {
-				_BT_LOGE_NODE(node,
-					"Cannot set event class's `model.emf.uri` attribute.");
-				ret = -EINVAL;
-				bt_put(str_obj);
-				goto error;
+			if (strlen(right) == 0) {
+				_BT_LOGW_NODE(node,
+					"Not setting event class's EMF URI because it's empty.");
+			} else {
+				ret = bt_ctf_event_class_set_emf_uri(
+					event_class, right);
+				if (ret) {
+					_BT_LOGE_NODE(node,
+						"Cannot set event class's EMF URI.");
+					goto error;
+				}
 			}
-			bt_put(str_obj);
+
 			g_free(right);
 			_SET(set, _EVENT_MODEL_EMF_URI_SET);
 		} else {
