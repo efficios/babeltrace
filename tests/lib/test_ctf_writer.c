@@ -61,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 634
+#define NR_TESTS 633
 
 static int64_t current_time = 42;
 
@@ -783,8 +783,6 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		inner_structure_type, "inner_structure"),
 		"Add inner_structure field to complex structure");
 
-	ok(bt_ctf_event_class_create("clock") == NULL,
-		"Reject creation of an event class with an illegal name");
 	event_class = bt_ctf_event_class_create(complex_test_event_string);
 	ok(event_class, "Create an event class");
 	ok(bt_ctf_event_class_add_field(event_class, uint_35_type, ""),
