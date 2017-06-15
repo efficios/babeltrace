@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# Copyright (C) - 2017 Julien Desfossez <jdesfossez@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+CURDIR=$(dirname $0)
+TESTDIR=$CURDIR/..
+
+BABELTRACE_BIN=$CURDIR/../../cli/babeltrace
+
+CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
+
+source $TESTDIR/utils/tap/tap.sh
+
+SUCCESS_TRACES=(${CTF_TRACES}/succeed/*)
+FAIL_TRACES=(${CTF_TRACES}/fail/*)
+
+NUM_TESTS=$((${#SUCCESS_TRACES[@]} * 3))
+
+plan_tests $NUM_TESTS
+
+for path in ${SUCCESS_TRACES[@]}; do
+	out_path=$(mktemp -d)
+	trace=$(basename ${path})
+
+	orig_cnt=$($BABELTRACE_BIN ${path} 2>/dev/null | wc -l)
+
+	$BABELTRACE_BIN ${path} --component sink.ctf.fs --path ${out_path} >/dev/null 2>&1
+	ok $? "Copy trace ${trace} with ctf-fs sink"
+
+	$BABELTRACE_BIN ${out_path} >/dev/null 2>&1
+	ok $? "Read the new trace in ${out_path}"
+
+	new_cnt=$($BABELTRACE_BIN ${out_path} 2>/dev/null | wc -l)
+
+	test $orig_cnt == $new_cnt
+	ok $? "Same number of events as the original trace ($orig_cnt -> $new_cnt)"
+
+	rm -rf ${out_path}
+done
