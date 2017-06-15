@@ -1073,6 +1073,7 @@ int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *type,
 	}
 
 	switch (base) {
+	case BT_CTF_INTEGER_BASE_UNSPECIFIED:
 	case BT_CTF_INTEGER_BASE_BINARY:
 	case BT_CTF_INTEGER_BASE_OCTAL:
 	case BT_CTF_INTEGER_BASE_DECIMAL:
@@ -3900,6 +3901,7 @@ const char *get_integer_base_string(enum bt_ctf_integer_base base)
 
 	switch (base) {
 	case BT_CTF_INTEGER_BASE_DECIMAL:
+	case BT_CTF_INTEGER_BASE_UNSPECIFIED:
 		base_string = "decimal";
 		break;
 	case BT_CTF_INTEGER_BASE_HEXADECIMAL:

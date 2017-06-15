@@ -291,6 +291,8 @@ const char *bt_ctf_integer_base_string(enum bt_ctf_integer_base base)
 	switch (base) {
 	case BT_CTF_INTEGER_BASE_UNKNOWN:
 		return "BT_CTF_INTEGER_BASE_UNKNOWN";
+	case BT_CTF_INTEGER_BASE_UNSPECIFIED:
+		return "BT_CTF_INTEGER_BASE_UNSPECIFIED";
 	case BT_CTF_INTEGER_BASE_BINARY:
 		return "BT_CTF_INTEGER_BASE_BINARY";
 	case BT_CTF_INTEGER_BASE_OCTAL:
