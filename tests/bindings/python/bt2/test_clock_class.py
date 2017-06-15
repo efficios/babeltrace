@@ -49,7 +49,10 @@ class ClockClassOffsetTestCase(unittest.TestCase):
 
 class ClockClassTestCase(unittest.TestCase):
     def setUp(self):
-        self._cc = bt2.ClockClass('salut')
+        self._cc = bt2.ClockClass('salut', 1000000)
+
+    def tearDown(self):
+        del self._cc
 
     def test_create_default(self):
         self.assertEqual(self._cc.name, 'salut')
@@ -130,7 +133,7 @@ class ClockClassTestCase(unittest.TestCase):
             self._cc.uuid = object()
 
     def test_create_clock_value(self):
-        cv = self._cc.create_clock_value(756)
+        cv = self._cc(756)
         self.assertEqual(cv.clock_class.addr, self._cc.addr)
 
     def _test_copy(self, cpy):
@@ -245,10 +248,15 @@ class ClockClassTestCase(unittest.TestCase):
         self.assertFalse(self._cc == 23)
 
 
-class ClockClassValueTestCase(unittest.TestCase):
+class ClockValueTestCase(unittest.TestCase):
     def setUp(self):
-        self._cc = bt2.ClockClass('salut')
-        self._cv = self._cc.create_clock_value(123)
+        self._cc = bt2.ClockClass('salut', 1000,
+                                  offset=bt2.ClockClassOffset(45, 354))
+        self._cv = self._cc(123)
+
+    def tearDown(self):
+        del self._cc
+        del self._cv
 
     def test_create_default(self):
         self.assertEqual(self._cv.clock_class.addr, self._cc.addr)
@@ -256,30 +264,32 @@ class ClockClassValueTestCase(unittest.TestCase):
 
     def test_create_invalid_cycles_type(self):
         with self.assertRaises(TypeError):
-            self._cc.create_clock_value('yes')
+            self._cc('yes')
 
     def test_ns_from_epoch(self):
-        self._cv.clock_class.frequency = 1000
-        self._cv.clock_class.offset = bt2.ClockClassOffset(45, 354)
         s_from_epoch = 45 + ((354 + 123) / 1000)
         ns_from_epoch = int(s_from_epoch * 1e9)
         self.assertEqual(self._cv.ns_from_epoch, ns_from_epoch)
 
     def test_eq(self):
-        cv1 = self._cc.create_clock_value(123)
-        cv2 = self._cc.create_clock_value(123)
+        cv1 = self._cc(123)
+        cv2 = self._cc(123)
         self.assertEqual(cv1, cv2)
 
+    def test_eq_int(self):
+        cv1 = self._cc(123)
+        self.assertEqual(cv1, 123)
+
     def test_ne_clock_class(self):
-        cc1 = bt2.ClockClass('yes')
-        cc2 = bt2.ClockClass('yes')
-        cv1 = cc1.create_clock_value(123)
-        cv2 = cc2.create_clock_value(123)
+        cc1 = bt2.ClockClass('yes', 1500)
+        cc2 = bt2.ClockClass('yes', 1501)
+        cv1 = cc1(123)
+        cv2 = cc2(123)
         self.assertNotEqual(cv1, cv2)
 
     def test_ne_cycles(self):
-        cv1 = self._cc.create_clock_value(123)
-        cv2 = self._cc.create_clock_value(125)
+        cv1 = self._cc(123)
+        cv2 = self._cc(125)
         self.assertNotEqual(cv1, cv2)
 
     def test_eq_invalid(self):

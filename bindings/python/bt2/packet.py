@@ -32,7 +32,7 @@ class _Packet(object._Object):
     @property
     def stream(self):
         stream_ptr = native_bt.ctf_packet_get_stream(self._ptr)
-        utils._handle_ptr(stream_ptr, "cannot get packet object's stream object")
+        assert(stream_ptr)
         return bt2.stream._Stream._create_from_ptr(stream_ptr)
 
     @property

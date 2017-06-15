@@ -22,10 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-ir/event.h>
-%}
-
 /* Type */
 struct bt_ctf_event;
 
@@ -52,9 +48,9 @@ struct bt_ctf_field *bt_ctf_event_get_event_context(
 		struct bt_ctf_event *event);
 int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 		struct bt_ctf_field *context);
-struct bt_ctf_field *bt_ctf_event_get_payload_field(
+struct bt_ctf_field *bt_ctf_event_get_event_payload(
 		struct bt_ctf_event *event);
-int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
+int bt_ctf_event_set_event_payload(struct bt_ctf_event *event,
 		struct bt_ctf_field *payload);
 struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
 		struct bt_ctf_event *event,

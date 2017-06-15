@@ -22,13 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/stream.h>
-#include <babeltrace/ctf-writer/stream-class.h>
-#include <babeltrace/ctf-writer/writer.h>
-%}
-
 /* Types */
 struct bt_ctf_clock;
 struct bt_ctf_writer;

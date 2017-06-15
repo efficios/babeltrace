@@ -22,29 +22,19 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/component/notification/iterator.h>
-%}
-
 /* Type */
 struct bt_notification_iterator;
 
 /* Status */
 enum bt_notification_iterator_status {
+	BT_NOTIFICATION_ITERATOR_STATUS_CANCELED = 125,
+	BT_NOTIFICATION_ITERATOR_STATUS_AGAIN = 11,
 	BT_NOTIFICATION_ITERATOR_STATUS_END = 1,
 	BT_NOTIFICATION_ITERATOR_STATUS_OK = 0,
-	BT_NOTIFICATION_ITERATOR_STATUS_INVAL = -1,
-	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -2,
-	BT_NOTIFICATION_ITERATOR_STATUS_NOMEM = -3,
-	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -4,
-};
-
-/* Seek reference */
-enum bt_notification_iterator_seek_origin {
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_BEGIN = 0,
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_CURRENT = 1,
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_END = 2,
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_EPOCH = 3,
+	BT_NOTIFICATION_ITERATOR_STATUS_INVALID = -22,
+	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -1,
+	BT_NOTIFICATION_ITERATOR_STATUS_NOMEM = -12,
+	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -2,
 };
 
 /* Functions */
@@ -52,28 +42,22 @@ struct bt_notification *bt_notification_iterator_get_notification(
 		struct bt_notification_iterator *iterator);
 enum bt_notification_iterator_status bt_notification_iterator_next(
 		struct bt_notification_iterator *iterator);
-enum bt_notification_iterator_status bt_notification_iterator_seek_time(
-		struct bt_notification_iterator *iterator,
-		enum bt_notification_iterator_seek_origin seek_origin,
-		int64_t time);
 struct bt_component *bt_notification_iterator_get_component(
-		struct bt_notification_iterator *iterator);
-enum bt_notification_iterator_status bt_notification_iterator_set_private_data(
-		struct bt_notification_iterator *iterator, void *data);
-void *bt_notification_iterator_get_private_data(
 		struct bt_notification_iterator *iterator);
 
 /* Helper functions for Python */
 %{
-static PyObject *bt_py3_get_component_from_notif_iter(
-		struct bt_notification_iterator *iter)
+static PyObject *bt_py3_get_user_component_from_user_notif_iter(
+		struct bt_private_notification_iterator *priv_notif_iter)
 {
-	struct bt_component *component = bt_notification_iterator_get_component(iter);
+	struct bt_private_component *priv_comp =
+		bt_private_notification_iterator_get_private_component(
+			priv_notif_iter);
 	PyObject *py_comp;
 
-	assert(component);
-	py_comp = bt_component_get_private_data(component);
-	BT_PUT(component);
+	assert(priv_comp);
+	py_comp = bt_private_component_get_user_data(priv_comp);
+	bt_put(priv_comp);
 	assert(py_comp);
 
 	/* Return new reference */
@@ -82,5 +66,5 @@ static PyObject *bt_py3_get_component_from_notif_iter(
 }
 %}
 
-PyObject *bt_py3_get_component_from_notif_iter(
-		struct bt_notification_iterator *iter);
+PyObject *bt_py3_get_user_component_from_user_notif_iter(
+		struct bt_private_notification_iterator *priv_notif_iter);

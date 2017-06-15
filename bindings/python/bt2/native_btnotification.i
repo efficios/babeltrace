@@ -22,29 +22,22 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/component/notification/event.h>
-#include <babeltrace/component/notification/packet.h>
-#include <babeltrace/component/notification/schema.h>
-#include <babeltrace/component/notification/stream.h>
-%}
-
 /* Type */
-struct bt_notification;;
+struct bt_notification;
 
 /* Notification type */
 enum bt_notification_type {
+	BT_NOTIFICATION_TYPE_SENTINEL = -1000,
 	BT_NOTIFICATION_TYPE_UNKNOWN = -1,
-	BT_NOTIFICATION_TYPE_ALL = 0,
-	BT_NOTIFICATION_TYPE_EVENT = 1,
-	BT_NOTIFICATION_TYPE_PACKET_BEGIN = 2,
-	BT_NOTIFICATION_TYPE_PACKET_END = 3,
-	BT_NOTIFICATION_TYPE_STREAM_END = 4,
-	BT_NOTIFICATION_TYPE_NEW_TRACE = 5,
-	BT_NOTIFICATION_TYPE_NEW_STREAM_CLASS = 6,
-	BT_NOTIFICATION_TYPE_NEW_EVENT_CLASS = 7,
-	BT_NOTIFICATION_TYPE_END_OF_TRACE = 8,
-	BT_NOTIFICATION_TYPE_NR,
+	BT_NOTIFICATION_TYPE_ALL = -2,
+	BT_NOTIFICATION_TYPE_EVENT = 0,
+	BT_NOTIFICATION_TYPE_INACTIVITY = 1,
+	BT_NOTIFICATION_TYPE_STREAM_BEGIN = 2,
+	BT_NOTIFICATION_TYPE_STREAM_END = 3,
+	BT_NOTIFICATION_TYPE_PACKET_BEGIN = 4,
+	BT_NOTIFICATION_TYPE_PACKET_END = 5,
+	BT_NOTIFICATION_TYPE_DISCARDED_EVENTS = 6,
+	BT_NOTIFICATION_TYPE_DISCARDED_PACKETS = 7,
 };
 
 /* General functions */
@@ -53,34 +46,67 @@ enum bt_notification_type bt_notification_get_type(
 
 /* Event notification functions */
 struct bt_notification *bt_notification_event_create(
-		struct bt_ctf_event *event);
+		struct bt_ctf_event *event,
+		struct bt_clock_class_priority_map *clock_class_priority_map);
 struct bt_ctf_event *bt_notification_event_get_event(
 		struct bt_notification *notification);
+struct bt_clock_class_priority_map *
+bt_notification_event_get_clock_class_priority_map(
+		struct bt_notification *notification);
+
+/* Inactivity notification functions */
+struct bt_notification *bt_notification_inactivity_create(
+		struct bt_clock_class_priority_map *clock_class_priority_map);
+struct bt_clock_class_priority_map *
+bt_notification_inactivity_get_clock_class_priority_map(
+		struct bt_notification *notification);
+struct bt_ctf_clock_value *bt_notification_inactivity_get_clock_value(
+		struct bt_notification *notification,
+		struct bt_ctf_clock_class *clock_class);
+int bt_notification_inactivity_set_clock_value(
+		struct bt_notification *notification,
+		struct bt_ctf_clock_value *clock_value);
 
 /* Packet notification functions */
 struct bt_notification *bt_notification_packet_begin_create(
 		struct bt_ctf_packet *packet);
-struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
-		struct bt_notification *notification);
 struct bt_notification *bt_notification_packet_end_create(
 		struct bt_ctf_packet *packet);
+struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
+		struct bt_notification *notification);
 struct bt_ctf_packet *bt_notification_packet_end_get_packet(
 		struct bt_notification *notification);
 
-/* Schema notification functions */
-/*
-struct bt_notification *bt_notification_new_trace_create(
-		struct bt_ctf_trace *trace);
-struct bt_ctf_trace *bt_notification_new_trace_get_trace(
-		struct bt_notification *notification);
-struct bt_notification *bt_notification_new_stream_class_create(
-		struct bt_ctf_stream_class *stream_class);
-struct bt_ctf_trace *bt_notification_new_stream_class_get_stream_class(
-		struct bt_notification *notification);
-*/
-
 /* Stream notification functions */
+struct bt_notification *bt_notification_stream_begin_create(
+		struct bt_ctf_stream *stream);
 struct bt_notification *bt_notification_stream_end_create(
 		struct bt_ctf_stream *stream);
+struct bt_ctf_stream *bt_notification_stream_begin_get_stream(
+		struct bt_notification *notification);
 struct bt_ctf_stream *bt_notification_stream_end_get_stream(
+		struct bt_notification *notification);
+
+/* Discarded packets notification functions */
+struct bt_ctf_clock_value *
+bt_notification_discarded_packets_get_begin_clock_value(
+		struct bt_notification *notification);
+struct bt_ctf_clock_value *
+bt_notification_discarded_packets_get_end_clock_value(
+		struct bt_notification *notification);
+int64_t bt_notification_discarded_packets_get_count(
+		struct bt_notification *notification);
+struct bt_ctf_stream *bt_notification_discarded_packets_get_stream(
+		struct bt_notification *notification);
+
+/* Discarded events notification functions */
+struct bt_ctf_clock_value *
+bt_notification_discarded_events_get_begin_clock_value(
+		struct bt_notification *notification);
+struct bt_ctf_clock_value *
+bt_notification_discarded_events_get_end_clock_value(
+		struct bt_notification *notification);
+int64_t bt_notification_discarded_events_get_count(
+		struct bt_notification *notification);
+struct bt_ctf_stream *bt_notification_discarded_events_get_stream(
 		struct bt_notification *notification);

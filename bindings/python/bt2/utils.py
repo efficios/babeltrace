@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,7 +87,6 @@ def _is_pow2(v):
 
 def _check_alignment(a):
     _check_uint64(a)
-
 
     if not _is_pow2(a):
         raise ValueError('{} is not a power of two'.format(a))

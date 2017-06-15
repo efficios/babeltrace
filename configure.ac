@@ -497,7 +497,7 @@ AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
 )
 
 
-# Check for conflicting optionnal features user choices
+# Check for conflicting optional features user choices
 
 AS_IF([test "x$enable_python_bindings" = xno],
   [
@@ -631,14 +631,11 @@ LIBS="$LIBS $GLIB_LIBS"
 program_transform_name="s&babeltrace\.bin&babeltrace&;s&babeltrace-log\.bin&babeltrace-log&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
-
-	#TODO: removed, work in progress
-	#bindings/python/Makefile
-	#bindings/python/babeltrace/Makefile
-	#bindings/python/bt2/Makefile
-	#bindings/python/bt2/__init__.py
 AC_CONFIG_FILES([
 	Makefile
+	bindings/python/Makefile
+	bindings/python/bt2/Makefile
+	bindings/python/bt2/__init__.py
 	common/Makefile
 	compat/Makefile
 	cli/Makefile
@@ -713,7 +710,7 @@ AC_CONFIG_FILES([tests/lib/writer/test_ctf_writer_empty_packet.py])
 AC_CONFIG_FILES([tests/lib/writer/test_ctf_writer_no_packet_context.py])
 AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugins/test-utils-muxer-complete])
 
-AS_IF([test "x$enable_python" = xyes],
+AS_IF([test "x$enable_python_bindings_tests" = xyes],
   [AC_CONFIG_FILES([tests/bindings/python/bt2/testall.sh], [chmod +x tests/bindings/python/bt2/testall.sh])]
 )
 

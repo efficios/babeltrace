@@ -22,10 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ref.h>
-%}
-
 /* Functions */
 void *bt_get(void *obj);
 void bt_put(void *obj);

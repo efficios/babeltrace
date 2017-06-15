@@ -24,8 +24,15 @@ from bt2 import native_bt, object, utils
 import bt2.notification_iterator
 import collections.abc
 import bt2.values
+import traceback
+import bt2.port
 import sys
 import bt2
+import os
+
+
+_env_var = os.environ.get('BABELTRACE_PYTHON_BT2_NO_TRACEBACK')
+_NO_PRINT_TRACEBACK = _env_var == '1'
 
 
 # This class wraps a component class pointer. This component class could
@@ -35,7 +42,9 @@ import bt2
 class _GenericComponentClass(object._Object):
     @property
     def name(self):
-        return native_bt.component_class_get_name(self._ptr)
+        name = native_bt.component_class_get_name(self._ptr)
+        assert(name is not None)
+        return name
 
     @property
     def description(self):
@@ -48,17 +57,15 @@ class _GenericComponentClass(object._Object):
     def query(self, obj, params=None):
         return _query(self._ptr, obj, params)
 
-    def __call__(self, params=None, name=None):
-        params = bt2.create_value(params)
-        comp_ptr = native_bt.component_create_with_init_method_data(self._ptr,
-                                                                    name,
-                                                                    params._ptr,
-                                                                    None)
+    def __eq__(self, other):
+        if not isinstance(other, _GenericComponentClass):
+            try:
+                if not issubclass(other, _UserComponent):
+                    return False
+            except TypeError:
+                return False
 
-        if comp_ptr is None:
-            raise bt2.CreationError('cannot create component object')
-
-        return _create_generic_component_from_ptr(comp_ptr)
+        return self.addr == other.addr
 
 
 class _GenericSourceComponentClass(_GenericComponentClass):
@@ -73,94 +80,175 @@ class _GenericSinkComponentClass(_GenericComponentClass):
     pass
 
 
+def _handle_component_status(status, gen_error_msg):
+    if status == native_bt.COMPONENT_STATUS_END:
+        raise bt2.Stop
+    elif status == native_bt.COMPONENT_STATUS_AGAIN:
+        raise bt2.TryAgain
+    elif status == native_bt.COMPONENT_STATUS_UNSUPPORTED:
+        raise bt2.UnsupportedFeature
+    elif status == native_bt.COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
+        raise bt2.PortConnectionRefused
+    elif status == native_bt.COMPONENT_STATUS_GRAPH_IS_CANCELED:
+        raise bt2.GraphCanceled
+    elif status < 0:
+        raise bt2.Error(gen_error_msg)
+
+
+class _PortIterator(collections.abc.Iterator):
+    def __init__(self, comp_ports):
+        self._comp_ports = comp_ports
+        self._at = 0
+
+    def __next__(self):
+        if self._at == len(self._comp_ports):
+            raise StopIteration
+
+        comp_ports = self._comp_ports
+        comp_ptr = comp_ports._component._ptr
+        port_ptr = comp_ports._get_port_at_index_fn(comp_ptr, self._at)
+        assert(port_ptr)
+
+        if comp_ports._is_private:
+            port_pub_ptr = native_bt.port_from_private_port(port_ptr)
+            name = native_bt.port_get_name(port_pub_ptr)
+            native_bt.put(port_pub_ptr)
+        else:
+            name = native_bt.port_get_name(port_ptr)
+
+        assert(name is not None)
+        native_bt.put(port_ptr)
+        self._at += 1
+        return name
+
+
+class _ComponentPorts(collections.abc.Mapping):
+    def __init__(self, is_private, component,
+                 get_port_by_name_fn, get_port_at_index_fn,
+                 get_port_count_fn):
+        self._is_private = is_private
+        self._component = component
+        self._get_port_by_name_fn = get_port_by_name_fn
+        self._get_port_at_index_fn = get_port_at_index_fn
+        self._get_port_count_fn = get_port_count_fn
+
+    def __getitem__(self, key):
+        utils._check_str(key)
+        port_ptr = self._get_port_by_name_fn(self._component._ptr, key)
+
+        if port_ptr is None:
+            raise KeyError(key)
+
+        if self._is_private:
+            return bt2.port._create_private_from_ptr(port_ptr)
+        else:
+            return bt2.port._create_from_ptr(port_ptr)
+
+    def __len__(self):
+        if self._is_private:
+            pub_ptr = native_bt.component_from_private_component(self._component._ptr)
+            count = self._get_port_count_fn(pub_ptr)
+            native_bt.put(pub_ptr)
+        else:
+            count = self._get_port_count_fn(self._component._ptr)
+
+        assert(count >= 0)
+        return count
+
+    def __iter__(self):
+        return _PortIterator(self)
+
+
 # This class holds the methods which are common to both generic
 # component objects and Python user component objects. They use the
 # internal native _ptr, however it was set, to call native API
 # functions.
-class _CommonComponentMethods:
+class _Component:
     @property
     def name(self):
-        return native_bt.component_get_name(self._ptr)
+        name = native_bt.component_get_name(self._ptr)
+        assert(name is not None)
+        return name
+
+    @property
+    def graph(self):
+        ptr = native_bt.component_get_graph(self._ptr)
+        assert(ptr)
+        return bt2.Graph._create_from_ptr(ptr)
 
     @property
     def component_class(self):
         cc_ptr = native_bt.component_get_class(self._ptr)
-        utils._handle_ptr(cc_ptr, "cannot get component object's class object")
+        assert(cc_ptr)
         return _create_generic_component_class_from_ptr(cc_ptr)
 
-    def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.COMPONENT_STATUS_END:
-            raise bt2.Stop
-        elif status == native_bt.COMPONENT_STATUS_AGAIN:
-            raise bt2.TryAgain
-        elif status == native_bt.COMPONENT_STATUS_UNSUPPORTED:
-            raise bt2.UnsupportedFeature
-        elif status < 0:
-            raise bt2.Error(gen_error_msg)
+    def __eq__(self, other):
+        if not hasattr(other, 'addr'):
+            return False
+
+        return self.addr == other.addr
 
 
-class _CommonSourceComponentMethods(_CommonComponentMethods):
-    def create_notification_iterator(self):
-        iter_ptr = native_bt.component_source_create_notification_iterator_with_init_method_data(self._ptr, None)
-
-        if iter_ptr is None:
-            raise bt2.CreationError('cannot create notification iterator object')
-
-        return bt2.notification_iterator._GenericNotificationIterator._create_from_ptr(iter_ptr)
+class _SourceComponent(_Component):
+    pass
 
 
-class _CommonFilterComponentMethods(_CommonComponentMethods):
-    def create_notification_iterator(self):
-        iter_ptr = native_bt.component_filter_create_notification_iterator_with_init_method_data(self._ptr, None)
-
-        if iter_ptr is None:
-            raise bt2.CreationError('cannot create notification iterator object')
-
-        return bt2.notification_iterator._GenericNotificationIterator._create_from_ptr(iter_ptr)
-
-    def add_notification_iterator(self, notif_iter):
-        utils._check_type(notif_iter, bt2.notification_iterator._GenericNotificationIteratorMethods)
-        status = native_bt.component_filter_add_iterator(self._ptr, notif_iter._ptr)
-        self._handle_status(status, 'unexpected error: cannot add notification iterator to filter component object')
+class _FilterComponent(_Component):
+    pass
 
 
-class _CommonSinkComponentMethods(_CommonComponentMethods):
-    def add_notification_iterator(self, notif_iter):
-        utils._check_type(notif_iter, bt2.notification_iterator._GenericNotificationIteratorMethods)
-        status = native_bt.component_sink_add_iterator(self._ptr, notif_iter._ptr)
-        self._handle_status(status, 'unexpected error: cannot add notification iterator to sink component object')
-
-    def consume(self):
-        status = native_bt.component_sink_consume(self._ptr)
-        self._handle_status(status, 'unexpected error: cannot consume sink component object')
+class _SinkComponent(_Component):
+    pass
 
 
 # This is analogous to _GenericSourceComponentClass, but for source
 # component objects.
-class _GenericSourceComponent(object._Object, _CommonSourceComponentMethods):
-    pass
+class _GenericSourceComponent(object._Object, _SourceComponent):
+    @property
+    def output_ports(self):
+        return _ComponentPorts(False, self,
+                               native_bt.component_source_get_output_port_by_name,
+                               native_bt.component_source_get_output_port_by_index,
+                               native_bt.component_source_get_output_port_count)
 
 
 # This is analogous to _GenericFilterComponentClass, but for filter
 # component objects.
-class _GenericFilterComponent(object._Object, _CommonFilterComponentMethods):
-    pass
+class _GenericFilterComponent(object._Object, _FilterComponent):
+    @property
+    def output_ports(self):
+        return _ComponentPorts(False, self,
+                               native_bt.component_filter_get_output_port_by_name,
+                               native_bt.component_filter_get_output_port_by_index,
+                               native_bt.component_filter_get_output_port_count)
+
+    @property
+    def input_ports(self):
+        return _ComponentPorts(False, self,
+                               native_bt.component_filter_get_input_port_by_name,
+                               native_bt.component_filter_get_input_port_by_index,
+                               native_bt.component_filter_get_input_port_count)
 
 
 # This is analogous to _GenericSinkComponentClass, but for sink
 # component objects.
-class _GenericSinkComponent(object._Object, _CommonSinkComponentMethods):
-    pass
+class _GenericSinkComponent(object._Object, _SinkComponent):
+    @property
+    def input_ports(self):
+        return _ComponentPorts(False, self,
+                               native_bt.component_sink_get_input_port_by_name,
+                               native_bt.component_sink_get_input_port_by_index,
+                               native_bt.component_sink_get_input_port_count)
 
 
-_COMP_CLS_TYPE_TO_GENERIC_COMP_CLS = {
+_COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS = {
     native_bt.COMPONENT_CLASS_TYPE_SOURCE: _GenericSourceComponent,
     native_bt.COMPONENT_CLASS_TYPE_FILTER: _GenericFilterComponent,
     native_bt.COMPONENT_CLASS_TYPE_SINK: _GenericSinkComponent,
 }
 
 
-_COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_CLS = {
+_COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS = {
     native_bt.COMPONENT_CLASS_TYPE_SOURCE: _GenericSourceComponentClass,
     native_bt.COMPONENT_CLASS_TYPE_FILTER: _GenericFilterComponentClass,
     native_bt.COMPONENT_CLASS_TYPE_SINK: _GenericSinkComponentClass,
@@ -169,12 +257,12 @@ _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_CLS = {
 
 def _create_generic_component_from_ptr(ptr):
     comp_cls_type = native_bt.component_get_class_type(ptr)
-    return _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS[comp_cls_type]._create_from_ptr(ptr)
+    return _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS[comp_cls_type]._create_from_ptr(ptr)
 
 
 def _create_generic_component_class_from_ptr(ptr):
     comp_cls_type = native_bt.component_class_get_type(ptr)
-    return _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_CLS[comp_cls_type]._create_from_ptr(ptr)
+    return _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[comp_cls_type]._create_from_ptr(ptr)
 
 
 def _trim_docstring(docstring):
@@ -212,13 +300,10 @@ def _query(comp_cls_ptr, obj, params):
         params_ptr = params._ptr
 
     results_ptr = native_bt.component_class_query(comp_cls_ptr, obj,
-                                                       params_ptr)
+                                                  params_ptr)
 
     if results_ptr is None:
         raise bt2.Error('cannot query info with object "{}"'.format(obj))
-
-    if results_ptr == native_bt.value_null:
-        return
 
     return bt2.values._create_from_ptr(results_ptr)
 
@@ -226,8 +311,8 @@ def _query(comp_cls_ptr, obj, params):
 # Metaclass for component classes defined by Python code.
 #
 # The Python user can create a standard Python class which inherits one
-# of the three base classes (UserSourceComponent, UserFilterComponent,
-# or UserSinkComponent). Those base classes set this class
+# of the three base classes (_UserSourceComponent, _UserFilterComponent,
+# or _UserSinkComponent). Those base classes set this class
 # (_UserComponentType) as their metaclass.
 #
 # Once the body of a user-defined component class is executed, this
@@ -260,29 +345,29 @@ def _query(comp_cls_ptr, obj, params):
 #     def __init__(self, params, name, something_else):
 #         ...
 #
-# The user-defined component class can also have a _destroy() method
+# The user-defined component class can also have a _finalize() method
 # (do NOT use __del__()) to be notified when the component object is
-# (really) destroyed.
+# finalized.
 #
 # User-defined source and filter component classes must use the
 # `notification_iterator_class` class parameter to specify the
 # notification iterator class to use for this component class:
 #
-#     class MyNotificationIterator(bt2.UserNotificationIterator):
+#     class MyNotificationIterator(bt2._UserNotificationIterator):
 #         ...
 #
-#     class MySource(bt2.UserSourceComponent,
+#     class MySource(bt2._UserSourceComponent,
 #                    notification_iterator_class=MyNotificationIterator):
 #         ...
 #
 # This notification iterator class must inherit
-# bt2.UserNotificationIterator, and it must define the _get() and
+# bt2._UserNotificationIterator, and it must define the _get() and
 # _next() methods. The notification iterator class can also define an
 # __init__() method: this method has access to the original Python
 # component object which was used to create it as the `component`
-# property. The notification iterator class can also define a _destroy()
-# method (again, do NOT use __del__()): this is called when the
-# notification iterator is (really) destroyed.
+# property. The notification iterator class can also define a
+# _finalize() method (again, do NOT use __del__()): this is called when
+# the notification iterator is (really) destroyed.
 #
 # When the user-defined class is destroyed, this metaclass's __del__()
 # method is called: the native BT component class pointer is put (not
@@ -297,14 +382,24 @@ class _UserComponentType(type):
         super().__init__(class_name, bases, namespace)
 
         # skip our own bases; they are never directly instantiated by the user
-        if class_name in ('_UserComponent', 'UserSourceComponent', 'UserFilterComponent', 'UserSinkComponent'):
+        own_bases = (
+            '_UserComponent',
+            '_UserFilterSinkComponent',
+            '_UserSourceComponent',
+            '_UserFilterComponent',
+            '_UserSinkComponent',
+        )
+
+        if class_name in own_bases:
             return
 
         comp_cls_name = kwargs.get('name', class_name)
+        utils._check_str(comp_cls_name)
         comp_cls_descr = None
         comp_cls_help = None
 
         if hasattr(cls, '__doc__') and cls.__doc__ is not None:
+            utils._check_str(cls.__doc__)
             docstring = _trim_docstring(cls.__doc__)
             lines = docstring.splitlines()
 
@@ -316,101 +411,64 @@ class _UserComponentType(type):
 
         iter_cls = kwargs.get('notification_iterator_class')
 
-        if UserSourceComponent in bases:
+        if _UserSourceComponent in bases:
             _UserComponentType._set_iterator_class(cls, iter_cls)
-            has_seek_time = _UserComponentType._has_seek_to_time_method(cls._iter_cls)
             cc_ptr = native_bt.py3_component_class_source_create(cls,
                                                                  comp_cls_name,
                                                                  comp_cls_descr,
-                                                                 comp_cls_help,
-                                                                 has_seek_time)
-        elif UserFilterComponent in bases:
+                                                                 comp_cls_help)
+        elif _UserFilterComponent in bases:
             _UserComponentType._set_iterator_class(cls, iter_cls)
-            has_seek_time = _UserComponentType._has_seek_to_time_method(cls._iter_cls)
             cc_ptr = native_bt.py3_component_class_filter_create(cls,
                                                                  comp_cls_name,
                                                                  comp_cls_descr,
-                                                                 comp_cls_help,
-                                                                 has_seek_time)
-        elif UserSinkComponent in bases:
+                                                                 comp_cls_help)
+        elif _UserSinkComponent in bases:
             if not hasattr(cls, '_consume'):
-                raise bt2.IncompleteUserClassError("cannot create component class '{}': missing a _consume() method".format(class_name))
+                raise bt2.IncompleteUserClass("cannot create component class '{}': missing a _consume() method".format(class_name))
 
             cc_ptr = native_bt.py3_component_class_sink_create(cls,
                                                                comp_cls_name,
                                                                comp_cls_descr,
                                                                comp_cls_help)
         else:
-            raise bt2.IncompleteUserClassError("cannot find a known component class base in the bases of '{}'".format(class_name))
+            raise bt2.IncompleteUserClass("cannot find a known component class base in the bases of '{}'".format(class_name))
 
         if cc_ptr is None:
             raise bt2.CreationError("cannot create component class '{}'".format(class_name))
 
         cls._cc_ptr = cc_ptr
 
-    def __call__(cls, *args, **kwargs):
-        # create instance
+    def _init_from_native(cls, comp_ptr, params_ptr):
+        # create instance, not user-initialized yet
         self = cls.__new__(cls)
 
-        # assign native component pointer received from caller
-        self._ptr = kwargs.get('__comp_ptr')
-        name = kwargs.get('name')
+        # pointer to native private component object (weak/borrowed)
+        self._ptr = comp_ptr
 
-        if self._ptr is None:
-            # called from Python code
-            self._belongs_to_native_component = False
-
-            # py3_component_create() will call self.__init__() with the
-            # desired arguments and keyword arguments. This is needed
-            # because functions such as
-            # bt_component_sink_set_minimum_input_count() can only be
-            # called _during_ the bt_component_create() call (in
-            # Python words: during self.__init__()).
-            #
-            # The arguments and keyword arguments to use for
-            # self.__init__() are put in the object itself to find them
-            # from the bt_component_create() function.
-            self._init_args = args
-            self._init_kwargs = kwargs
-            native_bt.py3_component_create(cls._cc_ptr, self, name)
-
-            # At this point, self._ptr should be set to non-None. If
-            # it's not, an error occured during the
-            # native_bt.py3_component_create() call. We consider this a
-            # creation error.
-            if self._ptr is None:
-                raise bt2.CreationError("cannot create component object from component class '{}'".format(cls.__name__))
+        # call user's __init__() method
+        if params_ptr is not None:
+            native_bt.get(params_ptr)
+            params = bt2.values._create_from_ptr(params_ptr)
         else:
-            # Called from non-Python code (within
-            # bt_component_create()): call __init__() here, after
-            # removing the __comp_ptr keyword argument which is just for
-            # this __call__() method.
-            self._belongs_to_native_component = True
-            del kwargs['__comp_ptr']
+            params = None
 
-            # inject `name` into the keyword arguments
-            kwargs['name'] = self.name
-            self.__init__(*args, **kwargs)
-
+        self.__init__(params)
         return self
 
-    @staticmethod
-    def _has_seek_to_time_method(iter_cls):
-        return hasattr(iter_cls, '_seek_to_time')
+    def __call__(cls, *args, **kwargs):
+        raise bt2.Error('cannot directly instantiate a user component from a Python module')
 
     @staticmethod
     def _set_iterator_class(cls, iter_cls):
         if iter_cls is None:
-            raise bt2.IncompleteUserClassError("cannot create component class '{}': missing notification iterator class".format(cls.__name__))
+            raise bt2.IncompleteUserClass("cannot create component class '{}': missing notification iterator class".format(cls.__name__))
 
-        if not issubclass(iter_cls, bt2.notification_iterator.UserNotificationIterator):
-            raise bt2.IncompleteUserClassError("cannot create component class '{}': notification iterator class does not inherit bt2.UserNotificationIterator".format(cls.__name__))
+        if not issubclass(iter_cls, bt2.notification_iterator._UserNotificationIterator):
+            raise bt2.IncompleteUserClass("cannot create component class '{}': notification iterator class does not inherit bt2._UserNotificationIterator".format(cls.__name__))
 
-        if not hasattr(iter_cls, '_get'):
-            raise bt2.IncompleteUserClassError("cannot create component class '{}': notification iterator class is missing a _get() method".format(cls.__name__))
-
-        if not hasattr(iter_cls, '_next'):
-            raise bt2.IncompleteUserClassError("cannot create component class '{}': notification iterator class is missing a _next() method".format(cls.__name__))
+        if not hasattr(iter_cls, '__next__'):
+            raise bt2.IncompleteUserClass("cannot create component class '{}': notification iterator class is missing a __next__() method".format(cls.__name__))
 
         cls._iter_cls = iter_cls
 
@@ -430,131 +488,206 @@ class _UserComponentType(type):
     def addr(cls):
         return int(cls._cc_ptr)
 
-    def query(cls, action, params=None):
-        return _query(cls._cc_ptr, action, params)
+    def query(cls, obj, params=None):
+        return _query(cls._cc_ptr, obj, params)
 
-    def _query_from_bt(cls, action, params):
+    def _query_from_native(cls, obj, params_ptr):
         # this can raise, in which case the native call to
         # bt_component_class_query() returns NULL
-        results = cls._query(action, params)
-        results = bt2.create_value(results)
+        if params_ptr is not None:
+            native_bt.get(params_ptr)
+            params = bt2.values._create_from_ptr(params_ptr)
+        else:
+            params = None
+
+        try:
+            results = cls._query(obj, params)
+        except:
+            if not _NO_PRINT_TRACEBACK:
+                traceback.print_exc()
+
+            return
+
+        if results is NotImplemented:
+            return results
+
+        try:
+            results = bt2.create_value(results)
+        except:
+            if not _NO_PRINT_TRACEBACK:
+                traceback.print_exc()
+
+            return
 
         if results is None:
             results_addr = int(native_bt.value_null)
         else:
-            # steal the underlying native value object for the caller
+            # return new reference
+            results._get()
             results_addr = int(results._ptr)
-            results._ptr = None
 
         return results_addr
 
-    @staticmethod
-    def _query(action, params):
+    @classmethod
+    def _query(cls, obj, params):
         # BT catches this and returns NULL to the user
-        raise NotImplementedError
+        return NotImplemented
+
+    def __eq__(self, other):
+        if not hasattr(other, 'addr'):
+            return False
+
+        return self.addr == other.addr
 
     def __del__(cls):
         if hasattr(cls, '_cc_ptr'):
             native_bt.put(cls._cc_ptr)
 
 
-class _ComponentInputNotificationIterators(collections.abc.Sequence):
-    def __init__(self, comp, count_func, get_func):
-        self._comp = comp
-        self._count_func = count_func
-        self._get_func = get_func
-
-    def __len__(self):
-        status, count = self._count_func(self._comp._ptr)
-        utils._handle_ret(status, "cannot get component object's input notification iterator count")
-        return count
-
-    def __getitem__(self, index):
-        utils._check_uint64(index)
-
-        if index >= len(self):
-            raise IndexError
-
-        notif_iter_ptr = self._get_func(self._comp._ptr, index)
-        utils._handle_ptr(notif_iter_ptr, "cannot get component object's input notification iterator")
-        return bt2.notification_iterator._GenericNotificationIterator._create_from_ptr(notif_iter_ptr)
-
-
 class _UserComponent(metaclass=_UserComponentType):
+    @property
+    def name(self):
+        pub_ptr = native_bt.component_from_private_component(self._ptr)
+        name = native_bt.component_get_name(pub_ptr)
+        native_bt.put(pub_ptr)
+        assert(name is not None)
+        return name
+
+    @property
+    def graph(self):
+        pub_ptr = native_bt.component_from_private_component(self._ptr)
+        ptr = native_bt.component_get_graph(pub_ptr)
+        native_bt.put(pub_ptr)
+        assert(ptr)
+        return bt2.Graph._create_from_ptr(ptr)
+
+    @property
+    def component_class(self):
+        pub_ptr = native_bt.component_from_private_component(self._ptr)
+        cc_ptr = native_bt.component_get_class(pub_ptr)
+        native_bt.put(pub_ptr)
+        assert(cc_ptr)
+        return _create_generic_component_class_from_ptr(cc_ptr)
+
     @property
     def addr(self):
         return int(self._ptr)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, params=None):
         pass
 
-    def _destroy(self):
+    def _finalize(self):
         pass
 
-    def __del__(self):
-        if not self._belongs_to_native_component:
-            self._belongs_to_native_component = True
-            native_bt.py3_component_on_del(self)
-            native_bt.put(self._ptr)
+    def _accept_port_connection(self, port, other_port):
+        return True
+
+    def _accept_port_connection_from_native(self, port_ptr, other_port_ptr):
+        native_bt.get(port_ptr)
+        native_bt.get(other_port_ptr)
+        port = bt2.port._create_private_from_ptr(port_ptr)
+        other_port = bt2.port._create_from_ptr(other_port_ptr)
+        res = self._accept_port_connection(port, other_port_ptr)
+
+        if type(res) is not bool:
+            raise TypeError("'{}' is not a 'bool' object")
+
+        return res
+
+    def _port_connected(self, port, other_port):
+        pass
+
+    def _port_connected_from_native(self, port_ptr, other_port_ptr):
+        native_bt.get(port_ptr)
+        native_bt.get(other_port_ptr)
+        port = bt2.port._create_private_from_ptr(port_ptr)
+        other_port = bt2.port._create_from_ptr(other_port_ptr)
+
+        try:
+            self._port_connected(port, other_port_ptr)
+        except:
+            if not _NO_PRINT_TRACEBACK:
+                traceback.print_exc()
+
+    def _port_disconnected(self, port):
+        pass
+
+    def _port_disconnected_from_native(self, port_ptr):
+        native_bt.get(port_ptr)
+        port = bt2.port._create_private_from_ptr(port_ptr)
+
+        try:
+            self._port_disconnected(port)
+        except:
+            if not _NO_PRINT_TRACEBACK:
+                traceback.print_exc()
 
 
-class UserSourceComponent(_UserComponent, _CommonSourceComponentMethods):
-    pass
+class _UserSourceComponent(_UserComponent, _SourceComponent):
+    @property
+    def _output_ports(self):
+        return _ComponentPorts(True, self,
+                               native_bt.private_component_source_get_output_private_port_by_name,
+                               native_bt.private_component_source_get_output_private_port_by_index,
+                               native_bt.component_source_get_output_port_count)
+
+    def _add_output_port(self, name):
+        utils._check_str(name)
+        fn = native_bt.private_component_source_add_output_private_port
+        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        _handle_component_status(comp_status,
+                                 'cannot add output port to source component object')
+        assert(priv_port_ptr)
+        return bt2.port._create_private_from_ptr(priv_port_ptr)
 
 
-class UserFilterComponent(_UserComponent, _CommonFilterComponentMethods):
-    def _set_minimum_input_notification_iterator_count(self, count):
-        utils._check_uint64(count)
-        status = native_bt.component_filter_set_minimum_input_count(self._ptr, count)
-        self._handle_status(status, "unexpected error: cannot set filter component object's minimum input notification iterator count")
-
-    _minimum_input_notification_iterator_count = property(fset=_set_minimum_input_notification_iterator_count)
-
-    def _set_maximum_input_notification_iterator_count(self, count):
-        utils._check_uint64(count)
-        status = native_bt.component_filter_set_maximum_input_count(self._ptr, count)
-        self._handle_status(status, "unexpected error: cannot set filter component object's maximum input notification iterator count")
-
-    _maximum_input_notification_iterator_count = property(fset=_set_maximum_input_notification_iterator_count)
+class _UserFilterComponent(_UserComponent, _FilterComponent):
+    @property
+    def _output_ports(self):
+        return _ComponentPorts(True, self,
+                               native_bt.private_component_filter_get_output_private_port_by_name,
+                               native_bt.private_component_filter_get_output_private_port_by_index,
+                               native_bt.component_filter_get_output_port_count)
 
     @property
-    def _input_notification_iterators(self):
-        return _ComponentInputNotificationIterators(self,
-                                                    native_bt.component_filter_get_input_count,
-                                                    native_bt.component_filter_get_input_iterator_private)
+    def _input_ports(self):
+        return _ComponentPorts(True, self,
+                               native_bt.private_component_filter_get_input_private_port_by_name,
+                               native_bt.private_component_filter_get_input_private_port_by_index,
+                               native_bt.component_filter_get_input_port_count)
 
-    def _add_iterator_from_bt(self, notif_iter_ptr):
-        notif_iter = bt2.notification_iterator._GenericNotificationIterator._create_from_ptr(notif_iter_ptr)
-        self._add_notification_iterator(notif_iter)
+    def _add_output_port(self, name):
+        utils._check_str(name)
+        fn = native_bt.private_component_filter_add_output_private_port
+        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        _handle_component_status(comp_status,
+                                 'cannot add output port to filter component object')
+        assert(priv_port_ptr)
+        return bt2.port._create_private_from_ptr(priv_port_ptr)
 
-    def _add_notification_iterator(self, notif_iter):
-        pass
+    def _add_input_port(self, name):
+        utils._check_str(name)
+        fn = native_bt.private_component_filter_add_input_private_port
+        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        _handle_component_status(comp_status,
+                                 'cannot add input port to filter component object')
+        assert(priv_port_ptr)
+        return bt2.port._create_private_from_ptr(priv_port_ptr)
 
 
-class UserSinkComponent(_UserComponent, _CommonSinkComponentMethods):
-    def _set_minimum_input_notification_iterator_count(self, count):
-        utils._check_uint64(count)
-        status = native_bt.component_sink_set_minimum_input_count(self._ptr, count)
-        self._handle_status(status, "unexpected error: cannot set sink component object's minimum input notification iterator count")
-
-    _minimum_input_notification_iterator_count = property(fset=_set_minimum_input_notification_iterator_count)
-
-    def _set_maximum_input_notification_iterator_count(self, count):
-        utils._check_uint64(count)
-        status = native_bt.component_sink_set_maximum_input_count(self._ptr, count)
-        self._handle_status(status, "unexpected error: cannot set sink component object's maximum input notification iterator count")
-
-    _maximum_input_notification_iterator_count = property(fset=_set_maximum_input_notification_iterator_count)
-
+class _UserSinkComponent(_UserComponent, _SinkComponent):
     @property
-    def _input_notification_iterators(self):
-        return _ComponentInputNotificationIterators(self,
-                                                    native_bt.component_sink_get_input_count,
-                                                    native_bt.component_sink_get_input_iterator_private)
+    def _input_ports(self):
+        return _ComponentPorts(True, self,
+                               native_bt.private_component_sink_get_input_private_port_by_name,
+                               native_bt.private_component_sink_get_input_private_port_by_index,
+                               native_bt.component_sink_get_input_port_count)
 
-    def _add_iterator_from_bt(self, notif_iter_ptr):
-        notif_iter = bt2.notification_iterator._GenericNotificationIterator._create_from_ptr(notif_iter_ptr)
-        self._add_notification_iterator(notif_iter)
-
-    def _add_notification_iterator(self, notif_iter):
-        pass
+    def _add_input_port(self, name):
+        utils._check_str(name)
+        fn = native_bt.private_component_sink_add_input_private_port
+        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        _handle_component_status(comp_status,
+                                 'cannot add input port to sink component object')
+        assert(priv_port_ptr)
+        return bt2.port._create_private_from_ptr(priv_port_ptr)
