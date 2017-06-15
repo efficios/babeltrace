@@ -759,6 +759,9 @@ enum bt_ctf_integer_base {
 	/// Unknown, used for errors.
 	BT_CTF_INTEGER_BASE_UNKNOWN = -1,
 
+	/// Unspecified by the tracer.
+	BT_CTF_INTEGER_BASE_UNSPECIFIED = 0,
+
 	/// Binary.
 	BT_CTF_INTEGER_BASE_BINARY = 2,
 
@@ -896,8 +899,9 @@ extern int bt_ctf_field_type_integer_set_is_signed(
 				preferred display base.
 @returns			Preferred display base of the integer
 				fields described by \p int_field_type,
-				or #BT_CTF_INTEGER_BASE_UNKNOWN on
-				error.
+				#BT_CTF_INTEGER_BASE_UNSPECIFIED if
+				not specified, or
+				#BT_CTF_INTEGER_BASE_UNKNOWN on error.
 
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
@@ -924,9 +928,9 @@ extern enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
 @prehot{int_field_type}
-@pre \p base is #BT_CTF_INTEGER_BASE_BINARY, #BT_CTF_INTEGER_BASE_OCTAL,
-	#BT_CTF_INTEGER_BASE_DECIMAL, or
-	#BT_CTF_INTEGER_BASE_HEXADECIMAL.
+@pre \p base is #BT_CTF_INTEGER_BASE_UNSPECIFIED,
+	#BT_CTF_INTEGER_BASE_BINARY, #BT_CTF_INTEGER_BASE_OCTAL,
+	#BT_CTF_INTEGER_BASE_DECIMAL, or #BT_CTF_INTEGER_BASE_HEXADECIMAL.
 @postrefcountsame{int_field_type}
 
 @sa bt_ctf_field_type_integer_get_base(): Returns the preferred display
