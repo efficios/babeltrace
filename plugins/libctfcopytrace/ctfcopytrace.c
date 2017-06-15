@@ -410,40 +410,36 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 	}
 
 	type = bt_ctf_stream_class_get_event_header_type(stream_class);
-	if (!type) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	if (type) {
+		if (override_ts64) {
+			struct bt_ctf_field_type *new_event_header_type;
 
-	if (override_ts64) {
-		struct bt_ctf_field_type *new_event_header_type;
-
-		new_event_header_type = override_header_type(err, type,
-				writer_trace);
-		if (!new_event_header_type) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			goto error;
+			new_event_header_type = override_header_type(err, type,
+					writer_trace);
+			if (!new_event_header_type) {
+				fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+						__LINE__);
+				goto error;
+			}
+			ret_int = bt_ctf_stream_class_set_event_header_type(
+					writer_stream_class, new_event_header_type);
+			BT_PUT(new_event_header_type);
+			if (ret_int < 0) {
+				fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+						__LINE__);
+				goto error;
+			}
+		} else {
+			ret_int = bt_ctf_stream_class_set_event_header_type(
+					writer_stream_class, type);
+			if (ret_int < 0) {
+				fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+						__LINE__);
+				goto error;
+			}
 		}
-		ret_int = bt_ctf_stream_class_set_event_header_type(
-				writer_stream_class, new_event_header_type);
-		BT_PUT(new_event_header_type);
-		if (ret_int < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			goto error;
-		}
-	} else {
-		ret_int = bt_ctf_stream_class_set_event_header_type(
-				writer_stream_class, type);
-		if (ret_int < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			goto error;
-		}
+		BT_PUT(type);
 	}
-	BT_PUT(type);
 
 	type = bt_ctf_stream_class_get_event_context_type(stream_class);
 	if (type) {
@@ -714,42 +710,38 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 	}
 
 	field = bt_ctf_event_get_header(event);
-	if (!field) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
+	if (field) {
+		/*
+		 * If override_ts64, we override all integer fields mapped to a clock
+		 * to a uint64_t field type, otherwise, we just copy it as is.
+		 */
+		if (override_ts64) {
+			copy_field = bt_ctf_event_get_header(writer_event);
+			if (!copy_field) {
+				fprintf(err, "[error] %s in %s:%d\n", __func__,
+						__FILE__, __LINE__);
+				goto error;
+			}
 
-	/*
-	 * If override_ts64, we override all integer fields mapped to a clock
-	 * to a uint64_t field type, otherwise, we just copy it as is.
-	 */
-	if (override_ts64) {
-		copy_field = bt_ctf_event_get_header(writer_event);
-		if (!copy_field) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
+			ret = copy_override_field(err, event, writer_event, field,
+					copy_field);
+			if (ret) {
+				fprintf(err, "[error] %s in %s:%d\n", __func__,
+						__FILE__, __LINE__);
+				goto error;
+			}
+			BT_PUT(copy_field);
+		} else {
+			ret = ctf_copy_event_header(err, event, writer_event_class,
+					writer_event, field);
+			if (ret) {
+				fprintf(err, "[error] %s in %s:%d\n", __func__,
+						__FILE__, __LINE__);
+				goto error;
+			}
 		}
-
-		ret = copy_override_field(err, event, writer_event, field,
-				copy_field);
-		if (ret) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
-		BT_PUT(copy_field);
-	} else {
-		ret = ctf_copy_event_header(err, event, writer_event_class,
-				writer_event, field);
-		if (ret) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
+		BT_PUT(field);
 	}
-	BT_PUT(field);
 
 	/* Optional field, so it can fail silently. */
 	field = bt_ctf_event_get_stream_event_context(event);

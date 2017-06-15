@@ -1126,6 +1126,10 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 
 	assert(event);
 
+	if (!event->event_header) {
+		goto end;
+	}
+
 	if (event->frozen) {
 		BT_LOGW_STR("Cannot populate event header field: event is frozen.");
 		ret = -1;
@@ -1569,13 +1573,15 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 			stream->pos.offset, stream->pos.packet_size);
 
 		/* Write event header */
-		BT_LOGV_STR("Serializing event's header field.");
-		ret = bt_ctf_field_serialize(event->event_header,
-			&stream->pos, native_byte_order);
-		if (ret) {
-			BT_LOGW("Cannot serialize event's header field: "
-				"field-addr=%p", event->event_header);
-			goto end;
+		if (event->event_header) {
+			BT_LOGV_STR("Serializing event's header field.");
+			ret = bt_ctf_field_serialize(event->event_header,
+					&stream->pos, native_byte_order);
+			if (ret) {
+				BT_LOGW("Cannot serialize event's header field: "
+						"field-addr=%p", event->event_header);
+				goto end;
+			}
 		}
 
 		/* Write stream event context */

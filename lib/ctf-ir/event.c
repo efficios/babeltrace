@@ -868,14 +868,16 @@ int bt_ctf_event_validate(struct bt_ctf_event *event)
 	struct bt_ctf_stream_class *stream_class = NULL;
 
 	assert(event);
-	ret = bt_ctf_field_validate(event->event_header);
-	if (ret) {
-		BT_LOGD("Invalid event's header field: "
-			"event-addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64,
-			event, bt_ctf_event_class_get_name(event->event_class),
-			bt_ctf_event_class_get_id(event->event_class));
-		goto end;
+	if (event->event_header) {
+		ret = bt_ctf_field_validate(event->event_header);
+		if (ret) {
+			BT_LOGD("Invalid event's header field: "
+					"event-addr=%p, event-class-name=\"%s\", "
+					"event-class-id=%" PRId64,
+					event, bt_ctf_event_class_get_name(event->event_class),
+					bt_ctf_event_class_get_id(event->event_class));
+			goto end;
+		}
 	}
 
 	stream_class = bt_ctf_event_class_get_stream_class(event->event_class);
