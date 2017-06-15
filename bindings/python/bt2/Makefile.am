@@ -3,44 +3,55 @@ NATIVE_MODULE = native_bt
 
 # interface dependencies (without `native_bt` prefix and `.i` extension)
 NATIVE_MODULE_DEPS =	\
+	ccpriomap	\
 	clockclass	\
-	eventclass	\
+	component	\
+	componentclass	\
+	connection	\
+	ctfwriter	\
 	event		\
+	eventclass	\
 	fields		\
 	ft		\
-	packet		\
-	ref		\
-	streamclass	\
-	stream		\
-	trace		\
-	values		\
-	ctfwriter	\
-	componentclass	\
-	component	\
+	graph		\
+	logging		\
 	notification	\
 	notifiter	\
-	plugin
+	packet		\
+	plugin		\
+	port		\
+	ref		\
+	stream		\
+	streamclass	\
+	trace		\
+	values		\
+	version
 
 # Python modules (without `.py` extension)
-EXTRA_MODULES = 		\
-	clock_class		\
-	event_class		\
-	event			\
-	fields			\
-	field_types		\
-	object			\
-	packet			\
-	stream_class		\
-	stream			\
-	trace			\
-	utils			\
-	values			\
-	ctf_writer		\
-	component		\
-	notification		\
-	notification_iterator	\
-	plugin			\
-	py_plugin
+EXTRA_MODULES = 			\
+	clock_class			\
+	clock_class_priority_map	\
+	component			\
+	connection			\
+	ctf_writer			\
+	event				\
+	event_class			\
+	field_types			\
+	fields				\
+	graph				\
+	logging				\
+	notification			\
+	notification_iterator		\
+	object				\
+	packet				\
+	plugin				\
+	port				\
+	py_plugin			\
+	stream				\
+	stream_class			\
+	trace				\
+	utils				\
+	values
 
 # automatically generated file lists
 EXTRA_MODULES_PY = $(addprefix $(srcdir)/,$(addsuffix .py,$(EXTRA_MODULES)))
@@ -64,19 +75,20 @@ $(NATIVE_MODULE_C): $(NATIVE_MODULE_I) $(NATIVE_MODULE_DEPS_I)
 	$(SWIG) -python -Wall -I$(srcdir) -I$(top_srcdir)/include -module $(NATIVE_MODULE) -outcurrentdir $(NATIVE_MODULE_I)
 
 # native_bt module
-_native_bt_la_SOURCES = native_bt_wrap.c
+_native_bt_la_SOURCES = logging.h logging.c
+nodist__native_bt_la_SOURCES = native_bt_wrap.c
 _native_bt_la_LDFLAGS = -module
-_native_bt_la_CFLAGS = $(GLIB_CFLAGS) $(PYTHON_INCLUDE) -I$(srcdir) $(AM_CFLAGS)
-_native_bt_la_LIBS = $(GLIB_LIBS)
+_native_bt_la_CFLAGS = $(PYTHON_INCLUDE) -I$(srcdir) $(AM_CFLAGS)
 _native_bt_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/formats/ctf/libbabeltrace-ctf.la
+	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/common/libbabeltrace-common.la
 
 # extra module sources -> build directory
 all-local:
 	@if [ x"$(srcdir)" != x"$(builddir)" ]; then		\
 		for file in $(EXTRA_MODULES_PY); do		\
-			cp -f $(srcdir)/$$file $(builddir);	\
+			cp -f "$(srcdir)/$$file" "$(builddir)";	\
 		done;						\
 	fi
 
@@ -84,7 +96,7 @@ all-local:
 clean-local:
 	@if [ x"$(srcdir)" != x"$(builddir)" ]; then		\
 		for file in $(EXTRA_MODULES_PY); do		\
-			rm -f $(srcdir)/$$file $(builddir);	\
+			rm -f "$(srcdir)/$$file" "$(builddir)";	\
 		done;						\
 	fi
 

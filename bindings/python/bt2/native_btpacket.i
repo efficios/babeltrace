@@ -22,10 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-ir/packet.h>
-%}
-
 /* Type */
 struct bt_ctf_packet;
 

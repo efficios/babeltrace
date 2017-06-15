@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -277,7 +277,10 @@ class _IntegerField(_IntegralField):
         else:
             ret, value = native_bt.ctf_field_unsigned_integer_get_value(self._ptr)
 
-        utils._handle_ret(ret, "cannot get integer field object's value")
+        if ret < 0:
+            # field is not set
+            return
+
         return value
 
     @value.setter
@@ -304,7 +307,11 @@ class _FloatingPointNumberField(_RealField):
     @property
     def value(self):
         ret, value = native_bt.ctf_field_floating_point_get_value(self._ptr)
-        utils._handle_ret(ret, "cannot get floating point number field object's value")
+
+        if ret < 0:
+            # field is not set
+            return
+
         return value
 
     @value.setter
@@ -320,8 +327,7 @@ class _EnumerationField(_IntegerField):
     @property
     def integer_field(self):
         int_field_ptr = native_bt.ctf_field_enumeration_get_container(self._ptr)
-        utils._handle_ptr(int_field_ptr,
-                          "cannot get enumeration field object's underlying integer field")
+        assert(int_field_ptr)
         return _create_from_ptr(int_field_ptr)
 
     @property
@@ -334,8 +340,10 @@ class _EnumerationField(_IntegerField):
 
     @property
     def mappings(self):
-        iter_ptr = bt_ctf_field_enumeration_get_mappings(self._ptr)
-        return self.field_type._get_mapping_iter(iter_ptr)
+        iter_ptr = native_bt.ctf_field_enumeration_get_mappings(self._ptr)
+        assert(iter_ptr)
+        return bt2.field_types._EnumerationFieldTypeMappingIterator(iter_ptr,
+                                                                    self.field_type.is_signed)
 
 
 @functools.total_ordering
@@ -354,7 +362,11 @@ class _StringField(_Field, collections.abc.Sequence):
     @property
     def value(self):
         value = native_bt.ctf_field_string_get_value(self._ptr)
-        utils._handle_ptr(value, "cannot get string field object's value")
+
+        if value is None:
+            # field is not set
+            return
+
         return value
 
     @value.setter
@@ -402,7 +414,7 @@ class _ContainerField(_Field):
 
     def __len__(self):
         count = self._count()
-        utils._handle_ret(count, "cannot get {} field object's field count".format(self._NAME.lower()))
+        assert(count >= 0)
         return count
 
     def __delitem__(self, index):
@@ -417,7 +429,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     def __getitem__(self, key):
         utils._check_str(key)
-        ptr = native_bt.ctf_field_structure_get_field(self._ptr, key)
+        ptr = native_bt.ctf_field_structure_get_field_by_name(self._ptr, key)
 
         if ptr is None:
             raise KeyError(key)
@@ -441,8 +453,12 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     def at_index(self, index):
         utils._check_uint64(index)
+
+        if index >= len(self):
+            raise IndexError
+
         field_ptr = native_bt.ctf_field_structure_get_field_by_index(self._ptr, index)
-        utils._handle_ptr(field_ptr, "cannot get structure field object's field")
+        assert(field_ptr)
         return _create_from_ptr(field_ptr)
 
     def __iter__(self):
@@ -474,7 +490,10 @@ class _VariantField(_Field):
     @property
     def tag_field(self):
         field_ptr = native_bt.ctf_field_variant_get_tag(self._ptr)
-        utils._handle_ptr(field_ptr, "cannot get variant field object's tag field")
+
+        if field_ptr is None:
+            return
+
         return _create_from_ptr(field_ptr)
 
     @property
@@ -484,7 +503,9 @@ class _VariantField(_Field):
     def field(self, tag_field=None):
         if tag_field is None:
             field_ptr = native_bt.ctf_field_variant_get_current_field(self._ptr)
-            utils._handle_ptr(field_ptr, "cannot get variant field object's selected field")
+
+            if field_ptr is None:
+                return
         else:
             utils._check_type(tag_field, _EnumerationField)
             field_ptr = native_bt.ctf_field_variant_get_field(self._ptr, tag_field._ptr)
@@ -493,7 +514,16 @@ class _VariantField(_Field):
         return _create_from_ptr(field_ptr)
 
     def __eq__(self, other):
-        return self.field == other
+        if type(other) is not type(self):
+            return False
+
+        if self.addr == other.addr:
+            return True
+
+        return self.selected_field == other.selected_field
+
+    def __bool__(self):
+        return bool(self.selected_field)
 
 
 class _ArraySequenceField(_ContainerField, collections.abc.MutableSequence):
@@ -507,7 +537,7 @@ class _ArraySequenceField(_ContainerField, collections.abc.MutableSequence):
             raise IndexError('{} field object index is out of range'.format(self._NAME))
 
         field_ptr = self._get_field_ptr_at_index(index)
-        utils._handle_ptr(field_ptr, "cannot get {} field object's field".format(self._NAME))
+        assert(field_ptr)
         return _create_from_ptr(field_ptr)
 
     def __setitem__(self, index, value):
@@ -575,13 +605,12 @@ class _SequenceField(_ArraySequenceField):
 
 
 _TYPE_ID_TO_OBJ = {
-    native_bt.CTF_TYPE_ID_INTEGER: _IntegerField,
-    native_bt.CTF_TYPE_ID_FLOAT: _FloatingPointNumberField,
-    native_bt.CTF_TYPE_ID_ENUM: _EnumerationField,
-    native_bt.CTF_TYPE_ID_STRING: _StringField,
-    native_bt.CTF_TYPE_ID_STRUCT: _StructureField,
-    native_bt.CTF_TYPE_ID_ARRAY: _ArrayField,
-    native_bt.CTF_TYPE_ID_SEQUENCE: _SequenceField,
-    native_bt.CTF_TYPE_ID_VARIANT: _VariantField,
-    native_bt.CTF_TYPE_ID_UNTAGGED_VARIANT: _VariantField,
+    native_bt.CTF_FIELD_TYPE_ID_INTEGER: _IntegerField,
+    native_bt.CTF_FIELD_TYPE_ID_FLOAT: _FloatingPointNumberField,
+    native_bt.CTF_FIELD_TYPE_ID_ENUM: _EnumerationField,
+    native_bt.CTF_FIELD_TYPE_ID_STRING: _StringField,
+    native_bt.CTF_FIELD_TYPE_ID_STRUCT: _StructureField,
+    native_bt.CTF_FIELD_TYPE_ID_ARRAY: _ArrayField,
+    native_bt.CTF_FIELD_TYPE_ID_SEQUENCE: _SequenceField,
+    native_bt.CTF_FIELD_TYPE_ID_VARIANT: _VariantField,
 }

@@ -143,7 +143,7 @@ class _Event(object._Object):
 
     @property
     def payload_field(self):
-        field_ptr = native_bt.ctf_event_get_payload_field(self._ptr)
+        field_ptr = native_bt.ctf_event_get_event_payload(self._ptr)
 
         if field_ptr is None:
             return
@@ -158,7 +158,7 @@ class _Event(object._Object):
             utils._check_type(payload, bt2.fields._Field)
             payload_ptr = payload._ptr
 
-        ret = native_bt.ctf_event_set_payload_field(self._ptr, payload_ptr)
+        ret = native_bt.ctf_event_set_event_payload(self._ptr, payload_ptr)
         utils._handle_ret(ret, "cannot set event object's payload field")
 
     def _get_clock_value_cycles(self, clock_class_ptr):
@@ -173,7 +173,7 @@ class _Event(object._Object):
         utils._handle_ret(ret, "cannot get clock value object's cycles")
         return cycles
 
-    def get_clock_value(self, clock_class):
+    def clock_value(self, clock_class):
         utils._check_type(clock_class, bt2.ClockClass)
         clock_value_ptr = native_bt.ctf_event_get_clock_value(self._ptr,
                                                               clock_class._ptr)
@@ -184,7 +184,7 @@ class _Event(object._Object):
         clock_value = bt2.clock_class._create_clock_value_from_ptr(clock_value_ptr)
         return clock_value
 
-    def set_clock_value(self, clock_value):
+    def add_clock_value(self, clock_value):
         utils._check_type(clock_value, bt2.clock_class._ClockValue)
         ret = native_bt.ctf_event_set_clock_value(self._ptr,
                                                   clock_value._ptr)
@@ -293,12 +293,16 @@ class _Event(object._Object):
         cpy.context_field = copy_func(self.context_field)
         cpy.payload_field = copy_func(self.payload_field)
 
-        # copy known clock values
+        # Copy known clock value references. It's not necessary to copy
+        # clock class or clock value objects because once a clock value
+        # is created from a clock class, the clock class is frozen.
+        # Thus even if we copy the clock class, the user cannot modify
+        # it, therefore it's useless to copy it.
         for clock_class in self._clock_classes:
-            clock_value = self.get_clock_value(clock_class)
+            clock_value = self.clock_value(clock_class)
 
             if clock_value is not None:
-                cpy.set_clock_value(clock_value)
+                cpy.add_clock_value(clock_value)
 
         return cpy
 

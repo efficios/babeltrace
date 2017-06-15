@@ -22,16 +22,13 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-ir/clock-class.h>
-%}
-
 /* Types */
 struct bt_ctf_clock_class;
 struct bt_ctf_clock_value;
 
 /* Clock class functions */
-struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name);
+struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
+		uint64_t freq);
 const char *bt_ctf_clock_class_get_name(struct bt_ctf_clock_class *clock_class);
 int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class, const char *name);
 const char *bt_ctf_clock_class_get_description(struct bt_ctf_clock_class *clock_class);

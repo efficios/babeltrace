@@ -22,10 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-ir/fields.h>
-%}
-
 /* Type */
 struct bt_ctf_field;
 
@@ -73,8 +69,10 @@ int bt_ctf_field_string_append_len(
 /* Structure field functions */
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *structure, int index);
-struct bt_ctf_field *bt_ctf_field_structure_get_field(
-		struct bt_ctf_field *structure, const char *name);
+struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
+		struct bt_ctf_field *struct_field, const char *name);
+int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *struct_field,
+		const char *name, struct bt_ctf_field *field);
 
 /* Array field functions */
 struct bt_ctf_field *bt_ctf_field_array_get_field(

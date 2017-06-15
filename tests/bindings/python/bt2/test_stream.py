@@ -7,9 +7,12 @@ import bt2
 
 class StreamTestCase(unittest.TestCase):
     def setUp(self):
-        self._stream = self._create_stream()
+        self._stream = self._create_stream(stream_id=23)
 
-    def _create_stream(self, name='my_stream'):
+    def tearDown(self):
+        del self._stream
+
+    def _create_stream(self, name='my_stream', stream_id=None):
         # event header
         eh = bt2.StructureFieldType()
         eh += OrderedDict((
@@ -71,7 +74,7 @@ class StreamTestCase(unittest.TestCase):
         tc.add_stream_class(sc)
 
         # stream
-        return sc(name=name)
+        return sc(name=name, id=stream_id)
 
     def test_attr_stream_class(self):
         self.assertIsNotNone(self._stream.stream_class)
@@ -80,13 +83,18 @@ class StreamTestCase(unittest.TestCase):
         self.assertEqual(self._stream.name, 'my_stream')
 
     def test_eq(self):
-        stream1 = self._create_stream()
-        stream2 = self._create_stream()
+        stream1 = self._create_stream(stream_id=17)
+        stream2 = self._create_stream(stream_id=17)
         self.assertEqual(stream1, stream2)
 
     def test_ne_name(self):
-        stream1 = self._create_stream()
-        stream2 = self._create_stream('lel')
+        stream1 = self._create_stream(stream_id=17)
+        stream2 = self._create_stream('lel', 17)
+        self.assertNotEqual(stream1, stream2)
+
+    def test_ne_id(self):
+        stream1 = self._create_stream(stream_id=17)
+        stream2 = self._create_stream(stream_id=23)
         self.assertNotEqual(stream1, stream2)
 
     def test_eq_invalid(self):

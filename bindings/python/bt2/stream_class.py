@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,21 +38,21 @@ class _EventClassIterator(collections.abc.Iterator):
         if self._at == len(self._stream_class):
             raise StopIteration
 
-        ec_ptr = native_bt.ctf_stream_class_get_event_class(self._stream_class._ptr,
-                                                            self._at)
-        utils._handle_ptr(ec_ptr, "cannot get stream class object's event class object")
-        name = native_bt.ctf_event_class_get_name(ec_ptr)
+        ec_ptr = native_bt.ctf_stream_class_get_event_class_by_index(self._stream_class._ptr,
+                                                                     self._at)
+        assert(ec_ptr)
+        ev_id = native_bt.ctf_event_class_get_id(ec_ptr)
         native_bt.put(ec_ptr)
-        utils._handle_ptr(name, "cannot get event class object's name")
+        utils._handle_ret(ev_id, "cannot get event class object's ID")
         self._at += 1
-        return name
+        return ev_id
 
 
 class StreamClass(object._Object, collections.abc.Mapping):
     def __init__(self, name=None, id=None, packet_context_field_type=None,
                  event_header_field_type=None, event_context_field_type=None,
                  event_classes=None):
-        ptr = native_bt.ctf_stream_class_create(None)
+        ptr = native_bt.ctf_stream_class_create_empty(None)
 
         if ptr is None:
             raise bt2.CreationError('cannot create stream class object')
@@ -79,9 +79,9 @@ class StreamClass(object._Object, collections.abc.Mapping):
                 self.add_event_class(event_class)
 
     def __getitem__(self, key):
-        utils._check_str(key)
-        ec_ptr = native_bt.ctf_stream_class_get_event_class_by_name(self._ptr,
-                                                                    key)
+        utils._check_int64(key)
+        ec_ptr = native_bt.ctf_stream_class_get_event_class_by_id(self._ptr,
+                                                                  key)
 
         if ec_ptr is None:
             raise KeyError(key)
@@ -90,17 +90,11 @@ class StreamClass(object._Object, collections.abc.Mapping):
 
     def __len__(self):
         count = native_bt.ctf_stream_class_get_event_class_count(self._ptr)
-        utils._handle_ret(count, "cannot get stream class object's event class count")
+        assert(count >= 0)
         return count
 
     def __iter__(self):
         return _EventClassIterator(self)
-
-    def event_class_with_id(self, id):
-        utils._check_int64(id)
-        ec_ptr = native_bt.ctf_stream_class_get_event_class_by_id(self._ptr, id)
-        utils._handle_ptr(ec_ptr, "cannot get stream class object's event class object")
-        return bt2.EventClass._create_from_ptr(ec_ptr)
 
     def add_event_class(self, event_class):
         utils._check_type(event_class, bt2.EventClass)
@@ -128,8 +122,8 @@ class StreamClass(object._Object, collections.abc.Mapping):
     def id(self):
         id = native_bt.ctf_stream_class_get_id(self._ptr)
 
-        if utils._is_m1ull(id):
-            raise bt2.Error("cannot get stream class object's ID")
+        if id < 0:
+            return
 
         return id
 
@@ -217,11 +211,14 @@ class StreamClass(object._Object, collections.abc.Mapping):
                                                                event_context_field_type_ptr)
         utils._handle_ret(ret, "cannot set stream class object's event context field type")
 
-    def __call__(self, name=None):
+    def __call__(self, name=None, id=None):
         if name is not None:
             utils._check_str(name)
 
-        stream_ptr = native_bt.ctf_stream_create(self._ptr, name)
+        if id is None:
+            stream_ptr = native_bt.ctf_stream_create(self._ptr, name)
+        else:
+            stream_ptr = native_bt.ctf_stream_create_with_id(self._ptr, name, id)
 
         if stream_ptr is None:
             raise bt2.CreationError('cannot create stream object')
@@ -241,26 +238,35 @@ class StreamClass(object._Object, collections.abc.Mapping):
             self_event_classes,
             self.name,
             self.id,
-            self.clock,
             self.packet_context_field_type,
             self.event_header_field_type,
             self.event_context_field_type,
+            self.clock,
         )
         other_props = (
             other_event_classes,
             other.name,
             other.id,
-            other.clock,
             other.packet_context_field_type,
             other.event_header_field_type,
             other.event_context_field_type,
+            other.clock,
         )
+
         return self_props == other_props
 
     def _copy(self, ft_copy_func, ev_copy_func):
         cpy = StreamClass()
-        cpy.id = self.id
-        cpy.name = self.name
+
+        if self.id is not None:
+            cpy.id = self.id
+
+        if self.name is not None:
+            cpy.name = self.name
+
+        if self.clock is not None:
+            cpy.clock = self.clock
+
         cpy.packet_context_field_type = ft_copy_func(self.packet_context_field_type)
         cpy.event_header_field_type = ft_copy_func(self.event_header_field_type)
         cpy.event_context_field_type = ft_copy_func(self.event_context_field_type)

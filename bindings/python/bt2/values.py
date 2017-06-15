@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ def _handle_status(status, obj_name):
         return
 
     if status == native_bt.VALUE_STATUS_FROZEN:
-        raise bt2.FrozenError('{} value object is frozen'.format(obj_name))
+        raise bt2.Frozen('{} value object is frozen'.format(obj_name))
     elif status == native_bt.VALUE_STATUS_INVAL:
         # In practice, this should never happen, because arguments
         # should always be validated in this Python module before
@@ -89,9 +89,6 @@ def create_value(value):
 
 
 class _Value(object._Object, object._Freezable, metaclass=abc.ABCMeta):
-    def __init__(self, ptr):
-        super().__init__(ptr)
-
     def __eq__(self, other):
         if other is None:
             # self is never the null value object
@@ -187,7 +184,7 @@ class _NumericValue(_Value, _BasicCopy):
         return self.value <= float(other)
 
     def _spec_eq(self, other):
-        return
+        pass
 
     def __eq__(self, other):
         if not isinstance(other, numbers.Number):
@@ -372,13 +369,13 @@ class BoolValue(_Value, _BasicCopy):
         if not isinstance(value, bool):
             raise TypeError("'{}' object is not a 'bool' or 'BoolValue' object".format(value.__class__))
 
-        return value
+        return int(value)
 
     @property
     def value(self):
         status, value = native_bt.value_bool_get(self._ptr)
-        self._handle_status(status)
-        return value
+        assert(status == native_bt.VALUE_STATUS_OK)
+        return value > 0
 
     @value.setter
     def value(self, value):
@@ -409,7 +406,7 @@ class IntegerValue(_IntegralValue):
     @property
     def value(self):
         status, value = native_bt.value_integer_get(self._ptr)
-        self._handle_status(status)
+        assert(status == native_bt.VALUE_STATUS_OK)
         return value
 
     @value.setter
@@ -440,7 +437,7 @@ class FloatValue(_RealValue):
     @property
     def value(self):
         status, value = native_bt.value_float_get(self._ptr)
-        self._handle_status(status)
+        assert(status == native_bt.VALUE_STATUS_OK)
         return value
 
     @value.setter
@@ -473,7 +470,7 @@ class StringValue(_BasicCopy, collections.abc.Sequence, _Value):
     @property
     def value(self):
         status, value = native_bt.value_string_get(self._ptr)
-        self._handle_status(status)
+        assert(status == native_bt.VALUE_STATUS_OK)
         return value
 
     @value.setter
@@ -523,8 +520,7 @@ class _Container:
         ptr = native_bt.value_copy(self._ptr)
 
         if ptr is None:
-            fmt = 'unexpected error: cannot deep-copy {} value object'
-            raise RuntimeError(fmt.format(self._NAME))
+            raise RuntimeError('unexpected error: cannot deep-copy {} value object'.format(self._NAME))
 
         copy = self.__class__._create_from_ptr(ptr)
         memo[id(self)] = copy
@@ -564,7 +560,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
 
     def __len__(self):
         size = native_bt.value_array_size(self._ptr)
-        self._handle_status(size)
+        assert(size >= 0)
         return size
 
     def _check_index(self, index):
@@ -580,10 +576,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
     def __getitem__(self, index):
         self._check_index(index)
         ptr = native_bt.value_array_get(self._ptr, index)
-
-        if ptr is None:
-            raise RuntimeError('unexpected error: cannot get array value object element')
-
+        assert(ptr)
         return _create_from_ptr(ptr)
 
     def __setitem__(self, index, value):
@@ -694,7 +687,7 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
 
     def __len__(self):
         size = native_bt.value_map_size(self._ptr)
-        self._handle_status(size)
+        assert(size >= 0)
         return size
 
     def __contains__(self, key):
@@ -711,10 +704,7 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
     def __getitem__(self, key):
         self._check_key(key)
         ptr = native_bt.value_map_get(self._ptr, key)
-
-        if ptr is None:
-            raise RuntimeError('unexpected error: cannot get map value object element')
-
+        assert(ptr)
         return _create_from_ptr(ptr)
 
     def __iter__(self):

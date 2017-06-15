@@ -4,6 +4,9 @@ check_coverage() {
 	coverage run $@
 }
 
+export BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1
+export TEST_PLUGIN_PLUGINS_PATH="@abs_top_builddir@/plugins"
+export BABELTRACE_PLUGIN_PATH="@abs_top_builddir@/plugins/ctf:@abs_top_builddir@/plugins/utils:@abs_top_builddir@/plugins/text"
 PYTHON_BUILD_DIR="@abs_top_builddir@/bindings/python"
 BT2_NATIVE_LIBS_DIR="@abs_top_builddir@/bindings/python/bt2/.libs"
 TESTS_UTILS_PYTHON_DIR="@abs_top_srcdir@/tests/utils/python"
