@@ -281,6 +281,38 @@ end:
 	return ret;
 }
 
+static
+enum bt_component_status apply_one_bool(const char *key,
+		struct bt_value *params,
+		bool *option,
+		bool *found)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_value *value = NULL;
+	enum bt_value_status status;
+	bt_bool bool_val;
+
+	value = bt_value_map_get(params, key);
+	if (!value) {
+		goto end;
+	}
+	status = bt_value_bool_get(value, &bool_val);
+	switch (status) {
+	case BT_VALUE_STATUS_OK:
+		break;
+	default:
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+	*option = (bool) bool_val;
+	if (found) {
+		*found = true;
+	}
+end:
+	bt_put(value);
+	return ret;
+}
+
 BT_HIDDEN
 enum bt_component_status writer_component_init(
 	struct bt_private_component *component, struct bt_value *params,
@@ -322,6 +354,13 @@ enum bt_component_status writer_component_init(
 	if (!writer_component) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto error;
+	}
+
+	writer_component->single_trace = false;
+	ret = apply_one_bool("single-trace", params,
+			&writer_component->single_trace, NULL);
+	if (ret != BT_COMPONENT_STATUS_OK) {
+		goto end;
 	}
 
 	ret = bt_private_component_set_user_data(component, writer_component);

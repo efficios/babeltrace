@@ -2868,7 +2868,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    `text`:\n");
 	fprintf(fp, "                                      Create an implicit `sink.text.pretty`\n");
 	fprintf(fp, "                                      component\n");
-	fprintf(fp, "                                    `text`:\n");
+	fprintf(fp, "                                    `ctf`:\n");
 	fprintf(fp, "                                      Create an implicit `sink.ctf.fs`\n");
 	fprintf(fp, "                                      component\n");
 	fprintf(fp, "                                    `dummy`:\n");
@@ -4099,6 +4099,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_CLOCK_GMT:
 			append_implicit_component_param(
 				&implicit_text_args, "clock-gmt", "yes");
+			append_implicit_component_param(
+				&implicit_trimmer_args, "clock-gmt", "yes");
 			implicit_text_args.exists = true;
 			break;
 		case OPT_CLOCK_OFFSET:
