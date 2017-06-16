@@ -27,26 +27,38 @@ source $TESTDIR/utils/tap/tap.sh
 SUCCESS_TRACES=(${CTF_TRACES}/succeed/*)
 FAIL_TRACES=(${CTF_TRACES}/fail/*)
 
-NUM_TESTS=$((${#SUCCESS_TRACES[@]} * 3))
+# -2 because there is an empty trace that we skip
+NUM_TESTS=$((${#SUCCESS_TRACES[@]} * 3 - 2))
 
 plan_tests $NUM_TESTS
 
 for path in ${SUCCESS_TRACES[@]}; do
 	out_path=$(mktemp -d)
+	text_output1=$(mktemp)
+	text_output2=$(mktemp)
 	trace=$(basename ${path})
 
-	orig_cnt=$($BABELTRACE_BIN ${path} 2>/dev/null | wc -l)
+	$BABELTRACE_BIN ${path} 2>/dev/null >${text_output1}
+	cnt=$(cat ${text_output1} | wc -l)
+	if test $cnt == 0; then
+		ok 0 "Empty trace, nothing to copy"
+		continue
+	fi
 
 	$BABELTRACE_BIN ${path} --component sink.ctf.fs --path ${out_path} >/dev/null 2>&1
 	ok $? "Copy trace ${trace} with ctf-fs sink"
 
 	$BABELTRACE_BIN ${out_path} >/dev/null 2>&1
-	ok $? "Read the new trace in ${out_path}"
+	if test $? != 0; then
+		fail "Read the new trace in ${out_path}"
+		continue
+	fi
+	ok 0 "Read the new trace in ${out_path}"
 
-	new_cnt=$($BABELTRACE_BIN ${out_path} 2>/dev/null | wc -l)
+	$BABELTRACE_BIN ${out_path} 2>/dev/null >${text_output2}
+	cnt=$(diff ${text_output1} ${text_output2} | wc -l)
+	test $? == 0
+	ok $? "Exact same content between the two traces"
 
-	test $orig_cnt == $new_cnt
-	ok $? "Same number of events as the original trace ($orig_cnt -> $new_cnt)"
-
-	rm -rf ${out_path}
+	rm -rf ${out_path} ${text_output} ${text_output2}
 done
