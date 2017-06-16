@@ -411,7 +411,13 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 
 	type = bt_ctf_stream_class_get_event_header_type(stream_class);
 	if (type) {
-		if (override_ts64) {
+		ret_int = bt_ctf_trace_get_clock_class_count(writer_trace);
+		if (ret_int < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__,
+					__FILE__, __LINE__);
+			goto error;
+		}
+		if (override_ts64 && ret_int > 0) {
 			struct bt_ctf_field_type *new_event_header_type;
 
 			new_event_header_type = override_header_type(err, type,
@@ -693,6 +699,36 @@ end:
 	return ret;
 }
 
+static
+struct bt_ctf_trace *event_class_get_trace(FILE *err,
+		struct bt_ctf_event_class *event_class)
+{
+	struct bt_ctf_trace *trace = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+
+	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	if (!stream_class) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	if (!trace) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(trace);
+end:
+	bt_put(stream_class);
+	return trace;
+}
+
 BT_HIDDEN
 struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_event_class *writer_event_class,
@@ -700,22 +736,37 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 {
 	struct bt_ctf_event *writer_event = NULL;
 	struct bt_ctf_field *field = NULL, *copy_field = NULL;
+	struct bt_ctf_trace *writer_trace = NULL;
 	int ret;
 
 	writer_event = bt_ctf_event_create(writer_event_class);
 	if (!writer_event) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
-		goto end;
+		goto error;
+	}
+
+	writer_trace = event_class_get_trace(err, writer_event_class);
+	if (!writer_trace) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
 	}
 
 	field = bt_ctf_event_get_header(event);
 	if (field) {
 		/*
-		 * If override_ts64, we override all integer fields mapped to a clock
-		 * to a uint64_t field type, otherwise, we just copy it as is.
+		 * If override_ts64, we override all integer fields mapped to a
+		 * clock to a uint64_t field type, otherwise, we just copy it as
+		 * is.
 		 */
-		if (override_ts64) {
+		ret = bt_ctf_trace_get_clock_class_count(writer_trace);
+		if (ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+					__LINE__);
+			goto error;
+		}
+		if (override_ts64 && ret > 0) {
 			copy_field = bt_ctf_event_get_header(writer_event);
 			if (!copy_field) {
 				fprintf(err, "[error] %s in %s:%d\n", __func__,
@@ -807,6 +858,7 @@ error:
 end:
 	bt_put(field);
 	bt_put(copy_field);
+	bt_put(writer_trace);
 	return writer_event;
 }
 
