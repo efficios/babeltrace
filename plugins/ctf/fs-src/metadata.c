@@ -105,7 +105,6 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
 	struct ctf_metadata_decoder_config decoder_config = {
 		.clock_class_offset_s = config->clock_class_offset_s,
 		.clock_class_offset_ns = config->clock_class_offset_ns,
-		.strict = config->strict,
 	};
 
 	file = get_file(ctf_fs_trace->path->str);
