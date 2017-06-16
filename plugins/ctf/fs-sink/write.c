@@ -195,7 +195,7 @@ bool valid_single_trace_path(const char *path)
 	DIR *dir = opendir(path);
 	int ret;
 
-	/* non-existant directory */
+	/* non-existent directory. */
 	if (!dir) {
 		ret = 0;
 		goto end;
