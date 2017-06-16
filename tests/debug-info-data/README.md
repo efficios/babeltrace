@@ -62,3 +62,20 @@ https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
     $ objcopy --only-keep-debug libhello_debug_link_so libhello_debug_link_so.debug
     $ strip -g libhello_debug_link_so
     $ objcopy --add-gnu-debuglink=libhello_debug_link_so.debug libhello_debug_link_so
+
+
+Test program
+------------
+An executable linked to this library can be compiled from the `main.c` source file.
+To compile it, you can do:
+
+    $ ln -s libhello_so libhello.so
+    $ gcc -I. -o test main.c -L. -lhello_build_id -llttng-ust -ldl -Wl,--rpath=.
+
+The trace provided in this directory was generated with lttng-ust running this
+program and stripped to contain only the bare minimum. When running babeltrace
+with the `--debug-info-target-prefix` option pointing to the source tree of
+Babeltrace, the `my_provider:my_first_tracepoint` events should contain this
+information:
+
+    debug_info = { bin = "libhello_so+0x166b", func = "baz+0x9c", src = "libhello.c:20" } }
