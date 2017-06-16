@@ -212,7 +212,10 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 	struct bt_ctf_event_class *writer_event_class = NULL;
 	struct bt_ctf_field_type *context, *payload_type;
 	const char *name;
-	int count, i, ret;
+	int ret;
+	int64_t id;
+	enum bt_ctf_event_class_log_level log_level;
+	const char *emf_uri;
 
 	name = bt_ctf_event_class_get_name(event_class);
 	if (!name) {
@@ -228,31 +231,39 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		goto end;
 	}
 
-	count = bt_ctf_event_class_get_attribute_count(event_class);
-	for (i = 0; i < count; i++) {
-		const char *attr_name;
-		struct bt_value *attr_value;
-		int ret;
+	id = bt_ctf_event_class_get_id(event_class);
+	if (id < 0) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
 
-		attr_name = bt_ctf_event_class_get_attribute_name_by_index(
-			event_class, i);
-		if (!attr_name) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
-		attr_value = bt_ctf_event_class_get_attribute_value_by_index(
-			event_class, i);
-		if (!attr_value) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
+	ret = bt_ctf_event_class_set_id(writer_event_class, id);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
 
-		ret = bt_ctf_event_class_set_attribute(writer_event_class,
-				attr_name, attr_value);
-		BT_PUT(attr_value);
-		if (ret < 0) {
+	log_level = bt_ctf_event_class_get_log_level(event_class);
+	if (log_level < 0) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	ret = bt_ctf_event_class_set_log_level(writer_event_class, log_level);
+	if (ret) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__,
+				__FILE__, __LINE__);
+		goto error;
+	}
+
+	emf_uri = bt_ctf_event_class_get_emf_uri(event_class);
+	if (emf_uri) {
+		ret = bt_ctf_event_class_set_emf_uri(writer_event_class,
+			emf_uri);
+		if (ret) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__,
 					__FILE__, __LINE__);
 			goto error;
@@ -885,7 +896,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	 * the CTF writer object chooses, which is the machine's native
 	 * byte order.
 	 */
-	if (order != BT_CTF_BYTE_ORDER_NONE) {
+	if (order != BT_CTF_BYTE_ORDER_UNSPECIFIED) {
 		ret = bt_ctf_trace_set_native_byte_order(writer_trace, order);
 		if (ret) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);

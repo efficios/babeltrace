@@ -51,7 +51,7 @@
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
 #define ARRAY_TEST_LENGTH 5
-#define PACKET_RESIZE_TEST_LENGTH 100000
+#define PACKET_RESIZE_TEST_LENGTH 5
 
 #define DEFAULT_CLOCK_FREQ 1000000000
 #define DEFAULT_CLOCK_PRECISION 1
@@ -61,7 +61,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 634
+#define NR_TESTS 621
 
 static int64_t current_time = 42;
 
@@ -586,17 +586,7 @@ static
 void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_stream *stream, struct bt_ctf_clock *clock)
 {
-	struct event_class_attrs_counts {
-		int id;
-		int name;
-		int loglevel;
-		int modelemfuri;
-		int unknown;
-	} attrs_count;
-
 	int i;
-	int ret;
-	int64_t int64_value;
 	struct event_class_attrs_counts ;
 	const char *complex_test_event_string = "Complex Test Event";
 	const char *test_string_1 = "Test ";
@@ -638,7 +628,6 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	struct bt_ctf_event_class *ret_event_class;
 	struct bt_ctf_field *packet_context, *packet_context_field;
 	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
-	struct bt_value *obj;
 
 	ok(bt_ctf_field_type_set_alignment(int_16_type, 0),
 		"bt_ctf_field_type_set_alignment handles 0-alignment correctly");
@@ -783,8 +772,6 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		inner_structure_type, "inner_structure"),
 		"Add inner_structure field to complex structure");
 
-	ok(bt_ctf_event_class_create("clock") == NULL,
-		"Reject creation of an event class with an illegal name");
 	event_class = bt_ctf_event_class_create(complex_test_event_string);
 	ok(event_class, "Create an event class");
 	ok(bt_ctf_event_class_add_field(event_class, uint_35_type, ""),
@@ -820,115 +807,32 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_class_get_id returns the correct value");
 
 	/* Test event class attributes */
-	obj = bt_value_integer_create_init(15);
-	assert(obj);
-	ok(bt_ctf_event_class_set_attribute(NULL, "id", obj),
-		"bt_ctf_event_class_set_attribute handles a NULL event class correctly");
-	ok(bt_ctf_event_class_set_attribute(event_class, NULL, obj),
-		"bt_ctf_event_class_set_attribute handles a NULL name correctly");
-	ok(bt_ctf_event_class_set_attribute(event_class, "id", NULL),
-		"bt_ctf_event_class_set_attribute handles a NULL value correctly");
-	assert(!bt_value_integer_set(obj, -3));
-	ok(bt_ctf_event_class_set_attribute(event_class, "id", obj),
-		"bt_ctf_event_class_set_attribute fails with a negative \"id\" attribute");
-	assert(!bt_value_integer_set(obj, 11));
-	ret = bt_ctf_event_class_set_attribute(event_class, "id", obj);
-	ok(!ret && bt_ctf_event_class_get_id(event_class) == 11,
-		"bt_ctf_event_class_set_attribute succeeds in replacing the existing \"id\" attribute");
-	ret = bt_ctf_event_class_set_attribute(event_class, "name", obj);
-	ret &= bt_ctf_event_class_set_attribute(event_class, "model.emf.uri", obj);
-	ok(ret,
-		"bt_ctf_event_class_set_attribute cannot set \"name\" or \"model.emf.uri\" to an integer value");
-	BT_PUT(obj);
-
-	obj = bt_value_integer_create_init(5);
-	assert(obj);
-	ok(!bt_ctf_event_class_set_attribute(event_class, "loglevel", obj),
-		"bt_ctf_event_class_set_attribute succeeds in setting the \"loglevel\" attribute");
-	BT_PUT(obj);
-	ok(!bt_ctf_event_class_get_attribute_value_by_name(NULL, "loglevel"),
-		"bt_ctf_event_class_get_attribute_value_by_name handles a NULL event class correctly");
-	ok(!bt_ctf_event_class_get_attribute_value_by_name(event_class, NULL),
-		"bt_ctf_event_class_get_attribute_value_by_name handles a NULL name correctly");
-	ok(!bt_ctf_event_class_get_attribute_value_by_name(event_class, "meow"),
-		"bt_ctf_event_class_get_attribute_value_by_name fails with a non-existing attribute name");
-	obj = bt_ctf_event_class_get_attribute_value_by_name(event_class,
-		"loglevel");
-	int64_value = 0;
-	ret = bt_value_integer_get(obj, &int64_value);
-	ok(obj && !ret && int64_value == 5,
-		"bt_ctf_event_class_get_attribute_value_by_name returns the correct value");
-	BT_PUT(obj);
-
-	obj = bt_value_string_create_init("nu name");
-	assert(obj);
-	assert(!bt_ctf_event_class_set_attribute(event_class, "name", obj));
-	ret_string = bt_ctf_event_class_get_name(event_class);
-	ok(!strcmp(ret_string, "nu name"),
-		"bt_ctf_event_class_set_attribute succeeds in replacing the existing \"name\" attribute");
-	ret = bt_ctf_event_class_set_attribute(event_class, "id", obj);
-	ret &= bt_ctf_event_class_set_attribute(event_class, "loglevel", obj);
-	ok(ret,
-		"bt_ctf_event_class_set_attribute cannot set \"id\" or \"loglevel\" to a string value");
-	BT_PUT(obj);
-	obj = bt_value_string_create_init("http://kernel.org/");
-	assert(obj);
-	assert(!bt_ctf_event_class_set_attribute(event_class, "model.emf.uri", obj));
-	BT_PUT(obj);
-
-	ok(bt_ctf_event_class_get_attribute_count(NULL),
-		"bt_ctf_event_class_get_attribute_count handles a NULL event class");
-	ok(bt_ctf_event_class_get_attribute_count(event_class) == 4,
-		"bt_ctf_event_class_get_attribute_count returns the correct count");
-	ok(!bt_ctf_event_class_get_attribute_name_by_index(NULL, 0),
-		"bt_ctf_event_class_get_attribute_name handles a NULL event class correctly");
-	ok(!bt_ctf_event_class_get_attribute_name_by_index(event_class, 4),
-		"bt_ctf_event_class_get_attribute_name handles a too large index correctly");
-	ok(!bt_ctf_event_class_get_attribute_value_by_index(NULL, 0),
-		"bt_ctf_event_class_get_attribute_value handles a NULL event class correctly");
-	ok(!bt_ctf_event_class_get_attribute_value_by_index(event_class, 4),
-		"bt_ctf_event_class_get_attribute_value handles a too large index correctly");
-
-	memset(&attrs_count, 0, sizeof(attrs_count));
-
-	for (i = 0; i < 4; ++i) {
-		ret_string = bt_ctf_event_class_get_attribute_name_by_index(
-			event_class, i);
-		obj = bt_ctf_event_class_get_attribute_value_by_index(
-			event_class, i);
-		assert(ret_string && obj);
-
-		if (!strcmp(ret_string, "id")) {
-			attrs_count.id++;
-			ok(bt_value_is_integer(obj),
-				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
-				ret_string);
-		} else if (!strcmp(ret_string, "name")) {
-			attrs_count.name++;
-			ok(bt_value_is_string(obj),
-				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
-				ret_string);
-		} else if (!strcmp(ret_string, "loglevel")) {
-			attrs_count.loglevel++;
-			ok(bt_value_is_integer(obj),
-				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
-				ret_string);
-		} else if (!strcmp(ret_string, "model.emf.uri")) {
-			attrs_count.modelemfuri++;
-			ok(bt_value_is_string(obj),
-				"bt_ctf_event_class_get_attribute_value returns the correct type (\"%s\")",
-				ret_string);
-		} else {
-			attrs_count.unknown++;
-		}
-
-		BT_PUT(obj);
-	}
-
-	ok(attrs_count.unknown == 0, "event class has no unknown attributes");
-	ok(attrs_count.id == 1 && attrs_count.name == 1 &&
-		attrs_count.loglevel == 1 && attrs_count.modelemfuri == 1,
-		"event class has one instance of each known attribute");
+	ok(bt_ctf_event_class_get_log_level(event_class) == BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED,
+		"event class has the expected initial log level");
+	ok(!bt_ctf_event_class_get_emf_uri(event_class),
+		"as expected, event class has no initial EMF URI");
+	ok(bt_ctf_event_class_set_log_level(NULL, BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO),
+		"bt_ctf_event_class_set_log_level handles a NULL event class correctly");
+	ok(bt_ctf_event_class_set_log_level(event_class, BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN),
+		"bt_ctf_event_class_set_log_level handles an unknown log level correctly");
+	ok(!bt_ctf_event_class_set_log_level(event_class, BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO),
+		"bt_ctf_event_class_set_log_level succeeds with a valid log level");
+	ok(bt_ctf_event_class_get_log_level(NULL) == BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN,
+		"bt_ctf_event_class_get_log_level handles a NULL event class correctly");
+	ok(bt_ctf_event_class_get_log_level(event_class) == BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO,
+		"bt_ctf_event_class_get_log_level returns the expected log level");
+	ok(bt_ctf_event_class_set_emf_uri(NULL, "http://diamon.org/babeltrace/"),
+		"bt_ctf_event_class_set_emf_uri handles a NULL event class correctly");
+	ok(!bt_ctf_event_class_set_emf_uri(event_class, "http://diamon.org/babeltrace/"),
+		"bt_ctf_event_class_set_emf_uri succeeds with a valid EMF URI");
+	ok(!bt_ctf_event_class_get_emf_uri(NULL),
+		"bt_ctf_event_class_get_emf_uri handles a NULL event class correctly");
+	ok(strcmp(bt_ctf_event_class_get_emf_uri(event_class), "http://diamon.org/babeltrace/") == 0,
+		"bt_ctf_event_class_get_emf_uri returns the expected EMF URI");
+	ok(!bt_ctf_event_class_set_emf_uri(event_class, NULL),
+		"bt_ctf_event_class_set_emf_uri succeeds with NULL (to reset)");
+	ok(!bt_ctf_event_class_get_emf_uri(event_class),
+		"as expected, event class has no EMF URI after reset");
 
 	/* Add event class to the stream class */
 	ok(bt_ctf_stream_class_add_event_class(stream_class, NULL),
@@ -2499,7 +2403,7 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 
 	event_class = bt_ctf_event_class_create("different name, ok");
 	assert(event_class);
-	assert(!bt_ctf_event_class_set_id(event_class, 11));
+	assert(!bt_ctf_event_class_set_id(event_class, 13));
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
 		"two event classes with the same ID cannot cohabit within the same stream class");
 	bt_put(event_class);
@@ -2978,8 +2882,8 @@ int main(int argc, char **argv)
 	trace = bt_ctf_writer_get_trace(writer);
 	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_NATIVE),
 		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_NATIVE");
-	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_NONE),
-		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_NONE");
+	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_UNSPECIFIED),
+		"Cannot set a trace's byte order to BT_CTF_BYTE_ORDER_UNSPECIFIED");
 	ok(trace,
 		"bt_ctf_writer_get_trace returns a bt_ctf_trace object");
 	ok(bt_ctf_trace_set_native_byte_order(trace, BT_CTF_BYTE_ORDER_BIG_ENDIAN) == 0,

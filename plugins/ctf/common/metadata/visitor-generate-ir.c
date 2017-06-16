@@ -226,37 +226,6 @@ struct ctx {
  */
 struct ctf_visitor_generate_ir { };
 
-static
-const char *loglevel_str [] = {
-	[ LOGLEVEL_EMERG ] = "TRACE_EMERG",
-	[ LOGLEVEL_ALERT ] = "TRACE_ALERT",
-	[ LOGLEVEL_CRIT ] = "TRACE_CRIT",
-	[ LOGLEVEL_ERR ] = "TRACE_ERR",
-	[ LOGLEVEL_WARNING ] = "TRACE_WARNING",
-	[ LOGLEVEL_NOTICE ] = "TRACE_NOTICE",
-	[ LOGLEVEL_INFO ] = "TRACE_INFO",
-	[ LOGLEVEL_DEBUG_SYSTEM ] = "TRACE_DEBUG_SYSTEM",
-	[ LOGLEVEL_DEBUG_PROGRAM ] = "TRACE_DEBUG_PROGRAM",
-	[ LOGLEVEL_DEBUG_PROCESS ] = "TRACE_DEBUG_PROCESS",
-	[ LOGLEVEL_DEBUG_MODULE ] = "TRACE_DEBUG_MODULE",
-	[ LOGLEVEL_DEBUG_UNIT ] = "TRACE_DEBUG_UNIT",
-	[ LOGLEVEL_DEBUG_FUNCTION ] = "TRACE_DEBUG_FUNCTION",
-	[ LOGLEVEL_DEBUG_LINE ] = "TRACE_DEBUG_LINE",
-	[ LOGLEVEL_DEBUG ] = "TRACE_DEBUG",
-};
-
-static
-const char *print_loglevel(int64_t value)
-{
-	if (value < 0) {
-		return NULL;
-	}
-	if (value >= _NR_LOGLEVELS) {
-		return "<<UNKNOWN>>";
-	}
-	return loglevel_str[value];
-}
-
 /**
  * Creates a new declaration scope.
  *
@@ -3318,8 +3287,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			_SET(set, _EVENT_FIELDS_SET);
 		} else if (!strcmp(left, "loglevel")) {
 			uint64_t loglevel_value;
-			const char *loglevel_str;
-			struct bt_value *value_obj, *str_obj;
+			enum bt_ctf_event_class_log_level log_level =
+				BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED;
 
 			if (_IS_SET(set, _EVENT_LOGLEVEL_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "loglevel",
@@ -3336,39 +3305,71 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				ret = -EINVAL;
 				goto error;
 			}
-			value_obj = bt_value_integer_create_init(loglevel_value);
-			if (!value_obj) {
-				_BT_LOGE_NODE(node,
-					"Cannot create integer value object.");
-				ret = -ENOMEM;
-				goto error;
+
+			switch (loglevel_value) {
+			case 0:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY;
+				break;
+			case 1:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT;
+				break;
+			case 2:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL;
+				break;
+			case 3:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR;
+				break;
+			case 4:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING;
+				break;
+			case 5:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE;
+				break;
+			case 6:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO;
+				break;
+			case 7:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM;
+				break;
+			case 8:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM;
+				break;
+			case 9:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS;
+				break;
+			case 10:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE;
+				break;
+			case 11:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT;
+				break;
+			case 12:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION;
+				break;
+			case 13:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE;
+				break;
+			case 14:
+				log_level = BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG;
+				break;
+			default:
+				_BT_LOGW_NODE(node, "Not setting event class's log level because its value is unknown: "
+					"log-level=%" PRIu64, loglevel_value);
 			}
-			if (bt_ctf_event_class_set_attribute(event_class,
-					"loglevel", value_obj) != BT_VALUE_STATUS_OK) {
-				_BT_LOGE_NODE(node,
-					"Cannot set event class's `loglevel` attribute.");
-				ret = -EINVAL;
-				bt_put(value_obj);
-				goto error;
-			}
-			loglevel_str = print_loglevel(loglevel_value);
-			if (loglevel_str) {
-				str_obj = bt_value_string_create_init(loglevel_str);
-				if (bt_ctf_event_class_set_attribute(event_class,
-						"loglevel_string", str_obj) != BT_VALUE_STATUS_OK) {
+
+			if (log_level != BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED) {
+				ret = bt_ctf_event_class_set_log_level(
+					event_class, log_level);
+				if (ret) {
 					_BT_LOGE_NODE(node,
-						"Cannot set event class's `loglevel_string` attribute.");
-					ret = -EINVAL;
-					bt_put(str_obj);
+						"Cannot set event class's log level.");
 					goto error;
 				}
-				bt_put(str_obj);
 			}
-			bt_put(value_obj);
+
 			_SET(set, _EVENT_LOGLEVEL_SET);
 		} else if (!strcmp(left, "model.emf.uri")) {
 			char *right;
-			struct bt_value *str_obj;
 
 			if (_IS_SET(set, _EVENT_MODEL_EMF_URI_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "model.emf.uri",
@@ -3386,16 +3387,19 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			str_obj = bt_value_string_create_init(right);
-			if (bt_ctf_event_class_set_attribute(event_class,
-					"model.emf.uri", str_obj) != BT_VALUE_STATUS_OK) {
-				_BT_LOGE_NODE(node,
-					"Cannot set event class's `model.emf.uri` attribute.");
-				ret = -EINVAL;
-				bt_put(str_obj);
-				goto error;
+			if (strlen(right) == 0) {
+				_BT_LOGW_NODE(node,
+					"Not setting event class's EMF URI because it's empty.");
+			} else {
+				ret = bt_ctf_event_class_set_emf_uri(
+					event_class, right);
+				if (ret) {
+					_BT_LOGE_NODE(node,
+						"Cannot set event class's EMF URI.");
+					goto error;
+				}
 			}
-			bt_put(str_obj);
+
 			g_free(right);
 			_SET(set, _EVENT_MODEL_EMF_URI_SET);
 		} else {
@@ -3762,63 +3766,149 @@ end:
 }
 
 static
-int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
-		struct bt_ctf_field_type *packet_context_field_type,
-		const char **field_names)
+int auto_map_field_to_trace_clock_class(struct ctx *ctx,
+		struct bt_ctf_field_type *ft)
 {
-	_BT_CTF_FIELD_TYPE_INIT(ft);
-	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_ctf_clock_class *clock_class_to_map_to = NULL;
 	struct bt_ctf_clock_class *mapped_clock_class = NULL;
 	int ret = 0;
-	const char **field_name;
+	int64_t clock_class_count;
 
-	if (ctx->decoder_config.strict) {
+	if (!ft || !bt_ctf_field_type_is_integer(ft)) {
 		goto end;
 	}
 
-	if (!packet_context_field_type) {
+	mapped_clock_class =
+		bt_ctf_field_type_integer_get_mapped_clock_class(ft);
+	if (mapped_clock_class) {
 		goto end;
 	}
 
-	if (!bt_ctf_field_type_is_structure(packet_context_field_type)) {
-		goto end;
-	}
+	clock_class_count = bt_ctf_trace_get_clock_class_count(ctx->trace);
+	assert(clock_class_count >= 0);
 
-	if (bt_ctf_trace_get_clock_class_count(ctx->trace) != 1) {
-		goto end;
-	}
-
-	clock_class = bt_ctf_trace_get_clock_class_by_index(ctx->trace, 0);
-	assert(clock_class);
-
-	for (field_name = field_names; *field_name; field_name++) {
-		ft = bt_ctf_field_type_structure_get_field_type_by_name(
-			packet_context_field_type, *field_name);
-
-		if (ft && bt_ctf_field_type_is_integer(ft)) {
-			mapped_clock_class =
-				bt_ctf_field_type_integer_get_mapped_clock_class(ft);
-
-			if (!mapped_clock_class) {
-				ret = bt_ctf_field_type_integer_set_mapped_clock_class(
-					ft, clock_class);
-				if (ret) {
-					BT_LOGE("Cannot map field type's field to trace's clock class: "
-						"field-name=\"%s\", ret=%d",
-						*field_name, ret);
-					goto end;
-				}
-			}
+	switch (clock_class_count) {
+	case 0:
+		/*
+		 * No clock class exists in the trace at this
+		 * point. Create an implicit one at 1 GHz,
+		 * named `default`, and use this clock class.
+		 */
+		clock_class_to_map_to = bt_ctf_clock_class_create("default");
+		if (!clock_class_to_map_to) {
+			BT_LOGE_STR("Cannot create a clock class.");
+			ret = -1;
+			goto end;
 		}
 
-		BT_PUT(mapped_clock_class);
-		BT_PUT(ft);
+		ret = bt_ctf_clock_class_set_frequency(clock_class_to_map_to,
+			1000000000);
+		assert(ret == 0);
+
+		ret = bt_ctf_trace_add_clock_class(ctx->trace,
+			clock_class_to_map_to);
+		if (ret) {
+			BT_LOGE_STR("Cannot add clock class to trace.");
+			goto end;
+		}
+		break;
+	case 1:
+		/*
+		 * Only one clock class exists in the trace at
+		 * this point: use this one.
+		 */
+		clock_class_to_map_to =
+			bt_ctf_trace_get_clock_class_by_index(ctx->trace, 0);
+		assert(clock_class_to_map_to);
+		break;
+	default:
+		/*
+		 * Timestamp field not mapped to a clock class
+		 * and there's more than one clock class in the
+		 * trace: this is an error.
+		 */
+		BT_LOGE_STR("Timestamp field found with no mapped clock class, "
+			"but there's more than one clock class in the trace at this point.");
+		ret = -1;
+		goto end;
+	}
+
+	assert(clock_class_to_map_to);
+	ret = bt_ctf_field_type_integer_set_mapped_clock_class(ft,
+		clock_class_to_map_to);
+	if (ret) {
+		BT_LOGE("Cannot map field type's field to trace's clock class: "
+			"clock-class-name=\"%s\", ret=%d",
+			bt_ctf_clock_class_get_name(clock_class_to_map_to),
+			ret);
+		goto end;
 	}
 
 end:
+	bt_put(clock_class_to_map_to);
 	bt_put(mapped_clock_class);
-	bt_put(clock_class);
-	bt_put(ft);
+	return ret;
+}
+
+static
+int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
+		struct bt_ctf_field_type *root_ft, const char *field_name)
+{
+	int ret = 0;
+	int64_t i, count;
+
+	if (!root_ft) {
+		goto end;
+	}
+
+	if (!bt_ctf_field_type_is_structure(root_ft) &&
+			!bt_ctf_field_type_is_variant(root_ft)) {
+		goto end;
+	}
+
+	if (bt_ctf_field_type_is_structure(root_ft)) {
+		count = bt_ctf_field_type_structure_get_field_count(root_ft);
+	} else {
+		count = bt_ctf_field_type_variant_get_field_count(root_ft);
+	}
+
+	assert(count >= 0);
+
+	for (i = 0; i < count; i++) {
+		_BT_CTF_FIELD_TYPE_INIT(ft);
+		const char *name;
+
+		if (bt_ctf_field_type_is_structure(root_ft)) {
+			ret = bt_ctf_field_type_structure_get_field_by_index(
+				root_ft, &name, &ft, i);
+		} else if (bt_ctf_field_type_is_variant(root_ft)) {
+			ret = bt_ctf_field_type_variant_get_field_by_index(
+				root_ft, &name, &ft, i);
+		}
+
+		assert(ret == 0);
+
+		if (strcmp(name, field_name) == 0) {
+			ret = auto_map_field_to_trace_clock_class(ctx, ft);
+			if (ret) {
+				BT_LOGE("Cannot automatically map field to trace's clock class: "
+					"field-name=\"%s\"", field_name);
+				bt_put(ft);
+				goto end;
+			}
+		}
+
+		ret = auto_map_fields_to_trace_clock_class(ctx, ft, field_name);
+		bt_put(ft);
+		if (ret) {
+			BT_LOGE("Cannot automatically map structure or variant field type's fields to trace's clock class: "
+				"field-name=\"%s\", root-field-name=\"%s\"",
+				field_name, name);
+			goto end;
+		}
+	}
+
+end:
 	return ret;
 }
 
@@ -3899,12 +3989,6 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			_SET(set, _STREAM_ID_SET);
 		} else if (!strcmp(left, "event.header")) {
-			const char *field_names[] = {
-				"timestamp",
-				"ts",
-				NULL,
-			};
-
 			if (_IS_SET(set, _STREAM_EVENT_HEADER_SET)) {
 				_BT_LOGE_NODE(node,
 					"Duplicate `event.header` entry in stream class.");
@@ -3925,10 +4009,10 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			assert(decl);
 			ret = auto_map_fields_to_trace_clock_class(ctx,
-				decl, field_names);
+				decl, "timestamp");
 			if (ret) {
 				_BT_LOGE_NODE(node,
-					"Cannot automatically map specific event header field type fields to trace's clock class.");
+					"Cannot automatically map specific event header field type fields named `timestamp` to trace's clock class.");
 				goto error;
 			}
 
@@ -3974,12 +4058,6 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			_SET(set, _STREAM_EVENT_CONTEXT_SET);
 		} else if (!strcmp(left, "packet.context")) {
-			const char *field_names[] = {
-				"timestamp_begin",
-				"timestamp_end",
-				NULL,
-			};
-
 			if (_IS_SET(set, _STREAM_PACKET_CONTEXT_SET)) {
 				_BT_LOGE_NODE(node,
 					"Duplicate `packet.context` entry in stream class.");
@@ -4000,10 +4078,18 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			assert(decl);
 			ret = auto_map_fields_to_trace_clock_class(ctx,
-				decl, field_names);
+				decl, "timestamp_begin");
 			if (ret) {
 				_BT_LOGE_NODE(node,
-					"Cannot automatically map specific packet context field type fields to trace's clock class.");
+					"Cannot automatically map specific packet context field type fields named `timestamp_begin` to trace's clock class.");
+				goto error;
+			}
+
+			ret = auto_map_fields_to_trace_clock_class(ctx,
+				decl, "timestamp_end");
+			if (ret) {
+				_BT_LOGE_NODE(node,
+					"Cannot automatically map specific packet context field type fields named `timestamp_end` to trace's clock class.");
 				goto error;
 			}
 
@@ -4439,14 +4525,12 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
-			if (!ctx->decoder_config.strict) {
-				if (strcmp(left, "tracer_name") == 0) {
-					if (strncmp(right, "lttng", 5) == 0) {
-						BT_LOGI("Non-strict mode: detected LTTng trace from `%s` environment value: "
-							"tracer-name=\"%s\"",
-							left, right);
-						ctx->is_lttng = 1;
-					}
+			if (strcmp(left, "tracer_name") == 0) {
+				if (strncmp(right, "lttng", 5) == 0) {
+					BT_LOGI("Detected LTTng trace from `%s` environment value: "
+						"tracer-name=\"%s\"",
+						left, right);
+					ctx->is_lttng = 1;
 				}
 			}
 
