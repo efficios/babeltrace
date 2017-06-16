@@ -8,7 +8,8 @@ TESTS = test_trace_read \
 	test_packet_seq_num \
 	test_convert_args \
 	intersection/test_intersection \
-	test_trace_copy
+	test_trace_copy \
+	test_debug_info
 
 if USE_PYTHON
 TESTS += intersection/test_multi_trace_intersection.py

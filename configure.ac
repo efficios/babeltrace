@@ -542,6 +542,7 @@ AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugi
 
 AC_CONFIG_FILES([tests/cli/test_trace_read], [chmod +x tests/cli/test_trace_read])
 AC_CONFIG_FILES([tests/cli/test_trace_copy], [chmod +x tests/cli/test_trace_copy])
+AC_CONFIG_FILES([tests/cli/test_debug_info], [chmod +x tests/cli/test_debug_info])
 AC_CONFIG_FILES([tests/cli/intersection/test_intersection], [chmod +x tests/cli/intersection/test_intersection])
 AC_CONFIG_FILES([tests/cli/test_convert_args], [chmod +x tests/cli/test_convert_args])
 AC_CONFIG_FILES([tests/cli/intersection/bt_python_helper.py])
