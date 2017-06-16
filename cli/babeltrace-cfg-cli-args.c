@@ -2868,7 +2868,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    `text`:\n");
 	fprintf(fp, "                                      Create an implicit `sink.text.pretty`\n");
 	fprintf(fp, "                                      component\n");
-	fprintf(fp, "                                    `text`:\n");
+	fprintf(fp, "                                    `ctf`:\n");
 	fprintf(fp, "                                      Create an implicit `sink.ctf.fs`\n");
 	fprintf(fp, "                                      component\n");
 	fprintf(fp, "                                    `dummy`:\n");
