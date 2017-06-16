@@ -985,6 +985,8 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 {
 	int ret = 0;
 	size_t i;
+	struct bt_ctf_trace *trace;
+	struct bt_ctf_field_type *packet_header_type = NULL;
 
 	BT_LOGD("Serializing stream class's metadata: "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -999,8 +1001,38 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	g_string_append_printf(context->string,
-		"stream {\n\tid = %" PRId64 ";\n", stream_class->id);
+	g_string_append(context->string, "stream {\n");
+
+	/*
+	 * The reference to the trace is only borrowed since the
+	 * serialization of the stream class might have been triggered
+	 * by the trace's destruction. In such a case, the trace's
+	 * reference count would, unexepectedly, go through the sequence
+	 * 1 -> 0 -> 1 -> 0 -> ..., provoking an endless loop of destruction
+	 * and serialization.
+	 */
+	trace = bt_ctf_stream_class_borrow_trace(stream_class);
+	assert(trace);
+	packet_header_type = bt_ctf_trace_get_packet_header_type(trace);
+	trace = NULL;
+	if (packet_header_type) {
+		struct bt_ctf_field_type *stream_id_type;
+
+		stream_id_type =
+			bt_ctf_field_type_structure_get_field_type_by_name(
+				packet_header_type, "stream_id");
+		if (stream_id_type) {
+			/*
+			 * Only set the stream's id if the trace's packet header
+			 * contains a stream_id field. This field is only
+			 * needed if the trace contains only one stream
+			 * class.
+			 */
+			g_string_append_printf(context->string,
+				"\tid = %" PRId64 ";\n", stream_class->id);
+		}
+		bt_put(stream_id_type);
+	}
 	if (stream_class->event_header_type) {
 		BT_LOGD_STR("Serializing stream class's event header field type's metadata.");
 		g_string_append(context->string, "\tevent.header := ");
@@ -1059,6 +1091,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 		}
 	}
 end:
+	bt_put(packet_header_type);
 	context->current_indentation_level = 0;
 	return ret;
 }
