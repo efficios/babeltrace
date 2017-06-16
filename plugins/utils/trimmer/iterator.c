@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "PLUGIN-UTILS-TRIMMER-FLT"
+#define BT_LOG_TAG "PLUGIN-UTILS-TRIMMER-FLT-ITER"
 #include "logging.h"
 
 #include <babeltrace/compat/time-internal.h>
