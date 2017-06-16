@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# Copyright (C) - 2017 Julien Desfossez <jdesfossez@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+BABELTRACE_BIN=@abs_top_builddir@/cli/babeltrace
+
+TRACE_PATH=@abs_top_srcdir@/tests/ctf-traces/succeed/wk-heartbeat-u/
+
+source @abs_top_srcdir@/tests/utils/tap/tap.sh
+
+NUM_TESTS=10
+
+plan_tests $NUM_TESTS
+
+tmp_out=$(mktemp)
+
+$BABELTRACE_BIN --clock-gmt --begin 17:48:17.587029529 --end 17:48:17.588680018 \
+	${TRACE_PATH} >/dev/null 2>&1
+ok $? "Read the trace with the trimmer enabled"
+
+$BABELTRACE_BIN --clock-gmt --begin 17:48:17.587029529 ${TRACE_PATH} \
+	2>/dev/null >${tmp_out}
+ok $? "Running with --begin"
+cnt=$(cat ${tmp_out} | wc -l)
+test $cnt == 18
+ok $? "Expected number of events after trimming begin and end"
+
+$BABELTRACE_BIN --clock-gmt --end 17:48:17.588680018 ${TRACE_PATH} \
+	2>/dev/null >${tmp_out}
+ok $? "Running with --end"
+cnt=$(cat ${tmp_out} | wc -l)
+test $cnt == 9
+ok $? "Expected number of events after trimming end"
+
+$BABELTRACE_BIN --clock-gmt --begin 17:48:17.587029529 --end 17:48:17.588680018 \
+	${TRACE_PATH} 2>/dev/null >${tmp_out}
+ok $? "Running with --begin and --end"
+cnt=$(cat ${tmp_out} | wc -l)
+test $cnt == 7
+ok $? "Expected number of events after trimming begin and end"
+
+$BABELTRACE_BIN --clock-gmt --begin 18:48:17.587029529 ${TRACE_PATH} \
+	2>/dev/null >${tmp_out}
+ok $? "Running with --begin out of range"
+cnt=$(cat ${tmp_out} | wc -l)
+test $cnt == 0
+ok $? "No event output when begin is after the end of the trace"
+
+$BABELTRACE_BIN --clock-gmt --end 16:48:17.588680018 ${TRACE_PATH} \
+	2>/dev/null >${tmp_out}
+cnt=$(cat ${tmp_out} | wc -l)
+test $cnt == 0
+ok $? "No event output when end is before the beginning of the trace"
+
+rm ${tmp_out}
