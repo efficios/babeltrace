@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# Copyright (C) - 2017 Julien Desfossez <jdesfossez@efficios.com>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License, version 2 only, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51
+# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+CURDIR=$(dirname $0)
+TESTDIR=$CURDIR/..
+
+BABELTRACE_BIN=@abs_top_builddir@/cli/babeltrace
+
+BT_TREE_PATH=@abs_top_srcdir@/
+DEBUG_INFO_TRACE=${BT_TREE_PATH}/tests/debug-info-data/trace/
+
+source $TESTDIR/utils/tap/tap.sh
+
+NUM_TESTS=1
+
+plan_tests $NUM_TESTS
+
+$BABELTRACE_BIN --debug-info-target-prefix ${BT_TREE_PATH} ${DEBUG_INFO_TRACE} 2>/dev/null \
+	| @GREP@ 'debug_info = { bin = "libhello_so+0x15a6", func = "bar+0xa9", src = "libhello.c:13" }' >/dev/null
+ok $? "Extract debug information"
