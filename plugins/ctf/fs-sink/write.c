@@ -181,18 +181,60 @@ enum fs_writer_stream_state *insert_new_stream_state(
 	return v;
 }
 
+/*
+ * Make sure the output path is valid for a single trace: either it does
+ * not exists or it is empty.
+ *
+ * Return 0 if the path is valid, -1 otherwise.
+ */
+static
+bool valid_single_trace_path(const char *path)
+{
+	int n = 0;
+	struct dirent *d;
+	DIR *dir = opendir(path);
+	int ret;
+
+	/* non-existant directory */
+	if (!dir) {
+		ret = 0;
+		goto end;
+	}
+
+	while ((d = readdir(dir)) != NULL) {
+		if (++n > 2) {
+			break;
+		}
+	}
+
+	closedir(dir);
+
+	if (n <= 2) {
+		ret = 0;
+	} else {
+		ret = -1;
+	}
+
+end:
+	return ret;
+}
+
 static
 int make_trace_path(struct writer_component *writer_component,
 		struct bt_ctf_trace *trace, char *trace_path)
 {
 	int ret;
 	const char *trace_name;
+	const char *no_name = "\0";
 
-	trace_name = bt_ctf_trace_get_name(trace);
-	if (!trace_name) {
-		trace_name = writer_component->trace_name_base->str;
+	if (writer_component->single_trace) {
+		trace_name = no_name;
+	} else {
+		trace_name = bt_ctf_trace_get_name(trace);
+		if (!trace_name) {
+			trace_name = writer_component->trace_name_base->str;
+		}
 	}
-	/* XXX: we might have to skip the first level, TBD. */
 
 	/* Sanitize the trace name. */
 	if (strlen(trace_name) == 2 && !strcmp(trace_name, "..")) {
@@ -212,17 +254,29 @@ int make_trace_path(struct writer_component *writer_component,
 	snprintf(trace_path, PATH_MAX, "%s/%s",
 			writer_component->base_path->str,
 			trace_name);
-	if (g_file_test(trace_path, G_FILE_TEST_EXISTS)) {
-		int i = 0;
-		do {
-			snprintf(trace_path, PATH_MAX, "%s/%s-%d",
-					writer_component->base_path->str,
-					trace_name, ++i);
-		} while (g_file_test(trace_path, G_FILE_TEST_EXISTS) && i < INT_MAX);
-		if (i == INT_MAX) {
-			fprintf(writer_component->err, "[error] Unable to find "
-					"a unique trace path\n");
+	/*
+	 * Append a suffix if the trace_path exists and we are not in
+	 * single-trace mode.
+	 */
+	if (writer_component->single_trace) {
+		if (valid_single_trace_path(trace_path) != 0) {
+			fprintf(writer_component->err,
+					"[error] Invalid output directory\n");
 			goto error;
+		}
+	} else {
+		if (g_file_test(trace_path, G_FILE_TEST_EXISTS)) {
+			int i = 0;
+			do {
+				snprintf(trace_path, PATH_MAX, "%s/%s-%d",
+						writer_component->base_path->str,
+						trace_name, ++i);
+			} while (g_file_test(trace_path, G_FILE_TEST_EXISTS) && i < INT_MAX);
+			if (i == INT_MAX) {
+				fprintf(writer_component->err, "[error] Unable to find "
+						"a unique trace path\n");
+				goto error;
+			}
 		}
 	}
 
@@ -248,6 +302,13 @@ struct fs_writer *insert_new_writer(
 	struct bt_ctf_stream *stream = NULL;
 	struct fs_writer *fs_writer = NULL;
 	int nr_stream, i;
+
+	if (writer_component->single_trace && writer_component->nr_traces > 0) {
+		fprintf(writer_component->err, "[error] Trying to process more "
+				"than one trace but --single-trace mode "
+				"enabled\n");
+		goto error;
+	}
 
 	ret = make_trace_path(writer_component, trace, trace_path);
 	if (ret) {
@@ -331,6 +392,7 @@ struct fs_writer *insert_new_writer(
 		fs_writer->static_listener_id = ret;
 	}
 
+	writer_component->nr_traces++;
 	g_hash_table_insert(writer_component->trace_map, (gpointer) trace,
 			fs_writer);
 

@@ -4,6 +4,7 @@
 /tests/cli/test_packet_seq_num
 /tests/cli/test_trace_read
 /tests/cli/test_trace_copy
+/tests/cli/test_debug_info
 /tests/cli/test_convert_args
 /tests/bin/intersection/bt_python_helper.py
 /tests/bin/intersection/test_intersection
