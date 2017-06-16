@@ -735,6 +735,14 @@ void _bt_log_write_mem_aux(
  * - BT_LOGE("format string", args, ...)
  * - BT_LOGF("format string", args, ...)
  *
+ * Message and error string (errno) logging macros:
+ * - BT_LOGV_ERRNO("format string", args, ...)
+ * - BT_LOGD_ERRNO("format string", args, ...)
+ * - BT_LOGI_ERRNO("format string", args, ...)
+ * - BT_LOGW_ERRNO("format string", args, ...)
+ * - BT_LOGE_ERRNO("format string", args, ...)
+ * - BT_LOGF_ERRNO("format string", args, ...)
+ *
  * Memory logging macros:
  * - BT_LOGV_MEM(data_ptr, data_sz, "format string", args, ...)
  * - BT_LOGD_MEM(data_ptr, data_sz, "format string", args, ...)
@@ -829,6 +837,26 @@ void _bt_log_write_mem_aux(
 			} _BT_LOG_ONCE
 #endif
 
+#if (_POSIX_C_SOURCE >= 200112L) && !  _GNU_SOURCE
+	/* XSI-compliant version of strerror_r(). */
+	#define BT_LOG_WRITE_ERRNO(lvl, tag, _msg, _fmt, args...) \
+			do { \
+				char error_str[BUFSIZ]; \
+				memset(error_str, 0, sizeof(error_str)); \
+				(void) strerror_r(errno, error_str, sizeof(error_str)); \
+				BT_LOG_WRITE(lvl, tag, _msg ": %s. " _fmt, error_str, ## args); \
+			} _BT_LOG_ONCE
+#else
+	/* GNU version of strerror_r(). */
+	#define BT_LOG_WRITE_ERRNO(lvl, tag, _msg, _fmt, args...) \
+			do { \
+				char error_str_buf[BUFSIZ]; \
+				char *error_str; \
+				error_str = strerror_r(errno, error_str_buf, sizeof(error_str_buf)); \
+				BT_LOG_WRITE(lvl, tag, _msg ": %s. " _fmt, error_str, ## args); \
+			} _BT_LOG_ONCE
+#endif
+
 static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 
 #define _BT_LOG_UNUSED(...) \
@@ -837,6 +865,8 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 #if BT_LOG_ENABLED_VERBOSE
 	#define BT_LOGV(...) \
 			BT_LOG_WRITE(BT_LOG_VERBOSE, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGV_ERRNO(...) \
+			BT_LOG_WRITE_ERRNO(BT_LOG_VERBOSE, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGV_AUX(log, ...) \
 			BT_LOG_WRITE_AUX(log, BT_LOG_VERBOSE, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGV_MEM(d, d_sz, ...) \
@@ -853,6 +883,8 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 #if BT_LOG_ENABLED_DEBUG
 	#define BT_LOGD(...) \
 			BT_LOG_WRITE(BT_LOG_DEBUG, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGD_ERRNO(...) \
+			BT_LOG_WRITE_ERRNO(BT_LOG_DEBUG, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGD_AUX(log, ...) \
 			BT_LOG_WRITE_AUX(log, BT_LOG_DEBUG, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGD_MEM(d, d_sz, ...) \
@@ -869,6 +901,8 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 #if BT_LOG_ENABLED_INFO
 	#define BT_LOGI(...) \
 			BT_LOG_WRITE(BT_LOG_INFO, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGI_ERRNO(...) \
+			BT_LOG_WRITE_ERRNO(BT_LOG_INFO, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGI_AUX(log, ...) \
 			BT_LOG_WRITE_AUX(log, BT_LOG_INFO, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGI_MEM(d, d_sz, ...) \
@@ -885,6 +919,8 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 #if BT_LOG_ENABLED_WARN
 	#define BT_LOGW(...) \
 			BT_LOG_WRITE(BT_LOG_WARN, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGW_ERRNO(...) \
+			BT_LOG_WRITE_ERRNO(BT_LOG_WARN, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGW_AUX(log, ...) \
 			BT_LOG_WRITE_AUX(log, BT_LOG_WARN, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGW_MEM(d, d_sz, ...) \
@@ -901,6 +937,8 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 #if BT_LOG_ENABLED_ERROR
 	#define BT_LOGE(...) \
 			BT_LOG_WRITE(BT_LOG_ERROR, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGE_ERRNO(...) \
+			BT_LOG_WRITE_ERRNO(BT_LOG_ERROR, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGE_AUX(log, ...) \
 			BT_LOG_WRITE_AUX(log, BT_LOG_ERROR, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGE_MEM(d, d_sz, ...) \
@@ -917,6 +955,8 @@ static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 #if BT_LOG_ENABLED_FATAL
 	#define BT_LOGF(...) \
 			BT_LOG_WRITE(BT_LOG_FATAL, _BT_LOG_TAG, __VA_ARGS__)
+	#define BT_LOGF_ERRNO(...) \
+			BT_LOG_WRITE_ERRNO(BT_LOG_FATAL, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGF_AUX(log, ...) \
 			BT_LOG_WRITE_AUX(log, BT_LOG_FATAL, _BT_LOG_TAG, __VA_ARGS__)
 	#define BT_LOGF_MEM(d, d_sz, ...) \
