@@ -36,7 +36,6 @@ enum ctf_metadata_decoder_status {
 struct ctf_metadata_decoder_config {
 	int64_t clock_class_offset_s;
 	int64_t clock_class_offset_ns;
-	bool strict;
 };
 
 /*

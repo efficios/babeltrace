@@ -36,7 +36,6 @@ struct ctf_fs_metadata;
 struct ctf_fs_metadata_config {
 	int64_t clock_class_offset_s;
 	int64_t clock_class_offset_ns;
-	bool strict;
 };
 
 BT_HIDDEN
