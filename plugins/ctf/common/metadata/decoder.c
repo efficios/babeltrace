@@ -336,7 +336,6 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 	struct ctf_metadata_decoder_config default_config = {
 		.clock_class_offset_s = 0,
 		.clock_class_offset_ns = 0,
-		.strict = false,
 	};
 
 	if (!config) {
@@ -345,10 +344,9 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 
 	BT_LOGD("Creating CTF metadata decoder: "
 		"clock-class-offset-s=%" PRId64 ", "
-		"clock-class-offset-ns=%" PRId64 ", "
-		"strict=%d, name=\"%s\"",
+		"clock-class-offset-ns=%" PRId64 ", name=\"%s\"",
 		config->clock_class_offset_s, config->clock_class_offset_ns,
-		config->strict, name);
+		name);
 
 	if (!mdec) {
 		BT_LOGE_STR("Failed to allocate one CTF metadata decoder.");
@@ -368,9 +366,9 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 	BT_LOGD("Creating CTF metadata decoder: "
 		"clock-class-offset-s=%" PRId64 ", "
 		"clock-class-offset-ns=%" PRId64 ", "
-		"strict=%d, name=\"%s\", addr=%p",
+		"name=\"%s\", addr=%p",
 		config->clock_class_offset_s, config->clock_class_offset_ns,
-		config->strict, name, mdec);
+		name, mdec);
 
 end:
 	return mdec;

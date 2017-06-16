@@ -1286,20 +1286,6 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		BT_PUT(value);
 	}
 
-	value = bt_value_map_get(params, "strict-metadata");
-	if (value) {
-		bt_bool strict;
-
-		if (!bt_value_is_bool(value)) {
-			BT_LOGE("strict-metadata should be a boolean");
-			goto error;
-		}
-		ret = bt_value_bool_get(value, &strict);
-		assert(ret == 0);
-		ctf_fs->metadata_config.strict = !!strict;
-		BT_PUT(value);
-	}
-
 	ctf_fs->port_data = g_ptr_array_new_with_free_func(port_data_destroy);
 	if (!ctf_fs->port_data) {
 		goto error;
