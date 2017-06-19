@@ -107,4 +107,12 @@ BT_HIDDEN
 void bt_ctf_stream_remove_destroy_listener(struct bt_ctf_stream *stream,
 		bt_ctf_stream_destroy_listener_func func, void *data);
 
+static inline
+struct bt_ctf_stream_class *bt_ctf_stream_borrow_stream_class(
+		struct bt_ctf_stream *stream)
+{
+	assert(stream);
+	return stream->stream_class;
+}
+
 #endif /* BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H */
