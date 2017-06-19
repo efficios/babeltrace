@@ -16,5 +16,8 @@ babeltrace_plugin_utils_la_LIBADD = \
 
 if !BUILT_IN_PLUGINS
 babeltrace_plugin_utils_la_LIBADD += \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la \
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la
 endif
