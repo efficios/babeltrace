@@ -15,14 +15,11 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-CURDIR=$(dirname $0)
-TESTDIR=$CURDIR/..
-
-BABELTRACE_BIN=$CURDIR/../../cli/babeltrace
+BABELTRACE_BIN=@abs_top_builddir@/cli/babeltrace
 
 CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
 
-source $TESTDIR/utils/tap/tap.sh
+source @abs_top_srcdir@/tests/utils/tap/tap.sh
 
 SUCCESS_TRACES=(${CTF_TRACES}/succeed/*)
 FAIL_TRACES=(${CTF_TRACES}/fail/*)
