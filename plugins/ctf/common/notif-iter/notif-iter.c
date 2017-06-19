@@ -1811,7 +1811,7 @@ enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
 		struct bt_ctf_field *int_field)
 {
 	gboolean clock_class_found;
-	uint64_t *clock_state;
+	uint64_t *clock_state = NULL;
 	struct bt_ctf_field_type *int_field_type = NULL;
 	enum bt_ctf_btr_status ret = BT_CTF_BTR_STATUS_OK;
 	struct bt_ctf_clock_class *clock_class = NULL;
@@ -1826,12 +1826,7 @@ enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
 
 	clock_class_found = g_hash_table_lookup_extended(notit->clock_states,
 		clock_class, NULL, (gpointer) &clock_state);
-	if (unlikely(!clock_class_found)) {
-		ret = BT_CTF_BTR_STATUS_ERROR;
-		goto end;
-	}
-
-	if (unlikely(!clock_state)) {
+	if (!clock_class_found) {
 		clock_state = g_new0(uint64_t, 1);
 		if (!clock_state) {
 			BT_LOGE_STR("Failed to allocate a uint64_t.");
@@ -2811,27 +2806,6 @@ end:
 }
 
 static
-int init_clock_states(GHashTable *clock_states, struct bt_ctf_trace *trace)
-{
-	int clock_class_count, i, ret = 0;
-
-	assert(trace);
-	clock_class_count = bt_ctf_trace_get_clock_class_count(trace);
-	assert(clock_class_count >= 0);
-
-	for (i = 0; i < clock_class_count; i++) {
-		struct bt_ctf_clock_class *clock_class;
-
-		clock_class = bt_ctf_trace_get_clock_class_by_index(trace, i);
-		assert(clock_class);
-		g_hash_table_insert(clock_states, bt_get(clock_class), NULL);
-		bt_put(clock_class);
-	}
-
-	return ret;
-}
-
-static
 void init_trace_field_path_cache(struct bt_ctf_trace *trace,
 		struct trace_field_path_cache *trace_field_path_cache)
 {
@@ -2884,7 +2858,6 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		size_t max_request_sz,
 		struct bt_ctf_notif_iter_medium_ops medops, void *data)
 {
-	int ret;
 	struct bt_ctf_notif_iter *notit = NULL;
 	struct bt_ctf_btr_cbs cbs = {
 		.types = {
@@ -2919,11 +2892,6 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		g_direct_equal, bt_put, g_free);
 	if (!notit->clock_states) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
-		goto error;
-	}
-	ret = init_clock_states(notit->clock_states, trace);
-	if (ret) {
-		BT_LOGW("Cannot initialize clock values.");
 		goto error;
 	}
 	notit->meta.trace = bt_get(trace);
