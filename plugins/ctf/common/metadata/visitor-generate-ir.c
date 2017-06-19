@@ -4789,6 +4789,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
+		if (freq == -1ULL || freq == 0) {
+			_BT_LOGE_NODE(entry_node,
+				"Invalid clock class frequency: freq=%" PRIu64,
+				freq);
+			ret = -EINVAL;
+			goto error;
+		}
+
 		ret = bt_ctf_clock_class_set_frequency(clock, freq);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
