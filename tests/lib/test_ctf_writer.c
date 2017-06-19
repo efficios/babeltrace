@@ -2501,7 +2501,8 @@ void test_create_writer_vs_non_writer_mode(void)
 	non_writer_stream = bt_ctf_stream_create(non_writer_sc, NULL);
 	assert(non_writer_stream);
 	non_writer_clock_class =
-		bt_ctf_clock_class_create("non_writer_clock_class");
+		bt_ctf_clock_class_create("non_writer_clock_class",
+			1000000000);
 	assert(non_writer_clock_class);
 	ret = bt_ctf_trace_add_clock_class(non_writer_trace,
 		non_writer_clock_class);
@@ -2698,7 +2699,7 @@ void test_static_trace(void)
 		"bt_ctf_trace_set_is_static() succeeds");
 	ok(bt_ctf_trace_is_static(trace),
 		"bt_ctf_trace_is_static() returns the expected value");
-	clock_class = bt_ctf_clock_class_create("yes");
+	clock_class = bt_ctf_clock_class_create("yes", 1000000000);
 	assert(clock_class);
 	stream_class2 = bt_ctf_stream_class_create(NULL);
 	assert(stream_class2);

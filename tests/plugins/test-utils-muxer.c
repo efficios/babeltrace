@@ -335,7 +335,7 @@ void init_static_data(void)
 	assert(ret == 0);
 	ret = bt_ctf_trace_set_packet_header_type(trace, empty_struct_ft);
 	assert(ret == 0);
-	src_clock_class = bt_ctf_clock_class_create("my-clock");
+	src_clock_class = bt_ctf_clock_class_create("my-clock", 1000000000);
 	assert(src_clock_class);
 	ret = bt_ctf_clock_class_set_is_absolute(src_clock_class, 1);
 	assert(ret == 0);
