@@ -92,13 +92,38 @@ end:
 	return ret;
 }
 
-struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name)
+static
+bool validate_freq(struct bt_ctf_clock_class *clock_class,
+		const char *name, uint64_t freq)
+{
+	bool is_valid = true;
+
+	if (freq == -1ULL || freq == 0) {
+		BT_LOGW("Invalid parameter: frequency is invalid: "
+			"addr=%p, name=\"%s\", freq=%" PRIu64,
+			clock_class, name, freq);
+		is_valid = false;
+		goto end;
+	}
+
+end:
+	return is_valid;
+}
+
+struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
+		uint64_t freq)
 {
 	int ret;
-	struct bt_ctf_clock_class *clock_class;
+	struct bt_ctf_clock_class *clock_class = NULL;
 
 	BT_LOGD("Creating default clock class object: name=\"%s\"",
 		name);
+
+	if (!validate_freq(NULL, name, freq)) {
+		/* validate_freq() logs errors */
+		goto error;
+	}
+
 	clock_class = g_new0(struct bt_ctf_clock_class, 1);
 	if (!clock_class) {
 		BT_LOGE_STR("Failed to allocate one clock class.");
@@ -106,7 +131,7 @@ struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name)
 	}
 
 	clock_class->precision = 1;
-	clock_class->frequency = 1000000000;
+	clock_class->frequency = freq;
 	bt_object_init(clock_class, bt_ctf_clock_class_destroy);
 
 	if (name) {
@@ -211,12 +236,17 @@ int bt_ctf_clock_class_set_frequency(struct bt_ctf_clock_class *clock_class,
 {
 	int ret = 0;
 
-	if (!clock_class || freq == -1ULL) {
+	if (!clock_class) {
 		BT_LOGW("Invalid parameter: clock class is NULL or frequency is invalid: "
-			"addr=%p, name=\"%s\", freq=%" PRIu64,
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
-			freq);
+			"addr=%p, name=\"%s\"",
+			clock_class, bt_ctf_clock_class_get_name(clock_class));
 		ret = -1;
+		goto end;
+	}
+
+	if (!validate_freq(clock_class, bt_ctf_clock_class_get_name(clock_class),
+			freq)) {
+		/* validate_freq() logs errors */
 		goto end;
 	}
 

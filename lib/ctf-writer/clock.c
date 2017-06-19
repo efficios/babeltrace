@@ -58,7 +58,9 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 
 	bt_object_init(clock, bt_ctf_clock_destroy);
 	clock->value = 0;
-	clock->clock_class = bt_ctf_clock_class_create(name);
+
+	/* Pre-2.0.0 backward compatibility: default frequency is 1 GHz */
+	clock->clock_class = bt_ctf_clock_class_create(name, 1000000000);
 	if (!clock->clock_class) {
 		goto error;
 	}
