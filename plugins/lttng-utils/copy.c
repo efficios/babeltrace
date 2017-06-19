@@ -1045,10 +1045,6 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 	int ret_int;
 	const char *name = bt_ctf_stream_class_get_name(stream_class);
 
-	if (strlen(name) == 0) {
-		name = NULL;
-	}
-
 	writer_stream_class = bt_ctf_stream_class_create_empty(name);
 	if (!writer_stream_class) {
 		fprintf(err, "[error] %s in %s:%d\n",
