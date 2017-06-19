@@ -1130,11 +1130,20 @@ int add_clock_classes(FILE *err, struct bt_ctf_trace *writer_trace,
 	for (i = 0; i < clock_class_count; i++) {
 		struct bt_ctf_clock_class *clock_class =
 			bt_ctf_trace_get_clock_class_by_index(trace, i);
+		struct bt_ctf_clock_class *existing_clock_class = NULL;
 
 		if (!clock_class) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
 			goto error;
+		}
+
+		existing_clock_class = bt_ctf_trace_get_clock_class_by_name(
+			writer_trace, bt_ctf_clock_class_get_name(clock_class));
+		bt_put(existing_clock_class);
+		if (existing_clock_class) {
+			bt_put(clock_class);
+			continue;
 		}
 
 		ret = bt_ctf_trace_add_clock_class(writer_trace, clock_class);
