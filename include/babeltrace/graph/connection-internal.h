@@ -122,4 +122,25 @@ bt_connection_status_from_notification_iterator_status(
 	}
 }
 
+static inline
+const char *bt_connection_status_string(enum bt_connection_status status)
+{
+	switch (status) {
+	case BT_CONNECTION_STATUS_GRAPH_IS_CANCELED:
+		return "BT_CONNECTION_STATUS_GRAPH_IS_CANCELED";
+	case BT_CONNECTION_STATUS_OK:
+		return "BT_CONNECTION_STATUS_OK";
+	case BT_CONNECTION_STATUS_INVALID:
+		return "BT_CONNECTION_STATUS_INVALID";
+	case BT_CONNECTION_STATUS_ERROR:
+		return "BT_CONNECTION_STATUS_ERROR";
+	case BT_CONNECTION_STATUS_NOMEM:
+		return "BT_CONNECTION_STATUS_NOMEM";
+	case BT_CONNECTION_STATUS_IS_ENDED:
+		return "BT_CONNECTION_STATUS_IS_ENDED";
+	default:
+		return "(unknown)";
+	}
+}
+
 #endif /* BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H */
