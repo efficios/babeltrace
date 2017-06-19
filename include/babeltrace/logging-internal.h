@@ -736,12 +736,12 @@ void _bt_log_write_mem_aux(
  * - BT_LOGF("format string", args, ...)
  *
  * Message and error string (errno) logging macros:
- * - BT_LOGV_ERRNO("format string", args, ...)
- * - BT_LOGD_ERRNO("format string", args, ...)
- * - BT_LOGI_ERRNO("format string", args, ...)
- * - BT_LOGW_ERRNO("format string", args, ...)
- * - BT_LOGE_ERRNO("format string", args, ...)
- * - BT_LOGF_ERRNO("format string", args, ...)
+ * - BT_LOGV_ERRNO("initial message", "format string", args, ...)
+ * - BT_LOGD_ERRNO("initial message", "format string", args, ...)
+ * - BT_LOGI_ERRNO("initial message", "format string", args, ...)
+ * - BT_LOGW_ERRNO("initial message", "format string", args, ...)
+ * - BT_LOGE_ERRNO("initial message", "format string", args, ...)
+ * - BT_LOGF_ERRNO("initial message", "format string", args, ...)
  *
  * Memory logging macros:
  * - BT_LOGV_MEM(data_ptr, data_sz, "format string", args, ...)
@@ -844,7 +844,7 @@ void _bt_log_write_mem_aux(
 				char error_str[BUFSIZ]; \
 				memset(error_str, 0, sizeof(error_str)); \
 				(void) strerror_r(errno, error_str, sizeof(error_str)); \
-				BT_LOG_WRITE(lvl, tag, _msg ": %s. " _fmt, error_str, ## args); \
+				BT_LOG_WRITE(lvl, tag, _msg ": %s" _fmt, error_str, ## args); \
 			} _BT_LOG_ONCE
 #else
 	/* GNU version of strerror_r(). */
@@ -853,7 +853,7 @@ void _bt_log_write_mem_aux(
 				char error_str_buf[BUFSIZ]; \
 				char *error_str; \
 				error_str = strerror_r(errno, error_str_buf, sizeof(error_str_buf)); \
-				BT_LOG_WRITE(lvl, tag, _msg ": %s. " _fmt, error_str, ## args); \
+				BT_LOG_WRITE(lvl, tag, _msg ": %s" _fmt, error_str, ## args); \
 			} _BT_LOG_ONCE
 #endif
 
