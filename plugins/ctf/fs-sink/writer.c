@@ -297,13 +297,11 @@ enum bt_component_status apply_one_bool(const char *key,
 		goto end;
 	}
 	status = bt_value_bool_get(value, &bool_val);
-	switch (status) {
-	case BT_VALUE_STATUS_OK:
-		break;
-	default:
+	if (status != BT_VALUE_STATUS_OK) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
+
 	*option = (bool) bool_val;
 	if (found) {
 		*found = true;
