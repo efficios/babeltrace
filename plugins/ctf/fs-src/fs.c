@@ -47,6 +47,7 @@
 #include "data-stream-file.h"
 #include "file.h"
 #include "../common/metadata/decoder.h"
+#include "../common/notif-iter/notif-iter.h"
 #include "query.h"
 
 #define BT_LOG_TAG "PLUGIN-CTF-FS-SRC"
@@ -67,6 +68,7 @@ int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_ite
 	ctf_fs_ds_file_destroy(notif_iter_data->ds_file);
 	notif_iter_data->ds_file = ctf_fs_ds_file_create(
 		notif_iter_data->ds_file_group->ctf_fs_trace,
+		notif_iter_data->notif_iter,
 		notif_iter_data->ds_file_group->stream,
 		ds_file_info->path->str);
 	if (!notif_iter_data->ds_file) {
@@ -85,6 +87,11 @@ void ctf_fs_notif_iter_data_destroy(
 	}
 
 	ctf_fs_ds_file_destroy(notif_iter_data->ds_file);
+
+	if (notif_iter_data->notif_iter) {
+		bt_ctf_notif_iter_destroy(notif_iter_data->notif_iter);
+	}
+
 	g_free(notif_iter_data);
 }
 
@@ -164,6 +171,16 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 
 	notif_iter_data = g_new0(struct ctf_fs_notif_iter_data, 1);
 	if (!notif_iter_data) {
+		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		goto error;
+	}
+
+	notif_iter_data->notif_iter = bt_ctf_notif_iter_create(
+		port_data->ds_file_group->ctf_fs_trace->metadata->trace,
+		bt_common_get_page_size() * 8,
+		ctf_fs_ds_file_medops, NULL);
+	if (!notif_iter_data->notif_iter) {
+		BT_LOGE_STR("Cannot create a CTF notification iterator.");
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto error;
 	}
@@ -636,10 +653,18 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	bool add_group = false;
 	int ret;
 	size_t i;
-	struct ctf_fs_ds_file *ds_file;
+	struct ctf_fs_ds_file *ds_file = NULL;
 	struct ctf_fs_ds_index *index = NULL;
+	struct bt_ctf_notif_iter *notif_iter = NULL;
 
-	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, path);
+	notif_iter = bt_ctf_notif_iter_create(ctf_fs_trace->metadata->trace,
+		bt_common_get_page_size() * 8, ctf_fs_ds_file_medops, NULL);
+	if (!notif_iter) {
+		BT_LOGE_STR("Cannot create a CTF notification iterator.");
+		goto error;
+	}
+
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, notif_iter, NULL, path);
 	if (!ds_file) {
 		goto error;
 	}
@@ -757,6 +782,11 @@ end:
 		g_ptr_array_add(ctf_fs_trace->ds_file_groups, ds_file_group);
 	}
 	ctf_fs_ds_file_destroy(ds_file);
+
+	if (notif_iter) {
+		bt_ctf_notif_iter_destroy(notif_iter);
+	}
+
 	ctf_fs_ds_index_destroy(index);
 	bt_put(packet_header_field);
 	bt_put(packet_context_field);
