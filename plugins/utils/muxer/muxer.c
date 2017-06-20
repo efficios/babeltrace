@@ -1061,11 +1061,7 @@ struct bt_notification_iterator_next_return muxer_notif_iter_do_next(
 		next_return.status =
 			validate_muxer_upstream_notif_iters(muxer_notif_iter);
 		if (next_return.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-			BT_LOGE("Cannot validate upstream notification iterator wrappers for muxer's notification iterator: "
-				"muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
-				"status=%s",
-				muxer_comp, muxer_notif_iter,
-				bt_notification_iterator_status_string(next_return.status));
+			/* validate_muxer_upstream_notif_iters() logs details */
 			goto end;
 		}
 
