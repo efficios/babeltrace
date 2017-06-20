@@ -1,6 +1,6 @@
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/plugins
 
-SUBDIRS = dummy trimmer muxer .
+SUBDIRS = dummy counter trimmer muxer .
 
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-utils.la
@@ -11,6 +11,7 @@ babeltrace_plugin_utils_la_LDFLAGS = \
 	-avoid-version -module
 babeltrace_plugin_utils_la_LIBADD = \
 	dummy/libbabeltrace-plugin-dummy-cc.la \
+	counter/libbabeltrace-plugin-counter-cc.la \
 	trimmer/libbabeltrace-plugin-trimmer.la \
 	muxer/libbabeltrace-plugin-muxer.la
 
