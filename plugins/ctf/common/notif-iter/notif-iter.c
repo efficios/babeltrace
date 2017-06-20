@@ -162,6 +162,9 @@ struct bt_ctf_notif_iter {
 	/* Current packet (NULL if not created yet) */
 	struct bt_ctf_packet *packet;
 
+	/* Current stream (NULL if not set yet) */
+	struct bt_ctf_stream *stream;
+
 	/*
 	 * Current timestamp_end field (to consider before switching packets).
 	 */
@@ -1654,6 +1657,7 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
 	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
+	BT_PUT(notit->stream);
 	put_all_dscopes(notit);
 	notit->buf.addr = NULL;
 	notit->buf.sz = 0;
@@ -2635,28 +2639,51 @@ end:
 }
 
 static
-void create_packet(struct bt_ctf_notif_iter *notit)
+int set_stream(struct bt_ctf_notif_iter *notit)
 {
-	int ret;
+	int ret = 0;
 	struct bt_ctf_stream *stream = NULL;
-	struct bt_ctf_packet *packet = NULL;
 
-	BT_LOGV("Creating packet for packet notification: "
-		"notit-addr=%p", notit);
-
-	/* Ask the user for the stream */
 	BT_LOGV("Calling user function (get stream): notit-addr=%p, "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
 		notit, notit->meta.stream_class,
 		bt_ctf_stream_class_get_name(notit->meta.stream_class),
 		bt_ctf_stream_class_get_id(notit->meta.stream_class));
-	stream = notit->medium.medops.get_stream(notit->meta.stream_class,
-			notit->medium.data);
-	BT_LOGV("User function returned: stream-addr=%p",
-		stream);
+	stream = bt_get(notit->medium.medops.get_stream(
+		notit->meta.stream_class, notit->medium.data));
+	BT_LOGV("User function returned: stream-addr=%p", stream);
 	if (!stream) {
 		BT_LOGW_STR("User function failed to return a stream object for the given stream class.");
+		ret = -1;
+		goto end;
+	}
+
+	if (notit->stream && stream != notit->stream) {
+		BT_LOGW("User function returned a different stream than the previous one for the same sequence of packets.");
+		ret = -1;
+		goto end;
+	}
+
+	BT_MOVE(notit->stream, stream);
+
+end:
+	bt_put(stream);
+	return ret;
+}
+
+static
+void create_packet(struct bt_ctf_notif_iter *notit)
+{
+	int ret;
+	struct bt_ctf_packet *packet = NULL;
+
+	BT_LOGV("Creating packet for packet notification: "
+		"notit-addr=%p", notit);
+
+	/* Ask the user for the stream */
+	ret = set_stream(notit);
+	if (ret) {
 		goto error;
 	}
 
@@ -2665,19 +2692,19 @@ void create_packet(struct bt_ctf_notif_iter *notit)
 		"stream-class-addr=%p, "
 		"stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
-		notit, stream, notit->meta.stream_class,
+		notit, notit->stream, notit->meta.stream_class,
 		bt_ctf_stream_class_get_name(notit->meta.stream_class),
 		bt_ctf_stream_class_get_id(notit->meta.stream_class));
 
 	/* Create packet */
-	packet = bt_ctf_packet_create(stream);
+	packet = bt_ctf_packet_create(notit->stream);
 	if (!packet) {
 		BT_LOGE("Cannot create packet from stream: "
 			"notit-addr=%p, stream-addr=%p, "
 			"stream-class-addr=%p, "
 			"stream-class-name=\"%s\", "
 			"stream-class-id=%" PRId64,
-			notit, stream, notit->meta.stream_class,
+			notit, notit->stream, notit->meta.stream_class,
 			bt_ctf_stream_class_get_name(notit->meta.stream_class),
 			bt_ctf_stream_class_get_id(notit->meta.stream_class));
 		goto error;
@@ -2695,7 +2722,7 @@ void create_packet(struct bt_ctf_notif_iter *notit)
 				"stream-class-name=\"%s\", "
 				"stream-class-id=%" PRId64 ", "
 				"field-addr=%p",
-				notit, packet, stream, notit->meta.stream_class,
+				notit, packet, notit->stream, notit->meta.stream_class,
 				bt_ctf_stream_class_get_name(notit->meta.stream_class),
 				bt_ctf_stream_class_get_id(notit->meta.stream_class),
 				notit->dscopes.trace_packet_header);
@@ -2714,7 +2741,7 @@ void create_packet(struct bt_ctf_notif_iter *notit)
 				"stream-class-name=\"%s\", "
 				"stream-class-id=%" PRId64 ", "
 				"field-addr=%p",
-				notit, packet, stream, notit->meta.stream_class,
+				notit, packet, notit->stream, notit->meta.stream_class,
 				bt_ctf_stream_class_get_name(notit->meta.stream_class),
 				bt_ctf_stream_class_get_id(notit->meta.stream_class),
 				notit->dscopes.trace_packet_header);
@@ -2947,6 +2974,7 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notit)
 	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
+	BT_PUT(notit->stream);
 	BT_PUT(notit->cur_timestamp_end);
 	put_all_dscopes(notit);
 
