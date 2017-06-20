@@ -36,12 +36,9 @@
 #include <assert.h>
 #include "dummy.h"
 
-static
 void destroy_private_dummy_data(struct dummy *dummy)
 {
-	if (dummy->iterators) {
-		g_ptr_array_free(dummy->iterators, TRUE);
-	}
+	bt_put(dummy->notif_iter);
 	g_free(dummy);
 }
 
@@ -72,21 +69,17 @@ enum bt_component_status dummy_init(struct bt_private_component *component,
 		goto end;
 	}
 
-	dummy->iterators = g_ptr_array_new_with_free_func(
-			(GDestroyNotify) bt_put);
-	if (!dummy->iterators) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
-		goto end;
-	}
-
 	ret = bt_private_component_set_user_data(component, dummy);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
-end:
-	return ret;
+
+	goto end;
+
 error:
 	destroy_private_dummy_data(dummy);
+
+end:
 	return ret;
 }
 
@@ -111,7 +104,7 @@ void dummy_port_connected(
 		goto end;
 	}
 
-	g_ptr_array_add(dummy->iterators, iterator);
+	BT_MOVE(dummy->notif_iter, iterator);
 
 end:
 	bt_put(connection);
@@ -121,8 +114,8 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_notification *notif = NULL;
-	size_t i;
 	struct dummy *dummy;
+	enum bt_notification_iterator_status it_ret;
 
 	dummy = bt_private_component_get_user_data(component);
 	assert(dummy);
@@ -132,33 +125,27 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 		goto end;
 	}
 
-	/* Consume one notification from each iterator. */
-	for (i = 0; i < dummy->iterators->len; i++) {
-		struct bt_notification_iterator *it;
-		enum bt_notification_iterator_status it_ret;
-
-		it = g_ptr_array_index(dummy->iterators, i);
-
-		it_ret = bt_notification_iterator_next(it);
-		switch (it_ret) {
-		case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
-			ret = BT_COMPONENT_STATUS_AGAIN;
-			goto end;
-		case BT_NOTIFICATION_ITERATOR_STATUS_END:
-			g_ptr_array_remove_index(dummy->iterators, i);
-			i--;
-			continue;
-		default:
-			break;
-		}
-	}
-
-	if (dummy->iterators->len == 0) {
+	if (unlikely(!dummy->notif_iter)) {
 		ret = BT_COMPONENT_STATUS_END;
+		goto end;
 	}
+
+	/* Consume one notification  */
+	it_ret = bt_notification_iterator_next(dummy->notif_iter);
+	switch (it_ret) {
+	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+		ret = BT_COMPONENT_STATUS_AGAIN;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+		ret = BT_COMPONENT_STATUS_END;
+		goto end;
+	default:
+		break;
+	}
+
 end:
 	bt_put(notif);
 	return ret;
