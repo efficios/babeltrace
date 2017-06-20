@@ -191,6 +191,7 @@ int bt_notification_inactivity_set_clock_value(
 			"addr%p, notif-type=%s",
 			notification, bt_notification_type_string(
 				bt_notification_get_type(notification)));
+		ret = -1;
 		goto end;
 	}
 
@@ -208,6 +209,7 @@ int bt_notification_inactivity_set_clock_value(
 			inactivity_notification->cc_prio_map,
 			clock_class, bt_ctf_clock_class_get_name(clock_class),
 			clock_value);
+		ret = -1;
 		goto end;
 	}
 
