@@ -26,11 +26,12 @@
 #include <glib.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/port.h>
 #include <stdbool.h>
 
 struct dummy {
-	GPtrArray *iterators;
+	struct bt_notification_iterator *notif_iter;
 	bool error;
 };
 
