@@ -22,6 +22,7 @@
 
 #include <babeltrace/plugin/plugin-dev.h>
 #include "dummy/dummy.h"
+#include "counter/counter.h"
 #include "trimmer/trimmer.h"
 #include "trimmer/iterator.h"
 #include "muxer/muxer.h"
@@ -31,7 +32,7 @@ BT_PLUGIN_DESCRIPTION("Graph utilities");
 BT_PLUGIN_AUTHOR("Julien Desfossez, Jérémie Galarneau, Philippe Proulx");
 BT_PLUGIN_LICENSE("MIT");
 
-/* dummy sink */
+/* sink.utils.dummy */
 BT_PLUGIN_SINK_COMPONENT_CLASS(dummy, dummy_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(dummy, dummy_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(dummy, dummy_finalize);
@@ -40,7 +41,16 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(dummy,
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
 	"Consume notifications and discard them.");
 
-/* trimmer filter */
+/* sink.utils.counter */
+BT_PLUGIN_SINK_COMPONENT_CLASS(counter, counter_consume);
+BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(counter, counter_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(counter, counter_finalize);
+BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(counter,
+	counter_port_connected);
+BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(counter,
+	"Count notifications and print the results.");
+
+/* flt.utils.trimmer */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
 	"Keep notifications that occur within a specific time range.");
@@ -53,7 +63,7 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(trimmer,
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(trimmer,
 	trimmer_iterator_seek_time);
 
-/* muxer filter */
+/* flt.utils.muxer */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_notif_iter_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(muxer,
 	"Sort notifications from multiple input ports to a single output port by time.");

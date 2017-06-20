@@ -522,7 +522,8 @@ AC_CONFIG_FILES([
 	plugins/text/Makefile
 	plugins/text/pretty/Makefile
 	plugins/utils/Makefile
-	plugins/utils/dummy/Makefile
+  plugins/utils/dummy/Makefile
+	plugins/utils/counter/Makefile
 	plugins/utils/trimmer/Makefile
 	plugins/utils/muxer/Makefile
 	python-plugin-provider/Makefile
