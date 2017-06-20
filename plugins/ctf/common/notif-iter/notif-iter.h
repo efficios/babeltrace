@@ -302,6 +302,10 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields
 		struct bt_ctf_field **packet_header_field,
 		struct bt_ctf_field **packet_context_field);
 
+BT_HIDDEN
+void bt_ctf_notif_iter_set_medops_data(struct bt_ctf_notif_iter *notit,
+		void *medops_data);
+
 static inline
 const char *bt_ctf_notif_iter_medium_status_string(
 		enum bt_ctf_notif_iter_medium_status status)
