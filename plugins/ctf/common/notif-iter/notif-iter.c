@@ -3129,3 +3129,11 @@ set_fields:
 end:
 	return status;
 }
+
+BT_HIDDEN
+void bt_ctf_notif_iter_set_medops_data(struct bt_ctf_notif_iter *notit,
+		void *medops_data)
+{
+	assert(notit);
+	notit->medium.data = medops_data;
+}
