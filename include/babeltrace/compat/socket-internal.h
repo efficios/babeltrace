@@ -34,10 +34,8 @@
 #define BT_SOCKET_ERROR SOCKET_ERROR
 #define BT_SOCKET SOCKET
 
-#define MAXNAMLEN 256
-
 static inline
-int bt_socketlib_init(void)
+int bt_socket_init(void)
 {
 	WORD verreq;
 	WSADATA wsa;
@@ -63,26 +61,38 @@ end:
 }
 
 static inline
-int bt_socketlib_clean(void)
+int bt_socket_fini(void)
 {
 	return WSACleanup();
 }
 
 static inline
-int bt_closesocket(int fd)
+int bt_socket_send(int sockfd, const void *buf, size_t len, int flags)
+{
+	return send(sockfd, buf, len, flags);
+}
+
+static inline
+int bt_socket_recv(int sockfd, void *buf, size_t len, int flags)
+{
+	return recv(sockfd, buf, len, flags);
+}
+
+static inline
+int bt_socket_close(int fd)
 {
 	return closesocket(fd);
 }
 
 static inline
-bool bt_sock_interrupted(void)
+bool bt_socket_interrupted(void)
 {
 	/* There is no equivalent to EINTR in winsock 2.2 */
 	return false;
 }
 
 static inline
-const char *bt_sock_errormsg(void)
+const char *bt_socket_errormsg(void)
 {
 	const char *errstr;
 	int error = WSAGetLastError();
@@ -270,31 +280,43 @@ const char *bt_sock_errormsg(void)
 #define BT_SOCKET int
 
 static inline
-int bt_socketlib_init(void)
+int bt_socket_init(void)
 {
 	return 0;
 }
 
 static inline
-int bt_socketlib_clean(void)
+int bt_socket_fini(void)
 {
 	return 0;
 }
 
 static inline
-int bt_closesocket(int fd)
+int bt_socket_send(int sockfd, const void *buf, size_t len, int flags)
+{
+	return send(sockfd, buf, len, flags);
+}
+
+static inline
+int bt_socket_recv(int sockfd, void *buf, size_t len, int flags)
+{
+	return recv(sockfd, buf, len, flags);
+}
+
+static inline
+int bt_socket_close(int fd)
 {
 	return close(fd);
 }
 
 static inline
-bool bt_sock_interrupted(void)
+bool bt_socket_interrupted(void)
 {
 	return (errno == EINTR);
 }
 
 static inline
-const char *bt_sock_errormsg(void)
+const char *bt_socket_errormsg(void)
 {
 	return g_strerror(errno);
 }
@@ -316,16 +338,16 @@ const char *bt_sock_errormsg(void)
 
 #if defined(MSG_NOSIGNAL)
 static inline
-ssize_t bt_send_nosigpipe(int fd, const void *buffer, size_t size)
+ssize_t bt_socket_send_nosigpipe(int fd, const void *buffer, size_t size)
 {
-	return send(fd, buffer, size, MSG_NOSIGNAL);
+	return bt_socket_send(fd, buffer, size, MSG_NOSIGNAL);
 }
 #else
 
 #include <signal.h>
 
 static inline
-ssize_t bt_send_nosigpipe(int fd, const void *buffer, size_t size)
+ssize_t bt_socket_send_nosigpipe(int fd, const void *buffer, size_t size)
 {
 	ssize_t sent;
 	int saved_err;
@@ -367,7 +389,7 @@ ssize_t bt_send_nosigpipe(int fd, const void *buffer, size_t size)
 	}
 
 	/* Send and save errno. */
-	sent = send(fd, buffer, size, 0);
+	sent = bt_socket_send(fd, buffer, size, 0);
 	saved_err = errno;
 
 	if (sent == -1 && errno == EPIPE && !sigpipe_was_pending) {

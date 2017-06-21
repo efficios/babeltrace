@@ -55,13 +55,13 @@ static ssize_t lttng_live_recv(struct bt_live_viewer_connection *viewer_connecti
 	BT_SOCKET sock = viewer_connection->control_sock;
 
 	do {
-		ret = recv(sock, buf + copied, to_copy, 0);
+		ret = bt_socket_recv(sock, buf + copied, to_copy, 0);
 		if (ret > 0) {
 			assert(ret <= to_copy);
 			copied += ret;
 			to_copy -= ret;
 		}
-		if (ret == BT_SOCKET_ERROR && bt_sock_interrupted()) {
+		if (ret == BT_SOCKET_ERROR && bt_socket_interrupted()) {
 			if (lttng_live_is_canceled(lttng_live)) {
 				break;
 			} else {
@@ -84,8 +84,8 @@ static ssize_t lttng_live_send(struct bt_live_viewer_connection *viewer_connecti
 	ssize_t ret;
 
 	for (;;) {
-		ret = bt_send_nosigpipe(sock, buf, len);
-		if (ret == BT_SOCKET_ERROR && bt_sock_interrupted()) {
+		ret = bt_socket_send_nosigpipe(sock, buf, len);
+		if (ret == BT_SOCKET_ERROR && bt_socket_interrupted()) {
 			if (lttng_live_is_canceled(lttng_live)) {
 				break;
 			} else {
@@ -171,14 +171,14 @@ static int lttng_live_handshake(struct bt_live_viewer_connection *viewer_connect
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_send(viewer_connection, &connect, sizeof(connect));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending version: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending version: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(connect));
@@ -189,7 +189,7 @@ static int lttng_live_handshake(struct bt_live_viewer_connection *viewer_connect
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving version: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving version: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(connect));
@@ -236,7 +236,7 @@ static int lttng_live_connect_viewer(struct bt_live_viewer_connection *viewer_co
 	}
 
 	if ((viewer_connection->control_sock = socket(AF_INET, SOCK_STREAM, 0)) == BT_INVALID_SOCKET) {
-		BT_LOGE("Socket creation failed: %s", bt_sock_errormsg());
+		BT_LOGE("Socket creation failed: %s", bt_socket_errormsg());
 		goto error;
 	}
 
@@ -247,7 +247,7 @@ static int lttng_live_connect_viewer(struct bt_live_viewer_connection *viewer_co
 
 	if (connect(viewer_connection->control_sock, (struct sockaddr *) &server_addr,
 				sizeof(struct sockaddr)) == BT_SOCKET_ERROR) {
-		BT_LOGE("Connection failed: %s", bt_sock_errormsg());
+		BT_LOGE("Connection failed: %s", bt_socket_errormsg());
 		goto error;
 	}
 	if (lttng_live_handshake(viewer_connection)) {
@@ -260,8 +260,8 @@ static int lttng_live_connect_viewer(struct bt_live_viewer_connection *viewer_co
 
 error:
 	if (viewer_connection->control_sock != BT_INVALID_SOCKET) {
-		if (bt_closesocket(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
-			BT_LOGE("Close: %s", bt_sock_errormsg());
+		if (bt_socket_close(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
+			BT_LOGE("Close: %s", bt_socket_errormsg());
 		}
 	}
 	viewer_connection->control_sock = BT_INVALID_SOCKET;
@@ -273,8 +273,8 @@ static void lttng_live_disconnect_viewer(struct bt_live_viewer_connection *viewe
 	if (viewer_connection->control_sock == BT_INVALID_SOCKET) {
 		return;
 	}
-	if (bt_closesocket(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
-		BT_LOGE("Close: %s", bt_sock_errormsg());
+	if (bt_socket_close(viewer_connection->control_sock) == BT_SOCKET_ERROR) {
+		BT_LOGE("Close: %s", bt_socket_errormsg());
 		viewer_connection->control_sock = BT_INVALID_SOCKET;
 	}
 }
@@ -571,7 +571,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
@@ -582,7 +582,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving session list: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving session list: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(list));
@@ -598,7 +598,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 			goto error;
 		}
 		if (ret_len == BT_SOCKET_ERROR) {
-			BT_LOGE("Error receiving session: %s", bt_sock_errormsg());
+			BT_LOGE("Error receiving session: %s", bt_socket_errormsg());
 			goto error;
 		}
 		assert(ret_len == sizeof(lsession));
@@ -635,7 +635,7 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
@@ -646,7 +646,7 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving session list: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving session list: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(list));
@@ -660,7 +660,7 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 			goto error;
 		}
 		if (ret_len == BT_SOCKET_ERROR) {
-			BT_LOGE("Error receiving session: %s", bt_sock_errormsg());
+			BT_LOGE("Error receiving session: %s", bt_socket_errormsg());
 			goto error;
 		}
 		assert(ret_len == sizeof(lsession));
@@ -706,7 +706,7 @@ int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live)
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
@@ -717,7 +717,7 @@ int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live)
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving create session reply: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving create session reply: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(resp));
@@ -827,14 +827,14 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_send(viewer_connection, &rq, sizeof(rq));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending attach request: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending attach request: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rq));
@@ -845,7 +845,7 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving attach response: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving attach response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rp));
@@ -910,14 +910,14 @@ int lttng_live_detach_session(struct lttng_live_session *session)
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_send(viewer_connection, &rq, sizeof(rq));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending detach request: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending detach request: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rq));
@@ -928,7 +928,7 @@ int lttng_live_detach_session(struct lttng_live_session *session)
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving detach response: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving detach response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rp));
@@ -979,14 +979,14 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_send(viewer_connection, &rq, sizeof(rq));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_metadata request: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending get_metadata request: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rq));
@@ -997,7 +997,7 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving get_metadata response: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving get_metadata response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rp));
@@ -1035,7 +1035,7 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		goto error_free_data;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving trace packet: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
 		goto error_free_data;
 	}
 	assert(ret_len == len);
@@ -1102,14 +1102,14 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_li
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_send(viewer_connection, &rq, sizeof(rq));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_next_index request: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending get_next_index request: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rq));
@@ -1120,7 +1120,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_li
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving get_next_index response: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving get_next_index response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rp));
@@ -1239,14 +1239,14 @@ enum bt_ctf_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_li
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_send(viewer_connection, &rq, sizeof(rq));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_data request: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending get_data request: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rq));
@@ -1257,7 +1257,7 @@ enum bt_ctf_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_li
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving get_data response: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving get_data response: %s", bt_socket_errormsg());
 		goto error;
 	}
 	if (ret_len != sizeof(rp)) {
@@ -1314,7 +1314,7 @@ enum bt_ctf_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_li
 		goto error;
 	}
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error receiving trace packet: %s", bt_sock_errormsg());
+		BT_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == req_len);
@@ -1362,14 +1362,14 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_new_streams(
 
 	ret_len = lttng_live_send(viewer_connection, &cmd, sizeof(cmd));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending cmd: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_send(viewer_connection, &rq, sizeof(rq));
 	if (ret_len == BT_SOCKET_ERROR) {
-		BT_LOGE("Error sending get_new_streams request: %s", bt_sock_errormsg());
+		BT_LOGE("Error sending get_new_streams request: %s", bt_socket_errormsg());
 		goto error;
 	}
 	assert(ret_len == sizeof(rq));
@@ -1431,7 +1431,7 @@ struct bt_live_viewer_connection *
 
 	viewer_connection = g_new0(struct bt_live_viewer_connection, 1);
 
-	if (bt_socketlib_init() != 0) {
+	if (bt_socket_init() != 0) {
 		goto error;
 	}
 
@@ -1475,5 +1475,5 @@ void bt_live_viewer_connection_destroy(struct bt_live_viewer_connection *viewer_
 	}
 	g_free(viewer_connection);
 
-	bt_socketlib_clean();
+	bt_socket_fini();
 }
