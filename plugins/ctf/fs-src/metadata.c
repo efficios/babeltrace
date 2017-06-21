@@ -103,8 +103,8 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
 	struct ctf_fs_file *file = NULL;
 	struct ctf_metadata_decoder *metadata_decoder = NULL;
 	struct ctf_metadata_decoder_config decoder_config = {
-		.clock_class_offset_s = config->clock_class_offset_s,
-		.clock_class_offset_ns = config->clock_class_offset_ns,
+		.clock_class_offset_s = config ? config->clock_class_offset_s : 0,
+		.clock_class_offset_ns = config ? config->clock_class_offset_ns : 0,
 	};
 
 	file = get_file(ctf_fs_trace->path->str);
@@ -114,7 +114,8 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	metadata_decoder = ctf_metadata_decoder_create(&decoder_config,
+	metadata_decoder = ctf_metadata_decoder_create(
+		config ? &decoder_config : NULL,
 		ctf_fs_trace->name->str);
 	if (!metadata_decoder) {
 		BT_LOGE("Cannot create metadata decoder object");
