@@ -673,9 +673,9 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 
 		if ((strncmp(lsession.session_name,
 			viewer_connection->session_name->str,
-			MAXNAMLEN) == 0) && (strncmp(lsession.hostname,
+			LTTNG_VIEWER_NAME_MAX) == 0) && (strncmp(lsession.hostname,
 				viewer_connection->target_hostname->str,
-				MAXNAMLEN) == 0)) {
+				LTTNG_VIEWER_HOST_NAME_MAX) == 0)) {
 			if (lttng_live_add_session(lttng_live, session_id,
 					lsession.hostname,
 					lsession.session_name)) {
