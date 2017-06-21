@@ -399,9 +399,17 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 				index_file_path);
 		goto error;
 	}
+
+	/*
+	 * The g_mapped_file API limits us to 4GB files on 32-bit.
+	 * Traces with such large indexes have never been seen in the wild,
+	 * but this would need to be adjusted to support them.
+	 */
 	filesize = g_mapped_file_get_length(mapped_file);
 	if (filesize < sizeof(*header)) {
-		BT_LOGW("Invalid LTTng trace index file: file size < header size");
+		BT_LOGW("Invalid LTTng trace index file: "
+			"file size (%zu bytes) < header size (%zu bytes)",
+			filesize, sizeof(*header));
 		goto error;
 	}
 
@@ -410,14 +418,17 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	file_pos = g_mapped_file_get_contents(mapped_file) + sizeof(*header);
 	if (be32toh(header->magic) != CTF_INDEX_MAGIC) {
-		BT_LOGW("Invalid LTTng trace index: \"magic\" validation failed");
+		BT_LOGW("Invalid LTTng trace index: \"magic\" field validation failed");
 		goto error;
 	}
 
 	file_index_entry_size = be32toh(header->packet_index_len);
 	file_entry_count = (filesize - sizeof(*header)) / file_index_entry_size;
 	if ((filesize - sizeof(*header)) % file_index_entry_size) {
-		BT_LOGW("Invalid index file size; not a multiple of index entry size");
+		BT_LOGW("Invalid LTTng trace index: the index's size after the header "
+			"(%zu bytes) is not a multiple of the index entry size "
+			"(%zu bytes)", (filesize - sizeof(*header)),
+			sizeof(*header));
 		goto error;
 	}
 
@@ -434,7 +445,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		uint64_t packet_size = be64toh(file_index->packet_size);
 
 		if (packet_size % CHAR_BIT) {
-			BT_LOGW("Invalid packet size encountered in index file");
+			BT_LOGW("Invalid packet size encountered in LTTng trace index file");
 			goto error;
 		}
 
@@ -444,14 +455,19 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 		index_entry->offset = be64toh(file_index->offset);
 		if (i != 0 && index_entry->offset < (index_entry - 1)->offset) {
-			BT_LOGW("Invalid, non-monotonic, packet offset encountered in index file");
+			BT_LOGW("Invalid, non-monotonic, packet offset encountered in LTTng trace index file: "
+				"previous offset=%" PRIu64 ", current offset=%" PRIu64,
+				(index_entry - 1)->offset, index_entry->offset);
 			goto error;
 		}
 
 		index_entry->timestamp_begin = be64toh(file_index->timestamp_begin);
 		index_entry->timestamp_end = be64toh(file_index->timestamp_end);
 		if (index_entry->timestamp_end < index_entry->timestamp_begin) {
-			BT_LOGW("Invalid packet time bounds encountered in index file");
+			BT_LOGW("Invalid packet time bounds encountered in LTTng trace index file (begin > end): "
+				"timestamp_begin=%" PRIu64 "timestamp_end=%" PRIu64,
+				index_entry->timestamp_begin,
+				index_entry->timestamp_end);
 			goto error;
 		}
 
@@ -460,12 +476,14 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 				index_entry->timestamp_begin,
 				&index_entry->timestamp_begin_ns);
 		if (ret) {
+			BT_LOGD("Failed to convert raw timestamp to nanoseconds since Epoch during index parsing");
 			goto error;
 		}
 		ret = convert_cycles_to_ns(timestamp_end_cc,
 				index_entry->timestamp_end,
 				&index_entry->timestamp_end_ns);
 		if (ret) {
+			BT_LOGD("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
 			goto error;
 		}
 
@@ -476,7 +494,9 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	/* Validate that the index addresses the complete stream. */
 	if (ds_file->file->size != total_packets_size) {
-		BT_LOGW("Invalid index; indexed size != stream file size");
+		BT_LOGW("Invalid LTTng trace index file; indexed size != stream file size: "
+			"file_size=%" PRIu64 ", total_packets_size=%" PRIu64,
+			ds_file->file->size, total_packets_size);
 		goto error;
 	}
 end:
