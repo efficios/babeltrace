@@ -24,6 +24,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "NOTIF-EVENT"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/event-internal.h>
@@ -35,6 +38,7 @@
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/types.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 static
 void bt_notification_event_destroy(struct bt_object *obj)
@@ -42,7 +46,10 @@ void bt_notification_event_destroy(struct bt_object *obj)
 	struct bt_notification_event *notification =
 			(struct bt_notification_event *) obj;
 
+	BT_LOGD("Destroying event notification: addr=%p", notification);
+	BT_LOGD_STR("Putting event.");
 	BT_PUT(notification->event);
+	BT_LOGD_STR("Putting clock class priority map.");
 	BT_PUT(notification->cc_prio_map);
 	g_free(notification);
 }
@@ -91,6 +98,17 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 		clock_value = bt_ctf_event_get_clock_value(notif->event,
 			clock_class);
 		if (!clock_value) {
+			BT_LOGW("Event has no clock value for a clock class which exists in the notification's clock class priority map: "
+				"notif-addr=%p, event-addr=%p, "
+				"event-class-addr=%p, event-class-name=\"%s\", "
+				"event-class-id=%" PRId64 ", "
+				"cc-prio-map-addr=%p, "
+				"clock-class-addr=%p, clock-class-name=\"%s\"",
+				notif, notif->event, event_class,
+				bt_ctf_event_class_get_name(event_class),
+				bt_ctf_event_class_get_id(event_class),
+				notif->cc_prio_map, clock_class,
+				bt_ctf_clock_class_get_name(clock_class));
 			is_valid = BT_FALSE;
 			goto end;
 		}
@@ -111,6 +129,13 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 		}
 
 		if (!found_in_trace) {
+			BT_LOGW("A clock class found in the event notification's clock class priority map does not exist in the notification's event's trace: "
+				"notif-addr=%p, trace-addr=%p, "
+				"trace-name=\"%s\", cc-prio-map-addr=%p, "
+				"clock-class-addr=%p, clock-class-name=\"%s\"",
+				notif, trace, bt_ctf_trace_get_name(trace),
+				notif->cc_prio_map, clock_class,
+				bt_ctf_clock_class_get_name(clock_class));
 			is_valid = BT_FALSE;
 			goto end;
 		}
@@ -142,35 +167,85 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
 	struct bt_notification_event *notification = NULL;
+	struct bt_ctf_event_class *event_class;
 
-	if (!event || !cc_prio_map) {
+	if (!event) {
+		BT_LOGW_STR("Invalid parameter: event is NULL.");
 		goto error;
 	}
 
+	if (!cc_prio_map) {
+		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
+		goto error;
+	}
+
+	event_class = bt_ctf_event_borrow_event_class(event);
+	assert(event_class);
+	BT_LOGD("Creating event notification object: "
+		"event-addr=%p, event-class-addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+		"cc-prio-map-addr=%p",
+		event, event_class,
+		bt_ctf_event_class_get_name(event_class),
+		bt_ctf_event_class_get_id(event_class), cc_prio_map);
+
 	if (!bt_ctf_event_borrow_packet(event)) {
+		BT_LOGW("Invalid parameter: event has no packet: "
+			"event-addr=%p, event-class-addr=%p, "
+			"event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event, event_class,
+			bt_ctf_event_class_get_name(event_class),
+			bt_ctf_event_class_get_id(event_class));
 		goto error;
 	}
 
 	if (!event_has_trace(event)) {
+		BT_LOGW("Invalid parameter: event has no trace: "
+			"event-addr=%p, event-class-addr=%p, "
+			"event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event, event_class,
+			bt_ctf_event_class_get_name(event_class),
+			bt_ctf_event_class_get_id(event_class));
 		goto error;
 	}
 
 	notification = g_new0(struct bt_notification_event, 1);
 	if (!notification) {
-		goto error;
-	}
-	bt_notification_init(&notification->parent,
-			BT_NOTIFICATION_TYPE_EVENT,
-			bt_notification_event_destroy);
-	notification->event = bt_get(event);
-	notification->cc_prio_map = bt_get(cc_prio_map);
-	if (!validate_clock_classes(notification)) {
+		BT_LOGE_STR("Failed to allocate one event notification.");
 		goto error;
 	}
 
+	bt_notification_init(&notification->parent, BT_NOTIFICATION_TYPE_EVENT,
+		bt_notification_event_destroy);
+	notification->event = bt_get(event);
+	notification->cc_prio_map = bt_get(cc_prio_map);
+	if (!validate_clock_classes(notification)) {
+		BT_LOGW("Invalid event: invalid clock class: "
+			"event-addr=%p, event-class-addr=%p, "
+			"event-class-name=\"%s\", "
+			"event-class-id=%" PRId64,
+			event, event_class,
+			bt_ctf_event_class_get_name(event_class),
+			bt_ctf_event_class_get_id(event_class));
+		goto error;
+	}
+
+	BT_LOGD_STR("Freezing event notification's event.");
 	bt_ctf_event_freeze(notification->event);
+	BT_LOGD_STR("Freezing event notification's clock class priority map.");
 	bt_clock_class_priority_map_freeze(notification->cc_prio_map);
+	BT_LOGD("Created event notification object: "
+		"event-addr=%p, event-class-addr=%p, "
+		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
+		"cc-prio-map-addr=%p, notif-addr=%p",
+		event, event_class,
+		bt_ctf_event_class_get_name(event_class),
+		bt_ctf_event_class_get_id(event_class), cc_prio_map,
+		notification);
 	return &notification->parent;
+
 error:
 	bt_put(notification);
 	return NULL;
@@ -182,13 +257,24 @@ struct bt_ctf_event *bt_notification_event_get_event(
 	struct bt_ctf_event *event = NULL;
 	struct bt_notification_event *event_notification;
 
-	if (bt_notification_get_type(notification) !=
-			BT_NOTIFICATION_TYPE_EVENT) {
+	if (!notification) {
+		BT_LOGW_STR("Invalid parameter: notification is NULL.");
 		goto end;
 	}
+
+	if (bt_notification_get_type(notification) !=
+			BT_NOTIFICATION_TYPE_EVENT) {
+		BT_LOGW("Invalid parameter: notification is not an event notification: "
+			"addr%p, notif-type=%s",
+			notification, bt_notification_type_string(
+				bt_notification_get_type(notification)));
+		goto end;
+	}
+
 	event_notification = container_of(notification,
 			struct bt_notification_event, parent);
 	event = bt_get(event_notification->event);
+
 end:
 	return event;
 }
@@ -200,14 +286,24 @@ bt_notification_event_get_clock_class_priority_map(
 	struct bt_clock_class_priority_map *cc_prio_map = NULL;
 	struct bt_notification_event *event_notification;
 
+	if (!notification) {
+		BT_LOGW_STR("Invalid parameter: notification is NULL.");
+		goto end;
+	}
+
 	if (bt_notification_get_type(notification) !=
 			BT_NOTIFICATION_TYPE_EVENT) {
+		BT_LOGW("Invalid parameter: notification is not an event notification: "
+			"addr%p, notif-type=%s",
+			notification, bt_notification_type_string(
+				bt_notification_get_type(notification)));
 		goto end;
 	}
 
 	event_notification = container_of(notification,
 			struct bt_notification_event, parent);
 	cc_prio_map = bt_get(event_notification->cc_prio_map);
+
 end:
 	return cc_prio_map;
 }

@@ -41,7 +41,8 @@ extern "C" {
 struct bt_ctf_clock_class;
 struct bt_ctf_clock_value;
 
-extern struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name);
+extern struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
+		uint64_t freq);
 extern const char *bt_ctf_clock_class_get_name(
 		struct bt_ctf_clock_class *clock_class);
 extern int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class,

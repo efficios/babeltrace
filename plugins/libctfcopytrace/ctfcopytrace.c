@@ -58,7 +58,8 @@ struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 		goto end;
 	}
 
-	writer_clock_class = bt_ctf_clock_class_create(name);
+	writer_clock_class = bt_ctf_clock_class_create(name,
+		bt_ctf_clock_class_get_frequency(clock_class));
 	if (!writer_clock_class) {
 		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 				__LINE__);
@@ -74,19 +75,6 @@ struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 					__LINE__);
 			goto end_destroy;
 		}
-	}
-
-	u64_ret = bt_ctf_clock_class_get_frequency(clock_class);
-	if (u64_ret == -1ULL) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
-	int_ret = bt_ctf_clock_class_set_frequency(writer_clock_class, u64_ret);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
 	}
 
 	u64_ret = bt_ctf_clock_class_get_precision(clock_class);
@@ -385,10 +373,6 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 	struct bt_ctf_stream_class *writer_stream_class = NULL;
 	int ret_int;
 	const char *name = bt_ctf_stream_class_get_name(stream_class);
-
-	if (strlen(name) == 0) {
-		name = NULL;
-	}
 
 	writer_stream_class = bt_ctf_stream_class_create_empty(name);
 	if (!writer_stream_class) {
