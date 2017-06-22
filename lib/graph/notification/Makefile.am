@@ -8,4 +8,7 @@ libgraph_notification_la_SOURCES = \
 	event.c \
 	stream.c \
 	heap.c \
-	inactivity.c
+	inactivity.c \
+	discarded-events.c \
+	discarded-packets.c \
+	discarded-elements.c
