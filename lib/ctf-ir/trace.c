@@ -793,6 +793,30 @@ bool packet_header_field_type_is_valid(struct bt_ctf_trace *trace,
 		BT_PUT(field_type);
 	}
 
+	/*
+	 * If there's a `packet_seq_num` field, it must be an unsigned
+	 * integer field type.
+	 */
+	field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+		packet_header_type, "packet_seq_num");
+	if (field_type) {
+		if (!bt_ctf_field_type_is_integer(field_type)) {
+			BT_LOGW("Invalid packet header field type: `packet_seq_num` field must be an integer field type: "
+				"stream-id-ft-addr=%p, packet-seq-num-ft-id=%s",
+				field_type,
+				bt_ctf_field_type_id_string(field_type->id));
+			goto invalid;
+		}
+
+		if (bt_ctf_field_type_integer_is_signed(field_type)) {
+			BT_LOGW("Invalid packet header field type: `packet_seq_num` field must be an unsigned integer field type: "
+				"packet-seq-num-ft-addr=%p", field_type);
+			goto invalid;
+		}
+
+		BT_PUT(field_type);
+	}
+
 	goto end;
 
 invalid:
