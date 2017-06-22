@@ -25,11 +25,7 @@
  * SOFTWARE.
  */
 
-#ifndef __MINGW32__
-
-#include <sys/mman.h>
-
-#else /* __MINGW32__ */
+#ifdef __MINGW32__
 
 #include <sys/types.h>
 
@@ -47,10 +43,27 @@
 #define MAP_ANON	MAP_ANONYMOUS
 #define MAP_FAILED	((void *) -1)
 
-void *mmap(void *addr, size_t length, int prot, int flags, int fd,
+void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 	off_t offset);
-int munmap(void *addr, size_t length);
 
+int bt_munmap(void *addr, size_t length);
+
+#else /* __MINGW32__ */
+
+#include <sys/mman.h>
+
+static inline
+void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
+	off_t offset)
+{
+	return (void *) mmap(addr, length, prot, flags, fd, offset);
+}
+
+static inline
+int bt_munmap(void *addr, size_t length)
+{
+	return munmap(addr, length);
+}
 #endif /* __MINGW32__ */
 
 #ifndef MAP_ANONYMOUS

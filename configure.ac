@@ -62,6 +62,7 @@ AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([ \
 	fcntl.h \
 	float.h \
+	ftw.h \
 	libintl.h \
 	limits.h \
 	malloc.h \
@@ -117,14 +118,11 @@ AC_TYPE_UINT8_T
 # Checks for library functions.
 AC_FUNC_ALLOCA
 AC_FUNC_FORK
-AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_MMAP
-AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([ \
 	atexit \
-	dirfd \
 	dup2 \
 	ftruncate \
 	gethostbyname \
@@ -151,6 +149,10 @@ AC_CHECK_FUNCS([ \
 	uname \
 ])
 
+# AC_FUNC_MALLOC causes problems when cross-compiling.
+#AC_FUNC_MALLOC
+#AC_FUNC_REALLOC
+
 MINGW32=no
 DEFAULT_ENABLE_DEBUG_INFO=yes
 LT_NO_UNDEFINED=""
@@ -158,6 +160,11 @@ AS_CASE([$host_os],
   [solaris*|darwin*],
     [
 	DEFAULT_ENABLE_DEBUG_INFO=no
+    ],
+  [cygwin*],
+    [
+	DEFAULT_ENABLE_DEBUG_INFO=no
+	LT_NO_UNDEFINED="-no-undefined"
     ],
   [mingw*],
     [
@@ -231,13 +238,6 @@ AC_CHECK_LIB([c], [open_memstream],
 AC_CHECK_LIB([c], [posix_fallocate],
 [
 	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_POSIX_FALLOCATE], 1, [Has posix_fallocate support.])
-]
-)
-
-# Check for faccessat
-AC_CHECK_LIB([c], [faccessat],
-[
-	AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_FACCESSAT], 1, [Has faccessat support.])
 ]
 )
 

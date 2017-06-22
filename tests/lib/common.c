@@ -21,38 +21,30 @@
 
 #include <unistd.h>
 #include <stdio.h>
-#include <babeltrace/compat/dirent-internal.h>
-#include <babeltrace/compat/limits-internal.h>
-#include <sys/stat.h>
+#include <dirent.h>
+#include <ftw.h>
+
+#define RMDIR_NFDOPEN 8
+
+static
+int nftw_recursive_rmdir(const char *file, const struct stat *sb, int flag,
+		struct FTW *s)
+{
+	switch (flag) {
+	case FTW_F:
+		unlink(file);
+		break;
+	case FTW_DP:
+		rmdir(file);
+		break;
+	}
+
+	return 0;
+}
 
 void recursive_rmdir(const char *path)
 {
-	struct dirent *entry;
-	DIR *dir = opendir(path);
+	int nftw_flags = FTW_PHYS | FTW_DEPTH;
 
-	if (!dir) {
-		perror("# opendir");
-		return;
-	}
-
-	while ((entry = readdir(dir))) {
-		struct stat st;
-		char filename[PATH_MAX];
-
-		if (snprintf(filename, sizeof(filename), "%s/%s",
-				path, entry->d_name) <= 0) {
-			continue;
-		}
-
-		if (stat(filename, &st)) {
-			continue;
-		}
-
-		if (S_ISREG(st.st_mode)) {
-			unlinkat(bt_dirfd(dir), entry->d_name, 0);
-		}
-	}
-
-	rmdir(path);
-	closedir(dir);
+	nftw(path, nftw_recursive_rmdir, RMDIR_NFDOPEN, nftw_flags);
 }

@@ -62,7 +62,7 @@ int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 		goto end;
 	}
 
-	if (munmap(ds_file->mmap_addr, ds_file->mmap_len)) {
+	if (bt_munmap(ds_file->mmap_addr, ds_file->mmap_len)) {
 		BT_LOGE("Cannot memory-unmap address %p (size %zu) of file \"%s\" (%p): %s",
 			ds_file->mmap_addr, ds_file->mmap_len,
 			ds_file->file->path->str, ds_file->file->fp,
@@ -106,7 +106,7 @@ enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 			& ~(page_size - 1);
 	/* Map new region */
 	assert(ds_file->mmap_len);
-	ds_file->mmap_addr = mmap((void *) 0, ds_file->mmap_len,
+	ds_file->mmap_addr = bt_mmap((void *) 0, ds_file->mmap_len,
 			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
 			ds_file->mmap_offset);
 	if (ds_file->mmap_addr == MAP_FAILED) {

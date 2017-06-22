@@ -479,6 +479,10 @@ error:
 	return ret;
 }
 
+#ifndef BT_BUILT_IN_PLUGINS
+BT_PLUGIN_MODULE();
+#endif
+
 /* Initialize plug-in entry points. */
 BT_PLUGIN_WITH_ID(lttng_utils, "lttng-utils");
 BT_PLUGIN_DESCRIPTION_WITH_ID(lttng_utils, "LTTng utilities");

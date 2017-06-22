@@ -76,13 +76,12 @@ noinst_HEADERS = \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield-internal.h \
 	babeltrace/common-internal.h \
-	babeltrace/compat/dirent-internal.h \
 	babeltrace/compat/fcntl-internal.h \
 	babeltrace/compat/glib-internal.h \
 	babeltrace/compat/limits-internal.h \
 	babeltrace/compat/memstream-internal.h \
 	babeltrace/compat/mman-internal.h \
-	babeltrace/compat/send-internal.h \
+	babeltrace/compat/socket-internal.h \
 	babeltrace/compat/stdio-internal.h \
 	babeltrace/compat/stdlib-internal.h \
 	babeltrace/compat/string-internal.h \

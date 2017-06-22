@@ -5,7 +5,11 @@ if ENABLE_DEBUG_INFO
 LTTNG_UTILS_PLUGIN_PATH += :$(PLUGINS_PATH)/lttng-utils
 endif
 
+if BABELTRACE_BUILD_WITH_MINGW
+IN_TREE_PLUGIN_PATH := $(shell cygpath -pm "$(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/utils$(LTTNG_UTILS_PLUGIN_PATH)")
+else
 IN_TREE_PLUGIN_PATH = $(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/utils$(LTTNG_UTILS_PLUGIN_PATH)
+endif
 
 AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
 		'-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
@@ -74,7 +78,7 @@ endif
 endif
 
 if BABELTRACE_BUILD_WITH_MINGW
-babeltrace_bin_LDADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
+babeltrace_bin_LDADD += -lws2_32 -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
 endif
 
 # Only used for in-tree execution and tests
