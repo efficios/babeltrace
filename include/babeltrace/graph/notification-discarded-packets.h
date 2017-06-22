@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_GRAPH_NOTIFICATION_H
-#define BABELTRACE_GRAPH_NOTIFICATION_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_DISCARDED_PACKETS_H
+#define BABELTRACE_GRAPH_NOTIFICATION_DISCARDED_PACKETS_H
 
 /*
- * BabelTrace - Plug-in Notification
- *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,41 +23,37 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
+struct bt_clock_class_priority_map;
+struct bt_ctf_clock_class;
+struct bt_ctf_stream;
 
-/**
- * Notification types. Unhandled notification types should be ignored.
- */
-enum bt_notification_type {
-	BT_NOTIFICATION_TYPE_SENTINEL =			-1000,
-	BT_NOTIFICATION_TYPE_UNKNOWN =			-1,
-	BT_NOTIFICATION_TYPE_ALL =			-2,
-	BT_NOTIFICATION_TYPE_EVENT =			0,
-	BT_NOTIFICATION_TYPE_INACTIVITY =		1,
-	BT_NOTIFICATION_TYPE_STREAM_BEGIN =		2,
-	BT_NOTIFICATION_TYPE_STREAM_END =		3,
-	BT_NOTIFICATION_TYPE_PACKET_BEGIN =		4,
-	BT_NOTIFICATION_TYPE_PACKET_END =		5,
-	BT_NOTIFICATION_TYPE_DISCARDED_EVENTS =		6,
-	BT_NOTIFICATION_TYPE_DISCARDED_PACKETS =	7,
-	BT_NOTIFICATION_TYPE_NR, /* Not part of ABI. */
-};
+extern struct bt_ctf_clock_value *
+bt_notification_discarded_packets_get_begin_clock_value(
+		struct bt_notification *notification);
 
-/**
- * Get a notification's type.
- *
- * @param notification	Notification instance
- * @returns		One of #bt_notification_type
- */
-extern enum bt_notification_type bt_notification_get_type(
+extern struct bt_ctf_clock_value *
+bt_notification_discarded_packets_get_end_clock_value(
+		struct bt_notification *notification);
+
+extern int bt_notification_discarded_packets_set_count(
+		struct bt_notification *notification,
+		uint64_t count);
+
+extern int64_t bt_notification_discarded_packets_get_count(
+		struct bt_notification *notification);
+
+extern struct bt_ctf_stream *bt_notification_discarded_packets_get_stream(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_NOTIFICATION_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_DISCARDED_PACKETS_H */
