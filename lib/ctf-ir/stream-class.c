@@ -146,7 +146,7 @@ const char *bt_ctf_stream_class_get_name(
 		goto end;
 	}
 
-	name = stream_class->name->str;
+	name = stream_class->name->len > 0 ? stream_class->name->str : NULL;
 end:
 	return name;
 }
@@ -171,7 +171,18 @@ int bt_ctf_stream_class_set_name(struct bt_ctf_stream_class *stream_class,
 		goto end;
 	}
 
-	g_string_assign(stream_class->name, name);
+	if (!name) {
+		g_string_assign(stream_class->name, "");
+	} else {
+		if (strlen(name) == 0) {
+			BT_LOGW("Invalid parameter: name is empty.");
+			ret = -1;
+			goto end;
+		}
+
+		g_string_assign(stream_class->name, name);
+	}
+
 	BT_LOGV("Set stream class's name: "
 		"addr=%p, name=\"%s\", id=%" PRId64,
 		stream_class, bt_ctf_stream_class_get_name(stream_class),

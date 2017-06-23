@@ -20,6 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "NOTIF-INACTIVITY"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
@@ -34,9 +37,12 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 	struct bt_notification_inactivity *notification =
 			(struct bt_notification_inactivity *) obj;
 
+	BT_LOGD("Destroying inactivity notification: addr=%p", notification);
+	BT_LOGD_STR("Putting clock class priority map.");
 	bt_put(notification->cc_prio_map);
 
 	if (notification->clock_values) {
+		BT_LOGD_STR("Putting clock values.");
 		g_hash_table_destroy(notification->clock_values);
 	}
 
@@ -50,25 +56,35 @@ struct bt_notification *bt_notification_inactivity_create(
 	struct bt_notification *ret_notif = NULL;
 
 	if (!cc_prio_map) {
+		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
 		goto error;
 	}
 
+	BT_LOGD("Creating inactivity notification object: "
+		"cc-prio-map-addr=%p",
+		cc_prio_map);
 	notification = g_new0(struct bt_notification_inactivity, 1);
 	if (!notification) {
+		BT_LOGE_STR("Failed to allocate one inactivity notification.");
 		goto error;
 	}
 	bt_notification_init(&notification->parent,
-			BT_NOTIFICATION_TYPE_INACTIVITY,
-			bt_notification_inactivity_destroy);
+		BT_NOTIFICATION_TYPE_INACTIVITY,
+		bt_notification_inactivity_destroy);
 	ret_notif = &notification->parent;
 	notification->clock_values = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, bt_put, bt_put);
+		g_direct_equal, bt_put, bt_put);
 	if (!notification->clock_values) {
+		BT_LOGE_STR("Failed to allocate a GHashTable.");
 		goto error;
 	}
 
 	notification->cc_prio_map = bt_get(cc_prio_map);
+	BT_LOGD_STR("Freezing inactivity notification's clock class priority map.");
 	bt_clock_class_priority_map_freeze(cc_prio_map);
+	BT_LOGD("Created inactivity notification object: "
+		"cc-prio-map-addr=%p, notif-addr=%p",
+		cc_prio_map, ret_notif);
 	goto end;
 
 error:
@@ -85,8 +101,17 @@ bt_notification_inactivity_get_clock_class_priority_map(
 	struct bt_clock_class_priority_map *cc_prio_map = NULL;
 	struct bt_notification_inactivity *inactivity_notification;
 
+	if (!notification) {
+		BT_LOGW_STR("Invalid parameter: notification is NULL.");
+		goto end;
+	}
+
 	if (bt_notification_get_type(notification) !=
 			BT_NOTIFICATION_TYPE_INACTIVITY) {
+		BT_LOGW("Invalid parameter: notification is not an inactivity notification: "
+			"addr%p, notif-type=%s",
+			notification, bt_notification_type_string(
+				bt_notification_get_type(notification)));
 		goto end;
 	}
 
@@ -104,17 +129,27 @@ struct bt_ctf_clock_value *bt_notification_inactivity_get_clock_value(
 	struct bt_ctf_clock_value *clock_value = NULL;
 	struct bt_notification_inactivity *inactivity_notification;
 
-	if (!notification || !clock_class) {
+	if (!notification) {
+		BT_LOGW_STR("Invalid parameter: notification is NULL.");
+		goto end;
+	}
+
+	if (!clock_class) {
+		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
 		goto end;
 	}
 
 	if (bt_notification_get_type(notification) !=
 			BT_NOTIFICATION_TYPE_INACTIVITY) {
+		BT_LOGW("Invalid parameter: notification is not an inactivity notification: "
+			"addr%p, notif-type=%s",
+			notification, bt_notification_type_string(
+				bt_notification_get_type(notification)));
 		goto end;
 	}
 
 	inactivity_notification = container_of(notification,
-			struct bt_notification_inactivity, parent);
+		struct bt_notification_inactivity, parent);
 	clock_value = g_hash_table_lookup(inactivity_notification->clock_values,
 		clock_class);
 	bt_get(clock_value);
@@ -132,13 +167,31 @@ int bt_notification_inactivity_set_clock_value(
 	struct bt_ctf_clock_class *clock_class = NULL;
 	struct bt_notification_inactivity *inactivity_notification;
 
-	if (!notification || !clock_value || notification->frozen) {
+	if (!notification) {
+		BT_LOGW_STR("Invalid parameter: notification is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (!clock_value) {
+		BT_LOGW_STR("Invalid parameter: clock value is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (notification->frozen) {
+		BT_LOGW_STR("Invalid parameter: notification is frozen.");
 		ret = -1;
 		goto end;
 	}
 
 	if (bt_notification_get_type(notification) !=
 			BT_NOTIFICATION_TYPE_INACTIVITY) {
+		BT_LOGW("Invalid parameter: notification is not an inactivity notification: "
+			"addr%p, notif-type=%s",
+			notification, bt_notification_type_string(
+				bt_notification_get_type(notification)));
+		ret = -1;
 		goto end;
 	}
 
@@ -148,16 +201,29 @@ int bt_notification_inactivity_set_clock_value(
 	ret = bt_clock_class_priority_map_get_clock_class_priority(
 		inactivity_notification->cc_prio_map, clock_class, &prio);
 	if (ret) {
-		/*
-		 * Clock value's class is not mapped to a priority
-		 * within the scope of this notification.
-		 */
+		BT_LOGW("Clock value's class is not mapped to a priority within the scope of the inactivity notification: "
+			"notif-addr=%p, cc-prio-map-addr=%p, "
+			"clock-class-addr=%p, clock-class-name=\"%s\", "
+			"clock-value-addr=%p",
+			inactivity_notification,
+			inactivity_notification->cc_prio_map,
+			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_value);
+		ret = -1;
 		goto end;
 	}
 
 	g_hash_table_insert(inactivity_notification->clock_values,
 		clock_class, bt_get(clock_value));
 	clock_class = NULL;
+	BT_LOGV("Set inactivity notification's clock value: "
+		"notif-addr=%p, cc-prio-map-addr=%p, "
+		"clock-class-addr=%p, clock-class-name=\"%s\", "
+		"clock-value-addr=%p",
+		inactivity_notification,
+		inactivity_notification->cc_prio_map,
+		clock_class, bt_ctf_clock_class_get_name(clock_class),
+		clock_value);
 
 end:
 	bt_put(clock_class);

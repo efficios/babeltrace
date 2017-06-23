@@ -3794,16 +3794,13 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		 * point. Create an implicit one at 1 GHz,
 		 * named `default`, and use this clock class.
 		 */
-		clock_class_to_map_to = bt_ctf_clock_class_create("default");
+		clock_class_to_map_to = bt_ctf_clock_class_create("default",
+			1000000000);
 		if (!clock_class_to_map_to) {
 			BT_LOGE_STR("Cannot create a clock class.");
 			ret = -1;
 			goto end;
 		}
-
-		ret = bt_ctf_clock_class_set_frequency(clock_class_to_map_to,
-			1000000000);
-		assert(ret == 0);
 
 		ret = bt_ctf_trace_add_clock_class(ctx->trace,
 			clock_class_to_map_to);
@@ -4792,6 +4789,14 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
+		if (freq == -1ULL || freq == 0) {
+			_BT_LOGE_NODE(entry_node,
+				"Invalid clock class frequency: freq=%" PRIu64,
+				freq);
+			ret = -EINVAL;
+			goto error;
+		}
+
 		ret = bt_ctf_clock_class_set_frequency(clock, freq);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
@@ -4988,7 +4993,9 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	}
 
 	clock_node->visited = TRUE;
-	clock = bt_ctf_clock_class_create(NULL);
+
+	/* CTF 1.8's default frequency for a clock class is 1 GHz */
+	clock = bt_ctf_clock_class_create(NULL, 1000000000);
 	if (!clock) {
 		_BT_LOGE_NODE(clock_node,
 			"Cannot create default clock class.");

@@ -38,11 +38,11 @@ static void test_clock_class_priority_map(void)
 
 	cc_prio_map = bt_clock_class_priority_map_create();
 	ok(cc_prio_map, "bt_clock_class_priority_map_create() succeeds");
-	cc1 = bt_ctf_clock_class_create("cc1");
+	cc1 = bt_ctf_clock_class_create("cc1", 1);
 	assert(cc1);
-	cc2 = bt_ctf_clock_class_create("cc2");
+	cc2 = bt_ctf_clock_class_create("cc2", 2);
 	assert(cc2);
-	cc3 = bt_ctf_clock_class_create("cc3");
+	cc3 = bt_ctf_clock_class_create("cc3", 3);
 	assert(cc3);
 	ok(!bt_clock_class_priority_map_get_highest_priority_clock_class(NULL),
 		"bt_clock_class_priority_map_get_highest_priority_clock_class() handles NULL");

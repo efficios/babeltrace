@@ -199,10 +199,12 @@ end:
 	return stream;
 }
 
-static struct bt_ctf_notif_iter_medium_ops medops = {
+BT_HIDDEN
+struct bt_ctf_notif_iter_medium_ops ctf_fs_ds_file_medops = {
 	.request_bytes = medop_request_bytes,
 	.get_stream = medop_get_stream,
 };
+
 static
 struct ctf_fs_ds_index *ctf_fs_ds_index_create(size_t length)
 {
@@ -521,6 +523,7 @@ error:
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
+		struct bt_ctf_notif_iter *notif_iter,
 		struct bt_ctf_stream *stream, const char *path)
 {
 	int ret;
@@ -544,8 +547,8 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		goto error;
 	}
 
-	ds_file->notif_iter = bt_ctf_notif_iter_create(
-		ctf_fs_trace->metadata->trace, page_size, medops, ds_file);
+	ds_file->notif_iter = notif_iter;
+	bt_ctf_notif_iter_set_medops_data(ds_file->notif_iter, ds_file);
 	if (!ds_file->notif_iter) {
 		goto error;
 	}
@@ -583,10 +586,6 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 
 	if (ds_file->file) {
 		ctf_fs_file_destroy(ds_file->file);
-	}
-
-	if (ds_file->notif_iter) {
-		bt_ctf_notif_iter_destroy(ds_file->notif_iter);
 	}
 
 	g_free(ds_file);

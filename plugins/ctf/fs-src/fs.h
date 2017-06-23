@@ -123,6 +123,9 @@ struct ctf_fs_notif_iter_data {
 
 	/* Which file the iterator is _currently_ operating on */
 	size_t ds_file_info_index;
+
+	/* Owned by this */
+	struct bt_ctf_notif_iter *notif_iter;
 };
 
 BT_HIDDEN

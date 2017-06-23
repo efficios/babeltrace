@@ -162,6 +162,9 @@ struct bt_ctf_notif_iter {
 	/* Current packet (NULL if not created yet) */
 	struct bt_ctf_packet *packet;
 
+	/* Current stream (NULL if not set yet) */
+	struct bt_ctf_stream *stream;
+
 	/*
 	 * Current timestamp_end field (to consider before switching packets).
 	 */
@@ -1654,6 +1657,7 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
 	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
+	BT_PUT(notit->stream);
 	put_all_dscopes(notit);
 	notit->buf.addr = NULL;
 	notit->buf.sz = 0;
@@ -1811,7 +1815,7 @@ enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
 		struct bt_ctf_field *int_field)
 {
 	gboolean clock_class_found;
-	uint64_t *clock_state;
+	uint64_t *clock_state = NULL;
 	struct bt_ctf_field_type *int_field_type = NULL;
 	enum bt_ctf_btr_status ret = BT_CTF_BTR_STATUS_OK;
 	struct bt_ctf_clock_class *clock_class = NULL;
@@ -1826,12 +1830,7 @@ enum bt_ctf_btr_status update_clock(struct bt_ctf_notif_iter *notit,
 
 	clock_class_found = g_hash_table_lookup_extended(notit->clock_states,
 		clock_class, NULL, (gpointer) &clock_state);
-	if (unlikely(!clock_class_found)) {
-		ret = BT_CTF_BTR_STATUS_ERROR;
-		goto end;
-	}
-
-	if (unlikely(!clock_state)) {
+	if (!clock_class_found) {
 		clock_state = g_new0(uint64_t, 1);
 		if (!clock_state) {
 			BT_LOGE_STR("Failed to allocate a uint64_t.");
@@ -2640,28 +2639,51 @@ end:
 }
 
 static
-void create_packet(struct bt_ctf_notif_iter *notit)
+int set_stream(struct bt_ctf_notif_iter *notit)
 {
-	int ret;
+	int ret = 0;
 	struct bt_ctf_stream *stream = NULL;
-	struct bt_ctf_packet *packet = NULL;
 
-	BT_LOGV("Creating packet for packet notification: "
-		"notit-addr=%p", notit);
-
-	/* Ask the user for the stream */
 	BT_LOGV("Calling user function (get stream): notit-addr=%p, "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
 		notit, notit->meta.stream_class,
 		bt_ctf_stream_class_get_name(notit->meta.stream_class),
 		bt_ctf_stream_class_get_id(notit->meta.stream_class));
-	stream = notit->medium.medops.get_stream(notit->meta.stream_class,
-			notit->medium.data);
-	BT_LOGV("User function returned: stream-addr=%p",
-		stream);
+	stream = bt_get(notit->medium.medops.get_stream(
+		notit->meta.stream_class, notit->medium.data));
+	BT_LOGV("User function returned: stream-addr=%p", stream);
 	if (!stream) {
 		BT_LOGW_STR("User function failed to return a stream object for the given stream class.");
+		ret = -1;
+		goto end;
+	}
+
+	if (notit->stream && stream != notit->stream) {
+		BT_LOGW("User function returned a different stream than the previous one for the same sequence of packets.");
+		ret = -1;
+		goto end;
+	}
+
+	BT_MOVE(notit->stream, stream);
+
+end:
+	bt_put(stream);
+	return ret;
+}
+
+static
+void create_packet(struct bt_ctf_notif_iter *notit)
+{
+	int ret;
+	struct bt_ctf_packet *packet = NULL;
+
+	BT_LOGV("Creating packet for packet notification: "
+		"notit-addr=%p", notit);
+
+	/* Ask the user for the stream */
+	ret = set_stream(notit);
+	if (ret) {
 		goto error;
 	}
 
@@ -2670,19 +2692,19 @@ void create_packet(struct bt_ctf_notif_iter *notit)
 		"stream-class-addr=%p, "
 		"stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
-		notit, stream, notit->meta.stream_class,
+		notit, notit->stream, notit->meta.stream_class,
 		bt_ctf_stream_class_get_name(notit->meta.stream_class),
 		bt_ctf_stream_class_get_id(notit->meta.stream_class));
 
 	/* Create packet */
-	packet = bt_ctf_packet_create(stream);
+	packet = bt_ctf_packet_create(notit->stream);
 	if (!packet) {
 		BT_LOGE("Cannot create packet from stream: "
 			"notit-addr=%p, stream-addr=%p, "
 			"stream-class-addr=%p, "
 			"stream-class-name=\"%s\", "
 			"stream-class-id=%" PRId64,
-			notit, stream, notit->meta.stream_class,
+			notit, notit->stream, notit->meta.stream_class,
 			bt_ctf_stream_class_get_name(notit->meta.stream_class),
 			bt_ctf_stream_class_get_id(notit->meta.stream_class));
 		goto error;
@@ -2700,7 +2722,7 @@ void create_packet(struct bt_ctf_notif_iter *notit)
 				"stream-class-name=\"%s\", "
 				"stream-class-id=%" PRId64 ", "
 				"field-addr=%p",
-				notit, packet, stream, notit->meta.stream_class,
+				notit, packet, notit->stream, notit->meta.stream_class,
 				bt_ctf_stream_class_get_name(notit->meta.stream_class),
 				bt_ctf_stream_class_get_id(notit->meta.stream_class),
 				notit->dscopes.trace_packet_header);
@@ -2719,7 +2741,7 @@ void create_packet(struct bt_ctf_notif_iter *notit)
 				"stream-class-name=\"%s\", "
 				"stream-class-id=%" PRId64 ", "
 				"field-addr=%p",
-				notit, packet, stream, notit->meta.stream_class,
+				notit, packet, notit->stream, notit->meta.stream_class,
 				bt_ctf_stream_class_get_name(notit->meta.stream_class),
 				bt_ctf_stream_class_get_id(notit->meta.stream_class),
 				notit->dscopes.trace_packet_header);
@@ -2811,27 +2833,6 @@ end:
 }
 
 static
-int init_clock_states(GHashTable *clock_states, struct bt_ctf_trace *trace)
-{
-	int clock_class_count, i, ret = 0;
-
-	assert(trace);
-	clock_class_count = bt_ctf_trace_get_clock_class_count(trace);
-	assert(clock_class_count >= 0);
-
-	for (i = 0; i < clock_class_count; i++) {
-		struct bt_ctf_clock_class *clock_class;
-
-		clock_class = bt_ctf_trace_get_clock_class_by_index(trace, i);
-		assert(clock_class);
-		g_hash_table_insert(clock_states, bt_get(clock_class), NULL);
-		bt_put(clock_class);
-	}
-
-	return ret;
-}
-
-static
 void init_trace_field_path_cache(struct bt_ctf_trace *trace,
 		struct trace_field_path_cache *trace_field_path_cache)
 {
@@ -2884,7 +2885,6 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		size_t max_request_sz,
 		struct bt_ctf_notif_iter_medium_ops medops, void *data)
 {
-	int ret;
 	struct bt_ctf_notif_iter *notit = NULL;
 	struct bt_ctf_btr_cbs cbs = {
 		.types = {
@@ -2919,11 +2919,6 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		g_direct_equal, bt_put, g_free);
 	if (!notit->clock_states) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
-		goto error;
-	}
-	ret = init_clock_states(notit->clock_states, trace);
-	if (ret) {
-		BT_LOGW("Cannot initialize clock values.");
 		goto error;
 	}
 	notit->meta.trace = bt_get(trace);
@@ -2979,6 +2974,7 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notit)
 	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
+	BT_PUT(notit->stream);
 	BT_PUT(notit->cur_timestamp_end);
 	put_all_dscopes(notit);
 
@@ -3160,4 +3156,12 @@ set_fields:
 
 end:
 	return status;
+}
+
+BT_HIDDEN
+void bt_ctf_notif_iter_set_medops_data(struct bt_ctf_notif_iter *notit,
+		void *medops_data)
+{
+	assert(notit);
+	notit->medium.data = medops_data;
 }
