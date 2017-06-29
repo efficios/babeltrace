@@ -1,5 +1,4 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
-	-DINSTALL_LIBDIR=\"$(libdir)\"
+AM_CPPFLAGS += -DINSTALL_LIBDIR=\"$(libdir)\"
 
 
 noinst_LTLIBRARIES = libbabeltrace-common.la

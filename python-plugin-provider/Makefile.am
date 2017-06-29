@@ -1,4 +1,4 @@
-AM_CFLAGS = $(PYTHON_INCLUDE) $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
+AM_CPPFLAGS += $(PYTHON_INCLUDE)
 
 lib_LTLIBRARIES = libbabeltrace-python-plugin-provider.la
 

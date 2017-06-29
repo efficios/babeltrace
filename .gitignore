@@ -53,8 +53,8 @@ plugins/ctf/common/metadata/parser.h
 plugins/ctf/common/metadata/parser.output
 /cli/babeltrace
 /cli/babeltrace.bin
-/config.h
-/config.h.in
+/include/config.h
+/include/config.h.in
 /config.status
 *.log
 aclocal.m4

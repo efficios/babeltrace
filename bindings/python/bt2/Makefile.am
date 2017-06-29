@@ -66,7 +66,7 @@ $(NATIVE_MODULE_C): $(NATIVE_MODULE_I) $(NATIVE_MODULE_DEPS_I)
 # native_bt module
 _native_bt_la_SOURCES = native_bt_wrap.c
 _native_bt_la_LDFLAGS = -module
-_native_bt_la_CFLAGS = $(GLIB_CFLAGS) $(PYTHON_INCLUDE) -I$(top_srcdir)/include/ -I$(srcdir)
+_native_bt_la_CFLAGS = $(GLIB_CFLAGS) $(PYTHON_INCLUDE) -I$(srcdir) $(AM_CFLAGS)
 _native_bt_la_LIBS = $(GLIB_LIBS)
 _native_bt_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
