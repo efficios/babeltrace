@@ -17,12 +17,4 @@ libctf_ir_la_SOURCES = \
 	validation.c \
 	visitor.c
 
-libctf_ir_la_LIBADD =
-
-if BABELTRACE_BUILD_WITH_LIBUUID
-libctf_ir_la_LIBADD += -luuid
-endif
-
-if BABELTRACE_BUILD_WITH_LIBC_UUID
-libctf_ir_la_LIBADD += -lc
-endif
+libctf_ir_la_LIBADD = $(UUID_LIBS)

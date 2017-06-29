@@ -6,11 +6,4 @@ libctf_writer_la_SOURCES = \
 	functor.c \
 	serialize.c
 
-libctf_writer_la_LIBADD =
-
-if BABELTRACE_BUILD_WITH_LIBUUID
-libctf_writer_la_LIBADD += -luuid
-endif
-if BABELTRACE_BUILD_WITH_LIBC_UUID
-libctf_writer_la_LIBADD += -lc
-endif
+libctf_writer_la_LIBADD = $(UUID_LIBS)
