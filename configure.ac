@@ -10,7 +10,7 @@ AC_INIT([babeltrace],bt_version,[jeremie dot galarneau at efficios dot com])
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_version_major[:]bt_version_minor[:]bt_version_patch)
 
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -22,7 +22,7 @@ AC_DEFINE([BT_VERSION_EXTRA], ["]bt_version_extra["], [Babeltrace library extra 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
 
-AM_INIT_AUTOMAKE([foreign dist-bzip2 no-dist-gzip tar-ustar])
+AM_INIT_AUTOMAKE([foreign dist-bzip2 no-dist-gzip tar-ustar nostdinc])
 AM_MAINTAINER_MODE([enable])
 
 # Enable silent rules if available (Introduced in AM 1.11)
@@ -50,9 +50,6 @@ AS_IF([test "x$ax_cv___attribute__" = "xyes"],
 	[AC_MSG_ERROR([The compiler does not support __attribute__ extensions])])
 
 AX_PTHREAD(,[AC_MSG_ERROR([Could not configure pthreads support])])
-LIBS="$PTHREAD_LIBS $LIBS"
-CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-CC="$PTHREAD_CC"
 
 # Check linker option
 AX_APPEND_LINK_FLAGS([-Wl,--no-as-needed], [LD_NO_AS_NEEDED])
@@ -188,8 +185,6 @@ AC_CHECK_FUNCS([uuid_generate],
   # for libuuid, or uuid support in the C-library.
   PKG_CHECK_MODULES([UUID], [uuid],
   [
-    LIBS="${UUID_LIBS} ${LIBS}"
-    CFLAGS="${CFLAGS} ${UUID_CFLAGS}"
     AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
     link_with_libuuid=yes
   ],
@@ -416,12 +411,13 @@ AS_IF([test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "VERBOSE" && test "$BABELTRACE_MI
 ])
 AC_DEFINE_UNQUOTED([BT_LOG_LEVEL], [BT_LOG_$BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level])
 
-LIBS="$LIBS $GMODULE_LIBS"
-PACKAGE_CFLAGS="$GMODULE_CFLAGS -Wall -Wformat"
-AC_SUBST(PACKAGE_CFLAGS)
+AM_CFLAGS="-Wall -Wformat $PTHREAD_CFLAGS $GLIB_CFLAGS"
+AC_SUBST(AM_CFLAGS)
 
-DEFAULT_INCLUDES="-I\$(top_srcdir) -I\$(top_builddir) -I\$(top_builddir)/include -include config.h"
-AC_SUBST(DEFAULT_INCLUDES)
+AM_CPPFLAGS="-I\$(top_builddir)/include -I\$(top_srcdir)/include -include config.h"
+AC_SUBST(AM_CPPFLAGS)
+
+LIBS="$GLIB_LIBS"
 
 babeltraceincludedir="${includedir}/babeltrace"
 AC_SUBST(babeltraceincludedir)

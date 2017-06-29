@@ -11,8 +11,7 @@ else
 IN_TREE_PLUGIN_PATH = $(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/utils$(LTTNG_UTILS_PLUGIN_PATH)
 endif
 
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
-		'-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
+AM_CPPFLAGS += '-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
 AM_LDFLAGS = -lpopt
 
 bin_PROGRAMS = babeltrace.bin babeltrace-log.bin

@@ -1,5 +1,4 @@
-AM_CPPFLAGS = $(CPPFLAGS) -I$(top_srcdir)/include -I$(srcdir)
-AM_CFLAGS = $(PACKAGE_CFLAGS)
+AM_CPPFLAGS += -I$(builddir) -I$(srcdir)
 BUILT_SOURCES = parser.h parser.c lexer.c
 AM_YFLAGS = -t -d -v
 
@@ -8,11 +7,10 @@ noinst_LTLIBRARIES = libctf-parser.la libctf-ast.la
 libctf_parser_la_SOURCES = lexer.l parser.y objstack.c
 # ctf-scanner-symbols.h is included to prefix generated yy_* symbols
 # with bt_.
-libctf_parser_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(srcdir) \
+libctf_parser_la_CPPFLAGS = $(AM_CPPFLAGS) \
 		-include $(srcdir)/scanner-symbols.h
 libctf_parser_la_CFLAGS = $(AM_CFLAGS) -Wno-unused-function
 
-libctf_ast_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)
 libctf_ast_la_SOURCES = \
 	visitor-generate-ir.c \
 	visitor-semantic-validator.c \

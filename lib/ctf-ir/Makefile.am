@@ -1,5 +1,3 @@
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include -I.
-
 noinst_LTLIBRARIES = libctf-ir.la
 
 libctf_ir_la_SOURCES = \
