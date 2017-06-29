@@ -36,7 +36,7 @@ libctf_ast_la_LIBADD += -lc
 endif
 
 if BABELTRACE_BUILD_WITH_MINGW
-libctf_ast_la_LIBADD += -lrpcrt4 -lintl -liconv -lole32 -lpopt
+libctf_ast_la_LIBADD += -lrpcrt4 -lintl -liconv -lole32 $(POPT_LIBS)
 endif
 
 CLEANFILES = $(BUILT_SOURCES) parser.output
