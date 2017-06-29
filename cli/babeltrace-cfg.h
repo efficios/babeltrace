@@ -92,6 +92,12 @@ struct bt_config {
 			 * to retry to run the graph.
 			 */
 			uint64_t retry_duration_us;
+
+			/*
+			 * Whether or not to trim the source trace to the
+			 * intersection of its streams.
+			 */
+			bool stream_intersection_mode;
 		} run;
 
 		/* BT_CONFIG_COMMAND_HELP */
