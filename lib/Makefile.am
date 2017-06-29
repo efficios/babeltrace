@@ -1,7 +1,5 @@
 SUBDIRS = ctf-ir ctf-writer prio_heap plugin graph .
 
-AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include
-
 lib_LTLIBRARIES = libbabeltrace.la libbabeltrace-ctf.la
 
 libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c logging.c

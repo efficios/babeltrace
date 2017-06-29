@@ -9,7 +9,7 @@ all-local: $(INIT_PY)
 $(INIT_PY): $(INIT_PY_IN)
 	sed "s/BABELTRACE_VERSION_STR/$(PACKAGE_VERSION)/g" < $< > $@
 
-AM_CFLAGS = $(PYTHON_INCLUDE) -I$(top_srcdir)/include/ -I$(srcdir)
+AM_CPPFLAGS += $(PYTHON_INCLUDE) -I$(srcdir)
 
 EXTRA_DIST = common.py reader.py writer.py $(INIT_PY_IN) $(NATIVEBT_I)
 nodist_btpackage_PYTHON = $(INIT_PY) $(NATIVEBT_PY) common.py reader.py writer.py
