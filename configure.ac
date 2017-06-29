@@ -236,9 +236,24 @@ AC_CHECK_LIB([c], [posix_fallocate],
 ]
 )
 
-AC_CHECK_LIB([popt], [poptGetContext], [],
-        [AC_MSG_ERROR([Cannot find popt.])]
+# Check libpopt
+PKG_CHECK_MODULES([POPT], [popt],
+  [
+    dnl PKG_CHECK_MODULES defines POPT_LIBS
+  ],
+  [
+    AC_MSG_WARN([pkg-config was unable to find a valid .pc for libpopt. Set PKG_CONFIG_PATH to specify the pkgconfig configuration file location])
+    AC_MSG_WARN([Finding libpopt without pkg-config.])
+    AC_CHECK_LIB([popt],
+      [poptGetContext],
+      [POPT_LIBS="-lpopt"],
+      [
+        AC_MSG_FAILURE([Cannot find libpopt. Either set PKG_CONFIG_PATH to the configuration file location or use LDFLAGS=-Ldir to specify the library location])
+      ]
+    )
+  ]
 )
+AC_SUBST(POPT_LIBS)
 
 # Plugins
 AC_ARG_VAR([PLUGINSDIR], [built-in plugins install directory [LIBDIR/babeltrace/plugins]])
