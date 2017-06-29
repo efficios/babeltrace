@@ -25,15 +25,7 @@ libctf_ast_la_SOURCES = \
 	logging.c \
 	logging.h
 
-libctf_ast_la_LIBADD =
-
-if BABELTRACE_BUILD_WITH_LIBUUID
-libctf_ast_la_LIBADD += -luuid
-endif
-
-if BABELTRACE_BUILD_WITH_LIBC_UUID
-libctf_ast_la_LIBADD += -lc
-endif
+libctf_ast_la_LIBADD = $(UUID_LIBS)
 
 if BABELTRACE_BUILD_WITH_MINGW
 libctf_ast_la_LIBADD += -lrpcrt4 -lintl -liconv -lole32 $(POPT_LIBS)
