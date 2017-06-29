@@ -174,46 +174,50 @@ AS_CASE([$host_os],
 AM_CONDITIONAL([BABELTRACE_BUILD_WITH_MINGW], [test "x$MINGW32" = "xyes"])
 AC_SUBST(LT_NO_UNDEFINED)
 
-# Check for uuid in system libs
+# First, check for uuid in system libs
+AH_TEMPLATE([BABELTRACE_HAVE_LIBUUID], [Define if you have libuuid support])
 AC_CHECK_FUNCS([uuid_generate],
-[
-  AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
-  link_with_libuuid=no
-],
-[
-  # First, check the pkg-config module is available, otherwise explicitly check
-  # for libuuid, or uuid support in the C-library.
-  PKG_CHECK_MODULES([UUID], [uuid],
   [
-    AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
-    link_with_libuuid=yes
+    AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
+    UUID_LIBS=""
   ],
   [
-    # Check for libuuid
-    AC_CHECK_LIB([uuid], [uuid_generate],
-    [
-      AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBUUID], 1, [Has libuuid support.])
-      link_with_libuuid=yes
-    ],
-    [
-      # libuuid not found, check for uuid_create in libc.
-      AC_CHECK_LIB([c], [uuid_create],
+    # Then, check if the pkg-config module is available, otherwise explicitly check
+    # for libuuid, or uuid support in the C-library.
+    PKG_CHECK_MODULES([UUID], [uuid],
       [
-        AC_DEFINE_UNQUOTED([BABELTRACE_HAVE_LIBC_UUID], 1, [Has libc uuid support.])
-        link_with_libc_uuid=yes
+        AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
+        dnl PKG_CHECK_MODULES defines UUID_LIBS
       ],
       [
-        # for MinGW32 we have our own internal implementation of uuid using Windows functions.
-        if test "x$MINGW32" = xno; then
-          AC_MSG_ERROR([Cannot find libuuid uuid_generate nor libc uuid_create. Use [LDFLAGS]=-Ldir to specify their location.])
-        fi
-      ])
-    ])
-  ])
-])
-
-AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBUUID], [test "x$link_with_libuuid" = "xyes"])
-AM_CONDITIONAL([BABELTRACE_BUILD_WITH_LIBC_UUID], [test "x$link_with_libc_uuid" = "xyes"])
+        AC_MSG_WARN([pkg-config was unable to find a valid .pc for libuuid. Set PKG_CONFIG_PATH to specify the pkgconfig configuration file location])
+        AC_MSG_WARN([Finding libuuid without pkg-config.])
+        AC_CHECK_LIB([uuid], [uuid_generate],
+          [
+            AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
+            UUID_LIBS="-luuid"
+          ],
+          [
+            # libuuid not found, check for uuid_create in libc.
+            AC_CHECK_LIB([c], [uuid_create],
+              [
+                AC_DEFINE([BABELTRACE_HAVE_LIBUUID], [1])
+                UUID_LIBS="-lc"
+              ],
+              [
+                # for MinGW32 we have our own internal implementation of uuid using Windows functions.
+                if test "x$MINGW32" = xno; then
+                  AC_MSG_FAILURE([Cannot find libuuid uuid_generate nor libc uuid_create. Either set PKG_CONFIG_PATH to the configuration file location or use LDFLAGS=-Ldir to specify the library location])
+		fi
+              ]
+            )
+          ]
+        )
+      ]
+    )
+  ]
+)
+AC_SUBST(UUID_LIBS)
 
 # Check for fmemopen
 AC_CHECK_LIB([c], [fmemopen],
