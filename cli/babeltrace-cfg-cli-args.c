@@ -3596,6 +3596,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	bool got_output_format_opt = false;
 	bool trimmer_has_begin = false;
 	bool trimmer_has_end = false;
+	bool stream_intersection_mode = false;
 	GString *cur_name = NULL;
 	GString *cur_name_prefix = NULL;
 	const char *leftover = NULL;
@@ -4269,10 +4270,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			print_run_args_0 = true;
 			break;
 		case OPT_STREAM_INTERSECTION:
-			append_implicit_component_param(
-				&base_implicit_ctf_input_args,
-				"stream-intersection", "yes");
-			base_implicit_ctf_input_args.exists = true;
+			/*
+			 * Applies to all traces implementing the trace-info
+			 * query.
+			 */
+			stream_intersection_mode = true;
 			break;
 		case OPT_VERBOSE:
 			if (*log_level != 'V' && *log_level != 'D') {
@@ -4708,6 +4710,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
+	cfg->cmd_data.run.stream_intersection_mode = stream_intersection_mode;
 	goto end;
 
 error:
