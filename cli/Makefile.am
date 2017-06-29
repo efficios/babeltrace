@@ -12,7 +12,6 @@ IN_TREE_PLUGIN_PATH = $(PLUGINS_PATH)/ctf:$(PLUGINS_PATH)/text:$(PLUGINS_PATH)/u
 endif
 
 AM_CPPFLAGS += '-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
-AM_LDFLAGS = -lpopt
 
 bin_PROGRAMS = babeltrace.bin babeltrace-log.bin
 noinst_PROGRAMS = babeltrace babeltrace-log
@@ -46,7 +45,8 @@ babeltrace_bin_LDADD = \
 	$(top_builddir)/compat/libcompat.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
-	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
+	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la \
+	$(POPT_LIBS)
 
 if BUILT_IN_PLUGINS
 # Takes a plugin name and outputs the needed LDFLAGS to embed it.
@@ -76,7 +76,7 @@ endif
 endif
 
 if BABELTRACE_BUILD_WITH_MINGW
-babeltrace_bin_LDADD += -lws2_32 -lrpcrt4 -lintl -liconv -lole32 -lpopt -lpthread
+babeltrace_bin_LDADD += -lws2_32 -lrpcrt4 -lintl -liconv -lole32 -lpthread
 endif
 
 # Only used for in-tree execution and tests
@@ -87,13 +87,12 @@ babeltrace_CFLAGS =	$(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
 
 # babeltrace-log rules and config below
 babeltrace_log_bin_SOURCES = babeltrace-log.c
-babeltrace_log_bin_LDADD = $(top_builddir)/compat/libcompat.la
+babeltrace_log_bin_LDADD = \
+	$(top_builddir)/compat/libcompat.la \
+	$(POPT_LIBS)
 babeltrace_log_bin_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(abs_top_builddir)/cli/babeltrace$(EXEEXT)"'
 
-if BABELTRACE_BUILD_WITH_MINGW
-babeltrace_log_bin_LDADD += -lpopt
-endif
-
+# Only used for in-tree execution and tests
 babeltrace_log_SOURCES = $(babeltrace_log_bin_SOURCES)
 babeltrace_log_LDADD = 	$(babeltrace_log_bin_LDADD)
 babeltrace_log_CFLAGS =	$(AM_CFLAGS) '-DBT_CLI_PATH="$(bindir)/babeltrace$(EXEEXT)"'
