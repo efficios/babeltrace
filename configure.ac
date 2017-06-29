@@ -39,8 +39,6 @@ AC_PROG_CC_STDC
 # Checks for programs.
 AC_PROG_MAKE_SET
 LT_INIT(win32-dll)
-AC_PROG_YACC
-AC_PROG_LEX
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
 
@@ -69,27 +67,52 @@ AC_CHECK_HEADERS([ \
 	sys/socket.h \
 ])
 
-if test ! -f "$srcdir/plugins/ctf/common/metadata/parser.h"; then
-        if test x"$(basename "$YACC")" != "xbison -y"; then
-                AC_MSG_ERROR([[bison not found and is required when building from git.
-                Please install bison]])
-        fi
-        AC_PATH_PROG([BISON],[bison])
-        AX_PROG_BISON_VERSION([2.4], [],[
-                AC_MSG_ERROR([[Bison >= 2.4 is required when building from git]])
-        ])
-fi
+# set $IN_GIT_REPO if we're in the Git repository; the `bootstrap` file
+# is not distributed in tarballs
+AS_IF([test -f "$srcdir/bootstrap"], [in_git_repo=yes], [in_git_repo=no])
+AM_CONDITIONAL([IN_GIT_REPO], [test "x$in_git_repo" = "xyes"])
 
-if test ! -f "$srcdir/plugins/ctf/common/metadata/lexer.c"; then
-        if test x"$LEX" != "xflex"; then
-                AC_MSG_ERROR([[flex not found and is required when building from git.
-                Please install flex]])
-        fi
-        AC_PATH_PROG([FLEX],[flex])
-        AX_PROG_FLEX_VERSION([2.5.35], [],[
-                AC_MSG_ERROR([[Flex >= 2.5.35 is required when building from git]])
-        ])
-fi
+# check for bison
+AC_PROG_YACC
+AX_PROG_BISON_VERSION([2.4], [have_bison=yes])
+
+AS_IF([test "x$have_bison" != "xyes"], [
+  AS_IF([test "x$in_git_repo" = "xyes"], [
+    AC_MSG_FAILURE([
+Bison >= 2.4 is required when building from the Git repository. You can
+set the YACC variable to override automatic detection.
+    ])
+  ], [
+    AC_MSG_WARN([
+Missing Bison >= 2.4. Note that the parser files are already built in
+this distribution tarball, so Bison is only needed if you intend to
+modify their sources. You can set the YACC variable to override automatic
+detection.
+    ])
+  ])
+])
+AM_CONDITIONAL([HAVE_BISON], [test "x$have_bison" = "xyes"])
+
+# check for flex
+AC_PROG_LEX
+AX_PROG_FLEX_VERSION([2.5.35], [have_flex=yes])
+
+AS_IF([test "x$have_flex" != "xyes"], [
+  AS_IF([test "x$in_git_repo" = "xyes"], [
+    AC_MSG_FAILURE([
+Flex >= 2.5.35 is required when building from the Git repository. You can
+set the LEX variable to override automatic detection.
+    ])
+  ], [
+    AC_MSG_WARN([
+Missing Flex >= 2.5.35. Note that the lexer files are already built in
+this distribution tarball, so Flex is only needed if you intend to
+modify their sources. You can set the LEX variable to override automatic
+detection.
+    ])
+  ])
+])
+AM_CONDITIONAL([HAVE_FLEX], [test "x$have_flex" = "xyes"])
 
 
 AM_PATH_GLIB_2_0(2.22.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule-no-export)
