@@ -30,7 +30,7 @@ babeltrace_bin_SOURCES = \
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
-babeltrace_bin_LDFLAGS = $(LD_NO_AS_NEEDED) -Wl,-export-dynamic
+babeltrace_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
 
 # Add all the convenience libraries used by Babeltrace plugins and the
 # library. They will be used when embedding plugins (BUILT_IN_PLUGINS),

@@ -94,7 +94,7 @@ if test ! -f "$srcdir/plugins/ctf/common/metadata/lexer.c"; then
 fi
 
 
-AM_PATH_GLIB_2_0(2.22.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule)
+AM_PATH_GLIB_2_0(2.22.0, ,AC_MSG_ERROR([glib is required in order to compile BabelTrace - download it from ftp://ftp.gtk.org/pub/gtk]) , gmodule-no-export)
 
 # Check what libraries are required on this platform to link sockets programs.
 AX_LIB_SOCKET_NSL
@@ -406,7 +406,7 @@ AS_IF([test "x$BUILT_IN_PYTHON_PLUGIN_SUPPORT" != x], [
 ])
 AM_CONDITIONAL([BUILT_IN_PYTHON_PLUGIN_SUPPORT], [test "x$built_in_python_plugin_support" = "xyes"])
 
-PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= 2.0.0])
+PKG_CHECK_MODULES(GMODULE, [gmodule-no-export-2.0 >= 2.0.0])
 
 # Logging
 AC_ARG_VAR([BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level for Babeltrace program, library, and plugins (VERBOSE, DEBUG, INFO, WARN, ERROR (default), FATAL, or NONE)])
