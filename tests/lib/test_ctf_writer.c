@@ -50,7 +50,7 @@
 #define METADATA_LINE_SIZE 512
 #define SEQUENCE_TEST_LENGTH 10
 #define ARRAY_TEST_LENGTH 5
-#define PACKET_RESIZE_TEST_LENGTH 100000
+#define PACKET_RESIZE_TEST_DEF_LENGTH 100000
 
 #define DEFAULT_CLOCK_FREQ 1000000000
 #define DEFAULT_CLOCK_PRECISION 1
@@ -63,6 +63,7 @@
 #define NR_TESTS 621
 
 static int64_t current_time = 42;
+static unsigned int packet_resize_test_length = PACKET_RESIZE_TEST_DEF_LENGTH;
 
 /* Return 1 if uuids match, zero if different. */
 static
@@ -1971,7 +1972,7 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_event_get_payload_by_index handles an invalid index correctly");
 	bt_put(event);
 
-	for (i = 0; i < PACKET_RESIZE_TEST_LENGTH; i++) {
+	for (i = 0; i < packet_resize_test_length; i++) {
 		event = bt_ctf_event_create(event_class);
 		struct bt_ctf_field *integer =
 			bt_ctf_field_create(ep_field_1_type);
@@ -2006,7 +2007,7 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		}
 	}
 
-	events_appended = !!(i == PACKET_RESIZE_TEST_LENGTH);
+	events_appended = !!(i == packet_resize_test_length);
 	ok(bt_ctf_stream_get_discarded_events_count(NULL, &ret_uint64) < 0,
 		"bt_ctf_stream_get_discarded_events_count handles a NULL stream correctly");
 	ok(bt_ctf_stream_get_discarded_events_count(stream, NULL) < 0,
@@ -2821,6 +2822,7 @@ void test_trace_uuid(void)
 
 int main(int argc, char **argv)
 {
+	const char *env_resize_length;
 	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
 	char metadata_path[sizeof(trace_path) + 9];
 	const char *clock_name = "test_clock";
@@ -2863,6 +2865,12 @@ int main(int argc, char **argv)
 	if (argc < 2) {
 		printf("Usage: tests-ctf-writer path_to_babeltrace\n");
 		return -1;
+	}
+
+	env_resize_length = getenv("PACKET_RESIZE_TEST_LENGTH");
+	if (env_resize_length) {
+		packet_resize_test_length =
+			(unsigned int) atoi(env_resize_length);
 	}
 
 	plan_tests(NR_TESTS);
