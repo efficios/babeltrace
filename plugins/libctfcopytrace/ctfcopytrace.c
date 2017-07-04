@@ -855,6 +855,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	struct bt_ctf_field_type *header_type = NULL;
 	enum bt_ctf_byte_order order;
 	const char *trace_name;
+	const unsigned char *trace_uuid;
 
 	field_count = bt_ctf_trace_get_environment_field_count(trace);
 	for (i = 0; i < field_count; i++) {
@@ -928,6 +929,16 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	trace_name = bt_ctf_trace_get_name(trace);
 	if (trace_name) {
 		int_ret = bt_ctf_trace_set_name(writer_trace, trace_name);
+		if (int_ret < 0) {
+			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			ret = BT_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
+	}
+
+	trace_uuid = bt_ctf_trace_get_uuid(trace);
+	if (trace_uuid) {
+		int_ret = bt_ctf_trace_set_uuid(writer_trace, trace_uuid);
 		if (int_ret < 0) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
 			ret = BT_COMPONENT_STATUS_ERROR;
