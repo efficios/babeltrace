@@ -1564,15 +1564,18 @@ enum bt_component_status pretty_print_discarded_elements(
 	int64_t stream_class_id;
 	int64_t stream_id;
 	bool is_discarded_events;
+	int64_t count;
 
 	/* Stream name */
 	switch (bt_notification_get_type(notif)) {
 	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
 		stream = bt_notification_discarded_events_get_stream(notif);
+		count = bt_notification_discarded_events_get_count(notif);
 		is_discarded_events = true;
 		break;
 	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
 		stream = bt_notification_discarded_packets_get_stream(notif);
+		count = bt_notification_discarded_packets_get_count(notif);
 		is_discarded_events = false;
 		break;
 	default:
@@ -1606,15 +1609,13 @@ enum bt_component_status pretty_print_discarded_elements(
 	 * with Babeltrace 1.
 	 */
 	fprintf(stderr,
-		"%s%sWARNING%s%s: Tracer discarded %" PRId64 " %s between [",
+		"%s%sWARNING%s%s: Tracer discarded %" PRId64 " %s%s between [",
 		bt_common_color_fg_yellow(),
 		bt_common_color_bold(),
 		bt_common_color_reset(),
 		bt_common_color_fg_yellow(),
-		is_discarded_events ?
-			bt_notification_discarded_events_get_count(notif) :
-			bt_notification_discarded_packets_get_count(notif),
-		is_discarded_events ? "events" : "packets");
+		count, is_discarded_events ? "event" : "packet",
+		count == 1 ? "" : "s");
 	g_string_assign(pretty->string, "");
 	print_timestamp_wall(pretty,
 		is_discarded_events ?
