@@ -722,10 +722,9 @@ append_ids:
 		O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 	if (fd < 0) {
-		BT_LOGW("Failed to open stream file for writing: %s: "
-			"writer-trace-dir-fd=%d, filename=\"%s\", "
-			"ret=%d, errno=%d", strerror(errno),
-			writer->trace_dir_fd, filename->str, fd, errno);
+		BT_LOGW_ERRNO("Failed to open stream file for writing",
+			": writer-trace-dir-fd=%d, filename=\"%s\", ret=%d",
+			writer->trace_dir_fd, filename->str, fd);
 		goto end;
 	}
 
@@ -1786,16 +1785,14 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 			ret = ftruncate(stream->pos.fd, stream->size);
 		} while (ret == -1 && errno == EINTR);
 		if (ret) {
-			BT_LOGE("Failed to truncate stream file: %s: "
-				"ret=%d, errno=%d, size=%" PRIu64,
-				strerror(errno), ret, errno,
-				(uint64_t) stream->size);
+			BT_LOGE_ERRNO("Failed to truncate stream file",
+				": ret=%d, size=%" PRIu64,
+				ret, (uint64_t) stream->size);
 		}
 
 		if (close(stream->pos.fd)) {
-			BT_LOGE("Failed to close stream file: %s: "
-				"ret=%d, errno=%d", strerror(errno),
-				ret, errno);
+			BT_LOGE_ERRNO("Failed to close stream file",
+				": ret=%d", ret);
 		}
 	}
 

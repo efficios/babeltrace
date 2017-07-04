@@ -445,15 +445,13 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 	directory = opendir(file_path);
 	if (!directory) {
 		if (errno == EACCES) {
-			BT_LOGD("Cannot open directory: %s: continuing: "
-				"path=\"%s\", errno=%d",
-				strerror(errno), file_path, errno);
+			BT_LOGD_ERRNO("Cannot open directory",
+				": continuing: path=\"%s\"", file_path);
 			goto end;
 		}
 
-		BT_LOGW("Cannot open directory: %s: "
-			"path=\"%s\", errno=%d",
-			strerror(errno), file_path, errno);
+		BT_LOGW_ERRNO("Cannot open directory",
+			": path=\"%s\"", file_path);
 		ret = BT_PLUGIN_STATUS_ERROR;
 		goto end;
 	}
@@ -492,9 +490,8 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 		stat_ret = stat(file_path, &st);
 		if (stat_ret < 0) {
 			/* Continue to next file / directory. */
-			BT_LOGD("Cannot get file information: %s: continuing: "
-				"path=\"%s\", errno=%d",
-				strerror(errno), file_path, errno);
+			BT_LOGD_ERRNO("Cannot get file information",
+				": continuing: path=\"%s\"", file_path);
 			continue;
 		}
 
@@ -537,9 +534,8 @@ end:
 			 * We don't want to override the error since there is
 			 * nothing could do.
 			 */
-			BT_LOGE("Cannot close directory entry: %s: "
-				"path=\"%s\", errno=%d",
-				strerror(errno), path, errno);
+			BT_LOGE_ERRNO("Cannot close directory entry",
+				": path=\"%s\"", path);
 		}
 	}
 
