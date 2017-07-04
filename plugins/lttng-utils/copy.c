@@ -1242,6 +1242,7 @@ struct bt_ctf_stream *insert_new_stream(
 	struct bt_ctf_stream *writer_stream = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream_class *writer_stream_class = NULL;
+	int64_t id;
 
 	stream_class = bt_ctf_stream_get_class(stream);
 	if (!stream_class) {
@@ -1265,8 +1266,16 @@ struct bt_ctf_stream *insert_new_stream(
 	}
 	bt_get(writer_stream_class);
 
-	writer_stream = bt_ctf_stream_create(writer_stream_class,
-			bt_ctf_stream_get_name(stream));
+	id = bt_ctf_stream_get_id(stream);
+	if (id < 0) {
+		writer_stream = bt_ctf_stream_create(writer_stream_class,
+				bt_ctf_stream_get_name(stream));
+	} else {
+		writer_stream = bt_ctf_stream_create_with_id(
+			writer_stream_class,
+			bt_ctf_stream_get_name(stream), id);
+	}
+
 	if (!writer_stream) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);
