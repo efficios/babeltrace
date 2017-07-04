@@ -667,37 +667,65 @@ int create_stream_file(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream *stream)
 {
 	int fd;
-	GString *filename = g_string_new(stream->stream_class->name->str);
-	char *file_path;
+	GString *filename = g_string_new(NULL);
+	int64_t stream_class_id;
+	char *file_path = NULL;
 
 	BT_LOGD("Creating stream file: writer-addr=%p, stream-addr=%p, "
 		"stream-name=\"%s\", stream-class-addr=%p, stream-class-name=\"%s\"",
 		writer, stream, bt_ctf_stream_get_name(stream),
 		stream->stream_class, stream->stream_class->name->str);
 
-	if (stream->stream_class->name->len == 0) {
-		int64_t ret;
+	if (stream->name && stream->name->len > 0) {
+		/* Use stream name's base name as prefix */
+		gchar *basename = g_path_get_basename(stream->name->str);
 
-		ret = bt_ctf_stream_class_get_id(stream->stream_class);
-		if (ret < 0) {
-			BT_LOGW("Cannot get stream class's ID: "
-				"stream-class-addr=%p, "
-				"stream-class-name=\"%s\"",
-				stream->stream_class,
-				stream->stream_class->name->str);
-			fd = -1;
-			goto end;
+		assert(basename);
+
+		if (strcmp(basename, G_DIR_SEPARATOR_S) == 0) {
+			g_string_assign(filename, "stream");
+		} else {
+			g_string_assign(filename, basename);
 		}
 
-		g_string_printf(filename, "stream_%" PRId64, ret);
+		g_free(basename);
+		goto append_ids;
 	}
 
-	g_string_append_printf(filename, "_%" PRId64, stream->id);
+	if (stream->stream_class->name &&
+			stream->stream_class->name->len > 0) {
+		/* Use stream class name's base name as prefix */
+		gchar *basename =
+			g_path_get_basename(stream->stream_class->name->str);
+
+		assert(basename);
+
+		if (strcmp(basename, G_DIR_SEPARATOR_S) == 0) {
+			g_string_assign(filename, "stream");
+		} else {
+			g_string_assign(filename, basename);
+		}
+
+		g_free(basename);
+		goto append_ids;
+	}
+
+	/* Default to using `stream-` as prefix */
+	g_string_assign(filename, "stream");
+
+append_ids:
+	stream_class_id = bt_ctf_stream_class_get_id(stream->stream_class);
+	assert(stream_class_id >= 0);
+	assert(stream->id >= 0);
+	g_string_append_printf(filename, "-%" PRId64 "-%" PRId64,
+		stream_class_id, stream->id);
+
 	file_path = g_build_filename(writer->path->str, filename->str, NULL);
 	if (file_path == NULL) {
 		fd = -1;
 		goto end;
 	}
+
 	fd = open(file_path,
 		O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
