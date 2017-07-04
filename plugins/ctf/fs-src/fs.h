@@ -103,7 +103,13 @@ struct ctf_fs_ds_file_group {
 	GPtrArray *ds_file_infos;
 
 	/* Owned by this */
+	struct bt_ctf_stream_class *stream_class;
+
+	/* Owned by this */
 	struct bt_ctf_stream *stream;
+
+	/* Stream (instance) ID; -1ULL means none */
+	uint64_t stream_id;
 
 	/* Weak, belongs to component */
 	struct ctf_fs_trace *ctf_fs_trace;

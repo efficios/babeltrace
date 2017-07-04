@@ -284,6 +284,31 @@ void port_data_destroy(void *data) {
 }
 
 static
+GString *get_stream_instance_unique_name(
+		struct ctf_fs_ds_file_group *ds_file_group)
+{
+	GString *name;
+	struct ctf_fs_ds_file_info *ds_file_info;
+
+	name = g_string_new(NULL);
+	if (!name) {
+		goto end;
+	}
+
+	/*
+	 * If there's more than one stream file in the stream file
+	 * group, the first (earliest) stream file's path is used as
+	 * the stream's unique name.
+	 */
+	assert(ds_file_group->ds_file_infos->len > 0);
+	ds_file_info = g_ptr_array_index(ds_file_group->ds_file_infos, 0);
+	g_string_assign(name, ds_file_info->path->str);
+
+end:
+	return name;
+}
+
+static
 int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 		struct ctf_fs_trace *ctf_fs_trace,
 		struct ctf_fs_ds_file_group *ds_file_group)
@@ -291,22 +316,12 @@ int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 	int ret = 0;
 	struct ctf_fs_port_data *port_data = NULL;
 	GString *port_name = NULL;
-	struct ctf_fs_ds_file_info *ds_file_info =
-		g_ptr_array_index(ds_file_group->ds_file_infos, 0);
 
-	port_name = g_string_new(NULL);
+	port_name = get_stream_instance_unique_name(ds_file_group);
 	if (!port_name) {
 		goto error;
 	}
 
-	/*
-	 * Assign the name for the new output port. If there's more than
-	 * one stream file in the stream file group, the first
-	 * (earliest) stream file's path is used.
-	 */
-	assert(ds_file_group->ds_file_infos->len > 0);
-	ds_file_info = g_ptr_array_index(ds_file_group->ds_file_infos, 0);
-	g_string_assign(port_name, ds_file_info->path->str);
 	BT_LOGD("Creating one port named `%s`", port_name->str);
 
 	/* Create output port for this file */
@@ -549,6 +564,7 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 	}
 
 	bt_put(ds_file_group->stream);
+	bt_put(ds_file_group->stream_class);
 	g_free(ds_file_group);
 }
 
@@ -560,7 +576,6 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 {
 	struct ctf_fs_ds_file_group *ds_file_group;
 
-	assert(stream_class);
 	ds_file_group = g_new0(struct ctf_fs_ds_file_group, 1);
 	if (!ds_file_group) {
 		goto error;
@@ -572,20 +587,10 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		goto error;
 	}
 
-	if (stream_instance_id == -1ULL) {
-		ds_file_group->stream = bt_ctf_stream_create(
-			stream_class, NULL);
-	} else {
-		ds_file_group->stream = bt_ctf_stream_create_with_id(
-			stream_class, NULL, stream_instance_id);
-	}
-
-	if (!ds_file_group->stream) {
-		goto error;
-	}
-
+	ds_file_group->stream_id = stream_instance_id;
+	assert(stream_class);
+	ds_file_group->stream_class = bt_get(stream_class);
 	ds_file_group->ctf_fs_trace = ctf_fs_trace;
-
 	goto end;
 
 error:
@@ -710,7 +715,6 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		 * there's no timestamp to order the file within its
 		 * group.
 		 */
-
 		ds_file_group = ctf_fs_ds_file_group_create(ctf_fs_trace,
 			stream_class, stream_instance_id);
 		if (!ds_file_group) {
@@ -718,7 +722,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		}
 
 		ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group,
-				path, begin_ns, index);
+			path, begin_ns, index);
 		/* Ownership of index is transferred. */
 		index = NULL;
 		if (ret) {
@@ -734,20 +738,12 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	/* Find an existing stream file group with this ID */
 	for (i = 0; i < ctf_fs_trace->ds_file_groups->len; i++) {
-		int64_t id;
-		struct bt_ctf_stream_class *cand_stream_class;
-
 		ds_file_group = g_ptr_array_index(
 			ctf_fs_trace->ds_file_groups, i);
-		id = bt_ctf_stream_get_id(ds_file_group->stream);
-		cand_stream_class = bt_ctf_stream_get_class(
-			ds_file_group->stream);
 
-		assert(cand_stream_class);
-		bt_put(cand_stream_class);
-
-		if (cand_stream_class == stream_class &&
-				(uint64_t) id == stream_instance_id) {
+		if (ds_file_group->stream_class == stream_class &&
+				ds_file_group->stream_id ==
+				stream_instance_id) {
 			break;
 		}
 
@@ -764,8 +760,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		add_group = true;
 	}
 
-	ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group,
-			path, begin_ns, index);
+	ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group, path,
+		begin_ns, index);
 	index = NULL;
 	if (ret) {
 		goto error;
@@ -781,6 +777,7 @@ end:
 	if (add_group && ds_file_group) {
 		g_ptr_array_add(ctf_fs_trace->ds_file_groups, ds_file_group);
 	}
+
 	ctf_fs_ds_file_destroy(ds_file);
 
 	if (notif_iter) {
@@ -801,6 +798,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 	const char *basename;
 	GError *error = NULL;
 	GDir *dir = NULL;
+	size_t i;
 
 	/* Check each file in the path directory, except specific ones */
 	dir = g_dir_open(ctf_fs_trace->path->str, 0, &error);
@@ -869,6 +867,43 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		}
 
 		ctf_fs_file_destroy(file);
+	}
+
+	/*
+	 * At this point, DS file groupes are created, but their
+	 * associated stream objects do not exist yet. This is because
+	 * we need to name the created stream object with the data
+	 * stream file's path. We have everything we need here to do
+	 * this.
+	 */
+	for (i = 0; i < ctf_fs_trace->ds_file_groups->len; i++) {
+		struct ctf_fs_ds_file_group *ds_file_group =
+			g_ptr_array_index(ctf_fs_trace->ds_file_groups, i);
+		GString *name = get_stream_instance_unique_name(ds_file_group);
+
+		if (!name) {
+			goto error;
+		}
+
+		if (ds_file_group->stream_id == -1ULL) {
+			/* No stream ID */
+			ds_file_group->stream = bt_ctf_stream_create(
+				ds_file_group->stream_class, name->str);
+		} else {
+			/* Specific stream ID */
+			ds_file_group->stream = bt_ctf_stream_create_with_id(
+				ds_file_group->stream_class, name->str,
+				ds_file_group->stream_id);
+		}
+
+		g_string_free(name, TRUE);
+
+		if (!ds_file_group) {
+			BT_LOGE("Cannot create stream for DS file group: "
+				"addr=%p, stream-name=\"%s\"",
+				ds_file_group, name->str);
+			goto error;
+		}
 	}
 
 	goto end;
