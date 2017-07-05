@@ -520,6 +520,7 @@ AC_CONFIG_FILES([
 	plugins/ctf/fs-sink/Makefile
 	plugins/ctf/lttng-live/Makefile
 	plugins/text/Makefile
+  plugins/text/dmesg/Makefile
 	plugins/text/pretty/Makefile
 	plugins/utils/Makefile
   plugins/utils/dummy/Makefile
