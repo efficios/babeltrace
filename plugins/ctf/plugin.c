@@ -37,7 +37,7 @@ BT_PLUGIN_DESCRIPTION("CTF source and sink support");
 BT_PLUGIN_AUTHOR("Julien Desfossez, Mathieu Desnoyers, Jérémie Galarneau, Philippe Proulx");
 BT_PLUGIN_LICENSE("MIT");
 
-/* ctf.fs soource */
+/* ctf.fs source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(fs, ctf_fs_iterator_next);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(fs,
 	"Read CTF traces from the file system.");
