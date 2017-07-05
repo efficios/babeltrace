@@ -1565,6 +1565,7 @@ enum bt_component_status pretty_print_discarded_elements(
 	int64_t stream_id;
 	bool is_discarded_events;
 	int64_t count;
+	struct bt_ctf_clock_value *clock_value = NULL;
 
 	/* Stream name */
 	switch (bt_notification_get_type(notif)) {
@@ -1617,16 +1618,18 @@ enum bt_component_status pretty_print_discarded_elements(
 		count, is_discarded_events ? "event" : "packet",
 		count == 1 ? "" : "s");
 	g_string_assign(pretty->string, "");
-	print_timestamp_wall(pretty,
-		is_discarded_events ?
+	clock_value = is_discarded_events ?
 		bt_notification_discarded_events_get_begin_clock_value(notif) :
-		bt_notification_discarded_packets_get_begin_clock_value(notif));
+		bt_notification_discarded_packets_get_begin_clock_value(notif);
+	print_timestamp_wall(pretty, clock_value);
+	BT_PUT(clock_value);
 	fprintf(stderr, "%s] and [", pretty->string->str);
 	g_string_assign(pretty->string, "");
-	print_timestamp_wall(pretty,
-		is_discarded_events ?
+	clock_value = is_discarded_events ?
 		bt_notification_discarded_events_get_end_clock_value(notif) :
-		bt_notification_discarded_packets_get_end_clock_value(notif));
+		bt_notification_discarded_packets_get_end_clock_value(notif);
+	print_timestamp_wall(pretty, clock_value);
+	BT_PUT(clock_value);
 	fprintf(stderr, "%s] in trace \"%s\" ",
 		pretty->string->str, trace_name);
 
@@ -1666,5 +1669,6 @@ enum bt_component_status pretty_print_discarded_elements(
 	bt_put(stream);
 	bt_put(stream_class);
 	bt_put(trace);
+	bt_put(clock_value);
 	return ret;
 }
