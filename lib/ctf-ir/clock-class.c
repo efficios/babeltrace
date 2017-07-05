@@ -580,7 +580,7 @@ void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
 	g_string_append_printf(context->string, "\toffset = %" PRIu64 ";\n",
 		clock_class->offset);
 	g_string_append_printf(context->string, "\tabsolute = %s;\n",
-		clock_class->absolute ? "TRUE" : "FALSE");
+		clock_class->absolute ? "true" : "false");
 	g_string_append(context->string, "};\n\n");
 }
 
