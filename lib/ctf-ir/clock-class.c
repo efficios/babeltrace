@@ -556,12 +556,16 @@ void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
 	g_string_append(context->string, "clock {\n");
 	g_string_append_printf(context->string, "\tname = %s;\n",
 		clock_class->name->str);
-	g_string_append_printf(context->string,
-		"\tuuid = \"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\";\n",
-		uuid[0], uuid[1], uuid[2], uuid[3],
-		uuid[4], uuid[5], uuid[6], uuid[7],
-		uuid[8], uuid[9], uuid[10], uuid[11],
-		uuid[12], uuid[13], uuid[14], uuid[15]);
+
+	if (clock_class->uuid_set) {
+		g_string_append_printf(context->string,
+			"\tuuid = \"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\";\n",
+			uuid[0], uuid[1], uuid[2], uuid[3],
+			uuid[4], uuid[5], uuid[6], uuid[7],
+			uuid[8], uuid[9], uuid[10], uuid[11],
+			uuid[12], uuid[13], uuid[14], uuid[15]);
+	}
+
 	if (clock_class->description) {
 		g_string_append_printf(context->string, "\tdescription = \"%s\";\n",
 			clock_class->description->str);
