@@ -241,6 +241,7 @@ int64_t bt_component_get_output_port_count(struct bt_component *comp)
 	return (int64_t) comp->output_ports->len;
 }
 
+BT_HIDDEN
 enum bt_component_status bt_component_create(
 		struct bt_component_class *component_class,
 		const char *name, struct bt_component **user_component)
