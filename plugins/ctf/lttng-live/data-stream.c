@@ -73,20 +73,32 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 
 static
 struct bt_ctf_stream *medop_get_stream(
-		struct bt_ctf_stream_class *stream_class, void *data)
+		struct bt_ctf_stream_class *stream_class,
+		uint64_t stream_id, void *data)
 {
 	struct lttng_live_stream_iterator *lttng_live_stream = data;
 
 	if (!lttng_live_stream->stream) {
-		int64_t id = bt_ctf_stream_class_get_id(stream_class);
+		int64_t stream_class_id =
+			bt_ctf_stream_class_get_id(stream_class);
 
-		BT_LOGD("Creating stream %s out of stream class %" PRId64,
-			lttng_live_stream->name, id);
-		lttng_live_stream->stream = bt_ctf_stream_create(stream_class,
-				lttng_live_stream->name);
+		BT_LOGD("Creating stream %s (ID: %" PRIu64 ") out of stream class %" PRId64,
+			lttng_live_stream->name, stream_id, stream_class_id);
+
+		if (stream_id == -1ULL) {
+			/* No stream ID */
+			lttng_live_stream->stream = bt_ctf_stream_create(
+				stream_class, lttng_live_stream->name);
+		} else {
+			lttng_live_stream->stream =
+				bt_ctf_stream_create_with_id(stream_class,
+					lttng_live_stream->name, stream_id);
+		}
+
 		if (!lttng_live_stream->stream) {
-			BT_LOGE("Cannot create stream %s (stream class %" PRId64 ")",
-					lttng_live_stream->name, id);
+			BT_LOGE("Cannot create stream %s (stream class %" PRId64 ", stream ID %" PRIu64 ")",
+					lttng_live_stream->name,
+					stream_class_id, stream_id);
 		}
 	}
 

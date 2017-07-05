@@ -1045,10 +1045,6 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 	int ret_int;
 	const char *name = bt_ctf_stream_class_get_name(stream_class);
 
-	if (strlen(name) == 0) {
-		name = NULL;
-	}
-
 	writer_stream_class = bt_ctf_stream_class_create_empty(name);
 	if (!writer_stream_class) {
 		fprintf(err, "[error] %s in %s:%d\n",
@@ -1134,11 +1130,20 @@ int add_clock_classes(FILE *err, struct bt_ctf_trace *writer_trace,
 	for (i = 0; i < clock_class_count; i++) {
 		struct bt_ctf_clock_class *clock_class =
 			bt_ctf_trace_get_clock_class_by_index(trace, i);
+		struct bt_ctf_clock_class *existing_clock_class = NULL;
 
 		if (!clock_class) {
 			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
 					__LINE__);
 			goto error;
+		}
+
+		existing_clock_class = bt_ctf_trace_get_clock_class_by_name(
+			writer_trace, bt_ctf_clock_class_get_name(clock_class));
+		bt_put(existing_clock_class);
+		if (existing_clock_class) {
+			bt_put(clock_class);
+			continue;
 		}
 
 		ret = bt_ctf_trace_add_clock_class(writer_trace, clock_class);
@@ -1237,6 +1242,7 @@ struct bt_ctf_stream *insert_new_stream(
 	struct bt_ctf_stream *writer_stream = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL;
 	struct bt_ctf_stream_class *writer_stream_class = NULL;
+	int64_t id;
 
 	stream_class = bt_ctf_stream_get_class(stream);
 	if (!stream_class) {
@@ -1260,8 +1266,16 @@ struct bt_ctf_stream *insert_new_stream(
 	}
 	bt_get(writer_stream_class);
 
-	writer_stream = bt_ctf_stream_create(writer_stream_class,
-			bt_ctf_stream_get_name(stream));
+	id = bt_ctf_stream_get_id(stream);
+	if (id < 0) {
+		writer_stream = bt_ctf_stream_create(writer_stream_class,
+				bt_ctf_stream_get_name(stream));
+	} else {
+		writer_stream = bt_ctf_stream_create_with_id(
+			writer_stream_class,
+			bt_ctf_stream_get_name(stream), id);
+	}
+
 	if (!writer_stream) {
 		fprintf(debug_it->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);

@@ -1,9 +1,5 @@
 /*
- * Babeltrace Plug-in Notification
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +20,37 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/notification-internal.h>
+#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/notification-discarded-events.h>
+#include <babeltrace/graph/notification-discarded-elements-internal.h>
+#include <stdint.h>
 
-BT_HIDDEN
-void bt_notification_init(struct bt_notification *notification,
-		enum bt_notification_type type,
-		bt_object_release_func release)
-{
-	assert(type > BT_NOTIFICATION_TYPE_ALL &&
-			type < BT_NOTIFICATION_TYPE_NR);
-	notification->type = type;
-	bt_object_init(&notification->base, release);
-}
-
-enum bt_notification_type bt_notification_get_type(
+struct bt_ctf_clock_value *
+bt_notification_discarded_events_get_begin_clock_value(
 		struct bt_notification *notification)
 {
-	return notification ? notification->type : BT_NOTIFICATION_TYPE_UNKNOWN;
+	return bt_notification_discarded_elements_get_begin_clock_value(
+		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS, notification);
+}
+
+struct bt_ctf_clock_value *
+bt_notification_discarded_events_get_end_clock_value(
+		struct bt_notification *notification)
+{
+	return bt_notification_discarded_elements_get_end_clock_value(
+		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS, notification);
+}
+
+int64_t bt_notification_discarded_events_get_count(
+		struct bt_notification *notification)
+{
+	return bt_notification_discarded_elements_get_count(
+		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS, notification);
+}
+
+struct bt_ctf_stream *bt_notification_discarded_events_get_stream(
+		struct bt_notification *notification)
+{
+	return bt_notification_discarded_elements_get_stream(
+		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS, notification);
 }

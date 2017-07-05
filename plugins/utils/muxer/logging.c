@@ -1,9 +1,5 @@
 /*
- * Babeltrace Plug-in Notification
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +20,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/notification-internal.h>
+#define BT_LOG_OUTPUT_LEVEL bt_plugin_utils_muxer_log_level
+#include <babeltrace/logging-internal.h>
 
-BT_HIDDEN
-void bt_notification_init(struct bt_notification *notification,
-		enum bt_notification_type type,
-		bt_object_release_func release)
-{
-	assert(type > BT_NOTIFICATION_TYPE_ALL &&
-			type < BT_NOTIFICATION_TYPE_NR);
-	notification->type = type;
-	bt_object_init(&notification->base, release);
-}
-
-enum bt_notification_type bt_notification_get_type(
-		struct bt_notification *notification)
-{
-	return notification ? notification->type : BT_NOTIFICATION_TYPE_UNKNOWN;
-}
+BT_LOG_INIT_LOG_LEVEL(bt_plugin_utils_muxer_log_level,
+	"BABELTRACE_PLUGIN_UTILS_MUXER_FLT_LOG_LEVEL");

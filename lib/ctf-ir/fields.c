@@ -3036,8 +3036,8 @@ int increase_packet_size(struct bt_ctf_stream_pos *pos)
 		pos->offset, pos->packet_size);
 	ret = munmap_align(pos->base_mma);
 	if (ret) {
-		BT_LOGE("Failed to perform an aligned memory unmapping: "
-			"ret=%d, errno=%d", ret, errno);
+		BT_LOGE_ERRNO("Failed to perform an aligned memory unmapping",
+			": ret=%d", ret);
 		goto end;
 	}
 
@@ -3047,8 +3047,8 @@ int increase_packet_size(struct bt_ctf_stream_pos *pos)
 			pos->packet_size / CHAR_BIT);
 	} while (ret == EINTR);
 	if (ret) {
-		BT_LOGE("Failed to preallocate memory space: ret=%d, errno=%d",
-			ret, errno);
+		BT_LOGE_ERRNO("Failed to preallocate memory space",
+			": ret=%d", ret);
 		errno = EINTR;
 		ret = -1;
 		goto end;
@@ -3057,8 +3057,8 @@ int increase_packet_size(struct bt_ctf_stream_pos *pos)
 	pos->base_mma = mmap_align(pos->packet_size / CHAR_BIT, pos->prot,
 		pos->flags, pos->fd, pos->mmap_offset);
 	if (pos->base_mma == MAP_FAILED) {
-		BT_LOGE("Failed to perform an aligned memory mapping: "
-			"ret=%d, errno=%d", ret, errno);
+		BT_LOGE_ERRNO("Failed to perform an aligned memory mapping",
+			": ret=%d", ret);
 		ret = -1;
 	}
 

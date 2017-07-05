@@ -148,6 +148,14 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 		goto error;
 	}
 
+	ret = bt_ctf_trace_add_stream_class(writer_trace, writer_stream_class);
+	if (ret) {
+		fprintf(writer_component->err,
+				"[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+		goto error;
+	}
+
 	g_hash_table_insert(fs_writer->stream_class_map,
 			(gpointer) stream_class, writer_stream_class);
 
@@ -513,8 +521,8 @@ struct bt_ctf_stream *insert_new_stream(
 	}
 	bt_get(writer_stream_class);
 
-	writer_stream = bt_ctf_writer_create_stream(ctf_writer,
-			writer_stream_class);
+	writer_stream = bt_ctf_stream_create(writer_stream_class,
+		bt_ctf_stream_get_name(stream));
 	if (!writer_stream) {
 		fprintf(writer_component->err, "[error] %s in %s:%d\n",
 				__func__, __FILE__, __LINE__);

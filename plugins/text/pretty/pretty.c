@@ -154,6 +154,10 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 		break;
+	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
+	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
+		ret = pretty_print_discarded_elements(pretty, notification);
+		break;
 	default:
 		fprintf(stderr, "Unhandled notification type\n");
 	}
@@ -172,6 +176,8 @@ void pretty_port_connected(
 	struct pretty_component *pretty;
 	static const enum bt_notification_type notif_types[] = {
 		BT_NOTIFICATION_TYPE_EVENT,
+		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS,
+		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS,
 		BT_NOTIFICATION_TYPE_SENTINEL,
 	};
 

@@ -222,13 +222,9 @@ struct bt_notification *handle_notification(FILE *err,
 		bt_put(writer_stream);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_INACTIVITY:
-	{
+	default:
 		new_notification = bt_get(notification);
 		break;
-	}
-	default:
-		puts("Unhandled notification type");
 	}
 
 end:
@@ -295,14 +291,6 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 		bt_private_notification_iterator_get_private_component(iterator);
 	struct debug_info_iterator *it_data = g_new0(struct debug_info_iterator, 1);
 	struct bt_private_port *input_port;
-	static const enum bt_notification_type notif_types[] = {
-		BT_NOTIFICATION_TYPE_EVENT,
-		BT_NOTIFICATION_TYPE_STREAM_BEGIN,
-		BT_NOTIFICATION_TYPE_STREAM_END,
-		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
-		BT_NOTIFICATION_TYPE_PACKET_END,
-		BT_NOTIFICATION_TYPE_SENTINEL,
-	};
 
 	if (!it_data) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
@@ -324,7 +312,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	}
 
 	conn_status = bt_private_connection_create_notification_iterator(
-			connection, notif_types, &it_data->input_iterator);
+			connection, NULL, &it_data->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;

@@ -37,6 +37,8 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/graph/notification-event.h>
+#include <babeltrace/graph/notification-discarded-events.h>
+#include <babeltrace/graph/notification-discarded-packets.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/common-internal.h>
@@ -48,13 +50,13 @@
 #define NSEC_PER_SEC 1000000000LL
 
 #define COLOR_NAME		BT_COMMON_COLOR_BOLD
-#define COLOR_FIELD_NAME		BT_COMMON_COLOR_FG_CYAN
+#define COLOR_FIELD_NAME	BT_COMMON_COLOR_FG_CYAN
 #define COLOR_RST		BT_COMMON_COLOR_RESET
 #define COLOR_STRING_VALUE	BT_COMMON_COLOR_BOLD
 #define COLOR_NUMBER_VALUE	BT_COMMON_COLOR_BOLD
 #define COLOR_ENUM_MAPPING_NAME	BT_COMMON_COLOR_BOLD
 #define COLOR_UNKNOWN		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_RED
-#define COLOR_EVENT_NAME		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_MAGENTA
+#define COLOR_EVENT_NAME	BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_MAGENTA
 #define COLOR_TIMESTAMP		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_YELLOW
 
 static inline
@@ -131,24 +133,20 @@ void print_timestamp_cycles(struct pretty_component *pretty,
 
 static
 void print_timestamp_wall(struct pretty_component *pretty,
-		struct bt_ctf_clock_class *clock_class,
-		struct bt_ctf_event *event)
+		struct bt_ctf_clock_value *clock_value)
 {
 	int ret;
-	struct bt_ctf_clock_value *clock_value;
 	int64_t ts_nsec = 0;	/* add configurable offset */
 	int64_t ts_sec = 0;	/* add configurable offset */
 	uint64_t ts_sec_abs, ts_nsec_abs;
 	bool is_negative;
 
-	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
 		g_string_append(pretty->string, "??:??:??.?????????");
 		return;
 	}
 
 	ret = bt_ctf_clock_value_get_value_ns_from_epoch(clock_value, &ts_nsec);
-	bt_put(clock_value);
 	if (ret) {
 		// TODO: log, this is unexpected
 		g_string_append(pretty->string, "Error");
@@ -301,7 +299,11 @@ enum bt_component_status print_event_timestamp(struct pretty_component *pretty,
 	if (pretty->options.print_timestamp_cycles) {
 		print_timestamp_cycles(pretty, clock_class, event);
 	} else {
-		print_timestamp_wall(pretty, clock_class, event);
+		struct bt_ctf_clock_value *clock_value =
+			bt_ctf_event_get_clock_value(event, clock_class);
+
+		print_timestamp_wall(pretty, clock_value);
+		bt_put(clock_value);
 	}
 	if (pretty->use_colors) {
 		g_string_append(pretty->string, COLOR_RST);
@@ -1472,6 +1474,23 @@ end:
 	return ret;
 }
 
+static
+int flush_buf(struct pretty_component *pretty)
+{
+	int ret = 0;
+
+	if (pretty->string->len == 0) {
+		goto end;
+	}
+
+	if (fwrite(pretty->string->str, pretty->string->len, 1, pretty->out) != 1) {
+		ret = -1;
+	}
+
+end:
+	return ret;
+}
+
 BT_HIDDEN
 enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 		struct bt_notification *event_notif)
@@ -1519,7 +1538,7 @@ enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 	}
 
 	g_string_append_c(pretty->string, '\n');
-	if (fwrite(pretty->string->str, pretty->string->len, 1, pretty->out) != 1) {
+	if (flush_buf(pretty)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
@@ -1527,5 +1546,129 @@ enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 end:
 	bt_put(event);
 	bt_put(cc_prio_map);
+	return ret;
+}
+
+BT_HIDDEN
+enum bt_component_status pretty_print_discarded_elements(
+		struct pretty_component *pretty,
+		struct bt_notification *notif)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_ctf_stream *stream = NULL;
+	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_ctf_trace *trace = NULL;
+	const char *stream_name;
+	const char *trace_name;
+	const unsigned char *trace_uuid;
+	int64_t stream_class_id;
+	int64_t stream_id;
+	bool is_discarded_events;
+	int64_t count;
+	struct bt_ctf_clock_value *clock_value = NULL;
+
+	/* Stream name */
+	switch (bt_notification_get_type(notif)) {
+	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
+		stream = bt_notification_discarded_events_get_stream(notif);
+		count = bt_notification_discarded_events_get_count(notif);
+		is_discarded_events = true;
+		break;
+	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
+		stream = bt_notification_discarded_packets_get_stream(notif);
+		count = bt_notification_discarded_packets_get_count(notif);
+		is_discarded_events = false;
+		break;
+	default:
+		abort();
+	}
+
+	assert(stream);
+	stream_name = bt_ctf_stream_get_name(stream);
+
+	/* Stream class ID */
+	stream_class = bt_ctf_stream_get_class(stream);
+	assert(stream_class);
+	stream_class_id = bt_ctf_stream_class_get_id(stream_class);
+
+	/* Stream ID */
+	stream_id = bt_ctf_stream_get_id(stream);
+
+	/* Trace path */
+	trace = bt_ctf_stream_class_get_trace(stream_class);
+	assert(trace);
+	trace_name = bt_ctf_trace_get_name(trace);
+	if (!trace_name) {
+		trace_name = "(unknown)";
+	}
+
+	/* Trace UUID */
+	trace_uuid = bt_ctf_trace_get_uuid(trace);
+
+	/*
+	 * Print to standard error stream to remain backward compatible
+	 * with Babeltrace 1.
+	 */
+	fprintf(stderr,
+		"%s%sWARNING%s%s: Tracer discarded %" PRId64 " %s%s between [",
+		bt_common_color_fg_yellow(),
+		bt_common_color_bold(),
+		bt_common_color_reset(),
+		bt_common_color_fg_yellow(),
+		count, is_discarded_events ? "event" : "packet",
+		count == 1 ? "" : "s");
+	g_string_assign(pretty->string, "");
+	clock_value = is_discarded_events ?
+		bt_notification_discarded_events_get_begin_clock_value(notif) :
+		bt_notification_discarded_packets_get_begin_clock_value(notif);
+	print_timestamp_wall(pretty, clock_value);
+	BT_PUT(clock_value);
+	fprintf(stderr, "%s] and [", pretty->string->str);
+	g_string_assign(pretty->string, "");
+	clock_value = is_discarded_events ?
+		bt_notification_discarded_events_get_end_clock_value(notif) :
+		bt_notification_discarded_packets_get_end_clock_value(notif);
+	print_timestamp_wall(pretty, clock_value);
+	BT_PUT(clock_value);
+	fprintf(stderr, "%s] in trace \"%s\" ",
+		pretty->string->str, trace_name);
+
+	if (trace_uuid) {
+		fprintf(stderr,
+			"(UUID: %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x) ",
+			trace_uuid[0],
+			trace_uuid[1],
+			trace_uuid[2],
+			trace_uuid[3],
+			trace_uuid[4],
+			trace_uuid[5],
+			trace_uuid[6],
+			trace_uuid[7],
+			trace_uuid[8],
+			trace_uuid[9],
+			trace_uuid[10],
+			trace_uuid[11],
+			trace_uuid[12],
+			trace_uuid[13],
+			trace_uuid[14],
+			trace_uuid[15]);
+	} else {
+		fprintf(stderr, "(no UUID) ");
+	}
+
+	fprintf(stderr, "within stream \"%s\" (stream class ID: %" PRId64 ", ",
+		stream_name, stream_class_id);
+
+	if (stream_id >= 0) {
+		fprintf(stderr, "stream ID: %" PRId64, stream_id);
+	} else {
+		fprintf(stderr, "no stream ID");
+	}
+
+	fprintf(stderr, ").%s\n", bt_common_color_reset());
+	bt_put(stream);
+	bt_put(stream_class);
+	bt_put(trace);
+	bt_put(clock_value);
 	return ret;
 }

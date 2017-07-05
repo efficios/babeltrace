@@ -1,6 +1,3 @@
-#ifndef BABELTRACE_PLUGINS_UTILS_DUMMY_H
-#define BABELTRACE_PLUGINS_UTILS_DUMMY_H
-
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
@@ -23,24 +20,37 @@
  * SOFTWARE.
  */
 
-#include <glib.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/port.h>
-#include <stdbool.h>
+#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/notification-discarded-packets.h>
+#include <babeltrace/graph/notification-discarded-elements-internal.h>
+#include <stdint.h>
 
-struct dummy {
-	struct bt_notification_iterator *notif_iter;
-	bool error;
-};
+struct bt_ctf_clock_value *
+bt_notification_discarded_packets_get_begin_clock_value(
+		struct bt_notification *notification)
+{
+	return bt_notification_discarded_elements_get_begin_clock_value(
+		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
+}
 
-enum bt_component_status dummy_init(struct bt_private_component *component,
-		struct bt_value *params, void *init_method_data);
-void dummy_finalize(struct bt_private_component *component);
-void dummy_port_connected(struct bt_private_component *component,
-		struct bt_private_port *self_port,
-		struct bt_port *other_port);
-enum bt_component_status dummy_consume(struct bt_private_component *component);
+struct bt_ctf_clock_value *
+bt_notification_discarded_packets_get_end_clock_value(
+		struct bt_notification *notification)
+{
+	return bt_notification_discarded_elements_get_end_clock_value(
+		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
+}
 
-#endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */
+int64_t bt_notification_discarded_packets_get_count(
+		struct bt_notification *notification)
+{
+	return bt_notification_discarded_elements_get_count(
+		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
+}
+
+struct bt_ctf_stream *bt_notification_discarded_packets_get_stream(
+		struct bt_notification *notification)
+{
+	return bt_notification_discarded_elements_get_stream(
+		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
+}

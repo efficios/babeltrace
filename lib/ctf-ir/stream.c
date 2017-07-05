@@ -667,39 +667,64 @@ int create_stream_file(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream *stream)
 {
 	int fd;
-	GString *filename = g_string_new(stream->stream_class->name->str);
+	GString *filename = g_string_new(NULL);
+	int64_t stream_class_id;
 
 	BT_LOGD("Creating stream file: writer-addr=%p, stream-addr=%p, "
 		"stream-name=\"%s\", stream-class-addr=%p, stream-class-name=\"%s\"",
 		writer, stream, bt_ctf_stream_get_name(stream),
 		stream->stream_class, stream->stream_class->name->str);
 
-	if (stream->stream_class->name->len == 0) {
-		int64_t ret;
+	if (stream->name && stream->name->len > 0) {
+		/* Use stream name's base name as prefix */
+		gchar *basename = g_path_get_basename(stream->name->str);
 
-		ret = bt_ctf_stream_class_get_id(stream->stream_class);
-		if (ret < 0) {
-			BT_LOGW("Cannot get stream class's ID: "
-				"stream-class-addr=%p, "
-				"stream-class-name=\"%s\"",
-				stream->stream_class,
-				stream->stream_class->name->str);
-			fd = -1;
-			goto end;
+		assert(basename);
+
+		if (strcmp(basename, G_DIR_SEPARATOR_S) == 0) {
+			g_string_assign(filename, "stream");
+		} else {
+			g_string_assign(filename, basename);
 		}
 
-		g_string_printf(filename, "stream_%" PRId64, ret);
+		g_free(basename);
+		goto append_ids;
 	}
 
-	g_string_append_printf(filename, "_%" PRId64, stream->id);
+	if (stream->stream_class->name &&
+			stream->stream_class->name->len > 0) {
+		/* Use stream class name's base name as prefix */
+		gchar *basename =
+			g_path_get_basename(stream->stream_class->name->str);
+
+		assert(basename);
+
+		if (strcmp(basename, G_DIR_SEPARATOR_S) == 0) {
+			g_string_assign(filename, "stream");
+		} else {
+			g_string_assign(filename, basename);
+		}
+
+		g_free(basename);
+		goto append_ids;
+	}
+
+	/* Default to using `stream-` as prefix */
+	g_string_assign(filename, "stream");
+
+append_ids:
+	stream_class_id = bt_ctf_stream_class_get_id(stream->stream_class);
+	assert(stream_class_id >= 0);
+	assert(stream->id >= 0);
+	g_string_append_printf(filename, "-%" PRId64 "-%" PRId64,
+		stream_class_id, stream->id);
 	fd = openat(writer->trace_dir_fd, filename->str,
 		O_RDWR | O_CREAT | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 	if (fd < 0) {
-		BT_LOGW("Failed to open stream file for writing: %s: "
-			"writer-trace-dir-fd=%d, filename=\"%s\", "
-			"ret=%d, errno=%d", strerror(errno),
-			writer->trace_dir_fd, filename->str, fd, errno);
+		BT_LOGW_ERRNO("Failed to open stream file for writing",
+			": writer-trace-dir-fd=%d, filename=\"%s\", ret=%d",
+			writer->trace_dir_fd, filename->str, fd);
 		goto end;
 	}
 
@@ -1681,10 +1706,11 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		ret = ftruncate(stream->pos.fd, stream->size);
 	} while (ret == -1 && errno == EINTR);
 	if (ret == -1) {
-		BT_LOGE_ERRNO("Cannot ftruncate() stream file to new size",
-				"size = %" PRIu64 ", name = %s",
-				stream->size,
-				stream->name ? stream->name->str : "(null)");
+		BT_LOGE_ERRNO("Cannot truncate stream file to new size",
+				": size=%" PRIu64 ", stream-addr=%p, "
+				"stream-name=\"%s\"",
+				stream->size, stream,
+				bt_ctf_stream_get_name(stream));
 	}
 
 end:
@@ -1759,16 +1785,14 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 			ret = ftruncate(stream->pos.fd, stream->size);
 		} while (ret == -1 && errno == EINTR);
 		if (ret) {
-			BT_LOGE("Failed to truncate stream file: %s: "
-				"ret=%d, errno=%d, size=%" PRIu64,
-				strerror(errno), ret, errno,
-				(uint64_t) stream->size);
+			BT_LOGE_ERRNO("Failed to truncate stream file",
+				": ret=%d, size=%" PRIu64,
+				ret, (uint64_t) stream->size);
 		}
 
 		if (close(stream->pos.fd)) {
-			BT_LOGE("Failed to close stream file: %s: "
-				"ret=%d, errno=%d", strerror(errno),
-				ret, errno);
+			BT_LOGE_ERRNO("Failed to close stream file",
+				": ret=%d", ret);
 		}
 	}
 

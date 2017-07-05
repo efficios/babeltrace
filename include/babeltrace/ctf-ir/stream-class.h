@@ -252,17 +252,20 @@ extern const char *bt_ctf_stream_class_get_name(
 
 /**
 @brief	Sets the name of the CTF IR stream class
-	\p stream_class to \p name.
+	\p stream_class to \p name, or resets the name of
+	\p stream_class.
 
-\p name must be unique amongst the names of all the stream classes
-of the trace class to which you eventually add \p stream_class.
+If \p name is not \c NULL, it must be unique amongst the names of all
+the stream classes of the trace class to which you eventually add
+\p stream_class.
 
 @param[in] stream_class	Stream class of which to set the name.
-@param[in] name		Name of the stream class (copied on success).
+@param[in] name		Name of the stream class (copied on success), or
+			\c NULL to reset the name of \p stream_class
+			(make it unnamed).
 @returns		0 on success, or a negative value on error.
 
 @prenotnull{stream_class}
-@prenotnull{name}
 @prehot{stream_class}
 @postrefcountsame{stream_class}
 
