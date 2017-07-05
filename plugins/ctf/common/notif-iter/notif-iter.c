@@ -2668,6 +2668,35 @@ end:
 }
 
 static
+uint64_t get_cur_stream_instance_id(struct bt_ctf_notif_iter *notit)
+{
+	struct bt_ctf_field *stream_instance_id_field = NULL;
+	uint64_t stream_instance_id = -1ULL;
+	int ret;
+
+	if (!notit->dscopes.trace_packet_header) {
+		goto end;
+	}
+
+	stream_instance_id_field = bt_ctf_field_structure_get_field_by_name(
+		notit->dscopes.trace_packet_header, "stream_instance_id");
+	if (!stream_instance_id_field) {
+		goto end;
+	}
+
+	ret = bt_ctf_field_unsigned_integer_get_value(stream_instance_id_field,
+		&stream_instance_id);
+	if (ret) {
+		stream_instance_id = -1ULL;
+		goto end;
+	}
+
+end:
+	bt_put(stream_instance_id_field);
+	return stream_instance_id;
+}
+
+static
 int set_stream(struct bt_ctf_notif_iter *notit)
 {
 	int ret = 0;
@@ -2680,7 +2709,8 @@ int set_stream(struct bt_ctf_notif_iter *notit)
 		bt_ctf_stream_class_get_name(notit->meta.stream_class),
 		bt_ctf_stream_class_get_id(notit->meta.stream_class));
 	stream = bt_get(notit->medium.medops.get_stream(
-		notit->meta.stream_class, notit->medium.data));
+		notit->meta.stream_class, get_cur_stream_instance_id(notit),
+		notit->medium.data));
 	BT_LOGV("User function returned: stream-addr=%p", stream);
 	if (!stream) {
 		BT_LOGW_STR("User function failed to return a stream object for the given stream class.");
