@@ -877,6 +877,7 @@ enum bt_ctf_notif_iter_status set_current_stream_class(
 	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
 	struct bt_ctf_field_type *packet_header_type = NULL;
 	struct bt_ctf_field_type *stream_id_field_type = NULL;
+	struct bt_ctf_stream_class *new_stream_class = NULL;
 	uint64_t stream_id;
 
 	/* Clear the current stream class field path cache. */
@@ -928,10 +929,9 @@ single_stream_class:
 		notit, stream_id, notit->meta.trace,
 		bt_ctf_trace_get_name(notit->meta.trace));
 
-	BT_PUT(notit->meta.stream_class);
-	notit->meta.stream_class = bt_ctf_trace_get_stream_class_by_id(
+	new_stream_class = bt_ctf_trace_get_stream_class_by_id(
 		notit->meta.trace, stream_id);
-	if (!notit->meta.stream_class) {
+	if (!new_stream_class) {
 		BT_LOGW("No stream class with ID of stream class ID to use in trace: "
 			"notit-addr=%p, stream-class-id=%" PRIu64 ", "
 			"trace-addr=%p, trace-name=\"%s\"",
@@ -939,6 +939,31 @@ single_stream_class:
 			bt_ctf_trace_get_name(notit->meta.trace));
 		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
 		goto end;
+	}
+
+	if (notit->meta.stream_class) {
+		if (new_stream_class != notit->meta.stream_class) {
+			BT_LOGW("Two packets refer to two different stream classes within the same packet sequence: "
+				"notit-addr=%p, prev-stream-class-addr=%p, "
+				"prev-stream-class-name=\"%s\", "
+				"prev-stream-class-id=%" PRId64 ", "
+				"next-stream-class-addr=%p, "
+				"next-stream-class-name=\"%s\", "
+				"next-stream-class-id=%" PRId64 ", "
+				"trace-addr=%p, trace-name=\"%s\"",
+				notit, notit->meta.stream_class,
+				bt_ctf_stream_class_get_name(notit->meta.stream_class),
+				bt_ctf_stream_class_get_id(notit->meta.stream_class),
+				new_stream_class,
+				bt_ctf_stream_class_get_name(new_stream_class),
+				bt_ctf_stream_class_get_id(new_stream_class),
+				notit->meta.trace,
+				bt_ctf_trace_get_name(notit->meta.trace));
+			status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+			goto end;
+		}
+	} else {
+		BT_MOVE(notit->meta.stream_class, new_stream_class);
 	}
 
 	BT_LOGV("Set current stream class: "
@@ -967,7 +992,7 @@ single_stream_class:
 end:
 	BT_PUT(packet_header_type);
 	BT_PUT(stream_id_field_type);
-
+	bt_put(new_stream_class);
 	return status;
 }
 
@@ -1673,11 +1698,15 @@ int bt_ctf_notif_iter_switch_packet(struct bt_ctf_notif_iter *notit)
 {
 	int ret = 0;
 
+	/*
+	 * We don't put the stream class here because we need to make
+	 * sure that all the packets processed by the same notification
+	 * iterator refer to the same stream class (the first one).
+	 */
 	assert(notit);
 	BT_LOGV("Switching packet: notit-addr=%p, cur=%zu",
 		notit, notit->buf.at);
 	stack_clear(notit->stack);
-	BT_PUT(notit->meta.stream_class);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
 	BT_PUT(notit->cur_timestamp_end);
