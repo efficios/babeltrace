@@ -377,6 +377,7 @@ end:
 	return ret;
 }
 
+static
 uint64_t get_packet_header_stream_instance_id(struct ctf_fs_trace *ctf_fs_trace,
 		struct bt_ctf_field *packet_header_field)
 {
