@@ -176,7 +176,8 @@ end:
 
 static
 struct bt_ctf_stream *medop_get_stream(
-		struct bt_ctf_stream_class *stream_class, void *data)
+		struct bt_ctf_stream_class *stream_class, uint64_t stream_id,
+		void *data)
 {
 	struct ctf_fs_ds_file *ds_file = data;
 	struct bt_ctf_stream_class *ds_file_stream_class;
