@@ -189,13 +189,16 @@ struct bt_ctf_notif_iter_medium_ops {
 	 * corresponding stream class is found by the notification
 	 * iterator.
 	 *
-	 * @param stream_class	Stream class associated to the stream
+	 * @param stream_class	Stream class of the stream to get
+	 * @param stream_id	Stream (instance) ID of the stream
+	 *			to get (-1ULL if not available)
 	 * @param data		User data
 	 * @returns		Stream instance (weak reference) or
 	 *			\c NULL on error
 	 */
 	struct bt_ctf_stream * (* get_stream)(
-			struct bt_ctf_stream_class *stream_class, void *data);
+			struct bt_ctf_stream_class *stream_class,
+			uint64_t stream_id, void *data);
 };
 
 /** CTF notification iterator. */
@@ -240,7 +243,6 @@ struct bt_ctf_notif_iter_notif_event {
  * 				at a time
  * @param medops		Medium operations
  * @param medops_data		User data (passed to medium operations)
- * @param err_stream		Error stream (can be \c NULL to disable)
  * @returns			New CTF notification iterator on
  *				success, or \c NULL on error
  */
