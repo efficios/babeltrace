@@ -22,6 +22,7 @@
 
 #include <babeltrace/plugin/plugin-dev.h>
 #include "pretty/pretty.h"
+#include "dmesg/dmesg.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
 BT_PLUGIN_MODULE();
@@ -40,3 +41,14 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(pretty,
 	pretty_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(pretty,
 	"Pretty-print notifications (`text` format of Babeltrace 1).");
+
+/* dmesg source */
+BT_PLUGIN_SOURCE_COMPONENT_CLASS(dmesg, dmesg_notif_iter_next);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(dmesg,
+	"Read a dmesg output from a file or from standard input.");
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(dmesg, dmesg_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(dmesg, dmesg_finalize);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(dmesg,
+	dmesg_notif_iter_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(dmesg,
+	dmesg_notif_iter_finalize);
