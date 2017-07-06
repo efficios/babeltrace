@@ -1771,7 +1771,7 @@ void cmd_run_ctx_destroy(struct cmd_run_ctx *ctx)
 
 	if (ctx->intersections) {
 		g_hash_table_destroy(ctx->intersections);
-		ctx->components = NULL;
+		ctx->intersections = NULL;
 	}
 
 	BT_PUT(ctx->graph);
