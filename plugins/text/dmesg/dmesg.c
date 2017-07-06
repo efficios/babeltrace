@@ -53,6 +53,7 @@ struct dmesg_component {
 	struct {
 		GString *path;
 		bt_bool read_from_stdin;
+		bt_bool no_timestamp;
 	} params;
 
 	struct bt_ctf_trace *trace;
@@ -407,6 +408,7 @@ static
 int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 {
 	struct bt_value *read_from_stdin = NULL;
+	struct bt_value *no_timestamp = NULL;
 	struct bt_value *path = NULL;
 	const char *path_str;
 	int ret = 0;
@@ -423,6 +425,21 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 
 		ret = bt_value_bool_get(read_from_stdin,
 			&dmesg_comp->params.read_from_stdin);
+		assert(ret == 0);
+	}
+
+	no_timestamp = bt_value_map_get(params, "no-extract-timestamp");
+	if (no_timestamp) {
+		if (!bt_value_is_bool(no_timestamp)) {
+			BT_LOGE("Expecting a boolean value for the `no-extract-timestamp` parameter: "
+				"type=%s",
+				bt_value_type_string(
+					bt_value_get_type(no_timestamp)));
+			goto error;
+		}
+
+		ret = bt_value_bool_get(no_timestamp,
+			&dmesg_comp->params.no_timestamp);
 		assert(ret == 0);
 	}
 
@@ -459,6 +476,7 @@ error:
 end:
 	bt_put(read_from_stdin);
 	bt_put(path);
+	bt_put(no_timestamp);
 	return ret;
 }
 
@@ -758,6 +776,10 @@ int create_event_header_from_line(
 	assert(user_field);
 	*new_start = line;
 
+	if (dmesg_comp->params.no_timestamp) {
+		goto skip_ts;
+	}
+
 	/* Extract time from input line */
 	if (sscanf(line, "[%lu.%lu] ", &sec, &usec) == 2) {
 		ts = (uint64_t) sec * USEC_PER_SEC + (uint64_t) usec;
@@ -802,6 +824,7 @@ int create_event_header_from_line(
 		}
 	}
 
+skip_ts:
 	/*
 	 * At this point, we know if the stream class's event header
 	 * field type should have a timestamp or not, so we can lazily
