@@ -12,6 +12,6 @@ TESTS = test_trace_read \
 	test_debug_info \
 	test_trimmer
 
-if USE_PYTHON
+if ENABLE_PYTHON_BINDINGS
 TESTS += intersection/test_multi_trace_intersection.py
 endif

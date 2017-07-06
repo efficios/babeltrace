@@ -1,4 +1,5 @@
 # Core API
+babeltraceincludedir = "$(includedir)/babeltrace"
 babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
 	babeltrace/values.h \
@@ -8,10 +9,12 @@ babeltraceinclude_HEADERS = \
 	babeltrace/types.h
 
 # Legacy API (for CTF writer)
+babeltracectfincludedir = "$(includedir)/babeltrace/ctf"
 babeltracectfinclude_HEADERS = \
 	babeltrace/ctf/events.h
 
 # CTF writer API
+babeltracectfwriterincludedir = "$(includedir)/babeltrace/ctf-writer"
 babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/clock.h \
 	babeltrace/ctf-writer/writer.h \
@@ -22,6 +25,7 @@ babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/stream-class.h
 
 # CTF IR API
+babeltracectfirincludedir = "$(includedir)/babeltrace/ctf-ir"
 babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/clock-class.h \
 	babeltrace/ctf-ir/fields.h \
@@ -37,11 +41,13 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/visitor.h
 
 # Plugin and plugin development API
+babeltracepluginincludedir = "$(includedir)/babeltrace/plugin"
 babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin.h \
 	babeltrace/plugin/plugin-dev.h
 
 # Graph, component, and notification API
+babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/clock-class-priority-map.h \
 	babeltrace/graph/component-class-filter.h \

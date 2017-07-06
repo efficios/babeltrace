@@ -17,6 +17,6 @@ EXTRA_DIST = \
 LOG_DRIVER_FLAGS='--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
-if USE_PYTHON
+if ENABLE_PYTHON_BINDINGS
 TESTS = testall.sh
 endif

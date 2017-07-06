@@ -15,7 +15,7 @@ babeltrace_plugin_utils_la_LIBADD = \
 	trimmer/libbabeltrace-plugin-trimmer.la \
 	muxer/libbabeltrace-plugin-muxer.la
 
-if !BUILT_IN_PLUGINS
+if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_utils_la_LIBADD += \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la \
