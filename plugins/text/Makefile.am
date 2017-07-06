@@ -14,7 +14,7 @@ babeltrace_plugin_text_la_LIBADD = \
 	pretty/libbabeltrace-plugin-text-pretty-cc.la \
 	dmesg/libbabeltrace-plugin-text-dmesg-cc.la
 
-if !BUILT_IN_PLUGINS
+if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_text_la_LIBADD += \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/common/libbabeltrace-common.la \

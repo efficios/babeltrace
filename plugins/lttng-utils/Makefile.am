@@ -29,7 +29,7 @@ babeltrace_plugin_lttng_utils_la_LDFLAGS = \
 	-avoid-version -module \
 	-lelf -ldw
 
-if !BUILT_IN_PLUGINS
+if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_lttng_utils_la_LIBADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/common/libbabeltrace-common.la \

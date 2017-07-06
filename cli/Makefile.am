@@ -34,7 +34,7 @@ babeltrace_bin_SOURCES = \
 babeltrace_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
 
 # Add all the convenience libraries used by Babeltrace plugins and the
-# library. They will be used when embedding plugins (BUILT_IN_PLUGINS),
+# library. They will be used when embedding plugins (--enable-built-in-plugins),
 # otherwise we're looking after multiple definitions of the same symbols if
 # a plugin's archive (.a) includes the convenience library because
 # we're using --whole-archive below (needed to make sure the linker does
@@ -48,7 +48,7 @@ babeltrace_bin_LDADD = \
 	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la \
 	$(POPT_LIBS)
 
-if BUILT_IN_PLUGINS
+if ENABLE_BUILT_IN_PLUGINS
 # Takes a plugin name and outputs the needed LDFLAGS to embed it.
 #
 # The --whole-archive option is important here. From the GNU linker's
