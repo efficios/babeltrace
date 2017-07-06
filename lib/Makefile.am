@@ -16,7 +16,7 @@ libbabeltrace_la_LIBADD = \
 	$(top_builddir)/common/libbabeltrace-common.la \
 	$(top_builddir)/compat/libcompat.la
 
-if BUILT_IN_PYTHON_PLUGIN_SUPPORT
+if ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT
 libbabeltrace_la_LIBADD += $(top_builddir)/python-plugin-provider/libbabeltrace-python-plugin-provider.la
 endif
 

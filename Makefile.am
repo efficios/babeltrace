@@ -5,7 +5,7 @@ SUBDIRS = include		\
 	compat			\
 	logging
 
-if WITH_PYTHON_PLUGINS
+if ENABLE_PYTHON_PLUGINS
 # Only build the Python plugin provider shared object if the
 # configuration doesn't ask to make it built-in.
 SUBDIRS += python-plugin-provider

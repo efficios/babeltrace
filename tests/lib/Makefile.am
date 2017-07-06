@@ -88,13 +88,13 @@ TESTS += test_dwarf_complete \
 	test_bin_info_complete
 endif
 
-if USE_PYTHON
+if ENABLE_PYTHON_BINDINGS
 TESTS +=
 	writer/test_ctf_writer_no_packet_context.py \
 	writer/test_ctf_writer_empty_packet.py
 endif
 
-if !BUILT_IN_PLUGINS
+if !ENABLE_BUILT_IN_PLUGINS
 noinst_PROGRAMS += test_plugin
 test_plugin_LDADD = $(COMMON_TEST_LDADD)
 test_plugin_SOURCES = test_plugin.c

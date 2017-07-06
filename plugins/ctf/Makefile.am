@@ -18,7 +18,7 @@ babeltrace_plugin_ctf_la_LIBADD = \
 	fs-sink/libbabeltrace-plugin-ctf-writer.la \
 	common/libbabeltrace-plugin-ctf-common.la
 
-if !BUILT_IN_PLUGINS
+if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_ctf_la_LIBADD += \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
