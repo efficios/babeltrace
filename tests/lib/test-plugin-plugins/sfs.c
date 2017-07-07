@@ -72,6 +72,7 @@ static struct bt_value *query_method(
 	return results;
 }
 
+BT_PLUGIN_MODULE();
 BT_PLUGIN(test_sfs);
 BT_PLUGIN_DESCRIPTION("Babeltrace plugin with source, sink, and filter component classes");
 BT_PLUGIN_AUTHOR("Janine Sutto");

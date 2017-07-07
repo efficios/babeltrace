@@ -16,24 +16,21 @@
  */
 
 #include <babeltrace/plugin/plugin-dev.h>
-
-extern int test_plugin_init_called;
-extern int test_plugin_exit_called;
+#include <stdlib.h>
 
 static enum bt_plugin_status plugin_init(struct bt_plugin *plugin)
 {
-    test_plugin_init_called = 1;
-
+	setenv("BT_TEST_PLUGIN_INIT_CALLED", "1", 1);
 	return BT_PLUGIN_STATUS_OK;
 }
 
 static enum bt_plugin_status plugin_exit(void)
 {
-    test_plugin_exit_called = 1;
-
+	setenv("BT_TEST_PLUGIN_EXIT_CALLED", "1", 1);
 	return BT_PLUGIN_STATUS_OK;
 }
 
+BT_PLUGIN_MODULE();
 BT_PLUGIN(test_minimal);
 BT_PLUGIN_DESCRIPTION("Minimal Babeltrace plugin with no component classes");
 BT_PLUGIN_AUTHOR("Janine Sutto");

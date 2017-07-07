@@ -36,13 +36,21 @@
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
-int test_plugin_init_called;
-int test_plugin_exit_called;
-
-static void reset_test_plugin_symbols(void)
+static int check_env_var(const char *name)
 {
-	test_plugin_init_called = 0;
-	test_plugin_exit_called = 0;
+	const char *val = getenv(name);
+
+	if (!val) {
+		return -1;
+	}
+
+	return atoi(val);
+}
+
+static void reset_test_plugin_env_vars(void)
+{
+	setenv("BT_TEST_PLUGIN_INIT_CALLED", "0", 1);
+	setenv("BT_TEST_PLUGIN_EXIT_CALLED", "0", 1);
 }
 
 static char *get_test_plugin_path(const char *plugin_dir,
@@ -102,11 +110,12 @@ static void test_minimal(const char *plugin_dir)
 	assert(minimal_path);
 	diag("minimal plugin test below");
 
-	reset_test_plugin_symbols();
+	reset_test_plugin_env_vars();
 	plugin_set = bt_plugin_create_all_from_file(minimal_path);
 	ok(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1,
 		"bt_plugin_create_all_from_file() succeeds with a valid file");
-	ok(test_plugin_init_called, "plugin's initialization function is called during bt_plugin_create_all_from_file()");
+	ok(check_env_var("BT_TEST_PLUGIN_INIT_CALLED") == 1,
+		"plugin's initialization function is called during bt_plugin_create_all_from_file()");
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 1,
 		"bt_plugin_create_all_from_file() returns the expected number of plugins");
 	plugin = bt_plugin_set_get_plugin(plugin_set, 0);
@@ -128,7 +137,8 @@ static void test_minimal(const char *plugin_dir)
 		"bt_plugin_get_component_class_count() returns the expected value");
 	bt_put(plugin);
 	bt_put(plugin_set);
-	ok(test_plugin_exit_called, "plugin's exit function is called when the plugin is destroyed");
+	ok(check_env_var("BT_TEST_PLUGIN_EXIT_CALLED") == 1,
+		"plugin's exit function is called when the plugin is destroyed");
 
 	free(minimal_path);
 }
