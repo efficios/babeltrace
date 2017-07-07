@@ -1,3 +1,123 @@
+2017-07-07 babeltrace 2.0.0-pre2 (Comic Sans Day)
+	* test_plugin: use env. var. instead of global symbol because G_MODULE_BIND_LOCAL
+	* Test fix: fixed allocation size used for variable length input
+	* babeltrace-log: pass single-trace=yes to sink.ctf.fs
+	* Fix: dead code in lttng_live_iterator_next_no_stream()
+	* Fix: uninitialized return value member
+	* Fix: ds_file_group is checked instead of ds_file_group->stream
+	* Fix babeltrace-log(1) for Babeltrace 2
+	* src.text.dmesg: add `no-extract-timestamp` option
+	* lib/ctf-ir/clock-class.c: serialize `true`/`false` instead of `TRUE`/`FALSE`
+	* lib/ctf-ir/clock-class.c: only serialize UUID if it is set
+	* Add src.text.dmesg component class
+	* plugins/ctf/plugin.c: fix comment
+	* ctf: notif-iter: pass current stream ID to get_stream() medop
+	* src.ctf.fs: fs.c: add missing `static`
+	* ctf: notif-iter: ensure that all packets refer to the same stream class
+	* Fix: remove clock value leak in sink.text.pretty
+	* sink.text.pretty: append `s` only if plural in discarded elems. msg.
+	* lib: use dedicated BT_LOG*_ERRNO() instead of using strerror()
+	* test_ctf_writer.c: use environment variable to override packet resize length
+	* sink.ctf.fs: use original stream's name as CTF writer stream's name
+	* ir: stream: prefer to use stream's name for (CTF writer) stream's path
+	* sink.text.pretty: print discarded events and packets messages
+	* src.ctf.fs: name the stream objects with their file's path
+	* flt.lttng-utils.debug-info: copy original stream's numeric ID
+	* libctfcopytrace: copy trace's UUID
+	* Add sink.utils.counter
+	* Automatically generate discarded packets/events notifications
+	* lib/ctf-ir/trace.c: validate PH `packet_seq_num` field
+	* ctf: notif-iter.c: ensure that medops's get_stream() always returns the same
+	* flt.lttng-utils.debug-info: forward unhandled notifications
+	* Fix: flt.utils.muxer: not always an ERROR to fail to validate
+	* Simplify sink.utils.dummy: only one upstream notification iterator
+	* src.ctf.fs: use one CTF notif iter per notification iterator
+	* lib/graph/notification/inactivity.c: add missing `ret = -1`
+	* ctf: notif-iter.c: lazily initialize clock value states
+	* visitor-generate-ir.c: validate clock class frequency in visitor
+	* bt_ctf_clock_class_create(): add a frequency parameter
+	* stream.c: standardize "Cannot truncate stream file [...]" log message
+	* BT_LOG_WRITE_ERRNO(): use `_msg ": %s" _fmt` format
+	* lib/graph/notification/stream.c: add logging
+	* lib/graph/notification/packet.c: add logging
+	* Fix: add_clock_classes(): do not add existing clock classes
+	* Remove unused bt_notification_get_stream()
+	* Fix: allow NULL (unnamed) in bt_ctf_stream_class_{get,set}_name()
+	* test_ctf_writer.c: set PACKET_RESIZE_TEST_LENGTH to 100000 again
+	* lib/graph/notification/inactivity.c: add logging
+	* lib/graph/notification/event.c: add logging
+	* doc/logging-guide.adoc: document standard way of choosing tag names
+	* plugins/utils/muxer/muxer.c: add logging
+	* plugins/utils/trimmer/iterator.c: use unique logging tag
+	* Fix: set intersections hashtable to NULL after destruction
+	* Build plugins as unversioned modules
+	* Port: plugin system compat for mingw / macOS
+	* Fix: ctf writer test on Cygwin
+	* Fix: disable debug by default info on Cygwin
+	* Fix: remove AC_FUNC_MALLOC for cross-compile
+	* Add libbabeltrace-ctf for backwards compat
+	* Port: Add winsock support to live for mingw
+	* Port: Replace readdir_r by nftw
+	* Port: dirfd is not portable, replace it
+	* Port: use ghashtable in mman compat
+	* babeltrace-2.0: do not link with -export-dynamic
+	* Fix: bt_component_create is not hidden
+	* stream-intersection: use the trace-info query results to insert trimmers
+	* Fix: ctf_fs_metadata is assumed to be non-null
+	* Improve logging in the LTTng index parsing code
+	* copytrace: check clock_class_count before getting the clock by index
+	* Fix: wrong output name in --help for implicit CTF source
+	* Test the trimmer component
+	* pass --clock-gmt option to the trimmer if enabled
+	* Tests: don't rely on the test script's location
+	* test_trace_copy: compare the two traces with diff rather than wc -l
+	* Test debug-info
+	* Clean-up: coding style adjustments
+	* Cleanup: typo fix in comment
+	* fs-sink: add the single-trace option
+	* Test: validate that the output of ctf-fs sink is identical to source
+	* Fix: event_header is optional
+	* Copy the packet_header in the plugins
+	* Fix: wrong return code check on try_set
+	* Fix copytrace: copy packet_context
+	* copytrace: packet_context is optional
+	* copytrace: create empty stream classes by default
+	* fs-sink: packet_context is optional
+	* Fix: the fields to reset are optional
+	* ctf: remove strict metadata mode, update automatic CC mapping behaviour
+	* Remove the concept of event class attributes
+	* BT_CTF_BYTE_ORDER_NONE -> BT_CTF_BYTE_ORDER_UNSPECIFIED to match base
+	* test_ctf_writer.c: do not check for invalid event class name
+	* plugins/lttng-utils/Makefile.am: add all source files to _SOURCES var.
+	* Add BT_CTF_INTEGER_BASE_UNSPECIFIED
+	* Fix: Stream classes' id field is always serialized
+	* Fix: flush stream without packet_context
+	* Add BT_LOG*_ERRNO() logging macros
+	* debug-info fix: packet_context is optional
+	* Fix: uninitialized return value in copy.c
+	* Remove legacy printf_verbose()/printf_debug() and others
+	* visitor-generate-ir.c: automatically map specific fields to trace's clock class
+	* ctf: add metadata decoder config. and `strict-metadata` param in src.ctf.fs
+	* source.ctf.fs: remove ctf_fs_debug symbol
+	* Fix: cli: help command: accept leftover when --component is not specified
+	* cli: add global --log-level option
+	* Use BABELTRACE_FORCE_COLORS environment variable to force color support
+	* Logging: add colors depending on log level
+	* visitor-generate-ir.c: logging: add stream's line number and other info
+	* visitor-semantic-validator.c: standardize logging
+	* plugins/ctf/common/metadata/visitor-parent-links.c: standardize logging
+	* plugins/ctf/common/metadata/objstack.c: add logging
+	* plugins/ctf/common/metadata/decoder.c: standardize logging
+	* plugins/ctf/common/metadata: logging: standardize in parser and lexer
+	* visitor-generate-ir.c: logging: standardize messages and levels
+	* ir: fields.c: fix public function names to get/set struct. field
+	* Port: Enable libtool to produce DLLs
+	* Port: Remove unused header pwd.h
+	* Add logging to compat
+	* Add missing files to gitignore
+	* Port: Remove unused header in test_plugin
+	* Don't add module symbols to global namespace
+
 2017-06-09 babeltrace 2.0.0-pre1
 	* Set version extra to pre1
 	* Fix: debug info plugin incorrect assumption about header and clock
