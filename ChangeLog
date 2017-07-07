@@ -1,3 +1,6 @@
+2017-07-07 babeltrace 2.0.0-pre3 (Comic Sans Day)
+	* Update configure.ac version to pre3
+
 2017-07-07 babeltrace 2.0.0-pre2 (Comic Sans Day)
 	* test_plugin: use env. var. instead of global symbol because G_MODULE_BIND_LOCAL
 	* Test fix: fixed allocation size used for variable length input
