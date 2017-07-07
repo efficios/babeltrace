@@ -278,6 +278,7 @@ static void test_create_all_from_dir(const char *plugin_dir)
 
 static void test_find(const char *plugin_dir)
 {
+	int ret;
 	struct bt_plugin *plugin;
 	struct bt_component_class *comp_cls_sink;
 	struct bt_component_class *comp_cls_source;
@@ -287,10 +288,9 @@ static void test_find(const char *plugin_dir)
 		"bt_plugin_find() handles NULL");
 	ok(!bt_plugin_find(NON_EXISTING_PATH),
 		"bt_plugin_find() returns NULL with an unknown plugin name");
-	plugin_path = malloc(PATH_MAX * 5);
-	assert(plugin_path);
-	sprintf(plugin_path, "%s:/ec1d09e5-696c-442e-b1c3-f9c6cf7f5958:::%s:8db46494-a398-466a-9649-c765ae077629:",
+	ret = asprintf(&plugin_path, "%s:/ec1d09e5-696c-442e-b1c3-f9c6cf7f5958:::%s:8db46494-a398-466a-9649-c765ae077629:",
 		NON_EXISTING_PATH, plugin_dir);
+	assert(ret > 0 && plugin_path);
 	g_setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
 	plugin = bt_plugin_find("test_minimal");
 	ok(plugin,
