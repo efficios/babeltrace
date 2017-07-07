@@ -899,7 +899,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		g_string_free(name, TRUE);
 
-		if (!ds_file_group) {
+		if (!ds_file_group->stream) {
 			BT_LOGE("Cannot create stream for DS file group: "
 				"addr=%p, stream-name=\"%s\"",
 				ds_file_group, name->str);
