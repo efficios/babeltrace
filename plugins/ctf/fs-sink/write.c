@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <assert.h>
+#include <glib.h>
 
 #include <ctfcopytrace.h>
 
@@ -198,37 +199,36 @@ enum fs_writer_stream_state *insert_new_stream_state(
 static
 bool valid_single_trace_path(const char *path)
 {
-	int n = 0;
-	struct dirent *d;
-	DIR *dir = opendir(path);
-	int ret;
+	GError *error = NULL;
+	GDir *dir = NULL;
+	int ret = 0;
+
+	dir = g_dir_open(path, 0, &error);
 
 	/* Non-existent directory. */
 	if (!dir) {
-		ret = 0;
-		goto end;
-	}
-
-	while ((d = readdir(dir)) != NULL) {
-		/* Ignore "." and ".." directories. */
-		if (++n > 2) {
-			break;
+		/* For any other error, return an error */
+		if (error->code != G_FILE_ERROR_NOENT) {
+			ret = -1;
 		}
-	}
-
-	ret = closedir(dir);
-	if (ret) {
-		perror("closedir");
 		goto end;
 	}
 
-	if (n <= 2) {
-		ret = 0;
-	} else {
+	/* g_dir_read_name skips "." and "..", error out on first result */
+	while (g_dir_read_name(dir) != NULL) {
 		ret = -1;
+		break;
 	}
 
 end:
+	if (dir) {
+		g_dir_close(dir);
+		dir = NULL;
+	}
+	if (error) {
+		g_error_free(error);
+	}
+
 	return ret;
 }
 
