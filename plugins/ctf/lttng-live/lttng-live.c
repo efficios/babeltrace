@@ -850,6 +850,7 @@ struct bt_notification_iterator_next_return lttng_live_iterator_next_no_stream(
 	lttng_live = no_stream_iter->lttng_live;
 retry:
 	lttng_live_force_new_streams_and_metadata(lttng_live);
+	next_return.notification = NULL;
 	status = lttng_live_iterator_next_handle_new_streams_and_metadata(lttng_live);
 	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
