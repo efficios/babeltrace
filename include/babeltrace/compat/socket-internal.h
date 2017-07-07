@@ -46,12 +46,16 @@ int bt_socket_init(void)
 
 	ret = WSAStartup(verreq, &wsa);
 	if (ret != 0) {
+#ifdef BT_LOGE
 		BT_LOGE("Winsock init failed with error: %d", ret);
+#endif
 		goto end;
 	}
 
 	if (LOBYTE(wsa.wVersion) != 2 || HIBYTE(wsa.wVersion) != 2) {
+#ifdef BT_LOGE_STR
 		BT_LOGE_STR("Could not init winsock 2.2 support");
+#endif
 		WSACleanup();
 		ret = -1;
 	}
