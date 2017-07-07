@@ -1,11 +1,5 @@
 /*
- * babeltrace-log.c
- *
- * BabelTrace - Convert Text Log to CTF
- *
- * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
- *
- * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,452 +20,148 @@
  * SOFTWARE.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <babeltrace/compat/mman-internal.h>
-#include <dirent.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <inttypes.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <babeltrace/babeltrace.h>
+#include <popt.h>
 #include <glib.h>
-#include <glib/gstdio.h>
-
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf/types.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/compat/utc-internal.h>
-#include <babeltrace/compat/stdio-internal.h>
-#include <babeltrace/endian-internal.h>
-
-#define NSEC_PER_USEC 1000UL
-#define NSEC_PER_MSEC 1000000UL
-#define NSEC_PER_SEC 1000000000ULL
-#define USEC_PER_SEC 1000000UL
-
-bool babeltrace_debug, babeltrace_verbose;
-
-static char *s_outputname;
-static int s_timestamp;
-static int s_help;
-static unsigned char s_uuid[BABELTRACE_UUID_LEN];
-
-/* Metadata format string */
-static const char metadata_fmt[] =
-"/* CTF 1.8 */\n"
-"typealias integer { size = 8; align = 8; signed = false; } := uint8_t;\n"
-"typealias integer { size = 32; align = 32; signed = false; } := uint32_t;\n"
-"typealias integer { size = 64; align = 64; signed = false; } := uint64_t;\n"
-"\n"
-"trace {\n"
-"	major = %u;\n"			/* major (e.g. 0) */
-"	minor = %u;\n"			/* minor (e.g. 1) */
-"	uuid = \"%s\";\n"		/* UUID */
-"	byte_order = %s;\n"		/* be or le */
-"	packet.header := struct {\n"
-"		uint32_t magic;\n"
-"		uint8_t  uuid[16];\n"
-"	};\n"
-"};\n"
-"\n"
-"stream {\n"
-"	packet.context := struct {\n"
-"		uint64_t content_size;\n"
-"		uint64_t packet_size;\n"
-"	};\n"
-"%s"					/* Stream event header (opt.) */
-"};\n"
-"\n"
-"event {\n"
-"	name = string;\n"
-"	fields := struct { string str; };\n"
-"};\n";
-
-static const char metadata_stream_event_header_timestamp[] =
-"	typealias integer { size = 64; align = 64; signed = false; } := uint64_t;\n"
-"	event.header := struct {\n"
-"		uint64_t timestamp;\n"
-"	};\n";
 
 static
-void print_metadata(FILE *fp)
+void print_usage(FILE *fp)
 {
-	char uuid_str[BABELTRACE_UUID_STR_LEN];
-	unsigned int major = 0, minor = 0;
-	int ret;
-
-	ret = sscanf(VERSION, "%u.%u", &major, &minor);
-	if (ret != 2)
-		fprintf(stderr, "[warning] Incorrect babeltrace version format\n.");
-	bt_uuid_unparse(s_uuid, uuid_str);
-	fprintf(fp, metadata_fmt,
-		major,
-		minor,
-		uuid_str,
-		BYTE_ORDER == LITTLE_ENDIAN ? "le" : "be",
-		s_timestamp ? metadata_stream_event_header_timestamp : "");
+	fprintf(stderr, "Usage: babeltrace-log [OPTIONS] OUTPUT-PATH\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "  -t, --with-timestamps  Extract timestamps from lines and map them to\n");
+	fprintf(stderr, "                         a CTF clock class\n");
 }
 
 static
-void write_packet_header(struct ctf_stream_pos *pos, unsigned char *uuid)
+int parse_params(int argc, char *argv[], char **output_path,
+		bool *no_extract_ts)
 {
-	struct ctf_stream_pos dummy;
+	enum {
+		OPT_WITH_TIMESTAMPS = 1,
+		OPT_HELP = 2,
+	};
+	static struct poptOption opts[] = {
+		{ "with-timestamps", 't', POPT_ARG_NONE, NULL, OPT_WITH_TIMESTAMPS, NULL, NULL },
+		{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
+		{ NULL, '\0', 0, NULL, 0, NULL, NULL },
+	};
+	poptContext pc = NULL;
+	int opt;
+	int ret = 0;
+	const char *leftover;
 
-	/* magic */
-	ctf_dummy_pos(pos, &dummy);
-	if (!ctf_align_pos(&dummy, sizeof(uint32_t) * CHAR_BIT))
+	*no_extract_ts = true;
+	pc = poptGetContext(NULL, argc, (const char **) argv, opts, 0);
+	if (!pc) {
+		fprintf(stderr, "Cannot get popt context\n");
 		goto error;
-	if (!ctf_move_pos(&dummy, sizeof(uint32_t) * CHAR_BIT))
-		goto error;
-	assert(!ctf_pos_packet(&dummy));
-
-	if (!ctf_align_pos(pos, sizeof(uint32_t) * CHAR_BIT))
-		goto error;
-	*(uint32_t *) ctf_get_pos_addr(pos) = 0xC1FC1FC1;
-	if (!ctf_move_pos(pos, sizeof(uint32_t) * CHAR_BIT))
-		goto error;
-
-	/* uuid */
-	ctf_dummy_pos(pos, &dummy);
-	if (!ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT))
-		goto error;
-	if (!ctf_move_pos(&dummy, 16 * CHAR_BIT))
-		goto error;
-	assert(!ctf_pos_packet(&dummy));
-
-	if (!ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT))
-		goto error;
-	memcpy(ctf_get_pos_addr(pos), uuid, BABELTRACE_UUID_LEN);
-	if (!ctf_move_pos(pos, BABELTRACE_UUID_LEN * CHAR_BIT))
-		goto error;
-	return;
-
-error:
-	fprintf(stderr, "[error] Out of packet bounds when writing packet header\n");
-	abort();
-}
-
-static
-void write_packet_context(struct ctf_stream_pos *pos)
-{
-	struct ctf_stream_pos dummy;
-
-	/* content_size */
-	ctf_dummy_pos(pos, &dummy);
-	if (!ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	if (!ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	assert(!ctf_pos_packet(&dummy));
-
-	if (!ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	*(uint64_t *) ctf_get_pos_addr(pos) = ~0ULL;	/* Not known yet */
-	pos->content_size_loc = (uint64_t *) ctf_get_pos_addr(pos);
-	if (!ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-
-	/* packet_size */
-	ctf_dummy_pos(pos, &dummy);
-	if (!ctf_align_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	if (!ctf_move_pos(&dummy, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	assert(!ctf_pos_packet(&dummy));
-
-	if (!ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	*(uint64_t *) ctf_get_pos_addr(pos) = pos->packet_size;
-	if (!ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	return;
-
-error:
-	fprintf(stderr, "[error] Out of packet bounds when writing packet context\n");
-	abort();
-}
-
-static
-void write_event_header(struct ctf_stream_pos *pos, char *line,
-			char **tline, size_t len, size_t *tlen,
-			uint64_t *ts)
-{
-	if (!s_timestamp)
-		return;
-
-	/* Only need to be executed on first pass (dummy) */
-	if (pos->dummy)	{
-		int has_timestamp = 0;
-		unsigned long sec, usec, msec;
-		unsigned int year, mon, mday, hour, min;
-
-		/* Extract time from input line */
-		if (sscanf(line, "[%lu.%lu] ", &sec, &usec) == 2) {
-			*ts = (uint64_t) sec * USEC_PER_SEC + (uint64_t) usec;
-			/*
-			 * Default CTF clock has 1GHz frequency. Convert
-			 * from usec to nsec.
-			 */
-			*ts *= NSEC_PER_USEC;
-			has_timestamp = 1;
-		} else if (sscanf(line, "[%u-%u-%u %u:%u:%lu.%lu] ",
-				&year, &mon, &mday, &hour, &min,
-				&sec, &msec) == 7) {
-			time_t ep_sec;
-			struct tm ti;
-
-			memset(&ti, 0, sizeof(ti));
-			ti.tm_year = year - 1900;	/* from 1900 */
-			ti.tm_mon = mon - 1;		/* 0 to 11 */
-			ti.tm_mday = mday;
-			ti.tm_hour = hour;
-			ti.tm_min = min;
-			ti.tm_sec = sec;
-
-			ep_sec = bt_timegm(&ti);
-			if (ep_sec != (time_t) -1) {
-				*ts = (uint64_t) ep_sec * NSEC_PER_SEC
-					+ (uint64_t) msec * NSEC_PER_MSEC;
-			}
-			has_timestamp = 1;
-		}
-		if (has_timestamp) {
-			*tline = strchr(line, ']');
-			assert(*tline);
-			(*tline)++;
-			if ((*tline)[0] == ' ') {
-				(*tline)++;
-			}
-			*tlen = len + line - *tline;
-		}
 	}
-	/* timestamp */
-	if (!ctf_align_pos(pos, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	if (!pos->dummy)
-		*(uint64_t *) ctf_get_pos_addr(pos) = *ts;
-	if (!ctf_move_pos(pos, sizeof(uint64_t) * CHAR_BIT))
-		goto error;
-	return;
 
-error:
-	fprintf(stderr, "[error] Out of packet bounds when writing event header\n");
-	abort();
-}
+	poptReadDefaultConfig(pc, 0);
 
-static
-void trace_string(char *line, struct ctf_stream_pos *pos, size_t len)
-{
-	struct ctf_stream_pos dummy;
-	int attempt = 0;
-	char *tline = line;	/* tline is start of text, after timestamp */
-	size_t tlen = len;
-	uint64_t ts = 0;
-
-	printf_debug("read: %s\n", line);
-
-	for (;;) {
-		int packet_filled = 0;
-
-		ctf_dummy_pos(pos, &dummy);
-		write_event_header(&dummy, line, &tline, len, &tlen, &ts);
-		if (!ctf_align_pos(&dummy, sizeof(uint8_t) * CHAR_BIT))
-			packet_filled = 1;
-		if (!ctf_move_pos(&dummy, tlen * CHAR_BIT))
-			packet_filled = 1;
-		if (packet_filled || ctf_pos_packet(&dummy)) {
-			ctf_pos_pad_packet(pos);
-			write_packet_header(pos, s_uuid);
-			write_packet_context(pos);
-			if (attempt++ == 1) {
-				fprintf(stderr, "[Error] Line too large for packet size (%" PRIu64 "kB) (discarded)\n",
-					pos->packet_size / CHAR_BIT / 1024);
-				return;
-			}
-			continue;
-		} else {
+	while ((opt = poptGetNextOpt(pc)) > 0) {
+		switch (opt) {
+		case OPT_HELP:
+			print_usage(stdout);
+			goto end;
+		case OPT_WITH_TIMESTAMPS:
+			*no_extract_ts = false;
 			break;
+		default:
+			fprintf(stderr, "Unknown command-line option specified (option code %d)\n",
+				opt);
+			goto error;
 		}
 	}
 
-	write_event_header(pos, line, &tline, len, &tlen, &ts);
-	if (!ctf_align_pos(pos, sizeof(uint8_t) * CHAR_BIT))
+	if (opt < -1) {
+		fprintf(stderr, "While parsing command-line options, at option %s: %s\n",
+			poptBadOption(pc, 0), poptStrerror(opt));
 		goto error;
-	memcpy(ctf_get_pos_addr(pos), tline, tlen);
-	if (!ctf_move_pos(pos, tlen * CHAR_BIT))
+	}
+
+	leftover = poptGetArg(pc);
+	if (!leftover) {
+		fprintf(stderr, "Command line error: Missing output path\n");
+		print_usage(stderr);
 		goto error;
-	return;
+	}
+
+	*output_path = strdup(leftover);
+	assert(*output_path);
+	goto end;
 
 error:
-	fprintf(stderr, "[error] Out of packet bounds when writing event payload\n");
-	abort();
+	ret = 1;
+
+end:
+	if (pc) {
+		poptFreeContext(pc);
+	}
+
+	return ret;
 }
 
-static
-void trace_text(FILE *input, int output)
+int main(int argc, char *argv[])
 {
-	struct ctf_stream_pos pos;
-	ssize_t len;
-	char *line = NULL, *nl;
-	size_t linesize = 0;
-	int ret;
+	char *output_path = NULL;
+	bool no_extract_ts;
+	int retcode;
+	GError *error = NULL;
+	gchar *bt_argv[] = {
+		BT_CLI_PATH,
+		"run",
+		"--component",
+		"dmesg:src.text.dmesg",
+		"--params",
+		"read-from-stdin=yes",
+		"--params",
+		NULL, /* no-extract-timestamp=? placeholder */
+		"--component",
+		"ctf:sink.ctf.fs",
+		"--key",
+		"path",
+		"--value",
+		NULL, /* output path placeholder */
+		"--connect",
+		"dmesg:ctf",
+		NULL, /* sentinel */
+	};
 
-	memset(&pos, 0, sizeof(pos));
-	ret = ctf_init_pos(&pos, NULL, output, O_RDWR);
-	if (ret) {
-		fprintf(stderr, "Error in ctf_init_pos\n");
-		return;
-	}
-	ctf_packet_seek(&pos.parent, 0, SEEK_CUR);
-	write_packet_header(&pos, s_uuid);
-	write_packet_context(&pos);
-	for (;;) {
-		len = bt_getline(&line, &linesize, input);
-		if (len < 0)
-			break;
-		nl = strrchr(line, '\n');
-		if (nl) {
-			*nl = '\0';
-			trace_string(line, &pos, nl - line + 1);
-		} else {
-			trace_string(line, &pos, strlen(line) + 1);
-		}
-	}
-	ret = ctf_fini_pos(&pos);
-	if (ret) {
-		fprintf(stderr, "Error in ctf_fini_pos\n");
-	}
-}
-
-static
-void usage(FILE *fp)
-{
-	fprintf(fp, "BabelTrace Log Converter %s\n", VERSION);
-	fprintf(fp, "\n");
-	fprintf(fp, "Convert for a text log (read from standard input) to CTF.\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "usage : babeltrace-log [OPTIONS] OUTPUT\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "  OUTPUT                         Output trace path\n");
-	fprintf(fp, "\n");
-	fprintf(fp, "  -t                             With timestamps (format: [sec.usec] string\\n)\n");
-	fprintf(fp, "                                                 (format: [YYYY-MM-DD HH:MM:SS.MS] string\\n)\n");
-	fprintf(fp, "\n");
-}
-
-static
-int parse_args(int argc, char **argv)
-{
-	int i;
-
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-t"))
-			s_timestamp = 1;
-		else if (!strcmp(argv[i], "-h")) {
-			s_help = 1;
-			return 0;
-		} else if (argv[i][0] == '-')
-			return -EINVAL;
-		else
-			s_outputname = argv[i];
-	}
-	if (!s_outputname)
-		return -EINVAL;
-	return 0;
-}
-
-int main(int argc, char **argv)
-{
-	int fd, metadata_fd, ret;
-	DIR *dir;
-	FILE *metadata_fp;
-	char *file_path;
-
-	ret = parse_args(argc, argv);
-	if (ret) {
-		fprintf(stderr, "Error: invalid argument.\n");
-		usage(stderr);
-		goto error;
+	retcode = parse_params(argc, argv, &output_path, &no_extract_ts);
+	if (retcode) {
+		goto end;
 	}
 
-	if (s_help) {
-		usage(stdout);
-		exit(EXIT_SUCCESS);
+	if (no_extract_ts) {
+		bt_argv[7] = "no-extract-timestamp=yes";
+	} else {
+		bt_argv[7] = "no-extract-timestamp=no";
 	}
 
-	ret = g_mkdir(s_outputname, S_IRWXU|S_IRWXG);
-	if (ret) {
-		perror("g_mkdir");
-		goto error;
+	bt_argv[13] = output_path;
+	(void) g_spawn_sync(NULL, bt_argv, NULL,
+		G_SPAWN_DEFAULT | G_SPAWN_CHILD_INHERITS_STDIN, NULL, NULL,
+		NULL, NULL, &retcode, &error);
+
+	if (error) {
+		fprintf(stderr, "Failed to execute \"%s\": %s (%d)\n",
+			bt_argv[0], error->message, error->code);
 	}
 
-	dir = opendir(s_outputname);
-	if (!dir) {
-		perror("opendir");
-		goto error_rmdir;
+end:
+	free(output_path);
+
+	if (error) {
+		g_error_free(error);
 	}
 
-	file_path = g_build_filename(s_outputname, "datastream", NULL);
-	if (file_path == NULL) {
-		perror("g_build_filename");
-		goto error_closedir;
-	}
-	fd = open(file_path, O_RDWR|O_CREAT,
-		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-	g_free(file_path);
-	if (fd < 0) {
-		perror("open");
-		goto error_closedir;
-	}
-
-	file_path = g_build_filename(s_outputname, "metadata", NULL);
-	if (file_path == NULL) {
-		perror("g_build_filename");
-		goto error_closedatastream;
-	}
-	metadata_fd = open(file_path, O_RDWR|O_CREAT,
-			     S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-	g_free(file_path);
-	if (metadata_fd < 0) {
-		perror("open");
-		goto error_closedatastream;
-	}
-	metadata_fp = fdopen(metadata_fd, "w");
-	if (!metadata_fp) {
-		perror("fdopen");
-		goto error_closemetadatafd;
-	}
-
-	bt_uuid_generate(s_uuid);
-	print_metadata(metadata_fp);
-	trace_text(stdin, fd);
-
-	ret = close(fd);
-	if (ret)
-		perror("close");
-	exit(EXIT_SUCCESS);
-
-	/* error handling */
-error_closemetadatafd:
-	ret = close(metadata_fd);
-	if (ret)
-		perror("close");
-error_closedatastream:
-	ret = close(fd);
-	if (ret)
-		perror("close");
-error_closedir:
-	ret = closedir(dir);
-	if (ret)
-		perror("closedir");
-error_rmdir:
-	ret = rmdir(s_outputname);
-	if (ret)
-		perror("rmdir");
-error:
-	exit(EXIT_FAILURE);
+	return retcode;
 }

@@ -441,7 +441,7 @@ AC_SUBST(babeltracepluginincludedir)
 babeltracegraphincludedir="${includedir}/babeltrace/graph"
 AC_SUBST(babeltracegraphincludedir)
 
-program_transform_name="s&babeltrace\.bin&babeltrace&;$program_transform_name"
+program_transform_name="s&babeltrace\.bin&babeltrace&;s&babeltrace-log\.bin&babeltrace-log&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
 # check for Doxygen
