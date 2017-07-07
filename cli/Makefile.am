@@ -15,9 +15,8 @@ AM_CFLAGS = $(PACKAGE_CFLAGS) -I$(top_srcdir)/include \
 		'-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
 AM_LDFLAGS = -lpopt
 
-bin_PROGRAMS = babeltrace.bin
-noinst_PROGRAMS = babeltrace
-#check_PROGRAMS = babeltrace
+bin_PROGRAMS = babeltrace.bin babeltrace-log.bin
+noinst_PROGRAMS = babeltrace babeltrace-log
 
 babeltrace_bin_SOURCES = \
 	babeltrace.c \
@@ -86,3 +85,16 @@ babeltrace_SOURCES = $(babeltrace_bin_SOURCES)
 babeltrace_LDFLAGS = $(babeltrace_bin_LDFLAGS)
 babeltrace_LDADD = 	$(babeltrace_bin_LDADD)
 babeltrace_CFLAGS =	$(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
+
+# babeltrace-log rules and config below
+babeltrace_log_bin_SOURCES = babeltrace-log.c
+babeltrace_log_bin_LDADD = $(top_builddir)/compat/libcompat.la
+babeltrace_log_bin_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(abs_top_builddir)/cli/babeltrace$(EXEEXT)"'
+
+if BABELTRACE_BUILD_WITH_MINGW
+babeltrace_log_bin_LDADD += -lpopt
+endif
+
+babeltrace_log_SOURCES = $(babeltrace_log_bin_SOURCES)
+babeltrace_log_LDADD = 	$(babeltrace_log_bin_LDADD)
+babeltrace_log_CFLAGS =	$(AM_CFLAGS) '-DBT_CLI_PATH="$(bindir)/babeltrace$(EXEEXT)"'
