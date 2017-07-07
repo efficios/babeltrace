@@ -130,6 +130,8 @@ int main(int argc, char *argv[])
 		"path",
 		"--value",
 		NULL, /* output path placeholder */
+		"--params",
+		"single-trace=yes",
 		"--connect",
 		"dmesg:ctf",
 		NULL, /* sentinel */
