@@ -2010,7 +2010,6 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		 */
 		for (stream_idx = 0; stream_idx < stream_count; stream_idx++) {
 			const char *stream_path;
-			gboolean hash_ret;
 
 			port_id = g_new0(struct port_id, 1);
 			if (!port_id) {
@@ -2073,9 +2072,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 			BT_LOGD("Inserting stream intersection ");
 
-			hash_ret = g_hash_table_insert(ctx->intersections,
-				port_id, trace_range);
-			assert(hash_ret);
+			g_hash_table_insert(ctx->intersections, port_id, trace_range);
+			assert(g_hash_table_lookup(ctx->intersections, port_id) != NULL);
 
 			port_id = NULL;
 			trace_range = NULL;
