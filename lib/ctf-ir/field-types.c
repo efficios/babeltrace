@@ -4067,7 +4067,7 @@ int bt_ctf_field_type_structure_serialize(struct bt_ctf_field_type *type,
 		struct structure_field *field = structure->fields->pdata[i];
 
 		BT_LOGD("Serializing structure field type's field metadata: "
-			"index=%" PRId64 ", "
+			"index=%zu, "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, field, g_quark_to_string(field->name));
 
@@ -4081,7 +4081,7 @@ int bt_ctf_field_type_structure_serialize(struct bt_ctf_field_type *type,
 		ret = bt_ctf_field_type_serialize(field->type, context);
 		if (ret) {
 			BT_LOGW("Cannot serialize structure field type's field's metadata: "
-				"index=%" PRId64 ", "
+				"index=%zu, "
 				"field-ft-addr=%p, field-name=\"%s\"",
 				i, field->type,
 				g_quark_to_string(field->name));
@@ -4135,7 +4135,7 @@ int bt_ctf_field_type_variant_serialize(struct bt_ctf_field_type *type,
 		struct structure_field *field = variant->fields->pdata[i];
 
 		BT_LOGD("Serializing variant field type's field metadata: "
-			"index=%" PRId64 ", "
+			"index=%zu, "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, field, g_quark_to_string(field->name));
 
@@ -4151,7 +4151,7 @@ int bt_ctf_field_type_variant_serialize(struct bt_ctf_field_type *type,
 		ret = bt_ctf_field_type_serialize(field->type, context);
 		if (ret) {
 			BT_LOGW("Cannot serialize variant field type's field's metadata: "
-				"index=%" PRId64 ", "
+				"index=%zu, "
 				"field-ft-addr=%p, field-name=\"%s\"",
 				i, field->type,
 				g_quark_to_string(field->name));

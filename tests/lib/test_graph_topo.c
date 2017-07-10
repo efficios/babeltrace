@@ -280,7 +280,7 @@ size_t event_pos(struct event *event)
 		}
 	}
 
-	return -1ULL;
+	return SIZE_MAX;
 }
 
 static
