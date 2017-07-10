@@ -30,6 +30,7 @@
  * the requirement on glib to version 2.30.
  */
 
+#include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <glib.h>
