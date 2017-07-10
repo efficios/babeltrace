@@ -38,6 +38,7 @@ FILE *bt_fmemopen(void *buf, size_t size, const char *mode)
 
 #else /* BABELTRACE_HAVE_FMEMOPEN */
 
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
