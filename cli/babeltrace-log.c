@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 
 	bt_argv[13] = output_path;
 	(void) g_spawn_sync(NULL, bt_argv, NULL,
-		G_SPAWN_DEFAULT | G_SPAWN_CHILD_INHERITS_STDIN, NULL, NULL,
+		0 | G_SPAWN_CHILD_INHERITS_STDIN, NULL, NULL,
 		NULL, NULL, &retcode, &error);
 
 	if (error) {
