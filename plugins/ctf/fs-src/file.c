@@ -101,7 +101,7 @@ int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 	}
 
 	file->size = stat.st_size;
-	BT_LOGD("File is %zu bytes", file->size);
+	BT_LOGD("File is %jd bytes", (intmax_t) file->size);
 	goto end;
 
 error:

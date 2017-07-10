@@ -2250,7 +2250,7 @@ int bt_ctf_field_sequence_validate(struct bt_ctf_field *field)
 		if (ret) {
 			BT_LOGW("Invalid sequence field's element field: "
 				"sequence-field-addr=%p, field-addr=%p, "
-				"index=%" PRId64, field, elem_field, i);
+				"index=%zu", field, elem_field, i);
 			goto end;
 		}
 	}
@@ -2388,7 +2388,7 @@ int bt_ctf_field_array_reset(struct bt_ctf_field *field)
 		if (ret) {
 			BT_LOGE("Failed to reset array field's field: "
 				"array-field-addr=%p, field-addr=%p, "
-				"index=%" PRId64, field, member, i);
+				"index=%zu", field, member, i);
 			goto end;
 		}
 	}
@@ -2425,7 +2425,7 @@ int bt_ctf_field_sequence_reset(struct bt_ctf_field *field)
 		if (ret) {
 			BT_LOGE("Failed to reset sequence field's field: "
 				"sequence-field-addr=%p, field-addr=%p, "
-				"index=%" PRId64, field, member, i);
+				"index=%zu", field, member, i);
 			goto end;
 		}
 	}

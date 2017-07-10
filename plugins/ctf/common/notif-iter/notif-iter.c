@@ -1270,7 +1270,7 @@ enum bt_ctf_notif_iter_status read_event_header_begin_state(
 		} else if (packet_at(notit) > notit->cur_content_size) {
 			/* That's not supposed to happen */
 			BT_LOGV("Before decoding event header field: cursor is passed the packet's content: "
-				"notit-addr=%p, content-size=%zu, "
+				"notit-addr=%p, content-size=%" PRId64 ", "
 				"cur=%zu", notit, notit->cur_content_size,
 				packet_at(notit));
 			status = BT_CTF_NOTIF_ITER_STATUS_ERROR;

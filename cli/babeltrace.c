@@ -1421,8 +1421,8 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		assert(upstream_port_name);
 
 		if (!bt_common_star_glob_match(
-				cfg_conn->downstream_port_glob->str, -1ULL,
-				downstream_port_name, -1ULL)) {
+				cfg_conn->downstream_port_glob->str, SIZE_MAX,
+				downstream_port_name, SIZE_MAX)) {
 			bt_put(downstream_port);
 			continue;
 		}
@@ -1635,7 +1635,7 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 
 		if (!bt_common_star_glob_match(
 			    cfg_conn->upstream_port_glob->str,
-			    -1ULL, upstream_port_name, -1ULL)) {
+			    SIZE_MAX, upstream_port_name, SIZE_MAX)) {
 			continue;
 		}
 
