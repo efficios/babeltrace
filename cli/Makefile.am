@@ -64,7 +64,7 @@ if BUILT_IN_PLUGINS
 # binary that are filled by plugin objects. If the linker discards those
 # symbols because the CLI does not use them directly, the CLI reports
 # no plugins found (plugins are effectively not embedded).
-pluginarchive = -Wl,--whole-archive,$(PLUGINS_PATH)/$(1)/.libs/libbabeltrace-plugin-$(1).a,--no-whole-archive
+pluginarchive = -Wl,--whole-archive,$(PLUGINS_PATH)/$(1)/.libs/babeltrace-plugin-$(1).a,--no-whole-archive
 
 # Built-in plugins
 babeltrace_bin_LDFLAGS += $(call pluginarchive,ctf)
