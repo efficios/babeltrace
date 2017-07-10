@@ -110,9 +110,9 @@ enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
 			ds_file->mmap_offset);
 	if (ds_file->mmap_addr == MAP_FAILED) {
-		BT_LOGE("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %zu: %s",
+		BT_LOGE("Cannot memory-map address (size %zu) of file \"%s\" (%p) at offset %jd: %s",
 				ds_file->mmap_len, ds_file->file->path->str,
-				ds_file->file->fp, ds_file->mmap_offset,
+				ds_file->file->fp, (intmax_t) ds_file->mmap_offset,
 				strerror(errno));
 		goto error;
 	}
