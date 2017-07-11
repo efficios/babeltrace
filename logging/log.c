@@ -7,6 +7,10 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
 
+#ifdef __CYGWIN__
+extern unsigned long pthread_getsequence_np(pthread_t *);
+#endif
+
 /* When defined, Android log (android/log.h) will be used by default instead of
  * stderr (ignored on non-Android platforms). Date, time, pid and tid (context)
  * will be provided by Android log. Android log features will be used to output
@@ -823,6 +827,9 @@ static void pid_callback(int *const pid, int *const tid)
 #else
 	#if defined(_WIN32) || defined(_WIN64)
 	*tid = GetCurrentThreadId();
+	#elif defined(__CYGWIN__)
+	pthread_t thr = pthread_self();
+	*tid = (int)pthread_getsequence_np(&thr);
 	#elif defined(__ANDROID__)
 	*tid = gettid();
 	#elif defined(__linux__)
