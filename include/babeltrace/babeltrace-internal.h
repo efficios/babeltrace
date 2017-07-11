@@ -79,7 +79,10 @@
 #define BT_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
+#ifndef __STRINGIFY
 #define __STRINGIFY(x)	#x
+#endif
+
 #define TOSTRING(x)	__STRINGIFY(x)
 
 #endif
