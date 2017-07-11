@@ -6,6 +6,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
+#include <pthread.h>
 
 #ifdef __CYGWIN__
 extern unsigned long pthread_getsequence_np(pthread_t *);
@@ -831,6 +832,8 @@ static void pid_callback(int *const pid, int *const tid)
 	#elif defined(__CYGWIN__)
 	pthread_t thr = pthread_self();
 	*tid = (int)pthread_getsequence_np(&thr);
+	#elif defined(__sun__)
+	*tid = (int)pthread_self();
 	#elif defined(__ANDROID__)
 	*tid = gettid();
 	#elif defined(__linux__)
