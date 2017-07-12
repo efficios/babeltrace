@@ -33,7 +33,7 @@
 
 #define TSDL_MAGIC	0x75d11d57
 
-BT_HIDDEN
+extern
 int yydebug;
 
 struct ctf_metadata_decoder {

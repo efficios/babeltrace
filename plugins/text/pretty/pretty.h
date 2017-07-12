@@ -106,6 +106,7 @@ enum stream_packet_context_quarks_enum {
 	STREAM_PACKET_CONTEXT_QUARKS_LEN, /* Always the last one of this enum. */
 };
 
+extern
 GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
 
 BT_HIDDEN
