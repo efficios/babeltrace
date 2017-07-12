@@ -48,10 +48,10 @@ test_lost() {
 	ok $? "Trace parses"
 
 	# Convert warnings like:
-	# [warning] Tracer lost 2 trace packets between ....
-	# [warning] Tracer lost 3 trace packets between ....
+	# WARNING: Tracer discarded 2 trace packets between ....
+	# WARNING: Tracer discarded 3 trace packets between ....
 	# into "2,3" and make sure it matches the expected result
-	$BABELTRACE_BIN $trace 2>&1 >/dev/null | @GREP@ "\[warning\] Tracer lost" \
+	$BABELTRACE_BIN $trace 2>&1 >/dev/null | @GREP@ "WARNING: Tracer discarded" \
 		| cut -d" " -f4 | tr "\n" "," | @SED@ "s/.$//" | \
 		@GREP@ "$expectedcountstr" >/dev/null
 	ok $? "Lost events string matches $expectedcountstr"
