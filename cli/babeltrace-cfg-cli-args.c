@@ -4654,6 +4654,11 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * here.
 	 */
 	if (print_run_args || print_run_args_0) {
+		if (stream_intersection_mode) {
+			printf_err("Cannot specify --stream-intersection with --run-args or --run-args-0\n");
+			goto error;
+		}
+
 		for (i = 0; i < bt_value_array_size(run_args); i++) {
 			struct bt_value *arg_value =
 				bt_value_array_get(run_args, i);
