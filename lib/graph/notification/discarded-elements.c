@@ -115,8 +115,7 @@ bt_notification_discarded_elements_get_begin_clock_value(
 		goto end;
 	}
 
-	if (bt_notification_get_type(notification) !=
-			BT_NOTIFICATION_TYPE_DISCARDED_EVENTS) {
+	if (bt_notification_get_type(notification) != type) {
 		BT_LOGW("Invalid parameter: notification has not the expected type: "
 			"addr%p, expected-type=%s, notif-type=%s",
 			notification, bt_notification_type_string(type),
@@ -147,8 +146,7 @@ bt_notification_discarded_elements_get_end_clock_value(
 		goto end;
 	}
 
-	if (bt_notification_get_type(notification) !=
-			BT_NOTIFICATION_TYPE_DISCARDED_EVENTS) {
+	if (bt_notification_get_type(notification) != type) {
 		BT_LOGW("Invalid parameter: notification has not the expected type: "
 			"addr%p, expected-type=%s, notif-type=%s",
 			notification, bt_notification_type_string(type),
@@ -178,8 +176,7 @@ int64_t bt_notification_discarded_elements_get_count(
 		goto end;
 	}
 
-	if (bt_notification_get_type(notification) !=
-			BT_NOTIFICATION_TYPE_DISCARDED_EVENTS) {
+	if (bt_notification_get_type(notification) != type) {
 		BT_LOGW("Invalid parameter: notification has not the expected type: "
 			"addr%p, expected-type=%s, notif-type=%s",
 			notification, bt_notification_type_string(type),
@@ -209,8 +206,7 @@ struct bt_ctf_stream *bt_notification_discarded_elements_get_stream(
 		goto end;
 	}
 
-	if (bt_notification_get_type(notification) !=
-			BT_NOTIFICATION_TYPE_DISCARDED_EVENTS) {
+	if (bt_notification_get_type(notification) != type) {
 		BT_LOGW("Invalid parameter: notification has not the expected type: "
 			"addr%p, expected-type=%s, notif-type=%s",
 			notification, bt_notification_type_string(type),
