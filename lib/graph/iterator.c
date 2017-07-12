@@ -332,6 +332,15 @@ struct stream_state *create_stream_state(struct bt_ctf_stream *stream)
 	}
 
 	/*
+	 * The packet index is a monotonic counter which may not start
+	 * at 0 at the beginning of the stream. We therefore need to
+	 * have an internal object initial state of -1ULL to distinguish
+	 * between initial state and having seen a packet with
+	 * seqnum = 0.
+	 */
+	stream_state->discarded_packets_state.cur_count = -1ULL;
+
+	/*
 	 * We keep a reference to the stream until we know it's ended
 	 * because we need to be able to create an automatic "stream
 	 * end" notification when the user's "next" method returns
@@ -1252,30 +1261,30 @@ end:
 }
 
 static
-uint64_t get_packet_header_packet_seq_num(struct bt_ctf_packet *packet)
+uint64_t get_packet_context_packet_seq_num(struct bt_ctf_packet *packet)
 {
-	struct bt_ctf_field *packet_header = NULL;
+	struct bt_ctf_field *packet_context = NULL;
 	struct bt_ctf_field *field = NULL;
 	uint64_t retval = -1ULL;
 	int ret;
 
-	packet_header = bt_ctf_packet_get_header(packet);
-	if (!packet_header) {
+	packet_context = bt_ctf_packet_get_context(packet);
+	if (!packet_context) {
 		goto end;
 	}
 
-	field = get_struct_field_uint(packet_header, "packet_seq_num");
+	field = get_struct_field_uint(packet_context, "packet_seq_num");
 	if (!field) {
-		BT_LOGV("`packet_seq_num` field does not exist in packet's header field: "
-			"packet-addr=%p, packet-header-field-addr=%p",
-			packet, packet_header);
+		BT_LOGV("`packet_seq_num` field does not exist in packet's context field: "
+			"packet-addr=%p, packet-context-field-addr=%p",
+			packet, packet_context);
 		goto end;
 	}
 
 	assert(bt_ctf_field_is_integer(field));
 	ret = bt_ctf_field_unsigned_integer_get_value(field, &retval);
 	if (ret) {
-		BT_LOGV("Cannot get raw value of packet's header field's `packet_seq_num` integer field: "
+		BT_LOGV("Cannot get raw value of packet's context field's `packet_seq_num` integer field: "
 			"packet-addr=%p, field-addr=%p",
 			packet, field);
 		retval = -1ULL;
@@ -1283,7 +1292,7 @@ uint64_t get_packet_header_packet_seq_num(struct bt_ctf_packet *packet)
 	}
 
 end:
-	bt_put(packet_header);
+	bt_put(packet_context);
 	bt_put(field);
 	return retval;
 }
@@ -1297,47 +1306,62 @@ int handle_discarded_packets(struct bt_notification_iterator *iterator,
 {
 	struct bt_notification *notif = NULL;
 	uint64_t diff;
-	uint64_t next_count;
+	uint64_t prev_count, next_count;
 	int ret = 0;
 
-	next_count = get_packet_header_packet_seq_num(packet);
+	next_count = get_packet_context_packet_seq_num(packet);
 	if (next_count == -1ULL) {
-		next_count = stream_state->discarded_packets_state.cur_count;
-		goto update_state;
-	}
-
-	if (next_count < stream_state->discarded_packets_state.cur_count) {
-		BT_LOGW("Current value of packet's header field's `packet_seq_num` field is lesser than the previous value for the same stream: "
-			"not updating the stream state's current value: "
-			"packet-addr=%p, prev-count=%" PRIu64 ", "
-			"cur-count=%" PRIu64,
-			packet, stream_state->discarded_packets_state.cur_count,
-			next_count);
+		/*
+		 * Stream does not have seqnum field, skip discarded
+		 * packets feature.
+		 */
 		goto end;
 	}
+	prev_count = stream_state->discarded_packets_state.cur_count;
 
-	diff = next_count - stream_state->discarded_packets_state.cur_count;
-	if (diff > 0) {
-		/*
-		 * Add a discarded packets notification. The packets
-		 * are considered to be lost betweem the state's last time
-		 * and the current packet's beginning time.
-		 */
-		notif = bt_notification_discarded_elements_create(
-			BT_NOTIFICATION_TYPE_DISCARDED_PACKETS,
-			stream_state->stream,
-			stream_state->discarded_packets_state.cur_begin,
-			ts_begin, diff);
-		if (!notif) {
-			BT_LOGE_STR("Cannot create discarded packets notification.");
-			ret = -1;
+	if (prev_count != -1ULL) {
+		if (next_count < prev_count) {
+			BT_LOGW("Current value of packet's context field's `packet_seq_num` field is lesser than the previous value for the same stream: "
+				"not updating the stream state's current value: "
+				"packet-addr=%p, prev-count=%" PRIu64 ", "
+				"cur-count=%" PRIu64,
+				packet, prev_count, next_count);
+			goto end;
+		}
+		if (next_count == prev_count) {
+			BT_LOGW("Current value of packet's context field's `packet_seq_num` field is equal to the previous value for the same stream: "
+				"not updating the stream state's current value: "
+				"packet-addr=%p, prev-count=%" PRIu64 ", "
+				"cur-count=%" PRIu64,
+				packet, prev_count, next_count);
 			goto end;
 		}
 
-		add_action_push_notif(iterator, notif);
+		diff = next_count - prev_count;
+		if (diff > 1) {
+			/*
+			 * Add a discarded packets notification. The packets
+			 * are considered to be lost between the state's last time
+			 * and the current packet's beginning time.
+			 * The counter is expected to monotonically increase of
+			 * 1 for each packet. Therefore, the number of missing
+			 * packets is 'diff - 1'.
+			 */
+			notif = bt_notification_discarded_elements_create(
+				BT_NOTIFICATION_TYPE_DISCARDED_PACKETS,
+				stream_state->stream,
+				stream_state->discarded_packets_state.cur_begin,
+				ts_begin, diff - 1);
+			if (!notif) {
+				BT_LOGE_STR("Cannot create discarded packets notification.");
+				ret = -1;
+				goto end;
+			}
+
+			add_action_push_notif(iterator, notif);
+		}
 	}
 
-update_state:
 	add_action_update_stream_state_discarded_elements(iterator,
 		ACTION_TYPE_UPDATE_STREAM_STATE_DISCARDED_PACKETS,
 		stream_state, ts_end, next_count);
@@ -1574,9 +1598,8 @@ int handle_packet_switch(struct bt_notification_iterator *iterator,
 	}
 
 	/*
-	 * Check the new packet's header and context fields for
-	 * discarded packets and events to emit those automatic
-	 * notifications.
+	 * Check the new packet's context fields for discarded packets
+	 * and events to emit those automatic notifications.
 	 */
 	ret = handle_discarded_elements(iterator, new_packet, stream_state);
 	if (ret) {
