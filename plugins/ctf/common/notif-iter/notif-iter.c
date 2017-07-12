@@ -490,6 +490,101 @@ enum bt_ctf_notif_iter_status request_medium_bytes(
 			notit->buf.sz, notit->buf.addr);
 		BT_LOGV_MEM(buffer_addr, buffer_sz, "Returned bytes at %p:",
 			buffer_addr);
+	} else if (m_status == BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF) {
+		struct bt_ctf_field_type *eh_ft = NULL;
+		struct bt_ctf_field_type *sec_ft = NULL;
+		struct bt_ctf_field_type *ec_ft = NULL;
+
+		/*
+		 * User returned end of stream: validate that we're not
+		 * in the middle of a packet header, packet context, or
+		 * event.
+		 */
+		if (notit->state == STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN) {
+			/* Beginning of packet: always valid */
+			goto good_state;
+		}
+
+		if (!notit->meta.stream_class) {
+			goto bad_state;
+		}
+
+		eh_ft = bt_ctf_stream_class_get_event_header_type(
+			notit->meta.stream_class);
+		sec_ft = bt_ctf_stream_class_get_event_context_type(
+			notit->meta.stream_class);
+
+		if (notit->state == STATE_DSCOPE_STREAM_EVENT_HEADER_BEGIN) {
+			/*
+			 * Beginning of event's header is only valid if
+			 * the packet is not supposed to have a specific
+			 * size (whole packet sequence has in fact only
+			 * one packet).
+			 */
+			if (notit->cur_packet_size == -1) {
+				goto good_state;
+			}
+		}
+
+		if (notit->state == STATE_DSCOPE_STREAM_EVENT_CONTEXT_BEGIN) {
+			/*
+			 * Beginning of event's stream event context is
+			 * only valid if the packet is not supposed to
+			 * have a specific size (whole packet sequence
+			 * has in fact only one packet), and there's no
+			 * event header.
+			 */
+			if (notit->cur_packet_size == -1 && !eh_ft) {
+				goto good_state;
+			}
+		}
+
+		if (!notit->meta.event_class) {
+			goto bad_state;
+		}
+
+		ec_ft = bt_ctf_event_class_get_context_type(
+			notit->meta.event_class);
+
+		if (notit->state == STATE_DSCOPE_EVENT_CONTEXT_BEGIN) {
+			/*
+			 * Beginning of event's context is only valid if
+			 * the packet is not supposed to have a specific
+			 * size (whole packet sequence has in fact only
+			 * one packet), and there's no event header and
+			 * no stream event context.
+			 */
+			if (notit->cur_packet_size == -1 && !eh_ft && !sec_ft) {
+				goto good_state;
+			}
+		}
+
+		if (notit->state == STATE_DSCOPE_EVENT_PAYLOAD_BEGIN) {
+			/*
+			 * Beginning of event's context is only valid if
+			 * the packet is not supposed to have a specific
+			 * size (whole packet sequence has in fact only
+			 * one packet), and there's no event header, no
+			 * stream event context, and no event context.
+			 */
+			if (notit->cur_packet_size == -1 && !eh_ft && !sec_ft &&
+					!ec_ft) {
+				goto good_state;
+			}
+		}
+
+bad_state:
+		/* All other states are invalid */
+		BT_LOGW("User function returned %s, but notification iterator is in an unexpected state: "
+			"state=%s",
+			bt_ctf_notif_iter_medium_status_string(m_status),
+			state_string(notit->state));
+		m_status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+
+good_state:
+		bt_put(eh_ft);
+		bt_put(sec_ft);
+		bt_put(ec_ft);
 	} else if (m_status < 0) {
 		BT_LOGW("User function failed: status=%s",
 			bt_ctf_notif_iter_medium_status_string(m_status));
