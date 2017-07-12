@@ -592,8 +592,8 @@ struct ctx *ctx_create(struct bt_ctf_trace *trace,
 		goto error;
 	}
 
-	ctx->stream_classes = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, (GDestroyNotify) bt_put);
+	ctx->stream_classes = g_hash_table_new_full(g_int64_hash,
+		g_int64_equal, g_free, (GDestroyNotify) bt_put);
 	if (!ctx->stream_classes) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
 		goto error;
@@ -3621,6 +3621,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 
 	if (!_IS_SET(&set, _EVENT_STREAM_ID_SET)) {
 		GList *keys = NULL;
+		int64_t *new_stream_id;
 		struct bt_ctf_stream_class *new_stream_class;
 		size_t stream_class_count =
 			g_hash_table_size(ctx->stream_classes) +
@@ -3650,18 +3651,24 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
-			stream_id = 0;
+			new_stream_id = g_new0(int64_t, 1);
+			if (!new_stream_id) {
+				BT_LOGE_STR("Failed to allocate a int64_t.");
+				ret = -ENOMEM;
+				goto error;
+			}
 
 			/* Move reference to visitor's context */
 			g_hash_table_insert(ctx->stream_classes,
-				(gpointer) stream_id, new_stream_class);
+				new_stream_id, new_stream_class);
+			new_stream_id = NULL;
 			new_stream_class = NULL;
 			break;
 		case 1:
 			/* Single stream class: get its ID */
 			if (g_hash_table_size(ctx->stream_classes) == 1) {
 				keys = g_hash_table_get_keys(ctx->stream_classes);
-				stream_id = (int64_t) keys->data;
+				stream_id = *((int64_t *) keys->data);
 				g_list_free(keys);
 			} else {
 				assert(bt_ctf_trace_get_stream_class_count(
@@ -3686,8 +3693,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	assert(stream_id >= 0);
 
 	/* We have the stream ID now; get the stream class if found */
-	stream_class = g_hash_table_lookup(ctx->stream_classes,
-		(gpointer) stream_id);
+	stream_class = g_hash_table_lookup(ctx->stream_classes, &stream_id);
 	bt_get(stream_class);
 	if (!stream_class) {
 		stream_class = bt_ctf_trace_get_stream_class_by_id(ctx->trace,
@@ -3965,8 +3971,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ptr = g_hash_table_lookup(ctx->stream_classes,
-				(gpointer) id);
+			ptr = g_hash_table_lookup(ctx->stream_classes, &id);
 			if (ptr) {
 				_BT_LOGE_NODE(node,
 					"Duplicate stream class (same ID): id=%" PRId64,
@@ -4128,6 +4133,7 @@ static
 int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 {
 	int64_t id;
+	int64_t *new_id;
 	int set = 0;
 	int ret = 0;
 	struct ctf_node *iter;
@@ -4228,7 +4234,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 	 */
 	existing_stream_class = bt_ctf_trace_get_stream_class_by_id(ctx->trace,
 		id);
-	if (g_hash_table_lookup(ctx->stream_classes, (gpointer) id) ||
+	if (g_hash_table_lookup(ctx->stream_classes, &id) ||
 			existing_stream_class) {
 		_BT_LOGE_NODE(node,
 			"Duplicate stream class (same ID): id=%" PRId64,
@@ -4237,8 +4243,16 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
+	new_id = g_new0(int64_t, 1);
+	if (!new_id) {
+		BT_LOGE_STR("Failed to allocate a int64_t.");
+		ret = -ENOMEM;
+		goto error;
+	}
+	*new_id = id;
+
 	/* Move reference to visitor's context */
-	g_hash_table_insert(ctx->stream_classes, (gpointer) (int64_t) id,
+	g_hash_table_insert(ctx->stream_classes, new_id,
 		stream_class);
 	stream_class = NULL;
 	goto end;
