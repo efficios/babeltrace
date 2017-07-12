@@ -4107,20 +4107,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_CLOCK_OFFSET:
 			base_implicit_ctf_input_args.exists = true;
 			append_implicit_component_param(
-					&implicit_muxer_args,
+					&base_implicit_ctf_input_args,
 					"clock-class-offset-s", arg);
-			if (ret) {
-				goto error;
-			}
 			break;
 		case OPT_CLOCK_OFFSET_NS:
 			base_implicit_ctf_input_args.exists = true;
-			ret = append_implicit_component_extra_param(
-				&base_implicit_ctf_input_args,
-				"clock-class-offset-ns", arg);
-			if (ret) {
-				goto error;
-			}
+			append_implicit_component_param(
+					&base_implicit_ctf_input_args,
+					"clock-class-offset-ns", arg);
 			break;
 		case OPT_CLOCK_SECONDS:
 			append_implicit_component_param(
