@@ -29,7 +29,7 @@
 
 #include <babeltrace/logging-internal.h>
 
-BT_HIDDEN
+extern
 int bt_lib_log_level;
 
 #endif /* BABELTRACE_LIB_LOGGING_INTERNAL_H */

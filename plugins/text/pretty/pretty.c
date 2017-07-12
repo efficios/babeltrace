@@ -50,6 +50,8 @@
 
 #include "pretty.h"
 
+GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
+
 static
 const char *plugin_options[] = {
 	"color",
