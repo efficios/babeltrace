@@ -29,6 +29,15 @@
 #define BT_LOG_TAG "COMPAT-MMAN"
 #include "logging.h"
 
+#ifdef __APPLE__
+/*
+ * On macOS, we need a dummy symbol so that the linker won't
+ * complain of an empty table of contents.
+ */
+BT_HIDDEN
+int bt_mman_dummy_symbol;
+#endif /* __APPLE__ */
+
 #ifdef __MINGW32__
 
 #include <errno.h>
