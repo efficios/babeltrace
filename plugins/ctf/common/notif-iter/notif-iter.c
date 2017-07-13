@@ -211,6 +211,9 @@ struct bt_ctf_notif_iter {
 
 		/* Current position from addr (bits) */
 		size_t at;
+
+		/* Position of the last event header from addr (bits) */
+		size_t last_eh_at;
 	} buf;
 
 	/* Binary type reader */
@@ -477,6 +480,7 @@ enum bt_ctf_notif_iter_status request_medium_bytes(
 
 		/* Restart at the beginning of the new medium buffer */
 		notit->buf.at = 0;
+		notit->buf.last_eh_at = -1ULL;
 
 		/* New medium buffer size */
 		notit->buf.sz = buffer_sz;
@@ -1252,6 +1256,9 @@ enum bt_ctf_notif_iter_status read_event_header_begin_state(
 	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
 	struct bt_ctf_field_type *event_header_type = NULL;
 
+	/* Reset the position of the last event header */
+	notit->buf.last_eh_at = notit->buf.at;
+
 	/* Check if we have some content left */
 	if (notit->cur_content_size >= 0) {
 		if (packet_at(notit) == notit->cur_content_size) {
@@ -1782,6 +1789,7 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
 	notit->buf.addr = NULL;
 	notit->buf.sz = 0;
 	notit->buf.at = 0;
+	notit->buf.last_eh_at = -1ULL;
 	notit->buf.packet_offset = 0;
 	notit->state = STATE_INIT;
 	notit->cur_content_size = -1;
@@ -2962,8 +2970,16 @@ void notify_event(struct bt_ctf_notif_iter *notit,
 		struct bt_clock_class_priority_map *cc_prio_map,
 		struct bt_notification **notification)
 {
-	struct bt_ctf_event *event;
+	struct bt_ctf_event *event = NULL;
 	struct bt_notification *ret = NULL;
+
+	/* Make sure that the event contains at least one bit of data */
+	if (notit->buf.at == notit->buf.last_eh_at) {
+		BT_LOGE("Cannot create empty event with 0 bits of data: "
+			"notit-addr=%p, packet-cur=%zu",
+			notit, packet_at(notit));
+		goto end;
+	}
 
 	/* Create event */
 	event = create_event(notit);
