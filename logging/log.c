@@ -310,6 +310,8 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
 	#include <sys/time.h>
 	#if defined(__linux__)
 		#include <linux/limits.h>
+	#elif (defined(__sun__) || defined(__CYGWIN__))
+		/* Solaris and Cygwin have no sys/syslimits.h */
 	#else
 		#include <sys/syslimits.h>
 	#endif
