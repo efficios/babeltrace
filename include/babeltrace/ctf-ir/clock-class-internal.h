@@ -33,6 +33,8 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/types.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <glib.h>
 
 struct bt_ctf_clock_class {
@@ -58,6 +60,8 @@ struct bt_ctf_clock_value {
 	struct bt_object base;
 	struct bt_ctf_clock_class *clock_class;
 	uint64_t value;
+	bool ns_from_epoch_overflows;
+	int64_t ns_from_epoch;
 };
 
 BT_HIDDEN

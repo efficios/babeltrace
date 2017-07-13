@@ -513,7 +513,14 @@ static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
 	if (frequency == 1000000000) {
 		ns = value;
 	} else {
-		ns = (uint64_t) ((1e9 * (double) value) / (double) frequency);
+		double dblres = ((1e9 * (double) value) / (double) frequency);
+
+		if (dblres >= (double) UINT64_MAX) {
+			/* Overflows uint64_t */
+			ns = -1ULL;
+		} else {
+			ns = (uint64_t) dblres;
+		}
 	}
 
 	return ns;
@@ -619,6 +626,138 @@ void bt_ctf_clock_value_destroy(struct bt_object *obj)
 	g_free(value);
 }
 
+static
+void set_ns_from_epoch(struct bt_ctf_clock_value *clock_value)
+{
+	struct bt_ctf_clock_class *clock_class = clock_value->clock_class;
+	int64_t diff;
+	int64_t s_ns;
+	uint64_t u_ns;
+	uint64_t cycles;
+
+	/* Initialize nanosecond timestamp to clock's offset in seconds */
+	if (clock_class->offset_s <= (INT64_MIN / 1000000000) ||
+			clock_class->offset_s >= (INT64_MAX / 1000000000)) {
+		/*
+		 * Overflow: offset in seconds converted to nanoseconds
+		 * is outside the int64_t range.
+		 */
+		clock_value->ns_from_epoch_overflows = true;
+		goto end;
+	}
+
+	clock_value->ns_from_epoch = clock_class->offset_s * (int64_t) 1000000000;
+
+	/* Add offset in cycles */
+	if (clock_class->offset < 0) {
+		cycles = (uint64_t) (-clock_class->offset);
+	} else {
+		cycles = (uint64_t) clock_class->offset;
+	}
+
+	u_ns = ns_from_value(clock_class->frequency, cycles);
+
+	if (u_ns == -1ULL || u_ns >= INT64_MAX) {
+		/*
+		 * Overflow: offset in cycles converted to nanoseconds
+		 * is outside the int64_t range.
+		 */
+		clock_value->ns_from_epoch_overflows = true;
+		goto end;
+	}
+
+	s_ns = (int64_t) u_ns;
+	assert(s_ns >= 0);
+
+	if (clock_class->offset < 0) {
+		if (clock_value->ns_from_epoch >= 0) {
+			/*
+			 * Offset in cycles is negative so it must also
+			 * be negative once converted to nanoseconds.
+			 */
+			s_ns = -s_ns;
+			goto offset_ok;
+		}
+
+		diff = clock_value->ns_from_epoch - INT64_MIN;
+
+		if (s_ns >= diff) {
+			/*
+			 * Overflow: current timestamp in nanoseconds
+			 * plus the offset in cycles converted to
+			 * nanoseconds is outside the int64_t range.
+			 */
+			clock_value->ns_from_epoch_overflows = true;
+			goto end;
+		}
+
+		/*
+		 * Offset in cycles is negative so it must also be
+		 * negative once converted to nanoseconds.
+		 */
+		s_ns = -s_ns;
+	} else {
+		if (clock_value->ns_from_epoch <= 0) {
+			goto offset_ok;
+		}
+
+		diff = INT64_MAX - clock_value->ns_from_epoch;
+
+		if (s_ns >= diff) {
+			/*
+			 * Overflow: current timestamp in nanoseconds
+			 * plus the offset in cycles converted to
+			 * nanoseconds is outside the int64_t range.
+			 */
+			clock_value->ns_from_epoch_overflows = true;
+			goto end;
+		}
+	}
+
+offset_ok:
+	clock_value->ns_from_epoch += s_ns;
+
+	/* Add clock value (cycles) */
+	u_ns = ns_from_value(clock_class->frequency, clock_value->value);
+
+	if (u_ns == -1ULL || u_ns >= INT64_MAX) {
+		/*
+		 * Overflow: value converted to nanoseconds is outside
+		 * the int64_t range.
+		 */
+		clock_value->ns_from_epoch_overflows = true;
+		goto end;
+	}
+
+	s_ns = (int64_t) u_ns;
+	assert(s_ns >= 0);
+
+	/* Clock value (cycles) is always positive */
+	if (clock_value->ns_from_epoch <= 0) {
+		goto value_ok;
+	}
+
+	diff = INT64_MAX - clock_value->ns_from_epoch;
+
+	if (s_ns >= diff) {
+		/*
+		 * Overflow: current timestamp in nanoseconds plus the
+		 * clock value converted to nanoseconds is outside the
+		 * int64_t range.
+		 */
+		clock_value->ns_from_epoch_overflows = true;
+		goto end;
+	}
+
+value_ok:
+	clock_value->ns_from_epoch += s_ns;
+
+end:
+	if (clock_value->ns_from_epoch_overflows) {
+		clock_value->ns_from_epoch = 0;
+	}
+}
+
 struct bt_ctf_clock_value *bt_ctf_clock_value_create(
 		struct bt_ctf_clock_class *clock_class, uint64_t value)
 {
@@ -642,9 +781,13 @@ struct bt_ctf_clock_value *bt_ctf_clock_value_create(
 	bt_object_init(ret, bt_ctf_clock_value_destroy);
 	ret->clock_class = bt_get(clock_class);
 	ret->value = value;
+	set_ns_from_epoch(ret);
 	BT_LOGD("Created clock value object: clock-value-addr=%p, "
-		"clock-class-addr=%p, clock-class-name=\"%s\"",
-		ret, clock_class, bt_ctf_clock_class_get_name(clock_class));
+		"clock-class-addr=%p, clock-class-name=\"%s\", "
+		"ns-from-epoch=%" PRId64 ", ns-from-epoch-overflows=%d",
+		ret, clock_class, bt_ctf_clock_class_get_name(clock_class),
+		ret->ns_from_epoch, ret->ns_from_epoch_overflows);
+
 end:
 	return ret;
 }
@@ -671,7 +814,6 @@ int bt_ctf_clock_value_get_value_ns_from_epoch(struct bt_ctf_clock_value *value,
 		int64_t *ret_value_ns)
 {
 	int ret = 0;
-	int64_t ns;
 
 	if (!value || !ret_value_ns) {
 		BT_LOGW("Invalid parameter: clock value or return value pointer is NULL: "
@@ -681,17 +823,21 @@ int bt_ctf_clock_value_get_value_ns_from_epoch(struct bt_ctf_clock_value *value,
 		goto end;
 	}
 
-	/* Initialize nanosecond timestamp to clock's offset in seconds. */
-	ns = value->clock_class->offset_s * (int64_t) 1000000000;
+	if (value->ns_from_epoch_overflows) {
+		BT_LOGW("Clock value converted to nanoseconds from Epoch overflows the signed 64-bit integer range: "
+			"clock-value-addr=%p, "
+			"clock-class-offset-s=%" PRId64 ", "
+			"clock-class-offset-cycles=%" PRId64 ", "
+			"value=%" PRIu64,
+			value, value->clock_class->offset_s,
+			value->clock_class->offset,
+			value->value);
+		ret = -1;
+		goto end;
+	}
 
-	/* Add offset in cycles, converted to nanoseconds. */
-	ns += ns_from_value(value->clock_class->frequency,
-			value->clock_class->offset);
+	*ret_value_ns = value->ns_from_epoch;
 
-	/* Add given value, converter to nanoseconds. */
-	ns += ns_from_value(value->clock_class->frequency, value->value);
-
-	*ret_value_ns = ns;
 end:
 	return ret;
 }
