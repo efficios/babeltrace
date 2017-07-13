@@ -135,7 +135,7 @@ AC_CHECK_TYPES([ptrdiff_t])
 ## Header checks ##
 ##               ##
 
-AC_CHECK_HEADER_STDBOOL
+AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([ \
 	fcntl.h \
 	float.h \
