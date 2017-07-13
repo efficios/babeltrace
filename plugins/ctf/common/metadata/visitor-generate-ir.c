@@ -882,7 +882,6 @@ int get_unary_signed(struct bt_list_head *head, int64_t *value)
 		int uexpr_type = node->u.unary_expression.type;
 		int uexpr_link = node->u.unary_expression.link;
 		int cond = node->type != NODE_UNARY_EXPRESSION ||
-			(uexpr_type != UNARY_UNSIGNED_CONSTANT) ||
 			(uexpr_type != UNARY_UNSIGNED_CONSTANT &&
 				uexpr_type != UNARY_SIGNED_CONSTANT) ||
 			uexpr_link != UNARY_LINK_UNKNOWN || i != 0;
@@ -891,7 +890,7 @@ int get_unary_signed(struct bt_list_head *head, int64_t *value)
 			goto end;
 		}
 
-		switch (node->u.unary_expression.type) {
+		switch (uexpr_type) {
 		case UNARY_UNSIGNED_CONSTANT:
 			*value = (int64_t)
 				node->u.unary_expression.u.unsigned_constant;
@@ -4833,7 +4832,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 
 		_SET(set, _CLOCK_PRECISION_SET);
 	} else if (!strcmp(left, "offset_s")) {
-		uint64_t offset_s;
+		int64_t offset_s;
 
 		if (_IS_SET(set, _CLOCK_OFFSET_S_SET)) {
 			_BT_LOGE_DUP_ATTR(entry_node, "offset_s",
@@ -4842,7 +4841,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = get_unary_unsigned(
+		ret = get_unary_signed(
 			&entry_node->u.ctf_expression.right, &offset_s);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
@@ -4860,7 +4859,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 
 		_SET(set, _CLOCK_OFFSET_S_SET);
 	} else if (!strcmp(left, "offset")) {
-		uint64_t offset;
+		int64_t offset;
 
 		if (_IS_SET(set, _CLOCK_OFFSET_SET)) {
 			_BT_LOGE_DUP_ATTR(entry_node, "offset", "clock class");
@@ -4868,7 +4867,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = get_unary_unsigned(
+		ret = get_unary_signed(
 			&entry_node->u.ctf_expression.right, &offset);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
