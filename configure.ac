@@ -71,17 +71,20 @@ MINGW32=no
 DEFAULT_ENABLE_DEBUG_INFO=yes
 LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
-  [solaris*|darwin*|cygwin*|mingw*],
+  [solaris*|darwin*],
     [
 	DEFAULT_ENABLE_DEBUG_INFO=no
     ],
-  [cygwin*|mingw*],
+  [cygwin*],
     [
+	DEFAULT_ENABLE_DEBUG_INFO=no
 	LT_NO_UNDEFINED="-no-undefined"
     ],
   [mingw*],
     [
 	MINGW32=yes
+	DEFAULT_ENABLE_DEBUG_INFO=no
+	LT_NO_UNDEFINED="-no-undefined"
     ]
 )
 
@@ -301,9 +304,9 @@ AC_CHECK_FUNCS([uuid_generate],
               ],
               [
                 # for MinGW32 we have our own internal implementation of uuid using Windows functions.
-                if test "x$MINGW32" = xno; then
-                  AC_MSG_FAILURE([Cannot find libuuid uuid_generate nor libc uuid_create. Either set PKG_CONFIG_PATH to the configuration file location or use LDFLAGS=-Ldir to specify the library location])
-		fi
+                AS_IF([test "x$MINGW32" = xno],
+                  [AC_MSG_FAILURE([Cannot find libuuid uuid_generate nor libc uuid_create. Either set PKG_CONFIG_PATH to the configuration file location or use LDFLAGS=-Ldir to specify the library location])]
+		)
               ]
             )
           ]
