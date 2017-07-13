@@ -29,6 +29,9 @@
 #define BT_LOG_TAG "COMPAT-MMAN"
 #include "logging.h"
 
+BT_HIDDEN
+int bt_mman_dummy_symbol;
+
 #ifdef __MINGW32__
 
 #include <errno.h>
