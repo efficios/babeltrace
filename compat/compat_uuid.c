@@ -25,6 +25,15 @@
 #define BT_LOG_TAG "COMPAT-UUID"
 #include "logging.h"
 
+#ifdef __APPLE__
+/*
+ * On macOS, we need a dummy symbol so that the linker won't
+ * complain of an empty table of contents.
+ */
+BT_HIDDEN
+int bt_uuid_dummy_symbol;
+#endif /* __APPLE__ */
+
 #ifdef __MINGW32__
 
 #include <rpc.h>
