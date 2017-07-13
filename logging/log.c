@@ -305,6 +305,7 @@
 	#include <sys/time.h>
 	#if defined(__linux__)
 		#include <linux/limits.h>
+	#elif (defined(__sun__) || defined(__CYGWIN__))
 	#else
 		#include <sys/syslimits.h>
 	#endif
