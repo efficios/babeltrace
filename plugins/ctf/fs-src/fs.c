@@ -629,12 +629,23 @@ int ctf_fs_ds_file_group_add_ds_file_info(
 		}
 	}
 
-	if (i == ds_file_group->ds_file_infos->len) {
-		/* Append instead */
-		i = -1;
+	/* Replace by g_ptr_array_insert when we depend on glib >= 2.40 */
+
+	/* Allocate an unused element at the end of the array */
+	g_ptr_array_add(ds_file_group->ds_file_infos, NULL);
+	ds_file_group->ds_file_infos->len--;
+
+	/* If we are not inserting at the end, move the element by one */
+	if (i < ds_file_group->ds_file_infos->len) {
+		memmove(&(ds_file_group->ds_file_infos->pdata[i + 1]),
+			&(ds_file_group->ds_file_infos->pdata[i]),
+			(ds_file_group->ds_file_infos->len - i) * sizeof(gpointer));
 	}
 
-	g_ptr_array_insert(ds_file_group->ds_file_infos, i, ds_file_info);
+	/* Insert the value and bump the array len */
+	ds_file_group->ds_file_infos->pdata[i] = ds_file_info;
+	ds_file_group->ds_file_infos->len++;
+
 	ds_file_info = NULL;
 	goto end;
 
