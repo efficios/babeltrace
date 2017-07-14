@@ -602,6 +602,26 @@ end:
 	return ds_file_group;
 }
 
+/* Replace by g_ptr_array_insert when we depend on glib >= 2.40. */
+static
+void array_insert(GPtrArray *array, gpointer element, size_t pos)
+{
+	size_t original_array_len = array->len;
+
+	/* Allocate an unused element at the end of the array. */
+	g_ptr_array_add(array, NULL);
+
+	/* If we are not inserting at the end, move the elements by one. */
+	if (pos < original_array_len) {
+		memmove(&(array->pdata[pos + 1]),
+			&(array->pdata[pos]),
+			(original_array_len - pos) * sizeof(gpointer));
+	}
+
+	/* Insert the value and bump the array len */
+	array->pdata[pos] = element;
+}
+
 static
 int ctf_fs_ds_file_group_add_ds_file_info(
 		struct ctf_fs_ds_file_group *ds_file_group,
@@ -629,12 +649,7 @@ int ctf_fs_ds_file_group_add_ds_file_info(
 		}
 	}
 
-	if (i == ds_file_group->ds_file_infos->len) {
-		/* Append instead */
-		i = -1;
-	}
-
-	g_ptr_array_insert(ds_file_group->ds_file_infos, i, ds_file_info);
+	array_insert(ds_file_group->ds_file_infos, ds_file_info, i);
 	ds_file_info = NULL;
 	goto end;
 
