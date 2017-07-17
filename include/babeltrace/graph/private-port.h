@@ -37,7 +37,7 @@ extern struct bt_private_connection *bt_private_port_get_private_connection(
 		struct bt_private_port *private_port);
 extern struct bt_private_component *bt_private_port_get_private_component(
 		struct bt_private_port *private_port);
-extern int bt_private_port_remove_from_component(
+extern enum bt_port_status bt_private_port_remove_from_component(
 		struct bt_private_port *private_port);
 extern void *bt_private_port_get_user_data(
 		struct bt_private_port *private_port);
