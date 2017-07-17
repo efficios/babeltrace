@@ -191,9 +191,10 @@ void print_timestamp_wall(struct pretty_component *pretty,
 		struct tm tm;
 		time_t time_s = (time_t) ts_sec_abs;
 
-		if (is_negative) {
+		if (is_negative && !pretty->negative_timestamp_warning_done) {
 			// TODO: log instead
 			fprintf(stderr, "[warning] Fallback to [sec.ns] to print negative time value. Use --clock-seconds.\n");
+			pretty->negative_timestamp_warning_done = true;
 			goto seconds;
 		}
 
