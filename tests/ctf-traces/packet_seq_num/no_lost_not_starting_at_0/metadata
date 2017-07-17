@@ -22,7 +22,7 @@ clock {
 	description = "This is a test clock";
 	freq = 1000000000;
 	precision = 10;
-	offset_s = 1351530929945824323;
+	offset_s = 13932323;
 	offset = 0;
 	absolute = TRUE;
 };
