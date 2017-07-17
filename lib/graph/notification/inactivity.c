@@ -55,9 +55,15 @@ struct bt_notification *bt_notification_inactivity_create(
 	struct bt_notification_inactivity *notification;
 	struct bt_notification *ret_notif = NULL;
 
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		goto error;
+	if (cc_prio_map) {
+		/* Function's reference, released at the end */
+		bt_get(cc_prio_map);
+	} else {
+		cc_prio_map = bt_clock_class_priority_map_create();
+		if (!cc_prio_map) {
+			BT_LOGE_STR("Cannot create empty clock class priority map.");
+			goto error;
+		}
 	}
 
 	BT_LOGD("Creating inactivity notification object: "
@@ -91,6 +97,7 @@ error:
 	BT_PUT(ret_notif);
 
 end:
+	bt_put(cc_prio_map);
 	return ret_notif;
 }
 
