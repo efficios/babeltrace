@@ -72,6 +72,7 @@ babeltrace_bin_LDFLAGS += $(call pluginarchive,utils)
 
 if ENABLE_DEBUG_INFO
 babeltrace_bin_LDFLAGS += $(call pluginarchive,lttng-utils)
+babeltrace_bin_LDADD += $(ELFUTILS_LIBS)
 endif
 endif
 
