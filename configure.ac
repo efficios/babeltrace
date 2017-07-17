@@ -159,6 +159,24 @@ AC_CHECK_HEADERS([ \
 AX_APPEND_LINK_FLAGS([-Wl,--no-as-needed], [LD_NO_AS_NEEDED])
 AC_SUBST([LD_NO_AS_NEEDED])
 
+# Check if the linker supports whole-archive
+AX_CHECK_LINK_FLAG([-Wl,--whole-archive,--no-whole-archive],
+  [
+    AC_SUBST([LD_WHOLE_ARCHIVE], [-Wl,--whole-archive,])
+    AC_SUBST([LD_NO_WHOLE_ARCHIVE], [,--no-whole-archive])
+  ],[
+    # Fallback to force_load for the macOS linker
+    AX_CHECK_LINK_FLAG([-Wl,-force_load],
+      [
+        AC_SUBST([LD_WHOLE_ARCHIVE], [-Wl,-force_load,])
+        AC_SUBST([LD_NO_WHOLE_ARCHIVE], [])
+      ],[
+        AC_MSG_WARN([Can't find a linker option to force the inclusion of the static plugin archive objects.])
+      ]
+    )
+  ]
+)
+
 # Initialize and configure libtool
 LT_INIT([win32-dll])
 
