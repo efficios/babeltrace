@@ -169,36 +169,48 @@ void bt_port_set_connection(struct bt_port *port,
 		port, bt_port_get_name(port), connection);
 }
 
-int bt_private_port_remove_from_component(
+enum bt_port_status bt_private_port_remove_from_component(
 		struct bt_private_port *private_port)
 {
-	int ret = 0;
+	enum bt_port_status status = BT_PORT_STATUS_OK;
 	struct bt_port *port = bt_port_from_private(private_port);
 	struct bt_component *comp = NULL;
+	enum bt_component_status comp_status;
 
 	if (!port) {
 		BT_LOGW_STR("Invalid parameter: private port is NULL.");
-		ret = -1;
+		status = BT_PORT_STATUS_INVALID;
 		goto end;
 	}
 
 	comp = (void *) bt_object_get_parent(port);
+	if (!comp) {
+		BT_LOGV("Port already removed from its component: "
+			"port-addr=%p, port-name=\"%s\", ",
+			port, bt_port_get_name(port));
+		goto end;
+	}
 
 	/* bt_component_remove_port() logs details */
-	ret = bt_component_remove_port(comp, port);
+	comp_status = bt_component_remove_port(comp, port);
+	assert(comp_status != BT_COMPONENT_STATUS_INVALID);
+	if (comp_status < 0) {
+		status = BT_PORT_STATUS_ERROR;
+		goto end;
+	}
 
 end:
 	bt_put(comp);
-	return ret;
+	return status;
 }
 
-int bt_port_disconnect(struct bt_port *port)
+enum bt_port_status bt_port_disconnect(struct bt_port *port)
 {
-	int ret = 0;
+	enum bt_port_status status = BT_PORT_STATUS_OK;
 
 	if (!port) {
 		BT_LOGW_STR("Invalid parameter: port is NULL.");
-		ret = -1;
+		status = BT_PORT_STATUS_INVALID;
 		goto end;
 	}
 
@@ -210,7 +222,7 @@ int bt_port_disconnect(struct bt_port *port)
 	}
 
 end:
-	return ret;
+	return status;
 }
 
 bt_bool bt_port_is_connected(struct bt_port *port)
