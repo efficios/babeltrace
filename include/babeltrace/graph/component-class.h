@@ -58,6 +58,11 @@ enum bt_component_class_type {
 	BT_COMPONENT_CLASS_TYPE_FILTER =	2,
 };
 
+struct bt_notification_iterator_next_return {
+	struct bt_notification *notification;
+	enum bt_notification_iterator_status status;
+};
+
 typedef enum bt_component_status (*bt_component_class_init_method)(
 		struct bt_private_component *private_component,
 		struct bt_value *params, void *init_method_data);
