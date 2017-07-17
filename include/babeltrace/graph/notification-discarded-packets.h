@@ -42,10 +42,6 @@ extern struct bt_ctf_clock_value *
 bt_notification_discarded_packets_get_end_clock_value(
 		struct bt_notification *notification);
 
-extern int bt_notification_discarded_packets_set_count(
-		struct bt_notification *notification,
-		uint64_t count);
-
 extern int64_t bt_notification_discarded_packets_get_count(
 		struct bt_notification *notification);
 
