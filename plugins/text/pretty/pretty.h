@@ -92,6 +92,8 @@ struct pretty_component {
 
 	uint64_t last_real_timestamp;
 	uint64_t delta_real_timestamp;
+
+	bool negative_timestamp_warning_done;
 };
 
 enum stream_packet_context_quarks_enum {
