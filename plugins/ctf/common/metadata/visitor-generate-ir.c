@@ -3634,6 +3634,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		switch (stream_class_count) {
 		case 0:
 			/* Create implicit stream class if there's none */
+			stream_id = 0;
 			new_stream_class = create_reset_stream_class(ctx);
 			if (!new_stream_class) {
 				_BT_LOGE_NODE(node,
@@ -3642,7 +3643,8 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
-			ret = bt_ctf_stream_class_set_id(new_stream_class, 0);
+			ret = bt_ctf_stream_class_set_id(new_stream_class,
+				stream_id);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot set stream class's ID: "
@@ -3657,6 +3659,8 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 				ret = -ENOMEM;
 				goto error;
 			}
+
+			*new_stream_id = stream_id;
 
 			/* Move reference to visitor's context */
 			g_hash_table_insert(ctx->stream_classes,
