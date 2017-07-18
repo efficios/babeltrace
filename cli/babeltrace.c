@@ -720,7 +720,7 @@ void print_plugin_info(struct bt_plugin *plugin)
 		bt_common_color_fg_blue(), plugin_name,
 		bt_common_color_reset());
 	printf("  %sPath%s: %s\n", bt_common_color_bold(),
-		bt_common_color_reset(), path ? path : "(None)");
+		bt_common_color_reset(), path ? path : "BUILT-IN");
 
 	if (version_status == BT_PLUGIN_STATUS_OK) {
 		printf("  %sVersion%s: %u.%u.%u",
