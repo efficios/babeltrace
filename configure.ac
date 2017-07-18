@@ -604,7 +604,7 @@ AM_CPPFLAGS="-I\$(top_builddir)/include -I\$(top_srcdir)/include -include config
 AC_SUBST(AM_CPPFLAGS)
 
 # Add glib to global link libs
-LIBS="$GLIB_LIBS"
+LIBS="$LIBS $GLIB_LIBS"
 
 # Abuse autoconf's AC_ARG_PROGRAM output variable 'program_transform_name'
 # to rename babeltrace.bin to babeltrace at install time.
