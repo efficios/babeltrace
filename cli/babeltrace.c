@@ -757,8 +757,12 @@ void print_plugin_info(struct bt_plugin *plugin)
 	printf("%s%s%s%s:\n", bt_common_color_bold(),
 		bt_common_color_fg_blue(), plugin_name,
 		bt_common_color_reset());
-	printf("  %sPath%s: %s\n", bt_common_color_bold(),
-		bt_common_color_reset(), path ? path : "(None)");
+	if (path) {
+		printf("  %sPath%s: %s\n", bt_common_color_bold(),
+			bt_common_color_reset(), path);
+	} else {
+		puts("  Built-in");
+	}
 
 	if (version_status == BT_PLUGIN_STATUS_OK) {
 		printf("  %sVersion%s: %u.%u.%u",
