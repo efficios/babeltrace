@@ -195,7 +195,7 @@ static int lttng_live_handshake(struct bt_live_viewer_connection *viewer_connect
 	assert(ret_len == sizeof(connect));
 
 	BT_LOGD("Received viewer session ID : %" PRIu64,
-			be64toh(connect.viewer_session_id));
+			(uint64_t) be64toh(connect.viewer_session_id));
 	BT_LOGD("Relayd version : %u.%u", be32toh(connect.major),
 			be32toh(connect.minor));
 

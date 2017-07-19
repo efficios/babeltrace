@@ -6,6 +6,11 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
+#include <pthread.h>
+
+#ifdef __CYGWIN__
+extern unsigned long pthread_getsequence_np(pthread_t *);
+#endif
 
 /* When defined, Android log (android/log.h) will be used by default instead of
  * stderr (ignored on non-Android platforms). Date, time, pid and tid (context)
@@ -305,6 +310,7 @@
 	#include <sys/time.h>
 	#if defined(__linux__)
 		#include <linux/limits.h>
+	#elif (defined(__sun__) || defined(__CYGWIN__))
 	#else
 		#include <sys/syslimits.h>
 	#endif
@@ -735,7 +741,7 @@ static char lvl_char(const int lvl)
 #define TCACHE_FLUID (0x40000000 | 0x80000000)
 static unsigned g_tcache_mode = TCACHE_STALE;
 static struct timeval g_tcache_tv = {0, 0};
-static struct tm g_tcache_tm = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static struct tm g_tcache_tm = {0};
 
 static INLINE int tcache_get(const struct timeval *const tv, struct tm *const tm)
 {
@@ -823,6 +829,11 @@ static void pid_callback(int *const pid, int *const tid)
 #else
 	#if defined(_WIN32) || defined(_WIN64)
 	*tid = GetCurrentThreadId();
+	#elif defined(__CYGWIN__)
+	pthread_t thr = pthread_self();
+	*tid = (int)pthread_getsequence_np(&thr);
+	#elif defined(__sun__)
+	*tid = (int)pthread_self();
 	#elif defined(__ANDROID__)
 	*tid = gettid();
 	#elif defined(__linux__)

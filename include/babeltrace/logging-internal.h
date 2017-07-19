@@ -837,25 +837,12 @@ void _bt_log_write_mem_aux(
 			} _BT_LOG_ONCE
 #endif
 
-#if (_POSIX_C_SOURCE >= 200112L) && !  _GNU_SOURCE
-	/* XSI-compliant version of strerror_r(). */
-	#define BT_LOG_WRITE_ERRNO(lvl, tag, _msg, _fmt, args...) \
-			do { \
-				char error_str[BUFSIZ]; \
-				memset(error_str, 0, sizeof(error_str)); \
-				(void) strerror_r(errno, error_str, sizeof(error_str)); \
-				BT_LOG_WRITE(lvl, tag, _msg ": %s" _fmt, error_str, ## args); \
-			} _BT_LOG_ONCE
-#else
-	/* GNU version of strerror_r(). */
-	#define BT_LOG_WRITE_ERRNO(lvl, tag, _msg, _fmt, args...) \
-			do { \
-				char error_str_buf[BUFSIZ]; \
-				char *error_str; \
-				error_str = strerror_r(errno, error_str_buf, sizeof(error_str_buf)); \
-				BT_LOG_WRITE(lvl, tag, _msg ": %s" _fmt, error_str, ## args); \
-			} _BT_LOG_ONCE
-#endif
+#define BT_LOG_WRITE_ERRNO(lvl, tag, _msg, _fmt, args...) \
+		do { \
+			const char *error_str; \
+			error_str = g_strerror(errno); \
+			BT_LOG_WRITE(lvl, tag, _msg ": %s" _fmt, error_str, ## args); \
+		} _BT_LOG_ONCE
 
 static _BT_LOG_INLINE void _bt_log_unused(const int dummy, ...) {(void)dummy;}
 

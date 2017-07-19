@@ -25,6 +25,9 @@
 #define BT_LOG_TAG "COMPAT-UUID"
 #include "logging.h"
 
+BT_HIDDEN
+int bt_uuid_dummy_symbol;
+
 #ifdef __MINGW32__
 
 #include <rpc.h>

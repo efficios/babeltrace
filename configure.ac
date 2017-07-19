@@ -159,6 +159,24 @@ AC_CHECK_HEADERS([ \
 AX_APPEND_LINK_FLAGS([-Wl,--no-as-needed], [LD_NO_AS_NEEDED])
 AC_SUBST([LD_NO_AS_NEEDED])
 
+# Check if the linker supports whole-archive
+AX_CHECK_LINK_FLAG([-Wl,--whole-archive,--no-whole-archive],
+  [
+    AC_SUBST([LD_WHOLE_ARCHIVE], [-Wl,--whole-archive,])
+    AC_SUBST([LD_NO_WHOLE_ARCHIVE], [,--no-whole-archive])
+  ],[
+    # Fallback to force_load for the macOS linker
+    AX_CHECK_LINK_FLAG([-Wl,-force_load],
+      [
+        AC_SUBST([LD_WHOLE_ARCHIVE], [-Wl,-force_load,])
+        AC_SUBST([LD_NO_WHOLE_ARCHIVE], [])
+      ],[
+        AC_MSG_WARN([Can't find a linker option to force the inclusion of the static plugin archive objects.])
+      ]
+    )
+  ]
+)
+
 # Initialize and configure libtool
 LT_INIT([win32-dll])
 
@@ -569,11 +587,13 @@ AS_IF([test "x$enable_python_bindings_tests" = xyes],
 AS_IF([test "x$enable_debug_info" = xyes],
   [
     # Check if libelf and libdw are present
-    AC_CHECK_LIB([elf], [elf_version], [], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
-    AC_CHECK_LIB([dw], [dwarf_begin], [], [AC_MSG_ERROR(Missing libdw (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
+    AC_CHECK_LIB([elf], [elf_version], [:], [AC_MSG_ERROR(Missing libelf (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
+    AC_CHECK_LIB([dw], [dwarf_begin], [:], [AC_MSG_ERROR(Missing libdw (from elfutils >= 0.154) which is required by debug info. You can disable this feature using --disable-debug-info.)])
     BT_LIB_ELFUTILS([0], [154], [:], [AC_MSG_ERROR(elfutils >= 0.154 is required to use the debug info feature. You can disable this feature using --disable-debug-info.)])
+    ELFUTILS_LIBS="-lelf -ldw"
   ]
 )
+AC_SUBST([ELFUTILS_LIBS])
 
 AS_IF([test "x$enable_api_doc" = "xyes"],
   [
@@ -604,7 +624,7 @@ AM_CPPFLAGS="-I\$(top_builddir)/include -I\$(top_srcdir)/include -include config
 AC_SUBST(AM_CPPFLAGS)
 
 # Add glib to global link libs
-LIBS="$GLIB_LIBS"
+LIBS="$LIBS $GLIB_LIBS"
 
 # Abuse autoconf's AC_ARG_PROGRAM output variable 'program_transform_name'
 # to rename babeltrace.bin to babeltrace at install time.

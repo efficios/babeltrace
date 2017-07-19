@@ -1,11 +1,12 @@
 *~
 /tests/cli/intersection/bt_python_helper.py
 /tests/cli/intersection/test_intersection
-/tests/cli/test_packet_seq_num
-/tests/cli/test_trace_read
-/tests/cli/test_trace_copy
-/tests/cli/test_debug_info
 /tests/cli/test_convert_args
+/tests/cli/test_debug_info
+/tests/cli/test_packet_seq_num
+/tests/cli/test_trace_copy
+/tests/cli/test_trace_read
+/tests/cli/test_trimmer
 /tests/bin/intersection/bt_python_helper.py
 /tests/bin/intersection/test_intersection
 /tests/bin/test_packet_seq_num
@@ -53,6 +54,8 @@ plugins/ctf/common/metadata/parser.h
 plugins/ctf/common/metadata/parser.output
 /cli/babeltrace
 /cli/babeltrace.bin
+/cli/babeltrace-log
+/cli/babeltrace-log.bin
 /include/config.h
 /include/config.h.in
 /config.status
@@ -69,7 +72,6 @@ Makefile
 Makefile.in
 autom4te.cache/
 config/
-cli/babeltrace-log
 core
 stamp-h1
 bindings/python/__init__.py

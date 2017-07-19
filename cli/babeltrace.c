@@ -1421,8 +1421,8 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		assert(upstream_port_name);
 
 		if (!bt_common_star_glob_match(
-				cfg_conn->downstream_port_glob->str, -1ULL,
-				downstream_port_name, -1ULL)) {
+				cfg_conn->downstream_port_glob->str, SIZE_MAX,
+				downstream_port_name, SIZE_MAX)) {
 			bt_put(downstream_port);
 			continue;
 		}
@@ -1635,7 +1635,7 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 
 		if (!bt_common_star_glob_match(
 			    cfg_conn->upstream_port_glob->str,
-			    -1ULL, upstream_port_name, -1ULL)) {
+			    SIZE_MAX, upstream_port_name, SIZE_MAX)) {
 			continue;
 		}
 
@@ -2573,9 +2573,9 @@ void set_auto_log_levels(struct bt_config *cfg)
 	while (*env_var_name) {
 		if (!getenv(*env_var_name)) {
 			if (cfg->verbose) {
-				setenv(*env_var_name, "I", 1);
+				g_setenv(*env_var_name, "I", 1);
 			} else if (cfg->debug) {
-				setenv(*env_var_name, "V", 1);
+				g_setenv(*env_var_name, "V", 1);
 			} else {
 				char val[2] = { 0 };
 
@@ -2584,7 +2584,7 @@ void set_auto_log_levels(struct bt_config *cfg)
 				 * explicitly specified.
 				 */
 				val[0] = cfg->log_level;
-				setenv(*env_var_name, val, 1);
+				g_setenv(*env_var_name, val, 1);
 			}
 		}
 
