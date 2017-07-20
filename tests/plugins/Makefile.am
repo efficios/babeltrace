@@ -17,4 +17,4 @@ check_SCRIPTS = test-utils-muxer-complete
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
 LOG_DRIVER_FLAGS='--merge'
 
-TESTS = test-utils-muxer
+TESTS = test-utils-muxer-complete
