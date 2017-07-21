@@ -44,14 +44,48 @@
 
 struct bt_graph_listener {
 	void *func;
+	bt_graph_listener_removed removed;
 	void *data;
 };
+
+static
+int init_listeners_array(GArray **listeners)
+{
+	int ret = 0;
+
+	assert(listeners);
+	*listeners = g_array_new(FALSE, TRUE, sizeof(struct bt_graph_listener));
+	if (!*listeners) {
+		BT_LOGE_STR("Failed to allocate one GArray.");
+		ret = -1;
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
+static
+void call_remove_listeners(GArray *listeners)
+{
+	size_t i;
+
+	for (i = 0; i < listeners->len; i++) {
+		struct bt_graph_listener listener =
+			g_array_index(listeners, struct bt_graph_listener, i);
+
+		if (listener.removed) {
+			listener.removed(listener.data);
+		}
+	}
+}
 
 static
 void bt_graph_destroy(struct bt_object *obj)
 {
 	struct bt_graph *graph = container_of(obj,
 			struct bt_graph, base);
+	size_t i;
 
 	/*
 	 * The graph's reference count is 0 if we're here. Increment
@@ -88,6 +122,12 @@ void bt_graph_destroy(struct bt_object *obj)
 	 */
 	(void) bt_graph_cancel(graph);
 
+	/* Call all remove listeners */
+	call_remove_listeners(graph->listeners.port_added);
+	call_remove_listeners(graph->listeners.port_removed);
+	call_remove_listeners(graph->listeners.ports_connected);
+	call_remove_listeners(graph->listeners.ports_disconnected);
+
 	if (graph->connections) {
 		BT_LOGD_STR("Destroying connections.");
 		g_ptr_array_free(graph->connections, TRUE);
@@ -117,23 +157,6 @@ void bt_graph_destroy(struct bt_object *obj)
 	}
 
 	g_free(graph);
-}
-
-static
-int init_listeners_array(GArray **listeners)
-{
-	int ret = 0;
-
-	assert(listeners);
-	*listeners = g_array_new(FALSE, TRUE, sizeof(struct bt_graph_listener));
-	if (!*listeners) {
-		BT_LOGE_STR("Failed to allocate one GArray.");
-		ret = -1;
-		goto end;
-	}
-
-end:
-	return ret;
 }
 
 struct bt_graph *bt_graph_create(void)
@@ -530,10 +553,11 @@ end:
 }
 
 static
-int add_listener(GArray *listeners, void *func, void *data)
+int add_listener(GArray *listeners, void *func, void *removed, void *data)
 {
 	struct bt_graph_listener listener = {
 		.func = func,
+		.removed = removed,
 		.data = data,
 	};
 
@@ -543,12 +567,20 @@ int add_listener(GArray *listeners, void *func, void *data)
 
 int bt_graph_add_port_added_listener(
 		struct bt_graph *graph,
-		bt_graph_port_added_listener listener, void *data)
+		bt_graph_port_added_listener listener,
+		bt_graph_listener_removed listener_removed, void *data)
 {
 	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (graph->in_remove_listener) {
+		BT_LOGW("Cannot call this function during the execution of a remove listener: "
+			"addr=%p", graph);
 		ret = -1;
 		goto end;
 	}
@@ -559,7 +591,8 @@ int bt_graph_add_port_added_listener(
 		goto end;
 	}
 
-	ret = add_listener(graph->listeners.port_added, listener, data);
+	ret = add_listener(graph->listeners.port_added, listener,
+		listener_removed, data);
 	BT_LOGV("Added \"port added\" listener to graph: "
 		"graph-addr=%p, listener-addr=%p, pos=%d",
 		graph, listener, ret);
@@ -570,12 +603,20 @@ end:
 
 int bt_graph_add_port_removed_listener(
 		struct bt_graph *graph,
-		bt_graph_port_removed_listener listener, void *data)
+		bt_graph_port_removed_listener listener,
+		bt_graph_listener_removed listener_removed, void *data)
 {
 	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (graph->in_remove_listener) {
+		BT_LOGW("Cannot call this function during the execution of a remove listener: "
+			"addr=%p", graph);
 		ret = -1;
 		goto end;
 	}
@@ -586,7 +627,8 @@ int bt_graph_add_port_removed_listener(
 		goto end;
 	}
 
-	ret = add_listener(graph->listeners.port_removed, listener, data);
+	ret = add_listener(graph->listeners.port_removed, listener,
+		listener_removed, data);
 	BT_LOGV("Added \"port removed\" listener to graph: "
 		"graph-addr=%p, listener-addr=%p, pos=%d",
 		graph, listener, ret);
@@ -597,12 +639,20 @@ end:
 
 int bt_graph_add_ports_connected_listener(
 		struct bt_graph *graph,
-		bt_graph_ports_connected_listener listener, void *data)
+		bt_graph_ports_connected_listener listener,
+		bt_graph_listener_removed listener_removed, void *data)
 {
 	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (graph->in_remove_listener) {
+		BT_LOGW("Cannot call this function during the execution of a remove listener: "
+			"addr=%p", graph);
 		ret = -1;
 		goto end;
 	}
@@ -613,7 +663,8 @@ int bt_graph_add_ports_connected_listener(
 		goto end;
 	}
 
-	ret = add_listener(graph->listeners.ports_connected, listener, data);
+	ret = add_listener(graph->listeners.ports_connected, listener,
+		listener_removed, data);
 	BT_LOGV("Added \"port connected\" listener to graph: "
 		"graph-addr=%p, listener-addr=%p, pos=%d",
 		graph, listener, ret);
@@ -624,12 +675,20 @@ end:
 
 int bt_graph_add_ports_disconnected_listener(
 		struct bt_graph *graph,
-		bt_graph_ports_disconnected_listener listener, void *data)
+		bt_graph_ports_disconnected_listener listener,
+		bt_graph_listener_removed listener_removed, void *data)
 {
 	int ret;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (graph->in_remove_listener) {
+		BT_LOGW("Cannot call this function during the execution of a remove listener: "
+			"addr=%p", graph);
 		ret = -1;
 		goto end;
 	}
@@ -640,7 +699,8 @@ int bt_graph_add_ports_disconnected_listener(
 		goto end;
 	}
 
-	ret = add_listener(graph->listeners.ports_disconnected, listener, data);
+	ret = add_listener(graph->listeners.ports_disconnected, listener,
+		listener_removed, data);
 	BT_LOGV("Added \"port disconnected\" listener to graph: "
 		"graph-addr=%p, listener-addr=%p, pos=%d",
 		graph, listener, ret);

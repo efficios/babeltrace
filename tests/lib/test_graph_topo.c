@@ -618,16 +618,17 @@ struct bt_graph *create_graph(void)
 	int ret;
 
 	assert(graph);
-	ret = bt_graph_add_port_added_listener(graph, graph_port_added, NULL);
+	ret = bt_graph_add_port_added_listener(graph, graph_port_added, NULL,
+		NULL);
 	assert(ret >= 0);
 	ret = bt_graph_add_port_removed_listener(graph, graph_port_removed,
-		NULL);
+		NULL, NULL);
 	assert(ret >= 0);
-	ret = bt_graph_add_ports_connected_listener(graph, graph_ports_connected,
-		NULL);
+	ret = bt_graph_add_ports_connected_listener(graph,
+		graph_ports_connected, NULL, NULL);
 	assert(ret >= 0);
 	ret = bt_graph_add_ports_disconnected_listener(graph,
-		graph_ports_disconnected, NULL);
+		graph_ports_disconnected, NULL, NULL);
 	assert(ret >= 0);
 	return graph;
 }
