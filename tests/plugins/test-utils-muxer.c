@@ -1464,7 +1464,7 @@ void test_single_end_then_multiple_full(void)
 	graph_listener_data.muxer = muxer_comp;
 	graph_listener_data.sink = sink_comp;
 	ret = bt_graph_add_port_added_listener(graph,
-		graph_port_added_listener_connect_to_avail_muxer_port,
+		graph_port_added_listener_connect_to_avail_muxer_port, NULL,
 		&graph_listener_data);
 	assert(ret >= 0);
 
@@ -1592,7 +1592,7 @@ void test_single_again_end_then_multiple_full(void)
 	graph_listener_data.muxer = muxer_comp;
 	graph_listener_data.sink = sink_comp;
 	ret = bt_graph_add_port_added_listener(graph,
-		graph_port_added_listener_connect_to_avail_muxer_port,
+		graph_port_added_listener_connect_to_avail_muxer_port, NULL,
 		&graph_listener_data);
 	assert(ret >= 0);
 
