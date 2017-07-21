@@ -360,7 +360,7 @@ struct fs_writer *insert_new_writer(
 		fs_writer->static_listener_id = -1;
 	} else {
 		ret = bt_ctf_trace_add_is_static_listener(trace,
-				trace_is_static_listener, fs_writer);
+				trace_is_static_listener, NULL, fs_writer);
 		assert(ret >= 0);
 		fs_writer->static_listener_id = ret;
 	}
