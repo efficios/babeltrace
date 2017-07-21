@@ -71,6 +71,7 @@ struct bt_ctf_trace {
 	GPtrArray *listeners; /* Array of struct listener_wrapper */
 	GArray *is_static_listeners;
 	bt_bool is_static;
+	bt_bool in_remove_listener;
 };
 
 struct metadata_context {
