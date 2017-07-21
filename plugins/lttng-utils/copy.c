@@ -753,7 +753,7 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 		bt_ctf_trace_set_is_static(writer_trace);
 	} else {
 		ret = bt_ctf_trace_add_is_static_listener(trace,
-				trace_is_static_listener, di_trace);
+				trace_is_static_listener, NULL, di_trace);
 		assert(ret >= 0);
 		di_trace->static_listener_id = ret;
 	}

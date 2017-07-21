@@ -162,6 +162,20 @@ typedef void (* bt_ctf_trace_is_static_listener)(
 	struct bt_ctf_trace *trace_class, void *data);
 
 /**
+@brief	User function type to use with
+	bt_ctf_trace_add_is_static_listener().
+
+@param[in] trace_class	Trace class to which the listener was added.
+@param[in] data		User data as passed to
+			bt_ctf_trace_add_is_static_listener() when
+			you added the listener.
+
+@prenotnull{trace_class}
+*/
+typedef void (* bt_ctf_trace_listener_removed)(
+	struct bt_ctf_trace *trace_class, void *data);
+
+/**
 @name Creation function
 @{
 */
@@ -873,6 +887,13 @@ extern int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace_class);
 \p listener is called with \p data, the user data, the first time
 bt_ctf_trace_set_is_static() is called on \p trace_class.
 
+When the trace is destroyed, or when you remove the added listener with
+bt_ctf_trace_remove_is_static_listener(), \p listener_removed is called
+if it's not \c NULL. You can use \p listener_removed to free any dynamic
+data which exists only for the added listener. You cannot call
+any function which modifies \p trace_class during the execution of
+\p listener_removed, including bt_ctf_trace_remove_is_static_listener().
+
 This function fails if \p trace_class is already static: you need to
 check the condition first with bt_ctf_trace_is_static().
 
@@ -881,12 +902,18 @@ listener within \p trace. You can use this identifier to remove the
 specific listener you added with
 bt_ctf_trace_remove_is_static_listener().
 
-@param[in] trace_class	Trace class to which to add the listener.
-@param[in] listener	Listener to add to \p trace_class.
-@param[in] data		User data passed when \p listener is called.
-@returns		A unique numeric identifier for this listener
-			on success (0 or greater), or a negative value
-			on error.
+@param[in] trace_class		Trace class to which to add the
+				listener.
+@param[in] listener		Listener to add to \p trace_class.
+@param[in] listener_removed	Remove listener called when \p listener
+				is removed from \p trace_class, or
+				\c NULL if you don't need a remove
+				listener.
+@param[in] data			User data passed when \p listener or
+				\p listener_removed is called.
+@returns			A unique numeric identifier for this
+				listener on success (0 or greater), or a
+				negative value on error.
 
 @prenotnull{trace_class}
 @prenotnull{listener}
@@ -902,7 +929,8 @@ bt_ctf_trace_remove_is_static_listener().
 */
 extern int bt_ctf_trace_add_is_static_listener(
 		struct bt_ctf_trace *trace_class,
-		bt_ctf_trace_is_static_listener listener, void *data);
+		bt_ctf_trace_is_static_listener listener,
+		bt_ctf_trace_listener_removed listener_removed, void *data);
 
 /**
 @brief  Removes the "trace is static" listener identified by
