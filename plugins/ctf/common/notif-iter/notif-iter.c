@@ -480,7 +480,7 @@ enum bt_ctf_notif_iter_status request_medium_bytes(
 
 		/* Restart at the beginning of the new medium buffer */
 		notit->buf.at = 0;
-		notit->buf.last_eh_at = -1ULL;
+		notit->buf.last_eh_at = SIZE_MAX;
 
 		/* New medium buffer size */
 		notit->buf.sz = buffer_sz;
@@ -1798,7 +1798,7 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
 	notit->buf.addr = NULL;
 	notit->buf.sz = 0;
 	notit->buf.at = 0;
-	notit->buf.last_eh_at = -1ULL;
+	notit->buf.last_eh_at = SIZE_MAX;
 	notit->buf.packet_offset = 0;
 	notit->state = STATE_INIT;
 	notit->cur_content_size = -1;
