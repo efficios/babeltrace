@@ -431,6 +431,12 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 
 		BT_LOGD("Metadata stream is plain text: mdec-addr=%p", mdec);
 
+		if (init_pos < 0) {
+			BT_LOGE_ERRNO("Failed to get current file position", ".");
+			status = CTF_METADATA_DECODER_STATUS_ERROR;
+			goto end;
+		}
+
 		/* Check text-only metadata header and version */
 		nr_items = fscanf(fp, "/* CTF %10u.%10u", &major, &minor);
 		if (nr_items < 2) {
