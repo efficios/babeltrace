@@ -1033,6 +1033,13 @@ retry:
 	switch (be32toh(rp->status)) {
 	case LTTNG_VIEWER_INDEX_INACTIVE:
 		printf_verbose("get_next_index: inactive\n");
+
+		if (index->ts_cycles.timestamp_end ==
+				be64toh(rp->timestamp_end)) {
+			/* Already seen this timestamp. */
+			(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
+		}
+
 		memset(index, 0, sizeof(struct packet_index));
 		index->ts_cycles.timestamp_end = be64toh(rp->timestamp_end);
 		*stream_id = be64toh(rp->stream_id);
