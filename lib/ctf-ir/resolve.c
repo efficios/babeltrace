@@ -886,8 +886,8 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 	struct bt_ctf_field_path *ctx_field_path;
 	int target_field_path_len = target_field_path->indexes->len;
 	int lca_index;
-	int ctx_cur_field_type_id;
-	int target_type_id;
+	enum bt_ctf_field_type_id ctx_cur_field_type_id;
+	enum bt_ctf_field_type_id target_type_id;
 
 	/* Get context field path */
 	ctx_field_path = get_ctx_stack_field_path(ctx);
@@ -959,8 +959,9 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 		ctx->cur_field_type);
 	target_type_id = bt_ctf_field_type_get_type_id(target_type);
 
-	if (ctx_cur_field_type_id == CTF_TYPE_VARIANT) {
-		if (target_type_id != CTF_TYPE_ENUM) {
+	switch (ctx_cur_field_type_id) {
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+		if (target_type_id != BT_CTF_FIELD_TYPE_ID_ENUM) {
 			BT_LOGW("Variant field type's tag field type is not an enumeration field type: "
 				"tag-ft-addr=%p, tag-ft-id=%s",
 				target_type,
@@ -968,8 +969,9 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 			ret = -1;
 			goto end;
 		}
-	} else if (ctx_cur_field_type_id == CTF_TYPE_SEQUENCE) {
-		if (target_type_id != CTF_TYPE_INTEGER ||
+		break;
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+		if (target_type_id != BT_CTF_FIELD_TYPE_ID_INTEGER ||
 				bt_ctf_field_type_integer_get_signed(
 					target_type)) {
 			BT_LOGW("Sequence field type's length field type is not an unsigned integer field type: "
@@ -979,7 +981,8 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 			ret = -1;
 			goto end;
 		}
-	} else {
+		break;
+	default:
 		abort();
 	}
 
@@ -999,7 +1002,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 {
 	int ret = 0;
 	const char *pathstr;
-	int type_id = bt_ctf_field_type_get_type_id(type);
+	enum bt_ctf_field_type_id type_id = bt_ctf_field_type_get_type_id(type);
 	struct bt_ctf_field_path *target_field_path = NULL;
 	struct bt_ctf_field_type *target_type = NULL;
 	GString *target_field_path_pretty = NULL;
@@ -1008,11 +1011,11 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 
 	/* Get path string */
 	switch (type_id) {
-	case CTF_TYPE_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		pathstr =
 			bt_ctf_field_type_sequence_get_length_field_name(type);
 		break;
-	case CTF_TYPE_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		pathstr =
 			bt_ctf_field_type_variant_get_tag_name(type);
 		break;
@@ -1052,7 +1055,8 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 	}
 
 	/* Set target field path and target field type */
-	if (type_id == CTF_TYPE_SEQUENCE) {
+	switch (type_id) {
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		ret = bt_ctf_field_type_sequence_set_length_field_path(
 			type, target_field_path);
 		if (ret) {
@@ -1062,7 +1066,8 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 				target_field_path_pretty_str);
 			goto end;
 		}
-	} else if (type_id == CTF_TYPE_VARIANT) {
+		break;
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		ret = bt_ctf_field_type_variant_set_tag_field_path(
 			type, target_field_path);
 		if (ret) {
@@ -1082,7 +1087,8 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 				target_field_path_pretty_str);
 			goto end;
 		}
-	} else {
+		break;
+	default:
 		abort();
 	}
 
@@ -1105,7 +1111,7 @@ static
 int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 {
 	int ret = 0;
-	int type_id;
+	enum bt_ctf_field_type_id type_id;
 
 	if (!type) {
 		/* Type is not available; still valid */
@@ -1117,8 +1123,8 @@ int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 
 	/* Resolve sequence/variant field type */
 	switch (type_id) {
-	case CTF_TYPE_SEQUENCE:
-	case CTF_TYPE_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		ret = resolve_sequence_or_variant_type(type, ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve sequence field type's length or variant field type's tag: "
@@ -1132,10 +1138,10 @@ int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 
 	/* Recurse into compound types */
 	switch (type_id) {
-	case CTF_TYPE_STRUCT:
-	case CTF_TYPE_VARIANT:
-	case CTF_TYPE_SEQUENCE:
-	case CTF_TYPE_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
 	{
 		int64_t field_count, f_index;
 
@@ -1169,8 +1175,8 @@ int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 				goto end;
 			}
 
-			if (type_id == CTF_TYPE_ARRAY ||
-					type_id == CTF_TYPE_SEQUENCE) {
+			if (type_id == BT_CTF_FIELD_TYPE_ID_ARRAY||
+					type_id == BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
 				type_stack_peek(ctx->type_stack)->index = -1;
 			} else {
 				type_stack_peek(ctx->type_stack)->index =
