@@ -1317,14 +1317,23 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 	case CTF_TYPE_ENUM:
 		return print_enum(pretty, field);
 	case CTF_TYPE_STRING:
-		if (pretty->use_colors) {
-			g_string_append(pretty->string, COLOR_STRING_VALUE);
-		}
-		print_escape_string(pretty, bt_ctf_field_string_get_value(field));
-		if (pretty->use_colors) {
-			g_string_append(pretty->string, COLOR_RST);
+	{
+		const char *str;
+
+		str = bt_ctf_field_string_get_value(field);
+		if (str) {
+			if (pretty->use_colors) {
+				g_string_append(pretty->string,
+						COLOR_STRING_VALUE);
+			}
+			print_escape_string(pretty, str);
+			if (pretty->use_colors) {
+				g_string_append(pretty->string,
+						COLOR_RST);
+			}
 		}
 		return BT_COMPONENT_STATUS_OK;
+	}
 	case CTF_TYPE_STRUCT:
 		return print_struct(pretty, field, print_names, filter_fields,
 				filter_array_len);
