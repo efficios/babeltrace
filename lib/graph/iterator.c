@@ -1125,9 +1125,10 @@ static
 int ensure_stream_state_exists(struct bt_notification_iterator *iterator,
 		struct bt_notification *stream_begin_notif,
 		struct bt_ctf_stream *notif_stream,
-		struct stream_state **stream_state)
+		struct stream_state **_stream_state)
 {
 	int ret = 0;
+	struct stream_state *stream_state = NULL;
 
 	if (!notif_stream) {
 		/*
@@ -1137,9 +1138,9 @@ int ensure_stream_state_exists(struct bt_notification_iterator *iterator,
 		goto end;
 	}
 
-	*stream_state = g_hash_table_lookup(iterator->stream_states,
+	stream_state = g_hash_table_lookup(iterator->stream_states,
 		notif_stream);
-	if (!*stream_state) {
+	if (!stream_state) {
 		/*
 		 * This iterator did not bump into this stream yet:
 		 * create a stream state and a "stream begin"
@@ -1153,14 +1154,13 @@ int ensure_stream_state_exists(struct bt_notification_iterator *iterator,
 			},
 		};
 
-		*stream_state = create_stream_state(notif_stream);
+		stream_state = create_stream_state(notif_stream);
 		if (!stream_state) {
 			BT_LOGE_STR("Cannot create stream state.");
 			goto error;
 		}
 
-		action.payload.add_stream_state.stream_state =
-			*stream_state;
+		action.payload.add_stream_state.stream_state = stream_state;
 		add_action(iterator, &action);
 
 		if (stream_begin_notif) {
@@ -1174,14 +1174,15 @@ int ensure_stream_state_exists(struct bt_notification_iterator *iterator,
 			}
 		}
 	}
-
 	goto end;
 
 error:
-	destroy_stream_state(*stream_state);
+	destroy_stream_state(stream_state);
+	stream_state = NULL;
 	ret = -1;
 
 end:
+	*_stream_state = stream_state;
 	return ret;
 }
 
