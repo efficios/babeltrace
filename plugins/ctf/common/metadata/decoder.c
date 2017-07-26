@@ -103,6 +103,10 @@ int decode_packet(struct ctf_metadata_decoder *mdec, FILE *in_fp, FILE *out_fp,
 	int ret = 0;
 	const long offset = ftell(in_fp);
 
+	if (offset < 0) {
+		BT_LOGE("Error in ftell: %s", strerror(errno));
+		goto error;
+	}
 	BT_LOGV("Decoding metadata packet: mdec-addr=%p, offset=%ld",
 		mdec, offset);
 	readlen = fread(&header, sizeof(header), 1, in_fp);
@@ -207,20 +211,26 @@ int decode_packet(struct ctf_metadata_decoder *mdec, FILE *in_fp, FILE *out_fp,
 	toread = header.content_size / CHAR_BIT - sizeof(header);
 
 	for (;;) {
-		readlen = fread(buf, sizeof(uint8_t),
-			MIN(sizeof(buf) - 1, toread), in_fp);
+		size_t loop_read;
+
+		loop_read = MIN(sizeof(buf) - 1, toread);
+		readlen = fread(buf, sizeof(uint8_t), loop_read, in_fp);
 		if (ferror(in_fp)) {
 			BT_LOGE("Cannot read metadata packet buffer: "
-				"offset=%ld, read-size=%u",
-				ftell(in_fp), (unsigned int) readlen);
+				"offset=%ld, read-size=%zu",
+				ftell(in_fp), loop_read);
+			goto error;
+		}
+		if (readlen > loop_read) {
+			BT_LOGE("fread returned more byte than expected");
 			goto error;
 		}
 
 		writelen = fwrite(buf, sizeof(uint8_t), readlen, out_fp);
 		if (writelen < readlen || ferror(out_fp)) {
 			BT_LOGE("Cannot write decoded metadata text to buffer: "
-				"read-offset=%ld, write-size=%u",
-				ftell(in_fp), (unsigned int) readlen);
+				"read-offset=%ld, write-size=%zu",
+				ftell(in_fp), readlen);
 			goto error;
 		}
 
