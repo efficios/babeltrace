@@ -291,6 +291,13 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf_with_mdec(
 
 	/* Close stream, which also flushes the buffer */
 	ret = bt_close_memstream(buf, &size, out_fp);
+	/*
+	 * See fclose(3). Further access to out_fp after both success
+	 * and error, even through another bt_close_memstream(), results
+	 * in undefined behavior. Nullify out_fp to ensure we don't
+	 * fclose it twice on error.
+	 */
+	out_fp = NULL;
 	if (ret < 0) {
 		BT_LOGE("Cannot close memory stream: %s: mdec-addr=%p",
 			strerror(errno), mdec);
