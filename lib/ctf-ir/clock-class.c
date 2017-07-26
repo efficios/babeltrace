@@ -782,6 +782,7 @@ struct bt_ctf_clock_value *bt_ctf_clock_value_create(
 	ret->clock_class = bt_get(clock_class);
 	ret->value = value;
 	set_ns_from_epoch(ret);
+	bt_ctf_clock_class_freeze(clock_class);
 	BT_LOGD("Created clock value object: clock-value-addr=%p, "
 		"clock-class-addr=%p, clock-class-name=\"%s\", "
 		"ns-from-epoch=%" PRId64 ", ns-from-epoch-overflows=%d",
