@@ -53,14 +53,7 @@ void destroy_trimmer_data(struct trimmer *trimmer)
 static
 struct trimmer *create_trimmer_data(void)
 {
-	struct trimmer *trimmer;
-
-	trimmer = g_new0(struct trimmer, 1);
-	if (!trimmer) {
-		goto end;
-	}
-end:
-	return trimmer;
+	return g_new0(struct trimmer, 1);
 }
 
 void finalize_trimmer(struct bt_private_component *component)
