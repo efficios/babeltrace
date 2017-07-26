@@ -1023,6 +1023,12 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 		abort();
 	}
 
+	if (!pathstr) {
+		BT_LOGW_STR("Cannot get path string.");
+		ret = -1;
+		goto end;
+	}
+
 	/* Get target field path out of path string */
 	target_field_path = pathstr_to_field_path(pathstr, ctx);
 	if (!target_field_path) {
