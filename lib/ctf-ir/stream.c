@@ -1511,7 +1511,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
 		ret = -1;
-		goto end;
+		goto end_no_stream;
 	}
 
 	if (stream->pos.fd < 0) {
@@ -1749,6 +1749,8 @@ end:
 			"packet-size=%" PRIu64,
 			stream->pos.offset, stream->pos.packet_size);
 	}
+
+end_no_stream:
 	return ret;
 }
 
