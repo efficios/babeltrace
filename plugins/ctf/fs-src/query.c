@@ -100,8 +100,16 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 	} else {
 		long filesize;
 
-		fseek(metadata_fp, 0, SEEK_END);
+		ret = fseek(metadata_fp, 0, SEEK_END);
+		if (ret) {
+			fprintf(stderr, "Error in fseek: %s", strerror(errno));
+			goto error;
+		}
 		filesize = ftell(metadata_fp);
+		if (filesize < 0) {
+			fprintf(stderr, "Error in ftell: %s", strerror(errno));
+			goto error;
+		}
 		rewind(metadata_fp);
 		metadata_text = malloc(filesize + 1);
 		if (!metadata_text) {
