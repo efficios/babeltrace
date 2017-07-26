@@ -193,7 +193,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 	}
 
 	ret = bt_private_notification_iterator_set_user_data(it, notif_iter_data);
-	if (ret) {
+	if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 		goto error;
 	}
 
@@ -202,10 +202,6 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 
 error:
 	(void) bt_private_notification_iterator_set_user_data(it, NULL);
-
-	if (ret == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-	}
 
 end:
 	ctf_fs_notif_iter_data_destroy(notif_iter_data);
