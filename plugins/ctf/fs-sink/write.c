@@ -175,16 +175,10 @@ enum fs_writer_stream_state *insert_new_stream_state(
 		struct writer_component *writer_component,
 		struct fs_writer *fs_writer, struct bt_ctf_stream *stream)
 {
-	enum fs_writer_stream_state *v = NULL;
+	enum fs_writer_stream_state *v;
 
 	v = g_new0(enum fs_writer_stream_state, 1);
-	if (!v) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-	}
 	*v = FS_WRITER_UNKNOWN_STREAM;
-
 	g_hash_table_insert(fs_writer->stream_states, stream, v);
 
 	return v;
