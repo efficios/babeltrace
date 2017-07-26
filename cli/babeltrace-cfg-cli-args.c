@@ -3553,7 +3553,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		BT_PUT(impl_args->extra_params);
 		impl_args->extra_params =
 			bt_value_copy(base_implicit_ctf_input_args->extra_params);
-		if (!impl_args) {
+		if (!impl_args->extra_params) {
 			print_err_oom();
 			destroy_implicit_component_args(impl_args);
 			goto error;
