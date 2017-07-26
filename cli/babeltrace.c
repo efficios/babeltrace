@@ -1591,23 +1591,24 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			}
 			ctx->connect_ports = true;
 		}
+
+		/*
+		 * We found a matching downstream port: the search is
+		 * over.
+		 */
 		goto end;
 	}
 
-	if (status != BT_GRAPH_STATUS_OK) {
-		BT_LOGE("Cannot create connection: cannot find a matching downstream port for upstream port: "
-			"upstream-port-addr=%p, upstream-port-name=\"%s\", "
-			"downstream-comp-name=\"%s\", conn-arg=\"%s\"",
-			upstream_port, bt_port_get_name(upstream_port),
-			cfg_conn->downstream_comp_name->str,
-			cfg_conn->arg->str);
-		fprintf(stderr,
-			"Cannot create connection: cannot find a matching downstream port for upstream port `%s`: %s\n",
-			bt_port_get_name(upstream_port), cfg_conn->arg->str);
-		goto error;
-	}
-
-	goto end;
+	/* No downstream port found */
+	BT_LOGE("Cannot create connection: cannot find a matching downstream port for upstream port: "
+		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+		"downstream-comp-name=\"%s\", conn-arg=\"%s\"",
+		upstream_port, bt_port_get_name(upstream_port),
+		cfg_conn->downstream_comp_name->str,
+		cfg_conn->arg->str);
+	fprintf(stderr,
+		"Cannot create connection: cannot find a matching downstream port for upstream port `%s`: %s\n",
+		bt_port_get_name(upstream_port), cfg_conn->arg->str);
 
 error:
 	ret = -1;
