@@ -160,7 +160,8 @@ static void test_sfs(const char *plugin_dir)
 	struct bt_value *res_params;
 	struct bt_graph *graph;
 	const char *object_str;
-	int ret;
+	enum bt_value_status value_ret;
+	enum bt_graph_status graph_ret;
 
 	assert(sfs_path);
 	diag("sfs plugin test below");
@@ -219,8 +220,8 @@ static void test_sfs(const char *plugin_dir)
 	assert(bt_value_is_array(results) && bt_value_array_size(results) == 2);
 	object = bt_value_array_get(results, 0);
 	assert(object && bt_value_is_string(object));
-	ret = bt_value_string_get(object, &object_str);
-	assert(ret == 0);
+	value_ret = bt_value_string_get(object, &object_str);
+	assert(value_ret == BT_VALUE_STATUS_OK);
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_get(results, 1);
@@ -231,27 +232,27 @@ static void test_sfs(const char *plugin_dir)
 	BT_PUT(plugin);
 	graph = bt_graph_create();
 	assert(graph);
-	ret = bt_graph_add_component(graph, sink_comp_class, "the-sink", NULL,
-		&sink_component);
-	ok(ret == 0 && sink_component,
+	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
+		NULL, &sink_component);
+	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_component() still works after the plugin object is destroyed");
 	BT_PUT(sink_component);
 	BT_PUT(source_comp_class);
 	bt_put(graph);
 	graph = bt_graph_create();
 	assert(graph);
-	ret = bt_graph_add_component(graph, sink_comp_class, "the-sink", NULL,
-		&sink_component);
-	ok(ret == 0 && sink_component,
+	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
+		NULL, &sink_component);
+	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_component() still works after the source component class object is destroyed");
 	BT_PUT(sink_component);
 	BT_PUT(filter_comp_class);
 	bt_put(graph);
 	graph = bt_graph_create();
 	assert(graph);
-	ret = bt_graph_add_component(graph, sink_comp_class, "the-sink", NULL,
-		&sink_component);
-	ok(ret == 0 && sink_component,
+	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
+		NULL, &sink_component);
+	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_component() still works after the filter component class object is destroyed");
 	BT_PUT(sink_comp_class);
 	BT_PUT(sink_component);
