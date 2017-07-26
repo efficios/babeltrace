@@ -364,6 +364,7 @@ enum bt_component_status init_from_params(
 		if (!debug_info_component->arg_debug_info_field_name) {
 			ret = BT_COMPONENT_STATUS_NOMEM;
 			BT_LOGE_STR("Missing field name.");
+			goto end;
 		}
 		sprintf(debug_info_component->arg_debug_info_field_name,
 				"debug_info");
