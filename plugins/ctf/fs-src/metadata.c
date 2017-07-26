@@ -43,29 +43,18 @@
 BT_HIDDEN
 FILE *ctf_fs_metadata_open_file(const char *trace_path)
 {
-	GString *metadata_path = g_string_new(trace_path);
+	GString *metadata_path;
 	FILE *fp = NULL;
 
+	metadata_path = g_string_new(trace_path);
 	if (!metadata_path) {
-		goto error;
+		goto end;
 	}
 
 	g_string_append(metadata_path, "/" CTF_FS_METADATA_FILENAME);
 	fp = fopen(metadata_path->str, "rb");
-	if (!fp) {
-		goto error;
-	}
-
-	goto end;
-
-error:
-	if (fp) {
-		fclose(fp);
-		fp = NULL;
-	}
-
-end:
 	g_string_free(metadata_path, TRUE);
+end:
 	return fp;
 }
 
