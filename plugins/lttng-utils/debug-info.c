@@ -390,8 +390,7 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	ret = get_payload_unsigned_int_field_value(err,
 			event, "_baddr", &baddr);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get unsigned int value for _vpid field.");
 		goto end;
 	}
 
@@ -414,8 +413,7 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	ret = get_payload_build_id_field_value(err, event, "_build_id",
 			&bin->build_id, &bin->build_id_len);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get _build_id field value.");
 		goto end;
 	}
 
@@ -455,16 +453,14 @@ void handle_statedump_debug_link_event(FILE *err, struct debug_info *debug_info,
 	ret = get_payload_unsigned_int_field_value(err,
 			event, "_baddr", &baddr);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get unsigned int value for _baddr field.");
 		ret = -1;
 		goto end;
 	}
 
 	ret = get_payload_unsigned_int_field_value(err, event, "_crc32", &tmp);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get unsigned int value for _crc32 field.");
 		ret = -1;
 		goto end;
 	}
@@ -473,8 +469,7 @@ void handle_statedump_debug_link_event(FILE *err, struct debug_info *debug_info,
 	ret = get_payload_string_field_value(err,
 			event, "_filename", &filename);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get string value for _filename field.");
 		ret = -1;
 		goto end;
 	}
@@ -517,16 +512,14 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	ret = get_payload_unsigned_int_field_value(err,
 			event, "_baddr", &baddr);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get unsigned int value for _baddr field.");
 		goto end;
 	}
 
 	ret = get_payload_unsigned_int_field_value(err,
 			event, "_memsz", &memsz);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get unsigned int value for _memsz field.");
 		goto end;
 	}
 
@@ -546,8 +539,7 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 		ret = get_payload_unsigned_int_field_value(err,
 				event, "_is_pic", &tmp);
 		if (ret) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get unsigned int value for _is_pic field.");
 			ret = -1;
 			goto end;
 		}
@@ -634,8 +626,7 @@ void handle_lib_unload_event(FILE *err, struct debug_info *debug_info,
 	ret = get_payload_unsigned_int_field_value(err,
 			event, "_baddr", &baddr);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get unsigned int value for _baddr field.");
 		ret = -1;
 		goto end;
 	}
