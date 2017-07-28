@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-FS-SINK-WRITE"
+#include "logging.h"
+
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/event-class.h>
@@ -116,44 +119,28 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 	enum bt_component_status ret;
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
-	if (!trace) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(trace);
 
 	writer_trace = bt_ctf_writer_get_trace(ctf_writer);
-	if (!writer_trace) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(writer_trace);
 
 	ret = ctf_copy_clock_classes(writer_component->err, writer_trace,
 			writer_stream_class, trace);
 	if (ret != BT_COMPONENT_STATUS_OK) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to copy clock classes.");
 		goto error;
 	}
 
 	writer_stream_class = ctf_copy_stream_class(writer_component->err,
 			stream_class, writer_trace, true);
 	if (!writer_stream_class) {
-		fprintf(writer_component->err, "[error] Failed to copy stream class\n");
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to copy stream class.");
 		goto error;
 	}
 
 	ret = bt_ctf_trace_add_stream_class(writer_trace, writer_stream_class);
 	if (ret) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to add stream_class.");
 		goto error;
 	}
 
@@ -179,9 +166,7 @@ enum fs_writer_stream_state *insert_new_stream_state(
 
 	v = g_new0(enum fs_writer_stream_state, 1);
 	if (!v) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to allocate writer_stream_state.");
 	}
 	*v = FS_WRITER_UNKNOWN_STREAM;
 
@@ -249,15 +234,12 @@ int make_trace_path(struct writer_component *writer_component,
 
 	/* Sanitize the trace name. */
 	if (strlen(trace_name) == 2 && !strcmp(trace_name, "..")) {
-		fprintf(writer_component->err, "[error] Trace name cannot "
-				"be \"..\"\n");
+		BT_LOGE_STR("Trace name cannot be \"..\".");
 		goto error;
 	}
 
 	if (strstr(trace_name, "../")) {
-		fprintf(writer_component->err, "[error] Trace name cannot "
-				"contain \"../\", received \"%s\"\n",
-				trace_name);
+		BT_LOGE_STR("Trace name cannot contain \"../\".");
 		goto error;
 
 	}
@@ -271,8 +253,7 @@ int make_trace_path(struct writer_component *writer_component,
 	 */
 	if (writer_component->single_trace) {
 		if (valid_single_trace_path(trace_path) != 0) {
-			fprintf(writer_component->err,
-					"[error] Invalid output directory\n");
+			BT_LOGE_STR("Invalid output directory.");
 			goto error;
 		}
 	} else {
@@ -285,8 +266,7 @@ int make_trace_path(struct writer_component *writer_component,
 						trace_name, ++i);
 			} while (g_file_test(trace_path, G_FILE_TEST_EXISTS) && i < INT_MAX);
 			if (i == INT_MAX) {
-				fprintf(writer_component->err, "[error] Unable to find "
-						"a unique trace path\n");
+				BT_LOGE_STR("Unable to find a unique trace path.");
 				goto error;
 			}
 		}
@@ -315,16 +295,13 @@ struct fs_writer *insert_new_writer(
 	int nr_stream, i;
 
 	if (writer_component->single_trace && writer_component->nr_traces > 0) {
-		fprintf(writer_component->err, "[error] Trying to process more "
-				"than one trace but --single-trace mode "
-				"enabled\n");
+		BT_LOGE_STR("Trying to process more than one trace but single trace mode enabled.");
 		goto error;
 	}
 
 	ret = make_trace_path(writer_component, trace, trace_path);
 	if (ret) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to make trace path.");
 		goto error;
 	}
 
@@ -332,33 +309,23 @@ struct fs_writer *insert_new_writer(
 
 	ctf_writer = bt_ctf_writer_create(trace_path);
 	if (!ctf_writer) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to create CTF writer.");
 		goto error;
 	}
 
 	writer_trace = bt_ctf_writer_get_trace(ctf_writer);
-	if (!writer_trace) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(writer_trace);
 
 	ret = ctf_copy_trace(writer_component->err, trace, writer_trace);
 	if (ret != BT_COMPONENT_STATUS_OK) {
-		fprintf(writer_component->err, "[error] Failed to copy trace\n");
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to copy trace.");
 		BT_PUT(ctf_writer);
 		goto error;
 	}
 
 	fs_writer = g_new0(struct fs_writer, 1);
 	if (!fs_writer) {
-		fprintf(writer_component->err,
-				"[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to allocate fs_writer.");
 		goto error;
 	}
 	fs_writer->writer = ctf_writer;
@@ -377,12 +344,8 @@ struct fs_writer *insert_new_writer(
 	nr_stream = bt_ctf_trace_get_stream_count(trace);
 	for (i = 0; i < nr_stream; i++) {
 		stream = bt_ctf_trace_get_stream_by_index(trace, i);
-		if (!stream) {
-			fprintf(writer_component->err,
-					"[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
+		assert(stream);
+
 		insert_new_stream_state(writer_component, fs_writer, stream);
 		BT_PUT(stream);
 	}
@@ -394,12 +357,7 @@ struct fs_writer *insert_new_writer(
 	} else {
 		ret = bt_ctf_trace_add_is_static_listener(trace,
 				trace_is_static_listener, fs_writer);
-		if (ret < 0) {
-			fprintf(writer_component->err,
-					"[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			goto error;
-		}
+		assert(ret >= 0);
 		fs_writer->static_listener_id = ret;
 	}
 
@@ -427,11 +385,7 @@ struct fs_writer *get_fs_writer(struct writer_component *writer_component,
 	struct fs_writer *fs_writer;
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
-	if (!trace) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(trace);
 
 	fs_writer = g_hash_table_lookup(writer_component->trace_map,
 			(gpointer) trace);
@@ -439,11 +393,7 @@ struct fs_writer *get_fs_writer(struct writer_component *writer_component,
 		fs_writer = insert_new_writer(writer_component, trace);
 	}
 	BT_PUT(trace);
-	goto end;
 
-error:
-	fs_writer = NULL;
-end:
 	return fs_writer;
 }
 
@@ -456,19 +406,10 @@ struct fs_writer *get_fs_writer_from_stream(
 	struct fs_writer *fs_writer;
 
 	stream_class = bt_ctf_stream_get_class(stream);
-	if (!stream_class) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream_class);
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
-	goto end;
 
-error:
-	fs_writer = NULL;
-
-end:
 	bt_put(stream_class);
 	return fs_writer;
 }
@@ -513,8 +454,7 @@ struct bt_ctf_stream *insert_new_stream(
 		writer_stream_class = insert_new_stream_class(
 				writer_component, fs_writer, stream_class);
 		if (!writer_stream_class) {
-			fprintf(writer_component->err, "[error] %s in %s:%d\n",
-					__func__, __FILE__, __LINE__);
+			BT_LOGE_STR("Failed to insert a new stream_class.");
 			goto error;
 		}
 	}
@@ -522,11 +462,7 @@ struct bt_ctf_stream *insert_new_stream(
 
 	writer_stream = bt_ctf_stream_create(writer_stream_class,
 		bt_ctf_stream_get_name(stream));
-	if (!writer_stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(writer_stream);
 
 	g_hash_table_insert(fs_writer->stream_map, (gpointer) stream,
 			writer_stream);
@@ -559,8 +495,7 @@ struct bt_ctf_stream *get_writer_stream(
 
 	writer_stream = lookup_stream(writer_component, stream);
 	if (!writer_stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to find existing stream.");
 		goto error;
 	}
 	bt_get(writer_stream);
@@ -610,16 +545,11 @@ enum bt_component_status writer_stream_begin(
 	enum fs_writer_stream_state *state;
 
 	stream_class = bt_ctf_stream_get_class(stream);
-	if (!stream_class) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream_class);
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
 	if (!fs_writer) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get fs_writer.");
 		goto error;
 	}
 
@@ -627,16 +557,14 @@ enum bt_component_status writer_stream_begin(
 	state = g_hash_table_lookup(fs_writer->stream_states, stream);
 	if (!state) {
 		if (fs_writer->trace_static) {
-			fprintf(writer_component->err, "[error] Adding a new "
-					"stream on a static trace\n");
+			BT_LOGE_STR("Cannot add new stream on a static trace.");
 			goto error;
 		}
 		state = insert_new_stream_state(writer_component, fs_writer,
 				stream);
 	}
 	if (*state != FS_WRITER_UNKNOWN_STREAM) {
-		fprintf(writer_component->err, "[error] Unexpected stream "
-				"state %d\n", *state);
+		BT_LOGE("Unexpected stream state: state=%d", *state);
 		goto error;
 	}
 	*state = FS_WRITER_ACTIVE_STREAM;
@@ -644,8 +572,7 @@ enum bt_component_status writer_stream_begin(
 	writer_stream = insert_new_stream(writer_component, fs_writer,
 			stream_class, stream);
 	if (!writer_stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to insert new stream.");
 		goto error;
 	}
 
@@ -670,23 +597,17 @@ enum bt_component_status writer_stream_end(
 	enum fs_writer_stream_state *state;
 
 	stream_class = bt_ctf_stream_get_class(stream);
-	if (!stream_class) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream_class);
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
 	if (!fs_writer) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get fs_writer.");
 		goto error;
 	}
 
 	state = g_hash_table_lookup(fs_writer->stream_states, stream);
 	if (*state != FS_WRITER_ACTIVE_STREAM) {
-		fprintf(writer_component->err, "[error] Unexpected stream "
-				"state %d\n", *state);
+		BT_LOGE("Unexpected stream state: state=%d", *state);
 		goto error;
 	}
 	*state = FS_WRITER_COMPLETED_STREAM;
@@ -725,16 +646,11 @@ enum bt_component_status writer_new_packet(
 	int int_ret;
 
 	stream = bt_ctf_packet_get_stream(packet);
-	if (!stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream);
 
 	writer_stream = get_writer_stream(writer_component, packet, stream);
 	if (!writer_stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get writer_stream.");
 		goto error;
 	}
 	BT_PUT(stream);
@@ -742,16 +658,14 @@ enum bt_component_status writer_new_packet(
 	int_ret = ctf_stream_copy_packet_context(
 			writer_component->err, packet, writer_stream);
 	if (int_ret < 0) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to copy packet_context.");
 		goto error;
 	}
 
 	ret = ctf_stream_copy_packet_header(writer_component->err,
 			packet, writer_stream);
 	if (ret != 0) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to copy packet_header.");
 		goto error;
 	}
 
@@ -774,16 +688,11 @@ enum bt_component_status writer_close_packet(
 	enum bt_component_status ret;
 
 	stream = bt_ctf_packet_get_stream(packet);
-	if (!stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream);
 
 	writer_stream = lookup_stream(writer_component, stream);
 	if (!writer_stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to find existing stream.");
 		goto error;
 	}
 	BT_PUT(stream);
@@ -791,11 +700,11 @@ enum bt_component_status writer_close_packet(
 	bt_get(writer_stream);
 
 	ret = bt_ctf_stream_flush(writer_stream);
-	if (ret < 0) {
-		fprintf(writer_component->err,
-				"[error] Failed to flush packet\n");
+	if (ret) {
+		BT_LOGE_STR("Failed to flush stream.");
 		goto error;
 	}
+
 	BT_PUT(writer_stream);
 
 	ret = BT_COMPONENT_STATUS_OK;
@@ -819,48 +728,26 @@ enum bt_component_status writer_output_event(
 	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
 	struct bt_ctf_stream_class *stream_class = NULL, *writer_stream_class = NULL;
 	struct bt_ctf_event *writer_event = NULL;
-	const char *event_name;
 	int int_ret;
 
 	event_class = bt_ctf_event_get_class(event);
-	if (!event_class) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
-
-	event_name = bt_ctf_event_class_get_name(event_class);
-	if (!event_name) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
+	assert(event_class);
 
 	stream = bt_ctf_event_get_stream(event);
-	if (!stream) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream);
 
 	writer_stream = lookup_stream(writer_component, stream);
 	if (!writer_stream || !bt_get(writer_stream)) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed for find existing stream.");
 		goto error;
 	}
 
 	stream_class = bt_ctf_event_class_get_stream_class(event_class);
-	if (!stream_class) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream_class);
 
 	writer_stream_class = lookup_stream_class(writer_component, stream_class);
 	if (!writer_stream_class || !bt_get(writer_stream_class)) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to find existing stream_class.");
 		goto error;
 	}
 
@@ -870,15 +757,14 @@ enum bt_component_status writer_output_event(
 		writer_event_class = ctf_copy_event_class(writer_component->err,
 				event_class);
 		if (!writer_event_class) {
-			fprintf(writer_component->err, "[error] %s in %s:%d\n",
-					__func__, __FILE__, __LINE__);
+			BT_LOGE_STR("Failed to copy event_class.");
 			goto error;
 		}
 		int_ret = bt_ctf_stream_class_add_event_class(
 				writer_stream_class, writer_event_class);
 		if (int_ret) {
-			fprintf(writer_component->err, "[error] %s in %s:%d\n",
-					__func__, __FILE__, __LINE__);
+			BT_LOGE("Failed to add event_class: event_name=\"%s\"",
+					bt_ctf_event_class_get_name(event_class));
 			goto error;
 		}
 	}
@@ -886,18 +772,14 @@ enum bt_component_status writer_output_event(
 	writer_event = ctf_copy_event(writer_component->err, event,
 			writer_event_class, true);
 	if (!writer_event) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		fprintf(writer_component->err, "[error] Failed to copy event %s\n",
+		BT_LOGE("Failed to copy event: event_class=\"%s\"",
 				bt_ctf_event_class_get_name(writer_event_class));
 		goto error;
 	}
 
 	int_ret = bt_ctf_stream_append_event(writer_stream, writer_event);
 	if (int_ret < 0) {
-		fprintf(writer_component->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		fprintf(writer_component->err, "[error] Failed to append event %s\n",
+		BT_LOGE("Failed to append event: event_class=\"%s\"",
 				bt_ctf_event_class_get_name(writer_event_class));
 		goto error;
 	}
