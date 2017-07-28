@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTFCOPYTRACE-LIB"
+#include "logging.h"
+
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/event-class.h>
@@ -52,17 +55,12 @@ struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 	assert(err && clock_class);
 
 	name = bt_ctf_clock_class_get_name(clock_class);
-	if (!name) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end;
-	}
+	assert(name);
 
 	writer_clock_class = bt_ctf_clock_class_create(name,
 		bt_ctf_clock_class_get_frequency(clock_class));
 	if (!writer_clock_class) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to create clock class.");
 		goto end;
 	}
 
@@ -70,73 +68,34 @@ struct bt_ctf_clock_class *ctf_copy_clock_class(FILE *err,
 	if (description) {
 		int_ret = bt_ctf_clock_class_set_description(writer_clock_class,
 				description);
-		if (int_ret != 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			goto end_destroy;
-		}
+		assert(!int_ret);
 	}
 
 	u64_ret = bt_ctf_clock_class_get_precision(clock_class);
-	if (u64_ret == -1ULL) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(u64_ret != -1ULL);
+
 	int_ret = bt_ctf_clock_class_set_precision(writer_clock_class,
 		u64_ret);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(!int_ret);
 
 	int_ret = bt_ctf_clock_class_get_offset_s(clock_class, &offset_s);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(!int_ret);
 
 	int_ret = bt_ctf_clock_class_set_offset_s(writer_clock_class, offset_s);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(!int_ret);
 
 	int_ret = bt_ctf_clock_class_get_offset_cycles(clock_class, &offset);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(!int_ret);
 
 	int_ret = bt_ctf_clock_class_set_offset_cycles(writer_clock_class, offset);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(!int_ret);
 
 	int_ret = bt_ctf_clock_class_is_absolute(clock_class);
-	if (int_ret == -1) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(int_ret >= 0);
 
 	int_ret = bt_ctf_clock_class_set_is_absolute(writer_clock_class, int_ret);
-	if (int_ret != 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto end_destroy;
-	}
+	assert(!int_ret);
 
-	goto end;
-
-end_destroy:
-	BT_PUT(writer_clock_class);
 end:
 	return writer_clock_class;
 }
@@ -157,17 +116,12 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		struct bt_ctf_clock_class *clock_class =
 			bt_ctf_trace_get_clock_class_by_index(trace, i);
 
-		if (!clock_class) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
+		assert(clock_class);
 
 		writer_clock_class = ctf_copy_clock_class(err, clock_class);
 		bt_put(clock_class);
 		if (!writer_clock_class) {
-			fprintf(err, "Failed to copy clock class");
+			BT_LOGE_STR("Failed to copy clock class.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
@@ -175,8 +129,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		int_ret = bt_ctf_trace_add_clock_class(writer_trace, writer_clock_class);
 		if (int_ret != 0) {
 			BT_PUT(writer_clock_class);
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
+			BT_LOGE_STR("Failed to add clock class.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
@@ -206,44 +159,28 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 	const char *emf_uri;
 
 	name = bt_ctf_event_class_get_name(event_class);
-	if (!name) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto end;
-	}
 
 	writer_event_class = bt_ctf_event_class_create(name);
-	if (!writer_event_class) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto end;
-	}
+	assert(writer_event_class);
 
 	id = bt_ctf_event_class_get_id(event_class);
-	if (id < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
+	assert(id >= 0);
 
 	ret = bt_ctf_event_class_set_id(writer_event_class, id);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to set event_class id.");
 		goto error;
 	}
 
 	log_level = bt_ctf_event_class_get_log_level(event_class);
 	if (log_level < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to get log_level.");
 		goto error;
 	}
 
 	ret = bt_ctf_event_class_set_log_level(writer_event_class, log_level);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to set log_level.");
 		goto error;
 	}
 
@@ -252,8 +189,7 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		ret = bt_ctf_event_class_set_emf_uri(writer_event_class,
 			emf_uri);
 		if (ret) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set emf uri.");
 			goto error;
 		}
 	}
@@ -263,8 +199,7 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 		ret = bt_ctf_event_class_set_payload_type(writer_event_class,
 				payload_type);
 		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set payload type.");
 			goto error;
 		}
 		BT_PUT(payload_type);
@@ -276,8 +211,7 @@ struct bt_ctf_event_class *ctf_copy_event_class(FILE *err,
 				writer_event_class, context);
 		BT_PUT(context);
 		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
+			BT_LOGE_STR("Failed to set context type.");
 			goto error;
 		}
 	}
@@ -300,23 +234,15 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 	int count, i;
 
 	count = bt_ctf_stream_class_get_event_class_count(stream_class);
-	if (count < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto end;
-	}
+	assert(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		int int_ret;
 
 		event_class = bt_ctf_stream_class_get_event_class_by_index(
 				stream_class, i);
-		if (!event_class) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto error;
-		}
+		assert(event_class);
+
 		if (i < bt_ctf_stream_class_get_event_class_count(writer_stream_class)) {
 			writer_event_class = bt_ctf_stream_class_get_event_class_by_index(
 					writer_stream_class, i);
@@ -335,8 +261,7 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 
 		writer_event_class = ctf_copy_event_class(err, event_class);
 		if (!writer_event_class) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to copy event_class.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto error;
 		}
@@ -344,9 +269,7 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 		int_ret = bt_ctf_stream_class_add_event_class(writer_stream_class,
 				writer_event_class);
 		if (int_ret < 0) {
-			fprintf(err, "[error] Failed to add event class\n");
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to add event class.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto error;
 		}
@@ -375,19 +298,14 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 	const char *name = bt_ctf_stream_class_get_name(stream_class);
 
 	writer_stream_class = bt_ctf_stream_class_create_empty(name);
-	if (!writer_stream_class) {
-		fprintf(err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto end;
-	}
+	assert(writer_stream_class);
 
 	type = bt_ctf_stream_class_get_packet_context_type(stream_class);
 	if (type) {
 		ret_int = bt_ctf_stream_class_set_packet_context_type(
 				writer_stream_class, type);
 		if (ret_int < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set packet_context type.");
 			goto error;
 		}
 		BT_PUT(type);
@@ -396,35 +314,28 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 	type = bt_ctf_stream_class_get_event_header_type(stream_class);
 	if (type) {
 		ret_int = bt_ctf_trace_get_clock_class_count(writer_trace);
-		if (ret_int < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
-			goto error;
-		}
+		assert(ret_int >= 0);
 		if (override_ts64 && ret_int > 0) {
 			struct bt_ctf_field_type *new_event_header_type;
 
 			new_event_header_type = override_header_type(err, type,
 					writer_trace);
 			if (!new_event_header_type) {
-				fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-						__LINE__);
+				BT_LOGE_STR("Failed to override header type.");
 				goto error;
 			}
 			ret_int = bt_ctf_stream_class_set_event_header_type(
 					writer_stream_class, new_event_header_type);
 			BT_PUT(new_event_header_type);
 			if (ret_int < 0) {
-				fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-						__LINE__);
+				BT_LOGE_STR("Failed to set event_header type.");
 				goto error;
 			}
 		} else {
 			ret_int = bt_ctf_stream_class_set_event_header_type(
 					writer_stream_class, type);
 			if (ret_int < 0) {
-				fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-						__LINE__);
+				BT_LOGE_STR("Failed to set event_header type.");
 				goto error;
 			}
 		}
@@ -436,8 +347,7 @@ struct bt_ctf_stream_class *ctf_copy_stream_class(FILE *err,
 		ret_int = bt_ctf_stream_class_set_event_context_type(
 				writer_stream_class, type);
 		if (ret_int < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
+			BT_LOGE_STR("Failed to set event_contexttype.");
 			goto error;
 		}
 	}
@@ -466,16 +376,14 @@ int ctf_stream_copy_packet_header(FILE *err, struct bt_ctf_packet *packet,
 
 	writer_packet_header = bt_ctf_field_copy(packet_header);
 	if (!writer_packet_header) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to copy field from stream packet header.");
 		goto error;
 	}
 
 	ret = bt_ctf_stream_set_packet_header(writer_stream,
 			writer_packet_header);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to set stream packet header.");
 		goto error;
 	}
 
@@ -503,15 +411,13 @@ int ctf_packet_copy_header(FILE *err, struct bt_ctf_packet *packet,
 
 	writer_packet_header = bt_ctf_field_copy(packet_header);
 	if (!writer_packet_header) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to copy field from packet header.");
 		goto error;
 	}
 
 	ret = bt_ctf_packet_set_header(writer_packet, writer_packet_header);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to set packet header.");
 		goto error;
 	}
 
@@ -539,16 +445,14 @@ int ctf_stream_copy_packet_context(FILE *err, struct bt_ctf_packet *packet,
 
 	writer_packet_context = bt_ctf_field_copy(packet_context);
 	if (!writer_packet_context) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to copy field from stream packet context.");
 		goto error;
 	}
 
 	ret = bt_ctf_stream_set_packet_context(writer_stream,
 			writer_packet_context);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to set stream packet context.");
 		goto error;
 	}
 
@@ -577,15 +481,13 @@ int ctf_packet_copy_context(FILE *err, struct bt_ctf_packet *packet,
 
 	writer_packet_context = bt_ctf_field_copy(packet_context);
 	if (!writer_packet_context) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to copy field from packet context.");
 		goto error;
 	}
 
 	ret = bt_ctf_packet_set_context(writer_packet, writer_packet_context);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to set packet context.");
 		goto error;
 	}
 
@@ -614,62 +516,51 @@ int ctf_copy_event_header(FILE *err, struct bt_ctf_event *event,
 
 	clock_class = event_get_clock_class(err, event);
 	if (!clock_class) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to get event clock_class.");
 		goto error;
 	}
 
 	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
 	BT_PUT(clock_class);
-	if (!clock_value) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(clock_value);
 
 	ret = bt_ctf_clock_value_get_value(clock_value, &value);
 	BT_PUT(clock_value);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to get clock value.");
 		goto error;
 	}
 
 	writer_clock_class = event_get_clock_class(err, writer_event);
 	if (!writer_clock_class) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to get event clock_class.");
 		goto error;
 	}
 
 	writer_clock_value = bt_ctf_clock_value_create(writer_clock_class, value);
 	BT_PUT(writer_clock_class);
 	if (!writer_clock_value) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to create clock value.");
 		goto error;
 	}
 
 	ret = bt_ctf_event_set_clock_value(writer_event, writer_clock_value);
 	BT_PUT(writer_clock_value);
 	if (ret) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to set clock value.");
 		goto error;
 	}
 
 	writer_event_header = bt_ctf_field_copy(event_header);
 	if (!writer_event_header) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to copy event_header.");
 		goto end;
 	}
 
 	ret = bt_ctf_event_set_header(writer_event, writer_event_header);
 	BT_PUT(writer_event_header);
 	if (ret < 0) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to set event_header.");
 		goto error;
 	}
 
@@ -691,24 +582,11 @@ struct bt_ctf_trace *event_class_get_trace(FILE *err,
 	struct bt_ctf_stream_class *stream_class = NULL;
 
 	stream_class = bt_ctf_event_class_get_stream_class(event_class);
-	if (!stream_class) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(stream_class);
 
 	trace = bt_ctf_stream_class_get_trace(stream_class);
-	if (!trace) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(trace);
 
-	goto end;
-
-error:
-	BT_PUT(trace);
-end:
 	bt_put(stream_class);
 	return trace;
 }
@@ -725,15 +603,13 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 
 	writer_event = bt_ctf_event_create(writer_event_class);
 	if (!writer_event) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to create event.");
 		goto error;
 	}
 
 	writer_trace = event_class_get_trace(err, writer_event_class);
 	if (!writer_trace) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
+		BT_LOGE_STR("Failed to get trace from event_class.");
 		goto error;
 	}
 
@@ -745,24 +621,16 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 		 * is.
 		 */
 		ret = bt_ctf_trace_get_clock_class_count(writer_trace);
-		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			goto error;
-		}
+		assert(ret >= 0);
+
 		if (override_ts64 && ret > 0) {
 			copy_field = bt_ctf_event_get_header(writer_event);
-			if (!copy_field) {
-				fprintf(err, "[error] %s in %s:%d\n", __func__,
-						__FILE__, __LINE__);
-				goto error;
-			}
+			assert(copy_field);
 
 			ret = copy_override_field(err, event, writer_event, field,
 					copy_field);
 			if (ret) {
-				fprintf(err, "[error] %s in %s:%d\n", __func__,
-						__FILE__, __LINE__);
+				BT_LOGE_STR("Failed to copy and override field.");
 				goto error;
 			}
 			BT_PUT(copy_field);
@@ -770,8 +638,7 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 			ret = ctf_copy_event_header(err, event, writer_event_class,
 					writer_event, field);
 			if (ret) {
-				fprintf(err, "[error] %s in %s:%d\n", __func__,
-						__FILE__, __LINE__);
+				BT_LOGE_STR("Failed to copy event_header.");
 				goto error;
 			}
 		}
@@ -783,15 +650,13 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 	if (field) {
 		copy_field = bt_ctf_field_copy(field);
 		if (!copy_field) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to copy field.");
 			goto error;
 		}
 		ret = bt_ctf_event_set_stream_event_context(writer_event,
 				copy_field);
 		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set stream_event_context.");
 			goto error;
 		}
 		BT_PUT(field);
@@ -803,14 +668,12 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 	if (field) {
 		copy_field = bt_ctf_field_copy(field);
 		if (!copy_field) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to copy field.");
 			goto error;
 		}
 		ret = bt_ctf_event_set_event_context(writer_event, copy_field);
 		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set event_context.");
 			goto error;
 		}
 		BT_PUT(field);
@@ -821,14 +684,12 @@ struct bt_ctf_event *ctf_copy_event(FILE *err, struct bt_ctf_event *event,
 	if (field) {
 		copy_field = bt_ctf_field_copy(field);
 		if (!copy_field) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to copy field.");
 			goto error;
 		}
 		ret = bt_ctf_event_set_event_payload(writer_event, copy_field);
 		if (ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set event_payload.");
 			goto error;
 		}
 		BT_PUT(field);
@@ -865,28 +726,17 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 
 		name = bt_ctf_trace_get_environment_field_name_by_index(
 			trace, i);
-		if (!name) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
+		assert(name);
+
 		value = bt_ctf_trace_get_environment_field_value_by_index(
 			trace, i);
-		if (!value) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
+		assert(value);
 
 		ret_int = bt_ctf_trace_set_environment_field(writer_trace,
 				name, value);
 		BT_PUT(value);
 		if (ret_int < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			fprintf(err, "[error] Unable to set environment field %s\n",
+			BT_LOGE("Failed to set environment: field-name=\"%s\"",
 					name);
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
@@ -894,11 +744,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	}
 
 	order = bt_ctf_trace_get_native_byte_order(trace);
-	if (order == BT_CTF_BYTE_ORDER_UNKNOWN) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
+	assert(order != BT_CTF_BYTE_ORDER_UNKNOWN);
 
 	/*
 	 * Only explicitly set the writer trace's native byte order if
@@ -909,7 +755,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	if (order != BT_CTF_BYTE_ORDER_UNSPECIFIED) {
 		ret = bt_ctf_trace_set_native_byte_order(writer_trace, order);
 		if (ret) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set native byte order.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
@@ -920,7 +766,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 		int_ret = bt_ctf_trace_set_packet_header_type(writer_trace, header_type);
 		BT_PUT(header_type);
 		if (int_ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set packet header type.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
@@ -930,7 +776,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	if (trace_name) {
 		int_ret = bt_ctf_trace_set_name(writer_trace, trace_name);
 		if (int_ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set trace name.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
@@ -940,7 +786,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_ctf_trace *trace,
 	if (trace_uuid) {
 		int_ret = bt_ctf_trace_set_uuid(writer_trace, trace_uuid);
 		if (int_ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__, __LINE__);
+			BT_LOGE_STR("Failed to set trace UUID.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
