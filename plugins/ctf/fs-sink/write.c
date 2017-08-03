@@ -65,8 +65,9 @@ gboolean empty_streams_ht(gpointer key, gpointer value, gpointer user_data)
 {
 	struct bt_ctf_stream *writer_stream = value;
 
-	bt_ctf_stream_flush(writer_stream);
-
+	if (bt_ctf_stream_flush(writer_stream)) {
+		abort();
+	}
 	return TRUE;
 }
 
