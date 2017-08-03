@@ -698,25 +698,6 @@ bt_bool bt_ctf_field_type_enumeration_has_overlapping_ranges(
 }
 
 static
-int bt_ctf_field_type_enumeration_get_mapping_name(
-		struct bt_ctf_field_type *enum_field_type,
-		uint64_t index,
-		const char **mapping_name)
-{
-	int ret = 0;
-	struct enumeration_mapping *mapping;
-
-	assert(enum_field_type);
-	mapping = get_enumeration_mapping(enum_field_type, index);
-	assert(mapping);
-	if (mapping_name) {
-		*mapping_name = g_quark_to_string(mapping->string);
-	}
-
-	return ret;
-}
-
-static
 int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 {
 	int ret = 0;
@@ -726,7 +707,6 @@ int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 		container_of(type, struct bt_ctf_field_type_variant,
 			parent);
 	int64_t i;
-	int64_t tag_mappings_count;
 
 	if (variant->tag_name->len == 0) {
 		BT_LOGW("Invalid variant field type: no tag field name: "
@@ -753,44 +733,20 @@ int bt_ctf_field_type_variant_validate(struct bt_ctf_field_type *type)
 		goto end;
 	}
 
-	tag_mappings_count =
-		bt_ctf_field_type_enumeration_get_mapping_count(
-			(struct bt_ctf_field_type *) variant->tag);
-	assert(tag_mappings_count >= 0);
-
 	/*
-	 * Validate that each mapping found in the tag has a name which
-	 * is also the name of a field in this variant field type.
+	 * It is valid to have a variant field type which does not have
+	 * the fields corresponding to each label in the associated
+	 * enumeration.
 	 *
-	 * The opposite is accepted: variant FT fields which cannot be
-	 * selected because the variant FT tag has no mapping named as
-	 * such. This scenario, while not ideal, cannot cause any error.
+	 * It is also valid to have variant field type fields which
+	 * cannot be selected because the variant field type tag has no
+	 * mapping named as such. This scenario, while not ideal, cannot
+	 * cause any error.
+	 *
+	 * If a non-existing field happens to be selected by an
+	 * enumeration while reading a variant field, an error will be
+	 * generated at that point (while reading the stream).
 	 */
-	for (i = 0; i < tag_mappings_count; ++i) {
-		const char *label;
-		struct bt_ctf_field_type *ft;
-
-		ret = bt_ctf_field_type_enumeration_get_mapping_name(
-			(struct bt_ctf_field_type *) variant->tag,
-			i, &label);
-		assert(ret == 0);
-		assert(label);
-		ft = bt_ctf_field_type_variant_get_field_type_by_name(
-			type, label);
-		if (!ft) {
-			BT_LOGW("Invalid variant field type: "
-				"enumeration tag field type contains a mapping which does not name a variant field type field: "
-				"variant-ft-addr=%p, tag-field-name=\"%s\", "
-				"enum-ft-addr=%p, mapping-name=\"%s\"",
-				type, variant->tag_name->str, variant->tag,
-				label);
-			ret = -1;
-			goto end;
-		}
-
-		BT_PUT(ft);
-	}
-
 	field_count = bt_ctf_field_type_variant_get_field_count(type);
 	if (field_count < 0) {
 		BT_LOGW("Invalid variant field type: no fields: "
