@@ -445,6 +445,11 @@ void bt_notification_iterator_finalize(
 	assert(iterator);
 
 	switch (iterator->state) {
+	case BT_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED:
+		/* Skip user finalization if user initialization failed */
+		BT_LOGD("Not finalizing non-initialized notification iterator: "
+			"addr=%p", iterator);
+		return;
 	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED:
 	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
 		/* Already finalized */
@@ -649,7 +654,7 @@ enum bt_connection_status bt_notification_iterator_create(
 	iterator->upstream_component = upstream_comp;
 	iterator->upstream_port = upstream_port;
 	iterator->connection = connection;
-	iterator->state = BT_NOTIFICATION_ITERATOR_STATE_ACTIVE;
+	iterator->state = BT_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED;
 	BT_LOGD("Created notification iterator: "
 		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
 		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
