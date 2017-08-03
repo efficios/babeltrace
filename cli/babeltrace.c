@@ -292,6 +292,7 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 	const char *str_val;
 	int size;
 	int i;
+	enum bt_value_status status;
 
 	if (!value) {
 		return;
@@ -303,32 +304,46 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_BOOL:
-		bt_value_bool_get(value, &bool_val);
+		status = bt_value_bool_get(value, &bool_val);
+		if (status != BT_VALUE_STATUS_OK) {
+			goto error;
+		}
 		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
 			bt_common_color_fg_cyan(), bool_val ? "yes" : "no",
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_INTEGER:
-		bt_value_integer_get(value, &int_val);
+		status = bt_value_integer_get(value, &int_val);
+		if (status != BT_VALUE_STATUS_OK) {
+			goto error;
+		}
 		fprintf(fp, "%s%s%" PRId64 "%s\n", bt_common_color_bold(),
 			bt_common_color_fg_red(), int_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_FLOAT:
-		bt_value_float_get(value, &dbl_val);
+		status = bt_value_float_get(value, &dbl_val);
+		if (status != BT_VALUE_STATUS_OK) {
+			goto error;
+		}
 		fprintf(fp, "%s%s%lf%s\n", bt_common_color_bold(),
 			bt_common_color_fg_red(), dbl_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_STRING:
-		bt_value_string_get(value, &str_val);
+		status = bt_value_string_get(value, &str_val);
+		if (status != BT_VALUE_STATUS_OK) {
+			goto error;
+		}
 		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
 			bt_common_color_fg_green(), str_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_ARRAY:
 		size = bt_value_array_size(value);
-		assert(size >= 0);
+		if (size < 0) {
+			goto error;
+		}
 
 		if (size == 0) {
 			print_indent(fp, indent);
@@ -340,7 +355,9 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			struct bt_value *element =
 					bt_value_array_get(value, i);
 
-			assert(element);
+			if (!element) {
+				goto error;
+			}
 			print_indent(fp, indent);
 			fprintf(fp, "- ");
 
@@ -384,6 +401,11 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 	default:
 		abort();
 	}
+	return;
+
+error:
+	BT_LOGF("Error printing type %d", (int) bt_value_get_type(value));
+	abort();
 }
 
 static
