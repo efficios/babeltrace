@@ -593,10 +593,20 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		struct bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
 		struct bt_plugin_set *plugin_set;
+		enum bt_value_status status;
 
 		plugin_path_value = bt_value_array_get(plugin_paths, i);
-		bt_value_string_get(plugin_path_value, &plugin_path);
-		assert(plugin_path);
+		status = bt_value_string_get(plugin_path_value, &plugin_path);
+		if (status != BT_VALUE_STATUS_OK) {
+			BT_LOGD("Cannot get plugin path string");
+			BT_PUT(plugin_path_value);
+			continue;
+		}
+		if (!plugin_path) {
+			BT_LOGD("Unexpected NULL plugin path");
+			BT_PUT(plugin_path_value);
+			continue;
+		}
 
 		/*
 		 * Skip this if the directory does not exist because
