@@ -2830,7 +2830,7 @@ int main(int argc, char **argv)
 	const char *returned_clock_name;
 	const char *returned_clock_description;
 	const uint64_t frequency = 1123456789;
-	const int64_t offset_s = 1351530929945824323;
+	const int64_t offset_s = 13515309;
 	const int64_t offset = 1234567;
 	int64_t get_offset_s,
 		get_offset;
