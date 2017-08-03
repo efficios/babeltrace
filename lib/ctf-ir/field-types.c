@@ -5284,9 +5284,15 @@ struct bt_ctf_field_type *bt_ctf_field_type_get_field_at_index(
 
 	switch (type_id) {
 	case CTF_TYPE_STRUCT:
-		bt_ctf_field_type_structure_get_field_by_index(field_type,
-			NULL, &field, index);
+	{
+		int ret = bt_ctf_field_type_structure_get_field_by_index(
+			field_type, NULL, &field, index);
+		if (ret) {
+			field = NULL;
+			goto end;
+		}
 		break;
+	}
 	case CTF_TYPE_VARIANT:
 	{
 		int ret = bt_ctf_field_type_variant_get_field_by_index(
