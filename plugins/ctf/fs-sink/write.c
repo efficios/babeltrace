@@ -66,10 +66,13 @@ gboolean empty_ht(gpointer key, gpointer value, gpointer user_data)
 static
 gboolean empty_streams_ht(gpointer key, gpointer value, gpointer user_data)
 {
+	int ret;
 	struct bt_ctf_stream *writer_stream = value;
 
-	bt_ctf_stream_flush(writer_stream);
-
+	ret = bt_ctf_stream_flush(writer_stream);
+	if (ret) {
+		BT_LOGD_STR("Failed to flush stream while emptying hash table.");
+	}
 	return TRUE;
 }
 
