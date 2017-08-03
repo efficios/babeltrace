@@ -34,6 +34,7 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/types.h>
+#include <stdbool.h>
 
 struct bt_port;
 
@@ -49,6 +50,9 @@ enum bt_notification_iterator_notif_type {
 };
 
 enum bt_notification_iterator_state {
+	/* Iterator is not initialized. */
+	BT_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED,
+
 	/* Iterator is active, not at the end yet, and not finalized. */
 	BT_NOTIFICATION_ITERATOR_STATE_ACTIVE,
 
