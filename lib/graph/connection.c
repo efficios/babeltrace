@@ -395,6 +395,7 @@ bt_private_connection_create_notification_iterator(
 		}
 	}
 
+	iterator->state = BT_NOTIFICATION_ITERATOR_STATE_ACTIVE;
 	g_ptr_array_add(connection->iterators, iterator);
 	BT_LOGD("Created notification iterator from connection: "
 		"conn-addr=%p, upstream-port-addr=%p, "
