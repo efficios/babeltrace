@@ -284,8 +284,7 @@ struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 		goto end;
 	}
 
-	event_class = event ? bt_get(bt_ctf_event_borrow_event_class(event)) :
-		NULL;
+	event_class = bt_get(bt_ctf_event_borrow_event_class(event));
 end:
 	return event_class;
 }
