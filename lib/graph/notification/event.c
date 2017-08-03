@@ -251,12 +251,14 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 		bt_ctf_event_class_get_name(event_class),
 		bt_ctf_event_class_get_id(event_class), cc_prio_map,
 		notification);
-	return &notification->parent;
+	goto end;
 
 error:
-	bt_put(notification);
+	BT_PUT(notification);
+
+end:
 	bt_put(cc_prio_map);
-	return NULL;
+	return &notification->parent;
 }
 
 struct bt_ctf_event *bt_notification_event_get_event(
