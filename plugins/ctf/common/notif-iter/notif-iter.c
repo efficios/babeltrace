@@ -1173,7 +1173,7 @@ enum bt_ctf_notif_iter_status set_current_packet_content_sizes(
 	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
 	struct bt_ctf_field *packet_size_field = NULL;
 	struct bt_ctf_field *content_size_field = NULL;
-	uint64_t content_size = -1, packet_size = -1;
+	uint64_t content_size = -1ULL, packet_size = -1ULL;
 
 	if (!notit->dscopes.stream_packet_context) {
 		goto end;
@@ -1224,7 +1224,16 @@ enum bt_ctf_notif_iter_status set_current_packet_content_sizes(
 		goto end;
 	}
 
-	notit->cur_packet_size = packet_size;
+	if (packet_size != -1ULL) {
+		notit->cur_packet_size = packet_size;
+	} else {
+		/*
+		 * Use the content size as packet size indicator if the
+		 * packet size field is missing. This means there is no
+		 * padding in this stream.
+		 */
+		notit->cur_packet_size = content_size;
+	}
 	notit->cur_content_size = content_size;
 	BT_LOGV("Set current packet and content sizes: "
 		"notit-addr=%p, packet-size=%" PRIu64 ", content-size=%" PRIu64,
