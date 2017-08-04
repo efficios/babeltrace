@@ -17,6 +17,7 @@
 
 #include <babeltrace/plugin/plugin-dev.h>
 #include <stdlib.h>
+#include <glib.h>
 
 static enum bt_plugin_status plugin_init(struct bt_plugin *plugin)
 {
