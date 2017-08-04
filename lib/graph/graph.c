@@ -85,7 +85,6 @@ void bt_graph_destroy(struct bt_object *obj)
 {
 	struct bt_graph *graph = container_of(obj,
 			struct bt_graph, base);
-	size_t i;
 
 	/*
 	 * The graph's reference count is 0 if we're here. Increment
@@ -420,6 +419,12 @@ enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
 
 	BT_LOGV("Making next sink consume: addr=%p", graph);
 
+	if (!graph->has_sink) {
+		BT_LOGW_STR("Graph has no sink component.");
+		status = BT_GRAPH_STATUS_NO_SINK;
+		goto end;
+	}
+
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		BT_LOGV_STR("Graph's sink queue is empty: end of graph.");
 		status = BT_GRAPH_STATUS_END;
@@ -540,6 +545,8 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 			if (graph->sinks_to_consume->length > 1) {
 				status = BT_GRAPH_STATUS_OK;
 			}
+		} else if (status == BT_GRAPH_STATUS_NO_SINK) {
+			goto end;
 		}
 	} while (status == BT_GRAPH_STATUS_OK);
 
@@ -968,6 +975,7 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 	 * sink queue to be consumed by bt_graph_consume().
 	 */
 	if (bt_component_is_sink(component)) {
+		graph->has_sink = BT_TRUE;
 		g_queue_push_tail(graph->sinks_to_consume, component);
 	}
 
