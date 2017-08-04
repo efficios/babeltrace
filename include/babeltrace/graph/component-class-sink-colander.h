@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H
-#define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_COLANDER_H
+#define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_COLANDER_H
 
 /*
- * Babeltrace - Component Class Interface.
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/private-component.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,15 +31,10 @@ extern "C" {
 
 struct bt_component_class;
 
-typedef enum bt_component_status (*bt_component_class_sink_consume_method)(
-	struct bt_private_component *private_component);
-
-extern
-struct bt_component_class *bt_component_class_sink_create(const char *name,
-		bt_component_class_sink_consume_method consume_method);
+extern struct bt_component_class *bt_component_class_sink_colander_get(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_COLANDER_H */
