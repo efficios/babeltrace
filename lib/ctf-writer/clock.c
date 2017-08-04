@@ -274,12 +274,6 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 		        (double) clock->clock_class->frequency) / 1e9);
 	}
 
-	if (clock->value > value) {
-		/* Timestamps must be strictly monotonic. */
-		ret = -1;
-		goto end;
-	}
-
 	clock->value = value;
 end:
 	return ret;
