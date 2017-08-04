@@ -28,7 +28,6 @@
 
 #include <stddef.h>
 #include <babeltrace/graph/notification.h>
-#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 
 /**
