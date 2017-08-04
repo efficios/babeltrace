@@ -1,3 +1,18 @@
+2017-08-04 lttng-tools 1.5.3 (International Beer Day)
+	* Fix: unknown variable name in Python writer
+	* Fix live-comm: only apply retry timeout for already seen inactive indexes.
+	* Fix live-comm: merge TCP socket write-write sequence in a single write
+	* Fix: use LDFLAGS instead of LIBS for python bindings
+	* Fix: Add missing LIBS to python bindings
+	* ax_lib_elfutils -> bt_lib_elfutils
+	* m4/ax_lib_elfutils.m4: use m4_default() for optional args.
+	* m4/ax_lib_elfutils.m4: add cache variable
+	* Build Python bindings with distutils for consistent installs
+	* Set the minimum Python version to 3.0
+	* Fix: disable debug by default info on Cygwin
+	* Fix: ctf writer test on Cygwin
+	* Fix: text output missing separator when printing the domain
+
 2017-02-20 babeltrace 1.5.2 (National Cherry Pie Day)
 	* Add empty plug-in hooks to prevent their elimination by the linker
 	* Port: Link live lib with ctf to satisfy cygwin linker
