@@ -2075,7 +2075,7 @@ class CTFWriter:
 		Set a manually created field as an event's payload.
 		"""
 		def set_payload(self, field_name, value_field):
-			if not isinstance(value, CTFWriter.Field):
+			if not isinstance(value_field, CTFWriter.Field):
 				raise TypeError("Invalid value type.")
 			ret = _bt_ctf_event_set_payload(self._e, str(field_name), value_field._f)
 			if ret < 0:
