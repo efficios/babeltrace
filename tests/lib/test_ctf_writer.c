@@ -60,7 +60,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 621
+#define NR_TESTS 622
 
 static int64_t current_time = 42;
 static unsigned int packet_resize_test_length = PACKET_RESIZE_TEST_DEF_LENGTH;
@@ -320,8 +320,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned,
 		"event clock int float", 5, 22) == 0,
 		"bt_ctf_field_type_enumeration_add_mapping_unsigned accepts enumeration mapping strings containing reserved keywords");
-	bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, mapping_name_test,
-		42, 42);
+	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, mapping_name_test,
+		42, 42) == 0, "bt_ctf_field_type_enumeration_add_mapping_unsigned accepts single-value ranges");
 	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, mapping_name_test,
 		43, 51) == 0, "bt_ctf_field_type_enumeration_add_mapping_unsigned accepts duplicate mapping names");
 	ok(bt_ctf_field_type_enumeration_add_mapping_unsigned(enum_type_unsigned, "something",
@@ -2830,7 +2830,7 @@ int main(int argc, char **argv)
 	const char *returned_clock_name;
 	const char *returned_clock_description;
 	const uint64_t frequency = 1123456789;
-	const int64_t offset_s = 1351530929945824323;
+	const int64_t offset_s = 13515309;
 	const int64_t offset = 1234567;
 	int64_t get_offset_s,
 		get_offset;

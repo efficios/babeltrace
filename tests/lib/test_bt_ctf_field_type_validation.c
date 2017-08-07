@@ -2868,7 +2868,7 @@ void test_fail_variant_tag_mismatch_mappings(void)
 	ep = test_fail_variant_tag_mismatch_mappings_get_ep();
 	assert(ep);
 	event = create_event_with_context_and_payload(NULL, ep);
-	ok(!event, "Variant FT with mismatching tag FT is invalid");
+	ok(event, "Variant FT with mismatching tag FT is valid");
 
 	BT_PUT(ep);
 	BT_PUT(event);

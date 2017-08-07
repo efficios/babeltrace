@@ -349,11 +349,6 @@ enum bt_component_status writer_component_init(
 	bt_put(value);
 
 	writer_component->base_path = g_string_new(path);
-	if (!writer_component) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto error;
-	}
-
 	writer_component->single_trace = false;
 	ret = apply_one_bool("single-trace", params,
 			&writer_component->single_trace, NULL);

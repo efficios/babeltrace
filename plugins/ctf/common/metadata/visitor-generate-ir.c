@@ -1650,7 +1650,7 @@ int visit_typealias(struct ctx *ctx, struct ctf_node *target,
 	/* Do not allow typedef and typealias of untagged variants */
 	if (bt_ctf_field_type_is_variant(type_decl)) {
 		if (bt_ctf_field_type_variant_get_tag_name(type_decl)) {
-			_BT_LOGE_NODE(node,
+			_BT_LOGE_NODE(target,
 				"Type definition of untagged variant field type is not allowed.");
 			ret = -EPERM;
 			goto end;
@@ -1662,7 +1662,7 @@ int visit_typealias(struct ctx *ctx, struct ctf_node *target,
 	 * abstract or not (if it has an identifier). Check it here.
 	 */
 	if (qdummy_field_name != 0) {
-		_BT_LOGE_NODE(node,
+		_BT_LOGE_NODE(target,
 			"Expecting empty identifier: id=\"%s\"",
 			g_quark_to_string(qdummy_field_name));
 		ret = -EINVAL;

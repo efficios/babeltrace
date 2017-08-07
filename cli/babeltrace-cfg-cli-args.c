@@ -2719,7 +2719,7 @@ struct bt_config *bt_config_run_from_args_array(struct bt_value *run_args,
 {
 	struct bt_config *cfg = NULL;
 	const char **argv;
-	size_t i;
+	int64_t i, len;
 	const size_t argc = bt_value_array_size(run_args) + 1;
 
 	argv = calloc(argc, sizeof(*argv));
@@ -2730,7 +2730,12 @@ struct bt_config *bt_config_run_from_args_array(struct bt_value *run_args,
 
 	argv[0] = "run";
 
-	for (i = 0; i < bt_value_array_size(run_args); i++) {
+	len = bt_value_array_size(run_args);
+	if (len < 0) {
+		printf_err("Invalid executable arguments\n");
+		goto end;
+	}
+	for (i = 0; i < len; i++) {
 		int ret;
 		struct bt_value *arg_value = bt_value_array_get(run_args, i);
 		const char *arg;
@@ -3548,7 +3553,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		BT_PUT(impl_args->extra_params);
 		impl_args->extra_params =
 			bt_value_copy(base_implicit_ctf_input_args->extra_params);
-		if (!impl_args) {
+		if (!impl_args->extra_params) {
 			print_err_oom();
 			destroy_implicit_component_args(impl_args);
 			goto error;

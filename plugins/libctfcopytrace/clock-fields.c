@@ -428,13 +428,10 @@ int copy_override_field(FILE *err, struct bt_ctf_event *event,
 		struct bt_ctf_field *copy_field)
 {
 	struct bt_ctf_field_type *type = NULL;
-	int ret;
+	int ret = -1;
 
 	type = bt_ctf_field_get_type(field);
 	if (!type) {
-		ret = -1;
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
 		goto end;
 	}
 
@@ -475,10 +472,13 @@ int copy_override_field(FILE *err, struct bt_ctf_event *event,
 		break;
 	}
 
-	ret = 0;
 	BT_PUT(type);
 
 end:
+	if (ret < 0) {
+		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
+				__LINE__);
+	}
 	return ret;
 }
 

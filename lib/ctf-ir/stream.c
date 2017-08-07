@@ -1156,7 +1156,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 	int ret = 0;
 	struct bt_ctf_field *id_field = NULL, *timestamp_field = NULL;
 	struct bt_ctf_clock_class *mapped_clock_class = NULL;
-	uint64_t event_class_id;
+	int64_t event_class_id;
 
 	assert(event);
 
@@ -1175,8 +1175,12 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 		stream, bt_ctf_stream_get_name(stream), event);
 
 	id_field = bt_ctf_field_structure_get_field(event->event_header, "id");
-	event_class_id = (uint64_t) bt_ctf_event_class_get_id(event->event_class);
-	assert(event_class_id >= 0);
+	event_class_id = bt_ctf_event_class_get_id(event->event_class);
+	if (event_class_id < 0) {
+		BT_LOGE("Event class ID cannot be found");
+		ret = -1;
+		goto end;
+	}
 	if (id_field && bt_ctf_field_type_is_integer(id_field->type)) {
 		ret = set_integer_field_value(id_field, event_class_id);
 		if (ret) {
@@ -1507,7 +1511,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
 		ret = -1;
-		goto end;
+		goto end_no_stream;
 	}
 
 	if (stream->pos.fd < 0) {
@@ -1745,6 +1749,8 @@ end:
 			"packet-size=%" PRIu64,
 			stream->pos.offset, stream->pos.packet_size);
 	}
+
+end_no_stream:
 	return ret;
 }
 

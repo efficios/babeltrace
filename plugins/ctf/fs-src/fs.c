@@ -193,7 +193,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 	}
 
 	ret = bt_private_notification_iterator_set_user_data(it, notif_iter_data);
-	if (ret) {
+	if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 		goto error;
 	}
 
@@ -202,10 +202,6 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 
 error:
 	(void) bt_private_notification_iterator_set_user_data(it, NULL);
-
-	if (ret == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-	}
 
 end:
 	ctf_fs_notif_iter_data_destroy(notif_iter_data);
@@ -1319,7 +1315,8 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	struct ctf_fs_component *ctf_fs;
 	struct bt_value *value = NULL;
 	const char *path_param;
-	int ret;
+	enum bt_component_status ret;
+	enum bt_value_status value_ret;
 
 	ctf_fs = g_new0(struct ctf_fs_component, 1);
 	if (!ctf_fs) {
@@ -1327,7 +1324,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	}
 
 	ret = bt_private_component_set_user_data(priv_comp, ctf_fs);
-	assert(ret == 0);
+	assert(ret == BT_COMPONENT_STATUS_OK);
 
 	/*
 	 * We don't need to get a new reference here because as long as
@@ -1340,8 +1337,8 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		goto error;
 	}
 
-	ret = bt_value_string_get(value, &path_param);
-	assert(ret == 0);
+	value_ret = bt_value_string_get(value, &path_param);
+	assert(value_ret == BT_VALUE_STATUS_OK);
 	BT_PUT(value);
 	value = bt_value_map_get(params, "clock-class-offset-s");
 	if (value) {
@@ -1349,9 +1346,9 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 			BT_LOGE("clock-class-offset-s should be an integer");
 			goto error;
 		}
-		ret = bt_value_integer_get(value,
+		value_ret = bt_value_integer_get(value,
 			&ctf_fs->metadata_config.clock_class_offset_s);
-		assert(ret == 0);
+		assert(value_ret == BT_VALUE_STATUS_OK);
 		BT_PUT(value);
 	}
 
@@ -1361,9 +1358,9 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 			BT_LOGE("clock-class-offset-ns should be an integer");
 			goto error;
 		}
-		ret = bt_value_integer_get(value,
+		value_ret = bt_value_integer_get(value,
 			&ctf_fs->metadata_config.clock_class_offset_ns);
-		assert(ret == 0);
+		assert(value_ret == BT_VALUE_STATUS_OK);
 		BT_PUT(value);
 	}
 
@@ -1378,8 +1375,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		goto error;
 	}
 
-	ret = create_ctf_fs_traces(ctf_fs, path_param);
-	if (ret) {
+	if (create_ctf_fs_traces(ctf_fs, path_param)) {
 		goto error;
 	}
 
@@ -1389,7 +1385,7 @@ error:
 	ctf_fs_destroy(ctf_fs);
 	ctf_fs = NULL;
 	ret = bt_private_component_set_user_data(priv_comp, NULL);
-	assert(ret == 0);
+	assert(ret == BT_COMPONENT_STATUS_OK);
 
 end:
 	bt_put(value);
