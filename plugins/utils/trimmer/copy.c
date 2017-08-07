@@ -26,6 +26,10 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-UTILS-TRIMMER-FLT-COPY"
+#include "logging.h"
+
+#include <assert.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/event-class.h>
@@ -56,17 +60,16 @@ struct bt_ctf_packet *insert_new_packet(struct trimmer_iterator *trim_it,
 	struct bt_ctf_packet *writer_packet = NULL;
 	int ret;
 
+	BT_LOGD_STR("Inserting a new packet.");
 	writer_packet = bt_ctf_packet_create(stream);
 	if (!writer_packet) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to create a new packet.");
 		goto error;
 	}
 
 	ret = ctf_packet_copy_header(trim_it->err, packet, writer_packet);
 	if (ret) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to copy packet header.");
 		goto error;
 	}
 
@@ -91,26 +94,15 @@ enum bt_component_status update_packet_context_field(FILE *err,
 	struct bt_ctf_field *field = NULL, *writer_field = NULL;
 	int nr_fields, i, int_ret;
 
+	BT_LOGD("Updating packet context field: name=%s", name);
 	packet_context = bt_ctf_packet_get_context(writer_packet);
-	if (!packet_context) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(packet_context);
 
 	struct_type = bt_ctf_field_get_type(packet_context);
-	if (!struct_type) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(struct_type);
 
 	writer_packet_context = bt_ctf_packet_get_context(writer_packet);
-	if (!writer_packet_context) {
-		fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-				__LINE__);
-		goto error;
-	}
+	assert(writer_packet_context);
 
 	nr_fields = bt_ctf_field_type_structure_get_field_count(struct_type);
 	for (i = 0; i < nr_fields; i++) {
@@ -119,14 +111,14 @@ enum bt_component_status update_packet_context_field(FILE *err,
 		field = bt_ctf_field_structure_get_field_by_index(
 				packet_context, i);
 		if (!field) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE("Failed to get field in packet-context: field-name=\"%s\"",
+					name);
 			goto error;
 		}
 		if (bt_ctf_field_type_structure_get_field(struct_type,
 					&field_name, &field_type, i) < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__,
-					__FILE__, __LINE__);
+			BT_LOGE("Failed to get field: field-name=\"%s\"",
+					field_name);
 			goto error;
 		}
 		if (strcmp(field_name, name)) {
@@ -134,24 +126,20 @@ enum bt_component_status update_packet_context_field(FILE *err,
 			BT_PUT(field);
 			continue;
 		}
-		if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
-			fprintf(err, "[error] Unexpected packet context field type\n");
-			goto error;
-		}
-		writer_field = bt_ctf_field_structure_get_field(writer_packet_context,
-				field_name);
-		if (!writer_field) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
+		if (bt_ctf_field_type_get_type_id(field_type) !=
+				BT_CTF_FIELD_TYPE_ID_INTEGER) {
+			BT_LOGE("Expecting an integer for this field: field-name=\"%s\"",
+					name);
 			goto error;
 		}
 
+		writer_field = bt_ctf_field_structure_get_field(writer_packet_context,
+				field_name);
+		assert(writer_field);
+
 		int_ret = bt_ctf_field_unsigned_integer_set_value(writer_field, value);
-		if (int_ret < 0) {
-			fprintf(err, "[error] %s in %s:%d\n", __func__, __FILE__,
-					__LINE__);
-			goto error;
-		}
+		assert(int_ret == 0);
+
 		BT_PUT(writer_field);
 		BT_PUT(field_type);
 		BT_PUT(field);
@@ -181,11 +169,7 @@ struct bt_ctf_packet *trimmer_new_packet(
 	int int_ret;
 
 	stream = bt_ctf_packet_get_stream(packet);
-	if (!stream) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
-		goto error;
-	}
+	assert(stream);
 
 	/*
 	 * If a packet was already opened, close it and remove it from
@@ -199,8 +183,7 @@ struct bt_ctf_packet *trimmer_new_packet(
 
 	writer_packet = insert_new_packet(trim_it, packet, stream);
 	if (!writer_packet) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to insert new packet.");
 		goto error;
 	}
 	bt_get(writer_packet);
@@ -208,8 +191,7 @@ struct bt_ctf_packet *trimmer_new_packet(
 	int_ret = ctf_packet_copy_context(trim_it->err, packet,
 			stream, writer_packet);
 	if (int_ret < 0) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n",
-				__func__, __FILE__, __LINE__);
+		BT_LOGE_STR("Failed to copy packet context.");
 		goto error;
 	}
 
@@ -231,8 +213,7 @@ struct bt_ctf_packet *trimmer_close_packet(
 
 	writer_packet = lookup_packet(trim_it, packet);
 	if (!writer_packet) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to find existing packet.");
 		goto end;
 	}
 
@@ -254,49 +235,33 @@ struct bt_ctf_event *trimmer_output_event(
 	int int_ret;
 
 	event_class = bt_ctf_event_get_class(event);
-	if (!event_class) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
+	assert(event_class);
 
 	event_name = bt_ctf_event_class_get_name(event_class);
-	if (!event_name) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
 
 	writer_event = ctf_copy_event(trim_it->err, event, event_class, false);
 	if (!writer_event) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		fprintf(trim_it->err, "[error] Failed to copy event %s\n",
-				bt_ctf_event_class_get_name(event_class));
+		BT_LOGE("Failed to copy event: event-class-name=\"%s\", event-name=\"%s\"",
+				bt_ctf_event_class_get_name(event_class),
+				event_name);
 		goto error;
 	}
 
 	packet = bt_ctf_event_get_packet(event);
-	if (!packet) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		goto error;
-	}
+	assert(packet);
 
 	writer_packet = lookup_packet(trim_it, packet);
 	if (!writer_packet) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
+		BT_LOGE_STR("Failed to find existing packet.");
 		goto error;
 	}
 	bt_get(writer_packet);
 
 	int_ret = bt_ctf_event_set_packet(writer_event, writer_packet);
 	if (int_ret < 0) {
-		fprintf(trim_it->err, "[error] %s in %s:%d\n", __func__,
-				__FILE__, __LINE__);
-		fprintf(trim_it->err, "[error] Failed to append event %s\n",
-				bt_ctf_event_class_get_name(event_class));
+		BT_LOGE("Failed to append event: event-class-name=\"%s\", event-name=\"%s\"",
+				bt_ctf_event_class_get_name(event_class),
+				event_name);
 		goto error;
 	}
 

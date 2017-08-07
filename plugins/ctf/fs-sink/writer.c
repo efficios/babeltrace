@@ -26,6 +26,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-CTF-FS-SINK-WRITER"
+#include "logging.h"
+
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/graph/connection.h>
@@ -335,8 +338,7 @@ enum bt_component_status writer_component_init(
 
 	value = bt_value_map_get(params, "path");
 	if (!value || bt_value_is_null(value) || !bt_value_is_string(value)) {
-		fprintf(writer_component->err,
-				"[error] output path parameter required\n");
+		BT_LOGE_STR("Missing mandatory \"path\" parameter.");
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto error;
 	}
