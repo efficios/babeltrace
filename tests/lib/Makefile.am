@@ -51,24 +51,6 @@ test_bt_notification_iterator_SOURCES = test_bt_notification_iterator.c
 
 check_SCRIPTS = test_ctf_writer_complete
 
-#FIXME
-#if ENABLE_DEBUG_INFO
-#test_dwarf_LDFLAGS = -static
-#test_dwarf_LDADD = $(LIBTAP) \
-#	$(top_builddir)/lib/libbabeltrace.la \
-#	$(top_builddir)/lib/libdebug-info.la
-#test_dwarf_SOURCES = test_dwarf.c
-
-#test_bin_info_LDFLAGS = -static
-#test_bin_info_LDADD = $(LIBTAP) \
-#	$(top_builddir)/lib/libbabeltrace.la \
-#	$(top_builddir)/lib/libdebug-info.la
-#test_bin_info_SOURCES = test_bin_info.c
-
-#noinst_PROGRAMS += test_dwarf test_bin_info
-#check_SCRIPTS += test_dwarf_complete test_bin_info_complete
-#endif
-
 LOG_DRIVER_FLAGS='--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
@@ -82,11 +64,6 @@ TESTS = test_bitfield \
 	test_graph_topo \
 	test_cc_prio_map \
 	test_bt_notification_iterator
-
-if ENABLE_DEBUG_INFO
-TESTS += test_dwarf_complete \
-	test_bin_info_complete
-endif
 
 if ENABLE_PYTHON_BINDINGS
 TESTS +=
