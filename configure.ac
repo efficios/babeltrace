@@ -626,6 +626,30 @@ AC_SUBST(AM_CPPFLAGS)
 # Add glib to global link libs
 LIBS="$LIBS $GLIB_LIBS"
 
+# Check that the current size_t matches the size that glib thinks it should
+# be. This catches problems on multi-arch where people try to do a 32-bit
+# build while pointing at 64-bit glib headers. This is a common error because
+# glib.h is not platform specific but it includes glibconfig.h which is and
+# is usually installed in a non-standard path.
+
+save_CFLAGS=${CFLAGS}
+CFLAGS="${CFLAGS} ${AM_CFLAGS}"
+AC_COMPILE_IFELSE([
+  AC_LANG_PROGRAM([dnl
+#include <glib.h>
+#include <unistd.h>
+  ], [dnl
+G_STATIC_ASSERT(sizeof(size_t) == GLIB_SIZEOF_SIZE_T);
+  ])
+],[:],[
+  AC_MSG_ERROR([dnl
+sizeof(size_t) doesn't match GLIB_SIZEOF_SIZE_T. You probably need to set
+PKG_CONFIG_LIBDIR to point to the right pkg-config files for your build
+target.
+  ])
+])
+CFLAGS=${save_CFLAGS}
+
 # Abuse autoconf's AC_ARG_PROGRAM output variable 'program_transform_name'
 # to rename babeltrace.bin to babeltrace at install time.
 program_transform_name="s&babeltrace\.bin&babeltrace&;s&babeltrace-log\.bin&babeltrace-log&;$program_transform_name"
