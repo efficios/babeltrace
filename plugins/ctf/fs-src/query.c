@@ -65,24 +65,21 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 	}
 
 	if (!bt_value_is_map(params)) {
-		fprintf(stderr,
-			"Query parameters is not a map value object\n");
+		BT_LOGE_STR("Query parameters is not a map value object.");
 		goto error;
 	}
 
 	path_value = bt_value_map_get(params, "path");
 	ret = bt_value_string_get(path_value, &path);
 	if (ret) {
-		fprintf(stderr,
-			"Cannot get `path` string parameter\n");
+		BT_LOGE_STR("Cannot get `path` string parameter.");
 		goto error;
 	}
 
 	assert(path);
 	metadata_fp = ctf_fs_metadata_open_file(path);
 	if (!metadata_fp) {
-		fprintf(stderr,
-			"Cannot open trace at path `%s`\n", path);
+		BT_LOGE("Cannot open trace metadata: path=\"%s\".", path);
 		goto error;
 	}
 
@@ -93,8 +90,8 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 		ret = ctf_metadata_decoder_packetized_file_stream_to_buf(
 			metadata_fp, &metadata_text, bo);
 		if (ret) {
-			fprintf(stderr,
-				"Cannot decode packetized metadata file\n");
+			BT_LOGE("Cannot decode packetized metadata file: path=\"%s\"",
+				path);
 			goto error;
 		}
 	} else {
@@ -102,25 +99,26 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 
 		ret = fseek(metadata_fp, 0, SEEK_END);
 		if (ret) {
-			fprintf(stderr, "Error in fseek: %s", strerror(errno));
+			BT_LOGE_ERRNO("Failed to seek to the end of the metadata file",
+				": path=\"%s\"", path);
 			goto error;
 		}
 		filesize = ftell(metadata_fp);
 		if (filesize < 0) {
-			fprintf(stderr, "Error in ftell: %s", strerror(errno));
+			BT_LOGE_ERRNO("Failed to get the current position in the metadata file",
+				": path=\"%s\"", path);
 			goto error;
 		}
 		rewind(metadata_fp);
 		metadata_text = malloc(filesize + 1);
 		if (!metadata_text) {
-			fprintf(stderr,
-				"Cannot allocate buffer for metadata text\n");
+			BT_LOGE_STR("Cannot allocate buffer for metadata text.");
 			goto error;
 		}
 
 		if (fread(metadata_text, filesize, 1, metadata_fp) != 1) {
-			fprintf(stderr,
-				"Cannot read metadata file\n");
+			BT_LOGE_ERRNO("Cannot read metadata file", ": path=\"%s\"",
+				path);
 			goto error;
 		}
 
@@ -143,14 +141,14 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 	ret = bt_value_map_insert_string(result, "text",
 		g_metadata_text->str);
 	if (ret) {
-		fprintf(stderr, "Cannot insert metadata text into result\n");
+		BT_LOGE_STR("Cannot insert metadata text into query result.");
 		goto error;
 	}
 
 	ret = bt_value_map_insert_bool(result, "is-packetized",
 		is_packetized);
 	if (ret) {
-		fprintf(stderr, "Cannot insert is packetized into result\n");
+		BT_LOGE_STR("Cannot insert \"is-packetized\" attribute into query result.");
 		goto error;
 	}
 
