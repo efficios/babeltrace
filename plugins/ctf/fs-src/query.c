@@ -170,6 +170,7 @@ end:
 	}
 	return result;
 }
+
 static
 int add_range(struct bt_value *info, struct range *range,
 		const char *range_name)
