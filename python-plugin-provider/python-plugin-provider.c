@@ -99,8 +99,12 @@ void init_python(void)
 	}
 
 	if (!Py_IsInitialized()) {
+		BT_LOGI_STR("Python interpreter is not initialized: initializing Python interpreter.");
 		Py_InitializeEx(0);
 		BT_LOGI("Initialized Python interpreter: version=\"%s\"",
+			Py_GetVersion());
+	} else {
+		BT_LOGI("Python interpreter is already initialized: version=\"%s\"",
 			Py_GetVersion());
 	}
 
