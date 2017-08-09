@@ -1,0 +1,13 @@
+#!/bin/sh
+
+export PYTHON_PLUGIN_PROVIDER_TEST_PLUGIN_PATH="@abs_top_srcdir@/tests/python-plugin-provider/bt_plugin_test_python_plugin_provider.py"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:@abs_top_builddir@/python-plugin-provider:@abs_top_builddir@/python-plugin-provider/.libs"
+PYTHON_BUILD_DIR="@abs_top_builddir@/bindings/python"
+BT2_NATIVE_LIBS_DIR="@abs_top_builddir@/bindings/python/bt2/.libs"
+TESTS_UTILS_PYTHON_DIR="@abs_top_srcdir@/tests/utils/python"
+TESTRUNNER_PY="@abs_top_srcdir@/tests/utils/python/testrunner.py"
+THIS_DIR="@abs_top_srcdir@/tests/python-plugin-provider"
+
+PYTHONPATH="$PYTHON_BUILD_DIR:$BT2_NATIVE_LIBS_DIR:$TESTS_UTILS_PYTHON_DIR" \
+	"@PYTHON@" "$TESTRUNNER_PY" "$THIS_DIR"
+exit $?

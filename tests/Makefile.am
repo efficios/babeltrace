@@ -7,3 +7,7 @@ EXTRA_DIST = $(srcdir)/ctf-traces/** \
 if !ENABLE_BUILT_IN_PLUGINS
 SUBDIRS += plugins
 endif
+
+if ENABLE_PYTHON_PLUGINS
+SUBDIRS += python-plugin-provider
+endif

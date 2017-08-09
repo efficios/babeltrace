@@ -667,6 +667,7 @@ AC_CONFIG_FILES([
 	tests/bindings/python/Makefile
 	tests/bindings/python/bt2/Makefile
 	tests/plugins/Makefile
+	tests/python-plugin-provider/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 	plugins/Makefile
@@ -712,6 +713,10 @@ AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugi
 
 AS_IF([test "x$enable_python_bindings_tests" = xyes],
   [AC_CONFIG_FILES([tests/bindings/python/bt2/testall.sh], [chmod +x tests/bindings/python/bt2/testall.sh])]
+)
+
+AS_IF([test "x$enable_python_plugins" = "xyes"],
+  [AC_CONFIG_FILES([tests/python-plugin-provider/test.sh], [chmod +x tests/python-plugin-provider/test.sh])]
 )
 
 AC_OUTPUT
