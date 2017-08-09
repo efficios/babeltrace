@@ -71,8 +71,8 @@ void init_python_plugin_provider(void) {
 	python_plugin_provider_module =
 		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME, 0);
 	if (!python_plugin_provider_module) {
-		BT_LOGI("Cannot find `%s`: continuing without Python plugin support.",
-			PYTHON_PLUGIN_PROVIDER_FILENAME);
+		BT_LOGI("Cannot open `%s`: %s: continuing without Python plugin support.",
+			PYTHON_PLUGIN_PROVIDER_FILENAME, g_module_error());
 		return;
 	}
 
