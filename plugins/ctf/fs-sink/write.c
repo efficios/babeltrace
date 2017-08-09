@@ -166,12 +166,13 @@ enum fs_writer_stream_state *insert_new_stream_state(
 
 	v = g_new0(enum fs_writer_stream_state, 1);
 	if (!v) {
-		BT_LOGE_STR("Failed to allocate writer_stream_state.");
+		BT_LOGE_STR("Failed to allocate fs_writer_stream_state.");
+		goto end;
 	}
 	*v = FS_WRITER_UNKNOWN_STREAM;
 
 	g_hash_table_insert(fs_writer->stream_states, stream, v);
-
+end:
 	return v;
 }
 
