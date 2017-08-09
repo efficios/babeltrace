@@ -32,6 +32,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/values.h>
+#include <glib.h>
 #include <unistd.h>
 #include <babeltrace/compat/stdlib-internal.h>
 #include <stdio.h>
@@ -91,7 +92,7 @@ static
 void validate_trace(char *parser_path, char *trace_path)
 {
 	int ret = 0;
-	char babeltrace_output_path[] = "/tmp/babeltrace_output_XXXXXX";
+	gchar *babeltrace_output_path;
 	int babeltrace_output_fd = -1;
 
 	if (!trace_path) {
@@ -99,8 +100,10 @@ void validate_trace(char *parser_path, char *trace_path)
 		goto result;
 	}
 
-	babeltrace_output_fd = mkstemp(babeltrace_output_path);
+	babeltrace_output_fd = g_file_open_tmp("babeltrace_output_XXXXXX",
+			&babeltrace_output_path, NULL);
 	unlink(babeltrace_output_path);
+	g_free(babeltrace_output_path);
 
 	if (babeltrace_output_fd == -1) {
 		diag("Failed to create a temporary file for trace parsing.");
@@ -2431,7 +2434,7 @@ static
 void test_create_writer_vs_non_writer_mode(void)
 {
 	int ret;
-	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
+	gchar *trace_path;
 	const char *writer_stream_name = "writer stream instance";
 	struct bt_ctf_writer *writer = NULL;
 	struct bt_ctf_trace *writer_trace = NULL;
@@ -2454,6 +2457,7 @@ void test_create_writer_vs_non_writer_mode(void)
 	struct bt_ctf_packet *packet = NULL;
 	struct bt_ctf_packet *packet2 = NULL;
 
+	trace_path = g_build_filename(g_get_tmp_dir(), "ctfwriter_XXXXXX", NULL);
 	if (!bt_mkdtemp(trace_path)) {
 		perror("# perror");
 	}
@@ -2623,6 +2627,7 @@ void test_create_writer_vs_non_writer_mode(void)
 	bt_put(packet);
 	bt_put(packet2);
 	recursive_rmdir(trace_path);
+	g_free(trace_path);
 }
 
 static
@@ -2831,8 +2836,8 @@ void test_trace_uuid(void)
 int main(int argc, char **argv)
 {
 	const char *env_resize_length;
-	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
-	char metadata_path[sizeof(trace_path) + 9];
+	gchar *trace_path;
+	gchar *metadata_path;
 	const char *clock_name = "test_clock";
 	const char *clock_description = "This is a test clock";
 	const char *returned_clock_name;
@@ -2883,12 +2888,12 @@ int main(int argc, char **argv)
 
 	plan_tests(NR_TESTS);
 
+	trace_path = g_build_filename(g_get_tmp_dir(), "ctfwriter_XXXXXX", NULL);
 	if (!bt_mkdtemp(trace_path)) {
 		perror("# perror");
 	}
 
-	strcpy(metadata_path, trace_path);
-	strcat(metadata_path + sizeof(trace_path) - 1, "/metadata");
+	metadata_path = g_build_filename(trace_path, "metadata", NULL);
 
 	writer = bt_ctf_writer_create(trace_path);
 	ok(writer, "bt_ctf_create succeeds in creating trace with path");
@@ -3513,6 +3518,9 @@ int main(int argc, char **argv)
 
 	validate_trace(argv[1], trace_path);
 
-	//recursive_rmdir(trace_path);
+	recursive_rmdir(trace_path);
+	g_free(trace_path);
+	g_free(metadata_path);
+
 	return 0;
 }
