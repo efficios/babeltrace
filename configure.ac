@@ -262,7 +262,6 @@ AC_CHECK_FUNCS([ \
 	dup2 \
 	ftruncate \
 	gethostbyname \
-	gethostname \
 	gettimeofday \
 	localtime_r \
 	memchr \
@@ -283,7 +282,6 @@ AC_CHECK_FUNCS([ \
 	strtoul \
 	strtoull \
 	tzset \
-	uname \
 ])
 
 # AC_FUNC_MALLOC causes problems when cross-compiling.

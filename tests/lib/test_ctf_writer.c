@@ -36,7 +36,6 @@
 #include <unistd.h>
 #include <babeltrace/compat/stdlib-internal.h>
 #include <stdio.h>
-#include <babeltrace/compat/utsname-internal.h>
 #include <babeltrace/compat/limits-internal.h>
 #include <babeltrace/compat/stdio-internal.h>
 #include <string.h>
@@ -62,6 +61,14 @@
 #define DEFAULT_CLOCK_VALUE 0
 
 #define NR_TESTS 623
+
+struct bt_utsname {
+	char sysname[BABELTRACE_HOST_NAME_MAX];
+	char nodename[BABELTRACE_HOST_NAME_MAX];
+	char release[BABELTRACE_HOST_NAME_MAX];
+	char version[BABELTRACE_HOST_NAME_MAX];
+	char machine[BABELTRACE_HOST_NAME_MAX];
+};
 
 static int64_t current_time = 42;
 static unsigned int packet_resize_test_length = PACKET_RESIZE_TEST_DEF_LENGTH;
@@ -2851,8 +2858,8 @@ int main(int argc, char **argv)
 	const int is_absolute = 0xFF;
 	char *metadata_string;
 	struct bt_ctf_writer *writer;
-	struct utsname name;
-	char hostname[BABELTRACE_HOST_NAME_MAX];
+	struct bt_utsname name = {"GNU/Linux", "testhost", "4.4.0-87-generic",
+		"#110-Ubuntu SMP Tue Jul 18 12:55:35 UTC 2017", "x86_64"};
 	struct bt_ctf_clock *clock, *ret_clock;
 	struct bt_ctf_clock_class *ret_clock_class;
 	struct bt_ctf_stream_class *stream_class, *ret_stream_class;
@@ -2913,13 +2920,9 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_get_native_byte_order returns a correct endianness");
 
 	/* Add environment context to the trace */
-	ret = gethostname(hostname, sizeof(hostname));
-	if (ret < 0) {
-		return ret;
-	}
-	ok(bt_ctf_writer_add_environment_field(writer, "host", hostname) == 0,
+	ok(bt_ctf_writer_add_environment_field(writer, "host", name.nodename) == 0,
 		"Add host (%s) environment field to writer instance",
-		hostname);
+		name.nodename);
 	ok(bt_ctf_writer_add_environment_field(NULL, "test_field",
 		"test_value"),
 		"bt_ctf_writer_add_environment_field error with NULL writer");
@@ -3042,12 +3045,6 @@ int main(int argc, char **argv)
 	ok(!ret && ret_int64_t == 654321,
 		"bt_ctf_trace_get_environment_field_value successfully replaces an existing field");
 	BT_PUT(obj);
-
-	/* On Solaris, uname() can return any positive value on success */
-	if (uname(&name) < 0) {
-		perror("uname");
-		return -1;
-	}
 
 	ok(bt_ctf_writer_add_environment_field(writer, "sysname", name.sysname)
 		== 0, "Add sysname (%s) environment field to writer instance",
