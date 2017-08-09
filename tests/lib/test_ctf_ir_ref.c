@@ -567,12 +567,13 @@ static void test_example_scenario(void)
 
 static void create_user_full(struct user *user)
 {
-	char trace_path[] = "/tmp/ctfwriter_XXXXXX";
+	gchar *trace_path;
 	struct bt_ctf_field_type *ft;
 	struct bt_ctf_field *field;
 	struct bt_ctf_clock *clock;
 	int ret;
 
+	trace_path = g_build_filename(g_get_tmp_dir(), "ctfwriter_XXXXXX", NULL);
 	if (!bt_mkdtemp(trace_path)) {
 		perror("# perror");
 	}
@@ -624,6 +625,7 @@ static void create_user_full(struct user *user)
 	ret = bt_ctf_stream_append_event(user->stream, user->event);
 	assert(!ret);
 	recursive_rmdir(trace_path);
+	g_free(trace_path);
 }
 
 static void test_put_order_swap(size_t *array, size_t a, size_t b)
