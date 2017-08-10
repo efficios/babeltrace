@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@ from bt2 import native_bt, object, utils
 import bt2.field_types
 import collections.abc
 import bt2.values
+import bt2.stream
 import copy
 import bt2
 
@@ -37,17 +38,35 @@ class _StreamClassIterator(collections.abc.Iterator):
         if self._at == len(self._trace):
             raise StopIteration
 
-        sc_ptr = native_bt.ctf_trace_get_stream_class(self._trace._ptr,
-                                                      self._at)
-        utils._handle_ptr(sc_ptr, "cannot get trace class object's stream class object")
+        sc_ptr = native_bt.ctf_trace_get_stream_class_by_index(self._trace._ptr,
+                                                               self._at)
+        assert(sc_ptr)
         id = native_bt.ctf_stream_class_get_id(sc_ptr)
         native_bt.put(sc_ptr)
-
-        if utils._is_m1ull(id):
-            raise bt2.Error("cannot get stream class object's ID")
-
+        assert(id >= 0)
         self._at += 1
         return id
+
+
+class _TraceStreams(collections.abc.Sequence):
+    def __init__(self, trace):
+        self._trace = trace
+
+    def __len__(self):
+        count = native_bt.ctf_trace_get_stream_count(self._trace._ptr)
+        assert(count >= 0)
+        return count
+
+    def __getitem__(self, index):
+        utils._check_uint64(index)
+
+        if index >= len(self):
+            raise IndexError
+
+        stream_ptr = native_bt.ctf_trace_get_stream_by_index(self._trace._ptr,
+                                                             index)
+        assert(stream_ptr)
+        return bt2.stream._create_from_ptr(stream_ptr)
 
 
 class _TraceClockClassesIterator(collections.abc.Iterator):
@@ -60,11 +79,11 @@ class _TraceClockClassesIterator(collections.abc.Iterator):
             raise StopIteration
 
         trace_ptr = self._trace_clock_classes._trace._ptr
-        cc_ptr = native_bt.ctf_trace_get_clock_class(trace_ptr, self._at)
-        utils._handle_ptr(cc_ptr, "cannot get trace class object's clock class")
+        cc_ptr = native_bt.ctf_trace_get_clock_class_by_index(trace_ptr, self._at)
+        assert(cc_ptr)
         name = native_bt.ctf_clock_class_get_name(cc_ptr)
         native_bt.put(cc_ptr)
-        utils._handle_ptr(name, "cannot get clock class object's name")
+        assert(name is not None)
         self._at += 1
         return name
 
@@ -85,7 +104,7 @@ class _TraceClockClasses(collections.abc.Mapping):
 
     def __len__(self):
         count = native_bt.ctf_trace_get_clock_class_count(self._trace._ptr)
-        utils._handle_ret(count, "cannot get trace class object's clock class count")
+        assert(count >= 0)
         return count
 
     def __iter__(self):
@@ -102,9 +121,9 @@ class _TraceEnvIterator(collections.abc.Iterator):
             raise StopIteration
 
         trace_ptr = self._trace_env._trace._ptr
-        entry_name = native_bt.ctf_trace_get_environment_field_name(trace_ptr,
-                                                                    self._at)
-        utils._handle_ptr(entry_name, "cannot get trace class object's environment entry name")
+        entry_name = native_bt.ctf_trace_get_environment_field_name_by_index(trace_ptr,
+                                                                             self._at)
+        assert(entry_name is not None)
         self._at += 1
         return entry_name
 
@@ -135,7 +154,7 @@ class _TraceEnv(collections.abc.MutableMapping):
 
     def __len__(self):
         count = native_bt.ctf_trace_get_environment_field_count(self._trace._ptr)
-        utils._handle_ret(count, "cannot get trace class object's environment entry count")
+        assert(count >= 0)
         return count
 
     def __iter__(self):
@@ -185,7 +204,7 @@ class Trace(object._Object, collections.abc.Mapping):
 
     def __len__(self):
         count = native_bt.ctf_trace_get_stream_class_count(self._ptr)
-        utils._handle_ret(count, "cannot get trace class object's stream class count")
+        assert(count >= 0)
         return count
 
     def __iter__(self):
@@ -208,15 +227,24 @@ class Trace(object._Object, collections.abc.Mapping):
 
     @property
     def native_byte_order(self):
-        bo = native_bt.ctf_trace_get_byte_order(self._ptr)
-        utils._handle_ret(bo, "cannot get trace class object's native byte order")
+        bo = native_bt.ctf_trace_get_native_byte_order(self._ptr)
+        assert(bo >= 0)
         return bo
 
     @native_byte_order.setter
     def native_byte_order(self, native_byte_order):
         utils._check_int(native_byte_order)
-        ret = native_bt.ctf_trace_set_byte_order(self._ptr, native_byte_order)
+        ret = native_bt.ctf_trace_set_native_byte_order(self._ptr, native_byte_order)
         utils._handle_ret(ret, "cannot set trace class object's native byte order")
+
+    @property
+    def is_static(self):
+        is_static = native_bt.ctf_trace_is_static(self._ptr)
+        return is_static > 0
+
+    def set_is_static(self):
+        ret = native_bt.ctf_trace_set_is_static(self._ptr)
+        utils._handle_ret(ret, "cannot set trace object as static")
 
     @property
     def env(self):
@@ -230,6 +258,10 @@ class Trace(object._Object, collections.abc.Mapping):
         utils._check_type(clock_class, bt2.ClockClass)
         ret = native_bt.ctf_trace_add_clock_class(self._ptr, clock_class._ptr)
         utils._handle_ret(ret, "cannot add clock class object to trace class object")
+
+    @property
+    def streams(self):
+        return _TraceStreams(self)
 
     @property
     def packet_header_field_type(self):

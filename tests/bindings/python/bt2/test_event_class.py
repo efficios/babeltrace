@@ -13,14 +13,23 @@ class EventClassTestCase(unittest.TestCase):
         self._payload_ft.append_field('zoom', bt2.StringFieldType())
         self._ec = bt2.EventClass('my_event')
         self._ec.id = 18
+        self._ec.emf_uri = 'yes'
+        self._ec.log_level = bt2.EventClassLogLevel.INFO
         self._ec.context_field_type = self._context_ft
         self._ec.payload_field_type = self._payload_ft
+
+    def tearDown(self):
+        del self._context_ft
+        del self._payload_ft
+        del self._ec
 
     def test_create(self):
         self.assertEqual(self._ec.name, 'my_event')
         self.assertEqual(self._ec.id, 18)
         self.assertEqual(self._ec.context_field_type, self._context_ft)
         self.assertEqual(self._ec.payload_field_type, self._payload_ft)
+        self.assertEqual(self._ec.emf_uri, 'yes')
+        self.assertEqual(self._ec.log_level, bt2.EventClassLogLevel.INFO)
 
     def test_create_invalid_no_name(self):
         with self.assertRaises(TypeError):
@@ -30,12 +39,14 @@ class EventClassTestCase(unittest.TestCase):
         ec = bt2.EventClass(name='name', id=23,
                             context_field_type=self._context_ft,
                             payload_field_type=self._payload_ft,
-                            attributes={'model.emf.uri': 'my URI'})
+                            emf_uri='my URI',
+                            log_level=bt2.EventClassLogLevel.WARNING)
         self.assertEqual(ec.name, 'name')
         self.assertEqual(ec.id, 23)
         self.assertEqual(ec.context_field_type, self._context_ft)
         self.assertEqual(ec.payload_field_type, self._payload_ft)
-        self.assertEqual(ec.attributes['model.emf.uri'], 'my URI')
+        self.assertEqual(ec.emf_uri, 'my URI')
+        self.assertEqual(ec.log_level, bt2.EventClassLogLevel.WARNING)
 
     def test_assign_id(self):
         self._ec.id = 1717
@@ -94,90 +105,111 @@ class EventClassTestCase(unittest.TestCase):
         self.assertNotEqual(self._ec.context_field_type.addr, cpy.context_field_type.addr)
         self.assertNotEqual(self._ec.payload_field_type.addr, cpy.payload_field_type.addr)
 
-    def test_attr_getitem(self):
-        self.assertEqual(self._ec.attributes['id'], 18)
-        self.assertEqual(self._ec.attributes['name'], 'my_event')
+    def test_assign_emf_uri(self):
+        self._ec.emf_uri = 'salut'
+        self.assertEqual(self._ec.emf_uri, 'salut')
 
-    def test_attr_setitem(self):
-        self._ec.attributes['model.emf.uri'] = 'my url'
-        self.assertEqual(self._ec.attributes['model.emf.uri'], 'my url')
+    def test_assign_invalid_emf_uri(self):
+        with self.assertRaises(TypeError):
+            self._ec.emf_uri = 23
 
-    def test_attr_len(self):
-        self.assertTrue(len(self._ec.attributes) != 0)
+    def test_assign_log_level(self):
+        self._ec.log_level = bt2.EventClassLogLevel.EMERGENCY
+        self.assertEqual(self._ec.log_level, bt2.EventClassLogLevel.EMERGENCY)
 
-    def test_attr_iter(self):
-        for name, value in self._ec.attributes.items():
-            self.assertIsInstance(value, values._Value)
-
-            if name == 'name':
-                self.assertEqual(value, 'my_event')
-            elif name == 'id':
-                self.assertEqual(value, 18)
+    def test_assign_invalid_log_level(self):
+        with self.assertRaises(ValueError):
+            self._ec.log_level = 'zoom'
 
     def test_eq(self):
         ec1 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         ec2 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         self.assertEqual(ec1, ec2)
 
     def test_ne_name(self):
         ec1 = bt2.EventClass(name='name1', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         ec2 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         self.assertNotEqual(ec1, ec2)
 
     def test_ne_id(self):
         ec1 = bt2.EventClass(name='name', id=24,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         ec2 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         self.assertNotEqual(ec1, ec2)
 
     def test_ne_context_field_type(self):
         ec1 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._payload_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         ec2 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         self.assertNotEqual(ec1, ec2)
 
     def test_ne_payload_field_type(self):
         ec1 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._context_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         ec2 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         self.assertNotEqual(ec1, ec2)
 
-    def test_ne_attribute(self):
+    def test_ne_emf_uri(self):
         ec1 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my URI'})
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
         ec2 = bt2.EventClass(name='name', id=23,
                              context_field_type=self._context_ft,
                              payload_field_type=self._payload_ft,
-                             attributes={'model.emf.uri': 'my UR'})
+                             emf_uri='my UR',
+                             log_level=bt2.EventClassLogLevel.WARNING)
+        self.assertNotEqual(ec1, ec2)
+
+    def test_ne_log_level(self):
+        ec1 = bt2.EventClass(name='name', id=23,
+                             context_field_type=self._context_ft,
+                             payload_field_type=self._payload_ft,
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.WARNING)
+        ec2 = bt2.EventClass(name='name', id=23,
+                             context_field_type=self._context_ft,
+                             payload_field_type=self._payload_ft,
+                             emf_uri='my URI',
+                             log_level=bt2.EventClassLogLevel.ERROR)
         self.assertNotEqual(ec1, ec2)
 
     def test_eq_invalid(self):

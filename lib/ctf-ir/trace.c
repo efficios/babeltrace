@@ -64,6 +64,7 @@ struct listener_wrapper {
 
 struct bt_ctf_trace_is_static_listener_elem {
 	bt_ctf_trace_is_static_listener func;
+	bt_ctf_trace_listener_removed removed;
 	void *data;
 };
 
@@ -273,6 +274,30 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying trace object: addr=%p, name=\"%s\"",
 		trace, bt_ctf_trace_get_name(trace));
 
+	/*
+	 * Call remove listeners first so that everything else still
+	 * exists in the trace.
+	 */
+	if (trace->is_static_listeners) {
+		size_t i;
+
+		for (i = 0; i < trace->is_static_listeners->len; i++) {
+			struct bt_ctf_trace_is_static_listener_elem elem =
+				g_array_index(trace->is_static_listeners,
+					struct bt_ctf_trace_is_static_listener_elem, i);
+
+			if (elem.removed) {
+				elem.removed(trace, elem.data);
+			}
+		}
+
+		g_array_free(trace->is_static_listeners, TRUE);
+	}
+
+	if (trace->listeners) {
+		g_ptr_array_free(trace->listeners, TRUE);
+	}
+
 	if (trace->environment) {
 		BT_LOGD_STR("Destroying environment attributes.");
 		bt_ctf_attributes_destroy(trace->environment);
@@ -295,14 +320,6 @@ void bt_ctf_trace_destroy(struct bt_object *obj)
 	if (trace->stream_classes) {
 		BT_LOGD_STR("Destroying stream classes.");
 		g_ptr_array_free(trace->stream_classes, TRUE);
-	}
-
-	if (trace->listeners) {
-		g_ptr_array_free(trace->listeners, TRUE);
-	}
-
-	if (trace->is_static_listeners) {
-		g_array_free(trace->is_static_listeners, TRUE);
 	}
 
 	BT_LOGD_STR("Putting packet header field type.");
@@ -2166,11 +2183,13 @@ end:
 }
 
 int bt_ctf_trace_add_is_static_listener(struct bt_ctf_trace *trace,
-		bt_ctf_trace_is_static_listener listener, void *data)
+		bt_ctf_trace_is_static_listener listener,
+		bt_ctf_trace_listener_removed listener_removed, void *data)
 {
 	int i;
 	struct bt_ctf_trace_is_static_listener_elem new_elem = {
 		.func = listener,
+		.removed = listener_removed,
 		.data = data,
 	};
 
@@ -2188,6 +2207,14 @@ int bt_ctf_trace_add_is_static_listener(struct bt_ctf_trace *trace,
 
 	if (trace->is_static) {
 		BT_LOGW("Invalid parameter: trace is already static: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_ctf_trace_get_name(trace));
+		i = -1;
+		goto end;
+	}
+
+	if (trace->in_remove_listener) {
+		BT_LOGW("Cannot call this function during the execution of a remove listener: "
 			"addr=%p, name=\"%s\"",
 			trace, bt_ctf_trace_get_name(trace));
 		i = -1;
@@ -2232,6 +2259,15 @@ int bt_ctf_trace_remove_is_static_listener(
 		goto end;
 	}
 
+	if (trace->in_remove_listener) {
+		BT_LOGW("Cannot call this function during the execution of a remove listener: "
+			"addr=%p, name=\"%s\", listener-id=%d",
+			trace, bt_ctf_trace_get_name(trace),
+			listener_id);
+		ret = -1;
+		goto end;
+	}
+
 	if (listener_id < 0) {
 		BT_LOGW("Invalid listener ID: must be zero or positive: "
 			"listener-id=%d", listener_id);
@@ -2260,7 +2296,19 @@ int bt_ctf_trace_remove_is_static_listener(
 		goto end;
 	}
 
+	if (elem->removed) {
+		/* Call remove listener */
+		BT_LOGV("Calling remove listener: "
+			"trace-addr=%p, trace-name=\"%s\", "
+			"listener-id=%d", trace, bt_ctf_trace_get_name(trace),
+			listener_id);
+		trace->in_remove_listener = BT_TRUE;
+		elem->removed(trace, elem->data);
+		trace->in_remove_listener = BT_FALSE;
+	}
+
 	elem->func = NULL;
+	elem->removed = NULL;
 	elem->data = NULL;
 	BT_LOGV("Removed \"trace is static\" listener: "
 		"trace-addr=%p, trace-name=\"%s\", "

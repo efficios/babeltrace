@@ -22,14 +22,12 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/ctf-ir/stream-class.h>
-%}
-
 /* Type */
 struct bt_ctf_stream_class;
 
 /* Functions */
+struct bt_ctf_stream_class *bt_ctf_stream_class_create_empty(
+		const char *name);
 struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		struct bt_ctf_stream_class *stream_class);
@@ -40,7 +38,7 @@ int bt_ctf_stream_class_set_name(
 int64_t bt_ctf_stream_class_get_id(
 		struct bt_ctf_stream_class *stream_class);
 int bt_ctf_stream_class_set_id(
-		struct bt_ctf_stream_class *stream_class, uint32_t id);
+		struct bt_ctf_stream_class *stream_class, uint64_t id);
 struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 		struct bt_ctf_stream_class *stream_class);
 int bt_ctf_stream_class_set_packet_context_type(
@@ -58,14 +56,12 @@ bt_ctf_stream_class_get_event_context_type(
 int bt_ctf_stream_class_set_event_context_type(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_field_type *event_context_type);
-int bt_ctf_stream_class_get_event_class_count(
+int64_t bt_ctf_stream_class_get_event_class_count(
 		struct bt_ctf_stream_class *stream_class);
-struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class(
-		struct bt_ctf_stream_class *stream_class, int index);
-struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_name(
-		struct bt_ctf_stream_class *stream_class, const char *name);
+struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
+		struct bt_ctf_stream_class *stream_class, uint64_t index);
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
-		struct bt_ctf_stream_class *stream_class, uint32_t id);
+		struct bt_ctf_stream_class *stream_class, uint64_t id);
 int bt_ctf_stream_class_add_event_class(
 		struct bt_ctf_stream_class *stream_class,
 		struct bt_ctf_event_class *event_class);

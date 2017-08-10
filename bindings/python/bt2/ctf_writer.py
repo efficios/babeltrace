@@ -98,7 +98,7 @@ class CtfWriterClock(object._Object):
     @property
     def name(self):
         name = native_bt.ctf_clock_get_name(self._ptr)
-        utils._handle_ptr(name, "cannot get CTF writer clock object's name")
+        assert(name is not None)
         return name
 
     @property
@@ -115,10 +115,7 @@ class CtfWriterClock(object._Object):
     @property
     def frequency(self):
         frequency = native_bt.ctf_clock_get_frequency(self._ptr)
-
-        if utils._is_m1ull(frequency):
-            raise bt2.Error("cannot get CTF writer clock object's frequency")
-
+        assert(frequency >= 1)
         return frequency
 
     @frequency.setter
@@ -130,10 +127,7 @@ class CtfWriterClock(object._Object):
     @property
     def precision(self):
         precision = native_bt.ctf_clock_get_precision(self._ptr)
-
-        if utils._is_m1ull(precision):
-            raise bt2.Error("cannot get CTF writer clock object's precision")
-
+        assert(precision >= 0)
         return precision
 
     @precision.setter
@@ -145,9 +139,9 @@ class CtfWriterClock(object._Object):
     @property
     def offset(self):
         ret, offset_s = native_bt.ctf_clock_get_offset_s(self._ptr)
-        utils._handle_ret(ret, "cannot get CTF writer clock object's offset (seconds)")
+        assert(ret == 0)
         ret, offset_cycles = native_bt.ctf_clock_get_offset(self._ptr)
-        utils._handle_ret(ret, "cannot get CTF writer clock object's offset (cycles)")
+        assert(ret == 0)
         return bt2.ClockClassOffset(offset_s, offset_cycles)
 
     @offset.setter
@@ -161,7 +155,7 @@ class CtfWriterClock(object._Object):
     @property
     def is_absolute(self):
         is_absolute = native_bt.ctf_clock_get_is_absolute(self._ptr)
-        utils._handle_ret(is_absolute, "cannot get CTF writer clock object's absoluteness")
+        assert(is_absolute >= 0)
         return is_absolute > 0
 
     @is_absolute.setter
@@ -173,10 +167,7 @@ class CtfWriterClock(object._Object):
     @property
     def uuid(self):
         uuid_bytes = native_bt.ctf_clock_get_uuid(self._ptr)
-
-        if uuid_bytes is None:
-            raise bt2.Error("cannot get CTF writer clock object's UUID")
-
+        assert(uuid_bytes is not None)
         return uuidp.UUID(bytes=uuid_bytes)
 
     @uuid.setter
@@ -305,13 +296,13 @@ class CtfWriter(object._Object):
     @property
     def trace(self):
         trace_ptr = native_bt.ctf_writer_get_trace(self._ptr)
-        utils._handle_ptr(name, "cannot get CTF writer object's trace class")
+        assert(trace_ptr)
         return bt2.Trace._create_from_ptr(trace_ptr)
 
     @property
     def metadata_string(self):
         metadata_string = native_bt.ctf_writer_get_metadata_string(self._ptr)
-        utils._handle_ptr(metadata_string, "cannot get CTF writer object's metadata string")
+        assert(metadata_string is not None)
         return metadata_string
 
     def flush_metadata(self):

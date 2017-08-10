@@ -497,7 +497,7 @@ AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
 )
 
 
-# Check for conflicting optionnal features user choices
+# Check for conflicting optional features user choices
 
 AS_IF([test "x$enable_python_bindings" = xno],
   [
@@ -655,14 +655,11 @@ CFLAGS=${save_CFLAGS}
 program_transform_name="s&babeltrace\.bin&babeltrace&;s&babeltrace-log\.bin&babeltrace-log&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
-
-	#TODO: removed, work in progress
-	#bindings/python/Makefile
-	#bindings/python/babeltrace/Makefile
-	#bindings/python/bt2/Makefile
-	#bindings/python/bt2/__init__.py
 AC_CONFIG_FILES([
 	Makefile
+	bindings/python/Makefile
+	bindings/python/bt2/Makefile
+	bindings/python/bt2/__init__.py
 	common/Makefile
 	compat/Makefile
 	cli/Makefile
@@ -694,6 +691,7 @@ AC_CONFIG_FILES([
 	tests/bindings/python/Makefile
 	tests/bindings/python/bt2/Makefile
 	tests/plugins/Makefile
+	tests/python-plugin-provider/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 	plugins/Makefile
@@ -737,8 +735,12 @@ AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugi
 AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/test_dwarf_complete])
 AC_CONFIG_FILES([tests/plugins/test_bin_info_complete], [chmod +x tests/plugins/test_bin_info_complete])
 
-AS_IF([test "x$enable_python" = xyes],
+AS_IF([test "x$enable_python_bindings_tests" = xyes],
   [AC_CONFIG_FILES([tests/bindings/python/bt2/testall.sh], [chmod +x tests/bindings/python/bt2/testall.sh])]
+)
+
+AS_IF([test "x$enable_python_plugins" = "xyes"],
+  [AC_CONFIG_FILES([tests/python-plugin-provider/test.sh], [chmod +x tests/python-plugin-provider/test.sh])]
 )
 
 AC_OUTPUT

@@ -58,6 +58,8 @@ struct bt_graph {
 	GQueue *sinks_to_consume;
 
 	bt_bool canceled;
+	bt_bool in_remove_listener;
+	bt_bool has_sink;
 
 	struct {
 		GArray *port_added;

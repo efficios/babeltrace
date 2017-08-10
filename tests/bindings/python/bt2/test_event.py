@@ -9,6 +9,9 @@ class EventTestCase(unittest.TestCase):
     def setUp(self):
         self._ec = self._create_ec()
 
+    def tearDown(self):
+        del self._ec
+
     def _create_ec(self, with_eh=True, with_sec=True, with_ec=True, with_ep=True):
         # event header
         if with_eh:
@@ -164,19 +167,19 @@ class EventTestCase(unittest.TestCase):
     def test_clock_value(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev = self._ec()
-        ev.set_clock_value(cc.create_clock_value(177))
-        self.assertEqual(ev.get_clock_value(cc).cycles, 177)
+        ev.add_clock_value(cc(177))
+        self.assertEqual(ev.clock_value(cc).cycles, 177)
 
     def test_no_clock_value(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev = self._ec()
-        self.assertIsNone(ev.get_clock_value(cc))
+        self.assertIsNone(ev.clock_value(cc))
 
     def test_no_packet(self):
         ev = self._ec()
@@ -234,7 +237,7 @@ class EventTestCase(unittest.TestCase):
     def _get_full_ev(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev = self._ec()
         self._fill_ev(ev)
@@ -280,70 +283,70 @@ class EventTestCase(unittest.TestCase):
     def test_eq(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev1 = self._ec()
         self._fill_ev(ev1)
-        ev1.set_clock_value(cc.create_clock_value(234))
+        ev1.add_clock_value(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.set_clock_value(cc.create_clock_value(234))
+        ev2.add_clock_value(cc(234))
         self.assertEqual(ev1, ev2)
 
     def test_ne_header_field(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.header_field['id'] = 19
-        ev1.set_clock_value(cc.create_clock_value(234))
+        ev1.add_clock_value(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.set_clock_value(cc.create_clock_value(234))
+        ev2.add_clock_value(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_ne_stream_event_context_field(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.stream_event_context_field['cpu_id'] = 3
-        ev1.set_clock_value(cc.create_clock_value(234))
+        ev1.add_clock_value(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.set_clock_value(cc.create_clock_value(234))
+        ev2.add_clock_value(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_ne_context_field(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.context_field['ant'] = -3
-        ev1.set_clock_value(cc.create_clock_value(234))
+        ev1.add_clock_value(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.set_clock_value(cc.create_clock_value(234))
+        ev2.add_clock_value(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_ne_payload_field(self):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.payload_field['mosquito'] = 98
-        ev1.set_clock_value(cc.create_clock_value(234))
+        ev1.add_clock_value(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.set_clock_value(cc.create_clock_value(234))
+        ev2.add_clock_value(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_eq_invalid(self):
@@ -353,11 +356,11 @@ class EventTestCase(unittest.TestCase):
     def _test_copy(self, func):
         tc = bt2.Trace()
         tc.add_stream_class(self._ec.stream_class)
-        cc = bt2.ClockClass('hi')
+        cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev = self._ec()
         self._fill_ev(ev)
-        ev.set_clock_value(cc.create_clock_value(234))
+        ev.add_clock_value(cc(234))
         cpy = func(ev)
         self.assertIsNot(ev, cpy)
         self.assertNotEqual(ev.addr, cpy.addr)

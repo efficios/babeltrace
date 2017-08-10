@@ -14,5 +14,6 @@ libbabeltrace_python_plugin_provider_la_LIBADD =
 if !ENABLE_BUILT_IN_PLUGINS
 libbabeltrace_python_plugin_provider_la_LIBADD += \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
-	$(top_builddir)/common/libbabeltrace-common.la
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/lib/libbabeltrace.la
 endif

@@ -51,6 +51,7 @@ babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/clock-class-priority-map.h \
 	babeltrace/graph/component-class-filter.h \
+	babeltrace/graph/component-class-sink-colander.h \
 	babeltrace/graph/component-class-sink.h \
 	babeltrace/graph/component-class-source.h \
 	babeltrace/graph/component-class.h \

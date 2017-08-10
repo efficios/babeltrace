@@ -69,11 +69,10 @@ __attribute__((constructor)) static
 void init_python_plugin_provider(void) {
 	BT_LOGD_STR("Loading Python plugin provider module.");
 	python_plugin_provider_module =
-		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME,
-			G_MODULE_BIND_LOCAL);
+		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME, 0);
 	if (!python_plugin_provider_module) {
-		BT_LOGI("Cannot find `%s`: continuing without Python plugin support.",
-			PYTHON_PLUGIN_PROVIDER_FILENAME);
+		BT_LOGI("Cannot open `%s`: %s: continuing without Python plugin support.",
+			PYTHON_PLUGIN_PROVIDER_FILENAME, g_module_error());
 		return;
 	}
 

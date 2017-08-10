@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,11 +44,20 @@ class _Object:
     def __del__(self):
         ptr = getattr(self, '_ptr', None)
         native_bt.put(ptr)
+        self._ptr = None
 
     def __repr__(self):
         return '<{}.{} object @ {}>'.format(self.__class__.__module__,
                                             self.__class__.__name__,
                                             hex(self.addr))
+
+
+class _PrivateObject:
+    def __del__(self):
+        pub_ptr = getattr(self, '_pub_ptr', None)
+        native_bt.put(pub_ptr)
+        self._pub_ptr = None
+        super().__del__()
 
 
 class _Freezable(metaclass=abc.ABCMeta):

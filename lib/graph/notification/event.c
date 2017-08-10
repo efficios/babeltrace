@@ -174,11 +174,18 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 		goto error;
 	}
 
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		goto error;
+	if (cc_prio_map) {
+		/* Function's reference, released at the end */
+		bt_get(cc_prio_map);
+	} else {
+		cc_prio_map = bt_clock_class_priority_map_create();
+		if (!cc_prio_map) {
+			BT_LOGE_STR("Cannot create empty clock class priority map.");
+			goto error;
+		}
 	}
 
+	assert(cc_prio_map);
 	event_class = bt_ctf_event_borrow_event_class(event);
 	assert(event_class);
 	BT_LOGD("Creating event notification object: "
@@ -244,11 +251,14 @@ struct bt_notification *bt_notification_event_create(struct bt_ctf_event *event,
 		bt_ctf_event_class_get_name(event_class),
 		bt_ctf_event_class_get_id(event_class), cc_prio_map,
 		notification);
-	return &notification->parent;
+	goto end;
 
 error:
-	bt_put(notification);
-	return NULL;
+	BT_PUT(notification);
+
+end:
+	bt_put(cc_prio_map);
+	return &notification->parent;
 }
 
 struct bt_ctf_event *bt_notification_event_get_event(

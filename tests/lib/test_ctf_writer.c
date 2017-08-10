@@ -2720,7 +2720,13 @@ void test_static_trace(void)
 static
 void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
 {
-	*((int *) data) = 1;
+	*((int *) data) |= 1;
+}
+
+static
+void trace_listener_removed(struct bt_ctf_trace *trace, void *data)
+{
+	*((int *) data) |= 2;
 }
 
 static
@@ -2740,18 +2746,19 @@ void test_trace_is_static_listener(void)
 	trace = bt_ctf_trace_create();
 	assert(trace);
 	ret = bt_ctf_trace_add_is_static_listener(NULL,
-		trace_is_static_listener, &called1);
+		trace_is_static_listener, trace_listener_removed, &called1);
 	ok(ret < 0, "bt_ctf_trace_add_is_static_listener() handles NULL (trace)");
-	ret = bt_ctf_trace_add_is_static_listener(trace, NULL, &called1);
+	ret = bt_ctf_trace_add_is_static_listener(trace, NULL,
+		trace_listener_removed, &called1);
 	ok(ret < 0, "bt_ctf_trace_add_is_static_listener() handles NULL (listener)");
 	listener1_id = bt_ctf_trace_add_is_static_listener(trace,
-		trace_is_static_listener, &called1);
+		trace_is_static_listener, trace_listener_removed, &called1);
 	ok(listener1_id >= 0, "bt_ctf_trace_add_is_static_listener() succeeds (1)");
 	listener2_id = bt_ctf_trace_add_is_static_listener(trace,
-		trace_is_static_listener, &called2);
+		trace_is_static_listener, trace_listener_removed, &called2);
 	ok(listener2_id >= 0, "bt_ctf_trace_add_is_static_listener() succeeds (2)");
 	listener3_id = bt_ctf_trace_add_is_static_listener(trace,
-		trace_is_static_listener, &called3);
+		trace_is_static_listener, trace_listener_removed, &called3);
 	ok(listener3_id >= 0, "bt_ctf_trace_add_is_static_listener() succeeds (3)");
 	ret = bt_ctf_trace_remove_is_static_listener(NULL, 0);
 	ok(ret < 0, "bt_ctf_trace_remove_is_static_listener() handles NULL (trace)");
@@ -2761,21 +2768,22 @@ void test_trace_is_static_listener(void)
 	ok(ret < 0, "bt_ctf_trace_remove_is_static_listener() handles invalid ID (non existing)");
 	ret = bt_ctf_trace_remove_is_static_listener(trace, listener2_id);
 	ok(ret == 0, "bt_ctf_trace_remove_is_static_listener() succeeds");
+	ok(called2 == 2, "bt_ctf_trace_remove_is_static_listener() calls the remove listener");
 	listener4_id = bt_ctf_trace_add_is_static_listener(trace,
-		trace_is_static_listener, &called4);
+		trace_is_static_listener, NULL, &called4);
 	ok(listener4_id >= 0, "bt_ctf_trace_add_is_static_listener() succeeds (4)");
 	ok(called1 == 0, "\"trace is static\" listener not called before the trace is made static (1)");
-	ok(called2 == 0, "\"trace is static\" listener not called before the trace is made static (2)");
+	ok(called2 == 2, "\"trace is static\" listener not called before the trace is made static (2)");
 	ok(called3 == 0, "\"trace is static\" listener not called before the trace is made static (3)");
 	ok(called4 == 0, "\"trace is static\" listener not called before the trace is made static (4)");
 	ret = bt_ctf_trace_set_is_static(trace);
 	assert(ret == 0);
 	ret = bt_ctf_trace_add_is_static_listener(trace,
-		trace_is_static_listener, &called1);
+		trace_is_static_listener, trace_listener_removed, &called1);
 	ok(ret < 0,
 		"bt_ctf_trace_add_is_static_listener() fails when the trace is static");
 	ok(called1 == 1, "\"trace is static\" listener called when the trace is made static (1)");
-	ok(called2 == 0, "\"trace is static\" listener not called when the trace is made static (2)");
+	ok(called2 == 2, "\"trace is static\" listener not called when the trace is made static (2)");
 	ok(called3 == 1, "\"trace is static\" listener called when the trace is made static (3)");
 	ok(called4 == 1, "\"trace is static\" listener called when the trace is made static (4)");
 	called1 = 0;
@@ -2783,9 +2791,9 @@ void test_trace_is_static_listener(void)
 	called3 = 0;
 	called4 = 0;
 	bt_put(trace);
-	ok(called1 == 0, "\"trace is static\" listener not called after the trace is put (1)");
+	ok(called1 == 2, "\"trace is static\" listener not called after the trace is put (1)");
 	ok(called2 == 0, "\"trace is static\" listener not called after the trace is put (2)");
-	ok(called3 == 0, "\"trace is static\" listener not called after the trace is put (3)");
+	ok(called3 == 2, "\"trace is static\" listener not called after the trace is put (3)");
 	ok(called4 == 0, "\"trace is static\" listener not called after the trace is put (4)");
 }
 

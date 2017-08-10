@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,59 @@ __version__ = '@PACKAGE_VERSION@'
 
 
 from bt2.clock_class import *
+from bt2.clock_class import _ClockValue
+from bt2.clock_class_priority_map import *
 from bt2.component import *
+from bt2.component import _FilterComponent
+from bt2.component import _GenericFilterComponentClass
+from bt2.component import _GenericSinkComponentClass
+from bt2.component import _GenericSourceComponentClass
+from bt2.component import _SinkComponent
+from bt2.component import _SourceComponent
+from bt2.component import _UserFilterComponent
+from bt2.component import _UserSinkComponent
+from bt2.component import _UserSourceComponent
+from bt2.connection import *
+from bt2.connection import _Connection
+from bt2.connection import _PrivateConnection
 from bt2.ctf_writer import *
+from bt2.ctf_writer import _CtfWriterStream
+from bt2.event import _Event
 from bt2.event_class import *
 from bt2.field_types import *
+from bt2.field_types import _FieldType
 from bt2.fields import *
+from bt2.fields import _ArrayField
+from bt2.fields import _EnumerationField
+from bt2.fields import _Field
+from bt2.fields import _FloatingPointNumberField
+from bt2.fields import _IntegerField
+from bt2.fields import _SequenceField
+from bt2.fields import _StringField
+from bt2.fields import _StructureField
+from bt2.fields import _VariantField
+from bt2.graph import *
+from bt2.logging import *
 from bt2.notification import *
+from bt2.notification import _DiscardedEventsNotification
+from bt2.notification import _DiscardedPacketsNotification
 from bt2.notification_iterator import *
+from bt2.notification_iterator import _UserNotificationIterator
+from bt2.packet import _Packet
 from bt2.plugin import *
+from bt2.port import *
+from bt2.port import _InputPort
+from bt2.port import _OutputPort
+from bt2.port import _Port
+from bt2.port import _PrivateInputPort
+from bt2.port import _PrivateOutputPort
+from bt2.port import _PrivatePort
 from bt2.py_plugin import *
+from bt2.stream import _Stream
 from bt2.stream_class import *
 from bt2.trace import *
 from bt2.values import *
+from bt2.values import _Value
 
 
 class Error(Exception):
@@ -46,15 +87,19 @@ class CreationError(Error):
     pass
 
 
-class FrozenError(Error):
+class Frozen(Error):
     pass
 
 
-class NoSuchPluginError(Error):
+class NoSuchPlugin(Error):
     pass
 
 
 class UnsupportedFeature(Exception):
+    pass
+
+
+class NoSinkComponent(Exception):
     pass
 
 
@@ -66,12 +111,42 @@ class Stop(StopIteration):
     pass
 
 
-class IncompleteUserClassError(Error):
+class PortConnectionRefused(Exception):
     pass
+
+
+class IncompleteUserClass(Error):
+    pass
+
+
+class GraphCanceled(Exception):
+    pass
+
+
+class NotificationIteratorCanceled(Exception):
+    pass
+
+
+class ConnectionEnded(Exception):
+    pass
+
+
+class _ListenerHandle:
+    def __init__(self, listener_id, obj):
+        self._listener_id = listener_id
+        self._obj = obj
 
 
 import bt2.native_bt as _native_bt
 import atexit
 
 atexit.register(_native_bt.py3_cc_exit_handler)
+version = (_native_bt.version_get_major(), _native_bt.version_get_minor(),
+           _native_bt.version_get_patch(), _native_bt.version_get_extra())
 _native_bt.py3_cc_init_from_bt2()
+del _native_bt
+
+try:
+    del native_bt
+except:
+    pass

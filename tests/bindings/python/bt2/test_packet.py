@@ -9,6 +9,9 @@ class PacketTestCase(unittest.TestCase):
     def setUp(self):
         self._packet = self._create_packet()
 
+    def tearDown(self):
+        del self._packet
+
     def _create_packet(self, with_ph=True, with_pc=True):
         # event header
         eh = bt2.StructureFieldType()

@@ -22,13 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/values.h>
-%}
-
-/* For uint*_t/int*_t */
-%include "stdint.i"
-
 /* Remove prefix from `bt_value_null` */
 %rename(value_null) bt_value_null;
 
@@ -61,18 +54,18 @@ struct bt_value * const bt_value_null;
 
 /* Common functions */
 enum bt_value_status bt_value_freeze(struct bt_value *object);
-bool bt_value_is_frozen(const struct bt_value *object);
+int bt_value_is_frozen(const struct bt_value *object);
 struct bt_value *bt_value_copy(const struct bt_value *object);
-bool bt_value_compare(const struct bt_value *object_a,
+int bt_value_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b);
 
 /* Boolean value object functions */
 struct bt_value *bt_value_bool_create(void);
-struct bt_value *bt_value_bool_create_init(bool val);
+struct bt_value *bt_value_bool_create_init(int val);
 enum bt_value_status bt_value_bool_get(
-		const struct bt_value *bool_obj, bool *OUTPUT);
+		const struct bt_value *bool_obj, int *OUTPUT);
 enum bt_value_status bt_value_bool_set(struct bt_value *bool_obj,
-		bool val);
+		int val);
 
 /* Integer value object functions */
 struct bt_value *bt_value_integer_create(void);
@@ -113,18 +106,20 @@ struct bt_value *bt_value_map_create(void);
 int bt_value_map_size(const struct bt_value *map_obj);
 struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
 		const char *key);
-bool bt_value_map_has_key(const struct bt_value *map_obj,
+int bt_value_map_has_key(const struct bt_value *map_obj,
 		const char *key);
 enum bt_value_status bt_value_map_insert(
 		struct bt_value *map_obj, const char *key,
 		struct bt_value *element_obj);
+struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
+		struct bt_value *extension_map_obj);
 
 %{
 struct bt_value_map_get_keys_private_data {
 	struct bt_value *keys;
 };
 
-static bool bt_value_map_get_keys_private_cb(const char *key,
+static int bt_value_map_get_keys_private_cb(const char *key,
 		struct bt_value *object, void *data)
 {
 	enum bt_value_status status;
@@ -132,10 +127,10 @@ static bool bt_value_map_get_keys_private_cb(const char *key,
 
 	status = bt_value_array_append_string(priv_data->keys, key);
 	if (status != BT_VALUE_STATUS_OK) {
-		return false;
+		return BT_FALSE;
 	}
 
-	return true;
+	return BT_TRUE;
 }
 
 static struct bt_value *bt_value_map_get_keys_private(

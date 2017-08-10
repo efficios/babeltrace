@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Philippe Proulx <pproulx@efficios.com>
+# Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,58 +29,29 @@ import copy
 import bt2
 
 
-class _EventClassAttributesIterator(collections.abc.Iterator):
-    def __init__(self, attributes):
-        self._attributes = attributes
-        self._at = 0
-
-    def __next__(self):
-        if self._at == len(self._attributes):
-            raise StopIteration
-
-        name = native_bt.ctf_event_class_get_attribute_name(self._attributes._event_class_ptr,
-                                                            self._at)
-        utils._handle_ptr("cannot get event class object's attribute name")
-        self._at += 1
-        return name
-
-
-class _EventClassAttributes(collections.abc.MutableMapping):
-    def __init__(self, event_class_ptr):
-        self._event_class_ptr = event_class_ptr
-
-    def __getitem__(self, key):
-        utils._check_str(key)
-        value_ptr = native_bt.ctf_event_class_get_attribute_value_by_name(self._event_class_ptr,
-                                                                          key)
-
-        if value_ptr is None:
-            raise KeyError(key)
-
-        return bt2.values._create_from_ptr(value_ptr)
-
-    def __setitem__(self, key, value):
-        utils._check_str(key)
-        value = bt2.create_value(value)
-        ret = native_bt.ctf_event_class_set_attribute(self._event_class_ptr, key,
-                                                      value._ptr)
-        utils._handle_ret(ret, "cannot set event class object's attribute")
-
-    def __delitem__(self, key):
-        raise NotImplementedError
-
-    def __len__(self):
-        count = native_bt.ctf_event_class_get_attribute_count(self._event_class_ptr)
-        utils._handle_ret(count, "cannot get event class object's attribute count")
-        return count
-
-    def __iter__(self):
-        return _EventClassAttributesIterator(self)
+class EventClassLogLevel:
+    UNKNOWN = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN
+    UNSPECIFIED = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED
+    EMERGENCY = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY
+    ALERT = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_ALERT
+    CRITICAL = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL
+    ERROR = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_ERROR
+    WARNING = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_WARNING
+    NOTICE = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_NOTICE
+    INFO = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_INFO
+    DEBUG_SYSTEM = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM
+    DEBUG_PROGRAM = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM
+    DEBUG_PROCESS = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS
+    DEBUG_MODULE = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE
+    DEBUG_UNIT = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT
+    DEBUG_FUNCTION = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION
+    DEBUG_LINE = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE
+    DEBUG = native_bt.CTF_EVENT_CLASS_LOG_LEVEL_DEBUG
 
 
 class EventClass(object._Object):
-    def __init__(self, name, id=None, context_field_type=None,
-                 payload_field_type=None, attributes=None):
+    def __init__(self, name, id=None, log_level=None, emf_uri=None,
+                 context_field_type=None, payload_field_type=None):
         utils._check_str(name)
         ptr = native_bt.ctf_event_class_create(name)
 
@@ -92,15 +63,17 @@ class EventClass(object._Object):
         if id is not None:
             self.id = id
 
+        if log_level is not None:
+            self.log_level = log_level
+
+        if emf_uri is not None:
+            self.emf_uri = emf_uri
+
         if context_field_type is not None:
             self.context_field_type = context_field_type
 
         if payload_field_type is not None:
             self.payload_field_type = payload_field_type
-
-        if attributes is not None:
-            for name, value in attributes.items():
-                self.attributes[name] = value
 
     @property
     def stream_class(self):
@@ -110,27 +83,61 @@ class EventClass(object._Object):
             return bt2.StreamClass._create_from_ptr(sc_ptr)
 
     @property
-    def attributes(self):
-        return _EventClassAttributes(self._ptr)
-
-    @property
     def name(self):
         return native_bt.ctf_event_class_get_name(self._ptr)
 
     @property
     def id(self):
         id = native_bt.ctf_event_class_get_id(self._ptr)
-
-        if utils._is_m1ull(id):
-            raise bt2.Error("cannot get event class object's ID")
-
-        return id
+        return id if id >= 0 else None
 
     @id.setter
     def id(self, id):
         utils._check_int64(id)
         ret = native_bt.ctf_event_class_set_id(self._ptr, id)
         utils._handle_ret(ret, "cannot set event class object's ID")
+
+    @property
+    def log_level(self):
+        log_level = native_bt.ctf_event_class_get_log_level(self._ptr)
+        return log_level if log_level >= 0 else None
+
+    @log_level.setter
+    def log_level(self, log_level):
+        log_levels = (
+            EventClassLogLevel.UNSPECIFIED,
+            EventClassLogLevel.EMERGENCY,
+            EventClassLogLevel.ALERT,
+            EventClassLogLevel.CRITICAL,
+            EventClassLogLevel.ERROR,
+            EventClassLogLevel.WARNING,
+            EventClassLogLevel.NOTICE,
+            EventClassLogLevel.INFO,
+            EventClassLogLevel.DEBUG_SYSTEM,
+            EventClassLogLevel.DEBUG_PROGRAM,
+            EventClassLogLevel.DEBUG_PROCESS,
+            EventClassLogLevel.DEBUG_MODULE,
+            EventClassLogLevel.DEBUG_UNIT,
+            EventClassLogLevel.DEBUG_FUNCTION,
+            EventClassLogLevel.DEBUG_LINE,
+            EventClassLogLevel.DEBUG,
+        )
+
+        if log_level not in log_levels:
+            raise ValueError("'{}' is not a valid log level".format(log_level))
+
+        ret = native_bt.ctf_event_class_set_log_level(self._ptr, log_level)
+        utils._handle_ret(ret, "cannot set event class object's log level")
+
+    @property
+    def emf_uri(self):
+        return native_bt.ctf_event_class_get_emf_uri(self._ptr)
+
+    @emf_uri.setter
+    def emf_uri(self, emf_uri):
+        utils._check_str(emf_uri)
+        ret = native_bt.ctf_event_class_set_emf_uri(self._ptr, emf_uri)
+        utils._handle_ret(ret, "cannot set event class object's EMF URI")
 
     @property
     def context_field_type(self):
@@ -187,19 +194,19 @@ class EventClass(object._Object):
         if self.addr == other.addr:
             return True
 
-        self_attributes = {name: val for name, val in self.attributes.items()}
-        other_attributes = {name: val for name, val in other.attributes.items()}
         self_props = (
-            self_attributes,
             self.name,
             self.id,
+            self.log_level,
+            self.emf_uri,
             self.context_field_type,
             self.payload_field_type
         )
         other_props = (
-            other_attributes,
             other.name,
             other.id,
+            other.log_level,
+            other.emf_uri,
             other.context_field_type,
             other.payload_field_type
         )
@@ -209,8 +216,11 @@ class EventClass(object._Object):
         cpy = EventClass(self.name)
         cpy.id = self.id
 
-        for name, value in self.attributes.items():
-            cpy.attributes[name] = value
+        if self.log_level is not None:
+            cpy.log_level = self.log_level
+
+        if self.emf_uri is not None:
+            cpy.emf_uri = self.emf_uri
 
         cpy.context_field_type = ft_copy_func(self.context_field_type)
         cpy.payload_field_type = ft_copy_func(self.payload_field_type)
