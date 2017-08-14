@@ -215,7 +215,9 @@ enum bt_ctf_lttng_live_iterator_status {
 enum bt_component_status lttng_live_component_init(struct bt_private_component *source,
 		struct bt_value *params, void *init_method_data);
 
-struct bt_value *lttng_live_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_return lttng_live_query(
+		struct bt_component_class *comp_class,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params);
 
 void lttng_live_component_finalize(struct bt_private_component *component);

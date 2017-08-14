@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <babeltrace/graph/component-status.h>
 #include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/query-executor.h>
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -41,6 +42,7 @@ struct bt_private_port;
 struct bt_port;
 struct bt_value;
 struct bt_private_notification_iterator;
+struct bt_query_executor;
 
 /**
  * Component class type.
@@ -61,6 +63,11 @@ enum bt_component_class_type {
 struct bt_notification_iterator_next_return {
 	struct bt_notification *notification;
 	enum bt_notification_iterator_status status;
+};
+
+struct bt_component_class_query_return {
+	struct bt_value *result;
+	enum bt_query_status status;
 };
 
 typedef enum bt_component_status (*bt_component_class_init_method)(
@@ -86,8 +93,9 @@ typedef enum bt_notification_iterator_status
 		struct bt_private_notification_iterator *private_notification_iterator,
 		int64_t time);
 
-typedef struct bt_value *(*bt_component_class_query_method)(
+typedef struct bt_component_class_query_return (*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
+		struct bt_query_executor *query_executor,
 		const char *object, struct bt_value *params);
 
 typedef enum bt_component_status (*bt_component_class_accept_port_connection_method)(
@@ -162,10 +170,6 @@ extern const char *bt_component_class_get_description(
 
 extern const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
-
-extern struct bt_value *bt_component_class_query(
-		struct bt_component_class *component_class,
-		const char *object, struct bt_value *params);
 
 /**
  * Get a component class' type.

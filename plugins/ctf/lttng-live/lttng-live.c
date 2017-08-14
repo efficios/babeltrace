@@ -961,22 +961,30 @@ error:
 }
 
 static
-struct bt_value *lttng_live_query_list_sessions(struct bt_component_class *comp_class,
+struct bt_component_class_query_return lttng_live_query_list_sessions(
+		struct bt_component_class *comp_class,
+		struct bt_query_executor *query_exec,
 		struct bt_value *params)
 {
+	struct bt_component_class_query_return query_ret = {
+		.result = NULL,
+		.status = BT_QUERY_STATUS_OK,
+	};
+
 	struct bt_value *url_value = NULL;
-	struct bt_value *results = NULL;
 	const char *url;
 	struct bt_live_viewer_connection *viewer_connection = NULL;
 
 	url_value = bt_value_map_get(params, "url");
 	if (!url_value || bt_value_is_null(url_value) || !bt_value_is_string(url_value)) {
 		BT_LOGW("Mandatory \"url\" parameter missing");
+		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
 	if (bt_value_string_get(url_value, &url) != BT_VALUE_STATUS_OK) {
 		BT_LOGW("\"url\" parameter is required to be a string value");
+		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -985,28 +993,47 @@ struct bt_value *lttng_live_query_list_sessions(struct bt_component_class *comp_
 		goto error;
 	}
 
-	results = bt_live_viewer_connection_list_sessions(viewer_connection);
+	query_ret.result =
+		bt_live_viewer_connection_list_sessions(viewer_connection);
+	if (!query_ret.result) {
+		goto error;
+	}
+
 	goto end;
+
 error:
-	BT_PUT(results);
+	BT_PUT(query_ret.result);
+
+	if (query_ret.status >= 0) {
+		query_ret.status = BT_QUERY_STATUS_ERROR;
+	}
+
 end:
 	if (viewer_connection) {
 		bt_live_viewer_connection_destroy(viewer_connection);
 	}
 	BT_PUT(url_value);
-	return results;
+	return query_ret;
 }
 
 BT_HIDDEN
-struct bt_value *lttng_live_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_return lttng_live_query(
+		struct bt_component_class *comp_class,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
+	struct bt_component_class_query_return ret = {
+		.result = NULL,
+		.status = BT_QUERY_STATUS_OK,
+	};
+
 	if (strcmp(object, "sessions") == 0) {
 		return lttng_live_query_list_sessions(comp_class,
-			params);
+			query_exec, params);
 	}
 	BT_LOGW("Unknown query object `%s`", object);
-	return NULL;
+	ret.status = BT_QUERY_STATUS_INVALID_OBJECT;
+	return ret;
 }
 
 static

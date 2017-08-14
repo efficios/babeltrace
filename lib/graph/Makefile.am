@@ -14,7 +14,8 @@ libgraph_la_SOURCES = \
 	sink.c \
 	filter.c \
 	iterator.c \
-	component-class-sink-colander.c
+	component-class-sink-colander.c \
+	query-executor.c
 
 libgraph_la_LIBADD = \
 	notification/libgraph-notification.la

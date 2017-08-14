@@ -72,6 +72,7 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification-packet.h \
 	babeltrace/graph/notification-stream.h \
 	babeltrace/graph/port.h \
+	babeltrace/graph/query-executor.h \
 	babeltrace/graph/private-component-filter.h \
 	babeltrace/graph/private-component-sink.h \
 	babeltrace/graph/private-component-source.h \
@@ -135,6 +136,7 @@ noinst_HEADERS = \
 	babeltrace/graph/notification-packet-internal.h \
 	babeltrace/graph/notification-stream-internal.h \
 	babeltrace/graph/port-internal.h \
+	babeltrace/graph/query-executor-internal.h \
 	babeltrace/lib-logging-internal.h \
 	babeltrace/list-internal.h \
 	babeltrace/logging-internal.h \

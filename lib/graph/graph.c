@@ -808,7 +808,7 @@ void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
 	}
 }
 
-extern enum bt_graph_status bt_graph_cancel(struct bt_graph *graph)
+enum bt_graph_status bt_graph_cancel(struct bt_graph *graph)
 {
 	enum bt_graph_status ret = BT_GRAPH_STATUS_OK;
 
@@ -825,9 +825,19 @@ end:
 	return ret;
 }
 
-extern bt_bool bt_graph_is_canceled(struct bt_graph *graph)
+bt_bool bt_graph_is_canceled(struct bt_graph *graph)
 {
-	return graph ? graph->canceled : BT_FALSE;
+	bt_bool canceled = BT_FALSE;
+
+	if (!graph) {
+		BT_LOGW_STR("Invalid parameter: graph is NULL.");
+		goto end;
+	}
+
+	canceled = graph->canceled;
+
+end:
+	return canceled;
 }
 
 BT_HIDDEN
