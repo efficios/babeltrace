@@ -142,7 +142,9 @@ BT_HIDDEN
 void ctf_fs_finalize(struct bt_private_component *component);
 
 BT_HIDDEN
-struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_return ctf_fs_query(
+		struct bt_component_class *comp_class,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params);
 
 BT_HIDDEN

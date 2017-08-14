@@ -126,6 +126,22 @@ typedef int bt_bool;
 	}
 }
 
+/* Output argument typemap for value output (always appends) */
+%typemap(in, numinputs=0) struct bt_value **BTOUTVALUE (struct bt_value *temp_value = NULL) {
+	$1 = &temp_value;
+}
+
+%typemap(argout) struct bt_value **BTOUTVALUE {
+	if (*$1) {
+		/* SWIG_Python_AppendOutput() steals the created object */
+		$result = SWIG_Python_AppendOutput($result, SWIG_NewPointerObj(SWIG_as_voidptr(*$1), SWIGTYPE_p_bt_value, 0));
+	} else {
+		/* SWIG_Python_AppendOutput() steals Py_None */
+		Py_INCREF(Py_None);
+		$result = SWIG_Python_AppendOutput($result, Py_None);
+	}
+}
+
 /* Output argument typemap for initialized uint64_t output parameter (always appends) */
 %typemap(in, numinputs=0) uint64_t *OUTPUTINIT (uint64_t temp = -1ULL) {
 	$1 = &temp;
@@ -194,6 +210,7 @@ typedef int bt_bool;
 %include "native_btpacket.i"
 %include "native_btplugin.i"
 %include "native_btport.i"
+%include "native_btqueryexec.i"
 %include "native_btref.i"
 %include "native_btstream.i"
 %include "native_btstreamclass.i"

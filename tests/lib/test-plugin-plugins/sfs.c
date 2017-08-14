@@ -57,19 +57,23 @@ static enum bt_notification_iterator_status dummy_iterator_seek_time_method(
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
-static struct bt_value *query_method(
+static struct bt_component_class_query_return query_method(
 		struct bt_component_class *component_class,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
-	int ret;
-	struct bt_value *results = bt_value_array_create();
+	struct bt_component_class_query_return ret = {
+		.status = BT_QUERY_STATUS_OK,
+		.result = bt_value_array_create(),
+	};
+	int iret;
 
-	assert(results);
-	ret = bt_value_array_append_string(results, object);
-	assert(ret == 0);
-	ret = bt_value_array_append(results, params);
-	assert(ret == 0);
-	return results;
+	assert(ret.result);
+	iret = bt_value_array_append_string(ret.result, object);
+	assert(iret == 0);
+	iret = bt_value_array_append(ret.result, params);
+	assert(iret == 0);
+	return ret;
 }
 
 BT_PLUGIN_MODULE();

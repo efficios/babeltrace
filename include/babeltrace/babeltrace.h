@@ -93,5 +93,6 @@
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/query-executor.h>
 
 #endif /* BABELTRACE_BABELTRACE_H */
