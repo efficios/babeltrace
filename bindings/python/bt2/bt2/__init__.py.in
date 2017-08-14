@@ -72,6 +72,7 @@ from bt2.port import _PrivateInputPort
 from bt2.port import _PrivateOutputPort
 from bt2.port import _PrivatePort
 from bt2.py_plugin import *
+from bt2.query_executor import *
 from bt2.stream import _Stream
 from bt2.stream_class import *
 from bt2.trace import *
@@ -92,6 +93,14 @@ class Frozen(Error):
 
 
 class NoSuchPlugin(Error):
+    pass
+
+
+class InvalidQueryObject(Error):
+    pass
+
+
+class InvalidQueryParams(Error):
     pass
 
 
@@ -120,6 +129,10 @@ class IncompleteUserClass(Error):
 
 
 class GraphCanceled(Exception):
+    pass
+
+
+class QueryExecutorCanceled(Exception):
     pass
 
 

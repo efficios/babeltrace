@@ -168,7 +168,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
         with self.assertRaises(bt2.Error):
-            MySink.query('obj', 23)
+            bt2.QueryExecutor().query(MySink, 'obj', 23)
 
     def test_query_raises(self):
         class MySink(bt2._UserSinkComponent):
@@ -176,11 +176,11 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, obj, params):
+            def _query(cls, query_exec, obj, params):
                 raise ValueError
 
         with self.assertRaises(bt2.Error):
-            MySink.query('obj', 23)
+            bt2.QueryExecutor().query(MySink, 'obj', 23)
 
     def test_query_wrong_return_type(self):
         class MySink(bt2._UserSinkComponent):
@@ -188,11 +188,11 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, obj, params):
+            def _query(cls, query_exec, obj, params):
                 return ...
 
         with self.assertRaises(bt2.Error):
-            MySink.query('obj', 23)
+            bt2.QueryExecutor().query(MySink, 'obj', 23)
 
     def test_query_params_none(self):
         class MySink(bt2._UserSinkComponent):
@@ -200,14 +200,14 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, obj, params):
+            def _query(cls, query_exec, obj, params):
                 nonlocal query_params
                 query_params = params
                 return None
 
         query_params = None
         params = None
-        res = MySink.query('obj', params)
+        res = bt2.QueryExecutor().query(MySink, 'obj', params)
         self.assertEqual(query_params, params)
         self.assertIsNone(res)
         del query_params
@@ -218,14 +218,14 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, obj, params):
+            def _query(cls, query_exec, obj, params):
                 nonlocal query_params
                 query_params = params
                 return 17.5
 
         query_params = None
         params = ['coucou', 23, None]
-        res = MySink.query('obj', params)
+        res = bt2.QueryExecutor().query(MySink, 'obj', params)
         self.assertEqual(query_params, params)
         self.assertEqual(res, 17.5)
         del query_params
@@ -236,7 +236,7 @@ class UserComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, obj, params):
+            def _query(cls, query_exec, obj, params):
                 nonlocal query_params
                 query_params = params
                 return {
@@ -255,7 +255,7 @@ class UserComponentClassTestCase(unittest.TestCase):
             'null': None,
         }
 
-        res = MySink.query('obj', params)
+        res = bt2.QueryExecutor().query(MySink, 'obj', params)
         self.assertEqual(query_params, params)
         self.assertEqual(res, {
             'null': None,
@@ -283,7 +283,7 @@ class GenericComponentClassTestCase(unittest.TestCase):
                 pass
 
             @classmethod
-            def _query(cls, obj, params):
+            def _query(cls, query_exec, obj, params):
                 return [obj, params, 23]
 
         self._py_comp_cls = MySink
@@ -318,6 +318,7 @@ class GenericComponentClassTestCase(unittest.TestCase):
         self.assertEqual(self._py_comp_cls, self._comp_cls)
 
     def test_query(self):
-        res = self._comp_cls.query('an object', {'yes': 'no', 'book': -17})
+        res = bt2.QueryExecutor().query(self._comp_cls, 'an object',
+                                        {'yes': 'no', 'book': -17})
         expected = ['an object', {'yes': 'no', 'book': -17}, 23]
         self.assertEqual(res, expected)

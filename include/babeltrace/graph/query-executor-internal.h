@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_CTF_FS_QUERY_H
-#define BABELTRACE_PLUGIN_CTF_FS_QUERY_H
+#ifndef BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H
+#define BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H
 
 /*
- * BabelTrace - CTF on File System Component
- *
- * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +23,36 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/values.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component-class.h>
+#include <babeltrace/types.h>
+#include <babeltrace/object-internal.h>
 
-BT_HIDDEN
-struct bt_component_class_query_return metadata_info_query(
-		struct bt_component_class *comp_class,
-		struct bt_value *params);
+struct bt_query_executor {
+	struct bt_object base;
+	bt_bool canceled;
+};
 
-BT_HIDDEN
-struct bt_component_class_query_return trace_info_query(
-		struct bt_component_class *comp_class,
-		struct bt_value *params);
+static inline const char *bt_query_status_string(enum bt_query_status status)
+{
+	switch (status) {
+	case BT_QUERY_STATUS_OK:
+		return "BT_QUERY_STATUS_OK";
+	case BT_QUERY_STATUS_AGAIN:
+		return "BT_QUERY_STATUS_AGAIN";
+	case BT_QUERY_STATUS_EXECUTOR_CANCELED:
+		return "BT_QUERY_STATUS_EXECUTOR_CANCELED";
+	case BT_QUERY_STATUS_ERROR:
+		return "BT_QUERY_STATUS_ERROR";
+	case BT_QUERY_STATUS_INVALID:
+		return "BT_QUERY_STATUS_INVALID";
+	case BT_QUERY_STATUS_INVALID_OBJECT:
+		return "BT_QUERY_STATUS_INVALID_OBJECT";
+	case BT_QUERY_STATUS_INVALID_PARAMS:
+		return "BT_QUERY_STATUS_INVALID_PARAMS";
+	case BT_QUERY_STATUS_NOMEM:
+		return "BT_QUERY_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+};
 
-#endif /* BABELTRACE_PLUGIN_CTF_FS_QUERY_H */
+#endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H */

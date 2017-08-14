@@ -1365,19 +1365,25 @@ enum bt_component_status ctf_fs_init(struct bt_private_component *priv_comp,
 }
 
 BT_HIDDEN
-struct bt_value *ctf_fs_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_return ctf_fs_query(
+		struct bt_component_class *comp_class,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
-	struct bt_value *result = NULL;
+	struct bt_component_class_query_return ret = {
+		.result = NULL,
+		.status = BT_QUERY_STATUS_OK,
+	};
 
 	if (!strcmp(object, "metadata-info")) {
-		result = metadata_info_query(comp_class, params);
+		ret = metadata_info_query(comp_class, params);
 	} else if (!strcmp(object, "trace-info")) {
-		result = trace_info_query(comp_class, params);
+		ret = trace_info_query(comp_class, params);
 	} else {
 		BT_LOGE("Unknown query object `%s`", object);
+		ret.status = BT_QUERY_STATUS_INVALID_OBJECT;
 		goto end;
 	}
 end:
-	return result;
+	return ret;
 }

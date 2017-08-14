@@ -46,10 +46,15 @@ struct range {
 };
 
 BT_HIDDEN
-struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_return metadata_info_query(
+		struct bt_component_class *comp_class,
 		struct bt_value *params)
 {
-	struct bt_value *result = NULL;
+	struct bt_component_class_query_return query_ret = {
+		.result = NULL,
+		.status = BT_QUERY_STATUS_OK,
+	};
+
 	struct bt_value *path_value = NULL;
 	char *metadata_text = NULL;
 	FILE *metadata_fp = NULL;
@@ -59,13 +64,15 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 	const char *path;
 	bool is_packetized;
 
-	result = bt_value_map_create();
-	if (!result) {
+	query_ret.result = bt_value_map_create();
+	if (!query_ret.result) {
+		query_ret.status = BT_QUERY_STATUS_NOMEM;
 		goto error;
 	}
 
 	if (!bt_value_is_map(params)) {
 		BT_LOGE_STR("Query parameters is not a map value object.");
+		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -73,6 +80,7 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 	ret = bt_value_string_get(path_value, &path);
 	if (ret) {
 		BT_LOGE_STR("Cannot get `path` string parameter.");
+		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -138,14 +146,14 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 
 	g_string_append(g_metadata_text, metadata_text);
 
-	ret = bt_value_map_insert_string(result, "text",
+	ret = bt_value_map_insert_string(query_ret.result, "text",
 		g_metadata_text->str);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert metadata text into query result.");
 		goto error;
 	}
 
-	ret = bt_value_map_insert_bool(result, "is-packetized",
+	ret = bt_value_map_insert_bool(query_ret.result, "is-packetized",
 		is_packetized);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert \"is-packetized\" attribute into query result.");
@@ -155,7 +163,11 @@ struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
 	goto end;
 
 error:
-	BT_PUT(result);
+	BT_PUT(query_ret.result);
+
+	if (query_ret.status >= 0) {
+		query_ret.status = BT_QUERY_STATUS_ERROR;
+	}
 
 end:
 	bt_put(path_value);
@@ -168,7 +180,8 @@ end:
 	if (metadata_fp) {
 		fclose(metadata_fp);
 	}
-	return result;
+
+	return query_ret;
 }
 
 static
@@ -445,10 +458,15 @@ end:
 }
 
 BT_HIDDEN
-struct bt_value *trace_info_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_return trace_info_query(
+		struct bt_component_class *comp_class,
 		struct bt_value *params)
 {
-	struct bt_value *trace_infos = NULL;
+	struct bt_component_class_query_return query_ret = {
+		.result = NULL,
+		.status = BT_QUERY_STATUS_OK,
+	};
+
 	struct bt_value *path_value = NULL;
 	int ret = 0;
 	const char *path = NULL;
@@ -460,6 +478,7 @@ struct bt_value *trace_info_query(struct bt_component_class *comp_class,
 
 	if (!bt_value_is_map(params)) {
 		BT_LOGE("Query parameters is not a map value object.");
+		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -467,6 +486,7 @@ struct bt_value *trace_info_query(struct bt_component_class *comp_class,
 	ret = bt_value_string_get(path_value, &path);
 	if (ret) {
 		BT_LOGE("Cannot get `path` string parameter.");
+		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 
@@ -489,8 +509,9 @@ struct bt_value *trace_info_query(struct bt_component_class *comp_class,
 		goto error;
 	}
 
-	trace_infos = bt_value_array_create();
-	if (!trace_infos) {
+	query_ret.result = bt_value_array_create();
+	if (!query_ret.result) {
+		query_ret.status = BT_QUERY_STATUS_NOMEM;
 		goto error;
 	}
 
@@ -516,7 +537,7 @@ struct bt_value *trace_info_query(struct bt_component_class *comp_class,
 			goto error;
 		}
 
-		status = bt_value_array_append(trace_infos, trace_info);
+		status = bt_value_array_append(query_ret.result, trace_info);
 		bt_put(trace_info);
 		if (status != BT_VALUE_STATUS_OK) {
 			goto error;
@@ -526,7 +547,12 @@ struct bt_value *trace_info_query(struct bt_component_class *comp_class,
 	goto end;
 
 error:
-	BT_PUT(trace_infos);
+	BT_PUT(query_ret.result);
+
+	if (query_ret.status >= 0) {
+		query_ret.status = BT_QUERY_STATUS_ERROR;
+	}
+
 end:
 	if (normalized_path) {
 		g_string_free(normalized_path, TRUE);
@@ -549,5 +575,5 @@ end:
 	}
 	/* "path" becomes invalid with the release of path_value. */
 	bt_put(path_value);
-	return trace_infos;
+	return query_ret;
 }
