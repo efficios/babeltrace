@@ -490,7 +490,8 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
 	#define memccpy _memccpy
 #endif
 
-#if (defined(_MSC_VER) && !defined(__INTEL_COMPILER)) || defined(__MINGW64__)
+#if (defined(_MSC_VER) && !defined(__INTEL_COMPILER)) || \
+		(defined(__MINGW64__) && !defined(__USE_MINGW_ANSI_STDIO))
 	#define vsnprintf(s, sz, fmt, va) fake_vsnprintf(s, sz, fmt, va)
 	static int fake_vsnprintf(char *s, size_t sz, const char *fmt, va_list ap)
 	{
