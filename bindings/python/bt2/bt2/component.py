@@ -572,7 +572,7 @@ class _UserComponent(metaclass=_UserComponentType):
         other_port = bt2.port._create_from_ptr(other_port_ptr)
 
         try:
-            self._port_connected(port, other_port_ptr)
+            self._port_connected(port, other_port)
         except:
             if not _NO_PRINT_TRACEBACK:
                 traceback.print_exc()
