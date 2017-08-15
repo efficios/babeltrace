@@ -599,6 +599,7 @@ int copy_find_clock_array_field(FILE *err,
 	for (i = 0; i < count; i++) {
 		entry_field = bt_ctf_field_array_get_field(field, i);
 		if (!entry_field) {
+			ret = -1;
 			BT_LOGE_STR("Failed to get array field.");
 			goto error;
 		}
