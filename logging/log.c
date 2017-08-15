@@ -905,7 +905,7 @@ static char *put_integer_r(unsigned v, const int sign,
 						   const unsigned w, const char wc, char *const e)
 {
 	static const char _signs[] = {'-', '0', '+'};
-	static const char *const signs = _signs + 1;
+	const char *const signs = _signs + 1;
 	char *p = e;
 	do { *--p = '0' + v % 10; } while (0 != (v /= 10));
 	if (0 == sign) return put_padding_r(w, wc, p, e);
