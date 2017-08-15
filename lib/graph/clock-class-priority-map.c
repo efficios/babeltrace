@@ -332,9 +332,7 @@ set_highest_prio:
 		bt_ctf_clock_class_get_name(cc_prio.clock_class));
 
 end:
-	if (prio_ptr) {
-		g_free(prio_ptr);
-	}
+	g_free(prio_ptr);
 
 	return ret;
 }
