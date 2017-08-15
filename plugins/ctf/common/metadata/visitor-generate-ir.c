@@ -1039,7 +1039,7 @@ enum bt_ctf_byte_order get_real_byte_order(struct ctx *ctx,
 static
 int is_align_valid(uint64_t align)
 {
-	return (align != 0) && !(align & (align - 1));
+	return (align != 0) && !(align & (align - 1ULL));
 }
 
 static
