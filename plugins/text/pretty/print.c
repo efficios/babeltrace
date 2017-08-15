@@ -849,11 +849,17 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 		iter = bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
 				enumeration_field_type, value);
 	}
-	if (!iter) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
 	g_string_append(pretty->string, "( ");
+	if (!iter) {
+		if (pretty->use_colors) {
+			g_string_append(pretty->string, COLOR_UNKNOWN);
+		}
+		g_string_append(pretty->string, "<unknown>");
+		if (pretty->use_colors) {
+			g_string_append(pretty->string, COLOR_RST);
+		}
+		goto skip_loop;
+	}
 	for (;;) {
 		const char *mapping_name;
 
@@ -875,15 +881,7 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 			break;
 		}
 	}
-	if (!nr_mappings) {
-		if (pretty->use_colors) {
-			g_string_append(pretty->string, COLOR_UNKNOWN);
-		}
-		g_string_append(pretty->string, "<unknown>");
-		if (pretty->use_colors) {
-			g_string_append(pretty->string, COLOR_RST);
-		}
-	}
+skip_loop:
 	g_string_append(pretty->string, " : container = ");
 	ret = print_integer(pretty, container_field);
 	if (ret != BT_COMPONENT_STATUS_OK) {
