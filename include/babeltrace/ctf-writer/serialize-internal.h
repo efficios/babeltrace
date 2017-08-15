@@ -84,6 +84,9 @@ int bt_ctf_stream_pos_access_ok(struct bt_ctf_stream_pos *pos, uint64_t bit_len)
 		/* Writes may take place up to the end of the packet. */
 		max_len = pos->packet_size;
 	}
+	if (unlikely(pos->offset < 0 || bit_len > INT64_MAX - pos->offset)) {
+		return 0;
+	}
 	if (unlikely(pos->offset + bit_len > max_len))
 		return 0;
 	return 1;
