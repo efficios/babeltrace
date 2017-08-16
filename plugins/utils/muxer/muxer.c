@@ -240,7 +240,8 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 
 	BT_LOGD("Destroying muxer component: muxer-comp-addr=%p, "
 		"muxer-notif-iter-count=%u", muxer_comp,
-		muxer_comp->muxer_notif_iters->len);
+		muxer_comp->muxer_notif_iters ?
+			muxer_comp->muxer_notif_iters->len : 0);
 
 	if (muxer_comp->muxer_notif_iters) {
 		g_ptr_array_free(muxer_comp->muxer_notif_iters, TRUE);
