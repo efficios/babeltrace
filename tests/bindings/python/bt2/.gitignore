@@ -1,3 +1,3 @@
 htmlcov
 .coverage
-testall.sh
+test_python_bt2

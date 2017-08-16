@@ -17,6 +17,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-PLUGIN_DIR="@abs_top_builddir@/plugins/utils"
+NO_SH_TAP=1
+. "@abs_top_builddir@/tests/utils/common.sh"
 
-BABELTRACE_PLUGIN_PATH="$PLUGIN_DIR" '@abs_top_builddir@/tests/plugins/test-utils-muxer'
+script="$(readlink -f "$0")"
+curdir="$(dirname "$script")"
+
+plugin_dir="${BT_BUILD_PATH}/plugins/utils"
+
+BABELTRACE_PLUGIN_PATH="$plugin_dir" "${curdir}/test-utils-muxer"

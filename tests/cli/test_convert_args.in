@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Copyright (C) - 2017 Philippe Proulx <pproulx@efficios.com>
 #
@@ -15,11 +15,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-curdir="$(dirname $0)"
-testdir="$curdir/.."
-babeltrace_bin="$curdir/../../cli/babeltrace"
-
-source $testdir/utils/tap/tap.sh
+. "@abs_top_builddir@/tests/utils/common.sh"
 
 test_bt_convert_run_args() {
 	local what="$1"
@@ -27,14 +23,14 @@ test_bt_convert_run_args() {
 	local expected_run_args="$3"
 
 	# execute convert command
-	local run_args="$("$babeltrace_bin" convert --run-args $convert_args)"
+	local run_args="$("$BT_BIN" convert --run-args $convert_args)"
 
 	# check result
 	if [ "$test_head_comment" = 1 ]; then
 		comment "convert args: $convert_args"
 	fi
 
-	if [ "$run_args" == "$expected_run_args" ]; then
+	if [ "$run_args" = "$expected_run_args" ]; then
 		pass "ARGS: $what"
 	else
 		fail "ARGS: $what"
@@ -49,7 +45,7 @@ test_bt_convert_fails() {
 	local convert_args="$2"
 
 	# execute convert command
-	"$babeltrace_bin" convert --run-args $convert_args &> /dev/null
+	"$BT_BIN" convert --run-args $convert_args >/dev/null 2>&1
 
 	local status=$?
 
@@ -58,7 +54,7 @@ test_bt_convert_fails() {
 		comment "convert args: $convert_args"
 	fi
 
-	if [ $status == 0 ]; then
+	if [ "$status" = 0 ]; then
 		fail "SUCCEEDS (should fail): $what"
 		diag "ARGS: $convert_args"
 	else

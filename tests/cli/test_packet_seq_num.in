@@ -15,13 +15,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-CURDIR=$(dirname $0)
-TESTDIR=$CURDIR/..
-
-BABELTRACE_BIN=$CURDIR/../../cli/babeltrace
-CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
-
-source $TESTDIR/utils/tap/tap.sh
+. "@abs_top_builddir@/tests/utils/common.sh"
 
 NUM_TESTS=10
 
@@ -30,9 +24,9 @@ plan_tests $NUM_TESTS
 test_no_lost() {
 	trace=$1
 
-	$BABELTRACE_BIN $trace >/dev/null 2>&1
+	"${BT_BIN}" "$trace" >/dev/null 2>&1
 	ok $? "Trace parses"
-	$BABELTRACE_BIN $trace 2>&1 >/dev/null | @GREP@ "\[warning\] Tracer lost"
+	"${BT_BIN}" "$trace" 2>&1 >/dev/null | @GREP@ "\[warning\] Tracer lost"
 	if test $? = 0; then
 		fail 1 "Should not find any lost events"
 	else
@@ -44,14 +38,14 @@ test_lost() {
 	trace=$1
 	expectedcountstr=$2
 
-	$BABELTRACE_BIN $trace >/dev/null 2>&1
+	"${BT_BIN}" "$trace" >/dev/null 2>&1
 	ok $? "Trace parses"
 
 	# Convert warnings like:
 	# WARNING: Tracer discarded 2 trace packets between ....
 	# WARNING: Tracer discarded 3 trace packets between ....
 	# into "2,3" and make sure it matches the expected result
-	$BABELTRACE_BIN $trace 2>&1 >/dev/null | @GREP@ "WARNING: Tracer discarded" \
+	"${BT_BIN}" "$trace" 2>&1 >/dev/null | @GREP@ "WARNING: Tracer discarded" \
 		| cut -d" " -f4 | tr "\n" "," | @SED@ "s/.$//" | \
 		@GREP@ "$expectedcountstr" >/dev/null
 	ok $? "Lost events string matches $expectedcountstr"
@@ -61,16 +55,16 @@ test_lost() {
 diag "Test the packet_seq_num validation"
 
 diag "No packet lost"
-test_no_lost ${CTF_TRACES}/packet_seq_num/no_lost
+test_no_lost "${BT_CTF_TRACES}/packet_seq_num/no_lost"
 
 diag "No packet lost, packet_seq_num not starting at 0"
-test_no_lost ${CTF_TRACES}/packet_seq_num/no_lost_not_starting_at_0
+test_no_lost "${BT_CTF_TRACES}/packet_seq_num/no_lost_not_starting_at_0"
 
 diag "1 stream, 2 packets lost before the last packet"
-test_lost ${CTF_TRACES}/packet_seq_num/2_lost_before_last "2"
+test_lost "${BT_CTF_TRACES}/packet_seq_num/2_lost_before_last" "2"
 
 diag "2 streams, packets lost in one of them"
-test_lost ${CTF_TRACES}/packet_seq_num/2_streams_lost_in_1 "2"
+test_lost "${BT_CTF_TRACES}/packet_seq_num/2_streams_lost_in_1" "2"
 
 diag "2 streams, packets lost in both"
-test_lost ${CTF_TRACES}/packet_seq_num/2_streams_lost_in_2 "3,2,1"
+test_lost "${BT_CTF_TRACES}/packet_seq_num/2_streams_lost_in_2" "3,2,1"

@@ -39,6 +39,7 @@
 /tests/plugins/test_bin_info
 /tests/plugins/test_dwarf_complete
 /tests/plugins/test_dwarf
+/tests/utils/common.sh
 *.o
 *.a
 *.la
