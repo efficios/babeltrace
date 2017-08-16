@@ -17,6 +17,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-BTBIN="@abs_top_builddir@/cli/babeltrace"
+NO_SH_TAP=1
+. "@abs_top_builddir@/tests/utils/common.sh"
 
-"@abs_top_builddir@/tests/lib/test_ctf_writer" "$BTBIN"
+script="$(readlink -f "$0")"
+curdir="$(dirname "$script")"
+
+"${curdir}/test_ctf_writer" "$BT_BIN"

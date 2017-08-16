@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2017 Philippe Proulx <pproulx@efficios.com>
 #
@@ -17,6 +17,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-PLUGIN_DIR="@abs_top_builddir@/tests/lib/test-plugin-plugins/.libs"
+NO_SH_TAP=1
+. "@abs_top_builddir@/tests/utils/common.sh"
 
-"@abs_top_builddir@/tests/lib/test_plugin" "$PLUGIN_DIR"
+script="$(readlink -f "$0")"
+curdir="$(dirname "$script")"
+
+plugin_dir="${curdir}/test-plugin-plugins/.libs"
+
+"${curdir}/test_plugin" "$plugin_dir"

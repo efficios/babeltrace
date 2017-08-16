@@ -17,6 +17,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 
-DEBUG_INFO_DATA="@abs_top_srcdir@/tests/debug-info-data"
+NO_SH_TAP=1
+. "@abs_top_builddir@/tests/utils/common.sh"
 
-"@abs_top_builddir@/tests/lib/test_bin_info" "$DEBUG_INFO_DATA"
+script="$(readlink -f "$0")"
+curdir="$(dirname "$script")"
+
+debug_info_data="${BT_SRC_PATH}/tests/debug-info-data"
+
+"${curdir}/test_bin_info" "$debug_info_data"

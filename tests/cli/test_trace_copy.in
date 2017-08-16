@@ -15,47 +15,43 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-BABELTRACE_BIN=@abs_top_builddir@/cli/babeltrace
+. "@abs_top_srcdir@/tests/utils/common.sh"
 
-CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
-
-source @abs_top_srcdir@/tests/utils/tap/tap.sh
-
-SUCCESS_TRACES=(${CTF_TRACES}/succeed/*)
-FAIL_TRACES=(${CTF_TRACES}/fail/*)
+SUCCESS_TRACES=(${BT_CTF_TRACES}/succeed/*)
 
 # -2 because there is an empty trace that we skip
 NUM_TESTS=$((${#SUCCESS_TRACES[@]} * 3 - 2))
 
 plan_tests $NUM_TESTS
 
-for path in ${SUCCESS_TRACES[@]}; do
-	out_path=$(mktemp -d)
-	text_output1=$(mktemp)
-	text_output2=$(mktemp)
-	trace=$(basename ${path})
+for path in "${SUCCESS_TRACES[@]}"; do
+	out_path="$(mktemp -d)"
+	text_output1="$(mktemp)"
+	text_output2="$(mktemp)"
+	trace="$(basename "${path}")"
 
-	$BABELTRACE_BIN ${path} 2>/dev/null >${text_output1}
-	cnt=$(cat ${text_output1} | wc -l)
-	if test $cnt == 0; then
-		ok 0 "Empty trace, nothing to copy"
+	"${BT_BIN}" "${path}" 2>/dev/null >"${text_output1}"
+	ret=$?
+	cnt="$(wc -l < "${text_output1}")"
+	if test "$ret" == 0 && test "$cnt" == 0; then
+		pass "Empty trace, nothing to copy"
 		continue
 	fi
 
-	$BABELTRACE_BIN ${path} --component sink.ctf.fs --path ${out_path} >/dev/null 2>&1
+	"${BT_BIN}" "${path}" --component sink.ctf.fs --path "${out_path}" >/dev/null 2>&1
 	ok $? "Copy trace ${trace} with ctf-fs sink"
 
-	$BABELTRACE_BIN ${out_path} >/dev/null 2>&1
+	"${BT_BIN}" "${out_path}" >/dev/null 2>&1
 	if test $? != 0; then
 		fail "Read the new trace in ${out_path}"
 		continue
 	fi
-	ok 0 "Read the new trace in ${out_path}"
+	pass "Read the new trace in ${out_path}"
 
-	$BABELTRACE_BIN ${out_path} 2>/dev/null >${text_output2}
-	cnt=$(diff ${text_output1} ${text_output2} | wc -l)
-	test $? == 0
+	"${BT_BIN}" "${out_path}" 2>/dev/null >"${text_output2}"
+	cnt=$(diff "${text_output1}" "${text_output2}" | wc -l)
+	test "$cnt" == 0
 	ok $? "Exact same content between the two traces"
 
-	rm -rf ${out_path} ${text_output} ${text_output2}
+	rm -rf "${out_path}" "${text_output1}" "${text_output2}"
 done
