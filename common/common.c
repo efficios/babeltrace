@@ -28,11 +28,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <assert.h>
 #include <ctype.h>
 #include <glib.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/compat/unistd-internal.h>
@@ -240,13 +242,37 @@ end:
 	return ret;
 }
 
+static
+bool isarealtty(int fd)
+{
+	bool istty = false;
+	struct stat tty_stats;
+
+	if (!isatty(fd)) {
+		/* Not a TTY */
+		goto end;
+	}
+
+	if (fstat(fd, &tty_stats) == 0) {
+		if (!S_ISCHR(tty_stats.st_mode)) {
+			/* Not a character device: not a TTY */
+			goto end;
+		}
+	}
+
+	istty = true;
+
+end:
+	return istty;
+}
+
 BT_HIDDEN
 bool bt_common_colors_supported(void)
 {
 	static bool supports_colors = false;
 	static bool supports_colors_set = false;
-	const char *term;
-	const char *force;
+	const char *term_env_var;
+	const char *term_color_env_var;
 
 	if (supports_colors_set) {
 		goto end;
@@ -254,28 +280,39 @@ bool bt_common_colors_supported(void)
 
 	supports_colors_set = true;
 
-	force = getenv("BABELTRACE_FORCE_COLORS");
-	if (force && strcmp(force, "1") == 0) {
-		supports_colors = true;
+	/*
+	 * `BABELTRACE_TERM_COLOR` environment variable always overrides
+	 * the automatic color support detection.
+	 */
+	term_color_env_var = getenv("BABELTRACE_TERM_COLOR");
+	if (term_color_env_var) {
+		if (g_ascii_strcasecmp(term_color_env_var, "always") == 0) {
+			/* Force colors */
+			supports_colors = true;
+		} else if (g_ascii_strcasecmp(term_color_env_var, "never") == 0) {
+			/* Force no colors */
+			goto end;
+		}
+	}
+
+	/* We need a compatible, known terminal */
+	term_env_var = getenv("TERM");
+	if (!term_env_var) {
 		goto end;
 	}
 
-	term = getenv("TERM");
-	if (!term) {
+	if (strncmp(term_env_var, "xterm", 5) != 0 &&
+			strncmp(term_env_var, "rxvt", 4) != 0 &&
+			strncmp(term_env_var, "konsole", 7) != 0 &&
+			strncmp(term_env_var, "gnome", 5) != 0 &&
+			strncmp(term_env_var, "screen", 5) != 0 &&
+			strncmp(term_env_var, "tmux", 4) != 0 &&
+			strncmp(term_env_var, "putty", 5) != 0) {
 		goto end;
 	}
 
-	if (strncmp(term, "xterm", 5) != 0 &&
-			strncmp(term, "rxvt", 4) != 0 &&
-			strncmp(term, "konsole", 7) != 0 &&
-			strncmp(term, "gnome", 5) != 0 &&
-			strncmp(term, "screen", 5) != 0 &&
-			strncmp(term, "tmux", 4) != 0 &&
-			strncmp(term, "putty", 5) != 0) {
-		goto end;
-	}
-
-	if (!isatty(1)) {
+	/* Both standard output and error streams need to be TTYs */
+	if (!isarealtty(STDOUT_FILENO) || !isarealtty(STDERR_FILENO)) {
 		goto end;
 	}
 
