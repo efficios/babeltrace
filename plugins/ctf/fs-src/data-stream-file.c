@@ -63,10 +63,11 @@ int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 	}
 
 	if (bt_munmap(ds_file->mmap_addr, ds_file->mmap_len)) {
-		BT_LOGE("Cannot memory-unmap address %p (size %zu) of file \"%s\" (%p): %s",
+		BT_LOGE_ERRNO("Cannot memory-unmap file",
+			": address=%p, size=%zu, file_path=\"%s\", file=%p",
 			ds_file->mmap_addr, ds_file->mmap_len,
-			ds_file->file->path->str, ds_file->file->fp,
-			strerror(errno));
+			ds_file->file->path->str,
+			ds_file->file ? ds_file->file->fp : NULL);
 		ret = -1;
 		goto end;
 	}
