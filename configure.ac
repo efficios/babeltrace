@@ -683,6 +683,7 @@ AC_CONFIG_FILES([
 	tests/lib/Makefile
 	tests/lib/writer/Makefile
 	tests/lib/test-plugin-plugins/Makefile
+	tests/utils/common.sh
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
 	tests/bindings/Makefile
@@ -734,7 +735,7 @@ AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/tes
 AC_CONFIG_FILES([tests/plugins/test_bin_info_complete], [chmod +x tests/plugins/test_bin_info_complete])
 
 AS_IF([test "x$enable_python_bindings_tests" = xyes],
-  [AC_CONFIG_FILES([tests/bindings/python/bt2/testall.sh], [chmod +x tests/bindings/python/bt2/testall.sh])]
+  [AC_CONFIG_FILES([tests/bindings/python/bt2/test_python_bt2], [chmod +x tests/bindings/python/bt2/test_python_bt2])]
 )
 
 AS_IF([test "x$enable_python_plugins" = "xyes"],

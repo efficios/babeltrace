@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# Copyright (C) 2017 - Philippe Proulx <pproulx@efficios.com>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; only version 2
+# of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+
+NO_SH_TAP=1
+. "@abs_top_builddir@/tests/utils/common.sh"
+
+check_coverage() {
+	coverage run "$@"
+}
+
+export BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1
+export TEST_PLUGIN_PLUGINS_PATH="${BT_BUILD_PATH}/plugins"
+export BABELTRACE_PLUGIN_PATH="${BT_BUILD_PATH}/plugins/ctf:${BT_BUILD_PATH}/plugins/utils:${BT_BUILD_PATH}/plugins/text"
+PYTHON_BUILD_DIR="${BT_BUILD_PATH}/bindings/python"
+BT2_NATIVE_LIBS_DIR="${BT_BUILD_PATH}/bindings/python/bt2/.libs"
+TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
+TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
+THIS_DIR="${BT_SRC_PATH}/tests/bindings/python/bt2"
+
+if test "x$TESTALL_COVERAGE" = "x1"; then
+	EXEC=check_coverage
+else
+	EXEC="@PYTHON@"
+
+fi
+
+PYTHONPATH="$PYTHON_BUILD_DIR:$BT2_NATIVE_LIBS_DIR:$TESTS_UTILS_PYTHON_DIR" \
+	"$EXEC" "$TESTRUNNER_PY" "$THIS_DIR"
+res=$?
+
+if test "x$TESTALL_COVERAGE_REPORT" = "x1"; then
+	coverage report -m
+fi
+
+if test "x$TESTALL_COVERAGE_HTML" = "x1"; then
+	coverage html
+fi
+
+exit $res

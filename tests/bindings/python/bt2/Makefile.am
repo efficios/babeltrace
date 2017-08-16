@@ -1,6 +1,4 @@
-check_SCRIPTS = testall.sh
 EXTRA_DIST = 					\
-	$(check_SCRIPTS)			\
 	test_clock_class.py			\
 	test_clock_class_priority_map.py	\
 	test_component.py			\
@@ -27,5 +25,5 @@ LOG_DRIVER_FLAGS='--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
 if ENABLE_PYTHON_BINDINGS
-TESTS = testall.sh
+TESTS = test_python_bt2
 endif

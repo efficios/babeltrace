@@ -15,20 +15,14 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-CURDIR=$(dirname $0)
-TESTDIR=$CURDIR/..
+. "@abs_top_builddir@/tests/utils/common.sh"
 
-BABELTRACE_BIN=@abs_top_builddir@/cli/babeltrace
-
-BT_TREE_PATH=@abs_top_srcdir@/
-DEBUG_INFO_TRACE=${BT_TREE_PATH}/tests/debug-info-data/trace/
-
-source $TESTDIR/utils/tap/tap.sh
+DEBUG_INFO_TRACE="${BT_SRC_PATH}/tests/debug-info-data/trace/"
 
 NUM_TESTS=1
 
 plan_tests $NUM_TESTS
 
-$BABELTRACE_BIN --debug-info-target-prefix ${BT_TREE_PATH} ${DEBUG_INFO_TRACE} 2>/dev/null \
+"${BT_BIN}" --debug-info-target-prefix "${BT_SRC_PATH}" "${DEBUG_INFO_TRACE}" 2>/dev/null \
 	| @GREP@ 'debug_info = { bin = "libhello_so+0x15a6", func = "bar+0xa9", src = "libhello.c:13" }' >/dev/null
 ok $? "Extract debug information"

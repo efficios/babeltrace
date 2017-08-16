@@ -15,31 +15,24 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-CURDIR=$(dirname $0)
-TESTDIR=$CURDIR/..
+. "@abs_top_builddir@/tests/utils/common.sh"
 
-BABELTRACE_BIN=$CURDIR/../../cli/babeltrace
-
-CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
-
-source $TESTDIR/utils/tap/tap.sh
-
-SUCCESS_TRACES=(${CTF_TRACES}/succeed/*)
-FAIL_TRACES=(${CTF_TRACES}/fail/*)
+SUCCESS_TRACES=(${BT_CTF_TRACES}/succeed/*)
+FAIL_TRACES=(${BT_CTF_TRACES}/fail/*)
 
 NUM_TESTS=$((${#SUCCESS_TRACES[@]} + ${#FAIL_TRACES[@]}))
 
 plan_tests $NUM_TESTS
 
-for path in ${SUCCESS_TRACES[@]}; do
-	trace=$(basename ${path})
-	$BABELTRACE_BIN ${path} > /dev/null 2>&1
+for path in "${SUCCESS_TRACES[@]}"; do
+	trace=$(basename "${path}")
+	"${BT_BIN}" "${path}" > /dev/null 2>&1
 	ok $? "Run babeltrace with trace ${trace}"
 done
 
-for path in ${FAIL_TRACES[@]}; do
-	trace=$(basename ${path})
-	$BABELTRACE_BIN ${path} > /dev/null 2>&1
+for path in "${FAIL_TRACES[@]}"; do
+	trace=$(basename "${path}")
+	"${BT_BIN}" "${path}" > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		fail "Run babeltrace with invalid trace ${trace}"
 	else

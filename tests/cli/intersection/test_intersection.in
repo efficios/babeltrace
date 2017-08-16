@@ -15,41 +15,36 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-TESTDIR=@abs_top_srcdir@/tests
-
-BABELTRACE_BIN=@abs_top_builddir@/cli/babeltrace
-CTF_TRACES=@abs_top_srcdir@/tests/ctf-traces
-
-source $TESTDIR/utils/tap/tap.sh
+. "@abs_top_builddir@/tests/utils/common.sh"
 
 NUM_TESTS=10
 
 plan_tests $NUM_TESTS
 
 test_intersect() {
-	trace=$1
-	totalevents=$2
-	intersect=$3
+	trace="$1"
+	totalevents="$2"
+	intersect="$3"
 
-	test $($BABELTRACE_BIN $trace | wc -l) = $totalevents
+	test "$("${BT_BIN}" "$trace" | wc -l)" = "$totalevents"
 	ok $? "$totalevents events in the whole trace"
-	test $($BABELTRACE_BIN --stream-intersection $trace 2>/dev/null| wc -l) = $intersect
+	test "$("${BT_BIN}" --stream-intersection "$trace" 2>/dev/null| wc -l)" = "$intersect"
 	ok $? "$intersect events in packets intersecting"
 }
 
 diag "Test the stream intersection feature"
 
 diag "2 streams offsetted with 3 packets intersecting"
-test_intersect ${CTF_TRACES}/intersection/3eventsintersect 8 3
+test_intersect "${BT_CTF_TRACES}/intersection/3eventsintersect" 8 3
 
 diag "2 streams offsetted with 3 packets intersecting (exchanged file names)"
-test_intersect ${CTF_TRACES}/intersection/3eventsintersectreverse 8 3
+test_intersect "${BT_CTF_TRACES}/intersection/3eventsintersectreverse" 8 3
 
 diag "No intersection between 2 streams"
-test_intersect ${CTF_TRACES}/intersection/nointersect 6 0
+test_intersect "${BT_CTF_TRACES}/intersection/nointersect" 6 0
 
 diag "Only 1 stream"
-test_intersect ${CTF_TRACES}/intersection/onestream 3 3
+test_intersect "${BT_CTF_TRACES}/intersection/onestream" 3 3
 
 diag "No stream at all"
-test_intersect ${CTF_TRACES}/intersection/nostream 0 0
+test_intersect "${BT_CTF_TRACES}/intersection/nostream" 0 0
