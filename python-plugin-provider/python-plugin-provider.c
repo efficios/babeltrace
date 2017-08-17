@@ -57,6 +57,7 @@ enum python_state {
 } python_state = PYTHON_STATE_NOT_INITED;
 
 static PyObject *py_try_load_plugin_module_func = NULL;
+static bool python_was_initialized_by_us;
 
 static
 void print_python_traceback_warn(void)
@@ -101,6 +102,7 @@ void init_python(void)
 	if (!Py_IsInitialized()) {
 		BT_LOGI_STR("Python interpreter is not initialized: initializing Python interpreter.");
 		Py_InitializeEx(0);
+		python_was_initialized_by_us = true;
 		BT_LOGI("Initialized Python interpreter: version=\"%s\"",
 			Py_GetVersion());
 	} else {
@@ -138,7 +140,7 @@ end:
 
 __attribute__((destructor)) static
 void fini_python(void) {
-	if (Py_IsInitialized()) {
+	if (Py_IsInitialized() && python_was_initialized_by_us) {
 		if (py_try_load_plugin_module_func) {
 			Py_DECREF(py_try_load_plugin_module_func);
 			py_try_load_plugin_module_func = NULL;
