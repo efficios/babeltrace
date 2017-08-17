@@ -1,5 +1,5 @@
-#ifndef CLI_LOGGING_H
-#define CLI_LOGGING_H
+#ifndef BABELTRACE_BINDINGS_PYTHON_BT2_LOGGING_H
+#define BABELTRACE_BINDINGS_PYTHON_BT2_LOGGING_H
 
 /*
  * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,9 +23,9 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_OUTPUT_LEVEL bt_cli_log_level
+#define BT_LOG_OUTPUT_LEVEL bt_python_bindings_bt2_log_level
 #include <babeltrace/logging-internal.h>
 
-BT_LOG_LEVEL_EXTERN_SYMBOL(bt_cli_log_level);
+BT_LOG_LEVEL_EXTERN_SYMBOL(bt_python_bindings_bt2_log_level);
 
-#endif /* CLI_LOGGING_H */
+#endif /* BABELTRACE_BINDINGS_PYTHON_BT2_LOGGING_H */
