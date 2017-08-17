@@ -17,6 +17,10 @@
 
 . "@abs_top_srcdir@/tests/utils/common.sh"
 
+clean_tmp() {
+	rm -rf "${out_path}" "${text_output1}" "${text_output2}"
+}
+
 SUCCESS_TRACES=(${BT_CTF_TRACES}/succeed/*)
 
 # -2 because there is an empty trace that we skip
@@ -29,29 +33,47 @@ for path in "${SUCCESS_TRACES[@]}"; do
 	text_output1="$(mktemp)"
 	text_output2="$(mktemp)"
 	trace="$(basename "${path}")"
+	sort_cmd="cat" # by default do not sort the trace
 
-	"${BT_BIN}" "${path}" 2>/dev/null >"${text_output1}"
+	"${BT_BIN}" --no-delta "${path}" 2>/dev/null >"${text_output1}"
 	ret=$?
 	cnt="$(wc -l < "${text_output1}")"
 	if test "$ret" == 0 && test "$cnt" == 0; then
-		pass "Empty trace, nothing to copy"
+		pass "Empty trace ${trace}, nothing to copy"
+		clean_tmp
 		continue
+	fi
+
+	# If the trace has a timestamp (starts with [), check if there are
+	# duplicate timestamps in the output.
+	# If there are, we have to sort the text output to make sure it is
+	# always the same.
+	head -1 "${text_output1}" | @GREP@ "^\[" >/dev/null
+	if test $? = 0; then
+		uniq_ts_cnt="$(@AWK@ '{ print $1 }' < "${text_output1}" | sort | uniq | wc -l)"
+		# Extract only the timestamp columns and compare the number of
+		# unique lines with the total number of lines to see if there
+		# are duplicate timestamps.
+		if test "$cnt" != "$uniq_ts_cnt"; then
+			diag "Trace with non unique timestamps, sorting the output"
+			sort_cmd="sort"
+			tmp="$(mktemp)"
+			sort "${text_output1}" > "$tmp"
+			rm "${text_output1}"
+			text_output1="$tmp"
+		fi
 	fi
 
 	"${BT_BIN}" "${path}" --component sink.ctf.fs --path "${out_path}" >/dev/null 2>&1
 	ok $? "Copy trace ${trace} with ctf-fs sink"
 
 	"${BT_BIN}" "${out_path}" >/dev/null 2>&1
-	if test $? != 0; then
-		fail "Read the new trace in ${out_path}"
-		continue
-	fi
-	pass "Read the new trace in ${out_path}"
+	ok $? "Read the new trace in ${out_path}"
 
-	"${BT_BIN}" "${out_path}" 2>/dev/null >"${text_output2}"
+	"${BT_BIN}" --no-delta "${out_path}" 2>/dev/null | $sort_cmd >"${text_output2}"
 	cnt=$(diff "${text_output1}" "${text_output2}" | wc -l)
 	test "$cnt" == 0
 	ok $? "Exact same content between the two traces"
 
-	rm -rf "${out_path}" "${text_output1}" "${text_output2}"
+	clean_tmp
 done
