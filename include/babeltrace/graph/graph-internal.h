@@ -60,6 +60,7 @@ struct bt_graph {
 	bt_bool canceled;
 	bt_bool in_remove_listener;
 	bt_bool has_sink;
+	bt_bool can_consume;
 
 	struct {
 		GArray *port_added;
@@ -113,6 +114,8 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION";
 	case BT_GRAPH_STATUS_NOMEM:
 		return "BT_GRAPH_STATUS_NOMEM";
+	case BT_GRAPH_STATUS_CANNOT_CONSUME:
+		return "BT_GRAPH_STATUS_CANNOT_CONSUME";
 	default:
 		return "(unknown)";
 	}

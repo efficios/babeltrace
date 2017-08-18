@@ -128,6 +128,10 @@ class IncompleteUserClass(Error):
     pass
 
 
+class CannotConsumeGraph(Error):
+    pass
+
+
 class GraphCanceled(Exception):
     pass
 
