@@ -188,6 +188,7 @@ struct bt_graph *bt_graph_create(void)
 		goto error;
 	}
 
+	graph->can_consume = BT_TRUE;
 	ret = init_listeners_array(&graph->listeners.port_added);
 	if (ret) {
 		BT_LOGE_STR("Cannot create the \"port added\" listener array.");
@@ -232,6 +233,7 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
 	enum bt_component_status component_status;
+	const bt_bool init_can_consume = graph->can_consume;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
@@ -263,6 +265,8 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 		status = BT_GRAPH_STATUS_CANCELED;
 		goto end;
 	}
+
+	graph->can_consume = BT_FALSE;
 
 	/* Ensure appropriate types for upstream and downstream ports. */
 	if (bt_port_get_type(upstream_port) != BT_PORT_TYPE_OUTPUT) {
@@ -406,6 +410,7 @@ end:
 	bt_put(upstream_component);
 	bt_put(downstream_component);
 	bt_put(connection);
+	graph->can_consume = init_can_consume;
 	return status;
 }
 
@@ -490,7 +495,15 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 		goto end;
 	}
 
+	if (!graph->can_consume) {
+		BT_LOGW_STR("Cannot consume graph in its current state.");
+		status = BT_GRAPH_STATUS_CANNOT_CONSUME;
+		goto end;
+	}
+
+	graph->can_consume = BT_FALSE;
 	status = bt_graph_consume_no_check(graph);
+	graph->can_consume = BT_TRUE;
 
 end:
 	return status;
@@ -513,6 +526,13 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		goto end;
 	}
 
+	if (!graph->can_consume) {
+		BT_LOGW_STR("Cannot run graph in its current state.");
+		status = BT_GRAPH_STATUS_CANNOT_CONSUME;
+		goto end;
+	}
+
+	graph->can_consume = BT_FALSE;
 	BT_LOGV("Running graph: addr=%p", graph);
 
 	do {
@@ -556,6 +576,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 
 end:
 	BT_LOGV("Graph ran: status=%s", bt_graph_status_string(status));
+	graph->can_consume = BT_TRUE;
 	return status;
 }
 
@@ -863,6 +884,7 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 	struct bt_component *component = NULL;
 	enum bt_component_class_type type;
 	size_t i;
+	const bt_bool init_can_consume = graph->can_consume;
 
 	bt_get(params);
 
@@ -878,6 +900,7 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 		goto end;
 	}
 
+	graph->can_consume = BT_FALSE;
 	type = bt_component_class_get_type(component_class);
 	BT_LOGD("Adding component to graph: "
 		"graph-addr=%p, comp-cls-addr=%p, "
@@ -1011,6 +1034,7 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 end:
 	bt_put(component);
 	bt_put(params);
+	graph->can_consume = init_can_consume;
 	return graph_status;
 }
 
