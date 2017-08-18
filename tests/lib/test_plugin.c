@@ -56,19 +56,25 @@ static void reset_test_plugin_env_vars(void)
 static char *get_test_plugin_path(const char *plugin_dir,
 		const char *plugin_name)
 {
-	GString *path = g_string_new(plugin_dir);
 	char *ret;
+	char *plugin_file_name;
 
-	assert(path);
-	g_string_append_printf(path, "/plugin-%s.so", plugin_name);
-	ret = path->str;
-	g_string_free(path, FALSE);
+	if (asprintf(&plugin_file_name, "plugin-%s." G_MODULE_SUFFIX,
+			plugin_name) == -1) {
+		abort();
+	}
+
+	ret = g_build_filename(plugin_dir, plugin_file_name, NULL);
+	free(plugin_file_name);
+
 	return ret;
 }
 
 static void test_invalid(const char *plugin_dir)
 {
 	struct bt_plugin_set *plugin_set;
+
+	diag("invalid plugin test below");
 
 	plugin_set = bt_plugin_create_all_from_file(NON_EXISTING_PATH);
 	ok(!plugin_set, "bt_plugin_create_all_from_file() fails with a non-existing file");
@@ -299,7 +305,12 @@ static void test_find(const char *plugin_dir)
 		"bt_plugin_find() handles NULL");
 	ok(!bt_plugin_find(NON_EXISTING_PATH),
 		"bt_plugin_find() returns NULL with an unknown plugin name");
-	ret = asprintf(&plugin_path, "%s:/ec1d09e5-696c-442e-b1c3-f9c6cf7f5958:::%s:8db46494-a398-466a-9649-c765ae077629:",
+	ret = asprintf(&plugin_path, "%s" G_SEARCHPATH_SEPARATOR_S
+			G_DIR_SEPARATOR_S "ec1d09e5-696c-442e-b1c3-f9c6cf7f5958"
+			G_SEARCHPATH_SEPARATOR_S G_SEARCHPATH_SEPARATOR_S
+			G_SEARCHPATH_SEPARATOR_S "%s" G_SEARCHPATH_SEPARATOR_S
+			"8db46494-a398-466a-9649-c765ae077629"
+			G_SEARCHPATH_SEPARATOR_S,
 		NON_EXISTING_PATH, plugin_dir);
 	assert(ret > 0 && plugin_path);
 	g_setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
