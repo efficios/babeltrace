@@ -529,7 +529,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 			goto end;
 		}
 
-		status = bt_graph_consume(graph);
+		status = bt_graph_consume_no_check(graph);
 		if (status == BT_GRAPH_STATUS_AGAIN) {
 			/*
 			 * If AGAIN is received and there are multiple
