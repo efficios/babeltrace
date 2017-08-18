@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2004 Nik Clayton
+ *               2017 Jérémie Galarneau
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,6 +81,7 @@ int plan_skip_all(char *);
 int plan_tests(unsigned int);
 
 unsigned int diag(char *, ...);
+void diag_multiline(const char *);
 
 int skip(unsigned int, char *, ...);
 

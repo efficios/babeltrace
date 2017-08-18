@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2004 Nik Clayton
+ *               2017 Jérémie Galarneau
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +29,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+#include <limits.h>
 
 #include "tap.h"
 
@@ -293,6 +297,28 @@ diag(char *fmt, ...)
 	fputs("\n", stderr);
 
 	return 0;
+}
+
+void
+diag_multiline(const char *val)
+{
+	size_t len, i, line_start_idx = 0;
+
+	assert(val);
+	len = strlen(val);
+
+	for (i = 0; i < len; i++) {
+		int line_length;
+
+		if (val[i] != '\n') {
+			continue;
+		}
+
+		assert((i - line_start_idx + 1) <= INT_MAX);
+		line_length = i - line_start_idx + 1;
+		fprintf(stderr, "# %.*s", line_length, &val[line_start_idx]);
+		line_start_idx = i + 1;
+	}
 }
 
 void
