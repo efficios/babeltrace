@@ -98,7 +98,7 @@ static
 void validate_trace(char *parser_path, char *trace_path)
 {
 	int ret = 0;
-	gchar *standard_error;
+	gchar *standard_error = NULL;
 	gint exit_status;
 	char *argv[] = {parser_path, trace_path, NULL};
 
