@@ -38,7 +38,7 @@ for path in "${SUCCESS_TRACES[@]}"; do
 	"${BT_BIN}" --no-delta "${path}" 2>/dev/null >"${text_output1}"
 	ret=$?
 	cnt="$(wc -l < "${text_output1}")"
-	if test "$ret" == 0 && test "$cnt" == 0; then
+	if test "$ret" == 0 && test $cnt == 0; then
 		pass "Empty trace ${trace}, nothing to copy"
 		clean_tmp
 		continue
@@ -54,7 +54,7 @@ for path in "${SUCCESS_TRACES[@]}"; do
 		# Extract only the timestamp columns and compare the number of
 		# unique lines with the total number of lines to see if there
 		# are duplicate timestamps.
-		if test "$cnt" != "$uniq_ts_cnt"; then
+		if test $cnt != $uniq_ts_cnt; then
 			diag "Trace with non unique timestamps, sorting the output"
 			sort_cmd="sort"
 			tmp="$(mktemp)"
@@ -72,7 +72,7 @@ for path in "${SUCCESS_TRACES[@]}"; do
 
 	"${BT_BIN}" --no-delta "${out_path}" 2>/dev/null | $sort_cmd >"${text_output2}"
 	cnt=$(diff "${text_output1}" "${text_output2}" | wc -l)
-	test "$cnt" == 0
+	test $cnt == 0
 	ok $? "Exact same content between the two traces"
 
 	clean_tmp
