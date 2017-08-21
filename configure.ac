@@ -630,6 +630,11 @@ LIBS="$LIBS $GLIB_LIBS"
 # glib.h is not platform specific but it includes glibconfig.h which is and
 # is usually installed in a non-standard path.
 
+# Older versions of the pkg-config macros disallows PKG_* in the autoconf
+# output. Specifically allow pkg_config_libdir to be able to print the
+# error message.
+m4_pattern_allow([PKG_CONFIG_LIBDIR])
+
 save_CFLAGS=${CFLAGS}
 CFLAGS="${CFLAGS} ${AM_CFLAGS}"
 AC_COMPILE_IFELSE([
