@@ -48,6 +48,7 @@
 #include "file.h"
 #include "../common/metadata/decoder.h"
 #include "../common/notif-iter/notif-iter.h"
+#include "../common/utils/utils.h"
 #include "query.h"
 
 #define BT_LOG_TAG "PLUGIN-CTF-FS-SRC"
@@ -403,51 +404,6 @@ end:
 	return stream_instance_id;
 }
 
-struct bt_ctf_stream_class *stream_class_from_packet_header(
-		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_ctf_field *packet_header_field)
-{
-	struct bt_ctf_field *stream_id_field = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL;
-	uint64_t stream_id = -1ULL;
-	int ret;
-
-	if (!packet_header_field) {
-		goto single_stream_class;
-	}
-
-	stream_id_field = bt_ctf_field_structure_get_field_by_name(
-		packet_header_field, "stream_id");
-	if (!stream_id_field) {
-		goto single_stream_class;
-	}
-
-	ret = bt_ctf_field_unsigned_integer_get_value(stream_id_field,
-		&stream_id);
-	if (ret) {
-		stream_id = -1ULL;
-	}
-
-	if (stream_id == -1ULL) {
-single_stream_class:
-		/* Single stream class */
-		if (bt_ctf_trace_get_stream_class_count(
-				ctf_fs_trace->metadata->trace) == 0) {
-			goto end;
-		}
-
-		stream_class = bt_ctf_trace_get_stream_class_by_index(
-			ctf_fs_trace->metadata->trace, 0);
-	} else {
-		stream_class = bt_ctf_trace_get_stream_class_by_id(
-			ctf_fs_trace->metadata->trace, stream_id);
-	}
-
-end:
-	bt_put(stream_id_field);
-	return stream_class;
-}
-
 uint64_t get_packet_context_timestamp_begin_ns(
 		struct ctf_fs_trace *ctf_fs_trace,
 		struct bt_ctf_field *packet_context_field)
@@ -698,8 +654,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		packet_header_field);
 	begin_ns = get_packet_context_timestamp_begin_ns(ctf_fs_trace,
 		packet_context_field);
-	stream_class = stream_class_from_packet_header(ctf_fs_trace,
-		packet_header_field);
+	stream_class = ctf_utils_stream_class_from_packet_header(
+		ctf_fs_trace->metadata->trace, packet_header_field);
 	if (!stream_class) {
 		goto error;
 	}
