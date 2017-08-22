@@ -105,11 +105,8 @@ struct ctf_fs_ds_file {
 	 */
 	size_t mmap_max_len;
 
-	/* Length of the current mapping. */
+	/* Length of the current mapping. Never exceeds the file's length. */
 	size_t mmap_len;
-
-	/* Length of the current mapping which *exists* in the backing file. */
-	size_t mmap_valid_len;
 
 	/* Offset in the file where the current mapping starts. */
 	off_t mmap_offset;
