@@ -99,7 +99,10 @@ struct ctf_fs_ds_file {
 
 	void *mmap_addr;
 
-	/* Max length of chunk to mmap() when updating the current mapping. */
+	/*
+	 * Max length of chunk to mmap() when updating the current mapping.
+	 * This value must be page-aligned.
+	 */
 	size_t mmap_max_len;
 
 	/* Length of the current mapping. */
