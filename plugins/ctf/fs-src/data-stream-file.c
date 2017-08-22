@@ -92,6 +92,11 @@ enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 			goto error;
 		}
 
+		/*
+		 * mmap_valid_len is guaranteed to be page-aligned except on the
+		 * last mapping where it may not be possible (since the file's
+		 * size itself may not be a page multiple).
+		 */
 		ds_file->mmap_offset += ds_file->mmap_valid_len;
 		ds_file->request_offset = 0;
 	}

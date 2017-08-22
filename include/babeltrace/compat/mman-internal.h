@@ -43,6 +43,10 @@
 #define MAP_ANON	MAP_ANONYMOUS
 #define MAP_FAILED	((void *) -1)
 
+/*
+ * Note that some platforms (e.g. Windows) do not allow read-only
+ * mappings to exceed the file's size (even within a page).
+ */
 void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 	off_t offset);
 
