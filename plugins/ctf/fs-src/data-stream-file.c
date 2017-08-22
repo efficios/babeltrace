@@ -50,7 +50,7 @@
 static inline
 size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 {
-	return ds_file->mmap_valid_len - ds_file->request_offset;
+	return ds_file->mmap_len - ds_file->request_offset;
 }
 
 static
@@ -93,23 +93,20 @@ enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 		}
 
 		/*
-		 * mmap_valid_len is guaranteed to be page-aligned except on the
+		 * mmap_len is guaranteed to be page-aligned except on the
 		 * last mapping where it may not be possible (since the file's
 		 * size itself may not be a page multiple).
 		 */
-		ds_file->mmap_offset += ds_file->mmap_valid_len;
+		ds_file->mmap_offset += ds_file->mmap_len;
 		ds_file->request_offset = 0;
 	}
 
-	ds_file->mmap_valid_len = MIN(ds_file->file->size - ds_file->mmap_offset,
+	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset,
 			ds_file->mmap_max_len);
-	if (ds_file->mmap_valid_len == 0) {
+	if (ds_file->mmap_len == 0) {
 		ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	}
-	/* Round up to next page, assuming page size being a power of 2. */
-	ds_file->mmap_len = (ds_file->mmap_valid_len + page_size - 1)
-			& ~(page_size - 1);
 	/* Map new region */
 	assert(ds_file->mmap_len);
 	ds_file->mmap_addr = bt_mmap((void *) 0, ds_file->mmap_len,
