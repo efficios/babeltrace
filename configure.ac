@@ -573,15 +573,6 @@ AS_IF([test "x$enable_python_bindings_doc" = xyes],
   ]
 )
 
-AS_IF([test "x$enable_python_bindings_tests" = xyes],
-  [
-    AM_CHECK_PYTHON_TAPPY([PYTHON])
-    AS_IF([test "x$PYTHON_TAPPY_EXISTS" = xno],
-      [AC_MSG_ERROR([You need the tappy Python project to test the Python bindings (see <https://github.com/python-tap/tappy>)])]
-    )
-  ]
-)
-
 AS_IF([test "x$enable_debug_info" = xyes],
   [
     # Check if libelf and libdw are present
