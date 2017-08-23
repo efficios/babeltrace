@@ -685,6 +685,7 @@ static const bt_log_output out_stderr = {BT_LOG_OUT_STDERR};
 	BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL = 0;
 #endif
 
+BT_HIDDEN
 const bt_log_spec _bt_log_stderr_spec =
 {
 	BT_LOG_GLOBAL_FORMAT,
