@@ -353,10 +353,10 @@
  * corresponding BT_LOG_DEFINE_XXX macro MUST be used exactly once somewhere.
  * Otherwise build will fail with link error (undefined symbol).
  */
-#define BT_LOG_DEFINE_TAG_PREFIX const char *_bt_log_tag_prefix
-#define BT_LOG_DEFINE_GLOBAL_FORMAT bt_log_format _bt_log_global_format
-#define BT_LOG_DEFINE_GLOBAL_OUTPUT bt_log_output _bt_log_global_output
-#define BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL int _bt_log_global_output_lvl
+#define BT_LOG_DEFINE_TAG_PREFIX BT_HIDDEN const char *_bt_log_tag_prefix
+#define BT_LOG_DEFINE_GLOBAL_FORMAT BT_HIDDEN bt_log_format _bt_log_global_format
+#define BT_LOG_DEFINE_GLOBAL_OUTPUT BT_HIDDEN bt_log_output _bt_log_global_output
+#define BT_LOG_DEFINE_GLOBAL_OUTPUT_LEVEL BT_HIDDEN int _bt_log_global_output_lvl
 
 /* Pointer to global format options. Direct modification is not allowed. Use
  * bt_log_set_mem_width() instead. Could be used to initialize bt_log_spec
