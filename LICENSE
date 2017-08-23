@@ -20,3 +20,8 @@ The file include/babeltrace/list-internal.h is licensed under LGPLv2.1. It only
 contains trivial static inline functions and macros, and, therefore,
 including it does not make babeltrace a derivative work on this header.
 Please refer to the LGPLv2.1 license for details.
+
+* BSD 2-Clause
+
+The files in tests/utils/python/tap/ are licensed under the BSD 2-Clause. They
+are only used when running the tests in the source tree.
