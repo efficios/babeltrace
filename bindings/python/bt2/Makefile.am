@@ -1,107 +1,100 @@
-# native module name (without `.i` extension)
-NATIVE_MODULE = native_bt
+# Since the shared object used by the python bindings is not built with
+# libtool, we need to add the directory containing libbabeltrace to the
+# linker path.
+AM_LDFLAGS=-L$(top_builddir)/lib/.libs
 
-# interface dependencies (without `native_bt` prefix and `.i` extension)
-NATIVE_MODULE_DEPS =	\
-	ccpriomap	\
-	clockclass	\
-	component	\
-	componentclass	\
-	connection	\
-	ctfwriter	\
-	event		\
-	eventclass	\
-	fields		\
-	ft		\
-	graph		\
-	logging		\
-	notification	\
-	notifiter	\
-	packet		\
-	plugin		\
-	port		\
-	ref		\
-	stream		\
-	streamclass	\
-	trace		\
-	values		\
-	version
+INSTALLED_FILES=$(builddir)/installed_files.txt
 
-# Python modules (without `.py` extension)
-EXTRA_MODULES = 			\
-	clock_class			\
-	clock_class_priority_map	\
-	component			\
-	connection			\
-	ctf_writer			\
-	event				\
-	event_class			\
-	field_types			\
-	fields				\
-	graph				\
-	logging				\
-	notification			\
-	notification_iterator		\
-	object				\
-	packet				\
-	plugin				\
-	port				\
-	py_plugin			\
-	stream				\
-	stream_class			\
-	trace				\
-	utils				\
-	values
+STATIC_BINDINGS_DEPS =			\
+	bt2/logging.c			\
+	bt2/logging.h			\
+	bt2/native_btccpriomap.i	\
+	bt2/native_btclockclass.i	\
+	bt2/native_btcomponentclass.i	\
+	bt2/native_btcomponent.i	\
+	bt2/native_btconnection.i	\
+	bt2/native_btctfwriter.i	\
+	bt2/native_bteventclass.i	\
+	bt2/native_btevent.i		\
+	bt2/native_btfields.i		\
+	bt2/native_btft.i		\
+	bt2/native_btgraph.i		\
+	bt2/native_bt.i			\
+	bt2/native_btlogging.i		\
+	bt2/native_btnotification.i	\
+	bt2/native_btnotifiter.i	\
+	bt2/native_btpacket.i		\
+	bt2/native_btplugin.i		\
+	bt2/native_btport.i		\
+	bt2/native_btref.i		\
+	bt2/native_btstreamclass.i	\
+	bt2/native_btstream.i		\
+	bt2/native_bttrace.i		\
+	bt2/native_btvalues.i		\
+	bt2/native_btversion.i		\
+	bt2/clock_class_priority_map.py	\
+	bt2/clock_class.py		\
+	bt2/component.py		\
+	bt2/connection.py		\
+	bt2/ctf_writer.py		\
+	bt2/event_class.py		\
+	bt2/event.py			\
+	bt2/fields.py			\
+	bt2/field_types.py		\
+	bt2/graph.py			\
+	bt2/logging.py			\
+	bt2/notification_iterator.py	\
+	bt2/notification.py		\
+	bt2/object.py			\
+	bt2/packet.py			\
+	bt2/plugin.py			\
+	bt2/port.py			\
+	bt2/py_plugin.py		\
+	bt2/stream_class.py		\
+	bt2/stream.py			\
+	bt2/trace.py			\
+	bt2/utils.py			\
+	bt2/values.py
 
-# automatically generated file lists
-EXTRA_MODULES_PY = $(addprefix $(srcdir)/,$(addsuffix .py,$(EXTRA_MODULES)))
-NATIVE_MODULE_I = $(srcdir)/$(NATIVE_MODULE).i
-NATIVE_MODULE_PY = $(NATIVE_MODULE).py
-NATIVE_MODULE_C = $(NATIVE_MODULE)_wrap.c
-NATIVE_MODULE_DEPS_I = $(addprefix $(srcdir)/native_bt,$(addsuffix .i,$(NATIVE_MODULE_DEPS)))
+GENERATED_BINDINGS_DEPS =		\
+	bt2/__init__.py			\
+	setup.py
 
-# installed Python package
-nodist_bt2package_PYTHON = __init__.py $(EXTRA_MODULES_PY) $(NATIVE_MODULE_PY)
+BUILD_FLAGS=CC="$(CC)" \
+		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS)" \
+		CPPFLAGS="$(AM_CPPFLAGS) $(CPPFLAGS)" \
+		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS) $(GLIB_LIBS) $(LIBS)"
 
-# native libraries to build
-nativelibs_LTLIBRARIES = _native_bt.la
+all-local: build-python-bindings.stamp
 
-# installation directory for the `bt2` package
-bt2packagedir = $(pythondir)/bt2
-nativelibsdir = $(bt2packagedir)
+build-python-bindings.stamp: $(STATIC_BINDINGS_DEPS) $(GENERATED_BINDINGS_DEPS)
+	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext
+	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build
+	touch $@
 
-# SWIG to C wrapper (and Python file)
-$(NATIVE_MODULE_C): $(NATIVE_MODULE_I) $(NATIVE_MODULE_DEPS_I)
-	$(SWIG) -python -Wall -I$(srcdir) -I$(top_srcdir)/include -module $(NATIVE_MODULE) -outcurrentdir $(NATIVE_MODULE_I)
+install-exec-local: build-python-bindings.stamp
+	@opts="--prefix=$(prefix) --record $(INSTALLED_FILES) --verbose --no-compile $(DISTSETUPOPTS)"; \
+	if [ "$(DESTDIR)" != "" ]; then \
+		opts="$$opts --root=$(DESTDIR)"; \
+	fi; \
+	$(PYTHON) $(builddir)/setup.py install $$opts;
 
-# native_bt module
-_native_bt_la_SOURCES = logging.h logging.c
-nodist__native_bt_la_SOURCES = native_bt_wrap.c
-_native_bt_la_LDFLAGS = -module
-_native_bt_la_CFLAGS = $(PYTHON_INCLUDE) -I$(srcdir) $(AM_CFLAGS)
-_native_bt_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la \
-	$(top_builddir)/common/libbabeltrace-common.la
-
-# extra module sources -> build directory
-all-local:
-	@if [ x"$(srcdir)" != x"$(builddir)" ]; then		\
-		for file in $(EXTRA_MODULES_PY); do		\
-			cp -f "$(srcdir)/$$file" "$(builddir)";	\
-		done;						\
-	fi
-
-# clean extra module sources in build directory
 clean-local:
-	@if [ x"$(srcdir)" != x"$(builddir)" ]; then		\
-		for file in $(EXTRA_MODULES_PY); do		\
-			rm -f "$(srcdir)/$$file" "$(builddir)";	\
-		done;						\
+	rm -rf $(builddir)/build
+
+# Distutils' setup.py does not include an uninstall target, we thus need to do
+# it manually. We save the path of the files that were installed during the install target
+# and delete them during the uninstallation.
+uninstall-local:
+	if [ "$(DESTDIR)" != "" ]; then \
+		$(SED) -i "s|^|$(DESTDIR)/|g" $(INSTALLED_FILES); \
 	fi
+	cat $(INSTALLED_FILES) | xargs rm -rf || true
+	$(GREP) "__init__.py" $(INSTALLED_FILES) | xargs dirname | xargs rm -rf || true
+	rm -f $(INSTALLED_FILES)
 
 # distribute: extra Python modules and SWIG interface files
-EXTRA_DIST = __init__.py.in $(EXTRA_MODULES_PY) $(NATIVE_MODULE_I) $(NATIVE_MODULE_DEPS_I)
+EXTRA_DIST = $(STATIC_BINDINGS_DEPS)
 
 # clean: generated C and Python files (by SWIG)
-CLEANFILES = $(NATIVE_MODULE_PY) $(NATIVE_MODULE_C)
+CLEANFILES = bt2/native_bt.py bt2/native_bt_wrap.c build-python-bindings.stamp
