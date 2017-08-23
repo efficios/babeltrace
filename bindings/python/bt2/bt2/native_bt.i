@@ -26,6 +26,8 @@
 # error Unsupported output language
 #endif
 
+%module native_bt
+
 %{
 #define BT_LOG_TAG "PY-NATIVE"
 #include "logging.h"
