@@ -662,7 +662,8 @@ AC_CONFIG_FILES([
 	Makefile
 	bindings/python/Makefile
 	bindings/python/bt2/Makefile
-	bindings/python/bt2/__init__.py
+	bindings/python/bt2/setup.py
+	bindings/python/bt2/bt2/__init__.py
 	common/Makefile
 	compat/Makefile
 	cli/Makefile

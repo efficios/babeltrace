@@ -27,8 +27,8 @@ check_coverage() {
 export BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1
 export TEST_PLUGIN_PLUGINS_PATH="${BT_BUILD_PATH}/plugins"
 export BABELTRACE_PLUGIN_PATH="${BT_BUILD_PATH}/plugins/ctf:${BT_BUILD_PATH}/plugins/utils:${BT_BUILD_PATH}/plugins/text"
-PYTHON_BUILD_DIR="${BT_BUILD_PATH}/bindings/python"
-BT2_NATIVE_LIBS_DIR="${BT_BUILD_PATH}/bindings/python/bt2/.libs"
+export LD_LIBRARY_PATH="${BT_BUILD_PATH}/lib/.libs"
+PYTHON_BUILD_DIR="${BT_BUILD_PATH}/bindings/python/bt2/build/build_lib"
 TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
 TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
 THIS_DIR="${BT_SRC_PATH}/tests/bindings/python/bt2"
@@ -40,7 +40,7 @@ else
 
 fi
 
-PYTHONPATH="$PYTHON_BUILD_DIR:$BT2_NATIVE_LIBS_DIR:$TESTS_UTILS_PYTHON_DIR" \
+PYTHONPATH="$PYTHON_BUILD_DIR:$TESTS_UTILS_PYTHON_DIR" \
 	"$EXEC" "$TESTRUNNER_PY" "$THIS_DIR"
 res=$?
 
