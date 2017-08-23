@@ -82,7 +82,6 @@ static
 enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 		struct ctf_fs_ds_file *ds_file)
 {
-	const size_t page_size = bt_common_get_page_size();
 	enum bt_ctf_notif_iter_medium_status ret =
 			BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
 
