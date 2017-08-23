@@ -415,14 +415,6 @@ AC_ARG_ENABLE([python-bindings-doc],
   [enable_python_bindings_doc=no]
 )
 
-# Python bindings tests
-# Disabled by default
-AC_ARG_ENABLE([python-bindings-tests],
-  [AC_HELP_STRING([--enable-python-bindings-tests], [run the Python bindings tests])],
-  [], dnl AC_ARG_ENABLE will fill enable_python_bindings_tests with the user choice
-  [enable_python_bindings_tests=no]
-)
-
 # Python plugins
 # Disabled by default
 AC_ARG_ENABLE([python-plugins],
@@ -467,7 +459,6 @@ AC_ARG_ENABLE([built-in-python-plugin-support],
 # Set automake variables for optionnal feature conditionnals in Makefile.am
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS], [test "x$enable_python_bindings" = xyes])
 AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_DOC], [test "x$enable_python_bindings_doc" = xyes])
-AM_CONDITIONAL([ENABLE_PYTHON_BINDINGS_TESTS], [test "x$enable_python_bindings_tests" = xyes])
 AM_CONDITIONAL([ENABLE_PYTHON_PLUGINS], [test "x$enable_python_plugins" = xyes])
 AM_CONDITIONAL([ENABLE_DEBUG_INFO], [test "x$enable_debug_info" = xyes])
 AM_CONDITIONAL([ENABLE_API_DOC], [test "x$enable_api_doc" = xyes])
@@ -500,7 +491,6 @@ AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
 AS_IF([test "x$enable_python_bindings" = xno],
   [
     AS_IF([test "x$enable_python_bindings_doc" = xyes], [AC_MSG_ERROR([--enable-python-bindings-doc was specified without --enable-python-bindings])])
-    AS_IF([test "x$enable_python_bindings_tests" = xyes], AC_MSG_ERROR([--enable-python-bindings-tests was specified without --enable-python-bindings]))
   ]
 )
 
@@ -732,7 +722,7 @@ AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugi
 AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/test_dwarf_complete])
 AC_CONFIG_FILES([tests/plugins/test_bin_info_complete], [chmod +x tests/plugins/test_bin_info_complete])
 
-AS_IF([test "x$enable_python_bindings_tests" = xyes],
+AS_IF([test "x$enable_python_bindings" = xyes],
   [AC_CONFIG_FILES([tests/bindings/python/bt2/test_python_bt2], [chmod +x tests/bindings/python/bt2/test_python_bt2])]
 )
 
@@ -806,11 +796,6 @@ PPRINT_PROP_BOOL([Python bindings documentation], $value)
 AS_ECHO
 PPRINT_SUBTITLE([Logging])
 PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
-
-AS_ECHO
-PPRINT_SUBTITLE([Testing])
-test "x$enable_python_bindings_tests" = "xyes" && value=1 || value=0
-PPRINT_PROP_BOOL([Python bindings tests], $value)
 
 report_bindir="`eval eval echo $bindir`"
 report_libdir="`eval eval echo $libdir`"
