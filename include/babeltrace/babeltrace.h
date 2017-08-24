@@ -90,8 +90,9 @@
 #include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-component-source.h>
 #include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/private-connection-notification-iterator.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/graph/query-executor.h>
 

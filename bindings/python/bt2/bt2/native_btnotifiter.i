@@ -37,21 +37,23 @@ enum bt_notification_iterator_status {
 	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -2,
 };
 
-/* Functions */
+/* Functions (base) */
 struct bt_notification *bt_notification_iterator_get_notification(
 		struct bt_notification_iterator *iterator);
 enum bt_notification_iterator_status bt_notification_iterator_next(
 		struct bt_notification_iterator *iterator);
-struct bt_component *bt_notification_iterator_get_component(
+
+/* Functions (private connection) */
+struct bt_component *bt_private_connection_notification_iterator_get_component(
 		struct bt_notification_iterator *iterator);
 
 /* Helper functions for Python */
 %{
 static PyObject *bt_py3_get_user_component_from_user_notif_iter(
-		struct bt_private_notification_iterator *priv_notif_iter)
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
 	struct bt_private_component *priv_comp =
-		bt_private_notification_iterator_get_private_component(
+		bt_private_connection_private_notification_iterator_get_private_component(
 			priv_notif_iter);
 	PyObject *py_comp;
 
@@ -67,4 +69,4 @@ static PyObject *bt_py3_get_user_component_from_user_notif_iter(
 %}
 
 PyObject *bt_py3_get_user_component_from_user_notif_iter(
-		struct bt_private_notification_iterator *priv_notif_iter);
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter);

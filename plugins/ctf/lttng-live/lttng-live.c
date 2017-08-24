@@ -36,7 +36,7 @@
 #include <babeltrace/graph/port.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-component-source.h>
-#include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/notification-event.h>
@@ -352,10 +352,10 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 }
 
 BT_HIDDEN
-void lttng_live_iterator_finalize(struct bt_private_notification_iterator *it)
+void lttng_live_iterator_finalize(struct bt_private_connection_private_notification_iterator *it)
 {
 	struct lttng_live_stream_iterator_generic *s =
-			bt_private_notification_iterator_get_user_data(it);
+			bt_private_connection_private_notification_iterator_get_user_data(it);
 
 	switch (s->type) {
 	case LIVE_STREAM_TYPE_NO_STREAM:
@@ -768,12 +768,12 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_activ
  * When disconnected from relayd: try to re-connect endlessly.
  */
 static
-struct bt_notification_iterator_next_return lttng_live_iterator_next_stream(
-		struct bt_private_notification_iterator *iterator,
+struct bt_notification_iterator_next_method_return lttng_live_iterator_next_stream(
+		struct bt_private_connection_private_notification_iterator *iterator,
 		struct lttng_live_stream_iterator *stream_iter)
 {
 	enum bt_ctf_lttng_live_iterator_status status;
-	struct bt_notification_iterator_next_return next_return;
+	struct bt_notification_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
 	lttng_live = stream_iter->trace->session->lttng_live;
@@ -839,12 +839,12 @@ end:
 }
 
 static
-struct bt_notification_iterator_next_return lttng_live_iterator_next_no_stream(
-		struct bt_private_notification_iterator *iterator,
+struct bt_notification_iterator_next_method_return lttng_live_iterator_next_no_stream(
+		struct bt_private_connection_private_notification_iterator *iterator,
 		struct lttng_live_no_stream_iterator *no_stream_iter)
 {
 	enum bt_ctf_lttng_live_iterator_status status;
-	struct bt_notification_iterator_next_return next_return;
+	struct bt_notification_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
 	lttng_live = no_stream_iter->lttng_live;
@@ -888,12 +888,12 @@ end:
 }
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return lttng_live_iterator_next(
-		struct bt_private_notification_iterator *iterator)
+struct bt_notification_iterator_next_method_return lttng_live_iterator_next(
+		struct bt_private_connection_private_notification_iterator *iterator)
 {
 	struct lttng_live_stream_iterator_generic *s =
-			bt_private_notification_iterator_get_user_data(iterator);
-	struct bt_notification_iterator_next_return next_return;
+			bt_private_connection_private_notification_iterator_get_user_data(iterator);
+	struct bt_notification_iterator_next_method_return next_return;
 
 	switch (s->type) {
 	case LIVE_STREAM_TYPE_NO_STREAM:
@@ -913,7 +913,7 @@ struct bt_notification_iterator_next_return lttng_live_iterator_next(
 
 BT_HIDDEN
 enum bt_notification_iterator_status lttng_live_iterator_init(
-		struct bt_private_notification_iterator *it,
+		struct bt_private_connection_private_notification_iterator *it,
 		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
@@ -929,7 +929,7 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_no_stream_iterator *no_stream_iter =
 			container_of(s, struct lttng_live_no_stream_iterator, p);
-		ret = bt_private_notification_iterator_set_user_data(it, no_stream_iter);
+		ret = bt_private_connection_private_notification_iterator_set_user_data(it, no_stream_iter);
 		if (ret) {
 			goto error;
 		}
@@ -939,7 +939,7 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_stream_iterator *stream_iter =
 			container_of(s, struct lttng_live_stream_iterator, p);
-		ret = bt_private_notification_iterator_set_user_data(it, stream_iter);
+		ret = bt_private_connection_private_notification_iterator_set_user_data(it, stream_iter);
 		if (ret) {
 			goto error;
 		}
@@ -953,7 +953,7 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 end:
 	return ret;
 error:
-	if (bt_private_notification_iterator_set_user_data(it, NULL)
+	if (bt_private_connection_private_notification_iterator_set_user_data(it, NULL)
 			!= BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 		BT_LOGE("Error setting private data to NULL");
 	}
@@ -961,12 +961,12 @@ error:
 }
 
 static
-struct bt_component_class_query_return lttng_live_query_list_sessions(
+struct bt_component_class_query_method_return lttng_live_query_list_sessions(
 		struct bt_component_class *comp_class,
 		struct bt_query_executor *query_exec,
 		struct bt_value *params)
 {
-	struct bt_component_class_query_return query_ret = {
+	struct bt_component_class_query_method_return query_ret = {
 		.result = NULL,
 		.status = BT_QUERY_STATUS_OK,
 	};
@@ -1017,12 +1017,12 @@ end:
 }
 
 BT_HIDDEN
-struct bt_component_class_query_return lttng_live_query(
+struct bt_component_class_query_method_return lttng_live_query(
 		struct bt_component_class *comp_class,
 		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
-	struct bt_component_class_query_return ret = {
+	struct bt_component_class_query_method_return ret = {
 		.result = NULL,
 		.status = BT_QUERY_STATUS_OK,
 	};

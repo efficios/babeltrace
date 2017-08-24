@@ -35,17 +35,17 @@ struct bt_component_class;
 
 extern
 struct bt_component_class *bt_component_class_source_create(const char *name,
-		bt_component_class_notification_iterator_next_method notification_iterator_next_method);
+		bt_component_class_notification_iterator_next_method method);
 
 extern
 int bt_component_class_source_set_notification_iterator_init_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_init_method notification_iterator_init_method);
+		bt_component_class_notification_iterator_init_method method);
 
 extern
 int bt_component_class_source_set_notification_iterator_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method);
+		bt_component_class_notification_iterator_finalize_method method);
 
 #ifdef __cplusplus
 }

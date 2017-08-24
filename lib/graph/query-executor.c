@@ -65,7 +65,7 @@ enum bt_query_status bt_query_executor_query(
 		const char *object, struct bt_value *params,
 		struct bt_value **user_result)
 {
-	struct bt_component_class_query_return ret = {
+	struct bt_component_class_query_method_return ret = {
 		.result = NULL,
 		.status = BT_QUERY_STATUS_OK,
 	};

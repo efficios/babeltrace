@@ -30,12 +30,12 @@
 #include <babeltrace/graph/component-class.h>
 
 BT_HIDDEN
-struct bt_component_class_query_return metadata_info_query(
+struct bt_component_class_query_method_return metadata_info_query(
 		struct bt_component_class *comp_class,
 		struct bt_value *params);
 
 BT_HIDDEN
-struct bt_component_class_query_return trace_info_query(
+struct bt_component_class_query_method_return trace_info_query(
 		struct bt_component_class *comp_class,
 		struct bt_value *params);
 

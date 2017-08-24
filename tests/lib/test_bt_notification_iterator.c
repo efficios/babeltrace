@@ -50,7 +50,7 @@
 #include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/ref.h>
@@ -483,10 +483,10 @@ void fini_static_data(void)
 
 static
 void src_iter_finalize(
-		struct bt_private_notification_iterator *private_notification_iterator)
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
 {
 	struct src_iter_user_data *user_data =
-		bt_private_notification_iterator_get_user_data(
+		bt_private_connection_private_notification_iterator_get_user_data(
 			private_notification_iterator);
 
 	if (user_data) {
@@ -496,7 +496,7 @@ void src_iter_finalize(
 
 static
 enum bt_notification_iterator_status src_iter_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *private_port)
 {
 	struct src_iter_user_data *user_data =
@@ -504,7 +504,7 @@ enum bt_notification_iterator_status src_iter_init(
 	int ret;
 
 	assert(user_data);
-	ret = bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	ret = bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		user_data);
 	assert(ret == 0);
 
@@ -565,10 +565,10 @@ struct bt_ctf_event *src_create_event(struct bt_ctf_packet *packet)
 }
 
 static
-struct bt_notification_iterator_next_return src_iter_next_seq(
+struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		struct src_iter_user_data *user_data)
 {
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
 	int64_t cur_ts_ns;
@@ -681,15 +681,15 @@ struct bt_notification_iterator_next_return src_iter_next_seq(
 }
 
 static
-struct bt_notification_iterator_next_return src_iter_next(
-		struct bt_private_notification_iterator *priv_iterator)
+struct bt_notification_iterator_next_method_return src_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_iterator)
 {
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,
 	};
 	struct src_iter_user_data *user_data =
-		bt_private_notification_iterator_get_user_data(priv_iterator);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_iterator);
 
 	assert(user_data);
 	next_return = src_iter_next_seq(user_data);
