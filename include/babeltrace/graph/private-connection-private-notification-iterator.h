@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_NOTIFICATION_PRIVATE_ITERATOR_H
-#define BABELTRACE_COMPONENT_NOTIFICATION_PRIVATE_ITERATOR_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_CONNECTION_PRIVATE_NOTIFICATION_ITERATOR_H
+#define BABELTRACE_GRAPH_PRIVATE_CONNECTION_PRIVATE_NOTIFICATION_ITERATOR_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -31,26 +31,26 @@ extern "C" {
 struct bt_connection;
 struct bt_private_port;
 struct bt_private_connection;
-struct bt_private_notification_iterator;
+struct bt_private_connection_private_notification_iterator;
 
 struct bt_notification_iterator *
-bt_notification_iterator_from_private_notification_iterator(
-		struct bt_private_notification_iterator *private_notification_iterator);
+bt_private_connection_notification_iterator_from_private_notification_iterator(
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator);
 
 extern struct bt_private_component *
-bt_private_notification_iterator_get_private_component(
-		struct bt_private_notification_iterator *private_notification_iterator);
+bt_private_connection_private_notification_iterator_get_private_component(
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator);
 
 extern enum bt_notification_iterator_status
-bt_private_notification_iterator_set_user_data(
-		struct bt_private_notification_iterator *private_notification_iterator,
+bt_private_connection_private_notification_iterator_set_user_data(
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator,
 		void *user_data);
 
-extern void *bt_private_notification_iterator_get_user_data(
-		struct bt_private_notification_iterator *private_notification_iterator);
+extern void *bt_private_connection_private_notification_iterator_get_user_data(
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_COMPONENT_NOTIFICATION_PRIVATE_ITERATOR_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_CONNECTION_PRIVATE_NOTIFICATION_ITERATOR_H */

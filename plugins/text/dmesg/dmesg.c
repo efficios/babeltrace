@@ -1039,7 +1039,7 @@ void destroy_dmesg_notif_iter(struct dmesg_notif_iter *dmesg_notif_iter)
 
 BT_HIDDEN
 enum bt_notification_iterator_status dmesg_notif_iter_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *priv_port)
 {
 	struct bt_private_component *priv_comp = NULL;
@@ -1054,7 +1054,7 @@ enum bt_notification_iterator_status dmesg_notif_iter_init(
 		goto error;
 	}
 
-	priv_comp = bt_private_notification_iterator_get_private_component(
+	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
 	assert(priv_comp);
 	dmesg_comp = bt_private_component_get_user_data(priv_comp);
@@ -1072,13 +1072,13 @@ enum bt_notification_iterator_status dmesg_notif_iter_init(
 		}
 	}
 
-	(void) bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	(void) bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		dmesg_notif_iter);
 	goto end;
 
 error:
 	destroy_dmesg_notif_iter(dmesg_notif_iter);
-	(void) bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	(void) bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		NULL);
 	if (status >= 0) {
 		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
@@ -1091,22 +1091,22 @@ end:
 
 BT_HIDDEN
 void dmesg_notif_iter_finalize(
-		struct bt_private_notification_iterator *priv_notif_iter)
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
-	destroy_dmesg_notif_iter(bt_private_notification_iterator_get_user_data(
+	destroy_dmesg_notif_iter(bt_private_connection_private_notification_iterator_get_user_data(
 		priv_notif_iter));
 }
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return dmesg_notif_iter_next(
-		struct bt_private_notification_iterator *priv_notif_iter)
+struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
 	ssize_t len;
 	struct dmesg_notif_iter *dmesg_notif_iter =
-		bt_private_notification_iterator_get_user_data(
+		bt_private_connection_private_notification_iterator_get_user_data(
 			priv_notif_iter);
 	struct dmesg_component *dmesg_comp;
-	struct bt_notification_iterator_next_return next_ret = {
+	struct bt_notification_iterator_next_method_return next_ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL
 	};

@@ -522,7 +522,7 @@ static void bt_py3_cc_port_disconnected(
 	Py_XDECREF(py_method_result);
 }
 
-static struct bt_component_class_query_return bt_py3_cc_query(
+static struct bt_component_class_query_method_return bt_py3_cc_query(
 		struct bt_component_class *comp_cls,
 		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
@@ -533,7 +533,7 @@ static struct bt_component_class_query_return bt_py3_cc_query(
 	PyObject *py_query_func = NULL;
 	PyObject *py_object = NULL;
 	PyObject *py_results_addr = NULL;
-	struct bt_component_class_query_return ret = {
+	struct bt_component_class_query_method_return ret = {
 		.status = BT_QUERY_STATUS_OK,
 		.result = NULL,
 	};
@@ -612,7 +612,7 @@ end:
 }
 
 static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *priv_port)
 {
 	enum bt_notification_iterator_status status =
@@ -623,7 +623,7 @@ static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init
 	PyObject *py_init_method_result = NULL;
 	PyObject *py_iter = NULL;
 	struct bt_private_component *priv_comp =
-		bt_private_notification_iterator_get_private_component(
+		bt_private_connection_private_notification_iterator_get_private_component(
 			priv_notif_iter);
 	PyObject *py_comp;
 
@@ -644,7 +644,7 @@ static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init
 	}
 
 	py_iter_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(priv_notif_iter),
-		SWIGTYPE_p_bt_private_notification_iterator, 0);
+		SWIGTYPE_p_bt_private_connection_private_notification_iterator, 0);
 	if (!py_iter_ptr) {
 		BT_LOGE_STR("Failed to create a SWIG pointer object.");
 		goto error;
@@ -695,10 +695,10 @@ static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init
 	 *         owns a native bt_notification_iterator object (iter)
 	 *             owns a _UserNotificationIterator instance (py_iter)
 	 *                 self._ptr is a borrowed reference to the
-	 *                 native bt_private_notification_iterator
+	 *                 native bt_private_connection_private_notification_iterator
 	 *                 object (iter)
 	 */
-	bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		py_iter);
 	py_iter = NULL;
 	goto end;
@@ -731,10 +731,10 @@ end:
 }
 
 static void bt_py3_cc_notification_iterator_finalize(
-		struct bt_private_notification_iterator *priv_notif_iter)
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
 	PyObject *py_notif_iter =
-		bt_private_notification_iterator_get_user_data(priv_notif_iter);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	PyObject *py_method_result = NULL;
 
 	assert(py_notif_iter);
@@ -757,16 +757,16 @@ static void bt_py3_cc_notification_iterator_finalize(
 	Py_DECREF(py_notif_iter);
 }
 
-static struct bt_notification_iterator_next_return
+static struct bt_notification_iterator_next_method_return
 bt_py3_cc_notification_iterator_next(
-			struct bt_private_notification_iterator *priv_notif_iter)
+			struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
-	struct bt_notification_iterator_next_return next_ret = {
+	struct bt_notification_iterator_next_method_return next_ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,
 	};
 	PyObject *py_notif_iter =
-		bt_private_notification_iterator_get_user_data(priv_notif_iter);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	PyObject *py_method_result = NULL;
 
 	assert(py_notif_iter);

@@ -36,7 +36,7 @@
 #include <babeltrace/graph/component-filter.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/private-component-filter.h>
 #include <babeltrace/graph/notification-event.h>
 #include <plugins-common.h>

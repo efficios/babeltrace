@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H
-#define BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_H
+#define BABELTRACE_GRAPH_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_H
 
 /*
- * Copyright 2017 Philippe Proulx <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,29 +23,18 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-BT_HIDDEN
-enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
-		struct bt_value *params, void *init_method_data);
+struct bt_component;
+struct bt_notification_iterator;
 
-BT_HIDDEN
-void dmesg_finalize(struct bt_private_component *priv_comp);
+extern struct bt_component *bt_private_connection_notification_iterator_get_component(
+		struct bt_notification_iterator *iterator);
 
-BT_HIDDEN
-enum bt_notification_iterator_status dmesg_notif_iter_init(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
-		struct bt_private_port *priv_port);
+#ifdef __cplusplus
+}
+#endif
 
-BT_HIDDEN
-void dmesg_notif_iter_finalize(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
-
-BT_HIDDEN
-struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
-
-#endif /* BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_H */

@@ -95,7 +95,7 @@ class _PrivateConnection(object._PrivateObject, _Connection):
                                                                 notif_types)
         _handle_status(status, 'cannot create notification iterator object')
         assert(notif_iter_ptr)
-        return bt2.notification_iterator._GenericNotificationIterator._create_from_ptr(notif_iter_ptr)
+        return bt2.notification_iterator._PrivateConnectionNotificationIterator._create_from_ptr(notif_iter_ptr)
 
     @property
     def is_ended(self):

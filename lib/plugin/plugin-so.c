@@ -282,7 +282,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		bt_component_class_accept_port_connection_method accept_port_connection_method;
 		bt_component_class_port_connected_method port_connected_method;
 		bt_component_class_port_disconnected_method port_disconnected_method;
-		struct bt_component_class_iterator_methods iterator_methods;
+		struct bt_component_class_notification_iterator_methods iterator_methods;
 	};
 
 	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;

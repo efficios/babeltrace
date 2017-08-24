@@ -86,9 +86,6 @@ extern struct bt_notification *bt_notification_iterator_get_notification(
 extern enum bt_notification_iterator_status
 bt_notification_iterator_next(struct bt_notification_iterator *iterator);
 
-extern struct bt_component *bt_notification_iterator_get_component(
-		struct bt_notification_iterator *iterator);
-
 #ifdef __cplusplus
 }
 #endif
