@@ -183,7 +183,6 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD		= 8,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD		= 9,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD		= 10,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD		= 11,
 };
 
 /* Component class attribute (internal use) */
@@ -231,9 +230,6 @@ struct __bt_plugin_component_class_descriptor_attribute {
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD */
 		bt_component_class_notification_iterator_finalize_method notif_iter_finalize_method;
-
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD */
-		bt_component_class_notification_iterator_seek_time_method notif_iter_seek_time_method;
 	} value;
 } __attribute__((packed));
 
@@ -871,18 +867,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
 
 /*
- * Defines an iterator seek time method attribute attached to a specific
- * source component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Iterator seek time method
- *                 (bt_component_class_notification_iterator_seek_time_method).
- */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_seek_time_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD, _id, _comp_class_id, source, _x)
-
-/*
  * Defines an iterator initialization method attribute attached to a
  * specific filter component class descriptor.
  *
@@ -905,18 +889,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
-
-/*
- * Defines an iterator seek time method attribute attached to a specific
- * filter component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Iterator seek time method
- *                 (bt_component_class_notification_iterator_seek_time_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(notif_iter_seek_time_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
  * Defines a plugin descriptor with an automatic ID.
@@ -1297,18 +1269,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
- * Defines an iterator seek time method attribute attached to a source
- * component class descriptor which is attached to the automatic plugin
- * descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Iterator seek time method
- *        (bt_component_class_notification_iterator_seek_time_method).
- */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD_WITH_ID(auto, _name, _x)
-
-/*
  * Defines an iterator initialization method attribute attached to a
  * filter component class descriptor which is attached to the automatic
  * plugin descriptor.
@@ -1331,18 +1291,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an iterator seek time method attribute attached to a filter
- * component class descriptor which is attached to the automatic plugin
- * descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Iterator seek time method
- *        (bt_component_class_notification_iterator_seek_time_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD_WITH_ID(auto, _name, _x)
 
 #define BT_PLUGIN_MODULE() \
 	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_dummy __BT_PLUGIN_DESCRIPTOR_ATTRS = NULL; \

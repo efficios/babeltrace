@@ -635,11 +635,3 @@ end:
 	bt_put(component);
 	return ret;
 }
-
-BT_HIDDEN
-enum bt_notification_iterator_status trimmer_iterator_seek_time(
-		struct bt_private_notification_iterator *iterator,
-		int64_t time)
-{
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
-}

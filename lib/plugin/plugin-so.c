@@ -466,10 +466,6 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->iterator_methods.finalize =
 						cur_cc_descr_attr->value.notif_iter_finalize_method;
 					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_SEEK_TIME_METHOD:
-					cc_full_descr->iterator_methods.seek_time =
-						cur_cc_descr_attr->value.notif_iter_seek_time_method;
-					break;
 				default:
 					/*
 					 * WARN-level logging because
@@ -690,18 +686,6 @@ enum bt_plugin_status bt_plugin_so_init(
 					goto end;
 				}
 			}
-
-			if (cc_full_descr->iterator_methods.seek_time) {
-				ret = bt_component_class_source_set_notification_iterator_seek_time_method(
-					comp_class,
-					cc_full_descr->iterator_methods.seek_time);
-				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's notification iterator seek to time method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_PUT(comp_class);
-					goto end;
-				}
-			}
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			if (cc_full_descr->iterator_methods.init) {
@@ -722,18 +706,6 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->iterator_methods.finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's notification iterator finalization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_PUT(comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->iterator_methods.seek_time) {
-				ret = bt_component_class_filter_set_notification_iterator_seek_time_method(
-					comp_class,
-					cc_full_descr->iterator_methods.seek_time);
-				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's notification iterator seek to time method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_PUT(comp_class);
 					goto end;
