@@ -46,11 +46,11 @@ struct range {
 };
 
 BT_HIDDEN
-struct bt_component_class_query_return metadata_info_query(
+struct bt_component_class_query_method_return metadata_info_query(
 		struct bt_component_class *comp_class,
 		struct bt_value *params)
 {
-	struct bt_component_class_query_return query_ret = {
+	struct bt_component_class_query_method_return query_ret = {
 		.result = NULL,
 		.status = BT_QUERY_STATUS_OK,
 	};
@@ -458,11 +458,11 @@ end:
 }
 
 BT_HIDDEN
-struct bt_component_class_query_return trace_info_query(
+struct bt_component_class_query_method_return trace_info_query(
 		struct bt_component_class *comp_class,
 		struct bt_value *params)
 {
-	struct bt_component_class_query_return query_ret = {
+	struct bt_component_class_query_method_return query_ret = {
 		.result = NULL,
 		.status = BT_QUERY_STATUS_OK,
 	};

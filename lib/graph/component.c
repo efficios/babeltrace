@@ -40,7 +40,7 @@
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
-#include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>

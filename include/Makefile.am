@@ -72,14 +72,15 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification-packet.h \
 	babeltrace/graph/notification-stream.h \
 	babeltrace/graph/port.h \
-	babeltrace/graph/query-executor.h \
 	babeltrace/graph/private-component-filter.h \
 	babeltrace/graph/private-component-sink.h \
 	babeltrace/graph/private-component-source.h \
 	babeltrace/graph/private-component.h \
+	babeltrace/graph/private-connection-notification-iterator.h \
+	babeltrace/graph/private-connection-private-notification-iterator.h \
 	babeltrace/graph/private-connection.h \
-	babeltrace/graph/private-notification-iterator.h \
-	babeltrace/graph/private-port.h
+	babeltrace/graph/private-port.h \
+	babeltrace/graph/query-executor.h
 
 noinst_HEADERS = \
 	babeltrace/align-internal.h \

@@ -28,21 +28,21 @@ static enum bt_component_status sink_consume(
 }
 
 static enum bt_notification_iterator_status dummy_iterator_init_method(
-		struct bt_private_notification_iterator *private_iterator,
+		struct bt_private_connection_private_notification_iterator *private_iterator,
 		struct bt_private_port *private_port)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
-		struct bt_private_notification_iterator *private_iterator)
+		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
 }
 
-static struct bt_notification_iterator_next_return dummy_iterator_next_method(
-		struct bt_private_notification_iterator *private_iterator)
+static struct bt_notification_iterator_next_method_return dummy_iterator_next_method(
+		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.notification = NULL,
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
@@ -50,12 +50,12 @@ static struct bt_notification_iterator_next_return dummy_iterator_next_method(
 	return next_return;
 }
 
-static struct bt_component_class_query_return query_method(
+static struct bt_component_class_query_method_return query_method(
 		struct bt_component_class *component_class,
 		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
-	struct bt_component_class_query_return ret = {
+	struct bt_component_class_query_method_return ret = {
 		.status = BT_QUERY_STATUS_OK,
 		.result = bt_value_array_create(),
 	};

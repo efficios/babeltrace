@@ -71,7 +71,7 @@ struct bt_component_class {
 	struct bt_plugin_so_shared_lib_handle *so_handle;
 };
 
-struct bt_component_class_iterator_methods {
+struct bt_component_class_notification_iterator_methods {
 	bt_component_class_notification_iterator_init_method init;
 	bt_component_class_notification_iterator_finalize_method finalize;
 	bt_component_class_notification_iterator_next_method next;
@@ -80,7 +80,7 @@ struct bt_component_class_iterator_methods {
 struct bt_component_class_source {
 	struct bt_component_class parent;
 	struct {
-		struct bt_component_class_iterator_methods iterator;
+		struct bt_component_class_notification_iterator_methods iterator;
 	} methods;
 };
 
@@ -94,7 +94,7 @@ struct bt_component_class_sink {
 struct bt_component_class_filter {
 	struct bt_component_class parent;
 	struct {
-		struct bt_component_class_iterator_methods iterator;
+		struct bt_component_class_notification_iterator_methods iterator;
 	} methods;
 };
 

@@ -121,7 +121,7 @@ end:
 }
 
 struct bt_component_class *bt_component_class_source_create(const char *name,
-		bt_component_class_notification_iterator_next_method notification_iterator_next_method)
+		bt_component_class_notification_iterator_next_method method)
 {
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
@@ -131,14 +131,14 @@ struct bt_component_class *bt_component_class_source_create(const char *name,
 		goto end;
 	}
 
-	if (!notification_iterator_next_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		goto end;
 	}
 
 	BT_LOGD("Creating source component class: "
 		"name=\"%s\", notif-iter-next-method-addr=%p",
-		name, notification_iterator_next_method);
+		name, method);
 	source_class = g_new0(struct bt_component_class_source, 1);
 	if (!source_class) {
 		BT_LOGE_STR("Failed to allocate one source component class.");
@@ -158,17 +158,17 @@ struct bt_component_class *bt_component_class_source_create(const char *name,
 		goto end;
 	}
 
-	source_class->methods.iterator.next = notification_iterator_next_method;
+	source_class->methods.iterator.next = method;
 	BT_LOGD("Created source component class: "
 		"name=\"%s\", notif-iter-next-method-addr=%p, addr=%p",
-		name, notification_iterator_next_method, &source_class->parent);
+		name, method, &source_class->parent);
 
 end:
 	return &source_class->parent;
 }
 
 struct bt_component_class *bt_component_class_filter_create(const char *name,
-		bt_component_class_notification_iterator_next_method notification_iterator_next_method)
+		bt_component_class_notification_iterator_next_method method)
 {
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
@@ -178,14 +178,14 @@ struct bt_component_class *bt_component_class_filter_create(const char *name,
 		goto end;
 	}
 
-	if (!notification_iterator_next_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		goto end;
 	}
 
 	BT_LOGD("Creating filter component class: "
 		"name=\"%s\", notif-iter-next-method-addr=%p",
-		name, notification_iterator_next_method);
+		name, method);
 	filter_class = g_new0(struct bt_component_class_filter, 1);
 	if (!filter_class) {
 		BT_LOGE_STR("Failed to allocate one filter component class.");
@@ -205,17 +205,17 @@ struct bt_component_class *bt_component_class_filter_create(const char *name,
 		goto end;
 	}
 
-	filter_class->methods.iterator.next = notification_iterator_next_method;
+	filter_class->methods.iterator.next = method;
 	BT_LOGD("Created filter component class: "
 		"name=\"%s\", notif-iter-next-method-addr=%p, addr=%p",
-		name, notification_iterator_next_method, &filter_class->parent);
+		name, method, &filter_class->parent);
 
 end:
 	return &filter_class->parent;
 }
 
 struct bt_component_class *bt_component_class_sink_create(const char *name,
-		bt_component_class_sink_consume_method consume_method)
+		bt_component_class_sink_consume_method method)
 {
 	struct bt_component_class_sink *sink_class = NULL;
 	int ret;
@@ -225,14 +225,14 @@ struct bt_component_class *bt_component_class_sink_create(const char *name,
 		goto end;
 	}
 
-	if (!consume_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		goto end;
 	}
 
 	BT_LOGD("Creating sink component class: "
 		"name=\"%s\", consume-method-addr=%p",
-		name, consume_method);
+		name, method);
 	sink_class = g_new0(struct bt_component_class_sink, 1);
 	if (!sink_class) {
 		BT_LOGE_STR("Failed to allocate one sink component class.");
@@ -252,10 +252,10 @@ struct bt_component_class *bt_component_class_sink_create(const char *name,
 		goto end;
 	}
 
-	sink_class->methods.consume = consume_method;
+	sink_class->methods.consume = method;
 	BT_LOGD("Created sink component class: "
 		"name=\"%s\", consume-method-addr=%p, addr=%p",
-		name, consume_method, &sink_class->parent);
+		name, method, &sink_class->parent);
 
 end:
 	return &sink_class->parent;
@@ -263,7 +263,7 @@ end:
 
 int bt_component_class_set_init_method(
 		struct bt_component_class *component_class,
-		bt_component_class_init_method init_method)
+		bt_component_class_init_method method)
 {
 	int ret = 0;
 
@@ -273,7 +273,7 @@ int bt_component_class_set_init_method(
 		goto end;
 	}
 
-	if (!init_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		ret = -1;
 		goto end;
@@ -289,13 +289,13 @@ int bt_component_class_set_init_method(
 		goto end;
 	}
 
-	component_class->methods.init = init_method;
+	component_class->methods.init = method;
 	BT_LOGV("Set component class's initialization method: "
 		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
 		component_class,
 		bt_component_class_get_name(component_class),
 		bt_component_class_type_string(component_class->type),
-		init_method);
+		method);
 
 end:
 	return ret;
@@ -303,7 +303,7 @@ end:
 
 int bt_component_class_set_query_method(
 		struct bt_component_class *component_class,
-		bt_component_class_query_method query_method)
+		bt_component_class_query_method method)
 {
 	int ret = 0;
 
@@ -313,7 +313,7 @@ int bt_component_class_set_query_method(
 		goto end;
 	}
 
-	if (!query_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		ret = -1;
 		goto end;
@@ -329,13 +329,13 @@ int bt_component_class_set_query_method(
 		goto end;
 	}
 
-	component_class->methods.query = query_method;
+	component_class->methods.query = method;
 	BT_LOGV("Set component class's query method: "
 		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
 		component_class,
 		bt_component_class_get_name(component_class),
 		bt_component_class_type_string(component_class->type),
-		query_method);
+		method);
 
 end:
 	return ret;
@@ -463,7 +463,7 @@ end:
 
 int bt_component_class_set_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_finalize_method finalize_method)
+		bt_component_class_finalize_method method)
 {
 	int ret = 0;
 
@@ -473,7 +473,7 @@ int bt_component_class_set_finalize_method(
 		goto end;
 	}
 
-	if (!finalize_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		ret = -1;
 		goto end;
@@ -489,13 +489,13 @@ int bt_component_class_set_finalize_method(
 		goto end;
 	}
 
-	component_class->methods.finalize = finalize_method;
+	component_class->methods.finalize = method;
 	BT_LOGV("Set component class's finalization method: "
 		"addr=%p, name=\"%s\", type=%s, method-addr=%p",
 		component_class,
 		bt_component_class_get_name(component_class),
 		bt_component_class_type_string(component_class->type),
-		finalize_method);
+		method);
 
 end:
 	return ret;
@@ -503,7 +503,7 @@ end:
 
 int bt_component_class_source_set_notification_iterator_init_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_init_method notification_iterator_init_method)
+		bt_component_class_notification_iterator_init_method method)
 {
 	struct bt_component_class_source *source_class;
 	int ret = 0;
@@ -514,7 +514,7 @@ int bt_component_class_source_set_notification_iterator_init_method(
 		goto end;
 	}
 
-	if (!notification_iterator_init_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		ret = -1;
 		goto end;
@@ -542,12 +542,12 @@ int bt_component_class_source_set_notification_iterator_init_method(
 
 	source_class = container_of(component_class,
 		struct bt_component_class_source, parent);
-	source_class->methods.iterator.init = notification_iterator_init_method;
+	source_class->methods.iterator.init = method;
 	BT_LOGV("Set filter component class's notification iterator initialization method: "
 		"addr=%p, name=\"%s\", method-addr=%p",
 		component_class,
 		bt_component_class_get_name(component_class),
-		notification_iterator_init_method);
+		method);
 
 end:
 	return ret;
@@ -555,7 +555,7 @@ end:
 
 int bt_component_class_source_set_notification_iterator_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method)
+		bt_component_class_notification_iterator_finalize_method method)
 {
 	struct bt_component_class_source *source_class;
 	int ret = 0;
@@ -566,7 +566,7 @@ int bt_component_class_source_set_notification_iterator_finalize_method(
 		goto end;
 	}
 
-	if (!notification_iterator_finalize_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		ret = -1;
 		goto end;
@@ -595,12 +595,12 @@ int bt_component_class_source_set_notification_iterator_finalize_method(
 	source_class = container_of(component_class,
 		struct bt_component_class_source, parent);
 	source_class->methods.iterator.finalize =
-		notification_iterator_finalize_method;
+		method;
 	BT_LOGV("Set filter component class's notification iterator finalization method: "
 		"addr=%p, name=\"%s\", method-addr=%p",
 		component_class,
 		bt_component_class_get_name(component_class),
-		notification_iterator_finalize_method);
+		method);
 
 end:
 	return ret;
@@ -608,7 +608,7 @@ end:
 
 int bt_component_class_filter_set_notification_iterator_init_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_init_method notification_iterator_init_method)
+		bt_component_class_notification_iterator_init_method method)
 {
 	struct bt_component_class_filter *filter_class;
 	int ret = 0;
@@ -619,7 +619,7 @@ int bt_component_class_filter_set_notification_iterator_init_method(
 		goto end;
 	}
 
-	if (!notification_iterator_init_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		ret = -1;
 		goto end;
@@ -647,12 +647,12 @@ int bt_component_class_filter_set_notification_iterator_init_method(
 
 	filter_class = container_of(component_class,
 		struct bt_component_class_filter, parent);
-	filter_class->methods.iterator.init = notification_iterator_init_method;
+	filter_class->methods.iterator.init = method;
 	BT_LOGV("Set filter component class's notification iterator initialization method: "
 		"addr=%p, name=\"%s\", method-addr=%p",
 		component_class,
 		bt_component_class_get_name(component_class),
-		notification_iterator_init_method);
+		method);
 
 end:
 	return ret;
@@ -660,7 +660,7 @@ end:
 
 int bt_component_class_filter_set_notification_iterator_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method)
+		bt_component_class_notification_iterator_finalize_method method)
 {
 	struct bt_component_class_filter *filter_class;
 	int ret = 0;
@@ -671,7 +671,7 @@ int bt_component_class_filter_set_notification_iterator_finalize_method(
 		goto end;
 	}
 
-	if (!notification_iterator_finalize_method) {
+	if (!method) {
 		BT_LOGW_STR("Invalid parameter: method is NULL.");
 		ret = -1;
 		goto end;
@@ -700,12 +700,12 @@ int bt_component_class_filter_set_notification_iterator_finalize_method(
 	filter_class = container_of(component_class,
 		struct bt_component_class_filter, parent);
 	filter_class->methods.iterator.finalize =
-		notification_iterator_finalize_method;
+		method;
 	BT_LOGV("Set filter component class's notification iterator finalization method: "
 		"addr=%p, name=\"%s\", method-addr=%p",
 		component_class,
 		bt_component_class_get_name(component_class),
-		notification_iterator_finalize_method);
+		method);
 
 end:
 	return ret;

@@ -847,11 +847,11 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 }
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return ctf_fs_ds_file_next(
+struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file)
 {
 	enum bt_ctf_notif_iter_status notif_iter_status;
-	struct bt_notification_iterator_next_return ret = {
+	struct bt_notification_iterator_next_method_return ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR,
 		.notification = NULL,
 	};

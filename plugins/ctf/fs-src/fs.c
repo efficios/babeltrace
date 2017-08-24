@@ -33,7 +33,7 @@
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-component-source.h>
-#include <babeltrace/graph/private-notification-iterator.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
@@ -96,12 +96,12 @@ void ctf_fs_notif_iter_data_destroy(
 	g_free(notif_iter_data);
 }
 
-struct bt_notification_iterator_next_return ctf_fs_iterator_next(
-		struct bt_private_notification_iterator *iterator)
+struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
+		struct bt_private_connection_private_notification_iterator *iterator)
 {
-	struct bt_notification_iterator_next_return next_ret;
+	struct bt_notification_iterator_next_method_return next_ret;
 	struct ctf_fs_notif_iter_data *notif_iter_data =
-		bt_private_notification_iterator_get_user_data(iterator);
+		bt_private_connection_private_notification_iterator_get_user_data(iterator);
 	int ret;
 
 	assert(notif_iter_data->ds_file);
@@ -146,16 +146,16 @@ end:
 	return next_ret;
 }
 
-void ctf_fs_iterator_finalize(struct bt_private_notification_iterator *it)
+void ctf_fs_iterator_finalize(struct bt_private_connection_private_notification_iterator *it)
 {
 	void *notif_iter_data =
-		bt_private_notification_iterator_get_user_data(it);
+		bt_private_connection_private_notification_iterator_get_user_data(it);
 
 	ctf_fs_notif_iter_data_destroy(notif_iter_data);
 }
 
 enum bt_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_private_notification_iterator *it,
+		struct bt_private_connection_private_notification_iterator *it,
 		struct bt_private_port *port)
 {
 	struct ctf_fs_port_data *port_data;
@@ -193,7 +193,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 		goto error;
 	}
 
-	ret = bt_private_notification_iterator_set_user_data(it, notif_iter_data);
+	ret = bt_private_connection_private_notification_iterator_set_user_data(it, notif_iter_data);
 	if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 		goto error;
 	}
@@ -202,7 +202,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 	goto end;
 
 error:
-	(void) bt_private_notification_iterator_set_user_data(it, NULL);
+	(void) bt_private_connection_private_notification_iterator_set_user_data(it, NULL);
 
 end:
 	ctf_fs_notif_iter_data_destroy(notif_iter_data);
@@ -1365,12 +1365,12 @@ enum bt_component_status ctf_fs_init(struct bt_private_component *priv_comp,
 }
 
 BT_HIDDEN
-struct bt_component_class_query_return ctf_fs_query(
+struct bt_component_class_query_method_return ctf_fs_query(
 		struct bt_component_class *comp_class,
 		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
-	struct bt_component_class_query_return ret = {
+	struct bt_component_class_query_method_return ret = {
 		.result = NULL,
 		.status = BT_QUERY_STATUS_OK,
 	};

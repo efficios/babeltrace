@@ -45,12 +45,6 @@ class _NotificationIterator(collections.abc.Iterator):
 
 
 class _GenericNotificationIterator(object._Object, _NotificationIterator):
-    @property
-    def component(self):
-        comp_ptr = native_bt.notification_iterator_get_component(self._ptr)
-        assert(comp_ptr)
-        return bt2.component._create_generic_component_from_ptr(comp_ptr)
-
     def _get_notif(self):
         notif_ptr = native_bt.notification_iterator_get_notification(self._ptr)
         utils._handle_ptr(notif_ptr, "cannot get notification iterator object's current notification object")
@@ -64,6 +58,14 @@ class _GenericNotificationIterator(object._Object, _NotificationIterator):
     def __next__(self):
         self._next()
         return self._get_notif()
+
+
+class _PrivateConnectionNotificationIterator(_GenericNotificationIterator):
+    @property
+    def component(self):
+        comp_ptr = native_bt.private_connection_notification_iterator_get_component(self._ptr)
+        assert(comp_ptr)
+        return bt2.component._create_generic_component_from_ptr(comp_ptr)
 
 
 class _UserNotificationIterator(_NotificationIterator):
