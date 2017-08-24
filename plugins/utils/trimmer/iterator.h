@@ -54,9 +54,4 @@ BT_HIDDEN
 struct bt_notification_iterator_next_return trimmer_iterator_next(
 		struct bt_private_notification_iterator *iterator);
 
-BT_HIDDEN
-enum bt_notification_iterator_status trimmer_iterator_seek_time(
-		struct bt_private_notification_iterator *iterator,
-		int64_t time);
-
 #endif /* BABELTRACE_PLUGIN_TRIMMER_ITERATOR_H */

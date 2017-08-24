@@ -50,13 +50,6 @@ static struct bt_notification_iterator_next_return dummy_iterator_next_method(
 	return next_return;
 }
 
-static enum bt_notification_iterator_status dummy_iterator_seek_time_method(
-		struct bt_private_notification_iterator *private_iterator,
-		int64_t time)
-{
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
-}
-
 static struct bt_component_class_query_return query_method(
 		struct bt_component_class *component_class,
 		struct bt_query_executor *query_exec,
@@ -89,8 +82,6 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(source,
 	dummy_iterator_init_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(source,
 	dummy_iterator_finalize_method);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(source,
-	dummy_iterator_seek_time_method);
 
 BT_PLUGIN_SINK_COMPONENT_CLASS(sink, sink_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(sink, "A sink.");
@@ -107,6 +98,4 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(filter,
 	dummy_iterator_init_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(filter,
 	dummy_iterator_finalize_method);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(filter,
-	dummy_iterator_seek_time_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(filter, query_method);

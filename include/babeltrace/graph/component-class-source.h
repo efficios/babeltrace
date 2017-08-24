@@ -47,11 +47,6 @@ int bt_component_class_source_set_notification_iterator_finalize_method(
 		struct bt_component_class *component_class,
 		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method);
 
-extern
-int bt_component_class_source_set_notification_iterator_seek_time_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method);
-
 #ifdef __cplusplus
 }
 #endif

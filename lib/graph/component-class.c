@@ -606,59 +606,6 @@ end:
 	return ret;
 }
 
-int bt_component_class_source_set_notification_iterator_seek_time_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method)
-{
-	struct bt_component_class_source *source_class;
-	int ret = 0;
-
-	if (!component_class) {
-		BT_LOGW_STR("Invalid parameter: component class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (!notification_iterator_seek_time_method) {
-		BT_LOGW_STR("Invalid parameter: method is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (component_class->type != BT_COMPONENT_CLASS_TYPE_SOURCE) {
-		BT_LOGW("Invalid parameter: component class is not a source component class: "
-			"addr=%p, name=\"%s\", type=%s",
-			component_class,
-			bt_component_class_get_name(component_class),
-			bt_component_class_type_string(component_class->type));
-		ret = -1;
-		goto end;
-	}
-
-	if (component_class->frozen) {
-		BT_LOGW("Invalid parameter: component class is frozen: "
-			"addr=%p, name=\"%s\", type=%s",
-			component_class,
-			bt_component_class_get_name(component_class),
-			bt_component_class_type_string(component_class->type));
-		ret = -1;
-		goto end;
-	}
-
-	source_class = container_of(component_class,
-		struct bt_component_class_source, parent);
-	source_class->methods.iterator.seek_time =
-		notification_iterator_seek_time_method;
-	BT_LOGV("Set source component class's notification iterator seek time method: "
-		"addr=%p, name=\"%s\", method-addr=%p",
-		component_class,
-		bt_component_class_get_name(component_class),
-		notification_iterator_seek_time_method);
-
-end:
-	return ret;
-}
-
 int bt_component_class_filter_set_notification_iterator_init_method(
 		struct bt_component_class *component_class,
 		bt_component_class_notification_iterator_init_method notification_iterator_init_method)
@@ -759,59 +706,6 @@ int bt_component_class_filter_set_notification_iterator_finalize_method(
 		component_class,
 		bt_component_class_get_name(component_class),
 		notification_iterator_finalize_method);
-
-end:
-	return ret;
-}
-
-int bt_component_class_filter_set_notification_iterator_seek_time_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method)
-{
-	struct bt_component_class_filter *filter_class;
-	int ret = 0;
-
-	if (!component_class) {
-		BT_LOGW_STR("Invalid parameter: component class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (!notification_iterator_seek_time_method) {
-		BT_LOGW_STR("Invalid parameter: method is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (component_class->type != BT_COMPONENT_CLASS_TYPE_FILTER) {
-		BT_LOGW("Invalid parameter: component class is not a filter component class: "
-			"addr=%p, name=\"%s\", type=%s",
-			component_class,
-			bt_component_class_get_name(component_class),
-			bt_component_class_type_string(component_class->type));
-		ret = -1;
-		goto end;
-	}
-
-	if (component_class->frozen) {
-		BT_LOGW("Invalid parameter: component class is frozen: "
-			"addr=%p, name=\"%s\", type=%s",
-			component_class,
-			bt_component_class_get_name(component_class),
-			bt_component_class_type_string(component_class->type));
-		ret = -1;
-		goto end;
-	}
-
-	filter_class = container_of(component_class,
-		struct bt_component_class_filter, parent);
-	filter_class->methods.iterator.seek_time =
-		notification_iterator_seek_time_method;
-	BT_LOGV("Set filter component class's notification iterator seek time method: "
-		"addr=%p, name=\"%s\", method-addr=%p",
-		component_class,
-		bt_component_class_get_name(component_class),
-		notification_iterator_seek_time_method);
 
 end:
 	return ret;

@@ -2,7 +2,7 @@
 #define BABELTRACE_GRAPH_NOTIFICATION_ITERATOR_H
 
 /*
- * BabelTrace - Plug-in Notification Iterator
+ * BabelTrace - Notification Iterator
  *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -59,23 +59,6 @@ enum bt_notification_iterator_status {
 };
 
 /**
- * Notification iterator seek reference.
- */
-enum bt_notification_iterator_seek_origin {
-	/** Seek at a time relative to the beginning of the trace. */
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_BEGIN = 0,
-
-	/** Seek at a time relative to the current position. */
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_CURRENT = 1,
-
-	/** Seek at a time relative to the end of the trace. */
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_END = 2,
-
-	/** Seek at a time relative to EPOCH. */
-	BT_NOTIFICATION_ITERATOR_SEEK_ORIGIN_EPOCH = 3,
-};
-
-/**
  * Get current notification at iterator's position.
  *
  * This functions will <b>not</b> advance the cursor's position.
@@ -102,29 +85,6 @@ extern struct bt_notification *bt_notification_iterator_get_notification(
  */
 extern enum bt_notification_iterator_status
 bt_notification_iterator_next(struct bt_notification_iterator *iterator);
-
-/**
- * Seek iterator to time.
- *
- * Sets the iterator's position for the trace associated with the iterator.
- * The new position is computed by adding \p time to the position specified
- * by \p seek_origin.
- *
- * time is expressed in nanoseconds.
- *
- * @param iterator	Iterator instance
- * @param seek_origin	One of #bt_notification_iterator_seek_type values.
- * @returns		One of #bt_notification_iterator_status values;
- *			if \iterator does not support seeking,
- *			#BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED is
- *			returned.
- *
- * @see bt_notification_iterator_get_notification()
- */
-extern enum bt_notification_iterator_status bt_notification_iterator_seek_time(
-		struct bt_notification_iterator *iterator,
-		enum bt_notification_iterator_seek_origin seek_origin,
-		int64_t time);
 
 extern struct bt_component *bt_notification_iterator_get_component(
 		struct bt_notification_iterator *iterator);
