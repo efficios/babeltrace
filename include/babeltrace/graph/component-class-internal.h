@@ -75,7 +75,6 @@ struct bt_component_class_iterator_methods {
 	bt_component_class_notification_iterator_init_method init;
 	bt_component_class_notification_iterator_finalize_method finalize;
 	bt_component_class_notification_iterator_next_method next;
-	bt_component_class_notification_iterator_seek_time_method seek_time;
 };
 
 struct bt_component_class_source {

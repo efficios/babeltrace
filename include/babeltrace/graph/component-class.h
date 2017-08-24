@@ -88,11 +88,6 @@ typedef void (*bt_component_class_notification_iterator_finalize_method)(
 typedef struct bt_notification_iterator_next_return (*bt_component_class_notification_iterator_next_method)(
 		struct bt_private_notification_iterator *private_notification_iterator);
 
-typedef enum bt_notification_iterator_status
-		(*bt_component_class_notification_iterator_seek_time_method)(
-		struct bt_private_notification_iterator *private_notification_iterator,
-		int64_t time);
-
 typedef struct bt_component_class_query_return (*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
 		struct bt_query_executor *query_executor,

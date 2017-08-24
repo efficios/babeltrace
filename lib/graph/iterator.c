@@ -2252,13 +2252,3 @@ bt_private_notification_iterator_get_private_component(
 		bt_notification_iterator_get_component(
 			bt_notification_iterator_from_private(private_iterator)));
 }
-
-enum bt_notification_iterator_status bt_notification_iterator_seek_time(
-		struct bt_notification_iterator *iterator,
-		enum bt_notification_iterator_seek_origin seek_origin,
-		int64_t time)
-{
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
-	return ret;
-}
