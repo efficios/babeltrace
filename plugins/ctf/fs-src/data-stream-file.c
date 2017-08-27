@@ -66,7 +66,7 @@ int ds_file_munmap(struct ctf_fs_ds_file *ds_file)
 		BT_LOGE_ERRNO("Cannot memory-unmap file",
 			": address=%p, size=%zu, file_path=\"%s\", file=%p",
 			ds_file->mmap_addr, ds_file->mmap_len,
-			ds_file->file->path->str,
+			ds_file->file ? ds_file->file->path->str : "NULL",
 			ds_file->file ? ds_file->file->fp : NULL);
 		ret = -1;
 		goto end;
@@ -202,10 +202,64 @@ end:
 	return stream;
 }
 
+static
+enum bt_ctf_notif_iter_medium_status medop_seek(
+		enum bt_ctf_notif_iter_seek_whence whence, off_t offset,
+		void *data)
+{
+	enum bt_ctf_notif_iter_medium_status ret =
+			BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
+	struct ctf_fs_ds_file *ds_file = data;
+	off_t file_size = ds_file->file->size;
+
+	if (whence != BT_CTF_NOTIF_ITER_SEEK_WHENCE_SET ||
+		offset < 0 || offset > file_size) {
+		BT_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
+				"file-size=%jd", (int) whence, offset,
+				file_size);
+		ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL;
+		goto end;
+	}
+
+	/*
+	 * Determine whether or not the destination is contained within the
+	 * current mapping.
+	 */
+	if (ds_file->mmap_addr && (offset < ds_file->mmap_offset ||
+			offset >= ds_file->mmap_offset + ds_file->mmap_len)) {
+		int unmap_ret;
+		off_t offset_in_mapping = offset % bt_common_get_page_size();
+
+		BT_LOGD("Medium seek request cannot be accomodated by the current "
+				"file mapping: offset=%jd, mmap-offset=%zu, "
+				"mmap-len=%zu", offset, ds_file->mmap_offset,
+				ds_file->mmap_len);
+		unmap_ret = ds_file_munmap(ds_file);
+		if (unmap_ret) {
+			ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+			goto end;
+		}
+
+		ds_file->mmap_offset = offset - offset_in_mapping;
+		ds_file->request_offset = offset_in_mapping;
+		ret = ds_file_mmap_next(ds_file);
+		if (ret != BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK) {
+			goto end;
+		}
+	} else {
+		ds_file->request_offset = offset - ds_file->mmap_offset;
+	}
+
+	ds_file->end_reached = (offset == file_size);
+end:
+	return ret;
+}
+
 BT_HIDDEN
 struct bt_ctf_notif_iter_medium_ops ctf_fs_ds_file_medops = {
 	.request_bytes = medop_request_bytes,
 	.get_stream = medop_get_stream,
+	.seek = medop_seek,
 };
 
 static
@@ -232,6 +286,16 @@ error:
 	goto end;
 }
 
+/* Returns a new, zeroed, index entry. */
+static
+struct ctf_fs_ds_index_entry *ctf_fs_ds_index_add_new_entry(
+		struct ctf_fs_ds_index *index)
+{
+	g_array_set_size(index->entries, index->entries->len + 1);
+	return &g_array_index(index->entries, struct ctf_fs_ds_index_entry,
+			index->entries->len - 1);
+}
+
 static
 struct bt_ctf_clock_class *get_field_mapped_clock_class(
 		struct bt_ctf_field *field)
@@ -255,67 +319,86 @@ end:
 }
 
 static
-int get_ds_file_packet_bounds_clock_classes(struct ctf_fs_ds_file *ds_file,
+int get_packet_bounds_from_packet_context(
+		struct bt_ctf_field *packet_context,
 		struct bt_ctf_clock_class **_timestamp_begin_cc,
-		struct bt_ctf_clock_class **_timestamp_end_cc)
+		struct bt_ctf_field **_timestamp_begin,
+		struct bt_ctf_clock_class **_timestamp_end_cc,
+		struct bt_ctf_field **_timestamp_end)
 {
-	int ret;
-	struct bt_ctf_field *timestamp_field = NULL;
-	struct bt_ctf_field *packet_context_field = NULL;
+	int ret = 0;
 	struct bt_ctf_clock_class *timestamp_begin_cc = NULL;
 	struct bt_ctf_clock_class *timestamp_end_cc = NULL;
+	struct bt_ctf_field *timestamp_begin = NULL;
+	struct bt_ctf_field *timestamp_end = NULL;
 
-	ret = ctf_fs_ds_file_get_packet_header_context_fields(ds_file,
-		NULL, &packet_context_field);
-	if (ret || !packet_context_field) {
-		BT_LOGD("Cannot retrieve packet context field of stream \'%s\'",
-				ds_file->file->path->str);
+	timestamp_begin = bt_ctf_field_structure_get_field_by_name(
+			packet_context, "timestamp_begin");
+	if (!timestamp_begin) {
+		BT_LOGD_STR("Cannot retrieve timestamp_begin field in packet context.");
 		ret = -1;
 		goto end;
 	}
 
-	timestamp_field = bt_ctf_field_structure_get_field_by_name(
-			packet_context_field, "timestamp_begin");
-	if (!timestamp_field) {
-		BT_LOGD("Cannot retrieve timestamp_begin field in packet context of stream \'%s\'",
-				ds_file->file->path->str);
-		ret = -1;
-		goto end;
-	}
-
-	timestamp_begin_cc = get_field_mapped_clock_class(timestamp_field);
+	timestamp_begin_cc = get_field_mapped_clock_class(timestamp_begin);
 	if (!timestamp_begin_cc) {
-		BT_LOGD("Cannot retrieve the clock mapped to timestamp_begin of stream \'%s\'",
-				ds_file->file->path->str);
+		BT_LOGD_STR("Cannot retrieve the clock mapped to timestamp_begin.");
 	}
-	BT_PUT(timestamp_field);
 
-	timestamp_field = bt_ctf_field_structure_get_field_by_name(
-			packet_context_field, "timestamp_end");
-	if (!timestamp_field) {
-		BT_LOGD("Cannot retrieve timestamp_end field in packet context of stream \'%s\'",
-				ds_file->file->path->str);
+	timestamp_end = bt_ctf_field_structure_get_field_by_name(
+			packet_context, "timestamp_end");
+	if (!timestamp_end) {
+		BT_LOGD_STR("Cannot retrieve timestamp_end field in packet context.");
 		ret = -1;
 		goto end;
 	}
 
-	timestamp_end_cc = get_field_mapped_clock_class(timestamp_field);
+	timestamp_end_cc = get_field_mapped_clock_class(timestamp_end);
 	if (!timestamp_end_cc) {
-		BT_LOGD("Cannot retrieve the clock mapped to timestamp_end in stream \'%s\'",
-				ds_file->file->path->str);
+		BT_LOGD_STR("Cannot retrieve the clock mapped to timestamp_end.");
 	}
 
 	if (_timestamp_begin_cc) {
 		*_timestamp_begin_cc = bt_get(timestamp_begin_cc);
 	}
+	if (_timestamp_begin) {
+		*_timestamp_begin = bt_get(timestamp_begin);
+	}
 	if (_timestamp_end_cc) {
 		*_timestamp_end_cc = bt_get(timestamp_end_cc);
 	}
+	if (_timestamp_end) {
+		*_timestamp_end = bt_get(timestamp_end);
+	}
 end:
-	bt_put(packet_context_field);
-	bt_put(timestamp_field);
 	bt_put(timestamp_begin_cc);
 	bt_put(timestamp_end_cc);
+	bt_put(timestamp_begin);
+	bt_put(timestamp_end);
+	return ret;
+}
+
+static
+int get_ds_file_packet_bounds_clock_classes(struct ctf_fs_ds_file *ds_file,
+		struct bt_ctf_clock_class **timestamp_begin_cc,
+		struct bt_ctf_clock_class **timestamp_end_cc)
+{
+	struct bt_ctf_field *packet_context = NULL;
+	int ret = ctf_fs_ds_file_get_packet_header_context_fields(ds_file,
+			NULL, &packet_context);
+
+	if (ret || !packet_context) {
+		BT_LOGD("Cannot retrieve packet context field of stream \'%s\'",
+			ds_file->file->path->str);
+		ret = -1;
+		goto end;
+	}
+
+	ret = get_packet_bounds_from_packet_context(packet_context,
+			timestamp_begin_cc, NULL,
+			timestamp_end_cc, NULL);
+end:
+	bt_put(packet_context);
 	return ret;
 }
 
@@ -370,7 +453,8 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	ret = get_ds_file_packet_bounds_clock_classes(ds_file,
 			&timestamp_begin_cc, &timestamp_end_cc);
 	if (ret) {
-		BT_LOGD("Cannot get clock classes of \"timestamp_begin\" and \"timestamp_end\" fields");
+		BT_LOGD_STR("Cannot get clock classes of \"timestamp_begin\" "
+				"and \"timestamp_end\" fields");
 		goto error;
 	}
 
@@ -391,7 +475,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	index_basename = g_string_new(basename);
 	if (!index_basename) {
-		BT_LOGE("Cannot allocate index file basename string");
+		BT_LOGE_STR("Cannot allocate index file basename string");
 		goto error;
 	}
 
@@ -423,7 +507,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	file_pos = g_mapped_file_get_contents(mapped_file) + sizeof(*header);
 	if (be32toh(header->magic) != CTF_INDEX_MAGIC) {
-		BT_LOGW("Invalid LTTng trace index: \"magic\" field validation failed");
+		BT_LOGW_STR("Invalid LTTng trace index: \"magic\" field validation failed");
 		goto error;
 	}
 
@@ -481,14 +565,14 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 				index_entry->timestamp_begin,
 				&index_entry->timestamp_begin_ns);
 		if (ret) {
-			BT_LOGD("Failed to convert raw timestamp to nanoseconds since Epoch during index parsing");
+			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch during index parsing");
 			goto error;
 		}
 		ret = convert_cycles_to_ns(timestamp_end_cc,
 				index_entry->timestamp_end,
 				&index_entry->timestamp_end_ns);
 		if (ret) {
-			BT_LOGD("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
+			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch during LTTng trace index parsing");
 			goto error;
 		}
 
@@ -500,7 +584,7 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	/* Validate that the index addresses the complete stream. */
 	if (ds_file->file->size != total_packets_size) {
 		BT_LOGW("Invalid LTTng trace index file; indexed size != stream file size: "
-			"file_size=%" PRIu64 ", total_packets_size=%" PRIu64,
+			"file-size=%" PRIu64 ", total-packets-size=%" PRIu64,
 			ds_file->file->size, total_packets_size);
 		goto error;
 	}
@@ -516,6 +600,163 @@ end:
 	}
 	bt_put(timestamp_begin_cc);
 	bt_put(timestamp_end_cc);
+	return index;
+error:
+	ctf_fs_ds_index_destroy(index);
+	index = NULL;
+	goto end;
+}
+
+static
+int init_index_entry(struct ctf_fs_ds_index_entry *entry,
+		struct bt_ctf_field *packet_context, off_t packet_size,
+		off_t packet_offset)
+{
+	int ret;
+	struct bt_ctf_field *timestamp_begin = NULL;
+	struct bt_ctf_field *timestamp_end = NULL;
+	struct bt_ctf_clock_class *timestamp_begin_cc = NULL;
+	struct bt_ctf_clock_class *timestamp_end_cc = NULL;
+
+	ret = get_packet_bounds_from_packet_context(packet_context,
+			&timestamp_begin_cc, &timestamp_begin,
+			&timestamp_end_cc, &timestamp_end);
+	if (ret || !timestamp_begin_cc || !timestamp_begin ||
+			!timestamp_end_cc || ! timestamp_end) {
+		BT_LOGD_STR("Failed to determine time bound fields of packet.");
+		goto end;
+	}
+
+	assert(packet_offset >= 0);
+	entry->offset = packet_offset;
+
+	assert(packet_size >= 0);
+	entry->packet_size = packet_size;
+
+	ret = bt_ctf_field_unsigned_integer_get_value(timestamp_begin,
+			&entry->timestamp_begin);
+	if (ret) {
+		goto end;
+	}
+	ret = bt_ctf_field_unsigned_integer_get_value(timestamp_end,
+			&entry->timestamp_end);
+	if (ret) {
+		goto end;
+	}
+
+	/* Convert the packet's bound to nanoseconds since Epoch. */
+	ret = convert_cycles_to_ns(timestamp_begin_cc,
+				   entry->timestamp_begin,
+				   &entry->timestamp_begin_ns);
+	if (ret) {
+		BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+		goto end;
+	}
+
+	ret = convert_cycles_to_ns(timestamp_end_cc,
+				   entry->timestamp_end,
+				   &entry->timestamp_end_ns);
+	if (ret) {
+		BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+		goto end;
+	}
+end:
+	bt_put(timestamp_begin);
+	bt_put(timestamp_begin_cc);
+	bt_put(timestamp_end);
+	bt_put(timestamp_end_cc);
+	return ret;
+}
+
+static
+struct ctf_fs_ds_index *build_index_from_stream_file(
+		struct ctf_fs_ds_file *ds_file)
+{
+	int ret;
+	struct ctf_fs_ds_index *index = NULL;
+	enum bt_ctf_notif_iter_status iter_status;
+	struct bt_ctf_field *packet_context = NULL;
+
+	BT_LOGD("Indexing stream file %s", ds_file->file->path->str);
+
+	index = ctf_fs_ds_index_create(0);
+	if (!index) {
+		goto error;
+	}
+
+	do {
+		off_t current_packet_offset;
+		off_t next_packet_offset;
+		off_t current_packet_size, current_packet_size_bytes;
+		struct ctf_fs_ds_index_entry *entry;
+
+		iter_status = bt_ctf_notif_iter_get_packet_header_context_fields(
+				ds_file->notif_iter, NULL, &packet_context);
+		if (iter_status != BT_CTF_NOTIF_ITER_STATUS_OK) {
+			if (iter_status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
+				break;
+			}
+			goto error;
+		}
+		current_packet_offset =
+				bt_ctf_notif_iter_get_current_packet_offset(
+				ds_file->notif_iter);
+		if (current_packet_offset < 0) {
+			BT_LOGE_STR("Cannot get the current packet's offset.");
+			goto error;
+		}
+
+		current_packet_size = bt_ctf_notif_iter_get_current_packet_size(
+				ds_file->notif_iter);
+		if (current_packet_size < 0) {
+			BT_LOGE("Cannot get packet size: packet-offset=%jd",
+					current_packet_offset);
+			goto error;
+		}
+		current_packet_size_bytes =
+				((current_packet_size + 7) & ~7) / CHAR_BIT;
+
+		if (current_packet_offset + current_packet_size_bytes >
+				ds_file->file->size) {
+			BT_LOGW("Invalid packet size reported in file: stream=\"%s\", "
+					"packet-offset=%jd, packet-size-bytes=%jd, "
+					"file-size=%jd",
+					ds_file->file->path->str,
+					current_packet_offset,
+					current_packet_size_bytes,
+					ds_file->file->size);
+			goto error;
+		}
+
+		next_packet_offset = current_packet_offset +
+				current_packet_size_bytes;
+		BT_LOGD("Seeking to next packet: current-packet-offset=%jd, "
+				"next-packet-offset=%jd", current_packet_offset,
+				next_packet_offset);
+
+		entry = ctf_fs_ds_index_add_new_entry(index);
+		if (!entry) {
+			BT_LOGE_STR("Failed to allocate a new index entry.");
+			goto error;
+		}
+
+		ret = init_index_entry(entry, packet_context,
+				current_packet_size_bytes,
+				current_packet_offset);
+		if (ret) {
+			goto error;
+		}
+
+		iter_status = bt_ctf_notif_iter_seek(ds_file->notif_iter,
+				next_packet_offset);
+		BT_PUT(packet_context);
+	} while (iter_status == BT_CTF_NOTIF_ITER_STATUS_OK);
+
+	if (iter_status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
+		goto error;
+	}
+end:
+	bt_put(packet_context);
 	return index;
 error:
 	ctf_fs_ds_index_destroy(index);
@@ -573,7 +814,18 @@ BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		struct ctf_fs_ds_file *ds_file)
 {
-	return build_index_from_idx_file(ds_file);
+	struct ctf_fs_ds_index *index;
+
+	index = build_index_from_idx_file(ds_file);
+	if (index) {
+		goto end;
+	}
+
+	BT_LOGD("Failed to build index from .index file; "
+		"falling back to stream indexing.");
+	index = build_index_from_stream_file(ds_file);
+end:
+	return index;
 }
 
 BT_HIDDEN
