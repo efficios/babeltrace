@@ -54,21 +54,24 @@ enum bt_ctf_notif_iter_medium_status {
 	 * The medium function called by the notification iterator
 	 * function reached the end of the file.
 	 */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF =	1,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF = 1,
 
 	/**
 	 * There is no data available right now, try again later.
 	 */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN =	11,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN = 11,
+
+	/** Unsupported operation. */
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_UNSUPPORTED = -3,
 
 	/** Invalid argument. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL =	-2,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL = -2,
 
 	/** General error. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR =	-1,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR = -1,
 
 	/** Everything okay. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK = 	0,
+	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK = 0,
 };
 
 /**
@@ -97,11 +100,25 @@ enum bt_ctf_notif_iter_status {
 	/** Invalid argument. */
 	BT_CTF_NOTIF_ITER_STATUS_INVAL = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL,
 
+	/** Unsupported operation. */
+	BT_CTF_NOTIF_ITER_STATUS_UNSUPPORTED = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_UNSUPPORTED,
+
 	/** General error. */
 	BT_CTF_NOTIF_ITER_STATUS_ERROR = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR,
 
 	/** Everything okay. */
 	BT_CTF_NOTIF_ITER_STATUS_OK =	0,
+};
+
+/**
+ * CTF notification iterator seek operation directives.
+ */
+enum bt_ctf_notif_iter_seek_whence {
+	/**
+	 * Set the iterator's position to an absolute offset in the underlying
+	 * medium.
+	 */
+	BT_CTF_NOTIF_ITER_SEEK_WHENCE_SET,
 };
 
 /**
@@ -180,6 +197,22 @@ struct bt_ctf_notif_iter_medium_ops {
 	enum bt_ctf_notif_iter_medium_status (* request_bytes)(
 			size_t request_sz, uint8_t **buffer_addr,
 			size_t *buffer_sz, void *data);
+
+	/**
+	 * Repositions the underlying stream's position.
+	 *
+	 * This *optional* method repositions the underlying stream
+	 * to a given absolute or relative position, as indicated by
+	 * the whence directive.
+	 *
+	 * @param whence	One of #bt_ctf_notif_iter_seek_whence values
+	 * @param offset	Offset to use for the given directive
+	 * @param data		User data
+	 * @returns		One of #bt_ctf_notif_iter_medium_status values
+	 */
+	enum bt_ctf_notif_iter_medium_status (* seek)(
+			enum bt_ctf_notif_iter_seek_whence whence,
+			off_t offset, void *data);
 
 	/**
 	 * Returns a stream instance (weak reference) for the given
@@ -307,6 +340,23 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields
 BT_HIDDEN
 void bt_ctf_notif_iter_set_medops_data(struct bt_ctf_notif_iter *notit,
 		void *medops_data);
+
+BT_HIDDEN
+enum bt_ctf_notif_iter_status bt_ctf_notif_iter_seek(
+		struct bt_ctf_notif_iter *notit, off_t offset);
+
+/*
+ * Get the current packet's offset in bytes relative to the media's initial
+ * position.
+ */
+BT_HIDDEN
+off_t bt_ctf_notif_iter_get_current_packet_offset(
+		struct bt_ctf_notif_iter *notit);
+
+/* Get the current packet's size (in bits). */
+BT_HIDDEN
+off_t bt_ctf_notif_iter_get_current_packet_size(
+		struct bt_ctf_notif_iter *notit);
 
 static inline
 const char *bt_ctf_notif_iter_medium_status_string(

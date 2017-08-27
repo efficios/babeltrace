@@ -232,6 +232,12 @@ struct bt_ctf_notif_iter {
 	/* Current content size (bits) (-1 if unknown) */
 	int64_t cur_content_size;
 
+	/*
+	 * Offset, in the underlying media, of the current packet's start
+	 * (-1 if unknown).
+	 */
+	off_t cur_packet_offset;
+
 	/* bt_ctf_clock_class to uint64_t. */
 	GHashTable *clock_states;
 
@@ -1803,6 +1809,7 @@ void bt_ctf_notif_iter_reset(struct bt_ctf_notif_iter *notit)
 	notit->state = STATE_INIT;
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
+	notit->cur_packet_offset = -1;
 }
 
 static
@@ -1816,8 +1823,12 @@ int bt_ctf_notif_iter_switch_packet(struct bt_ctf_notif_iter *notit)
 	 * iterator refer to the same stream class (the first one).
 	 */
 	assert(notit);
-	BT_LOGV("Switching packet: notit-addr=%p, cur=%zu",
-		notit, notit->buf.at);
+	if (notit->cur_packet_size != -1) {
+		notit->cur_packet_offset += notit->cur_packet_size;
+	}
+	BT_LOGV("Switching packet: notit-addr=%p, cur=%zu, "
+		"packet-offset=%" PRId64, notit, notit->buf.at,
+		notit->cur_packet_offset);
 	stack_clear(notit->stack);
 	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
@@ -3137,6 +3148,7 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
 		"data=%p, notit-addr=%p",
 		trace, bt_ctf_trace_get_name(trace), max_request_sz, data,
 		notit);
+	notit->cur_packet_offset = 0;
 
 end:
 	return notit;
@@ -3271,6 +3283,7 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields
 		struct bt_ctf_field **packet_header_field,
 		struct bt_ctf_field **packet_context_field)
 {
+	int ret;
 	enum bt_ctf_notif_iter_status status = BT_CTF_NOTIF_ITER_STATUS_OK;
 
 	assert(notit);
@@ -3333,6 +3346,11 @@ set_fields:
 		*packet_context_field = bt_get(notit->dscopes.stream_packet_context);
 	}
 
+	ret = set_current_packet_content_sizes(notit);
+	if (ret) {
+		status = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+		goto end;
+	}
 end:
 	return status;
 }
@@ -3343,4 +3361,58 @@ void bt_ctf_notif_iter_set_medops_data(struct bt_ctf_notif_iter *notit,
 {
 	assert(notit);
 	notit->medium.data = medops_data;
+}
+
+BT_HIDDEN
+enum bt_ctf_notif_iter_status bt_ctf_notif_iter_seek(
+		struct bt_ctf_notif_iter *notit, off_t offset)
+{
+	enum bt_ctf_notif_iter_status ret = BT_CTF_NOTIF_ITER_STATUS_OK;
+	enum bt_ctf_notif_iter_medium_status medium_status;
+
+	assert(notit);
+	if (offset < 0) {
+		BT_LOGE("Cannot seek to negative offset: offset=%jd", offset);
+		ret = BT_CTF_NOTIF_ITER_STATUS_INVAL;
+		goto end;
+	}
+
+	if (!notit->medium.medops.seek) {
+		ret = BT_CTF_NOTIF_ITER_STATUS_UNSUPPORTED;
+		BT_LOGD("Aborting seek as the iterator's underlying media does not implement seek support.");
+		goto end;
+	}
+
+	medium_status = notit->medium.medops.seek(
+			BT_CTF_NOTIF_ITER_SEEK_WHENCE_SET, offset,
+			notit->medium.data);
+	if (medium_status != BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK) {
+		if (medium_status == BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF) {
+			ret = BT_CTF_NOTIF_ITER_STATUS_EOF;
+		} else {
+			ret = BT_CTF_NOTIF_ITER_STATUS_ERROR;
+			goto end;
+		}
+	}
+
+	bt_ctf_notif_iter_reset(notit);
+	notit->cur_packet_offset = offset;
+end:
+	return ret;
+}
+
+BT_HIDDEN
+off_t bt_ctf_notif_iter_get_current_packet_offset(
+		struct bt_ctf_notif_iter *notit)
+{
+	assert(notit);
+	return notit->cur_packet_offset;
+}
+
+BT_HIDDEN
+off_t bt_ctf_notif_iter_get_current_packet_size(
+		struct bt_ctf_notif_iter *notit)
+{
+	assert(notit);
+	return notit->cur_packet_size;
 }
