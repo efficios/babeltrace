@@ -89,8 +89,30 @@ static bool canceled = false;
 
 GPtrArray *loaded_plugins;
 
+#ifdef __MINGW32__
+#include <windows.h>
+
 static
-void sigint_handler(int signum)
+BOOL WINAPI ctrlc_handler(DWORD signal) {
+	if (the_graph) {
+		bt_graph_cancel(the_graph);
+	}
+
+	canceled = true;
+
+	return TRUE;
+}
+
+static
+void set_ctrlc_handler(void)
+{
+	if (!SetConsoleCtrlHandler(ctrlc_handler, TRUE)) {
+		BT_LOGE("Failed to set the ctrl+c handler.");
+	}
+}
+#else /* __MINGW32__ */
+static
+void ctrlc_handler(int signum)
 {
 	if (signum != SIGINT) {
 		return;
@@ -102,6 +124,22 @@ void sigint_handler(int signum)
 
 	canceled = true;
 }
+
+static
+void set_ctrlc_handler(void)
+{
+	struct sigaction new_action, old_action;
+
+	new_action.sa_handler = ctrlc_handler;
+	sigemptyset(&new_action.sa_mask);
+	new_action.sa_flags = 0;
+	sigaction(SIGINT, NULL, &old_action);
+
+	if (old_action.sa_handler != SIG_IGN) {
+		sigaction(SIGINT, &new_action, NULL);
+	}
+}
+#endif /* __MINGW32__ */
 
 static
 void init_static_data(void)
@@ -720,7 +758,7 @@ void print_plugin_info(struct bt_plugin *plugin)
 		bt_common_color_fg_blue(), plugin_name,
 		bt_common_color_reset());
 	printf("  %sPath%s: %s\n", bt_common_color_bold(),
-		bt_common_color_reset(), path ? path : "(None)");
+		bt_common_color_reset(), path ? path : "BUILT-IN");
 
 	if (version_status == BT_PLUGIN_STATUS_OK) {
 		printf("  %sVersion%s: %u.%u.%u",
@@ -2623,21 +2661,6 @@ void set_auto_log_levels(struct bt_config *cfg)
 	}
 }
 
-static
-void set_sigint_handler(void)
-{
-	struct sigaction new_action, old_action;
-
-	new_action.sa_handler = sigint_handler;
-	sigemptyset(&new_action.sa_mask);
-	new_action.sa_flags = 0;
-	sigaction(SIGINT, NULL, &old_action);
-
-	if (old_action.sa_handler != SIG_IGN) {
-		sigaction(SIGINT, &new_action, NULL);
-	}
-}
-
 int main(int argc, const char **argv)
 {
 	int ret;
@@ -2645,7 +2668,7 @@ int main(int argc, const char **argv)
 	struct bt_config *cfg;
 
 	init_log_level();
-	set_sigint_handler();
+	set_ctrlc_handler();
 	init_static_data();
 	cfg = bt_config_cli_args_create_with_default(argc, argv, &retcode);
 
