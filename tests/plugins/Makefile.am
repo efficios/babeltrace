@@ -20,14 +20,20 @@ LOG_DRIVER_FLAGS='--merge'
 TESTS = test-utils-muxer-complete
 
 if ENABLE_DEBUG_INFO
-test_dwarf_LDFLAGS = -static
-test_dwarf_LDADD = $(LIBTAP) \
-	$(top_builddir)/plugins/lttng-utils/babeltrace-plugin-lttng-utils.la
+test_dwarf_LDADD = \
+	$(top_builddir)/plugins/lttng-utils/libdebug-info.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(ELFUTILS_LIBS) \
+	$(LIBTAP)
 test_dwarf_SOURCES = test_dwarf.c
 
-test_bin_info_LDFLAGS = -static
-test_bin_info_LDADD = $(LIBTAP) \
-	$(top_builddir)/plugins/lttng-utils/babeltrace-plugin-lttng-utils.la
+test_bin_info_LDADD = \
+	$(top_builddir)/plugins/lttng-utils/libdebug-info.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(ELFUTILS_LIBS) \
+	$(LIBTAP)
 test_bin_info_SOURCES = test_bin_info.c
 
 noinst_PROGRAMS += test_dwarf test_bin_info
