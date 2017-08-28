@@ -1,5 +1,8 @@
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/plugins
 
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
+LOG_DRIVER_FLAGS='--merge'
+
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
 COMMON_TEST_LDADD = $(LIBTAP) \
 	$(top_builddir)/lib/libbabeltrace.la \
@@ -7,17 +10,18 @@ COMMON_TEST_LDADD = $(LIBTAP) \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/compat/libcompat.la
 
-noinst_PROGRAMS = test-utils-muxer
+check_SCRIPTS =
+noinst_PROGRAMS =
+TESTS =
 
+if !ENABLE_BUILT_IN_PLUGINS
 test_utils_muxer_SOURCES = test-utils-muxer.c
 test_utils_muxer_LDADD = $(COMMON_TEST_LDADD)
 
-check_SCRIPTS = test-utils-muxer-complete
-
-LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
-LOG_DRIVER_FLAGS='--merge'
-
-TESTS = test-utils-muxer-complete
+noinst_PROGRAMS += test-utils-muxer
+check_SCRIPTS += test-utils-muxer-complete
+TESTS += test-utils-muxer-complete
+endif
 
 if ENABLE_DEBUG_INFO
 test_dwarf_LDADD = \
