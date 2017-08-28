@@ -67,7 +67,15 @@ BUILD_FLAGS=CC="$(CC)" \
 
 all-local: build-python-bindings.stamp
 
-build-python-bindings.stamp: $(STATIC_BINDINGS_DEPS) $(GENERATED_BINDINGS_DEPS)
+copy-static-deps.stamp: $(STATIC_BINDINGS_DEPS)
+	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
+		for file in $(STATIC_BINDINGS_DEPS); do \
+			cp -f $(srcdir)/$$file $(builddir)/$$file; \
+		done; \
+	fi
+	touch $@
+
+build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS)
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build
 	touch $@
@@ -81,6 +89,11 @@ install-exec-local: build-python-bindings.stamp
 
 clean-local:
 	rm -rf $(builddir)/build
+	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
+		for file in $(STATIC_BINDINGS_DEPS); do \
+			rm -f $(builddir)/$$file; \
+		done; \
+	fi
 
 # Distutils' setup.py does not include an uninstall target, we thus need to do
 # it manually. We save the path of the files that were installed during the install target
@@ -97,4 +110,4 @@ uninstall-local:
 EXTRA_DIST = $(STATIC_BINDINGS_DEPS)
 
 # clean: generated C and Python files (by SWIG)
-CLEANFILES = bt2/native_bt.py bt2/native_bt_wrap.c build-python-bindings.stamp
+CLEANFILES = bt2/native_bt.py bt2/native_bt_wrap.c build-python-bindings.stamp copy-static-deps.stamp
