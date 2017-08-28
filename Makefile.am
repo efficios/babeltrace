@@ -3,7 +3,8 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = include		\
 	common			\
 	compat			\
-	logging
+	logging			\
+	lib
 
 if ENABLE_PYTHON_PLUGINS
 # Only build the Python plugin provider shared object if the
@@ -12,7 +13,6 @@ SUBDIRS += python-plugin-provider
 endif
 
 SUBDIRS +=			\
-	lib			\
 	plugins			\
 	cli			\
 	bindings		\
