@@ -15,7 +15,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-. "@abs_top_srcdir@/tests/utils/common.sh"
+. "@abs_top_builddir@/tests/utils/common.sh"
 
 clean_tmp() {
 	rm -rf "${out_path}" "${text_output1}" "${text_output2}"
