@@ -15,7 +15,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-. "@abs_top_srcdir@/tests/utils/common.sh"
+. "@abs_top_builddir@/tests/utils/common.sh"
 
 TRACE_PATH="${BT_CTF_TRACES}/succeed/wk-heartbeat-u/"
 
