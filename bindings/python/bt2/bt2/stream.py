@@ -29,9 +29,9 @@ import bt2
 
 def _create_from_ptr(stream_ptr):
     if native_bt.ctf_stream_is_writer(stream_ptr):
-        import ctf_writer
+        import bt2.ctf_writer
 
-        cls = ctf_writer._CtfWriterStream
+        cls = bt2.ctf_writer._CtfWriterStream
     else:
         cls = _Stream
 
