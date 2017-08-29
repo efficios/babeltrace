@@ -816,7 +816,7 @@ static void bt_py3_cc_set_optional_iter_methods(struct bt_component_class *cc,
 		int (*set_notif_iter_init_method)(struct bt_component_class *, bt_component_class_notification_iterator_init_method),
 		int (*set_notif_iter_finalize_method)(struct bt_component_class *, bt_component_class_notification_iterator_finalize_method))
 {
-	int ret;
+	int ret __attribute__((unused));
 
 	ret = set_notif_iter_init_method(
 		cc, bt_py3_cc_notification_iterator_init);
