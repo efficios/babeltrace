@@ -231,7 +231,7 @@ enum bt_ctf_notif_iter_medium_status medop_seek(
 		off_t offset_in_mapping = offset % bt_common_get_page_size();
 
 		BT_LOGD("Medium seek request cannot be accomodated by the current "
-				"file mapping: offset=%jd, mmap-offset=%zu, "
+				"file mapping: offset=%jd, mmap-offset=%jd, "
 				"mmap-len=%zu", offset, ds_file->mmap_offset,
 				ds_file->mmap_len);
 		unmap_ret = ds_file_munmap(ds_file);
