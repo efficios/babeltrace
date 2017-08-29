@@ -201,7 +201,7 @@ class _CtfWriterStream(stream._StreamBase):
 
     def flush(self):
         ret = native_bt.ctf_stream_flush(self._ptr)
-        utils._handle_ret(ret, 'cannot cannot flush CTF writer stream object')
+        utils._handle_ret(ret, 'cannot flush CTF writer stream object')
 
     @property
     def packet_header_field(self):
