@@ -727,7 +727,7 @@ AS_IF([test "x$enable_python_bindings" = xyes],
 )
 
 AS_IF([test "x$enable_python_plugins" = "xyes"],
-  [AC_CONFIG_FILES([tests/python-plugin-provider/test.sh], [chmod +x tests/python-plugin-provider/test.sh])]
+  [AC_CONFIG_FILES([tests/python-plugin-provider/test_python_plugin_provider], [chmod +x tests/python-plugin-provider/test_python_plugin_provider])]
 )
 
 AC_OUTPUT
