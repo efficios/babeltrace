@@ -93,7 +93,7 @@ struct bt_clock_class_priority_map;
 
 @postsuccessrefcountret1
 */
-extern struct bt_clock_class_priority_map *bt_clock_class_priority_map_create();
+extern struct bt_clock_class_priority_map *bt_clock_class_priority_map_create(void);
 
 /**
 @brief	Returns the number of CTF IR clock classes contained in the
