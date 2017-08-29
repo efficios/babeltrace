@@ -380,6 +380,7 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	int ret;
 	int64_t vpid;
 	uint64_t baddr;
+	uint64_t build_id_len;
 
 	ret = get_stream_event_context_int_field_value(err,
 			event, "_vpid", &vpid);
@@ -411,10 +412,13 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	}
 
 	ret = get_payload_build_id_field_value(err, event, "_build_id",
-			&bin->build_id, &bin->build_id_len);
+			&bin->build_id, &build_id_len);
 	if (ret) {
 		BT_LOGE_STR("Failed to get _build_id field value.");
 		goto end;
+	}
+	if (build_id_len > SIZE_MAX) {
+		bin->build_id_len = (size_t) build_id_len;
 	}
 
 	/*
