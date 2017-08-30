@@ -122,10 +122,16 @@ void validate_trace(char *parser_path, char *trace_path)
 		goto result;
 	}
 
-	if(!g_spawn_check_exit_status(exit_status, NULL)) {
+	/* Replace by g_spawn_check_exit_status when we require glib >= 2.34 */
+#if G_OS_UNIX
+	ret = WIFEXITED(exit_status) ? WEXITSTATUS(exit_status) : -1;
+#else
+	ret = exit_status;
+#endif
+
+	if (ret != 0) {
 		diag("Babeltrace returned an error.");
 		diag_multiline(standard_error);
-		ret = -1;
 		goto result;
 	}
 
