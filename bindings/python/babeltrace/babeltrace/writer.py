@@ -2,7 +2,7 @@
 #
 # Babeltrace writer interface Python module
 #
-# Copyright 2012-2015 EfficiOS Inc.
+# Copyright 2012-2017 EfficiOS Inc.
 #
 # Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
 #
@@ -24,14 +24,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import babeltrace.nativebt as nbt
 import babeltrace.common as common
-from uuid import UUID
-
-
-# Used to compare to -1ULL in error checks
-_MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
-
+import bt2
 
 class EnumerationMapping:
     """
@@ -47,9 +41,19 @@ class EnumerationMapping:
         mapping to a single value.
         """
 
-        self.name = name
-        self.start = start
-        self.end = end
+        self._enum_mapping = bt2._EnumerationFieldTypeMapping(self, start, end)
+
+    @property
+    def name(self):
+        return self._enum_mapping.name
+
+    @property
+    def start(self):
+        return self._enum_mapping.lower
+
+    @property
+    def end(self):
+        return self._enum_mapping.upper
 
 
 class Clock:
@@ -69,13 +73,11 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        self._c = nbt._bt_ctf_clock_create(name)
-
-        if self._c is None:
+        try:
+            self._clock = bt2.CtfWriterClock(name)
+        except:
             raise ValueError("Invalid clock name.")
-
-    def __del__(self):
-        nbt._bt_ctf_clock_put(self._c)
+        assert self._clock
 
     @property
     def name(self):
@@ -87,12 +89,10 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        name = nbt._bt_ctf_clock_get_name(self._c)
-
-        if name is None:
+        try:
+            return self._clock.name
+        except:
             raise ValueError("Invalid clock instance.")
-
-        return name
 
     @property
     def description(self):
@@ -104,13 +104,16 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        return nbt._bt_ctf_clock_get_description(self._c)
+        try:
+            return self._clock.description
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @description.setter
     def description(self, desc):
-        ret = nbt._bt_ctf_clock_set_description(self._c, str(desc))
-
-        if ret < 0:
+        try:
+            self._clock.description = desc
+        except:
             raise ValueError("Invalid clock description.")
 
     @property
@@ -123,18 +126,16 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        freq = nbt._bt_ctf_clock_get_frequency(self._c)
-
-        if freq == _MAX_UINT64:
-            raise ValueError("Invalid clock instance")
-
-        return freq
+        try:
+            return self._clock.frequency
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @frequency.setter
     def frequency(self, freq):
-        ret = nbt._bt_ctf_clock_set_frequency(self._c, freq)
-
-        if ret < 0:
+        try:
+            self._clock.frequency = freq
+        except:
             raise ValueError("Invalid frequency value.")
 
     @property
@@ -147,18 +148,16 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        precision = nbt._bt_ctf_clock_get_precision(self._c)
-
-        if precision == _MAX_UINT64:
-            raise ValueError("Invalid clock instance")
-
-        return precision
+        try:
+            return self._clock.precision
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @precision.setter
     def precision(self, precision):
-        ret = nbt._bt_ctf_clock_set_precision(self._c, precision)
-
-        if ret < 0:
+        try:
+            self._clock.precision = precision
+        except:
             raise ValueError("Invalid precision value.")
 
     @property
@@ -171,18 +170,17 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        ret, offset_s = nbt._bt_ctf_clock_get_offset_s(self._c)
-
-        if ret < 0:
-            raise ValueError("Invalid clock instance")
-
-        return offset_s
+        try:
+            return self._clock.offset.seconds
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @offset_seconds.setter
     def offset_seconds(self, offset_s):
-        ret = nbt._bt_ctf_clock_set_offset_s(self._c, offset_s)
-
-        if ret < 0:
+        try:
+            self._clock.offset = bt2.ClockClassOffet(offset_s,
+                                                     self._clock.offset.cycles)
+        except:
             raise ValueError("Invalid offset value.")
 
     @property
@@ -196,18 +194,17 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        ret, offset = nbt._bt_ctf_clock_get_offset(self._c)
-
-        if ret < 0:
-            raise ValueError("Invalid clock instance")
-
-        return offset
+        try:
+            return self._clock.offset.cycles
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @offset.setter
     def offset(self, offset):
-        ret = nbt._bt_ctf_clock_set_offset(self._c, offset)
-
-        if ret < 0:
+        try:
+            self._clock.offset = bt2.ClockClassOffet(
+                self._clock.offset.seconds, offset)
+        except:
             raise ValueError("Invalid offset value.")
 
     @property
@@ -222,18 +219,16 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        is_absolute = nbt._bt_ctf_clock_get_is_absolute(self._c)
-
-        if is_absolute == -1:
-            raise ValueError("Invalid clock instance")
-
-        return False if is_absolute == 0 else True
+        try:
+            return self._clock.is_absolute
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @absolute.setter
     def absolute(self, is_absolute):
-        ret = nbt._bt_ctf_clock_set_is_absolute(self._c, int(is_absolute))
-
-        if ret < 0:
+        try:
+            self._clock.is_absolute = is_absolute
+        except:
             raise ValueError("Could not set the clock absolute attribute.")
 
     @property
@@ -246,31 +241,23 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        uuid_list = []
-
-        for i in range(16):
-            ret, value = nbt._bt_python_ctf_clock_get_uuid_index(self._c, i)
-
-            if ret < 0:
-                raise ValueError("Invalid clock instance")
-
-            uuid_list.append(value)
-
-        return UUID(bytes=bytes(uuid_list))
+        try:
+            return self._clock.uuid
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @uuid.setter
     def uuid(self, uuid):
         uuid_bytes = uuid.bytes
 
         if len(uuid_bytes) != 16:
-            raise ValueError("Invalid UUID provided. UUID length must be 16 bytes")
+            raise ValueError(
+                "Invalid UUID provided. UUID length must be 16 bytes")
 
-        for i in range(len(uuid_bytes)):
-            ret = nbt._bt_python_ctf_clock_set_uuid_index(self._c, i,
-                                                          uuid_bytes[i])
-
-            if ret < 0:
-                raise ValueError("Invalid clock instance")
+        try:
+            self._clock.uuid = uuid
+        except:
+            raise ValueError("Invalid clock instance.")
 
     @property
     def time(self):
@@ -283,18 +270,13 @@ class Clock:
         :exc:`ValueError` is raised on error.
         """
 
-        ret, time = nbt._bt_ctf_clock_get_time(self._c)
-
-        if ret < 0:
-            raise ValueError("Invalid clock instance")
-
-        return time
+        raise NotImplementedError("Getter not implemented.")
 
     @time.setter
     def time(self, time):
-        ret = nbt._bt_ctf_clock_set_time(self._c, time)
-
-        if ret < 0:
+        try:
+            self._clock.time = time
+        except:
             raise ValueError("Invalid time value.")
 
 
@@ -326,6 +308,43 @@ class IntegerBase:
     INTEGER_BASE_HEXADECIMAL = 16
 
 
+_BT2_FIELD_TYPE_TO_BT_DECLARATION = {
+    bt2.IntegerFieldType: IntegerFieldDeclaration,
+    bt2.FloatingPointNumberFieldType: FloatFieldDeclaration,
+    bt2.EnumerationFieldType: EnumerationFieldDeclaration,
+    bt2.StringFieldType: StringFieldDeclaration,
+    bt2.StructureFieldType: StructureFieldDeclaration,
+    bt2.ArrayFieldType: ArrayFieldDeclaration,
+    bt2.SequenceFieldType: SequenceFieldDeclaration,
+    bt2.VariantFieldType: VariantFieldDeclaration,
+}
+
+_BT2_BYTE_ORDER_TO_BYTE_ORDER = {
+    bt2.ByteOrder.NATIVE: common.ByteOrder.BYTE_ORDER_NATIVE,
+    bt2.ByteOrder.LITTLE_ENDIAN: common.ByteOrder.BYTE_ORDER_LITTLE_ENDIAN,
+    bt2.ByteOrder.BIG_ENDIAN: common.ByteOrder.BYTE_ORDER_BIG_ENDIAN,
+    bt2.ByteOrder.NETWORK: common.ByteOrder.BYTE_ORDER_NETWORK,
+}
+
+_BYTE_ORDER_TO_BT2_BYTE_ORDER = {
+    common.ByteOrder.BYTE_ORDER_NATIVE: bt2.ByteOrder.NATIVE,
+    common.ByteOrder.BYTE_ORDER_LITTLE_ENDIAN: bt2.ByteOrder.LITTLE_ENDIAN,
+    common.ByteOrder.BYTE_ORDER_BIG_ENDIAN: bt2.ByteOrder.BIG_ENDIAN,
+    common.ByteOrder.BYTE_ORDER_NETWORK: bt2.ByteOrder.NETWORK,
+}
+
+_BT2_ENCODING_TO_ENCODING = {
+    bt2.Encoding.NONE: common.CTFStringEncoding.NONE,
+    bt2.Encoding.ASCII: common.CTFStringEncoding.ASCII,
+    bt2.Encoding.UTF8: common.CTFStringEncoding.UTF8,
+}
+
+_ENCODING_TO_BT2_ENCODING = {
+    common.CTFStringEncoding.NONE: bt2.Encoding.NONE,
+    common.CTFStringEncoding.ASCII: bt2.Encoding.ASCII,
+    common.CTFStringEncoding.UTF8: bt2.Encoding.UTF8,
+}
+
 class FieldDeclaration:
     """
     Base class of all field declarations. This class is not meant to
@@ -340,32 +359,16 @@ class FieldDeclaration:
         if self._ft is None:
             raise ValueError("FieldDeclaration creation failed.")
 
-    def __del__(self):
-        nbt._bt_ctf_field_type_put(self._ft)
-
     @staticmethod
-    def _create_field_declaration_from_native_instance(
-            native_field_declaration):
-        type_dict = {
-            common.CTFTypeId.INTEGER: IntegerFieldDeclaration,
-            common.CTFTypeId.FLOAT: FloatFieldDeclaration,
-            common.CTFTypeId.ENUM: EnumerationFieldDeclaration,
-            common.CTFTypeId.STRING: StringFieldDeclaration,
-            common.CTFTypeId.STRUCT: StructureFieldDeclaration,
-            common.CTFTypeId.VARIANT: VariantFieldDeclaration,
-            common.CTFTypeId.ARRAY: ArrayFieldDeclaration,
-            common.CTFTypeId.SEQUENCE: SequenceFieldDeclaration
-        }
+    def _create_field_declaration_from_native_instance(field_type):
 
-        field_type_id = nbt._bt_ctf_field_type_get_type_id(native_field_declaration)
-
-        if field_type_id == common.CTFTypeId.UNKNOWN:
-            raise TypeError("Invalid field instance")
+        if type(field_type) not in _BT2_FIELD_TYPE_TO_BT_DECLARATION:
+            raise TypeError("Invalid field declaration instance.")
 
         declaration = Field.__new__(Field)
-        declaration._ft = native_field_declaration
-        declaration.__class__ = type_dict[field_type_id]
-
+        declaration._ft = field_type
+        declaration.__class__ = _BT2_FIELD_TYPE_TO_BT_DECLARATION[
+            type(field_type)]
         return declaration
 
     @property
@@ -378,13 +381,17 @@ class FieldDeclaration:
         :exc:`ValueError` is raised on error.
         """
 
-        return nbt._bt_ctf_field_type_get_alignment(self._ft)
+        try:
+            return self._ft.alignment
+        except:
+            raise ValueError(
+                "Could not get alignment field declaration attribute.")
 
     @alignment.setter
     def alignment(self, alignment):
-        ret = nbt._bt_ctf_field_type_set_alignment(self._ft, alignment)
-
-        if ret < 0:
+        try:
+            self._ft.alignment = alignment
+        except:
             raise ValueError("Invalid alignment value.")
 
     @property
@@ -398,17 +405,46 @@ class FieldDeclaration:
         :exc:`ValueError` is raised on error.
         """
 
-        return nbt._bt_ctf_field_type_get_byte_order(self._ft)
+        try:
+            return _BT2_BYTE_ORDER_TO_BYTE_ORDER[self._ft.byte_order]
+        except:
+            raise ValueError(
+                "Could not get byte order field declaration attribute.")
 
     @byte_order.setter
     def byte_order(self, byte_order):
-        ret = nbt._bt_ctf_field_type_set_byte_order(self._ft, byte_order)
-
-        if ret < 0:
+        try:
+            self._ft.byte_order = _BYTE_ORDER_TO_BT2_BYTE_ORDER[byte_order]
+        except:
             raise ValueError("Could not set byte order value.")
 
 
-class IntegerFieldDeclaration(FieldDeclaration):
+class _EncodingProp:
+    @property
+    def encoding(self):
+        """
+        Integer encoding (one of
+        :class:`babeltrace.common.CTFStringEncoding` constants).
+
+        Set this attribute to change this field's encoding.
+
+        :exc:`ValueError` is raised on error.
+        """
+
+        try:
+            return _BT2_ENCODING_TO_ENCODING[self._ft.encoding]
+        except:
+            raise ValueError("Could not get field encoding.")
+
+    @encoding.setter
+    def encoding(self, encoding):
+        try:
+            self._ft.encoding = _ENCODING_TO_BT2_ENCODING[encoding]
+        except:
+            raise ValueError("Could not set field encoding.")
+
+
+class IntegerFieldDeclaration(FieldDeclaration, _EncodingProp):
     """
     Integer field declaration.
     """
@@ -420,7 +456,7 @@ class IntegerFieldDeclaration(FieldDeclaration):
         :exc:`ValueError` is raised on error.
         """
 
-        self._ft = nbt._bt_ctf_field_type_integer_create(size)
+        self._ft = bt2.IntegerFieldType(size)
         super().__init__()
 
     @property
@@ -433,12 +469,10 @@ class IntegerFieldDeclaration(FieldDeclaration):
         :exc:`ValueError` is raised on error.
         """
 
-        ret = nbt._bt_ctf_field_type_integer_get_size(self._ft)
-
-        if ret < 0:
+        try:
+            return self._ft.size
+        except:
             raise ValueError("Could not get Integer size attribute.")
-        else:
-            return ret
 
     @property
     def signed(self):
@@ -451,20 +485,16 @@ class IntegerFieldDeclaration(FieldDeclaration):
         :exc:`ValueError` is raised on error.
         """
 
-        ret = nbt._bt_ctf_field_type_integer_get_signed(self._ft)
-
-        if ret < 0:
+        try:
+            return self._ft.is_signed
+        except:
             raise ValueError("Could not get Integer signed attribute.")
-        elif ret > 0:
-            return True
-        else:
-            return False
 
     @signed.setter
     def signed(self, signed):
-        ret = nbt._bt_ctf_field_type_integer_set_signed(self._ft, signed)
-
-        if ret < 0:
+        try:
+            self._ft.is_signed = signed
+        except:
             raise ValueError("Could not set Integer signed attribute.")
 
     @property
@@ -477,34 +507,17 @@ class IntegerFieldDeclaration(FieldDeclaration):
         :exc:`ValueError` is raised on error.
         """
 
-        return nbt._bt_ctf_field_type_integer_get_base(self._ft)
+        try:
+            return self._ft.base
+        except:
+            raise ValueError("Could not get Integer base attribute.")
 
     @base.setter
     def base(self, base):
-        ret = nbt._bt_ctf_field_type_integer_set_base(self._ft, base)
-
-        if ret < 0:
+        try:
+            self._ft.base = base
+        except:
             raise ValueError("Could not set Integer base.")
-
-    @property
-    def encoding(self):
-        """
-        Integer encoding (one of
-        :class:`babeltrace.common.CTFStringEncoding` constants).
-
-        Set this attribute to change this integer's encoding.
-
-        :exc:`ValueError` is raised on error.
-        """
-
-        return nbt._bt_ctf_field_type_integer_get_encoding(self._ft)
-
-    @encoding.setter
-    def encoding(self, encoding):
-        ret = nbt._bt_ctf_field_type_integer_set_encoding(self._ft, encoding)
-
-        if ret < 0:
-            raise ValueError("Could not set Integer encoding.")
 
 
 class EnumerationFieldDeclaration(FieldDeclaration):
@@ -527,7 +540,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         if integer_type is None or not isinst:
             raise TypeError("Invalid integer container.")
 
-        self._ft = nbt._bt_ctf_field_type_enumeration_create(integer_type._ft)
+        self._ft = bt2.EnumerationFieldType(integer_type._ft)
         super().__init__()
 
     @property
@@ -538,12 +551,11 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
-        ret = nbt._bt_ctf_field_type_enumeration_get_container_type(self._ft)
-
-        if ret is None:
+        try:
+            return FieldDeclaration._create_field_declaration_from_native_instance(
+                self._ft.integer_field_type)
+        except:
             raise TypeError("Invalid enumeration declaration")
-
-        return FieldDeclaration._create_field_declaration_from_native_instance(ret)
 
     def add_mapping(self, name, range_start, range_end):
         """
@@ -555,19 +567,11 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         :exc:`ValueError` is raised on error.
         """
 
-        if range_start < 0 or range_end < 0:
-            ret = nbt._bt_ctf_field_type_enumeration_add_mapping(self._ft,
-                                                                 str(name),
-                                                                 range_start,
-                                                                 range_end)
-        else:
-            ret = nbt._bt_ctf_field_type_enumeration_add_mapping_unsigned(self._ft,
-                                                                          str(name),
-                                                                          range_start,
-                                                                          range_end)
-
-        if ret < 0:
-            raise ValueError("Could not add mapping to enumeration declaration.")
+        try:
+            self._ft.append_mapping(name, range_start, range_end)
+        except:
+            raise ValueError(
+                "Could not add mapping to enumeration declaration.")
 
     @property
     def mappings(self):
@@ -578,22 +582,9 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
-        signed = self.container.signed
-
-        count = nbt._bt_ctf_field_type_enumeration_get_mapping_count(self._ft)
-
-        for i in range(count):
-            if signed:
-                ret = nbt._bt_python_ctf_field_type_enumeration_get_mapping(self._ft, i)
-            else:
-                ret = nbt._bt_python_ctf_field_type_enumeration_get_mapping_unsigned(self._ft, i)
-
-            if len(ret) != 3:
-                msg = "Could not get Enumeration mapping at index {}".format(i)
-                raise TypeError(msg)
-
-            name, range_start, range_end = ret
-            yield EnumerationMapping(name, range_start, range_end)
+        for mapping in self._ft:
+            yield EnumerationMapping(mapping.name, mapping.lower,
+                                     mapping.upper)
 
     def get_mapping_by_name(self, name):
         """
@@ -603,6 +594,10 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
+        mappings = self._ft.mappings_by_name(name)
+        if len(list(mappings)):
+            
+        return EnumerationMapping
         index = nbt._bt_ctf_field_type_enumeration_get_mapping_index_by_name(self._ft, name)
 
         if index < 0:
@@ -1073,7 +1068,7 @@ class SequenceFieldDeclaration(FieldDeclaration):
         return ret
 
 
-class StringFieldDeclaration(FieldDeclaration):
+class StringFieldDeclaration(FieldDeclaration, _EncodingProp):
     """
     String (NULL-terminated array of bytes) field declaration.
     """
@@ -1087,25 +1082,6 @@ class StringFieldDeclaration(FieldDeclaration):
 
         self._ft = nbt._bt_ctf_field_type_string_create()
         super().__init__()
-
-    @property
-    def encoding(self):
-        """
-        String encoding (one of
-        :class:`babeltrace.common.CTFStringEncoding` constants).
-
-        Set this attribute to change this string's encoding.
-
-        :exc:`ValueError` is raised on error.
-        """
-
-        return nbt._bt_ctf_field_type_string_get_encoding(self._ft)
-
-    @encoding.setter
-    def encoding(self, encoding):
-        ret = nbt._bt_ctf_field_type_string_set_encoding(self._ft, encoding)
-        if ret < 0:
-            raise ValueError("Could not set string encoding.")
 
 
 @staticmethod
@@ -1172,7 +1148,7 @@ class Field:
         field_type = nbt._bt_python_get_field_type(native_field_instance)
 
         if field_type == common.CTFTypeId.UNKNOWN:
-            raise TypeError("Invalid field instance")
+            raise TypeError("Invalid field instance.")
 
         field = Field.__new__(Field)
         field._f = native_field_instance
@@ -1191,7 +1167,7 @@ class Field:
         native_field_type = nbt._bt_ctf_field_get_type(self._f)
 
         if native_field_type is None:
-            raise TypeError("Invalid field instance")
+            raise TypeError("Invalid field instance.")
         return FieldDeclaration._create_field_declaration_from_native_instance(
             native_field_type)
 
@@ -2209,12 +2185,11 @@ class Writer:
 
         :exc:`ValueError` is raised on error.
         """
-
         raise NotImplementedError("Getter not implemented.")
 
     @byte_order.setter
     def byte_order(self, byte_order):
-        ret = nbt._bt_ctf_writer_set_byte_order(self._w, byte_order)
+        # ret = nbt._bt_ctf_writer_set_byte_order(self._w, byte_order)
 
         if ret < 0:
             raise ValueError("Could not set trace byte order.")
