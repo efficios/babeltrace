@@ -26,9 +26,9 @@ test_intersect() {
 	totalevents="$2"
 	intersect="$3"
 
-	test "$("${BT_BIN}" "$trace" | wc -l)" = "$totalevents"
+	test $("${BT_BIN}" "$trace" | wc -l) = "$totalevents"
 	ok $? "$totalevents events in the whole trace"
-	test "$("${BT_BIN}" --stream-intersection "$trace" 2>/dev/null| wc -l)" = "$intersect"
+	test $("${BT_BIN}" --stream-intersection "$trace" 2>/dev/null| wc -l) = "$intersect"
 	ok $? "$intersect events in packets intersecting"
 }
 
