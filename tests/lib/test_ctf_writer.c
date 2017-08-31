@@ -123,7 +123,7 @@ void validate_trace(char *parser_path, char *trace_path)
 	}
 
 	/* Replace by g_spawn_check_exit_status when we require glib >= 2.34 */
-#if G_OS_UNIX
+#ifdef G_OS_UNIX
 	ret = WIFEXITED(exit_status) ? WEXITSTATUS(exit_status) : -1;
 #else
 	ret = exit_status;
