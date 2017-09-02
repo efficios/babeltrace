@@ -68,6 +68,10 @@ class _PrivateConnectionNotificationIterator(_GenericNotificationIterator):
         return bt2.component._create_generic_component_from_ptr(comp_ptr)
 
 
+class _OutputPortNotificationIterator(_GenericNotificationIterator):
+    pass
+
+
 class _UserNotificationIterator(_NotificationIterator):
     def __new__(cls, ptr):
         # User iterator objects are always created by the native side,

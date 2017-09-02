@@ -39,6 +39,19 @@ def _create_from_ptr(ptr):
     return _NOTIF_TYPE_TO_CLS[notif_type]._create_from_ptr(ptr)
 
 
+def _notif_types_from_notif_classes(notification_types):
+    if notification_types is None:
+        notif_types = None
+    else:
+        for notif_cls in notification_types:
+            if notif_cls not in _NOTIF_TYPE_TO_CLS.values():
+                raise ValueError("'{}' is not a notification class".format(notif_cls))
+
+        notif_types = [notif_cls._TYPE for notif_cls in notification_types]
+
+    return notif_types
+
+
 class _Notification(object._Object):
     pass
 
