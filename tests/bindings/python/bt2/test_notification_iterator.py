@@ -1,4 +1,5 @@
 from bt2 import values
+import collections
 import unittest
 import copy
 import bt2
@@ -88,7 +89,7 @@ class UserNotificationIteratorTestCase(unittest.TestCase):
         self.assertNotEqual(addr, 0)
 
 
-class GenericNotificationIteratorTestCase(unittest.TestCase):
+class PrivateConnectionNotificationIteratorTestCase(unittest.TestCase):
     def test_component(self):
         class MyIter(bt2._UserNotificationIterator):
             pass
@@ -118,3 +119,55 @@ class GenericNotificationIteratorTestCase(unittest.TestCase):
                             sink_comp.input_ports['in'])
         self.assertEqual(src_comp, upstream_comp)
         del upstream_comp
+
+
+class OutputPortNotificationIteratorTestCase(unittest.TestCase):
+    def test_component(self):
+        class MyIter(bt2._UserNotificationIterator):
+            def __init__(self):
+                self._build_meta()
+                self._at = 0
+
+            def _build_meta(self):
+                self._trace = bt2.Trace()
+                self._sc = bt2.StreamClass()
+                self._ec = bt2.EventClass('salut')
+                self._my_int_ft = bt2.IntegerFieldType(32)
+                self._ec.payload_field_type = bt2.StructureFieldType()
+                self._ec.payload_field_type += collections.OrderedDict([
+                    ('my_int', self._my_int_ft),
+                ])
+                self._sc.add_event_class(self._ec)
+                self._trace.add_stream_class(self._sc)
+                self._stream = self._sc()
+                self._packet = self._stream.create_packet()
+
+            def _create_event(self, value):
+                ev = self._ec()
+                ev.payload_field['my_int'] = value
+                ev.packet = self._packet
+                return ev
+
+            def __next__(self):
+                if self._at == 5:
+                    raise bt2.Stop
+
+                notif = bt2.EventNotification(self._create_event(self._at * 3))
+                self._at += 1
+                return notif
+
+        class MySource(bt2._UserSourceComponent,
+                       notification_iterator_class=MyIter):
+            def __init__(self, params):
+                self._add_output_port('out')
+
+        graph = bt2.Graph()
+        src = graph.add_component(MySource, 'src')
+        types = [bt2.EventNotification]
+        notif_iter = src.output_ports['out'].create_notification_iterator(types)
+
+        for at, notif in enumerate(notif_iter):
+            self.assertIsInstance(notif, bt2.EventNotification)
+            self.assertEqual(notif.event.event_class.name, 'salut')
+            field = notif.event.payload_field['my_int']
+            self.assertEqual(field, at * 3)
