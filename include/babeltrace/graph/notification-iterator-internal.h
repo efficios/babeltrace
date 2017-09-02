@@ -35,11 +35,14 @@
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/types.h>
 #include <stdbool.h>
+#include <assert.h>
 
 struct bt_port;
+struct bt_graph;
 
 enum bt_notification_iterator_type {
 	BT_NOTIFICATION_ITERATOR_TYPE_PRIVATE_CONNECTION,
+	BT_NOTIFICATION_ITERATOR_TYPE_OUTPUT_PORT,
 };
 
 enum bt_private_connection_notification_iterator_notif_type {
@@ -84,6 +87,7 @@ enum bt_private_connection_notification_iterator_state {
 struct bt_notification_iterator {
 	struct bt_object base;
 	enum bt_notification_iterator_type type;
+	struct bt_notification *current_notification; /* owned by this */
 };
 
 struct bt_notification_iterator_private_connection {
@@ -91,7 +95,6 @@ struct bt_notification_iterator_private_connection {
 	struct bt_component *upstream_component; /* Weak */
 	struct bt_port *upstream_port; /* Weak */
 	struct bt_connection *connection; /* Weak */
-	struct bt_notification *current_notification; /* owned by this */
 	GQueue *queue; /* struct bt_notification * (owned by this) */
 
 	/*
@@ -132,6 +135,31 @@ struct bt_notification_iterator_private_connection {
 	enum bt_private_connection_notification_iterator_state state;
 	void *user_data;
 };
+
+struct bt_notification_iterator_output_port {
+	struct bt_notification_iterator base;
+	struct bt_graph *graph; /* Owned by this */
+	struct bt_component *colander; /* Owned by this */
+	struct bt_port *output_port; /* Owned by this */
+};
+
+static inline
+struct bt_notification *bt_notification_iterator_borrow_current_notification(
+		struct bt_notification_iterator *iterator)
+{
+	assert(iterator);
+	return iterator->current_notification;
+}
+
+static inline
+void bt_notification_iterator_replace_current_notification(
+		struct bt_notification_iterator *iterator,
+		struct bt_notification *notification)
+{
+	assert(iterator);
+	bt_put(iterator->current_notification);
+	iterator->current_notification = bt_get(notification);
+}
 
 static inline
 struct bt_notification_iterator_private_connection *

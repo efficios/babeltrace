@@ -415,11 +415,110 @@ end:
 }
 
 static
-enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
+enum bt_graph_status consume_graph_sink(struct bt_component *sink)
 {
-	struct bt_component *sink;
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	enum bt_component_status comp_status;
+
+	assert(sink);
+	comp_status = bt_component_sink_consume(sink);
+	BT_LOGV("Consumed from sink: addr=%p, name=\"%s\", status=%s",
+		sink, bt_component_get_name(sink),
+		bt_component_status_string(comp_status));
+
+	switch (comp_status) {
+	case BT_COMPONENT_STATUS_OK:
+		break;
+	case BT_COMPONENT_STATUS_END:
+		status = BT_GRAPH_STATUS_END;
+		break;
+	case BT_COMPONENT_STATUS_AGAIN:
+		status = BT_GRAPH_STATUS_AGAIN;
+		break;
+	case BT_COMPONENT_STATUS_INVALID:
+		status = BT_GRAPH_STATUS_INVALID;
+		break;
+	default:
+		status = BT_GRAPH_STATUS_ERROR;
+		break;
+	}
+
+	return status;
+}
+
+/*
+ * `node` is removed from the queue of sinks to consume when passed to
+ * this function. This function adds it back to the queue if there's
+ * still something to consume afterwards.
+ */
+static
+enum bt_graph_status consume_sink_node(struct bt_graph *graph,
+		GList *node)
+{
+	enum bt_graph_status status;
+	struct bt_component *sink;
+
+	sink = node->data;
+	status = consume_graph_sink(sink);
+	if (status != BT_GRAPH_STATUS_END) {
+		g_queue_push_tail_link(graph->sinks_to_consume, node);
+		goto end;
+	}
+
+	/* End reached, the node is not added back to the queue and free'd. */
+	g_queue_delete_link(graph->sinks_to_consume, node);
+
+	/* Don't forward an END status if there are sinks left to consume. */
+	if (!g_queue_is_empty(graph->sinks_to_consume)) {
+		status = BT_GRAPH_STATUS_OK;
+		goto end;
+	}
+
+end:
+	BT_LOGV("Consumed sink node: status=%s", bt_graph_status_string(status));
+	return status;
+}
+
+BT_HIDDEN
+enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
+		struct bt_component *sink)
+{
+	enum bt_graph_status status;
+	GList *sink_node;
+	int index;
+
+	BT_LOGV("Making specific sink consume: addr=%p, "
+		"comp-addr=%p, comp-name=\"%s\"",
+		graph, sink, bt_component_get_name(sink));
+
+	assert(bt_component_borrow_graph(sink) == graph);
+
+	if (g_queue_is_empty(graph->sinks_to_consume)) {
+		BT_LOGV_STR("Graph's sink queue is empty: end of graph.");
+		status = BT_GRAPH_STATUS_END;
+		goto end;
+	}
+
+	index = g_queue_index(graph->sinks_to_consume, sink);
+	if (index < 0) {
+		BT_LOGV_STR("Sink is not marked as consumable: sink is ended.");
+		status = BT_GRAPH_STATUS_END;
+		goto end;
+	}
+
+	sink_node = g_queue_pop_nth_link(graph->sinks_to_consume, index);
+	assert(sink_node);
+	status = consume_sink_node(graph, sink_node);
+
+end:
+	return status;
+}
+
+BT_HIDDEN
+enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
+{
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	struct bt_component *sink;
 	GList *current_node;
 
 	BT_LOGV("Making next sink consume: addr=%p", graph);
@@ -440,41 +539,9 @@ enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
 	sink = current_node->data;
 	BT_LOGV("Chose next sink to consume: comp-addr=%p, comp-name=\"%s\"",
 		sink, bt_component_get_name(sink));
-	comp_status = bt_component_sink_consume(sink);
-	BT_LOGV("Consumed from sink: status=%s",
-		bt_component_status_string(comp_status));
-	switch (comp_status) {
-	case BT_COMPONENT_STATUS_OK:
-		break;
-	case BT_COMPONENT_STATUS_END:
-		status = BT_GRAPH_STATUS_END;
-		break;
-	case BT_COMPONENT_STATUS_AGAIN:
-		status = BT_GRAPH_STATUS_AGAIN;
-		break;
-	case BT_COMPONENT_STATUS_INVALID:
-		status = BT_GRAPH_STATUS_INVALID;
-		break;
-	default:
-		status = BT_GRAPH_STATUS_ERROR;
-		break;
-	}
+	status = consume_sink_node(graph, current_node);
 
-	if (status != BT_GRAPH_STATUS_END) {
-		g_queue_push_tail_link(graph->sinks_to_consume, current_node);
-		goto end;
-	}
-
-	/* End reached, the node is not added back to the queue and free'd. */
-	g_queue_delete_link(graph->sinks_to_consume, current_node);
-
-	/* Don't forward an END status if there are sinks left to consume. */
-	if (!g_queue_is_empty(graph->sinks_to_consume)) {
-		status = BT_GRAPH_STATUS_OK;
-		goto end;
-	}
 end:
-	BT_LOGV("Graph consumed: status=%s", bt_graph_status_string(status));
 	return status;
 }
 
@@ -1046,4 +1113,87 @@ enum bt_graph_status bt_graph_add_component(
 {
 	return bt_graph_add_component_with_init_method_data(graph,
 		component_class, name, params, NULL, component);
+}
+
+BT_HIDDEN
+int bt_graph_remove_unconnected_component(struct bt_graph *graph,
+		struct bt_component *component)
+{
+	const bt_bool init_can_consume = graph->can_consume;
+	int64_t count;
+	uint64_t i;
+	int ret = 0;
+
+	assert(graph);
+	assert(component);
+	assert(component->base.ref_count.count == 0);
+	assert(bt_component_borrow_graph(component) == graph);
+
+	count = bt_component_get_input_port_count(component);
+
+	for (i = 0; i < count; i++) {
+		struct bt_port *port =
+			bt_component_get_input_port_by_index(component, i);
+
+		assert(port);
+		bt_put(port);
+
+		if (bt_port_is_connected(port)) {
+			BT_LOGW("Cannot remove component from graph: "
+				"an input port is connected: "
+				"graph-addr=%p, comp-addr=%p, "
+				"comp-name=\"%s\", connected-port-addr=%p, "
+				"connected-port-name=\"%s\"",
+				graph, component,
+				bt_component_get_name(component),
+				port, bt_port_get_name(port));
+			goto error;
+		}
+	}
+
+	count = bt_component_get_output_port_count(component);
+
+	for (i = 0; i < count; i++) {
+		struct bt_port *port =
+			bt_component_get_output_port_by_index(component, i);
+
+		assert(port);
+		bt_put(port);
+
+		if (bt_port_is_connected(port)) {
+			BT_LOGW("Cannot remove component from graph: "
+				"an output port is connected: "
+				"graph-addr=%p, comp-addr=%p, "
+				"comp-name=\"%s\", connected-port-addr=%p, "
+				"connected-port-name=\"%s\"",
+				graph, component,
+				bt_component_get_name(component),
+				port, bt_port_get_name(port));
+			goto error;
+		}
+	}
+
+	graph->can_consume = BT_FALSE;
+
+	/* Possibly remove from sinks to consume */
+	(void) g_queue_remove(graph->sinks_to_consume, component);
+
+	if (graph->sinks_to_consume->length == 0) {
+		graph->has_sink = BT_FALSE;
+	}
+
+	/*
+	 * This calls bt_object_release() on the component, and since
+	 * its reference count is 0, its destructor is called. Its
+	 * destructor calls the user's finalization method (if set).
+	 */
+	g_ptr_array_remove(graph->components, component);
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	graph->can_consume = init_can_consume;
+	return ret;
 }

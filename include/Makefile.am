@@ -51,7 +51,6 @@ babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/clock-class-priority-map.h \
 	babeltrace/graph/component-class-filter.h \
-	babeltrace/graph/component-class-sink-colander.h \
 	babeltrace/graph/component-class-sink.h \
 	babeltrace/graph/component-class-source.h \
 	babeltrace/graph/component-class.h \
@@ -71,6 +70,7 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification.h \
 	babeltrace/graph/notification-packet.h \
 	babeltrace/graph/notification-stream.h \
+	babeltrace/graph/output-port-notification-iterator.h \
 	babeltrace/graph/port.h \
 	babeltrace/graph/private-component-filter.h \
 	babeltrace/graph/private-component-sink.h \
@@ -122,6 +122,7 @@ noinst_HEADERS = \
 	babeltrace/endian-internal.h \
 	babeltrace/graph/clock-class-priority-map-internal.h \
 	babeltrace/graph/component-class-internal.h \
+	babeltrace/graph/component-class-sink-colander-internal.h \
 	babeltrace/graph/component-filter-internal.h \
 	babeltrace/graph/component-internal.h \
 	babeltrace/graph/component-sink-internal.h \
