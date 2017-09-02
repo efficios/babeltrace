@@ -65,7 +65,6 @@
 /* Graph, component, and notification API */
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/component-class-filter.h>
-#include <babeltrace/graph/component-class-sink-colander.h>
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/component-class-source.h>
 #include <babeltrace/graph/component-class.h>
@@ -85,6 +84,7 @@
 #include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/output-port-notification-iterator.h>
 #include <babeltrace/graph/port.h>
 #include <babeltrace/graph/private-component-filter.h>
 #include <babeltrace/graph/private-component-sink.h>
