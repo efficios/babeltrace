@@ -20,10 +20,3 @@ EXTRA_DIST = 					\
 	test_trace.py				\
 	test_values.py				\
 	.coveragerc
-
-LOG_DRIVER_FLAGS='--merge'
-LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
-
-if ENABLE_PYTHON_BINDINGS
-TESTS = test_python_bt2
-endif
