@@ -24,6 +24,8 @@ from bt2 import native_bt, object, utils
 import collections.abc
 import bt2.component
 import bt2.connection
+import bt2.notification_iterator
+import bt2.notification
 import copy
 import bt2
 
@@ -112,7 +114,21 @@ class _InputPort(_Port):
 
 
 class _OutputPort(_Port):
-    pass
+    def create_notification_iterator(self, notification_types=None,
+                                     colander_component_name=None):
+        notif_types = bt2.notification._notif_types_from_notif_classes(notification_types)
+
+        if colander_component_name is not None:
+            utils._check_str(colander_component_name)
+
+        notif_iter_ptr = native_bt.py3_create_output_port_notif_iter(int(self._ptr),
+                                                                     colander_component_name,
+                                                                     notif_types)
+
+        if notif_iter_ptr is None:
+            raise bt2.CreationError('cannot create output port notification iterator')
+
+        return bt2.notification_iterator._OutputPortNotificationIterator._create_from_ptr(notif_iter_ptr)
 
 
 class _PrivatePort(object._PrivateObject, _Port):
