@@ -58,3 +58,28 @@ enum bt_port_status bt_private_port_remove_from_component(
 		struct bt_private_port *private_port);
 void *bt_private_port_get_user_data(
 		struct bt_private_port *private_port);
+
+%{
+static struct bt_notification_iterator *bt_py3_create_output_port_notif_iter(
+		unsigned long long port_addr, const char *colander_name,
+		PyObject *py_notif_types)
+{
+	struct bt_notification_iterator *notif_iter;
+	struct bt_port *output_port;
+	enum bt_notification_type *notification_types;
+
+	output_port = (void *) port_addr;
+	assert(!PyErr_Occurred());
+	assert(output_port);
+
+	notification_types = bt_py3_notif_types_from_py_list(py_notif_types);
+	notif_iter = bt_output_port_notification_iterator_create(output_port,
+		colander_name, notification_types);
+	g_free(notification_types);
+	return notif_iter;
+}
+%}
+
+struct bt_notification_iterator *bt_py3_create_output_port_notif_iter(
+		unsigned long long port_addr, const char *colander_name,
+		PyObject *py_notif_types);

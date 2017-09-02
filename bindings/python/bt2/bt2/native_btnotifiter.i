@@ -47,6 +47,11 @@ enum bt_notification_iterator_status bt_notification_iterator_next(
 struct bt_component *bt_private_connection_notification_iterator_get_component(
 		struct bt_notification_iterator *iterator);
 
+/* Functions (output port) */
+struct bt_notification_iterator *bt_output_port_notification_iterator_create(
+		struct bt_port *port, const char *colander_component_name,
+		const enum bt_notification_type *notification_types);
+
 /* Helper functions for Python */
 %{
 static PyObject *bt_py3_get_user_component_from_user_notif_iter(
