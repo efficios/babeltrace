@@ -42,14 +42,8 @@
 #include <errno.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/ref.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
-#include <babeltrace/ctf-ir/clock-class.h>
 
 #include "scanner.h"
 #include "parser.h"

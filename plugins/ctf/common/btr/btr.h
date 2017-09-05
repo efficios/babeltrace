@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 
 /**

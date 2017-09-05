@@ -27,18 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-component-sink.h>
-#include <babeltrace/graph/component-sink.h>
-#include <babeltrace/graph/port.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-event.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/values.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>

@@ -30,8 +30,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/babeltrace.h>
 #include "data-stream-file.h"
 #include "metadata.h"
 

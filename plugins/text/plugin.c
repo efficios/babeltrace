@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/babeltrace.h>
 #include "pretty/pretty.h"
 #include "dmesg/dmesg.h"
 

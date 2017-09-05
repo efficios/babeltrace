@@ -35,7 +35,7 @@
 #include <assert.h>
 #include <string.h>
 #include <babeltrace/bitfield-internal.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/align-internal.h>

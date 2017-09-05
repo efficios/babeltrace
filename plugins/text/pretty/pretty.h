@@ -29,10 +29,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/babeltrace.h>
 
 enum pretty_default {
 	PRETTY_DEFAULT_UNSET,

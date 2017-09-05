@@ -31,15 +31,7 @@
 
 #include <inttypes.h>
 #include <assert.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-writer/stream-class.h>
-#include <babeltrace/ctf-writer/stream.h>
+#include <babeltrace/babeltrace.h>
 
 #include <ctfcopytrace.h>
 #include "debug-info.h"

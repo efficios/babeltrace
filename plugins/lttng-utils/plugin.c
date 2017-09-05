@@ -29,19 +29,7 @@
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT"
 #include "logging.h"
 
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-stream.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/component-filter.h>
-#include <babeltrace/graph/private-component-filter.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/babeltrace.h>
 #include <plugins-common.h>
 #include <assert.h>
 #include "debug-info.h"

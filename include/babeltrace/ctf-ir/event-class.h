@@ -32,11 +32,12 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <babeltrace/values.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_value;
 
 /**
 @defgroup ctfireventclass CTF IR event class

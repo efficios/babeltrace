@@ -31,7 +31,7 @@
 #include "../common/metadata/decoder.h"
 #include <babeltrace/common-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/babeltrace.h>
 #include "fs.h"
 
 #define BT_LOG_TAG "PLUGIN-CTF-FS-QUERY-SRC"

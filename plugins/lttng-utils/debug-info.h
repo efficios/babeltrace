@@ -30,10 +30,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/event-class.h>
+#include <babeltrace/babeltrace.h>
 
 enum debug_info_stream_state {
 	/*

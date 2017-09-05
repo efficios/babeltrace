@@ -28,10 +28,7 @@
  */
 
 #include "trimmer.h"
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-port.h>
+#include <babeltrace/babeltrace.h>
 
 struct trimmer_iterator {
 	/* Input iterator associated with this output iterator. */

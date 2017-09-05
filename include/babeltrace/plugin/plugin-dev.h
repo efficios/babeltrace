@@ -32,7 +32,11 @@
  */
 
 #include <stdint.h>
+
+/* For enum bt_plugin_status */
 #include <babeltrace/plugin/plugin.h>
+
+/* For component class method type definitions */
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-source.h>
 #include <babeltrace/graph/component-class-filter.h>

@@ -20,6 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <babeltrace/ref.h>
 #include <babeltrace/values.h>
 #include <assert.h>
 #include <string.h>

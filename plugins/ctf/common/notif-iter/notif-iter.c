@@ -33,21 +33,9 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <string.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
-#include <babeltrace/ctf-ir/field-path.h>
 #include <babeltrace/ctf-ir/field-path-internal.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-stream.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
-#include <babeltrace/ref.h>
 #include <glib.h>
 #include <stdlib.h>
 

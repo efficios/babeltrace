@@ -23,10 +23,13 @@
 #define BT_LOG_TAG "COLANDER"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/ref.h>
+#include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
 #include <glib.h>
 #include <assert.h>
