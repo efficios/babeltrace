@@ -27,12 +27,11 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/notification.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct bt_notification;
 struct bt_ctf_packet;
 
 extern struct bt_notification *bt_notification_packet_begin_create(

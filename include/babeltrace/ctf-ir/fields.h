@@ -32,12 +32,15 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <babeltrace/ctf-ir/field-types.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_ctf_field_type;
 
 /**
 @defgroup ctfirfields CTF IR fields

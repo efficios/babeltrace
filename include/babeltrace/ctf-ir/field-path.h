@@ -29,11 +29,12 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/ctf-ir/field-types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_ctf_field_type;
 
 /**
 @defgroup ctfirfieldpath CTF IR field path

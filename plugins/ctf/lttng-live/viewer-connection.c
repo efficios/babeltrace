@@ -37,7 +37,7 @@
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>
-#include <babeltrace/graph/graph.h>
+#include <babeltrace/babeltrace.h>
 
 #include "lttng-live-internal.h"
 #include "viewer-connection.h"

@@ -29,8 +29,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/ctf-writer/writer.h>
+#include <babeltrace/babeltrace.h>
 
 #ifdef __cplusplus
 extern "C" {

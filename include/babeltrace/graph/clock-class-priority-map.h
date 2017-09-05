@@ -28,12 +28,12 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <babeltrace/values.h>
-#include <babeltrace/ctf-ir/clock-class.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_ctf_clock_class;
 
 /**
 @defgroup graphclockclassprioritymap Clock class priority map

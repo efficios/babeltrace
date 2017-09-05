@@ -29,10 +29,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 
 /**

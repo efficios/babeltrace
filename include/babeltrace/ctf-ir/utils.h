@@ -30,6 +30,7 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus

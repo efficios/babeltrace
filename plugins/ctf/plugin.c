@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/babeltrace.h>
 #include "fs-src/fs.h"
 #include "fs-sink/writer.h"
 #include "lttng-live/lttng-live-internal.h"

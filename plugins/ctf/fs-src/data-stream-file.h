@@ -27,7 +27,7 @@
 #include <stdbool.h>
 #include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/babeltrace.h>
 
 #include "../common/notif-iter/notif-iter.h"
 #include "lttng-index.h"

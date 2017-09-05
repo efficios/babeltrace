@@ -29,6 +29,7 @@
 
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
+#include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <inttypes.h>
 

@@ -30,12 +30,13 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/stream-class.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_ctf_stream_class;
 
 /**
 @defgroup ctfirstream CTF IR stream

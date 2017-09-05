@@ -31,25 +31,7 @@
 
 #include <babeltrace/compat/time-internal.h>
 #include <babeltrace/compat/utc-internal.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-stream.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/component-filter.h>
-#include <babeltrace/graph/private-component-filter.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/fields.h>
+#include <babeltrace/babeltrace.h>
 #include <assert.h>
 #include <plugins-common.h>
 

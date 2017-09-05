@@ -30,6 +30,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
+#include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/graph/notification-packet-internal.h>

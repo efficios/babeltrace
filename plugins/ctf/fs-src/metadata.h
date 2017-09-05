@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/babeltrace.h>
 
 #define CTF_FS_METADATA_FILENAME	"metadata"
 

@@ -25,9 +25,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/values.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component-class.h>
+#include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
 struct bt_component_class_query_method_return metadata_info_query(

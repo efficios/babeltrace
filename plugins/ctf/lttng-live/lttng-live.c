@@ -30,20 +30,7 @@
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-LIVE-SRC"
 #include "logging.h"
 
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/graph/component-source.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/port.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-component-source.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
-#include <babeltrace/graph/notification-stream.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-heap.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-inactivity.h>
-#include <babeltrace/graph/graph.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <inttypes.h>

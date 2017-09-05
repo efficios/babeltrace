@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <babeltrace/ref.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-source.h>
 #include <babeltrace/graph/component-class-sink.h>
