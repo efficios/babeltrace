@@ -46,6 +46,7 @@
 
 /* CTF IR API */
 #include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/clock-value.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/field-path.h>
