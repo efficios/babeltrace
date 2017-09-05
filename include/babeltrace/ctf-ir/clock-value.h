@@ -1,10 +1,11 @@
-#ifndef BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H
-#define BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_CLOCK_VALUE_H
+#define BABELTRACE_CTF_IR_CLOCK_VALUE_H
 
 /*
- * BabelTrace - CTF IR: Clock internal
+ * BabelTrace - CTF IR: Clock class
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -25,45 +26,32 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * The Common Trace Format (CTF) Specification is available at
+ * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/trace-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/types.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <glib.h>
+#include <babeltrace/types.h>
 
-struct bt_ctf_clock_class {
-	struct bt_object base;
-	GString *name;
-	GString *description;
-	uint64_t frequency;
-	uint64_t precision;
-	int64_t offset_s;	/* Offset in seconds */
-	int64_t offset;		/* Offset in ticks */
-	unsigned char uuid[BABELTRACE_UUID_LEN];
-	int uuid_set;
-	int absolute;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-	/*
-	 * A clock's properties can't be modified once it is added to a stream
-	 * class.
-	 */
-	int frozen;
-};
+struct bt_ctf_clock_class;
+struct bt_ctf_clock_value;
 
-BT_HIDDEN
-void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class);
+extern struct bt_ctf_clock_value *bt_ctf_clock_value_create(
+		struct bt_ctf_clock_class *clock_class, uint64_t value);
+extern struct bt_ctf_clock_class *bt_ctf_clock_value_get_class(
+		struct bt_ctf_clock_value *clock_value);
+extern int bt_ctf_clock_value_get_value(
+		struct bt_ctf_clock_value *clock_value, uint64_t *raw_value);
+extern int bt_ctf_clock_value_get_value_ns_from_epoch(
+		struct bt_ctf_clock_value *clock_value, int64_t *value_ns);
 
-BT_HIDDEN
-void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
-		struct metadata_context *context);
+#ifdef __cplusplus
+}
+#endif
 
-BT_HIDDEN
-bt_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class);
-
-#endif /* BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_CLOCK_VALUE_H */

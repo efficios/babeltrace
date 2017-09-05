@@ -2,11 +2,11 @@
 babeltraceincludedir = "$(includedir)/babeltrace"
 babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
-	babeltrace/values.h \
-	babeltrace/ref.h \
 	babeltrace/logging.h \
-	babeltrace/version.h \
-	babeltrace/types.h
+	babeltrace/ref.h \
+	babeltrace/types.h \
+	babeltrace/values.h \
+	babeltrace/version.h
 
 # Legacy API (for CTF writer)
 babeltracectfincludedir = "$(includedir)/babeltrace/ctf"
@@ -17,25 +17,26 @@ babeltracectfinclude_HEADERS = \
 babeltracectfwriterincludedir = "$(includedir)/babeltrace/ctf-writer"
 babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/clock.h \
-	babeltrace/ctf-writer/writer.h \
 	babeltrace/ctf-writer/event-fields.h \
 	babeltrace/ctf-writer/event-types.h \
 	babeltrace/ctf-writer/event.h \
+	babeltrace/ctf-writer/stream-class.h \
 	babeltrace/ctf-writer/stream.h \
-	babeltrace/ctf-writer/stream-class.h
+	babeltrace/ctf-writer/writer.h
 
 # CTF IR API
 babeltracectfirincludedir = "$(includedir)/babeltrace/ctf-ir"
 babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/clock-class.h \
-	babeltrace/ctf-ir/fields.h \
-	babeltrace/ctf-ir/field-types.h \
-	babeltrace/ctf-ir/event.h \
+	babeltrace/ctf-ir/clock-value.h \
 	babeltrace/ctf-ir/event-class.h \
+	babeltrace/ctf-ir/event.h \
 	babeltrace/ctf-ir/field-path.h \
-	babeltrace/ctf-ir/stream.h \
+	babeltrace/ctf-ir/field-types.h \
+	babeltrace/ctf-ir/fields.h \
 	babeltrace/ctf-ir/packet.h \
 	babeltrace/ctf-ir/stream-class.h \
+	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/trace.h \
 	babeltrace/ctf-ir/utils.h \
 	babeltrace/ctf-ir/visitor.h
@@ -43,8 +44,8 @@ babeltracectfirinclude_HEADERS = \
 # Plugin and plugin development API
 babeltracepluginincludedir = "$(includedir)/babeltrace/plugin"
 babeltraceplugininclude_HEADERS = \
-	babeltrace/plugin/plugin.h \
-	babeltrace/plugin/plugin-dev.h
+	babeltrace/plugin/plugin-dev.h \
+	babeltrace/plugin/plugin.h
 
 # Graph, component, and notification API
 babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
@@ -67,9 +68,9 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification-heap.h \
 	babeltrace/graph/notification-inactivity.h \
 	babeltrace/graph/notification-iterator.h \
-	babeltrace/graph/notification.h \
 	babeltrace/graph/notification-packet.h \
 	babeltrace/graph/notification-stream.h \
+	babeltrace/graph/notification.h \
 	babeltrace/graph/output-port-notification-iterator.h \
 	babeltrace/graph/port.h \
 	babeltrace/graph/private-component-filter.h \
@@ -103,6 +104,7 @@ noinst_HEADERS = \
 	babeltrace/compiler-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
 	babeltrace/ctf-ir/clock-class-internal.h \
+	babeltrace/ctf-ir/clock-value-internal.h \
 	babeltrace/ctf-ir/event-class-internal.h \
 	babeltrace/ctf-ir/event-internal.h \
 	babeltrace/ctf-ir/field-path-internal.h \
