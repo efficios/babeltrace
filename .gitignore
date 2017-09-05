@@ -79,10 +79,6 @@ autom4te.cache/
 config/
 core
 stamp-h1
-bindings/python/__init__.py
-bindings/python/nativebt.py
-bindings/python/nativebt_wrap.c
-bindings/python/bt2/copy-static-deps.stamp
 __pycache__
 babeltrace.pc
 babeltrace-ctf.pc
@@ -93,3 +89,4 @@ doc/api/Doxyfile
 *.gcda
 *.gcov
 *.html
+*.stamp
