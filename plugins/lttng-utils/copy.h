@@ -29,8 +29,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-writer/writer.h>
-#include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
 struct bt_ctf_event *debug_info_output_event(struct debug_info_iterator *debug_it,

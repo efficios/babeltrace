@@ -26,17 +26,7 @@
  */
 
 #include <babeltrace/common-internal.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-component-source.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/babeltrace.h>
 #include <plugins-common.h>
 #include <glib.h>
 #include <assert.h>

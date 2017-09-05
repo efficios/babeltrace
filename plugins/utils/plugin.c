@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/babeltrace.h>
 #include "dummy/dummy.h"
 #include "counter/counter.h"
 #include "trimmer/trimmer.h"

@@ -27,8 +27,15 @@
  */
 
 #include <stddef.h>
-#include <babeltrace/graph/notification.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct bt_notification;
 
 /**
  * bt_notification_time_compare - Compare two notifications' timestamps
@@ -88,5 +95,9 @@ extern struct bt_notification *bt_notification_heap_peek(
  */
 extern struct bt_notification *bt_notification_heap_pop(
 		struct bt_notification_heap *heap);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_HEAP_H */

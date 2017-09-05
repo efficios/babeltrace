@@ -29,20 +29,7 @@
 #define BT_LOG_TAG "PLUGIN-CTF-FS-SINK-WRITER"
 #include "logging.h"
 
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/component-sink.h>
-#include <babeltrace/graph/private-component-sink.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/babeltrace.h>
 #include <plugins-common.h>
 #include <stdio.h>
 #include <stdbool.h>

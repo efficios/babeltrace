@@ -29,8 +29,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
-#include <babeltrace/graph/private-component.h>
+#include <babeltrace/babeltrace.h>
 
 #define NSEC_PER_SEC	1000000000LL
 

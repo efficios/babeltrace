@@ -31,11 +31,7 @@
 #include <inttypes.h>
 #include <babeltrace/compat/mman-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-stream.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-packet.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/common-internal.h>
 #include "file.h"
 #include "metadata.h"

@@ -32,7 +32,7 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <babeltrace/compat/mman-internal.h>
-#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/babeltrace.h>
 #include "../common/notif-iter/notif-iter.h"
 #include <assert.h>
 

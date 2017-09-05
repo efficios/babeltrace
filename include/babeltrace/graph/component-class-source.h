@@ -25,7 +25,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/component.h>
+/* For component class method type definitions */
+#include <babeltrace/graph/component-class.h>
 
 #ifdef __cplusplus
 extern "C" {

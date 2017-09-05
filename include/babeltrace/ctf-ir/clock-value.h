@@ -32,7 +32,6 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {

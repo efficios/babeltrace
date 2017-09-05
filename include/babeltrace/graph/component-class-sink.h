@@ -25,13 +25,15 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/private-component.h>
+/* For component class method type definitions */
+#include <babeltrace/graph/component-class.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component_class;
+struct bt_private_component;
 
 typedef enum bt_component_status (*bt_component_class_sink_consume_method)(
 	struct bt_private_component *private_component);

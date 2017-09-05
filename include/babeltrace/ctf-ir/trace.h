@@ -30,16 +30,19 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/field-types.h>
+/* For bt_ctf_visitor */
 #include <babeltrace/ctf-ir/visitor.h>
-#include <babeltrace/values.h>
-#include <babeltrace/graph/notification.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_ctf_field_type;
+struct bt_value;
 
 /**
 @defgroup ctfirtraceclass CTF IR trace class

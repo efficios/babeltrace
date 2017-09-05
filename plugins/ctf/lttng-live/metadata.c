@@ -33,7 +33,7 @@
 #include <glib.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
-#include <babeltrace/graph/graph.h>
+#include <babeltrace/babeltrace.h>
 
 #include "metadata.h"
 #include "../common/metadata/decoder.h"

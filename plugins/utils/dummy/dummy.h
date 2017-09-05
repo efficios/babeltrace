@@ -24,10 +24,7 @@
  */
 
 #include <glib.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/port.h>
+#include <babeltrace/babeltrace.h>
 #include <stdbool.h>
 
 struct dummy {

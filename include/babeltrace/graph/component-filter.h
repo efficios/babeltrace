@@ -28,7 +28,6 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {

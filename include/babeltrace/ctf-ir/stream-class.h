@@ -31,6 +31,8 @@
  */
 
 #include <stdint.h>
+
+/* For bt_ctf_visitor */
 #include <babeltrace/ctf-ir/visitor.h>
 
 #ifdef __cplusplus

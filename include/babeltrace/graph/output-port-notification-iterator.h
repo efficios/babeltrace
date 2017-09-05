@@ -23,6 +23,9 @@
  * SOFTWARE.
  */
 
+/* For enum bt_notification_type */
+#include <babeltrace/graph/notification.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

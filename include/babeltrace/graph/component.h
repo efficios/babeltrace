@@ -27,10 +27,10 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/component-status.h>
+/* For BT_COMPONENT_CLASS_TYPE_* */
 #include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/values.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus

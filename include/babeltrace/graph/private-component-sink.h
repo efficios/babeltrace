@@ -24,13 +24,15 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/graph/component.h>
+
+/* For enum bt_component_status */
 #include <babeltrace/graph/component-status.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct bt_component;
 struct bt_private_component;
 struct bt_private_port;
 

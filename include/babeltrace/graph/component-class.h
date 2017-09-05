@@ -26,9 +26,17 @@
  */
 
 #include <stdint.h>
+
+/* For enum bt_component_status */
 #include <babeltrace/graph/component-status.h>
+
+/* For enum bt_notification_iterator_status */
 #include <babeltrace/graph/notification-iterator.h>
+
+/* For enum bt_query_status */
 #include <babeltrace/graph/query-executor.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus

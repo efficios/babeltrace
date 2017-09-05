@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/babeltrace.h>
 #include <glib.h>
 #include <string.h>
 

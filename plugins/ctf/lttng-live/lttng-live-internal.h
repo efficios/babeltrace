@@ -31,10 +31,7 @@
 #include <stdbool.h>
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
-#include <babeltrace/types.h>
+#include <babeltrace/babeltrace.h>
 #include "viewer-connection.h"
 
 //TODO: this should not be used by plugins. Should copy code into plugin

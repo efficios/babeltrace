@@ -29,15 +29,7 @@
 #define BT_LOG_TAG "PLUGIN-CTFCOPYTRACE-LIB-CLOCK-FIELDS"
 #include "logging.h"
 
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-writer/stream.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/babeltrace.h>
 #include <assert.h>
 #include <stdio.h>
 
