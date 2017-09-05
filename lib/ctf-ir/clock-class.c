@@ -31,6 +31,7 @@
 
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
+#include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler-internal.h>
