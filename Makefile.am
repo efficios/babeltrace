@@ -21,9 +21,14 @@ SUBDIRS +=			\
 	extras
 
 dist_doc_DATA = ChangeLog LICENSE mit-license.txt gpl-2.0.txt \
-		std-ext-lib.txt README
+		std-ext-lib.txt README CONTRIBUTING.adoc
 
 dist_noinst_DATA = CodingStyle
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = babeltrace.pc babeltrace-ctf.pc
+
+CONTRIBUTING.html: $(srcdir)/CONTRIBUTING.adoc
+	asciidoc --verbose -a source-highlighter=pygments $<
+
+CLEANFILES = CONTRIBUTING.html
