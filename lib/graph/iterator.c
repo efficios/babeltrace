@@ -2526,3 +2526,12 @@ end:
 	bt_put(graph);
 	return (void *) iterator;
 }
+
+struct bt_notification_iterator *
+bt_private_connection_notification_iterator_from_private(
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
+{
+	return bt_get(
+		bt_private_connection_notification_iterator_borrow_from_private(
+			private_notification_iterator));
+}
