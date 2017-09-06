@@ -653,6 +653,9 @@ log level symbol.
 . Include the `logging.c` and `logging.h` in the `_SOURCES` variable
   of your module's object in your module's root `Makefile.am`.
 
+. Add the log level initializing environment variable name to the
+  `log_level_env_var_names` array in `cli/babeltrace.c`.
+
 
 [[logging-instrument-source]]
 ==== Instrument a C source file
