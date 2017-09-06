@@ -163,7 +163,7 @@ void bt_notification_iterator_replace_current_notification(
 
 static inline
 struct bt_notification_iterator_private_connection *
-bt_private_connection_notification_iterator_from_private(
+bt_private_connection_notification_iterator_borrow_from_private(
 		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
 {
 	return (void *) private_notification_iterator;

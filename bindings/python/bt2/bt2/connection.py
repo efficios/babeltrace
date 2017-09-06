@@ -39,7 +39,7 @@ def _handle_status(status, gen_error_msg):
 
 def _create_private_from_ptr(ptr):
     obj = _PrivateConnection._create_from_ptr(ptr)
-    obj._pub_ptr = native_bt.connection_from_private_connection(ptr)
+    obj._pub_ptr = native_bt.connection_from_private(ptr)
     assert(obj._pub_ptr)
     return obj
 

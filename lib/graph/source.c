@@ -149,7 +149,7 @@ bt_private_component_source_get_output_private_port_by_name(
 	/* bt_component_source_get_output_port_by_name() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_source_get_output_port_by_name(
-			bt_component_from_private(private_component), name));
+			bt_component_borrow_from_private(private_component), name));
 }
 
 struct bt_private_port *
@@ -159,7 +159,7 @@ bt_private_component_source_get_output_private_port_by_index(
 	/* bt_component_source_get_output_port_by_index() logs details/errors */
 	return bt_private_port_from_port(
 		bt_component_source_get_output_port_by_index(
-			bt_component_from_private(private_component), index));
+			bt_component_borrow_from_private(private_component), index));
 }
 
 enum bt_component_status bt_private_component_source_add_output_private_port(
@@ -170,7 +170,7 @@ enum bt_component_status bt_private_component_source_add_output_private_port(
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_port *port = NULL;
 	struct bt_component *component =
-		bt_component_from_private(private_component);
+		bt_component_borrow_from_private(private_component);
 	struct bt_graph *graph;
 
 	if (!component) {

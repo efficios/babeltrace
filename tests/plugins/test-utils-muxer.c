@@ -404,7 +404,7 @@ enum bt_notification_iterator_status src_iter_init(
 {
 	struct src_iter_user_data *user_data =
 		g_new0(struct src_iter_user_data, 1);
-	struct bt_port *port = bt_port_from_private_port(private_port);
+	struct bt_port *port = bt_port_from_private(private_port);
 	const char *port_name;
 	int ret;
 

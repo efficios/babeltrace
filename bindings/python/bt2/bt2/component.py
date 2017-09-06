@@ -107,7 +107,7 @@ class _PortIterator(collections.abc.Iterator):
         assert(port_ptr)
 
         if comp_ports._is_private:
-            port_pub_ptr = native_bt.port_from_private_port(port_ptr)
+            port_pub_ptr = native_bt.port_from_private(port_ptr)
             name = native_bt.port_get_name(port_pub_ptr)
             native_bt.put(port_pub_ptr)
         else:
@@ -143,7 +143,7 @@ class _ComponentPorts(collections.abc.Mapping):
 
     def __len__(self):
         if self._is_private:
-            pub_ptr = native_bt.component_from_private_component(self._component._ptr)
+            pub_ptr = native_bt.component_from_private(self._component._ptr)
             count = self._get_port_count_fn(pub_ptr)
             native_bt.put(pub_ptr)
         else:
@@ -515,7 +515,7 @@ class _UserComponentType(type):
 class _UserComponent(metaclass=_UserComponentType):
     @property
     def name(self):
-        pub_ptr = native_bt.component_from_private_component(self._ptr)
+        pub_ptr = native_bt.component_from_private(self._ptr)
         name = native_bt.component_get_name(pub_ptr)
         native_bt.put(pub_ptr)
         assert(name is not None)
@@ -523,7 +523,7 @@ class _UserComponent(metaclass=_UserComponentType):
 
     @property
     def graph(self):
-        pub_ptr = native_bt.component_from_private_component(self._ptr)
+        pub_ptr = native_bt.component_from_private(self._ptr)
         ptr = native_bt.component_get_graph(pub_ptr)
         native_bt.put(pub_ptr)
         assert(ptr)
@@ -531,7 +531,7 @@ class _UserComponent(metaclass=_UserComponentType):
 
     @property
     def component_class(self):
-        pub_ptr = native_bt.component_from_private_component(self._ptr)
+        pub_ptr = native_bt.component_from_private(self._ptr)
         cc_ptr = native_bt.component_get_class(pub_ptr)
         native_bt.put(pub_ptr)
         assert(cc_ptr)

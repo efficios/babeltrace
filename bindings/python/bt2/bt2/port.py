@@ -44,7 +44,7 @@ def _create_from_ptr(ptr):
 
 
 def _create_private_from_ptr(ptr):
-    pub_ptr = native_bt.port_from_private_port(ptr)
+    pub_ptr = native_bt.port_from_private(ptr)
     utils._handle_ptr(pub_ptr, 'cannot get port object from private port object')
     port_type = native_bt.port_get_type(pub_ptr)
     assert(port_type == native_bt.PORT_TYPE_INPUT or port_type == native_bt.PORT_TYPE_OUTPUT)
@@ -143,7 +143,7 @@ class _PrivatePort(object._PrivateObject, _Port):
         if comp_ptr is None:
             return
 
-        pub_comp_ptr = native_bt.component_from_private_component(comp_ptr)
+        pub_comp_ptr = native_bt.component_from_private(comp_ptr)
         assert(pub_comp_ptr)
         comp = bt2.component._create_generic_component_from_ptr(pub_comp_ptr)
         native_bt.put(comp_ptr)
