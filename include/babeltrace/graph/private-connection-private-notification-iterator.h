@@ -33,7 +33,7 @@ struct bt_private_port;
 struct bt_private_connection;
 struct bt_private_connection_private_notification_iterator;
 
-struct bt_notification_iterator *
+extern struct bt_notification_iterator *
 bt_private_connection_notification_iterator_from_private(
 		struct bt_private_connection_private_notification_iterator *private_notification_iterator);
 
