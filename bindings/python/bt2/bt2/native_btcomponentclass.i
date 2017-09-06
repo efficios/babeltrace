@@ -275,7 +275,7 @@ static enum bt_component_status bt_py3_cc_init(
 		struct bt_value *params, void *init_method_data)
 {
 	struct bt_component *comp =
-		bt_component_from_private_component(priv_comp);
+		bt_component_from_private(priv_comp);
 	struct bt_component_class *comp_cls = bt_component_get_class(comp);
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	PyObject *py_cls = NULL;

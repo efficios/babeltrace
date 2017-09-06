@@ -143,10 +143,10 @@ void bt_component_destroy(struct bt_object *obj)
 	g_free(component);
 }
 
-struct bt_component *bt_component_from_private_component(
+struct bt_component *bt_component_from_private(
 		struct bt_private_component *private_component)
 {
-	return bt_get(bt_component_from_private(private_component));
+	return bt_get(bt_component_borrow_from_private(private_component));
 }
 
 enum bt_component_class_type bt_component_get_class_type(
@@ -335,7 +335,7 @@ void *bt_private_component_get_user_data(
 		struct bt_private_component *private_component)
 {
 	struct bt_component *component =
-		bt_component_from_private(private_component);
+		bt_component_borrow_from_private(private_component);
 
 	return component ? component->user_data : NULL;
 }
@@ -345,7 +345,7 @@ enum bt_component_status bt_private_component_set_user_data(
 		void *data)
 {
 	struct bt_component *component =
-		bt_component_from_private(private_component);
+		bt_component_borrow_from_private(private_component);
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	if (!component) {

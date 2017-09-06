@@ -49,7 +49,7 @@ enum bt_port_status bt_port_disconnect(struct bt_port *port);
 int bt_port_is_connected(struct bt_port *port);
 
 /* Functions (private) */
-struct bt_port *bt_port_from_private_port(struct bt_private_port *private_port);
+struct bt_port *bt_port_from_private(struct bt_private_port *private_port);
 struct bt_private_connection *bt_private_port_get_private_connection(
 		struct bt_private_port *private_port);
 struct bt_private_component *bt_private_port_get_private_component(

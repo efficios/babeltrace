@@ -116,10 +116,10 @@ void bt_connection_parent_is_owner(struct bt_object *obj)
 	bt_connection_try_remove_from_graph(connection);
 }
 
-struct bt_connection *bt_connection_from_private_connection(
+struct bt_connection *bt_connection_from_private(
 		struct bt_private_connection *private_connection)
 {
-	return bt_get(bt_connection_from_private(private_connection));
+	return bt_get(bt_connection_borrow_from_private(private_connection));
 }
 
 BT_HIDDEN
@@ -301,7 +301,7 @@ bt_private_connection_create_notification_iterator(
 		goto end;
 	}
 
-	connection = bt_connection_from_private(private_connection);
+	connection = bt_connection_borrow_from_private(private_connection);
 
 	if (bt_graph_is_canceled(bt_connection_borrow_graph(connection))) {
 		BT_LOGW("Cannot create notification iterator from connection: "

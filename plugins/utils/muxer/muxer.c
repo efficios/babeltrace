@@ -406,7 +406,7 @@ static
 struct bt_notification_iterator *create_notif_iter_on_input_port(
 		struct bt_private_port *priv_port, int *ret)
 {
-	struct bt_port *port = bt_port_from_private_port(priv_port);
+	struct bt_port *port = bt_port_from_private(priv_port);
 	struct bt_notification_iterator *notif_iter = NULL;
 	struct bt_private_connection *priv_conn = NULL;
 	enum bt_connection_status conn_status;
@@ -530,7 +530,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 		}
 
 		priv_port = node->data;
-		port = bt_port_from_private_port(priv_port);
+		port = bt_port_from_private(priv_port);
 		assert(port);
 
 		if (!bt_port_is_connected(port)) {
@@ -1164,7 +1164,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 	 * iterator's list of newly connected ports. They will be
 	 * handled by muxer_notif_iter_handle_newly_connected_ports().
 	 */
-	comp = bt_component_from_private_component(muxer_comp->priv_comp);
+	comp = bt_component_from_private(muxer_comp->priv_comp);
 	assert(comp);
 	count = bt_component_filter_get_input_port_count(comp);
 	if (count < 0) {
@@ -1181,7 +1181,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 		struct bt_port *port;
 
 		assert(priv_port);
-		port = bt_port_from_private_port(priv_port);
+		port = bt_port_from_private(priv_port);
 		assert(port);
 
 		if (!bt_port_is_connected(port)) {
@@ -1402,7 +1402,7 @@ void muxer_port_connected(
 		struct bt_port *other_port)
 {
 	struct bt_port *self_port =
-		bt_port_from_private_port(self_private_port);
+		bt_port_from_private(self_private_port);
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 	size_t i;
@@ -1474,7 +1474,7 @@ BT_HIDDEN
 void muxer_port_disconnected(struct bt_private_component *priv_comp,
 		struct bt_private_port *priv_port)
 {
-	struct bt_port *port = bt_port_from_private_port(priv_port);
+	struct bt_port *port = bt_port_from_private(priv_port);
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 

@@ -70,7 +70,7 @@ void print_stream_state(struct lttng_live_stream_iterator *stream)
 {
 	struct bt_port *port;
 
-	port = bt_port_from_private_port(stream->port);
+	port = bt_port_from_private(stream->port);
 	print_dbg("stream %s state %s last_inact_ts %" PRId64 " cur_inact_ts %" PRId64,
 		bt_port_get_name(port),
 		print_state(stream),
@@ -90,7 +90,7 @@ bt_bool lttng_live_is_canceled(struct lttng_live_component *lttng_live)
 		return BT_FALSE;
 	}
 
-	component = bt_component_from_private_component(lttng_live->private_component);
+	component = bt_component_from_private(lttng_live->private_component);
 	graph = bt_component_get_graph(component);
 	ret = bt_graph_is_canceled(graph);
 	bt_put(graph);
@@ -149,7 +149,7 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 	int64_t nr_ports;
 	int ret;
 
-	component = bt_component_from_private_component(lttng_live->private_component);
+	component = bt_component_from_private(lttng_live->private_component);
 	nr_ports = bt_component_source_get_output_port_count(component);
 	if (nr_ports < 0) {
 		return -1;
@@ -1165,7 +1165,7 @@ enum bt_component_status lttng_live_accept_port_connection(
 			bt_private_component_get_user_data(private_component);
 	struct bt_component *other_component;
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
-	struct bt_port *self_port = bt_port_from_private_port(self_private_port);
+	struct bt_port *self_port = bt_port_from_private(self_private_port);
 
 	other_component = bt_port_get_component(other_port);
 	bt_put(other_component);	/* weak */

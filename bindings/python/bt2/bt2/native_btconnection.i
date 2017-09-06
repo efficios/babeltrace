@@ -44,7 +44,7 @@ struct bt_port *bt_connection_get_upstream_port(
 int bt_connection_is_ended(struct bt_connection *connection);
 
 /* Functions (private) */
-struct bt_connection *bt_connection_from_private_connection(
+struct bt_connection *bt_connection_from_private(
 		struct bt_private_connection *private_connection);
 
 /* Helper functions for Python */

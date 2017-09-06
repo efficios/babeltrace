@@ -46,7 +46,7 @@ struct bt_component_class *bt_component_get_class(
 enum bt_component_class_type bt_component_get_class_type(
 		struct bt_component *component);
 struct bt_graph *bt_component_get_graph(struct bt_component *component);
-struct bt_component *bt_component_from_private_component(
+struct bt_component *bt_component_from_private(
 		struct bt_private_component *private_component);
 
 /* Source component functions */

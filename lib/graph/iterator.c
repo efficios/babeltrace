@@ -699,7 +699,7 @@ void *bt_private_connection_private_notification_iterator_get_user_data(
 		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
 	struct bt_notification_iterator_private_connection *iterator =
-		bt_private_connection_notification_iterator_from_private(private_iterator);
+		bt_private_connection_notification_iterator_borrow_from_private(private_iterator);
 
 	return iterator ? iterator->user_data : NULL;
 }
@@ -712,7 +712,7 @@ bt_private_connection_private_notification_iterator_set_user_data(
 	enum bt_notification_iterator_status ret =
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	struct bt_notification_iterator_private_connection *iterator =
-		bt_private_connection_notification_iterator_from_private(private_iterator);
+		bt_private_connection_notification_iterator_borrow_from_private(private_iterator);
 
 	if (!iterator) {
 		BT_LOGW_STR("Invalid parameter: notification iterator is NULL.");
@@ -2369,7 +2369,7 @@ bt_private_connection_private_notification_iterator_get_private_component(
 {
 	return bt_private_component_from_component(
 		bt_private_connection_notification_iterator_get_component(
-			(void *) bt_private_connection_notification_iterator_from_private(private_iterator)));
+			(void *) bt_private_connection_notification_iterator_borrow_from_private(private_iterator)));
 }
 
 static
