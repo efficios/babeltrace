@@ -613,8 +613,8 @@ the environment variable and sets the log level symbol accordingly.
 --
 [source,c]
 ----
-#ifndef MY_MODULE_LOGGING_H
-#define MY_MODULE_LOGGING_H
+#ifndef BABELTRACE_MY_MODULE_LOGGING_H
+#define BABELTRACE_MY_MODULE_LOGGING_H
 
 /*
  * Copyright (c) 2017 EfficiOS Inc. <http://efficios.com/>
@@ -643,7 +643,7 @@ the environment variable and sets the log level symbol accordingly.
 
 BT_LOG_LEVEL_EXTERN_SYMBOL(my_module_log_level);
 
-#endif /* MY_MODULE_LOGGING_H */
+#endif /* BABELTRACE_MY_MODULE_LOGGING_H */
 ----
 --
 +
