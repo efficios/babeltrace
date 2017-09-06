@@ -1,14 +1,247 @@
-= Babeltrace logging guide
-Philippe Proulx
-31 May 2017
+= Babeltrace's contributor's guide
+Jérémie Galarneau, Philippe Proulx
+v0.1, 6 September 2017
 :toc:
 :toclevels: 5
 
-This guide explains to the Babeltrace developer how to insert logging
-statements in Babeltrace's CLI, library, and plugins.
+
+This is a partial contributor's guide for the
+http://diamon.org/babeltrace[Babeltrace] project. If you have any
+questions that are not answered in this guide, please post them
+on https://lists.lttng.org/cgi-bin/mailman/listinfo/lttng-dev[Babeltrace's mailing list].
 
 
-== Motive
+== Object reference counting and lifetime
+
+This section covers the rationale behind the design of Babeltrace's
+object lifetime management.
+
+Starting from Babeltrace 2.x, all publicly exposed objects inherit a
+common base: `bt_object`. This base provides a number of facilities to
+all objects, chief amongst which are lifetime management functions.
+
+The reference count of all public objects is controlled by invoking the
+`bt_get()` and `bt_put()` functions which respectively increment and
+decrement an object's reference count.
+
+As far as lifetime management in concerned, Babeltrace makes a clear
+distinction between regular objects, which have a single parent, and
+root objects, which don't.
+
+
+=== The problem
+
+Let us consider a problematic case to illustrate the need for this
+distinction.
+
+A user of the CTF Writer library declares a trace, which *has* a
+stream class (the declaration of a stream) and that stream class, in
+turn, *has* an event class (the declaration of an event).
+
+Nothing prevents this user from releasing his reference on any one of
+these objects in any order. However, all objects in the
+__trace--stream class--event class__ hierarchy can be retrieved
+from any other.
+
+For instance, the user could discard his reference on both the event
+class and the stream class, only keeping a reference on the trace. From
+this trace reference, stream classes can be enumerated, providing the
+user with a new reference to the stream class he discarded earlier.
+event classes can also be enumerated from stream classes, providing the
+user with references to the individual event classes.
+
+Conversely, the user could also hold a reference to an event class and
+retrieve its parent stream class. The trace, in turn, can then be
+retrieved from the stream class.
+
+This example illustrates what could be interpreted as a circular
+reference dependency existing between these objects. Of course, if the
+objects in such a scenario were to hold references to each other (in
+both directions), we would be in presence of a circular ownership
+resulting in a leak of both objects as their reference counts would
+never reach zero.
+
+Nonetheless, the API must offer the guarantee that holding a node to any
+node of the graph keeps all other reachable nodes alive.
+
+
+=== The solution
+
+The scheme employed in Babeltrace to break this cycle consists in the
+"children" holding *reverse component references* to their parents. That
+is, in the context of CTF IR, that event classes hold a reference to
+their parent stream class and stream classes hold a reference to their
+parent trace.
+
+On the other hand, parents hold *claiming aggregation references* to
+their children. A claiming aggregation reference means that the object
+being referenced should not be deleted as long as the reference still
+exists. In this respect, it can be said that parents truly hold the
+ownership of their children, since they control their lifetime.
+Conversely, the reference counting mechanism is leveraged by children to
+notify parents that no other child indirectly exposes the parent.
+
+When a parented object's reference count reaches zero, it invokes
+`bt_put()` on its parent and does **not** free itself. However, from
+that point, the object depends on its parent to signal the moment when
+it can be safely reclaimed.
+
+The invocation of `bt_put()` by the last children holding a reference to
+its parent might trigger a cascade of `bt_put()` from child to parent.
+Eventually, a **root** object is reached. At that point, if this
+orphaned object's reference count reaches zero, the object invokes the
+destructor method defined by everyone of its children as part of their
+base `struct bt_object`. The key point here is that the cascade of
+destructor will necessarily originate from the root and propagate in
+preorder to the children. These children will propagate the destruction
+to their own children before reclaiming their own memory. This ensures
+that a node's pointer to its parent is *always* valid since the parent
+has the responsibility of tearing-down their children before cleaning
+themselves up.
+
+Assuming a reference to an object is *acquired* by calling `bt_get()`
+while its reference count is zero, the object acquires, in turn, a
+reference on its parent using `bt_get()`. At that point, the child can
+be thought of as having converted its weak reference to its parent into
+a regular reference. That is why this reference is referred to as a
+*claiming* aggregation reference.
+
+
+=== Caveats
+
+This scheme imposes a number of strict rules defining the relation
+between objects:
+
+* Objects may only have one parent.
+* Objects, beside the root, are only retrievable from their direct
+  parent or children.
+
+
+=== Example
+
+The initial situation is rather simple: **User A** is holding a
+reference to a trace, **TC1**. As per the rules previously enounced,
+stream classes **SC1** and **SC2** don't hold a reference to **TC1**
+since their own reference counts are zero. The same holds true for
+**EC1**, **EC2** and **EC3** with respect to **SC1** and **SC2**.
+
+image::doc/contributing-images/bt-ref01.png[]
+
+In this second step, we can see that **User A** has acquired a reference
+on **SC2** through the trace, **TC1**.
+
+The stream class's reference count transitions from zero to one,
+triggering the acquisition of a strong reference on **TC1** from
+**SC2**.
+
+Hence, at this point, the trace's ownership is shared by **User A** and
+**SC2**.
+
+image::doc/contributing-images/bt-ref02.png[]
+
+Next, **User A** acquires a reference on the **EC3** event class through
+its parent stream class, **SC2**. Again, the transition of an object's
+reference count from 0 to 1 triggers the acquisition of a reference on
+its parent.
+
+Note that SC2's reference count was incremented to 2. The trace's
+reference count remains unchanged.
+
+image::doc/contributing-images/bt-ref03.png[]
+
+**User A** decides to drop its reference on **SC2**. **SC2**'s reference
+count returns back to 1, everything else remaining unchanged.
+
+image::doc/contributing-images/bt-ref04.png[]
+
+**User A** can then decide to drop its reference on the trace. This
+results in a reversal of the initial situation: **User A** now owns an
+event, **EC3**, which is keeping everything else alive and reachable.
+
+image::doc/contributing-images/bt-ref05.png[]
+
+If another object, **User B**, enters the picture and acquires a
+reference on the **SC1** stream class, we see that **SC1**'s reference
+count transitioned from 0 to 1, triggering the acquisition of a
+reference on **TC1**.
+
+image::doc/contributing-images/bt-ref06.png[]
+
+**User B** hands off a reference to **EC1**, acquired through **SC1**,
+to another object, **User C**. The acquisition of a reference on
+**EC1**, which transitions from 0 to 1, triggers the acquisition of a
+reference on its parent, **SC1**.
+
+image::doc/contributing-images/bt-ref07.png[]
+
+At some point, **User A** releases its reference on **EC3**. Since
+**EC3**'s reference count transitions to zero, it releases its reference
+on **SC2**. **SC2**'s reference count, in turn, reaches zero and it
+releases its reference to **TC1**.
+
+**TC1**'s reference count is now 1 and no further action is taken.
+
+image::doc/contributing-images/bt-ref08.png[]
+
+**User B** releases its reference on **SC1**. **User C** becomes the
+sole owner of the whole hierarchy through his ownership of **EC1**.
+
+image::doc/contributing-images/bt-ref09.png[]
+
+Finally, **User C** releases his ownership of **EC1**, triggering the
+release of the whole hierarchy. Let's walk through the reclamation of
+the whole graph.
+
+Mirroring what happened when **User A** released its last reference on
+**EC3**, the release of **EC1** by **User C** causes its reference count
+to fall to zero.
+
+This transition to zero causes **EC1** to release its reference on
+**SC1**. **SC1**'s reference count reaching zero causes it to release
+its reference on **TC1**.
+
+image::doc/contributing-images/bt-ref10.png[]
+
+Since the reference count of **TC1**, a root object, has reached zero,
+it invokes the destructor method on its children. This method is
+recursive and causes the stream classes to call the destructor method on
+their event classes.
+
+The event classes are reached and, having no children of their own, are
+reclaimed.
+
+image::doc/contributing-images/bt-ref11.png[]
+
+The stream classes having destroyed their children, are then reclaimed
+by the trace.
+
+image::doc/contributing-images/bt-ref12.png[]
+
+Finally, the stream classes having been reclaimed, **TC1** is reclaimed.
+
+image::doc/contributing-images/bt-ref13.png[]
+
+
+== Valgrind
+
+To use Valgrind on an application (for example, the CLI or a test) which
+loads libbabeltrace, use:
+
+    $ G_SLICE=always-malloc G_DEBUG=gc-friendly PYTHONMALLOC=malloc \
+      BABELTRACE_NO_DLCLOSE=1 valgrind --leak-check=full \
+      --suppressions=/path/to/babeltrace/extras/valgrind/popt.supp app
+
+`G_SLICE=always-malloc` and `G_DEBUG=gc-friendly` is for GLib and
+`PYTHONMALLOC=malloc` is for the Python interpreter, if it is used by
+the Python plugin provider (Valgrind will probably show a lot of errors
+which originate from Python interpreter anyway).
+
+`BABELTRACE_NO_DLCLOSE=1` makes libbabeltrace not close the shared
+libraries (plugins) which it loads. This is needed to see the
+appropriate backtrace when Valgrind shows errors.
+
+
+== Logging
 
 Logging is a great instrument for a developer to be able to collect
 information about a running software.
@@ -20,13 +253,13 @@ of a CTR IR object, for example. With the appropriate logging statements
 manually placed in the source code, we can find the cause of a bug
 faster.
 
-While <<level,care must be taken>> when placing _INFO_ to _FATAL_
-logging statements, you should deliberately instrument your Babeltrace
-module with _DEBUG_ and _VERBOSE_ logging statements to help future
-you and other developers understand what's happening at run-time.
+While <<log-level,care must be taken>> when placing _INFO_ to _FATAL_
+logging statements, you should liberally instrument your Babeltrace
+module with _DEBUG_ and _VERBOSE_ logging statements to help future you
+and other developers understand what's happening at run-time.
 
 
-== API
+=== Logging API
 
 The Babeltrace logging API is internal: it is not exposed to the users
 of the library, only to their developers. The only thing that a library
@@ -37,13 +270,13 @@ the `BABELTRACE_LOGGING_GLOBAL_LEVEL` environment variable.
 This API is based on https://github.com/wonder-mice/zf_log[zf_log], a
 lightweight, yet featureful, MIT-licensed core logging library for C and
 $$C++$$. The zf_log source files were modified to have the `BT_` and
-`bt_` prefixes, and other small changes.
+`bt_` prefixes, and other small changes, like color support.
 
 The logging functions are implemented in the logging convenience
 library (`logging` directory).
 
 
-=== Headers
+==== Headers
 
 The logging API headers are:
 
@@ -64,11 +297,11 @@ The logging API headers are:
 Do not include `<babeltrace/logging-internal.h>` or
 `<babeltrace/lib-logging-internal.h>` in a header which contains logging
 statements: this header could be included in source files which define a
-different <<tag,tag>>, for example.
+different <<choose-a-tag,tag>>, for example. See
+<<logging-instrument-header, Instrument a C header file>>.
 
 
-
-=== Log levels ===
+==== Log levels
 
 The API offers the following log levels:
 
@@ -79,7 +312,7 @@ The API offers the following log levels:
 * _ERROR_
 * _FATAL_
 
-See <<level,how to decide which one to use>> below.
+See <<log-level,how to decide which one to use>> below.
 
 There are two important log level variables:
 
@@ -91,8 +324,8 @@ There are two important log level variables:
 +
 All the logging statements with a level below this level are **not built
 at all**. All the logging statements with a level equal to or greater
-than this level _can_ be executed, depending on the run-time log level
-(see below).
+than this level _can_ be executed, depending on the
+<<run-time-log-level,run-time log level>>.
 +
 You can set this level at configuration time with the
 `BABELTRACE_MINIMAL_LOG_LEVEL` environment variable, for example:
@@ -103,7 +336,7 @@ $ BABELTRACE_MINIMAL_LOG_LEVEL=WARN ./configure
 ----
 --
 +
-The default build-time log level is `DEBUG`. For optimal performance,
+The default build-time log level is `VERBOSE`. For optimal performance,
 set it to `NONE`, which effectively disables all logging in all the
 Babeltrace subprojects.
 +
@@ -115,19 +348,19 @@ get the configured minimal log level.
     active log level. All the logging statements with a level below this
     level are not executed, but they evaluate the condition. All the
     logging statements with a level equal to or greater than this level
-    are executed, provided that their level is also enabled at build
-    time (see above).
+    are executed, provided that their level is also
+    <<build-time-log-level,enabled at build time>>.
 +
-In `zf_log`, there is a concept of a global run-time log level which
-uses the `_bt_log_global_output_lvl` symbol. In practice, we never use
-this symbol, and always make sure that `BT_LOG_OUTPUT_LEVEL` is defined
-to a module-wise or subproject-wise hidden symbol before including
+`zf_log` has a concept of a global run-time log level which uses the
+`_bt_log_global_output_lvl` symbol. In practice, we never use this
+symbol, and always make sure that `BT_LOG_OUTPUT_LEVEL` is defined to a
+module-wise or subproject-wise hidden symbol before including
 `<babeltrace/logging-internal.h>`. In the library,
-`<babeltrace/lib-logging-internal.h>` does this job: just include
-this header which defines `BT_LOG_OUTPUT_LEVEL` to the appropriate
-symbol before it includes `<babeltrace/logging-internal.h>`. In plugins,
-for example, there is one log level per component class, which makes
-log filtering easier during execution.
+`<babeltrace/lib-logging-internal.h>` does this job: just include this
+header which defines `BT_LOG_OUTPUT_LEVEL` to the appropriate symbol
+before it includes `<babeltrace/logging-internal.h>`. In plugins, for
+example, there is one log level per component class, which makes log
+filtering easier during execution.
 +
 In libbabeltrace, the user can set the current run-time log level with
 the `bt_logging_set_global_level()` function, for example:
@@ -146,9 +379,9 @@ environment variable is undefined.
 +
 Other subprojects have their own way of setting their run-time log
 level. For example, the CLI uses the `BABELTRACE_CLI_LOG_LEVEL`
-environment variable, and the `text.pretty` sink component class
+environment variable, and the `filter.utils.muxer` component class
 initializes its log level thanks to the
-`BABELTRACE_PLUGIN_TEXT_PRETTY_SINK_LOG_LEVEL` environment variable
+`BABELTRACE_PLUGIN_UTILS_MUXER_FLT_LOG_LEVEL` environment variable
 (also _NONE_ by default).
 +
 Make sure that there is a documented way to initialize or modify the
@@ -157,7 +390,7 @@ by default.
 
 
 [[logging-statements]]
-=== Logging statement macros
+==== Logging statement macros
 
 The Babeltrace logging statement macros work just like `printf()` and
 contain their log level in their name:
@@ -217,7 +450,7 @@ contain their log level in their name:
     Preformatted string fatal logging statement.
 
 
-=== Conditional logging
+==== Conditional logging
 
 `BT_LOG_IF(cond, statement)`::
     Execute `statement` only if `cond` is true.
@@ -240,10 +473,11 @@ To check the <<build-time-log-level,build-time log level>>:
 #endif
 ----
 
-This tests if the _DEBUG_ level was enabled at build-time. This
-means that the current, dynamic log level _could_ be _DEBUG_, but it
-could also be higher. The rule of thumb is to use only logging
-statements at the same level in a `BT_LOG_ENABLED_*` conditional block.
+This tests if the _DEBUG_ level was enabled at build-time. This means
+that the current, <<run-time-log-level,dynamic log level>> _could_ be
+_DEBUG_, but it could also be higher. The rule of thumb is to use only
+logging statements at the same level in a `BT_LOG_ENABLED_*` conditional
+block.
 
 The available definitions for build-time conditions are:
 
@@ -395,11 +629,15 @@ BT_LOG_LEVEL_EXTERN_SYMBOL(my_module_log_level);
 ----
 --
 +
-Again, replace `my_module_log_level` with the name of your module's
+Replace `my_module_log_level` with the name of your module's
 log level symbol.
 
 . Include the `logging.c` and `logging.h` in the `_SOURCES` variable
   of your module's object in your module's root `Makefile.am`.
+
+
+[[logging-instrument-source]]
+==== Instrument a C source file
 
 To instrument a C source file (`.c`):
 
@@ -417,11 +655,15 @@ To instrument a C source file (`.c`):
 A logging tag name is a namespace for a specific source file. Its name
 is part of every log message generated by the statements of the file. A
 logging tag name _must_ be only uppercase letters, digits, and the
-hyphen (`-`) character. See <<tags,Choose a tag>> for
+hyphen (`-`) character. See <<choose-a-tag,Choose a tag>> for
 a list of standard tags.
 
 . Use the <<logging-statements,logging statement macros>> in the file's
   functions to instrument it.
+
+
+[[logging-instrument-header]]
+==== Instrument a C header file
 
 To instrument a C header file (`.h`), if you have `static inline`
 functions in it:
@@ -457,10 +699,10 @@ void some_function(void)
 The C source files which include this header file determine if logging
 is enabled or not for them (if the source file is instrumented itself),
 and the tag of the included header's logging statement is the same as
-the C source file.
+the including C source file.
 
 
-[[tags]]
+[[choose-a-tag]]
 === Choose a tag
 
 For plugins, the format of the tag name for a given source file _must_
@@ -488,8 +730,8 @@ Examples:
 * `PLUGIN-UTILS-MUXER-FLT`
 
 
-[[level]]
-== Choose a log level
+[[log-level]]
+=== Choose a log level
 
 Choosing the appropriate level for your logging statement is very
 important.
@@ -561,7 +803,8 @@ _INFO_ level information is desired.
 |
 * High-level function entry/exit.
 * Object creation, destruction, copying, and freezing.
-* The result of some computation/validation.
+* The result of some computation/validation which does not
+  occur in a tight loop.
 |Noticeable, but not as much as the _VERBOSE_ level: not executed in
 production.
 
@@ -592,7 +835,7 @@ check with a count or size function).
 
 
 [[message]]
-== Write an appropriate message
+=== Write an appropriate message
 
 Follow those rules when you write a logging statement's message:
 
@@ -655,14 +898,20 @@ Prefer the following suffixes in field names:
 |===
 
 
-== Output
+=== Output
 
 The log is printed to the standard error stream. A log line contains the
-time, the process and thread IDs, the <<level,log level>>, the tag name,
-the source's function name, file name and line number, and the
-<<message,message>>.
+time, the process and thread IDs, the <<log-level,log level>>, the
+<<choose-a-tag,tag>>, the source's function name, file name and
+line number, and the <<message,message>>.
 
-Example:
+When Babeltrace supports terminal color codes (depends on the
+`BABELTRACE_TERM_COLOR` environment variable's value and what the
+standard output and error streams are plugged into), _INFO_-level lines
+are blue, _WARN_-level lines are yellow, and _ERROR_-level and
+_FATAL_-level lines are red.
+
+Log line example:
 
     05-11 00:58:03.691 23402 23402 D VALUES bt_value_destroy@values.c:498 Destroying value: addr=0xb9c3eb0
 
