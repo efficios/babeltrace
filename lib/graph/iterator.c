@@ -41,6 +41,8 @@
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/graph/component-class-sink-colander-internal.h>
+#include <babeltrace/graph/component-sink.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
@@ -53,6 +55,7 @@
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <babeltrace/graph/notification-discarded-elements-internal.h>
 #include <babeltrace/graph/port.h>
+#include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/types.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -126,7 +129,7 @@ struct action {
 static
 void stream_destroy_listener(struct bt_ctf_stream *stream, void *data)
 {
-	struct bt_notification_iterator *iterator = data;
+	struct bt_notification_iterator_private_connection *iterator = data;
 
 	/* Remove associated stream state */
 	g_hash_table_remove(iterator->stream_states, stream);
@@ -185,14 +188,14 @@ void destroy_action(struct action *action)
 }
 
 static
-void add_action(struct bt_notification_iterator *iterator,
+void add_action(struct bt_notification_iterator_private_connection *iterator,
 		struct action *action)
 {
 	g_array_append_val(iterator->actions, *action);
 }
 
 static
-void clear_actions(struct bt_notification_iterator *iterator)
+void clear_actions(struct bt_notification_iterator_private_connection *iterator)
 {
 	size_t i;
 
@@ -230,7 +233,7 @@ const char *action_type_string(enum action_type type)
 }
 
 static
-void apply_actions(struct bt_notification_iterator *iterator)
+void apply_actions(struct bt_notification_iterator_private_connection *iterator)
 {
 	size_t i;
 
@@ -358,9 +361,20 @@ end:
 }
 
 static
-void bt_notification_iterator_destroy(struct bt_object *obj)
+void destroy_base_notification_iterator(struct bt_object *obj)
 {
-	struct bt_notification_iterator *iterator;
+	struct bt_notification_iterator *iterator =
+		container_of(obj, struct bt_notification_iterator, base);
+
+	BT_LOGD_STR("Putting current notification.");
+	bt_put(iterator->current_notification);
+	g_free(iterator);
+}
+
+static
+void bt_private_connection_notification_iterator_destroy(struct bt_object *obj)
+{
+	struct bt_notification_iterator_private_connection *iterator;
 
 	assert(obj);
 
@@ -375,10 +389,10 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 	 * would be called again.
 	 */
 	obj->ref_count.count++;
-	iterator = container_of(obj, struct bt_notification_iterator, base);
-	BT_LOGD("Destroying notification iterator object: addr=%p",
+	iterator = (void *) container_of(obj, struct bt_notification_iterator, base);
+	BT_LOGD("Destroying private connection notification iterator object: addr=%p",
 		iterator);
-	bt_notification_iterator_finalize(iterator);
+	bt_private_connection_notification_iterator_finalize(iterator);
 
 	if (iterator->queue) {
 		struct bt_notification *notif;
@@ -429,14 +443,12 @@ void bt_notification_iterator_destroy(struct bt_object *obj)
 		bt_connection_remove_iterator(iterator->connection, iterator);
 	}
 
-	BT_LOGD_STR("Putting current notification.");
-	bt_put(iterator->current_notification);
-	g_free(iterator);
+	destroy_base_notification_iterator(obj);
 }
 
 BT_HIDDEN
-void bt_notification_iterator_finalize(
-		struct bt_notification_iterator *iterator)
+void bt_private_connection_notification_iterator_finalize(
+		struct bt_notification_iterator_private_connection *iterator)
 {
 	struct bt_component_class *comp_class = NULL;
 	bt_component_class_notification_iterator_finalize_method
@@ -445,13 +457,13 @@ void bt_notification_iterator_finalize(
 	assert(iterator);
 
 	switch (iterator->state) {
-	case BT_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED:
+	case BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED:
 		/* Skip user finalization if user initialization failed */
 		BT_LOGD("Not finalizing non-initialized notification iterator: "
 			"addr=%p", iterator);
 		return;
-	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED:
-	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
+	case BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED:
+	case BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
 		/* Already finalized */
 		BT_LOGD("Not finalizing notification iterator: already finalized: "
 			"addr=%p", iterator);
@@ -462,14 +474,14 @@ void bt_notification_iterator_finalize(
 
 	BT_LOGD("Finalizing notification iterator: addr=%p", iterator);
 
-	if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_ENDED) {
+	if (iterator->state == BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_ENDED) {
 		BT_LOGD("Updating notification iterator's state: "
-			"new-state=BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED");
-		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
+			"new-state=BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED");
+		iterator->state = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED;
 	} else {
 		BT_LOGD("Updating notification iterator's state: "
-			"new-state=BT_NOTIFICATION_ITERATOR_STATE_FINALIZED");
-		iterator->state = BT_NOTIFICATION_ITERATOR_STATE_FINALIZED;
+			"new-state=BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED");
+		iterator->state = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED;
 	}
 
 	assert(iterator->upstream_component);
@@ -502,7 +514,7 @@ void bt_notification_iterator_finalize(
 		BT_LOGD("Calling user's finalization method: addr=%p",
 			iterator);
 		finalize_method(
-			bt_private_notification_iterator_from_notification_iterator(iterator));
+			bt_private_connection_private_notification_iterator_from_notification_iterator(iterator));
 	}
 
 	iterator->upstream_component = NULL;
@@ -511,8 +523,8 @@ void bt_notification_iterator_finalize(
 }
 
 BT_HIDDEN
-void bt_notification_iterator_set_connection(
-		struct bt_notification_iterator *iterator,
+void bt_private_connection_notification_iterator_set_connection(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_connection *connection)
 {
 	assert(iterator);
@@ -523,7 +535,7 @@ void bt_notification_iterator_set_connection(
 
 static
 int create_subscription_mask_from_notification_types(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		const enum bt_notification_type *notif_types)
 {
 	const enum bt_notification_type *notif_type;
@@ -538,38 +550,38 @@ int create_subscription_mask_from_notification_types(
 		switch (*notif_type) {
 		case BT_NOTIFICATION_TYPE_ALL:
 			iterator->subscription_mask |=
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT |
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY |
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN |
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END |
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN |
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END |
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_EVENTS |
-				BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_PACKETS;
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT |
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY |
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN |
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END |
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN |
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END |
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_EVENTS |
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_PACKETS;
 			break;
 		case BT_NOTIFICATION_TYPE_EVENT:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT;
 			break;
 		case BT_NOTIFICATION_TYPE_INACTIVITY:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY;
 			break;
 		case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN;
 			break;
 		case BT_NOTIFICATION_TYPE_STREAM_END:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END;
 			break;
 		case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN;
 			break;
 		case BT_NOTIFICATION_TYPE_PACKET_END:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
 			break;
 		case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_EVENTS;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_EVENTS;
 			break;
 		case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
-			iterator->subscription_mask |= BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_PACKETS;
+			iterator->subscription_mask |= BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_PACKETS;
 			break;
 		default:
 			ret = -1;
@@ -586,24 +598,33 @@ end:
 	return ret;
 }
 
+static
+void init_notification_iterator(struct bt_notification_iterator *iterator,
+		enum bt_notification_iterator_type type,
+		bt_object_release_func destroy)
+{
+	bt_object_init(iterator, destroy);
+	iterator->type = type;
+}
+
 BT_HIDDEN
-enum bt_connection_status bt_notification_iterator_create(
+enum bt_connection_status bt_private_connection_notification_iterator_create(
 		struct bt_component *upstream_comp,
 		struct bt_port *upstream_port,
 		const enum bt_notification_type *notification_types,
 		struct bt_connection *connection,
-		struct bt_notification_iterator **user_iterator)
+		struct bt_notification_iterator_private_connection **user_iterator)
 {
 	enum bt_connection_status status = BT_CONNECTION_STATUS_OK;
 	enum bt_component_class_type type;
-	struct bt_notification_iterator *iterator = NULL;
+	struct bt_notification_iterator_private_connection *iterator = NULL;
 
 	assert(upstream_comp);
 	assert(upstream_port);
 	assert(notification_types);
 	assert(bt_port_is_connected(upstream_port));
 	assert(user_iterator);
-	BT_LOGD("Creating notification iterator: "
+	BT_LOGD("Creating notification iterator on private connection: "
 		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
 		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
 		"conn-addr=%p",
@@ -613,14 +634,16 @@ enum bt_connection_status bt_notification_iterator_create(
 	type = bt_component_get_class_type(upstream_comp);
 	assert(type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
 		type == BT_COMPONENT_CLASS_TYPE_FILTER);
-	iterator = g_new0(struct bt_notification_iterator, 1);
+	iterator = g_new0(struct bt_notification_iterator_private_connection, 1);
 	if (!iterator) {
-		BT_LOGE_STR("Failed to allocate one notification iterator.");
+		BT_LOGE_STR("Failed to allocate one private connection notification iterator.");
 		status = BT_CONNECTION_STATUS_NOMEM;
 		goto end;
 	}
 
-	bt_object_init(iterator, bt_notification_iterator_destroy);
+	init_notification_iterator((void *) iterator,
+		BT_NOTIFICATION_ITERATOR_TYPE_PRIVATE_CONNECTION,
+		bt_private_connection_notification_iterator_destroy);
 
 	if (create_subscription_mask_from_notification_types(iterator,
 			notification_types)) {
@@ -654,7 +677,7 @@ enum bt_connection_status bt_notification_iterator_create(
 	iterator->upstream_component = upstream_comp;
 	iterator->upstream_port = upstream_port;
 	iterator->connection = connection;
-	iterator->state = BT_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED;
+	iterator->state = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED;
 	BT_LOGD("Created notification iterator: "
 		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
 		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
@@ -672,24 +695,24 @@ end:
 	return status;
 }
 
-void *bt_private_notification_iterator_get_user_data(
-		struct bt_private_notification_iterator *private_iterator)
+void *bt_private_connection_private_notification_iterator_get_user_data(
+		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
-	struct bt_notification_iterator *iterator =
-		bt_notification_iterator_from_private(private_iterator);
+	struct bt_notification_iterator_private_connection *iterator =
+		bt_private_connection_notification_iterator_borrow_from_private(private_iterator);
 
 	return iterator ? iterator->user_data : NULL;
 }
 
 enum bt_notification_iterator_status
-bt_private_notification_iterator_set_user_data(
-		struct bt_private_notification_iterator *private_iterator,
+bt_private_connection_private_notification_iterator_set_user_data(
+		struct bt_private_connection_private_notification_iterator *private_iterator,
 		void *data)
 {
 	enum bt_notification_iterator_status ret =
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	struct bt_notification_iterator *iterator =
-		bt_notification_iterator_from_private(private_iterator);
+	struct bt_notification_iterator_private_connection *iterator =
+		bt_private_connection_notification_iterator_borrow_from_private(private_iterator);
 
 	if (!iterator) {
 		BT_LOGW_STR("Invalid parameter: notification iterator is NULL.");
@@ -715,43 +738,44 @@ struct bt_notification *bt_notification_iterator_get_notification(
 		goto end;
 	}
 
-	notification = bt_get(iterator->current_notification);
+	notification = bt_get(
+		bt_notification_iterator_borrow_current_notification(iterator));
 
 end:
 	return notification;
 }
 
 static
-enum bt_notification_iterator_notif_type
+enum bt_private_connection_notification_iterator_notif_type
 bt_notification_iterator_notif_type_from_notif_type(
 		enum bt_notification_type notif_type)
 {
-	enum bt_notification_iterator_notif_type iter_notif_type;
+	enum bt_private_connection_notification_iterator_notif_type iter_notif_type;
 
 	switch (notif_type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_EVENT;
 		break;
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_INACTIVITY;
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_BEGIN;
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_STREAM_END;
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_BEGIN;
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_PACKET_END;
 		break;
 	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_EVENTS;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_EVENTS;
 		break;
 	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
-		iter_notif_type = BT_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_PACKETS;
+		iter_notif_type = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_NOTIF_TYPE_DISCARDED_PACKETS;
 		break;
 	default:
 		abort();
@@ -761,7 +785,8 @@ bt_notification_iterator_notif_type_from_notif_type(
 }
 
 static
-bt_bool validate_notification(struct bt_notification_iterator *iterator,
+bt_bool validate_notification(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream,
 		struct bt_ctf_packet *notif_packet)
@@ -880,7 +905,8 @@ end:
 }
 
 static
-bt_bool is_subscribed_to_notification_type(struct bt_notification_iterator *iterator,
+bt_bool is_subscribed_to_notification_type(
+		struct bt_notification_iterator_private_connection *iterator,
 		enum bt_notification_type notif_type)
 {
 	uint32_t iter_notif_type =
@@ -891,7 +917,8 @@ bt_bool is_subscribed_to_notification_type(struct bt_notification_iterator *iter
 }
 
 static
-void add_action_push_notif(struct bt_notification_iterator *iterator,
+void add_action_push_notif(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif)
 {
 	struct action action = {
@@ -911,7 +938,7 @@ void add_action_push_notif(struct bt_notification_iterator *iterator,
 
 static
 int add_action_push_notif_stream_begin(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_ctf_stream *stream)
 {
 	int ret = 0;
@@ -948,7 +975,7 @@ end:
 
 static
 int add_action_push_notif_stream_end(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_ctf_stream *stream)
 {
 	int ret = 0;
@@ -985,7 +1012,7 @@ end:
 
 static
 int add_action_push_notif_packet_begin(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_ctf_packet *packet)
 {
 	int ret = 0;
@@ -1021,7 +1048,7 @@ end:
 
 static
 int add_action_push_notif_packet_end(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_ctf_packet *packet)
 {
 	int ret = 0;
@@ -1057,7 +1084,7 @@ end:
 
 static
 void add_action_set_stream_state_is_ended(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct stream_state *stream_state)
 {
 	struct action action = {
@@ -1075,7 +1102,7 @@ void add_action_set_stream_state_is_ended(
 
 static
 void add_action_set_stream_state_cur_packet(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct stream_state *stream_state,
 		struct bt_ctf_packet *packet)
 {
@@ -1096,7 +1123,7 @@ void add_action_set_stream_state_cur_packet(
 
 static
 void add_action_update_stream_state_discarded_elements(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		enum action_type type,
 		struct stream_state *stream_state,
 		struct bt_ctf_clock_value *cur_begin,
@@ -1127,7 +1154,8 @@ void add_action_update_stream_state_discarded_elements(
 }
 
 static
-int ensure_stream_state_exists(struct bt_notification_iterator *iterator,
+int ensure_stream_state_exists(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *stream_begin_notif,
 		struct bt_ctf_stream *notif_stream,
 		struct stream_state **_stream_state)
@@ -1304,7 +1332,8 @@ end:
 }
 
 static
-int handle_discarded_packets(struct bt_notification_iterator *iterator,
+int handle_discarded_packets(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_ctf_packet *packet,
 		struct bt_ctf_clock_value *ts_begin,
 		struct bt_ctf_clock_value *ts_end,
@@ -1378,7 +1407,8 @@ end:
 }
 
 static
-int handle_discarded_events(struct bt_notification_iterator *iterator,
+int handle_discarded_events(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_ctf_packet *packet,
 		struct bt_ctf_clock_value *ts_begin,
 		struct bt_ctf_clock_value *ts_end,
@@ -1538,7 +1568,8 @@ end:
 }
 
 static
-int handle_discarded_elements(struct bt_notification_iterator *iterator,
+int handle_discarded_elements(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_ctf_packet *packet, struct stream_state *stream_state)
 {
 	struct bt_ctf_clock_value *ts_begin = NULL;
@@ -1578,7 +1609,8 @@ end:
 }
 
 static
-int handle_packet_switch(struct bt_notification_iterator *iterator,
+int handle_packet_switch(
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *packet_begin_notif,
 		struct bt_ctf_packet *new_packet,
 		struct stream_state *stream_state)
@@ -1638,7 +1670,7 @@ end:
 
 static
 int handle_notif_stream_begin(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream)
 {
@@ -1665,7 +1697,7 @@ end:
 
 static
 int handle_notif_stream_end(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream)
 {
@@ -1700,7 +1732,7 @@ end:
 
 static
 int handle_notif_discarded_elements(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream)
 {
@@ -1729,7 +1761,7 @@ end:
 
 static
 int handle_notif_packet_begin(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream,
 		struct bt_ctf_packet *notif_packet)
@@ -1763,7 +1795,7 @@ end:
 
 static
 int handle_notif_packet_end(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream,
 		struct bt_ctf_packet *notif_packet)
@@ -1800,7 +1832,7 @@ end:
 
 static
 int handle_notif_event(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
 		struct bt_ctf_stream *notif_stream,
 		struct bt_ctf_packet *notif_packet)
@@ -1835,7 +1867,7 @@ end:
 
 static
 int enqueue_notification_and_automatic(
-		struct bt_notification_iterator *iterator,
+		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif)
 {
 	int ret = 0;
@@ -1962,7 +1994,7 @@ end:
 }
 
 static
-int handle_end(struct bt_notification_iterator *iterator)
+int handle_end(struct bt_notification_iterator_private_connection *iterator)
 {
 	GHashTableIter stream_state_iter;
 	gpointer stream_gptr, stream_state_gptr;
@@ -2014,12 +2046,12 @@ end:
 
 static
 enum bt_notification_iterator_status ensure_queue_has_notifications(
-		struct bt_notification_iterator *iterator)
+		struct bt_notification_iterator_private_connection *iterator)
 {
-	struct bt_private_notification_iterator *priv_iterator =
-		bt_private_notification_iterator_from_notification_iterator(iterator);
+	struct bt_private_connection_private_notification_iterator *priv_iterator =
+		bt_private_connection_private_notification_iterator_from_notification_iterator(iterator);
 	bt_component_class_notification_iterator_next_method next_method = NULL;
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,
 	};
@@ -2031,7 +2063,7 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 	BT_LOGD("Ensuring that notification iterator's queue has at least one notification: "
 		"iter-addr=%p, queue-size=%u, iter-state=%s",
 		iterator, iterator->queue->length,
-		bt_notification_iterator_state_string(iterator->state));
+		bt_private_connection_notification_iterator_state_string(iterator->state));
 
 	if (iterator->queue->length > 0) {
 		/*
@@ -2046,12 +2078,12 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 	}
 
 	switch (iterator->state) {
-	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
-	case BT_NOTIFICATION_ITERATOR_STATE_FINALIZED:
+	case BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED:
+	case BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED:
 		BT_LOGD_STR("Notification iterator's \"next\" called, but it is finalized.");
 		status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATE_ENDED:
+	case BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_ENDED:
 		BT_LOGD_STR("Notification iterator is ended.");
 		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
@@ -2105,8 +2137,8 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 			goto end;
 		}
 
-		if (iterator->state == BT_NOTIFICATION_ITERATOR_STATE_FINALIZED ||
-				iterator->state == BT_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED) {
+		if (iterator->state == BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED ||
+				iterator->state == BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_FINALIZED_AND_ENDED) {
 			/*
 			 * The user's "next" method, somehow, cancelled
 			 * its own notification iterator. This can
@@ -2141,8 +2173,8 @@ enum bt_notification_iterator_status ensure_queue_has_notifications(
 			}
 
 			assert(iterator->state ==
-				BT_NOTIFICATION_ITERATOR_STATE_ACTIVE);
-			iterator->state = BT_NOTIFICATION_ITERATOR_STATE_ENDED;
+				BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_ACTIVE);
+			iterator->state = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_ENDED;
 
 			if (iterator->queue->length == 0) {
 				status = BT_NOTIFICATION_ITERATOR_STATUS_END;
@@ -2215,50 +2247,291 @@ bt_notification_iterator_next(struct bt_notification_iterator *iterator)
 
 	BT_LOGD("Notification iterator's \"next\": iter-addr=%p", iterator);
 
-	/*
-	 * Make sure that the iterator's queue contains at least one
-	 * notification.
-	 */
-	status = ensure_queue_has_notifications(iterator);
-	if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		/* Not an error */
-		goto end;
-	}
+	switch (iterator->type) {
+	case BT_NOTIFICATION_ITERATOR_TYPE_PRIVATE_CONNECTION:
+	{
+		struct bt_notification_iterator_private_connection *priv_conn_iter =
+			(void *) iterator;
+		struct bt_notification *notif;
 
-	/*
-	 * Move the notification at the tail of the queue to the
-	 * iterator's current notification.
-	 */
-	assert(iterator->queue->length > 0);
-	bt_put(iterator->current_notification);
-	iterator->current_notification = g_queue_pop_tail(iterator->queue);
-	assert(iterator->current_notification);
+		/*
+		 * Make sure that the iterator's queue contains at least
+		 * one notification.
+		 */
+		status = ensure_queue_has_notifications(priv_conn_iter);
+		if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			goto end;
+		}
+
+		/*
+		 * Move the notification at the tail of the queue to the
+		 * iterator's current notification.
+		 */
+		assert(priv_conn_iter->queue->length > 0);
+		notif = g_queue_pop_tail(priv_conn_iter->queue);
+		bt_notification_iterator_replace_current_notification(
+			iterator, notif);
+		bt_put(notif);
+		break;
+	}
+	case BT_NOTIFICATION_ITERATOR_TYPE_OUTPUT_PORT:
+	{
+		struct bt_notification_iterator_output_port *out_port_iter =
+			(void *) iterator;
+
+		/*
+		 * Keep current notification in case there's an error:
+		 * restore this notification so that the current
+		 * notification is not changed from the user's point of
+		 * view.
+		 */
+		struct bt_notification *old_notif =
+			bt_get(bt_notification_iterator_borrow_current_notification(iterator));
+		enum bt_graph_status graph_status;
+
+		/*
+		 * Put current notification since it's possibly
+		 * about to be replaced by a new one by the
+		 * colander sink.
+		 */
+		bt_notification_iterator_replace_current_notification(
+			iterator, NULL);
+		graph_status = bt_graph_consume_sink_no_check(
+			out_port_iter->graph,
+			out_port_iter->colander);
+		switch (graph_status) {
+		case BT_GRAPH_STATUS_CANCELED:
+			status = BT_NOTIFICATION_ITERATOR_STATUS_CANCELED;
+			break;
+		case BT_GRAPH_STATUS_AGAIN:
+			status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
+			break;
+		case BT_GRAPH_STATUS_END:
+			status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+			break;
+		case BT_GRAPH_STATUS_NOMEM:
+			status = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+			break;
+		case BT_GRAPH_STATUS_OK:
+			status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+			assert(bt_notification_iterator_borrow_current_notification(iterator));
+			break;
+		default:
+			/* Other errors */
+			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		}
+
+		if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			/* Error/exception: restore old notification */
+			bt_notification_iterator_replace_current_notification(
+				iterator, old_notif);
+		}
+
+		bt_put(old_notif);
+		break;
+	}
+	default:
+		BT_LOGF("Unknown notification iterator type: addr=%p, type=%d",
+			iterator, iterator->type);
+		abort();
+	}
 
 end:
 	return status;
 }
 
-struct bt_component *bt_notification_iterator_get_component(
+struct bt_component *bt_private_connection_notification_iterator_get_component(
 		struct bt_notification_iterator *iterator)
 {
-	return bt_get(iterator->upstream_component);
+	struct bt_component *comp = NULL;
+	struct bt_notification_iterator_private_connection *iter_priv_conn;
+
+	if (!iterator) {
+		BT_LOGW_STR("Invalid parameter: notification iterator is NULL.");
+		goto end;
+	}
+
+	if (iterator->type != BT_NOTIFICATION_ITERATOR_TYPE_PRIVATE_CONNECTION) {
+		BT_LOGW_STR("Invalid parameter: notification iterator was not created from a private connection.");
+		goto end;
+	}
+
+	iter_priv_conn = (void *) iterator;
+	comp = bt_get(iter_priv_conn->upstream_component);
+
+end:
+	return comp;
 }
 
 struct bt_private_component *
-bt_private_notification_iterator_get_private_component(
-		struct bt_private_notification_iterator *private_iterator)
+bt_private_connection_private_notification_iterator_get_private_component(
+		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
 	return bt_private_component_from_component(
-		bt_notification_iterator_get_component(
-			bt_notification_iterator_from_private(private_iterator)));
+		bt_private_connection_notification_iterator_get_component(
+			(void *) bt_private_connection_notification_iterator_borrow_from_private(private_iterator)));
 }
 
-enum bt_notification_iterator_status bt_notification_iterator_seek_time(
-		struct bt_notification_iterator *iterator,
-		enum bt_notification_iterator_seek_origin seek_origin,
-		int64_t time)
+static
+void bt_output_port_notification_iterator_destroy(struct bt_object *obj)
 {
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
-	return ret;
+	struct bt_notification_iterator_output_port *iterator =
+		(void *) container_of(obj, struct bt_notification_iterator, base);
+
+	BT_LOGD("Destroying output port notification iterator object: addr=%p",
+		iterator);
+	BT_LOGD_STR("Putting graph.");
+	bt_put(iterator->graph);
+	BT_LOGD_STR("Putting output port.");
+	bt_put(iterator->output_port);
+	BT_LOGD_STR("Putting colander sink component.");
+	bt_put(iterator->colander);
+	destroy_base_notification_iterator(obj);
+}
+
+struct bt_notification_iterator *bt_output_port_notification_iterator_create(
+		struct bt_port *output_port,
+		const char *colander_component_name,
+		const enum bt_notification_type *notification_types)
+{
+	struct bt_notification_iterator *iterator_base = NULL;
+	struct bt_notification_iterator_output_port *iterator = NULL;
+	struct bt_component_class *colander_comp_cls = NULL;
+	struct bt_component *output_port_comp = NULL;
+	struct bt_component *colander_comp;
+	struct bt_graph *graph = NULL;
+	enum bt_graph_status graph_status;
+	const char *colander_comp_name;
+	struct bt_port *colander_in_port;
+	struct bt_component_class_sink_colander_data colander_data;
+
+	if (!output_port) {
+		BT_LOGW_STR("Invalid parameter: port is NULL.");
+		goto error;
+	}
+
+	if (bt_port_get_type(output_port) != BT_PORT_TYPE_OUTPUT) {
+		BT_LOGW_STR("Invalid parameter: port is not an output port.");
+		goto error;
+	}
+
+	output_port_comp = bt_port_get_component(output_port);
+	if (!output_port_comp) {
+		BT_LOGW("Cannot get output port's component: "
+			"port-addr=%p, port-name=\"%s\"",
+			output_port, bt_port_get_name(output_port));
+		goto error;
+	}
+
+	graph = bt_component_get_graph(output_port_comp);
+	assert(graph);
+
+	/* Create notification iterator */
+	BT_LOGD("Creating notification iterator on output port: "
+		"comp-addr=%p, comp-name\"%s\", port-addr=%p, port-name=\"%s\"",
+		output_port_comp, bt_component_get_name(output_port_comp),
+		output_port, bt_port_get_name(output_port));
+	iterator = g_new0(struct bt_notification_iterator_output_port, 1);
+	if (!iterator) {
+		BT_LOGE_STR("Failed to allocate one output port notification iterator.");
+		goto error;
+	}
+
+	init_notification_iterator((void *) iterator,
+		BT_NOTIFICATION_ITERATOR_TYPE_OUTPUT_PORT,
+		bt_output_port_notification_iterator_destroy);
+
+	/* Create colander component */
+	colander_comp_cls = bt_component_class_sink_colander_get();
+	if (!colander_comp_cls) {
+		BT_LOGW("Cannot get colander sink component class.");
+		goto error;
+	}
+
+	BT_MOVE(iterator->graph, graph);
+	iterator_base = (void *) iterator;
+	colander_comp_name =
+		colander_component_name ? colander_component_name : "colander";
+	colander_data.notification = &iterator_base->current_notification;
+	colander_data.notification_types = notification_types;
+	graph_status = bt_graph_add_component_with_init_method_data(
+		iterator->graph, colander_comp_cls, colander_comp_name,
+		NULL, &colander_data, &iterator->colander);
+	if (graph_status != BT_GRAPH_STATUS_OK) {
+		BT_LOGW("Cannot add colander sink component to graph: "
+			"graph-addr=%p, name=\"%s\", graph-status=%s",
+			iterator->graph, colander_comp_name,
+			bt_graph_status_string(graph_status));
+		goto error;
+	}
+
+	/*
+	 * Connect provided output port to the colander component's
+	 * input port.
+	 */
+	colander_in_port = bt_component_sink_get_input_port_by_index(
+		iterator->colander, 0);
+	assert(colander_in_port);
+	graph_status = bt_graph_connect_ports(iterator->graph,
+		output_port, colander_in_port, NULL);
+	if (graph_status != BT_GRAPH_STATUS_OK) {
+		BT_LOGW("Cannot add colander sink component to graph: "
+			"graph-addr=%p, name=\"%s\", graph-status=%s",
+			iterator->graph, colander_comp_name,
+			bt_graph_status_string(graph_status));
+		goto error;
+	}
+
+	/*
+	 * At this point everything went fine. Make the graph
+	 * nonconsumable forever so that only this notification iterator
+	 * can consume (thanks to bt_graph_consume_sink_no_check()).
+	 * This avoids leaking the notification created by the colander
+	 * sink and moved to the base notification iterator's current
+	 * notification member.
+	 */
+	bt_graph_set_can_consume(iterator->graph, BT_FALSE);
+	goto end;
+
+error:
+	if (iterator && iterator->graph && iterator->colander) {
+		int ret;
+
+		/* Remove created colander component from graph if any */
+		colander_comp = iterator->colander;
+		BT_PUT(iterator->colander);
+
+		/*
+		 * At this point the colander component's reference
+		 * count is 0 because iterator->colander was the only
+		 * owner. We also know that it is not connected because
+		 * this is the last operation before this function
+		 * succeeds.
+		 *
+		 * Since we honor the preconditions here,
+		 * bt_graph_remove_unconnected_component() always
+		 * succeeds.
+		 */
+		ret = bt_graph_remove_unconnected_component(iterator->graph,
+			colander_comp);
+		assert(ret == 0);
+	}
+
+	BT_PUT(iterator);
+
+end:
+	bt_put(colander_in_port);
+	bt_put(colander_comp_cls);
+	bt_put(output_port_comp);
+	bt_put(graph);
+	return (void *) iterator;
+}
+
+struct bt_notification_iterator *
+bt_private_connection_notification_iterator_from_private(
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
+{
+	return bt_get(
+		bt_private_connection_notification_iterator_borrow_from_private(
+			private_notification_iterator));
 }

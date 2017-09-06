@@ -25,8 +25,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
 enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
@@ -37,15 +36,15 @@ void dmesg_finalize(struct bt_private_component *priv_comp);
 
 BT_HIDDEN
 enum bt_notification_iterator_status dmesg_notif_iter_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *priv_port);
 
 BT_HIDDEN
 void dmesg_notif_iter_finalize(
-		struct bt_private_notification_iterator *priv_notif_iter);
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return dmesg_notif_iter_next(
-		struct bt_private_notification_iterator *priv_notif_iter);
+struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H */

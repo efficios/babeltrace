@@ -29,6 +29,7 @@
 
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/notification-iterator.h>
+#include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/object-internal.h>
 #include <stdbool.h>
@@ -59,7 +60,7 @@ struct bt_connection {
 };
 
 static inline
-struct bt_connection *bt_connection_from_private(
+struct bt_connection *bt_connection_borrow_from_private(
 		struct bt_private_connection *private_connection)
 {
 	return (void *) private_connection;
@@ -82,7 +83,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph);
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
-		struct bt_notification_iterator *iterator);
+		struct bt_notification_iterator_private_connection *iterator);
 
 static inline
 struct bt_graph *bt_connection_borrow_graph(struct bt_connection *conn)

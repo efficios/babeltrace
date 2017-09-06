@@ -46,6 +46,7 @@
 
 /* CTF IR API */
 #include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/clock-value.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/field-path.h>
@@ -65,7 +66,6 @@
 /* Graph, component, and notification API */
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/component-class-filter.h>
-#include <babeltrace/graph/component-class-sink-colander.h>
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/component-class-source.h>
 #include <babeltrace/graph/component-class.h>
@@ -85,13 +85,16 @@
 #include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/output-port-notification-iterator.h>
 #include <babeltrace/graph/port.h>
 #include <babeltrace/graph/private-component-filter.h>
 #include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-component-source.h>
 #include <babeltrace/graph/private-component.h>
+#include <babeltrace/graph/private-connection-notification-iterator.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-notification-iterator.h>
 #include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/query-executor.h>
 
 #endif /* BABELTRACE_BABELTRACE_H */

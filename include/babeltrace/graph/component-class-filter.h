@@ -25,7 +25,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/component.h>
+/* For component class method type definitions */
+#include <babeltrace/graph/component-class.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,25 +36,20 @@ struct bt_component_class;
 
 extern
 struct bt_component_class *bt_component_class_filter_create(const char *name,
-		bt_component_class_notification_iterator_next_method notification_iterator_next_method);
+		bt_component_class_notification_iterator_next_method method);
 
 extern
 int bt_component_class_filter_set_notification_iterator_init_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_init_method notification_iterator_init_method);
+		bt_component_class_notification_iterator_init_method method);
 
 extern
 int bt_component_class_filter_set_notification_iterator_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_finalize_method notification_iterator_finalize_method);
-
-extern
-int bt_component_class_filter_set_notification_iterator_seek_time_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_seek_time_method notification_iterator_seek_time_method);
+		bt_component_class_notification_iterator_finalize_method method);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACEGRAPHCOMPONENT_COMPONENT_CLASS_FILTER_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_FILTER_H */

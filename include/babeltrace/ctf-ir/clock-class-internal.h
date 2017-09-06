@@ -56,14 +56,6 @@ struct bt_ctf_clock_class {
 	int frozen;
 };
 
-struct bt_ctf_clock_value {
-	struct bt_object base;
-	struct bt_ctf_clock_class *clock_class;
-	uint64_t value;
-	bool ns_from_epoch_overflows;
-	int64_t ns_from_epoch;
-};
-
 BT_HIDDEN
 void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class);
 

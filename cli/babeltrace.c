@@ -30,21 +30,8 @@
 #include "logging.h"
 
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/plugin/plugin.h>
 #include <babeltrace/common-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/component-source.h>
-#include <babeltrace/graph/component-sink.h>
-#include <babeltrace/graph/component-filter.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/port.h>
-#include <babeltrace/graph/graph.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/ref.h>
-#include <babeltrace/values.h>
 #include <babeltrace/values-internal.h>
-#include <babeltrace/logging.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <popt.h>
@@ -69,22 +56,25 @@
 static const char* log_level_env_var_names[] = {
 	"BABELTRACE_COMMON_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_BTR_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_CTF_FS_SINK_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_FS_SRC_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_SRC_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_METADATA_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_CTF_NOTIF_ITER_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_CTFCOPYTRACE_LIB_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_LTTNG_UTILS_DEBUG_INFO_FLT_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_TEXT_DMESG_SRC_LOG_LEVEL",
+	"BABELTRACE_PLUGIN_TEXT_PRETTY_SINK_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_UTILS_MUXER_FLT_LOG_LEVEL",
 	"BABELTRACE_PLUGIN_UTILS_TRIMMER_FLT_LOG_LEVEL",
-	"BABELTRACE_PLUGIN_CTFCOPYTRACE_LIB_LOG_LEVEL",
-	"BABELTRACE_PLUGIN_CTF_FS_SINK_LOG_LEVEL",
+	"BABELTRACE_PYTHON_BT2_LOG_LEVEL",
 	"BABELTRACE_PYTHON_PLUGIN_PROVIDER_LOG_LEVEL",
 	NULL,
 };
 
 /* Application's processing graph (weak) */
 static struct bt_graph *the_graph;
+static struct bt_query_executor *the_query_executor;
 static bool canceled = false;
 
 GPtrArray *loaded_plugins;
@@ -122,6 +112,10 @@ void signal_handler(int signum)
 		bt_graph_cancel(the_graph);
 	}
 
+	if (the_query_executor) {
+		bt_query_executor_cancel(the_query_executor);
+	}
+
 	canceled = true;
 }
 
@@ -151,6 +145,116 @@ static
 void fini_static_data(void)
 {
 	g_ptr_array_free(loaded_plugins, TRUE);
+}
+
+static
+int create_the_query_executor(void)
+{
+	int ret = 0;
+
+	the_query_executor = bt_query_executor_create();
+	if (!the_query_executor) {
+		BT_LOGE_STR("Cannot create a query executor.");
+		ret = -1;
+	}
+
+	return ret;
+}
+
+static
+void destroy_the_query_executor(void)
+{
+	BT_PUT(the_query_executor);
+}
+
+static
+int query(struct bt_component_class *comp_cls, const char *obj,
+		struct bt_value *params, struct bt_value **user_result,
+		const char **fail_reason)
+{
+	struct bt_value *result = NULL;
+	enum bt_query_status status;
+	*fail_reason = "unknown error";
+	int ret = 0;
+
+	assert(fail_reason);
+	assert(user_result);
+	ret = create_the_query_executor();
+	if (ret) {
+		/* create_the_query_executor() logs errors */
+		goto end;
+	}
+
+	if (canceled) {
+		BT_LOGI("Canceled by user before executing the query: "
+			"comp-cls-addr=%p, comp-cls-name=\"%s\", "
+			"query-obj=\"%s\"", comp_cls,
+			bt_component_class_get_name(comp_cls), obj);
+		*fail_reason = "canceled by user";
+		goto error;
+	}
+
+	while (true) {
+		status = bt_query_executor_query(the_query_executor, comp_cls,
+			obj, params, &result);
+		switch (status) {
+		case BT_QUERY_STATUS_OK:
+			goto ok;
+		case BT_QUERY_STATUS_AGAIN:
+		{
+			const uint64_t sleep_time_us = 100000;
+
+			/* Wait 100 ms and retry */
+			BT_LOGV("Got BT_QUERY_STATUS_AGAIN: sleeping: "
+				"time-us=%" PRIu64, sleep_time_us);
+
+			if (usleep(sleep_time_us)) {
+				if (bt_query_executor_is_canceled(the_query_executor)) {
+					BT_LOGI("Query was canceled by user: "
+						"comp-cls-addr=%p, comp-cls-name=\"%s\", "
+						"query-obj=\"%s\"", comp_cls,
+						bt_component_class_get_name(comp_cls),
+						obj);
+					*fail_reason = "canceled by user";
+					goto error;
+				}
+			}
+
+			continue;
+		}
+		case BT_QUERY_STATUS_EXECUTOR_CANCELED:
+			*fail_reason = "canceled by user";
+			goto error;
+		case BT_QUERY_STATUS_ERROR:
+		case BT_QUERY_STATUS_INVALID:
+			goto error;
+		case BT_QUERY_STATUS_INVALID_OBJECT:
+			*fail_reason = "invalid or unknown query object";
+			goto error;
+		case BT_QUERY_STATUS_INVALID_PARAMS:
+			*fail_reason = "invalid query parameters";
+			goto error;
+		case BT_QUERY_STATUS_NOMEM:
+			*fail_reason = "not enough memory";
+			goto error;
+		default:
+			BT_LOGF("Unknown query status: status=%d", status);
+			abort();
+		}
+	}
+
+ok:
+	*user_result = result;
+	result = NULL;
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	destroy_the_query_executor();
+	bt_put(result);
+	return ret;
 }
 
 static
@@ -792,6 +896,7 @@ int cmd_query(struct bt_config *cfg)
 	int ret = 0;
 	struct bt_component_class *comp_cls = NULL;
 	struct bt_value *results = NULL;
+	const char *fail_reason = NULL;
 
 	comp_cls = find_component_class(cfg->cmd_data.query.cfg_component->plugin_name->str,
 		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
@@ -815,35 +920,39 @@ int cmd_query(struct bt_config *cfg)
 		goto end;
 	}
 
-	results = bt_component_class_query(comp_cls,
-		cfg->cmd_data.query.object->str,
-		cfg->cmd_data.query.cfg_component->params);
-	if (!results) {
-		BT_LOGE("Failed to query component class: plugin-name=\"%s\", "
-			"comp-cls-name=\"%s\", comp-cls-type=%d "
-			"object=\"%s\"",
-			cfg->cmd_data.query.cfg_component->plugin_name->str,
-			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
-			cfg->cmd_data.query.cfg_component->type,
-			cfg->cmd_data.query.object->str);
-		fprintf(stderr, "%s%sFailed to query info to %s",
-			bt_common_color_bold(),
-			bt_common_color_fg_red(),
-			bt_common_color_reset());
-		print_plugin_comp_cls_opt(stderr,
-			cfg->cmd_data.query.cfg_component->plugin_name->str,
-			cfg->cmd_data.query.cfg_component->comp_cls_name->str,
-			cfg->cmd_data.query.cfg_component->type);
-		fprintf(stderr, "%s%s with object `%s`%s\n",
-			bt_common_color_bold(),
-			bt_common_color_fg_red(),
-			cfg->cmd_data.query.object->str,
-			bt_common_color_reset());
-		ret = -1;
-		goto end;
+	ret = query(comp_cls, cfg->cmd_data.query.object->str,
+		cfg->cmd_data.query.cfg_component->params, &results,
+		&fail_reason);
+	if (ret) {
+		goto failed;
 	}
 
 	print_value(stdout, results, 0);
+	goto end;
+
+failed:
+	BT_LOGE("Failed to query component class: %s: plugin-name=\"%s\", "
+		"comp-cls-name=\"%s\", comp-cls-type=%d "
+		"object=\"%s\"", fail_reason,
+		cfg->cmd_data.query.cfg_component->plugin_name->str,
+		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
+		cfg->cmd_data.query.cfg_component->type,
+		cfg->cmd_data.query.object->str);
+	fprintf(stderr, "%s%sFailed to query info to %s",
+		bt_common_color_bold(),
+		bt_common_color_fg_red(),
+		bt_common_color_reset());
+	print_plugin_comp_cls_opt(stderr,
+		cfg->cmd_data.query.cfg_component->plugin_name->str,
+		cfg->cmd_data.query.cfg_component->comp_cls_name->str,
+		cfg->cmd_data.query.cfg_component->type);
+	fprintf(stderr, "%s%s with object `%s`: %s%s\n",
+		bt_common_color_bold(),
+		bt_common_color_fg_red(),
+		cfg->cmd_data.query.object->str,
+		fail_reason,
+		bt_common_color_reset());
+	ret = -1;
 
 end:
 	bt_put(comp_cls);
@@ -1046,6 +1155,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	static const enum bt_component_class_type comp_cls_type =
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
 	int64_t array_size, i;
+	const char *fail_reason = NULL;
 
 	assert(cfg->cmd_data.print_lttng_live_sessions.url);
 	comp_cls = find_component_class(plugin_name, comp_cls_name,
@@ -1076,15 +1186,9 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		goto error;
 	}
 
-	results = bt_component_class_query(comp_cls, "sessions",
-		params);
-	if (!results) {
-		BT_LOGE_STR("Failed to query for sessions.");
-		fprintf(stderr, "%s%sFailed to request sessions%s\n",
-			bt_common_color_bold(),
-			bt_common_color_fg_red(),
-			bt_common_color_reset());
-		goto error;
+	ret = query(comp_cls, "sessions", params, &results, &fail_reason);
+	if (ret) {
+		goto failed;
 	}
 
 	if (!bt_value_is_array(results)) {
@@ -1153,6 +1257,20 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 
 		BT_PUT(map);
 	}
+
+	goto end;
+
+failed:
+	BT_LOGE("Failed to query for sessions: %s", fail_reason);
+	fprintf(stderr, "%s%sFailed to request sessions: %s%s\n",
+		bt_common_color_bold(),
+		bt_common_color_fg_red(),
+		fail_reason,
+		bt_common_color_reset());
+
+error:
+	ret = -1;
+
 end:
 	bt_put(v);
 	bt_put(map);
@@ -1160,10 +1278,6 @@ end:
 	bt_put(params);
 	bt_put(comp_cls);
 	return 0;
-
-error:
-	ret = -1;
-	goto end;
 }
 
 static
@@ -1179,6 +1293,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	static const char * const comp_cls_name = "fs";
 	static const enum bt_component_class_type comp_cls_type =
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
+	const char *fail_reason = NULL;
 
 	assert(cfg->cmd_data.print_ctf_metadata.path);
 	comp_cls = find_component_class(plugin_name, comp_cls_name,
@@ -1212,16 +1327,9 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		goto end;
 	}
 
-	results = bt_component_class_query(comp_cls, "metadata-info",
-		params);
-	if (!results) {
-		ret = -1;
-		BT_LOGE_STR("Failed to query for metadata info.");
-		fprintf(stderr, "%s%sFailed to request metadata info%s\n",
-			bt_common_color_bold(),
-			bt_common_color_fg_red(),
-			bt_common_color_reset());
-		goto end;
+	ret = query(comp_cls, "metadata-info", params, &results, &fail_reason);
+	if (ret) {
+		goto failed;
 	}
 
 	metadata_text_value = bt_value_map_get(results, "text");
@@ -1234,8 +1342,19 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	ret = bt_value_string_get(metadata_text_value, &metadata_text);
 	assert(ret == 0);
 	printf("%s\n", metadata_text);
+	goto end;
+
+failed:
+	ret = -1;
+	BT_LOGE("Failed to query for metadata info: %s", fail_reason);
+	fprintf(stderr, "%s%sFailed to request metadata info: %s%s\n",
+		bt_common_color_bold(),
+		bt_common_color_fg_red(),
+		fail_reason,
+		bt_common_color_reset());
 
 end:
+	destroy_the_query_executor();
 	bt_put(results);
 	bt_put(params);
 	bt_put(metadata_text_value);
@@ -1943,6 +2062,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	struct bt_value *stream_info = NULL;
 	struct port_id *port_id = NULL;
 	struct trace_range *trace_range = NULL;
+	const char *fail_reason = NULL;
 
 	component_path_value = bt_value_map_get(cfg_comp->params, "path");
 	if (!bt_value_is_string(component_path_value)) {
@@ -1974,10 +2094,11 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		goto error;
 	}
 
-	query_result = bt_component_class_query(comp_cls, "trace-info",
-		query_params);
-	if (!query_result) {
-		BT_LOGD("Component class \'%s\' does not support the \'trace-info\' query.",
+	ret = query(comp_cls, "trace-info", query_params, &query_result,
+		&fail_reason);
+	if (ret) {
+		BT_LOGD("Component class does not support the `trace-info` query: %s: "
+			"comp-class-name=\"%s\"", fail_reason,
 			bt_component_class_get_name(comp_cls));
 		ret = -1;
 		goto error;

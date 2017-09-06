@@ -2,11 +2,11 @@
 babeltraceincludedir = "$(includedir)/babeltrace"
 babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
-	babeltrace/values.h \
-	babeltrace/ref.h \
 	babeltrace/logging.h \
-	babeltrace/version.h \
-	babeltrace/types.h
+	babeltrace/ref.h \
+	babeltrace/types.h \
+	babeltrace/values.h \
+	babeltrace/version.h
 
 # Legacy API (for CTF writer)
 babeltracectfincludedir = "$(includedir)/babeltrace/ctf"
@@ -17,25 +17,26 @@ babeltracectfinclude_HEADERS = \
 babeltracectfwriterincludedir = "$(includedir)/babeltrace/ctf-writer"
 babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/clock.h \
-	babeltrace/ctf-writer/writer.h \
 	babeltrace/ctf-writer/event-fields.h \
 	babeltrace/ctf-writer/event-types.h \
 	babeltrace/ctf-writer/event.h \
+	babeltrace/ctf-writer/stream-class.h \
 	babeltrace/ctf-writer/stream.h \
-	babeltrace/ctf-writer/stream-class.h
+	babeltrace/ctf-writer/writer.h
 
 # CTF IR API
 babeltracectfirincludedir = "$(includedir)/babeltrace/ctf-ir"
 babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/clock-class.h \
-	babeltrace/ctf-ir/fields.h \
-	babeltrace/ctf-ir/field-types.h \
-	babeltrace/ctf-ir/event.h \
+	babeltrace/ctf-ir/clock-value.h \
 	babeltrace/ctf-ir/event-class.h \
+	babeltrace/ctf-ir/event.h \
 	babeltrace/ctf-ir/field-path.h \
-	babeltrace/ctf-ir/stream.h \
+	babeltrace/ctf-ir/field-types.h \
+	babeltrace/ctf-ir/fields.h \
 	babeltrace/ctf-ir/packet.h \
 	babeltrace/ctf-ir/stream-class.h \
+	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/trace.h \
 	babeltrace/ctf-ir/utils.h \
 	babeltrace/ctf-ir/visitor.h
@@ -43,15 +44,14 @@ babeltracectfirinclude_HEADERS = \
 # Plugin and plugin development API
 babeltracepluginincludedir = "$(includedir)/babeltrace/plugin"
 babeltraceplugininclude_HEADERS = \
-	babeltrace/plugin/plugin.h \
-	babeltrace/plugin/plugin-dev.h
+	babeltrace/plugin/plugin-dev.h \
+	babeltrace/plugin/plugin.h
 
 # Graph, component, and notification API
 babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/clock-class-priority-map.h \
 	babeltrace/graph/component-class-filter.h \
-	babeltrace/graph/component-class-sink-colander.h \
 	babeltrace/graph/component-class-sink.h \
 	babeltrace/graph/component-class-source.h \
 	babeltrace/graph/component-class.h \
@@ -68,17 +68,20 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification-heap.h \
 	babeltrace/graph/notification-inactivity.h \
 	babeltrace/graph/notification-iterator.h \
-	babeltrace/graph/notification.h \
 	babeltrace/graph/notification-packet.h \
 	babeltrace/graph/notification-stream.h \
+	babeltrace/graph/notification.h \
+	babeltrace/graph/output-port-notification-iterator.h \
 	babeltrace/graph/port.h \
 	babeltrace/graph/private-component-filter.h \
 	babeltrace/graph/private-component-sink.h \
 	babeltrace/graph/private-component-source.h \
 	babeltrace/graph/private-component.h \
+	babeltrace/graph/private-connection-notification-iterator.h \
+	babeltrace/graph/private-connection-private-notification-iterator.h \
 	babeltrace/graph/private-connection.h \
-	babeltrace/graph/private-notification-iterator.h \
-	babeltrace/graph/private-port.h
+	babeltrace/graph/private-port.h \
+	babeltrace/graph/query-executor.h
 
 noinst_HEADERS = \
 	babeltrace/align-internal.h \
@@ -101,6 +104,7 @@ noinst_HEADERS = \
 	babeltrace/compiler-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
 	babeltrace/ctf-ir/clock-class-internal.h \
+	babeltrace/ctf-ir/clock-value-internal.h \
 	babeltrace/ctf-ir/event-class-internal.h \
 	babeltrace/ctf-ir/event-internal.h \
 	babeltrace/ctf-ir/field-path-internal.h \
@@ -120,6 +124,7 @@ noinst_HEADERS = \
 	babeltrace/endian-internal.h \
 	babeltrace/graph/clock-class-priority-map-internal.h \
 	babeltrace/graph/component-class-internal.h \
+	babeltrace/graph/component-class-sink-colander-internal.h \
 	babeltrace/graph/component-filter-internal.h \
 	babeltrace/graph/component-internal.h \
 	babeltrace/graph/component-sink-internal.h \
@@ -135,6 +140,7 @@ noinst_HEADERS = \
 	babeltrace/graph/notification-packet-internal.h \
 	babeltrace/graph/notification-stream-internal.h \
 	babeltrace/graph/port-internal.h \
+	babeltrace/graph/query-executor-internal.h \
 	babeltrace/lib-logging-internal.h \
 	babeltrace/list-internal.h \
 	babeltrace/logging-internal.h \

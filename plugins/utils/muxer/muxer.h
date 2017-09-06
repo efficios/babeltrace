@@ -37,16 +37,16 @@ void muxer_finalize(
 
 BT_HIDDEN
 enum bt_notification_iterator_status muxer_notif_iter_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *priv_port);
 
 BT_HIDDEN
 void muxer_notif_iter_finalize(
-		struct bt_private_notification_iterator *priv_notif_iter);
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return muxer_notif_iter_next(
-		struct bt_private_notification_iterator *priv_notif_iter);
+struct bt_notification_iterator_next_method_return muxer_notif_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
 
 BT_HIDDEN
 void muxer_port_connected(

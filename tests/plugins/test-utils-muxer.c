@@ -22,37 +22,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
-#include <babeltrace/graph/component-class-filter.h>
-#include <babeltrace/graph/component-class-sink.h>
-#include <babeltrace/graph/component-class-source.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/component-filter.h>
-#include <babeltrace/graph/component-sink.h>
-#include <babeltrace/graph/component-source.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/graph.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-inactivity.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/port.h>
-#include <babeltrace/graph/private-component-source.h>
-#include <babeltrace/graph/private-component-sink.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-notification-iterator.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/plugin/plugin.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/babeltrace.h>
 #include <glib.h>
 
 #include "tap/tap.h"
@@ -416,10 +386,10 @@ void fini_static_data(void)
 
 static
 void src_iter_finalize(
-		struct bt_private_notification_iterator *private_notification_iterator)
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
 {
 	struct src_iter_user_data *user_data =
-		bt_private_notification_iterator_get_user_data(
+		bt_private_connection_private_notification_iterator_get_user_data(
 			private_notification_iterator);
 
 	if (user_data) {
@@ -429,18 +399,18 @@ void src_iter_finalize(
 
 static
 enum bt_notification_iterator_status src_iter_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *private_port)
 {
 	struct src_iter_user_data *user_data =
 		g_new0(struct src_iter_user_data, 1);
-	struct bt_port *port = bt_port_from_private_port(private_port);
+	struct bt_port *port = bt_port_from_private(private_port);
 	const char *port_name;
 	int ret;
 
 	assert(user_data);
 	assert(port);
-	ret = bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	ret = bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		user_data);
 	assert(ret == 0);
 	port_name = bt_port_get_name(port);
@@ -536,10 +506,10 @@ struct bt_ctf_event *src_create_event(struct bt_ctf_packet *packet,
 }
 
 static
-struct bt_notification_iterator_next_return src_iter_next_seq(
+struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		struct src_iter_user_data *user_data)
 {
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
 	int64_t cur_ts_ns;
@@ -588,17 +558,17 @@ struct bt_notification_iterator_next_return src_iter_next_seq(
 }
 
 static
-struct bt_notification_iterator_next_return src_iter_next(
-		struct bt_private_notification_iterator *priv_iterator)
+struct bt_notification_iterator_next_method_return src_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_iterator)
 {
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.notification = NULL,
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
 	struct src_iter_user_data *user_data =
-		bt_private_notification_iterator_get_user_data(priv_iterator);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_iterator);
 	struct bt_private_component *private_component =
-		bt_private_notification_iterator_get_private_component(priv_iterator);
+		bt_private_connection_private_notification_iterator_get_private_component(priv_iterator);
 	int ret;
 
 	assert(user_data);

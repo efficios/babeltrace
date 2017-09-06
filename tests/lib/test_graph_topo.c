@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <babeltrace/ref.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-source.h>
 #include <babeltrace/graph/component-class-sink.h>
@@ -284,10 +285,10 @@ size_t event_pos(struct event *event)
 }
 
 static
-struct bt_notification_iterator_next_return src_iter_next(
-		struct bt_private_notification_iterator *priv_iterator)
+struct bt_notification_iterator_next_method_return src_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_iterator)
 {
-	struct bt_notification_iterator_next_return ret = {
+	struct bt_notification_iterator_next_method_return ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR,
 	};
 
@@ -303,8 +304,8 @@ enum bt_component_status accept_port_connection(
 	struct event event = {
 		.type = COMP_ACCEPT_PORT_CONNECTION,
 		.data.comp_accept_port_connection = {
-			.comp = bt_component_from_private_component(private_component),
-			.self_port = bt_port_from_private_port(self_private_port),
+			.comp = bt_component_from_private(private_component),
+			.self_port = bt_port_from_private(self_private_port),
 			.other_port = other_port,
 		},
 	};
@@ -325,8 +326,8 @@ void src_port_connected(struct bt_private_component *private_component,
 	struct event event = {
 		.type = COMP_PORT_CONNECTED,
 		.data.comp_port_connected = {
-			.comp = bt_component_from_private_component(private_component),
-			.self_port = bt_port_from_private_port(self_private_port),
+			.comp = bt_component_from_private(private_component),
+			.self_port = bt_port_from_private(self_private_port),
 			.other_port = other_port,
 		},
 	};
@@ -354,8 +355,8 @@ void src_port_disconnected(struct bt_private_component *private_component,
 	struct event event = {
 		.type = COMP_PORT_DISCONNECTED,
 		.data.comp_port_disconnected = {
-			.comp = bt_component_from_private_component(private_component),
-			.port = bt_port_from_private_port(private_port),
+			.comp = bt_component_from_private(private_component),
+			.port = bt_port_from_private(private_port),
 		},
 	};
 
@@ -416,8 +417,8 @@ void sink_port_connected(struct bt_private_component *private_component,
 	struct event event = {
 		.type = COMP_PORT_CONNECTED,
 		.data.comp_port_connected = {
-			.comp = bt_component_from_private_component(private_component),
-			.self_port = bt_port_from_private_port(self_private_port),
+			.comp = bt_component_from_private(private_component),
+			.self_port = bt_port_from_private(self_private_port),
 			.other_port = other_port,
 		},
 	};
@@ -434,8 +435,8 @@ void sink_port_disconnected(struct bt_private_component *private_component,
 	struct event event = {
 		.type = COMP_PORT_DISCONNECTED,
 		.data.comp_port_disconnected = {
-			.comp = bt_component_from_private_component(private_component),
-			.port = bt_port_from_private_port(private_port),
+			.comp = bt_component_from_private(private_component),
+			.port = bt_port_from_private(private_port),
 		},
 	};
 

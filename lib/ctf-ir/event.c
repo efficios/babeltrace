@@ -32,6 +32,8 @@
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
+#include <babeltrace/ctf-ir/clock-value.h>
+#include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/event-class.h>

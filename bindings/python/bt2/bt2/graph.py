@@ -106,6 +106,8 @@ class Graph(object._Object):
             raise bt2.TryAgain
         elif status == native_bt.GRAPH_STATUS_NO_SINK:
             raise bt2.NoSinkComponent
+        elif status == native_bt.GRAPH_STATUS_CANNOT_CONSUME:
+            raise bt2.CannotConsumeGraph
         elif status < 0:
             raise bt2.Error(gen_error_msg)
 

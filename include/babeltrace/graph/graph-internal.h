@@ -32,6 +32,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <glib.h>
 
 struct bt_component;
@@ -61,6 +62,18 @@ struct bt_graph {
 	bt_bool in_remove_listener;
 	bt_bool has_sink;
 
+	/*
+	 * If this is BT_FALSE, then the public API's consuming
+	 * functions (bt_graph_consume() and bt_graph_run()) return
+	 * BT_GRAPH_STATUS_CANNOT_CONSUME. The internal "no check"
+	 * functions always work.
+	 *
+	 * In bt_output_port_notification_iterator_create(), on success,
+	 * this flag is cleared so that the iterator remains the only
+	 * consumer for the graph's lifetime.
+	 */
+	bt_bool can_consume;
+
 	struct {
 		GArray *port_added;
 		GArray *port_removed;
@@ -68,6 +81,20 @@ struct bt_graph {
 		GArray *ports_disconnected;
 	} listeners;
 };
+
+static inline
+void bt_graph_set_can_consume(struct bt_graph *graph, bt_bool can_consume)
+{
+	assert(graph);
+	graph->can_consume = can_consume;
+}
+
+BT_HIDDEN
+enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph);
+
+BT_HIDDEN
+enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
+		struct bt_component *sink);
 
 BT_HIDDEN
 void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port);
@@ -91,6 +118,18 @@ BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
 		struct bt_connection *connection);
 
+/*
+ * This only works with a component which is not connected at this
+ * point.
+ *
+ * Also the reference count of `component` should be 0 when you call
+ * this function, which means only `graph` owns the component, so it
+ * is safe to destroy.
+ */
+BT_HIDDEN
+int bt_graph_remove_unconnected_component(struct bt_graph *graph,
+		struct bt_component *component);
+
 static inline
 const char *bt_graph_status_string(enum bt_graph_status status)
 {
@@ -113,6 +152,8 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION";
 	case BT_GRAPH_STATUS_NOMEM:
 		return "BT_GRAPH_STATUS_NOMEM";
+	case BT_GRAPH_STATUS_CANNOT_CONSUME:
+		return "BT_GRAPH_STATUS_CANNOT_CONSUME";
 	default:
 		return "(unknown)";
 	}

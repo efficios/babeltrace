@@ -26,6 +26,7 @@ __version__ = '@PACKAGE_VERSION@'
 from bt2.clock_class import *
 from bt2.clock_class import _ClockValue
 from bt2.clock_class_priority_map import *
+from bt2.clock_value import *
 from bt2.component import *
 from bt2.component import _FilterComponent
 from bt2.component import _GenericFilterComponentClass
@@ -72,6 +73,7 @@ from bt2.port import _PrivateInputPort
 from bt2.port import _PrivateOutputPort
 from bt2.port import _PrivatePort
 from bt2.py_plugin import *
+from bt2.query_executor import *
 from bt2.stream import _Stream
 from bt2.stream_class import *
 from bt2.trace import *
@@ -92,6 +94,14 @@ class Frozen(Error):
 
 
 class NoSuchPlugin(Error):
+    pass
+
+
+class InvalidQueryObject(Error):
+    pass
+
+
+class InvalidQueryParams(Error):
     pass
 
 
@@ -119,7 +129,15 @@ class IncompleteUserClass(Error):
     pass
 
 
+class CannotConsumeGraph(Error):
+    pass
+
+
 class GraphCanceled(Exception):
+    pass
+
+
+class QueryExecutorCanceled(Exception):
     pass
 
 

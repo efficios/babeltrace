@@ -25,9 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 
 struct bt_ctf_stream_class *ctf_utils_stream_class_from_packet_header(

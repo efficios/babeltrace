@@ -27,7 +27,7 @@
 #include <stdbool.h>
 #include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/babeltrace.h>
 
 #include "../common/notif-iter/notif-iter.h"
 #include "lttng-index.h"
@@ -136,7 +136,7 @@ BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return ctf_fs_ds_file_next(
+struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *stream);
 
 BT_HIDDEN

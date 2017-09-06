@@ -22,10 +22,6 @@
  * THE SOFTWARE.
  */
 
-%{
-#include <babeltrace/version.h>
-%}
-
 /* Version functions */
 int bt_version_get_major(void);
 int bt_version_get_minor(void);

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/babeltrace.h>
 #include "dummy/dummy.h"
 #include "counter/counter.h"
 #include "trimmer/trimmer.h"
@@ -64,8 +64,6 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(trimmer,
 	trimmer_iterator_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(trimmer,
 	trimmer_iterator_finalize);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(trimmer,
-	trimmer_iterator_seek_time);
 
 /* flt.utils.muxer */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_notif_iter_next);

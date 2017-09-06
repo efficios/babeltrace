@@ -26,8 +26,17 @@
  */
 
 #include <stdint.h>
+
+/* For enum bt_component_status */
 #include <babeltrace/graph/component-status.h>
+
+/* For enum bt_notification_iterator_status */
 #include <babeltrace/graph/notification-iterator.h>
+
+/* For enum bt_query_status */
+#include <babeltrace/graph/query-executor.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -40,7 +49,8 @@ struct bt_private_component;
 struct bt_private_port;
 struct bt_port;
 struct bt_value;
-struct bt_private_notification_iterator;
+struct bt_private_connection_private_notification_iterator;
+struct bt_query_executor;
 
 /**
  * Component class type.
@@ -58,9 +68,14 @@ enum bt_component_class_type {
 	BT_COMPONENT_CLASS_TYPE_FILTER =	2,
 };
 
-struct bt_notification_iterator_next_return {
+struct bt_notification_iterator_next_method_return {
 	struct bt_notification *notification;
 	enum bt_notification_iterator_status status;
+};
+
+struct bt_component_class_query_method_return {
+	struct bt_value *result;
+	enum bt_query_status status;
 };
 
 typedef enum bt_component_status (*bt_component_class_init_method)(
@@ -72,22 +87,19 @@ typedef void (*bt_component_class_finalize_method)(
 
 typedef enum bt_notification_iterator_status
 		(*bt_component_class_notification_iterator_init_method)(
-		struct bt_private_notification_iterator *private_notification_iterator,
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
 		struct bt_private_port *private_port);
 
 typedef void (*bt_component_class_notification_iterator_finalize_method)(
-		struct bt_private_notification_iterator *private_notification_iterator);
+		struct bt_private_connection_private_notification_iterator *notification_iterator);
 
-typedef struct bt_notification_iterator_next_return (*bt_component_class_notification_iterator_next_method)(
-		struct bt_private_notification_iterator *private_notification_iterator);
+typedef struct bt_notification_iterator_next_method_return
+(*bt_component_class_notification_iterator_next_method)(
+		struct bt_private_connection_private_notification_iterator *notification_iterator);
 
-typedef enum bt_notification_iterator_status
-		(*bt_component_class_notification_iterator_seek_time_method)(
-		struct bt_private_notification_iterator *private_notification_iterator,
-		int64_t time);
-
-typedef struct bt_value *(*bt_component_class_query_method)(
+typedef struct bt_component_class_query_method_return (*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
+		struct bt_query_executor *query_executor,
 		const char *object, struct bt_value *params);
 
 typedef enum bt_component_status (*bt_component_class_accept_port_connection_method)(
@@ -106,27 +118,27 @@ typedef void (*bt_component_class_port_disconnected_method)(
 
 extern int bt_component_class_set_init_method(
 		struct bt_component_class *component_class,
-		bt_component_class_init_method init_method);
+		bt_component_class_init_method method);
 
 extern int bt_component_class_set_finalize_method(
 		struct bt_component_class *component_class,
-		bt_component_class_finalize_method finalize_method);
+		bt_component_class_finalize_method method);
 
 extern int bt_component_class_set_accept_port_connection_method(
 		struct bt_component_class *component_class,
-		bt_component_class_accept_port_connection_method accept_port_connection_method);
+		bt_component_class_accept_port_connection_method method);
 
 extern int bt_component_class_set_port_connected_method(
 		struct bt_component_class *component_class,
-		bt_component_class_port_connected_method port_connected_method);
+		bt_component_class_port_connected_method method);
 
 extern int bt_component_class_set_port_disconnected_method(
 		struct bt_component_class *component_class,
-		bt_component_class_port_disconnected_method port_disconnected_method);
+		bt_component_class_port_disconnected_method method);
 
 extern int bt_component_class_set_query_method(
 		struct bt_component_class *component_class,
-		bt_component_class_query_method query_method);
+		bt_component_class_query_method method);
 
 extern int bt_component_class_set_description(
 		struct bt_component_class *component_class,
@@ -162,10 +174,6 @@ extern const char *bt_component_class_get_description(
 
 extern const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
-
-extern struct bt_value *bt_component_class_query(
-		struct bt_component_class *component_class,
-		const char *object, struct bt_value *params);
 
 /**
  * Get a component class' type.

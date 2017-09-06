@@ -40,9 +40,6 @@ const char *bt_component_class_get_description(
 		struct bt_component_class *component_class);
 const char *bt_component_class_get_help(
 		struct bt_component_class *component_class);
-struct bt_value *bt_component_class_query(
-		struct bt_component_class *component_class,
-		const char *object, struct bt_value *params);
 enum bt_component_class_type bt_component_class_get_type(
 		struct bt_component_class *component_class);
 
@@ -108,9 +105,9 @@ static PyObject *py_mod_bt2_exc_unsupported_feature_type = NULL;
 static PyObject *py_mod_bt2_exc_try_again_type = NULL;
 static PyObject *py_mod_bt2_exc_stop_type = NULL;
 static PyObject *py_mod_bt2_exc_port_connection_refused_type = NULL;
-static PyObject *py_mod_bt2_exc_graph_canceled_type = NULL;
 static PyObject *py_mod_bt2_exc_notif_iter_canceled_type = NULL;
-static PyObject *py_mod_bt2_exc_connection_ended_type = NULL;
+static PyObject *py_mod_bt2_exc_invalid_query_object_type = NULL;
+static PyObject *py_mod_bt2_exc_invalid_query_params_type = NULL;
 
 static void bt_py3_cc_init_from_bt2(void)
 {
@@ -129,17 +126,22 @@ static void bt_py3_cc_init_from_bt2(void)
 	assert(py_mod_bt2_exc_error_type);
 	py_mod_bt2_exc_unsupported_feature_type =
 		PyObject_GetAttrString(py_mod_bt2, "UnsupportedFeature");
+	assert(py_mod_bt2_exc_unsupported_feature_type);
 	py_mod_bt2_exc_try_again_type =
 		PyObject_GetAttrString(py_mod_bt2, "TryAgain");
+	assert(py_mod_bt2_exc_try_again_type);
 	py_mod_bt2_exc_stop_type =
 		PyObject_GetAttrString(py_mod_bt2, "Stop");
+	assert(py_mod_bt2_exc_stop_type);
 	py_mod_bt2_exc_port_connection_refused_type =
 		PyObject_GetAttrString(py_mod_bt2, "PortConnectionRefused");
-	py_mod_bt2_exc_graph_canceled_type =
-		PyObject_GetAttrString(py_mod_bt2, "GraphCanceled");
-	py_mod_bt2_exc_connection_ended_type =
-		PyObject_GetAttrString(py_mod_bt2, "ConnectionEnded");
-	assert(py_mod_bt2_exc_stop_type);
+	assert(py_mod_bt2_exc_port_connection_refused_type);
+	py_mod_bt2_exc_invalid_query_object_type =
+		PyObject_GetAttrString(py_mod_bt2, "InvalidQueryObject");
+	assert(py_mod_bt2_exc_invalid_query_object_type);
+	py_mod_bt2_exc_invalid_query_params_type =
+		PyObject_GetAttrString(py_mod_bt2, "InvalidQueryParams");
+	assert(py_mod_bt2_exc_invalid_query_params_type);
 }
 
 static void bt_py3_cc_exit_handler(void)
@@ -163,9 +165,9 @@ static void bt_py3_cc_exit_handler(void)
 	Py_XDECREF(py_mod_bt2_exc_try_again_type);
 	Py_XDECREF(py_mod_bt2_exc_stop_type);
 	Py_XDECREF(py_mod_bt2_exc_port_connection_refused_type);
-	Py_XDECREF(py_mod_bt2_exc_graph_canceled_type);
 	Py_XDECREF(py_mod_bt2_exc_notif_iter_canceled_type);
-	Py_XDECREF(py_mod_bt2_exc_connection_ended_type);
+	Py_XDECREF(py_mod_bt2_exc_invalid_query_object_type);
+	Py_XDECREF(py_mod_bt2_exc_invalid_query_params_type);
 }
 
 
@@ -211,6 +213,33 @@ end:
 	return status;
 }
 
+static enum bt_query_status bt_py3_exc_to_query_status(void)
+{
+	enum bt_query_status status = BT_QUERY_STATUS_OK;
+	PyObject *exc = PyErr_Occurred();
+
+	if (!exc) {
+		goto end;
+	}
+
+	if (PyErr_GivenExceptionMatches(exc,
+			py_mod_bt2_exc_invalid_query_object_type)) {
+		status = BT_QUERY_STATUS_INVALID_OBJECT;
+	} else if (PyErr_GivenExceptionMatches(exc,
+			py_mod_bt2_exc_invalid_query_params_type)) {
+		status = BT_QUERY_STATUS_INVALID_PARAMS;
+	} else if (PyErr_GivenExceptionMatches(exc,
+			py_mod_bt2_exc_try_again_type)) {
+		status = BT_QUERY_STATUS_AGAIN;
+	} else {
+		status = BT_QUERY_STATUS_ERROR;
+	}
+
+end:
+	PyErr_Clear();
+	return status;
+}
+
 static enum bt_component_status bt_py3_exc_to_component_status(void)
 {
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
@@ -246,7 +275,7 @@ static enum bt_component_status bt_py3_cc_init(
 		struct bt_value *params, void *init_method_data)
 {
 	struct bt_component *comp =
-		bt_component_from_private_component(priv_comp);
+		bt_component_from_private(priv_comp);
 	struct bt_component_class *comp_cls = bt_component_get_class(comp);
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	PyObject *py_cls = NULL;
@@ -493,16 +522,21 @@ static void bt_py3_cc_port_disconnected(
 	Py_XDECREF(py_method_result);
 }
 
-static struct bt_value *bt_py3_cc_query(
+static struct bt_component_class_query_method_return bt_py3_cc_query(
 		struct bt_component_class *comp_cls,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
 	PyObject *py_cls = NULL;
 	PyObject *py_params_ptr = NULL;
+	PyObject *py_query_exec_ptr = NULL;
 	PyObject *py_query_func = NULL;
 	PyObject *py_object = NULL;
 	PyObject *py_results_addr = NULL;
-	struct bt_value *results = NULL;
+	struct bt_component_class_query_method_return ret = {
+		.status = BT_QUERY_STATUS_OK,
+		.result = NULL,
+	};
 
 	py_cls = lookup_cc_ptr_to_py_cls(comp_cls);
 	if (!py_cls) {
@@ -518,6 +552,13 @@ static struct bt_value *bt_py3_cc_query(
 		goto error;
 	}
 
+	py_query_exec_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(query_exec),
+		SWIGTYPE_p_bt_query_executor, 0);
+	if (!py_query_exec_ptr) {
+		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		goto error;
+	}
+
 	py_object = SWIG_FromCharPtr(object);
 	if (!py_object) {
 		BT_LOGE_STR("Failed to create a Python string.");
@@ -525,10 +566,19 @@ static struct bt_value *bt_py3_cc_query(
 	}
 
 	py_results_addr = PyObject_CallMethod(py_cls,
-		"_query_from_native", "(OO)", py_object, py_params_ptr);
-	if (!py_results_addr || py_results_addr == Py_None) {
-		BT_LOGE_STR("User's _query() method failed.");
-		goto error;
+		"_query_from_native", "(OOO)", py_query_exec_ptr,
+		py_object, py_params_ptr);
+	ret.status = bt_py3_exc_to_query_status();
+	if (!py_results_addr && ret.status == BT_QUERY_STATUS_OK) {
+		/* Pretty sure this should never happen, but just in case */
+		BT_LOGE("_query_from_native() class method failed without raising an exception: "
+			"status=%d", ret.status);
+		ret.status = BT_QUERY_STATUS_ERROR;
+		goto end;
+	}
+
+	if (ret.status != BT_QUERY_STATUS_OK) {
+		goto end;
 	}
 
 	if (py_results_addr == Py_NotImplemented) {
@@ -541,25 +591,28 @@ static struct bt_value *bt_py3_cc_query(
 	 * (PyLong) containing the address of a BT value object (new
 	 * reference).
 	 */
-	results = (void *) PyLong_AsUnsignedLongLong(py_results_addr);
+	ret.result = (void *) PyLong_AsUnsignedLongLong(py_results_addr);
 	assert(!PyErr_Occurred());
-	assert(results);
+	assert(ret.result);
 	goto end;
 
 error:
-	BT_PUT(results);
+	BT_PUT(ret.result);
 	PyErr_Clear();
+	ret.status = BT_QUERY_STATUS_ERROR;
+	BT_PUT(ret.result);
 
 end:
 	Py_XDECREF(py_params_ptr);
+	Py_XDECREF(py_query_exec_ptr);
 	Py_XDECREF(py_query_func);
 	Py_XDECREF(py_object);
 	Py_XDECREF(py_results_addr);
-	return results;
+	return ret;
 }
 
 static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *priv_port)
 {
 	enum bt_notification_iterator_status status =
@@ -570,7 +623,7 @@ static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init
 	PyObject *py_init_method_result = NULL;
 	PyObject *py_iter = NULL;
 	struct bt_private_component *priv_comp =
-		bt_private_notification_iterator_get_private_component(
+		bt_private_connection_private_notification_iterator_get_private_component(
 			priv_notif_iter);
 	PyObject *py_comp;
 
@@ -591,7 +644,7 @@ static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init
 	}
 
 	py_iter_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(priv_notif_iter),
-		SWIGTYPE_p_bt_private_notification_iterator, 0);
+		SWIGTYPE_p_bt_private_connection_private_notification_iterator, 0);
 	if (!py_iter_ptr) {
 		BT_LOGE_STR("Failed to create a SWIG pointer object.");
 		goto error;
@@ -642,10 +695,10 @@ static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init
 	 *         owns a native bt_notification_iterator object (iter)
 	 *             owns a _UserNotificationIterator instance (py_iter)
 	 *                 self._ptr is a borrowed reference to the
-	 *                 native bt_private_notification_iterator
+	 *                 native bt_private_connection_private_notification_iterator
 	 *                 object (iter)
 	 */
-	bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		py_iter);
 	py_iter = NULL;
 	goto end;
@@ -678,10 +731,10 @@ end:
 }
 
 static void bt_py3_cc_notification_iterator_finalize(
-		struct bt_private_notification_iterator *priv_notif_iter)
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
 	PyObject *py_notif_iter =
-		bt_private_notification_iterator_get_user_data(priv_notif_iter);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	PyObject *py_method_result = NULL;
 
 	assert(py_notif_iter);
@@ -704,16 +757,16 @@ static void bt_py3_cc_notification_iterator_finalize(
 	Py_DECREF(py_notif_iter);
 }
 
-static struct bt_notification_iterator_next_return
+static struct bt_notification_iterator_next_method_return
 bt_py3_cc_notification_iterator_next(
-			struct bt_private_notification_iterator *priv_notif_iter)
+			struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
-	struct bt_notification_iterator_next_return next_ret = {
+	struct bt_notification_iterator_next_method_return next_ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,
 	};
 	PyObject *py_notif_iter =
-		bt_private_notification_iterator_get_user_data(priv_notif_iter);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	PyObject *py_method_result = NULL;
 
 	assert(py_notif_iter);

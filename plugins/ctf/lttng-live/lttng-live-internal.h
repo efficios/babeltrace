@@ -31,10 +31,7 @@
 #include <stdbool.h>
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
-#include <babeltrace/types.h>
+#include <babeltrace/babeltrace.h>
 #include "viewer-connection.h"
 
 //TODO: this should not be used by plugins. Should copy code into plugin
@@ -215,13 +212,15 @@ enum bt_ctf_lttng_live_iterator_status {
 enum bt_component_status lttng_live_component_init(struct bt_private_component *source,
 		struct bt_value *params, void *init_method_data);
 
-struct bt_value *lttng_live_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_method_return lttng_live_query(
+		struct bt_component_class *comp_class,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params);
 
 void lttng_live_component_finalize(struct bt_private_component *component);
 
-struct bt_notification_iterator_next_return lttng_live_iterator_next(
-        struct bt_private_notification_iterator *iterator);
+struct bt_notification_iterator_next_method_return lttng_live_iterator_next(
+        struct bt_private_connection_private_notification_iterator *iterator);
 
 enum bt_component_status lttng_live_accept_port_connection(
 		struct bt_private_component *private_component,
@@ -229,10 +228,10 @@ enum bt_component_status lttng_live_accept_port_connection(
 		struct bt_port *other_port);
 
 enum bt_notification_iterator_status lttng_live_iterator_init(
-		struct bt_private_notification_iterator *it,
+		struct bt_private_connection_private_notification_iterator *it,
 		struct bt_private_port *port);
 
-void lttng_live_iterator_finalize(struct bt_private_notification_iterator *it);
+void lttng_live_iterator_finalize(struct bt_private_connection_private_notification_iterator *it);
 
 int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live);
 int lttng_live_attach_session(struct lttng_live_session *session);

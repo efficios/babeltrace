@@ -1715,17 +1715,6 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	stream->flushed_packet_count++;
 	stream->size += stream->pos.packet_size / CHAR_BIT;
 
-	do {
-		ret = ftruncate(stream->pos.fd, stream->size);
-	} while (ret == -1 && errno == EINTR);
-	if (ret == -1) {
-		BT_LOGE_ERRNO("Cannot truncate stream file to new size",
-				": size=%" PRIu64 ", stream-addr=%p, "
-				"stream-name=\"%s\"",
-				stream->size, stream,
-				bt_ctf_stream_get_name(stream));
-	}
-
 end:
 	/* Reset automatically-set fields. */
 	if (stream->packet_context) {

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_COLANDER_H
-#define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_COLANDER_H
+#ifndef BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H
+#define BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -24,17 +24,35 @@
  */
 
 #include <babeltrace/types.h>
+#include <babeltrace/object-internal.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct bt_query_executor {
+	struct bt_object base;
+	bt_bool canceled;
+};
 
-struct bt_component_class;
+static inline const char *bt_query_status_string(enum bt_query_status status)
+{
+	switch (status) {
+	case BT_QUERY_STATUS_OK:
+		return "BT_QUERY_STATUS_OK";
+	case BT_QUERY_STATUS_AGAIN:
+		return "BT_QUERY_STATUS_AGAIN";
+	case BT_QUERY_STATUS_EXECUTOR_CANCELED:
+		return "BT_QUERY_STATUS_EXECUTOR_CANCELED";
+	case BT_QUERY_STATUS_ERROR:
+		return "BT_QUERY_STATUS_ERROR";
+	case BT_QUERY_STATUS_INVALID:
+		return "BT_QUERY_STATUS_INVALID";
+	case BT_QUERY_STATUS_INVALID_OBJECT:
+		return "BT_QUERY_STATUS_INVALID_OBJECT";
+	case BT_QUERY_STATUS_INVALID_PARAMS:
+		return "BT_QUERY_STATUS_INVALID_PARAMS";
+	case BT_QUERY_STATUS_NOMEM:
+		return "BT_QUERY_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+};
 
-extern struct bt_component_class *bt_component_class_sink_colander_get(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_COLANDER_H */
+#endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_INTERNAL_H */

@@ -26,6 +26,7 @@ STATIC_BINDINGS_DEPS =			\
 	bt2/native_btpacket.i		\
 	bt2/native_btplugin.i		\
 	bt2/native_btport.i		\
+	bt2/native_btqueryexec.i	\
 	bt2/native_btref.i		\
 	bt2/native_btstreamclass.i	\
 	bt2/native_btstream.i		\
@@ -50,6 +51,7 @@ STATIC_BINDINGS_DEPS =			\
 	bt2/plugin.py			\
 	bt2/port.py			\
 	bt2/py_plugin.py		\
+	bt2/query_executor.py		\
 	bt2/stream_class.py		\
 	bt2/stream.py			\
 	bt2/trace.py			\

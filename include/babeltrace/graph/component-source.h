@@ -28,14 +28,12 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/graph/component.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component;
-struct bt_notification_iterator;
 
 extern int64_t bt_component_source_get_output_port_count(
 		struct bt_component *component);

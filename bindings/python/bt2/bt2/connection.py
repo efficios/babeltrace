@@ -39,7 +39,7 @@ def _handle_status(status, gen_error_msg):
 
 def _create_private_from_ptr(ptr):
     obj = _PrivateConnection._create_from_ptr(ptr)
-    obj._pub_ptr = native_bt.connection_from_private_connection(ptr)
+    obj._pub_ptr = native_bt.connection_from_private(ptr)
     assert(obj._pub_ptr)
     return obj
 
@@ -82,20 +82,12 @@ class _Connection(object._Object):
 
 class _PrivateConnection(object._PrivateObject, _Connection):
     def create_notification_iterator(self, notification_types=None):
-        if notification_types is None:
-            notif_types = None
-        else:
-            for notif_cls in notification_types:
-                if notif_cls not in bt2.notification._NOTIF_TYPE_TO_CLS.values():
-                    raise ValueError("'{}' is not a notification class".format(notif_cls))
-
-            notif_types = [notif_cls._TYPE for notif_cls in notification_types]
-
-        status, notif_iter_ptr = native_bt.py3_create_notif_iter(int(self._ptr),
-                                                                notif_types)
+        notif_types = bt2.notification._notif_types_from_notif_classes(notification_types)
+        status, notif_iter_ptr = native_bt.py3_create_priv_conn_notif_iter(int(self._ptr),
+                                                                           notif_types)
         _handle_status(status, 'cannot create notification iterator object')
         assert(notif_iter_ptr)
-        return bt2.notification_iterator._GenericNotificationIterator._create_from_ptr(notif_iter_ptr)
+        return bt2.notification_iterator._PrivateConnectionNotificationIterator._create_from_ptr(notif_iter_ptr)
 
     @property
     def is_ended(self):

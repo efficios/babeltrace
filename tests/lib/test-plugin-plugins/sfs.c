@@ -28,21 +28,21 @@ static enum bt_component_status sink_consume(
 }
 
 static enum bt_notification_iterator_status dummy_iterator_init_method(
-		struct bt_private_notification_iterator *private_iterator,
+		struct bt_private_connection_private_notification_iterator *private_iterator,
 		struct bt_private_port *private_port)
 {
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
-		struct bt_private_notification_iterator *private_iterator)
+		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
 }
 
-static struct bt_notification_iterator_next_return dummy_iterator_next_method(
-		struct bt_private_notification_iterator *private_iterator)
+static struct bt_notification_iterator_next_method_return dummy_iterator_next_method(
+		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.notification = NULL,
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
@@ -50,26 +50,23 @@ static struct bt_notification_iterator_next_return dummy_iterator_next_method(
 	return next_return;
 }
 
-static enum bt_notification_iterator_status dummy_iterator_seek_time_method(
-		struct bt_private_notification_iterator *private_iterator,
-		int64_t time)
-{
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
-}
-
-static struct bt_value *query_method(
+static struct bt_component_class_query_method_return query_method(
 		struct bt_component_class *component_class,
+		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
-	int ret;
-	struct bt_value *results = bt_value_array_create();
+	struct bt_component_class_query_method_return ret = {
+		.status = BT_QUERY_STATUS_OK,
+		.result = bt_value_array_create(),
+	};
+	int iret;
 
-	assert(results);
-	ret = bt_value_array_append_string(results, object);
-	assert(ret == 0);
-	ret = bt_value_array_append(results, params);
-	assert(ret == 0);
-	return results;
+	assert(ret.result);
+	iret = bt_value_array_append_string(ret.result, object);
+	assert(iret == 0);
+	iret = bt_value_array_append(ret.result, params);
+	assert(iret == 0);
+	return ret;
 }
 
 BT_PLUGIN_MODULE();
@@ -85,8 +82,6 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(source,
 	dummy_iterator_init_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(source,
 	dummy_iterator_finalize_method);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(source,
-	dummy_iterator_seek_time_method);
 
 BT_PLUGIN_SINK_COMPONENT_CLASS(sink, sink_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(sink, "A sink.");
@@ -103,6 +98,4 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(filter,
 	dummy_iterator_init_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(filter,
 	dummy_iterator_finalize_method);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_SEEK_TIME_METHOD(filter,
-	dummy_iterator_seek_time_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(filter, query_method);

@@ -28,7 +28,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <babeltrace/ref.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus

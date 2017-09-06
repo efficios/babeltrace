@@ -30,8 +30,12 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <babeltrace/graph/component-class.h>
+
+/* For bt_bool */
 #include <babeltrace/types.h>
+
+/* For enum bt_component_class_type */
+#include <babeltrace/graph/component-class.h>
 
 #ifdef __cplusplus
 extern "C" {

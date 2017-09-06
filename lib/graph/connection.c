@@ -116,10 +116,10 @@ void bt_connection_parent_is_owner(struct bt_object *obj)
 	bt_connection_try_remove_from_graph(connection);
 }
 
-struct bt_connection *bt_connection_from_private_connection(
+struct bt_connection *bt_connection_from_private(
 		struct bt_private_connection *private_connection)
 {
-	return bt_get(bt_connection_from_private(private_connection));
+	return bt_get(bt_connection_borrow_from_private(private_connection));
 }
 
 BT_HIDDEN
@@ -235,20 +235,20 @@ void bt_connection_end(struct bt_connection *conn,
 	 * notification iterator created from it.
 	 */
 	for (i = 0; i < conn->iterators->len; i++) {
-		struct bt_notification_iterator *iterator =
+		struct bt_notification_iterator_private_connection *iterator =
 			g_ptr_array_index(conn->iterators, i);
 
 		BT_LOGD("Finalizing notification iterator created by this ended connection: "
 			"conn-addr=%p, iter-addr=%p", conn, iterator);
-		bt_notification_iterator_finalize(iterator);
+		bt_private_connection_notification_iterator_finalize(iterator);
 
 		/*
 		 * Make sure this iterator does not try to remove itself
 		 * from this connection's iterators on destruction
 		 * because this connection won't exist anymore.
 		 */
-		bt_notification_iterator_set_connection(iterator,
-			NULL);
+		bt_private_connection_notification_iterator_set_connection(
+			iterator, NULL);
 	}
 
 	g_ptr_array_set_size(conn->iterators, 0);
@@ -277,7 +277,7 @@ bt_private_connection_create_notification_iterator(
 		struct bt_notification_iterator **user_iterator)
 {
 	enum bt_component_class_type upstream_comp_class_type;
-	struct bt_notification_iterator *iterator = NULL;
+	struct bt_notification_iterator_private_connection *iterator = NULL;
 	struct bt_port *upstream_port = NULL;
 	struct bt_component *upstream_component = NULL;
 	struct bt_component_class *upstream_comp_class = NULL;
@@ -301,7 +301,7 @@ bt_private_connection_create_notification_iterator(
 		goto end;
 	}
 
-	connection = bt_connection_from_private(private_connection);
+	connection = bt_connection_borrow_from_private(private_connection);
 
 	if (bt_graph_is_canceled(bt_connection_borrow_graph(connection))) {
 		BT_LOGW("Cannot create notification iterator from connection: "
@@ -346,7 +346,7 @@ bt_private_connection_create_notification_iterator(
 		bt_component_get_class_type(upstream_component);
 	assert(upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
 			upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_FILTER);
-	status = bt_notification_iterator_create(upstream_component,
+	status = bt_private_connection_notification_iterator_create(upstream_component,
 		upstream_port, notification_types, connection, &iterator);
 	if (status != BT_CONNECTION_STATUS_OK) {
 		BT_LOGW("Cannot create notification iterator from connection.");
@@ -383,7 +383,7 @@ bt_private_connection_create_notification_iterator(
 		BT_LOGD("Calling user's initialization method: iter-addr=%p",
 			iterator);
 		iter_status = init_method(
-			bt_private_notification_iterator_from_notification_iterator(iterator),
+			bt_private_connection_private_notification_iterator_from_notification_iterator((void *) iterator),
 			bt_private_port_from_port(upstream_port));
 		BT_LOGD("User method returned: status=%s",
 			bt_notification_iterator_status_string(iter_status));
@@ -395,7 +395,7 @@ bt_private_connection_create_notification_iterator(
 		}
 	}
 
-	iterator->state = BT_NOTIFICATION_ITERATOR_STATE_ACTIVE;
+	iterator->state = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_ACTIVE;
 	g_ptr_array_add(connection->iterators, iterator);
 	BT_LOGD("Created notification iterator from connection: "
 		"conn-addr=%p, upstream-port-addr=%p, "
@@ -407,7 +407,7 @@ bt_private_connection_create_notification_iterator(
 		iterator);
 
 	/* Move reference to user */
-	*user_iterator = iterator;
+	*user_iterator = (void *) iterator;
 	iterator = NULL;
 
 end:
@@ -418,7 +418,7 @@ end:
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
-		struct bt_notification_iterator *iterator)
+		struct bt_notification_iterator_private_connection *iterator)
 {
 	g_ptr_array_remove(conn->iterators, iterator);
 	BT_LOGV("Removed notification iterator from connection: "

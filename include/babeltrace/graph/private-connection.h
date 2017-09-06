@@ -23,18 +23,20 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/connection.h>
+/* For enum bt_notification_type */
 #include <babeltrace/graph/notification.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct bt_notification;
 struct bt_connection;
 struct bt_private_port;
 struct bt_private_connection;
+struct bt_notification_iterator;
 
-extern struct bt_connection *bt_connection_from_private_connection(
+extern struct bt_connection *bt_connection_from_private(
 		struct bt_private_connection *private_connection);
 
 extern enum bt_connection_status

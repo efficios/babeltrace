@@ -44,7 +44,7 @@ struct bt_port *bt_connection_get_upstream_port(
 int bt_connection_is_ended(struct bt_connection *connection);
 
 /* Functions (private) */
-struct bt_connection *bt_connection_from_private_connection(
+struct bt_connection *bt_connection_from_private(
 		struct bt_private_connection *private_connection);
 
 /* Helper functions for Python */
@@ -64,7 +64,7 @@ struct bt_py3_create_notif_iter_ret {
 	struct bt_notification_iterator *notif_iter;
 };
 
-static struct bt_py3_create_notif_iter_ret bt_py3_create_notif_iter(
+static struct bt_py3_create_notif_iter_ret bt_py3_create_priv_conn_notif_iter(
 		unsigned long long priv_conn_addr, PyObject *py_notif_types)
 {
 	struct bt_private_connection *priv_conn;
@@ -75,39 +75,14 @@ static struct bt_py3_create_notif_iter_ret bt_py3_create_notif_iter(
 	assert(!PyErr_Occurred());
 	assert(priv_conn);
 
-	if (py_notif_types != Py_None) {
-		size_t i;
-
-		assert(PyList_Check(py_notif_types));
-		notification_types = g_new0(enum bt_notification_type,
-			PyList_Size(py_notif_types) + 1);
-		assert(notification_types);
-		notification_types[PyList_Size(py_notif_types)] =
-			BT_NOTIFICATION_TYPE_SENTINEL;
-
-		for (i = 0; i < PyList_Size(py_notif_types); i++) {
-			PyObject *item = PyList_GetItem(py_notif_types, i);
-			long value;
-			int overflow;
-
-			assert(item);
-			assert(PyLong_Check(item));
-			value = PyLong_AsLongAndOverflow(item, &overflow);
-			assert(overflow == 0);
-			notification_types[i] = value;
-		}
-	}
-
+	notification_types = bt_py3_notif_types_from_py_list(py_notif_types);
 	ret.status = bt_private_connection_create_notification_iterator(
 		priv_conn, notification_types, &ret.notif_iter);
-
-	if (notification_types) {
-		g_free(notification_types);
-	}
+	g_free(notification_types);
 
 	return ret;
 }
 %}
 
-struct bt_py3_create_notif_iter_ret bt_py3_create_notif_iter(
+struct bt_py3_create_notif_iter_ret bt_py3_create_priv_conn_notif_iter(
 		unsigned long long priv_conn_addr, PyObject *notif_types);

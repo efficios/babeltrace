@@ -20,6 +20,7 @@
  */
 
 #include "tap/tap.h"
+#include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/stream-class.h>

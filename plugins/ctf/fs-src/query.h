@@ -25,16 +25,17 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/values.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component-class.h>
+#include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
-struct bt_value *metadata_info_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_method_return metadata_info_query(
+		struct bt_component_class *comp_class,
 		struct bt_value *params);
 
 BT_HIDDEN
-struct bt_value *trace_info_query(struct bt_component_class *comp_class,
+struct bt_component_class_query_method_return trace_info_query(
+		struct bt_component_class *comp_class,
 		struct bt_value *params);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_QUERY_H */

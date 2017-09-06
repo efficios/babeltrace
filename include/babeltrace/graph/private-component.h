@@ -23,15 +23,14 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/component.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct bt_component;
 struct bt_private_component;
 
-extern struct bt_component *bt_component_from_private_component(
+extern struct bt_component *bt_component_from_private(
 		struct bt_private_component *private_component);
 
 extern void *bt_private_component_get_user_data(

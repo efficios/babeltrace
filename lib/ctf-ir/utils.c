@@ -29,7 +29,7 @@
 #define BT_LOG_TAG "CTF-IR-UTILS"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <string.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <glib.h>
 #include <babeltrace/ctf-ir/utils.h>
@@ -43,21 +43,21 @@ const char * const reserved_keywords_str[] = {"align", "callsite",
 
 static GHashTable *reserved_keywords_set;
 static int init_done;
-static int global_data_refcount;
 
-static __attribute__((constructor))
-void trace_init(void)
+static
+void try_init_reserved_keywords(void)
 {
 	size_t i;
 	const size_t reserved_keywords_count =
 		sizeof(reserved_keywords_str) / sizeof(char *);
 
-	global_data_refcount++;
-	if (init_done) {
+	if (reserved_keywords_set) {
 		return;
 	}
 
 	reserved_keywords_set = g_hash_table_new(g_direct_hash, g_direct_equal);
+	assert(reserved_keywords_set);
+
 	for (i = 0; i < reserved_keywords_count; i++) {
 		gpointer quark = GINT_TO_POINTER(g_quark_from_string(
 			reserved_keywords_str[i]));
@@ -71,7 +71,7 @@ void trace_init(void)
 static __attribute__((destructor))
 void trace_finalize(void)
 {
-	if (--global_data_refcount == 0) {
+	if (reserved_keywords_set) {
 		g_hash_table_destroy(reserved_keywords_set);
 	}
 }
@@ -87,6 +87,8 @@ int bt_ctf_validate_identifier(const char *input_string)
 		ret = -1;
 		goto end;
 	}
+
+	try_init_reserved_keywords();
 
 	if (input_string[0] == '\0') {
 		ret = -1;

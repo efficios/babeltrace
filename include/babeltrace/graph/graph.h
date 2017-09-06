@@ -27,7 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/component.h>
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -36,6 +36,8 @@ extern "C" {
 
 struct bt_port;
 struct bt_connection;
+struct bt_component;
+struct bt_component_class;
 
 enum bt_graph_status {
 	BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION = 111,
@@ -52,6 +54,7 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_NO_SINK = -6,
 	/** General error. */
 	BT_GRAPH_STATUS_ERROR = -1,
+	BT_GRAPH_STATUS_CANNOT_CONSUME = -2,
 	BT_GRAPH_STATUS_NOMEM = -12,
 };
 

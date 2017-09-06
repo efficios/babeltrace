@@ -31,6 +31,7 @@
 #include <glib.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
+#include <babeltrace/babeltrace.h>
 
 #include "fs.h"
 #include "file.h"

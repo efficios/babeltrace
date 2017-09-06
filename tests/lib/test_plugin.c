@@ -24,6 +24,7 @@
 #include <babeltrace/values.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/graph.h>
+#include <babeltrace/graph/query-executor.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -168,7 +169,10 @@ static void test_sfs(const char *plugin_dir)
 	const char *object_str;
 	enum bt_value_status value_ret;
 	enum bt_graph_status graph_ret;
+	struct bt_query_executor *query_exec = bt_query_executor_create();
+	int ret;
 
+	assert(query_exec);
 	assert(sfs_path);
 	diag("sfs plugin test below");
 
@@ -214,15 +218,18 @@ static void test_sfs(const char *plugin_dir)
 		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
 	params = bt_value_integer_create_init(23);
 	assert(params);
-	ok (!bt_component_class_query(NULL, "get-something", params),
-		"bt_component_class_query() handles NULL (component class)");
-	ok (!bt_component_class_query(filter_comp_class, NULL, params),
-		"bt_component_class_query() handles NULL (object)");
-	ok (!bt_component_class_query(filter_comp_class, "get-something", NULL),
-		"bt_component_class_query() handles NULL (parameters)");
-	results = bt_component_class_query(filter_comp_class,
-		"get-something", params);
-	ok(results, "bt_component_class_query() succeeds");
+	ret = bt_query_executor_query(NULL, filter_comp_class, "object",
+		params, &results);
+	ok (ret, "bt_query_executor_query() handles NULL (query executor)");
+	ret = bt_query_executor_query(query_exec, NULL, "object",
+		params, &results);
+	ok (ret, "bt_query_executor_query() handles NULL (component class)");
+	ret = bt_query_executor_query(query_exec, filter_comp_class, NULL,
+		params, &results);
+	ok (ret, "bt_query_executor_query() handles NULL (object)");
+	ret = bt_query_executor_query(query_exec, filter_comp_class,
+		"get-something", params, &results);
+	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
 	assert(bt_value_is_array(results) && bt_value_array_size(results) == 2);
 	object = bt_value_array_get(results, 0);
 	assert(object && bt_value_is_string(object));
@@ -270,6 +277,7 @@ static void test_sfs(const char *plugin_dir)
 	bt_put(res_params);
 	bt_put(results);
 	bt_put(params);
+	bt_put(query_exec);
 }
 
 static void test_create_all_from_dir(const char *plugin_dir)

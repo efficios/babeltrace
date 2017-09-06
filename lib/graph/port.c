@@ -51,10 +51,10 @@ void bt_port_destroy(struct bt_object *obj)
 	g_free(port);
 }
 
-struct bt_port *bt_port_from_private_port(
+struct bt_port *bt_port_from_private(
 		struct bt_private_port *private_port)
 {
-	return bt_get(bt_port_from_private(private_port));
+	return bt_get(bt_port_borrow_from_private(private_port));
 }
 
 BT_HIDDEN
@@ -144,14 +144,14 @@ struct bt_private_connection *bt_private_port_get_private_connection(
 		struct bt_private_port *private_port)
 {
 	return bt_private_connection_from_connection(bt_port_get_connection(
-		bt_port_from_private(private_port)));
+		bt_port_borrow_from_private(private_port)));
 }
 
 struct bt_private_component *bt_private_port_get_private_component(
 		struct bt_private_port *private_port)
 {
 	return bt_private_component_from_component(bt_port_get_component(
-		bt_port_from_private(private_port)));
+		bt_port_borrow_from_private(private_port)));
 }
 
 BT_HIDDEN
@@ -173,7 +173,7 @@ enum bt_port_status bt_private_port_remove_from_component(
 		struct bt_private_port *private_port)
 {
 	enum bt_port_status status = BT_PORT_STATUS_OK;
-	struct bt_port *port = bt_port_from_private(private_port);
+	struct bt_port *port = bt_port_borrow_from_private(private_port);
 	struct bt_component *comp = NULL;
 	enum bt_component_status comp_status;
 
@@ -245,5 +245,5 @@ void *bt_private_port_get_user_data(
 		struct bt_private_port *private_port)
 {
 	return private_port ?
-		bt_port_from_private(private_port)->user_data : NULL;
+		bt_port_borrow_from_private(private_port)->user_data : NULL;
 }

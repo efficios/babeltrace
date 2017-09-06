@@ -30,15 +30,7 @@
 #include "logging.h"
 
 #include <babeltrace/compat/utc-internal.h>
-#include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/component-filter.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/private-notification-iterator.h>
-#include <babeltrace/graph/private-component-filter.h>
-#include <babeltrace/graph/notification-event.h>
+#include <babeltrace/babeltrace.h>
 #include <plugins-common.h>
 #include "trimmer.h"
 #include "iterator.h"

@@ -25,27 +25,11 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
-#include <babeltrace/graph/component-filter.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-inactivity.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/port.h>
-#include <babeltrace/graph/private-component-filter.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-notification-iterator.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/connection-internal.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/values-internal.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/connection-internal.h>
 #include <plugins-common.h>
 #include <glib.h>
 #include <stdbool.h>
@@ -57,7 +41,11 @@
 #define ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME	"assume-absolute-clock-classes"
 
 struct muxer_comp {
-	/* Array of struct bt_private_notification_iterator * (weak refs) */
+	/*
+	 * Array of struct
+	 * bt_private_connection_private_notification_iterator *
+	 * (weak refs)
+	 */
 	GPtrArray *muxer_notif_iters;
 
 	/* Weak ref */
@@ -117,7 +105,7 @@ struct muxer_notif_iter {
 	GList *newly_connected_priv_ports;
 
 	/* Next thing to return by the "next" method */
-	struct bt_notification_iterator_next_return next_next_return;
+	struct bt_notification_iterator_next_method_return next_next_return;
 
 	/* Last time returned in a notification */
 	int64_t last_returned_ts_ns;
@@ -418,7 +406,7 @@ static
 struct bt_notification_iterator *create_notif_iter_on_input_port(
 		struct bt_private_port *priv_port, int *ret)
 {
-	struct bt_port *port = bt_port_from_private_port(priv_port);
+	struct bt_port *port = bt_port_from_private(priv_port);
 	struct bt_notification_iterator *notif_iter = NULL;
 	struct bt_private_connection *priv_conn = NULL;
 	enum bt_connection_status conn_status;
@@ -542,7 +530,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 		}
 
 		priv_port = node->data;
-		port = bt_port_from_private_port(priv_port);
+		port = bt_port_from_private(priv_port);
 		assert(port);
 
 		if (!bt_port_is_connected(port)) {
@@ -1034,12 +1022,12 @@ end:
 }
 
 static
-struct bt_notification_iterator_next_return muxer_notif_iter_do_next(
+struct bt_notification_iterator_next_method_return muxer_notif_iter_do_next(
 		struct muxer_comp *muxer_comp,
 		struct muxer_notif_iter *muxer_notif_iter)
 {
 	struct muxer_upstream_notif_iter *muxer_upstream_notif_iter = NULL;
-	struct bt_notification_iterator_next_return next_return = {
+	struct bt_notification_iterator_next_method_return next_return = {
 		.notification = NULL,
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
@@ -1176,7 +1164,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 	 * iterator's list of newly connected ports. They will be
 	 * handled by muxer_notif_iter_handle_newly_connected_ports().
 	 */
-	comp = bt_component_from_private_component(muxer_comp->priv_comp);
+	comp = bt_component_from_private(muxer_comp->priv_comp);
 	assert(comp);
 	count = bt_component_filter_get_input_port_count(comp);
 	if (count < 0) {
@@ -1193,7 +1181,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 		struct bt_port *port;
 
 		assert(priv_port);
-		port = bt_port_from_private_port(priv_port);
+		port = bt_port_from_private(priv_port);
 		assert(port);
 
 		if (!bt_port_is_connected(port)) {
@@ -1233,7 +1221,7 @@ end:
 
 BT_HIDDEN
 enum bt_notification_iterator_status muxer_notif_iter_init(
-		struct bt_private_notification_iterator *priv_notif_iter,
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
 		struct bt_private_port *output_priv_port)
 {
 	struct muxer_comp *muxer_comp = NULL;
@@ -1243,7 +1231,7 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	int ret;
 
-	priv_comp = bt_private_notification_iterator_get_private_component(
+	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
 	assert(priv_comp);
 	muxer_comp = bt_private_component_get_user_data(priv_comp);
@@ -1300,7 +1288,7 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 		goto error;
 	}
 
-	ret = bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	ret = bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		muxer_notif_iter);
 	assert(ret == 0);
 	BT_LOGD("Initialized muxer component's notification iterator: "
@@ -1317,7 +1305,7 @@ error:
 	}
 
 	destroy_muxer_notif_iter(muxer_notif_iter);
-	ret = bt_private_notification_iterator_set_user_data(priv_notif_iter,
+	ret = bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		NULL);
 	assert(ret == 0);
 	status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
@@ -1330,14 +1318,14 @@ end:
 
 BT_HIDDEN
 void muxer_notif_iter_finalize(
-		struct bt_private_notification_iterator *priv_notif_iter)
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
 	struct muxer_notif_iter *muxer_notif_iter =
-		bt_private_notification_iterator_get_user_data(priv_notif_iter);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	struct bt_private_component *priv_comp = NULL;
 	struct muxer_comp *muxer_comp = NULL;
 
-	priv_comp = bt_private_notification_iterator_get_private_component(
+	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
 	assert(priv_comp);
 	muxer_comp = bt_private_component_get_user_data(priv_comp);
@@ -1356,17 +1344,17 @@ void muxer_notif_iter_finalize(
 }
 
 BT_HIDDEN
-struct bt_notification_iterator_next_return muxer_notif_iter_next(
-		struct bt_private_notification_iterator *priv_notif_iter)
+struct bt_notification_iterator_next_method_return muxer_notif_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
 {
-	struct bt_notification_iterator_next_return next_ret;
+	struct bt_notification_iterator_next_method_return next_ret;
 	struct muxer_notif_iter *muxer_notif_iter =
-		bt_private_notification_iterator_get_user_data(priv_notif_iter);
+		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	struct bt_private_component *priv_comp = NULL;
 	struct muxer_comp *muxer_comp = NULL;
 
 	assert(muxer_notif_iter);
-	priv_comp = bt_private_notification_iterator_get_private_component(
+	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
 	assert(priv_comp);
 	muxer_comp = bt_private_component_get_user_data(priv_comp);
@@ -1414,7 +1402,7 @@ void muxer_port_connected(
 		struct bt_port *other_port)
 {
 	struct bt_port *self_port =
-		bt_port_from_private_port(self_private_port);
+		bt_port_from_private(self_private_port);
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 	size_t i;
@@ -1486,7 +1474,7 @@ BT_HIDDEN
 void muxer_port_disconnected(struct bt_private_component *priv_comp,
 		struct bt_private_port *priv_port)
 {
-	struct bt_port *port = bt_port_from_private_port(priv_port);
+	struct bt_port *port = bt_port_from_private(priv_port);
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 

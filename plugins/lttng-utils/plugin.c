@@ -29,19 +29,7 @@
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT"
 #include "logging.h"
 
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/private-notification-iterator.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-stream.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/component-filter.h>
-#include <babeltrace/graph/private-component-filter.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/private-connection.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/babeltrace.h>
 #include <plugins-common.h>
 #include <assert.h>
 #include "debug-info.h"
@@ -95,11 +83,11 @@ void unref_trace(struct debug_info_trace *di_trace)
 }
 
 static
-void debug_info_iterator_destroy(struct bt_private_notification_iterator *it)
+void debug_info_iterator_destroy(struct bt_private_connection_private_notification_iterator *it)
 {
 	struct debug_info_iterator *it_data;
 
-	it_data = bt_private_notification_iterator_get_user_data(it);
+	it_data = bt_private_connection_private_notification_iterator_get_user_data(it);
 	assert(it_data);
 
 	if (it_data->input_iterator_group) {
@@ -232,23 +220,23 @@ end:
 }
 
 static
-struct bt_notification_iterator_next_return debug_info_iterator_next(
-		struct bt_private_notification_iterator *iterator)
+struct bt_notification_iterator_next_method_return debug_info_iterator_next(
+		struct bt_private_connection_private_notification_iterator *iterator)
 {
 	struct debug_info_iterator *debug_it = NULL;
 	struct bt_private_component *component = NULL;
 	struct debug_info_component *debug_info = NULL;
 	struct bt_notification_iterator *source_it = NULL;
 	struct bt_notification *notification;
-	struct bt_notification_iterator_next_return ret = {
+	struct bt_notification_iterator_next_method_return ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,
 	};
 
-	debug_it = bt_private_notification_iterator_get_user_data(iterator);
+	debug_it = bt_private_connection_private_notification_iterator_get_user_data(iterator);
 	assert(debug_it);
 
-	component = bt_private_notification_iterator_get_private_component(iterator);
+	component = bt_private_connection_private_notification_iterator_get_private_component(iterator);
 	assert(component);
 	debug_info = bt_private_component_get_user_data(component);
 	assert(debug_info);
@@ -279,7 +267,7 @@ end:
 
 static
 enum bt_notification_iterator_status debug_info_iterator_init(
-		struct bt_private_notification_iterator *iterator,
+		struct bt_private_connection_private_notification_iterator *iterator,
 		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
@@ -288,7 +276,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	enum bt_connection_status conn_status;
 	struct bt_private_connection *connection = NULL;
 	struct bt_private_component *component =
-		bt_private_notification_iterator_get_private_component(iterator);
+		bt_private_connection_private_notification_iterator_get_private_component(iterator);
 	struct debug_info_iterator *it_data = g_new0(struct debug_info_iterator, 1);
 	struct bt_private_port *input_port;
 
@@ -324,7 +312,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	it_data->trace_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_trace);
 
-	it_ret = bt_private_notification_iterator_set_user_data(iterator, it_data);
+	it_ret = bt_private_connection_private_notification_iterator_set_user_data(iterator, it_data);
 	if (it_ret) {
 		goto end;
 	}

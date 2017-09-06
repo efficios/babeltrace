@@ -27,19 +27,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-discarded-events.h>
-#include <babeltrace/graph/notification-discarded-packets.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/compat/time-internal.h>

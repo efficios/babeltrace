@@ -27,12 +27,12 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/ctf-ir/stream.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct bt_ctf_notification;
+struct bt_ctf_stream;
 
 extern struct bt_notification *bt_notification_stream_begin_create(
 		struct bt_ctf_stream *stream);
