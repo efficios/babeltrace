@@ -69,7 +69,7 @@ struct bt_component {
 };
 
 static inline
-struct bt_component *bt_component_from_private(
+struct bt_component *bt_component_borrow_from_private(
 		struct bt_private_component *private_component)
 {
 	return (void *) private_component;
