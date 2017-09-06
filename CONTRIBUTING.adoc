@@ -431,6 +431,24 @@ contain their log level in their name:
 `BT_LOGF_MEM(data_ptr, data_size, "format string", ...)`::
     Memory fatal logging statement.
 
+`BT_LOGV_ERRNO("initial message", "format string", ...)`::
+	`errno` string verbose logging statement.
+
+`BT_LOGD_ERRNO("initial message", "format string", ...)`::
+	`errno` string debug logging statement.
+
+`BT_LOGI_ERRNO("initial message", "format string", ...)`::
+	`errno` string info logging statement.
+
+`BT_LOGW_ERRNO("initial message", "format string", ...)`::
+	`errno` string warning logging statement.
+
+`BT_LOGE_ERRNO("initial message", "format string", ...)`::
+	`errno` string error logging statement.
+
+`BT_LOGF_ERRNO("initial message", "format string", ...)`::
+	`errno` string fatal logging statement.
+
 `BT_LOGV_STR("preformatted string")`::
     Preformatted string verbose logging statement.
 
