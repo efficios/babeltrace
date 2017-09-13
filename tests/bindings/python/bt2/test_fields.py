@@ -915,11 +915,6 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
         with self.assertRaises(TypeError):
             self._def.value = 283
 
-    def test_assign_str(self):
-        raw = 'zorg'
-        self._def = raw
-        self.assertEqual(self._def, raw)
-
     def test_assign_string_field(self):
         ft = bt2.StringFieldType()
         field = ft()
