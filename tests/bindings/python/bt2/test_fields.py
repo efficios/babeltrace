@@ -1089,6 +1089,65 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         for field, value in zip(self._def, (45, 1847, 1948754)):
             self.assertEqual(field, value)
 
+    def test_value_int_field(self):
+        values = [45646, 145, 12145]
+        self._def.value = values
+        self.assertEqual(values, self._def)
+
+    def test_value_unset(self):
+        values = [45646, None, 12145]
+        self._def.value = values
+        self.assertFalse(self._def[1].is_set)
+
+    def test_value_rollback(self):
+        values = [45, 1847, 1948754]
+        # value is out of range, should not affect those we set previously
+        with self.assertRaises(bt2.Error):
+            self._def[2].value = 2**60
+        self.assertEqual(values, self._def)
+
+    def test_value_check_sequence(self):
+        values = 42
+        with self.assertRaises(TypeError):
+            self._def.value = values
+
+    def test_value_wrong_type_in_sequence(self):
+        values = [32, 'hello', 11]
+        with self.assertRaises(TypeError):
+            self._def.value = values
+
+    def test_value_complex_type(self):
+        struct_ft = bt2.StructureFieldType()
+        int_ft = bt2.IntegerFieldType(32)
+        str_ft = bt2.StringFieldType()
+        struct_ft.append_field(field_type=int_ft, name='an_int')
+        struct_ft.append_field(field_type=str_ft, name='a_string')
+        struct_ft.append_field(field_type=int_ft, name='another_int')
+        array_ft = bt2.ArrayFieldType(struct_ft, 3)
+        values = [
+            {
+                'an_int': 42,
+                'a_string': 'hello',
+                'another_int': 66
+            },
+            {
+                'an_int': 1,
+                'a_string': 'goodbye',
+                'another_int': 488
+            },
+            {
+                'an_int': 156,
+                'a_string': 'or not',
+                'another_int': 4648
+            },
+        ]
+
+        array = array_ft()
+        array.value = values
+        self.assertEqual(values, array)
+        values[0]['an_int'] = 'a string'
+        with self.assertRaises(TypeError):
+            array.value = values
 
 class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
     def setUp(self):
@@ -1098,11 +1157,17 @@ class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
         self._def[0] = 45
         self._def[1] = 1847
         self._def[2] = 1948754
+        self._def_value = [45, 1847, 1948754]
 
     def tearDown(self):
         del self._elem_ft
         del self._ft
         del self._def
+
+    def test_value_wrong_len(self):
+        values = [45, 1847]
+        with self.assertRaises(ValueError):
+            self._def.value = values
 
 
 class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
@@ -1115,12 +1180,28 @@ class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
         self._def[0] = 45
         self._def[1] = 1847
         self._def[2] = 1948754
+        self._def_value = [45, 1847, 1948754]
 
     def tearDown(self):
         del self._elem_ft
         del self._ft
         del self._def
         del self._length_field
+
+    def test_value_resize(self):
+        new_values = [1, 2, 3, 4]
+        self._def.value = new_values
+        self.assertCountEqual(self._def, new_values)
+
+    def test_value_resize_rollback(self):
+        with self.assertRaises(TypeError):
+            self._def.value = [1, 2, 3, 'unexpected string']
+        self.assertEqual(self._def, self._def_value)
+
+        self._def.reset()
+        with self.assertRaises(TypeError):
+            self._def.value = [1, 2, 3, 'unexpected string']
+        self.assertFalse(self._def.is_set)
 
 
 class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
@@ -1271,6 +1352,56 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         for vkey, vval in self._def.items():
             val = orig_values[vkey]
             self.assertEqual(vval, val)
+
+    def test_value(self):
+        orig_values = {
+            'A': -1872,
+            'B': 'salut',
+            'C': 17.5,
+            'D': 16497,
+        }
+        self.assertEqual(self._def, orig_values)
+
+    def test_set_value(self):
+        int_ft = bt2.IntegerFieldType(32)
+        str_ft = bt2.StringFieldType()
+        struct_ft = bt2.StructureFieldType()
+        struct_ft.append_field(field_type=int_ft, name='an_int')
+        struct_ft.append_field(field_type=str_ft, name='a_string')
+        struct_ft.append_field(field_type=int_ft, name='another_int')
+        values = {
+            'an_int': 42,
+            'a_string': 'hello',
+            'another_int': 66
+        }
+
+        struct = struct_ft()
+        struct.value = values
+        self.assertEqual(values, struct)
+
+        bad_type_values = copy.deepcopy(values)
+        bad_type_values['an_int'] = 'a string'
+        with self.assertRaises(TypeError):
+            struct.value = bad_type_values
+
+        unknown_key_values = copy.deepcopy(values)
+        unknown_key_values['unknown_key'] = 16546
+        with self.assertRaises(KeyError):
+            struct.value = unknown_key_values
+
+    def test_value_rollback(self):
+        int_ft = bt2.IntegerFieldType(32)
+        str_ft = bt2.StringFieldType()
+        struct_ft = bt2.StructureFieldType()
+        struct_ft.append_field(field_type=int_ft, name='an_int')
+        struct_ft.append_field(field_type=str_ft, name='a_string')
+        struct_ft.append_field(field_type=int_ft, name='another_int')
+        values = {
+            'an_int': 42,
+            'a_string': 'hello',
+            'another_int': 66
+        }
+
 
 
 class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
