@@ -33,6 +33,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <glib.h>
 
 struct bt_ctf_stream_pos;
@@ -40,8 +41,8 @@ struct bt_ctf_stream_pos;
 struct bt_ctf_field {
 	struct bt_object base;
 	struct bt_ctf_field_type *type;
-	int payload_set;
-	int frozen;
+	bool payload_set;
+	bool frozen;
 };
 
 struct bt_ctf_field_integer {
