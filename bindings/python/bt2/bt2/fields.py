@@ -483,6 +483,18 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
         return True
 
+    @property
+    def value(self):
+        return {key: field.value for key, field in self.items()}
+
+    @value.setter
+    def value(self, values):
+        if not hasattr(type(values), '__getitem__'):
+            raise TypeError('expecting a Mapping collection')
+
+        for key, value in values.items():
+            self[key].value = value
+
 
 class _VariantField(_Field):
     _NAME = 'Variant'
@@ -570,6 +582,21 @@ class _ArraySequenceField(_ContainerField, collections.abc.MutableSequence):
                 return False
 
         return True
+
+    @property
+    def value(self):
+        return [field.value for field in self]
+
+    @value.setter
+    def value(self, values):
+        if not hasattr(type(values), '__iter__'):
+            raise TypeError('expecting an iterable container (Sequence)')
+
+        if len(self) != len(values):
+            raise ValueError('expected length of value and field to match')
+
+        for index, value in enumerate(values):
+            self[index].value = value
 
 
 class _ArrayField(_ArraySequenceField):
