@@ -216,7 +216,13 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 @sa bt_ctf_field_is_variant(): Returns whether or not a given field is a
 	@varfield.
 */
-extern enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field);
+extern enum bt_ctf_field_type_id bt_ctf_field_get_type_id(
+		struct bt_ctf_field *field);
+
+
+extern bt_bool bt_ctf_field_value_is_set(struct bt_ctf_field *field);
+
+extern int bt_ctf_field_reset_value(struct bt_ctf_field *field);
 
 /*
  * bt_ctf_field_signed_integer_get_value: get a signed integer field's value
