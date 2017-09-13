@@ -360,7 +360,7 @@ int set_packet_context_events_discarded(struct bt_ctf_stream *stream)
 	 * discarded events. We do not allow wrapping here. If it's
 	 * valid, update the stream's current count.
 	 */
-	if (bt_ctf_field_is_set(field)) {
+	if (bt_ctf_field_value_is_set(field)) {
 		uint64_t user_val;
 
 		ret = bt_ctf_field_unsigned_integer_get_value(field,
@@ -1494,7 +1494,7 @@ void reset_structure_field(struct bt_ctf_field *structure, const char *name)
 
 	member = bt_ctf_field_structure_get_field(structure, name);
 	if (member) {
-		(void) bt_ctf_field_reset(member);
+		(void) bt_ctf_field_reset_value(member);
 		bt_put(member);
 	}
 }
@@ -1873,7 +1873,7 @@ int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	}
 
 	/* Make sure the payload has not already been set. */
-	if (!force && bt_ctf_field_is_set(integer)) {
+	if (!force && bt_ctf_field_value_is_set(integer)) {
 		/* Payload already set, not an error */
 		BT_LOGV("Field's payload is already set: struct-field-addr=%p, "
 			"name=\"%s\", force=%d", structure, name, force);
