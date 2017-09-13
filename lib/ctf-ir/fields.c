@@ -511,11 +511,11 @@ end:
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		struct bt_ctf_field *field, const char *name)
 {
-	struct bt_ctf_field *new_field = NULL;
+	struct bt_ctf_field *ret = NULL;
 	GQuark field_quark;
 	struct bt_ctf_field_structure *structure;
-	struct bt_ctf_field_type *field_type = NULL;
 	size_t index;
+	GHashTable *field_name_to_index;
 
 	if (!field) {
 		BT_LOGW_STR("Invalid parameter: field is NULL.");
@@ -536,67 +536,31 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		goto error;
 	}
 
+	field_name_to_index =
+		container_of(field->type, struct bt_ctf_field_type_structure,
+			parent)->field_name_to_index;
 	field_quark = g_quark_from_string(name);
 	structure = container_of(field, struct bt_ctf_field_structure, parent);
-	field_type =
-		bt_ctf_field_type_structure_get_field_type_by_name(field->type,
-		name);
-	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
+	if (!g_hash_table_lookup_extended(field_name_to_index,
 			GUINT_TO_POINTER(field_quark),
 			NULL, (gpointer *)&index)) {
 		BT_LOGV("Invalid parameter: no such field in structure field's type: "
-			"struct-field-addr=%p, struct-ft-addr=%p, "
-			"field-ft-addr=%p, name=\"%s\"",
-			field, field->type, field_type, name);
+			"struct-field-addr=%p, struct-ft-addr=%p, name=\"%s\"",
+			field, field->type, name);
 		goto error;
 	}
 
-	if (structure->fields->pdata[index]) {
-		new_field = structure->fields->pdata[index];
-		goto end;
-	}
-
-	/* We don't want to modify this field if it's frozen */
-	if (field->frozen) {
-		/*
-		 * Not logging a warning here because the user could
-		 * legitimately check if a structure field is set with
-		 * this function: if the preconditions are satisfied,
-		 * a NULL return value means this.
-		 */
-		BT_LOGV("Not creating a field because structure field is frozen: "
-			"struct-field-addr=%p, name=\"%s\"", field, name);
-		goto end;
-	}
-
-	new_field = bt_ctf_field_create(field_type);
-	if (!new_field) {
-		BT_LOGW("Cannot create field: "
-			"struct-field-addr=%p, struct-ft-addr=%p, "
-			"field-ft-addr=%p, name=\"%s\"",
-			field, field->type, field_type, name);
-		goto error;
-	}
-
-	structure->fields->pdata[index] = new_field;
-end:
-	bt_get(new_field);
+	ret = bt_get(structure->fields->pdata[index]);
+	assert(ret);
 error:
-	if (field_type) {
-		bt_put(field_type);
-	}
-	return new_field;
+	return ret;
 }
 
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *field, uint64_t index)
 {
-	int ret;
-	const char *field_name;
 	struct bt_ctf_field_structure *structure;
-	struct bt_ctf_field_type *structure_type;
-	struct bt_ctf_field_type *field_type = NULL;
-	struct bt_ctf_field *ret_field = NULL;
+	struct bt_ctf_field *ret = NULL;
 
 	if (!field) {
 		BT_LOGW_STR("Invalid parameter: field is NULL.");
@@ -617,49 +581,12 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		BT_LOGW("Invalid parameter: index is out of bounds: "
 			"addr=%p, index=%" PRIu64 ", count=%u",
 			field, index, structure->fields->len);
-		goto error;
-	}
-
-	ret_field = structure->fields->pdata[index];
-	if (ret_field) {
 		goto end;
 	}
 
-	/* We don't want to modify this field if it's frozen */
-	if (field->frozen) {
-		/*
-		 * Not logging a warning here because the user could
-		 * legitimately check if a structure field is set with
-		 * this function: if the preconditions are satisfied,
-		 * a NULL return value means this.
-		 */
-		BT_LOGV("Not creating a field because structure field is frozen: "
-			"struct-field-addr=%p, index=%" PRIu64, field, index);
-		goto end;
-	}
-
-	/* Field has not been instanciated yet, create it */
-	structure_type = bt_ctf_field_get_type(field);
-	assert(structure_type);
-	ret = bt_ctf_field_type_structure_get_field(structure_type,
-		&field_name, &field_type, index);
-	assert(ret == 0);
-	bt_put(structure_type);
-	ret_field = bt_ctf_field_create(field_type);
-	if (!ret_field) {
-		BT_LOGW("Cannot create field: "
-			"struct-field-addr=%p, struct-ft-addr=%p, "
-			"field-ft-addr=%p, index=%" PRIu64,
-			field, field->type, field_type, index);
-		goto error;
-	}
-
-	structure->fields->pdata[index] = ret_field;
+	ret = bt_get(structure->fields->pdata[index]);
 end:
-	bt_get(ret_field);
-error:
-	bt_put(field_type);
-	return ret_field;
+	return ret;
 }
 
 int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
@@ -670,6 +597,7 @@ int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 	struct bt_ctf_field_structure *structure;
 	struct bt_ctf_field_type *expected_field_type = NULL;
 	size_t index;
+	GHashTable *field_name_to_index;
 
 	if (!field) {
 		BT_LOGW_STR("Invalid parameter: structure field is NULL.");
@@ -714,8 +642,12 @@ int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 		goto end;
 	}
 
-	if (!g_hash_table_lookup_extended(structure->field_name_to_index,
-			GUINT_TO_POINTER(field_quark), NULL, (gpointer *) &index)) {
+	field_name_to_index =
+		container_of(field->type, struct bt_ctf_field_type_structure,
+			parent)->field_name_to_index;
+	if (!g_hash_table_lookup_extended(field_name_to_index,
+			GUINT_TO_POINTER(field_quark), NULL,
+			(gpointer *) &index)) {
 		BT_LOGV("Invalid parameter: no such field in structure field's type: "
 			"struct-field-addr=%p, struct-ft-addr=%p, "
 			"field-ft-addr=%p, name=\"%s\"",
@@ -723,13 +655,8 @@ int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 		ret = -1;
 		goto end;
 	}
-
-	if (structure->fields->pdata[index]) {
-		bt_put(structure->fields->pdata[index]);
-	}
-
-	structure->fields->pdata[index] = value;
 	bt_get(value);
+	BT_MOVE(structure->fields->pdata[index], value);
 end:
 	if (expected_field_type) {
 		bt_put(expected_field_type);
@@ -1850,7 +1777,8 @@ struct bt_ctf_field *bt_ctf_field_structure_create(
 		struct bt_ctf_field_type_structure, parent);
 	struct bt_ctf_field_structure *structure = g_new0(
 		struct bt_ctf_field_structure, 1);
-	struct bt_ctf_field *field = NULL;
+	struct bt_ctf_field *ret = NULL;
+	size_t i;
 
 	BT_LOGD("Creating structure field object: ft-addr=%p", type);
 
@@ -1859,16 +1787,33 @@ struct bt_ctf_field *bt_ctf_field_structure_create(
 		goto end;
 	}
 
-	structure->field_name_to_index = structure_type->field_name_to_index;
 	structure->fields = g_ptr_array_new_with_free_func(
-		(GDestroyNotify)bt_ctf_field_put);
+		(GDestroyNotify) bt_ctf_field_put);
 	g_ptr_array_set_size(structure->fields,
-		g_hash_table_size(structure->field_name_to_index));
-	field = &structure->parent;
-	BT_LOGD("Created structure field object: addr=%p, ft-addr=%p",
-		field, type);
+		structure_type->fields->len);
+
+	/* Create all fields contained by the structure field. */
+	for (i = 0; i < structure_type->fields->len; i++) {
+		struct bt_ctf_field *field;
+		struct structure_field *field_type =
+			g_ptr_array_index(structure_type->fields, i);
+
+		field = bt_ctf_field_create(field_type->type);
+		if (!field) {
+			BT_LOGE("Failed to create structure member=\'%s\'",
+				g_quark_to_string(field_type->name));
+			bt_ctf_field_structure_destroy(&structure->parent);
+			goto end;
+		}
+
+		g_ptr_array_index(structure->fields, i) = field;
+	}
+
+	ret = &structure->parent;
+	BT_LOGD("Created structure field object: addr=%p, ft-addr=%p", ret,
+		type);
 end:
-	return field;
+	return ret;
 }
 
 static
@@ -2819,8 +2764,6 @@ int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 	struct_src = container_of(src, struct bt_ctf_field_structure, parent);
 	struct_dst = container_of(dst, struct bt_ctf_field_structure, parent);
 
-	/* This field_name_to_index HT is owned by the structure field type */
-	struct_dst->field_name_to_index = struct_src->field_name_to_index;
 	g_ptr_array_set_size(struct_dst->fields, struct_src->fields->len);
 
 	for (i = 0; i < struct_src->fields->len; i++) {
@@ -2841,7 +2784,7 @@ int bt_ctf_field_structure_copy(struct bt_ctf_field *src,
 			}
 		}
 
-		g_ptr_array_index(struct_dst->fields, i) = field_copy;
+		BT_MOVE(g_ptr_array_index(struct_dst->fields, i), field_copy);
 	}
 
 	BT_LOGD_STR("Copied structure field.");
