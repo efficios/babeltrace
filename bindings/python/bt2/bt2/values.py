@@ -131,7 +131,7 @@ class _Value(object._Object, object._Freezable, metaclass=abc.ABCMeta):
 
 class _BasicCopy:
     def __copy__(self):
-        return self.__class__(self.value)
+        return self.__class__(self._value)
 
     def __deepcopy__(self, memo):
         copy = self.__copy__()
@@ -144,7 +144,7 @@ class _NumericValue(_Value, _BasicCopy):
     @staticmethod
     def _extract_value(other):
         if isinstance(other, _NumericValue):
-            return other.value
+            return other._value
 
         if other is True or other is False:
             return other
@@ -161,27 +161,27 @@ class _NumericValue(_Value, _BasicCopy):
         raise TypeError("'{}' object is not a number object".format(other.__class__.__name__))
 
     def __int__(self):
-        return int(self.value)
+        return int(self._value)
 
     def __float__(self):
-        return float(self.value)
+        return float(self._value)
 
     def __str__(self):
-        return str(self.value)
+        return str(self._value)
 
     def __lt__(self, other):
         if not isinstance(other, numbers.Number):
             raise TypeError('unorderable types: {}() < {}()'.format(self.__class__.__name__,
                                                                     other.__class__.__name__))
 
-        return self.value < float(other)
+        return self._value < float(other)
 
     def __le__(self, other):
         if not isinstance(other, numbers.Number):
             raise TypeError('unorderable types: {}() <= {}()'.format(self.__class__.__name__,
                                                                      other.__class__.__name__))
 
-        return self.value <= float(other)
+        return self._value <= float(other)
 
     def _spec_eq(self, other):
         pass
@@ -190,67 +190,67 @@ class _NumericValue(_Value, _BasicCopy):
         if not isinstance(other, numbers.Number):
             return False
 
-        return self.value == complex(other)
+        return self._value == complex(other)
 
     def __rmod__(self, other):
-        return self._extract_value(other) % self.value
+        return self._extract_value(other) % self._value
 
     def __mod__(self, other):
-        return self.value % self._extract_value(other)
+        return self._value % self._extract_value(other)
 
     def __rfloordiv__(self, other):
-        return self._extract_value(other) // self.value
+        return self._extract_value(other) // self._value
 
     def __floordiv__(self, other):
-        return self.value // self._extract_value(other)
+        return self._value // self._extract_value(other)
 
     def __round__(self, ndigits=None):
         if ndigits is None:
-            return round(self.value)
+            return round(self._value)
         else:
-            return round(self.value, ndigits)
+            return round(self._value, ndigits)
 
     def __ceil__(self):
-        return math.ceil(self.value)
+        return math.ceil(self._value)
 
     def __floor__(self):
-        return math.floor(self.value)
+        return math.floor(self._value)
 
     def __trunc__(self):
-        return int(self.value)
+        return int(self._value)
 
     def __abs__(self):
-        return abs(self.value)
+        return abs(self._value)
 
     def __add__(self, other):
-        return self.value + self._extract_value(other)
+        return self._value + self._extract_value(other)
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __neg__(self):
-        return -self.value
+        return -self._value
 
     def __pos__(self):
-        return +self.value
+        return +self._value
 
     def __mul__(self, other):
-        return self.value * self._extract_value(other)
+        return self._value * self._extract_value(other)
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        return self.value / self._extract_value(other)
+        return self._value / self._extract_value(other)
 
     def __rtruediv__(self, other):
-        return self._extract_value(other) / self.value
+        return self._extract_value(other) / self._value
 
     def __pow__(self, exponent):
-        return self.value ** self._extract_value(exponent)
+        return self._value ** self._extract_value(exponent)
 
     def __rpow__(self, base):
-        return self._extract_value(base) ** self.value
+        return self._extract_value(base) ** self._value
 
     def __iadd__(self, other):
         self.value = self + other
@@ -283,37 +283,37 @@ class _NumericValue(_Value, _BasicCopy):
 
 class _IntegralValue(_NumericValue, numbers.Integral):
     def __lshift__(self, other):
-        return self.value << self._extract_value(other)
+        return self._value << self._extract_value(other)
 
     def __rlshift__(self, other):
-        return self._extract_value(other) << self.value
+        return self._extract_value(other) << self._value
 
     def __rshift__(self, other):
-        return self.value >> self._extract_value(other)
+        return self._value >> self._extract_value(other)
 
     def __rrshift__(self, other):
-        return self._extract_value(other) >> self.value
+        return self._extract_value(other) >> self._value
 
     def __and__(self, other):
-        return self.value & self._extract_value(other)
+        return self._value & self._extract_value(other)
 
     def __rand__(self, other):
-        return self._extract_value(other) & self.value
+        return self._extract_value(other) & self._value
 
     def __xor__(self, other):
-        return self.value ^ self._extract_value(other)
+        return self._value ^ self._extract_value(other)
 
     def __rxor__(self, other):
-        return self._extract_value(other) ^ self.value
+        return self._extract_value(other) ^ self._value
 
     def __or__(self, other):
-        return self.value | self._extract_value(other)
+        return self._value | self._extract_value(other)
 
     def __ror__(self, other):
-        return self._extract_value(other) | self.value
+        return self._extract_value(other) | self._value
 
     def __invert__(self):
-        return ~self.value
+        return ~self._value
 
     def __ilshift__(self, other):
         self.value = self << other
@@ -354,17 +354,17 @@ class BoolValue(_Value, _BasicCopy):
 
     def _spec_eq(self, other):
         if isinstance(other, numbers.Number):
-            return self.value == bool(other)
+            return self._value == bool(other)
 
     def __bool__(self):
-        return self.value
+        return self._value
 
     def __str__(self):
-        return str(self.value)
+        return str(self._value)
 
     def _value_to_bool(self, value):
         if isinstance(value, BoolValue):
-            value = value.value
+            value = value._value
 
         if not isinstance(value, bool):
             raise TypeError("'{}' object is not a 'bool' or 'BoolValue' object".format(value.__class__))
@@ -372,15 +372,16 @@ class BoolValue(_Value, _BasicCopy):
         return int(value)
 
     @property
-    def value(self):
+    def _value(self):
         status, value = native_bt.value_bool_get(self._ptr)
         assert(status == native_bt.VALUE_STATUS_OK)
         return value > 0
 
-    @value.setter
-    def value(self, value):
+    def _set_value(self, value):
         status = native_bt.value_bool_set(self._ptr, self._value_to_bool(value))
         self._handle_status(status)
+
+    value = property(fset=_set_value)
 
 
 class IntegerValue(_IntegralValue):
@@ -404,15 +405,16 @@ class IntegerValue(_IntegralValue):
         return value
 
     @property
-    def value(self):
+    def _value(self):
         status, value = native_bt.value_integer_get(self._ptr)
         assert(status == native_bt.VALUE_STATUS_OK)
         return value
 
-    @value.setter
-    def value(self, value):
+    def _set_value(self, value):
         status = native_bt.value_integer_set(self._ptr, self._value_to_int(value))
         self._handle_status(status)
+
+    value = property(fset=_set_value)
 
 
 class FloatValue(_RealValue):
@@ -435,16 +437,17 @@ class FloatValue(_RealValue):
         return float(value)
 
     @property
-    def value(self):
+    def _value(self):
         status, value = native_bt.value_float_get(self._ptr)
         assert(status == native_bt.VALUE_STATUS_OK)
         return value
 
-    @value.setter
-    def value(self, value):
+    def _set_value(self, value):
         value = self._value_to_float(value)
         status = native_bt.value_float_set(self._ptr, value)
         self._handle_status(status)
+
+    value = property(fset=_set_value)
 
 
 @functools.total_ordering
@@ -462,48 +465,49 @@ class StringValue(_BasicCopy, collections.abc.Sequence, _Value):
 
     def _value_to_str(self, value):
         if isinstance(value, self.__class__):
-            value = value.value
+            value = value._value
 
         utils._check_str(value)
         return value
 
     @property
-    def value(self):
+    def _value(self):
         status, value = native_bt.value_string_get(self._ptr)
         assert(status == native_bt.VALUE_STATUS_OK)
         return value
 
-    @value.setter
-    def value(self, value):
+    def _set_value(self, value):
         status = native_bt.value_string_set(self._ptr, self._value_to_str(value))
         self._handle_status(status)
 
+    value = property(fset=_set_value)
+
     def _spec_eq(self, other):
         try:
-            return self.value == self._value_to_str(other)
+            return self._value == self._value_to_str(other)
         except:
             return
 
     def __le__(self, other):
-        return self.value <= self._value_to_str(other)
+        return self._value <= self._value_to_str(other)
 
     def __lt__(self, other):
-        return self.value < self._value_to_str(other)
+        return self._value < self._value_to_str(other)
 
     def __bool__(self):
-        return bool(self.value)
+        return bool(self._value)
 
     def __str__(self):
-        return self.value
+        return self._value
 
     def __getitem__(self, index):
-        return self.value[index]
+        return self._value[index]
 
     def __len__(self):
-        return len(self.value)
+        return len(self._value)
 
     def __iadd__(self, value):
-        curvalue = self.value
+        curvalue = self._value
         curvalue += self._value_to_str(value)
         self.value = curvalue
         return self
@@ -615,7 +619,7 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
 
         for elem in self:
             if isinstance(elem, StringValue):
-                strings.append(repr(elem.value))
+                strings.append(repr(elem._value))
             else:
                 strings.append(str(elem))
 
@@ -727,7 +731,7 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
 
         for key, elem in self.items():
             if isinstance(elem, StringValue):
-                value = repr(elem.value)
+                value = repr(elem._value)
             else:
                 value = str(elem)
 
