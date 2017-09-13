@@ -94,10 +94,6 @@ struct bt_ctf_field_string {
 BT_HIDDEN
 int bt_ctf_field_validate(struct bt_ctf_field *field);
 
-/* Mark field payload as unset. */
-BT_HIDDEN
-int bt_ctf_field_reset(struct bt_ctf_field *field);
-
 BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
 		struct bt_ctf_stream_pos *pos,
@@ -105,8 +101,5 @@ int bt_ctf_field_serialize(struct bt_ctf_field *field,
 
 BT_HIDDEN
 void bt_ctf_field_freeze(struct bt_ctf_field *field);
-
-BT_HIDDEN
-bt_bool bt_ctf_field_is_set(struct bt_ctf_field *field);
 
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */
