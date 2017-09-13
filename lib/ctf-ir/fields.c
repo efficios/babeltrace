@@ -1264,7 +1264,7 @@ int bt_ctf_field_signed_integer_set_value(struct bt_ctf_field *field,
 	}
 
 	integer->payload.signd = value;
-	integer->parent.payload_set = 1;
+	integer->parent.payload_set = true;
 end:
 	return ret;
 }
@@ -1374,7 +1374,7 @@ int bt_ctf_field_unsigned_integer_set_value(struct bt_ctf_field *field,
 	}
 
 	integer->payload.unsignd = value;
-	integer->parent.payload_set = 1;
+	integer->parent.payload_set = true;
 end:
 	return ret;
 }
@@ -1452,7 +1452,7 @@ int bt_ctf_field_floating_point_set_value(struct bt_ctf_field *field,
 	floating_point = container_of(field, struct bt_ctf_field_floating_point,
 		parent);
 	floating_point->payload = value;
-	floating_point->parent.payload_set = 1;
+	floating_point->parent.payload_set = true;
 end:
 	return ret;
 }
@@ -1530,7 +1530,7 @@ int bt_ctf_field_string_set_value(struct bt_ctf_field *field,
 		string->payload = g_string_new(value);
 	}
 
-	string->parent.payload_set = 1;
+	string->parent.payload_set = true;
 end:
 	return ret;
 }
@@ -1578,7 +1578,7 @@ int bt_ctf_field_string_append(struct bt_ctf_field *field,
 		string_field->payload = g_string_new(value);
 	}
 
-	string_field->parent.payload_set = 1;
+	string_field->parent.payload_set = true;
 
 end:
 	return ret;
@@ -1639,7 +1639,7 @@ int bt_ctf_field_string_append_len(struct bt_ctf_field *field,
 			effective_length);
 	}
 
-	string_field->parent.payload_set = 1;
+	string_field->parent.payload_set = true;
 
 end:
 	return ret;
@@ -2269,7 +2269,7 @@ int bt_ctf_field_generic_reset(struct bt_ctf_field *field)
 		goto end;
 	}
 
-	field->payload_set = 0;
+	field->payload_set = false;
 end:
 	return ret;
 }
@@ -3074,7 +3074,7 @@ end:
 static
 void generic_field_freeze(struct bt_ctf_field *field)
 {
-	field->frozen = 1;
+	field->frozen = true;
 }
 
 static
