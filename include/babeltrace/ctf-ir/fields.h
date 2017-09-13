@@ -910,8 +910,9 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 @brief	Sets the field of the @structfield \p struct_field named \p name
 	to the @field \p field.
 
-If \p struct_field already contains a field named \p name, then its
-reference count is decremented, and \p field replaces it.
+If \p struct_field already contains a field named \p name, then it may
+either be replaced by \p field and its reference count is decremented,
+or \p field's value is assigned to it.
 
 The field type of \p field, as returned by bt_ctf_field_get_type(),
 \em must be equivalent to the field type returned by
@@ -936,9 +937,8 @@ bt_ctf_trace_get_packet_header_type() for the parent trace class of
 	bt_ctf_field_type_structure_get_field_type_by_name() for the
 	field type of \p struct_field with the name \p name.
 @postrefcountsame{struct_field}
-@post <strong>On success, if there's an existing field in
-	\p struct_field named \p name</strong>, its reference count is
-	decremented.
+@post <strong>On success, the field in \p struct_field named \p name</strong>
+	may either be replaced by \p field or have the same value as \p field.
 @postsuccessrefcountinc{field}
 
 @sa bt_ctf_field_structure_get_field_by_index(): Returns the field of a
