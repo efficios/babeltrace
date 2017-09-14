@@ -654,12 +654,13 @@ class _SequenceField(_ArraySequenceField):
     _NAME = 'Sequence'
 
     def _count(self):
-        return self.length_field.value
+        return int(self.length_field)
 
     @property
     def length_field(self):
         field_ptr = native_bt.ctf_field_sequence_get_length(self._ptr)
-        utils._handle_ptr("cannot get sequence field object's length field")
+        if field_ptr is None:
+            return
         return _create_from_ptr(field_ptr)
 
     @length_field.setter
