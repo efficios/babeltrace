@@ -3169,7 +3169,8 @@ bt_bool bt_ctf_field_structure_value_is_set(struct bt_ctf_field *field)
 
 	structure = container_of(field, struct bt_ctf_field_structure, parent);
 	for (i = 0; i < structure->fields->len; i++) {
-		value_is_set = bt_ctf_field_value_is_set(structure->fields->pdata[i]);
+		value_is_set = bt_ctf_field_value_is_set(
+			structure->fields->pdata[i]);
 		if (!value_is_set) {
 			goto end;
 		}
