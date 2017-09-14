@@ -516,6 +516,23 @@ class _TestNumericField(_TestCopySimple):
     def test_ne_none(self):
         self.assertTrue(self._def != None)
 
+    def test_is_set(self):
+        raw = self._def_value
+        field = self._ft()
+        self.assertFalse(field.is_set)
+        field.value = raw
+        self.assertTrue(field.is_set)
+
+    def test_reset(self):
+        raw = self._def_value
+        field = self._ft()
+        field.value = raw
+        self.assertTrue(field.is_set)
+        field.reset()
+        self.assertFalse(field.is_set)
+        other = self._ft()
+        self.assertEqual(other, field)
+
 
 _BINOPS = (
     ('lt', operator.lt),
@@ -1003,6 +1020,23 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
 
+    def test_is_set(self):
+        raw = self._def_value
+        field = self._ft()
+        self.assertFalse(field.is_set)
+        field.value = raw
+        self.assertTrue(field.is_set)
+
+    def test_reset(self):
+        raw = self._def_value
+        field = self._ft()
+        field.value = raw
+        self.assertTrue(field.is_set)
+        field.reset()
+        self.assertFalse(field.is_set)
+        other = self._ft()
+        self.assertEqual(other, field)
+
 
 class _TestArraySequenceFieldCommon(_TestCopySimple):
     def _modify_def(self):
@@ -1143,6 +1177,24 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         values[0]['an_int'] = 'a string'
         with self.assertRaises(TypeError):
             array.value = values
+
+    def test_is_set(self):
+        raw = self._def_value
+        field = self._ft()
+        self.assertFalse(field.is_set)
+        field.value = raw
+        self.assertTrue(field.is_set)
+
+    def test_reset(self):
+        raw = self._def_value
+        field = self._ft()
+        field.value = raw
+        self.assertTrue(field.is_set)
+        field.reset()
+        self.assertFalse(field.is_set)
+        other = self._ft()
+        self.assertEqual(other, field)
+
 
 class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
     def setUp(self):
@@ -1397,6 +1449,48 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
             'another_int': 66
         }
 
+    def test_is_set(self):
+        values = {
+            'an_int': 42,
+            'a_string': 'hello',
+            'another_int': 66
+        }
+
+        int_ft = bt2.IntegerFieldType(32)
+        str_ft = bt2.StringFieldType()
+        struct_ft = bt2.StructureFieldType()
+        struct_ft.append_field(field_type=int_ft, name='an_int')
+        struct_ft.append_field(field_type=str_ft, name='a_string')
+        struct_ft.append_field(field_type=int_ft, name='another_int')
+
+        struct = struct_ft()
+        self.assertFalse(struct.is_set)
+        struct.value = values
+        self.assertTrue(struct.is_set)
+
+        struct = struct_ft()
+        struct['an_int'].value = 42
+        self.assertFalse(struct.is_set)
+
+    def test_reset(self):
+        values = {
+            'an_int': 42,
+            'a_string': 'hello',
+            'another_int': 66
+        }
+
+        int_ft = bt2.IntegerFieldType(32)
+        str_ft = bt2.StringFieldType()
+        struct_ft = bt2.StructureFieldType()
+        struct_ft.append_field(field_type=int_ft, name='an_int')
+        struct_ft.append_field(field_type=str_ft, name='a_string')
+        struct_ft.append_field(field_type=int_ft, name='another_int')
+
+        struct = struct_ft()
+        struct.value = values
+        self.assertTrue(struct.is_set)
+        struct.reset()
+        self.assertEqual(struct_ft(), struct)
 
 
 class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
@@ -1482,3 +1576,17 @@ class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_eq_invalid_type(self):
         self.assertNotEqual(self._def, 23)
+
+    def test_is_set(self):
+        self.assertFalse(self._def.is_set)
+        tag_field = self._tag_ft(2800)
+        self._def.field(tag_field).value = 684
+        self.assertTrue(self._def.is_set)
+
+    def test_reset(self):
+        tag_field = self._tag_ft(2800)
+        self._def.field(tag_field).value = 684
+        self._def.reset()
+        self.assertFalse(self._def.is_set)
+        self.assertIsNone(self._def.selected_field)
+        self.assertIsNone(self._def.tag_field)
