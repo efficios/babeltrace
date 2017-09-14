@@ -483,6 +483,15 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 		goto end;
 	}
 
+	if (!bt_ctf_field_value_is_set(length_field)) {
+		BT_LOGW("Invalid parameter: length field's value is not set: "
+			"field-addr=%p, length-field-addr=%p, "
+			"length-field-ft-addr=%p", field, length_field,
+			length_field->type);
+		ret = -1;
+		goto end;
+	}
+
 	length = container_of(length_field, struct bt_ctf_field_integer,
 		parent);
 	sequence_length = length->payload.unsignd;
@@ -504,6 +513,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 	g_ptr_array_set_size(sequence->elements, (size_t) sequence_length);
 	bt_get(length_field);
 	sequence->length = length_field;
+	bt_ctf_field_freeze(length_field);
 end:
 	return ret;
 }
