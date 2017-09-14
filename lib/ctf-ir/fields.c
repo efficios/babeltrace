@@ -492,7 +492,7 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 		bt_put(sequence->length);
 	}
 
-	sequence->elements = g_ptr_array_sized_new((size_t)sequence_length);
+	sequence->elements = g_ptr_array_sized_new((size_t) sequence_length);
 	if (!sequence->elements) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		ret = -1;
