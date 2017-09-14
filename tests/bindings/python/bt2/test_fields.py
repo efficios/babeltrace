@@ -34,7 +34,7 @@ class _TestNumericField(_TestCopySimple):
         comp_value = rhs
 
         if isinstance(rhs, (bt2.fields._IntegerField, bt2.fields._FloatingPointNumberField)):
-            comp_value = rhs.value
+            comp_value = copy.copy(rhs)
 
         try:
             r = op(self._def, rhs)
@@ -102,9 +102,9 @@ class _TestNumericField(_TestCopySimple):
         self.assertEqual(self._def.addr, addr_before)
 
     def _test_unaryop_value_same(self, op):
-        value_before = self._def.value
+        value_before = copy.copy(self._def_value)
         self._unaryop(op)
-        self.assertEqual(self._def.value, value_before)
+        self.assertEqual(self._def, value_before)
 
     def _test_binop_type(self, op, rhs):
         r, rv = self._binop(op, rhs)
@@ -132,9 +132,9 @@ class _TestNumericField(_TestCopySimple):
         self.assertEqual(self._def.addr, addr_before)
 
     def _test_binop_lhs_value_same(self, op, rhs):
-        value_before = self._def.value
+        value_before = copy.copy(self._def)
         r, rv = self._binop(op, rhs)
-        self.assertEqual(self._def.value, value_before)
+        self.assertEqual(self._def, value_before)
 
     def _test_binop_invalid_unknown(self, op):
         if op in _COMP_BINOPS:
@@ -717,25 +717,21 @@ class _TestIntegerFieldCommon(_TestNumericField):
         raw = True
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_false(self):
         raw = False
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_pos_int(self):
         raw = 477
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_neg_int(self):
         raw = -13
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_int_field(self):
         raw = 999
@@ -743,13 +739,11 @@ class _TestIntegerFieldCommon(_TestNumericField):
         field.value = raw
         self._def.value = field
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_float(self):
         raw = 123.456
         self._def.value = raw
         self.assertEqual(self._def, int(raw))
-        self.assertEqual(self._def.value, int(raw))
 
     def test_assign_invalid_type(self):
         with self.assertRaises(TypeError):
@@ -761,7 +755,6 @@ class _TestIntegerFieldCommon(_TestNumericField):
         raw = 1777
         field.value = 1777
         self.assertEqual(field, raw)
-        self.assertEqual(field.value, raw)
 
     def test_assign_uint_invalid_neg(self):
         ft = bt2.IntegerFieldType(size=32, is_signed=False)
@@ -847,24 +840,20 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
     def test_assign_true(self):
         self._def.value = True
         self.assertTrue(self._def)
-        self.assertTrue(self._def.value)
 
     def test_assign_false(self):
         self._def.value = False
         self.assertFalse(self._def)
-        self.assertFalse(self._def.value)
 
     def test_assign_pos_int(self):
         raw = 477
         self._def.value = raw
         self.assertEqual(self._def, float(raw))
-        self.assertEqual(self._def.value, float(raw))
 
     def test_assign_neg_int(self):
         raw = -13
         self._def.value = raw
         self.assertEqual(self._def, float(raw))
-        self.assertEqual(self._def.value, float(raw))
 
     def test_assign_int_field(self):
         ft = bt2.IntegerFieldType(32)
@@ -873,13 +862,11 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         field.value = raw
         self._def.value = field
         self.assertEqual(self._def, float(raw))
-        self.assertEqual(self._def.value, float(raw))
 
     def test_assign_float(self):
         raw = -19.23
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_float_field(self):
         ft = bt2.FloatingPointNumberFieldType(32)
@@ -888,7 +875,6 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         field.value = raw
         self._def.value = field
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_invalid_type(self):
         with self.assertRaises(TypeError):
