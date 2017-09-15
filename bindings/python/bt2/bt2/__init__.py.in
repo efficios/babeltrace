@@ -94,10 +94,6 @@ class Frozen(Error):
     pass
 
 
-class NoSuchPlugin(Error):
-    pass
-
-
 class InvalidQueryObject(Error):
     pass
 
