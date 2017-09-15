@@ -1356,7 +1356,8 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         struct_ft.append_field('A', elem_ft)
         struct_field = struct_ft()
 
-        with self.assertRaises(TypeError):
+        # Will fail on access to .items() of the value
+        with self.assertRaises(AttributeError):
             struct_field['A'] = 23
 
     def test_setitem_none(self):
