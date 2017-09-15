@@ -465,15 +465,8 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
         return _create_from_ptr(ptr)
 
     def __setitem__(self, key, value):
-        # we can only set numbers and strings
-        if not isinstance(value, (numbers.Number, str)):
-            raise TypeError('expecting number object or string')
-
-        # raises if index is somehow invalid
+        # raises if key is somehow invalid
         field = self[key]
-
-        if not isinstance(field, (_NumericField, _StringField)):
-            raise TypeError('can only set the value of a number or string field')
 
         # the field's property does the appropriate conversion or raises
         # the appropriate exception
