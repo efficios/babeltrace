@@ -489,6 +489,8 @@ enum bt_ctf_notif_iter_status request_medium_bytes(
 		BT_LOGV_MEM(buffer_addr, buffer_sz, "Returned bytes at %p:",
 			buffer_addr);
 	} else if (m_status == BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF) {
+		struct bt_ctf_field_type *ph_ft =
+			bt_ctf_trace_get_packet_header_type(notit->meta.trace);
 		struct bt_ctf_field_type *eh_ft = NULL;
 		struct bt_ctf_field_type *sec_ft = NULL;
 		struct bt_ctf_field_type *ec_ft = NULL;
@@ -505,6 +507,16 @@ enum bt_ctf_notif_iter_status request_medium_bytes(
 
 		if (!notit->meta.stream_class) {
 			goto bad_state;
+		}
+
+		if (notit->state == STATE_DSCOPE_STREAM_PACKET_CONTEXT_BEGIN) {
+			/*
+			 * Beginning of packet context context is only
+			 * valid if there's no packet header.
+			 */
+			if (!ph_ft) {
+				goto good_state;
+			}
 		}
 
 		eh_ft = bt_ctf_stream_class_get_event_header_type(
@@ -580,6 +592,7 @@ bad_state:
 		m_status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
 
 good_state:
+		bt_put(ph_ft);
 		bt_put(eh_ft);
 		bt_put(sec_ft);
 		bt_put(ec_ft);
