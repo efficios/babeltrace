@@ -241,7 +241,7 @@ class EventTestCase(unittest.TestCase):
         tc.add_clock_class(cc)
         ev = self._ec()
         self._fill_ev(ev)
-        ev.clock_value(cc, 234)
+        ev.add_clock_value(cc(234))
         return ev
 
     def test_getitem(self):

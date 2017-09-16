@@ -33,6 +33,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <glib.h>
 
 struct bt_ctf_stream_pos;
@@ -40,8 +41,8 @@ struct bt_ctf_stream_pos;
 struct bt_ctf_field {
 	struct bt_object base;
 	struct bt_ctf_field_type *type;
-	int payload_set;
-	int frozen;
+	bool payload_set;
+	bool frozen;
 };
 
 struct bt_ctf_field_integer {
@@ -64,7 +65,6 @@ struct bt_ctf_field_floating_point {
 
 struct bt_ctf_field_structure {
 	struct bt_ctf_field parent;
-	GHashTable *field_name_to_index;
 	GPtrArray *fields; /* Array of pointers to struct bt_ctf_field */
 };
 
@@ -94,10 +94,6 @@ struct bt_ctf_field_string {
 BT_HIDDEN
 int bt_ctf_field_validate(struct bt_ctf_field *field);
 
-/* Mark field payload as unset. */
-BT_HIDDEN
-int bt_ctf_field_reset(struct bt_ctf_field *field);
-
 BT_HIDDEN
 int bt_ctf_field_serialize(struct bt_ctf_field *field,
 		struct bt_ctf_stream_pos *pos,
@@ -105,8 +101,5 @@ int bt_ctf_field_serialize(struct bt_ctf_field *field,
 
 BT_HIDDEN
 void bt_ctf_field_freeze(struct bt_ctf_field *field);
-
-BT_HIDDEN
-bt_bool bt_ctf_field_is_set(struct bt_ctf_field *field);
 
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */
