@@ -25,6 +25,7 @@ import bt2.clock_class
 import bt2.packet
 import bt2.stream
 import bt2.fields
+import bt2.clock_value
 import numbers
 import copy
 import abc
@@ -181,11 +182,11 @@ class _Event(object._Object):
         if clock_value_ptr is None:
             return
 
-        clock_value = bt2.clock_class._create_clock_value_from_ptr(clock_value_ptr)
+        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
         return clock_value
 
     def add_clock_value(self, clock_value):
-        utils._check_type(clock_value, bt2.clock_class._ClockValue)
+        utils._check_type(clock_value, bt2.clock_value._ClockValue)
         ret = native_bt.ctf_event_set_clock_value(self._ptr,
                                                   clock_value._ptr)
         utils._handle_ret(ret, "cannot set event object's clock value")

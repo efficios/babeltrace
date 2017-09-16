@@ -22,6 +22,7 @@
 
 from bt2 import native_bt, object, utils
 import bt2.clock_class_priority_map
+import bt2.clock_value
 import bt2.packet
 import bt2.stream
 import bt2.event
@@ -293,11 +294,11 @@ class InactivityNotification(_CopyableNotification):
         if clock_value_ptr is None:
             return
 
-        clock_value = bt2.clock_class._create_clock_value_from_ptr(clock_value_ptr)
+        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
         return clock_value
 
     def add_clock_value(self, clock_value):
-        utils._check_type(clock_value, bt2.clock_class._ClockValue)
+        utils._check_type(clock_value, bt2.clock_value._ClockValue)
         ret = native_bt.notification_inactivity_set_clock_value(self._ptr,
                                                                 clock_value._ptr)
         utils._handle_ret(ret, "cannot set inactivity notification object's clock value")
@@ -416,7 +417,7 @@ class _DiscardedPacketsNotification(_DiscardedElementsNotification):
         if clock_value_ptr is None:
             return
 
-        clock_value = bt2.clock_class._create_clock_value_from_ptr(clock_value_ptr)
+        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
         return clock_value
 
     @property
@@ -426,7 +427,7 @@ class _DiscardedPacketsNotification(_DiscardedElementsNotification):
         if clock_value_ptr is None:
             return
 
-        clock_value = bt2.clock_class._create_clock_value_from_ptr(clock_value_ptr)
+        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
         return clock_value
 
 
@@ -452,7 +453,7 @@ class _DiscardedEventsNotification(_DiscardedElementsNotification):
         if clock_value_ptr is None:
             return
 
-        clock_value = bt2.clock_class._create_clock_value_from_ptr(clock_value_ptr)
+        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
         return clock_value
 
     @property
@@ -462,7 +463,7 @@ class _DiscardedEventsNotification(_DiscardedElementsNotification):
         if clock_value_ptr is None:
             return
 
-        clock_value = bt2.clock_class._create_clock_value_from_ptr(clock_value_ptr)
+        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
         return clock_value
 
 

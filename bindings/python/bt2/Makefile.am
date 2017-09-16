@@ -35,6 +35,7 @@ STATIC_BINDINGS_DEPS =			\
 	bt2/native_btversion.i		\
 	bt2/clock_class_priority_map.py	\
 	bt2/clock_class.py		\
+	bt2/clock_value.py		\
 	bt2/component.py		\
 	bt2/connection.py		\
 	bt2/ctf_writer.py		\
