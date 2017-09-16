@@ -72,12 +72,25 @@ void finalize_trimmer(struct bt_private_component *component)
  *   ss
  */
 static
-int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
-		struct trimmer_bound *result_bound, bt_bool gmt)
+int timestamp_from_param(const char *param_name, struct bt_value *param,
+		struct trimmer *trimmer, struct trimmer_bound *result_bound,
+		bt_bool gmt)
 {
 	int ret;
 	int64_t value;
 	unsigned int year, month, day, hh, mm, ss, ns;
+	const char *arg;
+
+	if (bt_value_is_integer(param)) {
+		(void) bt_value_integer_get(param, &value);
+		goto set;
+	} else if (!bt_value_is_string(param)) {
+		BT_LOGE("`%s` parameter must be an integer or a string value.",
+			param_name);
+		goto error;
+	}
+
+	(void) bt_value_string_get(param, &arg);
 
 	/* YYYY-MM-DD hh:mm:ss.ns */
 	ret = sscanf(arg, "%u-%u-%u %u:%u:%u.%u",
@@ -263,6 +276,7 @@ int timestamp_from_arg(const char *arg, struct trimmer *trimmer,
 		goto set;
 	}
 
+error:
 	/* Not found. */
 	return -1;
 
@@ -296,42 +310,35 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 			BT_LOGE_STR("Failed to retrieve clock-gmt value. Expecting a boolean");
 		}
 	}
-	bt_put(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
+	BT_PUT(value);
         value = bt_value_map_get(params, "begin");
 	if (value) {
-		enum bt_value_status value_ret;
-		const char *str;
-
-		value_ret = bt_value_string_get(value, &str);
-		if (value_ret || timestamp_from_arg(str,
+		if (timestamp_from_param("begin", value,
 				trimmer, &trimmer->begin, gmt)) {
+			BT_LOGE_STR("Failed to convert `begin` parameter to a timestamp.");
 			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve begin value. Expecting a timestamp string");
+			goto end;
 		}
 	}
-	bt_put(value);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
 
+	BT_PUT(value);
         value = bt_value_map_get(params, "end");
 	if (value) {
-		enum bt_value_status value_ret;
-		const char *str;
-
-		value_ret = bt_value_string_get(value, &str);
-		if (value_ret || timestamp_from_arg(str,
+		if (timestamp_from_param("end", value,
 				trimmer, &trimmer->end, gmt)) {
+			BT_LOGE_STR("Failed to convert `end` parameter to a timestamp.");
 			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve end value. Expecting a timestamp string");
+			goto end;
 		}
 	}
-	bt_put(value);
+
 end:
+	bt_put(value);
+
 	if (trimmer->begin.set && trimmer->end.set) {
 		if (trimmer->begin.value > trimmer->end.value) {
 			BT_LOGE_STR("Unexpected: time range begin value is above end value");

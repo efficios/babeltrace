@@ -60,9 +60,6 @@ class _TestNumericValue(_TestFrozenSimple, _TestCopySimple):
         rvexc = None
         comp_value = rhs
 
-        if type(rhs) in (bt2.BoolValue, bt2.IntegerValue, bt2.FloatValue):
-            comp_value = rhs.value
-
         try:
             r = op(self._def, rhs)
         except Exception as e:
@@ -129,9 +126,9 @@ class _TestNumericValue(_TestFrozenSimple, _TestCopySimple):
         self.assertEqual(self._def.addr, addr_before)
 
     def _test_unaryop_value_same(self, op):
-        value_before = self._def.value
+        value_before = copy.copy(self._def)
         self._unaryop(op)
-        self.assertEqual(self._def.value, value_before)
+        self.assertEqual(self._def, value_before)
 
     def _test_binop_type(self, op, rhs):
         r, rv = self._binop(op, rhs)
@@ -159,9 +156,9 @@ class _TestNumericValue(_TestFrozenSimple, _TestCopySimple):
         self.assertEqual(self._def.addr, addr_before)
 
     def _test_binop_lhs_value_same(self, op, rhs):
-        value_before = self._def.value
+        value_before = copy.copy(self._def)
         r, rv = self._binop(op, rhs)
-        self.assertEqual(self._def.value, value_before)
+        self.assertEqual(self._def, value_before)
 
     def _test_binop_invalid_unknown(self, op):
         if op in _COMP_BINOPS:
@@ -846,21 +843,17 @@ class BoolValueTestCase(_TestFrozenSimple, _TestCopySimple, unittest.TestCase):
         self.assertFalse(b)
 
     def test_create_false(self):
-        self.assertFalse(self._f.value)
         self.assertFalse(self._f)
 
     def test_create_true(self):
-        self.assertTrue(self._t.value)
         self.assertTrue(self._t)
 
     def test_create_from_vfalse(self):
         b = bt2.BoolValue(self._f)
-        self.assertFalse(b.value)
         self.assertFalse(b)
 
     def test_create_from_vtrue(self):
         b = bt2.BoolValue(self._t)
-        self.assertTrue(b.value)
         self.assertTrue(b)
 
     def test_create_from_int_non_zero(self):
@@ -948,14 +941,12 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
 
     def test_create_default(self):
         i = bt2.IntegerValue()
-        self.assertEqual(i.value, 0)
+        self.assertEqual(i, 0)
 
     def test_create_pos(self):
-        self.assertEqual(self._ip.value, self._pv)
         self.assertEqual(self._ip, self._pv)
 
     def test_create_neg(self):
-        self.assertEqual(self._in.value, self._nv)
         self.assertEqual(self._in, self._nv)
 
     def test_create_pos_too_big(self):
@@ -972,12 +963,10 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
 
     def test_create_from_false(self):
         i = bt2.IntegerValue(False)
-        self.assertFalse(i.value)
         self.assertFalse(i)
 
     def test_create_from_true(self):
         i = bt2.IntegerValue(True)
-        self.assertTrue(i.value)
         self.assertTrue(i)
 
     def test_create_from_float(self):
@@ -1004,37 +993,31 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
         raw = True
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_false(self):
         raw = False
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_pos_int(self):
         raw = 477
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_neg_int(self):
         raw = -13
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_vint(self):
         raw = 999
         self._def.value = bt2.create_value(raw)
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_vfloat(self):
         raw = 123.456
         self._def.value = bt2.create_value(raw)
         self.assertEqual(self._def, int(raw))
-        self.assertEqual(self._def.value, int(raw))
 
 
 _inject_numeric_testing_methods(IntegerValueTestCase)
@@ -1065,14 +1048,12 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
 
     def test_create_default(self):
         f = bt2.FloatValue()
-        self.assertEqual(f.value, 0.0)
+        self.assertEqual(f, 0.0)
 
     def test_create_pos(self):
-        self.assertEqual(self._fp.value, self._pv)
         self.assertEqual(self._fp, self._pv)
 
     def test_create_neg(self):
-        self.assertEqual(self._fn.value, self._nv)
         self.assertEqual(self._fn, self._nv)
 
     def test_create_from_vint(self):
@@ -1081,28 +1062,26 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
 
     def test_create_from_false(self):
         f = bt2.FloatValue(False)
-        self.assertFalse(f.value)
         self.assertFalse(f)
 
     def test_create_from_true(self):
         f = bt2.FloatValue(True)
-        self.assertTrue(f.value)
         self.assertTrue(f)
 
     def test_create_from_int(self):
         raw = 17
         f = bt2.FloatValue(raw)
-        self.assertEqual(f.value, float(raw))
+        self.assertEqual(f, float(raw))
 
     def test_create_from_vint(self):
         raw = 17
         f = bt2.FloatValue(bt2.create_value(raw))
-        self.assertEqual(f.value, float(raw))
+        self.assertEqual(f, float(raw))
 
     def test_create_from_vfloat(self):
         raw = 17.17
         f = bt2.FloatValue(bt2.create_value(raw))
-        self.assertEqual(f.value, raw)
+        self.assertEqual(f, raw)
 
     def test_create_from_unknown(self):
         class A:
@@ -1118,42 +1097,35 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
     def test_assign_true(self):
         self._def.value = True
         self.assertTrue(self._def)
-        self.assertTrue(self._def.value)
 
     def test_assign_false(self):
         self._def.value = False
         self.assertFalse(self._def)
-        self.assertFalse(self._def.value)
 
     def test_assign_pos_int(self):
         raw = 477
         self._def.value = raw
         self.assertEqual(self._def, float(raw))
-        self.assertEqual(self._def.value, float(raw))
 
     def test_assign_neg_int(self):
         raw = -13
         self._def.value = raw
         self.assertEqual(self._def, float(raw))
-        self.assertEqual(self._def.value, float(raw))
 
     def test_assign_vint(self):
         raw = 999
         self._def.value = bt2.create_value(raw)
         self.assertEqual(self._def, float(raw))
-        self.assertEqual(self._def.value, float(raw))
 
     def test_assign_float(self):
         raw = -19.23
         self._def.value = raw
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_assign_vfloat(self):
         raw = 101.32
         self._def.value = bt2.create_value(raw)
         self.assertEqual(self._def, raw)
-        self.assertEqual(self._def.value, raw)
 
     def test_invalid_lshift(self):
         self._test_invalid_op(lambda: self._def << 23)
@@ -1191,17 +1163,17 @@ class StringValueTestCase(_TestCopySimple, _TestFrozenSimple, unittest.TestCase)
 
     def test_create_default(self):
         s = bt2.StringValue()
-        self.assertEqual(s.value, '')
+        self.assertEqual(s, '')
 
     def test_create_from_str(self):
         raw = 'liberté'
         s = bt2.StringValue(raw)
-        self.assertEqual(s.value, raw)
+        self.assertEqual(s, raw)
 
     def test_create_from_vstr(self):
         raw = 'liberté'
         s = bt2.StringValue(bt2.create_value(raw))
-        self.assertEqual(s.value, raw)
+        self.assertEqual(s, raw)
 
     def test_create_from_unknown(self):
         class A:
