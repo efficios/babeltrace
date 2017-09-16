@@ -100,7 +100,7 @@ void validate_trace(char *parser_path, char *trace_path)
 	int ret = 0;
 	gchar *standard_error = NULL;
 	gint exit_status;
-	char *argv[] = {parser_path, trace_path, NULL};
+	char *argv[] = {parser_path, trace_path, "-o", "dummy", NULL};
 
 	if (!parser_path || !trace_path) {
 		ret = -1;
