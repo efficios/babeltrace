@@ -78,11 +78,11 @@ class _Field(object._Object, metaclass=abc.ABCMeta):
 
     @property
     def is_set(self):
-        is_set = native_bt.ctf_field_value_is_set(self._ptr)
+        is_set = native_bt.ctf_field_is_set(self._ptr)
         return is_set > 0
 
     def reset(self):
-        ret = native_bt.ctf_field_reset_value(self._ptr)
+        ret = native_bt.ctf_field_reset(self._ptr)
         utils._handle_ret(ret, "cannot reset field object's value")
 
 
