@@ -299,6 +299,11 @@ class _EnumerationFieldTypeMappingIterator(object._Object,
         if self._done:
             raise StopIteration
 
+        ret = native_bt.ctf_field_type_enumeration_mapping_iterator_next(self._ptr)
+        if ret < 0:
+            self._done = True
+            raise StopIteration
+
         if self._is_signed:
             ret, name, lower, upper = native_bt.ctf_field_type_enumeration_mapping_iterator_get_signed(self._ptr)
         else:
@@ -306,10 +311,6 @@ class _EnumerationFieldTypeMappingIterator(object._Object,
 
         assert(ret == 0)
         mapping = _EnumerationFieldTypeMapping(name, lower, upper)
-        ret = native_bt.ctf_field_type_enumeration_mapping_iterator_next(self._ptr)
-
-        if ret < 0:
-            self._done = True
 
         return mapping
 
@@ -416,6 +417,7 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
     def mappings_by_name(self, name):
         utils._check_str(name)
         iter_ptr = native_bt.ctf_field_type_enumeration_find_mappings_by_name(self._ptr, name)
+        print('iter_ptr', iter_ptr)
         return self._get_mapping_iter(iter_ptr)
 
     def mappings_by_value(self, value):

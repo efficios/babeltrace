@@ -838,7 +838,8 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 				enumeration_field_type, value);
 	}
 	g_string_append(pretty->string, "( ");
-	if (!iter) {
+	ret = bt_ctf_field_type_enumeration_mapping_iterator_next(iter);
+	if (ret) {
 		if (pretty->use_colors) {
 			g_string_append(pretty->string, COLOR_UNKNOWN);
 		}
@@ -1243,7 +1244,9 @@ enum bt_component_status print_variant(struct pretty_component *pretty,
 		}
 
 		iter = bt_ctf_field_enumeration_get_mappings(tag_field);
-		if (!iter) {
+		iter_ret = bt_ctf_field_type_enumeration_mapping_iterator_next(
+			iter);
+		if (!iter || ret) {
 			bt_put(tag_field);
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;

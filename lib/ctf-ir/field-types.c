@@ -1279,21 +1279,12 @@ bt_ctf_field_type_enumeration_find_mappings_by_name(
 
 	iter->u.name_quark = g_quark_try_string(name);
 	if (!iter->u.name_quark) {
-		BT_LOGV("No such enumeration field type mapping name: "
-			"ft-addr=%p, mapping-name=\"%s\"",
-			type, name);
-		goto error;
+		/*
+		 * No results are possible, set the iterator's position at the
+		 * end.
+		 */
+		iter->index = iter->enumeration_type->entries->len;
 	}
-
-	/* Advance iterator to first entry, or leave index at -1. */
-	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
-		/* No entry found. */
-		BT_LOGV("No such enumeration field type mapping name: "
-			"ft-addr=%p, mapping-name=\"%s\"",
-			type, name);
-		goto error;
-	}
-
 	return iter;
 error:
 	bt_put(iter);
@@ -1384,13 +1375,6 @@ bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
 	}
 
 	iter->u.signed_value = value;
-
-	/* Advance iterator to first entry, or leave index at -1. */
-	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
-		/* No entry found. */
-		goto error;
-	}
-
 	return iter;
 error:
 	bt_put(iter);
@@ -1401,12 +1385,7 @@ struct bt_ctf_field_type_enumeration_mapping_iterator *
 bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
 		struct bt_ctf_field_type *type, uint64_t value)
 {
-	struct bt_ctf_field_type_enumeration_mapping_iterator *iter = NULL;
-
-	if (!type) {
-		BT_LOGW_STR("Invalid parameter: field type is NULL.");
-		goto error;
-	}
+	struct bt_ctf_field_type_enumeration_mapping_iterator *iter;
 
 	iter = bt_ctf_field_type_enumeration_find_mappings_type(
 			type, ITERATOR_BY_UNSIGNED_VALUE);
@@ -1424,13 +1403,6 @@ bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
 		goto error;
 	}
 	iter->u.unsigned_value = value;
-
-	/* Advance iterator to first entry, or leave index at -1. */
-	if (bt_ctf_field_type_enumeration_mapping_iterator_next(iter)) {
-		/* No entry found. */
-		goto error;
-	}
-
 	return iter;
 error:
 	bt_put(iter);
@@ -1446,6 +1418,12 @@ int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
 
 	if (!iter) {
 		BT_LOGW_STR("Invalid parameter: enumeration field type mapping iterator is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (iter->index == -1) {
+		BT_LOGW_STR("Invalid enumeration field type mapping iterator access: position=-1");
 		ret = -1;
 		goto end;
 	}
@@ -1466,6 +1444,12 @@ int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
 
 	if (!iter) {
 		BT_LOGW_STR("Invalid parameter: enumeration field type mapping iterator is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (iter->index == -1) {
+		BT_LOGW_STR("Invalid enumeration field type mapping iterator access: position=-1");
 		ret = -1;
 		goto end;
 	}
@@ -2525,7 +2509,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 	}
 
 	iter = bt_ctf_field_enumeration_get_mappings(tag);
-	if (!iter) {
+	ret = bt_ctf_field_type_enumeration_mapping_iterator_next(iter);
+	if (!iter || ret) {
 		BT_LOGE("Cannot get enumeration field type mapping iterator from enumeration field: "
 			"enum-field-addr=%p", tag);
 		goto end;
