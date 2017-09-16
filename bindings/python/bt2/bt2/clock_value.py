@@ -45,7 +45,7 @@ class _ClockValue(object._Object):
     def clock_class(self):
         ptr = native_bt.ctf_clock_value_get_class(self._ptr)
         assert(ptr)
-        return ClockClass._create_from_ptr(ptr)
+        return bt2.ClockClass._create_from_ptr(ptr)
 
     @property
     def cycles(self):
