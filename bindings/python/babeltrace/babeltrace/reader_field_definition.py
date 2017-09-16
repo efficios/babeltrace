@@ -71,6 +71,13 @@ class _Definition:
         """
 
         try:
+            if type(self._field) in (bt2._ArrayField, bt2._SequenceField):
+                elem_ft = self._field.field_type.element_field_type
+
+                if type(elem_ft) is bt2.IntegerFieldType:
+                    if elem_ft.size == 8 and elem_ft.encoding != bt2.Encoding.NONE:
+                        return bytes(x for x in self._field._value if x != 0).decode()
+
             return self._field._value
         except bt2.Error:
             return

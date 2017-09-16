@@ -21,6 +21,9 @@
 # THE SOFTWARE.
 
 import bt2
+import itertools
+from babeltrace import reader_event_declaration
+
 
 class TraceHandle:
     """
@@ -36,6 +39,15 @@ class TraceHandle:
         # TODO print an id or some information about component / query result?
         return "Babeltrace TraceHandle: trace_id('{0}')".format(self._id)
 
+    def __hash__(self):
+        return hash((self.path, self.id))
+
+    def __eq__(self, other):
+        if type(other) is not type(self):
+            return False
+
+        return (self.path, self.id) == (other.path, other.id)
+
     @property
     def id(self):
         """
@@ -50,8 +62,17 @@ class TraceHandle:
         Path of the underlying trace.
         """
 
-        # TODO return info set at creation
         return self._path
+
+    def _query_trace_info(self):
+        try:
+            result = bt2.QueryExecutor().query(self._trace_collection._fs_comp_cls,
+                                               'trace-info', {'path': self._path})
+        except:
+            raise ValueError
+
+        assert(len(result) == 1)
+        return result
 
     @property
     def timestamp_begin(self):
@@ -60,8 +81,12 @@ class TraceHandle:
         underlying trace.
         """
 
-        # TODO return info set at creation
-        pass
+        result = self._query_trace_info()
+
+        try:
+            return int(result[0]['range-ns']['begin'])
+        except:
+            raise ValueError
 
     @property
     def timestamp_end(self):
@@ -70,8 +95,34 @@ class TraceHandle:
         underlying trace.
         """
 
-        # TODO return info set at creation
-        pass
+        result = self._query_trace_info()
+
+        try:
+            return int(result[0]['range-ns']['end'])
+        except:
+            raise ValueError
+
+    @property
+    def _has_intersection(self):
+        result = self._query_trace_info()
+
+        try:
+            return 'intersection-range-ns' in result[0]
+        except:
+            raise ValueError
+
+    def _get_event_declarations(self):
+        notif_iter = bt2.TraceCollectionNotificationIterator([
+            bt2.SourceComponentSpec('ctf', 'fs', self._path)
+        ])
+
+        # raises if the trace contains no streams
+        first_notif = next(notif_iter)
+        assert(type(first_notif) is bt2.StreamBeginningNotification)
+        trace = first_notif.stream.stream_class.trace
+        ec_iters = [sc.values() for sc in trace.values()]
+        return map(reader_event_declaration._create_event_declaration,
+                   itertools.chain(*ec_iters))
 
     @property
     def events(self):
@@ -80,6 +131,7 @@ class TraceHandle:
         underlying trace.
         """
 
-        # TODO recreate a graph containing only this trace/component and
-        # go through all stream classes and events.
-        pass
+        try:
+            return self._get_event_declarations()
+        except:
+            return

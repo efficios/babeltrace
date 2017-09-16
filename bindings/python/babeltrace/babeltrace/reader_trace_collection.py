@@ -22,8 +22,10 @@
 
 import bt2
 import babeltrace.common as common
-import babeltrace.reader_trace_handle as reader_trace_handle
+from babeltrace import reader_trace_handle
+from babeltrace import reader_event
 import os
+
 
 class TraceCollection:
     """
@@ -43,13 +45,12 @@ class TraceCollection:
         Creates an empty trace collection.
         """
 
-        # TODO Use bt2 collection util.
-        self._in_intersect_mode = intersect_mode
-        self._sources = []
-
-    def __del__(self):
-        # TODO Something?
-        pass
+        self._intersect_mode = intersect_mode
+        self._trace_handles = set()
+        self._next_th_id = 0
+        self._ctf_plugin = bt2.find_plugin('ctf')
+        assert(self._ctf_plugin is not None)
+        self._fs_comp_cls = self._ctf_plugin.source_component_classes['fs']
 
     def add_trace(self, path, format_str):
         """
@@ -68,10 +69,19 @@ class TraceCollection:
         version of this function.
         """
 
-        # TODO Use bt2 collection utils
-        # keep all sources in the _sources dict in order to rebuild a new
-        # graph on demand (on remove_trace) and to check for intersections.
-        pass
+        if format_str != 'ctf':
+            raise ValueError('only the "ctf" format is supported')
+
+        if not os.path.isfile(os.path.join(path, 'metadata')):
+            raise ValueError('no "metadata" file found in "{}"'.format(path))
+
+        th = reader_trace_handle.TraceHandle.__new__(reader_trace_handle.TraceHandle)
+        th._id = self._next_th_id
+        self._next_th_id += 1
+        th._trace_collection = self
+        th._path = path
+        self._trace_handles.add(th)
+        return th
 
     def add_traces_recursive(self, path, format_str):
         """
@@ -120,17 +130,17 @@ class TraceCollection:
             raise TypeError("'{}' is not a 'TraceHandle' object".format(
                 handle.__class__.__name__))
 
-        # TODO create a separate graph without that source and make it the
-        # current graph.
+        # this can raise but it would mean the trace handle is not part
+        # of this trace collection anyway
+        self._trace_handles.remove(handle)
 
     @property
     def intersect_mode(self):
-        return self._in_intersect_mode
+        return self._intersect_mode
 
     @property
     def has_intersection(self):
-        # Use query to determine whether all sources have a common intersection
-        pass
+        return any(th._has_intersection for th in self._trace_handles)
 
     @property
     def events(self):
@@ -139,8 +149,7 @@ class TraceCollection:
         traces contained in this trace collection.
         """
 
-        # TODO Use bt2 trace collection utils
-        pass
+        return self._gen_events()
 
     def events_timestamps(self, timestamp_begin, timestamp_end):
         """
@@ -154,8 +163,20 @@ class TraceCollection:
         See :attr:`events` for notes and limitations.
         """
 
-        # TODO Create a graph with a trimmer
-        pass
+        return self._gen_events(timestamp_begin / 1e9, timestamp_end / 1e9)
+
+    def _gen_events(self, begin_s=None, end_s=None):
+        specs = [bt2.SourceComponentSpec('ctf', 'fs', th.path) for th in self._trace_handles]
+
+        try:
+            iter_cls = bt2.TraceCollectionNotificationIterator
+            tc_iter = iter_cls(specs,
+                               stream_intersection_mode=self._intersect_mode,
+                               begin=begin_s, end=end_s,
+                               notification_types=[bt2.EventNotification])
+            return map(reader_event._create_event, tc_iter)
+        except:
+            raise ValueError
 
     @property
     def timestamp_begin(self):
@@ -163,8 +184,10 @@ class TraceCollection:
         Begin timestamp of this trace collection (nanoseconds since Epoch).
         """
 
-        # TODO Use queries to determine timestamp_begin
-        pass
+        if not self._trace_handles:
+            return
+
+        return min(th.timestamp_begin for th in self._trace_handles)
 
     @property
     def timestamp_end(self):
@@ -172,9 +195,7 @@ class TraceCollection:
         End timestamp of this trace collection (nanoseconds since Epoch).
         """
 
-        # TODO Use source queries to determine timestamp_end
-        pass
+        if not self._trace_handles:
+            return
 
-    def _events(self, begin_pos_ptr, end_pos_ptr):
-        # TODO Iterate on graph using bt2 utils
-        pass
+        return max(th.timestamp_end for th in self._trace_handles)
