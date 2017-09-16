@@ -425,13 +425,33 @@ int add_structure_field(GPtrArray *fields,
 {
 	int ret = 0;
 	GQuark name_quark = g_quark_from_string(field_name);
+	GQuark underscore_name_quark;
 	struct structure_field *field;
+	GString *underscore_name = g_string_new(NULL);
+
+	if (!underscore_name) {
+		BT_LOGE_STR("Failed to allocate a GString.");
+		ret = -1;
+		goto end;
+	}
+
+	g_string_assign(underscore_name, "_");
+	g_string_append(underscore_name, field_name);
+	underscore_name_quark = g_quark_from_string(underscore_name->str);
 
 	/* Make sure structure does not contain a field of the same name */
 	if (g_hash_table_lookup_extended(field_name_to_index,
 			GUINT_TO_POINTER(name_quark), NULL, NULL)) {
 		BT_LOGW("Structure or variant field type already contains a field type with this name: "
 			"field-name=\"%s\"", field_name);
+		ret = -1;
+		goto end;
+	}
+
+	if (g_hash_table_lookup_extended(field_name_to_index,
+			GUINT_TO_POINTER(underscore_name_quark), NULL, NULL)) {
+		BT_LOGW("Structure or variant field type already contains a field type with this name: "
+			"field-name=\"%s\"", underscore_name->str);
 		ret = -1;
 		goto end;
 	}
@@ -449,10 +469,14 @@ int add_structure_field(GPtrArray *fields,
 	g_hash_table_insert(field_name_to_index,
 		GUINT_TO_POINTER(name_quark),
 		GUINT_TO_POINTER(fields->len));
+	g_hash_table_insert(field_name_to_index,
+		GUINT_TO_POINTER(underscore_name_quark),
+		GUINT_TO_POINTER(fields->len));
 	g_ptr_array_add(fields, field);
 	BT_LOGV("Added structure/variant field type field: field-ft-addr=%p, "
 		"field-name=\"%s\"", field_type, field_name);
 end:
+	g_string_free(underscore_name, TRUE);
 	return ret;
 }
 
@@ -2035,14 +2059,6 @@ int bt_ctf_field_type_structure_add_field(struct bt_ctf_field_type *type,
 		goto end;
 	}
 
-	if (bt_ctf_validate_identifier(field_name)) {
-		BT_LOGW("Invalid parameter: field name is not a valid CTF identifier: "
-			"struct-ft-addr=%p, field-name=\"%s\"",
-			type, field_name);
-		ret = -1;
-		goto end;
-	}
-
 	if (type->id != BT_CTF_FIELD_TYPE_ID_STRUCT) {
 		BT_LOGW("Invalid parameter: field type is not a structure field type: "
 			"addr=%p, ft-id=%s", type,
@@ -2364,14 +2380,6 @@ int bt_ctf_field_type_variant_add_field(struct bt_ctf_field_type *type,
 	if (type->frozen) {
 		BT_LOGW("Invalid parameter: field type is frozen: addr=%p",
 			type);
-		ret = -1;
-		goto end;
-	}
-
-	if (bt_ctf_validate_identifier(field_name)) {
-		BT_LOGW("Invalid parameter: field name is not a valid CTF identifier: "
-			"variant-ft-addr=%p, field-name=\"%s\"",
-			type, field_name);
 		ret = -1;
 		goto end;
 	}
@@ -3863,6 +3871,19 @@ const char *get_integer_base_string(enum bt_ctf_integer_base base)
 }
 
 static
+void append_struct_variant_field_name(struct metadata_context *context,
+		const char *name)
+{
+	g_string_append_c(context->string, ' ');
+
+	if (bt_ctf_validate_identifier(name)) {
+		g_string_append_c(context->string, '_');
+	}
+
+	g_string_append(context->string, name);
+}
+
+static
 int bt_ctf_field_type_integer_serialize(struct bt_ctf_field_type *type,
 		struct metadata_context *context)
 {
@@ -3959,7 +3980,7 @@ int bt_ctf_field_type_enumeration_serialize(struct bt_ctf_field_type *type,
 	}
 
 	if (context->field_name->len) {
-		g_string_append_printf(context->string, " %s",
+		append_struct_variant_field_name(context,
 			context->field_name->str);
 		g_string_assign(context->field_name, "");
 	}
@@ -4030,7 +4051,7 @@ int bt_ctf_field_type_structure_serialize(struct bt_ctf_field_type *type,
 		}
 
 		if (context->field_name->len) {
-			g_string_append_printf(context->string, " %s",
+			append_struct_variant_field_name(context,
 				context->field_name->str);
 		}
 		g_string_append(context->string, ";\n");
@@ -4100,8 +4121,9 @@ int bt_ctf_field_type_variant_serialize(struct bt_ctf_field_type *type,
 		}
 
 		if (context->field_name->len) {
-			g_string_append_printf(context->string, " %s;",
+			append_struct_variant_field_name(context,
 				context->field_name->str);
+			g_string_append_c(context->string, ';');
 		}
 
 		g_string_append_c(context->string, '\n');
@@ -4139,8 +4161,10 @@ int bt_ctf_field_type_array_serialize(struct bt_ctf_field_type *type,
 	}
 
 	if (context->field_name->len) {
-		g_string_append_printf(context->string, " %s[%u]",
-			context->field_name->str, array->length);
+		append_struct_variant_field_name(context,
+			context->field_name->str);
+
+		g_string_append_printf(context->string, "[%u]", array->length);
 		g_string_assign(context->field_name, "");
 	} else {
 		g_string_append_printf(context->string, "[%u]", array->length);
@@ -4168,8 +4192,10 @@ int bt_ctf_field_type_sequence_serialize(struct bt_ctf_field_type *type,
 	}
 
 	if (context->field_name->len) {
-		g_string_append_printf(context->string, " %s[%s]",
-			context->field_name->str,
+		append_struct_variant_field_name(context,
+			context->field_name->str);
+
+		g_string_append_printf(context->string, "[%s]",
 			sequence->length_field_name->str);
 		g_string_assign(context->field_name, "");
 	} else {
