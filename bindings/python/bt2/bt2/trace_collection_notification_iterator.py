@@ -128,12 +128,15 @@ class TraceCollectionNotificationIterator(bt2.notification_iterator._Notificatio
         end = None
 
         # find the trace info for this port's trace by name's prefix
-        for trace_info in trace_info_res:
-            if port.name.startswith(str(trace_info['path'])):
-                range_ns = trace_info['intersection-range-ns']
-                begin = range_ns['begin']
-                end = range_ns['end']
-                break
+        try:
+            for trace_info in trace_info_res:
+                if port.name.startswith(str(trace_info['path'])):
+                    range_ns = trace_info['intersection-range-ns']
+                    begin = range_ns['begin']
+                    end = range_ns['end']
+                    break
+        except:
+            pass
 
         if begin is None or end is None:
             raise bt2.Error('cannot find stream intersection range for port "{}"'.format(port.name))
