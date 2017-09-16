@@ -31,8 +31,8 @@ struct bt_ctf_field *bt_ctf_field_create(
 struct bt_ctf_field_type *bt_ctf_field_get_type(
 		struct bt_ctf_field *field);
 struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field);
-bt_bool bt_ctf_field_value_is_set(struct bt_ctf_field *field);
-int bt_ctf_field_reset_value(struct bt_ctf_field *field);
+bt_bool bt_ctf_field_is_set(struct bt_ctf_field *field);
+int bt_ctf_field_reset(struct bt_ctf_field *field);
 
 /* Integer field functions */
 int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer,
