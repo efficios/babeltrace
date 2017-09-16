@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 623
+#define NR_TESTS 625
 
 struct bt_utsname {
 	char sysname[BABELTRACE_HOST_NAME_MAX];
