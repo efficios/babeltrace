@@ -665,6 +665,61 @@ int visit_type_specifier_list(struct ctx *ctx, struct ctf_node *ts_list,
 	struct bt_ctf_field_type **decl);
 
 static
+char *remove_underscores_from_field_ref(const char *field_ref)
+{
+	const char *in_ch;
+	char *out_ch;
+	char *ret;
+	enum {
+		UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE,
+		UNDERSCORE_REMOVE_STATE_DO_NOT_REMOVE_NEXT_UNDERSCORE,
+	} state = UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE;
+
+	assert(field_ref);
+	ret = calloc(strlen(field_ref) + 1, 1);
+	if (!ret) {
+		BT_LOGE("Failed to allocate a string: size=%zu",
+			strlen(field_ref) + 1);
+		goto end;
+	}
+
+	in_ch = field_ref;
+	out_ch = ret;
+
+	while (*in_ch != '\0') {
+		switch (*in_ch) {
+		case ' ':
+		case '\t':
+			/* Remove whitespace */
+			in_ch++;
+			continue;
+		case '_':
+			if (state == UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE) {
+				in_ch++;
+				state = UNDERSCORE_REMOVE_STATE_DO_NOT_REMOVE_NEXT_UNDERSCORE;
+				continue;
+			}
+
+			goto copy;
+		case '.':
+			state = UNDERSCORE_REMOVE_STATE_REMOVE_NEXT_UNDERSCORE;
+			goto copy;
+		default:
+			state = UNDERSCORE_REMOVE_STATE_DO_NOT_REMOVE_NEXT_UNDERSCORE;
+			goto copy;
+		}
+
+copy:
+		*out_ch = *in_ch;
+		in_ch++;
+		out_ch++;
+	}
+
+end:
+	return ret;
+}
+
+static
 int is_unary_string(struct bt_list_head *head)
 {
 	int ret = TRUE;
@@ -1319,6 +1374,10 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 			const char *id =
 				node_type_declarator->u.type_declarator.u.id;
 
+			if (id[0] == '_') {
+				id++;
+			}
+
 			*field_name = g_quark_from_string(id);
 		} else {
 			*field_name = 0;
@@ -1376,6 +1435,7 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 			/* Lookup unsigned integer definition, create seq. */
 			_BT_CTF_FIELD_TYPE_INIT(seq_decl);
 			char *length_name = concatenate_unary_strings(length);
+			char *length_name_no_underscore;
 
 			if (!length_name) {
 				_BT_LOGE_NODE(node_type_declarator,
@@ -1384,8 +1444,16 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 				goto error;
 			}
 
+			length_name_no_underscore =
+				remove_underscores_from_field_ref(length_name);
+			if (!length_name_no_underscore) {
+				/* remove_underscores_from_field_ref() logs errors */
+				ret = -EINVAL;
+				goto error;
+			}
 			seq_decl = bt_ctf_field_type_sequence_create(
-				nested_decl, length_name);
+				nested_decl, length_name_no_underscore);
+			free(length_name_no_underscore);
 			g_free(length_name);
 			BT_PUT(nested_decl);
 			if (!seq_decl) {
@@ -2013,8 +2081,17 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 		 * At this point, we have a fresh untagged variant; nobody
 		 * else owns it. Set its tag now.
 		 */
+		char *tag_no_underscore =
+			remove_underscores_from_field_ref(tag);
+
+		if (!tag_no_underscore) {
+			/* remove_underscores_from_field_ref() logs errors */
+			goto error;
+		}
+
 		ret = bt_ctf_field_type_variant_set_tag_name(
-			untagged_variant_decl, tag);
+			untagged_variant_decl, tag_no_underscore);
+		free(tag_no_underscore);
 		if (ret) {
 			BT_LOGE("Cannot set variant field type's tag name: "
 				"tag-name=\"%s\"", tag);

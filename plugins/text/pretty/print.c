@@ -47,15 +47,6 @@
 #define COLOR_EVENT_NAME	BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_MAGENTA
 #define COLOR_TIMESTAMP		BT_COMMON_COLOR_BOLD BT_COMMON_COLOR_FG_YELLOW
 
-static inline
-const char *rem_(const char *str)
-{
-	if (str[0] == '_')
-		return &str[1];
-	else
-		return str;
-}
-
 struct timestamp {
 	int64_t real_timestamp;	/* Relative to UNIX epoch. */
 	uint64_t clock_value;	/* In cycles. */
@@ -939,7 +930,7 @@ enum bt_component_status print_struct_field(struct pretty_component *pretty,
 		g_string_append(pretty->string, " ");
 	}
 	if (print_names) {
-		print_field_name_equal(pretty, rem_(field_name));
+		print_field_name_equal(pretty, field_name);
 	}
 	ret = print_field(pretty, field, print_names, NULL, 0);
 	*nr_printed_fields += 1;
@@ -1261,7 +1252,7 @@ enum bt_component_status print_variant(struct pretty_component *pretty,
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		print_field_name_equal(pretty, rem_(tag_choice));
+		print_field_name_equal(pretty, tag_choice);
 		bt_put(tag_field);
 		bt_put(iter);
 	}

@@ -656,7 +656,7 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	/* Parse the plugin name */
 	gs_plugin = bt_common_string_until(at, ".:\\", ".", &end_pos);
 	if (!gs_plugin || gs_plugin->len == 0 || at[end_pos] == '\0') {
-		printf_err("Missing plugin name\n");
+		printf_err("Missing plugin or component class name\n");
 		goto error;
 	}
 
@@ -1950,13 +1950,10 @@ end:
 static
 void print_query_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GEN OPTS] query [OPTS] OBJECT --component=TYPE.PLUGIN.CLS\n");
+	fprintf(fp, "Usage: babeltrace [GEN OPTS] query [OPTS] TYPE.PLUGIN.CLS OBJECT\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -c, --component=TYPE.PLUGIN.CLS   Query the component class CLS of type TYPE\n");
-	fprintf(fp, "                                    (`source`, `filter`, or `sink`) found in\n");
-	fprintf(fp, "                                    the plugin PLUGIN\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
@@ -1972,7 +1969,6 @@ void print_query_usage(FILE *fp)
 static
 struct poptOption query_long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
@@ -2040,28 +2036,9 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			cfg->omit_home_plugin_path = true;
 			break;
-		case OPT_COMPONENT:
-			if (cfg->cmd_data.query.cfg_component) {
-				printf_err("Cannot specify more than one plugin and component class:\n    %s\n",
-					arg);
-				goto error;
-			}
-
-			cfg->cmd_data.query.cfg_component =
-				bt_config_component_from_arg(arg);
-			if (!cfg->cmd_data.query.cfg_component) {
-				printf_err("Invalid format for --component option's argument:\n    %s\n",
-					arg);
-				goto error;
-			}
-
-			/* Default parameters: null */
-			bt_put(cfg->cmd_data.query.cfg_component->params);
-			cfg->cmd_data.query.cfg_component->params =
-				bt_value_null;
-			break;
 		case OPT_PARAMS:
 		{
+			bt_put(params);
 			params = bt_value_from_arg(arg);
 			if (!params) {
 				printf_err("Invalid format for --params option's argument:\n    %s\n",
@@ -2085,14 +2062,6 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		arg = NULL;
 	}
 
-	if (!cfg->cmd_data.query.cfg_component) {
-		printf_err("No target component class specified with --component option\n");
-		goto error;
-	}
-
-	assert(params);
-	BT_MOVE(cfg->cmd_data.query.cfg_component->params, params);
-
 	/* Check for option parsing error */
 	if (opt < -1) {
 		printf_err("While parsing command-line options, at option %s: %s\n",
@@ -2101,9 +2070,28 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	}
 
 	/*
-	 * We need exactly one leftover argument which is the
-	 * mandatory object.
+	 * We need exactly two leftover arguments which are the
+	 * mandatory component class specification and query object.
 	 */
+	leftover = poptGetArg(pc);
+	if (leftover) {
+		cfg->cmd_data.query.cfg_component =
+			bt_config_component_from_arg(leftover);
+		if (!cfg->cmd_data.query.cfg_component) {
+			printf_err("Invalid format for component class specification:\n    %s\n",
+				leftover);
+			goto error;
+		}
+
+		assert(params);
+		BT_MOVE(cfg->cmd_data.query.cfg_component->params, params);
+	} else {
+		print_query_usage(stdout);
+		*retcode = -1;
+		BT_PUT(cfg);
+		goto end;
+	}
+
 	leftover = poptGetArg(pc);
 	if (leftover) {
 		if (strlen(leftover) == 0) {
@@ -2140,7 +2128,7 @@ end:
 		poptFreeContext(pc);
 	}
 
-	BT_PUT(params);
+	bt_put(params);
 	free(arg);
 	return cfg;
 }

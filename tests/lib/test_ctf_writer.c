@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 623
+#define NR_TESTS 625
 
 struct bt_utsname {
 	char sysname[BABELTRACE_HOST_NAME_MAX];
@@ -100,7 +100,7 @@ void validate_trace(char *parser_path, char *trace_path)
 	int ret = 0;
 	gchar *standard_error = NULL;
 	gint exit_status;
-	char *argv[] = {parser_path, trace_path, NULL};
+	char *argv[] = {parser_path, trace_path, "-o", "dummy", NULL};
 
 	if (!parser_path || !trace_path) {
 		ret = -1;
@@ -747,7 +747,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		enum_variant_type, "variant_selector"),
 		"Add variant_selector field to complex structure");
 	ok(!bt_ctf_field_type_structure_add_field(complex_structure_type,
-		string_type, "a_string"), "Add a_string field to complex structure");
+		string_type, "string"), "Add `string` field to complex structure");
 	ok(!bt_ctf_field_type_structure_add_field(complex_structure_type,
 		variant_type, "variant_value"),
 		"Add variant_value field to complex structure");
@@ -933,7 +933,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	inner_structure_field = bt_ctf_field_structure_get_field(
 		complex_structure_field, "inner_structure");
 	a_string_field = bt_ctf_field_structure_get_field(
-		complex_structure_field, "a_string");
+		complex_structure_field, "string");
 	enum_variant_field = bt_ctf_field_structure_get_field(
 		complex_structure_field, "variant_selector");
 	variant_field = bt_ctf_field_structure_get_field(

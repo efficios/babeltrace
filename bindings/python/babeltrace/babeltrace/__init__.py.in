@@ -30,4 +30,4 @@ from .reader import \
 import babeltrace.writer as CTFWriter
 
 
-__version__ = 'BABELTRACE_VERSION_STR'
+__version__ = '@PACKAGE_VERSION@'

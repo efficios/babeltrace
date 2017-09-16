@@ -642,6 +642,9 @@ AC_SUBST(program_transform_name)
 AC_CONFIG_FILES([
 	Makefile
 	bindings/python/Makefile
+	bindings/python/babeltrace/Makefile
+	bindings/python/babeltrace/setup.py
+	bindings/python/babeltrace/babeltrace/__init__.py
 	bindings/python/bt2/Makefile
 	bindings/python/bt2/setup.py
 	bindings/python/bt2/bt2/__init__.py
@@ -676,6 +679,7 @@ AC_CONFIG_FILES([
 	tests/bindings/Makefile
 	tests/bindings/python/Makefile
 	tests/bindings/python/bt2/Makefile
+	tests/bindings/python/babeltrace/Makefile
 	tests/plugins/Makefile
 	tests/python-plugin-provider/Makefile
 	extras/Makefile
@@ -723,7 +727,10 @@ AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/tes
 AC_CONFIG_FILES([tests/plugins/test_bin_info_complete], [chmod +x tests/plugins/test_bin_info_complete])
 
 AS_IF([test "x$enable_python_bindings" = xyes],
-  [AC_CONFIG_FILES([tests/bindings/python/bt2/test_python_bt2], [chmod +x tests/bindings/python/bt2/test_python_bt2])]
+  [
+	AC_CONFIG_FILES([tests/bindings/python/bt2/test_python_bt2], [chmod +x tests/bindings/python/bt2/test_python_bt2])
+	AC_CONFIG_FILES([tests/bindings/python/babeltrace/test_python_babeltrace], [chmod +x tests/bindings/python/babeltrace/test_python_babeltrace])
+  ]
 )
 
 AS_IF([test "x$enable_python_plugins" = "xyes"],

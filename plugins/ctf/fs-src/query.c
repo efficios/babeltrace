@@ -438,10 +438,13 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 	if (ret) {
 		goto end;
 	}
-	ret = add_range(trace_info, &trace_intersection,
-			"intersection-range-ns");
-	if (ret) {
-		goto end;
+
+	if (trace_intersection.begin_ns < trace_intersection.end_ns) {
+		ret = add_range(trace_info, &trace_intersection,
+				"intersection-range-ns");
+		if (ret) {
+			goto end;
+		}
 	}
 
 	status = bt_value_map_insert(trace_info, "streams", file_groups);
