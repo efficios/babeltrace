@@ -233,7 +233,7 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
 	enum bt_component_status component_status;
-        bt_bool init_can_consume;
+	bt_bool init_can_consume;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
