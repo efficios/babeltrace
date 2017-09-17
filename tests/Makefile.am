@@ -8,7 +8,11 @@ TESTS_BINDINGS =
 
 if ENABLE_PYTHON_PLUGINS
 SUBDIRS += python-plugin-provider
-TESTS_BINDINGS += bindings/python/bt2/test_python_bt2
+endif
+
+if ENABLE_PYTHON_BINDINGS
+TESTS_BINDINGS += bindings/python/bt2/test_python_bt2 \
+	bindings/python/babeltrace/test_python_babeltrace
 endif
 
 TESTS_CLI = \
@@ -31,7 +35,7 @@ TESTS_LIB = \
 	lib/test_cc_prio_map \
 	lib/test_bt_notification_iterator
 
-if ENABLE_PYTHON_PLUGINS
+if ENABLE_PYTHON_BINDINGS
 TESTS_LIB += \
 	lib/writer/test_ctf_writer_no_packet_context.py \
 	lib/writer/test_ctf_writer_empty_packet.py
@@ -55,7 +59,7 @@ endif
 
 TESTS_PYTHON_PLUGIN_PROVIDER =
 
-if ENABLE_PYTHON_BINDINGS
+if ENABLE_PYTHON_PLUGINS
 TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test_python_plugin_provider
 endif
 
