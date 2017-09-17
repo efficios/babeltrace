@@ -233,13 +233,14 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 	struct bt_component *upstream_component = NULL;
 	struct bt_component *downstream_component = NULL;
 	enum bt_component_status component_status;
-	const bt_bool init_can_consume = graph->can_consume;
+        bt_bool init_can_consume;
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
 		status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
+	init_can_consume = graph->can_consume;
 
 	if (!upstream_port) {
 		BT_LOGW_STR("Invalid parameter: upstream port is NULL.");
@@ -410,7 +411,9 @@ end:
 	bt_put(upstream_component);
 	bt_put(downstream_component);
 	bt_put(connection);
-	graph->can_consume = init_can_consume;
+	if (graph) {
+		graph->can_consume = init_can_consume;
+	}
 	return status;
 }
 
@@ -643,7 +646,9 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 
 end:
 	BT_LOGV("Graph ran: status=%s", bt_graph_status_string(status));
-	graph->can_consume = BT_TRUE;
+	if (graph) {
+		graph->can_consume = BT_TRUE;
+	}
 	return status;
 }
 
@@ -951,7 +956,7 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 	struct bt_component *component = NULL;
 	enum bt_component_class_type type;
 	size_t i;
-	const bt_bool init_can_consume = graph->can_consume;
+	bt_bool init_can_consume;
 
 	bt_get(params);
 
@@ -960,6 +965,7 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 		graph_status = BT_GRAPH_STATUS_INVALID;
 		goto end;
 	}
+	init_can_consume = graph->can_consume;
 
 	if (!component_class) {
 		BT_LOGW_STR("Invalid parameter: component class is NULL.");
@@ -1101,7 +1107,9 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 end:
 	bt_put(component);
 	bt_put(params);
-	graph->can_consume = init_can_consume;
+	if (graph) {
+		graph->can_consume = init_can_consume;
+	}
 	return graph_status;
 }
 
@@ -1119,7 +1127,7 @@ BT_HIDDEN
 int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 		struct bt_component *component)
 {
-	const bt_bool init_can_consume = graph->can_consume;
+	bt_bool init_can_consume;
 	int64_t count;
 	uint64_t i;
 	int ret = 0;
@@ -1129,6 +1137,7 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 	assert(component->base.ref_count.count == 0);
 	assert(bt_component_borrow_graph(component) == graph);
 
+	init_can_consume = graph->can_consume;
 	count = bt_component_get_input_port_count(component);
 
 	for (i = 0; i < count; i++) {
