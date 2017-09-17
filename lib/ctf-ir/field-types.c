@@ -3871,12 +3871,12 @@ const char *get_integer_base_string(enum bt_ctf_integer_base base)
 }
 
 static
-void append_struct_variant_field_name(struct metadata_context *context,
+void append_field_name(struct metadata_context *context,
 		const char *name)
 {
 	g_string_append_c(context->string, ' ');
 
-	if (bt_ctf_validate_identifier(name)) {
+	if (bt_ctf_validate_identifier(name) || *name == '_') {
 		g_string_append_c(context->string, '_');
 	}
 
@@ -3980,7 +3980,7 @@ int bt_ctf_field_type_enumeration_serialize(struct bt_ctf_field_type *type,
 	}
 
 	if (context->field_name->len) {
-		append_struct_variant_field_name(context,
+		append_field_name(context,
 			context->field_name->str);
 		g_string_assign(context->field_name, "");
 	}
@@ -4051,7 +4051,7 @@ int bt_ctf_field_type_structure_serialize(struct bt_ctf_field_type *type,
 		}
 
 		if (context->field_name->len) {
-			append_struct_variant_field_name(context,
+			append_field_name(context,
 				context->field_name->str);
 		}
 		g_string_append(context->string, ";\n");
@@ -4086,8 +4086,9 @@ int bt_ctf_field_type_variant_serialize(struct bt_ctf_field_type *type,
 		"ft-addr=%p, metadata-context-addr=%p", type, context);
 	context->field_name = g_string_new("");
 	if (variant->tag_name->len > 0) {
-		g_string_append_printf(context->string,
-			"variant <%s> {\n", variant->tag_name->str);
+		g_string_append(context->string, "variant <");
+	        append_field_name(context, variant->tag_name->str);
+		g_string_append(context->string, "> {\n");
 	} else {
 		g_string_append(context->string, "variant {\n");
 	}
@@ -4121,7 +4122,7 @@ int bt_ctf_field_type_variant_serialize(struct bt_ctf_field_type *type,
 		}
 
 		if (context->field_name->len) {
-			append_struct_variant_field_name(context,
+			append_field_name(context,
 				context->field_name->str);
 			g_string_append_c(context->string, ';');
 		}
@@ -4161,7 +4162,7 @@ int bt_ctf_field_type_array_serialize(struct bt_ctf_field_type *type,
 	}
 
 	if (context->field_name->len) {
-		append_struct_variant_field_name(context,
+		append_field_name(context,
 			context->field_name->str);
 
 		g_string_append_printf(context->string, "[%u]", array->length);
@@ -4192,16 +4193,12 @@ int bt_ctf_field_type_sequence_serialize(struct bt_ctf_field_type *type,
 	}
 
 	if (context->field_name->len) {
-		append_struct_variant_field_name(context,
-			context->field_name->str);
-
-		g_string_append_printf(context->string, "[%s]",
-			sequence->length_field_name->str);
+		append_field_name(context, context->field_name->str);
 		g_string_assign(context->field_name, "");
-	} else {
-		g_string_append_printf(context->string, "[%s]",
-			sequence->length_field_name->str);
 	}
+	g_string_append(context->string, "[");
+	append_field_name(context, sequence->length_field_name->str);
+	g_string_append(context->string, "]");
 end:
 	return ret;
 }
