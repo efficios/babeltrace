@@ -1,4 +1,4 @@
-SUBDIRS = writer .
+SUBDIRS=
 
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 

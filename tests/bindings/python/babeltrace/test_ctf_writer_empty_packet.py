@@ -22,25 +22,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import bt_python_helper
 import tempfile
 import babeltrace.writer as btw
 import babeltrace.reader as btr
 import shutil
 import uuid
+import unittest
 
-TEST_COUNT = 4
-EXPECTED_EVENT_COUNT = 10
-trace_path = tempfile.mkdtemp()
+class CtfWriterEmptyPacketTestCase(unittest.TestCase):
+    def setUp(self):
+        self._expected_event_count = 100
+        self._trace_path = tempfile.mkdtemp()
 
+    def tearDown(self):
+        shutil.rmtree(self._trace_path)
 
-def print_test_result(test_number, result, description):
-        result_string = 'ok' if result else 'not ok'
-        result_string += ' {} - {}'.format(test_number, description)
-        print(result_string)
-
-def create_trace(path):
-        trace = btw.Writer(path)
+    def _create_trace(self):
+        trace = btw.Writer(self._trace_path)
         clock = btw.Clock('test_clock')
         trace.add_clock(clock)
 
@@ -55,54 +53,30 @@ def create_trace(path):
 
         stream = trace.create_stream(stream_class)
 
-        for i in range(EXPECTED_EVENT_COUNT):
-                event = btw.Event(event_class)
-                event.payload('int_field').value = i
-                stream.append_event(event)
+        for i in range(self._expected_event_count):
+            event = btw.Event(event_class)
+            event.payload('int_field').value = i
+            stream.append_event(event)
         stream.flush()
-        print_test_result(1, True,
-                          'Flush a packet containing {} events'.format(EXPECTED_EVENT_COUNT))
 
         # The CTF writer will not be able to populate the packet context's
         # timestamp_begin and timestamp_end fields if it is asked to flush
         # without any queued events.
-        try:
+        with self.assertRaises(ValueError):
             stream.flush()
-            empty_flush_succeeded = True
-        except ValueError:
-            empty_flush_succeeded = False
 
-        print_test_result(2, not empty_flush_succeeded,
-                          'Flushing an empty packet without explicitly setting packet time bounds should fail')
         packet_context = stream.packet_context
         packet_context.field('timestamp_begin').value = 1
         packet_context.field('timestamp_end').value = 123456
-        try:
-            stream.flush()
-            empty_flush_succeeded = True
-        except ValueError:
-            empty_flush_succeeded = False
 
-        print_test_result(3, empty_flush_succeeded,
-                          'Flushing an empty packet after explicitly setting packet time bounds should succeed')
+        stream.flush()
 
+    def test_trace_empty_packet(self):
+        self._create_trace()
 
-# TAP plan
-print('1..{}'.format(TEST_COUNT))
-print('# Creating trace at {}'.format(trace_path))
-create_trace(trace_path)
+        traces = btr.TraceCollection()
+        trace_handle = traces.add_trace(self._trace_path, 'ctf')
+        self.assertIsNotNone(trace_handle)
 
-traces = btr.TraceCollection()
-trace_handle = traces.add_trace(trace_path, 'ctf')
-if trace_handle is None:
-        print('Failed to open trace at {}'.format(trace_path))
-
-event_count = 0
-for event in traces.events:
-        event_count += 1
-
-print_test_result(4, EXPECTED_EVENT_COUNT == event_count,
-                  'Trace was found to contain {} events, expected {}'.format(
-                   event_count, EXPECTED_EVENT_COUNT))
-
-shutil.rmtree(trace_path)
+        event_count = sum(1 for event in traces.events)
+        self.assertEqual(self._expected_event_count, event_count)
