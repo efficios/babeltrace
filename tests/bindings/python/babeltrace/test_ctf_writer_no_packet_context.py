@@ -22,25 +22,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import bt_python_helper
 import tempfile
 import babeltrace.writer as btw
 import babeltrace.reader as btr
 import shutil
 import uuid
+import unittest
 
-TEST_COUNT = 4
-EXPECTED_EVENT_COUNT = 10
-trace_path = tempfile.mkdtemp()
+class CtfWriterNoPacketContextTestCase(unittest.TestCase):
+    def setUp(self):
+        self._expected_event_count = 100
+        self._trace_path = tempfile.mkdtemp()
 
+    def tearDown(self):
+        shutil.rmtree(self._trace_path)
 
-def print_test_result(test_number, result, description):
-        result_string = 'ok' if result else 'not ok'
-        result_string += ' {} - {}'.format(test_number, description)
-        print(result_string)
-
-def create_trace(path):
-        trace = btw.Writer(path)
+    def _write_trace(self):
+        trace = btw.Writer(self._trace_path)
         clock = btw.Clock('test_clock')
         trace.add_clock(clock)
 
@@ -54,18 +52,13 @@ def create_trace(path):
         stream_class.clock = clock
 
         stream_class.packet_context_type = None
-        print_test_result(1, stream_class.packet_context_type is None,
-                          'Set stream class packet context type to None')
-
         stream = trace.create_stream(stream_class)
 
-        for i in range(EXPECTED_EVENT_COUNT):
-                event = btw.Event(event_class)
-                event.payload('int_field').value = i
-                stream.append_event(event)
+        for i in range(self._expected_event_count):
+            event = btw.Event(event_class)
+            event.payload('int_field').value = i
+            stream.append_event(event)
         stream.flush()
-        print_test_result(2, True,
-                          'Flush a packet')
 
         # It is not valid for a stream to contain more than one packet
         # if it does not have content_size/packet_size info in its packet
@@ -73,32 +66,20 @@ def create_trace(path):
         event = btw.Event(event_class)
         event.payload('int_field').value = 42
         stream.append_event(event)
+
+        flush_raises = False
         try:
             stream.flush()
-            second_flush_succeeded = True
         except ValueError:
-            second_flush_succeeded = False
+            flush_raises = True
+        self.assertTrue(flush_raises)
+        trace.flush_metadata()
 
-        print_test_result(3, not second_flush_succeeded,
-                          'Flushing a second packet in a stream without a defined packet context fails')
+    def test_trace_no_packet_context(self):
+        self._write_trace()
+        traces = btr.TraceCollection()
+        trace_handle = traces.add_trace(self._trace_path, 'ctf')
+        self.assertIsNotNone(trace_handle)
 
-
-# TAP plan
-print('1..{}'.format(TEST_COUNT))
-print('# Creating trace at {}'.format(trace_path))
-create_trace(trace_path)
-
-traces = btr.TraceCollection()
-trace_handle = traces.add_trace(trace_path, 'ctf')
-if trace_handle is None:
-        print('Failed to open trace at {}'.format(trace_path))
-
-event_count = 0
-for event in traces.events:
-        event_count += 1
-
-print_test_result(4, EXPECTED_EVENT_COUNT == event_count,
-                  'Trace was found to contain {} events, expected {}'.format(
-                   event_count, EXPECTED_EVENT_COUNT))
-
-shutil.rmtree(trace_path)
+        event_count = sum(1 for event in traces.events)
+        self.assertEqual(self._expected_event_count, event_count)

@@ -671,7 +671,6 @@ AC_CONFIG_FILES([
 	tests/cli/Makefile
 	tests/cli/intersection/Makefile
 	tests/lib/Makefile
-	tests/lib/writer/Makefile
 	tests/lib/test-plugin-plugins/Makefile
 	tests/utils/common.sh
 	tests/utils/Makefile
@@ -709,7 +708,6 @@ AC_CONFIG_FILES([
 	babeltrace-ctf.pc
 ])
 
-AC_CONFIG_FILES([tests/cli/intersection/bt_python_helper.py])
 AC_CONFIG_FILES([tests/cli/intersection/test_intersection], [chmod +x tests/cli/intersection/test_intersection])
 AC_CONFIG_FILES([tests/cli/test_convert_args], [chmod +x tests/cli/test_convert_args])
 AC_CONFIG_FILES([tests/cli/test_debug_info], [chmod +x tests/cli/test_debug_info])
@@ -719,9 +717,6 @@ AC_CONFIG_FILES([tests/cli/test_trace_read], [chmod +x tests/cli/test_trace_read
 AC_CONFIG_FILES([tests/cli/test_trimmer], [chmod +x tests/cli/test_trimmer])
 AC_CONFIG_FILES([tests/lib/test_ctf_writer_complete], [chmod +x tests/lib/test_ctf_writer_complete])
 AC_CONFIG_FILES([tests/lib/test_plugin_complete], [chmod +x tests/lib/test_plugin_complete])
-AC_CONFIG_FILES([tests/lib/writer/bt_python_helper.py])
-AC_CONFIG_FILES([tests/lib/writer/test_ctf_writer_empty_packet.py])
-AC_CONFIG_FILES([tests/lib/writer/test_ctf_writer_no_packet_context.py])
 AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugins/test-utils-muxer-complete])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/test_dwarf_complete])
 AC_CONFIG_FILES([tests/plugins/test_bin_info_complete], [chmod +x tests/plugins/test_bin_info_complete])

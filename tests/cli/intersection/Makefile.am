@@ -1,9 +1,4 @@
-check_SCRIPTS = test_intersection \
-		bt_python_helper.py \
-		test_multi_trace_intersection.py
-
-dist_noinst_SCRIPTS = test_multi_trace_intersection.py
-EXTRA_DIST=test_multi_trace_intersection.py
+check_SCRIPTS = test_intersection
 
 all-local:
 	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
