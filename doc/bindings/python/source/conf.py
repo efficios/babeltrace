@@ -15,7 +15,7 @@ source_suffix = '.rst'
 source_encoding = 'utf-8-sig'
 master_doc = 'index'
 project = 'Babeltrace Python bindings'
-copyright = '2014, EfficiOS Inc.'
+copyright = '2017, EfficiOS Inc.'
 version = babeltrace.__version__
 release = version
 language = None
@@ -38,8 +38,6 @@ if os.path.isdir(os.path.join('_themes', 'sphinx_rtd_theme')):
 
 html_theme_options = {}
 html_theme_path = ['_themes']
-html_title = None
-html_short_title = None
 html_logo = None
 html_favicon = None
 html_static_path = ['_static']
