@@ -345,7 +345,7 @@ class FieldDeclaration:
         pass
 
     def __init__(self):
-        if self._ft is None:
+        if self._field_type is None:
             raise ValueError("FieldDeclaration creation failed.")
 
     @staticmethod
@@ -355,7 +355,7 @@ class FieldDeclaration:
             raise TypeError("Invalid field declaration instance.")
 
         declaration = Field.__new__(Field)
-        declaration._ft = field_type
+        declaration._field_type = field_type
         declaration.__class__ = _BT2_FIELD_TYPE_TO_BT_DECLARATION[
             type(field_type)]
         return declaration
@@ -371,7 +371,7 @@ class FieldDeclaration:
         """
 
         try:
-            return self._ft.alignment
+            return self._field_type.alignment
         except:
             raise ValueError(
                 "Could not get alignment field declaration attribute.")
@@ -379,7 +379,7 @@ class FieldDeclaration:
     @alignment.setter
     def alignment(self, alignment):
         try:
-            self._ft.alignment = alignment
+            self._field_type.alignment = alignment
         except:
             raise ValueError("Invalid alignment value.")
 
@@ -395,7 +395,7 @@ class FieldDeclaration:
         """
 
         try:
-            return _BT2_BYTE_ORDER_TO_BYTE_ORDER[self._ft.byte_order]
+            return _BT2_BYTE_ORDER_TO_BYTE_ORDER[self._field_type.byte_order]
         except:
             raise ValueError(
                 "Could not get byte order field declaration attribute.")
@@ -403,7 +403,7 @@ class FieldDeclaration:
     @byte_order.setter
     def byte_order(self, byte_order):
         try:
-            self._ft.byte_order = _BYTE_ORDER_TO_BT2_BYTE_ORDER[byte_order]
+            self._field_type.byte_order = _BYTE_ORDER_TO_BT2_BYTE_ORDER[byte_order]
         except:
             raise ValueError("Could not set byte order value.")
 
@@ -421,14 +421,14 @@ class _EncodingProp:
         """
 
         try:
-            return _BT2_ENCODING_TO_ENCODING[self._ft.encoding]
+            return _BT2_ENCODING_TO_ENCODING[self._field_type.encoding]
         except:
             raise ValueError("Could not get field encoding.")
 
     @encoding.setter
     def encoding(self, encoding):
         try:
-            self._ft.encoding = _ENCODING_TO_BT2_ENCODING[encoding]
+            self._field_type.encoding = _ENCODING_TO_BT2_ENCODING[encoding]
         except:
             raise ValueError("Could not set field encoding.")
 
@@ -445,7 +445,7 @@ class IntegerFieldDeclaration(FieldDeclaration, _EncodingProp):
         :exc:`ValueError` is raised on error.
         """
 
-        self._ft = bt2.IntegerFieldType(size)
+        self._field_type = bt2.IntegerFieldType(size)
         super().__init__()
 
     @property
@@ -459,7 +459,7 @@ class IntegerFieldDeclaration(FieldDeclaration, _EncodingProp):
         """
 
         try:
-            return self._ft.size
+            return self._field_type.size
         except:
             raise ValueError("Could not get Integer size attribute.")
 
@@ -475,14 +475,14 @@ class IntegerFieldDeclaration(FieldDeclaration, _EncodingProp):
         """
 
         try:
-            return self._ft.is_signed
+            return self._field_type.is_signed
         except:
             raise ValueError("Could not get Integer signed attribute.")
 
     @signed.setter
     def signed(self, signed):
         try:
-            self._ft.is_signed = signed
+            self._field_type.is_signed = signed
         except:
             raise ValueError("Could not set Integer signed attribute.")
 
@@ -497,14 +497,14 @@ class IntegerFieldDeclaration(FieldDeclaration, _EncodingProp):
         """
 
         try:
-            return self._ft.base
+            return self._field_type.base
         except:
             raise ValueError("Could not get Integer base attribute.")
 
     @base.setter
     def base(self, base):
         try:
-            self._ft.base = base
+            self._field_type.base = base
         except:
             raise ValueError("Could not set Integer base.")
 
@@ -529,7 +529,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         if integer_type is None or not isinst:
             raise TypeError("Invalid integer container.")
 
-        self._ft = bt2.EnumerationFieldType(integer_type._ft)
+        self._field_type = bt2.EnumerationFieldType(integer_type._field_type)
         super().__init__()
 
     @property
@@ -542,7 +542,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
 
         try:
             return FieldDeclaration._create_field_declaration(
-                self._ft.integer_field_type)
+                self._field_type.integer_field_type)
         except:
             raise TypeError("Invalid enumeration declaration")
 
@@ -557,7 +557,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            self._ft.append_mapping(name, range_start, range_end)
+            self._field_type.append_mapping(name, range_start, range_end)
         except:
             raise ValueError(
                 "Could not add mapping to enumeration declaration.")
@@ -571,7 +571,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
-        for mapping in self._ft:
+        for mapping in self._field_type:
             yield EnumerationMapping(mapping.name, mapping.lower,
                                      mapping.upper)
 
@@ -584,7 +584,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            mappings = list(self._ft.mappings_by_name(name))
+            mappings = list(self._field_type.mappings_by_name(name))
         except:
             raise TypeError(
                 'Could not get enumeration mappings by name \'{}\''.format(
@@ -605,7 +605,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            mappings = list(self._ft.mappings_by_value(value))
+            mappings = list(self._field_type.mappings_by_value(value))
         except:
             raise TypeError(
                 'Could not get enumeration mappings by value \'{}\''.format(
@@ -658,7 +658,7 @@ class FloatingPointFieldDeclaration(FieldDeclaration):
         :exc:`ValueError` is raised on error.
         """
 
-        self._ft = bt2.FloatingPointNumberFieldType()
+        self._field_type = bt2.FloatingPointNumberFieldType()
         super().__init__()
 
     @property
@@ -674,7 +674,7 @@ class FloatingPointFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            return self._ft.exponent_size
+            return self._field_type.exponent_size
         except:
             raise TypeError(
                 "Could not get Floating point exponent digit count")
@@ -683,7 +683,7 @@ class FloatingPointFieldDeclaration(FieldDeclaration):
     @exponent_digits.setter
     def exponent_digits(self, exponent_digits):
         try:
-            self._ft.exponent_size = exponent_digits
+            self._field_type.exponent_size = exponent_digits
         except:
             raise ValueError("Could not set exponent digit count.")
 
@@ -700,7 +700,7 @@ class FloatingPointFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            return self._ft.mantissa_size
+            return self._field_type.mantissa_size
         except:
             raise TypeError(
                 "Could not get Floating point mantissa digit count")
@@ -709,7 +709,7 @@ class FloatingPointFieldDeclaration(FieldDeclaration):
     @mantissa_digits.setter
     def mantissa_digits(self, mantissa_digits):
         try:
-            self._ft.mantissa_size = mantissa_digits
+            self._field_type.mantissa_size = mantissa_digits
         except:
             raise ValueError("Could not set mantissa digit count.")
 
@@ -731,7 +731,7 @@ class StructureFieldDeclaration(FieldDeclaration):
         :exc:`ValueError` is raised on error.
         """
 
-        self._ft = bt2.StructureFieldType()
+        self._field_type = bt2.StructureFieldType()
         super().__init__()
 
     def add_field(self, field_type, field_name):
@@ -743,7 +743,7 @@ class StructureFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            self._ft.append_field(field_name, field_type._ft)
+            self._field_type.append_field(field_name, field_type._field_type)
         except:
             raise ValueError("Could not add field to structure.")
 
@@ -756,7 +756,7 @@ class StructureFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
-        for name, field_type in self._ft.items():
+        for name, field_type in self._field_type.items():
             yield (name,
                    FieldDeclaration._create_field_declaration(
                        field_type))
@@ -769,11 +769,11 @@ class StructureFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
-        if name not in self._ft:
+        if name not in self._field_type:
             msg = "Could not find Structure field with name {}".format(name)
             raise TypeError(msg)
 
-        field_type = self._ft[name]
+        field_type = self._field_type[name]
         return FieldDeclaration._create_field_declaration(
             field_type)
 
@@ -802,8 +802,8 @@ class VariantFieldDeclaration(FieldDeclaration):
         if enum_tag is None or not isinst:
             raise TypeError("Invalid tag type; must be of type EnumerationFieldDeclaration.")
 
-        self._ft = bt2.VariantFieldType(tag_name=tag_name,
-                                        tag_field_type=enum_tag._ft)
+        self._field_type = bt2.VariantFieldType(tag_name=tag_name,
+                                        tag_field_type=enum_tag._field_type)
         super().__init__()
 
     @property
@@ -815,7 +815,7 @@ class VariantFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            self._ft.tag_name
+            self._field_type.tag_name
         except:
             raise TypeError("Could not get Variant tag name")
 
@@ -830,7 +830,7 @@ class VariantFieldDeclaration(FieldDeclaration):
 
         try:
             return FieldDeclaration._create_field_declaration(
-                self._ft.tag_field_type)
+                self._field_type.tag_field_type)
         except:
             raise TypeError("Could not get Variant tag type")
 
@@ -844,7 +844,7 @@ class VariantFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            self._ft.append_field(name=field_name, field_type=field_type._ft)
+            self._field_type.append_field(name=field_name, field_type=field_type._field_type)
         except:
             raise ValueError("Could not add field to variant.")
 
@@ -857,7 +857,7 @@ class VariantFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
-        for name, member in self._ft.items():
+        for name, member in self._field_type.items():
             yield (name, FieldDeclaration._create_field_declaration(member))
 
     def get_field_by_name(self, name):
@@ -868,11 +868,11 @@ class VariantFieldDeclaration(FieldDeclaration):
         :exc:`TypeError` is raised on error.
         """
 
-        if name not in self._ft:
+        if name not in self._field_type:
             raise TypeError(
                 'Could not find Variant field with name {}'.format(name))
 
-        field_type = self._ft[name]
+        field_type = self._field_type[name]
         return FieldDeclaration._create_field_declaration(field_type)
 
     def get_field_from_tag(self, tag):
@@ -903,7 +903,7 @@ class ArrayFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            self._ft = bt2.ArrayFieldType(element_type._ft, length)
+            self._field_type = bt2.ArrayFieldType(element_type._field_type, length)
         except:
             raise ValueError('Failed to create ArrayFieldDeclaration.')
         super().__init__()
@@ -919,7 +919,7 @@ class ArrayFieldDeclaration(FieldDeclaration):
 
         try:
             return FieldDeclaration._create_field_declaration(
-                self._ft.element_field_type)
+                self._field_type.element_field_type)
         except:
             raise TypeError("Could not get Array element type")
 
@@ -932,7 +932,7 @@ class ArrayFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            return self._ft.length
+            return self._field_type.length
         except:
             raise TypeError("Could not get Array length")
 
@@ -954,7 +954,7 @@ class SequenceFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            self._ft = bt2.SequenceFieldType(element_type, length_field_name)
+            self._field_type = bt2.SequenceFieldType(element_type, length_field_name)
         except:
             raise ValueError('Failed to create SequenceFieldDeclaration.')
         super().__init__()
@@ -970,7 +970,7 @@ class SequenceFieldDeclaration(FieldDeclaration):
 
         try:
             return FieldDeclaration._create_field_declaration(
-                self._ft.element_field_type)
+                self._field_type.element_field_type)
         except:
             raise TypeError("Could not get Sequence element type")
 
@@ -984,7 +984,7 @@ class SequenceFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            return self._ft.length_name
+            return self._field_type.length_name
         except:
             raise TypeError("Could not get Sequence element type")
 
@@ -1001,7 +1001,7 @@ class StringFieldDeclaration(FieldDeclaration, _EncodingProp):
         :exc:`ValueError` is raised on error.
         """
 
-        self._ft = bt2.StringFieldType()
+        self._field_type = bt2.StringFieldType()
         super().__init__()
 
 
@@ -1046,7 +1046,7 @@ class Field:
             raise TypeError("Invalid field_type argument.")
 
         try:
-            self._f = field_type._ft()
+            self._f = field_type._field_type()
         except:
             raise ValueError("Field creation failed.")
 
@@ -1106,7 +1106,7 @@ class IntegerField(Field):
     @value.setter
     def value(self, value):
         try:
-            self._f = value
+            self._f.value = value
         except:
             raise ValueError("Could not set integer field value.")
 
@@ -1375,7 +1375,7 @@ class EventClass:
 
         try:
             self._ec.payload_field_type.append_field(field_name,
-                                                     field_type._ft)
+                                                     field_type._field_type)
         except:
             raise ValueError("Could not add field to event class.")
 
@@ -1426,7 +1426,7 @@ class EventClass:
             return
 
         stream_class = StreamClass.__new__(StreamClass)
-        stream_class._sc = bt2_stream_class
+        stream_class._stream_class = bt2_stream_class
 
         return stream_class
 
@@ -1617,7 +1617,7 @@ class StreamClass:
         """
 
         try:
-            return self._sc.name
+            return self._stream_class.name
         except:
             raise TypeError("Could not get StreamClass name")
 
@@ -1631,11 +1631,11 @@ class StreamClass:
         :exc:`ValueError` is raised on error.
         """
 
-        if self._sc.clock is None:
+        if self._stream_class.clock is None:
             return
 
         clock = Clock.__new__(Clock)
-        clock._c = self._sc.clock
+        clock._c = self._stream_class.clock
         return clock
 
     @clock.setter
@@ -1644,7 +1644,7 @@ class StreamClass:
             raise TypeError("Invalid clock type.")
 
         try:
-            self._sc.clock = clock._c
+            self._stream_class.clock = clock._clock
         except:
             raise ValueError("Could not set stream class clock.")
 
@@ -1659,14 +1659,14 @@ class StreamClass:
         """
 
         try:
-            return self._sc.id
+            return self._stream_class.id
         except:
             raise TypeError("Could not get StreamClass id")
 
     @id.setter
     def id(self, id):
         try:
-            self._sc.id = id
+            self._stream_class.id = id
         except:
             raise TypeError("Could not set stream class id.")
 
@@ -1679,7 +1679,7 @@ class StreamClass:
         :exc:`TypeError` is raised on error.
         """
 
-        for bt2_ec in self._sc.values():
+        for bt2_ec in self._stream_class.values():
             event_class = EventClass.__new__(EventClass)
             event_class._ec = bt2_ec
             yield event_class
@@ -1699,7 +1699,7 @@ class StreamClass:
             raise TypeError("Invalid event_class type.")
 
         try:
-            self._sc.add_event_class(event_class._ec)
+            self._stream_class.add_event_class(event_class._ec)
         except:
             raise ValueError("Could not add event class.")
 
@@ -1717,7 +1717,7 @@ class StreamClass:
         """
 
         try:
-            bt2_field_type = self._sc.packet_context_field_type
+            bt2_field_type = self._stream_class.packet_context_field_type
             if bt2_field_type is None:
                 raise ValueError("Invalid StreamClass")
 
@@ -1733,7 +1733,7 @@ class StreamClass:
             raise TypeError("field_type argument must be of type StructureFieldDeclaration.")
 
         try:
-            self._sc.packet_context_field_type = field_type._ft
+            self._stream_class.packet_context_field_type = field_type._field_type
         except:
             raise ValueError("Failed to set packet context type.")
 
@@ -1751,7 +1751,7 @@ class StreamClass:
         """
 
         try:
-            bt2_field_type = self._sc.event_context_field_type
+            bt2_field_type = self._stream_class.event_context_field_type
             if bt2_field_type is None:
                 raise ValueError("Invalid StreamClass")
 
@@ -1767,7 +1767,7 @@ class StreamClass:
             raise TypeError("field_type argument must be of type StructureFieldDeclaration.")
 
         try:
-            self._sc.event_context_field_type = field_type._ft
+            self._stream_class.event_context_field_type = field_type._field_type
         except:
             raise ValueError("Failed to set event context type.")
 
@@ -1825,9 +1825,9 @@ class Stream:
         :exc:`ValueError` is raised on error.
         """
 
-        ret = nbt._bt_ctf_stream_append_event(self._s, event._e)
-
-        if ret < 0:
+        try:
+            self._s.append_event(event._e)
+        except:
             raise ValueError("Could not append event to stream.")
 
     @property
@@ -1906,11 +1906,12 @@ class Writer:
         if not isinstance(stream_class, StreamClass):
             raise TypeError("Invalid stream_class type.")
 
-        if stream_class.sc.trace is None:
-            self._w.trace.add_stream_class(stream_class._sc)
+        if stream_class._stream_class.trace is None:
+            self._w.trace.add_stream_class(stream_class._stream_class)
 
         stream = Stream.__new__(Stream)
-        stream._s = stream_class._sc()
+        stream._s = stream_class._stream_class()
+        stream.__class__ = Stream
         return stream
 
     def add_environment_field(self, name, value):
@@ -1945,7 +1946,7 @@ class Writer:
         """
 
         try:
-            self._w.trace.add_clock(clock._c)
+            self._w.add_clock(clock._clock)
         except:
             raise ValueError("Could not add clock to Writer.")
 
