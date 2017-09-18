@@ -29,7 +29,7 @@ AC_PREREQ([2.50])
 m4_define([bt_version_major], [2])
 m4_define([bt_version_minor], [0])
 m4_define([bt_version_patch], [0])
-m4_define([bt_version_extra], [-pre3])
+m4_define([bt_version_extra], [-pre4])
 m4_define([bt_version], bt_version_major[.]bt_version_minor[.]bt_version_patch[]bt_version_extra)
 
 AC_INIT([babeltrace], bt_version, [jeremie dot galarneau at efficios dot com], [], [https://efficios.com/babeltrace/])
