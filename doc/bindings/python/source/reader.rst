@@ -12,8 +12,8 @@ collection, iterating on their events, reading event names,
 timestamps, contexts and payloads can be accomplished by using these
 classes.
 
-The Babeltrace Python bindings' reader API exposes two categories of
-classes. The first category is used to open traces and iterate on
+The Babeltrace Python legacy bindings' reader API exposes two categories
+of classes. The first category is used to open traces and iterate on
 theirs events. The typical procedure for reading traces is:
 
 1. Create a :class:`TraceCollection` instance.

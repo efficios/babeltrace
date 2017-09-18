@@ -5,7 +5,7 @@ Examples
 ********
 
 This section presents a few short and straightforward examples
-of Babeltrace Python bindings usage.
+of Babeltrace legacy Python bindings usage.
 
 The examples are divided into two categories: those which demonstrate
 the :ref:`reader API <reader-api>`, and those which demonstrate
