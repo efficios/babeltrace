@@ -5,7 +5,7 @@ SPHINX_BUILD_DIRHTML_DIR = $(SPHINX_BUILD_DIR)/dirhtml
 SPHINX_HTML_TARGET = $(SPHINX_BUILD_HTML_DIR)/index.html
 SPHINX_DIRHTML_TARGET = $(SPHINX_BUILD_DIRHTML_DIR)/index.html
 
-EXTRA_DIST = $(srcdir)/source
+EXTRA_DIST = $(srcdir)/source $(srcdir)/sphinx-build.py
 
 all-local: $(SPHINX_HTML_TARGET) $(SPHINX_DIRHTML_TARGET)
 
