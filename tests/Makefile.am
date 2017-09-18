@@ -57,6 +57,9 @@ if ENABLE_PYTHON_PLUGINS
 TESTS_PYTHON_PLUGIN_PROVIDER += python-plugin-provider/test_python_plugin_provider
 endif
 
+LOG_DRIVER_FLAGS = '--merge'
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
+
 TESTS = $(TESTS_BINDINGS) $(TESTS_CLI) $(TESTS_LIB) $(TESTS_PLUGINS) \
 	$(TESTS_PYTHON_PLUGIN_PROVIDER)
 
