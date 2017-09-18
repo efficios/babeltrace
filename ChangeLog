@@ -1,3 +1,249 @@
+2017-09-18 babeltrace 2.0.0-pre4 (Cheeseburger Day)
+	* Fix: use the configured swig executable
+	* Tests python: reference ctf traces are not copied to the build dir
+	* Fix: tests/Makefile.am: add missing LOG_DRIVER
+	* Tests: moved files pointed-to in Makefile
+	* Python babeltrace docs: Add missing sphinx dist file
+	* Doc: babeltrace: update the Read the Docs Sphinx theme
+	* Doc: babeltrace: mention _legacy_ Python bindings
+	* Fix: doc/bindings/python: make the doc buildable
+	* Fix: bt2: do not assign an exception to a local variable
+	* Python bt2 fix: missing import in CtfWriter
+	* Python babeltrace fix: handle bt2.Error exception on stream flush
+	* Python babeltrace fix: allow None for event header and packet context setters
+	* Python babeltrace fix: missing return statement in field accessor
+	* Set version to 2.0-pre4
+	* Python babeltrace fix: initialize stream class with default values
+	* Python babeltrace: use long form attribute names
+	* Tests babeltrace: adapt python tests to use unittest
+	* Fix: ctf-writertype serialization must 'escape' '_'-prefixed field names
+	* Cleanup: use tabs for code indentation
+	* Fix: NULL dereference on sampling and restoration of graph's 'can_consume'
+	* Tests: confusion between python bindings and plugins tests
+	* Update .gitignore: ignore generated API doc files
+	* Update .gitignore: ignore generated __init__.py file
+	* cli: do not use --component in query command, use leftover argument
+	* tests/lib/test_ctf_writer.c: test structure field name is a keyword
+	* tests/lib/test_ctf_writer.c: open trace with `-o dummy` to make it faster
+	* tests/lib/test_ctf_writer.c: update number of tests
+	* Add bindings/python/babeltrace/.gitignore
+	* Fix: remove underscores from CTF IR field names at the source
+	* bt2: trace collection notif. iter.: try to check the query result
+	* ctf: do not add `intersection-range-ns` in `trace-info` query with no intersect.
+	* Fix: ctf: notif-iter: accept EOF at beginning of packet context with no PH
+	* Tests: add tests for the babeltrace python package
+	* python: reimplement the babeltrace package as a bt2 wrapper
+	* python: Remove native code from babeltrace package
+	* Add `bt2.TraceCollectionNotificationIterator` tests
+	* bt2: __init__.py: remove unused NoSuchPlugin
+	* bt2: add trace collection notification iterator
+	* flt.utils.trimmer: allow `begin`/`end` params. to be integers
+	* bt2: values: remove public `value` getter
+	* Python bt2 fix: erroneous imports following split of clock class and value
+	* Omit 'value' from is_set and reset field functions
+	* Python bt2: remove type restriction on structure __setitem__
+	* Cleanup: line exceeds 80 chars
+	* Fix: ensure sequence length field value is set and freeze it
+	* Cleanup: coding style mandates space after cast operator
+	* Fix Python bt2: sequence length field may be NULL
+	* Python bt2: value is a write-only property
+	* Python bt2: add reset and is_set to fields
+	* Docs: structure_set_field_by_name doesn't garantee field replacement
+	* Add field value is_set and reset functions to the public API
+	* Allocate structure fields on creation
+	* Python test: remove useless test
+	* Python bt2: value properties for sequence and struct
+	* Use boolean for frozen and set field states
+	* Update .gitignore exclusions
+	* Tests: use of non-existant API in bt2 python package test
+	* Python bt2 fix: _ClockValue is no longer part of bt2.clock_class
+	* Enumeration mapping iterator's initial position is inconsistent
+	* CONTRIBUTING.adoc: add step to add env. var. name to cli/babeltrace.c
+	* CONTRIBUTING.adoc: MY_MODULE_LOGGING_H -> BABELTRACE_MY_MODULE_LOGGING_H
+	* CONTRIBUTING.adoc: document BT_LOG*_ERRNO() macros
+	* Add CONTRIBUTING.adoc
+	* lib/ctf-ir/utils.c: lazy-initialize the hash table of reserved keywords
+	* Implement bt_private_connection_notification_iterator_from_private()
+	* Rename bt_X_from_private_X() -> bt_X_from_private()
+	* Avoid unnecessary inclusions in public headers
+	* bt2: split clock value module from clock class module
+	* Split clock value API from clock class API
+	* tests: remove `check` targets in subdirectories
+	* Test bt2._OutputPort.create_notification_iterator()
+	* bt2: add bt2._OutputPort.create_notification_iterator()
+	* Test output port notification iterator
+	* lib: add output port notification iterator
+	* Split notification iterator API into base and specialized functions
+	* Remove notification iterator seeking API until it's supported
+	* lib: graph: disallow recursive consuming
+	* lib: graph.c: call bt_graph_consume_no_check() in bt_graph_run()
+	* ir: stream.c: do not truncate file at each packet flush
+	* Fix: bindings/python/bt2: use appropriate log level variable names
+	* Python plugin provider: only finalize interpreter if we initialized it
+	* Fix: common: improve color support handling
+	* Fix: component.py: pass `other_port`, not `other_port_ptr` to user
+	* Add query executor
+	* Tests: erroneous usage of if preprocessor directive
+	* Fix: remove g_spawn_check_exit_status to support glib 2.22
+	* Port: don't quote wc output in test scripts
+	* Missing stamp file in .gitignore
+	* Fix: import of ctf_writer in bt2.stream
+	* Fix: typo in ctf_writer error msg
+	* filter.lttng-utils.debug-info fix: wrong type used as function parameter
+	* src.ctf.fs fix: wrong type specifier used in logging statement
+	* Test fix: python plugin provider with new bindings
+	* Fix: silence unused warning in native_bt
+	* Fix: python bindings OOT build
+	* Remove the python bindinds tests switch from configure
+	* Add python tap runner to the tree
+	* Build Python bindings with distutils for consistent installs
+	* Fix: add missing void param to bt_clock_class_priority_map_create
+	* Fix: build lib before python-plugin-provider
+	* Test: run debug-info even with built-in plugins
+	* Fix test: don't link tests directly with plugins
+	* Fix test: OOT build of test_trace_copy and test_trimmer
+	* Fix: support older pkg-config autoconf macros
+	* Port: don't quote wc output in test scripts
+	* Report plugins without a path as "built-in"
+	* Port: replace literal '/' with G_DIR_SEPARATOR
+	* Port: normalize windows path on Mingw
+	* Port: handle ctrl+c on Mingw
+	* src.ctf.fs: implement stream indexing
+	* src.ctf.fs: move internal util to ctf/common/utils
+	* src.ctf.fs cleanup: unused page size variable
+	* Fix: global logging symbols defined multiple times
+	* Port fix: don't round mmap offset to next page
+	* Port fix: Windows does not allow read-only mappings > file's size
+	* Test fix: handle debug info disabled in test_convert_args
+	* Test fix: use portable path code in test_plugin
+	* Test fix: handle timestamps order in test_trace_copy
+	* Test: rework shell test scripts
+	* Port: use SIZE_MAX as max size_t value
+	* Port: fix logging with C99 format specifiers on Mingw
+	* Test fix: free() of uninitialized pointer on error path
+	* Port: Replace fork() in test_ctf_writer
+	* tests: add diag_multiline() helper to escape multi-line diagnostic info
+	* Test: use static data in test_ctf_writer
+	* Fix test: remove hardcoded /tmp path
+	* Add Python plugin provider tests
+	* Python plugin provider: log if Python interpreter is already initialized
+	* lib/plugin/plugin.c: log more details when g_module_open() fails
+	* python-plugin-provider/Makefile.am: link to libbabeltrace
+	* Fix sink.ctf.fs: NULL dereference in logging statement
+	* Fix filter.utils.muxer: NULL dereference in logging statement
+	* Fix: overflowed return value
+	* Fix: attempt to fix improper use of negative value
+	* Fix: add missing overflow check in bt_ctf_stream_pos_access_ok
+	* Fix: uninitialized return value on error
+	* Fix: handle unknown enum mapping
+	* Cleanup: no need to check for NULL before g_free
+	* Update Python bindings and tests to match the latest API
+	* lib/plugin/plugin.c: do not use G_MODULE_BIND_LOCAL for Python plugin provider
+	* Add built-in colander sink component class
+	* Remove include of <babeltrace-internal.h> from public headers
+	* tests/lib/test-plugin-plugins/minimal.c: add missing <glib.h> include
+	* cli/babeltrace-log.c: include <string.h> for strdup()
+	* graph: check if graph has at least one sink to return the NO_SINK status
+	* Fix: CC prio. map. leak in event notification
+	* lib: do not finalize a non-initialized notification iterator
+	* Fix: cli: Coverity issue: no need to check `status`
+	* bt_ctf_clock_value_create(): freeze clock class
+	* Graph: pass remove listeners when adding listeners
+	* ir: trace: pass remove listeners when adding listeners
+	* include/babeltrace/graph/private-component.h: add missing `extern`
+	* Remove bt_notification_discarded_{events,packets}_set_count()
+	* bt_notification_inactivity_create(): create an empty CC priority map when NULL
+	* bt_notification_event_create(): create an empty CC priority map when NULL
+	* lib: move bt_notification_iterator_next_return to component-class.h
+	* lib: use `enum bt_port_status` where possible
+	* Remove unused bt_port_remove_from_component()
+	* Update .gitignore to add newly generated test files
+	* Re-enable the bin-info and dward tests
+	* Port: Add glib checks for cross compilation
+	* Fix: ctf-testsuite variant-missing-fields
+	* Fix: fallback on content size if packet size is missing
+	* Fix: unchecked return value of bt_value_array_append_string
+	* Fix: tests: offset_s * ns_per_s should not overflow uint64_t
+	* Fix: unchecked return value in ctf-writer test
+	* Fix: unchecked return value of bt_ctf_field_type_get_field_at_index
+	* Fix: unchecked return values of bt_value getters
+	* Fix: unchecked return value of stream flush
+	* Fix: unchecked return value
+	* Fix: remove dead code
+	* Fix: wrong variable checked for NULL after allocation
+	* Cleanup: dereference after null check
+	* Fix: add missing goto end on error
+	* Cleanup: remove logically dead code
+	* Fix: dereference after null check
+	* Fix: wrong variable in NULL check
+	* Cleanup: remove logically dead code
+	* Cleanup: identical code for different branches
+	* Fix: add missing bound checking in decode_packet
+	* Fix: Dereference null return value
+	* Fix: null check after deref, use uninitialized or freed variable
+	* Cleanup: missing empty line between functions
+	* Use logging macros in src.ctf-fs queries
+	* Fix: missing ftell/fseek error handling
+	* Fix: use of file pointer after fclose()
+	* Cleanup: mixing enum types
+	* Fix: missing check of ftell error
+	* Fix: mixed enums used in source.ctf.fs
+	* Fix: Dereference null return value
+	* Fix: assert compared unsigned to 0
+	* Fix: negative loop bound check
+	* Fix: resolve.c: enum type mismatch
+	* Fix: Explicit null dereferenced
+	* Standard logging for ctf.fs sink
+	* Standard logging for libctfcopytrace
+	* Standard logging for debug_info plugin
+	* Standard logging for trimmer/copy.c
+	* Fix tests: run plugins test wrapper script
+	* Fix test: intersection has too large offset_s
+	* Tests: only run debug info tests when the feature is enabled
+	* Port: Add dummy symbol for macOS linker
+	* Update gitignore
+	* Port: use a separate variable for elfutils libs
+	* Port: built-in plugins support for the macOS linker
+	* Port: 'struct tm' member count vary across platforms
+	* Port: Solaris and Cygwin have no sys/syslimits.h
+	* Port: cast result of be64toh() to uint64_t for print format
+	* Port: __STRINGIFY exists on Cygwin
+	* Port: Add Solaris tid support to logging
+	* Port: Add Cygwin tid support to logging
+	* Port: unlink() requires unistd.h on Solaris and macOS
+	* Port: handle 'size_t' / 'off_t' on Solaris
+	* Port: replace strerror_r() by g_strerror()
+	* Port: replace opendir() by g_dir_open()
+	* Port: replace setenv() by g_setenv()
+	* Fix: append to LIBS, don't override it
+	* Port: do not include malloc.h
+	* Fix: visit_event_decl(): always set stream_id variable
+	* Fix: don't store an int64_t value in a ptr
+	* Fix: use extern for variables instead of BT_HIDDEN
+	* Fix: logging in socket-internal.h
+	* Fix: remove g_ptr_array_insert to keep glib 2.22 compat
+	* Fix: g_hash_table_insert returns 'void' in glib <= 2.39.2
+	* Fix: G_SPAWN_DEFAULT was introduced in glib 2.37.6
+	* Pretty plugin: only print negative timestamp warning once per component
+	* Fix test: packet seq num has too large offset_s
+	* ctf: visitor-generate-ir: accept negative clock offsets
+	* Fix: clock-class.c: cache ns from Epoch and check for overflows
+	* Fix: ctf: notif-iter: error on empty events (0 bits of data)
+	* Fix: test: expect the new warning format for seqnum
+	* Fix: packet sequence number handling and discarded packet reporting
+	* ctf: notif-iter.c: check state on BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF
+	* cli: do not allow --stream-intersection with --run-args/--run-args-0
+	* Fix test_convert_args
+	* cli: fix implicit clock class offset parameters
+	* Completely rework configure.ac
+	* Update autoconf archive macros
+	* Clean LICENSE file
+	* Cleanup: bison and flex detection
+	* Cleanup: uuid library detection
+	* Cleanup: popt library detection
+	* Fix: Don't override user variables within the build system
+	* Fix: built-in plugins with new plugin filenames
+
 2017-07-07 babeltrace 2.0.0-pre3 (Comic Sans Day)
 	* Update configure.ac version to pre3
 
