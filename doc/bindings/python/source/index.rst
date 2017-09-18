@@ -1,6 +1,6 @@
-####################################
-Babeltrace |version| Python bindings
-####################################
+###########################################
+Babeltrace |version| legacy Python bindings
+###########################################
 
 Generated on |today|.
 
@@ -9,39 +9,40 @@ Welcome!
 ========
 
 Welcome to `Babeltrace <http://www.efficios.com/babeltrace>`_'s
-Python bindings' documentation!
+*legacy* Python bindings' documentation!
 
 Babeltrace is a trace format converter. It is able to read and write
 different trace formats, such as the
 `Common Trace Format <http://www.efficios.com/ctf>`_ (CTF).
 Babeltrace also acts as the CTF reference implementation.
 
-The Babeltrace Python bindings rely on the ``libbabeltrace`` library,
-the current public C API of Babeltrace.
+The Babeltrace legacy Python bindings rely on the ``libbabeltrace``
+library, the public C API of Babeltrace.
 
 
 Installing
 ==========
 
-The Python bindings may be enabled when configuring Babeltrace's build::
+The bindings may be enabled when configuring Babeltrace's build::
 
     ./configure --enable-python-bindings
 
-On Debian and Ubuntu, the Python bindings are available in the
+On Debian and Ubuntu, the bindings are available in the
 ``python3-babeltrace`` package.
 
 .. note::
 
-   Currently, the Babeltrace Python bindings only works with Python 3.
+   Currently, the Babeltrace legacy Python bindings only works
+   with Python 3.
 
 
 Bindings
 ========
 
-The Babeltrace Python bindings are available as a single Python package,
-:py:mod:`babeltrace`.
+The Babeltrace legacy Python bindings are available as a single Python
+package, :py:mod:`babeltrace`.
 
-The Babeltrace Python bindings' API is divided into two parts:
+The Babeltrace legacy Python bindings' API is divided into two parts:
 
 * The :ref:`reader API <reader-api>` is exposed by the
   :mod:`babeltrace.reader` module, a set of classes used to
