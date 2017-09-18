@@ -1887,7 +1887,10 @@ class Stream:
         :exc:`ValueError` is raised on error.
         """
 
-        self._s.flush()
+        try:
+            self._s.flush()
+        except:
+            raise ValueError('Failed to flush CTF writer stream')
 
 
 class Writer:
