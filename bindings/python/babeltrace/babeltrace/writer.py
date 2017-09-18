@@ -1206,7 +1206,7 @@ class StructureField(Field):
         """
 
         try:
-            Field._create_field(self._f[field_name])
+            return Field._create_field(self._f[field_name])
         except:
             raise ValueError("Invalid field_name provided.")
 
