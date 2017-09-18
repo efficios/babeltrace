@@ -35,12 +35,6 @@ TESTS_LIB = \
 	lib/test_cc_prio_map \
 	lib/test_bt_notification_iterator
 
-if ENABLE_PYTHON_BINDINGS
-TESTS_LIB += \
-	lib/writer/test_ctf_writer_no_packet_context.py \
-	lib/writer/test_ctf_writer_empty_packet.py
-endif
-
 if !ENABLE_BUILT_IN_PLUGINS
 TESTS_LIB += lib/test_plugin_complete
 endif
