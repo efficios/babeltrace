@@ -92,21 +92,17 @@ def _check_alignment(a):
         raise ValueError('{} is not a power of two'.format(a))
 
 
+def _raise_bt2_error(msg):
+    if msg is None:
+        raise bt2.Error
+    else:
+        raise bt2.Error(msg)
+
 def _handle_ret(ret, msg=None):
     if int(ret) < 0:
-        if msg is None:
-            error = bt2.Error()
-        else:
-            error = bt2.Error(msg)
-
-        raise error
+        _raise_bt2_error(msg)
 
 
 def _handle_ptr(ptr, msg=None):
     if ptr is None:
-        if msg is None:
-            error = bt2.Error()
-        else:
-            error = bt2.Error(msg)
-
-        raise error
+        _raise_bt2_error(msg)
