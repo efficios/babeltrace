@@ -1745,11 +1745,13 @@ class StreamClass:
 
     @packet_context_type.setter
     def packet_context_type(self, field_type):
-        if not isinstance(field_type, StructureFieldDeclaration):
+        if field_type is not None and not isinstance(field_type,
+                                                     StructureFieldDeclaration):
             raise TypeError("field_type argument must be of type StructureFieldDeclaration.")
 
+        bt2_field_type = None if field_type is None else field_type._field_type
         try:
-            self._stream_class.packet_context_field_type = field_type._field_type
+            self._stream_class.packet_context_field_type = bt2_field_type
         except:
             raise ValueError("Failed to set packet context type.")
 
@@ -1779,11 +1781,13 @@ class StreamClass:
 
     @event_context_type.setter
     def event_context_type(self, field_type):
-        if not isinstance(field_type, StructureFieldDeclaration):
+        if field_type is not None and not isinstance(field_type,
+                                                     StructureFieldDeclaration):
             raise TypeError("field_type argument must be of type StructureFieldDeclaration.")
 
+        bt2_field_type = None if field_type is None else field_type._field_type
         try:
-            self._stream_class.event_context_field_type = field_type._field_type
+            self._stream_class.event_context_field_type = bt2_field_type
         except:
             raise ValueError("Failed to set event context type.")
 
