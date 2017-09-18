@@ -1604,7 +1604,23 @@ class StreamClass:
         """
 
         try:
-            self._sc = bt2.StreamClass()
+            # Set default event header and packet context.
+            event_header_type = bt2.StructureFieldType()
+            uint32_ft = bt2.IntegerFieldType(32, is_signed=False)
+            uint64_ft = bt2.IntegerFieldType(32, is_signed=False)
+            event_header_type.append_field('id', uint32_ft)
+            event_header_type.append_field('timestamp', uint64_ft)
+
+            packet_context_type = bt2.StructureFieldType()
+            packet_context_type.append_field('timestamp_begin', uint64_ft)
+            packet_context_type.append_field('timestamp_end', uint64_ft)
+            packet_context_type.append_field('content_size', uint64_ft)
+            packet_context_type.append_field('packet_size', uint64_ft)
+            packet_context_type.append_field('events_discarded', uint64_ft)
+            sc = bt2.StreamClass(name,
+                                 event_header_field_type=event_header_type,
+                                 packet_context_field_type=packet_context_type)
+            self._stream_class = sc
         except:
             raise ValueError("Stream class creation failed.")
 
