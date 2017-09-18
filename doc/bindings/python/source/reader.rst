@@ -6,6 +6,30 @@ Reader API
 
 .. currentmodule:: babeltrace.reader
 
+.. IMPORTANT::
+   The bindings documented here are the ones of Babeltrace 2, which
+   is not yet released. If you're using a Babeltrace 1.x release, all
+   the names are in the same module named ``babeltrace``.
+
+   In this case, the names found in the ``babeltrace.reader`` module
+   documented here can be found in the ``babeltrace`` module directly.
+
+   For example, instead of:
+
+   .. code-block:: python
+
+      import babeltrace.reader
+
+      trace_collection = babeltrace.reader.TraceCollection()
+
+   do:
+
+   .. code-block:: python
+
+      import babeltrace
+
+      trace_collection = babeltrace.TraceCollection()
+
 The classes documented below are related to **reading traces**
 operations. Common operations such as adding traces to a trace
 collection, iterating on their events, reading event names,
