@@ -80,7 +80,7 @@ copy-static-deps.stamp: $(STATIC_BINDINGS_DEPS)
 	touch $@
 
 build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS)
-	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext
+	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext --swig "$(SWIG)"
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build
 	touch $@
 
