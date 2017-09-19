@@ -20,7 +20,6 @@
 NO_SH_TAP=1
 . "@abs_top_builddir@/tests/utils/common.sh"
 
-script="$(readlink -f "$0")"
-curdir="$(dirname "$script")"
+curdir="$(cd -P "$(dirname "$0")" >/dev/null && pwd)"
 
 "${curdir}/test_ctf_writer" "$BT_BIN"
