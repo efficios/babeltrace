@@ -1035,9 +1035,8 @@ int cmd_help(struct bt_config *cfg)
 		if (cfg->cmd_data.help.cfg_component->type !=
 				BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
 			if (strcmp(cfg->cmd_data.help.cfg_component->comp_cls_name->str,
-					comp_class_name) != 0 &&
-					type ==
-					cfg->cmd_data.help.cfg_component->type) {
+					comp_class_name) != 0 ||
+					type != cfg->cmd_data.help.cfg_component->type) {
 				bt_put(comp_cls);
 				continue;
 			}

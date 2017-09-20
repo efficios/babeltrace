@@ -593,8 +593,8 @@ end:
  * component class name.
  *
  * On success, both *plugin and *component are not NULL. *plugin
- * and *component are owned by the caller. On success, *name can be NULL
- * if no component name was found, and *comp_cls_type is set.
+ * and *comp_cls are owned by the caller. On success, *name can be NULL
+ * if no component class name was found, and *comp_cls_type is set.
  */
 static
 void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
@@ -1763,13 +1763,10 @@ static
 void print_help_usage(FILE *fp)
 {
 	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] help [OPTIONS] PLUGIN\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] --component=TYPE.PLUGIN.CLS\n");
+	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] TYPE.PLUGIN.CLS\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "  -c, --component=TYPE.PLUGIN.CLS   Get help for the component class CLS of\n");
-	fprintf(fp, "                                    type TYPE (`source`, `filter`, or `sink`)\n");
-	fprintf(fp, "                                    found in the plugin PLUGIN\n");
 	fprintf(fp, "      --omit-home-plugin-path       Omit home plugins from plugin search path\n");
 	fprintf(fp, "                                    (~/.local/lib/babeltrace/plugins)\n");
 	fprintf(fp, "      --omit-system-plugin-path     Omit system plugins from plugin search path\n");
@@ -1785,7 +1782,6 @@ void print_help_usage(FILE *fp)
 static
 struct poptOption help_long_options[] = {
 	/* longName, shortName, argInfo, argPtr, value, descrip, argDesc */
-	{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
 	{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
@@ -1812,7 +1808,6 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	struct bt_config *cfg = NULL;
 	const char *leftover;
 	char *plugin_name = NULL, *comp_cls_name = NULL;
-	char *plug_comp_cls_names = NULL;
 
 	*retcode = 0;
 	cfg = bt_config_help_create(initial_plugin_paths);
@@ -1853,19 +1848,6 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			cfg->omit_home_plugin_path = true;
 			break;
-		case OPT_COMPONENT:
-			if (plug_comp_cls_names) {
-				printf_err("Cannot specify more than one plugin and component class:\n    %s\n",
-					arg);
-				goto error;
-			}
-
-			plug_comp_cls_names = strdup(arg);
-			if (!plug_comp_cls_names) {
-				print_err_oom();
-				goto error;
-			}
-			break;
 		case OPT_HELP:
 			print_help_usage(stdout);
 			*retcode = -1;
@@ -1890,35 +1872,30 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 	leftover = poptGetArg(pc);
 	if (leftover) {
-		if (plug_comp_cls_names) {
-			printf_err("Cannot specify plugin name and --component component class:\n    %s\n",
-				leftover);
-			goto error;
-		}
-
-		g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
-			leftover);
-	} else {
-		if (!plug_comp_cls_names) {
-			print_help_usage(stdout);
-			*retcode = -1;
-			BT_PUT(cfg);
-			goto end;
-		}
-
-		plugin_comp_cls_names(plug_comp_cls_names, NULL,
+		plugin_comp_cls_names(leftover, NULL,
 			&plugin_name, &comp_cls_name,
 			&cfg->cmd_data.help.cfg_component->type);
 		if (plugin_name && comp_cls_name) {
-			g_string_assign(cfg->cmd_data.help.cfg_component->plugin_name,
+			/* Component class help */
+			g_string_assign(
+				cfg->cmd_data.help.cfg_component->plugin_name,
 				plugin_name);
-			g_string_assign(cfg->cmd_data.help.cfg_component->comp_cls_name,
+			g_string_assign(
+				cfg->cmd_data.help.cfg_component->comp_cls_name,
 				comp_cls_name);
 		} else {
-			printf_err("Invalid --component option's argument:\n    %s\n",
-				plug_comp_cls_names);
-			goto error;
+			/* Fall back to plugin help */
+			cfg->cmd_data.help.cfg_component->type =
+				BT_COMPONENT_CLASS_TYPE_UNKNOWN;
+			g_string_assign(
+				cfg->cmd_data.help.cfg_component->plugin_name,
+				leftover);
 		}
+	} else {
+		print_help_usage(stdout);
+		*retcode = -1;
+		BT_PUT(cfg);
+		goto end;
 	}
 
 	if (append_home_and_system_plugin_paths_cfg(cfg)) {
@@ -1932,7 +1909,6 @@ error:
 	BT_PUT(cfg);
 
 end:
-	free(plug_comp_cls_names);
 	g_free(plugin_name);
 	g_free(comp_cls_name);
 
