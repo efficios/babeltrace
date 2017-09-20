@@ -61,8 +61,8 @@ ERR_MSG = "Error: Cannot build target because flex is missing."
 ERR_MSG += "Make sure flex is installed and run the configure script again."
 
 filter-lexer.c: lexer.l
-        @echo $(ERR_MSG)
-        @false
+	@echo $(ERR_MSG)
+	@false
 
 all-local: lexer.c
 endif # HAVE_FLEX
