@@ -5,18 +5,18 @@ AM_LDFLAGS=-L$(top_builddir)/lib/.libs
 
 INSTALLED_FILES=$(builddir)/installed_files.txt
 
-STATIC_BINDINGS_DEPS =						\
-	babeltrace/common.py					\
-	babeltrace/reader.py					\
+STATIC_BINDINGS_DEPS =				\
+	babeltrace/common.py			\
+	babeltrace/reader.py			\
 	babeltrace/reader_event_declaration.py	\
-	babeltrace/reader_event.py				\
+	babeltrace/reader_event.py		\
 	babeltrace/reader_field_declaration.py	\
 	babeltrace/reader_field_definition.py	\
 	babeltrace/reader_trace_collection.py	\
-	babeltrace/reader_trace_handle.py		\
+	babeltrace/reader_trace_handle.py	\
 	babeltrace/writer.py
 
-GENERATED_BINDINGS_DEPS =		\
+GENERATED_BINDINGS_DEPS =			\
 	babeltrace/__init__.py			\
 	setup.py
 
@@ -32,7 +32,6 @@ copy-static-deps.stamp: $(STATIC_BINDINGS_DEPS)
 	touch $@
 
 build-python-bindings.stamp: copy-static-deps.stamp $(GENERATED_BINDINGS_DEPS)
-	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build
 	touch $@
 
@@ -66,4 +65,4 @@ uninstall-local:
 EXTRA_DIST = $(STATIC_BINDINGS_DEPS)
 
 # clean: generated Python files and stamps
-CLEANFILES = copy-static-deps.stamp
+CLEANFILES = build-python-bindings.stamp copy-static-deps.stamp
