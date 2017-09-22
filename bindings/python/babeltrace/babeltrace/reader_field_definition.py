@@ -24,6 +24,7 @@ import bt2
 import babeltrace.common as common
 import babeltrace.reader_field_declaration as reader_field_declaration
 
+
 class FieldError(Exception):
     """
     Field error, raised when the value of a field cannot be accessed.
@@ -34,6 +35,7 @@ class FieldError(Exception):
 
     def __str__(self):
         return repr(self.value)
+
 
 class _Definition:
     def __init__(self, scope_id, field, name):

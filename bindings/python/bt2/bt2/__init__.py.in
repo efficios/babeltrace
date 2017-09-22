@@ -151,14 +151,18 @@ class _ListenerHandle:
         self._obj = obj
 
 
-import bt2.native_bt as _native_bt
-import atexit
+def _init_and_register_exit():
+    import bt2.native_bt as _native_bt
+    import atexit
 
-atexit.register(_native_bt.py3_cc_exit_handler)
-version = (_native_bt.version_get_major(), _native_bt.version_get_minor(),
-           _native_bt.version_get_patch(), _native_bt.version_get_extra())
-_native_bt.py3_cc_init_from_bt2()
-del _native_bt
+    atexit.register(_native_bt.py3_cc_exit_handler)
+    version = (_native_bt.version_get_major(), _native_bt.version_get_minor(),
+               _native_bt.version_get_patch(), _native_bt.version_get_extra())
+    _native_bt.py3_cc_init_from_bt2()
+
+
+_init_and_register_exit()
+
 
 try:
     del native_bt

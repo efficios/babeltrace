@@ -119,7 +119,7 @@ class _Event(object._Object):
             stream_event_context_ptr = stream_event_context._ptr
 
         ret = native_bt.event_set_stream_event_context(self._ptr,
-                                                           stream_event_context_ptr)
+                                                       stream_event_context_ptr)
         utils._handle_ret(ret, "cannot set event object's stream event context field")
 
     @property
@@ -164,7 +164,7 @@ class _Event(object._Object):
 
     def _get_clock_value_cycles(self, clock_class_ptr):
         clock_value_ptr = native_bt.event_get_clock_value(self._ptr,
-                                                              clock_class_ptr)
+                                                          clock_class_ptr)
 
         if clock_value_ptr is None:
             return
@@ -177,7 +177,7 @@ class _Event(object._Object):
     def clock_value(self, clock_class):
         utils._check_type(clock_class, bt2.ClockClass)
         clock_value_ptr = native_bt.event_get_clock_value(self._ptr,
-                                                              clock_class._ptr)
+                                                          clock_class._ptr)
 
         if clock_value_ptr is None:
             return
@@ -188,7 +188,7 @@ class _Event(object._Object):
     def add_clock_value(self, clock_value):
         utils._check_type(clock_value, bt2.clock_value._ClockValue)
         ret = native_bt.event_set_clock_value(self._ptr,
-                                                  clock_value._ptr)
+                                              clock_value._ptr)
         utils._handle_ret(ret, "cannot set event object's clock value")
 
     def __getitem__(self, key):

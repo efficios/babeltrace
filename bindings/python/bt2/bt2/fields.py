@@ -324,6 +324,7 @@ class _IntegerField(_IntegralField):
 
     value = property(fset=_set_value)
 
+
 class _FloatingPointNumberField(_RealField):
     _NAME = 'Floating point number'
 
@@ -351,6 +352,7 @@ class _FloatingPointNumberField(_RealField):
         utils._handle_ret(ret, "cannot set floating point number field object's value")
 
     value = property(fset=_set_value)
+
 
 class _EnumerationField(_IntegerField):
     _NAME = 'Enumeration'
@@ -520,6 +522,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     value = property(fset=_set_value)
 
+
 class _VariantField(_Field):
     _NAME = 'Variant'
 
@@ -564,6 +567,7 @@ class _VariantField(_Field):
         self.selected_field.value = value
 
     value = property(fset=_set_value)
+
 
 class _ArraySequenceField(_ContainerField, collections.abc.MutableSequence):
     def __getitem__(self, index):
@@ -692,6 +696,7 @@ class _SequenceField(_ArraySequenceField):
             raise
 
     value = property(fset=_set_value)
+
 
 _TYPE_ID_TO_OBJ = {
     native_bt.FIELD_TYPE_ID_INTEGER: _IntegerField,
