@@ -23,6 +23,7 @@
 import bt2
 import babeltrace.common as common
 
+
 def _create_field_declaration(field_type, name, scope):
     try:
         if type(field_type) == bt2.IntegerFieldType:

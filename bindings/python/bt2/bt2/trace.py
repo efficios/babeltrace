@@ -39,7 +39,7 @@ class _StreamClassIterator(collections.abc.Iterator):
             raise StopIteration
 
         sc_ptr = native_bt.trace_get_stream_class_by_index(self._trace._ptr,
-                                                               self._at)
+                                                           self._at)
         assert(sc_ptr)
         id = native_bt.stream_class_get_id(sc_ptr)
         native_bt.put(sc_ptr)
@@ -64,7 +64,7 @@ class _TraceStreams(collections.abc.Sequence):
             raise IndexError
 
         stream_ptr = native_bt.trace_get_stream_by_index(self._trace._ptr,
-                                                             index)
+                                                         index)
         assert(stream_ptr)
         return bt2.stream._create_from_ptr(stream_ptr)
 
@@ -94,8 +94,7 @@ class _TraceClockClasses(collections.abc.Mapping):
 
     def __getitem__(self, key):
         utils._check_str(key)
-        cc_ptr = native_bt.trace_get_clock_class_by_name(self._trace._ptr,
-                                                             key)
+        cc_ptr = native_bt.trace_get_clock_class_by_name(self._trace._ptr, key)
 
         if cc_ptr is None:
             raise KeyError(key)
@@ -122,7 +121,7 @@ class _TraceEnvIterator(collections.abc.Iterator):
 
         trace_ptr = self._trace_env._trace._ptr
         entry_name = native_bt.trace_get_environment_field_name_by_index(trace_ptr,
-                                                                             self._at)
+                                                                         self._at)
         assert(entry_name is not None)
         self._at += 1
         return entry_name
@@ -135,7 +134,7 @@ class _TraceEnv(collections.abc.MutableMapping):
     def __getitem__(self, key):
         utils._check_str(key)
         value_ptr = native_bt.trace_get_environment_field_value_by_name(self._trace._ptr,
-                                                                            key)
+                                                                        key)
 
         if value_ptr is None:
             raise KeyError(key)
@@ -146,7 +145,7 @@ class _TraceEnv(collections.abc.MutableMapping):
         utils._check_str(key)
         value = bt2.create_value(value)
         ret = native_bt.trace_set_environment_field(self._trace._ptr,
-                                                        key, value._ptr)
+                                                    key, value._ptr)
         utils._handle_ret(ret, "cannot set trace class object's environment entry")
 
     def __delitem__(self, key):
@@ -281,7 +280,7 @@ class Trace(object._Object, collections.abc.Mapping):
             packet_header_field_type_ptr = packet_header_field_type._ptr
 
         ret = native_bt.trace_set_packet_header_type(self._ptr,
-                                                         packet_header_field_type_ptr)
+                                                     packet_header_field_type_ptr)
         utils._handle_ret(ret, "cannot set trace class object's packet header field type")
 
     def __eq__(self, other):

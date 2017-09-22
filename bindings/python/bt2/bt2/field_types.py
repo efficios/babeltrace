@@ -554,7 +554,7 @@ class StructureFieldType(_FieldType, _FieldContainer, _AlignmentProp):
 
     def _add_field(self, ptr, name):
         return native_bt.field_type_structure_add_field(self._ptr, ptr,
-                                                            name)
+                                                        name)
 
     def _at(self, index):
         if index < 0 or index >= len(self):
@@ -579,7 +579,7 @@ class _VariantFieldTypeFieldIterator(collections.abc.Iterator):
             raise StopIteration
 
         ret, name, field_type_ptr = native_bt.field_type_variant_get_field_by_index(self._variant_field_type._ptr,
-                                                                                        self._at)
+                                                                                    self._at)
         assert(ret == 0)
         native_bt.put(field_type_ptr)
         self._at += 1
@@ -600,7 +600,7 @@ class VariantFieldType(_FieldType, _FieldContainer, _AlignmentProp):
             tag_ft_ptr = tag_field_type._ptr
 
         ptr = native_bt.field_type_variant_create(tag_ft_ptr,
-                                                      tag_name)
+                                                  tag_name)
         self._check_create_status(ptr)
         super().__init__(ptr)
 
@@ -673,7 +673,7 @@ class SequenceFieldType(_FieldType):
         utils._check_type(element_field_type, _FieldType)
         utils._check_str(length_name)
         ptr = native_bt.field_type_sequence_create(element_field_type._ptr,
-                                                       length_name)
+                                                   length_name)
         self._check_create_status(ptr)
         super().__init__(ptr)
 

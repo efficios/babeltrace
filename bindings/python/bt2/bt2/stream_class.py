@@ -39,7 +39,7 @@ class _EventClassIterator(collections.abc.Iterator):
             raise StopIteration
 
         ec_ptr = native_bt.stream_class_get_event_class_by_index(self._stream_class._ptr,
-                                                                     self._at)
+                                                                 self._at)
         assert(ec_ptr)
         ev_id = native_bt.event_class_get_id(ec_ptr)
         native_bt.put(ec_ptr)
@@ -81,7 +81,7 @@ class StreamClass(object._Object, collections.abc.Mapping):
     def __getitem__(self, key):
         utils._check_int64(key)
         ec_ptr = native_bt.stream_class_get_event_class_by_id(self._ptr,
-                                                                  key)
+                                                              key)
 
         if ec_ptr is None:
             raise KeyError(key)
@@ -166,7 +166,7 @@ class StreamClass(object._Object, collections.abc.Mapping):
             packet_context_field_type_ptr = packet_context_field_type._ptr
 
         ret = native_bt.stream_class_set_packet_context_type(self._ptr,
-                                                                 packet_context_field_type_ptr)
+                                                             packet_context_field_type_ptr)
         utils._handle_ret(ret, "cannot set stream class object's packet context field type")
 
     @property
@@ -187,7 +187,7 @@ class StreamClass(object._Object, collections.abc.Mapping):
             event_header_field_type_ptr = event_header_field_type._ptr
 
         ret = native_bt.stream_class_set_event_header_type(self._ptr,
-                                                               event_header_field_type_ptr)
+                                                           event_header_field_type_ptr)
         utils._handle_ret(ret, "cannot set stream class object's event header field type")
 
     @property
@@ -208,7 +208,7 @@ class StreamClass(object._Object, collections.abc.Mapping):
             event_context_field_type_ptr = event_context_field_type._ptr
 
         ret = native_bt.stream_class_set_event_context_type(self._ptr,
-                                                               event_context_field_type_ptr)
+                                                            event_context_field_type_ptr)
         utils._handle_ret(ret, "cannot set stream class object's event context field type")
 
     def __call__(self, name=None, id=None):
