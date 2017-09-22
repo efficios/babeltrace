@@ -66,4 +66,4 @@ uninstall-local:
 EXTRA_DIST = $(STATIC_BINDINGS_DEPS)
 
 # clean: generated Python files and stamps
-CLEANFILES = babeltrace/__init__.py copy-static-deps.stamp
+CLEANFILES = copy-static-deps.stamp
