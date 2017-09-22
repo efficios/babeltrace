@@ -28,6 +28,7 @@ from babeltrace.reader_field_definition import *
 from babeltrace.reader_trace_collection import *
 from babeltrace.reader_trace_handle import *
 
+
 # Based on enum bt_clock_type in clock-type.h
 class _ClockType:
     CLOCK_CYCLES = 0

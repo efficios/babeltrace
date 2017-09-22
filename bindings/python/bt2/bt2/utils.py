@@ -98,6 +98,7 @@ def _raise_bt2_error(msg):
     else:
         raise bt2.Error(msg)
 
+
 def _handle_ret(ret, msg=None):
     if int(ret) < 0:
         _raise_bt2_error(msg)

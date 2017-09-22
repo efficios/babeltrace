@@ -26,6 +26,7 @@ import numbers
 import bt2
 import bt2.clock_value as clock_value
 
+
 class ClockClassOffset:
     def __init__(self, seconds=0, cycles=0):
         utils._check_int64(seconds)
@@ -220,4 +221,3 @@ class ClockClass(object._Object):
 
     def __call__(self, cycles):
         return clock_value._ClockValue(self._ptr, cycles)
-

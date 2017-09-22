@@ -25,10 +25,12 @@ import babeltrace.common as common
 import babeltrace.reader_field_declaration as field_declaration
 import collections
 
+
 def _create_event_declaration(event_class):
     event_declaration = EventDeclaration.__new__(EventDeclaration)
     event_declaration._event_class = event_class
     return event_declaration
+
 
 class EventDeclaration:
     """
@@ -137,6 +139,7 @@ class EventDeclaration:
         for name, field_type in scope_field_type.items():
             yield field_declaration._create_field_declaration(field_type, name,
                                                               scope)
+
 
 # Priority of the scopes when searching for event fields
 _SCOPES = [

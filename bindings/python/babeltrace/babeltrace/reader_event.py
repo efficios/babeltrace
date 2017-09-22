@@ -26,12 +26,14 @@ import babeltrace.reader_field_definition as field_definition
 import datetime
 import collections
 
+
 def _create_event(event_notification, trace_handle=None, trace_collection=None):
     event = Event.__new__(Event)
     event._event_notification = event_notification
     event._trace_handle = trace_handle
     event._trace_collection = trace_collection
     return event
+
 
 class Event(collections.Mapping):
     """

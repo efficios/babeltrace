@@ -27,6 +27,7 @@
 import babeltrace.common as common
 import bt2
 
+
 class EnumerationMapping:
     """
     Mapping from an enumeration label to a range of integers.
@@ -333,6 +334,7 @@ _ENCODING_TO_BT2_ENCODING = {
     common.CTFStringEncoding.ASCII: bt2.Encoding.ASCII,
     common.CTFStringEncoding.UTF8: bt2.Encoding.UTF8,
 }
+
 
 class FieldDeclaration:
     """
@@ -679,7 +681,6 @@ class FloatingPointFieldDeclaration(FieldDeclaration):
             raise TypeError(
                 "Could not get Floating point exponent digit count")
 
-
     @exponent_digits.setter
     def exponent_digits(self, exponent_digits):
         try:
@@ -704,7 +705,6 @@ class FloatingPointFieldDeclaration(FieldDeclaration):
         except:
             raise TypeError(
                 "Could not get Floating point mantissa digit count")
-
 
     @mantissa_digits.setter
     def mantissa_digits(self, mantissa_digits):
@@ -803,7 +803,7 @@ class VariantFieldDeclaration(FieldDeclaration):
             raise TypeError("Invalid tag type; must be of type EnumerationFieldDeclaration.")
 
         self._field_type = bt2.VariantFieldType(tag_name=tag_name,
-                                        tag_field_type=enum_tag._field_type)
+                                                tag_field_type=enum_tag._field_type)
         super().__init__()
 
     @property
@@ -1582,6 +1582,7 @@ class Event:
             self._e.context_field = field._f
         except:
             raise ValueError("Invalid stream context field.")
+
 
 class StreamClass:
     """
