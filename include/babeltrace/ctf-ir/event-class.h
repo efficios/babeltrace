@@ -81,8 +81,8 @@ class\endlink contains zero or more \link ctfirstreamclass stream
 classes\endlink, and a stream class contains zero or more event classes.
 
 Before you can create an event from an event class with
-bt_ctf_event_create(), you \em must add the prepared event class to a
-stream class by calling bt_ctf_stream_class_add_event_class(). This
+bt_event_create(), you \em must add the prepared event class to a
+stream class by calling bt_stream_class_add_event_class(). This
 function, when successful, \em freezes the event class, disallowing any
 future modification of its properties and field types by the user.
 
@@ -91,7 +91,7 @@ As with any Babeltrace object, CTF IR event class objects have
 counts</a>. See \ref refs to learn more about the reference counting
 management of Babeltrace objects.
 
-bt_ctf_stream_class_add_event_class() \em freezes its event class
+bt_stream_class_add_event_class() \em freezes its event class
 parameter on success. You cannot modify a frozen event class: it is
 considered immutable, except for \link refs reference counting\endlink.
 
@@ -107,69 +107,69 @@ considered immutable, except for \link refs reference counting\endlink.
 */
 
 /**
-@struct bt_ctf_event_class
+@struct bt_event_class
 @brief A CTF IR event class.
 @sa ctfireventclass
 */
-struct bt_ctf_event_class;
-struct bt_ctf_field;
-struct bt_ctf_field_type;
-struct bt_ctf_stream_class;
+struct bt_event_class;
+struct bt_field;
+struct bt_field_type;
+struct bt_stream_class;
 
 /**
 @brief	Log level of an event class.
 */
-enum bt_ctf_event_class_log_level {
+enum bt_event_class_log_level {
 	/// Unknown, used for errors.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN		= -1,
+	BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN	= -1,
 
 	/// Unspecified log level.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED	= 255,
+	BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED	= 255,
 
 	/// System is unusable.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY		= 0,
+	BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY	= 0,
 
 	/// Action must be taken immediately.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT		= 1,
+	BT_EVENT_CLASS_LOG_LEVEL_ALERT		= 1,
 
 	/// Critical conditions.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL		= 2,
+	BT_EVENT_CLASS_LOG_LEVEL_CRITICAL	= 2,
 
 	/// Error conditions.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR		= 3,
+	BT_EVENT_CLASS_LOG_LEVEL_ERROR		= 3,
 
 	/// Warning conditions.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING		= 4,
+	BT_EVENT_CLASS_LOG_LEVEL_WARNING	= 4,
 
 	/// Normal, but significant, condition.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE		= 5,
+	BT_EVENT_CLASS_LOG_LEVEL_NOTICE		= 5,
 
 	/// Informational message.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO		= 6,
+	BT_EVENT_CLASS_LOG_LEVEL_INFO		= 6,
 
 	/// Debug information with system-level scope (set of programs).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM	= 7,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM	= 7,
 
 	/// Debug information with program-level scope (set of processes).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM	= 8,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM	= 8,
 
 	/// Debug information with process-level scope (set of modules).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS	= 9,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS	= 9,
 
 	/// Debug information with module (executable/library) scope (set of units).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE	= 10,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE	= 10,
 
 	/// Debug information with compilation unit scope (set of functions).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT		= 11,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT	= 11,
 
 	/// Debug information with function-level scope.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION	= 12,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION	= 12,
 
 	/// Debug information with line-level scope (default log level).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE		= 13,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE	= 13,
 
 	/// Debug-level message.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG		= 14,
+	BT_EVENT_CLASS_LOG_LEVEL_DEBUG		= 14,
 };
 
 /**
@@ -183,17 +183,17 @@ enum bt_ctf_event_class_log_level {
 On success, the context and payload field types are empty structure
 field types. You can modify those default field types after the
 event class is created with
-bt_ctf_event_class_set_context_type() and
-bt_ctf_event_class_set_payload_type().
+bt_event_class_set_context_type() and
+bt_event_class_set_payload_type().
 
 Upon creation, the event class's ID is <em>not set</em>. You
-can set it to a specific value with bt_ctf_event_class_set_id(). If it
-is still unset when you call bt_ctf_stream_class_add_event_class(), then
+can set it to a specific value with bt_event_class_set_id(). If it
+is still unset when you call bt_stream_class_add_event_class(), then
 the stream class assigns a unique ID to this event class before
 freezing it.
 
 The created event class's log level is initially set to
-#BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED and it has no Eclipse Modeling
+#BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED and it has no Eclipse Modeling
 Framework URI.
 
 @param[in] name	Name of the event class to create (copied on success).
@@ -202,7 +202,7 @@ Framework URI.
 @prenotnull{name}
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
+extern struct bt_event_class *bt_event_class_create(const char *name);
 
 /**
 @brief	Returns the parent CTF IR stream class of the CTF IR event
@@ -211,7 +211,7 @@ extern struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
 It is possible that the event class was not added to a stream class
 yet, in which case this function returns \c NULL. You can add an
 event class to a stream class with
-bt_ctf_stream_class_add_event_class().
+bt_stream_class_add_event_class().
 
 @param[in] event_class	Event class of which to get the parent
 			stream class.
@@ -223,11 +223,11 @@ bt_ctf_stream_class_add_event_class().
 @postrefcountsame{event_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_stream_class_add_event_class(): Add an event class to
+@sa bt_stream_class_add_event_class(): Add an event class to
 	a stream class.
 */
-extern struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
-		struct bt_ctf_event_class *event_class);
+extern struct bt_stream_class *bt_event_class_get_stream_class(
+		struct bt_event_class *event_class);
 
 /** @} */
 
@@ -249,8 +249,8 @@ string.
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 */
-extern const char *bt_ctf_event_class_get_name(
-		struct bt_ctf_event_class *event_class);
+extern const char *bt_event_class_get_name(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Returns the numeric ID of the CTF IR event class \p event_class.
@@ -262,11 +262,11 @@ extern const char *bt_ctf_event_class_get_name(
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_set_id(): Sets the numeric ID of a given
+@sa bt_event_class_set_id(): Sets the numeric ID of a given
 	event class.
 */
-extern int64_t bt_ctf_event_class_get_id(
-		struct bt_ctf_event_class *event_class);
+extern int64_t bt_event_class_get_id(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Sets the numeric ID of the CTF IR event class
@@ -284,29 +284,29 @@ of the stream class to which you eventually add \p event_class.
 @pre \p id is lesser than or equal to 9223372036854775807 (\c INT64_MAX).
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_get_id(): Returns the numeric ID of a given
+@sa bt_event_class_get_id(): Returns the numeric ID of a given
 	event class.
 */
-extern int bt_ctf_event_class_set_id(
-		struct bt_ctf_event_class *event_class, uint64_t id);
+extern int bt_event_class_set_id(
+		struct bt_event_class *event_class, uint64_t id);
 
 /**
 @brief	Returns the log level of the CTF IR event class \p event_class.
 
 @param[in] event_class	Event class of which to get the log level.
 @returns		Log level of event class \p event_class,
-			#BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED if
+			#BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED if
 			not specified, or
-			#BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN on error.
+			#BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN on error.
 
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_set_log_level(): Sets the log level of a given
+@sa bt_event_class_set_log_level(): Sets the log level of a given
 	event class.
 */
-extern enum bt_ctf_event_class_log_level bt_ctf_event_class_get_log_level(
-		struct bt_ctf_event_class *event_class);
+extern enum bt_event_class_log_level bt_event_class_get_log_level(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Sets the log level of the CTF IR event class
@@ -318,30 +318,30 @@ extern enum bt_ctf_event_class_log_level bt_ctf_event_class_get_log_level(
 
 @prenotnull{event_class}
 @prehot{event_class}
-@pre \p log_level is #BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE, or
-	#BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG.
+@pre \p log_level is #BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED,
+	#BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
+	#BT_EVENT_CLASS_LOG_LEVEL_ALERT,
+	#BT_EVENT_CLASS_LOG_LEVEL_CRITICAL,
+	#BT_EVENT_CLASS_LOG_LEVEL_ERROR,
+	#BT_EVENT_CLASS_LOG_LEVEL_WARNING,
+	#BT_EVENT_CLASS_LOG_LEVEL_NOTICE,
+	#BT_EVENT_CLASS_LOG_LEVEL_INFO,
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM,
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM,
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS,
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE,
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT,
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE, or
+	#BT_EVENT_CLASS_LOG_LEVEL_DEBUG.
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_get_log_level(): Returns the log level of a given
+@sa bt_event_class_get_log_level(): Returns the log level of a given
 	event class.
 */
-extern int bt_ctf_event_class_set_log_level(
-		struct bt_ctf_event_class *event_class,
-		enum bt_ctf_event_class_log_level log_level);
+extern int bt_event_class_set_log_level(
+		struct bt_event_class *event_class,
+		enum bt_event_class_log_level log_level);
 
 /**
 @brief  Returns the Eclipse Modeling Framework URI of the CTF IR event
@@ -355,11 +355,11 @@ extern int bt_ctf_event_class_set_log_level(
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_set_emf_uri(): Sets the Eclipse Modeling
+@sa bt_event_class_set_emf_uri(): Sets the Eclipse Modeling
 	Framework URI of a given event class.
 */
-extern const char *bt_ctf_event_class_get_emf_uri(
-		struct bt_ctf_event_class *event_class);
+extern const char *bt_event_class_get_emf_uri(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Sets the Eclipse Modeling Framework URI of the CTF IR event class
@@ -378,11 +378,11 @@ extern const char *bt_ctf_event_class_get_emf_uri(
 @prehot{event_class}
 @postrefcountsame{event_class}
 
-@sa bt_ctf_event_class_get_emf_uri(): Returns the Eclipse Modeling
+@sa bt_event_class_get_emf_uri(): Returns the Eclipse Modeling
 	Framework URI of a given event class.
 */
-extern int bt_ctf_event_class_set_emf_uri(
-		struct bt_ctf_event_class *event_class,
+extern int bt_event_class_set_emf_uri(
+		struct bt_event_class *event_class,
 		const char *emf_uri);
 
 /** @} */
@@ -405,11 +405,11 @@ extern int bt_ctf_event_class_set_emf_uri(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_ctf_event_class_set_context_type(): Sets the context field type of a
+@sa bt_event_class_set_context_type(): Sets the context field type of a
 	given event class.
 */
-extern struct bt_ctf_field_type *bt_ctf_event_class_get_context_type(
-		struct bt_ctf_event_class *event_class);
+extern struct bt_field_type *bt_event_class_get_context_type(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Sets the context field type of the CTF IR event class \p event_class to
@@ -437,12 +437,12 @@ As of Babeltrace \btversion, if \p context_type is not \c NULL,
 @post <strong>On success, if \p context_type is not \c NULL</strong>,
 	the reference count of \p context_type is incremented.
 
-@sa bt_ctf_event_class_get_context_type(): Returns the context field type of a
+@sa bt_event_class_get_context_type(): Returns the context field type of a
 	given event class.
 */
-extern int bt_ctf_event_class_set_context_type(
-		struct bt_ctf_event_class *event_class,
-		struct bt_ctf_field_type *context_type);
+extern int bt_event_class_set_context_type(
+		struct bt_event_class *event_class,
+		struct bt_field_type *context_type);
 
 /**
 @brief	Returns the payload field type of the CTF IR event class
@@ -457,11 +457,11 @@ extern int bt_ctf_event_class_set_context_type(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_ctf_event_class_set_payload_type(): Sets the payload field type of a
+@sa bt_event_class_set_payload_type(): Sets the payload field type of a
 	given event class.
 */
-extern struct bt_ctf_field_type *bt_ctf_event_class_get_payload_type(
-		struct bt_ctf_event_class *event_class);
+extern struct bt_field_type *bt_event_class_get_payload_type(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Sets the payload field type of the CTF IR event class \p event_class to
@@ -489,12 +489,12 @@ As of Babeltrace \btversion, if \p payload_type is not \c NULL,
 @post <strong>On success, if \p payload_type is not \c NULL</strong>,
 	the reference count of \p payload_type is incremented.
 
-@sa bt_ctf_event_class_get_payload_type(): Returns the payload field type of a
+@sa bt_event_class_get_payload_type(): Returns the payload field type of a
 	given event class.
 */
-extern int bt_ctf_event_class_set_payload_type(
-		struct bt_ctf_event_class *event_class,
-		struct bt_ctf_field_type *payload_type);
+extern int bt_event_class_set_payload_type(
+		struct bt_event_class *event_class,
+		struct bt_field_type *payload_type);
 
 /**
 @brief	Returns the number of fields contained in the
@@ -502,9 +502,9 @@ extern int bt_ctf_event_class_set_payload_type(
 
 @remarks
 Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_ctf_event_class_get_payload_type() and
+type of \p event_class with bt_event_class_get_payload_type() and
 getting its field count with
-bt_ctf_field_type_structure_get_field_count().
+bt_field_type_structure_get_field_count().
 
 @param[in] event_class	Event class of which to get the number
 			of fields contained in its payload field type.
@@ -514,8 +514,8 @@ bt_ctf_field_type_structure_get_field_count().
 @prenotnull{event_class}
 @postrefcountsame{event_class}
 */
-extern int64_t bt_ctf_event_class_get_payload_type_field_count(
-		struct bt_ctf_event_class *event_class);
+extern int64_t bt_event_class_get_payload_type_field_count(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Returns the type and the name of the field at index \p index
@@ -532,9 +532,9 @@ interested in one of them.
 
 @remarks
 Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_ctf_event_class_get_payload_type() and
+type of \p event_class with bt_event_class_get_payload_type() and
 getting the type and name of one of its field with
-bt_ctf_field_type_structure_get_field().
+bt_field_type_structure_get_field().
 
 @param[in] event_class	Event class of which to get the type and name
 			of a field in its payload field type.
@@ -550,14 +550,14 @@ bt_ctf_field_type_structure_get_field().
 @prenotnull{event_class}
 @pre \p index is lesser than the number of fields contained in the
 	payload field type of \p event_class (see
-	bt_ctf_event_class_get_payload_type_field_count()).
+	bt_event_class_get_payload_type_field_count()).
 @postrefcountsame{event_class}
 @post <strong>On success, if \p field_type is not \c NULL</strong>, the
 	reference count of \p *field_type is incremented.
 */
-extern int bt_ctf_event_class_get_payload_type_field_by_index(
-		struct bt_ctf_event_class *event_class,
-		const char **field_name, struct bt_ctf_field_type **field_type,
+extern int bt_event_class_get_payload_type_field_by_index(
+		struct bt_event_class *event_class,
+		const char **field_name, struct bt_field_type **field_type,
 		uint64_t index);
 
 /**
@@ -566,9 +566,9 @@ extern int bt_ctf_event_class_get_payload_type_field_by_index(
 
 @remarks
 Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_ctf_event_class_get_payload_type() and
+type of \p event_class with bt_event_class_get_payload_type() and
 getting the type of one of its field with
-bt_ctf_field_type_structure_get_field_type_by_name().
+bt_field_type_structure_get_field_type_by_name().
 
 @param[in] event_class	Event class of which to get the type of a
 			payload field type's field.
@@ -583,12 +583,9 @@ bt_ctf_field_type_structure_get_field_type_by_name().
 @postrefcountsame{event_class}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field_type *
-bt_ctf_event_class_get_payload_type_field_type_by_name(
-		struct bt_ctf_event_class *event_class, const char *name);
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_event_class_get_field_by_name bt_ctf_event_class_get_payload_type_field_type_by_name
+extern struct bt_field_type *
+bt_event_class_get_payload_type_field_type_by_name(
+		struct bt_event_class *event_class, const char *name);
 
 /**
 @brief	Adds a field named \p name with the type \p field_type to the
@@ -596,8 +593,8 @@ bt_ctf_event_class_get_payload_type_field_type_by_name(
 
 @remarks
 Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_ctf_event_class_get_payload_type() and
-adding a field to it with bt_ctf_field_type_structure_add_field().
+type of \p event_class with bt_event_class_get_payload_type() and
+adding a field to it with bt_field_type_structure_add_field().
 
 @param[in] event_class	Event class containing the payload field
 			type in which to add a field.
@@ -613,13 +610,19 @@ adding a field to it with bt_ctf_field_type_structure_add_field().
 @postrefcountsame{event_class}
 @postsuccessrefcountinc{field_type}
 */
-extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
-		struct bt_ctf_field_type *field_type,
+extern int bt_event_class_add_field(struct bt_event_class *event_class,
+		struct bt_field_type *field_type,
 		const char *name);
 
 /** @} */
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_event_class bt_event_class
+#define bt_ctf_event_class_create bt_event_class_create
+#define bt_ctf_event_class_get_field_by_name bt_event_class_get_payload_type_field_type_by_name
+#define bt_ctf_event_class_add_field bt_event_class_add_field
 
 #ifdef __cplusplus
 }

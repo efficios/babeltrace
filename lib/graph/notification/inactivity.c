@@ -129,11 +129,11 @@ end:
 	return cc_prio_map;
 }
 
-struct bt_ctf_clock_value *bt_notification_inactivity_get_clock_value(
+struct bt_clock_value *bt_notification_inactivity_get_clock_value(
 		struct bt_notification *notification,
-		struct bt_ctf_clock_class *clock_class)
+		struct bt_clock_class *clock_class)
 {
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_clock_value *clock_value = NULL;
 	struct bt_notification_inactivity *inactivity_notification;
 
 	if (!notification) {
@@ -167,11 +167,11 @@ end:
 
 int bt_notification_inactivity_set_clock_value(
 		struct bt_notification *notification,
-		struct bt_ctf_clock_value *clock_value)
+		struct bt_clock_value *clock_value)
 {
 	int ret = 0;
 	uint64_t prio;
-	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_clock_class *clock_class = NULL;
 	struct bt_notification_inactivity *inactivity_notification;
 
 	if (!notification) {
@@ -204,7 +204,7 @@ int bt_notification_inactivity_set_clock_value(
 
 	inactivity_notification = container_of(notification,
 			struct bt_notification_inactivity, parent);
-	clock_class = bt_ctf_clock_value_get_class(clock_value);
+	clock_class = bt_clock_value_get_class(clock_value);
 	ret = bt_clock_class_priority_map_get_clock_class_priority(
 		inactivity_notification->cc_prio_map, clock_class, &prio);
 	if (ret) {
@@ -214,7 +214,7 @@ int bt_notification_inactivity_set_clock_value(
 			"clock-value-addr=%p",
 			inactivity_notification,
 			inactivity_notification->cc_prio_map,
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_class, bt_clock_class_get_name(clock_class),
 			clock_value);
 		ret = -1;
 		goto end;
@@ -229,7 +229,7 @@ int bt_notification_inactivity_set_clock_value(
 		"clock-value-addr=%p",
 		inactivity_notification,
 		inactivity_notification->cc_prio_map,
-		clock_class, bt_ctf_clock_class_get_name(clock_class),
+		clock_class, bt_clock_class_get_name(clock_class),
 		clock_value);
 
 end:

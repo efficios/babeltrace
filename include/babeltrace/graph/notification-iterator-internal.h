@@ -111,7 +111,7 @@ struct bt_notification_iterator_private_connection {
 	 *   other notifications which refer to this stream can be
 	 *   delivered by this iterator.
 	 *
-	 * The key (struct bt_ctf_stream *) is not owned by this. The
+	 * The key (struct bt_stream *) is not owned by this. The
 	 * value is an allocated state structure.
 	 */
 	GHashTable *stream_states;

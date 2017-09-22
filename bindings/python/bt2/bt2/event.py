@@ -36,7 +36,7 @@ def _create_from_ptr(ptr):
     # recreate the event class wrapper of this event's class (the
     # identity could be different, but the underlying address should be
     # the same)
-    event_class_ptr = native_bt.ctf_event_get_class(ptr)
+    event_class_ptr = native_bt.event_get_class(ptr)
     utils._handle_ptr(event_class_ptr, "cannot get event object's class")
     event_class = bt2.EventClass._create_from_ptr(event_class_ptr)
     event = _Event._create_from_ptr(ptr)
@@ -59,7 +59,7 @@ class _Event(object._Object):
 
     @property
     def packet(self):
-        packet_ptr = native_bt.ctf_event_get_packet(self._ptr)
+        packet_ptr = native_bt.event_get_packet(self._ptr)
 
         if packet_ptr is None:
             return packet_ptr
@@ -69,12 +69,12 @@ class _Event(object._Object):
     @packet.setter
     def packet(self, packet):
         utils._check_type(packet, bt2.packet._Packet)
-        ret = native_bt.ctf_event_set_packet(self._ptr, packet._ptr)
+        ret = native_bt.event_set_packet(self._ptr, packet._ptr)
         utils._handle_ret(ret, "cannot set event object's packet object")
 
     @property
     def stream(self):
-        stream_ptr = native_bt.ctf_event_get_stream(self._ptr)
+        stream_ptr = native_bt.event_get_stream(self._ptr)
 
         if stream_ptr is None:
             return stream_ptr
@@ -83,7 +83,7 @@ class _Event(object._Object):
 
     @property
     def header_field(self):
-        field_ptr = native_bt.ctf_event_get_header(self._ptr)
+        field_ptr = native_bt.event_get_header(self._ptr)
 
         if field_ptr is None:
             return
@@ -98,12 +98,12 @@ class _Event(object._Object):
             utils._check_type(header_field, bt2.fields._Field)
             header_field_ptr = header_field._ptr
 
-        ret = native_bt.ctf_event_set_header(self._ptr, header_field_ptr)
+        ret = native_bt.event_set_header(self._ptr, header_field_ptr)
         utils._handle_ret(ret, "cannot set event object's header field")
 
     @property
     def stream_event_context_field(self):
-        field_ptr = native_bt.ctf_event_get_stream_event_context(self._ptr)
+        field_ptr = native_bt.event_get_stream_event_context(self._ptr)
 
         if field_ptr is None:
             return
@@ -118,13 +118,13 @@ class _Event(object._Object):
             utils._check_type(stream_event_context, bt2.fields._Field)
             stream_event_context_ptr = stream_event_context._ptr
 
-        ret = native_bt.ctf_event_set_stream_event_context(self._ptr,
+        ret = native_bt.event_set_stream_event_context(self._ptr,
                                                            stream_event_context_ptr)
         utils._handle_ret(ret, "cannot set event object's stream event context field")
 
     @property
     def context_field(self):
-        field_ptr = native_bt.ctf_event_get_event_context(self._ptr)
+        field_ptr = native_bt.event_get_event_context(self._ptr)
 
         if field_ptr is None:
             return
@@ -139,12 +139,12 @@ class _Event(object._Object):
             utils._check_type(context, bt2.fields._Field)
             context_ptr = context._ptr
 
-        ret = native_bt.ctf_event_set_event_context(self._ptr, context_ptr)
+        ret = native_bt.event_set_event_context(self._ptr, context_ptr)
         utils._handle_ret(ret, "cannot set event object's context field")
 
     @property
     def payload_field(self):
-        field_ptr = native_bt.ctf_event_get_event_payload(self._ptr)
+        field_ptr = native_bt.event_get_event_payload(self._ptr)
 
         if field_ptr is None:
             return
@@ -159,24 +159,24 @@ class _Event(object._Object):
             utils._check_type(payload, bt2.fields._Field)
             payload_ptr = payload._ptr
 
-        ret = native_bt.ctf_event_set_event_payload(self._ptr, payload_ptr)
+        ret = native_bt.event_set_event_payload(self._ptr, payload_ptr)
         utils._handle_ret(ret, "cannot set event object's payload field")
 
     def _get_clock_value_cycles(self, clock_class_ptr):
-        clock_value_ptr = native_bt.ctf_event_get_clock_value(self._ptr,
+        clock_value_ptr = native_bt.event_get_clock_value(self._ptr,
                                                               clock_class_ptr)
 
         if clock_value_ptr is None:
             return
 
-        ret, cycles = native_bt.ctf_clock_value_get_value(clock_value_ptr)
+        ret, cycles = native_bt.clock_value_get_value(clock_value_ptr)
         native_bt.put(clock_value_ptr)
         utils._handle_ret(ret, "cannot get clock value object's cycles")
         return cycles
 
     def clock_value(self, clock_class):
         utils._check_type(clock_class, bt2.ClockClass)
-        clock_value_ptr = native_bt.ctf_event_get_clock_value(self._ptr,
+        clock_value_ptr = native_bt.event_get_clock_value(self._ptr,
                                                               clock_class._ptr)
 
         if clock_value_ptr is None:
@@ -187,7 +187,7 @@ class _Event(object._Object):
 
     def add_clock_value(self, clock_value):
         utils._check_type(clock_value, bt2.clock_value._ClockValue)
-        ret = native_bt.ctf_event_set_clock_value(self._ptr,
+        ret = native_bt.event_set_clock_value(self._ptr,
                                                   clock_value._ptr)
         utils._handle_ret(ret, "cannot set event object's clock value")
 

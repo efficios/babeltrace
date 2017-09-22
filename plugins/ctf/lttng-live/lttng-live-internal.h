@@ -69,7 +69,7 @@ struct lttng_live_stream_iterator_generic {
 struct lttng_live_stream_iterator {
 	struct lttng_live_stream_iterator_generic p;
 
-	struct bt_ctf_stream *stream;
+	struct bt_stream *stream;
 	struct lttng_live_trace *trace;
 	struct bt_private_port *port;	/* weak ref. */
 
@@ -80,7 +80,7 @@ struct lttng_live_stream_iterator {
 	 * Since only a single iterator per viewer connection, we have
 	 * only a single notification iterator per stream.
 	 */
-	struct bt_ctf_notif_iter *notif_iter;
+	struct bt_notif_iter *notif_iter;
 
 	uint64_t viewer_stream_id;
 
@@ -138,7 +138,7 @@ struct lttng_live_trace {
 
 	uint64_t id;	/* ctf trace ID within the session. */
 
-	struct bt_ctf_trace *trace;
+	struct bt_trace *trace;
 
 	struct lttng_live_metadata *metadata;
 	struct bt_clock_class_priority_map *cc_prio_map;
@@ -190,23 +190,23 @@ struct lttng_live_component {
 	struct bt_component *downstream_component;
 };
 
-enum bt_ctf_lttng_live_iterator_status {
+enum bt_lttng_live_iterator_status {
 	/** Iterator state has progressed. Continue iteration immediately. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE = 3,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE = 3,
 	/** No notification available for now. Try again later. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN = 2,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN = 2,
 	/** No more CTF_LTTNG_LIVEs to be delivered. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END = 1,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_END = 1,
 	/** No error, okay. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK = 0,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_OK = 0,
 	/** Invalid arguments. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_INVAL = -1,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_INVAL = -1,
 	/** General error. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR = -2,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR = -2,
 	/** Out of memory. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_NOMEM = -3,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_NOMEM = -3,
 	/** Unsupported iterator feature. */
-	BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED = -4,
+	BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED = -4,
 };
 
 enum bt_component_status lttng_live_component_init(struct bt_private_component *source,
@@ -236,7 +236,7 @@ void lttng_live_iterator_finalize(struct bt_private_connection_private_notificat
 int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live);
 int lttng_live_attach_session(struct lttng_live_session *session);
 int lttng_live_detach_session(struct lttng_live_session *session);
-enum bt_ctf_lttng_live_iterator_status lttng_live_get_new_streams(
+enum bt_lttng_live_iterator_status lttng_live_get_new_streams(
 		struct lttng_live_session *session);
 
 int lttng_live_add_session(struct lttng_live_component *lttng_live,
@@ -246,11 +246,11 @@ int lttng_live_add_session(struct lttng_live_component *lttng_live,
 
 ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		FILE *fp);
-enum bt_ctf_lttng_live_iterator_status lttng_live_get_next_index(
+enum bt_lttng_live_iterator_status lttng_live_get_next_index(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream,
 		struct packet_index *index);
-enum bt_ctf_notif_iter_medium_status lttng_live_get_stream_bytes(
+enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream, uint8_t *buf, uint64_t offset,
 		uint64_t req_len, uint64_t *recv_len);

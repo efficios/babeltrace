@@ -75,11 +75,11 @@ end:
 }
 
 static
-enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
+enum bt_notif_iter_medium_status ds_file_mmap_next(
 		struct ctf_fs_ds_file *ds_file)
 {
-	enum bt_ctf_notif_iter_medium_status ret =
-			BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
+	enum bt_notif_iter_medium_status ret =
+			BT_NOTIF_ITER_MEDIUM_STATUS_OK;
 
 	/* Unmap old region */
 	if (ds_file->mmap_addr) {
@@ -99,7 +99,7 @@ enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 	ds_file->mmap_len = MIN(ds_file->file->size - ds_file->mmap_offset,
 			ds_file->mmap_max_len);
 	if (ds_file->mmap_len == 0) {
-		ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
+		ret = BT_NOTIF_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	}
 	/* Map new region */
@@ -118,18 +118,18 @@ enum bt_ctf_notif_iter_medium_status ds_file_mmap_next(
 	goto end;
 error:
 	ds_file_munmap(ds_file);
-	ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+	ret = BT_NOTIF_ITER_MEDIUM_STATUS_ERROR;
 end:
 	return ret;
 }
 
 static
-enum bt_ctf_notif_iter_medium_status medop_request_bytes(
+enum bt_notif_iter_medium_status medop_request_bytes(
 		size_t request_sz, uint8_t **buffer_addr,
 		size_t *buffer_sz, void *data)
 {
-	enum bt_ctf_notif_iter_medium_status status =
-		BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
+	enum bt_notif_iter_medium_status status =
+		BT_NOTIF_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
 
 	if (request_sz == 0) {
@@ -142,15 +142,15 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 		if (ds_file->mmap_offset >= ds_file->file->size) {
 			BT_LOGD("Reached end of file \"%s\" (%p)",
 				ds_file->file->path->str, ds_file->file->fp);
-			status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
+			status = BT_NOTIF_ITER_MEDIUM_STATUS_EOF;
 			goto end;
 		}
 
 		status = ds_file_mmap_next(ds_file);
 		switch (status) {
-		case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK:
+		case BT_NOTIF_ITER_MEDIUM_STATUS_OK:
 			break;
-		case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF:
+		case BT_NOTIF_ITER_MEDIUM_STATUS_EOF:
 			goto end;
 		default:
 			BT_LOGE("Cannot memory-map next region of file \"%s\" (%p)",
@@ -166,22 +166,22 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	goto end;
 
 error:
-	status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+	status = BT_NOTIF_ITER_MEDIUM_STATUS_ERROR;
 
 end:
 	return status;
 }
 
 static
-struct bt_ctf_stream *medop_get_stream(
-		struct bt_ctf_stream_class *stream_class, uint64_t stream_id,
+struct bt_stream *medop_get_stream(
+		struct bt_stream_class *stream_class, uint64_t stream_id,
 		void *data)
 {
 	struct ctf_fs_ds_file *ds_file = data;
-	struct bt_ctf_stream_class *ds_file_stream_class;
-	struct bt_ctf_stream *stream = NULL;
+	struct bt_stream_class *ds_file_stream_class;
+	struct bt_stream *stream = NULL;
 
-	ds_file_stream_class = bt_ctf_stream_get_class(ds_file->stream);
+	ds_file_stream_class = bt_stream_get_class(ds_file->stream);
 	bt_put(ds_file_stream_class);
 
 	if (stream_class != ds_file_stream_class) {
@@ -199,21 +199,21 @@ end:
 }
 
 static
-enum bt_ctf_notif_iter_medium_status medop_seek(
-		enum bt_ctf_notif_iter_seek_whence whence, off_t offset,
+enum bt_notif_iter_medium_status medop_seek(
+		enum bt_notif_iter_seek_whence whence, off_t offset,
 		void *data)
 {
-	enum bt_ctf_notif_iter_medium_status ret =
-			BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
+	enum bt_notif_iter_medium_status ret =
+			BT_NOTIF_ITER_MEDIUM_STATUS_OK;
 	struct ctf_fs_ds_file *ds_file = data;
 	off_t file_size = ds_file->file->size;
 
-	if (whence != BT_CTF_NOTIF_ITER_SEEK_WHENCE_SET ||
+	if (whence != BT_NOTIF_ITER_SEEK_WHENCE_SET ||
 		offset < 0 || offset > file_size) {
 		BT_LOGE("Invalid medium seek request: whence=%d, offset=%jd, "
 				"file-size=%jd", (int) whence, offset,
 				file_size);
-		ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL;
+		ret = BT_NOTIF_ITER_MEDIUM_STATUS_INVAL;
 		goto end;
 	}
 
@@ -232,14 +232,14 @@ enum bt_ctf_notif_iter_medium_status medop_seek(
 				ds_file->mmap_len);
 		unmap_ret = ds_file_munmap(ds_file);
 		if (unmap_ret) {
-			ret = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+			ret = BT_NOTIF_ITER_MEDIUM_STATUS_ERROR;
 			goto end;
 		}
 
 		ds_file->mmap_offset = offset - offset_in_mapping;
 		ds_file->request_offset = offset_in_mapping;
 		ret = ds_file_mmap_next(ds_file);
-		if (ret != BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK) {
+		if (ret != BT_NOTIF_ITER_MEDIUM_STATUS_OK) {
 			goto end;
 		}
 	} else {
@@ -252,7 +252,7 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_notif_iter_medium_ops ctf_fs_ds_file_medops = {
+struct bt_notif_iter_medium_ops ctf_fs_ds_file_medops = {
 	.request_bytes = medop_request_bytes,
 	.get_stream = medop_get_stream,
 	.seek = medop_seek,
@@ -293,18 +293,18 @@ struct ctf_fs_ds_index_entry *ctf_fs_ds_index_add_new_entry(
 }
 
 static
-struct bt_ctf_clock_class *get_field_mapped_clock_class(
-		struct bt_ctf_field *field)
+struct bt_clock_class *get_field_mapped_clock_class(
+		struct bt_field *field)
 {
-	struct bt_ctf_field_type *field_type;
-	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_field_type *field_type;
+	struct bt_clock_class *clock_class = NULL;
 
-	field_type = bt_ctf_field_get_type(field);
+	field_type = bt_field_get_type(field);
 	if (!field_type) {
 		goto end;
 	}
 
-	clock_class = bt_ctf_field_type_integer_get_mapped_clock_class(
+	clock_class = bt_field_type_integer_get_mapped_clock_class(
 			field_type);
 	if (!clock_class) {
 		goto end;
@@ -316,19 +316,19 @@ end:
 
 static
 int get_packet_bounds_from_packet_context(
-		struct bt_ctf_field *packet_context,
-		struct bt_ctf_clock_class **_timestamp_begin_cc,
-		struct bt_ctf_field **_timestamp_begin,
-		struct bt_ctf_clock_class **_timestamp_end_cc,
-		struct bt_ctf_field **_timestamp_end)
+		struct bt_field *packet_context,
+		struct bt_clock_class **_timestamp_begin_cc,
+		struct bt_field **_timestamp_begin,
+		struct bt_clock_class **_timestamp_end_cc,
+		struct bt_field **_timestamp_end)
 {
 	int ret = 0;
-	struct bt_ctf_clock_class *timestamp_begin_cc = NULL;
-	struct bt_ctf_clock_class *timestamp_end_cc = NULL;
-	struct bt_ctf_field *timestamp_begin = NULL;
-	struct bt_ctf_field *timestamp_end = NULL;
+	struct bt_clock_class *timestamp_begin_cc = NULL;
+	struct bt_clock_class *timestamp_end_cc = NULL;
+	struct bt_field *timestamp_begin = NULL;
+	struct bt_field *timestamp_end = NULL;
 
-	timestamp_begin = bt_ctf_field_structure_get_field_by_name(
+	timestamp_begin = bt_field_structure_get_field_by_name(
 			packet_context, "timestamp_begin");
 	if (!timestamp_begin) {
 		BT_LOGD_STR("Cannot retrieve timestamp_begin field in packet context.");
@@ -341,7 +341,7 @@ int get_packet_bounds_from_packet_context(
 		BT_LOGD_STR("Cannot retrieve the clock mapped to timestamp_begin.");
 	}
 
-	timestamp_end = bt_ctf_field_structure_get_field_by_name(
+	timestamp_end = bt_field_structure_get_field_by_name(
 			packet_context, "timestamp_end");
 	if (!timestamp_end) {
 		BT_LOGD_STR("Cannot retrieve timestamp_end field in packet context.");
@@ -376,10 +376,10 @@ end:
 
 static
 int get_ds_file_packet_bounds_clock_classes(struct ctf_fs_ds_file *ds_file,
-		struct bt_ctf_clock_class **timestamp_begin_cc,
-		struct bt_ctf_clock_class **timestamp_end_cc)
+		struct bt_clock_class **timestamp_begin_cc,
+		struct bt_clock_class **timestamp_end_cc)
 {
-	struct bt_ctf_field *packet_context = NULL;
+	struct bt_field *packet_context = NULL;
 	int ret = ctf_fs_ds_file_get_packet_header_context_fields(ds_file,
 			NULL, &packet_context);
 
@@ -399,20 +399,20 @@ end:
 }
 
 static
-int convert_cycles_to_ns(struct bt_ctf_clock_class *clock_class,
+int convert_cycles_to_ns(struct bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
 	int ret = 0;
-	struct bt_ctf_clock_value *clock_value;
+	struct bt_clock_value *clock_value;
 
 	assert(ns);
-	clock_value = bt_ctf_clock_value_create(clock_class, cycles);
+	clock_value = bt_clock_value_create(clock_class, cycles);
 	if (!clock_value) {
 		ret = -1;
 		goto end;
 	}
 
-	ret = bt_ctf_clock_value_get_value_ns_from_epoch(clock_value, ns);
+	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ns);
 	if (ret) {
 		goto end;
 	}
@@ -440,8 +440,8 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 	size_t file_index_entry_size;
 	size_t file_entry_count;
 	size_t i;
-	struct bt_ctf_clock_class *timestamp_begin_cc = NULL;
-	struct bt_ctf_clock_class *timestamp_end_cc = NULL;
+	struct bt_clock_class *timestamp_begin_cc = NULL;
+	struct bt_clock_class *timestamp_end_cc = NULL;
 
 	BT_LOGD("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
@@ -605,14 +605,14 @@ error:
 
 static
 int init_index_entry(struct ctf_fs_ds_index_entry *entry,
-		struct bt_ctf_field *packet_context, off_t packet_size,
+		struct bt_field *packet_context, off_t packet_size,
 		off_t packet_offset)
 {
 	int ret;
-	struct bt_ctf_field *timestamp_begin = NULL;
-	struct bt_ctf_field *timestamp_end = NULL;
-	struct bt_ctf_clock_class *timestamp_begin_cc = NULL;
-	struct bt_ctf_clock_class *timestamp_end_cc = NULL;
+	struct bt_field *timestamp_begin = NULL;
+	struct bt_field *timestamp_end = NULL;
+	struct bt_clock_class *timestamp_begin_cc = NULL;
+	struct bt_clock_class *timestamp_end_cc = NULL;
 
 	ret = get_packet_bounds_from_packet_context(packet_context,
 			&timestamp_begin_cc, &timestamp_begin,
@@ -629,12 +629,12 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 	assert(packet_size >= 0);
 	entry->packet_size = packet_size;
 
-	ret = bt_ctf_field_unsigned_integer_get_value(timestamp_begin,
+	ret = bt_field_unsigned_integer_get_value(timestamp_begin,
 			&entry->timestamp_begin);
 	if (ret) {
 		goto end;
 	}
-	ret = bt_ctf_field_unsigned_integer_get_value(timestamp_end,
+	ret = bt_field_unsigned_integer_get_value(timestamp_end,
 			&entry->timestamp_end);
 	if (ret) {
 		goto end;
@@ -670,8 +670,8 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 {
 	int ret;
 	struct ctf_fs_ds_index *index = NULL;
-	enum bt_ctf_notif_iter_status iter_status;
-	struct bt_ctf_field *packet_context = NULL;
+	enum bt_notif_iter_status iter_status;
+	struct bt_field *packet_context = NULL;
 
 	BT_LOGD("Indexing stream file %s", ds_file->file->path->str);
 
@@ -686,23 +686,23 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		off_t current_packet_size, current_packet_size_bytes;
 		struct ctf_fs_ds_index_entry *entry;
 
-		iter_status = bt_ctf_notif_iter_get_packet_header_context_fields(
+		iter_status = bt_notif_iter_get_packet_header_context_fields(
 				ds_file->notif_iter, NULL, &packet_context);
-		if (iter_status != BT_CTF_NOTIF_ITER_STATUS_OK) {
-			if (iter_status == BT_CTF_NOTIF_ITER_STATUS_EOF) {
+		if (iter_status != BT_NOTIF_ITER_STATUS_OK) {
+			if (iter_status == BT_NOTIF_ITER_STATUS_EOF) {
 				break;
 			}
 			goto error;
 		}
 		current_packet_offset =
-				bt_ctf_notif_iter_get_current_packet_offset(
+				bt_notif_iter_get_current_packet_offset(
 				ds_file->notif_iter);
 		if (current_packet_offset < 0) {
 			BT_LOGE_STR("Cannot get the current packet's offset.");
 			goto error;
 		}
 
-		current_packet_size = bt_ctf_notif_iter_get_current_packet_size(
+		current_packet_size = bt_notif_iter_get_current_packet_size(
 				ds_file->notif_iter);
 		if (current_packet_size < 0) {
 			BT_LOGE("Cannot get packet size: packet-offset=%jd",
@@ -743,12 +743,12 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			goto error;
 		}
 
-		iter_status = bt_ctf_notif_iter_seek(ds_file->notif_iter,
+		iter_status = bt_notif_iter_seek(ds_file->notif_iter,
 				next_packet_offset);
 		BT_PUT(packet_context);
-	} while (iter_status == BT_CTF_NOTIF_ITER_STATUS_OK);
+	} while (iter_status == BT_NOTIF_ITER_STATUS_OK);
 
-	if (iter_status != BT_CTF_NOTIF_ITER_STATUS_EOF) {
+	if (iter_status != BT_NOTIF_ITER_STATUS_EOF) {
 		goto error;
 	}
 end:
@@ -763,8 +763,8 @@ error:
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_ctf_notif_iter *notif_iter,
-		struct bt_ctf_stream *stream, const char *path)
+		struct bt_notif_iter *notif_iter,
+		struct bt_stream *stream, const char *path)
 {
 	int ret;
 	const size_t page_size = bt_common_get_page_size();
@@ -788,7 +788,7 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 	}
 
 	ds_file->notif_iter = notif_iter;
-	bt_ctf_notif_iter_set_medops_data(ds_file->notif_iter, ds_file);
+	bt_notif_iter_set_medops_data(ds_file->notif_iter, ds_file);
 	if (!ds_file->notif_iter) {
 		goto error;
 	}
@@ -846,31 +846,31 @@ BT_HIDDEN
 struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file)
 {
-	enum bt_ctf_notif_iter_status notif_iter_status;
+	enum bt_notif_iter_status notif_iter_status;
 	struct bt_notification_iterator_next_method_return ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR,
 		.notification = NULL,
 	};
 
-	notif_iter_status = bt_ctf_notif_iter_get_next_notification(
+	notif_iter_status = bt_notif_iter_get_next_notification(
 		ds_file->notif_iter, ds_file->cc_prio_map, &ret.notification);
 
 	switch (notif_iter_status) {
-	case BT_CTF_NOTIF_ITER_STATUS_EOF:
+	case BT_NOTIF_ITER_STATUS_EOF:
 		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		break;
-	case BT_CTF_NOTIF_ITER_STATUS_OK:
+	case BT_NOTIF_ITER_STATUS_OK:
 		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 		break;
-	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+	case BT_NOTIF_ITER_STATUS_AGAIN:
 		/*
 		 * Should not make it this far as this is
 		 * medium-specific; there is nothing for the user to do
 		 * and it should have been handled upstream.
 		 */
 		abort();
-	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
-	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+	case BT_NOTIF_ITER_STATUS_INVAL:
+	case BT_NOTIF_ITER_STATUS_ERROR:
 	default:
 		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		break;
@@ -882,23 +882,23 @@ struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
 BT_HIDDEN
 int ctf_fs_ds_file_get_packet_header_context_fields(
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_ctf_field **packet_header_field,
-		struct bt_ctf_field **packet_context_field)
+		struct bt_field **packet_header_field,
+		struct bt_field **packet_context_field)
 {
-	enum bt_ctf_notif_iter_status notif_iter_status;
+	enum bt_notif_iter_status notif_iter_status;
 	int ret = 0;
 
 	assert(ds_file);
-	notif_iter_status = bt_ctf_notif_iter_get_packet_header_context_fields(
+	notif_iter_status = bt_notif_iter_get_packet_header_context_fields(
 		ds_file->notif_iter, packet_header_field, packet_context_field);
 	switch (notif_iter_status) {
-	case BT_CTF_NOTIF_ITER_STATUS_EOF:
-	case BT_CTF_NOTIF_ITER_STATUS_OK:
+	case BT_NOTIF_ITER_STATUS_EOF:
+	case BT_NOTIF_ITER_STATUS_OK:
 		break;
-	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+	case BT_NOTIF_ITER_STATUS_AGAIN:
 		abort();
-	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
-	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+	case BT_NOTIF_ITER_STATUS_INVAL:
+	case BT_NOTIF_ITER_STATUS_ERROR:
 	default:
 		goto error;
 		break;

@@ -39,13 +39,13 @@
 #include <babeltrace/types.h>
 #include <glib.h>
 
-typedef void (*type_freeze_func)(struct bt_ctf_field_type *);
-typedef int (*type_serialize_func)(struct bt_ctf_field_type *,
+typedef void (*type_freeze_func)(struct bt_field_type *);
+typedef int (*type_serialize_func)(struct bt_field_type *,
 		struct metadata_context *);
 
-struct bt_ctf_field_type {
+struct bt_field_type {
 	struct bt_object base;
-	enum bt_ctf_field_type_id id;
+	enum bt_field_type_id id;
 	unsigned int alignment;
 	type_freeze_func freeze;
 	type_serialize_func serialize;
@@ -63,14 +63,14 @@ struct bt_ctf_field_type {
 	int valid;
 };
 
-struct bt_ctf_field_type_integer {
-	struct bt_ctf_field_type parent;
-	struct bt_ctf_clock_class *mapped_clock;
-	enum bt_ctf_byte_order user_byte_order;
+struct bt_field_type_integer {
+	struct bt_field_type parent;
+	struct bt_clock_class *mapped_clock;
+	enum bt_byte_order user_byte_order;
 	bt_bool is_signed;
 	unsigned int size;
-	enum bt_ctf_integer_base base;
-	enum bt_ctf_string_encoding encoding;
+	enum bt_integer_base base;
+	enum bt_string_encoding encoding;
 };
 
 struct enumeration_mapping {
@@ -86,24 +86,24 @@ struct enumeration_mapping {
 	GQuark string;
 };
 
-struct bt_ctf_field_type_enumeration {
-	struct bt_ctf_field_type parent;
-	struct bt_ctf_field_type *container;
+struct bt_field_type_enumeration {
+	struct bt_field_type parent;
+	struct bt_field_type *container;
 	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
 	/* Only set during validation. */
 	bt_bool has_overlapping_ranges;
 };
 
-enum bt_ctf_field_type_enumeration_mapping_iterator_type {
+enum bt_field_type_enumeration_mapping_iterator_type {
 	ITERATOR_BY_NAME,
 	ITERATOR_BY_SIGNED_VALUE,
 	ITERATOR_BY_UNSIGNED_VALUE,
 };
 
-struct bt_ctf_field_type_enumeration_mapping_iterator {
+struct bt_field_type_enumeration_mapping_iterator {
 	struct bt_object base;
-	struct bt_ctf_field_type_enumeration *enumeration_type;
-	enum bt_ctf_field_type_enumeration_mapping_iterator_type type;
+	struct bt_field_type_enumeration *enumeration_type;
+	enum bt_field_type_enumeration_mapping_iterator_type type;
 	int index;
 	union {
 		GQuark name_quark;
@@ -112,220 +112,220 @@ struct bt_ctf_field_type_enumeration_mapping_iterator {
 	} u;
 };
 
-struct bt_ctf_field_type_floating_point {
-	struct bt_ctf_field_type parent;
-	enum bt_ctf_byte_order user_byte_order;
+struct bt_field_type_floating_point {
+	struct bt_field_type parent;
+	enum bt_byte_order user_byte_order;
 	unsigned int exp_dig;
 	unsigned int mant_dig;
 };
 
 struct structure_field {
 	GQuark name;
-	struct bt_ctf_field_type *type;
+	struct bt_field_type *type;
 };
 
-struct bt_ctf_field_type_structure {
-	struct bt_ctf_field_type parent;
+struct bt_field_type_structure {
+	struct bt_field_type parent;
 	GHashTable *field_name_to_index;
 	GPtrArray *fields; /* Array of pointers to struct structure_field */
 };
 
-struct bt_ctf_field_type_variant {
-	struct bt_ctf_field_type parent;
+struct bt_field_type_variant {
+	struct bt_field_type parent;
 	GString *tag_name;
-	struct bt_ctf_field_type_enumeration *tag;
-	struct bt_ctf_field_path *tag_field_path;
+	struct bt_field_type_enumeration *tag;
+	struct bt_field_path *tag_field_path;
 	GHashTable *field_name_to_index;
 	GPtrArray *fields; /* Array of pointers to struct structure_field */
 };
 
-struct bt_ctf_field_type_array {
-	struct bt_ctf_field_type parent;
-	struct bt_ctf_field_type *element_type;
+struct bt_field_type_array {
+	struct bt_field_type parent;
+	struct bt_field_type *element_type;
 	unsigned int length; /* Number of elements */
 };
 
-struct bt_ctf_field_type_sequence {
-	struct bt_ctf_field_type parent;
-	struct bt_ctf_field_type *element_type;
+struct bt_field_type_sequence {
+	struct bt_field_type parent;
+	struct bt_field_type *element_type;
 	GString *length_field_name;
-	struct bt_ctf_field_path *length_field_path;
+	struct bt_field_path *length_field_path;
 };
 
-struct bt_ctf_field_type_string {
-	struct bt_ctf_field_type parent;
-	enum bt_ctf_string_encoding encoding;
+struct bt_field_type_string {
+	struct bt_field_type parent;
+	enum bt_string_encoding encoding;
 };
 
 BT_HIDDEN
-void bt_ctf_field_type_freeze(struct bt_ctf_field_type *type);
+void bt_field_type_freeze(struct bt_field_type *type);
 
 BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_signed(
-		struct bt_ctf_field_type_variant *variant, int64_t tag_value);
+struct bt_field_type *bt_field_type_variant_get_field_type_signed(
+		struct bt_field_type_variant *variant, int64_t tag_value);
 
 BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_unsigned(
-		struct bt_ctf_field_type_variant *variant, uint64_t tag_value);
+struct bt_field_type *bt_field_type_variant_get_field_type_unsigned(
+		struct bt_field_type_variant *variant, uint64_t tag_value);
 
 BT_HIDDEN
-int bt_ctf_field_type_serialize(struct bt_ctf_field_type *type,
+int bt_field_type_serialize(struct bt_field_type *type,
 		struct metadata_context *context);
 
 BT_HIDDEN
-int bt_ctf_field_type_validate(struct bt_ctf_field_type *type);
+int bt_field_type_validate(struct bt_field_type *type);
 
 BT_HIDDEN
-int bt_ctf_field_type_structure_get_field_name_index(
-		struct bt_ctf_field_type *structure, const char *name);
+int bt_field_type_structure_get_field_name_index(
+		struct bt_field_type *structure, const char *name);
 
 BT_HIDDEN
-int bt_ctf_field_type_variant_get_field_name_index(
-		struct bt_ctf_field_type *variant, const char *name);
+int bt_field_type_variant_get_field_name_index(
+		struct bt_field_type *variant, const char *name);
 
 BT_HIDDEN
-int bt_ctf_field_type_sequence_set_length_field_path(
-		struct bt_ctf_field_type *type,
-		struct bt_ctf_field_path *path);
+int bt_field_type_sequence_set_length_field_path(
+		struct bt_field_type *type,
+		struct bt_field_path *path);
 
 BT_HIDDEN
-int bt_ctf_field_type_variant_set_tag_field_path(struct bt_ctf_field_type *type,
-		struct bt_ctf_field_path *path);
+int bt_field_type_variant_set_tag_field_path(struct bt_field_type *type,
+		struct bt_field_path *path);
 
 BT_HIDDEN
-int bt_ctf_field_type_variant_set_tag_field_type(struct bt_ctf_field_type *type,
-		struct bt_ctf_field_type *tag_type);
+int bt_field_type_variant_set_tag_field_type(struct bt_field_type *type,
+		struct bt_field_type *tag_type);
 
 BT_HIDDEN
-int bt_ctf_field_type_array_set_element_type(struct bt_ctf_field_type *array,
-		struct bt_ctf_field_type *element_type);
+int bt_field_type_array_set_element_type(struct bt_field_type *array,
+		struct bt_field_type *element_type);
 
 BT_HIDDEN
-int bt_ctf_field_type_sequence_set_element_type(struct bt_ctf_field_type *array,
-		struct bt_ctf_field_type *element_type);
+int bt_field_type_sequence_set_element_type(struct bt_field_type *array,
+		struct bt_field_type *element_type);
 
 BT_HIDDEN
-int64_t bt_ctf_field_type_get_field_count(struct bt_ctf_field_type *type);
+int64_t bt_field_type_get_field_count(struct bt_field_type *type);
 
 BT_HIDDEN
-struct bt_ctf_field_type *bt_ctf_field_type_get_field_at_index(
-		struct bt_ctf_field_type *type, int index);
+struct bt_field_type *bt_field_type_get_field_at_index(
+		struct bt_field_type *type, int index);
 
 BT_HIDDEN
-int bt_ctf_field_type_get_field_index(struct bt_ctf_field_type *type,
+int bt_field_type_get_field_index(struct bt_field_type *type,
 		const char *name);
 
 BT_HIDDEN
-int bt_ctf_field_type_integer_set_mapped_clock_class_no_check(
-		struct bt_ctf_field_type *int_field_type,
-		struct bt_ctf_clock_class *clock_class);
+int bt_field_type_integer_set_mapped_clock_class_no_check(
+		struct bt_field_type *int_field_type,
+		struct bt_clock_class *clock_class);
 
 static inline
-const char *bt_ctf_field_type_id_string(enum bt_ctf_field_type_id type_id)
+const char *bt_field_type_id_string(enum bt_field_type_id type_id)
 {
 	switch (type_id) {
-	case BT_CTF_FIELD_TYPE_ID_UNKNOWN:
-		return "BT_CTF_FIELD_TYPE_ID_UNKNOWN";
-	case BT_CTF_FIELD_TYPE_ID_INTEGER:
-		return "BT_CTF_FIELD_TYPE_ID_INTEGER";
-	case BT_CTF_FIELD_TYPE_ID_FLOAT:
-		return "BT_CTF_FIELD_TYPE_ID_FLOAT";
-	case BT_CTF_FIELD_TYPE_ID_ENUM:
-		return "BT_CTF_FIELD_TYPE_ID_ENUM";
-	case BT_CTF_FIELD_TYPE_ID_STRING:
-		return "BT_CTF_FIELD_TYPE_ID_STRING";
-	case BT_CTF_FIELD_TYPE_ID_STRUCT:
-		return "BT_CTF_FIELD_TYPE_ID_STRUCT";
-	case BT_CTF_FIELD_TYPE_ID_ARRAY:
-		return "BT_CTF_FIELD_TYPE_ID_ARRAY";
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
-		return "BT_CTF_FIELD_TYPE_ID_SEQUENCE";
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
-		return "BT_CTF_FIELD_TYPE_ID_VARIANT";
+	case BT_FIELD_TYPE_ID_UNKNOWN:
+		return "BT_FIELD_TYPE_ID_UNKNOWN";
+	case BT_FIELD_TYPE_ID_INTEGER:
+		return "BT_FIELD_TYPE_ID_INTEGER";
+	case BT_FIELD_TYPE_ID_FLOAT:
+		return "BT_FIELD_TYPE_ID_FLOAT";
+	case BT_FIELD_TYPE_ID_ENUM:
+		return "BT_FIELD_TYPE_ID_ENUM";
+	case BT_FIELD_TYPE_ID_STRING:
+		return "BT_FIELD_TYPE_ID_STRING";
+	case BT_FIELD_TYPE_ID_STRUCT:
+		return "BT_FIELD_TYPE_ID_STRUCT";
+	case BT_FIELD_TYPE_ID_ARRAY:
+		return "BT_FIELD_TYPE_ID_ARRAY";
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+		return "BT_FIELD_TYPE_ID_SEQUENCE";
+	case BT_FIELD_TYPE_ID_VARIANT:
+		return "BT_FIELD_TYPE_ID_VARIANT";
 	default:
 		return "(unknown)";
 	}
 };
 
 static inline
-const char *bt_ctf_byte_order_string(enum bt_ctf_byte_order bo)
+const char *bt_byte_order_string(enum bt_byte_order bo)
 {
 	switch (bo) {
-	case BT_CTF_BYTE_ORDER_UNKNOWN:
-		return "BT_CTF_BYTE_ORDER_UNKNOWN";
-	case BT_CTF_BYTE_ORDER_UNSPECIFIED:
-		return "BT_CTF_BYTE_ORDER_UNSPECIFIED";
-	case BT_CTF_BYTE_ORDER_NATIVE:
-		return "BT_CTF_BYTE_ORDER_NATIVE";
-	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
-		return "BT_CTF_BYTE_ORDER_LITTLE_ENDIAN";
-	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
-		return "BT_CTF_BYTE_ORDER_BIG_ENDIAN";
-	case BT_CTF_BYTE_ORDER_NETWORK:
-		return "BT_CTF_BYTE_ORDER_NETWORK";
+	case BT_BYTE_ORDER_UNKNOWN:
+		return "BT_BYTE_ORDER_UNKNOWN";
+	case BT_BYTE_ORDER_UNSPECIFIED:
+		return "BT_BYTE_ORDER_UNSPECIFIED";
+	case BT_BYTE_ORDER_NATIVE:
+		return "BT_BYTE_ORDER_NATIVE";
+	case BT_BYTE_ORDER_LITTLE_ENDIAN:
+		return "BT_BYTE_ORDER_LITTLE_ENDIAN";
+	case BT_BYTE_ORDER_BIG_ENDIAN:
+		return "BT_BYTE_ORDER_BIG_ENDIAN";
+	case BT_BYTE_ORDER_NETWORK:
+		return "BT_BYTE_ORDER_NETWORK";
 	default:
 		return "(unknown)";
 	}
 };
 
 static inline
-const char *bt_ctf_string_encoding_string(enum bt_ctf_string_encoding encoding)
+const char *bt_string_encoding_string(enum bt_string_encoding encoding)
 {
 	switch (encoding) {
-	case BT_CTF_STRING_ENCODING_UNKNOWN:
-		return "BT_CTF_STRING_ENCODING_UNKNOWN";
-	case BT_CTF_STRING_ENCODING_NONE:
-		return "BT_CTF_STRING_ENCODING_NONE";
-	case BT_CTF_STRING_ENCODING_UTF8:
-		return "BT_CTF_STRING_ENCODING_UTF8";
-	case BT_CTF_STRING_ENCODING_ASCII:
-		return "BT_CTF_STRING_ENCODING_ASCII";
+	case BT_STRING_ENCODING_UNKNOWN:
+		return "BT_STRING_ENCODING_UNKNOWN";
+	case BT_STRING_ENCODING_NONE:
+		return "BT_STRING_ENCODING_NONE";
+	case BT_STRING_ENCODING_UTF8:
+		return "BT_STRING_ENCODING_UTF8";
+	case BT_STRING_ENCODING_ASCII:
+		return "BT_STRING_ENCODING_ASCII";
 	default:
 		return "(unknown)";
 	}
 };
 
 static inline
-const char *bt_ctf_integer_base_string(enum bt_ctf_integer_base base)
+const char *bt_integer_base_string(enum bt_integer_base base)
 {
 	switch (base) {
-	case BT_CTF_INTEGER_BASE_UNKNOWN:
-		return "BT_CTF_INTEGER_BASE_UNKNOWN";
-	case BT_CTF_INTEGER_BASE_UNSPECIFIED:
-		return "BT_CTF_INTEGER_BASE_UNSPECIFIED";
-	case BT_CTF_INTEGER_BASE_BINARY:
-		return "BT_CTF_INTEGER_BASE_BINARY";
-	case BT_CTF_INTEGER_BASE_OCTAL:
-		return "BT_CTF_INTEGER_BASE_OCTAL";
-	case BT_CTF_INTEGER_BASE_DECIMAL:
-		return "BT_CTF_INTEGER_BASE_DECIMAL";
-	case BT_CTF_INTEGER_BASE_HEXADECIMAL:
-		return "BT_CTF_INTEGER_BASE_HEXADECIMAL";
+	case BT_INTEGER_BASE_UNKNOWN:
+		return "BT_INTEGER_BASE_UNKNOWN";
+	case BT_INTEGER_BASE_UNSPECIFIED:
+		return "BT_INTEGER_BASE_UNSPECIFIED";
+	case BT_INTEGER_BASE_BINARY:
+		return "BT_INTEGER_BASE_BINARY";
+	case BT_INTEGER_BASE_OCTAL:
+		return "BT_INTEGER_BASE_OCTAL";
+	case BT_INTEGER_BASE_DECIMAL:
+		return "BT_INTEGER_BASE_DECIMAL";
+	case BT_INTEGER_BASE_HEXADECIMAL:
+		return "BT_INTEGER_BASE_HEXADECIMAL";
 	default:
 		return "(unknown)";
 	}
 }
 
 static inline
-const char *bt_ctf_scope_string(enum bt_ctf_scope scope)
+const char *bt_scope_string(enum bt_scope scope)
 {
 	switch (scope) {
-	case BT_CTF_SCOPE_UNKNOWN:
-		return "BT_CTF_SCOPE_UNKNOWN";
-	case BT_CTF_SCOPE_TRACE_PACKET_HEADER:
-		return "BT_CTF_SCOPE_TRACE_PACKET_HEADER";
-	case BT_CTF_SCOPE_STREAM_PACKET_CONTEXT:
-		return "BT_CTF_SCOPE_STREAM_PACKET_CONTEXT";
-	case BT_CTF_SCOPE_STREAM_EVENT_HEADER:
-		return "BT_CTF_SCOPE_STREAM_EVENT_HEADER";
-	case BT_CTF_SCOPE_STREAM_EVENT_CONTEXT:
-		return "BT_CTF_SCOPE_STREAM_EVENT_CONTEXT";
-	case BT_CTF_SCOPE_EVENT_CONTEXT:
-		return "BT_CTF_SCOPE_EVENT_CONTEXT";
-	case BT_CTF_SCOPE_EVENT_PAYLOAD:
-		return "BT_CTF_SCOPE_EVENT_PAYLOAD";
-	case BT_CTF_SCOPE_ENV:
-		return "BT_CTF_SCOPE_ENV";
+	case BT_SCOPE_UNKNOWN:
+		return "BT_SCOPE_UNKNOWN";
+	case BT_SCOPE_TRACE_PACKET_HEADER:
+		return "BT_SCOPE_TRACE_PACKET_HEADER";
+	case BT_SCOPE_STREAM_PACKET_CONTEXT:
+		return "BT_SCOPE_STREAM_PACKET_CONTEXT";
+	case BT_SCOPE_STREAM_EVENT_HEADER:
+		return "BT_SCOPE_STREAM_EVENT_HEADER";
+	case BT_SCOPE_STREAM_EVENT_CONTEXT:
+		return "BT_SCOPE_STREAM_EVENT_CONTEXT";
+	case BT_SCOPE_EVENT_CONTEXT:
+		return "BT_SCOPE_EVENT_CONTEXT";
+	case BT_SCOPE_EVENT_PAYLOAD:
+		return "BT_SCOPE_EVENT_PAYLOAD";
+	case BT_SCOPE_ENV:
+		return "BT_SCOPE_ENV";
 	default:
 		return "(unknown)";
 	}

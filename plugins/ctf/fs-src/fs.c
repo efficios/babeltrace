@@ -80,7 +80,7 @@ void ctf_fs_notif_iter_data_destroy(
 	ctf_fs_ds_file_destroy(notif_iter_data->ds_file);
 
 	if (notif_iter_data->notif_iter) {
-		bt_ctf_notif_iter_destroy(notif_iter_data->notif_iter);
+		bt_notif_iter_destroy(notif_iter_data->notif_iter);
 	}
 
 	g_free(notif_iter_data);
@@ -166,7 +166,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 		goto error;
 	}
 
-	notif_iter_data->notif_iter = bt_ctf_notif_iter_create(
+	notif_iter_data->notif_iter = bt_notif_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->trace,
 		bt_common_get_page_size() * 8,
 		ctf_fs_ds_file_medops, NULL);
@@ -366,9 +366,9 @@ end:
 
 static
 uint64_t get_packet_header_stream_instance_id(struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_ctf_field *packet_header_field)
+		struct bt_field *packet_header_field)
 {
-	struct bt_ctf_field *stream_instance_id_field = NULL;
+	struct bt_field *stream_instance_id_field = NULL;
 	uint64_t stream_instance_id = -1ULL;
 	int ret;
 
@@ -376,13 +376,13 @@ uint64_t get_packet_header_stream_instance_id(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	stream_instance_id_field = bt_ctf_field_structure_get_field_by_name(
+	stream_instance_id_field = bt_field_structure_get_field_by_name(
 		packet_header_field, "stream_instance_id");
 	if (!stream_instance_id_field) {
 		goto end;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_get_value(stream_instance_id_field,
+	ret = bt_field_unsigned_integer_get_value(stream_instance_id_field,
 		&stream_instance_id);
 	if (ret) {
 		stream_instance_id = -1ULL;
@@ -396,48 +396,48 @@ end:
 
 uint64_t get_packet_context_timestamp_begin_ns(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_ctf_field *packet_context_field)
+		struct bt_field *packet_context_field)
 {
 	int ret;
-	struct bt_ctf_field *timestamp_begin_field = NULL;
-	struct bt_ctf_field_type *timestamp_begin_ft = NULL;
+	struct bt_field *timestamp_begin_field = NULL;
+	struct bt_field_type *timestamp_begin_ft = NULL;
 	uint64_t timestamp_begin_raw_value = -1ULL;
 	uint64_t timestamp_begin_ns = -1ULL;
 	int64_t timestamp_begin_ns_signed;
-	struct bt_ctf_clock_class *timestamp_begin_clock_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_clock_class *timestamp_begin_clock_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
 
 	if (!packet_context_field) {
 		goto end;
 	}
 
-	timestamp_begin_field = bt_ctf_field_structure_get_field_by_name(
+	timestamp_begin_field = bt_field_structure_get_field_by_name(
 		packet_context_field, "timestamp_begin");
 	if (!timestamp_begin_field) {
 		goto end;
 	}
 
-	timestamp_begin_ft = bt_ctf_field_get_type(timestamp_begin_field);
+	timestamp_begin_ft = bt_field_get_type(timestamp_begin_field);
 	assert(timestamp_begin_ft);
 	timestamp_begin_clock_class =
-		bt_ctf_field_type_integer_get_mapped_clock_class(timestamp_begin_ft);
+		bt_field_type_integer_get_mapped_clock_class(timestamp_begin_ft);
 	if (!timestamp_begin_clock_class) {
 		goto end;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_get_value(timestamp_begin_field,
+	ret = bt_field_unsigned_integer_get_value(timestamp_begin_field,
 		&timestamp_begin_raw_value);
 	if (ret) {
 		goto end;
 	}
 
-	clock_value = bt_ctf_clock_value_create(timestamp_begin_clock_class,
+	clock_value = bt_clock_value_create(timestamp_begin_clock_class,
 		timestamp_begin_raw_value);
 	if (!clock_value) {
 		goto end;
 	}
 
-	ret = bt_ctf_clock_value_get_value_ns_from_epoch(clock_value,
+	ret = bt_clock_value_get_value_ns_from_epoch(clock_value,
 		&timestamp_begin_ns_signed);
 	if (ret) {
 		goto end;
@@ -514,7 +514,7 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 static
 struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_ctf_stream_class *stream_class,
+		struct bt_stream_class *stream_class,
 		uint64_t stream_instance_id)
 {
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -607,9 +607,9 @@ static
 int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		const char *path)
 {
-	struct bt_ctf_field *packet_header_field = NULL;
-	struct bt_ctf_field *packet_context_field = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_field *packet_header_field = NULL;
+	struct bt_field *packet_context_field = NULL;
+	struct bt_stream_class *stream_class = NULL;
 	uint64_t stream_instance_id = -1ULL;
 	uint64_t begin_ns = -1ULL;
 	struct ctf_fs_ds_file_group *ds_file_group = NULL;
@@ -618,9 +618,9 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	size_t i;
 	struct ctf_fs_ds_file *ds_file = NULL;
 	struct ctf_fs_ds_index *index = NULL;
-	struct bt_ctf_notif_iter *notif_iter = NULL;
+	struct bt_notif_iter *notif_iter = NULL;
 
-	notif_iter = bt_ctf_notif_iter_create(ctf_fs_trace->metadata->trace,
+	notif_iter = bt_notif_iter_create(ctf_fs_trace->metadata->trace,
 		bt_common_get_page_size() * 8, ctf_fs_ds_file_medops, NULL);
 	if (!notif_iter) {
 		BT_LOGE_STR("Cannot create a CTF notification iterator.");
@@ -739,7 +739,7 @@ end:
 	ctf_fs_ds_file_destroy(ds_file);
 
 	if (notif_iter) {
-		bt_ctf_notif_iter_destroy(notif_iter);
+		bt_notif_iter_destroy(notif_iter);
 	}
 
 	ctf_fs_ds_index_destroy(index);
@@ -845,11 +845,11 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (ds_file_group->stream_id == -1ULL) {
 			/* No stream ID */
-			ds_file_group->stream = bt_ctf_stream_create(
+			ds_file_group->stream = bt_stream_create(
 				ds_file_group->stream_class, name->str);
 		} else {
 			/* Specific stream ID */
-			ds_file_group->stream = bt_ctf_stream_create_with_id(
+			ds_file_group->stream = bt_stream_create_with_id(
 				ds_file_group->stream_class, name->str,
 				ds_file_group->stream_id);
 		}
@@ -896,13 +896,13 @@ int create_cc_prio_map(struct ctf_fs_trace *ctf_fs_trace)
 		goto end;
 	}
 
-	count = bt_ctf_trace_get_clock_class_count(
+	count = bt_trace_get_clock_class_count(
 		ctf_fs_trace->metadata->trace);
 	assert(count >= 0);
 
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_clock_class *clock_class =
-			bt_ctf_trace_get_clock_class_by_index(
+		struct bt_clock_class *clock_class =
+			bt_trace_get_clock_class_by_index(
 				ctf_fs_trace->metadata->trace, i);
 
 		assert(clock_class);
@@ -972,7 +972,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 	 * trace needs. There won't be any more. Therefore it is safe to
 	 * make this trace static.
 	 */
-	(void) bt_ctf_trace_set_is_static(ctf_fs_trace->metadata->trace);
+	(void) bt_trace_set_is_static(ctf_fs_trace->metadata->trace);
 
 	goto end;
 

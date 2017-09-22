@@ -48,18 +48,18 @@ enum field_type_alias {
 	NR_FIELD_TYPE_ALIAS,
 };
 
-struct bt_ctf_trace {
+struct bt_trace {
 	struct bt_object base;
 	GString *name;
 	int frozen;
 	unsigned char uuid[BABELTRACE_UUID_LEN];
 	bt_bool uuid_set;
-	enum bt_ctf_byte_order native_byte_order;
+	enum bt_byte_order native_byte_order;
 	struct bt_value *environment;
-	GPtrArray *clocks; /* Array of pointers to bt_ctf_clock_class */
-	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class */
-	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream */
-	struct bt_ctf_field_type *packet_header_type;
+	GPtrArray *clocks; /* Array of pointers to bt_clock_class */
+	GPtrArray *stream_classes; /* Array of ptrs to bt_stream_class */
+	GPtrArray *streams; /* Array of ptrs to bt_stream */
+	struct bt_field_type *packet_header_type;
 	int64_t next_stream_id;
 	int is_created_by_writer;
 
@@ -84,18 +84,18 @@ BT_HIDDEN
 const char *get_byte_order_string(int byte_order);
 
 BT_HIDDEN
-struct bt_ctf_field_type *get_field_type(enum field_type_alias alias);
+struct bt_field_type *get_field_type(enum field_type_alias alias);
 
 BT_HIDDEN
-int bt_ctf_trace_object_modification(struct bt_ctf_object *object,
+int bt_trace_object_modification(struct bt_visitor_object *object,
 		void *trace_ptr);
 
 BT_HIDDEN
-bt_bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
-		struct bt_ctf_clock_class *clock_class);
+bt_bool bt_trace_has_clock_class(struct bt_trace *trace,
+		struct bt_clock_class *clock_class);
 
 /**
-@brief	User function type to use with bt_ctf_trace_add_listener().
+@brief	User function type to use with bt_trace_add_listener().
 
 @param[in] obj	New CTF IR object which is part of the trace
 		class hierarchy.
@@ -103,7 +103,7 @@ bt_bool bt_ctf_trace_has_clock_class(struct bt_ctf_trace *trace,
 
 @prenotnull{obj}
 */
-typedef void (*bt_ctf_listener_cb)(struct bt_ctf_object *obj, void *data);
+typedef void (*bt_listener_cb)(struct bt_visitor_object *obj, void *data);
 
 /**
 @brief	Adds the trace class modification listener \p listener to
@@ -123,11 +123,11 @@ is modified, \p listener is called with the new element and with
 @postrefcountsame{trace_class}
 */
 BT_HIDDEN
-int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace_class,
-		bt_ctf_listener_cb listener, void *data);
+int bt_trace_add_listener(struct bt_trace *trace_class,
+		bt_listener_cb listener, void *data);
 
 /*
- * bt_ctf_trace_get_metadata_string: get metadata string.
+ * bt_trace_get_metadata_string: get metadata string.
  *
  * Get the trace's TSDL metadata. The caller assumes the ownership of the
  * returned string.
@@ -137,6 +137,6 @@ int bt_ctf_trace_add_listener(struct bt_ctf_trace *trace_class,
  * Returns the metadata string on success, NULL on error.
  */
 BT_HIDDEN
-char *bt_ctf_trace_get_metadata_string(struct bt_ctf_trace *trace);
+char *bt_trace_get_metadata_string(struct bt_trace *trace);
 
 #endif /* BABELTRACE_CTF_IR_TRACE_INTERNAL_H */

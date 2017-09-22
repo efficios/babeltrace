@@ -37,25 +37,25 @@
 #include "debug-info.h"
 
 static
-struct bt_ctf_stream *insert_new_stream(
+struct bt_stream *insert_new_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream,
+		struct bt_stream *stream,
 		struct debug_info_trace *di_trace);
 
 static
-void unref_stream(struct bt_ctf_stream *stream)
+void unref_stream(struct bt_stream *stream)
 {
 	bt_put(stream);
 }
 
 static
-void unref_packet(struct bt_ctf_packet *packet)
+void unref_packet(struct bt_packet *packet)
 {
 	bt_put(packet);
 }
 
 static
-void unref_stream_class(struct bt_ctf_stream_class *stream_class)
+void unref_stream_class(struct bt_stream_class *stream_class)
 {
 	bt_put(stream_class);
 }
@@ -73,25 +73,25 @@ void destroy_stream_state_key(gpointer key)
 }
 
 static
-struct bt_ctf_field *get_payload_field(FILE *err,
-		struct bt_ctf_event *event, const char *field_name)
+struct bt_field *get_payload_field(FILE *err,
+		struct bt_event *event, const char *field_name)
 {
-	struct bt_ctf_field *field = NULL, *payload = NULL;
-	struct bt_ctf_field_type *payload_type = NULL;
+	struct bt_field *field = NULL, *payload = NULL;
+	struct bt_field_type *payload_type = NULL;
 
-	payload = bt_ctf_event_get_payload(event, NULL);
+	payload = bt_event_get_payload(event, NULL);
 	assert(payload);
 
-	payload_type = bt_ctf_field_get_type(payload);
+	payload_type = bt_field_get_type(payload);
 	assert(payload_type);
 
-	if (bt_ctf_field_type_get_type_id(payload_type) != BT_CTF_FIELD_TYPE_ID_STRUCT) {
+	if (bt_field_type_get_type_id(payload_type) != BT_FIELD_TYPE_ID_STRUCT) {
 		BT_LOGE("Wrong type, expected struct: field-name=\"%s\"",
 				field_name);
 		goto end;
 	}
 
-	field = bt_ctf_field_structure_get_field(payload, field_name);
+	field = bt_field_structure_get_field_by_name(payload, field_name);
 
 end:
 	bt_put(payload_type);
@@ -100,27 +100,27 @@ end:
 }
 
 static
-struct bt_ctf_field *get_stream_event_context_field(FILE *err,
-		struct bt_ctf_event *event, const char *field_name)
+struct bt_field *get_stream_event_context_field(FILE *err,
+		struct bt_event *event, const char *field_name)
 {
-	struct bt_ctf_field *field = NULL, *sec = NULL;
-	struct bt_ctf_field_type *sec_type = NULL;
+	struct bt_field *field = NULL, *sec = NULL;
+	struct bt_field_type *sec_type = NULL;
 
-	sec = bt_ctf_event_get_stream_event_context(event);
+	sec = bt_event_get_stream_event_context(event);
 	if (!sec) {
 		goto end;
 	}
 
-	sec_type = bt_ctf_field_get_type(sec);
+	sec_type = bt_field_get_type(sec);
 	assert(sec_type);
 
-	if (bt_ctf_field_type_get_type_id(sec_type) != BT_CTF_FIELD_TYPE_ID_STRUCT) {
+	if (bt_field_type_get_type_id(sec_type) != BT_FIELD_TYPE_ID_STRUCT) {
 		BT_LOGE("Wrong type, expected struct, field-name=\"%s\"",
 				field_name);
 		goto end;
 	}
 
-	field = bt_ctf_field_structure_get_field(sec, field_name);
+	field = bt_field_structure_get_field_by_name(sec, field_name);
 
 end:
 	bt_put(sec_type);
@@ -130,22 +130,22 @@ end:
 
 BT_HIDDEN
 int get_stream_event_context_unsigned_int_field_value(FILE *err,
-		struct bt_ctf_event *event, const char *field_name,
+		struct bt_event *event, const char *field_name,
 		uint64_t *value)
 {
 	int ret;
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_field *field = NULL;
+	struct bt_field_type *field_type = NULL;
 
 	field = get_stream_event_context_field(err, event, field_name);
 	if (!field) {
 		goto error;
 	}
 
-	field_type = bt_ctf_field_get_type(field);
+	field_type = bt_field_get_type(field);
 	assert(field_type);
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -157,7 +157,7 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 		goto error;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_get_value(field, value);
+	ret = bt_field_unsigned_integer_get_value(field, value);
 	if (ret) {
 		BT_LOGE("Failed to get value: field-name=\"%s\"",
 				field_name);
@@ -174,11 +174,11 @@ end:
 }
 
 BT_HIDDEN
-int get_stream_event_context_int_field_value(FILE *err, struct bt_ctf_event *event,
+int get_stream_event_context_int_field_value(FILE *err, struct bt_event *event,
 		const char *field_name, int64_t *value)
 {
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_field *field = NULL;
+	struct bt_field_type *field_type = NULL;
 	int ret;
 
 	field = get_stream_event_context_field(err, event, field_name);
@@ -186,10 +186,10 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_ctf_event *eve
 		goto error;
 	}
 
-	field_type = bt_ctf_field_get_type(field);
+	field_type = bt_field_get_type(field);
 	assert(field_type);
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
 		goto error;
 	}
@@ -200,7 +200,7 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_ctf_event *eve
 		goto error;
 	}
 
-	ret = bt_ctf_field_signed_integer_get_value(field, value);
+	ret = bt_field_signed_integer_get_value(field, value);
 	goto end;
 
 error:
@@ -213,11 +213,11 @@ end:
 
 BT_HIDDEN
 int get_payload_unsigned_int_field_value(FILE *err,
-		struct bt_ctf_event *event, const char *field_name,
+		struct bt_event *event, const char *field_name,
 		uint64_t *value)
 {
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_field *field = NULL;
+	struct bt_field_type *field_type = NULL;
 	int ret;
 
 	field = get_payload_field(err, event, field_name);
@@ -226,10 +226,10 @@ int get_payload_unsigned_int_field_value(FILE *err,
 		goto error;
 	}
 
-	field_type = bt_ctf_field_get_type(field);
+	field_type = bt_field_get_type(field);
 	assert(field_type);
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -241,7 +241,7 @@ int get_payload_unsigned_int_field_value(FILE *err,
 		goto error;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_get_value(field, value);
+	ret = bt_field_unsigned_integer_get_value(field, value);
 	if (ret) {
 		BT_LOGE("Failed to get value: field-name=\"%s\"",
 				field_name);
@@ -258,11 +258,11 @@ end:
 }
 
 BT_HIDDEN
-int get_payload_int_field_value(FILE *err, struct bt_ctf_event *event,
+int get_payload_int_field_value(FILE *err, struct bt_event *event,
 		const char *field_name, int64_t *value)
 {
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_field *field = NULL;
+	struct bt_field_type *field_type = NULL;
 	int ret;
 
 	field = get_payload_field(err, event, field_name);
@@ -271,10 +271,10 @@ int get_payload_int_field_value(FILE *err, struct bt_ctf_event *event,
 		goto error;
 	}
 
-	field_type = bt_ctf_field_get_type(field);
+	field_type = bt_field_get_type(field);
 	assert(field_type);
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
 		goto error;
 	}
@@ -285,7 +285,7 @@ int get_payload_int_field_value(FILE *err, struct bt_ctf_event *event,
 		goto error;
 	}
 
-	ret = bt_ctf_field_signed_integer_get_value(field, value);
+	ret = bt_field_signed_integer_get_value(field, value);
 	if (ret) {
 		BT_LOGE("Failed to get value: field-name=\"%s\"",
 				field_name);
@@ -303,11 +303,11 @@ end:
 
 BT_HIDDEN
 int get_payload_string_field_value(FILE *err,
-		struct bt_ctf_event *event, const char *field_name,
+		struct bt_event *event, const char *field_name,
 		const char **value)
 {
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_field *field = NULL;
+	struct bt_field_type *field_type = NULL;
 	int ret;
 
 	/*
@@ -318,16 +318,16 @@ int get_payload_string_field_value(FILE *err,
 		goto error;
 	}
 
-	field_type = bt_ctf_field_get_type(field);
+	field_type = bt_field_get_type(field);
 	assert(field_type);
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_STRING) {
+	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_STRING) {
 		BT_LOGE("Wrong type, expected string: field-name=\"%s\"",
 				field_name);
 		goto error;
 	}
 
-	*value = bt_ctf_field_string_get_value(field);
+	*value = bt_field_string_get_value(field);
 	if (!*value) {
 		BT_LOGE("Failed to get value: field-name=\"%s\"",
 				field_name);
@@ -347,12 +347,12 @@ end:
 
 BT_HIDDEN
 int get_payload_build_id_field_value(FILE *err,
-		struct bt_ctf_event *event, const char *field_name,
+		struct bt_event *event, const char *field_name,
 		uint8_t **build_id, uint64_t *build_id_len)
 {
-	struct bt_ctf_field *field = NULL, *seq_len = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
-	struct bt_ctf_field *seq_field = NULL;
+	struct bt_field *field = NULL, *seq_len = NULL;
+	struct bt_field_type *field_type = NULL;
+	struct bt_field *seq_field = NULL;
 	uint64_t i;
 	int ret;
 
@@ -364,19 +364,19 @@ int get_payload_build_id_field_value(FILE *err,
 		goto error;
 	}
 
-	field_type = bt_ctf_field_get_type(field);
+	field_type = bt_field_get_type(field);
 	assert(field_type);
 
-	if (bt_ctf_field_type_get_type_id(field_type) != BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
+	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_SEQUENCE) {
 		BT_LOGE("Wrong type, expected sequence: field-name=\"%s\"", field_name);
 		goto error;
 	}
 	BT_PUT(field_type);
 
-	seq_len = bt_ctf_field_sequence_get_length(field);
+	seq_len = bt_field_sequence_get_length(field);
 	assert(seq_len);
 
-	ret = bt_ctf_field_unsigned_integer_get_value(seq_len, build_id_len);
+	ret = bt_field_unsigned_integer_get_value(seq_len, build_id_len);
 	if (ret) {
 		BT_LOGE("Failed to get value: field-name=\"%s\"",
 				field_name);
@@ -393,14 +393,14 @@ int get_payload_build_id_field_value(FILE *err,
 	for (i = 0; i < *build_id_len; i++) {
 		uint64_t tmp;
 
-		seq_field = bt_ctf_field_sequence_get_field(field, i);
+		seq_field = bt_field_sequence_get_field(field, i);
 		if (!seq_field) {
 			BT_LOGE("Failed to get field in sequence: sequence-name=\"%s\", index=%" PRIu64,
 					field_name, i);
 			goto error;
 		}
 
-		ret = bt_ctf_field_unsigned_integer_get_value(seq_field, &tmp);
+		ret = bt_field_unsigned_integer_get_value(seq_field, &tmp);
 		if (ret) {
 			BT_LOGE("Failed to get value: field-name=\"%s\"",
 					field_name);
@@ -424,7 +424,7 @@ end:
 
 static
 struct debug_info *lookup_trace_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *writer_trace,
+		struct bt_trace *writer_trace,
 		struct debug_info_trace *di_trace)
 {
 	return (struct debug_info *) g_hash_table_lookup(
@@ -434,7 +434,7 @@ struct debug_info *lookup_trace_debug_info(struct debug_info_iterator *debug_it,
 
 static
 struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *writer_trace,
+		struct bt_trace *writer_trace,
 		struct debug_info_trace *di_trace)
 {
 	struct debug_info *debug_info = NULL;
@@ -442,7 +442,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	const char *str_value;
 	enum bt_value_status ret;
 
-	field = bt_ctf_trace_get_environment_field_value_by_name(writer_trace,
+	field = bt_trace_get_environment_field_value_by_name(writer_trace,
 			"domain");
 	/* No domain field, no debug info */
 	if (!field) {
@@ -458,7 +458,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	BT_PUT(field);
 
 	/* No tracer_name, no debug info */
-	field = bt_ctf_trace_get_environment_field_value_by_name(writer_trace,
+	field = bt_trace_get_environment_field_value_by_name(writer_trace,
 			"tracer_name");
 	/* No tracer_name, no debug info */
 	if (!field) {
@@ -489,7 +489,7 @@ end:
 
 static
 struct debug_info *get_trace_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *writer_trace,
+		struct bt_trace *writer_trace,
 		struct debug_info_trace *di_trace)
 {
 	struct debug_info *debug_info;
@@ -507,7 +507,7 @@ end:
 
 static
 struct debug_info_trace *lookup_trace(struct debug_info_iterator *debug_it,
-		struct bt_ctf_trace *trace)
+		struct bt_trace *trace)
 {
 	return (struct debug_info_trace *) g_hash_table_lookup(
 			debug_it->trace_map,
@@ -517,7 +517,7 @@ struct debug_info_trace *lookup_trace(struct debug_info_iterator *debug_it,
 static
 enum debug_info_stream_state *insert_new_stream_state(
 		struct debug_info_iterator *debug_it,
-		struct debug_info_trace *di_trace, struct bt_ctf_stream *stream)
+		struct debug_info_trace *di_trace, struct bt_stream *stream)
 {
 	enum debug_info_stream_state *v = NULL;
 
@@ -556,7 +556,7 @@ void debug_info_close_trace(struct debug_info_iterator *debug_it,
 		struct debug_info_trace *di_trace)
 {
 	if (di_trace->static_listener_id >= 0) {
-		bt_ctf_trace_remove_is_static_listener(di_trace->trace,
+		bt_trace_remove_is_static_listener(di_trace->trace,
 				di_trace->static_listener_id);
 	}
 
@@ -588,18 +588,18 @@ void debug_info_close_trace(struct debug_info_iterator *debug_it,
 
 static
 int sync_event_classes(struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_stream *writer_stream)
+		struct bt_stream *stream,
+		struct bt_stream *writer_stream)
 {
 	int int_ret;
-	struct bt_ctf_stream_class *stream_class = NULL,
+	struct bt_stream_class *stream_class = NULL,
 				   *writer_stream_class = NULL;
 	enum bt_component_status ret;
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
-	writer_stream_class = bt_ctf_stream_get_class(writer_stream);
+	writer_stream_class = bt_stream_get_class(writer_stream);
 	assert(writer_stream_class);
 
 	ret = ctf_copy_event_classes(debug_it->err, stream_class,
@@ -621,24 +621,24 @@ end:
 }
 
 static
-void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
+void trace_is_static_listener(struct bt_trace *trace, void *data)
 {
 	struct debug_info_trace *di_trace = data;
 	int trace_completed = 1, ret, nr_stream, i;
-	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_ctf_trace *writer_trace = di_trace->writer_trace;
+	struct bt_stream *stream = NULL, *writer_stream = NULL;
+	struct bt_trace *writer_trace = di_trace->writer_trace;
 
 	/*
 	 * When the trace becomes static, make sure that we have all
 	 * the event classes in our stream_class copies before setting it
 	 * static as well.
 	 */
-	nr_stream = bt_ctf_trace_get_stream_count(trace);
+	nr_stream = bt_trace_get_stream_count(trace);
 	for (i = 0; i < nr_stream; i++) {
-		stream = bt_ctf_trace_get_stream_by_index(trace, i);
+		stream = bt_trace_get_stream_by_index(trace, i);
 		assert(stream);
 
-		writer_stream = bt_ctf_trace_get_stream_by_index(writer_trace, i);
+		writer_stream = bt_trace_get_stream_by_index(writer_trace, i);
 		assert(writer_stream);
 
 		ret = sync_event_classes(di_trace->debug_it, stream, writer_stream);
@@ -650,7 +650,7 @@ void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
 		BT_PUT(writer_stream);
 	}
 
-	bt_ctf_trace_set_is_static(di_trace->writer_trace);
+	bt_trace_set_is_static(di_trace->writer_trace);
 	di_trace->trace_static = 1;
 
 	g_hash_table_foreach(di_trace->stream_states,
@@ -668,24 +668,24 @@ error:
 
 static
 struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream) {
-	struct bt_ctf_trace *writer_trace = NULL;
+		struct bt_stream *stream) {
+	struct bt_trace *writer_trace = NULL;
 	struct debug_info_trace *di_trace = NULL;
-	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_trace *trace = NULL;
+	struct bt_stream_class *stream_class = NULL;
+	struct bt_stream *writer_stream = NULL;
 	int ret, nr_stream, i;
 
-	writer_trace = bt_ctf_trace_create();
+	writer_trace = bt_trace_create();
 	if (!writer_trace) {
 		BT_LOGE_STR("Failed to create a new trace.");
 		goto error;
 	}
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_get_trace(stream_class);
 	assert(trace);
 
 	ret = ctf_copy_trace(debug_it->err, trace, writer_trace);
@@ -717,9 +717,9 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	g_hash_table_insert(debug_it->trace_map, (gpointer) trace, di_trace);
 
 	/* Set all the existing streams in the unknown state. */
-	nr_stream = bt_ctf_trace_get_stream_count(trace);
+	nr_stream = bt_trace_get_stream_count(trace);
 	for (i = 0; i < nr_stream; i++) {
-		stream = bt_ctf_trace_get_stream_by_index(trace, i);
+		stream = bt_trace_get_stream_by_index(trace, i);
 		assert(stream);
 
 		insert_new_stream_state(debug_it, di_trace, stream);
@@ -739,12 +739,12 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	}
 
 	/* Check if the trace is already static or register a listener. */
-	if (bt_ctf_trace_is_static(trace)) {
+	if (bt_trace_is_static(trace)) {
 		di_trace->trace_static = 1;
 		di_trace->static_listener_id = -1;
-		bt_ctf_trace_set_is_static(writer_trace);
+		bt_trace_set_is_static(writer_trace);
 	} else {
-		ret = bt_ctf_trace_add_is_static_listener(trace,
+		ret = bt_trace_add_is_static_listener(trace,
 				trace_is_static_listener, NULL, di_trace);
 		assert(ret >= 0);
 		di_trace->static_listener_id = ret;
@@ -766,25 +766,25 @@ end:
 }
 
 static
-struct bt_ctf_packet *lookup_packet(struct debug_info_iterator *debug_it,
-		struct bt_ctf_packet *packet,
+struct bt_packet *lookup_packet(struct debug_info_iterator *debug_it,
+		struct bt_packet *packet,
 		struct debug_info_trace *di_trace)
 {
-	return (struct bt_ctf_packet *) g_hash_table_lookup(
+	return (struct bt_packet *) g_hash_table_lookup(
 			di_trace->packet_map,
 			(gpointer) packet);
 }
 
 static
-struct bt_ctf_packet *insert_new_packet(struct debug_info_iterator *debug_it,
-		struct bt_ctf_packet *packet,
-		struct bt_ctf_stream *writer_stream,
+struct bt_packet *insert_new_packet(struct debug_info_iterator *debug_it,
+		struct bt_packet *packet,
+		struct bt_stream *writer_stream,
 		struct debug_info_trace *di_trace)
 {
-	struct bt_ctf_packet *writer_packet;
+	struct bt_packet *writer_packet;
 	int ret;
 
-	writer_packet = bt_ctf_packet_create(writer_stream);
+	writer_packet = bt_packet_create(writer_stream);
 	if (!writer_packet) {
 		BT_LOGE_STR("Failed to create new packet.");
 		goto error;
@@ -808,15 +808,15 @@ end:
 
 static
 int add_debug_info_fields(FILE *err,
-		struct bt_ctf_field_type *writer_event_context_type,
+		struct bt_field_type *writer_event_context_type,
 		struct debug_info_component *component)
 {
-	struct bt_ctf_field_type *ip_field = NULL, *debug_field_type = NULL,
+	struct bt_field_type *ip_field = NULL, *debug_field_type = NULL,
 				 *bin_field_type = NULL, *func_field_type = NULL,
 				 *src_field_type = NULL;
 	int ret = 0;
 
-	ip_field = bt_ctf_field_type_structure_get_field_type_by_name(
+	ip_field = bt_field_type_structure_get_field_type_by_name(
 			writer_event_context_type, "_ip");
 	/* No ip field, so no debug info. */
 	if (!ip_field) {
@@ -824,7 +824,7 @@ int add_debug_info_fields(FILE *err,
 	}
 	BT_PUT(ip_field);
 
-	debug_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
+	debug_field_type = bt_field_type_structure_get_field_type_by_name(
 			writer_event_context_type,
 			component->arg_debug_info_field_name);
 	/* Already existing debug_info field, no need to add it. */
@@ -832,52 +832,52 @@ int add_debug_info_fields(FILE *err,
 		goto end;
 	}
 
-	debug_field_type = bt_ctf_field_type_structure_create();
+	debug_field_type = bt_field_type_structure_create();
 	if (!debug_field_type) {
 		BT_LOGE_STR("Failed to create debug_info structure.");
 		goto error;
 	}
 
-	bin_field_type = bt_ctf_field_type_string_create();
+	bin_field_type = bt_field_type_string_create();
 	if (!bin_field_type) {
 		BT_LOGE_STR("Failed to create string for field=bin.");
 		goto error;
 	}
 
-	func_field_type = bt_ctf_field_type_string_create();
+	func_field_type = bt_field_type_string_create();
 	if (!func_field_type) {
 		BT_LOGE_STR("Failed to create string for field=func.");
 		goto error;
 	}
 
-	src_field_type = bt_ctf_field_type_string_create();
+	src_field_type = bt_field_type_string_create();
 	if (!src_field_type) {
 		BT_LOGE_STR("Failed to create string for field=src.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(debug_field_type,
+	ret = bt_field_type_structure_add_field(debug_field_type,
 			bin_field_type, "bin");
 	if (ret) {
 		BT_LOGE_STR("Failed to add a field to debug_info struct: field=bin.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(debug_field_type,
+	ret = bt_field_type_structure_add_field(debug_field_type,
 			func_field_type, "func");
 	if (ret) {
 		BT_LOGE_STR("Failed to add a field to debug_info struct: field=func.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(debug_field_type,
+	ret = bt_field_type_structure_add_field(debug_field_type,
 			src_field_type, "src");
 	if (ret) {
 		BT_LOGE_STR("Failed to add a field to debug_info struct: field=src.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(writer_event_context_type,
+	ret = bt_field_type_structure_add_field(writer_event_context_type,
 			debug_field_type, component->arg_debug_info_field_name);
 	if (ret) {
 		BT_LOGE_STR("Failed to add debug_info field to event_context.");
@@ -900,25 +900,25 @@ end:
 
 static
 int create_debug_info_event_context_type(FILE *err,
-		struct bt_ctf_field_type *event_context_type,
-		struct bt_ctf_field_type *writer_event_context_type,
+		struct bt_field_type *event_context_type,
+		struct bt_field_type *writer_event_context_type,
 		struct debug_info_component *component)
 {
 	int ret, nr_fields, i;
 
-	nr_fields = bt_ctf_field_type_structure_get_field_count(event_context_type);
+	nr_fields = bt_field_type_structure_get_field_count(event_context_type);
 	for (i = 0; i < nr_fields; i++) {
-		struct bt_ctf_field_type *field_type = NULL;
+		struct bt_field_type *field_type = NULL;
 		const char *field_name;
 
-		if (bt_ctf_field_type_structure_get_field(event_context_type,
+		if (bt_field_type_structure_get_field_by_index(event_context_type,
 					&field_name, &field_type, i) < 0) {
 			BT_LOGE("Failed to get a field from the event-context: field-name=\"%s\"",
 					field_name);
 			goto error;
 		}
 
-		ret = bt_ctf_field_type_structure_add_field(writer_event_context_type,
+		ret = bt_field_type_structure_add_field(writer_event_context_type,
 				field_type, field_name);
 		BT_PUT(field_type);
 		if (ret) {
@@ -939,26 +939,26 @@ end:
 }
 
 static
-struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_trace *writer_trace,
+struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
+		struct bt_stream_class *stream_class,
+		struct bt_trace *writer_trace,
 		struct debug_info_component *component)
 {
-	struct bt_ctf_field_type *type = NULL;
-	struct bt_ctf_stream_class *writer_stream_class = NULL;
-	struct bt_ctf_field_type *writer_event_context_type = NULL;
+	struct bt_field_type *type = NULL;
+	struct bt_stream_class *writer_stream_class = NULL;
+	struct bt_field_type *writer_event_context_type = NULL;
 	int ret_int;
-	const char *name = bt_ctf_stream_class_get_name(stream_class);
+	const char *name = bt_stream_class_get_name(stream_class);
 
-	writer_stream_class = bt_ctf_stream_class_create_empty(name);
+	writer_stream_class = bt_stream_class_create_empty(name);
 	if (!writer_stream_class) {
 		BT_LOGE_STR("Failed to create empty stream class.");
 		goto error;
 	}
 
-	type = bt_ctf_stream_class_get_packet_context_type(stream_class);
+	type = bt_stream_class_get_packet_context_type(stream_class);
 	if (type) {
-		ret_int = bt_ctf_stream_class_set_packet_context_type(
+		ret_int = bt_stream_class_set_packet_context_type(
 				writer_stream_class, type);
 		if (ret_int < 0) {
 			BT_LOGE_STR("Failed to set packet_context type.");
@@ -967,9 +967,9 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 		BT_PUT(type);
 	}
 
-	type = bt_ctf_stream_class_get_event_header_type(stream_class);
+	type = bt_stream_class_get_event_header_type(stream_class);
 	if (type) {
-		ret_int = bt_ctf_stream_class_set_event_header_type(
+		ret_int = bt_stream_class_set_event_header_type(
 				writer_stream_class, type);
 		if (ret_int < 0) {
 			BT_LOGE_STR("Failed to set event_header type.");
@@ -978,9 +978,9 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 		BT_PUT(type);
 	}
 
-	type = bt_ctf_stream_class_get_event_context_type(stream_class);
+	type = bt_stream_class_get_event_context_type(stream_class);
 	if (type) {
-		writer_event_context_type = bt_ctf_field_type_structure_create();
+		writer_event_context_type = bt_field_type_structure_create();
 		if (!writer_event_context_type) {
 			BT_LOGE_STR("Failed to create writer_event_context struct type.");
 			goto error;
@@ -993,7 +993,7 @@ struct bt_ctf_stream_class *copy_stream_class_debug_info(FILE *err,
 		}
 		BT_PUT(type);
 
-		ret_int = bt_ctf_stream_class_set_event_context_type(
+		ret_int = bt_stream_class_set_event_context_type(
 				writer_stream_class, writer_event_context_type);
 		if (ret_int < 0) {
 			BT_LOGE_STR("Failed to set event_context type.");
@@ -1018,30 +1018,30 @@ end:
  * to update the integers mapping to a clock.
  */
 static
-int add_clock_classes(FILE *err, struct bt_ctf_trace *writer_trace,
-		struct bt_ctf_stream_class *writer_stream_class,
-		struct bt_ctf_trace *trace)
+int add_clock_classes(FILE *err, struct bt_trace *writer_trace,
+		struct bt_stream_class *writer_stream_class,
+		struct bt_trace *trace)
 {
 	int ret, clock_class_count, i;
 
-	clock_class_count = bt_ctf_trace_get_clock_class_count(trace);
+	clock_class_count = bt_trace_get_clock_class_count(trace);
 
 	for (i = 0; i < clock_class_count; i++) {
-		struct bt_ctf_clock_class *clock_class =
-			bt_ctf_trace_get_clock_class_by_index(trace, i);
-		struct bt_ctf_clock_class *existing_clock_class = NULL;
+		struct bt_clock_class *clock_class =
+			bt_trace_get_clock_class_by_index(trace, i);
+		struct bt_clock_class *existing_clock_class = NULL;
 
 		assert(clock_class);
 
-		existing_clock_class = bt_ctf_trace_get_clock_class_by_name(
-			writer_trace, bt_ctf_clock_class_get_name(clock_class));
+		existing_clock_class = bt_trace_get_clock_class_by_name(
+			writer_trace, bt_clock_class_get_name(clock_class));
 		bt_put(existing_clock_class);
 		if (existing_clock_class) {
 			bt_put(clock_class);
 			continue;
 		}
 
-		ret = bt_ctf_trace_add_clock_class(writer_trace, clock_class);
+		ret = bt_trace_add_clock_class(writer_trace, clock_class);
 		BT_PUT(clock_class);
 		if (ret != 0) {
 			BT_LOGE_STR("Failed to add clock_class.");
@@ -1060,17 +1060,17 @@ end:
 }
 
 static
-struct bt_ctf_stream_class *insert_new_stream_class(
+struct bt_stream_class *insert_new_stream_class(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_stream_class *stream_class)
 {
-	struct bt_ctf_stream_class *writer_stream_class = NULL;
-	struct bt_ctf_trace *trace, *writer_trace = NULL;
+	struct bt_stream_class *writer_stream_class = NULL;
+	struct bt_trace *trace, *writer_trace = NULL;
 	struct debug_info_trace *di_trace;
 	enum bt_component_status ret;
 	int int_ret;
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_get_trace(stream_class);
 	assert(trace);
 
 	di_trace = lookup_trace(debug_it, trace);
@@ -1089,7 +1089,7 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 		goto error;
 	}
 
-	int_ret = bt_ctf_trace_add_stream_class(writer_trace, writer_stream_class);
+	int_ret = bt_trace_add_stream_class(writer_trace, writer_stream_class);
 	if (int_ret) {
 		BT_LOGE_STR("Failed to add stream class.");
 		goto error;
@@ -1116,17 +1116,17 @@ end:
 }
 
 static
-struct bt_ctf_stream *insert_new_stream(
+struct bt_stream *insert_new_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream,
+		struct bt_stream *stream,
 		struct debug_info_trace *di_trace)
 {
-	struct bt_ctf_stream *writer_stream = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_stream_class *writer_stream_class = NULL;
+	struct bt_stream *writer_stream = NULL;
+	struct bt_stream_class *stream_class = NULL;
+	struct bt_stream_class *writer_stream_class = NULL;
 	int64_t id;
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
 	writer_stream_class = g_hash_table_lookup(
@@ -1143,14 +1143,14 @@ struct bt_ctf_stream *insert_new_stream(
 	}
 	bt_get(writer_stream_class);
 
-	id = bt_ctf_stream_get_id(stream);
+	id = bt_stream_get_id(stream);
 	if (id < 0) {
-		writer_stream = bt_ctf_stream_create(writer_stream_class,
-				bt_ctf_stream_get_name(stream));
+		writer_stream = bt_stream_create(writer_stream_class,
+				bt_stream_get_name(stream));
 	} else {
-		writer_stream = bt_ctf_stream_create_with_id(
+		writer_stream = bt_stream_create_with_id(
 			writer_stream_class,
-			bt_ctf_stream_get_name(stream), id);
+			bt_stream_get_name(stream), id);
 	}
 
 	if (!writer_stream) {
@@ -1172,36 +1172,36 @@ end:
 }
 
 static
-struct bt_ctf_stream *lookup_stream(struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream,
+struct bt_stream *lookup_stream(struct debug_info_iterator *debug_it,
+		struct bt_stream *stream,
 		struct debug_info_trace *di_trace)
 {
-	return (struct bt_ctf_stream *) g_hash_table_lookup(
+	return (struct bt_stream *) g_hash_table_lookup(
 			di_trace->stream_map, (gpointer) stream);
 }
 
 static
-struct bt_ctf_event_class *get_event_class(struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream_class *writer_stream_class,
-		struct bt_ctf_event_class *event_class)
+struct bt_event_class *get_event_class(struct debug_info_iterator *debug_it,
+		struct bt_stream_class *writer_stream_class,
+		struct bt_event_class *event_class)
 {
-	return bt_ctf_stream_class_get_event_class_by_id(writer_stream_class,
-			bt_ctf_event_class_get_id(event_class));
+	return bt_stream_class_get_event_class_by_id(writer_stream_class,
+			bt_event_class_get_id(event_class));
 }
 
 static
 struct debug_info_trace *lookup_di_trace_from_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream)
+		struct bt_stream *stream)
 {
-	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_trace *trace = NULL;
+	struct bt_stream_class *stream_class = NULL;
+	struct bt_trace *trace = NULL;
 	struct debug_info_trace *di_trace = NULL;
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_get_trace(stream_class);
 	assert(trace);
 
 	di_trace = (struct debug_info_trace *) g_hash_table_lookup(
@@ -1213,15 +1213,15 @@ struct debug_info_trace *lookup_di_trace_from_stream(
 }
 
 static
-struct bt_ctf_stream *get_writer_stream(
+struct bt_stream *get_writer_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_packet *packet, struct bt_ctf_stream *stream)
+		struct bt_packet *packet, struct bt_stream *stream)
 {
-	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_stream_class *stream_class = NULL;
+	struct bt_stream *writer_stream = NULL;
 	struct debug_info_trace *di_trace = NULL;
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
 	di_trace = lookup_di_trace_from_stream(debug_it, stream);
@@ -1247,17 +1247,17 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_packet *debug_info_new_packet(
+struct bt_packet *debug_info_new_packet(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
-	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_ctf_packet *writer_packet = NULL;
-	struct bt_ctf_field *packet_context = NULL;
+	struct bt_stream *stream = NULL, *writer_stream = NULL;
+	struct bt_packet *writer_packet = NULL;
+	struct bt_field *packet_context = NULL;
 	struct debug_info_trace *di_trace;
 	int int_ret;
 
-	stream = bt_ctf_packet_get_stream(packet);
+	stream = bt_packet_get_stream(packet);
 	assert(stream);
 
 	writer_stream = get_writer_stream(debug_it, packet, stream);
@@ -1289,7 +1289,7 @@ struct bt_ctf_packet *debug_info_new_packet(
 		goto error;
 	}
 
-	packet_context = bt_ctf_packet_get_context(packet);
+	packet_context = bt_packet_get_context(packet);
 	if (packet_context) {
 		int_ret = ctf_packet_copy_context(debug_it->err,
 				packet, writer_stream, writer_packet);
@@ -1313,15 +1313,15 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_packet *debug_info_close_packet(
+struct bt_packet *debug_info_close_packet(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
-	struct bt_ctf_packet *writer_packet = NULL;
-	struct bt_ctf_stream *stream = NULL;
+	struct bt_packet *writer_packet = NULL;
+	struct bt_stream *stream = NULL;
 	struct debug_info_trace *di_trace;
 
-	stream = bt_ctf_packet_get_stream(packet);
+	stream = bt_packet_get_stream(packet);
 	assert(stream);
 
 	di_trace = lookup_di_trace_from_stream(debug_it, stream);
@@ -1344,11 +1344,11 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_stream *debug_info_stream_begin(
+struct bt_stream *debug_info_stream_begin(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream)
+		struct bt_stream *stream)
 {
-	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_stream *writer_stream = NULL;
 	enum debug_info_stream_state *state;
 	struct debug_info_trace *di_trace = NULL;
 
@@ -1396,10 +1396,10 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_stream *debug_info_stream_end(struct debug_info_iterator *debug_it,
-		struct bt_ctf_stream *stream)
+struct bt_stream *debug_info_stream_end(struct debug_info_iterator *debug_it,
+		struct bt_stream *stream)
 {
-	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_stream *writer_stream = NULL;
 	struct debug_info_trace *di_trace = NULL;
 	enum debug_info_stream_state *state;
 
@@ -1452,7 +1452,7 @@ end:
 
 static
 struct debug_info_source *lookup_debug_info(FILE *err,
-		struct bt_ctf_event *event,
+		struct bt_event *event,
 		struct debug_info *debug_info)
 {
 	int64_t vpid;
@@ -1480,23 +1480,23 @@ end:
 }
 
 static
-int set_debug_info_field(FILE *err, struct bt_ctf_field *debug_field,
+int set_debug_info_field(FILE *err, struct bt_field *debug_field,
 		struct debug_info_source *dbg_info_src,
 		struct debug_info_component *component)
 {
 	int i, nr_fields, ret = 0;
-	struct bt_ctf_field_type *debug_field_type = NULL;
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_field_type *debug_field_type = NULL;
+	struct bt_field *field = NULL;
+	struct bt_field_type *field_type = NULL;
 
-	debug_field_type = bt_ctf_field_get_type(debug_field);
+	debug_field_type = bt_field_get_type(debug_field);
 	assert(debug_field_type);
 
-	nr_fields = bt_ctf_field_type_structure_get_field_count(debug_field_type);
+	nr_fields = bt_field_type_structure_get_field_count(debug_field_type);
 	for (i = 0; i < nr_fields; i++) {
 		const char *field_name;
 
-		if (bt_ctf_field_type_structure_get_field(debug_field_type,
+		if (bt_field_type_structure_get_field_by_index(debug_field_type,
 					&field_name, &field_type, i) < 0) {
 			BT_LOGE("Failed to get field from debug_info struct: field-name=\"%s\"",
 					field_name);
@@ -1504,7 +1504,7 @@ int set_debug_info_field(FILE *err, struct bt_ctf_field *debug_field,
 		}
 		BT_PUT(field_type);
 
-		field = bt_ctf_field_structure_get_field_by_index(debug_field, i);
+		field = bt_field_structure_get_field_by_index(debug_field, i);
 		if (!strcmp(field_name, "bin")) {
 			if (dbg_info_src && dbg_info_src->bin_path) {
 				GString *tmp = g_string_new(NULL);
@@ -1518,17 +1518,17 @@ int set_debug_info_field(FILE *err, struct bt_ctf_field *debug_field,
 							dbg_info_src->short_bin_path,
 							dbg_info_src->bin_loc);
 				}
-				ret = bt_ctf_field_string_set_value(field, tmp->str);
+				ret = bt_field_string_set_value(field, tmp->str);
 				g_string_free(tmp, true);
 			} else {
-				ret = bt_ctf_field_string_set_value(field, "");
+				ret = bt_field_string_set_value(field, "");
 			}
 		} else if (!strcmp(field_name, "func")) {
 			if (dbg_info_src && dbg_info_src->func) {
-				ret = bt_ctf_field_string_set_value(field,
+				ret = bt_field_string_set_value(field,
 						dbg_info_src->func);
 			} else {
-				ret = bt_ctf_field_string_set_value(field, "");
+				ret = bt_field_string_set_value(field, "");
 			}
 		} else if (!strcmp(field_name, "src")) {
 			if (dbg_info_src && dbg_info_src->src_path) {
@@ -1543,10 +1543,10 @@ int set_debug_info_field(FILE *err, struct bt_ctf_field *debug_field,
 							dbg_info_src->short_src_path,
 							dbg_info_src->line_no);
 				}
-				ret = bt_ctf_field_string_set_value(field, tmp->str);
+				ret = bt_field_string_set_value(field, tmp->str);
 				g_string_free(tmp, true);
 			} else {
-				ret = bt_ctf_field_string_set_value(field, "");
+				ret = bt_field_string_set_value(field, "");
 			}
 		}
 		BT_PUT(field);
@@ -1570,45 +1570,45 @@ end:
 
 static
 int copy_set_debug_info_stream_event_context(FILE *err,
-		struct bt_ctf_field *event_context,
-		struct bt_ctf_event *event,
-		struct bt_ctf_event *writer_event,
+		struct bt_field *event_context,
+		struct bt_event *event,
+		struct bt_event *writer_event,
 		struct debug_info *debug_info,
 		struct debug_info_component *component)
 {
-	struct bt_ctf_field_type *writer_event_context_type = NULL,
+	struct bt_field_type *writer_event_context_type = NULL,
 				 *event_context_type = NULL;
-	struct bt_ctf_field *writer_event_context = NULL;
-	struct bt_ctf_field *field = NULL, *copy_field = NULL, *debug_field = NULL;
-	struct bt_ctf_field_type *field_type = NULL;
+	struct bt_field *writer_event_context = NULL;
+	struct bt_field *field = NULL, *copy_field = NULL, *debug_field = NULL;
+	struct bt_field_type *field_type = NULL;
 	struct debug_info_source *dbg_info_src;
 	int ret, nr_fields, i;
 
-	writer_event_context = bt_ctf_event_get_stream_event_context(writer_event);
+	writer_event_context = bt_event_get_stream_event_context(writer_event);
 	assert(writer_event_context);
 
-	writer_event_context_type = bt_ctf_field_get_type(writer_event_context);
+	writer_event_context_type = bt_field_get_type(writer_event_context);
 	assert(writer_event_context_type);
 
-	event_context_type = bt_ctf_field_get_type(event_context);
+	event_context_type = bt_field_get_type(event_context);
 	assert(event_context_type);
 
 	/*
 	 * If it is not a structure, we did not modify it to add the debug info
 	 * fields, so just assign it as is.
 	 */
-	if (bt_ctf_field_type_get_type_id(writer_event_context_type) != BT_CTF_FIELD_TYPE_ID_STRUCT) {
-		ret = bt_ctf_event_set_event_context(writer_event, event_context);
+	if (bt_field_type_get_type_id(writer_event_context_type) != BT_FIELD_TYPE_ID_STRUCT) {
+		ret = bt_event_set_event_context(writer_event, event_context);
 		goto end;
 	}
 
 	dbg_info_src = lookup_debug_info(err, event, debug_info);
 
-	nr_fields = bt_ctf_field_type_structure_get_field_count(writer_event_context_type);
+	nr_fields = bt_field_type_structure_get_field_count(writer_event_context_type);
 	for (i = 0; i < nr_fields; i++) {
 		const char *field_name;
 
-		if (bt_ctf_field_type_structure_get_field(writer_event_context_type,
+		if (bt_field_type_structure_get_field_by_index(writer_event_context_type,
 					&field_name, &field_type, i) < 0) {
 			BT_LOGE("Failed to get field from event-context: field-name=\"%s\"",
 					field_name);
@@ -1618,8 +1618,8 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 		/*
 		 * Prevent illegal access in the event_context.
 		 */
-		if (i < bt_ctf_field_type_structure_get_field_count(event_context_type)) {
-			field = bt_ctf_field_structure_get_field_by_index(event_context, i);
+		if (i < bt_field_type_structure_get_field_count(event_context_type)) {
+			field = bt_field_structure_get_field_by_index(event_context, i);
 		}
 		/*
 		 * The debug_info field, only exists in the writer event or
@@ -1627,7 +1627,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 		 */
 		if (!strcmp(field_name, component->arg_debug_info_field_name) &&
 				!field) {
-			debug_field = bt_ctf_field_structure_get_field_by_index(
+			debug_field = bt_field_structure_get_field_by_index(
 					writer_event_context, i);
 			assert(debug_field);
 
@@ -1639,14 +1639,14 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 			}
 			BT_PUT(debug_field);
 		} else {
-			copy_field = bt_ctf_field_copy(field);
+			copy_field = bt_field_copy(field);
 			if (!copy_field) {
 				BT_LOGE("Failed to copy field: field-name=\"%s\"",
 						field_name);
 				goto error;
 			}
 
-			ret = bt_ctf_field_structure_set_field_by_name(
+			ret = bt_field_structure_set_field_by_name(
 					writer_event_context,
 					field_name, copy_field);
 			if (ret) {
@@ -1677,22 +1677,22 @@ end:
 }
 
 static
-struct bt_ctf_clock_class *stream_class_get_clock_class(FILE *err,
-		struct bt_ctf_stream_class *stream_class)
+struct bt_clock_class *stream_class_get_clock_class(FILE *err,
+		struct bt_stream_class *stream_class)
 {
-	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_trace *trace = NULL;
+	struct bt_clock_class *clock_class = NULL;
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_get_trace(stream_class);
 	assert(trace);
 
-	if (!bt_ctf_trace_get_clock_class_count(trace)) {
+	if (!bt_trace_get_clock_class_count(trace)) {
 		/* No clock. */
 		goto end;
 	}
 
 	/* FIXME multi-clock? */
-	clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
+	clock_class = bt_trace_get_clock_class_by_index(trace, 0);
 
 	bt_put(trace);
 
@@ -1701,16 +1701,16 @@ end:
 }
 
 static
-struct bt_ctf_clock_class *event_get_clock_class(FILE *err, struct bt_ctf_event *event)
+struct bt_clock_class *event_get_clock_class(FILE *err, struct bt_event *event)
 {
-	struct bt_ctf_event_class *event_class = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_event_class *event_class = NULL;
+	struct bt_stream_class *stream_class = NULL;
+	struct bt_clock_class *clock_class = NULL;
 
-	event_class = bt_ctf_event_get_class(event);
+	event_class = bt_event_get_class(event);
 	assert(event_class);
 
-	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	stream_class = bt_event_class_get_stream_class(event_class);
 	assert(stream_class);
 
 	clock_class = stream_class_get_clock_class(err, stream_class);
@@ -1723,11 +1723,11 @@ end:
 }
 
 static
-int set_event_clock_value(FILE *err, struct bt_ctf_event *event,
-		struct bt_ctf_event *writer_event)
+int set_event_clock_value(FILE *err, struct bt_event *event,
+		struct bt_event *writer_event)
 {
-	struct bt_ctf_clock_class *clock_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_clock_class *clock_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
 	int ret = 0;
 
 	clock_class = event_get_clock_class(err, event);
@@ -1736,7 +1736,7 @@ int set_event_clock_value(FILE *err, struct bt_ctf_event *event,
 		goto end;
 	}
 
-	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
+	clock_value = bt_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
 		ret = 0;
 		goto end;
@@ -1746,7 +1746,7 @@ int set_event_clock_value(FILE *err, struct bt_ctf_event *event,
 	 * We share the same clocks, so we can assign the clock value to the
 	 * writer event.
 	 */
-	ret = bt_ctf_event_set_clock_value(writer_event, clock_value);
+	ret = bt_event_set_clock_value(writer_event, clock_value);
 	if (ret) {
 		BT_LOGE_STR("Failed to set clock value.");
 		goto error;
@@ -1764,16 +1764,16 @@ end:
 }
 
 static
-struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event,
-		struct bt_ctf_event_class *writer_event_class,
+struct bt_event *debug_info_copy_event(FILE *err, struct bt_event *event,
+		struct bt_event_class *writer_event_class,
 		struct debug_info *debug_info,
 		struct debug_info_component *component)
 {
-	struct bt_ctf_event *writer_event = NULL;
-	struct bt_ctf_field *field = NULL, *copy_field = NULL;
+	struct bt_event *writer_event = NULL;
+	struct bt_field *field = NULL, *copy_field = NULL;
 	int ret;
 
-	writer_event = bt_ctf_event_create(writer_event_class);
+	writer_event = bt_event_create(writer_event_class);
 	if (!writer_event) {
 		BT_LOGE_STR("Failed to create new event.");
 		goto error;
@@ -1786,7 +1786,7 @@ struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event
 	}
 
 	/* Optional field, so it can fail silently. */
-	field = bt_ctf_event_get_header(event);
+	field = bt_event_get_header(event);
 	if (field) {
 		ret = ctf_copy_event_header(err, event, writer_event_class,
 				writer_event, field);
@@ -1798,7 +1798,7 @@ struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event
 	}
 
 	/* Optional field, so it can fail silently. */
-	field = bt_ctf_event_get_stream_event_context(event);
+	field = bt_event_get_stream_event_context(event);
 	if (field) {
 		ret = copy_set_debug_info_stream_event_context(err,
 				field, event, writer_event, debug_info,
@@ -1811,14 +1811,14 @@ struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event
 	}
 
 	/* Optional field, so it can fail silently. */
-	field = bt_ctf_event_get_event_context(event);
+	field = bt_event_get_event_context(event);
 	if (field) {
-		copy_field = bt_ctf_field_copy(field);
+		copy_field = bt_field_copy(field);
 		if (!copy_field) {
 			BT_LOGE_STR("Failed to copy field.");
 			goto error;
 		}
-		ret = bt_ctf_event_set_event_context(writer_event, copy_field);
+		ret = bt_event_set_event_context(writer_event, copy_field);
 		if (ret < 0) {
 			BT_LOGE_STR("Failed to set event_context.");
 			goto error;
@@ -1827,12 +1827,12 @@ struct bt_ctf_event *debug_info_copy_event(FILE *err, struct bt_ctf_event *event
 		BT_PUT(field);
 	}
 
-	field = bt_ctf_event_get_event_payload(event);
+	field = bt_event_get_event_payload(event);
 	assert(field);
 
-	copy_field = bt_ctf_field_copy(field);
+	copy_field = bt_field_copy(field);
 	if (copy_field) {
-		ret = bt_ctf_event_set_event_payload(writer_event, copy_field);
+		ret = bt_event_set_event_payload(writer_event, copy_field);
 		if (ret < 0) {
 			BT_LOGE_STR("Failed to set event payload.");
 			goto error;
@@ -1852,27 +1852,27 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_event *debug_info_output_event(
+struct bt_event *debug_info_output_event(
 		struct debug_info_iterator *debug_it,
-		struct bt_ctf_event *event)
+		struct bt_event *event)
 {
-	struct bt_ctf_event_class *event_class = NULL, *writer_event_class = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL, *writer_stream_class = NULL;
-	struct bt_ctf_event *writer_event = NULL;
-	struct bt_ctf_packet *packet = NULL, *writer_packet = NULL;
-	struct bt_ctf_trace *writer_trace = NULL;
-	struct bt_ctf_stream *stream = NULL;
+	struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
+	struct bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;
+	struct bt_event *writer_event = NULL;
+	struct bt_packet *packet = NULL, *writer_packet = NULL;
+	struct bt_trace *writer_trace = NULL;
+	struct bt_stream *stream = NULL;
 	struct debug_info_trace *di_trace;
 	struct debug_info *debug_info;
 	int int_ret;
 
-	event_class = bt_ctf_event_get_class(event);
+	event_class = bt_event_get_class(event);
 	assert(event_class);
 
-	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	stream_class = bt_event_class_get_stream_class(event_class);
 	assert(stream_class);
 
-	stream = bt_ctf_event_get_stream(event);
+	stream = bt_event_get_stream(event);
 	assert(stream);
 
 	di_trace = lookup_di_trace_from_stream(debug_it, stream);
@@ -1899,7 +1899,7 @@ struct bt_ctf_event *debug_info_output_event(
 			BT_LOGE_STR("Failed to copy event_class.");
 			goto error;
 		}
-		int_ret = bt_ctf_stream_class_add_event_class(
+		int_ret = bt_stream_class_add_event_class(
 				writer_stream_class, writer_event_class);
 		if (int_ret) {
 			BT_LOGE_STR("Failed to add event_class.");
@@ -1907,7 +1907,7 @@ struct bt_ctf_event *debug_info_output_event(
 		}
 	}
 
-	writer_trace = bt_ctf_stream_class_get_trace(writer_stream_class);
+	writer_trace = bt_stream_class_get_trace(writer_stream_class);
 	assert(writer_trace);
 
 	debug_info = get_trace_debug_info(debug_it, writer_trace, di_trace);
@@ -1920,11 +1920,11 @@ struct bt_ctf_event *debug_info_output_event(
 			debug_it->debug_info_component);
 	if (!writer_event) {
 		BT_LOGE("Failed to copy event: event-class-name=\"%s\"",
-				bt_ctf_event_class_get_name(writer_event_class));
+				bt_event_class_get_name(writer_event_class));
 		goto error;
 	}
 
-	packet = bt_ctf_event_get_packet(event);
+	packet = bt_event_get_packet(event);
 	assert(packet);
 
 	writer_packet = lookup_packet(debug_it, packet, di_trace);
@@ -1934,10 +1934,10 @@ struct bt_ctf_event *debug_info_output_event(
 	}
 	bt_get(writer_packet);
 
-	int_ret = bt_ctf_event_set_packet(writer_event, writer_packet);
+	int_ret = bt_event_set_packet(writer_event, writer_packet);
 	if (int_ret < 0) {
 		BT_LOGE("Failed to append event to event-class-name=\"%s\"",
-				bt_ctf_event_class_get_name(writer_event_class));
+				bt_event_class_get_name(writer_event_class));
 		goto error;
 	}
 

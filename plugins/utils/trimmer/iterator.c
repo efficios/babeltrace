@@ -42,7 +42,7 @@
 static
 gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
 {
-	struct bt_ctf_packet *writer_packet = value;
+	struct bt_packet *writer_packet = value;
 
 	bt_put(writer_packet);
 	return TRUE;
@@ -189,13 +189,13 @@ struct bt_notification *evaluate_event_notification(
 {
 	int64_t ts;
 	int clock_ret;
-	struct bt_ctf_event *event = NULL, *writer_event;
+	struct bt_event *event = NULL, *writer_event;
 	bool in_range = true;
-	struct bt_ctf_clock_class *clock_class = NULL;
-	struct bt_ctf_trace *trace = NULL;
-	struct bt_ctf_stream *stream = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_clock_class *clock_class = NULL;
+	struct bt_trace *trace = NULL;
+	struct bt_stream *stream = NULL;
+	struct bt_stream_class *stream_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
 	bool lazy_update = false;
 	struct bt_notification *new_notification = NULL;
 	struct bt_clock_class_priority_map *cc_prio_map;
@@ -211,28 +211,28 @@ struct bt_notification *evaluate_event_notification(
 	assert(new_notification);
 	bt_put(cc_prio_map);
 
-	stream = bt_ctf_event_get_stream(event);
+	stream = bt_event_get_stream(event);
 	assert(stream);
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_get_trace(stream_class);
 	assert(trace);
 
 	/* FIXME multi-clock? */
-	clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
+	clock_class = bt_trace_get_clock_class_by_index(trace, 0);
 	if (!clock_class) {
 		goto end;
 	}
 
-	clock_value = bt_ctf_event_get_clock_value(event, clock_class);
+	clock_value = bt_event_get_clock_value(event, clock_class);
 	if (!clock_value) {
 		BT_LOGE_STR("Failed to retrieve clock value.");
 		goto error;
 	}
 
-	clock_ret = bt_ctf_clock_value_get_value_ns_from_epoch(
+	clock_ret = bt_clock_value_get_value_ns_from_epoch(
 			clock_value, &ts);
 	if (clock_ret) {
 		BT_LOGE_STR("Failed to retrieve clock value timestamp.");
@@ -275,18 +275,18 @@ end:
 }
 
 static
-int ns_from_integer_field(struct bt_ctf_field *integer, int64_t *ns)
+int ns_from_integer_field(struct bt_field *integer, int64_t *ns)
 {
 	int ret = 0;
 	int is_signed;
 	uint64_t raw_clock_value;
-	struct bt_ctf_field_type *integer_type = NULL;
-	struct bt_ctf_clock_class *clock_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_field_type *integer_type = NULL;
+	struct bt_clock_class *clock_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
 
-	integer_type = bt_ctf_field_get_type(integer);
+	integer_type = bt_field_get_type(integer);
 	assert(integer_type);
-	clock_class = bt_ctf_field_type_integer_get_mapped_clock_class(
+	clock_class = bt_field_type_integer_get_mapped_clock_class(
 		integer_type);
 	if (!clock_class) {
 		ret = -1;
@@ -295,7 +295,7 @@ int ns_from_integer_field(struct bt_ctf_field *integer, int64_t *ns)
 
 	is_signed = bt_ctf_field_type_integer_get_signed(integer_type);
 	if (!is_signed) {
-		ret = bt_ctf_field_unsigned_integer_get_value(integer,
+		ret = bt_field_unsigned_integer_get_value(integer,
 				&raw_clock_value);
 		if (ret) {
 			goto end;
@@ -306,12 +306,12 @@ int ns_from_integer_field(struct bt_ctf_field *integer, int64_t *ns)
 		goto end;
 	}
 
-	clock_value = bt_ctf_clock_value_create(clock_class, raw_clock_value);
+	clock_value = bt_clock_value_create(clock_class, raw_clock_value);
         if (!clock_value) {
 		goto end;
 	}
 
-	ret = bt_ctf_clock_value_get_value_ns_from_epoch(clock_value, ns);
+	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ns);
 end:
 	bt_put(integer_type);
 	bt_put(clock_class);
@@ -336,39 +336,39 @@ static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
  * timestamp minus the offset.
  */
 static
-int64_t get_raw_timestamp(struct bt_ctf_packet *writer_packet,
+int64_t get_raw_timestamp(struct bt_packet *writer_packet,
 		int64_t timestamp)
 {
-	struct bt_ctf_clock_class *writer_clock_class;
+	struct bt_clock_class *writer_clock_class;
 	int64_t sec_offset, cycles_offset, ns;
-	struct bt_ctf_trace *writer_trace;
-	struct bt_ctf_stream *writer_stream;
-	struct bt_ctf_stream_class *writer_stream_class;
+	struct bt_trace *writer_trace;
+	struct bt_stream *writer_stream;
+	struct bt_stream_class *writer_stream_class;
 	int ret;
 	uint64_t freq;
 
-	writer_stream = bt_ctf_packet_get_stream(writer_packet);
+	writer_stream = bt_packet_get_stream(writer_packet);
 	assert(writer_stream);
 
-	writer_stream_class = bt_ctf_stream_get_class(writer_stream);
+	writer_stream_class = bt_stream_get_class(writer_stream);
 	assert(writer_stream_class);
 
-	writer_trace = bt_ctf_stream_class_get_trace(writer_stream_class);
+	writer_trace = bt_stream_class_get_trace(writer_stream_class);
 	assert(writer_trace);
 
 	/* FIXME multi-clock? */
-	writer_clock_class = bt_ctf_trace_get_clock_class_by_index(
+	writer_clock_class = bt_trace_get_clock_class_by_index(
 		writer_trace, 0);
 	assert(writer_clock_class);
 
-	ret = bt_ctf_clock_class_get_offset_s(writer_clock_class, &sec_offset);
+	ret = bt_clock_class_get_offset_s(writer_clock_class, &sec_offset);
 	assert(!ret);
 	ns = sec_offset * NSEC_PER_SEC;
 
-	freq = bt_ctf_clock_class_get_frequency(writer_clock_class);
+	freq = bt_clock_class_get_frequency(writer_clock_class);
 	assert(freq != -1ULL);
 
-	ret = bt_ctf_clock_class_get_offset_cycles(writer_clock_class, &cycles_offset);
+	ret = bt_clock_class_get_offset_cycles(writer_clock_class, &cycles_offset);
 	assert(!ret);
 
 	ns += ns_from_value(freq, cycles_offset);
@@ -390,8 +390,8 @@ struct bt_notification *evaluate_packet_notification(
 {
 	int64_t begin_ns, pkt_begin_ns, end_ns, pkt_end_ns;
 	bool in_range = true;
-	struct bt_ctf_packet *packet = NULL, *writer_packet = NULL;
-	struct bt_ctf_field *packet_context = NULL,
+	struct bt_packet *packet = NULL, *writer_packet = NULL;
+	struct bt_field *packet_context = NULL,
 			*timestamp_begin = NULL,
 			*timestamp_end = NULL;
 	struct bt_notification *new_notification = NULL;
@@ -415,23 +415,23 @@ struct bt_notification *evaluate_packet_notification(
 		goto end;
 	}
 
-	packet_context = bt_ctf_packet_get_context(writer_packet);
+	packet_context = bt_packet_get_context(writer_packet);
 	if (!packet_context) {
 		goto end_no_notif;
 	}
 
-	if (!bt_ctf_field_is_structure(packet_context)) {
+	if (!bt_field_is_structure(packet_context)) {
 		goto end_no_notif;
 	}
 
-	timestamp_begin = bt_ctf_field_structure_get_field(
+	timestamp_begin = bt_field_structure_get_field_by_name(
 			packet_context, "timestamp_begin");
-	if (!timestamp_begin || !bt_ctf_field_is_integer(timestamp_begin)) {
+	if (!timestamp_begin || !bt_field_is_integer(timestamp_begin)) {
 		goto end_no_notif;
 	}
-	timestamp_end = bt_ctf_field_structure_get_field(
+	timestamp_end = bt_field_structure_get_field_by_name(
 			packet_context, "timestamp_end");
-	if (!timestamp_end || !bt_ctf_field_is_integer(timestamp_end)) {
+	if (!timestamp_end || !bt_field_is_integer(timestamp_end)) {
 		goto end_no_notif;
 	}
 
@@ -512,7 +512,7 @@ struct bt_notification *evaluate_stream_notification(
 		struct bt_notification *notification,
 		struct trimmer_iterator *trim_it)
 {
-	struct bt_ctf_stream *stream;
+	struct bt_stream *stream;
 
 	stream = bt_notification_stream_end_get_stream(notification);
 	assert(stream);

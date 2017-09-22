@@ -49,7 +49,7 @@ struct ctf_fs_file {
 
 struct ctf_fs_metadata {
 	/* Owned by this */
-	struct bt_ctf_trace *trace;
+	struct bt_trace *trace;
 
 	/* Owned by this */
 	char *text;
@@ -102,10 +102,10 @@ struct ctf_fs_ds_file_group {
 	GPtrArray *ds_file_infos;
 
 	/* Owned by this */
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_stream_class *stream_class;
 
 	/* Owned by this */
-	struct bt_ctf_stream *stream;
+	struct bt_stream *stream;
 
 	/* Stream (instance) ID; -1ULL means none */
 	uint64_t stream_id;
@@ -130,7 +130,7 @@ struct ctf_fs_notif_iter_data {
 	size_t ds_file_info_index;
 
 	/* Owned by this */
-	struct bt_ctf_notif_iter *notif_iter;
+	struct bt_notif_iter *notif_iter;
 };
 
 BT_HIDDEN

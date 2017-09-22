@@ -38,42 +38,42 @@
 #include <assert.h>
 #include <glib.h>
 
-struct bt_ctf_stream_pos;
+struct bt_stream_pos;
 
-struct bt_ctf_event {
+struct bt_event {
 	struct bt_object base;
-	struct bt_ctf_event_class *event_class;
-	struct bt_ctf_packet *packet;
-	struct bt_ctf_field *event_header;
-	struct bt_ctf_field *stream_event_context;
-	struct bt_ctf_field *context_payload;
-	struct bt_ctf_field *fields_payload;
-	/* Maps clock classes to bt_ctf_clock_value. */
+	struct bt_event_class *event_class;
+	struct bt_packet *packet;
+	struct bt_field *event_header;
+	struct bt_field *stream_event_context;
+	struct bt_field *context_payload;
+	struct bt_field *fields_payload;
+	/* Maps clock classes to bt_clock_value. */
 	GHashTable *clock_values;
 	int frozen;
 };
 
 BT_HIDDEN
-int bt_ctf_event_validate(struct bt_ctf_event *event);
+int bt_event_validate(struct bt_event *event);
 
 BT_HIDDEN
-int bt_ctf_event_serialize(struct bt_ctf_event *event,
-		struct bt_ctf_stream_pos *pos,
-		enum bt_ctf_byte_order native_byte_order);
+int bt_event_serialize(struct bt_event *event,
+		struct bt_stream_pos *pos,
+		enum bt_byte_order native_byte_order);
 
 BT_HIDDEN
-void bt_ctf_event_freeze(struct bt_ctf_event *event);
+void bt_event_freeze(struct bt_event *event);
 
-static inline struct bt_ctf_packet *bt_ctf_event_borrow_packet(
-		struct bt_ctf_event *event)
+static inline struct bt_packet *bt_event_borrow_packet(
+		struct bt_event *event)
 {
 	assert(event);
 	return event->packet;
 }
 
 static inline
-struct bt_ctf_event_class *bt_ctf_event_borrow_event_class(
-		struct bt_ctf_event *event)
+struct bt_event_class *bt_event_borrow_event_class(
+		struct bt_event *event)
 {
 	assert(event);
 	return event->event_class;

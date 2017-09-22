@@ -41,7 +41,7 @@ extern "C" {
  * bt_ctf_event_get and bt_ctf_event_put: increment and decrement
  * the event's reference count.
  *
- * You may also use bt_ctf_get() and bt_ctf_put() with event objects.
+ * You may also use bt_get() and bt_put() with event objects.
  *
  * These functions ensure that the event won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
@@ -53,14 +53,14 @@ extern "C" {
  *
  * @param event Event instance.
  */
-extern void bt_ctf_event_get(struct bt_ctf_event *event);
-extern void bt_ctf_event_put(struct bt_ctf_event *event);
+extern void bt_ctf_event_get(struct bt_event *event);
+extern void bt_ctf_event_put(struct bt_event *event);
 
 /*
  * bt_ctf_event_class_get and bt_ctf_event_class_put: increment and decrement
  * the event class' reference count.
  *
- * You may also use bt_ctf_get() and bt_ctf_put() with event class objects.
+ * You may also use bt_get() and bt_put() with event class objects.
  *
  * These functions ensure that the event class won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
@@ -72,8 +72,8 @@ extern void bt_ctf_event_put(struct bt_ctf_event *event);
  *
  * @param event_class Event class.
  */
-extern void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class);
-extern void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class);
+extern void bt_ctf_event_class_get(struct bt_event_class *event_class);
+extern void bt_ctf_event_class_put(struct bt_event_class *event_class);
 
 #ifdef __cplusplus
 }

@@ -38,11 +38,11 @@
 
 struct user {
 	struct bt_ctf_writer *writer;
-	struct bt_ctf_trace *tc;
-	struct bt_ctf_stream_class *sc;
-	struct bt_ctf_event_class *ec;
-	struct bt_ctf_stream *stream;
-	struct bt_ctf_event *event;
+	struct bt_trace *tc;
+	struct bt_stream_class *sc;
+	struct bt_event_class *ec;
+	struct bt_stream *stream;
+	struct bt_event *event;
 };
 
 const char *user_names[] = {
@@ -62,45 +62,45 @@ static const size_t USER_NR_ELEMENTS = sizeof(struct user) / sizeof(void *);
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_ctf_field_type *create_integer_struct(void)
+static struct bt_field_type *create_integer_struct(void)
 {
 	int ret;
-	struct bt_ctf_field_type *structure = NULL;
-	struct bt_ctf_field_type *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
+	struct bt_field_type *structure = NULL;
+	struct bt_field_type *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
 
-	structure = bt_ctf_field_type_structure_create();
+	structure = bt_field_type_structure_create();
 	if (!structure) {
 		goto error;
 	}
 
-	ui8 = bt_ctf_field_type_integer_create(8);
+	ui8 = bt_field_type_integer_create(8);
 	if (!ui8) {
 		diag("Failed to create uint8_t type");
 		goto error;
 	}
-	ret = bt_ctf_field_type_structure_add_field(structure, ui8,
+	ret = bt_field_type_structure_add_field(structure, ui8,
 		        "payload_8");
 	if (ret) {
 		diag("Failed to add uint8_t to structure");
 		goto error;
 	}
-	ui16 = bt_ctf_field_type_integer_create(16);
+	ui16 = bt_field_type_integer_create(16);
 	if (!ui16) {
 		diag("Failed to create uint16_t type");
 		goto error;
 	}
-	ret = bt_ctf_field_type_structure_add_field(structure, ui16,
+	ret = bt_field_type_structure_add_field(structure, ui16,
 		        "payload_16");
 	if (ret) {
 		diag("Failed to add uint16_t to structure");
 		goto error;
 	}
-	ui32 = bt_ctf_field_type_integer_create(32);
+	ui32 = bt_field_type_integer_create(32);
 	if (!ui32) {
 		diag("Failed to create uint32_t type");
 		goto error;
 	}
-	ret = bt_ctf_field_type_structure_add_field(structure, ui32,
+	ret = bt_field_type_structure_add_field(structure, ui32,
 		        "payload_32");
 	if (ret) {
 		diag("Failed to add uint32_t to structure");
@@ -122,14 +122,14 @@ error:
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_ctf_event_class *create_simple_event(const char *name)
+static struct bt_event_class *create_simple_event(const char *name)
 {
 	int ret;
-	struct bt_ctf_event_class *event = NULL;
-	struct bt_ctf_field_type *payload = NULL;
+	struct bt_event_class *event = NULL;
+	struct bt_field_type *payload = NULL;
 
 	assert(name);
-	event = bt_ctf_event_class_create(name);
+	event = bt_event_class_create(name);
 	if (!event) {
 		diag("Failed to create simple event");
 		goto error;
@@ -141,7 +141,7 @@ static struct bt_ctf_event_class *create_simple_event(const char *name)
 		goto error;
 	}
 
-	ret = bt_ctf_event_class_set_payload_type(event, payload);
+	ret = bt_event_class_set_payload_type(event, payload);
 	if (ret) {
 		diag("Failed to set simple event payload");
 		goto error;
@@ -164,14 +164,14 @@ error:
  *           - uint16_t payload_16;
  *           - uint32_t payload_32;
  */
-static struct bt_ctf_event_class *create_complex_event(const char *name)
+static struct bt_event_class *create_complex_event(const char *name)
 {
 	int ret;
-	struct bt_ctf_event_class *event = NULL;
-	struct bt_ctf_field_type *inner = NULL, *outer = NULL;
+	struct bt_event_class *event = NULL;
+	struct bt_field_type *inner = NULL, *outer = NULL;
 
 	assert(name);
-	event = bt_ctf_event_class_create(name);
+	event = bt_event_class_create(name);
 	if (!event) {
 		diag("Failed to create complex event");
 		goto error;
@@ -189,14 +189,14 @@ static struct bt_ctf_event_class *create_complex_event(const char *name)
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(outer, inner,
+	ret = bt_field_type_structure_add_field(outer, inner,
 			"payload_struct");
 	if (ret) {
 		diag("Failed to add inner structure to outer structure");
 		goto error;
 	}
 
-	ret = bt_ctf_event_class_set_payload_type(event, outer);
+	ret = bt_event_class_set_payload_type(event, outer);
 	if (ret) {
 		diag("Failed to set complex event payload");
 		goto error;
@@ -211,41 +211,41 @@ error:
 }
 
 static void set_stream_class_field_types(
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_stream_class *stream_class)
 {
-	struct bt_ctf_field_type *packet_context_type;
-	struct bt_ctf_field_type *event_header_type;
-	struct bt_ctf_field_type *ft;
+	struct bt_field_type *packet_context_type;
+	struct bt_field_type *event_header_type;
+	struct bt_field_type *ft;
 	int ret;
 
-	packet_context_type = bt_ctf_field_type_structure_create();
+	packet_context_type = bt_field_type_structure_create();
 	assert(packet_context_type);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "packet_size");
 	assert(ret == 0);
 	bt_put(ft);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "content_size");
 	assert(ret == 0);
 	bt_put(ft);
 
-	event_header_type = bt_ctf_field_type_structure_create();
+	event_header_type = bt_field_type_structure_create();
 	assert(event_header_type);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(event_header_type,
+	ret = bt_field_type_structure_add_field(event_header_type,
 		ft, "id");
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_ctf_stream_class_set_packet_context_type(stream_class,
+	ret = bt_stream_class_set_packet_context_type(stream_class,
 		packet_context_type);
 	assert(ret == 0);
-	ret = bt_ctf_stream_class_set_event_header_type(stream_class,
+	ret = bt_stream_class_set_event_header_type(stream_class,
 		event_header_type);
 	assert(ret == 0);
 
@@ -253,13 +253,13 @@ static void set_stream_class_field_types(
 	bt_put(event_header_type);
 }
 
-static struct bt_ctf_stream_class *create_sc1(void)
+static struct bt_stream_class *create_sc1(void)
 {
 	int ret;
-	struct bt_ctf_event_class *ec1 = NULL, *ec2 = NULL;
-	struct bt_ctf_stream_class *sc1 = NULL, *ret_stream = NULL;
+	struct bt_event_class *ec1 = NULL, *ec2 = NULL;
+	struct bt_stream_class *sc1 = NULL, *ret_stream = NULL;
 
-	sc1 = bt_ctf_stream_class_create_empty("sc1");
+	sc1 = bt_stream_class_create_empty("sc1");
 	if (!sc1) {
 		diag("Failed to create Stream Class");
 		goto error;
@@ -271,7 +271,7 @@ static struct bt_ctf_stream_class *create_sc1(void)
 		diag("Failed to create complex event EC1");
 		goto error;
 	}
-	ret = bt_ctf_stream_class_add_event_class(sc1, ec1);
+	ret = bt_stream_class_add_event_class(sc1, ec1);
 	if (ret) {
 		diag("Failed to add EC1 to SC1");
 		goto error;
@@ -282,17 +282,17 @@ static struct bt_ctf_stream_class *create_sc1(void)
 		diag("Failed to create simple event EC2");
 		goto error;
 	}
-	ret = bt_ctf_stream_class_add_event_class(sc1, ec2);
+	ret = bt_stream_class_add_event_class(sc1, ec2);
 	if (ret) {
 		diag("Failed to add EC1 to SC1");
 		goto error;
 	}
 
-	ret_stream = bt_ctf_event_class_get_stream_class(ec1);
+	ret_stream = bt_event_class_get_stream_class(ec1);
 	ok(ret_stream == sc1, "Get parent stream SC1 from EC1");
 	BT_PUT(ret_stream);
 
-	ret_stream = bt_ctf_event_class_get_stream_class(ec2);
+	ret_stream = bt_event_class_get_stream_class(ec2);
 	ok(ret_stream == sc1, "Get parent stream SC1 from EC2");
 end:
 	BT_PUT(ret_stream);
@@ -304,13 +304,13 @@ error:
 	goto end;
 }
 
-static struct bt_ctf_stream_class *create_sc2(void)
+static struct bt_stream_class *create_sc2(void)
 {
 	int ret;
-	struct bt_ctf_event_class *ec3 = NULL;
-	struct bt_ctf_stream_class *sc2 = NULL, *ret_stream = NULL;
+	struct bt_event_class *ec3 = NULL;
+	struct bt_stream_class *sc2 = NULL, *ret_stream = NULL;
 
-	sc2 = bt_ctf_stream_class_create_empty("sc2");
+	sc2 = bt_stream_class_create_empty("sc2");
 	if (!sc2) {
 		diag("Failed to create Stream Class");
 		goto error;
@@ -322,13 +322,13 @@ static struct bt_ctf_stream_class *create_sc2(void)
 		diag("Failed to create simple event EC3");
 		goto error;
 	}
-	ret = bt_ctf_stream_class_add_event_class(sc2, ec3);
+	ret = bt_stream_class_add_event_class(sc2, ec3);
 	if (ret) {
 		diag("Failed to add EC3 to SC2");
 		goto error;
 	}
 
-	ret_stream = bt_ctf_event_class_get_stream_class(ec3);
+	ret_stream = bt_event_class_get_stream_class(ec3);
 	ok(ret_stream == sc2, "Get parent stream SC2 from EC3");
 end:
 	BT_PUT(ret_stream);
@@ -339,37 +339,37 @@ error:
 	goto end;
 }
 
-static void set_trace_packet_header(struct bt_ctf_trace *trace)
+static void set_trace_packet_header(struct bt_trace *trace)
 {
-	struct bt_ctf_field_type *packet_header_type;
-	struct bt_ctf_field_type *ft;
+	struct bt_field_type *packet_header_type;
+	struct bt_field_type *ft;
 	int ret;
 
-	packet_header_type = bt_ctf_field_type_structure_create();
+	packet_header_type = bt_field_type_structure_create();
 	assert(packet_header_type);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(packet_header_type,
+	ret = bt_field_type_structure_add_field(packet_header_type,
 		ft, "stream_id");
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_ctf_trace_set_packet_header_type(trace,
+	ret = bt_trace_set_packet_header_type(trace,
 		packet_header_type);
 	assert(ret == 0);
 
 	bt_put(packet_header_type);
 }
 
-static struct bt_ctf_trace *create_tc1(void)
+static struct bt_trace *create_tc1(void)
 {
 	int ret;
-	struct bt_ctf_trace *tc1 = NULL;
-	struct bt_ctf_stream_class *sc1 = NULL, *sc2 = NULL;
+	struct bt_trace *tc1 = NULL;
+	struct bt_stream_class *sc1 = NULL, *sc2 = NULL;
 
-	tc1 = bt_ctf_trace_create();
+	tc1 = bt_trace_create();
 	if (!tc1) {
-		diag("bt_ctf_trace_create returned NULL");
+		diag("bt_trace_create returned NULL");
 		goto error;
 	}
 
@@ -379,7 +379,7 @@ static struct bt_ctf_trace *create_tc1(void)
 	if (!sc1) {
 		goto error;
 	}
-	ret = bt_ctf_trace_add_stream_class(tc1, sc1);
+	ret = bt_trace_add_stream_class(tc1, sc1);
 	ok(!ret, "Add SC1 to TC1");
 	if (ret) {
 		goto error;
@@ -390,7 +390,7 @@ static struct bt_ctf_trace *create_tc1(void)
 	if (!sc2) {
 		goto error;
 	}
-	ret = bt_ctf_trace_add_stream_class(tc1, sc2);
+	ret = bt_trace_add_stream_class(tc1, sc2);
 	ok(!ret, "Add SC2 to TC1");
 	if (ret) {
 		goto error;
@@ -404,20 +404,20 @@ error:
 	goto end;
 }
 
-static void init_weak_refs(struct bt_ctf_trace *tc,
-		struct bt_ctf_trace **tc1,
-		struct bt_ctf_stream_class **sc1,
-		struct bt_ctf_stream_class **sc2,
-		struct bt_ctf_event_class **ec1,
-		struct bt_ctf_event_class **ec2,
-		struct bt_ctf_event_class **ec3)
+static void init_weak_refs(struct bt_trace *tc,
+		struct bt_trace **tc1,
+		struct bt_stream_class **sc1,
+		struct bt_stream_class **sc2,
+		struct bt_event_class **ec1,
+		struct bt_event_class **ec2,
+		struct bt_event_class **ec3)
 {
 	*tc1 = tc;
-	*sc1 = bt_ctf_trace_get_stream_class_by_index(tc, 0);
-	*sc2 = bt_ctf_trace_get_stream_class_by_index(tc, 1);
-	*ec1 = bt_ctf_stream_class_get_event_class_by_index(*sc1, 0);
-	*ec2 = bt_ctf_stream_class_get_event_class_by_index(*sc1, 1);
-	*ec3 = bt_ctf_stream_class_get_event_class_by_index(*sc2, 0);
+	*sc1 = bt_trace_get_stream_class_by_index(tc, 0);
+	*sc2 = bt_trace_get_stream_class_by_index(tc, 1);
+	*ec1 = bt_stream_class_get_event_class_by_index(*sc1, 0);
+	*ec2 = bt_stream_class_get_event_class_by_index(*sc1, 1);
+	*ec3 = bt_stream_class_get_event_class_by_index(*sc2, 0);
 	bt_put(*sc1);
 	bt_put(*sc2);
 	bt_put(*ec1);
@@ -434,9 +434,9 @@ static void test_example_scenario(void)
 	 * counts without affecting them by taking "real" references to the
 	 * objects.
 	 */
-	struct bt_ctf_trace *tc1 = NULL, *weak_tc1 = NULL;
-	struct bt_ctf_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
-	struct bt_ctf_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
+	struct bt_trace *tc1 = NULL, *weak_tc1 = NULL;
+	struct bt_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
+	struct bt_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
 			*weak_ec3 = NULL;
 	struct user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
 
@@ -467,7 +467,7 @@ static void test_example_scenario(void)
 			"TC1 reference count is 1");
 
 	/* User A acquires a reference to SC2 from TC1. */
-	user_a.sc = bt_ctf_trace_get_stream_class_by_index(user_a.tc, 1);
+	user_a.sc = bt_trace_get_stream_class_by_index(user_a.tc, 1);
 	ok(user_a.sc, "User A acquires SC2 from TC1");
 	ok(bt_object_get_ref_count(weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -475,7 +475,7 @@ static void test_example_scenario(void)
 			"SC2 reference count is 1");
 
 	/* User A acquires a reference to EC3 from SC2. */
-	user_a.ec = bt_ctf_stream_class_get_event_class_by_index(user_a.sc, 0);
+	user_a.ec = bt_stream_class_get_event_class_by_index(user_a.sc, 0);
 	ok(user_a.ec, "User A acquires EC3 from SC2");
 	ok(bt_object_get_ref_count(weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -522,7 +522,7 @@ static void test_example_scenario(void)
 
 	/* User C acquires a reference to EC1. */
 	diag("User C acquires a reference to EC1");
-	user_c.ec = bt_ctf_stream_class_get_event_class_by_index(user_b.sc, 0);
+	user_c.ec = bt_stream_class_get_event_class_by_index(user_b.sc, 0);
 	ok(bt_object_get_ref_count(weak_ec1) == 1,
 			"EC1 reference count is 1");
 	ok(bt_object_get_ref_count(weak_sc1) == 2,
@@ -568,8 +568,8 @@ static void test_example_scenario(void)
 static void create_user_full(struct user *user)
 {
 	gchar *trace_path;
-	struct bt_ctf_field_type *ft;
-	struct bt_ctf_field *field;
+	struct bt_field_type *ft;
+	struct bt_field *field;
 	struct bt_ctf_clock *clock;
 	int ret;
 
@@ -581,48 +581,48 @@ static void create_user_full(struct user *user)
 	user->writer = bt_ctf_writer_create(trace_path);
 	assert(user->writer);
 	ret = bt_ctf_writer_set_byte_order(user->writer,
-		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
+		BT_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
 	user->tc = bt_ctf_writer_get_trace(user->writer);
 	assert(user->tc);
-	user->sc = bt_ctf_stream_class_create("sc");
+	user->sc = bt_stream_class_create("sc");
 	assert(user->sc);
 	clock = bt_ctf_clock_create("the_clock");
 	assert(clock);
 	ret = bt_ctf_writer_add_clock(user->writer, clock);
 	assert(!ret);
-	ret = bt_ctf_stream_class_set_clock(user->sc, clock);
+	ret = bt_stream_class_set_clock(user->sc, clock);
 	assert(!ret);
 	BT_PUT(clock);
 	user->stream = bt_ctf_writer_create_stream(user->writer, user->sc);
 	assert(user->stream);
-	user->ec = bt_ctf_event_class_create("ec");
+	user->ec = bt_event_class_create("ec");
 	assert(user->ec);
 	ft = create_integer_struct();
 	assert(ft);
-	ret = bt_ctf_event_class_set_payload_type(user->ec, ft);
+	ret = bt_event_class_set_payload_type(user->ec, ft);
 	BT_PUT(ft);
 	assert(!ret);
-	ret = bt_ctf_stream_class_add_event_class(user->sc, user->ec);
+	ret = bt_stream_class_add_event_class(user->sc, user->ec);
 	assert(!ret);
-	user->event = bt_ctf_event_create(user->ec);
+	user->event = bt_event_create(user->ec);
 	assert(user->event);
-	field = bt_ctf_event_get_payload(user->event, "payload_8");
+	field = bt_event_get_payload(user->event, "payload_8");
 	assert(field);
-	ret = bt_ctf_field_unsigned_integer_set_value(field, 10);
+	ret = bt_field_unsigned_integer_set_value(field, 10);
 	assert(!ret);
 	BT_PUT(field);
-	field = bt_ctf_event_get_payload(user->event, "payload_16");
+	field = bt_event_get_payload(user->event, "payload_16");
 	assert(field);
-	ret = bt_ctf_field_unsigned_integer_set_value(field, 20);
+	ret = bt_field_unsigned_integer_set_value(field, 20);
 	assert(!ret);
 	BT_PUT(field);
-	field = bt_ctf_event_get_payload(user->event, "payload_32");
+	field = bt_event_get_payload(user->event, "payload_32");
 	assert(field);
-	ret = bt_ctf_field_unsigned_integer_set_value(field, 30);
+	ret = bt_field_unsigned_integer_set_value(field, 30);
 	assert(!ret);
 	BT_PUT(field);
-	ret = bt_ctf_stream_append_event(user->stream, user->event);
+	ret = bt_stream_append_event(user->stream, user->event);
 	assert(!ret);
 	recursive_rmdir(trace_path);
 	g_free(trace_path);

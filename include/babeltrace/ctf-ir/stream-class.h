@@ -32,7 +32,7 @@
 
 #include <stdint.h>
 
-/* For bt_ctf_visitor */
+/* For bt_visitor */
 #include <babeltrace/ctf-ir/visitor.h>
 
 #ifdef __cplusplus
@@ -67,9 +67,9 @@ contains zero or more stream classes,
 and a stream class contains zero or more
 \link ctfireventclass event classes\endlink.
 You can add an event class
-to a stream class with bt_ctf_stream_class_add_event_class().
+to a stream class with bt_stream_class_add_event_class().
 You can add a stream class to a trace class with
-bt_ctf_trace_add_stream_class().
+bt_trace_add_stream_class().
 
 A stream class owns three \link ctfirfieldtypes field types\endlink:
 
@@ -92,8 +92,8 @@ As a reminder, here's the structure of a CTF packet:
 @imgpacketstructure
 
 Before you can create a stream from a stream class with
-bt_ctf_stream_create(), you \em must add the prepared stream class to a
-trace class by calling bt_ctf_trace_add_stream_class().
+bt_stream_create(), you \em must add the prepared stream class to a
+trace class by calling bt_trace_add_stream_class().
 
 As with any Babeltrace object, CTF IR stream class objects have
 <a href="https://en.wikipedia.org/wiki/Reference_counting">reference
@@ -103,19 +103,19 @@ management of Babeltrace objects.
 The following functions \em freeze their stream class parameter on
 success:
 
-- bt_ctf_trace_add_stream_class()
-- bt_ctf_event_create()
-- bt_ctf_writer_create_stream()
+- bt_trace_add_stream_class()
+- bt_event_create()
+- bt_writer_create_stream()
   (\link ctfwriter CTF writer\endlink mode only)
 
 You cannot modify a frozen stream class: it is considered immutable,
 except for:
 
 - Adding an event class to it with
-  bt_ctf_stream_class_add_event_class(). If the stream class's parent
+  bt_stream_class_add_event_class(). If the stream class's parent
   \link ctfirtraceclass trace class\endlink is static, however,
-  you cannot call bt_ctf_stream_class_add_event_class()
-  (see bt_ctf_trace_is_static() and bt_ctf_trace_set_is_static()).
+  you cannot call bt_stream_class_add_event_class()
+  (see bt_trace_is_static() and bt_trace_set_is_static()).
 - \link refs Reference counting\endlink.
 
 @sa ctfirstream
@@ -132,13 +132,13 @@ except for:
 */
 
 /**
-@struct bt_ctf_stream_class
+@struct bt_stream_class
 @brief A CTF IR stream class.
 @sa ctfirstreamclass
 */
-struct bt_ctf_stream_class;
-struct bt_ctf_event_class;
-struct bt_ctf_clock;
+struct bt_stream_class;
+struct bt_event_class;
+struct bt_clock;
 
 /**
 @name Creation and parent access functions
@@ -152,9 +152,9 @@ struct bt_ctf_clock;
 On success, the packet context, event header, and event context field
 types are empty structure field types. You can modify those default
 field types after the stream class is created with
-bt_ctf_stream_class_set_packet_context_type(),
-bt_ctf_stream_class_set_event_header_type(), and
-bt_ctf_stream_class_set_event_context_type().
+bt_stream_class_set_packet_context_type(),
+bt_stream_class_set_event_header_type(), and
+bt_stream_class_set_event_context_type().
 
 @param[in] name	Name of the stream class to create (copied on success),
 		or \c NULL to create an unnamed stream class.
@@ -162,9 +162,9 @@ bt_ctf_stream_class_set_event_context_type().
 
 @postsuccessrefcountret1
 
-@sa bt_ctf_stream_class_create(): Creates a default stream class.
+@sa bt_stream_class_create(): Creates a default stream class.
 */
-extern struct bt_ctf_stream_class *bt_ctf_stream_class_create_empty(
+extern struct bt_stream_class *bt_stream_class_create_empty(
 		const char *name);
 
 /**
@@ -187,8 +187,8 @@ has the following fields:
 - <code>timestamp</code>: a 64-bit unsigned integer field type.
 
 You can modify those default field types after the stream class is
-created with bt_ctf_stream_class_set_packet_context_type() and
-bt_ctf_stream_class_set_event_header_type().
+created with bt_stream_class_set_packet_context_type() and
+bt_stream_class_set_event_header_type().
 
 @param[in] name	Name of the stream class to create (copied on success),
 		or \c NULL to create an unnamed stream class.
@@ -196,9 +196,9 @@ bt_ctf_stream_class_set_event_header_type().
 
 @postsuccessrefcountret1
 
-@sa bt_ctf_stream_class_create_empty(): Creates an empty stream class.
+@sa bt_stream_class_create_empty(): Creates an empty stream class.
 */
-extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
+extern struct bt_stream_class *bt_stream_class_create(const char *name);
 
 /**
 @brief	Returns the parent CTF IR trace class of the CTF IR stream
@@ -207,7 +207,7 @@ extern struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name);
 It is possible that the stream class was not added to a trace class
 yet, in which case this function returns \c NULL. You can add a
 stream class to a trace class with
-bt_ctf_trace_add_stream_class().
+bt_trace_add_stream_class().
 
 @param[in] stream_class	Stream class of which to get the parent
 			trace class.
@@ -219,11 +219,11 @@ bt_ctf_trace_add_stream_class().
 @postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_add_stream_class(): Add a stream class to
+@sa bt_trace_add_stream_class(): Add a stream class to
 	a trace class.
 */
-extern struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
-		struct bt_ctf_stream_class *stream_class);
+extern struct bt_trace *bt_stream_class_get_trace(
+		struct bt_stream_class *stream_class);
 
 /** @} */
 
@@ -246,11 +246,11 @@ string.
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
 
-@sa bt_ctf_stream_class_set_name(): Sets the name of a given
+@sa bt_stream_class_set_name(): Sets the name of a given
 	stream class.
 */
-extern const char *bt_ctf_stream_class_get_name(
-		struct bt_ctf_stream_class *stream_class);
+extern const char *bt_stream_class_get_name(
+		struct bt_stream_class *stream_class);
 
 /**
 @brief	Sets the name of the CTF IR stream class
@@ -271,11 +271,11 @@ the stream classes of the trace class to which you eventually add
 @prehot{stream_class}
 @postrefcountsame{stream_class}
 
-@sa bt_ctf_stream_class_get_name(): Returns the name of a given
+@sa bt_stream_class_get_name(): Returns the name of a given
 	stream class.
 */
-extern int bt_ctf_stream_class_set_name(
-		struct bt_ctf_stream_class *stream_class, const char *name);
+extern int bt_stream_class_set_name(
+		struct bt_stream_class *stream_class, const char *name);
 
 /**
 @brief	Returns the numeric ID of the CTF IR stream class \p stream_class.
@@ -287,11 +287,11 @@ extern int bt_ctf_stream_class_set_name(
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
 
-@sa bt_ctf_stream_class_set_id(): Sets the numeric ID of a given
+@sa bt_stream_class_set_id(): Sets the numeric ID of a given
 	stream class.
 */
-extern int64_t bt_ctf_stream_class_get_id(
-		struct bt_ctf_stream_class *stream_class);
+extern int64_t bt_stream_class_get_id(
+		struct bt_stream_class *stream_class);
 
 /**
 @brief	Sets the numeric ID of the CTF IR stream class
@@ -309,11 +309,11 @@ of the trace class to which you eventually add \p stream_class.
 @pre \p id is lesser than or equal to 9223372036854775807 (\c INT64_MAX).
 @postrefcountsame{stream_class}
 
-@sa bt_ctf_stream_class_get_id(): Returns the numeric ID of a given
+@sa bt_stream_class_get_id(): Returns the numeric ID of a given
 	stream class.
 */
-extern int bt_ctf_stream_class_set_id(
-		struct bt_ctf_stream_class *stream_class, uint64_t id);
+extern int bt_stream_class_set_id(
+		struct bt_stream_class *stream_class, uint64_t id);
 
 /** @} */
 
@@ -337,11 +337,11 @@ extern int bt_ctf_stream_class_set_id(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_ctf_stream_class_set_packet_context_type(): Sets the packet
+@sa bt_stream_class_set_packet_context_type(): Sets the packet
 	context field type of a given stream class.
 */
-extern struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
-		struct bt_ctf_stream_class *stream_class);
+extern struct bt_field_type *bt_stream_class_get_packet_context_type(
+		struct bt_stream_class *stream_class);
 
 /**
 @brief	Sets the packet context field type of the CTF IR stream class
@@ -369,12 +369,12 @@ As of Babeltrace \btversion, if \p packet_context_type is not \c NULL,
 @post <strong>On success, if \p packet_context_type is not \c NULL</strong>,
 	the reference count of \p packet_context_type is incremented.
 
-@sa bt_ctf_stream_class_get_packet_context_type(): Returns the packet
+@sa bt_stream_class_get_packet_context_type(): Returns the packet
 	context field type of a given stream class.
 */
-extern int bt_ctf_stream_class_set_packet_context_type(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_field_type *packet_context_type);
+extern int bt_stream_class_set_packet_context_type(
+		struct bt_stream_class *stream_class,
+		struct bt_field_type *packet_context_type);
 
 /**
 @brief	Returns the event header field type of the CTF IR stream class
@@ -391,12 +391,12 @@ extern int bt_ctf_stream_class_set_packet_context_type(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_ctf_stream_class_set_event_header_type(): Sets the event
+@sa bt_stream_class_set_event_header_type(): Sets the event
 	header field type of a given stream class.
 */
-extern struct bt_ctf_field_type *
-bt_ctf_stream_class_get_event_header_type(
-		struct bt_ctf_stream_class *stream_class);
+extern struct bt_field_type *
+bt_stream_class_get_event_header_type(
+		struct bt_stream_class *stream_class);
 
 /**
 @brief	Sets the event header field type of the CTF IR stream class
@@ -424,12 +424,12 @@ As of Babeltrace \btversion, if \p event_header_type is not \c NULL,
 @post <strong>On success, if \p event_header_type is not \c NULL</strong>,
 	the reference count of \p event_header_type is incremented.
 
-@sa bt_ctf_stream_class_get_event_header_type(): Returns the event
+@sa bt_stream_class_get_event_header_type(): Returns the event
 	header field type of a given stream class.
 */
-extern int bt_ctf_stream_class_set_event_header_type(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_field_type *event_header_type);
+extern int bt_stream_class_set_event_header_type(
+		struct bt_stream_class *stream_class,
+		struct bt_field_type *event_header_type);
 
 /**
 @brief	Returns the event context field type of the CTF IR stream class
@@ -447,12 +447,12 @@ extern int bt_ctf_stream_class_set_event_header_type(
 	its reference count is incremented.
 
 
-@sa bt_ctf_stream_class_set_event_context_type(): Sets the event
+@sa bt_stream_class_set_event_context_type(): Sets the event
 	context field type of a given stream class.
 */
-extern struct bt_ctf_field_type *
-bt_ctf_stream_class_get_event_context_type(
-		struct bt_ctf_stream_class *stream_class);
+extern struct bt_field_type *
+bt_stream_class_get_event_context_type(
+		struct bt_stream_class *stream_class);
 
 /**
 @brief	Sets the event context field type of the CTF IR stream class
@@ -480,12 +480,12 @@ As of Babeltrace \btversion, if \p event_context_type is not \c NULL,
 @post <strong>On success, if \p event_context_type is not \c NULL</strong>,
 	the reference count of \p event_context_type is incremented.
 
-@sa bt_ctf_stream_class_get_event_context_type(): Returns the event context
+@sa bt_stream_class_get_event_context_type(): Returns the event context
 	field type of a given stream class.
 */
-extern int bt_ctf_stream_class_set_event_context_type(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_field_type *event_context_type);
+extern int bt_stream_class_set_event_context_type(
+		struct bt_stream_class *stream_class,
+		struct bt_field_type *event_context_type);
 
 /** @} */
 
@@ -507,8 +507,8 @@ extern int bt_ctf_stream_class_set_event_context_type(
 @prenotnull{stream_class}
 @postrefcountsame{stream_class}
 */
-extern int64_t bt_ctf_stream_class_get_event_class_count(
-		struct bt_ctf_stream_class *stream_class);
+extern int64_t bt_stream_class_get_event_class_count(
+		struct bt_stream_class *stream_class);
 
 /**
 @brief  Returns the event class at index \p index in the CTF IR stream
@@ -522,15 +522,15 @@ extern int64_t bt_ctf_stream_class_get_event_class_count(
 @prenotnull{stream_class}
 @pre \p index is lesser than the number of event classes contained in the
 	stream class \p stream_class (see
-	bt_ctf_stream_class_get_event_class_count()).
+	bt_stream_class_get_event_class_count()).
 @postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_stream_class_get_event_class_by_id(): Finds an event class
+@sa bt_stream_class_get_event_class_by_id(): Finds an event class
 	by ID.
 */
-extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
-		struct bt_ctf_stream_class *stream_class, uint64_t index);
+extern struct bt_event_class *bt_stream_class_get_event_class_by_index(
+		struct bt_stream_class *stream_class, uint64_t index);
 
 /**
 @brief  Returns the event class with ID \c id found in the CTF IR stream
@@ -545,8 +545,8 @@ extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
 @postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
-		struct bt_ctf_stream_class *stream_class, uint64_t id);
+extern struct bt_event_class *bt_stream_class_get_event_class_by_id(
+		struct bt_stream_class *stream_class, uint64_t id);
 
 /**
 @brief	Adds the CTF IR event class \p event_class to the
@@ -569,10 +569,10 @@ types of \p event_class. If any automatic resolving fails:
   types of \p event_class or \p stream_class, this function fails.
 - If \p stream_class is the child of a
   \link ctfirtraceclass CTF IR trace class\endlink (it was added
-  with bt_ctf_trace_add_stream_class()), this function fails.
+  with bt_trace_add_stream_class()), this function fails.
 - If \p stream_class is not the child of a trace class yet, the
   automatic resolving is reported to the next call to
-  bt_ctf_trace_add_stream_class() with \p stream_class.
+  bt_trace_add_stream_class() with \p stream_class.
 
 @param[in] stream_class	Stream class to which to add \p event_class.
 @param[in] event_class	Event class to add to \p stream_class.
@@ -585,9 +585,9 @@ types of \p event_class. If any automatic resolving fails:
 @postsuccessrefcountinc{event_class}
 @postsuccessfrozen{event_class}
 */
-extern int bt_ctf_stream_class_add_event_class(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_event_class *event_class);
+extern int bt_stream_class_add_event_class(
+		struct bt_stream_class *stream_class,
+		struct bt_event_class *event_class);
 
 /** @} */
 
@@ -614,12 +614,18 @@ event classes.
 @prenotnull{stream_class}
 @prenotnull{visitor}
 */
-extern int bt_ctf_stream_class_visit(struct bt_ctf_stream_class *stream_class,
-		bt_ctf_visitor visitor, void *data);
+extern int bt_stream_class_visit(struct bt_stream_class *stream_class,
+		bt_visitor visitor, void *data);
 
 /** @} */
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_stream_class bt_stream_class
+#define bt_ctf_stream_class_create bt_stream_class_create
+#define bt_ctf_stream_class_add_event_class bt_stream_class_add_event_class
+#define bt_ctf_stream_class_get_packet_context_type bt_stream_class_get_packet_context_type
 
 #ifdef __cplusplus
 }

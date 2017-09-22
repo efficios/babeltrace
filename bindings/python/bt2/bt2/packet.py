@@ -31,13 +31,13 @@ import bt2
 class _Packet(object._Object):
     @property
     def stream(self):
-        stream_ptr = native_bt.ctf_packet_get_stream(self._ptr)
+        stream_ptr = native_bt.packet_get_stream(self._ptr)
         assert(stream_ptr)
         return bt2.stream._Stream._create_from_ptr(stream_ptr)
 
     @property
     def header_field(self):
-        field_ptr = native_bt.ctf_packet_get_header(self._ptr)
+        field_ptr = native_bt.packet_get_header(self._ptr)
 
         if field_ptr is None:
             return
@@ -52,12 +52,12 @@ class _Packet(object._Object):
             utils._check_type(header_field, bt2.fields._Field)
             header_field_ptr = header_field._ptr
 
-        ret = native_bt.ctf_packet_set_header(self._ptr, header_field_ptr)
+        ret = native_bt.packet_set_header(self._ptr, header_field_ptr)
         utils._handle_ret(ret, "cannot set packet object's header field")
 
     @property
     def context_field(self):
-        field_ptr = native_bt.ctf_packet_get_context(self._ptr)
+        field_ptr = native_bt.packet_get_context(self._ptr)
 
         if field_ptr is None:
             return
@@ -72,7 +72,7 @@ class _Packet(object._Object):
             utils._check_type(context_field, bt2.fields._Field)
             context_field_ptr = context_field._ptr
 
-        ret = native_bt.ctf_packet_set_context(self._ptr, context_field_ptr)
+        ret = native_bt.packet_set_context(self._ptr, context_field_ptr)
         utils._handle_ret(ret, "cannot set packet object's context field")
 
     def __eq__(self, other):

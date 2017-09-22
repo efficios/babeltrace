@@ -34,7 +34,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/types.h>
 
-typedef struct bt_ctf_stream *(*get_stream_func)(
+typedef struct bt_stream *(*get_stream_func)(
 		struct bt_notification *notification);
 
 struct bt_notification {

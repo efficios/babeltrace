@@ -35,13 +35,13 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
 
-enum bt_ctf_resolve_flag {
-	BT_CTF_RESOLVE_FLAG_PACKET_HEADER	= 0x01,
-	BT_CTF_RESOLVE_FLAG_PACKET_CONTEXT	= 0x02,
-	BT_CTF_RESOLVE_FLAG_EVENT_HEADER	= 0x04,
-	BT_CTF_RESOLVE_FLAG_STREAM_EVENT_CTX	= 0x08,
-	BT_CTF_RESOLVE_FLAG_EVENT_CONTEXT	= 0x10,
-	BT_CTF_RESOLVE_FLAG_EVENT_PAYLOAD	= 0x20,
+enum bt_resolve_flag {
+	BT_RESOLVE_FLAG_PACKET_HEADER		= 0x01,
+	BT_RESOLVE_FLAG_PACKET_CONTEXT		= 0x02,
+	BT_RESOLVE_FLAG_EVENT_HEADER		= 0x04,
+	BT_RESOLVE_FLAG_STREAM_EVENT_CTX	= 0x08,
+	BT_RESOLVE_FLAG_EVENT_CONTEXT		= 0x10,
+	BT_RESOLVE_FLAG_EVENT_PAYLOAD		= 0x20,
 };
 
 /*
@@ -60,13 +60,13 @@ enum bt_ctf_resolve_flag {
  * All parameters are owned by the caller.
  */
 BT_HIDDEN
-int bt_ctf_resolve_types(struct bt_value *environment,
-		struct bt_ctf_field_type *packet_header_type,
-		struct bt_ctf_field_type *packet_context_type,
-		struct bt_ctf_field_type *event_header_type,
-		struct bt_ctf_field_type *stream_event_ctx_type,
-		struct bt_ctf_field_type *event_context_type,
-		struct bt_ctf_field_type *event_payload_type,
-		enum bt_ctf_resolve_flag flags);
+int bt_resolve_types(struct bt_value *environment,
+		struct bt_field_type *packet_header_type,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type,
+		struct bt_field_type *stream_event_ctx_type,
+		struct bt_field_type *event_context_type,
+		struct bt_field_type *event_payload_type,
+		enum bt_resolve_flag flags);
 
 #endif /* BABELTRACE_CTF_IR_RESOLVE_INTERNAL_H */

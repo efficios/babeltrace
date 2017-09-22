@@ -76,7 +76,7 @@ void trace_finalize(void)
 	}
 }
 
-int bt_ctf_validate_identifier(const char *input_string)
+int bt_validate_identifier(const char *input_string)
 {
 	int ret = 0;
 	char *string = NULL;
@@ -118,7 +118,7 @@ end:
 	return ret;
 }
 
-bt_bool bt_ctf_identifier_is_valid(const char *identifier)
+bt_bool bt_identifier_is_valid(const char *identifier)
 {
-	return bt_ctf_validate_identifier(identifier);
+	return bt_validate_identifier(identifier);
 }

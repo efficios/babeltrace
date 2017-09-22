@@ -44,78 +44,78 @@
 /**
  * Medium operations status codes.
  */
-enum bt_ctf_notif_iter_medium_status {
+enum bt_notif_iter_medium_status {
 	/**
 	 * End of file.
 	 *
 	 * The medium function called by the notification iterator
 	 * function reached the end of the file.
 	 */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF = 1,
+	BT_NOTIF_ITER_MEDIUM_STATUS_EOF = 1,
 
 	/**
 	 * There is no data available right now, try again later.
 	 */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN = 11,
+	BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN = 11,
 
 	/** Unsupported operation. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_UNSUPPORTED = -3,
+	BT_NOTIF_ITER_MEDIUM_STATUS_UNSUPPORTED = -3,
 
 	/** Invalid argument. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL = -2,
+	BT_NOTIF_ITER_MEDIUM_STATUS_INVAL = -2,
 
 	/** General error. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR = -1,
+	BT_NOTIF_ITER_MEDIUM_STATUS_ERROR = -1,
 
 	/** Everything okay. */
-	BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK = 0,
+	BT_NOTIF_ITER_MEDIUM_STATUS_OK = 0,
 };
 
 /**
  * CTF notification iterator API status code.
  */
-enum bt_ctf_notif_iter_status {
+enum bt_notif_iter_status {
 	/**
 	 * End of file.
 	 *
 	 * The medium function called by the notification iterator
 	 * function reached the end of the file.
 	 */
-	BT_CTF_NOTIF_ITER_STATUS_EOF = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF,
+	BT_NOTIF_ITER_STATUS_EOF = BT_NOTIF_ITER_MEDIUM_STATUS_EOF,
 
 	/**
 	 * There is no data available right now, try again later.
 	 *
 	 * Some condition resulted in the
-	 * bt_ctf_notif_iter_medium_ops::request_bytes() user function not
+	 * bt_notif_iter_medium_ops::request_bytes() user function not
 	 * having access to any data now. You should retry calling the
 	 * last called notification iterator function once the situation
 	 * is resolved.
 	 */
-	BT_CTF_NOTIF_ITER_STATUS_AGAIN = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN,
+	BT_NOTIF_ITER_STATUS_AGAIN = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN,
 
 	/** Invalid argument. */
-	BT_CTF_NOTIF_ITER_STATUS_INVAL = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL,
+	BT_NOTIF_ITER_STATUS_INVAL = BT_NOTIF_ITER_MEDIUM_STATUS_INVAL,
 
 	/** Unsupported operation. */
-	BT_CTF_NOTIF_ITER_STATUS_UNSUPPORTED = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_UNSUPPORTED,
+	BT_NOTIF_ITER_STATUS_UNSUPPORTED = BT_NOTIF_ITER_MEDIUM_STATUS_UNSUPPORTED,
 
 	/** General error. */
-	BT_CTF_NOTIF_ITER_STATUS_ERROR = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR,
+	BT_NOTIF_ITER_STATUS_ERROR = BT_NOTIF_ITER_MEDIUM_STATUS_ERROR,
 
 	/** Everything okay. */
-	BT_CTF_NOTIF_ITER_STATUS_OK =	0,
+	BT_NOTIF_ITER_STATUS_OK =	0,
 };
 
 /**
  * CTF notification iterator seek operation directives.
  */
-enum bt_ctf_notif_iter_seek_whence {
+enum bt_notif_iter_seek_whence {
 	/**
 	 * Set the iterator's position to an absolute offset in the underlying
 	 * medium.
 	 */
-	BT_CTF_NOTIF_ITER_SEEK_WHENCE_SET,
+	BT_NOTIF_ITER_SEEK_WHENCE_SET,
 };
 
 /**
@@ -124,7 +124,7 @@ enum bt_ctf_notif_iter_seek_whence {
  * Those user functions are called by the notification iterator
  * functions to request medium actions.
  */
-struct bt_ctf_notif_iter_medium_ops {
+struct bt_notif_iter_medium_ops {
 	/**
 	 * Returns the next byte buffer to be used by the binary file
 	 * reader to deserialize binary data.
@@ -152,36 +152,36 @@ struct bt_ctf_notif_iter_medium_ops {
 	 *
 	 * This function must return one of the following statuses:
 	 *
-	 *   - <b>#BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK</b>: Everything
+	 *   - <b>#BT_NOTIF_ITER_MEDIUM_STATUS_OK</b>: Everything
 	 *     is okay, i.e. \p buffer_sz is set to a positive value
 	 *     reflecting the number of available bytes in the buffer
 	 *     starting at the address written in \p buffer_addr.
-	 *   - <b>#BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN</b>: No data is
+	 *   - <b>#BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN</b>: No data is
 	 *     available right now. In this case, the notification
 	 *     iterator function called by the user returns
-	 *     #BT_CTF_NOTIF_ITER_STATUS_AGAIN, and it is the user's
+	 *     #BT_NOTIF_ITER_STATUS_AGAIN, and it is the user's
 	 *     responsibility to make sure enough data becomes available
 	 *     before calling the \em same notification iterator
 	 *     function again to continue the decoding process.
-	 *   - <b>#BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF</b>: The end of
+	 *   - <b>#BT_NOTIF_ITER_MEDIUM_STATUS_EOF</b>: The end of
 	 *     the file was reached, and no more data will ever be
 	 *     available for this file. In this case, the notification
 	 *     iterator function called by the user returns
-	 *     #BT_CTF_NOTIF_ITER_STATUS_EOF. This must \em not be
+	 *     #BT_NOTIF_ITER_STATUS_EOF. This must \em not be
 	 *     returned when returning at least one byte of data to the
 	 *     caller, i.e. this must be returned when there's
 	 *     absolutely nothing left; should the request size be
 	 *     larger than what's left in the file, this function must
 	 *     return what's left, setting \p buffer_sz to the number of
 	 *     remaining bytes, and return
-	 *     #BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF on the \em following
+	 *     #BT_NOTIF_ITER_MEDIUM_STATUS_EOF on the \em following
 	 *     call.
-	 *   - <b>#BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR</b>: A fatal
+	 *   - <b>#BT_NOTIF_ITER_MEDIUM_STATUS_ERROR</b>: A fatal
 	 *     error occured during this operation. In this case, the
 	 *     notification iterator function called by the user returns
-	 *     #BT_CTF_NOTIF_ITER_STATUS_ERROR.
+	 *     #BT_NOTIF_ITER_STATUS_ERROR.
 	 *
-	 * If #BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK is not returned, the
+	 * If #BT_NOTIF_ITER_MEDIUM_STATUS_OK is not returned, the
 	 * values of \p buffer_sz and \p buffer_addr are \em ignored by
 	 * the caller.
 	 *
@@ -191,7 +191,7 @@ struct bt_ctf_notif_iter_medium_ops {
 	 * @param data		User data
 	 * @returns		Status code (see description above)
 	 */
-	enum bt_ctf_notif_iter_medium_status (* request_bytes)(
+	enum bt_notif_iter_medium_status (* request_bytes)(
 			size_t request_sz, uint8_t **buffer_addr,
 			size_t *buffer_sz, void *data);
 
@@ -202,13 +202,13 @@ struct bt_ctf_notif_iter_medium_ops {
 	 * to a given absolute or relative position, as indicated by
 	 * the whence directive.
 	 *
-	 * @param whence	One of #bt_ctf_notif_iter_seek_whence values
+	 * @param whence	One of #bt_notif_iter_seek_whence values
 	 * @param offset	Offset to use for the given directive
 	 * @param data		User data
-	 * @returns		One of #bt_ctf_notif_iter_medium_status values
+	 * @returns		One of #bt_notif_iter_medium_status values
 	 */
-	enum bt_ctf_notif_iter_medium_status (* seek)(
-			enum bt_ctf_notif_iter_seek_whence whence,
+	enum bt_notif_iter_medium_status (* seek)(
+			enum bt_notif_iter_seek_whence whence,
 			off_t offset, void *data);
 
 	/**
@@ -226,38 +226,38 @@ struct bt_ctf_notif_iter_medium_ops {
 	 * @returns		Stream instance (weak reference) or
 	 *			\c NULL on error
 	 */
-	struct bt_ctf_stream * (* get_stream)(
-			struct bt_ctf_stream_class *stream_class,
+	struct bt_stream * (* get_stream)(
+			struct bt_stream_class *stream_class,
 			uint64_t stream_id, void *data);
 };
 
 /** CTF notification iterator. */
-struct bt_ctf_notif_iter;
+struct bt_notif_iter;
 
 // TODO: Replace by the real thing
-enum bt_ctf_notif_iter_notif_type {
-	BT_CTF_NOTIF_ITER_NOTIF_NEW_PACKET,
-	BT_CTF_NOTIF_ITER_NOTIF_END_OF_PACKET,
-	BT_CTF_NOTIF_ITER_NOTIF_EVENT,
+enum bt_notif_iter_notif_type {
+	BT_NOTIF_ITER_NOTIF_NEW_PACKET,
+	BT_NOTIF_ITER_NOTIF_END_OF_PACKET,
+	BT_NOTIF_ITER_NOTIF_EVENT,
 };
 
-struct bt_ctf_notif_iter_notif {
-	enum bt_ctf_notif_iter_notif_type type;
+struct bt_notif_iter_notif {
+	enum bt_notif_iter_notif_type type;
 };
 
-struct bt_ctf_notif_iter_notif_new_packet {
-	struct bt_ctf_notif_iter_notif base;
-	struct bt_ctf_packet *packet;
+struct bt_notif_iter_notif_new_packet {
+	struct bt_notif_iter_notif base;
+	struct bt_packet *packet;
 };
 
-struct bt_ctf_notif_iter_notif_end_of_packet {
-	struct bt_ctf_notif_iter_notif base;
-	struct bt_ctf_packet *packet;
+struct bt_notif_iter_notif_end_of_packet {
+	struct bt_notif_iter_notif base;
+	struct bt_packet *packet;
 };
 
-struct bt_ctf_notif_iter_notif_event {
-	struct bt_ctf_notif_iter_notif base;
-	struct bt_ctf_event *event;
+struct bt_notif_iter_notif_event {
+	struct bt_notif_iter_notif base;
+	struct bt_event *event;
 };
 
 /**
@@ -269,7 +269,7 @@ struct bt_ctf_notif_iter_notif_event {
  * @param trace			Trace to read
  * @param max_request_sz	Maximum buffer size, in bytes, to
  *				request to
- *				bt_ctf_notif_iter_medium_ops::request_bytes()
+ *				bt_notif_iter_medium_ops::request_bytes()
  * 				at a time
  * @param medops		Medium operations
  * @param medops_data		User data (passed to medium operations)
@@ -277,8 +277,8 @@ struct bt_ctf_notif_iter_notif_event {
  *				success, or \c NULL on error
  */
 BT_HIDDEN
-struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
-	size_t max_request_sz, struct bt_ctf_notif_iter_medium_ops medops,
+struct bt_notif_iter *bt_notif_iter_create(struct bt_trace *trace,
+	size_t max_request_sz, struct bt_notif_iter_medium_ops medops,
 	void *medops_data);
 
 /**
@@ -289,17 +289,17 @@ struct bt_ctf_notif_iter *bt_ctf_notif_iter_create(struct bt_ctf_trace *trace,
  * @param notif_iter		CTF notification iterator
  */
 BT_HIDDEN
-void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notif_iter);
+void bt_notif_iter_destroy(struct bt_notif_iter *notif_iter);
 
 /**
  * Returns the next notification from a CTF notification iterator.
  *
- * Upon successful completion, #BT_CTF_NOTIF_ITER_STATUS_OK is
+ * Upon successful completion, #BT_NOTIF_ITER_STATUS_OK is
  * returned, and the next notification is written to \p notif.
  * In this case, the caller is responsible for calling
  * bt_notification_put() on the returned notification.
  *
- * If this function returns #BT_CTF_NOTIF_ITER_STATUS_AGAIN, the caller
+ * If this function returns #BT_NOTIF_ITER_STATUS_AGAIN, the caller
  * should make sure that data becomes available to its medium, and
  * call this function again, until another status is returned.
  *
@@ -307,12 +307,12 @@ void bt_ctf_notif_iter_destroy(struct bt_ctf_notif_iter *notif_iter);
  * @param cc_prio_map		Clock class priority map to use when
  *				creating an event notification
  * @param notification		Returned notification if the function's
- *				return value is #BT_CTF_NOTIF_ITER_STATUS_OK
- * @returns			One of #bt_ctf_notif_iter_status values
+ *				return value is #BT_NOTIF_ITER_STATUS_OK
+ * @returns			One of #bt_notif_iter_status values
  */
 BT_HIDDEN
-enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
-		struct bt_ctf_notif_iter *notit,
+enum bt_notif_iter_status bt_notif_iter_get_next_notification(
+		struct bt_notif_iter *notit,
 		struct bt_clock_class_priority_map *cc_prio_map,
 		struct bt_notification **notification);
 
@@ -326,70 +326,70 @@ enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_next_notification(
  *				no packet header field)
  * @param packet_context_field	Packet context field (\c NULL if there's
  *				no packet context field)
- * @returns			One of #bt_ctf_notif_iter_status values
+ * @returns			One of #bt_notif_iter_status values
  */
 BT_HIDDEN
-enum bt_ctf_notif_iter_status bt_ctf_notif_iter_get_packet_header_context_fields(
-		struct bt_ctf_notif_iter *notit,
-		struct bt_ctf_field **packet_header_field,
-		struct bt_ctf_field **packet_context_field);
+enum bt_notif_iter_status bt_notif_iter_get_packet_header_context_fields(
+		struct bt_notif_iter *notit,
+		struct bt_field **packet_header_field,
+		struct bt_field **packet_context_field);
 
 BT_HIDDEN
-void bt_ctf_notif_iter_set_medops_data(struct bt_ctf_notif_iter *notit,
+void bt_notif_iter_set_medops_data(struct bt_notif_iter *notit,
 		void *medops_data);
 
 BT_HIDDEN
-enum bt_ctf_notif_iter_status bt_ctf_notif_iter_seek(
-		struct bt_ctf_notif_iter *notit, off_t offset);
+enum bt_notif_iter_status bt_notif_iter_seek(
+		struct bt_notif_iter *notit, off_t offset);
 
 /*
  * Get the current packet's offset in bytes relative to the media's initial
  * position.
  */
 BT_HIDDEN
-off_t bt_ctf_notif_iter_get_current_packet_offset(
-		struct bt_ctf_notif_iter *notit);
+off_t bt_notif_iter_get_current_packet_offset(
+		struct bt_notif_iter *notit);
 
 /* Get the current packet's size (in bits). */
 BT_HIDDEN
-off_t bt_ctf_notif_iter_get_current_packet_size(
-		struct bt_ctf_notif_iter *notit);
+off_t bt_notif_iter_get_current_packet_size(
+		struct bt_notif_iter *notit);
 
 static inline
-const char *bt_ctf_notif_iter_medium_status_string(
-		enum bt_ctf_notif_iter_medium_status status)
+const char *bt_notif_iter_medium_status_string(
+		enum bt_notif_iter_medium_status status)
 {
 	switch (status) {
-	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF:
-		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF";
-	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN:
-		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN";
-	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL:
-		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_INVAL";
-	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR:
-		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR";
-	case BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK:
-		return "BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK";
+	case BT_NOTIF_ITER_MEDIUM_STATUS_EOF:
+		return "BT_NOTIF_ITER_MEDIUM_STATUS_EOF";
+	case BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN:
+		return "BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN";
+	case BT_NOTIF_ITER_MEDIUM_STATUS_INVAL:
+		return "BT_NOTIF_ITER_MEDIUM_STATUS_INVAL";
+	case BT_NOTIF_ITER_MEDIUM_STATUS_ERROR:
+		return "BT_NOTIF_ITER_MEDIUM_STATUS_ERROR";
+	case BT_NOTIF_ITER_MEDIUM_STATUS_OK:
+		return "BT_NOTIF_ITER_MEDIUM_STATUS_OK";
 	default:
 		return "(unknown)";
 	}
 }
 
 static inline
-const char *bt_ctf_notif_iter_status_string(
-		enum bt_ctf_notif_iter_status status)
+const char *bt_notif_iter_status_string(
+		enum bt_notif_iter_status status)
 {
 	switch (status) {
-	case BT_CTF_NOTIF_ITER_STATUS_EOF:
-		return "BT_CTF_NOTIF_ITER_STATUS_EOF";
-	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
-		return "BT_CTF_NOTIF_ITER_STATUS_AGAIN";
-	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
-		return "BT_CTF_NOTIF_ITER_STATUS_INVAL";
-	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
-		return "BT_CTF_NOTIF_ITER_STATUS_ERROR";
-	case BT_CTF_NOTIF_ITER_STATUS_OK:
-		return "BT_CTF_NOTIF_ITER_STATUS_OK";
+	case BT_NOTIF_ITER_STATUS_EOF:
+		return "BT_NOTIF_ITER_STATUS_EOF";
+	case BT_NOTIF_ITER_STATUS_AGAIN:
+		return "BT_NOTIF_ITER_STATUS_AGAIN";
+	case BT_NOTIF_ITER_STATUS_INVAL:
+		return "BT_NOTIF_ITER_STATUS_INVAL";
+	case BT_NOTIF_ITER_STATUS_ERROR:
+		return "BT_NOTIF_ITER_STATUS_ERROR";
+	case BT_NOTIF_ITER_STATUS_OK:
+		return "BT_NOTIF_ITER_STATUS_OK";
 	default:
 		return "(unknown)";
 	}

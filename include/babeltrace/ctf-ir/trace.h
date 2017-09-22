@@ -30,7 +30,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_ctf_visitor */
+/* For bt_visitor */
 #include <babeltrace/ctf-ir/visitor.h>
 
 /* For bt_bool */
@@ -41,7 +41,7 @@
 extern "C" {
 #endif
 
-struct bt_ctf_field_type;
+struct bt_field_type;
 struct bt_value;
 
 /**
@@ -58,9 +58,9 @@ traces.
 
 You can obtain a trace class in two different modes:
 
-- <strong>Normal mode</strong>: use bt_ctf_trace_create() to create a
+- <strong>Normal mode</strong>: use bt_trace_create() to create a
   default, empty trace class.
-- <strong>CTF writer mode</strong>: use bt_ctf_writer_get_trace() to
+- <strong>CTF writer mode</strong>: use bt_writer_get_trace() to
   get the trace class created by a given CTF writer object.
 
 A trace class has the following properties:
@@ -68,7 +68,7 @@ A trace class has the following properties:
 - A \b name.
 - A <strong>native byte order</strong>: all the
   \link ctfirfieldtypes field types\endlink eventually part of the trace
-  class with a byte order set to #BT_CTF_BYTE_ORDER_NATIVE have this
+  class with a byte order set to #BT_BYTE_ORDER_NATIVE have this
   "real" byte order.
 - A \b UUID.
 - An \b environment, which is a custom key-value mapping. Keys are
@@ -78,12 +78,12 @@ In the Babeltrace CTF IR system, a trace class contains zero or more
 \link ctfirstreamclass stream classes\endlink, and a stream class
 contains zero or more \link ctfireventclass event classes\endlink. You
 can add an event class to a stream class with
-bt_ctf_stream_class_add_event_class(). You can add a stream class to a
-trace class with bt_ctf_trace_add_stream_class().
+bt_stream_class_add_event_class(). You can add a stream class to a
+trace class with bt_trace_add_stream_class().
 
 You can access the streams of a trace, that is, the streams which were
-created from the trace's stream classes with bt_ctf_stream_create(),
-with bt_ctf_trace_get_stream_by_index().
+created from the trace's stream classes with bt_stream_create(),
+with bt_trace_get_stream_by_index().
 
 A trace class owns the <strong>trace packet header</strong>
 \link ctfirfieldtypes field type\endlink, which represents the
@@ -116,16 +116,16 @@ management of Babeltrace objects.
 The following functions \em freeze their trace class parameter on
 success:
 
-- bt_ctf_trace_add_stream_class()
-- bt_ctf_writer_create_stream()
+- bt_trace_add_stream_class()
+- bt_writer_create_stream()
   (\link ctfwriter CTF writer\endlink mode only)
 
 You cannot modify a frozen trace class: it is considered immutable,
 except for:
 
 - Adding a stream class to it with
-  bt_ctf_trace_add_stream_class().
-- Adding a CTF IR clock class to it with bt_ctf_trace_add_clock_class().
+  bt_trace_add_stream_class().
+- Adding a CTF IR clock class to it with bt_trace_add_clock_class().
 - \link refs Reference counting\endlink.
 
 @sa ctfirstreamclass
@@ -141,42 +141,42 @@ except for:
 */
 
 /**
-@struct bt_ctf_trace
+@struct bt_trace
 @brief A CTF IR trace class.
 @sa ctfirtraceclass
 */
-struct bt_ctf_trace;
-struct bt_ctf_stream;
-struct bt_ctf_stream_class;
-struct bt_ctf_clock_class;
+struct bt_trace;
+struct bt_stream;
+struct bt_stream_class;
+struct bt_clock_class;
 
 /**
 @brief	User function type to use with
-	bt_ctf_trace_add_is_static_listener().
+	bt_trace_add_is_static_listener().
 
 @param[in] trace_class	Trace class which is now static.
 @param[in] data		User data as passed to
-			bt_ctf_trace_add_is_static_listener() when
+			bt_trace_add_is_static_listener() when
 			you added the listener.
 
 @prenotnull{trace_class}
 */
-typedef void (* bt_ctf_trace_is_static_listener)(
-	struct bt_ctf_trace *trace_class, void *data);
+typedef void (* bt_trace_is_static_listener)(
+	struct bt_trace *trace_class, void *data);
 
 /**
 @brief	User function type to use with
-	bt_ctf_trace_add_is_static_listener().
+	bt_trace_add_is_static_listener().
 
 @param[in] trace_class	Trace class to which the listener was added.
 @param[in] data		User data as passed to
-			bt_ctf_trace_add_is_static_listener() when
+			bt_trace_add_is_static_listener() when
 			you added the listener.
 
 @prenotnull{trace_class}
 */
-typedef void (* bt_ctf_trace_listener_removed)(
-	struct bt_ctf_trace *trace_class, void *data);
+typedef void (* bt_trace_listener_removed)(
+	struct bt_trace *trace_class, void *data);
 
 /**
 @name Creation function
@@ -189,28 +189,28 @@ typedef void (* bt_ctf_trace_listener_removed)(
 On success, the trace packet header field type of the created trace
 class is an empty structure field type. You can modify this default
 trace packet header field type after the trace class is created with
-bt_ctf_trace_get_packet_header_type() and
-bt_ctf_trace_set_packet_header_type().
+bt_trace_get_packet_header_type() and
+bt_trace_set_packet_header_type().
 
 The created trace class has the following initial properties:
 
 - <strong>Name</strong>: none. You can set a name
-  with bt_ctf_trace_set_name().
+  with bt_trace_set_name().
 - <strong>UUID</strong>: none. You can set a UUID with
-  bt_ctf_trace_set_uuid().
-- <strong>Native byte order</strong>: #BT_CTF_BYTE_ORDER_UNSPECIFIED.
+  bt_trace_set_uuid().
+- <strong>Native byte order</strong>: #BT_BYTE_ORDER_UNSPECIFIED.
   You can set a native byte order with
-  bt_ctf_trace_set_native_byte_order().
+  bt_trace_set_native_byte_order().
 - <strong>Environment</strong>: empty. You can add environment entries
-  with bt_ctf_trace_set_environment_field(),
-  bt_ctf_trace_set_environment_field_integer(), and
-  bt_ctf_trace_set_environment_field_string().
+  with bt_trace_set_environment_field(),
+  bt_trace_set_environment_field_integer(), and
+  bt_trace_set_environment_field_string().
 
 @returns	Created trace class, or \c NULL on error.
 
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_trace *bt_ctf_trace_create(void);
+extern struct bt_trace *bt_trace_create(void);
 
 /** @} */
 
@@ -234,9 +234,9 @@ and is not modified.
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_set_name(): Sets the name of a given trace class.
+@sa bt_trace_set_name(): Sets the name of a given trace class.
 */
-extern const char *bt_ctf_trace_get_name(struct bt_ctf_trace *trace_class);
+extern const char *bt_trace_get_name(struct bt_trace *trace_class);
 
 /**
 @brief	Sets the name of the CTF IR trace class \p trace_class
@@ -251,9 +251,9 @@ extern const char *bt_ctf_trace_get_name(struct bt_ctf_trace *trace_class);
 @prehot{trace_class}
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_get_name(): Returns the name of a given trace class.
+@sa bt_trace_get_name(): Returns the name of a given trace class.
 */
-extern int bt_ctf_trace_set_name(struct bt_ctf_trace *trace_class,
+extern int bt_trace_set_name(struct bt_trace *trace_class,
 		const char *name);
 
 /**
@@ -263,16 +263,16 @@ extern int bt_ctf_trace_set_name(struct bt_ctf_trace *trace_class,
 @param[in] trace_class	Trace class of which to get the default byte
 			order.
 @returns		Native byte order of \p trace_class,
-			or #BT_CTF_BYTE_ORDER_UNKNOWN on error.
+			or #BT_BYTE_ORDER_UNKNOWN on error.
 
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_set_native_byte_order(): Sets the native byte order of
+@sa bt_trace_set_native_byte_order(): Sets the native byte order of
 	a given trace class.
 */
-extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
-		struct bt_ctf_trace *trace_class);
+extern enum bt_byte_order bt_trace_get_native_byte_order(
+		struct bt_trace *trace_class);
 
 /**
 @brief	Sets the native byte order of the CTF IR trace class
@@ -280,11 +280,11 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 
 \p native_byte_order \em must be one of:
 
-- #BT_CTF_BYTE_ORDER_LITTLE_ENDIAN
-- #BT_CTF_BYTE_ORDER_BIG_ENDIAN
-- #BT_CTF_BYTE_ORDER_NETWORK
+- #BT_BYTE_ORDER_LITTLE_ENDIAN
+- #BT_BYTE_ORDER_BIG_ENDIAN
+- #BT_BYTE_ORDER_NETWORK
 - <strong>If the trace is not in CTF writer mode<strong>,
-  #BT_CTF_BYTE_ORDER_UNSPECIFIED.
+  #BT_BYTE_ORDER_UNSPECIFIED.
 
 @param[in] trace_class		Trace class of which to set the native byte
 				order.
@@ -293,17 +293,17 @@ extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 
 @prenotnull{trace_class}
 @prehot{trace_class}
-@pre \p native_byte_order is either #BT_CTF_BYTE_ORDER_UNSPECIFIED (if the
+@pre \p native_byte_order is either #BT_BYTE_ORDER_UNSPECIFIED (if the
 	trace is not in CTF writer mode),
-	#BT_CTF_BYTE_ORDER_LITTLE_ENDIAN, #BT_CTF_BYTE_ORDER_BIG_ENDIAN, or
-	#BT_CTF_BYTE_ORDER_NETWORK.
+	#BT_BYTE_ORDER_LITTLE_ENDIAN, #BT_BYTE_ORDER_BIG_ENDIAN, or
+	#BT_BYTE_ORDER_NETWORK.
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_get_native_byte_order(): Returns the native byte order of a
+@sa bt_trace_get_native_byte_order(): Returns the native byte order of a
 	given trace class.
 */
-extern int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace_class,
-		enum bt_ctf_byte_order native_byte_order);
+extern int bt_trace_set_native_byte_order(struct bt_trace *trace_class,
+		enum bt_byte_order native_byte_order);
 
 /**
 @brief	Returns the UUID of the CTF IR trace class \p trace_class.
@@ -317,10 +317,10 @@ On success, the return value is an array of 16 bytes.
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_set_uuid(): Sets the UUID of a given trace class.
+@sa bt_trace_set_uuid(): Sets the UUID of a given trace class.
 */
-extern const unsigned char *bt_ctf_trace_get_uuid(
-		struct bt_ctf_trace *trace_class);
+extern const unsigned char *bt_trace_get_uuid(
+		struct bt_trace *trace_class);
 
 /**
 @brief  Sets the UUID of the CTF IR trace class \p trace_class to
@@ -339,9 +339,9 @@ extern const unsigned char *bt_ctf_trace_get_uuid(
 @pre \p uuid is an array of 16 bytes.
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_get_uuid(): Returns the UUID of a given trace class.
+@sa bt_trace_get_uuid(): Returns the UUID of a given trace class.
 */
-extern int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace_class,
+extern int bt_trace_set_uuid(struct bt_trace *trace_class,
 		const unsigned char *uuid);
 
 /**
@@ -357,8 +357,8 @@ extern int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int64_t bt_ctf_trace_get_environment_field_count(
-		struct bt_ctf_trace *trace_class);
+extern int64_t bt_trace_get_environment_field_count(
+		struct bt_trace *trace_class);
 
 /**
 @brief	Returns the field name of the environment entry at index
@@ -376,19 +376,19 @@ the returned string.
 
 @prenotnull{trace_class}
 @pre \p index is lesser than the number of environment entries in
-	\p trace_class (see bt_ctf_trace_get_environment_field_count()).
+	\p trace_class (see bt_trace_get_environment_field_count()).
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_get_environment_field_value_by_index(): Finds a trace class's
+@sa bt_trace_get_environment_field_value_by_index(): Finds a trace class's
 	environment entry by index.
-@sa bt_ctf_trace_get_environment_field_value_by_name(): Finds a trace
+@sa bt_trace_get_environment_field_value_by_name(): Finds a trace
 	class's environment entry by name.
-@sa bt_ctf_trace_set_environment_field(): Sets the value of a trace
+@sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
 extern const char *
-bt_ctf_trace_get_environment_field_name_by_index(
-		struct bt_ctf_trace *trace_class, uint64_t index);
+bt_trace_get_environment_field_name_by_index(
+		struct bt_trace *trace_class, uint64_t index);
 
 /**
 @brief	Returns the value of the environment entry at index
@@ -402,17 +402,17 @@ bt_ctf_trace_get_environment_field_name_by_index(
 
 @prenotnull{trace_class}
 @pre \p index is lesser than the number of environment entries in
-	\p trace_class (see bt_ctf_trace_get_environment_field_count()).
+	\p trace_class (see bt_trace_get_environment_field_count()).
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_environment_field_value_by_name(): Finds a trace
+@sa bt_trace_get_environment_field_value_by_name(): Finds a trace
 	class's environment entry by name.
-@sa bt_ctf_trace_set_environment_field(): Sets the value of a trace
+@sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
 extern struct bt_value *
-bt_ctf_trace_get_environment_field_value_by_index(struct bt_ctf_trace *trace_class,
+bt_trace_get_environment_field_value_by_index(struct bt_trace *trace_class,
 		uint64_t index);
 
 /**
@@ -431,14 +431,14 @@ bt_ctf_trace_get_environment_field_value_by_index(struct bt_ctf_trace *trace_cla
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_environment_field_value_by_index(): Finds a trace class's
+@sa bt_trace_get_environment_field_value_by_index(): Finds a trace class's
 	environment entry by index.
-@sa bt_ctf_trace_set_environment_field(): Sets the value of a trace
+@sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
 extern struct bt_value *
-bt_ctf_trace_get_environment_field_value_by_name(
-		struct bt_ctf_trace *trace_class, const char *name);
+bt_trace_get_environment_field_value_by_name(
+		struct bt_trace *trace_class, const char *name);
 
 /**
 @brief	Sets the environment entry named \p name in the
@@ -465,13 +465,13 @@ value is first put, and then replaced by \p value.
 @postrefcountsame{trace_class}
 @postsuccessrefcountinc{value}
 
-@sa bt_ctf_trace_get_environment_field_value_by_index(): Finds a trace class's
+@sa bt_trace_get_environment_field_value_by_index(): Finds a trace class's
 	environment entry by index.
-@sa bt_ctf_trace_get_environment_field_value_by_name(): Finds a trace
+@sa bt_trace_get_environment_field_value_by_name(): Finds a trace
 	class's environment entry by name.
 */
-extern int bt_ctf_trace_set_environment_field(
-		struct bt_ctf_trace *trace_class, const char *name,
+extern int bt_trace_set_environment_field(
+		struct bt_trace *trace_class, const char *name,
 		struct bt_value *value);
 
 /**
@@ -495,11 +495,11 @@ containing \p value.
 @prehot{trace_class}
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_set_environment_field(): Sets the value of a trace
+@sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
-extern int bt_ctf_trace_set_environment_field_integer(
-		struct bt_ctf_trace *trace_class, const char *name,
+extern int bt_trace_set_environment_field_integer(
+		struct bt_trace *trace_class, const char *name,
 		int64_t value);
 
 /**
@@ -525,11 +525,11 @@ containing \p value.
 @prehot{trace_class}
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_set_environment_field(): Sets the value of a trace
+@sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
-extern int bt_ctf_trace_set_environment_field_string(
-		struct bt_ctf_trace *trace_class, const char *name,
+extern int bt_trace_set_environment_field_string(
+		struct bt_trace *trace_class, const char *name,
 		const char *value);
 
 /** @} */
@@ -554,11 +554,11 @@ extern int bt_ctf_trace_set_environment_field_string(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_ctf_trace_set_packet_header_type(): Sets the packet
+@sa bt_trace_set_packet_header_type(): Sets the packet
 	header field type of a given trace class.
 */
-extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_type(
-		struct bt_ctf_trace *trace_class);
+extern struct bt_field_type *bt_trace_get_packet_header_type(
+		struct bt_trace *trace_class);
 
 /**
 @brief	Sets the packet header field type of the CTF IR trace class
@@ -586,11 +586,11 @@ As of Babeltrace \btversion, if \p packet_header_type is not \c NULL,
 @post <strong>On success, if \p packet_header_type is not \c NULL</strong>,
 	the reference count of \p packet_header_type is incremented.
 
-@sa bt_ctf_trace_get_packet_header_type(): Returns the packet
+@sa bt_trace_get_packet_header_type(): Returns the packet
 	header field type of a given trace class.
 */
-extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace_class,
-		struct bt_ctf_field_type *packet_header_type);
+extern int bt_trace_set_packet_header_type(struct bt_trace *trace_class,
+		struct bt_field_type *packet_header_type);
 
 /** @} */
 
@@ -612,8 +612,8 @@ extern int bt_ctf_trace_set_packet_header_type(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int64_t bt_ctf_trace_get_clock_class_count(
-		struct bt_ctf_trace *trace_class);
+extern int64_t bt_trace_get_clock_class_count(
+		struct bt_trace *trace_class);
 
 /**
 @brief  Returns the CTF IR clock class at index \p index in the CTF
@@ -629,16 +629,16 @@ extern int64_t bt_ctf_trace_get_clock_class_count(
 @prenotnull{trace_class}
 @pre \p index is lesser than the number of clock classes contained in
 	the trace class \p trace_class (see
-	bt_ctf_trace_get_clock_class_count()).
+	bt_trace_get_clock_class_count()).
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name
+@sa bt_trace_get_clock_class_by_name(): Finds a clock class by name
 	in a given trace class.
-@sa bt_ctf_trace_add_clock_class(): Adds a clock class to a trace class.
+@sa bt_trace_add_clock_class(): Adds a clock class to a trace class.
 */
-extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
-		struct bt_ctf_trace *trace_class, uint64_t index);
+extern struct bt_clock_class *bt_trace_get_clock_class_by_index(
+		struct bt_trace *trace_class, uint64_t index);
 
 /**
 @brief  Returns the CTF IR clock class named \c name found in the CTF
@@ -655,12 +655,12 @@ extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_clock_class_by_index(): Returns the clock class contained
+@sa bt_trace_get_clock_class_by_index(): Returns the clock class contained
 	in a given trace class at a given index.
-@sa bt_ctf_trace_add_clock_class(): Adds a clock class to a trace class.
+@sa bt_trace_add_clock_class(): Adds a clock class to a trace class.
 */
-extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
-		struct bt_ctf_trace *trace_class, const char *name);
+extern struct bt_clock_class *bt_trace_get_clock_class_by_name(
+		struct bt_trace *trace_class, const char *name);
 
 /**
 @brief	Adds the CTF IR clock class \p clock_class to the CTF IR
@@ -682,13 +682,13 @@ are frozen.
 @post <strong>On success, if \p trace_class is frozen</strong>,
 	\p clock_class is frozen.
 
-@sa bt_ctf_trace_get_clock_class_by_index(): Returns the clock class contained
+@sa bt_trace_get_clock_class_by_index(): Returns the clock class contained
 	in a given trace class at a given index.
-@sa bt_ctf_trace_get_clock_class_by_name(): Finds a clock class by name
+@sa bt_trace_get_clock_class_by_name(): Finds a clock class by name
 	in a given trace class.
 */
-extern int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace_class,
-		struct bt_ctf_clock_class *clock_class);
+extern int bt_trace_add_clock_class(struct bt_trace *trace_class,
+		struct bt_clock_class *clock_class);
 
 /** @} */
 
@@ -710,8 +710,8 @@ extern int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int64_t bt_ctf_trace_get_stream_class_count(
-		struct bt_ctf_trace *trace_class);
+extern int64_t bt_trace_get_stream_class_count(
+		struct bt_trace *trace_class);
 
 /**
 @brief  Returns the stream class at index \p index in the CTF IR trace
@@ -725,14 +725,14 @@ extern int64_t bt_ctf_trace_get_stream_class_count(
 @prenotnull{trace_class}
 @pre \p index is lesser than the number of stream classes contained in
 	the trace class \p trace_class (see
-	bt_ctf_trace_get_stream_class_count()).
+	bt_trace_get_stream_class_count()).
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_get_stream_class_by_id(): Finds a stream class by ID.
-@sa bt_ctf_trace_add_stream_class(): Adds a stream class to a trace class.
+@sa bt_trace_get_stream_class_by_id(): Finds a stream class by ID.
+@sa bt_trace_add_stream_class(): Adds a stream class to a trace class.
 */
-extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_index(
-		struct bt_ctf_trace *trace_class, uint64_t index);
+extern struct bt_stream_class *bt_trace_get_stream_class_by_index(
+		struct bt_trace *trace_class, uint64_t index);
 
 /**
 @brief  Returns the stream class with ID \c id found in the CTF IR
@@ -747,12 +747,12 @@ extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_index(
 @postrefcountsame{trace_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_trace_get_stream_class_by_index(): Returns the stream class contained
+@sa bt_trace_get_stream_class_by_index(): Returns the stream class contained
 	in a given trace class at a given index.
-@sa bt_ctf_trace_add_stream_class(): Adds a stream class to a trace class.
+@sa bt_trace_add_stream_class(): Adds a stream class to a trace class.
 */
-extern struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
-		struct bt_ctf_trace *trace_class, uint64_t id);
+extern struct bt_stream_class *bt_trace_get_stream_class_by_id(
+		struct bt_trace *trace_class, uint64_t id);
 
 /**
 @brief	Adds the CTF IR stream class \p stream_class to the
@@ -781,12 +781,12 @@ resolving fails, then this function fails.
 @postsuccessrefcountinc{stream_class}
 @postsuccessfrozen{stream_class}
 
-@sa bt_ctf_trace_get_stream_class_by_index(): Returns the stream class contained
+@sa bt_trace_get_stream_class_by_index(): Returns the stream class contained
 	in a given trace class at a given index.
-@sa bt_ctf_trace_get_stream_class_by_id(): Finds a stream class by ID.
+@sa bt_trace_get_stream_class_by_id(): Finds a stream class by ID.
 */
-extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace_class,
-		struct bt_ctf_stream_class *stream_class);
+extern int bt_trace_add_stream_class(struct bt_trace *trace_class,
+		struct bt_stream_class *stream_class);
 
 /** @} */
 
@@ -808,7 +808,7 @@ extern int bt_ctf_trace_add_stream_class(struct bt_ctf_trace *trace_class,
 @prenotnull{trace_class}
 @postrefcountsame{trace_class}
 */
-extern int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace_class);
+extern int64_t bt_trace_get_stream_count(struct bt_trace *trace_class);
 
 /**
 @brief  Returns the stream at index \p index in the CTF IR trace
@@ -822,11 +822,11 @@ extern int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace_class);
 @prenotnull{trace_class}
 @pre \p index is lesser than the number of streams contained in
 	the trace class \p trace_class (see
-	bt_ctf_trace_get_stream_count()).
+	bt_trace_get_stream_count()).
 @postrefcountsame{trace_class}
 */
-extern struct bt_ctf_stream *bt_ctf_trace_get_stream_by_index(
-		struct bt_ctf_trace *trace_class, uint64_t index);
+extern struct bt_stream *bt_trace_get_stream_by_index(
+		struct bt_trace *trace_class, uint64_t index);
 
 /** @} */
 
@@ -843,15 +843,15 @@ It is guaranteed that a static trace class will never contain new
 streams, stream classes, or clock classes. A static class is always
 frozen.
 
-This function returns #BT_TRUE if bt_ctf_trace_set_is_static() was
+This function returns #BT_TRUE if bt_trace_set_is_static() was
 previously called on it.
 
 @param[in] trace_class	Trace class to check.
 @returns		#BT_TRUE if \p trace_class is static,
 
-@sa bt_ctf_trace_set_is_static(): Makes a trace class static.
+@sa bt_trace_set_is_static(): Makes a trace class static.
 */
-extern bt_bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace_class);
+extern bt_bool bt_trace_is_static(struct bt_trace *trace_class);
 
 /**
 @brief	Makes the CTF IR trace class \p trace_class static.
@@ -859,14 +859,14 @@ extern bt_bool bt_ctf_trace_is_static(struct bt_ctf_trace *trace_class);
 A static trace class is frozen and you cannot call any modifying
 function on it:
 
-- bt_ctf_trace_add_stream_class()
-- bt_ctf_trace_add_clock_class()
-- bt_ctf_trace_set_environment_field()
-- bt_ctf_trace_set_environment_field_integer()
-- bt_ctf_trace_set_environment_field_string()
-- bt_ctf_trace_add_is_static_listener()
+- bt_trace_add_stream_class()
+- bt_trace_add_clock_class()
+- bt_trace_set_environment_field()
+- bt_trace_set_environment_field_integer()
+- bt_trace_set_environment_field_string()
+- bt_trace_add_is_static_listener()
 
-You cannot create a stream with bt_ctf_stream_create() with any of the
+You cannot create a stream with bt_stream_create() with any of the
 stream classes of a static trace class.
 
 @param[in] trace_class	Trace class to make static.
@@ -876,34 +876,34 @@ stream classes of a static trace class.
 @postrefcountsame{trace_class}
 @postsuccessfrozen{trace_class}
 
-@sa bt_ctf_trace_is_static(): Checks whether or not a given trace class
+@sa bt_trace_is_static(): Checks whether or not a given trace class
 	is static.
-@sa bt_ctf_trace_add_is_static_listener(): Adds a listener to a trace
+@sa bt_trace_add_is_static_listener(): Adds a listener to a trace
 	class which is called when the trace class is made static.
 */
-extern int bt_ctf_trace_set_is_static(struct bt_ctf_trace *trace_class);
+extern int bt_trace_set_is_static(struct bt_trace *trace_class);
 
 /**
 @brief  Adds the listener \p listener to the CTF IR trace class
 	\p trace_class which is called when the trace is made static.
 
 \p listener is called with \p data, the user data, the first time
-bt_ctf_trace_set_is_static() is called on \p trace_class.
+bt_trace_set_is_static() is called on \p trace_class.
 
 When the trace is destroyed, or when you remove the added listener with
-bt_ctf_trace_remove_is_static_listener(), \p listener_removed is called
+bt_trace_remove_is_static_listener(), \p listener_removed is called
 if it's not \c NULL. You can use \p listener_removed to free any dynamic
 data which exists only for the added listener. You cannot call
 any function which modifies \p trace_class during the execution of
-\p listener_removed, including bt_ctf_trace_remove_is_static_listener().
+\p listener_removed, including bt_trace_remove_is_static_listener().
 
 This function fails if \p trace_class is already static: you need to
-check the condition first with bt_ctf_trace_is_static().
+check the condition first with bt_trace_is_static().
 
 On success, this function returns a unique numeric identifier for this
 listener within \p trace. You can use this identifier to remove the
 specific listener you added with
-bt_ctf_trace_remove_is_static_listener().
+bt_trace_remove_is_static_listener().
 
 @param[in] trace_class		Trace class to which to add the
 				listener.
@@ -923,17 +923,17 @@ bt_ctf_trace_remove_is_static_listener().
 @pre \p trace_class is not static.
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_remove_is_static_listener(): Removes a "trace is
+@sa bt_trace_remove_is_static_listener(): Removes a "trace is
 	static" listener from a trace class previously added with this
 	function.
-@sa bt_ctf_trace_is_static(): Checks whether or not a given trace class
+@sa bt_trace_is_static(): Checks whether or not a given trace class
 	is static.
-@sa bt_ctf_trace_set_is_static(): Makes a trace class static.
+@sa bt_trace_set_is_static(): Makes a trace class static.
 */
-extern int bt_ctf_trace_add_is_static_listener(
-		struct bt_ctf_trace *trace_class,
-		bt_ctf_trace_is_static_listener listener,
-		bt_ctf_trace_listener_removed listener_removed, void *data);
+extern int bt_trace_add_is_static_listener(
+		struct bt_trace *trace_class,
+		bt_trace_is_static_listener listener,
+		bt_trace_listener_removed listener_removed, void *data);
 
 /**
 @brief  Removes the "trace is static" listener identified by
@@ -948,15 +948,15 @@ extern int bt_ctf_trace_add_is_static_listener(
 
 @prenotnull{trace_class}
 @pre \p listener_id is the identifier of a listener that you previously
-	added with bt_ctf_trace_add_is_static_listener() and did not
+	added with bt_trace_add_is_static_listener() and did not
 	already remove with this function.
 @postrefcountsame{trace_class}
 
-@sa bt_ctf_trace_add_is_static_listener(): Adds a listener to a trace
+@sa bt_trace_add_is_static_listener(): Adds a listener to a trace
 	class which is called when the trace class is made static.
 */
-extern int bt_ctf_trace_remove_is_static_listener(
-		struct bt_ctf_trace *trace_class, int listener_id);
+extern int bt_trace_remove_is_static_listener(
+		struct bt_trace *trace_class, int listener_id);
 
 /**
 @brief	Accepts the visitor \p visitor to visit the hierarchy of the
@@ -976,12 +976,15 @@ class, the stream class itself, and all its children event classes.
 @prenotnull{trace_class}
 @prenotnull{visitor}
 */
-extern int bt_ctf_trace_visit(struct bt_ctf_trace *trace_class,
-		bt_ctf_visitor visitor, void *data);
+extern int bt_trace_visit(struct bt_trace *trace_class,
+		bt_visitor visitor, void *data);
 
 /** @} */
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_trace bt_trace
 
 #ifdef __cplusplus
 }

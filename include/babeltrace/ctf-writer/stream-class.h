@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 /*
- * bt_ctf_stream_class_set_clock: assign a clock to a stream class.
+ * bt_stream_class_set_clock: assign a clock to a stream class.
  *
  * Assign a clock to a stream class. This clock will be sampled each time an
  * event is appended to an instance of this stream class.
@@ -47,29 +47,16 @@ extern "C" {
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_stream_class_set_clock(
-		struct bt_ctf_stream_class *stream_class,
+extern int bt_stream_class_set_clock(
+		struct bt_stream_class *stream_class,
 		struct bt_ctf_clock *clock);
 
-extern struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
-        struct bt_ctf_stream_class *stream_class);
+extern struct bt_ctf_clock *bt_stream_class_get_clock(
+        struct bt_stream_class *stream_class);
 
-/*
- * bt_ctf_stream_class_get and bt_ctf_stream_class_put: increment and
- * decrement the stream class' reference count.
- *
- * You may also use bt_ctf_get() and bt_ctf_put() with stream class objects.
- *
- * These functions ensure that the stream class won't be destroyed while it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy a stream class.
- *
- * When the stream class' reference count is decremented to 0 by a
- * bt_ctf_stream_class_put, the stream class is freed.
- *
- * @param stream_class Stream class.
- */
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_stream_class_set_clock bt_stream_class_set_clock
+
 extern void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 extern void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);
 

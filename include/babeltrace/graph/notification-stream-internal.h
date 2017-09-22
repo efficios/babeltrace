@@ -33,16 +33,16 @@
 
 struct bt_notification_stream_begin {
 	struct bt_notification parent;
-	struct bt_ctf_stream *stream;
+	struct bt_stream *stream;
 };
 
 struct bt_notification_stream_end {
 	struct bt_notification parent;
-	struct bt_ctf_stream *stream;
+	struct bt_stream *stream;
 };
 
 static inline
-struct bt_ctf_stream *bt_notification_stream_begin_borrow_stream(
+struct bt_stream *bt_notification_stream_begin_borrow_stream(
 		struct bt_notification *notif)
 {
 	struct bt_notification_stream_begin *notif_stream_begin =
@@ -54,7 +54,7 @@ struct bt_ctf_stream *bt_notification_stream_begin_borrow_stream(
 }
 
 static inline
-struct bt_ctf_stream *bt_notification_stream_end_borrow_stream(
+struct bt_stream *bt_notification_stream_end_borrow_stream(
 		struct bt_notification *notif)
 {
 	struct bt_notification_stream_end *notif_stream_end =

@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 struct bt_value;
-struct bt_ctf_clock_class;
+struct bt_clock_class;
 
 /**
 @defgroup ctfirevent CTF IR event
@@ -69,7 +69,7 @@ As a reminder, here's the structure of a CTF packet:
 
 You can create a CTF IR event \em from a
 \link ctfireventclass CTF IR event class\endlink with
-bt_ctf_event_create(). The event class you use to create an event
+bt_event_create(). The event class you use to create an event
 object becomes its parent.
 
 If the \link ctfirtraceclass CTF IR trace class\endlink of an event
@@ -78,19 +78,19 @@ which is the parent of its event class) was created by a
 \link ctfwriter CTF writer\endlink object, then the only possible
 action you can do with this event object is to append it to a
 \link ctfirstream CTF IR stream\endlink with
-bt_ctf_stream_append_event(). Otherwise, you can create an event
+bt_stream_append_event(). Otherwise, you can create an event
 notification with bt_notification_event_create(). The event you pass
 to this function \em must have an attached packet object first.
 
 You can attach a \link ctfirpacket CTF IR packet object\endlink to an
-event object with bt_ctf_event_set_packet().
+event object with bt_event_set_packet().
 
 A CTF IR event has a mapping of
 \link ctfirclockvalue CTF IR clock values\endlink. A clock value is
 an instance of a specific
 \link ctfirclockclass CTF IR clock class\endlink when the event is
 emitted. You can set an event object's clock value with
-bt_ctf_event_set_clock_value().
+bt_event_set_clock_value().
 
 As with any Babeltrace object, CTF IR event objects have
 <a href="https://en.wikipedia.org/wiki/Reference_counting">reference
@@ -113,18 +113,18 @@ immutable, except for \link refs reference counting\endlink.
 */
 
 /**
-@struct bt_ctf_event
+@struct bt_event
 @brief A CTF IR event.
 @sa ctfirevent
 */
-struct bt_ctf_event;
-struct bt_ctf_clock;
-struct bt_ctf_clock_value;
-struct bt_ctf_event_class;
-struct bt_ctf_field;
-struct bt_ctf_field_type;
-struct bt_ctf_stream_class;
-struct bt_ctf_packet;
+struct bt_event;
+struct bt_clock;
+struct bt_clock_value;
+struct bt_event_class;
+struct bt_field;
+struct bt_field_type;
+struct bt_stream_class;
+struct bt_packet;
 
 /**
 @name Creation and parent access functions
@@ -139,9 +139,9 @@ struct bt_ctf_packet;
 \link ctfirstreamclass CTF IR stream class\endlink.
 
 On success, the four fields of the created event object are not set. You
-can set them with bt_ctf_event_set_header(),
-bt_ctf_event_set_stream_event_context(),
-bt_ctf_event_set_event_context(), and bt_ctf_event_set_event_payload().
+can set them with bt_event_set_header(),
+bt_event_set_stream_event_context(),
+bt_event_set_event_context(), and bt_event_set_event_payload().
 
 This function tries to resolve the needed
 \link ctfirfieldtypes CTF IR field type\endlink of the dynamic field
@@ -152,7 +152,7 @@ this function fails. This means that, if any dynamic field type need
 a field type which should be found in the trace packet header root
 field type, and if the parent stream class of \p event_class was not
 added to a \link ctfirtraceclass CTF IR trace class\endlink yet
-with bt_ctf_trace_add_stream_class(), then this function fails.
+with bt_trace_add_stream_class(), then this function fails.
 
 @param[in] event_class	CTF IR event class to use to create the
 			CTF IR event.
@@ -162,15 +162,15 @@ with bt_ctf_trace_add_stream_class(), then this function fails.
 @pre \p event_class has a parent stream class.
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_event *bt_ctf_event_create(
-		struct bt_ctf_event_class *event_class);
+extern struct bt_event *bt_event_create(
+		struct bt_event_class *event_class);
 
 /**
 @brief	Returns the parent CTF IR event class of the CTF IR event
 	\p event.
 
 This function returns a reference to the event class which was used to
-create the event object in the first place with bt_ctf_event_create().
+create the event object in the first place with bt_event_create().
 
 @param[in] event	Event of which to get the parent event class.
 @returns		Parent event class of \p event,
@@ -180,15 +180,15 @@ create the event object in the first place with bt_ctf_event_create().
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_event_class *bt_ctf_event_get_class(
-		struct bt_ctf_event *event);
+extern struct bt_event_class *bt_event_get_class(
+		struct bt_event *event);
 
 /**
 @brief	Returns the CTF IR packet associated to the CTF IR event
 	\p event.
 
 This function returns a reference to the event class which was set to
-\p event in the first place with bt_ctf_event_set_packet().
+\p event in the first place with bt_event_set_packet().
 
 @param[in] event	Event of which to get the associated packet.
 @returns		Packet associated to \p event,
@@ -199,11 +199,11 @@ This function returns a reference to the event class which was set to
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_packet(): Associates a given event to a given
+@sa bt_event_set_packet(): Associates a given event to a given
 	packet.
 */
-extern struct bt_ctf_packet *bt_ctf_event_get_packet(
-		struct bt_ctf_event *event);
+extern struct bt_packet *bt_event_get_packet(
+		struct bt_event *event);
 
 /**
 @brief	Associates the CTF IR event \p event to the CTF IR packet
@@ -213,7 +213,7 @@ The \link ctfirstreamclass CTF IR stream class\endlink of the
 parent \link ctfirstream CTF IR stream\endlink of \p packet \em must
 be the same as the parent stream class of the
 \link ctfireventclass CTF IR event class\endlink returned
-by bt_ctf_event_get_class() for \p event.
+by bt_event_get_class() for \p event.
 
 You \em must call this function to create an event-packet association
 before you call bt_notification_event_create() with \p event.
@@ -232,11 +232,11 @@ On success, this function also sets the parent stream object of
 	stream class of \p event.
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_get_packet(): Returns the associated packet of a
+@sa bt_event_get_packet(): Returns the associated packet of a
 	given event object.
 */
-extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
-		struct bt_ctf_packet *packet);
+extern int bt_event_set_packet(struct bt_event *event,
+		struct bt_packet *packet);
 
 /**
 @brief	Returns the parent CTF IR stream associated to the CTF IR event
@@ -249,8 +249,8 @@ extern int bt_ctf_event_set_packet(struct bt_ctf_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_stream *bt_ctf_event_get_stream(
-		struct bt_ctf_event *event);
+extern struct bt_stream *bt_event_get_stream(
+		struct bt_event *event);
 
 /** @} */
 
@@ -273,11 +273,11 @@ extern struct bt_ctf_stream *bt_ctf_event_get_stream(
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_get_header(): Sets the stream event header
+@sa bt_event_get_header(): Sets the stream event header
 	field of a given event.
 */
-extern struct bt_ctf_field *bt_ctf_event_get_header(
-		struct bt_ctf_event *event);
+extern struct bt_field *bt_event_get_header(
+		struct bt_event *event);
 
 /**
 @brief	Sets the stream event header field of the CTF IR event
@@ -285,8 +285,8 @@ extern struct bt_ctf_field *bt_ctf_event_get_header(
 	from \p event.
 
 If \p header is not \c NULL, the field type of \p header, as returned by
-bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
-bt_ctf_stream_class_get_event_header_type() for the parent stream class
+bt_field_get_type(), \em must be equivalent to the field type returned by
+bt_stream_class_get_event_header_type() for the parent stream class
 of \p event.
 
 @param[in] event	Event of which to set the stream event header
@@ -297,17 +297,17 @@ of \p event.
 @prenotnull{event}
 @prehot{event}
 @pre <strong>\p header, if not \c NULL</strong>, has a field type equivalent to
-	the field type returned by bt_ctf_stream_class_get_event_header_type()
+	the field type returned by bt_stream_class_get_event_header_type()
 	for the parent stream class of \p event.
 @postrefcountsame{event}
 @post <strong>On success, if \p header is not \c NULL</strong>,
 	the reference count of \p header is incremented.
 
-@sa bt_ctf_event_get_header(): Returns the stream event header field
+@sa bt_event_get_header(): Returns the stream event header field
 	of a given event.
 */
-extern int bt_ctf_event_set_header(struct bt_ctf_event *event,
-		struct bt_ctf_field *header);
+extern int bt_event_set_header(struct bt_event *event,
+		struct bt_field *header);
 
 /**
 @brief	Returns the stream event context field of the CTF IR event
@@ -323,11 +323,11 @@ extern int bt_ctf_event_set_header(struct bt_ctf_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_stream_event_context(): Sets the stream event context
+@sa bt_event_set_stream_event_context(): Sets the stream event context
 	field of a given event.
 */
-extern struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
-		struct bt_ctf_event *event);
+extern struct bt_field *bt_event_get_stream_event_context(
+		struct bt_event *event);
 
 /**
 @brief	Sets the stream event context field of the CTF IR event
@@ -335,8 +335,8 @@ extern struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 	from \p event.
 
 If \p context is not \c NULL, the field type of \p context, as returned by
-bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
-bt_ctf_stream_class_get_event_context_type() for the parent stream class
+bt_field_get_type(), \em must be equivalent to the field type returned by
+bt_stream_class_get_event_context_type() for the parent stream class
 of \p event.
 
 @param[in] event	Event of which to set the stream event context field.
@@ -346,17 +346,17 @@ of \p event.
 @prenotnull{event}
 @prehot{event}
 @pre <strong>\p context, if not \c NULL</strong>, has a field type equivalent to
-	the field type returned by bt_ctf_stream_class_get_event_context_type()
+	the field type returned by bt_stream_class_get_event_context_type()
 	for the parent stream class of \p event.
 @postrefcountsame{event}
 @post <strong>On success, if \p context is not \c NULL</strong>, the reference
 	count of \p context is incremented.
 
-@sa bt_ctf_event_get_stream_event_context(): Returns the stream event context
+@sa bt_event_get_stream_event_context(): Returns the stream event context
 	field of a given event.
 */
-extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
-		struct bt_ctf_field *context);
+extern int bt_event_set_stream_event_context(struct bt_event *event,
+		struct bt_field *context);
 
 /**
 @brief	Returns the event context field of the CTF IR event \p event.
@@ -369,19 +369,19 @@ extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_event_context(): Sets the event context field of a given
+@sa bt_event_set_event_context(): Sets the event context field of a given
 	event.
 */
-extern struct bt_ctf_field *bt_ctf_event_get_event_context(
-		struct bt_ctf_event *event);
+extern struct bt_field *bt_event_get_event_context(
+		struct bt_event *event);
 
 /**
 @brief	Sets the event context field of the CTF IR event \p event to \p context,
 	or unsets the current event context field from \p event.
 
 If \p context is not \c NULL, the field type of \p context, as returned by
-bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
-bt_ctf_event_class_get_context_type() for the parent class of \p event.
+bt_field_get_type(), \em must be equivalent to the field type returned by
+bt_event_class_get_context_type() for the parent class of \p event.
 
 @param[in] event	Event of which to set the context field.
 @param[in] context	Event context field.
@@ -390,16 +390,16 @@ bt_ctf_event_class_get_context_type() for the parent class of \p event.
 @prenotnull{event}
 @prehot{event}
 @pre <strong>\p context, if not \c NULL</strong>, has a field type equivalent to
-	the field type returned by bt_ctf_event_class_get_context_type() for the
+	the field type returned by bt_event_class_get_context_type() for the
 	parent class of \p event.
 @postrefcountsame{event}
 @post <strong>On success, if \p context is not \c NULL</strong>, the reference
 	count of \p context is incremented.
 
-@sa bt_ctf_event_get_context(): Returns the context field of a given event.
+@sa bt_event_get_context(): Returns the context field of a given event.
 */
-extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
-		struct bt_ctf_field *context);
+extern int bt_event_set_event_context(struct bt_event *event,
+		struct bt_field *context);
 
 /**
 @brief	Returns the payload field of the CTF IR event \p event.
@@ -412,19 +412,19 @@ extern int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_event_payload(): Sets the payload field of a given
+@sa bt_event_set_event_payload(): Sets the payload field of a given
 	event.
 */
-extern struct bt_ctf_field *bt_ctf_event_get_event_payload(
-		struct bt_ctf_event *event);
+extern struct bt_field *bt_event_get_event_payload(
+		struct bt_event *event);
 
 /**
 @brief	Sets the payload field of the CTF IR event \p event to \p payload,
 	or unsets the current event payload field from \p event.
 
 If \p payload is not \c NULL, the field type of \p payload, as returned by
-bt_ctf_field_get_type(), \em must be equivalent to the field type returned by
-bt_ctf_event_class_get_payload_type() for the parent class of \p event.
+bt_field_get_type(), \em must be equivalent to the field type returned by
+bt_event_class_get_payload_type() for the parent class of \p event.
 
 @param[in] event	Event of which to set the payload field.
 @param[in] payload	Event payload field.
@@ -433,23 +433,23 @@ bt_ctf_event_class_get_payload_type() for the parent class of \p event.
 @prenotnull{event}
 @prehot{event}
 @pre <strong>\p payload, if not \c NULL</strong>, has a field type equivalent to
-	the field typereturned by bt_ctf_event_class_get_payload_type() for the
+	the field typereturned by bt_event_class_get_payload_type() for the
 	parent class of \p event.
 @postrefcountsame{event}
 @post <strong>On success, if \p payload is not \c NULL</strong>, the reference
 	count of \p payload is incremented.
 
-@sa bt_ctf_event_get_payload(): Returns the payload field of a given event.
+@sa bt_event_get_payload(): Returns the payload field of a given event.
 */
-extern int bt_ctf_event_set_event_payload(struct bt_ctf_event *event,
-		struct bt_ctf_field *payload);
+extern int bt_event_set_event_payload(struct bt_event *event,
+		struct bt_field *payload);
 
 /** @cond DOCUMENT */
 
 /*
  * TODO: Doxygenize.
  *
- * bt_ctf_event_get_payload: get an event's field.
+ * bt_event_get_payload: get an event's field.
  *
  * Returns the field matching "name". bt_put() must be called on the
  * returned value.
@@ -463,13 +463,13 @@ extern int bt_ctf_event_set_event_payload(struct bt_ctf_event *event,
  *	name assuming the event's payload is a structure. This will return
  *	the raw payload instance if name is NULL.
  */
-extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
+extern struct bt_field *bt_event_get_payload(struct bt_event *event,
 		const char *name);
 
 /*
  * TODO: Doxygenize.
  *
- * bt_ctf_event_get_payload_by_index: Get event's field by index.
+ * bt_event_get_payload_by_index: Get event's field by index.
  *
  * Returns the field associated with the provided index. bt_put()
  * must be called on the returned value. The indexes to be provided are
@@ -482,13 +482,13 @@ extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
  *
  * Note: Will return an error if the payload's type is not a structure.
  */
-extern struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
-		struct bt_ctf_event *event, uint64_t index);
+extern struct bt_field *bt_event_get_payload_by_index(
+		struct bt_event *event, uint64_t index);
 
 /*
  * TODO: Doxygenize.
  *
- * bt_ctf_event_set_payload: set an event's field.
+ * bt_event_set_payload: set an event's field.
  *
  * Set a manually allocated field as an event's payload. The event will share
  * the field's ownership by using its reference count.
@@ -504,9 +504,9 @@ extern struct bt_ctf_field *bt_ctf_event_get_payload_by_index(
  *	type is not a structure. If name is NULL, the payload field will be set
  *	directly and must match the event class' payload's type.
  */
-extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
+extern int bt_event_set_payload(struct bt_event *event,
 		const char *name,
-		struct bt_ctf_field *value);
+		struct bt_field *value);
 
 /** @endcond */
 
@@ -534,11 +534,11 @@ extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
 @postrefcountsame{clock_class}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_event_set_clock_value(): Sets the clock value of a given event.
+@sa bt_event_set_clock_value(): Sets the clock value of a given event.
 */
-extern struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
-		struct bt_ctf_event *event,
-		struct bt_ctf_clock_class *clock_class);
+extern struct bt_clock_value *bt_event_get_clock_value(
+		struct bt_event *event,
+		struct bt_clock_class *clock_class);
 
 /**
 @brief	Sets the value, as of the CTF IR event \p event, of the
@@ -556,16 +556,22 @@ extern struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
 @prehot{event}
 @postrefcountsame{event}
 
-@sa bt_ctf_event_get_clock_value(): Returns the clock value of
+@sa bt_event_get_clock_value(): Returns the clock value of
 	a given event.
 */
-extern int bt_ctf_event_set_clock_value(
-		struct bt_ctf_event *event,
-		struct bt_ctf_clock_value *clock_value);
+extern int bt_event_set_clock_value(
+		struct bt_event *event,
+		struct bt_clock_value *clock_value);
 
 /** @} */
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_event bt_event
+#define bt_ctf_event_create bt_event_create
+#define bt_ctf_event_get_payload bt_event_get_payload
+#define bt_ctf_event_set_payload bt_event_set_payload
 
 #ifdef __cplusplus
 }

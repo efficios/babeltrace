@@ -56,35 +56,35 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
-	struct bt_ctf_trace *trace;
-	struct bt_ctf_stream_class *stream_class;
-	struct bt_ctf_event_class *event_class;
-	struct bt_ctf_stream *stream;
-	struct bt_ctf_packet *packet;
-	struct bt_ctf_clock_class *clock_class;
+	struct bt_trace *trace;
+	struct bt_stream_class *stream_class;
+	struct bt_event_class *event_class;
+	struct bt_stream *stream;
+	struct bt_packet *packet;
+	struct bt_clock_class *clock_class;
 	struct bt_clock_class_priority_map *cc_prio_map;
 };
 
 static
-struct bt_ctf_field_type *create_packet_header_ft(void)
+struct bt_field_type *create_packet_header_ft(void)
 {
-	struct bt_ctf_field_type *root_ft = NULL;
-	struct bt_ctf_field_type *ft = NULL;
+	struct bt_field_type *root_ft = NULL;
+	struct bt_field_type *ft = NULL;
 	int ret;
 
-	root_ft = bt_ctf_field_type_structure_create();
+	root_ft = bt_field_type_structure_create();
 	if (!root_ft) {
 		BT_LOGE_STR("Cannot create an empty structure field type object.");
 		goto error;
 	}
 
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	if (!ft) {
 		BT_LOGE_STR("Cannot create an integer field type object.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(root_ft, ft, "magic");
+	ret = bt_field_type_structure_add_field(root_ft, ft, "magic");
 	if (ret) {
 		BT_LOGE("Cannot add `magic` field type to structure field type: "
 			"ret=%d", ret);
@@ -92,7 +92,7 @@ struct bt_ctf_field_type *create_packet_header_ft(void)
 	}
 
 	BT_PUT(ft);
-	ft = bt_ctf_field_type_integer_create(8);
+	ft = bt_field_type_integer_create(8);
 	if (!ft) {
 		BT_LOGE_STR("Cannot create an integer field type object.");
 		goto error;
@@ -109,25 +109,25 @@ end:
 }
 
 static
-struct bt_ctf_field_type *create_packet_context_ft(void)
+struct bt_field_type *create_packet_context_ft(void)
 {
-	struct bt_ctf_field_type *root_ft = NULL;
-	struct bt_ctf_field_type *ft = NULL;
+	struct bt_field_type *root_ft = NULL;
+	struct bt_field_type *ft = NULL;
 	int ret;
 
-	root_ft = bt_ctf_field_type_structure_create();
+	root_ft = bt_field_type_structure_create();
 	if (!root_ft) {
 		BT_LOGE_STR("Cannot create an empty structure field type object.");
 		goto error;
 	}
 
-	ft = bt_ctf_field_type_integer_create(64);
+	ft = bt_field_type_integer_create(64);
 	if (!ft) {
 		BT_LOGE_STR("Cannot create an integer field type object.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(root_ft,
+	ret = bt_field_type_structure_add_field(root_ft,
 		ft, "content_size");
 	if (ret) {
 		BT_LOGE("Cannot add `content_size` field type to structure field type: "
@@ -136,13 +136,13 @@ struct bt_ctf_field_type *create_packet_context_ft(void)
 	}
 
 	BT_PUT(ft);
-	ft = bt_ctf_field_type_integer_create(64);
+	ft = bt_field_type_integer_create(64);
 	if (!ft) {
 		BT_LOGE_STR("Cannot create an integer field type object.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(root_ft,
+	ret = bt_field_type_structure_add_field(root_ft,
 		ft, "packet_size");
 	if (ret) {
 		BT_LOGE("Cannot add `packet_size` field type to structure field type: "
@@ -161,33 +161,33 @@ end:
 }
 
 static
-struct bt_ctf_field_type *create_event_header_ft(
-		struct bt_ctf_clock_class *clock_class)
+struct bt_field_type *create_event_header_ft(
+		struct bt_clock_class *clock_class)
 {
-	struct bt_ctf_field_type *root_ft = NULL;
-	struct bt_ctf_field_type *ft = NULL;
+	struct bt_field_type *root_ft = NULL;
+	struct bt_field_type *ft = NULL;
 	int ret;
 
-	root_ft = bt_ctf_field_type_structure_create();
+	root_ft = bt_field_type_structure_create();
 	if (!root_ft) {
 		BT_LOGE_STR("Cannot create an empty structure field type object.");
 		goto error;
 	}
 
-	ft = bt_ctf_field_type_integer_create(64);
+	ft = bt_field_type_integer_create(64);
 	if (!ft) {
 		BT_LOGE_STR("Cannot create an integer field type object.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_integer_set_mapped_clock_class(ft, clock_class);
+	ret = bt_field_type_integer_set_mapped_clock_class(ft, clock_class);
 	if (ret) {
 		BT_LOGE("Cannot map integer field type to clock class: "
 			"ret=%d", ret);
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(root_ft,
+	ret = bt_field_type_structure_add_field(root_ft,
 		ft, "timestamp");
 	if (ret) {
 		BT_LOGE("Cannot add `timestamp` field type to structure field type: "
@@ -206,25 +206,25 @@ end:
 }
 
 static
-struct bt_ctf_field_type *create_event_payload_ft(void)
+struct bt_field_type *create_event_payload_ft(void)
 {
-	struct bt_ctf_field_type *root_ft = NULL;
-	struct bt_ctf_field_type *ft = NULL;
+	struct bt_field_type *root_ft = NULL;
+	struct bt_field_type *ft = NULL;
 	int ret;
 
-	root_ft = bt_ctf_field_type_structure_create();
+	root_ft = bt_field_type_structure_create();
 	if (!root_ft) {
 		BT_LOGE_STR("Cannot create an empty structure field type object.");
 		goto error;
 	}
 
-	ft = bt_ctf_field_type_string_create();
+	ft = bt_field_type_string_create();
 	if (!ft) {
 		BT_LOGE_STR("Cannot create a string field type object.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_type_structure_add_field(root_ft,
+	ret = bt_field_type_structure_add_field(root_ft,
 		ft, "str");
 	if (ret) {
 		BT_LOGE("Cannot add `str` field type to structure field type: "
@@ -243,20 +243,20 @@ end:
 }
 
 static
-struct bt_ctf_clock_class *create_clock_class(void)
+struct bt_clock_class *create_clock_class(void)
 {
-	return bt_ctf_clock_class_create("the_clock", 1000000000);
+	return bt_clock_class_create("the_clock", 1000000000);
 }
 
 static
 int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 {
-	struct bt_ctf_field_type *ft = NULL;
+	struct bt_field_type *ft = NULL;
 	const char *trace_name = NULL;
 	gchar *basename = NULL;
 	int ret = 0;
 
-	dmesg_comp->trace = bt_ctf_trace_create();
+	dmesg_comp->trace = bt_trace_create();
 	if (!dmesg_comp->trace) {
 		BT_LOGE_STR("Cannot create an empty trace object.");
 		goto error;
@@ -268,7 +268,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_ctf_trace_set_packet_header_type(dmesg_comp->trace, ft);
+	ret = bt_trace_set_packet_header_type(dmesg_comp->trace, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set trace's packet header field type.");
 		goto error;
@@ -287,14 +287,14 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	}
 
 	if (trace_name) {
-		ret = bt_ctf_trace_set_name(dmesg_comp->trace, trace_name);
+		ret = bt_trace_set_name(dmesg_comp->trace, trace_name);
 		if (ret) {
 			BT_LOGE("Cannot set trace's name: name=\"%s\"", trace_name);
 			goto error;
 		}
 	}
 
-	dmesg_comp->stream_class = bt_ctf_stream_class_create_empty(NULL);
+	dmesg_comp->stream_class = bt_stream_class_create_empty(NULL);
 	if (!dmesg_comp->stream_class) {
 		BT_LOGE_STR("Cannot create an empty stream class object.");
 		goto error;
@@ -307,7 +307,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_ctf_stream_class_set_packet_context_type(
+	ret = bt_stream_class_set_packet_context_type(
 		dmesg_comp->stream_class, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set stream class's packet context field type.");
@@ -327,7 +327,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			goto error;
 		}
 
-		ret = bt_ctf_trace_add_clock_class(dmesg_comp->trace,
+		ret = bt_trace_add_clock_class(dmesg_comp->trace,
 			dmesg_comp->clock_class);
 		if (ret) {
 			BT_LOGE_STR("Cannot add clock class to trace.");
@@ -348,7 +348,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			goto error;
 		}
 
-		ret = bt_ctf_stream_class_set_event_header_type(
+		ret = bt_stream_class_set_event_header_type(
 			dmesg_comp->stream_class, ft);
 		if (ret) {
 			BT_LOGE_STR("Cannot set stream class's event header field type.");
@@ -356,7 +356,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		}
 	}
 
-	dmesg_comp->event_class = bt_ctf_event_class_create("string");
+	dmesg_comp->event_class = bt_event_class_create("string");
 	if (!dmesg_comp->event_class) {
 		BT_LOGE_STR("Cannot create an empty event class object.");
 		goto error;
@@ -369,20 +369,20 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_ctf_event_class_set_payload_type(dmesg_comp->event_class, ft);
+	ret = bt_event_class_set_payload_type(dmesg_comp->event_class, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event class's event payload field type.");
 		goto error;
 	}
 
-	ret = bt_ctf_stream_class_add_event_class(dmesg_comp->stream_class,
+	ret = bt_stream_class_add_event_class(dmesg_comp->stream_class,
 		dmesg_comp->event_class);
 	if (ret) {
 		BT_LOGE("Cannot add event class to stream class: ret=%d", ret);
 		goto error;
 	}
 
-	ret = bt_ctf_trace_add_stream_class(dmesg_comp->trace,
+	ret = bt_trace_add_stream_class(dmesg_comp->trace,
 		dmesg_comp->stream_class);
 	if (ret) {
 		BT_LOGE("Cannot add event class to stream class: ret=%d", ret);
@@ -481,25 +481,25 @@ end:
 }
 
 static
-struct bt_ctf_field *create_packet_header_field(struct bt_ctf_field_type *ft)
+struct bt_field *create_packet_header_field(struct bt_field_type *ft)
 {
-	struct bt_ctf_field *ph = NULL;
-	struct bt_ctf_field *magic = NULL;
+	struct bt_field *ph = NULL;
+	struct bt_field *magic = NULL;
 	int ret;
 
-	ph = bt_ctf_field_create(ft);
+	ph = bt_field_create(ft);
 	if (!ph) {
 		BT_LOGE_STR("Cannot create field object.");
 		goto error;
 	}
 
-	magic = bt_ctf_field_structure_get_field_by_name(ph, "magic");
+	magic = bt_field_structure_get_field_by_name(ph, "magic");
 	if (!magic) {
 		BT_LOGE_STR("Cannot get `magic` field from structure field.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_set_value(magic, 0xc1fc1fc1);
+	ret = bt_field_unsigned_integer_set_value(magic, 0xc1fc1fc1);
 	if (ret) {
 		BT_LOGE_STR("Cannot set integer field's value.");
 		goto error;
@@ -516,38 +516,38 @@ end:
 }
 
 static
-struct bt_ctf_field *create_packet_context_field(struct bt_ctf_field_type *ft)
+struct bt_field *create_packet_context_field(struct bt_field_type *ft)
 {
-	struct bt_ctf_field *pc = NULL;
-	struct bt_ctf_field *field = NULL;
+	struct bt_field *pc = NULL;
+	struct bt_field *field = NULL;
 	int ret;
 
-	pc = bt_ctf_field_create(ft);
+	pc = bt_field_create(ft);
 	if (!pc) {
 		BT_LOGE_STR("Cannot create field object.");
 		goto error;
 	}
 
-	field = bt_ctf_field_structure_get_field_by_name(pc, "content_size");
+	field = bt_field_structure_get_field_by_name(pc, "content_size");
 	if (!field) {
 		BT_LOGE_STR("Cannot get `content_size` field from structure field.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_set_value(field, 0);
+	ret = bt_field_unsigned_integer_set_value(field, 0);
 	if (ret) {
 		BT_LOGE_STR("Cannot set integer field's value.");
 		goto error;
 	}
 
 	bt_put(field);
-	field = bt_ctf_field_structure_get_field_by_name(pc, "packet_size");
+	field = bt_field_structure_get_field_by_name(pc, "packet_size");
 	if (!field) {
 		BT_LOGE_STR("Cannot get `packet_size` field from structure field.");
 		goto error;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_set_value(field, 0);
+	ret = bt_field_unsigned_integer_set_value(field, 0);
 	if (ret) {
 		BT_LOGE_STR("Cannot set integer field's value.");
 		goto error;
@@ -567,23 +567,23 @@ static
 int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 {
 	int ret = 0;
-	struct bt_ctf_field_type *ft = NULL;
-	struct bt_ctf_field *field = NULL;
+	struct bt_field_type *ft = NULL;
+	struct bt_field *field = NULL;
 
-	dmesg_comp->stream = bt_ctf_stream_create(dmesg_comp->stream_class,
+	dmesg_comp->stream = bt_stream_create(dmesg_comp->stream_class,
 		NULL);
 	if (!dmesg_comp->stream) {
 		BT_LOGE_STR("Cannot create stream object.");
 		goto error;
 	}
 
-	dmesg_comp->packet = bt_ctf_packet_create(dmesg_comp->stream);
+	dmesg_comp->packet = bt_packet_create(dmesg_comp->stream);
 	if (!dmesg_comp->packet) {
 		BT_LOGE_STR("Cannot create packet object.");
 		goto error;
 	}
 
-	ft = bt_ctf_trace_get_packet_header_type(dmesg_comp->trace);
+	ft = bt_trace_get_packet_header_type(dmesg_comp->trace);
 	assert(ft);
 	field = create_packet_header_field(ft);
 	if (!field) {
@@ -591,7 +591,7 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	ret = bt_ctf_packet_set_header(dmesg_comp->packet, field);
+	ret = bt_packet_set_header(dmesg_comp->packet, field);
 	if (ret) {
 		BT_LOGE_STR("Cannot set packet's header field.");
 		goto error;
@@ -599,7 +599,7 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 
 	bt_put(ft);
 	bt_put(field);
-	ft = bt_ctf_stream_class_get_packet_context_type(
+	ft = bt_stream_class_get_packet_context_type(
 		dmesg_comp->stream_class);
 	assert(ft);
 	field = create_packet_context_field(ft);
@@ -608,13 +608,13 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	ret = bt_ctf_packet_set_context(dmesg_comp->packet, field);
+	ret = bt_packet_set_context(dmesg_comp->packet, field);
 	if (ret) {
 		BT_LOGE_STR("Cannot set packet's context field.");
 		goto error;
 	}
 
-	ret = bt_ctf_trace_set_is_static(dmesg_comp->trace);
+	ret = bt_trace_set_is_static(dmesg_comp->trace);
 	if (ret) {
 		BT_LOGE_STR("Cannot make trace static.");
 		goto error;
@@ -759,17 +759,17 @@ static
 int create_event_header_from_line(
 		struct dmesg_component *dmesg_comp,
 		const char *line, const char **new_start,
-		struct bt_ctf_field **user_field,
-		struct bt_ctf_clock_value **user_clock_value)
+		struct bt_field **user_field,
+		struct bt_clock_value **user_clock_value)
 {
 	bool has_timestamp = false;
 	unsigned long sec, usec, msec;
 	unsigned int year, mon, mday, hour, min;
 	uint64_t ts = 0;
-	struct bt_ctf_clock_value *clock_value = NULL;
-	struct bt_ctf_field_type *ft = NULL;
-	struct bt_ctf_field *eh_field = NULL;
-	struct bt_ctf_field *ts_field = NULL;
+	struct bt_clock_value *clock_value = NULL;
+	struct bt_field_type *ft = NULL;
+	struct bt_field *eh_field = NULL;
+	struct bt_field *ts_field = NULL;
 	int ret = 0;
 
 	assert(user_clock_value);
@@ -837,30 +837,30 @@ skip_ts:
 	}
 
 	if (dmesg_comp->clock_class) {
-		clock_value = bt_ctf_clock_value_create(dmesg_comp->clock_class,
+		clock_value = bt_clock_value_create(dmesg_comp->clock_class,
 			ts);
 		if (!clock_value) {
 			BT_LOGE_STR("Cannot create clock value object.");
 			goto error;
 		}
 
-		ft = bt_ctf_stream_class_get_event_header_type(
+		ft = bt_stream_class_get_event_header_type(
 			dmesg_comp->stream_class);
 		assert(ft);
-		eh_field = bt_ctf_field_create(ft);
+		eh_field = bt_field_create(ft);
 		if (!eh_field) {
 			BT_LOGE_STR("Cannot create event header field object.");
 			goto error;
 		}
 
-		ts_field = bt_ctf_field_structure_get_field_by_name(eh_field,
+		ts_field = bt_field_structure_get_field_by_name(eh_field,
 			"timestamp");
 		if (!ts_field) {
 			BT_LOGE_STR("Cannot get `timestamp` field from structure field.");
 			goto error;
 		}
 
-		ret = bt_ctf_field_unsigned_integer_set_value(ts_field, ts);
+		ret = bt_field_unsigned_integer_set_value(ts_field, ts);
 		if (ret) {
 			BT_LOGE_STR("Cannot set integer field's value.");
 			goto error;
@@ -888,24 +888,24 @@ end:
 static
 int create_event_payload_from_line(
 		struct dmesg_component *dmesg_comp,
-		const char *line, struct bt_ctf_field **user_field)
+		const char *line, struct bt_field **user_field)
 {
-	struct bt_ctf_field_type *ft = NULL;
-	struct bt_ctf_field *ep_field = NULL;
-	struct bt_ctf_field *str_field = NULL;
+	struct bt_field_type *ft = NULL;
+	struct bt_field *ep_field = NULL;
+	struct bt_field *str_field = NULL;
 	size_t len;
 	int ret;
 
 	assert(user_field);
-	ft = bt_ctf_event_class_get_payload_type(dmesg_comp->event_class);
+	ft = bt_event_class_get_payload_type(dmesg_comp->event_class);
 	assert(ft);
-	ep_field = bt_ctf_field_create(ft);
+	ep_field = bt_field_create(ft);
 	if (!ep_field) {
 		BT_LOGE_STR("Cannot create event payload field object.");
 		goto error;
 	}
 
-	str_field = bt_ctf_field_structure_get_field_by_name(ep_field, "str");
+	str_field = bt_field_structure_get_field_by_name(ep_field, "str");
 	if (!str_field) {
 		BT_LOGE_STR("Cannot get `timestamp` field from structure field.");
 		goto error;
@@ -917,7 +917,7 @@ int create_event_payload_from_line(
 		len--;
 	}
 
-	ret = bt_ctf_field_string_append_len(str_field, line, len);
+	ret = bt_field_string_append_len(str_field, line, len);
 	if (ret) {
 		BT_LOGE("Cannot append value to string field object: "
 			"len=%zu", len);
@@ -942,10 +942,10 @@ static
 struct bt_notification *create_notif_from_line(
 		struct dmesg_component *dmesg_comp, const char *line)
 {
-	struct bt_ctf_field *eh_field = NULL;
-	struct bt_ctf_field *ep_field = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
-	struct bt_ctf_event *event = NULL;
+	struct bt_field *eh_field = NULL;
+	struct bt_field *ep_field = NULL;
+	struct bt_clock_value *clock_value = NULL;
+	struct bt_event *event = NULL;
 	struct bt_notification *notif = NULL;
 	const char *new_start;
 	int ret;
@@ -967,34 +967,34 @@ struct bt_notification *create_notif_from_line(
 	}
 
 	assert(ep_field);
-	event = bt_ctf_event_create(dmesg_comp->event_class);
+	event = bt_event_create(dmesg_comp->event_class);
 	if (!event) {
 		BT_LOGE_STR("Cannot create event object.");
 		goto error;
 	}
 
-	ret = bt_ctf_event_set_packet(event, dmesg_comp->packet);
+	ret = bt_event_set_packet(event, dmesg_comp->packet);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event's packet.");
 		goto error;
 	}
 
 	if (eh_field) {
-		ret = bt_ctf_event_set_header(event, eh_field);
+		ret = bt_event_set_header(event, eh_field);
 		if (ret) {
 			BT_LOGE_STR("Cannot set event's header field.");
 			goto error;
 		}
 	}
 
-	ret = bt_ctf_event_set_event_payload(event, ep_field);
+	ret = bt_event_set_event_payload(event, ep_field);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event's payload field.");
 		goto error;
 	}
 
 	if (clock_value) {
-		ret = bt_ctf_event_set_clock_value(event, clock_value);
+		ret = bt_event_set_clock_value(event, clock_value);
 		if (ret) {
 			BT_LOGE_STR("Cannot set event's clock value.");
 			goto error;

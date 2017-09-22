@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-struct bt_ctf_stream_class;
+struct bt_stream_class;
 
 /**
 @defgroup ctfirstream CTF IR stream
@@ -56,14 +56,14 @@ A CTF IR <strong><em>stream</em></strong> is an instance of a
 
 You can obtain a CTF IR stream object in two different modes:
 
-- <strong>Normal mode</strong>: use bt_ctf_stream_create() or
-  bt_ctf_stream_create_with_id() with a stream class having a
+- <strong>Normal mode</strong>: use bt_stream_create() or
+  bt_stream_create_with_id() with a stream class having a
   \link ctfirtraceclass CTF IR trace class\endlink parent
   \em not created by a \link ctfwriter CTF writer\endlink object to
   create a default stream.
-- <strong>CTF writer mode</strong>: use bt_ctf_stream_create() with
+- <strong>CTF writer mode</strong>: use bt_stream_create() with
   a stream class having a trace class parent created by a CTF writer
-  object, or use bt_ctf_writer_create_stream().
+  object, or use bt_writer_create_stream().
 
 A CTF IR stream object represents a CTF stream, that is, a sequence of
 packets containing events:
@@ -92,13 +92,13 @@ management of Babeltrace objects.
 */
 
 /**
-@struct bt_ctf_stream
+@struct bt_stream
 @brief A CTF IR stream.
 @sa ctfirstream
 @sa ctfwriterstream
 */
-struct bt_ctf_stream;
-struct bt_ctf_event;
+struct bt_stream;
+struct bt_event;
 
 /**
 @brief  Creates a default CTF IR stream named \p name from the CTF IR
@@ -126,11 +126,11 @@ functions documented in this module on it.
 @pre \p stream_class has a parent trace class.
 @postsuccessrefcountret1
 
-@sa bt_ctf_stream_create_with_id(): Create a CTF IR stream with a
+@sa bt_stream_create_with_id(): Create a CTF IR stream with a
 	specific ID.
 */
-extern struct bt_ctf_stream *bt_ctf_stream_create(
-		struct bt_ctf_stream_class *stream_class,
+extern struct bt_stream *bt_stream_create(
+		struct bt_stream_class *stream_class,
 		const char *name);
 
 /**
@@ -141,11 +141,11 @@ extern struct bt_ctf_stream *bt_ctf_stream_create(
 \link ctfirtraceclass CTF IR trace class\endlink.
 
 You \em must have created the trace class of \p stream class directly
-with bt_ctf_trace_create(), not through bt_ctf_writer_create() (use
-bt_ctf_stream_create() for this).
+with bt_trace_create(), not through bt_writer_create() (use
+bt_stream_create() for this).
 
 \p id \em must be unique amongst the IDs of all the streams created
-from \p stream_class with bt_ctf_stream_create_with_id().
+from \p stream_class with bt_stream_create_with_id().
 
 \p name can be \c NULL to create an unnamed stream object.
 
@@ -161,10 +161,10 @@ from \p stream_class with bt_ctf_stream_create_with_id().
 @pre \p stream_class has a parent trace class.
 @postsuccessrefcountret1
 
-@sa bt_ctf_stream_create(): Create a CTF IR stream without an ID.
+@sa bt_stream_create(): Create a CTF IR stream without an ID.
 */
-extern struct bt_ctf_stream *bt_ctf_stream_create_with_id(
-		struct bt_ctf_stream_class *stream_class,
+extern struct bt_stream *bt_stream_create_with_id(
+		struct bt_stream_class *stream_class,
 		const char *name, uint64_t id);
 
 /**
@@ -179,7 +179,7 @@ On success, \p stream remains the sole owner of the returned string.
 @prenotnull{stream}
 @postrefcountsame{stream}
 */
-extern const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream);
+extern const char *bt_stream_get_name(struct bt_stream *stream);
 
 /**
 @brief	Returns the numeric ID of the CTF IR stream \p stream.
@@ -191,7 +191,7 @@ extern const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream);
 @prenotnull{stream}
 @postrefcountsame{stream}
 */
-extern int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream);
+extern int64_t bt_stream_get_id(struct bt_stream *stream);
 
 /**
 @brief	Returns the parent CTF IR stream class of the CTF IR
@@ -199,7 +199,7 @@ extern int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream);
 
 This function returns a reference to the stream class which was used
 to create the stream object in the first place with
-bt_ctf_stream_create().
+bt_stream_create().
 
 @param[in] stream	Stream of which to get the parent stream class.
 @returns		Parent stream class of \p stream,
@@ -209,10 +209,13 @@ bt_ctf_stream_create().
 @postrefcountsame{stream}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_stream_class *bt_ctf_stream_get_class(
-		struct bt_ctf_stream *stream);
+extern struct bt_stream_class *bt_stream_get_class(
+		struct bt_stream *stream);
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_stream bt_stream
 
 #ifdef __cplusplus
 }

@@ -89,13 +89,13 @@ struct ctf_fs_ds_file {
 	struct ctf_fs_file *file;
 
 	/* Owned by this */
-	struct bt_ctf_stream *stream;
+	struct bt_stream *stream;
 
 	/* Owned by this */
 	struct bt_clock_class_priority_map *cc_prio_map;
 
 	/* Weak */
-	struct bt_ctf_notif_iter *notif_iter;
+	struct bt_notif_iter *notif_iter;
 
 	void *mmap_addr;
 
@@ -123,14 +123,14 @@ struct ctf_fs_ds_file {
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_ctf_notif_iter *notif_iter,
-		struct bt_ctf_stream *stream, const char *path);
+		struct bt_notif_iter *notif_iter,
+		struct bt_stream *stream, const char *path);
 
 BT_HIDDEN
 int ctf_fs_ds_file_get_packet_header_context_fields(
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_ctf_field **packet_header_field,
-		struct bt_ctf_field **packet_context_field);
+		struct bt_field **packet_header_field,
+		struct bt_field **packet_context_field);
 
 BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
@@ -146,6 +146,6 @@ struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);
 
-extern struct bt_ctf_notif_iter_medium_ops ctf_fs_ds_file_medops;
+extern struct bt_notif_iter_medium_ops ctf_fs_ds_file_medops;
 
 #endif /* CTF_FS_DS_FILE_H */

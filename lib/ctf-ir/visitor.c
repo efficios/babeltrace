@@ -30,11 +30,11 @@
 #include <babeltrace/ref.h>
 
 BT_HIDDEN
-int visitor_helper(struct bt_ctf_object *root,
+int visitor_helper(struct bt_visitor_object *root,
 		bt_child_count_accessor child_counter,
 		bt_child_accessor child_accessor,
 		bt_child_visitor child_visitor,
-		bt_ctf_visitor visitor,
+		bt_visitor visitor,
 		void *data)
 {
 	int ret, child_count, i;
@@ -68,9 +68,10 @@ end:
 	return ret;
 }
 
-enum bt_ctf_object_type bt_ctf_object_get_type(struct bt_ctf_object *object)
+enum bt_visitor_object_type bt_visitor_object_get_type(
+		struct bt_visitor_object *object)
 {
-	enum bt_ctf_object_type ret = BT_CTF_OBJECT_TYPE_UNKNOWN;
+	enum bt_visitor_object_type ret = BT_VISITOR_OBJECT_TYPE_UNKNOWN;
 
 	if (!object) {
 		goto end;
@@ -81,7 +82,7 @@ end:
 	return ret;
 }
 
-void *bt_ctf_object_get_object(struct bt_ctf_object *object)
+void *bt_visitor_object_get_object(struct bt_visitor_object *object)
 {
 	void *ret = NULL;
 

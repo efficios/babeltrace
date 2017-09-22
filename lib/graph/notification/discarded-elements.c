@@ -53,9 +53,9 @@ void bt_notification_discarded_elements_destroy(struct bt_object *obj)
 BT_HIDDEN
 struct bt_notification *bt_notification_discarded_elements_create(
 		enum bt_notification_type type,
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_clock_value *begin_clock_value,
-		struct bt_ctf_clock_value *end_clock_value,
+		struct bt_stream *stream,
+		struct bt_clock_value *begin_clock_value,
+		struct bt_clock_value *end_clock_value,
 		uint64_t count)
 {
 	struct bt_notification_discarded_elements *notification;
@@ -70,7 +70,7 @@ struct bt_notification *bt_notification_discarded_elements_create(
 		"begin-clock-value-addr=%p, end-clock-value-addr=%p, "
 		"count=%" PRIu64,
 		bt_notification_type_string(type), stream,
-		bt_ctf_stream_get_name(stream), begin_clock_value,
+		bt_stream_get_name(stream), begin_clock_value,
 		end_clock_value, count);
 	notification = g_new0(struct bt_notification_discarded_elements, 1);
 	if (!notification) {
@@ -90,7 +90,7 @@ struct bt_notification *bt_notification_discarded_elements_create(
 		"begin-clock-value-addr=%p, end-clock-value-addr=%p, "
 		"count=%" PRIu64 ", addr=%p",
 		bt_notification_type_string(type), stream,
-		bt_ctf_stream_get_name(stream), begin_clock_value,
+		bt_stream_get_name(stream), begin_clock_value,
 		end_clock_value, count, ret_notif);
 	goto end;
 
@@ -102,12 +102,12 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_clock_value *
+struct bt_clock_value *
 bt_notification_discarded_elements_get_begin_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_clock_value *clock_value = NULL;
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
 	if (!notification) {
@@ -133,12 +133,12 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_clock_value *
+struct bt_clock_value *
 bt_notification_discarded_elements_get_end_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_clock_value *clock_value = NULL;
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
 	if (!notification) {
@@ -194,11 +194,11 @@ end:
 }
 
 BT_HIDDEN
-struct bt_ctf_stream *bt_notification_discarded_elements_get_stream(
+struct bt_stream *bt_notification_discarded_elements_get_stream(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
-	struct bt_ctf_stream *stream = NULL;
+	struct bt_stream *stream = NULL;
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
 	if (!notification) {

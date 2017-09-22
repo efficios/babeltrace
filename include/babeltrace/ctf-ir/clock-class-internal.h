@@ -37,7 +37,7 @@
 #include <stdint.h>
 #include <glib.h>
 
-struct bt_ctf_clock_class {
+struct bt_clock_class {
 	struct bt_object base;
 	GString *name;
 	GString *description;
@@ -57,13 +57,13 @@ struct bt_ctf_clock_class {
 };
 
 BT_HIDDEN
-void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class);
+void bt_clock_class_freeze(struct bt_clock_class *clock_class);
 
 BT_HIDDEN
-void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
+void bt_clock_class_serialize(struct bt_clock_class *clock_class,
 		struct metadata_context *context);
 
 BT_HIDDEN
-bt_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class);
+bt_bool bt_clock_class_is_valid(struct bt_clock_class *clock_class);
 
 #endif /* BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H */
