@@ -114,9 +114,9 @@ struct bt_notification *handle_notification(FILE *err,
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 	{
-		struct bt_ctf_packet *packet =
+		struct bt_packet *packet =
 			bt_notification_packet_begin_get_packet(notification);
-		struct bt_ctf_packet *writer_packet;
+		struct bt_packet *writer_packet;
 
 		if (!packet) {
 			goto end;
@@ -133,9 +133,9 @@ struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 	{
-		struct bt_ctf_packet *packet =
+		struct bt_packet *packet =
 			bt_notification_packet_end_get_packet(notification);
-		struct bt_ctf_packet *writer_packet;
+		struct bt_packet *writer_packet;
 
 		if (!packet) {
 			goto end;
@@ -152,9 +152,9 @@ struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
-		struct bt_ctf_event *event = bt_notification_event_get_event(
+		struct bt_event *event = bt_notification_event_get_event(
 				notification);
-		struct bt_ctf_event *writer_event;
+		struct bt_event *writer_event;
 		struct bt_clock_class_priority_map *cc_prio_map =
 			bt_notification_event_get_clock_class_priority_map(
 					notification);
@@ -174,9 +174,9 @@ struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
 	{
-		struct bt_ctf_stream *stream =
+		struct bt_stream *stream =
 			bt_notification_stream_begin_get_stream(notification);
-		struct bt_ctf_stream *writer_stream;
+		struct bt_stream *writer_stream;
 
 		if (!stream) {
 			goto end;
@@ -193,9 +193,9 @@ struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 	{
-		struct bt_ctf_stream *stream =
+		struct bt_stream *stream =
 			bt_notification_stream_end_get_stream(notification);
-		struct bt_ctf_stream *writer_stream;
+		struct bt_stream *writer_stream;
 
 		if (!stream) {
 			goto end;

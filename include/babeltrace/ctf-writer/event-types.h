@@ -40,7 +40,7 @@ extern "C" {
  * bt_ctf_field_type_get and bt_ctf_field_type_put: increment and decrement
  * the field type's reference count.
  *
- * You may also use bt_ctf_get() and bt_ctf_put() with field type objects.
+ * You may also use bt_get() and bt_put() with field type objects.
  *
  * These functions ensure that the field type won't be destroyed while it
  * is in use. The same number of get and put (plus one extra put to
@@ -52,8 +52,8 @@ extern "C" {
  *
  * @param type Field type.
  */
-extern void bt_ctf_field_type_get(struct bt_ctf_field_type *type);
-extern void bt_ctf_field_type_put(struct bt_ctf_field_type *type);
+extern void bt_ctf_field_type_get(struct bt_field_type *type);
+extern void bt_ctf_field_type_put(struct bt_field_type *type);
 
 #ifdef __cplusplus
 }

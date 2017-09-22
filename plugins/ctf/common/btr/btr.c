@@ -61,7 +61,7 @@ struct stack_entry {
 	 *
 	 * Owned by this.
 	 */
-	struct bt_ctf_field_type *base_type;
+	struct bt_field_type *base_type;
 
 	/* Length of base field (always 1 for variant types) */
 	int64_t base_len;
@@ -87,12 +87,12 @@ enum btr_state {
 };
 
 /* Binary type reader */
-struct bt_ctf_btr {
+struct bt_btr {
 	/* Bisit stack */
 	struct stack *stack;
 
 	/* Current basic field type */
-	struct bt_ctf_field_type *cur_basic_field_type;
+	struct bt_field_type *cur_basic_field_type;
 
 	/* Current state */
 	enum btr_state state;
@@ -104,13 +104,13 @@ struct bt_ctf_btr {
 	 * types for which the common boundary is not the boundary of
 	 * a byte cannot have different byte orders.
 	 *
-	 * This is set to BT_CTF_BYTE_ORDER_UNKNOWN on reset and when
+	 * This is set to BT_BYTE_ORDER_UNKNOWN on reset and when
 	 * the last basic field type was a string type.
 	 */
-	enum bt_ctf_byte_order last_bo;
+	enum bt_byte_order last_bo;
 
 	/* Current byte order (copied to last_bo after a successful read) */
-	enum bt_ctf_byte_order cur_bo;
+	enum bt_byte_order cur_bo;
 
 	/* Stitch buffer infos */
 	struct {
@@ -148,7 +148,7 @@ struct bt_ctf_btr {
 	/* User stuff */
 	struct {
 		/* Callback functions */
-		struct bt_ctf_btr_cbs cbs;
+		struct bt_btr_cbs cbs;
 
 		/* Private data */
 		void *data;
@@ -224,24 +224,24 @@ void stack_destroy(struct stack *stack)
 }
 
 static inline
-int64_t get_compound_field_type_length(struct bt_ctf_btr *btr,
-		struct bt_ctf_field_type *field_type)
+int64_t get_compound_field_type_length(struct bt_btr *btr,
+		struct bt_field_type *field_type)
 {
 	int64_t length;
 
-	switch (bt_ctf_field_type_get_type_id(field_type)) {
-	case BT_CTF_FIELD_TYPE_ID_STRUCT:
-		length = (int64_t) bt_ctf_field_type_structure_get_field_count(
+	switch (bt_field_type_get_type_id(field_type)) {
+	case BT_FIELD_TYPE_ID_STRUCT:
+		length = (int64_t) bt_field_type_structure_get_field_count(
 			field_type);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_TYPE_ID_VARIANT:
 		/* Variant field types always "contain" a single type */
 		length = 1;
 		break;
-	case BT_CTF_FIELD_TYPE_ID_ARRAY:
-		length = bt_ctf_field_type_array_get_length(field_type);
+	case BT_FIELD_TYPE_ID_ARRAY:
+		length = bt_field_type_array_get_length(field_type);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_SEQUENCE:
 		length = btr->user.cbs.query.get_sequence_length(field_type,
 			btr->user.data);
 		break;
@@ -249,16 +249,16 @@ int64_t get_compound_field_type_length(struct bt_ctf_btr *btr,
 		BT_LOGW("Cannot get field type's field count: btr-addr=%p, "
 			"ft-addr=%p, ft-id=%s",
 			btr, field_type,
-			bt_ctf_field_type_id_string(
-				bt_ctf_field_type_get_type_id(field_type)));
-		length = BT_CTF_BTR_STATUS_ERROR;
+			bt_field_type_id_string(
+				bt_field_type_get_type_id(field_type)));
+		length = BT_BTR_STATUS_ERROR;
 	}
 
 	return length;
 }
 
 static
-int stack_push(struct stack *stack, struct bt_ctf_field_type *base_type,
+int stack_push(struct stack *stack, struct bt_field_type *base_type,
 	size_t base_len)
 {
 	int ret = 0;
@@ -270,14 +270,14 @@ int stack_push(struct stack *stack, struct bt_ctf_field_type *base_type,
 	BT_LOGV("Pushing field type on stack: stack-addr=%p, "
 		"ft-addr=%p, ft-id=%s, base-length=%zu, "
 		"stack-size-before=%u, stack-size-after=%u",
-		stack, base_type, bt_ctf_field_type_id_string(
-			bt_ctf_field_type_get_type_id(base_type)),
+		stack, base_type, bt_field_type_id_string(
+			bt_field_type_get_type_id(base_type)),
 		base_len, stack->entries->len, stack->entries->len + 1);
 	entry = g_new0(struct stack_entry, 1);
 	if (!entry) {
 		BT_LOGE("Failed to allocate one stack entry: stack-addr=%p",
 			stack);
-		ret = BT_CTF_BTR_STATUS_ERROR;
+		ret = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -291,8 +291,8 @@ end:
 }
 
 static
-int stack_push_with_len(struct bt_ctf_btr *btr,
-		struct bt_ctf_field_type *base_type)
+int stack_push_with_len(struct bt_btr *btr,
+		struct bt_field_type *base_type)
 {
 	int ret = 0;
 	int64_t base_len = get_compound_field_type_length(btr, base_type);
@@ -300,9 +300,9 @@ int stack_push_with_len(struct bt_ctf_btr *btr,
 	if (base_len < 0) {
 		BT_LOGW("Cannot get compound field type's field count: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
-			btr, base_type, bt_ctf_field_type_id_string(
-				bt_ctf_field_type_get_type_id(base_type)));
-		ret = BT_CTF_BTR_STATUS_ERROR;
+			btr, base_type, bt_field_type_id_string(
+				bt_field_type_get_type_id(base_type)));
+		ret = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -359,13 +359,13 @@ struct stack_entry *stack_top(struct stack *stack)
 }
 
 static inline
-size_t available_bits(struct bt_ctf_btr *btr)
+size_t available_bits(struct bt_btr *btr)
 {
 	return btr->buf.sz - btr->buf.at;
 }
 
 static inline
-void consume_bits(struct bt_ctf_btr *btr, size_t incr)
+void consume_bits(struct bt_btr *btr, size_t incr)
 {
 	BT_LOGV("Advancing cursor: btr-addr=%p, cur-before=%zu, cur-after=%zu",
 		btr, btr->buf.at, btr->buf.at + incr);
@@ -373,25 +373,25 @@ void consume_bits(struct bt_ctf_btr *btr, size_t incr)
 }
 
 static inline
-bool has_enough_bits(struct bt_ctf_btr *btr, size_t sz)
+bool has_enough_bits(struct bt_btr *btr, size_t sz)
 {
 	return available_bits(btr) >= sz;
 }
 
 static inline
-bool at_least_one_bit_left(struct bt_ctf_btr *btr)
+bool at_least_one_bit_left(struct bt_btr *btr)
 {
 	return has_enough_bits(btr, 1);
 }
 
 static inline
-size_t packet_at(struct bt_ctf_btr *btr)
+size_t packet_at(struct bt_btr *btr)
 {
 	return btr->buf.packet_offset + btr->buf.at;
 }
 
 static inline
-size_t buf_at_from_addr(struct bt_ctf_btr *btr)
+size_t buf_at_from_addr(struct bt_btr *btr)
 {
 	/*
 	 * Considering this:
@@ -410,35 +410,35 @@ size_t buf_at_from_addr(struct bt_ctf_btr *btr)
 }
 
 static inline
-int get_basic_field_type_size(struct bt_ctf_btr *btr,
-		struct bt_ctf_field_type *field_type)
+int get_basic_field_type_size(struct bt_btr *btr,
+		struct bt_field_type *field_type)
 {
 	int size;
 
-	switch (bt_ctf_field_type_get_type_id(field_type)) {
-	case BT_CTF_FIELD_TYPE_ID_INTEGER:
-		size = bt_ctf_field_type_integer_get_size(field_type);
+	switch (bt_field_type_get_type_id(field_type)) {
+	case BT_FIELD_TYPE_ID_INTEGER:
+		size = bt_field_type_integer_get_size(field_type);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_FLOAT:
+	case BT_FIELD_TYPE_ID_FLOAT:
 	{
 		int exp_dig, mant_dig;
 
 		exp_dig =
-			bt_ctf_field_type_floating_point_get_exponent_digits(
+			bt_field_type_floating_point_get_exponent_digits(
 				field_type);
 		mant_dig =
-			bt_ctf_field_type_floating_point_get_mantissa_digits(
+			bt_field_type_floating_point_get_mantissa_digits(
 				field_type);
 		assert(exp_dig >= 0);
 		assert(mant_dig >= 0);
 		size = exp_dig + mant_dig;
 		break;
 	}
-	case BT_CTF_FIELD_TYPE_ID_ENUM:
+	case BT_FIELD_TYPE_ID_ENUM:
 	{
-		struct bt_ctf_field_type *int_type;
+		struct bt_field_type *int_type;
 
-		int_type = bt_ctf_field_type_enumeration_get_container_type(
+		int_type = bt_field_type_enumeration_get_container_type(
 			field_type);
 		assert(int_type);
 		size = get_basic_field_type_size(btr, int_type);
@@ -446,7 +446,7 @@ int get_basic_field_type_size(struct bt_ctf_btr *btr,
 		break;
 	}
 	default:
-		size = BT_CTF_BTR_STATUS_ERROR;
+		size = BT_BTR_STATUS_ERROR;
 		break;
 	}
 
@@ -454,20 +454,20 @@ int get_basic_field_type_size(struct bt_ctf_btr *btr,
 }
 
 static
-void stitch_reset(struct bt_ctf_btr *btr)
+void stitch_reset(struct bt_btr *btr)
 {
 	btr->stitch.offset = 0;
 	btr->stitch.at = 0;
 }
 
 static inline
-size_t stitch_at_from_addr(struct bt_ctf_btr *btr)
+size_t stitch_at_from_addr(struct bt_btr *btr)
 {
 	return btr->stitch.offset + btr->stitch.at;
 }
 
 static
-void stitch_append_from_buf(struct bt_ctf_btr *btr, size_t sz)
+void stitch_append_from_buf(struct bt_btr *btr, size_t sz)
 {
 	size_t stitch_byte_at;
 	size_t buf_byte_at;
@@ -489,13 +489,13 @@ void stitch_append_from_buf(struct bt_ctf_btr *btr, size_t sz)
 }
 
 static
-void stitch_append_from_remaining_buf(struct bt_ctf_btr *btr)
+void stitch_append_from_remaining_buf(struct bt_btr *btr)
 {
 	stitch_append_from_buf(btr, available_bits(btr));
 }
 
 static
-void stitch_set_from_remaining_buf(struct bt_ctf_btr *btr)
+void stitch_set_from_remaining_buf(struct bt_btr *btr)
 {
 	stitch_reset(btr);
 	btr->stitch.offset = IN_BYTE_OFFSET(buf_at_from_addr(btr));
@@ -503,17 +503,17 @@ void stitch_set_from_remaining_buf(struct bt_ctf_btr *btr)
 }
 
 static inline
-enum bt_ctf_btr_status read_unsigned_bitfield(const uint8_t *buf, size_t at,
-		int64_t field_size, enum bt_ctf_byte_order bo, uint64_t *v)
+enum bt_btr_status read_unsigned_bitfield(const uint8_t *buf, size_t at,
+		int64_t field_size, enum bt_byte_order bo, uint64_t *v)
 {
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	switch (bo) {
-	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
-	case BT_CTF_BYTE_ORDER_NETWORK:
+	case BT_BYTE_ORDER_BIG_ENDIAN:
+	case BT_BYTE_ORDER_NETWORK:
 		bt_bitfield_read_be(buf, uint8_t, at, field_size, v);
 		break;
-	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
+	case BT_BYTE_ORDER_LITTLE_ENDIAN:
 		bt_bitfield_read_le(buf, uint8_t, at, field_size, v);
 		break;
 	default:
@@ -523,22 +523,22 @@ enum bt_ctf_btr_status read_unsigned_bitfield(const uint8_t *buf, size_t at,
 
 	BT_LOGV("Read unsigned bit array: cur=%zu, size=%" PRId64 ", "
 		"bo=%s, val=%" PRIu64, at, field_size,
-		bt_ctf_byte_order_string(bo), *v);
+		bt_byte_order_string(bo), *v);
 	return status;
 }
 
 static inline
-enum bt_ctf_btr_status read_signed_bitfield(const uint8_t *buf, size_t at,
-		int64_t field_size, enum bt_ctf_byte_order bo, int64_t *v)
+enum bt_btr_status read_signed_bitfield(const uint8_t *buf, size_t at,
+		int64_t field_size, enum bt_byte_order bo, int64_t *v)
 {
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	switch (bo) {
-	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
-	case BT_CTF_BYTE_ORDER_NETWORK:
+	case BT_BYTE_ORDER_BIG_ENDIAN:
+	case BT_BYTE_ORDER_NETWORK:
 		bt_bitfield_read_be(buf, uint8_t, at, field_size, v);
 		break;
-	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
+	case BT_BYTE_ORDER_LITTLE_ENDIAN:
 		bt_bitfield_read_le(buf, uint8_t, at, field_size, v);
 		break;
 	default:
@@ -548,18 +548,18 @@ enum bt_ctf_btr_status read_signed_bitfield(const uint8_t *buf, size_t at,
 
 	BT_LOGV("Read signed bit array: cur=%zu, size=%" PRId64 ", "
 		"bo=%s, val=%" PRId64, at, field_size,
-		bt_ctf_byte_order_string(bo), *v);
+		bt_byte_order_string(bo), *v);
 	return status;
 }
 
-typedef enum bt_ctf_btr_status (* read_basic_and_call_cb_t)(struct bt_ctf_btr *,
+typedef enum bt_btr_status (* read_basic_and_call_cb_t)(struct bt_btr *,
 		const uint8_t *, size_t);
 
 static inline
-enum bt_ctf_btr_status validate_contiguous_bo(struct bt_ctf_btr *btr,
-		enum bt_ctf_byte_order next_bo)
+enum bt_btr_status validate_contiguous_bo(struct bt_btr *btr,
+		enum bt_byte_order next_bo)
 {
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	/* Always valid when at a byte boundary */
 	if (packet_at(btr) % 8 == 0) {
@@ -567,56 +567,56 @@ enum bt_ctf_btr_status validate_contiguous_bo(struct bt_ctf_btr *btr,
 	}
 
 	/* Always valid if last byte order is unknown */
-	if (btr->last_bo == BT_CTF_BYTE_ORDER_UNKNOWN) {
+	if (btr->last_bo == BT_BYTE_ORDER_UNKNOWN) {
 		goto end;
 	}
 
 	/* Always valid if next byte order is unknown */
-	if (next_bo == BT_CTF_BYTE_ORDER_UNKNOWN) {
+	if (next_bo == BT_BYTE_ORDER_UNKNOWN) {
 		goto end;
 	}
 
 	/* Make sure last byte order is compatible with the next byte order */
 	switch (btr->last_bo) {
-	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
-	case BT_CTF_BYTE_ORDER_NETWORK:
-		if (next_bo != BT_CTF_BYTE_ORDER_BIG_ENDIAN &&
-				next_bo != BT_CTF_BYTE_ORDER_NETWORK) {
-			status = BT_CTF_BTR_STATUS_ERROR;
+	case BT_BYTE_ORDER_BIG_ENDIAN:
+	case BT_BYTE_ORDER_NETWORK:
+		if (next_bo != BT_BYTE_ORDER_BIG_ENDIAN &&
+				next_bo != BT_BYTE_ORDER_NETWORK) {
+			status = BT_BTR_STATUS_ERROR;
 		}
 		break;
-	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
-		if (next_bo != BT_CTF_BYTE_ORDER_LITTLE_ENDIAN) {
-			status = BT_CTF_BTR_STATUS_ERROR;
+	case BT_BYTE_ORDER_LITTLE_ENDIAN:
+		if (next_bo != BT_BYTE_ORDER_LITTLE_ENDIAN) {
+			status = BT_BTR_STATUS_ERROR;
 		}
 		break;
 	default:
-		status = BT_CTF_BTR_STATUS_ERROR;
+		status = BT_BTR_STATUS_ERROR;
 	}
 
 end:
 	if (status < 0) {
 		BT_LOGW("Cannot read bit array: two different byte orders not at a byte boundary: "
 			"btr-addr=%p, last-bo=%s, next-bo=%s",
-			btr, bt_ctf_byte_order_string(btr->last_bo),
-			bt_ctf_byte_order_string(next_bo));
+			btr, bt_byte_order_string(btr->last_bo),
+			bt_byte_order_string(next_bo));
 	}
 
 	return status;
 }
 
 static
-enum bt_ctf_btr_status read_basic_float_and_call_cb(struct bt_ctf_btr *btr,
+enum bt_btr_status read_basic_float_and_call_cb(struct bt_btr *btr,
 		const uint8_t *buf, size_t at)
 {
 	int ret;
 	double dblval;
 	int64_t field_size;
-	enum bt_ctf_byte_order bo;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_byte_order bo;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	field_size = get_basic_field_type_size(btr, btr->cur_basic_field_type);
-	bo = bt_ctf_field_type_get_byte_order(btr->cur_basic_field_type);
+	bo = bt_field_type_get_byte_order(btr->cur_basic_field_type);
 	btr->cur_bo = bo;
 
 	switch (field_size) {
@@ -628,17 +628,17 @@ enum bt_ctf_btr_status read_basic_float_and_call_cb(struct bt_ctf_btr *btr,
 			float f;
 		} f32;
 
-		ret = bt_ctf_field_type_floating_point_get_mantissa_digits(
+		ret = bt_field_type_floating_point_get_mantissa_digits(
 			btr->cur_basic_field_type);
 		assert(ret == 24);
-		ret = bt_ctf_field_type_floating_point_get_exponent_digits(
+		ret = bt_field_type_floating_point_get_exponent_digits(
 			btr->cur_basic_field_type);
 		assert(ret == 8);
 		status = read_unsigned_bitfield(buf, at, field_size, bo, &v);
-		if (status != BT_CTF_BTR_STATUS_OK) {
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("Cannot read unsigned 32-bit bit array for floating point number field: "
 				"btr-addr=%p, status=%s",
-				btr, bt_ctf_btr_status_string(status));
+				btr, bt_btr_status_string(status));
 			goto end;
 		}
 
@@ -653,18 +653,18 @@ enum bt_ctf_btr_status read_basic_float_and_call_cb(struct bt_ctf_btr *btr,
 			double d;
 		} f64;
 
-		ret = bt_ctf_field_type_floating_point_get_mantissa_digits(
+		ret = bt_field_type_floating_point_get_mantissa_digits(
 			btr->cur_basic_field_type);
 		assert(ret == 53);
-		ret = bt_ctf_field_type_floating_point_get_exponent_digits(
+		ret = bt_field_type_floating_point_get_exponent_digits(
 			btr->cur_basic_field_type);
 		assert(ret == 11);
 		status = read_unsigned_bitfield(buf, at, field_size, bo,
 			&f64.u);
-		if (status != BT_CTF_BTR_STATUS_OK) {
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("Cannot read unsigned 64-bit bit array for floating point number field: "
 				"btr-addr=%p, status=%s",
-				btr, bt_ctf_btr_status_string(status));
+				btr, bt_btr_status_string(status));
 			goto end;
 		}
 
@@ -675,7 +675,7 @@ enum bt_ctf_btr_status read_basic_float_and_call_cb(struct bt_ctf_btr *btr,
 		/* Only 32-bit and 64-bit fields are supported currently */
 		BT_LOGW("Only 32-bit and 64-bit floating point number fields are supported: "
 			"btr-addr=%p", btr);
-		status = BT_CTF_BTR_STATUS_ERROR;
+		status = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -687,10 +687,10 @@ enum bt_ctf_btr_status read_basic_float_and_call_cb(struct bt_ctf_btr *btr,
 		status = btr->user.cbs.types.floating_point(dblval,
 			btr->cur_basic_field_type, btr->user.data);
 		BT_LOGV("User function returned: status=%s",
-			bt_ctf_btr_status_string(status));
-		if (status != BT_CTF_BTR_STATUS_OK) {
+			bt_btr_status_string(status));
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("User function failed: btr-addr=%p, status=%s",
-				btr, bt_ctf_btr_status_string(status));
+				btr, bt_btr_status_string(status));
 		}
 	}
 
@@ -699,27 +699,27 @@ end:
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_int_and_call(struct bt_ctf_btr *btr,
+enum bt_btr_status read_basic_int_and_call(struct bt_btr *btr,
 		const uint8_t *buf, size_t at,
-		struct bt_ctf_field_type *int_type,
-		struct bt_ctf_field_type *orig_type)
+		struct bt_field_type *int_type,
+		struct bt_field_type *orig_type)
 {
-	int signd;
+	bt_bool signd;
 	int64_t field_size;
-	enum bt_ctf_byte_order bo;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_byte_order bo;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
-	signd = bt_ctf_field_type_integer_get_signed(int_type);
+	signd = bt_field_type_integer_is_signed(int_type);
 	field_size = get_basic_field_type_size(btr, int_type);
 	if (field_size < 1) {
 		BT_LOGW("Cannot get integer field type's size: "
 			"btr=%p, at=%zu, ft-addr=%p",
 			btr, at, int_type);
-		status = BT_CTF_BTR_STATUS_ERROR;
+		status = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
-	bo = bt_ctf_field_type_get_byte_order(int_type);
+	bo = bt_field_type_get_byte_order(int_type);
 
 	/*
 	 * Update current byte order now because we could be reading
@@ -732,10 +732,10 @@ enum bt_ctf_btr_status read_basic_int_and_call(struct bt_ctf_btr *btr,
 		int64_t v;
 
 		status = read_signed_bitfield(buf, at, field_size, bo, &v);
-		if (status != BT_CTF_BTR_STATUS_OK) {
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("Cannot read signed bit array for signed integer field: "
 				"btr-addr=%p, status=%s",
-				btr, bt_ctf_btr_status_string(status));
+				btr, bt_btr_status_string(status));
 			goto end;
 		}
 
@@ -744,21 +744,21 @@ enum bt_ctf_btr_status read_basic_int_and_call(struct bt_ctf_btr *btr,
 			status = btr->user.cbs.types.signed_int(v,
 				btr->cur_basic_field_type, btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(status));
-			if (status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(status));
+			if (status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: "
 					"btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(status));
+					btr, bt_btr_status_string(status));
 			}
 		}
 	} else {
 		uint64_t v;
 
 		status = read_unsigned_bitfield(buf, at, field_size, bo, &v);
-		if (status != BT_CTF_BTR_STATUS_OK) {
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("Cannot read unsigned bit array for unsigned integer field: "
 				"btr-addr=%p, status=%s",
-				btr, bt_ctf_btr_status_string(status));
+				btr, bt_btr_status_string(status));
 			goto end;
 		}
 
@@ -767,11 +767,11 @@ enum bt_ctf_btr_status read_basic_int_and_call(struct bt_ctf_btr *btr,
 			status = btr->user.cbs.types.unsigned_int(v,
 				btr->cur_basic_field_type, btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(status));
-			if (status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(status));
+			if (status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: "
 					"btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(status));
+					btr, bt_btr_status_string(status));
 			}
 		}
 	}
@@ -781,7 +781,7 @@ end:
 }
 
 static
-enum bt_ctf_btr_status read_basic_int_and_call_cb(struct bt_ctf_btr *btr,
+enum bt_btr_status read_basic_int_and_call_cb(struct bt_btr *btr,
 		const uint8_t *buf, size_t at)
 {
 	return read_basic_int_and_call(btr, buf, at, btr->cur_basic_field_type,
@@ -789,13 +789,13 @@ enum bt_ctf_btr_status read_basic_int_and_call_cb(struct bt_ctf_btr *btr,
 }
 
 static
-enum bt_ctf_btr_status read_basic_enum_and_call_cb(struct bt_ctf_btr *btr,
+enum bt_btr_status read_basic_enum_and_call_cb(struct bt_btr *btr,
 		const uint8_t *buf, size_t at)
 {
-	struct bt_ctf_field_type *int_field_type;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	struct bt_field_type *int_field_type;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
-	int_field_type = bt_ctf_field_type_enumeration_get_container_type(
+	int_field_type = bt_field_type_enumeration_get_container_type(
 		btr->cur_basic_field_type);
 	assert(int_field_type);
 	status = read_basic_int_and_call(btr, buf, at,
@@ -805,17 +805,17 @@ enum bt_ctf_btr_status read_basic_enum_and_call_cb(struct bt_ctf_btr *btr,
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_type_and_call_continue(struct bt_ctf_btr *btr,
+enum bt_btr_status read_basic_type_and_call_continue(struct bt_btr *btr,
 		read_basic_and_call_cb_t read_basic_and_call_cb)
 {
 	size_t available;
 	int64_t field_size;
 	int64_t needed_bits;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	if (!at_least_one_bit_left(btr)) {
 		BT_LOGV("Reached end of data: btr-addr=%p", btr);
-		status = BT_CTF_BTR_STATUS_EOF;
+		status = BT_BTR_STATUS_EOF;
 		goto end;
 	}
 
@@ -824,7 +824,7 @@ enum bt_ctf_btr_status read_basic_type_and_call_continue(struct bt_ctf_btr *btr,
 		BT_LOGW("Cannot get basic field type's size: "
 			"btr-addr=%p, ft-addr=%p",
 			btr, btr->cur_basic_field_type);
-		status = BT_CTF_BTR_STATUS_ERROR;
+		status = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -839,11 +839,11 @@ enum bt_ctf_btr_status read_basic_type_and_call_continue(struct bt_ctf_btr *btr,
 		stitch_append_from_buf(btr, needed_bits);
 		status = read_basic_and_call_cb(btr, btr->stitch.buf,
 			btr->stitch.offset);
-		if (status != BT_CTF_BTR_STATUS_OK) {
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("Cannot read basic field: "
 				"btr-addr=%p, ft-addr=%p, status=%s",
 				btr, btr->cur_basic_field_type,
-				bt_ctf_btr_status_string(status));
+				bt_btr_status_string(status));
 			goto end;
 		}
 
@@ -862,24 +862,24 @@ enum bt_ctf_btr_status read_basic_type_and_call_continue(struct bt_ctf_btr *btr,
 	/* We are here; it means we don't have enough data to decode this */
 	BT_LOGV_STR("Not enough data to read the next basic field: appending to stitch buffer.");
 	stitch_append_from_remaining_buf(btr);
-	status = BT_CTF_BTR_STATUS_EOF;
+	status = BT_BTR_STATUS_EOF;
 
 end:
 	return status;
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_type_and_call_begin(struct bt_ctf_btr *btr,
+enum bt_btr_status read_basic_type_and_call_begin(struct bt_btr *btr,
 		read_basic_and_call_cb_t read_basic_and_call_cb)
 {
 	size_t available;
 	int64_t field_size;
-	enum bt_ctf_byte_order bo;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_byte_order bo;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	if (!at_least_one_bit_left(btr)) {
 		BT_LOGV("Reached end of data: btr-addr=%p", btr);
-		status = BT_CTF_BTR_STATUS_EOF;
+		status = BT_BTR_STATUS_EOF;
 		goto end;
 	}
 
@@ -888,13 +888,13 @@ enum bt_ctf_btr_status read_basic_type_and_call_begin(struct bt_ctf_btr *btr,
 		BT_LOGW("Cannot get basic field type's size: "
 			"btr-addr=%p, ft-addr=%p",
 			btr, btr->cur_basic_field_type);
-		status = BT_CTF_BTR_STATUS_ERROR;
+		status = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
-	bo = bt_ctf_field_type_get_byte_order(btr->cur_basic_field_type);
+	bo = bt_field_type_get_byte_order(btr->cur_basic_field_type);
 	status = validate_contiguous_bo(btr, bo);
-	if (status != BT_CTF_BTR_STATUS_OK) {
+	if (status != BT_BTR_STATUS_OK) {
 		/* validate_contiguous_bo() logs errors */
 		goto end;
 	}
@@ -905,11 +905,11 @@ enum bt_ctf_btr_status read_basic_type_and_call_begin(struct bt_ctf_btr *btr,
 		/* We have all the bits; decode and set now */
 		status = read_basic_and_call_cb(btr, btr->buf.addr,
 			buf_at_from_addr(btr));
-		if (status != BT_CTF_BTR_STATUS_OK) {
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("Cannot read basic field: "
 				"btr-addr=%p, ft-addr=%p, status=%s",
 				btr, btr->cur_basic_field_type,
-				bt_ctf_btr_status_string(status));
+				bt_btr_status_string(status));
 			goto end;
 		}
 
@@ -932,72 +932,72 @@ enum bt_ctf_btr_status read_basic_type_and_call_begin(struct bt_ctf_btr *btr,
 	BT_LOGV_STR("Not enough data to read the next basic field: setting stitch buffer.");
 	stitch_set_from_remaining_buf(btr);
 	btr->state = BTR_STATE_READ_BASIC_CONTINUE;
-	status = BT_CTF_BTR_STATUS_EOF;
+	status = BT_BTR_STATUS_EOF;
 
 end:
 	return status;
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_int_type_and_call_begin(
-		struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_int_type_and_call_begin(
+		struct bt_btr *btr)
 {
 	return read_basic_type_and_call_begin(btr, read_basic_int_and_call_cb);
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_int_type_and_call_continue(
-		struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_int_type_and_call_continue(
+		struct bt_btr *btr)
 {
 	return read_basic_type_and_call_continue(btr,
 		read_basic_int_and_call_cb);
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_float_type_and_call_begin(
-		struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_float_type_and_call_begin(
+		struct bt_btr *btr)
 {
 	return read_basic_type_and_call_begin(btr,
 		read_basic_float_and_call_cb);
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_float_type_and_call_continue(
-		struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_float_type_and_call_continue(
+		struct bt_btr *btr)
 {
 	return read_basic_type_and_call_continue(btr,
 		read_basic_float_and_call_cb);
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_enum_type_and_call_begin(
-		struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_enum_type_and_call_begin(
+		struct bt_btr *btr)
 {
 	return read_basic_type_and_call_begin(btr,
 		read_basic_enum_and_call_cb);
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_enum_type_and_call_continue(
-		struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_enum_type_and_call_continue(
+		struct bt_btr *btr)
 {
 	return read_basic_type_and_call_continue(btr,
 		read_basic_enum_and_call_cb);
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_string_type_and_call(
-		struct bt_ctf_btr *btr, bool begin)
+enum bt_btr_status read_basic_string_type_and_call(
+		struct bt_btr *btr, bool begin)
 {
 	size_t buf_at_bytes;
 	const uint8_t *result;
 	size_t available_bytes;
 	const uint8_t *first_chr;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	if (!at_least_one_bit_left(btr)) {
 		BT_LOGV("Reached end of data: btr-addr=%p", btr);
-		status = BT_CTF_BTR_STATUS_EOF;
+		status = BT_BTR_STATUS_EOF;
 		goto end;
 	}
 
@@ -1012,10 +1012,10 @@ enum bt_ctf_btr_status read_basic_string_type_and_call(
 		status = btr->user.cbs.types.string_begin(
 			btr->cur_basic_field_type, btr->user.data);
 		BT_LOGV("User function returned: status=%s",
-			bt_ctf_btr_status_string(status));
-		if (status != BT_CTF_BTR_STATUS_OK) {
+			bt_btr_status_string(status));
+		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("User function failed: btr-addr=%p, status=%s",
-				btr, bt_ctf_btr_status_string(status));
+				btr, bt_btr_status_string(status));
 			goto end;
 		}
 	}
@@ -1029,18 +1029,18 @@ enum bt_ctf_btr_status read_basic_string_type_and_call(
 				available_bytes, btr->cur_basic_field_type,
 				btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(status));
-			if (status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(status));
+			if (status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: "
 					"btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(status));
+					btr, bt_btr_status_string(status));
 				goto end;
 			}
 		}
 
 		consume_bits(btr, BYTES_TO_BITS(available_bytes));
 		btr->state = BTR_STATE_READ_BASIC_CONTINUE;
-		status = BT_CTF_BTR_STATUS_EOF;
+		status = BT_BTR_STATUS_EOF;
 	} else {
 		/* Found the null character */
 		size_t result_len = (size_t) (result - first_chr);
@@ -1052,11 +1052,11 @@ enum bt_ctf_btr_status read_basic_string_type_and_call(
 				result_len, btr->cur_basic_field_type,
 				btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(status));
-			if (status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(status));
+			if (status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: "
 					"btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(status));
+					btr, bt_btr_status_string(status));
 				goto end;
 			}
 		}
@@ -1066,11 +1066,11 @@ enum bt_ctf_btr_status read_basic_string_type_and_call(
 			status = btr->user.cbs.types.string_end(
 				btr->cur_basic_field_type, btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(status));
-			if (status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(status));
+			if (status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: "
 					"btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(status));
+					btr, bt_btr_status_string(status));
 				goto end;
 			}
 		}
@@ -1093,31 +1093,31 @@ end:
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_begin_state(struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_begin_state(struct bt_btr *btr)
 {
-	enum bt_ctf_btr_status status;
+	enum bt_btr_status status;
 
 	assert(btr->cur_basic_field_type);
 
-	switch (bt_ctf_field_type_get_type_id(btr->cur_basic_field_type)) {
-	case BT_CTF_FIELD_TYPE_ID_INTEGER:
+	switch (bt_field_type_get_type_id(btr->cur_basic_field_type)) {
+	case BT_FIELD_TYPE_ID_INTEGER:
 		status = read_basic_int_type_and_call_begin(btr);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_FLOAT:
+	case BT_FIELD_TYPE_ID_FLOAT:
 		status = read_basic_float_type_and_call_begin(btr);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_ENUM:
+	case BT_FIELD_TYPE_ID_ENUM:
 		status = read_basic_enum_type_and_call_begin(btr);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_STRING:
+	case BT_FIELD_TYPE_ID_STRING:
 		status = read_basic_string_type_and_call(btr, true);
 		break;
 	default:
 		BT_LOGF("Unknown basic field type ID: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
 			btr, btr->cur_basic_field_type,
-			bt_ctf_field_type_id_string(
-				bt_ctf_field_type_get_type_id(
+			bt_field_type_id_string(
+				bt_field_type_get_type_id(
 					btr->cur_basic_field_type)));
 		abort();
 	}
@@ -1126,31 +1126,31 @@ enum bt_ctf_btr_status read_basic_begin_state(struct bt_ctf_btr *btr)
 }
 
 static inline
-enum bt_ctf_btr_status read_basic_continue_state(struct bt_ctf_btr *btr)
+enum bt_btr_status read_basic_continue_state(struct bt_btr *btr)
 {
-	enum bt_ctf_btr_status status;
+	enum bt_btr_status status;
 
 	assert(btr->cur_basic_field_type);
 
-	switch (bt_ctf_field_type_get_type_id(btr->cur_basic_field_type)) {
-	case BT_CTF_FIELD_TYPE_ID_INTEGER:
+	switch (bt_field_type_get_type_id(btr->cur_basic_field_type)) {
+	case BT_FIELD_TYPE_ID_INTEGER:
 		status = read_basic_int_type_and_call_continue(btr);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_FLOAT:
+	case BT_FIELD_TYPE_ID_FLOAT:
 		status = read_basic_float_type_and_call_continue(btr);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_ENUM:
+	case BT_FIELD_TYPE_ID_ENUM:
 		status = read_basic_enum_type_and_call_continue(btr);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_STRING:
+	case BT_FIELD_TYPE_ID_STRING:
 		status = read_basic_string_type_and_call(btr, false);
 		break;
 	default:
 		BT_LOGF("Unknown basic field type ID: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
 			btr, btr->cur_basic_field_type,
-			bt_ctf_field_type_id_string(
-				bt_ctf_field_type_get_type_id(
+			bt_field_type_id_string(
+				bt_field_type_get_type_id(
 					btr->cur_basic_field_type)));
 		abort();
 	}
@@ -1159,7 +1159,7 @@ enum bt_ctf_btr_status read_basic_continue_state(struct bt_ctf_btr *btr)
 }
 
 static inline
-size_t bits_to_skip_to_align_to(struct bt_ctf_btr *btr, size_t align)
+size_t bits_to_skip_to_align_to(struct bt_btr *btr, size_t align)
 {
 	size_t aligned_packet_at;
 
@@ -1168,22 +1168,22 @@ size_t bits_to_skip_to_align_to(struct bt_ctf_btr *btr, size_t align)
 }
 
 static inline
-enum bt_ctf_btr_status align_type_state(struct bt_ctf_btr *btr,
-		struct bt_ctf_field_type *field_type, enum btr_state next_state)
+enum bt_btr_status align_type_state(struct bt_btr *btr,
+		struct bt_field_type *field_type, enum btr_state next_state)
 {
 	int field_alignment;
 	size_t skip_bits;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	/* Get field's alignment */
-	field_alignment = bt_ctf_field_type_get_alignment(field_type);
+	field_alignment = bt_field_type_get_alignment(field_type);
 	if (field_alignment < 0) {
 		BT_LOGW("Cannot get field type's alignment: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
 			btr, field_type,
-			bt_ctf_field_type_id_string(
-				bt_ctf_field_type_get_type_id(field_type)));
-		status = BT_CTF_BTR_STATUS_ERROR;
+			bt_field_type_id_string(
+				bt_field_type_get_type_id(field_type)));
+		status = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1206,7 +1206,7 @@ enum bt_ctf_btr_status align_type_state(struct bt_ctf_btr *btr,
 
 	/* Make sure there's at least one bit left */
 	if (!at_least_one_bit_left(btr)) {
-		status = BT_CTF_BTR_STATUS_EOF;
+		status = BT_BTR_STATUS_EOF;
 		goto end;
 	}
 
@@ -1222,7 +1222,7 @@ enum bt_ctf_btr_status align_type_state(struct bt_ctf_btr *btr,
 	} else {
 		/* No: need more data */
 		BT_LOGV("Reached end of data when aligning: btr-addr=%p", btr);
-		status = BT_CTF_BTR_STATUS_EOF;
+		status = BT_BTR_STATUS_EOF;
 	}
 
 end:
@@ -1230,21 +1230,21 @@ end:
 }
 
 static inline
-bool is_compound_type(struct bt_ctf_field_type *field_type)
+bool is_compound_type(struct bt_field_type *field_type)
 {
-	enum bt_ctf_field_type_id id = bt_ctf_field_type_get_type_id(field_type);
+	enum bt_field_type_id id = bt_field_type_get_type_id(field_type);
 
-	return id == BT_CTF_FIELD_TYPE_ID_STRUCT || id == BT_CTF_FIELD_TYPE_ID_ARRAY ||
-		id == BT_CTF_FIELD_TYPE_ID_SEQUENCE || id == BT_CTF_FIELD_TYPE_ID_VARIANT;
+	return id == BT_FIELD_TYPE_ID_STRUCT || id == BT_FIELD_TYPE_ID_ARRAY ||
+		id == BT_FIELD_TYPE_ID_SEQUENCE || id == BT_FIELD_TYPE_ID_VARIANT;
 }
 
 static inline
-enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
+enum bt_btr_status next_field_state(struct bt_btr *btr)
 {
 	int ret;
 	struct stack_entry *top;
-	struct bt_ctf_field_type *next_field_type = NULL;
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	struct bt_field_type *next_field_type = NULL;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	if (stack_empty(btr->stack)) {
 		goto end;
@@ -1259,10 +1259,10 @@ enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
 			status = btr->user.cbs.types.compound_end(
 				top->base_type, btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(status));
-			if (status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(status));
+			if (status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(status));
+					btr, bt_btr_status_string(status));
 				goto end;
 			}
 		}
@@ -1280,26 +1280,26 @@ enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
 	}
 
 	/* Get next field's type */
-	switch (bt_ctf_field_type_get_type_id(top->base_type)) {
-	case BT_CTF_FIELD_TYPE_ID_STRUCT:
-		ret = bt_ctf_field_type_structure_get_field(
+	switch (bt_field_type_get_type_id(top->base_type)) {
+	case BT_FIELD_TYPE_ID_STRUCT:
+		ret = bt_field_type_structure_get_field_by_index(
 			top->base_type, NULL, &next_field_type,
 			top->index);
 		if (ret) {
 			next_field_type = NULL;
 		}
 		break;
-	case BT_CTF_FIELD_TYPE_ID_ARRAY:
+	case BT_FIELD_TYPE_ID_ARRAY:
 		next_field_type =
-			bt_ctf_field_type_array_get_element_type(
+			bt_field_type_array_get_element_type(
 				top->base_type);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_SEQUENCE:
 		next_field_type =
-			bt_ctf_field_type_sequence_get_element_type(
+			bt_field_type_sequence_get_element_type(
 				top->base_type);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_TYPE_ID_VARIANT:
 		/* Variant types are dynamic: query the user, he should know! */
 		next_field_type =
 			btr->user.cbs.query.get_variant_type(
@@ -1314,10 +1314,10 @@ enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
 			"btr-addr=%p, base-ft-addr=%p, base-ft-id=%s, "
 			"index=%" PRId64,
 			btr, top->base_type,
-			bt_ctf_field_type_id_string(
-				bt_ctf_field_type_get_type_id(top->base_type)),
+			bt_field_type_id_string(
+				bt_field_type_get_type_id(top->base_type)),
 			top->index);
-		status = BT_CTF_BTR_STATUS_ERROR;
+		status = BT_BTR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1327,10 +1327,10 @@ enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
 			status = btr->user.cbs.types.compound_begin(
 				next_field_type, btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(status));
-			if (status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(status));
+			if (status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(status));
+					btr, bt_btr_status_string(status));
 				goto end;
 			}
 		}
@@ -1338,7 +1338,7 @@ enum bt_ctf_btr_status next_field_state(struct bt_ctf_btr *btr)
 		ret = stack_push_with_len(btr, next_field_type);
 		if (ret) {
 			/* stack_push_with_len() logs errors */
-			status = BT_CTF_BTR_STATUS_ERROR;
+			status = BT_BTR_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1363,9 +1363,9 @@ end:
 }
 
 static inline
-enum bt_ctf_btr_status handle_state(struct bt_ctf_btr *btr)
+enum bt_btr_status handle_state(struct bt_btr *btr)
 {
-	enum bt_ctf_btr_status status = BT_CTF_BTR_STATUS_OK;
+	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
 	BT_LOGV("Handling state: btr-addr=%p, state=%s",
 		btr, btr_state_string(btr->state));
@@ -1393,16 +1393,16 @@ enum bt_ctf_btr_status handle_state(struct bt_ctf_btr *btr)
 	}
 
 	BT_LOGV("Handled state: btr-addr=%p, status=%s",
-		btr, bt_ctf_btr_status_string(status));
+		btr, bt_btr_status_string(status));
 	return status;
 }
 
-struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data)
+struct bt_btr *bt_btr_create(struct bt_btr_cbs cbs, void *data)
 {
-	struct bt_ctf_btr *btr;
+	struct bt_btr *btr;
 
 	BT_LOGD_STR("Creating binary type reader (BTR).");
-	btr = g_new0(struct bt_ctf_btr, 1);
+	btr = g_new0(struct bt_btr, 1);
 	if (!btr) {
 		BT_LOGE_STR("Failed to allocate one binary type reader.");
 		goto end;
@@ -1411,7 +1411,7 @@ struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data)
 	btr->stack = stack_new();
 	if (!btr->stack) {
 		BT_LOGE_STR("Cannot create BTR's stack.");
-		bt_ctf_btr_destroy(btr);
+		bt_btr_destroy(btr);
 		btr = NULL;
 		goto end;
 	}
@@ -1425,7 +1425,7 @@ end:
 	return btr;
 }
 
-void bt_ctf_btr_destroy(struct bt_ctf_btr *btr)
+void bt_btr_destroy(struct bt_btr *btr)
 {
 	if (btr->stack) {
 		stack_destroy(btr->stack);
@@ -1437,18 +1437,18 @@ void bt_ctf_btr_destroy(struct bt_ctf_btr *btr)
 }
 
 static
-void reset(struct bt_ctf_btr *btr)
+void reset(struct bt_btr *btr)
 {
 	BT_LOGD("Resetting BTR: addr=%p", btr);
 	stack_clear(btr->stack);
 	BT_PUT(btr->cur_basic_field_type);
 	stitch_reset(btr);
 	btr->buf.addr = NULL;
-	btr->last_bo = BT_CTF_BYTE_ORDER_UNKNOWN;
+	btr->last_bo = BT_BYTE_ORDER_UNKNOWN;
 }
 
 static
-void update_packet_offset(struct bt_ctf_btr *btr)
+void update_packet_offset(struct bt_btr *btr)
 {
 	BT_LOGV("Updating packet offset for next call: "
 		"btr-addr=%p, cur-packet-offset=%zu, next-packet-offset=%zu",
@@ -1457,10 +1457,10 @@ void update_packet_offset(struct bt_ctf_btr *btr)
 	btr->buf.packet_offset += btr->buf.at;
 }
 
-size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
-	struct bt_ctf_field_type *type, const uint8_t *buf,
+size_t bt_btr_start(struct bt_btr *btr,
+	struct bt_field_type *type, const uint8_t *buf,
 	size_t offset, size_t packet_offset, size_t sz,
-	enum bt_ctf_btr_status *status)
+	enum bt_btr_status *status)
 {
 	assert(btr);
 	assert(buf);
@@ -1473,7 +1473,7 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
 	btr->buf.packet_offset = packet_offset;
 	btr->buf.buf_sz = sz;
 	btr->buf.sz = BYTES_TO_BITS(sz) - offset;
-	*status = BT_CTF_BTR_STATUS_OK;
+	*status = BT_BTR_STATUS_OK;
 
 	BT_LOGV("Starting decoding: btr-addr=%p, ft-addr=%p, "
 		"buf-addr=%p, buf-size=%zu, offset=%zu, "
@@ -1490,10 +1490,10 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
 			*status = btr->user.cbs.types.compound_begin(
 				type, btr->user.data);
 			BT_LOGV("User function returned: status=%s",
-				bt_ctf_btr_status_string(*status));
-			if (*status != BT_CTF_BTR_STATUS_OK) {
+				bt_btr_status_string(*status));
+			if (*status != BT_BTR_STATUS_OK) {
 				BT_LOGW("User function failed: btr-addr=%p, status=%s",
-					btr, bt_ctf_btr_status_string(*status));
+					btr, bt_btr_status_string(*status));
 				goto end;
 			}
 		}
@@ -1501,7 +1501,7 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
 		stack_ret = stack_push_with_len(btr, type);
 		if (stack_ret) {
 			/* stack_push_with_len() logs errors */
-			*status = BT_CTF_BTR_STATUS_ERROR;
+			*status = BT_BTR_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1518,7 +1518,7 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
 
 	while (true) {
 		*status = handle_state(btr);
-		if (*status != BT_CTF_BTR_STATUS_OK ||
+		if (*status != BT_BTR_STATUS_OK ||
 				btr->state == BTR_STATE_DONE) {
 			break;
 		}
@@ -1531,9 +1531,9 @@ end:
 	return btr->buf.at;
 }
 
-size_t bt_ctf_btr_continue(struct bt_ctf_btr *btr,
+size_t bt_btr_continue(struct bt_btr *btr,
 	const uint8_t *buf, size_t sz,
-	enum bt_ctf_btr_status *status)
+	enum bt_btr_status *status)
 {
 	assert(btr);
 	assert(buf);
@@ -1543,7 +1543,7 @@ size_t bt_ctf_btr_continue(struct bt_ctf_btr *btr,
 	btr->buf.at = 0;
 	btr->buf.buf_sz = sz;
 	btr->buf.sz = BYTES_TO_BITS(sz);
-	*status = BT_CTF_BTR_STATUS_OK;
+	*status = BT_BTR_STATUS_OK;
 
 	BT_LOGV("Continuing decoding: btr-addr=%p, buf-addr=%p, buf-size=%zu",
 		btr, buf, sz);
@@ -1553,7 +1553,7 @@ size_t bt_ctf_btr_continue(struct bt_ctf_btr *btr,
 
 	while (true) {
 		*status = handle_state(btr);
-		if (*status != BT_CTF_BTR_STATUS_OK ||
+		if (*status != BT_BTR_STATUS_OK ||
 				btr->state == BTR_STATE_DONE) {
 			break;
 		}

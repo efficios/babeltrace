@@ -31,21 +31,21 @@ extern "C" {
 
 struct bt_notification;
 struct bt_clock_class_priority_map;
-struct bt_ctf_clock_class;
-struct bt_ctf_stream;
+struct bt_clock_class;
+struct bt_stream;
 
-extern struct bt_ctf_clock_value *
+extern struct bt_clock_value *
 bt_notification_discarded_events_get_begin_clock_value(
 		struct bt_notification *notification);
 
-extern struct bt_ctf_clock_value *
+extern struct bt_clock_value *
 bt_notification_discarded_events_get_end_clock_value(
 		struct bt_notification *notification);
 
 extern int64_t bt_notification_discarded_events_get_count(
 		struct bt_notification *notification);
 
-extern struct bt_ctf_stream *bt_notification_discarded_events_get_stream(
+extern struct bt_stream *bt_notification_discarded_events_get_stream(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus

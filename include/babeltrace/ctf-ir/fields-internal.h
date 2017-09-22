@@ -36,70 +36,70 @@
 #include <stdbool.h>
 #include <glib.h>
 
-struct bt_ctf_stream_pos;
+struct bt_stream_pos;
 
-struct bt_ctf_field {
+struct bt_field {
 	struct bt_object base;
-	struct bt_ctf_field_type *type;
+	struct bt_field_type *type;
 	bool payload_set;
 	bool frozen;
 };
 
-struct bt_ctf_field_integer {
-	struct bt_ctf_field parent;
+struct bt_field_integer {
+	struct bt_field parent;
 	union {
 		int64_t signd;
 		uint64_t unsignd;
 	} payload;
 };
 
-struct bt_ctf_field_enumeration {
-	struct bt_ctf_field parent;
-	struct bt_ctf_field *payload;
+struct bt_field_enumeration {
+	struct bt_field parent;
+	struct bt_field *payload;
 };
 
-struct bt_ctf_field_floating_point {
-	struct bt_ctf_field parent;
+struct bt_field_floating_point {
+	struct bt_field parent;
 	double payload;
 };
 
-struct bt_ctf_field_structure {
-	struct bt_ctf_field parent;
-	GPtrArray *fields; /* Array of pointers to struct bt_ctf_field */
+struct bt_field_structure {
+	struct bt_field parent;
+	GPtrArray *fields; /* Array of pointers to struct bt_field */
 };
 
-struct bt_ctf_field_variant {
-	struct bt_ctf_field parent;
-	struct bt_ctf_field *tag;
-	struct bt_ctf_field *payload;
+struct bt_field_variant {
+	struct bt_field parent;
+	struct bt_field *tag;
+	struct bt_field *payload;
 };
 
-struct bt_ctf_field_array {
-	struct bt_ctf_field parent;
-	GPtrArray *elements; /* Array of pointers to struct bt_ctf_field */
+struct bt_field_array {
+	struct bt_field parent;
+	GPtrArray *elements; /* Array of pointers to struct bt_field */
 };
 
-struct bt_ctf_field_sequence {
-	struct bt_ctf_field parent;
-	struct bt_ctf_field *length;
-	GPtrArray *elements; /* Array of pointers to struct bt_ctf_field */
+struct bt_field_sequence {
+	struct bt_field parent;
+	struct bt_field *length;
+	GPtrArray *elements; /* Array of pointers to struct bt_field */
 };
 
-struct bt_ctf_field_string {
-	struct bt_ctf_field parent;
+struct bt_field_string {
+	struct bt_field parent;
 	GString *payload;
 };
 
 /* Validate that the field's payload is set (returns 0 if set). */
 BT_HIDDEN
-int bt_ctf_field_validate(struct bt_ctf_field *field);
+int bt_field_validate(struct bt_field *field);
 
 BT_HIDDEN
-int bt_ctf_field_serialize(struct bt_ctf_field *field,
-		struct bt_ctf_stream_pos *pos,
-		enum bt_ctf_byte_order native_byte_order);
+int bt_field_serialize(struct bt_field *field,
+		struct bt_stream_pos *pos,
+		enum bt_byte_order native_byte_order);
 
 BT_HIDDEN
-void bt_ctf_field_freeze(struct bt_ctf_field *field);
+void bt_field_freeze(struct bt_field *field);
 
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */

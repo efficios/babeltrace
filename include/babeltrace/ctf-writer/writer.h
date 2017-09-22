@@ -31,6 +31,8 @@
  */
 
 #include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/trace.h>
 
 #ifdef __cplusplus

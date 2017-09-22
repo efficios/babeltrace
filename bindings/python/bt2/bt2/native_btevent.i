@@ -23,38 +23,38 @@
  */
 
 /* Type */
-struct bt_ctf_event;
+struct bt_event;
 
 /* Functions */
-struct bt_ctf_event *bt_ctf_event_create(
-		struct bt_ctf_event_class *event_class);
-struct bt_ctf_event_class *bt_ctf_event_get_class(
-		struct bt_ctf_event *event);
-struct bt_ctf_packet *bt_ctf_event_get_packet(
-		struct bt_ctf_event *event);
-int bt_ctf_event_set_packet(struct bt_ctf_event *event,
-		struct bt_ctf_packet *packet);
-struct bt_ctf_stream *bt_ctf_event_get_stream(
-		struct bt_ctf_event *event);
-struct bt_ctf_field *bt_ctf_event_get_header(
-		struct bt_ctf_event *event);
-int bt_ctf_event_set_header(struct bt_ctf_event *event,
-		struct bt_ctf_field *header);
-struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
-		struct bt_ctf_event *event);
-int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
-		struct bt_ctf_field *context);
-struct bt_ctf_field *bt_ctf_event_get_event_context(
-		struct bt_ctf_event *event);
-int bt_ctf_event_set_event_context(struct bt_ctf_event *event,
-		struct bt_ctf_field *context);
-struct bt_ctf_field *bt_ctf_event_get_event_payload(
-		struct bt_ctf_event *event);
-int bt_ctf_event_set_event_payload(struct bt_ctf_event *event,
-		struct bt_ctf_field *payload);
-struct bt_ctf_clock_value *bt_ctf_event_get_clock_value(
-		struct bt_ctf_event *event,
-		struct bt_ctf_clock_class *clock_class);
-int bt_ctf_event_set_clock_value(
-		struct bt_ctf_event *event,
-		struct bt_ctf_clock_value *clock_value);
+struct bt_event *bt_event_create(
+		struct bt_event_class *event_class);
+struct bt_event_class *bt_event_get_class(
+		struct bt_event *event);
+struct bt_packet *bt_event_get_packet(
+		struct bt_event *event);
+int bt_event_set_packet(struct bt_event *event,
+		struct bt_packet *packet);
+struct bt_stream *bt_event_get_stream(
+		struct bt_event *event);
+struct bt_field *bt_event_get_header(
+		struct bt_event *event);
+int bt_event_set_header(struct bt_event *event,
+		struct bt_field *header);
+struct bt_field *bt_event_get_stream_event_context(
+		struct bt_event *event);
+int bt_event_set_stream_event_context(struct bt_event *event,
+		struct bt_field *context);
+struct bt_field *bt_event_get_event_context(
+		struct bt_event *event);
+int bt_event_set_event_context(struct bt_event *event,
+		struct bt_field *context);
+struct bt_field *bt_event_get_event_payload(
+		struct bt_event *event);
+int bt_event_set_event_payload(struct bt_event *event,
+		struct bt_field *payload);
+struct bt_clock_value *bt_event_get_clock_value(
+		struct bt_event *event,
+		struct bt_clock_class *clock_class);
+int bt_event_set_clock_value(
+		struct bt_event *event,
+		struct bt_clock_value *clock_value);

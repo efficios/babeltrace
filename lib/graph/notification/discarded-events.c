@@ -25,7 +25,7 @@
 #include <babeltrace/graph/notification-discarded-elements-internal.h>
 #include <stdint.h>
 
-struct bt_ctf_clock_value *
+struct bt_clock_value *
 bt_notification_discarded_events_get_begin_clock_value(
 		struct bt_notification *notification)
 {
@@ -33,7 +33,7 @@ bt_notification_discarded_events_get_begin_clock_value(
 		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS, notification);
 }
 
-struct bt_ctf_clock_value *
+struct bt_clock_value *
 bt_notification_discarded_events_get_end_clock_value(
 		struct bt_notification *notification)
 {
@@ -48,7 +48,7 @@ int64_t bt_notification_discarded_events_get_count(
 		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS, notification);
 }
 
-struct bt_ctf_stream *bt_notification_discarded_events_get_stream(
+struct bt_stream *bt_notification_discarded_events_get_stream(
 		struct bt_notification *notification)
 {
 	return bt_notification_discarded_elements_get_stream(

@@ -39,48 +39,48 @@ struct visitor_state {
 
 struct expected_result {
 	const char *object_name;
-	enum bt_ctf_object_type object_type;
+	enum bt_visitor_object_type object_type;
 };
 
 struct expected_result expected_results[] = {
-	{ NULL, BT_CTF_OBJECT_TYPE_TRACE },
-	{ "sc1", BT_CTF_OBJECT_TYPE_STREAM_CLASS },
-	{ "ec1", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
-	{ "sc2", BT_CTF_OBJECT_TYPE_STREAM_CLASS },
-	{ "ec2", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
-	{ "ec3", BT_CTF_OBJECT_TYPE_EVENT_CLASS },
+	{ NULL, BT_VISITOR_OBJECT_TYPE_TRACE },
+	{ "sc1", BT_VISITOR_OBJECT_TYPE_STREAM_CLASS },
+	{ "ec1", BT_VISITOR_OBJECT_TYPE_EVENT_CLASS },
+	{ "sc2", BT_VISITOR_OBJECT_TYPE_STREAM_CLASS },
+	{ "ec2", BT_VISITOR_OBJECT_TYPE_EVENT_CLASS },
+	{ "ec3", BT_VISITOR_OBJECT_TYPE_EVENT_CLASS },
 };
 
-const char *object_type_str(enum bt_ctf_object_type type)
+const char *object_type_str(enum bt_visitor_object_type type)
 {
 	switch (type) {
-	case BT_CTF_OBJECT_TYPE_TRACE:
+	case BT_VISITOR_OBJECT_TYPE_TRACE:
 		return "trace";
-	case BT_CTF_OBJECT_TYPE_STREAM_CLASS:
+	case BT_VISITOR_OBJECT_TYPE_STREAM_CLASS:
 		return "stream class";
-	case BT_CTF_OBJECT_TYPE_STREAM:
+	case BT_VISITOR_OBJECT_TYPE_STREAM:
 		return "stream";
-	case BT_CTF_OBJECT_TYPE_EVENT_CLASS:
+	case BT_VISITOR_OBJECT_TYPE_EVENT_CLASS:
 		return "event class";
-	case BT_CTF_OBJECT_TYPE_EVENT:
+	case BT_VISITOR_OBJECT_TYPE_EVENT:
 		return "event";
 	default:
 		return "unknown";
 	}
 }
 
-struct bt_ctf_event_class *init_event_class(const char *name)
+struct bt_event_class *init_event_class(const char *name)
 {
 	int ret;
-	struct bt_ctf_event_class *ec = bt_ctf_event_class_create(name);
-	struct bt_ctf_field_type *int_field =
-			bt_ctf_field_type_integer_create(8);
+	struct bt_event_class *ec = bt_event_class_create(name);
+	struct bt_field_type *int_field =
+			bt_field_type_integer_create(8);
 
 	if (!ec || !int_field) {
 		goto error;
 	}
 
-	ret = bt_ctf_event_class_add_field(ec, int_field, "an_int_field");
+	ret = bt_event_class_add_field(ec, int_field, "an_int_field");
 	if (ret) {
 		goto error;
 	}
@@ -94,41 +94,41 @@ error:
 }
 
 static void set_stream_class_field_types(
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_stream_class *stream_class)
 {
-	struct bt_ctf_field_type *packet_context_type;
-	struct bt_ctf_field_type *event_header_type;
-	struct bt_ctf_field_type *ft;
+	struct bt_field_type *packet_context_type;
+	struct bt_field_type *event_header_type;
+	struct bt_field_type *ft;
 	int ret;
 
-	packet_context_type = bt_ctf_field_type_structure_create();
+	packet_context_type = bt_field_type_structure_create();
 	assert(packet_context_type);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "packet_size");
 	assert(ret == 0);
 	bt_put(ft);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
+	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "content_size");
 	assert(ret == 0);
 	bt_put(ft);
 
-	event_header_type = bt_ctf_field_type_structure_create();
+	event_header_type = bt_field_type_structure_create();
 	assert(event_header_type);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(event_header_type,
+	ret = bt_field_type_structure_add_field(event_header_type,
 		ft, "id");
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_ctf_stream_class_set_packet_context_type(stream_class,
+	ret = bt_stream_class_set_packet_context_type(stream_class,
 		packet_context_type);
 	assert(ret == 0);
-	ret = bt_ctf_stream_class_set_event_header_type(stream_class,
+	ret = bt_stream_class_set_event_header_type(stream_class,
 		event_header_type);
 	assert(ret == 0);
 
@@ -136,37 +136,37 @@ static void set_stream_class_field_types(
 	bt_put(event_header_type);
 }
 
-static void set_trace_packet_header(struct bt_ctf_trace *trace)
+static void set_trace_packet_header(struct bt_trace *trace)
 {
-	struct bt_ctf_field_type *packet_header_type;
-	struct bt_ctf_field_type *ft;
+	struct bt_field_type *packet_header_type;
+	struct bt_field_type *ft;
 	int ret;
 
-	packet_header_type = bt_ctf_field_type_structure_create();
+	packet_header_type = bt_field_type_structure_create();
 	assert(packet_header_type);
-	ft = bt_ctf_field_type_integer_create(32);
+	ft = bt_field_type_integer_create(32);
 	assert(ft);
-	ret = bt_ctf_field_type_structure_add_field(packet_header_type,
+	ret = bt_field_type_structure_add_field(packet_header_type,
 		ft, "stream_id");
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_ctf_trace_set_packet_header_type(trace,
+	ret = bt_trace_set_packet_header_type(trace,
 		packet_header_type);
 	assert(ret == 0);
 
 	bt_put(packet_header_type);
 }
 
-struct bt_ctf_trace *init_trace(void)
+struct bt_trace *init_trace(void)
 {
 	int ret;
-	struct bt_ctf_trace *trace = bt_ctf_trace_create();
-	struct bt_ctf_stream_class *sc1 = bt_ctf_stream_class_create("sc1");
-	struct bt_ctf_stream_class *sc2 = bt_ctf_stream_class_create("sc2");
-	struct bt_ctf_event_class *ec1 = init_event_class("ec1");
-	struct bt_ctf_event_class *ec2 = init_event_class("ec2");
-	struct bt_ctf_event_class *ec3 = init_event_class("ec3");
+	struct bt_trace *trace = bt_trace_create();
+	struct bt_stream_class *sc1 = bt_stream_class_create("sc1");
+	struct bt_stream_class *sc2 = bt_stream_class_create("sc2");
+	struct bt_event_class *ec1 = init_event_class("ec1");
+	struct bt_event_class *ec2 = init_event_class("ec2");
+	struct bt_event_class *ec3 = init_event_class("ec3");
 
 	if (!trace || !sc1 || !sc2 || !ec1 || !ec2 || !ec3) {
 		goto end;
@@ -175,27 +175,27 @@ struct bt_ctf_trace *init_trace(void)
 	set_trace_packet_header(trace);
 	set_stream_class_field_types(sc1);
 	set_stream_class_field_types(sc2);
-	ret = bt_ctf_stream_class_add_event_class(sc1, ec1);
+	ret = bt_stream_class_add_event_class(sc1, ec1);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_ctf_stream_class_add_event_class(sc2, ec2);
+	ret = bt_stream_class_add_event_class(sc2, ec2);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_ctf_stream_class_add_event_class(sc2, ec3);
+	ret = bt_stream_class_add_event_class(sc2, ec3);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_ctf_trace_add_stream_class(trace, sc1);
+	ret = bt_trace_add_stream_class(trace, sc1);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_ctf_trace_add_stream_class(trace, sc2);
+	ret = bt_trace_add_stream_class(trace, sc2);
 	if (ret) {
 		goto error;
 	}
@@ -211,7 +211,7 @@ error:
 	goto end;
 }
 
-int visitor(struct bt_ctf_object *object, void *data)
+int visitor(struct bt_visitor_object *object, void *data)
 {
 	int ret = 0;
 	bool names_match;
@@ -219,14 +219,14 @@ int visitor(struct bt_ctf_object *object, void *data)
 	struct visitor_state *state = data;
 	struct expected_result *expected = &expected_results[state->i++];
 
-	switch (bt_ctf_object_get_type(object)) {
-	case BT_CTF_OBJECT_TYPE_TRACE:
+	switch (bt_visitor_object_get_type(object)) {
+	case BT_VISITOR_OBJECT_TYPE_TRACE:
 		object_name = NULL;
 		names_match = expected->object_name == NULL;
 		break;
-	case BT_CTF_OBJECT_TYPE_STREAM_CLASS:
-		object_name = bt_ctf_stream_class_get_name(
-				bt_ctf_object_get_object(object));
+	case BT_VISITOR_OBJECT_TYPE_STREAM_CLASS:
+		object_name = bt_stream_class_get_name(
+				bt_visitor_object_get_object(object));
 		if (!object_name) {
 			ret = -1;
 			goto end;
@@ -234,9 +234,9 @@ int visitor(struct bt_ctf_object *object, void *data)
 
 		names_match = !strcmp(object_name, expected->object_name);
 		break;
-	case BT_CTF_OBJECT_TYPE_EVENT_CLASS:
-		object_name = bt_ctf_event_class_get_name(
-				bt_ctf_object_get_object(object));
+	case BT_VISITOR_OBJECT_TYPE_EVENT_CLASS:
+		object_name = bt_event_class_get_name(
+				bt_visitor_object_get_object(object));
 		if (!object_name) {
 			ret = -1;
 			goto end;
@@ -250,10 +250,10 @@ int visitor(struct bt_ctf_object *object, void *data)
 		goto end;
 	}
 
-	ok(expected->object_type == bt_ctf_object_get_type(object),
+	ok(expected->object_type == bt_visitor_object_get_type(object),
 			"Encoutered object type %s, expected %s",
 			object_type_str(expected->object_type),
-			object_type_str(bt_ctf_object_get_type(object)));
+			object_type_str(bt_visitor_object_get_type(object)));
 	ok(names_match, "Element name is %s, expected %s",
 			object_name ? : "NULL",
 			expected->object_name ? : "NULL");
@@ -264,14 +264,14 @@ end:
 int main(int argc, char **argv)
 {
 	int ret;
-	struct bt_ctf_trace *trace;
+	struct bt_trace *trace;
 	struct visitor_state state = { 0 };
 
 	plan_tests(NR_TESTS);
 
 	/*
 	 * Initialize a reference trace which we'll walk using the
-	 * bt_ctf_*_visit() interface.
+	 * bt_*_visit() interface.
 	 */
 	trace = init_trace();
 	if (!trace) {
@@ -279,8 +279,8 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	ret = bt_ctf_trace_visit(trace, visitor, &state);
-	ok(!ret, "bt_ctf_trace_visit returned success");
+	ret = bt_trace_visit(trace, visitor, &state);
+	ok(!ret, "bt_trace_visit returned success");
 
 	BT_PUT(trace);
 	return exit_status();

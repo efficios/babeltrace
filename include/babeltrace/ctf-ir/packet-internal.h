@@ -31,20 +31,20 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <assert.h>
 
-struct bt_ctf_packet {
+struct bt_packet {
 	struct bt_object base;
-	struct bt_ctf_field *header;
-	struct bt_ctf_field *context;
-	struct bt_ctf_stream *stream;
+	struct bt_field *header;
+	struct bt_field *context;
+	struct bt_stream *stream;
 	int frozen;
 };
 
 BT_HIDDEN
-void bt_ctf_packet_freeze(struct bt_ctf_packet *packet);
+void bt_packet_freeze(struct bt_packet *packet);
 
 static inline
-struct bt_ctf_stream *bt_ctf_packet_borrow_stream(
-		struct bt_ctf_packet *packet)
+struct bt_stream *bt_packet_borrow_stream(
+		struct bt_packet *packet)
 {
 	assert(packet);
 	return packet->stream;

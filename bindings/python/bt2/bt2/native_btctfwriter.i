@@ -56,35 +56,35 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock,
 		int64_t time);
 
 /* Stream functions */
-int bt_ctf_stream_get_discarded_events_count(
-		struct bt_ctf_stream *stream, uint64_t *OUTPUT);
-void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
+int bt_stream_get_discarded_events_count(
+		struct bt_stream *stream, uint64_t *OUTPUT);
+void bt_stream_append_discarded_events(struct bt_stream *stream,
 		uint64_t event_count);
-int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
-		struct bt_ctf_event *event);
-struct bt_ctf_field *bt_ctf_stream_get_packet_header(
-		struct bt_ctf_stream *stream);
-int bt_ctf_stream_set_packet_header(
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_field *packet_header);
-struct bt_ctf_field *bt_ctf_stream_get_packet_context(
-		struct bt_ctf_stream *stream);
-int bt_ctf_stream_set_packet_context(
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_field *packet_context);
-int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
-int bt_ctf_stream_is_writer(struct bt_ctf_stream *stream);
+int bt_stream_append_event(struct bt_stream *stream,
+		struct bt_event *event);
+struct bt_field *bt_stream_get_packet_header(
+		struct bt_stream *stream);
+int bt_stream_set_packet_header(
+		struct bt_stream *stream,
+		struct bt_field *packet_header);
+struct bt_field *bt_stream_get_packet_context(
+		struct bt_stream *stream);
+int bt_stream_set_packet_context(
+		struct bt_stream *stream,
+		struct bt_field *packet_context);
+int bt_stream_flush(struct bt_stream *stream);
+int bt_stream_is_writer(struct bt_stream *stream);
 
 /* Stream class functions */
-int bt_ctf_stream_class_set_clock(
-		struct bt_ctf_stream_class *stream_class,
+int bt_stream_class_set_clock(
+		struct bt_stream_class *stream_class,
 		struct bt_ctf_clock *clock);
-struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
-		struct bt_ctf_stream_class *stream_class);
+struct bt_ctf_clock *bt_stream_class_get_clock(
+		struct bt_stream_class *stream_class);
 
 /* Writer functions */
 struct bt_ctf_writer *bt_ctf_writer_create(const char *path);
-struct bt_ctf_trace *bt_ctf_writer_get_trace(
+struct bt_trace *bt_ctf_writer_get_trace(
 		struct bt_ctf_writer *writer);
 int bt_ctf_writer_add_clock(struct bt_ctf_writer *writer,
 		struct bt_ctf_clock *clock);

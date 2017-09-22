@@ -62,13 +62,13 @@
 #include <stdlib.h>
 
 struct discarded_elements_state {
-	struct bt_ctf_clock_value *cur_begin;
+	struct bt_clock_value *cur_begin;
 	uint64_t cur_count;
 };
 
 struct stream_state {
-	struct bt_ctf_stream *stream; /* owned by this */
-	struct bt_ctf_packet *cur_packet; /* owned by this */
+	struct bt_stream *stream; /* owned by this */
+	struct bt_packet *cur_packet; /* owned by this */
 	struct discarded_elements_state discarded_packets_state;
 	struct discarded_elements_state discarded_events_state;
 	bt_bool is_ended;
@@ -94,14 +94,14 @@ struct action {
 
 		/* ACTION_TYPE_MAP_PORT_TO_COMP_IN_STREAM */
 		struct {
-			struct bt_ctf_stream *stream; /* owned by this */
+			struct bt_stream *stream; /* owned by this */
 			struct bt_component *component; /* owned by this */
 			struct bt_port *port; /* owned by this */
 		} map_port_to_comp_in_stream;
 
 		/* ACTION_TYPE_ADD_STREAM_STATE */
 		struct {
-			struct bt_ctf_stream *stream; /* owned by this */
+			struct bt_stream *stream; /* owned by this */
 			struct stream_state *stream_state; /* owned by this */
 		} add_stream_state;
 
@@ -113,21 +113,21 @@ struct action {
 		/* ACTION_TYPE_SET_STREAM_STATE_CUR_PACKET */
 		struct {
 			struct stream_state *stream_state; /* weak */
-			struct bt_ctf_packet *packet; /* owned by this */
+			struct bt_packet *packet; /* owned by this */
 		} set_stream_state_cur_packet;
 
 		/* ACTION_TYPE_UPDATE_STREAM_STATE_DISCARDED_PACKETS */
 		/* ACTION_TYPE_UPDATE_STREAM_STATE_DISCARDED_EVENTS */
 		struct {
 			struct stream_state *stream_state; /* weak */
-			struct bt_ctf_clock_value *cur_begin; /* owned by this */
+			struct bt_clock_value *cur_begin; /* owned by this */
 			uint64_t cur_count;
 		} update_stream_state_discarded_elements;
 	} payload;
 };
 
 static
-void stream_destroy_listener(struct bt_ctf_stream *stream, void *data)
+void stream_destroy_listener(struct bt_stream *stream, void *data)
 {
 	struct bt_notification_iterator_private_connection *iterator = data;
 
@@ -257,7 +257,7 @@ void apply_actions(struct bt_notification_iterator_private_connection *iterator)
 			action->payload.push_notif.notif = NULL;
 			break;
 		case ACTION_TYPE_MAP_PORT_TO_COMP_IN_STREAM:
-			bt_ctf_stream_map_component_to_port(
+			bt_stream_map_component_to_port(
 				action->payload.map_port_to_comp_in_stream.stream,
 				action->payload.map_port_to_comp_in_stream.component,
 				action->payload.map_port_to_comp_in_stream.port);
@@ -287,7 +287,7 @@ void apply_actions(struct bt_notification_iterator_private_connection *iterator)
 			 * could be reused for another stream, and they
 			 * must have different states.
 			 */
-			bt_ctf_stream_add_destroy_listener(
+			bt_stream_add_destroy_listener(
 				action->payload.set_stream_state_is_ended.stream_state->stream,
 				stream_destroy_listener, iterator);
 			action->payload.set_stream_state_is_ended.stream_state->is_ended = BT_TRUE;
@@ -325,7 +325,7 @@ void apply_actions(struct bt_notification_iterator_private_connection *iterator)
 }
 
 static
-struct stream_state *create_stream_state(struct bt_ctf_stream *stream)
+struct stream_state *create_stream_state(struct bt_stream *stream)
 {
 	struct stream_state *stream_state = g_new0(struct stream_state, 1);
 
@@ -354,7 +354,7 @@ struct stream_state *create_stream_state(struct bt_ctf_stream *stream)
 	stream_state->stream = bt_get(stream);
 	BT_LOGV("Created stream state: stream-addr=%p, stream-name=\"%s\", "
 		"stream-state-addr=%p",
-		stream, bt_ctf_stream_get_name(stream), stream_state);
+		stream, bt_stream_get_name(stream), stream_state);
 
 end:
 	return stream_state;
@@ -422,7 +422,7 @@ void bt_private_connection_notification_iterator_destroy(struct bt_object *obj)
 			assert(stream_gptr);
 
 			BT_LOGD_STR("Removing stream's destroy listener for notification iterator.");
-			bt_ctf_stream_remove_destroy_listener(
+			bt_stream_remove_destroy_listener(
 				(void *) stream_gptr, stream_destroy_listener,
 				iterator);
 		}
@@ -788,8 +788,8 @@ static
 bt_bool validate_notification(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
-		struct bt_ctf_stream *notif_stream,
-		struct bt_ctf_packet *notif_packet)
+		struct bt_stream *notif_stream,
+		struct bt_packet *notif_packet)
 {
 	bt_bool is_valid = BT_TRUE;
 	struct stream_state *stream_state;
@@ -797,7 +797,7 @@ bt_bool validate_notification(
 
 	assert(notif_stream);
 	stream_comp_cur_port =
-		bt_ctf_stream_port_for_component(notif_stream,
+		bt_stream_port_for_component(notif_stream,
 			iterator->upstream_component);
 	if (!stream_comp_cur_port) {
 		/*
@@ -832,7 +832,7 @@ bt_bool validate_notification(
 				"iter-upstream-port-addr=%p, "
 				"iter-upstream-port-name=%s",
 				notif_stream,
-				bt_ctf_stream_get_name(notif_stream),
+				bt_stream_get_name(notif_stream),
 				stream_comp_cur_port,
 				bt_port_get_name(stream_comp_cur_port),
 				iterator->upstream_port,
@@ -850,7 +850,7 @@ bt_bool validate_notification(
 			"stream-addr=%p, stream-name=\"%s\", "
 			"stream-state-addr=%p",
 			notif_stream,
-			bt_ctf_stream_get_name(notif_stream), stream_state);
+			bt_stream_get_name(notif_stream), stream_state);
 
 		if (stream_state->is_ended) {
 			/*
@@ -864,7 +864,7 @@ bt_bool validate_notification(
 			BT_LOGW("Stream is already ended: "
 				"stream-addr=%p, stream-name=\"%s\"",
 				notif_stream,
-				bt_ctf_stream_get_name(notif_stream));
+				bt_stream_get_name(notif_stream));
 			is_valid = BT_FALSE;
 			goto end;
 		}
@@ -879,7 +879,7 @@ bt_bool validate_notification(
 			BT_LOGW("Duplicate stream beginning notification: "
 				"stream-addr=%p, stream-name=\"%s\"",
 				notif_stream,
-				bt_ctf_stream_get_name(notif_stream));
+				bt_stream_get_name(notif_stream));
 			is_valid = BT_FALSE;
 			goto end;
 		case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
@@ -889,7 +889,7 @@ bt_bool validate_notification(
 					"stream-addr=%p, stream-name=\"%s\", "
 					"packet-addr=%p",
 					notif_stream,
-					bt_ctf_stream_get_name(notif_stream),
+					bt_stream_get_name(notif_stream),
 					notif_packet);
 				is_valid = BT_FALSE;
 				goto end;
@@ -939,7 +939,7 @@ void add_action_push_notif(
 static
 int add_action_push_notif_stream_begin(
 		struct bt_notification_iterator_private_connection *iterator,
-		struct bt_ctf_stream *stream)
+		struct bt_stream *stream)
 {
 	int ret = 0;
 	struct bt_notification *stream_begin_notif = NULL;
@@ -962,7 +962,7 @@ int add_action_push_notif_stream_begin(
 	add_action_push_notif(iterator, stream_begin_notif);
 	BT_LOGV("Added \"push stream beginning notification\" action: "
 		"stream-addr=%p, stream-name=\"%s\"",
-		stream, bt_ctf_stream_get_name(stream));
+		stream, bt_stream_get_name(stream));
 	goto end;
 
 error:
@@ -976,7 +976,7 @@ end:
 static
 int add_action_push_notif_stream_end(
 		struct bt_notification_iterator_private_connection *iterator,
-		struct bt_ctf_stream *stream)
+		struct bt_stream *stream)
 {
 	int ret = 0;
 	struct bt_notification *stream_end_notif = NULL;
@@ -999,7 +999,7 @@ int add_action_push_notif_stream_end(
 	add_action_push_notif(iterator, stream_end_notif);
 	BT_LOGV("Added \"push stream end notification\" action: "
 		"stream-addr=%p, stream-name=\"%s\"",
-		stream, bt_ctf_stream_get_name(stream));
+		stream, bt_stream_get_name(stream));
 	goto end;
 
 error:
@@ -1013,7 +1013,7 @@ end:
 static
 int add_action_push_notif_packet_begin(
 		struct bt_notification_iterator_private_connection *iterator,
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
 	int ret = 0;
 	struct bt_notification *packet_begin_notif = NULL;
@@ -1049,7 +1049,7 @@ end:
 static
 int add_action_push_notif_packet_end(
 		struct bt_notification_iterator_private_connection *iterator,
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
 	int ret = 0;
 	struct bt_notification *packet_end_notif = NULL;
@@ -1104,7 +1104,7 @@ static
 void add_action_set_stream_state_cur_packet(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct stream_state *stream_state,
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
 	struct action action = {
 		.type = ACTION_TYPE_SET_STREAM_STATE_CUR_PACKET,
@@ -1126,7 +1126,7 @@ void add_action_update_stream_state_discarded_elements(
 		struct bt_notification_iterator_private_connection *iterator,
 		enum action_type type,
 		struct stream_state *stream_state,
-		struct bt_ctf_clock_value *cur_begin,
+		struct bt_clock_value *cur_begin,
 		uint64_t cur_count)
 {
 	struct action action = {
@@ -1157,7 +1157,7 @@ static
 int ensure_stream_state_exists(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *stream_begin_notif,
-		struct bt_ctf_stream *notif_stream,
+		struct bt_stream *notif_stream,
 		struct stream_state **_stream_state)
 {
 	int ret = 0;
@@ -1220,32 +1220,32 @@ end:
 }
 
 static
-struct bt_ctf_field *get_struct_field_uint(struct bt_ctf_field *struct_field,
+struct bt_field *get_struct_field_uint(struct bt_field *struct_field,
 		const char *field_name)
 {
-	struct bt_ctf_field *field = NULL;
-	struct bt_ctf_field_type *ft = NULL;
+	struct bt_field *field = NULL;
+	struct bt_field_type *ft = NULL;
 
-	field = bt_ctf_field_structure_get_field_by_name(struct_field,
+	field = bt_field_structure_get_field_by_name(struct_field,
 		field_name);
 	if (!field) {
 		BT_LOGV_STR("`%s` field does not exist.");
 		goto end;
 	}
 
-	if (!bt_ctf_field_is_integer(field)) {
+	if (!bt_field_is_integer(field)) {
 		BT_LOGV("Skipping `%s` field because its type is not an integer field type: "
 			"field-addr=%p, ft-addr=%p, ft-id=%s", field_name,
-			field, ft, bt_ctf_field_type_id_string(
-				bt_ctf_field_type_get_type_id(ft)));
+			field, ft, bt_field_type_id_string(
+				bt_field_type_get_type_id(ft)));
 		BT_PUT(field);
 		goto end;
 	}
 
-	ft = bt_ctf_field_get_type(field);
+	ft = bt_field_get_type(field);
 	assert(ft);
 
-	if (bt_ctf_field_type_integer_is_signed(ft)) {
+	if (bt_field_type_integer_is_signed(ft)) {
 		BT_LOGV("Skipping `%s` integer field because its type is signed: "
 			"field-addr=%p, ft-addr=%p", field_name, field, ft);
 		BT_PUT(field);
@@ -1258,14 +1258,14 @@ end:
 }
 
 static
-uint64_t get_packet_context_events_discarded(struct bt_ctf_packet *packet)
+uint64_t get_packet_context_events_discarded(struct bt_packet *packet)
 {
-	struct bt_ctf_field *packet_context = NULL;
-	struct bt_ctf_field *field = NULL;
+	struct bt_field *packet_context = NULL;
+	struct bt_field *field = NULL;
 	uint64_t retval = -1ULL;
 	int ret;
 
-	packet_context = bt_ctf_packet_get_context(packet);
+	packet_context = bt_packet_get_context(packet);
 	if (!packet_context) {
 		goto end;
 	}
@@ -1278,8 +1278,8 @@ uint64_t get_packet_context_events_discarded(struct bt_ctf_packet *packet)
 		goto end;
 	}
 
-	assert(bt_ctf_field_is_integer(field));
-	ret = bt_ctf_field_unsigned_integer_get_value(field, &retval);
+	assert(bt_field_is_integer(field));
+	ret = bt_field_unsigned_integer_get_value(field, &retval);
 	if (ret) {
 		BT_LOGV("Cannot get raw value of packet's context field's `events_discarded` integer field: "
 			"packet-addr=%p, field-addr=%p",
@@ -1295,14 +1295,14 @@ end:
 }
 
 static
-uint64_t get_packet_context_packet_seq_num(struct bt_ctf_packet *packet)
+uint64_t get_packet_context_packet_seq_num(struct bt_packet *packet)
 {
-	struct bt_ctf_field *packet_context = NULL;
-	struct bt_ctf_field *field = NULL;
+	struct bt_field *packet_context = NULL;
+	struct bt_field *field = NULL;
 	uint64_t retval = -1ULL;
 	int ret;
 
-	packet_context = bt_ctf_packet_get_context(packet);
+	packet_context = bt_packet_get_context(packet);
 	if (!packet_context) {
 		goto end;
 	}
@@ -1315,8 +1315,8 @@ uint64_t get_packet_context_packet_seq_num(struct bt_ctf_packet *packet)
 		goto end;
 	}
 
-	assert(bt_ctf_field_is_integer(field));
-	ret = bt_ctf_field_unsigned_integer_get_value(field, &retval);
+	assert(bt_field_is_integer(field));
+	ret = bt_field_unsigned_integer_get_value(field, &retval);
 	if (ret) {
 		BT_LOGV("Cannot get raw value of packet's context field's `packet_seq_num` integer field: "
 			"packet-addr=%p, field-addr=%p",
@@ -1334,9 +1334,9 @@ end:
 static
 int handle_discarded_packets(
 		struct bt_notification_iterator_private_connection *iterator,
-		struct bt_ctf_packet *packet,
-		struct bt_ctf_clock_value *ts_begin,
-		struct bt_ctf_clock_value *ts_end,
+		struct bt_packet *packet,
+		struct bt_clock_value *ts_begin,
+		struct bt_clock_value *ts_end,
 		struct stream_state *stream_state)
 {
 	struct bt_notification *notif = NULL;
@@ -1409,9 +1409,9 @@ end:
 static
 int handle_discarded_events(
 		struct bt_notification_iterator_private_connection *iterator,
-		struct bt_ctf_packet *packet,
-		struct bt_ctf_clock_value *ts_begin,
-		struct bt_ctf_clock_value *ts_end,
+		struct bt_packet *packet,
+		struct bt_clock_value *ts_begin,
+		struct bt_clock_value *ts_end,
 		struct stream_state *stream_state)
 {
 	struct bt_notification *notif = NULL;
@@ -1467,14 +1467,14 @@ end:
 }
 
 static
-int get_field_clock_value(struct bt_ctf_field *root_field,
+int get_field_clock_value(struct bt_field *root_field,
 		const char *field_name,
-		struct bt_ctf_clock_value **user_clock_val)
+		struct bt_clock_value **user_clock_val)
 {
-	struct bt_ctf_field *field;
-	struct bt_ctf_field_type *ft = NULL;
-	struct bt_ctf_clock_class *clock_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_field *field;
+	struct bt_field_type *ft = NULL;
+	struct bt_clock_class *clock_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
 	uint64_t val;
 	int ret = 0;
 
@@ -1484,9 +1484,9 @@ int get_field_clock_value(struct bt_ctf_field *root_field,
 		goto end;
 	}
 
-	ft = bt_ctf_field_get_type(field);
+	ft = bt_field_get_type(field);
 	assert(ft);
-	clock_class = bt_ctf_field_type_integer_get_mapped_clock_class(ft);
+	clock_class = bt_field_type_integer_get_mapped_clock_class(ft);
 	if (!clock_class) {
 		BT_LOGW("Integer field type has no mapped clock class but it's expected to have one: "
 			"ft-addr=%p", ft);
@@ -1494,7 +1494,7 @@ int get_field_clock_value(struct bt_ctf_field *root_field,
 		goto end;
 	}
 
-	ret = bt_ctf_field_unsigned_integer_get_value(field, &val);
+	ret = bt_field_unsigned_integer_get_value(field, &val);
 	if (ret) {
 		BT_LOGW("Cannot get integer field's raw value: "
 			"field-addr=%p", field);
@@ -1502,7 +1502,7 @@ int get_field_clock_value(struct bt_ctf_field *root_field,
 		goto end;
 	}
 
-	clock_value = bt_ctf_clock_value_create(clock_class, val);
+	clock_value = bt_clock_value_create(clock_class, val);
 	if (!clock_value) {
 		BT_LOGE_STR("Cannot create clock value from clock class.");
 		ret = -1;
@@ -1522,16 +1522,16 @@ end:
 }
 
 static
-int get_ts_begin_ts_end_from_packet(struct bt_ctf_packet *packet,
-		struct bt_ctf_clock_value **user_ts_begin,
-		struct bt_ctf_clock_value **user_ts_end)
+int get_ts_begin_ts_end_from_packet(struct bt_packet *packet,
+		struct bt_clock_value **user_ts_begin,
+		struct bt_clock_value **user_ts_end)
 {
-	struct bt_ctf_field *packet_context = NULL;
-	struct bt_ctf_clock_value *ts_begin = NULL;
-	struct bt_ctf_clock_value *ts_end = NULL;
+	struct bt_field *packet_context = NULL;
+	struct bt_clock_value *ts_begin = NULL;
+	struct bt_clock_value *ts_end = NULL;
 	int ret = 0;
 
-	packet_context = bt_ctf_packet_get_context(packet);
+	packet_context = bt_packet_get_context(packet);
 	if (!packet_context) {
 		goto end;
 	}
@@ -1570,10 +1570,10 @@ end:
 static
 int handle_discarded_elements(
 		struct bt_notification_iterator_private_connection *iterator,
-		struct bt_ctf_packet *packet, struct stream_state *stream_state)
+		struct bt_packet *packet, struct stream_state *stream_state)
 {
-	struct bt_ctf_clock_value *ts_begin = NULL;
-	struct bt_ctf_clock_value *ts_end = NULL;
+	struct bt_clock_value *ts_begin = NULL;
+	struct bt_clock_value *ts_end = NULL;
 	int ret;
 
 	ret = get_ts_begin_ts_end_from_packet(packet, &ts_begin, &ts_end);
@@ -1612,7 +1612,7 @@ static
 int handle_packet_switch(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *packet_begin_notif,
-		struct bt_ctf_packet *new_packet,
+		struct bt_packet *new_packet,
 		struct stream_state *stream_state)
 {
 	int ret = 0;
@@ -1672,7 +1672,7 @@ static
 int handle_notif_stream_begin(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
-		struct bt_ctf_stream *notif_stream)
+		struct bt_stream *notif_stream)
 {
 	int ret = 0;
 	struct stream_state *stream_state;
@@ -1699,7 +1699,7 @@ static
 int handle_notif_stream_end(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
-		struct bt_ctf_stream *notif_stream)
+		struct bt_stream *notif_stream)
 {
 	int ret = 0;
 	struct stream_state *stream_state;
@@ -1734,7 +1734,7 @@ static
 int handle_notif_discarded_elements(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
-		struct bt_ctf_stream *notif_stream)
+		struct bt_stream *notif_stream)
 {
 	int ret = 0;
 	struct stream_state *stream_state;
@@ -1763,8 +1763,8 @@ static
 int handle_notif_packet_begin(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
-		struct bt_ctf_stream *notif_stream,
-		struct bt_ctf_packet *notif_packet)
+		struct bt_stream *notif_stream,
+		struct bt_packet *notif_packet)
 {
 	int ret = 0;
 	struct stream_state *stream_state;
@@ -1797,8 +1797,8 @@ static
 int handle_notif_packet_end(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
-		struct bt_ctf_stream *notif_stream,
-		struct bt_ctf_packet *notif_packet)
+		struct bt_stream *notif_stream,
+		struct bt_packet *notif_packet)
 {
 	int ret = 0;
 	struct stream_state *stream_state;
@@ -1834,8 +1834,8 @@ static
 int handle_notif_event(
 		struct bt_notification_iterator_private_connection *iterator,
 		struct bt_notification *notif,
-		struct bt_ctf_stream *notif_stream,
-		struct bt_ctf_packet *notif_packet)
+		struct bt_stream *notif_stream,
+		struct bt_packet *notif_packet)
 {
 	int ret = 0;
 	struct stream_state *stream_state;
@@ -1871,9 +1871,9 @@ int enqueue_notification_and_automatic(
 		struct bt_notification *notif)
 {
 	int ret = 0;
-	struct bt_ctf_event *notif_event = NULL;
-	struct bt_ctf_stream *notif_stream = NULL;
-	struct bt_ctf_packet *notif_packet = NULL;
+	struct bt_event *notif_event = NULL;
+	struct bt_stream *notif_stream = NULL;
+	struct bt_packet *notif_packet = NULL;
 
 	assert(notif);
 
@@ -1888,7 +1888,7 @@ int enqueue_notification_and_automatic(
 	case BT_NOTIFICATION_TYPE_EVENT:
 		notif_event = bt_notification_event_borrow_event(notif);
 		assert(notif_event);
-		notif_packet = bt_ctf_event_borrow_packet(notif_event);
+		notif_packet = bt_event_borrow_packet(notif_event);
 		assert(notif_packet);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
@@ -1925,7 +1925,7 @@ int enqueue_notification_and_automatic(
 	}
 
 	if (notif_packet) {
-		notif_stream = bt_ctf_packet_borrow_stream(notif_packet);
+		notif_stream = bt_packet_borrow_stream(notif_packet);
 		assert(notif_stream);
 	}
 

@@ -32,17 +32,17 @@
 #include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
-struct bt_ctf_event *trimmer_output_event(struct trimmer_iterator *trim_it,
-		struct bt_ctf_event *event);
+struct bt_event *trimmer_output_event(struct trimmer_iterator *trim_it,
+		struct bt_event *event);
 BT_HIDDEN
-struct bt_ctf_packet *trimmer_new_packet(struct trimmer_iterator *trim_it,
-		struct bt_ctf_packet *packet);
+struct bt_packet *trimmer_new_packet(struct trimmer_iterator *trim_it,
+		struct bt_packet *packet);
 BT_HIDDEN
-struct bt_ctf_packet *trimmer_close_packet(struct trimmer_iterator *trim_it,
-		struct bt_ctf_packet *packet);
+struct bt_packet *trimmer_close_packet(struct trimmer_iterator *trim_it,
+		struct bt_packet *packet);
 BT_HIDDEN
 enum bt_component_status update_packet_context_field(FILE *err,
-		struct bt_ctf_packet *writer_packet,
+		struct bt_packet *writer_packet,
 		const char *name, int64_t value);
 
 #endif /* BABELTRACE_PLUGIN_TRIMMER_COPY_H */

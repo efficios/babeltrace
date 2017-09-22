@@ -40,52 +40,52 @@
 extern "C" {
 #endif
 
-struct bt_ctf_clock_class;
-struct bt_ctf_clock_value;
+struct bt_clock_class;
+struct bt_clock_value;
 
-extern struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
+extern struct bt_clock_class *bt_clock_class_create(const char *name,
 		uint64_t freq);
-extern const char *bt_ctf_clock_class_get_name(
-		struct bt_ctf_clock_class *clock_class);
-extern int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class,
+extern const char *bt_clock_class_get_name(
+		struct bt_clock_class *clock_class);
+extern int bt_clock_class_set_name(struct bt_clock_class *clock_class,
 		const char *name);
-extern const char *bt_ctf_clock_class_get_description(
-		struct bt_ctf_clock_class *clock_class);
-extern int bt_ctf_clock_class_set_description(
-		struct bt_ctf_clock_class *clock_class,
+extern const char *bt_clock_class_get_description(
+		struct bt_clock_class *clock_class);
+extern int bt_clock_class_set_description(
+		struct bt_clock_class *clock_class,
 		const char *desc);
-extern uint64_t bt_ctf_clock_class_get_frequency(
-		struct bt_ctf_clock_class *clock_class);
-extern int bt_ctf_clock_class_set_frequency(
-		struct bt_ctf_clock_class *clock_class, uint64_t freq);
-extern uint64_t bt_ctf_clock_class_get_precision(
-		struct bt_ctf_clock_class *clock_class);
-extern int bt_ctf_clock_class_set_precision(
-		struct bt_ctf_clock_class *clock_class, uint64_t precision);
-extern int bt_ctf_clock_class_get_offset_s(
-		struct bt_ctf_clock_class *clock_class, int64_t *seconds);
-extern int bt_ctf_clock_class_set_offset_s(
-		struct bt_ctf_clock_class *clock_class, int64_t seconds);
-extern int bt_ctf_clock_class_get_offset_cycles(
-		struct bt_ctf_clock_class *clock_class, int64_t *cycles);
-extern int bt_ctf_clock_class_set_offset_cycles(
-		struct bt_ctf_clock_class *clock_class, int64_t cycles);
-extern bt_bool bt_ctf_clock_class_is_absolute(
-		struct bt_ctf_clock_class *clock_class);
-extern int bt_ctf_clock_class_set_is_absolute(
-		struct bt_ctf_clock_class *clock_class, bt_bool is_absolute);
-extern const unsigned char *bt_ctf_clock_class_get_uuid(
-		struct bt_ctf_clock_class *clock_class);
-extern int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
+extern uint64_t bt_clock_class_get_frequency(
+		struct bt_clock_class *clock_class);
+extern int bt_clock_class_set_frequency(
+		struct bt_clock_class *clock_class, uint64_t freq);
+extern uint64_t bt_clock_class_get_precision(
+		struct bt_clock_class *clock_class);
+extern int bt_clock_class_set_precision(
+		struct bt_clock_class *clock_class, uint64_t precision);
+extern int bt_clock_class_get_offset_s(
+		struct bt_clock_class *clock_class, int64_t *seconds);
+extern int bt_clock_class_set_offset_s(
+		struct bt_clock_class *clock_class, int64_t seconds);
+extern int bt_clock_class_get_offset_cycles(
+		struct bt_clock_class *clock_class, int64_t *cycles);
+extern int bt_clock_class_set_offset_cycles(
+		struct bt_clock_class *clock_class, int64_t cycles);
+extern bt_bool bt_clock_class_is_absolute(
+		struct bt_clock_class *clock_class);
+extern int bt_clock_class_set_is_absolute(
+		struct bt_clock_class *clock_class, bt_bool is_absolute);
+extern const unsigned char *bt_clock_class_get_uuid(
+		struct bt_clock_class *clock_class);
+extern int bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 		const unsigned char *uuid);
-extern struct bt_ctf_clock_value *bt_ctf_clock_value_create(
-		struct bt_ctf_clock_class *clock_class, uint64_t value);
-extern struct bt_ctf_clock_class *bt_ctf_clock_value_get_class(
-		struct bt_ctf_clock_value *clock_value);
-extern int bt_ctf_clock_value_get_value(
-		struct bt_ctf_clock_value *clock_value, uint64_t *raw_value);
-extern int bt_ctf_clock_value_get_value_ns_from_epoch(
-		struct bt_ctf_clock_value *clock_value, int64_t *value_ns);
+extern struct bt_clock_value *bt_clock_value_create(
+		struct bt_clock_class *clock_class, uint64_t value);
+extern struct bt_clock_class *bt_clock_value_get_class(
+		struct bt_clock_value *clock_value);
+extern int bt_clock_value_get_value(
+		struct bt_clock_value *clock_value, uint64_t *raw_value);
+extern int bt_clock_value_get_value_ns_from_epoch(
+		struct bt_clock_value *clock_value, int64_t *value_ns);
 
 #ifdef __cplusplus
 }

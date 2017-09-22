@@ -38,12 +38,12 @@
 #include <babeltrace/object-internal.h>
 #include <glib.h>
 
-struct bt_ctf_event_class {
+struct bt_event_class {
 	struct bt_object base;
 	/* Structure type containing the event's context */
-	struct bt_ctf_field_type *context;
+	struct bt_field_type *context;
 	/* Structure type containing the event's fields */
-	struct bt_ctf_field_type *fields;
+	struct bt_field_type *fields;
 	int frozen;
 
 	/*
@@ -57,69 +57,69 @@ struct bt_ctf_event_class {
 	/* Attributes */
 	GString *name;
 	int64_t id;
-	enum bt_ctf_event_class_log_level log_level;
+	enum bt_event_class_log_level log_level;
 	GString *emf_uri;
 };
 
 BT_HIDDEN
-void bt_ctf_event_class_freeze(struct bt_ctf_event_class *event_class);
+void bt_event_class_freeze(struct bt_event_class *event_class);
 
 BT_HIDDEN
-int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
+int bt_event_class_serialize(struct bt_event_class *event_class,
 		struct metadata_context *context);
 
 BT_HIDDEN
-void bt_ctf_event_class_set_native_byte_order(
-		struct bt_ctf_event_class *event_class,
+void bt_event_class_set_native_byte_order(
+		struct bt_event_class *event_class,
 		int byte_order);
 
 static inline
-struct bt_ctf_stream_class *bt_ctf_event_class_borrow_stream_class(
-		struct bt_ctf_event_class *event_class)
+struct bt_stream_class *bt_event_class_borrow_stream_class(
+		struct bt_event_class *event_class)
 {
 	assert(event_class);
 	return (void *) bt_object_borrow_parent(event_class);
 }
 
 static inline
-const char *bt_ctf_event_class_log_level_string(
-		enum bt_ctf_event_class_log_level level)
+const char *bt_event_class_log_level_string(
+		enum bt_event_class_log_level level)
 {
 	switch (level) {
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE";
-	case BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG:
-		return "BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG";
+	case BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN:
+		return "BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN";
+	case BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED:
+		return "BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED";
+	case BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY:
+		return "BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY";
+	case BT_EVENT_CLASS_LOG_LEVEL_ALERT:
+		return "BT_EVENT_CLASS_LOG_LEVEL_ALERT";
+	case BT_EVENT_CLASS_LOG_LEVEL_CRITICAL:
+		return "BT_EVENT_CLASS_LOG_LEVEL_CRITICAL";
+	case BT_EVENT_CLASS_LOG_LEVEL_ERROR:
+		return "BT_EVENT_CLASS_LOG_LEVEL_ERROR";
+	case BT_EVENT_CLASS_LOG_LEVEL_WARNING:
+		return "BT_EVENT_CLASS_LOG_LEVEL_WARNING";
+	case BT_EVENT_CLASS_LOG_LEVEL_NOTICE:
+		return "BT_EVENT_CLASS_LOG_LEVEL_NOTICE";
+	case BT_EVENT_CLASS_LOG_LEVEL_INFO:
+		return "BT_EVENT_CLASS_LOG_LEVEL_INFO";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG";
 	default:
 		return "(unknown)";
 	}

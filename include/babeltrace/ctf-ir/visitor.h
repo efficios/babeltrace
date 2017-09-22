@@ -46,9 +46,9 @@ extern "C" {
 A CTF IR <strong><em>visitor</em></strong> is a function that you
 can use to visit the hierarchy of a
 \link ctfirtraceclass CTF IR trace class\endlink with
-bt_ctf_trace_visit() or of a
+bt_trace_visit() or of a
 \link ctfirstreamclass CTF IR stream class\endlink with
-bt_ctf_stream_class_visit().
+bt_stream_class_visit().
 
 The traversal of the object's hierarchy is always done in a
 pre-order fashion.
@@ -65,14 +65,14 @@ pre-order fashion.
 */
 
 /**
-@struct bt_ctf_object
+@struct bt_object
 @brief A CTF IR object wrapper.
 
 This structure wraps both a CTF IR object and its type
-(see #bt_ctf_object_type). It is used in the visiting function.
+(see #bt_object_type). It is used in the visiting function.
 
-You can use the bt_ctf_object_get_type() and
-bt_ctf_object_get_object() accessors to get the type and wrapped
+You can use the bt_object_get_type() and
+bt_object_get_object() accessors to get the type and wrapped
 CTF IR object of a CTF IR object wrapper.
 
 A CTF IR object wrapper has <strong>no reference count</strong>: do \em
@@ -80,39 +80,39 @@ not use bt_put() or bt_get() on it.
 
 @sa ctfirvisitor
 */
-struct bt_ctf_object;
+struct bt_visitor_object;
 
 /**
 @brief	CTF IR object wrapper type.
 */
-enum bt_ctf_object_type {
+enum bt_visitor_object_type {
 	/// Unknown (used for errors).
-	BT_CTF_OBJECT_TYPE_UNKNOWN = -1,
+	BT_VISITOR_OBJECT_TYPE_UNKNOWN = -1,
 
 	/// \ref ctfirtraceclass.
-	BT_CTF_OBJECT_TYPE_TRACE = 0,
+	BT_VISITOR_OBJECT_TYPE_TRACE = 0,
 
 	/// \ref ctfirstreamclass.
-	BT_CTF_OBJECT_TYPE_STREAM_CLASS = 1,
+	BT_VISITOR_OBJECT_TYPE_STREAM_CLASS = 1,
 
 	/// \ref ctfirstream.
-	BT_CTF_OBJECT_TYPE_STREAM = 2,
+	BT_VISITOR_OBJECT_TYPE_STREAM = 2,
 
 	/// \ref ctfireventclass.
-	BT_CTF_OBJECT_TYPE_EVENT_CLASS = 3,
+	BT_VISITOR_OBJECT_TYPE_EVENT_CLASS = 3,
 
 	/// \ref ctfirevent.
-	BT_CTF_OBJECT_TYPE_EVENT = 4,
+	BT_VISITOR_OBJECT_TYPE_EVENT = 4,
 
 	/// Number of entries in this enumeration.
-	BT_CTF_OBJECT_TYPE_NR,
+	BT_VISITOR_OBJECT_TYPE_NR,
 };
 
 /**
 @brief	Visting function type.
 
-A function of this type is called by bt_ctf_trace_visit() or
-bt_ctf_stream_class_visit() when visiting the CTF IR object wrapper
+A function of this type is called by bt_trace_visit() or
+bt_stream_class_visit() when visiting the CTF IR object wrapper
 \p object.
 
 \p object has <strong>no reference count</strong>: do \em not use
@@ -124,11 +124,11 @@ bt_put() or bt_get() on it.
 
 @prenotnull{object}
 
-@sa bt_ctf_trace_visit(): Accepts a visitor to visit a trace class.
-@sa bt_ctf_stream_class_visit(): Accepts a visitor to visit a stream
+@sa bt_trace_visit(): Accepts a visitor to visit a trace class.
+@sa bt_stream_class_visit(): Accepts a visitor to visit a stream
 	class.
 */
-typedef int (*bt_ctf_visitor)(struct bt_ctf_object *object,
+typedef int (*bt_visitor)(struct bt_visitor_object *object,
 		void *data);
 
 /**
@@ -140,10 +140,11 @@ typedef int (*bt_ctf_visitor)(struct bt_ctf_object *object,
 
 @prenotnull{object}
 
-@sa bt_ctf_object_get_object(): Returns the object wrapped by a given
+@sa bt_visitor_object_get_object(): Returns the object wrapped by a given
 	CTF IR object wrapper.
 */
-enum bt_ctf_object_type bt_ctf_object_get_type(struct bt_ctf_object *object);
+enum bt_visitor_object_type bt_visitor_object_get_type(
+		struct bt_visitor_object *object);
 
 /**
 @brief	Returns the CTF IR object wrapped by the CTF IR object
@@ -160,10 +161,10 @@ have your own reference.
 @prenotnull{object}
 @post The reference count of the returned object is not modified.
 
-@sa bt_ctf_object_get_type(): Returns the type of a given
+@sa bt_visitor_object_get_type(): Returns the type of a given
 	CTF IR object wrapper.
 */
-void *bt_ctf_object_get_object(struct bt_ctf_object *object);
+void *bt_visitor_object_get_object(struct bt_visitor_object *object);
 
 /** @} */
 

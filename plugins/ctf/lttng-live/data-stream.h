@@ -31,7 +31,7 @@
 #include "lttng-live-internal.h"
 #include "../common/notif-iter/notif-iter.h"
 
-enum bt_ctf_lttng_live_iterator_status lttng_live_lazy_notif_init(
+enum bt_lttng_live_iterator_status lttng_live_lazy_notif_init(
 		struct lttng_live_session *session);
 
 struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(

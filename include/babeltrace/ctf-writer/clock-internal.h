@@ -35,7 +35,7 @@
 
 struct bt_ctf_clock {
 	struct bt_object base;
-	struct bt_ctf_clock_class *clock_class;
+	struct bt_clock_class *clock_class;
 	uint64_t value;		/* Current clock value */
 };
 

@@ -37,20 +37,20 @@
 #include <assert.h>
 #include <glib.h>
 
-struct bt_ctf_stream_class {
+struct bt_stream_class {
 	struct bt_object base;
 	GString *name;
 	struct bt_ctf_clock *clock;
-	GPtrArray *event_classes; /* Array of pointers to bt_ctf_event_class */
+	GPtrArray *event_classes; /* Array of pointers to bt_event_class */
 	/* event class id (int64_t) to event class */
 	GHashTable *event_classes_ht;
 	int id_set;
 	int64_t id;
 	int64_t next_event_id;
 	int64_t next_stream_id;
-	struct bt_ctf_field_type *packet_context_type;
-	struct bt_ctf_field_type *event_header_type;
-	struct bt_ctf_field_type *event_context_type;
+	struct bt_field_type *packet_context_type;
+	struct bt_field_type *event_header_type;
+	struct bt_field_type *event_context_type;
 	int frozen;
 	int byte_order;
 
@@ -62,34 +62,34 @@ struct bt_ctf_stream_class {
 };
 
 BT_HIDDEN
-void bt_ctf_stream_class_freeze(struct bt_ctf_stream_class *stream_class);
+void bt_stream_class_freeze(struct bt_stream_class *stream_class);
 
 BT_HIDDEN
-int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
+int bt_stream_class_serialize(struct bt_stream_class *stream_class,
 		struct metadata_context *context);
 
 BT_HIDDEN
-void bt_ctf_stream_class_set_byte_order(
-		struct bt_ctf_stream_class *stream_class, int byte_order);
+void bt_stream_class_set_byte_order(
+		struct bt_stream_class *stream_class, int byte_order);
 
 /* Set stream_class id without checking if the stream class is frozen */
 BT_HIDDEN
-void _bt_ctf_stream_class_set_id(struct bt_ctf_stream_class *stream_class,
+void _bt_stream_class_set_id(struct bt_stream_class *stream_class,
 		int64_t id);
 
 BT_HIDDEN
-int bt_ctf_stream_class_set_id_no_check(
-		struct bt_ctf_stream_class *stream_class, int64_t id);
+int bt_stream_class_set_id_no_check(
+		struct bt_stream_class *stream_class, int64_t id);
 
 BT_HIDDEN
-int bt_ctf_stream_class_map_clock_class(
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_field_type *packet_context_type,
-		struct bt_ctf_field_type *event_header_type);
+int bt_stream_class_map_clock_class(
+		struct bt_stream_class *stream_class,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type);
 
 static inline
-struct bt_ctf_trace *bt_ctf_stream_class_borrow_trace(
-		struct bt_ctf_stream_class *stream_class)
+struct bt_trace *bt_stream_class_borrow_trace(
+		struct bt_stream_class *stream_class)
 {
 	assert(stream_class);
 	return (void *) bt_object_borrow_parent(stream_class);

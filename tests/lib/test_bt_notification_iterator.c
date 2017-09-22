@@ -91,22 +91,22 @@ enum test_event_type {
 
 struct test_event {
 	enum test_event_type type;
-	struct bt_ctf_stream *stream;
-	struct bt_ctf_packet *packet;
+	struct bt_stream *stream;
+	struct bt_packet *packet;
 };
 
 static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
-static struct bt_ctf_stream_class *src_stream_class;
-static struct bt_ctf_event_class *src_event_class;
-static struct bt_ctf_stream *src_stream1;
-static struct bt_ctf_stream *src_stream2;
-static struct bt_ctf_packet *src_stream1_packet1;
-static struct bt_ctf_packet *src_stream1_packet2;
-static struct bt_ctf_packet *src_stream2_packet1;
-static struct bt_ctf_packet *src_stream2_packet2;
+static struct bt_stream_class *src_stream_class;
+static struct bt_event_class *src_event_class;
+static struct bt_stream *src_stream1;
+static struct bt_stream *src_stream2;
+static struct bt_packet *src_stream1_packet1;
+static struct bt_packet *src_stream1_packet2;
+static struct bt_packet *src_stream2_packet1;
+static struct bt_packet *src_stream2_packet2;
 
 enum {
 	SEQ_END = -1,
@@ -395,56 +395,56 @@ static
 void init_static_data(void)
 {
 	int ret;
-	struct bt_ctf_trace *trace;
-	struct bt_ctf_field_type *empty_struct_ft;
+	struct bt_trace *trace;
+	struct bt_field_type *empty_struct_ft;
 
 	/* Test events */
 	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
 	assert(test_events);
 
 	/* Metadata */
-	empty_struct_ft = bt_ctf_field_type_structure_create();
+	empty_struct_ft = bt_field_type_structure_create();
 	assert(empty_struct_ft);
-	trace = bt_ctf_trace_create();
+	trace = bt_trace_create();
 	assert(trace);
-	ret = bt_ctf_trace_set_packet_header_type(trace, empty_struct_ft);
+	ret = bt_trace_set_packet_header_type(trace, empty_struct_ft);
 	assert(ret == 0);
 	src_empty_cc_prio_map = bt_clock_class_priority_map_create();
 	assert(src_empty_cc_prio_map);
-	src_stream_class = bt_ctf_stream_class_create("my-stream-class");
+	src_stream_class = bt_stream_class_create("my-stream-class");
 	assert(src_stream_class);
-	ret = bt_ctf_stream_class_set_packet_context_type(src_stream_class,
+	ret = bt_stream_class_set_packet_context_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_ctf_stream_class_set_event_header_type(src_stream_class,
+	ret = bt_stream_class_set_event_header_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_ctf_stream_class_set_event_context_type(src_stream_class,
+	ret = bt_stream_class_set_event_context_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	src_event_class = bt_ctf_event_class_create("my-event-class");
-	ret = bt_ctf_event_class_set_context_type(src_event_class,
+	src_event_class = bt_event_class_create("my-event-class");
+	ret = bt_event_class_set_context_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_ctf_event_class_set_context_type(src_event_class,
+	ret = bt_event_class_set_context_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_ctf_stream_class_add_event_class(src_stream_class,
+	ret = bt_stream_class_add_event_class(src_stream_class,
 		src_event_class);
 	assert(ret == 0);
-	ret = bt_ctf_trace_add_stream_class(trace, src_stream_class);
+	ret = bt_trace_add_stream_class(trace, src_stream_class);
 	assert(ret == 0);
-	src_stream1 = bt_ctf_stream_create(src_stream_class, "stream-1");
+	src_stream1 = bt_stream_create(src_stream_class, "stream-1");
 	assert(src_stream1);
-	src_stream2 = bt_ctf_stream_create(src_stream_class, "stream-2");
+	src_stream2 = bt_stream_create(src_stream_class, "stream-2");
 	assert(src_stream2);
-	src_stream1_packet1 = bt_ctf_packet_create(src_stream1);
+	src_stream1_packet1 = bt_packet_create(src_stream1);
 	assert(src_stream1_packet1);
-	src_stream1_packet2 = bt_ctf_packet_create(src_stream1);
+	src_stream1_packet2 = bt_packet_create(src_stream1);
 	assert(src_stream1_packet2);
-	src_stream2_packet1 = bt_ctf_packet_create(src_stream2);
+	src_stream2_packet1 = bt_packet_create(src_stream2);
 	assert(src_stream2_packet1);
-	src_stream2_packet2 = bt_ctf_packet_create(src_stream2);
+	src_stream2_packet2 = bt_packet_create(src_stream2);
 	assert(src_stream2_packet2);
 
 	if (debug) {
@@ -551,13 +551,13 @@ enum bt_notification_iterator_status src_iter_init(
 }
 
 static
-struct bt_ctf_event *src_create_event(struct bt_ctf_packet *packet)
+struct bt_event *src_create_event(struct bt_packet *packet)
 {
-	struct bt_ctf_event *event = bt_ctf_event_create(src_event_class);
+	struct bt_event *event = bt_event_create(src_event_class);
 	int ret;
 
 	assert(event);
-	ret = bt_ctf_event_set_packet(event, packet);
+	ret = bt_event_set_packet(event, packet);
 	assert(ret == 0);
 	return event;
 }
@@ -570,7 +570,7 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
 	int64_t cur_ts_ns;
-	struct bt_ctf_packet *event_packet = NULL;
+	struct bt_packet *event_packet = NULL;
 
 	assert(user_data->seq);
 	cur_ts_ns = user_data->seq[user_data->at];
@@ -662,7 +662,7 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 	}
 
 	if (event_packet) {
-		struct bt_ctf_event *event = src_create_event(event_packet);
+		struct bt_event *event = src_create_event(event_packet);
 
 		assert(event);
 		next_return.notification = bt_notification_event_create(event,
@@ -745,12 +745,12 @@ enum bt_notification_iterator_status common_consume(
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
-		struct bt_ctf_event *event;
+		struct bt_event *event;
 
 		test_event.type = TEST_EV_TYPE_NOTIF_EVENT;
 		event = bt_notification_event_get_event(notification);
 		assert(event);
-		test_event.packet = bt_ctf_event_get_packet(event);
+		test_event.packet = bt_event_get_packet(event);
 		bt_put(event);
 		assert(test_event.packet);
 		bt_put(test_event.packet);
@@ -793,7 +793,7 @@ enum bt_notification_iterator_status common_consume(
 	}
 
 	if (test_event.packet) {
-		test_event.stream = bt_ctf_packet_get_stream(test_event.packet);
+		test_event.stream = bt_packet_get_stream(test_event.packet);
 		assert(test_event.stream);
 		bt_put(test_event.stream);
 	}

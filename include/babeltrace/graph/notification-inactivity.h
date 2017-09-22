@@ -29,7 +29,7 @@ extern "C" {
 
 struct bt_notification;
 struct bt_clock_class_priority_map;
-struct bt_ctf_clock_class;
+struct bt_clock_class;
 
 extern struct bt_notification *bt_notification_inactivity_create(
 		struct bt_clock_class_priority_map *clock_class_priority_map);
@@ -38,13 +38,13 @@ extern struct bt_clock_class_priority_map *
 bt_notification_inactivity_get_clock_class_priority_map(
 		struct bt_notification *notification);
 
-extern struct bt_ctf_clock_value *bt_notification_inactivity_get_clock_value(
+extern struct bt_clock_value *bt_notification_inactivity_get_clock_value(
 		struct bt_notification *notification,
-		struct bt_ctf_clock_class *clock_class);
+		struct bt_clock_class *clock_class);
 
 extern int bt_notification_inactivity_set_clock_value(
 		struct bt_notification *notification,
-		struct bt_ctf_clock_value *clock_value);
+		struct bt_clock_value *clock_value);
 
 #ifdef __cplusplus
 }

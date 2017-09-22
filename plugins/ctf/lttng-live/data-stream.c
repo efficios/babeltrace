@@ -39,12 +39,12 @@
 #include "data-stream.h"
 
 static
-enum bt_ctf_notif_iter_medium_status medop_request_bytes(
+enum bt_notif_iter_medium_status medop_request_bytes(
 		size_t request_sz, uint8_t **buffer_addr,
 		size_t *buffer_sz, void *data)
 {
-	enum bt_ctf_notif_iter_medium_status status =
-		BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
+	enum bt_notif_iter_medium_status status =
+		BT_NOTIF_ITER_MEDIUM_STATUS_OK;
 	struct lttng_live_stream_iterator *stream = data;
 	struct lttng_live_trace *trace = stream->trace;
 	struct lttng_live_session *session = trace->session;
@@ -57,7 +57,7 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 	len_left = stream->base_offset + stream->len - stream->offset;
 	if (!len_left) {
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
-		status = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+		status = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
 		return status;
 	}
 	read_len = MIN(request_sz, stream->buflen);
@@ -72,26 +72,26 @@ enum bt_ctf_notif_iter_medium_status medop_request_bytes(
 }
 
 static
-struct bt_ctf_stream *medop_get_stream(
-		struct bt_ctf_stream_class *stream_class,
+struct bt_stream *medop_get_stream(
+		struct bt_stream_class *stream_class,
 		uint64_t stream_id, void *data)
 {
 	struct lttng_live_stream_iterator *lttng_live_stream = data;
 
 	if (!lttng_live_stream->stream) {
 		int64_t stream_class_id =
-			bt_ctf_stream_class_get_id(stream_class);
+			bt_stream_class_get_id(stream_class);
 
 		BT_LOGD("Creating stream %s (ID: %" PRIu64 ") out of stream class %" PRId64,
 			lttng_live_stream->name, stream_id, stream_class_id);
 
 		if (stream_id == -1ULL) {
 			/* No stream ID */
-			lttng_live_stream->stream = bt_ctf_stream_create(
+			lttng_live_stream->stream = bt_stream_create(
 				stream_class, lttng_live_stream->name);
 		} else {
 			lttng_live_stream->stream =
-				bt_ctf_stream_create_with_id(stream_class,
+				bt_stream_create_with_id(stream_class,
 					lttng_live_stream->name, stream_id);
 		}
 
@@ -105,20 +105,20 @@ struct bt_ctf_stream *medop_get_stream(
 	return lttng_live_stream->stream;
 }
 
-static struct bt_ctf_notif_iter_medium_ops medops = {
+static struct bt_notif_iter_medium_ops medops = {
 	.request_bytes = medop_request_bytes,
 	.get_stream = medop_get_stream,
 };
 
 BT_HIDDEN
-enum bt_ctf_lttng_live_iterator_status lttng_live_lazy_notif_init(
+enum bt_lttng_live_iterator_status lttng_live_lazy_notif_init(
 		struct lttng_live_session *session)
 {
 	struct lttng_live_component *lttng_live = session->lttng_live;
 	struct lttng_live_trace *trace;
 
 	if (!session->lazy_stream_notif_init) {
-		return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+		return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	}
 
 	bt_list_for_each_entry(trace, &session->traces, node) {
@@ -128,7 +128,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_lazy_notif_init(
 			if (stream->notif_iter) {
 				continue;
 			}
-			stream->notif_iter = bt_ctf_notif_iter_create(trace->trace,
+			stream->notif_iter = bt_notif_iter_create(trace->trace,
 					lttng_live->max_query_size, medops,
 					stream);
 			if (!stream->notif_iter) {
@@ -139,10 +139,10 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_lazy_notif_init(
 
 	session->lazy_stream_notif_init = false;
 
-	return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 
 error:
-	return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+	return BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 }
 
 BT_HIDDEN
@@ -170,7 +170,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	stream->last_returned_inactivity_timestamp = INT64_MIN;
 
 	if (trace->trace) {
-		stream->notif_iter = bt_ctf_notif_iter_create(trace->trace,
+		stream->notif_iter = bt_notif_iter_create(trace->trace,
 				lttng_live->max_query_size, medops,
 				stream);
 		if (!stream->notif_iter) {
@@ -213,7 +213,7 @@ void lttng_live_stream_iterator_destroy(struct lttng_live_stream_iterator *strea
 	}
 
 	if (stream->notif_iter) {
-		bt_ctf_notif_iter_destroy(stream->notif_iter);
+		bt_notif_iter_destroy(stream->notif_iter);
 	}
 	g_free(stream->buf);
 	BT_PUT(stream->packet_end_notif_queue);

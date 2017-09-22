@@ -30,37 +30,37 @@
 #include <babeltrace/graph/notification-internal.h>
 
 struct bt_clock_class_priority_map;
-struct bt_ctf_stream;
+struct bt_stream;
 
 struct bt_notification_discarded_elements {
 	struct bt_notification parent;
-	struct bt_ctf_stream *stream;
-	struct bt_ctf_clock_value *begin_clock_value;
-	struct bt_ctf_clock_value *end_clock_value;
+	struct bt_stream *stream;
+	struct bt_clock_value *begin_clock_value;
+	struct bt_clock_value *end_clock_value;
 	int64_t count;
 };
 
 BT_HIDDEN
 struct bt_notification *bt_notification_discarded_elements_create(
 		enum bt_notification_type type,
-		struct bt_ctf_stream *stream,
-		struct bt_ctf_clock_value *begin_clock_value,
-		struct bt_ctf_clock_value *end_clock_value,
+		struct bt_stream *stream,
+		struct bt_clock_value *begin_clock_value,
+		struct bt_clock_value *end_clock_value,
 		uint64_t count);
 
 BT_HIDDEN
-struct bt_ctf_stream *bt_notification_discarded_elements_get_stream(
+struct bt_stream *bt_notification_discarded_elements_get_stream(
 		enum bt_notification_type type,
 		struct bt_notification *notification);
 
 BT_HIDDEN
-struct bt_ctf_clock_value *
+struct bt_clock_value *
 bt_notification_discarded_elements_get_begin_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification);
 
 BT_HIDDEN
-struct bt_ctf_clock_value *
+struct bt_clock_value *
 bt_notification_discarded_elements_get_end_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification);
@@ -71,7 +71,7 @@ int64_t bt_notification_discarded_elements_get_count(
 		struct bt_notification *notification);
 
 static inline
-struct bt_ctf_stream *bt_notification_discarded_elements_borrow_stream(
+struct bt_stream *bt_notification_discarded_elements_borrow_stream(
 		struct bt_notification *notification)
 {
 	struct bt_notification_discarded_elements *discarded_elems_notif;

@@ -27,11 +27,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct bt_ctf_clock_class;
+struct bt_clock_class;
 
-struct bt_ctf_clock_value {
+struct bt_clock_value {
 	struct bt_object base;
-	struct bt_ctf_clock_class *clock_class;
+	struct bt_clock_class *clock_class;
 	uint64_t value;
 	bool ns_from_epoch_overflows;
 	int64_t ns_from_epoch;

@@ -67,7 +67,7 @@ or if it does not meet any other imposed requirement.
 
 @prenotnull{identifier}
 */
-extern bt_bool bt_ctf_identifier_is_valid(const char *identifier);
+extern bt_bool bt_identifier_is_valid(const char *identifier);
 
 /** @} */
 
