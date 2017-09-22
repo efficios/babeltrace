@@ -39,21 +39,21 @@
 struct bt_port;
 struct bt_component;
 
-typedef void (*bt_ctf_stream_destroy_listener_func)(
-		struct bt_ctf_stream *stream, void *data);
+typedef void (*bt_stream_destroy_listener_func)(
+		struct bt_stream *stream, void *data);
 
-struct bt_ctf_stream_destroy_listener {
-	bt_ctf_stream_destroy_listener_func func;
+struct bt_stream_destroy_listener {
+	bt_stream_destroy_listener_func func;
 	void *data;
 };
 
-struct bt_ctf_stream {
+struct bt_stream {
 	struct bt_object base;
 	int64_t id;
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_stream_class *stream_class;
 	GString *name;
-	struct bt_ctf_field *packet_header;
-	struct bt_ctf_field *packet_context;
+	struct bt_field *packet_header;
+	struct bt_field *packet_context;
 
 	/*
 	 * When a notification which contains a reference to a stream
@@ -76,40 +76,40 @@ struct bt_ctf_stream {
 	GHashTable *comp_cur_port;
 
 	/* Writer-specific members. */
-	/* Array of pointers to bt_ctf_event for the current packet */
+	/* Array of pointers to bt_event for the current packet */
 	GPtrArray *events;
-	struct bt_ctf_stream_pos pos;
+	struct bt_stream_pos pos;
 	unsigned int flushed_packet_count;
 	uint64_t discarded_events;
 	uint64_t size;
 
-	/* Array of struct bt_ctf_stream_destroy_listener */
+	/* Array of struct bt_stream_destroy_listener */
 	GArray *destroy_listeners;
 };
 
 BT_HIDDEN
-int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd);
+int bt_stream_set_fd(struct bt_stream *stream, int fd);
 
 BT_HIDDEN
-void bt_ctf_stream_map_component_to_port(struct bt_ctf_stream *stream,
+void bt_stream_map_component_to_port(struct bt_stream *stream,
 		struct bt_component *comp,
 		struct bt_port *port);
 
 BT_HIDDEN
-struct bt_port *bt_ctf_stream_port_for_component(struct bt_ctf_stream *stream,
+struct bt_port *bt_stream_port_for_component(struct bt_stream *stream,
 		struct bt_component *comp);
 
 BT_HIDDEN
-void bt_ctf_stream_add_destroy_listener(struct bt_ctf_stream *stream,
-		bt_ctf_stream_destroy_listener_func func, void *data);
+void bt_stream_add_destroy_listener(struct bt_stream *stream,
+		bt_stream_destroy_listener_func func, void *data);
 
 BT_HIDDEN
-void bt_ctf_stream_remove_destroy_listener(struct bt_ctf_stream *stream,
-		bt_ctf_stream_destroy_listener_func func, void *data);
+void bt_stream_remove_destroy_listener(struct bt_stream *stream,
+		bt_stream_destroy_listener_func func, void *data);
 
 static inline
-struct bt_ctf_stream_class *bt_ctf_stream_borrow_stream_class(
-		struct bt_ctf_stream *stream)
+struct bt_stream_class *bt_stream_borrow_stream_class(
+		struct bt_stream *stream)
 {
 	assert(stream);
 	return stream->stream_class;

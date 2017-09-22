@@ -40,7 +40,7 @@
 static
 void field_path_destroy(struct bt_object *obj)
 {
-	struct bt_ctf_field_path *field_path = (struct bt_ctf_field_path *) obj;
+	struct bt_field_path *field_path = (struct bt_field_path *) obj;
 
 	BT_LOGD("Destroying field path: addr=%p", obj);
 
@@ -55,20 +55,20 @@ void field_path_destroy(struct bt_object *obj)
 }
 
 BT_HIDDEN
-struct bt_ctf_field_path *bt_ctf_field_path_create(void)
+struct bt_field_path *bt_field_path_create(void)
 {
-	struct bt_ctf_field_path *field_path = NULL;
+	struct bt_field_path *field_path = NULL;
 
 	BT_LOGD_STR("Creating empty field path object.");
 
-	field_path = g_new0(struct bt_ctf_field_path, 1);
+	field_path = g_new0(struct bt_field_path, 1);
 	if (!field_path) {
 		BT_LOGE_STR("Failed to allocate one field path.");
 		goto error;
 	}
 
 	bt_object_init(field_path, field_path_destroy);
-	field_path->root = BT_CTF_SCOPE_UNKNOWN;
+	field_path->root = BT_SCOPE_UNKNOWN;
 	field_path->indexes = g_array_new(TRUE, FALSE, sizeof(int));
 	if (!field_path->indexes) {
 		BT_LOGE_STR("Failed to allocate a GArray.");
@@ -84,7 +84,7 @@ error:
 }
 
 BT_HIDDEN
-void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path)
+void bt_field_path_clear(struct bt_field_path *field_path)
 {
 	if (field_path->indexes->len > 0) {
 		g_array_remove_range(field_path->indexes, 0,
@@ -93,15 +93,15 @@ void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path)
 }
 
 BT_HIDDEN
-struct bt_ctf_field_path *bt_ctf_field_path_copy(
-		struct bt_ctf_field_path *path)
+struct bt_field_path *bt_field_path_copy(
+		struct bt_field_path *path)
 {
-	struct bt_ctf_field_path *new_path;
+	struct bt_field_path *new_path;
 
 	assert(path);
 	BT_LOGD("Copying field path: addr=%p, index-count=%u",
 		path, path->indexes->len);
-	new_path = bt_ctf_field_path_create();
+	new_path = bt_field_path_create();
 	if (!new_path) {
 		BT_LOGE_STR("Cannot create empty field path.");
 		goto end;
@@ -116,10 +116,10 @@ end:
 	return new_path;
 }
 
-enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
-		const struct bt_ctf_field_path *field_path)
+enum bt_scope bt_field_path_get_root_scope(
+		const struct bt_field_path *field_path)
 {
-	enum bt_ctf_scope scope = BT_CTF_SCOPE_UNKNOWN;
+	enum bt_scope scope = BT_SCOPE_UNKNOWN;
 
 	if (!field_path) {
 		BT_LOGW_STR("Invalid parameter: field path is NULL.");
@@ -132,8 +132,8 @@ end:
 	return scope;
 }
 
-int64_t bt_ctf_field_path_get_index_count(
-		const struct bt_ctf_field_path *field_path)
+int64_t bt_field_path_get_index_count(
+		const struct bt_field_path *field_path)
 {
 	int64_t count = (int64_t) -1;
 
@@ -148,7 +148,7 @@ end:
 	return count;
 }
 
-int bt_ctf_field_path_get_index(const struct bt_ctf_field_path *field_path,
+int bt_field_path_get_index(const struct bt_field_path *field_path,
 		uint64_t index)
 {
 	int ret = INT_MIN;

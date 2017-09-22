@@ -38,8 +38,7 @@ Use a warning command if this message is really important.
 @postrefcountsame{stream_class}
 @post Some custom postcondition.
 
-@sa bt_ctf_stream_class_get_name(): Returns the name of a given
-        stream class.
+@sa btstream_class_get_name(): Returns the name of a given stream class.
 */
 ----
 

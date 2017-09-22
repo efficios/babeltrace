@@ -32,10 +32,10 @@
 #include <babeltrace/values.h>
 #include <babeltrace/babeltrace-internal.h>
 
-enum bt_ctf_validation_flag {
-	BT_CTF_VALIDATION_FLAG_TRACE	= 1,
-	BT_CTF_VALIDATION_FLAG_STREAM	= 2,
-	BT_CTF_VALIDATION_FLAG_EVENT	= 4,
+enum bt_validation_flag {
+	BT_VALIDATION_FLAG_TRACE	= 1,
+	BT_VALIDATION_FLAG_STREAM	= 2,
+	BT_VALIDATION_FLAG_EVENT	= 4,
 };
 
 /*
@@ -47,14 +47,14 @@ enum bt_ctf_validation_flag {
  *
  * `valid_flags` contains the results of the validation.
  */
-struct bt_ctf_validation_output {
-	struct bt_ctf_field_type *packet_header_type;
-	struct bt_ctf_field_type *packet_context_type;
-	struct bt_ctf_field_type *event_header_type;
-	struct bt_ctf_field_type *stream_event_ctx_type;
-	struct bt_ctf_field_type *event_context_type;
-	struct bt_ctf_field_type *event_payload_type;
-	enum bt_ctf_validation_flag valid_flags;
+struct bt_validation_output {
+	struct bt_field_type *packet_header_type;
+	struct bt_field_type *packet_context_type;
+	struct bt_field_type *event_header_type;
+	struct bt_field_type *stream_event_ctx_type;
+	struct bt_field_type *event_context_type;
+	struct bt_field_type *event_payload_type;
+	enum bt_validation_flag valid_flags;
 };
 
 /*
@@ -64,7 +64,7 @@ struct bt_ctf_validation_output {
  * validation structure, which also contains the results of the
  * validation. Copies can replace the original field types of a trace,
  * a stream class, and an event class using
- * bt_ctf_validation_replace_types().
+ * bt_validation_replace_types().
  *
  * The current known validity of the field types of the trace,
  * stream class, and event class must be indicated with the
@@ -78,16 +78,16 @@ struct bt_ctf_validation_output {
  * All parameters are owned by the caller.
  */
 BT_HIDDEN
-int bt_ctf_validate_class_types(struct bt_value *environment,
-		struct bt_ctf_field_type *packet_header_type,
-		struct bt_ctf_field_type *packet_context_type,
-		struct bt_ctf_field_type *event_header_type,
-		struct bt_ctf_field_type *stream_event_ctx_type,
-		struct bt_ctf_field_type *event_context_type,
-		struct bt_ctf_field_type *event_payload_type,
+int bt_validate_class_types(struct bt_value *environment,
+		struct bt_field_type *packet_header_type,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type,
+		struct bt_field_type *stream_event_ctx_type,
+		struct bt_field_type *event_context_type,
+		struct bt_field_type *event_payload_type,
 		int trace_valid, int stream_class_valid, int event_class_valid,
-		struct bt_ctf_validation_output *output,
-		enum bt_ctf_validation_flag validate_flags);
+		struct bt_validation_output *output,
+		enum bt_validation_flag validate_flags);
 
 /*
  * This function replaces the actual field types of a trace, a stream
@@ -99,17 +99,17 @@ int bt_ctf_validate_class_types(struct bt_value *environment,
  *
  * Note that the field types that are not used in the validation output
  * structure are still owned by it at the end of this call.
- * bt_ctf_validation_output_put_types() should be called to clean the
+ * bt_validation_output_put_types() should be called to clean the
  * structure.
  *
  * All parameters are owned by the caller.
  */
 BT_HIDDEN
-void bt_ctf_validation_replace_types(struct bt_ctf_trace *trace,
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_event_class *event_class,
-		struct bt_ctf_validation_output *output,
-		enum bt_ctf_validation_flag replace_flags);
+void bt_validation_replace_types(struct bt_trace *trace,
+		struct bt_stream_class *stream_class,
+		struct bt_event_class *event_class,
+		struct bt_validation_output *output,
+		enum bt_validation_flag replace_flags);
 
 /*
  * This function puts all the field types contained in a given
@@ -118,7 +118,7 @@ void bt_ctf_validation_replace_types(struct bt_ctf_trace *trace,
  * `output` is owned by the caller and is not freed here.
  */
 BT_HIDDEN
-void bt_ctf_validation_output_put_types(
-		struct bt_ctf_validation_output *output);
+void bt_validation_output_put_types(
+		struct bt_validation_output *output);
 
 #endif /* BABELTRACE_CTF_IR_VALIDATION_INTERNAL_H */

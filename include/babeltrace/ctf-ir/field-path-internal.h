@@ -32,9 +32,9 @@
 #include <assert.h>
 #include <glib.h>
 
-struct bt_ctf_field_path {
+struct bt_field_path {
 	struct bt_object base;
-	enum bt_ctf_scope root;
+	enum bt_scope root;
 
 	/*
 	 * Array of integers (int) indicating the index in either
@@ -46,17 +46,17 @@ struct bt_ctf_field_path {
 };
 
 BT_HIDDEN
-struct bt_ctf_field_path *bt_ctf_field_path_create(void);
+struct bt_field_path *bt_field_path_create(void);
 
 BT_HIDDEN
-void bt_ctf_field_path_clear(struct bt_ctf_field_path *field_path);
+void bt_field_path_clear(struct bt_field_path *field_path);
 
 BT_HIDDEN
-struct bt_ctf_field_path *bt_ctf_field_path_copy(
-		struct bt_ctf_field_path *path);
+struct bt_field_path *bt_field_path_copy(
+		struct bt_field_path *path);
 
 static inline
-GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path)
+GString *bt_field_path_string(struct bt_field_path *path)
 {
 	GString *str = g_string_new(NULL);
 	size_t i;
@@ -67,7 +67,7 @@ GString *bt_ctf_field_path_string(struct bt_ctf_field_path *path)
 		goto end;
 	}
 
-	g_string_append_printf(str, "[%s", bt_ctf_scope_string(path->root));
+	g_string_append_printf(str, "[%s", bt_scope_string(path->root));
 
 	for (i = 0; i < path->indexes->len; i++) {
 		int index = g_array_index(path->indexes, int, i);

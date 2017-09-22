@@ -53,23 +53,23 @@ A CTF IR <strong><em>field type</em></strong> is a field type that you
 can use to create concrete @fields.
 
 You can create a @field object from a CTF IR field type object
-with bt_ctf_field_create().
+with bt_field_create().
 
 In the CTF IR hierarchy, you can set the root field types of three
 objects:
 
 - \ref ctfirtraceclass
-  - Trace packet header field type: bt_ctf_trace_set_packet_header_type().
+  - Trace packet header field type: bt_trace_set_packet_header_type().
 - \ref ctfirstreamclass
   - Stream packet context field type:
-    bt_ctf_stream_class_set_packet_context_type().
+    bt_stream_class_set_packet_context_type().
   - Stream event header field type:
-    bt_ctf_stream_class_set_event_header_type().
+    bt_stream_class_set_event_header_type().
   - Stream event context field type:
-    bt_ctf_stream_class_set_event_context_type().
+    bt_stream_class_set_event_context_type().
 - \ref ctfireventclass
-  - Event context field type: bt_ctf_event_class_set_context_type().
-  - Event payload field type: bt_ctf_event_class_set_payload_type().
+  - Event context field type: bt_event_class_set_context_type().
+  - Event payload field type: bt_event_class_set_payload_type().
 
 As of Babeltrace \btversion, those six previous "root" field types
 \em must be @structft objects.
@@ -84,10 +84,10 @@ types contained in a given
 \link ctfirstreamclass CTF IR stream class\endlink (and in its
 children \link ctfireventclass CTF IR event classes\endlink) once you
 add it to a \link ctfirtraceclass CTF IR trace class\endlink with
-bt_ctf_trace_add_stream_class(). Once a stream class is the child of
+bt_trace_add_stream_class(). Once a stream class is the child of
 a trace class, this automatic resolving is performed for the field
 types of an event class when you add it with
-bt_ctf_stream_class_add_event_class(). If the system cannot find a path
+bt_stream_class_add_event_class(). If the system cannot find a path
 to a field in the hierarchy for a dynamic field type, the adding
 function fails.
 
@@ -100,59 +100,59 @@ The standard CTF field types are:
     <th>CTF IR field which you can create from this field type
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_INTEGER
+    <td>#BT_FIELD_TYPE_ID_INTEGER
     <td>\ref ctfirintfieldtype
     <td>\ref ctfirintfield
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_FLOAT
+    <td>#BT_FIELD_TYPE_ID_FLOAT
     <td>\ref ctfirfloatfieldtype
     <td>\ref ctfirfloatfield
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_ENUM
+    <td>#BT_FIELD_TYPE_ID_ENUM
     <td>\ref ctfirenumfieldtype
     <td>\ref ctfirenumfield
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_STRING
+    <td>#BT_FIELD_TYPE_ID_STRING
     <td>\ref ctfirstringfieldtype
     <td>\ref ctfirstringfield
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_STRUCT
+    <td>#BT_FIELD_TYPE_ID_STRUCT
     <td>\ref ctfirstructfieldtype
     <td>\ref ctfirstructfield
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_ARRAY
+    <td>#BT_FIELD_TYPE_ID_ARRAY
     <td>\ref ctfirarrayfieldtype
     <td>\ref ctfirarrayfield
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_SEQUENCE
+    <td>#BT_FIELD_TYPE_ID_SEQUENCE
     <td>\ref ctfirseqfieldtype
     <td>\ref ctfirseqfield
   </tr>
   <tr>
-    <td>#BT_CTF_FIELD_TYPE_ID_VARIANT
+    <td>#BT_FIELD_TYPE_ID_VARIANT
     <td>\ref ctfirvarfieldtype
     <td>\ref ctfirvarfield
   </tr>
 </table>
 
 Each field type has its own <strong>type ID</strong> (see
-#bt_ctf_field_type_id). You get the type ID of a field type object
-with bt_ctf_field_type_get_type_id().
+#bt_field_type_id). You get the type ID of a field type object
+with bt_field_type_get_type_id().
 
-You can get a deep copy of a field type with bt_ctf_field_type_copy().
+You can get a deep copy of a field type with bt_field_type_copy().
 This function resets, in the field type copy, the resolved field type
 of the dynamic field types. The automatic resolving can be done again
-when you eventually call bt_ctf_event_create(),
-bt_ctf_stream_class_add_event_class(), or
-bt_ctf_trace_add_stream_class().
+when you eventually call bt_event_create(),
+bt_stream_class_add_event_class(), or
+bt_trace_add_stream_class().
 
-You \em must always use bt_ctf_field_type_compare() to compare two
+You \em must always use bt_field_type_compare() to compare two
 field types. Since some parts of the Babeltrace system can copy field
 types behind the scenes, you \em cannot rely on a simple field type
 pointer comparison.
@@ -164,18 +164,18 @@ management of Babeltrace objects.
 
 The following functions can \em freeze field type objects:
 
-- bt_ctf_field_create() freezes its field type parameter.
-- bt_ctf_stream_class_add_event_class(), if its
+- bt_field_create() freezes its field type parameter.
+- bt_stream_class_add_event_class(), if its
   \link ctfirstreamclass CTF IR stream class\endlink parameter has a
   \link ctfirtraceclass CTF IR trace class\endlink parent, freezes
   the root field types of its
   \link ctfireventclass CTF IR event class\endlink parameter.
-- bt_ctf_trace_add_stream_class() freezes the root field types of the
+- bt_trace_add_stream_class() freezes the root field types of the
   whole trace class hierarchy (trace class, children stream classes,
   and their children event classes).
-- bt_ctf_writer_create_stream() freezes the root field types of the
+- bt_writer_create_stream() freezes the root field types of the
   whole CTF writer's trace class hierarchy.
-- bt_ctf_event_create() freezes the root field types of its event class
+- bt_event_create() freezes the root field types of its event class
   parameter and of ther parent stream class of this event class.
 
 You cannot modify a frozen field type object: it is considered
@@ -193,80 +193,45 @@ immutable, except for \link refs reference counting\endlink.
 */
 
 /**
-@struct bt_ctf_field_type
+@struct bt_field_type
 @brief A CTF IR field type.
 @sa ctfirfieldtypes
 */
-struct bt_ctf_field_type;
-struct bt_ctf_event_class;
-struct bt_ctf_event;
-struct bt_ctf_field;
-struct bt_ctf_field_path;
-struct bt_ctf_field_type_enumeration_mapping_iterator;
-
-/** @cond DOCUMENT */
-
-/*
- * Babeltrace 1.x enumerations that were also used in CTF writer's API.
- * They are left here for backward compatibility reasons, but
- * enum bt_ctf_field_type_id and enum bt_ctf_string_encoding should be used
- * in new code. Both new enumerations are compatible with their legacy
- * counterpart.
- */
-enum ctf_type_id {
-	CTF_TYPE_UNKNOWN = -1,
-	CTF_TYPE_INTEGER = 0,
-	CTF_TYPE_FLOAT = 1,
-	CTF_TYPE_ENUM = 2,
-	CTF_TYPE_STRING = 3,
-	CTF_TYPE_STRUCT = 4,
-	CTF_TYPE_UNTAGGED_VARIANT = 5,
-	CTF_TYPE_VARIANT = 5,
-	CTF_TYPE_ARRAY = 6,
-	CTF_TYPE_SEQUENCE = 7,
-	NR_CTF_TYPES,
-};
-
-/*
- * Old enum.
- */
-enum ctf_string_encoding {
-	CTF_STRING_NONE = 0,
-	CTF_STRING_UTF8,
-	CTF_STRING_ASCII,
-	CTF_STRING_UNKNOWN,
-};
-
-/** @endcond */
+struct bt_field_type;
+struct bt_event_class;
+struct bt_event;
+struct bt_field;
+struct bt_field_path;
+struct bt_field_type_enumeration_mapping_iterator;
 
 /**
 @brief	CTF scope.
 */
-enum bt_ctf_scope {
+enum bt_scope {
 	/// Unknown, used for errors.
-	BT_CTF_SCOPE_UNKNOWN = -1,
+	BT_SCOPE_UNKNOWN		= -1,
 
 	/// Trace packet header.
-	BT_CTF_SCOPE_TRACE_PACKET_HEADER = 1,
+	BT_SCOPE_TRACE_PACKET_HEADER	= 1,
 
 	/// Stream packet context.
-	BT_CTF_SCOPE_STREAM_PACKET_CONTEXT = 2,
+	BT_SCOPE_STREAM_PACKET_CONTEXT	= 2,
 
 	/// Stream event header.
-	BT_CTF_SCOPE_STREAM_EVENT_HEADER = 3,
+	BT_SCOPE_STREAM_EVENT_HEADER	= 3,
 
 	/// Stream event context.
-	BT_CTF_SCOPE_STREAM_EVENT_CONTEXT = 4,
+	BT_SCOPE_STREAM_EVENT_CONTEXT	= 4,
 
 	/// Event context.
-	BT_CTF_SCOPE_EVENT_CONTEXT = 5,
+	BT_SCOPE_EVENT_CONTEXT		= 5,
 
 	/// Event payload.
-	BT_CTF_SCOPE_EVENT_PAYLOAD = 6,
+	BT_SCOPE_EVENT_PAYLOAD		= 6,
 
 	/// @cond DOCUMENT
-	BT_CTF_SCOPE_ENV = 0,
-	BT_CTF_SCOPE_EVENT_FIELDS = 6,
+	BT_SCOPE_ENV			= 0,
+	BT_SCOPE_EVENT_FIELDS		= 6,
 	/// @endcond
 };
 
@@ -278,36 +243,36 @@ enum bt_ctf_scope {
 /**
 @brief	Type ID of a @ft.
 */
-enum bt_ctf_field_type_id {
+enum bt_field_type_id {
 	/// Unknown, used for errors.
-	BT_CTF_FIELD_TYPE_ID_UNKNOWN = CTF_TYPE_UNKNOWN,
+	BT_FIELD_TYPE_ID_UNKNOWN	= -1,
 
 	/// \ref ctfirintfieldtype
-	BT_CTF_FIELD_TYPE_ID_INTEGER = CTF_TYPE_INTEGER,
+	BT_FIELD_TYPE_ID_INTEGER	= 0,
 
 	/// \ref ctfirfloatfieldtype
-	BT_CTF_FIELD_TYPE_ID_FLOAT = CTF_TYPE_FLOAT,
+	BT_FIELD_TYPE_ID_FLOAT		= 1,
 
 	/// \ref ctfirenumfieldtype
-	BT_CTF_FIELD_TYPE_ID_ENUM = CTF_TYPE_ENUM,
+	BT_FIELD_TYPE_ID_ENUM		= 2,
 
 	/// \ref ctfirstringfieldtype
-	BT_CTF_FIELD_TYPE_ID_STRING = CTF_TYPE_STRING,
+	BT_FIELD_TYPE_ID_STRING		= 3,
 
 	/// \ref ctfirstructfieldtype
-	BT_CTF_FIELD_TYPE_ID_STRUCT = CTF_TYPE_STRUCT,
+	BT_FIELD_TYPE_ID_STRUCT		= 4,
 
 	/// \ref ctfirarrayfieldtype
-	BT_CTF_FIELD_TYPE_ID_ARRAY = CTF_TYPE_ARRAY,
+	BT_FIELD_TYPE_ID_ARRAY		= 6,
 
 	/// \ref ctfirseqfieldtype
-	BT_CTF_FIELD_TYPE_ID_SEQUENCE = CTF_TYPE_SEQUENCE,
+	BT_FIELD_TYPE_ID_SEQUENCE	= 7,
 
 	/// \ref ctfirvarfieldtype
-	BT_CTF_FIELD_TYPE_ID_VARIANT = CTF_TYPE_VARIANT,
+	BT_FIELD_TYPE_ID_VARIANT	= 5,
 
 	/// Number of enumeration entries.
-	BT_CTF_NR_TYPE_IDS = NR_CTF_TYPES,
+	BT_FIELD_TYPE_ID_NR		= 8,
 };
 
 /**
@@ -315,31 +280,31 @@ enum bt_ctf_field_type_id {
 
 @param[in] field_type	Field type of which to get the type ID.
 @returns		Type ID of \p field_type,
-			or #BT_CTF_FIELD_TYPE_ID_UNKNOWN on error.
+			or #BT_FIELD_TYPE_ID_UNKNOWN on error.
 
 @prenotnull{field_type}
 @postrefcountsame{field_type}
 
-@sa #bt_ctf_field_type_id: CTF IR field type ID.
-@sa bt_ctf_field_type_is_integer(): Returns whether or not a given
+@sa #bt_field_type_id: CTF IR field type ID.
+@sa bt_field_type_is_integer(): Returns whether or not a given
 	field type is a @intft.
-@sa bt_ctf_field_type_is_floating_point(): Returns whether or not a
+@sa bt_field_type_is_floating_point(): Returns whether or not a
 	given field type is a @floatft.
-@sa bt_ctf_field_type_is_enumeration(): Returns whether or not a given
+@sa bt_field_type_is_enumeration(): Returns whether or not a given
 	field type is a @enumft.
-@sa bt_ctf_field_type_is_string(): Returns whether or not a given
+@sa bt_field_type_is_string(): Returns whether or not a given
 	field type is a @stringft.
-@sa bt_ctf_field_type_is_structure(): Returns whether or not a given
+@sa bt_field_type_is_structure(): Returns whether or not a given
 	field type is a @structft.
-@sa bt_ctf_field_type_is_array(): Returns whether or not a given
+@sa bt_field_type_is_array(): Returns whether or not a given
 	field type is a @arrayft.
-@sa bt_ctf_field_type_is_sequence(): Returns whether or not a given
+@sa bt_field_type_is_sequence(): Returns whether or not a given
 	field type is a @seqft.
-@sa bt_ctf_field_type_is_variant(): Returns whether or not a given
+@sa bt_field_type_is_variant(): Returns whether or not a given
 	field type is a @varft.
 */
-extern enum bt_ctf_field_type_id bt_ctf_field_type_get_type_id(
-		struct bt_ctf_field_type *field_type);
+extern enum bt_field_type_id bt_field_type_get_type_id(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @intft.
@@ -352,11 +317,11 @@ extern enum bt_ctf_field_type_id bt_ctf_field_type_get_type_id(
 @prenotnull{field_type}
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_integer(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_integer(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @floatft.
@@ -369,11 +334,11 @@ extern bt_bool bt_ctf_field_type_is_integer(
 
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_floating_point(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_floating_point(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @enumft.
@@ -385,11 +350,11 @@ extern bt_bool bt_ctf_field_type_is_floating_point(
 
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_enumeration(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_enumeration(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @stringft.
@@ -401,11 +366,11 @@ extern bt_bool bt_ctf_field_type_is_enumeration(
 
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_string(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_string(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @structft.
@@ -417,11 +382,11 @@ extern bt_bool bt_ctf_field_type_is_string(
 
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_structure(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_structure(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @arrayft.
@@ -433,11 +398,11 @@ extern bt_bool bt_ctf_field_type_is_structure(
 
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_array(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_array(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @seqft.
@@ -449,11 +414,11 @@ extern bt_bool bt_ctf_field_type_is_array(
 
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_sequence(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_sequence(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @varft.
@@ -465,11 +430,11 @@ extern bt_bool bt_ctf_field_type_is_sequence(
 
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_type_id(): Returns the type ID of a given
+@sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_ctf_field_type_is_variant(
-		struct bt_ctf_field_type *field_type);
+extern bt_bool bt_field_type_is_variant(
+		struct bt_field_type *field_type);
 
 /** @} */
 
@@ -482,9 +447,9 @@ extern bt_bool bt_ctf_field_type_is_variant(
 @brief	<a href="https://en.wikipedia.org/wiki/Endianness">Byte order</a>
 	of a @ft.
 */
-enum bt_ctf_byte_order {
+enum bt_byte_order {
 	/// Unknown, used for errors.
-	BT_CTF_BYTE_ORDER_UNKNOWN = -1,
+	BT_BYTE_ORDER_UNKNOWN	= -1,
 
 	/*
 	 * Note that native, in the context of the CTF specification, is defined
@@ -492,39 +457,39 @@ enum bt_ctf_byte_order {
 	 * host's endianness will be used.
 	 */
 	/// Native (default) byte order.
-	BT_CTF_BYTE_ORDER_NATIVE = 0,
+	BT_BYTE_ORDER_NATIVE	= 0,
 
 	/**
 	Unspecified byte order; the initial native byte order of a
 	\link ctfirtraceclass CTF IR trace class\endlink.
 	*/
-	BT_CTF_BYTE_ORDER_UNSPECIFIED,
+	BT_BYTE_ORDER_UNSPECIFIED,
 
 	/// Little-endian.
-	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN,
+	BT_BYTE_ORDER_LITTLE_ENDIAN,
 
 	/// Big-endian.
-	BT_CTF_BYTE_ORDER_BIG_ENDIAN,
+	BT_BYTE_ORDER_BIG_ENDIAN,
 
 	/// Network byte order (big-endian).
-	BT_CTF_BYTE_ORDER_NETWORK,
+	BT_BYTE_ORDER_NETWORK,
 };
 
 /**
 @brief	String encoding of a @ft.
 */
-enum bt_ctf_string_encoding {
+enum bt_string_encoding {
 	/// Unknown, used for errors.
-	BT_CTF_STRING_ENCODING_UNKNOWN = CTF_STRING_UNKNOWN,
+	BT_STRING_ENCODING_UNKNOWN	= -1,
 
 	/// No encoding.
-	BT_CTF_STRING_ENCODING_NONE = CTF_STRING_NONE,
+	BT_STRING_ENCODING_NONE,
 
 	/// <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>.
-	BT_CTF_STRING_ENCODING_UTF8 = CTF_STRING_UTF8,
+	BT_STRING_ENCODING_UTF8,
 
 	/// <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a>.
-	BT_CTF_STRING_ENCODING_ASCII = CTF_STRING_ASCII,
+	BT_STRING_ENCODING_ASCII,
 };
 
 /**
@@ -539,11 +504,11 @@ enum bt_ctf_string_encoding {
 @prenotnull{field_type}
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_set_alignment(): Sets the alignment
+@sa bt_field_type_set_alignment(): Sets the alignment
 	of the fields described by a given field type.
 */
-extern int bt_ctf_field_type_get_alignment(
-		struct bt_ctf_field_type *field_type);
+extern int bt_field_type_get_alignment(
+		struct bt_field_type *field_type);
 
 /**
 @brief  Sets the alignment of the @fields described by the
@@ -562,10 +527,10 @@ extern int bt_ctf_field_type_get_alignment(
 @pre \p alignment is greater than 0 and a power of two.
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_alignment(): Returns the alignment of the
+@sa bt_field_type_get_alignment(): Returns the alignment of the
 	fields described by a given field type.
 */
-extern int bt_ctf_field_type_set_alignment(struct bt_ctf_field_type *field_type,
+extern int bt_field_type_set_alignment(struct bt_field_type *field_type,
 		unsigned int alignment);
 
 /**
@@ -578,18 +543,18 @@ You can only call this function if \p field_type is a @intft, a
 @param[in] field_type	Field type which describes the
 			fields of which to get the byte order.
 @returns		Byte order of the fields described by
-			\p field_type, or #BT_CTF_BYTE_ORDER_UNKNOWN on
+			\p field_type, or #BT_BYTE_ORDER_UNKNOWN on
 			error.
 
 @prenotnull{field_type}
 @pre \p field_type is a @intft, a @floatft, or a @enumft.
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_set_byte_order(): Sets the byte order
+@sa bt_field_type_set_byte_order(): Sets the byte order
 	of the fields described by a given field type.
 */
-extern enum bt_ctf_byte_order bt_ctf_field_type_get_byte_order(
-		struct bt_ctf_field_type *field_type);
+extern enum bt_byte_order bt_field_type_get_byte_order(
+		struct bt_field_type *field_type);
 
 /**
 @brief  Sets the byte order of the @fields described by the
@@ -606,17 +571,17 @@ recursively sets the byte order of its children to \p byte_order.
 
 @prenotnull{field_type}
 @prehot{field_type}
-@pre \p byte_order is #BT_CTF_BYTE_ORDER_NATIVE,
-	#BT_CTF_BYTE_ORDER_LITTLE_ENDIAN, #BT_CTF_BYTE_ORDER_BIG_ENDIAN,
-	or #BT_CTF_BYTE_ORDER_NETWORK.
+@pre \p byte_order is #BT_BYTE_ORDER_NATIVE,
+	#BT_BYTE_ORDER_LITTLE_ENDIAN, #BT_BYTE_ORDER_BIG_ENDIAN,
+	or #BT_BYTE_ORDER_NETWORK.
 @postrefcountsame{field_type}
 
-@sa bt_ctf_field_type_get_byte_order(): Returns the byte order of the
+@sa bt_field_type_get_byte_order(): Returns the byte order of the
 	fields described by a given field type.
 */
-extern int bt_ctf_field_type_set_byte_order(
-		struct bt_ctf_field_type *field_type,
-		enum bt_ctf_byte_order byte_order);
+extern int bt_field_type_set_byte_order(
+		struct bt_field_type *field_type,
+		enum bt_byte_order byte_order);
 
 /** @} */
 
@@ -645,8 +610,8 @@ and discard the original ones.
 @postrefcountsame{field_type_a}
 @postrefcountsame{field_type_b}
 */
-extern int bt_ctf_field_type_compare(struct bt_ctf_field_type *field_type_a,
-		struct bt_ctf_field_type *field_type_b);
+extern int bt_field_type_compare(struct bt_field_type *field_type_a,
+		struct bt_field_type *field_type_b);
 
 /**
 @brief	Creates a \em deep copy of the @ft \p field_type.
@@ -668,8 +633,8 @@ in the detailed description of this module).
 @postsuccessrefcountret1
 @post <strong>On success</strong>, the returned field type is not frozen.
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_copy(
-		struct bt_ctf_field_type *field_type);
+extern struct bt_field_type *bt_field_type_copy(
+		struct bt_field_type *field_type);
 
 /** @} */
 
@@ -688,7 +653,7 @@ A CTF IR <strong><em>integer field type</em></strong> is a field type that
 you can use to create concrete @intfield objects.
 
 You can create an integer field type
-with bt_ctf_field_type_integer_create().
+with bt_field_type_integer_create().
 
 An integer field type has the following properties:
 
@@ -702,47 +667,47 @@ An integer field type has the following properties:
   <tr>
     <td>\b Alignment (bits) of the described integer fields
     <td>1
-    <td>bt_ctf_field_type_get_alignment()
-    <td>bt_ctf_field_type_set_alignment()
+    <td>bt_field_type_get_alignment()
+    <td>bt_field_type_set_alignment()
   </tr>
   <tr>
     <td><strong>Byte order</strong> of the described integer fields
-    <td>#BT_CTF_BYTE_ORDER_NATIVE
-    <td>bt_ctf_field_type_get_byte_order()
-    <td>bt_ctf_field_type_set_byte_order()
+    <td>#BT_BYTE_ORDER_NATIVE
+    <td>bt_field_type_get_byte_order()
+    <td>bt_field_type_set_byte_order()
   </tr>
   <tr>
     <td><strong>Storage size</strong> (bits) of the described
         integer fields
     <td>Specified at creation
-    <td>bt_ctf_field_type_integer_get_size()
-    <td>bt_ctf_field_type_integer_set_size()
+    <td>bt_field_type_integer_get_size()
+    <td>bt_field_type_integer_set_size()
   </tr>
   <tr>
     <td><strong>Signedness</strong> of the described integer fields
     <td>Unsigned
-    <td>bt_ctf_field_type_integer_is_signed()
-    <td>bt_ctf_field_type_integer_set_is_signed()
+    <td>bt_field_type_integer_is_signed()
+    <td>bt_field_type_integer_set_is_signed()
   </tr>
   <tr>
     <td><strong>Preferred display base</strong> of the described
         integer fields
-    <td>#BT_CTF_INTEGER_BASE_DECIMAL
-    <td>bt_ctf_field_type_integer_get_base()
-    <td>bt_ctf_field_type_integer_set_base()
+    <td>#BT_INTEGER_BASE_DECIMAL
+    <td>bt_field_type_integer_get_base()
+    <td>bt_field_type_integer_set_base()
   </tr>
   <tr>
     <td>\b Encoding of the described integer fields
-    <td>#BT_CTF_STRING_ENCODING_NONE
-    <td>bt_ctf_field_type_integer_get_encoding()
-    <td>bt_ctf_field_type_integer_set_encoding()
+    <td>#BT_STRING_ENCODING_NONE
+    <td>bt_field_type_integer_get_encoding()
+    <td>bt_field_type_integer_set_encoding()
   </tr>
   <tr>
     <td><strong>Mapped
         \link ctfirclockclass CTF IR clock class\endlink</strong>
     <td>None
-    <td>bt_ctf_field_type_integer_get_mapped_clock_class()
-    <td>bt_ctf_field_type_integer_set_mapped_clock_class()
+    <td>bt_field_type_integer_get_mapped_clock_class()
+    <td>bt_field_type_integer_set_mapped_clock_class()
   </tr>
 </table>
 
@@ -757,24 +722,24 @@ An integer field type has the following properties:
 /**
 @brief	Preferred display base (radix) of a @intft.
 */
-enum bt_ctf_integer_base {
+enum bt_integer_base {
 	/// Unknown, used for errors.
-	BT_CTF_INTEGER_BASE_UNKNOWN = -1,
+	BT_INTEGER_BASE_UNKNOWN		= -1,
 
 	/// Unspecified by the tracer.
-	BT_CTF_INTEGER_BASE_UNSPECIFIED = 0,
+	BT_INTEGER_BASE_UNSPECIFIED	= 0,
 
 	/// Binary.
-	BT_CTF_INTEGER_BASE_BINARY = 2,
+	BT_INTEGER_BASE_BINARY		= 2,
 
 	/// Octal.
-	BT_CTF_INTEGER_BASE_OCTAL = 8,
+	BT_INTEGER_BASE_OCTAL		= 8,
 
 	/// Decimal.
-	BT_CTF_INTEGER_BASE_DECIMAL = 10,
+	BT_INTEGER_BASE_DECIMAL		= 10,
 
 	/// Hexadecimal.
-	BT_CTF_INTEGER_BASE_HEXADECIMAL = 16,
+	BT_INTEGER_BASE_HEXADECIMAL	= 16,
 };
 
 /**
@@ -783,7 +748,7 @@ enum bt_ctf_integer_base {
 
 You can change the storage size of the integer fields described by
 the created integer field type later with
-bt_ctf_field_type_integer_set_size().
+bt_field_type_integer_set_size().
 
 @param[in] size	Storage size (bits) of the described integer fields.
 @returns	Created integer field type, or \c NULL on error.
@@ -791,7 +756,7 @@ bt_ctf_field_type_integer_set_size().
 @pre \p size is greater than 0 and lesser than or equal to 64.
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_integer_create(
+extern struct bt_field_type *bt_field_type_integer_create(
 		unsigned int size);
 
 /**
@@ -809,11 +774,11 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_integer_create(
 @preisintft{int_field_type}
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_set_size(): Sets the storage size of the
+@sa bt_field_type_integer_set_size(): Sets the storage size of the
 	integer fields described by a given integer field type.
 */
-extern int bt_ctf_field_type_integer_get_size(
-		struct bt_ctf_field_type *int_field_type);
+extern int bt_field_type_integer_get_size(
+		struct bt_field_type *int_field_type);
 
 /**
 @brief	Sets the storage size, in bits, of the @intfields described by
@@ -832,11 +797,11 @@ extern int bt_ctf_field_type_integer_get_size(
 @pre \p size is greater than 0 and lesser than or equal to 64.
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_get_size(): Returns the storage size of
+@sa bt_field_type_integer_get_size(): Returns the storage size of
 	the integer fields described by a given integer field type.
 */
-extern int bt_ctf_field_type_integer_set_size(
-		struct bt_ctf_field_type *int_field_type, unsigned int size);
+extern int bt_field_type_integer_set_size(
+		struct bt_field_type *int_field_type, unsigned int size);
 
 /**
 @brief  Returns whether or not the @intfields described by the @intft
@@ -853,18 +818,11 @@ extern int bt_ctf_field_type_integer_set_size(
 @preisintft{int_field_type}
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_set_is_signed(): Sets the signedness of the
+@sa bt_field_type_integer_set_is_signed(): Sets the signedness of the
 	integer fields described by a given integer field type.
 */
-extern bt_bool bt_ctf_field_type_integer_is_signed(
-		struct bt_ctf_field_type *int_field_type);
-
-/** @cond DOCUMENT */
-
-extern int bt_ctf_field_type_integer_get_signed(
-		struct bt_ctf_field_type *int_field_type);
-
-/** @endcond */
+extern bt_bool bt_field_type_integer_is_signed(
+		struct bt_field_type *int_field_type);
 
 /**
 @brief	Sets whether or not the @intfields described by
@@ -883,14 +841,11 @@ extern int bt_ctf_field_type_integer_get_signed(
 @prehot{int_field_type}
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_is_signed(): Returns the signedness of
+@sa bt_field_type_integer_is_signed(): Returns the signedness of
 	the integer fields described by a given integer field type.
 */
-extern int bt_ctf_field_type_integer_set_is_signed(
-		struct bt_ctf_field_type *int_field_type, bt_bool is_signed);
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field_type_integer_set_signed bt_ctf_field_type_integer_set_is_signed
+extern int bt_field_type_integer_set_is_signed(
+		struct bt_field_type *int_field_type, bt_bool is_signed);
 
 /**
 @brief  Returns the preferred display base (radix) of the @intfields
@@ -901,20 +856,20 @@ extern int bt_ctf_field_type_integer_set_is_signed(
 				preferred display base.
 @returns			Preferred display base of the integer
 				fields described by \p int_field_type,
-				#BT_CTF_INTEGER_BASE_UNSPECIFIED if
+				#BT_INTEGER_BASE_UNSPECIFIED if
 				not specified, or
-				#BT_CTF_INTEGER_BASE_UNKNOWN on error.
+				#BT_INTEGER_BASE_UNKNOWN on error.
 
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_set_base(): Sets the preferred display
+@sa bt_field_type_integer_set_base(): Sets the preferred display
 	base of the integer fields described by a given integer field
 	type.
 */
-extern enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
-		struct bt_ctf_field_type *int_field_type);
+extern enum bt_integer_base bt_field_type_integer_get_base(
+		struct bt_field_type *int_field_type);
 
 /**
 @brief  Sets the preferred display base (radix) of the @intfields
@@ -930,18 +885,18 @@ extern enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
 @prehot{int_field_type}
-@pre \p base is #BT_CTF_INTEGER_BASE_UNSPECIFIED,
-	#BT_CTF_INTEGER_BASE_BINARY, #BT_CTF_INTEGER_BASE_OCTAL,
-	#BT_CTF_INTEGER_BASE_DECIMAL, or #BT_CTF_INTEGER_BASE_HEXADECIMAL.
+@pre \p base is #BT_INTEGER_BASE_UNSPECIFIED,
+	#BT_INTEGER_BASE_BINARY, #BT_INTEGER_BASE_OCTAL,
+	#BT_INTEGER_BASE_DECIMAL, or #BT_INTEGER_BASE_HEXADECIMAL.
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_get_base(): Returns the preferred display
+@sa bt_field_type_integer_get_base(): Returns the preferred display
 	base of the integer fields described by a given
 	integer field type.
 */
-extern int bt_ctf_field_type_integer_set_base(
-		struct bt_ctf_field_type *int_field_type,
-		enum bt_ctf_integer_base base);
+extern int bt_field_type_integer_set_base(
+		struct bt_field_type *int_field_type,
+		enum bt_integer_base base);
 
 /**
 @brief  Returns the encoding of the @intfields described by
@@ -952,18 +907,18 @@ extern int bt_ctf_field_type_integer_set_base(
 				encoding.
 @returns			Encoding of the integer
 				fields described by \p int_field_type,
-				or #BT_CTF_STRING_ENCODING_UNKNOWN on
+				or #BT_STRING_ENCODING_UNKNOWN on
 				error.
 
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_set_encoding(): Sets the encoding
+@sa bt_field_type_integer_set_encoding(): Sets the encoding
 	of the integer fields described by a given integer field type.
 */
-extern enum bt_ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
-		struct bt_ctf_field_type *int_field_type);
+extern enum bt_string_encoding bt_field_type_integer_get_encoding(
+		struct bt_field_type *int_field_type);
 
 /**
 @brief  Sets the encoding of the @intfields described by the @intft
@@ -983,17 +938,17 @@ You can use this property, in CTF IR, to create "text" @arrayfts or
 @prenotnull{int_field_type}
 @preisintft{int_field_type}
 @prehot{int_field_type}
-@pre \p encoding is #BT_CTF_STRING_ENCODING_NONE,
-	#BT_CTF_STRING_ENCODING_ASCII, or
-	#BT_CTF_STRING_ENCODING_UTF8.
+@pre \p encoding is #BT_STRING_ENCODING_NONE,
+	#BT_STRING_ENCODING_ASCII, or
+	#BT_STRING_ENCODING_UTF8.
 @postrefcountsame{int_field_type}
 
-@sa bt_ctf_field_type_integer_get_encoding(): Returns the encoding of
+@sa bt_field_type_integer_get_encoding(): Returns the encoding of
 	the integer fields described by a given integer field type.
 */
-extern int bt_ctf_field_type_integer_set_encoding(
-		struct bt_ctf_field_type *int_field_type,
-		enum bt_ctf_string_encoding encoding);
+extern int bt_field_type_integer_set_encoding(
+		struct bt_field_type *int_field_type,
+		enum bt_string_encoding encoding);
 
 /**
 @brief  Returns the \link ctfirclockclass CTF IR clock class\endlink
@@ -1014,11 +969,11 @@ This mapped clock class is only indicative.
 @postrefcountsame{int_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_integer_set_mapped_clock_class(): Sets the mapped
+@sa bt_field_type_integer_set_mapped_clock_class(): Sets the mapped
 	clock class of a given integer field type.
 */
-extern struct bt_ctf_clock_class *bt_ctf_field_type_integer_get_mapped_clock_class(
-		struct bt_ctf_field_type *int_field_type);
+extern struct bt_clock_class *bt_field_type_integer_get_mapped_clock_class(
+		struct bt_field_type *int_field_type);
 
 /**
 @brief	Sets the \link ctfirclockclass CTF IR clock class\endlink mapped
@@ -1040,12 +995,12 @@ This mapped clock class is only indicative.
 @postrefcountsame{int_field_type}
 @postsuccessrefcountinc{clock_class}
 
-@sa bt_ctf_field_type_integer_get_mapped_clock_class(): Returns the mapped
+@sa bt_field_type_integer_get_mapped_clock_class(): Returns the mapped
 	clock class of a given integer field type.
 */
-extern int bt_ctf_field_type_integer_set_mapped_clock_class(
-		struct bt_ctf_field_type *int_field_type,
-		struct bt_ctf_clock_class *clock_class);
+extern int bt_field_type_integer_set_mapped_clock_class(
+		struct bt_field_type *int_field_type,
+		struct bt_clock_class *clock_class);
 
 /** @} */
 
@@ -1062,7 +1017,7 @@ A CTF IR <strong><em>floating point number field type</em></strong> is
 a field type that you can use to create concrete @floatfields.
 
 You can create a floating point number field type
-with bt_ctf_field_type_floating_point_create().
+with bt_field_type_floating_point_create().
 
 A floating point number field type has the following properties:
 
@@ -1077,29 +1032,29 @@ A floating point number field type has the following properties:
     <td>\b Alignment (bits) of the described floating point
         number fields
     <td>1
-    <td>bt_ctf_field_type_get_alignment()
-    <td>bt_ctf_field_type_set_alignment()
+    <td>bt_field_type_get_alignment()
+    <td>bt_field_type_set_alignment()
   </tr>
   <tr>
     <td><strong>Byte order</strong> of the described floating point
         number fields
-    <td>#BT_CTF_BYTE_ORDER_NATIVE
-    <td>bt_ctf_field_type_get_byte_order()
-    <td>bt_ctf_field_type_set_byte_order()
+    <td>#BT_BYTE_ORDER_NATIVE
+    <td>bt_field_type_get_byte_order()
+    <td>bt_field_type_set_byte_order()
   </tr>
   <tr>
     <td><strong>Exponent storage size</strong> (bits) of the described
         floating point number fields
     <td>8
-    <td>bt_ctf_field_type_floating_point_get_exponent_digits()
-    <td>bt_ctf_field_type_floating_point_set_exponent_digits()
+    <td>bt_field_type_floating_point_get_exponent_digits()
+    <td>bt_field_type_floating_point_set_exponent_digits()
   </tr>
   <tr>
     <td><strong>Mantissa and sign storage size</strong> (bits) of the
         described floating point number fields
     <td>24 (23-bit mantissa, 1-bit sign)
-    <td>bt_ctf_field_type_floating_point_get_mantissa_digits()
-    <td>bt_ctf_field_type_floating_point_set_mantissa_digits()
+    <td>bt_field_type_floating_point_get_mantissa_digits()
+    <td>bt_field_type_floating_point_set_mantissa_digits()
   </tr>
 </table>
 
@@ -1119,7 +1074,7 @@ A floating point number field type has the following properties:
 
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void);
+extern struct bt_field_type *bt_field_type_floating_point_create(void);
 
 /**
 @brief  Returns the exponent storage size of the @floatfields
@@ -1138,12 +1093,12 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_floating_point_create(void);
 @preisfloatft{float_field_type}
 @postrefcountsame{float_field_type}
 
-@sa bt_ctf_field_type_floating_point_set_exponent_digits(): Sets the
+@sa bt_field_type_floating_point_set_exponent_digits(): Sets the
 	exponent storage size of the floating point number fields
 	described by a given floating point number field type.
 */
-extern int bt_ctf_field_type_floating_point_get_exponent_digits(
-		struct bt_ctf_field_type *float_field_type);
+extern int bt_field_type_floating_point_get_exponent_digits(
+		struct bt_field_type *float_field_type);
 
 /**
 @brief  Sets the exponent storage size of the @floatfields described by
@@ -1166,12 +1121,12 @@ As of Babeltrace \btversion, \p exponent_size can only be 8 or 11.
 @pre \p exponent_size is 8 or 11.
 @postrefcountsame{float_field_type}
 
-@sa bt_ctf_field_type_floating_point_get_exponent_digits(): Returns the
+@sa bt_field_type_floating_point_get_exponent_digits(): Returns the
 	exponent storage size of the floating point number fields
 	described by a given floating point number field type.
 */
-extern int bt_ctf_field_type_floating_point_set_exponent_digits(
-		struct bt_ctf_field_type *float_field_type,
+extern int bt_field_type_floating_point_set_exponent_digits(
+		struct bt_field_type *float_field_type,
 		unsigned int exponent_size);
 
 /**
@@ -1194,12 +1149,12 @@ sign storage sizes.
 @preisfloatft{float_field_type}
 @postrefcountsame{float_field_type}
 
-@sa bt_ctf_field_type_floating_point_set_mantissa_digits(): Sets the
+@sa bt_field_type_floating_point_set_mantissa_digits(): Sets the
 	mantissa and size storage size of the floating point number
 	fields described by a given floating point number field type.
 */
-extern int bt_ctf_field_type_floating_point_get_mantissa_digits(
-		struct bt_ctf_field_type *float_field_type);
+extern int bt_field_type_floating_point_get_mantissa_digits(
+		struct bt_field_type *float_field_type);
 
 /**
 @brief  Sets the mantissa and sign storage size of the @floatfields
@@ -1223,12 +1178,12 @@ As of Babeltrace \btversion, \p mantissa_sign_size can only be 24 or 53.
 @pre \p mantissa_sign_size is 24 or 53.
 @postrefcountsame{float_field_type}
 
-@sa bt_ctf_field_type_floating_point_get_mantissa_digits(): Returns the
+@sa bt_field_type_floating_point_get_mantissa_digits(): Returns the
 	mantissa and sign storage size of the floating point number
 	fields described by a given floating point number field type.
 */
-extern int bt_ctf_field_type_floating_point_set_mantissa_digits(
-		struct bt_ctf_field_type *float_field_type,
+extern int bt_field_type_floating_point_set_mantissa_digits(
+		struct bt_field_type *float_field_type,
 		unsigned int mantissa_sign_size);
 
 /** @} */
@@ -1246,7 +1201,7 @@ A CTF IR <strong><em>enumeration field type</em></strong> is
 a field type that you can use to create concrete @enumfields.
 
 You can create an enumeration field type with
-bt_ctf_field_type_enumeration_create(). This function needs a @intft
+bt_field_type_enumeration_create(). This function needs a @intft
 which represents the storage field type of the created enumeration field
 type. In other words, an enumeration field type wraps an integer field
 type and adds label-value mappings to it.
@@ -1258,19 +1213,19 @@ An enumeration mapping has:
   value, both included in the range.
 
 You can add a mapping to an enumeration field type with
-bt_ctf_field_type_enumeration_add_mapping_signed() or
-bt_ctf_field_type_enumeration_add_mapping_unsigned(), depending on the
+bt_field_type_enumeration_add_mapping_signed() or
+bt_field_type_enumeration_add_mapping_unsigned(), depending on the
 signedness of the wrapped @intft.
 
 You can find mappings by name or by value with the following find
 operations:
 
-- bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+- bt_field_type_enumeration_find_mappings_by_name(): Finds the
   mappings with a given name.
-- bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value():
+- bt_field_type_enumeration_find_mappings_by_unsigned_value():
   Finds the mappings which contain a given unsigned value in their
   range.
-- bt_ctf_field_type_enumeration_find_mappings_by_signed_value():
+- bt_field_type_enumeration_find_mappings_by_signed_value():
   Finds the mappings which contain a given signed value in their range.
 
 Those functions return a @enumftiter on the result set of the find
@@ -1320,8 +1275,8 @@ the \c CHERRY mapping.
 @postsuccessrefcountinc{int_field_type}
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
-		struct bt_ctf_field_type *int_field_type);
+extern struct bt_field_type *bt_field_type_enumeration_create(
+		struct bt_field_type *int_field_type);
 
 /**
 @brief  Returns the @intft wrapped by the @enumft \p enum_field_type.
@@ -1338,8 +1293,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
 @postsuccessrefcountretinc
 */
 extern
-struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
-		struct bt_ctf_field_type *enum_field_type);
+struct bt_field_type *bt_field_type_enumeration_get_container_type(
+		struct bt_field_type *enum_field_type);
 
 /**
 @brief  Returns the number of mappings contained in the
@@ -1355,15 +1310,15 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_type(
 @preisenumft{enum_field_type}
 @postrefcountsame{enum_field_type}
 */
-extern int64_t bt_ctf_field_type_enumeration_get_mapping_count(
-		struct bt_ctf_field_type *enum_field_type);
+extern int64_t bt_field_type_enumeration_get_mapping_count(
+		struct bt_field_type *enum_field_type);
 
 /**
 @brief	Returns the signed mapping of the @enumft
 	\p enum_field_type at index \p index.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be \b signed
+bt_field_type_enumeration_get_container_type(), must be \b signed
 to use this function.
 
 On success, \p enum_field_type remains the sole owner of \p *name.
@@ -1389,15 +1344,15 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 @pre The wrapped @intft of \p enum_field_type is signed.
 @pre \p index is lesser than the number of mappings contained in the
 	enumeration field type \p enum_field_type (see
-	bt_ctf_field_type_enumeration_get_mapping_count()).
+	bt_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_get_mapping_unsigned(): Returns the
+@sa bt_field_type_enumeration_get_mapping_unsigned(): Returns the
 	unsigned mapping contained by a given enumeration field type
 	at a given index.
 */
-extern int bt_ctf_field_type_enumeration_get_mapping_signed(
-		struct bt_ctf_field_type *enum_field_type, uint64_t index,
+extern int bt_field_type_enumeration_get_mapping_signed(
+		struct bt_field_type *enum_field_type, uint64_t index,
 		const char **name, int64_t *range_begin, int64_t *range_end);
 
 /**
@@ -1405,7 +1360,7 @@ extern int bt_ctf_field_type_enumeration_get_mapping_signed(
 	\p enum_field_type at index \p index.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_type(), must be
 \b unsigned to use this function.
 
 On success, \p enum_field_type remains the sole owner of \p *name.
@@ -1431,15 +1386,15 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 @pre The wrapped @intft of \p enum_field_type is unsigned.
 @pre \p index is lesser than the number of mappings contained in the
 	enumeration field type \p enum_field_type (see
-	bt_ctf_field_type_enumeration_get_mapping_count()).
+	bt_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_get_mapping_signed(): Returns the
+@sa bt_field_type_enumeration_get_mapping_signed(): Returns the
 	signed mapping contained by a given enumeration field type
 	at a given index.
 */
-extern int bt_ctf_field_type_enumeration_get_mapping_unsigned(
-		struct bt_ctf_field_type *enum_field_type, uint64_t index,
+extern int bt_field_type_enumeration_get_mapping_unsigned(
+		struct bt_field_type *enum_field_type, uint64_t index,
 		const char **name, uint64_t *range_begin,
 		uint64_t *range_end);
 
@@ -1467,16 +1422,16 @@ operation. See \ref ctfirenumftmappingiter for more details.
 @post <strong>On success</strong>, the returned @enumftiter can iterate
 	on at least one mapping.
 
-@sa bt_ctf_field_type_enumeration_find_mappings_by_signed_value(): Finds
+@sa bt_field_type_enumeration_find_mappings_by_signed_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given signed value in their range.
-@sa bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
+@sa bt_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given unsigned value in their range.
 */
-extern struct bt_ctf_field_type_enumeration_mapping_iterator *
-bt_ctf_field_type_enumeration_find_mappings_by_name(
-		struct bt_ctf_field_type *enum_field_type,
+extern struct bt_field_type_enumeration_mapping_iterator *
+bt_field_type_enumeration_find_mappings_by_name(
+		struct bt_field_type *enum_field_type,
 		const char *name);
 
 /**
@@ -1502,16 +1457,16 @@ operation. See \ref ctfirenumftmappingiter for more details.
 @post <strong>On success</strong>, the returned @enumftiter can iterate
 	on at least one mapping.
 
-@sa bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+@sa bt_field_type_enumeration_find_mappings_by_name(): Finds the
 	mappings of a given enumeration field type which have a given
 	name.
-@sa bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
+@sa bt_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given unsigned value in their range.
 */
-extern struct bt_ctf_field_type_enumeration_mapping_iterator *
-bt_ctf_field_type_enumeration_find_mappings_by_signed_value(
-		struct bt_ctf_field_type *enum_field_type,
+extern struct bt_field_type_enumeration_mapping_iterator *
+bt_field_type_enumeration_find_mappings_by_signed_value(
+		struct bt_field_type *enum_field_type,
 		int64_t value);
 
 /**
@@ -1538,16 +1493,16 @@ operation. See \ref ctfirenumftmappingiter for more details.
 @post <strong>On success</strong>, the returned @enumftiter can iterate
 	on at least one mapping.
 
-@sa bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+@sa bt_field_type_enumeration_find_mappings_by_name(): Finds the
 	mappings of a given enumeration field type which have a given
 	name.
-@sa bt_ctf_field_type_enumeration_find_mappings_by_signed_value(): Finds
+@sa bt_field_type_enumeration_find_mappings_by_signed_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given unsigned value in their range.
 */
-extern struct bt_ctf_field_type_enumeration_mapping_iterator *
-bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value(
-		struct bt_ctf_field_type *enum_field_type,
+extern struct bt_field_type_enumeration_mapping_iterator *
+bt_field_type_enumeration_find_mappings_by_unsigned_value(
+		struct bt_field_type *enum_field_type,
 		uint64_t value);
 
 /**
@@ -1559,7 +1514,7 @@ Make \p range_begin and \p range_end the same value to add a mapping
 to a single value.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_type(), must be
 \b signed to use this function.
 
 A mapping in \p enum_field_type can exist with the name \p name.
@@ -1582,15 +1537,12 @@ A mapping in \p enum_field_type can exist with the name \p name.
 @pre \p range_end is greater than or equal to \p range_begin.
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_add_mapping_unsigned(): Adds an
+@sa bt_field_type_enumeration_add_mapping_unsigned(): Adds an
 	unsigned mapping to a given enumeration field type.
 */
-extern int bt_ctf_field_type_enumeration_add_mapping_signed(
-		struct bt_ctf_field_type *enum_field_type, const char *name,
+extern int bt_field_type_enumeration_add_mapping_signed(
+		struct bt_field_type *enum_field_type, const char *name,
 		int64_t range_begin, int64_t range_end);
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field_type_enumeration_add_mapping bt_ctf_field_type_enumeration_add_mapping_signed
 
 /**
 @brief	Adds a mapping to the @enumft \p enum_field_type which maps
@@ -1601,7 +1553,7 @@ Make \p range_begin and \p range_end the same value to add a mapping
 to a single value.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_type(), must be
 \b unsigned to use this function.
 
 A mapping in \p enum_field_type can exist with the name \p name.
@@ -1624,11 +1576,11 @@ A mapping in \p enum_field_type can exist with the name \p name.
 @pre \p range_end is greater than or equal to \p range_begin.
 @postrefcountsame{enum_field_type}
 
-@sa bt_ctf_field_type_enumeration_add_mapping_signed(): Adds a signed
+@sa bt_field_type_enumeration_add_mapping_signed(): Adds a signed
 	mapping to a given enumeration field type.
 */
-extern int bt_ctf_field_type_enumeration_add_mapping_unsigned(
-		struct bt_ctf_field_type *enum_field_type, const char *name,
+extern int bt_field_type_enumeration_add_mapping_unsigned(
+		struct bt_field_type *enum_field_type, const char *name,
 		uint64_t range_begin, uint64_t range_end);
 
 /** @} */
@@ -1649,14 +1601,14 @@ You can get an enumeration mapping iterator from one of the following
 functions:
 
 - Find operations of an @enumft object:
-  - bt_ctf_field_type_enumeration_find_mappings_by_name(): Finds the
+  - bt_field_type_enumeration_find_mappings_by_name(): Finds the
     mappings with a given name.
-  - bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value():
+  - bt_field_type_enumeration_find_mappings_by_unsigned_value():
     Finds the mappings which contain a given unsigned value in their
     range.
-  - bt_ctf_field_type_enumeration_find_mappings_by_signed_value():
+  - bt_field_type_enumeration_find_mappings_by_signed_value():
     Finds the mappings which contain a given signed value in their range.
-- bt_ctf_field_enumeration_get_mappings(): Finds the mappings in the
+- bt_field_enumeration_get_mappings(): Finds the mappings in the
   @enumft of an @enumfield containing its current integral value in
   their range.
 
@@ -1665,9 +1617,9 @@ at least one mapping. Otherwise, they return \c NULL.
 
 You can get the name and the range of a mapping iterator's current
 mapping with
-bt_ctf_field_type_enumeration_mapping_iterator_get_signed()
+bt_field_type_enumeration_mapping_iterator_get_signed()
 or
-bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(),
+bt_field_type_enumeration_mapping_iterator_get_unsigned(),
 depending on the signedness of the @intft wrapped by the
 @enumft. If you only need the name of the current mapping, you can
 use any of the two functions and set the \p range_begin and \p range_end
@@ -1675,7 +1627,7 @@ parameters to \c NULL.
 
 You can advance an enumeration field type mapping iterator to the next
 mapping with
-bt_ctf_field_type_enumeration_mapping_iterator_next(). This
+bt_field_type_enumeration_mapping_iterator_next(). This
 function returns a negative value when you reach the end of the
 result set.
 
@@ -1692,7 +1644,7 @@ management of Babeltrace objects.
 */
 
 /**
-@struct bt_ctf_field_type_enumeration_mapping_iterator
+@struct bt_field_type_enumeration_mapping_iterator
 @brief A CTF IR enumeration field type mapping iterator.
 @sa ctfirenumftmappingiter
 */
@@ -1703,14 +1655,14 @@ management of Babeltrace objects.
 
 If one of \p range_begin or \p range_end is not \c NULL, the @intft
 wrapped by the @enumft from which \p iter was obtained, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_type(), must be
 \b signed to use this function. Otherwise, if you only need to get the
 name of the current mapping, set \p range_begin and \p range_end to
 \c NULL.
 
 On success, if \p name is not \c NULL, \p *name remains valid as long
 as \p iter exists and
-bt_ctf_field_type_enumeration_mapping_iterator_next() is
+bt_field_type_enumeration_mapping_iterator_next() is
 \em not called on \p iter.
 
 @param[in] iter			Enumeration field type mapping iterator
@@ -1729,12 +1681,12 @@ bt_ctf_field_type_enumeration_mapping_iterator_next() is
 @prenotnull{iter}
 @postrefcountsame{iter}
 
-@sa bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned():
+@sa bt_field_type_enumeration_mapping_iterator_get_unsigned():
 	Returns the name and the unsigned range of the current mapping
 	of a given enumeration field type mapping iterator.
 */
-extern int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+extern int bt_field_type_enumeration_mapping_iterator_get_signed(
+		struct bt_field_type_enumeration_mapping_iterator *iter,
 		const char **name, int64_t *range_begin, int64_t *range_end);
 
 /**
@@ -1743,14 +1695,14 @@ extern int bt_ctf_field_type_enumeration_mapping_iterator_get_signed(
 
 If one of \p range_begin or \p range_end is not \c NULL, the @intft
 wrapped by the @enumft from which \p iter was obtained, as returned by
-bt_ctf_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_type(), must be
 \b unsigned to use this function. Otherwise, if you only need to get the
 name of the current mapping, set \p range_begin and \p range_end to
 \c NULL.
 
 On success, if \p name is not \c NULL, \p *name remains valid as long
 as \p iter exists and
-bt_ctf_field_type_enumeration_mapping_iterator_next() is
+bt_field_type_enumeration_mapping_iterator_next() is
 \em not called on \p iter.
 
 @param[in] iter			Enumeration field type mapping iterator
@@ -1770,12 +1722,12 @@ bt_ctf_field_type_enumeration_mapping_iterator_next() is
 @postrefcountsame{iter}
 
 @sa
-	bt_ctf_field_type_enumeration_mapping_iterator_get_signed():
+	bt_field_type_enumeration_mapping_iterator_get_signed():
 	Returns the name and the signed range of the current mapping of
 	a given enumeration field type mapping iterator.
 */
-extern int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter,
+extern int bt_field_type_enumeration_mapping_iterator_get_unsigned(
+		struct bt_field_type_enumeration_mapping_iterator *iter,
 		const char **name, uint64_t *range_begin, uint64_t *range_end);
 
 /**
@@ -1789,8 +1741,8 @@ extern int bt_ctf_field_type_enumeration_mapping_iterator_get_unsigned(
 @prenotnull{iter}
 @postrefcountsame{iter}
 */
-extern int bt_ctf_field_type_enumeration_mapping_iterator_next(
-		struct bt_ctf_field_type_enumeration_mapping_iterator *iter);
+extern int bt_field_type_enumeration_mapping_iterator_next(
+		struct bt_field_type_enumeration_mapping_iterator *iter);
 
 /** @} */
 
@@ -1807,13 +1759,13 @@ A CTF IR <strong><em>string field type</em></strong> is a field type that
 you can use to create concrete @stringfields.
 
 You can create a string field type
-with bt_ctf_field_type_string_create().
+with bt_field_type_string_create().
 
 A string field type has only one property: the \b encoding of its
 described @stringfields. By default, the encoding of the string fields
-described by a string field type is #BT_CTF_STRING_ENCODING_UTF8. You
+described by a string field type is #BT_STRING_ENCODING_UTF8. You
 can set the encoding of the string fields described by a string field
-type with bt_ctf_field_type_string_set_encoding().
+type with bt_field_type_string_set_encoding().
 
 @sa ctfirstringfield
 @sa ctfirfieldtypes
@@ -1829,7 +1781,7 @@ type with bt_ctf_field_type_string_set_encoding().
 
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_string_create(void);
+extern struct bt_field_type *bt_field_type_string_create(void);
 
 /**
 @brief  Returns the encoding of the @stringfields described by
@@ -1840,18 +1792,18 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_string_create(void);
 				encoding.
 @returns			Encoding of the string
 				fields described by \p string_field_type,
-				or #BT_CTF_STRING_ENCODING_UNKNOWN on
+				or #BT_STRING_ENCODING_UNKNOWN on
 				error.
 
 @prenotnull{string_field_type}
 @preisstringft{string_field_type}
 @postrefcountsame{string_field_type}
 
-@sa bt_ctf_field_type_string_set_encoding(): Sets the encoding
+@sa bt_field_type_string_set_encoding(): Sets the encoding
 	of the string fields described by a given string field type.
 */
-extern enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
-		struct bt_ctf_field_type *string_field_type);
+extern enum bt_string_encoding bt_field_type_string_get_encoding(
+		struct bt_field_type *string_field_type);
 
 /**
 @brief  Sets the encoding of the @stringfields described by the
@@ -1867,16 +1819,16 @@ extern enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
 @prenotnull{string_field_type}
 @preisstringft{string_field_type}
 @prehot{string_field_type}
-@pre \p encoding is #BT_CTF_STRING_ENCODING_ASCII or
-	#BT_CTF_STRING_ENCODING_UTF8.
+@pre \p encoding is #BT_STRING_ENCODING_ASCII or
+	#BT_STRING_ENCODING_UTF8.
 @postrefcountsame{string_field_type}
 
-@sa bt_ctf_field_type_string_get_encoding(): Returns the encoding of
+@sa bt_field_type_string_get_encoding(): Returns the encoding of
 	the string fields described by a given string field type.
 */
-extern int bt_ctf_field_type_string_set_encoding(
-		struct bt_ctf_field_type *string_field_type,
-		enum bt_ctf_string_encoding encoding);
+extern int bt_field_type_string_set_encoding(
+		struct bt_field_type *string_field_type,
+		enum bt_string_encoding encoding);
 
 /** @} */
 
@@ -1893,16 +1845,16 @@ A CTF IR <strong><em>structure field type</em></strong> is
 a field type that you can use to create concrete @structfields.
 
 You can create a structure field type
-with bt_ctf_field_type_structure_create(). This function creates
+with bt_field_type_structure_create(). This function creates
 an empty structure field type, with no fields.
 
 You can add a field to a structure field type with
-bt_ctf_field_type_structure_add_field(). Two fields in a structure
+bt_field_type_structure_add_field(). Two fields in a structure
 field type cannot have the same name.
 
 You can set the \em minimum alignment of the structure fields described
 by a structure field type with the common
-bt_ctf_field_type_set_alignment() function. The \em effective alignment
+bt_field_type_set_alignment() function. The \em effective alignment
 of the structure fields described by a structure field type, as per
 <a href="http://diamon.org/ctf/">CTF</a>, is the \em maximum value amongst
 the effective alignments of all its fields. Note that the effective
@@ -1910,7 +1862,7 @@ alignment of @varfields is always 1.
 
 You can set the byte order of <em>all the contained fields</em>,
 recursively, of a structure field type with the common
-bt_ctf_field_type_set_byte_order() function.
+bt_field_type_set_byte_order() function.
 
 @sa ctfirstructfield
 @sa ctfirfieldtypes
@@ -1927,7 +1879,7 @@ bt_ctf_field_type_set_byte_order() function.
 
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
+extern struct bt_field_type *bt_field_type_structure_create(void);
 
 /**
 @brief	Returns the number of fields contained in the
@@ -1943,8 +1895,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void);
 @preisstructft{struct_field_type}
 @postrefcountsame{struct_field_type}
 */
-extern int64_t bt_ctf_field_type_structure_get_field_count(
-		struct bt_ctf_field_type *struct_field_type);
+extern int64_t bt_field_type_structure_get_field_count(
+		struct bt_field_type *struct_field_type);
 
 /**
 @brief	Returns the field of the @structft \p struct_field_type
@@ -1969,21 +1921,18 @@ On success, the field's type is placed in \p *field_type if
 @preisstructft{struct_field_type}
 @pre \p index is lesser than the number of fields contained in the
 	structure field type \p struct_field_type (see
-	bt_ctf_field_type_structure_get_field_count()).
+	bt_field_type_structure_get_field_count()).
 @postrefcountsame{struct_field_type}
 @post <strong>On success</strong>, the returned field's type is placed
 	in \p *field_type and its reference count is incremented.
 
-@sa bt_ctf_field_type_structure_get_field_type_by_name(): Finds a
+@sa bt_field_type_structure_get_field_type_by_name(): Finds a
 	structure field type's field by name.
 */
-extern int bt_ctf_field_type_structure_get_field_by_index(
-		struct bt_ctf_field_type *struct_field_type,
-		const char **field_name, struct bt_ctf_field_type **field_type,
+extern int bt_field_type_structure_get_field_by_index(
+		struct bt_field_type *struct_field_type,
+		const char **field_name, struct bt_field_type **field_type,
 		uint64_t index);
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field_type_structure_get_field bt_ctf_field_type_structure_get_field_by_index
 
 /**
 @brief  Returns the type of the field named \p field_name found in
@@ -2002,12 +1951,12 @@ extern int bt_ctf_field_type_structure_get_field_by_index(
 @postrefcountsame{struct_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_structure_get_field_by_index(): Finds a
+@sa bt_field_type_structure_get_field_by_index(): Finds a
 	structure field type's field by index.
 */
 extern
-struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(
-		struct bt_ctf_field_type *struct_field_type,
+struct bt_field_type *bt_field_type_structure_get_field_type_by_name(
+		struct bt_field_type *struct_field_type,
 		const char *field_name);
 
 /**
@@ -2041,9 +1990,9 @@ field named \p field_name in \p struct_field_type.
 @postrefcountsame{struct_field_type}
 @postsuccessrefcountinc{field_type}
 */
-extern int bt_ctf_field_type_structure_add_field(
-		struct bt_ctf_field_type *struct_field_type,
-		struct bt_ctf_field_type *field_type,
+extern int bt_field_type_structure_add_field(
+		struct bt_field_type *struct_field_type,
+		struct bt_field_type *field_type,
 		const char *field_name);
 
 /** @} */
@@ -2061,7 +2010,7 @@ A CTF IR <strong><em>array field type</em></strong> is a field type that
 you can use to create concrete @arrayfields.
 
 You can create an array field type
-with bt_ctf_field_type_array_create(). This function needs
+with bt_field_type_array_create(). This function needs
 the @ft of the fields contained by the array fields described by the
 array field type to create.
 
@@ -2089,8 +2038,8 @@ array field type to create.
 @postsuccessrefcountinc{element_field_type}
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_array_create(
-		struct bt_ctf_field_type *element_field_type,
+extern struct bt_field_type *bt_field_type_array_create(
+		struct bt_field_type *element_field_type,
 		unsigned int length);
 
 /**
@@ -2110,8 +2059,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 @postrefcountsame{array_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_type(
-		struct bt_ctf_field_type *array_field_type);
+extern struct bt_field_type *bt_field_type_array_get_element_type(
+		struct bt_field_type *array_field_type);
 
 /**
 @brief	Returns the number of @fields contained in the
@@ -2129,8 +2078,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_type(
 @preisarrayft{array_field_type}
 @postrefcountsame{array_field_type}
 */
-extern int64_t bt_ctf_field_type_array_get_length(
-		struct bt_ctf_field_type *array_field_type);
+extern int64_t bt_field_type_array_get_length(
+		struct bt_field_type *array_field_type);
 
 /** @} */
 
@@ -2147,7 +2096,7 @@ A CTF IR <strong><em>sequence field type</em></strong> is
 a field type that you can use to create concrete @seqfields.
 
 You can create a sequence field type with
-bt_ctf_field_type_sequence_create(). This function needs the @ft
+bt_field_type_sequence_create(). This function needs the @ft
 of the fields contained by the sequence fields described by the created
 sequence field type. This function also needs the length name of the
 sequence field type to create. The length name is used to automatically
@@ -2181,8 +2130,8 @@ about the automatic resolving.
 @postsuccessrefcountinc{element_field_type}
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
-		struct bt_ctf_field_type *element_field_type,
+extern struct bt_field_type *bt_field_type_sequence_create(
+		struct bt_field_type *element_field_type,
 		const char *length_name);
 
 /**
@@ -2202,8 +2151,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 @postrefcountsame{sequence_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_type(
-		struct bt_ctf_field_type *sequence_field_type);
+extern struct bt_field_type *bt_field_type_sequence_get_element_type(
+		struct bt_field_type *sequence_field_type);
 
 /**
 @brief  Returns the length name of the @seqft \p sequence_field_type.
@@ -2219,11 +2168,11 @@ the returned string.
 @prenotnull{sequence_field_type}
 @preisseqft{sequence_field_type}
 
-@sa bt_ctf_field_type_sequence_get_length_field_path(): Returns the
+@sa bt_field_type_sequence_get_length_field_path(): Returns the
 	length's CTF IR field path of a given sequence field type.
 */
-extern const char *bt_ctf_field_type_sequence_get_length_field_name(
-		struct bt_ctf_field_type *sequence_field_type);
+extern const char *bt_field_type_sequence_get_length_field_name(
+		struct bt_field_type *sequence_field_type);
 
 /**
 @brief  Returns the length's CTF IR field path of the @seqft
@@ -2243,11 +2192,11 @@ resolving is performed (see \ref ctfirfieldtypes).
 @preisseqft{sequence_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_sequence_get_length_field_name(): Returns the
+@sa bt_field_type_sequence_get_length_field_name(): Returns the
 	length's name of a given sequence field type.
 */
-extern struct bt_ctf_field_path *bt_ctf_field_type_sequence_get_length_field_path(
-		struct bt_ctf_field_type *sequence_field_type);
+extern struct bt_field_path *bt_field_type_sequence_get_length_field_path(
+		struct bt_field_type *sequence_field_type);
 
 /** @} */
 
@@ -2264,18 +2213,18 @@ A CTF IR <strong><em>variant field type</em></strong> is
 a field type that you can use to create concrete @varfields.
 
 You can create a variant field type with
-bt_ctf_field_type_variant_create(). This function expects you to pass
+bt_field_type_variant_create(). This function expects you to pass
 both the tag's @enumft and the tag name of the variant field type to
 create. The tag's field type is optional, as the Babeltrace system can
 automatically resolve it using the tag name. You can leave the tag name
 to \c NULL initially, and set it later with
-bt_ctf_field_type_variant_set_tag_name(). The tag name must be set when
+bt_field_type_variant_set_tag_name(). The tag name must be set when
 the variant field type is frozen. See \ref ctfirfieldtypes to learn more
 about the automatic resolving and the conditions under which a field
 type can be frozen.
 
 You can add a field to a variant field type with
-bt_ctf_field_type_variant_add_field(). All the field names of a
+bt_field_type_variant_add_field(). All the field names of a
 variant field type \em must exist as mapping names in its tag's @enumft.
 
 The effective alignment of the @varfields described by a
@@ -2284,7 +2233,7 @@ variant field type is always 1, but the individual fields of a
 
 You can set the byte order of <em>all the contained fields</em>,
 recursively, of a variant field type with the common
-bt_ctf_field_type_set_byte_order() function.
+bt_field_type_set_byte_order() function.
 
 @sa ctfirvarfield
 @sa ctfirfieldtypes
@@ -2300,7 +2249,7 @@ bt_ctf_field_type_set_byte_order() function.
 \p tag_field_type can be \c NULL; the tag's field type can be
 automatically resolved from the variant field type's tag name (see
 \ref ctfirfieldtypes). If \p tag_name is \c NULL, it \em must be set
-with bt_ctf_field_type_variant_set_tag_name() \em before the variant
+with bt_field_type_variant_set_tag_name() \em before the variant
 field type is frozen.
 
 \p tag_name can be an absolute or relative reference. See
@@ -2318,8 +2267,8 @@ field type is frozen.
 	its reference count is incremented.
 @postsuccessrefcountret1
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
-		struct bt_ctf_field_type *tag_field_type,
+extern struct bt_field_type *bt_field_type_variant_create(
+		struct bt_field_type *tag_field_type,
 		const char *tag_name);
 
 /**
@@ -2337,8 +2286,8 @@ extern struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 @postrefcountsame{variant_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_type(
-		struct bt_ctf_field_type *variant_field_type);
+extern struct bt_field_type *bt_field_type_variant_get_tag_type(
+		struct bt_field_type *variant_field_type);
 
 /**
 @brief  Returns the tag name of the @varft \p variant_field_type.
@@ -2355,13 +2304,13 @@ the returned string.
 @prenotnull{variant_field_type}
 @preisvarft{variant_field_type}
 
-@sa bt_ctf_field_type_variant_set_tag_name(): Sets the tag name of
+@sa bt_field_type_variant_set_tag_name(): Sets the tag name of
 	a given variant field type.
-@sa bt_ctf_field_type_variant_get_tag_field_path(): Returns the tag's
+@sa bt_field_type_variant_get_tag_field_path(): Returns the tag's
 	CTF IR field path of a given variant field type.
 */
-extern const char *bt_ctf_field_type_variant_get_tag_name(
-		struct bt_ctf_field_type *variant_field_type);
+extern const char *bt_field_type_variant_get_tag_name(
+		struct bt_field_type *variant_field_type);
 
 /**
 @brief	Sets the tag name of the @varft \p variant_field_type.
@@ -2380,11 +2329,11 @@ extern const char *bt_ctf_field_type_variant_get_tag_name(
 @prehot{variant_field_type}
 @postrefcountsame{variant_field_type}
 
-@sa bt_ctf_field_type_variant_get_tag_name(): Returns the tag name of
+@sa bt_field_type_variant_get_tag_name(): Returns the tag name of
 	a given variant field type.
 */
-extern int bt_ctf_field_type_variant_set_tag_name(
-		struct bt_ctf_field_type *variant_field_type,
+extern int bt_field_type_variant_set_tag_name(
+		struct bt_field_type *variant_field_type,
 		const char *tag_name);
 
 /**
@@ -2405,11 +2354,11 @@ resolving is performed (see \ref ctfirfieldtypes).
 @preisvarft{variant_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_variant_get_tag_name(): Returns the tag's
+@sa bt_field_type_variant_get_tag_name(): Returns the tag's
 	name of a given variant field type.
 */
-extern struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
-		struct bt_ctf_field_type *variant_field_type);
+extern struct bt_field_path *bt_field_type_variant_get_tag_field_path(
+		struct bt_field_type *variant_field_type);
 
 /**
 @brief	Returns the number of fields (choices) contained in the @varft
@@ -2425,8 +2374,8 @@ extern struct bt_ctf_field_path *bt_ctf_field_type_variant_get_tag_field_path(
 @preisvarft{variant_field_type}
 @postrefcountsame{variant_field_type}
 */
-extern int64_t bt_ctf_field_type_variant_get_field_count(
-		struct bt_ctf_field_type *variant_field_type);
+extern int64_t bt_field_type_variant_get_field_count(
+		struct bt_field_type *variant_field_type);
 
 /**
 @brief	Returns the field (choice) of the @varft \p variant_field_type
@@ -2451,23 +2400,20 @@ On success, the field's type is placed in \p *field_type if
 @preisvarft{variant_field_type}
 @pre \p index is lesser than the number of fields contained in the
 	variant field type \p variant_field_type (see
-	bt_ctf_field_type_variant_get_field_count()).
+	bt_field_type_variant_get_field_count()).
 @postrefcountsame{variant_field_type}
 @post <strong>On success</strong>, the returned field's type is placed
 	in \p *field_type and its reference count is incremented.
 
-@sa bt_ctf_field_type_variant_get_field_type_by_name(): Finds a variant
+@sa bt_field_type_variant_get_field_type_by_name(): Finds a variant
 	field type's field by name.
-@sa bt_ctf_field_type_variant_get_field_type_from_tag(): Finds a variant
+@sa bt_field_type_variant_get_field_type_from_tag(): Finds a variant
 	field type's field by current tag value.
 */
-extern int bt_ctf_field_type_variant_get_field_by_index(
-		struct bt_ctf_field_type *variant_field_type,
+extern int bt_field_type_variant_get_field_by_index(
+		struct bt_field_type *variant_field_type,
 		const char **field_name,
-		struct bt_ctf_field_type **field_type, uint64_t index);
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field_type_variant_get_field bt_ctf_field_type_variant_get_field_by_index
+		struct bt_field_type **field_type, uint64_t index);
 
 /**
 @brief  Returns the type of the field (choice) named \p field_name
@@ -2486,14 +2432,14 @@ extern int bt_ctf_field_type_variant_get_field_by_index(
 @postrefcountsame{variant_field_type}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_variant_get_field_by_index(): Finds a variant field type's
+@sa bt_field_type_variant_get_field_by_index(): Finds a variant field type's
 	field by index.
-@sa bt_ctf_field_type_variant_get_field_type_from_tag(): Finds a variant
+@sa bt_field_type_variant_get_field_type_from_tag(): Finds a variant
 	field type's field by current tag value.
 */
 extern
-struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
-		struct bt_ctf_field_type *variant_field_type,
+struct bt_field_type *bt_field_type_variant_get_field_type_by_name(
+		struct bt_field_type *variant_field_type,
 		const char *field_name);
 
 /**
@@ -2502,9 +2448,9 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
 
 \p tag_field is the current tag value.
 
-The field type of \p tag_field, as returned by bt_ctf_field_get_type(),
+The field type of \p tag_field, as returned by bt_field_get_type(),
 \em must be equivalent to the field type returned by
-bt_ctf_field_type_variant_get_tag_type() for \p variant_field_type.
+bt_field_type_variant_get_tag_type() for \p variant_field_type.
 
 @param[in] variant_field_type	Variant field type of which to get
 				a field's type.
@@ -2522,15 +2468,15 @@ bt_ctf_field_type_variant_get_tag_type() for \p variant_field_type.
 @postrefcountsame{tag_field}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_type_variant_get_field_by_index(): Finds a variant field type's
+@sa bt_field_type_variant_get_field_by_index(): Finds a variant field type's
 	field by index.
-@sa bt_ctf_field_type_variant_get_field_type_by_name(): Finds a variant
+@sa bt_field_type_variant_get_field_type_by_name(): Finds a variant
 	field type's field by name.
 */
 extern
-struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
-		struct bt_ctf_field_type *variant_field_type,
-		struct bt_ctf_field *tag_field);
+struct bt_field_type *bt_field_type_variant_get_field_type_from_tag(
+		struct bt_field_type *variant_field_type,
+		struct bt_field *tag_field);
 
 /**
 @brief	Adds a field (a choice) named \p field_name with the @ft
@@ -2563,12 +2509,78 @@ enumeration field type of \p variant_field_type.
 @postrefcountsame{variant_field_type}
 @postsuccessrefcountinc{field_type}
 */
-extern int bt_ctf_field_type_variant_add_field(
-		struct bt_ctf_field_type *variant_field_type,
-		struct bt_ctf_field_type *field_type,
+extern int bt_field_type_variant_add_field(
+		struct bt_field_type *variant_field_type,
+		struct bt_field_type *field_type,
 		const char *field_name);
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field_type bt_field_type
+#define bt_ctf_field_type_integer_create bt_field_type_integer_create
+#define bt_ctf_field_type_integer_set_signed bt_field_type_integer_set_is_signed
+#define bt_ctf_field_type_integer_set_base bt_field_type_integer_set_base
+#define bt_ctf_field_type_integer_set_encoding bt_field_type_integer_set_encoding
+#define bt_ctf_field_type_enumeration_create bt_field_type_enumeration_create
+#define bt_ctf_field_type_enumeration_add_mapping bt_field_type_enumeration_add_mapping_signed
+#define bt_ctf_field_type_floating_point_create bt_field_type_floating_point_create
+#define bt_ctf_field_type_floating_point_set_exponent_digits bt_field_type_floating_point_set_exponent_digits
+#define bt_ctf_field_type_floating_point_set_mantissa_digits bt_field_type_floating_point_set_mantissa_digits
+#define bt_ctf_field_type_structure_create bt_field_type_structure_create
+#define bt_ctf_field_type_structure_add_field bt_field_type_structure_add_field
+#define bt_ctf_field_type_structure_add_field bt_field_type_structure_add_field
+#define bt_ctf_field_type_structure_get_field bt_field_type_structure_get_field_by_index
+#define bt_ctf_field_type_variant_create bt_field_type_variant_create
+#define bt_ctf_field_type_variant_add_field bt_field_type_variant_add_field
+#define bt_ctf_field_type_array_create bt_field_type_array_create
+#define bt_ctf_field_type_sequence_create bt_field_type_sequence_create
+#define bt_ctf_field_type_string_create bt_field_type_string_create
+#define bt_ctf_field_type_string_set_encoding bt_field_type_string_set_encoding
+#define bt_ctf_field_type_set_alignment bt_field_type_set_alignment
+#define bt_ctf_field_type_set_byte_order bt_field_type_set_byte_order
+
+extern int bt_ctf_field_type_integer_get_signed(
+		struct bt_ctf_field_type *int_field_type);
+
+#define ctf_type_id bt_field_type_id
+#define CTF_TYPE_UNKNOWN BT_FIELD_TYPE_ID_UNKNOWN
+#define CTF_TYPE_INTEGER BT_FIELD_TYPE_ID_INTEGER
+#define CTF_TYPE_FLOAT BT_FIELD_TYPE_ID_FLOAT
+#define CTF_TYPE_ENUM BT_FIELD_TYPE_ID_ENUM
+#define CTF_TYPE_STRING BT_FIELD_TYPE_ID_STRING
+#define CTF_TYPE_STRUCT BT_FIELD_TYPE_ID_STRUCT
+#define CTF_TYPE_UNTAGGED_VARIANT BT_FIELD_TYPE_ID_VARIANT
+#define CTF_TYPE_VARIANT BT_FIELD_TYPE_ID_VARIANT
+#define CTF_TYPE_ARRAY BT_FIELD_TYPE_ID_ARRAY
+#define CTF_TYPE_SEQUENCE BT_FIELD_TYPE_ID_SEQUENCE
+#define NR_CTF_TYPES BT_FIELD_TYPE_ID_NR
+
+#define ctf_string_encoding bt_string_encoding
+#define CTF_STRING_NONE BT_STRING_ENCODING_NONE
+#define CTF_STRING_UTF8 BT_STRING_ENCODING_UTF8
+#define CTF_STRING_ASCII BT_STRING_ENCODING_ASCII
+#define CTF_STRING_UNKNOWN BT_STRING_ENCODING_UNKNOWN
+
+#define bt_ctf_string_encoding bt_string_encoding
+#define BT_CTF_STRING_ENCODING_NONE BT_STRING_ENCODING_NONE
+#define BT_CTF_STRING_ENCODING_UTF8 BT_STRING_ENCODING_UTF8
+#define BT_CTF_STRING_ENCODING_ASCII BT_STRING_ENCODING_ASCII
+#define BT_CTF_STRING_ENCODING_UNKNOWN BT_STRING_ENCODING_UNKNOWN
+
+#define bt_ctf_byte_order bt_byte_order
+#define BT_CTF_BYTE_ORDER_UNKNOWN BT_BYTE_ORDER_UNKNOWN
+#define BT_CTF_BYTE_ORDER_NATIVE BT_BYTE_ORDER_NATIVE
+#define BT_CTF_BYTE_ORDER_LITTLE_ENDIAN BT_BYTE_ORDER_LITTLE_ENDIAN
+#define BT_CTF_BYTE_ORDER_BIG_ENDIAN BT_BYTE_ORDER_BIG_ENDIAN
+#define BT_CTF_BYTE_ORDER_NETWORK BT_BYTE_ORDER_NETWORK
+
+#define bt_ctf_integer_base bt_integer_base
+#define BT_CTF_INTEGER_BASE_UNKNOWN BT_INTEGER_BASE_UNKNOWN
+#define BT_CTF_INTEGER_BASE_BINARY BT_INTEGER_BASE_BINARY
+#define BT_CTF_INTEGER_BASE_OCTAL BT_INTEGER_BASE_OCTAL
+#define BT_CTF_INTEGER_BASE_DECIMAL BT_INTEGER_BASE_DECIMAL
+#define BT_CTF_INTEGER_BASE_HEXADECIMAL BT_INTEGER_BASE_HEXADECIMAL
 
 #ifdef __cplusplus
 }

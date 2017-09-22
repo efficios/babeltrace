@@ -38,12 +38,12 @@ extern "C" {
 
 struct bt_notification_event {
 	struct bt_notification parent;
-	struct bt_ctf_event *event;
+	struct bt_event *event;
 	struct bt_clock_class_priority_map *cc_prio_map;
 };
 
 static inline
-struct bt_ctf_event *bt_notification_event_borrow_event(
+struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notif)
 {
 	struct bt_notification_event *notif_event = container_of(notif,

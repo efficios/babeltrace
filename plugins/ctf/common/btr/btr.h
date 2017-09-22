@@ -51,37 +51,37 @@
 /**
  * Binary type reader API status codes.
  */
-enum bt_ctf_btr_status {
+enum bt_btr_status {
 	/** Out of memory. */
-	BT_CTF_BTR_STATUS_ENOMEM =	-5,
+	BT_BTR_STATUS_ENOMEM =	-5,
 	/**
 	 * The binary stream reader reached the end of the user-provided
 	 * buffer, but data is still needed to finish decoding the
 	 * requested type.
 	 *
-	 * The user needs to call bt_ctf_btr_continue() as long as
-	 * #BT_CTF_BTR_STATUS_EOF is returned to complete the decoding
+	 * The user needs to call bt_btr_continue() as long as
+	 * #BT_BTR_STATUS_EOF is returned to complete the decoding
 	 * process of a given type.
 	 */
-	BT_CTF_BTR_STATUS_EOF =		1,
+	BT_BTR_STATUS_EOF =		1,
 
 	/** Invalid argument. */
-	BT_CTF_BTR_STATUS_INVAL =	-3,
+	BT_BTR_STATUS_INVAL =	-3,
 
 	/** General error. */
-	BT_CTF_BTR_STATUS_ERROR =	-1,
+	BT_BTR_STATUS_ERROR =	-1,
 
 	/** Everything okay. */
-	BT_CTF_BTR_STATUS_OK =		0,
+	BT_BTR_STATUS_OK =		0,
 };
 
 /** Type reader. */
-struct bt_ctf_btr;
+struct bt_btr;
 
 /*
  * Type reader user callback functions.
  */
-struct bt_ctf_btr_cbs {
+struct bt_btr_cbs {
 	/**
 	 * Type callback functions.
 	 *
@@ -93,7 +93,7 @@ struct bt_ctf_btr_cbs {
 	 * Each function also receives the CTF IR field type associated
 	 * with the call, and user data (registered to the type reader
 	 * calling them). This field type is a weak reference; the
-	 * callback function must use bt_ctf_field_type_get() to keep
+	 * callback function must use bt_field_type_get() to keep
 	 * its own reference of it.
 	 *
 	 * Actual CTF IR fields are \em not created here; this would be
@@ -103,9 +103,9 @@ struct bt_ctf_btr_cbs {
 	 * All the type callback functions return one of the following
 	 * values:
 	 *
-	 *   - <b>#BT_CTF_BTR_STATUS_OK</b>: Everything is okay;
+	 *   - <b>#BT_BTR_STATUS_OK</b>: Everything is okay;
 	 *     continue the decoding process.
-	 *   - <b>#BT_CTF_BTR_STATUS_ERROR</b>: General error (reported
+	 *   - <b>#BT_BTR_STATUS_ERROR</b>: General error (reported
 	 *     to type reader's user).
 	 *
 	 * Any member of this structure may be set to \c NULL, should
@@ -122,11 +122,11 @@ struct bt_ctf_btr_cbs {
 		 * @param type		Integer or enumeration type (weak
 		 *			reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* signed_int)(int64_t value,
-				struct bt_ctf_field_type *type, void *data);
+		enum bt_btr_status (* signed_int)(int64_t value,
+				struct bt_field_type *type, void *data);
 
 		/**
 		 * Called when an unsigned integer type is completely
@@ -138,11 +138,11 @@ struct bt_ctf_btr_cbs {
 		 * @param type		Integer or enumeration type (weak
 		 *			reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* unsigned_int)(uint64_t value,
-				struct bt_ctf_field_type *type, void *data);
+		enum bt_btr_status (* unsigned_int)(uint64_t value,
+				struct bt_field_type *type, void *data);
 
 		/**
 		 * Called when a floating point number type is
@@ -152,42 +152,42 @@ struct bt_ctf_btr_cbs {
 		 * @param type		Floating point number type (weak
 		 *			reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* floating_point)(double value,
-				struct bt_ctf_field_type *type, void *data);
+		enum bt_btr_status (* floating_point)(double value,
+				struct bt_field_type *type, void *data);
 
 		/**
 		 * Called when a string type begins.
 		 *
 		 * All the following user callback function calls will
-		 * be made to bt_ctf_btr_cbs::types::string(), each of
+		 * be made to bt_btr_cbs::types::string(), each of
 		 * them providing one substring of the complete string
 		 * type's value.
 		 *
 		 * @param type		Beginning string type (weak reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* string_begin)(
-				struct bt_ctf_field_type *type, void *data);
+		enum bt_btr_status (* string_begin)(
+				struct bt_field_type *type, void *data);
 
 		/**
 		 * Called when a string type's substring is decoded
-		 * (between a call to bt_ctf_btr_cbs::types::string_begin()
-		 * and a call to bt_ctf_btr_cbs::types::string_end()).
+		 * (between a call to bt_btr_cbs::types::string_begin()
+		 * and a call to bt_btr_cbs::types::string_end()).
 		 *
 		 * @param value		String value (\em not null-terminated)
 		 * @param len		String value length
 		 * @param type		String type (weak reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* string)(const char *value,
-				size_t len, struct bt_ctf_field_type *type,
+		enum bt_btr_status (* string)(const char *value,
+				size_t len, struct bt_field_type *type,
 				void *data);
 
 		/**
@@ -195,11 +195,11 @@ struct bt_ctf_btr_cbs {
 		 *
 		 * @param type		Ending string type (weak reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* string_end)(
-				struct bt_ctf_field_type *type, void *data);
+		enum bt_btr_status (* string_end)(
+				struct bt_field_type *type, void *data);
 
 		/**
 		 * Called when a compound type begins.
@@ -207,32 +207,32 @@ struct bt_ctf_btr_cbs {
 		 * All the following type callback function calls will
 		 * signal sequential elements of this compound type,
 		 * until the next corresponding
-		 * bt_ctf_btr_cbs::types::compound_end() is called.
+		 * bt_btr_cbs::types::compound_end() is called.
 		 *
 		 * If \p type is a variant type, then only one type
 		 * callback function call will follow before the call to
-		 * bt_ctf_btr_cbs::types::compound_end(). This single
+		 * bt_btr_cbs::types::compound_end(). This single
 		 * call indicates the selected type of this variant
 		 * type.
 		 *
 		 * @param type		Beginning compound type (weak reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* compound_begin)(
-				struct bt_ctf_field_type *type, void *data);
+		enum bt_btr_status (* compound_begin)(
+				struct bt_field_type *type, void *data);
 
 		/**
 		 * Called when a compound type ends.
 		 *
 		 * @param type		Ending compound type (weak reference)
 		 * @param data		User data
-		 * @returns		#BT_CTF_BTR_STATUS_OK or
-		 *			#BT_CTF_BTR_STATUS_ERROR
+		 * @returns		#BT_BTR_STATUS_OK or
+		 *			#BT_BTR_STATUS_ERROR
 		 */
-		enum bt_ctf_btr_status (* compound_end)(
-				struct bt_ctf_field_type *type, void *data);
+		enum bt_btr_status (* compound_end)(
+				struct bt_field_type *type, void *data);
 	} types;
 
 	/**
@@ -251,9 +251,9 @@ struct bt_ctf_btr_cbs {
 		 * @param type		Sequence type (weak reference)
 		 * @param data		User data
 		 * @returns		Sequence length or
-		 *			#BT_CTF_BTR_STATUS_ERROR on error
+		 *			#BT_BTR_STATUS_ERROR on error
 		 */
-		int64_t (* get_sequence_length)(struct bt_ctf_field_type *type,
+		int64_t (* get_sequence_length)(struct bt_field_type *type,
 				void *data);
 
 		/**
@@ -265,8 +265,8 @@ struct bt_ctf_btr_cbs {
 		 * @returns		Current selected type (owned by
 		 *			this) or \c NULL on error
 		 */
-		struct bt_ctf_field_type * (* get_variant_type)(
-				struct bt_ctf_field_type *type, void *data);
+		struct bt_field_type * (* get_variant_type)(
+				struct bt_field_type *type, void *data);
 	} query;
 };
 
@@ -277,14 +277,14 @@ struct bt_ctf_btr_cbs {
  * @param data		User data (passed to user callback functions)
  * @returns		New binary type reader on success, or \c NULL on error
  */
-struct bt_ctf_btr *bt_ctf_btr_create(struct bt_ctf_btr_cbs cbs, void *data);
+struct bt_btr *bt_btr_create(struct bt_btr_cbs cbs, void *data);
 
 /**
  * Destroys a CTF binary type reader, freeing all internal resources.
  *
  * @param btr	Binary type reader
  */
-void bt_ctf_btr_destroy(struct bt_ctf_btr *btr);
+void bt_btr_destroy(struct bt_btr *btr);
 
 /**
  * Decodes a given CTF type from a buffer of bytes.
@@ -294,18 +294,18 @@ void bt_ctf_btr_destroy(struct bt_ctf_btr *btr);
  * The \p status output parameter is where a status is written, amongst
  * the following:
  *
- *   - <b>#BT_CTF_BTR_STATUS_OK</b>: Decoding is done.
- *   - <b>#BT_CTF_BTR_STATUS_EOF</b>: The end of the buffer was reached,
+ *   - <b>#BT_BTR_STATUS_OK</b>: Decoding is done.
+ *   - <b>#BT_BTR_STATUS_EOF</b>: The end of the buffer was reached,
  *     but more data is needed to finish the decoding process of the
- *     requested type. The user needs to call bt_ctf_btr_continue()
- *     as long as #BT_CTF_BTR_STATUS_EOF is returned to complete the
+ *     requested type. The user needs to call bt_btr_continue()
+ *     as long as #BT_BTR_STATUS_EOF is returned to complete the
  *     decoding process of the original type.
- *   - <b>#BT_CTF_BTR_STATUS_INVAL</b>: Invalid argument.
- *   - <b>#BT_CTF_BTR_STATUS_ERROR</b>: General error.
+ *   - <b>#BT_BTR_STATUS_INVAL</b>: Invalid argument.
+ *   - <b>#BT_BTR_STATUS_ERROR</b>: General error.
  *
  * Calling this function resets the type reader's internal state. If
- * #BT_CTF_BTR_STATUS_EOF is returned, bt_ctf_btr_continue() needs to
- * be called next, \em not bt_ctf_btr_decode().
+ * #BT_BTR_STATUS_EOF is returned, bt_btr_continue() needs to
+ * be called next, \em not bt_btr_decode().
  *
  * @param btr			Binary type reader
  * @param type			Type to decode (weak reference)
@@ -317,10 +317,10 @@ void bt_ctf_btr_destroy(struct bt_ctf_btr *btr);
  * @param status		Returned status (see description above)
  * @returns			Number of consumed bits
  */
-size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
-		struct bt_ctf_field_type *type, const uint8_t *buf,
+size_t bt_btr_start(struct bt_btr *btr,
+		struct bt_field_type *type, const uint8_t *buf,
 		size_t offset, size_t packet_offset, size_t sz,
-		enum bt_ctf_btr_status *status);
+		enum bt_btr_status *status);
 
 /**
  * Continues the decoding process a given CTF type.
@@ -330,14 +330,14 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
  * The \p status output parameter is where a status is placed, amongst
  * the following:
  *
- *   - <b>#BT_CTF_BTR_STATUS_OK</b>: decoding is done.
- *   - <b>#BT_CTF_BTR_STATUS_EOF</b>: the end of the buffer was reached,
+ *   - <b>#BT_BTR_STATUS_OK</b>: decoding is done.
+ *   - <b>#BT_BTR_STATUS_EOF</b>: the end of the buffer was reached,
  *     but more data is needed to finish the decoding process of the
- *     requested type. The user needs to call bt_ctf_btr_continue()
- *     as long as #BT_CTF_BTR_STATUS_EOF is returned to complete the
+ *     requested type. The user needs to call bt_btr_continue()
+ *     as long as #BT_BTR_STATUS_EOF is returned to complete the
  *     decoding process of the original type.
- *   - <b>#BT_CTF_BTR_STATUS_INVAL</b>: invalid argument.
- *   - <b>#BT_CTF_BTR_STATUS_ERROR</b>: general error.
+ *   - <b>#BT_BTR_STATUS_INVAL</b>: invalid argument.
+ *   - <b>#BT_BTR_STATUS_ERROR</b>: general error.
  *
  * @param btr		Binary type reader
  * @param buf		Buffer
@@ -345,24 +345,24 @@ size_t bt_ctf_btr_start(struct bt_ctf_btr *btr,
  * @param status	Returned status (see description above)
  * @returns		Number of consumed bits
  */
-size_t bt_ctf_btr_continue(struct bt_ctf_btr *btr,
+size_t bt_btr_continue(struct bt_btr *btr,
 		const uint8_t *buf, size_t sz,
-		enum bt_ctf_btr_status *status);
+		enum bt_btr_status *status);
 
 static inline
-const char *bt_ctf_btr_status_string(enum bt_ctf_btr_status status)
+const char *bt_btr_status_string(enum bt_btr_status status)
 {
 	switch (status) {
-	case BT_CTF_BTR_STATUS_ENOMEM:
-		return "BT_CTF_BTR_STATUS_ENOMEM";
-	case BT_CTF_BTR_STATUS_EOF:
-		return "BT_CTF_BTR_STATUS_EOF";
-	case BT_CTF_BTR_STATUS_INVAL:
-		return "BT_CTF_BTR_STATUS_INVAL";
-	case BT_CTF_BTR_STATUS_ERROR:
-		return "BT_CTF_BTR_STATUS_ERROR";
-	case BT_CTF_BTR_STATUS_OK:
-		return "BT_CTF_BTR_STATUS_OK";
+	case BT_BTR_STATUS_ENOMEM:
+		return "BT_BTR_STATUS_ENOMEM";
+	case BT_BTR_STATUS_EOF:
+		return "BT_BTR_STATUS_EOF";
+	case BT_BTR_STATUS_INVAL:
+		return "BT_BTR_STATUS_INVAL";
+	case BT_BTR_STATUS_ERROR:
+		return "BT_BTR_STATUS_ERROR";
+	case BT_BTR_STATUS_OK:
+		return "BT_BTR_STATUS_OK";
 	default:
 		return "(unknown)";
 	}

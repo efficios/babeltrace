@@ -212,7 +212,7 @@ void lttng_live_destroy_trace(struct bt_object *obj)
 	if (trace->trace) {
 		int retval;
 
-		retval = bt_ctf_trace_set_is_static(trace->trace);
+		retval = bt_trace_set_is_static(trace->trace);
 		assert(!retval);
 		BT_PUT(trace->trace);
 	}
@@ -362,7 +362,7 @@ void lttng_live_iterator_finalize(struct bt_private_connection_private_notificat
 }
 
 static
-enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
+enum bt_lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream)
 {
@@ -381,7 +381,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_check_stream_sta
 	case LTTNG_LIVE_STREAM_EOF:
 		break;
 	}
-	return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 }
 
 /*
@@ -393,21 +393,21 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_check_stream_sta
  *   return EOF.
  */
 static
-enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stream(
+enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream)
 {
-	enum bt_ctf_lttng_live_iterator_status ret =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_lttng_live_iterator_status ret =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct packet_index index;
 	enum lttng_live_stream_state orig_state = lttng_live_stream->state;
 
 	if (lttng_live_stream->trace->new_metadata_needed) {
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		goto end;
 	}
 	if (lttng_live_stream->trace->session->new_streams_needed) {
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		goto end;
 	}
 	if (lttng_live_stream->state != LTTNG_LIVE_STREAM_ACTIVE_NO_DATA
@@ -415,7 +415,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_da
 		goto end;
 	}
 	ret = lttng_live_get_next_index(lttng_live, lttng_live_stream, &index);
-	if (ret != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+	if (ret != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
 	}
 	assert(lttng_live_stream->state != LTTNG_LIVE_STREAM_EOF);
@@ -423,10 +423,10 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_da
 		if (orig_state == LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA
 				&& lttng_live_stream->last_returned_inactivity_timestamp ==
 					lttng_live_stream->current_inactivity_timestamp) {
-			ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+			ret = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			print_stream_state(lttng_live_stream);
 		} else {
-			ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+			ret = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		}
 		goto end;
 	}
@@ -434,7 +434,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_da
 	lttng_live_stream->offset = index.offset;
 	lttng_live_stream->len = index.packet_size / CHAR_BIT;
 end:
-	if (ret == BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+	if (ret == BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		ret = lttng_live_iterator_next_check_stream_state(
 				lttng_live, lttng_live_stream);
 	}
@@ -449,29 +449,29 @@ end:
  * per-stream notifications.
  */
 static
-enum bt_ctf_lttng_live_iterator_status lttng_live_get_session(
+enum bt_lttng_live_iterator_status lttng_live_get_session(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_session *session)
 {
-	enum bt_ctf_lttng_live_iterator_status status;
+	enum bt_lttng_live_iterator_status status;
 	struct lttng_live_trace *trace, *t;
 
 	if (lttng_live_attach_session(session)) {
 		if (lttng_live_is_canceled(lttng_live)) {
-			return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+			return BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		} else {
-			return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+			return BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		}
 	}
 	status = lttng_live_get_new_streams(session);
-	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK &&
-			status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END) {
+	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK &&
+			status != BT_LTTNG_LIVE_ITERATOR_STATUS_END) {
 		return status;
 	}
 	bt_list_for_each_entry_safe(trace, t, &session->traces, node) {
 		status = lttng_live_metadata_update(trace);
-		if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK &&
-				status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END) {
+		if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK &&
+				status != BT_LTTNG_LIVE_ITERATOR_STATUS_END) {
 			return status;
 		}
 	}
@@ -504,11 +504,11 @@ void lttng_live_force_new_streams_and_metadata(struct lttng_live_component *lttn
 }
 
 static
-enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_new_streams_and_metadata(
+enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_new_streams_and_metadata(
 		struct lttng_live_component *lttng_live)
 {
-	enum bt_ctf_lttng_live_iterator_status ret =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_lttng_live_iterator_status ret =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	unsigned int nr_sessions_opened = 0;
 	struct lttng_live_session *session, *s;
 
@@ -527,16 +527,16 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_new_strea
 	 * currently ongoing.
 	 */
 	if (bt_list_empty(&lttng_live->sessions)) {
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END;
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_END;
 		goto end;
 	}
 	bt_list_for_each_entry(session, &lttng_live->sessions, node) {
 		ret = lttng_live_get_session(lttng_live, session);
 		switch (ret) {
-		case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK:
+		case BT_LTTNG_LIVE_ITERATOR_STATUS_OK:
 			break;
-		case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END:
-			ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+		case BT_LTTNG_LIVE_ITERATOR_STATUS_END:
+			ret = BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 			break;
 		default:
 			goto end;
@@ -546,24 +546,24 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_new_strea
 		}
 	}
 end:
-	if (ret == BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK && !nr_sessions_opened) {
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END;
+	if (ret == BT_LTTNG_LIVE_ITERATOR_STATUS_OK && !nr_sessions_opened) {
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_END;
 	}
 	return ret;
 }
 
 static
-enum bt_ctf_lttng_live_iterator_status emit_inactivity_notification(
+enum bt_lttng_live_iterator_status emit_inactivity_notification(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
 		struct bt_notification **notification,
 		uint64_t timestamp)
 {
-	enum bt_ctf_lttng_live_iterator_status ret =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_lttng_live_iterator_status ret =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct lttng_live_trace *trace;
-	struct bt_ctf_clock_class *clock_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
+	struct bt_clock_class *clock_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
 	struct bt_notification *notif = NULL;
 	int retval;
 
@@ -575,7 +575,7 @@ enum bt_ctf_lttng_live_iterator_status emit_inactivity_notification(
 	if (!clock_class) {
 		goto error;
 	}
-	clock_value = bt_ctf_clock_value_create(clock_class, timestamp);
+	clock_value = bt_clock_value_create(clock_class, timestamp);
 	if (!clock_value) {
 		goto error;
 	}
@@ -594,30 +594,30 @@ end:
 	return ret;
 
 error:
-	ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+	ret = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 	bt_put(notif);
 	goto end;
 }
 
 static
-enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_stream(
+enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
 		struct bt_notification **notification)
 {
-	enum bt_ctf_lttng_live_iterator_status ret =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
-	struct bt_ctf_clock_class *clock_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
+	enum bt_lttng_live_iterator_status ret =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	struct bt_clock_class *clock_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
 
 	if (lttng_live_stream->state != LTTNG_LIVE_STREAM_QUIESCENT) {
-		return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+		return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	}
 
 	if (lttng_live_stream->current_inactivity_timestamp ==
 			lttng_live_stream->last_returned_inactivity_timestamp) {
 		lttng_live_stream->state = LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA;
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		goto end;
 	}
 
@@ -633,42 +633,42 @@ end:
 }
 
 static
-enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_stream(
+enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
 		struct bt_notification **notification)
 {
-	enum bt_ctf_lttng_live_iterator_status ret =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
-	enum bt_ctf_notif_iter_status status;
+	enum bt_lttng_live_iterator_status ret =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_notif_iter_status status;
 	struct lttng_live_session *session;
 
 	bt_list_for_each_entry(session, &lttng_live->sessions, node) {
 		struct lttng_live_trace *trace;
 
 		if (session->new_streams_needed) {
-			return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+			return BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		}
 		bt_list_for_each_entry(trace, &session->traces, node) {
 			if (trace->new_metadata_needed) {
-				return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+				return BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 			}
 		}
 	}
 
 	if (lttng_live_stream->state != LTTNG_LIVE_STREAM_ACTIVE_DATA) {
-		return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		return BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 	}
 	if (lttng_live_stream->packet_end_notif_queue) {
 		*notification = lttng_live_stream->packet_end_notif_queue;
 		lttng_live_stream->packet_end_notif_queue = NULL;
-		status = BT_CTF_NOTIF_ITER_STATUS_OK;
+		status = BT_NOTIF_ITER_STATUS_OK;
 	} else {
-		status = bt_ctf_notif_iter_get_next_notification(
+		status = bt_notif_iter_get_next_notification(
 				lttng_live_stream->notif_iter,
 				lttng_live_stream->trace->cc_prio_map,
 				notification);
-		if (status == BT_CTF_NOTIF_ITER_STATUS_OK) {
+		if (status == BT_NOTIF_ITER_STATUS_OK) {
 			/*
 			 * Consider empty packets as inactivity.
 			 */
@@ -682,25 +682,25 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_iterator_next_handle_one_activ
 		}
 	}
 	switch (status) {
-	case BT_CTF_NOTIF_ITER_STATUS_EOF:
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END;
+	case BT_NOTIF_ITER_STATUS_EOF:
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_END;
 		break;
-	case BT_CTF_NOTIF_ITER_STATUS_OK:
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	case BT_NOTIF_ITER_STATUS_OK:
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 		break;
-	case BT_CTF_NOTIF_ITER_STATUS_AGAIN:
+	case BT_NOTIF_ITER_STATUS_AGAIN:
 		/*
 		 * Continue immediately (end of packet). The next
 		 * get_index may return AGAIN to delay the following
 		 * attempt.
 		 */
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		break;
-	case BT_CTF_NOTIF_ITER_STATUS_INVAL:
+	case BT_NOTIF_ITER_STATUS_INVAL:
 		/* No argument provided by the user, so don't return INVAL. */
-	case BT_CTF_NOTIF_ITER_STATUS_ERROR:
+	case BT_NOTIF_ITER_STATUS_ERROR:
 	default:
-		ret = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		break;
 	}
 	return ret;
@@ -759,7 +759,7 @@ struct bt_notification_iterator_next_method_return lttng_live_iterator_next_stre
 		struct bt_private_connection_private_notification_iterator *iterator,
 		struct lttng_live_stream_iterator *stream_iter)
 {
-	enum bt_ctf_lttng_live_iterator_status status;
+	enum bt_lttng_live_iterator_status status;
 	struct bt_notification_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
@@ -768,17 +768,17 @@ retry:
 	print_stream_state(stream_iter);
 	next_return.notification = NULL;
 	status = lttng_live_iterator_next_handle_new_streams_and_metadata(lttng_live);
-	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
 	}
 	status = lttng_live_iterator_next_handle_one_no_data_stream(
 			lttng_live, stream_iter);
-	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
 	}
 	status = lttng_live_iterator_next_handle_one_quiescent_stream(
 			lttng_live, stream_iter, &next_return.notification);
-	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		assert(next_return.notification == NULL);
 		goto end;
 	}
@@ -787,37 +787,37 @@ retry:
 	}
 	status = lttng_live_iterator_next_handle_one_active_data_stream(lttng_live,
 			stream_iter, &next_return.notification);
-	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		assert(next_return.notification == NULL);
 	}
 
 end:
 	switch (status) {
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE:
 		print_dbg("continue");
 		goto retry;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
 		print_dbg("again");
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_END:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		print_dbg("end");
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_OK:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 		print_dbg("ok");
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_INVAL:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_INVAL:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR:
 	default:	/* fall-through */
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		break;
@@ -830,7 +830,7 @@ struct bt_notification_iterator_next_method_return lttng_live_iterator_next_no_s
 		struct bt_private_connection_private_notification_iterator *iterator,
 		struct lttng_live_no_stream_iterator *no_stream_iter)
 {
-	enum bt_ctf_lttng_live_iterator_status status;
+	enum bt_lttng_live_iterator_status status;
 	struct bt_notification_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
@@ -839,34 +839,34 @@ retry:
 	lttng_live_force_new_streams_and_metadata(lttng_live);
 	next_return.notification = NULL;
 	status = lttng_live_iterator_next_handle_new_streams_and_metadata(lttng_live);
-	if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
 	}
 	if (no_stream_iter->port) {
-		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
-		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END;
+		status = BT_LTTNG_LIVE_ITERATOR_STATUS_END;
 	}
 end:
 	switch (status) {
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE:
 		goto retry;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_END:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_INVAL:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_INVAL:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
 		break;
-	case BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR:
+	case BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR:
 	default:	/* fall-through */
 		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		break;

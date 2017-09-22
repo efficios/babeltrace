@@ -1078,7 +1078,7 @@ void lttng_index_to_packet_index(struct lttng_viewer_index *lindex,
 }
 
 BT_HIDDEN
-enum bt_ctf_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_component *lttng_live,
+enum bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream,
 		struct packet_index *index)
 {
@@ -1087,8 +1087,8 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_li
 	ssize_t ret_len;
 	struct lttng_viewer_index rp;
 	uint32_t flags, status;
-	enum bt_ctf_lttng_live_iterator_status retstatus =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_lttng_live_iterator_status retstatus =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct bt_live_viewer_connection *viewer_connection =
 			lttng_live->viewer_connection;
 	struct lttng_live_trace *trace = stream->trace;
@@ -1178,14 +1178,14 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_li
 	case LTTNG_VIEWER_INDEX_RETRY:
 		BT_LOGD("get_next_index: retry");
 		memset(index, 0, sizeof(struct packet_index));
-		retstatus = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		retstatus = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
 		goto end;
 	case LTTNG_VIEWER_INDEX_HUP:
 		BT_LOGD("get_next_index: stream hung up");
 		memset(index, 0, sizeof(struct packet_index));
 		index->offset = EOF;
-		retstatus = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END;
+		retstatus = BT_LTTNG_LIVE_ITERATOR_STATUS_END;
 		stream->state = LTTNG_LIVE_STREAM_EOF;
 		break;
 	case LTTNG_VIEWER_INDEX_ERR:
@@ -1204,19 +1204,19 @@ end:
 
 error:
 	if (lttng_live_is_canceled(lttng_live)) {
-		retstatus = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		retstatus = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
-		retstatus = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		retstatus = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 	}
 	return retstatus;
 }
 
 BT_HIDDEN
-enum bt_ctf_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_component *lttng_live,
+enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream, uint8_t *buf, uint64_t offset,
 		uint64_t req_len, uint64_t *recv_len)
 {
-	enum bt_ctf_notif_iter_medium_status retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_OK;
+	enum bt_notif_iter_medium_status retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_OK;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_packet rq;
 	struct lttng_viewer_trace_packet rp;
@@ -1278,7 +1278,7 @@ enum bt_ctf_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_li
 	case LTTNG_VIEWER_GET_PACKET_RETRY:
 		/* Unimplemented by relay daemon */
 		BT_LOGD("get_data_packet: retry");
-		retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
 		goto end;
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
@@ -1291,13 +1291,13 @@ enum bt_ctf_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_li
 		}
 		if (flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
 				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
-			retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+			retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
 			goto end;
 		}
 		BT_LOGE("get_data_packet: error");
 		goto error;
 	case LTTNG_VIEWER_GET_PACKET_EOF:
-		retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_EOF;
+		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	default:
 		BT_LOGE("get_data_packet: unknown");
@@ -1324,9 +1324,9 @@ end:
 
 error:
 	if (lttng_live_is_canceled(lttng_live)) {
-		retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
 	} else {
-		retstatus = BT_CTF_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_ERROR;
 	}
 	return retstatus;
 }
@@ -1335,11 +1335,11 @@ error:
  * Request new streams for a session.
  */
 BT_HIDDEN
-enum bt_ctf_lttng_live_iterator_status lttng_live_get_new_streams(
+enum bt_lttng_live_iterator_status lttng_live_get_new_streams(
 		struct lttng_live_session *session)
 {
-	enum bt_ctf_lttng_live_iterator_status status =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_lttng_live_iterator_status status =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_new_streams_request rq;
 	struct lttng_viewer_new_streams_response rp;
@@ -1350,7 +1350,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_new_streams(
 	uint32_t streams_count;
 
 	if (!session->new_streams_needed) {
-		return BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+		return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	}
 
 	cmd.cmd = htobe32(LTTNG_VIEWER_GET_NEW_STREAMS);
@@ -1397,7 +1397,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_get_new_streams(
 	case LTTNG_VIEWER_NEW_STREAMS_HUP:
 		session->new_streams_needed = false;
 		session->closed = true;
-		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_END;
+		status = BT_LTTNG_LIVE_ITERATOR_STATUS_END;
 		goto end;
 	case LTTNG_VIEWER_NEW_STREAMS_ERR:
 		BT_LOGE("get_new_streams error");
@@ -1415,9 +1415,9 @@ end:
 
 error:
 	if (lttng_live_is_canceled(lttng_live)) {
-		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
-		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+		status = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 	}
 	return status;
 }

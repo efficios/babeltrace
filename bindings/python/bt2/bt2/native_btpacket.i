@@ -23,18 +23,18 @@
  */
 
 /* Type */
-struct bt_ctf_packet;
+struct bt_packet;
 
 /* Functions */
-struct bt_ctf_packet *bt_ctf_packet_create(
-		struct bt_ctf_stream *stream);
-struct bt_ctf_stream *bt_ctf_packet_get_stream(
-		struct bt_ctf_packet *packet);
-struct bt_ctf_field *bt_ctf_packet_get_header(
-		struct bt_ctf_packet *packet);
-int bt_ctf_packet_set_header(
-		struct bt_ctf_packet *packet, struct bt_ctf_field *header);
-struct bt_ctf_field *bt_ctf_packet_get_context(
-		struct bt_ctf_packet *packet);
-int bt_ctf_packet_set_context(
-		struct bt_ctf_packet *packet, struct bt_ctf_field *context);
+struct bt_packet *bt_packet_create(
+		struct bt_stream *stream);
+struct bt_stream *bt_packet_get_stream(
+		struct bt_packet *packet);
+struct bt_field *bt_packet_get_header(
+		struct bt_packet *packet);
+int bt_packet_set_header(
+		struct bt_packet *packet, struct bt_field *header);
+struct bt_field *bt_packet_get_context(
+		struct bt_packet *packet);
+int bt_packet_set_context(
+		struct bt_packet *packet, struct bt_field *context);

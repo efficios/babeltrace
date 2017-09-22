@@ -23,16 +23,16 @@
  */
 
 /* Type */
-struct bt_ctf_stream;
+struct bt_stream;
 
 /* Functions */
-struct bt_ctf_stream *bt_ctf_stream_create(
-		struct bt_ctf_stream_class *stream_class,
+struct bt_stream *bt_stream_create(
+		struct bt_stream_class *stream_class,
 		const char *name);
-struct bt_ctf_stream *bt_ctf_stream_create_with_id(
-		struct bt_ctf_stream_class *stream_class,
+struct bt_stream *bt_stream_create_with_id(
+		struct bt_stream_class *stream_class,
 		const char *name, uint64_t id);
-const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream);
-int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream);
-struct bt_ctf_stream_class *bt_ctf_stream_get_class(
-		struct bt_ctf_stream *stream);
+const char *bt_stream_get_name(struct bt_stream *stream);
+int64_t bt_stream_get_id(struct bt_stream *stream);
+struct bt_stream_class *bt_stream_get_class(
+		struct bt_stream *stream);

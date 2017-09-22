@@ -38,13 +38,13 @@
 #include "writer.h"
 
 static
-void unref_stream_class(struct bt_ctf_stream_class *writer_stream_class)
+void unref_stream_class(struct bt_stream_class *writer_stream_class)
 {
 	bt_put(writer_stream_class);
 }
 
 static
-void unref_stream(struct bt_ctf_stream_class *writer_stream)
+void unref_stream(struct bt_stream_class *writer_stream)
 {
 	bt_put(writer_stream);
 }
@@ -59,9 +59,9 @@ static
 gboolean empty_streams_ht(gpointer key, gpointer value, gpointer user_data)
 {
 	int ret;
-	struct bt_ctf_stream *writer_stream = value;
+	struct bt_stream *writer_stream = value;
 
-	ret = bt_ctf_stream_flush(writer_stream);
+	ret = bt_stream_flush(writer_stream);
 	if (ret) {
 		BT_LOGD_STR("Failed to flush stream while emptying hash table.");
 	}
@@ -86,7 +86,7 @@ void check_completed_trace(gpointer key, gpointer value, gpointer user_data)
 }
 
 static
-void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
+void trace_is_static_listener(struct bt_trace *trace, void *data)
 {
 	struct fs_writer *fs_writer = data;
 	int trace_completed = 1;
@@ -103,17 +103,17 @@ void trace_is_static_listener(struct bt_ctf_trace *trace, void *data)
 }
 
 static
-struct bt_ctf_stream_class *insert_new_stream_class(
+struct bt_stream_class *insert_new_stream_class(
 		struct writer_component *writer_component,
 		struct fs_writer *fs_writer,
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_stream_class *stream_class)
 {
-	struct bt_ctf_stream_class *writer_stream_class = NULL;
-	struct bt_ctf_trace *trace = NULL, *writer_trace = NULL;
+	struct bt_stream_class *writer_stream_class = NULL;
+	struct bt_trace *trace = NULL, *writer_trace = NULL;
 	struct bt_ctf_writer *ctf_writer = fs_writer->writer;
 	enum bt_component_status ret;
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_get_trace(stream_class);
 	assert(trace);
 
 	writer_trace = bt_ctf_writer_get_trace(ctf_writer);
@@ -133,7 +133,7 @@ struct bt_ctf_stream_class *insert_new_stream_class(
 		goto error;
 	}
 
-	ret = bt_ctf_trace_add_stream_class(writer_trace, writer_stream_class);
+	ret = bt_trace_add_stream_class(writer_trace, writer_stream_class);
 	if (ret) {
 		BT_LOGE_STR("Failed to add stream_class.");
 		goto error;
@@ -155,7 +155,7 @@ end:
 static
 enum fs_writer_stream_state *insert_new_stream_state(
 		struct writer_component *writer_component,
-		struct fs_writer *fs_writer, struct bt_ctf_stream *stream)
+		struct fs_writer *fs_writer, struct bt_stream *stream)
 {
 	enum fs_writer_stream_state *v = NULL;
 
@@ -214,7 +214,7 @@ end:
 
 static
 int make_trace_path(struct writer_component *writer_component,
-		struct bt_ctf_trace *trace, char *trace_path)
+		struct bt_trace *trace, char *trace_path)
 {
 	int ret;
 	const char *trace_name;
@@ -222,7 +222,7 @@ int make_trace_path(struct writer_component *writer_component,
 	if (writer_component->single_trace) {
 		trace_name = "\0";
 	} else {
-		trace_name = bt_ctf_trace_get_name(trace);
+		trace_name = bt_trace_get_name(trace);
 		if (!trace_name) {
 			trace_name = writer_component->trace_name_base->str;
 		}
@@ -280,13 +280,13 @@ end:
 static
 struct fs_writer *insert_new_writer(
 		struct writer_component *writer_component,
-		struct bt_ctf_trace *trace)
+		struct bt_trace *trace)
 {
 	struct bt_ctf_writer *ctf_writer = NULL;
-	struct bt_ctf_trace *writer_trace = NULL;
+	struct bt_trace *writer_trace = NULL;
 	char trace_path[PATH_MAX];
 	enum bt_component_status ret;
-	struct bt_ctf_stream *stream = NULL;
+	struct bt_stream *stream = NULL;
 	struct fs_writer *fs_writer = NULL;
 	int nr_stream, i;
 
@@ -337,9 +337,9 @@ struct fs_writer *insert_new_writer(
 			g_direct_equal, NULL, destroy_stream_state_key);
 
 	/* Set all the existing streams in the unknown state. */
-	nr_stream = bt_ctf_trace_get_stream_count(trace);
+	nr_stream = bt_trace_get_stream_count(trace);
 	for (i = 0; i < nr_stream; i++) {
-		stream = bt_ctf_trace_get_stream_by_index(trace, i);
+		stream = bt_trace_get_stream_by_index(trace, i);
 		assert(stream);
 
 		insert_new_stream_state(writer_component, fs_writer, stream);
@@ -347,11 +347,11 @@ struct fs_writer *insert_new_writer(
 	}
 
 	/* Check if the trace is already static or register a listener. */
-	if (bt_ctf_trace_is_static(trace)) {
+	if (bt_trace_is_static(trace)) {
 		fs_writer->trace_static = 1;
 		fs_writer->static_listener_id = -1;
 	} else {
-		ret = bt_ctf_trace_add_is_static_listener(trace,
+		ret = bt_trace_add_is_static_listener(trace,
 				trace_is_static_listener, NULL, fs_writer);
 		assert(ret >= 0);
 		fs_writer->static_listener_id = ret;
@@ -375,12 +375,12 @@ end:
 
 static
 struct fs_writer *get_fs_writer(struct writer_component *writer_component,
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_stream_class *stream_class)
 {
-	struct bt_ctf_trace *trace = NULL;
+	struct bt_trace *trace = NULL;
 	struct fs_writer *fs_writer;
 
-	trace = bt_ctf_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_get_trace(stream_class);
 	assert(trace);
 
 	fs_writer = g_hash_table_lookup(writer_component->trace_map,
@@ -396,12 +396,12 @@ struct fs_writer *get_fs_writer(struct writer_component *writer_component,
 static
 struct fs_writer *get_fs_writer_from_stream(
 		struct writer_component *writer_component,
-		struct bt_ctf_stream *stream)
+		struct bt_stream *stream)
 {
-	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
@@ -411,37 +411,37 @@ struct fs_writer *get_fs_writer_from_stream(
 }
 
 static
-struct bt_ctf_stream_class *lookup_stream_class(
+struct bt_stream_class *lookup_stream_class(
 		struct writer_component *writer_component,
-		struct bt_ctf_stream_class *stream_class)
+		struct bt_stream_class *stream_class)
 {
 	struct fs_writer *fs_writer = get_fs_writer(
 			writer_component, stream_class);
 	assert(fs_writer);
-	return (struct bt_ctf_stream_class *) g_hash_table_lookup(
+	return (struct bt_stream_class *) g_hash_table_lookup(
 			fs_writer->stream_class_map, (gpointer) stream_class);
 }
 
 static
-struct bt_ctf_stream *lookup_stream(struct writer_component *writer_component,
-		struct bt_ctf_stream *stream)
+struct bt_stream *lookup_stream(struct writer_component *writer_component,
+		struct bt_stream *stream)
 {
 	struct fs_writer *fs_writer = get_fs_writer_from_stream(
 			writer_component, stream);
 	assert(fs_writer);
-	return (struct bt_ctf_stream *) g_hash_table_lookup(
+	return (struct bt_stream *) g_hash_table_lookup(
 			fs_writer->stream_map, (gpointer) stream);
 }
 
 static
-struct bt_ctf_stream *insert_new_stream(
+struct bt_stream *insert_new_stream(
 		struct writer_component *writer_component,
 		struct fs_writer *fs_writer,
-		struct bt_ctf_stream_class *stream_class,
-		struct bt_ctf_stream *stream)
+		struct bt_stream_class *stream_class,
+		struct bt_stream *stream)
 {
-	struct bt_ctf_stream *writer_stream = NULL;
-	struct bt_ctf_stream_class *writer_stream_class = NULL;
+	struct bt_stream *writer_stream = NULL;
+	struct bt_stream_class *writer_stream_class = NULL;
 	struct bt_ctf_writer *ctf_writer = bt_get(fs_writer->writer);
 
 	writer_stream_class = lookup_stream_class(writer_component,
@@ -456,8 +456,8 @@ struct bt_ctf_stream *insert_new_stream(
 	}
 	bt_get(writer_stream_class);
 
-	writer_stream = bt_ctf_stream_create(writer_stream_class,
-		bt_ctf_stream_get_name(stream));
+	writer_stream = bt_stream_create(writer_stream_class,
+		bt_stream_get_name(stream));
 	assert(writer_stream);
 
 	g_hash_table_insert(fs_writer->stream_map, (gpointer) stream,
@@ -474,20 +474,20 @@ end:
 }
 
 static
-struct bt_ctf_event_class *get_event_class(struct writer_component *writer_component,
-		struct bt_ctf_stream_class *writer_stream_class,
-		struct bt_ctf_event_class *event_class)
+struct bt_event_class *get_event_class(struct writer_component *writer_component,
+		struct bt_stream_class *writer_stream_class,
+		struct bt_event_class *event_class)
 {
-	return bt_ctf_stream_class_get_event_class_by_id(writer_stream_class,
-			bt_ctf_event_class_get_id(event_class));
+	return bt_stream_class_get_event_class_by_id(writer_stream_class,
+			bt_event_class_get_id(event_class));
 }
 
 static
-struct bt_ctf_stream *get_writer_stream(
+struct bt_stream *get_writer_stream(
 		struct writer_component *writer_component,
-		struct bt_ctf_packet *packet, struct bt_ctf_stream *stream)
+		struct bt_packet *packet, struct bt_stream *stream)
 {
-	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_stream *writer_stream = NULL;
 
 	writer_stream = lookup_stream(writer_component, stream);
 	if (!writer_stream) {
@@ -509,7 +509,7 @@ void writer_close(struct writer_component *writer_component,
 		struct fs_writer *fs_writer)
 {
 	if (fs_writer->static_listener_id >= 0) {
-		bt_ctf_trace_remove_is_static_listener(fs_writer->trace,
+		bt_trace_remove_is_static_listener(fs_writer->trace,
 				fs_writer->static_listener_id);
 	}
 
@@ -532,15 +532,15 @@ void writer_close(struct writer_component *writer_component,
 BT_HIDDEN
 enum bt_component_status writer_stream_begin(
 		struct writer_component *writer_component,
-		struct bt_ctf_stream *stream)
+		struct bt_stream *stream)
 {
-	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
-	struct bt_ctf_stream *writer_stream = NULL;
+	struct bt_stream *writer_stream = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	enum fs_writer_stream_state *state;
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
@@ -584,15 +584,15 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_stream_end(
 		struct writer_component *writer_component,
-		struct bt_ctf_stream *stream)
+		struct bt_stream *stream)
 {
-	struct bt_ctf_stream_class *stream_class = NULL;
+	struct bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
-	struct bt_ctf_trace *trace = NULL;
+	struct bt_trace *trace = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	enum fs_writer_stream_state *state;
 
-	stream_class = bt_ctf_stream_get_class(stream);
+	stream_class = bt_stream_get_class(stream);
 	assert(stream_class);
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
@@ -635,13 +635,13 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_new_packet(
 		struct writer_component *writer_component,
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
-	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
+	struct bt_stream *stream = NULL, *writer_stream = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	int int_ret;
 
-	stream = bt_ctf_packet_get_stream(packet);
+	stream = bt_packet_get_stream(packet);
 	assert(stream);
 
 	writer_stream = get_writer_stream(writer_component, packet, stream);
@@ -678,12 +678,12 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_close_packet(
 		struct writer_component *writer_component,
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
-	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
+	struct bt_stream *stream = NULL, *writer_stream = NULL;
 	enum bt_component_status ret;
 
-	stream = bt_ctf_packet_get_stream(packet);
+	stream = bt_packet_get_stream(packet);
 	assert(stream);
 
 	writer_stream = lookup_stream(writer_component, stream);
@@ -695,7 +695,7 @@ enum bt_component_status writer_close_packet(
 
 	bt_get(writer_stream);
 
-	ret = bt_ctf_stream_flush(writer_stream);
+	ret = bt_stream_flush(writer_stream);
 	if (ret) {
 		BT_LOGE_STR("Failed to flush stream.");
 		goto error;
@@ -717,19 +717,19 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_output_event(
 		struct writer_component *writer_component,
-		struct bt_ctf_event *event)
+		struct bt_event *event)
 {
 	enum bt_component_status ret;
-	struct bt_ctf_event_class *event_class = NULL, *writer_event_class = NULL;
-	struct bt_ctf_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_ctf_stream_class *stream_class = NULL, *writer_stream_class = NULL;
-	struct bt_ctf_event *writer_event = NULL;
+	struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
+	struct bt_stream *stream = NULL, *writer_stream = NULL;
+	struct bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;
+	struct bt_event *writer_event = NULL;
 	int int_ret;
 
-	event_class = bt_ctf_event_get_class(event);
+	event_class = bt_event_get_class(event);
 	assert(event_class);
 
-	stream = bt_ctf_event_get_stream(event);
+	stream = bt_event_get_stream(event);
 	assert(stream);
 
 	writer_stream = lookup_stream(writer_component, stream);
@@ -738,7 +738,7 @@ enum bt_component_status writer_output_event(
 		goto error;
 	}
 
-	stream_class = bt_ctf_event_class_get_stream_class(event_class);
+	stream_class = bt_event_class_get_stream_class(event_class);
 	assert(stream_class);
 
 	writer_stream_class = lookup_stream_class(writer_component, stream_class);
@@ -756,11 +756,11 @@ enum bt_component_status writer_output_event(
 			BT_LOGE_STR("Failed to copy event_class.");
 			goto error;
 		}
-		int_ret = bt_ctf_stream_class_add_event_class(
+		int_ret = bt_stream_class_add_event_class(
 				writer_stream_class, writer_event_class);
 		if (int_ret) {
 			BT_LOGE("Failed to add event_class: event_name=\"%s\"",
-					bt_ctf_event_class_get_name(event_class));
+					bt_event_class_get_name(event_class));
 			goto error;
 		}
 	}
@@ -769,14 +769,14 @@ enum bt_component_status writer_output_event(
 			writer_event_class, true);
 	if (!writer_event) {
 		BT_LOGE("Failed to copy event: event_class=\"%s\"",
-				bt_ctf_event_class_get_name(writer_event_class));
+				bt_event_class_get_name(writer_event_class));
 		goto error;
 	}
 
-	int_ret = bt_ctf_stream_append_event(writer_stream, writer_event);
+	int_ret = bt_stream_append_event(writer_stream, writer_event);
 	if (int_ret < 0) {
 		BT_LOGE("Failed to append event: event_class=\"%s\"",
-				bt_ctf_event_class_get_name(writer_event_class));
+				bt_event_class_get_name(writer_event_class));
 		goto error;
 	}
 

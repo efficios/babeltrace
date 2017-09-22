@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-struct bt_ctf_field_type;
+struct bt_field_type;
 
 /**
 @defgroup ctfirfieldpath CTF IR field path
@@ -57,8 +57,8 @@ As a reminder, here's the structure of a CTF packet:
 
 Sequence and variant \link ctfirfieldtypes CTF IR field types\endlink
 can return a field path to resp. their length field and tag field
-with resp. bt_ctf_field_type_sequence_get_length_field_path() and
-bt_ctf_field_type_variant_get_tag_field_path().
+with resp. bt_field_type_sequence_get_length_field_path() and
+bt_field_type_variant_get_tag_field_path().
 
 A field path has a <em>root scope</em> which indicates from which of the
 six CTF scopes to begin. It also has a list of structure field <em>path
@@ -80,24 +80,24 @@ management of Babeltrace objects.
 */
 
 /**
-@struct bt_ctf_field_path
+@struct bt_field_path
 @brief A CTF IR field path.
 @sa ctfirfieldpath
 */
-struct bt_ctf_field_path;
+struct bt_field_path;
 
 /**
 @brief	Returns the root scope of the CTF IR field path \p field_path.
 
 @param[in] field_path	Field path of which to get the root scope.
 @returns		Root scope of \p field_path, or
-			#BT_CTF_SCOPE_UNKNOWN on error.
+			#BT_SCOPE_UNKNOWN on error.
 
 @prenotnull{field_path}
 @postrefcountsame{field_path}
 */
-extern enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
-		const struct bt_ctf_field_path *field_path);
+extern enum bt_scope bt_field_path_get_root_scope(
+		const struct bt_field_path *field_path);
 
 /**
 @brief	Returns the number of path indexes contained in the CTF IR field
@@ -111,8 +111,8 @@ extern enum bt_ctf_scope bt_ctf_field_path_get_root_scope(
 @prenotnull{field_path}
 @postrefcountsame{field_path}
 */
-extern int64_t bt_ctf_field_path_get_index_count(
-		const struct bt_ctf_field_path *field_path);
+extern int64_t bt_field_path_get_index_count(
+		const struct bt_field_path *field_path);
 
 /**
 @brief	Returns the path index contained in the CTF IR field
@@ -127,11 +127,11 @@ extern int64_t bt_ctf_field_path_get_index_count(
 @prenotnull{field_path}
 @pre \p index is lesser than the number of path indexes contained in the
 	field path \p field_path (see
-	bt_ctf_field_path_get_index_count()).
+	bt_field_path_get_index_count()).
 @postrefcountsame{field_path}
 */
-extern int bt_ctf_field_path_get_index(
-		const struct bt_ctf_field_path *field_path, uint64_t index);
+extern int bt_field_path_get_index(
+		const struct bt_field_path *field_path, uint64_t index);
 
 /** @} */
 

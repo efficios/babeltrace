@@ -40,7 +40,7 @@ extern "C" {
  * bt_ctf_field_get and bt_ctf_field_put: increment and decrement the
  * field's reference count.
  *
- * You may also use bt_ctf_get() and bt_ctf_put() with field objects.
+ * You may also use bt_get() and bt_put() with field objects.
  *
  * These functions ensure that the field won't be destroyed when it
  * is in use. The same number of get and put (plus one extra put to
@@ -52,8 +52,8 @@ extern "C" {
  *
  * @param field Field instance.
  */
-extern void bt_ctf_field_get(struct bt_ctf_field *field);
-extern void bt_ctf_field_put(struct bt_ctf_field *field);
+extern void bt_ctf_field_get(struct bt_field *field);
+extern void bt_ctf_field_put(struct bt_field *field);
 
 #ifdef __cplusplus
 }

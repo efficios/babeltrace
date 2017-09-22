@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-struct bt_ctf_clock_class;
+struct bt_clock_class;
 
 /**
 @defgroup graphclockclassprioritymap Clock class priority map
@@ -139,7 +139,7 @@ extern int64_t bt_clock_class_priority_map_get_clock_class_count(
 @sa bt_clock_class_priority_map_add_clock_class(): Adds a clock class
 	to a clock class priority map.
 */
-extern struct bt_ctf_clock_class *
+extern struct bt_clock_class *
 bt_clock_class_priority_map_get_clock_class_by_index(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
 		uint64_t index);
@@ -171,7 +171,7 @@ bt_clock_class_priority_map_get_clock_class_by_index(
 @sa bt_clock_class_priority_map_add_clock_class(): Adds a clock class
 	to a clock class priority map.
 */
-extern struct bt_ctf_clock_class *
+extern struct bt_clock_class *
 bt_clock_class_priority_map_get_clock_class_by_name(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
 		const char *name);
@@ -207,7 +207,7 @@ this function returns.
 @sa bt_clock_class_priority_map_add_clock_class(): Adds a clock class
 	to a clock class priority map.
 */
-extern struct bt_ctf_clock_class *
+extern struct bt_clock_class *
 bt_clock_class_priority_map_get_highest_priority_clock_class(
 		struct bt_clock_class_priority_map *clock_class_priority_map);
 
@@ -241,7 +241,7 @@ bt_clock_class_priority_map_get_highest_priority_clock_class(
 */
 extern int bt_clock_class_priority_map_get_clock_class_priority(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
-		struct bt_ctf_clock_class *clock_class, uint64_t *priority);
+		struct bt_clock_class *clock_class, uint64_t *priority);
 
 /**
 @brief	Adds the CTF IR clock class \p clock_class to the clock class
@@ -279,7 +279,7 @@ map.
 */
 extern int bt_clock_class_priority_map_add_clock_class(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
-		struct bt_ctf_clock_class *clock_class, uint64_t priority);
+		struct bt_clock_class *clock_class, uint64_t priority);
 
 /**
 @brief	Creates a copy of the clock class priority map

@@ -63,29 +63,29 @@ void bt_notification_packet_end_destroy(struct bt_object *obj)
 }
 
 struct bt_notification *bt_notification_packet_begin_create(
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
 	struct bt_notification_packet_begin *notification;
-	struct bt_ctf_stream *stream;
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_stream *stream;
+	struct bt_stream_class *stream_class;
 
 	if (!packet) {
 		BT_LOGW_STR("Invalid parameter: packet is NULL.");
 		goto error;
 	}
 
-	stream = bt_ctf_packet_borrow_stream(packet);
+	stream = bt_packet_borrow_stream(packet);
 	assert(stream);
-	stream_class = bt_ctf_stream_borrow_stream_class(stream);
+	stream_class = bt_stream_borrow_stream_class(stream);
 	assert(stream_class);
 	BT_LOGD("Creating packet beginning notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
-		packet, stream, bt_ctf_stream_get_name(stream),
+		packet, stream, bt_stream_get_name(stream),
 		stream_class,
-		bt_ctf_stream_class_get_name(stream_class),
-		bt_ctf_stream_class_get_id(stream_class));
+		bt_stream_class_get_name(stream_class),
+		bt_stream_class_get_id(stream_class));
 	notification = g_new0(struct bt_notification_packet_begin, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one packet beginning notification.");
@@ -100,19 +100,19 @@ struct bt_notification *bt_notification_packet_begin_create(
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64 ", addr=%p",
-		packet, stream, bt_ctf_stream_get_name(stream),
+		packet, stream, bt_stream_get_name(stream),
 		stream_class,
-		bt_ctf_stream_class_get_name(stream_class),
-		bt_ctf_stream_class_get_id(stream_class), notification);
+		bt_stream_class_get_name(stream_class),
+		bt_stream_class_get_id(stream_class), notification);
 	return &notification->parent;
 error:
 	return NULL;
 }
 
-struct bt_ctf_packet *bt_notification_packet_begin_get_packet(
+struct bt_packet *bt_notification_packet_begin_get_packet(
 		struct bt_notification *notification)
 {
-	struct bt_ctf_packet *ret = NULL;
+	struct bt_packet *ret = NULL;
 	struct bt_notification_packet_begin *packet_begin;
 
 	if (!notification) {
@@ -136,29 +136,29 @@ end:
 }
 
 struct bt_notification *bt_notification_packet_end_create(
-		struct bt_ctf_packet *packet)
+		struct bt_packet *packet)
 {
 	struct bt_notification_packet_end *notification;
-	struct bt_ctf_stream *stream;
-	struct bt_ctf_stream_class *stream_class;
+	struct bt_stream *stream;
+	struct bt_stream_class *stream_class;
 
 	if (!packet) {
 		BT_LOGW_STR("Invalid parameter: packet is NULL.");
 		goto error;
 	}
 
-	stream = bt_ctf_packet_borrow_stream(packet);
+	stream = bt_packet_borrow_stream(packet);
 	assert(stream);
-	stream_class = bt_ctf_stream_borrow_stream_class(stream);
+	stream_class = bt_stream_borrow_stream_class(stream);
 	assert(stream_class);
 	BT_LOGD("Creating packet end notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
-		packet, stream, bt_ctf_stream_get_name(stream),
+		packet, stream, bt_stream_get_name(stream),
 		stream_class,
-		bt_ctf_stream_class_get_name(stream_class),
-		bt_ctf_stream_class_get_id(stream_class));
+		bt_stream_class_get_name(stream_class),
+		bt_stream_class_get_id(stream_class));
 	notification = g_new0(struct bt_notification_packet_end, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one packet end notification.");
@@ -173,19 +173,19 @@ struct bt_notification *bt_notification_packet_end_create(
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64 ", addr=%p",
-		packet, stream, bt_ctf_stream_get_name(stream),
+		packet, stream, bt_stream_get_name(stream),
 		stream_class,
-		bt_ctf_stream_class_get_name(stream_class),
-		bt_ctf_stream_class_get_id(stream_class), notification);
+		bt_stream_class_get_name(stream_class),
+		bt_stream_class_get_id(stream_class), notification);
 	return &notification->parent;
 error:
 	return NULL;
 }
 
-struct bt_ctf_packet *bt_notification_packet_end_get_packet(
+struct bt_packet *bt_notification_packet_end_get_packet(
 		struct bt_notification *notification)
 {
-	struct bt_ctf_packet *ret = NULL;
+	struct bt_packet *ret = NULL;
 	struct bt_notification_packet_end *packet_end;
 
 	if (!notification) {

@@ -35,11 +35,11 @@
 #include <assert.h>
 #include <babeltrace/compat/string-internal.h>
 
-#define BT_CTF_ATTR_NAME_INDEX		0
-#define BT_CTF_ATTR_VALUE_INDEX		1
+#define BT_ATTR_NAME_INDEX		0
+#define BT_ATTR_VALUE_INDEX		1
 
 BT_HIDDEN
-struct bt_value *bt_ctf_attributes_create(void)
+struct bt_value *bt_attributes_create(void)
 {
 	struct bt_value *attr_obj;
 
@@ -70,20 +70,20 @@ struct bt_value *bt_ctf_attributes_create(void)
 }
 
 BT_HIDDEN
-void bt_ctf_attributes_destroy(struct bt_value *attr_obj)
+void bt_attributes_destroy(struct bt_value *attr_obj)
 {
 	BT_LOGD("Destroying attributes object: addr=%p", attr_obj);
 	bt_put(attr_obj);
 }
 
 BT_HIDDEN
-int64_t bt_ctf_attributes_get_count(struct bt_value *attr_obj)
+int64_t bt_attributes_get_count(struct bt_value *attr_obj)
 {
 	return bt_value_array_size(attr_obj);
 }
 
 BT_HIDDEN
-const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
+const char *bt_attributes_get_field_name(struct bt_value *attr_obj,
 		uint64_t index)
 {
 	int rc;
@@ -104,11 +104,11 @@ const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
 	}
 
 	attr_field_name_obj = bt_value_array_get(attr_field_obj,
-		BT_CTF_ATTR_NAME_INDEX);
+		BT_ATTR_NAME_INDEX);
 	if (!attr_field_name_obj) {
 		BT_LOGE("Cannot get attribute array value's element by index: "
 			"value-addr=%p, index=%" PRIu64, attr_field_obj,
-			(uint64_t) BT_CTF_ATTR_NAME_INDEX);
+			(uint64_t) BT_ATTR_NAME_INDEX);
 		goto end;
 	}
 
@@ -126,7 +126,7 @@ end:
 }
 
 BT_HIDDEN
-struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
+struct bt_value *bt_attributes_get_field_value(struct bt_value *attr_obj,
 		uint64_t index)
 {
 	struct bt_value *value_obj = NULL;
@@ -145,11 +145,11 @@ struct bt_value *bt_ctf_attributes_get_field_value(struct bt_value *attr_obj,
 	}
 
 	value_obj = bt_value_array_get(attr_field_obj,
-		BT_CTF_ATTR_VALUE_INDEX);
+		BT_ATTR_VALUE_INDEX);
 	if (!value_obj) {
 		BT_LOGE("Cannot get attribute array value's element by index: "
 			"value-addr=%p, index=%" PRIu64, attr_field_obj,
-			(uint64_t) BT_CTF_ATTR_VALUE_INDEX);
+			(uint64_t) BT_ATTR_VALUE_INDEX);
 	}
 
 end:
@@ -158,7 +158,7 @@ end:
 }
 
 static
-struct bt_value *bt_ctf_attributes_get_field_by_name(
+struct bt_value *bt_attributes_get_field_by_name(
 		struct bt_value *attr_obj, const char *name)
 {
 	uint64_t i;
@@ -218,7 +218,7 @@ error:
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
+int bt_attributes_set_field_value(struct bt_value *attr_obj,
 		const char *name, struct bt_value *value_obj)
 {
 	int ret = 0;
@@ -232,10 +232,10 @@ int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
 		goto end;
 	}
 
-	attr_field_obj = bt_ctf_attributes_get_field_by_name(attr_obj, name);
+	attr_field_obj = bt_attributes_get_field_by_name(attr_obj, name);
 	if (attr_field_obj) {
 		ret = bt_value_array_set(attr_field_obj,
-			BT_CTF_ATTR_VALUE_INDEX, value_obj);
+			BT_ATTR_VALUE_INDEX, value_obj);
 		goto end;
 	}
 
@@ -268,7 +268,7 @@ end:
 }
 
 BT_HIDDEN
-struct bt_value *bt_ctf_attributes_get_field_value_by_name(
+struct bt_value *bt_attributes_get_field_value_by_name(
 		struct bt_value *attr_obj, const char *name)
 {
 	struct bt_value *value_obj = NULL;
@@ -280,7 +280,7 @@ struct bt_value *bt_ctf_attributes_get_field_value_by_name(
 		goto end;
 	}
 
-	attr_field_obj = bt_ctf_attributes_get_field_by_name(attr_obj, name);
+	attr_field_obj = bt_attributes_get_field_by_name(attr_obj, name);
 	if (!attr_field_obj) {
 		BT_LOGD("Cannot find attributes object's field by name: "
 			"value-addr=%p, name=\"%s\"", attr_obj, name);
@@ -288,11 +288,11 @@ struct bt_value *bt_ctf_attributes_get_field_value_by_name(
 	}
 
 	value_obj = bt_value_array_get(attr_field_obj,
-		BT_CTF_ATTR_VALUE_INDEX);
+		BT_ATTR_VALUE_INDEX);
 	if (!value_obj) {
 		BT_LOGE("Cannot get attribute array value's element by index: "
 			"value-addr=%p, index=%" PRIu64, attr_field_obj,
-			(uint64_t) BT_CTF_ATTR_VALUE_INDEX);
+			(uint64_t) BT_ATTR_VALUE_INDEX);
 	}
 
 end:
@@ -302,7 +302,7 @@ end:
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_freeze(struct bt_value *attr_obj)
+int bt_attributes_freeze(struct bt_value *attr_obj)
 {
 	uint64_t i;
 	int64_t count;
@@ -326,7 +326,7 @@ int bt_ctf_attributes_freeze(struct bt_value *attr_obj)
 	for (i = 0; i < count; ++i) {
 		struct bt_value *obj = NULL;
 
-		obj = bt_ctf_attributes_get_field_value(attr_obj, i);
+		obj = bt_attributes_get_field_value(attr_obj, i);
 		if (!obj) {
 			BT_LOGE("Cannot get attributes object's field value by index: "
 				"value-addr=%p, index=%" PRIu64,

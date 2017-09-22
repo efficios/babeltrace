@@ -32,20 +32,20 @@
 
 typedef void *(*bt_child_accessor)(void *object, int index);
 typedef int64_t (*bt_child_count_accessor)(void *object);
-typedef int (*bt_child_visitor)(void *object, bt_ctf_visitor visitor,
+typedef int (*bt_child_visitor)(void *object, bt_visitor visitor,
 		void *data);
 
-struct bt_ctf_object {
-	enum bt_ctf_object_type type;
+struct bt_visitor_object {
+	enum bt_visitor_object_type type;
 	void *object;
 };
 
 BT_HIDDEN
-int visitor_helper(struct bt_ctf_object *root,
+int visitor_helper(struct bt_visitor_object *root,
 		bt_child_count_accessor child_counter,
 		bt_child_accessor child_accessor,
 		bt_child_visitor child_visitor,
-		bt_ctf_visitor visitor,
+		bt_visitor visitor,
 		void *data);
 
 #endif /* BABELTRACE_CTF_IR_VISITOR_INTERNAL_H */

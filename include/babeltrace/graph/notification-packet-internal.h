@@ -33,16 +33,16 @@
 
 struct bt_notification_packet_begin {
 	struct bt_notification parent;
-	struct bt_ctf_packet *packet;
+	struct bt_packet *packet;
 };
 
 struct bt_notification_packet_end {
 	struct bt_notification parent;
-	struct bt_ctf_packet *packet;
+	struct bt_packet *packet;
 };
 
 static inline
-struct bt_ctf_packet *bt_notification_packet_begin_borrow_packet(
+struct bt_packet *bt_notification_packet_begin_borrow_packet(
 		struct bt_notification *notif)
 {
 	struct bt_notification_packet_begin *notif_packet_begin =
@@ -54,7 +54,7 @@ struct bt_ctf_packet *bt_notification_packet_begin_borrow_packet(
 }
 
 static inline
-struct bt_ctf_packet *bt_notification_packet_end_borrow_packet(
+struct bt_packet *bt_notification_packet_end_borrow_packet(
 		struct bt_notification *notif)
 {
 	struct bt_notification_packet_end *notif_packet_end =

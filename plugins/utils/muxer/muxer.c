@@ -592,9 +592,9 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		int64_t *ts_ns)
 {
 	struct bt_clock_class_priority_map *cc_prio_map = NULL;
-	struct bt_ctf_clock_class *clock_class = NULL;
-	struct bt_ctf_clock_value *clock_value = NULL;
-	struct bt_ctf_event *event = NULL;
+	struct bt_clock_class *clock_class = NULL;
+	struct bt_clock_value *clock_value = NULL;
+	struct bt_event *event = NULL;
 	int ret = 0;
 	const unsigned char *cc_uuid;
 	const char *cc_name;
@@ -653,8 +653,8 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto error;
 	}
 
-	cc_uuid = bt_ctf_clock_class_get_uuid(clock_class);
-	cc_name = bt_ctf_clock_class_get_name(clock_class);
+	cc_uuid = bt_clock_class_get_uuid(clock_class);
+	cc_name = bt_clock_class_get_name(clock_class);
 
 	if (muxer_notif_iter->clock_class_expectation ==
 			MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ANY) {
@@ -665,7 +665,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		 * the iterator without a true
 		 * `assume-absolute-clock-classes` parameter.
 		 */
-		if (bt_ctf_clock_class_is_absolute(clock_class)) {
+		if (bt_clock_class_is_absolute(clock_class)) {
 			/* Expect absolute clock classes */
 			muxer_notif_iter->clock_class_expectation =
 				MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE;
@@ -693,7 +693,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	if (!muxer_comp->assume_absolute_clock_classes) {
 		switch (muxer_notif_iter->clock_class_expectation) {
 		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
-			if (!bt_ctf_clock_class_is_absolute(clock_class)) {
+			if (!bt_clock_class_is_absolute(clock_class)) {
 				BT_LOGE("Expecting an absolute clock class, "
 					"but got a non-absolute one: "
 					"clock-class-addr=%p, clock-class-name=\"%s\"",
@@ -702,7 +702,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 			}
 			break;
 		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
-			if (bt_ctf_clock_class_is_absolute(clock_class)) {
+			if (bt_clock_class_is_absolute(clock_class)) {
 				BT_LOGE("Expecting a non-absolute clock class with no UUID, "
 					"but got an absolute one: "
 					"clock-class-addr=%p, clock-class-name=\"%s\"",
@@ -736,7 +736,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 			}
 			break;
 		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
-			if (bt_ctf_clock_class_is_absolute(clock_class)) {
+			if (bt_clock_class_is_absolute(clock_class)) {
 				BT_LOGE("Expecting a non-absolute clock class with a specific UUID, "
 					"but got an absolute one: "
 					"clock-class-addr=%p, clock-class-name=\"%s\"",
@@ -808,7 +808,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	case BT_NOTIFICATION_TYPE_EVENT:
 		event = bt_notification_event_get_event(notif);
 		assert(event);
-		clock_value = bt_ctf_event_get_clock_value(event,
+		clock_value = bt_event_get_clock_value(event,
 			clock_class);
 		break;
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
@@ -828,7 +828,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto error;
 	}
 
-	ret = bt_ctf_clock_value_get_value_ns_from_epoch(clock_value, ts_ns);
+	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ts_ns);
 	if (ret) {
 		BT_LOGE("Cannot get nanoseconds from Epoch of clock value: "
 			"clock-value-addr=%p", clock_value);

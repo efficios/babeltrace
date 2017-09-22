@@ -54,11 +54,11 @@ struct packet_header {
 } __attribute__((__packed__));
 
 static
-enum bt_ctf_lttng_live_iterator_status lttng_live_update_clock_map(
+enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
 		struct lttng_live_trace *trace)
 {
-	enum bt_ctf_lttng_live_iterator_status status =
-			BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_lttng_live_iterator_status status =
+			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	size_t i;
 	int count, ret;
 
@@ -68,12 +68,12 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_update_clock_map(
 		goto error;
 	}
 
-	count = bt_ctf_trace_get_clock_class_count(trace->trace);
+	count = bt_trace_get_clock_class_count(trace->trace);
 	assert(count >= 0);
 
 	for (i = 0; i < count; i++) {
-		struct bt_ctf_clock_class *clock_class =
-			bt_ctf_trace_get_clock_class_by_index(trace->trace, i);
+		struct bt_clock_class *clock_class =
+			bt_trace_get_clock_class_by_index(trace->trace, i);
 
 		assert(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
@@ -87,13 +87,13 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_update_clock_map(
 
 	goto end;
 error:
-	status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+	status = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 end:
 	return status;
 }
 
 BT_HIDDEN
-enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
+enum bt_lttng_live_iterator_status lttng_live_metadata_update(
 		struct lttng_live_trace *trace)
 {
 	struct lttng_live_session *session = trace->session;
@@ -103,16 +103,16 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 	char *metadata_buf = NULL;
 	FILE *fp = NULL;
 	enum ctf_metadata_decoder_status decoder_status;
-	enum bt_ctf_lttng_live_iterator_status status =
-		BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum bt_lttng_live_iterator_status status =
+		BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 
 	/* No metadata stream yet. */
 	if (!metadata) {
 		if (session->new_streams_needed) {
-			status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+			status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		} else {
 			session->new_streams_needed = true;
-			status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+			status = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		}
 		goto end;
 	}
@@ -164,7 +164,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 		}
 		if (errno == EINTR) {
 			if (lttng_live_is_canceled(session->lttng_live)) {
-				status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+				status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 				goto end;
 			}
 		}
@@ -178,7 +178,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 
 	if (len_read == 0) {
 		if (!trace->trace) {
-			status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+			status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			goto end;
 		}
 		trace->new_metadata_needed = false;
@@ -199,12 +199,12 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 		trace->trace = ctf_metadata_decoder_get_trace(metadata->decoder);
 		trace->new_metadata_needed = false;
 		status = lttng_live_update_clock_map(trace);
-		if (status != BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_OK) {
+		if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 			goto end;
 		}
 		break;
 	case CTF_METADATA_DECODER_STATUS_INCOMPLETE:
-		status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		break;
 	case CTF_METADATA_DECODER_STATUS_ERROR:
 	case CTF_METADATA_DECODER_STATUS_INVAL_VERSION:
@@ -214,7 +214,7 @@ enum bt_ctf_lttng_live_iterator_status lttng_live_metadata_update(
 
 	goto end;
 error:
-	status = BT_CTF_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+	status = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 end:
 	if (fp) {
 		int closeret;

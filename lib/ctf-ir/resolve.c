@@ -59,7 +59,7 @@ typedef GPtrArray type_stack;
  * `type` is owned by the stack frame.
  */
 struct type_stack_frame {
-	struct bt_ctf_field_type *type;
+	struct bt_field_type *type;
 	int index;
 };
 
@@ -78,34 +78,34 @@ struct type_stack_frame {
  */
 struct resolve_context {
 	struct bt_value *environment;
-	struct bt_ctf_field_type *scopes[6];
+	struct bt_field_type *scopes[6];
 
 	/* Root scope being visited */
-	enum bt_ctf_scope root_scope;
+	enum bt_scope root_scope;
 	type_stack *type_stack;
-	struct bt_ctf_field_type *cur_field_type;
+	struct bt_field_type *cur_field_type;
 };
 
 /* TSDL dynamic scope prefixes as defined in CTF Section 7.3.2 */
 static const char * const absolute_path_prefixes[] = {
-	[BT_CTF_SCOPE_ENV]			= "env.",
-	[BT_CTF_SCOPE_TRACE_PACKET_HEADER]	= "trace.packet.header.",
-	[BT_CTF_SCOPE_STREAM_PACKET_CONTEXT]	= "stream.packet.context.",
-	[BT_CTF_SCOPE_STREAM_EVENT_HEADER]	= "stream.event.header.",
-	[BT_CTF_SCOPE_STREAM_EVENT_CONTEXT]	= "stream.event.context.",
-	[BT_CTF_SCOPE_EVENT_CONTEXT]		= "event.context.",
-	[BT_CTF_SCOPE_EVENT_FIELDS]		= "event.fields.",
+	[BT_SCOPE_ENV]			= "env.",
+	[BT_SCOPE_TRACE_PACKET_HEADER]	= "trace.packet.header.",
+	[BT_SCOPE_STREAM_PACKET_CONTEXT]	= "stream.packet.context.",
+	[BT_SCOPE_STREAM_EVENT_HEADER]	= "stream.event.header.",
+	[BT_SCOPE_STREAM_EVENT_CONTEXT]	= "stream.event.context.",
+	[BT_SCOPE_EVENT_CONTEXT]		= "event.context.",
+	[BT_SCOPE_EVENT_FIELDS]		= "event.fields.",
 };
 
 /* Number of path tokens used for the absolute prefixes */
 static const int absolute_path_prefix_ptoken_counts[] = {
-	[BT_CTF_SCOPE_ENV]			= 1,
-	[BT_CTF_SCOPE_TRACE_PACKET_HEADER]	= 3,
-	[BT_CTF_SCOPE_STREAM_PACKET_CONTEXT]	= 3,
-	[BT_CTF_SCOPE_STREAM_EVENT_HEADER]	= 3,
-	[BT_CTF_SCOPE_STREAM_EVENT_CONTEXT]	= 3,
-	[BT_CTF_SCOPE_EVENT_CONTEXT]		= 2,
-	[BT_CTF_SCOPE_EVENT_FIELDS]		= 2,
+	[BT_SCOPE_ENV]			= 1,
+	[BT_SCOPE_TRACE_PACKET_HEADER]	= 3,
+	[BT_SCOPE_STREAM_PACKET_CONTEXT]	= 3,
+	[BT_SCOPE_STREAM_EVENT_HEADER]	= 3,
+	[BT_SCOPE_STREAM_EVENT_CONTEXT]	= 3,
+	[BT_SCOPE_EVENT_CONTEXT]		= 2,
+	[BT_SCOPE_EVENT_FIELDS]		= 2,
 };
 
 /*
@@ -146,7 +146,7 @@ void type_stack_destroy(type_stack *stack)
  * `type` is owned by the caller (stack frame gets a new reference).
  */
 static
-int type_stack_push(type_stack *stack, struct bt_ctf_field_type *type)
+int type_stack_push(type_stack *stack, struct bt_field_type *type)
 {
 	int ret = 0;
 	struct type_stack_frame *frame = NULL;
@@ -254,13 +254,13 @@ void type_stack_pop(type_stack *stack)
  * Return value is owned by `ctx` on success.
  */
 static
-struct bt_ctf_field_type *get_type_from_ctx(struct resolve_context *ctx,
-		enum bt_ctf_scope scope)
+struct bt_field_type *get_type_from_ctx(struct resolve_context *ctx,
+		enum bt_scope scope)
 {
-	assert(scope >= BT_CTF_SCOPE_TRACE_PACKET_HEADER &&
-		scope <= BT_CTF_SCOPE_EVENT_FIELDS);
+	assert(scope >= BT_SCOPE_TRACE_PACKET_HEADER &&
+		scope <= BT_SCOPE_EVENT_FIELDS);
 
-	return ctx->scopes[scope - BT_CTF_SCOPE_TRACE_PACKET_HEADER];
+	return ctx->scopes[scope - BT_SCOPE_TRACE_PACKET_HEADER];
 }
 
 /*
@@ -268,14 +268,14 @@ struct bt_ctf_field_type *get_type_from_ctx(struct resolve_context *ctx,
  * CTF_NODE_UNKNOWN if the path is found to be relative.
  */
 static
-enum bt_ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
+enum bt_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 {
-	enum bt_ctf_scope scope;
-	enum bt_ctf_scope ret = BT_CTF_SCOPE_UNKNOWN;
+	enum bt_scope scope;
+	enum bt_scope ret = BT_SCOPE_UNKNOWN;
 	const size_t prefixes_count = sizeof(absolute_path_prefixes) /
 		sizeof(*absolute_path_prefixes);
 
-	for (scope = BT_CTF_SCOPE_ENV; scope < BT_CTF_SCOPE_ENV +
+	for (scope = BT_SCOPE_ENV; scope < BT_SCOPE_ENV +
 			prefixes_count; scope++) {
 		/*
 		 * Chech if path string starts with a known absolute
@@ -289,7 +289,7 @@ enum bt_ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 			BT_LOGV("Prefix does not match: trying the next one: "
 				"path=\"%s\", path-prefix=\"%s\", scope=%s",
 				pathstr, absolute_path_prefixes[scope],
-				bt_ctf_scope_string(scope));
+				bt_scope_string(scope));
 			continue;
 		}
 
@@ -297,7 +297,7 @@ enum bt_ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 		ret = scope;
 		BT_LOGV("Found root scope from absolute path: "
 			"path=\"%s\", scope=%s", pathstr,
-			bt_ctf_scope_string(scope));
+			bt_scope_string(scope));
 		goto end;
 	}
 
@@ -395,8 +395,8 @@ error:
  * caller.
  */
 static
-int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
-		struct bt_ctf_field_type *type, int src_index)
+int ptokens_to_field_path(GList *ptokens, struct bt_field_path *field_path,
+		struct bt_field_type *type, int src_index)
 {
 	int ret = 0;
 	GList *cur_ptoken = ptokens;
@@ -408,19 +408,19 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 	/* Locate target */
 	while (cur_ptoken) {
 		int child_index;
-		struct bt_ctf_field_type *child_type;
+		struct bt_field_type *child_type;
 		const char *field_name = ptoken_get_string(cur_ptoken);
-		enum bt_ctf_field_type_id type_id =
-			bt_ctf_field_type_get_type_id(type);
+		enum bt_field_type_id type_id =
+			bt_field_type_get_type_id(type);
 
 		BT_LOGV("Current path token: token=\"%s\"", field_name);
 
 		/* Find to which index corresponds the current path token */
-		if (type_id == BT_CTF_FIELD_TYPE_ID_ARRAY ||
-				type_id == BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
+		if (type_id == BT_FIELD_TYPE_ID_ARRAY ||
+				type_id == BT_FIELD_TYPE_ID_SEQUENCE) {
 			child_index = -1;
 		} else {
-			child_index = bt_ctf_field_type_get_field_index(type,
+			child_index = bt_field_type_get_field_index(type,
 				field_name);
 			if (child_index < 0) {
 				/*
@@ -450,7 +450,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 		g_array_append_val(field_path->indexes, child_index);
 
 		/* Get child field type */
-		child_type = bt_ctf_field_type_get_field_at_index(type,
+		child_type = bt_field_type_get_field_at_index(type,
 			child_index);
 		if (!child_type) {
 			BT_LOGW("Cannot get child field type: "
@@ -478,12 +478,12 @@ end:
  */
 static
 int absolute_ptokens_to_field_path(GList *ptokens,
-		struct bt_ctf_field_path *field_path,
+		struct bt_field_path *field_path,
 		struct resolve_context *ctx)
 {
 	int ret = 0;
 	GList *cur_ptoken;
-	struct bt_ctf_field_type *type;
+	struct bt_field_type *type;
 
 	/* Skip absolute path tokens */
 	cur_ptoken = g_list_nth(ptokens,
@@ -495,7 +495,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		/* Error: root type is not available */
 		BT_LOGW("Root field type is not available: "
 			"root-scope=%s",
-			bt_ctf_scope_string(field_path->root));
+			bt_scope_string(field_path->root));
 		ret = -1;
 		goto end;
 	}
@@ -516,12 +516,12 @@ end:
  */
 static
 int relative_ptokens_to_field_path(GList *ptokens,
-		struct bt_ctf_field_path *field_path,
+		struct bt_field_path *field_path,
 		struct resolve_context *ctx)
 {
 	int ret = 0;
 	int parent_pos_in_stack;
-	struct bt_ctf_field_path *tail_field_path = bt_ctf_field_path_create();
+	struct bt_field_path *tail_field_path = bt_field_path_create();
 
 	if (!tail_field_path) {
 		BT_LOGE_STR("Cannot create empty field path.");
@@ -532,7 +532,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 	parent_pos_in_stack = type_stack_size(ctx->type_stack) - 1;
 
 	while (parent_pos_in_stack >= 0) {
-		struct bt_ctf_field_type *parent_type =
+		struct bt_field_type *parent_type =
 			type_stack_at(ctx->type_stack,
 				parent_pos_in_stack)->type;
 		int cur_index = type_stack_at(ctx->type_stack,
@@ -548,7 +548,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 		if (ret) {
 			/* Not found... yet */
 			BT_LOGV_STR("Not found at this point.");
-			bt_ctf_field_path_clear(tail_field_path);
+			bt_field_path_clear(tail_field_path);
 		} else {
 			/* Found: stitch tail field path to head field path */
 			int i = 0;
@@ -556,7 +556,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 				tail_field_path->indexes->len;
 
 			while (BT_TRUE) {
-				struct bt_ctf_field_type *cur_type =
+				struct bt_field_type *cur_type =
 					type_stack_at(ctx->type_stack, i)->type;
 				int index = type_stack_at(
 					ctx->type_stack, i)->index;
@@ -588,12 +588,12 @@ int relative_ptokens_to_field_path(GList *ptokens,
 		/* Not found: look in previous scopes */
 		field_path->root--;
 
-		while (field_path->root >= BT_CTF_SCOPE_TRACE_PACKET_HEADER) {
-			struct bt_ctf_field_type *root_type;
-			bt_ctf_field_path_clear(field_path);
+		while (field_path->root >= BT_SCOPE_TRACE_PACKET_HEADER) {
+			struct bt_field_type *root_type;
+			bt_field_path_clear(field_path);
 
 			BT_LOGV("Looking into potential root scope: scope=%s",
-				bt_ctf_scope_string(field_path->root));
+				bt_scope_string(field_path->root));
 			root_type = get_type_from_ctx(ctx, field_path->root);
 			if (!root_type) {
 				field_path->root--;
@@ -628,16 +628,16 @@ end:
  * Return value is owned by the caller on success.
  */
 static
-struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
+struct bt_field_path *pathstr_to_field_path(const char *pathstr,
 		struct resolve_context *ctx)
 {
 	int ret;
-	enum bt_ctf_scope root_scope;
+	enum bt_scope root_scope;
 	GList *ptokens = NULL;
-	struct bt_ctf_field_path *field_path = NULL;
+	struct bt_field_path *field_path = NULL;
 
 	/* Create field path */
-	field_path = bt_ctf_field_path_create();
+	field_path = bt_field_path_create();
 	if (!field_path) {
 		BT_LOGE_STR("Cannot create empty field path.");
 		ret = -1;
@@ -656,20 +656,20 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 	/* Absolute or relative path? */
 	root_scope = get_root_scope_from_absolute_pathstr(pathstr);
 
-	if (root_scope == BT_CTF_SCOPE_UNKNOWN) {
+	if (root_scope == BT_SCOPE_UNKNOWN) {
 		/* Relative path: start with current root scope */
 		field_path->root = ctx->root_scope;
 		BT_LOGV("Detected relative path: starting with current root scope: "
-			"scope=%s", bt_ctf_scope_string(field_path->root));
+			"scope=%s", bt_scope_string(field_path->root));
 		ret = relative_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
 			BT_LOGW("Cannot get relative field path of path string: "
 				"path=\"%s\", start-scope=%s, end-scope=%s",
-				pathstr, bt_ctf_scope_string(ctx->root_scope),
-				bt_ctf_scope_string(field_path->root));
+				pathstr, bt_scope_string(ctx->root_scope),
+				bt_scope_string(field_path->root));
 			goto end;
 		}
-	} else if (root_scope == BT_CTF_SCOPE_ENV) {
+	} else if (root_scope == BT_SCOPE_ENV) {
 		BT_LOGW("Sequence field types referring the trace environment are not supported as of this version: "
 			"path=\"%s\"", pathstr);
 		ret = -1;
@@ -678,19 +678,19 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 		/* Absolute path: use found root scope */
 		field_path->root = root_scope;
 		BT_LOGV("Detected absolute path: using root scope: "
-			"scope=%s", bt_ctf_scope_string(field_path->root));
+			"scope=%s", bt_scope_string(field_path->root));
 		ret = absolute_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
 			BT_LOGW("Cannot get absolute field path of path string: "
 				"path=\"%s\", root-scope=%s",
-				pathstr, bt_ctf_scope_string(root_scope));
+				pathstr, bt_scope_string(root_scope));
 			goto end;
 		}
 	}
 
 	if (ret == 0) {
 		GString *field_path_pretty =
-			bt_ctf_field_path_string(field_path);
+			bt_field_path_string(field_path);
 		const char *field_path_pretty_str =
 			field_path_pretty ? field_path_pretty->str : NULL;
 
@@ -718,12 +718,12 @@ end:
  * Return value is owned by the caller on success.
  */
 static
-struct bt_ctf_field_type *field_path_to_field_type(
-		struct bt_ctf_field_path *field_path,
+struct bt_field_type *field_path_to_field_type(
+		struct bt_field_path *field_path,
 		struct resolve_context *ctx)
 {
 	int i;
-	struct bt_ctf_field_type *type;
+	struct bt_field_type *type;
 
 	/* Start with root type */
 	type = get_type_from_ctx(ctx, field_path->root);
@@ -731,18 +731,18 @@ struct bt_ctf_field_type *field_path_to_field_type(
 	if (!type) {
 		/* Error: root type is not available */
 		BT_LOGW("Root field type is not available: root-scope=%s",
-			bt_ctf_scope_string(field_path->root));
+			bt_scope_string(field_path->root));
 		goto error;
 	}
 
 	/* Locate target */
 	for (i = 0; i < field_path->indexes->len; i++) {
-		struct bt_ctf_field_type *child_type;
+		struct bt_field_type *child_type;
 		int child_index =
 			g_array_index(field_path->indexes, int, i);
 
 		/* Get child field type */
-		child_type = bt_ctf_field_type_get_field_at_index(type,
+		child_type = bt_field_type_get_field_at_index(type,
 			child_index);
 		if (!child_type) {
 			BT_LOGW("Cannot get field type: "
@@ -767,13 +767,13 @@ error:
  * Return value is owned by the caller on success.
  */
 static
-struct bt_ctf_field_path *get_ctx_stack_field_path(struct resolve_context *ctx)
+struct bt_field_path *get_ctx_stack_field_path(struct resolve_context *ctx)
 {
 	int i;
-	struct bt_ctf_field_path *field_path;
+	struct bt_field_path *field_path;
 
 	/* Create field path */
-	field_path = bt_ctf_field_path_create();
+	field_path = bt_field_path_create();
 	if (!field_path) {
 		BT_LOGE_STR("Cannot create empty field path.");
 		goto error;
@@ -801,17 +801,17 @@ error:
  *
  * `field_path1` and `field_path2` are owned by the caller.
  */
-int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
-		struct bt_ctf_field_path *field_path2)
+int get_field_paths_lca_index(struct bt_field_path *field_path1,
+		struct bt_field_path *field_path2)
 {
 	int lca_index = 0;
 	int field_path1_len, field_path2_len;
 
 	if (BT_LOG_ON_VERBOSE) {
 		GString *field_path1_pretty =
-			bt_ctf_field_path_string(field_path1);
+			bt_field_path_string(field_path1);
 		GString *field_path2_pretty =
-			bt_ctf_field_path_string(field_path2);
+			bt_field_path_string(field_path2);
 		const char *field_path1_pretty_str =
 			field_path1_pretty ? field_path1_pretty->str : NULL;
 		const char *field_path2_pretty_str =
@@ -878,16 +878,16 @@ int get_field_paths_lca_index(struct bt_ctf_field_path *field_path1,
  * `target_field_path` and `target_type` are owned by the caller.
  */
 static
-int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
-		struct bt_ctf_field_type *target_type,
+int validate_target_field_path(struct bt_field_path *target_field_path,
+		struct bt_field_type *target_type,
 		struct resolve_context *ctx)
 {
 	int ret = 0;
-	struct bt_ctf_field_path *ctx_field_path;
+	struct bt_field_path *ctx_field_path;
 	int target_field_path_len = target_field_path->indexes->len;
 	int lca_index;
-	enum bt_ctf_field_type_id ctx_cur_field_type_id;
-	enum bt_ctf_field_type_id target_type_id;
+	enum bt_field_type_id ctx_cur_field_type_id;
+	enum bt_field_type_id target_type_id;
 
 	/* Get context field path */
 	ctx_field_path = get_ctx_stack_field_path(ctx);
@@ -913,8 +913,8 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 	if (target_field_path->root > ctx_field_path->root) {
 		BT_LOGW("Target field type is located after source field type: "
 			"target-root=%s, source-root=%s",
-			bt_ctf_scope_string(target_field_path->root),
-			bt_ctf_scope_string(ctx_field_path->root));
+			bt_scope_string(target_field_path->root),
+			bt_scope_string(ctx_field_path->root));
 		ret = -1;
 		goto end;
 	}
@@ -955,29 +955,28 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 	/*
 	 * Make sure the target type has the right type and properties.
 	 */
-	ctx_cur_field_type_id = bt_ctf_field_type_get_type_id(
+	ctx_cur_field_type_id = bt_field_type_get_type_id(
 		ctx->cur_field_type);
-	target_type_id = bt_ctf_field_type_get_type_id(target_type);
+	target_type_id = bt_field_type_get_type_id(target_type);
 
 	switch (ctx_cur_field_type_id) {
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
-		if (target_type_id != BT_CTF_FIELD_TYPE_ID_ENUM) {
+	case BT_FIELD_TYPE_ID_VARIANT:
+		if (target_type_id != BT_FIELD_TYPE_ID_ENUM) {
 			BT_LOGW("Variant field type's tag field type is not an enumeration field type: "
 				"tag-ft-addr=%p, tag-ft-id=%s",
 				target_type,
-				bt_ctf_field_type_id_string(target_type_id));
+				bt_field_type_id_string(target_type_id));
 			ret = -1;
 			goto end;
 		}
 		break;
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
-		if (target_type_id != BT_CTF_FIELD_TYPE_ID_INTEGER ||
-				bt_ctf_field_type_integer_get_signed(
-					target_type)) {
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+		if (target_type_id != BT_FIELD_TYPE_ID_INTEGER ||
+				bt_field_type_integer_is_signed(target_type)) {
 			BT_LOGW("Sequence field type's length field type is not an unsigned integer field type: "
 				"length-ft-addr=%p, length-ft-id=%s",
 				target_type,
-				bt_ctf_field_type_id_string(target_type_id));
+				bt_field_type_id_string(target_type_id));
 			ret = -1;
 			goto end;
 		}
@@ -997,27 +996,27 @@ end:
  * `type` is owned by the caller.
  */
 static
-int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
+int resolve_sequence_or_variant_type(struct bt_field_type *type,
 		struct resolve_context *ctx)
 {
 	int ret = 0;
 	const char *pathstr;
-	enum bt_ctf_field_type_id type_id = bt_ctf_field_type_get_type_id(type);
-	struct bt_ctf_field_path *target_field_path = NULL;
-	struct bt_ctf_field_type *target_type = NULL;
+	enum bt_field_type_id type_id = bt_field_type_get_type_id(type);
+	struct bt_field_path *target_field_path = NULL;
+	struct bt_field_type *target_type = NULL;
 	GString *target_field_path_pretty = NULL;
 	const char *target_field_path_pretty_str;
 
 
 	/* Get path string */
 	switch (type_id) {
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_SEQUENCE:
 		pathstr =
-			bt_ctf_field_type_sequence_get_length_field_name(type);
+			bt_field_type_sequence_get_length_field_name(type);
 		break;
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_TYPE_ID_VARIANT:
 		pathstr =
-			bt_ctf_field_type_variant_get_tag_name(type);
+			bt_field_type_variant_get_tag_name(type);
 		break;
 	default:
 		abort();
@@ -1038,7 +1037,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 		goto end;
 	}
 
-	target_field_path_pretty = bt_ctf_field_path_string(target_field_path);
+	target_field_path_pretty = bt_field_path_string(target_field_path);
 	target_field_path_pretty_str =
 		target_field_path_pretty ? target_field_path_pretty->str : NULL;
 
@@ -1062,8 +1061,8 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 
 	/* Set target field path and target field type */
 	switch (type_id) {
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
-		ret = bt_ctf_field_type_sequence_set_length_field_path(
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+		ret = bt_field_type_sequence_set_length_field_path(
 			type, target_field_path);
 		if (ret) {
 			BT_LOGW("Cannot set sequence field type's length field path: "
@@ -1073,8 +1072,8 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			goto end;
 		}
 		break;
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
-		ret = bt_ctf_field_type_variant_set_tag_field_path(
+	case BT_FIELD_TYPE_ID_VARIANT:
+		ret = bt_field_type_variant_set_tag_field_path(
 			type, target_field_path);
 		if (ret) {
 			BT_LOGW("Cannot set varaint field type's tag field path: "
@@ -1084,7 +1083,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type *type,
 			goto end;
 		}
 
-		ret = bt_ctf_field_type_variant_set_tag_field_type(
+		ret = bt_field_type_variant_set_tag_field_type(
 			type, target_type);
 		if (ret) {
 			BT_LOGW("Cannot set varaint field type's tag field type: "
@@ -1114,23 +1113,23 @@ end:
  * `type` is owned by the caller.
  */
 static
-int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
+int resolve_type(struct bt_field_type *type, struct resolve_context *ctx)
 {
 	int ret = 0;
-	enum bt_ctf_field_type_id type_id;
+	enum bt_field_type_id type_id;
 
 	if (!type) {
 		/* Type is not available; still valid */
 		goto end;
 	}
 
-	type_id = bt_ctf_field_type_get_type_id(type);
+	type_id = bt_field_type_get_type_id(type);
 	ctx->cur_field_type = type;
 
 	/* Resolve sequence/variant field type */
 	switch (type_id) {
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_VARIANT:
 		ret = resolve_sequence_or_variant_type(type, ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve sequence field type's length or variant field type's tag: "
@@ -1144,10 +1143,10 @@ int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 
 	/* Recurse into compound types */
 	switch (type_id) {
-	case BT_CTF_FIELD_TYPE_ID_STRUCT:
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
-	case BT_CTF_FIELD_TYPE_ID_ARRAY:
+	case BT_FIELD_TYPE_ID_STRUCT:
+	case BT_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_ARRAY:
 	{
 		int64_t field_count, f_index;
 
@@ -1158,7 +1157,7 @@ int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 			goto end;
 		}
 
-		field_count = bt_ctf_field_type_get_field_count(type);
+		field_count = bt_field_type_get_field_count(type);
 		if (field_count < 0) {
 			BT_LOGW("Cannot get field type's field count: "
 				"ret=%" PRId64 ", ft-addr=%p",
@@ -1168,8 +1167,8 @@ int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 		}
 
 		for (f_index = 0; f_index < field_count; f_index++) {
-			struct bt_ctf_field_type *child_type =
-				bt_ctf_field_type_get_field_at_index(type,
+			struct bt_field_type *child_type =
+				bt_field_type_get_field_at_index(type,
 					f_index);
 
 			if (!child_type) {
@@ -1181,8 +1180,8 @@ int resolve_type(struct bt_ctf_field_type *type, struct resolve_context *ctx)
 				goto end;
 			}
 
-			if (type_id == BT_CTF_FIELD_TYPE_ID_ARRAY||
-					type_id == BT_CTF_FIELD_TYPE_ID_SEQUENCE) {
+			if (type_id == BT_FIELD_TYPE_ID_ARRAY||
+					type_id == BT_FIELD_TYPE_ID_SEQUENCE) {
 				type_stack_peek(ctx->type_stack)->index = -1;
 			} else {
 				type_stack_peek(ctx->type_stack)->index =
@@ -1215,28 +1214,28 @@ end:
  * Resolves the root field type corresponding to the scope `root_scope`.
  */
 static
-int resolve_root_type(enum bt_ctf_scope root_scope, struct resolve_context *ctx)
+int resolve_root_type(enum bt_scope root_scope, struct resolve_context *ctx)
 {
 	int ret;
 
 	assert(type_stack_size(ctx->type_stack) == 0);
 	ctx->root_scope = root_scope;
 	ret = resolve_type(get_type_from_ctx(ctx, root_scope), ctx);
-	ctx->root_scope = BT_CTF_SCOPE_UNKNOWN;
+	ctx->root_scope = BT_SCOPE_UNKNOWN;
 
 	return ret;
 }
 
 BT_HIDDEN
-int bt_ctf_resolve_types(
+int bt_resolve_types(
 		struct bt_value *environment,
-		struct bt_ctf_field_type *packet_header_type,
-		struct bt_ctf_field_type *packet_context_type,
-		struct bt_ctf_field_type *event_header_type,
-		struct bt_ctf_field_type *stream_event_ctx_type,
-		struct bt_ctf_field_type *event_context_type,
-		struct bt_ctf_field_type *event_payload_type,
-		enum bt_ctf_resolve_flag flags)
+		struct bt_field_type *packet_header_type,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type,
+		struct bt_field_type *stream_event_ctx_type,
+		struct bt_field_type *event_context_type,
+		struct bt_field_type *event_payload_type,
+		enum bt_resolve_flag flags)
 {
 	int ret = 0;
 	struct resolve_context ctx = {
@@ -1249,7 +1248,7 @@ int bt_ctf_resolve_types(
 			event_context_type,
 			event_payload_type,
 		},
-		.root_scope = BT_CTF_SCOPE_UNKNOWN,
+		.root_scope = BT_SCOPE_UNKNOWN,
 	};
 
 	BT_LOGV("Resolving field types: "
@@ -1271,8 +1270,8 @@ int bt_ctf_resolve_types(
 	}
 
 	/* Resolve packet header type */
-	if (flags & BT_CTF_RESOLVE_FLAG_PACKET_HEADER) {
-		ret = resolve_root_type(BT_CTF_SCOPE_TRACE_PACKET_HEADER, &ctx);
+	if (flags & BT_RESOLVE_FLAG_PACKET_HEADER) {
+		ret = resolve_root_type(BT_SCOPE_TRACE_PACKET_HEADER, &ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve trace packet header field type: "
 				"ret=%d", ret);
@@ -1281,8 +1280,8 @@ int bt_ctf_resolve_types(
 	}
 
 	/* Resolve packet context type */
-	if (flags & BT_CTF_RESOLVE_FLAG_PACKET_CONTEXT) {
-		ret = resolve_root_type(BT_CTF_SCOPE_STREAM_PACKET_CONTEXT, &ctx);
+	if (flags & BT_RESOLVE_FLAG_PACKET_CONTEXT) {
+		ret = resolve_root_type(BT_SCOPE_STREAM_PACKET_CONTEXT, &ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve stream packet context field type: "
 				"ret=%d", ret);
@@ -1291,8 +1290,8 @@ int bt_ctf_resolve_types(
 	}
 
 	/* Resolve event header type */
-	if (flags & BT_CTF_RESOLVE_FLAG_EVENT_HEADER) {
-		ret = resolve_root_type(BT_CTF_SCOPE_STREAM_EVENT_HEADER, &ctx);
+	if (flags & BT_RESOLVE_FLAG_EVENT_HEADER) {
+		ret = resolve_root_type(BT_SCOPE_STREAM_EVENT_HEADER, &ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve stream event header field type: "
 				"ret=%d", ret);
@@ -1301,8 +1300,8 @@ int bt_ctf_resolve_types(
 	}
 
 	/* Resolve stream event context type */
-	if (flags & BT_CTF_RESOLVE_FLAG_STREAM_EVENT_CTX) {
-		ret = resolve_root_type(BT_CTF_SCOPE_STREAM_EVENT_CONTEXT, &ctx);
+	if (flags & BT_RESOLVE_FLAG_STREAM_EVENT_CTX) {
+		ret = resolve_root_type(BT_SCOPE_STREAM_EVENT_CONTEXT, &ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve stream event context field type: "
 				"ret=%d", ret);
@@ -1311,8 +1310,8 @@ int bt_ctf_resolve_types(
 	}
 
 	/* Resolve event context type */
-	if (flags & BT_CTF_RESOLVE_FLAG_EVENT_CONTEXT) {
-		ret = resolve_root_type(BT_CTF_SCOPE_EVENT_CONTEXT, &ctx);
+	if (flags & BT_RESOLVE_FLAG_EVENT_CONTEXT) {
+		ret = resolve_root_type(BT_SCOPE_EVENT_CONTEXT, &ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve event context field type: "
 				"ret=%d", ret);
@@ -1321,8 +1320,8 @@ int bt_ctf_resolve_types(
 	}
 
 	/* Resolve event payload type */
-	if (flags & BT_CTF_RESOLVE_FLAG_EVENT_PAYLOAD) {
-		ret = resolve_root_type(BT_CTF_SCOPE_EVENT_FIELDS, &ctx);
+	if (flags & BT_RESOLVE_FLAG_EVENT_PAYLOAD) {
+		ret = resolve_root_type(BT_SCOPE_EVENT_FIELDS, &ctx);
 		if (ret) {
 			BT_LOGW("Cannot resolve event payload field type: "
 				"ret=%d", ret);

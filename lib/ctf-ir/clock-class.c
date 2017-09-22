@@ -41,15 +41,15 @@
 #include <babeltrace/object-internal.h>
 
 static
-void bt_ctf_clock_class_destroy(struct bt_object *obj);
+void bt_clock_class_destroy(struct bt_object *obj);
 
 BT_HIDDEN
-bt_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class)
+bt_bool bt_clock_class_is_valid(struct bt_clock_class *clock_class)
 {
 	return clock_class && clock_class->name;
 }
 
-int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_name(struct bt_clock_class *clock_class,
 		const char *name)
 {
 	int ret = 0;
@@ -62,12 +62,12 @@ int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_ctf_validate_identifier(name)) {
+	if (bt_identifier_is_valid(name)) {
 		BT_LOGE("Clock class's name is not a valid CTF identifier: "
 			"addr=%p, name=\"%s\"",
 			clock_class, name);
@@ -94,7 +94,7 @@ end:
 }
 
 static
-bool validate_freq(struct bt_ctf_clock_class *clock_class,
+bool validate_freq(struct bt_clock_class *clock_class,
 		const char *name, uint64_t freq)
 {
 	bool is_valid = true;
@@ -111,11 +111,11 @@ end:
 	return is_valid;
 }
 
-struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
+struct bt_clock_class *bt_clock_class_create(const char *name,
 		uint64_t freq)
 {
 	int ret;
-	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_clock_class *clock_class = NULL;
 
 	BT_LOGD("Creating default clock class object: name=\"%s\"",
 		name);
@@ -125,7 +125,7 @@ struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
 		goto error;
 	}
 
-	clock_class = g_new0(struct bt_ctf_clock_class, 1);
+	clock_class = g_new0(struct bt_clock_class, 1);
 	if (!clock_class) {
 		BT_LOGE_STR("Failed to allocate one clock class.");
 		goto error;
@@ -133,10 +133,10 @@ struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
 
 	clock_class->precision = 1;
 	clock_class->frequency = freq;
-	bt_object_init(clock_class, bt_ctf_clock_class_destroy);
+	bt_object_init(clock_class, bt_clock_class_destroy);
 
 	if (name) {
-		ret = bt_ctf_clock_class_set_name(clock_class, name);
+		ret = bt_clock_class_set_name(clock_class, name);
 		if (ret) {
 			BT_LOGE("Cannot set clock class's name: "
 				"addr=%p, name=\"%s\"",
@@ -153,7 +153,7 @@ error:
 	return clock_class;
 }
 
-const char *bt_ctf_clock_class_get_name(struct bt_ctf_clock_class *clock_class)
+const char *bt_clock_class_get_name(struct bt_clock_class *clock_class)
 {
 	const char *ret = NULL;
 
@@ -170,8 +170,8 @@ end:
 	return ret;
 }
 
-const char *bt_ctf_clock_class_get_description(
-		struct bt_ctf_clock_class *clock_class)
+const char *bt_clock_class_get_description(
+		struct bt_clock_class *clock_class)
 {
 	const char *ret = NULL;
 
@@ -187,7 +187,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_set_description(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_description(struct bt_clock_class *clock_class,
 		const char *desc)
 {
 	int ret = 0;
@@ -195,7 +195,7 @@ int bt_ctf_clock_class_set_description(struct bt_ctf_clock_class *clock_class,
 	if (!clock_class || !desc) {
 		BT_LOGW("Invalid parameter: clock class or description is NULL: "
 			"clock-class-addr=%p, name=\"%s\", desc-addr=%p",
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_class, bt_clock_class_get_name(clock_class),
 			desc);
 		ret = -1;
 		goto end;
@@ -203,7 +203,7 @@ int bt_ctf_clock_class_set_description(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
@@ -212,13 +212,13 @@ int bt_ctf_clock_class_set_description(struct bt_ctf_clock_class *clock_class,
 	ret = clock_class->description ? 0 : -1;
 	BT_LOGV("Set clock class's description: addr=%p, "
 		"name=\"%s\", desc=\"%s\"",
-		clock_class, bt_ctf_clock_class_get_name(clock_class), desc);
+		clock_class, bt_clock_class_get_name(clock_class), desc);
 end:
 	return ret;
 }
 
-uint64_t bt_ctf_clock_class_get_frequency(
-		struct bt_ctf_clock_class *clock_class)
+uint64_t bt_clock_class_get_frequency(
+		struct bt_clock_class *clock_class)
 {
 	uint64_t ret = -1ULL;
 
@@ -232,7 +232,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_set_frequency(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 		uint64_t freq)
 {
 	int ret = 0;
@@ -240,12 +240,12 @@ int bt_ctf_clock_class_set_frequency(struct bt_ctf_clock_class *clock_class,
 	if (!clock_class) {
 		BT_LOGW("Invalid parameter: clock class is NULL or frequency is invalid: "
 			"addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
-	if (!validate_freq(clock_class, bt_ctf_clock_class_get_name(clock_class),
+	if (!validate_freq(clock_class, bt_clock_class_get_name(clock_class),
 			freq)) {
 		/* validate_freq() logs errors */
 		goto end;
@@ -253,19 +253,19 @@ int bt_ctf_clock_class_set_frequency(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
 	clock_class->frequency = freq;
 	BT_LOGV("Set clock class's frequency: addr=%p, name=\"%s\", freq=%" PRIu64,
-		clock_class, bt_ctf_clock_class_get_name(clock_class), freq);
+		clock_class, bt_clock_class_get_name(clock_class), freq);
 end:
 	return ret;
 }
 
-uint64_t bt_ctf_clock_class_get_precision(struct bt_ctf_clock_class *clock_class)
+uint64_t bt_clock_class_get_precision(struct bt_clock_class *clock_class)
 {
 	uint64_t ret = -1ULL;
 
@@ -279,7 +279,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_set_precision(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 		uint64_t precision)
 {
 	int ret = 0;
@@ -287,7 +287,7 @@ int bt_ctf_clock_class_set_precision(struct bt_ctf_clock_class *clock_class,
 	if (!clock_class || precision == -1ULL) {
 		BT_LOGW("Invalid parameter: clock class is NULL or precision is invalid: "
 			"addr=%p, name=\"%s\", precision=%" PRIu64,
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_class, bt_clock_class_get_name(clock_class),
 			precision);
 		ret = -1;
 		goto end;
@@ -295,20 +295,20 @@ int bt_ctf_clock_class_set_precision(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
 	clock_class->precision = precision;
 	BT_LOGV("Set clock class's precision: addr=%p, name=\"%s\", precision=%" PRIu64,
-		clock_class, bt_ctf_clock_class_get_name(clock_class),
+		clock_class, bt_clock_class_get_name(clock_class),
 		precision);
 end:
 	return ret;
 }
 
-int bt_ctf_clock_class_get_offset_s(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_get_offset_s(struct bt_clock_class *clock_class,
 		int64_t *offset_s)
 {
 	int ret = 0;
@@ -316,7 +316,7 @@ int bt_ctf_clock_class_get_offset_s(struct bt_ctf_clock_class *clock_class,
 	if (!clock_class || !offset_s) {
 		BT_LOGW("Invalid parameter: clock class or offset pointer is NULL: "
 			"clock-class-addr=%p, name=\"%s\", offset-addr=%p",
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_class, bt_clock_class_get_name(clock_class),
 			offset_s);
 		ret = -1;
 		goto end;
@@ -327,7 +327,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_set_offset_s(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_offset_s(struct bt_clock_class *clock_class,
 		int64_t offset_s)
 {
 	int ret = 0;
@@ -340,7 +340,7 @@ int bt_ctf_clock_class_set_offset_s(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
@@ -348,13 +348,13 @@ int bt_ctf_clock_class_set_offset_s(struct bt_ctf_clock_class *clock_class,
 	clock_class->offset_s = offset_s;
 	BT_LOGV("Set clock class's offset (seconds): "
 		"addr=%p, name=\"%s\", offset-s=%" PRId64,
-		clock_class, bt_ctf_clock_class_get_name(clock_class),
+		clock_class, bt_clock_class_get_name(clock_class),
 		offset_s);
 end:
 	return ret;
 }
 
-int bt_ctf_clock_class_get_offset_cycles(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_get_offset_cycles(struct bt_clock_class *clock_class,
 		int64_t *offset)
 {
 	int ret = 0;
@@ -362,7 +362,7 @@ int bt_ctf_clock_class_get_offset_cycles(struct bt_ctf_clock_class *clock_class,
 	if (!clock_class || !offset) {
 		BT_LOGW("Invalid parameter: clock class or offset pointer is NULL: "
 			"clock-class-addr=%p, name=\"%s\", offset-addr=%p",
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_class, bt_clock_class_get_name(clock_class),
 			offset);
 		ret = -1;
 		goto end;
@@ -373,7 +373,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_set_offset_cycles(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_offset_cycles(struct bt_clock_class *clock_class,
 		int64_t offset)
 {
 	int ret = 0;
@@ -386,19 +386,19 @@ int bt_ctf_clock_class_set_offset_cycles(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
 	clock_class->offset = offset;
 	BT_LOGV("Set clock class's offset (cycles): addr=%p, name=\"%s\", offset-cycles=%" PRId64,
-		clock_class, bt_ctf_clock_class_get_name(clock_class), offset);
+		clock_class, bt_clock_class_get_name(clock_class), offset);
 end:
 	return ret;
 }
 
-bt_bool bt_ctf_clock_class_is_absolute(struct bt_ctf_clock_class *clock_class)
+bt_bool bt_clock_class_is_absolute(struct bt_clock_class *clock_class)
 {
 	int ret = -1;
 
@@ -412,7 +412,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_set_is_absolute(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_is_absolute(struct bt_clock_class *clock_class,
 		bt_bool is_absolute)
 {
 	int ret = 0;
@@ -425,21 +425,21 @@ int bt_ctf_clock_class_set_is_absolute(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
 	clock_class->absolute = !!is_absolute;
 	BT_LOGV("Set clock class's absolute flag: addr=%p, name=\"%s\", is-absolute=%d",
-		clock_class, bt_ctf_clock_class_get_name(clock_class),
+		clock_class, bt_clock_class_get_name(clock_class),
 		is_absolute);
 end:
 	return ret;
 }
 
-const unsigned char *bt_ctf_clock_class_get_uuid(
-		struct bt_ctf_clock_class *clock_class)
+const unsigned char *bt_clock_class_get_uuid(
+		struct bt_clock_class *clock_class)
 {
 	const unsigned char *ret;
 
@@ -451,7 +451,7 @@ const unsigned char *bt_ctf_clock_class_get_uuid(
 
 	if (!clock_class->uuid_set) {
 		BT_LOGV("Clock class's UUID is not set: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = NULL;
 		goto end;
 	}
@@ -461,7 +461,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
+int bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 		const unsigned char *uuid)
 {
 	int ret = 0;
@@ -469,7 +469,7 @@ int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 	if (!clock_class || !uuid) {
 		BT_LOGW("Invalid parameter: clock class or UUID is NULL: "
 			"clock-class-addr=%p, name=\"%s\", uuid-addr=%p",
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_class, bt_clock_class_get_name(clock_class),
 			uuid);
 		ret = -1;
 		goto end;
@@ -477,7 +477,7 @@ int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 
 	if (clock_class->frozen) {
 		BT_LOGW("Invalid parameter: clock class is frozen: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
@@ -486,7 +486,7 @@ int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
 	clock_class->uuid_set = 1;
 	BT_LOGV("Set clock class's UUID: addr=%p, name=\"%s\", "
 		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
-		clock_class, bt_ctf_clock_class_get_name(clock_class),
+		clock_class, bt_clock_class_get_name(clock_class),
 		(unsigned int) uuid[0],
 		(unsigned int) uuid[1],
 		(unsigned int) uuid[2],
@@ -528,7 +528,7 @@ static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
 }
 
 BT_HIDDEN
-void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class)
+void bt_clock_class_freeze(struct bt_clock_class *clock_class)
 {
 	if (!clock_class) {
 		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
@@ -537,25 +537,25 @@ void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class)
 
 	if (!clock_class->frozen) {
 		BT_LOGD("Freezing clock class: addr=%p, name=\"%s\"",
-			clock_class, bt_ctf_clock_class_get_name(clock_class));
+			clock_class, bt_clock_class_get_name(clock_class));
 		clock_class->frozen = 1;
 	}
 }
 
 BT_HIDDEN
-void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
+void bt_clock_class_serialize(struct bt_clock_class *clock_class,
 		struct metadata_context *context)
 {
 	unsigned char *uuid;
 
 	BT_LOGD("Serializing clock class's metadata: clock-class-addr=%p, "
 		"name=\"%s\", metadata-context-addr=%p", clock_class,
-		bt_ctf_clock_class_get_name(clock_class), context);
+		bt_clock_class_get_name(clock_class), context);
 
 	if (!clock_class || !context) {
 		BT_LOGW("Invalid parameter: clock class or metadata context is NULL: "
 			"clock-class-addr=%p, name=\"%s\", metadata-context-addr=%p",
-			clock_class, bt_ctf_clock_class_get_name(clock_class),
+			clock_class, bt_clock_class_get_name(clock_class),
 			context);
 		return;
 	}
@@ -593,13 +593,13 @@ void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
 }
 
 static
-void bt_ctf_clock_class_destroy(struct bt_object *obj)
+void bt_clock_class_destroy(struct bt_object *obj)
 {
-	struct bt_ctf_clock_class *clock_class;
+	struct bt_clock_class *clock_class;
 
-	clock_class = container_of(obj, struct bt_ctf_clock_class, base);
+	clock_class = container_of(obj, struct bt_clock_class, base);
 	BT_LOGD("Destroying clock class: addr=%p, name=\"%s\"",
-		obj, bt_ctf_clock_class_get_name(clock_class));
+		obj, bt_clock_class_get_name(clock_class));
 	if (clock_class->name) {
 		g_string_free(clock_class->name, TRUE);
 	}
@@ -611,26 +611,26 @@ void bt_ctf_clock_class_destroy(struct bt_object *obj)
 }
 
 static
-void bt_ctf_clock_value_destroy(struct bt_object *obj)
+void bt_clock_value_destroy(struct bt_object *obj)
 {
-	struct bt_ctf_clock_value *value;
+	struct bt_clock_value *value;
 
 	if (!obj) {
 		return;
 	}
 
-	value = container_of(obj, struct bt_ctf_clock_value, base);
+	value = container_of(obj, struct bt_clock_value, base);
 	BT_LOGD("Destroying clock value: addr=%p, clock-class-addr=%p, "
 		"clock-class-name=\"%s\"", obj, value->clock_class,
-		bt_ctf_clock_class_get_name(value->clock_class));
+		bt_clock_class_get_name(value->clock_class));
 	bt_put(value->clock_class);
 	g_free(value);
 }
 
 static
-void set_ns_from_epoch(struct bt_ctf_clock_value *clock_value)
+void set_ns_from_epoch(struct bt_clock_value *clock_value)
 {
-	struct bt_ctf_clock_class *clock_class = clock_value->clock_class;
+	struct bt_clock_class *clock_class = clock_value->clock_class;
 	int64_t diff;
 	int64_t s_ns;
 	uint64_t u_ns;
@@ -759,43 +759,43 @@ end:
 	}
 }
 
-struct bt_ctf_clock_value *bt_ctf_clock_value_create(
-		struct bt_ctf_clock_class *clock_class, uint64_t value)
+struct bt_clock_value *bt_clock_value_create(
+		struct bt_clock_class *clock_class, uint64_t value)
 {
-	struct bt_ctf_clock_value *ret = NULL;
+	struct bt_clock_value *ret = NULL;
 
 	BT_LOGD("Creating clock value object: clock-class-addr=%p, "
 		"clock-class-name=\"%s\", value=%" PRIu64, clock_class,
-		bt_ctf_clock_class_get_name(clock_class), value);
+		bt_clock_class_get_name(clock_class), value);
 
 	if (!clock_class) {
 		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
 		goto end;
 	}
 
-	ret = g_new0(struct bt_ctf_clock_value, 1);
+	ret = g_new0(struct bt_clock_value, 1);
 	if (!ret) {
 		BT_LOGE_STR("Failed to allocate one clock value.");
 		goto end;
 	}
 
-	bt_object_init(ret, bt_ctf_clock_value_destroy);
+	bt_object_init(ret, bt_clock_value_destroy);
 	ret->clock_class = bt_get(clock_class);
 	ret->value = value;
 	set_ns_from_epoch(ret);
-	bt_ctf_clock_class_freeze(clock_class);
+	bt_clock_class_freeze(clock_class);
 	BT_LOGD("Created clock value object: clock-value-addr=%p, "
 		"clock-class-addr=%p, clock-class-name=\"%s\", "
 		"ns-from-epoch=%" PRId64 ", ns-from-epoch-overflows=%d",
-		ret, clock_class, bt_ctf_clock_class_get_name(clock_class),
+		ret, clock_class, bt_clock_class_get_name(clock_class),
 		ret->ns_from_epoch, ret->ns_from_epoch_overflows);
 
 end:
 	return ret;
 }
 
-int bt_ctf_clock_value_get_value(
-		struct bt_ctf_clock_value *clock_value, uint64_t *raw_value)
+int bt_clock_value_get_value(
+		struct bt_clock_value *clock_value, uint64_t *raw_value)
 {
 	int ret = 0;
 
@@ -812,7 +812,7 @@ end:
 	return ret;
 }
 
-int bt_ctf_clock_value_get_value_ns_from_epoch(struct bt_ctf_clock_value *value,
+int bt_clock_value_get_value_ns_from_epoch(struct bt_clock_value *value,
 		int64_t *ret_value_ns)
 {
 	int ret = 0;
@@ -844,10 +844,10 @@ end:
 	return ret;
 }
 
-struct bt_ctf_clock_class *bt_ctf_clock_value_get_class(
-		struct bt_ctf_clock_value *clock_value)
+struct bt_clock_class *bt_clock_value_get_class(
+		struct bt_clock_value *clock_value)
 {
-	struct bt_ctf_clock_class *clock_class = NULL;
+	struct bt_clock_class *clock_class = NULL;
 
 	if (!clock_value) {
 		BT_LOGW_STR("Invalid parameter: clock value is NULL.");

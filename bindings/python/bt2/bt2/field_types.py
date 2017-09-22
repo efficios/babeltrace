@@ -28,7 +28,7 @@ import bt2
 
 
 def _create_from_ptr(ptr):
-    typeid = native_bt.ctf_field_type_get_type_id(ptr)
+    typeid = native_bt.field_type_get_type_id(ptr)
     return _TYPE_ID_TO_OBJ[typeid]._create_from_ptr(ptr)
 
 
@@ -44,7 +44,7 @@ class _FieldType(object._Object, metaclass=abc.ABCMeta):
         if self.addr == other.addr:
             return True
 
-        ret = native_bt.ctf_field_type_compare(self._ptr, other._ptr)
+        ret = native_bt.field_type_compare(self._ptr, other._ptr)
         utils._handle_ret(ret, "cannot compare field types")
         return ret == 0
 
@@ -53,7 +53,7 @@ class _FieldType(object._Object, metaclass=abc.ABCMeta):
             raise bt2.CreationError('cannot create {} field type object'.format(self._NAME.lower()))
 
     def __copy__(self):
-        ptr = native_bt.ctf_field_type_copy(self._ptr)
+        ptr = native_bt.field_type_copy(self._ptr)
         utils._handle_ptr(ptr, 'cannot copy {} field type object'.format(self._NAME.lower()))
         return _create_from_ptr(ptr)
 
@@ -63,7 +63,7 @@ class _FieldType(object._Object, metaclass=abc.ABCMeta):
         return cpy
 
     def __call__(self, value=None):
-        field_ptr = native_bt.ctf_field_create(self._ptr)
+        field_ptr = native_bt.field_create(self._ptr)
 
         if field_ptr is None:
             raise bt2.CreationError('cannot create {} field object'.format(self._NAME.lower()))
@@ -80,50 +80,50 @@ class _FieldType(object._Object, metaclass=abc.ABCMeta):
 
 
 class ByteOrder:
-    NATIVE = native_bt.CTF_BYTE_ORDER_NATIVE
-    LITTLE_ENDIAN = native_bt.CTF_BYTE_ORDER_LITTLE_ENDIAN
-    BIG_ENDIAN = native_bt.CTF_BYTE_ORDER_BIG_ENDIAN
-    NETWORK = native_bt.CTF_BYTE_ORDER_NETWORK
+    NATIVE = native_bt.BYTE_ORDER_NATIVE
+    LITTLE_ENDIAN = native_bt.BYTE_ORDER_LITTLE_ENDIAN
+    BIG_ENDIAN = native_bt.BYTE_ORDER_BIG_ENDIAN
+    NETWORK = native_bt.BYTE_ORDER_NETWORK
 
 
 class Encoding:
-    NONE = native_bt.CTF_STRING_ENCODING_NONE
-    UTF8 = native_bt.CTF_STRING_ENCODING_UTF8
-    ASCII = native_bt.CTF_STRING_ENCODING_ASCII
+    NONE = native_bt.STRING_ENCODING_NONE
+    UTF8 = native_bt.STRING_ENCODING_UTF8
+    ASCII = native_bt.STRING_ENCODING_ASCII
 
 
 class Base:
-    BINARY = native_bt.CTF_INTEGER_BASE_BINARY
-    OCTAL = native_bt.CTF_INTEGER_BASE_OCTAL
-    DECIMAL = native_bt.CTF_INTEGER_BASE_DECIMAL
-    HEXADECIMAL = native_bt.CTF_INTEGER_BASE_HEXADECIMAL
+    BINARY = native_bt.INTEGER_BASE_BINARY
+    OCTAL = native_bt.INTEGER_BASE_OCTAL
+    DECIMAL = native_bt.INTEGER_BASE_DECIMAL
+    HEXADECIMAL = native_bt.INTEGER_BASE_HEXADECIMAL
 
 
 class _AlignmentProp:
     @property
     def alignment(self):
-        alignment = native_bt.ctf_field_type_get_alignment(self._ptr)
+        alignment = native_bt.field_type_get_alignment(self._ptr)
         assert(alignment >= 0)
         return alignment
 
     @alignment.setter
     def alignment(self, alignment):
         utils._check_alignment(alignment)
-        ret = native_bt.ctf_field_type_set_alignment(self._ptr, alignment)
+        ret = native_bt.field_type_set_alignment(self._ptr, alignment)
         utils._handle_ret(ret, "cannot set field type object's alignment")
 
 
 class _ByteOrderProp:
     @property
     def byte_order(self):
-        bo = native_bt.ctf_field_type_get_byte_order(self._ptr)
+        bo = native_bt.field_type_get_byte_order(self._ptr)
         assert(bo >= 0)
         return bo
 
     @byte_order.setter
     def byte_order(self, byte_order):
         utils._check_int(byte_order)
-        ret = native_bt.ctf_field_type_set_byte_order(self._ptr, byte_order)
+        ret = native_bt.field_type_set_byte_order(self._ptr, byte_order)
         utils._handle_ret(ret, "cannot set field type object's byte order")
 
 
@@ -137,7 +137,7 @@ class IntegerFieldType(_FieldType, _AlignmentProp, _ByteOrderProp):
         if size == 0:
             raise ValueError('size is 0 bits')
 
-        ptr = native_bt.ctf_field_type_integer_create(size)
+        ptr = native_bt.field_type_integer_create(size)
         self._check_create_status(ptr)
         super().__init__(ptr)
 
@@ -161,49 +161,49 @@ class IntegerFieldType(_FieldType, _AlignmentProp, _ByteOrderProp):
 
     @property
     def size(self):
-        size = native_bt.ctf_field_type_integer_get_size(self._ptr)
+        size = native_bt.field_type_integer_get_size(self._ptr)
         assert(size >= 1)
         return size
 
     @property
     def is_signed(self):
-        is_signed = native_bt.ctf_field_type_integer_is_signed(self._ptr)
+        is_signed = native_bt.field_type_integer_is_signed(self._ptr)
         assert(is_signed >= 0)
         return is_signed > 0
 
     @is_signed.setter
     def is_signed(self, is_signed):
         utils._check_bool(is_signed)
-        ret = native_bt.ctf_field_type_integer_set_is_signed(self._ptr, int(is_signed))
+        ret = native_bt.field_type_integer_set_is_signed(self._ptr, int(is_signed))
         utils._handle_ret(ret, "cannot set integer field type object's signedness")
 
     @property
     def base(self):
-        base = native_bt.ctf_field_type_integer_get_base(self._ptr)
+        base = native_bt.field_type_integer_get_base(self._ptr)
         assert(base >= 0)
         return base
 
     @base.setter
     def base(self, base):
         utils._check_int(base)
-        ret = native_bt.ctf_field_type_integer_set_base(self._ptr, base)
+        ret = native_bt.field_type_integer_set_base(self._ptr, base)
         utils._handle_ret(ret, "cannot set integer field type object's base")
 
     @property
     def encoding(self):
-        encoding = native_bt.ctf_field_type_integer_get_encoding(self._ptr)
+        encoding = native_bt.field_type_integer_get_encoding(self._ptr)
         assert(encoding >= 0)
         return encoding
 
     @encoding.setter
     def encoding(self, encoding):
         utils._check_int(encoding)
-        ret = native_bt.ctf_field_type_integer_set_encoding(self._ptr, encoding)
+        ret = native_bt.field_type_integer_set_encoding(self._ptr, encoding)
         utils._handle_ret(ret, "cannot set integer field type object's encoding")
 
     @property
     def mapped_clock_class(self):
-        ptr = native_bt.ctf_field_type_integer_get_mapped_clock_class(self._ptr)
+        ptr = native_bt.field_type_integer_get_mapped_clock_class(self._ptr)
 
         if ptr is None:
             return
@@ -213,7 +213,7 @@ class IntegerFieldType(_FieldType, _AlignmentProp, _ByteOrderProp):
     @mapped_clock_class.setter
     def mapped_clock_class(self, clock_class):
         utils._check_type(clock_class, bt2.ClockClass)
-        ret = native_bt.ctf_field_type_integer_set_mapped_clock_class(self._ptr, clock_class._ptr)
+        ret = native_bt.field_type_integer_set_mapped_clock_class(self._ptr, clock_class._ptr)
         utils._handle_ret(ret, "cannot set integer field type object's mapped clock class")
 
 
@@ -222,7 +222,7 @@ class FloatingPointNumberFieldType(_FieldType, _AlignmentProp, _ByteOrderProp):
 
     def __init__(self, alignment=None, byte_order=None, exponent_size=None,
                  mantissa_size=None):
-        ptr = native_bt.ctf_field_type_floating_point_create()
+        ptr = native_bt.field_type_floating_point_create()
         self._check_create_status(ptr)
         super().__init__(ptr)
 
@@ -240,26 +240,26 @@ class FloatingPointNumberFieldType(_FieldType, _AlignmentProp, _ByteOrderProp):
 
     @property
     def exponent_size(self):
-        exp_size = native_bt.ctf_field_type_floating_point_get_exponent_digits(self._ptr)
+        exp_size = native_bt.field_type_floating_point_get_exponent_digits(self._ptr)
         assert(exp_size >= 0)
         return exp_size
 
     @exponent_size.setter
     def exponent_size(self, exponent_size):
         utils._check_uint64(exponent_size)
-        ret = native_bt.ctf_field_type_floating_point_set_exponent_digits(self._ptr, exponent_size)
+        ret = native_bt.field_type_floating_point_set_exponent_digits(self._ptr, exponent_size)
         utils._handle_ret(ret, "cannot set floating point number field type object's exponent size")
 
     @property
     def mantissa_size(self):
-        mant_size = native_bt.ctf_field_type_floating_point_get_mantissa_digits(self._ptr)
+        mant_size = native_bt.field_type_floating_point_get_mantissa_digits(self._ptr)
         assert(mant_size >= 0)
         return mant_size
 
     @mantissa_size.setter
     def mantissa_size(self, mantissa_size):
         utils._check_uint64(mantissa_size)
-        ret = native_bt.ctf_field_type_floating_point_set_mantissa_digits(self._ptr, mantissa_size)
+        ret = native_bt.field_type_floating_point_set_mantissa_digits(self._ptr, mantissa_size)
         utils._handle_ret(ret, "cannot set floating point number field type object's mantissa size")
 
 
@@ -299,15 +299,15 @@ class _EnumerationFieldTypeMappingIterator(object._Object,
         if self._done:
             raise StopIteration
 
-        ret = native_bt.ctf_field_type_enumeration_mapping_iterator_next(self._ptr)
+        ret = native_bt.field_type_enumeration_mapping_iterator_next(self._ptr)
         if ret < 0:
             self._done = True
             raise StopIteration
 
         if self._is_signed:
-            ret, name, lower, upper = native_bt.ctf_field_type_enumeration_mapping_iterator_get_signed(self._ptr)
+            ret, name, lower, upper = native_bt.field_type_enumeration_mapping_iterator_get_signed(self._ptr)
         else:
-            ret, name, lower, upper = native_bt.ctf_field_type_enumeration_mapping_iterator_get_unsigned(self._ptr)
+            ret, name, lower, upper = native_bt.field_type_enumeration_mapping_iterator_get_unsigned(self._ptr)
 
         assert(ret == 0)
         mapping = _EnumerationFieldTypeMapping(name, lower, upper)
@@ -329,13 +329,13 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
                                               mapped_clock_class=mapped_clock_class)
 
         utils._check_type(int_field_type, IntegerFieldType)
-        ptr = native_bt.ctf_field_type_enumeration_create(int_field_type._ptr)
+        ptr = native_bt.field_type_enumeration_create(int_field_type._ptr)
         self._check_create_status(ptr)
         _FieldType.__init__(self, ptr)
 
     @property
     def integer_field_type(self):
-        ptr = native_bt.ctf_field_type_enumeration_get_container_type(self._ptr)
+        ptr = native_bt.field_type_enumeration_get_container_type(self._ptr)
         assert(ptr)
         return _create_from_ptr(ptr)
 
@@ -392,7 +392,7 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
         self.integer_field_type.mapped_clock_class = mapped_clock_class
 
     def __len__(self):
-        count = native_bt.ctf_field_type_enumeration_get_mapping_count(self._ptr)
+        count = native_bt.field_type_enumeration_get_mapping_count(self._ptr)
         assert(count >= 0)
         return count
 
@@ -403,9 +403,9 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
             raise IndexError
 
         if self.is_signed:
-            get_fn = native_bt.ctf_field_type_enumeration_get_mapping_signed
+            get_fn = native_bt.field_type_enumeration_get_mapping_signed
         else:
-            get_fn = native_bt.ctf_field_type_enumeration_get_mapping_unsigned
+            get_fn = native_bt.field_type_enumeration_get_mapping_unsigned
 
         ret, name, lower, upper = get_fn(self._ptr, index)
         assert(ret == 0)
@@ -416,17 +416,17 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
 
     def mappings_by_name(self, name):
         utils._check_str(name)
-        iter_ptr = native_bt.ctf_field_type_enumeration_find_mappings_by_name(self._ptr, name)
+        iter_ptr = native_bt.field_type_enumeration_find_mappings_by_name(self._ptr, name)
         print('iter_ptr', iter_ptr)
         return self._get_mapping_iter(iter_ptr)
 
     def mappings_by_value(self, value):
         if self.is_signed:
             utils._check_int64(value)
-            iter_ptr = native_bt.ctf_field_type_enumeration_find_mappings_by_signed_value(self._ptr, value)
+            iter_ptr = native_bt.field_type_enumeration_find_mappings_by_signed_value(self._ptr, value)
         else:
             utils._check_uint64(value)
-            iter_ptr = native_bt.ctf_field_type_enumeration_find_mappings_by_unsigned_value(self._ptr, value)
+            iter_ptr = native_bt.field_type_enumeration_find_mappings_by_unsigned_value(self._ptr, value)
 
         return self._get_mapping_iter(iter_ptr)
 
@@ -437,11 +437,11 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
             upper = lower
 
         if self.is_signed:
-            add_fn = native_bt.ctf_field_type_enumeration_add_mapping_signed
+            add_fn = native_bt.field_type_enumeration_add_mapping_signed
             utils._check_int64(lower)
             utils._check_int64(upper)
         else:
-            add_fn = native_bt.ctf_field_type_enumeration_add_mapping_unsigned
+            add_fn = native_bt.field_type_enumeration_add_mapping_unsigned
             utils._check_uint64(lower)
             utils._check_uint64(upper)
 
@@ -459,7 +459,7 @@ class StringFieldType(_FieldType):
     _NAME = 'String'
 
     def __init__(self, encoding=None):
-        ptr = native_bt.ctf_field_type_string_create()
+        ptr = native_bt.field_type_string_create()
         self._check_create_status(ptr)
         super().__init__(ptr)
 
@@ -468,14 +468,14 @@ class StringFieldType(_FieldType):
 
     @property
     def encoding(self):
-        encoding = native_bt.ctf_field_type_string_get_encoding(self._ptr)
+        encoding = native_bt.field_type_string_get_encoding(self._ptr)
         assert(encoding >= 0)
         return encoding
 
     @encoding.setter
     def encoding(self, encoding):
         utils._check_int(encoding)
-        ret = native_bt.ctf_field_type_string_set_encoding(self._ptr, encoding)
+        ret = native_bt.field_type_string_set_encoding(self._ptr, encoding)
         utils._handle_ret(ret, "cannot set string field type object's encoding")
 
 
@@ -525,7 +525,7 @@ class _StructureFieldTypeFieldIterator(collections.abc.Iterator):
         if self._at == len(self._struct_field_type):
             raise StopIteration
 
-        get_ft_by_index = native_bt.ctf_field_type_structure_get_field_by_index
+        get_ft_by_index = native_bt.field_type_structure_get_field_by_index
         ret, name, field_type_ptr = get_ft_by_index(self._struct_field_type._ptr,
                                                     self._at)
         assert(ret == 0)
@@ -539,7 +539,7 @@ class StructureFieldType(_FieldType, _FieldContainer, _AlignmentProp):
     _ITER_CLS = _StructureFieldTypeFieldIterator
 
     def __init__(self, min_alignment=None):
-        ptr = native_bt.ctf_field_type_structure_create()
+        ptr = native_bt.field_type_structure_create()
         self._check_create_status(ptr)
         super().__init__(ptr)
 
@@ -547,20 +547,20 @@ class StructureFieldType(_FieldType, _FieldContainer, _AlignmentProp):
             self.min_alignment = min_alignment
 
     def _count(self):
-        return native_bt.ctf_field_type_structure_get_field_count(self._ptr)
+        return native_bt.field_type_structure_get_field_count(self._ptr)
 
     def _get_field_by_name(self, key):
-        return native_bt.ctf_field_type_structure_get_field_type_by_name(self._ptr, key)
+        return native_bt.field_type_structure_get_field_type_by_name(self._ptr, key)
 
     def _add_field(self, ptr, name):
-        return native_bt.ctf_field_type_structure_add_field(self._ptr, ptr,
+        return native_bt.field_type_structure_add_field(self._ptr, ptr,
                                                             name)
 
     def _at(self, index):
         if index < 0 or index >= len(self):
             raise IndexError
 
-        ret, name, field_type_ptr = native_bt.ctf_field_type_structure_get_field_by_index(self._ptr, index)
+        ret, name, field_type_ptr = native_bt.field_type_structure_get_field_by_index(self._ptr, index)
         assert(ret == 0)
         return _create_from_ptr(field_type_ptr)
 
@@ -578,7 +578,7 @@ class _VariantFieldTypeFieldIterator(collections.abc.Iterator):
         if self._at == len(self._variant_field_type):
             raise StopIteration
 
-        ret, name, field_type_ptr = native_bt.ctf_field_type_variant_get_field_by_index(self._variant_field_type._ptr,
+        ret, name, field_type_ptr = native_bt.field_type_variant_get_field_by_index(self._variant_field_type._ptr,
                                                                                         self._at)
         assert(ret == 0)
         native_bt.put(field_type_ptr)
@@ -599,26 +599,26 @@ class VariantFieldType(_FieldType, _FieldContainer, _AlignmentProp):
             utils._check_type(tag_field_type, EnumerationFieldType)
             tag_ft_ptr = tag_field_type._ptr
 
-        ptr = native_bt.ctf_field_type_variant_create(tag_ft_ptr,
+        ptr = native_bt.field_type_variant_create(tag_ft_ptr,
                                                       tag_name)
         self._check_create_status(ptr)
         super().__init__(ptr)
 
     @property
     def tag_name(self):
-        tag_name = native_bt.ctf_field_type_variant_get_tag_name(self._ptr)
+        tag_name = native_bt.field_type_variant_get_tag_name(self._ptr)
         assert(tag_name is not None)
         return tag_name
 
     @tag_name.setter
     def tag_name(self, tag_name):
         utils._check_str(tag_name)
-        ret = native_bt.ctf_field_type_variant_set_tag_name(self._ptr, tag_name)
+        ret = native_bt.field_type_variant_set_tag_name(self._ptr, tag_name)
         utils._handle_ret(ret, "cannot set variant field type object's tag name")
 
     @property
     def tag_field_type(self):
-        ft_ptr = native_bt.ctf_field_type_variant_get_tag_type(self._ptr)
+        ft_ptr = native_bt.field_type_variant_get_tag_type(self._ptr)
 
         if ft_ptr is None:
             return
@@ -626,19 +626,19 @@ class VariantFieldType(_FieldType, _FieldContainer, _AlignmentProp):
         return _create_from_ptr(ft_ptr)
 
     def _count(self):
-        return native_bt.ctf_field_type_variant_get_field_count(self._ptr)
+        return native_bt.field_type_variant_get_field_count(self._ptr)
 
     def _get_field_by_name(self, key):
-        return native_bt.ctf_field_type_variant_get_field_type_by_name(self._ptr, key)
+        return native_bt.field_type_variant_get_field_type_by_name(self._ptr, key)
 
     def _add_field(self, ptr, name):
-        return native_bt.ctf_field_type_variant_add_field(self._ptr, ptr, name)
+        return native_bt.field_type_variant_add_field(self._ptr, ptr, name)
 
     def _at(self, index):
         if index < 0 or index >= len(self):
             raise IndexError
 
-        ret, name, field_type_ptr = native_bt.ctf_field_type_variant_get_field_by_index(self._ptr, index)
+        ret, name, field_type_ptr = native_bt.field_type_variant_get_field_by_index(self._ptr, index)
         assert(ret == 0)
         return _create_from_ptr(field_type_ptr)
 
@@ -649,19 +649,19 @@ class ArrayFieldType(_FieldType):
     def __init__(self, element_field_type, length):
         utils._check_type(element_field_type, _FieldType)
         utils._check_uint64(length)
-        ptr = native_bt.ctf_field_type_array_create(element_field_type._ptr, length)
+        ptr = native_bt.field_type_array_create(element_field_type._ptr, length)
         self._check_create_status(ptr)
         super().__init__(ptr)
 
     @property
     def length(self):
-        length = native_bt.ctf_field_type_array_get_length(self._ptr)
+        length = native_bt.field_type_array_get_length(self._ptr)
         assert(length >= 0)
         return length
 
     @property
     def element_field_type(self):
-        ptr = native_bt.ctf_field_type_array_get_element_type(self._ptr)
+        ptr = native_bt.field_type_array_get_element_type(self._ptr)
         assert(ptr)
         return _create_from_ptr(ptr)
 
@@ -672,31 +672,31 @@ class SequenceFieldType(_FieldType):
     def __init__(self, element_field_type, length_name):
         utils._check_type(element_field_type, _FieldType)
         utils._check_str(length_name)
-        ptr = native_bt.ctf_field_type_sequence_create(element_field_type._ptr,
+        ptr = native_bt.field_type_sequence_create(element_field_type._ptr,
                                                        length_name)
         self._check_create_status(ptr)
         super().__init__(ptr)
 
     @property
     def length_name(self):
-        length_name = native_bt.ctf_field_type_sequence_get_length_field_name(self._ptr)
+        length_name = native_bt.field_type_sequence_get_length_field_name(self._ptr)
         assert(length_name is not None)
         return length_name
 
     @property
     def element_field_type(self):
-        ptr = native_bt.ctf_field_type_sequence_get_element_type(self._ptr)
+        ptr = native_bt.field_type_sequence_get_element_type(self._ptr)
         assert(ptr)
         return _create_from_ptr(ptr)
 
 
 _TYPE_ID_TO_OBJ = {
-    native_bt.CTF_FIELD_TYPE_ID_INTEGER: IntegerFieldType,
-    native_bt.CTF_FIELD_TYPE_ID_FLOAT: FloatingPointNumberFieldType,
-    native_bt.CTF_FIELD_TYPE_ID_ENUM: EnumerationFieldType,
-    native_bt.CTF_FIELD_TYPE_ID_STRING: StringFieldType,
-    native_bt.CTF_FIELD_TYPE_ID_STRUCT: StructureFieldType,
-    native_bt.CTF_FIELD_TYPE_ID_ARRAY: ArrayFieldType,
-    native_bt.CTF_FIELD_TYPE_ID_SEQUENCE: SequenceFieldType,
-    native_bt.CTF_FIELD_TYPE_ID_VARIANT: VariantFieldType,
+    native_bt.FIELD_TYPE_ID_INTEGER: IntegerFieldType,
+    native_bt.FIELD_TYPE_ID_FLOAT: FloatingPointNumberFieldType,
+    native_bt.FIELD_TYPE_ID_ENUM: EnumerationFieldType,
+    native_bt.FIELD_TYPE_ID_STRING: StringFieldType,
+    native_bt.FIELD_TYPE_ID_STRUCT: StructureFieldType,
+    native_bt.FIELD_TYPE_ID_ARRAY: ArrayFieldType,
+    native_bt.FIELD_TYPE_ID_SEQUENCE: SequenceFieldType,
+    native_bt.FIELD_TYPE_ID_VARIANT: VariantFieldType,
 }

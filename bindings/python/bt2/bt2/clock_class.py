@@ -57,7 +57,7 @@ class ClockClass(object._Object):
                  offset=None, is_absolute=None, uuid=None):
         utils._check_str(name)
         utils._check_uint64(frequency)
-        ptr = native_bt.ctf_clock_class_create(name, frequency)
+        ptr = native_bt.clock_class_create(name, frequency)
 
         if ptr is None:
             raise bt2.CreationError('cannot create clock class object')
@@ -131,81 +131,81 @@ class ClockClass(object._Object):
 
     @property
     def name(self):
-        name = native_bt.ctf_clock_class_get_name(self._ptr)
+        name = native_bt.clock_class_get_name(self._ptr)
         assert(name is not None)
         return name
 
     @name.setter
     def name(self, name):
         utils._check_str(name)
-        ret = native_bt.ctf_clock_class_set_name(self._ptr, name)
+        ret = native_bt.clock_class_set_name(self._ptr, name)
         utils._handle_ret(ret, "cannot set clock class object's name")
 
     @property
     def description(self):
-        return native_bt.ctf_clock_class_get_description(self._ptr)
+        return native_bt.clock_class_get_description(self._ptr)
 
     @description.setter
     def description(self, description):
         utils._check_str(description)
-        ret = native_bt.ctf_clock_class_set_description(self._ptr, description)
+        ret = native_bt.clock_class_set_description(self._ptr, description)
         utils._handle_ret(ret, "cannot set clock class object's description")
 
     @property
     def frequency(self):
-        frequency = native_bt.ctf_clock_class_get_frequency(self._ptr)
+        frequency = native_bt.clock_class_get_frequency(self._ptr)
         assert(frequency >= 1)
         return frequency
 
     @frequency.setter
     def frequency(self, frequency):
         utils._check_uint64(frequency)
-        ret = native_bt.ctf_clock_class_set_frequency(self._ptr, frequency)
+        ret = native_bt.clock_class_set_frequency(self._ptr, frequency)
         utils._handle_ret(ret, "cannot set clock class object's frequency")
 
     @property
     def precision(self):
-        precision = native_bt.ctf_clock_class_get_precision(self._ptr)
+        precision = native_bt.clock_class_get_precision(self._ptr)
         assert(precision >= 0)
         return precision
 
     @precision.setter
     def precision(self, precision):
         utils._check_uint64(precision)
-        ret = native_bt.ctf_clock_class_set_precision(self._ptr, precision)
+        ret = native_bt.clock_class_set_precision(self._ptr, precision)
         utils._handle_ret(ret, "cannot set clock class object's precision")
 
     @property
     def offset(self):
-        ret, offset_s = native_bt.ctf_clock_class_get_offset_s(self._ptr)
+        ret, offset_s = native_bt.clock_class_get_offset_s(self._ptr)
         assert(ret == 0)
-        ret, offset_cycles = native_bt.ctf_clock_class_get_offset_cycles(self._ptr)
+        ret, offset_cycles = native_bt.clock_class_get_offset_cycles(self._ptr)
         assert(ret == 0)
         return ClockClassOffset(offset_s, offset_cycles)
 
     @offset.setter
     def offset(self, offset):
         utils._check_type(offset, ClockClassOffset)
-        ret = native_bt.ctf_clock_class_set_offset_s(self._ptr, offset.seconds)
+        ret = native_bt.clock_class_set_offset_s(self._ptr, offset.seconds)
         utils._handle_ret(ret, "cannot set clock class object's offset (seconds)")
-        ret = native_bt.ctf_clock_class_set_offset_cycles(self._ptr, offset.cycles)
+        ret = native_bt.clock_class_set_offset_cycles(self._ptr, offset.cycles)
         utils._handle_ret(ret, "cannot set clock class object's offset (cycles)")
 
     @property
     def is_absolute(self):
-        is_absolute = native_bt.ctf_clock_class_is_absolute(self._ptr)
+        is_absolute = native_bt.clock_class_is_absolute(self._ptr)
         assert(is_absolute >= 0)
         return is_absolute > 0
 
     @is_absolute.setter
     def is_absolute(self, is_absolute):
         utils._check_bool(is_absolute)
-        ret = native_bt.ctf_clock_class_set_is_absolute(self._ptr, int(is_absolute))
+        ret = native_bt.clock_class_set_is_absolute(self._ptr, int(is_absolute))
         utils._handle_ret(ret, "cannot set clock class object's absoluteness")
 
     @property
     def uuid(self):
-        uuid_bytes = native_bt.ctf_clock_class_get_uuid(self._ptr)
+        uuid_bytes = native_bt.clock_class_get_uuid(self._ptr)
 
         if uuid_bytes is None:
             return
@@ -215,7 +215,7 @@ class ClockClass(object._Object):
     @uuid.setter
     def uuid(self, uuid):
         utils._check_type(uuid, uuidp.UUID)
-        ret = native_bt.ctf_clock_class_set_uuid(self._ptr, uuid.bytes)
+        ret = native_bt.clock_class_set_uuid(self._ptr, uuid.bytes)
         utils._handle_ret(ret, "cannot set clock class object's UUID")
 
     def __call__(self, cycles):

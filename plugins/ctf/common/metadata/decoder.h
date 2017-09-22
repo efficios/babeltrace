@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct bt_ctf_trace;
+struct bt_trace;
 
 /* A CTF metadata decoder object */
 struct ctf_metadata_decoder;
@@ -96,7 +96,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
  * ctf_metadata_decoder_destroy().
  */
 BT_HIDDEN
-struct bt_ctf_trace *ctf_metadata_decoder_get_trace(
+struct bt_trace *ctf_metadata_decoder_get_trace(
 		struct ctf_metadata_decoder *metadata_decoder);
 
 /*

@@ -38,7 +38,7 @@
 struct bt_ctf_writer {
 	struct bt_object base;
 	int frozen; /* Protects attributes that can't be changed mid-trace */
-	struct bt_ctf_trace *trace;
+	struct bt_trace *trace;
 	GString *path;
 	int metadata_fd;
 };

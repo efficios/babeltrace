@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-struct bt_ctf_field_type;
+struct bt_field_type;
 
 /**
 @defgroup ctfirfields CTF IR fields
@@ -57,13 +57,13 @@ concrete value, and which is described by a @ft.
 In the CTF IR hierarchy, you can set the root fields of two objects:
 
 - \ref ctfirpacket
-  - Trace packet header field: bt_ctf_packet_set_header().
-  - Stream packet context field: bt_ctf_packet_set_context().
+  - Trace packet header field: bt_packet_set_header().
+  - Stream packet context field: bt_packet_set_context().
 - \ref ctfirevent
-  - Stream event header field: bt_ctf_event_set_header().
-  - Stream event context field: bt_ctf_event_set_stream_event_context().
-  - Event context field: bt_ctf_event_set_event_context().
-  - Event payload field: bt_ctf_event_set_payload_field().
+  - Stream event header field: bt_event_set_header().
+  - Stream event context field: bt_event_set_stream_event_context().
+  - Event context field: bt_event_set_event_context().
+  - Event payload field: bt_event_set_payload_field().
 
 There are two categories of fields:
 
@@ -83,26 +83,26 @@ There are two categories of fields:
   - @varfield: contains a single, current field.
 
 You can create a field object from a @ft object with
-bt_ctf_field_create(). The enumeration and compound fields create their
+bt_field_create(). The enumeration and compound fields create their
 contained fields with the following getters if such fields do not exist
 yet:
 
-- bt_ctf_field_enumeration_get_container()
-- bt_ctf_field_structure_get_field_by_name()
-- bt_ctf_field_array_get_field()
-- bt_ctf_field_sequence_get_field()
-- bt_ctf_field_variant_get_field()
+- bt_field_enumeration_get_container()
+- bt_field_structure_get_field_by_name()
+- bt_field_array_get_field()
+- bt_field_sequence_get_field()
+- bt_field_variant_get_field()
 
 If you already have a field object, you can also assign it to a specific
 name within a @structfield with
-bt_ctf_field_structure_set_field_by_name().
+bt_field_structure_set_field_by_name().
 
 You can get a reference to the @ft which was used to create a field with
-bt_ctf_field_get_type(). You can get the
-\link #bt_ctf_field_type_id type ID\endlink of this field type directly with
-bt_ctf_field_get_type_id().
+bt_field_get_type(). You can get the
+\link #bt_field_type_id type ID\endlink of this field type directly with
+bt_field_get_type_id().
 
-You can get a deep copy of a field with bt_ctf_field_copy(). The field
+You can get a deep copy of a field with bt_field_copy(). The field
 copy, and its contained field copies if it's the case, have the same
 field type as the originals.
 
@@ -127,15 +127,15 @@ immutable, except for \link refs reference counting\endlink.
 */
 
 /**
-@struct bt_ctf_field
+@struct bt_field
 @brief A CTF IR field.
 @sa ctfirfields
 */
-struct bt_ctf_field;
-struct bt_ctf_event_class;
-struct bt_ctf_event;
-struct bt_ctf_field_type;
-struct bt_ctf_field_type_enumeration_mapping_iterator;
+struct bt_field;
+struct bt_event_class;
+struct bt_event;
+struct bt_field_type;
+struct bt_field_type_enumeration_mapping_iterator;
 
 /**
 @name Creation and parent field type access functions
@@ -160,14 +160,14 @@ its specific setters.
 @postsuccessrefcountret1
 @postsuccessfrozen{field_type}
 */
-extern struct bt_ctf_field *bt_ctf_field_create(
-		struct bt_ctf_field_type *field_type);
+extern struct bt_field *bt_field_create(
+		struct bt_field_type *field_type);
 
 /**
 @brief	Returns the parent @ft of the @field \p field.
 
 This function returns a reference to the field type which was used to
-create the field object in the first place with bt_ctf_field_create().
+create the field object in the first place with bt_field_create().
 
 @param[in] field	Field of which to get the parent field type.
 @returns		Parent field type of \p event,
@@ -177,8 +177,8 @@ create the field object in the first place with bt_ctf_field_create().
 @postrefcountsame{field}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field_type *bt_ctf_field_get_type(
-	struct bt_ctf_field *field);
+extern struct bt_field_type *bt_field_get_type(
+	struct bt_field *field);
 
 /** @} */
 
@@ -193,39 +193,39 @@ extern struct bt_ctf_field_type *bt_ctf_field_get_type(
 @param[in] field	Field of which to get the type ID of its
 			parent field type..
 @returns		Type ID of the parent field type of \p field,
-			or #BT_CTF_FIELD_TYPE_ID_UNKNOWN on error.
+			or #BT_FIELD_TYPE_ID_UNKNOWN on error.
 
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa #bt_ctf_field_type_id: CTF IR field type ID.
-@sa bt_ctf_field_is_integer(): Returns whether or not a given field is a
+@sa #bt_field_type_id: CTF IR field type ID.
+@sa bt_field_is_integer(): Returns whether or not a given field is a
 	@intfield.
-@sa bt_ctf_field_is_floating_point(): Returns whether or not a given
+@sa bt_field_is_floating_point(): Returns whether or not a given
 	field is a @floatfield.
-@sa bt_ctf_field_is_enumeration(): Returns whether or not a given field
+@sa bt_field_is_enumeration(): Returns whether or not a given field
 	is a @enumfield.
-@sa bt_ctf_field_is_string(): Returns whether or not a given field is a
+@sa bt_field_is_string(): Returns whether or not a given field is a
 	@stringfield.
-@sa bt_ctf_field_is_structure(): Returns whether or not a given field is
+@sa bt_field_is_structure(): Returns whether or not a given field is
 	a @structfield.
-@sa bt_ctf_field_is_array(): Returns whether or not a given field is a
+@sa bt_field_is_array(): Returns whether or not a given field is a
 	@arrayfield.
-@sa bt_ctf_field_is_sequence(): Returns whether or not a given field is
+@sa bt_field_is_sequence(): Returns whether or not a given field is
 	a @seqfield.
-@sa bt_ctf_field_is_variant(): Returns whether or not a given field is a
+@sa bt_field_is_variant(): Returns whether or not a given field is a
 	@varfield.
 */
-extern enum bt_ctf_field_type_id bt_ctf_field_get_type_id(
-		struct bt_ctf_field *field);
+extern enum bt_field_type_id bt_field_get_type_id(
+		struct bt_field *field);
 
 
-extern bt_bool bt_ctf_field_is_set(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_set(struct bt_field *field);
 
-extern int bt_ctf_field_reset(struct bt_ctf_field *field);
+extern int bt_field_reset(struct bt_field *field);
 
 /*
- * bt_ctf_field_signed_integer_get_value: get a signed integer field's value
+ * bt_field_signed_integer_get_value: get a signed integer field's value
  *
  * Get a signed integer field's value.
  *
@@ -234,7 +234,7 @@ extern int bt_ctf_field_reset(struct bt_ctf_field *field);
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer,
+extern int bt_field_signed_integer_get_value(struct bt_field *integer,
 		int64_t *value);
 
 /**
@@ -248,10 +248,10 @@ extern int bt_ctf_field_signed_integer_get_value(struct bt_ctf_field *integer,
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_integer(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_integer(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @floatfield.
@@ -264,10 +264,10 @@ extern bt_bool bt_ctf_field_is_integer(struct bt_ctf_field *field);
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_floating_point(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_floating_point(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @enumfield.
@@ -280,10 +280,10 @@ extern bt_bool bt_ctf_field_is_floating_point(struct bt_ctf_field *field);
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_enumeration(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_enumeration(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @stringfield.
@@ -296,10 +296,10 @@ extern bt_bool bt_ctf_field_is_enumeration(struct bt_ctf_field *field);
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_string(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_string(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @structfield.
@@ -312,10 +312,10 @@ extern bt_bool bt_ctf_field_is_string(struct bt_ctf_field *field);
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_structure(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_structure(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @arrayfield.
@@ -328,10 +328,10 @@ extern bt_bool bt_ctf_field_is_structure(struct bt_ctf_field *field);
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_array(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_array(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @seqfield.
@@ -344,10 +344,10 @@ extern bt_bool bt_ctf_field_is_array(struct bt_ctf_field *field);
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_sequence(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_sequence(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @varfield.
@@ -360,10 +360,10 @@ extern bt_bool bt_ctf_field_is_sequence(struct bt_ctf_field *field);
 @prenotnull{field}
 @postrefcountsame{field}
 
-@sa bt_ctf_field_get_type_id(): Returns the type ID of a given
+@sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_ctf_field_is_variant(struct bt_ctf_field *field);
+extern bt_bool bt_field_is_variant(struct bt_field *field);
 
 /** @} */
 
@@ -386,7 +386,7 @@ You can copy a frozen field: the resulting copy is <em>not frozen</em>.
 @postsuccessrefcountret1
 @post <strong>On success</strong>, the returned field is not frozen.
 */
-extern struct bt_ctf_field *bt_ctf_field_copy(struct bt_ctf_field *field);
+extern struct bt_field *bt_field_copy(struct bt_field *field);
 
 /** @} */
 
@@ -406,19 +406,19 @@ holds a signed or unsigned integral value, and which is described by
 a @intft.
 
 An integer field object is considered \em unsigned if
-bt_ctf_field_type_integer_get_signed() on its parent field type returns
+bt_field_type_integer_get_signed() on its parent field type returns
 0. Otherwise it is considered \em signed. You \em must use
-bt_ctf_field_unsigned_integer_get_value() and
-bt_ctf_field_unsigned_integer_set_value() with an unsigned integer
-field, and bt_ctf_field_signed_integer_get_value() and
-bt_ctf_field_signed_integer_set_value() with a signed integer field.
+bt_field_unsigned_integer_get_value() and
+bt_field_unsigned_integer_set_value() with an unsigned integer
+field, and bt_field_signed_integer_get_value() and
+bt_field_signed_integer_set_value() with a signed integer field.
 
-After you create an integer field with bt_ctf_field_create(), you
+After you create an integer field with bt_field_create(), you
 \em must set an integral value with
-bt_ctf_field_unsigned_integer_set_value() or
-bt_ctf_field_signed_integer_set_value() before you can get the
-field's value with bt_ctf_field_unsigned_integer_get_value() or
-bt_ctf_field_signed_integer_get_value().
+bt_field_unsigned_integer_set_value() or
+bt_field_signed_integer_set_value() before you can get the
+field's value with bt_field_unsigned_integer_get_value() or
+bt_field_signed_integer_get_value().
 
 @sa ctfirintfieldtype
 @sa ctfirfields
@@ -442,17 +442,17 @@ bt_ctf_field_signed_integer_get_value().
 @prenotnull{integer_field}
 @prenotnull{value}
 @preisintfield{integer_field}
-@pre bt_ctf_field_type_integer_get_signed() returns 1 for the parent
+@pre bt_field_type_integer_get_signed() returns 1 for the parent
 	@ft of \p integer_field.
 @pre \p integer_field contains a signed integral value previously
-	set with bt_ctf_field_signed_integer_set_value().
+	set with bt_field_signed_integer_set_value().
 @postrefcountsame{integer_field}
 
-@sa bt_ctf_field_signed_integer_set_value(): Sets the signed integral
+@sa bt_field_signed_integer_set_value(): Sets the signed integral
 	value of a given integer field.
 */
-extern int bt_ctf_field_signed_integer_get_value(
-		struct bt_ctf_field *integer_field, int64_t *value);
+extern int bt_field_signed_integer_get_value(
+		struct bt_field *integer_field, int64_t *value);
 
 /**
 @brief	Sets the signed integral value of the @intfield
@@ -467,15 +467,15 @@ extern int bt_ctf_field_signed_integer_get_value(
 @prenotnull{integer_field}
 @preisintfield{integer_field}
 @prehot{integer_field}
-@pre bt_ctf_field_type_integer_get_signed() returns 1 for the parent
+@pre bt_field_type_integer_get_signed() returns 1 for the parent
 	@ft of \p integer_field.
 @postrefcountsame{integer_field}
 
-@sa bt_ctf_field_signed_integer_get_value(): Returns the signed integral
+@sa bt_field_signed_integer_get_value(): Returns the signed integral
 	value of a given integer field.
 */
-extern int bt_ctf_field_signed_integer_set_value(
-		struct bt_ctf_field *integer_field, int64_t value);
+extern int bt_field_signed_integer_set_value(
+		struct bt_field *integer_field, int64_t value);
 
 /**
 @brief	Returns the unsigned integral value of the @intfield
@@ -492,17 +492,17 @@ extern int bt_ctf_field_signed_integer_set_value(
 @prenotnull{integer_field}
 @prenotnull{value}
 @preisintfield{integer_field}
-@pre bt_ctf_field_type_integer_get_signed() returns 0 for the parent
+@pre bt_field_type_integer_get_signed() returns 0 for the parent
 	@ft of \p integer_field.
 @pre \p integer_field contains an unsigned integral value previously
-	set with bt_ctf_field_unsigned_integer_set_value().
+	set with bt_field_unsigned_integer_set_value().
 @postrefcountsame{integer_field}
 
-@sa bt_ctf_field_unsigned_integer_set_value(): Sets the unsigned
+@sa bt_field_unsigned_integer_set_value(): Sets the unsigned
 	integral value of a given integer field.
 */
-extern int bt_ctf_field_unsigned_integer_get_value(
-		struct bt_ctf_field *integer_field, uint64_t *value);
+extern int bt_field_unsigned_integer_get_value(
+		struct bt_field *integer_field, uint64_t *value);
 
 /**
 @brief	Sets the unsigned integral value of the @intfield
@@ -517,15 +517,15 @@ extern int bt_ctf_field_unsigned_integer_get_value(
 @prenotnull{integer_field}
 @preisintfield{integer_field}
 @prehot{integer_field}
-@pre bt_ctf_field_type_integer_get_signed() returns 0 for the parent
+@pre bt_field_type_integer_get_signed() returns 0 for the parent
 	@ft of \p integer_field.
 @postrefcountsame{integer_field}
 
-@sa bt_ctf_field_unsigned_integer_get_value(): Returns the unsigned
+@sa bt_field_unsigned_integer_get_value(): Returns the unsigned
 	integral value of a given integer field.
 */
-extern int bt_ctf_field_unsigned_integer_set_value(
-		struct bt_ctf_field *integer_field, uint64_t value);
+extern int bt_field_unsigned_integer_set_value(
+		struct bt_field *integer_field, uint64_t value);
 
 /** @} */
 
@@ -542,10 +542,10 @@ A CTF IR <strong><em>floating point number field</em></strong> is a
 @field which holds a floating point number value, and which is
 described by a @floatft.
 
-After you create a floating point number field with bt_ctf_field_create(), you
+After you create a floating point number field with bt_field_create(), you
 \em must set a floating point number value with
-bt_ctf_field_floating_point_set_value() before you can get the
-field's value with bt_ctf_field_floating_point_get_value().
+bt_field_floating_point_set_value() before you can get the
+field's value with bt_field_floating_point_get_value().
 
 @sa ctfirfloatfieldtype
 @sa ctfirfields
@@ -570,14 +570,14 @@ field's value with bt_ctf_field_floating_point_get_value().
 @prenotnull{value}
 @preisfloatfield{float_field}
 @pre \p float_field contains a floating point number value previously
-	set with bt_ctf_field_floating_point_set_value().
+	set with bt_field_floating_point_set_value().
 @postrefcountsame{float_field}
 
-@sa bt_ctf_field_floating_point_set_value(): Sets the floating point
+@sa bt_field_floating_point_set_value(): Sets the floating point
 	number value of a given floating point number field.
 */
-extern int bt_ctf_field_floating_point_get_value(
-		struct bt_ctf_field *float_field, double *value);
+extern int bt_field_floating_point_get_value(
+		struct bt_field *float_field, double *value);
 
 /**
 @brief	Sets the floating point number value of the @floatfield
@@ -594,11 +594,11 @@ extern int bt_ctf_field_floating_point_get_value(
 @prehot{float_field}
 @postrefcountsame{float_field}
 
-@sa bt_ctf_field_floating_point_get_value(): Returns the floating point
+@sa bt_field_floating_point_get_value(): Returns the floating point
 	number value of a given floating point number field.
 */
-extern int bt_ctf_field_floating_point_set_value(
-		struct bt_ctf_field *float_field,
+extern int bt_field_floating_point_set_value(
+		struct bt_field *float_field,
 		double value);
 
 /** @} */
@@ -616,14 +616,14 @@ A CTF IR <strong><em>enumeration field</em></strong> is a @field which
 holds a @intfield, and which is described by a @enumft.
 
 To set the current integral value of an enumeration field, you need to
-get its wrapped @intfield with bt_ctf_field_enumeration_get_container(),
+get its wrapped @intfield with bt_field_enumeration_get_container(),
 and then set the integral value with either
-bt_ctf_field_signed_integer_set_value() or
-bt_ctf_field_unsigned_integer_set_value().
+bt_field_signed_integer_set_value() or
+bt_field_unsigned_integer_set_value().
 
 Once you set the integral value of an enumeration field by following the
 previous paragraph, you can get the mappings containing this value in
-their range with bt_ctf_field_enumeration_get_mappings(). This function
+their range with bt_field_enumeration_get_mappings(). This function
 returns a @enumftiter.
 
 @sa ctfirenumfieldtype
@@ -650,8 +650,8 @@ exist.
 @postrefcountsame{enum_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
-		struct bt_ctf_field *enum_field);
+extern struct bt_field *bt_field_enumeration_get_container(
+		struct bt_field *enum_field);
 
 /**
 @brief	Returns a @enumftiter on all the mappings of the field type of
@@ -659,8 +659,8 @@ extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 	@enumfield \p enum_field in their range.
 
 This function is the equivalent of using
-bt_ctf_field_type_enumeration_find_mappings_by_unsigned_value() or
-bt_ctf_field_type_enumeration_find_mappings_by_signed_value() with the
+bt_field_type_enumeration_find_mappings_by_unsigned_value() or
+bt_field_type_enumeration_find_mappings_by_signed_value() with the
 current integral value of \p enum_field.
 
 @param[in] enum_field	Enumeration field of which to get the mappings
@@ -681,8 +681,8 @@ current integral value of \p enum_field.
 @post <strong>On success</strong>, the returned @enumftiter can iterate
 	on at least one mapping.
 */
-extern struct bt_ctf_field_type_enumeration_mapping_iterator *
-bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *enum_field);
+extern struct bt_field_type_enumeration_mapping_iterator *
+bt_field_enumeration_get_mappings(struct bt_field *enum_field);
 
 /** @} */
 
@@ -698,16 +698,16 @@ bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *enum_field);
 A CTF IR <strong><em>string field</em></strong> is a @field which holds
 a string value, and which is described by a @stringft.
 
-Use bt_ctf_field_string_set_value() to set the current string value
-of a string field object. You can also use bt_ctf_field_string_append()
-and bt_ctf_field_string_append_len() to append a string to the current
+Use bt_field_string_set_value() to set the current string value
+of a string field object. You can also use bt_field_string_append()
+and bt_field_string_append_len() to append a string to the current
 value of a string field.
 
-After you create a string field with bt_ctf_field_create(), you
+After you create a string field with bt_field_create(), you
 \em must set a string value with
-bt_ctf_field_string_set_value(), bt_ctf_field_string_append(), or
-bt_ctf_field_string_append_len() before you can get the
-field's value with bt_ctf_field_string_get_value().
+bt_field_string_set_value(), bt_field_string_append(), or
+bt_field_string_append_len() before you can get the
+field's value with bt_field_string_get_value().
 
 @sa ctfirstringfieldtype
 @sa ctfirfields
@@ -730,16 +730,16 @@ value.
 @prenotnull{value}
 @preisstringfield{string_field}
 @pre \p string_field contains a string value previously
-	set with bt_ctf_field_string_set_value(),
-	bt_ctf_field_string_append(), or
-	bt_ctf_field_string_append_len().
+	set with bt_field_string_set_value(),
+	bt_field_string_append(), or
+	bt_field_string_append_len().
 @postrefcountsame{string_field}
 
-@sa bt_ctf_field_string_set_value(): Sets the string value of a given
+@sa bt_field_string_set_value(): Sets the string value of a given
 	string field.
 */
-extern const char *bt_ctf_field_string_get_value(
-		struct bt_ctf_field *string_field);
+extern const char *bt_field_string_get_value(
+		struct bt_field *string_field);
 
 /**
 @brief	Sets the string value of the @stringfield \p string_field to
@@ -757,10 +757,10 @@ extern const char *bt_ctf_field_string_get_value(
 @prehot{string_field}
 @postrefcountsame{string_field}
 
-@sa bt_ctf_field_string_get_value(): Returns the string value of a
+@sa bt_field_string_get_value(): Returns the string value of a
 	given string field.
 */
-extern int bt_ctf_field_string_set_value(struct bt_ctf_field *string_field,
+extern int bt_field_string_set_value(struct bt_field *string_field,
 		const char *value);
 
 /**
@@ -770,7 +770,7 @@ extern int bt_ctf_field_string_set_value(struct bt_ctf_field *string_field,
 This function is the equivalent of:
 
 @code
-bt_ctf_field_string_append_len(string_field, value, strlen(value));
+bt_field_string_append_len(string_field, value, strlen(value));
 @endcode
 
 @param[in] string_field	String field of which to append \p value to
@@ -785,10 +785,10 @@ bt_ctf_field_string_append_len(string_field, value, strlen(value));
 @prehot{string_field}
 @postrefcountsame{string_field}
 
-@sa bt_ctf_field_string_set_value(): Sets the string value of a given
+@sa bt_field_string_set_value(): Sets the string value of a given
 	string field.
 */
-extern int bt_ctf_field_string_append(struct bt_ctf_field *string_field,
+extern int bt_field_string_append(struct bt_field *string_field,
 		const char *value);
 
 /**
@@ -815,11 +815,11 @@ appends the first \p length characters of \p value.
 @prehot{string_field}
 @postrefcountsame{string_field}
 
-@sa bt_ctf_field_string_set_value(): Sets the string value of a given
+@sa bt_field_string_set_value(): Sets the string value of a given
 	string field.
 */
-extern int bt_ctf_field_string_append_len(
-		struct bt_ctf_field *string_field, const char *value,
+extern int bt_field_string_append_len(
+		struct bt_field *string_field, const char *value,
 		unsigned int length);
 
 /** @} */
@@ -838,10 +838,10 @@ contains an ordered list of zero or more named @fields which can be
 different @fts, and which is described by a @structft.
 
 To set the value of a specific field of a structure field, you need to
-first get the field with bt_ctf_field_structure_get_field_by_name() or
-bt_ctf_field_structure_get_field_by_index(). If you already have a
+first get the field with bt_field_structure_get_field_by_name() or
+bt_field_structure_get_field_by_index(). If you already have a
 field object, you can assign it to a specific name within a structure
-field with bt_ctf_field_structure_set_field_by_name().
+field with bt_field_structure_set_field_by_name().
 
 @sa ctfirstructfieldtype
 @sa ctfirfields
@@ -869,16 +869,13 @@ exist.
 @postrefcountsame{struct_field}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_structure_get_field_by_index(): Returns the field of a
+@sa bt_field_structure_get_field_by_index(): Returns the field of a
 	given structure field by index.
-@sa bt_ctf_field_structure_set_field_by_name(): Sets the field of a
+@sa bt_field_structure_set_field_by_name(): Sets the field of a
 	given structure field by name.
 */
-extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
-		struct bt_ctf_field *struct_field, const char *name);
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field_structure_get_field bt_ctf_field_structure_get_field_by_name
+extern struct bt_field *bt_field_structure_get_field_by_name(
+		struct bt_field *struct_field, const char *name);
 
 /**
 @brief  Returns the @field at index \p index in the @structfield
@@ -894,17 +891,17 @@ extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 @preisstructfield{struct_field}
 @pre \p index is lesser than the number of fields contained in the
 	parent field type of \p struct_field (see
-	bt_ctf_field_type_structure_get_field_count()).
+	bt_field_type_structure_get_field_count()).
 @postrefcountsame{struct_field}
 @postsuccessrefcountretinc
 
-@sa bt_ctf_field_structure_get_field_by_name(): Returns the field of a
+@sa bt_field_structure_get_field_by_name(): Returns the field of a
 	given structure field by name.
-@sa bt_ctf_field_structure_set_field_by_name(): Sets the field of a
+@sa bt_field_structure_set_field_by_name(): Sets the field of a
 	given structure field by name.
 */
-extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
-		struct bt_ctf_field *struct_field, uint64_t index);
+extern struct bt_field *bt_field_structure_get_field_by_index(
+		struct bt_field *struct_field, uint64_t index);
 
 /**
 @brief	Sets the field of the @structfield \p struct_field named \p name
@@ -914,12 +911,12 @@ If \p struct_field already contains a field named \p name, then it may
 either be replaced by \p field and its reference count is decremented,
 or \p field's value is assigned to it.
 
-The field type of \p field, as returned by bt_ctf_field_get_type(),
+The field type of \p field, as returned by bt_field_get_type(),
 \em must be equivalent to the field type returned by
-bt_ctf_field_type_structure_get_field_type_by_name() with the field
+bt_field_type_structure_get_field_type_by_name() with the field
 type of \p struct_field and the same name, \p name.
 
-bt_ctf_trace_get_packet_header_type() for the parent trace class of
+bt_trace_get_packet_header_type() for the parent trace class of
 \p packet.
 
 @param[in] struct_field	Structure field of which to set the field
@@ -934,21 +931,21 @@ bt_ctf_trace_get_packet_header_type() for the parent trace class of
 @prehot{struct_field}
 @preisstructfield{struct_field}
 @pre \p field has a field type equivalent to the field type returned by
-	bt_ctf_field_type_structure_get_field_type_by_name() for the
+	bt_field_type_structure_get_field_type_by_name() for the
 	field type of \p struct_field with the name \p name.
 @postrefcountsame{struct_field}
 @post <strong>On success, the field in \p struct_field named \p name</strong>
 	may either be replaced by \p field or have the same value as \p field.
 @postsuccessrefcountinc{field}
 
-@sa bt_ctf_field_structure_get_field_by_index(): Returns the field of a
+@sa bt_field_structure_get_field_by_index(): Returns the field of a
 	given structure field by index.
-@sa bt_ctf_field_structure_get_field_by_name(): Returns the field of a
+@sa bt_field_structure_get_field_by_name(): Returns the field of a
 	given structure field by name.
 */
-extern int bt_ctf_field_structure_set_field_by_name(
-		struct bt_ctf_field *struct_field,
-		const char *name, struct bt_ctf_field *field);
+extern int bt_field_structure_set_field_by_name(
+		struct bt_field *struct_field,
+		const char *name, struct bt_field *field);
 
 /** @} */
 
@@ -966,7 +963,7 @@ contains an ordered list of zero or more @fields sharing the same @ft,
 and which is described by a @arrayft.
 
 To set the value of a specific field of an array field, you need to
-first get the field with bt_ctf_field_array_get_field().
+first get the field with bt_field_array_get_field().
 
 @sa ctfirarrayfieldtype
 @sa ctfirfields
@@ -990,13 +987,13 @@ exist.
 
 @prenotnull{array_field}
 @preisarrayfield{array_field}
-@pre \p index is lesser than bt_ctf_field_type_array_get_length() called
+@pre \p index is lesser than bt_field_type_array_get_length() called
 	on the field type of \p array_field.
 @postrefcountsame{array_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field *bt_ctf_field_array_get_field(
-		struct bt_ctf_field *array_field, uint64_t index);
+extern struct bt_field *bt_field_array_get_field(
+		struct bt_field *array_field, uint64_t index);
 
 /** @} */
 
@@ -1014,8 +1011,8 @@ contains an ordered list of zero or more @fields sharing the same @ft,
 and which is described by a @seqft.
 
 Before you can get a specific field of a sequence field with
-bt_ctf_field_sequence_get_field(), you need to set its current length
-@intfield with bt_ctf_field_sequence_set_length(). The integral value of
+bt_field_sequence_get_field(), you need to set its current length
+@intfield with bt_field_sequence_set_length(). The integral value of
 the length field of a sequence field indicates the number of fields
 it contains.
 
@@ -1043,15 +1040,15 @@ exist.
 @prenotnull{sequence_field}
 @preisseqfield{sequence_field}
 @pre \p sequence_field has a length field previously set with
-	bt_ctf_field_sequence_set_length().
+	bt_field_sequence_set_length().
 @pre \p index is lesser than the current integral value of the current
 	length field of \p sequence_field (see
-	bt_ctf_field_sequence_get_length()).
+	bt_field_sequence_get_length()).
 @postrefcountsame{sequence_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field *bt_ctf_field_sequence_get_field(
-		struct bt_ctf_field *sequence_field, uint64_t index);
+extern struct bt_field *bt_field_sequence_get_field(
+		struct bt_field *sequence_field, uint64_t index);
 
 /**
 @brief  Returns the length @intfield of the @seqfield \p sequence_field.
@@ -1067,16 +1064,16 @@ number of fields contained in \p sequence_field.
 @prenotnull{sequence_field}
 @preisseqfield{sequence_field}
 @pre \p sequence_field has a length field previously set with
-	bt_ctf_field_sequence_set_length().
+	bt_field_sequence_set_length().
 @postrefcountsame{sequence_field}
 @postsuccessrefcountretinc
 @post <strong>On success</strong>, the returned field is a @intfield.
 
-@sa bt_ctf_field_sequence_set_length(): Sets the length field of a given
+@sa bt_field_sequence_set_length(): Sets the length field of a given
 	sequence field.
 */
-extern struct bt_ctf_field *bt_ctf_field_sequence_get_length(
-		struct bt_ctf_field *sequence_field);
+extern struct bt_field *bt_field_sequence_get_length(
+		struct bt_field *sequence_field);
 
 /**
 @brief	Sets the length @intfield of the @seqfield \p sequence_field
@@ -1098,11 +1095,11 @@ fields contained in \p sequence_field.
 @postrefcountsame{sequence_field}
 @postsuccessrefcountinc{length_field}
 
-@sa bt_ctf_field_sequence_get_length(): Returns the length field of a
+@sa bt_field_sequence_get_length(): Returns the length field of a
 	given sequence field.
 */
-extern int bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence_field,
-		struct bt_ctf_field *length_field);
+extern int bt_field_sequence_set_length(struct bt_field *sequence_field,
+		struct bt_field *length_field);
 
 /** @} */
 
@@ -1119,9 +1116,9 @@ A CTF IR <strong><em>variant field</em></strong> is a @field which
 contains a current @field amongst one or more choices, and which is
 described by a @varft.
 
-Use bt_ctf_field_variant_get_field() to get the @field selected by
+Use bt_field_variant_get_field() to get the @field selected by
 a specific tag @enumfield. Once you call this function, you can call
-bt_ctf_field_variant_get_current_field() afterwards to get this last
+bt_field_variant_get_current_field() afterwards to get this last
 field again.
 
 @sa ctfirvarfieldtype
@@ -1139,8 +1136,8 @@ This function creates the @field to return if it does not currently
 exist.
 
 Once you call this function, you can call
-bt_ctf_field_variant_get_current_field() to get the same field again,
-and you can call bt_ctf_field_variant_get_tag() to get \p tag_field.
+bt_field_variant_get_current_field() to get the same field again,
+and you can call bt_field_variant_get_tag() to get \p tag_field.
 
 @param[in] variant_field	Variant field of which to get the field
 				selected by \p tag_field.
@@ -1156,9 +1153,9 @@ and you can call bt_ctf_field_variant_get_tag() to get \p tag_field.
 @postsuccessrefcountinc{tag_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field *bt_ctf_field_variant_get_field(
-		struct bt_ctf_field *variant_field,
-		struct bt_ctf_field *tag_field);
+extern struct bt_field *bt_field_variant_get_field(
+		struct bt_field *variant_field,
+		struct bt_field *tag_field);
 
 /**
 @brief  Returns the currently selected @field of the @varfield
@@ -1173,12 +1170,12 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_field(
 @prenotnull{variant_field}
 @preisvarfield{variant_field}
 @pre \p variant_field contains has a current selected field previously
-	set with bt_ctf_field_variant_get_field().
+	set with bt_field_variant_get_field().
 @postrefcountsame{variant_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
-		struct bt_ctf_field *variant_field);
+extern struct bt_field *bt_field_variant_get_current_field(
+		struct bt_field *variant_field);
 
 /**
 @brief  Returns the tag @enumfield of the @varfield \p variant_field.
@@ -1191,15 +1188,29 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 @prenotnull{variant_field}
 @preisvarfield{variant_field}
 @pre \p variant_field contains has a current selected field previously
-	set with bt_ctf_field_variant_get_field().
+	set with bt_field_variant_get_field().
 @postrefcountsame{variant_field}
 @postsuccessrefcountretinc
 @post <strong>On success</strong>, the returned field is a @enumfield.
 */
-extern struct bt_ctf_field *bt_ctf_field_variant_get_tag(
-		struct bt_ctf_field *variant_field);
+extern struct bt_field *bt_field_variant_get_tag(
+		struct bt_field *variant_field);
 
 /** @} */
+
+/* Pre-2.0 CTF writer compatibility */
+#define bt_ctf_field bt_field
+#define bt_ctf_field_create bt_field_create
+#define bt_ctf_field_structure_get_field bt_field_structure_get_field_by_name
+#define bt_ctf_field_variant_get_field bt_field_variant_get_field
+#define bt_ctf_field_array_get_field bt_field_array_get_field
+#define bt_ctf_field_sequence_set_length bt_field_sequence_set_length
+#define bt_ctf_field_sequence_get_field bt_field_sequence_get_field
+#define bt_ctf_field_enumeration_get_container bt_field_enumeration_get_container
+#define bt_ctf_field_signed_integer_set_value bt_field_signed_integer_set_value
+#define bt_ctf_field_unsigned_integer_set_value bt_field_unsigned_integer_set_value
+#define bt_ctf_field_floating_point_set_value bt_field_floating_point_set_value
+#define bt_ctf_field_string_set_value bt_field_string_set_value
 
 #ifdef __cplusplus
 }

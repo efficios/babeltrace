@@ -41,10 +41,10 @@ def _create_from_ptr(ptr):
     # recreate the field type wrapper of this field's type (the identity
     # could be different, but the underlying address should be the
     # same)
-    field_type_ptr = native_bt.ctf_field_get_type(ptr)
+    field_type_ptr = native_bt.field_get_type(ptr)
     utils._handle_ptr(field_type_ptr, "cannot get field object's type")
     field_type = bt2.field_types._create_from_ptr(field_type_ptr)
-    typeid = native_bt.ctf_field_type_get_type_id(field_type._ptr)
+    typeid = native_bt.field_type_get_type_id(field_type._ptr)
     field = _TYPE_ID_TO_OBJ[typeid]._create_from_ptr(ptr)
     field._field_type = field_type
     return field
@@ -52,7 +52,7 @@ def _create_from_ptr(ptr):
 
 class _Field(object._Object, metaclass=abc.ABCMeta):
     def __copy__(self):
-        ptr = native_bt.ctf_field_copy(self._ptr)
+        ptr = native_bt.field_copy(self._ptr)
         utils._handle_ptr(ptr, 'cannot copy {} field object'.format(self._NAME.lower()))
         return _create_from_ptr(ptr)
 
@@ -78,11 +78,11 @@ class _Field(object._Object, metaclass=abc.ABCMeta):
 
     @property
     def is_set(self):
-        is_set = native_bt.ctf_field_is_set(self._ptr)
+        is_set = native_bt.field_is_set(self._ptr)
         return is_set > 0
 
     def reset(self):
-        ret = native_bt.ctf_field_reset(self._ptr)
+        ret = native_bt.field_reset(self._ptr)
         utils._handle_ret(ret, "cannot reset field object's value")
 
 
@@ -300,9 +300,9 @@ class _IntegerField(_IntegralField):
     @property
     def _value(self):
         if self.field_type.is_signed:
-            ret, value = native_bt.ctf_field_signed_integer_get_value(self._ptr)
+            ret, value = native_bt.field_signed_integer_get_value(self._ptr)
         else:
-            ret, value = native_bt.ctf_field_unsigned_integer_get_value(self._ptr)
+            ret, value = native_bt.field_unsigned_integer_get_value(self._ptr)
 
         if ret < 0:
             if not self.is_set:
@@ -316,9 +316,9 @@ class _IntegerField(_IntegralField):
         value = self._value_to_int(value)
 
         if self.field_type.is_signed:
-            ret = native_bt.ctf_field_signed_integer_set_value(self._ptr, value)
+            ret = native_bt.field_signed_integer_set_value(self._ptr, value)
         else:
-            ret = native_bt.ctf_field_unsigned_integer_set_value(self._ptr, value)
+            ret = native_bt.field_unsigned_integer_set_value(self._ptr, value)
 
         utils._handle_ret(ret, "cannot set integer field object's value")
 
@@ -335,7 +335,7 @@ class _FloatingPointNumberField(_RealField):
 
     @property
     def _value(self):
-        ret, value = native_bt.ctf_field_floating_point_get_value(self._ptr)
+        ret, value = native_bt.field_floating_point_get_value(self._ptr)
 
         if ret < 0:
             if not self.is_set:
@@ -347,7 +347,7 @@ class _FloatingPointNumberField(_RealField):
 
     def _set_value(self, value):
         value = self._value_to_float(value)
-        ret = native_bt.ctf_field_floating_point_set_value(self._ptr, value)
+        ret = native_bt.field_floating_point_set_value(self._ptr, value)
         utils._handle_ret(ret, "cannot set floating point number field object's value")
 
     value = property(fset=_set_value)
@@ -357,7 +357,7 @@ class _EnumerationField(_IntegerField):
 
     @property
     def integer_field(self):
-        int_field_ptr = native_bt.ctf_field_enumeration_get_container(self._ptr)
+        int_field_ptr = native_bt.field_enumeration_get_container(self._ptr)
         assert(int_field_ptr)
         return _create_from_ptr(int_field_ptr)
 
@@ -372,7 +372,7 @@ class _EnumerationField(_IntegerField):
 
     @property
     def mappings(self):
-        iter_ptr = native_bt.ctf_field_enumeration_get_mappings(self._ptr)
+        iter_ptr = native_bt.field_enumeration_get_mappings(self._ptr)
         assert(iter_ptr)
         return bt2.field_types._EnumerationFieldTypeMappingIterator(iter_ptr,
                                                                     self.field_type.is_signed)
@@ -393,12 +393,12 @@ class _StringField(_Field, collections.abc.Sequence):
 
     @property
     def _value(self):
-        value = native_bt.ctf_field_string_get_value(self._ptr)
+        value = native_bt.field_string_get_value(self._ptr)
         return value
 
     def _set_value(self, value):
         value = self._value_to_str(value)
-        ret = native_bt.ctf_field_string_set_value(self._ptr, value)
+        ret = native_bt.field_string_set_value(self._ptr, value)
         utils._handle_ret(ret, "cannot set string field object's value")
 
     value = property(fset=_set_value)
@@ -431,7 +431,7 @@ class _StringField(_Field, collections.abc.Sequence):
 
     def __iadd__(self, value):
         value = self._value_to_str(value)
-        ret = native_bt.ctf_field_string_append(self._ptr, value)
+        ret = native_bt.field_string_append(self._ptr, value)
         utils._handle_ret(ret, "cannot append to string field object's value")
         return self
 
@@ -457,7 +457,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     def __getitem__(self, key):
         utils._check_str(key)
-        ptr = native_bt.ctf_field_structure_get_field_by_name(self._ptr, key)
+        ptr = native_bt.field_structure_get_field_by_name(self._ptr, key)
 
         if ptr is None:
             raise KeyError(key)
@@ -478,7 +478,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
         if index >= len(self):
             raise IndexError
 
-        field_ptr = native_bt.ctf_field_structure_get_field_by_index(self._ptr, index)
+        field_ptr = native_bt.field_structure_get_field_by_index(self._ptr, index)
         assert(field_ptr)
         return _create_from_ptr(field_ptr)
 
@@ -525,7 +525,7 @@ class _VariantField(_Field):
 
     @property
     def tag_field(self):
-        field_ptr = native_bt.ctf_field_variant_get_tag(self._ptr)
+        field_ptr = native_bt.field_variant_get_tag(self._ptr)
 
         if field_ptr is None:
             return
@@ -538,13 +538,13 @@ class _VariantField(_Field):
 
     def field(self, tag_field=None):
         if tag_field is None:
-            field_ptr = native_bt.ctf_field_variant_get_current_field(self._ptr)
+            field_ptr = native_bt.field_variant_get_current_field(self._ptr)
 
             if field_ptr is None:
                 return
         else:
             utils._check_type(tag_field, _EnumerationField)
-            field_ptr = native_bt.ctf_field_variant_get_field(self._ptr, tag_field._ptr)
+            field_ptr = native_bt.field_variant_get_field(self._ptr, tag_field._ptr)
             utils._handle_ptr(field_ptr, "cannot select variant field object's field")
 
         return _create_from_ptr(field_ptr)
@@ -622,7 +622,7 @@ class _ArrayField(_ArraySequenceField):
         return self.field_type.length
 
     def _get_field_ptr_at_index(self, index):
-        return native_bt.ctf_field_array_get_field(self._ptr, index)
+        return native_bt.field_array_get_field(self._ptr, index)
 
     def _set_value(self, values):
         if len(self) != len(values):
@@ -651,7 +651,7 @@ class _SequenceField(_ArraySequenceField):
 
     @property
     def length_field(self):
-        field_ptr = native_bt.ctf_field_sequence_get_length(self._ptr)
+        field_ptr = native_bt.field_sequence_get_length(self._ptr)
         if field_ptr is None:
             return
         return _create_from_ptr(field_ptr)
@@ -659,11 +659,11 @@ class _SequenceField(_ArraySequenceField):
     @length_field.setter
     def length_field(self, length_field):
         utils._check_type(length_field, _IntegerField)
-        ret = native_bt.ctf_field_sequence_set_length(self._ptr, length_field._ptr)
+        ret = native_bt.field_sequence_set_length(self._ptr, length_field._ptr)
         utils._handle_ret(ret, "cannot set sequence field object's length field")
 
     def _get_field_ptr_at_index(self, index):
-        return native_bt.ctf_field_sequence_get_field(self._ptr, index)
+        return native_bt.field_sequence_get_field(self._ptr, index)
 
     def _set_value(self, values):
         original_length_field = self.length_field
@@ -694,12 +694,12 @@ class _SequenceField(_ArraySequenceField):
     value = property(fset=_set_value)
 
 _TYPE_ID_TO_OBJ = {
-    native_bt.CTF_FIELD_TYPE_ID_INTEGER: _IntegerField,
-    native_bt.CTF_FIELD_TYPE_ID_FLOAT: _FloatingPointNumberField,
-    native_bt.CTF_FIELD_TYPE_ID_ENUM: _EnumerationField,
-    native_bt.CTF_FIELD_TYPE_ID_STRING: _StringField,
-    native_bt.CTF_FIELD_TYPE_ID_STRUCT: _StructureField,
-    native_bt.CTF_FIELD_TYPE_ID_ARRAY: _ArrayField,
-    native_bt.CTF_FIELD_TYPE_ID_SEQUENCE: _SequenceField,
-    native_bt.CTF_FIELD_TYPE_ID_VARIANT: _VariantField,
+    native_bt.FIELD_TYPE_ID_INTEGER: _IntegerField,
+    native_bt.FIELD_TYPE_ID_FLOAT: _FloatingPointNumberField,
+    native_bt.FIELD_TYPE_ID_ENUM: _EnumerationField,
+    native_bt.FIELD_TYPE_ID_STRING: _StringField,
+    native_bt.FIELD_TYPE_ID_STRUCT: _StructureField,
+    native_bt.FIELD_TYPE_ID_ARRAY: _ArrayField,
+    native_bt.FIELD_TYPE_ID_SEQUENCE: _SequenceField,
+    native_bt.FIELD_TYPE_ID_VARIANT: _VariantField,
 }

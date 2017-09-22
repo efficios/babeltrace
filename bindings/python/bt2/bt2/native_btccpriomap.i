@@ -33,22 +33,22 @@ struct bt_clock_class_priority_map;
 struct bt_clock_class_priority_map *bt_clock_class_priority_map_create();
 int64_t bt_clock_class_priority_map_get_clock_class_count(
 		struct bt_clock_class_priority_map *clock_class_priority_map);
-struct bt_ctf_clock_class *
+struct bt_clock_class *
 bt_clock_class_priority_map_get_clock_class_by_index(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
 		uint64_t index);
-struct bt_ctf_clock_class *
+struct bt_clock_class *
 bt_clock_class_priority_map_get_clock_class_by_name(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
 		const char *name);
-struct bt_ctf_clock_class *
+struct bt_clock_class *
 bt_clock_class_priority_map_get_highest_priority_clock_class(
 		struct bt_clock_class_priority_map *clock_class_priority_map);
 int bt_clock_class_priority_map_get_clock_class_priority(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
-		struct bt_ctf_clock_class *clock_class, uint64_t *OUTPUTINIT);
+		struct bt_clock_class *clock_class, uint64_t *OUTPUTINIT);
 int bt_clock_class_priority_map_add_clock_class(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
-		struct bt_ctf_clock_class *clock_class, uint64_t priority);
+		struct bt_clock_class *clock_class, uint64_t priority);
 struct bt_clock_class_priority_map *bt_clock_class_priority_map_copy(
 		struct bt_clock_class_priority_map *clock_class_priority_map);

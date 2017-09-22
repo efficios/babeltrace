@@ -28,9 +28,9 @@ import bt2
 
 
 def _create_from_ptr(stream_ptr):
-    if native_bt.ctf_stream_is_writer(stream_ptr):
-        import bt2.ctf_writer
+    import bt2.ctf_writer
 
+    if native_bt.stream_is_writer(stream_ptr):
         cls = bt2.ctf_writer._CtfWriterStream
     else:
         cls = _Stream
@@ -41,17 +41,17 @@ def _create_from_ptr(stream_ptr):
 class _StreamBase(object._Object):
     @property
     def stream_class(self):
-        stream_class_ptr = native_bt.ctf_stream_get_class(self._ptr)
+        stream_class_ptr = native_bt.stream_get_class(self._ptr)
         assert(stream_class_ptr)
         return bt2.StreamClass._create_from_ptr(stream_class_ptr)
 
     @property
     def name(self):
-        return native_bt.ctf_stream_get_name(self._ptr)
+        return native_bt.stream_get_name(self._ptr)
 
     @property
     def id(self):
-        id = native_bt.ctf_stream_get_id(self._ptr)
+        id = native_bt.stream_get_id(self._ptr)
         return id if id >= 0 else None
 
     def __eq__(self, other):
@@ -63,7 +63,7 @@ class _StreamBase(object._Object):
 
 class _Stream(_StreamBase):
     def create_packet(self):
-        packet_ptr = native_bt.ctf_packet_create(self._ptr)
+        packet_ptr = native_bt.packet_create(self._ptr)
 
         if packet_ptr is None:
             raise bt2.CreationError('cannot create packet object')
