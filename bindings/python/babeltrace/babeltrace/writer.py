@@ -1954,7 +1954,7 @@ class Writer:
             raise TypeError("Value type is not supported.")
 
         try:
-            self._w.trace.env += {name: value}
+            self._w.trace.env[name] = value
         except:
             raise ValueError("Could not add environment field to trace.")
 
