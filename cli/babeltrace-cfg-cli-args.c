@@ -4842,6 +4842,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	}
 
 	if (argc <= 1) {
+		print_version();
+		puts("");
 		print_gen_usage(stdout);
 		goto end;
 	}
