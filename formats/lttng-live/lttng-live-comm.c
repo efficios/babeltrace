@@ -1297,6 +1297,16 @@ retry:
 		ctf_update_current_packet_index(&file_stream->parent,
 				prev_index, cur_index);
 
+		/*
+		 * We need to check if we are in trace read or called
+		 * from packet indexing.  In this last case, the
+		 * collection is not there, so we cannot print the
+		 * timestamps.
+		 */
+		if ((&file_stream->parent)->stream_class->trace->parent.collection) {
+			ctf_print_discarded_lost(stderr, &file_stream->parent);
+		}
+
 		file_stream->parent.cycles_timestamp =
 				cur_index->ts_cycles.timestamp_begin;
 		file_stream->parent.real_timestamp =

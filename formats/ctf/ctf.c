@@ -426,7 +426,6 @@ void print_uuid(FILE *fp, unsigned char *uuid)
  * consumer had time to extract them. We keep track of those gaps with the
  * packet sequence number in each packet.
  */
-static
 void ctf_print_discarded_lost(FILE *fp, struct ctf_stream_definition *stream)
 {
 	if ((!stream->events_discarded && !stream->packets_lost) ||

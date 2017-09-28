@@ -249,5 +249,6 @@ void ctf_print_timestamp(FILE *fp, struct ctf_stream_definition *stream,
 			uint64_t timestamp);
 int ctf_append_trace_metadata(struct bt_trace_descriptor *tdp,
 			FILE *metadata_fp);
+void ctf_print_discarded_lost(FILE *fp, struct ctf_stream_definition *stream);
 
 #endif /* _BABELTRACE_CTF_TYPES_H */
