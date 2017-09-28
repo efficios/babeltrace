@@ -2760,6 +2760,8 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "      --run-args-0                  Print the equivalent arguments for the\n");
 	fprintf(fp, "                                    `run` command to the standard output,\n");
 	fprintf(fp, "                                    formatted for `xargs -0`, and quit\n");
+	fprintf(fp, "      --stream-intersection         Only process events when all streams\n");
+	fprintf(fp, "                                    are active\n");
 	fprintf(fp, "  -u, --url=URL                     Set the `url` string parameter of the\n");
 	fprintf(fp, "                                    current component to URL\n");
 	fprintf(fp, "  -h, --help                        Show this help and quit\n");
@@ -2768,8 +2770,6 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "      --clock-offset=SEC            Set clock offset to SEC seconds\n");
 	fprintf(fp, "      --clock-offset-ns=NS          Set clock offset to NS ns\n");
-	fprintf(fp, "      --stream-intersection         Only process events when all streams\n");
-	fprintf(fp, "                                    are active\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Implicit `sink.text.pretty` component options:\n");
 	fprintf(fp, "\n");
