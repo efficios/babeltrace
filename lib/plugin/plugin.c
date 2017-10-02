@@ -60,13 +60,20 @@
 static
 struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path) =
 	bt_plugin_python_create_all_from_file;
+
+static
+void init_python_plugin_provider(void) {}
 #else /* BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT */
 static GModule *python_plugin_provider_module;
 static
 struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path);
 
-__attribute__((constructor)) static
+static
 void init_python_plugin_provider(void) {
+	if (bt_plugin_python_create_all_from_file_sym != NULL) {
+		return;
+	}
+
 	BT_LOGD_STR("Loading Python plugin provider module.");
 	python_plugin_provider_module =
 		g_module_open(PYTHON_PLUGIN_PROVIDER_FILENAME, 0);
@@ -169,6 +176,7 @@ struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path)
 	}
 
 	/* Try Python plugins if support is available */
+	init_python_plugin_provider();
 	if (bt_plugin_python_create_all_from_file_sym) {
 		plugin_set = bt_plugin_python_create_all_from_file_sym(path);
 		if (plugin_set) {
