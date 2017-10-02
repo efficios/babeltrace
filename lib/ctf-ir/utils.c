@@ -120,5 +120,5 @@ end:
 
 bt_bool bt_identifier_is_valid(const char *identifier)
 {
-	return bt_validate_identifier(identifier);
+	return bt_validate_identifier(identifier) == 0;
 }

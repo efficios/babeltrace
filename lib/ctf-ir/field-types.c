@@ -425,33 +425,13 @@ int add_structure_field(GPtrArray *fields,
 {
 	int ret = 0;
 	GQuark name_quark = g_quark_from_string(field_name);
-	GQuark underscore_name_quark;
 	struct structure_field *field;
-	GString *underscore_name = g_string_new(NULL);
-
-	if (!underscore_name) {
-		BT_LOGE_STR("Failed to allocate a GString.");
-		ret = -1;
-		goto end;
-	}
-
-	g_string_assign(underscore_name, "_");
-	g_string_append(underscore_name, field_name);
-	underscore_name_quark = g_quark_from_string(underscore_name->str);
 
 	/* Make sure structure does not contain a field of the same name */
 	if (g_hash_table_lookup_extended(field_name_to_index,
 			GUINT_TO_POINTER(name_quark), NULL, NULL)) {
 		BT_LOGW("Structure or variant field type already contains a field type with this name: "
 			"field-name=\"%s\"", field_name);
-		ret = -1;
-		goto end;
-	}
-
-	if (g_hash_table_lookup_extended(field_name_to_index,
-			GUINT_TO_POINTER(underscore_name_quark), NULL, NULL)) {
-		BT_LOGW("Structure or variant field type already contains a field type with this name: "
-			"field-name=\"%s\"", underscore_name->str);
 		ret = -1;
 		goto end;
 	}
@@ -469,14 +449,10 @@ int add_structure_field(GPtrArray *fields,
 	g_hash_table_insert(field_name_to_index,
 		GUINT_TO_POINTER(name_quark),
 		GUINT_TO_POINTER(fields->len));
-	g_hash_table_insert(field_name_to_index,
-		GUINT_TO_POINTER(underscore_name_quark),
-		GUINT_TO_POINTER(fields->len));
 	g_ptr_array_add(fields, field);
 	BT_LOGV("Added structure/variant field type field: field-ft-addr=%p, "
 		"field-name=\"%s\"", field_type, field_name);
 end:
-	g_string_free(underscore_name, TRUE);
 	return ret;
 }
 
@@ -2220,7 +2196,7 @@ struct bt_field_type *bt_field_type_variant_create(
 		"tag-ft-addr=%p, tag-field-name=\"%s\"",
 		enum_tag, tag_name);
 
-	if (tag_name && bt_identifier_is_valid(tag_name)) {
+	if (tag_name && !bt_identifier_is_valid(tag_name)) {
 		BT_LOGW("Invalid parameter: tag field name is not a valid CTF identifier: "
 			"tag-ft-addr=%p, tag-field-name=\"%s\"",
 			enum_tag, tag_name);
@@ -2343,7 +2319,7 @@ int bt_field_type_variant_set_tag_name(
 		goto end;
 	}
 
-	if (bt_identifier_is_valid(name)) {
+	if (!bt_identifier_is_valid(name)) {
 		BT_LOGW("Invalid parameter: tag field name is not a valid CTF identifier: "
 			"variant-ft-addr=%p, tag-field-name=\"%s\"",
 			type, name);
@@ -2756,7 +2732,7 @@ struct bt_field_type *bt_field_type_sequence_create(
 		goto error;
 	}
 
-	if (bt_identifier_is_valid(length_field_name)) {
+	if (!bt_identifier_is_valid(length_field_name)) {
 		BT_LOGW("Invalid parameter: length field name is not a valid CTF identifier: "
 			"length-field-name=\"%s\"", length_field_name);
 		goto error;
@@ -3877,7 +3853,7 @@ void append_field_name(struct metadata_context *context,
 {
 	g_string_append_c(context->string, ' ');
 
-	if (bt_identifier_is_valid(name) || *name == '_') {
+	if (!bt_identifier_is_valid(name) || *name == '_') {
 		g_string_append_c(context->string, '_');
 	}
 
@@ -3944,18 +3920,25 @@ int bt_field_type_enumeration_serialize(struct bt_field_type *type,
 	for (entry = 0; entry < enumeration->entries->len; entry++) {
 		struct enumeration_mapping *mapping =
 			enumeration->entries->pdata[entry];
+		const char *label = g_quark_to_string(mapping->string);
+
+		g_string_append(context->string, "\"");
+
+		if (!bt_identifier_is_valid(label) || label[0] == '_') {
+			g_string_append(context->string, "_");
+		}
+
+		g_string_append_printf(context->string, "%s\" = ", label);
 
 		if (container_signed) {
 			if (mapping->range_start._signed ==
 				mapping->range_end._signed) {
 				g_string_append_printf(context->string,
-					"\"%s\" = %" PRId64,
-					g_quark_to_string(mapping->string),
+					"%" PRId64,
 					mapping->range_start._signed);
 			} else {
 				g_string_append_printf(context->string,
-					"\"%s\" = %" PRId64 " ... %" PRId64,
-					g_quark_to_string(mapping->string),
+					"%" PRId64 " ... %" PRId64,
 					mapping->range_start._signed,
 					mapping->range_end._signed);
 			}
@@ -3963,13 +3946,11 @@ int bt_field_type_enumeration_serialize(struct bt_field_type *type,
 			if (mapping->range_start._unsigned ==
 				mapping->range_end._unsigned) {
 				g_string_append_printf(context->string,
-					"\"%s\" = %" PRIu64,
-					g_quark_to_string(mapping->string),
+					"%" PRIu64,
 					mapping->range_start._unsigned);
 			} else {
 				g_string_append_printf(context->string,
-					"\"%s\" = %" PRIu64 " ... %" PRIu64,
-					g_quark_to_string(mapping->string),
+					"%" PRIu64 " ... %" PRIu64,
 					mapping->range_start._unsigned,
 					mapping->range_end._unsigned);
 			}
