@@ -1305,6 +1305,7 @@ enum {
 	OPT_COMPONENT,
 	OPT_CONNECT,
 	OPT_DEBUG,
+	OPT_DEBUG_INFO,
 	OPT_DEBUG_INFO_DIR,
 	OPT_DEBUG_INFO_FULL_PATH,
 	OPT_DEBUG_INFO_TARGET_PREFIX,
@@ -1316,7 +1317,6 @@ enum {
 	OPT_LIST,
 	OPT_NAME,
 	OPT_NAMES,
-	OPT_NO_DEBUG_INFO,
 	OPT_NO_DELTA,
 	OPT_OMIT_HOME_PLUGIN_PATH,
 	OPT_OMIT_SYSTEM_PLUGIN_PATH,
@@ -2813,6 +2813,8 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "Implicit `filter.lttng-utils.debug-info` component options:\n");
 	fprintf(fp, "\n");
+	fprintf(fp, "      --debug-info                  Create an implicit\n");
+	fprintf(fp, "                                    `filter.lttng-utils.debug-info` component\n");
 	fprintf(fp, "      --debug-info-dir=DIR          Search for debug info in directory DIR\n");
 	fprintf(fp, "                                    instead of `/usr/lib/debug`\n");
 	fprintf(fp, "      --debug-info-full-path        Show full debug info source and\n");
@@ -2821,8 +2823,6 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                    Use directory DIR as a prefix when\n");
 	fprintf(fp, "                                    looking up executables during debug\n");
 	fprintf(fp, "                                    info analysis\n");
-	fprintf(fp, "      --no-debug-info               Do not create an implicit\n");
-	fprintf(fp, "                                    `lttng-utils.debug-info` filter component\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Legacy options that still work:\n");
 	fprintf(fp, "\n");
@@ -2880,7 +2880,7 @@ struct poptOption convert_long_options[] = {
 	{ "input-format", 'i', POPT_ARG_STRING, NULL, OPT_INPUT_FORMAT, NULL, NULL },
 	{ "name", '\0', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
 	{ "names", 'n', POPT_ARG_STRING, NULL, OPT_NAMES, NULL, NULL },
-	{ "no-debug-info", '\0', POPT_ARG_NONE, NULL, OPT_NO_DEBUG_INFO, NULL, NULL },
+	{ "debug-info", '\0', POPT_ARG_NONE, NULL, OPT_DEBUG_INFO, NULL, NULL },
 	{ "no-delta", '\0', POPT_ARG_NONE, NULL, OPT_NO_DELTA, NULL, NULL },
 	{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 	{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
@@ -3552,7 +3552,7 @@ end:
 static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path, bool force_no_debug_info,
+		bool force_omit_home_plugin_path,
 		struct bt_value *initial_plugin_paths, char *log_level)
 {
 	poptContext pc = NULL;
@@ -3627,7 +3627,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	if (init_implicit_component_args(&implicit_debug_info_args,
-			"filter.lttng-utils.debug-info", !force_no_debug_info)) {
+			"filter.lttng-utils.debug-info", false)) {
 		goto error;
 	}
 
@@ -3926,6 +3926,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_CLOCK_SECONDS:
 		case OPT_COLOR:
 		case OPT_DEBUG:
+		case OPT_DEBUG_INFO:
 		case OPT_DEBUG_INFO_DIR:
 		case OPT_DEBUG_INFO_FULL_PATH:
 		case OPT_DEBUG_INFO_TARGET_PREFIX:
@@ -3933,7 +3934,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_FIELDS:
 		case OPT_INPUT_FORMAT:
 		case OPT_NAMES:
-		case OPT_NO_DEBUG_INFO:
 		case OPT_NO_DELTA:
 		case OPT_OUTPUT_FORMAT:
 		case OPT_OUTPUT:
@@ -4098,8 +4098,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 			break;
-		case OPT_NO_DEBUG_INFO:
-			implicit_debug_info_args.exists = false;
+		case OPT_DEBUG_INFO:
+			implicit_debug_info_args.exists = true;
 			break;
 		case OPT_DEBUG_INFO_DIR:
 			implicit_debug_info_args.exists = true;
@@ -4786,7 +4786,7 @@ char log_level_from_arg(const char *arg)
 
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
-		bool force_omit_home_plugin_path, bool force_no_debug_info,
+		bool force_omit_home_plugin_path,
 		struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *config = NULL;
@@ -4933,7 +4933,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	case COMMAND_TYPE_CONVERT:
 		config = bt_config_convert_from_args(command_argc, command_argv,
 			retcode, force_omit_system_plugin_path,
-			force_omit_home_plugin_path, force_no_debug_info,
+			force_omit_home_plugin_path,
 			initial_plugin_paths, &log_level);
 		break;
 	case COMMAND_TYPE_LIST_PLUGINS:
