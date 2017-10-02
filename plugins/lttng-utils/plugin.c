@@ -361,7 +361,7 @@ enum bt_component_status init_from_params(
 		goto end;
 	}
 
-        value = bt_value_map_get(params, "debug-dir");
+        value = bt_value_map_get(params, "debug-info-dir");
 	if (value) {
 		enum bt_value_status value_ret;
 
@@ -369,7 +369,7 @@ enum bt_component_status init_from_params(
 				&debug_info_component->arg_debug_dir);
 		if (value_ret) {
 			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve debug-dir value. "
+			BT_LOGE_STR("Failed to retrieve debug-info-dir value. "
 					"Expecting a string.");
 		}
 	}
