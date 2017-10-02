@@ -81,7 +81,9 @@ void init_python(void)
 {
 	PyObject *py_bt2_py_plugin_mod = NULL;
 	const char *dis_python_env;
+#ifndef __MINGW32__
 	sighandler_t old_sigint = signal(SIGINT, SIG_DFL);
+#endif
 
 	if (python_state != PYTHON_STATE_NOT_INITED) {
 		goto end;
@@ -128,9 +130,11 @@ void init_python(void)
 	python_state = PYTHON_STATE_FULLY_INITIALIZED;
 
 end:
+#ifndef __MINGW32__
 	if (old_sigint != SIG_ERR) {
 		(void) signal(SIGINT, old_sigint);
 	}
+#endif
 
 	print_python_traceback_warn();
 	pyerr_clear();
