@@ -350,7 +350,7 @@ int bt_trace_set_environment_field(struct bt_trace *trace,
 		goto end;
 	}
 
-	if (bt_identifier_is_valid(name)) {
+	if (!bt_identifier_is_valid(name)) {
 		BT_LOGW("Invalid parameter: environment field's name is not a valid CTF identifier: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\"",

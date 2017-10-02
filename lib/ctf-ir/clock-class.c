@@ -67,7 +67,7 @@ int bt_clock_class_set_name(struct bt_clock_class *clock_class,
 		goto end;
 	}
 
-	if (bt_identifier_is_valid(name)) {
+	if (!bt_identifier_is_valid(name)) {
 		BT_LOGE("Clock class's name is not a valid CTF identifier: "
 			"addr=%p, name=\"%s\"",
 			clock_class, name);
