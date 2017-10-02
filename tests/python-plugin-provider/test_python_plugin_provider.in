@@ -21,11 +21,17 @@ NO_SH_TAP=1
 . "@abs_top_builddir@/tests/utils/common.sh"
 
 export PYTHON_PLUGIN_PROVIDER_TEST_PLUGIN_PATH="${BT_SRC_PATH}/tests/python-plugin-provider/bt_plugin_test_python_plugin_provider.py"
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${BT_BUILD_PATH}/lib/.libs:${BT_BUILD_PATH}/python-plugin-provider/.libs"
+
 PYTHON_BUILD_DIR="${BT_BUILD_PATH}/bindings/python/bt2/build/build_lib"
 TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
 TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
 THIS_DIR="${BT_SRC_PATH}/tests/python-plugin-provider"
+
+if [ "x${MSYSTEM}" != "x" ]; then
+	export PATH="${BT_BUILD_PATH}/lib/.libs:${BT_BUILD_PATH}/python-plugin-provider/.libs:${PATH}"
+else
+	export LD_LIBRARY_PATH="${BT_BUILD_PATH}/lib/.libs:${BT_BUILD_PATH}/python-plugin-provider/.libs:${LD_LIBRARY_PATH}"
+fi
 
 PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}" \
 	"@PYTHON@" "${TESTRUNNER_PY}" "${THIS_DIR}"

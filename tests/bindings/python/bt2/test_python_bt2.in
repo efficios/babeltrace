@@ -27,29 +27,34 @@ check_coverage() {
 export BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1
 export TEST_PLUGIN_PLUGINS_PATH="${BT_BUILD_PATH}/plugins"
 export BABELTRACE_PLUGIN_PATH="${BT_BUILD_PATH}/plugins/ctf:${BT_BUILD_PATH}/plugins/utils:${BT_BUILD_PATH}/plugins/text"
-export LD_LIBRARY_PATH="${BT_BUILD_PATH}/lib/.libs"
 export TEST_CTF_TRACES_PATH="${BT_SRC_PATH}/tests/ctf-traces"
 PYTHON_BUILD_DIR="${BT_BUILD_PATH}/bindings/python/bt2/build/build_lib"
 TESTS_UTILS_PYTHON_DIR="${BT_SRC_PATH}/tests/utils/python"
 TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
 THIS_DIR="${BT_SRC_PATH}/tests/bindings/python/bt2"
 
-if test "x$TESTALL_COVERAGE" = "x1"; then
+if [ "x${MSYSTEM}" != "x" ]; then
+	export PATH="${BT_BUILD_PATH}/lib/.libs:${PATH}"
+else
+	export LD_LIBRARY_PATH="${BT_BUILD_PATH}/lib/.libs:${LD_LIBRARY_PATH}"
+fi
+
+if test "x${TESTALL_COVERAGE}" = "x1"; then
 	EXEC=check_coverage
 else
 	EXEC="@PYTHON@"
 
 fi
 
-PYTHONPATH="$PYTHON_BUILD_DIR:$TESTS_UTILS_PYTHON_DIR" \
-	"$EXEC" "$TESTRUNNER_PY" "$THIS_DIR"
+PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}" \
+	"${EXEC}" "${TESTRUNNER_PY}" "${THIS_DIR}"
 res=$?
 
-if test "x$TESTALL_COVERAGE_REPORT" = "x1"; then
+if test "x${TESTALL_COVERAGE_REPORT}" = "x1"; then
 	coverage report -m
 fi
 
-if test "x$TESTALL_COVERAGE_HTML" = "x1"; then
+if test "x${TESTALL_COVERAGE_HTML}" = "x1"; then
 	coverage html
 fi
 
