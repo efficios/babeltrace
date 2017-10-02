@@ -53,7 +53,7 @@ struct bt_config *bt_config_cli_args_create_with_default(int argc,
 	}
 
 	cfg = bt_config_cli_args_create(argc, argv, retcode, true, true,
-		BT_ENABLE_DEBUG_INFO == 0, initial_plugin_paths);
+		initial_plugin_paths);
 	goto end;
 
 error:
@@ -71,7 +71,7 @@ struct bt_config *bt_config_cli_args_create_with_default(int argc,
 		const char *argv[], int *retcode)
 {
 	return bt_config_cli_args_create(argc, argv, retcode, false, false,
-		BT_ENABLE_DEBUG_INFO == 0, NULL);
+		NULL);
 }
 
 #endif /* BT_SET_DEFAULT_IN_TREE_CONFIGURATION */
