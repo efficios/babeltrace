@@ -4104,7 +4104,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_DEBUG_INFO_DIR:
 			implicit_debug_info_args.exists = true;
 			ret = append_implicit_component_extra_param(
-				&implicit_debug_info_args, "dir", arg);
+				&implicit_debug_info_args, "debug-info-dir", arg);
 			if (ret) {
 				goto error;
 			}
