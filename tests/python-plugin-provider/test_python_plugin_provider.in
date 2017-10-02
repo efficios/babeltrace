@@ -28,5 +28,5 @@ TESTRUNNER_PY="${BT_SRC_PATH}/tests/utils/python/testrunner.py"
 THIS_DIR="${BT_SRC_PATH}/tests/python-plugin-provider"
 
 PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}" \
-	"/usr/bin/python3" "${TESTRUNNER_PY}" "${THIS_DIR}"
+	"@PYTHON@" "${TESTRUNNER_PY}" "${THIS_DIR}"
 exit $?
