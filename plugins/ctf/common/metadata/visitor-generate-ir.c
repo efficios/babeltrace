@@ -2122,6 +2122,7 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 	struct ctf_node *iter;
 	int64_t start = 0, end = 0;
 	const char *label = enumerator->u.enumerator.id;
+	const char *effective_label = label;
 	struct bt_list_head *values = &enumerator->u.enumerator.values;
 
 	bt_list_for_each_entry(iter, values, siblings) {
@@ -2181,12 +2182,24 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 
 	*last = end + 1;
 
+	if (label[0] == '_') {
+		/*
+		 * Strip the first underscore of any enumeration field
+		 * type's label in case this enumeration FT is used as
+		 * a variant FT tag later. The variant FT choice names
+		 * could also start with `_`, in which case the prefix
+		 * is removed, and it the resulting choice name needs to
+		 * match tag labels.
+		 */
+		effective_label = &label[1];
+	}
+
 	if (is_signed) {
-		ret = bt_ctf_field_type_enumeration_add_mapping(enum_decl, label,
-			start, end);
+		ret = bt_field_type_enumeration_add_mapping_signed(enum_decl,
+			effective_label, start, end);
 	} else {
 		ret = bt_field_type_enumeration_add_mapping_unsigned(enum_decl,
-			label, (uint64_t) start, (uint64_t) end);
+			effective_label, (uint64_t) start, (uint64_t) end);
 	}
 	if (ret) {
 		_BT_LOGE_NODE(enumerator,

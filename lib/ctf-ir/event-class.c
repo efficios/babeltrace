@@ -381,7 +381,7 @@ int bt_event_class_add_field(struct bt_event_class *event_class,
 		goto end;
 	}
 
-	if (bt_identifier_is_valid(name)) {
+	if (!bt_identifier_is_valid(name)) {
 		BT_LOGW("Invalid parameter: event class's payload field type's field name is not a valid CTF identifier: "
 			"addr=%p, name=\"%s\", id=%" PRId64 ", field-name=\"%s\"",
 			event_class, bt_event_class_get_name(event_class),
