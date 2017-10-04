@@ -482,6 +482,7 @@ void stitch_append_from_buf(struct bt_btr *btr, size_t sz)
 	buf_byte_at = BITS_TO_BYTES_FLOOR(buf_at_from_addr(btr));
 	nb_bytes = BITS_TO_BYTES_CEIL(sz);
 	assert(nb_bytes > 0);
+	assert(btr->buf.addr);
 	memcpy(&btr->stitch.buf[stitch_byte_at], &btr->buf.addr[buf_byte_at],
 		nb_bytes);
 	btr->stitch.at += sz;
@@ -903,6 +904,7 @@ enum bt_btr_status read_basic_type_and_call_begin(struct bt_btr *btr,
 
 	if (field_size <= available) {
 		/* We have all the bits; decode and set now */
+		assert(btr->buf.addr);
 		status = read_basic_and_call_cb(btr, btr->buf.addr,
 			buf_at_from_addr(btr));
 		if (status != BT_BTR_STATUS_OK) {
@@ -1004,6 +1006,7 @@ enum bt_btr_status read_basic_string_type_and_call(
 	assert(buf_at_from_addr(btr) % 8 == 0);
 	available_bytes = BITS_TO_BYTES_FLOOR(available_bits(btr));
 	buf_at_bytes = BITS_TO_BYTES_FLOOR(buf_at_from_addr(btr));
+	assert(btr->buf.addr);
 	first_chr = &btr->buf.addr[buf_at_bytes];
 	result = memchr(first_chr, '\0', available_bytes);
 
@@ -1463,9 +1466,7 @@ size_t bt_btr_start(struct bt_btr *btr,
 	enum bt_btr_status *status)
 {
 	assert(btr);
-	assert(buf);
-	assert(sz > 0);
-	assert(BYTES_TO_BITS(sz) > offset);
+	assert(BYTES_TO_BITS(sz) >= offset);
 	reset(btr);
 	btr->buf.addr = buf;
 	btr->buf.offset = offset;
