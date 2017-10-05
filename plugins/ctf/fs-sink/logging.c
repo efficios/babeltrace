@@ -24,4 +24,4 @@
 #include <babeltrace/logging-internal.h>
 
 BT_LOG_INIT_LOG_LEVEL(bt_plugin_fs_sink_log_level,
-	"BABELTRACE_PLUGIN_CTF_FS_SINK_LOG_LEVEL");
+	"BABELTRACE_SINK_CTF_FS_LOG_LEVEL");

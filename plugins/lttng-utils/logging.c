@@ -24,4 +24,4 @@
 #include <babeltrace/logging-internal.h>
 
 BT_LOG_INIT_LOG_LEVEL(bt_plugin_lttng_utils_debug_info_log_level,
-	"BABELTRACE_PLUGIN_LTTNG_UTILS_DEBUG_INFO_FLT_LOG_LEVEL");
+	"BABELTRACE_FLT_LTTNG_UTILS_DEBUG_INFO_LOG_LEVEL");
