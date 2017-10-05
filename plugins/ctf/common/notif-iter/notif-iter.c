@@ -1422,7 +1422,7 @@ end_v_field_type:
 	if (id_field_type && event_id == -1ULL) {
 		/* Check "id" field */
 		struct bt_ctf_field *id_field = NULL;
-		int ret = 0;
+		int ret_get_value = 0;
 
 		// TODO: optimalize!
 		id_field = bt_ctf_field_structure_get_field(
@@ -1432,7 +1432,7 @@ end_v_field_type:
 		}
 
 		if (bt_ctf_field_is_integer(id_field)) {
-			ret = bt_ctf_field_unsigned_integer_get_value(
+			ret_get_value = bt_ctf_field_unsigned_integer_get_value(
 				id_field, &event_id);
 		} else if (bt_ctf_field_is_enumeration(id_field)) {
 			struct bt_ctf_field *container;
@@ -1440,12 +1440,12 @@ end_v_field_type:
 			container = bt_ctf_field_enumeration_get_container(
 				id_field);
 			assert(container);
-			ret = bt_ctf_field_unsigned_integer_get_value(
+			ret_get_value = bt_ctf_field_unsigned_integer_get_value(
 				container, &event_id);
 			BT_PUT(container);
 		}
 
-		assert(ret == 0);
+		assert(ret_get_value == 0);
 		BT_PUT(id_field);
 	}
 
