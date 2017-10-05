@@ -24,4 +24,4 @@
 #include <babeltrace/logging-internal.h>
 
 BT_LOG_INIT_LOG_LEVEL(bt_plugin_utils_muxer_log_level,
-	"BABELTRACE_PLUGIN_UTILS_MUXER_FLT_LOG_LEVEL");
+	"BABELTRACE_FLT_UTILS_MUXER_LOG_LEVEL");
