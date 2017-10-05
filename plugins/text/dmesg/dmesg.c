@@ -413,21 +413,6 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 	const char *path_str;
 	int ret = 0;
 
-	read_from_stdin = bt_value_map_get(params, "read-from-stdin");
-	if (read_from_stdin) {
-		if (!bt_value_is_bool(read_from_stdin)) {
-			BT_LOGE("Expecting a boolean value for the `read-from-stdin` parameter: "
-				"type=%s",
-				bt_value_type_string(
-					bt_value_get_type(read_from_stdin)));
-			goto error;
-		}
-
-		ret = bt_value_bool_get(read_from_stdin,
-			&dmesg_comp->params.read_from_stdin);
-		assert(ret == 0);
-	}
-
 	no_timestamp = bt_value_map_get(params, "no-extract-timestamp");
 	if (no_timestamp) {
 		if (!bt_value_is_bool(no_timestamp)) {
@@ -462,10 +447,7 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 		assert(ret == 0);
 		g_string_assign(dmesg_comp->params.path, path_str);
 	} else {
-		if (!dmesg_comp->params.read_from_stdin) {
-			BT_LOGE_STR("Expecting `path` parameter or true `read-from-stdin` parameter.");
-			goto error;
-		}
+		dmesg_comp->params.read_from_stdin = true;
 	}
 
 	goto end;

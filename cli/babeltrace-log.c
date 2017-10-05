@@ -122,8 +122,6 @@ int main(int argc, char *argv[])
 		"--component",
 		"dmesg:src.text.dmesg",
 		"--params",
-		"read-from-stdin=yes",
-		"--params",
 		NULL, /* no-extract-timestamp=? placeholder */
 		"--component",
 		"ctf:sink.ctf.fs",
@@ -144,12 +142,12 @@ int main(int argc, char *argv[])
 	}
 
 	if (no_extract_ts) {
-		bt_argv[7] = "no-extract-timestamp=yes";
+		bt_argv[5] = "no-extract-timestamp=yes";
 	} else {
-		bt_argv[7] = "no-extract-timestamp=no";
+		bt_argv[5] = "no-extract-timestamp=no";
 	}
 
-	bt_argv[13] = output_path;
+	bt_argv[11] = output_path;
 	(void) g_spawn_sync(NULL, bt_argv, NULL,
 		G_SPAWN_CHILD_INHERITS_STDIN, NULL, NULL,
 		NULL, NULL, &retcode, &error);
