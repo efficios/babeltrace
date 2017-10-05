@@ -24,4 +24,4 @@
 #include <babeltrace/logging-internal.h>
 
 BT_LOG_INIT_LOG_LEVEL(bt_plugin_utils_trimmer_log_level,
-	"BABELTRACE_PLUGIN_UTILS_TRIMMER_FLT_LOG_LEVEL");
+	"BABELTRACE_FLT_UTILS_TRIMMER_LOG_LEVEL");
