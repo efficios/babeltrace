@@ -638,7 +638,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	 * the youngest.
 	 */
 	if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) == 0) {
-		BT_LOGV_STR("Notification's clock class priorty map contains 0 clock classes: "
+		BT_LOGV_STR("Notification's clock class priority map contains 0 clock classes: "
 			"using the last returned timestamp.");
 		*ts_ns = last_returned_ts_ns;
 		goto end;
