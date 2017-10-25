@@ -25,7 +25,7 @@ BINDINGS_DEPS=setup.py \
 BUILD_FLAGS=CC="$(CC)" \
 		CFLAGS="$(GLIB_CFLAGS) $(AM_CFLAGS) $(CFLAGS)" \
 		CPPFLAGS="$(DEFS) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)" \
-		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS) $(GLIB_LIBS) $(LIBS)"
+		LDFLAGS="$(AM_LDFLAGS) $(LDFLAGS) $(GLIB_LIBS) -shared $(LIBS)"
 
 build-python-bindings.stamp: $(BINDINGS_DEPS)
 	$(BUILD_FLAGS) $(PYTHON) $(builddir)/setup.py build_ext
