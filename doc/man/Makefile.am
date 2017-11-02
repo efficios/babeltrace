@@ -14,10 +14,7 @@ MAN1_NAMES = \
 	babeltrace-log \
 	babeltrace-query \
 	babeltrace-run
-MAN7_NAMES =
-MAN1_NO_ASCIIDOC_NAMES =
-MAN7_NO_ASCIIDOC_NAMES = \
-	babeltrace-filter.utils.muxer \
+MAN7_NAMES = babeltrace-filter.utils.muxer \
 	babeltrace-filter.utils.trimmer \
 	babeltrace-intro \
 	babeltrace-plugin-ctf \
@@ -30,9 +27,11 @@ MAN7_NO_ASCIIDOC_NAMES = \
 	babeltrace-source.ctf.fs \
 	babeltrace-source.ctf.lttng-live \
 	babeltrace-source.text.dmesg
+MAN1_NO_ASCIIDOC_NAMES =
+MAN7_NO_ASCIIDOC_NAMES =
 
 if ENABLE_DEBUG_INFO
-MAN7_NO_ASCIIDOC_NAMES += \
+MAN7_NAMES += \
 	babeltrace-plugin-lttng-utils \
 	babeltrace-filter.lttng-utils.debug-info
 endif
