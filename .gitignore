@@ -35,6 +35,7 @@
 /tests/lib/test_graph_topo
 /tests/plugins/test-utils-muxer
 /tests/plugins/test-utils-muxer-complete
+/tests/plugins/test_lttng_utils_debug_info
 /tests/plugins/test_bin_info_complete
 /tests/plugins/test_bin_info
 /tests/plugins/test_dwarf_complete

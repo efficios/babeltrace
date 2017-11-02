@@ -16,7 +16,7 @@ test_utils_muxer_LDADD = $(COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += test-utils-muxer
 check_SCRIPTS += test-utils-muxer-complete
-endif
+endif # !ENABLE_BUILT_IN_PLUGINS
 
 if ENABLE_DEBUG_INFO
 test_dwarf_LDADD = \
@@ -37,4 +37,12 @@ test_bin_info_SOURCES = test_bin_info.c
 
 noinst_PROGRAMS += test_dwarf test_bin_info
 check_SCRIPTS += test_dwarf_complete test_bin_info_complete
-endif
+
+if !ENABLE_BUILT_IN_PLUGINS
+if ENABLE_PYTHON_BINDINGS
+check_SCRIPTS += test_lttng_utils_debug_info
+endif # !ENABLE_BUILT_IN_PLUGINS
+endif # ENABLE_PYTHON_BINDINGS
+endif # ENABLE_DEBUG_INFO
+
+EXTRA_DIST = test_lttng_utils_debug_info.py
