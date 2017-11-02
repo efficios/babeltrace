@@ -383,15 +383,16 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	uint64_t build_id_len;
 
 	ret = get_stream_event_context_int_field_value(err,
-			event, "_vpid", &vpid);
+			event, VPID_FIELD_NAME, &vpid);
 	if (ret) {
 		goto end;
 	}
 
 	ret = get_payload_unsigned_int_field_value(err,
-			event, "_baddr", &baddr);
+			event, BADDR_FIELD_NAME, &baddr);
 	if (ret) {
-		BT_LOGE_STR("Failed to get unsigned int value for _vpid field.");
+		BT_LOGE_STR("Failed to get unsigned int value for "
+			VPID_FIELD_NAME " field.");
 		goto end;
 	}
 
@@ -411,10 +412,11 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 		goto end;
 	}
 
-	ret = get_payload_build_id_field_value(err, event, "_build_id",
+	ret = get_payload_build_id_field_value(err, event, BUILD_ID_FIELD_NAME,
 			&bin->build_id, &build_id_len);
 	if (ret) {
-		BT_LOGE_STR("Failed to get _build_id field value.");
+		BT_LOGE_STR("Failed to get " BUILD_ID_FIELD_NAME
+			" field value.");
 		goto end;
 	}
 	if (build_id_len > SIZE_MAX) {
@@ -449,31 +451,35 @@ void handle_statedump_debug_link_event(FILE *err, struct debug_info *debug_info,
 	int ret;
 
 	ret = get_stream_event_context_int_field_value(err, event,
-			"_vpid", &vpid);
+			VPID_FIELD_NAME, &vpid);
 	if (ret) {
 		goto end;
 	}
 
 	ret = get_payload_unsigned_int_field_value(err,
-			event, "_baddr", &baddr);
+			event, BADDR_FIELD_NAME, &baddr);
 	if (ret) {
-		BT_LOGE_STR("Failed to get unsigned int value for _baddr field.");
+		BT_LOGE_STR("Failed to get unsigned int value for "
+			BADDR_FIELD_NAME " field.");
 		ret = -1;
 		goto end;
 	}
 
-	ret = get_payload_unsigned_int_field_value(err, event, "_crc32", &tmp);
+	ret = get_payload_unsigned_int_field_value(err, event, CRC32_FIELD_NAME,
+		&tmp);
 	if (ret) {
-		BT_LOGE_STR("Failed to get unsigned int value for _crc32 field.");
+		BT_LOGE_STR("Failed to get unsigned int value for "
+			CRC32_FIELD_NAME " field.");
 		ret = -1;
 		goto end;
 	}
 	crc32 = (uint32_t) tmp;
 
 	ret = get_payload_string_field_value(err,
-			event, "_filename", &filename);
+			event, FILENAME_FIELD_NAME, &filename);
 	if (ret) {
-		BT_LOGE_STR("Failed to get string value for _filename field.");
+		BT_LOGE_STR("Failed to get string value for "
+			FILENAME_FIELD_NAME " field.");
 		ret = -1;
 		goto end;
 	}
@@ -514,16 +520,18 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	int ret;
 
 	ret = get_payload_unsigned_int_field_value(err,
-			event, "_baddr", &baddr);
+			event, BADDR_FIELD_NAME, &baddr);
 	if (ret) {
-		BT_LOGE_STR("Failed to get unsigned int value for _baddr field.");
+		BT_LOGE_STR("Failed to get unsigned int value for "
+			BADDR_FIELD_NAME " field.");
 		goto end;
 	}
 
 	ret = get_payload_unsigned_int_field_value(err,
-			event, "_memsz", &memsz);
+			event, MEMSZ_FIELD_NAME, &memsz);
 	if (ret) {
-		BT_LOGE_STR("Failed to get unsigned int value for _memsz field.");
+		BT_LOGE_STR("Failed to get unsigned int value for "
+			MEMSZ_FIELD_NAME " field.");
 		goto end;
 	}
 
@@ -532,7 +540,7 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	 * lttng-ust 2.9.
 	 */
 	ret = get_payload_string_field_value(err,
-			event, "_path", &path);
+			event, PATH_FIELD_NAME, &path);
 	if (ret || !path) {
 		goto end;
 	}
@@ -541,9 +549,10 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 		uint64_t tmp;
 
 		ret = get_payload_unsigned_int_field_value(err,
-				event, "_is_pic", &tmp);
+				event, IS_PIC_FIELD_NAME, &tmp);
 		if (ret) {
-		BT_LOGE_STR("Failed to get unsigned int value for _is_pic field.");
+		BT_LOGE_STR("Failed to get unsigned int value for "
+			IS_PIC_FIELD_NAME " field.");
 			ret = -1;
 			goto end;
 		}
@@ -556,8 +565,8 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 		is_pic = true;
 	}
 
-	ret = get_stream_event_context_int_field_value(err, event, "_vpid",
-			&vpid);
+	ret = get_stream_event_context_int_field_value(err, event,
+		VPID_FIELD_NAME, &vpid);
 	if (ret) {
 		goto end;
 	}
@@ -628,15 +637,16 @@ void handle_lib_unload_event(FILE *err, struct debug_info *debug_info,
 	int ret;
 
 	ret = get_payload_unsigned_int_field_value(err,
-			event, "_baddr", &baddr);
+			event, BADDR_FIELD_NAME, &baddr);
 	if (ret) {
-		BT_LOGE_STR("Failed to get unsigned int value for _baddr field.");
+		BT_LOGE_STR("Failed to get unsigned int value for "
+			BADDR_FIELD_NAME " field.");
 		ret = -1;
 		goto end;
 	}
 
-	ret = get_stream_event_context_int_field_value(err, event, "_vpid",
-			&vpid);
+	ret = get_stream_event_context_int_field_value(err, event,
+		VPID_FIELD_NAME, &vpid);
 	if (ret) {
 		goto end;
 	}
@@ -663,7 +673,7 @@ void handle_statedump_start(FILE *err, struct debug_info *debug_info,
 	int ret;
 
 	ret = get_stream_event_context_int_field_value(err, event,
-			"_vpid", &vpid);
+			VPID_FIELD_NAME, &vpid);
 	if (ret) {
 		goto end;
 	}

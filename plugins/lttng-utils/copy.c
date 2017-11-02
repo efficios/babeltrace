@@ -817,7 +817,7 @@ int add_debug_info_fields(FILE *err,
 	int ret = 0;
 
 	ip_field = bt_field_type_structure_get_field_type_by_name(
-			writer_event_context_type, "_ip");
+			writer_event_context_type, IP_FIELD_NAME);
 	/* No ip field, so no debug info. */
 	if (!ip_field) {
 		goto end;
@@ -1461,13 +1461,13 @@ struct debug_info_source *lookup_debug_info(FILE *err,
 	int ret;
 
 	ret = get_stream_event_context_int_field_value(err, event,
-			"_vpid", &vpid);
+			VPID_FIELD_NAME, &vpid);
 	if (ret) {
 		goto end;
 	}
 
 	ret = get_stream_event_context_unsigned_int_field_value(err, event,
-			"_ip", &ip);
+			IP_FIELD_NAME, &ip);
 	if (ret) {
 		goto end;
 	}
