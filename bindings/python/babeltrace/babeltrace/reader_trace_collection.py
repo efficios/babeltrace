@@ -166,7 +166,7 @@ class TraceCollection:
         return self._gen_events(timestamp_begin / 1e9, timestamp_end / 1e9)
 
     def _gen_events(self, begin_s=None, end_s=None):
-        specs = [bt2.SourceComponentSpec('ctf', 'fs', th.path) for th in self._trace_handles]
+        specs = [bt2.ComponentSpec('ctf', 'fs', th.path) for th in self._trace_handles]
 
         try:
             iter_cls = bt2.TraceCollectionNotificationIterator
