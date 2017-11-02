@@ -113,7 +113,7 @@ class TraceHandle:
 
     def _get_event_declarations(self):
         notif_iter = bt2.TraceCollectionNotificationIterator([
-            bt2.SourceComponentSpec('ctf', 'fs', self._path)
+            bt2.ComponentSpec('ctf', 'fs', self._path)
         ])
 
         # raises if the trace contains no streams
