@@ -32,6 +32,16 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/babeltrace.h>
 
+#define VPID_FIELD_NAME		"vpid"
+#define IP_FIELD_NAME		"ip"
+#define BADDR_FIELD_NAME	"baddr"
+#define CRC32_FIELD_NAME	"crc32"
+#define BUILD_ID_FIELD_NAME	"build_id"
+#define FILENAME_FIELD_NAME	"filename"
+#define IS_PIC_FIELD_NAME	"is_pic"
+#define MEMSZ_FIELD_NAME	"memsz"
+#define PATH_FIELD_NAME		"path"
+
 enum debug_info_stream_state {
 	/*
 	 * We know the stream exists but we have never received a
