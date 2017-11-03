@@ -58,13 +58,14 @@ int init_event_header(struct bt_stream_class *stream_class);
 static
 int init_packet_context(struct bt_stream_class *stream_class);
 
-struct bt_stream_class *bt_stream_class_create(const char *name)
+struct bt_private_stream_class *bt_private_stream_class_create(const char *name)
 {
 	struct bt_stream_class *stream_class;
 	int ret;
 
 	BT_LOGD("Creating default stream class object: name=\"%s\"", name);
-	stream_class = bt_stream_class_create_empty(name);
+	stream_class = bt_stream_class_borrow_from_private(
+		bt_private_stream_class_create_empty(name));
 	if (!stream_class) {
 		BT_LOGD_STR("Cannot create empty stream class.");
 		goto error;
@@ -84,14 +85,14 @@ struct bt_stream_class *bt_stream_class_create(const char *name)
 
 	BT_LOGD("Created default stream class object: addr=%p, name=\"%s\"",
 		stream_class, name);
-	return stream_class;
+	return bt_private_stream_class_from_stream_class(stream_class);
 
 error:
 	BT_PUT(stream_class);
-	return stream_class;
+	return NULL;
 }
 
-struct bt_stream_class *bt_stream_class_create_empty(const char *name)
+struct bt_private_stream_class *bt_private_stream_class_create_empty(const char *name)
 {
 	struct bt_stream_class *stream_class = NULL;
 
@@ -121,11 +122,11 @@ struct bt_stream_class *bt_stream_class_create_empty(const char *name)
 	bt_object_init(stream_class, bt_stream_class_destroy);
 	BT_LOGD("Created empty stream class object: addr=%p, name=\"%s\"",
 		stream_class, name);
-	return stream_class;
+	return bt_private_stream_class_from_stream_class(stream_class);
 
 error:
 	BT_PUT(stream_class);
-	return stream_class;
+	return NULL;
 }
 
 struct bt_trace *bt_stream_class_get_trace(
@@ -134,6 +135,13 @@ struct bt_trace *bt_stream_class_get_trace(
 	return stream_class ?
 		bt_get(bt_stream_class_borrow_trace(stream_class)) :
 		NULL;
+}
+
+struct bt_private_trace *bt_private_stream_class_get_private_trace(
+		struct bt_private_stream_class *priv_stream_class)
+{
+	return bt_private_trace_from_trace(bt_stream_class_get_trace(
+		bt_stream_class_borrow_from_private(priv_stream_class)));
 }
 
 const char *bt_stream_class_get_name(
@@ -151,10 +159,13 @@ end:
 	return name;
 }
 
-int bt_stream_class_set_name(struct bt_stream_class *stream_class,
+int bt_private_stream_class_set_name(
+		struct bt_private_stream_class *priv_stream_class,
 		const char *name)
 {
 	int ret = 0;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -191,10 +202,12 @@ end:
 	return ret;
 }
 
-struct bt_ctf_clock *bt_stream_class_get_clock(
-		struct bt_stream_class *stream_class)
+struct bt_ctf_clock *bt_private_stream_class_get_clock(
+		struct bt_private_stream_class *priv_stream_class)
 {
 	struct bt_ctf_clock *clock = NULL;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -214,11 +227,14 @@ end:
 	return clock;
 }
 
-int bt_stream_class_set_clock(struct bt_stream_class *stream_class,
+int bt_private_stream_class_set_clock(
+		struct bt_private_stream_class *priv_stream_class,
 		struct bt_ctf_clock *clock)
 {
 	int ret = 0;
 	struct bt_field_type *timestamp_field = NULL;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class || !clock) {
 		BT_LOGW("Invalid parameter: stream class or clock is NULL: "
@@ -302,11 +318,14 @@ int bt_stream_class_set_id_no_check(
 	return 0;
 }
 
-int bt_stream_class_set_id(struct bt_stream_class *stream_class,
+int bt_private_stream_class_set_id(
+		struct bt_private_stream_class *priv_stream_class,
 		uint64_t id_param)
 {
 	int ret = 0;
 	int64_t id = (int64_t) id_param;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -382,9 +401,9 @@ end:
 	return;
 }
 
-int bt_stream_class_add_event_class(
-		struct bt_stream_class *stream_class,
-		struct bt_event_class *event_class)
+int bt_private_stream_class_add_private_event_class(
+		struct bt_private_stream_class *priv_stream_class,
+		struct bt_private_event_class *priv_event_class)
 {
 	int ret = 0;
 	int64_t *event_id = NULL;
@@ -399,6 +418,10 @@ int bt_stream_class_add_event_class(
 	struct bt_field_type *event_payload_type = NULL;
 	const enum bt_validation_flag validation_flags =
 		BT_VALIDATION_FLAG_EVENT;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	if (!stream_class || !event_class) {
 		BT_LOGW("Invalid parameter: stream class or event class is NULL: "
@@ -522,7 +545,8 @@ int bt_stream_class_add_event_class(
 		BT_LOGV("Event class has no ID: automatically setting it: "
 			"id=%" PRId64, stream_class->next_event_id);
 
-		if (bt_event_class_set_id(event_class,
+		if (bt_private_event_class_set_id(
+				bt_private_event_class_from_event_class(event_class),
 				stream_class->next_event_id)) {
 			BT_LOGE("Cannot set event class's ID: id=%" PRId64,
 				stream_class->next_event_id);
@@ -637,6 +661,16 @@ end:
 	return event_class;
 }
 
+struct bt_private_event_class *
+bt_private_stream_class_get_private_event_class_by_index(
+		struct bt_private_stream_class *priv_stream_class,
+		uint64_t index)
+{
+	return bt_private_event_class_from_event_class(
+		bt_stream_class_get_event_class_by_index(
+		bt_stream_class_borrow_from_private(priv_stream_class), index));
+}
+
 struct bt_event_class *bt_stream_class_get_event_class_by_id(
 		struct bt_stream_class *stream_class, uint64_t id)
 {
@@ -665,6 +699,16 @@ end:
 	return event_class;
 }
 
+struct bt_private_event_class *
+bt_private_stream_class_get_private_event_class_by_id(
+		struct bt_private_stream_class *priv_stream_class,
+		uint64_t id)
+{
+	return bt_private_event_class_from_event_class(
+		bt_stream_class_get_event_class_by_id(
+		bt_stream_class_borrow_from_private(priv_stream_class), id));
+}
+
 struct bt_field_type *bt_stream_class_get_packet_context_type(
 		struct bt_stream_class *stream_class)
 {
@@ -681,11 +725,13 @@ end:
 	return ret;
 }
 
-int bt_stream_class_set_packet_context_type(
-		struct bt_stream_class *stream_class,
+int bt_private_stream_class_set_packet_context_type(
+		struct bt_private_stream_class *priv_stream_class,
 		struct bt_field_type *packet_context_type)
 {
 	int ret = 0;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -756,11 +802,13 @@ end:
 	return ret;
 }
 
-int bt_stream_class_set_event_header_type(
-		struct bt_stream_class *stream_class,
+int bt_private_stream_class_set_event_header_type(
+		struct bt_private_stream_class *priv_stream_class,
 		struct bt_field_type *event_header_type)
 {
 	int ret = 0;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -825,11 +873,13 @@ end:
 	return ret;
 }
 
-int bt_stream_class_set_event_context_type(
-		struct bt_stream_class *stream_class,
+int bt_private_stream_class_set_event_context_type(
+		struct bt_private_stream_class *priv_stream_class,
 		struct bt_field_type *event_context_type)
 {
 	int ret = 0;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -875,13 +925,13 @@ end:
 }
 
 /* Pre-2.0 CTF writer backward compatibility */
-void bt_ctf_stream_class_get(struct bt_stream_class *stream_class)
+void bt_ctf_stream_class_get(struct bt_private_stream_class *stream_class)
 {
 	bt_get(stream_class);
 }
 
 /* Pre-2.0 CTF writer backward compatibility */
-void bt_ctf_stream_class_put(struct bt_stream_class *stream_class)
+void bt_ctf_stream_class_put(struct bt_private_stream_class *stream_class)
 {
 	bt_put(stream_class);
 }
@@ -1314,4 +1364,18 @@ int bt_stream_class_map_clock_class(
 
 end:
 	return ret;
+}
+
+struct bt_stream_class *bt_stream_class_from_private(
+		struct bt_private_stream_class *private_stream_class)
+{
+	return bt_get(
+		bt_stream_class_borrow_from_private(private_stream_class));
+}
+
+struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
+		struct bt_ctf_stream_class *stream_class)
+{
+	return bt_stream_class_get_packet_context_type(
+		bt_stream_class_borrow_from_private(stream_class));
 }

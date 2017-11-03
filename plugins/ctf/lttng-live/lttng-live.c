@@ -212,7 +212,7 @@ void lttng_live_destroy_trace(struct bt_object *obj)
 	if (trace->trace) {
 		int retval;
 
-		retval = bt_trace_set_is_static(trace->trace);
+		retval = bt_private_trace_set_is_static(trace->trace);
 		assert(!retval);
 		BT_PUT(trace->trace);
 	}
@@ -564,7 +564,7 @@ enum bt_lttng_live_iterator_status emit_inactivity_notification(
 	struct lttng_live_trace *trace;
 	struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
-	struct bt_notification *notif = NULL;
+	struct bt_private_notification *notif = NULL;
 	int retval;
 
 	trace = lttng_live_stream->trace;
@@ -579,15 +579,16 @@ enum bt_lttng_live_iterator_status emit_inactivity_notification(
 	if (!clock_value) {
 		goto error;
 	}
-	notif = bt_notification_inactivity_create(trace->cc_prio_map);
+	notif = bt_private_notification_inactivity_create(trace->cc_prio_map);
 	if (!notif) {
 		goto error;
 	}
-	retval = bt_notification_inactivity_set_clock_value(notif, clock_value);
+	retval = bt_private_notification_inactivity_set_clock_value(notif,
+		clock_value);
 	if (retval) {
 		goto error;
 	}
-	*notification = notif;
+	*notification = bt_notification_borrow_from_private(notif);
 end:
 	bt_put(clock_value);
 	bt_put(clock_class);

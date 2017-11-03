@@ -72,26 +72,29 @@ enum bt_notif_iter_medium_status medop_request_bytes(
 }
 
 static
-struct bt_stream *medop_get_stream(
-		struct bt_stream_class *stream_class,
+struct bt_private_stream *medop_get_stream(
+		struct bt_private_stream_class *stream_class,
 		uint64_t stream_id, void *data)
 {
 	struct lttng_live_stream_iterator *lttng_live_stream = data;
+	struct bt_stream_class *pub_stream_class =
+		bt_stream_class_from_private(stream_class);
 
+	bt_put(pub_stream_class);
 	if (!lttng_live_stream->stream) {
 		int64_t stream_class_id =
-			bt_stream_class_get_id(stream_class);
+			bt_stream_class_get_id(pub_stream_class);
 
 		BT_LOGD("Creating stream %s (ID: %" PRIu64 ") out of stream class %" PRId64,
 			lttng_live_stream->name, stream_id, stream_class_id);
 
 		if (stream_id == -1ULL) {
 			/* No stream ID */
-			lttng_live_stream->stream = bt_stream_create(
+			lttng_live_stream->stream = bt_private_stream_create(
 				stream_class, lttng_live_stream->name);
 		} else {
 			lttng_live_stream->stream =
-				bt_stream_create_with_id(stream_class,
+				bt_private_stream_create_with_id(stream_class,
 					lttng_live_stream->name, stream_id);
 		}
 

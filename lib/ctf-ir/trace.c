@@ -91,7 +91,7 @@ const unsigned int field_type_aliases_sizes[] = {
 	[FIELD_TYPE_ALIAS_UINT64_T] = 64,
 };
 
-struct bt_trace *bt_trace_create(void)
+struct bt_private_trace *bt_private_trace_create(void)
 {
 	struct bt_trace *trace = NULL;
 
@@ -147,11 +147,11 @@ struct bt_trace *bt_trace_create(void)
 	}
 
 	BT_LOGD("Created trace object: addr=%p", trace);
-	return trace;
+	return bt_private_trace_from_trace(trace);
 
 error:
 	BT_PUT(trace);
-	return trace;
+	return NULL;
 }
 
 const char *bt_trace_get_name(struct bt_trace *trace)
@@ -172,9 +172,12 @@ end:
 	return name;
 }
 
-int bt_trace_set_name(struct bt_trace *trace, const char *name)
+int bt_private_trace_set_name(struct bt_private_trace *priv_trace,
+		const char *name)
 {
 	int ret = 0;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -215,9 +218,12 @@ const unsigned char *bt_trace_get_uuid(struct bt_trace *trace)
 	return trace && trace->uuid_set ? trace->uuid : NULL;
 }
 
-int bt_trace_set_uuid(struct bt_trace *trace, const unsigned char *uuid)
+int bt_private_trace_set_uuid(struct bt_private_trace *priv_trace,
+		const unsigned char *uuid)
 {
 	int ret = 0;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -327,10 +333,12 @@ void bt_trace_destroy(struct bt_object *obj)
 	g_free(trace);
 }
 
-int bt_trace_set_environment_field(struct bt_trace *trace,
+int bt_private_trace_set_environment_field(struct bt_private_trace *priv_trace,
 		const char *name, struct bt_value *value)
 {
 	int ret = 0;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -419,7 +427,8 @@ end:
 	return ret;
 }
 
-int bt_trace_set_environment_field_string(struct bt_trace *trace,
+int bt_private_trace_set_environment_field_string(
+		struct bt_private_trace *priv_trace,
 		const char *name, const char *value)
 {
 	int ret = 0;
@@ -439,7 +448,7 @@ int bt_trace_set_environment_field_string(struct bt_trace *trace,
 	}
 
 	/* bt_trace_set_environment_field() logs errors */
-	ret = bt_trace_set_environment_field(trace, name,
+	ret = bt_private_trace_set_environment_field(priv_trace, name,
 		env_value_string_obj);
 
 end:
@@ -447,7 +456,8 @@ end:
 	return ret;
 }
 
-int bt_trace_set_environment_field_integer(struct bt_trace *trace,
+int bt_private_trace_set_environment_field_integer(
+		struct bt_private_trace *priv_trace,
 		const char *name, int64_t value)
 {
 	int ret = 0;
@@ -461,7 +471,7 @@ int bt_trace_set_environment_field_integer(struct bt_trace *trace,
 	}
 
 	/* bt_trace_set_environment_field() logs errors */
-	ret = bt_trace_set_environment_field(trace, name,
+	ret = bt_private_trace_set_environment_field(priv_trace, name,
 		env_value_integer_obj);
 
 end:
@@ -541,10 +551,12 @@ end:
 	return ret;
 }
 
-int bt_trace_add_clock_class(struct bt_trace *trace,
+int bt_private_trace_add_clock_class(struct bt_private_trace *priv_trace,
 		struct bt_clock_class *clock_class)
 {
 	int ret = 0;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -1108,8 +1120,9 @@ end:
 	return is_valid;
 }
 
-int bt_trace_add_stream_class(struct bt_trace *trace,
-		struct bt_stream_class *stream_class)
+int bt_private_trace_add_private_stream_class(
+		struct bt_private_trace *priv_trace,
+		struct bt_private_stream_class *priv_stream_class)
 {
 	int ret;
 	int64_t i;
@@ -1127,6 +1140,10 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 	struct bt_field_type *stream_event_ctx_type = NULL;
 	int64_t event_class_count;
 	struct bt_trace *current_parent_trace = NULL;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -1526,6 +1543,15 @@ end:
 	return stream;
 }
 
+struct bt_private_stream *bt_private_trace_get_private_stream_by_index(
+		struct bt_private_trace *priv_trace,
+		uint64_t index)
+{
+	return bt_private_stream_from_stream(
+		bt_trace_get_stream_by_index(
+			bt_trace_borrow_from_private(priv_trace), index));
+}
+
 int64_t bt_trace_get_stream_class_count(struct bt_trace *trace)
 {
 	int64_t ret;
@@ -1566,6 +1592,15 @@ end:
 	return stream_class;
 }
 
+struct bt_private_stream_class *
+bt_private_trace_get_private_stream_class_by_index(
+		struct bt_private_trace *priv_trace, uint64_t index)
+{
+	return bt_private_stream_class_from_stream_class(
+		bt_trace_get_stream_class_by_index(
+			bt_trace_borrow_from_private(priv_trace), index));
+}
+
 struct bt_stream_class *bt_trace_get_stream_class_by_id(
 		struct bt_trace *trace, uint64_t id_param)
 {
@@ -1601,6 +1636,15 @@ struct bt_stream_class *bt_trace_get_stream_class_by_id(
 
 end:
 	return stream_class;
+}
+
+struct bt_private_stream_class *
+bt_private_trace_get_private_stream_class_by_id(
+		struct bt_private_trace *priv_trace, uint64_t id_param)
+{
+	return bt_private_stream_class_from_stream_class(
+		bt_trace_get_stream_class_by_id(
+			bt_trace_borrow_from_private(priv_trace), id_param));
 }
 
 struct bt_clock_class *bt_trace_get_clock_class_by_name(
@@ -1866,10 +1910,12 @@ end:
 	return ret;
 }
 
-int bt_trace_set_native_byte_order(struct bt_trace *trace,
+int bt_private_trace_set_native_byte_order(struct bt_private_trace *priv_trace,
 		enum bt_byte_order byte_order)
 {
 	int ret = 0;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -1931,10 +1977,12 @@ end:
 	return field_type;
 }
 
-int bt_trace_set_packet_header_type(struct bt_trace *trace,
+int bt_private_trace_set_packet_header_type(struct bt_private_trace *priv_trace,
 		struct bt_field_type *packet_header_type)
 {
 	int ret = 0;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -2153,10 +2201,12 @@ end:
 	return is_static;
 }
 
-int bt_trace_set_is_static(struct bt_trace *trace)
+int bt_private_trace_set_is_static(struct bt_private_trace *priv_trace)
 {
 	int ret = 0;
 	size_t i;
+	struct bt_trace *trace =
+		bt_trace_borrow_from_private(priv_trace);
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -2319,4 +2369,9 @@ int bt_trace_remove_is_static_listener(
 
 end:
 	return ret;
+}
+
+struct bt_trace *bt_trace_from_private(struct bt_private_trace *private_trace)
+{
+	return bt_get(bt_trace_borrow_from_private(private_trace));
 }

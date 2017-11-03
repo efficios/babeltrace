@@ -61,7 +61,7 @@ gboolean empty_streams_ht(gpointer key, gpointer value, gpointer user_data)
 	int ret;
 	struct bt_stream *writer_stream = value;
 
-	ret = bt_stream_flush(writer_stream);
+	ret = bt_private_stream_flush(writer_stream);
 	if (ret) {
 		BT_LOGD_STR("Failed to flush stream while emptying hash table.");
 	}
@@ -109,7 +109,7 @@ struct bt_stream_class *insert_new_stream_class(
 		struct bt_stream_class *stream_class)
 {
 	struct bt_stream_class *writer_stream_class = NULL;
-	struct bt_trace *trace = NULL, *writer_trace = NULL;
+	struct bt_private_trace *trace = NULL, *writer_trace = NULL;
 	struct bt_ctf_writer *ctf_writer = fs_writer->writer;
 	enum bt_component_status ret;
 

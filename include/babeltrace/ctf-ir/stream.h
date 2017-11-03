@@ -37,6 +37,7 @@ extern "C" {
 #endif
 
 struct bt_stream_class;
+struct bt_private_stream_class;
 
 /**
 @defgroup ctfirstream CTF IR stream
@@ -97,8 +98,13 @@ management of Babeltrace objects.
 @sa ctfirstream
 @sa ctfwriterstream
 */
+struct bt_private_stream;
 struct bt_stream;
 struct bt_event;
+
+// TODO: document
+extern struct bt_stream *bt_stream_from_private(
+		struct bt_private_stream *private_stream);
 
 /**
 @brief  Creates a default CTF IR stream named \p name from the CTF IR
@@ -129,8 +135,8 @@ functions documented in this module on it.
 @sa bt_stream_create_with_id(): Create a CTF IR stream with a
 	specific ID.
 */
-extern struct bt_stream *bt_stream_create(
-		struct bt_stream_class *stream_class,
+extern struct bt_private_stream *bt_private_stream_create(
+		struct bt_private_stream_class *private_stream_class,
 		const char *name);
 
 /**
@@ -163,8 +169,8 @@ from \p stream_class with bt_stream_create_with_id().
 
 @sa bt_stream_create(): Create a CTF IR stream without an ID.
 */
-extern struct bt_stream *bt_stream_create_with_id(
-		struct bt_stream_class *stream_class,
+extern struct bt_private_stream *bt_private_stream_create_with_id(
+		struct bt_private_stream_class *private_stream_class,
 		const char *name, uint64_t id);
 
 /**
@@ -212,10 +218,14 @@ bt_stream_create().
 extern struct bt_stream_class *bt_stream_get_class(
 		struct bt_stream *stream);
 
+// TODO: document
+extern struct bt_private_stream_class *bt_private_stream_get_private_class(
+		struct bt_private_stream *private_stream);
+
 /** @} */
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_stream bt_stream
+#define bt_ctf_stream bt_private_stream
 
 #ifdef __cplusplus
 }

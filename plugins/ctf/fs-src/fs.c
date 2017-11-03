@@ -514,7 +514,7 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 static
 struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_stream_class *stream_class,
+		struct bt_private_stream_class *stream_class,
 		uint64_t stream_instance_id)
 {
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -609,7 +609,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 {
 	struct bt_field *packet_header_field = NULL;
 	struct bt_field *packet_context_field = NULL;
-	struct bt_stream_class *stream_class = NULL;
+	struct bt_private_stream_class *stream_class = NULL;
 	uint64_t stream_instance_id = -1ULL;
 	uint64_t begin_ns = -1ULL;
 	struct ctf_fs_ds_file_group *ds_file_group = NULL;
@@ -845,13 +845,14 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (ds_file_group->stream_id == -1ULL) {
 			/* No stream ID */
-			ds_file_group->stream = bt_stream_create(
+			ds_file_group->stream = bt_private_stream_create(
 				ds_file_group->stream_class, name->str);
 		} else {
 			/* Specific stream ID */
-			ds_file_group->stream = bt_stream_create_with_id(
-				ds_file_group->stream_class, name->str,
-				ds_file_group->stream_id);
+			ds_file_group->stream =
+				bt_private_stream_create_with_id(
+					ds_file_group->stream_class, name->str,
+					ds_file_group->stream_id);
 		}
 
 		g_string_free(name, TRUE);
@@ -888,22 +889,23 @@ int create_cc_prio_map(struct ctf_fs_trace *ctf_fs_trace)
 	int ret = 0;
 	size_t i;
 	int count;
+	struct bt_trace *pub_trace;
 
 	assert(ctf_fs_trace);
+	pub_trace = bt_trace_from_private(ctf_fs_trace->metadata->trace);
+	bt_put(pub_trace);
 	ctf_fs_trace->cc_prio_map = bt_clock_class_priority_map_create();
 	if (!ctf_fs_trace->cc_prio_map) {
 		ret = -1;
 		goto end;
 	}
 
-	count = bt_trace_get_clock_class_count(
-		ctf_fs_trace->metadata->trace);
+	count = bt_trace_get_clock_class_count(pub_trace);
 	assert(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_clock_class *clock_class =
-			bt_trace_get_clock_class_by_index(
-				ctf_fs_trace->metadata->trace, i);
+			bt_trace_get_clock_class_by_index(pub_trace, i);
 
 		assert(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
@@ -972,7 +974,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 	 * trace needs. There won't be any more. Therefore it is safe to
 	 * make this trace static.
 	 */
-	(void) bt_trace_set_is_static(ctf_fs_trace->metadata->trace);
+	(void) bt_private_trace_set_is_static(ctf_fs_trace->metadata->trace);
 
 	goto end;
 

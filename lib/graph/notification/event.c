@@ -163,11 +163,13 @@ bool event_has_trace(struct bt_event *event)
 	return bt_stream_class_borrow_trace(stream_class) != NULL;
 }
 
-struct bt_notification *bt_notification_event_create(struct bt_event *event,
+struct bt_private_notification *bt_private_notification_event_create(
+		struct bt_private_event *priv_event,
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
 	struct bt_notification_event *notification = NULL;
 	struct bt_event_class *event_class;
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
 
 	if (!event) {
 		BT_LOGW_STR("Invalid parameter: event is NULL.");
@@ -258,7 +260,7 @@ error:
 
 end:
 	bt_put(cc_prio_map);
-	return &notification->parent;
+	return bt_private_notification_from_notification(&notification->parent);
 }
 
 struct bt_event *bt_notification_event_get_event(

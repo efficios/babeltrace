@@ -56,11 +56,14 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
-	struct bt_trace *trace;
-	struct bt_stream_class *stream_class;
-	struct bt_event_class *event_class;
-	struct bt_stream *stream;
-	struct bt_packet *packet;
+	struct bt_private_trace *trace;
+	struct bt_trace *pub_trace;
+	struct bt_private_stream_class *stream_class;
+	struct bt_stream_class *pub_stream_class;
+	struct bt_private_event_class *event_class;
+	struct bt_event_class *pub_event_class;
+	struct bt_private_stream *stream;
+	struct bt_private_packet *packet;
 	struct bt_clock_class *clock_class;
 	struct bt_clock_class_priority_map *cc_prio_map;
 };
@@ -256,19 +259,20 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	gchar *basename = NULL;
 	int ret = 0;
 
-	dmesg_comp->trace = bt_trace_create();
+	dmesg_comp->trace = bt_private_trace_create();
 	if (!dmesg_comp->trace) {
 		BT_LOGE_STR("Cannot create an empty trace object.");
 		goto error;
 	}
 
+	dmesg_comp->pub_trace = bt_trace_from_private(dmesg_comp->trace);
 	ft = create_packet_header_ft();
 	if (!ft) {
 		BT_LOGE_STR("Cannot create packet header field type.");
 		goto error;
 	}
 
-	ret = bt_trace_set_packet_header_type(dmesg_comp->trace, ft);
+	ret = bt_private_trace_set_packet_header_type(dmesg_comp->trace, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set trace's packet header field type.");
 		goto error;
@@ -287,19 +291,21 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	}
 
 	if (trace_name) {
-		ret = bt_trace_set_name(dmesg_comp->trace, trace_name);
+		ret = bt_private_trace_set_name(dmesg_comp->trace, trace_name);
 		if (ret) {
 			BT_LOGE("Cannot set trace's name: name=\"%s\"", trace_name);
 			goto error;
 		}
 	}
 
-	dmesg_comp->stream_class = bt_stream_class_create_empty(NULL);
+	dmesg_comp->stream_class = bt_private_stream_class_create_empty(NULL);
 	if (!dmesg_comp->stream_class) {
 		BT_LOGE_STR("Cannot create an empty stream class object.");
 		goto error;
 	}
 
+	dmesg_comp->pub_stream_class =
+		bt_stream_class_from_private(dmesg_comp->stream_class);
 	bt_put(ft);
 	ft = create_packet_context_ft();
 	if (!ft) {
@@ -307,7 +313,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_stream_class_set_packet_context_type(
+	ret = bt_private_stream_class_set_packet_context_type(
 		dmesg_comp->stream_class, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set stream class's packet context field type.");
@@ -327,7 +333,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			goto error;
 		}
 
-		ret = bt_trace_add_clock_class(dmesg_comp->trace,
+		ret = bt_private_trace_add_clock_class(dmesg_comp->trace,
 			dmesg_comp->clock_class);
 		if (ret) {
 			BT_LOGE_STR("Cannot add clock class to trace.");
@@ -348,7 +354,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			goto error;
 		}
 
-		ret = bt_stream_class_set_event_header_type(
+		ret = bt_private_stream_class_set_event_header_type(
 			dmesg_comp->stream_class, ft);
 		if (ret) {
 			BT_LOGE_STR("Cannot set stream class's event header field type.");
@@ -356,12 +362,14 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		}
 	}
 
-	dmesg_comp->event_class = bt_event_class_create("string");
+	dmesg_comp->event_class = bt_private_event_class_create("string");
 	if (!dmesg_comp->event_class) {
 		BT_LOGE_STR("Cannot create an empty event class object.");
 		goto error;
 	}
 
+	dmesg_comp->pub_event_class = bt_event_class_from_private(
+		dmesg_comp->event_class);
 	bt_put(ft);
 	ft = create_event_payload_ft();
 	if (!ft) {
@@ -369,20 +377,20 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_event_class_set_payload_type(dmesg_comp->event_class, ft);
+	ret = bt_private_event_class_set_payload_type(dmesg_comp->event_class, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event class's event payload field type.");
 		goto error;
 	}
 
-	ret = bt_stream_class_add_event_class(dmesg_comp->stream_class,
-		dmesg_comp->event_class);
+	ret = bt_private_stream_class_add_private_event_class(
+		dmesg_comp->stream_class, dmesg_comp->event_class);
 	if (ret) {
 		BT_LOGE("Cannot add event class to stream class: ret=%d", ret);
 		goto error;
 	}
 
-	ret = bt_trace_add_stream_class(dmesg_comp->trace,
+	ret = bt_private_trace_add_private_stream_class(dmesg_comp->trace,
 		dmesg_comp->stream_class);
 	if (ret) {
 		BT_LOGE("Cannot add event class to stream class: ret=%d", ret);
@@ -552,20 +560,20 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 	struct bt_field_type *ft = NULL;
 	struct bt_field *field = NULL;
 
-	dmesg_comp->stream = bt_stream_create(dmesg_comp->stream_class,
+	dmesg_comp->stream = bt_private_stream_create(dmesg_comp->stream_class,
 		NULL);
 	if (!dmesg_comp->stream) {
 		BT_LOGE_STR("Cannot create stream object.");
 		goto error;
 	}
 
-	dmesg_comp->packet = bt_packet_create(dmesg_comp->stream);
+	dmesg_comp->packet = bt_private_packet_create(dmesg_comp->stream);
 	if (!dmesg_comp->packet) {
 		BT_LOGE_STR("Cannot create packet object.");
 		goto error;
 	}
 
-	ft = bt_trace_get_packet_header_type(dmesg_comp->trace);
+	ft = bt_trace_get_packet_header_type(dmesg_comp->pub_trace);
 	assert(ft);
 	field = create_packet_header_field(ft);
 	if (!field) {
@@ -573,7 +581,7 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	ret = bt_packet_set_header(dmesg_comp->packet, field);
+	ret = bt_private_packet_set_header(dmesg_comp->packet, field);
 	if (ret) {
 		BT_LOGE_STR("Cannot set packet's header field.");
 		goto error;
@@ -582,7 +590,7 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 	bt_put(ft);
 	bt_put(field);
 	ft = bt_stream_class_get_packet_context_type(
-		dmesg_comp->stream_class);
+		dmesg_comp->pub_stream_class);
 	assert(ft);
 	field = create_packet_context_field(ft);
 	if (!field) {
@@ -590,13 +598,13 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	ret = bt_packet_set_context(dmesg_comp->packet, field);
+	ret = bt_private_packet_set_context(dmesg_comp->packet, field);
 	if (ret) {
 		BT_LOGE_STR("Cannot set packet's context field.");
 		goto error;
 	}
 
-	ret = bt_trace_set_is_static(dmesg_comp->trace);
+	ret = bt_private_trace_set_is_static(dmesg_comp->trace);
 	if (ret) {
 		BT_LOGE_STR("Cannot make trace static.");
 		goto error;
@@ -660,8 +668,11 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 
 	bt_put(dmesg_comp->packet);
 	bt_put(dmesg_comp->trace);
+	bt_put(dmesg_comp->pub_trace);
 	bt_put(dmesg_comp->stream_class);
+	bt_put(dmesg_comp->pub_stream_class);
 	bt_put(dmesg_comp->event_class);
+	bt_put(dmesg_comp->pub_event_class);
 	bt_put(dmesg_comp->stream);
 	bt_put(dmesg_comp->clock_class);
 	bt_put(dmesg_comp->cc_prio_map);
@@ -827,7 +838,7 @@ skip_ts:
 		}
 
 		ft = bt_stream_class_get_event_header_type(
-			dmesg_comp->stream_class);
+			dmesg_comp->pub_stream_class);
 		assert(ft);
 		eh_field = bt_field_create(ft);
 		if (!eh_field) {
@@ -879,7 +890,7 @@ int create_event_payload_from_line(
 	int ret;
 
 	assert(user_field);
-	ft = bt_event_class_get_payload_type(dmesg_comp->event_class);
+	ft = bt_event_class_get_payload_type(dmesg_comp->pub_event_class);
 	assert(ft);
 	ep_field = bt_field_create(ft);
 	if (!ep_field) {
@@ -927,7 +938,7 @@ struct bt_notification *create_notif_from_line(
 	struct bt_field *eh_field = NULL;
 	struct bt_field *ep_field = NULL;
 	struct bt_clock_value *clock_value = NULL;
-	struct bt_event *event = NULL;
+	struct bt_private_event *event = NULL;
 	struct bt_notification *notif = NULL;
 	const char *new_start;
 	int ret;
@@ -949,41 +960,43 @@ struct bt_notification *create_notif_from_line(
 	}
 
 	assert(ep_field);
-	event = bt_event_create(dmesg_comp->event_class);
+	event = bt_private_event_create(dmesg_comp->event_class);
 	if (!event) {
 		BT_LOGE_STR("Cannot create event object.");
 		goto error;
 	}
 
-	ret = bt_event_set_packet(event, dmesg_comp->packet);
+	ret = bt_private_event_set_private_packet(event, dmesg_comp->packet);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event's packet.");
 		goto error;
 	}
 
 	if (eh_field) {
-		ret = bt_event_set_header(event, eh_field);
+		ret = bt_private_event_set_header(event, eh_field);
 		if (ret) {
 			BT_LOGE_STR("Cannot set event's header field.");
 			goto error;
 		}
 	}
 
-	ret = bt_event_set_event_payload(event, ep_field);
+	ret = bt_private_event_set_event_payload(event, ep_field);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event's payload field.");
 		goto error;
 	}
 
 	if (clock_value) {
-		ret = bt_event_set_clock_value(event, clock_value);
+		ret = bt_private_event_set_clock_value(event, clock_value);
 		if (ret) {
 			BT_LOGE_STR("Cannot set event's clock value.");
 			goto error;
 		}
 	}
 
-	notif = bt_notification_event_create(event, dmesg_comp->cc_prio_map);
+	notif = bt_notification_borrow_from_private(
+			bt_private_notification_event_create(event,
+				dmesg_comp->cc_prio_map));
 	if (!notif) {
 		BT_LOGE_STR("Cannot create event notification.");
 		goto error;

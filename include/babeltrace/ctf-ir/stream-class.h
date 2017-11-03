@@ -136,6 +136,7 @@ except for:
 @brief A CTF IR stream class.
 @sa ctfirstreamclass
 */
+struct bt_private_stream_class;
 struct bt_stream_class;
 struct bt_event_class;
 struct bt_clock;
@@ -144,6 +145,10 @@ struct bt_clock;
 @name Creation and parent access functions
 @{
 */
+
+// TODO: document
+extern struct bt_stream_class *bt_stream_class_from_private(
+		struct bt_private_stream_class *private_stream_class);
 
 /**
 @brief	Creates an empty CTF IR stream class named \p name, or an
@@ -164,7 +169,7 @@ bt_stream_class_set_event_context_type().
 
 @sa bt_stream_class_create(): Creates a default stream class.
 */
-extern struct bt_stream_class *bt_stream_class_create_empty(
+extern struct bt_private_stream_class *bt_private_stream_class_create_empty(
 		const char *name);
 
 /**
@@ -198,7 +203,8 @@ bt_stream_class_set_event_header_type().
 
 @sa bt_stream_class_create_empty(): Creates an empty stream class.
 */
-extern struct bt_stream_class *bt_stream_class_create(const char *name);
+extern struct bt_private_stream_class *bt_private_stream_class_create(
+		const char *name);
 
 /**
 @brief	Returns the parent CTF IR trace class of the CTF IR stream
@@ -224,6 +230,10 @@ bt_trace_add_stream_class().
 */
 extern struct bt_trace *bt_stream_class_get_trace(
 		struct bt_stream_class *stream_class);
+
+// TODO: document
+extern struct bt_private_trace *bt_private_stream_class_get_private_trace(
+		struct bt_private_stream_class *private_stream_class);
 
 /** @} */
 
@@ -274,8 +284,9 @@ the stream classes of the trace class to which you eventually add
 @sa bt_stream_class_get_name(): Returns the name of a given
 	stream class.
 */
-extern int bt_stream_class_set_name(
-		struct bt_stream_class *stream_class, const char *name);
+extern int bt_private_stream_class_set_name(
+		struct bt_private_stream_class *private_stream_class,
+		const char *name);
 
 /**
 @brief	Returns the numeric ID of the CTF IR stream class \p stream_class.
@@ -312,8 +323,9 @@ of the trace class to which you eventually add \p stream_class.
 @sa bt_stream_class_get_id(): Returns the numeric ID of a given
 	stream class.
 */
-extern int bt_stream_class_set_id(
-		struct bt_stream_class *stream_class, uint64_t id);
+extern int bt_private_stream_class_set_id(
+		struct bt_private_stream_class *private_stream_class,
+		uint64_t id);
 
 /** @} */
 
@@ -372,8 +384,8 @@ As of Babeltrace \btversion, if \p packet_context_type is not \c NULL,
 @sa bt_stream_class_get_packet_context_type(): Returns the packet
 	context field type of a given stream class.
 */
-extern int bt_stream_class_set_packet_context_type(
-		struct bt_stream_class *stream_class,
+extern int bt_private_stream_class_set_packet_context_type(
+		struct bt_private_stream_class *private_stream_class,
 		struct bt_field_type *packet_context_type);
 
 /**
@@ -394,8 +406,7 @@ extern int bt_stream_class_set_packet_context_type(
 @sa bt_stream_class_set_event_header_type(): Sets the event
 	header field type of a given stream class.
 */
-extern struct bt_field_type *
-bt_stream_class_get_event_header_type(
+extern struct bt_field_type *bt_stream_class_get_event_header_type(
 		struct bt_stream_class *stream_class);
 
 /**
@@ -427,8 +438,8 @@ As of Babeltrace \btversion, if \p event_header_type is not \c NULL,
 @sa bt_stream_class_get_event_header_type(): Returns the event
 	header field type of a given stream class.
 */
-extern int bt_stream_class_set_event_header_type(
-		struct bt_stream_class *stream_class,
+extern int bt_private_stream_class_set_event_header_type(
+		struct bt_private_stream_class *private_stream_class,
 		struct bt_field_type *event_header_type);
 
 /**
@@ -483,8 +494,8 @@ As of Babeltrace \btversion, if \p event_context_type is not \c NULL,
 @sa bt_stream_class_get_event_context_type(): Returns the event context
 	field type of a given stream class.
 */
-extern int bt_stream_class_set_event_context_type(
-		struct bt_stream_class *stream_class,
+extern int bt_private_stream_class_set_event_context_type(
+		struct bt_private_stream_class *private_stream_class,
 		struct bt_field_type *event_context_type);
 
 /** @} */
@@ -532,6 +543,12 @@ extern int64_t bt_stream_class_get_event_class_count(
 extern struct bt_event_class *bt_stream_class_get_event_class_by_index(
 		struct bt_stream_class *stream_class, uint64_t index);
 
+// TODO: document
+extern struct bt_private_event_class *
+bt_private_stream_class_get_private_event_class_by_index(
+		struct bt_private_stream_class *private_stream_class,
+		uint64_t index);
+
 /**
 @brief  Returns the event class with ID \c id found in the CTF IR stream
 	class \p stream_class.
@@ -547,6 +564,12 @@ extern struct bt_event_class *bt_stream_class_get_event_class_by_index(
 */
 extern struct bt_event_class *bt_stream_class_get_event_class_by_id(
 		struct bt_stream_class *stream_class, uint64_t id);
+
+// TODO: document
+extern struct bt_private_event_class *
+bt_private_stream_class_get_private_event_class_by_id(
+		struct bt_private_stream_class *private_stream_class,
+		uint64_t id);
 
 /**
 @brief	Adds the CTF IR event class \p event_class to the
@@ -585,9 +608,9 @@ types of \p event_class. If any automatic resolving fails:
 @postsuccessrefcountinc{event_class}
 @postsuccessfrozen{event_class}
 */
-extern int bt_stream_class_add_event_class(
-		struct bt_stream_class *stream_class,
-		struct bt_event_class *event_class);
+extern int bt_private_stream_class_add_private_event_class(
+		struct bt_private_stream_class *private_stream_class,
+		struct bt_private_event_class *private_event_class);
 
 /** @} */
 
@@ -622,10 +645,12 @@ extern int bt_stream_class_visit(struct bt_stream_class *stream_class,
 /** @} */
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_stream_class bt_stream_class
-#define bt_ctf_stream_class_create bt_stream_class_create
-#define bt_ctf_stream_class_add_event_class bt_stream_class_add_event_class
-#define bt_ctf_stream_class_get_packet_context_type bt_stream_class_get_packet_context_type
+#define bt_ctf_stream_class bt_private_stream_class
+#define bt_ctf_stream_class_create bt_private_stream_class_create
+#define bt_ctf_stream_class_add_event_class bt_private_stream_class_add_private_event_class
+
+extern struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
+		struct bt_ctf_stream_class *stream_class);
 
 #ifdef __cplusplus
 }

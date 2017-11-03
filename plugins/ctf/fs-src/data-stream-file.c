@@ -173,15 +173,16 @@ end:
 }
 
 static
-struct bt_stream *medop_get_stream(
-		struct bt_stream_class *stream_class, uint64_t stream_id,
-		void *data)
+struct bt_private_stream *medop_get_stream(
+		struct bt_private_stream_class *stream_class,
+		uint64_t stream_id, void *data)
 {
 	struct ctf_fs_ds_file *ds_file = data;
-	struct bt_stream_class *ds_file_stream_class;
-	struct bt_stream *stream = NULL;
+	struct bt_private_stream_class *ds_file_stream_class;
+	struct bt_private_stream *stream = NULL;
 
-	ds_file_stream_class = bt_stream_get_class(ds_file->stream);
+	ds_file_stream_class = bt_private_stream_get_private_class(
+		ds_file->stream);
 	bt_put(ds_file_stream_class);
 
 	if (stream_class != ds_file_stream_class) {
@@ -764,7 +765,7 @@ BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		struct bt_notif_iter *notif_iter,
-		struct bt_stream *stream, const char *path)
+		struct bt_private_stream *stream, const char *path)
 {
 	int ret;
 	const size_t page_size = bt_common_get_page_size();

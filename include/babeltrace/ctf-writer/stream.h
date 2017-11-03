@@ -50,8 +50,8 @@ extern "C" {
  *
  * Returns the number of discarded events, a negative value on error.
  */
-extern int bt_stream_get_discarded_events_count(
-		struct bt_stream *stream, uint64_t *count);
+extern int bt_private_stream_get_discarded_events_count(
+		struct bt_private_stream *stream, uint64_t *count);
 
 /*
  * bt_stream_append_discarded_events: increment discarded events count.
@@ -63,7 +63,8 @@ extern int bt_stream_get_discarded_events_count(
  * @param event_count Number of discarded events to add to the stream's current
  *	packet.
  */
-extern void bt_stream_append_discarded_events(struct bt_stream *stream,
+extern void bt_private_stream_append_discarded_events(
+		struct bt_private_stream *stream,
 		uint64_t event_count);
 
 /*
@@ -83,8 +84,9 @@ extern void bt_stream_append_discarded_events(struct bt_stream *stream,
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_stream_append_event(struct bt_stream *stream,
-		struct bt_event *event);
+extern int bt_private_stream_append_private_event(
+		struct bt_private_stream *stream,
+		struct bt_private_event *event);
 
 /*
  * bt_stream_get_packet_header: get a stream's packet header.
@@ -93,8 +95,8 @@ extern int bt_stream_append_event(struct bt_stream *stream,
  *
  * Returns a field instance on success, NULL on error.
  */
-extern struct bt_field *bt_stream_get_packet_header(
-		struct bt_stream *stream);
+extern struct bt_field *bt_private_stream_get_packet_header(
+		struct bt_private_stream *stream);
 
 /*
  * bt_stream_set_packet_header: set a stream's packet header.
@@ -107,8 +109,8 @@ extern struct bt_field *bt_stream_get_packet_header(
  *
  * Returns a field instance on success, NULL on error.
  */
-extern int bt_stream_set_packet_header(
-		struct bt_stream *stream,
+extern int bt_private_stream_set_packet_header(
+		struct bt_private_stream *stream,
 		struct bt_field *packet_header);
 
 /*
@@ -118,8 +120,8 @@ extern int bt_stream_set_packet_header(
  *
  * Returns a field instance on success, NULL on error.
  */
-extern struct bt_field *bt_stream_get_packet_context(
-		struct bt_stream *stream);
+extern struct bt_field *bt_private_stream_get_packet_context(
+		struct bt_private_stream *stream);
 
 /*
  * bt_stream_set_packet_context: set a stream's packet context.
@@ -132,8 +134,8 @@ extern struct bt_field *bt_stream_get_packet_context(
  *
  * Returns a field instance on success, NULL on error.
  */
-extern int bt_stream_set_packet_context(
-		struct bt_stream *stream,
+extern int bt_private_stream_set_packet_context(
+		struct bt_private_stream *stream,
 		struct bt_field *packet_context);
 
 /*
@@ -151,19 +153,19 @@ extern int bt_stream_set_packet_context(
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_stream_flush(struct bt_stream *stream);
+extern int bt_private_stream_flush(struct bt_private_stream *stream);
 
 extern int bt_stream_is_writer(struct bt_stream *stream);
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_stream_get_discarded_events_count bt_stream_get_discarded_events_count
-#define bt_ctf_stream_append_discarded_events bt_stream_append_discarded_events
-#define bt_ctf_stream_append_event bt_stream_append_event
-#define bt_ctf_stream_get_packet_context bt_stream_get_packet_context
-#define bt_ctf_stream_flush bt_stream_flush
+#define bt_ctf_stream_get_discarded_events_count bt_private_stream_get_discarded_events_count
+#define bt_ctf_stream_append_discarded_events bt_private_stream_append_discarded_events
+#define bt_ctf_stream_append_event bt_private_stream_append_private_event
+#define bt_ctf_stream_get_packet_context bt_private_stream_get_packet_context
+#define bt_ctf_stream_flush bt_private_stream_flush
 
-extern void bt_ctf_stream_get(struct bt_stream *stream);
-extern void bt_ctf_stream_put(struct bt_stream *stream);
+extern void bt_ctf_stream_get(struct bt_private_stream *stream);
+extern void bt_ctf_stream_put(struct bt_private_stream *stream);
 
 #ifdef __cplusplus
 }

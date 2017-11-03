@@ -184,7 +184,8 @@ struct ctx_decl_scope {
  */
 struct ctx {
 	/* Trace being filled (owned by this) */
-	struct bt_trace *trace;
+	struct bt_private_trace *trace;
+	struct bt_trace *pub_trace;
 
 	/* Current declaration scope (top of the stack) */
 	struct ctx_decl_scope *current_scope;
@@ -545,6 +546,7 @@ void ctx_destroy(struct ctx *ctx)
 	}
 
 	bt_put(ctx->trace);
+	bt_put(ctx->pub_trace);
 
 	if (ctx->stream_classes) {
 		g_hash_table_destroy(ctx->stream_classes);
@@ -564,7 +566,7 @@ end:
  * @returns	New visitor context, or NULL on error
  */
 static
-struct ctx *ctx_create(struct bt_trace *trace,
+struct ctx *ctx_create(struct bt_private_trace *trace,
 		const struct ctf_metadata_decoder_config *decoder_config,
 		const char *trace_name_suffix)
 {
@@ -602,6 +604,7 @@ struct ctx *ctx_create(struct bt_trace *trace,
 	}
 
 	ctx->trace = trace;
+	ctx->pub_trace = bt_trace_from_private(ctx->trace);
 	ctx->current_scope = scope;
 	scope = NULL;
 	ctx->trace_bo = BT_BYTE_ORDER_NATIVE;
@@ -1079,7 +1082,7 @@ enum bt_byte_order get_real_byte_order(struct ctx *ctx,
 	enum bt_byte_order bo = byte_order_from_unary_expr(uexpr);
 
 	if (bo == BT_BYTE_ORDER_NATIVE) {
-		bo = bt_trace_get_native_byte_order(ctx->trace);
+		bo = bt_trace_get_native_byte_order(ctx->pub_trace);
 	}
 
 	return bo;
@@ -2412,7 +2415,7 @@ int visit_integer_decl(struct ctx *ctx,
 	enum bt_string_encoding encoding = BT_STRING_ENCODING_NONE;
 	enum bt_integer_base base = BT_INTEGER_BASE_DECIMAL;
 	enum bt_byte_order byte_order =
-		bt_trace_get_native_byte_order(ctx->trace);
+		bt_trace_get_native_byte_order(ctx->pub_trace);
 
 	*integer_decl = NULL;
 
@@ -2719,7 +2722,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			mapped_clock = bt_trace_get_clock_class_by_name(
-				ctx->trace, clock_name);
+				ctx->pub_trace, clock_name);
 			if (!mapped_clock) {
 				_BT_LOGE_NODE(right,
 					"Invalid `map` attribute in integer field type: "
@@ -2804,7 +2807,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 	struct ctf_node *expression;
 	uint64_t alignment = 1, exp_dig = 0, mant_dig = 0;
 	enum bt_byte_order byte_order =
-		bt_trace_get_native_byte_order(ctx->trace);
+		bt_trace_get_native_byte_order(ctx->pub_trace);
 
 	*float_decl = NULL;
 
@@ -3212,7 +3215,7 @@ error:
 
 static
 int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
-	struct bt_event_class *event_class, int64_t *stream_id,
+	struct bt_private_event_class *event_class, int64_t *stream_id,
 	int *set)
 {
 	int ret = 0;
@@ -3277,7 +3280,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_event_class_set_id(event_class, id);
+			ret = bt_private_event_class_set_id(event_class, id);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot set event class's ID: "
@@ -3328,7 +3331,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			assert(decl);
-			ret = bt_event_class_set_context_type(
+			ret = bt_private_event_class_set_context_type(
 				event_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -3358,7 +3361,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			assert(decl);
-			ret = bt_event_class_set_payload_type(
+			ret = bt_private_event_class_set_payload_type(
 				event_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -3441,7 +3444,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			if (log_level != BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED) {
-				ret = bt_event_class_set_log_level(
+				ret = bt_private_event_class_set_log_level(
 					event_class, log_level);
 				if (ret) {
 					_BT_LOGE_NODE(node,
@@ -3474,7 +3477,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				_BT_LOGW_NODE(node,
 					"Not setting event class's EMF URI because it's empty.");
 			} else {
-				ret = bt_event_class_set_emf_uri(
+				ret = bt_private_event_class_set_emf_uri(
 					event_class, right);
 				if (ret) {
 					_BT_LOGE_NODE(node,
@@ -3560,25 +3563,29 @@ error:
 
 static
 int reset_event_decl_types(struct ctx *ctx,
-	struct bt_event_class *event_class)
+	struct bt_private_event_class *event_class)
 {
 	int ret = 0;
+	struct bt_event_class *pub_event_class =
+		bt_event_class_from_private(event_class);
+
+	bt_put(pub_event_class);
 
 	/* Context type. */
-	ret = bt_event_class_set_context_type(event_class, NULL);
+	ret = bt_private_event_class_set_context_type(event_class, NULL);
 	if (ret) {
 		BT_LOGE("Cannot reset initial event class's context field type: "
 			"event-name=\"%s\"",
-			bt_event_class_get_name(event_class));
+			bt_event_class_get_name(pub_event_class));
 		goto end;
 	}
 
 	/* Event payload. */
-	ret = bt_event_class_set_payload_type(event_class, NULL);
+	ret = bt_private_event_class_set_payload_type(event_class, NULL);
 	if (ret) {
 		BT_LOGE("Cannot reset initial event class's payload field type: "
 			"event-name=\"%s\"",
-			bt_event_class_get_name(event_class));
+			bt_event_class_get_name(pub_event_class));
 		goto end;
 	}
 end:
@@ -3587,26 +3594,26 @@ end:
 
 static
 int reset_stream_decl_types(struct ctx *ctx,
-	struct bt_stream_class *stream_class)
+	struct bt_private_stream_class *stream_class)
 {
 	int ret = 0;
 
 	/* Packet context. */
-	ret = bt_stream_class_set_packet_context_type(stream_class, NULL);
+	ret = bt_private_stream_class_set_packet_context_type(stream_class, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial stream class's packet context field type.");
 		goto end;
 	}
 
 	/* Event header. */
-	ret = bt_stream_class_set_event_header_type(stream_class, NULL);
+	ret = bt_private_stream_class_set_event_header_type(stream_class, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial stream class's event header field type.");
 		goto end;
 	}
 
 	/* Event context. */
-	ret = bt_stream_class_set_event_context_type(stream_class, NULL);
+	ret = bt_private_stream_class_set_event_context_type(stream_class, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial stream class's event context field type.");
 		goto end;
@@ -3616,12 +3623,12 @@ end:
 }
 
 static
-struct bt_stream_class *create_reset_stream_class(struct ctx *ctx)
+struct bt_private_stream_class *create_reset_stream_class(struct ctx *ctx)
 {
 	int ret;
-	struct bt_stream_class *stream_class;
+	struct bt_private_stream_class *stream_class;
 
-	stream_class = bt_stream_class_create_empty(NULL);
+	stream_class = bt_private_stream_class_create_empty(NULL);
 	if (!stream_class) {
 		BT_LOGE_STR("Cannot create empty stream class.");
 		goto error;
@@ -3653,9 +3660,11 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	struct ctf_node *iter;
 	int64_t stream_id = -1;
 	char *event_name = NULL;
-	struct bt_event_class *event_class = NULL;
-	struct bt_event_class *eevent_class;
-	struct bt_stream_class *stream_class = NULL;
+	struct bt_private_event_class *event_class = NULL;
+	struct bt_event_class *pub_event_class = NULL;
+	struct bt_private_event_class *eevent_class;
+	struct bt_private_stream_class *stream_class = NULL;
+	struct bt_stream_class *pub_stream_class = NULL;
 	struct bt_list_head *decl_list = &node->u.event.declaration_list;
 	bool pop_scope = false;
 
@@ -3672,7 +3681,9 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
-	event_class = bt_event_class_create(event_name);
+	event_class = bt_private_event_class_create(event_name);
+	pub_event_class = bt_event_class_from_private(event_class);
+	bt_put(pub_event_class);
 
 	/*
 	 * Unset context and fields to override the default ones.
@@ -3706,10 +3717,10 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	if (!_IS_SET(&set, _EVENT_STREAM_ID_SET)) {
 		GList *keys = NULL;
 		int64_t *new_stream_id;
-		struct bt_stream_class *new_stream_class;
+		struct bt_private_stream_class *new_stream_class;
 		size_t stream_class_count =
 			g_hash_table_size(ctx->stream_classes) +
-			bt_trace_get_stream_class_count(ctx->trace);
+			bt_trace_get_stream_class_count(ctx->pub_trace);
 
 		/*
 		 * Allow missing stream_id if there is only a single
@@ -3727,7 +3738,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
-			ret = bt_stream_class_set_id(new_stream_class,
+			ret = bt_private_stream_class_set_id(new_stream_class,
 				stream_id);
 			if (ret) {
 				_BT_LOGE_NODE(node,
@@ -3759,15 +3770,17 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 				stream_id = *((int64_t *) keys->data);
 				g_list_free(keys);
 			} else {
+				struct bt_stream_class *pub_stream_class;
+
 				assert(bt_trace_get_stream_class_count(
-					ctx->trace) == 1);
-				stream_class =
+					ctx->pub_trace) == 1);
+				pub_stream_class =
 					bt_trace_get_stream_class_by_index(
-						ctx->trace, 0);
+						ctx->pub_trace, 0);
 				assert(stream_class);
 				stream_id = bt_stream_class_get_id(
-					stream_class);
-				BT_PUT(stream_class);
+					pub_stream_class);
+				bt_put(pub_stream_class);
 			}
 			break;
 		default:
@@ -3784,8 +3797,8 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	stream_class = g_hash_table_lookup(ctx->stream_classes, &stream_id);
 	bt_get(stream_class);
 	if (!stream_class) {
-		stream_class = bt_trace_get_stream_class_by_id(ctx->trace,
-			stream_id);
+		stream_class = bt_private_trace_get_private_stream_class_by_id(
+			ctx->trace, stream_id);
 		if (!stream_class) {
 			_BT_LOGE_NODE(node,
 				"Cannot find stream class at this point: "
@@ -3796,10 +3809,12 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	}
 
 	assert(stream_class);
+	pub_stream_class = bt_stream_class_from_private(stream_class);
+	bt_put(pub_stream_class);
 
 	if (!_IS_SET(&set, _EVENT_ID_SET)) {
 		/* Allow only one event without ID per stream */
-		if (bt_stream_class_get_event_class_count(stream_class) !=
+		if (bt_stream_class_get_event_class_count(pub_stream_class) !=
 				0) {
 			_BT_LOGE_NODE(node,
 				"Missing `id` attribute in event class.");
@@ -3808,7 +3823,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		}
 
 		/* Automatic ID */
-		ret = bt_event_class_set_id(event_class, 0);
+		ret = bt_private_event_class_set_id(event_class, 0);
 		if (ret) {
 			_BT_LOGE_NODE(node,
 				"Cannot set event class's ID: id=0, ret=%d",
@@ -3817,15 +3832,15 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		}
 	}
 
-	event_id = bt_event_class_get_id(event_class);
+	event_id = bt_event_class_get_id(pub_event_class);
 	if (event_id < 0) {
 		_BT_LOGE_NODE(node, "Cannot get event class's ID.");
 		ret = -EINVAL;
 		goto error;
 	}
 
-	eevent_class = bt_stream_class_get_event_class_by_id(stream_class,
-		event_id);
+	eevent_class = bt_private_stream_class_get_private_event_class_by_id(
+		stream_class, event_id);
 	if (eevent_class) {
 		BT_PUT(eevent_class);
 		_BT_LOGE_NODE(node,
@@ -3835,7 +3850,8 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
-	ret = bt_stream_class_add_event_class(stream_class, event_class);
+	ret = bt_private_stream_class_add_private_event_class(stream_class,
+		event_class);
 	BT_PUT(event_class);
 	if (ret) {
 		_BT_LOGE_NODE(node,
@@ -3877,7 +3893,7 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		goto end;
 	}
 
-	clock_class_count = bt_trace_get_clock_class_count(ctx->trace);
+	clock_class_count = bt_trace_get_clock_class_count(ctx->pub_trace);
 	assert(clock_class_count >= 0);
 
 	switch (clock_class_count) {
@@ -3895,7 +3911,7 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 			goto end;
 		}
 
-		ret = bt_trace_add_clock_class(ctx->trace,
+		ret = bt_private_trace_add_clock_class(ctx->trace,
 			clock_class_to_map_to);
 		if (ret) {
 			BT_LOGE_STR("Cannot add clock class to trace.");
@@ -3908,7 +3924,7 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		 * this point: use this one.
 		 */
 		clock_class_to_map_to =
-			bt_trace_get_clock_class_by_index(ctx->trace, 0);
+			bt_trace_get_clock_class_by_index(ctx->pub_trace, 0);
 		assert(clock_class_to_map_to);
 		break;
 	default:
@@ -4004,7 +4020,7 @@ end:
 
 static
 int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
-	struct bt_stream_class *stream_class, int *set)
+	struct bt_private_stream_class *stream_class, int *set)
 {
 	int ret = 0;
 	char *left = NULL;
@@ -4068,7 +4084,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_stream_class_set_id(stream_class, id);
+			ret = bt_private_stream_class_set_id(stream_class, id);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot set stream class's ID: "
@@ -4105,7 +4121,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_stream_class_set_event_header_type(
+			ret = bt_private_stream_class_set_event_header_type(
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -4136,7 +4152,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			assert(decl);
 
-			ret = bt_stream_class_set_event_context_type(
+			ret = bt_private_stream_class_set_event_context_type(
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -4182,7 +4198,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_stream_class_set_packet_context_type(
+			ret = bt_private_stream_class_set_packet_context_type(
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -4225,8 +4241,9 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 	int set = 0;
 	int ret = 0;
 	struct ctf_node *iter;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_stream_class *existing_stream_class = NULL;
+	struct bt_private_stream_class *stream_class = NULL;
+	struct bt_stream_class *pub_stream_class = NULL;
+	struct bt_private_stream_class *existing_stream_class = NULL;
 	struct bt_list_head *decl_list = &node->u.stream.declaration_list;
 
 	if (node->visited) {
@@ -4241,6 +4258,8 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
+	pub_stream_class = bt_stream_class_from_private(stream_class);
+	bt_put(pub_stream_class);
 	ret = ctx_push_scope(ctx);
 	if (ret) {
 		BT_LOGE_STR("Cannot push scope.");
@@ -4266,7 +4285,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 		_BT_FIELD_TYPE_INIT(packet_header_decl);
 
 		packet_header_decl =
-			bt_trace_get_packet_header_type(ctx->trace);
+			bt_trace_get_packet_header_type(ctx->pub_trace);
 		if (!packet_header_decl) {
 			_BT_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
@@ -4304,11 +4323,11 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 		}
 
 		/* Automatic ID: 0 */
-		ret = bt_stream_class_set_id(stream_class, 0);
+		ret = bt_private_stream_class_set_id(stream_class, 0);
 		assert(ret == 0);
 	}
 
-	id = bt_stream_class_get_id(stream_class);
+	id = bt_stream_class_get_id(pub_stream_class);
 	if (id < 0) {
 		_BT_LOGE_NODE(node,
 			"Cannot get stream class's ID.");
@@ -4320,8 +4339,8 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 	 * Make sure that this stream class's ID is currently unique in
 	 * the trace.
 	 */
-	existing_stream_class = bt_trace_get_stream_class_by_id(ctx->trace,
-		id);
+	existing_stream_class = bt_private_trace_get_private_stream_class_by_id(
+		ctx->trace, id);
 	if (g_hash_table_lookup(ctx->stream_classes, &id) ||
 			existing_stream_class) {
 		_BT_LOGE_NODE(node,
@@ -4437,7 +4456,8 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
-			ret = bt_trace_set_uuid(ctx->trace, ctx->trace_uuid);
+			ret = bt_private_trace_set_uuid(ctx->trace,
+				ctx->trace_uuid);
 			if (ret) {
 				_BT_LOGE_NODE(node, "Cannot set trace's UUID.");
 				goto error;
@@ -4474,7 +4494,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			}
 
 			assert(packet_header_decl);
-			ret = bt_trace_set_packet_header_type(ctx->trace,
+			ret = bt_private_trace_set_packet_header_type(ctx->trace,
 				packet_header_decl);
 			BT_PUT(packet_header_decl);
 			if (ret) {
@@ -4632,7 +4652,7 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 				}
 			}
 
-			ret = bt_trace_set_environment_field_string(
+			ret = bt_private_trace_set_environment_field_string(
 				ctx->trace, left, right);
 			g_free(right);
 
@@ -4660,7 +4680,7 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
-			ret = bt_trace_set_environment_field_integer(
+			ret = bt_private_trace_set_environment_field_integer(
 				ctx->trace, left, v);
 			if (ret) {
 				_BT_LOGE_NODE(entry_node,
@@ -4739,7 +4759,7 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 				}
 
 				ctx->trace_bo = bo;
-				ret = bt_trace_set_native_byte_order(
+				ret = bt_private_trace_set_native_byte_order(
 					ctx->trace, bo);
 				if (ret) {
 					_BT_LOGE_NODE(node,
@@ -5145,7 +5165,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		goto error;
 	}
 
-	ret = bt_trace_add_clock_class(ctx->trace, clock);
+	ret = bt_private_trace_add_clock_class(ctx->trace, clock);
 	if (ret) {
 		_BT_LOGE_NODE(clock_node,
 			"Cannot add clock class to trace.");
@@ -5228,7 +5248,7 @@ int set_trace_name(struct ctx *ctx)
 	int ret = 0;
 	struct bt_value *value = NULL;
 
-	assert(bt_trace_get_stream_class_count(ctx->trace) == 0);
+	assert(bt_trace_get_stream_class_count(ctx->pub_trace) == 0);
 	name = g_string_new(NULL);
 	if (!name) {
 		BT_LOGE_STR("Failed to allocate a GString.");
@@ -5240,7 +5260,7 @@ int set_trace_name(struct ctx *ctx)
 	 * Check if we have a trace environment string value named `hostname`.
 	 * If so, use it as the trace name's prefix.
 	 */
-	value = bt_trace_get_environment_field_value_by_name(ctx->trace,
+	value = bt_trace_get_environment_field_value_by_name(ctx->pub_trace,
 		"hostname");
 	if (bt_value_is_string(value)) {
 		const char *hostname;
@@ -5258,7 +5278,7 @@ int set_trace_name(struct ctx *ctx)
 		g_string_append(name, ctx->trace_name_suffix);
 	}
 
-	ret = bt_trace_set_name(ctx->trace, name->str);
+	ret = bt_private_trace_set_name(ctx->trace, name->str);
 	if (ret) {
 		BT_LOGE("Cannot set trace's name: name=\"%s\"", name->str);
 		goto error;
@@ -5287,7 +5307,7 @@ int move_ctx_stream_classes_to_trace(struct ctx *ctx)
 	gpointer key, stream_class;
 
 	if (g_hash_table_size(ctx->stream_classes) > 0 &&
-			bt_trace_get_stream_class_count(ctx->trace) == 0) {
+			bt_trace_get_stream_class_count(ctx->pub_trace) == 0) {
 		/*
 		 * We're about to add the first stream class to the
 		 * trace. This will freeze the trace, and after this
@@ -5304,7 +5324,7 @@ int move_ctx_stream_classes_to_trace(struct ctx *ctx)
 	g_hash_table_iter_init(&iter, ctx->stream_classes);
 
 	while (g_hash_table_iter_next(&iter, &key, &stream_class)) {
-		ret = bt_trace_add_stream_class(ctx->trace,
+		ret = bt_private_trace_add_private_stream_class(ctx->trace,
 			stream_class);
 		if (ret) {
 			int64_t id = bt_stream_class_get_id(stream_class);
@@ -5327,16 +5347,16 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 {
 	int ret;
 	struct ctx *ctx = NULL;
-	struct bt_trace *trace;
+	struct bt_private_trace *trace;
 
-	trace = bt_trace_create();
+	trace = bt_private_trace_create();
 	if (!trace) {
 		BT_LOGE_STR("Cannot create empty trace.");
 		goto error;
 	}
 
 	/* Set packet header to NULL to override the default one */
-	ret = bt_trace_set_packet_header_type(trace, NULL);
+	ret = bt_private_trace_set_packet_header_type(trace, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial trace's packet header field type.");
 		goto error;
@@ -5368,7 +5388,7 @@ void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
 }
 
 BT_HIDDEN
-struct bt_trace *ctf_visitor_generate_ir_get_trace(
+struct bt_private_trace *ctf_visitor_generate_ir_get_trace(
 		struct ctf_visitor_generate_ir *visitor)
 {
 	struct ctx *ctx = (void *) visitor;

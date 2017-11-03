@@ -46,11 +46,12 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_stream_end_create(
-		struct bt_stream *stream)
+struct bt_private_notification *bt_private_notification_stream_end_create(
+		struct bt_private_stream *priv_stream)
 {
 	struct bt_notification_stream_end *notification;
 	struct bt_stream_class *stream_class;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -97,7 +98,7 @@ struct bt_notification *bt_notification_stream_end_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
-	return &notification->parent;
+	return bt_private_notification_from_notification(&notification->parent);
 error:
 	return NULL;
 }
@@ -142,11 +143,12 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_stream_begin_create(
-		struct bt_stream *stream)
+struct bt_private_notification *bt_private_notification_stream_begin_create(
+		struct bt_private_stream *priv_stream)
 {
 	struct bt_notification_stream_begin *notification;
 	struct bt_stream_class *stream_class;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -193,7 +195,7 @@ struct bt_notification *bt_notification_stream_begin_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
-	return &notification->parent;
+	return bt_private_notification_from_notification(&notification->parent);
 error:
 	return NULL;
 }

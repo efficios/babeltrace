@@ -942,7 +942,7 @@ int add_action_push_notif_stream_begin(
 		struct bt_stream *stream)
 {
 	int ret = 0;
-	struct bt_notification *stream_begin_notif = NULL;
+	struct bt_private_notification *priv_stream_begin_notif = NULL;
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN)) {
@@ -953,13 +953,17 @@ int add_action_push_notif_stream_begin(
 	}
 
 	assert(stream);
-	stream_begin_notif = bt_notification_stream_begin_create(stream);
-	if (!stream_begin_notif) {
+	priv_stream_begin_notif =
+		bt_private_notification_stream_begin_create(
+			bt_private_stream_from_stream(stream));
+	if (!priv_stream_begin_notif) {
 		BT_LOGE_STR("Cannot create stream beginning notification.");
 		goto error;
 	}
 
-	add_action_push_notif(iterator, stream_begin_notif);
+
+	add_action_push_notif(iterator,
+		bt_notification_borrow_from_private(priv_stream_begin_notif));
 	BT_LOGV("Added \"push stream beginning notification\" action: "
 		"stream-addr=%p, stream-name=\"%s\"",
 		stream, bt_stream_get_name(stream));
@@ -969,7 +973,7 @@ error:
 	ret = -1;
 
 end:
-	bt_put(stream_begin_notif);
+	bt_put(priv_stream_begin_notif);
 	return ret;
 }
 
@@ -979,7 +983,7 @@ int add_action_push_notif_stream_end(
 		struct bt_stream *stream)
 {
 	int ret = 0;
-	struct bt_notification *stream_end_notif = NULL;
+	struct bt_private_notification *priv_stream_end_notif = NULL;
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_STREAM_END)) {
@@ -990,13 +994,16 @@ int add_action_push_notif_stream_end(
 	}
 
 	assert(stream);
-	stream_end_notif = bt_notification_stream_end_create(stream);
-	if (!stream_end_notif) {
+	priv_stream_end_notif =
+		bt_private_notification_stream_end_create(
+			bt_private_stream_from_stream(stream));
+	if (!priv_stream_end_notif) {
 		BT_LOGE_STR("Cannot create stream end notification.");
 		goto error;
 	}
 
-	add_action_push_notif(iterator, stream_end_notif);
+	add_action_push_notif(iterator,
+		bt_notification_borrow_from_private(priv_stream_end_notif));
 	BT_LOGV("Added \"push stream end notification\" action: "
 		"stream-addr=%p, stream-name=\"%s\"",
 		stream, bt_stream_get_name(stream));
@@ -1006,7 +1013,7 @@ error:
 	ret = -1;
 
 end:
-	bt_put(stream_end_notif);
+	bt_put(priv_stream_end_notif);
 	return ret;
 }
 
@@ -1016,7 +1023,7 @@ int add_action_push_notif_packet_begin(
 		struct bt_packet *packet)
 {
 	int ret = 0;
-	struct bt_notification *packet_begin_notif = NULL;
+	struct bt_private_notification *priv_packet_begin_notif = NULL;
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_PACKET_BEGIN)) {
@@ -1027,13 +1034,16 @@ int add_action_push_notif_packet_begin(
 	}
 
 	assert(packet);
-	packet_begin_notif = bt_notification_packet_begin_create(packet);
-	if (!packet_begin_notif) {
+	priv_packet_begin_notif =
+		bt_private_notification_packet_begin_create(
+			bt_private_packet_from_packet(packet));
+	if (!priv_packet_begin_notif) {
 		BT_LOGE_STR("Cannot create packet beginning notification.");
 		goto error;
 	}
 
-	add_action_push_notif(iterator, packet_begin_notif);
+	add_action_push_notif(iterator,
+		bt_notification_borrow_from_private(priv_packet_begin_notif));
 	BT_LOGV("Added \"push packet beginning notification\" action: "
 		"packet-addr=%p", packet);
 	goto end;
@@ -1042,7 +1052,7 @@ error:
 	ret = -1;
 
 end:
-	bt_put(packet_begin_notif);
+	bt_put(priv_packet_begin_notif);
 	return ret;
 }
 
@@ -1052,7 +1062,7 @@ int add_action_push_notif_packet_end(
 		struct bt_packet *packet)
 {
 	int ret = 0;
-	struct bt_notification *packet_end_notif = NULL;
+	struct bt_private_notification *priv_packet_end_notif = NULL;
 
 	if (!is_subscribed_to_notification_type(iterator,
 			BT_NOTIFICATION_TYPE_PACKET_END)) {
@@ -1063,13 +1073,15 @@ int add_action_push_notif_packet_end(
 	}
 
 	assert(packet);
-	packet_end_notif = bt_notification_packet_end_create(packet);
-	if (!packet_end_notif) {
+	priv_packet_end_notif = bt_private_notification_packet_end_create(
+			bt_private_packet_from_packet(packet));
+	if (!priv_packet_end_notif) {
 		BT_LOGE_STR("Cannot create packet end notification.");
 		goto error;
 	}
 
-	add_action_push_notif(iterator, packet_end_notif);
+	add_action_push_notif(iterator,
+		bt_notification_borrow_from_private(priv_packet_end_notif));
 	BT_LOGV("Added \"push packet end notification\" action: "
 		"packet-addr=%p", packet);
 	goto end;
@@ -1078,7 +1090,7 @@ error:
 	ret = -1;
 
 end:
-	bt_put(packet_end_notif);
+	bt_put(priv_packet_end_notif);
 	return ret;
 }
 

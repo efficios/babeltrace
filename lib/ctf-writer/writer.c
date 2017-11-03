@@ -53,7 +53,7 @@ static
 void bt_ctf_writer_destroy(struct bt_object *obj);
 
 static
-int init_trace_packet_header(struct bt_trace *trace)
+int init_trace_packet_header(struct bt_private_trace *trace)
 {
 	int ret = 0;
 	struct bt_field *magic = NULL, *uuid_array = NULL;
@@ -89,7 +89,7 @@ int init_trace_packet_header(struct bt_trace *trace)
 		goto end;
 	}
 
-	ret = bt_trace_set_packet_header_type(trace,
+	ret = bt_private_trace_set_packet_header_type(trace,
 		trace_packet_header_type);
 	if (ret) {
 		goto end;
@@ -128,12 +128,13 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
-	writer->trace = bt_trace_create();
+	writer->trace = bt_trace_borrow_from_private(bt_private_trace_create());
 	if (!writer->trace) {
 		goto error_destroy;
 	}
 
-	ret = init_trace_packet_header(writer->trace);
+	ret = init_trace_packet_header(
+		bt_private_trace_from_trace(writer->trace));
 	if (ret) {
 		goto error_destroy;
 	}
@@ -145,7 +146,8 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
-	ret = bt_trace_set_uuid(writer->trace, uuid);
+	ret = bt_private_trace_set_uuid(
+		bt_private_trace_from_trace(writer->trace), uuid);
 	if (ret) {
 		goto error_destroy;
 	}
@@ -202,27 +204,30 @@ void bt_ctf_writer_destroy(struct bt_object *obj)
 	g_free(writer);
 }
 
-struct bt_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
+struct bt_private_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
 {
-	struct bt_trace *trace = NULL;
+	struct bt_private_trace *trace = NULL;
 
 	if (!writer) {
 		goto end;
 	}
 
-	trace = writer->trace;
+	trace = bt_private_trace_from_trace(writer->trace);
 	bt_get(trace);
 end:
 	return trace;
 }
 
-struct bt_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
-		struct bt_stream_class *stream_class)
+struct bt_private_stream *bt_ctf_writer_create_stream(
+		struct bt_ctf_writer *writer,
+		struct bt_private_stream_class *priv_stream_class)
 {
-	struct bt_stream *stream = NULL;
+	struct bt_private_stream *stream = NULL;
 	int stream_class_count;
 	bt_bool stream_class_found = BT_FALSE;
 	int i;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!writer || !stream_class) {
 		goto error;
@@ -251,15 +256,16 @@ struct bt_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 	}
 
 	if (!stream_class_found) {
-		int ret = bt_trace_add_stream_class(writer->trace,
-			stream_class);
+		int ret = bt_private_trace_add_private_stream_class(
+			bt_private_trace_from_trace(writer->trace),
+			priv_stream_class);
 
 		if (ret) {
 			goto error;
 		}
 	}
 
-	stream = bt_stream_create(stream_class, NULL);
+	stream = bt_private_stream_create(priv_stream_class, NULL);
 	if (!stream) {
 		goto error;
 	}
@@ -281,7 +287,8 @@ int bt_ctf_writer_add_environment_field(struct bt_ctf_writer *writer,
 		goto end;
 	}
 
-	ret = bt_trace_set_environment_field_string(writer->trace,
+	ret = bt_private_trace_set_environment_field_string(
+		bt_private_trace_from_trace(writer->trace),
 		name, value);
 end:
 	return ret;
@@ -296,8 +303,8 @@ int bt_ctf_writer_add_environment_field_int64(struct bt_ctf_writer *writer,
 		goto end;
 	}
 
-	ret = bt_trace_set_environment_field_integer(writer->trace, name,
-		value);
+	ret = bt_private_trace_set_environment_field_integer(
+		bt_private_trace_from_trace(writer->trace), name, value);
 end:
 	return ret;
 }
@@ -311,7 +318,8 @@ int bt_ctf_writer_add_clock(struct bt_ctf_writer *writer,
 		goto end;
 	}
 
-	ret = bt_trace_add_clock_class(writer->trace, clock->clock_class);
+	ret = bt_private_trace_add_clock_class(
+		bt_private_trace_from_trace(writer->trace), clock->clock_class);
 end:
 	return ret;
 }
@@ -379,8 +387,8 @@ int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 		byte_order = BT_MY_BYTE_ORDER;
 	}
 
-	ret = bt_trace_set_native_byte_order(writer->trace,
-		byte_order);
+	ret = bt_private_trace_set_native_byte_order(
+		bt_private_trace_from_trace(writer->trace), byte_order);
 end:
 	return ret;
 }

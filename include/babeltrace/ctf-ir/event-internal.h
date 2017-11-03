@@ -53,6 +53,19 @@ struct bt_event {
 	int frozen;
 };
 
+static inline
+struct bt_private_event *bt_private_event_from_event(struct bt_event *event)
+{
+	return (void *) event;
+}
+
+static inline
+struct bt_event *bt_event_borrow_from_private(
+		struct bt_private_event *private_event)
+{
+	return (void *) private_event;
+}
+
 BT_HIDDEN
 int bt_event_validate(struct bt_event *event);
 

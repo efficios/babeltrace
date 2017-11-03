@@ -69,10 +69,10 @@ const char *object_type_str(enum bt_visitor_object_type type)
 	}
 }
 
-struct bt_event_class *init_event_class(const char *name)
+struct bt_private_event_class *init_event_class(const char *name)
 {
 	int ret;
-	struct bt_event_class *ec = bt_event_class_create(name);
+	struct bt_private_event_class *ec = bt_private_event_class_create(name);
 	struct bt_field_type *int_field =
 			bt_field_type_integer_create(8);
 
@@ -80,7 +80,7 @@ struct bt_event_class *init_event_class(const char *name)
 		goto error;
 	}
 
-	ret = bt_event_class_add_field(ec, int_field, "an_int_field");
+	ret = bt_private_event_class_add_field(ec, int_field, "an_int_field");
 	if (ret) {
 		goto error;
 	}
@@ -94,7 +94,7 @@ error:
 }
 
 static void set_stream_class_field_types(
-		struct bt_stream_class *stream_class)
+		struct bt_private_stream_class *stream_class)
 {
 	struct bt_field_type *packet_context_type;
 	struct bt_field_type *event_header_type;
@@ -125,10 +125,10 @@ static void set_stream_class_field_types(
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_stream_class_set_packet_context_type(stream_class,
+	ret = bt_private_stream_class_set_packet_context_type(stream_class,
 		packet_context_type);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(stream_class,
+	ret = bt_private_stream_class_set_event_header_type(stream_class,
 		event_header_type);
 	assert(ret == 0);
 
@@ -136,7 +136,7 @@ static void set_stream_class_field_types(
 	bt_put(event_header_type);
 }
 
-static void set_trace_packet_header(struct bt_trace *trace)
+static void set_trace_packet_header(struct bt_private_trace *trace)
 {
 	struct bt_field_type *packet_header_type;
 	struct bt_field_type *ft;
@@ -151,22 +151,22 @@ static void set_trace_packet_header(struct bt_trace *trace)
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_trace_set_packet_header_type(trace,
+	ret = bt_private_trace_set_packet_header_type(trace,
 		packet_header_type);
 	assert(ret == 0);
 
 	bt_put(packet_header_type);
 }
 
-struct bt_trace *init_trace(void)
+struct bt_private_trace *init_trace(void)
 {
 	int ret;
-	struct bt_trace *trace = bt_trace_create();
-	struct bt_stream_class *sc1 = bt_stream_class_create("sc1");
-	struct bt_stream_class *sc2 = bt_stream_class_create("sc2");
-	struct bt_event_class *ec1 = init_event_class("ec1");
-	struct bt_event_class *ec2 = init_event_class("ec2");
-	struct bt_event_class *ec3 = init_event_class("ec3");
+	struct bt_private_trace *trace = bt_private_trace_create();
+	struct bt_private_stream_class *sc1 = bt_private_stream_class_create("sc1");
+	struct bt_private_stream_class *sc2 = bt_private_stream_class_create("sc2");
+	struct bt_private_event_class *ec1 = init_event_class("ec1");
+	struct bt_private_event_class *ec2 = init_event_class("ec2");
+	struct bt_private_event_class *ec3 = init_event_class("ec3");
 
 	if (!trace || !sc1 || !sc2 || !ec1 || !ec2 || !ec3) {
 		goto end;
@@ -175,27 +175,27 @@ struct bt_trace *init_trace(void)
 	set_trace_packet_header(trace);
 	set_stream_class_field_types(sc1);
 	set_stream_class_field_types(sc2);
-	ret = bt_stream_class_add_event_class(sc1, ec1);
+	ret = bt_private_stream_class_add_private_event_class(sc1, ec1);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_stream_class_add_event_class(sc2, ec2);
+	ret = bt_private_stream_class_add_private_event_class(sc2, ec2);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_stream_class_add_event_class(sc2, ec3);
+	ret = bt_private_stream_class_add_private_event_class(sc2, ec3);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_trace_add_stream_class(trace, sc1);
+	ret = bt_private_trace_add_private_stream_class(trace, sc1);
 	if (ret) {
 		goto error;
 	}
 
-	ret = bt_trace_add_stream_class(trace, sc2);
+	ret = bt_private_trace_add_private_stream_class(trace, sc2);
 	if (ret) {
 		goto error;
 	}
@@ -264,7 +264,8 @@ end:
 int main(int argc, char **argv)
 {
 	int ret;
-	struct bt_trace *trace;
+	struct bt_private_trace *trace;
+	struct bt_trace *pub_trace;
 	struct visitor_state state = { 0 };
 
 	plan_tests(NR_TESTS);
@@ -279,10 +280,12 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	ret = bt_trace_visit(trace, visitor, &state);
+	pub_trace = bt_trace_from_private(trace);
+	ret = bt_trace_visit(pub_trace, visitor, &state);
 	ok(!ret, "bt_trace_visit returned success");
 
 	BT_PUT(trace);
+	BT_PUT(pub_trace);
 	return exit_status();
 }
 

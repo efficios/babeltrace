@@ -42,3 +42,15 @@ enum bt_notification_type bt_notification_get_type(
 {
 	return notification ? notification->type : BT_NOTIFICATION_TYPE_UNKNOWN;
 }
+
+struct bt_notification *bt_notification_from_private(
+		struct bt_private_notification *private_notification)
+{
+	return bt_get(private_notification);
+}
+
+struct bt_notification *bt_notification_borrow_from_private(
+		struct bt_private_notification *private_notification)
+{
+	return (void *) private_notification;
+}

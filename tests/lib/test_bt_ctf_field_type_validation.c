@@ -1705,10 +1705,10 @@ end:
 }
 
 static
-void validate_test_pass(struct bt_trace *trace)
+void validate_test_pass(struct bt_private_trace *trace)
 {
-	struct bt_stream_class *sc;
-	struct bt_event_class *ec;
+	struct bt_private_stream_class *sc;
+	struct bt_private_event_class *ec;
 	struct bt_field_type *ph;
 	struct bt_field_type *pc;
 	struct bt_field_type *eh;
@@ -1718,23 +1718,28 @@ void validate_test_pass(struct bt_trace *trace)
 	struct bt_field_type *ft_src = NULL;
 	struct bt_field_type *ft_target = NULL;
 	struct bt_field_type *ft_tag = NULL;
+	struct bt_trace *pub_trace = bt_trace_from_private(trace);
+	struct bt_stream_class *pub_sc;
+	struct bt_event_class *pub_ec;
 
-	sc = bt_trace_get_stream_class_by_index(trace, 0);
+	sc = bt_private_trace_get_private_stream_class_by_index(trace, 0);
 	assert(sc);
-	ec = bt_stream_class_get_event_class_by_index(sc, 0);
+	pub_sc = bt_stream_class_from_private(sc);
+	ec = bt_private_stream_class_get_private_event_class_by_index(sc, 0);
 	assert(ec);
+	pub_ec = bt_event_class_from_private(ec);
 
-	ph = bt_trace_get_packet_header_type(trace);
+	ph = bt_trace_get_packet_header_type(pub_trace);
 	ok(ph, "Trace packet header still exists after successful validation");
-	pc = bt_stream_class_get_packet_context_type(sc);
+	pc = bt_stream_class_get_packet_context_type(pub_sc);
 	ok(pc, "Stream packet context still exists after successful validation");
-	eh = bt_stream_class_get_event_header_type(sc);
+	eh = bt_stream_class_get_event_header_type(pub_sc);
 	ok(eh, "Stream event header still exists after successful validation");
-	sec = bt_stream_class_get_event_context_type(sc);
+	sec = bt_stream_class_get_event_context_type(pub_sc);
 	ok(sec, "Stream event context still exists after successful validation");
-	ectx = bt_event_class_get_context_type(ec);
+	ectx = bt_event_class_get_context_type(pub_ec);
 	ok(ectx, "Event context still exists after successful validation");
-	ep = bt_event_class_get_payload_type(ec);
+	ep = bt_event_class_get_payload_type(pub_ec);
 	ok(ep, "Event payload still exists after successful validation");
 
 	/* trace.packet.header.iron.fire.keen */
@@ -2043,6 +2048,9 @@ void validate_test_pass(struct bt_trace *trace)
 		"event.fields.absolute.canvas has the correct field path");
 	BT_PUT(ft_src);
 
+	BT_PUT(pub_sc);
+	BT_PUT(pub_ec);
+	BT_PUT(pub_trace);
 	BT_PUT(ft_src);
 	BT_PUT(ft_target);
 	BT_PUT(ph);
@@ -2059,9 +2067,9 @@ static
 void test_pass(void)
 {
 	int ret;
-	struct bt_trace *trace;
-	struct bt_stream_class *sc;
-	struct bt_event_class *ec;
+	struct bt_private_trace *trace;
+	struct bt_private_stream_class *sc;
+	struct bt_private_event_class *ec;
 	struct bt_field_type *ph;
 	struct bt_field_type *pc;
 	struct bt_field_type *eh;
@@ -2069,11 +2077,11 @@ void test_pass(void)
 	struct bt_field_type *ectx;
 	struct bt_field_type *ep;
 
-	trace = bt_trace_create();
+	trace = bt_private_trace_create();
 	assert(trace);
-	sc = bt_stream_class_create("nice_piece_of_stream_class");
+	sc = bt_private_stream_class_create("nice_piece_of_stream_class");
 	assert(sc);
-	ec = bt_event_class_create("oh_what_an_event_class");
+	ec = bt_private_event_class_create("oh_what_an_event_class");
 	assert(ec);
 
 	ph = get_good_packet_header_type();
@@ -2089,24 +2097,24 @@ void test_pass(void)
 	ep = get_good_event_payload_type();
 	assert(ep);
 
-	ret = bt_trace_set_packet_header_type(trace, ph);
+	ret = bt_private_trace_set_packet_header_type(trace, ph);
 	assert(ret == 0);
-	ret = bt_stream_class_set_packet_context_type(sc, pc);
+	ret = bt_private_stream_class_set_packet_context_type(sc, pc);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(sc, eh);
+	ret = bt_private_stream_class_set_event_header_type(sc, eh);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_context_type(sc, sec);
+	ret = bt_private_stream_class_set_event_context_type(sc, sec);
 	assert(ret == 0);
-	ret = bt_event_class_set_context_type(ec, ectx);
+	ret = bt_private_event_class_set_context_type(ec, ectx);
 	assert(ret == 0);
-	ret = bt_event_class_set_payload_type(ec, ep);
+	ret = bt_private_event_class_set_payload_type(ec, ep);
 	assert(ret == 0);
 
-	ret = bt_stream_class_add_event_class(sc, ec);
+	ret = bt_private_stream_class_add_private_event_class(sc, ec);
 	assert(ret == 0);
 
 	/* Validation happens here */
-	ret = bt_trace_add_stream_class(trace, sc);
+	ret = bt_private_trace_add_private_stream_class(trace, sc);
 	ok(ret == 0, "Valid type system is considered valid");
 
 	validate_test_pass(trace);
@@ -2123,34 +2131,34 @@ void test_pass(void)
 }
 
 static
-struct bt_event *create_event_with_context_and_payload(
+struct bt_private_event *create_event_with_context_and_payload(
 		struct bt_field_type *ectx, struct bt_field_type *ep)
 {
 	int ret;
-	struct bt_stream_class *sc;
-	struct bt_event_class *ec;
-	struct bt_event *event;
+	struct bt_private_stream_class *sc;
+	struct bt_private_event_class *ec;
+	struct bt_private_event *event;
 
-	sc = bt_stream_class_create("sc");
+	sc = bt_private_stream_class_create("sc");
 	assert(sc);
-	ec = bt_event_class_create("ec");
+	ec = bt_private_event_class_create("ec");
 	assert(ec);
 
 	if (ectx) {
-		ret = bt_event_class_set_context_type(ec, ectx);
+		ret = bt_private_event_class_set_context_type(ec, ectx);
 		assert(ret == 0);
 	}
 
 	if (ep) {
-		ret = bt_event_class_set_payload_type(ec, ep);
+		ret = bt_private_event_class_set_payload_type(ec, ep);
 		assert(ret == 0);
 	}
 
-	ret = bt_stream_class_add_event_class(sc, ec);
+	ret = bt_private_stream_class_add_private_event_class(sc, ec);
 	assert(ret == 0);
 
 	/* Validation happens here */
-	event = bt_event_create(ec);
+	event = bt_private_event_create(ec);
 
 	BT_PUT(ec);
 	BT_PUT(sc);
@@ -2232,7 +2240,7 @@ static
 void test_fail_unavailable_root(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_unavailable_root_get_event_payload();
 	assert(ep);
@@ -2316,7 +2324,7 @@ static
 void test_fail_target_is_root(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_target_is_root_get_event_payload();
 	assert(ep);
@@ -2419,7 +2427,7 @@ static
 void test_fail_target_is_after_source(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_target_is_after_source_get_ep();
 	assert(ep);
@@ -2533,7 +2541,7 @@ static
 void test_fail_target_is_ancestor_of_source(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_target_is_ancestor_of_source_get_ep();
 	assert(ep);
@@ -2636,7 +2644,7 @@ static
 void test_fail_target_is_source(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_target_is_source_get_event_payload();
 	assert(ep);
@@ -2742,7 +2750,7 @@ static
 void test_fail_variant_tag_is_not_enum(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_variant_tag_is_not_enum_get_ep();
 	assert(ep);
@@ -2864,7 +2872,7 @@ static
 void test_fail_variant_tag_mismatch_mappings(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_variant_tag_mismatch_mappings_get_ep();
 	assert(ep);
@@ -2939,7 +2947,7 @@ static
 void test_fail_sequence_tag_is_not_int(void)
 {
 	struct bt_field_type *ep;
-	struct bt_event *event;
+	struct bt_private_event *event;
 
 	ep = test_fail_sequence_tag_is_not_int_get_ep();
 	assert(ep);

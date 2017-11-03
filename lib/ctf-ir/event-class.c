@@ -50,7 +50,7 @@
 static
 void bt_event_class_destroy(struct bt_object *obj);
 
-struct bt_event_class *bt_event_class_create(const char *name)
+struct bt_private_event_class *bt_private_event_class_create(const char *name)
 {
 	struct bt_value *obj = NULL;
 	struct bt_event_class *event_class = NULL;
@@ -93,12 +93,12 @@ struct bt_event_class *bt_event_class_create(const char *name)
 	BT_PUT(obj);
 	BT_LOGD("Created event class object: addr=%p, name=\"%s\"",
 		event_class, bt_event_class_get_name(event_class));
-	return event_class;
+	return bt_private_event_class_from_event_class(event_class);
 
 error:
         BT_PUT(event_class);
 	BT_PUT(obj);
-	return event_class;
+	return NULL;
 }
 
 const char *bt_event_class_get_name(struct bt_event_class *event_class)
@@ -132,11 +132,14 @@ end:
 	return ret;
 }
 
-int bt_event_class_set_id(struct bt_event_class *event_class,
+int bt_private_event_class_set_id(
+		struct bt_private_event_class *priv_event_class,
 		uint64_t id_param)
 {
 	int ret = 0;
 	int64_t id = (int64_t) id_param;
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	if (!event_class) {
 		BT_LOGW_STR("Invalid parameter: event class is NULL.");
@@ -188,10 +191,13 @@ end:
 	return log_level;
 }
 
-int bt_event_class_set_log_level(struct bt_event_class *event_class,
+int bt_private_event_class_set_log_level(
+		struct bt_private_event_class *priv_event_class,
 		enum bt_event_class_log_level log_level)
 {
 	int ret = 0;
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	if (!event_class) {
 		BT_LOGW_STR("Invalid parameter: event class is NULL.");
@@ -264,10 +270,13 @@ end:
 	return emf_uri;
 }
 
-int bt_event_class_set_emf_uri(struct bt_event_class *event_class,
+int bt_private_event_class_set_emf_uri(
+		struct bt_private_event_class *priv_event_class,
 		const char *emf_uri)
 {
 	int ret = 0;
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	if (!event_class) {
 		BT_LOGW_STR("Invalid parameter: event class is NULL.");
@@ -316,6 +325,16 @@ struct bt_stream_class *bt_event_class_get_stream_class(
 		NULL;
 }
 
+struct bt_private_stream_class *bt_private_event_class_get_private_stream_class(
+		struct bt_private_event_class *priv_event_class)
+{
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
+
+	return bt_private_stream_class_from_stream_class(
+		bt_event_class_get_stream_class(event_class));
+}
+
 struct bt_field_type *bt_event_class_get_payload_type(
 		struct bt_event_class *event_class)
 {
@@ -332,10 +351,13 @@ end:
 	return payload;
 }
 
-int bt_event_class_set_payload_type(struct bt_event_class *event_class,
+int bt_private_event_class_set_payload_type(
+		struct bt_private_event_class *priv_event_class,
 		struct bt_field_type *payload)
 {
 	int ret = 0;
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	if (!event_class) {
 		BT_LOGW_STR("Invalid parameter: event class is NULL.");
@@ -367,11 +389,14 @@ end:
 	return ret;
 }
 
-int bt_event_class_add_field(struct bt_event_class *event_class,
+int bt_private_event_class_add_field(
+		struct bt_private_event_class *priv_event_class,
 		struct bt_field_type *type,
 		const char *name)
 {
 	int ret = 0;
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	if (!event_class || !type) {
 		BT_LOGW("Invalid parameter: event class or field type is NULL: "
@@ -543,11 +568,13 @@ end:
 	return context_type;
 }
 
-int bt_event_class_set_context_type(
-		struct bt_event_class *event_class,
+int bt_private_event_class_set_context_type(
+		struct bt_private_event_class *priv_event_class,
 		struct bt_field_type *context)
 {
 	int ret = 0;
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	if (!event_class) {
 		BT_LOGW_STR("Invalid parameter: event class is NULL.");
@@ -708,4 +735,17 @@ end:
 	context->current_indentation_level = 0;
 	BT_PUT(attr_value);
 	return ret;
+}
+
+struct bt_event_class *bt_event_class_from_private(
+		struct bt_private_event_class *private_event_class)
+{
+	return bt_get(bt_event_class_borrow_from_private(private_event_class));
+}
+
+struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
+		struct bt_ctf_event_class *event_class, const char *name)
+{
+	return bt_event_class_get_payload_type_field_type_by_name(
+		bt_event_class_borrow_from_private(event_class), name);
 }

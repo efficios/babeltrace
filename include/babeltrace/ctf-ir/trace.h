@@ -145,6 +145,7 @@ except for:
 @brief A CTF IR trace class.
 @sa ctfirtraceclass
 */
+struct bt_private_trace;
 struct bt_trace;
 struct bt_stream;
 struct bt_stream_class;
@@ -183,6 +184,10 @@ typedef void (* bt_trace_listener_removed)(
 @{
 */
 
+// TODO: document
+extern struct bt_trace *bt_trace_from_private(
+		struct bt_private_trace *private_trace);
+
 /**
 @brief	Creates a default CTF IR trace class.
 
@@ -210,7 +215,7 @@ The created trace class has the following initial properties:
 
 @postsuccessrefcountret1
 */
-extern struct bt_trace *bt_trace_create(void);
+extern struct bt_private_trace *bt_private_trace_create(void);
 
 /** @} */
 
@@ -253,7 +258,7 @@ extern const char *bt_trace_get_name(struct bt_trace *trace_class);
 
 @sa bt_trace_get_name(): Returns the name of a given trace class.
 */
-extern int bt_trace_set_name(struct bt_trace *trace_class,
+extern int bt_private_trace_set_name(struct bt_private_trace *private_trace,
 		const char *name);
 
 /**
@@ -302,7 +307,8 @@ extern enum bt_byte_order bt_trace_get_native_byte_order(
 @sa bt_trace_get_native_byte_order(): Returns the native byte order of a
 	given trace class.
 */
-extern int bt_trace_set_native_byte_order(struct bt_trace *trace_class,
+extern int bt_private_trace_set_native_byte_order(
+		struct bt_private_trace *private_trace,
 		enum bt_byte_order native_byte_order);
 
 /**
@@ -341,7 +347,7 @@ extern const unsigned char *bt_trace_get_uuid(
 
 @sa bt_trace_get_uuid(): Returns the UUID of a given trace class.
 */
-extern int bt_trace_set_uuid(struct bt_trace *trace_class,
+extern int bt_private_trace_set_uuid(struct bt_private_trace *private_trace,
 		const unsigned char *uuid);
 
 /**
@@ -470,8 +476,8 @@ value is first put, and then replaced by \p value.
 @sa bt_trace_get_environment_field_value_by_name(): Finds a trace
 	class's environment entry by name.
 */
-extern int bt_trace_set_environment_field(
-		struct bt_trace *trace_class, const char *name,
+extern int bt_private_trace_set_environment_field(
+		struct bt_private_trace *private_trace, const char *name,
 		struct bt_value *value);
 
 /**
@@ -498,8 +504,8 @@ containing \p value.
 @sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
-extern int bt_trace_set_environment_field_integer(
-		struct bt_trace *trace_class, const char *name,
+extern int bt_private_trace_set_environment_field_integer(
+		struct bt_private_trace *private_trace, const char *name,
 		int64_t value);
 
 /**
@@ -528,8 +534,8 @@ containing \p value.
 @sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
-extern int bt_trace_set_environment_field_string(
-		struct bt_trace *trace_class, const char *name,
+extern int bt_private_trace_set_environment_field_string(
+		struct bt_private_trace *private_trace, const char *name,
 		const char *value);
 
 /** @} */
@@ -589,7 +595,8 @@ As of Babeltrace \btversion, if \p packet_header_type is not \c NULL,
 @sa bt_trace_get_packet_header_type(): Returns the packet
 	header field type of a given trace class.
 */
-extern int bt_trace_set_packet_header_type(struct bt_trace *trace_class,
+extern int bt_private_trace_set_packet_header_type(
+		struct bt_private_trace *private_trace,
 		struct bt_field_type *packet_header_type);
 
 /** @} */
@@ -687,7 +694,8 @@ are frozen.
 @sa bt_trace_get_clock_class_by_name(): Finds a clock class by name
 	in a given trace class.
 */
-extern int bt_trace_add_clock_class(struct bt_trace *trace_class,
+extern int bt_private_trace_add_clock_class(
+		struct bt_private_trace *private_trace,
 		struct bt_clock_class *clock_class);
 
 /** @} */
@@ -734,6 +742,11 @@ extern int64_t bt_trace_get_stream_class_count(
 extern struct bt_stream_class *bt_trace_get_stream_class_by_index(
 		struct bt_trace *trace_class, uint64_t index);
 
+// TODO: document
+extern struct bt_private_stream_class *
+bt_private_trace_get_private_stream_class_by_index(
+		struct bt_private_trace *private_trace, uint64_t index);
+
 /**
 @brief  Returns the stream class with ID \c id found in the CTF IR
 	trace class \p trace_class.
@@ -753,6 +766,11 @@ extern struct bt_stream_class *bt_trace_get_stream_class_by_index(
 */
 extern struct bt_stream_class *bt_trace_get_stream_class_by_id(
 		struct bt_trace *trace_class, uint64_t id);
+
+// TODO: document
+extern struct bt_private_stream_class *
+bt_private_trace_get_private_stream_class_by_id(
+		struct bt_private_trace *private_trace, uint64_t id);
 
 /**
 @brief	Adds the CTF IR stream class \p stream_class to the
@@ -785,8 +803,9 @@ resolving fails, then this function fails.
 	in a given trace class at a given index.
 @sa bt_trace_get_stream_class_by_id(): Finds a stream class by ID.
 */
-extern int bt_trace_add_stream_class(struct bt_trace *trace_class,
-		struct bt_stream_class *stream_class);
+extern int bt_private_trace_add_private_stream_class(
+		struct bt_private_trace *private_trace,
+		struct bt_private_stream_class *private_stream_class);
 
 /** @} */
 
@@ -827,6 +846,10 @@ extern int64_t bt_trace_get_stream_count(struct bt_trace *trace_class);
 */
 extern struct bt_stream *bt_trace_get_stream_by_index(
 		struct bt_trace *trace_class, uint64_t index);
+
+// TODO: document
+extern struct bt_private_stream *bt_private_trace_get_private_stream_by_index(
+		struct bt_private_trace *private_trace, uint64_t index);
 
 /** @} */
 
@@ -881,7 +904,8 @@ stream classes of a static trace class.
 @sa bt_trace_add_is_static_listener(): Adds a listener to a trace
 	class which is called when the trace class is made static.
 */
-extern int bt_trace_set_is_static(struct bt_trace *trace_class);
+extern int bt_private_trace_set_is_static(
+		struct bt_private_trace *private_trace);
 
 /**
 @brief  Adds the listener \p listener to the CTF IR trace class
@@ -984,7 +1008,7 @@ extern int bt_trace_visit(struct bt_trace *trace_class,
 /** @} */
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_trace bt_trace
+#define bt_ctf_trace bt_private_trace
 
 #ifdef __cplusplus
 }

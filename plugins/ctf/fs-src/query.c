@@ -228,14 +228,16 @@ end:
 }
 
 static
-int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
+int add_stream_ids(struct bt_value *info, struct bt_private_stream *stream)
 {
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
 	enum bt_value_status status;
 	struct bt_stream_class *stream_class = NULL;
+	struct bt_stream *pub_stream = bt_stream_from_private(stream);
 
-	stream_instance_id = bt_stream_get_id(stream);
+	bt_put(pub_stream);
+	stream_instance_id = bt_stream_get_id(pub_stream);
 	if (stream_instance_id != -1) {
 		status = bt_value_map_insert_integer(info, "id",
 				stream_instance_id);
@@ -245,7 +247,7 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 		}
 	}
 
-	stream_class = bt_stream_get_class(stream);
+	stream_class = bt_stream_get_class(pub_stream);
 	if (!stream_class) {
 		ret = -1;
 		goto end;

@@ -226,8 +226,8 @@ struct bt_notif_iter_medium_ops {
 	 * @returns		Stream instance (weak reference) or
 	 *			\c NULL on error
 	 */
-	struct bt_stream * (* get_stream)(
-			struct bt_stream_class *stream_class,
+	struct bt_private_stream * (* get_stream)(
+			struct bt_private_stream_class *priv_stream_class,
 			uint64_t stream_id, void *data);
 };
 
@@ -277,7 +277,7 @@ struct bt_notif_iter_notif_event {
  *				success, or \c NULL on error
  */
 BT_HIDDEN
-struct bt_notif_iter *bt_notif_iter_create(struct bt_trace *trace,
+struct bt_notif_iter *bt_notif_iter_create(struct bt_private_trace *priv_trace,
 	size_t max_request_sz, struct bt_notif_iter_medium_ops medops,
 	void *medops_data);
 

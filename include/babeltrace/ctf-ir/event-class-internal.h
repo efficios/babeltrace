@@ -61,6 +61,20 @@ struct bt_event_class {
 	GString *emf_uri;
 };
 
+static inline
+struct bt_private_event_class *bt_private_event_class_from_event_class(
+		struct bt_event_class *event_class)
+{
+	return (void *) event_class;
+}
+
+static inline
+struct bt_event_class *bt_event_class_borrow_from_private(
+		struct bt_private_event_class *private_event_class)
+{
+	return (void *) private_event_class;
+}
+
 BT_HIDDEN
 void bt_event_class_freeze(struct bt_event_class *event_class);
 
