@@ -26,6 +26,7 @@ Print the metadata text of a CTF trace:
 *babeltrace convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                    [opt:--omit-system-plugin-path]
                    [opt:--plugin-path='PATH'[:__PATH__]...]
+                   [opt:--output='OUTPATH']
                    opt:--output-format=`ctf-metadata` 'TRACE-PATH'
 
 Print the available http://lttng.org/docs/#doc-lttng-live[LTTng live]
@@ -35,7 +36,7 @@ sessions:
 *babeltrace convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                    [opt:--omit-system-plugin-path]
                    [opt:--plugin-path='PATH'[:__PATH__]...]
-                   opt:--input-format=`lttng-live` 'URL'
+                   [opt:--output='OUTPATH'] opt:--input-format=`lttng-live` 'URL'
 
 
 DESCRIPTION
@@ -779,11 +780,16 @@ component does not print the duration since the last event on the line.
 Shared options
 ~~~~~~~~~~~~~~
 opt:-w 'PATH', opt:--output='PATH'::
-    When you specify opt:--output-format=`ctf`, set the
-    manparam:sink.ctf.fs:path initialization parameter of the implicit
-    compcls:sink.ctf.fs component to 'PATH'. Otherwise, create an
-    implicit compcls:sink.text.pretty component and set its
-    manparam:sink.text.pretty:path initialization parameter to 'PATH'.
+    With opt:--output-format=`ctf-metadata` or
+    opt:--input-format=`lttng-live` (when printing the available LTTng
+    live sessions), write the text to the file 'PATH' instead of the
+    standard output.
++
+When you specify opt:--output-format=`ctf`, set the
+manparam:sink.ctf.fs:path initialization parameter of the implicit
+compcls:sink.ctf.fs component to 'PATH'. Otherwise, create an implicit
+compcls:sink.text.pretty component and set its
+manparam:sink.text.pretty:path initialization parameter to 'PATH'.
 +
 See man:babeltrace-sink.ctf.fs(7) and
 man:babeltrace-sink.text.pretty(7) to learn more about those
