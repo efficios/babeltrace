@@ -114,11 +114,13 @@ struct bt_config {
 		/* BT_CONFIG_COMMAND_PRINT_CTF_METADATA */
 		struct {
 			GString *path;
+			GString *output_path;
 		} print_ctf_metadata;
 
 		/* BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS */
 		struct {
 			GString *url;
+			GString *output_path;
 		} print_lttng_live_sessions;
 	} cmd_data;
 };

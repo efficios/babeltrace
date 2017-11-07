@@ -1156,6 +1156,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
 	int64_t array_size, i;
 	const char *fail_reason = NULL;
+	FILE *out_stream = stdout;
 
 	assert(cfg->cmd_data.print_lttng_live_sessions.url);
 	comp_cls = find_component_class(plugin_name, comp_cls_name,
@@ -1200,6 +1201,19 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		goto error;
 	}
 
+	if (cfg->cmd_data.print_lttng_live_sessions.output_path->len > 0) {
+		out_stream =
+			fopen(cfg->cmd_data.print_lttng_live_sessions.output_path->str,
+				"w");
+		if (!out_stream) {
+			ret = -1;
+			BT_LOGE_ERRNO("Cannot open file for writing",
+				": path=\"%s\"",
+				cfg->cmd_data.print_lttng_live_sessions.output_path->str);
+			goto end;
+		}
+	}
+
 	array_size = bt_value_array_size(results);
 	for (i = 0; i < array_size; i++) {
 		const char *url_text;
@@ -1222,7 +1236,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		}
 		ret = bt_value_string_get(v, &url_text);
 		assert(ret == 0);
-		printf("%s", url_text);
+		fprintf(out_stream, "%s", url_text);
 		BT_PUT(v);
 
 		v = bt_value_map_get(map, "timer-us");
@@ -1232,7 +1246,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		}
 		ret = bt_value_integer_get(v, &timer_us);
 		assert(ret == 0);
-		printf(" (timer = %" PRIu64 ", ", timer_us);
+		fprintf(out_stream, " (timer = %" PRIu64 ", ", timer_us);
 		BT_PUT(v);
 
 		v = bt_value_map_get(map, "stream-count");
@@ -1242,7 +1256,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		}
 		ret = bt_value_integer_get(v, &streams);
 		assert(ret == 0);
-		printf("%" PRIu64 " stream(s), ", streams);
+		fprintf(out_stream, "%" PRIu64 " stream(s), ", streams);
 		BT_PUT(v);
 
 		v = bt_value_map_get(map, "client-count");
@@ -1252,7 +1266,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		}
 		ret = bt_value_integer_get(v, &clients);
 		assert(ret == 0);
-		printf("%" PRIu64 " client(s) connected)\n", clients);
+		fprintf(out_stream, "%" PRIu64 " client(s) connected)\n", clients);
 		BT_PUT(v);
 
 		BT_PUT(map);
@@ -1277,6 +1291,17 @@ end:
 	bt_put(results);
 	bt_put(params);
 	bt_put(comp_cls);
+
+	if (out_stream && out_stream != stdout) {
+		int fclose_ret = fclose(out_stream);
+
+		if (fclose_ret) {
+			BT_LOGE_ERRNO("Cannot close file stream",
+				": path=\"%s\"",
+				cfg->cmd_data.print_lttng_live_sessions.output_path->str);
+		}
+	}
+
 	return 0;
 }
 
@@ -1294,6 +1319,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	static const enum bt_component_class_type comp_cls_type =
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
 	const char *fail_reason = NULL;
+	FILE *out_stream = stdout;
 
 	assert(cfg->cmd_data.print_ctf_metadata.path);
 	comp_cls = find_component_class(plugin_name, comp_cls_name,
@@ -1341,7 +1367,26 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 
 	ret = bt_value_string_get(metadata_text_value, &metadata_text);
 	assert(ret == 0);
-	printf("%s\n", metadata_text);
+
+	if (cfg->cmd_data.print_ctf_metadata.output_path->len > 0) {
+		out_stream =
+			fopen(cfg->cmd_data.print_ctf_metadata.output_path->str,
+				"w");
+		if (!out_stream) {
+			ret = -1;
+			BT_LOGE_ERRNO("Cannot open file for writing",
+				": path=\"%s\"",
+				cfg->cmd_data.print_ctf_metadata.output_path->str);
+			goto end;
+		}
+	}
+
+	ret = fprintf(out_stream, "%s\n", metadata_text);
+	if (ret < 0) {
+		BT_LOGE("Cannot write whole metadata text to output stream: "
+			"ret=%d", ret);
+	}
+
 	goto end;
 
 failed:
@@ -1359,6 +1404,17 @@ end:
 	bt_put(params);
 	bt_put(metadata_text_value);
 	bt_put(comp_cls);
+
+	if (out_stream && out_stream != stdout) {
+		int fclose_ret = fclose(out_stream);
+
+		if (fclose_ret) {
+			BT_LOGE_ERRNO("Cannot close file stream",
+				": path=\"%s\"",
+				cfg->cmd_data.print_ctf_metadata.output_path->str);
+		}
+	}
+
 	return 0;
 }
 
