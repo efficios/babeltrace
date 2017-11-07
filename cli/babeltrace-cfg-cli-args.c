@@ -909,12 +909,18 @@ void bt_config_destroy(struct bt_object *obj)
 		if (cfg->cmd_data.print_ctf_metadata.path) {
 			g_string_free(cfg->cmd_data.print_ctf_metadata.path,
 				TRUE);
+			g_string_free(
+				cfg->cmd_data.print_ctf_metadata.output_path,
+				TRUE);
 		}
 		break;
 	case BT_CONFIG_COMMAND_PRINT_LTTNG_LIVE_SESSIONS:
 		if (cfg->cmd_data.print_lttng_live_sessions.url) {
 			g_string_free(
 				cfg->cmd_data.print_lttng_live_sessions.url,
+				TRUE);
+			g_string_free(
+				cfg->cmd_data.print_lttng_live_sessions.output_path,
 				TRUE);
 		}
 		break;
@@ -1659,6 +1665,12 @@ struct bt_config *bt_config_print_ctf_metadata_create(
 		goto error;
 	}
 
+	cfg->cmd_data.print_ctf_metadata.output_path = g_string_new(NULL);
+	if (!cfg->cmd_data.print_ctf_metadata.output_path) {
+		print_err_oom();
+		goto error;
+	}
+
 	goto end;
 
 error:
@@ -1683,6 +1695,13 @@ struct bt_config *bt_config_print_lttng_live_sessions_create(
 
 	cfg->cmd_data.print_lttng_live_sessions.url = g_string_new(NULL);
 	if (!cfg->cmd_data.print_lttng_live_sessions.url) {
+		print_err_oom();
+		goto error;
+	}
+
+	cfg->cmd_data.print_lttng_live_sessions.output_path =
+		g_string_new(NULL);
+	if (!cfg->cmd_data.print_lttng_live_sessions.output_path) {
 		print_err_oom();
 		goto error;
 	}
@@ -4319,6 +4338,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		gs_leftover = leftovers->data;
 		g_string_assign(cfg->cmd_data.print_ctf_metadata.path,
 			gs_leftover->str);
+
+		if (output) {
+			g_string_assign(
+				cfg->cmd_data.print_ctf_metadata.output_path,
+				output);
+		}
+
 		goto end;
 	}
 
@@ -4406,6 +4432,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 				g_string_assign(cfg->cmd_data.print_lttng_live_sessions.url,
 					gs_leftover->str);
+
+				if (output) {
+					g_string_assign(
+						cfg->cmd_data.print_lttng_live_sessions.output_path,
+						output);
+				}
+
 				goto end;
 			}
 
