@@ -3258,7 +3258,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			_SET(set, _EVENT_NAME_SET);
 		} else if (!strcmp(left, "id")) {
-			int64_t id;
+			int64_t id = -1;
 
 			if (_IS_SET(set, _EVENT_ID_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "id",
@@ -4873,7 +4873,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		g_free(right);
 		_SET(set, _CLOCK_DESCRIPTION_SET);
 	} else if (!strcmp(left, "freq")) {
-		uint64_t freq;
+		uint64_t freq = -1ULL;
 
 		if (_IS_SET(set, _CLOCK_FREQ_SET)) {
 			_BT_LOGE_DUP_ATTR(entry_node, "freq", "clock class");

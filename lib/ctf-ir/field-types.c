@@ -2977,7 +2977,7 @@ int bt_field_type_get_alignment(struct bt_field_type *type)
 		assert(element_count >= 0);
 
 		for (i = 0; i < element_count; i++) {
-			struct bt_field_type *field;
+			struct bt_field_type *field = NULL;
 			int field_alignment;
 
 			ret = bt_field_type_structure_get_field_by_index(
