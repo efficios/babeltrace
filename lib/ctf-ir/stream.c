@@ -495,16 +495,7 @@ int set_packet_context_timestamp_field(struct bt_stream *stream,
 
 	field_mapped_clock_class =
 		bt_field_type_integer_get_mapped_clock_class(field->type);
-	if (!field_mapped_clock_class) {
-		BT_LOGV("Packet context's `%s` field's type is not mapped to a clock class: skipping: "
-			"stream-addr=%p, stream-name=\"%s\", "
-			"field-addr=%p, ft-addr=%p", field_name,
-			stream, bt_stream_get_name(stream),
-			field, field->type);
-		goto end;
-	}
-
-	if (field_mapped_clock_class !=
+	if (field_mapped_clock_class && field_mapped_clock_class !=
 			stream->stream_class->clock->clock_class) {
 		BT_LOGV("Packet context's `%s` field's type is not mapped to the stream's clock's class: skipping: "
 			"stream-addr=%p, stream-name=\"%s\", "
@@ -1212,7 +1203,8 @@ static int auto_populate_event_header(struct bt_stream *stream,
 		mapped_clock_class =
 			bt_field_type_integer_get_mapped_clock_class(
 				timestamp_field->type);
-		if (mapped_clock_class == stream_class_clock_class) {
+		if (!mapped_clock_class ||
+				mapped_clock_class == stream_class_clock_class) {
 			uint64_t timestamp;
 
 			ret = bt_ctf_clock_get_value(
