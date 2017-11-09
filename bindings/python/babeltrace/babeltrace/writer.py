@@ -1607,8 +1607,8 @@ class StreamClass:
         try:
             # Set default event header and packet context.
             event_header_type = bt2.StructureFieldType()
-            uint32_ft = bt2.IntegerFieldType(32, is_signed=False)
-            uint64_ft = bt2.IntegerFieldType(32, is_signed=False)
+            uint32_ft = bt2.IntegerFieldType(32)
+            uint64_ft = bt2.IntegerFieldType(64)
             event_header_type.append_field('id', uint32_ft)
             event_header_type.append_field('timestamp', uint64_ft)
 
