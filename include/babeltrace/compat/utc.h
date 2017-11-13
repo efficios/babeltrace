@@ -67,8 +67,8 @@ time_t babeltrace_timegm(struct tm *tm)
 		}
 	}
 
-	/* Temporarily setting TZ to 1 for UTC */
-	setenv("TZ", "", 1);
+	/* Temporarily setting TZ to UTC */
+	setenv("TZ", "UTC", 1);
 	tzset();
 	ret = mktime(tm);
 	if (tz) {
