@@ -2145,7 +2145,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 	value_status = bt_value_map_insert(query_params, "path", component_path_value);
 	if (value_status != BT_VALUE_STATUS_OK) {
-		BT_LOGE_STR("Cannot insert path parameter in query paramater map.");
+		BT_LOGE_STR("Cannot insert path parameter in query parameter map.");
 		ret = -1;
 		goto error;
 	}
