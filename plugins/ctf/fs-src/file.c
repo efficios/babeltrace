@@ -96,7 +96,7 @@ int ctf_fs_file_open(struct ctf_fs_file *file, const char *mode)
 	BT_LOGD("Opened file: %p", file->fp);
 
 	if (fstat(fileno(file->fp), &stat)) {
-		BT_LOGE("Cannot get file informations: %s", strerror(errno));
+		BT_LOGE("Cannot get file information: %s", strerror(errno));
 		goto error;
 	}
 

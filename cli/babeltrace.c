@@ -2236,7 +2236,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		stream_infos = bt_value_map_get(trace_info, "streams");
 		if (!stream_infos || !bt_value_is_array(stream_infos)) {
 			ret = -1;
-			BT_LOGD_STR("Cannot retrieve stream informations from trace in query result.");
+			BT_LOGD_STR("Cannot retrieve stream information from trace in query result.");
 			goto error;
 		}
 
