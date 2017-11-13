@@ -19,7 +19,7 @@
 
 TRACE_PATH="${BT_CTF_TRACES}/succeed/wk-heartbeat-u/"
 
-NUM_TESTS=10
+NUM_TESTS=44
 
 plan_tests $NUM_TESTS
 
@@ -27,40 +27,163 @@ tmp_out=$(mktemp)
 
 "${BT_BIN}" --clock-gmt --begin 17:48:17.587029529 --end 17:48:17.588680018 \
 	"${TRACE_PATH}" >/dev/null 2>&1
-ok $? "Read the trace with the trimmer enabled"
+ok $? "Read a trace with the trimmer enabled (GMT relative timestamps)"
 
 "${BT_BIN}" --clock-gmt --begin 17:48:17.587029529 "${TRACE_PATH}" \
 	2>/dev/null >"${tmp_out}"
-ok $? "Running with --begin"
+ok $? "Ran successfully with --begin (GMT relative timestamps)"
 cnt=$(wc -l < "${tmp_out}")
 test $cnt == 18
-ok $? "Expected number of events after trimming begin and end"
+ok $? "Received ${cnt}/18 events (GMT relative timestamps)"
 
 "${BT_BIN}" --clock-gmt --end 17:48:17.588680018 "${TRACE_PATH}" \
 	2>/dev/null >"${tmp_out}"
-ok $? "Running with --end"
+ok $? "Ran successfully with --end (GMT relative timestamps)"
 cnt=$(wc -l < "${tmp_out}")
 test $cnt == 9
-ok $? "Expected number of events after trimming end"
+ok $? "Received ${cnt}/9 events (GMT relative timestamps)"
 
 "${BT_BIN}" --clock-gmt --begin 17:48:17.587029529 --end 17:48:17.588680018 \
 	"${TRACE_PATH}" 2>/dev/null >"${tmp_out}"
-ok $? "Running with --begin and --end"
+ok $? "Ran successfully with --begin and --end (GMT relative timestamps)"
 cnt=$(wc -l < "${tmp_out}")
 test $cnt == 7
-ok $? "Expected number of events after trimming begin and end"
+ok $? "Received ${cnt}/7 events (GMT relative timestamps)"
 
 "${BT_BIN}" --clock-gmt --begin 18:48:17.587029529 "${TRACE_PATH}" \
 	2>/dev/null >"${tmp_out}"
-ok $? "Running with --begin out of range"
+ok $? "Ran successfully with --begin out of range (GMT relative timestamps)"
 cnt=$(wc -l < "${tmp_out}")
 test $cnt == 0
-ok $? "No event output when begin is after the end of the trace"
+ok $? "No events when begin is out of range (GMT relative timestamps)"
 
 "${BT_BIN}" --clock-gmt --end 16:48:17.588680018 "${TRACE_PATH}" \
 	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --end out of range (GMT relative timestamps)"
 cnt=$(wc -l < "${tmp_out}")
 test $cnt == 0
-ok $? "No event output when end is before the beginning of the trace"
+ok $? "No events when end is out of range (GMT relative timestamps)"
+
+
+"${BT_BIN}" --clock-gmt --begin "2012-10-29 17:48:17.587029529" --end "2012-10-29 17:48:17.588680018" \
+	"${TRACE_PATH}" >/dev/null 2>&1
+ok $? "Read a trace with the trimmer enabled (GMT absolute timestamps)"
+
+"${BT_BIN}" --clock-gmt --begin "2012-10-29 17:48:17.587029529" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin (GMT absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 18
+ok $? "Received ${cnt}/18 events (GMT absolute timestamps)"
+
+"${BT_BIN}" --clock-gmt --end "2012-10-29 17:48:17.588680018" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --end (GMT absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 9
+ok $? "Received ${cnt}/9 events (GMT absolute timestamps)"
+
+"${BT_BIN}" --clock-gmt --begin "2012-10-29 17:48:17.587029529" --end "2012-10-29 17:48:17.588680018" \
+	"${TRACE_PATH}" 2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin and --end (GMT absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 7
+ok $? "Received ${cnt}/7 events (GMT absolute timestamps)"
+
+"${BT_BIN}" --clock-gmt --begin "2012-10-29 18:48:17.587029529" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin out of range (GMT absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 0
+ok $? "No events when begin is out of range (GMT absolute timestamps)"
+
+"${BT_BIN}" --clock-gmt --end "2012-10-29 16:48:17.588680018" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --end out of range (GMT absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 0
+ok $? "No events when end is out of range (GMT absolute timestamps)"
+
+
+export TZ=EST
+
+"${BT_BIN}" --begin "12:48:17.587029529" --end "12:48:17.588680018" \
+	"${TRACE_PATH}" >/dev/null 2>&1
+ok $? "Read a trace with the trimmer enabled (EST relative timestamps)"
+
+"${BT_BIN}" --begin "12:48:17.587029529" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin (EST relative timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 18
+ok $? "Received ${cnt}/18 events (EST relative timestamps)"
+
+"${BT_BIN}" --end "12:48:17.588680018" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --end (EST relative timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 9
+ok $? "Received ${cnt}/9 events (EST relative timestamps)"
+
+"${BT_BIN}" --begin "12:48:17.587029529" --end "12:48:17.588680018" \
+	"${TRACE_PATH}" 2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin and --end (EST relative timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 7
+ok $? "Received ${cnt}/7 events (EST relative timestamps)"
+
+"${BT_BIN}" --begin "13:48:17.587029529" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin out of range (EST relative timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 0
+ok $? "No events when begin is out of range (EST relative timestamps)"
+
+"${BT_BIN}" --end "11:48:17.588680018" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --end out of range (EST relative timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 0
+ok $? "No events when end is out of range (EST relative timestamps)"
+
+
+"${BT_BIN}" --begin "2012-10-29 12:48:17.587029529" --end "2012-10-29 12:48:17.588680018" \
+	"${TRACE_PATH}" >/dev/null 2>&1
+ok $? "Read a trace with the trimmer enabled (EST absolute timestamps)"
+
+"${BT_BIN}" --begin "2012-10-29 12:48:17.587029529" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin (EST absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 18
+ok $? "Received ${cnt}/18 events (EST absolute timestamps)"
+
+"${BT_BIN}" --end "2012-10-29 12:48:17.588680018" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --end (EST absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 9
+ok $? "Received ${cnt}/9 events (EST absolute timestamps)"
+
+"${BT_BIN}" --begin "2012-10-29 12:48:17.587029529" --end "2012-10-29 12:48:17.588680018" \
+	"${TRACE_PATH}" 2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin and --end (EST absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 7
+ok $? "Received ${cnt}/7 events (EST absolute timestamps)"
+
+"${BT_BIN}" --begin "2012-10-29 13:48:17.587029529" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --begin out of range (EST absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 0
+ok $? "No events when begin is out of range (EST absolute timestamps)"
+
+"${BT_BIN}" --end "2012-10-29 11:48:17.588680018" "${TRACE_PATH}" \
+	2>/dev/null >"${tmp_out}"
+ok $? "Ran successfully with --end out of range (EST absolute timestamps)"
+cnt=$(wc -l < "${tmp_out}")
+test $cnt == 0
+ok $? "No events when end is out of range (EST absolute timestamps)"
 
 rm "${tmp_out}"
