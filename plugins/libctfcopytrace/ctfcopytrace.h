@@ -57,7 +57,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		struct bt_trace *trace);
 
 /*
- * Create a copy of the event class passed in paramater.
+ * Create a copy of the event class passed in parameter.
  *
  * Returns NULL on error.
  */
