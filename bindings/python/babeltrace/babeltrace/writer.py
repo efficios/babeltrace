@@ -180,7 +180,7 @@ class Clock:
     def offset_seconds(self, offset_s):
         try:
             self._clock.offset = bt2.ClockClassOffset(offset_s,
-                    self._clock.offset.cycles)
+                                                      self._clock.offset.cycles)
         except:
             raise ValueError("Invalid offset value.")
 
@@ -203,8 +203,8 @@ class Clock:
     @offset.setter
     def offset(self, offset):
         try:
-            self._clock.offset = bt2.ClockClassOffset(
-                self._clock.offset.seconds, offset)
+            self._clock.offset = bt2.ClockClassOffset(self._clock.offset.seconds,
+                                                      offset)
         except:
             raise ValueError("Invalid offset value.")
 
