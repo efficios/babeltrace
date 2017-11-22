@@ -179,7 +179,7 @@ class Clock:
     @offset_seconds.setter
     def offset_seconds(self, offset_s):
         try:
-            self._clock.offset = bt2.ClockClassOffet(offset_s,
+            self._clock.offset = bt2.ClockClassOffset(offset_s,
                                                      self._clock.offset.cycles)
         except:
             raise ValueError("Invalid offset value.")
@@ -203,7 +203,7 @@ class Clock:
     @offset.setter
     def offset(self, offset):
         try:
-            self._clock.offset = bt2.ClockClassOffet(
+            self._clock.offset = bt2.ClockClassOffset(
                 self._clock.offset.seconds, offset)
         except:
             raise ValueError("Invalid offset value.")
@@ -1608,7 +1608,7 @@ class StreamClass:
             # Set default event header and packet context.
             event_header_type = bt2.StructureFieldType()
             uint32_ft = bt2.IntegerFieldType(32, is_signed=False)
-            uint64_ft = bt2.IntegerFieldType(32, is_signed=False)
+            uint64_ft = bt2.IntegerFieldType(64, is_signed=False)
             event_header_type.append_field('id', uint32_ft)
             event_header_type.append_field('timestamp', uint64_ft)
 
