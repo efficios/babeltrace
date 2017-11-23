@@ -110,8 +110,8 @@ class _NumericField(_Field):
     def __float__(self):
         return float(self._value)
 
-    def __str__(self):
-        return str(self._value)
+    def __repr__(self):
+        return repr(self._value)
 
     def __lt__(self, other):
         if not isinstance(other, numbers.Number):
