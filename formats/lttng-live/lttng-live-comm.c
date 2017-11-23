@@ -390,6 +390,7 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 	if (!trace) {
 		trace = g_new0(struct lttng_live_ctf_trace, 1);
 		trace->ctf_trace_id = ctf_trace_id;
+		printf_verbose("Create trace ctf_trace_id %" PRIu64 "\n", ctf_trace_id);
 		BT_INIT_LIST_HEAD(&trace->stream_list);
 		g_hash_table_insert(stream->session->ctf_traces,
 				&trace->ctf_trace_id,
@@ -844,6 +845,9 @@ int get_one_metadata_packet(struct lttng_live_ctx *ctx,
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
 
+	printf_verbose("get_metadata for trace_id: %d, ctf_trace_id: %" PRIu64 "\n",
+			metadata_stream->ctf_trace->trace_id,
+			metadata_stream->ctf_trace->ctf_trace_id);
 	ret_len = lttng_live_send(ctx->control_sock, cmd_buf, cmd_buf_len);
 	if (ret_len < 0) {
 		perror("[error] Error sending get_metadata cmd and request");
@@ -1478,6 +1482,9 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 	struct bt_trace_descriptor *td;
 	struct bt_trace_handle *handle;
 
+	printf_verbose("Add one trace ctf_trace_id: %" PRIu64
+			" (metadata_stream: %p)\n",
+			trace->ctf_trace_id, trace->metadata_stream);
 	/*
 	 * We don't know how many streams we will receive for a trace, so
 	 * once we are done receiving the traces, we add all the traces
@@ -1488,6 +1495,7 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 	 * If a trace is already in the context, we just skip this function.
 	 */
 	if (trace->in_use) {
+		printf_verbose("Trace already in use\n");
 		ret = 0;
 		goto end;
 	}
@@ -1516,6 +1524,7 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 				goto end_free;
 			}
 
+			printf_verbose("Metadata stream found\n");
 			trace->metadata_fp = babeltrace_fmemopen(metadata_buf,
 					stream->metadata_len, "rb");
 			if (!trace->metadata_fp) {
@@ -1553,6 +1562,7 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 
 	trace->trace_id = ret;
 	trace->in_use = 1;
+	printf_verbose("Trace now in use, id = %d\n", trace->trace_id);
 
 	goto end;
 
@@ -1571,6 +1581,7 @@ int add_traces(struct lttng_live_ctx *ctx)
 	gpointer key;
 	gpointer value;
 
+	printf_verbose("Begin add traces\n");
 	g_hash_table_iter_init(&it, ctx->session->ctf_traces);
 	while (g_hash_table_iter_next(&it, &key, &value)) {
 		trace = (struct lttng_live_ctf_trace *) value;
@@ -1583,6 +1594,7 @@ int add_traces(struct lttng_live_ctx *ctx)
 	ret = 0;
 
 end:
+	printf_verbose("End add traces\n");
 	return ret;
 }
 
