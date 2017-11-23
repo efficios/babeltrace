@@ -629,6 +629,9 @@ class _ArraySequenceField(_ContainerField, collections.abc.MutableSequence):
     def _value(self):
         return [field._value for field in self]
 
+    def __repr__(self):
+        return '[{}]'.format(', '.join([repr(v) for v in self]))
+
 
 class _ArrayField(_ArraySequenceField):
     _NAME = 'Array'
