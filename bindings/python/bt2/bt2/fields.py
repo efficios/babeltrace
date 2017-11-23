@@ -526,6 +526,10 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     value = property(fset=_set_value)
 
+    def __repr__(self):
+        items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
+        return '{{{}}}'.format(', '.join(items))
+
 
 class _VariantField(_Field):
     _NAME = 'Variant'
