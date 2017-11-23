@@ -1499,6 +1499,12 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 		ret = 0;
 		goto end;
 	}
+	/*
+	 * add_one_trace can be called recursively if during the
+	 * bt_context_add_trace call we need to fetch new streams, so we need to
+	 * prevent a recursive call to process our current trace.
+	 */
+	trace->in_use = 1;
 
 	BT_INIT_LIST_HEAD(&mmap_list.head);
 
@@ -1561,7 +1567,6 @@ int add_one_trace(struct lttng_live_ctx *ctx,
 	}
 
 	trace->trace_id = ret;
-	trace->in_use = 1;
 	printf_verbose("Trace now in use, id = %d\n", trace->trace_id);
 
 	goto end;
@@ -1630,8 +1635,12 @@ int add_traces(struct lttng_live_ctx *ctx)
 	GHashTableIter it;
 	gpointer key;
 	gpointer value;
+	unsigned int nr_traces;
 
 	printf_verbose("Begin add traces\n");
+
+retry:
+	nr_traces = g_hash_table_size(ctx->session->ctf_traces);
 
 	ret = check_traces_metadata(ctx);
 	if (ret < 0) {
@@ -1644,6 +1653,15 @@ int add_traces(struct lttng_live_ctx *ctx)
 		ret = add_one_trace(ctx, trace);
 		if (ret < 0) {
 			goto end;
+		}
+		/*
+		 * If a new trace got added while we were adding the trace, the
+		 * iterator is invalid and we have to restart.
+		 */
+		if (g_hash_table_size(ctx->session->ctf_traces) != nr_traces) {
+			printf_verbose("New trace(s) added during add_one_trace()\n");
+			printf_verbose("JORAJ: GREP HERE\n");
+			goto retry;
 		}
 	}
 
