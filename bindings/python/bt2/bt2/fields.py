@@ -566,6 +566,9 @@ class _VariantField(_Field):
     def __bool__(self):
         return bool(self.selected_field)
 
+    def __repr__(self):
+        return repr(self._value)
+
     @property
     def _value(self):
         if self.selected_field is not None:
