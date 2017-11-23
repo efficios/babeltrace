@@ -1572,6 +1572,56 @@ end:
 	return ret;
 }
 
+/*
+ * Make sure all the traces we know have a metadata stream or loop on
+ * ask_new_streams until it is done. This must be called before we call
+ * add_one_trace.
+ *
+ * Return 0 when all known traces have a metadata stream, a negative value
+ * on error.
+ */
+static
+int check_traces_metadata(struct lttng_live_ctx *ctx)
+{
+	int ret;
+	struct lttng_live_ctf_trace *trace;
+	GHashTableIter it;
+	gpointer key;
+	gpointer value;
+
+retry:
+	g_hash_table_iter_init(&it, ctx->session->ctf_traces);
+	while (g_hash_table_iter_next(&it, &key, &value)) {
+		trace = (struct lttng_live_ctf_trace *) value;
+		printf_verbose("Check trace %" PRIu64 " metadata\n", trace->ctf_trace_id);
+		while (!trace->metadata_stream) {
+			printf_verbose("Waiting for metadata stream\n");
+			if (lttng_live_should_quit()) {
+				ret = 0;
+				goto end;
+			}
+			ret = ask_new_streams(ctx);
+			if (ret < 0) {
+				goto end;
+			} else if (ret == 0) {
+				(void) poll(NULL, 0, ACTIVE_POLL_DELAY);
+			} else {
+				/*
+				 * If ask_new_stream got streams from a trace we did not know
+				 * about until now, we have to reinitialize the iterator.
+				 */
+				goto retry;
+			}
+		}
+	}
+
+	ret = 0;
+
+end:
+	printf_verbose("End check traces metadata\n");
+	return ret;
+}
+
 static
 int add_traces(struct lttng_live_ctx *ctx)
 {
@@ -1582,6 +1632,12 @@ int add_traces(struct lttng_live_ctx *ctx)
 	gpointer value;
 
 	printf_verbose("Begin add traces\n");
+
+	ret = check_traces_metadata(ctx);
+	if (ret < 0) {
+		goto end;
+	}
+
 	g_hash_table_iter_init(&it, ctx->session->ctf_traces);
 	while (g_hash_table_iter_next(&it, &key, &value)) {
 		trace = (struct lttng_live_ctf_trace *) value;
