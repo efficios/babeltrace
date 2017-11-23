@@ -366,6 +366,10 @@ class _EnumerationField(_IntegerField):
     def _set_value(self, value):
         self.integer_field.value = value
 
+    def __repr__(self):
+        labels = [repr(v.name) for v in self.mappings]
+        return '{} ({})'.format(self._value, ', '.join(labels))
+
     value = property(fset=_set_value)
 
     @property
