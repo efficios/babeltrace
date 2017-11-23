@@ -85,6 +85,12 @@ class _Field(object._Object, metaclass=abc.ABCMeta):
         ret = native_bt.field_reset(self._ptr)
         utils._handle_ret(ret, "cannot reset field object's value")
 
+    def _repr(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        return self._repr() if self.is_set else 'Unset'
+
 
 @functools.total_ordering
 class _NumericField(_Field):
@@ -110,7 +116,7 @@ class _NumericField(_Field):
     def __float__(self):
         return float(self._value)
 
-    def __repr__(self):
+    def _repr(self):
         return repr(self._value)
 
     def __lt__(self, other):
@@ -366,7 +372,7 @@ class _EnumerationField(_IntegerField):
     def _set_value(self, value):
         self.integer_field.value = value
 
-    def __repr__(self):
+    def _repr(self):
         labels = [repr(v.name) for v in self.mappings]
         return '{} ({})'.format(self._value, ', '.join(labels))
 
@@ -426,11 +432,11 @@ class _StringField(_Field, collections.abc.Sequence):
     def __bool__(self):
         return bool(self._value)
 
-    def __repr__(self):
+    def _repr(self):
         return repr(self._value)
 
     def __str__(self):
-        return self._value
+        return self._value if self.is_set else repr(self)
 
     def __getitem__(self, index):
         return self._value[index]
@@ -529,7 +535,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     value = property(fset=_set_value)
 
-    def __repr__(self):
+    def _repr(self):
         items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
         return '{{{}}}'.format(', '.join(items))
 
@@ -569,8 +575,11 @@ class _VariantField(_Field):
     def __bool__(self):
         return bool(self.selected_field)
 
-    def __repr__(self):
-        return repr(self._value)
+    def __str__(self):
+        return str(self.selected_field) if self.is_set else repr(self)
+
+    def _repr(self):
+        return repr(self.selected_field)
 
     @property
     def _value(self):
@@ -632,7 +641,7 @@ class _ArraySequenceField(_ContainerField, collections.abc.MutableSequence):
     def _value(self):
         return [field._value for field in self]
 
-    def __repr__(self):
+    def _repr(self):
         return '[{}]'.format(', '.join([repr(v) for v in self]))
 
 
