@@ -426,6 +426,9 @@ class _StringField(_Field, collections.abc.Sequence):
     def __bool__(self):
         return bool(self._value)
 
+    def __repr__(self):
+        return repr(self._value)
+
     def __str__(self):
         return self._value
 
