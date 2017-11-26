@@ -111,6 +111,9 @@ class _NumericField(_Field):
         return float(self._value)
 
     def __repr__(self):
+        if not self.is_set:
+            return 'Unset'
+
         return repr(self._value)
 
     def __lt__(self, other):
@@ -367,6 +370,9 @@ class _EnumerationField(_IntegerField):
         self.integer_field.value = value
 
     def __repr__(self):
+        if not self.is_set:
+            return 'Unset'
+
         labels = [repr(v.name) for v in self.mappings]
         return '{} ({})'.format(self._value, ', '.join(labels))
 
@@ -427,6 +433,9 @@ class _StringField(_Field, collections.abc.Sequence):
         return bool(self._value)
 
     def __repr__(self):
+        if not self.is_set:
+            return 'Unset'
+
         return repr(self._value)
 
     def __str__(self):
@@ -530,6 +539,9 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
     value = property(fset=_set_value)
 
     def __repr__(self):
+        if not self.is_set:
+            return 'Unset'
+
         items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
         return '{{{}}}'.format(', '.join(items))
 
@@ -570,6 +582,9 @@ class _VariantField(_Field):
         return bool(self.selected_field)
 
     def __repr__(self):
+        if not self.is_set:
+            return 'Unset'
+
         return repr(self._value)
 
     @property
@@ -633,6 +648,9 @@ class _ArraySequenceField(_ContainerField, collections.abc.MutableSequence):
         return [field._value for field in self]
 
     def __repr__(self):
+        if not self.is_set:
+            return 'Unset'
+
         return '[{}]'.format(', '.join([repr(v) for v in self]))
 
 
