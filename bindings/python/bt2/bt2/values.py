@@ -166,8 +166,8 @@ class _NumericValue(_Value, _BasicCopy):
     def __float__(self):
         return float(self._value)
 
-    def __str__(self):
-        return str(self._value)
+    def __repr__(self):
+        return repr(self._value)
 
     def __lt__(self, other):
         if not isinstance(other, numbers.Number):
@@ -359,8 +359,8 @@ class BoolValue(_Value, _BasicCopy):
     def __bool__(self):
         return self._value
 
-    def __str__(self):
-        return str(self._value)
+    def __repr__(self):
+        return repr(self._value)
 
     def _value_to_bool(self, value):
         if isinstance(value, BoolValue):
@@ -497,6 +497,9 @@ class StringValue(_BasicCopy, collections.abc.Sequence, _Value):
     def __bool__(self):
         return bool(self._value)
 
+    def __repr__(self):
+        repr(self._value)
+
     def __str__(self):
         return self._value
 
@@ -614,16 +617,8 @@ class ArrayValue(_Container, collections.abc.MutableSequence, _Value):
 
         return self
 
-    def __str__(self):
-        strings = []
-
-        for elem in self:
-            if isinstance(elem, StringValue):
-                strings.append(repr(elem._value))
-            else:
-                strings.append(str(elem))
-
-        return '[{}]'.format(', '.join(strings))
+    def __repr__(self):
+        return '[{}]'.format(', '.join([repr(v) for v in self]))
 
     def insert(self, value):
         raise NotImplementedError
@@ -726,18 +721,9 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
         status = native_bt.value_map_insert(self._ptr, key, ptr)
         self._handle_status(status)
 
-    def __str__(self):
-        strings = []
-
-        for key, elem in self.items():
-            if isinstance(elem, StringValue):
-                value = repr(elem._value)
-            else:
-                value = str(elem)
-
-            strings.append('{}: {}'.format(repr(key), value))
-
-        return '{{{}}}'.format(', '.join(strings))
+    def __repr__(self):
+        items = ['{}: {}'.format(repr(k), repr(v)) for k, v in self.items()]
+        return '{{{}}}'.format(', '.join(items))
 
 
 _TYPE_TO_OBJ = {
