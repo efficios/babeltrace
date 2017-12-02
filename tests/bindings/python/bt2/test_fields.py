@@ -4,6 +4,7 @@ import unittest
 import numbers
 import math
 import copy
+import itertools
 import bt2
 
 
@@ -763,6 +764,12 @@ class _TestIntegerFieldCommon(_TestNumericField):
         with self.assertRaises(ValueError):
             field.value = -23
 
+    def test_str_op(self):
+        self.assertEqual(str(self._def), str(self._def_value))
+
+    def test_str_op_unset(self):
+        self.assertEqual(str(self._ft()), 'Unset')
+
 
 _inject_numeric_testing_methods(_TestIntegerFieldCommon)
 
@@ -817,6 +824,25 @@ class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
 
         self.assertEqual(total, 3)
         self.assertTrue(0 in index_set and 1 in index_set and 2 in index_set)
+
+    def test_str_op(self):
+        expected_string_found = False
+        s = str(self._def)
+
+        # Establish all permutations of the three expected matches since
+        # the order in which mappings are enumerated is not explicitly part of
+        # the API.
+        for p in itertools.permutations(["'whole range'", "'something'",
+                                         "'zip'"]):
+            candidate = '{} ({})'.format(self._def_value, ', '.join(p))
+            if candidate == s:
+                expected_string_found = True
+                break
+
+        self.assertTrue(expected_string_found)
+
+    def test_str_op_unset(self):
+        self.assertEqual(str(self._ft()), 'Unset')
 
 
 class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
@@ -898,6 +924,11 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
     def test_invalid_invert(self):
         self._test_invalid_op(lambda: ~self._def)
 
+    def test_str_op(self):
+        self.assertEqual(str(self._def), str(self._def_value))
+
+    def test_str_op_unset(self):
+        self.assertEqual(str(self._ft()), 'Unset')
 
 _inject_numeric_testing_methods(FloatingPointNumberFieldTestCase)
 
@@ -984,6 +1015,9 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_str_op(self):
         self.assertEqual(str(self._def), str(self._def_value))
+
+    def test_str_op_unset(self):
+        self.assertEqual(str(self._ft()), 'Unset')
 
     def test_len(self):
         self.assertEqual(len(self._def), len(self._def_value))
@@ -1181,6 +1215,15 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         other = self._ft()
         self.assertEqual(other, field)
 
+    def test_str_op(self):
+        s = str(self._def)
+        expected_string = '[{}]'.format(', '.join(
+            [repr(v) for v in self._def_value]))
+        self.assertEqual(expected_string, s)
+
+    def test_str_op_unset(self):
+        self.assertEqual(str(self._ft()), 'Unset')
+
 
 class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
     def setUp(self):
@@ -1253,6 +1296,12 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self._def['B'] = 'salut'
         self._def['C'] = 17.5
         self._def['D'] = 16497
+        self._def_value = {
+            'A': -1872,
+            'B': 'salut',
+            'C': 17.5,
+            'D': 16497
+        }
 
     def tearDown(self):
         del self._ft0
@@ -1479,6 +1528,24 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         struct.reset()
         self.assertEqual(struct_ft(), struct)
 
+    def test_str_op(self):
+        expected_string_found = False
+        s = str(self._def)
+        # Establish all permutations of the three expected matches since
+        # the order in which mappings are enumerated is not explicitly part of
+        # the API.
+        for p in itertools.permutations([(k, v) for k, v in self._def.items()]):
+            items = ['{}: {}'.format(repr(k), repr(v)) for k, v in p]
+            candidate = '{{{}}}'.format(', '.join(items))
+            if candidate == s:
+                expected_string_found = True
+                break
+
+        self.assertTrue(expected_string_found)
+
+    def test_str_op_unset(self):
+        self.assertEqual(str(self._ft()), 'Unset')
+
 
 class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
@@ -1577,3 +1644,24 @@ class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertFalse(self._def.is_set)
         self.assertIsNone(self._def.selected_field)
         self.assertIsNone(self._def.tag_field)
+
+    def test_str_op_int(self):
+        v = self._ft()
+        v.field(self._tag_ft(23)).value = 42
+        f = self._ft0(42)
+        self.assertEqual(str(f), str(v))
+
+    def test_str_op_str(self):
+        v = self._ft()
+        v.field(self._tag_ft(18)).value = 'some test string'
+        f = self._ft1('some test string')
+        self.assertEqual(str(f), str(v))
+
+    def test_str_op_flt(self):
+        v = self._ft()
+        v.field(self._tag_ft(1001)).value = 14.4245
+        f = self._ft2(14.4245)
+        self.assertEqual(str(f), str(v))
+
+    def test_str_op_unset(self):
+        self.assertEqual(str(self._ft()), 'Unset')
