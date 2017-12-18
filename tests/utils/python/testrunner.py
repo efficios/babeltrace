@@ -27,7 +27,13 @@ import sys
 
 if __name__ == '__main__':
     loader = unittest.TestLoader()
-    tests = loader.discover(sys.argv[1])
+
+    if len(sys.argv) >= 3:
+        pattern = sys.argv[2]
+    else:
+        pattern = 'test*.py'
+
+    tests = loader.discover(sys.argv[1], pattern)
     runner = TAPTestRunner()
     runner.set_stream(True)
     runner.set_format('{method_name}')
