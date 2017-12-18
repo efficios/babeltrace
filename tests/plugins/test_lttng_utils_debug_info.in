@@ -34,5 +34,5 @@ else
 fi
 
 PYTHONPATH="${PYTHON_BUILD_DIR}:${TESTS_UTILS_PYTHON_DIR}" \
-	"@PYTHON@" "${TESTRUNNER_PY}" "${THIS_DIR}"
+	"@PYTHON@" "${TESTRUNNER_PY}" "${THIS_DIR}" 'test_lttng_utils_debug_info.py'
 exit $?
