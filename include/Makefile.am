@@ -118,6 +118,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/trace-internal.h \
 	babeltrace/ctf-ir/validation-internal.h \
 	babeltrace/ctf-ir/visitor-internal.h \
+	babeltrace/ctf-ir/utils-internal.h \
 	babeltrace/ctf-writer/clock-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
 	babeltrace/ctf-writer/serialize-internal.h \
