@@ -43,6 +43,7 @@
 #include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/utils-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/values-internal.h>
@@ -1108,6 +1109,34 @@ end:
 	return is_valid;
 }
 
+static
+int check_packet_header_type_has_no_clock_class(struct bt_trace *trace)
+{
+	int ret = 0;
+
+	if (trace->packet_header_type) {
+		struct bt_clock_class *clock_class = NULL;
+
+		ret = bt_validate_single_clock_class(trace->packet_header_type,
+			&clock_class);
+		bt_put(clock_class);
+		if (ret || clock_class) {
+			BT_LOGW("Trace's packet header field type cannot "
+				"contain a field type which is mapped to "
+				"a clock class: "
+				"trace-addr=%p, trace-name=\"%s\", "
+				"clock-class-name=\"%s\"",
+				trace, bt_trace_get_name(trace),
+				clock_class ?
+					bt_clock_class_get_name(clock_class) :
+					NULL);
+			ret = -1;
+		}
+	}
+
+	return ret;
+}
+
 int bt_trace_add_stream_class(struct bt_trace *trace,
 		struct bt_stream_class *stream_class)
 {
@@ -1214,6 +1243,12 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 			ret = -1;
 			goto end;
 		}
+	}
+
+	ret = check_packet_header_type_has_no_clock_class(trace);
+	if (ret) {
+		/* check_packet_header_type_has_no_clock_class() logs errors */
+		goto end;
 	}
 
 	/*
@@ -2161,6 +2196,12 @@ int bt_trace_set_is_static(struct bt_trace *trace)
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
 		ret = -1;
+		goto end;
+	}
+
+	ret = check_packet_header_type_has_no_clock_class(trace);
+	if (ret) {
+		/* check_packet_header_type_has_no_clock_class() logs errors */
 		goto end;
 	}
 
