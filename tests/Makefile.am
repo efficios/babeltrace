@@ -39,6 +39,10 @@ if !ENABLE_BUILT_IN_PLUGINS
 TESTS_LIB += lib/test_plugin_complete
 endif
 
+if ENABLE_PYTHON_BINDINGS
+TESTS_LIB += lib/ctf-ir/test_ctf_ir
+endif
+
 TESTS_PLUGINS =
 
 if !ENABLE_BUILT_IN_PLUGINS
@@ -66,8 +70,8 @@ endif
 LOG_DRIVER_FLAGS = '--merge'
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/config/tap-driver.sh
 
-TESTS = $(TESTS_BINDINGS) $(TESTS_CLI) $(TESTS_LIB) $(TESTS_PLUGINS) \
-	$(TESTS_PYTHON_PLUGIN_PROVIDER)
+TESTS = $(TESTS_BINDINGS) $(TESTS_CLI) $(TESTS_LIB) \
+	$(TESTS_PLUGINS) $(TESTS_PYTHON_PLUGIN_PROVIDER)
 
 define check_target
 check-$(1):
