@@ -1,4 +1,4 @@
-SUBDIRS=
+SUBDIRS = ctf-ir
 
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
