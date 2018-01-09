@@ -1276,14 +1276,30 @@ retry:
 	}
 
 	if (cur_index->content_size == 0) {
+		/* Beacon packet index */
 		if (file_stream->parent.stream_class) {
 			file_stream->parent.cycles_timestamp =
 				cur_index->ts_cycles.timestamp_end;
 			file_stream->parent.real_timestamp = ctf_get_real_timestamp(
 					&file_stream->parent,
 					cur_index->ts_cycles.timestamp_end);
+
+			/*
+			 * Duplicate the data from the previous index, because
+			 * the one we just received is only a beacon with no
+			 * relevant information except the timestamp_end. We
+			 * don't need to keep this timestamp_end because we already
+			 * updated the file_stream timestamps, so we only need
+			 * to keep the last real index data as prev_index. That
+			 * way, we keep the original prev timestamps and
+			 * discarded events counter. This is the same behaviour
+			 * as if we were reading a local trace, we would not
+			 * have fake indexes between real indexes.
+			 */
+			memcpy(cur_index, prev_index, sizeof(struct packet_index));
 		}
 	} else {
+		/* Real packet index */
 		if (file_stream->parent.stream_class) {
 			/* Convert the timestamps and append to the real_index. */
 			cur_index->ts_real.timestamp_begin = ctf_get_real_timestamp(
