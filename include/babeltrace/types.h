@@ -448,6 +448,7 @@ struct declaration_enum *
 struct declaration_string *
 	bt_string_declaration_new(enum ctf_string_encoding encoding);
 char *bt_get_string(const struct bt_definition *field);
+char *bt_get_sequence_text(const struct bt_definition *field);
 enum ctf_string_encoding bt_get_string_encoding(const struct bt_definition *field);
 
 double bt_get_float(const struct bt_definition *field);
