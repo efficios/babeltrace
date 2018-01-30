@@ -29,6 +29,7 @@ babeltracectfirincludedir = "$(includedir)/babeltrace/ctf-ir"
 babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/clock-class.h \
 	babeltrace/ctf-ir/clock-value.h \
+	babeltrace/ctf-ir/clock.h \
 	babeltrace/ctf-ir/event-class.h \
 	babeltrace/ctf-ir/event.h \
 	babeltrace/ctf-ir/field-path.h \
