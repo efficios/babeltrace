@@ -1156,6 +1156,7 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 	struct bt_field_type *stream_event_ctx_type = NULL;
 	int64_t event_class_count;
 	struct bt_trace *current_parent_trace = NULL;
+	struct bt_clock_class *expected_clock_class = NULL;
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
@@ -1241,6 +1242,79 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 				stream_clock_class,
 				bt_clock_class_get_name(stream_clock_class));
 			ret = -1;
+			goto end;
+		}
+
+		if (stream_class->clock_class &&
+				stream_class->clock_class !=
+				stream_class->clock->clock_class) {
+			/*
+			 * Stream class already has an expected clock
+			 * class, but it does not match its clock's
+			 * class.
+			 */
+			BT_LOGW("Invalid parameter: stream class's clock's "
+				"class does not match stream class's "
+				"expected clock class: "
+				"stream-class-addr=%p, "
+				"stream-class-id=%" PRId64 ", "
+				"stream-class-name=\"%s\", "
+				"expected-clock-class-addr=%p, "
+				"expected-clock-class-name=\"%s\"",
+				stream_class,
+				bt_stream_class_get_id(stream_class),
+				bt_stream_class_get_name(stream_class),
+				expected_clock_class,
+				bt_clock_class_get_name(expected_clock_class));
+		} else if (!stream_class->clock_class) {
+			/*
+			 * Set expected clock class to stream class's
+			 * clock's class.
+			 */
+			expected_clock_class =
+				bt_get(stream_class->clock->clock_class);
+		}
+	}
+
+	if (!stream_class->frozen) {
+		/*
+		 * Stream class is not frozen yet. Validate that the
+		 * stream class contains at most a single clock class
+		 * because the previous
+		 * bt_stream_class_add_event_class() calls did not make
+		 * this validation since the stream class's direct field
+		 * types (packet context, event header, event context)
+		 * could change afterwards. This stream class is about
+		 * to be frozen and those field types won't be changed
+		 * if this function succeeds.
+		 *
+		 * At this point we're also sure that the stream class's
+		 * clock, if any, has the same class as the stream
+		 * class's expected clock class, if any. This is why, if
+		 * bt_stream_class_validate_single_clock_class()
+		 * succeeds below, the call to
+		 * bt_stream_class_map_clock_class() at the end of this
+		 * function is safe because it maps to the same, single
+		 * clock class.
+		 */
+		ret = bt_stream_class_validate_single_clock_class(stream_class,
+			&expected_clock_class);
+		if (ret) {
+			BT_LOGW("Invalid parameter: stream class or one of its "
+				"event classes contains a field type which is "
+				"not recursively mapped to the expected "
+				"clock class: "
+				"stream-class-addr=%p, "
+				"stream-class-id=%" PRId64 ", "
+				"stream-class-name=\"%s\", "
+				"expected-clock-class-addr=%p, "
+				"expected-clock-class-name=\"%s\"",
+				stream_class, bt_stream_class_get_id(stream_class),
+				bt_stream_class_get_name(stream_class),
+				expected_clock_class,
+				expected_clock_class ?
+					bt_clock_class_get_name(expected_clock_class) :
+					NULL);
 			goto end;
 		}
 	}
@@ -1442,6 +1516,8 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 		}
 	}
 
+
+
 	bt_object_set_parent(stream_class, trace);
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
@@ -1486,6 +1562,14 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 	bt_stream_class_freeze(stream_class);
 	bt_trace_freeze(trace);
 
+	/*
+	 * It is safe to set the stream class's unique clock class
+	 * now because the stream class is frozen.
+	 */
+	if (expected_clock_class) {
+		BT_MOVE(stream_class->clock_class, expected_clock_class);
+	}
+
 	/* Notifiy listeners of the trace's schema modification. */
 	bt_stream_class_visit(stream_class,
 			bt_trace_object_modification, trace);
@@ -1512,6 +1596,7 @@ end:
 	g_free(ec_validation_outputs);
 	bt_validation_output_put_types(&trace_sc_validation_output);
 	bt_put(current_parent_trace);
+	bt_put(expected_clock_class);
 	assert(!packet_header_type);
 	assert(!packet_context_type);
 	assert(!event_header_type);
