@@ -59,6 +59,25 @@ struct bt_stream_class {
 	 * stream class is _always_ frozen.
 	 */
 	int valid;
+
+	/*
+	 * Unique clock class mapped to any field type within this
+	 * stream class, including all the stream class's event class
+	 * field types. This is only set if the stream class is frozen.
+	 *
+	 * If the stream class is frozen and this is still NULL, it is
+	 * still possible that it becomes non-NULL because
+	 * bt_stream_class_add_event_class() can add an event class
+	 * containing a field type mapped to some clock class. In this
+	 * case, this is the mapped clock class, and at this point, both
+	 * the new event class and the stream class are frozen, so the
+	 * next added event classes are expected to contain field types
+	 * which only map to this specific clock class.
+	 *
+	 * If this is a CTF writer stream class, then this is the
+	 * backing clock class of the `clock` member above.
+	 */
+	struct bt_clock_class *clock_class;
 };
 
 BT_HIDDEN
@@ -86,6 +105,11 @@ int bt_stream_class_map_clock_class(
 		struct bt_stream_class *stream_class,
 		struct bt_field_type *packet_context_type,
 		struct bt_field_type *event_header_type);
+
+BT_HIDDEN
+int bt_stream_class_validate_single_clock_class(
+		struct bt_stream_class *stream_class,
+		struct bt_clock_class **expected_clock_class);
 
 static inline
 struct bt_trace *bt_stream_class_borrow_trace(

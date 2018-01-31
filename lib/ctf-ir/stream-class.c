@@ -43,6 +43,7 @@
 #include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/utils-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
@@ -399,6 +400,7 @@ int bt_stream_class_add_event_class(
 	struct bt_field_type *event_payload_type = NULL;
 	const enum bt_validation_flag validation_flags =
 		BT_VALIDATION_FLAG_EVENT;
+	struct bt_clock_class *expected_clock_class = NULL;
 
 	if (!stream_class || !event_class) {
 		BT_LOGW("Invalid parameter: stream class or event class is NULL: "
@@ -420,8 +422,53 @@ int bt_stream_class_add_event_class(
 
 	trace = bt_stream_class_get_trace(stream_class);
 	if (trace && trace->is_static) {
+		BT_LOGW("Invalid parameter: stream class's trace is static: "
+			"trace-addr=%p, trace-name=\"%s\"",
+			trace, bt_trace_get_name(trace));
 		ret = -1;
 		goto end;
+	}
+
+	if (stream_class->frozen) {
+		/*
+		 * We only check that the event class to be added has a
+		 * single class which matches the stream class's
+		 * expected clock class if the stream class is frozen.
+		 * If it's not, then this event class is added "as is"
+		 * and the validation will be performed when calling
+		 * either bt_trace_add_stream_class() or
+		 * bt_event_create(). This is because the stream class's
+		 * field types (packet context, event header, event
+		 * context) could change before the next call to one of
+		 * those two functions.
+		 */
+		expected_clock_class = bt_get(stream_class->clock_class);
+
+		/*
+		 * At this point, `expected_clock_class` can be NULL,
+		 * and bt_event_class_validate_single_clock_class()
+		 * below can set it.
+		 */
+		ret = bt_event_class_validate_single_clock_class(
+			event_class, &expected_clock_class);
+		if (ret) {
+			BT_LOGW("Event class contains a field type which is not "
+				"recursively mapped to its stream class's "
+				"expected clock class: "
+				"stream-class-addr=%p, "
+				"stream-class-id=%" PRId64 ", "
+				"stream-class-name=\"%s\", "
+				"expected-clock-class-addr=%p, "
+				"expected-clock-class-name=\"%s\"",
+				stream_class,
+				bt_stream_class_get_id(stream_class),
+				bt_stream_class_get_name(stream_class),
+				expected_clock_class,
+				expected_clock_class ?
+					bt_clock_class_get_name(expected_clock_class) :
+					NULL);
+			goto end;
+		}
 	}
 
 	event_id = g_new(int64_t, 1);
@@ -562,6 +609,16 @@ int bt_stream_class_add_event_class(
 	/* Freeze the event class */
 	bt_event_class_freeze(event_class);
 
+	/*
+	 * It is safe to set the stream class's unique clock class
+	 * now if the stream class is frozen.
+	 */
+	if (stream_class->frozen && expected_clock_class) {
+		assert(!stream_class->clock_class ||
+			stream_class->clock_class == expected_clock_class);
+		BT_MOVE(stream_class->clock_class, expected_clock_class);
+	}
+
 	/* Notifiy listeners of the trace's schema modification. */
 	if (trace) {
 		struct bt_visitor_object obj = { .object = event_class,
@@ -584,6 +641,7 @@ end:
 	BT_PUT(trace);
 	BT_PUT(old_stream_class);
 	bt_validation_output_put_types(&validation_output);
+	bt_put(expected_clock_class);
 	assert(!packet_header_type);
 	assert(!packet_context_type);
 	assert(!event_header_type);
@@ -1081,6 +1139,7 @@ void bt_stream_class_destroy(struct bt_object *obj)
 		stream_class, bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class));
 	bt_put(stream_class->clock);
+	bt_put(stream_class->clock_class);
 
 	if (stream_class->event_classes_ht) {
 		g_hash_table_destroy(stream_class->event_classes_ht);
@@ -1310,6 +1369,92 @@ int bt_stream_class_map_clock_class(
 		}
 
 		BT_PUT(ft);
+	}
+
+end:
+	return ret;
+}
+
+BT_HIDDEN
+int bt_stream_class_validate_single_clock_class(
+		struct bt_stream_class *stream_class,
+		struct bt_clock_class **expected_clock_class)
+{
+	int ret;
+	uint64_t i;
+
+	assert(stream_class);
+	assert(expected_clock_class);
+	ret = bt_validate_single_clock_class(stream_class->packet_context_type,
+		expected_clock_class);
+	if (ret) {
+		BT_LOGW("Stream class's packet context field type "
+			"is not recursively mapped to the "
+			"expected clock class: "
+			"stream-class-addr=%p, "
+			"stream-class-name=\"%s\", "
+			"stream-class-id=%" PRId64 ", "
+			"ft-addr=%p",
+			stream_class,
+			bt_stream_class_get_name(stream_class),
+			stream_class->id,
+			stream_class->packet_context_type);
+		goto end;
+	}
+
+	ret = bt_validate_single_clock_class(stream_class->event_header_type,
+		expected_clock_class);
+	if (ret) {
+		BT_LOGW("Stream class's event header field type "
+			"is not recursively mapped to the "
+			"expected clock class: "
+			"stream-class-addr=%p, "
+			"stream-class-name=\"%s\", "
+			"stream-class-id=%" PRId64 ", "
+			"ft-addr=%p",
+			stream_class,
+			bt_stream_class_get_name(stream_class),
+			stream_class->id,
+			stream_class->event_header_type);
+		goto end;
+	}
+
+	ret = bt_validate_single_clock_class(stream_class->event_context_type,
+		expected_clock_class);
+	if (ret) {
+		BT_LOGW("Stream class's event context field type "
+			"is not recursively mapped to the "
+			"expected clock class: "
+			"stream-class-addr=%p, "
+			"stream-class-name=\"%s\", "
+			"stream-class-id=%" PRId64 ", "
+			"ft-addr=%p",
+			stream_class,
+			bt_stream_class_get_name(stream_class),
+			stream_class->id,
+			stream_class->event_context_type);
+		goto end;
+	}
+
+	for (i = 0; i < stream_class->event_classes->len; i++) {
+		struct bt_event_class *event_class =
+			g_ptr_array_index(stream_class->event_classes, i);
+
+		assert(event_class);
+		ret = bt_event_class_validate_single_clock_class(event_class,
+			expected_clock_class);
+		if (ret) {
+			BT_LOGW("Stream class's event class contains a "
+				"field type which is not recursively mapped to "
+				"the expected clock class: "
+				"stream-class-addr=%p, "
+				"stream-class-name=\"%s\", "
+				"stream-class-id=%" PRId64,
+				stream_class,
+				bt_stream_class_get_name(stream_class),
+				stream_class->id);
+			goto end;
+		}
 	}
 
 end:
