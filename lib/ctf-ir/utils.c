@@ -34,6 +34,7 @@
 #include <glib.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ref.h>
 
 static
@@ -130,7 +131,11 @@ int bt_validate_single_clock_class(struct bt_field_type *field_type,
 		struct bt_clock_class **expected_clock_class)
 {
 	int ret = 0;
-	assert(field_type);
+
+	if (!field_type) {
+		goto end;
+	}
+
 	assert(expected_clock_class);
 
 	switch (bt_field_type_get_type_id(field_type)) {
@@ -155,9 +160,13 @@ int bt_validate_single_clock_class(struct bt_field_type *field_type,
 				BT_LOGW("Integer field type is not mapped to "
 					"the expected clock class: "
 					"mapped-clock-class-addr=%p, "
-					"expected-clock-class-addr=%p",
+					"mapped-clock-class-name=\"%s\", "
+					"expected-clock-class-addr=%p, "
+					"expected-clock-class-name=\"%s\"",
 					mapped_clock_class,
-					*expected_clock_class);
+					bt_clock_class_get_name(mapped_clock_class),
+					*expected_clock_class,
+					bt_clock_class_get_name(*expected_clock_class));
 				bt_put(mapped_clock_class);
 				ret = -1;
 				goto end;
