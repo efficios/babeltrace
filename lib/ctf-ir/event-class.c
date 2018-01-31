@@ -38,6 +38,7 @@
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
+#include <babeltrace/ctf-ir/utils-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -707,5 +708,52 @@ int bt_event_class_serialize(struct bt_event_class *event_class,
 end:
 	context->current_indentation_level = 0;
 	BT_PUT(attr_value);
+	return ret;
+}
+
+BT_HIDDEN
+int bt_event_class_validate_single_clock_class(
+		struct bt_event_class *event_class,
+		struct bt_clock_class **expected_clock_class)
+{
+	int ret = 0;
+
+	assert(event_class);
+	assert(expected_clock_class);
+	ret = bt_validate_single_clock_class(event_class->context,
+		expected_clock_class);
+	if (ret) {
+		BT_LOGW("Event class's context field type "
+			"is not recursively mapped to the "
+			"expected clock class: "
+			"event-class-addr=%p, "
+			"event-class-name=\"%s\", "
+			"event-class-id=%" PRId64 ", "
+			"ft-addr=%p",
+			event_class,
+			bt_event_class_get_name(event_class),
+			event_class->id,
+			event_class->context);
+		goto end;
+	}
+
+	ret = bt_validate_single_clock_class(event_class->fields,
+		expected_clock_class);
+	if (ret) {
+		BT_LOGW("Event class's payload field type "
+			"is not recursively mapped to the "
+			"expected clock class: "
+			"event-class-addr=%p, "
+			"event-class-name=\"%s\", "
+			"event-class-id=%" PRId64 ", "
+			"ft-addr=%p",
+			event_class,
+			bt_event_class_get_name(event_class),
+			event_class->id,
+			event_class->fields);
+		goto end;
+	}
+
+end:
 	return ret;
 }

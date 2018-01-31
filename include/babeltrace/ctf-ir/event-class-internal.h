@@ -125,4 +125,9 @@ const char *bt_event_class_log_level_string(
 	}
 };
 
+BT_HIDDEN
+int bt_event_class_validate_single_clock_class(
+		struct bt_event_class *event_class,
+		struct bt_clock_class **expected_clock_class);
+
 #endif /* BABELTRACE_CTF_IR_EVENT_CLASS_INTERNAL_H */

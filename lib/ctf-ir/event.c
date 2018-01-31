@@ -48,6 +48,7 @@
 #include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
+#include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -78,6 +79,7 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 	struct bt_value *environment = NULL;
 	struct bt_validation_output validation_output = { 0 };
 	int trace_valid = 0;
+	struct bt_clock_class *expected_clock_class = NULL;
 
 	BT_LOGD("Creating event object: event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
@@ -102,6 +104,40 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 
 	/* The event class was frozen when added to its stream class */
 	assert(event_class->frozen);
+
+	if (!stream_class->frozen) {
+		if (stream_class->clock) {
+			expected_clock_class =
+				bt_get(stream_class->clock->clock_class);
+		}
+
+		/*
+		 * Because this function freezes the stream class,
+		 * validate that this stream class contains at most a
+		 * single clock class so that we set its expected clock
+		 * class for future checks.
+		 */
+		ret = bt_stream_class_validate_single_clock_class(
+			stream_class, &expected_clock_class);
+		if (ret) {
+			BT_LOGW("Event class's stream class or one of its event "
+				"classes contains a field type which is not "
+				"recursively mapped to the expected "
+				"clock class: "
+				"stream-class-addr=%p, "
+				"stream-class-id=%" PRId64 ", "
+				"stream-class-name=\"%s\", "
+				"expected-clock-class-addr=%p, "
+				"expected-clock-class-name=\"%s\"",
+				stream_class, bt_stream_class_get_id(stream_class),
+				bt_stream_class_get_name(stream_class),
+				expected_clock_class,
+				expected_clock_class ?
+					bt_clock_class_get_name(expected_clock_class) :
+					NULL);
+			goto error;
+		}
+	}
 
 	/* Validate the trace (if any), the stream class, and the event class */
 	trace = bt_stream_class_get_trace(stream_class);
@@ -243,6 +279,14 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 	bt_stream_class_freeze(stream_class);
 
 	/*
+	 * It is safe to set the stream class's unique clock class
+	 * now because the stream class is frozen.
+	 */
+	if (expected_clock_class) {
+		BT_MOVE(stream_class->clock_class, expected_clock_class);
+	}
+
+	/*
 	 * Mark stream class, and event class as valid since
 	 * they're all frozen now.
 	 */
@@ -267,6 +311,7 @@ error:
 	BT_PUT(stream_event_context);
 	BT_PUT(event_context);
 	BT_PUT(event_payload);
+	bt_put(expected_clock_class);
 	assert(!packet_header_type);
 	assert(!packet_context_type);
 	assert(!event_header_type);
