@@ -264,7 +264,7 @@ struct bt_ctf_iter *_bt_python_ctf_iter_create_intersect(
 int _bt_python_trace_collection_has_intersection(struct bt_context *ctx)
 {
 	int ret;
-	int64_t begin, end;
+	uint64_t begin, end;
 
 	ret = ctf_find_tc_stream_packet_intersection_union(ctx, &begin, &end);
 
