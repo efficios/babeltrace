@@ -2405,7 +2405,7 @@ int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 				ret = -EPERM;
 				goto error;
 			}
-			ret = get_unary_unsigned(&node->u.ctf_expression.right, &clock->offset_s);
+			ret = get_unary_signed(&node->u.ctf_expression.right, &clock->offset_s);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for clock offset_s\n", __func__);
 				ret = -EINVAL;
@@ -2417,7 +2417,7 @@ int ctf_clock_declaration_visit(FILE *fd, int depth, struct ctf_node *node,
 				ret = -EPERM;
 				goto error;
 			}
-			ret = get_unary_unsigned(&node->u.ctf_expression.right, &clock->offset);
+			ret = get_unary_signed(&node->u.ctf_expression.right, &clock->offset);
 			if (ret) {
 				fprintf(fd, "[error] %s: unexpected unary expression for clock offset\n", __func__);
 				ret = -EINVAL;
