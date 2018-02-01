@@ -1,3 +1,22 @@
+2018-01-31 babeltrace 1.5.4 (Gorilla Suit Day)
+	* Fix: use signed accessors for clock offsets
+	* Fix: signedness error in python complements
+	* Fix: handle packet_seek errors
+	* Fix: prevent calling adding the same trace recursively
+	* Fix: Make sure we have all the metadata streams before adding new traces
+	* Add missing debugging information in the live plugin
+	* Fix: set stream id in HUP case
+	* Fix: Use list rather than ptr array for trace streams
+	* Fix: leak of streams
+	* Fix: handle 0 session case in ask new streams
+	* Fix: break loop on getting metadata error
+	* Fix: return error on ask_new_stream when should quit
+	* Fix: don't access missing ctf trace when getting metadata
+	* Fix: lttng-live discarded event count after inactivity
+	* Fix: timegm compat on Solaris
+	* Fix: python bindings when building with PIE hardening
+	* lttng-live: print discarded event and packet lost warnings on stderr
+
 2017-08-04 lttng-tools 1.5.3 (International Beer Day)
 	* Fix: unknown variable name in Python writer
 	* Fix live-comm: only apply retry timeout for already seen inactive indexes.
