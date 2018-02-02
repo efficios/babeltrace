@@ -4733,17 +4733,26 @@ int bt_field_type_integer_compare(struct bt_field_type *type_a,
 		goto end;
 	}
 
-	/* Mapped clock */
-	if (int_type_a->mapped_clock != int_type_b->mapped_clock) {
-		BT_LOGV("Integer field types differ: different mapped clock classes: "
-			"ft-a-mapped-clock-class-addr=%p, "
-			"ft-b-mapped-clock-class-addr=%p, "
-			"ft-a-mapped-clock-class-name=\"%s\", "
-			"ft-b-mapped-clock-class-name=\"%s\"",
-			int_type_a->mapped_clock, int_type_b->mapped_clock,
-			int_type_a->mapped_clock ? bt_clock_class_get_name(int_type_a->mapped_clock) : "",
-			int_type_b->mapped_clock ? bt_clock_class_get_name(int_type_b->mapped_clock) : "");
-		goto end;
+	/* Mapped clock class */
+	if (int_type_a->mapped_clock) {
+		if (!int_type_b->mapped_clock) {
+			BT_LOGV_STR("Integer field types differ: field type A "
+				"has a mapped clock class, but field type B "
+				"does not.");
+			goto end;
+		}
+
+		if (bt_clock_class_compare(int_type_a->mapped_clock,
+				int_type_b->mapped_clock) != 0) {
+			BT_LOGV_STR("Integer field types differ: different "
+				"mapped clock classes.");
+		}
+	} else {
+		if (int_type_b->mapped_clock) {
+			BT_LOGV_STR("Integer field types differ: field type A "
+				"has no description, but field type B has one.");
+			goto end;
+		}
 	}
 
 	/* Equal */
