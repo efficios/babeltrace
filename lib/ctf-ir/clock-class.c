@@ -859,3 +859,151 @@ struct bt_clock_class *bt_clock_value_get_class(
 end:
 	return clock_class;
 }
+
+BT_HIDDEN
+int bt_clock_class_compare(struct bt_clock_class *clock_class_a,
+		struct bt_clock_class *clock_class_b)
+{
+	int ret = 1;
+	assert(clock_class_a);
+	assert(clock_class_b);
+
+	/* Name */
+	if (strcmp(clock_class_a->name->str, clock_class_b->name->str) != 0) {
+		BT_LOGV("Clock classes differ: different names: "
+			"cc-a-name=\"%s\", cc-b-name=\"%s\"",
+			clock_class_a->name->str,
+			clock_class_b->name->str);
+		goto end;
+	}
+
+	/* Description */
+	if (clock_class_a->description) {
+		if (!clock_class_b->description) {
+			BT_LOGV_STR("Clock classes differ: clock class A has a "
+				"description, but clock class B does not.");
+			goto end;
+		}
+
+		if (strcmp(clock_class_a->name->str, clock_class_b->name->str)
+				!= 0) {
+			BT_LOGV("Clock classes differ: different descriptions: "
+				"cc-a-descr=\"%s\", cc-b-descr=\"%s\"",
+				clock_class_a->description->str,
+				clock_class_b->description->str);
+			goto end;
+		}
+	} else {
+		if (clock_class_b->description) {
+			BT_LOGV_STR("Clock classes differ: clock class A has "
+				"no description, but clock class B has one.");
+			goto end;
+		}
+	}
+
+	/* Frequency */
+	if (clock_class_a->frequency != clock_class_b->frequency) {
+		BT_LOGV("Clock classes differ: different frequencies: "
+			"cc-a-freq=%" PRIu64 ", cc-b-freq=%" PRIu64,
+			clock_class_a->frequency,
+			clock_class_b->frequency);
+		goto end;
+	}
+
+	/* Precision */
+	if (clock_class_a->precision != clock_class_b->precision) {
+		BT_LOGV("Clock classes differ: different precisions: "
+			"cc-a-freq=%" PRIu64 ", cc-b-freq=%" PRIu64,
+			clock_class_a->precision,
+			clock_class_b->precision);
+		goto end;
+	}
+
+	/* Offset (seconds) */
+	if (clock_class_a->offset_s != clock_class_b->offset_s) {
+		BT_LOGV("Clock classes differ: different offsets (seconds): "
+			"cc-a-offset-s=%" PRId64 ", cc-b-offset-s=%" PRId64,
+			clock_class_a->offset_s,
+			clock_class_b->offset_s);
+		goto end;
+	}
+
+	/* Offset (cycles) */
+	if (clock_class_a->offset != clock_class_b->offset) {
+		BT_LOGV("Clock classes differ: different offsets (cycles): "
+			"cc-a-offset-s=%" PRId64 ", cc-b-offset-s=%" PRId64,
+			clock_class_a->offset,
+			clock_class_b->offset);
+		goto end;
+	}
+
+	/* UUIDs */
+	if (clock_class_a->uuid_set) {
+		if (!clock_class_b->uuid_set) {
+			BT_LOGV_STR("Clock classes differ: clock class A has a "
+				"UUID, but clock class B does not.");
+			goto end;
+		}
+
+		if (memcmp(clock_class_a->uuid, clock_class_b->uuid,
+				BABELTRACE_UUID_LEN) != 0) {
+			BT_LOGV("Clock classes differ: different UUIDs: "
+				"cc-a-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\", "
+				"cc-b-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
+				(unsigned int) clock_class_a->uuid[0],
+				(unsigned int) clock_class_a->uuid[1],
+				(unsigned int) clock_class_a->uuid[2],
+				(unsigned int) clock_class_a->uuid[3],
+				(unsigned int) clock_class_a->uuid[4],
+				(unsigned int) clock_class_a->uuid[5],
+				(unsigned int) clock_class_a->uuid[6],
+				(unsigned int) clock_class_a->uuid[7],
+				(unsigned int) clock_class_a->uuid[8],
+				(unsigned int) clock_class_a->uuid[9],
+				(unsigned int) clock_class_a->uuid[10],
+				(unsigned int) clock_class_a->uuid[11],
+				(unsigned int) clock_class_a->uuid[12],
+				(unsigned int) clock_class_a->uuid[13],
+				(unsigned int) clock_class_a->uuid[14],
+				(unsigned int) clock_class_a->uuid[15],
+				(unsigned int) clock_class_b->uuid[0],
+				(unsigned int) clock_class_b->uuid[1],
+				(unsigned int) clock_class_b->uuid[2],
+				(unsigned int) clock_class_b->uuid[3],
+				(unsigned int) clock_class_b->uuid[4],
+				(unsigned int) clock_class_b->uuid[5],
+				(unsigned int) clock_class_b->uuid[6],
+				(unsigned int) clock_class_b->uuid[7],
+				(unsigned int) clock_class_b->uuid[8],
+				(unsigned int) clock_class_b->uuid[9],
+				(unsigned int) clock_class_b->uuid[10],
+				(unsigned int) clock_class_b->uuid[11],
+				(unsigned int) clock_class_b->uuid[12],
+				(unsigned int) clock_class_b->uuid[13],
+				(unsigned int) clock_class_b->uuid[14],
+				(unsigned int) clock_class_b->uuid[15]);
+			goto end;
+		}
+	} else {
+		if (clock_class_b->uuid_set) {
+			BT_LOGV_STR("Clock classes differ: clock class A has "
+				"no UUID, but clock class B has one.");
+			goto end;
+		}
+	}
+
+	/* Absolute */
+	if (!!clock_class_a->absolute != !!clock_class_b->absolute) {
+		BT_LOGV("Clock classes differ: one is absolute, the other "
+			"is not: cc-a-is-absolute=%d, cc-b-is-absolute=%d",
+			!!clock_class_a->absolute,
+			!!clock_class_b->absolute);
+		goto end;
+	}
+
+	/* Equal */
+	ret = 0;
+
+end:
+	return ret;
+}

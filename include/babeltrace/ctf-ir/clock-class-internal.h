@@ -66,4 +66,8 @@ void bt_clock_class_serialize(struct bt_clock_class *clock_class,
 BT_HIDDEN
 bt_bool bt_clock_class_is_valid(struct bt_clock_class *clock_class);
 
+BT_HIDDEN
+int bt_clock_class_compare(struct bt_clock_class *clock_class_a,
+		struct bt_clock_class *clock_class_b);
+
 #endif /* BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H */
