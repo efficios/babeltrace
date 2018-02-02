@@ -1889,12 +1889,13 @@ struct bt_event *debug_info_output_event(
 		goto error;
 	}
 	bt_get(writer_stream_class);
-
+	writer_trace = bt_stream_class_get_trace(writer_stream_class);
+	assert(writer_trace);
 	writer_event_class = get_event_class(debug_it,
 			writer_stream_class, event_class);
 	if (!writer_event_class) {
 		writer_event_class = ctf_copy_event_class(debug_it->err,
-				event_class);
+				writer_trace, event_class);
 		if (!writer_event_class) {
 			BT_LOGE_STR("Failed to copy event_class.");
 			goto error;
@@ -1906,9 +1907,6 @@ struct bt_event *debug_info_output_event(
 			goto error;
 		}
 	}
-
-	writer_trace = bt_stream_class_get_trace(writer_stream_class);
-	assert(writer_trace);
 
 	debug_info = get_trace_debug_info(debug_it, writer_trace, di_trace);
 	if (debug_info) {

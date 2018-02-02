@@ -63,6 +63,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
  */
 BT_HIDDEN
 struct bt_event_class *ctf_copy_event_class(FILE *err,
+		struct bt_trace *trace_copy,
 		struct bt_event_class *event_class);
 
 /*

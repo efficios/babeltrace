@@ -139,12 +139,119 @@ end:
 	return ret;
 }
 
+static
+void replace_clock_classes(struct bt_trace *trace_copy,
+		struct bt_field_type *field_type)
+{
+	int ret;
+
+	assert(trace_copy);
+	assert(field_type);
+
+	switch (bt_field_type_get_type_id(field_type)) {
+	case BT_FIELD_TYPE_ID_INTEGER:
+	{
+		struct bt_clock_class *mapped_clock_class =
+			bt_field_type_integer_get_mapped_clock_class(field_type);
+		struct bt_clock_class *clock_class_copy = NULL;
+		const char *name;
+
+		if (!mapped_clock_class) {
+			break;
+		}
+
+		name = bt_clock_class_get_name(mapped_clock_class);
+		assert(name);
+		clock_class_copy = bt_trace_get_clock_class_by_name(
+			trace_copy, name);
+		assert(clock_class_copy);
+		ret = bt_field_type_integer_set_mapped_clock_class(
+			field_type, clock_class_copy);
+		assert(ret == 0);
+		bt_put(mapped_clock_class);
+		bt_put(clock_class_copy);
+		break;
+	}
+	case BT_FIELD_TYPE_ID_ENUM:
+	case BT_FIELD_TYPE_ID_ARRAY:
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+	{
+		struct bt_field_type *subtype = NULL;
+
+		switch (bt_field_type_get_type_id(field_type)) {
+		case BT_FIELD_TYPE_ID_ENUM:
+			subtype = bt_field_type_enumeration_get_container_type(
+				field_type);
+			break;
+		case BT_FIELD_TYPE_ID_ARRAY:
+			subtype = bt_field_type_array_get_element_type(
+				field_type);
+			break;
+		case BT_FIELD_TYPE_ID_SEQUENCE:
+			subtype = bt_field_type_sequence_get_element_type(
+				field_type);
+			break;
+		default:
+			BT_LOGF("Unexpected field type ID: id=%d",
+				bt_field_type_get_type_id(field_type));
+			abort();
+		}
+
+		assert(subtype);
+		replace_clock_classes(trace_copy, subtype);
+		bt_put(subtype);
+		break;
+	}
+	case BT_FIELD_TYPE_ID_STRUCT:
+	{
+		uint64_t i;
+		int64_t count = bt_field_type_structure_get_field_count(
+			field_type);
+
+		for (i = 0; i < count; i++) {
+			const char *name;
+			struct bt_field_type *member_type;
+
+			ret = bt_field_type_structure_get_field_by_index(
+				field_type, &name, &member_type, i);
+			assert(ret == 0);
+			replace_clock_classes(trace_copy, member_type);
+			bt_put(member_type);
+		}
+
+		break;
+	}
+	case BT_FIELD_TYPE_ID_VARIANT:
+	{
+		uint64_t i;
+		int64_t count = bt_field_type_variant_get_field_count(
+			field_type);
+
+		for (i = 0; i < count; i++) {
+			const char *name;
+			struct bt_field_type *member_type;
+
+			ret = bt_field_type_variant_get_field_by_index(
+				field_type, &name, &member_type, i);
+			assert(ret == 0);
+			replace_clock_classes(trace_copy, member_type);
+			bt_put(member_type);
+		}
+
+		break;
+	}
+	default:
+		break;
+	}
+}
+
 BT_HIDDEN
 struct bt_event_class *ctf_copy_event_class(FILE *err,
+		struct bt_trace *trace_copy,
 		struct bt_event_class *event_class)
 {
 	struct bt_event_class *writer_event_class = NULL;
-	struct bt_field_type *context, *payload_type;
+	struct bt_field_type *context = NULL, *payload_type = NULL;
 	const char *name;
 	int ret;
 	int64_t id;
@@ -189,20 +296,35 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 
 	payload_type = bt_event_class_get_payload_type(event_class);
 	if (payload_type) {
+		struct bt_field_type *ft_copy =
+			bt_field_type_copy(payload_type);
+
+		if (!ft_copy) {
+			BT_LOGE_STR("Cannot copy payload field type.");
+		}
+
+		replace_clock_classes(trace_copy, ft_copy);
 		ret = bt_event_class_set_payload_type(writer_event_class,
-				payload_type);
+				ft_copy);
+		bt_put(ft_copy);
 		if (ret < 0) {
 			BT_LOGE_STR("Failed to set payload type.");
 			goto error;
 		}
-		BT_PUT(payload_type);
 	}
 
 	context = bt_event_class_get_context_type(event_class);
 	if (context) {
+		struct bt_field_type *ft_copy =
+			bt_field_type_copy(context);
+
+		if (!ft_copy) {
+			BT_LOGE_STR("Cannot copy context field type.");
+		}
+
 		ret = bt_event_class_set_context_type(
-				writer_event_class, context);
-		BT_PUT(context);
+				writer_event_class, ft_copy);
+		bt_put(ft_copy);
 		if (ret < 0) {
 			BT_LOGE_STR("Failed to set context type.");
 			goto error;
@@ -214,6 +336,8 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 error:
 	BT_PUT(writer_event_class);
 end:
+	BT_PUT(context);
+	BT_PUT(payload_type);
 	return writer_event_class;
 }
 
@@ -225,7 +349,10 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
 	int count, i;
+	struct bt_trace *writer_trace =
+		bt_stream_class_get_trace(writer_stream_class);
 
+	assert(writer_trace);
 	count = bt_stream_class_get_event_class_count(stream_class);
 	assert(count >= 0);
 
@@ -252,7 +379,8 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 			}
 		}
 
-		writer_event_class = ctf_copy_event_class(err, event_class);
+		writer_event_class = ctf_copy_event_class(err, writer_trace,
+			event_class);
 		if (!writer_event_class) {
 			BT_LOGE_STR("Failed to copy event_class.");
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -276,6 +404,7 @@ error:
 	bt_put(event_class);
 	bt_put(writer_event_class);
 end:
+	bt_put(writer_trace);
 	return ret;
 }
 
@@ -286,6 +415,7 @@ struct bt_stream_class *ctf_copy_stream_class(FILE *err,
 		bool override_ts64)
 {
 	struct bt_field_type *type = NULL;
+	struct bt_field_type *type_copy = NULL;
 	struct bt_stream_class *writer_stream_class = NULL;
 	int ret_int;
 	const char *name = bt_stream_class_get_name(stream_class);
@@ -295,8 +425,15 @@ struct bt_stream_class *ctf_copy_stream_class(FILE *err,
 
 	type = bt_stream_class_get_packet_context_type(stream_class);
 	if (type) {
+		type_copy = bt_field_type_copy(type);
+		if (!type_copy) {
+			BT_LOGE_STR("Cannot copy packet context field type.");
+		}
+
+		replace_clock_classes(writer_trace, type_copy);
 		ret_int = bt_stream_class_set_packet_context_type(
-				writer_stream_class, type);
+				writer_stream_class, type_copy);
+		BT_PUT(type_copy);
 		if (ret_int < 0) {
 			BT_LOGE_STR("Failed to set packet_context type.");
 			goto error;
@@ -306,27 +443,36 @@ struct bt_stream_class *ctf_copy_stream_class(FILE *err,
 
 	type = bt_stream_class_get_event_header_type(stream_class);
 	if (type) {
+		type_copy = bt_field_type_copy(type);
+		if (!type_copy) {
+			BT_LOGE_STR("Cannot copy event header field type.");
+		}
+
 		ret_int = bt_trace_get_clock_class_count(writer_trace);
 		assert(ret_int >= 0);
 		if (override_ts64 && ret_int > 0) {
 			struct bt_field_type *new_event_header_type;
 
-			new_event_header_type = override_header_type(err, type,
+			new_event_header_type = override_header_type(err, type_copy,
 					writer_trace);
 			if (!new_event_header_type) {
 				BT_LOGE_STR("Failed to override header type.");
 				goto error;
 			}
+			replace_clock_classes(writer_trace, type_copy);
 			ret_int = bt_stream_class_set_event_header_type(
 					writer_stream_class, new_event_header_type);
+			BT_PUT(type_copy);
 			BT_PUT(new_event_header_type);
 			if (ret_int < 0) {
 				BT_LOGE_STR("Failed to set event_header type.");
 				goto error;
 			}
 		} else {
+			replace_clock_classes(writer_trace, type_copy);
 			ret_int = bt_stream_class_set_event_header_type(
-					writer_stream_class, type);
+					writer_stream_class, type_copy);
+			BT_PUT(type_copy);
 			if (ret_int < 0) {
 				BT_LOGE_STR("Failed to set event_header type.");
 				goto error;
@@ -337,8 +483,15 @@ struct bt_stream_class *ctf_copy_stream_class(FILE *err,
 
 	type = bt_stream_class_get_event_context_type(stream_class);
 	if (type) {
+		type_copy = bt_field_type_copy(type);
+		if (!type_copy) {
+			BT_LOGE_STR("Cannot copy event context field type.");
+		}
+
+		replace_clock_classes(writer_trace, type_copy);
 		ret_int = bt_stream_class_set_event_context_type(
-				writer_stream_class, type);
+				writer_stream_class, type_copy);
+		BT_PUT(type_copy);
 		if (ret_int < 0) {
 			BT_LOGE_STR("Failed to set event_contexttype.");
 			goto error;
@@ -352,6 +505,7 @@ error:
 	BT_PUT(writer_stream_class);
 end:
 	bt_put(type);
+	bt_put(type_copy);
 	return writer_stream_class;
 }
 

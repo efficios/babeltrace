@@ -725,6 +725,7 @@ enum bt_component_status writer_output_event(
 	struct bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;
 	struct bt_event *writer_event = NULL;
 	int int_ret;
+	struct bt_trace *writer_trace = NULL;
 
 	event_class = bt_event_get_class(event);
 	assert(event_class);
@@ -747,11 +748,14 @@ enum bt_component_status writer_output_event(
 		goto error;
 	}
 
+	writer_trace = bt_stream_class_get_trace(writer_stream_class);
+	assert(writer_trace);
+
 	writer_event_class = get_event_class(writer_component,
 			writer_stream_class, event_class);
 	if (!writer_event_class) {
 		writer_event_class = ctf_copy_event_class(writer_component->err,
-				event_class);
+				writer_trace, event_class);
 		if (!writer_event_class) {
 			BT_LOGE_STR("Failed to copy event_class.");
 			goto error;
@@ -786,6 +790,7 @@ enum bt_component_status writer_output_event(
 error:
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
+	bt_put(writer_trace);
 	bt_put(writer_event);
 	bt_put(writer_event_class);
 	bt_put(writer_stream_class);
