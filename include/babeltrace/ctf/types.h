@@ -92,6 +92,7 @@ struct ctf_stream_pos {
 
 	int dummy;		/* dummy position, for length calculation */
 	struct bt_stream_callbacks *cb;	/* Callbacks registered for iterator. */
+	size_t file_length;	/* length of backing file, in bytes. */
 	void *priv;
 };
 

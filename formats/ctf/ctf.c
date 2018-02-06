@@ -1180,6 +1180,14 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 				goto end;
 			}
 		}
+
+		if (packet_index->packet_size > ((uint64_t) pos->file_length - packet_index->offset) * CHAR_BIT) {
+			fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
+				packet_index->packet_size, ((uint64_t) pos->file_length - packet_index->offset) * CHAR_BIT);
+			ret = -1;
+			goto end;
+		}
+
 		pos->content_size = packet_index->content_size;
 		pos->packet_size = packet_index->packet_size;
 		pos->mmap_offset = packet_index->offset;
@@ -1708,8 +1716,7 @@ int stream_assign_class(struct ctf_trace *td,
 static
 int create_stream_one_packet_index(struct ctf_stream_pos *pos,
 			struct ctf_trace *td,
-			struct ctf_file_stream *file_stream,
-			size_t filesize)
+			struct ctf_file_stream *file_stream)
 {
 	struct packet_index packet_index;
 	uint64_t stream_id = 0;
@@ -1724,8 +1731,8 @@ begin:
 		first_packet = 1;
 	}
 
-	if (filesize - pos->mmap_offset < (packet_map_len >> LOG2_CHAR_BIT)) {
-		packet_map_len = (filesize - pos->mmap_offset) << LOG2_CHAR_BIT;
+	if (pos->file_length - pos->mmap_offset < (packet_map_len >> LOG2_CHAR_BIT)) {
+		packet_map_len = (pos->file_length - pos->mmap_offset) << LOG2_CHAR_BIT;
 	}
 
 	if (pos->base_mma) {
@@ -1843,7 +1850,7 @@ begin:
 			packet_index.packet_size = bt_get_unsigned_int(field);
 		} else {
 			/* Use file size for packet size */
-			packet_index.packet_size = filesize * CHAR_BIT;
+			packet_index.packet_size = pos->file_length * CHAR_BIT;
 		}
 
 		/* read content size from header */
@@ -1855,7 +1862,7 @@ begin:
 			packet_index.content_size = bt_get_unsigned_int(field);
 		} else {
 			/* Use packet size if non-zero, else file size */
-			packet_index.content_size = packet_index.packet_size ? : filesize * CHAR_BIT;
+			packet_index.content_size = packet_index.packet_size ? : pos->file_length * CHAR_BIT;
 		}
 
 		/* read timestamp begin from header */
@@ -1912,21 +1919,15 @@ begin:
 		}
 	} else {
 		/* Use file size for packet size */
-		packet_index.packet_size = filesize * CHAR_BIT;
+		packet_index.packet_size = pos->file_length * CHAR_BIT;
 		/* Use packet size if non-zero, else file size */
-		packet_index.content_size = packet_index.packet_size ? : filesize * CHAR_BIT;
+		packet_index.content_size = packet_index.packet_size ? : pos->file_length * CHAR_BIT;
 	}
 
 	/* Validate content size and packet size values */
 	if (packet_index.content_size > packet_index.packet_size) {
 		fprintf(stderr, "[error] Content size (%" PRIu64 " bits) is larger than packet size (%" PRIu64 " bits).\n",
 			packet_index.content_size, packet_index.packet_size);
-		return -EINVAL;
-	}
-
-	if (packet_index.packet_size > ((uint64_t) filesize - packet_index.offset) * CHAR_BIT) {
-		fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
-			packet_index.packet_size, ((uint64_t) filesize - packet_index.offset) * CHAR_BIT);
 		return -EINVAL;
 	}
 
@@ -1952,7 +1953,7 @@ begin:
 
 	/* Retry with larger mapping */
 retry:
-	if (packet_map_len == ((filesize - pos->mmap_offset) << LOG2_CHAR_BIT)) {
+	if (packet_map_len == ((pos->file_length - pos->mmap_offset) << LOG2_CHAR_BIT)) {
 		/*
 		 * Reached EOF, but still expecting header/context data.
 		 */
@@ -1975,17 +1976,12 @@ int create_stream_packet_index(struct ctf_trace *td,
 			struct ctf_file_stream *file_stream)
 {
 	struct ctf_stream_pos *pos;
-	struct stat filestats;
 	int ret;
 
 	pos = &file_stream->pos;
 
-	ret = fstat(pos->fd, &filestats);
-	if (ret < 0)
-		return ret;
-
 	/* Deal with empty files */
-	if (!filestats.st_size) {
+	if (!pos->file_length) {
 		if (file_stream->parent.trace_packet_header
 				|| file_stream->parent.stream_packet_context) {
 			/*
@@ -2008,9 +2004,8 @@ int create_stream_packet_index(struct ctf_trace *td,
 		}
 	}
 
-	for (pos->mmap_offset = 0; pos->mmap_offset < filestats.st_size; ) {
-		ret = create_stream_one_packet_index(pos, td, file_stream,
-			filestats.st_size);
+	for (pos->mmap_offset = 0; pos->mmap_offset < pos->file_length; ) {
+		ret = create_stream_one_packet_index(pos, td, file_stream);
 		if (ret)
 			return ret;
 	}
@@ -2195,6 +2190,7 @@ int ctf_open_file_stream_read(struct ctf_trace *td, const char *path, int flags,
 	file_stream->pos.last_offset = LAST_OFFSET_POISON;
 	file_stream->pos.fd = -1;
 	file_stream->pos.index_fp = NULL;
+	file_stream->pos.file_length = statbuf.st_size;
 
 	strncpy(file_stream->parent.path, path, PATH_MAX);
 	file_stream->parent.path[PATH_MAX - 1] = '\0';
