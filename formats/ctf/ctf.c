@@ -470,6 +470,29 @@ void ctf_print_discarded_lost(FILE *fp, struct ctf_stream_definition *stream)
 }
 
 static
+void ctf_print_truncated_packet(FILE *fp, struct ctf_stream_definition *stream,
+		uint64_t packet_size, uint64_t remaining_file_size)
+{
+	fprintf(fp, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits) in trace with UUID \"",
+			packet_size, remaining_file_size);
+	print_uuid(fp, stream->stream_class->trace->uuid);
+	fprintf(fp, "\"");
+
+	if (stream->stream_class->trace->parent.path[0] != '\0') {
+		fprintf(fp, ", at path: \"%s\"",
+				stream->stream_class->trace->parent.path);
+	}
+
+	fprintf(fp, ", within stream id %" PRIu64, stream->stream_id);
+	if (stream->path[0] != '\0') {
+		fprintf(fp, ", at relative path: \"%s\"", stream->path);
+	}
+
+	fprintf(fp, ".\n");
+	fflush(fp);
+}
+
+static
 int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *stream)
 {
 	struct ctf_stream_pos *pos =
@@ -483,8 +506,12 @@ int ctf_read_event(struct bt_stream_pos *ppos, struct ctf_stream_definition *str
 	if (unlikely(pos->offset == EOF))
 		return EOF;
 
-	if (ctf_pos_get_event(pos))
+	ret = ctf_pos_get_event(pos);
+	if (ret == -BT_PACKET_SEEK_ERROR_TRUNCATED_PACKET) {
+		return -ERANGE;
+	} else if (ret) {
 		return EOF;
+	}
 
 	/* save the current position as a restore point */
 	pos->last_offset = pos->offset;
@@ -1053,7 +1080,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 	case SEEK_SET:	/* Fall-through */
 		break;	/* OK */
 	default:
-		ret = -1;
+		ret = -BT_PACKET_SEEK_ERROR;
 		goto end;
 	}
 
@@ -1066,7 +1093,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		if (ret) {
 			fprintf(stderr, "[error] Unable to unmap old base: %s.\n",
 				strerror(errno));
-			ret = -1;
+			ret = -BT_PACKET_SEEK_ERROR;
 			goto end;
 		}
 		pos->base_mma = NULL;
@@ -1087,7 +1114,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			pos->cur_index = 0;
 			break;
 		default:
-			ret = -1;
+			ret = -BT_PACKET_SEEK_ERROR;
 			goto end;
 		}
 		pos->content_size = -1U;	/* Unknown at this point */
@@ -1099,6 +1126,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		assert(ret == 0);
 		pos->offset = 0;
 	} else {
+		uint64_t remaining_file_size;
 	read_next_packet:
 		switch (whence) {
 		case SEEK_CUR:
@@ -1121,7 +1149,7 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 			pos->cur_index = index;
 			break;
 		default:
-			ret = -1;
+			ret = -BT_PACKET_SEEK_ERROR;
 			goto end;
 		}
 
@@ -1170,15 +1198,19 @@ void ctf_packet_seek(struct bt_stream_pos *stream_pos, size_t index, int whence)
 		if (packet_index->data_offset == -1) {
 			ret = find_data_offset(pos, file_stream, packet_index);
 			if (ret < 0) {
-				ret = -1;
+				ret = -BT_PACKET_SEEK_ERROR;
 				goto end;
 			}
 		}
 
-		if (packet_index->packet_size > ((uint64_t) pos->file_length - packet_index->offset) * CHAR_BIT) {
-			fprintf(stderr, "[error] Packet size (%" PRIu64 " bits) is larger than remaining file size (%" PRIu64 " bits).\n",
-				packet_index->packet_size, ((uint64_t) pos->file_length - packet_index->offset) * CHAR_BIT);
-			ret = -1;
+		remaining_file_size = (pos->file_length - ((uint64_t) packet_index->offset)) * CHAR_BIT;
+		if (packet_index->packet_size > remaining_file_size) {
+			fflush(stdout);
+			ctf_print_truncated_packet(stderr, &file_stream->parent,
+					packet_index->packet_size,
+					remaining_file_size);
+			pos->offset = EOF;
+			ret = -BT_PACKET_SEEK_ERROR_TRUNCATED_PACKET;
 			goto end;
 		}
 

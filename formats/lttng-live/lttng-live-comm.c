@@ -1223,7 +1223,7 @@ void ctf_live_packet_seek(struct bt_stream_pos *stream_pos, size_t index,
 	ret = handle_seek_position(index, whence, viewer_stream, pos,
 			file_stream);
 	if (ret != 0) {
-		ret = -1;
+		ret = -BT_PACKET_SEEK_ERROR;
 		goto end;
 	}
 
@@ -1266,7 +1266,7 @@ retry:
 			if (!lttng_live_should_quit()) {
 				fprintf(stderr, "[error] get_next_index failed\n");
 			}
-			ret = -1;
+			ret = -BT_PACKET_SEEK_ERROR;
 			goto end;
 		}
 		printf_verbose("Index received : packet_size : %" PRIu64
@@ -1389,7 +1389,7 @@ retry:
 		pos->offset = EOF;
 		if (!lttng_live_should_quit()) {
 			fprintf(stderr, "[error] get_data_packet failed\n");
-			ret = -1;
+			ret = -BT_PACKET_SEEK_ERROR;
 		} else {
 			ret = 0;
 		}

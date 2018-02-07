@@ -864,6 +864,10 @@ int bt_iter_next(struct bt_iter *iter)
 		 */
 		ret = 0;
 		goto reinsert;
+	} else if (ret == -ERANGE) {
+		removed = bt_heap_remove(iter->stream_heap);
+		assert(removed == file_stream);
+		goto end;
 	} else if (ret) {
 		goto end;
 	}
