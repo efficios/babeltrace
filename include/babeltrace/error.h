@@ -30,6 +30,11 @@
  * SOFTWARE.
  */
 
+enum bt_packet_seek_error {
+	BT_PACKET_SEEK_ERROR = 1,
+	BT_PACKET_SEEK_ERROR_TRUNCATED_PACKET = 2,
+};
+
 /*
  * bt_packet_seek_get_error: get the return code of the last packet_seek use.
  *
