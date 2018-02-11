@@ -99,14 +99,20 @@ static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
-static struct bt_stream_class *src_stream_class;
-static struct bt_event_class *src_event_class;
-static struct bt_stream *src_stream1;
-static struct bt_stream *src_stream2;
-static struct bt_packet *src_stream1_packet1;
-static struct bt_packet *src_stream1_packet2;
-static struct bt_packet *src_stream2_packet1;
-static struct bt_packet *src_stream2_packet2;
+static struct bt_private_stream_class *src_stream_class;
+static struct bt_private_event_class *src_event_class;
+static struct bt_private_stream *src_stream1;
+static struct bt_stream *pub_src_stream1;
+static struct bt_private_stream *src_stream2;
+static struct bt_stream *pub_src_stream2;
+static struct bt_private_packet *src_stream1_packet1;
+static struct bt_packet *pub_src_stream1_packet1;
+static struct bt_private_packet *src_stream1_packet2;
+static struct bt_packet *pub_src_stream1_packet2;
+static struct bt_private_packet *src_stream2_packet1;
+static struct bt_packet *pub_src_stream2_packet1;
+static struct bt_private_packet *src_stream2_packet2;
+static struct bt_packet *pub_src_stream2_packet2;
 
 enum {
 	SEQ_END = -1,
@@ -391,11 +397,31 @@ bool compare_test_events(const struct test_event *expected_events)
 	return true;
 }
 
+static inline
+struct bt_stream *bt_stream_borrow_from_private(
+		struct bt_private_stream *priv_stream)
+{
+	struct bt_stream *stream = bt_stream_from_private(priv_stream);
+
+	bt_put(stream);
+	return stream;
+}
+
+static inline
+struct bt_packet *bt_packet_borrow_from_private(
+		struct bt_private_packet *priv_packet)
+{
+	struct bt_packet *packet = bt_packet_from_private(priv_packet);
+
+	bt_put(packet);
+	return packet;
+}
+
 static
 void init_static_data(void)
 {
 	int ret;
-	struct bt_trace *trace;
+	struct bt_private_trace *trace;
 	struct bt_field_type *empty_struct_ft;
 
 	/* Test events */
@@ -405,47 +431,53 @@ void init_static_data(void)
 	/* Metadata */
 	empty_struct_ft = bt_field_type_structure_create();
 	assert(empty_struct_ft);
-	trace = bt_trace_create();
+	trace = bt_private_trace_create();
 	assert(trace);
-	ret = bt_trace_set_packet_header_type(trace, empty_struct_ft);
+	ret = bt_private_trace_set_packet_header_type(trace, empty_struct_ft);
 	assert(ret == 0);
 	src_empty_cc_prio_map = bt_clock_class_priority_map_create();
 	assert(src_empty_cc_prio_map);
-	src_stream_class = bt_stream_class_create("my-stream-class");
+	src_stream_class = bt_private_stream_class_create("my-stream-class");
 	assert(src_stream_class);
-	ret = bt_stream_class_set_packet_context_type(src_stream_class,
+	ret = bt_private_stream_class_set_packet_context_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(src_stream_class,
+	ret = bt_private_stream_class_set_event_header_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_context_type(src_stream_class,
+	ret = bt_private_stream_class_set_event_context_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	src_event_class = bt_event_class_create("my-event-class");
-	ret = bt_event_class_set_context_type(src_event_class,
+	src_event_class = bt_private_event_class_create("my-event-class");
+	ret = bt_private_event_class_set_context_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_event_class_set_context_type(src_event_class,
+	ret = bt_private_event_class_set_context_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_add_event_class(src_stream_class,
+	ret = bt_private_stream_class_add_private_event_class(src_stream_class,
 		src_event_class);
 	assert(ret == 0);
-	ret = bt_trace_add_stream_class(trace, src_stream_class);
+	ret = bt_private_trace_add_private_stream_class(trace, src_stream_class);
 	assert(ret == 0);
-	src_stream1 = bt_stream_create(src_stream_class, "stream-1");
+	src_stream1 = bt_private_stream_create(src_stream_class, "stream-1");
 	assert(src_stream1);
-	src_stream2 = bt_stream_create(src_stream_class, "stream-2");
+	pub_src_stream1 = bt_stream_borrow_from_private(src_stream1);
+	src_stream2 = bt_private_stream_create(src_stream_class, "stream-2");
 	assert(src_stream2);
-	src_stream1_packet1 = bt_packet_create(src_stream1);
+	pub_src_stream2 = bt_stream_borrow_from_private(src_stream2);
+	src_stream1_packet1 = bt_private_packet_create(src_stream1);
 	assert(src_stream1_packet1);
-	src_stream1_packet2 = bt_packet_create(src_stream1);
+	pub_src_stream1_packet1 = bt_packet_borrow_from_private(src_stream1_packet1);
+	src_stream1_packet2 = bt_private_packet_create(src_stream1);
 	assert(src_stream1_packet2);
-	src_stream2_packet1 = bt_packet_create(src_stream2);
+	pub_src_stream1_packet2 = bt_packet_borrow_from_private(src_stream1_packet2);
+	src_stream2_packet1 = bt_private_packet_create(src_stream2);
 	assert(src_stream2_packet1);
-	src_stream2_packet2 = bt_packet_create(src_stream2);
+	pub_src_stream2_packet1 = bt_packet_borrow_from_private(src_stream2_packet1);
+	src_stream2_packet2 = bt_private_packet_create(src_stream2);
 	assert(src_stream2_packet2);
+	pub_src_stream2_packet2 = bt_packet_borrow_from_private(src_stream2_packet2);
 
 	if (debug) {
 		fprintf(stderr, ":: stream 1: %p\n", src_stream1);
@@ -551,13 +583,13 @@ enum bt_notification_iterator_status src_iter_init(
 }
 
 static
-struct bt_event *src_create_event(struct bt_packet *packet)
+struct bt_private_event *src_create_event(struct bt_private_packet *packet)
 {
-	struct bt_event *event = bt_event_create(src_event_class);
+	struct bt_private_event *event = bt_private_event_create(src_event_class);
 	int ret;
 
 	assert(event);
-	ret = bt_event_set_packet(event, packet);
+	ret = bt_private_event_set_private_packet(event, packet);
 	assert(ret == 0);
 	return event;
 }
@@ -570,7 +602,7 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
 	int64_t cur_ts_ns;
-	struct bt_packet *event_packet = NULL;
+	struct bt_private_packet *event_packet = NULL;
 
 	assert(user_data->seq);
 	cur_ts_ns = user_data->seq[user_data->at];
@@ -582,67 +614,93 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		break;
 	case SEQ_INACTIVITY:
 		next_return.notification =
-			bt_notification_inactivity_create(src_empty_cc_prio_map);
+			bt_notification_borrow_from_private(
+				bt_private_notification_inactivity_create(
+					src_empty_cc_prio_map));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_BEGIN:
 		next_return.notification =
-			bt_notification_stream_begin_create(src_stream1);
+			bt_notification_borrow_from_private(
+				bt_private_notification_stream_begin_create(
+					src_stream1));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_BEGIN:
 		next_return.notification =
-			bt_notification_stream_begin_create(src_stream2);
+			bt_notification_borrow_from_private(
+				bt_private_notification_stream_begin_create(
+					src_stream2));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_END:
 		next_return.notification =
-			bt_notification_stream_end_create(src_stream1);
+			bt_notification_borrow_from_private(
+				bt_private_notification_stream_end_create(
+					src_stream1));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_END:
 		next_return.notification =
-			bt_notification_stream_end_create(src_stream2);
+			bt_notification_borrow_from_private(
+				bt_private_notification_stream_end_create(
+					src_stream2));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET1_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream1_packet1);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_begin_create(
+					src_stream1_packet1));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET2_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream1_packet2);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_begin_create(
+					src_stream1_packet2));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET1_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream2_packet1);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_begin_create(
+					src_stream2_packet1));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET2_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream2_packet2);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_begin_create(
+					src_stream2_packet2));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET1_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream1_packet1);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_end_create(
+					src_stream1_packet1));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET2_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream1_packet2);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_end_create(
+					src_stream1_packet2));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET1_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream2_packet1);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_end_create(
+					src_stream2_packet1));
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET2_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream2_packet2);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_end_create(
+					src_stream2_packet2));
 		assert(next_return.notification);
 		break;
 	case SEQ_EVENT_STREAM1_PACKET1:
@@ -662,11 +720,12 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 	}
 
 	if (event_packet) {
-		struct bt_event *event = src_create_event(event_packet);
+		struct bt_private_event *event = src_create_event(event_packet);
 
 		assert(event);
-		next_return.notification = bt_notification_event_create(event,
-			src_empty_cc_prio_map);
+		next_return.notification = bt_notification_borrow_from_private(
+			bt_private_notification_event_create(event,
+				src_empty_cc_prio_map));
 		bt_put(event);
 		assert(next_return.notification);
 	}
@@ -990,22 +1049,22 @@ static
 void test_no_auto_notifs(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream2, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream2, .packet = pub_src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream2, .packet = pub_src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream2, .packet = pub_src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream2, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1018,10 +1077,10 @@ static
 void test_auto_stream_begin_from_packet_begin(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1035,8 +1094,8 @@ static
 void test_auto_stream_begin_from_stream_end(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1050,8 +1109,8 @@ static
 void test_auto_stream_end_from_end(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1065,10 +1124,10 @@ static
 void test_auto_packet_begin_from_packet_end(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1082,11 +1141,11 @@ static
 void test_auto_packet_begin_from_event(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1100,12 +1159,12 @@ static
 void test_auto_packet_end_from_packet_begin(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1119,13 +1178,13 @@ static
 void test_auto_packet_end_packet_begin_from_event(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1139,10 +1198,10 @@ static
 void test_auto_packet_end_from_stream_end(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1156,10 +1215,10 @@ static
 void test_auto_packet_end_stream_end_from_end(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1188,7 +1247,7 @@ void test_multiple_auto_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream1;
+	expected_event.stream = pub_src_stream1;
 	expected_event.packet = NULL;
 	event = &g_array_index(test_events, struct test_event, 0);
 	if (!compare_single_test_events(event, &expected_event)) {
@@ -1197,7 +1256,7 @@ void test_multiple_auto_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream2;
+	expected_event.stream = pub_src_stream2;
 	expected_event.packet = NULL;
 	event = &g_array_index(test_events, struct test_event, 1);
 	if (!compare_single_test_events(event, &expected_event)) {
@@ -1206,10 +1265,10 @@ void test_multiple_auto_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event.stream = src_stream1;
+	expected_event.stream = pub_src_stream1;
 	expected_event.packet = NULL;
 	expected_event2.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event2.stream = src_stream2;
+	expected_event2.stream = pub_src_stream2;
 	expected_event2.packet = NULL;
 	event = &g_array_index(test_events, struct test_event, 2);
 	event2 = &g_array_index(test_events, struct test_event, 3);
@@ -1254,7 +1313,7 @@ void test_multiple_auto_packet_end_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream1;
+	expected_event.stream = pub_src_stream1;
 	expected_event.packet = NULL;
 	event = &g_array_index(test_events, struct test_event, 0);
 	if (!compare_single_test_events(event, &expected_event)) {
@@ -1263,7 +1322,7 @@ void test_multiple_auto_packet_end_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream2;
+	expected_event.stream = pub_src_stream2;
 	expected_event.packet = NULL;
 	event = &g_array_index(test_events, struct test_event, 1);
 	if (!compare_single_test_events(event, &expected_event)) {
@@ -1272,8 +1331,8 @@ void test_multiple_auto_packet_end_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN;
-	expected_event.stream = src_stream1;
-	expected_event.packet = src_stream1_packet1;
+	expected_event.stream = pub_src_stream1;
+	expected_event.packet = pub_src_stream1_packet1;
 	event = &g_array_index(test_events, struct test_event, 2);
 	if (!compare_single_test_events(event, &expected_event)) {
 		expected = false;
@@ -1281,8 +1340,8 @@ void test_multiple_auto_packet_end_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN;
-	expected_event.stream = src_stream2;
-	expected_event.packet = src_stream2_packet1;
+	expected_event.stream = pub_src_stream2;
+	expected_event.packet = pub_src_stream2_packet1;
 	event = &g_array_index(test_events, struct test_event, 3);
 	if (!compare_single_test_events(event, &expected_event)) {
 		expected = false;
@@ -1290,11 +1349,11 @@ void test_multiple_auto_packet_end_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_PACKET_END;
-	expected_event.stream = src_stream1;
-	expected_event.packet = src_stream1_packet1;
+	expected_event.stream = pub_src_stream1;
+	expected_event.packet = pub_src_stream1_packet1;
 	expected_event2.type = TEST_EV_TYPE_NOTIF_PACKET_END;
-	expected_event2.stream = src_stream2;
-	expected_event2.packet = src_stream2_packet1;
+	expected_event2.stream = pub_src_stream2;
+	expected_event2.packet = pub_src_stream2_packet1;
 	event = &g_array_index(test_events, struct test_event, 4);
 	event2 = &g_array_index(test_events, struct test_event, 6);
 	if (!(compare_single_test_events(event, &expected_event) &&
@@ -1306,10 +1365,10 @@ void test_multiple_auto_packet_end_stream_end_from_end(void)
 	}
 
 	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event.stream = src_stream1;
+	expected_event.stream = pub_src_stream1;
 	expected_event.packet = NULL;
 	expected_event2.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event2.stream = src_stream2;
+	expected_event2.stream = pub_src_stream2;
 	expected_event2.packet = NULL;
 	event = &g_array_index(test_events, struct test_event, 5);
 	event2 = &g_array_index(test_events, struct test_event, 7);
@@ -1339,22 +1398,22 @@ static
 void test_output_port_notification_iterator(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = pub_src_stream2, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream2, .packet = pub_src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream2, .packet = pub_src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream2, .packet = pub_src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream2, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = pub_src_stream1, .packet = NULL, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
@@ -1400,12 +1459,12 @@ static
 void test_output_port_notification_iterator_subscribe_events(void)
 {
 	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream2, .packet = pub_src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = pub_src_stream1, .packet = pub_src_stream1_packet2, },
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};

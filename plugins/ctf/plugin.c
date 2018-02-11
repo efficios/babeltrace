@@ -54,12 +54,14 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(fs,
 	ctf_fs_iterator_finalize);
 
 /* ctf.fs sink */
+/*
 BT_PLUGIN_SINK_COMPONENT_CLASS(fs, writer_run);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(fs, writer_component_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(fs,
 		writer_component_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(fs, writer_component_finalize);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(fs, "Write CTF traces to the file system.");
+*/
 
 /* ctf.lttng-live source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, lttng_live, "lttng-live",

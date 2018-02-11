@@ -75,12 +75,12 @@ static GArray *test_events;
 static struct bt_clock_class_priority_map *src_cc_prio_map;
 static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
 static struct bt_clock_class *src_clock_class;
-static struct bt_stream_class *src_stream_class;
-static struct bt_event_class *src_event_class;
-static struct bt_packet *src_packet0;
-static struct bt_packet *src_packet1;
-static struct bt_packet *src_packet2;
-static struct bt_packet *src_packet3;
+static struct bt_private_stream_class *src_stream_class;
+static struct bt_private_event_class *src_event_class;
+static struct bt_private_packet *src_packet0;
+static struct bt_private_packet *src_packet1;
+static struct bt_private_packet *src_packet2;
+static struct bt_private_packet *src_packet3;
 
 enum {
 	SEQ_END = -1,
@@ -93,7 +93,7 @@ struct src_iter_user_data {
 	size_t iter_index;
 	int64_t *seq;
 	size_t at;
-	struct bt_packet *packet;
+	struct bt_private_packet *packet;
 };
 
 struct sink_user_data {
@@ -287,8 +287,8 @@ static
 void init_static_data(void)
 {
 	int ret;
-	struct bt_trace *trace;
-	struct bt_stream *stream;
+	struct bt_private_trace *trace;
+	struct bt_private_stream *stream;
 	struct bt_field_type *empty_struct_ft;
 
 	/* Test events */
@@ -298,18 +298,18 @@ void init_static_data(void)
 	/* Metadata */
 	empty_struct_ft = bt_field_type_structure_create();
 	assert(empty_struct_ft);
-	trace = bt_trace_create();
+	trace = bt_private_trace_create();
 	assert(trace);
-	ret = bt_trace_set_native_byte_order(trace,
+	ret = bt_private_trace_set_native_byte_order(trace,
 		BT_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
-	ret = bt_trace_set_packet_header_type(trace, empty_struct_ft);
+	ret = bt_private_trace_set_packet_header_type(trace, empty_struct_ft);
 	assert(ret == 0);
 	src_clock_class = bt_clock_class_create("my-clock", 1000000000);
 	assert(src_clock_class);
 	ret = bt_clock_class_set_is_absolute(src_clock_class, 1);
 	assert(ret == 0);
-	ret = bt_trace_add_clock_class(trace, src_clock_class);
+	ret = bt_private_trace_add_clock_class(trace, src_clock_class);
 	assert(ret == 0);
 	src_empty_cc_prio_map = bt_clock_class_priority_map_create();
 	assert(src_empty_cc_prio_map);
@@ -318,47 +318,47 @@ void init_static_data(void)
 	ret = bt_clock_class_priority_map_add_clock_class(src_cc_prio_map,
 		src_clock_class, 0);
 	assert(ret == 0);
-	src_stream_class = bt_stream_class_create("my-stream-class");
+	src_stream_class = bt_private_stream_class_create("my-stream-class");
 	assert(src_stream_class);
-	ret = bt_stream_class_set_packet_context_type(src_stream_class,
+	ret = bt_private_stream_class_set_packet_context_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(src_stream_class,
+	ret = bt_private_stream_class_set_event_header_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_context_type(src_stream_class,
+	ret = bt_private_stream_class_set_event_context_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	src_event_class = bt_event_class_create("my-event-class");
-	ret = bt_event_class_set_context_type(src_event_class,
+	src_event_class = bt_private_event_class_create("my-event-class");
+	ret = bt_private_event_class_set_context_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_event_class_set_context_type(src_event_class,
+	ret = bt_private_event_class_set_context_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_add_event_class(src_stream_class,
+	ret = bt_private_stream_class_add_private_event_class(src_stream_class,
 		src_event_class);
 	assert(ret == 0);
-	ret = bt_trace_add_stream_class(trace, src_stream_class);
+	ret = bt_private_trace_add_private_stream_class(trace, src_stream_class);
 	assert(ret == 0);
-	stream = bt_stream_create(src_stream_class, "stream0");
+	stream = bt_private_stream_create(src_stream_class, "stream0");
 	assert(stream);
-	src_packet0 = bt_packet_create(stream);
+	src_packet0 = bt_private_packet_create(stream);
 	assert(src_packet0);
 	bt_put(stream);
-	stream = bt_stream_create(src_stream_class, "stream1");
+	stream = bt_private_stream_create(src_stream_class, "stream1");
 	assert(stream);
-	src_packet1 = bt_packet_create(stream);
+	src_packet1 = bt_private_packet_create(stream);
 	assert(src_packet0);
 	bt_put(stream);
-	stream = bt_stream_create(src_stream_class, "stream2");
+	stream = bt_private_stream_create(src_stream_class, "stream2");
 	assert(stream);
-	src_packet2 = bt_packet_create(stream);
+	src_packet2 = bt_private_packet_create(stream);
 	assert(src_packet0);
 	bt_put(stream);
-	stream = bt_stream_create(src_stream_class, "stream3");
+	stream = bt_private_stream_create(src_stream_class, "stream3");
 	assert(stream);
-	src_packet3 = bt_packet_create(stream);
+	src_packet3 = bt_private_packet_create(stream);
 	assert(src_packet0);
 	bt_put(stream);
 
@@ -481,14 +481,14 @@ enum bt_notification_iterator_status src_iter_init(
 }
 
 static
-struct bt_event *src_create_event(struct bt_packet *packet,
+struct bt_private_event *src_create_event(struct bt_private_packet *packet,
 		int64_t ts_ns)
 {
-	struct bt_event *event = bt_event_create(src_event_class);
+	struct bt_private_event *event = bt_private_event_create(src_event_class);
 	int ret;
 
 	assert(event);
-	ret = bt_event_set_packet(event, packet);
+	ret = bt_private_event_set_private_packet(event, packet);
 	assert(ret == 0);
 
 	if (ts_ns != -1) {
@@ -497,7 +497,7 @@ struct bt_event *src_create_event(struct bt_packet *packet,
 		clock_value = bt_clock_value_create(src_clock_class,
 			(uint64_t) ts_ns);
 		assert(clock_value);
-		ret = bt_event_set_clock_value(event, clock_value);
+		ret = bt_private_event_set_clock_value(event, clock_value);
 		assert(ret == 0);
 		bt_put(clock_value);
 	}
@@ -528,22 +528,27 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		break;
 	case SEQ_PACKET_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(user_data->packet);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_begin_create(
+					user_data->packet));
 		assert(next_return.notification);
 		break;
 	case SEQ_PACKET_END:
 		next_return.notification =
-			bt_notification_packet_end_create(user_data->packet);
+			bt_notification_borrow_from_private(
+				bt_private_notification_packet_end_create(
+					user_data->packet));
 		assert(next_return.notification);
 		break;
 	default:
 	{
-		struct bt_event *event = src_create_event(
+		struct bt_private_event *event = src_create_event(
 			user_data->packet, cur_ts_ns);
 
 		assert(event);
-		next_return.notification = bt_notification_event_create(event,
-			src_cc_prio_map);
+		next_return.notification = bt_notification_borrow_from_private(
+			bt_private_notification_event_create(event,
+				src_cc_prio_map));
 		bt_put(event);
 		assert(next_return.notification);
 		break;
@@ -579,17 +584,19 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 		if (user_data->iter_index == 0) {
 			if (user_data->at == 0) {
 				next_return.notification =
-					bt_notification_packet_begin_create(
-						user_data->packet);
+					bt_notification_borrow_from_private(
+					bt_private_notification_packet_begin_create(
+						user_data->packet));
 				assert(next_return.notification);
 			} else if (user_data->at < 6) {
-				struct bt_event *event = src_create_event(
+				struct bt_private_event *event = src_create_event(
 					user_data->packet, -1);
 
 				assert(event);
 				next_return.notification =
-					bt_notification_event_create(event,
-						src_empty_cc_prio_map);
+					bt_notification_borrow_from_private(
+					bt_private_notification_event_create(event,
+						src_empty_cc_prio_map));
 				assert(next_return.notification);
 				bt_put(event);
 			} else {

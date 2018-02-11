@@ -1,4 +1,4 @@
-SUBDIRS = libctfcopytrace ctf text utils
+SUBDIRS = ctf text utils
 
 if ENABLE_DEBUG_INFO
 SUBDIRS += lttng-utils

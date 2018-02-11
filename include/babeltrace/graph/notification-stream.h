@@ -31,14 +31,16 @@
 extern "C" {
 #endif
 
+struct bt_private_notification;
 struct bt_notification;
+struct bt_private_stream;
 struct bt_stream;
 
-extern struct bt_notification *bt_notification_stream_begin_create(
-		struct bt_stream *stream);
+extern struct bt_private_notification *bt_private_notification_stream_begin_create(
+		struct bt_private_stream *private_stream);
 
-extern struct bt_notification *bt_notification_stream_end_create(
-		struct bt_stream *stream);
+extern struct bt_private_notification *bt_private_notification_stream_end_create(
+		struct bt_private_stream *private_stream);
 
 extern struct bt_stream *bt_notification_stream_begin_get_stream(
 		struct bt_notification *notification);

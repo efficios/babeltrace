@@ -118,13 +118,21 @@ immutable, except for \link refs reference counting\endlink.
 @sa ctfirevent
 */
 struct bt_event;
+struct bt_private_event;
 struct bt_clock;
 struct bt_clock_value;
+struct bt_private_event_class;
 struct bt_event_class;
 struct bt_field;
 struct bt_field_type;
+struct bt_private_stream_class;
 struct bt_stream_class;
+struct bt_private_packet;
 struct bt_packet;
+
+// TODO: document
+extern struct bt_event *bt_event_from_private(
+		struct bt_private_event *private_event);
 
 /**
 @name Creation and parent access functions
@@ -162,8 +170,8 @@ with bt_trace_add_stream_class(), then this function fails.
 @pre \p event_class has a parent stream class.
 @postsuccessrefcountret1
 */
-extern struct bt_event *bt_event_create(
-		struct bt_event_class *event_class);
+extern struct bt_private_event *bt_private_event_create(
+		struct bt_private_event_class *private_event_class);
 
 /**
 @brief	Returns the parent CTF IR event class of the CTF IR event
@@ -182,6 +190,10 @@ create the event object in the first place with bt_event_create().
 */
 extern struct bt_event_class *bt_event_get_class(
 		struct bt_event *event);
+
+// TODO: document
+extern struct bt_private_event_class *bt_private_event_get_private_class(
+		struct bt_private_event *event);
 
 /**
 @brief	Returns the CTF IR packet associated to the CTF IR event
@@ -235,8 +247,8 @@ On success, this function also sets the parent stream object of
 @sa bt_event_get_packet(): Returns the associated packet of a
 	given event object.
 */
-extern int bt_event_set_packet(struct bt_event *event,
-		struct bt_packet *packet);
+extern int bt_private_event_set_private_packet(struct bt_private_event *event,
+		struct bt_private_packet *private_packet);
 
 /**
 @brief	Returns the parent CTF IR stream associated to the CTF IR event
@@ -251,6 +263,10 @@ extern int bt_event_set_packet(struct bt_event *event,
 */
 extern struct bt_stream *bt_event_get_stream(
 		struct bt_event *event);
+
+// TODO: document
+extern struct bt_private_stream *bt_private_event_get_private_stream(
+		struct bt_private_event *private_event);
 
 /** @} */
 
@@ -306,7 +322,7 @@ of \p event.
 @sa bt_event_get_header(): Returns the stream event header field
 	of a given event.
 */
-extern int bt_event_set_header(struct bt_event *event,
+extern int bt_private_event_set_header(struct bt_private_event *private_event,
 		struct bt_field *header);
 
 /**
@@ -355,7 +371,8 @@ of \p event.
 @sa bt_event_get_stream_event_context(): Returns the stream event context
 	field of a given event.
 */
-extern int bt_event_set_stream_event_context(struct bt_event *event,
+extern int bt_private_event_set_stream_event_context(
+		struct bt_private_event *private_event,
 		struct bt_field *context);
 
 /**
@@ -398,7 +415,8 @@ bt_event_class_get_context_type() for the parent class of \p event.
 
 @sa bt_event_get_context(): Returns the context field of a given event.
 */
-extern int bt_event_set_event_context(struct bt_event *event,
+extern int bt_private_event_set_event_context(
+		struct bt_private_event *private_event,
 		struct bt_field *context);
 
 /**
@@ -441,7 +459,8 @@ bt_event_class_get_payload_type() for the parent class of \p event.
 
 @sa bt_event_get_payload(): Returns the payload field of a given event.
 */
-extern int bt_event_set_event_payload(struct bt_event *event,
+extern int bt_private_event_set_event_payload(
+		struct bt_private_event *private_event,
 		struct bt_field *payload);
 
 /** @cond DOCUMENT */
@@ -504,9 +523,8 @@ extern struct bt_field *bt_event_get_payload_by_index(
  *	type is not a structure. If name is NULL, the payload field will be set
  *	directly and must match the event class' payload's type.
  */
-extern int bt_event_set_payload(struct bt_event *event,
-		const char *name,
-		struct bt_field *value);
+extern int bt_private_event_set_payload(struct bt_private_event *private_event,
+		const char *name, struct bt_field *value);
 
 /** @endcond */
 
@@ -559,8 +577,8 @@ extern struct bt_clock_value *bt_event_get_clock_value(
 @sa bt_event_get_clock_value(): Returns the clock value of
 	a given event.
 */
-extern int bt_event_set_clock_value(
-		struct bt_event *event,
+extern int bt_private_event_set_clock_value(
+		struct bt_private_event *private_event,
 		struct bt_clock_value *clock_value);
 
 /** @} */
@@ -568,10 +586,12 @@ extern int bt_event_set_clock_value(
 /** @} */
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_event bt_event
-#define bt_ctf_event_create bt_event_create
-#define bt_ctf_event_get_payload bt_event_get_payload
-#define bt_ctf_event_set_payload bt_event_set_payload
+#define bt_ctf_event bt_private_event
+#define bt_ctf_event_create bt_private_event_create
+#define bt_ctf_event_set_payload bt_private_event_set_payload
+
+extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
+		const char *name);
 
 #ifdef __cplusplus
 }

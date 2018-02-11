@@ -89,7 +89,7 @@ struct ctf_fs_ds_file {
 	struct ctf_fs_file *file;
 
 	/* Owned by this */
-	struct bt_stream *stream;
+	struct bt_private_stream *stream;
 
 	/* Owned by this */
 	struct bt_clock_class_priority_map *cc_prio_map;
@@ -124,7 +124,7 @@ BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		struct bt_notif_iter *notif_iter,
-		struct bt_stream *stream, const char *path);
+		struct bt_private_stream *stream, const char *path);
 
 BT_HIDDEN
 int ctf_fs_ds_file_get_packet_header_context_fields(

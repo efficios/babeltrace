@@ -45,13 +45,21 @@ struct bt_stream *bt_packet_get_stream(struct bt_packet *packet)
 	return packet ? bt_get(packet->stream) : NULL;
 }
 
+struct bt_private_stream *bt_private_packet_get_private_stream(
+		struct bt_private_packet *priv_packet)
+{
+	return bt_private_stream_from_stream(
+		bt_packet_get_stream(
+			bt_packet_borrow_from_private(priv_packet)));
+}
+
 struct bt_field *bt_packet_get_header(
 		struct bt_packet *packet)
 {
 	return packet ? bt_get(packet->header) : NULL;
 }
 
-int bt_packet_set_header(struct bt_packet *packet,
+int bt_private_packet_set_header(struct bt_private_packet *priv_packet,
 		struct bt_field *header)
 {
 	int ret = 0;
@@ -59,6 +67,8 @@ int bt_packet_set_header(struct bt_packet *packet,
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_field_type *header_field_type = NULL;
 	struct bt_field_type *expected_header_field_type = NULL;
+	struct bt_packet *packet =
+		bt_packet_borrow_from_private(priv_packet);
 
 	if (!packet) {
 		BT_LOGW_STR("Invalid parameter: packet is NULL.");
@@ -124,13 +134,15 @@ struct bt_field *bt_packet_get_context(
 	return packet ? bt_get(packet->context) : NULL;
 }
 
-int bt_packet_set_context(struct bt_packet *packet,
+int bt_private_packet_set_context(struct bt_private_packet *priv_packet,
 		struct bt_field *context)
 {
 	int ret = 0;
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_field_type *context_field_type = NULL;
 	struct bt_field_type *expected_context_field_type = NULL;
+	struct bt_packet *packet =
+		bt_packet_borrow_from_private(priv_packet);
 
 	if (!packet) {
 		BT_LOGW_STR("Invalid parameter: packet is NULL.");
@@ -218,12 +230,14 @@ void bt_packet_destroy(struct bt_object *obj)
 	g_free(packet);
 }
 
-struct bt_packet *bt_packet_create(
-		struct bt_stream *stream)
+struct bt_private_packet *bt_private_packet_create(
+		struct bt_private_stream *priv_stream)
 {
 	struct bt_packet *packet = NULL;
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_trace *trace = NULL;
+	struct bt_stream *stream =
+		bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -284,6 +298,11 @@ struct bt_packet *bt_packet_create(
 end:
 	BT_PUT(trace);
 	BT_PUT(stream_class);
+	return bt_private_packet_from_packet(packet);
+}
 
-	return packet;
+struct bt_packet *bt_packet_from_private(
+		struct bt_private_packet *private_packet)
+{
+	return bt_get(bt_packet_borrow_from_private(private_packet));
 }

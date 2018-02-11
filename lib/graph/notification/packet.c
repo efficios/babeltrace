@@ -62,12 +62,13 @@ void bt_notification_packet_end_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_packet_begin_create(
-		struct bt_packet *packet)
+struct bt_private_notification *bt_private_notification_packet_begin_create(
+		struct bt_private_packet *priv_packet)
 {
 	struct bt_notification_packet_begin *notification;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
+	struct bt_packet *packet = bt_packet_borrow_from_private(priv_packet);
 
 	if (!packet) {
 		BT_LOGW_STR("Invalid parameter: packet is NULL.");
@@ -104,7 +105,7 @@ struct bt_notification *bt_notification_packet_begin_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
-	return &notification->parent;
+	return bt_private_notification_from_notification(&notification->parent);
 error:
 	return NULL;
 }
@@ -135,12 +136,13 @@ end:
 	return ret;
 }
 
-struct bt_notification *bt_notification_packet_end_create(
-		struct bt_packet *packet)
+struct bt_private_notification *bt_private_notification_packet_end_create(
+		struct bt_private_packet *priv_packet)
 {
 	struct bt_notification_packet_end *notification;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
+	struct bt_packet *packet = bt_packet_borrow_from_private(priv_packet);
 
 	if (!packet) {
 		BT_LOGW_STR("Invalid parameter: packet is NULL.");
@@ -177,7 +179,7 @@ struct bt_notification *bt_notification_packet_end_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
-	return &notification->parent;
+	return bt_private_notification_from_notification(&notification->parent);
 error:
 	return NULL;
 }

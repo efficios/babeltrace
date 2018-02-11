@@ -112,6 +112,7 @@ considered immutable, except for \link refs reference counting\endlink.
 @sa ctfireventclass
 */
 struct bt_event_class;
+struct bt_private_event_class;
 struct bt_field;
 struct bt_field_type;
 struct bt_stream_class;
@@ -172,6 +173,10 @@ enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_DEBUG		= 14,
 };
 
+// TODO: document
+extern struct bt_event_class *bt_event_class_from_private(
+		struct bt_private_event_class *private_event_class);
+
 /**
 @name Creation and parent access functions
 @{
@@ -202,7 +207,8 @@ Framework URI.
 @prenotnull{name}
 @postsuccessrefcountret1
 */
-extern struct bt_event_class *bt_event_class_create(const char *name);
+extern struct bt_private_event_class *bt_private_event_class_create(
+		const char *name);
 
 /**
 @brief	Returns the parent CTF IR stream class of the CTF IR event
@@ -228,6 +234,11 @@ bt_stream_class_add_event_class().
 */
 extern struct bt_stream_class *bt_event_class_get_stream_class(
 		struct bt_event_class *event_class);
+
+// TODO: document
+extern struct bt_private_stream_class *
+bt_private_event_class_get_private_stream_class(
+		struct bt_private_event_class *private_event_class);
 
 /** @} */
 
@@ -287,8 +298,9 @@ of the stream class to which you eventually add \p event_class.
 @sa bt_event_class_get_id(): Returns the numeric ID of a given
 	event class.
 */
-extern int bt_event_class_set_id(
-		struct bt_event_class *event_class, uint64_t id);
+extern int bt_private_event_class_set_id(
+		struct bt_private_event_class *private_event_class,
+		uint64_t id);
 
 /**
 @brief	Returns the log level of the CTF IR event class \p event_class.
@@ -339,8 +351,8 @@ extern enum bt_event_class_log_level bt_event_class_get_log_level(
 @sa bt_event_class_get_log_level(): Returns the log level of a given
 	event class.
 */
-extern int bt_event_class_set_log_level(
-		struct bt_event_class *event_class,
+extern int bt_private_event_class_set_log_level(
+		struct bt_private_event_class *private_event_class,
 		enum bt_event_class_log_level log_level);
 
 /**
@@ -381,8 +393,8 @@ extern const char *bt_event_class_get_emf_uri(
 @sa bt_event_class_get_emf_uri(): Returns the Eclipse Modeling
 	Framework URI of a given event class.
 */
-extern int bt_event_class_set_emf_uri(
-		struct bt_event_class *event_class,
+extern int bt_private_event_class_set_emf_uri(
+		struct bt_private_event_class *private_event_class,
 		const char *emf_uri);
 
 /** @} */
@@ -440,8 +452,8 @@ As of Babeltrace \btversion, if \p context_type is not \c NULL,
 @sa bt_event_class_get_context_type(): Returns the context field type of a
 	given event class.
 */
-extern int bt_event_class_set_context_type(
-		struct bt_event_class *event_class,
+extern int bt_private_event_class_set_context_type(
+		struct bt_private_event_class *private_event_class,
 		struct bt_field_type *context_type);
 
 /**
@@ -492,8 +504,8 @@ As of Babeltrace \btversion, if \p payload_type is not \c NULL,
 @sa bt_event_class_get_payload_type(): Returns the payload field type of a
 	given event class.
 */
-extern int bt_event_class_set_payload_type(
-		struct bt_event_class *event_class,
+extern int bt_private_event_class_set_payload_type(
+		struct bt_private_event_class *private_event_class,
 		struct bt_field_type *payload_type);
 
 /**
@@ -610,7 +622,8 @@ adding a field to it with bt_field_type_structure_add_field().
 @postrefcountsame{event_class}
 @postsuccessrefcountinc{field_type}
 */
-extern int bt_event_class_add_field(struct bt_event_class *event_class,
+extern int bt_private_event_class_add_field(
+		struct bt_private_event_class *private_event_class,
 		struct bt_field_type *field_type,
 		const char *name);
 
@@ -619,10 +632,12 @@ extern int bt_event_class_add_field(struct bt_event_class *event_class,
 /** @} */
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_event_class bt_event_class
-#define bt_ctf_event_class_create bt_event_class_create
-#define bt_ctf_event_class_get_field_by_name bt_event_class_get_payload_type_field_type_by_name
-#define bt_ctf_event_class_add_field bt_event_class_add_field
+#define bt_ctf_event_class bt_private_event_class
+#define bt_ctf_event_class_create bt_private_event_class_create
+#define bt_ctf_event_class_add_field bt_private_event_class_add_field
+
+extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
+		struct bt_ctf_event_class *event_class, const char *name);
 
 #ifdef __cplusplus
 }

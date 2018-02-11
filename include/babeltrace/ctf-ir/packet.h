@@ -94,7 +94,13 @@ except for \link refs reference counting\endlink.
 @sa ctfirpacket
 */
 struct bt_packet;
+struct bt_private_packet;
 struct bt_stream;
+struct bt_private_stream;
+
+// TODO: document
+extern struct bt_packet *bt_packet_from_private(
+		struct bt_private_packet *private_packet);
 
 /**
 @name Creation and parent access functions
@@ -115,8 +121,8 @@ bt_packet_set_header() and bt_packet_set_context().
 @prenotnull{stream}
 @postsuccessrefcountret1
 */
-extern struct bt_packet *bt_packet_create(
-		struct bt_stream *stream);
+extern struct bt_private_packet *bt_private_packet_create(
+		struct bt_private_stream *private_stream);
 
 /**
 @brief	Returns the parent CTF IR stream of the CTF IR packet \p packet.
@@ -131,8 +137,11 @@ the packet object in the first place with bt_packet_create().
 @postrefcountsame{packet}
 @postsuccessrefcountretinc
 */
-extern struct bt_stream *bt_packet_get_stream(
-		struct bt_packet *packet);
+extern struct bt_stream *bt_packet_get_stream(struct bt_packet *packet);
+
+// TODO: document
+extern struct bt_private_stream *bt_private_packet_get_private_stream(
+		struct bt_private_packet *packet);
 
 /** @} */
 
@@ -187,8 +196,9 @@ bt_trace_get_packet_header_type() for the parent trace class of
 @sa bt_packet_get_header(): Returns the trace packet header field of a given
 	packet.
 */
-extern int bt_packet_set_header(
-		struct bt_packet *packet, struct bt_field *header);
+extern int bt_private_packet_set_header(
+		struct bt_private_packet *private_packet,
+		struct bt_field *header);
 
 /**
 @brief	Returns the stream packet context field of the CTF IR packet
@@ -235,8 +245,9 @@ bt_stream_class_get_packet_context_type() for the parent stream class of
 @sa bt_packet_get_context(): Returns the stream packet context field of a
 	given packet.
 */
-extern int bt_packet_set_context(
-		struct bt_packet *packet, struct bt_field *context);
+extern int bt_private_packet_set_context(
+		struct bt_private_packet *private_packet,
+		struct bt_field *context);
 
 /** @} */
 

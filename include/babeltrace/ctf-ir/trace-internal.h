@@ -80,6 +80,19 @@ struct metadata_context {
 	unsigned int current_indentation_level;
 };
 
+static inline
+struct bt_private_trace *bt_private_trace_from_trace(struct bt_trace *trace)
+{
+	return (void *) trace;
+}
+
+static inline
+struct bt_trace *bt_trace_borrow_from_private(
+		struct bt_private_trace *private_trace)
+{
+	return (void *) private_trace;
+}
+
 BT_HIDDEN
 const char *get_byte_order_string(int byte_order);
 

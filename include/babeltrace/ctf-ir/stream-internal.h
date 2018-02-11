@@ -87,6 +87,20 @@ struct bt_stream {
 	GArray *destroy_listeners;
 };
 
+static inline
+struct bt_private_stream *bt_private_stream_from_stream(
+		struct bt_stream *stream)
+{
+	return (void *) stream;
+}
+
+static inline
+struct bt_stream *bt_stream_borrow_from_private(
+		struct bt_private_stream *private_stream)
+{
+	return (void *) private_stream;
+}
+
 BT_HIDDEN
 int bt_stream_set_fd(struct bt_stream *stream, int fd);
 

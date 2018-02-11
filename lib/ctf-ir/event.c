@@ -56,7 +56,8 @@
 static
 void bt_event_destroy(struct bt_object *obj);
 
-struct bt_event *bt_event_create(struct bt_event_class *event_class)
+struct bt_private_event *bt_private_event_create(
+		struct bt_private_event_class *priv_event_class)
 {
 	int ret;
 	enum bt_validation_flag validation_flags =
@@ -78,6 +79,8 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 	struct bt_value *environment = NULL;
 	struct bt_validation_output validation_output = { 0 };
 	int trace_valid = 0;
+	struct bt_event_class *event_class =
+		bt_event_class_borrow_from_private(priv_event_class);
 
 	BT_LOGD("Creating event object: event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
@@ -256,7 +259,7 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 		"event-class-id=%" PRId64,
 		event, bt_event_class_get_name(event->event_class),
 		bt_event_class_get_id(event_class));
-	return event;
+	return bt_private_event_from_event(event);
 
 error:
 	bt_validation_output_put_types(&validation_output);
@@ -273,8 +276,7 @@ error:
 	assert(!stream_event_ctx_type);
 	assert(!event_context_type);
 	assert(!event_payload_type);
-
-	return event;
+	return NULL;
 }
 
 struct bt_event_class *bt_event_get_class(struct bt_event *event)
@@ -289,6 +291,13 @@ struct bt_event_class *bt_event_get_class(struct bt_event *event)
 	event_class = bt_get(bt_event_borrow_event_class(event));
 end:
 	return event_class;
+}
+
+struct bt_private_event_class *bt_private_event_get_private_class(
+		struct bt_private_event *priv_event)
+{
+	return bt_private_event_class_from_event_class(
+		bt_event_get_class(bt_event_borrow_from_private(priv_event)));
 }
 
 struct bt_stream *bt_event_get_stream(struct bt_event *event)
@@ -317,11 +326,18 @@ end:
 	return stream;
 }
 
-int bt_event_set_payload(struct bt_event *event,
-		const char *name,
-		struct bt_field *payload)
+struct bt_private_stream *bt_private_event_get_private_stream(
+		struct bt_private_event *priv_event)
+{
+	return bt_private_stream_from_stream(
+		bt_event_get_stream(bt_event_borrow_from_private(priv_event)));
+}
+
+int bt_private_event_set_payload(struct bt_private_event *priv_event,
+		const char *name, struct bt_field *payload)
 {
 	int ret = 0;
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
 
 	if (!event || !payload) {
 		BT_LOGW("Invalid parameter: event or payload field is NULL: "
@@ -409,10 +425,10 @@ end:
 	return payload;
 }
 
-int bt_event_set_event_payload(struct bt_event *event,
+int bt_private_event_set_event_payload(struct bt_private_event *priv_event,
 		struct bt_field *payload)
 {
-	return bt_event_set_payload(event, NULL, payload);
+	return bt_private_event_set_payload(priv_event, NULL, payload);
 }
 
 struct bt_field *bt_event_get_payload(struct bt_event *event,
@@ -476,12 +492,13 @@ end:
 	return header;
 }
 
-int bt_event_set_header(struct bt_event *event,
+int bt_private_event_set_header(struct bt_private_event *priv_event,
 		struct bt_field *header)
 {
 	int ret = 0;
 	struct bt_field_type *field_type = NULL;
 	struct bt_stream_class *stream_class = NULL;
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
 
 	if (!event) {
 		BT_LOGW_STR("Invalid parameter: event is NULL.");
@@ -569,11 +586,12 @@ end:
 	return context;
 }
 
-int bt_event_set_event_context(struct bt_event *event,
+int bt_private_event_set_event_context(struct bt_private_event *priv_event,
 		struct bt_field *context)
 {
 	int ret = 0;
 	struct bt_field_type *field_type = NULL;
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
 
 	if (!event) {
 		BT_LOGW_STR("Invalid parameter: event is NULL.");
@@ -654,12 +672,14 @@ end:
 	return bt_get(stream_event_context);
 }
 
-int bt_event_set_stream_event_context(struct bt_event *event,
+int bt_private_event_set_stream_event_context(
+		struct bt_private_event *priv_event,
 		struct bt_field *stream_event_context)
 {
 	int ret = 0;
 	struct bt_field_type *field_type = NULL;
 	struct bt_stream_class *stream_class = NULL;
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
 
 	if (!event) {
 		BT_LOGW_STR("Invalid parameter: event is NULL.");
@@ -798,7 +818,7 @@ end:
 	return clock_value;
 }
 
-int bt_event_set_clock_value(struct bt_event *event,
+int bt_private_event_set_clock_value(struct bt_private_event *priv_event,
 		struct bt_clock_value *value)
 {
 	int ret = 0;
@@ -806,6 +826,7 @@ int bt_event_set_clock_value(struct bt_event *event,
 	struct bt_stream_class *stream_class;
 	struct bt_event_class *event_class;
 	struct bt_clock_class *clock_class = NULL;
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
 
 	if (!event || !value) {
 		BT_LOGW("Invalid parameter: event or clock value is NULL: "
@@ -990,13 +1011,15 @@ end:
 	return packet;
 }
 
-int bt_event_set_packet(struct bt_event *event,
-		struct bt_packet *packet)
+int bt_private_event_set_private_packet(struct bt_private_event *priv_event,
+		struct bt_private_packet *priv_packet)
 {
 	struct bt_stream_class *event_stream_class = NULL;
 	struct bt_stream_class *packet_stream_class = NULL;
 	struct bt_stream *stream = NULL;
 	int ret = 0;
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
+	struct bt_packet *packet = bt_packet_borrow_from_private(priv_packet);
 
 	if (!event || !packet) {
 		BT_LOGW("Invalid parameter: event or packet is NULL: "
@@ -1093,4 +1116,16 @@ void bt_event_freeze(struct bt_event *event)
 	BT_LOGD_STR("Freezing event's payload field.");
 	bt_field_freeze(event->fields_payload);
 	event->frozen = 1;
+}
+
+struct bt_event *bt_event_from_private(
+		struct bt_private_event *private_event)
+{
+	return bt_get(bt_event_borrow_from_private(private_event));
+}
+
+struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
+		const char *name)
+{
+	return bt_event_get_payload(bt_event_borrow_from_private(event), name);
 }

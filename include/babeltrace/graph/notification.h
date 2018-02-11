@@ -31,6 +31,7 @@
 extern "C" {
 #endif
 
+struct bt_private_notification;
 struct bt_notification;
 
 /**
@@ -59,6 +60,12 @@ enum bt_notification_type {
  */
 extern enum bt_notification_type bt_notification_get_type(
 		struct bt_notification *notification);
+
+extern struct bt_notification *bt_notification_from_private(
+		struct bt_private_notification *private_notification);
+
+extern struct bt_notification *bt_notification_borrow_from_private(
+		struct bt_private_notification *private_notification);
 
 #ifdef __cplusplus
 }

@@ -61,19 +61,21 @@ enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	size_t i;
 	int count, ret;
+	struct bt_trace *pub_trace = bt_trace_from_private(trace->trace);
 
+	bt_put(pub_trace);
 	BT_PUT(trace->cc_prio_map);
 	trace->cc_prio_map = bt_clock_class_priority_map_create();
 	if (!trace->cc_prio_map) {
 		goto error;
 	}
 
-	count = bt_trace_get_clock_class_count(trace->trace);
+	count = bt_trace_get_clock_class_count(pub_trace);
 	assert(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_clock_class *clock_class =
-			bt_trace_get_clock_class_by_index(trace->trace, i);
+			bt_trace_get_clock_class_by_index(pub_trace, i);
 
 		assert(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
@@ -196,7 +198,8 @@ enum bt_lttng_live_iterator_status lttng_live_metadata_update(
 	switch (decoder_status) {
 	case CTF_METADATA_DECODER_STATUS_OK:
 		BT_PUT(trace->trace);
-		trace->trace = ctf_metadata_decoder_get_trace(metadata->decoder);
+		trace->trace = ctf_metadata_decoder_get_private_trace(
+			metadata->decoder);
 		trace->new_metadata_needed = false;
 		status = lttng_live_update_clock_map(trace);
 		if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {

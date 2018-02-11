@@ -39,6 +39,20 @@ struct bt_packet {
 	int frozen;
 };
 
+static inline
+struct bt_private_packet *bt_private_packet_from_packet(
+		struct bt_packet *packet)
+{
+	return (void *) packet;
+}
+
+static inline
+struct bt_packet *bt_packet_borrow_from_private(
+		struct bt_private_packet *private_packet)
+{
+	return (void *) private_packet;
+}
+
 BT_HIDDEN
 void bt_packet_freeze(struct bt_packet *packet);
 

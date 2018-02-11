@@ -31,14 +31,18 @@
 extern "C" {
 #endif
 
+struct bt_private_notification;
 struct bt_notification;
+struct bt_private_packet;
 struct bt_packet;
 
-extern struct bt_notification *bt_notification_packet_begin_create(
-		struct bt_packet *packet);
+extern struct bt_private_notification *
+bt_private_notification_packet_begin_create(
+		struct bt_private_packet *private_packet);
 
-extern struct bt_notification *bt_notification_packet_end_create(
-		struct bt_packet *packet);
+extern struct bt_private_notification *
+bt_private_notification_packet_end_create(
+		struct bt_private_packet *private_packet);
 
 /*** BT_NOTIFICATION_TYPE_PACKET_BEGIN ***/
 extern struct bt_packet *bt_notification_packet_begin_get_packet(

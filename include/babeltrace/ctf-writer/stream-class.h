@@ -47,15 +47,15 @@ extern "C" {
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_stream_class_set_clock(
-		struct bt_stream_class *stream_class,
+extern int bt_private_stream_class_set_clock(
+		struct bt_private_stream_class *private_stream_class,
 		struct bt_ctf_clock *clock);
 
-extern struct bt_ctf_clock *bt_stream_class_get_clock(
-        struct bt_stream_class *stream_class);
+extern struct bt_ctf_clock *bt_private_stream_class_get_clock(
+        struct bt_private_stream_class *private_stream_class);
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_stream_class_set_clock bt_stream_class_set_clock
+#define bt_ctf_stream_class_set_clock bt_private_stream_class_set_clock
 
 extern void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class);
 extern void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class);

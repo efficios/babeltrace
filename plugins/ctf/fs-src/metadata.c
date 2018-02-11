@@ -119,7 +119,7 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	ctf_fs_trace->metadata->trace = ctf_metadata_decoder_get_trace(
+	ctf_fs_trace->metadata->trace = ctf_metadata_decoder_get_private_trace(
 		metadata_decoder);
 	assert(ctf_fs_trace->metadata->trace);
 

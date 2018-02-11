@@ -27,14 +27,18 @@
 
 #include "utils.h"
 
-struct bt_stream_class *ctf_utils_stream_class_from_packet_header(
-		struct bt_trace *trace,
+struct bt_private_stream_class *ctf_utils_stream_class_from_packet_header(
+		struct bt_private_trace *trace,
 		struct bt_field *packet_header_field)
 {
 	struct bt_field *stream_id_field = NULL;
-	struct bt_stream_class *stream_class = NULL;
+	struct bt_private_stream_class *stream_class = NULL;
 	uint64_t stream_id = -1ULL;
 	int ret;
+	struct bt_trace *pub_trace =
+		bt_trace_from_private(trace);
+
+	bt_put(pub_trace);
 
 	if (!packet_header_field) {
 		goto single_stream_class;
@@ -55,14 +59,17 @@ struct bt_stream_class *ctf_utils_stream_class_from_packet_header(
 	if (stream_id == -1ULL) {
 single_stream_class:
 		/* Single stream class */
-		if (bt_trace_get_stream_class_count(trace) == 0) {
+		if (bt_trace_get_stream_class_count(pub_trace) == 0) {
 			goto end;
 		}
 
-		stream_class = bt_trace_get_stream_class_by_index(trace, 0);
+		stream_class =
+			bt_private_trace_get_private_stream_class_by_index(
+				trace, 0);
 	} else {
-		stream_class = bt_trace_get_stream_class_by_id(trace,
-			stream_id);
+		stream_class =
+			bt_private_trace_get_private_stream_class_by_id(trace,
+				stream_id);
 	}
 
 end:

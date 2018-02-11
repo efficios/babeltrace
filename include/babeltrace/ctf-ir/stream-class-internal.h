@@ -61,6 +61,20 @@ struct bt_stream_class {
 	int valid;
 };
 
+static inline
+struct bt_private_stream_class *bt_private_stream_class_from_stream_class(
+		struct bt_stream_class *stream_class)
+{
+	return (void *) stream_class;
+}
+
+static inline
+struct bt_stream_class *bt_stream_class_borrow_from_private(
+		struct bt_private_stream_class *private_stream_class)
+{
+	return (void *) private_stream_class;
+}
+
 BT_HIDDEN
 void bt_stream_class_freeze(struct bt_stream_class *stream_class);
 

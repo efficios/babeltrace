@@ -756,14 +756,16 @@ void component_destroy_listener(struct bt_component *component, void *data)
 }
 
 static
-struct bt_stream *bt_stream_create_with_id_no_check(
-		struct bt_stream_class *stream_class,
+struct bt_private_stream *bt_private_stream_create_with_id_no_check(
+		struct bt_private_stream_class *priv_stream_class,
 		const char *name, uint64_t id)
 {
 	int ret;
 	struct bt_stream *stream = NULL;
 	struct bt_trace *trace = NULL;
 	struct bt_ctf_writer *writer = NULL;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -950,16 +952,18 @@ error:
 
 end:
 	bt_put(writer);
-	return stream;
+	return bt_private_stream_from_stream(stream);
 }
 
-struct bt_stream *bt_stream_create_with_id(
-		struct bt_stream_class *stream_class,
+struct bt_private_stream *bt_private_stream_create_with_id(
+		struct bt_private_stream_class *priv_stream_class,
 		const char *name, uint64_t id_param)
 {
 	struct bt_trace *trace;
-	struct bt_stream *stream = NULL;
+	struct bt_private_stream *stream = NULL;
 	int64_t id = (int64_t) id_param;
+	struct bt_stream_class *stream_class =
+		bt_stream_class_borrow_from_private(priv_stream_class);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -992,19 +996,19 @@ struct bt_stream *bt_stream_create_with_id(
 		goto end;
 	}
 
-	stream = bt_stream_create_with_id_no_check(stream_class,
+	stream = bt_private_stream_create_with_id_no_check(priv_stream_class,
 		name, id_param);
 
 end:
 	return stream;
 }
 
-struct bt_stream *bt_stream_create(
-		struct bt_stream_class *stream_class,
+struct bt_private_stream *bt_private_stream_create(
+		struct bt_private_stream_class *priv_stream_class,
 		const char *name)
 {
-	return bt_stream_create_with_id_no_check(stream_class,
-		name, -1ULL);
+	return bt_private_stream_create_with_id_no_check(
+		priv_stream_class, name, -1ULL);
 }
 
 struct bt_stream_class *bt_stream_get_class(
@@ -1023,10 +1027,20 @@ end:
 	return stream_class;
 }
 
-int bt_stream_get_discarded_events_count(
-		struct bt_stream *stream, uint64_t *count)
+struct bt_private_stream_class *bt_private_stream_get_private_class(
+		struct bt_private_stream *priv_stream)
+{
+	return bt_private_stream_class_from_stream_class(
+		bt_stream_get_class(
+			bt_stream_borrow_from_private(priv_stream)));
+}
+
+int bt_private_stream_get_discarded_events_count(
+		struct bt_private_stream *priv_stream, uint64_t *count)
 {
 	int ret = 0;
+	struct bt_stream *stream =
+		bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1085,12 +1099,13 @@ end:
 	return ret;
 }
 
-void bt_stream_append_discarded_events(struct bt_stream *stream,
-		uint64_t event_count)
+void bt_private_stream_append_discarded_events(
+		struct bt_private_stream *priv_stream, uint64_t event_count)
 {
 	int ret;
 	uint64_t new_count;
 	struct bt_field *events_discarded_field = NULL;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1233,10 +1248,12 @@ end:
 	return ret;
 }
 
-int bt_stream_append_event(struct bt_stream *stream,
-		struct bt_event *event)
+int bt_private_stream_append_private_event(struct bt_private_stream *priv_stream,
+		struct bt_private_event *priv_event)
 {
 	int ret = 0;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
+	struct bt_event *event = bt_event_borrow_from_private(priv_event);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1324,9 +1341,11 @@ error:
 	return ret;
 }
 
-struct bt_field *bt_stream_get_packet_context(struct bt_stream *stream)
+struct bt_field *bt_private_stream_get_packet_context(
+		struct bt_private_stream *priv_stream)
 {
 	struct bt_field *packet_context = NULL;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1348,11 +1367,12 @@ end:
 	return packet_context;
 }
 
-int bt_stream_set_packet_context(struct bt_stream *stream,
+int bt_private_stream_set_packet_context(struct bt_private_stream *priv_stream,
 		struct bt_field *field)
 {
 	int ret = 0;
 	struct bt_field_type *field_type;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1390,9 +1410,11 @@ end:
 	return ret;
 }
 
-struct bt_field *bt_stream_get_packet_header(struct bt_stream *stream)
+struct bt_field *bt_private_stream_get_packet_header(
+		struct bt_private_stream *priv_stream)
 {
 	struct bt_field *packet_header = NULL;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1414,12 +1436,13 @@ end:
 	return packet_header;
 }
 
-int bt_stream_set_packet_header(struct bt_stream *stream,
+int bt_private_stream_set_packet_header(struct bt_private_stream *priv_stream,
 		struct bt_field *field)
 {
 	int ret = 0;
 	struct bt_trace *trace = NULL;
 	struct bt_field_type *field_type = NULL;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -1489,7 +1512,7 @@ void reset_structure_field(struct bt_field *structure, const char *name)
 	}
 }
 
-int bt_stream_flush(struct bt_stream *stream)
+int bt_private_stream_flush(struct bt_private_stream *priv_stream)
 {
 	int ret = 0;
 	size_t i;
@@ -1497,6 +1520,7 @@ int bt_stream_flush(struct bt_stream *stream)
 	struct bt_trace *trace;
 	enum bt_byte_order native_byte_order;
 	bool has_packet_size = false;
+	struct bt_stream *stream = bt_stream_borrow_from_private(priv_stream);
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
@@ -2029,4 +2053,10 @@ int64_t bt_stream_get_id(struct bt_stream *stream)
 
 end:
 	return ret;
+}
+
+struct bt_stream *bt_stream_from_private(
+		struct bt_private_stream *private_stream)
+{
+	return bt_get(bt_stream_borrow_from_private(private_stream));
 }

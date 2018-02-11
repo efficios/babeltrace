@@ -49,7 +49,7 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_inactivity_create(
+struct bt_private_notification *bt_private_notification_inactivity_create(
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
 	struct bt_notification_inactivity *notification;
@@ -98,7 +98,7 @@ error:
 
 end:
 	bt_put(cc_prio_map);
-	return ret_notif;
+	return bt_private_notification_from_notification(ret_notif);
 }
 
 extern struct bt_clock_class_priority_map *
@@ -165,14 +165,16 @@ end:
 	return clock_value;
 }
 
-int bt_notification_inactivity_set_clock_value(
-		struct bt_notification *notification,
+int bt_private_notification_inactivity_set_clock_value(
+		struct bt_private_notification *priv_notif,
 		struct bt_clock_value *clock_value)
 {
 	int ret = 0;
 	uint64_t prio;
 	struct bt_clock_class *clock_class = NULL;
 	struct bt_notification_inactivity *inactivity_notification;
+	struct bt_notification *notification =
+		bt_notification_borrow_from_private(priv_notif);
 
 	if (!notification) {
 		BT_LOGW_STR("Invalid parameter: notification is NULL.");

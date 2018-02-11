@@ -44,6 +44,13 @@ struct bt_notification {
 	bt_bool frozen;
 };
 
+static inline
+struct bt_private_notification *bt_private_notification_from_notification(
+		struct bt_notification *notification)
+{
+	return (void *) notification;
+}
+
 BT_HIDDEN
 void bt_notification_init(struct bt_notification *notification,
 		enum bt_notification_type type,
