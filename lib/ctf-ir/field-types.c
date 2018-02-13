@@ -1273,7 +1273,7 @@ bt_field_type_enumeration_find_mappings_by_name(
 	iter = bt_field_type_enumeration_find_mappings_type(
 			type, ITERATOR_BY_NAME);
 	if (!iter) {
-		BT_LOGE("Cannot create enumeration field type mapping iterator: "
+		BT_LOGW("Cannot create enumeration field type mapping iterator: "
 			"ft-addr=%p, mapping-name=\"%s\"", type, name);
 		goto error;
 	}
@@ -1362,7 +1362,7 @@ bt_field_type_enumeration_find_mappings_by_signed_value(
 	iter = bt_field_type_enumeration_find_mappings_type(
 			type, ITERATOR_BY_SIGNED_VALUE);
 	if (!iter) {
-		BT_LOGE("Cannot create enumeration field type mapping iterator: "
+		BT_LOGW("Cannot create enumeration field type mapping iterator: "
 			"ft-addr=%p, value=%" PRId64, type, value);
 		goto error;
 	}
@@ -1391,7 +1391,7 @@ bt_field_type_enumeration_find_mappings_by_unsigned_value(
 	iter = bt_field_type_enumeration_find_mappings_type(
 			type, ITERATOR_BY_UNSIGNED_VALUE);
 	if (!iter) {
-		BT_LOGE("Cannot create enumeration field type mapping iterator: "
+		BT_LOGW("Cannot create enumeration field type mapping iterator: "
 			"ft-addr=%p, value=%" PRIu64, type, value);
 		goto error;
 	}
@@ -2496,7 +2496,7 @@ struct bt_field_type *bt_field_type_variant_get_field_type_from_tag(
 	iter = bt_field_enumeration_get_mappings(tag);
 	ret = bt_field_type_enumeration_mapping_iterator_next(iter);
 	if (!iter || ret) {
-		BT_LOGE("Cannot get enumeration field type mapping iterator from enumeration field: "
+		BT_LOGW("Cannot get enumeration field type mapping iterator from enumeration field: "
 			"enum-field-addr=%p", tag);
 		goto end;
 	}
