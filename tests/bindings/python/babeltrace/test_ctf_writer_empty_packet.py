@@ -58,13 +58,6 @@ class CtfWriterEmptyPacketTestCase(unittest.TestCase):
             event.payload('int_field').value = i
             stream.append_event(event)
         stream.flush()
-
-        # The CTF writer will not be able to populate the packet context's
-        # timestamp_begin and timestamp_end fields if it is asked to flush
-        # without any queued events.
-        with self.assertRaises(ValueError):
-            stream.flush()
-
         packet_context = stream.packet_context
         packet_context.field('timestamp_begin').value = 1
         packet_context.field('timestamp_end').value = 123456

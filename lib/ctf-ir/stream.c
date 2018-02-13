@@ -406,182 +406,401 @@ end:
 }
 
 static
-int get_event_header_timestamp(struct bt_stream *stream,
-		struct bt_field *event_header, uint64_t *timestamp)
+void update_clock_value(uint64_t *val, uint64_t new_val,
+		unsigned int new_val_size)
+{
+	const uint64_t pow2 = 1ULL << new_val_size;
+	const uint64_t mask = pow2 - 1;
+	uint64_t val_masked;
+
+#ifdef BT_LOG_ENABLED_VERBOSE
+	uint64_t old_val = *val;
+#endif
+
+	if (new_val_size == 64) {
+		*val = new_val;
+		goto end;
+	}
+
+	val_masked = *val & mask;
+
+	if (new_val < val_masked) {
+		/* Wrapped once */
+		new_val |= pow2;
+	}
+
+	*val &= ~mask;
+	*val |= new_val;
+
+end:
+	BT_LOGV("Updated clock value: old-val=%" PRIu64 ", new-val=%" PRIu64,
+		old_val, *val);
+	return;
+}
+
+static
+int visit_field_update_clock_value(struct bt_field *field, uint64_t *val)
 {
 	int ret = 0;
-	struct bt_field *timestamp_field = NULL;
-	struct bt_clock_class *ts_field_mapped_clock_class = NULL;
 
-	*timestamp = 0;
-
-	if (!event_header) {
-		BT_LOGV_STR("Event header does not exist.");
+	if (!field) {
 		goto end;
 	}
 
-	timestamp_field = bt_field_structure_get_field_by_name(event_header,
-		"timestamp");
-	if (!timestamp_field) {
-		BT_LOGV("Cannot get event header's `timestamp` field: "
-			"event-header-field-addr=%p", event_header);
-		goto end;
+	switch (bt_field_get_type_id(field)) {
+	case BT_FIELD_TYPE_ID_INTEGER:
+	{
+		struct bt_clock_class *cc =
+			bt_field_type_integer_get_mapped_clock_class(
+				field->type);
+		int val_size;
+		uint64_t uval;
+
+		if (!cc) {
+			goto end;
+		}
+
+		bt_put(cc);
+		val_size = bt_field_type_integer_get_size(field->type);
+		assert(val_size >= 1);
+
+		if (bt_field_type_integer_is_signed(field->type)) {
+			int64_t ival;
+
+			ret = bt_field_signed_integer_get_value(field, &ival);
+			uval = (uint64_t) ival;
+		} else {
+			ret = bt_field_unsigned_integer_get_value(field, &uval);
+		}
+
+		if (ret) {
+			/* Not set */
+			goto end;
+		}
+
+		update_clock_value(val, uval, val_size);
+		break;
+	}
+	case BT_FIELD_TYPE_ID_ENUM:
+	{
+		struct bt_field *int_field =
+			bt_field_enumeration_get_container(field);
+
+		assert(int_field);
+		ret = visit_field_update_clock_value(int_field, val);
+		bt_put(int_field);
+		break;
+	}
+	case BT_FIELD_TYPE_ID_ARRAY:
+	{
+		uint64_t i;
+		int64_t len = bt_field_type_array_get_length(field->type);
+
+		assert(len >= 0);
+
+		for (i = 0; i < len; i++) {
+			struct bt_field *elem_field =
+				bt_field_array_get_field(field, i);
+
+			assert(elem_field);
+			ret = visit_field_update_clock_value(elem_field, val);
+			bt_put(elem_field);
+			if (ret) {
+				goto end;
+			}
+		}
+		break;
+	}
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+	{
+		uint64_t i;
+		int64_t len = bt_field_sequence_get_int_length(field);
+
+		if (len < 0) {
+			ret = -1;
+			goto end;
+		}
+
+		for (i = 0; i < len; i++) {
+			struct bt_field *elem_field =
+				bt_field_sequence_get_field(field, i);
+
+			assert(elem_field);
+			ret = visit_field_update_clock_value(elem_field, val);
+			bt_put(elem_field);
+			if (ret) {
+				goto end;
+			}
+		}
+		break;
+	}
+	case BT_FIELD_TYPE_ID_STRUCT:
+	{
+		uint64_t i;
+		int64_t len = bt_field_type_structure_get_field_count(
+			field->type);
+
+		assert(len >= 0);
+
+		for (i = 0; i < len; i++) {
+			struct bt_field *member_field =
+				bt_field_structure_get_field_by_index(field, i);
+
+			assert(member_field);
+			ret = visit_field_update_clock_value(member_field, val);
+			bt_put(member_field);
+			if (ret) {
+				goto end;
+			}
+		}
+		break;
+	}
+	case BT_FIELD_TYPE_ID_VARIANT:
+	{
+		struct bt_field *cur_field =
+			bt_field_variant_get_current_field(field);
+
+		if (!cur_field) {
+			ret = -1;
+			goto end;
+		}
+
+		ret = visit_field_update_clock_value(cur_field, val);
+		bt_put(cur_field);
+		break;
+	}
+	default:
+		break;
 	}
 
-	if (!bt_field_type_is_integer(timestamp_field->type)) {
-		BT_LOGV("Event header's `timestamp` field's type is not an integer field type: "
-			"event-header-field-addr=%p", event_header);
-		goto end;
-	}
+end:
+	return ret;
+}
 
-	ts_field_mapped_clock_class =
-		bt_field_type_integer_get_mapped_clock_class(
-			timestamp_field->type);
-	if (!ts_field_mapped_clock_class) {
-		BT_LOGV("Event header's `timestamp` field's type is not mapped to a clock class: "
-			"event-header-field-addr=%p", event_header);
-		goto end;
-	}
+int visit_event_update_clock_value(struct bt_event *event, uint64_t *val)
+{
+	int ret = 0;
+	struct bt_field *field;
 
-	if (ts_field_mapped_clock_class !=
-			stream->stream_class->clock->clock_class) {
-		BT_LOGV("Event header's `timestamp` field's type is not mapped to the stream's clock's class: "
-			"event-header-field-addr=%p", event_header);
-		goto end;
-	}
-
-	ret = bt_field_unsigned_integer_get_value(timestamp_field,
-		timestamp);
+	field = bt_event_get_header(event);
+	ret = visit_field_update_clock_value(field, val);
+	bt_put(field);
 	if (ret) {
-		BT_LOGW("Cannot get unsigned integer field's value: "
-			"event-header-field-addr=%p, "
-			"timestamp-field-addr=%p",
-			event_header, timestamp_field);
+		BT_LOGW_STR("Cannot automatically update clock value in "
+			"event's header.");
+		goto end;
+	}
+
+	field = bt_event_get_stream_event_context(event);
+	ret = visit_field_update_clock_value(field, val);
+	bt_put(field);
+	if (ret) {
+		BT_LOGW_STR("Cannot automatically update clock value in "
+			"event's stream event context.");
+		goto end;
+	}
+
+	field = bt_event_get_event_context(event);
+	ret = visit_field_update_clock_value(field, val);
+	bt_put(field);
+	if (ret) {
+		BT_LOGW_STR("Cannot automatically update clock value in "
+			"event's context.");
+		goto end;
+	}
+
+	field = bt_event_get_event_payload(event);
+	ret = visit_field_update_clock_value(field, val);
+	bt_put(field);
+	if (ret) {
+		BT_LOGW_STR("Cannot automatically update clock value in "
+			"event's payload.");
 		goto end;
 	}
 
 end:
-	bt_put(timestamp_field);
-	bt_put(ts_field_mapped_clock_class);
 	return ret;
 }
 
 static
-int set_packet_context_timestamp_field(struct bt_stream *stream,
-		const char *field_name, struct bt_event *event)
+int set_packet_context_timestamps(struct bt_stream *stream)
 {
 	int ret = 0;
-	struct bt_field *field = bt_field_structure_get_field_by_name(
-		stream->packet_context, field_name);
-	struct bt_clock_class *field_mapped_clock_class = NULL;
-	uint64_t ts;
+	uint64_t val;
+	uint64_t cur_clock_value;
+	uint64_t init_clock_value = 0;
+	struct bt_field *ts_begin_field = bt_field_structure_get_field_by_name(
+		stream->packet_context, "timestamp_begin");
+	struct bt_field *ts_end_field = bt_field_structure_get_field_by_name(
+		stream->packet_context, "timestamp_end");
+	uint64_t i;
+	int64_t len;
 
-	assert(stream);
-
-	if (!field) {
-		/* No beginning timestamp field found. Not an error, skip. */
-		BT_LOGV("No field named `%s` in packet context: skipping: "
-			"stream-addr=%p, stream-name=\"%s\"", field_name,
-			stream, bt_stream_get_name(stream));
-		goto end;
+	if (ts_begin_field && bt_field_is_set(ts_begin_field)) {
+		/* Use provided `timestamp_begin` value as starting value */
+		ret = bt_field_unsigned_integer_get_value(ts_begin_field, &val);
+		assert(ret == 0);
+		init_clock_value = val;
+	} else if (stream->last_ts_end != -1ULL) {
+		/* Use last packet's ending timestamp as starting value */
+		init_clock_value = stream->last_ts_end;
 	}
 
-	if (!stream->stream_class->clock) {
-		BT_LOGV("Stream has no clock: skipping: "
-			"stream-addr=%p, stream-name=\"%s\"",
-			stream, bt_stream_get_name(stream));
-		goto end;
-	}
+	cur_clock_value = init_clock_value;
 
-	field_mapped_clock_class =
-		bt_field_type_integer_get_mapped_clock_class(field->type);
-	if (field_mapped_clock_class && field_mapped_clock_class !=
-			stream->stream_class->clock->clock_class) {
-		BT_LOGV("Packet context's `%s` field's type is not mapped to the stream's clock's class: skipping: "
+	if (stream->last_ts_end != -1ULL &&
+			cur_clock_value < stream->last_ts_end) {
+		BT_LOGW("Packet's initial timestamp is less than previous "
+			"packet's final timestamp: "
 			"stream-addr=%p, stream-name=\"%s\", "
-			"field-addr=%p, ft-addr=%p, "
-			"ft-mapped-clock-class-addr=%p, "
-			"ft-mapped-clock-class-name=\"%s\", "
-			"stream-clock-class-addr=%p, "
-			"stream-clock-class-name=\"%s\"",
-			field_name,
+			"cur-packet-ts-begin=%" PRIu64 ", "
+			"prev-packet-ts-end=%" PRIu64,
 			stream, bt_stream_get_name(stream),
-			field, field->type,
-			field_mapped_clock_class,
-			bt_clock_class_get_name(field_mapped_clock_class),
-			stream->stream_class->clock->clock_class,
-			bt_clock_class_get_name(
-				stream->stream_class->clock->clock_class));
-		goto end;
-	}
-
-	if (get_event_header_timestamp(stream, event->event_header, &ts)) {
-		BT_LOGW("Cannot get event's timestamp: "
-			"event-header-field-addr=%p",
-			event->event_header);
+			cur_clock_value, stream->last_ts_end);
 		ret = -1;
 		goto end;
 	}
 
-	ret = bt_field_unsigned_integer_set_value(field, ts);
-	if (ret) {
-		BT_LOGW("Cannot set packet context field's `%s` integer field's value: "
-			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
-			field_name, stream, bt_stream_get_name(stream),
-			field, stream->discarded_events);
-	} else {
-		BT_LOGV("Set packet context field's `%s` field's value: "
-			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
-			field_name, stream, bt_stream_get_name(stream),
-			field, stream->discarded_events);
+	/*
+	 * Visit all the packet context fields, followed by all the
+	 * fields of all the events, in order, updating our current
+	 * clock value as we visit.
+	 *
+	 * While visiting the packet context fields, do not consider
+	 * `timestamp_begin` and `timestamp_end` because this function's
+	 * purpose is to set them anyway. Also do not consider
+	 * `packet_size`, `content_size`, `events_discarded`, and
+	 * `packet_seq_num` if they are not set because those are
+	 * autopopulating fields.
+	 */
+	len = bt_field_type_structure_get_field_count(
+		stream->packet_context->type);
+	assert(len >= 0);
+
+	for (i = 0; i < len; i++) {
+		const char *member_name;
+		struct bt_field *member_field;
+
+		ret = bt_field_type_structure_get_field_by_index(
+			stream->packet_context->type, &member_name, NULL, i);
+		assert(ret == 0);
+
+		if (strcmp(member_name, "timestamp_begin") == 0 ||
+				strcmp(member_name, "timestamp_end") == 0) {
+			continue;
+		}
+
+		member_field = bt_field_structure_get_field_by_index(
+			stream->packet_context, i);
+		assert(member_field);
+
+		if (strcmp(member_name, "packet_size") == 0 &&
+				!bt_field_is_set(member_field)) {
+			bt_put(member_field);
+			continue;
+		}
+
+		if (strcmp(member_name, "content_size") == 0 &&
+				!bt_field_is_set(member_field)) {
+			bt_put(member_field);
+			continue;
+		}
+
+		if (strcmp(member_name, "events_discarded") == 0 &&
+				!bt_field_is_set(member_field)) {
+			bt_put(member_field);
+			continue;
+		}
+
+		if (strcmp(member_name, "packet_seq_num") == 0 &&
+				!bt_field_is_set(member_field)) {
+			bt_put(member_field);
+			continue;
+		}
+
+		ret = visit_field_update_clock_value(member_field,
+			&cur_clock_value);
+		bt_put(member_field);
+		if (ret) {
+			BT_LOGW("Cannot automatically update clock value "
+				"in stream's packet context: "
+				"stream-addr=%p, stream-name=\"%s\", "
+				"field-name=\"%s\"",
+				stream, bt_stream_get_name(stream),
+				member_name);
+			goto end;
+		}
+	}
+
+	for (i = 0; i < stream->events->len; i++) {
+		struct bt_event *event = g_ptr_array_index(stream->events, i);
+
+		assert(event);
+		ret = visit_event_update_clock_value(event, &cur_clock_value);
+		if (ret) {
+			BT_LOGW("Cannot automatically update clock value "
+				"in stream's packet context: "
+				"stream-addr=%p, stream-name=\"%s\", "
+				"index=%" PRIu64 ", event-addr=%p, "
+				"event-class-id=%" PRId64 ", "
+				"event-class-name=\"%s\"",
+				stream, bt_stream_get_name(stream),
+				i, event,
+				bt_event_class_get_id(event->event_class),
+				bt_event_class_get_name(event->event_class));
+			goto end;
+		}
+	}
+
+	/*
+	 * Everything is visited, thus the current clock value
+	 * corresponds to the ending timestamp. Validate this value
+	 * against the provided value of `timestamp_end`, if any,
+	 * otherwise set it.
+	 */
+	if (ts_end_field && bt_field_is_set(ts_end_field)) {
+		ret = bt_field_unsigned_integer_get_value(ts_end_field, &val);
+		assert(ret == 0);
+
+		if (val < cur_clock_value) {
+			BT_LOGW("Packet's final timestamp is less than "
+				"computed packet's final timestamp: "
+				"stream-addr=%p, stream-name=\"%s\", "
+				"cur-packet-ts-end=%" PRIu64 ", "
+				"computed-packet-ts-end=%" PRIu64,
+				stream, bt_stream_get_name(stream),
+				val, cur_clock_value);
+			ret = -1;
+			goto end;
+		}
+
+		stream->last_ts_end = val;
+	}
+
+	if (ts_end_field && !bt_field_is_set(ts_end_field)) {
+		ret = set_integer_field_value(ts_end_field, cur_clock_value);
+		assert(ret == 0);
+		stream->last_ts_end = cur_clock_value;
+	}
+
+	if (!ts_end_field) {
+		stream->last_ts_end = cur_clock_value;
+	}
+
+	/* Set `timestamp_begin` field to initial clock value */
+	if (ts_begin_field && !bt_field_is_set(ts_begin_field)) {
+		ret = set_integer_field_value(ts_begin_field, init_clock_value);
+		assert(ret == 0);
 	}
 
 end:
-	bt_put(field);
-	bt_put(field_mapped_clock_class);
+	bt_put(ts_begin_field);
+	bt_put(ts_end_field);
 	return ret;
 }
 
 static
-int set_packet_context_timestamp_begin(struct bt_stream *stream)
-{
-	int ret = 0;
-
-	if (stream->events->len == 0) {
-		BT_LOGV("Current packet contains no events: skipping: "
-			"stream-addr=%p, stream-name=\"%s\"",
-			stream, bt_stream_get_name(stream));
-		goto end;
-	}
-
-	ret = set_packet_context_timestamp_field(stream, "timestamp_begin",
-		g_ptr_array_index(stream->events, 0));
-
-end:
-	return ret;
-}
-
-static
-int set_packet_context_timestamp_end(struct bt_stream *stream)
-{
-	int ret = 0;
-
-	if (stream->events->len == 0) {
-		BT_LOGV("Current packet contains no events: skipping: "
-			"stream-addr=%p, stream-name=\"%s\"",
-			stream, bt_stream_get_name(stream));
-		goto end;
-	}
-
-	ret = set_packet_context_timestamp_field(stream, "timestamp_end",
-		g_ptr_array_index(stream->events, stream->events->len - 1));
-
-end:
-	return ret;
-}
-
-static
-int auto_populate_packet_context(struct bt_stream *stream)
+int auto_populate_packet_context(struct bt_stream *stream, bool set_ts)
 {
 	int ret = 0;
 
@@ -605,20 +824,14 @@ int auto_populate_packet_context(struct bt_stream *stream)
 		goto end;
 	}
 
-	ret = set_packet_context_timestamp_begin(stream);
-	if (ret) {
-		BT_LOGW("Cannot set packet context's beginning timestamp field: "
-			"stream-addr=%p, stream-name=\"%s\"",
-			stream, bt_stream_get_name(stream));
-		goto end;
-	}
-
-	ret = set_packet_context_timestamp_end(stream);
-	if (ret) {
-		BT_LOGW("Cannot set packet context's end timestamp field: "
-			"stream-addr=%p, stream-name=\"%s\"",
-			stream, bt_stream_get_name(stream));
-		goto end;
+	if (set_ts) {
+		ret = set_packet_context_timestamps(stream);
+		if (ret) {
+			BT_LOGW("Cannot set packet context's timestamp fields: "
+				"stream-addr=%p, stream-name=\"%s\"",
+				stream, bt_stream_get_name(stream));
+			goto end;
+		}
 	}
 
 	ret = set_packet_context_events_discarded(stream);
@@ -857,8 +1070,10 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 
 	if (trace->is_created_by_writer) {
 		int fd;
+
 		writer = (struct bt_ctf_writer *) bt_object_get_parent(trace);
 		stream->id = (int64_t) stream_class->next_stream_id++;
+		stream->last_ts_end = -1ULL;
 
 		BT_LOGD("Stream object belongs to a writer's trace: "
 			"writer-addr=%p", writer);
@@ -1167,11 +1382,8 @@ static int auto_populate_event_header(struct bt_stream *stream,
 
 	id_field = bt_field_structure_get_field_by_name(event->event_header, "id");
 	event_class_id = bt_event_class_get_id(event->event_class);
-	if (event_class_id < 0) {
-		BT_LOGE("Event class ID cannot be found");
-		ret = -1;
-		goto end;
-	}
+	assert(event_class_id >= 0);
+
 	if (id_field && bt_field_type_is_integer(id_field->type)) {
 		ret = set_integer_field_value(id_field, event_class_id);
 		if (ret) {
@@ -1189,24 +1401,23 @@ static int auto_populate_event_header(struct bt_stream *stream,
 	 *    integer field.
 	 * 2. This stream's class has a registered clock (set with
 	 *    bt_stream_class_set_clock()).
-	 * 3. The event header field "timestamp" has its type mapped to
-	 *    a clock class which is also the clock class of this
-	 *    stream's class's registered clock.
+	 * 3. The "timestamp" field is not set.
 	 */
-	timestamp_field = bt_field_structure_get_field_by_name(event->event_header,
-			"timestamp");
+	timestamp_field = bt_field_structure_get_field_by_name(
+			event->event_header, "timestamp");
 	if (timestamp_field && stream->stream_class->clock &&
-			bt_field_type_is_integer(timestamp_field->type)) {
+			bt_field_type_is_integer(timestamp_field->type) &&
+			!bt_field_is_set(timestamp_field)) {
 		struct bt_clock_class *stream_class_clock_class =
 			stream->stream_class->clock->clock_class;
 
 		mapped_clock_class =
 			bt_field_type_integer_get_mapped_clock_class(
 				timestamp_field->type);
-		if (!mapped_clock_class ||
-				mapped_clock_class == stream_class_clock_class) {
+		if (mapped_clock_class) {
 			uint64_t timestamp;
 
+			assert(mapped_clock_class == stream_class_clock_class);
 			ret = bt_ctf_clock_get_value(
 				stream->stream_class->clock,
 				&timestamp);
@@ -1547,7 +1758,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		goto end;
 	}
 
-	ret = auto_populate_packet_context(stream);
+	ret = auto_populate_packet_context(stream, true);
 	if (ret) {
 		BT_LOGW_STR("Cannot automatically populate the stream's packet context field.");
 		ret = -1;
@@ -1684,7 +1895,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		 * (e.g. when a packet is resized).
 		 */
 		packet_context_pos.base_mma = stream->pos.base_mma;
-		ret = auto_populate_packet_context(stream);
+		ret = auto_populate_packet_context(stream, false);
 		if (ret) {
 			BT_LOGW_STR("Cannot automatically populate the stream's packet context field.");
 			ret = -1;

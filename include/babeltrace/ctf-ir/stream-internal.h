@@ -82,6 +82,7 @@ struct bt_stream {
 	unsigned int flushed_packet_count;
 	uint64_t discarded_events;
 	uint64_t size;
+	uint64_t last_ts_end;
 
 	/* Array of struct bt_stream_destroy_listener */
 	GArray *destroy_listeners;
