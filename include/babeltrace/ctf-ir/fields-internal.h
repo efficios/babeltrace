@@ -102,4 +102,7 @@ int bt_field_serialize(struct bt_field *field,
 BT_HIDDEN
 void bt_field_freeze(struct bt_field *field);
 
+BT_HIDDEN
+int64_t bt_field_sequence_get_int_length(struct bt_field *field);
+
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */

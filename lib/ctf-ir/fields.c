@@ -406,6 +406,27 @@ bt_bool bt_field_is_variant(struct bt_field *field)
 	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_VARIANT;
 }
 
+BT_HIDDEN
+int64_t bt_field_sequence_get_int_length(struct bt_field *field)
+{
+	struct bt_field_sequence *sequence;
+	int64_t ret;
+
+	assert(field);
+	assert(bt_field_type_get_type_id(field->type) ==
+		BT_FIELD_TYPE_ID_SEQUENCE);
+	sequence = container_of(field, struct bt_field_sequence, parent);
+	if (!sequence->length) {
+		ret = -1;
+		goto end;
+	}
+
+	ret = (int64_t) sequence->elements->len;
+
+end:
+	return ret;
+}
+
 struct bt_field *bt_field_sequence_get_length(
 		struct bt_field *field)
 {
