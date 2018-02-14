@@ -1516,8 +1516,6 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 		}
 	}
 
-
-
 	bt_object_set_parent(stream_class, trace);
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
