@@ -1280,10 +1280,15 @@ end:
 
 static
 int try_map_clock_class(struct bt_stream_class *stream_class,
-		struct bt_field_type *ft)
+		struct bt_field_type *parent_ft, const char *field_name)
 {
 	struct bt_clock_class *mapped_clock_class = NULL;
 	int ret = 0;
+	struct bt_field_type *ft =
+		bt_field_type_structure_get_field_type_by_name(parent_ft,
+			field_name);
+
+	assert(stream_class->clock);
 
 	if (!ft) {
 		/* Field does not exist: not an error */
@@ -1294,6 +1299,8 @@ int try_map_clock_class(struct bt_stream_class *stream_class,
 	mapped_clock_class =
 		bt_field_type_integer_get_mapped_clock_class(ft);
 	if (!mapped_clock_class) {
+		struct bt_field_type *ft_copy;
+
 		if (!stream_class->clock) {
 			BT_LOGW("Cannot automatically set field's type mapped clock class: stream class's clock is not set: "
 				"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -1304,25 +1311,28 @@ int try_map_clock_class(struct bt_stream_class *stream_class,
 			goto end;
 		}
 
-		ret = bt_field_type_integer_set_mapped_clock_class_no_check(
-			ft, stream_class->clock->clock_class);
-		if (ret) {
-			BT_LOGW("Cannot set field type's mapped clock class: "
-				"stream-class-addr=%p, stream-class-name=\"%s\", "
-				"stream-class-id=%" PRId64 ", ft-addr=%p",
-				stream_class, bt_stream_class_get_name(stream_class),
-				bt_stream_class_get_id(stream_class), ft);
-			goto end;
+		ft_copy = bt_field_type_copy(ft);
+		if (!ft_copy) {
+			BT_LOGE("Failed to copy integer field type: ft-addr=%p",
+				ft);
 		}
 
+		ret = bt_field_type_integer_set_mapped_clock_class_no_check(
+			ft_copy, stream_class->clock->clock_class);
+		assert(ret == 0);
+		ret = bt_field_type_structure_replace_field(parent_ft,
+			field_name, ft_copy);
+		bt_put(ft_copy);
 		BT_LOGV("Automatically mapped field type to stream class's clock class: "
 			"stream-class-addr=%p, stream-class-name=\"%s\", "
-			"stream-class-id=%" PRId64 ", ft-addr=%p",
+			"stream-class-id=%" PRId64 ", ft-addr=%p, "
+			"ft-copy-addr=%p",
 			stream_class, bt_stream_class_get_name(stream_class),
-			bt_stream_class_get_id(stream_class), ft);
+			bt_stream_class_get_id(stream_class), ft, ft_copy);
 	}
 
 end:
+	bt_put(ft);
 	bt_put(mapped_clock_class);
 	return ret;
 }
@@ -1333,42 +1343,38 @@ int bt_stream_class_map_clock_class(
 		struct bt_field_type *packet_context_type,
 		struct bt_field_type *event_header_type)
 {
-	struct bt_field_type *ft = NULL;
 	int ret = 0;
 
 	assert(stream_class);
 
+	if (!stream_class->clock) {
+		/* No clock class to map to */
+		goto end;
+	}
+
 	if (packet_context_type) {
-		ft = bt_field_type_structure_get_field_type_by_name(
-			packet_context_type, "timestamp_begin");
-		if (try_map_clock_class(stream_class, ft)) {
+		if (try_map_clock_class(stream_class, packet_context_type,
+				"timestamp_begin")) {
 			BT_LOGE_STR("Cannot automatically set stream class's packet context field type's `timestamp_begin` field's mapped clock class.");
 			ret = -1;
 			goto end;
 		}
 
-		bt_put(ft);
-		ft = bt_field_type_structure_get_field_type_by_name(
-			packet_context_type, "timestamp_end");
-		if (try_map_clock_class(stream_class, ft)) {
+		if (try_map_clock_class(stream_class, packet_context_type,
+				"timestamp_end")) {
 			BT_LOGE_STR("Cannot automatically set stream class's packet context field type's `timestamp_end` field's mapped clock class.");
 			ret = -1;
 			goto end;
 		}
-
-		BT_PUT(ft);
 	}
 
 	if (event_header_type) {
-		ft = bt_field_type_structure_get_field_type_by_name(
-			event_header_type, "timestamp");
-		if (try_map_clock_class(stream_class, ft)) {
+		if (try_map_clock_class(stream_class, event_header_type,
+				"timestamp")) {
 			BT_LOGE_STR("Cannot automatically set stream class's event header field type's `timestamp` field's mapped clock class.");
 			ret = -1;
 			goto end;
 		}
-
-		BT_PUT(ft);
 	}
 
 end:
