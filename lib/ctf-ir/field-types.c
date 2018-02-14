@@ -2006,6 +2006,35 @@ error:
 	return NULL;
 }
 
+BT_HIDDEN
+int bt_field_type_structure_replace_field(struct bt_field_type *type,
+		const char *field_name, struct bt_field_type *field_type)
+{
+	int ret = 0;
+	struct bt_field_type_structure *structure;
+	GQuark name_quark;
+	uint64_t i;
+
+	assert(type);
+	assert(field_name);
+	assert(field_type);
+	assert(type->id == BT_FIELD_TYPE_ID_STRUCT);
+	structure = container_of(type, struct bt_field_type_structure, parent);
+	name_quark = g_quark_from_string(field_name);
+
+	for (i = 0; i < structure->fields->len; i++) {
+		struct structure_field *field = g_ptr_array_index(
+			structure->fields, i);
+
+		if (field->name == name_quark) {
+			bt_put(field->type);
+			field->type = bt_get(field_type);
+		}
+	}
+
+	return ret;
+}
+
 int bt_field_type_structure_add_field(struct bt_field_type *type,
 		struct bt_field_type *field_type,
 		const char *field_name)

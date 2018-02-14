@@ -180,6 +180,10 @@ int bt_field_type_structure_get_field_name_index(
 		struct bt_field_type *structure, const char *name);
 
 BT_HIDDEN
+int bt_field_type_structure_replace_field(struct bt_field_type *type,
+		const char *field_name, struct bt_field_type *field_type);
+
+BT_HIDDEN
 int bt_field_type_variant_get_field_name_index(
 		struct bt_field_type *variant, const char *name);
 
