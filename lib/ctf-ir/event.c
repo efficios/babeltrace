@@ -186,6 +186,19 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 	}
 
 	/*
+	 * Safe to automatically map selected fields to the stream's
+	 * clock's class here because the stream class is about to be
+	 * frozen.
+	 */
+	if (bt_stream_class_map_clock_class(stream_class,
+			validation_output.packet_context_type,
+			validation_output.event_header_type)) {
+		BT_LOGW_STR("Cannot automatically map selected stream class's "
+			"field types to stream class's clock's class.");
+		goto error;
+	}
+
+	/*
 	 * At this point we know the trace (if associated to the stream
 	 * class), the stream class, and the event class, with their
 	 * current types, are valid. We may proceed with creating
