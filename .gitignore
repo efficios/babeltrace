@@ -34,6 +34,7 @@
 /tests/lib/test_cc_prio_map
 /tests/lib/test_graph_topo
 /tests/lib/ctf-ir/test_ctf_ir
+/tests/lib/ctf-writer/test_ctf_writer
 /tests/plugins/test-utils-muxer
 /tests/plugins/test-utils-muxer-complete
 /tests/plugins/test_lttng_utils_debug_info

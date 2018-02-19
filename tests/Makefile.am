@@ -41,6 +41,7 @@ endif
 
 if ENABLE_PYTHON_BINDINGS
 TESTS_LIB += lib/ctf-ir/test_ctf_ir
+TESTS_LIB += lib/ctf-writer/test_ctf_writer
 endif
 
 TESTS_PLUGINS =
