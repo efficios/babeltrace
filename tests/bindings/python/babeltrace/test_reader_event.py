@@ -91,7 +91,7 @@ class EventTestCase(unittest.TestCase):
         self._packet.context_field['spc_field'] = self._values['spc_field']
 
         self._event = self._ec()
-        self._event.add_clock_value(self._clock_class(1772))
+        self._event.clock_values.add(self._clock_class(1772))
         self._event.header_field['seh_field'] = self._values['seh_field']
         self._event.stream_event_context_field['sec_field'] = self._values[
             'sec_field']
@@ -131,7 +131,7 @@ class EventTestCase(unittest.TestCase):
     def test_attr_datetime(self):
         event = self._get_event()
         clock_class = self._cc_prio_map.highest_priority_clock_class
-        ns = self._event.clock_value(clock_class).ns_from_epoch
+        ns = self._event.clock_values[clock_class].ns_from_epoch
         self.assertEqual(datetime.date.fromtimestamp(ns / 1E9), event.datetime)
 
     def test_getitem(self):
