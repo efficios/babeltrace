@@ -29,7 +29,7 @@ class _NotificationTestCase(unittest.TestCase):
         self._packet = self._stream.create_packet()
         self._packet.header_field['hello'] = 19487
         self._event = self._ec()
-        self._event.add_clock_value(self._clock_class(1772))
+        self._event.clock_values.add(self._clock_class(1772))
         self._event.payload_field['my_int'] = 23
         self._event.packet = self._packet
 
@@ -248,27 +248,27 @@ class InactivityNotificationTestCase(unittest.TestCase):
 
     def test_create_with_cc_prio_map(self):
         notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.add_clock_value(self._cc1(123))
-        notif.add_clock_value(self._cc2(19487))
+        notif.clock_values.add(self._cc1(123))
+        notif.clock_values.add(self._cc2(19487))
         self.assertEqual(len(notif.clock_class_priority_map), 2)
         self.assertEqual(notif.clock_class_priority_map, self._cc_prio_map)
-        self.assertEqual(notif.clock_value(self._cc1), 123)
-        self.assertEqual(notif.clock_value(self._cc2), 19487)
+        self.assertEqual(notif.clock_values[self._cc1], 123)
+        self.assertEqual(notif.clock_values[self._cc2], 19487)
 
     def test_eq(self):
         notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.add_clock_value(self._cc1(123))
-        notif.add_clock_value(self._cc2(19487))
+        notif.clock_values.add(self._cc1(123))
+        notif.clock_values.add(self._cc2(19487))
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
         notif2 = bt2.InactivityNotification(cc_prio_map_copy)
-        notif2.add_clock_value(self._cc1(123))
-        notif2.add_clock_value(self._cc2(19487))
+        notif2.clock_values.add(self._cc1(123))
+        notif2.clock_values.add(self._cc2(19487))
         self.assertEqual(notif, notif2)
 
     def test_ne_cc_prio_map(self):
         notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.add_clock_value(self._cc1(123))
-        notif.add_clock_value(self._cc2(19487))
+        notif.clock_values.add(self._cc1(123))
+        notif.clock_values.add(self._cc2(19487))
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
         cc_prio_map_copy[self._cc2] = 23
         notif2 = bt2.InactivityNotification(cc_prio_map_copy)
@@ -276,11 +276,11 @@ class InactivityNotificationTestCase(unittest.TestCase):
 
     def test_ne_clock_value(self):
         notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.add_clock_value(self._cc1(123))
-        notif.add_clock_value(self._cc2(19487))
+        notif.clock_values.add(self._cc1(123))
+        notif.clock_values.add(self._cc2(19487))
         notif2 = bt2.InactivityNotification(self._cc_prio_map)
-        notif.add_clock_value(self._cc1(123))
-        notif.add_clock_value(self._cc2(1847))
+        notif.clock_values.add(self._cc1(123))
+        notif.clock_values.add(self._cc2(1847))
         self.assertNotEqual(notif, notif2)
 
     def test_eq_invalid(self):
@@ -289,20 +289,20 @@ class InactivityNotificationTestCase(unittest.TestCase):
 
     def test_copy(self):
         notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.add_clock_value(self._cc1(123))
-        notif.add_clock_value(self._cc2(19487))
+        notif.clock_values.add(self._cc1(123))
+        notif.clock_values.add(self._cc2(19487))
         notif_copy = copy.copy(notif)
         self.assertEqual(notif, notif_copy)
         self.assertNotEqual(notif.addr, notif_copy.addr)
         self.assertEqual(notif.clock_class_priority_map.addr,
                          notif_copy.clock_class_priority_map.addr)
-        self.assertEqual(notif_copy.clock_value(self._cc1), 123)
-        self.assertEqual(notif_copy.clock_value(self._cc2), 19487)
+        self.assertEqual(notif_copy.clock_values[self._cc1], 123)
+        self.assertEqual(notif_copy.clock_values[self._cc2], 19487)
 
     def test_deepcopy(self):
         notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.add_clock_value(self._cc1(123))
-        notif.add_clock_value(self._cc2(19487))
+        notif.clock_values.add(self._cc1(123))
+        notif.clock_values.add(self._cc2(19487))
         notif_copy = copy.deepcopy(notif)
         self.assertEqual(notif, notif_copy)
         self.assertNotEqual(notif.addr, notif_copy.addr)
@@ -312,10 +312,10 @@ class InactivityNotificationTestCase(unittest.TestCase):
                          notif_copy.clock_class_priority_map)
         self.assertNotEqual(list(notif.clock_class_priority_map)[0].addr,
                             list(notif_copy.clock_class_priority_map)[0].addr)
-        self.assertIsNone(notif_copy.clock_value(self._cc1))
-        self.assertIsNone(notif_copy.clock_value(self._cc2))
-        self.assertEqual(notif_copy.clock_value(list(notif_copy.clock_class_priority_map)[0]), 123)
-        self.assertEqual(notif_copy.clock_value(list(notif_copy.clock_class_priority_map)[1]), 19487)
+        self.assertIsNone(notif_copy.clock_values[self._cc1])
+        self.assertIsNone(notif_copy.clock_values[self._cc2])
+        self.assertEqual(notif_copy.clock_values[list(notif_copy.clock_class_priority_map)[0]], 123)
+        self.assertEqual(notif_copy.clock_values[list(notif_copy.clock_class_priority_map)[1]], 19487)
 
 
 class DiscardedPacketsNotificationTestCase(unittest.TestCase):

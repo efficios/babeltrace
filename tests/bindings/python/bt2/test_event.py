@@ -170,8 +170,8 @@ class EventTestCase(unittest.TestCase):
         cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev = self._ec()
-        ev.add_clock_value(cc(177))
-        self.assertEqual(ev.clock_value(cc).cycles, 177)
+        ev.clock_values.add(cc(177))
+        self.assertEqual(ev.clock_values[cc].cycles, 177)
 
     def test_no_clock_value(self):
         tc = bt2.Trace()
@@ -179,7 +179,7 @@ class EventTestCase(unittest.TestCase):
         cc = bt2.ClockClass('hi', 1000)
         tc.add_clock_class(cc)
         ev = self._ec()
-        self.assertIsNone(ev.clock_value(cc))
+        self.assertIsNone(ev.clock_values[cc])
 
     def test_no_packet(self):
         ev = self._ec()
@@ -241,7 +241,7 @@ class EventTestCase(unittest.TestCase):
         tc.add_clock_class(cc)
         ev = self._ec()
         self._fill_ev(ev)
-        ev.add_clock_value(cc(234))
+        ev.clock_values.add(cc(234))
         return ev
 
     def test_getitem(self):
@@ -287,10 +287,10 @@ class EventTestCase(unittest.TestCase):
         tc.add_clock_class(cc)
         ev1 = self._ec()
         self._fill_ev(ev1)
-        ev1.add_clock_value(cc(234))
+        ev1.clock_values.add(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.add_clock_value(cc(234))
+        ev2.clock_values.add(cc(234))
         self.assertEqual(ev1, ev2)
 
     def test_ne_header_field(self):
@@ -301,10 +301,10 @@ class EventTestCase(unittest.TestCase):
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.header_field['id'] = 19
-        ev1.add_clock_value(cc(234))
+        ev1.clock_values.add(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.add_clock_value(cc(234))
+        ev2.clock_values.add(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_ne_stream_event_context_field(self):
@@ -315,10 +315,10 @@ class EventTestCase(unittest.TestCase):
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.stream_event_context_field['cpu_id'] = 3
-        ev1.add_clock_value(cc(234))
+        ev1.clock_values.add(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.add_clock_value(cc(234))
+        ev2.clock_values.add(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_ne_context_field(self):
@@ -329,10 +329,10 @@ class EventTestCase(unittest.TestCase):
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.context_field['ant'] = -3
-        ev1.add_clock_value(cc(234))
+        ev1.clock_values.add(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.add_clock_value(cc(234))
+        ev2.clock_values.add(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_ne_payload_field(self):
@@ -343,10 +343,10 @@ class EventTestCase(unittest.TestCase):
         ev1 = self._ec()
         self._fill_ev(ev1)
         ev1.payload_field['mosquito'] = 98
-        ev1.add_clock_value(cc(234))
+        ev1.clock_values.add(cc(234))
         ev2 = self._ec()
         self._fill_ev(ev2)
-        ev2.add_clock_value(cc(234))
+        ev2.clock_values.add(cc(234))
         self.assertNotEqual(ev1, ev2)
 
     def test_eq_invalid(self):
@@ -360,7 +360,7 @@ class EventTestCase(unittest.TestCase):
         tc.add_clock_class(cc)
         ev = self._ec()
         self._fill_ev(ev)
-        ev.add_clock_value(cc(234))
+        ev.clock_values.add(cc(234))
         cpy = func(ev)
         self.assertIsNot(ev, cpy)
         self.assertNotEqual(ev.addr, cpy.addr)

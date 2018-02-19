@@ -24,7 +24,6 @@ TESTS_CLI = \
 	cli/test_trimmer
 
 TESTS_LIB = \
-	lib/test_bitfield \
 	lib/test_ctf_writer_complete \
 	lib/test_bt_values \
 	lib/test_ctf_ir_ref \

@@ -26,6 +26,7 @@ import bt2.packet
 import bt2.stream
 import bt2.fields
 import bt2.clock_value
+import collections
 import numbers
 import copy
 import abc
@@ -42,6 +43,50 @@ def _create_from_ptr(ptr):
     event = _Event._create_from_ptr(ptr)
     event._event_class = event_class
     return event
+
+
+class _EventClockValuesIterator(collections.abc.Iterator):
+    def __init__(self, event_clock_values):
+        self._event_clock_values = event_clock_values
+        self._clock_classes = event_clock_values._event._clock_classes
+        self._at = 0
+
+    def __next__(self):
+        if self._at == len(self._clock_classes):
+            raise StopIteration
+
+        self._at += 1
+        return self._clock_classes[at]
+
+
+class _EventClockValues(collections.abc.Mapping):
+    def __init__(self, event):
+        self._event = event
+
+    def __getitem__(self, clock_class):
+        utils._check_type(clock_class, bt2.ClockClass)
+        clock_value_ptr = native_bt.event_get_clock_value(self._event._ptr,
+                                                          clock_class._ptr)
+
+        if clock_value_ptr is None:
+            return
+
+        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
+        return clock_value
+
+    def add(self, clock_value):
+        utils._check_type(clock_value, bt2.clock_value._ClockValue)
+        ret = native_bt.event_set_clock_value(self._ptr,
+                                              clock_value._ptr)
+        utils._handle_ret(ret, "cannot set event object's clock value")
+
+    def __len__(self):
+        count = len(self._event._clock_classes)
+        assert(count >= 0)
+        return count
+
+    def __iter__(self):
+        return _EventClockValuesIterator(self)
 
 
 class _Event(object._Object):
@@ -174,22 +219,9 @@ class _Event(object._Object):
         utils._handle_ret(ret, "cannot get clock value object's cycles")
         return cycles
 
-    def clock_value(self, clock_class):
-        utils._check_type(clock_class, bt2.ClockClass)
-        clock_value_ptr = native_bt.event_get_clock_value(self._ptr,
-                                                          clock_class._ptr)
-
-        if clock_value_ptr is None:
-            return
-
-        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
-        return clock_value
-
-    def add_clock_value(self, clock_value):
-        utils._check_type(clock_value, bt2.clock_value._ClockValue)
-        ret = native_bt.event_set_clock_value(self._ptr,
-                                              clock_value._ptr)
-        utils._handle_ret(ret, "cannot set event object's clock value")
+    @property
+    def clock_values(self):
+        return _EventClockValues(self)
 
     def __getitem__(self, key):
         utils._check_str(key)
@@ -300,10 +332,10 @@ class _Event(object._Object):
         # Thus even if we copy the clock class, the user cannot modify
         # it, therefore it's useless to copy it.
         for clock_class in self._clock_classes:
-            clock_value = self.clock_value(clock_class)
+            clock_value = self.clock_values[clock_class]
 
             if clock_value is not None:
-                cpy.add_clock_value(clock_value)
+                cpy.clock_values.add(clock_value)
 
         return cpy
 
