@@ -42,7 +42,7 @@ class TraceTestCase(unittest.TestCase):
         phft = bt2.StructureFieldType()
         ft = bt2.IntegerFieldType(32, mapped_clock_class=cc)
         tag_ft = bt2.EnumerationFieldType(size=32)
-        tag_ft.append_mapping('heille', 12)
+        tag_ft.add_mapping('heille', 12)
         variant_ft = bt2.VariantFieldType('tag', tag_ft)
         variant_ft.append_field('heille', ft)
         phft.append_field('tag', tag_ft)
