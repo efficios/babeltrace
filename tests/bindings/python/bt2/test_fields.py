@@ -792,11 +792,11 @@ class IntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
 class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
     def setUp(self):
         self._ft = bt2.EnumerationFieldType(size=32, is_signed=True)
-        self._ft.append_mapping('whole range', -(2 ** 31), (2 ** 31) - 1)
-        self._ft.append_mapping('something', 17)
-        self._ft.append_mapping('speaker', 12, 16)
-        self._ft.append_mapping('can', 18, 2540)
-        self._ft.append_mapping('zip', -45, 1001)
+        self._ft.add_mapping('whole range', -(2 ** 31), (2 ** 31) - 1)
+        self._ft.add_mapping('something', 17)
+        self._ft.add_mapping('speaker', 12, 16)
+        self._ft.add_mapping('can', 18, 2540)
+        self._ft.add_mapping('zip', -45, 1001)
         self._def = self._ft()
         self._def.value = 17
         self._def_value = 17
@@ -1550,10 +1550,10 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
 class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._tag_ft = bt2.EnumerationFieldType(size=32)
-        self._tag_ft.append_mapping('corner', 23)
-        self._tag_ft.append_mapping('zoom', 17, 20)
-        self._tag_ft.append_mapping('mellotron', 1001)
-        self._tag_ft.append_mapping('giorgio', 2000, 3000)
+        self._tag_ft.add_mapping('corner', 23)
+        self._tag_ft.add_mapping('zoom', 17, 20)
+        self._tag_ft.add_mapping('mellotron', 1001)
+        self._tag_ft.add_mapping('giorgio', 2000, 3000)
         self._ft0 = bt2.IntegerFieldType(32, is_signed=True)
         self._ft1 = bt2.StringFieldType()
         self._ft2 = bt2.FloatingPointNumberFieldType()
@@ -1608,10 +1608,10 @@ class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_eq(self):
         tag_ft = bt2.EnumerationFieldType(size=32)
-        tag_ft.append_mapping('corner', 23)
-        tag_ft.append_mapping('zoom', 17, 20)
-        tag_ft.append_mapping('mellotron', 1001)
-        tag_ft.append_mapping('giorgio', 2000, 3000)
+        tag_ft.add_mapping('corner', 23)
+        tag_ft.add_mapping('zoom', 17, 20)
+        tag_ft.add_mapping('mellotron', 1001)
+        tag_ft.add_mapping('giorgio', 2000, 3000)
         ft0 = bt2.IntegerFieldType(32, is_signed=True)
         ft1 = bt2.StringFieldType()
         ft2 = bt2.FloatingPointNumberFieldType()

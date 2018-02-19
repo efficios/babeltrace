@@ -430,7 +430,7 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
 
         return self._get_mapping_iter(iter_ptr)
 
-    def append_mapping(self, name, lower, upper=None):
+    def add_mapping(self, name, lower, upper=None):
         utils._check_str(name)
 
         if upper is None:
@@ -450,7 +450,7 @@ class EnumerationFieldType(IntegerFieldType, collections.abc.Sequence):
 
     def __iadd__(self, mappings):
         for mapping in mappings:
-            self.append_mapping(mapping.name, mapping.lower, mapping.upper)
+            self.add_mapping(mapping.name, mapping.lower, mapping.upper)
 
         return self
 

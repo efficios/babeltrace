@@ -47,10 +47,10 @@ class FieldDeclarationTestCase(unittest.TestCase):
         int_ft = bt2.IntegerFieldType(32)
 
         enum_ft = bt2.EnumerationFieldType(int_ft)
-        enum_ft.append_mapping('corner', 23)
-        enum_ft.append_mapping('zoom', 17, 20)
-        enum_ft.append_mapping('mellotron', 1001)
-        enum_ft.append_mapping('giorgio', 2000, 3000)
+        enum_ft.add_mapping('corner', 23)
+        enum_ft.add_mapping('zoom', 17, 20)
+        enum_ft.add_mapping('mellotron', 1001)
+        enum_ft.add_mapping('giorgio', 2000, 3000)
 
         array_ft = bt2.ArrayFieldType(int_ft, 5)
         seq_ft = bt2.SequenceFieldType(int_ft, 'the_len_field')

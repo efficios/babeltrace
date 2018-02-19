@@ -219,50 +219,50 @@ class EnumerationFieldTypeTestCase(_TestIntegerFieldTypeProps, _TestInvalidEq,
         enum_ft = bt2.EnumerationFieldType(int_ft)
         self.assertEqual(enum_ft.integer_field_type.addr, int_ft.addr)
 
-    def test_append_mapping_simple(self):
-        self._ft.append_mapping('hello', 24)
+    def test_add_mapping_simple(self):
+        self._ft.add_mapping('hello', 24)
         mapping = self._ft[0]
         self.assertEqual(mapping.name, 'hello')
         self.assertEqual(mapping.lower, 24)
         self.assertEqual(mapping.upper, 24)
 
-    def test_append_mapping_simple_kwargs(self):
-        self._ft.append_mapping(name='hello', lower=17, upper=23)
+    def test_add_mapping_simple_kwargs(self):
+        self._ft.add_mapping(name='hello', lower=17, upper=23)
         mapping = self._ft[0]
         self.assertEqual(mapping.name, 'hello')
         self.assertEqual(mapping.lower, 17)
         self.assertEqual(mapping.upper, 23)
 
-    def test_append_mapping_range(self):
-        self._ft.append_mapping('hello', 21, 199)
+    def test_add_mapping_range(self):
+        self._ft.add_mapping('hello', 21, 199)
         mapping = self._ft[0]
         self.assertEqual(mapping.name, 'hello')
         self.assertEqual(mapping.lower, 21)
         self.assertEqual(mapping.upper, 199)
 
-    def test_append_mapping_invalid_name(self):
+    def test_add_mapping_invalid_name(self):
         with self.assertRaises(TypeError):
-            self._ft.append_mapping(17, 21, 199)
+            self._ft.add_mapping(17, 21, 199)
 
-    def test_append_mapping_invalid_signedness_lower(self):
+    def test_add_mapping_invalid_signedness_lower(self):
         with self.assertRaises(ValueError):
-            self._ft.append_mapping('hello', -21, 199)
+            self._ft.add_mapping('hello', -21, 199)
 
-    def test_append_mapping_invalid_signedness_upper(self):
+    def test_add_mapping_invalid_signedness_upper(self):
         with self.assertRaises(ValueError):
-            self._ft.append_mapping('hello', 21, -199)
+            self._ft.add_mapping('hello', 21, -199)
 
-    def test_append_mapping_simple_signed(self):
+    def test_add_mapping_simple_signed(self):
         self._ft.is_signed = True
-        self._ft.append_mapping('hello', -24)
+        self._ft.add_mapping('hello', -24)
         mapping = self._ft[0]
         self.assertEqual(mapping.name, 'hello')
         self.assertEqual(mapping.lower, -24)
         self.assertEqual(mapping.upper, -24)
 
-    def test_append_mapping_range_signed(self):
+    def test_add_mapping_range_signed(self):
         self._ft.is_signed = True
-        self._ft.append_mapping('hello', -21, 199)
+        self._ft.add_mapping('hello', -21, 199)
         mapping = self._ft[0]
         self.assertEqual(mapping.name, 'hello')
         self.assertEqual(mapping.lower, -21)
@@ -270,11 +270,11 @@ class EnumerationFieldTypeTestCase(_TestIntegerFieldTypeProps, _TestInvalidEq,
 
     def test_iadd(self):
         enum_ft = bt2.EnumerationFieldType(size=16)
-        enum_ft.append_mapping('c', 4, 5)
-        enum_ft.append_mapping('d', 6, 18)
-        enum_ft.append_mapping('e', 20, 27)
-        self._ft.append_mapping('a', 0, 2)
-        self._ft.append_mapping('b', 3)
+        enum_ft.add_mapping('c', 4, 5)
+        enum_ft.add_mapping('d', 6, 18)
+        enum_ft.add_mapping('e', 20, 27)
+        self._ft.add_mapping('a', 0, 2)
+        self._ft.add_mapping('b', 3)
         self._ft += enum_ft
         self.assertEqual(self._ft[0].name, 'a')
         self.assertEqual(self._ft[0].lower, 0)
@@ -294,19 +294,19 @@ class EnumerationFieldTypeTestCase(_TestIntegerFieldTypeProps, _TestInvalidEq,
 
     def test_bool_op(self):
         self.assertFalse(self._ft)
-        self._ft.append_mapping('a', 0)
+        self._ft.add_mapping('a', 0)
         self.assertTrue(self._ft)
 
     def test_len(self):
-        self._ft.append_mapping('a', 0)
-        self._ft.append_mapping('b', 1)
-        self._ft.append_mapping('c', 2)
+        self._ft.add_mapping('a', 0)
+        self._ft.add_mapping('b', 1)
+        self._ft.add_mapping('c', 2)
         self.assertEqual(len(self._ft), 3)
 
     def test_getitem(self):
-        self._ft.append_mapping('a', 0)
-        self._ft.append_mapping('b', 1, 3)
-        self._ft.append_mapping('c', 5)
+        self._ft.add_mapping('a', 0)
+        self._ft.add_mapping('b', 1, 3)
+        self._ft.add_mapping('c', 5)
         mapping = self._ft[1]
         self.assertEqual(mapping.name, 'b')
         self.assertEqual(mapping.lower, 1)
@@ -321,7 +321,7 @@ class EnumerationFieldTypeTestCase(_TestIntegerFieldTypeProps, _TestInvalidEq,
         )
 
         for mapping in mappings:
-            self._ft.append_mapping(*mapping)
+            self._ft.add_mapping(*mapping)
 
         for ft_mapping, mapping in zip(self._ft, mappings):
             self.assertEqual(ft_mapping.name, mapping[0])
@@ -331,21 +331,21 @@ class EnumerationFieldTypeTestCase(_TestIntegerFieldTypeProps, _TestInvalidEq,
     def test_mapping_eq(self):
         enum1 = bt2.EnumerationFieldType(size=32)
         enum2 = bt2.EnumerationFieldType(size=16)
-        enum1.append_mapping('b', 1, 3)
-        enum2.append_mapping('b', 1, 3)
+        enum1.add_mapping('b', 1, 3)
+        enum2.add_mapping('b', 1, 3)
         self.assertEqual(enum1[0], enum2[0])
 
     def test_mapping_eq_invalid(self):
         enum1 = bt2.EnumerationFieldType(size=32)
-        enum1.append_mapping('b', 1, 3)
+        enum1.add_mapping('b', 1, 3)
         self.assertNotEqual(enum1[0], 23)
 
     def _test_find_by_name(self, ft):
-        ft.append_mapping('a', 0)
-        ft.append_mapping('b', 1, 3)
-        ft.append_mapping('a', 5)
-        ft.append_mapping('a', 17, 144)
-        ft.append_mapping('C', 5)
+        ft.add_mapping('a', 0)
+        ft.add_mapping('b', 1, 3)
+        ft.add_mapping('a', 5)
+        ft.add_mapping('a', 17, 144)
+        ft.add_mapping('C', 5)
         mapping_iter = ft.mappings_by_name('a')
         mappings = list(mapping_iter)
         a0 = False
@@ -376,13 +376,13 @@ class EnumerationFieldTypeTestCase(_TestIntegerFieldTypeProps, _TestInvalidEq,
         self._test_find_by_name(bt2.EnumerationFieldType(size=8))
 
     def _test_find_by_value(self, ft):
-        ft.append_mapping('a', 0)
-        ft.append_mapping('b', 1, 3)
-        ft.append_mapping('c', 5, 19)
-        ft.append_mapping('d', 8, 15)
-        ft.append_mapping('e', 10, 21)
-        ft.append_mapping('f', 0)
-        ft.append_mapping('g', 14)
+        ft.add_mapping('a', 0)
+        ft.add_mapping('b', 1, 3)
+        ft.add_mapping('c', 5, 19)
+        ft.add_mapping('d', 8, 15)
+        ft.add_mapping('e', 10, 21)
+        ft.add_mapping('f', 0)
+        ft.add_mapping('g', 14)
         mapping_iter = ft.mappings_by_value(14)
         mappings = list(mapping_iter)
         c = False
@@ -416,12 +416,12 @@ class EnumerationFieldTypeTestCase(_TestIntegerFieldTypeProps, _TestInvalidEq,
         self._test_find_by_value(bt2.EnumerationFieldType(size=8))
 
     def test_create_field(self):
-        self._ft.append_mapping('c', 4, 5)
+        self._ft.add_mapping('c', 4, 5)
         field = self._ft()
         self.assertIsInstance(field, bt2.fields._EnumerationField)
 
     def test_create_field_init(self):
-        self._ft.append_mapping('c', 4, 5)
+        self._ft.add_mapping('c', 4, 5)
         field = self._ft(4)
         self.assertEqual(field, 4)
 
