@@ -740,6 +740,7 @@ AC_CONFIG_FILES([
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
 	tests/lib/ctf-ir/Makefile
+	tests/lib/ctf-writer/Makefile
 	tests/utils/common.sh
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
@@ -785,6 +786,7 @@ AC_CONFIG_FILES([tests/cli/test_trimmer], [chmod +x tests/cli/test_trimmer])
 AC_CONFIG_FILES([tests/lib/test_ctf_writer_complete], [chmod +x tests/lib/test_ctf_writer_complete])
 AC_CONFIG_FILES([tests/lib/test_plugin_complete], [chmod +x tests/lib/test_plugin_complete])
 AC_CONFIG_FILES([tests/lib/ctf-ir/test_ctf_ir], [chmod +x tests/lib/ctf-ir/test_ctf_ir])
+AC_CONFIG_FILES([tests/lib/ctf-writer/test_ctf_writer], [chmod +x tests/lib/ctf-writer/test_ctf_writer])
 AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugins/test-utils-muxer-complete])
 AC_CONFIG_FILES([tests/plugins/test_lttng_utils_debug_info], [chmod +x tests/plugins/test_lttng_utils_debug_info])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/test_dwarf_complete])
