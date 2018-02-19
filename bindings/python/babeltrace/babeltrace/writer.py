@@ -559,7 +559,7 @@ class EnumerationFieldDeclaration(FieldDeclaration):
         """
 
         try:
-            self._field_type.append_mapping(name, range_start, range_end)
+            self._field_type.add_mapping(name, range_start, range_end)
         except:
             raise ValueError(
                 "Could not add mapping to enumeration declaration.")
