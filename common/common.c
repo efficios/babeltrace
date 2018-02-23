@@ -27,13 +27,17 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <inttypes.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <assert.h>
+#include <stdarg.h>
 #include <ctype.h>
 #include <glib.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <wchar.h>
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
@@ -1245,4 +1249,321 @@ size_t bt_common_get_page_size(void)
 	}
 
 	return page_size;
+}
+
+#define BUF_STD_APPEND(...)						\
+	do {								\
+		char _tmp_fmt[64];					\
+		int _count;						\
+		size_t _size = buf_size - (size_t) (*buf_ch - buf);	\
+		size_t _tmp_fmt_size = (size_t) (fmt_ch - *out_fmt_ch);	\
+		strncpy(_tmp_fmt, *out_fmt_ch, _tmp_fmt_size);		\
+		_tmp_fmt[_tmp_fmt_size] = '\0';				\
+		_count = snprintf(*buf_ch, _size, _tmp_fmt, __VA_ARGS__); \
+		assert(_count >= 0);					\
+		*buf_ch += MIN(_count, _size);				\
+	} while (0)
+
+#define BUF_STD_APPEND_SINGLE_ARG(_type)				\
+	do {								\
+		_type _arg = va_arg(*args, _type);			\
+		BUF_STD_APPEND(_arg);					\
+	} while (0)
+
+static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
+		size_t buf_size, const char **out_fmt_ch, va_list *args)
+{
+	const char *fmt_ch = *out_fmt_ch;
+	enum LENGTH_MODIFIER {
+		LENGTH_MOD_H,
+		LENGTH_MOD_HH,
+		LENGTH_MOD_NONE,
+		LENGTH_MOD_LOW_L,
+		LENGTH_MOD_LOW_LL,
+		LENGTH_MOD_UP_L,
+		LENGTH_MOD_Z,
+	} length_mod = LENGTH_MOD_NONE;
+
+	/* skip '%' */
+	fmt_ch++;
+
+	if (*fmt_ch == '%') {
+		fmt_ch++;
+		**buf_ch = '%';
+		(*buf_ch)++;
+		goto update_rw_fmt;
+	}
+
+	/* flags */
+	for (;;) {
+		switch (*fmt_ch) {
+			case '-':
+			case '+':
+			case ' ':
+			case '#':
+			case '0':
+			case '\'':
+				fmt_ch++;
+				continue;
+			default:
+				break;
+		}
+		break;
+	}
+
+	/* width */
+	for (;;) {
+		if (*fmt_ch < '0' || *fmt_ch > '9') {
+			break;
+		}
+
+		fmt_ch++;
+	}
+
+	/* precision */
+	if (*fmt_ch == '.') {
+		fmt_ch++;
+
+		for (;;) {
+			if (*fmt_ch < '0' || *fmt_ch > '9') {
+				break;
+			}
+
+			fmt_ch++;
+		}
+	}
+
+	/* format (PRI*64) */
+	if (strncmp(fmt_ch, PRId64, sizeof(PRId64)) == 0) {
+		fmt_ch += sizeof(PRId64);
+		BUF_STD_APPEND_SINGLE_ARG(int64_t);
+		goto update_rw_fmt;
+	} else if (strncmp(fmt_ch, PRIu64, sizeof(PRIu64)) == 0) {
+		fmt_ch += sizeof(PRIu64);
+		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
+		goto update_rw_fmt;
+	} else if (strncmp(fmt_ch, PRIx64, sizeof(PRIx64)) == 0) {
+		fmt_ch += sizeof(PRIx64);
+		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
+		goto update_rw_fmt;
+	} else if (strncmp(fmt_ch, PRIX64, sizeof(PRIX64)) == 0) {
+		fmt_ch += sizeof(PRIX64);
+		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
+		goto update_rw_fmt;
+	} else if (strncmp(fmt_ch, PRIo64, sizeof(PRIo64)) == 0) {
+		fmt_ch += sizeof(PRIo64);
+		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
+		goto update_rw_fmt;
+	} else if (strncmp(fmt_ch, PRIi64, sizeof(PRIi64)) == 0) {
+		fmt_ch += sizeof(PRIi64);
+		BUF_STD_APPEND_SINGLE_ARG(int64_t);
+		goto update_rw_fmt;
+	}
+
+	// length modifier
+	switch (*fmt_ch) {
+		case 'h':
+			length_mod = LENGTH_MOD_H;
+			fmt_ch++;
+
+			if (*fmt_ch == 'h') {
+				length_mod = LENGTH_MOD_HH;
+				fmt_ch++;
+				break;
+			}
+			break;
+		case 'l':
+			length_mod = LENGTH_MOD_LOW_L;
+			fmt_ch++;
+
+			if (*fmt_ch == 'l') {
+				length_mod = LENGTH_MOD_LOW_LL;
+				fmt_ch++;
+				break;
+			}
+			break;
+		case 'L':
+			length_mod = LENGTH_MOD_UP_L;
+			fmt_ch++;
+			break;
+		case 'z':
+			length_mod = LENGTH_MOD_Z;
+			fmt_ch++;
+			break;
+		default:
+			break;
+	}
+
+	// format
+	switch (*fmt_ch) {
+	case 'c':
+	{
+		fmt_ch++;
+
+		switch (length_mod) {
+		case LENGTH_MOD_NONE:
+			BUF_STD_APPEND_SINGLE_ARG(int);
+			break;
+		case LENGTH_MOD_LOW_L:
+			BUF_STD_APPEND_SINGLE_ARG(wint_t);
+			break;
+		default:
+			abort();
+		}
+		break;
+	}
+	case 's':
+		fmt_ch++;
+
+		switch (length_mod) {
+		case LENGTH_MOD_NONE:
+			BUF_STD_APPEND_SINGLE_ARG(char *);
+			break;
+		case LENGTH_MOD_LOW_L:
+			BUF_STD_APPEND_SINGLE_ARG(wchar_t *);
+			break;
+		default:
+			abort();
+		}
+		break;
+	case 'd':
+	case 'i':
+		fmt_ch++;
+
+		switch (length_mod) {
+		case LENGTH_MOD_NONE:
+		case LENGTH_MOD_H:
+		case LENGTH_MOD_HH:
+			BUF_STD_APPEND_SINGLE_ARG(int);
+			break;
+		case LENGTH_MOD_LOW_L:
+			BUF_STD_APPEND_SINGLE_ARG(long);
+			break;
+		case LENGTH_MOD_LOW_LL:
+			BUF_STD_APPEND_SINGLE_ARG(long long);
+			break;
+		case LENGTH_MOD_Z:
+			BUF_STD_APPEND_SINGLE_ARG(size_t);
+			break;
+		default:
+			abort();
+		}
+		break;
+	case 'o':
+	case 'x':
+	case 'X':
+	case 'u':
+		fmt_ch++;
+
+		switch (length_mod) {
+		case LENGTH_MOD_NONE:
+		case LENGTH_MOD_H:
+		case LENGTH_MOD_HH:
+			BUF_STD_APPEND_SINGLE_ARG(unsigned int);
+			break;
+		case LENGTH_MOD_LOW_L:
+			BUF_STD_APPEND_SINGLE_ARG(unsigned long);
+			break;
+		case LENGTH_MOD_LOW_LL:
+			BUF_STD_APPEND_SINGLE_ARG(unsigned long long);
+			break;
+		case LENGTH_MOD_Z:
+			BUF_STD_APPEND_SINGLE_ARG(size_t);
+			break;
+		default:
+			abort();
+		}
+		break;
+	case 'f':
+	case 'F':
+	case 'e':
+	case 'E':
+	case 'g':
+	case 'G':
+		fmt_ch++;
+
+		switch (length_mod) {
+		case LENGTH_MOD_NONE:
+			BUF_STD_APPEND_SINGLE_ARG(double);
+			break;
+		case LENGTH_MOD_UP_L:
+			BUF_STD_APPEND_SINGLE_ARG(long double);
+			break;
+		default:
+			abort();
+		}
+		break;
+	case 'p':
+		fmt_ch++;
+
+		if (length_mod == LENGTH_MOD_NONE) {
+			BUF_STD_APPEND_SINGLE_ARG(void *);
+		} else {
+			abort();
+		}
+		break;
+	default:
+		abort();
+	}
+
+update_rw_fmt:
+	*out_fmt_ch = fmt_ch;
+}
+
+BT_HIDDEN
+void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
+		char intro,
+		bt_common_handle_custom_specifier_func handle_specifier,
+		void *priv_data, const char *fmt, va_list *args)
+{
+	const char *fmt_ch = fmt;
+	char *buf_ch = buf;
+
+	assert(buf);
+	assert(fmt);
+	assert(*args);
+
+	while (*fmt_ch != '\0') {
+		switch (*fmt_ch) {
+		case '%':
+			assert(fmt_ch[1] != '\0');
+
+			if (fmt_ch[1] == intro) {
+				handle_specifier(priv_data, &buf_ch,
+					buf_size - (size_t) (buf_ch - buf),
+					&fmt_ch, args);
+			} else {
+				handle_conversion_specifier_std(buf, &buf_ch,
+					buf_size, &fmt_ch, args);
+			}
+
+			if (buf_ch >= buf + buf_size - 1) {
+				fmt_ch = "";
+			}
+			break;
+		default:
+			*buf_ch = *fmt_ch;
+			buf_ch++;
+			if (buf_ch >= buf + buf_size - 1) {
+				fmt_ch = "";
+			}
+
+			fmt_ch++;
+		}
+	}
+
+	*buf_ch = '\0';
+}
+
+BT_HIDDEN
+void bt_common_custom_snprintf(char *buf, size_t buf_size,
+		char intro,
+		bt_common_handle_custom_specifier_func handle_specifier,
+		void *priv_data, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	bt_common_custom_vsnprintf(buf, buf_size, intro, handle_specifier,
+		priv_data, fmt, &args);
+	va_end(args);
 }
