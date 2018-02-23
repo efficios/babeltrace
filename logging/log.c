@@ -128,11 +128,10 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
 #else
 	#define BT_LOG_OPTIMIZE_SIZE 0
 #endif
-/* Size of the log line buffer. The buffer is allocated on stack. It limits
- * maximum length of a log line.
+/* Size of the log line buffer. The buffer is a globally allocated per thread.
  */
 #ifndef BT_LOG_BUF_SZ
-	#define BT_LOG_BUF_SZ 512
+	#define BT_LOG_BUF_SZ (4 * 4096)
 #endif
 /* Default number of bytes in one line of memory output. For large values
  * BT_LOG_BUF_SZ also must be increased.
@@ -537,10 +536,9 @@ static void buffer_callback(bt_log_message *msg, char *buf);
 STATIC_ASSERT(eol_fits_eol_sz, sizeof(BT_LOG_EOL) <= BT_LOG_EOL_SZ);
 STATIC_ASSERT(eol_sz_greater_than_zero, 0 < BT_LOG_EOL_SZ);
 STATIC_ASSERT(eol_sz_less_than_buf_sz, BT_LOG_EOL_SZ < BT_LOG_BUF_SZ);
-#if !defined(_WIN32) && !defined(_WIN64)
-	STATIC_ASSERT(buf_sz_less_than_pipe_buf, BT_LOG_BUF_SZ <= PIPE_BUF);
-#endif
 static const char c_hex[] = "0123456789abcdef";
+
+static char __thread logging_buf[4 * 4096];
 
 static INSTRUMENTED_CONST unsigned g_buf_sz = BT_LOG_BUF_SZ - BT_LOG_EOL_SZ;
 static INSTRUMENTED_CONST time_cb g_time_cb = time_callback;
@@ -1263,7 +1261,7 @@ static void _bt_log_write_imp(
 		const int lvl, const char *const tag, const char *const fmt, va_list va)
 {
 	bt_log_message msg;
-	char buf[BT_LOG_BUF_SZ];
+	char *buf = logging_buf;
 	const unsigned mask = log->output->mask;
 	msg.lvl = lvl;
 	msg.tag = tag;
