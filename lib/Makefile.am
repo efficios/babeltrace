@@ -2,7 +2,7 @@ SUBDIRS = ctf-ir ctf-writer prio_heap plugin graph .
 
 lib_LTLIBRARIES = libbabeltrace.la libbabeltrace-ctf.la
 
-libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c logging.c
+libbabeltrace_la_SOURCES = babeltrace.c values.c ref.c lib-logging.c logging.c
 libbabeltrace_la_LDFLAGS = $(LT_NO_UNDEFINED) \
 			-version-info $(BABELTRACE_LIBRARY_VERSION)
 
@@ -24,7 +24,7 @@ endif
 # CTF writer used to be in libbabeltrace-ctf in Babeltrace 1, so this
 # file must still exist. As of Babeltrace 2, CTF writer is implemented
 # in libbabeltrace.
-libbabeltrace_ctf_la_SOURCES = babeltrace.c values.c ref.c logging.c
+libbabeltrace_ctf_la_SOURCES = $(libbabeltrace_la_SOURCES)
 libbabeltrace_ctf_la_LDFLAGS = $(LT_NO_UNDEFINED) \
 			-version-info $(BABELTRACE_LIBRARY_VERSION)
 
