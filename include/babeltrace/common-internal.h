@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <stdarg.h>
 
 #define BT_COMMON_COLOR_RESET              "\033[0m"
 #define BT_COMMON_COLOR_BOLD               "\033[1m"
@@ -199,8 +200,75 @@ bool bt_common_star_glob_match(const char *pattern, size_t pattern_len,
 BT_HIDDEN
 GString *bt_common_normalize_path(const char *path, const char *wd);
 
+typedef void (* bt_common_handle_custom_specifier_func)(void *priv_data,
+		char **buf, size_t avail_size, const char **fmt, va_list *args);
+
 /*
- * Return the system page size.
+ * This is a custom vsnprintf() which handles the standard conversion
+ * specifier as well as custom ones.
+ *
+ * `fmt` is a typical printf()-style format string, with the following
+ * limitations:
+ *
+ * * The `*` width specifier is not accepted.
+ * * The `*` precision specifier is not accepted.
+ * * The `j` and `t` length modifiers are not accepted.
+ * * The `n` format specifier is not accepted.
+ * * The format specifiers defined in <inttypes.h> are not accepted
+ *   except for `PRId64`, `PRIu64`, `PRIx64`, `PRIX64`, `PRIo64`, and
+ *   `PRIi64`.
+ *
+ * `intro` specifies which special character immediately following an
+ * introductory `%` character in `fmt` is used to indicate a custom
+ * conversion specifier. For example, if `intro` is '@', then any `%@`
+ * sequence in `fmt` is the beginning of a custom conversion specifier.
+ *
+ * When a custom conversion specifier is encountered in `fmt`,
+ * the function calls `handle_specifier`. This callback receives:
+ *
+ * `priv_data`:
+ *     Custom, private data.
+ *
+ * `buf`:
+ *     Address of the current buffer pointer. `*buf` is the position to
+ *     append new data. The callback must update `*buf` when appending
+ *     new data. The callback must ensure not to write passed the whole
+ *     buffer passed to bt_common_custom_vsnprintf().
+ *
+ * `avail_size`:
+ *     Number of bytes left in whole buffer from the `*buf` point.
+ *
+ * `fmt`:
+ *     Address of the current format string pointer. `*fmt` points to
+ *     the introductory `%` character, which is followed by the
+ *     character `intro`. The callback must update `*fmt` so that it
+ *     points after the whole custom conversion specifier.
+ *
+ * `args`:
+ *     Variable argument list. Use va_arg() to get new arguments from
+ *     this list and update it at the same time.
+ *
+ * Because this is an internal utility, this function and its callback
+ * do not return error codes: they abort when there's any error (bad
+ * format string, for example).
+ */
+BT_HIDDEN
+void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
+		char intro,
+		bt_common_handle_custom_specifier_func handle_specifier,
+		void *priv_data, const char *fmt, va_list *args);
+
+/*
+ * Variadic form of bt_common_custom_vsnprintf().
+ */
+BT_HIDDEN
+void bt_common_custom_snprintf(char *buf, size_t buf_size,
+		char intro,
+		bt_common_handle_custom_specifier_func handle_specifier,
+		void *priv_data, const char *fmt, ...);
+
+/*
+ * Returns the system page size.
  */
 BT_HIDDEN
 size_t bt_common_get_page_size(void);
