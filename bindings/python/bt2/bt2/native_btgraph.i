@@ -75,7 +75,7 @@ static void port_added_listener(struct bt_port *port, void *py_callable)
 	}
 
 	py_res = PyObject_CallFunction(py_callable, "(O)", py_port_ptr);
-	assert(py_res == Py_None);
+	BT_ASSERT(py_res == Py_None);
 	Py_DECREF(py_port_ptr);
 	Py_DECREF(py_res);
 }
@@ -94,7 +94,7 @@ static void port_removed_listener(struct bt_component *component,
 	}
 
 	py_res = PyObject_CallFunction(py_callable, "(O)", py_port_ptr);
-	assert(py_res == Py_None);
+	BT_ASSERT(py_res == Py_None);
 	Py_DECREF(py_port_ptr);
 	Py_DECREF(py_res);
 }
@@ -122,7 +122,7 @@ static void ports_connected_listener(struct bt_port *upstream_port,
 
 	py_res = PyObject_CallFunction(py_callable, "(OO)",
 		py_upstream_port_ptr, py_downstream_port_ptr);
-	assert(py_res == Py_None);
+	BT_ASSERT(py_res == Py_None);
 	Py_DECREF(py_upstream_port_ptr);
 	Py_DECREF(py_downstream_port_ptr);
 	Py_DECREF(py_res);
@@ -173,7 +173,7 @@ static void ports_disconnected_listener(
 	py_res = PyObject_CallFunction(py_callable, "(OOOO)",
 		py_upstream_comp_ptr, py_downstream_comp_ptr,
 		py_upstream_port_ptr, py_downstream_port_ptr);
-	assert(py_res == Py_None);
+	BT_ASSERT(py_res == Py_None);
 	Py_DECREF(py_upstream_comp_ptr);
 	Py_DECREF(py_downstream_comp_ptr);
 	Py_DECREF(py_upstream_port_ptr);
@@ -183,7 +183,7 @@ static void ports_disconnected_listener(
 
 static void graph_listener_removed(void *py_callable)
 {
-	assert(py_callable);
+	BT_ASSERT(py_callable);
 	Py_DECREF(py_callable);
 }
 
@@ -192,8 +192,8 @@ static int bt_py3_graph_add_port_added_listener(struct bt_graph *graph,
 {
 	int ret = 0;
 
-	assert(graph);
-	assert(py_callable);
+	BT_ASSERT(graph);
+	BT_ASSERT(py_callable);
 	ret = bt_graph_add_port_added_listener(graph, port_added_listener,
 		graph_listener_removed, py_callable);
 	if (ret >= 0) {
@@ -208,8 +208,8 @@ static int bt_py3_graph_add_port_removed_listener(struct bt_graph *graph,
 {
 	int ret = 0;
 
-	assert(graph);
-	assert(py_callable);
+	BT_ASSERT(graph);
+	BT_ASSERT(py_callable);
 	ret = bt_graph_add_port_removed_listener(graph, port_removed_listener,
 		graph_listener_removed, py_callable);
 	if (ret >= 0) {
@@ -224,8 +224,8 @@ static int bt_py3_graph_add_ports_connected_listener(struct bt_graph *graph,
 {
 	int ret = 0;
 
-	assert(graph);
-	assert(py_callable);
+	BT_ASSERT(graph);
+	BT_ASSERT(py_callable);
 	ret = bt_graph_add_ports_connected_listener(graph,
 		ports_connected_listener, graph_listener_removed, py_callable);
 	if (ret >= 0) {
@@ -240,8 +240,8 @@ static int bt_py3_graph_add_ports_disconnected_listener(struct bt_graph *graph,
 {
 	int ret = 0;
 
-	assert(graph);
-	assert(py_callable);
+	BT_ASSERT(graph);
+	BT_ASSERT(py_callable);
 	ret = bt_graph_add_ports_disconnected_listener(graph,
 		ports_disconnected_listener, graph_listener_removed,
 		py_callable);

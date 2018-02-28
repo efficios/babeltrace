@@ -34,6 +34,8 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/graph/notification-packet-internal.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 
 static
@@ -69,15 +71,11 @@ struct bt_notification *bt_notification_packet_begin_create(
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
 
-	if (!packet) {
-		BT_LOGW_STR("Invalid parameter: packet is NULL.");
-		goto error;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	stream = bt_packet_borrow_stream(packet);
-	assert(stream);
+	BT_ASSERT(stream);
 	stream_class = bt_stream_borrow_stream_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 	BT_LOGD("Creating packet beginning notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -112,27 +110,14 @@ error:
 struct bt_packet *bt_notification_packet_begin_get_packet(
 		struct bt_notification *notification)
 {
-	struct bt_packet *ret = NULL;
 	struct bt_notification_packet_begin *packet_begin;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (notification->type != BT_NOTIFICATION_TYPE_PACKET_BEGIN) {
-		BT_LOGW("Invalid parameter: notification is not a packet beginning notification: "
-			"addr%p, notif-type=%s",
-			notification, bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
+		BT_NOTIFICATION_TYPE_PACKET_BEGIN);
 	packet_begin = container_of(notification,
 			struct bt_notification_packet_begin, parent);
-	ret = bt_get(packet_begin->packet);
-end:
-	return ret;
+	return bt_get(packet_begin->packet);
 }
 
 struct bt_notification *bt_notification_packet_end_create(
@@ -142,15 +127,11 @@ struct bt_notification *bt_notification_packet_end_create(
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
 
-	if (!packet) {
-		BT_LOGW_STR("Invalid parameter: packet is NULL.");
-		goto error;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	stream = bt_packet_borrow_stream(packet);
-	assert(stream);
+	BT_ASSERT(stream);
 	stream_class = bt_stream_borrow_stream_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 	BT_LOGD("Creating packet end notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -185,25 +166,12 @@ error:
 struct bt_packet *bt_notification_packet_end_get_packet(
 		struct bt_notification *notification)
 {
-	struct bt_packet *ret = NULL;
 	struct bt_notification_packet_end *packet_end;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (notification->type != BT_NOTIFICATION_TYPE_PACKET_END) {
-		BT_LOGW("Invalid parameter: notification is not a packet end notification: "
-			"addr%p, notif-type=%s",
-			notification, bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
+		BT_NOTIFICATION_TYPE_PACKET_END);
 	packet_end = container_of(notification,
 			struct bt_notification_packet_end, parent);
-	ret = bt_get(packet_end->packet);
-end:
-	return ret;
+	return bt_get(packet_end->packet);
 }

@@ -30,7 +30,7 @@
 #include "logging.h"
 
 #include <babeltrace/babeltrace.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <stdio.h>
 
 #include "clock-fields.h"
@@ -226,7 +226,7 @@ int find_update_sequence_clock_fields(FILE *err, struct bt_field_type *type,
 	struct bt_field_type *entry_type = NULL;
 
 	entry_type = bt_field_type_sequence_get_element_type(type);
-	assert(entry_type);
+	BT_ASSERT(entry_type);
 
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
 	BT_PUT(entry_type);
@@ -252,7 +252,7 @@ int find_update_array_clock_fields(FILE *err, struct bt_field_type *type,
 	struct bt_field_type *entry_type = NULL;
 
 	entry_type = bt_field_type_array_get_element_type(type);
-	assert(entry_type);
+	BT_ASSERT(entry_type);
 
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
 	BT_PUT(entry_type);
@@ -274,7 +274,7 @@ int find_update_enum_clock_fields(FILE *err, struct bt_field_type *type,
 	struct bt_field_type *entry_type = NULL;
 
 	entry_type = bt_field_type_enumeration_get_container_type(type);
-	assert(entry_type);
+	BT_ASSERT(entry_type);
 
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
 	BT_PUT(entry_type);
@@ -303,7 +303,7 @@ struct bt_field_type *override_header_type(FILE *err,
 
 	/* FIXME multi-clock? */
 	writer_clock_class = bt_trace_get_clock_class_by_index(writer_trace, 0);
-	assert(writer_clock_class);
+	BT_ASSERT(writer_clock_class);
 
 	new_type = bt_field_type_copy(type);
 	if (!new_type) {
@@ -402,7 +402,7 @@ int copy_override_field(FILE *err, struct bt_event *event,
 	int ret = 0;
 
 	type = bt_field_get_type(field);
-	assert(type);
+	BT_ASSERT(type);
 
 	switch (bt_field_type_get_type_id(type)) {
 	case BT_FIELD_TYPE_ID_INTEGER:
@@ -455,10 +455,10 @@ int copy_find_clock_enum_field(FILE *err, struct bt_event *event,
 	struct bt_field *container = NULL, *copy_container = NULL;
 
 	container = bt_field_enumeration_get_container(field);
-	assert(container);
+	BT_ASSERT(container);
 
 	copy_container = bt_field_enumeration_get_container(copy_field);
-	assert(copy_container);
+	BT_ASSERT(copy_container);
 
 	ret = copy_override_field(err, event, writer_event, container,
 			copy_container);
@@ -489,7 +489,7 @@ int copy_find_clock_variant_field(FILE *err, struct bt_event *event,
 	struct bt_field *variant_field = NULL, *copy_variant_field = NULL;
 
 	tag = bt_field_variant_get_tag(field);
-	assert(tag);
+	BT_ASSERT(tag);
 
 	variant_field = bt_field_variant_get_field(field, tag);
 	if (!variant_field) {
@@ -498,7 +498,7 @@ int copy_find_clock_variant_field(FILE *err, struct bt_event *event,
 	}
 
 	copy_variant_field = bt_field_variant_get_field(copy_field, tag);
-	assert(copy_variant_field);
+	BT_ASSERT(copy_variant_field);
 
 	ret = copy_override_field(err, event, writer_event, variant_field,
 			copy_variant_field);
@@ -531,7 +531,7 @@ int copy_find_clock_sequence_field(FILE *err,
 	struct bt_field *entry_field = NULL, *entry_copy = NULL;
 
 	length_field = bt_field_sequence_get_length(field);
-	assert(length_field);
+	BT_ASSERT(length_field);
 
 	ret = bt_field_unsigned_integer_get_value(length_field, &count);
 	if (ret) {
@@ -554,7 +554,7 @@ int copy_find_clock_sequence_field(FILE *err,
 		}
 
 		entry_copy = bt_field_sequence_get_field(copy_field, i);
-		assert(entry_copy);
+		BT_ASSERT(entry_copy);
 
 		ret = copy_override_field(err, event, writer_event, entry_field,
 				entry_copy);
@@ -597,7 +597,7 @@ int copy_find_clock_array_field(FILE *err,
 		}
 
 		entry_copy = bt_field_array_get_field(copy_field, i);
-		assert(entry_copy);
+		BT_ASSERT(entry_copy);
 
 		ret = copy_override_field(err, event, writer_event, entry_field,
 				entry_copy);
@@ -649,7 +649,7 @@ int copy_find_clock_struct_field(FILE *err,
 		}
 
 		entry_copy = bt_field_structure_get_field_by_index(copy_field, i);
-		assert(entry_copy);
+		BT_ASSERT(entry_copy);
 
 		ret = copy_override_field(err, event, writer_event, entry_field,
 				entry_copy);
@@ -727,7 +727,7 @@ struct bt_clock_class *stream_class_get_clock_class(FILE *err,
 	struct bt_clock_class *clock_class = NULL;
 
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 
 	/* FIXME multi-clock? */
 	clock_class = bt_trace_get_clock_class_by_index(trace, 0);
@@ -744,11 +744,11 @@ struct bt_clock_class *event_get_clock_class(FILE *err, struct bt_event *event)
 	struct bt_clock_class *clock_class = NULL;
 
 	event_class = bt_event_get_class(event);
-	assert(event_class);
+	BT_ASSERT(event_class);
 
 	stream_class = bt_event_class_get_stream_class(event_class);
 	BT_PUT(event_class);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	clock_class = stream_class_get_clock_class(err, stream_class);
 	bt_put(stream_class);
@@ -774,7 +774,7 @@ int copy_find_clock_int_field(FILE *err,
 
 	clock_value = bt_event_get_clock_value(event, clock_class);
 	BT_PUT(clock_class);
-	assert(clock_value);
+	BT_ASSERT(clock_value);
 
 	ret = bt_clock_value_get_value(clock_value, &value);
 	BT_PUT(clock_value);
@@ -790,7 +790,7 @@ int copy_find_clock_int_field(FILE *err,
 	}
 
 	writer_clock_class = event_get_clock_class(err, writer_event);
-	assert(writer_clock_class);
+	BT_ASSERT(writer_clock_class);
 
 	writer_clock_value = bt_clock_value_create(writer_clock_class, value);
 	BT_PUT(writer_clock_class);

@@ -24,7 +24,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
 #include <plugins-common.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 
@@ -120,9 +120,9 @@ void counter_finalize(struct bt_private_component *component)
 {
 	struct counter *counter;
 
-	assert(component);
+	BT_ASSERT(component);
 	counter = bt_private_component_get_user_data(component);
-	assert(counter);
+	BT_ASSERT(counter);
 	try_print_last(counter);
 	bt_put(counter->notif_iter);
 	g_free(counter);
@@ -150,11 +150,10 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 	counter->last_printed_total = -1ULL;
 	counter->step = 1000;
 	step = bt_value_map_get(params, "step");
-	if (bt_value_is_integer(step)) {
+	if (step && bt_value_is_integer(step)) {
 		int64_t val;
-		int vret = bt_value_integer_get(step, &val);
 
-		assert(vret == 0);
+		(void) bt_value_integer_get(step, &val);
 
 		if (val >= 0) {
 			counter->step = (uint64_t) val;
@@ -162,11 +161,10 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 	}
 
 	hide_zero = bt_value_map_get(params, "hide-zero");
-	if (bt_value_is_bool(hide_zero)) {
+	if (hide_zero && bt_value_is_bool(hide_zero)) {
 		bt_bool val;
-		int vret = bt_value_bool_get(hide_zero, &val);
 
-		assert(vret == 0);
+		(void) bt_value_bool_get(hide_zero, &val);
 		counter->hide_zero = (bool) val;
 	}
 
@@ -197,9 +195,9 @@ void counter_port_connected(
 	enum bt_connection_status conn_status;
 
 	counter = bt_private_component_get_user_data(component);
-	assert(counter);
+	BT_ASSERT(counter);
 	connection = bt_private_port_get_private_connection(self_port);
-	assert(connection);
+	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, NULL, &iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
@@ -222,7 +220,7 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	int64_t count;
 
 	counter = bt_private_component_get_user_data(component);
-	assert(counter);
+	BT_ASSERT(counter);
 
 	if (unlikely(counter->error)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -255,7 +253,7 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 		struct bt_notification *notif =
 			bt_notification_iterator_get_notification(counter->notif_iter);
 
-		assert(notif);
+		BT_ASSERT(notif);
 		switch (bt_notification_get_type(notif)) {
 		case BT_NOTIFICATION_TYPE_EVENT:
 			counter->count.event++;

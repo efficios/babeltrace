@@ -38,6 +38,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <babeltrace/list-internal.h>
+#include <babeltrace/assert-internal.h>
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"
@@ -163,7 +164,7 @@ int parse_base_sequence(const char *src, size_t len, size_t pos,
 			return -1;
 		}
 	}
-	assert(nr_char > 0);
+	BT_ASSERT(nr_char > 0);
 	buffer[nr_char] = '\0';
 	*buf_len = nr_char;
 	return 0;

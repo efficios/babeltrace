@@ -157,8 +157,14 @@ struct bt_field_type_string {
 	enum bt_string_encoding encoding;
 };
 
+#ifdef BT_DEV_MODE
+# define bt_field_type_freeze	_bt_field_type_freeze
+#else
+# define bt_field_type_freeze(_ft)
+#endif
+
 BT_HIDDEN
-void bt_field_type_freeze(struct bt_field_type *type);
+void _bt_field_type_freeze(struct bt_field_type *type);
 
 BT_HIDDEN
 struct bt_field_type *bt_field_type_variant_get_field_type_signed(

@@ -40,6 +40,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/endian-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <float.h>
 #include <inttypes.h>
 #include <stdlib.h>
@@ -397,7 +398,7 @@ gint compare_enumeration_mappings_unsigned(struct enumeration_mapping **a,
 static
 void bt_field_type_init(struct bt_field_type *type, bt_bool init_bo)
 {
-	assert(type && (type->id > BT_FIELD_TYPE_ID_UNKNOWN) &&
+	BT_ASSERT(type && (type->id > BT_FIELD_TYPE_ID_UNKNOWN) &&
 		(type->id < BT_FIELD_TYPE_ID_NR));
 
 	bt_object_init(type, bt_field_type_destroy);
@@ -411,7 +412,7 @@ void bt_field_type_init(struct bt_field_type *type, bt_bool init_bo)
 		BT_LOGD("Setting initial field type's byte order: bo=%s",
 			bt_byte_order_string(bo));
 		ret = bt_field_type_set_byte_order(type, bo);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	}
 
 	type->alignment = 1;
@@ -464,7 +465,7 @@ void bt_field_type_destroy(struct bt_object *obj)
 
 	type = container_of(obj, struct bt_field_type, base);
 	type_id = type->id;
-	assert(type_id > BT_FIELD_TYPE_ID_UNKNOWN &&
+	BT_ASSERT(type_id > BT_FIELD_TYPE_ID_UNKNOWN &&
 		type_id < BT_FIELD_TYPE_ID_NR);
 	type_destroy_funcs[type_id](type);
 }
@@ -579,7 +580,7 @@ int bt_field_type_enumeration_validate(struct bt_field_type *type)
 	struct bt_field_type *container_type =
 		bt_field_type_enumeration_get_container_type(type);
 
-	assert(container_type);
+	BT_ASSERT(container_type);
 	ret = bt_field_type_validate(container_type);
 	if (ret) {
 		BT_LOGW("Invalid enumeration field type: container type is invalid: "
@@ -619,7 +620,7 @@ int bt_field_type_sequence_validate(struct bt_field_type *type)
 	}
 
 	element_type = bt_field_type_sequence_get_element_type(type);
-	assert(element_type);
+	BT_ASSERT(element_type);
 	ret = bt_field_type_validate(element_type);
 	if (ret) {
 		BT_LOGW("Invalid sequence field type: invalid element field type: "
@@ -640,7 +641,7 @@ int bt_field_type_array_validate(struct bt_field_type *type)
 	struct bt_field_type *element_type = NULL;
 
 	element_type = bt_field_type_array_get_element_type(type);
-	assert(element_type);
+	BT_ASSERT(element_type);
 	ret = bt_field_type_validate(element_type);
 	if (ret) {
 		BT_LOGW("Invalid array field type: invalid element field type: "
@@ -660,14 +661,14 @@ int bt_field_type_structure_validate(struct bt_field_type *type)
 	int64_t field_count = bt_field_type_structure_get_field_count(type);
 	int64_t i;
 
-	assert(field_count >= 0);
+	BT_ASSERT(field_count >= 0);
 
 	for (i = 0; i < field_count; ++i) {
 		const char *field_name;
 
 		ret = bt_field_type_structure_get_field_by_index(type,
 			&field_name, &child_type, i);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		ret = bt_field_type_validate(child_type);
 		if (ret) {
 			BT_LOGW("Invalid structure field type: "
@@ -761,7 +762,7 @@ int bt_field_type_variant_validate(struct bt_field_type *type)
 
 		ret = bt_field_type_variant_get_field_by_index(type,
 			&field_name, &child_type, i);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		ret = bt_field_type_validate(child_type);
 		if (ret) {
 			BT_LOGW("Invalid variant field type: "
@@ -795,7 +796,7 @@ int bt_field_type_validate(struct bt_field_type *type)
 	int ret = 0;
 	enum bt_field_type_id id = bt_field_type_get_type_id(type);
 
-	assert(type);
+	BT_ASSERT(type);
 
 	if (type->valid) {
 		/* Already marked as valid */
@@ -1485,7 +1486,7 @@ int bt_field_type_enumeration_get_mapping_signed(
 
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
-		assert(*mapping_name);
+		BT_ASSERT(*mapping_name);
 	}
 
 	if (range_begin) {
@@ -1523,7 +1524,7 @@ int bt_field_type_enumeration_get_mapping_unsigned(
 
 	if (mapping_name) {
 		*mapping_name = g_quark_to_string(mapping->string);
-		assert(*mapping_name);
+		BT_ASSERT(*mapping_name);
 	}
 
 	if (range_begin) {
@@ -2015,10 +2016,10 @@ int bt_field_type_structure_replace_field(struct bt_field_type *type,
 	GQuark name_quark;
 	uint64_t i;
 
-	assert(type);
-	assert(field_name);
-	assert(field_type);
-	assert(type->id == BT_FIELD_TYPE_ID_STRUCT);
+	BT_ASSERT(type);
+	BT_ASSERT(field_name);
+	BT_ASSERT(field_type);
+	BT_ASSERT(type->id == BT_FIELD_TYPE_ID_STRUCT);
 	structure = container_of(type, struct bt_field_type_structure, parent);
 	name_quark = g_quark_from_string(field_name);
 
@@ -2165,7 +2166,7 @@ int bt_field_type_structure_get_field_by_index(
 	}
 	if (field_name) {
 		*field_name = g_quark_to_string(field->name);
-		assert(*field_name);
+		BT_ASSERT(*field_name);
 	}
 end:
 	return ret;
@@ -2611,7 +2612,7 @@ int bt_field_type_variant_get_field_by_index(struct bt_field_type *type,
 	}
 	if (field_name) {
 		*field_name = g_quark_to_string(field->name);
-		assert(*field_name);
+		BT_ASSERT(*field_name);
 	}
 end:
 	return ret;
@@ -2982,7 +2983,7 @@ int bt_field_type_get_alignment(struct bt_field_type *type)
 		struct bt_field_type *element =
 			bt_field_type_sequence_get_element_type(type);
 
-		assert(element);
+		BT_ASSERT(element);
 		ret = bt_field_type_get_alignment(element);
 		bt_put(element);
 		break;
@@ -2992,7 +2993,7 @@ int bt_field_type_get_alignment(struct bt_field_type *type)
 		struct bt_field_type *element =
 			bt_field_type_array_get_element_type(type);
 
-		assert(element);
+		BT_ASSERT(element);
 		ret = bt_field_type_get_alignment(element);
 		bt_put(element);
 		break;
@@ -3003,7 +3004,7 @@ int bt_field_type_get_alignment(struct bt_field_type *type)
 
 		element_count = bt_field_type_structure_get_field_count(
 			type);
-		assert(element_count >= 0);
+		BT_ASSERT(element_count >= 0);
 
 		for (i = 0; i < element_count; i++) {
 			struct bt_field_type *field = NULL;
@@ -3011,8 +3012,8 @@ int bt_field_type_get_alignment(struct bt_field_type *type)
 
 			ret = bt_field_type_structure_get_field_by_index(
 				type, NULL, &field, i);
-			assert(ret == 0);
-			assert(field);
+			BT_ASSERT(ret == 0);
+			BT_ASSERT(field);
 			field_alignment = bt_field_type_get_alignment(
 				field);
 			bt_put(field);
@@ -3148,7 +3149,7 @@ enum bt_byte_order bt_field_type_get_byte_order(
 		goto end;
 	}
 
-	assert(ret == BT_BYTE_ORDER_NATIVE ||
+	BT_ASSERT(ret == BT_BYTE_ORDER_NATIVE ||
 		ret == BT_BYTE_ORDER_LITTLE_ENDIAN ||
 		ret == BT_BYTE_ORDER_BIG_ENDIAN ||
 		ret == BT_BYTE_ORDER_NETWORK);
@@ -3261,7 +3262,7 @@ void bt_ctf_field_type_put(struct bt_field_type *type)
 }
 
 BT_HIDDEN
-void bt_field_type_freeze(struct bt_field_type *type)
+void _bt_field_type_freeze(struct bt_field_type *type)
 {
 	if (!type || type->frozen) {
 		return;
@@ -3345,8 +3346,8 @@ int bt_field_type_serialize(struct bt_field_type *type,
 {
 	int ret;
 
-	assert(type);
-	assert(context);
+	BT_ASSERT(type);
+	BT_ASSERT(context);
 
 	/* Make sure field type is valid before serializing it */
 	ret = bt_field_type_validate(type);
@@ -3910,7 +3911,7 @@ int bt_field_type_integer_serialize(struct bt_field_type *type,
 		const char *clock_name = bt_clock_class_get_name(
 			integer->mapped_clock);
 
-		assert(clock_name);
+		BT_ASSERT(clock_name);
 		g_string_append_printf(context->string,
 			"; map = clock.%s.value", clock_name);
 	}
@@ -3933,9 +3934,9 @@ int bt_field_type_enumeration_serialize(struct bt_field_type *type,
 	BT_LOGD("Serializing enumeration field type's metadata: "
 		"ft-addr=%p, metadata-context-addr=%p", type, context);
 	container_type = bt_field_type_enumeration_get_container_type(type);
-	assert(container_type);
+	BT_ASSERT(container_type);
 	container_signed = bt_ctf_field_type_integer_get_signed(container_type);
-	assert(container_signed >= 0);
+	BT_ASSERT(container_signed >= 0);
 	g_string_append(context->string, "enum : ");
 	BT_LOGD_STR("Serializing enumeration field type's container field type's metadata.");
 	ret = bt_field_type_serialize(enumeration->container, context);

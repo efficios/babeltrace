@@ -32,6 +32,8 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <glib.h>
@@ -40,10 +42,6 @@ static
 void bt_clock_class_priority_map_destroy(struct bt_object *obj)
 {
 	struct bt_clock_class_priority_map *cc_prio_map = (void *) obj;
-
-	if (!cc_prio_map) {
-		return;
-	}
 
 	BT_LOGD("Destroying component class priority map object: addr=%p",
 		cc_prio_map);
@@ -101,42 +99,19 @@ end:
 int64_t bt_clock_class_priority_map_get_clock_class_count(
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
-	int64_t ret = (int64_t) -1;
-
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		goto end;
-	}
-
-	ret = (int64_t) cc_prio_map->entries->len;
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
+	return (int64_t) cc_prio_map->entries->len;
 }
 
 struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_index(
 		struct bt_clock_class_priority_map *cc_prio_map,
 		uint64_t index)
 {
-	struct bt_clock_class *clock_class = NULL;
-
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		goto end;
-	}
-
-	if (index >= cc_prio_map->entries->len) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, index=%" PRIu64 ", count=%u",
-			cc_prio_map, index, cc_prio_map->entries->len);
-		goto end;
-	}
-
-	clock_class = g_ptr_array_index(cc_prio_map->entries, index);
-	bt_get(clock_class);
-
-end:
-	return clock_class;
+	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
+	BT_ASSERT_PRE(index < cc_prio_map->entries->len,
+		"Index is out of bounds: index=%" PRIu64 ", count=%" PRIu64,
+		index, cc_prio_map->entries->len);
+	return bt_get(g_ptr_array_index(cc_prio_map->entries, index));
 }
 
 struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_name(
@@ -146,15 +121,8 @@ struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_name(
 	size_t i;
 	struct bt_clock_class *clock_class = NULL;
 
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		goto end;
-	}
-
-	if (!name) {
-		BT_LOGW_STR("Invalid parameter: name is NULL.");
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
 
 	for (i = 0; i < cc_prio_map->entries->len; i++) {
 		struct bt_clock_class *cur_cc =
@@ -162,7 +130,7 @@ struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_name(
 		const char *cur_cc_name =
 			bt_clock_class_get_name(cur_cc);
 
-		assert(cur_cc_name);
+		BT_ASSERT(cur_cc_name);
 
 		if (strcmp(cur_cc_name, name) == 0) {
 			clock_class = bt_get(cur_cc);
@@ -211,17 +179,8 @@ struct bt_clock_class *
 bt_clock_class_priority_map_get_highest_priority_clock_class(
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
-	struct bt_clock_class *clock_class = NULL;
-
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		goto end;
-	}
-
-	clock_class = bt_get(cc_prio_map->highest_prio_cc);
-
-end:
-	return clock_class;
+	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
+	return(bt_get(cc_prio_map->highest_prio_cc));
 }
 
 int bt_clock_class_priority_map_get_clock_class_priority(
@@ -231,24 +190,9 @@ int bt_clock_class_priority_map_get_clock_class_priority(
 	int ret = 0;
 	uint64_t *prio;
 
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (!clock_class) {
-		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (!priority) {
-		BT_LOGW_STR("Invalid parameter: priority is NULL.");
-		ret = -1;
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_NON_NULL(priority, "Priority");
 	prio = g_hash_table_lookup(cc_prio_map->prios, clock_class);
 	if (!prio) {
 		BT_LOGV("Clock class does not exist in clock class priority map: "
@@ -276,24 +220,9 @@ int bt_clock_class_priority_map_add_clock_class(
 
 	// FIXME when available: check
 	// bt_clock_class_is_valid(clock_class)
-	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (!clock_class) {
-		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (cc_prio_map->frozen) {
-		BT_LOGW("Invalid parameter: clock class priority map is frozen: "
-			"addr=%p", cc_prio_map);
-		ret = -1;
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_HOT(cc_prio_map, "Clock class priority map", "");
 
 	/* Check for existing clock class */
 	prio_ptr = g_hash_table_lookup(cc_prio_map->prios, clock_class);
@@ -319,7 +248,7 @@ int bt_clock_class_priority_map_add_clock_class(
 set_highest_prio:
 	cc_prio = bt_clock_class_priority_map_current_highest_prio(
 		cc_prio_map);
-	assert(cc_prio.clock_class);
+	BT_ASSERT(cc_prio.clock_class);
 	cc_prio_map->highest_prio_cc = cc_prio.clock_class;
 	BT_LOGV("Added clock class to clock class priority map: "
 		"cc-prio-map-addr=%p, added-clock-class-addr=%p, "
@@ -345,7 +274,7 @@ struct bt_clock_class_priority_map *bt_clock_class_priority_map_copy(
 
 	cc_prio_map = bt_clock_class_priority_map_create();
 	if (!cc_prio_map) {
-		BT_LOGW_STR("Invalid parameter: clock class priority map is NULL.");
+		BT_LOGE_STR("Cannot create empty clock class priority map.");
 		goto error;
 	}
 

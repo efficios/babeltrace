@@ -33,6 +33,7 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 #include <stdio.h>
 
@@ -85,7 +86,7 @@ struct bt_private_component *bt_private_component_from_component(
 static inline
 struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
 {
-	assert(comp);
+	BT_ASSERT(comp);
 	return (void *) comp->base.parent;
 }
 

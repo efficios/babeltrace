@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 #include "pretty.h"
 
@@ -131,7 +131,7 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	assert(pretty);
+	BT_ASSERT(pretty);
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -173,10 +173,10 @@ void pretty_port_connected(
 	};
 
 	pretty = bt_private_component_get_user_data(component);
-	assert(pretty);
-	assert(!pretty->input_iterator);
+	BT_ASSERT(pretty);
+	BT_ASSERT(!pretty->input_iterator);
 	connection = bt_private_port_get_private_connection(self_port);
-	assert(connection);
+	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, notif_types, &pretty->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
@@ -220,7 +220,7 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 	}
 
 	notification = bt_notification_iterator_get_notification(it);
-	assert(notification);
+	BT_ASSERT(notification);
 	ret = handle_notification(pretty, notification);
 
 end:

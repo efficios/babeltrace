@@ -28,7 +28,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <inttypes.h>
@@ -607,10 +607,10 @@ void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
 	GString *gs_comp_cls = NULL;
 	size_t end_pos;
 
-	assert(arg);
-	assert(plugin);
-	assert(comp_cls);
-	assert(comp_cls_type);
+	BT_ASSERT(arg);
+	BT_ASSERT(plugin);
+	BT_ASSERT(comp_cls);
+	BT_ASSERT(comp_cls_type);
 
 	if (!bt_common_string_is_printable(arg)) {
 		printf_err("Argument contains a non-printable character\n");
@@ -1186,9 +1186,9 @@ end:
 static
 void append_param_arg(GString *params_arg, const char *key, const char *value)
 {
-	assert(params_arg);
-	assert(key);
-	assert(value);
+	BT_ASSERT(params_arg);
+	BT_ASSERT(key);
+	BT_ASSERT(value);
 
 	if (params_arg->len != 0) {
 		g_string_append_c(params_arg, ',');
@@ -2078,7 +2078,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		assert(params);
+		BT_ASSERT(params);
 		BT_MOVE(cfg->cmd_data.query.cfg_component->params, params);
 	} else {
 		print_query_usage(stdout);
@@ -2497,7 +2497,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				abort();
 			}
 
-			assert(cur_base_params);
+			BT_ASSERT(cur_base_params);
 			bt_put(cur_cfg_comp->params);
 			cur_cfg_comp->params = bt_value_copy(cur_base_params);
 			if (!cur_cfg_comp->params) {
@@ -2723,10 +2723,10 @@ struct bt_config *bt_config_run_from_args_array(struct bt_value *run_args,
 		struct bt_value *arg_value = bt_value_array_get(run_args, i);
 		const char *arg;
 
-		assert(arg_value);
+		BT_ASSERT(arg_value);
 		ret = bt_value_string_get(arg_value, &arg);
-		assert(ret == 0);
-		assert(arg);
+		BT_ASSERT(ret == 0);
+		BT_ASSERT(arg);
 		argv[i + 1] = arg;
 		bt_put(arg_value);
 	}
@@ -3047,7 +3047,7 @@ int append_run_args_for_implicit_component(
 			goto error;
 		}
 
-		assert(bt_value_is_string(elem));
+		BT_ASSERT(bt_value_is_string(elem));
 		if (bt_value_string_get(elem, &arg)) {
 			goto error;
 		}
@@ -3072,7 +3072,7 @@ end:
 static
 void finalize_implicit_component_args(struct implicit_component_args *args)
 {
-	assert(args);
+	BT_ASSERT(args);
 
 	if (args->comp_arg) {
 		g_string_free(args->comp_arg, TRUE);
@@ -3128,9 +3128,9 @@ static
 void append_implicit_component_param(struct implicit_component_args *args,
 	const char *key, const char *value)
 {
-	assert(args);
-	assert(key);
-	assert(value);
+	BT_ASSERT(args);
+	BT_ASSERT(key);
+	BT_ASSERT(value);
 	append_param_arg(args->params_arg, key, value);
 }
 
@@ -3140,9 +3140,9 @@ int append_implicit_component_extra_param(struct implicit_component_args *args,
 {
 	int ret = 0;
 
-	assert(args);
-	assert(key);
-	assert(value);
+	BT_ASSERT(args);
+	BT_ASSERT(key);
+	BT_ASSERT(value);
 
 	if (bt_value_array_append_string(args->extra_params, "--key")) {
 		print_err_oom();
@@ -3361,9 +3361,9 @@ int convert_auto_connect(struct bt_value *run_args,
 	GList *filter_prev;
 	GList *sink_at = sink_names;
 
-	assert(source_names);
-	assert(filter_names);
-	assert(sink_names);
+	BT_ASSERT(source_names);
+	BT_ASSERT(filter_names);
+	BT_ASSERT(sink_names);
 
 	/* Connect all sources to the first filter */
 	for (source_at = source_names; source_at != NULL; source_at = g_list_next(source_at)) {
@@ -3422,7 +3422,7 @@ int split_timerange(const char *arg, char **begin, char **end)
 	GString *g_begin = NULL;
 	GString *g_end = NULL;
 
-	assert(arg);
+	BT_ASSERT(arg);
 
 	if (*ch == '[') {
 		ch++;
@@ -3440,8 +3440,8 @@ int split_timerange(const char *arg, char **begin, char **end)
 		goto error;
 	}
 
-	assert(begin);
-	assert(end);
+	BT_ASSERT(begin);
+	BT_ASSERT(end);
 	*begin = g_begin->str;
 	*end = g_end->str;
 	g_string_free(g_begin, FALSE);
@@ -3471,7 +3471,7 @@ int g_list_prepend_gstring(GList **list, const char *string)
 	int ret = 0;
 	GString *gs = g_string_new(string);
 
-	assert(list);
+	BT_ASSERT(list);
 
 	if (!gs) {
 		print_err_oom();
@@ -4668,9 +4668,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			GString *quoted = NULL;
 			const char *arg_to_print;
 
-			assert(arg_value);
+			BT_ASSERT(arg_value);
 			ret = bt_value_string_get(arg_value, &arg);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			BT_PUT(arg_value);
 
 			if (print_run_args) {
@@ -4954,8 +4954,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		goto end;
 	}
 
-	assert(command_argv);
-	assert(command_argc >= 0);
+	BT_ASSERT(command_argv);
+	BT_ASSERT(command_argc >= 0);
 
 	switch (command_type) {
 	case COMMAND_TYPE_RUN:

@@ -26,7 +26,7 @@
 #include <string.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 249
+#define NR_TESTS 158
 
 static
 void test_null(void)
@@ -38,14 +38,6 @@ void test_null(void)
 	pass("getting bt_value_null does not cause a crash");
 	bt_put(bt_value_null);
 	pass("putting bt_value_null does not cause a crash");
-
-	bt_get(NULL);
-	pass("getting NULL does not cause a crash");
-	bt_put(NULL);
-	pass("putting NULL does not cause a crash");
-
-	ok(bt_value_get_type(NULL) == BT_VALUE_TYPE_UNKNOWN,
-		"bt_value_get_type(NULL) returns BT_VALUE_TYPE_UNKNOWN");
 }
 
 static
@@ -62,16 +54,6 @@ void test_bool(void)
 	value = BT_TRUE;
 	ret = bt_value_bool_get(obj, &value);
 	ok(!ret && !value, "default boolean value object value is BT_FALSE");
-
-	ret = bt_value_bool_set(NULL, BT_TRUE);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_bool_set() fails with an value object set to NULL");
-	ret = bt_value_bool_get(NULL, &value);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_bool_get() fails with an value object set to NULL");
-	ret = bt_value_bool_get(obj, NULL);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_bool_get() fails with a return value set to NULL");
 
 	assert(!bt_value_bool_set(obj, BT_FALSE));
 	ret = bt_value_bool_set(obj, BT_TRUE);
@@ -90,14 +72,6 @@ void test_bool(void)
 	ok(!ret && value,
 		"bt_value_bool_create_init() sets the appropriate initial value");
 
-	assert(!bt_value_freeze(obj));
-	ok(bt_value_bool_set(obj, BT_FALSE) == BT_VALUE_STATUS_FROZEN,
-		"bt_value_bool_set() cannot be called on a frozen boolean value object");
-	value = BT_FALSE;
-	ret = bt_value_bool_get(obj, &value);
-	ok(!ret && value,
-		"bt_value_bool_set() does not alter a frozen floating point number value object");
-
 	BT_PUT(obj);
 }
 
@@ -111,16 +85,6 @@ void test_integer(void)
 	obj = bt_value_integer_create();
 	ok(obj && bt_value_is_integer(obj),
 		"bt_value_integer_create() returns an integer value object");
-
-	ret = bt_value_integer_set(NULL, -12345);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_integer_set() fails with an value object set to NULL");
-	ret = bt_value_integer_get(NULL, &value);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_integer_get() fails with an value object set to NULL");
-	ret = bt_value_integer_get(obj, NULL);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_integer_get() fails with a return value set to NULL");
 
 	value = 1961;
 	ret = bt_value_integer_get(obj, &value);
@@ -141,14 +105,6 @@ void test_integer(void)
 	ok(!ret && value == 321456987,
 		"bt_value_integer_create_init() sets the appropriate initial value");
 
-	assert(!bt_value_freeze(obj));
-	ok(bt_value_integer_set(obj, 18276) == BT_VALUE_STATUS_FROZEN,
-		"bt_value_integer_set() cannot be called on a frozen integer value object");
-	value = 17;
-	ret = bt_value_integer_get(obj, &value);
-	ok(!ret && value == 321456987,
-		"bt_value_integer_set() does not alter a frozen integer value object");
-
 	BT_PUT(obj);
 }
 
@@ -162,16 +118,6 @@ void test_float(void)
 	obj = bt_value_float_create();
 	ok(obj && bt_value_is_float(obj),
 		"bt_value_float_create() returns a floating point number value object");
-
-	ret = bt_value_float_set(NULL, 1.2345);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_float_set() fails with an value object set to NULL");
-	ret = bt_value_float_get(NULL, &value);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_float_get() fails with an value object set to NULL");
-	ret = bt_value_float_get(obj, NULL);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_float_get() fails with a return value set to NULL");
 
 	value = 17.34;
 	ret = bt_value_float_get(obj, &value);
@@ -193,14 +139,6 @@ void test_float(void)
 	ok(!ret && value == 33.1649758,
 		"bt_value_float_create_init() sets the appropriate initial value");
 
-	assert(!bt_value_freeze(obj));
-	ok(bt_value_float_set(obj, 17.88) == BT_VALUE_STATUS_FROZEN,
-		"bt_value_float_set() fails with a frozen floating point number value object");
-	value = 1.2;
-	ret = bt_value_float_get(obj, &value);
-	ok(!ret && value == 33.1649758,
-		"bt_value_float_set() does not alter a frozen floating point number value object");
-
 	BT_PUT(obj);
 }
 
@@ -215,19 +153,6 @@ void test_string(void)
 	ok(obj && bt_value_is_string(obj),
 		"bt_value_string_create() returns a string value object");
 
-	ret = bt_value_string_set(NULL, "hoho");
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_string_set() fails with an value object set to NULL");
-	ret = bt_value_string_set(obj, NULL);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_string_set() fails with a value set to NULL");
-	ret = bt_value_string_get(NULL, &value);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_string_get() fails with an value object set to NULL");
-	ret = bt_value_string_get(obj, NULL);
-	ok(ret == BT_VALUE_STATUS_INVAL,
-		"bt_value_string_get() fails with a return value set to NULL");
-
 	ret = bt_value_string_get(obj, &value);
 	ok(!ret && value && !strcmp(value, ""),
 		"default string value object value is \"\"");
@@ -241,22 +166,12 @@ void test_string(void)
 	BT_PUT(obj);
 	pass("putting an existing string value object does not cause a crash")
 
-	obj = bt_value_string_create_init(NULL);
-	ok(!obj, "bt_value_string_create_init() fails with an initial value set to NULL");
 	obj = bt_value_string_create_init("initial value");
 	ok(obj && bt_value_is_string(obj),
 		"bt_value_string_create_init() returns a string value object");
 	ret = bt_value_string_get(obj, &value);
 	ok(!ret && value && !strcmp(value, "initial value"),
 		"bt_value_string_create_init() sets the appropriate initial value");
-
-	assert(!bt_value_freeze(obj));
-	ok(bt_value_string_set(obj, "new value") == BT_VALUE_STATUS_FROZEN,
-		"bt_value_string_set() fails with a frozen string value object");
-	value = "";
-	ret = bt_value_string_get(obj, &value);
-	ok(!ret && value && !strcmp(value, "initial value"),
-		"bt_value_string_set() does not alter a frozen string value object");
 
 	BT_PUT(obj);
 }
@@ -275,18 +190,8 @@ void test_array(void)
 	array_obj = bt_value_array_create();
 	ok(array_obj && bt_value_is_array(array_obj),
 		"bt_value_array_create() returns an array value object");
-	ok(bt_value_array_is_empty(NULL) == BT_FALSE,
-		"bt_value_array_is_empty() returns BT_FALSE with an value object set to NULL");
 	ok(bt_value_array_is_empty(array_obj),
 		"initial array value object size is 0");
-	ok(bt_value_array_size(NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_size() fails with an array value object set to NULL");
-
-	ok(bt_value_array_append(NULL, bt_value_null)
-		== BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append() fails with an array value object set to NULL");
-	ok(bt_value_array_append(array_obj, NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append() fails with a value set to NULL");
 
 	obj = bt_value_integer_create_init(345);
 	ret = bt_value_array_append(array_obj, obj);
@@ -301,14 +206,6 @@ void test_array(void)
 	ok(!ret, "bt_value_array_append() succeeds");
 	ok(bt_value_array_size(array_obj) == 4,
 		"appending an element to an array value object increment its size");
-
-	obj = bt_value_array_get(array_obj, 4);
-	ok(!obj, "getting an array value object's element at an index equal to its size fails");
-	obj = bt_value_array_get(array_obj, 5);
-	ok(!obj, "getting an array value object's element at a larger index fails");
-
-	obj = bt_value_array_get(NULL, 2);
-	ok(!obj, "bt_value_array_get() fails with an array value object set to NULL");
 
 	obj = bt_value_array_get(array_obj, 0);
 	ok(obj && bt_value_is_integer(obj),
@@ -335,14 +232,6 @@ void test_array(void)
 	ok(obj == bt_value_null,
 		"bt_value_array_get() returns an value object with the appropriate type (null)");
 
-	ok(bt_value_array_set(NULL, 0, bt_value_null) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_set() fails with an array value object set to NULL");
-	ok(bt_value_array_set(array_obj, 0, NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_set() fails with an element value object set to NULL");
-	ok(bt_value_array_set(array_obj, 4, bt_value_null) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_set() fails with an invalid index");
 	obj = bt_value_integer_create_init(1001);
 	assert(obj);
 	ok(!bt_value_array_set(array_obj, 2, obj),
@@ -359,31 +248,16 @@ void test_array(void)
 
 	ret = bt_value_array_append_bool(array_obj, BT_FALSE);
 	ok(!ret, "bt_value_array_append_bool() succeeds");
-	ok(bt_value_array_append_bool(NULL, BT_TRUE) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_bool() fails with an array value object set to NULL");
 	ret = bt_value_array_append_integer(array_obj, 98765);
 	ok(!ret, "bt_value_array_append_integer() succeeds");
-	ok(bt_value_array_append_integer(NULL, 18765) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_integer() fails with an array value object set to NULL");
 	ret = bt_value_array_append_float(array_obj, 2.49578);
 	ok(!ret, "bt_value_array_append_float() succeeds");
-	ok(bt_value_array_append_float(NULL, 1.49578) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_float() fails with an array value object set to NULL");
 	ret = bt_value_array_append_string(array_obj, "bt_value");
 	ok(!ret, "bt_value_array_append_string() succeeds");
-	ok(bt_value_array_append_string(NULL, "bt_obj") ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_string() fails with an array value object set to NULL");
 	ret = bt_value_array_append_empty_array(array_obj);
 	ok(!ret, "bt_value_array_append_empty_array() succeeds");
-	ok(bt_value_array_append_empty_array(NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_empty_array() fails with an array value object set to NULL");
 	ret = bt_value_array_append_empty_map(array_obj);
 	ok(!ret, "bt_value_array_append_empty_map() succeeds");
-	ok(bt_value_array_append_empty_map(NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_array_append_empty_map() fails with an array value object set to NULL");
 
 	ok(bt_value_array_size(array_obj) == 10,
 		"the bt_value_array_append_*() functions increment the array value object's size");
@@ -429,40 +303,6 @@ void test_array(void)
 		"bt_value_array_append_empty_map() appends a map value object");
 	ok(bt_value_map_is_empty(obj),
 		"bt_value_array_append_empty_map() an empty map value object");
-	BT_PUT(obj);
-
-	assert(!bt_value_freeze(array_obj));
-	ok(bt_value_array_append(array_obj, bt_value_null) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append() fails with a frozen array value object");
-	ok(bt_value_array_append_bool(array_obj, BT_FALSE) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_bool() fails with a frozen array value object");
-	ok(bt_value_array_append_integer(array_obj, 23) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_integer() fails with a frozen array value object");
-	ok(bt_value_array_append_float(array_obj, 2.34) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_float() fails with a frozen array value object");
-	ok(bt_value_array_append_string(array_obj, "yayayayaya") ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_string() fails with a frozen array value object");
-	ok(bt_value_array_append_empty_array(array_obj) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_empty_array() fails with a frozen array value object");
-	ok(bt_value_array_append_empty_map(array_obj) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_append_empty_map() fails with a frozen array value object");
-	ok(bt_value_array_set(array_obj, 2, bt_value_null) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_array_set() fails with a frozen array value object");
-	ok(bt_value_array_size(array_obj) == 10,
-		"appending to a frozen array value object does not change its size");
-
-	obj = bt_value_array_get(array_obj, 1);
-	assert(obj);
-	ok(bt_value_float_set(obj, 14.52) == BT_VALUE_STATUS_FROZEN,
-		"freezing an array value object also freezes its elements");
 	BT_PUT(obj);
 
 	BT_PUT(array_obj);
@@ -665,18 +505,6 @@ void test_map(void)
 		"bt_value_map_create() returns a map value object");
 	ok(bt_value_map_size(map_obj) == 0,
 		"initial map value object size is 0");
-	ok(bt_value_map_size(NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_map_size() fails with a map value object set to NULL");
-
-	ok(bt_value_map_insert(NULL, "hello", bt_value_null) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_insert() fails with a map value object set to NULL");
-	ok(bt_value_map_insert(map_obj, NULL, bt_value_null) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_insert() fails with a key set to NULL");
-	ok(bt_value_map_insert(map_obj, "yeah", NULL) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_array_insert() fails with an element value object set to NULL");
 
 	obj = bt_value_integer_create_init(19457);
 	ret = bt_value_map_insert(map_obj, "int", obj);
@@ -697,13 +525,8 @@ void test_map(void)
 	BT_PUT(obj);
 	ok(!ret, "bt_value_map_insert() accepts an existing key");
 
-	obj = bt_value_map_get(map_obj, NULL);
-	ok(!obj, "bt_value_map_get() fails with a key set to NULL");
-	obj = bt_value_map_get(NULL, "bt_bool");
-	ok(!obj, "bt_value_map_get() fails with a map value object set to NULL");
-
 	obj = bt_value_map_get(map_obj, "life");
-	ok(!obj, "bt_value_map_get() fails with an non existing key");
+	ok(!obj, "bt_value_map_get() returns NULL with an non existing key");
 	obj = bt_value_map_get(map_obj, "float");
 	ok(obj && bt_value_is_float(obj),
 		"bt_value_map_get() returns an value object with the appropriate type (float)");
@@ -731,32 +554,16 @@ void test_map(void)
 
 	ret = bt_value_map_insert_bool(map_obj, "bool2", BT_TRUE);
 	ok(!ret, "bt_value_map_insert_bool() succeeds");
-	ok(bt_value_map_insert_bool(NULL, "bool2", BT_FALSE) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_bool() fails with a map value object set to NULL");
 	ret = bt_value_map_insert_integer(map_obj, "int2", 98765);
 	ok(!ret, "bt_value_map_insert_integer() succeeds");
-	ok(bt_value_map_insert_integer(NULL, "int2", 1001) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_integer() fails with a map value object set to NULL");
 	ret = bt_value_map_insert_float(map_obj, "float2", -49.0001);
 	ok(!ret, "bt_value_map_insert_float() succeeds");
-	ok(bt_value_map_insert_float(NULL, "float2", 495) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_float() fails with a map value object set to NULL");
 	ret = bt_value_map_insert_string(map_obj, "string2", "bt_value");
 	ok(!ret, "bt_value_map_insert_string() succeeds");
-	ok(bt_value_map_insert_string(NULL, "string2", "bt_obj") ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_string() fails with a map value object set to NULL");
 	ret = bt_value_map_insert_empty_array(map_obj, "array2");
 	ok(!ret, "bt_value_map_insert_empty_array() succeeds");
-	ok(bt_value_map_insert_empty_array(NULL, "array2") == BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_empty_array() fails with a map value object set to NULL");
 	ret = bt_value_map_insert_empty_map(map_obj, "map2");
 	ok(!ret, "bt_value_map_insert_empty_map() succeeds");
-	ok(bt_value_map_insert_empty_map(NULL, "map2") == BT_VALUE_STATUS_INVAL,
-		"bt_value_map_insert_empty_map() fails with a map value object set to NULL");
 
 	ok(bt_value_map_size(map_obj) == 10,
 		"the bt_value_map_insert*() functions increment the map value object's size");
@@ -784,14 +591,8 @@ void test_map(void)
 	ok(bt_value_map_has_key(map_obj, "map2"),
 		"map value object has key \"map2\"");
 
-	ok(bt_value_map_foreach(NULL, test_map_foreach_cb_count, &count) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_map_foreach() fails with a map value object set to NULL");
-	ok(bt_value_map_foreach(map_obj, NULL, &count) ==
-		BT_VALUE_STATUS_INVAL,
-		"bt_value_map_foreach() fails with a user function set to NULL");
 	ret = bt_value_map_foreach(map_obj, test_map_foreach_cb_count, &count);
-	ok(ret == BT_VALUE_STATUS_CANCELLED && count == 3,
+	ok(ret == BT_VALUE_STATUS_CANCELED && count == 3,
 		"bt_value_map_foreach() breaks the loop when the user function returns BT_FALSE");
 
 	memset(&checklist, 0, sizeof(checklist));
@@ -804,31 +605,6 @@ void test_map(void)
 		checklist.float2 && checklist.string2 &&
 		checklist.array2 && checklist.map2,
 		"bt_value_map_foreach() iterates over all the map value object's elements");
-
-	assert(!bt_value_freeze(map_obj));
-	ok(bt_value_map_insert(map_obj, "allo", bt_value_null) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert() fails with a frozen map value object");
-	ok(bt_value_map_insert_bool(map_obj, "duh", BT_FALSE) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_bool() fails with a frozen array value object");
-	ok(bt_value_map_insert_integer(map_obj, "duh", 23) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_integer() fails with a frozen array value object");
-	ok(bt_value_map_insert_float(map_obj, "duh", 2.34) ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_float() fails with a frozen array value object");
-	ok(bt_value_map_insert_string(map_obj, "duh", "yayayayaya") ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_string() fails with a frozen array value object");
-	ok(bt_value_map_insert_empty_array(map_obj, "duh") ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_empty_array() fails with a frozen array value object");
-	ok(bt_value_map_insert_empty_map(map_obj, "duh") ==
-		BT_VALUE_STATUS_FROZEN,
-		"bt_value_map_insert_empty_map() fails with a frozen array value object");
-	ok(bt_value_map_size(map_obj) == 10,
-		"appending to a frozen map value object does not change its size");
 
 	BT_PUT(map_obj);
 	pass("putting an existing map value object does not cause a crash")
@@ -849,10 +625,6 @@ void test_types(void)
 static
 void test_compare_null(void)
 {
-	ok(!bt_value_compare(bt_value_null, NULL),
-		"cannot compare null value object and NULL");
-	ok(!bt_value_compare(NULL, bt_value_null),
-		"cannot compare NULL and null value object");
 	ok(bt_value_compare(bt_value_null, bt_value_null),
 		"null value objects are equivalent");
 }
@@ -1016,7 +788,6 @@ void test_compare_map(void)
 static
 void test_compare(void)
 {
-	ok(!bt_value_compare(NULL, NULL), "cannot compare NULL and NULL");
 	test_compare_null();
 	test_compare_bool();
 	test_compare_integer();
@@ -1061,10 +832,6 @@ void test_copy(void)
 	assert(!bt_value_array_append(array_obj, bt_value_null));
 	assert(!bt_value_map_insert(map_obj, "array", array_obj));
 	assert(!bt_value_map_insert(map_obj, "string", string_obj));
-
-	map_copy_obj = bt_value_copy(NULL);
-	ok(!map_copy_obj,
-		"bt_value_copy() fails with a source value object set to NULL");
 
 	map_copy_obj = bt_value_copy(map_obj);
 	ok(map_copy_obj,
@@ -1151,17 +918,6 @@ void test_extend(void)
 	assert(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_float(extension_map, "project", -404);
 	assert(status == BT_VALUE_STATUS_OK);
-	bt_value_freeze(base_map);
-	bt_value_freeze(extension_map);
-	bt_value_freeze(array);
-	ok(!bt_value_map_extend(NULL, extension_map),
-		"bt_value_map_extend() fails with a NULL base object");
-	ok(!bt_value_map_extend(base_map, NULL),
-		"bt_value_map_extend() fails with a NULL extension object");
-	ok(!bt_value_map_extend(array, extension_map),
-		"bt_value_map_extend() fails with a non-map base object");
-	ok(!bt_value_map_extend(base_map, array),
-		"bt_value_map_extend() fails with a non-map extension object");
 	extended_map = bt_value_map_extend(base_map, extension_map);
 	ok(extended_map, "bt_value_map_extend() succeeds");
 	ok(bt_value_map_size(extended_map) == 5,
@@ -1183,63 +939,12 @@ void test_extend(void)
 	BT_PUT(extended_map);
 }
 
-static
-void test_macros(void)
-{
-	struct bt_value *obj = bt_value_bool_create();
-	struct bt_value *src;
-	struct bt_value *dst = NULL;
-
-	assert(obj);
-	BT_PUT(obj);
-	ok(!obj, "BT_PUT() resets the variable to NULL");
-
-	obj = bt_value_bool_create();
-	assert(obj);
-	src = obj;
-	BT_MOVE(dst, src);
-	ok(!src, "BT_MOVE() resets the source variable to NULL");
-	ok(dst == obj, "BT_MOVE() moves the ownership");
-
-	BT_PUT(dst);
-}
-
-static
-void test_freeze(void)
-{
-	struct bt_value *obj;
-
-	ok(bt_value_freeze(NULL) == BT_VALUE_STATUS_INVAL,
-		"bt_value_freeze() fails with an value object set to NULL");
-	ok(!bt_value_freeze(bt_value_null),
-		"bt_value_freeze() succeeds with a null value object");
-
-	ok(!bt_value_is_frozen(NULL), "NULL is not frozen");
-	ok(bt_value_is_frozen(bt_value_null),
-		"the null singleton is frozen");
-	obj = bt_value_integer_create();
-	assert(obj);
-	ok(!bt_value_is_frozen(obj),
-		"bt_value_is_frozen() returns BT_FALSE with a fresh value object");
-	assert(!bt_value_freeze(obj));
-	ok(!bt_value_freeze(obj),
-		"bt_value_freeze() passes with a frozen value object");
-	ok(bt_value_is_frozen(obj),
-		"bt_value_is_frozen() returns BT_TRUE with a frozen value object");
-
-	BT_PUT(obj);
-}
-
 int main(void)
 {
 	plan_tests(NR_TESTS);
-
-	test_macros();
-	test_freeze();
 	test_types();
 	test_compare();
 	test_copy();
 	test_extend();
-
 	return 0;
 }

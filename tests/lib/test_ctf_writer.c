@@ -59,7 +59,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 625
+#define NR_TESTS 552
 
 struct bt_utsname {
 	char sysname[BABELTRACE_HOST_NAME_MAX];
@@ -415,13 +415,7 @@ void append_simple_event(struct bt_stream_class *stream_class,
 		integer_field) == 0, "Use bt_event_set_payload to set a manually allocated field");
 
 	float_field = bt_event_get_payload(simple_event, "float_field");
-	ok(bt_field_floating_point_get_value(float_field, &ret_double),
-		"bt_field_floating_point_get_value fails on an unset float field");
 	bt_field_floating_point_set_value(float_field, double_test_value);
-	ok(bt_field_floating_point_get_value(NULL, &ret_double),
-		"bt_field_floating_point_get_value properly handles a NULL field");
-	ok(bt_field_floating_point_get_value(float_field, NULL),
-		"bt_field_floating_point_get_value properly handles a NULL return value pointer");
 	ok(!bt_field_floating_point_get_value(float_field, &ret_double),
 		"bt_field_floating_point_get_value returns a double value");
 	ok(fabs(ret_double - double_test_value) <= DBL_EPSILON,
@@ -430,12 +424,7 @@ void append_simple_event(struct bt_stream_class *stream_class,
 	enum_field = bt_field_create(ep_enum_field_type);
 	assert(enum_field);
 
-	iter = bt_field_enumeration_get_mappings(NULL);
-	ok(!iter, "bt_field_enumeration_get_mappings handles NULL correctly");
-	iter = bt_field_enumeration_get_mappings(enum_field);
-	ok(!iter, "bt_field_enumeration_get_mappings returns NULL if the enumeration's container field is unset");
-	enum_container_field = bt_field_enumeration_get_container(
-		enum_field);
+	enum_container_field = bt_field_enumeration_get_container(enum_field);
 	ok(bt_field_signed_integer_set_value(
 		enum_container_field, -42) == 0,
 		"Set signed enumeration container value");
@@ -481,8 +470,6 @@ void append_simple_event(struct bt_stream_class *stream_class,
 	bt_field_unsigned_integer_set_value(stream_event_context_field, 42);
 
 	/* Populate the event's context */
-	ok(bt_event_get_event_context(NULL) == NULL,
-		"bt_event_get_event_context handles NULL correctly");
 	event_context = bt_event_get_event_context(simple_event);
 	ok(event_context,
 		"bt_event_get_event_context returns a field");
@@ -493,20 +480,12 @@ void append_simple_event(struct bt_stream_class *stream_class,
 		"event_specific_context");
 	ok(!bt_field_unsigned_integer_set_value(event_context_field, 1234),
 		"Successfully set an event context's value");
-	ok(bt_event_set_event_context(NULL, event_context) < 0,
-		"bt_event_set_event_context handles a NULL event correctly");
-	ok(bt_event_set_event_context(simple_event, NULL) < 0,
-		"bt_event_set_event_context handles a NULL event context correctly");
-	ok(bt_event_set_event_context(simple_event, event_context_field) < 0,
-		"bt_event_set_event_context rejects a context of the wrong type");
 	ok(!bt_event_set_event_context(simple_event, event_context),
 		"Set an event context successfully");
 
 	ok(bt_stream_append_event(stream, simple_event) == 0,
 		"Append simple event to trace stream");
 
-	ok(bt_stream_get_packet_context(NULL) == NULL,
-		"bt_stream_get_packet_context handles NULL correctly");
 	packet_context = bt_stream_get_packet_context(stream);
 	ok(packet_context,
 		"bt_stream_get_packet_context returns a packet context");
@@ -521,10 +500,6 @@ void append_simple_event(struct bt_stream_class *stream_class,
 	ok(bt_field_unsigned_integer_set_value(packet_context_field, 8) == 0,
 		"Custom packet context field value successfully set.");
 
-	ok(bt_stream_set_packet_context(NULL, packet_context_field) < 0,
-		"bt_stream_set_packet_context handles a NULL stream correctly");
-	ok(bt_stream_set_packet_context(stream, NULL) < 0,
-		"bt_stream_set_packet_context handles a NULL packet context correctly");
 	ok(bt_stream_set_packet_context(stream, packet_context) == 0,
 		"Successfully set a stream's packet context");
 
@@ -570,7 +545,7 @@ void append_complex_event(struct bt_stream_class *stream_class,
 	const char *test_string_2 = "string ";
 	const char *test_string_3 = "abcdefghi";
 	const char *test_string_4 = "abcd\0efg\0hi";
-	const char *test_string_cat = "Test string abcdeabcd";
+	const char *test_string_cat = "Test string abcdeefg";
 	struct bt_field_type *uint_35_type =
 		bt_field_type_integer_create(35);
 	struct bt_field_type *int_16_type =
@@ -871,57 +846,33 @@ void append_complex_event(struct bt_stream_class *stream_class,
 	event = bt_event_create(event_class);
 	ok(event, "Instanciate a complex event");
 
-	ok(bt_event_get_class(NULL) == NULL,
-		"bt_event_get_class handles NULL correctly");
 	ret_event_class = bt_event_get_class(event);
 	ok(ret_event_class == event_class,
 		"bt_event_get_class returns the correct event class");
 	bt_put(ret_event_class);
 
 	uint_35_field = bt_event_get_payload(event, "uint_35");
-	if (!uint_35_field) {
-		printf("uint_35_field is NULL\n");
-	}
-
 	ok(uint_35_field, "Use bt_event_get_payload to get a field instance ");
 	bt_field_unsigned_integer_set_value(uint_35_field, 0x0DDF00D);
-	ok(bt_field_unsigned_integer_get_value(NULL, &ret_unsigned_int) < 0,
-		"bt_field_unsigned_integer_get_value properly properly handles a NULL field.");
-	ok(bt_field_unsigned_integer_get_value(uint_35_field, NULL) < 0,
-		"bt_field_unsigned_integer_get_value properly handles a NULL return value");
 	ok(bt_field_unsigned_integer_get_value(uint_35_field,
 		&ret_unsigned_int) == 0,
 		"bt_field_unsigned_integer_get_value succeeds after setting a value");
 	ok(ret_unsigned_int == 0x0DDF00D,
 		"bt_field_unsigned_integer_get_value returns the correct value");
-	ok(bt_field_signed_integer_get_value(uint_35_field,
-		&ret_signed_int) < 0,
-		"bt_field_signed_integer_get_value fails on an unsigned field");
 	bt_put(uint_35_field);
 
 	int_16_field = bt_event_get_payload(event, "int_16");
 	bt_field_signed_integer_set_value(int_16_field, -12345);
-	ok(bt_field_signed_integer_get_value(NULL, &ret_signed_int) < 0,
-		"bt_field_signed_integer_get_value properly handles a NULL field");
-	ok(bt_field_signed_integer_get_value(int_16_field, NULL) < 0,
-		"bt_field_signed_integer_get_value properly handles a NULL return value");
 	ok(bt_field_signed_integer_get_value(int_16_field,
 		&ret_signed_int) == 0,
 		"bt_field_signed_integer_get_value succeeds after setting a value");
 	ok(ret_signed_int == -12345,
 		"bt_field_signed_integer_get_value returns the correct value");
-	ok(bt_field_unsigned_integer_get_value(int_16_field,
-		&ret_unsigned_int) < 0,
-		"bt_field_unsigned_integer_get_value fails on a signed field");
 	bt_put(int_16_field);
 
 	complex_structure_field = bt_event_get_payload(event,
 		"complex_structure");
 
-	ok(bt_field_structure_get_field_by_index(NULL, 0) == NULL,
-		"bt_field_structure_get_field_by_index handles NULL correctly");
-	ok(bt_field_structure_get_field_by_index(NULL, 9) == NULL,
-		"bt_field_structure_get_field_by_index handles an invalid index correctly");
 	inner_structure_field = bt_field_structure_get_field_by_index(
 		complex_structure_field, 3);
 	ret_field_type = bt_field_get_type(inner_structure_field);
@@ -952,27 +903,13 @@ void append_complex_event(struct bt_stream_class *stream_class,
 		enum_variant_field);
 	bt_field_signed_integer_set_value(int_16_field, -200);
 	bt_put(int_16_field);
-	ok(!bt_field_string_get_value(a_string_field),
-		"bt_field_string_get_value returns NULL on an unset field");
 	bt_field_string_set_value(a_string_field,
 		test_string_1);
-	ok(!bt_field_string_get_value(NULL),
-		"bt_field_string_get_value correctly handles NULL");
-	ok(bt_field_string_append(NULL, "yeah"),
-		"bt_field_string_append correctly handles a NULL string field");
-	ok(bt_field_string_append(a_string_field, NULL),
-		"bt_field_string_append correctly handles a NULL string value");
 	ok(!bt_field_string_append(a_string_field, test_string_2),
 		"bt_field_string_append succeeds");
-	ok(bt_field_string_append_len(NULL, "oh noes", 3),
-		"bt_field_string_append_len correctly handles a NULL string field");
-	ok(bt_field_string_append_len(a_string_field, NULL, 3),
-		"bt_field_string_append_len correctly handles a NULL string value");
 	ok(!bt_field_string_append_len(a_string_field, test_string_3, 5),
 		"bt_field_string_append_len succeeds (append 5 characters)");
-	ok(!bt_field_string_append_len(a_string_field, test_string_4, 10),
-		"bt_field_string_append_len succeeds (append 4 characters)");
-	ok(!bt_field_string_append_len(a_string_field, &test_string_4[4], 3),
+	ok(!bt_field_string_append_len(a_string_field, &test_string_4[5], 3),
 		"bt_field_string_append_len succeeds (append 0 characters)");
 	ok(!bt_field_string_append_len(a_string_field, test_string_3, 0),
 		"bt_field_string_append_len succeeds (append 0 characters)");
@@ -984,26 +921,16 @@ void append_complex_event(struct bt_stream_class *stream_class,
 	bt_field_unsigned_integer_set_value(uint_35_field,
 		SEQUENCE_TEST_LENGTH);
 
-	ok(bt_field_type_variant_get_field_type_from_tag(NULL,
-		enum_container_field) == NULL,
-		"bt_field_type_variant_get_field_type_from_tag handles a NULL variant type correctly");
-	ok(bt_field_type_variant_get_field_type_from_tag(variant_type,
-		NULL) == NULL,
-		"bt_field_type_variant_get_field_type_from_tag handles a NULL tag correctly");
 	ret_field_type = bt_field_type_variant_get_field_type_from_tag(
 		variant_type, enum_variant_field);
 	ok(ret_field_type == int_16_type,
 		"bt_field_type_variant_get_field_type_from_tag returns the correct field type");
 
-	ok(bt_field_sequence_get_length(a_sequence_field) == NULL,
-		"bt_field_sequence_get_length returns NULL when length is unset");
 	ok(bt_field_sequence_set_length(a_sequence_field,
 		uint_35_field) == 0, "Set a sequence field's length");
 	ret_field = bt_field_sequence_get_length(a_sequence_field);
 	ok(ret_field == uint_35_field,
 		"bt_field_sequence_get_length returns the correct length field");
-	ok(bt_field_sequence_get_length(NULL) == NULL,
-		"bt_field_sequence_get_length properly handles NULL");
 
 	for (i = 0; i < SEQUENCE_TEST_LENGTH; i++) {
 		int_16_field = bt_field_sequence_get_field(
@@ -1276,8 +1203,6 @@ void field_copy_tests()
 	/* set v field */
 	v_selected = bt_field_variant_get_field(v, e);
 	assert(v_selected);
-	ok(!bt_field_variant_get_current_field(NULL),
-		"bt_field_variant_get_current_field handles NULL correctly");
 	v_selected_cur = bt_field_variant_get_current_field(v);
 	ok(v_selected_cur == v_selected,
 		"bt_field_variant_get_current_field returns the current field");
@@ -1338,8 +1263,6 @@ void field_copy_tests()
 	assert(!ret);
 
 	/* create copy of strct */
-	ok(!bt_field_copy(NULL),
-		"bt_field_copy handles NULL correctly");
 	strct_copy = bt_field_copy(strct);
 	ok(strct_copy,
 		"bt_field_copy returns a valid pointer");
@@ -1373,8 +1296,6 @@ void field_copy_tests()
 	assert(v_selected_5_copy);
 	v_selected_6_copy = bt_field_sequence_get_field(v_selected_copy, 6);
 	assert(v_selected_6_copy);
-	ok(!bt_field_sequence_get_field(v_selected_copy, 7),
-		"sequence field copy is not too large");
 	a_copy = bt_field_structure_get_field_by_name(strct_copy, "a");
 	assert(a_copy);
 	a_0_copy = bt_field_array_get_field(a_copy, 0);
@@ -1387,8 +1308,6 @@ void field_copy_tests()
 	assert(a_3_copy);
 	a_4_copy = bt_field_array_get_field(a_copy, 4);
 	assert(a_4_copy);
-	ok(!bt_field_array_get_field(v_selected_copy, 5),
-		"array field copy is not too large");
 
 	/* make sure copied fields are different pointers */
 	field_copy_tests_validate_diff_ptrs(strct_copy, strct, "strct");
@@ -1611,7 +1530,6 @@ void type_field_tests()
 	struct bt_field *uint_12;
 	struct bt_field *int_16;
 	struct bt_field *string;
-	struct bt_field *enumeration;
 	struct bt_field_type *composite_structure_type;
 	struct bt_field_type *structure_seq_type;
 	struct bt_field_type *string_type;
@@ -1623,9 +1541,6 @@ void type_field_tests()
 	struct bt_field_type *enumeration_type;
 	struct bt_field_type *returned_type;
 	const char *ret_string;
-
-	returned_type = bt_field_get_type(NULL);
-	ok(!returned_type, "bt_field_get_type handles NULL correctly");
 
 	ok(uint_12_type, "Create an unsigned integer type");
 	ok(bt_field_type_integer_set_base(uint_12_type,
@@ -1838,28 +1753,16 @@ void type_field_tests()
 	ok(bt_ctf_field_type_integer_set_signed(uint_12_type, 0),
 		"Check an integer type's signedness can't be modified after instanciation");
 
-	/* Check signed property is checked */
-	ok(bt_field_signed_integer_set_value(uint_12, -52),
-		"Check bt_field_signed_integer_set_value is not allowed on an unsigned integer");
-	ok(bt_field_unsigned_integer_set_value(int_16, 42),
-		"Check bt_field_unsigned_integer_set_value is not allowed on a signed integer");
-
 	/* Check overflows are properly tested for */
 	ok(bt_field_signed_integer_set_value(int_16, -32768) == 0,
 		"Check -32768 is allowed for a signed 16-bit integer");
 	ok(bt_field_signed_integer_set_value(int_16, 32767) == 0,
 		"Check 32767 is allowed for a signed 16-bit integer");
-	ok(bt_field_signed_integer_set_value(int_16, 32768),
-		"Check 32768 is not allowed for a signed 16-bit integer");
-	ok(bt_field_signed_integer_set_value(int_16, -32769),
-		"Check -32769 is not allowed for a signed 16-bit integer");
 	ok(bt_field_signed_integer_set_value(int_16, -42) == 0,
 		"Check -42 is allowed for a signed 16-bit integer");
 
 	ok(bt_field_unsigned_integer_set_value(uint_12, 4095) == 0,
 		"Check 4095 is allowed for an unsigned 12-bit integer");
-	ok(bt_field_unsigned_integer_set_value(uint_12, 4096),
-		"Check 4096 is not allowed for a unsigned 12-bit integer");
 	ok(bt_field_unsigned_integer_set_value(uint_12, 0) == 0,
 		"Check 0 is allowed for an unsigned 12-bit integer");
 
@@ -1871,14 +1774,10 @@ void type_field_tests()
 	enumeration_type = bt_field_type_enumeration_create(uint_12_type);
 	ok(enumeration_type,
 		"Create an enumeration type with an unsigned 12-bit integer as container");
-	enumeration = bt_field_create(enumeration_type);
-	ok(!enumeration,
-		"Check enumeration types are validated before instantiation");
 
 	bt_put(string);
 	bt_put(uint_12);
 	bt_put(int_16);
-	bt_put(enumeration);
 	bt_put(composite_structure_type);
 	bt_put(structure_seq_type);
 	bt_put(string_type);
@@ -1949,11 +1848,6 @@ void packet_resize_test(struct bt_stream_class *stream_class,
 		"bt_event_get_payload_by_index returns a correct field");
 	bt_put(ret_field_type);
 	bt_put(ret_field);
-
-	ok(bt_event_get_payload_by_index(NULL, 0) == NULL,
-		"bt_event_get_payload_by_index handles NULL correctly");
-	ok(bt_event_get_payload_by_index(event, 4) == NULL,
-		"bt_event_get_payload_by_index handles an invalid index correctly");
 	bt_put(event);
 
 	for (i = 0; i < packet_resize_test_length; i++) {
@@ -1992,10 +1886,6 @@ void packet_resize_test(struct bt_stream_class *stream_class,
 	}
 
 	events_appended = !!(i == packet_resize_test_length);
-	ok(bt_stream_get_discarded_events_count(NULL, &ret_uint64) < 0,
-		"bt_stream_get_discarded_events_count handles a NULL stream correctly");
-	ok(bt_stream_get_discarded_events_count(stream, NULL) < 0,
-		"bt_stream_get_discarded_events_count handles a NULL return pointer correctly");
 	ret = bt_stream_get_discarded_events_count(stream, &ret_uint64);
 	ok(ret == 0 && ret_uint64 == 0,
 		"bt_stream_get_discarded_events_count returns a correct number of discarded events when none were discarded");
@@ -2348,11 +2238,6 @@ void test_instanciate_event_before_stream(struct bt_ctf_writer *writer,
 		goto end;
 	}
 
-	ok(bt_event_get_stream(NULL) == NULL,
-		"bt_event_get_stream handles NULL correctly");
-	ok(bt_event_get_stream(event) == NULL,
-		"bt_event_get_stream returns NULL on event which has not yet been appended to a stream");
-
 	ret = bt_stream_append_event(stream, event);
 	if (ret) {
 		diag("Failed to append event to stream");
@@ -2523,8 +2408,6 @@ void test_create_writer_vs_non_writer_mode(void)
 	 * It should be possible to create a packet from a non-writer
 	 * stream, but not from a writer stream.
 	 */
-	packet = bt_packet_create(writer_stream);
-	ok(!packet, "bt_packet_create() fails with a writer stream");
 	packet = bt_packet_create(non_writer_stream);
 	ok(packet, "bt_packet_create() succeeds with a non-writer stream");
 	packet_stream = bt_packet_get_stream(packet);
@@ -2537,16 +2420,6 @@ void test_create_writer_vs_non_writer_mode(void)
 	 */
 	writer_stream2 = bt_stream_create(writer_sc, "zoo");
 	assert(writer_stream2);
-	ok(bt_stream_append_event(writer_stream2, event),
-		"bt_stream_append_event() fails with an event associated to another stream");
-
-	/*
-	 * It should not be possible to set the packet of an event
-	 * associated to a given stream to a packet associated with
-	 * a different stream.
-	 */
-	ok(bt_event_set_packet(event, packet),
-		"bt_event_set_packet() fails with a packet not sharing the event's stream");
 
 	/*
 	 * It should be possible to set the packet of a fresh event, as
@@ -2554,8 +2427,6 @@ void test_create_writer_vs_non_writer_mode(void)
 	 */
 	event2 = bt_event_create(writer_ec);
 	assert(event2);
-	ok(bt_event_set_packet(event2, packet),
-		"bt_event_set_packet() fails when the event's and the packet's stream class differ");
 	non_writer_ec = create_minimal_event_class();
 	assert(non_writer_ec);
 	ret = bt_stream_class_add_event_class(non_writer_sc, non_writer_ec);
@@ -2584,8 +2455,6 @@ void test_create_writer_vs_non_writer_mode(void)
 	assert(non_writer_stream2);
 	packet2 = bt_packet_create(non_writer_stream);
 	assert(packet2);
-	ok(!bt_event_set_packet(event2, packet2),
-		"bt_event_set_packet() fails when the event's current packet does not have the same stream");
 
 	bt_put(writer);
 	bt_put(writer_trace);
@@ -3104,41 +2973,6 @@ int main(int argc, char **argv)
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0,
 		"Set clock time");
 
-	ok(!bt_ctf_clock_get_name(NULL),
-		"bt_ctf_clock_get_name correctly handles NULL");
-	ok(!bt_ctf_clock_get_description(NULL),
-		"bt_ctf_clock_get_description correctly handles NULL");
-	ok(bt_ctf_clock_get_frequency(NULL) == -1ULL,
-		"bt_ctf_clock_get_frequency correctly handles NULL");
-	ok(bt_ctf_clock_get_precision(NULL) == -1ULL,
-		"bt_ctf_clock_get_precision correctly handles NULL");
-	ok(bt_ctf_clock_get_offset_s(NULL, &get_offset_s) < 0,
-		"bt_ctf_clock_get_offset_s correctly handles NULL clock");
-	ok(bt_ctf_clock_get_offset_s(clock, NULL) < 0,
-		"bt_ctf_clock_get_offset_s correctly handles NULL output");
-	ok(bt_ctf_clock_get_offset(NULL, &get_offset) < 0,
-		"bt_ctf_clock_get_offset correctly handles NULL clock");
-	ok(bt_ctf_clock_get_offset(clock, NULL) < 0,
-		"bt_ctf_clock_get_offset correctly handles NULL output");
-	ok(bt_ctf_clock_get_is_absolute(NULL) < 0,
-		"bt_ctf_clock_get_is_absolute correctly handles NULL");
-
-	ok(bt_ctf_clock_set_description(NULL, NULL) < 0,
-		"bt_ctf_clock_set_description correctly handles NULL clock");
-	ok(bt_ctf_clock_set_frequency(NULL, frequency) < 0,
-		"bt_ctf_clock_set_frequency correctly handles NULL clock");
-	ok(bt_ctf_clock_set_precision(NULL, precision) < 0,
-		"bt_ctf_clock_get_precision correctly handles NULL clock");
-	ok(bt_ctf_clock_set_offset_s(NULL, offset_s) < 0,
-		"bt_ctf_clock_set_offset_s correctly handles NULL clock");
-	ok(bt_ctf_clock_set_offset(NULL, offset) < 0,
-		"bt_ctf_clock_set_offset correctly handles NULL clock");
-	ok(bt_ctf_clock_set_is_absolute(NULL, is_absolute) < 0,
-		"bt_ctf_clock_set_is_absolute correctly handles NULL clock");
-	ok(bt_ctf_clock_set_time(NULL, current_time) < 0,
-		"bt_ctf_clock_set_time correctly handles NULL clock");
-	ok(bt_ctf_clock_get_uuid(NULL) == NULL,
-		"bt_ctf_clock_get_uuid correctly handles NULL clock");
 	ret_uuid = bt_ctf_clock_get_uuid(clock);
 	ok(ret_uuid,
 		"bt_ctf_clock_get_uuid returns a UUID");
@@ -3148,10 +2982,6 @@ int main(int argc, char **argv)
 		tmp_uuid[sizeof(tmp_uuid) - 1]++;
 	}
 
-	ok(bt_ctf_clock_set_uuid(NULL, tmp_uuid) < 0,
-		"bt_ctf_clock_set_uuid correctly handles a NULL clock");
-	ok(bt_ctf_clock_set_uuid(clock, NULL) < 0,
-		"bt_ctf_clock_set_uuid correctly handles a NULL UUID");
 	ok(bt_ctf_clock_set_uuid(clock, tmp_uuid) == 0,
 		"bt_ctf_clock_set_uuid sets a new uuid successfully");
 	ret_uuid = bt_ctf_clock_get_uuid(clock);

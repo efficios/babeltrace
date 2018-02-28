@@ -31,8 +31,8 @@
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
-#include <assert.h>
 
 static
 struct bt_component_class *colander_comp_cls;
@@ -134,8 +134,8 @@ void colander_port_connected(struct bt_private_component *priv_comp,
 	struct colander_data *colander_data =
 		bt_private_component_get_user_data(priv_comp);
 
-	assert(priv_conn);
-	assert(colander_data);
+	BT_ASSERT(priv_conn);
+	BT_ASSERT(colander_data);
 	BT_PUT(colander_data->notif_iter);
 	conn_status = bt_private_connection_create_notification_iterator(
 		priv_conn, colander_data->notif_types,
@@ -160,7 +160,7 @@ enum bt_component_status colander_consume(
 	struct colander_data *colander_data =
 		bt_private_component_get_user_data(priv_comp);
 
-	assert(colander_data);
+	BT_ASSERT(colander_data);
 
 	if (!colander_data->notif_iter) {
 		BT_LOGW("Trying to consume without an upstream notification iterator: "
@@ -189,7 +189,7 @@ enum bt_component_status colander_consume(
 
 	notif = bt_notification_iterator_get_notification(
 		colander_data->notif_iter);
-	assert(notif);
+	BT_ASSERT(notif);
 
 end:
 	/* Move notification to user's pointer, even if NULL. */

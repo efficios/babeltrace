@@ -35,6 +35,7 @@
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 static
@@ -98,7 +99,7 @@ struct bt_field_path *bt_field_path_copy(
 {
 	struct bt_field_path *new_path;
 
-	assert(path);
+	BT_ASSERT(path);
 	BT_LOGD("Copying field path: addr=%p, index-count=%u",
 		path, path->indexes->len);
 	new_path = bt_field_path_create();

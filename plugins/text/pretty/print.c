@@ -31,6 +31,7 @@
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/compat/time-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <ctype.h>
 #include "pretty.h"
@@ -502,7 +503,7 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 		const char *log_level_str = NULL;
 
 		log_level = bt_event_class_get_log_level(event_class);
-		assert(log_level != BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN);
+		BT_ASSERT(log_level != BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN);
 		if (log_level != BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED) {
 			log_level_str = log_level_names[log_level];
 		}
@@ -658,7 +659,7 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 			if (len < 64) {
 			        size_t rounded_len;
 
-				assert(len != 0);
+				BT_ASSERT(len != 0);
 				/* Round length to the nearest 3-bit */
 				rounded_len = (((len - 1) / 3) + 1) * 3;
 				v.u &= ((uint64_t) 1 << rounded_len) - 1;
@@ -1491,8 +1492,8 @@ enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 	struct bt_clock_class_priority_map *cc_prio_map =
 		bt_notification_event_get_clock_class_priority_map(event_notif);
 
-	assert(event);
-	assert(cc_prio_map);
+	BT_ASSERT(event);
+	BT_ASSERT(cc_prio_map);
 	pretty->start_line = true;
 	g_string_assign(pretty->string, "");
 	ret = print_event_header(pretty, event, cc_prio_map);
@@ -1573,12 +1574,12 @@ enum bt_component_status pretty_print_discarded_elements(
 		abort();
 	}
 
-	assert(stream);
+	BT_ASSERT(stream);
 	stream_name = bt_stream_get_name(stream);
 
 	/* Stream class ID */
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 	stream_class_id = bt_stream_class_get_id(stream_class);
 
 	/* Stream ID */
@@ -1586,7 +1587,7 @@ enum bt_component_status pretty_print_discarded_elements(
 
 	/* Trace path */
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 	trace_name = bt_trace_get_name(trace);
 	if (!trace_name) {
 		trace_name = "(unknown)";

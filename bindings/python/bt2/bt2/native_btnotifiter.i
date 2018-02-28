@@ -62,10 +62,10 @@ static PyObject *bt_py3_get_user_component_from_user_notif_iter(
 			priv_notif_iter);
 	PyObject *py_comp;
 
-	assert(priv_comp);
+	BT_ASSERT(priv_comp);
 	py_comp = bt_private_component_get_user_data(priv_comp);
 	bt_put(priv_comp);
-	assert(py_comp);
+	BT_ASSERT(py_comp);
 
 	/* Return new reference */
 	Py_INCREF(py_comp);

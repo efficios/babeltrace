@@ -47,6 +47,7 @@
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
 #include <babeltrace/values-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <stdint.h>
 #include <inttypes.h>
 
@@ -185,7 +186,7 @@ struct bt_port *bt_component_add_port(
 		struct bt_port *port = g_ptr_array_index(ports, i);
 
 		port_name = bt_port_get_name(port);
-		assert(port_name);
+		BT_ASSERT(port_name);
 
 		if (!strcmp(name, port_name)) {
 			/* Port name clash, abort. */
@@ -230,14 +231,14 @@ end:
 BT_HIDDEN
 int64_t bt_component_get_input_port_count(struct bt_component *comp)
 {
-	assert(comp);
+	BT_ASSERT(comp);
 	return (int64_t) comp->input_ports->len;
 }
 
 BT_HIDDEN
 int64_t bt_component_get_output_port_count(struct bt_component *comp)
 {
-	assert(comp);
+	BT_ASSERT(comp);
 	return (int64_t) comp->output_ports->len;
 }
 
@@ -250,9 +251,9 @@ enum bt_component_status bt_component_create(
 	struct bt_component *component = NULL;
 	enum bt_component_class_type type;
 
-	assert(user_component);
-	assert(component_class);
-	assert(name);
+	BT_ASSERT(user_component);
+	BT_ASSERT(component_class);
+	BT_ASSERT(name);
 
 	type = bt_component_class_get_type(component_class);
 	BT_LOGD("Creating empty component from component class: "
@@ -383,7 +384,7 @@ struct bt_port *bt_component_get_port_by_name(GPtrArray *ports,
 	size_t i;
 	struct bt_port *ret_port = NULL;
 
-	assert(name);
+	BT_ASSERT(name);
 
 	for (i = 0; i < ports->len; i++) {
 		struct bt_port *port = g_ptr_array_index(ports, i);
@@ -406,7 +407,7 @@ BT_HIDDEN
 struct bt_port *bt_component_get_input_port_by_name(struct bt_component *comp,
 		const char *name)
 {
-	assert(comp);
+	BT_ASSERT(comp);
 
 	return bt_component_get_port_by_name(comp->input_ports, name);
 }
@@ -415,7 +416,7 @@ BT_HIDDEN
 struct bt_port *bt_component_get_output_port_by_name(struct bt_component *comp,
 		const char *name)
 {
-	assert(comp);
+	BT_ASSERT(comp);
 
 	return bt_component_get_port_by_name(comp->output_ports, name);
 }
@@ -441,7 +442,7 @@ BT_HIDDEN
 struct bt_port *bt_component_get_input_port_by_index(struct bt_component *comp,
 		uint64_t index)
 {
-	assert(comp);
+	BT_ASSERT(comp);
 
 	return bt_component_get_port_by_index(comp->input_ports, index);
 }
@@ -450,7 +451,7 @@ BT_HIDDEN
 struct bt_port *bt_component_get_output_port_by_index(struct bt_component *comp,
 		uint64_t index)
 {
-	assert(comp);
+	BT_ASSERT(comp);
 
 	return bt_component_get_port_by_index(comp->output_ports, index);
 }
@@ -482,8 +483,8 @@ void bt_component_remove_port_by_index(struct bt_component *component,
 	struct bt_port *port;
 	struct bt_graph *graph;
 
-	assert(ports);
-	assert(index < ports->len);
+	BT_ASSERT(ports);
+	BT_ASSERT(index < ports->len);
 	port = g_ptr_array_index(ports, index);
 
 	BT_LOGD("Removing port from component: "
@@ -545,7 +546,7 @@ enum bt_component_status bt_component_remove_port(
 		ports = component->output_ports;
 	}
 
-	assert(ports);
+	BT_ASSERT(ports);
 
 	for (i = 0; i < ports->len; i++) {
 		struct bt_port *cur_port = g_ptr_array_index(ports, i);
@@ -575,9 +576,9 @@ enum bt_component_status bt_component_accept_port_connection(
 {
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 
-	assert(comp);
-	assert(self_port);
-	assert(other_port);
+	BT_ASSERT(comp);
+	BT_ASSERT(self_port);
+	BT_ASSERT(other_port);
 
 	if (comp->class->methods.accept_port_connection) {
 		BT_LOGD("Calling user's \"accept port connection\" method: "
@@ -602,9 +603,9 @@ BT_HIDDEN
 void bt_component_port_connected(struct bt_component *comp,
 		struct bt_port *self_port, struct bt_port *other_port)
 {
-	assert(comp);
-	assert(self_port);
-	assert(other_port);
+	BT_ASSERT(comp);
+	BT_ASSERT(self_port);
+	BT_ASSERT(other_port);
 
 	if (comp->class->methods.port_connected) {
 		BT_LOGD("Calling user's \"port connected\" method: "
@@ -624,8 +625,8 @@ BT_HIDDEN
 void bt_component_port_disconnected(struct bt_component *comp,
 		struct bt_port *port)
 {
-	assert(comp);
-	assert(port);
+	BT_ASSERT(comp);
+	BT_ASSERT(port);
 
 	if (comp->class->methods.port_disconnected) {
 		BT_LOGD("Calling user's \"port disconnected\" method: "
@@ -645,8 +646,8 @@ void bt_component_add_destroy_listener(struct bt_component *component,
 {
 	struct bt_component_destroy_listener listener;
 
-	assert(component);
-	assert(func);
+	BT_ASSERT(component);
+	BT_ASSERT(func);
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(component->destroy_listeners, listener);
@@ -663,8 +664,8 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 {
 	size_t i;
 
-	assert(component);
-	assert(func);
+	BT_ASSERT(component);
+	BT_ASSERT(func);
 
 	for (i = 0; i < component->destroy_listeners->len; i++) {
 		struct bt_component_destroy_listener *listener =

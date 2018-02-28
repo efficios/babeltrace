@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
+#include <babeltrace/assert-internal.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,7 +50,7 @@ struct bt_event *bt_notification_event_borrow_event(
 	struct bt_notification_event *notif_event = container_of(notif,
 			struct bt_notification_event, parent);
 
-	assert(notif_event);
+	BT_ASSERT(notif_event);
 	return notif_event->event;
 }
 
@@ -61,7 +62,7 @@ bt_notification_event_borrow_clock_class_priority_map(
 	struct bt_notification_event *notif_event = container_of(notif,
 			struct bt_notification_event, parent);
 
-	assert(notif_event);
+	BT_ASSERT(notif_event);
 	return notif_event->cc_prio_map;
 }
 

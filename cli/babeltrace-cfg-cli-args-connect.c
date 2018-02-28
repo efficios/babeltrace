@@ -105,7 +105,7 @@ static bool validate_port_glob(const char *port_glob)
 	bool is_valid = true;
 	const char *ch = port_glob;
 
-	assert(port_glob);
+	BT_ASSERT(port_glob);
 
 	while (*ch != '\0') {
 		switch (*ch) {
@@ -380,10 +380,10 @@ static int validate_connection_directions(struct bt_config *cfg,
 
 		src_comp = find_component(cfg,
 			connection->upstream_comp_name->str);
-		assert(src_comp);
+		BT_ASSERT(src_comp);
 		dst_comp = find_component(cfg,
 			connection->downstream_comp_name->str);
-		assert(dst_comp);
+		BT_ASSERT(dst_comp);
 
 		if (src_comp->type == BT_COMPONENT_CLASS_TYPE_SOURCE) {
 			if (dst_comp->type != BT_COMPONENT_CLASS_TYPE_FILTER &&
@@ -432,7 +432,7 @@ static int validate_no_cycles_rec(struct bt_config *cfg, GPtrArray *path,
 	size_t conn_i;
 	const char *src_comp_name;
 
-	assert(path && path->len > 0);
+	BT_ASSERT(path && path->len > 0);
 	src_comp_name = g_ptr_array_index(path, path->len - 1);
 
 	for (conn_i = 0; conn_i < cfg->cmd_data.run.connections->len; conn_i++) {
@@ -694,7 +694,7 @@ int bt_config_cli_args_create_connections(struct bt_config *cfg,
 
 		ret = bt_value_string_get(arg_value, &arg);
 		BT_PUT(arg_value);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		cfg_connection = cfg_connection_from_arg(arg);
 		if (!cfg_connection) {
 			snprintf(error_buf, error_buf_size, "Cannot parse --connect option's argument:\n    %s\n",

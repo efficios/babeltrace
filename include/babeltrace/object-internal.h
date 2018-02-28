@@ -29,6 +29,7 @@
 
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/assert-internal.h>
 
 /**
  * All objects publicly exposed by Babeltrace APIs must contain this structure
@@ -151,7 +152,7 @@ static inline
 void bt_object_set_parent_is_owner_listener(void *obj,
 		bt_object_release_func cb)
 {
-	assert(obj);
+	BT_ASSERT(obj);
 	((struct bt_object *) obj)->parent_is_owner_listener = cb;
 }
 

@@ -29,7 +29,7 @@
 #define BT_LOG_TAG "PLUGIN-UTILS-TRIMMER-FLT-COPY"
 #include "logging.h"
 
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace.h>
 
 #include <ctfcopytrace.h>
@@ -88,13 +88,13 @@ enum bt_component_status update_packet_context_field(FILE *err,
 
 	BT_LOGD("Updating packet context field: name=%s", name);
 	packet_context = bt_packet_get_context(writer_packet);
-	assert(packet_context);
+	BT_ASSERT(packet_context);
 
 	struct_type = bt_field_get_type(packet_context);
-	assert(struct_type);
+	BT_ASSERT(struct_type);
 
 	writer_packet_context = bt_packet_get_context(writer_packet);
-	assert(writer_packet_context);
+	BT_ASSERT(writer_packet_context);
 
 	nr_fields = bt_field_type_structure_get_field_count(struct_type);
 	for (i = 0; i < nr_fields; i++) {
@@ -127,10 +127,10 @@ enum bt_component_status update_packet_context_field(FILE *err,
 
 		writer_field = bt_field_structure_get_field_by_name(writer_packet_context,
 				field_name);
-		assert(writer_field);
+		BT_ASSERT(writer_field);
 
 		int_ret = bt_field_unsigned_integer_set_value(writer_field, value);
-		assert(int_ret == 0);
+		BT_ASSERT(int_ret == 0);
 
 		BT_PUT(writer_field);
 		BT_PUT(field_type);
@@ -161,7 +161,7 @@ struct bt_packet *trimmer_new_packet(
 	int int_ret;
 
 	stream = bt_packet_get_stream(packet);
-	assert(stream);
+	BT_ASSERT(stream);
 
 	/*
 	 * If a packet was already opened, close it and remove it from
@@ -227,7 +227,7 @@ struct bt_event *trimmer_output_event(
 	int int_ret;
 
 	event_class = bt_event_get_class(event);
-	assert(event_class);
+	BT_ASSERT(event_class);
 
 	event_name = bt_event_class_get_name(event_class);
 
@@ -240,7 +240,7 @@ struct bt_event *trimmer_output_event(
 	}
 
 	packet = bt_event_get_packet(event);
-	assert(packet);
+	BT_ASSERT(packet);
 
 	writer_packet = lookup_packet(trim_it, packet);
 	if (!writer_packet) {

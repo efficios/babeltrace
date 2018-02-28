@@ -32,6 +32,7 @@
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/private-connection.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <stdbool.h>
 
 struct bt_graph;
@@ -88,7 +89,7 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 static inline
 struct bt_graph *bt_connection_borrow_graph(struct bt_connection *conn)
 {
-	assert(conn);
+	BT_ASSERT(conn);
 	return (void *) conn->base.parent;
 }
 

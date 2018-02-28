@@ -35,7 +35,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/object-internal.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 struct bt_stream_pos;
@@ -54,28 +54,38 @@ struct bt_event {
 };
 
 BT_HIDDEN
-int bt_event_validate(struct bt_event *event);
-
-BT_HIDDEN
 int bt_event_serialize(struct bt_event *event,
 		struct bt_stream_pos *pos,
 		enum bt_byte_order native_byte_order);
 
 BT_HIDDEN
-void bt_event_freeze(struct bt_event *event);
+int _bt_event_validate(struct bt_event *event);
 
-static inline struct bt_packet *bt_event_borrow_packet(
-		struct bt_event *event)
+BT_HIDDEN
+void _bt_event_freeze(struct bt_event *event);
+
+#ifdef BT_DEV_MODE
+# define bt_event_validate		_bt_event_validate
+# define bt_event_freeze		_bt_event_freeze
+#else
+# define bt_event_validate(_event)	0
+# define bt_event_freeze(_event)
+#endif
+
+static inline struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
 {
-	assert(event);
+	BT_ASSERT(event);
 	return event->packet;
 }
+
+BT_HIDDEN
+struct bt_stream *bt_event_borrow_stream(struct bt_event *event);
 
 static inline
 struct bt_event_class *bt_event_borrow_event_class(
 		struct bt_event *event)
 {
-	assert(event);
+	BT_ASSERT(event);
 	return event->event_class;
 }
 
