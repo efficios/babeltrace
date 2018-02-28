@@ -72,8 +72,8 @@ static struct bt_py3_create_notif_iter_ret bt_py3_create_priv_conn_notif_iter(
 	struct bt_py3_create_notif_iter_ret ret;
 
 	priv_conn = (void *) priv_conn_addr;
-	assert(!PyErr_Occurred());
-	assert(priv_conn);
+	BT_ASSERT(!PyErr_Occurred());
+	BT_ASSERT(priv_conn);
 
 	notification_types = bt_py3_notif_types_from_py_list(py_notif_types);
 	ret.status = bt_private_connection_create_notification_iterator(

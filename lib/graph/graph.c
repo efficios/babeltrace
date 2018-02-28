@@ -39,6 +39,8 @@
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
 #include <babeltrace/values-internal.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <unistd.h>
 #include <glib.h>
 
@@ -53,7 +55,7 @@ int init_listeners_array(GArray **listeners)
 {
 	int ret = 0;
 
-	assert(listeners);
+	BT_ASSERT(listeners);
 	*listeners = g_array_new(FALSE, TRUE, sizeof(struct bt_graph_listener));
 	if (!*listeners) {
 		BT_LOGE_STR("Failed to allocate one GArray.");
@@ -423,7 +425,7 @@ enum bt_graph_status consume_graph_sink(struct bt_component *sink)
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	enum bt_component_status comp_status;
 
-	assert(sink);
+	BT_ASSERT(sink);
 	comp_status = bt_component_sink_consume(sink);
 	BT_LOGV("Consumed from sink: addr=%p, name=\"%s\", status=%s",
 		sink, bt_component_get_name(sink),
@@ -494,7 +496,7 @@ enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
 		"comp-addr=%p, comp-name=\"%s\"",
 		graph, sink, bt_component_get_name(sink));
 
-	assert(bt_component_borrow_graph(sink) == graph);
+	BT_ASSERT(bt_component_borrow_graph(sink) == graph);
 
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		BT_LOGV_STR("Graph's sink queue is empty: end of graph.");
@@ -510,7 +512,7 @@ enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
 	}
 
 	sink_node = g_queue_pop_nth_link(graph->sinks_to_consume, index);
-	assert(sink_node);
+	BT_ASSERT(sink_node);
 	status = consume_sink_node(graph, sink_node);
 
 end:
@@ -525,12 +527,8 @@ enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
 	GList *current_node;
 
 	BT_LOGV("Making next sink consume: addr=%p", graph);
-
-	if (!graph->has_sink) {
-		BT_LOGW_STR("Graph has no sink component.");
-		status = BT_GRAPH_STATUS_NO_SINK;
-		goto end;
-	}
+	BT_ASSERT_PRE(graph->has_sink,
+		"Graph has no sink component: %!+g", graph);
 
 	if (g_queue_is_empty(graph->sinks_to_consume)) {
 		BT_LOGV_STR("Graph's sink queue is empty: end of graph.");
@@ -550,33 +548,16 @@ end:
 
 enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	enum bt_graph_status status;
 
-	if (!graph) {
-		BT_LOGW_STR("Invalid parameter: graph is NULL.");
-		status = BT_GRAPH_STATUS_INVALID;
-		goto end;
-	}
-
-	if (graph->canceled) {
-		BT_LOGW("Invalid parameter: graph is canceled: "
-			"graph-addr=%p", graph);
-		status = BT_GRAPH_STATUS_CANCELED;
-		goto end;
-	}
-
-	if (!graph->can_consume) {
-		BT_LOGW_STR("Cannot consume graph in its current state.");
-		status = BT_GRAPH_STATUS_CANNOT_CONSUME;
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
+	BT_ASSERT_PRE(graph->can_consume,
+		"Cannot consume graph in its current state: %!+g", graph);
 	graph->can_consume = BT_FALSE;
 	status = bt_graph_consume_no_check(graph);
 	graph->can_consume = BT_TRUE;
-
-end:
-	return status;
+	return BT_GRAPH_STATUS_OK;
 }
 
 enum bt_graph_status bt_graph_run(struct bt_graph *graph)
@@ -824,7 +805,7 @@ void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port)
 				struct bt_graph_listener, i);
 		bt_graph_port_added_listener func = listener.func;
 
-		assert(func);
+		BT_ASSERT(func);
 		func(port, listener.data);
 	}
 }
@@ -845,7 +826,7 @@ void bt_graph_notify_port_removed(struct bt_graph *graph,
 				struct bt_graph_listener, i);
 		bt_graph_port_removed_listener func = listener.func;
 
-		assert(func);
+		BT_ASSERT(func);
 		func(comp, port, listener.data);
 	}
 }
@@ -869,7 +850,7 @@ void bt_graph_notify_ports_connected(struct bt_graph *graph,
 				struct bt_graph_listener, i);
 		bt_graph_ports_connected_listener func = listener.func;
 
-		assert(func);
+		BT_ASSERT(func);
 		func(upstream_port, downstream_port, listener.data);
 	}
 }
@@ -895,7 +876,7 @@ void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
 				struct bt_graph_listener, i);
 		bt_graph_ports_disconnected_listener func = listener.func;
 
-		assert(func);
+		BT_ASSERT(func);
 		func(upstream_comp, downstream_comp, upstream_port,
 			downstream_port, listener.data);
 	}
@@ -937,8 +918,8 @@ BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
 		struct bt_connection *connection)
 {
-	assert(graph);
-	assert(connection);
+	BT_ASSERT(graph);
+	BT_ASSERT(connection);
 	BT_LOGV("Removing graph's connection: graph-addr=%p, conn-addr=%p",
 		graph, connection);
 	g_ptr_array_remove(graph->connections, connection);
@@ -1132,10 +1113,10 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 	uint64_t i;
 	int ret = 0;
 
-	assert(graph);
-	assert(component);
-	assert(component->base.ref_count.count == 0);
-	assert(bt_component_borrow_graph(component) == graph);
+	BT_ASSERT(graph);
+	BT_ASSERT(component);
+	BT_ASSERT(component->base.ref_count.count == 0);
+	BT_ASSERT(bt_component_borrow_graph(component) == graph);
 
 	init_can_consume = graph->can_consume;
 	count = bt_component_get_input_port_count(component);
@@ -1144,7 +1125,7 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 		struct bt_port *port =
 			bt_component_get_input_port_by_index(component, i);
 
-		assert(port);
+		BT_ASSERT(port);
 		bt_put(port);
 
 		if (bt_port_is_connected(port)) {
@@ -1166,7 +1147,7 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 		struct bt_port *port =
 			bt_component_get_output_port_by_index(component, i);
 
-		assert(port);
+		BT_ASSERT(port);
 		bt_put(port);
 
 		if (bt_port_is_connected(port)) {

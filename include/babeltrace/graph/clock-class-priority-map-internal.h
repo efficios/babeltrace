@@ -28,7 +28,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
@@ -50,11 +50,17 @@ struct bt_clock_class_priority_map {
 };
 
 static inline
-void bt_clock_class_priority_map_freeze(
+void _bt_clock_class_priority_map_freeze(
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
-	assert(cc_prio_map);
+	BT_ASSERT(cc_prio_map);
 	cc_prio_map->frozen = BT_TRUE;
 }
+
+#ifdef BT_DEV_MODE
+# define bt_clock_class_priority_map_freeze	_bt_clock_class_priority_map_freeze
+#else
+# define bt_clock_class_priority_map_freeze(_cc_prio_map)
+#endif /* BT_DEV_MODE */
 
 #endif /* BABELTRACE_GRAPH_CLOCK_CLASS_PRIORITY_MAP_INTERNAL_H */

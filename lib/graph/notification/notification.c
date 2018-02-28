@@ -24,14 +24,19 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "NOTIF"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/graph/notification-internal.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 
 BT_HIDDEN
 void bt_notification_init(struct bt_notification *notification,
 		enum bt_notification_type type,
 		bt_object_release_func release)
 {
-	assert(type > BT_NOTIFICATION_TYPE_ALL &&
+	BT_ASSERT(type > BT_NOTIFICATION_TYPE_ALL &&
 			type < BT_NOTIFICATION_TYPE_NR);
 	notification->type = type;
 	bt_object_init(&notification->base, release);
@@ -40,5 +45,6 @@ void bt_notification_init(struct bt_notification *notification,
 enum bt_notification_type bt_notification_get_type(
 		struct bt_notification *notification)
 {
-	return notification ? notification->type : BT_NOTIFICATION_TYPE_UNKNOWN;
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	return notification->type;
 }

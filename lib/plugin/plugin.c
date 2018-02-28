@@ -39,6 +39,7 @@
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -713,8 +714,8 @@ struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 		enum bt_component_class_type comp_class_cand_type =
 			bt_component_class_get_type(comp_class_candidate);
 
-		assert(comp_class_cand_name);
-		assert(comp_class_cand_type >= 0);
+		BT_ASSERT(comp_class_cand_name);
+		BT_ASSERT(comp_class_cand_type >= 0);
 
 		if (strcmp(name, comp_class_cand_name) == 0 &&
 				comp_class_cand_type == type) {

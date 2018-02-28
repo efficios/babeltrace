@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 struct bt_event_class {
@@ -77,7 +78,7 @@ static inline
 struct bt_stream_class *bt_event_class_borrow_stream_class(
 		struct bt_event_class *event_class)
 {
-	assert(event_class);
+	BT_ASSERT(event_class);
 	return (void *) bt_object_borrow_parent(event_class);
 }
 

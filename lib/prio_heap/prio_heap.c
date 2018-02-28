@@ -27,10 +27,10 @@
 
 #include <babeltrace/prio-heap-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #ifdef DEBUG_HEAP
 void check_heap(const struct ptr_heap *heap)
@@ -41,7 +41,7 @@ void check_heap(const struct ptr_heap *heap)
 		return;
 
 	for (i = 1; i < heap->len; i++)
-		assert(!heap->gt(heap->ptrs[i], heap->ptrs[0]));
+		BT_ASSERT(!heap->gt(heap->ptrs[i], heap->ptrs[0]));
 }
 #endif
 

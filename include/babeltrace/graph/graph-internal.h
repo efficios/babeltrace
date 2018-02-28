@@ -31,8 +31,8 @@
 #include <babeltrace/graph/component-status.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <glib.h>
 
 struct bt_component;
@@ -85,7 +85,7 @@ struct bt_graph {
 static inline
 void bt_graph_set_can_consume(struct bt_graph *graph, bt_bool can_consume)
 {
-	assert(graph);
+	BT_ASSERT(graph);
 	graph->can_consume = can_consume;
 }
 

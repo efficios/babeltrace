@@ -31,7 +31,7 @@
 
 #include <babeltrace/babeltrace.h>
 #include <plugins-common.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include "debug-info.h"
 #include "copy.h"
 
@@ -88,7 +88,7 @@ void debug_info_iterator_destroy(struct bt_private_connection_private_notificati
 	struct debug_info_iterator *it_data;
 
 	it_data = bt_private_connection_private_notification_iterator_get_user_data(it);
-	assert(it_data);
+	BT_ASSERT(it_data);
 
 	if (it_data->input_iterator_group) {
 		g_ptr_array_free(it_data->input_iterator_group, TRUE);
@@ -123,10 +123,10 @@ struct bt_notification *handle_notification(FILE *err,
 		}
 
 		writer_packet = debug_info_new_packet(debug_it, packet);
-		assert(writer_packet);
+		BT_ASSERT(writer_packet);
 		new_notification = bt_notification_packet_begin_create(
 				writer_packet);
-		assert(new_notification);
+		BT_ASSERT(new_notification);
 		bt_put(packet);
 		bt_put(writer_packet);
 		break;
@@ -142,10 +142,10 @@ struct bt_notification *handle_notification(FILE *err,
 		}
 
 		writer_packet = debug_info_close_packet(debug_it, packet);
-		assert(writer_packet);
+		BT_ASSERT(writer_packet);
 		new_notification = bt_notification_packet_end_create(
 				writer_packet);
-		assert(new_notification);
+		BT_ASSERT(new_notification);
 		bt_put(packet);
 		bt_put(writer_packet);
 		break;
@@ -163,11 +163,11 @@ struct bt_notification *handle_notification(FILE *err,
 			goto end;
 		}
 		writer_event = debug_info_output_event(debug_it, event);
-		assert(writer_event);
+		BT_ASSERT(writer_event);
 		new_notification = bt_notification_event_create(writer_event,
 				cc_prio_map);
 		bt_put(cc_prio_map);
-		assert(new_notification);
+		BT_ASSERT(new_notification);
 		bt_put(event);
 		bt_put(writer_event);
 		break;
@@ -183,10 +183,10 @@ struct bt_notification *handle_notification(FILE *err,
 		}
 
 		writer_stream = debug_info_stream_begin(debug_it, stream);
-		assert(writer_stream);
+		BT_ASSERT(writer_stream);
 		new_notification = bt_notification_stream_begin_create(
 				writer_stream);
-		assert(new_notification);
+		BT_ASSERT(new_notification);
 		bt_put(stream);
 		bt_put(writer_stream);
 		break;
@@ -202,10 +202,10 @@ struct bt_notification *handle_notification(FILE *err,
 		}
 
 		writer_stream = debug_info_stream_end(debug_it, stream);
-		assert(writer_stream);
+		BT_ASSERT(writer_stream);
 		new_notification = bt_notification_stream_end_create(
 				writer_stream);
-		assert(new_notification);
+		BT_ASSERT(new_notification);
 		bt_put(stream);
 		bt_put(writer_stream);
 		break;
@@ -234,12 +234,12 @@ struct bt_notification_iterator_next_method_return debug_info_iterator_next(
 	};
 
 	debug_it = bt_private_connection_private_notification_iterator_get_user_data(iterator);
-	assert(debug_it);
+	BT_ASSERT(debug_it);
 
 	component = bt_private_connection_private_notification_iterator_get_private_component(iterator);
-	assert(component);
+	BT_ASSERT(component);
 	debug_info = bt_private_component_get_user_data(component);
-	assert(debug_info);
+	BT_ASSERT(debug_info);
 
 	source_it = debug_it->input_iterator;
 
@@ -257,7 +257,7 @@ struct bt_notification_iterator_next_method_return debug_info_iterator_next(
 
 	ret.notification = handle_notification(debug_info->err, debug_it,
 			notification);
-	assert(ret.notification);
+	BT_ASSERT(ret.notification);
 	bt_put(notification);
 
 end:
@@ -331,7 +331,7 @@ enum bt_component_status init_from_params(
 	struct bt_value *value = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	assert(params);
+	BT_ASSERT(params);
 
         value = bt_value_map_get(params, "debug-info-field-name");
 	if (value) {

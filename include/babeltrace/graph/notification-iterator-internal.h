@@ -34,8 +34,8 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/types.h>
+#include <babeltrace/assert-internal.h>
 #include <stdbool.h>
-#include <assert.h>
 
 struct bt_port;
 struct bt_graph;
@@ -147,7 +147,7 @@ static inline
 struct bt_notification *bt_notification_iterator_borrow_current_notification(
 		struct bt_notification_iterator *iterator)
 {
-	assert(iterator);
+	BT_ASSERT(iterator);
 	return iterator->current_notification;
 }
 
@@ -156,7 +156,7 @@ void bt_notification_iterator_replace_current_notification(
 		struct bt_notification_iterator *iterator,
 		struct bt_notification *notification)
 {
-	assert(iterator);
+	BT_ASSERT(iterator);
 	bt_put(iterator->current_notification);
 	iterator->current_notification = bt_get(notification);
 }

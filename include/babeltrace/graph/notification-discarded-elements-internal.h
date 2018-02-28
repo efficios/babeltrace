@@ -25,6 +25,7 @@
 
 #include <glib.h>
 #include <stdint.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/notification-internal.h>
@@ -76,7 +77,7 @@ struct bt_stream *bt_notification_discarded_elements_borrow_stream(
 {
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
-	assert(notification);
+	BT_ASSERT(notification);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
 	return discarded_elems_notif->stream;

@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <inttypes.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
 #include <babeltrace/babeltrace.h>
@@ -417,7 +417,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 	char *buf = NULL;
 	bool close_fp = false;
 
-	assert(mdec);
+	BT_ASSERT(mdec);
 
 	if (ctf_metadata_decoder_is_packetized(fp, &mdec->bo)) {
 		BT_LOGD("Metadata stream is packetized: mdec-addr=%p", mdec);
@@ -495,7 +495,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		goto end;
 	}
 
-	assert(fp);
+	BT_ASSERT(fp);
 	ret = ctf_scanner_append_ast(scanner, fp);
 	if (ret) {
 		BT_LOGE("Cannot create the metadata AST out of the metadata text: "

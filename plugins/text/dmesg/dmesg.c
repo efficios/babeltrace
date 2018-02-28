@@ -28,7 +28,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/compat/utc-internal.h>
@@ -278,7 +278,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		trace_name = "STDIN";
 	} else {
 		basename = g_path_get_basename(dmesg_comp->params.path->str);
-		assert(basename);
+		BT_ASSERT(basename);
 
 		if (strcmp(basename, G_DIR_SEPARATOR_S) != 0 &&
 				strcmp(basename, ".") != 0) {
@@ -425,7 +425,7 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 
 		ret = bt_value_bool_get(no_timestamp,
 			&dmesg_comp->params.no_timestamp);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	}
 
 	path = bt_value_map_get(params, "path");
@@ -444,7 +444,7 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 		}
 
 		ret = bt_value_string_get(path, &path_str);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		g_string_assign(dmesg_comp->params.path, path_str);
 	} else {
 		dmesg_comp->params.read_from_stdin = true;
@@ -566,7 +566,7 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 	}
 
 	ft = bt_trace_get_packet_header_type(dmesg_comp->trace);
-	assert(ft);
+	BT_ASSERT(ft);
 	field = create_packet_header_field(ft);
 	if (!field) {
 		BT_LOGE_STR("Cannot create packet header field.");
@@ -583,7 +583,7 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 	bt_put(field);
 	ft = bt_stream_class_get_packet_context_type(
 		dmesg_comp->stream_class);
-	assert(ft);
+	BT_ASSERT(ft);
 	field = create_packet_context_field(ft);
 	if (!field) {
 		BT_LOGE_STR("Cannot create packet context field.");
@@ -754,8 +754,8 @@ int create_event_header_from_line(
 	struct bt_field *ts_field = NULL;
 	int ret = 0;
 
-	assert(user_clock_value);
-	assert(user_field);
+	BT_ASSERT(user_clock_value);
+	BT_ASSERT(user_field);
 	*new_start = line;
 
 	if (dmesg_comp->params.no_timestamp) {
@@ -798,7 +798,7 @@ int create_event_header_from_line(
 	if (has_timestamp) {
 		/* Set new start for the message portion of the line */
 		*new_start = strchr(line, ']');
-		assert(*new_start);
+		BT_ASSERT(*new_start);
 		(*new_start)++;
 
 		if ((*new_start)[0] == ' ') {
@@ -828,7 +828,7 @@ skip_ts:
 
 		ft = bt_stream_class_get_event_header_type(
 			dmesg_comp->stream_class);
-		assert(ft);
+		BT_ASSERT(ft);
 		eh_field = bt_field_create(ft);
 		if (!eh_field) {
 			BT_LOGE_STR("Cannot create event header field object.");
@@ -878,9 +878,9 @@ int create_event_payload_from_line(
 	size_t len;
 	int ret;
 
-	assert(user_field);
+	BT_ASSERT(user_field);
 	ft = bt_event_class_get_payload_type(dmesg_comp->event_class);
-	assert(ft);
+	BT_ASSERT(ft);
 	ep_field = bt_field_create(ft);
 	if (!ep_field) {
 		BT_LOGE_STR("Cannot create event payload field object.");
@@ -948,7 +948,7 @@ struct bt_notification *create_notif_from_line(
 		goto error;
 	}
 
-	assert(ep_field);
+	BT_ASSERT(ep_field);
 	event = bt_event_create(dmesg_comp->event_class);
 	if (!event) {
 		BT_LOGE_STR("Cannot create event object.");
@@ -1038,9 +1038,9 @@ enum bt_notification_iterator_status dmesg_notif_iter_init(
 
 	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
-	assert(priv_comp);
+	BT_ASSERT(priv_comp);
 	dmesg_comp = bt_private_component_get_user_data(priv_comp);
-	assert(dmesg_comp);
+	BT_ASSERT(dmesg_comp);
 	dmesg_notif_iter->dmesg_comp = dmesg_comp;
 
 	if (dmesg_comp->params.read_from_stdin) {
@@ -1093,9 +1093,9 @@ struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
 		.notification = NULL
 	};
 
-	assert(dmesg_notif_iter);
+	BT_ASSERT(dmesg_notif_iter);
 	dmesg_comp = dmesg_notif_iter->dmesg_comp;
-	assert(dmesg_comp);
+	BT_ASSERT(dmesg_comp);
 
 	while (true) {
 		const char *ch;
@@ -1118,7 +1118,7 @@ struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
 			goto end;
 		}
 
-		assert(dmesg_notif_iter->linebuf);
+		BT_ASSERT(dmesg_notif_iter->linebuf);
 
 		/* Ignore empty lines, once trimmed */
 		for (ch = dmesg_notif_iter->linebuf; *ch != '\0'; ch++) {

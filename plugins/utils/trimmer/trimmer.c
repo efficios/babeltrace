@@ -34,7 +34,7 @@
 #include <plugins-common.h>
 #include "trimmer.h"
 #include "iterator.h"
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 static
 void destroy_trimmer_data(struct trimmer *trimmer)
@@ -298,7 +298,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 	bt_bool gmt = BT_FALSE;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
-	assert(params);
+	BT_ASSERT(params);
 
         value = bt_value_map_get(params, "clock-gmt");
 	if (value) {

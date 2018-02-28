@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace.h>
 #include <popt.h>
 #include <glib.h>
@@ -96,7 +96,7 @@ int parse_params(int argc, char *argv[], char **output_path,
 	}
 
 	*output_path = strdup(leftover);
-	assert(*output_path);
+	BT_ASSERT(*output_path);
 	goto end;
 
 error:

@@ -35,6 +35,8 @@
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/graph.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-internal.h>
 
 BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component)
@@ -64,23 +66,10 @@ enum bt_component_status bt_component_sink_consume(
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_component_class_sink *sink_class = NULL;
 
-	if (!component) {
-		BT_LOGW_STR("Invalid parameter: component is NULL.");
-		ret = BT_COMPONENT_STATUS_INVALID;
-		goto end;
-	}
-
-	if (bt_component_get_class_type(component) != BT_COMPONENT_CLASS_TYPE_SINK) {
-		BT_LOGW("Invalid parameter: component's class is not a sink component class: "
-			"comp-addr=%p, comp-name=\"%s\", comp-class-type=%s",
-			component, bt_component_get_name(component),
-			bt_component_class_type_string(component->class->type));
-		ret = BT_COMPONENT_STATUS_UNSUPPORTED;
-		goto end;
-	}
-
+	BT_ASSERT(component);
+	BT_ASSERT(bt_component_get_class_type(component) == BT_COMPONENT_CLASS_TYPE_SINK);
 	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
-	assert(sink_class->methods.consume);
+	BT_ASSERT(sink_class->methods.consume);
 	BT_LOGD("Calling user's consume method: "
 		"comp-addr=%p, comp-name=\"%s\"",
 		component, bt_component_get_name(component));
@@ -91,7 +80,6 @@ enum bt_component_status bt_component_sink_consume(
 		BT_LOGW_STR("Consume method failed.");
 	}
 
-end:
 	return ret;
 }
 

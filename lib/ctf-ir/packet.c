@@ -38,157 +38,94 @@
 #include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 
 struct bt_stream *bt_packet_get_stream(struct bt_packet *packet)
 {
-	return packet ? bt_get(packet->stream) : NULL;
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	return bt_get(packet->stream);
 }
 
 struct bt_field *bt_packet_get_header(
 		struct bt_packet *packet)
 {
-	return packet ? bt_get(packet->header) : NULL;
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	return bt_get(packet->header);
+}
+
+BT_ASSERT_PRE_FUNC
+static inline bool validate_field_to_set(struct bt_field *field,
+		struct bt_field_type *expected_ft)
+{
+	bool ret = true;
+
+	if (!field) {
+		if (expected_ft) {
+			BT_ASSERT_PRE_MSG("Setting no field, but expected "
+				"field type is not NULL: "
+				"%![field-]+f, %![expected-ft-]+F",
+				field, expected_ft);
+			ret = false;
+			goto end;
+		}
+
+		goto end;
+	}
+
+	if (bt_field_type_compare(field->type, expected_ft) != 0) {
+		BT_ASSERT_PRE_MSG("Field type is different from expected "
+			" field type: %![field-ft-]+F, %![expected-ft-]+F",
+			field->type, expected_ft);
+		ret = false;
+		goto end;
+	}
+
+end:
+	return ret;
 }
 
 int bt_packet_set_header(struct bt_packet *packet,
 		struct bt_field *header)
 {
-	int ret = 0;
-	struct bt_trace *trace = NULL;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_field_type *header_field_type = NULL;
-	struct bt_field_type *expected_header_field_type = NULL;
-
-	if (!packet) {
-		BT_LOGW_STR("Invalid parameter: packet is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (packet->frozen) {
-		BT_LOGW("Invalid parameter: packet is frozen: addr=%p",
-			packet);
-		ret = -1;
-		goto end;
-	}
-
-	stream_class = bt_stream_get_class(packet->stream);
-	assert(stream_class);
-	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
-	expected_header_field_type = bt_trace_get_packet_header_type(trace);
-
-	if (!header) {
-		if (expected_header_field_type) {
-			BT_LOGW("Invalid parameter: setting no packet header but packet header field type is not NULL: "
-				"packet-addr=%p, packet-header-ft-addr=%p",
-				packet, expected_header_field_type);
-			ret = -1;
-			goto end;
-		}
-
-		goto skip_validation;
-	}
-
-	header_field_type = bt_field_get_type(header);
-	assert(header_field_type);
-
-	if (bt_field_type_compare(header_field_type,
-			expected_header_field_type)) {
-		BT_LOGW("Invalid parameter: packet header's field type is different from the trace's packet header field type: "
-			"packet-addr=%p, packet-header-addr=%p",
-			packet, header);
-		ret = -1;
-		goto end;
-	}
-
-skip_validation:
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
+	BT_ASSERT_PRE(validate_field_to_set(header,
+		bt_stream_class_borrow_trace(packet->stream->stream_class)->packet_header_type),
+		"Invalid packet header field: "
+		"%![packet-]+a, %![field-]+f", packet, header);
 	bt_put(packet->header);
 	packet->header = bt_get(header);
 	BT_LOGV("Set packet's header field: packet-addr=%p, packet-header-addr=%p",
 		packet, header);
-
-end:
-	BT_PUT(trace);
-	BT_PUT(stream_class);
-	BT_PUT(header_field_type);
-	BT_PUT(expected_header_field_type);
-
-	return ret;
+	return 0;
 }
 
-struct bt_field *bt_packet_get_context(
-		struct bt_packet *packet)
+struct bt_field *bt_packet_get_context(struct bt_packet *packet)
 {
-	return packet ? bt_get(packet->context) : NULL;
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	return bt_get(packet->context);
 }
 
 int bt_packet_set_context(struct bt_packet *packet,
 		struct bt_field *context)
 {
-	int ret = 0;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_field_type *context_field_type = NULL;
-	struct bt_field_type *expected_context_field_type = NULL;
-
-	if (!packet) {
-		BT_LOGW_STR("Invalid parameter: packet is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (packet->frozen) {
-		BT_LOGW("Invalid parameter: packet is frozen: addr=%p",
-			packet);
-		ret = -1;
-		goto end;
-	}
-
-	stream_class = bt_stream_get_class(packet->stream);
-	assert(stream_class);
-	expected_context_field_type =
-		bt_stream_class_get_packet_context_type(stream_class);
-
-	if (!context) {
-		if (expected_context_field_type) {
-			BT_LOGW("Invalid parameter: setting no packet context but packet context field type is not NULL: "
-				"packet-addr=%p, packet-context-ft-addr=%p",
-				packet, expected_context_field_type);
-			ret = -1;
-			goto end;
-		}
-
-		goto skip_validation;
-	}
-
-	context_field_type = bt_field_get_type(context);
-	assert(context_field_type);
-
-	if (bt_field_type_compare(context_field_type,
-			expected_context_field_type)) {
-		BT_LOGW("Invalid parameter: packet context's field type is different from the stream class's packet context field type: "
-			"packet-addr=%p, packet-context-addr=%p",
-			packet, context);
-		ret = -1;
-		goto end;
-	}
-
-skip_validation:
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
+	BT_ASSERT_PRE(validate_field_to_set(context,
+		packet->stream->stream_class->packet_context_type),
+		"Invalid packet context field: "
+		"%![packet-]+a, %![field-]+f", packet, context);
 	bt_put(packet->context);
 	packet->context = bt_get(context);
 	BT_LOGV("Set packet's context field: packet-addr=%p, packet-context-addr=%p",
 		packet, context);
-
-end:
-	BT_PUT(stream_class);
-	BT_PUT(context_field_type);
-	BT_PUT(expected_context_field_type);
-	return ret;
+	return 0;
 }
 
 BT_HIDDEN
-void bt_packet_freeze(struct bt_packet *packet)
+void _bt_packet_freeze(struct bt_packet *packet)
 {
 	if (!packet || packet->frozen) {
 		return;
@@ -196,9 +133,9 @@ void bt_packet_freeze(struct bt_packet *packet)
 
 	BT_LOGD("Freezing packet: addr=%p", packet);
 	BT_LOGD_STR("Freezing packet's header field.");
-	bt_field_freeze(packet->header);
+	bt_field_freeze_recursive(packet->header);
 	BT_LOGD_STR("Freezing packet's context field.");
-	bt_field_freeze(packet->context);
+	bt_field_freeze_recursive(packet->context);
 	packet->frozen = 1;
 }
 
@@ -225,11 +162,7 @@ struct bt_packet *bt_packet_create(
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_trace *trace = NULL;
 
-	if (!stream) {
-		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	BT_LOGD("Creating packet object: stream-addr=%p, "
 		"stream-name=\"%s\", stream-class-addr=%p, "
 		"stream-class-name=\"%s\", stream-class-id=%" PRId64,
@@ -237,16 +170,12 @@ struct bt_packet *bt_packet_create(
 		stream->stream_class,
 		bt_stream_class_get_name(stream->stream_class),
 		bt_stream_class_get_id(stream->stream_class));
-
-	if (stream->pos.fd >= 0) {
-		BT_LOGW_STR("Invalid parameter: stream is a CTF writer stream.");
-		goto end;
-	}
-
+	BT_ASSERT_PRE(stream->pos.fd < 0,
+		"Stream is a CTF writer stream: %!+s", stream);
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 	packet = g_new0(struct bt_packet, 1);
 	if (!packet) {
 		BT_LOGE_STR("Failed to allocate one packet object.");

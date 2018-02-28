@@ -27,6 +27,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "CTF-WRITER-CLOCK"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
@@ -35,6 +38,8 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 
 static
@@ -46,12 +51,8 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	struct bt_ctf_clock *clock = NULL;
 	unsigned char cc_uuid[BABELTRACE_UUID_LEN];
 
-	if (!name) {
-		goto error;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	clock = g_new0(struct bt_ctf_clock, 1);
-
 	if (!clock) {
 		goto error;
 	}
@@ -72,7 +73,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	}
 
 	ret = bt_clock_class_set_uuid(clock->clock_class, cc_uuid);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	return clock;
 
 error:
@@ -82,189 +83,99 @@ error:
 
 const char *bt_ctf_clock_get_name(struct bt_ctf_clock *clock)
 {
-	const char *name = NULL;
-
-	if (clock) {
-		name = bt_clock_class_get_name(clock->clock_class);
-	}
-
-	return name;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_get_name(clock->clock_class);
 }
 
 const char *bt_ctf_clock_get_description(struct bt_ctf_clock *clock)
 {
-	const char *description = NULL;
-
-	if (clock) {
-		description = bt_clock_class_get_description(
-			clock->clock_class);
-	}
-
-	return description;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_get_description(clock->clock_class);
 }
 
 int bt_ctf_clock_set_description(struct bt_ctf_clock *clock, const char *desc)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_set_description(clock->clock_class,
-			desc);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_set_description(clock->clock_class, desc);
 }
 
 uint64_t bt_ctf_clock_get_frequency(struct bt_ctf_clock *clock)
 {
-	uint64_t freq = -1ULL;
-
-	if (clock) {
-		freq = bt_clock_class_get_frequency(clock->clock_class);
-	}
-
-	return freq;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_get_frequency(clock->clock_class);
 }
 
 int bt_ctf_clock_set_frequency(struct bt_ctf_clock *clock, uint64_t freq)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_set_frequency(clock->clock_class,
-			freq);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_set_frequency(clock->clock_class, freq);
 }
 
 uint64_t bt_ctf_clock_get_precision(struct bt_ctf_clock *clock)
 {
-	uint64_t precision = -1ULL;
-
-	if (clock) {
-		precision = bt_clock_class_get_precision(
-			clock->clock_class);
-	}
-
-	return precision;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_get_precision(clock->clock_class);
 }
 
 int bt_ctf_clock_set_precision(struct bt_ctf_clock *clock, uint64_t precision)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_set_precision(clock->clock_class,
-			precision);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_set_precision(clock->clock_class, precision);
 }
 
 int bt_ctf_clock_get_offset_s(struct bt_ctf_clock *clock, int64_t *offset_s)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_get_offset_s(clock->clock_class,
-			offset_s);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_get_offset_s(clock->clock_class, offset_s);
 }
 
 int bt_ctf_clock_set_offset_s(struct bt_ctf_clock *clock, int64_t offset_s)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_set_offset_s(clock->clock_class,
-			offset_s);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_set_offset_s(clock->clock_class, offset_s);
 }
 
 int bt_ctf_clock_get_offset(struct bt_ctf_clock *clock, int64_t *offset)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_get_offset_cycles(clock->clock_class,
-			offset);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_get_offset_cycles(clock->clock_class, offset);
 }
 
 int bt_ctf_clock_set_offset(struct bt_ctf_clock *clock, int64_t offset)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_set_offset_cycles(clock->clock_class,
-			offset);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_set_offset_cycles(clock->clock_class, offset);
 }
 
 int bt_ctf_clock_get_is_absolute(struct bt_ctf_clock *clock)
 {
-	int is_absolute = -1;
-
-	if (clock) {
-		is_absolute = bt_clock_class_is_absolute(
-			clock->clock_class);
-	}
-
-	return is_absolute;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_is_absolute(clock->clock_class);
 }
 
 int bt_ctf_clock_set_is_absolute(struct bt_ctf_clock *clock, int is_absolute)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_set_is_absolute(clock->clock_class,
-			is_absolute);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_set_is_absolute(clock->clock_class, is_absolute);
 }
 
 const unsigned char *bt_ctf_clock_get_uuid(struct bt_ctf_clock *clock)
 {
-	const unsigned char *uuid = NULL;
-
-	if (clock) {
-		uuid = bt_clock_class_get_uuid(clock->clock_class);
-	}
-
-	return uuid;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_get_uuid(clock->clock_class);
 }
 
 int bt_ctf_clock_set_uuid(struct bt_ctf_clock *clock, const unsigned char *uuid)
 {
-	int ret = -1;
-
-	if (clock) {
-		ret = bt_clock_class_set_uuid(clock->clock_class, uuid);
-	}
-
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	return bt_clock_class_set_uuid(clock->clock_class, uuid);
 }
 
 int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 {
-	int ret = 0;
 	int64_t value;
 
-	if (!clock) {
-		ret = -1;
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
 
 	/* Common case where cycles are actually nanoseconds */
 	if (clock->clock_class->frequency == 1000000000) {
@@ -274,15 +185,12 @@ int bt_ctf_clock_set_time(struct bt_ctf_clock *clock, int64_t time)
 		        (double) clock->clock_class->frequency) / 1e9);
 	}
 
-	if (clock->value > value) {
-		/* Timestamps must be strictly monotonic. */
-		ret = -1;
-		goto end;
-	}
-
+	BT_ASSERT_PRE(clock->value <= value,
+		"CTF writer clock value must be updated monotonically: "
+		"prev-value=%" PRId64 ", new-value=%" PRId64,
+		clock->value, value);
 	clock->value = value;
-end:
-	return ret;
+	return 0;
 }
 
 void bt_ctf_clock_get(struct bt_ctf_clock *clock)
@@ -298,16 +206,10 @@ void bt_ctf_clock_put(struct bt_ctf_clock *clock)
 BT_HIDDEN
 int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value)
 {
-	int ret = 0;
-
-	if (!clock || !value) {
-		ret = -1;
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(clock, "CTF writer clock");
+	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	*value = clock->value;
-end:
-	return ret;
+	return 0;
 }
 
 static

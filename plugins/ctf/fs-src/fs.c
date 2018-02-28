@@ -29,7 +29,7 @@
 #include <babeltrace/babeltrace.h>
 #include <plugins-common.h>
 #include <glib.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include "fs.h"
@@ -50,7 +50,7 @@ int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_ite
 	struct ctf_fs_ds_file_info *ds_file_info;
 	int ret = 0;
 
-	assert(notif_iter_data->ds_file_info_index <
+	BT_ASSERT(notif_iter_data->ds_file_info_index <
 		notif_iter_data->ds_file_group->ds_file_infos->len);
 	ds_file_info = g_ptr_array_index(
 		notif_iter_data->ds_file_group->ds_file_infos,
@@ -94,10 +94,10 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 		bt_private_connection_private_notification_iterator_get_user_data(iterator);
 	int ret;
 
-	assert(notif_iter_data->ds_file);
+	BT_ASSERT(notif_iter_data->ds_file);
 	next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
 	if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_END) {
-		assert(!next_ret.notification);
+		BT_ASSERT(!next_ret.notification);
 		notif_iter_data->ds_file_info_index++;
 
 		if (notif_iter_data->ds_file_info_index ==
@@ -129,7 +129,7 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 		 * begin" and "packet end" notifications in the case of
 		 * a single, empty packet.
 		 */
-		assert(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+		BT_ASSERT(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END);
 	}
 
 end:
@@ -287,7 +287,7 @@ GString *get_stream_instance_unique_name(
 	 * group, the first (earliest) stream file's path is used as
 	 * the stream's unique name.
 	 */
-	assert(ds_file_group->ds_file_infos->len > 0);
+	BT_ASSERT(ds_file_group->ds_file_infos->len > 0);
 	ds_file_info = g_ptr_array_index(ds_file_group->ds_file_infos, 0);
 	g_string_assign(name, ds_file_info->path->str);
 
@@ -418,7 +418,7 @@ uint64_t get_packet_context_timestamp_begin_ns(
 	}
 
 	timestamp_begin_ft = bt_field_get_type(timestamp_begin_field);
-	assert(timestamp_begin_ft);
+	BT_ASSERT(timestamp_begin_ft);
 	timestamp_begin_clock_class =
 		bt_field_type_integer_get_mapped_clock_class(timestamp_begin_ft);
 	if (!timestamp_begin_clock_class) {
@@ -531,7 +531,7 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 	}
 
 	ds_file_group->stream_id = stream_instance_id;
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 	ds_file_group->stream_class = bt_get(stream_class);
 	ds_file_group->ctf_fs_trace = ctf_fs_trace;
 	goto end;
@@ -691,8 +691,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	assert(stream_instance_id != -1ULL);
-	assert(begin_ns != -1ULL);
+	BT_ASSERT(stream_instance_id != -1ULL);
+	BT_ASSERT(begin_ns != -1ULL);
 
 	/* Find an existing stream file group with this ID */
 	for (i = 0; i < ctf_fs_trace->ds_file_groups->len; i++) {
@@ -889,7 +889,7 @@ int create_cc_prio_map(struct ctf_fs_trace *ctf_fs_trace)
 	size_t i;
 	int count;
 
-	assert(ctf_fs_trace);
+	BT_ASSERT(ctf_fs_trace);
 	ctf_fs_trace->cc_prio_map = bt_clock_class_priority_map_create();
 	if (!ctf_fs_trace->cc_prio_map) {
 		ret = -1;
@@ -898,14 +898,14 @@ int create_cc_prio_map(struct ctf_fs_trace *ctf_fs_trace)
 
 	count = bt_trace_get_clock_class_count(
 		ctf_fs_trace->metadata->trace);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_clock_class *clock_class =
 			bt_trace_get_clock_class_by_index(
 				ctf_fs_trace->metadata->trace, i);
 
-		assert(clock_class);
+		BT_ASSERT(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
 			ctf_fs_trace->cc_prio_map, clock_class, 0);
 		BT_PUT(clock_class);
@@ -1027,7 +1027,7 @@ int add_trace_path(GList **trace_paths, const char *path)
 	}
 
 	*trace_paths = g_list_prepend(*trace_paths, norm_path);
-	assert(*trace_paths);
+	BT_ASSERT(*trace_paths);
 	norm_path = NULL;
 
 end:
@@ -1144,7 +1144,7 @@ GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
 	last_sep = strrchr(base_path, G_DIR_SEPARATOR);
 
 	/* We know there's at least one separator */
-	assert(last_sep);
+	BT_ASSERT(last_sep);
 
 	/* Distance to base */
 	base_dist = last_sep - base_path + 1;
@@ -1154,7 +1154,7 @@ GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
 		GString *trace_name = g_string_new(NULL);
 		GString *trace_path = node->data;
 
-		assert(trace_name);
+		BT_ASSERT(trace_name);
 		g_string_assign(trace_name, &trace_path->str[base_dist]);
 		trace_names = g_list_append(trace_names, trace_name);
 	}
@@ -1271,7 +1271,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	}
 
 	ret = bt_private_component_set_user_data(priv_comp, ctf_fs);
-	assert(ret == BT_COMPONENT_STATUS_OK);
+	BT_ASSERT(ret == BT_COMPONENT_STATUS_OK);
 
 	/*
 	 * We don't need to get a new reference here because as long as
@@ -1280,12 +1280,12 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	 */
 	ctf_fs->priv_comp = priv_comp;
 	value = bt_value_map_get(params, "path");
-	if (!bt_value_is_string(value)) {
+	if (value && !bt_value_is_string(value)) {
 		goto error;
 	}
 
 	value_ret = bt_value_string_get(value, &path_param);
-	assert(value_ret == BT_VALUE_STATUS_OK);
+	BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
 	BT_PUT(value);
 	value = bt_value_map_get(params, "clock-class-offset-s");
 	if (value) {
@@ -1295,7 +1295,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		}
 		value_ret = bt_value_integer_get(value,
 			&ctf_fs->metadata_config.clock_class_offset_s);
-		assert(value_ret == BT_VALUE_STATUS_OK);
+		BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
 		BT_PUT(value);
 	}
 
@@ -1307,7 +1307,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		}
 		value_ret = bt_value_integer_get(value,
 			&ctf_fs->metadata_config.clock_class_offset_ns);
-		assert(value_ret == BT_VALUE_STATUS_OK);
+		BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
 		BT_PUT(value);
 	}
 
@@ -1332,7 +1332,7 @@ error:
 	ctf_fs_destroy(ctf_fs);
 	ctf_fs = NULL;
 	ret = bt_private_component_set_user_data(priv_comp, NULL);
-	assert(ret == BT_COMPONENT_STATUS_OK);
+	BT_ASSERT(ret == BT_COMPONENT_STATUS_OK);
 
 end:
 	bt_put(value);

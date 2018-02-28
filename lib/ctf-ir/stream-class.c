@@ -48,6 +48,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/endian-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -281,7 +282,7 @@ BT_HIDDEN
 void _bt_stream_class_set_id(
 		struct bt_stream_class *stream_class, int64_t id)
 {
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 	stream_class->id = id;
 	stream_class->id_set = 1;
 	BT_LOGV("Set stream class's ID (internal): "
@@ -512,8 +513,8 @@ int bt_stream_class_add_event_class(
 		 * The trace and stream class should be valid at this
 		 * point.
 		 */
-		assert(trace->valid);
-		assert(stream_class->valid);
+		BT_ASSERT(trace->valid);
+		BT_ASSERT(stream_class->valid);
 		packet_header_type =
 			bt_trace_get_packet_header_type(trace);
 		packet_context_type =
@@ -614,7 +615,7 @@ int bt_stream_class_add_event_class(
 	 * now if the stream class is frozen.
 	 */
 	if (stream_class->frozen && expected_clock_class) {
-		assert(!stream_class->clock_class ||
+		BT_ASSERT(!stream_class->clock_class ||
 			stream_class->clock_class == expected_clock_class);
 		BT_MOVE(stream_class->clock_class, expected_clock_class);
 	}
@@ -642,12 +643,12 @@ end:
 	BT_PUT(old_stream_class);
 	bt_validation_output_put_types(&validation_output);
 	bt_put(expected_clock_class);
-	assert(!packet_header_type);
-	assert(!packet_context_type);
-	assert(!event_header_type);
-	assert(!stream_event_ctx_type);
-	assert(!event_context_type);
-	assert(!event_payload_type);
+	BT_ASSERT(!packet_header_type);
+	BT_ASSERT(!packet_context_type);
+	BT_ASSERT(!event_header_type);
+	BT_ASSERT(!stream_event_ctx_type);
+	BT_ASSERT(!event_context_type);
+	BT_ASSERT(!event_payload_type);
 	g_free(event_id);
 
 	return ret;
@@ -1045,7 +1046,7 @@ int bt_stream_class_serialize(struct bt_stream_class *stream_class,
 	 * and serialization.
 	 */
 	trace = bt_stream_class_borrow_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 	packet_header_type = bt_trace_get_packet_header_type(trace);
 	trace = NULL;
 	if (packet_header_type) {
@@ -1288,14 +1289,14 @@ int try_map_clock_class(struct bt_stream_class *stream_class,
 		bt_field_type_structure_get_field_type_by_name(parent_ft,
 			field_name);
 
-	assert(stream_class->clock);
+	BT_ASSERT(stream_class->clock);
 
 	if (!ft) {
 		/* Field does not exist: not an error */
 		goto end;
 	}
 
-	assert(bt_field_type_is_integer(ft));
+	BT_ASSERT(bt_field_type_is_integer(ft));
 	mapped_clock_class =
 		bt_field_type_integer_get_mapped_clock_class(ft);
 	if (!mapped_clock_class) {
@@ -1319,7 +1320,7 @@ int try_map_clock_class(struct bt_stream_class *stream_class,
 
 		ret = bt_field_type_integer_set_mapped_clock_class_no_check(
 			ft_copy, stream_class->clock->clock_class);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		ret = bt_field_type_structure_replace_field(parent_ft,
 			field_name, ft_copy);
 		bt_put(ft_copy);
@@ -1345,7 +1346,7 @@ int bt_stream_class_map_clock_class(
 {
 	int ret = 0;
 
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	if (!stream_class->clock) {
 		/* No clock class to map to */
@@ -1389,8 +1390,8 @@ int bt_stream_class_validate_single_clock_class(
 	int ret;
 	uint64_t i;
 
-	assert(stream_class);
-	assert(expected_clock_class);
+	BT_ASSERT(stream_class);
+	BT_ASSERT(expected_clock_class);
 	ret = bt_validate_single_clock_class(stream_class->packet_context_type,
 		expected_clock_class);
 	if (ret) {
@@ -1446,7 +1447,7 @@ int bt_stream_class_validate_single_clock_class(
 		struct bt_event_class *event_class =
 			g_ptr_array_index(stream_class->event_classes, i);
 
-		assert(event_class);
+		BT_ASSERT(event_class);
 		ret = bt_event_class_validate_single_clock_class(event_class,
 			expected_clock_class);
 		if (ret) {

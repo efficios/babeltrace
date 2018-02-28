@@ -25,9 +25,9 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <babeltrace/assert-internal.h>
 
 #define BT_GETLINE_MINBUFLEN	64
 
@@ -94,7 +94,7 @@ ssize_t bt_getline(char **lineptr, size_t *n, FILE *stream)
 				/* ferror() is set, errno set by fgetc(). */
 				return -1;
 			}
-			assert(feof(stream));
+			BT_ASSERT(feof(stream));
 			found_eof = 1;
 			break;
 		}

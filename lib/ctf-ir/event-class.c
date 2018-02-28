@@ -45,6 +45,7 @@
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <stdlib.h>
 
@@ -410,7 +411,7 @@ int bt_event_class_add_field(struct bt_event_class *event_class,
 		goto end;
 	}
 
-	assert(bt_field_type_get_type_id(event_class->fields) ==
+	BT_ASSERT(bt_field_type_get_type_id(event_class->fields) ==
 		BT_FIELD_TYPE_ID_STRUCT);
 	ret = bt_field_type_structure_add_field(event_class->fields,
 		type, name);
@@ -443,7 +444,7 @@ int64_t bt_event_class_get_payload_type_field_count(
 		goto end;
 	}
 
-	assert(bt_field_type_get_type_id(event_class->fields) ==
+	BT_ASSERT(bt_field_type_get_type_id(event_class->fields) ==
 		BT_FIELD_TYPE_ID_STRUCT);
 	ret = bt_field_type_structure_get_field_count(event_class->fields);
 end:
@@ -472,7 +473,7 @@ int bt_event_class_get_payload_type_field_by_index(
 		goto end;
 	}
 
-	assert(bt_field_type_get_type_id(event_class->fields) ==
+	BT_ASSERT(bt_field_type_get_type_id(event_class->fields) ==
 		BT_FIELD_TYPE_ID_STRUCT);
 	ret = bt_field_type_structure_get_field_by_index(event_class->fields,
 		field_name, field_type, index);
@@ -502,7 +503,7 @@ bt_event_class_get_payload_type_field_type_by_name(
 		goto end;
 	}
 
-	assert(bt_field_type_get_type_id(event_class->fields) ==
+	BT_ASSERT(bt_field_type_get_type_id(event_class->fields) ==
 		BT_FIELD_TYPE_ID_STRUCT);
 	name_quark = g_quark_try_string(name);
 	if (!name_quark) {
@@ -623,7 +624,7 @@ void bt_event_class_destroy(struct bt_object *obj)
 BT_HIDDEN
 void bt_event_class_freeze(struct bt_event_class *event_class)
 {
-	assert(event_class);
+	BT_ASSERT(event_class);
 
 	if (event_class->frozen) {
 		return;
@@ -646,8 +647,8 @@ int bt_event_class_serialize(struct bt_event_class *event_class,
 	int ret = 0;
 	struct bt_value *attr_value = NULL;
 
-	assert(event_class);
-	assert(context);
+	BT_ASSERT(event_class);
+	BT_ASSERT(context);
 	BT_LOGD("Serializing event class's metadata: "
 		"event-class-addr=%p, event-class-name=\"%s\", "
 		"event-class-id=%" PRId64 ", metadata-context-addr=%p",
@@ -660,7 +661,7 @@ int bt_event_class_serialize(struct bt_event_class *event_class,
 	/* Serialize attributes */
 	g_string_append_printf(context->string, "\tname = \"%s\";\n",
 		event_class->name->str);
-	assert(event_class->id >= 0);
+	BT_ASSERT(event_class->id >= 0);
 	g_string_append_printf(context->string, "\tid = %" PRId64 ";\n",
 		event_class->id);
 	g_string_append_printf(context->string, "\tstream_id = %" PRId64 ";\n",
@@ -718,8 +719,8 @@ int bt_event_class_validate_single_clock_class(
 {
 	int ret = 0;
 
-	assert(event_class);
-	assert(expected_clock_class);
+	BT_ASSERT(event_class);
+	BT_ASSERT(expected_clock_class);
 	ret = bt_validate_single_clock_class(event_class->context,
 		expected_clock_class);
 	if (ret) {

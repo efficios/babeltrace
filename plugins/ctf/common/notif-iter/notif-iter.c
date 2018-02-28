@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <string.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
@@ -338,7 +338,7 @@ error:
 static
 void stack_destroy(struct stack *stack)
 {
-	assert(stack);
+	BT_ASSERT(stack);
 	BT_LOGD("Destroying stack: addr=%p", stack);
 	g_ptr_array_free(stack->entries, TRUE);
 	g_free(stack);
@@ -350,8 +350,8 @@ int stack_push(struct stack *stack, struct bt_field *base)
 	int ret = 0;
 	struct stack_entry *entry;
 
-	assert(stack);
-	assert(base);
+	BT_ASSERT(stack);
+	BT_ASSERT(base);
 	BT_LOGV("Pushing base field on stack: stack-addr=%p, "
 		"stack-size-before=%u, stack-size-after=%u",
 		stack, stack->entries->len, stack->entries->len + 1);
@@ -372,7 +372,7 @@ end:
 static inline
 unsigned int stack_size(struct stack *stack)
 {
-	assert(stack);
+	BT_ASSERT(stack);
 
 	return stack->entries->len;
 }
@@ -380,8 +380,8 @@ unsigned int stack_size(struct stack *stack)
 static
 void stack_pop(struct stack *stack)
 {
-	assert(stack);
-	assert(stack_size(stack));
+	BT_ASSERT(stack);
+	BT_ASSERT(stack_size(stack));
 	BT_LOGV("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%u, stack-size-after=%u",
 		stack, stack->entries->len, stack->entries->len - 1);
@@ -391,8 +391,8 @@ void stack_pop(struct stack *stack)
 static inline
 struct stack_entry *stack_top(struct stack *stack)
 {
-	assert(stack);
-	assert(stack_size(stack));
+	BT_ASSERT(stack);
+	BT_ASSERT(stack_size(stack));
 
 	return g_ptr_array_index(stack->entries, stack->entries->len - 1);
 }
@@ -406,7 +406,7 @@ bool stack_empty(struct stack *stack)
 static
 void stack_clear(struct stack *stack)
 {
-	assert(stack);
+	BT_ASSERT(stack);
 
 	if (!stack_empty(stack)) {
 		BT_LOGV("Clearing stack: stack-addr=%p, stack-size=%u",
@@ -414,7 +414,7 @@ void stack_clear(struct stack *stack)
 		g_ptr_array_remove_range(stack->entries, 0, stack_size(stack));
 	}
 
-	assert(stack_empty(stack));
+	BT_ASSERT(stack_empty(stack));
 }
 
 static inline
@@ -467,7 +467,7 @@ enum bt_notif_iter_status request_medium_bytes(
 		bt_notif_iter_medium_status_string(m_status),
 		buffer_addr, buffer_sz);
 	if (m_status == BT_NOTIF_ITER_MEDIUM_STATUS_OK) {
-		assert(buffer_sz != 0);
+		BT_ASSERT(buffer_sz != 0);
 
 		/* New packet offset is old one + old size (in bits) */
 		notit->buf.packet_offset += buf_size_bits(notit);
@@ -758,7 +758,7 @@ create_stream_class_field_path_cache_entry(
 
 		count = bt_field_type_structure_get_field_count(
 			event_header);
-		assert(count >= 0);
+		BT_ASSERT(count >= 0);
 
 		for (i = 0; i < count; i++) {
 			int ret;
@@ -798,7 +798,7 @@ create_stream_class_field_path_cache_entry(
 
 		count = bt_field_type_structure_get_field_count(
 			packet_context);
-		assert(count >= 0);
+		BT_ASSERT(count >= 0);
 
 		for (i = 0; i < count; i++) {
 			int ret;
@@ -911,7 +911,7 @@ enum bt_notif_iter_status set_current_stream_class(
 		goto single_stream_class;
 	}
 
-	assert(is_struct_type(packet_header_type));
+	BT_ASSERT(is_struct_type(packet_header_type));
 
 	// TODO: optimalize!
 	stream_id_field_type =
@@ -922,20 +922,20 @@ enum bt_notif_iter_status set_current_stream_class(
 		int ret;
 		struct bt_field *stream_id_field = NULL;
 
-		assert(notit->dscopes.trace_packet_header);
+		BT_ASSERT(notit->dscopes.trace_packet_header);
 
 		// TODO: optimalize!
 		stream_id_field = bt_field_structure_get_field_by_name(
 				notit->dscopes.trace_packet_header, "stream_id");
-		assert(stream_id_field);
+		BT_ASSERT(stream_id_field);
 		ret = bt_field_unsigned_integer_get_value(
 				stream_id_field, &stream_id);
-		assert(!ret);
+		BT_ASSERT(!ret);
 		BT_PUT(stream_id_field);
 	} else {
 single_stream_class:
 		/* Only one stream: pick the first stream class */
-		assert(bt_trace_get_stream_class_count(
+		BT_ASSERT(bt_trace_get_stream_class_count(
 				notit->meta.trace) == 1);
 		stream_id = 0;
 	}
@@ -1034,7 +1034,7 @@ enum bt_notif_iter_status read_packet_context_begin_state(
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 	struct bt_field_type *packet_context_type;
 
-	assert(notit->meta.stream_class);
+	BT_ASSERT(notit->meta.stream_class);
 	packet_context_type = bt_stream_class_get_packet_context_type(
 		notit->meta.stream_class);
 	if (!packet_context_type) {
@@ -1105,7 +1105,7 @@ enum bt_notif_iter_status set_current_packet_content_sizes(
 		int ret = bt_field_unsigned_integer_get_value(
 			packet_size_field, &packet_size);
 
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		if (packet_size == 0) {
 			BT_LOGW("Invalid packet size: packet context field indicates packet size is zero: "
 				"notit-addr=%p, packet-context-field-addr=%p",
@@ -1127,7 +1127,7 @@ enum bt_notif_iter_status set_current_packet_content_sizes(
 		int ret = bt_field_unsigned_integer_get_value(
 			content_size_field, &content_size);
 
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	} else {
 		content_size = packet_size;
 	}
@@ -1276,12 +1276,12 @@ enum bt_notif_iter_status set_current_event_class(struct bt_notif_iter *notit)
 	}
 
 	/* Is there any "id"/"v" field in the event header? */
-	assert(is_struct_type(event_header_type));
+	BT_ASSERT(is_struct_type(event_header_type));
 	id_field_type = bt_field_type_structure_get_field_type_by_name(
 		event_header_type, "id");
 	v_field_type = bt_field_type_structure_get_field_type_by_name(
 		event_header_type, "v");
-	assert(notit->dscopes.stream_event_header);
+	BT_ASSERT(notit->dscopes.stream_event_header);
 	if (v_field_type) {
 		/*
 		 *  _   _____ _____
@@ -1298,7 +1298,7 @@ enum bt_notif_iter_status set_current_event_class(struct bt_notif_iter *notit)
 		// TODO: optimalize!
 		v_field = bt_field_structure_get_field_by_name(
 			notit->dscopes.stream_event_header, "v");
-		assert(v_field);
+		BT_ASSERT(v_field);
 
 		v_struct_field =
 			bt_field_variant_get_current_field(v_field);
@@ -1350,13 +1350,13 @@ end_v_field_type:
 
 			container = bt_field_enumeration_get_container(
 				id_field);
-			assert(container);
+			BT_ASSERT(container);
 			ret_get_value = bt_field_unsigned_integer_get_value(
 				container, &event_id);
 			BT_PUT(container);
 		}
 
-		assert(ret_get_value == 0);
+		BT_ASSERT(ret_get_value == 0);
 		BT_PUT(id_field);
 	}
 
@@ -1364,7 +1364,7 @@ check_event_id:
 	if (event_id == -1ULL) {
 single_event_class:
 		/* Event ID not found: single event? */
-		assert(bt_stream_class_get_event_class_count(
+		BT_ASSERT(bt_stream_class_get_event_class_count(
 			notit->meta.stream_class) == 1);
 		event_id = 0;
 	}
@@ -1585,7 +1585,7 @@ enum bt_notif_iter_status skip_packet_padding_state(
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 	size_t bits_to_skip;
 
-	assert(notit->cur_packet_size > 0);
+	BT_ASSERT(notit->cur_packet_size > 0);
 	bits_to_skip = notit->cur_packet_size - packet_at(notit);
 	if (bits_to_skip == 0) {
 		notit->state = STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN;
@@ -1705,7 +1705,7 @@ enum bt_notif_iter_status handle_state(struct bt_notif_iter *notit)
 static
 void bt_notif_iter_reset(struct bt_notif_iter *notit)
 {
-	assert(notit);
+	BT_ASSERT(notit);
 	BT_LOGD("Resetting notification iterator: addr=%p", notit);
 	stack_clear(notit->stack);
 	BT_PUT(notit->meta.stream_class);
@@ -1734,7 +1734,7 @@ int bt_notif_iter_switch_packet(struct bt_notif_iter *notit)
 	 * sure that all the packets processed by the same notification
 	 * iterator refer to the same stream class (the first one).
 	 */
-	assert(notit);
+	BT_ASSERT(notit);
 	if (notit->cur_packet_size != -1) {
 		notit->cur_packet_offset += notit->cur_packet_size;
 	}
@@ -1786,12 +1786,12 @@ struct bt_field *get_next_field(struct bt_notif_iter *notit)
 	struct bt_field_type *base_type;
 	size_t index;
 
-	assert(!stack_empty(notit->stack));
+	BT_ASSERT(!stack_empty(notit->stack));
 	index = stack_top(notit->stack)->index;
 	base_field = stack_top(notit->stack)->base;
-	assert(base_field);
+	BT_ASSERT(base_field);
 	base_type = bt_field_get_type(base_field);
-	assert(base_type);
+	BT_ASSERT(base_type);
 
 	switch (bt_field_type_get_type_id(base_type)) {
 	case BT_FIELD_TYPE_ID_STRUCT:
@@ -1832,14 +1832,14 @@ void update_clock_state(uint64_t *state,
 	int ret;
 
 	value_type = bt_field_get_type(value_field);
-	assert(value_type);
-	assert(bt_field_type_is_integer(value_type));
+	BT_ASSERT(value_type);
+	BT_ASSERT(bt_field_type_is_integer(value_type));
 	requested_new_value_size =
 			bt_field_type_integer_get_size(value_type);
-	assert(requested_new_value_size > 0);
+	BT_ASSERT(requested_new_value_size > 0);
 	ret = bt_field_unsigned_integer_get_value(value_field,
 			&requested_new_value);
-	assert(!ret);
+	BT_ASSERT(!ret);
 
 	/*
 	 * Special case for a 64-bit new value, which is the limit
@@ -1885,7 +1885,7 @@ enum bt_btr_status update_clock(struct bt_notif_iter *notit,
 	struct bt_clock_class *clock_class = NULL;
 
 	int_field_type = bt_field_get_type(int_field);
-	assert(int_field_type);
+	BT_ASSERT(int_field_type);
 	clock_class = bt_field_type_integer_get_mapped_clock_class(
 		int_field_type);
 	if (likely(!clock_class)) {
@@ -1954,9 +1954,9 @@ enum bt_btr_status btr_unsigned_int_common(uint64_t value,
 		break;
 	case BT_FIELD_TYPE_ID_ENUM:
 		int_field = bt_field_enumeration_get_container(field);
-		assert(int_field);
+		BT_ASSERT(int_field);
 		type = bt_field_get_type(int_field);
-		assert(type);
+		BT_ASSERT(type);
 		break;
 	default:
 		BT_LOGF("Unexpected field type ID: "
@@ -1967,9 +1967,9 @@ enum bt_btr_status btr_unsigned_int_common(uint64_t value,
 		abort();
 	}
 
-	assert(int_field);
+	BT_ASSERT(int_field);
 	ret = bt_field_unsigned_integer_set_value(int_field, value);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	stack_top(notit->stack)->index++;
 	*out_int_field = int_field;
 	BT_PUT(field);
@@ -2070,9 +2070,9 @@ enum bt_btr_status btr_signed_int_cb(int64_t value,
 		break;
 	case BT_FIELD_TYPE_ID_ENUM:
 		int_field = bt_field_enumeration_get_container(field);
-		assert(int_field);
+		BT_ASSERT(int_field);
 		type = bt_field_get_type(int_field);
-		assert(type);
+		BT_ASSERT(type);
 		break;
 	default:
 		BT_LOGF("Unexpected field type ID: "
@@ -2083,9 +2083,9 @@ enum bt_btr_status btr_signed_int_cb(int64_t value,
 		abort();
 	}
 
-	assert(int_field);
+	BT_ASSERT(int_field);
 	ret = bt_field_signed_integer_set_value(int_field, value);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	stack_top(notit->stack)->index++;
 	status = update_clock(notit, int_field);
 	BT_PUT(field);
@@ -2122,7 +2122,7 @@ enum bt_btr_status btr_floating_point_cb(double value,
 	}
 
 	ret = bt_field_floating_point_set_value(field, value);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	stack_top(notit->stack)->index++;
 
 end:
@@ -2206,7 +2206,7 @@ enum bt_btr_status btr_string_cb(const char *value,
 
 	/* Get string field */
 	field = stack_top(notit->stack)->base;
-	assert(field);
+	BT_ASSERT(field);
 
 	/* Append current string */
 	ret = bt_field_string_append_len(field, value, len);
@@ -2291,7 +2291,7 @@ enum bt_btr_status btr_compound_begin_cb(
 	}
 
 	/* Push field */
-	assert(field);
+	BT_ASSERT(field);
 	ret = stack_push(notit->stack, field);
 	if (ret) {
 		BT_LOGE("Cannot push compound field onto the stack: "
@@ -2321,7 +2321,7 @@ enum bt_btr_status btr_compound_end_cb(
 		notit, notit->btr, type,
 		bt_field_type_id_string(
 			bt_field_type_get_type_id(type)));
-	assert(!stack_empty(notit->stack));
+	BT_ASSERT(!stack_empty(notit->stack));
 
 	/* Pop stack */
 	stack_pop(notit->stack);
@@ -2395,7 +2395,7 @@ struct bt_field *resolve_field(struct bt_notif_iter *notit,
 		int index = bt_field_path_get_index(path, i);
 
 		field_type = bt_field_get_type(field);
-		assert(field_type);
+		BT_ASSERT(field_type);
 
 		if (is_struct_type(field_type)) {
 			next_field = bt_field_structure_get_field_by_index(
@@ -2438,7 +2438,7 @@ int64_t btr_get_sequence_length_cb(struct bt_field_type *type, void *data)
 	uint64_t length;
 
 	field_path = bt_field_type_sequence_get_length_field_path(type);
-	assert(field_path);
+	BT_ASSERT(field_path);
 	length_field = resolve_field(notit, field_path);
 	if (!length_field) {
 		BT_LOGW("Cannot resolve sequence field type's length field path: "
@@ -2486,7 +2486,7 @@ struct bt_field_type *btr_get_variant_type_cb(
 	struct bt_field_type *selected_field_type = NULL;
 
 	path = bt_field_type_variant_get_tag_field_path(type);
-	assert(path);
+	BT_ASSERT(path);
 	tag_field = resolve_field(notit, path);
 	if (!tag_field) {
 		BT_LOGW("Cannot resolve variant field type's tag field path: "
@@ -2558,7 +2558,7 @@ int set_event_clocks(struct bt_event *event,
 			struct bt_event_class *event_class =
 				bt_event_get_class(event);
 
-			assert(event_class);
+			BT_ASSERT(event_class);
 			BT_LOGE("Cannot set event's clock value: "
 				"notit-addr=%p, event-addr=%p, "
 				"event-class-name=\"%s\", "
@@ -2679,7 +2679,7 @@ struct bt_event *create_event(struct bt_notif_iter *notit)
 	}
 
 	/* Associate with current packet. */
-	assert(notit->packet);
+	BT_ASSERT(notit->packet);
 	ret = bt_event_set_packet(event, notit->packet);
 	if (ret) {
 		BT_LOGE("Cannot set event's header field: "
@@ -2953,7 +2953,7 @@ void init_trace_field_path_cache(struct bt_trace *trace,
 	}
 
 	count = bt_field_type_structure_get_field_count(packet_header);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	for (i = 0; (i < count && (stream_id == -1 || stream_instance_id == -1)); i++) {
 		int ret;
@@ -3005,9 +3005,9 @@ struct bt_notif_iter *bt_notif_iter_create(struct bt_trace *trace,
 		},
 	};
 
-	assert(trace);
-	assert(medops.request_bytes);
-	assert(medops.get_stream);
+	BT_ASSERT(trace);
+	BT_ASSERT(medops.request_bytes);
+	BT_ASSERT(medops.get_stream);
 	BT_LOGD("Creating CTF plugin notification iterator: "
 		"trace-addr=%p, trace-name=\"%s\", max-request-size=%zu, "
 		"data=%p",
@@ -3115,8 +3115,8 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 
-	assert(notit);
-	assert(notification);
+	BT_ASSERT(notit);
+	BT_ASSERT(notification);
 
 	BT_LOGV("Getting next notification: notit-addr=%p, cc-prio-map-addr=%p",
 		notit, cc_prio_map);
@@ -3161,7 +3161,7 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 						bt_field_get_type(
 							notit->cur_timestamp_end);
 
-				assert(field_type);
+				BT_ASSERT(field_type);
 				btr_status = update_clock(notit,
 					notit->cur_timestamp_end);
 				BT_PUT(field_type);
@@ -3198,7 +3198,7 @@ enum bt_notif_iter_status bt_notif_iter_get_packet_header_context_fields(
 	int ret;
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 
-	assert(notit);
+	BT_ASSERT(notit);
 
 	if (notit->state == STATE_EMIT_NOTIF_NEW_PACKET) {
 		/* We're already there */
@@ -3271,7 +3271,7 @@ BT_HIDDEN
 void bt_notif_iter_set_medops_data(struct bt_notif_iter *notit,
 		void *medops_data)
 {
-	assert(notit);
+	BT_ASSERT(notit);
 	notit->medium.data = medops_data;
 }
 
@@ -3282,7 +3282,7 @@ enum bt_notif_iter_status bt_notif_iter_seek(
 	enum bt_notif_iter_status ret = BT_NOTIF_ITER_STATUS_OK;
 	enum bt_notif_iter_medium_status medium_status;
 
-	assert(notit);
+	BT_ASSERT(notit);
 	if (offset < 0) {
 		BT_LOGE("Cannot seek to negative offset: offset=%jd", offset);
 		ret = BT_NOTIF_ITER_STATUS_INVAL;
@@ -3317,7 +3317,7 @@ BT_HIDDEN
 off_t bt_notif_iter_get_current_packet_offset(
 		struct bt_notif_iter *notit)
 {
-	assert(notit);
+	BT_ASSERT(notit);
 	return notit->cur_packet_offset;
 }
 
@@ -3325,6 +3325,6 @@ BT_HIDDEN
 off_t bt_notif_iter_get_current_packet_size(
 		struct bt_notif_iter *notit)
 {
-	assert(notit);
+	BT_ASSERT(notit);
 	return notit->cur_packet_size;
 }

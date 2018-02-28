@@ -30,6 +30,7 @@
 #include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/notification-discarded-elements-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <stdint.h>
 #include <inttypes.h>
 
@@ -61,10 +62,7 @@ struct bt_notification *bt_notification_discarded_elements_create(
 	struct bt_notification_discarded_elements *notification;
 	struct bt_notification *ret_notif = NULL;
 
-	if (!stream) {
-		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-	}
-
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	BT_LOGD("Creating discarded elements notification object: "
 		"type=%s, stream-addr=%p, stream-name=\"%s\", "
 		"begin-clock-value-addr=%p, end-clock-value-addr=%p, "
@@ -107,29 +105,13 @@ bt_notification_discarded_elements_get_begin_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
-	struct bt_clock_value *clock_value = NULL;
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (bt_notification_get_type(notification) != type) {
-		BT_LOGW("Invalid parameter: notification has not the expected type: "
-			"addr%p, expected-type=%s, notif-type=%s",
-			notification, bt_notification_type_string(type),
-			bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, type);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
-	clock_value = bt_get(discarded_elems_notif->begin_clock_value);
-
-end:
-	return clock_value;
+	return bt_get(discarded_elems_notif->begin_clock_value);
 }
 
 BT_HIDDEN
@@ -138,29 +120,13 @@ bt_notification_discarded_elements_get_end_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
-	struct bt_clock_value *clock_value = NULL;
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (bt_notification_get_type(notification) != type) {
-		BT_LOGW("Invalid parameter: notification has not the expected type: "
-			"addr%p, expected-type=%s, notif-type=%s",
-			notification, bt_notification_type_string(type),
-			bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, type);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
-	clock_value = bt_get(discarded_elems_notif->end_clock_value);
-
-end:
-	return clock_value;
+	return bt_get(discarded_elems_notif->end_clock_value);
 }
 
 BT_HIDDEN
@@ -168,29 +134,13 @@ int64_t bt_notification_discarded_elements_get_count(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
-	int64_t count = (int64_t) -1;
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (bt_notification_get_type(notification) != type) {
-		BT_LOGW("Invalid parameter: notification has not the expected type: "
-			"addr%p, expected-type=%s, notif-type=%s",
-			notification, bt_notification_type_string(type),
-			bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, type);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
-	count = discarded_elems_notif->count;
-
-end:
-	return count;
+	return discarded_elems_notif->count;
 }
 
 BT_HIDDEN
@@ -198,27 +148,11 @@ struct bt_stream *bt_notification_discarded_elements_get_stream(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
-	struct bt_stream *stream = NULL;
 	struct bt_notification_discarded_elements *discarded_elems_notif;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (bt_notification_get_type(notification) != type) {
-		BT_LOGW("Invalid parameter: notification has not the expected type: "
-			"addr%p, expected-type=%s, notif-type=%s",
-			notification, bt_notification_type_string(type),
-			bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, type);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
-	stream = bt_get(discarded_elems_notif->stream);
-
-end:
-	return stream;
+	return bt_get(discarded_elems_notif->stream);
 }

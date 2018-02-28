@@ -39,6 +39,7 @@
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/list-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -105,7 +106,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 {
 	struct bt_plugin_so_shared_lib_handle *shared_lib_handle;
 
-	assert(obj);
+	BT_ASSERT(obj);
 	shared_lib_handle = container_of(obj,
 		struct bt_plugin_so_shared_lib_handle, base);
 	const char *path = shared_lib_handle->path ?
@@ -223,8 +224,8 @@ void bt_plugin_so_destroy_spec_data(struct bt_plugin *plugin)
 		return;
 	}
 
-	assert(plugin->type == BT_PLUGIN_TYPE_SO);
-	assert(spec);
+	BT_ASSERT(plugin->type == BT_PLUGIN_TYPE_SO);
+	BT_ASSERT(spec);
 	BT_PUT(spec->shared_lib_handle);
 	g_free(plugin->spec_data);
 	plugin->spec_data = NULL;
@@ -1132,8 +1133,8 @@ void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 {
 	struct bt_plugin_so_spec_data *spec = plugin->spec_data;
 
-	assert(plugin->spec_data);
-	assert(plugin->type == BT_PLUGIN_TYPE_SO);
+	BT_ASSERT(plugin->spec_data);
+	BT_ASSERT(plugin->type == BT_PLUGIN_TYPE_SO);
 
 	bt_list_add(&comp_class->node, &component_class_list);
 	comp_class->so_handle = bt_get(spec->shared_lib_handle);

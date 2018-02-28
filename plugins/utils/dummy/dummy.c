@@ -23,7 +23,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <plugins-common.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include "dummy.h"
 
 void destroy_private_dummy_data(struct dummy *dummy)
@@ -36,9 +36,9 @@ void dummy_finalize(struct bt_private_component *component)
 {
 	struct dummy *dummy;
 
-	assert(component);
+	BT_ASSERT(component);
 	dummy = bt_private_component_get_user_data(component);
-	assert(dummy);
+	BT_ASSERT(dummy);
 	destroy_private_dummy_data(dummy);
 }
 
@@ -84,9 +84,9 @@ void dummy_port_connected(
 	enum bt_connection_status conn_status;
 
 	dummy = bt_private_component_get_user_data(component);
-	assert(dummy);
+	BT_ASSERT(dummy);
 	connection = bt_private_port_get_private_connection(self_port);
-	assert(connection);
+	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, NULL, &iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
@@ -108,7 +108,7 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 	enum bt_notification_iterator_status it_ret;
 
 	dummy = bt_private_component_get_user_data(component);
-	assert(dummy);
+	BT_ASSERT(dummy);
 
 	if (unlikely(dummy->error)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
