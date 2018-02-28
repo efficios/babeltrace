@@ -26,10 +26,10 @@
  * SOFTWARE.
  */
 
-#include <assert.h>
 #include <stddef.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/notification-heap-internal.h>
+#include <babeltrace/assert-internal.h>
 
 #ifdef DEBUG_HEAP
 static
@@ -42,7 +42,7 @@ void check_heap(struct bt_notification_heap *heap)
 	}
 
 	for (i = 1; i < heap->count; i++) {
-		assert(!heap->compare(g_ptr_array_index(heap->ptrs, i),
+		BT_ASSERT(!heap->compare(g_ptr_array_index(heap->ptrs, i),
 				g_ptr_array_index(heap->ptrs, 0),
 				heap->compare_data));
 	}

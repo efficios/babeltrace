@@ -33,6 +33,7 @@
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/types.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 static
@@ -41,7 +42,7 @@ void bt_component_class_destroy(struct bt_object *obj)
 	struct bt_component_class *class;
 	int i;
 
-	assert(obj);
+	BT_ASSERT(obj);
 	class = container_of(obj, struct bt_component_class, base);
 
 	BT_LOGD("Destroying component class: "
@@ -824,8 +825,8 @@ void bt_component_class_add_destroy_listener(struct bt_component_class *class,
 {
 	struct bt_component_class_destroy_listener listener;
 
-	assert(class);
-	assert(func);
+	BT_ASSERT(class);
+	BT_ASSERT(func);
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(class->destroy_listeners, listener);

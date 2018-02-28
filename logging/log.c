@@ -288,7 +288,7 @@ extern unsigned long pthread_getsequence_np(pthread_t *);
 		#undef __STRICT_ANSI__
 	#endif
 #endif
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <ctype.h>
 #include <string.h>
 #include <time.h>

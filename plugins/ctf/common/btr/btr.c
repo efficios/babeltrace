@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <string.h>
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/babeltrace.h>
@@ -264,8 +264,8 @@ int stack_push(struct stack *stack, struct bt_field_type *base_type,
 	int ret = 0;
 	struct stack_entry *entry;
 
-	assert(stack);
-	assert(base_type);
+	BT_ASSERT(stack);
+	BT_ASSERT(base_type);
 
 	BT_LOGV("Pushing field type on stack: stack-addr=%p, "
 		"ft-addr=%p, ft-id=%s, base-length=%zu, "
@@ -315,7 +315,7 @@ end:
 static inline
 unsigned int stack_size(struct stack *stack)
 {
-	assert(stack);
+	BT_ASSERT(stack);
 
 	return stack->entries->len;
 }
@@ -323,8 +323,8 @@ unsigned int stack_size(struct stack *stack)
 static
 void stack_pop(struct stack *stack)
 {
-	assert(stack);
-	assert(stack_size(stack));
+	BT_ASSERT(stack);
+	BT_ASSERT(stack_size(stack));
 	BT_LOGV("Popping from stack: "
 		"stack-addr=%p, stack-size-before=%u, stack-size-after=%u",
 		stack, stack->entries->len, stack->entries->len - 1);
@@ -340,20 +340,20 @@ bool stack_empty(struct stack *stack)
 static
 void stack_clear(struct stack *stack)
 {
-	assert(stack);
+	BT_ASSERT(stack);
 
 	if (!stack_empty(stack)) {
 		g_ptr_array_remove_range(stack->entries, 0, stack_size(stack));
 	}
 
-	assert(stack_empty(stack));
+	BT_ASSERT(stack_empty(stack));
 }
 
 static inline
 struct stack_entry *stack_top(struct stack *stack)
 {
-	assert(stack);
-	assert(stack_size(stack));
+	BT_ASSERT(stack);
+	BT_ASSERT(stack_size(stack));
 
 	return g_ptr_array_index(stack->entries, stack->entries->len - 1);
 }
@@ -429,8 +429,8 @@ int get_basic_field_type_size(struct bt_btr *btr,
 		mant_dig =
 			bt_field_type_floating_point_get_mantissa_digits(
 				field_type);
-		assert(exp_dig >= 0);
-		assert(mant_dig >= 0);
+		BT_ASSERT(exp_dig >= 0);
+		BT_ASSERT(mant_dig >= 0);
 		size = exp_dig + mant_dig;
 		break;
 	}
@@ -440,7 +440,7 @@ int get_basic_field_type_size(struct bt_btr *btr,
 
 		int_type = bt_field_type_enumeration_get_container_type(
 			field_type);
-		assert(int_type);
+		BT_ASSERT(int_type);
 		size = get_basic_field_type_size(btr, int_type);
 		BT_PUT(int_type);
 		break;
@@ -481,8 +481,8 @@ void stitch_append_from_buf(struct bt_btr *btr, size_t sz)
 		BITS_TO_BYTES_FLOOR(stitch_at_from_addr(btr));
 	buf_byte_at = BITS_TO_BYTES_FLOOR(buf_at_from_addr(btr));
 	nb_bytes = BITS_TO_BYTES_CEIL(sz);
-	assert(nb_bytes > 0);
-	assert(btr->buf.addr);
+	BT_ASSERT(nb_bytes > 0);
+	BT_ASSERT(btr->buf.addr);
 	memcpy(&btr->stitch.buf[stitch_byte_at], &btr->buf.addr[buf_byte_at],
 		nb_bytes);
 	btr->stitch.at += sz;
@@ -631,10 +631,10 @@ enum bt_btr_status read_basic_float_and_call_cb(struct bt_btr *btr,
 
 		ret = bt_field_type_floating_point_get_mantissa_digits(
 			btr->cur_basic_field_type);
-		assert(ret == 24);
+		BT_ASSERT(ret == 24);
 		ret = bt_field_type_floating_point_get_exponent_digits(
 			btr->cur_basic_field_type);
-		assert(ret == 8);
+		BT_ASSERT(ret == 8);
 		status = read_unsigned_bitfield(buf, at, field_size, bo, &v);
 		if (status != BT_BTR_STATUS_OK) {
 			BT_LOGW("Cannot read unsigned 32-bit bit array for floating point number field: "
@@ -656,10 +656,10 @@ enum bt_btr_status read_basic_float_and_call_cb(struct bt_btr *btr,
 
 		ret = bt_field_type_floating_point_get_mantissa_digits(
 			btr->cur_basic_field_type);
-		assert(ret == 53);
+		BT_ASSERT(ret == 53);
 		ret = bt_field_type_floating_point_get_exponent_digits(
 			btr->cur_basic_field_type);
-		assert(ret == 11);
+		BT_ASSERT(ret == 11);
 		status = read_unsigned_bitfield(buf, at, field_size, bo,
 			&f64.u);
 		if (status != BT_BTR_STATUS_OK) {
@@ -798,7 +798,7 @@ enum bt_btr_status read_basic_enum_and_call_cb(struct bt_btr *btr,
 
 	int_field_type = bt_field_type_enumeration_get_container_type(
 		btr->cur_basic_field_type);
-	assert(int_field_type);
+	BT_ASSERT(int_field_type);
 	status = read_basic_int_and_call(btr, buf, at,
 		int_field_type, btr->cur_basic_field_type);
 	bt_put(int_field_type);
@@ -904,7 +904,7 @@ enum bt_btr_status read_basic_type_and_call_begin(struct bt_btr *btr,
 
 	if (field_size <= available) {
 		/* We have all the bits; decode and set now */
-		assert(btr->buf.addr);
+		BT_ASSERT(btr->buf.addr);
 		status = read_basic_and_call_cb(btr, btr->buf.addr,
 			buf_at_from_addr(btr));
 		if (status != BT_BTR_STATUS_OK) {
@@ -1003,10 +1003,10 @@ enum bt_btr_status read_basic_string_type_and_call(
 		goto end;
 	}
 
-	assert(buf_at_from_addr(btr) % 8 == 0);
+	BT_ASSERT(buf_at_from_addr(btr) % 8 == 0);
 	available_bytes = BITS_TO_BYTES_FLOOR(available_bits(btr));
 	buf_at_bytes = BITS_TO_BYTES_FLOOR(buf_at_from_addr(btr));
-	assert(btr->buf.addr);
+	BT_ASSERT(btr->buf.addr);
 	first_chr = &btr->buf.addr[buf_at_bytes];
 	result = memchr(first_chr, '\0', available_bytes);
 
@@ -1100,7 +1100,7 @@ enum bt_btr_status read_basic_begin_state(struct bt_btr *btr)
 {
 	enum bt_btr_status status;
 
-	assert(btr->cur_basic_field_type);
+	BT_ASSERT(btr->cur_basic_field_type);
 
 	switch (bt_field_type_get_type_id(btr->cur_basic_field_type)) {
 	case BT_FIELD_TYPE_ID_INTEGER:
@@ -1133,7 +1133,7 @@ enum bt_btr_status read_basic_continue_state(struct bt_btr *btr)
 {
 	enum bt_btr_status status;
 
-	assert(btr->cur_basic_field_type);
+	BT_ASSERT(btr->cur_basic_field_type);
 
 	switch (bt_field_type_get_type_id(btr->cur_basic_field_type)) {
 	case BT_FIELD_TYPE_ID_INTEGER:
@@ -1465,8 +1465,8 @@ size_t bt_btr_start(struct bt_btr *btr,
 	size_t offset, size_t packet_offset, size_t sz,
 	enum bt_btr_status *status)
 {
-	assert(btr);
-	assert(BYTES_TO_BITS(sz) >= offset);
+	BT_ASSERT(btr);
+	BT_ASSERT(BYTES_TO_BITS(sz) >= offset);
 	reset(btr);
 	btr->buf.addr = buf;
 	btr->buf.offset = offset;
@@ -1536,9 +1536,9 @@ size_t bt_btr_continue(struct bt_btr *btr,
 	const uint8_t *buf, size_t sz,
 	enum bt_btr_status *status)
 {
-	assert(btr);
-	assert(buf);
-	assert(sz > 0);
+	BT_ASSERT(btr);
+	BT_ASSERT(buf);
+	BT_ASSERT(sz > 0);
 	btr->buf.addr = buf;
 	btr->buf.offset = 0;
 	btr->buf.at = 0;

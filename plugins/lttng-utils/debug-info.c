@@ -28,7 +28,7 @@
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT"
 #include "logging.h"
 
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 #include "debug-info.h"
 #include "bin-info.h"

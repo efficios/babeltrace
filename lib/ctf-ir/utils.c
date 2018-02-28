@@ -29,13 +29,13 @@
 #define BT_LOG_TAG "CTF-IR-UTILS"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <assert.h>
 #include <stdlib.h>
 #include <glib.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ref.h>
+#include <babeltrace/assert-internal.h>
 
 static
 const char * const reserved_keywords_str[] = {"align", "callsite",
@@ -59,7 +59,7 @@ void try_init_reserved_keywords(void)
 	}
 
 	reserved_keywords_set = g_hash_table_new(g_direct_hash, g_direct_equal);
-	assert(reserved_keywords_set);
+	BT_ASSERT(reserved_keywords_set);
 
 	for (i = 0; i < reserved_keywords_count; i++) {
 		gpointer quark = GINT_TO_POINTER(g_quark_from_string(
@@ -136,7 +136,7 @@ int bt_validate_single_clock_class(struct bt_field_type *field_type,
 		goto end;
 	}
 
-	assert(expected_clock_class);
+	BT_ASSERT(expected_clock_class);
 
 	switch (bt_field_type_get_type_id(field_type)) {
 	case BT_FIELD_TYPE_ID_INTEGER:
@@ -201,7 +201,7 @@ int bt_validate_single_clock_class(struct bt_field_type *field_type,
 			abort();
 		}
 
-		assert(subtype);
+		BT_ASSERT(subtype);
 		ret = bt_validate_single_clock_class(subtype,
 			expected_clock_class);
 		bt_put(subtype);
@@ -219,7 +219,7 @@ int bt_validate_single_clock_class(struct bt_field_type *field_type,
 
 			ret = bt_field_type_structure_get_field_by_index(
 				field_type, &name, &member_type, i);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			ret = bt_validate_single_clock_class(member_type,
 				expected_clock_class);
 			bt_put(member_type);
@@ -247,7 +247,7 @@ int bt_validate_single_clock_class(struct bt_field_type *field_type,
 
 			ret = bt_field_type_variant_get_field_by_index(
 				field_type, &name, &member_type, i);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			ret = bt_validate_single_clock_class(member_type,
 				expected_clock_class);
 			bt_put(member_type);

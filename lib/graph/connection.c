@@ -39,6 +39,7 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <stdlib.h>
 #include <glib.h>
 
@@ -223,7 +224,7 @@ void bt_connection_end(struct bt_connection *conn,
 		bt_component_port_disconnected(upstream_comp, upstream_port);
 	}
 
-	assert(graph);
+	BT_ASSERT(graph);
 	/* bt_graph_notify_ports_disconnected() logs details */
 	bt_graph_notify_ports_disconnected(graph, upstream_comp,
 		downstream_comp, upstream_port, downstream_port);
@@ -331,9 +332,9 @@ bt_private_connection_create_notification_iterator(
 	}
 
 	upstream_port = connection->upstream_port;
-	assert(upstream_port);
+	BT_ASSERT(upstream_port);
 	upstream_component = bt_port_get_component(upstream_port);
-	assert(upstream_component);
+	BT_ASSERT(upstream_component);
 	upstream_comp_class = upstream_component->class;
 	BT_LOGD("Creating notification iterator from connection: "
 		"conn-addr=%p, upstream-port-addr=%p, "
@@ -344,7 +345,7 @@ bt_private_connection_create_notification_iterator(
 		upstream_component, bt_component_get_name(upstream_component));
 	upstream_comp_class_type =
 		bt_component_get_class_type(upstream_component);
-	assert(upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
+	BT_ASSERT(upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
 			upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_FILTER);
 	status = bt_private_connection_notification_iterator_create(upstream_component,
 		upstream_port, notification_types, connection, &iterator);

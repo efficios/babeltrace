@@ -34,7 +34,7 @@
 #include <glib.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -174,7 +174,7 @@ enum bt_component_status ensure_available_input_port(
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	GString *port_name = NULL;
 
-	assert(muxer_comp);
+	BT_ASSERT(muxer_comp);
 
 	if (muxer_comp->available_input_ports >= 1) {
 		goto end;
@@ -293,7 +293,8 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 
 	assume_absolute_clock_classes = bt_value_map_get(real_params,
 		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
-	if (!bt_value_is_bool(assume_absolute_clock_classes)) {
+	if (assume_absolute_clock_classes &&
+			!bt_value_is_bool(assume_absolute_clock_classes)) {
 		BT_LOGE("Expecting a boolean value for the `%s` parameter: "
 			"muxer-comp-addr=%p, value-type=%s",
 			ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME, muxer_comp,
@@ -303,7 +304,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 	}
 
 	ret = bt_value_bool_get(assume_absolute_clock_classes, &bool_val);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	muxer_comp->assume_absolute_clock_classes = (bool) bool_val;
 	BT_LOGD("Configured muxer component: muxer-comp-addr=%p, "
 		"assume-absolute-clock-classes=%d",
@@ -353,7 +354,7 @@ enum bt_component_status muxer_init(
 
 	muxer_comp->priv_comp = priv_comp;
 	ret = bt_private_component_set_user_data(priv_comp, muxer_comp);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	status = ensure_available_input_port(priv_comp);
 	if (status != BT_COMPONENT_STATUS_OK) {
 		BT_LOGE("Cannot ensure that at least one muxer component's input port is available: "
@@ -381,7 +382,7 @@ enum bt_component_status muxer_init(
 error:
 	destroy_muxer_comp(muxer_comp);
 	ret = bt_private_component_set_user_data(priv_comp, NULL);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	if (status == BT_COMPONENT_STATUS_OK) {
 		status = BT_COMPONENT_STATUS_ERROR;
@@ -411,12 +412,12 @@ struct bt_notification_iterator *create_notif_iter_on_input_port(
 	struct bt_private_connection *priv_conn = NULL;
 	enum bt_connection_status conn_status;
 
-	assert(ret);
+	BT_ASSERT(ret);
 	*ret = 0;
-	assert(port);
-	assert(bt_port_is_connected(port));
+	BT_ASSERT(port);
+	BT_ASSERT(bt_port_is_connected(port));
 	priv_conn = bt_private_port_get_private_connection(priv_port);
-	assert(priv_conn);
+	BT_ASSERT(priv_conn);
 
 	// TODO: Advance the iterator to >= the time of the latest
 	//       returned notification by the muxer notification
@@ -531,7 +532,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 
 		priv_port = node->data;
 		port = bt_port_from_private(priv_port);
-		assert(port);
+		BT_ASSERT(port);
 
 		if (!bt_port_is_connected(port)) {
 			/*
@@ -548,7 +549,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 			&ret);
 		if (ret) {
 			/* create_notif_iter_on_input_port() logs errors */
-			assert(!upstream_notif_iter);
+			BT_ASSERT(!upstream_notif_iter);
 			goto error;
 		}
 
@@ -599,8 +600,8 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	const unsigned char *cc_uuid;
 	const char *cc_name;
 
-	assert(notif);
-	assert(ts_ns);
+	BT_ASSERT(notif);
+	BT_ASSERT(ts_ns);
 
 	BT_LOGV("Getting notification's timestamp: "
 		"muxer-notif-iter-addr=%p, notif-addr=%p, "
@@ -807,7 +808,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	switch (bt_notification_get_type(notif)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 		event = bt_notification_event_get_event(notif);
-		assert(event);
+		BT_ASSERT(event);
 		clock_value = bt_event_get_clock_value(event,
 			clock_class);
 		break;
@@ -887,9 +888,9 @@ muxer_notif_iter_youngest_upstream_notif_iter(
 	enum bt_notification_iterator_status status =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
-	assert(muxer_comp);
-	assert(muxer_notif_iter);
-	assert(muxer_upstream_notif_iter);
+	BT_ASSERT(muxer_comp);
+	BT_ASSERT(muxer_notif_iter);
+	BT_ASSERT(muxer_upstream_notif_iter);
 	*muxer_upstream_notif_iter = NULL;
 
 	for (i = 0; i < muxer_notif_iter->muxer_upstream_notif_iters->len; i++) {
@@ -906,10 +907,10 @@ muxer_notif_iter_youngest_upstream_notif_iter(
 			continue;
 		}
 
-		assert(cur_muxer_upstream_notif_iter->is_valid);
+		BT_ASSERT(cur_muxer_upstream_notif_iter->is_valid);
 		notif = bt_notification_iterator_get_notification(
 			cur_muxer_upstream_notif_iter->notif_iter);
-		assert(notif);
+		BT_ASSERT(notif);
 		ret = get_notif_ts_ns(muxer_comp, muxer_notif_iter, notif,
 			muxer_notif_iter->last_returned_ts_ns, &notif_ts_ns);
 		bt_put(notif);
@@ -1069,7 +1070,7 @@ struct bt_notification_iterator_next_method_return muxer_notif_iter_do_next(
 		}
 	}
 
-	assert(!muxer_notif_iter->newly_connected_priv_ports);
+	BT_ASSERT(!muxer_notif_iter->newly_connected_priv_ports);
 
 	/*
 	 * At this point we know that all the existing upstream
@@ -1112,11 +1113,11 @@ struct bt_notification_iterator_next_method_return muxer_notif_iter_do_next(
 		"muxer-upstream-notif-iter-wrap-addr=%p, "
 		"ts=%" PRId64,
 		muxer_notif_iter, muxer_upstream_notif_iter, next_return_ts);
-	assert(next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_OK);
-	assert(muxer_upstream_notif_iter);
+	BT_ASSERT(next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_OK);
+	BT_ASSERT(muxer_upstream_notif_iter);
 	next_return.notification = bt_notification_iterator_get_notification(
 		muxer_upstream_notif_iter->notif_iter);
-	assert(next_return.notification);
+	BT_ASSERT(next_return.notification);
 
 	/*
 	 * We invalidate the upstream notification iterator so that, the
@@ -1165,7 +1166,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 	 * handled by muxer_notif_iter_handle_newly_connected_ports().
 	 */
 	comp = bt_component_from_private(muxer_comp->priv_comp);
-	assert(comp);
+	BT_ASSERT(comp);
 	count = bt_component_filter_get_input_port_count(comp);
 	if (count < 0) {
 		BT_LOGD("No input port to initialize for muxer component's notification iterator: "
@@ -1180,9 +1181,9 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 				muxer_comp->priv_comp, i);
 		struct bt_port *port;
 
-		assert(priv_port);
+		BT_ASSERT(priv_port);
 		port = bt_port_from_private(priv_port);
-		assert(port);
+		BT_ASSERT(port);
 
 		if (!bt_port_is_connected(port)) {
 			BT_LOGD("Skipping input port: not connected: "
@@ -1233,9 +1234,9 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 
 	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
-	assert(priv_comp);
+	BT_ASSERT(priv_comp);
 	muxer_comp = bt_private_component_get_user_data(priv_comp);
-	assert(muxer_comp);
+	BT_ASSERT(muxer_comp);
 	BT_LOGD("Initializing muxer component's notification iterator: "
 		"comp-addr=%p, muxer-comp-addr=%p, notif-iter-addr=%p",
 		priv_comp, muxer_comp, priv_notif_iter);
@@ -1290,7 +1291,7 @@ enum bt_notification_iterator_status muxer_notif_iter_init(
 
 	ret = bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		muxer_notif_iter);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	BT_LOGD("Initialized muxer component's notification iterator: "
 		"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
 		"notif-iter-addr=%p",
@@ -1307,7 +1308,7 @@ error:
 	destroy_muxer_notif_iter(muxer_notif_iter);
 	ret = bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		NULL);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 
 end:
@@ -1327,7 +1328,7 @@ void muxer_notif_iter_finalize(
 
 	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
-	assert(priv_comp);
+	BT_ASSERT(priv_comp);
 	muxer_comp = bt_private_component_get_user_data(priv_comp);
 	BT_LOGD("Finalizing muxer component's notification iterator: "
 		"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
@@ -1353,12 +1354,12 @@ struct bt_notification_iterator_next_method_return muxer_notif_iter_next(
 	struct bt_private_component *priv_comp = NULL;
 	struct muxer_comp *muxer_comp = NULL;
 
-	assert(muxer_notif_iter);
+	BT_ASSERT(muxer_notif_iter);
 	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
 		priv_notif_iter);
-	assert(priv_comp);
+	BT_ASSERT(priv_comp);
 	muxer_comp = bt_private_component_get_user_data(priv_comp);
-	assert(muxer_comp);
+	BT_ASSERT(muxer_comp);
 
 	BT_LOGV("Muxer component's notification iterator's \"next\" method called: "
 		"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
@@ -1408,8 +1409,8 @@ void muxer_port_connected(
 	size_t i;
 	int ret;
 
-	assert(self_port);
-	assert(muxer_comp);
+	BT_ASSERT(self_port);
+	BT_ASSERT(muxer_comp);
 	BT_LOGD("Port connected: "
 		"comp-addr=%p, muxer-comp-addr=%p, "
 		"port-addr=%p, port-name=\"%s\", "
@@ -1478,8 +1479,8 @@ void muxer_port_disconnected(struct bt_private_component *priv_comp,
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 
-	assert(port);
-	assert(muxer_comp);
+	BT_ASSERT(port);
+	BT_ASSERT(muxer_comp);
 	BT_LOGD("Port disconnected: "
 		"comp-addr=%p, muxer-comp-addr=%p, port-addr=%p, "
 		"port-name=\"%s\"", priv_comp, muxer_comp,

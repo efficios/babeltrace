@@ -69,8 +69,8 @@ static struct bt_notification_iterator *bt_py3_create_output_port_notif_iter(
 	enum bt_notification_type *notification_types;
 
 	output_port = (void *) port_addr;
-	assert(!PyErr_Occurred());
-	assert(output_port);
+	BT_ASSERT(!PyErr_Occurred());
+	BT_ASSERT(output_port);
 
 	notification_types = bt_py3_notif_types_from_py_list(py_notif_types);
 	notif_iter = bt_output_port_notification_iterator_create(output_port,

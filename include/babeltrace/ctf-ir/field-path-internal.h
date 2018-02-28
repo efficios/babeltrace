@@ -29,7 +29,7 @@
  */
 
 #include <babeltrace/object-internal.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 struct bt_field_path {
@@ -61,7 +61,7 @@ GString *bt_field_path_string(struct bt_field_path *path)
 	GString *str = g_string_new(NULL);
 	size_t i;
 
-	assert(path);
+	BT_ASSERT(path);
 
 	if (!str) {
 		goto end;

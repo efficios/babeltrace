@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>

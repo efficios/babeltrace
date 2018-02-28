@@ -35,6 +35,7 @@
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/assert-internal.h>
 
 static
 void bt_port_destroy(struct bt_object *obj)
@@ -63,9 +64,9 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 {
 	struct bt_port *port = NULL;
 
-	assert(name);
-	assert(parent_component);
-	assert(type == BT_PORT_TYPE_INPUT || type == BT_PORT_TYPE_OUTPUT);
+	BT_ASSERT(name);
+	BT_ASSERT(parent_component);
+	BT_ASSERT(type == BT_PORT_TYPE_INPUT || type == BT_PORT_TYPE_OUTPUT);
 
 	if (strlen(name) == 0) {
 		BT_LOGW_STR("Invalid parameter: name is an empty string.");
@@ -193,7 +194,7 @@ enum bt_port_status bt_private_port_remove_from_component(
 
 	/* bt_component_remove_port() logs details */
 	comp_status = bt_component_remove_port(comp, port);
-	assert(comp_status != BT_COMPONENT_STATUS_INVALID);
+	BT_ASSERT(comp_status != BT_COMPONENT_STATUS_INVALID);
 	if (comp_status < 0) {
 		status = BT_PORT_STATUS_ERROR;
 		goto end;

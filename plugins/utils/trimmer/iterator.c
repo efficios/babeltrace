@@ -32,7 +32,7 @@
 #include <babeltrace/compat/time-internal.h>
 #include <babeltrace/compat/utc-internal.h>
 #include <babeltrace/babeltrace.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <plugins-common.h>
 
 #include "trimmer.h"
@@ -54,7 +54,7 @@ void trimmer_iterator_finalize(struct bt_private_connection_private_notification
 	struct trimmer_iterator *trim_it;
 
 	trim_it = bt_private_connection_private_notification_iterator_get_user_data(it);
-	assert(trim_it);
+	BT_ASSERT(trim_it);
 
 	bt_put(trim_it->input_iterator);
 	g_hash_table_foreach_remove(trim_it->packet_map,
@@ -93,9 +93,9 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	/* Create a new iterator on the upstream component. */
 	input_port = bt_private_component_filter_get_input_private_port_by_name(
 		component, "in");
-	assert(input_port);
+	BT_ASSERT(input_port);
 	connection = bt_private_port_get_private_connection(input_port);
-	assert(connection);
+	BT_ASSERT(connection);
 
 	conn_status = bt_private_connection_create_notification_iterator(connection,
 			notif_types, &it_data->input_iterator);
@@ -201,24 +201,24 @@ struct bt_notification *evaluate_event_notification(
 	struct bt_clock_class_priority_map *cc_prio_map;
 
 	event = bt_notification_event_get_event(notification);
-	assert(event);
+	BT_ASSERT(event);
 	cc_prio_map = bt_notification_event_get_clock_class_priority_map(
 			notification);
-	assert(cc_prio_map);
+	BT_ASSERT(cc_prio_map);
 	writer_event = trimmer_output_event(trim_it, event);
-	assert(writer_event);
+	BT_ASSERT(writer_event);
 	new_notification = bt_notification_event_create(writer_event, cc_prio_map);
-	assert(new_notification);
+	BT_ASSERT(new_notification);
 	bt_put(cc_prio_map);
 
 	stream = bt_event_get_stream(event);
-	assert(stream);
+	BT_ASSERT(stream);
 
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 
 	/* FIXME multi-clock? */
 	clock_class = bt_trace_get_clock_class_by_index(trace, 0);
@@ -285,7 +285,7 @@ int ns_from_integer_field(struct bt_field *integer, int64_t *ns)
 	struct bt_clock_value *clock_value = NULL;
 
 	integer_type = bt_field_get_type(integer);
-	assert(integer_type);
+	BT_ASSERT(integer_type);
 	clock_class = bt_field_type_integer_get_mapped_clock_class(
 		integer_type);
 	if (!clock_class) {
@@ -348,28 +348,28 @@ int64_t get_raw_timestamp(struct bt_packet *writer_packet,
 	uint64_t freq;
 
 	writer_stream = bt_packet_get_stream(writer_packet);
-	assert(writer_stream);
+	BT_ASSERT(writer_stream);
 
 	writer_stream_class = bt_stream_get_class(writer_stream);
-	assert(writer_stream_class);
+	BT_ASSERT(writer_stream_class);
 
 	writer_trace = bt_stream_class_get_trace(writer_stream_class);
-	assert(writer_trace);
+	BT_ASSERT(writer_trace);
 
 	/* FIXME multi-clock? */
 	writer_clock_class = bt_trace_get_clock_class_by_index(
 		writer_trace, 0);
-	assert(writer_clock_class);
+	BT_ASSERT(writer_clock_class);
 
 	ret = bt_clock_class_get_offset_s(writer_clock_class, &sec_offset);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	ns = sec_offset * NSEC_PER_SEC;
 
 	freq = bt_clock_class_get_frequency(writer_clock_class);
-	assert(freq != -1ULL);
+	BT_ASSERT(freq != -1ULL);
 
 	ret = bt_clock_class_get_offset_cycles(writer_clock_class, &cycles_offset);
-	assert(!ret);
+	BT_ASSERT(!ret);
 
 	ns += ns_from_value(freq, cycles_offset);
 
@@ -401,15 +401,15 @@ struct bt_notification *evaluate_packet_notification(
         switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 		packet = bt_notification_packet_begin_get_packet(notification);
-		assert(packet);
+		BT_ASSERT(packet);
 		writer_packet = trimmer_new_packet(trim_it, packet);
-		assert(writer_packet);
+		BT_ASSERT(writer_packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		packet = bt_notification_packet_end_get_packet(notification);
-		assert(packet);
+		BT_ASSERT(packet);
 		writer_packet = trimmer_close_packet(trim_it, packet);
-		assert(writer_packet);
+		BT_ASSERT(writer_packet);
 		break;
 	default:
 		goto end;
@@ -474,25 +474,25 @@ struct bt_notification *evaluate_packet_notification(
 		ret = update_packet_context_field(trim_it->err, writer_packet,
 				"timestamp_begin",
 				get_raw_timestamp(writer_packet, begin_ns));
-		assert(!ret);
+		BT_ASSERT(!ret);
 	}
 
 	if (end_ns < pkt_end_ns) {
 		ret = update_packet_context_field(trim_it->err, writer_packet,
 				"timestamp_end",
 				get_raw_timestamp(writer_packet, end_ns));
-		assert(!ret);
+		BT_ASSERT(!ret);
 	}
 
 end:
         switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 		new_notification = bt_notification_packet_begin_create(writer_packet);
-		assert(new_notification);
+		BT_ASSERT(new_notification);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		new_notification = bt_notification_packet_end_create(writer_packet);
-		assert(new_notification);
+		BT_ASSERT(new_notification);
 		break;
 	default:
 		break;
@@ -515,7 +515,7 @@ struct bt_notification *evaluate_stream_notification(
 	struct bt_stream *stream;
 
 	stream = bt_notification_stream_end_get_stream(notification);
-	assert(stream);
+	BT_ASSERT(stream);
 
 	/* FIXME: useless copy */
 	return bt_notification_stream_end_create(stream);
@@ -578,16 +578,16 @@ struct bt_notification_iterator_next_method_return trimmer_iterator_next(
 	bool notification_in_range = false;
 
 	trim_it = bt_private_connection_private_notification_iterator_get_user_data(iterator);
-	assert(trim_it);
+	BT_ASSERT(trim_it);
 
 	component = bt_private_connection_private_notification_iterator_get_private_component(
 		iterator);
-	assert(component);
+	BT_ASSERT(component);
 	trimmer = bt_private_component_get_user_data(component);
-	assert(trimmer);
+	BT_ASSERT(trimmer);
 
 	source_it = trim_it->input_iterator;
-	assert(source_it);
+	BT_ASSERT(source_it);
 
 	while (!notification_in_range) {
 		ret.status = bt_notification_iterator_next(source_it);

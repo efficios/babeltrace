@@ -73,14 +73,6 @@ values of #bt_value_status.
 You can create a deep copy of any value object with bt_value_copy(). You
 can compare two value objects with bt_value_compare().
 
-You can \em freeze a value object with bt_value_freeze(). You can get
-the raw value of a frozen value object, but you cannot modify it.
-Reference counting still works on frozen value objects. You can copy
-a frozen value object: the returned copy is not frozen. You can also
-compare a frozen value object to another value object (frozen or not).
-Freezing a value object is typically used to make it immutable after
-it's built by its initial owner.
-
 The following matrix shows some categorized value object functions
 to use for each value object type:
 
@@ -175,11 +167,8 @@ to use for each value object type:
 @brief Status codes.
 */
 enum bt_value_status {
-	/// Value object cannot be altered because it's frozen.
-	BT_VALUE_STATUS_FROZEN =	-4,
-
-	/// Operation cancelled.
-	BT_VALUE_STATUS_CANCELLED =	-3,
+	/// Operation canceled.
+	BT_VALUE_STATUS_CANCELED =	-3,
 
 	/* -22 for compatibility with -EINVAL */
 	/// Invalid argument.
@@ -418,46 +407,6 @@ bt_bool bt_value_is_map(const struct bt_value *object)
 @name Common value object functions
 @{
 */
-
-/**
-@brief	Recursively freezes the value object \p object.
-
-You cannot modify a frozen value object: it is considered immutable.
-Reference counting still works on a frozen value object, however: you
-can pass a frozen value object to bt_get() and bt_put().
-
-If \p object is an array value object or a map value object, this
-function also freezes all its children recursively.
-
-Freezing a value object is typically used to make it immutable after
-it's built by its initial owner.
-
-@param[in] object	Value object to freeze.
-@returns		Status code. If \p object
- 			is already frozen, however, #BT_VALUE_STATUS_OK
- 			is returned anyway (that is, this function never
- 			returns #BT_VALUE_STATUS_FROZEN).
-
-@prenotnull{object}
-@postrefcountsame{object}
-@post <strong>On success</strong>, \p object and all its children
-	are frozen.
-
-@sa bt_value_is_frozen(): Returns whether or not a value object is
-	frozen.
-*/
-extern enum bt_value_status bt_value_freeze(struct bt_value *object);
-
-/**
-@brief	Returns whether or not the value object \p object is frozen.
-
-@param[in] object	Value object to check.
-@returns		#BT_TRUE if \p object is frozen.
-
-@prenotnull{object}
-@postrefcountsame{object}
-*/
-extern bt_bool bt_value_is_frozen(const struct bt_value *object);
 
 /**
 @brief	Creates a \em deep copy of the value object \p object.
@@ -1187,8 +1136,8 @@ The user function \em must return #BT_TRUE to continue the traversal of
 @param[in] cb		User function to call back.
 @param[in] data		User data passed to the user function.
 @returns		Status code. More
-			specifically, #BT_VALUE_STATUS_CANCELLED is
-			returned if the loop was cancelled by the user
+			specifically, #BT_VALUE_STATUS_CANCELED is
+			returned if the loop was canceled by the user
 			function.
 
 @prenotnull{map_obj}

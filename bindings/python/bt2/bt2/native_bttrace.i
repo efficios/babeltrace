@@ -93,14 +93,14 @@ void trace_is_static_listener(struct bt_trace *trace, void *py_callable)
 	}
 
 	py_res = PyObject_CallFunction(py_callable, "(O)", py_trace_ptr);
-	assert(py_res == Py_None);
+	BT_ASSERT(py_res == Py_None);
 	Py_DECREF(py_trace_ptr);
 	Py_DECREF(py_res);
 }
 
 void trace_listener_removed(struct bt_trace *trace, void *py_callable)
 {
-	assert(py_callable);
+	BT_ASSERT(py_callable);
 	Py_DECREF(py_callable);
 }
 
@@ -110,8 +110,8 @@ static int bt_py3_trace_add_is_staitc_listener(unsigned long long trace_addr,
 	struct bt_trace *trace = (void *) trace_addr;
 	int ret = 0;
 
-	assert(trace);
-	assert(py_callable);
+	BT_ASSERT(trace);
+	BT_ASSERT(py_callable);
 	ret = bt_trace_add_is_static_listener(trace,
 		trace_is_static_listener, trace_listener_removed, py_callable);
 	if (ret >= 0) {

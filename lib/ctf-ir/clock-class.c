@@ -39,6 +39,7 @@
 #include <babeltrace/compat/string-internal.h>
 #include <inttypes.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/assert-internal.h>
 
 static
 void bt_clock_class_destroy(struct bt_object *obj);
@@ -668,7 +669,7 @@ void set_ns_from_epoch(struct bt_clock_value *clock_value)
 	}
 
 	s_ns = (int64_t) u_ns;
-	assert(s_ns >= 0);
+	BT_ASSERT(s_ns >= 0);
 
 	if (clock_class->offset < 0) {
 		if (clock_value->ns_from_epoch >= 0) {
@@ -731,7 +732,7 @@ offset_ok:
 	}
 
 	s_ns = (int64_t) u_ns;
-	assert(s_ns >= 0);
+	BT_ASSERT(s_ns >= 0);
 
 	/* Clock value (cycles) is always positive */
 	if (clock_value->ns_from_epoch <= 0) {
@@ -865,8 +866,8 @@ int bt_clock_class_compare(struct bt_clock_class *clock_class_a,
 		struct bt_clock_class *clock_class_b)
 {
 	int ret = 1;
-	assert(clock_class_a);
-	assert(clock_class_b);
+	BT_ASSERT(clock_class_a);
+	BT_ASSERT(clock_class_b);
 
 	/* Name */
 	if (strcmp(clock_class_a->name->str, clock_class_b->name->str) != 0) {

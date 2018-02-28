@@ -35,7 +35,7 @@
 #include <babeltrace/types.h>
 #include <inttypes.h>
 #include <glib.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <unistd.h>
 #include <plugins-common.h>
 
@@ -108,7 +108,7 @@ int lttng_live_add_port(struct lttng_live_component *lttng_live,
 	enum bt_component_status status;
 
 	ret = sprintf(name, STREAM_NAME_PREFIX "%" PRIu64, stream_iter->viewer_stream_id);
-	assert(ret > 0);
+	BT_ASSERT(ret > 0);
 	strcpy(stream_iter->name, name);
 	if (lttng_live_is_canceled(lttng_live)) {
 		return 0;
@@ -158,7 +158,7 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 	if (nr_ports == 1) {
 		enum bt_component_status status;
 
-		assert(!lttng_live->no_stream_port);
+		BT_ASSERT(!lttng_live->no_stream_port);
 
 		if (lttng_live_is_canceled(lttng_live)) {
 			return 0;
@@ -206,14 +206,14 @@ void lttng_live_destroy_trace(struct bt_object *obj)
 	struct lttng_live_trace *trace = container_of(obj, struct lttng_live_trace, obj);
 
 	BT_LOGI("Destroy trace");
-	assert(bt_list_empty(&trace->streams));
+	BT_ASSERT(bt_list_empty(&trace->streams));
 	bt_list_del(&trace->node);
 
 	if (trace->trace) {
 		int retval;
 
 		retval = bt_trace_set_is_static(trace->trace);
-		assert(!retval);
+		BT_ASSERT(!retval);
 		BT_PUT(trace->trace);
 	}
 	lttng_live_metadata_fini(trace);
@@ -418,7 +418,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_s
 	if (ret != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
 	}
-	assert(lttng_live_stream->state != LTTNG_LIVE_STREAM_EOF);
+	BT_ASSERT(lttng_live_stream->state != LTTNG_LIVE_STREAM_EOF);
 	if (lttng_live_stream->state == LTTNG_LIVE_STREAM_QUIESCENT) {
 		if (orig_state == LTTNG_LIVE_STREAM_QUIESCENT_NO_DATA
 				&& lttng_live_stream->last_returned_inactivity_timestamp ==
@@ -779,7 +779,7 @@ retry:
 	status = lttng_live_iterator_next_handle_one_quiescent_stream(
 			lttng_live, stream_iter, &next_return.notification);
 	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
-		assert(next_return.notification == NULL);
+		BT_ASSERT(next_return.notification == NULL);
 		goto end;
 	}
 	if (next_return.notification) {
@@ -788,7 +788,7 @@ retry:
 	status = lttng_live_iterator_next_handle_one_active_data_stream(lttng_live,
 			stream_iter, &next_return.notification);
 	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
-		assert(next_return.notification == NULL);
+		BT_ASSERT(next_return.notification == NULL);
 	}
 
 end:
@@ -907,10 +907,10 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 			BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	struct lttng_live_stream_iterator_generic *s;
 
-	assert(it);
+	BT_ASSERT(it);
 
 	s = bt_private_port_get_user_data(port);
-	assert(s);
+	BT_ASSERT(s);
 	switch (s->type) {
 	case LIVE_STREAM_TYPE_NO_STREAM:
 	{
@@ -1040,7 +1040,7 @@ void lttng_live_component_destroy_data(struct lttng_live_component *lttng_live)
 		bt_get(lttng_live->no_stream_port);
 		ret = bt_private_port_remove_from_component(lttng_live->no_stream_port);
 		bt_put(lttng_live->no_stream_port);
-		assert(!ret);
+		BT_ASSERT(!ret);
 	}
 	if (lttng_live->no_stream_iter) {
 		g_free(lttng_live->no_stream_iter);

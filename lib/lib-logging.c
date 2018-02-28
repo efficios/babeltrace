@@ -26,7 +26,6 @@
 #include <string.h>
 #include <inttypes.h>
 #include <stdint.h>
-#include <assert.h>
 #include <wchar.h>
 #include <glib.h>
 #include <babeltrace/common-internal.h>
@@ -78,7 +77,7 @@ static char __thread lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 		size_t _size = LIB_LOGGING_BUF_SIZE -			\
 				(size_t) (*buf_ch - lib_logging_buf);	\
 		_count = snprintf(*buf_ch, _size, (_fmt), __VA_ARGS__);	\
-		assert(_count >= 0);					\
+		BT_ASSERT(_count >= 0);					\
 		*buf_ch += MIN(_count, _size);				\
 		if (*buf_ch >= lib_logging_buf + LIB_LOGGING_BUF_SIZE - 1) { \
 			return;						\
@@ -295,7 +294,7 @@ static inline void format_field(char **buf_ch, bool extended,
 	{
 		struct bt_field_string *str = (void *) field;
 
-		assert(str->payload);
+		BT_ASSERT(str->payload);
 		BUF_APPEND(", %spartial-value=\"%.32s\"",
 			PRFIELD(str->payload->str));
 		break;
@@ -325,7 +324,7 @@ static inline void format_field_path(char **buf_ch, bool extended,
 {
 	uint64_t i;
 
-	assert(field_path->indexes);
+	BT_ASSERT(field_path->indexes);
 	BUF_APPEND(", %sindex-count=%u", PRFIELD(field_path->indexes->len));
 
 	if (!extended) {
@@ -678,36 +677,32 @@ static inline void format_value(char **buf_ch, bool extended,
 	case BT_VALUE_TYPE_BOOL:
 	{
 		bt_bool val;
-		int status = bt_value_bool_get(value, &val);
 
-		assert(status == 0);
+		(void) bt_value_bool_get(value, &val);
 		BUF_APPEND(", %svalue=%d", PRFIELD(val));
 		break;
 	}
 	case BT_VALUE_TYPE_INTEGER:
 	{
 		int64_t val;
-		int status = bt_value_integer_get(value, &val);
 
-		assert(status == 0);
+		(void) bt_value_integer_get(value, &val);
 		BUF_APPEND(", %svalue=%" PRId64, PRFIELD(val));
 		break;
 	}
 	case BT_VALUE_TYPE_FLOAT:
 	{
 		double val;
-		int status = bt_value_float_get(value, &val);
 
-		assert(status == 0);
+		(void) bt_value_float_get(value, &val);
 		BUF_APPEND(", %svalue=%f", PRFIELD(val));
 		break;
 	}
 	case BT_VALUE_TYPE_STRING:
 	{
 		const char *val;
-		int status = bt_value_string_get(value, &val);
 
-		assert(status == 0);
+		(void) bt_value_string_get(value, &val);
 		BUF_APPEND(", %spartial-value=\"%.32s\"", PRFIELD(val));
 		break;
 	}
@@ -715,7 +710,7 @@ static inline void format_value(char **buf_ch, bool extended,
 	{
 		int64_t count = bt_value_array_size(value);
 
-		assert(count >= 0);
+		BT_ASSERT(count >= 0);
 		BUF_APPEND(", %selement-count=%" PRId64, PRFIELD(count));
 		break;
 	}
@@ -723,7 +718,7 @@ static inline void format_value(char **buf_ch, bool extended,
 	{
 		int64_t count = bt_value_map_size(value);
 
-		assert(count >= 0);
+		BT_ASSERT(count >= 0);
 		BUF_APPEND(", %selement-count=%" PRId64, PRFIELD(count));
 		break;
 	}
@@ -1202,8 +1197,7 @@ void bt_lib_log(const char *func, const char *file, unsigned line,
 {
 	va_list args;
 
-	assert(tag);
-	assert(fmt);
+	BT_ASSERT(fmt);
 	va_start(args, fmt);
 	bt_common_custom_vsnprintf(lib_logging_buf, LIB_LOGGING_BUF_SIZE, '!',
 		handle_conversion_specifier_bt, NULL, fmt, &args);

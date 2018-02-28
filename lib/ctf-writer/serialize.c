@@ -43,6 +43,7 @@
 #include <babeltrace/compat/fcntl-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/common-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 #if (FLT_RADIX != 2)
@@ -72,7 +73,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 	if (!bt_stream_pos_access_ok(pos, size))
 		return -EFAULT;
 
-	assert(!(pos->offset % CHAR_BIT));
+	BT_ASSERT(!(pos->offset % CHAR_BIT));
 	if (!is_signed) {
 		switch (size) {
 		case 8:
@@ -271,7 +272,7 @@ void bt_stream_pos_packet_seek(struct bt_stream_pos *pos, size_t index,
 {
 	int ret;
 
-	assert(whence == SEEK_CUR && index == 0);
+	BT_ASSERT(whence == SEEK_CUR && index == 0);
 
 	if (pos->base_mma) {
 		/* unmap old base */
@@ -290,7 +291,7 @@ void bt_stream_pos_packet_seek(struct bt_stream_pos *pos, size_t index,
 		ret = bt_posix_fallocate(pos->fd, pos->mmap_offset,
 			pos->packet_size / CHAR_BIT);
 	} while (ret == EINTR);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	pos->offset = 0;
 
 	/* map new base. Need mapping length from header. */

@@ -47,6 +47,7 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <unistd.h>
 
@@ -68,7 +69,7 @@ int set_integer_field_value(struct bt_field* field, uint64_t value)
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_get_type_id(field_type) !=
 			BT_FIELD_TYPE_ID_INTEGER) {
@@ -113,7 +114,7 @@ int set_packet_header_magic(struct bt_stream *stream)
 		stream->packet_header, "magic");
 	const uint32_t magic_value = 0xc1fc1fc1;
 
-	assert(stream);
+	BT_ASSERT(stream);
 
 	if (!magic_field) {
 		/* No magic field found. Not an error, skip. */
@@ -151,7 +152,7 @@ int set_packet_header_uuid(struct bt_stream *stream)
 	struct bt_field *uuid_field = bt_field_structure_get_field_by_name(
 		stream->packet_header, "uuid");
 
-	assert(stream);
+	BT_ASSERT(stream);
 
 	if (!uuid_field) {
 		/* No uuid field found. Not an error, skip. */
@@ -272,7 +273,7 @@ int set_packet_context_packet_size(struct bt_stream *stream)
 	struct bt_field *field = bt_field_structure_get_field_by_name(
 		stream->packet_context, "packet_size");
 
-	assert(stream);
+	BT_ASSERT(stream);
 
 	if (!field) {
 		/* No packet size field found. Not an error, skip. */
@@ -308,7 +309,7 @@ int set_packet_context_content_size(struct bt_stream *stream)
 	struct bt_field *field = bt_field_structure_get_field_by_name(
 		stream->packet_context, "content_size");
 
-	assert(stream);
+	BT_ASSERT(stream);
 
 	if (!field) {
 		/* No content size field found. Not an error, skip. */
@@ -344,7 +345,7 @@ int set_packet_context_events_discarded(struct bt_stream *stream)
 	struct bt_field *field = bt_field_structure_get_field_by_name(
 		stream->packet_context, "events_discarded");
 
-	assert(stream);
+	BT_ASSERT(stream);
 
 	if (!field) {
 		/* No discarded events count field found. Not an error, skip. */
@@ -360,7 +361,7 @@ int set_packet_context_events_discarded(struct bt_stream *stream)
 	 * discarded events. We do not allow wrapping here. If it's
 	 * valid, update the stream's current count.
 	 */
-	if (bt_field_is_set(field)) {
+	if (bt_field_is_set_recursive(field)) {
 		uint64_t user_val;
 
 		ret = bt_field_unsigned_integer_get_value(field,
@@ -462,7 +463,7 @@ int visit_field_update_clock_value(struct bt_field *field, uint64_t *val)
 
 		bt_put(cc);
 		val_size = bt_field_type_integer_get_size(field->type);
-		assert(val_size >= 1);
+		BT_ASSERT(val_size >= 1);
 
 		if (bt_field_type_integer_is_signed(field->type)) {
 			int64_t ival;
@@ -486,7 +487,7 @@ int visit_field_update_clock_value(struct bt_field *field, uint64_t *val)
 		struct bt_field *int_field =
 			bt_field_enumeration_get_container(field);
 
-		assert(int_field);
+		BT_ASSERT(int_field);
 		ret = visit_field_update_clock_value(int_field, val);
 		bt_put(int_field);
 		break;
@@ -496,13 +497,13 @@ int visit_field_update_clock_value(struct bt_field *field, uint64_t *val)
 		uint64_t i;
 		int64_t len = bt_field_type_array_get_length(field->type);
 
-		assert(len >= 0);
+		BT_ASSERT(len >= 0);
 
 		for (i = 0; i < len; i++) {
 			struct bt_field *elem_field =
 				bt_field_array_get_field(field, i);
 
-			assert(elem_field);
+			BT_ASSERT(elem_field);
 			ret = visit_field_update_clock_value(elem_field, val);
 			bt_put(elem_field);
 			if (ret) {
@@ -525,7 +526,7 @@ int visit_field_update_clock_value(struct bt_field *field, uint64_t *val)
 			struct bt_field *elem_field =
 				bt_field_sequence_get_field(field, i);
 
-			assert(elem_field);
+			BT_ASSERT(elem_field);
 			ret = visit_field_update_clock_value(elem_field, val);
 			bt_put(elem_field);
 			if (ret) {
@@ -540,13 +541,13 @@ int visit_field_update_clock_value(struct bt_field *field, uint64_t *val)
 		int64_t len = bt_field_type_structure_get_field_count(
 			field->type);
 
-		assert(len >= 0);
+		BT_ASSERT(len >= 0);
 
 		for (i = 0; i < len; i++) {
 			struct bt_field *member_field =
 				bt_field_structure_get_field_by_index(field, i);
 
-			assert(member_field);
+			BT_ASSERT(member_field);
 			ret = visit_field_update_clock_value(member_field, val);
 			bt_put(member_field);
 			if (ret) {
@@ -636,10 +637,10 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 	uint64_t i;
 	int64_t len;
 
-	if (ts_begin_field && bt_field_is_set(ts_begin_field)) {
+	if (ts_begin_field && bt_field_is_set_recursive(ts_begin_field)) {
 		/* Use provided `timestamp_begin` value as starting value */
 		ret = bt_field_unsigned_integer_get_value(ts_begin_field, &val);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		init_clock_value = val;
 	} else if (stream->last_ts_end != -1ULL) {
 		/* Use last packet's ending timestamp as starting value */
@@ -675,7 +676,7 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 	 */
 	len = bt_field_type_structure_get_field_count(
 		stream->packet_context->type);
-	assert(len >= 0);
+	BT_ASSERT(len >= 0);
 
 	for (i = 0; i < len; i++) {
 		const char *member_name;
@@ -683,7 +684,7 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 
 		ret = bt_field_type_structure_get_field_by_index(
 			stream->packet_context->type, &member_name, NULL, i);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 
 		if (strcmp(member_name, "timestamp_begin") == 0 ||
 				strcmp(member_name, "timestamp_end") == 0) {
@@ -692,28 +693,28 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 
 		member_field = bt_field_structure_get_field_by_index(
 			stream->packet_context, i);
-		assert(member_field);
+		BT_ASSERT(member_field);
 
 		if (strcmp(member_name, "packet_size") == 0 &&
-				!bt_field_is_set(member_field)) {
+				!bt_field_is_set_recursive(member_field)) {
 			bt_put(member_field);
 			continue;
 		}
 
 		if (strcmp(member_name, "content_size") == 0 &&
-				!bt_field_is_set(member_field)) {
+				!bt_field_is_set_recursive(member_field)) {
 			bt_put(member_field);
 			continue;
 		}
 
 		if (strcmp(member_name, "events_discarded") == 0 &&
-				!bt_field_is_set(member_field)) {
+				!bt_field_is_set_recursive(member_field)) {
 			bt_put(member_field);
 			continue;
 		}
 
 		if (strcmp(member_name, "packet_seq_num") == 0 &&
-				!bt_field_is_set(member_field)) {
+				!bt_field_is_set_recursive(member_field)) {
 			bt_put(member_field);
 			continue;
 		}
@@ -735,7 +736,7 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 	for (i = 0; i < stream->events->len; i++) {
 		struct bt_event *event = g_ptr_array_index(stream->events, i);
 
-		assert(event);
+		BT_ASSERT(event);
 		ret = visit_event_update_clock_value(event, &cur_clock_value);
 		if (ret) {
 			BT_LOGW("Cannot automatically update clock value "
@@ -758,9 +759,9 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 	 * against the provided value of `timestamp_end`, if any,
 	 * otherwise set it.
 	 */
-	if (ts_end_field && bt_field_is_set(ts_end_field)) {
+	if (ts_end_field && bt_field_is_set_recursive(ts_end_field)) {
 		ret = bt_field_unsigned_integer_get_value(ts_end_field, &val);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 
 		if (val < cur_clock_value) {
 			BT_LOGW("Packet's final timestamp is less than "
@@ -777,9 +778,9 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 		stream->last_ts_end = val;
 	}
 
-	if (ts_end_field && !bt_field_is_set(ts_end_field)) {
+	if (ts_end_field && !bt_field_is_set_recursive(ts_end_field)) {
 		ret = set_integer_field_value(ts_end_field, cur_clock_value);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		stream->last_ts_end = cur_clock_value;
 	}
 
@@ -788,9 +789,9 @@ int set_packet_context_timestamps(struct bt_stream *stream)
 	}
 
 	/* Set `timestamp_begin` field to initial clock value */
-	if (ts_begin_field && !bt_field_is_set(ts_begin_field)) {
+	if (ts_begin_field && !bt_field_is_set_recursive(ts_begin_field)) {
 		ret = set_integer_field_value(ts_begin_field, init_clock_value);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	}
 
 end:
@@ -884,7 +885,7 @@ int create_stream_file(struct bt_ctf_writer *writer,
 		/* Use stream name's base name as prefix */
 		gchar *basename = g_path_get_basename(stream->name->str);
 
-		assert(basename);
+		BT_ASSERT(basename);
 
 		if (strcmp(basename, G_DIR_SEPARATOR_S) == 0) {
 			g_string_assign(filename, "stream");
@@ -902,7 +903,7 @@ int create_stream_file(struct bt_ctf_writer *writer,
 		gchar *basename =
 			g_path_get_basename(stream->stream_class->name->str);
 
-		assert(basename);
+		BT_ASSERT(basename);
 
 		if (strcmp(basename, G_DIR_SEPARATOR_S) == 0) {
 			g_string_assign(filename, "stream");
@@ -919,8 +920,8 @@ int create_stream_file(struct bt_ctf_writer *writer,
 
 append_ids:
 	stream_class_id = bt_stream_class_get_id(stream->stream_class);
-	assert(stream_class_id >= 0);
-	assert(stream->id >= 0);
+	BT_ASSERT(stream_class_id >= 0);
+	BT_ASSERT(stream->id >= 0);
 	g_string_append_printf(filename, "-%" PRId64 "-%" PRId64,
 		stream_class_id, stream->id);
 
@@ -1077,7 +1078,7 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 
 		BT_LOGD("Stream object belongs to a writer's trace: "
 			"writer-addr=%p", writer);
-		assert(writer);
+		BT_ASSERT(writer);
 
 		if (stream_class->packet_context_type) {
 			BT_LOGD("Creating stream's packet context field: "
@@ -1364,7 +1365,7 @@ static int auto_populate_event_header(struct bt_stream *stream,
 	struct bt_clock_class *mapped_clock_class = NULL;
 	int64_t event_class_id;
 
-	assert(event);
+	BT_ASSERT(event);
 
 	if (!event->event_header) {
 		goto end;
@@ -1382,7 +1383,7 @@ static int auto_populate_event_header(struct bt_stream *stream,
 
 	id_field = bt_field_structure_get_field_by_name(event->event_header, "id");
 	event_class_id = bt_event_class_get_id(event->event_class);
-	assert(event_class_id >= 0);
+	BT_ASSERT(event_class_id >= 0);
 
 	if (id_field && bt_field_type_is_integer(id_field->type)) {
 		ret = set_integer_field_value(id_field, event_class_id);
@@ -1407,21 +1408,19 @@ static int auto_populate_event_header(struct bt_stream *stream,
 			event->event_header, "timestamp");
 	if (timestamp_field && stream->stream_class->clock &&
 			bt_field_type_is_integer(timestamp_field->type) &&
-			!bt_field_is_set(timestamp_field)) {
-		struct bt_clock_class *stream_class_clock_class =
-			stream->stream_class->clock->clock_class;
-
+			!bt_field_is_set_recursive(timestamp_field)) {
 		mapped_clock_class =
 			bt_field_type_integer_get_mapped_clock_class(
 				timestamp_field->type);
 		if (mapped_clock_class) {
 			uint64_t timestamp;
 
-			assert(mapped_clock_class == stream_class_clock_class);
+			BT_ASSERT(mapped_clock_class ==
+				stream->stream_class->clock->clock_class);
 			ret = bt_ctf_clock_get_value(
 				stream->stream_class->clock,
 				&timestamp);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			ret = set_integer_field_value(timestamp_field,
 					timestamp);
 			if (ret) {
@@ -1662,7 +1661,7 @@ int bt_stream_set_packet_header(struct bt_stream *stream,
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_compare(field_type, trace->packet_header_type)) {
 		BT_LOGW("Invalid parameter: packet header's field type is different from the stream's packet header field type: "
@@ -1695,7 +1694,7 @@ void reset_structure_field(struct bt_field *structure, const char *name)
 
 	member = bt_field_structure_get_field_by_name(structure, name);
 	if (member) {
-		(void) bt_field_reset(member);
+		(void) bt_field_reset_recursive(member);
 		bt_put(member);
 	}
 }
@@ -1748,7 +1747,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		"stream-name=\"%s\", packet-index=%u", stream,
 		bt_stream_get_name(stream), stream->flushed_packet_count);
 	trace = bt_stream_class_borrow_trace(stream->stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 	native_byte_order = bt_trace_get_native_byte_order(trace);
 
 	ret = auto_populate_packet_header(stream);
@@ -1769,12 +1768,12 @@ int bt_stream_flush(struct bt_stream *stream)
 	BT_LOGV("Seeking to the next packet: pos-offset=%" PRId64,
 		stream->pos.offset);
 	bt_stream_pos_packet_seek(&stream->pos, 0, SEEK_CUR);
-	assert(stream->pos.packet_size % 8 == 0);
+	BT_ASSERT(stream->pos.packet_size % 8 == 0);
 
 	if (stream->packet_header) {
 		BT_LOGV_STR("Serializing packet header field.");
-		ret = bt_field_serialize(stream->packet_header, &stream->pos,
-			native_byte_order);
+		ret = bt_field_serialize_recursive(stream->packet_header,
+			&stream->pos, native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize stream's packet header field: "
 				"field-addr=%p", stream->packet_header);
@@ -1787,7 +1786,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		memcpy(&packet_context_pos, &stream->pos,
 			sizeof(packet_context_pos));
 		BT_LOGV_STR("Serializing packet context field.");
-		ret = bt_field_serialize(stream->packet_context,
+		ret = bt_field_serialize_recursive(stream->packet_context,
 			&stream->pos, native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize stream's packet context field: "
@@ -1814,7 +1813,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		/* Write event header */
 		if (event->event_header) {
 			BT_LOGV_STR("Serializing event's header field.");
-			ret = bt_field_serialize(event->event_header,
+			ret = bt_field_serialize_recursive(event->event_header,
 					&stream->pos, native_byte_order);
 			if (ret) {
 				BT_LOGW("Cannot serialize event's header field: "
@@ -1826,7 +1825,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		/* Write stream event context */
 		if (event->stream_event_context) {
 			BT_LOGV_STR("Serializing event's stream event context field.");
-			ret = bt_field_serialize(
+			ret = bt_field_serialize_recursive(
 				event->stream_event_context, &stream->pos,
 				native_byte_order);
 			if (ret) {
@@ -1856,7 +1855,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		goto end;
 	}
 
-	assert(stream->pos.packet_size % 8 == 0);
+	BT_ASSERT(stream->pos.packet_size % 8 == 0);
 
 	/*
 	 * Remove extra padding bytes.
@@ -1903,7 +1902,7 @@ int bt_stream_flush(struct bt_stream *stream)
 		}
 
 		BT_LOGV("Rewriting (serializing) packet context field.");
-		ret = bt_field_serialize(stream->packet_context,
+		ret = bt_field_serialize_recursive(stream->packet_context,
 			&packet_context_pos, native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize stream's packet context field: "
@@ -2024,7 +2023,7 @@ void bt_stream_destroy(struct bt_object *obj)
 		g_hash_table_iter_init(&ht_iter, stream->comp_cur_port);
 
 		while (g_hash_table_iter_next(&ht_iter, &comp_gptr, &port_gptr)) {
-			assert(comp_gptr);
+			BT_ASSERT(comp_gptr);
 			bt_component_remove_destroy_listener((void *) comp_gptr,
 				component_destroy_listener, stream);
 		}
@@ -2051,8 +2050,8 @@ int _set_structure_field_integer(struct bt_field *structure, char *name,
 	struct bt_field_type *field_type = NULL;
 	struct bt_field *integer;
 
-	assert(structure);
-	assert(name);
+	BT_ASSERT(structure);
+	BT_ASSERT(name);
 
 	integer = bt_field_structure_get_field_by_name(structure, name);
 	if (!integer) {
@@ -2063,7 +2062,7 @@ int _set_structure_field_integer(struct bt_field *structure, char *name,
 	}
 
 	/* Make sure the payload has not already been set. */
-	if (!force && bt_field_is_set(integer)) {
+	if (!force && bt_field_is_set_recursive(integer)) {
 		/* Payload already set, not an error */
 		BT_LOGV("Field's payload is already set: struct-field-addr=%p, "
 			"name=\"%s\", force=%d", structure, name, force);
@@ -2071,7 +2070,7 @@ int _set_structure_field_integer(struct bt_field *structure, char *name,
 	}
 
 	field_type = bt_field_get_type(integer);
-	assert(field_type);
+	BT_ASSERT(field_type);
 	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		/*
 		 * The user most likely meant for us to populate this field
@@ -2147,10 +2146,10 @@ void bt_stream_map_component_to_port(struct bt_stream *stream,
 		struct bt_component *comp,
 		struct bt_port *port)
 {
-	assert(stream);
-	assert(comp);
-	assert(port);
-	assert(stream->comp_cur_port);
+	BT_ASSERT(stream);
+	BT_ASSERT(comp);
+	BT_ASSERT(port);
+	BT_ASSERT(stream->comp_cur_port);
 
 	/*
 	 * Do not take a reference to the component here because we
@@ -2175,9 +2174,9 @@ BT_HIDDEN
 struct bt_port *bt_stream_port_for_component(struct bt_stream *stream,
 		struct bt_component *comp)
 {
-	assert(stream);
-	assert(comp);
-	assert(stream->comp_cur_port);
+	BT_ASSERT(stream);
+	BT_ASSERT(comp);
+	BT_ASSERT(stream->comp_cur_port);
 	return g_hash_table_lookup(stream->comp_cur_port, comp);
 }
 
@@ -2187,8 +2186,8 @@ void bt_stream_add_destroy_listener(struct bt_stream *stream,
 {
 	struct bt_stream_destroy_listener listener;
 
-	assert(stream);
-	assert(func);
+	BT_ASSERT(stream);
+	BT_ASSERT(func);
 	listener.func = func;
 	listener.data = data;
 	g_array_append_val(stream->destroy_listeners, listener);
@@ -2203,8 +2202,8 @@ void bt_stream_remove_destroy_listener(struct bt_stream *stream,
 {
 	size_t i;
 
-	assert(stream);
-	assert(func);
+	BT_ASSERT(stream);
+	BT_ASSERT(func);
 
 	for (i = 0; i < stream->destroy_listeners->len; i++) {
 		struct bt_stream_destroy_listener *listener =

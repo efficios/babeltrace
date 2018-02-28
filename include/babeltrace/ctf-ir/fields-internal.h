@@ -90,17 +90,40 @@ struct bt_field_string {
 	GString *payload;
 };
 
-/* Validate that the field's payload is set (returns 0 if set). */
 BT_HIDDEN
-int bt_field_validate(struct bt_field *field);
-
-BT_HIDDEN
-int bt_field_serialize(struct bt_field *field,
+int bt_field_serialize_recursive(struct bt_field *field,
 		struct bt_stream_pos *pos,
 		enum bt_byte_order native_byte_order);
 
+/* Validate that the field's payload is set (returns 0 if set). */
 BT_HIDDEN
-void bt_field_freeze(struct bt_field *field);
+int _bt_field_validate_recursive(struct bt_field *field);
+
+BT_HIDDEN
+void _bt_field_freeze_recursive(struct bt_field *field);
+
+BT_HIDDEN
+bt_bool _bt_field_is_set_recursive(struct bt_field *field);
+
+BT_HIDDEN
+void _bt_field_reset_recursive(struct bt_field *field);
+
+BT_HIDDEN
+void _bt_field_set(struct bt_field *field, bool val);
+
+#ifdef BT_DEV_MODE
+# define bt_field_validate_recursive		_bt_field_validate_recursive
+# define bt_field_freeze_recursive		_bt_field_freeze_recursive
+# define bt_field_is_set_recursive		_bt_field_is_set_recursive
+# define bt_field_reset_recursive		_bt_field_reset_recursive
+# define bt_field_set				_bt_field_set
+#else
+# define bt_field_validate_recursive(_field)	(-1)
+# define bt_field_freeze_recursive(_field)
+# define bt_field_is_set_recursive(_field)	(BT_FALSE)
+# define bt_field_reset_recursive(_field)		(BT_TRUE)
+# define bt_field_set(_field, _val)
+#endif
 
 BT_HIDDEN
 int64_t bt_field_sequence_get_int_length(struct bt_field *field);

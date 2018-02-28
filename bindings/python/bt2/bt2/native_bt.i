@@ -33,6 +33,7 @@
 #include "logging.h"
 
 #include <babeltrace/babeltrace.h>
+#include <babeltrace/assert-internal.h>
 
 typedef const unsigned char *BTUUID;
 %}
@@ -199,16 +200,16 @@ static enum bt_notification_type *bt_py3_notif_types_from_py_list(
 	enum bt_notification_type *notification_types = NULL;
 	size_t i;
 
-	assert(!PyErr_Occurred());
+	BT_ASSERT(!PyErr_Occurred());
 
 	if (py_notif_types == Py_None) {
 		goto end;
 	}
 
-	assert(PyList_Check(py_notif_types));
+	BT_ASSERT(PyList_Check(py_notif_types));
 	notification_types = g_new0(enum bt_notification_type,
 		PyList_Size(py_notif_types) + 1);
-	assert(notification_types);
+	BT_ASSERT(notification_types);
 	notification_types[PyList_Size(py_notif_types)] =
 		BT_NOTIFICATION_TYPE_SENTINEL;
 
@@ -217,10 +218,10 @@ static enum bt_notification_type *bt_py3_notif_types_from_py_list(
 		long value;
 		int overflow;
 
-		assert(item);
-		assert(PyLong_Check(item));
+		BT_ASSERT(item);
+		BT_ASSERT(PyLong_Check(item));
 		value = PyLong_AsLongAndOverflow(item, &overflow);
-		assert(overflow == 0);
+		BT_ASSERT(overflow == 0);
 		notification_types[i] = value;
 	}
 

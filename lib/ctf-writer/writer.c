@@ -41,6 +41,7 @@
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -156,7 +157,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 
 	/* Default to little-endian */
 	ret = bt_ctf_writer_set_byte_order(writer, BT_BYTE_ORDER_NATIVE);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	/* Create trace directory if necessary and open a metadata file */
 	if (g_mkdir_with_parents(path, S_IRWXU | S_IRWXG)) {

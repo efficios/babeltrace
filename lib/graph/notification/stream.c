@@ -31,6 +31,8 @@
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/graph/notification-stream-internal.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 
 static
@@ -52,25 +54,11 @@ struct bt_notification *bt_notification_stream_end_create(
 	struct bt_notification_stream_end *notification;
 	struct bt_stream_class *stream_class;
 
-	if (!stream) {
-		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		goto error;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE(stream->pos.fd < 0,
+		"Stream is a CTF writer stream: %!+s", stream);
 	stream_class = bt_stream_borrow_stream_class(stream);
-	assert(stream_class);
-
-	if (stream->pos.fd >= 0) {
-		BT_LOGW("Invalid parameter: stream is a CTF writer stream: "
-			"stream-addr=%p, stream-name=\"%s\", "
-			"stream-class-addr=%p, stream-class-name\"%s\", "
-			"stream-class-id=%" PRId64,
-			stream, bt_stream_get_name(stream), stream_class,
-			bt_stream_class_get_name(stream_class),
-			bt_stream_class_get_id(stream_class));
-		goto error;
-	}
-
+	BT_ASSERT(stream_class);
 	BT_LOGD("Creating stream end notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -106,27 +94,13 @@ struct bt_stream *bt_notification_stream_end_get_stream(
 		struct bt_notification *notification)
 {
 	struct bt_notification_stream_end *stream_end;
-	struct bt_stream *stream = NULL;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (notification->type != BT_NOTIFICATION_TYPE_STREAM_END) {
-		BT_LOGW("Invalid parameter: notification is not a stream end notification: "
-			"addr%p, notif-type=%s",
-			notification, bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
+		BT_NOTIFICATION_TYPE_STREAM_END);
 	stream_end = container_of(notification,
 			struct bt_notification_stream_end, parent);
-	stream = bt_get(stream_end->stream);
-
-end:
-	return stream;
+	return bt_get(stream_end->stream);
 }
 
 static
@@ -148,25 +122,11 @@ struct bt_notification *bt_notification_stream_begin_create(
 	struct bt_notification_stream_begin *notification;
 	struct bt_stream_class *stream_class;
 
-	if (!stream) {
-		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		goto error;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE(stream->pos.fd < 0,
+		"Stream is a CTF writer stream: %!+s", stream);
 	stream_class = bt_stream_borrow_stream_class(stream);
-	assert(stream_class);
-
-	if (stream->pos.fd >= 0) {
-		BT_LOGW("Invalid parameter: stream is a CTF writer stream: "
-			"stream-addr=%p, stream-name=\"%s\", "
-			"stream-class-addr=%p, stream-class-name\"%s\", "
-			"stream-class-id=%" PRId64,
-			stream, bt_stream_get_name(stream), stream_class,
-			bt_stream_class_get_name(stream_class),
-			bt_stream_class_get_id(stream_class));
-		goto error;
-	}
-
+	BT_ASSERT(stream_class);
 	BT_LOGD("Creating stream beginning notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -202,25 +162,11 @@ struct bt_stream *bt_notification_stream_begin_get_stream(
 		struct bt_notification *notification)
 {
 	struct bt_notification_stream_begin *stream_begin;
-	struct bt_stream *stream = NULL;
 
-	if (!notification) {
-		BT_LOGW_STR("Invalid parameter: notification is NULL.");
-		goto end;
-	}
-
-	if (notification->type != BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
-		BT_LOGW("Invalid parameter: notification is not a stream beginning notification: "
-			"addr%p, notif-type=%s",
-			notification, bt_notification_type_string(
-				bt_notification_get_type(notification)));
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
+		BT_NOTIFICATION_TYPE_STREAM_BEGIN);
 	stream_begin = container_of(notification,
 			struct bt_notification_stream_begin, parent);
-	stream = bt_get(stream_begin->stream);
-
-end:
-	return stream;
+	return bt_get(stream_begin->stream);
 }

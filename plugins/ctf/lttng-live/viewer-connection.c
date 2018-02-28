@@ -57,7 +57,7 @@ static ssize_t lttng_live_recv(struct bt_live_viewer_connection *viewer_connecti
 	do {
 		ret = bt_socket_recv(sock, buf + copied, to_copy, 0);
 		if (ret > 0) {
-			assert(ret <= to_copy);
+			BT_ASSERT(ret <= to_copy);
 			copied += ret;
 			to_copy -= ret;
 		}
@@ -178,13 +178,13 @@ static int lttng_live_handshake(struct bt_live_viewer_connection *viewer_connect
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &connect, sizeof(connect));
-
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_LOGE("Error sending version: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == cmd_buf_len);
+
+	BT_ASSERT(ret_len == cmd_buf_len);
 
 	ret_len = lttng_live_recv(viewer_connection, &connect, sizeof(connect));
 	if (ret_len == 0) {
@@ -195,7 +195,7 @@ static int lttng_live_handshake(struct bt_live_viewer_connection *viewer_connect
 		BT_LOGE("Error receiving version: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(connect));
+	BT_ASSERT(ret_len == sizeof(connect));
 
 	BT_LOGD("Received viewer session ID : %" PRIu64,
 			(uint64_t) be64toh(connect.viewer_session_id));
@@ -577,7 +577,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(cmd));
+	BT_ASSERT(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_recv(viewer_connection, &list, sizeof(list));
 	if (ret_len == 0) {
@@ -588,7 +588,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 		BT_LOGE("Error receiving session list: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(list));
+	BT_ASSERT(ret_len == sizeof(list));
 
 	sessions_count = be32toh(list.sessions_count);
 	for (i = 0; i < sessions_count; i++) {
@@ -604,7 +604,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 			BT_LOGE("Error receiving session: %s", bt_socket_errormsg());
 			goto error;
 		}
-		assert(ret_len == sizeof(lsession));
+		BT_ASSERT(ret_len == sizeof(lsession));
 		lsession.hostname[LTTNG_VIEWER_HOST_NAME_MAX - 1] = '\0';
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		if (list_append_session(results,
@@ -641,7 +641,7 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(cmd));
+	BT_ASSERT(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_recv(viewer_connection, &list, sizeof(list));
 	if (ret_len == 0) {
@@ -652,7 +652,7 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 		BT_LOGE("Error receiving session list: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(list));
+	BT_ASSERT(ret_len == sizeof(list));
 
 	sessions_count = be32toh(list.sessions_count);
 	for (i = 0; i < sessions_count; i++) {
@@ -666,7 +666,7 @@ int lttng_live_query_session_ids(struct lttng_live_component *lttng_live)
 			BT_LOGE("Error receiving session: %s", bt_socket_errormsg());
 			goto error;
 		}
-		assert(ret_len == sizeof(lsession));
+		BT_ASSERT(ret_len == sizeof(lsession));
 		lsession.hostname[LTTNG_VIEWER_HOST_NAME_MAX - 1] = '\0';
 		lsession.session_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		session_id = be64toh(lsession.id);
@@ -712,7 +712,7 @@ int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live)
 		BT_LOGE("Error sending cmd: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(cmd));
+	BT_ASSERT(ret_len == sizeof(cmd));
 
 	ret_len = lttng_live_recv(viewer_connection, &resp, sizeof(resp));
 	if (ret_len == 0) {
@@ -723,7 +723,7 @@ int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live)
 		BT_LOGE("Error receiving create session reply: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(resp));
+	BT_ASSERT(ret_len == sizeof(resp));
 
 	if (be32toh(resp.status) != LTTNG_VIEWER_CREATE_SESSION_OK) {
 		BT_LOGE("Error creating viewer session");
@@ -765,7 +765,7 @@ int receive_streams(struct lttng_live_session *session,
 			BT_LOGE("Error receiving stream");
 			goto error;
 		}
-		assert(ret_len == sizeof(stream));
+		BT_ASSERT(ret_len == sizeof(stream));
 		stream.path_name[LTTNG_VIEWER_PATH_MAX - 1] = '\0';
 		stream.channel_name[LTTNG_VIEWER_NAME_MAX - 1] = '\0';
 		stream_id = be64toh(stream.id);
@@ -837,14 +837,13 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
-
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_LOGE("Error sending attach request: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == cmd_buf_len);
 
+	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		BT_LOGI("Remote side has closed connection");
@@ -854,7 +853,7 @@ int lttng_live_attach_session(struct lttng_live_session *session)
 		BT_LOGE("Error receiving attach response: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(rp));
+	BT_ASSERT(ret_len == sizeof(rp));
 
 	streams_count = be32toh(rp.streams_count);
 	switch(be32toh(rp.status)) {
@@ -923,14 +922,13 @@ int lttng_live_detach_session(struct lttng_live_session *session)
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
-
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_LOGE("Error sending detach request: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == cmd_buf_len);
 
+	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		BT_LOGI("Remote side has closed connection");
@@ -940,7 +938,7 @@ int lttng_live_detach_session(struct lttng_live_session *session)
 		BT_LOGE("Error receiving detach response: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(rp));
+	BT_ASSERT(ret_len == sizeof(rp));
 
 	switch(be32toh(rp.status)) {
 	case LTTNG_VIEWER_DETACH_SESSION_OK:
@@ -995,14 +993,13 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
-
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_LOGE("Error sending get_metadata request: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == cmd_buf_len);
 
+	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		BT_LOGI("Remote side has closed connection");
@@ -1012,7 +1009,7 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		BT_LOGE("Error receiving get_metadata response: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(rp));
+	BT_ASSERT(ret_len == sizeof(rp));
 
 	switch (be32toh(rp.status)) {
 		case LTTNG_VIEWER_METADATA_OK:
@@ -1050,7 +1047,7 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		BT_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
 		goto error_free_data;
 	}
-	assert(ret_len == len);
+	BT_ASSERT(ret_len == len);
 
 	do {
 		ret_len = fwrite(data, 1, len, fp);
@@ -1059,7 +1056,7 @@ ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		BT_LOGE("Writing in the metadata fp");
 		goto error_free_data;
 	}
-	assert(ret_len == len);
+	BT_ASSERT(ret_len == len);
 	free(data);
 	ret = len;
 end:
@@ -1078,8 +1075,8 @@ static
 void lttng_index_to_packet_index(struct lttng_viewer_index *lindex,
 		struct packet_index *pindex)
 {
-	assert(lindex);
-	assert(pindex);
+	BT_ASSERT(lindex);
+	BT_ASSERT(pindex);
 
 	pindex->offset = be64toh(lindex->offset);
 	pindex->packet_size = be64toh(lindex->packet_size);
@@ -1122,14 +1119,13 @@ enum bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_c
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
-
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_LOGE("Error sending get_next_index request: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == cmd_buf_len);
 
+	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		BT_LOGI("Remote side has closed connection");
@@ -1139,7 +1135,7 @@ enum bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_c
 		BT_LOGE("Error receiving get_next_index response: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == sizeof(rp));
+	BT_ASSERT(ret_len == sizeof(rp));
 
 	flags = be32toh(rp.flags);
 	status = be32toh(rp.status);
@@ -1155,7 +1151,7 @@ enum bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_c
 		stream->current_inactivity_timestamp = index->ts_cycles.timestamp_end;
 		ctf_stream_class_id = be64toh(rp.stream_id);
 		if (stream->ctf_stream_class_id != -1ULL) {
-			assert(stream->ctf_stream_class_id ==
+			BT_ASSERT(stream->ctf_stream_class_id ==
 				ctf_stream_class_id);
 		} else {
 			stream->ctf_stream_class_id = ctf_stream_class_id;
@@ -1171,7 +1167,7 @@ enum bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_c
 		lttng_index_to_packet_index(&rp, index);
 		ctf_stream_class_id = be64toh(rp.stream_id);
 		if (stream->ctf_stream_class_id != -1ULL) {
-			assert(stream->ctf_stream_class_id ==
+			BT_ASSERT(stream->ctf_stream_class_id ==
 				ctf_stream_class_id);
 		} else {
 			stream->ctf_stream_class_id = ctf_stream_class_id;
@@ -1262,14 +1258,13 @@ enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_c
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
-
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_LOGE("Error sending get_data request: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == cmd_buf_len);
 
+	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		BT_LOGI("Remote side has closed connection");
@@ -1336,7 +1331,7 @@ enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_c
 		BT_LOGE("Error receiving trace packet: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == req_len);
+	BT_ASSERT(ret_len == req_len);
 	*recv_len = ret_len;
 end:
 	return retstatus;
@@ -1388,14 +1383,13 @@ enum bt_lttng_live_iterator_status lttng_live_get_new_streams(
 	 */
 	memcpy(cmd_buf, &cmd, sizeof(cmd));
 	memcpy(cmd_buf + sizeof(cmd), &rq, sizeof(rq));
-
 	ret_len = lttng_live_send(viewer_connection, &cmd_buf, cmd_buf_len);
 	if (ret_len == BT_SOCKET_ERROR) {
 		BT_LOGE("Error sending get_new_streams request: %s", bt_socket_errormsg());
 		goto error;
 	}
-	assert(ret_len == cmd_buf_len);
 
+	BT_ASSERT(ret_len == cmd_buf_len);
 	ret_len = lttng_live_recv(viewer_connection, &rp, sizeof(rp));
 	if (ret_len == 0) {
 		BT_LOGI("Remote side has closed connection");
@@ -1405,7 +1399,7 @@ enum bt_lttng_live_iterator_status lttng_live_get_new_streams(
 		BT_LOGE("Error receiving get_new_streams response");
 		goto error;
 	}
-	assert(ret_len == sizeof(rp));
+	BT_ASSERT(ret_len == sizeof(rp));
 
 	streams_count = be32toh(rp.streams_count);
 

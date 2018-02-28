@@ -30,6 +30,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/graph/notification-internal.h>
+#include <babeltrace/assert-internal.h>
 
 struct bt_notification_packet_begin {
 	struct bt_notification parent;
@@ -49,7 +50,7 @@ struct bt_packet *bt_notification_packet_begin_borrow_packet(
 		container_of(notif,
 			struct bt_notification_packet_begin, parent);
 
-	assert(notif_packet_begin);
+	BT_ASSERT(notif_packet_begin);
 	return notif_packet_begin->packet;
 }
 
@@ -61,7 +62,7 @@ struct bt_packet *bt_notification_packet_end_borrow_packet(
 		container_of(notif,
 			struct bt_notification_packet_end, parent);
 
-	assert(notif_packet_end);
+	BT_ASSERT(notif_packet_end);
 	return notif_packet_end->packet;
 }
 

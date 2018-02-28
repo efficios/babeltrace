@@ -44,6 +44,12 @@ struct bt_notification {
 	bt_bool frozen;
 };
 
+#define BT_ASSERT_PRE_NOTIF_IS_TYPE(_notif, _type)			\
+	BT_ASSERT_PRE((_notif)->type == (_type),			\
+		"Notification has the wrong type: expected-type=%s, "	\
+		"%![notif-]+n", bt_notification_type_string(_type),	\
+		(_notif))
+
 BT_HIDDEN
 void bt_notification_init(struct bt_notification *notification,
 		enum bt_notification_type type,

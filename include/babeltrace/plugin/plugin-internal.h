@@ -32,6 +32,7 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 enum bt_plugin_type {
@@ -113,7 +114,7 @@ void bt_plugin_destroy(struct bt_object *obj)
 {
 	struct bt_plugin *plugin;
 
-	assert(obj);
+	BT_ASSERT(obj);
 	plugin = container_of(obj, struct bt_plugin, base);
 	BT_LOGD("Destroying plugin object: addr=%p, name=\"%s\"",
 		plugin, plugin->info.name ? plugin->info.name->str : NULL);
@@ -230,8 +231,8 @@ end:
 static inline
 void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)
 {
-	assert(plugin);
-	assert(path);
+	BT_ASSERT(plugin);
+	BT_ASSERT(path);
 	g_string_assign(plugin->info.path, path);
 	plugin->info.path_set = BT_TRUE;
 	BT_LOGV("Set plugin's path: addr=%p, name=\"%s\", path=\"%s\"",
@@ -241,8 +242,8 @@ void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)
 static inline
 void bt_plugin_set_name(struct bt_plugin *plugin, const char *name)
 {
-	assert(plugin);
-	assert(name);
+	BT_ASSERT(plugin);
+	BT_ASSERT(name);
 	g_string_assign(plugin->info.name, name);
 	plugin->info.name_set = BT_TRUE;
 	BT_LOGV("Set plugin's name: addr=%p, name=\"%s\"",
@@ -253,8 +254,8 @@ static inline
 void bt_plugin_set_description(struct bt_plugin *plugin,
 		const char *description)
 {
-	assert(plugin);
-	assert(description);
+	BT_ASSERT(plugin);
+	BT_ASSERT(description);
 	g_string_assign(plugin->info.description, description);
 	plugin->info.description_set = BT_TRUE;
 	BT_LOGV("Set plugin's description: addr=%p, name=\"%s\"",
@@ -264,8 +265,8 @@ void bt_plugin_set_description(struct bt_plugin *plugin,
 static inline
 void bt_plugin_set_author(struct bt_plugin *plugin, const char *author)
 {
-	assert(plugin);
-	assert(author);
+	BT_ASSERT(plugin);
+	BT_ASSERT(author);
 	g_string_assign(plugin->info.author, author);
 	plugin->info.author_set = BT_TRUE;
 	BT_LOGV("Set plugin's author: addr=%p, name=\"%s\", author=\"%s\"",
@@ -275,8 +276,8 @@ void bt_plugin_set_author(struct bt_plugin *plugin, const char *author)
 static inline
 void bt_plugin_set_license(struct bt_plugin *plugin, const char *license)
 {
-	assert(plugin);
-	assert(license);
+	BT_ASSERT(plugin);
+	BT_ASSERT(license);
 	g_string_assign(plugin->info.license, license);
 	plugin->info.license_set = BT_TRUE;
 	BT_LOGV("Set plugin's path: addr=%p, name=\"%s\", license=\"%s\"",
@@ -287,7 +288,7 @@ static inline
 void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
 		unsigned int minor, unsigned int patch, const char *extra)
 {
-	assert(plugin);
+	BT_ASSERT(plugin);
 	plugin->info.version.major = major;
 	plugin->info.version.minor = minor;
 	plugin->info.version.patch = patch;
@@ -306,7 +307,7 @@ void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
 static inline
 void bt_plugin_freeze(struct bt_plugin *plugin)
 {
-	assert(plugin);
+	BT_ASSERT(plugin);
 
 	if (plugin->frozen) {
 		return;
@@ -368,8 +369,8 @@ static inline
 void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 		struct bt_plugin *plugin)
 {
-	assert(plugin_set);
-	assert(plugin);
+	BT_ASSERT(plugin_set);
+	BT_ASSERT(plugin);
 	g_ptr_array_add(plugin_set->plugins, bt_get(plugin));
 	BT_LOGV("Added plugin to plugin set: "
 		"plugin-set-addr=%p, plugin-addr=%p, plugin-name=\"%s\", "

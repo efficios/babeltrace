@@ -30,7 +30,7 @@
 #include "logging.h"
 
 #include <babeltrace/babeltrace.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 #include "ctfcopytrace.h"
 #include "clock-fields.h"
@@ -45,10 +45,10 @@ struct bt_clock_class *ctf_copy_clock_class(FILE *err,
 	const char *name, *description;
 	struct bt_clock_class *writer_clock_class = NULL;
 
-	assert(err && clock_class);
+	BT_ASSERT(err && clock_class);
 
 	name = bt_clock_class_get_name(clock_class);
-	assert(name);
+	BT_ASSERT(name);
 
 	writer_clock_class = bt_clock_class_create(name,
 		bt_clock_class_get_frequency(clock_class));
@@ -61,33 +61,33 @@ struct bt_clock_class *ctf_copy_clock_class(FILE *err,
 	if (description) {
 		int_ret = bt_clock_class_set_description(writer_clock_class,
 				description);
-		assert(!int_ret);
+		BT_ASSERT(!int_ret);
 	}
 
 	u64_ret = bt_clock_class_get_precision(clock_class);
-	assert(u64_ret != -1ULL);
+	BT_ASSERT(u64_ret != -1ULL);
 
 	int_ret = bt_clock_class_set_precision(writer_clock_class,
 		u64_ret);
-	assert(!int_ret);
+	BT_ASSERT(!int_ret);
 
 	int_ret = bt_clock_class_get_offset_s(clock_class, &offset_s);
-	assert(!int_ret);
+	BT_ASSERT(!int_ret);
 
 	int_ret = bt_clock_class_set_offset_s(writer_clock_class, offset_s);
-	assert(!int_ret);
+	BT_ASSERT(!int_ret);
 
 	int_ret = bt_clock_class_get_offset_cycles(clock_class, &offset);
-	assert(!int_ret);
+	BT_ASSERT(!int_ret);
 
 	int_ret = bt_clock_class_set_offset_cycles(writer_clock_class, offset);
-	assert(!int_ret);
+	BT_ASSERT(!int_ret);
 
 	int_ret = bt_clock_class_is_absolute(clock_class);
-	assert(int_ret >= 0);
+	BT_ASSERT(int_ret >= 0);
 
 	int_ret = bt_clock_class_set_is_absolute(writer_clock_class, int_ret);
-	assert(!int_ret);
+	BT_ASSERT(!int_ret);
 
 end:
 	return writer_clock_class;
@@ -109,7 +109,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		struct bt_clock_class *clock_class =
 			bt_trace_get_clock_class_by_index(trace, i);
 
-		assert(clock_class);
+		BT_ASSERT(clock_class);
 
 		writer_clock_class = ctf_copy_clock_class(err, clock_class);
 		bt_put(clock_class);
@@ -145,8 +145,8 @@ void replace_clock_classes(struct bt_trace *trace_copy,
 {
 	int ret;
 
-	assert(trace_copy);
-	assert(field_type);
+	BT_ASSERT(trace_copy);
+	BT_ASSERT(field_type);
 
 	switch (bt_field_type_get_type_id(field_type)) {
 	case BT_FIELD_TYPE_ID_INTEGER:
@@ -161,13 +161,13 @@ void replace_clock_classes(struct bt_trace *trace_copy,
 		}
 
 		name = bt_clock_class_get_name(mapped_clock_class);
-		assert(name);
+		BT_ASSERT(name);
 		clock_class_copy = bt_trace_get_clock_class_by_name(
 			trace_copy, name);
-		assert(clock_class_copy);
+		BT_ASSERT(clock_class_copy);
 		ret = bt_field_type_integer_set_mapped_clock_class(
 			field_type, clock_class_copy);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		bt_put(mapped_clock_class);
 		bt_put(clock_class_copy);
 		break;
@@ -197,7 +197,7 @@ void replace_clock_classes(struct bt_trace *trace_copy,
 			abort();
 		}
 
-		assert(subtype);
+		BT_ASSERT(subtype);
 		replace_clock_classes(trace_copy, subtype);
 		bt_put(subtype);
 		break;
@@ -214,7 +214,7 @@ void replace_clock_classes(struct bt_trace *trace_copy,
 
 			ret = bt_field_type_structure_get_field_by_index(
 				field_type, &name, &member_type, i);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			replace_clock_classes(trace_copy, member_type);
 			bt_put(member_type);
 		}
@@ -233,7 +233,7 @@ void replace_clock_classes(struct bt_trace *trace_copy,
 
 			ret = bt_field_type_variant_get_field_by_index(
 				field_type, &name, &member_type, i);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			replace_clock_classes(trace_copy, member_type);
 			bt_put(member_type);
 		}
@@ -261,10 +261,10 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 	name = bt_event_class_get_name(event_class);
 
 	writer_event_class = bt_event_class_create(name);
-	assert(writer_event_class);
+	BT_ASSERT(writer_event_class);
 
 	id = bt_event_class_get_id(event_class);
-	assert(id >= 0);
+	BT_ASSERT(id >= 0);
 
 	ret = bt_event_class_set_id(writer_event_class, id);
 	if (ret) {
@@ -352,16 +352,16 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 	struct bt_trace *writer_trace =
 		bt_stream_class_get_trace(writer_stream_class);
 
-	assert(writer_trace);
+	BT_ASSERT(writer_trace);
 	count = bt_stream_class_get_event_class_count(stream_class);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		int int_ret;
 
 		event_class = bt_stream_class_get_event_class_by_index(
 				stream_class, i);
-		assert(event_class);
+		BT_ASSERT(event_class);
 
 		if (i < bt_stream_class_get_event_class_count(writer_stream_class)) {
 			writer_event_class = bt_stream_class_get_event_class_by_index(
@@ -421,7 +421,7 @@ struct bt_stream_class *ctf_copy_stream_class(FILE *err,
 	const char *name = bt_stream_class_get_name(stream_class);
 
 	writer_stream_class = bt_stream_class_create_empty(name);
-	assert(writer_stream_class);
+	BT_ASSERT(writer_stream_class);
 
 	type = bt_stream_class_get_packet_context_type(stream_class);
 	if (type) {
@@ -449,7 +449,7 @@ struct bt_stream_class *ctf_copy_stream_class(FILE *err,
 		}
 
 		ret_int = bt_trace_get_clock_class_count(writer_trace);
-		assert(ret_int >= 0);
+		BT_ASSERT(ret_int >= 0);
 		if (override_ts64 && ret_int > 0) {
 			struct bt_field_type *new_event_header_type;
 
@@ -669,7 +669,7 @@ int ctf_copy_event_header(FILE *err, struct bt_event *event,
 
 	clock_value = bt_event_get_clock_value(event, clock_class);
 	BT_PUT(clock_class);
-	assert(clock_value);
+	BT_ASSERT(clock_value);
 
 	ret = bt_clock_value_get_value(clock_value, &value);
 	BT_PUT(clock_value);
@@ -729,10 +729,10 @@ struct bt_trace *event_class_get_trace(FILE *err,
 	struct bt_stream_class *stream_class = NULL;
 
 	stream_class = bt_event_class_get_stream_class(event_class);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 
 	bt_put(stream_class);
 	return trace;
@@ -768,11 +768,11 @@ struct bt_event *ctf_copy_event(FILE *err, struct bt_event *event,
 		 * is.
 		 */
 		ret = bt_trace_get_clock_class_count(writer_trace);
-		assert(ret >= 0);
+		BT_ASSERT(ret >= 0);
 
 		if (override_ts64 && ret > 0) {
 			copy_field = bt_event_get_header(writer_event);
-			assert(copy_field);
+			BT_ASSERT(copy_field);
 
 			ret = copy_override_field(err, event, writer_event, field,
 					copy_field);
@@ -873,11 +873,11 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_trace *trace,
 
 		name = bt_trace_get_environment_field_name_by_index(
 			trace, i);
-		assert(name);
+		BT_ASSERT(name);
 
 		value = bt_trace_get_environment_field_value_by_index(
 			trace, i);
-		assert(value);
+		BT_ASSERT(value);
 
 		ret_int = bt_trace_set_environment_field(writer_trace,
 				name, value);
@@ -891,7 +891,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, struct bt_trace *trace,
 	}
 
 	order = bt_trace_get_native_byte_order(trace);
-	assert(order != BT_BYTE_ORDER_UNKNOWN);
+	BT_ASSERT(order != BT_BYTE_ORDER_UNKNOWN);
 
 	/*
 	 * Only explicitly set the writer trace's native byte order if

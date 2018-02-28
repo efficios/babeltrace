@@ -34,6 +34,7 @@
 #include <babeltrace/ctf-writer/event-types.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 struct bt_port;
@@ -112,7 +113,7 @@ static inline
 struct bt_stream_class *bt_stream_borrow_stream_class(
 		struct bt_stream *stream)
 {
-	assert(stream);
+	BT_ASSERT(stream);
 	return stream->stream_class;
 }
 

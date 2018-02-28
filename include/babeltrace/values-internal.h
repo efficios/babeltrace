@@ -28,14 +28,21 @@
 
 #include <babeltrace/values.h>
 
+BT_HIDDEN
+enum bt_value_status _bt_value_freeze(struct bt_value *object);
+
+#ifdef BT_DEV_MODE
+# define bt_value_freeze	_bt_value_freeze
+#else
+# define bt_value_freeze(_value)
+#endif /* BT_DEV_MODE */
+
 static inline
 const char *bt_value_status_string(enum bt_value_status status)
 {
 	switch (status) {
-	case BT_VALUE_STATUS_FROZEN:
-		return "BT_VALUE_STATUS_FROZEN";
-	case BT_VALUE_STATUS_CANCELLED:
-		return "BT_VALUE_STATUS_CANCELLED";
+	case BT_VALUE_STATUS_CANCELED:
+		return "BT_VALUE_STATUS_CANCELED";
 	case BT_VALUE_STATUS_INVAL:
 		return "BT_VALUE_STATUS_INVAL";
 	case BT_VALUE_STATUS_ERROR:

@@ -24,7 +24,7 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	21
+#define NR_TESTS	17
 
 static void test_clock_class_priority_map(void)
 {
@@ -45,14 +45,6 @@ static void test_clock_class_priority_map(void)
 	assert(cc2);
 	cc3 = bt_clock_class_create("cc3", 3);
 	assert(cc3);
-	ok(!bt_clock_class_priority_map_get_highest_priority_clock_class(NULL),
-		"bt_clock_class_priority_map_get_highest_priority_clock_class() handles NULL");
-	ok(bt_clock_class_priority_map_get_clock_class_priority(NULL, cc1, &prio) < 0,
-		"bt_clock_class_priority_map_get_highest_priority_clock_class() handles NULL (CC priority map)");
-	ok(bt_clock_class_priority_map_get_clock_class_priority(cc_prio_map, NULL, &prio) < 0,
-		"bt_clock_class_priority_map_get_highest_priority_clock_class() handles NULL (clock class)");
-	ok(bt_clock_class_priority_map_get_clock_class_priority(cc_prio_map, cc1, NULL) < 0,
-		"bt_clock_class_priority_map_get_highest_priority_clock_class() handles NULL (priority)");
 	ok(!bt_clock_class_priority_map_get_highest_priority_clock_class(cc_prio_map),
 		"bt_clock_class_priority_map_get_highest_priority_clock_class() returns NULL when there's no clock classes");
 	ret = bt_clock_class_priority_map_add_clock_class(cc_prio_map, cc2, 75);

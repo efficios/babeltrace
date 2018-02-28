@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 struct bt_object;
 typedef void (*bt_object_release_func)(struct bt_object *);
@@ -41,7 +41,7 @@ struct bt_ref {
 static inline
 void bt_ref_init(struct bt_ref *ref, bt_object_release_func release)
 {
-	assert(ref);
+	BT_ASSERT(ref);
 	ref->count = 1;
 	ref->release = release;
 }
@@ -49,7 +49,7 @@ void bt_ref_init(struct bt_ref *ref, bt_object_release_func release)
 static inline
 void bt_ref_get(struct bt_ref *ref)
 {
-	assert(ref);
+	BT_ASSERT(ref);
 
 	if (unlikely(!ref->release)) {
 		return;
@@ -57,13 +57,13 @@ void bt_ref_get(struct bt_ref *ref)
 
 	ref->count++;
 	/* Overflow check. */
-	assert(ref->count);
+	BT_ASSERT(ref->count);
 }
 
 static inline
 void bt_ref_put(struct bt_ref *ref)
 {
-	assert(ref);
+	BT_ASSERT(ref);
 	/* Only assert if the object has opted-in for reference counting. */
 	if (unlikely((--ref->count) == 0 && ref->release)) {
 		ref->release((struct bt_object *) ref);

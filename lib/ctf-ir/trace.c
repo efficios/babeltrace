@@ -50,6 +50,7 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/types.h>
 #include <babeltrace/endian-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
@@ -481,7 +482,7 @@ int64_t bt_trace_get_environment_field_count(struct bt_trace *trace)
 	}
 
 	ret = bt_attributes_get_count(trace->environment);
-	assert(ret >= 0);
+	BT_ASSERT(ret >= 0);
 
 end:
 	return ret;
@@ -707,7 +708,7 @@ bool packet_header_field_type_is_valid(struct bt_trace *trace,
 
 		ret = bt_field_type_structure_get_field_by_index(
 			packet_header_type, &field_name, NULL, 0);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 
 		if (strcmp(field_name, "magic") != 0) {
 			BT_LOGW("Invalid packet header field type: `magic` field must be the first field: "
@@ -745,7 +746,7 @@ bool packet_header_field_type_is_valid(struct bt_trace *trace,
 		}
 
 		elem_ft = bt_field_type_array_get_element_type(field_type);
-		assert(elem_ft);
+		BT_ASSERT(elem_ft);
 
 		if (!bt_field_type_is_integer(elem_ft)) {
 			BT_LOGW("Invalid packet header field type: `uuid` field's element field type must be an integer field type: "
@@ -1088,7 +1089,7 @@ bool event_header_field_type_is_valid(struct bt_trace *trace,
 			goto invalid;
 		}
 
-		assert(int_ft);
+		BT_ASSERT(int_ft);
 		if (bt_field_type_integer_is_signed(int_ft)) {
 			BT_LOGW("Invalid event header field type: `id` field must be an unsigned integer or enumeration field type: "
 				"id-ft-addr=%p", int_ft);
@@ -1198,7 +1199,7 @@ int bt_trace_add_stream_class(struct bt_trace *trace,
 
 	event_class_count =
 		bt_stream_class_get_event_class_count(stream_class);
-	assert(event_class_count >= 0);
+	BT_ASSERT(event_class_count >= 0);
 
 	if (stream_class->clock) {
 		struct bt_clock_class *stream_clock_class =
@@ -1595,10 +1596,10 @@ end:
 	bt_validation_output_put_types(&trace_sc_validation_output);
 	bt_put(current_parent_trace);
 	bt_put(expected_clock_class);
-	assert(!packet_header_type);
-	assert(!packet_context_type);
-	assert(!event_header_type);
-	assert(!stream_event_ctx_type);
+	BT_ASSERT(!packet_header_type);
+	BT_ASSERT(!packet_context_type);
+	BT_ASSERT(!event_header_type);
+	BT_ASSERT(!stream_event_ctx_type);
 	return ret;
 }
 
@@ -1763,8 +1764,8 @@ bt_bool bt_trace_has_clock_class(struct bt_trace *trace,
 {
 	struct search_query query = { .value = clock_class, .found = 0 };
 
-	assert(trace);
-	assert(clock_class);
+	BT_ASSERT(trace);
+	BT_ASSERT(clock_class);
 
 	g_ptr_array_foreach(trace->clocks, value_exists, &query);
 	return query.found;
@@ -1812,7 +1813,7 @@ int append_trace_metadata(struct bt_trace *trace,
 	g_string_append(context->string, "trace {\n");
 	g_string_append(context->string, "\tmajor = 1;\n");
 	g_string_append(context->string, "\tminor = 8;\n");
-	assert(trace->native_byte_order == BT_BYTE_ORDER_LITTLE_ENDIAN ||
+	BT_ASSERT(trace->native_byte_order == BT_BYTE_ORDER_LITTLE_ENDIAN ||
 		trace->native_byte_order == BT_BYTE_ORDER_BIG_ENDIAN ||
 		trace->native_byte_order == BT_BYTE_ORDER_NETWORK);
 
@@ -1869,8 +1870,8 @@ void append_env_metadata(struct bt_trace *trace,
 		env_field_value_obj = bt_attributes_get_field_value(
 			trace->environment, i);
 
-		assert(entry_name);
-		assert(env_field_value_obj);
+		BT_ASSERT(entry_name);
+		BT_ASSERT(env_field_value_obj);
 
 		switch (bt_value_get_type(env_field_value_obj)) {
 		case BT_VALUE_TYPE_INTEGER:
@@ -1880,7 +1881,7 @@ void append_env_metadata(struct bt_trace *trace,
 
 			ret = bt_value_integer_get(env_field_value_obj,
 				&int_value);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			g_string_append_printf(context->string,
 				"\t%s = %" PRId64 ";\n", entry_name,
 				int_value);
@@ -1894,7 +1895,7 @@ void append_env_metadata(struct bt_trace *trace,
 
 			ret = bt_value_string_get(env_field_value_obj,
 				&str_value);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			escaped_str = g_strescape(str_value, NULL);
 			if (!escaped_str) {
 				BT_LOGE("Cannot escape string: string=\"%s\"",
@@ -2187,8 +2188,8 @@ int bt_trace_object_modification(struct bt_visitor_object *object,
 	size_t i;
 	struct bt_trace *trace = trace_ptr;
 
-	assert(trace);
-	assert(object);
+	BT_ASSERT(trace);
+	BT_ASSERT(object);
 
 	if (trace->listeners->len == 0) {
 		goto end;

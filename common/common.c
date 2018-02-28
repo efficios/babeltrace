@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <glib.h>
@@ -194,7 +194,7 @@ int bt_common_append_plugin_path_dirs(const char *paths, GPtrArray *dirs)
 	const char *end;
 	size_t init_dirs_len;
 
-	assert(dirs);
+	BT_ASSERT(dirs);
 	init_dirs_len = dirs->len;
 
 	if (!paths) {
@@ -577,7 +577,7 @@ bool bt_common_string_is_printable(const char *input)
 {
 	const char *ch;
 	bool printable = true;
-	assert(input);
+	BT_ASSERT(input);
 
 	for (ch = input; *ch != '\0'; ch++) {
 		if (!isprint(*ch) && *ch != '\n' && *ch != '\r' &&
@@ -631,7 +631,7 @@ struct bt_common_lttng_live_url_parts bt_common_parse_lttng_live_url(
 	const char *at = url;
 	size_t end_pos;
 
-	assert(url);
+	BT_ASSERT(url);
 	memset(&parts, 0, sizeof(parts));
 	parts.port = -1;
 
@@ -800,7 +800,7 @@ void bt_common_normalize_star_glob_pattern(char *pattern)
 	char *np;
 	bool got_star = false;
 
-	assert(pattern);
+	BT_ASSERT(pattern);
 
 	for (p = pattern, np = pattern; *p != '\0'; p++) {
 		switch (*p) {
@@ -1008,7 +1008,7 @@ retry:
 	 *                         ^  ^ SUCCESS
 	 */
 	while ((c - candidate) < candidate_len && *c != '\0') {
-		assert(*c);
+		BT_ASSERT(*c);
 
 		if (at_end_of_pattern(p, pattern, pattern_len)) {
 			goto end_of_pattern;
@@ -1097,7 +1097,7 @@ void append_path_parts(const char *path, GPtrArray *parts)
 			if (ch - last > 0) {
 				GString *part = g_string_new(NULL);
 
-				assert(part);
+				BT_ASSERT(part);
 				g_string_append_len(part, last, ch - last);
 				g_ptr_array_add(parts, part);
 			}
@@ -1126,7 +1126,7 @@ GString *bt_common_normalize_path(const char *path, const char *wd)
 	char *tmp;
 	GString *norm_path = NULL;
 
-	assert(path);
+	BT_ASSERT(path);
 
 	tmp = _fullpath(NULL, path, PATH_MAX);
 	if (!tmp) {
@@ -1158,7 +1158,7 @@ GString *bt_common_normalize_path(const char *path, const char *wd)
 	GString *norm_path;
 	GPtrArray *parts = NULL;
 
-	assert(path);
+	BT_ASSERT(path);
 	norm_path = g_string_new(G_DIR_SEPARATOR_S);
 	if (!norm_path) {
 		goto error;
@@ -1260,7 +1260,7 @@ size_t bt_common_get_page_size(void)
 		strncpy(_tmp_fmt, *out_fmt_ch, _tmp_fmt_size);		\
 		_tmp_fmt[_tmp_fmt_size] = '\0';				\
 		_count = snprintf(*buf_ch, _size, _tmp_fmt, __VA_ARGS__); \
-		assert(_count >= 0);					\
+		BT_ASSERT(_count >= 0);					\
 		*buf_ch += MIN(_count, _size);				\
 	} while (0)
 
@@ -1519,14 +1519,14 @@ void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 	const char *fmt_ch = fmt;
 	char *buf_ch = buf;
 
-	assert(buf);
-	assert(fmt);
-	assert(*args);
+	BT_ASSERT(buf);
+	BT_ASSERT(fmt);
+	BT_ASSERT(*args);
 
 	while (*fmt_ch != '\0') {
 		switch (*fmt_ch) {
 		case '%':
-			assert(fmt_ch[1] != '\0');
+			BT_ASSERT(fmt_ch[1] != '\0');
 
 			if (fmt_ch[1] == intro) {
 				handle_specifier(priv_data, &buf_ch,

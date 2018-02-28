@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
@@ -121,7 +121,7 @@ int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
 
 	ctf_fs_trace->metadata->trace = ctf_metadata_decoder_get_trace(
 		metadata_decoder);
-	assert(ctf_fs_trace->metadata->trace);
+	BT_ASSERT(ctf_fs_trace->metadata->trace);
 
 end:
 	ctf_fs_file_destroy(file);

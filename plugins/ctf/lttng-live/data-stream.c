@@ -34,7 +34,7 @@
 #include <babeltrace/compat/mman-internal.h>
 #include <babeltrace/babeltrace.h>
 #include "../common/notif-iter/notif-iter.h"
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 #include "data-stream.h"
 
@@ -181,7 +181,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	stream->buflen = session->lttng_live->max_query_size;
 
 	ret = lttng_live_add_port(lttng_live, stream);
-	assert(!ret);
+	BT_ASSERT(!ret);
 
 	bt_list_add(&stream->node, &trace->streams);
 
@@ -206,7 +206,7 @@ void lttng_live_stream_iterator_destroy(struct lttng_live_stream_iterator *strea
 
 	lttng_live = stream->trace->session->lttng_live;
 	ret = lttng_live_remove_port(lttng_live, stream->port);
-	assert(!ret);
+	BT_ASSERT(!ret);
 
 	if (stream->stream) {
 		BT_PUT(stream->stream);

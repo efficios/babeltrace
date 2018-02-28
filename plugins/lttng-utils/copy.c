@@ -30,7 +30,7 @@
 #include "logging.h"
 
 #include <inttypes.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace.h>
 
 #include <ctfcopytrace.h>
@@ -80,10 +80,10 @@ struct bt_field *get_payload_field(FILE *err,
 	struct bt_field_type *payload_type = NULL;
 
 	payload = bt_event_get_payload(event, NULL);
-	assert(payload);
+	BT_ASSERT(payload);
 
 	payload_type = bt_field_get_type(payload);
-	assert(payload_type);
+	BT_ASSERT(payload_type);
 
 	if (bt_field_type_get_type_id(payload_type) != BT_FIELD_TYPE_ID_STRUCT) {
 		BT_LOGE("Wrong type, expected struct: field-name=\"%s\"",
@@ -112,7 +112,7 @@ struct bt_field *get_stream_event_context_field(FILE *err,
 	}
 
 	sec_type = bt_field_get_type(sec);
-	assert(sec_type);
+	BT_ASSERT(sec_type);
 
 	if (bt_field_type_get_type_id(sec_type) != BT_FIELD_TYPE_ID_STRUCT) {
 		BT_LOGE("Wrong type, expected struct, field-name=\"%s\"",
@@ -143,7 +143,7 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
@@ -187,7 +187,7 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_event *event,
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
@@ -227,7 +227,7 @@ int get_payload_unsigned_int_field_value(FILE *err,
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
@@ -272,7 +272,7 @@ int get_payload_int_field_value(FILE *err, struct bt_event *event,
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
@@ -319,7 +319,7 @@ int get_payload_string_field_value(FILE *err,
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_STRING) {
 		BT_LOGE("Wrong type, expected string: field-name=\"%s\"",
@@ -365,7 +365,7 @@ int get_payload_build_id_field_value(FILE *err,
 	}
 
 	field_type = bt_field_get_type(field);
-	assert(field_type);
+	BT_ASSERT(field_type);
 
 	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_SEQUENCE) {
 		BT_LOGE("Wrong type, expected sequence: field-name=\"%s\"", field_name);
@@ -374,7 +374,7 @@ int get_payload_build_id_field_value(FILE *err,
 	BT_PUT(field_type);
 
 	seq_len = bt_field_sequence_get_length(field);
-	assert(seq_len);
+	BT_ASSERT(seq_len);
 
 	ret = bt_field_unsigned_integer_get_value(seq_len, build_id_len);
 	if (ret) {
@@ -449,7 +449,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 		goto end;
 	}
 	ret = bt_value_string_get(field, &str_value);
-	assert(ret == BT_VALUE_STATUS_OK);
+	BT_ASSERT(ret == BT_VALUE_STATUS_OK);
 
 	/* Domain not ust, no debug info */
 	if (strcmp(str_value, "ust") != 0) {
@@ -465,7 +465,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 		goto end;
 	}
 	ret = bt_value_string_get(field, &str_value);
-	assert(ret == BT_VALUE_STATUS_OK);
+	BT_ASSERT(ret == BT_VALUE_STATUS_OK);
 
 	/* Tracer_name not lttng-ust, no debug info */
 	if (strcmp(str_value, "lttng-ust") != 0) {
@@ -597,10 +597,10 @@ int sync_event_classes(struct debug_info_iterator *debug_it,
 	enum bt_component_status ret;
 
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	writer_stream_class = bt_stream_get_class(writer_stream);
-	assert(writer_stream_class);
+	BT_ASSERT(writer_stream_class);
 
 	ret = ctf_copy_event_classes(debug_it->err, stream_class,
 			writer_stream_class);
@@ -636,10 +636,10 @@ void trace_is_static_listener(struct bt_trace *trace, void *data)
 	nr_stream = bt_trace_get_stream_count(trace);
 	for (i = 0; i < nr_stream; i++) {
 		stream = bt_trace_get_stream_by_index(trace, i);
-		assert(stream);
+		BT_ASSERT(stream);
 
 		writer_stream = bt_trace_get_stream_by_index(writer_trace, i);
-		assert(writer_stream);
+		BT_ASSERT(writer_stream);
 
 		ret = sync_event_classes(di_trace->debug_it, stream, writer_stream);
 		if (ret) {
@@ -683,10 +683,10 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	}
 
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 
 	ret = ctf_copy_trace(debug_it->err, trace, writer_trace);
 	if (ret != BT_COMPONENT_STATUS_OK) {
@@ -720,7 +720,7 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	nr_stream = bt_trace_get_stream_count(trace);
 	for (i = 0; i < nr_stream; i++) {
 		stream = bt_trace_get_stream_by_index(trace, i);
-		assert(stream);
+		BT_ASSERT(stream);
 
 		insert_new_stream_state(debug_it, di_trace, stream);
 		writer_stream = insert_new_stream(debug_it, stream, di_trace);
@@ -746,7 +746,7 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	} else {
 		ret = bt_trace_add_is_static_listener(trace,
 				trace_is_static_listener, NULL, di_trace);
-		assert(ret >= 0);
+		BT_ASSERT(ret >= 0);
 		di_trace->static_listener_id = ret;
 	}
 
@@ -1031,7 +1031,7 @@ int add_clock_classes(FILE *err, struct bt_trace *writer_trace,
 			bt_trace_get_clock_class_by_index(trace, i);
 		struct bt_clock_class *existing_clock_class = NULL;
 
-		assert(clock_class);
+		BT_ASSERT(clock_class);
 
 		existing_clock_class = bt_trace_get_clock_class_by_name(
 			writer_trace, bt_clock_class_get_name(clock_class));
@@ -1071,7 +1071,7 @@ struct bt_stream_class *insert_new_stream_class(
 	int int_ret;
 
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 
 	di_trace = lookup_trace(debug_it, trace);
 	if (!di_trace) {
@@ -1127,7 +1127,7 @@ struct bt_stream *insert_new_stream(
 	int64_t id;
 
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	writer_stream_class = g_hash_table_lookup(
 			di_trace->stream_class_map,
@@ -1199,10 +1199,10 @@ struct debug_info_trace *lookup_di_trace_from_stream(
 	struct debug_info_trace *di_trace = NULL;
 
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 
 	di_trace = (struct debug_info_trace *) g_hash_table_lookup(
 			debug_it->trace_map, (gpointer) trace);
@@ -1222,7 +1222,7 @@ struct bt_stream *get_writer_stream(
 	struct debug_info_trace *di_trace = NULL;
 
 	stream_class = bt_stream_get_class(stream);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	di_trace = lookup_di_trace_from_stream(debug_it, stream);
 	if (!di_trace) {
@@ -1258,7 +1258,7 @@ struct bt_packet *debug_info_new_packet(
 	int int_ret;
 
 	stream = bt_packet_get_stream(packet);
-	assert(stream);
+	BT_ASSERT(stream);
 
 	writer_stream = get_writer_stream(debug_it, packet, stream);
 	if (!writer_stream) {
@@ -1322,7 +1322,7 @@ struct bt_packet *debug_info_close_packet(
 	struct debug_info_trace *di_trace;
 
 	stream = bt_packet_get_stream(packet);
-	assert(stream);
+	BT_ASSERT(stream);
 
 	di_trace = lookup_di_trace_from_stream(debug_it, stream);
 	if (!di_trace) {
@@ -1490,7 +1490,7 @@ int set_debug_info_field(FILE *err, struct bt_field *debug_field,
 	struct bt_field_type *field_type = NULL;
 
 	debug_field_type = bt_field_get_type(debug_field);
-	assert(debug_field_type);
+	BT_ASSERT(debug_field_type);
 
 	nr_fields = bt_field_type_structure_get_field_count(debug_field_type);
 	for (i = 0; i < nr_fields; i++) {
@@ -1585,13 +1585,13 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 	int ret, nr_fields, i;
 
 	writer_event_context = bt_event_get_stream_event_context(writer_event);
-	assert(writer_event_context);
+	BT_ASSERT(writer_event_context);
 
 	writer_event_context_type = bt_field_get_type(writer_event_context);
-	assert(writer_event_context_type);
+	BT_ASSERT(writer_event_context_type);
 
 	event_context_type = bt_field_get_type(event_context);
-	assert(event_context_type);
+	BT_ASSERT(event_context_type);
 
 	/*
 	 * If it is not a structure, we did not modify it to add the debug info
@@ -1629,7 +1629,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 				!field) {
 			debug_field = bt_field_structure_get_field_by_index(
 					writer_event_context, i);
-			assert(debug_field);
+			BT_ASSERT(debug_field);
 
 			ret = set_debug_info_field(err, debug_field,
 					dbg_info_src, component);
@@ -1684,7 +1684,7 @@ struct bt_clock_class *stream_class_get_clock_class(FILE *err,
 	struct bt_clock_class *clock_class = NULL;
 
 	trace = bt_stream_class_get_trace(stream_class);
-	assert(trace);
+	BT_ASSERT(trace);
 
 	if (!bt_trace_get_clock_class_count(trace)) {
 		/* No clock. */
@@ -1708,10 +1708,10 @@ struct bt_clock_class *event_get_clock_class(FILE *err, struct bt_event *event)
 	struct bt_clock_class *clock_class = NULL;
 
 	event_class = bt_event_get_class(event);
-	assert(event_class);
+	BT_ASSERT(event_class);
 
 	stream_class = bt_event_class_get_stream_class(event_class);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	clock_class = stream_class_get_clock_class(err, stream_class);
 	goto end;
@@ -1828,7 +1828,7 @@ struct bt_event *debug_info_copy_event(FILE *err, struct bt_event *event,
 	}
 
 	field = bt_event_get_event_payload(event);
-	assert(field);
+	BT_ASSERT(field);
 
 	copy_field = bt_field_copy(field);
 	if (copy_field) {
@@ -1867,13 +1867,13 @@ struct bt_event *debug_info_output_event(
 	int int_ret;
 
 	event_class = bt_event_get_class(event);
-	assert(event_class);
+	BT_ASSERT(event_class);
 
 	stream_class = bt_event_class_get_stream_class(event_class);
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 
 	stream = bt_event_get_stream(event);
-	assert(stream);
+	BT_ASSERT(stream);
 
 	di_trace = lookup_di_trace_from_stream(debug_it, stream);
 	if (!di_trace) {
@@ -1890,7 +1890,7 @@ struct bt_event *debug_info_output_event(
 	}
 	bt_get(writer_stream_class);
 	writer_trace = bt_stream_class_get_trace(writer_stream_class);
-	assert(writer_trace);
+	BT_ASSERT(writer_trace);
 	writer_event_class = get_event_class(debug_it,
 			writer_stream_class, event_class);
 	if (!writer_event_class) {
@@ -1923,7 +1923,7 @@ struct bt_event *debug_info_output_event(
 	}
 
 	packet = bt_event_get_packet(event);
-	assert(packet);
+	BT_ASSERT(packet);
 
 	writer_packet = lookup_packet(debug_it, packet, di_trace);
 	if (!writer_packet) {

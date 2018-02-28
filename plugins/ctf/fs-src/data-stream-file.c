@@ -36,7 +36,7 @@
 #include "file.h"
 #include "metadata.h"
 #include "../common/notif-iter/notif-iter.h"
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include "data-stream-file.h"
 #include <string.h>
 
@@ -103,7 +103,7 @@ enum bt_notif_iter_medium_status ds_file_mmap_next(
 		goto end;
 	}
 	/* Map new region */
-	assert(ds_file->mmap_len);
+	BT_ASSERT(ds_file->mmap_len);
 	ds_file->mmap_addr = bt_mmap((void *) 0, ds_file->mmap_len,
 			PROT_READ, MAP_PRIVATE, fileno(ds_file->file->fp),
 			ds_file->mmap_offset);
@@ -405,7 +405,7 @@ int convert_cycles_to_ns(struct bt_clock_class *clock_class,
 	int ret = 0;
 	struct bt_clock_value *clock_value;
 
-	assert(ns);
+	BT_ASSERT(ns);
 	clock_value = bt_clock_value_create(clock_class, cycles);
 	if (!clock_value) {
 		ret = -1;
@@ -623,10 +623,10 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 		goto end;
 	}
 
-	assert(packet_offset >= 0);
+	BT_ASSERT(packet_offset >= 0);
 	entry->offset = packet_offset;
 
-	assert(packet_size >= 0);
+	BT_ASSERT(packet_size >= 0);
 	entry->packet_size = packet_size;
 
 	ret = bt_field_unsigned_integer_get_value(timestamp_begin,
@@ -888,7 +888,7 @@ int ctf_fs_ds_file_get_packet_header_context_fields(
 	enum bt_notif_iter_status notif_iter_status;
 	int ret = 0;
 
-	assert(ds_file);
+	BT_ASSERT(ds_file);
 	notif_iter_status = bt_notif_iter_get_packet_header_context_fields(
 		ds_file->notif_iter, packet_header_field, packet_context_field);
 	switch (notif_iter_status) {

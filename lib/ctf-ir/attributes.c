@@ -31,9 +31,10 @@
 #include <babeltrace/ref.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
+#include <babeltrace/values-internal.h>
 #include <inttypes.h>
-#include <assert.h>
 #include <babeltrace/compat/string-internal.h>
+#include <babeltrace/assert-internal.h>
 
 #define BT_ATTR_NAME_INDEX		0
 #define BT_ATTR_VALUE_INDEX		1
@@ -96,6 +97,13 @@ const char *bt_attributes_get_field_name(struct bt_value *attr_obj,
 		goto end;
 	}
 
+	if (index >= bt_value_array_size(attr_obj)) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"index=%" PRIu64 ", count=%" PRId64,
+			index, bt_value_array_size(attr_obj));
+		goto end;
+	}
+
 	attr_field_obj = bt_value_array_get(attr_obj, index);
 	if (!attr_field_obj) {
 		BT_LOGE("Cannot get attributes object's array value's element by index: "
@@ -134,6 +142,13 @@ struct bt_value *bt_attributes_get_field_value(struct bt_value *attr_obj,
 
 	if (!attr_obj) {
 		BT_LOGW_STR("Invalid parameter: attributes object is NULL.");
+		goto end;
+	}
+
+	if (index >= bt_value_array_size(attr_obj)) {
+		BT_LOGW("Invalid parameter: index is out of bounds: "
+			"index=%" PRIu64 ", count=%" PRId64,
+			index, bt_value_array_size(attr_obj));
 		goto end;
 	}
 
@@ -316,7 +331,7 @@ int bt_attributes_freeze(struct bt_value *attr_obj)
 
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
 	count = bt_value_array_size(attr_obj);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	/*
 	 * We do not freeze the array value object itself here, since

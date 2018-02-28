@@ -178,8 +178,8 @@ int query(struct bt_component_class *comp_cls, const char *obj,
 	*fail_reason = "unknown error";
 	int ret = 0;
 
-	assert(fail_reason);
-	assert(user_result);
+	BT_ASSERT(fail_reason);
+	BT_ASSERT(user_result);
 	ret = create_the_query_executor();
 	if (ret) {
 		/* create_the_query_executor() logs errors */
@@ -264,7 +264,7 @@ struct bt_plugin *find_plugin(const char *name)
 	int i;
 	struct bt_plugin *plugin = NULL;
 
-	assert(name);
+	BT_ASSERT(name);
 	BT_LOGD("Finding plugin: name=\"%s\"", name);
 
 	for (i = 0; i < loaded_plugins->len; i++) {
@@ -406,6 +406,7 @@ bt_bool print_map_value(const char *key, struct bt_value *object, void *data)
 
 	print_indent(print_map_value_data->fp, print_map_value_data->indent);
 	fprintf(print_map_value_data->fp, "%s: ", key);
+	BT_ASSERT(object);
 
 	if (bt_value_is_array(object) &&
 			bt_value_array_is_empty(object)) {
@@ -714,7 +715,7 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 	int64_t count;
 
 	count = bt_plugin_set_get_plugin_count(plugin_set);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_plugin *plugin =
@@ -722,7 +723,7 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 		struct bt_plugin *loaded_plugin =
 				find_plugin(bt_plugin_get_name(plugin));
 
-		assert(plugin);
+		BT_ASSERT(plugin);
 
 		if (loaded_plugin) {
 			BT_LOGI("Not using plugin: another one already exists with the same name: "
@@ -1030,7 +1031,7 @@ int cmd_help(struct bt_config *cfg)
 		enum bt_component_class_type type =
 			bt_component_class_get_type(comp_cls);
 
-		assert(comp_cls);
+		BT_ASSERT(comp_cls);
 
 		if (cfg->cmd_data.help.cfg_component->type !=
 				BT_COMPONENT_CLASS_TYPE_UNKNOWN) {
@@ -1158,7 +1159,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	const char *fail_reason = NULL;
 	FILE *out_stream = stdout;
 
-	assert(cfg->cmd_data.print_lttng_live_sessions.url);
+	BT_ASSERT(cfg->cmd_data.print_lttng_live_sessions.url);
 	comp_cls = find_component_class(plugin_name, comp_cls_name,
 		comp_cls_type);
 	if (!comp_cls) {
@@ -1191,6 +1192,8 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	if (ret) {
 		goto failed;
 	}
+
+	BT_ASSERT(results);
 
 	if (!bt_value_is_array(results)) {
 		BT_LOGE_STR("Expecting an array for sessions query.");
@@ -1235,7 +1238,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			goto error;
 		}
 		ret = bt_value_string_get(v, &url_text);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		fprintf(out_stream, "%s", url_text);
 		BT_PUT(v);
 
@@ -1245,7 +1248,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			goto error;
 		}
 		ret = bt_value_integer_get(v, &timer_us);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		fprintf(out_stream, " (timer = %" PRIu64 ", ", timer_us);
 		BT_PUT(v);
 
@@ -1255,7 +1258,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			goto error;
 		}
 		ret = bt_value_integer_get(v, &streams);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		fprintf(out_stream, "%" PRIu64 " stream(s), ", streams);
 		BT_PUT(v);
 
@@ -1265,7 +1268,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			goto error;
 		}
 		ret = bt_value_integer_get(v, &clients);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		fprintf(out_stream, "%" PRIu64 " client(s) connected)\n", clients);
 		BT_PUT(v);
 
@@ -1321,7 +1324,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	const char *fail_reason = NULL;
 	FILE *out_stream = stdout;
 
-	assert(cfg->cmd_data.print_ctf_metadata.path);
+	BT_ASSERT(cfg->cmd_data.print_ctf_metadata.path);
 	comp_cls = find_component_class(plugin_name, comp_cls_name,
 		comp_cls_type);
 	if (!comp_cls) {
@@ -1366,7 +1369,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	}
 
 	ret = bt_value_string_get(metadata_text_value, &metadata_text);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	if (cfg->cmd_data.print_ctf_metadata.output_path->len > 0) {
 		out_stream =
@@ -1433,8 +1436,8 @@ guint port_id_hash(gconstpointer v)
 {
 	const struct port_id *id = v;
 
-	assert(id->instance_name);
-	assert(id->port_name);
+	BT_ASSERT(id->instance_name);
+	BT_ASSERT(id->port_name);
 
 	return g_str_hash(id->instance_name) ^ g_str_hash(id->port_name);
 }
@@ -1613,7 +1616,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		cfg_conn->arg->str);
 	downstreamp_comp_name_quark = g_quark_from_string(
 		cfg_conn->downstream_comp_name->str);
-	assert(downstreamp_comp_name_quark > 0);
+	BT_ASSERT(downstreamp_comp_name_quark > 0);
 	downstream_comp = g_hash_table_lookup(ctx->components,
 		GUINT_TO_POINTER(downstreamp_comp_name_quark));
 	if (!downstream_comp) {
@@ -1642,7 +1645,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	}
 
 	downstream_port_count = port_count_fn(downstream_comp);
-	assert(downstream_port_count >= 0);
+	BT_ASSERT(downstream_port_count >= 0);
 
 	for (i = 0; i < downstream_port_count; i++) {
 		struct bt_port *downstream_port =
@@ -1650,7 +1653,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		const char *upstream_port_name;
 		const char *downstream_port_name;
 
-		assert(downstream_port);
+		BT_ASSERT(downstream_port);
 
 		/* Skip port if it's already connected. */
 		if (bt_port_is_connected(downstream_port)) {
@@ -1663,9 +1666,9 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		}
 
 		downstream_port_name = bt_port_get_name(downstream_port);
-		assert(downstream_port_name);
+		BT_ASSERT(downstream_port_name);
 		upstream_port_name = bt_port_get_name(upstream_port);
-		assert(upstream_port_name);
+		BT_ASSERT(upstream_port_name);
 
 		if (!bt_common_star_glob_match(
 				cfg_conn->downstream_port_glob->str, SIZE_MAX,
@@ -1707,7 +1710,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			if (graph_status != BT_GRAPH_STATUS_OK) {
 				goto error;
 			}
-			assert(trimmer);
+			BT_ASSERT(trimmer);
 
 			trimmer_input =
 				bt_component_filter_get_input_port_by_index(
@@ -1851,10 +1854,10 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 	struct bt_component *upstream_comp = NULL;
 	size_t i;
 
-	assert(ctx);
-	assert(upstream_port);
+	BT_ASSERT(ctx);
+	BT_ASSERT(upstream_port);
 	upstream_port_name = bt_port_get_name(upstream_port);
-	assert(upstream_port_name);
+	BT_ASSERT(upstream_port_name);
 	upstream_comp = bt_port_get_component(upstream_port);
 	if (!upstream_comp) {
 		BT_LOGW("Upstream port to connect is not part of a component: "
@@ -1865,7 +1868,7 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 	}
 
 	upstream_comp_name = bt_component_get_name(upstream_comp);
-	assert(upstream_comp_name);
+	BT_ASSERT(upstream_comp_name);
 	BT_LOGI("Connecting upstream port: comp-addr=%p, comp-name=\"%s\", "
 		"port-addr=%p, port-name=\"%s\"",
 		upstream_comp, upstream_comp_name,
@@ -1978,8 +1981,8 @@ void graph_ports_connected_listener(struct bt_port *upstream_port,
 	struct bt_component *upstream_comp = bt_port_get_component(upstream_port);
 	struct bt_component *downstream_comp = bt_port_get_component(downstream_port);
 
-	assert(upstream_comp);
-	assert(downstream_comp);
+	BT_ASSERT(upstream_comp);
+	BT_ASSERT(downstream_comp);
 	BT_LOGI("Graph's component ports connected: "
 		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
 		"upstream-port-addr=%p, upstream-port-name=\"%s\", "
@@ -2121,7 +2124,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	const char *fail_reason = NULL;
 
 	component_path_value = bt_value_map_get(cfg_comp->params, "path");
-	if (!bt_value_is_string(component_path_value)) {
+	if (component_path_value && !bt_value_is_string(component_path_value)) {
 		BT_LOGD("Cannot get path parameter: component-name=%s",
 			cfg_comp->instance_name->str);
 		ret = -1;
@@ -2159,6 +2162,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		ret = -1;
 		goto error;
 	}
+
+	BT_ASSERT(query_result);
 
 	if (!bt_value_is_array(query_result)) {
 		BT_LOGD("Unexpected format of \'trace-info\' query result: "
@@ -2428,7 +2433,7 @@ int cmd_run_ctx_create_components_from_config_components(
 		BT_LOGI("Created and inserted component: comp-addr=%p, comp-name=\"%s\"",
 			comp, cfg_comp->instance_name->str);
 		quark = g_quark_from_string(cfg_comp->instance_name->str);
-		assert(quark > 0);
+		BT_ASSERT(quark > 0);
 		g_hash_table_insert(ctx->components,
 			GUINT_TO_POINTER(quark), comp);
 		comp = NULL;
@@ -2495,12 +2500,12 @@ int cmd_run_ctx_connect_comp_ports(struct cmd_run_ctx *ctx,
 	uint64_t i;
 
 	count = port_count_fn(comp);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_port *upstream_port = port_by_index_fn(comp, i);
 
-		assert(upstream_port);
+		BT_ASSERT(upstream_port);
 		ret = cmd_run_ctx_connect_upstream_port(ctx, upstream_port);
 		bt_put(upstream_port);
 		if (ret) {

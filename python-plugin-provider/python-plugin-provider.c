@@ -175,8 +175,8 @@ struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 	const char *version_extra = NULL;
 	int ret;
 
-	assert(plugin_info);
-	assert(python_state == PYTHON_STATE_FULLY_INITIALIZED);
+	BT_ASSERT(plugin_info);
+	BT_ASSERT(python_state == PYTHON_STATE_FULLY_INITIALIZED);
 	py_name = PyObject_GetAttrString(plugin_info, "name");
 	if (!py_name) {
 		BT_LOGW("Cannot find `name` attribute in Python plugin info object: "
@@ -267,9 +267,9 @@ struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 			PyObject *py_minor = PyTuple_GetItem(py_version, 1);
 			PyObject *py_patch = PyTuple_GetItem(py_version, 2);
 
-			assert(py_major);
-			assert(py_minor);
-			assert(py_patch);
+			BT_ASSERT(py_major);
+			BT_ASSERT(py_minor);
+			BT_ASSERT(py_patch);
 
 			if (PyLong_Check(py_major)) {
 				major = PyLong_AsUnsignedLong(py_major);
@@ -294,7 +294,7 @@ struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 		if (PyTuple_Size(py_version) >= 4) {
 			PyObject *py_extra = PyTuple_GetItem(py_version, 3);
 
-			assert(py_extra);
+			BT_ASSERT(py_extra);
 
 			if (PyUnicode_Check(py_extra)) {
 				version_extra = PyUnicode_AsUTF8(py_extra);
@@ -338,7 +338,7 @@ struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 
 			py_comp_class_addr =
 				PyList_GetItem(py_comp_class_addrs, i);
-			assert(py_comp_class_addr);
+			BT_ASSERT(py_comp_class_addr);
 			if (PyLong_Check(py_comp_class_addr)) {
 				comp_class = (struct bt_component_class *)
 					PyLong_AsUnsignedLongLong(py_comp_class_addr);
@@ -396,7 +396,7 @@ struct bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 	gchar *basename = NULL;
 	size_t path_len;
 
-	assert(path);
+	BT_ASSERT(path);
 
 	if (python_state == PYTHON_STATE_CANNOT_INITIALIZE) {
 		/*

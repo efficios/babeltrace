@@ -34,7 +34,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 struct bt_stream_class {
@@ -115,7 +115,7 @@ static inline
 struct bt_trace *bt_stream_class_borrow_trace(
 		struct bt_stream_class *stream_class)
 {
-	assert(stream_class);
+	BT_ASSERT(stream_class);
 	return (void *) bt_object_borrow_parent(stream_class);
 }
 

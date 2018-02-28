@@ -26,7 +26,7 @@
 
 #include "query.h"
 #include <stdbool.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
 #include <babeltrace/common-internal.h>
@@ -70,6 +70,8 @@ struct bt_component_class_query_method_return metadata_info_query(
 		goto error;
 	}
 
+	BT_ASSERT(params);
+
 	if (!bt_value_is_map(params)) {
 		BT_LOGE_STR("Query parameters is not a map value object.");
 		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
@@ -84,7 +86,7 @@ struct bt_component_class_query_method_return metadata_info_query(
 		goto error;
 	}
 
-	assert(path);
+	BT_ASSERT(path);
 	metadata_fp = ctf_fs_metadata_open_file(path);
 	if (!metadata_fp) {
 		BT_LOGE("Cannot open trace metadata: path=\"%s\".", path);
@@ -387,7 +389,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		goto end;
 	}
 
-	assert(trace->ds_file_groups);
+	BT_ASSERT(trace->ds_file_groups);
 	/* Add trace range info only if it contains streams. */
 	if (trace->ds_file_groups->len == 0) {
 		ret = -1;
@@ -479,6 +481,8 @@ struct bt_component_class_query_method_return trace_info_query(
 	GList *tn_node = NULL;
 	GString *normalized_path = NULL;
 
+	BT_ASSERT(params);
+
 	if (!bt_value_is_map(params)) {
 		BT_LOGE("Query parameters is not a map value object.");
 		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
@@ -498,7 +502,7 @@ struct bt_component_class_query_method_return trace_info_query(
 		BT_LOGE("Failed to normalize path: `%s`.", path);
 		goto error;
 	}
-	assert(path);
+	BT_ASSERT(path);
 
 	ret = ctf_fs_find_traces(&trace_paths, normalized_path->str);
 	if (ret) {

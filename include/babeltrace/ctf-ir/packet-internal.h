@@ -29,7 +29,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 struct bt_packet {
 	struct bt_object base;
@@ -40,13 +40,19 @@ struct bt_packet {
 };
 
 BT_HIDDEN
-void bt_packet_freeze(struct bt_packet *packet);
+void _bt_packet_freeze(struct bt_packet *packet);
+
+#ifdef BT_DEV_MODE
+# define bt_packet_freeze	_bt_packet_freeze
+#else
+# define bt_packet_freeze
+#endif /* BT_DEV_MODE */
 
 static inline
 struct bt_stream *bt_packet_borrow_stream(
 		struct bt_packet *packet)
 {
-	assert(packet);
+	BT_ASSERT(packet);
 	return packet->stream;
 }
 

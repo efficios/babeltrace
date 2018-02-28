@@ -75,7 +75,7 @@ static void register_cc_ptr_to_py_cls(struct bt_component_class *bt_cc,
 		 */
 		BT_LOGD_STR("Creating native component class to Python component class hash table.");
 		bt_cc_ptr_to_py_cls = g_hash_table_new(g_direct_hash, g_direct_equal);
-		assert(bt_cc_ptr_to_py_cls);
+		BT_ASSERT(bt_cc_ptr_to_py_cls);
 	}
 
 	g_hash_table_insert(bt_cc_ptr_to_py_cls, (gpointer) bt_cc,
@@ -120,28 +120,28 @@ static void bt_py3_cc_init_from_bt2(void)
 	 * code here without importing bt2 first.
 	 */
 	py_mod_bt2 = PyImport_ImportModule("bt2");
-	assert(py_mod_bt2);
+	BT_ASSERT(py_mod_bt2);
 	py_mod_bt2_exc_error_type =
 		PyObject_GetAttrString(py_mod_bt2, "Error");
-	assert(py_mod_bt2_exc_error_type);
+	BT_ASSERT(py_mod_bt2_exc_error_type);
 	py_mod_bt2_exc_unsupported_feature_type =
 		PyObject_GetAttrString(py_mod_bt2, "UnsupportedFeature");
-	assert(py_mod_bt2_exc_unsupported_feature_type);
+	BT_ASSERT(py_mod_bt2_exc_unsupported_feature_type);
 	py_mod_bt2_exc_try_again_type =
 		PyObject_GetAttrString(py_mod_bt2, "TryAgain");
-	assert(py_mod_bt2_exc_try_again_type);
+	BT_ASSERT(py_mod_bt2_exc_try_again_type);
 	py_mod_bt2_exc_stop_type =
 		PyObject_GetAttrString(py_mod_bt2, "Stop");
-	assert(py_mod_bt2_exc_stop_type);
+	BT_ASSERT(py_mod_bt2_exc_stop_type);
 	py_mod_bt2_exc_port_connection_refused_type =
 		PyObject_GetAttrString(py_mod_bt2, "PortConnectionRefused");
-	assert(py_mod_bt2_exc_port_connection_refused_type);
+	BT_ASSERT(py_mod_bt2_exc_port_connection_refused_type);
 	py_mod_bt2_exc_invalid_query_object_type =
 		PyObject_GetAttrString(py_mod_bt2, "InvalidQueryObject");
-	assert(py_mod_bt2_exc_invalid_query_object_type);
+	BT_ASSERT(py_mod_bt2_exc_invalid_query_object_type);
 	py_mod_bt2_exc_invalid_query_params_type =
 		PyObject_GetAttrString(py_mod_bt2, "InvalidQueryParams");
-	assert(py_mod_bt2_exc_invalid_query_params_type);
+	BT_ASSERT(py_mod_bt2_exc_invalid_query_params_type);
 }
 
 static void bt_py3_cc_exit_handler(void)
@@ -284,8 +284,8 @@ static enum bt_component_status bt_py3_cc_init(
 	PyObject *py_comp_ptr = NULL;
 
 	(void) init_method_data;
-	assert(comp);
-	assert(comp_cls);
+	BT_ASSERT(comp);
+	BT_ASSERT(comp_cls);
 
 	/*
 	 * Get the user-defined Python class which created this
@@ -365,7 +365,7 @@ static void bt_py3_cc_finalize(struct bt_private_component *priv_comp)
 	PyObject *py_comp = bt_private_component_get_user_data(priv_comp);
 	PyObject *py_method_result = NULL;
 
-	assert(py_comp);
+	BT_ASSERT(py_comp);
 
 	/* Call user's _finalize() method */
 	py_method_result = PyObject_CallMethod(py_comp,
@@ -397,7 +397,7 @@ static enum bt_component_status bt_py3_cc_accept_port_connection(
 	PyObject *py_method_result = NULL;
 
 	py_comp = bt_private_component_get_user_data(priv_comp);
-	assert(py_comp);
+	BT_ASSERT(py_comp);
 	py_self_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_priv_port),
 		SWIGTYPE_p_bt_private_port, 0);
 	if (!py_self_port_ptr) {
@@ -436,7 +436,7 @@ static enum bt_component_status bt_py3_cc_accept_port_connection(
 		goto error;
 	}
 
-	assert(PyBool_Check(py_method_result));
+	BT_ASSERT(PyBool_Check(py_method_result));
 
 	if (py_method_result == Py_True) {
 		status = BT_COMPONENT_STATUS_OK;
@@ -474,7 +474,7 @@ static void bt_py3_cc_port_connected(
 	PyObject *py_method_result = NULL;
 
 	py_comp = bt_private_component_get_user_data(priv_comp);
-	assert(py_comp);
+	BT_ASSERT(py_comp);
 	py_self_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_priv_port),
 		SWIGTYPE_p_bt_private_port, 0);
 	if (!py_self_port_ptr) {
@@ -492,7 +492,7 @@ static void bt_py3_cc_port_connected(
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_port_connected_from_native", "(OO)", py_self_port_ptr,
 		py_other_port_ptr);
-	assert(py_method_result == Py_None);
+	BT_ASSERT(py_method_result == Py_None);
 	Py_XDECREF(py_self_port_ptr);
 	Py_XDECREF(py_other_port_ptr);
 	Py_XDECREF(py_method_result);
@@ -507,7 +507,7 @@ static void bt_py3_cc_port_disconnected(
 	PyObject *py_method_result = NULL;
 
 	py_comp = bt_private_component_get_user_data(priv_comp);
-	assert(py_comp);
+	BT_ASSERT(py_comp);
 	py_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(priv_port),
 		SWIGTYPE_p_bt_private_port, 0);
 	if (!py_port_ptr) {
@@ -517,7 +517,7 @@ static void bt_py3_cc_port_disconnected(
 
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_port_disconnected_from_native", "(O)", py_port_ptr);
-	assert(py_method_result == Py_None);
+	BT_ASSERT(py_method_result == Py_None);
 	Py_XDECREF(py_port_ptr);
 	Py_XDECREF(py_method_result);
 }
@@ -592,8 +592,8 @@ static struct bt_component_class_query_method_return bt_py3_cc_query(
 	 * reference).
 	 */
 	ret.result = (void *) PyLong_AsUnsignedLongLong(py_results_addr);
-	assert(!PyErr_Occurred());
-	assert(ret.result);
+	BT_ASSERT(!PyErr_Occurred());
+	BT_ASSERT(ret.result);
 	goto end;
 
 error:
@@ -627,7 +627,7 @@ static enum bt_notification_iterator_status bt_py3_cc_notification_iterator_init
 			priv_notif_iter);
 	PyObject *py_comp;
 
-	assert(priv_comp);
+	BT_ASSERT(priv_comp);
 	py_comp = bt_private_component_get_user_data(priv_comp);
 
 	/* Find user's Python notification iterator class */
@@ -737,7 +737,7 @@ static void bt_py3_cc_notification_iterator_finalize(
 		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	PyObject *py_method_result = NULL;
 
-	assert(py_notif_iter);
+	BT_ASSERT(py_notif_iter);
 
 	/* Call user's _finalize() method */
 	py_method_result = PyObject_CallMethod(py_notif_iter,
@@ -769,12 +769,12 @@ bt_py3_cc_notification_iterator_next(
 		bt_private_connection_private_notification_iterator_get_user_data(priv_notif_iter);
 	PyObject *py_method_result = NULL;
 
-	assert(py_notif_iter);
+	BT_ASSERT(py_notif_iter);
 	py_method_result = PyObject_CallMethod(py_notif_iter,
 		"_next_from_native", NULL);
 	if (!py_method_result) {
 		next_ret.status = bt_py3_exc_to_notif_iter_status();
-		assert(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK);
+		BT_ASSERT(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK);
 		goto end;
 	}
 
@@ -788,8 +788,8 @@ bt_py3_cc_notification_iterator_next(
 			py_method_result);
 
 	/* Clear potential overflow error; should never happen */
-	assert(!PyErr_Occurred());
-	assert(next_ret.notification);
+	BT_ASSERT(!PyErr_Occurred());
+	BT_ASSERT(next_ret.notification);
 	goto end;
 
 end:
@@ -804,7 +804,7 @@ static enum bt_component_status bt_py3_cc_sink_consume(
 	PyObject *py_method_result = NULL;
 	enum bt_component_status status;
 
-	assert(py_comp);
+	BT_ASSERT(py_comp);
 	py_method_result = PyObject_CallMethod(py_comp,
 		"_consume", NULL);
 	status = bt_py3_exc_to_component_status();
@@ -846,20 +846,20 @@ static int bt_py3_cc_set_optional_attrs_methods(struct bt_component_class *cc,
 	}
 
 	ret = bt_component_class_set_init_method(cc, bt_py3_cc_init);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_finalize_method(cc, bt_py3_cc_finalize);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_accept_port_connection_method(cc,
 		bt_py3_cc_accept_port_connection);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_port_connected_method(cc,
 		bt_py3_cc_port_connected);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_port_disconnected_method(cc,
 		bt_py3_cc_port_disconnected);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_query_method(cc, bt_py3_cc_query);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 end:
 	return ret;
@@ -873,10 +873,10 @@ static void bt_py3_cc_set_optional_iter_methods(struct bt_component_class *cc,
 
 	ret = set_notif_iter_init_method(
 		cc, bt_py3_cc_notification_iterator_init);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = set_notif_iter_finalize_method(
 		cc, bt_py3_cc_notification_iterator_finalize);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 }
 
 static struct bt_component_class *bt_py3_component_class_source_create(
@@ -886,7 +886,7 @@ static struct bt_component_class *bt_py3_component_class_source_create(
 	struct bt_component_class *cc;
 	int ret;
 
-	assert(py_cls);
+	BT_ASSERT(py_cls);
 	cc = bt_component_class_source_create(name,
 		bt_py3_cc_notification_iterator_next);
 	if (!cc) {
@@ -918,7 +918,7 @@ static struct bt_component_class *bt_py3_component_class_filter_create(
 	struct bt_component_class *cc;
 	int ret;
 
-	assert(py_cls);
+	BT_ASSERT(py_cls);
 	cc = bt_component_class_filter_create(name,
 		bt_py3_cc_notification_iterator_next);
 	if (!cc) {
@@ -950,7 +950,7 @@ static struct bt_component_class *bt_py3_component_class_sink_create(
 	struct bt_component_class *cc;
 	int ret;
 
-	assert(py_cls);
+	BT_ASSERT(py_cls);
 	cc = bt_component_class_sink_create(name, bt_py3_cc_sink_consume);
 	if (!cc) {
 		BT_LOGE_STR("Cannot create sink component class.");

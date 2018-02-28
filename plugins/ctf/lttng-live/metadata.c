@@ -69,13 +69,13 @@ enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
 	}
 
 	count = bt_trace_get_clock_class_count(trace->trace);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_clock_class *clock_class =
 			bt_trace_get_clock_class_by_index(trace->trace, i);
 
-		assert(clock_class);
+		BT_ASSERT(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
 			trace->cc_prio_map, clock_class, 0);
 		BT_PUT(clock_class);

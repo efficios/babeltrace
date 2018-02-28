@@ -35,7 +35,7 @@
 #include <stdbool.h>
 #include <glib.h>
 #include "writer.h"
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 static
 gboolean empty_trace_map(gpointer key, gpointer value, gpointer user_data)
@@ -216,10 +216,10 @@ void writer_component_port_connected(
 	};
 
 	writer = bt_private_component_get_user_data(component);
-	assert(writer);
-	assert(!writer->input_iterator);
+	BT_ASSERT(writer);
+	BT_ASSERT(!writer->input_iterator);
 	connection = bt_private_port_get_private_connection(self_port);
-	assert(connection);
+	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, notif_types, &writer->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
@@ -245,7 +245,7 @@ enum bt_component_status writer_run(struct bt_private_component *component)
 	}
 
 	it = writer_component->input_iterator;
-	assert(it);
+	BT_ASSERT(it);
 	it_ret = bt_notification_iterator_next(it);
 
 	switch (it_ret) {
@@ -264,7 +264,7 @@ enum bt_component_status writer_run(struct bt_private_component *component)
 	}
 
 	notification = bt_notification_iterator_get_notification(it);
-	assert(notification);
+	BT_ASSERT(notification);
 	ret = handle_notification(writer_component, notification);
 end:
 	bt_put(notification);
