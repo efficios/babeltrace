@@ -86,6 +86,8 @@ babeltracegraphinclude_HEADERS = \
 
 noinst_HEADERS = \
 	babeltrace/align-internal.h \
+	babeltrace/assert-internal.h \
+	babeltrace/assert-pre-internal.h \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/bitfield-internal.h \
 	babeltrace/common-internal.h \

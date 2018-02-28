@@ -394,6 +394,21 @@ AS_IF([test "$BABELTRACE_MINIMAL_LOG_LEVEL" != "VERBOSE" && \
 )
 AC_DEFINE_UNQUOTED([BT_LOG_LEVEL], [BT_LOG_$BABELTRACE_MINIMAL_LOG_LEVEL], [Minimal log level])
 
+# BABELTRACE_DEV_MODE:
+AC_ARG_VAR([BABELTRACE_DEV_MODE], [Set to 1 to enable the Babeltrace developer mode (enables run-time checks for plugin developers)])
+AS_IF([test "x$BABELTRACE_DEV_MODE" = x1], [
+	AS_IF([test "x$BABELTRACE_MINIMAL_LOG_LEVEL" = "xNONE"], [
+		AC_MSG_ERROR([Babeltrace developer mode (\$BABELTRACE_DEV_MODE) needs \$BABELTRACE_MINIMAL_LOG_LEVEL to be at least FATAL.])
+	])
+	AC_DEFINE([BT_DEV_MODE], 1, [Babeltrace developer mode])
+], [BABELTRACE_DEV_MODE=0])
+
+# BABELTRACE_DEBUG_MODE:
+AC_ARG_VAR([BABELTRACE_DEBUG_MODE], [Set to 1 to enable the Babeltrace debug mode (enables internal assertions for Babeltrace maintainers)])
+AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
+	AC_DEFINE([BT_DEBUG_MODE], 1, [Babeltrace debug mode])
+], [BABELTRACE_DEBUG_MODE=0])
+
 
 ##                              ##
 ## Optionnal features selection ##
@@ -891,6 +906,11 @@ PPRINT_PROP_BOOL([Python bindings documentation], $value)
 AS_ECHO
 PPRINT_SUBTITLE([Logging])
 PPRINT_PROP_STRING([Minimal log level], $BABELTRACE_MINIMAL_LOG_LEVEL)
+
+AS_ECHO
+PPRINT_SUBTITLE([Special build modes])
+PPRINT_PROP_BOOL([Debug mode], $BABELTRACE_DEBUG_MODE)
+PPRINT_PROP_BOOL([Developer mode], $BABELTRACE_DEV_MODE)
 
 report_bindir="`eval eval echo $bindir`"
 report_libdir="`eval eval echo $libdir`"
