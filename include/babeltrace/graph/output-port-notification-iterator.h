@@ -34,8 +34,7 @@ struct bt_port;
 struct bt_notification_iterator;
 
 extern struct bt_notification_iterator *bt_output_port_notification_iterator_create(
-		struct bt_port *port, const char *colander_component_name,
-		const enum bt_notification_type *notification_types);
+		struct bt_port *port, const char *colander_component_name);
 
 #ifdef __cplusplus
 }

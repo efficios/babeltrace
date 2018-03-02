@@ -191,7 +191,7 @@ enum bt_component_status handle_notification(
 		break;
 	}
 	default:
-		puts("Unhandled notification type");
+		break;
 	}
 end:
 	return ret;
@@ -206,14 +206,6 @@ void writer_component_port_connected(
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
 	enum bt_connection_status conn_status;
-	static const enum bt_notification_type notif_types[] = {
-		BT_NOTIFICATION_TYPE_EVENT,
-		BT_NOTIFICATION_TYPE_PACKET_BEGIN,
-		BT_NOTIFICATION_TYPE_PACKET_END,
-		BT_NOTIFICATION_TYPE_STREAM_BEGIN,
-		BT_NOTIFICATION_TYPE_STREAM_END,
-		BT_NOTIFICATION_TYPE_SENTINEL,
-	};
 
 	writer = bt_private_component_get_user_data(component);
 	BT_ASSERT(writer);
@@ -221,7 +213,7 @@ void writer_component_port_connected(
 	connection = bt_private_port_get_private_connection(self_port);
 	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
-		connection, notif_types, &writer->input_iterator);
+		connection, &writer->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		writer->error = true;
 	}

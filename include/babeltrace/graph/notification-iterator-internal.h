@@ -95,42 +95,26 @@ struct bt_notification_iterator_private_connection {
 	struct bt_component *upstream_component; /* Weak */
 	struct bt_port *upstream_port; /* Weak */
 	struct bt_connection *connection; /* Weak */
-	GQueue *queue; /* struct bt_notification * (owned by this) */
 
 	/*
 	 * This hash table keeps the state of a stream as viewed by
-	 * this notification iterator. This is used to:
+	 * this notification iterator. This is used to, in developer
+	 * mode:
 	 *
 	 * * Automatically enqueue "stream begin", "packet begin",
 	 *   "packet end", and "stream end" notifications depending
 	 *   on the stream's state and on the next notification returned
 	 *   by the upstream component.
 	 *
-	 * * Make sure that, once the notification iterator has seen
-	 *   a "stream end" notification for a given stream, that no
-	 *   other notifications which refer to this stream can be
-	 *   delivered by this iterator.
+	 * * Make sure that, once the notification iterator has seen a
+	 *   "stream end" notification for a given stream, no other
+	 *   notifications which refer to this stream can be delivered
+	 *   by this iterator.
 	 *
 	 * The key (struct bt_stream *) is not owned by this. The
 	 * value is an allocated state structure.
 	 */
 	GHashTable *stream_states;
-
-	/*
-	 * This is an array of actions which can be rolled back. It's
-	 * similar to the memento pattern, but it's not exactly that. It
-	 * is allocated once and reset for each notification to process.
-	 * More details near the implementation.
-	 */
-	GArray *actions;
-
-	/*
-	 * This is a mask of notifications to which the user of this
-	 * iterator is subscribed
-	 * (see enum bt_private_connection_notification_iterator_notif_type
-	 * above).
-	 */
-	uint32_t subscription_mask;
 
 	enum bt_private_connection_notification_iterator_state state;
 	void *user_data;
@@ -181,7 +165,6 @@ BT_HIDDEN
 enum bt_connection_status bt_private_connection_notification_iterator_create(
 		struct bt_component *upstream_comp,
 		struct bt_port *upstream_port,
-		const enum bt_notification_type *notification_types,
 		struct bt_connection *connection,
 		struct bt_notification_iterator_private_connection **iterator);
 

@@ -37,9 +37,7 @@ struct bt_notification;
  * Notification types. Unhandled notification types should be ignored.
  */
 enum bt_notification_type {
-	BT_NOTIFICATION_TYPE_SENTINEL =			-1000,
 	BT_NOTIFICATION_TYPE_UNKNOWN =			-1,
-	BT_NOTIFICATION_TYPE_ALL =			-2,
 	BT_NOTIFICATION_TYPE_EVENT =			0,
 	BT_NOTIFICATION_TYPE_INACTIVITY =		1,
 	BT_NOTIFICATION_TYPE_STREAM_BEGIN =		2,

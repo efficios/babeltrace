@@ -154,7 +154,7 @@ int bt_notification_inactivity_set_clock_value(
 
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
-	BT_ASSERT_PRE_HOT(notification, "notification",
+	BT_ASSERT_PRE_HOT(notification, "Notification",
 		": +%!+n", notification);
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
 		BT_NOTIFICATION_TYPE_INACTIVITY);

@@ -52,7 +52,6 @@ enum bt_component_status colander_init(
 	struct colander_data *colander_data = NULL;
 	struct bt_component_class_sink_colander_data *user_provided_data =
 		init_method_data;
-	const enum bt_notification_type *notif_type;
 
 	if (!init_method_data) {
 		BT_LOGW_STR("Component initialization method data is NULL.");
@@ -68,30 +67,6 @@ enum bt_component_status colander_init(
 	}
 
 	colander_data->user_notif = user_provided_data->notification;
-
-	if (user_provided_data->notification_types) {
-		notif_type = user_provided_data->notification_types;
-		unsigned long count;
-
-		while (*notif_type != BT_NOTIFICATION_TYPE_SENTINEL) {
-			notif_type++;
-		}
-
-		count = notif_type - user_provided_data->notification_types + 1;
-
-		colander_data->notif_types =
-			g_new0(enum bt_notification_type, count);
-		if (!colander_data->notif_types) {
-			BT_LOGE_STR("Failed to allocate an array of notification types.");
-			status = BT_COMPONENT_STATUS_NOMEM;
-			goto end;
-		}
-
-		memcpy(colander_data->notif_types,
-			user_provided_data->notification_types,
-			count * sizeof(enum bt_notification_type));
-	}
-
 	status = bt_private_component_sink_add_input_private_port(
 		priv_comp, "in", NULL, NULL);
 	if (status != BT_COMPONENT_STATUS_OK) {
@@ -138,8 +113,7 @@ void colander_port_connected(struct bt_private_component *priv_comp,
 	BT_ASSERT(colander_data);
 	BT_PUT(colander_data->notif_iter);
 	conn_status = bt_private_connection_create_notification_iterator(
-		priv_conn, colander_data->notif_types,
-		&colander_data->notif_iter);
+		priv_conn, &colander_data->notif_iter);
 	if (conn_status) {
 		BT_LOGE("Cannot create notification iterator from connection: "
 			"comp-addr=%p, conn-addr=%p", priv_comp, priv_conn);

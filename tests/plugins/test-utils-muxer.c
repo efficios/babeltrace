@@ -87,6 +87,8 @@ enum {
 	SEQ_AGAIN = -2,
 	SEQ_PACKET_BEGIN = -3,
 	SEQ_PACKET_END = -4,
+	SEQ_STREAM_BEGIN = -5,
+	SEQ_STREAM_END = -6,
 };
 
 struct src_iter_user_data {
@@ -101,52 +103,62 @@ struct sink_user_data {
 };
 
 static int64_t seq1[] = {
-	24, 53, 97, 105, 119, 210, 222, 240, 292, 317, 353, 407, 433,
-	473, 487, 504, 572, 615, 708, 766, 850, 852, 931, 951, 956, 996,
-	SEQ_END,
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 24, 53, 97, 105, 119, 210,
+	222, 240, 292, 317, 353, 407, 433, 473, 487, 504, 572, 615, 708,
+	766, 850, 852, 931, 951, 956, 996, SEQ_PACKET_END,
+	SEQ_STREAM_END, SEQ_END,
 };
 
 static int64_t seq2[] = {
-	51, 59, 68, 77, 91, 121, 139, 170, 179, 266, 352, 454, 478, 631,
-	644, 668, 714, 744, 750, 778, 790, 836, SEQ_END,
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 51, 59, 68, 77, 91, 121,
+	139, 170, 179, 266, 352, 454, 478, 631, 644, 668, 714, 744, 750,
+	778, 790, 836, SEQ_PACKET_END, SEQ_STREAM_END, SEQ_END,
 };
 
 static int64_t seq3[] = {
-	8, 71, 209, 254, 298, 320, 350, 393, 419, 624, 651, 678, 717,
-	731, 733, 788, 819, 820, 857, 892, 903, 944, 998, SEQ_END,
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 8, 71, 209, 254, 298, 320,
+	350, 393, 419, 624, 651, 678, 717, 731, 733, 788, 819, 820, 857,
+	892, 903, 944, 998, SEQ_PACKET_END, SEQ_STREAM_END, SEQ_END,
 };
 
 static int64_t seq4[] = {
-	41, 56, 120, 138, 154, 228, 471, 479, 481, 525, 591, 605, 612,
-	618, 632, 670, 696, 825, 863, 867, 871, 884, 953, 985, 999,
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 41, 56, 120, 138, 154, 228,
+	471, 479, 481, 525, 591, 605, 612, 618, 632, 670, 696, 825, 863,
+	867, 871, 884, 953, 985, 999, SEQ_PACKET_END, SEQ_STREAM_END,
 	SEQ_END,
 };
 
 static int64_t seq1_with_again[] = {
-	24, 53, 97, 105, 119, 210, SEQ_AGAIN, 222, 240, 292, 317, 353,
-	407, 433, 473, 487, 504, 572, 615, 708, 766, 850, 852, 931, 951,
-	956, 996, SEQ_END,
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 24, 53, 97, 105, 119, 210,
+	SEQ_AGAIN, 222, 240, 292, 317, 353, 407, 433, 473, 487, 504,
+	572, 615, 708, 766, 850, 852, 931, 951, 956, 996,
+	SEQ_PACKET_END, SEQ_STREAM_END, SEQ_END,
 };
 
 static int64_t seq2_with_again[] = {
-	51, 59, 68, 77, 91, 121, 139, 170, 179, 266, 352, 454, 478, 631,
-	644, 668, 714, 744, 750, 778, 790, 836, SEQ_AGAIN, SEQ_END,
-};
-
-static int64_t seq3_with_again[] = {
-	8, 71, 209, 254, 298, 320, 350, 393, 419, 624, 651, SEQ_AGAIN,
-	678, 717, 731, 733, 788, 819, 820, 857, 892, 903, 944, 998,
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 51, 59, 68, 77, 91, 121,
+	139, 170, 179, 266, 352, 454, 478, 631, 644, 668, 714, 744, 750,
+	778, 790, 836, SEQ_AGAIN, SEQ_PACKET_END, SEQ_STREAM_END,
 	SEQ_END,
 };
 
+static int64_t seq3_with_again[] = {
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 8, 71, 209, 254, 298, 320,
+	350, 393, 419, 624, 651, SEQ_AGAIN, 678, 717, 731, 733, 788,
+	819, 820, 857, 892, 903, 944, 998, SEQ_PACKET_END,
+	SEQ_STREAM_END, SEQ_END,
+};
+
 static int64_t seq4_with_again[] = {
-	SEQ_AGAIN, 41, 56, 120, 138, 154, 228, 471, 479, 481, 525, 591,
-	605, 612, 618, 632, 670, 696, 825, 863, 867, 871, 884, 953, 985,
-	999, SEQ_END,
+	SEQ_AGAIN, SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 41, 56, 120, 138,
+	154, 228, 471, 479, 481, 525, 591, 605, 612, 618, 632, 670, 696,
+	825, 863, 867, 871, 884, 953, 985, 999, SEQ_PACKET_END,
+	SEQ_STREAM_END, SEQ_END,
 };
 
 static int64_t seq5[] = {
-	1, 4, 189, 1001, SEQ_END,
+	SEQ_STREAM_BEGIN, SEQ_PACKET_BEGIN, 1, 4, 189, 1001,
+	SEQ_PACKET_END, SEQ_STREAM_END, SEQ_END,
 };
 
 static
@@ -513,6 +525,7 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 	};
 	int64_t cur_ts_ns;
+	struct bt_stream *stream;
 
 	assert(user_data->seq);
 	cur_ts_ns = user_data->seq[user_data->at];
@@ -535,6 +548,20 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		next_return.notification =
 			bt_notification_packet_end_create(user_data->packet);
 		assert(next_return.notification);
+		break;
+	case SEQ_STREAM_BEGIN:
+		stream = bt_packet_get_stream(user_data->packet);
+		next_return.notification =
+			bt_notification_stream_begin_create(stream);
+		assert(next_return.notification);
+		bt_put(stream);
+		break;
+	case SEQ_STREAM_END:
+		stream = bt_packet_get_stream(user_data->packet);
+		next_return.notification =
+			bt_notification_stream_end_create(stream);
+		assert(next_return.notification);
+		bt_put(stream);
 		break;
 	default:
 	{
@@ -569,6 +596,7 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 		bt_private_connection_private_notification_iterator_get_user_data(priv_iterator);
 	struct bt_private_component *private_component =
 		bt_private_connection_private_notification_iterator_get_private_component(priv_iterator);
+	struct bt_stream *stream;
 	int ret;
 
 	assert(user_data);
@@ -578,11 +606,18 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 	case TEST_NO_TS:
 		if (user_data->iter_index == 0) {
 			if (user_data->at == 0) {
+				stream = bt_packet_get_stream(user_data->packet);
+				next_return.notification =
+					bt_notification_stream_begin_create(
+						stream);
+				bt_put(stream);
+				assert(next_return.notification);
+			} else if (user_data->at == 1) {
 				next_return.notification =
 					bt_notification_packet_begin_create(
 						user_data->packet);
 				assert(next_return.notification);
-			} else if (user_data->at < 6) {
+			} else if (user_data->at < 7) {
 				struct bt_event *event = src_create_event(
 					user_data->packet, -1);
 
@@ -592,6 +627,18 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 						src_empty_cc_prio_map);
 				assert(next_return.notification);
 				bt_put(event);
+			} else if (user_data->at == 7) {
+				next_return.notification =
+					bt_notification_packet_end_create(
+						user_data->packet);
+				assert(next_return.notification);
+			} else if (user_data->at == 8) {
+				stream = bt_packet_get_stream(user_data->packet);
+				next_return.notification =
+					bt_notification_stream_end_create(
+						stream);
+				bt_put(stream);
+				assert(next_return.notification);
 			} else {
 				next_return.status =
 					BT_NOTIFICATION_ITERATOR_STATUS_END;
@@ -846,7 +893,7 @@ void sink_port_connected(struct bt_private_component *private_component,
 	assert(user_data);
 	assert(priv_conn);
 	conn_status = bt_private_connection_create_notification_iterator(
-		priv_conn, NULL, &user_data->notif_iter);
+		priv_conn, &user_data->notif_iter);
 	assert(conn_status == 0);
 	bt_put(priv_conn);
 }

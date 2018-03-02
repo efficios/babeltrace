@@ -423,7 +423,7 @@ struct bt_notification_iterator *create_notif_iter_on_input_port(
 	//       returned notification by the muxer notification
 	//       iterator which creates it.
 	conn_status = bt_private_connection_create_notification_iterator(
-		priv_conn, NULL, &notif_iter);
+		priv_conn, &notif_iter);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		BT_LOGE("Cannot create upstream notification iterator on input port's connection: "
 			"port-addr=%p, port-name=\"%s\", conn-addr=%p, "

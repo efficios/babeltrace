@@ -274,7 +274,6 @@ struct bt_port *bt_connection_get_downstream_port(
 enum bt_connection_status
 bt_private_connection_create_notification_iterator(
 		struct bt_private_connection *private_connection,
-		const enum bt_notification_type *notification_types,
 		struct bt_notification_iterator **user_iterator)
 {
 	enum bt_component_class_type upstream_comp_class_type;
@@ -285,10 +284,6 @@ bt_private_connection_create_notification_iterator(
 	struct bt_connection *connection = NULL;
 	bt_component_class_notification_iterator_init_method init_method = NULL;
 	enum bt_connection_status status;
-	static const enum bt_notification_type all_notif_types[] = {
-		BT_NOTIFICATION_TYPE_ALL,
-		BT_NOTIFICATION_TYPE_SENTINEL,
-	};
 
 	if (!private_connection) {
 		BT_LOGW_STR("Invalid parameter: private connection is NULL.");
@@ -326,11 +321,6 @@ bt_private_connection_create_notification_iterator(
 		goto end;
 	}
 
-	if (!notification_types) {
-		BT_LOGD_STR("No notification types: subscribing to all notifications.");
-		notification_types = all_notif_types;
-	}
-
 	upstream_port = connection->upstream_port;
 	BT_ASSERT(upstream_port);
 	upstream_component = bt_port_get_component(upstream_port);
@@ -348,7 +338,7 @@ bt_private_connection_create_notification_iterator(
 	BT_ASSERT(upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
 			upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_FILTER);
 	status = bt_private_connection_notification_iterator_create(upstream_component,
-		upstream_port, notification_types, connection, &iterator);
+		upstream_port, connection, &iterator);
 	if (status != BT_CONNECTION_STATUS_OK) {
 		BT_LOGW("Cannot create notification iterator from connection.");
 		goto end;
