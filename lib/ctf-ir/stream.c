@@ -960,16 +960,6 @@ void set_stream_fd(struct bt_stream *stream, int fd)
 }
 
 static
-void component_destroy_listener(struct bt_component *component, void *data)
-{
-	struct bt_stream *stream = data;
-
-	BT_LOGD("Component is being destroyed, stream is notified: "
-		"comp-addr=%p, stream-addr=%p", component, stream);
-	g_hash_table_remove(stream->comp_cur_port, component);
-}
-
-static
 struct bt_stream *bt_stream_create_with_id_no_check(
 		struct bt_stream_class *stream_class,
 		const char *name, uint64_t id)
@@ -1148,12 +1138,6 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 	} else {
 		/* Non-writer stream indicated by a negative FD */
 		set_stream_fd(stream, -1);
-		stream->comp_cur_port = g_hash_table_new(g_direct_hash,
-			g_direct_equal);
-		if (!stream->comp_cur_port) {
-			BT_LOGE_STR("Failed to allocate a GHashTable.");
-			goto error;
-		}
 	}
 
 	/* Add this stream to the trace's streams */
@@ -2009,28 +1993,6 @@ void bt_stream_destroy(struct bt_object *obj)
 		g_string_free(stream->name, TRUE);
 	}
 
-	if (stream->comp_cur_port) {
-		GHashTableIter ht_iter;
-		gpointer comp_gptr, port_gptr;
-
-		/*
-		 * Since we're destroying the stream, remove the destroy
-		 * listeners that it registered for each component in
-		 * its component-port mapping hash table. Otherwise they
-		 * would be called and the stream would be accessed once
-		 * it's freed or another stream would be accessed.
-		 */
-		g_hash_table_iter_init(&ht_iter, stream->comp_cur_port);
-
-		while (g_hash_table_iter_next(&ht_iter, &comp_gptr, &port_gptr)) {
-			BT_ASSERT(comp_gptr);
-			bt_component_remove_destroy_listener((void *) comp_gptr,
-				component_destroy_listener, stream);
-		}
-
-		g_hash_table_destroy(stream->comp_cur_port);
-	}
-
 	if (stream->destroy_listeners) {
 		g_array_free(stream->destroy_listeners, TRUE);
 	}
@@ -2139,45 +2101,6 @@ int bt_stream_is_writer(struct bt_stream *stream)
 
 end:
 	return ret;
-}
-
-BT_HIDDEN
-void bt_stream_map_component_to_port(struct bt_stream *stream,
-		struct bt_component *comp,
-		struct bt_port *port)
-{
-	BT_ASSERT(stream);
-	BT_ASSERT(comp);
-	BT_ASSERT(port);
-	BT_ASSERT(stream->comp_cur_port);
-
-	/*
-	 * Do not take a reference to the component here because we
-	 * don't want the component to exist as long as this stream
-	 * exists. Instead, keep a weak reference, but add a destroy
-	 * listener so that we remove this hash table entry when we know
-	 * the component is destroyed.
-	 */
-	BT_LOGV("Adding component's destroy listener for stream: "
-		"stream-addr=%p, stream-name=\"%s\", comp-addr=%p, "
-		"comp-name=\"%s\", port-addr=%p, port-name=\"%s\"",
-		stream, bt_stream_get_name(stream),
-		comp, bt_component_get_name(comp), port,
-		bt_port_get_name(port));
-	bt_component_add_destroy_listener(comp, component_destroy_listener,
-		stream);
-	g_hash_table_insert(stream->comp_cur_port, comp, port);
-	BT_LOGV_STR("Mapped component to port for stream.");
-}
-
-BT_HIDDEN
-struct bt_port *bt_stream_port_for_component(struct bt_stream *stream,
-		struct bt_component *comp)
-{
-	BT_ASSERT(stream);
-	BT_ASSERT(comp);
-	BT_ASSERT(stream->comp_cur_port);
-	return g_hash_table_lookup(stream->comp_cur_port, comp);
 }
 
 BT_HIDDEN

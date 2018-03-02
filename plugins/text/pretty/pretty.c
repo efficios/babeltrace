@@ -140,17 +140,12 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 		fprintf(stderr, "Inactivity notification\n");
 		break;
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-	case BT_NOTIFICATION_TYPE_PACKET_END:
-	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
-	case BT_NOTIFICATION_TYPE_STREAM_END:
-		break;
 	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
 	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
 		ret = pretty_print_discarded_elements(pretty, notification);
 		break;
 	default:
-		fprintf(stderr, "Unhandled notification type\n");
+		break;
 	}
 
 	return ret;
@@ -165,12 +160,6 @@ void pretty_port_connected(
 	enum bt_connection_status conn_status;
 	struct bt_private_connection *connection;
 	struct pretty_component *pretty;
-	static const enum bt_notification_type notif_types[] = {
-		BT_NOTIFICATION_TYPE_EVENT,
-		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS,
-		BT_NOTIFICATION_TYPE_DISCARDED_EVENTS,
-		BT_NOTIFICATION_TYPE_SENTINEL,
-	};
 
 	pretty = bt_private_component_get_user_data(component);
 	BT_ASSERT(pretty);
@@ -178,7 +167,7 @@ void pretty_port_connected(
 	connection = bt_private_port_get_private_connection(self_port);
 	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
-		connection, notif_types, &pretty->input_iterator);
+		connection, &pretty->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		pretty->error = true;
 	}

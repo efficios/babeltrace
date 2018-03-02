@@ -59,21 +59,10 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	31
+#define NR_TESTS	6
 
 enum test {
 	TEST_NO_AUTO_NOTIFS,
-	TEST_AUTO_STREAM_BEGIN_FROM_PACKET_BEGIN,
-	TEST_AUTO_STREAM_BEGIN_FROM_STREAM_END,
-	TEST_AUTO_STREAM_END_FROM_END,
-	TEST_AUTO_PACKET_BEGIN_FROM_PACKET_END,
-	TEST_AUTO_PACKET_BEGIN_FROM_EVENT,
-	TEST_AUTO_PACKET_END_FROM_PACKET_BEGIN,
-	TEST_AUTO_PACKET_END_PACKET_BEGIN_FROM_EVENT,
-	TEST_AUTO_PACKET_END_FROM_STREAM_END,
-	TEST_AUTO_PACKET_END_STREAM_END_FROM_END,
-	TEST_MULTIPLE_AUTO_STREAM_END_FROM_END,
-	TEST_MULTIPLE_AUTO_PACKET_END_STREAM_END_FROM_END,
 	TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR,
 };
 
@@ -159,111 +148,6 @@ static int64_t seq_no_auto_notifs[] = {
 		SEQ_STREAM2_END,
 	SEQ_STREAM1_PACKET2_END,
 	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "stream begin" from "packet begin" */
-static int64_t seq_auto_stream_begin_from_packet_begin[] = {
-	/* Automatic "stream begin" here */
-	SEQ_STREAM1_PACKET1_BEGIN,
-	SEQ_STREAM1_PACKET1_END,
-	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "stream begin" from "stream end" */
-static int64_t seq_auto_stream_begin_from_stream_end[] = {
-	/* Automatic "stream begin" here */
-	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "stream end" from END */
-static int64_t seq_auto_stream_end_from_end[] = {
-	SEQ_STREAM1_BEGIN,
-	/* Automatic "packet end" here */
-	SEQ_END,
-};
-
-/* Automatic "packet begin" from "packet end" */
-static int64_t seq_auto_packet_begin_from_packet_end[] = {
-	SEQ_STREAM1_BEGIN,
-	/* Automatic "packet begin" here */
-	SEQ_STREAM1_PACKET1_END,
-	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "packet begin" from event */
-static int64_t seq_auto_packet_begin_from_event[] = {
-	SEQ_STREAM1_BEGIN,
-	/* Automatic "packet begin" here */
-	SEQ_EVENT_STREAM1_PACKET1,
-	SEQ_STREAM1_PACKET1_END,
-	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "packet end" from "packet begin" */
-static int64_t seq_auto_packet_end_from_packet_begin[] = {
-	SEQ_STREAM1_BEGIN,
-	SEQ_STREAM1_PACKET1_BEGIN,
-	/* Automatic "packet end" here */
-	SEQ_STREAM1_PACKET2_BEGIN,
-	SEQ_STREAM1_PACKET2_END,
-	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "packet end" and "packet begin" from event */
-static int64_t seq_auto_packet_end_packet_begin_from_event[] = {
-	SEQ_STREAM1_BEGIN,
-	SEQ_STREAM1_PACKET1_BEGIN,
-	/* Automatic "packet end" here */
-	/* Automatic "packet begin" here */
-	SEQ_EVENT_STREAM1_PACKET2,
-	SEQ_STREAM1_PACKET2_END,
-	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "packet end" from "stream end" */
-static int64_t seq_auto_packet_end_from_stream_end[] = {
-	SEQ_STREAM1_BEGIN,
-	SEQ_STREAM1_PACKET1_BEGIN,
-	/* Automatic "packet end" here */
-	SEQ_STREAM1_END,
-	SEQ_END,
-};
-
-/* Automatic "packet end" and "stream end" from END */
-static int64_t seq_auto_packet_end_stream_end_from_end[] = {
-	SEQ_STREAM1_BEGIN,
-	SEQ_STREAM1_PACKET1_BEGIN,
-	/* Automatic "packet end" here */
-	/* Automatic "stream end" here */
-	SEQ_END,
-};
-
-/* Multiple automatic "stream end" from END */
-static int64_t seq_multiple_auto_stream_end_from_end[] = {
-	SEQ_STREAM1_BEGIN,
-	SEQ_STREAM2_BEGIN,
-	/* Automatic "stream end" here */
-	/* Automatic "stream end" here */
-	SEQ_END,
-};
-
-/* Multiple automatic "packet end" and "stream end" from END */
-static int64_t seq_multiple_auto_packet_end_stream_end_from_end[] = {
-	SEQ_STREAM1_BEGIN,
-	SEQ_STREAM2_BEGIN,
-	SEQ_STREAM1_PACKET1_BEGIN,
-	SEQ_STREAM2_PACKET1_BEGIN,
-	/* Automatic "packet end" here */
-	/* Automatic "stream end" here */
-	/* Automatic "packet end" here */
-	/* Automatic "stream end" here */
 	SEQ_END,
 };
 
@@ -509,39 +393,6 @@ enum bt_notification_iterator_status src_iter_init(
 	case TEST_NO_AUTO_NOTIFS:
 	case TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR:
 		user_data->seq = seq_no_auto_notifs;
-		break;
-	case TEST_AUTO_STREAM_BEGIN_FROM_PACKET_BEGIN:
-		user_data->seq = seq_auto_stream_begin_from_packet_begin;
-		break;
-	case TEST_AUTO_STREAM_BEGIN_FROM_STREAM_END:
-		user_data->seq = seq_auto_stream_begin_from_stream_end;
-		break;
-	case TEST_AUTO_STREAM_END_FROM_END:
-		user_data->seq = seq_auto_stream_end_from_end;
-		break;
-	case TEST_AUTO_PACKET_BEGIN_FROM_PACKET_END:
-		user_data->seq = seq_auto_packet_begin_from_packet_end;
-		break;
-	case TEST_AUTO_PACKET_BEGIN_FROM_EVENT:
-		user_data->seq = seq_auto_packet_begin_from_event;
-		break;
-	case TEST_AUTO_PACKET_END_FROM_PACKET_BEGIN:
-		user_data->seq = seq_auto_packet_end_from_packet_begin;
-		break;
-	case TEST_AUTO_PACKET_END_PACKET_BEGIN_FROM_EVENT:
-		user_data->seq = seq_auto_packet_end_packet_begin_from_event;
-		break;
-	case TEST_AUTO_PACKET_END_FROM_STREAM_END:
-		user_data->seq = seq_auto_packet_end_from_stream_end;
-		break;
-	case TEST_AUTO_PACKET_END_STREAM_END_FROM_END:
-		user_data->seq = seq_auto_packet_end_stream_end_from_end;
-		break;
-	case TEST_MULTIPLE_AUTO_STREAM_END_FROM_END:
-		user_data->seq = seq_multiple_auto_stream_end_from_end;
-		break;
-	case TEST_MULTIPLE_AUTO_PACKET_END_STREAM_END_FROM_END:
-		user_data->seq = seq_multiple_auto_packet_end_stream_end_from_end;
 		break;
 	default:
 		abort();
@@ -853,7 +704,7 @@ void sink_port_connected(struct bt_private_component *private_component,
 	assert(user_data);
 	assert(priv_conn);
 	conn_status = bt_private_connection_create_notification_iterator(
-		priv_conn, NULL, &user_data->notif_iter);
+		priv_conn, &user_data->notif_iter);
 	assert(conn_status == 0);
 	bt_put(priv_conn);
 }
@@ -1015,327 +866,6 @@ void test_no_auto_notifs(void)
 }
 
 static
-void test_auto_stream_begin_from_packet_begin(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_STREAM_BEGIN_FROM_PACKET_BEGIN,
-		"automatic \"stream begin\" notif. caused by \"packet begin\" notif.",
-		expected_test_events);
-}
-
-static
-void test_auto_stream_begin_from_stream_end(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_STREAM_BEGIN_FROM_STREAM_END,
-		"automatic \"stream begin\" notif. caused by \"stream end\" notif.",
-		expected_test_events);
-}
-
-static
-void test_auto_stream_end_from_end(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_STREAM_END_FROM_END,
-		"automatic \"stream end\" notif. caused by BT_NOTIFICATION_ITERATOR_STATUS_END",
-		expected_test_events);
-}
-
-static
-void test_auto_packet_begin_from_packet_end(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_PACKET_BEGIN_FROM_PACKET_END,
-		"automatic \"packet begin\" notif. caused by \"packet end\" notif.",
-		expected_test_events);
-}
-
-static
-void test_auto_packet_begin_from_event(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_PACKET_BEGIN_FROM_EVENT,
-		"automatic \"packet begin\" notif. caused by event notif.",
-		expected_test_events);
-}
-
-static
-void test_auto_packet_end_from_packet_begin(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_PACKET_END_FROM_PACKET_BEGIN,
-		"automatic \"packet end\" notif. caused by \"packet begin\" notif.",
-		expected_test_events);
-}
-
-static
-void test_auto_packet_end_packet_begin_from_event(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_PACKET_END_PACKET_BEGIN_FROM_EVENT,
-		"automatic \"packet end\" and \"packet begin\" notifs. caused by event notif.",
-		expected_test_events);
-}
-
-static
-void test_auto_packet_end_from_stream_end(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_PACKET_END_FROM_STREAM_END,
-		"automatic \"packet end\" notif. caused by \"stream end\" notif.",
-		expected_test_events);
-}
-
-static
-void test_auto_packet_end_stream_end_from_end(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
-	do_std_test(TEST_AUTO_PACKET_END_STREAM_END_FROM_END,
-		"automatic \"packet end\" and \"stream end\" notifs. caused by BT_NOTIFICATION_ITERATOR_STATUS_END",
-		expected_test_events);
-}
-
-static
-void test_multiple_auto_stream_end_from_end(void)
-{
-	bool expected = true;
-	struct test_event expected_event;
-	struct test_event expected_event2;
-	struct test_event *event;
-	struct test_event *event2;
-
-	do_std_test(TEST_MULTIPLE_AUTO_STREAM_END_FROM_END,
-		"multiple automatic \"stream end\" notifs. caused by BT_NOTIFICATION_ITERATOR_STATUS_END",
-		NULL);
-
-	if (test_events->len != 5) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream1;
-	expected_event.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 0);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream2;
-	expected_event.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 1);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event.stream = src_stream1;
-	expected_event.packet = NULL;
-	expected_event2.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event2.stream = src_stream2;
-	expected_event2.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 2);
-	event2 = &g_array_index(test_events, struct test_event, 3);
-	if (!(compare_single_test_events(event, &expected_event) &&
-			compare_single_test_events(event2, &expected_event2)) &&
-			!(compare_single_test_events(event2, &expected_event) &&
-			compare_single_test_events(event, &expected_event2))) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_END;
-	expected_event.stream = NULL;
-	expected_event.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 4);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-end:
-	ok(expected,
-		"the produced sequence of test events is the expected one");
-}
-
-static
-void test_multiple_auto_packet_end_stream_end_from_end(void)
-{
-	bool expected = true;
-	struct test_event expected_event;
-	struct test_event expected_event2;
-	struct test_event *event;
-	struct test_event *event2;
-
-	do_std_test(TEST_MULTIPLE_AUTO_PACKET_END_STREAM_END_FROM_END,
-		"multiple automatic \"packet end\" and \"stream end\" notifs. caused by BT_NOTIFICATION_ITERATOR_STATUS_END",
-		NULL);
-
-	if (test_events->len != 9) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream1;
-	expected_event.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 0);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
-	expected_event.stream = src_stream2;
-	expected_event.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 1);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN;
-	expected_event.stream = src_stream1;
-	expected_event.packet = src_stream1_packet1;
-	event = &g_array_index(test_events, struct test_event, 2);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN;
-	expected_event.stream = src_stream2;
-	expected_event.packet = src_stream2_packet1;
-	event = &g_array_index(test_events, struct test_event, 3);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_PACKET_END;
-	expected_event.stream = src_stream1;
-	expected_event.packet = src_stream1_packet1;
-	expected_event2.type = TEST_EV_TYPE_NOTIF_PACKET_END;
-	expected_event2.stream = src_stream2;
-	expected_event2.packet = src_stream2_packet1;
-	event = &g_array_index(test_events, struct test_event, 4);
-	event2 = &g_array_index(test_events, struct test_event, 6);
-	if (!(compare_single_test_events(event, &expected_event) &&
-			compare_single_test_events(event2, &expected_event2)) &&
-			!(compare_single_test_events(event2, &expected_event) &&
-			compare_single_test_events(event, &expected_event2))) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event.stream = src_stream1;
-	expected_event.packet = NULL;
-	expected_event2.type = TEST_EV_TYPE_NOTIF_STREAM_END;
-	expected_event2.stream = src_stream2;
-	expected_event2.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 5);
-	event2 = &g_array_index(test_events, struct test_event, 7);
-	if (!(compare_single_test_events(event, &expected_event) &&
-			compare_single_test_events(event2, &expected_event2)) &&
-			!(compare_single_test_events(event2, &expected_event) &&
-			compare_single_test_events(event, &expected_event2))) {
-		expected = false;
-		goto end;
-	}
-
-	expected_event.type = TEST_EV_TYPE_END;
-	expected_event.stream = NULL;
-	expected_event.packet = NULL;
-	event = &g_array_index(test_events, struct test_event, 8);
-	if (!compare_single_test_events(event, &expected_event)) {
-		expected = false;
-		goto end;
-	}
-
-end:
-	ok(expected,
-		"the produced sequence of test events is the expected one");
-}
-
-static
 void test_output_port_notification_iterator(void)
 {
 	const struct test_event expected_test_events[] = {
@@ -1375,62 +905,7 @@ void test_output_port_notification_iterator(void)
 	/* Create notification iterator on source's output port */
 	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");
 	notif_iter = bt_output_port_notification_iterator_create(upstream_port,
-		NULL, NULL);
-	ok(notif_iter, "bt_output_port_notification_iterator_create() succeeds");
-	bt_put(upstream_port);
-
-	/* Consume the notification iterator */
-	while (iter_status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		iter_status = common_consume(notif_iter);
-	}
-
-	ok(iter_status == BT_NOTIFICATION_ITERATOR_STATUS_END,
-		"output port notification iterator finishes without any error");
-
-	/* Compare the resulting test events */
-	ok(compare_test_events(expected_test_events),
-		"the produced sequence of test events is the expected one");
-
-	bt_put(src_comp);
-	bt_put(graph);
-	bt_put(notif_iter);
-}
-
-static
-void test_output_port_notification_iterator_subscribe_events(void)
-{
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_NOTIF_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-	const enum bt_notification_type notification_types[] = {
-		BT_NOTIFICATION_TYPE_EVENT,
-		BT_NOTIFICATION_TYPE_SENTINEL,
-	};
-	struct bt_component *src_comp;
-	struct bt_notification_iterator *notif_iter;
-	enum bt_notification_iterator_status iter_status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	struct bt_port *upstream_port;
-	struct bt_graph *graph;
-
-	clear_test_events();
-	current_test = TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR;
-	diag("test: output port notification iterator with event subscription");
-	graph = bt_graph_create();
-	assert(graph);
-	create_source_sink(graph, &src_comp, NULL);
-
-	/* Create notification iterator on source's output port */
-	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");
-	notif_iter = bt_output_port_notification_iterator_create(upstream_port,
-		NULL, notification_types);
+		NULL);
 	ok(notif_iter, "bt_output_port_notification_iterator_create() succeeds");
 	bt_put(upstream_port);
 
@@ -1469,7 +944,7 @@ void test_output_port_notification_iterator_cannot_consume(void)
 	/* Create notification iterator on source's output port */
 	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");
 	notif_iter = bt_output_port_notification_iterator_create(upstream_port,
-		NULL, NULL);
+		NULL);
 	assert(notif_iter);
 	bt_put(upstream_port);
 
@@ -1496,19 +971,7 @@ int main(int argc, char **argv)
 	plan_tests(NR_TESTS);
 	init_static_data();
 	test_no_auto_notifs();
-	test_auto_stream_begin_from_packet_begin();
-	test_auto_stream_begin_from_stream_end();
-	test_auto_stream_end_from_end();
-	test_auto_packet_begin_from_packet_end();
-	test_auto_packet_begin_from_event();
-	test_auto_packet_end_from_packet_begin();
-	test_auto_packet_end_packet_begin_from_event();
-	test_auto_packet_end_from_stream_end();
-	test_auto_packet_end_stream_end_from_end();
-	test_multiple_auto_stream_end_from_end();
-	test_multiple_auto_packet_end_stream_end_from_end();
 	test_output_port_notification_iterator();
-	test_output_port_notification_iterator_subscribe_events();
 	test_output_port_notification_iterator_cannot_consume();
 	fini_static_data();
 	return exit_status();

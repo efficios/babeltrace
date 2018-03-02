@@ -41,6 +41,7 @@ struct bt_notification {
 	struct bt_object base;
 	enum bt_notification_type type;
 	get_stream_func get_stream;
+	uint64_t seq_num;
 	bt_bool frozen;
 };
 
@@ -64,12 +65,8 @@ static inline
 const char *bt_notification_type_string(enum bt_notification_type type)
 {
 	switch (type) {
-	case BT_NOTIFICATION_TYPE_SENTINEL:
-		return "BT_NOTIFICATION_TYPE_SENTINEL";
 	case BT_NOTIFICATION_TYPE_UNKNOWN:
 		return "BT_NOTIFICATION_TYPE_UNKNOWN";
-	case BT_NOTIFICATION_TYPE_ALL:
-		return "BT_NOTIFICATION_TYPE_ALL";
 	case BT_NOTIFICATION_TYPE_EVENT:
 		return "BT_NOTIFICATION_TYPE_EVENT";
 	case BT_NOTIFICATION_TYPE_INACTIVITY:

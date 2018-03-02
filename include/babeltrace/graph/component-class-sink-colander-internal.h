@@ -34,7 +34,6 @@ struct bt_notification;
 
 struct bt_component_class_sink_colander_data {
 	struct bt_notification **notification;
-	const enum bt_notification_type *notification_types;
 };
 
 extern struct bt_component_class *bt_component_class_sink_colander_get(void);

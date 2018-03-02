@@ -78,6 +78,7 @@ enum state {
 	STATE_DSCOPE_STREAM_PACKET_CONTEXT_BEGIN,
 	STATE_DSCOPE_STREAM_PACKET_CONTEXT_CONTINUE,
 	STATE_AFTER_STREAM_PACKET_CONTEXT,
+	STATE_EMIT_NOTIF_NEW_STREAM,
 	STATE_EMIT_NOTIF_NEW_PACKET,
 	STATE_DSCOPE_STREAM_EVENT_HEADER_BEGIN,
 	STATE_DSCOPE_STREAM_EVENT_HEADER_CONTINUE,
@@ -90,6 +91,7 @@ enum state {
 	STATE_DSCOPE_EVENT_PAYLOAD_CONTINUE,
 	STATE_EMIT_NOTIF_EVENT,
 	STATE_EMIT_NOTIF_END_OF_PACKET,
+	STATE_DONE,
 	STATE_SKIP_PACKET_PADDING,
 };
 
@@ -214,6 +216,9 @@ struct bt_notif_iter {
 		void *data;
 	} medium;
 
+	/* Stream beginning was emitted */
+	bool stream_begin_emitted;
+
 	/* Current packet size (bits) (-1 if unknown) */
 	int64_t cur_packet_size;
 
@@ -265,6 +270,8 @@ const char *state_string(enum state state)
 		return "STATE_AFTER_STREAM_PACKET_CONTEXT";
 	case STATE_EMIT_NOTIF_NEW_PACKET:
 		return "STATE_EMIT_NOTIF_NEW_PACKET";
+	case STATE_EMIT_NOTIF_NEW_STREAM:
+		return "STATE_EMIT_NOTIF_NEW_STREAM";
 	case STATE_DSCOPE_STREAM_EVENT_HEADER_BEGIN:
 		return "STATE_DSCOPE_STREAM_EVENT_HEADER_BEGIN";
 	case STATE_DSCOPE_STREAM_EVENT_HEADER_CONTINUE:
@@ -287,6 +294,8 @@ const char *state_string(enum state state)
 		return "STATE_EMIT_NOTIF_EVENT";
 	case STATE_EMIT_NOTIF_END_OF_PACKET:
 		return "STATE_EMIT_NOTIF_END_OF_PACKET";
+	case STATE_DONE:
+		return "STATE_DONE";
 	case STATE_SKIP_PACKET_PADDING:
 		return "STATE_SKIP_PACKET_PADDING";
 	default:
@@ -1170,7 +1179,11 @@ enum bt_notif_iter_status after_packet_context_state(
 
 	status = set_current_packet_content_sizes(notit);
 	if (status == BT_NOTIF_ITER_STATUS_OK) {
-		notit->state = STATE_EMIT_NOTIF_NEW_PACKET;
+		if (notit->stream_begin_emitted) {
+			notit->state = STATE_EMIT_NOTIF_NEW_PACKET;
+		} else {
+			notit->state = STATE_EMIT_NOTIF_NEW_STREAM;
+		}
 	}
 
 	return status;
@@ -1647,6 +1660,9 @@ enum bt_notif_iter_status handle_state(struct bt_notif_iter *notit)
 	case STATE_AFTER_STREAM_PACKET_CONTEXT:
 		status = after_packet_context_state(notit);
 		break;
+	case STATE_EMIT_NOTIF_NEW_STREAM:
+		notit->state = STATE_EMIT_NOTIF_NEW_PACKET;
+		break;
 	case STATE_EMIT_NOTIF_NEW_PACKET:
 		notit->state = STATE_DSCOPE_STREAM_EVENT_HEADER_BEGIN;
 		break;
@@ -1702,7 +1718,7 @@ enum bt_notif_iter_status handle_state(struct bt_notif_iter *notit)
 /**
  * Resets the internal state of a CTF notification iterator.
  */
-static
+BT_HIDDEN
 void bt_notif_iter_reset(struct bt_notif_iter *notit)
 {
 	BT_ASSERT(notit);
@@ -1722,6 +1738,7 @@ void bt_notif_iter_reset(struct bt_notif_iter *notit)
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
 	notit->cur_packet_offset = -1;
+	notit->stream_begin_emitted = false;
 }
 
 static
@@ -1795,9 +1812,14 @@ struct bt_field *get_next_field(struct bt_notif_iter *notit)
 
 	switch (bt_field_type_get_type_id(base_type)) {
 	case BT_FIELD_TYPE_ID_STRUCT:
+	{
 		next_field = bt_field_structure_get_field_by_index(
 			base_field, index);
+		const char *name;
+		bt_field_type_structure_get_field_by_index(base_type,
+			&name, NULL, index);
 		break;
+	}
 	case BT_FIELD_TYPE_ID_ARRAY:
 		next_field = bt_field_array_get_field(base_field, index);
 		break;
@@ -2774,13 +2796,6 @@ void create_packet(struct bt_notif_iter *notit)
 
 	BT_LOGV("Creating packet for packet notification: "
 		"notit-addr=%p", notit);
-
-	/* Ask the user for the stream */
-	ret = set_stream(notit);
-	if (ret) {
-		goto error;
-	}
-
 	BT_LOGV("Creating packet from stream: "
 		"notit-addr=%p, stream-addr=%p, "
 		"stream-class-addr=%p, "
@@ -2791,6 +2806,7 @@ void create_packet(struct bt_notif_iter *notit)
 		bt_stream_class_get_id(notit->meta.stream_class));
 
 	/* Create packet */
+	BT_ASSERT(notit->stream);
 	packet = bt_packet_create(notit->stream);
 	if (!packet) {
 		BT_LOGE("Cannot create packet from stream: "
@@ -2850,6 +2866,54 @@ error:
 
 end:
 	BT_MOVE(notit->packet, packet);
+}
+
+static
+void notify_new_stream(struct bt_notif_iter *notit,
+		struct bt_notification **notification)
+{
+	struct bt_notification *ret = NULL;
+	int iret;
+
+	/* Ask the user for the stream */
+	iret = set_stream(notit);
+	if (iret) {
+		goto end;
+	}
+
+	BT_ASSERT(notit->stream);
+	ret = bt_notification_stream_begin_create(notit->stream);
+	if (!ret) {
+		BT_LOGE("Cannot create stream beginning notification: "
+			"notit-addr=%p, stream-addr=%p",
+			notit, notit->stream);
+		return;
+	}
+
+end:
+	*notification = ret;
+}
+
+static
+void notify_end_of_stream(struct bt_notif_iter *notit,
+		struct bt_notification **notification)
+{
+	struct bt_notification *ret;
+
+	if (!notit->stream) {
+		BT_LOGE("Cannot create stream for stream notification: "
+			"notit-addr=%p", notit);
+		return;
+	}
+
+	ret = bt_notification_stream_end_create(notit->stream);
+	if (!ret) {
+		BT_LOGE("Cannot create stream beginning notification: "
+			"notit-addr=%p, stream-addr=%p",
+			notit, notit->stream);
+		return;
+	}
+	*notification = ret;
 }
 
 static
@@ -3118,6 +3182,11 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 	BT_ASSERT(notit);
 	BT_ASSERT(notification);
 
+	if (notit->state == STATE_DONE) {
+		status = BT_NOTIF_ITER_STATUS_EOF;
+		goto end;
+	}
+
 	BT_LOGV("Getting next notification: notit-addr=%p, cc-prio-map-addr=%p",
 		notit, cc_prio_map);
 
@@ -3129,7 +3198,25 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		}
 		if (status != BT_NOTIF_ITER_STATUS_OK) {
 			if (status == BT_NOTIF_ITER_STATUS_EOF) {
+				enum state next_state = notit->state;
+
 				BT_LOGV_STR("Medium returned BT_NOTIF_ITER_STATUS_EOF.");
+
+				if (notit->packet) {
+					notify_end_of_packet(notit, notification);
+				} else {
+					notify_end_of_stream(notit, notification);
+					next_state = STATE_DONE;
+				}
+
+				if (!*notification) {
+					status = BT_NOTIF_ITER_STATUS_ERROR;
+					goto end;
+				}
+
+				status = BT_NOTIF_ITER_STATUS_OK;
+				notit->state = next_state;
+				goto end;
 			} else {
 				BT_LOGW("Cannot handle state: "
 					"notit-addr=%p, state=%s",
@@ -3139,6 +3226,14 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		}
 
 		switch (notit->state) {
+		case STATE_EMIT_NOTIF_NEW_STREAM:
+			/* notify_new_stream() logs errors */
+			notify_new_stream(notit, notification);
+			if (!*notification) {
+				status = BT_NOTIF_ITER_STATUS_ERROR;
+			}
+			notit->stream_begin_emitted = true;
+			goto end;
 		case STATE_EMIT_NOTIF_NEW_PACKET:
 			/* notify_new_packet() logs errors */
 			notify_new_packet(notit, notification);
@@ -3230,6 +3325,7 @@ enum bt_notif_iter_status bt_notif_iter_get_packet_header_context_fields(
 			 */
 			goto set_fields;
 		case STATE_INIT:
+		case STATE_EMIT_NOTIF_NEW_STREAM:
 		case STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN:
 		case STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE:
 		case STATE_AFTER_TRACE_PACKET_HEADER:

@@ -96,18 +96,51 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 
 	BT_ASSERT(notif_iter_data->ds_file);
 	next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
-	if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_END) {
-		BT_ASSERT(!next_ret.notification);
+
+	if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
+			bt_notification_get_type(next_ret.notification) ==
+			BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
+		if (notif_iter_data->skip_stream_begin_notifs) {
+			/*
+			 * We already emitted a
+			 * BT_NOTIFICATION_TYPE_STREAM_BEGIN
+			 * notification: skip this one, get a new one.
+			 */
+			BT_PUT(next_ret.notification);
+			next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
+			BT_ASSERT(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+			goto end;
+		} else {
+			/*
+			 * First BT_NOTIFICATION_TYPE_STREAM_BEGIN
+			 * notification: skip all following.
+			 */
+			notif_iter_data->skip_stream_begin_notifs = true;
+			goto end;
+		}
+	}
+
+	if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
+			bt_notification_get_type(next_ret.notification) ==
+			BT_NOTIFICATION_TYPE_STREAM_END) {
 		notif_iter_data->ds_file_info_index++;
 
 		if (notif_iter_data->ds_file_info_index ==
 				notif_iter_data->ds_file_group->ds_file_infos->len) {
 			/*
 			 * No more stream files to read: we reached the
-			 * real end.
+			 * real end. Emit this
+			 * BT_NOTIFICATION_TYPE_STREAM_END notification.
+			 * The next time ctf_fs_iterator_next() is
+			 * called for this notification iterator,
+			 * ctf_fs_ds_file_next() will return
+			 * BT_NOTIFICATION_ITERATOR_STATUS_END().
 			 */
 			goto end;
 		}
+
+		BT_PUT(next_ret.notification);
+		bt_notif_iter_reset(notif_iter_data->notif_iter);
 
 		/*
 		 * Open and start reading the next stream file within
@@ -122,14 +155,30 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 		next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
 
 		/*
-		 * We should not get BT_NOTIFICATION_ITERATOR_STATUS_END
-		 * with a brand new stream file because empty stream
-		 * files are not even part of stream file groups, which
-		 * means we're sure to get at least one pair of "packet
-		 * begin" and "packet end" notifications in the case of
-		 * a single, empty packet.
+		 * If we get a notification, we expect to get a
+		 * BT_NOTIFICATION_TYPE_STREAM_BEGIN notification
+		 * because the iterator's state machine emits one before
+		 * even requesting the first block of data from the
+		 * medium. Skip this notification because we're not
+		 * really starting a new stream here, and try getting a
+		 * new notification (which, if it works, is a
+		 * BT_NOTIFICATION_TYPE_PACKET_BEGIN one). We're sure to
+		 * get at least one pair of
+		 * BT_NOTIFICATION_TYPE_PACKET_BEGIN and
+		 * BT_NOTIFICATION_TYPE_PACKET_END notifications in the
+		 * case of a single, empty packet. We know there's at
+		 * least one packet because the stream file group does
+		 * not contain empty stream files.
 		 */
-		BT_ASSERT(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+		BT_ASSERT(notif_iter_data->skip_stream_begin_notifs);
+
+		if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			BT_ASSERT(bt_notification_get_type(next_ret.notification) ==
+				BT_NOTIFICATION_TYPE_STREAM_BEGIN);
+			BT_PUT(next_ret.notification);
+			next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
+			BT_ASSERT(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+		}
 	}
 
 end:

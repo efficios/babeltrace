@@ -131,6 +131,9 @@ struct ctf_fs_notif_iter_data {
 
 	/* Owned by this */
 	struct bt_notif_iter *notif_iter;
+
+	/* True to skip BT_NOTIFICATION_TYPE_STREAM_BEGIN notifications */
+	bool skip_stream_begin_notifs;
 };
 
 BT_HIDDEN

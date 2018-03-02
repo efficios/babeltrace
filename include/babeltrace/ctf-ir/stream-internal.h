@@ -56,26 +56,6 @@ struct bt_stream {
 	struct bt_field *packet_header;
 	struct bt_field *packet_context;
 
-	/*
-	 * When a notification which contains a reference to a stream
-	 * object (event notification, for example) is returned by the
-	 * "next" method of a sink or filter component's notification
-	 * iterator, it must NOT be returned by the "next" method of a
-	 * notification iterator which iterates on the notifications of
-	 * another output port of the same component.
-	 *
-	 * To ensure this, the stream object keeps a hash table which
-	 * indicates which port, for a given component, is currently
-	 * allowed to emit notifications which contain a reference to
-	 * this stream.
-	 *
-	 * This is a `struct bt_component *` to `struct bt_port *` hash
-	 * table. Both pointers are weak references because there's no
-	 * need to keep one or the other alive as far as this stream is
-	 * concerned.
-	 */
-	GHashTable *comp_cur_port;
-
 	/* Writer-specific members. */
 	/* Array of pointers to bt_event for the current packet */
 	GPtrArray *events;
@@ -91,15 +71,6 @@ struct bt_stream {
 
 BT_HIDDEN
 int bt_stream_set_fd(struct bt_stream *stream, int fd);
-
-BT_HIDDEN
-void bt_stream_map_component_to_port(struct bt_stream *stream,
-		struct bt_component *comp,
-		struct bt_port *port);
-
-BT_HIDDEN
-struct bt_port *bt_stream_port_for_component(struct bt_stream *stream,
-		struct bt_component *comp);
 
 BT_HIDDEN
 void bt_stream_add_destroy_listener(struct bt_stream *stream,

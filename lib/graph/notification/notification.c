@@ -31,14 +31,26 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 
+BT_ASSERT_PRE_FUNC
+static inline void _init_seq_num(struct bt_notification *notification)
+{
+	notification->seq_num = -1ULL;
+}
+
+#ifdef BT_DEV_MODE
+# define init_seq_num	_init_seq_num
+#else
+# define init_seq_num(_notif)
+#endif /* BT_DEV_MODE */
+
 BT_HIDDEN
 void bt_notification_init(struct bt_notification *notification,
 		enum bt_notification_type type,
 		bt_object_release_func release)
 {
-	BT_ASSERT(type > BT_NOTIFICATION_TYPE_ALL &&
-			type < BT_NOTIFICATION_TYPE_NR);
+	BT_ASSERT(type >= 0 && type < BT_NOTIFICATION_TYPE_NR);
 	notification->type = type;
+	init_seq_num(notification);
 	bt_object_init(&notification->base, release);
 }
 

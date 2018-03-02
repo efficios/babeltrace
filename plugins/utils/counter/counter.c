@@ -199,7 +199,7 @@ void counter_port_connected(
 	connection = bt_private_port_get_private_connection(self_port);
 	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
-		connection, NULL, &iterator);
+		connection, &iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		counter->error = true;
 		goto end;
