@@ -300,7 +300,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	}
 
 	conn_status = bt_private_connection_create_notification_iterator(
-			connection, NULL, &it_data->input_iterator);
+			connection, &it_data->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;

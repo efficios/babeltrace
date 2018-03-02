@@ -42,7 +42,6 @@ extern struct bt_connection *bt_connection_from_private(
 extern enum bt_connection_status
 bt_private_connection_create_notification_iterator(
 		struct bt_private_connection *private_connection,
-		const enum bt_notification_type *notification_types,
 		struct bt_notification_iterator **iterator);
 
 #ifdef __cplusplus
