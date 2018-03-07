@@ -49,6 +49,7 @@
 #include <babeltrace/align-internal.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -133,24 +134,15 @@ error:
 struct bt_trace *bt_stream_class_get_trace(
 		struct bt_stream_class *stream_class)
 {
-	return stream_class ?
-		bt_get(bt_stream_class_borrow_trace(stream_class)) :
-		NULL;
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return bt_get(bt_stream_class_borrow_trace(stream_class));
 }
 
 const char *bt_stream_class_get_name(
 		struct bt_stream_class *stream_class)
 {
-	const char *name = NULL;
-
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto end;
-	}
-
-	name = stream_class->name->len > 0 ? stream_class->name->str : NULL;
-end:
-	return name;
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return stream_class->name->len > 0 ? stream_class->name->str : NULL;
 }
 
 int bt_stream_class_set_name(struct bt_stream_class *stream_class,
@@ -259,11 +251,7 @@ int64_t bt_stream_class_get_id(struct bt_stream_class *stream_class)
 {
 	int64_t ret;
 
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		ret = (int64_t) -1;
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->id_set) {
 		BT_LOGV("Stream class's ID is not set: addr=%p, name=\"%s\"",
@@ -274,6 +262,7 @@ int64_t bt_stream_class_get_id(struct bt_stream_class *stream_class)
 	}
 
 	ret = stream_class->id;
+
 end:
 	return ret;
 }
@@ -673,71 +662,31 @@ end:
 struct bt_event_class *bt_stream_class_get_event_class_by_index(
 		struct bt_stream_class *stream_class, uint64_t index)
 {
-	struct bt_event_class *event_class = NULL;
-
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto end;
-	}
-
-	if (index >= stream_class->event_classes->len) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, name=\"%s\", id=%" PRId64 ", "
-			"index=%" PRIu64 ", count=%u",
-			stream_class, bt_stream_class_get_name(stream_class),
-			bt_stream_class_get_id(stream_class),
-			index, stream_class->event_classes->len);
-		goto end;
-	}
-
-	event_class = g_ptr_array_index(stream_class->event_classes, index);
-	bt_get(event_class);
-end:
-	return event_class;
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(index < stream_class->event_classes->len,
+		"Index is out of bounds: index=%" PRIu64 ", "
+		"count=%u",
+		index, stream_class->event_classes->len);
+	return bt_get(g_ptr_array_index(stream_class->event_classes, index));
 }
 
 struct bt_event_class *bt_stream_class_get_event_class_by_id(
 		struct bt_stream_class *stream_class, uint64_t id)
 {
 	int64_t id_key = (int64_t) id;
-	struct bt_event_class *event_class = NULL;
 
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto end;
-	}
-
-	if (id_key < 0) {
-		BT_LOGW("Invalid parameter: invalid event class's ID: "
-			"stream-class-addr=%p, stream-class-name=\"%s\", "
-			"stream-class-id=%" PRId64 ", event-class-id=%" PRIu64,
-			stream_class,
-			bt_stream_class_get_name(stream_class),
-			bt_stream_class_get_id(stream_class), id);
-		goto end;
-	}
-
-	event_class = g_hash_table_lookup(stream_class->event_classes_ht,
-			&id_key);
-	bt_get(event_class);
-end:
-	return event_class;
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(id_key >= 0,
+		"Invalid event class ID: %" PRIu64, id);
+	return bt_get(g_hash_table_lookup(stream_class->event_classes_ht,
+			&id_key));
 }
 
 struct bt_field_type *bt_stream_class_get_packet_context_type(
 		struct bt_stream_class *stream_class)
 {
-	struct bt_field_type *ret = NULL;
-
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto end;
-	}
-
-	bt_get(stream_class->packet_context_type);
-	ret = stream_class->packet_context_type;
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return bt_get(stream_class->packet_context_type);
 }
 
 int bt_stream_class_set_packet_context_type(
@@ -796,10 +745,7 @@ struct bt_field_type *bt_stream_class_get_event_header_type(
 {
 	struct bt_field_type *ret = NULL;
 
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->event_header_type) {
 		BT_LOGV("Stream class has no event header field type: "
@@ -809,8 +755,8 @@ struct bt_field_type *bt_stream_class_get_event_header_type(
 		goto end;
 	}
 
-	bt_get(stream_class->event_header_type);
-	ret = stream_class->event_header_type;
+	ret = bt_get(stream_class->event_header_type);
+
 end:
 	return ret;
 }
@@ -869,17 +815,14 @@ struct bt_field_type *bt_stream_class_get_event_context_type(
 {
 	struct bt_field_type *ret = NULL;
 
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	if (!stream_class->event_context_type) {
 		goto end;
 	}
 
-	bt_get(stream_class->event_context_type);
-	ret = stream_class->event_context_type;
+	ret = bt_get(stream_class->event_context_type);
+
 end:
 	return ret;
 }
