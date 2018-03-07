@@ -48,6 +48,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 #include <unistd.h>
 
@@ -1210,17 +1211,8 @@ struct bt_stream *bt_stream_create(
 struct bt_stream_class *bt_stream_get_class(
 		struct bt_stream *stream)
 {
-	struct bt_stream_class *stream_class = NULL;
-
-	if (!stream) {
-		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		goto end;
-	}
-
-	stream_class = stream->stream_class;
-	bt_get(stream_class);
-end:
-	return stream_class;
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return bt_get(stream->stream_class);
 }
 
 int bt_stream_get_discarded_events_count(
@@ -2075,17 +2067,8 @@ int try_set_structure_field_integer(struct bt_field *structure, char *name,
 
 const char *bt_stream_get_name(struct bt_stream *stream)
 {
-	const char *name = NULL;
-
-	if (!stream) {
-		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		goto end;
-	}
-
-	name = stream->name ? stream->name->str : NULL;
-
-end:
-	return name;
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return stream->name ? stream->name->str : NULL;
 }
 
 int bt_stream_is_writer(struct bt_stream *stream)
@@ -2148,18 +2131,12 @@ int64_t bt_stream_get_id(struct bt_stream *stream)
 {
 	int64_t ret;
 
-	if (!stream) {
-		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		ret = (int64_t) -1;
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	ret = stream->id;
 	if (ret < 0) {
 		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",
 			stream, bt_stream_get_name(stream));
 	}
 
-end:
 	return ret;
 }

@@ -46,6 +46,7 @@
 #include <babeltrace/types.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 #include <stdlib.h>
 
@@ -105,33 +106,15 @@ error:
 
 const char *bt_event_class_get_name(struct bt_event_class *event_class)
 {
-	const char *name = NULL;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		goto end;
-	}
-
-	name = event_class->name->str;
-
-end:
-	return name;
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT(event_class->name);
+	return event_class->name->str;
 }
 
 int64_t bt_event_class_get_id(struct bt_event_class *event_class)
 {
-	int64_t ret = 0;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		ret = (int64_t) -1;
-		goto end;
-	}
-
-	ret = event_class->id;
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	return event_class->id;
 }
 
 int bt_event_class_set_id(struct bt_event_class *event_class,
@@ -176,18 +159,8 @@ end:
 enum bt_event_class_log_level bt_event_class_get_log_level(
 		struct bt_event_class *event_class)
 {
-	enum bt_event_class_log_level log_level;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		log_level = BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN;
-		goto end;
-	}
-
-	log_level = event_class->log_level;
-
-end:
-	return log_level;
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	return event_class->log_level;
 }
 
 int bt_event_class_set_log_level(struct bt_event_class *event_class,
@@ -253,16 +226,12 @@ const char *bt_event_class_get_emf_uri(
 {
 	const char *emf_uri = NULL;
 
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 
 	if (event_class->emf_uri->len > 0) {
 		emf_uri = event_class->emf_uri->str;
 	}
 
-end:
 	return emf_uri;
 }
 
@@ -313,25 +282,15 @@ end:
 struct bt_stream_class *bt_event_class_get_stream_class(
 		struct bt_event_class *event_class)
 {
-	return event_class ?
-		bt_get(bt_event_class_borrow_stream_class(event_class)) :
-		NULL;
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	return bt_get(bt_event_class_borrow_stream_class(event_class));
 }
 
 struct bt_field_type *bt_event_class_get_payload_type(
 		struct bt_event_class *event_class)
 {
-	struct bt_field_type *payload = NULL;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		goto end;
-	}
-
-	bt_get(event_class->fields);
-	payload = event_class->fields;
-end:
-	return payload;
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	return bt_get(event_class->fields);
 }
 
 int bt_event_class_set_payload_type(struct bt_event_class *event_class,
@@ -526,10 +485,7 @@ struct bt_field_type *bt_event_class_get_context_type(
 {
 	struct bt_field_type *context_type = NULL;
 
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 
 	if (!event_class->context) {
 		BT_LOGV("Event class has no context field type: "
@@ -539,8 +495,8 @@ struct bt_field_type *bt_event_class_get_context_type(
 		goto end;
 	}
 
-	bt_get(event_class->context);
-	context_type = event_class->context;
+	context_type = bt_get(event_class->context);
+
 end:
 	return context_type;
 }

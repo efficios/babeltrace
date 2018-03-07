@@ -51,6 +51,7 @@
 #include <babeltrace/types.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
@@ -158,20 +159,8 @@ error:
 
 const char *bt_trace_get_name(struct bt_trace *trace)
 {
-	const char *name = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	if (!trace->name) {
-		goto end;
-	}
-
-	name = trace->name->str;
-end:
-	return name;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->name ? trace->name->str : NULL;
 }
 
 int bt_trace_set_name(struct bt_trace *trace, const char *name)
@@ -214,7 +203,8 @@ end:
 
 const unsigned char *bt_trace_get_uuid(struct bt_trace *trace)
 {
-	return trace && trace->uuid_set ? trace->uuid : NULL;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->uuid_set ? trace->uuid : NULL;
 }
 
 int bt_trace_set_uuid(struct bt_trace *trace, const unsigned char *uuid)
@@ -473,18 +463,11 @@ end:
 
 int64_t bt_trace_get_environment_field_count(struct bt_trace *trace)
 {
-	int64_t ret = 0;
+	int64_t ret;
 
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		ret = (int64_t) -1;
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	ret = bt_attributes_get_count(trace->environment);
 	BT_ASSERT(ret >= 0);
-
-end:
 	return ret;
 }
 
@@ -492,55 +475,24 @@ const char *
 bt_trace_get_environment_field_name_by_index(struct bt_trace *trace,
 		uint64_t index)
 {
-	const char *ret = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	ret = bt_attributes_get_field_name(trace->environment, index);
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return bt_attributes_get_field_name(trace->environment, index);
 }
 
 struct bt_value *bt_trace_get_environment_field_value_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	struct bt_value *ret = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	ret = bt_attributes_get_field_value(trace->environment, index);
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return bt_attributes_get_field_value(trace->environment, index);
 }
 
 struct bt_value *bt_trace_get_environment_field_value_by_name(
 		struct bt_trace *trace, const char *name)
 {
-	struct bt_value *ret = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	if (!name) {
-		BT_LOGW_STR("Invalid parameter: name is NULL.");
-		goto end;
-	}
-
-	ret = bt_attributes_get_field_value_by_name(trace->environment,
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	return bt_attributes_get_field_value_by_name(trace->environment,
 		name);
-
-end:
-	return ret;
 }
 
 int bt_trace_add_clock_class(struct bt_trace *trace,
@@ -603,41 +555,19 @@ end:
 
 int64_t bt_trace_get_clock_class_count(struct bt_trace *trace)
 {
-	int64_t ret = (int64_t) -1;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	ret = trace->clocks->len;
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->clocks->len;
 }
 
 struct bt_clock_class *bt_trace_get_clock_class_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	struct bt_clock_class *clock_class = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	if (index >= trace->clocks->len) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, name=\"%s\", "
-			"index=%" PRIu64 ", count=%u",
-			trace, bt_trace_get_name(trace),
-			index, trace->clocks->len);
-		goto end;
-	}
-
-	clock_class = g_ptr_array_index(trace->clocks, index);
-	bt_get(clock_class);
-end:
-	return clock_class;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(index < trace->clocks->len,
+		"Index is out of bounds: index=%" PRIu64 ", "
+		"count=%u",
+		index, trace->clocks->len);
+	return bt_get(g_ptr_array_index(trace->clocks, index));
 }
 
 static
@@ -1605,84 +1535,37 @@ end:
 
 int64_t bt_trace_get_stream_count(struct bt_trace *trace)
 {
-	int64_t ret;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		ret = (int64_t) -1;
-		goto end;
-	}
-
-	ret = (int64_t) trace->streams->len;
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return (int64_t) trace->streams->len;
 }
 
 struct bt_stream *bt_trace_get_stream_by_index(
 		struct bt_trace *trace,
 		uint64_t index)
 {
-	struct bt_stream *stream = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	if (index >= trace->streams->len) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, name=\"%s\", "
-			"index=%" PRIu64 ", count=%u",
-			trace, bt_trace_get_name(trace),
-			index, trace->streams->len);
-		goto end;
-	}
-
-	stream = bt_get(g_ptr_array_index(trace->streams, index));
-
-end:
-	return stream;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(index < trace->streams->len,
+		"Index is out of bounds: index=%" PRIu64 ", "
+		"count=%u",
+		index, trace->streams->len);
+	return bt_get(g_ptr_array_index(trace->streams, index));
 }
 
 int64_t bt_trace_get_stream_class_count(struct bt_trace *trace)
 {
-	int64_t ret;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		ret = (int64_t) -1;
-		goto end;
-	}
-
-	ret = (int64_t) trace->stream_classes->len;
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return (int64_t) trace->stream_classes->len;
 }
 
 struct bt_stream_class *bt_trace_get_stream_class_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	struct bt_stream_class *stream_class = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	if (index >= trace->stream_classes->len) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, name=\"%s\", "
-			"index=%" PRIu64 ", count=%u",
-			trace, bt_trace_get_name(trace),
-			index, trace->stream_classes->len);
-		goto end;
-	}
-
-	stream_class = g_ptr_array_index(trace->stream_classes, index);
-	bt_get(stream_class);
-end:
-	return stream_class;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(index < trace->stream_classes->len,
+		"Index is out of bounds: index=%" PRIu64 ", "
+		"count=%u",
+		index, trace->stream_classes->len);
+	return bt_get(g_ptr_array_index(trace->stream_classes, index));
 }
 
 struct bt_stream_class *bt_trace_get_stream_class_by_id(
@@ -1692,17 +1575,9 @@ struct bt_stream_class *bt_trace_get_stream_class_by_id(
 	struct bt_stream_class *stream_class = NULL;
 	int64_t id = (int64_t) id_param;
 
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	if (id < 0) {
-		BT_LOGW("Invalid parameter: invalid stream class's ID: "
-			"trace-addr=%p, trace-name=\"%s\", id=%" PRIu64,
-			trace, bt_trace_get_name(trace), id_param);
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(id >= 0,
+		"Invalid stream class ID: %" PRIu64, id_param);
 
 	for (i = 0; i < trace->stream_classes->len; i++) {
 		struct bt_stream_class *stream_class_candidate;
@@ -1728,15 +1603,8 @@ struct bt_clock_class *bt_trace_get_clock_class_by_name(
 	size_t i;
 	struct bt_clock_class *clock_class = NULL;
 
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	if (!name) {
-		BT_LOGW_STR("Invalid parameter: name is NULL.");
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
 
 	for (i = 0; i < trace->clocks->len; i++) {
 		struct bt_clock_class *cur_clk =
@@ -1972,17 +1840,8 @@ end:
 enum bt_byte_order bt_trace_get_native_byte_order(
 		struct bt_trace *trace)
 {
-	enum bt_byte_order ret = BT_BYTE_ORDER_UNKNOWN;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	ret = trace->native_byte_order;
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->native_byte_order;
 }
 
 int bt_trace_set_native_byte_order(struct bt_trace *trace,
@@ -2037,17 +1896,8 @@ end:
 struct bt_field_type *bt_trace_get_packet_header_type(
 		struct bt_trace *trace)
 {
-	struct bt_field_type *field_type = NULL;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	bt_get(trace->packet_header_type);
-	field_type = trace->packet_header_type;
-end:
-	return field_type;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return bt_get(trace->packet_header_type);
 }
 
 int bt_trace_set_packet_header_type(struct bt_trace *trace,
@@ -2259,17 +2109,8 @@ void bt_trace_freeze(struct bt_trace *trace)
 
 bt_bool bt_trace_is_static(struct bt_trace *trace)
 {
-	bt_bool is_static = BT_FALSE;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		goto end;
-	}
-
-	is_static = trace->is_static;
-
-end:
-	return is_static;
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->is_static;
 }
 
 int bt_trace_set_is_static(struct bt_trace *trace)
