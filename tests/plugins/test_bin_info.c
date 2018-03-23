@@ -65,7 +65,7 @@ void test_bin_info_build_id(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_BUILD_ID);
 
-	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL);
+	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, true, data_dir, NULL);
 	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test setting build_id */
@@ -114,7 +114,7 @@ void test_bin_info_debug_link(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_DEBUG_LINK);
 
-	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL);
+	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, false, data_dir, NULL);
 	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test setting debug link */
@@ -163,7 +163,7 @@ void test_bin_info_elf(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_ELF);
 
-	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL);
+	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, false, data_dir, NULL);
 	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test function name lookup (with ELF) */
@@ -204,7 +204,7 @@ void test_bin_info(const char *data_dir)
 
 	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME);
 
-	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL);
+	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, false, data_dir, NULL);
 	ok(bin != NULL, "bin_info_create successful");
 
 	/* Test bin_info_has_address */

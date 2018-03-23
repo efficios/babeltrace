@@ -52,6 +52,8 @@ struct bin_info {
 	Elf *elf_file;
 	Dwarf *dwarf_info;
 	/* Optional build ID info. */
+	bool has_build_id:1;
+	bool build_id_matches:1;
 	uint8_t *build_id;
 	size_t build_id_len;
 	/* Optional debug link info. */
@@ -102,8 +104,8 @@ int bin_info_init(void);
  */
 BT_HIDDEN
 struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz, bool is_pic, const char *debug_info_dir,
-		const char *target_prefix);
+		uint64_t memsz, bool is_pic, bool has_build_id,
+		const char *debug_info_dir, const char *target_prefix);
 
 /**
  * Destroy the given bin_info instance
