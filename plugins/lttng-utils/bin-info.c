@@ -1104,10 +1104,14 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 
 	if (bin->is_elf_only) {
 		ret = bin_info_lookup_elf_function_name(bin, addr, &_func_name);
-		BT_LOGD("Failed to lookup function name (ELF): ret=%d", ret);
+		if (ret) {
+			BT_LOGD("Failed to lookup function name (ELF): ret=%d", ret);
+		}
 	} else {
 		ret = bin_info_lookup_dwarf_function_name(bin, addr, &_func_name);
-		BT_LOGD("Failed to lookup function name (DWARF): ret=%d", ret);
+		if (ret) {
+			BT_LOGD("Failed to lookup function name (DWARF): ret=%d", ret);
+		}
 	}
 
 	*func_name = _func_name;
