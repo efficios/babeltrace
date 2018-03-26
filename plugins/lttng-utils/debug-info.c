@@ -106,8 +106,15 @@ struct debug_info_source *debug_info_source_create_from_bin(struct bin_info *bin
 	struct debug_info_source *debug_info_src = NULL;
 	struct source_location *src_loc = NULL;
 
-	debug_info_src = g_new0(struct debug_info_source, 1);
+	/*
+	 * If the build id of the binary or library does not match the one
+	 * recorded on the trace, return NULL.
+	 */
+	if (bin->has_build_id && !bin->build_id_matches) {
+		goto end;
+	}
 
+	debug_info_src = g_new0(struct debug_info_source, 1);
 	if (!debug_info_src) {
 		goto end;
 	}
@@ -378,6 +385,7 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	struct proc_debug_info_sources *proc_dbg_info_src;
 	struct bin_info *bin = NULL;
 	int ret;
+	uint8_t *build_id;
 	int64_t vpid;
 	uint64_t baddr;
 	uint64_t build_id_len;
@@ -413,7 +421,7 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	}
 
 	ret = get_payload_build_id_field_value(err, event, BUILD_ID_FIELD_NAME,
-			&bin->build_id, &build_id_len);
+			&build_id, &build_id_len);
 	if (ret) {
 		BT_LOGE_STR("Failed to get " BUILD_ID_FIELD_NAME
 			" field value.");
@@ -430,8 +438,11 @@ void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
 	 */
 	bin->is_elf_only = false;
 
-	// TODO
-	//	bin_info_set_build_id(bin, build_id, build_id_len);
+	ret = bin_info_set_build_id(bin, build_id, build_id_len);
+	if (ret) {
+		BT_LOGI("Failed to set build id:  ret=%d", ret);
+		goto end;
+	}
 
 end:
 	return;
@@ -512,11 +523,12 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 {
 	struct proc_debug_info_sources *proc_dbg_info_src;
 	struct bin_info *bin;
-	uint64_t baddr, memsz;
+	uint64_t baddr, memsz, tmp;
 	int64_t vpid;
 	const char *path;
 	gpointer key = NULL;
 	bool is_pic;
+	bool has_build_id;
 	int ret;
 
 	ret = get_payload_unsigned_int_field_value(err,
@@ -546,8 +558,7 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 	}
 
 	if (has_pic_field) {
-		uint64_t tmp;
-
+		tmp = 0;
 		ret = get_payload_unsigned_int_field_value(err,
 				event, IS_PIC_FIELD_NAME, &tmp);
 		if (ret) {
@@ -564,6 +575,18 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 		 */
 		is_pic = true;
 	}
+
+	tmp = 0;
+	ret = get_payload_unsigned_int_field_value(err,
+			event, HAS_BUILD_ID_FIELD_NAME, &tmp);
+	if (ret) {
+	BT_LOGE_STR("Failed to get unsigned int value for "
+		HAS_BUILD_ID_FIELD_NAME " field.");
+		ret = -1;
+		goto end;
+	}
+
+	has_build_id = (tmp == 1);
 
 	ret = get_stream_event_context_int_field_value(err, event,
 		VPID_FIELD_NAME, &vpid);
@@ -595,7 +618,7 @@ void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
 		goto end;
 	}
 
-	bin = bin_info_create(path, baddr, memsz, is_pic,
+	bin = bin_info_create(path, baddr, memsz, is_pic, has_build_id,
 		debug_info->comp->arg_debug_dir,
 		debug_info->comp->arg_target_prefix);
 	if (!bin) {

@@ -39,6 +39,7 @@
 #define BUILD_ID_FIELD_NAME	"build_id"
 #define FILENAME_FIELD_NAME	"filename"
 #define IS_PIC_FIELD_NAME	"is_pic"
+#define HAS_BUILD_ID_FIELD_NAME "has_build_id"
 #define MEMSZ_FIELD_NAME	"memsz"
 #define PATH_FIELD_NAME		"path"
 

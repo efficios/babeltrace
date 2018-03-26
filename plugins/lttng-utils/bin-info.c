@@ -51,6 +51,7 @@
  * character).
  */
 #define ADDR_STR_LEN 20
+#define BUILD_ID_NOTE_NAME "GNU"
 
 BT_HIDDEN
 int bin_info_init(void)
@@ -68,8 +69,8 @@ int bin_info_init(void)
 
 BT_HIDDEN
 struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz, bool is_pic, const char *debug_info_dir,
-		const char *target_prefix)
+		uint64_t memsz, bool is_pic, bool has_build_id,
+		const char *debug_info_dir, const char *target_prefix)
 {
 	struct bin_info *bin = NULL;
 
@@ -104,6 +105,8 @@ struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
 	bin->memsz = memsz;
 	bin->low_addr = low_addr;
 	bin->high_addr = bin->low_addr + bin->memsz;
+	bin->has_build_id = has_build_id;
+	bin->build_id_matches = 0;
 
 	return bin;
 
@@ -124,7 +127,7 @@ void bin_info_destroy(struct bin_info *bin)
 	free(bin->debug_info_dir);
 	free(bin->elf_path);
 	free(bin->dwarf_path);
-	g_free(bin->build_id);
+	free(bin->build_id);
 	free(bin->dbg_link_filename);
 
 	elf_end(bin->elf_file);
@@ -133,37 +136,6 @@ void bin_info_destroy(struct bin_info *bin)
 	close(bin->dwarf_fd);
 
 	g_free(bin);
-}
-
-
-BT_HIDDEN
-int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
-		size_t build_id_len)
-{
-	if (!bin || !build_id) {
-		goto error;
-	}
-
-	bin->build_id = malloc(build_id_len);
-	if (!bin->build_id) {
-		goto error;
-	}
-
-	memcpy(bin->build_id, build_id, build_id_len);
-	bin->build_id_len = build_id_len;
-
-	/*
-	 * Reset the is_elf_only flag in case it had been set
-	 * previously, because we might find separate debug info using
-	 * the new build id information.
-	 */
-	bin->is_elf_only = false;
-
-	return 0;
-
-error:
-
-	return -1;
 }
 
 BT_HIDDEN
@@ -701,6 +673,176 @@ error:
 }
 
 /**
+ *  From a note section data buffer, check if it's a build id note. If it's the
+ *  case, set the `build_id_ptr` out parameter to the beginning of the build id
+ *  data. This function does not allocate memory, the value set to
+ *  `build_id_ptr` is valid as long as `buf` is not freed.
+ *
+ * @param buf			Pointer to a note section
+ * @param build_id_ptr		Out parameter, a pointer to the build id data
+ *
+ * @returns			0 on success, 1 if `buf` does not contain a
+ *				valid build id note
+ */
+static
+int get_build_id_from_note_section(uint8_t *buf, uint8_t **build_id_ptr)
+{
+	int ret = 1;
+	uint32_t name_sz, desc_sz, note_type;
+
+	name_sz = (uint32_t) *buf;
+	buf += sizeof(name_sz);
+
+	desc_sz = (uint32_t) *buf;
+	buf += sizeof(desc_sz);
+
+	note_type = (uint32_t) *buf;
+	buf += sizeof(note_type);
+
+	/* Check the note type. */
+	if (note_type != NT_GNU_BUILD_ID) {
+		goto invalid;
+	}
+
+	if (memcmp(buf, BUILD_ID_NOTE_NAME, name_sz) != 0) {
+		goto invalid;
+	}
+
+	buf += name_sz;
+
+	/*
+	 * Set the out parameter to the current buffer position which is placed
+	 * at the beginning of the build id data.
+	 */
+	*build_id_ptr = buf;
+	ret = 0;
+
+invalid:
+	return ret;
+}
+
+/**
+ * Checks if the build id stored in `bin` (bin->build_id) is matching the build
+ * id of the ondisk file (bin->elf_file).
+ *
+ * @param bin			bin_info instance
+ *
+ * @returns			1 on if the build id of stored in `bin` matches
+ *				the build id of the ondisk file.
+ *				0 on if they are different or an error occured.
+ */
+static
+int is_build_id_matching(struct bin_info *bin, uint8_t *build_id,
+		size_t build_id_len)
+{
+	int ret;
+	int is_matching = 0;
+	uint8_t *curr_build_id;
+	Elf_Scn *curr_section = NULL, *next_section = NULL;
+	Elf_Data *note_data = NULL;
+	GElf_Shdr *curr_section_hdr = NULL;
+
+	if (!build_id) {
+		goto error;
+	}
+
+	/* Set ELF file if it hasn't been accessed yet. */
+	if (!bin->elf_file) {
+		ret = bin_info_set_elf_file(bin);
+		if (ret) {
+			/* Failed to set ELF file. */
+			goto error;
+		}
+	}
+
+	curr_section_hdr = g_new0(GElf_Shdr, 1);
+	if (!curr_section_hdr) {
+		goto error;
+	}
+
+	next_section = elf_nextscn(bin->elf_file, curr_section);
+	if (!next_section) {
+		goto error;
+	}
+
+	while (1) {
+		curr_section = next_section;
+		next_section = elf_nextscn(bin->elf_file, curr_section);
+
+		curr_section_hdr = gelf_getshdr(curr_section, curr_section_hdr);
+
+		if (!curr_section_hdr) {
+			goto error;
+		}
+
+		if (curr_section_hdr->sh_type != SHT_NOTE) {
+			continue;
+		}
+
+		note_data = elf_getdata(curr_section, NULL);
+		if (!note_data) {
+			goto error;
+		}
+
+		/* Check if the note is fo build-id type. */
+		ret = get_build_id_from_note_section(note_data->d_buf, &curr_build_id);
+		if (ret == 0) {
+			/*
+			 * Compare the build id of the on-disk file and the build id
+			 * recorded in the trace.
+			 */
+			if (memcmp(build_id, curr_build_id, build_id_len) == 0) {
+				is_matching = 1;
+				break;
+			}
+		}
+	}
+error:
+	g_free(curr_section_hdr);
+	return is_matching;
+}
+
+BT_HIDDEN
+int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
+		size_t build_id_len)
+{
+	if (!bin || !build_id) {
+		goto error;
+	}
+
+	/*
+	 * Check if the file found on the file system has the same build id
+	 * that what was recorded in the trace.
+	 */
+	bin->build_id_matches = is_build_id_matching(bin, build_id, build_id_len);
+	if(!bin->build_id_matches) {
+		BT_LOGI_STR("Supplied Build ID does not match Build ID of the "
+				"binary or library found on the file system.");
+		goto error;
+	}
+
+	bin->build_id = malloc(build_id_len);
+	if (!bin->build_id) {
+		goto error;
+	}
+
+	memcpy(bin->build_id, build_id, build_id_len);
+	bin->build_id_len = build_id_len;
+
+	/*
+	 * Reset the is_elf_only flag in case it had been set
+	 * previously, because we might find separate debug info using
+	 * the new build id information.
+	 */
+	bin->is_elf_only = false;
+
+	return 0;
+
+error:
+	return -1;
+}
+
+/**
  * Get the name of the function containing a given address within an
  * executable using ELF symbols.
  *
@@ -930,6 +1072,14 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 		goto error;
 	}
 
+	/*
+	 * If the bin_info has a build id but it does not match the build id
+	 * that was found on the file system, return an error.
+	 */
+	if (bin->has_build_id && !bin->build_id_matches) {
+		goto error;
+	}
+
 	/* Set DWARF info if it hasn't been accessed yet. */
 	if (!bin->dwarf_info && !bin->is_elf_only) {
 		ret = bin_info_set_dwarf_info(bin);
@@ -954,10 +1104,14 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 
 	if (bin->is_elf_only) {
 		ret = bin_info_lookup_elf_function_name(bin, addr, &_func_name);
-		BT_LOGD("Failed to lookup function name (ELF): ret=%d", ret);
+		if (ret) {
+			BT_LOGD("Failed to lookup function name (ELF): ret=%d", ret);
+		}
 	} else {
 		ret = bin_info_lookup_dwarf_function_name(bin, addr, &_func_name);
-		BT_LOGD("Failed to lookup function name (DWARF): ret=%d", ret);
+		if (ret) {
+			BT_LOGD("Failed to lookup function name (DWARF): ret=%d", ret);
+		}
 	}
 
 	*func_name = _func_name;
@@ -974,6 +1128,14 @@ int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc)
 	char *_bin_loc = NULL;
 
 	if (!bin || !bin_loc) {
+		goto error;
+	}
+
+	/*
+	 * If the bin_info has a build id but it does not match the build id
+	 * that was found on the file system, return an error.
+	 */
+	if (bin->has_build_id && !bin->build_id_matches) {
 		goto error;
 	}
 
@@ -1300,6 +1462,14 @@ int bin_info_lookup_source_location(struct bin_info *bin, uint64_t addr,
 	struct source_location *_src_loc = NULL;
 
 	if (!bin || !src_loc) {
+		goto error;
+	}
+
+	/*
+	 * If the bin_info has a build id but it does not match the build id
+	 * that was found on the file system, return an error.
+	 */
+	if (bin->has_build_id && !bin->build_id_matches) {
 		goto error;
 	}
 
