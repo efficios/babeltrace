@@ -26,7 +26,7 @@
 #include <lttng-utils/bin-info.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 36
+#define NR_TESTS 40
 #define SO_NAME "libhello_so"
 #define SO_NAME_ELF "libhello_elf_so"
 #define SO_NAME_BUILD_ID "libhello_build_id_so"
@@ -47,6 +47,42 @@
 
 char *opt_debug_info_dir;
 char *opt_debug_info_target_prefix;
+
+static
+void test_bin_info_mismatching_build_id(const char *data_dir)
+{
+	int ret;
+	char path[PATH_MAX];
+	char *func_name = NULL;
+	struct bin_info *bin = NULL;
+	struct source_location *src_loc = NULL;
+
+	uint8_t build_id_wrong[BUILD_ID_LEN] = {
+		0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99,
+		0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99
+	};
+
+	diag("bin-info tests - mismatching build ID");
+
+	snprintf(path, PATH_MAX, "%s/%s", data_dir, SO_NAME_BUILD_ID);
+
+	bin = bin_info_create(path, SO_LOW_ADDR, SO_MEMSZ, true, true, data_dir, NULL);
+	ok(bin != NULL, "bin_info_create successful");
+
+	/* Test setting mismatching build_id */
+	ret = bin_info_set_build_id(bin, build_id_wrong, BUILD_ID_LEN);
+	ok(ret != 0, "bin_info_set_build_id unsuccessful as expected");
+
+	/* Test function name lookup (with DWARF) */
+	ret = bin_info_lookup_function_name(bin, FUNC_FOO_ADDR, &func_name);
+	ok(ret != 0, "bin_info_lookup_function_name unsuccessful as expected");
+
+	/* Test source location lookup */
+	ret = bin_info_lookup_source_location(bin, FUNC_FOO_ADDR, &src_loc);
+	ok(ret != 0, "bin_info_lookup_source_location unsuccessful as expected");
+
+	bin_info_destroy(bin);
+}
 
 static
 void test_bin_info_build_id(const char *data_dir)
@@ -291,6 +327,7 @@ int main(int argc, char **argv)
 	test_bin_info(opt_debug_info_dir);
 	test_bin_info_elf(opt_debug_info_dir);
 	test_bin_info_build_id(opt_debug_info_dir);
+	test_bin_info_mismatching_build_id(opt_debug_info_dir);
 	test_bin_info_debug_link(opt_debug_info_dir);
 
 	return EXIT_SUCCESS;
