@@ -104,7 +104,7 @@ void trace_listener_removed(struct bt_trace *trace, void *py_callable)
 	Py_DECREF(py_callable);
 }
 
-static int bt_py3_trace_add_is_staitc_listener(unsigned long long trace_addr,
+static int bt_py3_trace_add_is_static_listener(unsigned long long trace_addr,
 		PyObject *py_callable)
 {
 	struct bt_trace *trace = (void *) trace_addr;
@@ -122,5 +122,5 @@ static int bt_py3_trace_add_is_staitc_listener(unsigned long long trace_addr,
 }
 %}
 
-int bt_py3_trace_add_is_staitc_listener(unsigned long long trace_addr,
+int bt_py3_trace_add_is_static_listener(unsigned long long trace_addr,
 		PyObject *py_callable);
