@@ -39,7 +39,17 @@
  */
 # define BT_ASSERT_FUNC
 #else
-# define BT_ASSERT(_cond)
+/*
+ * When BT_DEBUG_MODE is not defined, define BT_ASSERT() macro to the following
+ * to trick the compiler into thinking that the variable passed as condition to
+ * the assertion is used. This is to prevent set-but-not-used warnings from the
+ * compiler when assertions are disabled. The `sizeof` operator also makes sure
+ * that the `_cond` expression is not evaluated, thus preventing unwanted side
+ * effects.
+ *
+ * In-depth explanation: https://stackoverflow.com/questions/37411809/how-to-elegantly-fix-this-unused-variable-warning/37412551#37412551
+ */
+# define BT_ASSERT(_cond)	((void) sizeof((void) (_cond), 0))
 # define BT_ASSERT_FUNC		__attribute__((unused))
 #endif /* BT_DEBUG_MODE */
 
