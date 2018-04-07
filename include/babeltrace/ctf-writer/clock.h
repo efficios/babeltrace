@@ -31,12 +31,15 @@
  */
 
 #include <stdint.h>
+#include <babeltrace/ref.h>
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_ctf_clock;
+struct bt_ctf_clock_class;
 
 /*
  * bt_ctf_clock_create: create a clock.
@@ -265,8 +268,72 @@ extern int bt_ctf_clock_set_time(struct bt_ctf_clock *clock,
  *
  * @param clock Clock instance.
  */
-extern void bt_ctf_clock_get(struct bt_ctf_clock *clock);
-extern void bt_ctf_clock_put(struct bt_ctf_clock *clock);
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_clock_get(struct bt_ctf_clock *clock)
+{
+        bt_get(clock);
+}
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_clock_put(struct bt_ctf_clock *clock)
+{
+        bt_put(clock);
+}
+
+extern struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
+                uint64_t freq);
+
+extern const char *bt_ctf_clock_class_get_name(
+                struct bt_ctf_clock_class *clock_class);
+
+extern int bt_ctf_clock_class_set_name(struct bt_ctf_clock_class *clock_class,
+                const char *name);
+
+extern const char *bt_ctf_clock_class_get_description(
+                struct bt_ctf_clock_class *clock_class);
+
+extern int bt_ctf_clock_class_set_description(
+                struct bt_ctf_clock_class *clock_class,
+                const char *desc);
+
+extern uint64_t bt_ctf_clock_class_get_frequency(
+                struct bt_ctf_clock_class *clock_class);
+
+extern int bt_ctf_clock_class_set_frequency(
+                struct bt_ctf_clock_class *clock_class, uint64_t freq);
+
+extern uint64_t bt_ctf_clock_class_get_precision(
+                struct bt_ctf_clock_class *clock_class);
+
+extern int bt_ctf_clock_class_set_precision(
+                struct bt_ctf_clock_class *clock_class, uint64_t precision);
+
+extern int bt_ctf_clock_class_get_offset_s(
+                struct bt_ctf_clock_class *clock_class, int64_t *seconds);
+
+extern int bt_ctf_clock_class_set_offset_s(
+                struct bt_ctf_clock_class *clock_class, int64_t seconds);
+
+extern int bt_ctf_clock_class_get_offset_cycles(
+                struct bt_ctf_clock_class *clock_class, int64_t *cycles);
+
+extern int bt_ctf_clock_class_set_offset_cycles(
+                struct bt_ctf_clock_class *clock_class, int64_t cycles);
+
+extern bt_bool bt_ctf_clock_class_is_absolute(
+                struct bt_ctf_clock_class *clock_class);
+
+extern int bt_ctf_clock_class_set_is_absolute(
+                struct bt_ctf_clock_class *clock_class, bt_bool is_absolute);
+
+extern const unsigned char *bt_ctf_clock_class_get_uuid(
+                struct bt_ctf_clock_class *clock_class);
+
+extern int bt_ctf_clock_class_set_uuid(struct bt_ctf_clock_class *clock_class,
+                const unsigned char *uuid);
 
 #ifdef __cplusplus
 }

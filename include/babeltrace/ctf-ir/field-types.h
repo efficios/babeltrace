@@ -59,17 +59,17 @@ In the CTF IR hierarchy, you can set the root field types of three
 objects:
 
 - \ref ctfirtraceclass
-  - Trace packet header field type: bt_trace_set_packet_header_type().
+  - Trace packet header field type: bt_trace_set_packet_header_field_type().
 - \ref ctfirstreamclass
   - Stream packet context field type:
-    bt_stream_class_set_packet_context_type().
+    bt_stream_class_set_packet_context_field_type().
   - Stream event header field type:
-    bt_stream_class_set_event_header_type().
+    bt_stream_class_set_event_header_field_type().
   - Stream event context field type:
-    bt_stream_class_set_event_context_type().
+    bt_stream_class_set_event_context_field_type().
 - \ref ctfireventclass
-  - Event context field type: bt_event_class_set_context_type().
-  - Event payload field type: bt_event_class_set_payload_type().
+  - Event context field type: bt_event_class_set_context_field_type().
+  - Event payload field type: bt_event_class_set_payload_field_type().
 
 As of Babeltrace \btversion, those six previous "root" field types
 \em must be @structft objects.
@@ -1213,8 +1213,8 @@ An enumeration mapping has:
   value, both included in the range.
 
 You can add a mapping to an enumeration field type with
-bt_field_type_enumeration_add_mapping_signed() or
-bt_field_type_enumeration_add_mapping_unsigned(), depending on the
+bt_field_type_enumeration_signed_add_mapping() or
+bt_field_type_enumeration_unsigned_add_mapping(), depending on the
 signedness of the wrapped @intft.
 
 You can find mappings by name or by value with the following find
@@ -1222,10 +1222,10 @@ operations:
 
 - bt_field_type_enumeration_find_mappings_by_name(): Finds the
   mappings with a given name.
-- bt_field_type_enumeration_find_mappings_by_unsigned_value():
+- bt_field_type_enumeration_unsigned_find_mappings_by_value():
   Finds the mappings which contain a given unsigned value in their
   range.
-- bt_field_type_enumeration_find_mappings_by_signed_value():
+- bt_field_type_enumeration_signed_find_mappings_by_value():
   Finds the mappings which contain a given signed value in their range.
 
 Those functions return a @enumftiter on the result set of the find
@@ -1293,7 +1293,7 @@ extern struct bt_field_type *bt_field_type_enumeration_create(
 @postsuccessrefcountretinc
 */
 extern
-struct bt_field_type *bt_field_type_enumeration_get_container_type(
+struct bt_field_type *bt_field_type_enumeration_get_container_field_type(
 		struct bt_field_type *enum_field_type);
 
 /**
@@ -1318,7 +1318,7 @@ extern int64_t bt_field_type_enumeration_get_mapping_count(
 	\p enum_field_type at index \p index.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_field_type_enumeration_get_container_type(), must be \b signed
+bt_field_type_enumeration_get_container_field_type(), must be \b signed
 to use this function.
 
 On success, \p enum_field_type remains the sole owner of \p *name.
@@ -1347,11 +1347,11 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	bt_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_field_type_enumeration_get_mapping_unsigned(): Returns the
+@sa bt_field_type_enumeration_unsigned_get_mapping_by_index(): Returns the
 	unsigned mapping contained by a given enumeration field type
 	at a given index.
 */
-extern int bt_field_type_enumeration_get_mapping_signed(
+extern int bt_field_type_enumeration_signed_get_mapping_by_index(
 		struct bt_field_type *enum_field_type, uint64_t index,
 		const char **name, int64_t *range_begin, int64_t *range_end);
 
@@ -1360,7 +1360,7 @@ extern int bt_field_type_enumeration_get_mapping_signed(
 	\p enum_field_type at index \p index.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_field_type(), must be
 \b unsigned to use this function.
 
 On success, \p enum_field_type remains the sole owner of \p *name.
@@ -1389,11 +1389,11 @@ On success, \p enum_field_type remains the sole owner of \p *name.
 	bt_field_type_enumeration_get_mapping_count()).
 @postrefcountsame{enum_field_type}
 
-@sa bt_field_type_enumeration_get_mapping_signed(): Returns the
+@sa bt_field_type_enumeration_signed_get_mapping_by_index(): Returns the
 	signed mapping contained by a given enumeration field type
 	at a given index.
 */
-extern int bt_field_type_enumeration_get_mapping_unsigned(
+extern int bt_field_type_enumeration_unsigned_get_mapping_by_index(
 		struct bt_field_type *enum_field_type, uint64_t index,
 		const char **name, uint64_t *range_begin,
 		uint64_t *range_end);
@@ -1422,10 +1422,10 @@ operation. See \ref ctfirenumftmappingiter for more details.
 @post <strong>On success</strong>, the returned @enumftiter can iterate
 	on at least one mapping.
 
-@sa bt_field_type_enumeration_find_mappings_by_signed_value(): Finds
+@sa bt_field_type_enumeration_signed_find_mappings_by_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given signed value in their range.
-@sa bt_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
+@sa bt_field_type_enumeration_unsigned_find_mappings_by_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given unsigned value in their range.
 */
@@ -1460,12 +1460,12 @@ operation. See \ref ctfirenumftmappingiter for more details.
 @sa bt_field_type_enumeration_find_mappings_by_name(): Finds the
 	mappings of a given enumeration field type which have a given
 	name.
-@sa bt_field_type_enumeration_find_mappings_by_unsigned_value(): Finds
+@sa bt_field_type_enumeration_unsigned_find_mappings_by_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given unsigned value in their range.
 */
 extern struct bt_field_type_enumeration_mapping_iterator *
-bt_field_type_enumeration_find_mappings_by_signed_value(
+bt_field_type_enumeration_signed_find_mappings_by_value(
 		struct bt_field_type *enum_field_type,
 		int64_t value);
 
@@ -1496,12 +1496,12 @@ operation. See \ref ctfirenumftmappingiter for more details.
 @sa bt_field_type_enumeration_find_mappings_by_name(): Finds the
 	mappings of a given enumeration field type which have a given
 	name.
-@sa bt_field_type_enumeration_find_mappings_by_signed_value(): Finds
+@sa bt_field_type_enumeration_signed_find_mappings_by_value(): Finds
 	the mappings of a given enumeration field type which contain
 	a given unsigned value in their range.
 */
 extern struct bt_field_type_enumeration_mapping_iterator *
-bt_field_type_enumeration_find_mappings_by_unsigned_value(
+bt_field_type_enumeration_unsigned_find_mappings_by_value(
 		struct bt_field_type *enum_field_type,
 		uint64_t value);
 
@@ -1514,7 +1514,7 @@ Make \p range_begin and \p range_end the same value to add a mapping
 to a single value.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_field_type(), must be
 \b signed to use this function.
 
 A mapping in \p enum_field_type can exist with the name \p name.
@@ -1537,10 +1537,10 @@ A mapping in \p enum_field_type can exist with the name \p name.
 @pre \p range_end is greater than or equal to \p range_begin.
 @postrefcountsame{enum_field_type}
 
-@sa bt_field_type_enumeration_add_mapping_unsigned(): Adds an
+@sa bt_field_type_enumeration_unsigned_add_mapping(): Adds an
 	unsigned mapping to a given enumeration field type.
 */
-extern int bt_field_type_enumeration_add_mapping_signed(
+extern int bt_field_type_enumeration_signed_add_mapping(
 		struct bt_field_type *enum_field_type, const char *name,
 		int64_t range_begin, int64_t range_end);
 
@@ -1553,7 +1553,7 @@ Make \p range_begin and \p range_end the same value to add a mapping
 to a single value.
 
 The @intft wrapped by \p enum_field_type, as returned by
-bt_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_field_type(), must be
 \b unsigned to use this function.
 
 A mapping in \p enum_field_type can exist with the name \p name.
@@ -1576,10 +1576,10 @@ A mapping in \p enum_field_type can exist with the name \p name.
 @pre \p range_end is greater than or equal to \p range_begin.
 @postrefcountsame{enum_field_type}
 
-@sa bt_field_type_enumeration_add_mapping_signed(): Adds a signed
+@sa bt_field_type_enumeration_signed_add_mapping(): Adds a signed
 	mapping to a given enumeration field type.
 */
-extern int bt_field_type_enumeration_add_mapping_unsigned(
+extern int bt_field_type_enumeration_unsigned_add_mapping(
 		struct bt_field_type *enum_field_type, const char *name,
 		uint64_t range_begin, uint64_t range_end);
 
@@ -1603,10 +1603,10 @@ functions:
 - Find operations of an @enumft object:
   - bt_field_type_enumeration_find_mappings_by_name(): Finds the
     mappings with a given name.
-  - bt_field_type_enumeration_find_mappings_by_unsigned_value():
+  - bt_field_type_enumeration_unsigned_find_mappings_by_value():
     Finds the mappings which contain a given unsigned value in their
     range.
-  - bt_field_type_enumeration_find_mappings_by_signed_value():
+  - bt_field_type_enumeration_signed_find_mappings_by_value():
     Finds the mappings which contain a given signed value in their range.
 - bt_field_enumeration_get_mappings(): Finds the mappings in the
   @enumft of an @enumfield containing its current integral value in
@@ -1617,9 +1617,9 @@ at least one mapping. Otherwise, they return \c NULL.
 
 You can get the name and the range of a mapping iterator's current
 mapping with
-bt_field_type_enumeration_mapping_iterator_get_signed()
+bt_field_type_enumeration_mapping_iterator_signed_get()
 or
-bt_field_type_enumeration_mapping_iterator_get_unsigned(),
+bt_field_type_enumeration_mapping_iterator_unsigned_get(),
 depending on the signedness of the @intft wrapped by the
 @enumft. If you only need the name of the current mapping, you can
 use any of the two functions and set the \p range_begin and \p range_end
@@ -1655,7 +1655,7 @@ management of Babeltrace objects.
 
 If one of \p range_begin or \p range_end is not \c NULL, the @intft
 wrapped by the @enumft from which \p iter was obtained, as returned by
-bt_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_field_type(), must be
 \b signed to use this function. Otherwise, if you only need to get the
 name of the current mapping, set \p range_begin and \p range_end to
 \c NULL.
@@ -1681,11 +1681,11 @@ bt_field_type_enumeration_mapping_iterator_next() is
 @prenotnull{iter}
 @postrefcountsame{iter}
 
-@sa bt_field_type_enumeration_mapping_iterator_get_unsigned():
+@sa bt_field_type_enumeration_mapping_iterator_unsigned_get():
 	Returns the name and the unsigned range of the current mapping
 	of a given enumeration field type mapping iterator.
 */
-extern int bt_field_type_enumeration_mapping_iterator_get_signed(
+extern int bt_field_type_enumeration_mapping_iterator_signed_get(
 		struct bt_field_type_enumeration_mapping_iterator *iter,
 		const char **name, int64_t *range_begin, int64_t *range_end);
 
@@ -1695,7 +1695,7 @@ extern int bt_field_type_enumeration_mapping_iterator_get_signed(
 
 If one of \p range_begin or \p range_end is not \c NULL, the @intft
 wrapped by the @enumft from which \p iter was obtained, as returned by
-bt_field_type_enumeration_get_container_type(), must be
+bt_field_type_enumeration_get_container_field_type(), must be
 \b unsigned to use this function. Otherwise, if you only need to get the
 name of the current mapping, set \p range_begin and \p range_end to
 \c NULL.
@@ -1722,11 +1722,11 @@ bt_field_type_enumeration_mapping_iterator_next() is
 @postrefcountsame{iter}
 
 @sa
-	bt_field_type_enumeration_mapping_iterator_get_signed():
+	bt_field_type_enumeration_mapping_iterator_signed_get():
 	Returns the name and the signed range of the current mapping of
 	a given enumeration field type mapping iterator.
 */
-extern int bt_field_type_enumeration_mapping_iterator_get_unsigned(
+extern int bt_field_type_enumeration_mapping_iterator_unsigned_get(
 		struct bt_field_type_enumeration_mapping_iterator *iter,
 		const char **name, uint64_t *range_begin, uint64_t *range_end);
 
@@ -2059,7 +2059,7 @@ extern struct bt_field_type *bt_field_type_array_create(
 @postrefcountsame{array_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_type_array_get_element_type(
+extern struct bt_field_type *bt_field_type_array_get_element_field_type(
 		struct bt_field_type *array_field_type);
 
 /**
@@ -2151,7 +2151,7 @@ extern struct bt_field_type *bt_field_type_sequence_create(
 @postrefcountsame{sequence_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_type_sequence_get_element_type(
+extern struct bt_field_type *bt_field_type_sequence_get_element_field_type(
 		struct bt_field_type *sequence_field_type);
 
 /**
@@ -2286,7 +2286,7 @@ extern struct bt_field_type *bt_field_type_variant_create(
 @postrefcountsame{variant_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_type_variant_get_tag_type(
+extern struct bt_field_type *bt_field_type_variant_get_tag_field_type(
 		struct bt_field_type *variant_field_type);
 
 /**
@@ -2450,7 +2450,7 @@ struct bt_field_type *bt_field_type_variant_get_field_type_by_name(
 
 The field type of \p tag_field, as returned by bt_field_get_type(),
 \em must be equivalent to the field type returned by
-bt_field_type_variant_get_tag_type() for \p variant_field_type.
+bt_field_type_variant_get_tag_field_type() for \p variant_field_type.
 
 @param[in] variant_field_type	Variant field type of which to get
 				a field's type.
@@ -2515,72 +2515,6 @@ extern int bt_field_type_variant_add_field(
 		const char *field_name);
 
 /** @} */
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field_type bt_field_type
-#define bt_ctf_field_type_integer_create bt_field_type_integer_create
-#define bt_ctf_field_type_integer_set_signed bt_field_type_integer_set_is_signed
-#define bt_ctf_field_type_integer_set_base bt_field_type_integer_set_base
-#define bt_ctf_field_type_integer_set_encoding bt_field_type_integer_set_encoding
-#define bt_ctf_field_type_enumeration_create bt_field_type_enumeration_create
-#define bt_ctf_field_type_enumeration_add_mapping bt_field_type_enumeration_add_mapping_signed
-#define bt_ctf_field_type_floating_point_create bt_field_type_floating_point_create
-#define bt_ctf_field_type_floating_point_set_exponent_digits bt_field_type_floating_point_set_exponent_digits
-#define bt_ctf_field_type_floating_point_set_mantissa_digits bt_field_type_floating_point_set_mantissa_digits
-#define bt_ctf_field_type_structure_create bt_field_type_structure_create
-#define bt_ctf_field_type_structure_add_field bt_field_type_structure_add_field
-#define bt_ctf_field_type_structure_add_field bt_field_type_structure_add_field
-#define bt_ctf_field_type_structure_get_field bt_field_type_structure_get_field_by_index
-#define bt_ctf_field_type_variant_create bt_field_type_variant_create
-#define bt_ctf_field_type_variant_add_field bt_field_type_variant_add_field
-#define bt_ctf_field_type_array_create bt_field_type_array_create
-#define bt_ctf_field_type_sequence_create bt_field_type_sequence_create
-#define bt_ctf_field_type_string_create bt_field_type_string_create
-#define bt_ctf_field_type_string_set_encoding bt_field_type_string_set_encoding
-#define bt_ctf_field_type_set_alignment bt_field_type_set_alignment
-#define bt_ctf_field_type_set_byte_order bt_field_type_set_byte_order
-
-extern int bt_ctf_field_type_integer_get_signed(
-		struct bt_ctf_field_type *int_field_type);
-
-#define ctf_type_id bt_field_type_id
-#define CTF_TYPE_UNKNOWN BT_FIELD_TYPE_ID_UNKNOWN
-#define CTF_TYPE_INTEGER BT_FIELD_TYPE_ID_INTEGER
-#define CTF_TYPE_FLOAT BT_FIELD_TYPE_ID_FLOAT
-#define CTF_TYPE_ENUM BT_FIELD_TYPE_ID_ENUM
-#define CTF_TYPE_STRING BT_FIELD_TYPE_ID_STRING
-#define CTF_TYPE_STRUCT BT_FIELD_TYPE_ID_STRUCT
-#define CTF_TYPE_UNTAGGED_VARIANT BT_FIELD_TYPE_ID_VARIANT
-#define CTF_TYPE_VARIANT BT_FIELD_TYPE_ID_VARIANT
-#define CTF_TYPE_ARRAY BT_FIELD_TYPE_ID_ARRAY
-#define CTF_TYPE_SEQUENCE BT_FIELD_TYPE_ID_SEQUENCE
-#define NR_CTF_TYPES BT_FIELD_TYPE_ID_NR
-
-#define ctf_string_encoding bt_string_encoding
-#define CTF_STRING_NONE BT_STRING_ENCODING_NONE
-#define CTF_STRING_UTF8 BT_STRING_ENCODING_UTF8
-#define CTF_STRING_ASCII BT_STRING_ENCODING_ASCII
-#define CTF_STRING_UNKNOWN BT_STRING_ENCODING_UNKNOWN
-
-#define bt_ctf_string_encoding bt_string_encoding
-#define BT_CTF_STRING_ENCODING_NONE BT_STRING_ENCODING_NONE
-#define BT_CTF_STRING_ENCODING_UTF8 BT_STRING_ENCODING_UTF8
-#define BT_CTF_STRING_ENCODING_ASCII BT_STRING_ENCODING_ASCII
-#define BT_CTF_STRING_ENCODING_UNKNOWN BT_STRING_ENCODING_UNKNOWN
-
-#define bt_ctf_byte_order bt_byte_order
-#define BT_CTF_BYTE_ORDER_UNKNOWN BT_BYTE_ORDER_UNKNOWN
-#define BT_CTF_BYTE_ORDER_NATIVE BT_BYTE_ORDER_NATIVE
-#define BT_CTF_BYTE_ORDER_LITTLE_ENDIAN BT_BYTE_ORDER_LITTLE_ENDIAN
-#define BT_CTF_BYTE_ORDER_BIG_ENDIAN BT_BYTE_ORDER_BIG_ENDIAN
-#define BT_CTF_BYTE_ORDER_NETWORK BT_BYTE_ORDER_NETWORK
-
-#define bt_ctf_integer_base bt_integer_base
-#define BT_CTF_INTEGER_BASE_UNKNOWN BT_INTEGER_BASE_UNKNOWN
-#define BT_CTF_INTEGER_BASE_BINARY BT_INTEGER_BASE_BINARY
-#define BT_CTF_INTEGER_BASE_OCTAL BT_INTEGER_BASE_OCTAL
-#define BT_CTF_INTEGER_BASE_DECIMAL BT_INTEGER_BASE_DECIMAL
-#define BT_CTF_INTEGER_BASE_HEXADECIMAL BT_INTEGER_BASE_HEXADECIMAL
 
 #ifdef __cplusplus
 }

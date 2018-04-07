@@ -160,8 +160,7 @@ its specific setters.
 @postsuccessrefcountret1
 @postsuccessfrozen{field_type}
 */
-extern struct bt_field *bt_field_create(
-		struct bt_field_type *field_type);
+extern struct bt_field *bt_field_create(struct bt_field_type *field_type);
 
 /**
 @brief	Returns the parent @ft of the @field \p field.
@@ -177,8 +176,7 @@ create the field object in the first place with bt_field_create().
 @postrefcountsame{field}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_get_type(
-	struct bt_field *field);
+extern struct bt_field_type *bt_field_get_type(struct bt_field *field);
 
 /** @} */
 
@@ -216,21 +214,7 @@ extern struct bt_field_type *bt_field_get_type(
 @sa bt_field_is_variant(): Returns whether or not a given field is a
 	@varfield.
 */
-extern enum bt_field_type_id bt_field_get_type_id(
-		struct bt_field *field);
-
-/*
- * bt_field_signed_integer_get_value: get a signed integer field's value
- *
- * Get a signed integer field's value.
- *
- * @param integer Signed integer field instance.
- * @param value Pointer to a signed integer where the value will be stored.
- *
- * Returns 0 on success, a negative value on error.
- */
-extern int bt_field_signed_integer_get_value(struct bt_field *integer,
-		int64_t *value);
+extern enum bt_field_type_id bt_field_get_type_id(struct bt_field *field);
 
 /**
 @brief	Returns whether or not the @field \p field is a @intfield.
@@ -403,17 +387,17 @@ a @intft.
 An integer field object is considered \em unsigned if
 bt_field_type_integer_get_signed() on its parent field type returns
 0. Otherwise it is considered \em signed. You \em must use
-bt_field_unsigned_integer_get_value() and
-bt_field_unsigned_integer_set_value() with an unsigned integer
-field, and bt_field_signed_integer_get_value() and
-bt_field_signed_integer_set_value() with a signed integer field.
+bt_field_integer_unsigned_get_value() and
+bt_field_integer_unsigned_set_value() with an unsigned integer
+field, and bt_field_integer_signed_get_value() and
+bt_field_integer_signed_set_value() with a signed integer field.
 
 After you create an integer field with bt_field_create(), you
 \em must set an integral value with
-bt_field_unsigned_integer_set_value() or
-bt_field_signed_integer_set_value() before you can get the
-field's value with bt_field_unsigned_integer_get_value() or
-bt_field_signed_integer_get_value().
+bt_field_integer_unsigned_set_value() or
+bt_field_integer_signed_set_value() before you can get the
+field's value with bt_field_integer_unsigned_get_value() or
+bt_field_integer_signed_get_value().
 
 @sa ctfirintfieldtype
 @sa ctfirfields
@@ -440,13 +424,13 @@ bt_field_signed_integer_get_value().
 @pre bt_field_type_integer_get_signed() returns 1 for the parent
 	@ft of \p integer_field.
 @pre \p integer_field contains a signed integral value previously
-	set with bt_field_signed_integer_set_value().
+	set with bt_field_integer_signed_set_value().
 @postrefcountsame{integer_field}
 
-@sa bt_field_signed_integer_set_value(): Sets the signed integral
+@sa bt_field_integer_signed_set_value(): Sets the signed integral
 	value of a given integer field.
 */
-extern int bt_field_signed_integer_get_value(
+extern int bt_field_integer_signed_get_value(
 		struct bt_field *integer_field, int64_t *value);
 
 /**
@@ -466,10 +450,10 @@ extern int bt_field_signed_integer_get_value(
 	@ft of \p integer_field.
 @postrefcountsame{integer_field}
 
-@sa bt_field_signed_integer_get_value(): Returns the signed integral
+@sa bt_field_integer_signed_get_value(): Returns the signed integral
 	value of a given integer field.
 */
-extern int bt_field_signed_integer_set_value(
+extern int bt_field_integer_signed_set_value(
 		struct bt_field *integer_field, int64_t value);
 
 /**
@@ -490,13 +474,13 @@ extern int bt_field_signed_integer_set_value(
 @pre bt_field_type_integer_get_signed() returns 0 for the parent
 	@ft of \p integer_field.
 @pre \p integer_field contains an unsigned integral value previously
-	set with bt_field_unsigned_integer_set_value().
+	set with bt_field_integer_unsigned_set_value().
 @postrefcountsame{integer_field}
 
-@sa bt_field_unsigned_integer_set_value(): Sets the unsigned
+@sa bt_field_integer_unsigned_set_value(): Sets the unsigned
 	integral value of a given integer field.
 */
-extern int bt_field_unsigned_integer_get_value(
+extern int bt_field_integer_unsigned_get_value(
 		struct bt_field *integer_field, uint64_t *value);
 
 /**
@@ -516,10 +500,10 @@ extern int bt_field_unsigned_integer_get_value(
 	@ft of \p integer_field.
 @postrefcountsame{integer_field}
 
-@sa bt_field_unsigned_integer_get_value(): Returns the unsigned
+@sa bt_field_integer_unsigned_get_value(): Returns the unsigned
 	integral value of a given integer field.
 */
-extern int bt_field_unsigned_integer_set_value(
+extern int bt_field_integer_unsigned_set_value(
 		struct bt_field *integer_field, uint64_t value);
 
 /** @} */
@@ -593,8 +577,7 @@ extern int bt_field_floating_point_get_value(
 	number value of a given floating point number field.
 */
 extern int bt_field_floating_point_set_value(
-		struct bt_field *float_field,
-		double value);
+		struct bt_field *float_field, double value);
 
 /** @} */
 
@@ -613,8 +596,8 @@ holds a @intfield, and which is described by a @enumft.
 To set the current integral value of an enumeration field, you need to
 get its wrapped @intfield with bt_field_enumeration_get_container(),
 and then set the integral value with either
-bt_field_signed_integer_set_value() or
-bt_field_unsigned_integer_set_value().
+bt_field_integer_signed_set_value() or
+bt_field_integer_unsigned_set_value().
 
 Once you set the integral value of an enumeration field by following the
 previous paragraph, you can get the mappings containing this value in
@@ -733,8 +716,7 @@ value.
 @sa bt_field_string_set_value(): Sets the string value of a given
 	string field.
 */
-extern const char *bt_field_string_get_value(
-		struct bt_field *string_field);
+extern const char *bt_field_string_get_value(struct bt_field *string_field);
 
 /**
 @brief	Sets the string value of the @stringfield \p string_field to
@@ -1192,20 +1174,6 @@ extern struct bt_field *bt_field_variant_get_tag(
 		struct bt_field *variant_field);
 
 /** @} */
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_field bt_field
-#define bt_ctf_field_create bt_field_create
-#define bt_ctf_field_structure_get_field bt_field_structure_get_field_by_name
-#define bt_ctf_field_variant_get_field bt_field_variant_get_field
-#define bt_ctf_field_array_get_field bt_field_array_get_field
-#define bt_ctf_field_sequence_set_length bt_field_sequence_set_length
-#define bt_ctf_field_sequence_get_field bt_field_sequence_get_field
-#define bt_ctf_field_enumeration_get_container bt_field_enumeration_get_container
-#define bt_ctf_field_signed_integer_set_value bt_field_signed_integer_set_value
-#define bt_ctf_field_unsigned_integer_set_value bt_field_unsigned_integer_set_value
-#define bt_ctf_field_floating_point_set_value bt_field_floating_point_set_value
-#define bt_ctf_field_string_set_value bt_field_string_set_value
 
 #ifdef __cplusplus
 }

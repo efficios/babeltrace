@@ -431,7 +431,7 @@ uint64_t get_packet_header_stream_instance_id(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	ret = bt_field_unsigned_integer_get_value(stream_instance_id_field,
+	ret = bt_field_integer_unsigned_get_value(stream_instance_id_field,
 		&stream_instance_id);
 	if (ret) {
 		stream_instance_id = -1ULL;
@@ -474,7 +474,7 @@ uint64_t get_packet_context_timestamp_begin_ns(
 		goto end;
 	}
 
-	ret = bt_field_unsigned_integer_get_value(timestamp_begin_field,
+	ret = bt_field_integer_unsigned_get_value(timestamp_begin_field,
 		&timestamp_begin_raw_value);
 	if (ret) {
 		goto end;
@@ -893,12 +893,14 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		}
 
 		if (ds_file_group->stream_id == -1ULL) {
-			/* No stream ID */
+			/* No stream ID: use 0 */
 			ds_file_group->stream = bt_stream_create(
-				ds_file_group->stream_class, name->str);
+				ds_file_group->stream_class, name->str,
+				ctf_fs_trace->next_stream_id);
+			ctf_fs_trace->next_stream_id++;
 		} else {
 			/* Specific stream ID */
-			ds_file_group->stream = bt_stream_create_with_id(
+			ds_file_group->stream = bt_stream_create(
 				ds_file_group->stream_class, name->str,
 				ds_file_group->stream_id);
 		}

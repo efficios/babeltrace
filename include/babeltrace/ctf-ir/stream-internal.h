@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_STREAM_INTERNAL_H
+#define BABELTRACE_CTF_IR_STREAM_INTERNAL_H
 
 /*
  * BabelTrace - CTF Writer: Stream internal
@@ -27,65 +27,98 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/event-fields.h>
-#include <babeltrace/ctf-writer/event-types.h>
-#include <babeltrace/ctf-writer/serialize-internal.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/utils-internal.h>
+#include <babeltrace/object-internal.h>
+#include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
 
-struct bt_port;
-struct bt_component;
+struct bt_stream_class;
+struct bt_stream_common;
 
-typedef void (*bt_stream_destroy_listener_func)(
-		struct bt_stream *stream, void *data);
+typedef void (*bt_stream_common_destroy_listener_func)(
+		struct bt_stream_common *stream, void *data);
 
-struct bt_stream_destroy_listener {
-	bt_stream_destroy_listener_func func;
+struct bt_stream_common_destroy_listener {
+	bt_stream_common_destroy_listener_func func;
 	void *data;
 };
 
-struct bt_stream {
+struct bt_stream_common {
 	struct bt_object base;
 	int64_t id;
-	struct bt_stream_class *stream_class;
+	struct bt_stream_class_common *stream_class;
 	GString *name;
-	struct bt_field *packet_header;
-	struct bt_field *packet_context;
 
-	/* Writer-specific members. */
-	/* Array of pointers to bt_event for the current packet */
-	GPtrArray *events;
-	struct bt_stream_pos pos;
-	unsigned int flushed_packet_count;
-	uint64_t discarded_events;
-	uint64_t size;
-	uint64_t last_ts_end;
-
-	/* Array of struct bt_stream_destroy_listener */
+	/* Array of struct bt_stream_common_destroy_listener */
 	GArray *destroy_listeners;
 };
 
-BT_HIDDEN
-int bt_stream_set_fd(struct bt_stream *stream, int fd);
+struct bt_stream {
+	struct bt_stream_common common;
+};
 
 BT_HIDDEN
-void bt_stream_add_destroy_listener(struct bt_stream *stream,
-		bt_stream_destroy_listener_func func, void *data);
+void bt_stream_common_add_destroy_listener(struct bt_stream_common *stream,
+		bt_stream_common_destroy_listener_func func, void *data);
 
 BT_HIDDEN
-void bt_stream_remove_destroy_listener(struct bt_stream *stream,
-		bt_stream_destroy_listener_func func, void *data);
+void bt_stream_common_remove_destroy_listener(struct bt_stream_common *stream,
+		bt_stream_common_destroy_listener_func func, void *data);
+
+BT_HIDDEN
+int bt_stream_common_initialize(
+		struct bt_stream_common *stream,
+		struct bt_stream_class_common *stream_class, const char *name,
+		uint64_t id, bt_object_release_func release_func);
+
+BT_HIDDEN
+void bt_stream_common_finalize(struct bt_stream_common *stream);
 
 static inline
-struct bt_stream_class *bt_stream_borrow_stream_class(
-		struct bt_stream *stream)
+struct bt_stream_class_common *bt_stream_common_borrow_class(
+		struct bt_stream_common *stream)
 {
 	BT_ASSERT(stream);
 	return stream->stream_class;
 }
 
-#endif /* BABELTRACE_CTF_WRITER_STREAM_INTERNAL_H */
+static inline
+struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
+{
+	BT_ASSERT(stream);
+	return BT_FROM_COMMON(bt_stream_common_borrow_class(BT_TO_COMMON(stream)));
+}
+
+static inline
+struct bt_stream_class_common *bt_stream_common_get_class(
+		struct bt_stream_common *stream)
+{
+	return bt_get(bt_stream_common_borrow_class(stream));
+}
+
+static inline
+const char *bt_stream_common_get_name(struct bt_stream_common *stream)
+{
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return stream->name ? stream->name->str : NULL;
+}
+
+static inline
+int64_t bt_stream_common_get_id(struct bt_stream_common *stream)
+{
+	int64_t ret;
+
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	ret = stream->id;
+	if (ret < 0) {
+		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",
+			stream, bt_stream_common_get_name(stream));
+	}
+
+	return ret;
+}
+
+#endif /* BABELTRACE_CTF_IR_STREAM_INTERNAL_H */

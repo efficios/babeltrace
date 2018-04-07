@@ -101,48 +101,11 @@ struct bt_stream;
 struct bt_event;
 
 /**
-@brief  Creates a default CTF IR stream named \p name from the CTF IR
-	stream class \p stream_class.
-
-\p stream_class \em must have a parent
-\link ctfirtraceclass CTF IR trace class\endlink.
-
-If the parent \link ctfirtraceclass trace class\endlink of
-\p stream_class was created by a \link ctfwriter CTF writer\endlink
-object, then the stream object is created in CTF writer mode, and
-you can use the functions of \ref ctfwriterstream on it.
-Otherwise it is created in normal mode: you should only use the
-functions documented in this module on it.
-
-\p name can be \c NULL to create an unnamed stream object.
-
-@param[in] stream_class	CTF IR stream class to use to create the
-			CTF IR stream.
-@param[in] name		Name of the stream object to create (copied on
-			success) or \c NULL to create an unnamed stream.
-@returns		Created stream object, or \c NULL on error.
-
-@prenotnull{stream_class}
-@pre \p stream_class has a parent trace class.
-@postsuccessrefcountret1
-
-@sa bt_stream_create_with_id(): Create a CTF IR stream with a
-	specific ID.
-*/
-extern struct bt_stream *bt_stream_create(
-		struct bt_stream_class *stream_class,
-		const char *name);
-
-/**
 @brief  Creates a default CTF IR stream named \p name with ID \p id
 	from the CTF IR stream class \p stream_class.
 
 \p stream_class \em must have a parent
 \link ctfirtraceclass CTF IR trace class\endlink.
-
-You \em must have created the trace class of \p stream class directly
-with bt_trace_create(), not through bt_writer_create() (use
-bt_stream_create() for this).
 
 \p id \em must be unique amongst the IDs of all the streams created
 from \p stream_class with bt_stream_create_with_id().
@@ -160,11 +123,8 @@ from \p stream_class with bt_stream_create_with_id().
 @pre \p id is lesser than or equal to 9223372036854775807 (\c INT64_MAX).
 @pre \p stream_class has a parent trace class.
 @postsuccessrefcountret1
-
-@sa bt_stream_create(): Create a CTF IR stream without an ID.
 */
-extern struct bt_stream *bt_stream_create_with_id(
-		struct bt_stream_class *stream_class,
+extern struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
 		const char *name, uint64_t id);
 
 /**
@@ -213,9 +173,6 @@ extern struct bt_stream_class *bt_stream_get_class(
 		struct bt_stream *stream);
 
 /** @} */
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_stream bt_stream
 
 #ifdef __cplusplus
 }

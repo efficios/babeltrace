@@ -35,13 +35,35 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/object-internal.h>
 
+struct metadata_context {
+	GString *string;
+	GString *field_name;
+	unsigned int current_indentation_level;
+};
+
 struct bt_ctf_writer {
 	struct bt_object base;
 	int frozen; /* Protects attributes that can't be changed mid-trace */
-	struct bt_trace *trace;
+	struct bt_ctf_trace *trace;
 	GString *path;
 	int metadata_fd;
 };
+
+enum field_type_alias {
+	FIELD_TYPE_ALIAS_UINT5_T = 0,
+	FIELD_TYPE_ALIAS_UINT8_T,
+	FIELD_TYPE_ALIAS_UINT16_T,
+	FIELD_TYPE_ALIAS_UINT27_T,
+	FIELD_TYPE_ALIAS_UINT32_T,
+	FIELD_TYPE_ALIAS_UINT64_T,
+	NR_FIELD_TYPE_ALIAS,
+};
+
+BT_HIDDEN
+struct bt_ctf_field_type *get_field_type(enum field_type_alias alias);
+
+BT_HIDDEN
+const char *get_byte_order_string(enum bt_byte_order byte_order);
 
 BT_HIDDEN
 void bt_ctf_writer_freeze(struct bt_ctf_writer *writer);

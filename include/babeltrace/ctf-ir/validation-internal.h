@@ -25,12 +25,16 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/values.h>
 #include <babeltrace/babeltrace-internal.h>
+
+struct bt_trace_common;
+struct bt_stream_class_common;
+struct bt_event_class_common;
+struct bt_field_type_common;
+
+typedef struct bt_field_type_common *(*bt_validation_flag_copy_field_type_func)(
+		struct bt_field_type_common *);
 
 enum bt_validation_flag {
 	BT_VALIDATION_FLAG_TRACE	= 1,
@@ -48,12 +52,12 @@ enum bt_validation_flag {
  * `valid_flags` contains the results of the validation.
  */
 struct bt_validation_output {
-	struct bt_field_type *packet_header_type;
-	struct bt_field_type *packet_context_type;
-	struct bt_field_type *event_header_type;
-	struct bt_field_type *stream_event_ctx_type;
-	struct bt_field_type *event_context_type;
-	struct bt_field_type *event_payload_type;
+	struct bt_field_type_common *packet_header_type;
+	struct bt_field_type_common *packet_context_type;
+	struct bt_field_type_common *event_header_type;
+	struct bt_field_type_common *stream_event_ctx_type;
+	struct bt_field_type_common *event_context_type;
+	struct bt_field_type_common *event_payload_type;
 	enum bt_validation_flag valid_flags;
 };
 
@@ -79,15 +83,16 @@ struct bt_validation_output {
  */
 BT_HIDDEN
 int bt_validate_class_types(struct bt_value *environment,
-		struct bt_field_type *packet_header_type,
-		struct bt_field_type *packet_context_type,
-		struct bt_field_type *event_header_type,
-		struct bt_field_type *stream_event_ctx_type,
-		struct bt_field_type *event_context_type,
-		struct bt_field_type *event_payload_type,
+		struct bt_field_type_common *packet_header_type,
+		struct bt_field_type_common *packet_context_type,
+		struct bt_field_type_common *event_header_type,
+		struct bt_field_type_common *stream_event_ctx_type,
+		struct bt_field_type_common *event_context_type,
+		struct bt_field_type_common *event_payload_type,
 		int trace_valid, int stream_class_valid, int event_class_valid,
 		struct bt_validation_output *output,
-		enum bt_validation_flag validate_flags);
+		enum bt_validation_flag validate_flags,
+		bt_validation_flag_copy_field_type_func copy_field_type_func);
 
 /*
  * This function replaces the actual field types of a trace, a stream
@@ -105,9 +110,9 @@ int bt_validate_class_types(struct bt_value *environment,
  * All parameters are owned by the caller.
  */
 BT_HIDDEN
-void bt_validation_replace_types(struct bt_trace *trace,
-		struct bt_stream_class *stream_class,
-		struct bt_event_class *event_class,
+void bt_validation_replace_types(struct bt_trace_common *trace,
+		struct bt_stream_class_common *stream_class,
+		struct bt_event_class_common *event_class,
 		struct bt_validation_output *output,
 		enum bt_validation_flag replace_flags);
 

@@ -183,8 +183,8 @@ enum bt_event_class_log_level {
 On success, the context and payload field types are empty structure
 field types. You can modify those default field types after the
 event class is created with
-bt_event_class_set_context_type() and
-bt_event_class_set_payload_type().
+bt_event_class_set_context_field_type() and
+bt_event_class_set_payload_field_type().
 
 Upon creation, the event class's ID is <em>not set</em>. You
 can set it to a specific value with bt_event_class_set_id(). If it
@@ -405,10 +405,10 @@ extern int bt_event_class_set_emf_uri(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_event_class_set_context_type(): Sets the context field type of a
+@sa bt_event_class_set_context_field_type(): Sets the context field type of a
 	given event class.
 */
-extern struct bt_field_type *bt_event_class_get_context_type(
+extern struct bt_field_type *bt_event_class_get_context_field_type(
 		struct bt_event_class *event_class);
 
 /**
@@ -437,10 +437,10 @@ As of Babeltrace \btversion, if \p context_type is not \c NULL,
 @post <strong>On success, if \p context_type is not \c NULL</strong>,
 	the reference count of \p context_type is incremented.
 
-@sa bt_event_class_get_context_type(): Returns the context field type of a
+@sa bt_event_class_get_context_field_type(): Returns the context field type of a
 	given event class.
 */
-extern int bt_event_class_set_context_type(
+extern int bt_event_class_set_context_field_type(
 		struct bt_event_class *event_class,
 		struct bt_field_type *context_type);
 
@@ -457,10 +457,10 @@ extern int bt_event_class_set_context_type(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_event_class_set_payload_type(): Sets the payload field type of a
+@sa bt_event_class_set_payload_field_type(): Sets the payload field type of a
 	given event class.
 */
-extern struct bt_field_type *bt_event_class_get_payload_type(
+extern struct bt_field_type *bt_event_class_get_payload_field_type(
 		struct bt_event_class *event_class);
 
 /**
@@ -489,140 +489,16 @@ As of Babeltrace \btversion, if \p payload_type is not \c NULL,
 @post <strong>On success, if \p payload_type is not \c NULL</strong>,
 	the reference count of \p payload_type is incremented.
 
-@sa bt_event_class_get_payload_type(): Returns the payload field type of a
+@sa bt_event_class_get_payload_field_type(): Returns the payload field type of a
 	given event class.
 */
-extern int bt_event_class_set_payload_type(
+extern int bt_event_class_set_payload_field_type(
 		struct bt_event_class *event_class,
 		struct bt_field_type *payload_type);
 
-/**
-@brief	Returns the number of fields contained in the
-	payload field type of the CTF IR event class \p event_class.
-
-@remarks
-Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_event_class_get_payload_type() and
-getting its field count with
-bt_field_type_structure_get_field_count().
-
-@param[in] event_class	Event class of which to get the number
-			of fields contained in its payload field type.
-@returns		Number of fields in the payload field type
-			of \p event_class, or a negative value on error.
-
-@prenotnull{event_class}
-@postrefcountsame{event_class}
-*/
-extern int64_t bt_event_class_get_payload_type_field_count(
-		struct bt_event_class *event_class);
-
-/**
-@brief	Returns the type and the name of the field at index \p index
-	in the payload field type of the CTF IR event class
-	\p event_class.
-
-On success, the field's type is placed in \p *field_type if
-\p field_type is not \c NULL. The field's name is placed in
-\p *name if \p name is not \c NULL. \p event_class remains the sole
-owner of \p *name.
-
-Both \p name and \p field_type can be \c NULL if the caller is not
-interested in one of them.
-
-@remarks
-Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_event_class_get_payload_type() and
-getting the type and name of one of its field with
-bt_field_type_structure_get_field().
-
-@param[in] event_class	Event class of which to get the type and name
-			of a field in its payload field type.
-@param[out] field_name	Name of the field at the index
-			\p index in the payload field type of
-			\p event_class (can be \c NULL).
-@param[out] field_type	Type of the field at the index \p index in the
-			payload field type of \p event_class
-			(can be \c NULL).
-@param[in] index	Index of the payload field type's field to find.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event_class}
-@pre \p index is lesser than the number of fields contained in the
-	payload field type of \p event_class (see
-	bt_event_class_get_payload_type_field_count()).
-@postrefcountsame{event_class}
-@post <strong>On success, if \p field_type is not \c NULL</strong>, the
-	reference count of \p *field_type is incremented.
-*/
-extern int bt_event_class_get_payload_type_field_by_index(
-		struct bt_event_class *event_class,
-		const char **field_name, struct bt_field_type **field_type,
-		uint64_t index);
-
-/**
-@brief  Returns the type of the field named \p name in the payload
-	field type of the CTF IR event class \p event_class.
-
-@remarks
-Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_event_class_get_payload_type() and
-getting the type of one of its field with
-bt_field_type_structure_get_field_type_by_name().
-
-@param[in] event_class	Event class of which to get the type of a
-			payload field type's field.
-@param[in] name		Name of the payload field type's field to get.
-@returns		Type of the field named \p name in the payload
-			field type of \p event_class, or \c NULL if
-			the function cannot find the field or
-			on error.
-
-@prenotnull{event_class}
-@prenotnull{name}
-@postrefcountsame{event_class}
-@postsuccessrefcountretinc
-*/
-extern struct bt_field_type *
-bt_event_class_get_payload_type_field_type_by_name(
-		struct bt_event_class *event_class, const char *name);
-
-/**
-@brief	Adds a field named \p name with the type \p field_type to the
-	payload field type of the CTF IR event class \p event_class.
-
-@remarks
-Calling this function is the equivalent of getting the payload field
-type of \p event_class with bt_event_class_get_payload_type() and
-adding a field to it with bt_field_type_structure_add_field().
-
-@param[in] event_class	Event class containing the payload field
-			type in which to add a field.
-@param[in] field_type	Type of the field to add.
-@param[in] name		Name of the field to add (copied on
-			success).
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event_class}
-@prenotnull{type}
-@prenotnull{name}
-@prehot{event_class}
-@postrefcountsame{event_class}
-@postsuccessrefcountinc{field_type}
-*/
-extern int bt_event_class_add_field(struct bt_event_class *event_class,
-		struct bt_field_type *field_type,
-		const char *name);
-
 /** @} */
 
 /** @} */
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_event_class bt_event_class
-#define bt_ctf_event_class_create bt_event_class_create
-#define bt_ctf_event_class_get_field_by_name bt_event_class_get_payload_type_field_type_by_name
-#define bt_ctf_event_class_add_field bt_event_class_add_field
 
 #ifdef __cplusplus
 }

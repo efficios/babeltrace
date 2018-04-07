@@ -2,8 +2,13 @@
 #define BABELTRACE_COMMON_INTERNAL_H
 
 #include <stdbool.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/field-path.h>
+#include <babeltrace/ctf-ir/event-class.h>
 #include <stdarg.h>
+#include <glib.h>
 
 #define BT_COMMON_COLOR_RESET              "\033[0m"
 #define BT_COMMON_COLOR_BOLD               "\033[1m"
@@ -272,5 +277,187 @@ void bt_common_custom_snprintf(char *buf, size_t buf_size,
  */
 BT_HIDDEN
 size_t bt_common_get_page_size(void);
+
+static inline
+const char *bt_common_field_type_id_string(enum bt_field_type_id type_id)
+{
+	switch (type_id) {
+	case BT_FIELD_TYPE_ID_UNKNOWN:
+		return "BT_FIELD_TYPE_ID_UNKNOWN";
+	case BT_FIELD_TYPE_ID_INTEGER:
+		return "BT_FIELD_TYPE_ID_INTEGER";
+	case BT_FIELD_TYPE_ID_FLOAT:
+		return "BT_FIELD_TYPE_ID_FLOAT";
+	case BT_FIELD_TYPE_ID_ENUM:
+		return "BT_FIELD_TYPE_ID_ENUM";
+	case BT_FIELD_TYPE_ID_STRING:
+		return "BT_FIELD_TYPE_ID_STRING";
+	case BT_FIELD_TYPE_ID_STRUCT:
+		return "BT_FIELD_TYPE_ID_STRUCT";
+	case BT_FIELD_TYPE_ID_ARRAY:
+		return "BT_FIELD_TYPE_ID_ARRAY";
+	case BT_FIELD_TYPE_ID_SEQUENCE:
+		return "BT_FIELD_TYPE_ID_SEQUENCE";
+	case BT_FIELD_TYPE_ID_VARIANT:
+		return "BT_FIELD_TYPE_ID_VARIANT";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+const char *bt_common_byte_order_string(enum bt_byte_order bo)
+{
+	switch (bo) {
+	case BT_BYTE_ORDER_UNKNOWN:
+		return "BT_BYTE_ORDER_UNKNOWN";
+	case BT_BYTE_ORDER_UNSPECIFIED:
+		return "BT_BYTE_ORDER_UNSPECIFIED";
+	case BT_BYTE_ORDER_NATIVE:
+		return "BT_BYTE_ORDER_NATIVE";
+	case BT_BYTE_ORDER_LITTLE_ENDIAN:
+		return "BT_BYTE_ORDER_LITTLE_ENDIAN";
+	case BT_BYTE_ORDER_BIG_ENDIAN:
+		return "BT_BYTE_ORDER_BIG_ENDIAN";
+	case BT_BYTE_ORDER_NETWORK:
+		return "BT_BYTE_ORDER_NETWORK";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+const char *bt_common_string_encoding_string(enum bt_string_encoding encoding)
+{
+	switch (encoding) {
+	case BT_STRING_ENCODING_UNKNOWN:
+		return "BT_STRING_ENCODING_UNKNOWN";
+	case BT_STRING_ENCODING_NONE:
+		return "BT_STRING_ENCODING_NONE";
+	case BT_STRING_ENCODING_UTF8:
+		return "BT_STRING_ENCODING_UTF8";
+	case BT_STRING_ENCODING_ASCII:
+		return "BT_STRING_ENCODING_ASCII";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+const char *bt_common_integer_base_string(enum bt_integer_base base)
+{
+	switch (base) {
+	case BT_INTEGER_BASE_UNKNOWN:
+		return "BT_INTEGER_BASE_UNKNOWN";
+	case BT_INTEGER_BASE_UNSPECIFIED:
+		return "BT_INTEGER_BASE_UNSPECIFIED";
+	case BT_INTEGER_BASE_BINARY:
+		return "BT_INTEGER_BASE_BINARY";
+	case BT_INTEGER_BASE_OCTAL:
+		return "BT_INTEGER_BASE_OCTAL";
+	case BT_INTEGER_BASE_DECIMAL:
+		return "BT_INTEGER_BASE_DECIMAL";
+	case BT_INTEGER_BASE_HEXADECIMAL:
+		return "BT_INTEGER_BASE_HEXADECIMAL";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
+const char *bt_common_scope_string(enum bt_scope scope)
+{
+	switch (scope) {
+	case BT_SCOPE_UNKNOWN:
+		return "BT_SCOPE_UNKNOWN";
+	case BT_SCOPE_TRACE_PACKET_HEADER:
+		return "BT_SCOPE_TRACE_PACKET_HEADER";
+	case BT_SCOPE_STREAM_PACKET_CONTEXT:
+		return "BT_SCOPE_STREAM_PACKET_CONTEXT";
+	case BT_SCOPE_STREAM_EVENT_HEADER:
+		return "BT_SCOPE_STREAM_EVENT_HEADER";
+	case BT_SCOPE_STREAM_EVENT_CONTEXT:
+		return "BT_SCOPE_STREAM_EVENT_CONTEXT";
+	case BT_SCOPE_EVENT_CONTEXT:
+		return "BT_SCOPE_EVENT_CONTEXT";
+	case BT_SCOPE_EVENT_PAYLOAD:
+		return "BT_SCOPE_EVENT_PAYLOAD";
+	case BT_SCOPE_ENV:
+		return "BT_SCOPE_ENV";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
+const char *bt_common_event_class_log_level_string(
+		enum bt_event_class_log_level level)
+{
+	switch (level) {
+	case BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN:
+		return "BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN";
+	case BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED:
+		return "BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED";
+	case BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY:
+		return "BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY";
+	case BT_EVENT_CLASS_LOG_LEVEL_ALERT:
+		return "BT_EVENT_CLASS_LOG_LEVEL_ALERT";
+	case BT_EVENT_CLASS_LOG_LEVEL_CRITICAL:
+		return "BT_EVENT_CLASS_LOG_LEVEL_CRITICAL";
+	case BT_EVENT_CLASS_LOG_LEVEL_ERROR:
+		return "BT_EVENT_CLASS_LOG_LEVEL_ERROR";
+	case BT_EVENT_CLASS_LOG_LEVEL_WARNING:
+		return "BT_EVENT_CLASS_LOG_LEVEL_WARNING";
+	case BT_EVENT_CLASS_LOG_LEVEL_NOTICE:
+		return "BT_EVENT_CLASS_LOG_LEVEL_NOTICE";
+	case BT_EVENT_CLASS_LOG_LEVEL_INFO:
+		return "BT_EVENT_CLASS_LOG_LEVEL_INFO";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE";
+	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG:
+		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+GString *bt_field_path_string(struct bt_field_path *path)
+{
+	GString *str = g_string_new(NULL);
+	size_t i;
+
+	BT_ASSERT(path);
+
+	if (!str) {
+		goto end;
+	}
+
+	g_string_append_printf(str, "[%s", bt_common_scope_string(
+		bt_field_path_get_root_scope(path)));
+
+	for (i = 0; i < bt_field_path_get_index_count(path); i++) {
+		int index = bt_field_path_get_index(path, i);
+
+		g_string_append_printf(str, ", %d", index);
+	}
+
+	g_string_append(str, "]");
+
+end:
+	return str;
+}
 
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
