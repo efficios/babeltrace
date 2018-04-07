@@ -30,10 +30,10 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/ctf-writer/field-types.h>
+#include <babeltrace/ctf-writer/stream-class.h>
+#include <babeltrace/ctf-writer/stream.h>
+#include <babeltrace/ctf-writer/trace.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -184,8 +184,20 @@ extern int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
  *
  * @param writer Writer instance.
  */
-extern void bt_ctf_writer_get(struct bt_ctf_writer *writer);
-extern void bt_ctf_writer_put(struct bt_ctf_writer *writer);
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_writer_get(struct bt_ctf_writer *writer)
+{
+	bt_get(writer);
+}
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_writer_put(struct bt_ctf_writer *writer)
+{
+	bt_put(writer);
+}
 
 #ifdef __cplusplus
 }

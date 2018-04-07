@@ -30,7 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/fields.h>
+#include <babeltrace/ref.h>
+#include <babeltrace/ctf-writer/field-types.h>
+#include <babeltrace/ctf-writer/fields.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,8 +54,20 @@ extern "C" {
  *
  * @param field Field instance.
  */
-extern void bt_ctf_field_get(struct bt_field *field);
-extern void bt_ctf_field_put(struct bt_field *field);
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_field_get(struct bt_field *field)
+{
+	bt_get(field);
+}
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_field_put(struct bt_field *field)
+{
+	bt_put(field);
+}
 
 #ifdef __cplusplus
 }

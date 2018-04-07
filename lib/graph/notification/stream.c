@@ -55,9 +55,7 @@ struct bt_notification *bt_notification_stream_end_create(
 	struct bt_stream_class *stream_class;
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	BT_ASSERT_PRE(stream->pos.fd < 0,
-		"Stream is a CTF writer stream: %!+s", stream);
-	stream_class = bt_stream_borrow_stream_class(stream);
+	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
 	BT_LOGD("Creating stream end notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "
@@ -123,9 +121,7 @@ struct bt_notification *bt_notification_stream_begin_create(
 	struct bt_stream_class *stream_class;
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	BT_ASSERT_PRE(stream->pos.fd < 0,
-		"Stream is a CTF writer stream: %!+s", stream);
-	stream_class = bt_stream_borrow_stream_class(stream);
+	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
 	BT_LOGD("Creating stream beginning notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "

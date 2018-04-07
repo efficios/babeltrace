@@ -28,14 +28,18 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "CTF-WRITER-SERIALIZE"
+#include <babeltrace/lib-logging-internal.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/field-types-internal.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/fields-internal.h>
+#include <babeltrace/ctf-writer/fields.h>
+#include <babeltrace/ctf-writer/field-types.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
+#include <babeltrace/ctf-ir/utils-internal.h>
+#include <babeltrace/ctf-ir/fields-internal.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/mmap-align-internal.h>
 #include <babeltrace/endian-internal.h>
@@ -43,7 +47,6 @@
 #include <babeltrace/compat/fcntl-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/common-internal.h>
-#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 #if (FLT_RADIX != 2)
@@ -61,16 +64,16 @@ union intval {
  * optimisation.
  */
 static
-int aligned_integer_write(struct bt_stream_pos *pos,
-		union intval value, unsigned int alignment, unsigned int size,
-		bt_bool is_signed, enum bt_byte_order byte_order)
+int aligned_integer_write(struct bt_ctf_stream_pos *pos, union intval value,
+		unsigned int alignment, unsigned int size, bt_bool is_signed,
+		enum bt_ctf_byte_order byte_order)
 {
 	bt_bool rbo = (byte_order != BT_MY_BYTE_ORDER); /* reverse byte order */
 
-	if (!bt_stream_pos_align(pos, alignment))
+	if (!bt_ctf_stream_pos_align(pos, alignment))
 		return -EFAULT;
 
-	if (!bt_stream_pos_access_ok(pos, size))
+	if (!bt_ctf_stream_pos_access_ok(pos, size))
 		return -EFAULT;
 
 	BT_ASSERT(!(pos->offset % CHAR_BIT));
@@ -80,7 +83,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 		{
 			uint8_t v = value.unsignd;
 
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		case 16:
@@ -89,7 +92,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 
 			if (rbo)
 				v = GUINT16_SWAP_LE_BE(v);
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		case 32:
@@ -98,7 +101,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 
 			if (rbo)
 				v = GUINT32_SWAP_LE_BE(v);
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		case 64:
@@ -107,7 +110,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 
 			if (rbo)
 				v = GUINT64_SWAP_LE_BE(v);
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		default:
@@ -119,7 +122,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 		{
 			uint8_t v = value.signd;
 
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		case 16:
@@ -128,7 +131,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 
 			if (rbo)
 				v = GUINT16_SWAP_LE_BE(v);
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		case 32:
@@ -137,7 +140,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 
 			if (rbo)
 				v = GUINT32_SWAP_LE_BE(v);
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		case 64:
@@ -146,7 +149,7 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 
 			if (rbo)
 				v = GUINT64_SWAP_LE_BE(v);
-			memcpy(bt_stream_pos_get_addr(pos), &v, sizeof(v));
+			memcpy(bt_ctf_stream_pos_get_addr(pos), &v, sizeof(v));
 			break;
 		}
 		default:
@@ -154,15 +157,15 @@ int aligned_integer_write(struct bt_stream_pos *pos,
 		}
 	}
 
-	if (!bt_stream_pos_move(pos, size))
+	if (!bt_ctf_stream_pos_move(pos, size))
 		return -EFAULT;
 	return 0;
 }
 
 static
-int integer_write(struct bt_stream_pos *pos, union intval value,
+int integer_write(struct bt_ctf_stream_pos *pos, union intval value,
 	unsigned int alignment, unsigned int size, bt_bool is_signed,
-	enum bt_byte_order byte_order)
+	enum bt_ctf_byte_order byte_order)
 {
 	if (!(alignment % CHAR_BIT)
 	    && !(size % CHAR_BIT)) {
@@ -170,14 +173,14 @@ int integer_write(struct bt_stream_pos *pos, union intval value,
 			size, is_signed, byte_order);
 	}
 
-	if (!bt_stream_pos_align(pos, alignment))
+	if (!bt_ctf_stream_pos_align(pos, alignment))
 		return -EFAULT;
 
-	if (!bt_stream_pos_access_ok(pos, size))
+	if (!bt_ctf_stream_pos_access_ok(pos, size))
 		return -EFAULT;
 
 	if (!is_signed) {
-		if (byte_order == BT_BYTE_ORDER_LITTLE_ENDIAN)
+		if (byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN)
 			bt_bitfield_write_le(mmap_align_addr(pos->base_mma) +
 				pos->mmap_base_offset, unsigned char,
 				pos->offset, size, value.unsignd);
@@ -186,7 +189,7 @@ int integer_write(struct bt_stream_pos *pos, union intval value,
 				pos->mmap_base_offset, unsigned char,
 				pos->offset, size, value.unsignd);
 	} else {
-		if (byte_order == BT_BYTE_ORDER_LITTLE_ENDIAN)
+		if (byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN)
 			bt_bitfield_write_le(mmap_align_addr(pos->base_mma) +
 				pos->mmap_base_offset, unsigned char,
 				pos->offset, size, value.signd);
@@ -196,46 +199,48 @@ int integer_write(struct bt_stream_pos *pos, union intval value,
 				pos->offset, size, value.signd);
 	}
 
-	if (!bt_stream_pos_move(pos, size))
+	if (!bt_ctf_stream_pos_move(pos, size))
 		return -EFAULT;
 	return 0;
 }
 
 BT_HIDDEN
-int bt_field_integer_write(struct bt_field_integer *int_field,
-		struct bt_stream_pos *pos,
-		enum bt_byte_order native_byte_order)
+int bt_ctf_field_integer_write(struct bt_field_common *field,
+		struct bt_ctf_stream_pos *pos,
+		enum bt_ctf_byte_order native_byte_order)
 {
-	struct bt_field_type *type = int_field->parent.type;
-	struct bt_field_type_integer *int_type = (void *) type;
-	enum bt_byte_order byte_order;
+	struct bt_field_type_common_integer *int_type =
+		BT_FROM_COMMON(field->type);
+	struct bt_field_common_integer *int_field = BT_FROM_COMMON(field);
+	enum bt_ctf_byte_order byte_order;
 	union intval value;
 
-	byte_order = int_type->user_byte_order;
+	byte_order = (int) int_type->user_byte_order;
 	if (byte_order == BT_BYTE_ORDER_NATIVE) {
 		byte_order = native_byte_order;
 	}
 
 	value.signd = int_field->payload.signd;
 	value.unsignd = int_field->payload.unsignd;
-	return integer_write(pos, value, type->alignment,
+	return integer_write(pos, value, int_type->common.alignment,
 		int_type->size, int_type->is_signed,
 		byte_order);
 }
 
 BT_HIDDEN
-int bt_field_floating_point_write(
-		struct bt_field_floating_point *flt_field,
-		struct bt_stream_pos *pos,
-		enum bt_byte_order native_byte_order)
+int bt_ctf_field_floating_point_write(
+		struct bt_field_common *field,
+		struct bt_ctf_stream_pos *pos,
+		enum bt_ctf_byte_order native_byte_order)
 {
-	struct bt_field_type *type = flt_field->parent.type;
-	struct bt_field_type_floating_point *flt_type = (void *) type;
-	enum bt_byte_order byte_order;
+	struct bt_field_type_common_floating_point *flt_type =
+		BT_FROM_COMMON(field->type);
+	struct bt_field_common_floating_point *flt_field = BT_FROM_COMMON(field);
+	enum bt_ctf_byte_order byte_order;
 	union intval value;
 	unsigned int size;
 
-	byte_order = flt_type->user_byte_order;
+	byte_order = (int) flt_type->user_byte_order;
 	if (byte_order == BT_BYTE_ORDER_NATIVE) {
 		byte_order = native_byte_order;
 	}
@@ -262,12 +267,12 @@ int bt_field_floating_point_write(
 		return -EINVAL;
 	}
 
-	return integer_write(pos, value, type->alignment, size, BT_FALSE,
-		byte_order);
+	return integer_write(pos, value, flt_type->common.alignment,
+		size, BT_FALSE, byte_order);
 }
 
 BT_HIDDEN
-void bt_stream_pos_packet_seek(struct bt_stream_pos *pos, size_t index,
+void bt_ctf_stream_pos_packet_seek(struct bt_ctf_stream_pos *pos, size_t index,
 	int whence)
 {
 	int ret;

@@ -25,11 +25,11 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/assert-internal.h>
 
 struct bt_packet {
 	struct bt_object base;

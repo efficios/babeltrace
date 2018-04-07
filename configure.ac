@@ -68,7 +68,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 ##                      ##
 
 MINGW32=no
-DEFAULT_ENABLE_DEBUG_INFO=yes
+DEFAULT_ENABLE_DEBUG_INFO=no
 LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
   [solaris*|darwin*],

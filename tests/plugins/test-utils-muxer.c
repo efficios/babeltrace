@@ -315,7 +315,7 @@ void init_static_data(void)
 	ret = bt_trace_set_native_byte_order(trace,
 		BT_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
-	ret = bt_trace_set_packet_header_type(trace, empty_struct_ft);
+	ret = bt_trace_set_packet_header_field_type(trace, empty_struct_ft);
 	assert(ret == 0);
 	src_clock_class = bt_clock_class_create("my-clock", 1000000000);
 	assert(src_clock_class);
@@ -332,20 +332,20 @@ void init_static_data(void)
 	assert(ret == 0);
 	src_stream_class = bt_stream_class_create("my-stream-class");
 	assert(src_stream_class);
-	ret = bt_stream_class_set_packet_context_type(src_stream_class,
+	ret = bt_stream_class_set_packet_context_field_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(src_stream_class,
+	ret = bt_stream_class_set_event_header_field_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_context_type(src_stream_class,
+	ret = bt_stream_class_set_event_context_field_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
 	src_event_class = bt_event_class_create("my-event-class");
-	ret = bt_event_class_set_context_type(src_event_class,
+	ret = bt_event_class_set_context_field_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_event_class_set_context_type(src_event_class,
+	ret = bt_event_class_set_context_field_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
 	ret = bt_stream_class_add_event_class(src_stream_class,
@@ -353,22 +353,22 @@ void init_static_data(void)
 	assert(ret == 0);
 	ret = bt_trace_add_stream_class(trace, src_stream_class);
 	assert(ret == 0);
-	stream = bt_stream_create(src_stream_class, "stream0");
+	stream = bt_stream_create(src_stream_class, "stream0", 0);
 	assert(stream);
 	src_packet0 = bt_packet_create(stream);
 	assert(src_packet0);
 	bt_put(stream);
-	stream = bt_stream_create(src_stream_class, "stream1");
+	stream = bt_stream_create(src_stream_class, "stream1", 1);
 	assert(stream);
 	src_packet1 = bt_packet_create(stream);
 	assert(src_packet0);
 	bt_put(stream);
-	stream = bt_stream_create(src_stream_class, "stream2");
+	stream = bt_stream_create(src_stream_class, "stream2", 2);
 	assert(stream);
 	src_packet2 = bt_packet_create(stream);
 	assert(src_packet0);
 	bt_put(stream);
-	stream = bt_stream_create(src_stream_class, "stream3");
+	stream = bt_stream_create(src_stream_class, "stream3", 3);
 	assert(stream);
 	src_packet3 = bt_packet_create(stream);
 	assert(src_packet0);

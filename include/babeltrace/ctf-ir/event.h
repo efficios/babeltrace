@@ -141,7 +141,7 @@ struct bt_packet;
 On success, the four fields of the created event object are not set. You
 can set them with bt_event_set_header(),
 bt_event_set_stream_event_context(),
-bt_event_set_event_context(), and bt_event_set_event_payload().
+bt_event_set_context(), and bt_event_set_payload().
 
 This function tries to resolve the needed
 \link ctfirfieldtypes CTF IR field type\endlink of the dynamic field
@@ -162,8 +162,7 @@ with bt_trace_add_stream_class(), then this function fails.
 @pre \p event_class has a parent stream class.
 @postsuccessrefcountret1
 */
-extern struct bt_event *bt_event_create(
-		struct bt_event_class *event_class);
+extern struct bt_event *bt_event_create(struct bt_event_class *event_class);
 
 /**
 @brief	Returns the parent CTF IR event class of the CTF IR event
@@ -180,8 +179,7 @@ create the event object in the first place with bt_event_create().
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 */
-extern struct bt_event_class *bt_event_get_class(
-		struct bt_event *event);
+extern struct bt_event_class *bt_event_get_class(struct bt_event *event);
 
 /**
 @brief	Returns the CTF IR packet associated to the CTF IR event
@@ -202,8 +200,7 @@ This function returns a reference to the event class which was set to
 @sa bt_event_set_packet(): Associates a given event to a given
 	packet.
 */
-extern struct bt_packet *bt_event_get_packet(
-		struct bt_event *event);
+extern struct bt_packet *bt_event_get_packet(struct bt_event *event);
 
 /**
 @brief	Associates the CTF IR event \p event to the CTF IR packet
@@ -249,8 +246,7 @@ extern int bt_event_set_packet(struct bt_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 */
-extern struct bt_stream *bt_event_get_stream(
-		struct bt_event *event);
+extern struct bt_stream *bt_event_get_stream(struct bt_event *event);
 
 /** @} */
 
@@ -276,8 +272,7 @@ extern struct bt_stream *bt_event_get_stream(
 @sa bt_event_get_header(): Sets the stream event header
 	field of a given event.
 */
-extern struct bt_field *bt_event_get_header(
-		struct bt_event *event);
+extern struct bt_field *bt_event_get_header(struct bt_event *event);
 
 /**
 @brief	Sets the stream event header field of the CTF IR event
@@ -369,11 +364,10 @@ extern int bt_event_set_stream_event_context(struct bt_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_event_set_event_context(): Sets the event context field of a given
+@sa bt_event_set_context(): Sets the event context field of a given
 	event.
 */
-extern struct bt_field *bt_event_get_event_context(
-		struct bt_event *event);
+extern struct bt_field *bt_event_get_context(struct bt_event *event);
 
 /**
 @brief	Sets the event context field of the CTF IR event \p event to \p context,
@@ -398,7 +392,7 @@ bt_event_class_get_context_type() for the parent class of \p event.
 
 @sa bt_event_get_context(): Returns the context field of a given event.
 */
-extern int bt_event_set_event_context(struct bt_event *event,
+extern int bt_event_set_context(struct bt_event *event,
 		struct bt_field *context);
 
 /**
@@ -412,11 +406,10 @@ extern int bt_event_set_event_context(struct bt_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 
-@sa bt_event_set_event_payload(): Sets the payload field of a given
+@sa bt_event_set_payload(): Sets the payload field of a given
 	event.
 */
-extern struct bt_field *bt_event_get_event_payload(
-		struct bt_event *event);
+extern struct bt_field *bt_event_get_payload(struct bt_event *event);
 
 /**
 @brief	Sets the payload field of the CTF IR event \p event to \p payload,
@@ -441,74 +434,8 @@ bt_event_class_get_payload_type() for the parent class of \p event.
 
 @sa bt_event_get_payload(): Returns the payload field of a given event.
 */
-extern int bt_event_set_event_payload(struct bt_event *event,
-		struct bt_field *payload);
-
-/** @cond DOCUMENT */
-
-/*
- * TODO: Doxygenize.
- *
- * bt_event_get_payload: get an event's field.
- *
- * Returns the field matching "name". bt_put() must be called on the
- * returned value.
- *
- * @param event Event instance.
- * @param name Event field name, see notes.
- *
- * Returns a field instance on success, NULL on error.
- *
- * Note: Passing a name will cause the function to perform a look-up by
- *	name assuming the event's payload is a structure. This will return
- *	the raw payload instance if name is NULL.
- */
-extern struct bt_field *bt_event_get_payload(struct bt_event *event,
-		const char *name);
-
-/*
- * TODO: Doxygenize.
- *
- * bt_event_get_payload_by_index: Get event's field by index.
- *
- * Returns the field associated with the provided index. bt_put()
- * must be called on the returned value. The indexes to be provided are
- * the same as can be retrieved from the event class.
- *
- * @param event Event.
- * @param index Index of field.
- *
- * Returns the event's field, NULL on error.
- *
- * Note: Will return an error if the payload's type is not a structure.
- */
-extern struct bt_field *bt_event_get_payload_by_index(
-		struct bt_event *event, uint64_t index);
-
-/*
- * TODO: Doxygenize.
- *
- * bt_event_set_payload: set an event's field.
- *
- * Set a manually allocated field as an event's payload. The event will share
- * the field's ownership by using its reference count.
- * bt_put() must be called on the returned value.
- *
- * @param event Event instance.
- * @param name Event field name, see notes.
- * @param value Instance of a field whose type corresponds to the event's field.
- *
- * Returns 0 on success, a negative value on error.
- *
- * Note: The function will return an error if a name is provided and the payload
- *	type is not a structure. If name is NULL, the payload field will be set
- *	directly and must match the event class' payload's type.
- */
 extern int bt_event_set_payload(struct bt_event *event,
-		const char *name,
-		struct bt_field *value);
-
-/** @endcond */
+		struct bt_field *payload);
 
 /** @} */
 
@@ -566,12 +493,6 @@ extern int bt_event_set_clock_value(
 /** @} */
 
 /** @} */
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_event bt_event
-#define bt_ctf_event_create bt_event_create
-#define bt_ctf_event_get_payload bt_event_get_payload
-#define bt_ctf_event_set_payload bt_event_set_payload
 
 #ifdef __cplusplus
 }

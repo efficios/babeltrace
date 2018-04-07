@@ -74,7 +74,7 @@ struct bt_notification *bt_notification_packet_begin_create(
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	stream = bt_packet_borrow_stream(packet);
 	BT_ASSERT(stream);
-	stream_class = bt_stream_borrow_stream_class(stream);
+	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
 	BT_LOGD("Creating packet beginning notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
@@ -130,7 +130,7 @@ struct bt_notification *bt_notification_packet_end_create(
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	stream = bt_packet_borrow_stream(packet);
 	BT_ASSERT(stream);
-	stream_class = bt_stream_borrow_stream_class(stream);
+	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
 	BT_LOGD("Creating packet end notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "

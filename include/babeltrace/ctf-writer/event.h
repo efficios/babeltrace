@@ -30,6 +30,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event.h>
 
@@ -37,43 +38,180 @@
 extern "C" {
 #endif
 
-/*
- * bt_ctf_event_get and bt_ctf_event_put: increment and decrement
- * the event's reference count.
- *
- * You may also use bt_get() and bt_put() with event objects.
- *
- * These functions ensure that the event won't be destroyed while it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy an event.
- *
- * When the event's reference count is decremented to 0 by a
- * bt_ctf_event_put, the event is freed.
- *
- * @param event Event instance.
- */
-extern void bt_ctf_event_get(struct bt_event *event);
-extern void bt_ctf_event_put(struct bt_event *event);
+struct bt_ctf_event;
+struct bt_ctf_event_class;
+struct bt_ctf_stream;
+struct bt_ctf_field;
+struct bt_ctf_field_type;
 
-/*
- * bt_ctf_event_class_get and bt_ctf_event_class_put: increment and decrement
- * the event class' reference count.
- *
- * You may also use bt_get() and bt_put() with event class objects.
- *
- * These functions ensure that the event class won't be destroyed while it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy an event class.
- *
- * When the event class' reference count is decremented to 0 by a
- * bt_ctf_event_class_put, the event class is freed.
- *
- * @param event_class Event class.
- */
-extern void bt_ctf_event_class_get(struct bt_event_class *event_class);
-extern void bt_ctf_event_class_put(struct bt_event_class *event_class);
+enum bt_ctf_event_class_log_level {
+	/// Unknown, used for errors.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN		= BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN,
+
+	/// Unspecified log level.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED	= BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED,
+
+	/// System is unusable.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY		= BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
+
+	/// Action must be taken immediately.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT		= BT_EVENT_CLASS_LOG_LEVEL_ALERT,
+
+	/// Critical conditions.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL		= BT_EVENT_CLASS_LOG_LEVEL_CRITICAL,
+
+	/// Error conditions.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR		= BT_EVENT_CLASS_LOG_LEVEL_ERROR,
+
+	/// Warning conditions.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING		= BT_EVENT_CLASS_LOG_LEVEL_WARNING,
+
+	/// Normal, but significant, condition.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE		= BT_EVENT_CLASS_LOG_LEVEL_NOTICE,
+
+	/// Informational message.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO		= BT_EVENT_CLASS_LOG_LEVEL_INFO,
+
+	/// Debug information with system-level scope (set of programs).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM,
+
+	/// Debug information with program-level scope (set of processes).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM,
+
+	/// Debug information with process-level scope (set of modules).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS,
+
+	/// Debug information with module (executable/library) scope (set of units).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE,
+
+	/// Debug information with compilation unit scope (set of functions).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT		= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT,
+
+	/// Debug information with function-level scope.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
+
+	/// Debug information with line-level scope (default log level).
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE		= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE,
+
+	/// Debug-level message.
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG		= BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
+};
+
+extern struct bt_ctf_event *bt_ctf_event_create(
+		struct bt_ctf_event_class *event_class);
+
+extern struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
+		const char *name);
+
+extern int bt_ctf_event_set_payload(struct bt_ctf_event *event,
+		const char *name, struct bt_ctf_field *field);
+
+extern struct bt_ctf_field *bt_ctf_event_get_payload_field(
+		struct bt_ctf_event *event);
+
+extern int bt_ctf_event_set_payload_field(struct bt_ctf_event *event,
+		struct bt_ctf_field *field);
+
+extern int bt_ctf_event_set_context(struct bt_ctf_event *event,
+		struct bt_ctf_field *field);
+
+extern struct bt_ctf_field *bt_ctf_event_get_context(
+		struct bt_ctf_event *event);
+
+extern int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
+		struct bt_ctf_field *field);
+
+extern struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
+		struct bt_ctf_event *event);
+
+extern int bt_ctf_event_set_header(struct bt_ctf_event *event,
+		struct bt_ctf_field *field);
+
+extern struct bt_ctf_field *bt_ctf_event_get_header(
+		struct bt_ctf_event *event);
+
+extern struct bt_ctf_stream *bt_ctf_event_get_stream(
+		struct bt_ctf_event *event);
+
+extern struct bt_ctf_event_class *bt_ctf_event_get_class(
+		struct bt_ctf_event *event);
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_event_get(struct bt_ctf_event *event)
+{
+	bt_get(event);
+}
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_event_put(struct bt_ctf_event *event)
+{
+	bt_put(event);
+}
+
+extern struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
+
+extern struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
+		struct bt_ctf_event_class *event_class);
+
+extern const char *bt_ctf_event_class_get_name(
+		struct bt_ctf_event_class *event_class);
+
+extern int64_t bt_ctf_event_class_get_id(
+		struct bt_ctf_event_class *event_class);
+
+extern int bt_ctf_event_class_set_id(
+		struct bt_ctf_event_class *event_class, uint64_t id);
+
+extern enum bt_ctf_event_class_log_level bt_ctf_event_class_get_log_level(
+		struct bt_ctf_event_class *event_class);
+
+extern int bt_ctf_event_class_set_log_level(
+		struct bt_ctf_event_class *event_class,
+		enum bt_ctf_event_class_log_level log_level);
+
+extern const char *bt_ctf_event_class_get_emf_uri(
+		struct bt_ctf_event_class *event_class);
+
+extern int bt_ctf_event_class_set_emf_uri(
+		struct bt_ctf_event_class *event_class,
+		const char *emf_uri);
+
+extern struct bt_ctf_field_type *bt_ctf_event_class_get_context_field_type(
+		struct bt_ctf_event_class *event_class);
+
+extern int bt_ctf_event_class_set_context_field_type(
+		struct bt_ctf_event_class *event_class,
+		struct bt_ctf_field_type *context_type);
+
+extern struct bt_ctf_field_type *bt_ctf_event_class_get_payload_field_type(
+		struct bt_ctf_event_class *event_class);
+
+extern int bt_ctf_event_class_set_payload_field_type(
+		struct bt_ctf_event_class *event_class,
+		struct bt_ctf_field_type *payload_type);
+
+extern int bt_ctf_event_class_add_field(struct bt_ctf_event_class *event_class,
+		struct bt_ctf_field_type *field_type,
+		const char *name);
+
+extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
+		struct bt_ctf_event_class *event_class, const char *name);
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class)
+{
+	bt_get(event_class);
+}
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class)
+{
+	bt_put(event_class);
+}
 
 #ifdef __cplusplus
 }

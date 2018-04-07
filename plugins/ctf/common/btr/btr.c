@@ -35,8 +35,8 @@
 #include <babeltrace/assert-internal.h>
 #include <string.h>
 #include <babeltrace/bitfield-internal.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/align-internal.h>
 #include <glib.h>
@@ -249,7 +249,7 @@ int64_t get_compound_field_type_length(struct bt_btr *btr,
 		BT_LOGW("Cannot get field type's field count: btr-addr=%p, "
 			"ft-addr=%p, ft-id=%s",
 			btr, field_type,
-			bt_field_type_id_string(
+			bt_common_field_type_id_string(
 				bt_field_type_get_type_id(field_type)));
 		length = BT_BTR_STATUS_ERROR;
 	}
@@ -270,7 +270,7 @@ int stack_push(struct stack *stack, struct bt_field_type *base_type,
 	BT_LOGV("Pushing field type on stack: stack-addr=%p, "
 		"ft-addr=%p, ft-id=%s, base-length=%zu, "
 		"stack-size-before=%u, stack-size-after=%u",
-		stack, base_type, bt_field_type_id_string(
+		stack, base_type, bt_common_field_type_id_string(
 			bt_field_type_get_type_id(base_type)),
 		base_len, stack->entries->len, stack->entries->len + 1);
 	entry = g_new0(struct stack_entry, 1);
@@ -300,7 +300,7 @@ int stack_push_with_len(struct bt_btr *btr,
 	if (base_len < 0) {
 		BT_LOGW("Cannot get compound field type's field count: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
-			btr, base_type, bt_field_type_id_string(
+			btr, base_type, bt_common_field_type_id_string(
 				bt_field_type_get_type_id(base_type)));
 		ret = BT_BTR_STATUS_ERROR;
 		goto end;
@@ -438,7 +438,7 @@ int get_basic_field_type_size(struct bt_btr *btr,
 	{
 		struct bt_field_type *int_type;
 
-		int_type = bt_field_type_enumeration_get_container_type(
+		int_type = bt_field_type_enumeration_get_container_field_type(
 			field_type);
 		BT_ASSERT(int_type);
 		size = get_basic_field_type_size(btr, int_type);
@@ -524,7 +524,7 @@ enum bt_btr_status read_unsigned_bitfield(const uint8_t *buf, size_t at,
 
 	BT_LOGV("Read unsigned bit array: cur=%zu, size=%" PRId64 ", "
 		"bo=%s, val=%" PRIu64, at, field_size,
-		bt_byte_order_string(bo), *v);
+		bt_common_byte_order_string(bo), *v);
 	return status;
 }
 
@@ -549,7 +549,7 @@ enum bt_btr_status read_signed_bitfield(const uint8_t *buf, size_t at,
 
 	BT_LOGV("Read signed bit array: cur=%zu, size=%" PRId64 ", "
 		"bo=%s, val=%" PRId64, at, field_size,
-		bt_byte_order_string(bo), *v);
+		bt_common_byte_order_string(bo), *v);
 	return status;
 }
 
@@ -599,8 +599,8 @@ end:
 	if (status < 0) {
 		BT_LOGW("Cannot read bit array: two different byte orders not at a byte boundary: "
 			"btr-addr=%p, last-bo=%s, next-bo=%s",
-			btr, bt_byte_order_string(btr->last_bo),
-			bt_byte_order_string(next_bo));
+			btr, bt_common_byte_order_string(btr->last_bo),
+			bt_common_byte_order_string(next_bo));
 	}
 
 	return status;
@@ -796,7 +796,7 @@ enum bt_btr_status read_basic_enum_and_call_cb(struct bt_btr *btr,
 	struct bt_field_type *int_field_type;
 	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
-	int_field_type = bt_field_type_enumeration_get_container_type(
+	int_field_type = bt_field_type_enumeration_get_container_field_type(
 		btr->cur_basic_field_type);
 	BT_ASSERT(int_field_type);
 	status = read_basic_int_and_call(btr, buf, at,
@@ -1119,7 +1119,7 @@ enum bt_btr_status read_basic_begin_state(struct bt_btr *btr)
 		BT_LOGF("Unknown basic field type ID: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
 			btr, btr->cur_basic_field_type,
-			bt_field_type_id_string(
+			bt_common_field_type_id_string(
 				bt_field_type_get_type_id(
 					btr->cur_basic_field_type)));
 		abort();
@@ -1152,7 +1152,7 @@ enum bt_btr_status read_basic_continue_state(struct bt_btr *btr)
 		BT_LOGF("Unknown basic field type ID: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
 			btr, btr->cur_basic_field_type,
-			bt_field_type_id_string(
+			bt_common_field_type_id_string(
 				bt_field_type_get_type_id(
 					btr->cur_basic_field_type)));
 		abort();
@@ -1184,7 +1184,7 @@ enum bt_btr_status align_type_state(struct bt_btr *btr,
 		BT_LOGW("Cannot get field type's alignment: "
 			"btr-addr=%p, ft-addr=%p, ft-id=%s",
 			btr, field_type,
-			bt_field_type_id_string(
+			bt_common_field_type_id_string(
 				bt_field_type_get_type_id(field_type)));
 		status = BT_BTR_STATUS_ERROR;
 		goto end;
@@ -1294,12 +1294,12 @@ enum bt_btr_status next_field_state(struct bt_btr *btr)
 		break;
 	case BT_FIELD_TYPE_ID_ARRAY:
 		next_field_type =
-			bt_field_type_array_get_element_type(
+			bt_field_type_array_get_element_field_type(
 				top->base_type);
 		break;
 	case BT_FIELD_TYPE_ID_SEQUENCE:
 		next_field_type =
-			bt_field_type_sequence_get_element_type(
+			bt_field_type_sequence_get_element_field_type(
 				top->base_type);
 		break;
 	case BT_FIELD_TYPE_ID_VARIANT:
@@ -1317,7 +1317,7 @@ enum bt_btr_status next_field_state(struct bt_btr *btr)
 			"btr-addr=%p, base-ft-addr=%p, base-ft-id=%s, "
 			"index=%" PRId64,
 			btr, top->base_type,
-			bt_field_type_id_string(
+			bt_common_field_type_id_string(
 				bt_field_type_get_type_id(top->base_type)),
 			top->index);
 		status = BT_BTR_STATUS_ERROR;

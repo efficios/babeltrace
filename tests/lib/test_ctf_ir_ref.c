@@ -20,15 +20,20 @@
  */
 
 #include "tap/tap.h"
-#include <babeltrace/ctf-writer/writer.h>
-#include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/ctf-writer/event.h>
+#include <babeltrace/ctf-writer/fields.h>
 #include <babeltrace/ctf-writer/stream-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/fields.h>
+#include <babeltrace/ctf-writer/stream.h>
+#include <babeltrace/ctf-writer/trace.h>
+#include <babeltrace/ctf-writer/writer.h>
+#include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/event-class.h>
+#include <babeltrace/ctf-ir/fields.h>
+#include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compat/stdlib-internal.h>
 #include <assert.h>
@@ -37,7 +42,6 @@
 #define NR_TESTS 41
 
 struct user {
-	struct bt_ctf_writer *writer;
 	struct bt_trace *tc;
 	struct bt_stream_class *sc;
 	struct bt_event_class *ec;
@@ -45,7 +49,16 @@ struct user {
 	struct bt_event *event;
 };
 
-const char *user_names[] = {
+struct writer_user {
+	struct bt_ctf_writer *writer;
+	struct bt_ctf_trace *tc;
+	struct bt_ctf_stream_class *sc;
+	struct bt_ctf_event_class *ec;
+	struct bt_ctf_stream *stream;
+	struct bt_ctf_event *event;
+};
+
+const char *writer_user_names[] = {
 	"writer",
 	"trace",
 	"stream class",
@@ -54,7 +67,8 @@ const char *user_names[] = {
 	"event",
 };
 
-static const size_t USER_NR_ELEMENTS = sizeof(struct user) / sizeof(void *);
+static const size_t WRITER_USER_NR_ELEMENTS =
+	sizeof(struct writer_user) / sizeof(void *);
 
 /**
  * Returns a structure containing the following fields:
@@ -116,6 +130,60 @@ error:
 	goto end;
 }
 
+static struct bt_ctf_field_type *create_writer_integer_struct(void)
+{
+	int ret;
+	struct bt_ctf_field_type *structure = NULL;
+	struct bt_ctf_field_type *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
+
+	structure = bt_ctf_field_type_structure_create();
+	if (!structure) {
+		goto error;
+	}
+
+	ui8 = bt_ctf_field_type_integer_create(8);
+	if (!ui8) {
+		diag("Failed to create uint8_t type");
+		goto error;
+	}
+	ret = bt_ctf_field_type_structure_add_field(structure, ui8,
+		        "payload_8");
+	if (ret) {
+		diag("Failed to add uint8_t to structure");
+		goto error;
+	}
+	ui16 = bt_ctf_field_type_integer_create(16);
+	if (!ui16) {
+		diag("Failed to create uint16_t type");
+		goto error;
+	}
+	ret = bt_ctf_field_type_structure_add_field(structure, ui16,
+		        "payload_16");
+	if (ret) {
+		diag("Failed to add uint16_t to structure");
+		goto error;
+	}
+	ui32 = bt_ctf_field_type_integer_create(32);
+	if (!ui32) {
+		diag("Failed to create uint32_t type");
+		goto error;
+	}
+	ret = bt_ctf_field_type_structure_add_field(structure, ui32,
+		        "payload_32");
+	if (ret) {
+		diag("Failed to add uint32_t to structure");
+		goto error;
+	}
+end:
+	BT_PUT(ui8);
+	BT_PUT(ui16);
+	BT_PUT(ui32);
+	return structure;
+error:
+	BT_PUT(structure);
+	goto end;
+}
+
 /**
  * A simple event has the following payload:
  *     - uint8_t payload_8;
@@ -141,7 +209,7 @@ static struct bt_event_class *create_simple_event(const char *name)
 		goto error;
 	}
 
-	ret = bt_event_class_set_payload_type(event, payload);
+	ret = bt_event_class_set_payload_field_type(event, payload);
 	if (ret) {
 		diag("Failed to set simple event payload");
 		goto error;
@@ -196,7 +264,7 @@ static struct bt_event_class *create_complex_event(const char *name)
 		goto error;
 	}
 
-	ret = bt_event_class_set_payload_type(event, outer);
+	ret = bt_event_class_set_payload_field_type(event, outer);
 	if (ret) {
 		diag("Failed to set complex event payload");
 		goto error;
@@ -242,10 +310,10 @@ static void set_stream_class_field_types(
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_stream_class_set_packet_context_type(stream_class,
+	ret = bt_stream_class_set_packet_context_field_type(stream_class,
 		packet_context_type);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(stream_class,
+	ret = bt_stream_class_set_event_header_field_type(stream_class,
 		event_header_type);
 	assert(ret == 0);
 
@@ -259,7 +327,7 @@ static struct bt_stream_class *create_sc1(void)
 	struct bt_event_class *ec1 = NULL, *ec2 = NULL;
 	struct bt_stream_class *sc1 = NULL, *ret_stream = NULL;
 
-	sc1 = bt_stream_class_create_empty("sc1");
+	sc1 = bt_stream_class_create("sc1");
 	if (!sc1) {
 		diag("Failed to create Stream Class");
 		goto error;
@@ -310,7 +378,7 @@ static struct bt_stream_class *create_sc2(void)
 	struct bt_event_class *ec3 = NULL;
 	struct bt_stream_class *sc2 = NULL, *ret_stream = NULL;
 
-	sc2 = bt_stream_class_create_empty("sc2");
+	sc2 = bt_stream_class_create("sc2");
 	if (!sc2) {
 		diag("Failed to create Stream Class");
 		goto error;
@@ -354,7 +422,7 @@ static void set_trace_packet_header(struct bt_trace *trace)
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_trace_set_packet_header_type(trace,
+	ret = bt_trace_set_packet_header_field_type(trace,
 		packet_header_type);
 	assert(ret == 0);
 
@@ -565,11 +633,11 @@ static void test_example_scenario(void)
 	BT_PUT(user_c.ec);
 }
 
-static void create_user_full(struct user *user)
+static void create_writer_user_full(struct writer_user *user)
 {
 	gchar *trace_path;
-	struct bt_field_type *ft;
-	struct bt_field *field;
+	struct bt_ctf_field_type *ft;
+	struct bt_ctf_field *field;
 	struct bt_ctf_clock *clock;
 	int ret;
 
@@ -581,48 +649,48 @@ static void create_user_full(struct user *user)
 	user->writer = bt_ctf_writer_create(trace_path);
 	assert(user->writer);
 	ret = bt_ctf_writer_set_byte_order(user->writer,
-		BT_BYTE_ORDER_LITTLE_ENDIAN);
+		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
 	assert(ret == 0);
 	user->tc = bt_ctf_writer_get_trace(user->writer);
 	assert(user->tc);
-	user->sc = bt_stream_class_create("sc");
+	user->sc = bt_ctf_stream_class_create("sc");
 	assert(user->sc);
 	clock = bt_ctf_clock_create("the_clock");
 	assert(clock);
 	ret = bt_ctf_writer_add_clock(user->writer, clock);
 	assert(!ret);
-	ret = bt_stream_class_set_clock(user->sc, clock);
+	ret = bt_ctf_stream_class_set_clock(user->sc, clock);
 	assert(!ret);
 	BT_PUT(clock);
 	user->stream = bt_ctf_writer_create_stream(user->writer, user->sc);
 	assert(user->stream);
-	user->ec = bt_event_class_create("ec");
+	user->ec = bt_ctf_event_class_create("ec");
 	assert(user->ec);
-	ft = create_integer_struct();
+	ft = create_writer_integer_struct();
 	assert(ft);
-	ret = bt_event_class_set_payload_type(user->ec, ft);
+	ret = bt_ctf_event_class_set_payload_field_type(user->ec, ft);
 	BT_PUT(ft);
 	assert(!ret);
-	ret = bt_stream_class_add_event_class(user->sc, user->ec);
+	ret = bt_ctf_stream_class_add_event_class(user->sc, user->ec);
 	assert(!ret);
-	user->event = bt_event_create(user->ec);
+	user->event = bt_ctf_event_create(user->ec);
 	assert(user->event);
-	field = bt_event_get_payload(user->event, "payload_8");
+	field = bt_ctf_event_get_payload(user->event, "payload_8");
 	assert(field);
-	ret = bt_field_unsigned_integer_set_value(field, 10);
+	ret = bt_ctf_field_integer_unsigned_set_value(field, 10);
 	assert(!ret);
 	BT_PUT(field);
-	field = bt_event_get_payload(user->event, "payload_16");
+	field = bt_ctf_event_get_payload(user->event, "payload_16");
 	assert(field);
-	ret = bt_field_unsigned_integer_set_value(field, 20);
+	ret = bt_ctf_field_integer_unsigned_set_value(field, 20);
 	assert(!ret);
 	BT_PUT(field);
-	field = bt_event_get_payload(user->event, "payload_32");
+	field = bt_ctf_event_get_payload(user->event, "payload_32");
 	assert(field);
-	ret = bt_field_unsigned_integer_set_value(field, 30);
+	ret = bt_ctf_field_integer_unsigned_set_value(field, 30);
 	assert(!ret);
 	BT_PUT(field);
-	ret = bt_stream_append_event(user->stream, user->event);
+	ret = bt_ctf_stream_append_event(user->stream, user->event);
 	assert(!ret);
 	recursive_rmdir(trace_path);
 	g_free(trace_path);
@@ -639,16 +707,16 @@ static void test_put_order_swap(size_t *array, size_t a, size_t b)
 static void test_put_order_put_objects(size_t *array, size_t size)
 {
 	size_t i;
-	struct user user = { 0 };
+	struct writer_user user = { 0 };
 	void **objects = (void *) &user;
 
-	create_user_full(&user);
+	create_writer_user_full(&user);
 	printf("# ");
 
 	for (i = 0; i < size; ++i) {
 		void *obj = objects[array[i]];
 
-		printf("%s", user_names[array[i]]);
+		printf("%s", writer_user_names[array[i]]);
 		BT_PUT(obj);
 
 		if (i < size - 1) {
@@ -679,14 +747,15 @@ static void test_put_order_permute(size_t *array, int k, size_t size)
 static void test_put_order(void)
 {
 	size_t i;
-	size_t array[USER_NR_ELEMENTS];
+	size_t array[WRITER_USER_NR_ELEMENTS];
 
 	/* Initialize array of indexes */
-	for (i = 0; i < USER_NR_ELEMENTS; ++i) {
+	for (i = 0; i < WRITER_USER_NR_ELEMENTS; ++i) {
 		array[i] = i;
 	}
 
-	test_put_order_permute(array, USER_NR_ELEMENTS, USER_NR_ELEMENTS);
+	test_put_order_permute(array, WRITER_USER_NR_ELEMENTS,
+		WRITER_USER_NR_ELEMENTS);
 }
 
 /**

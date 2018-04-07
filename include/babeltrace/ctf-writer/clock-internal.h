@@ -33,13 +33,23 @@
 #include <glib.h>
 #include <babeltrace/compat/uuid-internal.h>
 
+struct bt_ctf_clock_class {
+	struct bt_clock_class common;
+};
+
 struct bt_ctf_clock {
 	struct bt_object base;
-	struct bt_clock_class *clock_class;
+	struct bt_ctf_clock_class *clock_class;
 	uint64_t value;		/* Current clock value */
 };
 
+struct metadata_context;
+
 BT_HIDDEN
 int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value);
+
+BT_HIDDEN
+void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
+		struct metadata_context *context);
 
 #endif /* BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H */

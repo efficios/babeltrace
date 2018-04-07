@@ -54,6 +54,7 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(counter,
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(counter,
 	"Count notifications and print the results.");
 
+#if 0
 /* flt.utils.trimmer */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
@@ -64,6 +65,7 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(trimmer,
 	trimmer_iterator_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(trimmer,
 	trimmer_iterator_finalize);
+#endif
 
 /* flt.utils.muxer */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_notif_iter_next);

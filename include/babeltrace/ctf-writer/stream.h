@@ -30,16 +30,17 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-writer/stream-class.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct bt_ctf_stream;
+struct bt_ctf_event;
+
 /*
- * bt_stream_get_discarded_events_count: get the number of discarded
+ * bt_ctf_stream_get_discarded_events_count: get the number of discarded
  * events associated with this stream.
  *
  * Note that discarded events are not stored if the stream's packet
@@ -50,11 +51,11 @@ extern "C" {
  *
  * Returns the number of discarded events, a negative value on error.
  */
-extern int bt_stream_get_discarded_events_count(
-		struct bt_stream *stream, uint64_t *count);
+extern int bt_ctf_stream_get_discarded_events_count(
+		struct bt_ctf_stream *stream, uint64_t *count);
 
 /*
- * bt_stream_append_discarded_events: increment discarded events count.
+ * bt_ctf_stream_append_discarded_events: increment discarded events count.
  *
  * Increase the current packet's discarded event count. Has no effect if the
  * stream class' packet context has no "events_discarded" field.
@@ -63,17 +64,17 @@ extern int bt_stream_get_discarded_events_count(
  * @param event_count Number of discarded events to add to the stream's current
  *	packet.
  */
-extern void bt_stream_append_discarded_events(struct bt_stream *stream,
+extern void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 		uint64_t event_count);
 
 /*
- * bt_stream_append_event: append an event to the stream.
+ * bt_ctf_stream_append_event: append an event to the stream.
  *
  * Append "event" to the stream's current packet. The stream's associated clock
  * will be sampled during this call. The event shall not be modified after
  * being appended to a stream. The stream will share the event's ownership by
  * incrementing its reference count. The current packet is not flushed to disk
- * until the next call to bt_stream_flush.
+ * until the next call to bt_ctf_stream_flush.
  *
  * The stream event context will be sampled for every appended event if
  * a stream event context was defined.
@@ -83,21 +84,21 @@ extern void bt_stream_append_discarded_events(struct bt_stream *stream,
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_stream_append_event(struct bt_stream *stream,
-		struct bt_event *event);
+extern int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
+		struct bt_ctf_event *event);
 
 /*
- * bt_stream_get_packet_header: get a stream's packet header.
+ * bt_ctf_stream_get_packet_header: get a stream's packet header.
  *
  * @param stream Stream instance.
  *
  * Returns a field instance on success, NULL on error.
  */
-extern struct bt_field *bt_stream_get_packet_header(
-		struct bt_stream *stream);
+extern struct bt_ctf_field *bt_ctf_stream_get_packet_header(
+		struct bt_ctf_stream *stream);
 
 /*
- * bt_stream_set_packet_header: set a stream's packet header.
+ * bt_ctf_stream_set_packet_header: set a stream's packet header.
  *
  * The packet header's type must match the trace's packet header
  * type.
@@ -107,22 +108,22 @@ extern struct bt_field *bt_stream_get_packet_header(
  *
  * Returns a field instance on success, NULL on error.
  */
-extern int bt_stream_set_packet_header(
-		struct bt_stream *stream,
-		struct bt_field *packet_header);
+extern int bt_ctf_stream_set_packet_header(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_header);
 
 /*
- * bt_stream_get_packet_context: get a stream's packet context.
+ * bt_ctf_stream_get_packet_context: get a stream's packet context.
  *
  * @param stream Stream instance.
  *
  * Returns a field instance on success, NULL on error.
  */
-extern struct bt_field *bt_stream_get_packet_context(
-		struct bt_stream *stream);
+extern struct bt_ctf_field *bt_ctf_stream_get_packet_context(
+		struct bt_ctf_stream *stream);
 
 /*
- * bt_stream_set_packet_context: set a stream's packet context.
+ * bt_ctf_stream_set_packet_context: set a stream's packet context.
  *
  * The packet context's type must match the stream class' packet
  * context type.
@@ -132,12 +133,12 @@ extern struct bt_field *bt_stream_get_packet_context(
  *
  * Returns a field instance on success, NULL on error.
  */
-extern int bt_stream_set_packet_context(
-		struct bt_stream *stream,
-		struct bt_field *packet_context);
+extern int bt_ctf_stream_set_packet_context(
+		struct bt_ctf_stream *stream,
+		struct bt_ctf_field *packet_context);
 
 /*
- * bt_stream_flush: flush a stream.
+ * bt_ctf_stream_flush: flush a stream.
  *
  * The stream's current packet's events will be flushed, thus closing the
  * current packet. Events subsequently appended to the stream will be
@@ -151,19 +152,35 @@ extern int bt_stream_set_packet_context(
  *
  * Returns 0 on success, a negative value on error.
  */
-extern int bt_stream_flush(struct bt_stream *stream);
+extern int bt_ctf_stream_flush(struct bt_ctf_stream *stream);
 
-extern int bt_stream_is_writer(struct bt_stream *stream);
+extern int bt_ctf_stream_is_writer(struct bt_ctf_stream *stream);
+
+extern
+struct bt_ctf_stream *bt_ctf_stream_create(
+		struct bt_ctf_stream_class *stream_class,
+		const char *name, uint64_t id);
+
+extern struct bt_ctf_stream_class *bt_ctf_stream_get_class(
+		struct bt_ctf_stream *stream);
+
+extern const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream);
+
+extern int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream);
 
 /* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_stream_get_discarded_events_count bt_stream_get_discarded_events_count
-#define bt_ctf_stream_append_discarded_events bt_stream_append_discarded_events
-#define bt_ctf_stream_append_event bt_stream_append_event
-#define bt_ctf_stream_get_packet_context bt_stream_get_packet_context
-#define bt_ctf_stream_flush bt_stream_flush
+static inline
+void bt_ctf_stream_get(struct bt_ctf_stream *stream)
+{
+	bt_get(stream);
+}
 
-extern void bt_ctf_stream_get(struct bt_stream *stream);
-extern void bt_ctf_stream_put(struct bt_stream *stream);
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_stream_put(struct bt_ctf_stream *stream)
+{
+	bt_put(stream);
+}
 
 #ifdef __cplusplus
 }

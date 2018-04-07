@@ -73,6 +73,7 @@ struct bt_event_class *init_event_class(const char *name)
 {
 	int ret;
 	struct bt_event_class *ec = bt_event_class_create(name);
+	struct bt_field_type *payload_ft = NULL;;
 	struct bt_field_type *int_field =
 			bt_field_type_integer_create(8);
 
@@ -80,16 +81,20 @@ struct bt_event_class *init_event_class(const char *name)
 		goto error;
 	}
 
-	ret = bt_event_class_add_field(ec, int_field, "an_int_field");
+	payload_ft = bt_event_class_get_payload_field_type(ec);
+	ret = bt_field_type_structure_add_field(payload_ft,
+		int_field, "an_int_field");
 	if (ret) {
 		goto error;
 	}
 
 	BT_PUT(int_field);
+	BT_PUT(payload_ft);
 	return ec;
 error:
 	BT_PUT(ec);
 	BT_PUT(int_field);
+	BT_PUT(payload_ft);
 	return NULL;
 }
 
@@ -125,10 +130,10 @@ static void set_stream_class_field_types(
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_stream_class_set_packet_context_type(stream_class,
+	ret = bt_stream_class_set_packet_context_field_type(stream_class,
 		packet_context_type);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(stream_class,
+	ret = bt_stream_class_set_event_header_field_type(stream_class,
 		event_header_type);
 	assert(ret == 0);
 
@@ -151,7 +156,7 @@ static void set_trace_packet_header(struct bt_trace *trace)
 	assert(ret == 0);
 	bt_put(ft);
 
-	ret = bt_trace_set_packet_header_type(trace,
+	ret = bt_trace_set_packet_header_field_type(trace,
 		packet_header_type);
 	assert(ret == 0);
 

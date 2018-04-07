@@ -30,6 +30,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/field-types.h>
 
 #ifdef __cplusplus
@@ -52,8 +53,20 @@ extern "C" {
  *
  * @param type Field type.
  */
-extern void bt_ctf_field_type_get(struct bt_field_type *type);
-extern void bt_ctf_field_type_put(struct bt_field_type *type);
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_field_type_get(struct bt_field_type *type)
+{
+	bt_get(type);
+}
+
+/* Pre-2.0 CTF writer compatibility */
+static inline
+void bt_ctf_field_type_put(struct bt_field_type *type)
+{
+	bt_put(type);
+}
 
 #ifdef __cplusplus
 }

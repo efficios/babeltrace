@@ -291,26 +291,26 @@ void init_static_data(void)
 	assert(empty_struct_ft);
 	trace = bt_trace_create();
 	assert(trace);
-	ret = bt_trace_set_packet_header_type(trace, empty_struct_ft);
+	ret = bt_trace_set_packet_header_field_type(trace, empty_struct_ft);
 	assert(ret == 0);
 	src_empty_cc_prio_map = bt_clock_class_priority_map_create();
 	assert(src_empty_cc_prio_map);
 	src_stream_class = bt_stream_class_create("my-stream-class");
 	assert(src_stream_class);
-	ret = bt_stream_class_set_packet_context_type(src_stream_class,
+	ret = bt_stream_class_set_packet_context_field_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_header_type(src_stream_class,
+	ret = bt_stream_class_set_event_header_field_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_stream_class_set_event_context_type(src_stream_class,
+	ret = bt_stream_class_set_event_context_field_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
 	src_event_class = bt_event_class_create("my-event-class");
-	ret = bt_event_class_set_context_type(src_event_class,
+	ret = bt_event_class_set_context_field_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
-	ret = bt_event_class_set_context_type(src_event_class,
+	ret = bt_event_class_set_payload_field_type(src_event_class,
 		empty_struct_ft);
 	assert(ret == 0);
 	ret = bt_stream_class_add_event_class(src_stream_class,
@@ -318,9 +318,9 @@ void init_static_data(void)
 	assert(ret == 0);
 	ret = bt_trace_add_stream_class(trace, src_stream_class);
 	assert(ret == 0);
-	src_stream1 = bt_stream_create(src_stream_class, "stream-1");
+	src_stream1 = bt_stream_create(src_stream_class, "stream-1", 0);
 	assert(src_stream1);
-	src_stream2 = bt_stream_create(src_stream_class, "stream-2");
+	src_stream2 = bt_stream_create(src_stream_class, "stream-2", 1);
 	assert(src_stream2);
 	src_stream1_packet1 = bt_packet_create(src_stream1);
 	assert(src_stream1_packet1);

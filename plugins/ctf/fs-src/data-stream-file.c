@@ -629,12 +629,12 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 	BT_ASSERT(packet_size >= 0);
 	entry->packet_size = packet_size;
 
-	ret = bt_field_unsigned_integer_get_value(timestamp_begin,
+	ret = bt_field_integer_unsigned_get_value(timestamp_begin,
 			&entry->timestamp_begin);
 	if (ret) {
 		goto end;
 	}
-	ret = bt_field_unsigned_integer_get_value(timestamp_end,
+	ret = bt_field_integer_unsigned_get_value(timestamp_end,
 			&entry->timestamp_end);
 	if (ret) {
 		goto end;

@@ -28,7 +28,6 @@
  */
 
 #include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
@@ -58,10 +57,6 @@ struct bt_clock_class {
 
 BT_HIDDEN
 void bt_clock_class_freeze(struct bt_clock_class *clock_class);
-
-BT_HIDDEN
-void bt_clock_class_serialize(struct bt_clock_class *clock_class,
-		struct metadata_context *context);
 
 BT_HIDDEN
 bt_bool bt_clock_class_is_valid(struct bt_clock_class *clock_class);

@@ -189,8 +189,8 @@ typedef void (* bt_trace_listener_removed)(
 On success, the trace packet header field type of the created trace
 class is an empty structure field type. You can modify this default
 trace packet header field type after the trace class is created with
-bt_trace_get_packet_header_type() and
-bt_trace_set_packet_header_type().
+bt_trace_get_packet_header_field_type() and
+bt_trace_set_packet_header_field_type().
 
 The created trace class has the following initial properties:
 
@@ -554,10 +554,10 @@ extern int bt_trace_set_environment_field_string(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_trace_set_packet_header_type(): Sets the packet
+@sa bt_trace_set_packet_header_field_type(): Sets the packet
 	header field type of a given trace class.
 */
-extern struct bt_field_type *bt_trace_get_packet_header_type(
+extern struct bt_field_type *bt_trace_get_packet_header_field_type(
 		struct bt_trace *trace_class);
 
 /**
@@ -586,10 +586,10 @@ As of Babeltrace \btversion, if \p packet_header_type is not \c NULL,
 @post <strong>On success, if \p packet_header_type is not \c NULL</strong>,
 	the reference count of \p packet_header_type is incremented.
 
-@sa bt_trace_get_packet_header_type(): Returns the packet
+@sa bt_trace_get_packet_header_field_type(): Returns the packet
 	header field type of a given trace class.
 */
-extern int bt_trace_set_packet_header_type(struct bt_trace *trace_class,
+extern int bt_trace_set_packet_header_field_type(struct bt_trace *trace_class,
 		struct bt_field_type *packet_header_type);
 
 /** @} */
@@ -982,9 +982,6 @@ extern int bt_trace_visit(struct bt_trace *trace_class,
 /** @} */
 
 /** @} */
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_trace bt_trace
 
 #ifdef __cplusplus
 }

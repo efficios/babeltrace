@@ -78,7 +78,7 @@ struct stream_state {
 };
 
 static
-void stream_destroy_listener(struct bt_stream *stream, void *data)
+void stream_destroy_listener(struct bt_stream_common *stream, void *data)
 {
 	struct bt_notification_iterator_private_connection *iterator = data;
 
@@ -184,7 +184,7 @@ void bt_private_connection_notification_iterator_destroy(struct bt_object *obj)
 			BT_ASSERT(stream_gptr);
 
 			BT_LOGD_STR("Removing stream's destroy listener for notification iterator.");
-			bt_stream_remove_destroy_listener(
+			bt_stream_common_remove_destroy_listener(
 				(void *) stream_gptr, stream_destroy_listener,
 				iterator);
 		}

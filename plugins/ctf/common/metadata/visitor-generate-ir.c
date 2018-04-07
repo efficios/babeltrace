@@ -40,10 +40,10 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/ctf-ir/field-types-internal.h>
 
 #include "scanner.h"
 #include "parser.h"
@@ -2195,10 +2195,10 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 	}
 
 	if (is_signed) {
-		ret = bt_field_type_enumeration_add_mapping_signed(enum_decl,
+		ret = bt_field_type_enumeration_signed_add_mapping(enum_decl,
 			effective_label, start, end);
 	} else {
-		ret = bt_field_type_enumeration_add_mapping_unsigned(enum_decl,
+		ret = bt_field_type_enumeration_unsigned_add_mapping(enum_decl,
 			effective_label, (uint64_t) start, (uint64_t) end);
 	}
 	if (ret) {
@@ -2300,7 +2300,7 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		if (!bt_field_type_is_integer(integer_decl)) {
 			BT_LOGE("Container field type for enumeration field type is not an integer field type: "
 				"ft-id=%s",
-				bt_field_type_id_string(
+				bt_common_field_type_id_string(
 					bt_field_type_get_type_id(integer_decl)));
 			ret = -EINVAL;
 			goto error;
@@ -3328,7 +3328,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			BT_ASSERT(decl);
-			ret = bt_event_class_set_context_type(
+			ret = bt_event_class_set_context_field_type(
 				event_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -3358,7 +3358,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			BT_ASSERT(decl);
-			ret = bt_event_class_set_payload_type(
+			ret = bt_event_class_set_payload_field_type(
 				event_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -3565,7 +3565,7 @@ int reset_event_decl_types(struct ctx *ctx,
 	int ret = 0;
 
 	/* Context type. */
-	ret = bt_event_class_set_context_type(event_class, NULL);
+	ret = bt_event_class_set_context_field_type(event_class, NULL);
 	if (ret) {
 		BT_LOGE("Cannot reset initial event class's context field type: "
 			"event-name=\"%s\"",
@@ -3574,7 +3574,7 @@ int reset_event_decl_types(struct ctx *ctx,
 	}
 
 	/* Event payload. */
-	ret = bt_event_class_set_payload_type(event_class, NULL);
+	ret = bt_event_class_set_payload_field_type(event_class, NULL);
 	if (ret) {
 		BT_LOGE("Cannot reset initial event class's payload field type: "
 			"event-name=\"%s\"",
@@ -3592,21 +3592,21 @@ int reset_stream_decl_types(struct ctx *ctx,
 	int ret = 0;
 
 	/* Packet context. */
-	ret = bt_stream_class_set_packet_context_type(stream_class, NULL);
+	ret = bt_stream_class_set_packet_context_field_type(stream_class, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial stream class's packet context field type.");
 		goto end;
 	}
 
 	/* Event header. */
-	ret = bt_stream_class_set_event_header_type(stream_class, NULL);
+	ret = bt_stream_class_set_event_header_field_type(stream_class, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial stream class's event header field type.");
 		goto end;
 	}
 
 	/* Event context. */
-	ret = bt_stream_class_set_event_context_type(stream_class, NULL);
+	ret = bt_stream_class_set_event_context_field_type(stream_class, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial stream class's event context field type.");
 		goto end;
@@ -3621,7 +3621,7 @@ struct bt_stream_class *create_reset_stream_class(struct ctx *ctx)
 	int ret;
 	struct bt_stream_class *stream_class;
 
-	stream_class = bt_stream_class_create_empty(NULL);
+	stream_class = bt_stream_class_create(NULL);
 	if (!stream_class) {
 		BT_LOGE_STR("Cannot create empty stream class.");
 		goto error;
@@ -4105,7 +4105,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_stream_class_set_event_header_type(
+			ret = bt_stream_class_set_event_header_field_type(
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -4136,7 +4136,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			BT_ASSERT(decl);
 
-			ret = bt_stream_class_set_event_context_type(
+			ret = bt_stream_class_set_event_context_field_type(
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -4182,7 +4182,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_stream_class_set_packet_context_type(
+			ret = bt_stream_class_set_packet_context_field_type(
 				stream_class, decl);
 			BT_PUT(decl);
 			if (ret) {
@@ -4266,7 +4266,7 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 		_BT_FIELD_TYPE_INIT(packet_header_decl);
 
 		packet_header_decl =
-			bt_trace_get_packet_header_type(ctx->trace);
+			bt_trace_get_packet_header_field_type(ctx->trace);
 		if (!packet_header_decl) {
 			_BT_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
@@ -4474,7 +4474,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			}
 
 			BT_ASSERT(packet_header_decl);
-			ret = bt_trace_set_packet_header_type(ctx->trace,
+			ret = bt_trace_set_packet_header_field_type(ctx->trace,
 				packet_header_decl);
 			BT_PUT(packet_header_decl);
 			if (ret) {
@@ -5336,7 +5336,7 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 	}
 
 	/* Set packet header to NULL to override the default one */
-	ret = bt_trace_set_packet_header_type(trace, NULL);
+	ret = bt_trace_set_packet_header_field_type(trace, NULL);
 	if (ret) {
 		BT_LOGE_STR("Cannot reset initial trace's packet header field type.");
 		goto error;

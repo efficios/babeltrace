@@ -33,18 +33,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/mmap-align-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/ctf-writer/fields.h>
+#include <babeltrace/ctf-writer/field-types.h>
+#include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/assert-internal.h>
 
 #define PACKET_LEN_INCREMENT	(bt_common_get_page_size() * 8 * CHAR_BIT)
 
-struct bt_stream_pos {
+struct bt_ctf_stream_pos {
 	int fd;
 	int prot;		/* mmap protection */
 	int flags;		/* mmap flags */
@@ -58,17 +58,17 @@ struct bt_stream_pos {
 };
 
 BT_HIDDEN
-int bt_field_integer_write(struct bt_field_integer *field,
-		struct bt_stream_pos *pos,
-		enum bt_byte_order native_byte_order);
+int bt_ctf_field_integer_write(struct bt_field_common *field,
+		struct bt_ctf_stream_pos *pos,
+		enum bt_ctf_byte_order native_byte_order);
 
 BT_HIDDEN
-int bt_field_floating_point_write(struct bt_field_floating_point *field,
-		struct bt_stream_pos *pos,
-		enum bt_byte_order native_byte_order);
+int bt_ctf_field_floating_point_write(struct bt_field_common *field,
+		struct bt_ctf_stream_pos *pos,
+		enum bt_ctf_byte_order native_byte_order);
 
 static inline
-int bt_stream_pos_access_ok(struct bt_stream_pos *pos, uint64_t bit_len)
+int bt_ctf_stream_pos_access_ok(struct bt_ctf_stream_pos *pos, uint64_t bit_len)
 {
 	uint64_t max_len;
 
@@ -94,11 +94,11 @@ int bt_stream_pos_access_ok(struct bt_stream_pos *pos, uint64_t bit_len)
 }
 
 static inline
-int bt_stream_pos_move(struct bt_stream_pos *pos, uint64_t bit_offset)
+int bt_ctf_stream_pos_move(struct bt_ctf_stream_pos *pos, uint64_t bit_offset)
 {
 	int ret = 0;
 
-	ret = bt_stream_pos_access_ok(pos, bit_offset);
+	ret = bt_ctf_stream_pos_access_ok(pos, bit_offset);
 	if (!ret) {
 		goto end;
 	}
@@ -108,14 +108,14 @@ end:
 }
 
 static inline
-int bt_stream_pos_align(struct bt_stream_pos *pos, uint64_t bit_offset)
+int bt_ctf_stream_pos_align(struct bt_ctf_stream_pos *pos, uint64_t bit_offset)
 {
-	return bt_stream_pos_move(pos,
+	return bt_ctf_stream_pos_move(pos,
 		offset_align(pos->offset, bit_offset));
 }
 
 static inline
-char *bt_stream_pos_get_addr(struct bt_stream_pos *pos)
+char *bt_ctf_stream_pos_get_addr(struct bt_ctf_stream_pos *pos)
 {
 	/* Only makes sense to get the address after aligning on CHAR_BIT */
 	BT_ASSERT(!(pos->offset % CHAR_BIT));
@@ -124,7 +124,7 @@ char *bt_stream_pos_get_addr(struct bt_stream_pos *pos)
 }
 
 static inline
-int bt_stream_pos_init(struct bt_stream_pos *pos,
+int bt_ctf_stream_pos_init(struct bt_ctf_stream_pos *pos,
 		int fd, int open_flags)
 {
 	pos->fd = fd;
@@ -146,7 +146,7 @@ int bt_stream_pos_init(struct bt_stream_pos *pos,
 }
 
 static inline
-int bt_stream_pos_fini(struct bt_stream_pos *pos)
+int bt_ctf_stream_pos_fini(struct bt_ctf_stream_pos *pos)
 {
 	if (pos->base_mma) {
 		int ret;
@@ -162,7 +162,7 @@ int bt_stream_pos_fini(struct bt_stream_pos *pos)
 }
 
 BT_HIDDEN
-void bt_stream_pos_packet_seek(struct bt_stream_pos *pos, size_t index,
+void bt_ctf_stream_pos_packet_seek(struct bt_ctf_stream_pos *pos, size_t index,
 	int whence);
 
 #endif /* BABELTRACE_CTF_WRITER_SERIALIZE_INTERNAL_H */

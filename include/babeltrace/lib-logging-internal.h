@@ -33,6 +33,15 @@
 extern
 int bt_lib_log_level;
 
+#define BT_LIB_LOG(_lvl, _fmt, ...)					\
+	do {								\
+		if (BT_LOG_ON(_lvl)) {					\
+			bt_lib_log(_BT_LOG_SRCLOC_FUNCTION, __FILE__,	\
+				__LINE__, _lvl, _BT_LOG_TAG,		\
+				(_fmt), ##__VA_ARGS__);			\
+		}							\
+	} while (0)
+
 /*
  * The six macros below are logging statements which are specialized
  * for the Babeltrace library.
@@ -61,77 +70,137 @@ int bt_lib_log_level;
  * 3. Optional: `+` to print extended fields. This depends on the
  *    provided format specifier.
  *
- * 4. Format specifier.
+ * 4. Objet category: `w` for CTF writer objects, `_` for common
+ *    objects, or nothing for default objects (includes CTF IR).
+ *
+ * 5. Format specifier (see below).
  *
  * The available format specifiers are:
  *
- * `r`:
- *     Reference count information. The parameter is any Babeltrace
- *     object.
+ * Default category:
+ *   `r`:
+ *       Reference count information. The parameter is any Babeltrace
+ *       object.
  *
- * `F`:
- *     Field type. The parameter type is `struct bt_field_type *`.
+ *   `F`:
+ *       CTF IR field type. The parameter type is `struct bt_field_type *`.
  *
- * `f`:
- *     Field. The parameter type is `struct bt_field *`.
+ *   `f`:
+ *       CTF IR field. The parameter type is `struct bt_field *`.
  *
- * `P`:
- *     Field path. The parameter type is `struct bt_field_path *`.
+ *   `P`:
+ *       Field path. The parameter type is `struct bt_field_path *`.
  *
- * `E`:
- *     Event class. The parameter type is `struct bt_event_class *`.
+ *   `E`:
+ *       CTF IR event class. The parameter type is `struct bt_event_class *`.
  *
- * `e`:
- *     Event. The parameter type is `struct bt_event *`.
+ *   `e`:
+ *       CTF IR event. The parameter type is `struct bt_event *`.
  *
- * `S`:
- *     Stream class. The parameter type is `struct bt_stream_class *`.
+ *   `S`:
+ *       CTF IR stream class. The parameter type is `struct bt_stream_class *`.
  *
- * `s`:
- *     Stream. The parameter type is `struct bt_stream *`.
+ *   `s`:
+ *       CTF IR stream. The parameter type is `struct bt_stream *`.
  *
- * `a`:
- *     Packet. The parameter type is `struct bt_packet *`.
+ *   `a`:
+ *       Packet. The parameter type is `struct bt_packet *`.
  *
- * `t`:
- *     Trace. The parameter type is `struct bt_trace *`.
+ *   `t`:
+ *       CTF IR trace. The parameter type is `struct bt_trace *`.
  *
- * `K`:
- *     Clock class. The parameter type is `struct bt_clock_class *`.
+ *   `K`:
+ *       Clock class. The parameter type is `struct bt_clock_class *`.
  *
- * `k`:
- *     Clock value. The parameter type is `struct bt_clock_value *`.
+ *   `k`:
+ *       Clock value. The parameter type is `struct bt_clock_value *`.
  *
- * `v`:
- *     Value. The parameter type is `struct bt_value *`.
+ *   `v`:
+ *       Value. The parameter type is `struct bt_value *`.
  *
- * `n`:
- *     Notification. The parameter type is `struct bt_notification *`.
+ *   `n`:
+ *       Notification. The parameter type is `struct bt_notification *`.
  *
- * `i`:
- *     Notification iterator. The parameter type is
- *     `struct bt_notification_iterator *`.
+ *   `i`:
+ *       Notification iterator. The parameter type is
+ *       `struct bt_notification_iterator *`.
  *
- * `C`:
- *     Component class. The parameter type is `struct bt_component_class *`.
+ *   `C`:
+ *       Component class. The parameter type is `struct bt_component_class *`.
  *
- * `c`:
- *     Component. The parameter type is `struct bt_component *`.
+ *   `c`:
+ *       Component. The parameter type is `struct bt_component *`.
  *
- * `p`:
- *     Port. The parameter type is `struct bt_port *`.
+ *   `p`:
+ *       Port. The parameter type is `struct bt_port *`.
  *
- * `x`:
- *     Connection. The parameter type is `struct bt_connection *`.
+ *   `x`:
+ *       Connection. The parameter type is `struct bt_connection *`.
  *
- * `g`:
- *     Graph. The parameter type is `struct bt_graph *`.
+ *   `g`:
+ *       Graph. The parameter type is `struct bt_graph *`.
  *
- * `u`:
- *     Plugin. The parameter type is `struct bt_plugin *`.
+ *   `u`:
+ *       Plugin. The parameter type is `struct bt_plugin *`.
  *
- * `w`:
- *     CTF writer. The parameter type is `struct bt_ctf_writer *`.
+ * CTF writer category:
+ *   `F`:
+ *       CTF writer field type. The parameter type is `struct bt_field_type *`.
+ *
+ *   `f`:
+ *       CTF writer field. The parameter type is `struct bt_field *`.
+ *
+ *   `E`:
+ *       CTF writer event class. The parameter type is
+ *       `struct bt_event_class *`.
+ *
+ *   `e`:
+ *       CTF writer event. The parameter type is `struct bt_event *`.
+ *
+ *   `S`:
+ *       CTF writer stream class. The parameter type is
+ *       `struct bt_stream_class *`.
+ *
+ *   `s`:
+ *       CTF writer stream. The parameter type is `struct bt_stream *`.
+ *
+ *   `t`:
+ *       CTF writer trace. The parameter type is `struct bt_trace *`.
+ *
+ *   `w`:
+ *       CTF writer. The parameter type is `struct bt_ctf_writer *`.
+ *
+ * Common category:
+ *   `F`:
+ *       Common field type. The parameter type is `struct bt_field_type *`.
+ *
+ *   `f`:
+ *       Common field. The parameter type is `struct bt_field *`.
+ *
+ *   `E`:
+ *       Common event class. The parameter type is
+ *       `struct bt_event_class *`.
+ *
+ *   `e`:
+ *       Common event. The parameter type is `struct bt_event *`.
+ *
+ *   `S`:
+ *       Common stream class. The parameter type is
+ *       `struct bt_stream_class *`.
+ *
+ *   `s`:
+ *       Common stream. The parameter type is `struct bt_stream *`.
+ *
+ *   `t`:
+ *       Common trace. The parameter type is `struct bt_trace *`.
+ *
+ * Conversion specifier examples:
+ *
+ *     %!f
+ *     %![my-event-]+e
+ *     %!_t
+ *     %![ctf-writer-ec-]wE
+ *     %!+_F
  *
  * The string `, ` is printed between individual fields, but not after
  * the last one. Therefore you must put this separator in the format
@@ -147,15 +216,6 @@ int bt_lib_log_level;
  * It is safe to pass NULL as any Babeltrace object parameter: the
  * macros only print its null address.
  */
-#define BT_LIB_LOG(_lvl, _fmt, ...)					\
-	do {								\
-		if (BT_LOG_ON(_lvl)) {					\
-			bt_lib_log(_BT_LOG_SRCLOC_FUNCTION, __FILE__,	\
-				__LINE__, _lvl, _BT_LOG_TAG,		\
-				(_fmt), ##__VA_ARGS__);			\
-		}							\
-	} while (0)
-
 #define BT_LIB_LOGF(_fmt, ...)	BT_LIB_LOG(BT_LOG_FATAL, _fmt, ##__VA_ARGS__)
 #define BT_LIB_LOGE(_fmt, ...)	BT_LIB_LOG(BT_LOG_ERROR, _fmt, ##__VA_ARGS__)
 #define BT_LIB_LOGW(_fmt, ...)	BT_LIB_LOG(BT_LOG_WARN, _fmt, ##__VA_ARGS__)

@@ -28,6 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
+#include <babeltrace/common-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <glib.h>
@@ -54,31 +55,5 @@ void bt_field_path_clear(struct bt_field_path *field_path);
 BT_HIDDEN
 struct bt_field_path *bt_field_path_copy(
 		struct bt_field_path *path);
-
-static inline
-GString *bt_field_path_string(struct bt_field_path *path)
-{
-	GString *str = g_string_new(NULL);
-	size_t i;
-
-	BT_ASSERT(path);
-
-	if (!str) {
-		goto end;
-	}
-
-	g_string_append_printf(str, "[%s", bt_scope_string(path->root));
-
-	for (i = 0; i < path->indexes->len; i++) {
-		int index = g_array_index(path->indexes, int, i);
-
-		g_string_append_printf(str, ", %d", index);
-	}
-
-	g_string_append(str, "]");
-
-end:
-	return str;
-}
 
 #endif /* BABELTRACE_CTF_IR_FIELD_PATH_INTERNAL */
