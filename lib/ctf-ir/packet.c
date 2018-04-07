@@ -27,6 +27,7 @@
 #define BT_LOG_TAG "PACKET"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
@@ -39,7 +40,6 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 #include <inttypes.h>
 
 struct bt_stream *bt_packet_get_stream(struct bt_packet *packet)
@@ -57,7 +57,7 @@ struct bt_field *bt_packet_get_header(
 
 BT_ASSERT_PRE_FUNC
 static inline bool validate_field_to_set(struct bt_field *field,
-		struct bt_field_type *expected_ft)
+		struct bt_field_type_common *expected_ft)
 {
 	bool ret = true;
 
@@ -74,10 +74,11 @@ static inline bool validate_field_to_set(struct bt_field *field,
 		goto end;
 	}
 
-	if (bt_field_type_compare(field->type, expected_ft) != 0) {
+	if (bt_field_type_compare(bt_field_borrow_type(field),
+			BT_FROM_COMMON(expected_ft)) != 0) {
 		BT_ASSERT_PRE_MSG("Field type is different from expected "
 			" field type: %![field-ft-]+F, %![expected-ft-]+F",
-			field->type, expected_ft);
+			bt_field_borrow_type(field), expected_ft);
 		ret = false;
 		goto end;
 	}
@@ -92,7 +93,8 @@ int bt_packet_set_header(struct bt_packet *packet,
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
 	BT_ASSERT_PRE(validate_field_to_set(header,
-		bt_stream_class_borrow_trace(packet->stream->stream_class)->packet_header_type),
+		bt_stream_class_borrow_trace(
+			BT_FROM_COMMON(packet->stream->common.stream_class))->common.packet_header_field_type),
 		"Invalid packet header field: "
 		"%![packet-]+a, %![field-]+f", packet, header);
 	bt_put(packet->header);
@@ -114,7 +116,7 @@ int bt_packet_set_context(struct bt_packet *packet,
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
 	BT_ASSERT_PRE(validate_field_to_set(context,
-		packet->stream->stream_class->packet_context_type),
+		BT_FROM_COMMON(packet->stream->common.stream_class->packet_context_field_type)),
 		"Invalid packet context field: "
 		"%![packet-]+a, %![field-]+f", packet, context);
 	bt_put(packet->context);
@@ -142,9 +144,8 @@ void _bt_packet_freeze(struct bt_packet *packet)
 static
 void bt_packet_destroy(struct bt_object *obj)
 {
-	struct bt_packet *packet;
+	struct bt_packet *packet = (void *) obj;
 
-	packet = container_of(obj, struct bt_packet, base);
 	BT_LOGD("Destroying packet: addr=%p", packet);
 	BT_LOGD_STR("Putting packet's header field.");
 	bt_put(packet->header);
@@ -167,11 +168,9 @@ struct bt_packet *bt_packet_create(
 		"stream-name=\"%s\", stream-class-addr=%p, "
 		"stream-class-name=\"%s\", stream-class-id=%" PRId64,
 		stream, bt_stream_get_name(stream),
-		stream->stream_class,
-		bt_stream_class_get_name(stream->stream_class),
-		bt_stream_class_get_id(stream->stream_class));
-	BT_ASSERT_PRE(stream->pos.fd < 0,
-		"Stream is a CTF writer stream: %!+s", stream);
+		stream->common.stream_class,
+		bt_stream_class_common_get_name(stream->common.stream_class),
+		bt_stream_class_common_get_id(stream->common.stream_class));
 	stream_class = bt_stream_get_class(stream);
 	BT_ASSERT(stream_class);
 	trace = bt_stream_class_get_trace(stream_class);
@@ -185,10 +184,11 @@ struct bt_packet *bt_packet_create(
 	bt_object_init(packet, bt_packet_destroy);
 	packet->stream = bt_get(stream);
 
-	if (trace->packet_header_type) {
+	if (trace->common.packet_header_field_type) {
 		BT_LOGD("Creating initial packet header field: ft-addr=%p",
-			trace->packet_header_type);
-		packet->header = bt_field_create(trace->packet_header_type);
+			trace->common.packet_header_field_type);
+		packet->header = bt_field_create(
+			BT_FROM_COMMON(trace->common.packet_header_field_type));
 		if (!packet->header) {
 			BT_LOGE_STR("Cannot create initial packet header field object.");
 			BT_PUT(packet);
@@ -196,11 +196,11 @@ struct bt_packet *bt_packet_create(
 		}
 	}
 
-	if (stream->stream_class->packet_context_type) {
+	if (stream->common.stream_class->packet_context_field_type) {
 		BT_LOGD("Creating initial packet context field: ft-addr=%p",
-			stream->stream_class->packet_context_type);
+			stream->common.stream_class->packet_context_field_type);
 		packet->context = bt_field_create(
-			stream->stream_class->packet_context_type);
+			BT_FROM_COMMON(stream->common.stream_class->packet_context_field_type));
 		if (!packet->context) {
 			BT_LOGE_STR("Cannot create initial packet header field object.");
 			BT_PUT(packet);

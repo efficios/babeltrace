@@ -16,12 +16,16 @@ babeltracectfinclude_HEADERS = \
 # CTF writer API
 babeltracectfwriterincludedir = "$(includedir)/babeltrace/ctf-writer"
 babeltracectfwriterinclude_HEADERS = \
+	babeltrace/ctf-writer/clock-class.h \
 	babeltrace/ctf-writer/clock.h \
 	babeltrace/ctf-writer/event-fields.h \
-	babeltrace/ctf-writer/event-types.h \
 	babeltrace/ctf-writer/event.h \
+	babeltrace/ctf-writer/event-types.h \
+	babeltrace/ctf-writer/fields.h \
+	babeltrace/ctf-writer/field-types.h \
 	babeltrace/ctf-writer/stream-class.h \
 	babeltrace/ctf-writer/stream.h \
+	babeltrace/ctf-writer/trace.h \
 	babeltrace/ctf-writer/writer.h
 
 # CTF IR API
@@ -85,73 +89,80 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/query-executor.h
 
 noinst_HEADERS = \
-	babeltrace/align-internal.h \
-	babeltrace/assert-internal.h \
-	babeltrace/assert-pre-internal.h \
-	babeltrace/babeltrace-internal.h \
-	babeltrace/bitfield-internal.h \
-	babeltrace/common-internal.h \
+	babeltrace/compat/stdlib-internal.h \
 	babeltrace/compat/fcntl-internal.h \
 	babeltrace/compat/glib-internal.h \
-	babeltrace/compat/limits-internal.h \
+	babeltrace/compat/uuid-internal.h \
+	babeltrace/compat/unistd-internal.h \
+	babeltrace/compat/stdio-internal.h \
+	babeltrace/compat/time-internal.h \
+	babeltrace/compat/utc-internal.h \
 	babeltrace/compat/memstream-internal.h \
+	babeltrace/compat/string-internal.h \
+	babeltrace/compat/limits-internal.h \
 	babeltrace/compat/mman-internal.h \
 	babeltrace/compat/socket-internal.h \
-	babeltrace/compat/stdio-internal.h \
-	babeltrace/compat/stdlib-internal.h \
-	babeltrace/compat/string-internal.h \
-	babeltrace/compat/time-internal.h \
-	babeltrace/compat/unistd-internal.h \
-	babeltrace/compat/utc-internal.h \
-	babeltrace/compat/uuid-internal.h \
-	babeltrace/compiler-internal.h \
-	babeltrace/ctf-ir/attributes-internal.h \
-	babeltrace/ctf-ir/clock-class-internal.h \
-	babeltrace/ctf-ir/clock-value-internal.h \
-	babeltrace/ctf-ir/event-class-internal.h \
-	babeltrace/ctf-ir/event-internal.h \
-	babeltrace/ctf-ir/field-path-internal.h \
-	babeltrace/ctf-ir/field-types-internal.h \
-	babeltrace/ctf-ir/fields-internal.h \
-	babeltrace/ctf-ir/packet-internal.h \
-	babeltrace/ctf-ir/resolve-internal.h \
-	babeltrace/ctf-ir/stream-class-internal.h \
-	babeltrace/ctf-ir/stream-internal.h \
-	babeltrace/ctf-ir/trace-internal.h \
-	babeltrace/ctf-ir/validation-internal.h \
-	babeltrace/ctf-ir/visitor-internal.h \
-	babeltrace/ctf-ir/utils-internal.h \
-	babeltrace/ctf-writer/clock-internal.h \
-	babeltrace/ctf-writer/functor-internal.h \
-	babeltrace/ctf-writer/serialize-internal.h \
-	babeltrace/ctf-writer/writer-internal.h \
-	babeltrace/endian-internal.h \
-	babeltrace/graph/clock-class-priority-map-internal.h \
-	babeltrace/graph/component-class-internal.h \
-	babeltrace/graph/component-class-sink-colander-internal.h \
-	babeltrace/graph/component-filter-internal.h \
-	babeltrace/graph/component-internal.h \
-	babeltrace/graph/component-sink-internal.h \
-	babeltrace/graph/component-source-internal.h \
-	babeltrace/graph/connection-internal.h \
-	babeltrace/graph/graph-internal.h \
-	babeltrace/graph/notification-discarded-elements-internal.h \
-	babeltrace/graph/notification-event-internal.h \
-	babeltrace/graph/notification-heap-internal.h \
-	babeltrace/graph/notification-inactivity-internal.h \
-	babeltrace/graph/notification-internal.h \
-	babeltrace/graph/notification-iterator-internal.h \
-	babeltrace/graph/notification-packet-internal.h \
-	babeltrace/graph/notification-stream-internal.h \
-	babeltrace/graph/port-internal.h \
-	babeltrace/graph/query-executor-internal.h \
-	babeltrace/lib-logging-internal.h \
-	babeltrace/list-internal.h \
-	babeltrace/logging-internal.h \
-	babeltrace/mmap-align-internal.h \
+	babeltrace/common-internal.h \
+	babeltrace/bitfield-internal.h \
 	babeltrace/object-internal.h \
 	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/plugin-so-internal.h \
+	babeltrace/plugin/python-plugin-provider-internal.h \
+	babeltrace/assert-internal.h \
+	babeltrace/values-internal.h \
+	babeltrace/ctf-writer/fields-internal.h \
+	babeltrace/ctf-writer/stream-class-internal.h \
+	babeltrace/ctf-writer/event-internal.h \
+	babeltrace/ctf-writer/trace-internal.h \
+	babeltrace/ctf-writer/field-types-internal.h \
+	babeltrace/ctf-writer/serialize-internal.h \
+	babeltrace/ctf-writer/writer-internal.h \
+	babeltrace/ctf-writer/stream-internal.h \
+	babeltrace/ctf-writer/clock-internal.h \
+	babeltrace/ctf-writer/functor-internal.h \
+	babeltrace/mmap-align-internal.h \
+	babeltrace/align-internal.h \
+	babeltrace/logging-internal.h \
+	babeltrace/endian-internal.h \
+	babeltrace/ctf-ir/packet-internal.h \
+	babeltrace/ctf-ir/event-class-internal.h \
+	babeltrace/ctf-ir/utils-internal.h \
+	babeltrace/ctf-ir/validation-internal.h \
+	babeltrace/ctf-ir/fields-internal.h \
+	babeltrace/ctf-ir/stream-class-internal.h \
+	babeltrace/ctf-ir/event-internal.h \
+	babeltrace/ctf-ir/field-path-internal.h \
+	babeltrace/ctf-ir/trace-internal.h \
+	babeltrace/ctf-ir/clock-class-internal.h \
+	babeltrace/ctf-ir/field-types-internal.h \
+	babeltrace/ctf-ir/clock-value-internal.h \
+	babeltrace/ctf-ir/attributes-internal.h \
+	babeltrace/ctf-ir/stream-internal.h \
+	babeltrace/ctf-ir/resolve-internal.h \
+	babeltrace/ctf-ir/visitor-internal.h \
 	babeltrace/prio-heap-internal.h \
+	babeltrace/lib-logging-internal.h \
+	babeltrace/compiler-internal.h \
+	babeltrace/babeltrace-internal.h \
+	babeltrace/assert-pre-internal.h \
 	babeltrace/ref-internal.h \
-	babeltrace/values-internal.h
+	babeltrace/graph/component-internal.h \
+	babeltrace/graph/notification-stream-internal.h \
+	babeltrace/graph/connection-internal.h \
+	babeltrace/graph/notification-event-internal.h \
+	babeltrace/graph/query-executor-internal.h \
+	babeltrace/graph/graph-internal.h \
+	babeltrace/graph/component-class-sink-colander-internal.h \
+	babeltrace/graph/notification-inactivity-internal.h \
+	babeltrace/graph/notification-heap-internal.h \
+	babeltrace/graph/component-source-internal.h \
+	babeltrace/graph/notification-discarded-elements-internal.h \
+	babeltrace/graph/notification-packet-internal.h \
+	babeltrace/graph/notification-iterator-internal.h \
+	babeltrace/graph/notification-internal.h \
+	babeltrace/graph/component-filter-internal.h \
+	babeltrace/graph/component-class-internal.h \
+	babeltrace/graph/component-sink-internal.h \
+	babeltrace/graph/port-internal.h \
+	babeltrace/graph/clock-class-priority-map-internal.h \
+	babeltrace/list-internal.h

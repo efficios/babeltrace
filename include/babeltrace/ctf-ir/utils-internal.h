@@ -27,8 +27,15 @@
 #include <babeltrace/ctf-ir/field-types.h>
 #include <stdint.h>
 
+#define BT_TO_COMMON(_obj)	(&(_obj)->common)
+#define BT_FROM_COMMON(_obj)	((void *) _obj)
+
+struct search_query {
+	gpointer value;
+	int found;
+};
+
 BT_HIDDEN
-int bt_validate_single_clock_class(struct bt_field_type *field_type,
-		struct bt_clock_class **expected_clock_class);
+const char *get_byte_order_string(enum bt_byte_order byte_order);
 
 #endif /* BABELTRACE_CTF_IR_UTILS_INTERNAL_H */

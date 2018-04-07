@@ -591,18 +591,18 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	signedness = bt_ctf_field_type_integer_get_signed(field_type);
+	signedness = bt_field_type_integer_is_signed(field_type);
 	if (signedness < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 	if (!signedness) {
-		if (bt_field_unsigned_integer_get_value(field, &v.u) < 0) {
+		if (bt_field_integer_unsigned_get_value(field, &v.u) < 0) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 	} else {
-		if (bt_field_signed_integer_get_value(field, &v.s) < 0) {
+		if (bt_field_integer_signed_get_value(field, &v.s) < 0) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
@@ -803,7 +803,7 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	is_signed = bt_ctf_field_type_integer_get_signed(container_field_type);
+	is_signed = bt_field_type_integer_is_signed(container_field_type);
 	if (is_signed < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -811,22 +811,22 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 	if (is_signed) {
 		int64_t value;
 
-		if (bt_field_signed_integer_get_value(container_field,
+		if (bt_field_integer_signed_get_value(container_field,
 				&value)) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		iter = bt_field_type_enumeration_find_mappings_by_signed_value(
+		iter = bt_field_type_enumeration_signed_find_mappings_by_value(
 				enumeration_field_type, value);
 	} else {
 		uint64_t value;
 
-		if (bt_field_unsigned_integer_get_value(container_field,
+		if (bt_field_integer_unsigned_get_value(container_field,
 				&value)) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
-		iter = bt_field_type_enumeration_find_mappings_by_unsigned_value(
+		iter = bt_field_type_enumeration_unsigned_find_mappings_by_value(
 				enumeration_field_type, value);
 	}
 	g_string_append(pretty->string, "( ");
@@ -844,7 +844,7 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 	for (;;) {
 		const char *mapping_name;
 
-		if (bt_field_type_enumeration_mapping_iterator_get_signed(
+		if (bt_field_type_enumeration_mapping_iterator_signed_get(
 				iter, &mapping_name, NULL, NULL) < 0) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
@@ -1023,7 +1023,7 @@ enum bt_component_status print_array(struct pretty_component *pretty,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	field_type = bt_field_type_array_get_element_type(array_type);
+	field_type = bt_field_type_array_get_element_field_type(array_type);
 	if (!field_type) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -1140,11 +1140,11 @@ enum bt_component_status print_sequence(struct pretty_component *pretty,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	if (bt_field_unsigned_integer_get_value(length_field, &len) < 0) {
+	if (bt_field_integer_unsigned_get_value(length_field, &len) < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	field_type = bt_field_type_sequence_get_element_type(seq_type);
+	field_type = bt_field_type_sequence_get_element_field_type(seq_type);
 	if (!field_type) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -1245,7 +1245,7 @@ enum bt_component_status print_variant(struct pretty_component *pretty,
 		}
 
 		iter_ret =
-			bt_field_type_enumeration_mapping_iterator_get_signed(
+			bt_field_type_enumeration_mapping_iterator_signed_get(
 				iter, &tag_choice, NULL, NULL);
 		if (iter_ret) {
 			bt_put(iter);
@@ -1277,9 +1277,9 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 
 	type_id = bt_field_get_type_id(field);
 	switch (type_id) {
-	case CTF_TYPE_INTEGER:
+	case BT_CTF_FIELD_TYPE_ID_INTEGER:
 		return print_integer(pretty, field);
-	case CTF_TYPE_FLOAT:
+	case BT_CTF_FIELD_TYPE_ID_FLOAT:
 	{
 		double v;
 
@@ -1295,9 +1295,9 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case CTF_TYPE_ENUM:
+	case BT_CTF_FIELD_TYPE_ID_ENUM:
 		return print_enum(pretty, field);
-	case CTF_TYPE_STRING:
+	case BT_CTF_FIELD_TYPE_ID_STRING:
 	{
 		const char *str;
 
@@ -1315,14 +1315,14 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case CTF_TYPE_STRUCT:
+	case BT_CTF_FIELD_TYPE_ID_STRUCT:
 		return print_struct(pretty, field, print_names, filter_fields,
 				filter_array_len);
-	case CTF_TYPE_VARIANT:
+	case BT_CTF_FIELD_TYPE_ID_VARIANT:
 		return print_variant(pretty, field, print_names);
-	case CTF_TYPE_ARRAY:
+	case BT_CTF_FIELD_TYPE_ID_ARRAY:
 		return print_array(pretty, field, print_names);
-	case CTF_TYPE_SEQUENCE:
+	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 		return print_sequence(pretty, field, print_names);
 	default:
 		// TODO: log instead
@@ -1422,7 +1422,7 @@ enum bt_component_status print_event_context(struct pretty_component *pretty,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_field *main_field = NULL;
 
-	main_field = bt_event_get_event_context(event);
+	main_field = bt_event_get_context(event);
 	if (!main_field) {
 		goto end;
 	}
@@ -1447,7 +1447,7 @@ enum bt_component_status print_event_payload(struct pretty_component *pretty,
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_field *main_field = NULL;
 
-	main_field = bt_event_get_event_payload(event);
+	main_field = bt_event_get_payload(event);
 	if (!main_field) {
 		goto end;
 	}

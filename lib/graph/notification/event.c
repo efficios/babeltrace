@@ -76,7 +76,7 @@ bt_bool validate_clock_classes(struct bt_notification_event *notif)
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_trace *trace = NULL;
 
-	event_class = bt_event_borrow_event_class(notif->event);
+	event_class = bt_event_borrow_class(notif->event);
 	BT_ASSERT(event_class);
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
@@ -158,7 +158,7 @@ static inline bool event_has_trace(struct bt_event *event)
 	struct bt_event_class *event_class;
 	struct bt_stream_class *stream_class;
 
-	event_class = bt_event_borrow_event_class(event);
+	event_class = bt_event_borrow_class(event);
 	BT_ASSERT(event_class);
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
@@ -185,7 +185,7 @@ struct bt_notification *bt_notification_event_create(struct bt_event *event,
 	}
 
 	BT_ASSERT(cc_prio_map);
-	event_class = bt_event_borrow_event_class(event);
+	event_class = bt_event_borrow_class(event);
 	BT_ASSERT(event_class);
 	BT_LOGD("Creating event notification object: "
 		"event-addr=%p, event-class-addr=%p, "

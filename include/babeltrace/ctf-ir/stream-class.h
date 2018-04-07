@@ -146,28 +146,6 @@ struct bt_clock;
 */
 
 /**
-@brief	Creates an empty CTF IR stream class named \p name, or an
-	unnamed empty stream class if \p name is \c NULL.
-
-On success, the packet context, event header, and event context field
-types are empty structure field types. You can modify those default
-field types after the stream class is created with
-bt_stream_class_set_packet_context_type(),
-bt_stream_class_set_event_header_type(), and
-bt_stream_class_set_event_context_type().
-
-@param[in] name	Name of the stream class to create (copied on success),
-		or \c NULL to create an unnamed stream class.
-@returns	Created empty stream class, or \c NULL on error.
-
-@postsuccessrefcountret1
-
-@sa bt_stream_class_create(): Creates a default stream class.
-*/
-extern struct bt_stream_class *bt_stream_class_create_empty(
-		const char *name);
-
-/**
 @brief	Creates a default CTF IR stream class named \p name­, or a
 	default unnamed stream class if \p name is \c NULL.
 
@@ -187,8 +165,8 @@ has the following fields:
 - <code>timestamp</code>: a 64-bit unsigned integer field type.
 
 You can modify those default field types after the stream class is
-created with bt_stream_class_set_packet_context_type() and
-bt_stream_class_set_event_header_type().
+created with bt_stream_class_set_packet_context_field_type() and
+bt_stream_class_set_event_header_field_type().
 
 @param[in] name	Name of the stream class to create (copied on success),
 		or \c NULL to create an unnamed stream class.
@@ -337,10 +315,10 @@ extern int bt_stream_class_set_id(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_stream_class_set_packet_context_type(): Sets the packet
+@sa bt_stream_class_set_packet_context_field_type(): Sets the packet
 	context field type of a given stream class.
 */
-extern struct bt_field_type *bt_stream_class_get_packet_context_type(
+extern struct bt_field_type *bt_stream_class_get_packet_context_field_type(
 		struct bt_stream_class *stream_class);
 
 /**
@@ -369,10 +347,10 @@ As of Babeltrace \btversion, if \p packet_context_type is not \c NULL,
 @post <strong>On success, if \p packet_context_type is not \c NULL</strong>,
 	the reference count of \p packet_context_type is incremented.
 
-@sa bt_stream_class_get_packet_context_type(): Returns the packet
+@sa bt_stream_class_get_packet_context_field_type(): Returns the packet
 	context field type of a given stream class.
 */
-extern int bt_stream_class_set_packet_context_type(
+extern int bt_stream_class_set_packet_context_field_type(
 		struct bt_stream_class *stream_class,
 		struct bt_field_type *packet_context_type);
 
@@ -391,11 +369,11 @@ extern int bt_stream_class_set_packet_context_type(
 @post <strong>On success, if the return value is a field type</strong>, its
 	reference count is incremented.
 
-@sa bt_stream_class_set_event_header_type(): Sets the event
+@sa bt_stream_class_set_event_header_field_type(): Sets the event
 	header field type of a given stream class.
 */
 extern struct bt_field_type *
-bt_stream_class_get_event_header_type(
+bt_stream_class_get_event_header_field_type(
 		struct bt_stream_class *stream_class);
 
 /**
@@ -424,10 +402,10 @@ As of Babeltrace \btversion, if \p event_header_type is not \c NULL,
 @post <strong>On success, if \p event_header_type is not \c NULL</strong>,
 	the reference count of \p event_header_type is incremented.
 
-@sa bt_stream_class_get_event_header_type(): Returns the event
+@sa bt_stream_class_get_event_header_field_type(): Returns the event
 	header field type of a given stream class.
 */
-extern int bt_stream_class_set_event_header_type(
+extern int bt_stream_class_set_event_header_field_type(
 		struct bt_stream_class *stream_class,
 		struct bt_field_type *event_header_type);
 
@@ -447,11 +425,11 @@ extern int bt_stream_class_set_event_header_type(
 	its reference count is incremented.
 
 
-@sa bt_stream_class_set_event_context_type(): Sets the event
+@sa bt_stream_class_set_event_context_field_type(): Sets the event
 	context field type of a given stream class.
 */
 extern struct bt_field_type *
-bt_stream_class_get_event_context_type(
+bt_stream_class_get_event_context_field_type(
 		struct bt_stream_class *stream_class);
 
 /**
@@ -480,10 +458,10 @@ As of Babeltrace \btversion, if \p event_context_type is not \c NULL,
 @post <strong>On success, if \p event_context_type is not \c NULL</strong>,
 	the reference count of \p event_context_type is incremented.
 
-@sa bt_stream_class_get_event_context_type(): Returns the event context
+@sa bt_stream_class_get_event_context_field_type(): Returns the event context
 	field type of a given stream class.
 */
-extern int bt_stream_class_set_event_context_type(
+extern int bt_stream_class_set_event_context_field_type(
 		struct bt_stream_class *stream_class,
 		struct bt_field_type *event_context_type);
 
@@ -620,12 +598,6 @@ extern int bt_stream_class_visit(struct bt_stream_class *stream_class,
 /** @} */
 
 /** @} */
-
-/* Pre-2.0 CTF writer compatibility */
-#define bt_ctf_stream_class bt_stream_class
-#define bt_ctf_stream_class_create bt_stream_class_create
-#define bt_ctf_stream_class_add_event_class bt_stream_class_add_event_class
-#define bt_ctf_stream_class_get_packet_context_type bt_stream_class_get_packet_context_type
 
 #ifdef __cplusplus
 }

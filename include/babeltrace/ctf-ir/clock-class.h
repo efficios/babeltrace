@@ -78,14 +78,6 @@ extern const unsigned char *bt_clock_class_get_uuid(
 		struct bt_clock_class *clock_class);
 extern int bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 		const unsigned char *uuid);
-extern struct bt_clock_value *bt_clock_value_create(
-		struct bt_clock_class *clock_class, uint64_t value);
-extern struct bt_clock_class *bt_clock_value_get_class(
-		struct bt_clock_value *clock_value);
-extern int bt_clock_value_get_value(
-		struct bt_clock_value *clock_value, uint64_t *raw_value);
-extern int bt_clock_value_get_value_ns_from_epoch(
-		struct bt_clock_value *clock_value, int64_t *value_ns);
 
 #ifdef __cplusplus
 }

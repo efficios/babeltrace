@@ -69,7 +69,7 @@ int bt_clock_class_set_name(struct bt_clock_class *clock_class,
 	}
 
 	if (!bt_identifier_is_valid(name)) {
-		BT_LOGE("Clock class's name is not a valid CTF identifier: "
+		BT_LOGW("Clock class's name is not a valid CTF identifier: "
 			"addr=%p, name=\"%s\"",
 			clock_class, name);
 		ret = -1;
@@ -139,9 +139,7 @@ struct bt_clock_class *bt_clock_class_create(const char *name,
 	if (name) {
 		ret = bt_clock_class_set_name(clock_class, name);
 		if (ret) {
-			BT_LOGE("Cannot set clock class's name: "
-				"addr=%p, name=\"%s\"",
-				clock_class, name);
+			/* bt_clock_class_set_name() logs errors */
 			goto error;
 		}
 	}
@@ -531,66 +529,13 @@ static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
 BT_HIDDEN
 void bt_clock_class_freeze(struct bt_clock_class *clock_class)
 {
-	if (!clock_class) {
-		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
+	if (!clock_class || clock_class->frozen) {
 		return;
 	}
 
-	if (!clock_class->frozen) {
-		BT_LOGD("Freezing clock class: addr=%p, name=\"%s\"",
-			clock_class, bt_clock_class_get_name(clock_class));
-		clock_class->frozen = 1;
-	}
-}
-
-BT_HIDDEN
-void bt_clock_class_serialize(struct bt_clock_class *clock_class,
-		struct metadata_context *context)
-{
-	unsigned char *uuid;
-
-	BT_LOGD("Serializing clock class's metadata: clock-class-addr=%p, "
-		"name=\"%s\", metadata-context-addr=%p", clock_class,
-		bt_clock_class_get_name(clock_class), context);
-
-	if (!clock_class || !context) {
-		BT_LOGW("Invalid parameter: clock class or metadata context is NULL: "
-			"clock-class-addr=%p, name=\"%s\", metadata-context-addr=%p",
-			clock_class, bt_clock_class_get_name(clock_class),
-			context);
-		return;
-	}
-
-	uuid = clock_class->uuid;
-	g_string_append(context->string, "clock {\n");
-	g_string_append_printf(context->string, "\tname = %s;\n",
-		clock_class->name->str);
-
-	if (clock_class->uuid_set) {
-		g_string_append_printf(context->string,
-			"\tuuid = \"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\";\n",
-			uuid[0], uuid[1], uuid[2], uuid[3],
-			uuid[4], uuid[5], uuid[6], uuid[7],
-			uuid[8], uuid[9], uuid[10], uuid[11],
-			uuid[12], uuid[13], uuid[14], uuid[15]);
-	}
-
-	if (clock_class->description) {
-		g_string_append_printf(context->string, "\tdescription = \"%s\";\n",
-			clock_class->description->str);
-	}
-
-	g_string_append_printf(context->string, "\tfreq = %" PRIu64 ";\n",
-		clock_class->frequency);
-	g_string_append_printf(context->string, "\tprecision = %" PRIu64 ";\n",
-		clock_class->precision);
-	g_string_append_printf(context->string, "\toffset_s = %" PRIu64 ";\n",
-		clock_class->offset_s);
-	g_string_append_printf(context->string, "\toffset = %" PRIu64 ";\n",
-		clock_class->offset);
-	g_string_append_printf(context->string, "\tabsolute = %s;\n",
-		clock_class->absolute ? "true" : "false");
-	g_string_append(context->string, "};\n\n");
+	BT_LOGD("Freezing clock class: addr=%p, name=\"%s\"",
+		clock_class, bt_clock_class_get_name(clock_class));
+	clock_class->frozen = 1;
 }
 
 static

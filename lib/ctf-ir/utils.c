@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <babeltrace/ctf-ir/utils.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/assert-internal.h>
@@ -79,29 +79,29 @@ void trace_finalize(void)
 	}
 }
 
-int bt_validate_identifier(const char *input_string)
+bt_bool bt_identifier_is_valid(const char *identifier)
 {
-	int ret = 0;
+	bt_bool is_valid = BT_TRUE;
 	char *string = NULL;
 	char *save_ptr, *token;
 
-	if (!input_string) {
+	if (!identifier) {
 		BT_LOGV_STR("Invalid parameter: input string is NULL.");
-		ret = -1;
+		is_valid = BT_FALSE;
 		goto end;
 	}
 
 	try_init_reserved_keywords();
 
-	if (input_string[0] == '\0') {
-		ret = -1;
+	if (identifier[0] == '\0') {
+		is_valid = BT_FALSE;
 		goto end;
 	}
 
-	string = strdup(input_string);
+	string = strdup(identifier);
 	if (!string) {
 		BT_LOGE("strdup() failed.");
-		ret = -1;
+		is_valid = BT_FALSE;
 		goto end;
 	}
 
@@ -110,7 +110,7 @@ int bt_validate_identifier(const char *input_string)
 		if (g_hash_table_lookup_extended(reserved_keywords_set,
 			GINT_TO_POINTER(g_quark_from_string(token)),
 			NULL, NULL)) {
-			ret = -1;
+			is_valid = BT_FALSE;
 			goto end;
 		}
 
@@ -118,155 +118,5 @@ int bt_validate_identifier(const char *input_string)
 	}
 end:
 	free(string);
-	return ret;
-}
-
-bt_bool bt_identifier_is_valid(const char *identifier)
-{
-	return bt_validate_identifier(identifier) == 0;
-}
-
-BT_HIDDEN
-int bt_validate_single_clock_class(struct bt_field_type *field_type,
-		struct bt_clock_class **expected_clock_class)
-{
-	int ret = 0;
-
-	if (!field_type) {
-		goto end;
-	}
-
-	BT_ASSERT(expected_clock_class);
-
-	switch (bt_field_type_get_type_id(field_type)) {
-	case BT_FIELD_TYPE_ID_INTEGER:
-	{
-		struct bt_clock_class *mapped_clock_class =
-			bt_field_type_integer_get_mapped_clock_class(field_type);
-
-		if (!mapped_clock_class) {
-			goto end;
-		}
-
-		if (!*expected_clock_class) {
-			/* Move reference to output parameter */
-			*expected_clock_class = mapped_clock_class;
-			mapped_clock_class = NULL;
-			BT_LOGV("Setting expected clock class: "
-				"expected-clock-class-addr=%p",
-				*expected_clock_class);
-		} else {
-			if (mapped_clock_class != *expected_clock_class) {
-				BT_LOGW("Integer field type is not mapped to "
-					"the expected clock class: "
-					"mapped-clock-class-addr=%p, "
-					"mapped-clock-class-name=\"%s\", "
-					"expected-clock-class-addr=%p, "
-					"expected-clock-class-name=\"%s\"",
-					mapped_clock_class,
-					bt_clock_class_get_name(mapped_clock_class),
-					*expected_clock_class,
-					bt_clock_class_get_name(*expected_clock_class));
-				bt_put(mapped_clock_class);
-				ret = -1;
-				goto end;
-			}
-		}
-
-		bt_put(mapped_clock_class);
-		break;
-	}
-	case BT_FIELD_TYPE_ID_ENUM:
-	case BT_FIELD_TYPE_ID_ARRAY:
-	case BT_FIELD_TYPE_ID_SEQUENCE:
-	{
-		struct bt_field_type *subtype = NULL;
-
-		switch (bt_field_type_get_type_id(field_type)) {
-		case BT_FIELD_TYPE_ID_ENUM:
-			subtype = bt_field_type_enumeration_get_container_type(
-				field_type);
-			break;
-		case BT_FIELD_TYPE_ID_ARRAY:
-			subtype = bt_field_type_array_get_element_type(
-				field_type);
-			break;
-		case BT_FIELD_TYPE_ID_SEQUENCE:
-			subtype = bt_field_type_sequence_get_element_type(
-				field_type);
-			break;
-		default:
-			BT_LOGF("Unexpected field type ID: id=%d",
-				bt_field_type_get_type_id(field_type));
-			abort();
-		}
-
-		BT_ASSERT(subtype);
-		ret = bt_validate_single_clock_class(subtype,
-			expected_clock_class);
-		bt_put(subtype);
-		break;
-	}
-	case BT_FIELD_TYPE_ID_STRUCT:
-	{
-		uint64_t i;
-		int64_t count = bt_field_type_structure_get_field_count(
-			field_type);
-
-		for (i = 0; i < count; i++) {
-			const char *name;
-			struct bt_field_type *member_type;
-
-			ret = bt_field_type_structure_get_field_by_index(
-				field_type, &name, &member_type, i);
-			BT_ASSERT(ret == 0);
-			ret = bt_validate_single_clock_class(member_type,
-				expected_clock_class);
-			bt_put(member_type);
-			if (ret) {
-				BT_LOGW("Structure field type's field's type "
-					"is not recursively mapped to the "
-					"expected clock class: "
-					"field-ft-addr=%p, field-name=\"%s\"",
-					member_type, name);
-				goto end;
-			}
-		}
-
-		break;
-	}
-	case BT_FIELD_TYPE_ID_VARIANT:
-	{
-		uint64_t i;
-		int64_t count = bt_field_type_variant_get_field_count(
-			field_type);
-
-		for (i = 0; i < count; i++) {
-			const char *name;
-			struct bt_field_type *member_type;
-
-			ret = bt_field_type_variant_get_field_by_index(
-				field_type, &name, &member_type, i);
-			BT_ASSERT(ret == 0);
-			ret = bt_validate_single_clock_class(member_type,
-				expected_clock_class);
-			bt_put(member_type);
-			if (ret) {
-				BT_LOGW("Variant field type's field's type "
-					"is not recursively mapped to the "
-					"expected clock class: "
-					"field-ft-addr=%p, field-name=\"%s\"",
-					member_type, name);
-				goto end;
-			}
-		}
-
-		break;
-	}
-	default:
-		break;
-	}
-
-end:
-	return ret;
+	return is_valid;
 }

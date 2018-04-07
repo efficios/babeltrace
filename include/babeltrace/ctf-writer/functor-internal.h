@@ -30,11 +30,6 @@
 #include <glib.h>
 #include <babeltrace/babeltrace-internal.h>
 
-struct search_query {
-	gpointer value;
-	int found;
-};
-
 BT_HIDDEN
 void value_exists(gpointer element, gpointer search_query);
 

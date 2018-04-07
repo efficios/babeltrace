@@ -46,7 +46,7 @@ struct bt_stream_class *ctf_utils_stream_class_from_packet_header(
 		goto single_stream_class;
 	}
 
-	ret = bt_field_unsigned_integer_get_value(stream_id_field,
+	ret = bt_field_integer_unsigned_get_value(stream_id_field,
 		&stream_id);
 	if (ret) {
 		stream_id = -1ULL;
