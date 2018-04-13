@@ -30,6 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -153,6 +156,9 @@ extern const char *bt_stream_get_name(struct bt_stream *stream);
 */
 extern int64_t bt_stream_get_id(struct bt_stream *stream);
 
+extern struct bt_stream_class *bt_stream_borrow_class(
+		struct bt_stream *stream);
+
 /**
 @brief	Returns the parent CTF IR stream class of the CTF IR
 	stream \p stream.
@@ -169,8 +175,12 @@ bt_stream_create().
 @postrefcountsame{stream}
 @postsuccessrefcountretinc
 */
-extern struct bt_stream_class *bt_stream_get_class(
-		struct bt_stream *stream);
+static inline
+struct bt_stream_class *bt_stream_get_class(
+		struct bt_stream *stream)
+{
+	return bt_get(bt_stream_borrow_class(stream));
+}
 
 /** @} */
 

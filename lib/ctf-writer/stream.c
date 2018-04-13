@@ -1939,7 +1939,7 @@ int try_set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(
 		struct bt_ctf_stream *stream)
 {
-	return BT_FROM_COMMON(bt_stream_common_get_class(BT_TO_COMMON(stream)));
+	return bt_get(bt_stream_common_borrow_class(BT_TO_COMMON(stream)));
 }
 
 const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)

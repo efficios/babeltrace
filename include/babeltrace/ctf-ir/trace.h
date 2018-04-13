@@ -30,6 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 /* For bt_visitor */
 #include <babeltrace/ctf-ir/visitor.h>
 
@@ -390,6 +393,10 @@ extern const char *
 bt_trace_get_environment_field_name_by_index(
 		struct bt_trace *trace_class, uint64_t index);
 
+extern struct bt_value *
+bt_trace_borrow_environment_field_value_by_index(struct bt_trace *trace_class,
+		uint64_t index);
+
 /**
 @brief	Returns the value of the environment entry at index
 	\p index in the CTF IR trace class \p trace_class.
@@ -411,9 +418,17 @@ bt_trace_get_environment_field_name_by_index(
 @sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
+static inline
+struct bt_value *bt_trace_get_environment_field_value_by_index(
+		struct bt_trace *trace_class, uint64_t index)
+{
+	return bt_get(bt_trace_borrow_environment_field_value_by_index(
+		trace_class, index));
+}
+
 extern struct bt_value *
-bt_trace_get_environment_field_value_by_index(struct bt_trace *trace_class,
-		uint64_t index);
+bt_trace_borrow_environment_field_value_by_name(
+		struct bt_trace *trace_class, const char *name);
 
 /**
 @brief	Returns the value of the environment entry named \p name
@@ -436,9 +451,15 @@ bt_trace_get_environment_field_value_by_index(struct bt_trace *trace_class,
 @sa bt_trace_set_environment_field(): Sets the value of a trace
 	class's environment entry.
 */
-extern struct bt_value *
+static inline
+struct bt_value *
 bt_trace_get_environment_field_value_by_name(
-		struct bt_trace *trace_class, const char *name);
+		struct bt_trace *trace_class, const char *name)
+{
+	return bt_get(
+		bt_trace_borrow_environment_field_value_by_name(
+			trace_class, name));
+}
 
 /**
 @brief	Sets the environment entry named \p name in the
@@ -539,6 +560,9 @@ extern int bt_trace_set_environment_field_string(
 @{
 */
 
+extern struct bt_field_type *bt_trace_borrow_packet_header_field_type(
+		struct bt_trace *trace_class);
+
 /**
 @brief	Returns the packet header field type of the CTF IR trace class
 	\p trace_class.
@@ -557,8 +581,12 @@ extern int bt_trace_set_environment_field_string(
 @sa bt_trace_set_packet_header_field_type(): Sets the packet
 	header field type of a given trace class.
 */
-extern struct bt_field_type *bt_trace_get_packet_header_field_type(
-		struct bt_trace *trace_class);
+static inline
+struct bt_field_type *bt_trace_get_packet_header_field_type(
+		struct bt_trace *trace_class)
+{
+	return bt_get(bt_trace_borrow_packet_header_field_type(trace_class));
+}
 
 /**
 @brief	Sets the packet header field type of the CTF IR trace class
@@ -615,6 +643,9 @@ extern int bt_trace_set_packet_header_field_type(struct bt_trace *trace_class,
 extern int64_t bt_trace_get_clock_class_count(
 		struct bt_trace *trace_class);
 
+extern struct bt_clock_class *bt_trace_borrow_clock_class_by_index(
+		struct bt_trace *trace_class, uint64_t index);
+
 /**
 @brief  Returns the CTF IR clock class at index \p index in the CTF
 	IR trace class \p trace_class.
@@ -637,8 +668,16 @@ extern int64_t bt_trace_get_clock_class_count(
 	in a given trace class.
 @sa bt_trace_add_clock_class(): Adds a clock class to a trace class.
 */
-extern struct bt_clock_class *bt_trace_get_clock_class_by_index(
-		struct bt_trace *trace_class, uint64_t index);
+static inline
+struct bt_clock_class *bt_trace_get_clock_class_by_index(
+		struct bt_trace *trace_class, uint64_t index)
+{
+	return bt_get(bt_trace_borrow_clock_class_by_index(
+		trace_class, index));
+}
+
+extern struct bt_clock_class *bt_trace_borrow_clock_class_by_name(
+		struct bt_trace *trace_class, const char *name);
 
 /**
 @brief  Returns the CTF IR clock class named \c name found in the CTF
@@ -659,8 +698,12 @@ extern struct bt_clock_class *bt_trace_get_clock_class_by_index(
 	in a given trace class at a given index.
 @sa bt_trace_add_clock_class(): Adds a clock class to a trace class.
 */
-extern struct bt_clock_class *bt_trace_get_clock_class_by_name(
-		struct bt_trace *trace_class, const char *name);
+static inline
+struct bt_clock_class *bt_trace_get_clock_class_by_name(
+		struct bt_trace *trace_class, const char *name)
+{
+	return bt_get(bt_trace_borrow_clock_class_by_name(trace_class, name));
+}
 
 /**
 @brief	Adds the CTF IR clock class \p clock_class to the CTF IR
@@ -713,6 +756,9 @@ extern int bt_trace_add_clock_class(struct bt_trace *trace_class,
 extern int64_t bt_trace_get_stream_class_count(
 		struct bt_trace *trace_class);
 
+extern struct bt_stream_class *bt_trace_borrow_stream_class_by_index(
+		struct bt_trace *trace_class, uint64_t index);
+
 /**
 @brief  Returns the stream class at index \p index in the CTF IR trace
 	class \p trace_class.
@@ -731,8 +777,16 @@ extern int64_t bt_trace_get_stream_class_count(
 @sa bt_trace_get_stream_class_by_id(): Finds a stream class by ID.
 @sa bt_trace_add_stream_class(): Adds a stream class to a trace class.
 */
-extern struct bt_stream_class *bt_trace_get_stream_class_by_index(
-		struct bt_trace *trace_class, uint64_t index);
+static inline
+struct bt_stream_class *bt_trace_get_stream_class_by_index(
+		struct bt_trace *trace_class, uint64_t index)
+{
+	return bt_get(bt_trace_borrow_stream_class_by_index(
+		trace_class, index));
+}
+
+extern struct bt_stream_class *bt_trace_borrow_stream_class_by_id(
+		struct bt_trace *trace_class, uint64_t id);
 
 /**
 @brief  Returns the stream class with ID \c id found in the CTF IR
@@ -751,8 +805,12 @@ extern struct bt_stream_class *bt_trace_get_stream_class_by_index(
 	in a given trace class at a given index.
 @sa bt_trace_add_stream_class(): Adds a stream class to a trace class.
 */
-extern struct bt_stream_class *bt_trace_get_stream_class_by_id(
-		struct bt_trace *trace_class, uint64_t id);
+static inline
+struct bt_stream_class *bt_trace_get_stream_class_by_id(
+		struct bt_trace *trace_class, uint64_t id)
+{
+	return bt_get(bt_trace_borrow_stream_class_by_id(trace_class, id));
+}
 
 /**
 @brief	Adds the CTF IR stream class \p stream_class to the
@@ -810,6 +868,9 @@ extern int bt_trace_add_stream_class(struct bt_trace *trace_class,
 */
 extern int64_t bt_trace_get_stream_count(struct bt_trace *trace_class);
 
+extern struct bt_stream *bt_trace_borrow_stream_by_index(
+		struct bt_trace *trace_class, uint64_t index);
+
 /**
 @brief  Returns the stream at index \p index in the CTF IR trace
 	class \p trace_class.
@@ -825,8 +886,12 @@ extern int64_t bt_trace_get_stream_count(struct bt_trace *trace_class);
 	bt_trace_get_stream_count()).
 @postrefcountsame{trace_class}
 */
-extern struct bt_stream *bt_trace_get_stream_by_index(
-		struct bt_trace *trace_class, uint64_t index);
+static inline
+struct bt_stream *bt_trace_get_stream_by_index(
+		struct bt_trace *trace_class, uint64_t index)
+{
+	return bt_get(bt_trace_borrow_stream_by_index(trace_class, index));
+}
 
 /** @} */
 

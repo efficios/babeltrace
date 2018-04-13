@@ -101,7 +101,7 @@ end:
 
 BT_HIDDEN
 struct bt_clock_value *
-bt_notification_discarded_elements_get_begin_clock_value(
+bt_notification_discarded_elements_borrow_begin_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
@@ -111,12 +111,12 @@ bt_notification_discarded_elements_get_begin_clock_value(
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, type);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
-	return bt_get(discarded_elems_notif->begin_clock_value);
+	return discarded_elems_notif->begin_clock_value;
 }
 
 BT_HIDDEN
 struct bt_clock_value *
-bt_notification_discarded_elements_get_end_clock_value(
+bt_notification_discarded_elements_borrow_end_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
@@ -126,7 +126,7 @@ bt_notification_discarded_elements_get_end_clock_value(
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, type);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
-	return bt_get(discarded_elems_notif->end_clock_value);
+	return discarded_elems_notif->end_clock_value;
 }
 
 BT_HIDDEN
@@ -144,7 +144,7 @@ int64_t bt_notification_discarded_elements_get_count(
 }
 
 BT_HIDDEN
-struct bt_stream *bt_notification_discarded_elements_get_stream(
+struct bt_stream *bt_notification_discarded_elements_borrow_stream(
 		enum bt_notification_type type,
 		struct bt_notification *notification)
 {
@@ -154,5 +154,5 @@ struct bt_stream *bt_notification_discarded_elements_get_stream(
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, type);
 	discarded_elems_notif = container_of(notification,
 			struct bt_notification_discarded_elements, parent);
-	return bt_get(discarded_elems_notif->stream);
+	return discarded_elems_notif->stream;
 }

@@ -209,13 +209,13 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 
 	for (i = 0; i < typed_array_obj->garray->len; ++i) {
 		struct bt_value *element_obj_copy;
-		struct bt_value *element_obj = bt_value_array_get(array_obj, i);
+		struct bt_value *element_obj = bt_value_array_borrow(
+			array_obj, i);
 
 		BT_ASSERT(element_obj);
 		BT_LOGD("Copying array value's element: element-addr=%p, "
 			"index=%d", element_obj, i);
 		element_obj_copy = bt_value_copy(element_obj);
-		BT_PUT(element_obj);
 		if (!element_obj_copy) {
 			BT_LOGE("Cannot copy array value's element: "
 				"array-addr=%p, index=%d",
@@ -402,21 +402,16 @@ bt_bool bt_value_array_compare(const struct bt_value *object_a,
 		struct bt_value *element_obj_a;
 		struct bt_value *element_obj_b;
 
-		element_obj_a = bt_value_array_get(object_a, i);
-		element_obj_b = bt_value_array_get(object_b, i);
+		element_obj_a = bt_value_array_borrow(object_a, i);
+		element_obj_b = bt_value_array_borrow(object_b, i);
 
 		if (!bt_value_compare(element_obj_a, element_obj_b)) {
 			BT_LOGV("Array values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, index=%d",
 				element_obj_a, element_obj_b, i);
-			BT_PUT(element_obj_a);
-			BT_PUT(element_obj_b);
 			ret = BT_FALSE;
 			goto end;
 		}
-
-		BT_PUT(element_obj_a);
-		BT_PUT(element_obj_b);
 	}
 
 end:
@@ -449,18 +444,15 @@ bt_bool bt_value_map_compare(const struct bt_value *object_a,
 		struct bt_value *element_obj_b;
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
-		element_obj_b = bt_value_map_get(object_b, key_str);
+		element_obj_b = bt_value_map_borrow(object_b, key_str);
 
 		if (!bt_value_compare(element_obj_a, element_obj_b)) {
 			BT_LOGV("Map values's elements are different: "
 				"value-a-addr=%p, value-b-addr=%p, key=\"%s\"",
 				element_obj_a, element_obj_b, key_str);
-			BT_PUT(element_obj_b);
 			ret = BT_FALSE;
 			goto end;
 		}
-
-		BT_PUT(element_obj_b);
 	}
 
 end:
@@ -854,7 +846,7 @@ bt_bool bt_value_array_is_empty(const struct bt_value *array_obj)
 	return bt_value_array_size(array_obj) == 0;
 }
 
-struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
+struct bt_value *bt_value_array_borrow(const struct bt_value *array_obj,
 		uint64_t index)
 {
 	struct bt_value_array *typed_array_obj =
@@ -864,7 +856,7 @@ struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 	BT_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
 	BT_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(index,
 		typed_array_obj->garray->len);
-	return bt_get(g_ptr_array_index(typed_array_obj->garray, index));
+	return g_ptr_array_index(typed_array_obj->garray, index);
 }
 
 enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
@@ -989,14 +981,14 @@ bt_bool bt_value_map_is_empty(const struct bt_value *map_obj)
 	return bt_value_map_size(map_obj) == 0;
 }
 
-struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
+struct bt_value *bt_value_map_borrow(const struct bt_value *map_obj,
 		const char *key)
 {
 	BT_ASSERT_PRE_NON_NULL(map_obj, "Value object");
 	BT_ASSERT_PRE_NON_NULL(key, "Key");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
-	return bt_get(g_hash_table_lookup(BT_VALUE_TO_MAP(map_obj)->ght,
-		GUINT_TO_POINTER(g_quark_from_string(key))));
+	return g_hash_table_lookup(BT_VALUE_TO_MAP(map_obj)->ght,
+		GUINT_TO_POINTER(g_quark_from_string(key)));
 }
 
 bt_bool bt_value_map_has_key(const struct bt_value *map_obj, const char *key)

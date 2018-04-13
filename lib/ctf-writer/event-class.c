@@ -133,7 +133,7 @@ struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 struct bt_ctf_field_type *bt_ctf_event_class_get_payload_field_type(
 		struct bt_ctf_event_class *event_class)
 {
-	return BT_FROM_COMMON(bt_event_class_common_get_payload_field_type(
+	return bt_get(bt_event_class_common_borrow_payload_field_type(
 		BT_TO_COMMON(event_class)));
 }
 
@@ -148,7 +148,7 @@ int bt_ctf_event_class_set_payload_field_type(
 struct bt_ctf_field_type *bt_ctf_event_class_get_context_field_type(
 		struct bt_ctf_event_class *event_class)
 {
-	return BT_FROM_COMMON(bt_event_class_common_get_context_field_type(
+	return bt_get(bt_event_class_common_borrow_context_field_type(
 		BT_TO_COMMON(event_class)));
 }
 
@@ -434,8 +434,9 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 	 * No need to increment field_type's reference count since getting it
 	 * from the structure already does.
 	 */
-	field_type = (void *) bt_field_type_common_structure_get_field_type_by_name(
-		event_class->common.payload_field_type, name);
+	field_type = bt_get(
+		bt_field_type_common_structure_borrow_field_type_by_name(
+			event_class->common.payload_field_type, name));
 
 end:
 	return field_type;

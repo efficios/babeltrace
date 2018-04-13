@@ -796,7 +796,7 @@ int bt_field_type_common_structure_validate_recursive(
 	for (i = 0; i < field_count; ++i) {
 		const char *field_name;
 
-		ret = bt_field_type_common_structure_get_field_by_index(ft,
+		ret = bt_field_type_common_structure_borrow_field_by_index(ft,
 			&field_name, &child_ft, i);
 		BT_ASSERT(ret == 0);
 		ret = bt_field_type_common_validate(child_ft);
@@ -808,12 +808,9 @@ int bt_field_type_common_structure_validate_recursive(
 				ft, child_ft, field_name, i);
 			goto end;
 		}
-
-		BT_PUT(child_ft);
 	}
 
 end:
-	BT_PUT(child_ft);
 	return ret;
 }
 
@@ -888,7 +885,7 @@ int bt_field_type_common_variant_validate_recursive(
 	for (i = 0; i < field_count; ++i) {
 		const char *field_name;
 
-		ret = bt_field_type_common_variant_get_field_by_index(ft,
+		ret = bt_field_type_common_variant_borrow_field_by_index(ft,
 			&field_name, &child_ft, i);
 		BT_ASSERT(ret == 0);
 		ret = bt_field_type_common_validate(child_ft);
@@ -902,12 +899,9 @@ int bt_field_type_common_variant_validate_recursive(
 				field_name, i);
 			goto end;
 		}
-
-		BT_PUT(child_ft);
 	}
 
 end:
-	BT_PUT(child_ft);
 	return ret;
 }
 
@@ -1244,7 +1238,7 @@ int bt_field_type_integer_set_encoding(struct bt_field_type *ft,
 }
 
 BT_HIDDEN
-struct bt_clock_class *bt_field_type_common_integer_get_mapped_clock_class(
+struct bt_clock_class *bt_field_type_common_integer_borrow_mapped_clock_class(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_integer *int_ft = BT_FROM_COMMON(ft);
@@ -1252,13 +1246,14 @@ struct bt_clock_class *bt_field_type_common_integer_get_mapped_clock_class(
 	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_INTEGER,
 		"Field type");
-	return bt_get(int_ft->mapped_clock_class);
+	return int_ft->mapped_clock_class;
 }
 
-struct bt_clock_class *bt_field_type_integer_get_mapped_clock_class(
+struct bt_clock_class *bt_field_type_integer_borrow_mapped_clock_class(
 		struct bt_field_type *ft)
 {
-	return bt_field_type_common_integer_get_mapped_clock_class((void *) ft);
+	return bt_field_type_common_integer_borrow_mapped_clock_class(
+		(void *) ft);
 }
 
 BT_HIDDEN
@@ -1711,20 +1706,21 @@ end:
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_enumeration_get_container_field_type(
+struct bt_field_type_common *
+bt_field_type_common_enumeration_borrow_container_field_type(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_enumeration *enum_ft = BT_FROM_COMMON(ft);
 
 	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_ENUM, "Field type");
-	return bt_get(enum_ft->container_ft);
+	return BT_TO_COMMON(enum_ft->container_ft);
 }
 
-struct bt_field_type *bt_field_type_enumeration_get_container_field_type(
+struct bt_field_type *bt_field_type_enumeration_borrow_container_field_type(
 		struct bt_field_type *ft)
 {
-	return (void *) bt_field_type_common_enumeration_get_container_field_type(
+	return (void *) bt_field_type_common_enumeration_borrow_container_field_type(
 		(void *) ft);
 }
 
@@ -2254,7 +2250,7 @@ int64_t bt_field_type_structure_get_field_count(struct bt_field_type *ft)
 }
 
 BT_HIDDEN
-int bt_field_type_common_structure_get_field_by_index(
+int bt_field_type_common_structure_borrow_field_by_index(
 		struct bt_field_type_common *ft,
 		const char **field_name,
 		struct bt_field_type_common **field_type, uint64_t index)
@@ -2273,7 +2269,6 @@ int bt_field_type_common_structure_get_field_by_index(
 
 	if (field_type) {
 		*field_type = field->type;
-		bt_get(field->type);
 	}
 
 	if (field_name) {
@@ -2284,17 +2279,18 @@ int bt_field_type_common_structure_get_field_by_index(
 	return 0;
 }
 
-int bt_field_type_structure_get_field_by_index(
+int bt_field_type_structure_borrow_field_by_index(
 		struct bt_field_type *ft,
 		const char **field_name,
 		struct bt_field_type **field_type, uint64_t index)
 {
-	return bt_field_type_common_structure_get_field_by_index(
+	return bt_field_type_common_structure_borrow_field_by_index(
 		(void *) ft, field_name, (void *) field_type, index);
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_structure_get_field_type_by_name(
+struct bt_field_type_common *
+bt_field_type_common_structure_borrow_field_type_by_name(
 		struct bt_field_type_common *ft, const char *name)
 {
 	size_t index;
@@ -2325,16 +2321,15 @@ struct bt_field_type_common *bt_field_type_common_structure_get_field_type_by_na
 
 	field = struct_ft->fields->pdata[index];
 	field_type = field->type;
-	bt_get(field_type);
 
 end:
 	return field_type;
 }
 
-struct bt_field_type *bt_field_type_structure_get_field_type_by_name(
+struct bt_field_type *bt_field_type_structure_borrow_field_type_by_name(
 		struct bt_field_type *ft, const char *name)
 {
-	return (void *) bt_field_type_common_structure_get_field_type_by_name(
+	return (void *) bt_field_type_common_structure_borrow_field_type_by_name(
 		(void *) ft, name);
 }
 
@@ -2377,7 +2372,8 @@ end:
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_tag_field_type(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_tag_field_type(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
@@ -2393,16 +2389,16 @@ struct bt_field_type_common *bt_field_type_common_variant_get_tag_field_type(
 		goto end;
 	}
 
-	tag_ft = bt_get(var_ft->tag_ft);
+	tag_ft = BT_TO_COMMON(var_ft->tag_ft);
 
 end:
 	return tag_ft;
 }
 
-struct bt_field_type *bt_field_type_variant_get_tag_field_type(
+struct bt_field_type *bt_field_type_variant_borrow_tag_field_type(
 		struct bt_field_type *ft)
 {
-	return (void *) bt_field_type_common_variant_get_tag_field_type(
+	return (void *) bt_field_type_common_variant_borrow_tag_field_type(
 		(void *) ft);
 }
 
@@ -2579,7 +2575,8 @@ int bt_field_type_variant_add_field(struct bt_field_type *ft,
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_by_name(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_by_name(
 		struct bt_field_type_common *ft,
 		const char *field_name)
 {
@@ -2611,22 +2608,22 @@ struct bt_field_type_common *bt_field_type_common_variant_get_field_type_by_name
 
 	field = g_ptr_array_index(var_ft->fields, index);
 	field_type = field->type;
-	bt_get(field_type);
 
 end:
 	return field_type;
 }
 
-struct bt_field_type *bt_field_type_variant_get_field_type_by_name(
+struct bt_field_type *bt_field_type_variant_borrow_field_type_by_name(
 		struct bt_field_type *ft,
 		const char *field_name)
 {
-	return (void *) bt_field_type_common_variant_get_field_type_by_name(
+	return (void *) bt_field_type_common_variant_borrow_field_type_by_name(
 		(void *) ft, field_name);
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_from_tag(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_from_tag(
 		struct bt_field_type_common *ft,
 		struct bt_field_common *tag_field,
 		bt_field_common_create_func field_create_func)
@@ -2657,7 +2654,7 @@ struct bt_field_type_common *bt_field_type_common_variant_get_field_type_from_ta
 		goto end;
 	}
 
-	field_type = bt_field_type_common_variant_get_field_type_by_name(
+	field_type = bt_field_type_common_variant_borrow_field_type_by_name(
 		ft, enum_value);
 
 end:
@@ -2665,11 +2662,11 @@ end:
 	return field_type;
 }
 
-struct bt_field_type *bt_field_type_variant_get_field_type_from_tag(
+struct bt_field_type *bt_field_type_variant_borrow_field_type_from_tag(
 		struct bt_field_type *ft,
 		struct bt_field *tag_field)
 {
-	return (void *) bt_field_type_common_variant_get_field_type_from_tag(
+	return (void *) bt_field_type_common_variant_borrow_field_type_from_tag(
 		(void *) ft, (void *) tag_field,
 		(bt_field_common_create_func) bt_field_create);
 }
@@ -2692,7 +2689,7 @@ int64_t bt_field_type_variant_get_field_count(struct bt_field_type *ft)
 }
 
 BT_HIDDEN
-int bt_field_type_common_variant_get_field_by_index(
+int bt_field_type_common_variant_borrow_field_by_index(
 		struct bt_field_type_common *ft,
 		const char **field_name,
 		struct bt_field_type_common **field_type, uint64_t index)
@@ -2711,7 +2708,6 @@ int bt_field_type_common_variant_get_field_by_index(
 
 	if (field_type) {
 		*field_type = field->type;
-		bt_get(field->type);
 	}
 
 	if (field_name) {
@@ -2722,11 +2718,11 @@ int bt_field_type_common_variant_get_field_by_index(
 	return 0;
 }
 
-int bt_field_type_variant_get_field_by_index(struct bt_field_type *ft,
+int bt_field_type_variant_borrow_field_by_index(struct bt_field_type *ft,
 		const char **field_name, struct bt_field_type **field_type,
 		uint64_t index)
 {
-	return bt_field_type_common_variant_get_field_by_index((void *) ft,
+	return bt_field_type_common_variant_borrow_field_by_index((void *) ft,
 		field_name, (void *) field_type, index);
 }
 
@@ -2771,7 +2767,8 @@ end:
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_array_get_element_field_type(
+struct bt_field_type_common *
+bt_field_type_common_array_borrow_element_field_type(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_array *array_ft = BT_FROM_COMMON(ft);
@@ -2780,13 +2777,13 @@ struct bt_field_type_common *bt_field_type_common_array_get_element_field_type(
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_ARRAY,
 		"Field type");
 	BT_ASSERT(array_ft && array_ft->element_ft);
-	return bt_get(array_ft->element_ft);
+	return array_ft->element_ft;
 }
 
-struct bt_field_type *bt_field_type_array_get_element_field_type(
+struct bt_field_type *bt_field_type_array_borrow_element_field_type(
 		struct bt_field_type *ft)
 {
-	return (void *) bt_field_type_common_array_get_element_field_type(
+	return (void *) bt_field_type_common_array_borrow_element_field_type(
 		(void *) ft);
 }
 
@@ -2889,7 +2886,7 @@ end:
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_sequence_get_element_field_type(
+struct bt_field_type_common *bt_field_type_common_sequence_borrow_element_field_type(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_sequence *seq_ft = BT_FROM_COMMON(ft);
@@ -2897,13 +2894,13 @@ struct bt_field_type_common *bt_field_type_common_sequence_get_element_field_typ
 	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_SEQUENCE,
 		"Field type");
-	return bt_get(seq_ft->element_ft);
+	return seq_ft->element_ft;
 }
 
-struct bt_field_type *bt_field_type_sequence_get_element_field_type(
+struct bt_field_type *bt_field_type_sequence_borrow_element_field_type(
 		struct bt_field_type *ft)
 {
-	return (void *) bt_field_type_common_sequence_get_element_field_type(
+	return (void *) bt_field_type_common_sequence_borrow_element_field_type(
 		(void *) ft);
 }
 
@@ -3065,21 +3062,19 @@ int bt_field_type_common_get_alignment(struct bt_field_type_common *ft)
 	case BT_FIELD_TYPE_ID_SEQUENCE:
 	{
 		struct bt_field_type_common *element_ft =
-			bt_field_type_common_sequence_get_element_field_type(ft);
+			bt_field_type_common_sequence_borrow_element_field_type(ft);
 
 		BT_ASSERT(element_ft);
 		ret = bt_field_type_common_get_alignment(element_ft);
-		bt_put(element_ft);
 		break;
 	}
 	case BT_FIELD_TYPE_ID_ARRAY:
 	{
 		struct bt_field_type_common *element_ft =
-			bt_field_type_common_array_get_element_field_type(ft);
+			bt_field_type_common_array_borrow_element_field_type(ft);
 
 		BT_ASSERT(element_ft);
 		ret = bt_field_type_common_get_alignment(element_ft);
-		bt_put(element_ft);
 		break;
 	}
 	case BT_FIELD_TYPE_ID_STRUCT:
@@ -3094,13 +3089,12 @@ int bt_field_type_common_get_alignment(struct bt_field_type_common *ft)
 			struct bt_field_type_common *field = NULL;
 			int field_alignment;
 
-			ret = bt_field_type_common_structure_get_field_by_index(
+			ret = bt_field_type_common_structure_borrow_field_by_index(
 				ft, NULL, &field, i);
 			BT_ASSERT(ret == 0);
 			BT_ASSERT(field);
 			field_alignment = bt_field_type_common_get_alignment(
 				field);
-			bt_put(field);
 			if (field_alignment < 0) {
 				ret = field_alignment;
 				goto end;
@@ -3377,7 +3371,8 @@ void _bt_field_type_freeze(struct bt_field_type *ft)
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_signed(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_signed(
 		struct bt_field_type_common_variant *var_ft,
 		int64_t tag_value)
 {
@@ -3412,7 +3407,8 @@ end:
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_unsigned(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_unsigned(
 		struct bt_field_type_common_variant *var_ft,
 		uint64_t tag_value)
 {
@@ -4351,7 +4347,7 @@ int64_t bt_field_type_common_get_field_count(struct bt_field_type_common *ft)
 }
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_get_field_at_index(
+struct bt_field_type_common *bt_field_type_common_borrow_field_at_index(
 		struct bt_field_type_common *ft, int index)
 {
 	struct bt_field_type_common *field_type = NULL;
@@ -4359,7 +4355,7 @@ struct bt_field_type_common *bt_field_type_common_get_field_at_index(
 	switch (ft->id) {
 	case BT_FIELD_TYPE_ID_STRUCT:
 	{
-		int ret = bt_field_type_common_structure_get_field_by_index(
+		int ret = bt_field_type_common_structure_borrow_field_by_index(
 			ft, NULL, &field_type, index);
 		if (ret) {
 			field_type = NULL;
@@ -4369,7 +4365,7 @@ struct bt_field_type_common *bt_field_type_common_get_field_at_index(
 	}
 	case BT_FIELD_TYPE_ID_VARIANT:
 	{
-		int ret = bt_field_type_common_variant_get_field_by_index(
+		int ret = bt_field_type_common_variant_borrow_field_by_index(
 			ft, NULL, &field_type, index);
 		if (ret) {
 			field_type = NULL;
@@ -4378,10 +4374,12 @@ struct bt_field_type_common *bt_field_type_common_get_field_at_index(
 		break;
 	}
 	case BT_FIELD_TYPE_ID_ARRAY:
-		field_type = bt_field_type_common_array_get_element_field_type(ft);
+		field_type =
+			bt_field_type_common_array_borrow_element_field_type(ft);
 		break;
 	case BT_FIELD_TYPE_ID_SEQUENCE:
-		field_type = bt_field_type_common_sequence_get_element_field_type(ft);
+		field_type =
+			bt_field_type_common_sequence_borrow_element_field_type(ft);
 		break;
 	default:
 		break;
@@ -4414,7 +4412,7 @@ int bt_field_type_common_get_field_index(struct bt_field_type_common *ft,
 }
 
 BT_HIDDEN
-struct bt_field_path *bt_field_type_common_variant_get_tag_field_path(
+struct bt_field_path *bt_field_type_common_variant_borrow_tag_field_path(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
@@ -4422,17 +4420,17 @@ struct bt_field_path *bt_field_type_common_variant_get_tag_field_path(
 	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_VARIANT,
 		"Field type");
-	return bt_get(var_ft->tag_field_path);
+	return var_ft->tag_field_path;
 }
 
-struct bt_field_path *bt_field_type_variant_get_tag_field_path(
+struct bt_field_path *bt_field_type_variant_borrow_tag_field_path(
 		struct bt_field_type *ft)
 {
-	return bt_field_type_common_variant_get_tag_field_path((void *) ft);
+	return bt_field_type_common_variant_borrow_tag_field_path((void *) ft);
 }
 
 BT_HIDDEN
-struct bt_field_path *bt_field_type_common_sequence_get_length_field_path(
+struct bt_field_path *bt_field_type_common_sequence_borrow_length_field_path(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_sequence *seq_ft = BT_FROM_COMMON(ft);
@@ -4440,13 +4438,14 @@ struct bt_field_path *bt_field_type_common_sequence_get_length_field_path(
 	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_SEQUENCE,
 		"Field type");
-	return bt_get(seq_ft->length_field_path);
+	return seq_ft->length_field_path;
 }
 
-struct bt_field_path *bt_field_type_sequence_get_length_field_path(
+struct bt_field_path *bt_field_type_sequence_borrow_length_field_path(
 		struct bt_field_type *ft)
 {
-	return bt_field_type_common_sequence_get_length_field_path((void *) ft);
+	return bt_field_type_common_sequence_borrow_length_field_path(
+		(void *) ft);
 }
 
 BT_HIDDEN
@@ -4466,7 +4465,7 @@ int bt_field_type_common_validate_single_clock_class(
 	case BT_FIELD_TYPE_ID_INTEGER:
 	{
 		struct bt_clock_class *mapped_clock_class =
-			bt_field_type_common_integer_get_mapped_clock_class(ft);
+			bt_field_type_common_integer_borrow_mapped_clock_class(ft);
 
 		if (!mapped_clock_class) {
 			goto end;
@@ -4474,7 +4473,7 @@ int bt_field_type_common_validate_single_clock_class(
 
 		if (!*expected_clock_class) {
 			/* Move reference to output parameter */
-			*expected_clock_class = mapped_clock_class;
+			*expected_clock_class = bt_get(mapped_clock_class);
 			mapped_clock_class = NULL;
 			BT_LOGV("Setting expected clock class: "
 				"expected-clock-class-addr=%p",
@@ -4497,7 +4496,6 @@ int bt_field_type_common_validate_single_clock_class(
 			}
 		}
 
-		bt_put(mapped_clock_class);
 		break;
 	}
 	case BT_FIELD_TYPE_ID_ENUM:
@@ -4508,15 +4506,15 @@ int bt_field_type_common_validate_single_clock_class(
 
 		switch (ft->id) {
 		case BT_FIELD_TYPE_ID_ENUM:
-			sub_ft = bt_field_type_common_enumeration_get_container_field_type(
+			sub_ft = bt_field_type_common_enumeration_borrow_container_field_type(
 				ft);
 			break;
 		case BT_FIELD_TYPE_ID_ARRAY:
-			sub_ft = bt_field_type_common_array_get_element_field_type(
+			sub_ft = bt_field_type_common_array_borrow_element_field_type(
 				ft);
 			break;
 		case BT_FIELD_TYPE_ID_SEQUENCE:
-			sub_ft = bt_field_type_common_sequence_get_element_field_type(
+			sub_ft = bt_field_type_common_sequence_borrow_element_field_type(
 				ft);
 			break;
 		default:
@@ -4527,7 +4525,6 @@ int bt_field_type_common_validate_single_clock_class(
 		BT_ASSERT(sub_ft);
 		ret = bt_field_type_common_validate_single_clock_class(sub_ft,
 			expected_clock_class);
-		bt_put(sub_ft);
 		break;
 	}
 	case BT_FIELD_TYPE_ID_STRUCT:
@@ -4540,12 +4537,11 @@ int bt_field_type_common_validate_single_clock_class(
 			const char *name;
 			struct bt_field_type_common *member_type;
 
-			ret = bt_field_type_common_structure_get_field_by_index(
+			ret = bt_field_type_common_structure_borrow_field_by_index(
 				ft, &name, &member_type, i);
 			BT_ASSERT(ret == 0);
 			ret = bt_field_type_common_validate_single_clock_class(
 				member_type, expected_clock_class);
-			bt_put(member_type);
 			if (ret) {
 				BT_LOGW("Structure field type's field's type "
 					"is not recursively mapped to the "
@@ -4567,12 +4563,11 @@ int bt_field_type_common_validate_single_clock_class(
 			const char *name;
 			struct bt_field_type_common *member_type;
 
-			ret = bt_field_type_common_variant_get_field_by_index(
+			ret = bt_field_type_common_variant_borrow_field_by_index(
 				ft, &name, &member_type, i);
 			BT_ASSERT(ret == 0);
 			ret = bt_field_type_common_validate_single_clock_class(
 				member_type, expected_clock_class);
-			bt_put(member_type);
 			if (ret) {
 				BT_LOGW("Variant field type's field's type "
 					"is not recursively mapped to the "

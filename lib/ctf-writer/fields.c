@@ -324,7 +324,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_field_common *field,
 			pos->offset, member, i);
 
 		if (!member) {
-			ret = bt_field_type_common_structure_get_field_by_index(
+			ret = bt_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
 			BT_ASSERT(ret == 0);
 			BT_LOGW("Cannot serialize structure field's field: field is not set: "
@@ -338,7 +338,7 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_field_common *field,
 		ret = bt_ctf_field_serialize_recursive((void *) member, pos,
 			native_byte_order);
 		if (ret) {
-			ret = bt_field_type_common_structure_get_field_by_index(
+			ret = bt_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
 			BT_ASSERT(ret == 0);
 			BT_LOGW("Cannot serialize structure field's field: "
@@ -502,7 +502,7 @@ end:
 
 struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
 {
-	return (void *) bt_field_common_get_type((void *) field);
+	return bt_get(bt_field_common_borrow_type((void *) field));
 }
 
 enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
@@ -516,7 +516,7 @@ enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
 struct bt_ctf_field *bt_ctf_field_sequence_get_length(
 		struct bt_ctf_field *field)
 {
-	return (void *) bt_field_common_sequence_get_length((void *) field);
+	return bt_get(bt_field_common_sequence_borrow_length((void *) field));
 }
 
 int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
@@ -529,15 +529,15 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *field, uint64_t index)
 {
-	return (void *) bt_field_common_structure_get_field_by_index(
-		(void *) field, index);
+	return bt_get(bt_field_common_structure_borrow_field_by_index(
+		(void *) field, index));
 }
 
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		struct bt_ctf_field *field, const char *name)
 {
-	return (void *) bt_field_common_structure_get_field_by_name(
-		(void *) field, name);
+	return bt_get(bt_field_common_structure_borrow_field_by_name(
+		(void *) field, name));
 }
 
 int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
@@ -550,42 +550,44 @@ int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 struct bt_ctf_field *bt_ctf_field_array_get_field(
 		struct bt_ctf_field *field, uint64_t index)
 {
-	return (void *) bt_field_common_array_get_field((void *) field, index,
-		(bt_field_common_create_func) bt_ctf_field_create);
+	return bt_get(bt_field_common_array_borrow_field((void *) field, index,
+		(bt_field_common_create_func) bt_ctf_field_create));
 }
 
 struct bt_ctf_field *bt_ctf_field_sequence_get_field(
 		struct bt_ctf_field *field, uint64_t index)
 {
-	return (void *) bt_field_common_sequence_get_field((void *) field,
-		index, (bt_field_common_create_func) bt_ctf_field_create);
+	return bt_get(bt_field_common_sequence_borrow_field((void *) field,
+		index, (bt_field_common_create_func) bt_ctf_field_create));
 }
 
 struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 		struct bt_ctf_field *tag_field)
 {
-	return (void *) bt_field_common_variant_get_field((void *) field,
+	return bt_get(bt_field_common_variant_borrow_field((void *) field,
 		(void *) tag_field,
-		(bt_field_common_create_func) bt_ctf_field_create);
+		(bt_field_common_create_func) bt_ctf_field_create));
 }
 
 struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 		struct bt_ctf_field *variant_field)
 {
-	return (void *) bt_field_common_variant_get_current_field(
-		(void *) variant_field);
+	return bt_get(bt_field_common_variant_borrow_current_field(
+		(void *) variant_field));
 }
 
 struct bt_ctf_field *bt_ctf_field_variant_get_tag(
 		struct bt_ctf_field *variant_field)
 {
-	return (void *) bt_field_common_variant_get_tag((void *) variant_field);
+	return bt_get(bt_field_common_variant_borrow_tag(
+		(void *) variant_field));
 }
 
 struct bt_ctf_field *bt_ctf_field_enumeration_get_container(struct bt_ctf_field *field)
 {
-	return (void *) bt_field_common_enumeration_get_container(
-		(void *) field, (bt_field_common_create_func) bt_ctf_field_create);
+	return bt_get(bt_field_common_enumeration_borrow_container(
+		(void *) field,
+		(bt_field_common_create_func) bt_ctf_field_create));
 }
 
 int bt_ctf_field_integer_signed_get_value(struct bt_ctf_field *field, int64_t *value)

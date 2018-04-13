@@ -159,22 +159,6 @@ struct bt_trace_common *bt_stream_class_common_borrow_trace(
 }
 
 static inline
-struct bt_trace *bt_stream_class_borrow_trace(
-		struct bt_stream_class *stream_class)
-{
-	return BT_FROM_COMMON(bt_stream_class_common_borrow_trace(
-		BT_TO_COMMON(stream_class)));
-}
-
-static inline
-struct bt_trace_common *bt_stream_class_common_get_trace(
-		struct bt_stream_class_common *stream_class)
-{
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return bt_get(bt_stream_class_common_borrow_trace(stream_class));
-}
-
-static inline
 int bt_stream_class_common_set_name(struct bt_stream_class_common *stream_class,
 		const char *name)
 {
@@ -302,7 +286,7 @@ end:
 }
 
 static inline
-struct bt_event_class_common *bt_stream_class_common_get_event_class_by_index(
+struct bt_event_class_common *bt_stream_class_common_borrow_event_class_by_index(
 		struct bt_stream_class_common *stream_class, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
@@ -310,11 +294,11 @@ struct bt_event_class_common *bt_stream_class_common_get_event_class_by_index(
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, stream_class->event_classes->len);
-	return bt_get(g_ptr_array_index(stream_class->event_classes, index));
+	return g_ptr_array_index(stream_class->event_classes, index);
 }
 
 static inline
-struct bt_event_class_common *bt_stream_class_common_get_event_class_by_id(
+struct bt_event_class_common *bt_stream_class_common_borrow_event_class_by_id(
 		struct bt_stream_class_common *stream_class, uint64_t id)
 {
 	int64_t id_key = (int64_t) id;
@@ -322,16 +306,17 @@ struct bt_event_class_common *bt_stream_class_common_get_event_class_by_id(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE(id_key >= 0,
 		"Invalid event class ID: %" PRIu64, id);
-	return bt_get(g_hash_table_lookup(stream_class->event_classes_ht,
-			&id_key));
+	return g_hash_table_lookup(stream_class->event_classes_ht,
+			&id_key);
 }
 
 static inline
-struct bt_field_type_common *bt_stream_class_common_get_packet_context_field_type(
+struct bt_field_type_common *
+bt_stream_class_common_borrow_packet_context_field_type(
 		struct bt_stream_class_common *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return bt_get(stream_class->packet_context_field_type);
+	return stream_class->packet_context_field_type;
 }
 
 static inline
@@ -387,7 +372,8 @@ end:
 }
 
 static inline
-struct bt_field_type_common *bt_stream_class_common_get_event_header_field_type(
+struct bt_field_type_common *
+bt_stream_class_common_borrow_event_header_field_type(
 		struct bt_stream_class_common *stream_class)
 {
 	struct bt_field_type_common *ret = NULL;
@@ -403,7 +389,7 @@ struct bt_field_type_common *bt_stream_class_common_get_event_header_field_type(
 		goto end;
 	}
 
-	ret = bt_get(stream_class->event_header_field_type);
+	ret = stream_class->event_header_field_type;
 
 end:
 	return ret;
@@ -461,7 +447,8 @@ end:
 }
 
 static inline
-struct bt_field_type_common *bt_stream_class_common_get_event_context_field_type(
+struct bt_field_type_common *
+bt_stream_class_common_borrow_event_context_field_type(
 		struct bt_stream_class_common *stream_class)
 {
 	struct bt_field_type_common *ret = NULL;
@@ -472,7 +459,7 @@ struct bt_field_type_common *bt_stream_class_common_get_event_context_field_type
 		goto end;
 	}
 
-	ret = bt_get(stream_class->event_context_field_type);
+	ret = stream_class->event_context_field_type;
 
 end:
 	return ret;

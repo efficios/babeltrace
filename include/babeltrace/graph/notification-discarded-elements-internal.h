@@ -50,19 +50,19 @@ struct bt_notification *bt_notification_discarded_elements_create(
 		uint64_t count);
 
 BT_HIDDEN
-struct bt_stream *bt_notification_discarded_elements_get_stream(
+struct bt_stream *bt_notification_discarded_elements_borrow_stream(
 		enum bt_notification_type type,
 		struct bt_notification *notification);
 
 BT_HIDDEN
 struct bt_clock_value *
-bt_notification_discarded_elements_get_begin_clock_value(
+bt_notification_discarded_elements_borrow_begin_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification);
 
 BT_HIDDEN
 struct bt_clock_value *
-bt_notification_discarded_elements_get_end_clock_value(
+bt_notification_discarded_elements_borrow_end_clock_value(
 		enum bt_notification_type type,
 		struct bt_notification *notification);
 
@@ -70,17 +70,5 @@ BT_HIDDEN
 int64_t bt_notification_discarded_elements_get_count(
 		enum bt_notification_type type,
 		struct bt_notification *notification);
-
-static inline
-struct bt_stream *bt_notification_discarded_elements_borrow_stream(
-		struct bt_notification *notification)
-{
-	struct bt_notification_discarded_elements *discarded_elems_notif;
-
-	BT_ASSERT(notification);
-	discarded_elems_notif = container_of(notification,
-			struct bt_notification_discarded_elements, parent);
-	return discarded_elems_notif->stream;
-}
 
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_DISCARDED_ELEMENTS_INTERNAL_H */

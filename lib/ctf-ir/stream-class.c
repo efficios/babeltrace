@@ -147,9 +147,9 @@ error:
 	return NULL;
 }
 
-struct bt_trace *bt_stream_class_get_trace(struct bt_stream_class *stream_class)
+struct bt_trace *bt_stream_class_borrow_trace(struct bt_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(bt_stream_class_common_get_trace(
+	return BT_FROM_COMMON(bt_stream_class_common_borrow_trace(
 		BT_TO_COMMON(stream_class)));
 }
 
@@ -252,8 +252,7 @@ int bt_stream_class_common_add_event_class(
 		event_class,
 		bt_event_class_common_get_name(event_class),
 		bt_event_class_common_get_id(event_class));
-
-	trace = bt_stream_class_common_get_trace(stream_class);
+	trace = bt_stream_class_common_borrow_trace(stream_class);
 
 	if (stream_class->frozen) {
 		/*
@@ -341,20 +340,22 @@ int bt_stream_class_common_add_event_class(
 		BT_ASSERT(trace->valid);
 		BT_ASSERT(stream_class->valid);
 		packet_header_type =
-			bt_trace_common_get_packet_header_field_type(trace);
+			bt_trace_common_borrow_packet_header_field_type(trace);
 		packet_context_type =
-			bt_stream_class_common_get_packet_context_field_type(
+			bt_stream_class_common_borrow_packet_context_field_type(
 				stream_class);
 		event_header_type =
-			bt_stream_class_common_get_event_header_field_type(
+			bt_stream_class_common_borrow_event_header_field_type(
 				stream_class);
 		stream_event_ctx_type =
-			bt_stream_class_common_get_event_context_field_type(
+			bt_stream_class_common_borrow_event_context_field_type(
 				stream_class);
 		event_context_type =
-			bt_event_class_common_get_context_field_type(event_class);
+			bt_event_class_common_borrow_context_field_type(
+				event_class);
 		event_payload_type =
-			bt_event_class_common_get_payload_field_type(event_class);
+			bt_event_class_common_borrow_payload_field_type(
+				event_class);
 		ret = bt_validate_class_types(
 			trace->environment, packet_header_type,
 			packet_context_type, event_header_type,
@@ -363,12 +364,6 @@ int bt_stream_class_common_add_event_class(
 			stream_class->valid, event_class->valid,
 			&validation_output, validation_flags,
 			copy_field_type_func);
-		BT_PUT(packet_header_type);
-		BT_PUT(packet_context_type);
-		BT_PUT(event_header_type);
-		BT_PUT(stream_event_ctx_type);
-		BT_PUT(event_context_type);
-		BT_PUT(event_payload_type);
 
 		if (ret) {
 			/*
@@ -458,15 +453,8 @@ int bt_stream_class_common_add_event_class(
 		bt_event_class_common_get_id(event_class));
 
 end:
-	BT_PUT(trace);
 	bt_validation_output_put_types(&validation_output);
 	bt_put(expected_clock_class);
-	BT_ASSERT(!packet_header_type);
-	BT_ASSERT(!packet_context_type);
-	BT_ASSERT(!event_header_type);
-	BT_ASSERT(!stream_event_ctx_type);
-	BT_ASSERT(!event_context_type);
-	BT_ASSERT(!event_payload_type);
 	g_free(event_id);
 	return ret;
 }
@@ -521,24 +509,24 @@ int64_t bt_stream_class_get_event_class_count(
 		BT_TO_COMMON(stream_class));
 }
 
-struct bt_event_class *bt_stream_class_get_event_class_by_index(
+struct bt_event_class *bt_stream_class_borrow_event_class_by_index(
 		struct bt_stream_class *stream_class, uint64_t index)
 {
-	return BT_FROM_COMMON(bt_stream_class_common_get_event_class_by_index(
+	return BT_FROM_COMMON(bt_stream_class_common_borrow_event_class_by_index(
 		BT_TO_COMMON(stream_class), index));
 }
 
-struct bt_event_class *bt_stream_class_get_event_class_by_id(
+struct bt_event_class *bt_stream_class_borrow_event_class_by_id(
 		struct bt_stream_class *stream_class, uint64_t id)
 {
-	return BT_FROM_COMMON(bt_stream_class_common_get_event_class_by_id(
+	return BT_FROM_COMMON(bt_stream_class_common_borrow_event_class_by_id(
 		BT_TO_COMMON(stream_class), id));
 }
 
-struct bt_field_type *bt_stream_class_get_packet_context_field_type(
+struct bt_field_type *bt_stream_class_borrow_packet_context_field_type(
 		struct bt_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(bt_stream_class_common_get_packet_context_field_type(
+	return BT_FROM_COMMON(bt_stream_class_common_borrow_packet_context_field_type(
 		BT_TO_COMMON(stream_class)));
 }
 
@@ -550,10 +538,10 @@ int bt_stream_class_set_packet_context_field_type(
 		BT_TO_COMMON(stream_class), (void *) packet_context_type);
 }
 
-struct bt_field_type *bt_stream_class_get_event_header_field_type(
+struct bt_field_type *bt_stream_class_borrow_event_header_field_type(
 		struct bt_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(bt_stream_class_common_get_event_header_field_type(
+	return BT_FROM_COMMON(bt_stream_class_common_borrow_event_header_field_type(
 		BT_TO_COMMON(stream_class)));
 }
 
@@ -565,10 +553,10 @@ int bt_stream_class_set_event_header_field_type(
 		BT_TO_COMMON(stream_class), (void *) event_header_type);
 }
 
-struct bt_field_type *bt_stream_class_get_event_context_field_type(
+struct bt_field_type *bt_stream_class_borrow_event_context_field_type(
 		struct bt_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(bt_stream_class_common_get_event_context_field_type(
+	return BT_FROM_COMMON(bt_stream_class_common_borrow_event_context_field_type(
 		BT_TO_COMMON(stream_class)));
 }
 

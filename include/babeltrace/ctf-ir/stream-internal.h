@@ -86,20 +86,6 @@ struct bt_stream_class_common *bt_stream_common_borrow_class(
 }
 
 static inline
-struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
-{
-	BT_ASSERT(stream);
-	return BT_FROM_COMMON(bt_stream_common_borrow_class(BT_TO_COMMON(stream)));
-}
-
-static inline
-struct bt_stream_class_common *bt_stream_common_get_class(
-		struct bt_stream_common *stream)
-{
-	return bt_get(bt_stream_common_borrow_class(stream));
-}
-
-static inline
 const char *bt_stream_common_get_name(struct bt_stream_common *stream)
 {
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");

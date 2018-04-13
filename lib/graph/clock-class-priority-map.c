@@ -103,7 +103,7 @@ int64_t bt_clock_class_priority_map_get_clock_class_count(
 	return (int64_t) cc_prio_map->entries->len;
 }
 
-struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_index(
+struct bt_clock_class *bt_clock_class_priority_map_borrow_clock_class_by_index(
 		struct bt_clock_class_priority_map *cc_prio_map,
 		uint64_t index)
 {
@@ -111,10 +111,10 @@ struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_index(
 	BT_ASSERT_PRE(index < cc_prio_map->entries->len,
 		"Index is out of bounds: index=%" PRIu64 ", count=%" PRIu64,
 		index, cc_prio_map->entries->len);
-	return bt_get(g_ptr_array_index(cc_prio_map->entries, index));
+	return g_ptr_array_index(cc_prio_map->entries, index);
 }
 
-struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_name(
+struct bt_clock_class *bt_clock_class_priority_map_borrow_clock_class_by_name(
 		struct bt_clock_class_priority_map *cc_prio_map,
 		const char *name)
 {
@@ -133,7 +133,7 @@ struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_name(
 		BT_ASSERT(cur_cc_name);
 
 		if (strcmp(cur_cc_name, name) == 0) {
-			clock_class = bt_get(cur_cc);
+			clock_class = cur_cc;
 			goto end;
 		}
 	}
@@ -176,11 +176,11 @@ struct clock_class_prio bt_clock_class_priority_map_current_highest_prio(
 }
 
 struct bt_clock_class *
-bt_clock_class_priority_map_get_highest_priority_clock_class(
+bt_clock_class_priority_map_borrow_highest_priority_clock_class(
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
 	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
-	return(bt_get(cc_prio_map->highest_prio_cc));
+	return cc_prio_map->highest_prio_cc;
 }
 
 int bt_clock_class_priority_map_get_clock_class_priority(

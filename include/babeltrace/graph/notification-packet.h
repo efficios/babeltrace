@@ -27,6 +27,9 @@
  * SOFTWARE.
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,13 +43,25 @@ extern struct bt_notification *bt_notification_packet_begin_create(
 extern struct bt_notification *bt_notification_packet_end_create(
 		struct bt_packet *packet);
 
-/*** BT_NOTIFICATION_TYPE_PACKET_BEGIN ***/
-extern struct bt_packet *bt_notification_packet_begin_get_packet(
+extern struct bt_packet *bt_notification_packet_begin_borrow_packet(
 		struct bt_notification *notification);
 
-/*** BT_NOTIFICATION_TYPE_PACKET_END ***/
-extern struct bt_packet *bt_notification_packet_end_get_packet(
+static inline
+struct bt_packet *bt_notification_packet_begin_get_packet(
+		struct bt_notification *notification)
+{
+	return bt_get(bt_notification_packet_begin_borrow_packet(notification));
+}
+
+extern struct bt_packet *bt_notification_packet_end_borrow_packet(
 		struct bt_notification *notification);
+
+static inline
+struct bt_packet *bt_notification_packet_end_get_packet(
+		struct bt_notification *notification)
+{
+	return bt_get(bt_notification_packet_end_borrow_packet(notification));
+}
 
 #ifdef __cplusplus
 }

@@ -362,7 +362,7 @@ int bt_field_type_common_integer_set_encoding(struct bt_field_type_common *ft,
 		enum bt_string_encoding encoding);
 
 BT_HIDDEN
-struct bt_clock_class *bt_field_type_common_integer_get_mapped_clock_class(
+struct bt_clock_class *bt_field_type_common_integer_borrow_mapped_clock_class(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
@@ -403,7 +403,8 @@ int bt_field_type_common_enumeration_unsigned_get_mapping_by_index(
 		uint64_t *range_end);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_enumeration_get_container_field_type(
+struct bt_field_type_common *
+bt_field_type_common_enumeration_borrow_container_field_type(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
@@ -453,17 +454,19 @@ int64_t bt_field_type_common_structure_get_field_count(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
-int bt_field_type_common_structure_get_field_by_index(
+int bt_field_type_common_structure_borrow_field_by_index(
 		struct bt_field_type_common *ft,
 		const char **field_name,
 		struct bt_field_type_common **field_type, uint64_t index);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_structure_get_field_type_by_name(
+struct bt_field_type_common *
+bt_field_type_common_structure_borrow_field_type_by_name(
 		struct bt_field_type_common *ft, const char *name);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_tag_field_type(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_tag_field_type(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
@@ -480,12 +483,14 @@ int bt_field_type_common_variant_add_field(struct bt_field_type_common *ft,
 		const char *field_name);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_by_name(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_by_name(
 		struct bt_field_type_common *ft,
 		const char *field_name);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_from_tag(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_from_tag(
 		struct bt_field_type_common *ft,
 		struct bt_field_common *tag_field,
 		bt_field_common_create_func field_create_func);
@@ -495,13 +500,14 @@ int64_t bt_field_type_common_variant_get_field_count(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
-int bt_field_type_common_variant_get_field_by_index(
+int bt_field_type_common_variant_borrow_field_by_index(
 		struct bt_field_type_common *ft,
 		const char **field_name,
 		struct bt_field_type_common **field_type, uint64_t index);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_array_get_element_field_type(
+struct bt_field_type_common *
+bt_field_type_common_array_borrow_element_field_type(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
@@ -513,7 +519,8 @@ BT_HIDDEN
 int64_t bt_field_type_common_array_get_length(struct bt_field_type_common *ft);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_sequence_get_element_field_type(
+struct bt_field_type_common *
+bt_field_type_common_sequence_borrow_element_field_type(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
@@ -559,12 +566,14 @@ BT_HIDDEN
 void _bt_field_type_freeze(struct bt_field_type *ft);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_signed(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_signed(
 		struct bt_field_type_common_variant *var_ft,
 		int64_t tag_value);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_variant_get_field_type_unsigned(
+struct bt_field_type_common *
+bt_field_type_common_variant_borrow_field_type_unsigned(
 		struct bt_field_type_common_variant *var_ft,
 		uint64_t tag_value);
 
@@ -695,7 +704,7 @@ BT_HIDDEN
 int64_t bt_field_type_common_get_field_count(struct bt_field_type_common *ft);
 
 BT_HIDDEN
-struct bt_field_type_common *bt_field_type_common_get_field_at_index(
+struct bt_field_type_common *bt_field_type_common_borrow_field_at_index(
 		struct bt_field_type_common *ft, int index);
 
 BT_HIDDEN
@@ -703,11 +712,11 @@ int bt_field_type_common_get_field_index(struct bt_field_type_common *ft,
 		const char *name);
 
 BT_HIDDEN
-struct bt_field_path *bt_field_type_common_variant_get_tag_field_path(
+struct bt_field_path *bt_field_type_common_variant_borrow_tag_field_path(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
-struct bt_field_path *bt_field_type_common_sequence_get_length_field_path(
+struct bt_field_path *bt_field_type_common_sequence_borrow_length_field_path(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN

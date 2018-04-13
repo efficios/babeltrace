@@ -107,7 +107,7 @@ error:
 	return NULL;
 }
 
-struct bt_packet *bt_notification_packet_begin_get_packet(
+struct bt_packet *bt_notification_packet_begin_borrow_packet(
 		struct bt_notification *notification)
 {
 	struct bt_notification_packet_begin *packet_begin;
@@ -117,7 +117,7 @@ struct bt_packet *bt_notification_packet_begin_get_packet(
 		BT_NOTIFICATION_TYPE_PACKET_BEGIN);
 	packet_begin = container_of(notification,
 			struct bt_notification_packet_begin, parent);
-	return bt_get(packet_begin->packet);
+	return packet_begin->packet;
 }
 
 struct bt_notification *bt_notification_packet_end_create(
@@ -163,7 +163,7 @@ error:
 	return NULL;
 }
 
-struct bt_packet *bt_notification_packet_end_get_packet(
+struct bt_packet *bt_notification_packet_end_borrow_packet(
 		struct bt_notification *notification)
 {
 	struct bt_notification_packet_end *packet_end;
@@ -173,5 +173,5 @@ struct bt_packet *bt_notification_packet_end_get_packet(
 		BT_NOTIFICATION_TYPE_PACKET_END);
 	packet_end = container_of(notification,
 			struct bt_notification_packet_end, parent);
-	return bt_get(packet_end->packet);
+	return packet_end->packet;
 }

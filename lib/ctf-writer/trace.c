@@ -122,15 +122,15 @@ bt_ctf_trace_get_environment_field_name_by_index(struct bt_ctf_trace *trace,
 struct bt_value *bt_ctf_trace_get_environment_field_value_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return bt_trace_common_get_environment_field_value_by_index(
-		BT_TO_COMMON(trace), index);
+	return bt_get(bt_trace_common_borrow_environment_field_value_by_index(
+		BT_TO_COMMON(trace), index));
 }
 
 struct bt_value *bt_ctf_trace_get_environment_field_value_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
-	return bt_trace_common_get_environment_field_value_by_name(
-		BT_TO_COMMON(trace), name);
+	return bt_get(bt_trace_common_borrow_environment_field_value_by_name(
+		BT_TO_COMMON(trace), name));
 }
 
 int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
@@ -148,8 +148,8 @@ int64_t bt_ctf_trace_get_clock_class_count(struct bt_ctf_trace *trace)
 struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return (void *) bt_trace_common_get_clock_class_by_index(
-		BT_TO_COMMON(trace), index);
+	return bt_get(bt_trace_common_borrow_clock_class_by_index(
+		BT_TO_COMMON(trace), index));
 }
 
 static
@@ -267,7 +267,7 @@ int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace)
 struct bt_ctf_stream *bt_ctf_trace_get_stream_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return BT_FROM_COMMON(bt_trace_common_get_stream_by_index(
+	return bt_get(bt_trace_common_borrow_stream_by_index(
 		BT_TO_COMMON(trace), index));
 }
 
@@ -279,23 +279,22 @@ int64_t bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
 struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return BT_FROM_COMMON(bt_trace_common_get_stream_class_by_index(
+	return bt_get(bt_trace_common_borrow_stream_class_by_index(
 		BT_TO_COMMON(trace), index));
 }
 
 struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
 		struct bt_ctf_trace *trace, uint64_t id)
 {
-	return BT_FROM_COMMON(
-		bt_trace_common_get_stream_class_by_id(
-			BT_TO_COMMON(trace), id));
+	return bt_get(bt_trace_common_borrow_stream_class_by_id(
+		BT_TO_COMMON(trace), id));
 }
 
 struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
-	return BT_FROM_COMMON(
-		bt_trace_common_get_clock_class_by_name(BT_TO_COMMON(trace),
+	return bt_get(
+		bt_trace_common_borrow_clock_class_by_name(BT_TO_COMMON(trace),
 			name));
 }
 
@@ -374,7 +373,7 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 
 		entry_name = bt_attributes_get_field_name(
 			trace->common.environment, i);
-		env_field_value_obj = bt_attributes_get_field_value(
+		env_field_value_obj = bt_attributes_borrow_field_value(
 			trace->common.environment, i);
 
 		BT_ASSERT(entry_name);
@@ -407,7 +406,7 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 			if (!escaped_str) {
 				BT_LOGE("Cannot escape string: string=\"%s\"",
 					str_value);
-				goto loop_next;
+				continue;
 			}
 
 			g_string_append_printf(context->string,
@@ -416,11 +415,8 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 			break;
 		}
 		default:
-			goto loop_next;
+			continue;
 		}
-
-loop_next:
-		BT_PUT(env_field_value_obj);
 	}
 
 	g_string_append(context->string, "};\n\n");
@@ -492,7 +488,7 @@ int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_field_type(
 		struct bt_ctf_trace *trace)
 {
-	return BT_FROM_COMMON(bt_trace_common_get_packet_header_field_type(
+	return bt_get(bt_trace_common_borrow_packet_header_field_type(
 		BT_TO_COMMON(trace)));
 }
 

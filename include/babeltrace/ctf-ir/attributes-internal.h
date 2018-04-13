@@ -50,7 +50,7 @@ const char *bt_attributes_get_field_name(struct bt_value *attr_obj,
 		uint64_t index);
 
 BT_HIDDEN
-struct bt_value *bt_attributes_get_field_value(struct bt_value *attr_obj,
+struct bt_value *bt_attributes_borrow_field_value(struct bt_value *attr_obj,
 		uint64_t index);
 
 BT_HIDDEN
@@ -58,7 +58,7 @@ int bt_attributes_set_field_value(struct bt_value *attr_obj,
 		const char *name, struct bt_value *value_obj);
 
 BT_HIDDEN
-struct bt_value *bt_attributes_get_field_value_by_name(
+struct bt_value *bt_attributes_borrow_field_value_by_name(
 		struct bt_value *attr_obj, const char *name);
 
 BT_HIDDEN

@@ -30,6 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -204,6 +207,9 @@ Framework URI.
 */
 extern struct bt_event_class *bt_event_class_create(const char *name);
 
+extern struct bt_stream_class *bt_event_class_borrow_stream_class(
+		struct bt_event_class *event_class);
+
 /**
 @brief	Returns the parent CTF IR stream class of the CTF IR event
 	class \p event_class.
@@ -226,8 +232,12 @@ bt_stream_class_add_event_class().
 @sa bt_stream_class_add_event_class(): Add an event class to
 	a stream class.
 */
-extern struct bt_stream_class *bt_event_class_get_stream_class(
-		struct bt_event_class *event_class);
+static inline
+struct bt_stream_class *bt_event_class_get_stream_class(
+		struct bt_event_class *event_class)
+{
+	return bt_get(bt_event_class_borrow_stream_class(event_class));
+}
 
 /** @} */
 
@@ -392,6 +402,9 @@ extern int bt_event_class_set_emf_uri(
 @{
 */
 
+extern struct bt_field_type *bt_event_class_borrow_context_field_type(
+		struct bt_event_class *event_class);
+
 /**
 @brief	Returns the context field type of the CTF IR event class
 	\p event_class.
@@ -408,8 +421,12 @@ extern int bt_event_class_set_emf_uri(
 @sa bt_event_class_set_context_field_type(): Sets the context field type of a
 	given event class.
 */
-extern struct bt_field_type *bt_event_class_get_context_field_type(
-		struct bt_event_class *event_class);
+static inline
+struct bt_field_type *bt_event_class_get_context_field_type(
+		struct bt_event_class *event_class)
+{
+	return bt_get(bt_event_class_borrow_context_field_type(event_class));
+}
 
 /**
 @brief	Sets the context field type of the CTF IR event class \p event_class to
@@ -444,6 +461,9 @@ extern int bt_event_class_set_context_field_type(
 		struct bt_event_class *event_class,
 		struct bt_field_type *context_type);
 
+extern struct bt_field_type *bt_event_class_borrow_payload_field_type(
+		struct bt_event_class *event_class);
+
 /**
 @brief	Returns the payload field type of the CTF IR event class
 	\p event_class.
@@ -460,8 +480,12 @@ extern int bt_event_class_set_context_field_type(
 @sa bt_event_class_set_payload_field_type(): Sets the payload field type of a
 	given event class.
 */
-extern struct bt_field_type *bt_event_class_get_payload_field_type(
-		struct bt_event_class *event_class);
+static inline
+struct bt_field_type *bt_event_class_get_payload_field_type(
+		struct bt_event_class *event_class)
+{
+	return bt_get(bt_event_class_borrow_payload_field_type(event_class));
+}
 
 /**
 @brief	Sets the payload field type of the CTF IR event class \p event_class to

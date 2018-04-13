@@ -26,6 +26,9 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -112,6 +115,11 @@ extern struct bt_clock_class_priority_map *bt_clock_class_priority_map_create(vo
 extern int64_t bt_clock_class_priority_map_get_clock_class_count(
 		struct bt_clock_class_priority_map *clock_class_priority_map);
 
+extern struct bt_clock_class *
+bt_clock_class_priority_map_borrow_clock_class_by_index(
+		struct bt_clock_class_priority_map *clock_class_priority_map,
+		uint64_t index);
+
 /**
 @brief  Returns the CTF IR clock class at index \p index in the clock
 	class priority map \p clock_class_priority_map.
@@ -139,10 +147,20 @@ extern int64_t bt_clock_class_priority_map_get_clock_class_count(
 @sa bt_clock_class_priority_map_add_clock_class(): Adds a clock class
 	to a clock class priority map.
 */
-extern struct bt_clock_class *
+static inline
+struct bt_clock_class *
 bt_clock_class_priority_map_get_clock_class_by_index(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
-		uint64_t index);
+		uint64_t index)
+{
+	return bt_get(bt_clock_class_priority_map_borrow_clock_class_by_index(
+		clock_class_priority_map, index));
+}
+
+extern struct bt_clock_class *
+bt_clock_class_priority_map_borrow_clock_class_by_name(
+		struct bt_clock_class_priority_map *clock_class_priority_map,
+		const char *name);
 
 /**
 @brief  Returns the CTF IR clock class named \c name found in the clock
@@ -171,10 +189,18 @@ bt_clock_class_priority_map_get_clock_class_by_index(
 @sa bt_clock_class_priority_map_add_clock_class(): Adds a clock class
 	to a clock class priority map.
 */
-extern struct bt_clock_class *
-bt_clock_class_priority_map_get_clock_class_by_name(
+static inline
+struct bt_clock_class *bt_clock_class_priority_map_get_clock_class_by_name(
 		struct bt_clock_class_priority_map *clock_class_priority_map,
-		const char *name);
+		const char *name)
+{
+	return bt_get(bt_clock_class_priority_map_borrow_clock_class_by_name(
+		clock_class_priority_map, name));
+}
+
+extern struct bt_clock_class *
+bt_clock_class_priority_map_borrow_highest_priority_clock_class(
+		struct bt_clock_class_priority_map *clock_class_priority_map);
 
 /**
 @brief  Returns the CTF IR clock class with the currently highest
@@ -207,9 +233,15 @@ this function returns.
 @sa bt_clock_class_priority_map_add_clock_class(): Adds a clock class
 	to a clock class priority map.
 */
-extern struct bt_clock_class *
+static inline
+struct bt_clock_class *
 bt_clock_class_priority_map_get_highest_priority_clock_class(
-		struct bt_clock_class_priority_map *clock_class_priority_map);
+		struct bt_clock_class_priority_map *clock_class_priority_map)
+{
+	return bt_get(
+		bt_clock_class_priority_map_borrow_highest_priority_clock_class(
+			clock_class_priority_map));
+}
 
 /**
 @brief  Returns the priority of the CTF IR clock class \p clock_class

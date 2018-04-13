@@ -32,6 +32,9 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -811,6 +814,9 @@ extern int64_t bt_value_array_size(const struct bt_value *array_obj);
 */
 extern bt_bool bt_value_array_is_empty(const struct bt_value *array_obj);
 
+extern struct bt_value *bt_value_array_borrow(const struct bt_value *array_obj,
+		uint64_t index);
+
 /**
 @brief	Returns the value object contained in the array value object
 	\p array_obj at the index \p index.
@@ -828,8 +834,12 @@ extern bt_bool bt_value_array_is_empty(const struct bt_value *array_obj);
 	\ref bt_value_null</strong>, its reference count is incremented.
 @postrefcountsame{array_obj}
 */
-extern struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
-		uint64_t index);
+static inline
+struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
+		uint64_t index)
+{
+	return bt_get(bt_value_array_borrow(array_obj, index));
+}
 
 /**
 @brief	Appends the value object \p element_obj to the array value
@@ -1077,6 +1087,9 @@ extern int64_t bt_value_map_size(const struct bt_value *map_obj);
 */
 extern bt_bool bt_value_map_is_empty(const struct bt_value *map_obj);
 
+extern struct bt_value *bt_value_map_borrow(const struct bt_value *map_obj,
+		const char *key);
+
 /**
 @brief	Returns the value object associated with the key \p key within
 	the map value object \p map_obj.
@@ -1093,8 +1106,12 @@ extern bt_bool bt_value_map_is_empty(const struct bt_value *map_obj);
 @post <strong>On success, if the returned value object is not
 	\ref bt_value_null</strong>, its reference count is incremented.
 */
-extern struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
-		const char *key);
+static inline
+struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
+		const char *key)
+{
+	return bt_get(bt_value_map_borrow(map_obj, key));
+}
 
 /**
 @brief	User function type to use with bt_value_map_foreach().

@@ -30,6 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 /* For bt_bool */
 #include <babeltrace/types.h>
 
@@ -950,6 +953,9 @@ extern int bt_field_type_integer_set_encoding(
 		struct bt_field_type *int_field_type,
 		enum bt_string_encoding encoding);
 
+extern struct bt_clock_class *bt_field_type_integer_borrow_mapped_clock_class(
+		struct bt_field_type *int_field_type);
+
 /**
 @brief  Returns the \link ctfirclockclass CTF IR clock class\endlink
 	mapped to the @intft \p int_field_type.
@@ -972,8 +978,13 @@ This mapped clock class is only indicative.
 @sa bt_field_type_integer_set_mapped_clock_class(): Sets the mapped
 	clock class of a given integer field type.
 */
-extern struct bt_clock_class *bt_field_type_integer_get_mapped_clock_class(
-		struct bt_field_type *int_field_type);
+static inline
+struct bt_clock_class *bt_field_type_integer_get_mapped_clock_class(
+		struct bt_field_type *int_field_type)
+{
+	return bt_get(bt_field_type_integer_borrow_mapped_clock_class(
+		int_field_type));
+}
 
 /**
 @brief	Sets the \link ctfirclockclass CTF IR clock class\endlink mapped
@@ -1278,6 +1289,10 @@ the \c CHERRY mapping.
 extern struct bt_field_type *bt_field_type_enumeration_create(
 		struct bt_field_type *int_field_type);
 
+extern
+struct bt_field_type *bt_field_type_enumeration_borrow_container_field_type(
+		struct bt_field_type *enum_field_type);
+
 /**
 @brief  Returns the @intft wrapped by the @enumft \p enum_field_type.
 
@@ -1292,9 +1307,13 @@ extern struct bt_field_type *bt_field_type_enumeration_create(
 @postrefcountsame{enum_field_type}
 @postsuccessrefcountretinc
 */
-extern
+static inline
 struct bt_field_type *bt_field_type_enumeration_get_container_field_type(
-		struct bt_field_type *enum_field_type);
+		struct bt_field_type *enum_field_type)
+{
+	return bt_get(bt_field_type_enumeration_borrow_container_field_type(
+		enum_field_type));
+}
 
 /**
 @brief  Returns the number of mappings contained in the
@@ -1898,6 +1917,11 @@ extern struct bt_field_type *bt_field_type_structure_create(void);
 extern int64_t bt_field_type_structure_get_field_count(
 		struct bt_field_type *struct_field_type);
 
+extern int bt_field_type_structure_borrow_field_by_index(
+		struct bt_field_type *struct_field_type,
+		const char **field_name, struct bt_field_type **field_type,
+		uint64_t index);
+
 /**
 @brief	Returns the field of the @structft \p struct_field_type
 	at index \p index.
@@ -1929,10 +1953,26 @@ On success, the field's type is placed in \p *field_type if
 @sa bt_field_type_structure_get_field_type_by_name(): Finds a
 	structure field type's field by name.
 */
-extern int bt_field_type_structure_get_field_by_index(
+static inline
+int bt_field_type_structure_get_field_by_index(
 		struct bt_field_type *struct_field_type,
 		const char **field_name, struct bt_field_type **field_type,
-		uint64_t index);
+		uint64_t index)
+{
+	int ret = bt_field_type_structure_borrow_field_by_index(
+		struct_field_type, field_name, field_type, index);
+
+	if (ret == 0 && field_type) {
+		bt_get(*field_type);
+	}
+
+	return ret;
+}
+
+extern
+struct bt_field_type *bt_field_type_structure_borrow_field_type_by_name(
+		struct bt_field_type *struct_field_type,
+		const char *field_name);
 
 /**
 @brief  Returns the type of the field named \p field_name found in
@@ -1954,10 +1994,14 @@ extern int bt_field_type_structure_get_field_by_index(
 @sa bt_field_type_structure_get_field_by_index(): Finds a
 	structure field type's field by index.
 */
-extern
+static inline
 struct bt_field_type *bt_field_type_structure_get_field_type_by_name(
 		struct bt_field_type *struct_field_type,
-		const char *field_name);
+		const char *field_name)
+{
+	return bt_get(bt_field_type_structure_borrow_field_type_by_name(
+		struct_field_type, field_name));
+}
 
 /**
 @brief	Adds a field named \p field_name with the @ft
@@ -2042,6 +2086,9 @@ extern struct bt_field_type *bt_field_type_array_create(
 		struct bt_field_type *element_field_type,
 		unsigned int length);
 
+extern struct bt_field_type *bt_field_type_array_borrow_element_field_type(
+		struct bt_field_type *array_field_type);
+
 /**
 @brief	Returns the @ft of the @fields contained in
 	the @arrayfields described by the @arrayft \p array_field_type.
@@ -2059,8 +2106,13 @@ extern struct bt_field_type *bt_field_type_array_create(
 @postrefcountsame{array_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_type_array_get_element_field_type(
-		struct bt_field_type *array_field_type);
+static inline
+struct bt_field_type *bt_field_type_array_get_element_field_type(
+		struct bt_field_type *array_field_type)
+{
+	return bt_get(bt_field_type_array_borrow_element_field_type(
+		array_field_type));
+}
 
 /**
 @brief	Returns the number of @fields contained in the
@@ -2134,6 +2186,9 @@ extern struct bt_field_type *bt_field_type_sequence_create(
 		struct bt_field_type *element_field_type,
 		const char *length_name);
 
+extern struct bt_field_type *bt_field_type_sequence_borrow_element_field_type(
+		struct bt_field_type *sequence_field_type);
+
 /**
 @brief	Returns the @ft of the @fields contained in the @seqft
 	described by the @seqft \p sequence_field_type.
@@ -2151,8 +2206,13 @@ extern struct bt_field_type *bt_field_type_sequence_create(
 @postrefcountsame{sequence_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_type_sequence_get_element_field_type(
-		struct bt_field_type *sequence_field_type);
+static inline
+struct bt_field_type *bt_field_type_sequence_get_element_field_type(
+		struct bt_field_type *sequence_field_type)
+{
+	return bt_get(bt_field_type_sequence_borrow_element_field_type(
+		sequence_field_type));
+}
 
 /**
 @brief  Returns the length name of the @seqft \p sequence_field_type.
@@ -2172,6 +2232,9 @@ the returned string.
 	length's CTF IR field path of a given sequence field type.
 */
 extern const char *bt_field_type_sequence_get_length_field_name(
+		struct bt_field_type *sequence_field_type);
+
+extern struct bt_field_path *bt_field_type_sequence_borrow_length_field_path(
 		struct bt_field_type *sequence_field_type);
 
 /**
@@ -2195,8 +2258,13 @@ resolving is performed (see \ref ctfirfieldtypes).
 @sa bt_field_type_sequence_get_length_field_name(): Returns the
 	length's name of a given sequence field type.
 */
-extern struct bt_field_path *bt_field_type_sequence_get_length_field_path(
-		struct bt_field_type *sequence_field_type);
+static inline
+struct bt_field_path *bt_field_type_sequence_get_length_field_path(
+		struct bt_field_type *sequence_field_type)
+{
+	return bt_get(bt_field_type_sequence_borrow_length_field_path(
+		sequence_field_type));
+}
 
 /** @} */
 
@@ -2271,6 +2339,9 @@ extern struct bt_field_type *bt_field_type_variant_create(
 		struct bt_field_type *tag_field_type,
 		const char *tag_name);
 
+extern struct bt_field_type *bt_field_type_variant_borrow_tag_field_type(
+		struct bt_field_type *variant_field_type);
+
 /**
 @brief	Returns the tag's @enumft of the @varft \p variant_field_type.
 
@@ -2286,8 +2357,13 @@ extern struct bt_field_type *bt_field_type_variant_create(
 @postrefcountsame{variant_field_type}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_type_variant_get_tag_field_type(
-		struct bt_field_type *variant_field_type);
+static inline
+struct bt_field_type *bt_field_type_variant_get_tag_field_type(
+		struct bt_field_type *variant_field_type)
+{
+	return bt_get(bt_field_type_variant_borrow_tag_field_type(
+		variant_field_type));
+}
 
 /**
 @brief  Returns the tag name of the @varft \p variant_field_type.
@@ -2336,6 +2412,9 @@ extern int bt_field_type_variant_set_tag_name(
 		struct bt_field_type *variant_field_type,
 		const char *tag_name);
 
+extern struct bt_field_path *bt_field_type_variant_borrow_tag_field_path(
+		struct bt_field_type *variant_field_type);
+
 /**
 @brief  Returns the tag's CTF IR field path of the @varft
 	\p variant_field_type.
@@ -2357,8 +2436,13 @@ resolving is performed (see \ref ctfirfieldtypes).
 @sa bt_field_type_variant_get_tag_name(): Returns the tag's
 	name of a given variant field type.
 */
-extern struct bt_field_path *bt_field_type_variant_get_tag_field_path(
-		struct bt_field_type *variant_field_type);
+static inline
+struct bt_field_path *bt_field_type_variant_get_tag_field_path(
+		struct bt_field_type *variant_field_type)
+{
+	return bt_get(bt_field_type_variant_borrow_tag_field_path(
+		variant_field_type));
+}
 
 /**
 @brief	Returns the number of fields (choices) contained in the @varft
@@ -2376,6 +2460,11 @@ extern struct bt_field_path *bt_field_type_variant_get_tag_field_path(
 */
 extern int64_t bt_field_type_variant_get_field_count(
 		struct bt_field_type *variant_field_type);
+
+extern int bt_field_type_variant_borrow_field_by_index(
+		struct bt_field_type *variant_field_type,
+		const char **field_name,
+		struct bt_field_type **field_type, uint64_t index);
 
 /**
 @brief	Returns the field (choice) of the @varft \p variant_field_type
@@ -2410,10 +2499,26 @@ On success, the field's type is placed in \p *field_type if
 @sa bt_field_type_variant_get_field_type_from_tag(): Finds a variant
 	field type's field by current tag value.
 */
-extern int bt_field_type_variant_get_field_by_index(
+static inline
+int bt_field_type_variant_get_field_by_index(
 		struct bt_field_type *variant_field_type,
 		const char **field_name,
-		struct bt_field_type **field_type, uint64_t index);
+		struct bt_field_type **field_type, uint64_t index)
+{
+	int ret = bt_field_type_variant_borrow_field_by_index(
+		variant_field_type, field_name, field_type, index);
+
+	if (ret == 0 && field_type) {
+		bt_get(*field_type);
+	}
+
+	return ret;
+}
+
+extern
+struct bt_field_type *bt_field_type_variant_borrow_field_type_by_name(
+		struct bt_field_type *variant_field_type,
+		const char *field_name);
 
 /**
 @brief  Returns the type of the field (choice) named \p field_name
@@ -2437,10 +2542,19 @@ extern int bt_field_type_variant_get_field_by_index(
 @sa bt_field_type_variant_get_field_type_from_tag(): Finds a variant
 	field type's field by current tag value.
 */
-extern
+static inline
 struct bt_field_type *bt_field_type_variant_get_field_type_by_name(
 		struct bt_field_type *variant_field_type,
-		const char *field_name);
+		const char *field_name)
+{
+	return bt_get(bt_field_type_variant_borrow_field_type_by_name(
+		variant_field_type, field_name));
+}
+
+extern
+struct bt_field_type *bt_field_type_variant_borrow_field_type_from_tag(
+		struct bt_field_type *variant_field_type,
+		struct bt_field *tag_field);
 
 /**
 @brief  Returns the type of the field (choice) selected by the value of
@@ -2473,10 +2587,14 @@ bt_field_type_variant_get_tag_field_type() for \p variant_field_type.
 @sa bt_field_type_variant_get_field_type_by_name(): Finds a variant
 	field type's field by name.
 */
-extern
+static inline
 struct bt_field_type *bt_field_type_variant_get_field_type_from_tag(
 		struct bt_field_type *variant_field_type,
-		struct bt_field *tag_field);
+		struct bt_field *tag_field)
+{
+	return bt_get(bt_field_type_variant_borrow_field_type_from_tag(
+		variant_field_type, tag_field));
+}
 
 /**
 @brief	Adds a field (a choice) named \p field_name with the @ft

@@ -449,7 +449,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_field_path *field_path,
 		g_array_append_val(field_path->indexes, child_index);
 
 		/* Get child field type */
-		child_type = bt_field_type_common_get_field_at_index(type,
+		child_type = bt_field_type_common_borrow_field_at_index(type,
 			child_index);
 		if (!child_type) {
 			BT_LOGW("Cannot get child field type: "
@@ -460,6 +460,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_field_path *field_path,
 		}
 
 		/* Move child type to current type */
+		bt_get(child_type);
 		BT_MOVE(type, child_type);
 	}
 
@@ -741,7 +742,7 @@ struct bt_field_type_common *field_path_to_field_type(
 			g_array_index(field_path->indexes, int, i);
 
 		/* Get child field type */
-		child_type = bt_field_type_common_get_field_at_index(type,
+		child_type = bt_field_type_common_borrow_field_at_index(type,
 			child_index);
 		if (!child_type) {
 			BT_LOGW("Cannot get field type: "
@@ -750,6 +751,7 @@ struct bt_field_type_common *field_path_to_field_type(
 		}
 
 		/* Move child type to current type */
+		bt_get(child_type);
 		BT_MOVE(type, child_type);
 	}
 
@@ -1167,7 +1169,7 @@ int resolve_type(struct bt_field_type_common *type, struct resolve_context *ctx)
 
 		for (f_index = 0; f_index < field_count; f_index++) {
 			struct bt_field_type_common *child_type =
-				bt_field_type_common_get_field_at_index(type,
+				bt_field_type_common_borrow_field_at_index(type,
 					f_index);
 
 			if (!child_type) {
@@ -1192,7 +1194,6 @@ int resolve_type(struct bt_field_type_common *type, struct resolve_context *ctx)
 				"index=%" PRId64 ", count=%" PRId64,
 				type, child_type, f_index, field_count);
 			ret = resolve_type(child_type, ctx);
-			BT_PUT(child_type);
 			if (ret) {
 				goto end;
 			}
