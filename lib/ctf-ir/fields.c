@@ -191,9 +191,9 @@ end:
 	return field;
 }
 
-struct bt_field_type *bt_field_get_type(struct bt_field *field)
+struct bt_field_type *bt_field_borrow_type(struct bt_field *field)
 {
-	return (void *) bt_field_common_get_type((void *) field);
+	return (void *) bt_field_common_borrow_type((void *) field);
 }
 
 enum bt_field_type_id bt_field_get_type_id(struct bt_field *field)
@@ -250,9 +250,9 @@ int64_t bt_field_sequence_get_int_length(struct bt_field *field)
 	return bt_field_common_sequence_get_int_length((void *) field);
 }
 
-struct bt_field *bt_field_sequence_get_length(struct bt_field *field)
+struct bt_field *bt_field_sequence_borrow_length(struct bt_field *field)
 {
-	return (void *) bt_field_common_sequence_get_length((void *) field);
+	return (void *) bt_field_common_sequence_borrow_length((void *) field);
 }
 
 int bt_field_sequence_set_length(struct bt_field *field,
@@ -262,17 +262,17 @@ int bt_field_sequence_set_length(struct bt_field *field,
 		(void *) length_field);
 }
 
-struct bt_field *bt_field_structure_get_field_by_index(
+struct bt_field *bt_field_structure_borrow_field_by_index(
 		struct bt_field *field, uint64_t index)
 {
-	return (void *) bt_field_common_structure_get_field_by_index(
+	return (void *) bt_field_common_structure_borrow_field_by_index(
 		(void *) field, index);
 }
 
-struct bt_field *bt_field_structure_get_field_by_name(
+struct bt_field *bt_field_structure_borrow_field_by_name(
 		struct bt_field *field, const char *name)
 {
-	return (void *) bt_field_common_structure_get_field_by_name(
+	return (void *) bt_field_common_structure_borrow_field_by_name(
 		(void *) field, name);
 }
 
@@ -283,44 +283,45 @@ int bt_field_structure_set_field_by_name(struct bt_field_common *field,
 		name, (void *) value);
 }
 
-struct bt_field *bt_field_array_get_field(
+struct bt_field *bt_field_array_borrow_field(
 		struct bt_field *field, uint64_t index)
 {
-	return (void *) bt_field_common_array_get_field((void *) field, index,
-		(bt_field_common_create_func) bt_field_create);
-}
-
-struct bt_field *bt_field_sequence_get_field(
-		struct bt_field *field, uint64_t index)
-{
-	return (void *) bt_field_common_sequence_get_field((void *) field,
+	return (void *) bt_field_common_array_borrow_field((void *) field,
 		index, (bt_field_common_create_func) bt_field_create);
 }
 
-struct bt_field *bt_field_variant_get_field(struct bt_field *field,
+struct bt_field *bt_field_sequence_borrow_field(
+		struct bt_field *field, uint64_t index)
+{
+	return (void *) bt_field_common_sequence_borrow_field((void *) field,
+		index, (bt_field_common_create_func) bt_field_create);
+}
+
+struct bt_field *bt_field_variant_borrow_field(struct bt_field *field,
 		struct bt_field *tag_field)
 {
-	return (void *) bt_field_common_variant_get_field((void *) field,
+	return (void *) bt_field_common_variant_borrow_field((void *) field,
 		(void *) tag_field,
 		(bt_field_common_create_func) bt_field_create);
 }
 
-struct bt_field *bt_field_variant_get_current_field(
+struct bt_field *bt_field_variant_borrow_current_field(
 		struct bt_field *variant_field)
 {
-	return (void *) bt_field_common_variant_get_current_field(
+	return (void *) bt_field_common_variant_borrow_current_field(
 		(void *) variant_field);
 }
 
-struct bt_field_common *bt_field_variant_get_tag(
+struct bt_field_common *bt_field_variant_borrow_tag(
 		struct bt_field_common *variant_field)
 {
-	return (void *) bt_field_common_variant_get_tag((void *) variant_field);
+	return (void *) bt_field_common_variant_borrow_tag(
+		(void *) variant_field);
 }
 
-struct bt_field *bt_field_enumeration_get_container(struct bt_field *field)
+struct bt_field *bt_field_enumeration_borrow_container(struct bt_field *field)
 {
-	return (void *) bt_field_common_enumeration_get_container(
+	return (void *) bt_field_common_enumeration_borrow_container(
 		(void *) field, (bt_field_common_create_func) bt_field_create);
 }
 
@@ -837,7 +838,7 @@ int bt_field_common_structure_validate_recursive(struct bt_field_common *field)
 			int this_ret;
 			const char *name;
 
-			this_ret = bt_field_type_common_structure_get_field_by_index(
+			this_ret = bt_field_type_common_structure_borrow_field_by_index(
 				field->type, &name, NULL, i);
 			BT_ASSERT(this_ret == 0);
 			BT_ASSERT_PRE_MSG("Invalid structure field's field: "
@@ -1245,7 +1246,7 @@ struct bt_field_common *bt_field_sequence_copy_recursive(
 		goto error;
 	}
 
-	src_length = bt_field_common_sequence_get_length(src);
+	src_length = bt_field_common_sequence_borrow_length(src);
 	if (!src_length) {
 		/* no length set yet: keep destination sequence empty */
 		goto end;
@@ -1254,7 +1255,6 @@ struct bt_field_common *bt_field_sequence_copy_recursive(
 	/* copy source length */
 	BT_LOGD_STR("Copying sequence field's length field.");
 	dst_length = (void *) bt_field_copy((void *) src_length);
-	BT_PUT(src_length);
 	if (!dst_length) {
 		BT_LOGE_STR("Cannot copy sequence field's length field.");
 		goto error;

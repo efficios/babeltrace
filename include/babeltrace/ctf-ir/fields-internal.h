@@ -135,15 +135,6 @@ struct bt_field_common_string {
 	GString *payload;
 };
 
-static inline
-struct bt_field_type *bt_field_borrow_type(struct bt_field *field)
-{
-	struct bt_field_common *field_common = (void *) field;
-
-	BT_ASSERT(field);
-	return (void *) field_common->type;
-}
-
 BT_HIDDEN
 int64_t bt_field_sequence_get_int_length(struct bt_field *field);
 
@@ -367,13 +358,13 @@ void bt_field_common_initialize(struct bt_field_common *field,
 }
 
 static inline
-struct bt_field_type_common *bt_field_common_get_type(
+struct bt_field_type_common *bt_field_common_borrow_type(
 		struct bt_field_common *field)
 {
 	struct bt_field_type_common *ret = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	ret = bt_get(field->type);
+	ret = field->type;
 	return ret;
 }
 
@@ -397,7 +388,7 @@ end:
 }
 
 static inline
-struct bt_field_common *bt_field_common_sequence_get_length(
+struct bt_field_common *bt_field_common_sequence_borrow_length(
 		struct bt_field_common *field)
 {
 	struct bt_field_common_sequence *sequence = BT_FROM_COMMON(field);
@@ -405,7 +396,7 @@ struct bt_field_common *bt_field_common_sequence_get_length(
 	BT_ASSERT_PRE_NON_NULL(field, "Sequence field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_SEQUENCE,
 		"Field");
-	return bt_get(sequence->length);
+	return sequence->length;
 }
 
 static inline
@@ -451,7 +442,7 @@ end:
 }
 
 static inline
-struct bt_field_common *bt_field_common_structure_get_field_by_name(
+struct bt_field_common *bt_field_common_structure_borrow_field_by_name(
 		struct bt_field_common *field, const char *name)
 {
 	struct bt_field_common *ret = NULL;
@@ -477,7 +468,7 @@ struct bt_field_common *bt_field_common_structure_get_field_by_name(
 		goto error;
 	}
 
-	ret = bt_get(structure->fields->pdata[index]);
+	ret = structure->fields->pdata[index];
 	BT_ASSERT(ret);
 
 error:
@@ -485,7 +476,7 @@ error:
 }
 
 static inline
-struct bt_field_common *bt_field_common_structure_get_field_by_index(
+struct bt_field_common *bt_field_common_structure_borrow_field_by_index(
 		struct bt_field_common *field, uint64_t index)
 {
 	struct bt_field_common_structure *structure = BT_FROM_COMMON(field);
@@ -497,7 +488,7 @@ struct bt_field_common *bt_field_common_structure_get_field_by_index(
 		"Index is out of bound: %![struct-field-]+_f, "
 		"index=%" PRIu64 ", count=%u", field, index,
 		structure->fields->len);
-	return bt_get(structure->fields->pdata[index]);
+	return structure->fields->pdata[index];
 }
 
 BT_ASSERT_PRE_FUNC
@@ -509,7 +500,7 @@ static inline bool field_to_set_has_expected_type(
 	struct bt_field_type_common *expected_field_type = NULL;
 
 	expected_field_type =
-		bt_field_type_common_structure_get_field_type_by_name(
+		bt_field_type_common_structure_borrow_field_type_by_name(
 			struct_field->type, name);
 
 	if (bt_field_type_common_compare(expected_field_type, value->type)) {
@@ -521,7 +512,6 @@ static inline bool field_to_set_has_expected_type(
 	}
 
 end:
-	bt_put(expected_field_type);
 	return ret;
 }
 
@@ -564,7 +554,7 @@ end:
 }
 
 static inline
-struct bt_field_common *bt_field_common_array_get_field(
+struct bt_field_common *bt_field_common_array_borrow_field(
 		struct bt_field_common *field, uint64_t index,
 		bt_field_common_create_func field_create_func)
 {
@@ -579,7 +569,7 @@ struct bt_field_common *bt_field_common_array_get_field(
 		"index=%" PRIu64 ", count=%u", field,
 		index, array->elements->len);
 
-	field_type = bt_field_type_common_array_get_element_field_type(
+	field_type = bt_field_type_common_array_borrow_element_field_type(
 		field->type);
 	if (array->elements->pdata[(size_t) index]) {
 		new_field = array->elements->pdata[(size_t) index];
@@ -592,13 +582,11 @@ struct bt_field_common *bt_field_common_array_get_field(
 	array->elements->pdata[(size_t) index] = new_field;
 
 end:
-	bt_put(field_type);
-	bt_get(new_field);
 	return new_field;
 }
 
 static inline
-struct bt_field_common *bt_field_common_sequence_get_field(
+struct bt_field_common *bt_field_common_sequence_borrow_field(
 		struct bt_field_common *field, uint64_t index,
 		bt_field_common_create_func field_create_func)
 {
@@ -614,7 +602,7 @@ struct bt_field_common *bt_field_common_sequence_get_field(
 		"Index is out of bound: %![seq-field-]+_f, "
 		"index=%" PRIu64 ", count=%u", field, index,
 		sequence->elements->len);
-	field_type = bt_field_type_common_sequence_get_element_field_type(
+	field_type = bt_field_type_common_sequence_borrow_element_field_type(
 		field->type);
 	if (sequence->elements->pdata[(size_t) index]) {
 		new_field = sequence->elements->pdata[(size_t) index];
@@ -627,13 +615,11 @@ struct bt_field_common *bt_field_common_sequence_get_field(
 	sequence->elements->pdata[(size_t) index] = new_field;
 
 end:
-	bt_put(field_type);
-	bt_get(new_field);
 	return new_field;
 }
 
 static inline
-struct bt_field_common *bt_field_common_enumeration_get_container(
+struct bt_field_common *bt_field_common_enumeration_borrow_container(
 		struct bt_field_common *field,
 		bt_field_common_create_func field_create_func)
 {
@@ -655,11 +641,11 @@ struct bt_field_common *bt_field_common_enumeration_get_container(
 				BT_TO_COMMON(enumeration_type->container_ft));
 	}
 
-	return bt_get(enumeration->payload);
+	return enumeration->payload;
 }
 
 static inline
-struct bt_field_common *bt_field_common_variant_get_field(
+struct bt_field_common *bt_field_common_variant_borrow_field(
 		struct bt_field_common *field,
 		struct bt_field_common *tag_field,
 		bt_field_common_create_func field_create_func)
@@ -680,7 +666,7 @@ struct bt_field_common *bt_field_common_variant_get_field(
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(tag_field, BT_FIELD_TYPE_ID_ENUM,
 		"Tag field");
 	variant_type = BT_FROM_COMMON(field->type);
-	tag_enum = bt_field_common_enumeration_get_container(tag_field,
+	tag_enum = bt_field_common_enumeration_borrow_container(tag_field,
 		field_create_func);
 	BT_ASSERT_PRE_NON_NULL(tag_enum, "Tag field's container");
 	tag_enum_integer = BT_FROM_COMMON(tag_enum);
@@ -699,23 +685,21 @@ struct bt_field_common *bt_field_common_variant_get_field(
 		int64_t cur_tag_value;
 
 		cur_tag_container =
-			bt_field_common_enumeration_get_container(variant->tag,
-				field_create_func);
+			bt_field_common_enumeration_borrow_container(
+				variant->tag, field_create_func);
 		BT_ASSERT(cur_tag_container);
 		cur_tag_enum_integer = BT_FROM_COMMON(cur_tag_container);
-		bt_put(cur_tag_container);
 		cur_tag_value = cur_tag_enum_integer->payload.signd;
 
 		if (cur_tag_value == tag_enum_value) {
 			new_field = variant->payload;
-			bt_get(new_field);
 			goto end;
 		}
 	}
 
 	/* We don't want to modify this field if it's frozen */
 	BT_ASSERT_PRE_FIELD_COMMON_HOT(field, "Variant field");
-	field_type = bt_field_type_common_variant_get_field_type_signed(
+	field_type = bt_field_type_common_variant_borrow_field_type_signed(
 		variant_type, tag_enum_value);
 
 	/* It's the caller's job to make sure the tag's value is valid */
@@ -735,18 +719,15 @@ struct bt_field_common *bt_field_common_variant_get_field(
 
 	bt_put(variant->tag);
 	bt_put(variant->payload);
-	bt_get(new_field);
-	bt_get(tag_field);
-	variant->tag = tag_field;
+	variant->tag = bt_get(tag_field);
 	variant->payload = new_field;
 
 end:
-	bt_put(tag_enum);
 	return new_field;
 }
 
 static inline
-struct bt_field_common *bt_field_common_variant_get_current_field(
+struct bt_field_common *bt_field_common_variant_borrow_current_field(
 		struct bt_field_common *variant_field)
 {
 	struct bt_field_common_variant *variant = BT_FROM_COMMON(variant_field);
@@ -754,11 +735,11 @@ struct bt_field_common *bt_field_common_variant_get_current_field(
 	BT_ASSERT_PRE_NON_NULL(variant_field, "Variant field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(variant_field,
 		BT_FIELD_TYPE_ID_VARIANT, "Field");
-	return bt_get(variant->payload);
+	return variant->payload;
 }
 
 static inline
-struct bt_field_common *bt_field_common_variant_get_tag(
+struct bt_field_common *bt_field_common_variant_borrow_tag(
 		struct bt_field_common *variant_field)
 {
 	struct bt_field_common_variant *variant = BT_FROM_COMMON(variant_field);
@@ -766,7 +747,7 @@ struct bt_field_common *bt_field_common_variant_get_tag(
 	BT_ASSERT_PRE_NON_NULL(variant_field, "Variant field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(variant_field,
 		BT_FIELD_TYPE_ID_VARIANT, "Field");
-	return bt_get(variant->tag);
+	return variant->tag;
 }
 
 static inline
@@ -896,7 +877,7 @@ bt_field_common_enumeration_get_mappings(struct bt_field_common *field,
 	BT_ASSERT_PRE_NON_NULL(field, "Enumeration field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_ENUM, "Field");
-	container = bt_field_common_enumeration_get_container(field,
+	container = bt_field_common_enumeration_borrow_container(field,
 		field_create_func);
 	BT_ASSERT_PRE(container,
 		"Enumeration field has no container field: %!+_f", field);
@@ -922,7 +903,6 @@ bt_field_common_enumeration_get_mappings(struct bt_field_common *field,
 				field->type, value);
 	}
 
-	bt_put(container);
 	return iter;
 }
 

@@ -283,7 +283,7 @@ int bt_ctf_field_type_enumeration_serialize_recursive(
 	BT_LOGD("Serializing CTF writer enumeration field type's metadata: "
 		"ft-addr=%p, metadata-context-addr=%p", type, context);
 	container_type =
-		bt_field_type_common_enumeration_get_container_field_type(type);
+		bt_field_type_common_enumeration_borrow_container_field_type(type);
 	BT_ASSERT(container_type);
 	container_signed = bt_field_type_common_integer_is_signed(
 		container_type);
@@ -350,7 +350,6 @@ int bt_ctf_field_type_enumeration_serialize_recursive(
 	}
 
 end:
-	bt_put(container_type);
 	return ret;
 }
 
@@ -677,8 +676,8 @@ int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *ft,
 struct bt_ctf_clock_class *bt_ctf_field_type_integer_get_mapped_clock_class(
 		struct bt_ctf_field_type *ft)
 {
-	return BT_FROM_COMMON(
-		bt_field_type_common_integer_get_mapped_clock_class((void *) ft));
+	return bt_get(bt_field_type_common_integer_borrow_mapped_clock_class(
+		(void *) ft));
 }
 
 int bt_ctf_field_type_integer_set_mapped_clock_class(
@@ -755,8 +754,9 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return (void *) bt_field_type_common_enumeration_get_container_field_type(
-		(void *) ft);
+	return bt_get(
+		bt_field_type_common_enumeration_borrow_container_field_type(
+			(void *) ft));
 }
 
 int bt_ctf_field_type_enumeration_signed_add_mapping(
@@ -881,15 +881,21 @@ int bt_ctf_field_type_structure_get_field_by_index(
 		const char **field_name,
 		struct bt_ctf_field_type **field_type, uint64_t index)
 {
-	return bt_field_type_common_structure_get_field_by_index(
+	int ret = bt_field_type_common_structure_borrow_field_by_index(
 		(void *) ft, field_name, (void *) field_type, index);
+
+	if (ret == 0 && field_type) {
+		bt_get(*field_type);
+	}
+
+	return ret;
 }
 
 struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(
 		struct bt_ctf_field_type *ft, const char *name)
 {
-	return (void *) bt_field_type_common_structure_get_field_type_by_name(
-		(void *) ft, name);
+	return bt_get(bt_field_type_common_structure_borrow_field_type_by_name(
+		(void *) ft, name));
 }
 
 struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
@@ -935,8 +941,8 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return (void *) bt_field_type_common_variant_get_tag_field_type(
-		(void *) ft);
+	return bt_get(bt_field_type_common_variant_borrow_tag_field_type(
+		(void *) ft));
 }
 
 const char *bt_ctf_field_type_variant_get_tag_name(struct bt_ctf_field_type *ft)
@@ -962,17 +968,17 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
 		struct bt_ctf_field_type *ft,
 		const char *field_name)
 {
-	return (void *) bt_field_type_common_variant_get_field_type_by_name(
-		(void *) ft, field_name);
+	return bt_get(bt_field_type_common_variant_borrow_field_type_by_name(
+		(void *) ft, field_name));
 }
 
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 		struct bt_ctf_field_type *ft,
 		struct bt_ctf_field *tag_field)
 {
-	return (void *) bt_field_type_common_variant_get_field_type_from_tag(
+	return bt_get(bt_field_type_common_variant_borrow_field_type_from_tag(
 		(void *) ft, (void *) tag_field,
-		(bt_field_common_create_func) bt_field_create);
+		(bt_field_common_create_func) bt_field_create));
 }
 
 int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *ft)
@@ -984,8 +990,14 @@ int bt_ctf_field_type_variant_get_field_by_index(struct bt_ctf_field_type *ft,
 		const char **field_name, struct bt_ctf_field_type **field_type,
 		uint64_t index)
 {
-	return bt_field_type_common_variant_get_field_by_index((void *) ft,
-		field_name, (void *) field_type, index);
+	int ret = bt_field_type_common_variant_borrow_field_by_index(
+		(void *) ft, field_name, (void *) field_type, index);
+
+	if (ret == 0 && field_type) {
+		bt_get(*field_type);
+	}
+
+	return ret;
 }
 
 struct bt_ctf_field_type *bt_ctf_field_type_array_create(
@@ -1033,8 +1045,8 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return (void *) bt_field_type_common_array_get_element_field_type(
-		(void *) ft);
+	return bt_get(bt_field_type_common_array_borrow_element_field_type(
+		(void *) ft));
 }
 
 int64_t bt_ctf_field_type_array_get_length(struct bt_ctf_field_type *ft)
@@ -1089,8 +1101,8 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return (void *) bt_field_type_common_sequence_get_element_field_type(
-		(void *) ft);
+	return bt_get(bt_field_type_common_sequence_borrow_element_field_type(
+		(void *) ft));
 }
 
 const char *bt_ctf_field_type_sequence_get_length_field_name(

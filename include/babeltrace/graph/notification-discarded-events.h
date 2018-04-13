@@ -23,6 +23,9 @@
  * SOFTWARE.
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -35,18 +38,44 @@ struct bt_clock_class;
 struct bt_stream;
 
 extern struct bt_clock_value *
-bt_notification_discarded_events_get_begin_clock_value(
+bt_notification_discarded_events_borrow_begin_clock_value(
 		struct bt_notification *notification);
 
+static inline
+struct bt_clock_value *
+bt_notification_discarded_events_get_begin_clock_value(
+		struct bt_notification *notification)
+{
+	return bt_get(bt_notification_discarded_events_borrow_begin_clock_value(
+		notification));
+}
+
 extern struct bt_clock_value *
-bt_notification_discarded_events_get_end_clock_value(
+bt_notification_discarded_events_borrow_end_clock_value(
 		struct bt_notification *notification);
+
+static inline
+struct bt_clock_value *
+bt_notification_discarded_events_get_end_clock_value(
+		struct bt_notification *notification)
+{
+	return bt_get(bt_notification_discarded_events_borrow_end_clock_value(
+		notification));
+}
 
 extern int64_t bt_notification_discarded_events_get_count(
 		struct bt_notification *notification);
 
-extern struct bt_stream *bt_notification_discarded_events_get_stream(
+extern struct bt_stream *bt_notification_discarded_events_borrow_stream(
 		struct bt_notification *notification);
+
+static inline
+struct bt_stream *bt_notification_discarded_events_get_stream(
+		struct bt_notification *notification)
+{
+	return bt_get(bt_notification_discarded_events_borrow_stream(
+		notification));
+}
 
 #ifdef __cplusplus
 }

@@ -790,7 +790,7 @@ end:
 	return ret;
 }
 
-struct bt_clock_class *bt_clock_value_get_class(
+struct bt_clock_class *bt_clock_value_borrow_class(
 		struct bt_clock_value *clock_value)
 {
 	struct bt_clock_class *clock_class = NULL;
@@ -800,7 +800,7 @@ struct bt_clock_class *bt_clock_value_get_class(
 		goto end;
 	}
 
-	clock_class = bt_get(clock_value->clock_class);
+	clock_class = clock_value->clock_class;
 
 end:
 	return clock_class;

@@ -260,9 +260,9 @@ end:
 	return stream;
 }
 
-struct bt_stream_class *bt_stream_get_class(struct bt_stream *stream)
+struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 {
-	return BT_FROM_COMMON(bt_stream_common_get_class(BT_TO_COMMON(stream)));
+	return BT_FROM_COMMON(bt_stream_common_borrow_class(BT_TO_COMMON(stream)));
 }
 
 const char *bt_stream_get_name(struct bt_stream *stream)

@@ -42,28 +42,4 @@ struct bt_notification_stream_end {
 	struct bt_stream *stream;
 };
 
-static inline
-struct bt_stream *bt_notification_stream_begin_borrow_stream(
-		struct bt_notification *notif)
-{
-	struct bt_notification_stream_begin *notif_stream_begin =
-		container_of(notif,
-			struct bt_notification_stream_begin, parent);
-
-	BT_ASSERT(notif_stream_begin);
-	return notif_stream_begin->stream;
-}
-
-static inline
-struct bt_stream *bt_notification_stream_end_borrow_stream(
-		struct bt_notification *notif)
-{
-	struct bt_notification_stream_end *notif_stream_end =
-		container_of(notif,
-			struct bt_notification_stream_end, parent);
-
-	BT_ASSERT(notif_stream_end);
-	return notif_stream_end->stream;
-}
-
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_STREAM_INTERNAL_H */

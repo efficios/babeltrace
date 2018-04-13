@@ -390,12 +390,11 @@ bt_private_connection_private_notification_iterator_set_user_data(
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
-struct bt_notification *bt_notification_iterator_get_notification(
+struct bt_notification *bt_notification_iterator_borrow_notification(
 		struct bt_notification_iterator *iterator)
 {
 	BT_ASSERT_PRE_NON_NULL(iterator, "Notification iterator");
-	return bt_get(
-		bt_notification_iterator_borrow_current_notification(iterator));
+	return bt_notification_iterator_borrow_current_notification(iterator);
 }
 
 BT_ASSERT_PRE_FUNC

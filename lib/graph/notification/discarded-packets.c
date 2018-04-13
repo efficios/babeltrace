@@ -26,18 +26,18 @@
 #include <stdint.h>
 
 struct bt_clock_value *
-bt_notification_discarded_packets_get_begin_clock_value(
+bt_notification_discarded_packets_borrow_begin_clock_value(
 		struct bt_notification *notification)
 {
-	return bt_notification_discarded_elements_get_begin_clock_value(
+	return bt_notification_discarded_elements_borrow_begin_clock_value(
 		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
 }
 
 struct bt_clock_value *
-bt_notification_discarded_packets_get_end_clock_value(
+bt_notification_discarded_packets_borrow_end_clock_value(
 		struct bt_notification *notification)
 {
-	return bt_notification_discarded_elements_get_end_clock_value(
+	return bt_notification_discarded_elements_borrow_end_clock_value(
 		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
 }
 
@@ -48,9 +48,9 @@ int64_t bt_notification_discarded_packets_get_count(
 		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
 }
 
-struct bt_stream *bt_notification_discarded_packets_get_stream(
+struct bt_stream *bt_notification_discarded_packets_borrow_stream(
 		struct bt_notification *notification)
 {
-	return bt_notification_discarded_elements_get_stream(
+	return bt_notification_discarded_elements_borrow_stream(
 		BT_NOTIFICATION_TYPE_DISCARDED_PACKETS, notification);
 }

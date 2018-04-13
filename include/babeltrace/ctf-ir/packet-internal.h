@@ -48,12 +48,4 @@ void _bt_packet_freeze(struct bt_packet *packet);
 # define bt_packet_freeze
 #endif /* BT_DEV_MODE */
 
-static inline
-struct bt_stream *bt_packet_borrow_stream(
-		struct bt_packet *packet)
-{
-	BT_ASSERT(packet);
-	return packet->stream;
-}
-
 #endif /* BABELTRACE_CTF_IR_PACKET_INTERNAL_H */

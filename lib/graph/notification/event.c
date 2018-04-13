@@ -233,7 +233,7 @@ end:
 	return &notification->parent;
 }
 
-struct bt_event *bt_notification_event_get_event(
+struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notification)
 {
 	struct bt_notification_event *event_notification;
@@ -242,11 +242,11 @@ struct bt_event *bt_notification_event_get_event(
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, BT_NOTIFICATION_TYPE_EVENT);
 	event_notification = container_of(notification,
 			struct bt_notification_event, parent);
-	return bt_get(event_notification->event);
+	return event_notification->event;
 }
 
 extern struct bt_clock_class_priority_map *
-bt_notification_event_get_clock_class_priority_map(
+bt_notification_event_borrow_clock_class_priority_map(
 		struct bt_notification *notification)
 {
 	struct bt_notification_event *event_notification;
@@ -255,5 +255,5 @@ bt_notification_event_get_clock_class_priority_map(
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, BT_NOTIFICATION_TYPE_EVENT);
 	event_notification = container_of(notification,
 			struct bt_notification_event, parent);
-	return bt_get(event_notification->cc_prio_map);
+	return event_notification->cc_prio_map;
 }

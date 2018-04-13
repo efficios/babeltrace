@@ -42,17 +42,17 @@
 #include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 
-struct bt_stream *bt_packet_get_stream(struct bt_packet *packet)
+struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	return bt_get(packet->stream);
+	return packet->stream;
 }
 
-struct bt_field *bt_packet_get_header(
+struct bt_field *bt_packet_borrow_header(
 		struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	return bt_get(packet->header);
+	return packet->header;
 }
 
 BT_ASSERT_PRE_FUNC
@@ -104,10 +104,10 @@ int bt_packet_set_header(struct bt_packet *packet,
 	return 0;
 }
 
-struct bt_field *bt_packet_get_context(struct bt_packet *packet)
+struct bt_field *bt_packet_borrow_context(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	return bt_get(packet->context);
+	return packet->context;
 }
 
 int bt_packet_set_context(struct bt_packet *packet,
@@ -171,9 +171,9 @@ struct bt_packet *bt_packet_create(
 		stream->common.stream_class,
 		bt_stream_class_common_get_name(stream->common.stream_class),
 		bt_stream_class_common_get_id(stream->common.stream_class));
-	stream_class = bt_stream_get_class(stream);
+	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
-	trace = bt_stream_class_get_trace(stream_class);
+	trace = bt_stream_class_borrow_trace(stream_class);
 	BT_ASSERT(trace);
 	packet = g_new0(struct bt_packet, 1);
 	if (!packet) {
@@ -211,8 +211,5 @@ struct bt_packet *bt_packet_create(
 	BT_LOGD("Created packet object: addr=%p", packet);
 
 end:
-	BT_PUT(trace);
-	BT_PUT(stream_class);
-
 	return packet;
 }

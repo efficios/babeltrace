@@ -28,6 +28,9 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -118,6 +121,9 @@ bt_packet_set_header() and bt_packet_set_context().
 extern struct bt_packet *bt_packet_create(
 		struct bt_stream *stream);
 
+extern struct bt_stream *bt_packet_borrow_stream(
+		struct bt_packet *packet);
+
 /**
 @brief	Returns the parent CTF IR stream of the CTF IR packet \p packet.
 
@@ -131,8 +137,12 @@ the packet object in the first place with bt_packet_create().
 @postrefcountsame{packet}
 @postsuccessrefcountretinc
 */
-extern struct bt_stream *bt_packet_get_stream(
-		struct bt_packet *packet);
+static inline
+struct bt_stream *bt_packet_get_stream(
+		struct bt_packet *packet)
+{
+	return bt_get(bt_packet_borrow_stream(packet));
+}
 
 /** @} */
 
@@ -140,6 +150,9 @@ extern struct bt_stream *bt_packet_get_stream(
 @name Contained fields functions
 @{
 */
+
+extern
+struct bt_field *bt_packet_borrow_header(struct bt_packet *packet);
 
 /**
 @brief	Returns the trace packet header field of the CTF IR packet
@@ -158,8 +171,11 @@ extern struct bt_stream *bt_packet_get_stream(
 @sa bt_packet_set_header(): Sets the trace packet header
 	field of a given packet.
 */
-extern struct bt_field *bt_packet_get_header(
-		struct bt_packet *packet);
+static inline
+struct bt_field *bt_packet_get_header(struct bt_packet *packet)
+{
+	return bt_get(bt_packet_borrow_header(packet));
+}
 
 /**
 @brief	Sets the trace packet header field of the CTF IR packet \p packet to
@@ -187,8 +203,11 @@ bt_trace_get_packet_header_type() for the parent trace class of
 @sa bt_packet_get_header(): Returns the trace packet header field of a given
 	packet.
 */
-extern int bt_packet_set_header(
-		struct bt_packet *packet, struct bt_field *header);
+extern int bt_packet_set_header(struct bt_packet *packet,
+		struct bt_field *header);
+
+extern struct bt_field *bt_packet_borrow_context(
+		struct bt_packet *packet);
 
 /**
 @brief	Returns the stream packet context field of the CTF IR packet
@@ -207,8 +226,11 @@ extern int bt_packet_set_header(
 @sa bt_packet_set_context(): Sets the stream packet context
 	field of a given packet.
 */
-extern struct bt_field *bt_packet_get_context(
-		struct bt_packet *packet);
+static inline
+struct bt_field *bt_packet_get_context(struct bt_packet *packet)
+{
+	return bt_get(bt_packet_borrow_context(packet));
+}
 
 /**
 @brief	Sets the stream packet context field of the CTF IR packet \p packet to

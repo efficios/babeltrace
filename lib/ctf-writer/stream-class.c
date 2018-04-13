@@ -514,7 +514,7 @@ end:
 struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(bt_stream_class_common_get_trace(
+	return bt_get(bt_stream_class_common_borrow_trace(
 		BT_TO_COMMON(stream_class)));
 }
 
@@ -546,8 +546,8 @@ int bt_ctf_stream_class_set_id(
 struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(
-		bt_stream_class_common_get_packet_context_field_type(
+	return bt_get(
+		bt_stream_class_common_borrow_packet_context_field_type(
 			BT_TO_COMMON(stream_class)));
 }
 
@@ -563,8 +563,8 @@ struct bt_ctf_field_type *
 bt_ctf_stream_class_get_event_header_type(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(
-		bt_stream_class_common_get_event_header_field_type(
+	return bt_get(
+		bt_stream_class_common_borrow_event_header_field_type(
 			BT_TO_COMMON(stream_class)));
 }
 
@@ -580,8 +580,8 @@ struct bt_ctf_field_type *
 bt_ctf_stream_class_get_event_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return BT_FROM_COMMON(
-		bt_stream_class_common_get_event_context_field_type(
+	return bt_get(
+		bt_stream_class_common_borrow_event_context_field_type(
 			BT_TO_COMMON(stream_class)));
 }
 
@@ -603,16 +603,16 @@ int64_t bt_ctf_stream_class_get_event_class_count(
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
 		struct bt_ctf_stream_class *stream_class, uint64_t index)
 {
-	return BT_FROM_COMMON(
-		bt_stream_class_common_get_event_class_by_index(
+	return bt_get(
+		bt_stream_class_common_borrow_event_class_by_index(
 			BT_TO_COMMON(stream_class), index));
 }
 
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
 		struct bt_ctf_stream_class *stream_class, uint64_t id)
 {
-	return BT_FROM_COMMON(
-		bt_stream_class_common_get_event_class_by_id(
+	return bt_get(
+		bt_stream_class_common_borrow_event_class_by_id(
 			BT_TO_COMMON(stream_class), id));
 }
 

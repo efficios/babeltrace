@@ -166,28 +166,27 @@ int64_t bt_trace_common_get_environment_field_count(
 static inline
 const char *
 bt_trace_common_get_environment_field_name_by_index(
-		struct bt_trace_common *trace,
-		uint64_t index)
+		struct bt_trace_common *trace, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	return bt_attributes_get_field_name(trace->environment, index);
 }
 
 static inline
-struct bt_value *bt_trace_common_get_environment_field_value_by_index(
+struct bt_value *bt_trace_common_borrow_environment_field_value_by_index(
 		struct bt_trace_common *trace, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return bt_attributes_get_field_value(trace->environment, index);
+	return bt_attributes_borrow_field_value(trace->environment, index);
 }
 
 static inline
-struct bt_value *bt_trace_common_get_environment_field_value_by_name(
+struct bt_value *bt_trace_common_borrow_environment_field_value_by_name(
 		struct bt_trace_common *trace, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	return bt_attributes_get_field_value_by_name(trace->environment,
+	return bt_attributes_borrow_field_value_by_name(trace->environment,
 		name);
 }
 
@@ -203,7 +202,7 @@ int64_t bt_trace_common_get_clock_class_count(struct bt_trace_common *trace)
 }
 
 static inline
-struct bt_clock_class *bt_trace_common_get_clock_class_by_index(
+struct bt_clock_class *bt_trace_common_borrow_clock_class_by_index(
 		struct bt_trace_common *trace, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
@@ -211,7 +210,7 @@ struct bt_clock_class *bt_trace_common_get_clock_class_by_index(
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, trace->clock_classes->len);
-	return bt_get(g_ptr_array_index(trace->clock_classes, index));
+	return g_ptr_array_index(trace->clock_classes, index);
 }
 
 static inline
@@ -222,7 +221,7 @@ int64_t bt_trace_common_get_stream_count(struct bt_trace_common *trace)
 }
 
 static inline
-struct bt_stream_common *bt_trace_common_get_stream_by_index(
+struct bt_stream_common *bt_trace_common_borrow_stream_by_index(
 		struct bt_trace_common *trace,
 		uint64_t index)
 {
@@ -231,7 +230,7 @@ struct bt_stream_common *bt_trace_common_get_stream_by_index(
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, trace->streams->len);
-	return bt_get(g_ptr_array_index(trace->streams, index));
+	return g_ptr_array_index(trace->streams, index);
 }
 
 static inline
@@ -242,7 +241,7 @@ int64_t bt_trace_common_get_stream_class_count(struct bt_trace_common *trace)
 }
 
 static inline
-struct bt_stream_class_common *bt_trace_common_get_stream_class_by_index(
+struct bt_stream_class_common *bt_trace_common_borrow_stream_class_by_index(
 		struct bt_trace_common *trace, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
@@ -250,11 +249,11 @@ struct bt_stream_class_common *bt_trace_common_get_stream_class_by_index(
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u",
 		index, trace->stream_classes->len);
-	return bt_get(g_ptr_array_index(trace->stream_classes, index));
+	return g_ptr_array_index(trace->stream_classes, index);
 }
 
 static inline
-struct bt_stream_class_common *bt_trace_common_get_stream_class_by_id(
+struct bt_stream_class_common *bt_trace_common_borrow_stream_class_by_id(
 		struct bt_trace_common *trace, uint64_t id_param)
 {
 	int i;
@@ -274,7 +273,6 @@ struct bt_stream_class_common *bt_trace_common_get_stream_class_by_id(
 		if (bt_stream_class_common_get_id(stream_class_candidate) ==
 				(int64_t) id) {
 			stream_class = stream_class_candidate;
-			bt_get(stream_class);
 			goto end;
 		}
 	}
@@ -284,7 +282,7 @@ end:
 }
 
 static inline
-struct bt_clock_class *bt_trace_common_get_clock_class_by_name(
+struct bt_clock_class *bt_trace_common_borrow_clock_class_by_name(
 		struct bt_trace_common *trace, const char *name)
 {
 	size_t i;
@@ -304,7 +302,6 @@ struct bt_clock_class *bt_trace_common_get_clock_class_by_name(
 
 		if (!strcmp(cur_clk_name, name)) {
 			clock_class = cur_clk;
-			bt_get(clock_class);
 			goto end;
 		}
 	}
@@ -326,11 +323,11 @@ int bt_trace_common_set_native_byte_order(struct bt_trace_common *trace,
 		enum bt_byte_order byte_order, bool allow_unspecified);
 
 static inline
-struct bt_field_type_common *bt_trace_common_get_packet_header_field_type(
+struct bt_field_type_common *bt_trace_common_borrow_packet_header_field_type(
 		struct bt_trace_common *trace)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return bt_get(trace->packet_header_field_type);
+	return trace->packet_header_field_type;
 }
 
 BT_HIDDEN

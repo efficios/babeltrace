@@ -42,28 +42,4 @@ struct bt_notification_packet_end {
 	struct bt_packet *packet;
 };
 
-static inline
-struct bt_packet *bt_notification_packet_begin_borrow_packet(
-		struct bt_notification *notif)
-{
-	struct bt_notification_packet_begin *notif_packet_begin =
-		container_of(notif,
-			struct bt_notification_packet_begin, parent);
-
-	BT_ASSERT(notif_packet_begin);
-	return notif_packet_begin->packet;
-}
-
-static inline
-struct bt_packet *bt_notification_packet_end_borrow_packet(
-		struct bt_notification *notif)
-{
-	struct bt_notification_packet_end *notif_packet_end =
-		container_of(notif,
-			struct bt_notification_packet_end, parent);
-
-	BT_ASSERT(notif_packet_end);
-	return notif_packet_end->packet;
-}
-
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_PACKET_INTERNAL_H */

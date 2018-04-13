@@ -83,28 +83,12 @@ void _bt_event_freeze(struct bt_event *event);
 #define BT_ASSERT_PRE_EVENT_COMMON_HOT(_event, _name)			\
 	BT_ASSERT_PRE_HOT((_event), (_name), ": +%!+_e", (_event))
 
-static inline struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
-{
-	BT_ASSERT(event);
-	return event->packet;
-}
-
-BT_HIDDEN
-struct bt_stream *bt_event_borrow_stream(struct bt_event *event);
-
 static inline
 struct bt_event_class_common *bt_event_common_borrow_class(
 		struct bt_event_common *event)
 {
 	BT_ASSERT(event);
 	return event->class;
-}
-
-static inline
-struct bt_event_class *bt_event_borrow_class(struct bt_event *event)
-{
-	return BT_FROM_COMMON(bt_event_common_borrow_class(
-		BT_TO_COMMON(event)));
 }
 
 BT_HIDDEN
@@ -120,7 +104,7 @@ int bt_event_common_initialize(struct bt_event_common *event,
 		void *(*create_field_func)(void *));
 
 static inline
-struct bt_field_common *bt_event_common_get_payload(
+struct bt_field_common *bt_event_common_borrow_payload(
 		struct bt_event_common *event)
 {
 	struct bt_field_common *payload = NULL;
@@ -136,7 +120,6 @@ struct bt_field_common *bt_event_common_get_payload(
 	}
 
 	payload = event->payload_field;
-	bt_get(payload);
 
 end:
 	return payload;
@@ -176,7 +159,7 @@ int bt_event_common_set_payload(struct bt_event_common *event,
 }
 
 static inline
-struct bt_field_common *bt_event_common_get_header(
+struct bt_field_common *bt_event_common_borrow_header(
 		struct bt_event_common *event)
 {
 	struct bt_field_common *header = NULL;
@@ -192,7 +175,6 @@ struct bt_field_common *bt_event_common_get_header(
 	}
 
 	header = event->header_field;
-	bt_get(header);
 
 end:
 	return header;
@@ -237,7 +219,7 @@ int bt_event_common_set_header(struct bt_event_common *event,
 }
 
 static inline
-struct bt_field_common *bt_event_common_get_context(
+struct bt_field_common *bt_event_common_borrow_context(
 		struct bt_event_common *event)
 {
 	struct bt_field_common *context = NULL;
@@ -253,7 +235,6 @@ struct bt_field_common *bt_event_common_get_context(
 	}
 
 	context = event->context_field;
-	bt_get(context);
 
 end:
 	return context;
@@ -292,7 +273,7 @@ int bt_event_common_set_context(struct bt_event_common *event,
 }
 
 static inline
-struct bt_field_common *bt_event_common_get_stream_event_context(
+struct bt_field_common *bt_event_common_borrow_stream_event_context(
 		struct bt_event_common *event)
 {
 	struct bt_field_common *stream_event_context = NULL;
@@ -310,7 +291,7 @@ struct bt_field_common *bt_event_common_get_stream_event_context(
 	stream_event_context = event->stream_event_context_field;
 
 end:
-	return bt_get(stream_event_context);
+	return stream_event_context;
 }
 
 static inline
