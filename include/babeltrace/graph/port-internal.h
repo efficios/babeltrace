@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_PORT_INTERNAL_H
-#define BABELTRACE_COMPONENT_PORT_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_PORT_INTERNAL_H
+#define BABELTRACE_GRAPH_PORT_INTERNAL_H
 
 /*
  * BabelTrace - Babeltrace Component Port
@@ -74,4 +74,4 @@ const char *bt_port_type_string(enum bt_port_type port_type)
 	}
 }
 
-#endif /* BABELTRACE_COMPONENT_PORT_INTERNAL_H */
+#endif /* BABELTRACE_GRAPH_PORT_INTERNAL_H */

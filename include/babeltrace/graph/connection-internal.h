@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H
-#define BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_CONNECTION_INTERNAL_H
+#define BABELTRACE_GRAPH_CONNECTION_INTERNAL_H
 
 /*
  * BabelTrace - Component Connection Internal
@@ -145,4 +145,4 @@ const char *bt_connection_status_string(enum bt_connection_status status)
 	}
 }
 
-#endif /* BABELTRACE_COMPONENT_CONNECTION_INTERNAL_H */
+#endif /* BABELTRACE_GRAPH_CONNECTION_INTERNAL_H */
