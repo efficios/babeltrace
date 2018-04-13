@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_FILTER_INTERNAL_H
-#define BABELTRACE_COMPONENT_FILTER_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_FILTER_INTERNAL_H
+#define BABELTRACE_GRAPH_COMPONENT_FILTER_INTERNAL_H
 
 /*
  * BabelTrace - Filter Component Internal
@@ -51,4 +51,4 @@ struct bt_component *bt_component_filter_create(
 BT_HIDDEN
 void bt_component_filter_destroy(struct bt_component *component);
 
-#endif /* BABELTRACE_COMPONENT_FILTER_INTERNAL_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_FILTER_INTERNAL_H */

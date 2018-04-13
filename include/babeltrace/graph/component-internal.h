@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_COMPONENT_INTERNAL_H
-#define BABELTRACE_COMPONENT_COMPONENT_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_INTERNAL_H
+#define BABELTRACE_GRAPH_COMPONENT_INTERNAL_H
 
 /*
  * BabelTrace - Component internal
@@ -185,4 +185,4 @@ const char *bt_component_status_string(enum bt_component_status status)
 	}
 }
 
-#endif /* BABELTRACE_COMPONENT_COMPONENT_INTERNAL_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_INTERNAL_H */
