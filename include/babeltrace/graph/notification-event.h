@@ -27,6 +27,9 @@
  * SOFTWARE.
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,7 +38,6 @@ struct bt_notification;
 struct bt_event;
 struct bt_clock_class_priority_map;
 
-/***BT_NOTIFICATION_TYPE_EVENT ***/
 /**
  * Create an event notification.
  *
@@ -48,6 +50,9 @@ extern struct bt_notification *bt_notification_event_create(
 		struct bt_event *event,
 		struct bt_clock_class_priority_map *clock_class_priority_map);
 
+extern struct bt_event *bt_notification_event_borrow_event(
+		struct bt_notification *notification);
+
 /**
  * Get an event notification's event.
  *
@@ -56,12 +61,25 @@ extern struct bt_notification *bt_notification_event_create(
  *
  * @see #bt_event
  */
-extern struct bt_event *bt_notification_event_get_event(
-		struct bt_notification *notification);
+static inline
+struct bt_event *bt_notification_event_get_event(
+		struct bt_notification *notification)
+{
+	return bt_get(bt_notification_event_borrow_event(notification));
+}
 
 extern struct bt_clock_class_priority_map *
-bt_notification_event_get_clock_class_priority_map(
+bt_notification_event_borrow_clock_class_priority_map(
 		struct bt_notification *notification);
+
+static inline
+struct bt_clock_class_priority_map *
+bt_notification_event_get_clock_class_priority_map(
+		struct bt_notification *notification)
+{
+	return bt_get(bt_notification_event_borrow_clock_class_priority_map(
+		notification));
+}
 
 #ifdef __cplusplus
 }

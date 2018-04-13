@@ -32,6 +32,9 @@
 
 #include <stdint.h>
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 /* For bt_visitor */
 #include <babeltrace/ctf-ir/visitor.h>
 
@@ -178,6 +181,9 @@ bt_stream_class_set_event_header_field_type().
 */
 extern struct bt_stream_class *bt_stream_class_create(const char *name);
 
+extern struct bt_trace *bt_stream_class_borrow_trace(
+		struct bt_stream_class *stream_class);
+
 /**
 @brief	Returns the parent CTF IR trace class of the CTF IR stream
 	class \p stream_class.
@@ -200,8 +206,12 @@ bt_trace_add_stream_class().
 @sa bt_trace_add_stream_class(): Add a stream class to
 	a trace class.
 */
-extern struct bt_trace *bt_stream_class_get_trace(
-		struct bt_stream_class *stream_class);
+static inline
+struct bt_trace *bt_stream_class_get_trace(
+		struct bt_stream_class *stream_class)
+{
+	return bt_get(bt_stream_class_borrow_trace(stream_class));
+}
 
 /** @} */
 
@@ -300,6 +310,9 @@ extern int bt_stream_class_set_id(
 @{
 */
 
+extern struct bt_field_type *bt_stream_class_borrow_packet_context_field_type(
+		struct bt_stream_class *stream_class);
+
 /**
 @brief	Returns the packet context field type of the CTF IR stream class
 	\p stream_class.
@@ -318,8 +331,13 @@ extern int bt_stream_class_set_id(
 @sa bt_stream_class_set_packet_context_field_type(): Sets the packet
 	context field type of a given stream class.
 */
-extern struct bt_field_type *bt_stream_class_get_packet_context_field_type(
-		struct bt_stream_class *stream_class);
+static inline
+struct bt_field_type *bt_stream_class_get_packet_context_field_type(
+		struct bt_stream_class *stream_class)
+{
+	return bt_get(bt_stream_class_borrow_packet_context_field_type(
+		stream_class));
+}
 
 /**
 @brief	Sets the packet context field type of the CTF IR stream class
@@ -354,6 +372,10 @@ extern int bt_stream_class_set_packet_context_field_type(
 		struct bt_stream_class *stream_class,
 		struct bt_field_type *packet_context_type);
 
+extern struct bt_field_type *
+bt_stream_class_borrow_event_header_field_type(
+		struct bt_stream_class *stream_class);
+
 /**
 @brief	Returns the event header field type of the CTF IR stream class
 	\p stream_class.
@@ -372,9 +394,13 @@ extern int bt_stream_class_set_packet_context_field_type(
 @sa bt_stream_class_set_event_header_field_type(): Sets the event
 	header field type of a given stream class.
 */
-extern struct bt_field_type *
-bt_stream_class_get_event_header_field_type(
-		struct bt_stream_class *stream_class);
+static inline
+struct bt_field_type *bt_stream_class_get_event_header_field_type(
+		struct bt_stream_class *stream_class)
+{
+	return bt_get(bt_stream_class_borrow_event_header_field_type(
+		stream_class));
+}
 
 /**
 @brief	Sets the event header field type of the CTF IR stream class
@@ -409,6 +435,10 @@ extern int bt_stream_class_set_event_header_field_type(
 		struct bt_stream_class *stream_class,
 		struct bt_field_type *event_header_type);
 
+extern struct bt_field_type *
+bt_stream_class_borrow_event_context_field_type(
+		struct bt_stream_class *stream_class);
+
 /**
 @brief	Returns the event context field type of the CTF IR stream class
 	\p stream_class.
@@ -428,9 +458,14 @@ extern int bt_stream_class_set_event_header_field_type(
 @sa bt_stream_class_set_event_context_field_type(): Sets the event
 	context field type of a given stream class.
 */
-extern struct bt_field_type *
+static inline
+struct bt_field_type *
 bt_stream_class_get_event_context_field_type(
-		struct bt_stream_class *stream_class);
+		struct bt_stream_class *stream_class)
+{
+	return bt_get(bt_stream_class_borrow_event_context_field_type(
+		stream_class));
+}
 
 /**
 @brief	Sets the event context field type of the CTF IR stream class
@@ -488,6 +523,9 @@ extern int bt_stream_class_set_event_context_field_type(
 extern int64_t bt_stream_class_get_event_class_count(
 		struct bt_stream_class *stream_class);
 
+extern struct bt_event_class *bt_stream_class_borrow_event_class_by_index(
+		struct bt_stream_class *stream_class, uint64_t index);
+
 /**
 @brief  Returns the event class at index \p index in the CTF IR stream
 	class \p stream_class.
@@ -507,8 +545,16 @@ extern int64_t bt_stream_class_get_event_class_count(
 @sa bt_stream_class_get_event_class_by_id(): Finds an event class
 	by ID.
 */
-extern struct bt_event_class *bt_stream_class_get_event_class_by_index(
-		struct bt_stream_class *stream_class, uint64_t index);
+static inline
+struct bt_event_class *bt_stream_class_get_event_class_by_index(
+		struct bt_stream_class *stream_class, uint64_t index)
+{
+	return bt_get(bt_stream_class_borrow_event_class_by_index(stream_class,
+		index));
+}
+
+extern struct bt_event_class *bt_stream_class_borrow_event_class_by_id(
+		struct bt_stream_class *stream_class, uint64_t id);
 
 /**
 @brief  Returns the event class with ID \c id found in the CTF IR stream
@@ -523,8 +569,13 @@ extern struct bt_event_class *bt_stream_class_get_event_class_by_index(
 @postrefcountsame{stream_class}
 @postsuccessrefcountretinc
 */
-extern struct bt_event_class *bt_stream_class_get_event_class_by_id(
-		struct bt_stream_class *stream_class, uint64_t id);
+static inline
+struct bt_event_class *bt_stream_class_get_event_class_by_id(
+		struct bt_stream_class *stream_class, uint64_t id)
+{
+	return bt_get(bt_stream_class_borrow_event_class_by_id(stream_class,
+		id));
+}
 
 /**
 @brief	Adds the CTF IR event class \p event_class to the

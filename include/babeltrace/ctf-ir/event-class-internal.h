@@ -83,14 +83,6 @@ struct bt_stream_class_common *bt_event_class_common_borrow_stream_class(
 	return (void *) bt_object_borrow_parent(event_class);
 }
 
-static inline
-struct bt_stream_class *bt_event_class_borrow_stream_class(
-		struct bt_event_class *event_class)
-{
-	return BT_FROM_COMMON(bt_event_class_common_borrow_stream_class(
-		BT_TO_COMMON(event_class)));
-}
-
 typedef struct bt_field_type_common *(*bt_field_type_structure_create_func)();
 
 BT_HIDDEN
@@ -295,7 +287,7 @@ end:
 }
 
 static inline
-struct bt_field_type_common *bt_event_class_common_get_context_field_type(
+struct bt_field_type_common *bt_event_class_common_borrow_context_field_type(
 		struct bt_event_class_common *event_class)
 {
 	struct bt_field_type_common *context_ft = NULL;
@@ -310,7 +302,7 @@ struct bt_field_type_common *bt_event_class_common_get_context_field_type(
 		goto end;
 	}
 
-	context_ft = bt_get(event_class->context_field_type);
+	context_ft = event_class->context_field_type;
 
 end:
 	return context_ft;
@@ -364,11 +356,11 @@ end:
 }
 
 static inline
-struct bt_field_type_common *bt_event_class_common_get_payload_field_type(
+struct bt_field_type_common *bt_event_class_common_borrow_payload_field_type(
 		struct bt_event_class_common *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return bt_get(event_class->payload_field_type);
+	return event_class->payload_field_type;
 }
 
 static inline

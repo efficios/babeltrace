@@ -84,31 +84,31 @@ int bt_event_common_validate_types_for_create(
 	trace = bt_stream_class_common_borrow_trace(stream_class);
 	if (trace) {
 		BT_LOGD_STR("Event class is part of a trace.");
-		packet_header_type = bt_trace_common_get_packet_header_field_type(trace);
+		packet_header_type =
+			bt_trace_common_borrow_packet_header_field_type(trace);
 		trace_valid = trace->valid;
 		BT_ASSERT(trace_valid);
 		environment = trace->environment;
 	}
 
-	packet_context_type = bt_stream_class_common_get_packet_context_field_type(
-		stream_class);
-	event_header_type = bt_stream_class_common_get_event_header_field_type(
-		stream_class);
-	stream_event_ctx_type = bt_stream_class_common_get_event_context_field_type(
-		stream_class);
-	event_context_type = bt_event_class_common_get_context_field_type(event_class);
-	event_payload_type = bt_event_class_common_get_payload_field_type(event_class);
+	packet_context_type =
+		bt_stream_class_common_borrow_packet_context_field_type(
+			stream_class);
+	event_header_type =
+		bt_stream_class_common_borrow_event_header_field_type(
+			stream_class);
+	stream_event_ctx_type =
+		bt_stream_class_common_borrow_event_context_field_type(
+			stream_class);
+	event_context_type =
+		bt_event_class_common_borrow_context_field_type(event_class);
+	event_payload_type =
+		bt_event_class_common_borrow_payload_field_type(event_class);
 	ret = bt_validate_class_types(environment, packet_header_type,
 		packet_context_type, event_header_type, stream_event_ctx_type,
 		event_context_type, event_payload_type, trace_valid,
 		stream_class->valid, event_class->valid,
 		validation_output, validation_flags, copy_field_type_func);
-	BT_PUT(packet_header_type);
-	BT_PUT(packet_context_type);
-	BT_PUT(event_header_type);
-	BT_PUT(stream_event_ctx_type);
-	BT_PUT(event_context_type);
-	BT_PUT(event_payload_type);
 	if (ret) {
 		/*
 		 * This means something went wrong during the validation
@@ -133,12 +133,6 @@ error:
 	ret = -1;
 
 end:
-	BT_ASSERT(!packet_header_type);
-	BT_ASSERT(!packet_context_type);
-	BT_ASSERT(!event_header_type);
-	BT_ASSERT(!stream_event_ctx_type);
-	BT_ASSERT(!event_context_type);
-	BT_ASSERT(!event_payload_type);
 	return ret;
 }
 
@@ -494,7 +488,7 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 	}
 
 	event->clock_values = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, bt_put, bt_put);
+			g_direct_equal, NULL, bt_put);
 	assert(event->clock_values);
 	goto end;
 
@@ -505,35 +499,23 @@ end:
 	return event;
 }
 
-struct bt_event_class *bt_event_get_class(struct bt_event *event)
+struct bt_event_class *bt_event_borrow_class(struct bt_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	return bt_get(bt_event_common_borrow_class(BT_TO_COMMON(event)));
+	return BT_FROM_COMMON(
+		bt_event_common_borrow_class(BT_TO_COMMON(event)));
 }
 
-BT_HIDDEN
 struct bt_stream *bt_event_borrow_stream(struct bt_event *event)
 {
-	struct bt_stream *stream = NULL;
-
-	BT_ASSERT(event);
-
-	if (event->packet) {
-		stream = event->packet->stream;
-	}
-
-	return stream;
-}
-
-struct bt_stream *bt_event_get_stream(struct bt_event *event)
-{
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	return bt_get(bt_event_borrow_stream(event));
+	return event->packet ? event->packet->stream : NULL;
 }
 
-struct bt_field *bt_event_get_payload(struct bt_event *event)
+struct bt_field *bt_event_borrow_payload(struct bt_event *event)
 {
-	return BT_FROM_COMMON(bt_event_common_get_payload(BT_TO_COMMON(event)));
+	return BT_FROM_COMMON(
+		bt_event_common_borrow_payload(BT_TO_COMMON(event)));
 }
 
 int bt_event_set_payload(struct bt_event *event, struct bt_field *field)
@@ -542,9 +524,10 @@ int bt_event_set_payload(struct bt_event *event, struct bt_field *field)
 		(void *) field);
 }
 
-struct bt_field *bt_event_get_header(struct bt_event *event)
+struct bt_field *bt_event_borrow_header(struct bt_event *event)
 {
-	return BT_FROM_COMMON(bt_event_common_get_header(BT_TO_COMMON(event)));
+	return BT_FROM_COMMON(
+		bt_event_common_borrow_header(BT_TO_COMMON(event)));
 }
 
 int bt_event_set_header(struct bt_event *event, struct bt_field *field)
@@ -552,9 +535,10 @@ int bt_event_set_header(struct bt_event *event, struct bt_field *field)
 	return bt_event_common_set_header(BT_TO_COMMON(event), (void *) field);
 }
 
-struct bt_field *bt_event_get_context(struct bt_event *event)
+struct bt_field *bt_event_borrow_context(struct bt_event *event)
 {
-	return BT_FROM_COMMON(bt_event_common_get_context(BT_TO_COMMON(event)));
+	return BT_FROM_COMMON(
+		bt_event_common_borrow_context(BT_TO_COMMON(event)));
 }
 
 int bt_event_set_context(struct bt_event *event, struct bt_field *field)
@@ -562,10 +546,10 @@ int bt_event_set_context(struct bt_event *event, struct bt_field *field)
 	return bt_event_common_set_context(BT_TO_COMMON(event), (void *) field);
 }
 
-struct bt_field *bt_event_get_stream_event_context(
+struct bt_field *bt_event_borrow_stream_event_context(
 		struct bt_event *event)
 {
-	return BT_FROM_COMMON(bt_event_common_get_stream_event_context(
+	return BT_FROM_COMMON(bt_event_common_borrow_stream_event_context(
 		BT_TO_COMMON(event)));
 }
 
@@ -587,7 +571,7 @@ void bt_event_destroy(struct bt_object *obj)
 	g_free(event);
 }
 
-struct bt_clock_value *bt_event_get_clock_value(
+struct bt_clock_value *bt_event_borrow_clock_value(
 		struct bt_event *event, struct bt_clock_class *clock_class)
 {
 	struct bt_clock_value *clock_value = NULL;
@@ -606,8 +590,6 @@ struct bt_clock_value *bt_event_get_clock_value(
 		goto end;
 	}
 
-	bt_get(clock_value);
-
 end:
 	return clock_value;
 }
@@ -623,7 +605,7 @@ int bt_event_set_clock_value(struct bt_event *event,
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(value, "Clock value");
 	BT_ASSERT_PRE_EVENT_COMMON_HOT(BT_TO_COMMON(event), "Event");
-	clock_class = bt_clock_value_get_class(value);
+	clock_class = bt_clock_value_borrow_class(value);
 	event_class = BT_FROM_COMMON(event->common.class);
 	BT_ASSERT(event_class);
 	stream_class = bt_event_class_borrow_stream_class(event_class);
@@ -645,12 +627,10 @@ int bt_event_set_clock_value(struct bt_event *event,
 		bt_event_class_common_get_id(event->common.class),
 		clock_class, bt_clock_class_get_name(clock_class),
 		value, value->value);
-	clock_class = NULL;
-	bt_put(clock_class);
 	return 0;
 }
 
-struct bt_packet *bt_event_get_packet(struct bt_event *event)
+struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
 {
 	struct bt_packet *packet = NULL;
 
@@ -663,7 +643,7 @@ struct bt_packet *bt_event_get_packet(struct bt_event *event)
 		goto end;
 	}
 
-	packet = bt_get(event->packet);
+	packet = event->packet;
 
 end:
 	return packet;

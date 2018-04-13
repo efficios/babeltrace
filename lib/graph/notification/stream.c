@@ -88,7 +88,7 @@ error:
 	return NULL;
 }
 
-struct bt_stream *bt_notification_stream_end_get_stream(
+struct bt_stream *bt_notification_stream_end_borrow_stream(
 		struct bt_notification *notification)
 {
 	struct bt_notification_stream_end *stream_end;
@@ -98,7 +98,7 @@ struct bt_stream *bt_notification_stream_end_get_stream(
 		BT_NOTIFICATION_TYPE_STREAM_END);
 	stream_end = container_of(notification,
 			struct bt_notification_stream_end, parent);
-	return bt_get(stream_end->stream);
+	return stream_end->stream;
 }
 
 static
@@ -154,7 +154,7 @@ error:
 	return NULL;
 }
 
-struct bt_stream *bt_notification_stream_begin_get_stream(
+struct bt_stream *bt_notification_stream_begin_borrow_stream(
 		struct bt_notification *notification)
 {
 	struct bt_notification_stream_begin *stream_begin;
@@ -164,5 +164,5 @@ struct bt_stream *bt_notification_stream_begin_get_stream(
 		BT_NOTIFICATION_TYPE_STREAM_BEGIN);
 	stream_begin = container_of(notification,
 			struct bt_notification_stream_begin, parent);
-	return bt_get(stream_begin->stream);
+	return stream_begin->stream;
 }

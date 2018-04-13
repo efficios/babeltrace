@@ -33,6 +33,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 /* For bt_bool */
 #include <babeltrace/types.h>
 
@@ -162,6 +165,8 @@ its specific setters.
 */
 extern struct bt_field *bt_field_create(struct bt_field_type *field_type);
 
+extern struct bt_field_type *bt_field_borrow_type(struct bt_field *field);
+
 /**
 @brief	Returns the parent @ft of the @field \p field.
 
@@ -176,7 +181,11 @@ create the field object in the first place with bt_field_create().
 @postrefcountsame{field}
 @postsuccessrefcountretinc
 */
-extern struct bt_field_type *bt_field_get_type(struct bt_field *field);
+static inline
+struct bt_field_type *bt_field_get_type(struct bt_field *field)
+{
+	return bt_get(bt_field_borrow_type(field));
+}
 
 /** @} */
 
@@ -611,6 +620,9 @@ returns a @enumftiter.
 @{
 */
 
+extern struct bt_field *bt_field_enumeration_borrow_container(
+		struct bt_field *enum_field);
+
 /**
 @brief  Returns the @intfield, potentially creating it, wrapped by the
 	@enumfield \p enum_field.
@@ -628,8 +640,12 @@ exist.
 @postrefcountsame{enum_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_field *bt_field_enumeration_get_container(
-		struct bt_field *enum_field);
+static inline
+struct bt_field *bt_field_enumeration_get_container(
+		struct bt_field *enum_field)
+{
+	return bt_get(bt_field_enumeration_borrow_container(enum_field));
+}
 
 /**
 @brief	Returns a @enumftiter on all the mappings of the field type of
@@ -827,6 +843,9 @@ field with bt_field_structure_set_field_by_name().
 @{
 */
 
+extern struct bt_field *bt_field_structure_borrow_field_by_name(
+		struct bt_field *struct_field, const char *name);
+
 /**
 @brief  Returns the @field named \p name, potentially creating it,
 	in the @structfield \p struct_field.
@@ -851,8 +870,16 @@ exist.
 @sa bt_field_structure_set_field_by_name(): Sets the field of a
 	given structure field by name.
 */
-extern struct bt_field *bt_field_structure_get_field_by_name(
-		struct bt_field *struct_field, const char *name);
+static inline
+struct bt_field *bt_field_structure_get_field_by_name(
+		struct bt_field *struct_field, const char *name)
+{
+	return bt_get(bt_field_structure_borrow_field_by_name(struct_field,
+		name));
+}
+
+extern struct bt_field *bt_field_structure_borrow_field_by_index(
+		struct bt_field *struct_field, uint64_t index);
 
 /**
 @brief  Returns the @field at index \p index in the @structfield
@@ -877,8 +904,13 @@ extern struct bt_field *bt_field_structure_get_field_by_name(
 @sa bt_field_structure_set_field_by_name(): Sets the field of a
 	given structure field by name.
 */
-extern struct bt_field *bt_field_structure_get_field_by_index(
-		struct bt_field *struct_field, uint64_t index);
+static inline
+struct bt_field *bt_field_structure_get_field_by_index(
+		struct bt_field *struct_field, uint64_t index)
+{
+	return bt_get(bt_field_structure_borrow_field_by_index(struct_field,
+		index));
+}
 
 /**
 @brief	Sets the field of the @structfield \p struct_field named \p name
@@ -949,6 +981,9 @@ first get the field with bt_field_array_get_field().
 @{
 */
 
+extern struct bt_field *bt_field_array_borrow_field(
+		struct bt_field *array_field, uint64_t index);
+
 /**
 @brief  Returns the @field at index \p index, potentially creating it,
 	in the @arrayfield \p array_field.
@@ -969,8 +1004,12 @@ exist.
 @postrefcountsame{array_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_field *bt_field_array_get_field(
-		struct bt_field *array_field, uint64_t index);
+static inline
+struct bt_field *bt_field_array_get_field(
+		struct bt_field *array_field, uint64_t index)
+{
+	return bt_get(bt_field_array_borrow_field(array_field, index));
+}
 
 /** @} */
 
@@ -1000,6 +1039,9 @@ it contains.
 @{
 */
 
+extern struct bt_field *bt_field_sequence_borrow_field(
+		struct bt_field *sequence_field, uint64_t index);
+
 /**
 @brief  Returns the @field at index \p index, potentially creating it,
 	in the @seqfield \p sequence_field.
@@ -1024,8 +1066,15 @@ exist.
 @postrefcountsame{sequence_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_field *bt_field_sequence_get_field(
-		struct bt_field *sequence_field, uint64_t index);
+static inline
+struct bt_field *bt_field_sequence_get_field(
+		struct bt_field *sequence_field, uint64_t index)
+{
+	return bt_get(bt_field_sequence_borrow_field(sequence_field, index));
+}
+
+extern struct bt_field *bt_field_sequence_borrow_length(
+		struct bt_field *sequence_field);
 
 /**
 @brief  Returns the length @intfield of the @seqfield \p sequence_field.
@@ -1049,8 +1098,12 @@ number of fields contained in \p sequence_field.
 @sa bt_field_sequence_set_length(): Sets the length field of a given
 	sequence field.
 */
-extern struct bt_field *bt_field_sequence_get_length(
-		struct bt_field *sequence_field);
+static inline
+struct bt_field *bt_field_sequence_get_length(
+		struct bt_field *sequence_field)
+{
+	return bt_get(bt_field_sequence_borrow_length(sequence_field));
+}
 
 /**
 @brief	Sets the length @intfield of the @seqfield \p sequence_field
@@ -1105,6 +1158,10 @@ field again.
 @{
 */
 
+extern struct bt_field *bt_field_variant_borrow_field(
+		struct bt_field *variant_field,
+		struct bt_field *tag_field);
+
 /**
 @brief  Returns the @field, potentially creating it, selected by the
 	tag @intfield \p tag_field in the @varfield \p variant_field.
@@ -1130,9 +1187,16 @@ and you can call bt_field_variant_get_tag() to get \p tag_field.
 @postsuccessrefcountinc{tag_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_field *bt_field_variant_get_field(
+static inline
+struct bt_field *bt_field_variant_get_field(
 		struct bt_field *variant_field,
-		struct bt_field *tag_field);
+		struct bt_field *tag_field)
+{
+	return bt_get(bt_field_variant_borrow_field(variant_field, tag_field));
+}
+
+extern struct bt_field *bt_field_variant_borrow_current_field(
+		struct bt_field *variant_field);
 
 /**
 @brief  Returns the currently selected @field of the @varfield
@@ -1151,7 +1215,14 @@ extern struct bt_field *bt_field_variant_get_field(
 @postrefcountsame{variant_field}
 @postsuccessrefcountretinc
 */
-extern struct bt_field *bt_field_variant_get_current_field(
+static inline
+struct bt_field *bt_field_variant_get_current_field(
+		struct bt_field *variant_field)
+{
+	return bt_get(bt_field_variant_borrow_current_field(variant_field));
+}
+
+extern struct bt_field *bt_field_variant_borrow_tag(
 		struct bt_field *variant_field);
 
 /**
@@ -1170,8 +1241,12 @@ extern struct bt_field *bt_field_variant_get_current_field(
 @postsuccessrefcountretinc
 @post <strong>On success</strong>, the returned field is a @enumfield.
 */
-extern struct bt_field *bt_field_variant_get_tag(
-		struct bt_field *variant_field);
+static inline
+struct bt_field *bt_field_variant_get_tag(
+		struct bt_field *variant_field)
+{
+	return bt_get(bt_field_variant_borrow_tag(variant_field));
+}
 
 /** @} */
 

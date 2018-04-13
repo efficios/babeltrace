@@ -30,6 +30,9 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_get() */
+#include <babeltrace/ref.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -164,6 +167,8 @@ with bt_trace_add_stream_class(), then this function fails.
 */
 extern struct bt_event *bt_event_create(struct bt_event_class *event_class);
 
+extern struct bt_event_class *bt_event_borrow_class(struct bt_event *event);
+
 /**
 @brief	Returns the parent CTF IR event class of the CTF IR event
 	\p event.
@@ -179,7 +184,13 @@ create the event object in the first place with bt_event_create().
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 */
-extern struct bt_event_class *bt_event_get_class(struct bt_event *event);
+static inline
+struct bt_event_class *bt_event_get_class(struct bt_event *event)
+{
+	return bt_get(bt_event_borrow_class(event));
+}
+
+extern struct bt_packet *bt_event_borrow_packet(struct bt_event *event);
 
 /**
 @brief	Returns the CTF IR packet associated to the CTF IR event
@@ -200,7 +211,11 @@ This function returns a reference to the event class which was set to
 @sa bt_event_set_packet(): Associates a given event to a given
 	packet.
 */
-extern struct bt_packet *bt_event_get_packet(struct bt_event *event);
+static inline
+struct bt_packet *bt_event_get_packet(struct bt_event *event)
+{
+	return bt_get(bt_event_borrow_packet(event));
+}
 
 /**
 @brief	Associates the CTF IR event \p event to the CTF IR packet
@@ -235,6 +250,8 @@ On success, this function also sets the parent stream object of
 extern int bt_event_set_packet(struct bt_event *event,
 		struct bt_packet *packet);
 
+extern struct bt_stream *bt_event_borrow_stream(struct bt_event *event);
+
 /**
 @brief	Returns the parent CTF IR stream associated to the CTF IR event
 	\p event.
@@ -246,7 +263,11 @@ extern int bt_event_set_packet(struct bt_event *event,
 @postrefcountsame{event}
 @postsuccessrefcountretinc
 */
-extern struct bt_stream *bt_event_get_stream(struct bt_event *event);
+static inline
+struct bt_stream *bt_event_get_stream(struct bt_event *event)
+{
+	return bt_get(bt_event_borrow_stream(event));
+}
 
 /** @} */
 
@@ -254,6 +275,8 @@ extern struct bt_stream *bt_event_get_stream(struct bt_event *event);
 @name Contained fields functions
 @{
 */
+
+extern struct bt_field *bt_event_borrow_header(struct bt_event *event);
 
 /**
 @brief	Returns the stream event header field of the CTF IR event
@@ -272,7 +295,11 @@ extern struct bt_stream *bt_event_get_stream(struct bt_event *event);
 @sa bt_event_get_header(): Sets the stream event header
 	field of a given event.
 */
-extern struct bt_field *bt_event_get_header(struct bt_event *event);
+static inline
+struct bt_field *bt_event_get_header(struct bt_event *event)
+{
+	return bt_get(bt_event_borrow_header(event));
+}
 
 /**
 @brief	Sets the stream event header field of the CTF IR event
@@ -304,6 +331,9 @@ of \p event.
 extern int bt_event_set_header(struct bt_event *event,
 		struct bt_field *header);
 
+extern struct bt_field *bt_event_borrow_stream_event_context(
+		struct bt_event *event);
+
 /**
 @brief	Returns the stream event context field of the CTF IR event
 	\p event.
@@ -321,8 +351,11 @@ extern int bt_event_set_header(struct bt_event *event,
 @sa bt_event_set_stream_event_context(): Sets the stream event context
 	field of a given event.
 */
-extern struct bt_field *bt_event_get_stream_event_context(
-		struct bt_event *event);
+static inline
+struct bt_field *bt_event_get_stream_event_context(struct bt_event *event)
+{
+	return bt_get(bt_event_borrow_stream_event_context(event));
+}
 
 /**
 @brief	Sets the stream event context field of the CTF IR event
@@ -353,6 +386,8 @@ of \p event.
 extern int bt_event_set_stream_event_context(struct bt_event *event,
 		struct bt_field *context);
 
+extern struct bt_field *bt_event_borrow_context(struct bt_event *event);
+
 /**
 @brief	Returns the event context field of the CTF IR event \p event.
 
@@ -367,7 +402,11 @@ extern int bt_event_set_stream_event_context(struct bt_event *event,
 @sa bt_event_set_context(): Sets the event context field of a given
 	event.
 */
-extern struct bt_field *bt_event_get_context(struct bt_event *event);
+static inline
+struct bt_field *bt_event_get_context(struct bt_event *event)
+{
+	return bt_get(bt_event_borrow_context(event));
+}
 
 /**
 @brief	Sets the event context field of the CTF IR event \p event to \p context,
@@ -395,6 +434,8 @@ bt_event_class_get_context_type() for the parent class of \p event.
 extern int bt_event_set_context(struct bt_event *event,
 		struct bt_field *context);
 
+extern struct bt_field *bt_event_borrow_payload(struct bt_event *event);
+
 /**
 @brief	Returns the payload field of the CTF IR event \p event.
 
@@ -409,7 +450,11 @@ extern int bt_event_set_context(struct bt_event *event,
 @sa bt_event_set_payload(): Sets the payload field of a given
 	event.
 */
-extern struct bt_field *bt_event_get_payload(struct bt_event *event);
+static inline
+struct bt_field *bt_event_get_payload(struct bt_event *event)
+{
+	return bt_get(bt_event_borrow_payload(event));
+}
 
 /**
 @brief	Sets the payload field of the CTF IR event \p event to \p payload,
@@ -444,6 +489,10 @@ extern int bt_event_set_payload(struct bt_event *event,
 @{
 */
 
+extern struct bt_clock_value *bt_event_borrow_clock_value(
+		struct bt_event *event,
+		struct bt_clock_class *clock_class);
+
 /**
 @brief	Returns the value, as of the CTF IR event \p event, of the
 	clock described by the
@@ -463,9 +512,13 @@ extern int bt_event_set_payload(struct bt_event *event,
 
 @sa bt_event_set_clock_value(): Sets the clock value of a given event.
 */
-extern struct bt_clock_value *bt_event_get_clock_value(
+static inline
+struct bt_clock_value *bt_event_get_clock_value(
 		struct bt_event *event,
-		struct bt_clock_class *clock_class);
+		struct bt_clock_class *clock_class)
+{
+	return bt_get(bt_event_borrow_clock_value(event, clock_class));
+}
 
 /**
 @brief	Sets the value, as of the CTF IR event \p event, of the

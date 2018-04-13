@@ -242,11 +242,11 @@ int field_type_contains_sequence_or_variant_ft(struct bt_field_type_common *type
 
 		for (i = 0; i < field_count; ++i) {
 			struct bt_field_type_common *child_type =
-				bt_field_type_common_get_field_at_index(type, i);
+				bt_field_type_common_borrow_field_at_index(
+					type, i);
 
 			ret = field_type_contains_sequence_or_variant_ft(
 				child_type);
-			BT_PUT(child_type);
 			if (ret != 0) {
 				goto end;
 			}

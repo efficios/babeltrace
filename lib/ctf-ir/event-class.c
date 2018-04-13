@@ -198,17 +198,19 @@ int bt_event_class_set_emf_uri(struct bt_event_class *event_class,
 		emf_uri);
 }
 
-struct bt_stream_class *bt_event_class_get_stream_class(
+struct bt_stream_class *bt_event_class_borrow_stream_class(
 		struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return bt_get(bt_event_class_borrow_stream_class(event_class));
+	return BT_FROM_COMMON(
+		bt_event_class_common_borrow_stream_class(BT_TO_COMMON(
+			event_class)));
 }
 
-struct bt_field_type *bt_event_class_get_payload_field_type(
+struct bt_field_type *bt_event_class_borrow_payload_field_type(
 		struct bt_event_class *event_class)
 {
-	return BT_FROM_COMMON(bt_event_class_common_get_payload_field_type(
+	return BT_FROM_COMMON(bt_event_class_common_borrow_payload_field_type(
 		BT_TO_COMMON(event_class)));
 }
 
@@ -219,10 +221,10 @@ int bt_event_class_set_payload_field_type(struct bt_event_class *event_class,
 		BT_TO_COMMON(event_class), (void *) field_type);
 }
 
-struct bt_field_type *bt_event_class_get_context_field_type(
+struct bt_field_type *bt_event_class_borrow_context_field_type(
 		struct bt_event_class *event_class)
 {
-	return BT_FROM_COMMON(bt_event_class_common_get_context_field_type(
+	return BT_FROM_COMMON(bt_event_class_common_borrow_context_field_type(
 		BT_TO_COMMON(event_class)));
 }
 

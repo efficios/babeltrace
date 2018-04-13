@@ -104,7 +104,7 @@ end:
 }
 
 extern struct bt_clock_class_priority_map *
-bt_notification_inactivity_get_clock_class_priority_map(
+bt_notification_inactivity_borrow_clock_class_priority_map(
 		struct bt_notification *notification)
 {
 	struct bt_notification_inactivity *inactivity_notification;
@@ -114,10 +114,10 @@ bt_notification_inactivity_get_clock_class_priority_map(
 		BT_NOTIFICATION_TYPE_INACTIVITY);
 	inactivity_notification = container_of(notification,
 			struct bt_notification_inactivity, parent);
-	return bt_get(inactivity_notification->cc_prio_map);
+	return inactivity_notification->cc_prio_map;
 }
 
-struct bt_clock_value *bt_notification_inactivity_get_clock_value(
+struct bt_clock_value *bt_notification_inactivity_borrow_clock_value(
 		struct bt_notification *notification,
 		struct bt_clock_class *clock_class)
 {
@@ -129,8 +129,8 @@ struct bt_clock_value *bt_notification_inactivity_get_clock_value(
 		BT_NOTIFICATION_TYPE_INACTIVITY);
 	inactivity_notification = container_of(notification,
 		struct bt_notification_inactivity, parent);
-	return bt_get(g_hash_table_lookup(
-		inactivity_notification->clock_values, clock_class));
+	return g_hash_table_lookup(
+		inactivity_notification->clock_values, clock_class);
 }
 
 BT_ASSERT_PRE_FUNC
