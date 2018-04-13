@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_COMPONENT_SINK_INTERNAL_H
-#define BABELTRACE_COMPONENT_SINK_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_SINK_INTERNAL_H
+#define BABELTRACE_GRAPH_COMPONENT_SINK_INTERNAL_H
 
 /*
  * BabelTrace - Sink Component internal
@@ -64,4 +64,4 @@ BT_HIDDEN
 enum bt_component_status bt_component_sink_consume(
 		struct bt_component *component);
 
-#endif /* BABELTRACE_COMPONENT_SINK_INTERNAL_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_SINK_INTERNAL_H */
