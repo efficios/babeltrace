@@ -149,7 +149,7 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 
 	counter->last_printed_total = -1ULL;
 	counter->step = 1000;
-	step = bt_value_map_get(params, "step");
+	step = bt_value_map_borrow(params, "step");
 	if (step && bt_value_is_integer(step)) {
 		int64_t val;
 
@@ -160,7 +160,7 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 		}
 	}
 
-	hide_zero = bt_value_map_get(params, "hide-zero");
+	hide_zero = bt_value_map_borrow(params, "hide-zero");
 	if (hide_zero && bt_value_is_bool(hide_zero)) {
 		bt_bool val;
 
@@ -179,8 +179,6 @@ error:
 	destroy_private_counter_data(counter);
 
 end:
-	bt_put(step);
-	bt_put(hide_zero);
 	return ret;
 }
 
@@ -214,7 +212,6 @@ end:
 enum bt_component_status counter_consume(struct bt_private_component *component)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_notification *notif = NULL;
 	struct counter *counter;
 	enum bt_notification_iterator_status it_ret;
 	int64_t count;
@@ -251,7 +248,8 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
 	{
 		struct bt_notification *notif =
-			bt_notification_iterator_get_notification(counter->notif_iter);
+			bt_notification_iterator_borrow_notification(
+				counter->notif_iter);
 
 		BT_ASSERT(notif);
 		switch (bt_notification_get_type(notif)) {
@@ -292,8 +290,6 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 		default:
 			counter->count.other++;
 		}
-
-		bt_put(notif);
 	}
 	default:
 		break;
@@ -302,6 +298,5 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	try_print_count(counter);
 
 end:
-	bt_put(notif);
 	return ret;
 }
