@@ -4769,7 +4769,7 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "\n");
 	fprintf(fp, "  -d, --debug          Enable debug mode (same as --log-level=V)\n");
 	fprintf(fp, "  -h, --help           Show this help and quit\n");
-	fprintf(fp, "      --log-level=LVL  Set all log levels to LVL (`N`, `V`, `D`,\n");
+	fprintf(fp, "  -l, --log-level=LVL  Set all log levels to LVL (`N`, `V`, `D`,\n");
 	fprintf(fp, "                       `I`, `W` (default), `E`, or `F`)\n");
 	fprintf(fp, "  -v, --verbose        Enable verbose mode (same as --log-level=I)\n");
 	fprintf(fp, "  -V, --version        Show version and quit\n");
@@ -4876,7 +4876,8 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 				 */
 				log_level = 'I';
 			}
-		} else if (strcmp(cur_arg, "--log-level") == 0) {
+		} else if (strcmp(cur_arg, "--log-level") == 0 ||
+				strcmp(cur_arg, "-l") == 0) {
 			if (!next_arg) {
 				printf_err("Missing log level value for --log-level option\n");
 				*retcode = 1;
@@ -4894,6 +4895,16 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			i++;
 		} else if (strncmp(cur_arg, "--log-level=", 12) == 0) {
 			const char *arg = &cur_arg[12];
+
+			log_level = log_level_from_arg(arg);
+			if (log_level == 'U') {
+				printf_err("Invalid argument for --log-level option:\n    %s\n",
+					arg);
+				*retcode = 1;
+				goto end;
+			}
+		} else if (strncmp(cur_arg, "-l", 2) == 0) {
+			const char *arg = &cur_arg[2];
 
 			log_level = log_level_from_arg(arg);
 			if (log_level == 'U') {

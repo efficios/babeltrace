@@ -51,7 +51,7 @@ opt:-d, opt:--debug::
 +
 This is equivalent to opt:--log-level=`VERBOSE`.
 
-opt:--log-level='LVL'::
+opt:-l 'LVL', opt:--log-level='LVL'::
     Set the log level of all known Babeltrace loggers to 'LVL'. You
     can override the level of a specific logger with a dedicated
     log level environment variable. If you don't specify this option,
