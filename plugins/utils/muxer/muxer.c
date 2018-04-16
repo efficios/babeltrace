@@ -291,7 +291,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 		goto error;
 	}
 
-	assume_absolute_clock_classes = bt_value_map_get(real_params,
+	assume_absolute_clock_classes = bt_value_map_borrow(real_params,
 		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
 	if (assume_absolute_clock_classes &&
 			!bt_value_is_bool(assume_absolute_clock_classes)) {
@@ -317,7 +317,6 @@ error:
 end:
 	bt_put(default_params);
 	bt_put(real_params);
-	bt_put(assume_absolute_clock_classes);
 	return ret;
 }
 
@@ -611,13 +610,13 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	switch (bt_notification_get_type(notif)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 		cc_prio_map =
-			bt_notification_event_get_clock_class_priority_map(
+			bt_notification_event_borrow_clock_class_priority_map(
 				notif);
 		break;
 
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 		cc_prio_map =
-			bt_notification_inactivity_get_clock_class_priority_map(
+			bt_notification_inactivity_borrow_clock_class_priority_map(
 				notif);
 		break;
 	default:
@@ -646,7 +645,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	}
 
 	clock_class =
-		bt_clock_class_priority_map_get_highest_priority_clock_class(
+		bt_clock_class_priority_map_borrow_highest_priority_clock_class(
 			cc_prio_map);
 	if (!clock_class) {
 		BT_LOGE("Cannot get the clock class with the highest priority from clock class priority map: "
@@ -807,13 +806,13 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 
 	switch (bt_notification_get_type(notif)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
-		event = bt_notification_event_get_event(notif);
+		event = bt_notification_event_borrow_event(notif);
 		BT_ASSERT(event);
-		clock_value = bt_event_get_clock_value(event,
+		clock_value = bt_event_borrow_clock_value(event,
 			clock_class);
 		break;
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
-		clock_value = bt_notification_inactivity_get_clock_value(
+		clock_value = bt_notification_inactivity_borrow_clock_value(
 			notif, clock_class);
 		break;
 	default:
@@ -850,10 +849,6 @@ end:
 			*ts_ns);
 	}
 
-	bt_put(cc_prio_map);
-	bt_put(event);
-	bt_put(clock_class);
-	bt_put(clock_value);
 	return ret;
 }
 
@@ -908,12 +903,11 @@ muxer_notif_iter_youngest_upstream_notif_iter(
 		}
 
 		BT_ASSERT(cur_muxer_upstream_notif_iter->is_valid);
-		notif = bt_notification_iterator_get_notification(
+		notif = bt_notification_iterator_borrow_notification(
 			cur_muxer_upstream_notif_iter->notif_iter);
 		BT_ASSERT(notif);
 		ret = get_notif_ts_ns(muxer_comp, muxer_notif_iter, notif,
 			muxer_notif_iter->last_returned_ts_ns, &notif_ts_ns);
-		bt_put(notif);
 		if (ret) {
 			/* get_notif_ts_ns() logs errors */
 			*muxer_upstream_notif_iter = NULL;
