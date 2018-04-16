@@ -208,12 +208,11 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 		goto end;
 	}
 
-	notification = bt_notification_iterator_get_notification(it);
+	notification = bt_notification_iterator_borrow_notification(it);
 	BT_ASSERT(notification);
 	ret = handle_notification(pretty, notification);
 
 end:
-	bt_put(notification);
 	return ret;
 }
 
@@ -246,7 +245,7 @@ bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 	struct pretty_component *pretty = data;
 	struct bt_value *plugin_opt_map = pretty->plugin_opt_map;
 
-	if (!bt_value_map_get(plugin_opt_map, key)) {
+	if (!bt_value_map_has_key(plugin_opt_map, key)) {
 		fprintf(pretty->err,
 			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
 	}
@@ -263,7 +262,7 @@ enum bt_component_status apply_one_string(const char *key,
 	enum bt_value_status status;
 	const char *str;
 
-	value = bt_value_map_get(params, key);
+	value = bt_value_map_borrow(params, key);
 	if (!value) {
 		goto end;
 	}
@@ -280,7 +279,6 @@ enum bt_component_status apply_one_string(const char *key,
 	}
 	*option = g_strdup(str);
 end:
-	bt_put(value);
 	return ret;
 }
 
@@ -295,7 +293,7 @@ enum bt_component_status apply_one_bool(const char *key,
 	enum bt_value_status status;
 	bt_bool bool_val;
 
-	value = bt_value_map_get(params, key);
+	value = bt_value_map_borrow(params, key);
 	if (!value) {
 		goto end;
 	}
@@ -311,8 +309,8 @@ enum bt_component_status apply_one_bool(const char *key,
 	if (found) {
 		*found = true;
 	}
+
 end:
-	bt_put(value);
 	return ret;
 }
 
@@ -378,7 +376,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 		struct bt_value *color_value;
 		const char *color;
 
-		color_value = bt_value_map_get(params, "color");
+		color_value = bt_value_map_borrow(params, "color");
 		if (!color_value) {
 			goto end;
 		}
@@ -397,8 +395,6 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 				warn_wrong_color_param(pretty);
 			}
 		}
-
-		bt_put(color_value);
 	}
 
 	ret = apply_one_string("path", params, &pretty->options.output_path);
