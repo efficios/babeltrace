@@ -52,14 +52,16 @@ void bt_stream_common_finalize(struct bt_stream_common *stream)
 		stream, bt_stream_common_get_name(stream));
 
 	/* Call destroy listeners in reverse registration order */
-	for (i = stream->destroy_listeners->len - 1; i >= 0; i--) {
-		struct bt_stream_common_destroy_listener *listener =
-			&g_array_index(stream->destroy_listeners,
-				struct bt_stream_common_destroy_listener, i);
+	if (stream->destroy_listeners) {
+		for (i = stream->destroy_listeners->len - 1; i >= 0; i--) {
+			struct bt_stream_common_destroy_listener *listener =
+				&g_array_index(stream->destroy_listeners,
+					struct bt_stream_common_destroy_listener, i);
 
-		BT_LOGD("Calling destroy listener: func=%p, data=%p, index=%d",
-			listener->func, listener->data, i);
-		listener->func(stream, listener->data);
+			BT_LOGD("Calling destroy listener: func=%p, data=%p, index=%d",
+				listener->func, listener->data, i);
+			listener->func(stream, listener->data);
+		}
 	}
 
 	if (stream->name) {
