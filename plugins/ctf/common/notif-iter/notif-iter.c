@@ -2497,7 +2497,7 @@ end:
 }
 
 static
-struct bt_field_type *btr_get_variant_type_cb(
+struct bt_field_type *btr_borrow_variant_field_type_cb(
 		struct bt_field_type *type, void *data)
 {
 	struct bt_field_path *path;
@@ -2538,13 +2538,12 @@ struct bt_field_type *btr_get_variant_type_cb(
 		goto end;
 	}
 
-	selected_field_type = bt_field_get_type(selected_field);
+	selected_field_type = bt_field_borrow_type(selected_field);
 
 end:
 	BT_PUT(tag_field);
 	BT_PUT(selected_field);
 	BT_PUT(path);
-
 	return selected_field_type;
 }
 
@@ -3065,7 +3064,7 @@ struct bt_notif_iter *bt_notif_iter_create(struct bt_trace *trace,
 		},
 		.query = {
 			.get_sequence_length = btr_get_sequence_length_cb,
-			.get_variant_type = btr_get_variant_type_cb,
+			.borrow_variant_field_type = btr_borrow_variant_field_type_cb,
 		},
 	};
 

@@ -265,7 +265,7 @@ struct bt_btr_cbs {
 		 * @returns		Current selected type (owned by
 		 *			this) or \c NULL on error
 		 */
-		struct bt_field_type * (* get_variant_type)(
+		struct bt_field_type * (* borrow_variant_field_type)(
 				struct bt_field_type *type, void *data);
 	} query;
 };
