@@ -21,6 +21,7 @@
 
 #include <babeltrace/ctf-writer/writer.h>
 #include <babeltrace/ctf-writer/clock.h>
+#include <babeltrace/ctf-writer/clock-class.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-writer/event-types.h>
