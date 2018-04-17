@@ -27,7 +27,7 @@
 
 #include "utils.h"
 
-struct bt_stream_class *ctf_utils_stream_class_from_packet_header(
+struct bt_stream_class *ctf_utils_borrow_stream_class_from_packet_header(
 		struct bt_trace *trace,
 		struct bt_field *packet_header_field)
 {
@@ -40,7 +40,7 @@ struct bt_stream_class *ctf_utils_stream_class_from_packet_header(
 		goto single_stream_class;
 	}
 
-	stream_id_field = bt_field_structure_get_field_by_name(
+	stream_id_field = bt_field_structure_borrow_field_by_name(
 		packet_header_field, "stream_id");
 	if (!stream_id_field) {
 		goto single_stream_class;
@@ -59,13 +59,12 @@ single_stream_class:
 			goto end;
 		}
 
-		stream_class = bt_trace_get_stream_class_by_index(trace, 0);
+		stream_class = bt_trace_borrow_stream_class_by_index(trace, 0);
 	} else {
-		stream_class = bt_trace_get_stream_class_by_id(trace,
+		stream_class = bt_trace_borrow_stream_class_by_id(trace,
 			stream_id);
 	}
 
 end:
-	bt_put(stream_id_field);
 	return stream_class;
 }
