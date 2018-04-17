@@ -181,7 +181,6 @@ void stack_entry_free_func(gpointer data)
 {
 	struct stack_entry *entry = data;
 
-	BT_PUT(entry->base_type);
 	g_free(entry);
 }
 
@@ -266,7 +265,6 @@ int stack_push(struct stack *stack, struct bt_field_type *base_type,
 
 	BT_ASSERT(stack);
 	BT_ASSERT(base_type);
-
 	BT_LOGV("Pushing field type on stack: stack-addr=%p, "
 		"ft-addr=%p, ft-id=%s, base-length=%zu, "
 		"stack-size-before=%u, stack-size-after=%u",
@@ -282,7 +280,6 @@ int stack_push(struct stack *stack, struct bt_field_type *base_type,
 	}
 
 	entry->base_type = base_type;
-	bt_get(entry->base_type);
 	entry->base_len = base_len;
 	g_ptr_array_add(stack->entries, entry);
 
@@ -316,7 +313,6 @@ static inline
 unsigned int stack_size(struct stack *stack)
 {
 	BT_ASSERT(stack);
-
 	return stack->entries->len;
 }
 
@@ -438,11 +434,11 @@ int get_basic_field_type_size(struct bt_btr *btr,
 	{
 		struct bt_field_type *int_type;
 
-		int_type = bt_field_type_enumeration_get_container_field_type(
-			field_type);
+		int_type =
+			bt_field_type_enumeration_borrow_container_field_type(
+				field_type);
 		BT_ASSERT(int_type);
 		size = get_basic_field_type_size(btr, int_type);
-		BT_PUT(int_type);
 		break;
 	}
 	default:
@@ -471,7 +467,7 @@ void stitch_append_from_buf(struct bt_btr *btr, size_t sz)
 {
 	size_t stitch_byte_at;
 	size_t buf_byte_at;
-	size_t nb_bytes;;
+	size_t nb_bytes;
 
 	if (sz == 0) {
 		return;
@@ -796,12 +792,11 @@ enum bt_btr_status read_basic_enum_and_call_cb(struct bt_btr *btr,
 	struct bt_field_type *int_field_type;
 	enum bt_btr_status status = BT_BTR_STATUS_OK;
 
-	int_field_type = bt_field_type_enumeration_get_container_field_type(
+	int_field_type = bt_field_type_enumeration_borrow_container_field_type(
 		btr->cur_basic_field_type);
 	BT_ASSERT(int_field_type);
 	status = read_basic_int_and_call(btr, buf, at,
 		int_field_type, btr->cur_basic_field_type);
-	bt_put(int_field_type);
 	return status;
 }
 
@@ -1285,7 +1280,7 @@ enum bt_btr_status next_field_state(struct bt_btr *btr)
 	/* Get next field's type */
 	switch (bt_field_type_get_type_id(top->base_type)) {
 	case BT_FIELD_TYPE_ID_STRUCT:
-		ret = bt_field_type_structure_get_field_by_index(
+		ret = bt_field_type_structure_borrow_field_by_index(
 			top->base_type, NULL, &next_field_type,
 			top->index);
 		if (ret) {
@@ -1294,18 +1289,18 @@ enum bt_btr_status next_field_state(struct bt_btr *btr)
 		break;
 	case BT_FIELD_TYPE_ID_ARRAY:
 		next_field_type =
-			bt_field_type_array_get_element_field_type(
+			bt_field_type_array_borrow_element_field_type(
 				top->base_type);
 		break;
 	case BT_FIELD_TYPE_ID_SEQUENCE:
 		next_field_type =
-			bt_field_type_sequence_get_element_field_type(
+			bt_field_type_sequence_borrow_element_field_type(
 				top->base_type);
 		break;
 	case BT_FIELD_TYPE_ID_VARIANT:
 		/* Variant types are dynamic: query the user, he should know! */
 		next_field_type =
-			btr->user.cbs.query.get_variant_type(
+			btr->user.cbs.query.borrow_variant_field_type(
 				top->base_type, btr->user.data);
 		break;
 	default:
@@ -1353,15 +1348,13 @@ enum bt_btr_status next_field_state(struct bt_btr *btr)
 			"btr-addr=%p, cur-basic-ft-addr=%p, "
 			"next-basic-ft-addr=%p",
 			btr, btr->cur_basic_field_type, next_field_type);
-		BT_MOVE(btr->cur_basic_field_type, next_field_type);
+		btr->cur_basic_field_type = next_field_type;
 
 		/* Next state: align a basic type */
 		btr->state = BTR_STATE_ALIGN_BASIC;
 	}
 
 end:
-	BT_PUT(next_field_type);
-
 	return status;
 }
 
@@ -1435,7 +1428,6 @@ void bt_btr_destroy(struct bt_btr *btr)
 	}
 
 	BT_LOGD("Destroying BTR: addr=%p", btr);
-	BT_PUT(btr->cur_basic_field_type);
 	g_free(btr);
 }
 
@@ -1444,7 +1436,6 @@ void reset(struct bt_btr *btr)
 {
 	BT_LOGD("Resetting BTR: addr=%p", btr);
 	stack_clear(btr->stack);
-	BT_PUT(btr->cur_basic_field_type);
 	stitch_reset(btr);
 	btr->buf.addr = NULL;
 	btr->last_bo = BT_BYTE_ORDER_UNKNOWN;
@@ -1510,7 +1501,6 @@ size_t bt_btr_start(struct bt_btr *btr,
 	} else {
 		/* Basic type: set as current basic type */
 		btr->cur_basic_field_type = type;
-		bt_get(btr->cur_basic_field_type);
 		btr->state = BTR_STATE_ALIGN_BASIC;
 	}
 
