@@ -690,7 +690,7 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 	}
 
 	/* Packet header type is common to the whole trace. */
-	packet_header_type = bt_trace_get_packet_header_field_type(
+	packet_header_type = bt_trace_borrow_packet_header_field_type(
 			notit->meta.trace);
 	if (!packet_header_type) {
 		notit->state = STATE_AFTER_TRACE_PACKET_HEADER;
@@ -713,8 +713,8 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 			bt_trace_get_name(notit->meta.trace),
 			packet_header_type);
 	}
+
 end:
-	BT_PUT(packet_header_type);
 	return ret;
 }
 
@@ -760,7 +760,8 @@ create_stream_class_field_path_cache_entry(
 		goto end;
 	}
 
-	event_header = bt_stream_class_get_event_header_field_type(stream_class);
+	event_header = bt_stream_class_borrow_event_header_field_type(
+		stream_class);
 	if (event_header && bt_field_type_is_structure(event_header)) {
 		int i, count;
 
@@ -772,7 +773,7 @@ create_stream_class_field_path_cache_entry(
 			int ret;
 			const char *name;
 
-			ret = bt_field_type_structure_get_field_by_index(
+			ret = bt_field_type_structure_borrow_field_by_index(
 					event_header, &name, NULL, i);
 			if (ret) {
 				BT_LOGE("Cannot get event header structure field type's field: "
@@ -799,7 +800,7 @@ create_stream_class_field_path_cache_entry(
 		}
 	}
 
-	packet_context = bt_stream_class_get_packet_context_field_type(
+	packet_context = bt_stream_class_borrow_packet_context_field_type(
 			stream_class);
 	if (packet_context && bt_field_type_is_structure(packet_context)) {
 		int i, count;
@@ -818,7 +819,7 @@ create_stream_class_field_path_cache_entry(
 				break;
 			}
 
-			ret = bt_field_type_structure_get_field_by_index(
+			ret = bt_field_type_structure_borrow_field_by_index(
 					packet_context, &name, &field_type, i);
 			if (ret) {
 				BT_LOGE("Cannot get packet context structure field type's field: "
@@ -839,14 +840,13 @@ create_stream_class_field_path_cache_entry(
 						struct field_cb_override, 1);
 
 				if (!override) {
-					BT_PUT(field_type);
 					goto error;
 				}
 
 				override->func = btr_timestamp_end_cb;
 				override->data = notit;
 				g_hash_table_insert(notit->field_overrides,
-					bt_get(field_type), override);
+					field_type, override);
 				timestamp_end = i;
 			} else if (packet_size == -1 &&
 					!strcmp(name, "packet_size")) {
@@ -855,7 +855,6 @@ create_stream_class_field_path_cache_entry(
 					!strcmp(name, "content_size")) {
 				content_size = i;
 			}
-			BT_PUT(field_type);
 		}
 	}
 
@@ -864,10 +863,10 @@ create_stream_class_field_path_cache_entry(
 	cache_entry->timestamp_end = timestamp_end;
 	cache_entry->packet_size = packet_size;
 	cache_entry->content_size = content_size;
+
 end:
-	BT_PUT(event_header);
-	BT_PUT(packet_context);
 	return cache_entry;
+
 error:
 	g_free(cache_entry);
 	cache_entry = NULL;
@@ -889,7 +888,7 @@ struct stream_class_field_path_cache *get_stream_class_field_path_cache(
 		cache_entry = create_stream_class_field_path_cache_entry(notit,
 			stream_class);
 		g_hash_table_insert(notit->sc_field_path_caches,
-			bt_get(stream_class), (gpointer) cache_entry);
+			stream_class, (gpointer) cache_entry);
 	}
 
 	return cache_entry;
@@ -909,7 +908,7 @@ enum bt_notif_iter_status set_current_stream_class(
 	notit->cur_sc_field_path_cache = NULL;
 
 	/* Is there any "stream_id" field in the packet header? */
-	packet_header_type = bt_trace_get_packet_header_field_type(
+	packet_header_type = bt_trace_borrow_packet_header_field_type(
 		notit->meta.trace);
 	if (!packet_header_type) {
 		/*
@@ -923,7 +922,7 @@ enum bt_notif_iter_status set_current_stream_class(
 
 	// TODO: optimalize!
 	stream_id_field_type =
-		bt_field_type_structure_get_field_type_by_name(
+		bt_field_type_structure_borrow_field_type_by_name(
 			packet_header_type, "stream_id");
 	if (stream_id_field_type) {
 		/* Find appropriate stream class using current stream ID */
@@ -954,7 +953,7 @@ single_stream_class:
 		notit, stream_id, notit->meta.trace,
 		bt_trace_get_name(notit->meta.trace));
 
-	new_stream_class = bt_trace_get_stream_class_by_id(
+	new_stream_class = bt_trace_borrow_stream_class_by_id(
 		notit->meta.trace, stream_id);
 	if (!new_stream_class) {
 		BT_LOGW("No stream class with ID of stream class ID to use in trace: "
@@ -988,7 +987,7 @@ single_stream_class:
 			goto end;
 		}
 	} else {
-		BT_MOVE(notit->meta.stream_class, new_stream_class);
+		notit->meta.stream_class = new_stream_class;
 	}
 
 	BT_LOGV("Set current stream class: "
@@ -1014,10 +1013,8 @@ single_stream_class:
 		status = BT_NOTIF_ITER_STATUS_ERROR;
 		goto end;
 	}
+
 end:
-	BT_PUT(packet_header_type);
-	BT_PUT(stream_id_field_type);
-	bt_put(new_stream_class);
 	return status;
 }
 
@@ -1043,7 +1040,7 @@ enum bt_notif_iter_status read_packet_context_begin_state(
 	struct bt_field_type *packet_context_type;
 
 	BT_ASSERT(notit->meta.stream_class);
-	packet_context_type = bt_stream_class_get_packet_context_field_type(
+	packet_context_type = bt_stream_class_borrow_packet_context_field_type(
 		notit->meta.stream_class);
 	if (!packet_context_type) {
 		BT_LOGV("No packet packet context field type in stream class: continuing: "
@@ -1080,7 +1077,6 @@ enum bt_notif_iter_status read_packet_context_begin_state(
 	}
 
 end:
-	BT_PUT(packet_context_type);
 	return status;
 }
 
@@ -1217,7 +1213,7 @@ enum bt_notif_iter_status read_event_header_begin_state(
 		}
 	}
 
-	event_header_type = bt_stream_class_get_event_header_field_type(
+	event_header_type = bt_stream_class_borrow_event_header_field_type(
 		notit->meta.stream_class);
 	if (!event_header_type) {
 		notit->state = STATE_AFTER_STREAM_EVENT_HEADER;
@@ -1247,9 +1243,8 @@ enum bt_notif_iter_status read_event_header_begin_state(
 			bt_stream_class_get_id(notit->meta.stream_class),
 			event_header_type);
 	}
-end:
-	BT_PUT(event_header_type);
 
+end:
 	return status;
 }
 
@@ -1277,7 +1272,7 @@ enum bt_notif_iter_status set_current_event_class(struct bt_notif_iter *notit)
 	uint64_t event_id = -1ULL;
 	int ret;
 
-	event_header_type = bt_stream_class_get_event_header_field_type(
+	event_header_type = bt_stream_class_borrow_event_header_field_type(
 		notit->meta.stream_class);
 	if (!event_header_type) {
 		/*
@@ -1289,9 +1284,9 @@ enum bt_notif_iter_status set_current_event_class(struct bt_notif_iter *notit)
 
 	/* Is there any "id"/"v" field in the event header? */
 	BT_ASSERT(is_struct_type(event_header_type));
-	id_field_type = bt_field_type_structure_get_field_type_by_name(
+	id_field_type = bt_field_type_structure_borrow_field_type_by_name(
 		event_header_type, "id");
-	v_field_type = bt_field_type_structure_get_field_type_by_name(
+	v_field_type = bt_field_type_structure_borrow_field_type_by_name(
 		event_header_type, "v");
 	BT_ASSERT(notit->dscopes.stream_event_header);
 	if (v_field_type) {
@@ -1389,8 +1384,7 @@ single_event_class:
 		bt_stream_class_get_name(notit->meta.stream_class),
 		bt_stream_class_get_id(notit->meta.stream_class),
 		event_id);
-	BT_PUT(notit->meta.event_class);
-	notit->meta.event_class = bt_stream_class_get_event_class_by_id(
+	notit->meta.event_class = bt_stream_class_borrow_event_class_by_id(
 		notit->meta.stream_class, event_id);
 	if (!notit->meta.event_class) {
 		BT_LOGW("No event class with ID of event class ID to use in stream class: "
@@ -1414,10 +1408,6 @@ single_event_class:
 		bt_event_class_get_id(notit->meta.event_class));
 
 end:
-	BT_PUT(event_header_type);
-	BT_PUT(id_field_type);
-	BT_PUT(v_field_type);
-
 	return status;
 }
 
@@ -1446,7 +1436,7 @@ enum bt_notif_iter_status read_stream_event_context_begin_state(
 	struct bt_field_type *stream_event_context_type;
 
 	stream_event_context_type =
-		bt_stream_class_get_event_context_field_type(
+		bt_stream_class_borrow_event_context_field_type(
 			notit->meta.stream_class);
 	if (!stream_event_context_type) {
 		notit->state = STATE_DSCOPE_EVENT_CONTEXT_BEGIN;
@@ -1477,8 +1467,6 @@ enum bt_notif_iter_status read_stream_event_context_begin_state(
 	}
 
 end:
-	BT_PUT(stream_event_context_type);
-
 	return status;
 }
 
@@ -1497,7 +1485,7 @@ enum bt_notif_iter_status read_event_context_begin_state(
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 	struct bt_field_type *event_context_type;
 
-	event_context_type = bt_event_class_get_context_field_type(
+	event_context_type = bt_event_class_borrow_context_field_type(
 		notit->meta.event_class);
 	if (!event_context_type) {
 		notit->state = STATE_DSCOPE_EVENT_PAYLOAD_BEGIN;
@@ -1528,8 +1516,6 @@ enum bt_notif_iter_status read_event_context_begin_state(
 	}
 
 end:
-	BT_PUT(event_context_type);
-
 	return status;
 }
 
@@ -1548,7 +1534,7 @@ enum bt_notif_iter_status read_event_payload_begin_state(
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 	struct bt_field_type *event_payload_type;
 
-	event_payload_type = bt_event_class_get_payload_field_type(
+	event_payload_type = bt_event_class_borrow_payload_field_type(
 		notit->meta.event_class);
 	if (!event_payload_type) {
 		notit->state = STATE_EMIT_NOTIF_EVENT;
@@ -1579,8 +1565,6 @@ enum bt_notif_iter_status read_event_payload_begin_state(
 	}
 
 end:
-	BT_PUT(event_payload_type);
-
 	return status;
 }
 
@@ -1724,8 +1708,8 @@ void bt_notif_iter_reset(struct bt_notif_iter *notit)
 	BT_ASSERT(notit);
 	BT_LOGD("Resetting notification iterator: addr=%p", notit);
 	stack_clear(notit->stack);
-	BT_PUT(notit->meta.stream_class);
-	BT_PUT(notit->meta.event_class);
+	notit->meta.stream_class = NULL;
+	notit->meta.event_class = NULL;
 	BT_PUT(notit->packet);
 	BT_PUT(notit->stream);
 	put_all_dscopes(notit);
@@ -1759,7 +1743,7 @@ int bt_notif_iter_switch_packet(struct bt_notif_iter *notit)
 		"packet-offset=%" PRId64, notit, notit->buf.at,
 		notit->cur_packet_offset);
 	stack_clear(notit->stack);
-	BT_PUT(notit->meta.event_class);
+	notit->meta.event_class = NULL;
 	BT_PUT(notit->packet);
 	BT_PUT(notit->cur_timestamp_end);
 	put_all_dscopes(notit);
@@ -1807,7 +1791,7 @@ struct bt_field *get_next_field(struct bt_notif_iter *notit)
 	index = stack_top(notit->stack)->index;
 	base_field = stack_top(notit->stack)->base;
 	BT_ASSERT(base_field);
-	base_type = bt_field_get_type(base_field);
+	base_type = bt_field_borrow_type(base_field);
 	BT_ASSERT(base_type);
 
 	switch (bt_field_type_get_type_id(base_type)) {
@@ -1815,9 +1799,6 @@ struct bt_field *get_next_field(struct bt_notif_iter *notit)
 	{
 		next_field = bt_field_structure_get_field_by_index(
 			base_field, index);
-		const char *name;
-		bt_field_type_structure_get_field_by_index(base_type,
-			&name, NULL, index);
 		break;
 	}
 	case BT_FIELD_TYPE_ID_ARRAY:
@@ -1838,7 +1819,6 @@ struct bt_field *get_next_field(struct bt_notif_iter *notit)
 		abort();
 	}
 
-	BT_PUT(base_type);
 	return next_field;
 }
 
@@ -1853,7 +1833,7 @@ void update_clock_state(uint64_t *state,
 	int requested_new_value_size;
 	int ret;
 
-	value_type = bt_field_get_type(value_field);
+	value_type = bt_field_borrow_type(value_field);
 	BT_ASSERT(value_type);
 	BT_ASSERT(bt_field_type_is_integer(value_type));
 	requested_new_value_size =
@@ -1890,10 +1870,10 @@ void update_clock_state(uint64_t *state,
 
 	/* Set the low bits of the current clock value. */
 	*state |= requested_new_value;
+
 end:
 	BT_LOGV("Updated clock's value from integer field's value: "
 		"value=%" PRIu64, *state);
-	bt_put(value_type);
 }
 
 static
@@ -1906,9 +1886,9 @@ enum bt_btr_status update_clock(struct bt_notif_iter *notit,
 	enum bt_btr_status ret = BT_BTR_STATUS_OK;
 	struct bt_clock_class *clock_class = NULL;
 
-	int_field_type = bt_field_get_type(int_field);
+	int_field_type = bt_field_borrow_type(int_field);
 	BT_ASSERT(int_field_type);
-	clock_class = bt_field_type_integer_get_mapped_clock_class(
+	clock_class = bt_field_type_integer_borrow_mapped_clock_class(
 		int_field_type);
 	if (likely(!clock_class)) {
 		goto end;
@@ -1924,7 +1904,7 @@ enum bt_btr_status update_clock(struct bt_notif_iter *notit,
 			goto end;
 		}
 
-		g_hash_table_insert(notit->clock_states, bt_get(clock_class),
+		g_hash_table_insert(notit->clock_states, clock_class,
 			clock_state);
 	}
 
@@ -1935,9 +1915,8 @@ enum bt_btr_status update_clock(struct bt_notif_iter *notit,
 		notit, clock_class,
 		bt_clock_class_get_name(clock_class), *clock_state);
 	update_clock_state(clock_state, int_field);
+
 end:
-	bt_put(int_field_type);
-	bt_put(clock_class);
 	return ret;
 }
 
@@ -1972,12 +1951,11 @@ enum bt_btr_status btr_unsigned_int_common(uint64_t value,
 	case BT_FIELD_TYPE_ID_INTEGER:
 		/* Integer field is created field */
 		BT_MOVE(int_field, field);
-		bt_get(type);
 		break;
 	case BT_FIELD_TYPE_ID_ENUM:
 		int_field = bt_field_enumeration_get_container(field);
 		BT_ASSERT(int_field);
-		type = bt_field_get_type(int_field);
+		type = bt_field_borrow_type(int_field);
 		BT_ASSERT(type);
 		break;
 	default:
@@ -1995,7 +1973,6 @@ enum bt_btr_status btr_unsigned_int_common(uint64_t value,
 	stack_top(notit->stack)->index++;
 	*out_int_field = int_field;
 	BT_PUT(field);
-	BT_PUT(type);
 
 end_no_put:
 	return status;
@@ -2088,12 +2065,11 @@ enum bt_btr_status btr_signed_int_cb(int64_t value,
 	case BT_FIELD_TYPE_ID_INTEGER:
 		/* Integer field is created field */
 		BT_MOVE(int_field, field);
-		bt_get(type);
 		break;
 	case BT_FIELD_TYPE_ID_ENUM:
 		int_field = bt_field_enumeration_get_container(field);
 		BT_ASSERT(int_field);
-		type = bt_field_get_type(int_field);
+		type = bt_field_borrow_type(int_field);
 		BT_ASSERT(type);
 		break;
 	default:
@@ -2112,7 +2088,6 @@ enum bt_btr_status btr_signed_int_cb(int64_t value,
 	status = update_clock(notit, int_field);
 	BT_PUT(field);
 	BT_PUT(int_field);
-	BT_PUT(type);
 
 end_no_put:
 	return status;
@@ -2328,7 +2303,6 @@ enum bt_btr_status btr_compound_begin_cb(
 
 end:
 	BT_PUT(field);
-
 	return status;
 }
 
@@ -2416,7 +2390,7 @@ struct bt_field *resolve_field(struct bt_notif_iter *notit,
 		struct bt_field_type *field_type;
 		int index = bt_field_path_get_index(path, i);
 
-		field_type = bt_field_get_type(field);
+		field_type = bt_field_borrow_type(field);
 		BT_ASSERT(field_type);
 
 		if (is_struct_type(field_type)) {
@@ -2428,7 +2402,6 @@ struct bt_field *resolve_field(struct bt_notif_iter *notit,
 		}
 
 		BT_PUT(field);
-		BT_PUT(field_type);
 
 		if (!next_field) {
 			BT_LOGW("Cannot find next field: "
@@ -2459,7 +2432,7 @@ int64_t btr_get_sequence_length_cb(struct bt_field_type *type, void *data)
 	struct bt_field *length_field = NULL;
 	uint64_t length;
 
-	field_path = bt_field_type_sequence_get_length_field_path(type);
+	field_path = bt_field_type_sequence_borrow_length_field_path(type);
 	BT_ASSERT(field_path);
 	length_field = resolve_field(notit, field_path);
 	if (!length_field) {
@@ -2491,8 +2464,6 @@ int64_t btr_get_sequence_length_cb(struct bt_field_type *type, void *data)
 
 end:
 	BT_PUT(length_field);
-	BT_PUT(field_path);
-
 	return ret;
 }
 
@@ -2507,7 +2478,7 @@ struct bt_field_type *btr_borrow_variant_field_type_cb(
 	struct bt_field *selected_field = NULL;
 	struct bt_field_type *selected_field_type = NULL;
 
-	path = bt_field_type_variant_get_tag_field_path(type);
+	path = bt_field_type_variant_borrow_tag_field_path(type);
 	BT_ASSERT(path);
 	tag_field = resolve_field(notit, path);
 	if (!tag_field) {
@@ -2543,7 +2514,6 @@ struct bt_field_type *btr_borrow_variant_field_type_cb(
 end:
 	BT_PUT(tag_field);
 	BT_PUT(selected_field);
-	BT_PUT(path);
 	return selected_field_type;
 }
 
@@ -2577,7 +2547,7 @@ int set_event_clocks(struct bt_event *event,
 		bt_put(clock_value);
 		if (ret) {
 			struct bt_event_class *event_class =
-				bt_event_get_class(event);
+				bt_event_borrow_class(event);
 
 			BT_ASSERT(event_class);
 			BT_LOGE("Cannot set event's clock value: "
@@ -2593,7 +2563,6 @@ int set_event_clocks(struct bt_event *event,
 				clock_class,
 				bt_clock_class_get_name(clock_class),
 				clock_value);
-			bt_put(event_class);
 			goto end;
 		}
 	}
@@ -3006,7 +2975,7 @@ void init_trace_field_path_cache(struct bt_trace *trace,
 	int i, count;
 	struct bt_field_type *packet_header = NULL;
 
-	packet_header = bt_trace_get_packet_header_field_type(trace);
+	packet_header = bt_trace_borrow_packet_header_field_type(trace);
 	if (!packet_header) {
 		goto end;
 	}
@@ -3022,8 +2991,8 @@ void init_trace_field_path_cache(struct bt_trace *trace,
 		int ret;
 		const char *field_name;
 
-		ret = bt_field_type_structure_get_field_by_index(packet_header,
-				&field_name, NULL, i);
+		ret = bt_field_type_structure_borrow_field_by_index(
+			packet_header, &field_name, NULL, i);
 		if (ret) {
 			BT_LOGE("Cannot get structure field's field: "
 				"field-addr=%p, index=%d",
@@ -3042,7 +3011,6 @@ void init_trace_field_path_cache(struct bt_trace *trace,
 end:
 	trace_field_path_cache->stream_id = stream_id;
 	trace_field_path_cache->stream_instance_id = stream_instance_id;
-	BT_PUT(packet_header);
 }
 
 BT_HIDDEN
@@ -3081,12 +3049,12 @@ struct bt_notif_iter *bt_notif_iter_create(struct bt_trace *trace,
 		goto end;
 	}
 	notit->clock_states = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, bt_put, g_free);
+		g_direct_equal, NULL, g_free);
 	if (!notit->clock_states) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
 		goto error;
 	}
-	notit->meta.trace = bt_get(trace);
+	notit->meta.trace = trace;
 	notit->medium.medops = medops;
 	notit->medium.max_request_sz = max_request_sz;
 	notit->medium.data = data;
@@ -3105,14 +3073,14 @@ struct bt_notif_iter *bt_notif_iter_create(struct bt_trace *trace,
 	bt_notif_iter_reset(notit);
 	init_trace_field_path_cache(trace, &notit->trace_field_path_cache);
 	notit->sc_field_path_caches = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, bt_put, g_free);
+		g_direct_equal, NULL, g_free);
 	if (!notit->sc_field_path_caches) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
 		goto error;
 	}
 
 	notit->field_overrides = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, bt_put, g_free);
+		g_direct_equal, NULL, g_free);
 	if (!notit->field_overrides) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
 		goto error;
@@ -3136,9 +3104,6 @@ error:
 
 void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 {
-	BT_PUT(notit->meta.trace);
-	BT_PUT(notit->meta.stream_class);
-	BT_PUT(notit->meta.event_class);
 	BT_PUT(notit->packet);
 	BT_PUT(notit->stream);
 	BT_PUT(notit->cur_timestamp_end);
@@ -3252,13 +3217,12 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 			if (notit->cur_timestamp_end) {
 				enum bt_btr_status btr_status;
 				struct bt_field_type *field_type =
-						bt_field_get_type(
+						bt_field_borrow_type(
 							notit->cur_timestamp_end);
 
 				BT_ASSERT(field_type);
 				btr_status = update_clock(notit,
 					notit->cur_timestamp_end);
-				BT_PUT(field_type);
 				if (btr_status != BT_BTR_STATUS_OK) {
 					BT_LOGW("Cannot update stream's clock value: "
 						"notit-addr=%p", notit);
