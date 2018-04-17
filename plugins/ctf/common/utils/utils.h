@@ -28,7 +28,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 
-struct bt_stream_class *ctf_utils_stream_class_from_packet_header(
+struct bt_stream_class *ctf_utils_borrow_stream_class_from_packet_header(
 		struct bt_trace *trace,
 		struct bt_field *packet_header_field);
 

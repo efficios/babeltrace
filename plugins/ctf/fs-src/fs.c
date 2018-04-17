@@ -425,7 +425,7 @@ uint64_t get_packet_header_stream_instance_id(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	stream_instance_id_field = bt_field_structure_get_field_by_name(
+	stream_instance_id_field = bt_field_structure_borrow_field_by_name(
 		packet_header_field, "stream_instance_id");
 	if (!stream_instance_id_field) {
 		goto end;
@@ -460,16 +460,16 @@ uint64_t get_packet_context_timestamp_begin_ns(
 		goto end;
 	}
 
-	timestamp_begin_field = bt_field_structure_get_field_by_name(
+	timestamp_begin_field = bt_field_structure_borrow_field_by_name(
 		packet_context_field, "timestamp_begin");
 	if (!timestamp_begin_field) {
 		goto end;
 	}
 
-	timestamp_begin_ft = bt_field_get_type(timestamp_begin_field);
+	timestamp_begin_ft = bt_field_borrow_type(timestamp_begin_field);
 	BT_ASSERT(timestamp_begin_ft);
 	timestamp_begin_clock_class =
-		bt_field_type_integer_get_mapped_clock_class(timestamp_begin_ft);
+		bt_field_type_integer_borrow_mapped_clock_class(timestamp_begin_ft);
 	if (!timestamp_begin_clock_class) {
 		goto end;
 	}
@@ -495,9 +495,6 @@ uint64_t get_packet_context_timestamp_begin_ns(
 	timestamp_begin_ns = (uint64_t) timestamp_begin_ns_signed;
 
 end:
-	bt_put(timestamp_begin_field);
-	bt_put(timestamp_begin_ft);
-	bt_put(timestamp_begin_clock_class);
 	bt_put(clock_value);
 	return timestamp_begin_ns;
 }
@@ -693,7 +690,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		packet_header_field);
 	begin_ns = get_packet_context_timestamp_begin_ns(ctf_fs_trace,
 		packet_context_field);
-	stream_class = ctf_utils_stream_class_from_packet_header(
+	stream_class = ctf_utils_borrow_stream_class_from_packet_header(
 		ctf_fs_trace->metadata->trace, packet_header_field);
 	if (!stream_class) {
 		goto error;
@@ -794,7 +791,6 @@ end:
 	ctf_fs_ds_index_destroy(index);
 	bt_put(packet_header_field);
 	bt_put(packet_context_field);
-	bt_put(stream_class);
 	return ret;
 }
 
@@ -953,13 +949,12 @@ int create_cc_prio_map(struct ctf_fs_trace *ctf_fs_trace)
 
 	for (i = 0; i < count; i++) {
 		struct bt_clock_class *clock_class =
-			bt_trace_get_clock_class_by_index(
+			bt_trace_borrow_clock_class_by_index(
 				ctf_fs_trace->metadata->trace, i);
 
 		BT_ASSERT(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
 			ctf_fs_trace->cc_prio_map, clock_class, 0);
-		BT_PUT(clock_class);
 
 		if (ret) {
 			goto end;
@@ -1330,15 +1325,14 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	 * private component should also exist.
 	 */
 	ctf_fs->priv_comp = priv_comp;
-	value = bt_value_map_get(params, "path");
+	value = bt_value_map_borrow(params, "path");
 	if (value && !bt_value_is_string(value)) {
 		goto error;
 	}
 
 	value_ret = bt_value_string_get(value, &path_param);
 	BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
-	BT_PUT(value);
-	value = bt_value_map_get(params, "clock-class-offset-s");
+	value = bt_value_map_borrow(params, "clock-class-offset-s");
 	if (value) {
 		if (!bt_value_is_integer(value)) {
 			BT_LOGE("clock-class-offset-s should be an integer");
@@ -1347,10 +1341,9 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		value_ret = bt_value_integer_get(value,
 			&ctf_fs->metadata_config.clock_class_offset_s);
 		BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
-		BT_PUT(value);
 	}
 
-	value = bt_value_map_get(params, "clock-class-offset-ns");
+	value = bt_value_map_borrow(params, "clock-class-offset-ns");
 	if (value) {
 		if (!bt_value_is_integer(value)) {
 			BT_LOGE("clock-class-offset-ns should be an integer");
@@ -1359,7 +1352,6 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		value_ret = bt_value_integer_get(value,
 			&ctf_fs->metadata_config.clock_class_offset_ns);
 		BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
-		BT_PUT(value);
 	}
 
 	ctf_fs->port_data = g_ptr_array_new_with_free_func(port_data_destroy);
@@ -1386,7 +1378,6 @@ error:
 	BT_ASSERT(ret == BT_COMPONENT_STATUS_OK);
 
 end:
-	bt_put(value);
 	return ctf_fs;
 }
 

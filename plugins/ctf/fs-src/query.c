@@ -78,7 +78,7 @@ struct bt_component_class_query_method_return metadata_info_query(
 		goto error;
 	}
 
-	path_value = bt_value_map_get(params, "path");
+	path_value = bt_value_map_borrow(params, "path");
 	ret = bt_value_string_get(path_value, &path);
 	if (ret) {
 		BT_LOGE_STR("Cannot get `path` string parameter.");
@@ -172,7 +172,6 @@ error:
 	}
 
 end:
-	bt_put(path_value);
 	free(metadata_text);
 
 	if (g_metadata_text) {
@@ -247,7 +246,7 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 		}
 	}
 
-	stream_class = bt_stream_get_class(stream);
+	stream_class = bt_stream_borrow_class(stream);
 	if (!stream_class) {
 		ret = -1;
 		goto end;
@@ -264,8 +263,8 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 		ret = -1;
 		goto end;
 	}
+
 end:
-	bt_put(stream_class);
 	return ret;
 }
 
@@ -489,7 +488,7 @@ struct bt_component_class_query_method_return trace_info_query(
 		goto error;
 	}
 
-	path_value = bt_value_map_get(params, "path");
+	path_value = bt_value_map_borrow(params, "path");
 	ret = bt_value_string_get(path_value, &path);
 	if (ret) {
 		BT_LOGE("Cannot get `path` string parameter.");
@@ -581,6 +580,5 @@ end:
 		g_list_free(trace_names);
 	}
 	/* "path" becomes invalid with the release of path_value. */
-	bt_put(path_value);
 	return query_ret;
 }
