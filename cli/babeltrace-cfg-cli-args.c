@@ -41,6 +41,7 @@
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-connect.h"
+#include "version.h"
 
 /*
  * Error printf() macro which prepends "Error: " the first time it's
@@ -729,7 +730,11 @@ end:
 static
 void print_version(void)
 {
-	puts("Babeltrace " VERSION);
+	if (GIT_VERSION[0] == '\0') {
+		puts("Babeltrace " VERSION);
+	} else {
+		puts("Babeltrace " VERSION  " - " GIT_VERSION);
+	}
 }
 
 /*
