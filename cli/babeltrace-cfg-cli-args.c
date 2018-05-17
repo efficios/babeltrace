@@ -2374,7 +2374,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	struct bt_value *connection_args = NULL;
 	GString *cur_param_key = NULL;
 	char error_buf[256] = { 0 };
-	long long retry_duration = -1;
+	long retry_duration = -1;
 	struct poptOption run_long_options[] = {
 		{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
 		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
@@ -2387,7 +2387,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ "params", 'p', POPT_ARG_STRING, NULL, OPT_PARAMS, NULL, NULL },
 		{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
 		{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
-		{ "retry-duration", '\0', POPT_ARG_LONGLONG, &retry_duration, OPT_RETRY_DURATION, NULL, NULL },
+		{ "retry-duration", '\0', POPT_ARG_LONG, &retry_duration, OPT_RETRY_DURATION, NULL, NULL },
 		{ "value", '\0', POPT_ARG_STRING, NULL, OPT_VALUE, NULL, NULL },
 		{ NULL, 0, '\0', NULL, 0, NULL, NULL },
 	};
