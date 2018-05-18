@@ -142,6 +142,8 @@ except for:
 struct bt_stream_class;
 struct bt_event_class;
 struct bt_clock;
+struct bt_event_header_field;
+struct bt_packet_context_field;
 
 /**
 @name Creation and parent access functions
@@ -339,6 +341,10 @@ struct bt_field_type *bt_stream_class_get_packet_context_field_type(
 		stream_class));
 }
 
+extern
+struct bt_packet_context_field *bt_stream_class_create_packet_context_field(
+		struct bt_stream_class *stream_class);
+
 /**
 @brief	Sets the packet context field type of the CTF IR stream class
 	\p stream_class to \p packet_context_type, or unsets the current packet
@@ -434,6 +440,9 @@ As of Babeltrace \btversion, if \p event_header_type is not \c NULL,
 extern int bt_stream_class_set_event_header_field_type(
 		struct bt_stream_class *stream_class,
 		struct bt_field_type *event_header_type);
+
+extern struct bt_event_header_field *bt_stream_class_create_event_header_field(
+		struct bt_stream_class *stream_class);
 
 extern struct bt_field_type *
 bt_stream_class_borrow_event_context_field_type(

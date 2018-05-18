@@ -34,6 +34,7 @@
 #include <babeltrace/ctf-ir/utils-internal.h>
 #include <babeltrace/ctf-ir/visitor.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/object-pool-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
 #include <inttypes.h>
@@ -84,6 +85,12 @@ struct bt_stream_class_common {
 
 struct bt_stream_class {
 	struct bt_stream_class_common common;
+
+	/* Pool of `struct bt_field_wrapper *` */
+	struct bt_object_pool event_header_field_pool;
+
+	/* Pool of `struct bt_field_wrapper *` */
+	struct bt_object_pool packet_context_field_pool;
 };
 
 struct bt_event_class_common;

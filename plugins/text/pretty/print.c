@@ -570,35 +570,51 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 	enum bt_integer_base base;
 	enum bt_string_encoding encoding;
 	int signedness;
+	struct bt_field_type *int_ft;
 	union {
 		uint64_t u;
 		int64_t s;
 	} v;
 	bool rst_color = false;
+	enum bt_field_type_id ft_id;
 
 	field_type = bt_field_borrow_type(field);
 	if (!field_type) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	signedness = bt_field_type_integer_is_signed(field_type);
+
+	ft_id = bt_field_get_type_id(field);
+
+	switch (ft_id) {
+	case BT_FIELD_TYPE_ID_INTEGER:
+		int_ft = field_type;
+		break;
+	case BT_FIELD_TYPE_ID_ENUM:
+		int_ft = bt_field_type_enumeration_borrow_container_field_type(
+			field_type);
+		break;
+	default:
+		abort();
+	}
+
+	signedness = bt_field_type_integer_is_signed(int_ft);
 	if (signedness < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 	if (!signedness) {
-		if (bt_field_integer_unsigned_get_value(field, &v.u) < 0) {
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
+		ret = bt_field_integer_unsigned_get_value(field, &v.u);
 	} else {
-		if (bt_field_integer_signed_get_value(field, &v.s) < 0) {
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
+		ret = bt_field_integer_signed_get_value(field, &v.s);
 	}
 
-	encoding = bt_field_type_integer_get_encoding(field_type);
+	if (ret < 0) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
+	}
+
+	encoding = bt_field_type_integer_get_encoding(int_ft);
 	switch (encoding) {
 	case BT_STRING_ENCODING_UTF8:
 	case BT_STRING_ENCODING_ASCII:
@@ -617,13 +633,13 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		rst_color = true;
 	}
 
-	base = bt_field_type_integer_get_base(field_type);
+	base = bt_field_type_integer_get_base(int_ft);
 	switch (base) {
 	case BT_INTEGER_BASE_BINARY:
 	{
 		int bitnr, len;
 
-		len = bt_field_type_integer_get_size(field_type);
+		len = bt_field_type_integer_get_size(int_ft);
 		if (len < 0) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
@@ -641,7 +657,7 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		if (signedness) {
 			int len;
 
-			len = bt_field_type_integer_get_size(field_type);
+			len = bt_field_type_integer_get_size(int_ft);
 			if (len < 0) {
 				ret = BT_COMPONENT_STATUS_ERROR;
 				goto end;
@@ -671,7 +687,7 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 	{
 		int len;
 
-		len = bt_field_type_integer_get_size(field_type);
+		len = bt_field_type_integer_get_size(int_ft);
 		if (len < 0) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
@@ -770,53 +786,27 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 		struct bt_field *field)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_field *container_field = NULL;
 	struct bt_field_type *enumeration_field_type = NULL;
 	struct bt_field_type *container_field_type = NULL;
 	struct bt_field_type_enumeration_mapping_iterator *iter = NULL;
 	int nr_mappings = 0;
-	int is_signed;
 
 	enumeration_field_type = bt_field_borrow_type(field);
 	if (!enumeration_field_type) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	container_field = bt_field_enumeration_borrow_container(field);
-	if (!container_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-	container_field_type = bt_field_borrow_type(container_field);
+	container_field_type =
+		bt_field_type_enumeration_borrow_container_field_type(
+			enumeration_field_type);
 	if (!container_field_type) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	is_signed = bt_field_type_integer_is_signed(container_field_type);
-	if (is_signed < 0) {
+	iter = bt_field_enumeration_get_mappings(field);
+	if (!iter) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
-	}
-	if (is_signed) {
-		int64_t value;
-
-		if (bt_field_integer_signed_get_value(container_field,
-				&value)) {
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
-		iter = bt_field_type_enumeration_signed_find_mappings_by_value(
-				enumeration_field_type, value);
-	} else {
-		uint64_t value;
-
-		if (bt_field_integer_unsigned_get_value(container_field,
-				&value)) {
-			ret = BT_COMPONENT_STATUS_ERROR;
-			goto end;
-		}
-		iter = bt_field_type_enumeration_unsigned_find_mappings_by_value(
-				enumeration_field_type, value);
 	}
 	g_string_append(pretty->string, "( ");
 	ret = bt_field_type_enumeration_mapping_iterator_next(iter);
@@ -853,7 +843,7 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 	}
 skip_loop:
 	g_string_append(pretty->string, " : container = ");
-	ret = print_integer(pretty, container_field);
+	ret = print_integer(pretty, field);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -1108,9 +1098,8 @@ enum bt_component_status print_sequence(struct pretty_component *pretty,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_field_type *seq_type = NULL, *field_type = NULL;
-	struct bt_field *length_field = NULL;
 	enum bt_field_type_id type_id;
-	uint64_t len;
+	int64_t len;
 	uint64_t i;
 	bool is_string = false;
 
@@ -1119,12 +1108,8 @@ enum bt_component_status print_sequence(struct pretty_component *pretty,
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	length_field = bt_field_sequence_borrow_length(seq);
-	if (!length_field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
-	if (bt_field_integer_unsigned_get_value(length_field, &len) < 0) {
+	len = bt_field_sequence_get_length(seq);
+	if (len < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
@@ -1206,29 +1191,62 @@ enum bt_component_status print_variant(struct pretty_component *pretty,
 	g_string_append(pretty->string, "{ ");
 	pretty->depth++;
 	if (print_names) {
-		int iter_ret;
-		struct bt_field *tag_field = NULL;
+		int iret;
+		struct bt_field_type *var_ft;
+		struct bt_field_type *tag_ft;
+		struct bt_field_type *container_ft;
 		const char *tag_choice;
+		bt_bool is_signed;
 		struct bt_field_type_enumeration_mapping_iterator *iter;
 
-		tag_field = bt_field_variant_borrow_tag(variant);
-		if (!tag_field) {
+		var_ft = bt_field_borrow_type(variant);
+		tag_ft = bt_field_type_variant_borrow_tag_field_type(
+			var_ft);
+		container_ft =
+			bt_field_type_enumeration_borrow_container_field_type(
+				tag_ft);
+		is_signed = bt_field_type_integer_is_signed(container_ft);
+
+		if (is_signed) {
+			int64_t tag;
+
+			iret = bt_field_variant_get_tag_signed(variant, &tag);
+			if (iret) {
+				ret = BT_COMPONENT_STATUS_ERROR;
+				goto end;
+			}
+
+			iter = bt_field_type_enumeration_signed_find_mappings_by_value(
+				tag_ft, tag);
+		} else {
+			uint64_t tag;
+
+			iret = bt_field_variant_get_tag_unsigned(variant, &tag);
+			if (iret) {
+				ret = BT_COMPONENT_STATUS_ERROR;
+				goto end;
+			}
+
+			iter = bt_field_type_enumeration_unsigned_find_mappings_by_value(
+				tag_ft, tag);
+		}
+
+		if (!iter) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 
-		iter = bt_field_enumeration_get_mappings(tag_field);
-		iter_ret = bt_field_type_enumeration_mapping_iterator_next(
+		iret = bt_field_type_enumeration_mapping_iterator_next(
 			iter);
 		if (!iter || ret) {
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 
-		iter_ret =
+		iret =
 			bt_field_type_enumeration_mapping_iterator_signed_get(
 				iter, &tag_choice, NULL, NULL);
-		if (iter_ret) {
+		if (iret) {
 			bt_put(iter);
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;

@@ -30,6 +30,7 @@
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/object-pool-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/types.h>
 #include <stdbool.h>
@@ -53,6 +54,9 @@ struct bt_clock_class {
 	 * class.
 	 */
 	int frozen;
+
+	/* Pool of `struct bt_clock_value *` */
+	struct bt_object_pool cv_pool;
 };
 
 BT_HIDDEN

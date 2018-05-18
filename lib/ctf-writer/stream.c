@@ -512,7 +512,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 	{
 		uint64_t i;
-		int64_t len = bt_field_common_sequence_get_int_length(
+		int64_t len = bt_field_common_sequence_get_length(
 			(void *) field);
 
 		if (len < 0) {
@@ -1248,7 +1248,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 		stream, bt_ctf_stream_get_name(stream), event);
 
 	id_field = bt_ctf_field_structure_get_field_by_name(
-		(void *) event->common.header_field, "id");
+		(void *) event->common.header_field->field, "id");
 	event_class_id = bt_event_class_common_get_id(event->common.class);
 	BT_ASSERT(event_class_id >= 0);
 
@@ -1272,7 +1272,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 	 * 3. The "timestamp" field is not set.
 	 */
 	timestamp_field = bt_ctf_field_structure_get_field_by_name(
-			(void *) event->common.header_field, "timestamp");
+			(void *) event->common.header_field->field, "timestamp");
 	if (timestamp_field && stream_class->clock &&
 			bt_ctf_field_get_type_id(id_field) == BT_CTF_FIELD_TYPE_ID_INTEGER &&
 			!bt_ctf_field_is_set_recursive(timestamp_field)) {
@@ -1365,10 +1365,8 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 
 	/* Make sure the various scopes of the event are set */
 	BT_LOGV_STR("Validating event to append.");
-	ret = bt_event_common_validate(BT_TO_COMMON(event));
-	if (ret) {
-		goto error;
-	}
+	BT_ASSERT_PRE(bt_event_common_validate(BT_TO_COMMON(event)) == 0,
+		"Invalid event: %!+we", event);
 
 	/* Save the new event and freeze it */
 	BT_LOGV_STR("Freezing the event to append.");
@@ -1688,12 +1686,12 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		if (event->common.header_field) {
 			BT_LOGV_STR("Serializing event's header field.");
 			ret = bt_ctf_field_serialize_recursive(
-				(void *) event->common.header_field,
+				(void *) event->common.header_field->field,
 				&stream->pos, native_byte_order);
 			if (ret) {
 				BT_LOGW("Cannot serialize event's header field: "
 					"field-addr=%p",
-					event->common.header_field);
+					event->common.header_field->field);
 				goto end;
 			}
 		}

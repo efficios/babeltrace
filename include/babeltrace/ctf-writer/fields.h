@@ -94,9 +94,6 @@ extern int bt_ctf_field_floating_point_set_value(
 extern struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 		struct bt_ctf_field *enum_field);
 
-extern struct bt_ctf_field_type_enumeration_mapping_iterator *
-bt_ctf_field_enumeration_get_mappings(struct bt_ctf_field *enum_field);
-
 extern const char *bt_ctf_field_string_get_value(
 		struct bt_ctf_field *string_field);
 
@@ -124,18 +121,11 @@ struct bt_ctf_field *bt_ctf_field_structure_get_field(
 extern struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *struct_field, uint64_t index);
 
-extern int bt_ctf_field_structure_set_field_by_name(
-		struct bt_ctf_field *struct_field,
-		const char *name, struct bt_ctf_field *field);
-
 extern struct bt_ctf_field *bt_ctf_field_array_get_field(
 		struct bt_ctf_field *array_field, uint64_t index);
 
 extern struct bt_ctf_field *bt_ctf_field_sequence_get_field(
 		struct bt_ctf_field *sequence_field, uint64_t index);
-
-extern struct bt_ctf_field *bt_ctf_field_sequence_get_length(
-		struct bt_ctf_field *sequence_field);
 
 extern int bt_ctf_field_sequence_set_length(struct bt_ctf_field *sequence_field,
 		struct bt_ctf_field *length_field);
@@ -145,9 +135,6 @@ extern struct bt_ctf_field *bt_ctf_field_variant_get_field(
 		struct bt_ctf_field *tag_field);
 
 extern struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
-		struct bt_ctf_field *variant_field);
-
-extern struct bt_ctf_field *bt_ctf_field_variant_get_tag(
 		struct bt_ctf_field *variant_field);
 
 #ifdef __cplusplus

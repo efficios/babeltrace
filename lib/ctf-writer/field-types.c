@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-writer/field-types.h>
 #include <babeltrace/ctf-writer/field-types-internal.h>
 #include <babeltrace/ctf-writer/fields.h>
+#include <babeltrace/ctf-writer/fields-internal.h>
 #include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/ref.h>
@@ -390,7 +391,9 @@ int bt_ctf_field_type_structure_serialize_recursive(
 	g_string_append(context->string, "struct {\n");
 
 	for (i = 0; i < structure->fields->len; i++) {
-		struct structure_field_common *field = structure->fields->pdata[i];
+		struct bt_field_type_common_structure_field *field =
+			BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+				structure, i);
 
 		BT_LOGD("Serializing CTF writer structure field type's field metadata: "
 			"index=%zu, "
@@ -460,9 +463,10 @@ int bt_ctf_field_type_variant_serialize_recursive(
 	}
 
 	context->current_indentation_level++;
-	for (i = 0; i < variant->fields->len; i++) {
-		struct structure_field_common *field =
-			variant->fields->pdata[i];
+	for (i = 0; i < variant->choices->len; i++) {
+		struct bt_field_type_common_variant_choice *field =
+			BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+				variant, i);
 
 		BT_LOGD("Serializing CTF writer variant field type's field metadata: "
 			"index=%zu, "
@@ -976,9 +980,55 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_from_tag(
 		struct bt_ctf_field_type *ft,
 		struct bt_ctf_field *tag_field)
 {
-	return bt_get(bt_field_type_common_variant_borrow_field_type_from_tag(
-		(void *) ft, (void *) tag_field,
-		(bt_field_common_create_func) bt_field_create));
+	int ret;
+	int64_t choice_index;
+	struct bt_ctf_field *container;
+	struct bt_field_type_common_variant *var_ft = (void *) ft;
+	struct bt_ctf_field_type *ret_ft = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_VARIANT,
+		"Field type");
+	BT_ASSERT_PRE_NON_NULL(tag_field, "Tag field");
+	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(
+		(struct bt_field_common *) tag_field,
+		BT_CTF_FIELD_TYPE_ID_ENUM, "Tag field");
+	BT_ASSERT_PRE_FIELD_COMMON_IS_SET((struct bt_field_common *) tag_field,
+		"Tag field");
+
+	container = bt_ctf_field_enumeration_borrow_container(tag_field);
+	BT_ASSERT(container);
+
+	if (var_ft->tag_ft->container_ft->is_signed) {
+		int64_t val;
+
+		ret = bt_ctf_field_integer_signed_get_value(container,
+			&val);
+		BT_ASSERT(ret == 0);
+		choice_index = bt_field_type_common_variant_find_choice_index(
+			(void *) ft, (uint64_t) val, true);
+	} else {
+		uint64_t val;
+
+		ret = bt_ctf_field_integer_unsigned_get_value(container,
+			&val);
+		BT_ASSERT(ret == 0);
+		choice_index = bt_field_type_common_variant_find_choice_index(
+			(void *) ft, val, false);
+	}
+
+	if (choice_index < 0) {
+		BT_LIB_LOGW("Cannot find variant field type's field: "
+			"%![var-ft-]+wF, %![tag-field-]+wf", ft, tag_field);
+		goto end;
+	}
+
+	ret = bt_ctf_field_type_variant_get_field_by_index(ft, NULL,
+		&ret_ft, choice_index);
+	BT_ASSERT(ret == 0);
+
+end:
+	return ret_ft;
 }
 
 int64_t bt_ctf_field_type_variant_get_field_count(struct bt_ctf_field_type *ft)
@@ -1312,20 +1362,20 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_copy_recursive(
 			key, value);
 	}
 
+	g_array_set_size(copy_ft->fields, struct_ft->fields->len);
+
 	for (i = 0; i < struct_ft->fields->len; i++) {
-		struct structure_field_common *entry, *copy_entry;
+		struct bt_field_type_common_structure_field *entry, *copy_entry;
 		struct bt_field_type_common *field_ft_copy;
 
-		entry = g_ptr_array_index(struct_ft->fields, i);
+		entry = BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+			struct_ft, i);
+		copy_entry = BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+			copy_ft, i);
 		BT_LOGD("Copying CTF writer structure field type's field: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, entry, g_quark_to_string(entry->name));
-		copy_entry = g_new0(struct structure_field_common, 1);
-		if (!copy_entry) {
-			BT_LOGE_STR("Failed to allocate one structure field type field.");
-			goto error;
-		}
 
 		field_ft_copy = (void *) bt_ctf_field_type_copy(
 			(void *) entry->type);
@@ -1334,13 +1384,11 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_copy_recursive(
 				"index=%" PRId64 ", "
 				"field-ft-addr=%p, field-name=\"%s\"",
 				i, entry, g_quark_to_string(entry->name));
-			g_free(copy_entry);
 			goto error;
 		}
 
 		copy_entry->name = entry->name;
 		copy_entry->type = field_ft_copy;
-		g_ptr_array_add(copy_ft->fields, copy_entry);
 	}
 
 	BT_LOGD("Copied CTF writer structure field type: original-ft-addr=%p, copy-ft-addr=%p",
@@ -1385,26 +1433,26 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 	}
 
 	/* Copy field_name_to_index */
-	g_hash_table_iter_init(&iter, var_ft->field_name_to_index);
+	g_hash_table_iter_init(&iter, var_ft->choice_name_to_index);
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		g_hash_table_insert(copy_ft->field_name_to_index,
+		g_hash_table_insert(copy_ft->choice_name_to_index,
 			key, value);
 	}
 
-	for (i = 0; i < var_ft->fields->len; i++) {
-		struct structure_field_common *entry, *copy_entry;
-		struct bt_field_type_common *field_ft_copy;
+	g_array_set_size(copy_ft->choices, var_ft->choices->len);
 
-		entry = g_ptr_array_index(var_ft->fields, i);
+	for (i = 0; i < var_ft->choices->len; i++) {
+		struct bt_field_type_common_variant_choice *entry, *copy_entry;
+		struct bt_field_type_common *field_ft_copy;
+		uint64_t range_i;
+
+		entry = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(var_ft, i);
+		copy_entry = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+			copy_ft, i);
 		BT_LOGD("Copying CTF writer variant field type's field: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, entry, g_quark_to_string(entry->name));
-		copy_entry = g_new0(struct structure_field_common, 1);
-		if (!copy_entry) {
-			BT_LOGE_STR("Failed to allocate one variant field type field.");
-			goto error;
-		}
 
 		field_ft_copy = (void *) bt_ctf_field_type_copy(
 			(void *) entry->type);
@@ -1419,7 +1467,16 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 
 		copy_entry->name = entry->name;
 		copy_entry->type = field_ft_copy;
-		g_ptr_array_add(copy_ft->fields, copy_entry);
+
+		/* Copy ranges */
+		copy_entry->ranges = g_array_new(FALSE, TRUE,
+			sizeof(struct bt_field_type_common_variant_choice_range));
+		BT_ASSERT(copy_entry->ranges);
+		g_array_set_size(copy_entry->ranges, entry->ranges->len);
+
+		for (range_i = 0; range_i < entry->ranges->len; range_i++) {
+			copy_entry->ranges[range_i] = entry->ranges[range_i];
+		}
 	}
 
 	if (var_ft->tag_field_path) {
@@ -1432,7 +1489,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 		}
 	}
 
-	BT_LOGD("Copied variant field type: original-ft-addr=%p, copy-ft-addr=%p",
+	copy_ft->choices_up_to_date = var_ft->choices_up_to_date;
+	BT_LOGD("Copied CTF writer variant field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:

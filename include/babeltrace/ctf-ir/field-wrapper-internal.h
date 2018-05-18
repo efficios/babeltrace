@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_CTF_IR_PACKET_INTERNAL_H
-#define BABELTRACE_CTF_IR_PACKET_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_FIELD_WRAPPER_INTERNAL_H
+#define BABELTRACE_CTF_IR_FIELD_WRAPPER_INTERNAL_H
 
 /*
- * Babeltrace - CTF IR: Stream packet internal
- *
- * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,37 +23,25 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/field-wrapper-internal.h>
+#include <babeltrace/ctf-ir/fields-internal.h>
+#include <babeltrace/object-pool-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/babeltrace-internal.h>
 
-struct bt_packet {
+struct bt_field_wrapper {
 	struct bt_object base;
-	struct bt_field_wrapper *header;
-	struct bt_field_wrapper *context;
-	struct bt_stream *stream;
-	int frozen;
+
+	/* Owned by this */
+	struct bt_field_common *field;
 };
 
 BT_HIDDEN
-void _bt_packet_freeze(struct bt_packet *packet);
-
-#ifdef BT_DEV_MODE
-# define bt_packet_freeze	_bt_packet_freeze
-#else
-# define bt_packet_freeze(_packet)
-#endif /* BT_DEV_MODE */
+struct bt_field_wrapper *bt_field_wrapper_new(void *data);
 
 BT_HIDDEN
-struct bt_packet *bt_packet_new(struct bt_stream *stream);
+void bt_field_wrapper_destroy(struct bt_field_wrapper *field);
 
 BT_HIDDEN
-void bt_packet_recycle(struct bt_packet *packet);
+struct bt_field_wrapper *bt_field_wrapper_create(
+		struct bt_object_pool *pool, struct bt_field_type *ft);
 
-BT_HIDDEN
-void bt_packet_destroy(struct bt_packet *packet);
-
-#endif /* BABELTRACE_CTF_IR_PACKET_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_FIELD_WRAPPER_INTERNAL_H */

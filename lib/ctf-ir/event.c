@@ -56,9 +56,6 @@
 #include <inttypes.h>
 
 static
-void bt_event_destroy(struct bt_object *obj);
-
-static
 int bt_event_common_validate_types_for_create(
 		struct bt_event_class_common *event_class,
 		struct bt_validation_output *validation_output,
@@ -138,9 +135,13 @@ end:
 
 static
 int bt_event_common_create_fields(
+		struct bt_stream_class_common *stream_class,
 		struct bt_validation_output *validation_output,
 		void *(*create_field_func)(void *),
-		struct bt_field_common **header_field,
+		void (*release_field_func)(void *),
+		void *(*create_header_field_func)(void *, void *),
+		void (*release_header_field_func)(void *),
+		struct bt_field_wrapper **header_field,
 		struct bt_field_common **stream_event_context_field,
 		struct bt_field_common **context_field,
 		struct bt_field_common **payload_field)
@@ -151,7 +152,8 @@ int bt_event_common_create_fields(
 		BT_LOGD("Creating initial event header field: ft-addr=%p",
 			validation_output->event_header_type);
 		*header_field =
-			create_field_func(validation_output->event_header_type);
+			create_header_field_func(stream_class,
+				validation_output->event_header_type);
 		if (!*header_field) {
 			BT_LOGE_STR("Cannot create initial event header field object.");
 			goto error;
@@ -194,10 +196,22 @@ int bt_event_common_create_fields(
 	goto end;
 
 error:
-	BT_PUT(*header_field);
-	BT_PUT(*stream_event_context_field);
-	BT_PUT(*context_field);
-	BT_PUT(*payload_field);
+	if (*header_field) {
+		release_header_field_func(*header_field);
+	}
+
+	if (*stream_event_context_field) {
+		release_field_func(*stream_event_context_field);
+	}
+
+	if (*context_field) {
+		release_field_func(*context_field);
+	}
+
+	if (*payload_field) {
+		release_field_func(*payload_field);
+	}
+
 	ret = -1;
 
 end:
@@ -212,11 +226,12 @@ int _bt_event_common_validate(struct bt_event_common *event)
 
 	BT_ASSERT(event);
 	if (event->header_field) {
-		ret = bt_field_common_validate_recursive(event->header_field);
+		ret = bt_field_common_validate_recursive(
+			event->header_field->field);
 		if (ret) {
 			BT_ASSERT_PRE_MSG("Invalid event's header field: "
 				"%![event-]+_e, %![field-]+_f",
-				event, event->header_field);
+				event, event->header_field->field);
 			goto end;
 		}
 	}
@@ -275,14 +290,29 @@ void _bt_event_common_freeze(struct bt_event_common *event)
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		event, bt_event_class_common_get_name(event->class),
 		bt_event_class_common_get_id(event->class));
-	BT_LOGD_STR("Freezing event's header field.");
-	bt_field_common_freeze_recursive(event->header_field);
-	BT_LOGD_STR("Freezing event's stream event context field.");
-	bt_field_common_freeze_recursive(event->stream_event_context_field);
-	BT_LOGD_STR("Freezing event's context field.");
-	bt_field_common_freeze_recursive(event->context_field);
-	BT_LOGD_STR("Freezing event's payload field.");
-	bt_field_common_freeze_recursive(event->payload_field);
+
+	if (event->header_field) {
+		BT_LOGD_STR("Freezing event's header field.");
+		bt_field_common_set_is_frozen_recursive(
+			event->header_field->field, true);
+	}
+
+	if (event->stream_event_context_field) {
+		BT_LOGD_STR("Freezing event's stream event context field.");
+		bt_field_common_set_is_frozen_recursive(
+			event->stream_event_context_field, true);
+	}
+
+	if (event->context_field) {
+		BT_LOGD_STR("Freezing event's context field.");
+		bt_field_common_set_is_frozen_recursive(event->context_field, true);
+	}
+
+	if (event->payload_field) {
+		BT_LOGD_STR("Freezing event's payload field.");
+		bt_field_common_set_is_frozen_recursive(event->payload_field, true);
+	}
+
 	event->frozen = 1;
 }
 
@@ -296,12 +326,15 @@ int bt_event_common_initialize(struct bt_event_common *event,
 		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,
 			struct bt_field_type_common *packet_context_field_type,
 			struct bt_field_type_common *event_header_field_type),
-		void *(*create_field_func)(void *))
+		void *(*create_field_func)(void *),
+		void (*release_field_func)(void *),
+		void *(*create_header_field_func)(void *, void *),
+		void (*release_header_field_func)(void *))
 {
 	int ret;
 	struct bt_trace_common *trace = NULL;
 	struct bt_stream_class_common *stream_class = NULL;
-	struct bt_field_common *event_header = NULL;
+	struct bt_field_wrapper *event_header = NULL;
 	struct bt_field_common *stream_event_context = NULL;
 	struct bt_field_common *event_context = NULL;
 	struct bt_field_common *event_payload = NULL;
@@ -399,9 +432,12 @@ int bt_event_common_initialize(struct bt_event_common *event,
 	 */
 	event->class = bt_get(event_class);
 
-	ret = bt_event_common_create_fields(&validation_output,
-		create_field_func, &event_header,
-		&stream_event_context, &event_context, &event_payload);
+	ret = bt_event_common_create_fields(stream_class,
+		&validation_output,
+		create_field_func, release_field_func,
+		create_header_field_func, release_header_field_func,
+		&event_header, &stream_event_context, &event_context,
+		&event_payload);
 	if (ret) {
 		/* bt_event_common_create_fields() logs errors */
 		goto error;
@@ -416,10 +452,14 @@ int bt_event_common_initialize(struct bt_event_common *event,
 	bt_validation_replace_types(trace, stream_class, event_class,
 		&validation_output,
 		BT_VALIDATION_FLAG_STREAM | BT_VALIDATION_FLAG_EVENT);
-	BT_MOVE(event->header_field, event_header);
-	BT_MOVE(event->stream_event_context_field, stream_event_context);
-	BT_MOVE(event->context_field, event_context);
-	BT_MOVE(event->payload_field, event_payload);
+	event->header_field = event_header;
+	event_header = NULL;
+	event->stream_event_context_field = stream_event_context;
+	stream_event_context = NULL;
+	event->context_field = event_context;
+	event_context = NULL;
+	event->payload_field = event_payload;
+	event_payload = NULL;
 
 	/*
 	 * Put what was not moved in bt_validation_replace_types().
@@ -457,20 +497,73 @@ int bt_event_common_initialize(struct bt_event_common *event,
 error:
 	bt_validation_output_put_types(&validation_output);
 	bt_put(expected_clock_class);
-	bt_put(event_header);
-	bt_put(stream_event_context);
-	bt_put(event_context);
-	bt_put(event_payload);
+
+	if (event_header) {
+		release_header_field_func(event_header);
+	}
+
+	if (stream_event_context) {
+		release_field_func(stream_event_context);
+	}
+
+	if (event_context) {
+		release_field_func(event_context);
+	}
+
+	if (event_payload) {
+		release_field_func(event_payload);
+	}
+
 	ret = -1;
 
 end:
 	return ret;
 }
 
-struct bt_event *bt_event_create(struct bt_event_class *event_class)
+static
+void bt_event_header_field_recycle(struct bt_field_wrapper *field_wrapper,
+		struct bt_stream_class *stream_class)
+{
+	BT_ASSERT(field_wrapper);
+	BT_LIB_LOGD("Recycling event header field: "
+		"addr=%p, %![sc-]+S, %![field-]+f", field_wrapper,
+		stream_class, field_wrapper->field);
+	bt_object_pool_recycle_object(
+		&stream_class->event_header_field_pool,
+		field_wrapper);
+}
+
+static
+struct bt_field_wrapper *create_event_header_field(
+		struct bt_stream_class *stream_class,
+		struct bt_field_type_common *ft)
+{
+	struct bt_field_wrapper *field_wrapper = NULL;
+
+	field_wrapper = bt_field_wrapper_create(
+		&stream_class->event_header_field_pool, (void *) ft);
+	if (!field_wrapper) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (field_wrapper) {
+		bt_event_header_field_recycle(field_wrapper, stream_class);
+		field_wrapper = NULL;
+	}
+
+end:
+	return field_wrapper;
+}
+
+BT_HIDDEN
+struct bt_event *bt_event_new(struct bt_event_class *event_class)
 {
 	int ret;
 	struct bt_event *event = NULL;
+	struct bt_stream_class *stream_class;
 
 	event = g_new0(struct bt_event, 1);
 	if (!event) {
@@ -479,21 +572,147 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class)
 	}
 
 	ret = bt_event_common_initialize(BT_TO_COMMON(event),
-		BT_TO_COMMON(event_class), NULL, bt_event_destroy,
+		BT_TO_COMMON(event_class), NULL, NULL,
 		(bt_validation_flag_copy_field_type_func) bt_field_type_copy,
-		true, NULL, (void *) bt_field_create);
+		true, NULL,
+		(void *) bt_field_create_recursive,
+		(void *) bt_field_destroy_recursive,
+		(void *) create_event_header_field,
+		(void *) bt_event_header_field_recycle);
 	if (ret) {
 		/* bt_event_common_initialize() logs errors */
 		goto error;
 	}
 
+	bt_object_set_is_shared((void *) event, false);
 	event->clock_values = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL, bt_put);
-	assert(event->clock_values);
+			g_direct_equal, NULL,
+			(GDestroyNotify) bt_clock_value_recycle);
+	BT_ASSERT(event->clock_values);
+	stream_class = bt_event_class_borrow_stream_class(event_class);
+	BT_ASSERT(stream_class);
+
+	if (stream_class->common.clock_class) {
+		struct bt_clock_value *clock_value;
+
+		clock_value = bt_clock_value_create(
+			stream_class->common.clock_class);
+		if (!clock_value) {
+			BT_LIB_LOGE("Cannot create clock value from clock class: "
+				"%![cc-]+K", stream_class->common.clock_class);
+			goto error;
+		}
+
+		g_hash_table_insert(event->clock_values,
+			stream_class->common.clock_class, clock_value);
+	}
+
 	goto end;
 
 error:
-	BT_PUT(event);
+	if (event) {
+		bt_event_destroy(event);
+		event = NULL;
+	}
+
+end:
+	return event;
+}
+
+BT_ASSERT_PRE_FUNC
+static inline
+void _bt_event_reset_dev_mode(struct bt_event *event)
+{
+	GHashTableIter iter;
+	gpointer key, value;
+
+	BT_ASSERT(event);
+
+	if (event->common.header_field) {
+		bt_field_common_set_is_frozen_recursive(
+			event->common.header_field->field, false);
+		bt_field_common_reset_recursive(
+			event->common.header_field->field);
+	}
+
+	if (event->common.stream_event_context_field) {
+		bt_field_common_set_is_frozen_recursive(
+			event->common.stream_event_context_field, false);
+		bt_field_common_reset_recursive(
+			event->common.stream_event_context_field);
+	}
+
+	if (event->common.context_field) {
+		bt_field_common_set_is_frozen_recursive(
+			event->common.context_field, false);
+		bt_field_common_reset_recursive(event->common.context_field);
+	}
+
+	if (event->common.payload_field) {
+		bt_field_common_set_is_frozen_recursive(
+			event->common.payload_field, false);
+		bt_field_common_reset_recursive(event->common.payload_field);
+	}
+
+	g_hash_table_iter_init(&iter, event->clock_values);
+	while (g_hash_table_iter_next(&iter, &key, &value)) {
+		struct bt_clock_value *clock_value = value;
+
+		BT_ASSERT(clock_value);
+		bt_clock_value_reset(clock_value);
+		bt_clock_value_set_is_frozen(clock_value, false);
+	}
+}
+
+#ifdef BT_DEV_MODE
+# define bt_event_reset_dev_mode	_bt_event_reset_dev_mode
+#else
+# define bt_event_reset_dev_mode(_x)
+#endif
+
+static inline
+void bt_event_reset(struct bt_event *event)
+{
+	BT_ASSERT(event);
+	event->common.frozen = false;
+	bt_event_reset_dev_mode(event);
+	BT_PUT(event->packet);
+}
+
+BT_HIDDEN
+struct bt_event *bt_event_create(struct bt_event_class *event_class,
+		struct bt_packet *packet)
+{
+	int ret;
+	struct bt_event *event = NULL;
+
+	BT_ASSERT(event_class);
+	event = bt_object_pool_create_object(&event_class->event_pool);
+	if (!event) {
+		BT_LIB_LOGE("Cannot allocate one event from event class's event pool: "
+			"%![event-class-]+E", event_class);
+		goto error;
+	}
+
+	if (!event->common.class) {
+		event->common.class = bt_get(event_class);
+	}
+
+	BT_ASSERT(packet);
+	ret = bt_event_set_packet(event, packet);
+	if (ret) {
+		BT_LIB_LOGE("Cannot set event's packet: "
+			"%![event-]+e, %![packet-]+a", event, packet);
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (event) {
+		bt_event_recycle(event);
+		event = NULL;
+	}
 
 end:
 	return event;
@@ -518,32 +737,16 @@ struct bt_field *bt_event_borrow_payload(struct bt_event *event)
 		bt_event_common_borrow_payload(BT_TO_COMMON(event)));
 }
 
-int bt_event_set_payload(struct bt_event *event, struct bt_field *field)
-{
-	return bt_event_common_set_payload(BT_TO_COMMON(event),
-		(void *) field);
-}
-
 struct bt_field *bt_event_borrow_header(struct bt_event *event)
 {
 	return BT_FROM_COMMON(
 		bt_event_common_borrow_header(BT_TO_COMMON(event)));
 }
 
-int bt_event_set_header(struct bt_event *event, struct bt_field *field)
-{
-	return bt_event_common_set_header(BT_TO_COMMON(event), (void *) field);
-}
-
 struct bt_field *bt_event_borrow_context(struct bt_event *event)
 {
 	return BT_FROM_COMMON(
 		bt_event_common_borrow_context(BT_TO_COMMON(event)));
-}
-
-int bt_event_set_context(struct bt_event *event, struct bt_field *field)
-{
-	return bt_event_common_set_context(BT_TO_COMMON(event), (void *) field);
 }
 
 struct bt_field *bt_event_borrow_stream_event_context(
@@ -553,18 +756,31 @@ struct bt_field *bt_event_borrow_stream_event_context(
 		BT_TO_COMMON(event)));
 }
 
-int bt_event_set_stream_event_context(struct bt_event *event,
-		struct bt_field *field)
+static
+void release_event_header_field(struct bt_field_wrapper *field_wrapper,
+		struct bt_event_common *event_common)
 {
-	return bt_event_common_set_stream_event_context(
-		BT_TO_COMMON(event), (void *) field);
+	struct bt_event *event = BT_FROM_COMMON(event_common);
+	struct bt_event_class *event_class = bt_event_borrow_class(event);
+
+	if (!event_class) {
+		bt_field_wrapper_destroy(field_wrapper);
+	} else {
+		struct bt_stream_class *stream_class =
+			bt_event_class_borrow_stream_class(event_class);
+
+		BT_ASSERT(stream_class);
+		bt_event_header_field_recycle(field_wrapper, stream_class);
+	}
 }
 
-void bt_event_destroy(struct bt_object *obj)
+BT_HIDDEN
+void bt_event_destroy(struct bt_event *event)
 {
-	struct bt_event *event = (void *) obj;
-
-	bt_event_common_finalize(obj);
+	BT_ASSERT(event);
+	bt_event_common_finalize((void *) event,
+		(void *) bt_field_destroy_recursive,
+		(void *) release_event_header_field);
 	g_hash_table_destroy(event->clock_values);
 	BT_LOGD_STR("Putting event's packet.");
 	bt_put(event->packet);
@@ -594,42 +810,6 @@ end:
 	return clock_value;
 }
 
-int bt_event_set_clock_value(struct bt_event *event,
-		struct bt_clock_value *value)
-{
-	struct bt_trace *trace;
-	struct bt_stream_class *stream_class;
-	struct bt_event_class *event_class;
-	struct bt_clock_class *clock_class = NULL;
-
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_NON_NULL(value, "Clock value");
-	BT_ASSERT_PRE_EVENT_COMMON_HOT(BT_TO_COMMON(event), "Event");
-	clock_class = bt_clock_value_borrow_class(value);
-	event_class = BT_FROM_COMMON(event->common.class);
-	BT_ASSERT(event_class);
-	stream_class = bt_event_class_borrow_stream_class(event_class);
-	BT_ASSERT(stream_class);
-	trace = bt_stream_class_borrow_trace(stream_class);
-	BT_ASSERT(trace);
-	BT_ASSERT_PRE(bt_trace_common_has_clock_class(BT_TO_COMMON(trace),
-		clock_class),
-		"Clock class is not part of event's trace: "
-		"%![event-]+e, %![clock-class-]+K",
-		event, clock_class);
-	g_hash_table_insert(event->clock_values, clock_class, bt_get(value));
-	BT_LOGV("Set event's clock value: "
-		"event-addr=%p, event-class-name=\"%s\", "
-		"event-class-id=%" PRId64 ", clock-class-addr=%p, "
-		"clock-class-name=\"%s\", clock-value-addr=%p, "
-		"clock-value-cycles=%" PRIu64,
-		event, bt_event_class_common_get_name(event->common.class),
-		bt_event_class_common_get_id(event->common.class),
-		clock_class, bt_clock_class_get_name(clock_class),
-		value, value->value);
-	return 0;
-}
-
 struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
 {
 	struct bt_packet *packet = NULL;
@@ -649,8 +829,8 @@ end:
 	return packet;
 }
 
-int bt_event_set_packet(struct bt_event *event,
-		struct bt_packet *packet)
+BT_HIDDEN
+int bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -690,4 +870,67 @@ void _bt_event_freeze(struct bt_event *event)
 	_bt_event_common_freeze(BT_TO_COMMON(event));
 	BT_LOGD_STR("Freezing event's packet.");
 	bt_packet_freeze(event->packet);
+}
+
+BT_HIDDEN
+void bt_event_recycle(struct bt_event *event)
+{
+	struct bt_event_class *event_class;
+
+	BT_ASSERT(event);
+	BT_LIB_LOGD("Recycling event: %!+e", event);
+
+	/*
+	 * Those are the important ordered steps:
+	 *
+	 * 1. Reset the event object (put any permanent reference it
+	 *    has, unfreeze it and its fields in developer mode, etc.),
+	 *    but do NOT put its class's reference. This event class
+	 *    contains the pool to which we're about to recycle this
+	 *    event object, so we must guarantee its existence thanks
+	 *    to this existing reference.
+	 *
+	 * 2. Move the event class reference to our `event_class`
+	 *    variable so that we can set the event's class member
+	 *    to NULL before recycling it. We CANNOT do this after
+	 *    we put the event class reference because this bt_put()
+	 *    could destroy the event class, also destroying its
+	 *    event pool, thus also destroying our event object (this
+	 *    would result in an invalid write access).
+	 *
+	 * 3. Recycle the event object.
+	 *
+	 * 4. Put our event class reference.
+	 */
+	bt_event_reset(event);
+	event_class = BT_FROM_COMMON(event->common.class);
+	BT_ASSERT(event_class);
+	event->common.class = NULL;
+	bt_object_pool_recycle_object(&event_class->event_pool, event);
+	bt_put(event_class);
+}
+
+int bt_event_move_header(struct bt_event *event,
+		struct bt_event_header_field *header_field)
+{
+	struct bt_stream_class *stream_class;
+	struct bt_field_wrapper *field_wrapper = (void *) header_field;
+
+	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
+	BT_ASSERT_PRE_HOT(BT_TO_COMMON(event), "Event", ": +%!+e", event);
+	stream_class = bt_event_class_borrow_stream_class(
+		bt_event_borrow_class(event));
+	BT_ASSERT_PRE(stream_class->common.event_header_field_type,
+		"Stream class has no event header field type: %!+S",
+		stream_class);
+
+	/* Recycle current header field: always exists */
+	BT_ASSERT(event->common.header_field);
+	bt_event_header_field_recycle(event->common.header_field,
+		stream_class);
+
+	/* Move new field */
+	event->common.header_field = (void *) field_wrapper;
+	return 0;
 }

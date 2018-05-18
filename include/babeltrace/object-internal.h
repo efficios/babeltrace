@@ -27,9 +27,11 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/assert-internal.h>
+#include <stdbool.h>
 
 /**
  * All objects publicly exposed by Babeltrace APIs must contain this structure
@@ -45,6 +47,12 @@ struct bt_object {
 	bt_object_release_func parent_is_owner_listener;
 	/* @see doc/ref-counting.md */
 	struct bt_object *parent;
+
+	/*
+	 * True if this object is shared, that is, it uses reference
+	 * counting. Only used in developer mode.
+	 */
+	bool is_shared;
 };
 
 static inline
@@ -138,6 +146,18 @@ void bt_object_set_parent(void *child_ptr, void *parent)
 	child->parent = bt_get(parent);
 }
 
+#ifdef BT_DEV_MODE
+static inline
+void _bt_object_set_is_shared(struct bt_object *obj, bool is_shared)
+{
+	obj->is_shared = is_shared;
+}
+
+# define bt_object_set_is_shared	_bt_object_set_is_shared
+#else
+# define bt_object_set_is_shared(_obj, _is_shared)
+#endif
+
 static inline
 void bt_object_init(void *ptr, bt_object_release_func release)
 {
@@ -145,6 +165,7 @@ void bt_object_init(void *ptr, bt_object_release_func release)
 
 	obj->release = release;
 	obj->parent = NULL;
+	bt_object_set_is_shared(obj, true);
 	bt_ref_init(&obj->ref_count, generic_release);
 }
 

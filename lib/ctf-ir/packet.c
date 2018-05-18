@@ -31,6 +31,7 @@
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
+#include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
@@ -48,82 +49,16 @@ struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 	return packet->stream;
 }
 
-struct bt_field *bt_packet_borrow_header(
-		struct bt_packet *packet)
+struct bt_field *bt_packet_borrow_header(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	return packet->header;
-}
-
-BT_ASSERT_PRE_FUNC
-static inline bool validate_field_to_set(struct bt_field *field,
-		struct bt_field_type_common *expected_ft)
-{
-	bool ret = true;
-
-	if (!field) {
-		if (expected_ft) {
-			BT_ASSERT_PRE_MSG("Setting no field, but expected "
-				"field type is not NULL: "
-				"%![field-]+f, %![expected-ft-]+F",
-				field, expected_ft);
-			ret = false;
-			goto end;
-		}
-
-		goto end;
-	}
-
-	if (bt_field_type_compare(bt_field_borrow_type(field),
-			BT_FROM_COMMON(expected_ft)) != 0) {
-		BT_ASSERT_PRE_MSG("Field type is different from expected "
-			" field type: %![field-ft-]+F, %![expected-ft-]+F",
-			bt_field_borrow_type(field), expected_ft);
-		ret = false;
-		goto end;
-	}
-
-end:
-	return ret;
-}
-
-int bt_packet_set_header(struct bt_packet *packet,
-		struct bt_field *header)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
-	BT_ASSERT_PRE(validate_field_to_set(header,
-		bt_stream_class_borrow_trace(
-			BT_FROM_COMMON(packet->stream->common.stream_class))->common.packet_header_field_type),
-		"Invalid packet header field: "
-		"%![packet-]+a, %![field-]+f", packet, header);
-	bt_put(packet->header);
-	packet->header = bt_get(header);
-	BT_LOGV("Set packet's header field: packet-addr=%p, packet-header-addr=%p",
-		packet, header);
-	return 0;
+	return packet->header ? (void *) packet->header->field : NULL;
 }
 
 struct bt_field *bt_packet_borrow_context(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	return packet->context;
-}
-
-int bt_packet_set_context(struct bt_packet *packet,
-		struct bt_field *context)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
-	BT_ASSERT_PRE(validate_field_to_set(context,
-		BT_FROM_COMMON(packet->stream->common.stream_class->packet_context_field_type)),
-		"Invalid packet context field: "
-		"%![packet-]+a, %![field-]+f", packet, context);
-	bt_put(packet->context);
-	packet->context = bt_get(context);
-	BT_LOGV("Set packet's context field: packet-addr=%p, packet-context-addr=%p",
-		packet, context);
-	return 0;
+	return packet->context ? (void *) packet->context->field : NULL;
 }
 
 BT_HIDDEN
@@ -134,36 +69,141 @@ void _bt_packet_freeze(struct bt_packet *packet)
 	}
 
 	BT_LOGD("Freezing packet: addr=%p", packet);
-	BT_LOGD_STR("Freezing packet's header field.");
-	bt_field_freeze_recursive(packet->header);
-	BT_LOGD_STR("Freezing packet's context field.");
-	bt_field_freeze_recursive(packet->context);
+
+	if (packet->header) {
+		BT_LOGD_STR("Freezing packet's header field.");
+		bt_field_set_is_frozen_recursive((void *) packet->header->field, true);
+	}
+
+	if (packet->context) {
+		BT_LOGD_STR("Freezing packet's context field.");
+		bt_field_set_is_frozen_recursive((void *) packet->context->field, true);
+	}
+
 	packet->frozen = 1;
 }
 
-static
-void bt_packet_destroy(struct bt_object *obj)
+static inline
+void bt_packet_reset(struct bt_packet *packet)
 {
-	struct bt_packet *packet = (void *) obj;
+	BT_ASSERT(packet);
+	packet->frozen = false;
 
+	if (packet->header) {
+		bt_field_set_is_frozen_recursive(
+			(void *) packet->header->field, false);
+		bt_field_reset_recursive((void *) packet->header->field);
+	}
+
+	if (packet->context) {
+		bt_field_set_is_frozen_recursive(
+			(void *) packet->context->field, false);
+		bt_field_reset_recursive((void *) packet->context->field);
+	}
+}
+
+static
+void bt_packet_header_field_recycle(struct bt_field_wrapper *header_field,
+		struct bt_trace *trace)
+{
+	BT_ASSERT(header_field);
+	BT_LIB_LOGD("Recycling packet header field: "
+		"addr=%p, %![trace-]+t, %![field-]+f", header_field,
+		trace, header_field->field);
+	bt_object_pool_recycle_object(&trace->packet_header_field_pool,
+		header_field);
+}
+
+static
+void bt_packet_context_field_recycle(struct bt_field_wrapper *context_field,
+		struct bt_stream_class *stream_class)
+{
+	BT_ASSERT(context_field);
+	BT_LIB_LOGD("Recycling packet context field: "
+		"addr=%p, %![sc-]+S, %![field-]+f", context_field,
+		stream_class, context_field->field);
+	bt_object_pool_recycle_object(&stream_class->packet_context_field_pool,
+		context_field);
+}
+
+BT_HIDDEN
+void bt_packet_recycle(struct bt_packet *packet)
+{
+	struct bt_stream *stream;
+
+	BT_ASSERT(packet);
+	BT_LIB_LOGD("Recycling packet: %!+a", packet);
+
+	/*
+	 * Those are the important ordered steps:
+	 *
+	 * 1. Reset the packet object (put any permanent reference it
+	 *    has, unfreeze it and its fields in developer mode, etc.),
+	 *    but do NOT put its stream's reference. This stream
+	 *    contains the pool to which we're about to recycle this
+	 *    packet object, so we must guarantee its existence thanks
+	 *    to this existing reference.
+	 *
+	 * 2. Move the stream reference to our `stream`
+	 *    variable so that we can set the packet's stream member
+	 *    to NULL before recycling it. We CANNOT do this after
+	 *    we put the stream reference because this bt_put()
+	 *    could destroy the stream, also destroying its
+	 *    packet pool, thus also destroying our packet object (this
+	 *    would result in an invalid write access).
+	 *
+	 * 3. Recycle the packet object.
+	 *
+	 * 4. Put our stream reference.
+	 */
+	bt_packet_reset(packet);
+	stream = packet->stream;
+	BT_ASSERT(stream);
+	packet->stream = NULL;
+	bt_object_pool_recycle_object(&stream->packet_pool, packet);
+	bt_put(stream);
+}
+
+BT_HIDDEN
+void bt_packet_destroy(struct bt_packet *packet)
+{
 	BT_LOGD("Destroying packet: addr=%p", packet);
-	BT_LOGD_STR("Putting packet's header field.");
-	bt_put(packet->header);
-	BT_LOGD_STR("Putting packet's context field.");
-	bt_put(packet->context);
+	BT_LOGD_STR("Destroying packet's header field.");
+
+	if (packet->header) {
+		if (packet->stream) {
+			BT_LOGD_STR("Recycling packet's header field.");
+			bt_packet_header_field_recycle(packet->header,
+				bt_stream_class_borrow_trace(
+					bt_stream_borrow_class(packet->stream)));
+		} else {
+			bt_field_wrapper_destroy(packet->header);
+		}
+	}
+
+	if (packet->context) {
+		if (packet->stream) {
+			BT_LOGD_STR("Recycling packet's context field.");
+			bt_packet_context_field_recycle(packet->context,
+				bt_stream_borrow_class(packet->stream));
+		} else {
+			bt_field_wrapper_destroy(packet->context);
+		}
+	}
+
 	BT_LOGD_STR("Putting packet's stream.");
 	bt_put(packet->stream);
 	g_free(packet);
 }
 
-struct bt_packet *bt_packet_create(
-		struct bt_stream *stream)
+BT_HIDDEN
+struct bt_packet *bt_packet_new(struct bt_stream *stream)
 {
 	struct bt_packet *packet = NULL;
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_trace *trace = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT(stream);
 	BT_LOGD("Creating packet object: stream-addr=%p, "
 		"stream-name=\"%s\", stream-class-addr=%p, "
 		"stream-class-name=\"%s\", stream-class-id=%" PRId64,
@@ -181,16 +221,17 @@ struct bt_packet *bt_packet_create(
 		goto end;
 	}
 
-	bt_object_init(packet, bt_packet_destroy);
+	bt_object_init(packet, (bt_object_release_func) bt_packet_recycle);
 	packet->stream = bt_get(stream);
 
 	if (trace->common.packet_header_field_type) {
 		BT_LOGD("Creating initial packet header field: ft-addr=%p",
 			trace->common.packet_header_field_type);
-		packet->header = bt_field_create(
-			BT_FROM_COMMON(trace->common.packet_header_field_type));
+		packet->header = bt_field_wrapper_create(
+			&trace->packet_header_field_pool,
+			(void *) trace->common.packet_header_field_type);
 		if (!packet->header) {
-			BT_LOGE_STR("Cannot create initial packet header field object.");
+			BT_LOGE("Cannot create packet header field wrapper.");
 			BT_PUT(packet);
 			goto end;
 		}
@@ -199,10 +240,11 @@ struct bt_packet *bt_packet_create(
 	if (stream->common.stream_class->packet_context_field_type) {
 		BT_LOGD("Creating initial packet context field: ft-addr=%p",
 			stream->common.stream_class->packet_context_field_type);
-		packet->context = bt_field_create(
-			BT_FROM_COMMON(stream->common.stream_class->packet_context_field_type));
+		packet->context = bt_field_wrapper_create(
+			&stream_class->packet_context_field_pool,
+			(void *) stream->common.stream_class->packet_context_field_type);
 		if (!packet->context) {
-			BT_LOGE_STR("Cannot create initial packet header field object.");
+			BT_LOGE("Cannot create packet context field wrapper.");
 			BT_PUT(packet);
 			goto end;
 		}
@@ -212,4 +254,83 @@ struct bt_packet *bt_packet_create(
 
 end:
 	return packet;
+}
+
+struct bt_packet *bt_packet_create(struct bt_stream *stream)
+{
+	struct bt_packet *packet = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	packet = bt_object_pool_create_object(&stream->packet_pool);
+	if (!packet) {
+		BT_LIB_LOGE("Cannot allocate one packet from stream's packet pool: "
+			"%![stream-]+s", stream);
+		goto error;
+	}
+
+	if (!packet->stream) {
+		packet->stream = bt_get(stream);
+	}
+
+	goto end;
+
+error:
+	if (packet) {
+		bt_packet_recycle(packet);
+		packet = NULL;
+	}
+
+end:
+	return packet;
+}
+
+int bt_packet_move_header(struct bt_packet *packet,
+		struct bt_packet_header_field *header_field)
+{
+	struct bt_trace *trace;
+	struct bt_field_wrapper *field_wrapper = (void *) header_field;
+
+	BT_ASSERT_PRE_NON_NULL(packet, "Event");
+	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
+	trace = bt_stream_class_borrow_trace(
+		bt_stream_borrow_class(packet->stream));
+	BT_ASSERT_PRE(trace->common.packet_header_field_type,
+		"Trace has no packet header field type: %!+t",
+		trace);
+
+	/* TODO: compare field types (precondition) */
+
+	/* Recycle current header field: always exists */
+	BT_ASSERT(packet->header);
+	bt_packet_header_field_recycle(packet->header, trace);
+
+	/* Move new field */
+	packet->header = field_wrapper;
+	return 0;
+}
+
+int bt_packet_move_context(struct bt_packet *packet,
+		struct bt_packet_context_field *context_field)
+{
+	struct bt_stream_class *stream_class;
+	struct bt_field_wrapper *field_wrapper = (void *) context_field;
+
+	BT_ASSERT_PRE_NON_NULL(packet, "Event");
+	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Context field");
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
+	stream_class = bt_stream_borrow_class(packet->stream);
+	BT_ASSERT_PRE(stream_class->common.packet_context_field_type,
+		"Stream class has no packet context field type: %!+S",
+		stream_class);
+
+	/* TODO: compare field types (precondition) */
+
+	/* Recycle current context field: always exists */
+	BT_ASSERT(packet->context);
+	bt_packet_context_field_recycle(packet->context, stream_class);
+
+	/* Move new field */
+	packet->context = field_wrapper;
+	return 0;
 }

@@ -30,10 +30,12 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
+#include <babeltrace/ctf-ir/event-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
@@ -116,9 +118,19 @@ error:
 static
 void bt_event_class_destroy(struct bt_object *obj)
 {
+	struct bt_event_class *event_class = (void *) obj;
+
 	BT_LOGD("Destroying event class: addr=%p", obj);
 	bt_event_class_common_finalize(obj);
+	bt_object_pool_finalize(&event_class->event_pool);
 	g_free(obj);
+}
+
+static
+void free_event(struct bt_event *event,
+		struct bt_event_class *event_class)
+{
+	bt_event_destroy(event);
 }
 
 struct bt_event_class *bt_event_class_create(const char *name)
@@ -144,6 +156,16 @@ struct bt_event_class *bt_event_class_create(const char *name)
 		(bt_field_type_structure_create_func)
 			bt_field_type_structure_create);
 	if (ret) {
+		goto error;
+	}
+
+	ret = bt_object_pool_initialize(&event_class->event_pool,
+		(bt_object_pool_new_object_func) bt_event_new,
+		(bt_object_pool_destroy_object_func) free_event,
+		event_class);
+	if (ret) {
+		BT_LOGE("Failed to initialize event pool: ret=%d",
+			ret);
 		goto error;
 	}
 
@@ -298,6 +320,46 @@ int bt_event_class_common_validate_single_clock_class(
 			event_class->id,
 			event_class->payload_field_type);
 		goto end;
+	}
+
+end:
+	return ret;
+}
+
+BT_HIDDEN
+int bt_event_class_update_event_pool_clock_values(
+		struct bt_event_class *event_class)
+{
+	int ret = 0;
+	uint64_t i;
+	struct bt_stream_class *stream_class =
+		bt_event_class_borrow_stream_class(event_class);
+
+	BT_ASSERT(stream_class->common.clock_class);
+
+	for (i = 0; i < event_class->event_pool.size; i++) {
+		struct bt_clock_value *cv;
+		struct bt_event *event =
+			event_class->event_pool.objects->pdata[i];
+
+		BT_ASSERT(event);
+
+		cv = g_hash_table_lookup(event->clock_values,
+			stream_class->common.clock_class);
+		if (cv) {
+			continue;
+		}
+
+		cv = bt_clock_value_create(stream_class->common.clock_class);
+		if (!cv) {
+			BT_LIB_LOGE("Cannot create clock value from clock class: "
+				"%![cc-]+K", stream_class->common.clock_class);
+			ret = -1;
+			goto end;
+		}
+
+		g_hash_table_insert(event->clock_values,
+			stream_class->common.clock_class, cv);
 	}
 
 end:
