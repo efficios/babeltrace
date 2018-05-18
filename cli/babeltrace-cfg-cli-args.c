@@ -2604,7 +2604,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			break;
 		case OPT_RETRY_DURATION:
 			if (retry_duration < 0) {
-				printf_err("--retry-duration option's argument must be positive or 0: %lld\n",
+				printf_err("--retry-duration option's argument must be positive or 0: %ld\n",
 					retry_duration);
 				goto error;
 			}
