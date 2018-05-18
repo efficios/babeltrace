@@ -157,21 +157,6 @@ void destroy_enumeration_mapping(struct enumeration_mapping *mapping)
 	g_free(mapping);
 }
 
-static
-void destroy_structure_field_common(struct structure_field_common *field)
-{
-	if (!field) {
-		return;
-	}
-
-	BT_LOGD("Destroying structure/variant field type's field object: "
-		"addr=%p, field-ft-addr=%p, field-name=\"%s\"",
-		field, field->type, g_quark_to_string(field->name));
-	BT_LOGD_STR("Putting field type.");
-	bt_put(field->type);
-	g_free(field);
-}
-
 BT_HIDDEN
 void bt_field_type_common_initialize(struct bt_field_type_common *ft,
 		bool init_bo, bt_object_release_func release_func,
@@ -282,8 +267,8 @@ void bt_field_type_common_structure_initialize(
 
 	BT_LOGD_STR("Initializing common structure field type object.");
 	ft->id = BT_FIELD_TYPE_ID_STRUCT;
-	struct_ft->fields = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) destroy_structure_field_common);
+	struct_ft->fields = g_array_new(FALSE, TRUE,
+		sizeof(struct bt_field_type_common_structure_field));
 	struct_ft->field_name_to_index = g_hash_table_new(NULL, NULL);
 	bt_field_type_common_initialize(ft, true, release_func, methods);
 	BT_LOGD("Initialized common structure field type object: addr=%p", ft);
@@ -349,9 +334,9 @@ void bt_field_type_common_variant_initialize(
 		tag_ft, tag_name);
 	ft->id = BT_FIELD_TYPE_ID_VARIANT;
 	var_ft->tag_name = g_string_new(tag_name);
-	var_ft->field_name_to_index = g_hash_table_new(NULL, NULL);
-	var_ft->fields = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) destroy_structure_field_common);
+	var_ft->choice_name_to_index = g_hash_table_new(NULL, NULL);
+	var_ft->choices = g_array_new(FALSE, TRUE,
+		sizeof(struct bt_field_type_common_variant_choice));
 
 	if (tag_ft) {
 		var_ft->tag_ft = bt_get(tag_ft);
@@ -422,19 +407,47 @@ void bt_field_type_common_string_destroy(struct bt_object *obj)
 	g_free(ft);
 }
 
+static
+void bt_field_type_common_structure_field_finalize(
+		struct bt_field_type_common_structure_field *field)
+{
+	if (!field) {
+		return;
+	}
+
+	BT_LOGD("Finalizing structure field type's field: "
+		"addr=%p, field-ft-addr=%p, field-name=\"%s\"",
+		field, field->type, g_quark_to_string(field->name));
+	BT_LOGD_STR("Putting field type.");
+	bt_put(field->type);
+}
 
 BT_HIDDEN
 void bt_field_type_common_structure_destroy_recursive(struct bt_object *obj)
 {
 	struct bt_field_type_common_structure *ft = (void *) obj;
+	uint64_t i;
 
 	if (!ft) {
 		return;
 	}
 
 	BT_LOGD("Destroying structure field type object: addr=%p", ft);
-	g_ptr_array_free(ft->fields, TRUE);
-	g_hash_table_destroy(ft->field_name_to_index);
+
+	if (ft->fields) {
+		for (i = 0; i < ft->fields->len; i++) {
+			bt_field_type_common_structure_field_finalize(
+				BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+					ft, i));
+		}
+
+		g_array_free(ft->fields, TRUE);
+	}
+
+	if (ft->field_name_to_index) {
+		g_hash_table_destroy(ft->field_name_to_index);
+	}
+
 	g_free(ft);
 }
 
@@ -471,19 +484,55 @@ void bt_field_type_common_sequence_destroy_recursive(struct bt_object *obj)
 	g_free(ft);
 }
 
+static
+void bt_field_type_common_variant_choice_finalize(
+		struct bt_field_type_common_variant_choice *choice)
+{
+	if (!choice) {
+		return;
+	}
+
+	BT_LOGD("Finalizing variant field type's choice: "
+		"addr=%p, field-ft-addr=%p, field-name=\"%s\"",
+		choice, choice->type, g_quark_to_string(choice->name));
+	BT_LOGD_STR("Putting field type.");
+	bt_put(choice->type);
+
+	if (choice->ranges) {
+		g_array_free(choice->ranges, TRUE);
+	}
+}
+
 BT_HIDDEN
 void bt_field_type_common_variant_destroy_recursive(struct bt_object *obj)
 {
 	struct bt_field_type_common_variant *ft = (void *) obj;
+	uint64_t i;
 
 	if (!ft) {
 		return;
 	}
 
 	BT_LOGD("Destroying variant field type object: addr=%p", ft);
-	g_ptr_array_free(ft->fields, TRUE);
-	g_hash_table_destroy(ft->field_name_to_index);
-	g_string_free(ft->tag_name, TRUE);
+
+	if (ft->choices) {
+		for (i = 0; i < ft->choices->len; i++) {
+			bt_field_type_common_variant_choice_finalize(
+				BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+					ft, i));
+		}
+
+		g_array_free(ft->choices, TRUE);
+	}
+
+	if (ft->choice_name_to_index) {
+		g_hash_table_destroy(ft->choice_name_to_index);
+	}
+
+	if (ft->tag_name) {
+		g_string_free(ft->tag_name, TRUE);
+	}
+
 	BT_LOGD_STR("Putting tag field type.");
 	bt_put(ft->tag_ft);
 	BT_LOGD_STR("Putting tag field path.");
@@ -582,13 +631,15 @@ gint compare_enumeration_mappings_unsigned(struct enumeration_mapping **a,
 }
 
 static
-int add_structure_field(GPtrArray *fields,
+int add_structure_variant_member(GArray *members,
 		GHashTable *field_name_to_index,
-		struct bt_field_type_common *field_type, const char *field_name)
+		struct bt_field_type_common *field_type, const char *field_name,
+		bool is_variant)
 {
 	int ret = 0;
 	GQuark name_quark = g_quark_from_string(field_name);
-	struct structure_field_common *field;
+	struct bt_field_type_common **member_ft;
+	GQuark *member_name;
 
 	/* Make sure structure does not contain a field of the same name */
 	if (g_hash_table_lookup_extended(field_name_to_index,
@@ -599,21 +650,38 @@ int add_structure_field(GPtrArray *fields,
 		goto end;
 	}
 
-	field = g_new0(struct structure_field_common, 1);
-	if (!field) {
-		BT_LOGE_STR("Failed to allocate one structure/variant field type field.");
-		ret = -1;
-		goto end;
+	g_array_set_size(members, members->len + 1);
+
+	if (is_variant) {
+		struct bt_field_type_common_variant_choice *choice =
+			&g_array_index(members,
+				struct bt_field_type_common_variant_choice,
+				members->len - 1);
+
+		member_ft = &choice->type;
+		member_name = &choice->name;
+		BT_ASSERT(!choice->ranges);
+		choice->ranges = g_array_new(FALSE, TRUE,
+			sizeof(struct bt_field_type_common_variant_choice_range));
+		BT_ASSERT(choice->ranges);
+	} else {
+		struct bt_field_type_common_structure_field *field =
+			&g_array_index(members,
+				struct bt_field_type_common_structure_field,
+				members->len - 1);
+
+		member_ft = &field->type;
+		member_name = &field->name;
 	}
 
-	bt_get(field_type);
-	field->name = name_quark;
-	field->type = field_type;
+	*member_name = name_quark;
+	*member_ft = bt_get(field_type);
 	g_hash_table_insert(field_name_to_index,
-		GUINT_TO_POINTER(name_quark), GUINT_TO_POINTER(fields->len));
-	g_ptr_array_add(fields, field);
-	BT_LOGV("Added structure/variant field type field: field-ft-addr=%p, "
-		"field-name=\"%s\"", field_type, field_name);
+		GUINT_TO_POINTER(name_quark),
+		GUINT_TO_POINTER(members->len - 1));
+	BT_LOGV("Added structure/variant field type member: member-ft-addr=%p, "
+		"member-name=\"%s\"", field_type, field_name);
+
 end:
 	return ret;
 }
@@ -2149,8 +2217,8 @@ int bt_field_type_common_structure_replace_field(
 	name_quark = g_quark_from_string(field_name);
 
 	for (i = 0; i < struct_ft->fields->len; i++) {
-		struct structure_field_common *field = g_ptr_array_index(
-			struct_ft->fields, i);
+		struct bt_field_type_common_structure_field *field =
+			BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(ft, i);
 
 		if (field->name == name_quark) {
 			bt_put(field->type);
@@ -2207,8 +2275,9 @@ int bt_field_type_common_structure_add_field(struct bt_field_type_common *ft,
 		goto end;
 	}
 
-	if (add_structure_field(struct_ft->fields,
-			struct_ft->field_name_to_index, field_type, field_name)) {
+	if (add_structure_variant_member(struct_ft->fields,
+			struct_ft->field_name_to_index, field_type, field_name,
+			false)) {
 		BT_LOGW("Cannot add field to structure field type: "
 			"struct-ft-addr=%p, field-ft-addr=%p, field-name=\"%s\"",
 			ft, field_type, field_name);
@@ -2256,7 +2325,7 @@ int bt_field_type_common_structure_borrow_field_by_index(
 		struct bt_field_type_common **field_type, uint64_t index)
 {
 	struct bt_field_type_common_structure *struct_ft = BT_FROM_COMMON(ft);
-	struct structure_field_common *field;
+	struct bt_field_type_common_structure_field *field;
 
 	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_STRUCT,
@@ -2265,7 +2334,7 @@ int bt_field_type_common_structure_borrow_field_by_index(
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u, %![ft-]+_F",
 		index, struct_ft->fields->len, ft);
-	field = g_ptr_array_index(struct_ft->fields, index);
+	field = BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(struct_ft, index);
 
 	if (field_type) {
 		*field_type = field->type;
@@ -2295,7 +2364,7 @@ bt_field_type_common_structure_borrow_field_type_by_name(
 {
 	size_t index;
 	GQuark name_quark;
-	struct structure_field_common *field;
+	struct bt_field_type_common_structure_field *field;
 	struct bt_field_type_common_structure *struct_ft = BT_FROM_COMMON(ft);
 	struct bt_field_type_common *field_type = NULL;
 
@@ -2319,7 +2388,7 @@ bt_field_type_common_structure_borrow_field_type_by_name(
 		goto end;
 	}
 
-	field = struct_ft->fields->pdata[index];
+	field = BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(ft, index);
 	field_type = field->type;
 
 end:
@@ -2549,8 +2618,9 @@ int bt_field_type_common_variant_add_field(struct bt_field_type_common *ft,
 		}
 	}
 
-	if (add_structure_field(var_ft->fields, var_ft->field_name_to_index,
-			field_type, field_name)) {
+	if (add_structure_variant_member(var_ft->choices,
+			var_ft->choice_name_to_index, field_type,
+			field_name, true)) {
 		BT_LOGW("Cannot add field to variant field type: "
 			"variant-ft-addr=%p, field-ft-addr=%p, field-name=\"%s\"",
 			ft, field_type, field_name);
@@ -2582,7 +2652,7 @@ bt_field_type_common_variant_borrow_field_type_by_name(
 {
 	size_t index;
 	GQuark name_quark;
-	struct structure_field_common *field;
+	struct bt_field_type_common_variant_choice *choice;
 	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
 	struct bt_field_type_common *field_type = NULL;
 
@@ -2598,7 +2668,7 @@ bt_field_type_common_variant_borrow_field_type_by_name(
 		goto end;
 	}
 
-	if (!g_hash_table_lookup_extended(var_ft->field_name_to_index,
+	if (!g_hash_table_lookup_extended(var_ft->choice_name_to_index,
 			GUINT_TO_POINTER(name_quark), NULL, (gpointer *) &index)) {
 		BT_LOGV("No such variant field type field name: "
 			"ft-addr=%p, field-name=\"%s\"",
@@ -2606,8 +2676,8 @@ bt_field_type_common_variant_borrow_field_type_by_name(
 		goto end;
 	}
 
-	field = g_ptr_array_index(var_ft->fields, index);
-	field_type = field->type;
+	choice = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(ft, index);
+	field_type = choice->type;
 
 end:
 	return field_type;
@@ -2622,56 +2692,6 @@ struct bt_field_type *bt_field_type_variant_borrow_field_type_by_name(
 }
 
 BT_HIDDEN
-struct bt_field_type_common *
-bt_field_type_common_variant_borrow_field_type_from_tag(
-		struct bt_field_type_common *ft,
-		struct bt_field_common *tag_field,
-		bt_field_common_create_func field_create_func)
-{
-	int ret;
-	const char *enum_value;
-	struct bt_field_type_common *field_type = NULL;
-	struct bt_field_type_enumeration_mapping_iterator *iter = NULL;
-
-	BT_ASSERT_PRE_NON_NULL(ft, "Variant field type");
-	BT_ASSERT_PRE_NON_NULL(tag_field, "Tag field");
-	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_VARIANT,
-		"Field type");
-	iter = bt_field_common_enumeration_get_mappings(tag_field,
-		field_create_func);
-	ret = bt_field_type_enumeration_mapping_iterator_next(iter);
-	if (!iter || ret) {
-		BT_LOGW("Cannot get enumeration field type mapping iterator from enumeration field: "
-			"enum-field-addr=%p", tag_field);
-		goto end;
-	}
-
-	ret = bt_field_type_enumeration_mapping_iterator_signed_get(iter,
-		&enum_value, NULL, NULL);
-	if (ret) {
-		BT_LOGW("Cannot get enumeration field type mapping iterator's current mapping: "
-			"iter-addr=%p", iter);
-		goto end;
-	}
-
-	field_type = bt_field_type_common_variant_borrow_field_type_by_name(
-		ft, enum_value);
-
-end:
-	bt_put(iter);
-	return field_type;
-}
-
-struct bt_field_type *bt_field_type_variant_borrow_field_type_from_tag(
-		struct bt_field_type *ft,
-		struct bt_field *tag_field)
-{
-	return (void *) bt_field_type_common_variant_borrow_field_type_from_tag(
-		(void *) ft, (void *) tag_field,
-		(bt_field_common_create_func) bt_field_create);
-}
-
-BT_HIDDEN
 int64_t bt_field_type_common_variant_get_field_count(
 		struct bt_field_type_common *ft)
 {
@@ -2680,7 +2700,7 @@ int64_t bt_field_type_common_variant_get_field_count(
 	BT_ASSERT_PRE_NON_NULL(ft, "Variant field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_VARIANT,
 		"Field type");
-	return (int64_t) var_ft->fields->len;
+	return (int64_t) var_ft->choices->len;
 }
 
 int64_t bt_field_type_variant_get_field_count(struct bt_field_type *ft)
@@ -2695,23 +2715,23 @@ int bt_field_type_common_variant_borrow_field_by_index(
 		struct bt_field_type_common **field_type, uint64_t index)
 {
 	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
-	struct structure_field_common *field;
+	struct bt_field_type_common_variant_choice *choice;
 
 	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
 	BT_ASSERT_PRE_FT_COMMON_HAS_ID(ft, BT_FIELD_TYPE_ID_VARIANT,
 		"Field type");
-	BT_ASSERT_PRE(index < var_ft->fields->len,
+	BT_ASSERT_PRE(index < var_ft->choices->len,
 		"Index is out of bounds: index=%" PRIu64 ", "
 		"count=%u, %![ft-]+_F",
-		index, var_ft->fields->len, ft);
-	field = g_ptr_array_index(var_ft->fields, index);
+		index, var_ft->choices->len, ft);
+	choice = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(ft, index);
 
 	if (field_type) {
-		*field_type = field->type;
+		*field_type = choice->type;
 	}
 
 	if (field_name) {
-		*field_name = g_quark_to_string(field->name);
+		*field_name = g_quark_to_string(choice->name);
 		BT_ASSERT(*field_name);
 	}
 
@@ -2724,6 +2744,63 @@ int bt_field_type_variant_borrow_field_by_index(struct bt_field_type *ft,
 {
 	return bt_field_type_common_variant_borrow_field_by_index((void *) ft,
 		field_name, (void *) field_type, index);
+}
+
+BT_HIDDEN
+int64_t bt_field_type_common_variant_find_choice_index(
+		struct bt_field_type_common *ft, uint64_t uval,
+		bool is_signed)
+{
+	int64_t ret;
+	uint64_t i;
+	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
+
+	BT_ASSERT(ft);
+	BT_ASSERT(ft->id == BT_FIELD_TYPE_ID_VARIANT);
+
+	if (bt_field_type_common_variant_update_choices(ft)) {
+		ret = INT64_C(-1);
+		goto end;
+	}
+
+	for (i = 0; i < var_ft->choices->len; i++) {
+		uint64_t range_i;
+		struct bt_field_type_common_variant_choice *choice =
+			BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+				var_ft, i);
+
+		for (range_i = 0; range_i < choice->ranges->len; range_i++) {
+			struct bt_field_type_common_variant_choice_range *range =
+				&g_array_index(
+					choice->ranges,
+					struct bt_field_type_common_variant_choice_range,
+					range_i);
+
+			if (is_signed) {
+				int64_t tag_ival = (int64_t) uval;
+
+				if (tag_ival >= range->lower.i &&
+						tag_ival <= range->upper.i) {
+					goto found;
+				}
+			} else {
+				if (uval >= range->lower.u &&
+						uval <= range->upper.u) {
+					goto found;
+				}
+			}
+		}
+	}
+
+	/* Range not found */
+	ret = INT64_C(-1);
+	goto end;
+
+found:
+	ret = (int64_t) i;
+
+end:
+	return ret;
 }
 
 struct bt_field_type *bt_field_type_array_create(
@@ -3379,7 +3456,7 @@ bt_field_type_common_variant_borrow_field_type_signed(
 	struct bt_field_type_common *field_type = NULL;
 	GQuark field_name_quark;
 	gpointer index;
-	struct structure_field_common *field_entry;
+	struct bt_field_type_common_variant_choice *choice;
 	struct range_overlap_query query = {
 		.range_start._signed = tag_value,
 		.range_end._signed = tag_value,
@@ -3394,13 +3471,14 @@ bt_field_type_common_variant_borrow_field_type_signed(
 	}
 
 	field_name_quark = query.mapping_name;
-	if (!g_hash_table_lookup_extended(var_ft->field_name_to_index,
+	if (!g_hash_table_lookup_extended(var_ft->choice_name_to_index,
 			GUINT_TO_POINTER(field_name_quark), NULL, &index)) {
 		goto end;
 	}
 
-	field_entry = g_ptr_array_index(var_ft->fields, (size_t) index);
-	field_type = field_entry->type;
+	choice = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(var_ft,
+		(size_t) index);
+	field_type = choice->type;
 
 end:
 	return field_type;
@@ -3415,7 +3493,7 @@ bt_field_type_common_variant_borrow_field_type_unsigned(
 	struct bt_field_type_common *field_type = NULL;
 	GQuark field_name_quark;
 	gpointer index;
-	struct structure_field_common *field_entry;
+	struct bt_field_type_common_variant_choice *choice;
 	struct range_overlap_query query = {
 		.range_start._unsigned = tag_value,
 		.range_end._unsigned = tag_value,
@@ -3430,13 +3508,15 @@ bt_field_type_common_variant_borrow_field_type_unsigned(
 	}
 
 	field_name_quark = query.mapping_name;
-	if (!g_hash_table_lookup_extended(var_ft->field_name_to_index,
+	if (!g_hash_table_lookup_extended(var_ft->choice_name_to_index,
 		GUINT_TO_POINTER(field_name_quark), NULL, &index)) {
 		goto end;
 	}
 
-	field_entry = g_ptr_array_index(var_ft->fields, (size_t) index);
-	field_type = field_entry->type;
+	choice = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(var_ft,
+		(size_t) index);
+	field_type = choice->type;
+
 end:
 	return field_type;
 }
@@ -3527,7 +3607,7 @@ int bt_field_type_common_variant_get_field_name_index(
 		goto end;
 	}
 
-	if (!g_hash_table_lookup_extended(var_ft->field_name_to_index,
+	if (!g_hash_table_lookup_extended(var_ft->choice_name_to_index,
 			GUINT_TO_POINTER(name_quark),
 			NULL, (gpointer *) &index)) {
 		BT_LOGV("No such variant field type field name: "
@@ -3661,27 +3741,84 @@ void bt_field_type_common_enumeration_freeze_recursive(
 	bt_field_type_common_freeze(BT_TO_COMMON(enum_ft->container_ft));
 }
 
-static
-void freeze_structure_field(struct structure_field_common *field)
-{
-	BT_LOGD("Freezing structure/variant field type field: field-addr=%p, "
-		"field-ft-addr=%p, field-name=\"%s\"", field,
-		field->type, g_quark_to_string(field->name));
-	bt_field_type_common_freeze(field->type);
-}
-
 BT_HIDDEN
 void bt_field_type_common_structure_freeze_recursive(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_structure *struct_ft = BT_FROM_COMMON(ft);
+	uint64_t i;
 
 	/* Cache the alignment */
 	BT_LOGD("Freezing structure field type object: addr=%p", ft);
 	ft->alignment = bt_field_type_common_get_alignment(ft);
 	bt_field_type_common_generic_freeze(ft);
-	g_ptr_array_foreach(struct_ft->fields,
-		(GFunc) freeze_structure_field, NULL);
+
+	for (i = 0; i < struct_ft->fields->len; i++) {
+		struct bt_field_type_common_structure_field *field =
+			BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(ft, i);
+
+		BT_LOGD("Freezing structure field type field: "
+			"ft-addr=%p, name=\"%s\"",
+			field->type, g_quark_to_string(field->name));
+		bt_field_type_common_freeze(field->type);
+	}
+}
+
+BT_HIDDEN
+int bt_field_type_common_variant_update_choices(struct bt_field_type_common *ft)
+{
+	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
+	uint64_t i;
+	int ret = 0;
+	bool is_signed;
+
+	if (ft->frozen && var_ft->choices_up_to_date) {
+		goto end;
+	}
+
+	BT_ASSERT(var_ft->tag_ft);
+	is_signed = !!var_ft->tag_ft->container_ft->is_signed;
+
+	for (i = 0; i < var_ft->choices->len; i++) {
+		struct bt_field_type_common_variant_choice *choice =
+			BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(ft, i);
+		const char *choice_name = g_quark_to_string(choice->name);
+		struct bt_field_type_enumeration_mapping_iterator *iter =
+			bt_field_type_common_enumeration_find_mappings_by_name(
+				BT_TO_COMMON(var_ft->tag_ft), choice_name);
+
+		if (!iter) {
+			ret = -1;
+			goto end;
+		}
+
+		BT_ASSERT(choice->ranges);
+		g_array_set_size(choice->ranges, 0);
+
+		while (bt_field_type_enumeration_mapping_iterator_next(iter) == 0) {
+			struct bt_field_type_common_variant_choice_range range;
+
+			if (is_signed) {
+				ret = bt_field_type_enumeration_mapping_iterator_signed_get(
+					iter, NULL,
+					&range.lower.i, &range.upper.i);
+			} else {
+				ret = bt_field_type_enumeration_mapping_iterator_unsigned_get(
+					iter, NULL,
+					&range.lower.u, &range.upper.u);
+			}
+
+			BT_ASSERT(ret == 0);
+			g_array_append_val(choice->ranges, range);
+		}
+
+		bt_put(iter);
+	}
+
+	var_ft->choices_up_to_date = true;
+
+end:
+	return ret;
 }
 
 BT_HIDDEN
@@ -3689,11 +3826,20 @@ void bt_field_type_common_variant_freeze_recursive(
 		struct bt_field_type_common *ft)
 {
 	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
+	uint64_t i;
 
 	BT_LOGD("Freezing variant field type object: addr=%p", ft);
 	bt_field_type_common_generic_freeze(ft);
-	g_ptr_array_foreach(var_ft->fields,
-		(GFunc) freeze_structure_field, NULL);
+
+	for (i = 0; i < var_ft->choices->len; i++) {
+		struct bt_field_type_common_variant_choice *choice =
+			BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(ft, i);
+
+		BT_LOGD("Freezing variant field type member: "
+			"ft-addr=%p, name=\"%s\"",
+			choice->type, g_quark_to_string(choice->name));
+		bt_field_type_common_freeze(choice->type);
+	}
 }
 
 BT_HIDDEN
@@ -3763,8 +3909,9 @@ void bt_field_type_common_structure_set_byte_order_recursive(
 	struct bt_field_type_common_structure *struct_ft = BT_FROM_COMMON(ft);
 
 	for (i = 0; i < struct_ft->fields->len; i++) {
-		struct structure_field_common *field = g_ptr_array_index(
-			struct_ft->fields, i);
+		struct bt_field_type_common_structure_field *field =
+			BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+				struct_ft, i);
 		struct bt_field_type_common *field_type = field->type;
 
 		bt_field_type_common_set_byte_order(field_type, byte_order);
@@ -3779,10 +3926,11 @@ void bt_field_type_common_variant_set_byte_order_recursive(
 	int i;
 	struct bt_field_type_common_variant *var_ft = BT_FROM_COMMON(ft);
 
-	for (i = 0; i < var_ft->fields->len; i++) {
-		struct structure_field_common *field = g_ptr_array_index(
-			var_ft->fields, i);
-		struct bt_field_type_common *field_type = field->type;
+	for (i = 0; i < var_ft->choices->len; i++) {
+		struct bt_field_type_common_variant_choice *choice =
+			BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+				var_ft, i);
+		struct bt_field_type_common *field_type = choice->type;
 
 		bt_field_type_common_set_byte_order(field_type, byte_order);
 	}
@@ -4056,27 +4204,29 @@ end:
 }
 
 static
-int compare_structure_fields(struct structure_field_common *field_a,
-		struct structure_field_common *field_b)
+int compare_structure_variant_members(
+		struct bt_field_type_common *member_a_ft,
+		struct bt_field_type_common *member_b_ft,
+		GQuark member_a_name, GQuark member_b_name)
 {
 	int ret = 1;
 
 	/* Label */
-	if (field_a->name != field_b->name) {
+	if (member_a_name != member_b_name) {
 		BT_LOGV("Structure/variant field type fields differ: different names: "
 			"field-a-name=%s, field-b-name=%s",
-			g_quark_to_string(field_a->name),
-			g_quark_to_string(field_b->name));
+			g_quark_to_string(member_a_name),
+			g_quark_to_string(member_b_name));
 		goto end;
 	}
 
 	/* Type */
-	ret = bt_field_type_common_compare(field_a->type, field_b->type);
+	ret = bt_field_type_common_compare(member_a_ft, member_b_ft);
 	if (ret == 1) {
 		BT_LOGV("Structure/variant field type fields differ: different field types: "
 			"field-name=\"%s\", field-a-ft-addr=%p, field-b-ft-addr=%p",
-			g_quark_to_string(field_a->name),
-			field_a->type, field_b->type);
+			g_quark_to_string(member_a_name),
+			member_a_ft, member_b_ft);
 	}
 
 end:
@@ -4114,14 +4264,17 @@ int bt_field_type_common_structure_compare_recursive(
 	}
 
 	for (i = 0; i < struct_ft_a->fields->len; ++i) {
-		struct structure_field_common *field_a =
-			g_ptr_array_index(struct_ft_a->fields, i);
-		struct structure_field_common *field_b =
-			g_ptr_array_index(struct_ft_b->fields, i);
+		struct bt_field_type_common_structure_field *field_a =
+			BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+				struct_ft_a, i);
+		struct bt_field_type_common_structure_field *field_b =
+			BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+				struct_ft_b, i);
 
-		ret = compare_structure_fields(field_a, field_b);
+		ret = compare_structure_variant_members(field_a->type,
+			field_b->type, field_a->name, field_b->name);
 		if (ret) {
-			/* compare_structure_fields() logs what differs */
+			/* compare_structure_variant_members() logs what differs */
 			BT_LOGV_STR("Structure field types differ: different fields.");
 			goto end;
 		}
@@ -4165,22 +4318,25 @@ int bt_field_type_common_variant_compare_recursive(
 	ret = 1;
 
 	/* Fields */
-	if (var_ft_a->fields->len != var_ft_b->fields->len) {
-		BT_LOGV("Structure field types differ: different field counts: "
+	if (var_ft_a->choices->len != var_ft_b->choices->len) {
+		BT_LOGV("Variant field types differ: different field counts: "
 			"ft-a-field-count=%u, ft-b-field-count=%u",
-			var_ft_a->fields->len, var_ft_b->fields->len);
+			var_ft_a->choices->len, var_ft_b->choices->len);
 		goto end;
 	}
 
-	for (i = 0; i < var_ft_a->fields->len; ++i) {
-		struct structure_field_common *field_a =
-			g_ptr_array_index(var_ft_a->fields, i);
-		struct structure_field_common *field_b =
-			g_ptr_array_index(var_ft_b->fields, i);
+	for (i = 0; i < var_ft_a->choices->len; ++i) {
+		struct bt_field_type_common_variant_choice *choice_a =
+			BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+				var_ft_a, i);
+		struct bt_field_type_common_variant_choice *choice_b =
+			BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+				var_ft_b, i);
 
-		ret = compare_structure_fields(field_a, field_b);
+		ret = compare_structure_variant_members(choice_a->type,
+			choice_b->type, choice_a->name, choice_b->name);
 		if (ret) {
-			/* compare_structure_fields() logs what differs */
+			/* compare_structure_variant_members() logs what differs */
 			BT_LOGV_STR("Variant field types differ: different fields.");
 			goto end;
 		}
@@ -4594,10 +4750,10 @@ struct bt_field_type *bt_field_type_integer_copy(
 	struct bt_field_type_common_integer *int_ft = (void *) ft;
 	struct bt_field_type_common_integer *copy_ft;
 
-	BT_LOGD("Copying CTF writer integer field type's: addr=%p", ft);
+	BT_LOGD("Copying integer field type's: addr=%p", ft);
 	copy_ft = (void *) bt_field_type_integer_create(int_ft->size);
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer integer field type.");
+		BT_LOGE_STR("Cannot create integer field type.");
 		goto end;
 	}
 
@@ -4607,7 +4763,7 @@ struct bt_field_type *bt_field_type_integer_copy(
 	copy_ft->size = int_ft->size;
 	copy_ft->base = int_ft->base;
 	copy_ft->encoding = int_ft->encoding;
-	BT_LOGD("Copied CTF writer integer field type: original-ft-addr=%p, copy-ft-addr=%p",
+	BT_LOGD("Copied integer field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:
@@ -4623,21 +4779,21 @@ struct bt_field_type *bt_field_type_enumeration_copy_recursive(
 	struct bt_field_type_common_enumeration *copy_ft = NULL;
 	struct bt_field_type_common_enumeration *container_copy_ft;
 
-	BT_LOGD("Copying CTF writer enumeration field type's: addr=%p", ft);
+	BT_LOGD("Copying enumeration field type's: addr=%p", ft);
 
 	/* Copy the source enumeration's container */
-	BT_LOGD_STR("Copying CTF writer enumeration field type's container field type.");
+	BT_LOGD_STR("Copying enumeration field type's container field type.");
 	container_copy_ft = BT_FROM_COMMON(bt_field_type_common_copy(
 		BT_TO_COMMON(enum_ft->container_ft)));
 	if (!container_copy_ft) {
-		BT_LOGE_STR("Cannot copy CTF writer enumeration field type's container field type.");
+		BT_LOGE_STR("Cannot copy enumeration field type's container field type.");
 		goto end;
 	}
 
 	copy_ft = (void *) bt_field_type_enumeration_create(
 		(void *) container_copy_ft);
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer enumeration field type.");
+		BT_LOGE_STR("Cannot create enumeration field type.");
 		goto end;
 	}
 
@@ -4657,7 +4813,7 @@ struct bt_field_type *bt_field_type_enumeration_copy_recursive(
 		g_ptr_array_add(copy_ft->entries, copy_mapping);
 	}
 
-	BT_LOGD("Copied CTF writer enumeration field type: original-ft-addr=%p, copy-ft-addr=%p",
+	BT_LOGD("Copied enumeration field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:
@@ -4677,17 +4833,17 @@ struct bt_field_type *bt_field_type_floating_point_copy(
 	struct bt_field_type_common_floating_point *flt_ft = BT_FROM_COMMON(ft);
 	struct bt_field_type_common_floating_point *copy_ft;
 
-	BT_LOGD("Copying CTF writer floating point number field type's: addr=%p", ft);
+	BT_LOGD("Copying floating point number field type's: addr=%p", ft);
 	copy_ft = (void *) bt_field_type_floating_point_create();
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer floating point number field type.");
+		BT_LOGE_STR("Cannot create floating point number field type.");
 		goto end;
 	}
 
 	copy_ft->user_byte_order = flt_ft->user_byte_order;
 	copy_ft->exp_dig = flt_ft->exp_dig;
 	copy_ft->mant_dig = flt_ft->mant_dig;
-	BT_LOGD("Copied CTF writer floating point number field type: original-ft-addr=%p, copy-ft-addr=%p",
+	BT_LOGD("Copied floating point number field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:
@@ -4704,10 +4860,10 @@ struct bt_field_type *bt_field_type_structure_copy_recursive(
 	struct bt_field_type_common_structure *struct_ft = (void *) ft;
 	struct bt_field_type_common_structure *copy_ft;
 
-	BT_LOGD("Copying CTF writer structure field type's: addr=%p", ft);
+	BT_LOGD("Copying structure field type's: addr=%p", ft);
 	copy_ft = (void *) bt_field_type_structure_create();
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer structure field type.");
+		BT_LOGE_STR("Cannot create structure field type.");
 		goto end;
 	}
 
@@ -4718,38 +4874,36 @@ struct bt_field_type *bt_field_type_structure_copy_recursive(
 			key, value);
 	}
 
+	g_array_set_size(copy_ft->fields, struct_ft->fields->len);
+
 	for (i = 0; i < struct_ft->fields->len; i++) {
-		struct structure_field_common *entry, *copy_entry;
+		struct bt_field_type_common_structure_field *entry, *copy_entry;
 		struct bt_field_type_common *field_ft_copy;
 
-		entry = g_ptr_array_index(struct_ft->fields, i);
-		BT_LOGD("Copying CTF writer structure field type's field: "
+		entry = BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+			struct_ft, i);
+		copy_entry = BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(
+			copy_ft, i);
+		BT_LOGD("Copying structure field type's field: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, entry, g_quark_to_string(entry->name));
-		copy_entry = g_new0(struct structure_field_common, 1);
-		if (!copy_entry) {
-			BT_LOGE_STR("Failed to allocate one structure field type field.");
-			goto error;
-		}
 
 		field_ft_copy = (void *) bt_field_type_copy(
 			(void *) entry->type);
 		if (!field_ft_copy) {
-			BT_LOGE("Cannot copy CTF writer structure field type's field: "
+			BT_LOGE("Cannot copy structure field type's field: "
 				"index=%" PRId64 ", "
 				"field-ft-addr=%p, field-name=\"%s\"",
 				i, entry, g_quark_to_string(entry->name));
-			g_free(copy_entry);
 			goto error;
 		}
 
 		copy_entry->name = entry->name;
 		copy_entry->type = field_ft_copy;
-		g_ptr_array_add(copy_ft->fields, copy_entry);
 	}
 
-	BT_LOGD("Copied CTF writer structure field type: original-ft-addr=%p, copy-ft-addr=%p",
+	BT_LOGD("Copied structure field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:
@@ -4771,13 +4925,13 @@ struct bt_field_type *bt_field_type_variant_copy_recursive(
 	struct bt_field_type_common_variant *var_ft = (void *) ft;
 	struct bt_field_type_common_variant *copy_ft = NULL;
 
-	BT_LOGD("Copying CTF writer variant field type's: addr=%p", ft);
+	BT_LOGD("Copying variant field type's: addr=%p", ft);
 	if (var_ft->tag_ft) {
-		BT_LOGD_STR("Copying CTF writer variant field type's tag field type.");
+		BT_LOGD_STR("Copying variant field type's tag field type.");
 		tag_ft_copy = bt_field_type_common_copy(
 			BT_TO_COMMON(var_ft->tag_ft));
 		if (!tag_ft_copy) {
-			BT_LOGE_STR("Cannot copy CTF writer variant field type's tag field type.");
+			BT_LOGE_STR("Cannot copy variant field type's tag field type.");
 			goto end;
 		}
 	}
@@ -4786,36 +4940,36 @@ struct bt_field_type *bt_field_type_variant_copy_recursive(
 		(void *) tag_ft_copy,
 		var_ft->tag_name->len ? var_ft->tag_name->str : NULL);
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer variant field type.");
+		BT_LOGE_STR("Cannot create variant field type.");
 		goto end;
 	}
 
 	/* Copy field_name_to_index */
-	g_hash_table_iter_init(&iter, var_ft->field_name_to_index);
+	g_hash_table_iter_init(&iter, var_ft->choice_name_to_index);
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		g_hash_table_insert(copy_ft->field_name_to_index,
+		g_hash_table_insert(copy_ft->choice_name_to_index,
 			key, value);
 	}
 
-	for (i = 0; i < var_ft->fields->len; i++) {
-		struct structure_field_common *entry, *copy_entry;
-		struct bt_field_type_common *field_ft_copy;
+	g_array_set_size(copy_ft->choices, var_ft->choices->len);
 
-		entry = g_ptr_array_index(var_ft->fields, i);
-		BT_LOGD("Copying CTF writer variant field type's field: "
+	for (i = 0; i < var_ft->choices->len; i++) {
+		struct bt_field_type_common_variant_choice *entry, *copy_entry;
+		struct bt_field_type_common *field_ft_copy;
+		uint64_t range_i;
+
+		entry = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(var_ft, i);
+		copy_entry = BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
+			copy_ft, i);
+		BT_LOGD("Copying variant field type's field: "
 			"index=%" PRId64 ", "
 			"field-ft-addr=%p, field-name=\"%s\"",
 			i, entry, g_quark_to_string(entry->name));
-		copy_entry = g_new0(struct structure_field_common, 1);
-		if (!copy_entry) {
-			BT_LOGE_STR("Failed to allocate one variant field type field.");
-			goto error;
-		}
 
 		field_ft_copy = (void *) bt_field_type_copy(
 			(void *) entry->type);
 		if (!field_ft_copy) {
-			BT_LOGE("Cannot copy CTF writer variant field type's field: "
+			BT_LOGE("Cannot copy variant field type's field: "
 				"index=%" PRId64 ", "
 				"field-ft-addr=%p, field-name=\"%s\"",
 				i, entry, g_quark_to_string(entry->name));
@@ -4825,19 +4979,29 @@ struct bt_field_type *bt_field_type_variant_copy_recursive(
 
 		copy_entry->name = entry->name;
 		copy_entry->type = field_ft_copy;
-		g_ptr_array_add(copy_ft->fields, copy_entry);
+
+		/* Copy ranges */
+		copy_entry->ranges = g_array_new(FALSE, TRUE,
+			sizeof(struct bt_field_type_common_variant_choice_range));
+		BT_ASSERT(copy_entry->ranges);
+		g_array_set_size(copy_entry->ranges, entry->ranges->len);
+
+		for (range_i = 0; range_i < entry->ranges->len; range_i++) {
+			copy_entry->ranges[range_i] = entry->ranges[range_i];
+		}
 	}
 
 	if (var_ft->tag_field_path) {
-		BT_LOGD_STR("Copying CTF writer variant field type's tag field path.");
+		BT_LOGD_STR("Copying variant field type's tag field path.");
 		copy_ft->tag_field_path = bt_field_path_copy(
 			var_ft->tag_field_path);
 		if (!copy_ft->tag_field_path) {
-			BT_LOGE_STR("Cannot copy CTF writer variant field type's tag field path.");
+			BT_LOGE_STR("Cannot copy variant field type's tag field path.");
 			goto error;
 		}
 	}
 
+	copy_ft->choices_up_to_date = var_ft->choices_up_to_date;
 	BT_LOGD("Copied variant field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
@@ -4859,22 +5023,22 @@ struct bt_field_type *bt_field_type_array_copy_recursive(
 	struct bt_field_type_common_array *array_ft = (void *) ft;
 	struct bt_field_type_common_array *copy_ft = NULL;
 
-	BT_LOGD("Copying CTF writer array field type's: addr=%p", ft);
-	BT_LOGD_STR("Copying CTF writer array field type's element field type.");
+	BT_LOGD("Copying array field type's: addr=%p", ft);
+	BT_LOGD_STR("Copying array field type's element field type.");
 	container_ft_copy = bt_field_type_common_copy(array_ft->element_ft);
 	if (!container_ft_copy) {
-		BT_LOGE_STR("Cannot copy CTF writer array field type's element field type.");
+		BT_LOGE_STR("Cannot copy array field type's element field type.");
 		goto end;
 	}
 
 	copy_ft = (void *) bt_field_type_array_create(
 		(void *) container_ft_copy, array_ft->length);
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer array field type.");
+		BT_LOGE_STR("Cannot create array field type.");
 		goto end;
 	}
 
-	BT_LOGD("Copied CTF writer array field type: original-ft-addr=%p, copy-ft-addr=%p",
+	BT_LOGD("Copied array field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:
@@ -4890,11 +5054,11 @@ struct bt_field_type *bt_field_type_sequence_copy_recursive(
 	struct bt_field_type_common_sequence *seq_ft = (void *) ft;
 	struct bt_field_type_common_sequence *copy_ft = NULL;
 
-	BT_LOGD("Copying CTF writer sequence field type's: addr=%p", ft);
-	BT_LOGD_STR("Copying CTF writer sequence field type's element field type.");
+	BT_LOGD("Copying sequence field type's: addr=%p", ft);
+	BT_LOGD_STR("Copying sequence field type's element field type.");
 	container_ft_copy = bt_field_type_common_copy(seq_ft->element_ft);
 	if (!container_ft_copy) {
-		BT_LOGE_STR("Cannot copy CTF writer sequence field type's element field type.");
+		BT_LOGE_STR("Cannot copy sequence field type's element field type.");
 		goto end;
 	}
 
@@ -4903,21 +5067,21 @@ struct bt_field_type *bt_field_type_sequence_copy_recursive(
 		seq_ft->length_field_name->len ?
 			seq_ft->length_field_name->str : NULL);
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer sequence field type.");
+		BT_LOGE_STR("Cannot create sequence field type.");
 		goto end;
 	}
 
 	if (seq_ft->length_field_path) {
-		BT_LOGD_STR("Copying CTF writer sequence field type's length field path.");
+		BT_LOGD_STR("Copying sequence field type's length field path.");
 		copy_ft->length_field_path = bt_field_path_copy(
 			seq_ft->length_field_path);
 		if (!copy_ft->length_field_path) {
-			BT_LOGE_STR("Cannot copy CTF writer sequence field type's length field path.");
+			BT_LOGE_STR("Cannot copy sequence field type's length field path.");
 			goto error;
 		}
 	}
 
-	BT_LOGD("Copied CTF writer sequence field type: original-ft-addr=%p, copy-ft-addr=%p",
+	BT_LOGD("Copied sequence field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:
@@ -4935,15 +5099,15 @@ struct bt_field_type *bt_field_type_string_copy(struct bt_field_type *ft)
 	struct bt_field_type_common_string *string_ft = (void *) ft;
 	struct bt_field_type_common_string *copy_ft = NULL;
 
-	BT_LOGD("Copying CTF writer string field type's: addr=%p", ft);
+	BT_LOGD("Copying string field type's: addr=%p", ft);
 	copy_ft = (void *) bt_field_type_string_create();
 	if (!copy_ft) {
-		BT_LOGE_STR("Cannot create CTF writer string field type.");
+		BT_LOGE_STR("Cannot create string field type.");
 		goto end;
 	}
 
 	copy_ft->encoding = string_ft->encoding;
-	BT_LOGD("Copied CTF writer string field type: original-ft-addr=%p, copy-ft-addr=%p",
+	BT_LOGD("Copied string field type: original-ft-addr=%p, copy-ft-addr=%p",
 		ft, copy_ft);
 
 end:

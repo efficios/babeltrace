@@ -43,8 +43,6 @@ extern "C" {
 struct bt_clock_class;
 struct bt_clock_value;
 
-extern struct bt_clock_value *bt_clock_value_create(
-		struct bt_clock_class *clock_class, uint64_t value);
 extern struct bt_clock_class *bt_clock_value_borrow_class(
 		struct bt_clock_value *clock_value);
 
@@ -55,6 +53,8 @@ struct bt_clock_class *bt_clock_value_get_class(
 	return bt_get(bt_clock_value_borrow_class(clock_value));
 }
 
+extern int bt_clock_value_set_value(
+		struct bt_clock_value *clock_value, uint64_t raw_value);
 extern int bt_clock_value_get_value(
 		struct bt_clock_value *clock_value, uint64_t *raw_value);
 extern int bt_clock_value_get_value_ns_from_epoch(

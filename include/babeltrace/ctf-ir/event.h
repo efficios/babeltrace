@@ -121,6 +121,7 @@ immutable, except for \link refs reference counting\endlink.
 @sa ctfirevent
 */
 struct bt_event;
+struct bt_event_header_field;
 struct bt_clock;
 struct bt_clock_value;
 struct bt_event_class;
@@ -165,8 +166,6 @@ with bt_trace_add_stream_class(), then this function fails.
 @pre \p event_class has a parent stream class.
 @postsuccessrefcountret1
 */
-extern struct bt_event *bt_event_create(struct bt_event_class *event_class);
-
 extern struct bt_event_class *bt_event_borrow_class(struct bt_event *event);
 
 /**
@@ -217,39 +216,6 @@ struct bt_packet *bt_event_get_packet(struct bt_event *event)
 	return bt_get(bt_event_borrow_packet(event));
 }
 
-/**
-@brief	Associates the CTF IR event \p event to the CTF IR packet
-	\p packet.
-
-The \link ctfirstreamclass CTF IR stream class\endlink of the
-parent \link ctfirstream CTF IR stream\endlink of \p packet \em must
-be the same as the parent stream class of the
-\link ctfireventclass CTF IR event class\endlink returned
-by bt_event_get_class() for \p event.
-
-You \em must call this function to create an event-packet association
-before you call bt_notification_event_create() with \p event.
-
-On success, this function also sets the parent stream object of
-\p event to the parent stream of \p packet.
-
-@param[in] event	Event to which to associate \p packet.
-@param[in] packet	Packet to associate to \p event.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event}
-@prenotnull{packet}
-@prehot{event}
-@pre The parent stream class of \p packet is the same as the parent
-	stream class of \p event.
-@postsuccessrefcountretinc
-
-@sa bt_event_get_packet(): Returns the associated packet of a
-	given event object.
-*/
-extern int bt_event_set_packet(struct bt_event *event,
-		struct bt_packet *packet);
-
 extern struct bt_stream *bt_event_borrow_stream(struct bt_event *event);
 
 /**
@@ -278,209 +244,15 @@ struct bt_stream *bt_event_get_stream(struct bt_event *event)
 
 extern struct bt_field *bt_event_borrow_header(struct bt_event *event);
 
-/**
-@brief	Returns the stream event header field of the CTF IR event
-	\p event.
-
-@param[in] event	Event of which to get the stream event header
-			field.
-@returns		Stream event header field of \p event,
-			or \c NULL if the stream event header
-			field is not set or on error.
-
-@prenotnull{event}
-@postrefcountsame{event}
-@postsuccessrefcountretinc
-
-@sa bt_event_get_header(): Sets the stream event header
-	field of a given event.
-*/
-static inline
-struct bt_field *bt_event_get_header(struct bt_event *event)
-{
-	return bt_get(bt_event_borrow_header(event));
-}
-
-/**
-@brief	Sets the stream event header field of the CTF IR event
-	\p event to \p header, or unsets the current stream event header field
-	from \p event.
-
-If \p header is not \c NULL, the field type of \p header, as returned by
-bt_field_get_type(), \em must be equivalent to the field type returned by
-bt_stream_class_get_event_header_type() for the parent stream class
-of \p event.
-
-@param[in] event	Event of which to set the stream event header
-			field.
-@param[in] header	Stream event header field.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event}
-@prehot{event}
-@pre <strong>\p header, if not \c NULL</strong>, has a field type equivalent to
-	the field type returned by bt_stream_class_get_event_header_type()
-	for the parent stream class of \p event.
-@postrefcountsame{event}
-@post <strong>On success, if \p header is not \c NULL</strong>,
-	the reference count of \p header is incremented.
-
-@sa bt_event_get_header(): Returns the stream event header field
-	of a given event.
-*/
-extern int bt_event_set_header(struct bt_event *event,
-		struct bt_field *header);
+extern int bt_event_move_header(struct bt_event *event,
+		struct bt_event_header_field *header);
 
 extern struct bt_field *bt_event_borrow_stream_event_context(
 		struct bt_event *event);
 
-/**
-@brief	Returns the stream event context field of the CTF IR event
-	\p event.
-
-@param[in] event	Event of which to get the stream event context
-			field.
-@returns		Stream event context field of \p event,
-			or \c NULL if the stream event context
-			field is not set or on error.
-
-@prenotnull{event}
-@postrefcountsame{event}
-@postsuccessrefcountretinc
-
-@sa bt_event_set_stream_event_context(): Sets the stream event context
-	field of a given event.
-*/
-static inline
-struct bt_field *bt_event_get_stream_event_context(struct bt_event *event)
-{
-	return bt_get(bt_event_borrow_stream_event_context(event));
-}
-
-/**
-@brief	Sets the stream event context field of the CTF IR event
-	\p event to \p context, or unsets the current stream event context field
-	from \p event.
-
-If \p context is not \c NULL, the field type of \p context, as returned by
-bt_field_get_type(), \em must be equivalent to the field type returned by
-bt_stream_class_get_event_context_type() for the parent stream class
-of \p event.
-
-@param[in] event	Event of which to set the stream event context field.
-@param[in] context	Stream event context field.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event}
-@prehot{event}
-@pre <strong>\p context, if not \c NULL</strong>, has a field type equivalent to
-	the field type returned by bt_stream_class_get_event_context_type()
-	for the parent stream class of \p event.
-@postrefcountsame{event}
-@post <strong>On success, if \p context is not \c NULL</strong>, the reference
-	count of \p context is incremented.
-
-@sa bt_event_get_stream_event_context(): Returns the stream event context
-	field of a given event.
-*/
-extern int bt_event_set_stream_event_context(struct bt_event *event,
-		struct bt_field *context);
-
 extern struct bt_field *bt_event_borrow_context(struct bt_event *event);
 
-/**
-@brief	Returns the event context field of the CTF IR event \p event.
-
-@param[in] event	Event of which to get the context field.
-@returns		Event context field of \p event, or \c NULL if the
-			event context field is not set or on error.
-
-@prenotnull{event}
-@postrefcountsame{event}
-@postsuccessrefcountretinc
-
-@sa bt_event_set_context(): Sets the event context field of a given
-	event.
-*/
-static inline
-struct bt_field *bt_event_get_context(struct bt_event *event)
-{
-	return bt_get(bt_event_borrow_context(event));
-}
-
-/**
-@brief	Sets the event context field of the CTF IR event \p event to \p context,
-	or unsets the current event context field from \p event.
-
-If \p context is not \c NULL, the field type of \p context, as returned by
-bt_field_get_type(), \em must be equivalent to the field type returned by
-bt_event_class_get_context_type() for the parent class of \p event.
-
-@param[in] event	Event of which to set the context field.
-@param[in] context	Event context field.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event}
-@prehot{event}
-@pre <strong>\p context, if not \c NULL</strong>, has a field type equivalent to
-	the field type returned by bt_event_class_get_context_type() for the
-	parent class of \p event.
-@postrefcountsame{event}
-@post <strong>On success, if \p context is not \c NULL</strong>, the reference
-	count of \p context is incremented.
-
-@sa bt_event_get_context(): Returns the context field of a given event.
-*/
-extern int bt_event_set_context(struct bt_event *event,
-		struct bt_field *context);
-
 extern struct bt_field *bt_event_borrow_payload(struct bt_event *event);
-
-/**
-@brief	Returns the payload field of the CTF IR event \p event.
-
-@param[in] event	Event of which to get the payload field.
-@returns		Payload field of \p event, or \c NULL if the payload
-			field is not set or on error.
-
-@prenotnull{event}
-@postrefcountsame{event}
-@postsuccessrefcountretinc
-
-@sa bt_event_set_payload(): Sets the payload field of a given
-	event.
-*/
-static inline
-struct bt_field *bt_event_get_payload(struct bt_event *event)
-{
-	return bt_get(bt_event_borrow_payload(event));
-}
-
-/**
-@brief	Sets the payload field of the CTF IR event \p event to \p payload,
-	or unsets the current event payload field from \p event.
-
-If \p payload is not \c NULL, the field type of \p payload, as returned by
-bt_field_get_type(), \em must be equivalent to the field type returned by
-bt_event_class_get_payload_type() for the parent class of \p event.
-
-@param[in] event	Event of which to set the payload field.
-@param[in] payload	Event payload field.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event}
-@prehot{event}
-@pre <strong>\p payload, if not \c NULL</strong>, has a field type equivalent to
-	the field typereturned by bt_event_class_get_payload_type() for the
-	parent class of \p event.
-@postrefcountsame{event}
-@post <strong>On success, if \p payload is not \c NULL</strong>, the reference
-	count of \p payload is incremented.
-
-@sa bt_event_get_payload(): Returns the payload field of a given event.
-*/
-extern int bt_event_set_payload(struct bt_event *event,
-		struct bt_field *payload);
 
 /** @} */
 
@@ -492,56 +264,6 @@ extern int bt_event_set_payload(struct bt_event *event,
 extern struct bt_clock_value *bt_event_borrow_clock_value(
 		struct bt_event *event,
 		struct bt_clock_class *clock_class);
-
-/**
-@brief	Returns the value, as of the CTF IR event \p event, of the
-	clock described by the
-	\link ctfirclockclass CTF IR clock class\endlink \p clock_class.
-
-@param[in] event	Event of which to get the value of the clock
-			described by \p clock_class.
-@param[in] clock_class	Class of the clock of which to get the value.
-@returns		Value of the clock described by \p clock_class
-			as of \p event.
-
-@prenotnull{event}
-@prenotnull{clock_class}
-@postrefcountsame{event}
-@postrefcountsame{clock_class}
-@postsuccessrefcountretinc
-
-@sa bt_event_set_clock_value(): Sets the clock value of a given event.
-*/
-static inline
-struct bt_clock_value *bt_event_get_clock_value(
-		struct bt_event *event,
-		struct bt_clock_class *clock_class)
-{
-	return bt_get(bt_event_borrow_clock_value(event, clock_class));
-}
-
-/**
-@brief	Sets the value, as of the CTF IR event \p event, of the
-	clock described by its \link ctfirclockclass CTF IR
-	clock class\endlink.
-
-@param[in] event	Event of which to set the value of the clock
-			described by the clock class of \p clock_value.
-@param[in] clock_value	Value of the clock described by its clock class
-			as of \p event.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{event}
-@prenotnull{clock_value}
-@prehot{event}
-@postrefcountsame{event}
-
-@sa bt_event_get_clock_value(): Returns the clock value of
-	a given event.
-*/
-extern int bt_event_set_clock_value(
-		struct bt_event *event,
-		struct bt_clock_value *clock_value);
 
 /** @} */
 

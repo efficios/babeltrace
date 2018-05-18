@@ -32,6 +32,7 @@
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/utils-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/object-pool-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <glib.h>
 
@@ -58,6 +59,9 @@ struct bt_stream_common {
 
 struct bt_stream {
 	struct bt_stream_common common;
+
+	/* Pool of `struct bt_packet *` */
+	struct bt_object_pool packet_pool;
 };
 
 BT_HIDDEN

@@ -145,26 +145,6 @@ struct bt_field_type_enumeration_mapping_iterator;
 @{
 */
 
-/**
-@brief  Creates an uninitialized @field described by the @ft
-	\p field_type.
-
-On success, \p field_type becomes the parent of the created field
-object.
-
-On success, this function creates an \em uninitialized field: it has
-no value. You need to set the value of the created field with one of the
-its specific setters.
-
-@param[in] field_type	Field type which describes the field to create.
-@returns		Created field object, or \c NULL on error.
-
-@prenotnull{field_type}
-@postsuccessrefcountret1
-@postsuccessfrozen{field_type}
-*/
-extern struct bt_field *bt_field_create(struct bt_field_type *field_type);
-
 extern struct bt_field_type *bt_field_borrow_type(struct bt_field *field);
 
 /**
@@ -359,22 +339,6 @@ extern bt_bool bt_field_is_variant(struct bt_field *field);
 @name Misc. functions
 @{
 */
-
-/**
-@brief	Creates a \em deep copy of the @field \p field.
-
-You can copy a frozen field: the resulting copy is <em>not frozen</em>.
-
-@param[in] field	Field to copy.
-@returns		Deep copy of \p field on success,
-			or \c NULL on error.
-
-@prenotnull{field}
-@postrefcountsame{field}
-@postsuccessrefcountret1
-@post <strong>On success</strong>, the returned field is not frozen.
-*/
-extern struct bt_field *bt_field_copy(struct bt_field *field);
 
 /** @} */
 
@@ -591,63 +555,6 @@ extern int bt_field_floating_point_set_value(
 /** @} */
 
 /**
-@defgroup ctfirenumfield CTF IR enumeration field
-@ingroup ctfirfields
-@brief CTF IR enumeration field.
-
-@code
-#include <babeltrace/ctf-ir/fields.h>
-@endcode
-
-A CTF IR <strong><em>enumeration field</em></strong> is a @field which
-holds a @intfield, and which is described by a @enumft.
-
-To set the current integral value of an enumeration field, you need to
-get its wrapped @intfield with bt_field_enumeration_get_container(),
-and then set the integral value with either
-bt_field_integer_signed_set_value() or
-bt_field_integer_unsigned_set_value().
-
-Once you set the integral value of an enumeration field by following the
-previous paragraph, you can get the mappings containing this value in
-their range with bt_field_enumeration_get_mappings(). This function
-returns a @enumftiter.
-
-@sa ctfirenumfieldtype
-@sa ctfirfields
-
-@addtogroup ctfirenumfield
-@{
-*/
-
-extern struct bt_field *bt_field_enumeration_borrow_container(
-		struct bt_field *enum_field);
-
-/**
-@brief  Returns the @intfield, potentially creating it, wrapped by the
-	@enumfield \p enum_field.
-
-This function creates the @intfield to return if it does not currently
-exist.
-
-@param[in] enum_field	Enumeration field of which to get the wrapped
-			integer field.
-@returns		Integer field wrapped by \p enum_field, or
-			\c NULL on error.
-
-@prenotnull{enum_field}
-@preisenumfield{enum_field}
-@postrefcountsame{enum_field}
-@postsuccessrefcountretinc
-*/
-static inline
-struct bt_field *bt_field_enumeration_get_container(
-		struct bt_field *enum_field)
-{
-	return bt_get(bt_field_enumeration_borrow_container(enum_field));
-}
-
-/**
 @brief	Returns a @enumftiter on all the mappings of the field type of
 	\p enum_field which contain the current integral value of the
 	@enumfield \p enum_field in their range.
@@ -815,6 +722,8 @@ extern int bt_field_string_append_len(
 		struct bt_field *string_field, const char *value,
 		unsigned int length);
 
+extern int bt_field_string_clear(struct bt_field *string_field);
+
 /** @} */
 
 /**
@@ -846,115 +755,8 @@ field with bt_field_structure_set_field_by_name().
 extern struct bt_field *bt_field_structure_borrow_field_by_name(
 		struct bt_field *struct_field, const char *name);
 
-/**
-@brief  Returns the @field named \p name, potentially creating it,
-	in the @structfield \p struct_field.
-
-This function creates the @field to return if it does not currently
-exist.
-
-@param[in] struct_field	Structure field of which to get the field
-			named \p name.
-@param[in] name		Name of the field to get from \p struct_field.
-@returns		Field named \p name in \p struct_field, or
-			\c NULL on error.
-
-@prenotnull{struct_field}
-@prenotnull{name}
-@preisstructfield{struct_field}
-@postrefcountsame{struct_field}
-@postsuccessrefcountretinc
-
-@sa bt_field_structure_get_field_by_index(): Returns the field of a
-	given structure field by index.
-@sa bt_field_structure_set_field_by_name(): Sets the field of a
-	given structure field by name.
-*/
-static inline
-struct bt_field *bt_field_structure_get_field_by_name(
-		struct bt_field *struct_field, const char *name)
-{
-	return bt_get(bt_field_structure_borrow_field_by_name(struct_field,
-		name));
-}
-
 extern struct bt_field *bt_field_structure_borrow_field_by_index(
 		struct bt_field *struct_field, uint64_t index);
-
-/**
-@brief  Returns the @field at index \p index in the @structfield
-	\p struct_field.
-
-@param[in] struct_field	Structure field of which to get the field
-			at index \p index.
-@param[in] index	Index of the field to get in \p struct_field.
-@returns		Field at index \p index in \p struct_field, or
-			\c NULL on error.
-
-@prenotnull{struct_field}
-@preisstructfield{struct_field}
-@pre \p index is lesser than the number of fields contained in the
-	parent field type of \p struct_field (see
-	bt_field_type_structure_get_field_count()).
-@postrefcountsame{struct_field}
-@postsuccessrefcountretinc
-
-@sa bt_field_structure_get_field_by_name(): Returns the field of a
-	given structure field by name.
-@sa bt_field_structure_set_field_by_name(): Sets the field of a
-	given structure field by name.
-*/
-static inline
-struct bt_field *bt_field_structure_get_field_by_index(
-		struct bt_field *struct_field, uint64_t index)
-{
-	return bt_get(bt_field_structure_borrow_field_by_index(struct_field,
-		index));
-}
-
-/**
-@brief	Sets the field of the @structfield \p struct_field named \p name
-	to the @field \p field.
-
-If \p struct_field already contains a field named \p name, then it may
-either be replaced by \p field and its reference count is decremented,
-or \p field's value is assigned to it.
-
-The field type of \p field, as returned by bt_field_get_type(),
-\em must be equivalent to the field type returned by
-bt_field_type_structure_get_field_type_by_name() with the field
-type of \p struct_field and the same name, \p name.
-
-bt_trace_get_packet_header_type() for the parent trace class of
-\p packet.
-
-@param[in] struct_field	Structure field of which to set the field
-			named \p name.
-@param[in] name		Name of the field to set in \p struct_field.
-@param[in] field	Field named \p name to set in \p struct_field.
-@returns		0 on success, or -1 on error.
-
-@prenotnull{struct_field}
-@prenotnull{name}
-@prenotnull{field}
-@prehot{struct_field}
-@preisstructfield{struct_field}
-@pre \p field has a field type equivalent to the field type returned by
-	bt_field_type_structure_get_field_type_by_name() for the
-	field type of \p struct_field with the name \p name.
-@postrefcountsame{struct_field}
-@post <strong>On success, the field in \p struct_field named \p name</strong>
-	may either be replaced by \p field or have the same value as \p field.
-@postsuccessrefcountinc{field}
-
-@sa bt_field_structure_get_field_by_index(): Returns the field of a
-	given structure field by index.
-@sa bt_field_structure_get_field_by_name(): Returns the field of a
-	given structure field by name.
-*/
-extern int bt_field_structure_set_field_by_name(
-		struct bt_field *struct_field,
-		const char *name, struct bt_field *field);
 
 /** @} */
 
@@ -983,33 +785,6 @@ first get the field with bt_field_array_get_field().
 
 extern struct bt_field *bt_field_array_borrow_field(
 		struct bt_field *array_field, uint64_t index);
-
-/**
-@brief  Returns the @field at index \p index, potentially creating it,
-	in the @arrayfield \p array_field.
-
-This function creates the @field to return if it does not currently
-exist.
-
-@param[in] array_field	Array field of which to get the field
-			at index \p index.
-@param[in] index	Index of the field to get in \p array_field.
-@returns		Field at index \p index in \p array_field, or
-			\c NULL on error.
-
-@prenotnull{array_field}
-@preisarrayfield{array_field}
-@pre \p index is lesser than bt_field_type_array_get_length() called
-	on the field type of \p array_field.
-@postrefcountsame{array_field}
-@postsuccessrefcountretinc
-*/
-static inline
-struct bt_field *bt_field_array_get_field(
-		struct bt_field *array_field, uint64_t index)
-{
-	return bt_get(bt_field_array_borrow_field(array_field, index));
-}
 
 /** @} */
 
@@ -1042,68 +817,7 @@ it contains.
 extern struct bt_field *bt_field_sequence_borrow_field(
 		struct bt_field *sequence_field, uint64_t index);
 
-/**
-@brief  Returns the @field at index \p index, potentially creating it,
-	in the @seqfield \p sequence_field.
-
-This function creates the @field to return if it does not currently
-exist.
-
-@param[in] sequence_field	Sequence field of which to get the field
-				at index \p index.
-@param[in] index		Index of the field to get in
-				\p sequence_field.
-@returns			Field at index \p index in
-				\p sequence_field, or \c NULL on error.
-
-@prenotnull{sequence_field}
-@preisseqfield{sequence_field}
-@pre \p sequence_field has a length field previously set with
-	bt_field_sequence_set_length().
-@pre \p index is lesser than the current integral value of the current
-	length field of \p sequence_field (see
-	bt_field_sequence_get_length()).
-@postrefcountsame{sequence_field}
-@postsuccessrefcountretinc
-*/
-static inline
-struct bt_field *bt_field_sequence_get_field(
-		struct bt_field *sequence_field, uint64_t index)
-{
-	return bt_get(bt_field_sequence_borrow_field(sequence_field, index));
-}
-
-extern struct bt_field *bt_field_sequence_borrow_length(
-		struct bt_field *sequence_field);
-
-/**
-@brief  Returns the length @intfield of the @seqfield \p sequence_field.
-
-The current integral value of the returned length field indicates the
-number of fields contained in \p sequence_field.
-
-@param[in] sequence_field	Sequence field of which to get the
-				length field.
-@returns			Length field of \p sequence_field, or
-				\c NULL on error.
-
-@prenotnull{sequence_field}
-@preisseqfield{sequence_field}
-@pre \p sequence_field has a length field previously set with
-	bt_field_sequence_set_length().
-@postrefcountsame{sequence_field}
-@postsuccessrefcountretinc
-@post <strong>On success</strong>, the returned field is a @intfield.
-
-@sa bt_field_sequence_set_length(): Sets the length field of a given
-	sequence field.
-*/
-static inline
-struct bt_field *bt_field_sequence_get_length(
-		struct bt_field *sequence_field)
-{
-	return bt_get(bt_field_sequence_borrow_length(sequence_field));
-}
+extern int64_t bt_field_sequence_get_length(struct bt_field *sequence_field);
 
 /**
 @brief	Sets the length @intfield of the @seqfield \p sequence_field
@@ -1129,7 +843,7 @@ fields contained in \p sequence_field.
 	given sequence field.
 */
 extern int bt_field_sequence_set_length(struct bt_field *sequence_field,
-		struct bt_field *length_field);
+		uint64_t length);
 
 /** @} */
 
@@ -1158,95 +872,20 @@ field again.
 @{
 */
 
-extern struct bt_field *bt_field_variant_borrow_field(
-		struct bt_field *variant_field,
-		struct bt_field *tag_field);
+extern int bt_field_variant_set_tag_signed(struct bt_field *variant_field,
+		int64_t tag);
 
-/**
-@brief  Returns the @field, potentially creating it, selected by the
-	tag @intfield \p tag_field in the @varfield \p variant_field.
+extern int bt_field_variant_set_tag_unsigned(struct bt_field *variant_field,
+		uint64_t tag);
 
-This function creates the @field to return if it does not currently
-exist.
+extern int bt_field_variant_get_tag_signed(struct bt_field *variant_field,
+		int64_t *tag);
 
-Once you call this function, you can call
-bt_field_variant_get_current_field() to get the same field again,
-and you can call bt_field_variant_get_tag() to get \p tag_field.
-
-@param[in] variant_field	Variant field of which to get the field
-				selected by \p tag_field.
-@param[in] tag_field		Tag field.
-@returns			Field selected by \p tag_field in
-				\p variant_field, or \c NULL on error.
-
-@prenotnull{variant_field}
-@prenotnull{tag_field}
-@preisvarfield{variant_field}
-@preisenumfield{tag_field}
-@postrefcountsame{variant_field}
-@postsuccessrefcountinc{tag_field}
-@postsuccessrefcountretinc
-*/
-static inline
-struct bt_field *bt_field_variant_get_field(
-		struct bt_field *variant_field,
-		struct bt_field *tag_field)
-{
-	return bt_get(bt_field_variant_borrow_field(variant_field, tag_field));
-}
+extern int bt_field_variant_get_tag_unsigned(struct bt_field *variant_field,
+		uint64_t *tag);
 
 extern struct bt_field *bt_field_variant_borrow_current_field(
 		struct bt_field *variant_field);
-
-/**
-@brief  Returns the currently selected @field of the @varfield
-	\p variant_field.
-
-@param[in] variant_field	Variant field of which to get the
-				currently selected field.
-@returns			Currently selected field of
-				\p variant_field, or \c NULL if there's
-				no selected field or on error.
-
-@prenotnull{variant_field}
-@preisvarfield{variant_field}
-@pre \p variant_field contains has a current selected field previously
-	set with bt_field_variant_get_field().
-@postrefcountsame{variant_field}
-@postsuccessrefcountretinc
-*/
-static inline
-struct bt_field *bt_field_variant_get_current_field(
-		struct bt_field *variant_field)
-{
-	return bt_get(bt_field_variant_borrow_current_field(variant_field));
-}
-
-extern struct bt_field *bt_field_variant_borrow_tag(
-		struct bt_field *variant_field);
-
-/**
-@brief  Returns the tag @enumfield of the @varfield \p variant_field.
-
-@param[in] variant_field	Variant field of which to get the
-				tag field.
-@returns			Tag field of \p variant_field, or
-				\c NULL on error.
-
-@prenotnull{variant_field}
-@preisvarfield{variant_field}
-@pre \p variant_field contains has a current selected field previously
-	set with bt_field_variant_get_field().
-@postrefcountsame{variant_field}
-@postsuccessrefcountretinc
-@post <strong>On success</strong>, the returned field is a @enumfield.
-*/
-static inline
-struct bt_field *bt_field_variant_get_tag(
-		struct bt_field *variant_field)
-{
-	return bt_get(bt_field_variant_borrow_tag(variant_field));
-}
 
 /** @} */
 

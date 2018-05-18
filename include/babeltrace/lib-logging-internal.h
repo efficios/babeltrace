@@ -143,6 +143,9 @@ int bt_lib_log_level;
  *   `u`:
  *       Plugin. The parameter type is `struct bt_plugin *`.
  *
+ *   `o`:
+ *       Object pool. The parameter type is `struct bt_object_pool *`.
+ *
  * CTF writer category:
  *   `F`:
  *       CTF writer field type. The parameter type is `struct bt_field_type *`.

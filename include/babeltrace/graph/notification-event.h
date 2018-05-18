@@ -36,37 +36,16 @@ extern "C" {
 
 struct bt_notification;
 struct bt_event;
+struct bt_event_class;
 struct bt_clock_class_priority_map;
 
-/**
- * Create an event notification.
- *
- * @param event			The event
- * @returns			An event notification instance
- *
- * @see #bt_notification_type
- */
 extern struct bt_notification *bt_notification_event_create(
-		struct bt_event *event,
+		struct bt_event_class *event_class,
+		struct bt_packet *packet,
 		struct bt_clock_class_priority_map *clock_class_priority_map);
 
 extern struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notification);
-
-/**
- * Get an event notification's event.
- *
- * @param notification	Event notification instance
- * @returns		An event instance
- *
- * @see #bt_event
- */
-static inline
-struct bt_event *bt_notification_event_get_event(
-		struct bt_notification *notification)
-{
-	return bt_get(bt_notification_event_borrow_event(notification));
-}
 
 extern struct bt_clock_class_priority_map *
 bt_notification_event_borrow_clock_class_priority_map(

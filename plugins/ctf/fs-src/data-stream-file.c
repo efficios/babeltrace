@@ -173,7 +173,7 @@ end:
 }
 
 static
-struct bt_stream *medop_get_stream(
+struct bt_stream *medop_borrow_stream(
 		struct bt_stream_class *stream_class, uint64_t stream_id,
 		void *data)
 {
@@ -252,7 +252,7 @@ end:
 BT_HIDDEN
 struct bt_notif_iter_medium_ops ctf_fs_ds_file_medops = {
 	.request_bytes = medop_request_bytes,
-	.get_stream = medop_get_stream,
+	.borrow_stream = medop_borrow_stream,
 	.seek = medop_seek,
 };
 
@@ -374,11 +374,11 @@ int borrow_ds_file_packet_bounds_clock_classes(struct ctf_fs_ds_file *ds_file,
 		struct bt_clock_class **timestamp_end_cc)
 {
 	struct bt_field *packet_context = NULL;
-	int ret = ctf_fs_ds_file_get_packet_header_context_fields(ds_file,
-			NULL, &packet_context);
+	int ret = ctf_fs_ds_file_borrow_packet_header_context_fields(ds_file,
+		NULL, &packet_context);
 
 	if (ret || !packet_context) {
-		BT_LOGD("Cannot retrieve packet context field of stream \'%s\'",
+		BT_LOGD("Cannot retrieve packet context field: ds-file-path=\"%s\"",
 			ds_file->file->path->str);
 		ret = -1;
 		goto end;
@@ -389,7 +389,6 @@ int borrow_ds_file_packet_bounds_clock_classes(struct ctf_fs_ds_file *ds_file,
 			timestamp_end_cc, NULL);
 
 end:
-	bt_put(packet_context);
 	return ret;
 }
 
@@ -397,23 +396,7 @@ static
 int convert_cycles_to_ns(struct bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
-	int ret = 0;
-	struct bt_clock_value *clock_value;
-
-	BT_ASSERT(ns);
-	clock_value = bt_clock_value_create(clock_class, cycles);
-	if (!clock_value) {
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ns);
-	if (ret) {
-		goto end;
-	}
-end:
-	bt_put(clock_value);
-	return ret;
+	return bt_clock_class_cycles_to_ns(clock_class, cycles, ns);
 }
 
 static
@@ -661,7 +644,6 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 	int ret;
 	struct ctf_fs_ds_index *index = NULL;
 	enum bt_notif_iter_status iter_status;
-	struct bt_field *packet_context = NULL;
 
 	BT_LOGD("Indexing stream file %s", ds_file->file->path->str);
 
@@ -675,17 +657,19 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		off_t next_packet_offset;
 		off_t current_packet_size, current_packet_size_bytes;
 		struct ctf_fs_ds_index_entry *entry;
+		struct bt_field *packet_context = NULL;
 
-		iter_status = bt_notif_iter_get_packet_header_context_fields(
-				ds_file->notif_iter, NULL, &packet_context);
+		iter_status = bt_notif_iter_borrow_packet_header_context_fields(
+			ds_file->notif_iter, NULL, &packet_context);
 		if (iter_status != BT_NOTIF_ITER_STATUS_OK) {
 			if (iter_status == BT_NOTIF_ITER_STATUS_EOF) {
 				break;
 			}
 			goto error;
 		}
+
 		current_packet_offset =
-				bt_notif_iter_get_current_packet_offset(
+			bt_notif_iter_get_current_packet_offset(
 				ds_file->notif_iter);
 		if (current_packet_offset < 0) {
 			BT_LOGE_STR("Cannot get the current packet's offset.");
@@ -693,14 +677,14 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		}
 
 		current_packet_size = bt_notif_iter_get_current_packet_size(
-				ds_file->notif_iter);
+			ds_file->notif_iter);
 		if (current_packet_size < 0) {
 			BT_LOGE("Cannot get packet size: packet-offset=%jd",
 					current_packet_offset);
 			goto error;
 		}
 		current_packet_size_bytes =
-				((current_packet_size + 7) & ~7) / CHAR_BIT;
+			((current_packet_size + 7) & ~7) / CHAR_BIT;
 
 		if (current_packet_offset + current_packet_size_bytes >
 				ds_file->file->size) {
@@ -715,10 +699,10 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		}
 
 		next_packet_offset = current_packet_offset +
-				current_packet_size_bytes;
+			current_packet_size_bytes;
 		BT_LOGD("Seeking to next packet: current-packet-offset=%jd, "
-				"next-packet-offset=%jd", current_packet_offset,
-				next_packet_offset);
+			"next-packet-offset=%jd", current_packet_offset,
+			next_packet_offset);
 
 		entry = ctf_fs_ds_index_add_new_entry(index);
 		if (!entry) {
@@ -727,23 +711,23 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		}
 
 		ret = init_index_entry(entry, packet_context,
-				current_packet_size_bytes,
-				current_packet_offset);
+			current_packet_size_bytes,
+			current_packet_offset);
 		if (ret) {
 			goto error;
 		}
 
 		iter_status = bt_notif_iter_seek(ds_file->notif_iter,
 				next_packet_offset);
-		BT_PUT(packet_context);
 	} while (iter_status == BT_NOTIF_ITER_STATUS_OK);
 
 	if (iter_status != BT_NOTIF_ITER_STATUS_EOF) {
 		goto error;
 	}
+
 end:
-	bt_put(packet_context);
 	return index;
+
 error:
 	ctf_fs_ds_index_destroy(index);
 	index = NULL;
@@ -870,7 +854,7 @@ struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
 }
 
 BT_HIDDEN
-int ctf_fs_ds_file_get_packet_header_context_fields(
+int ctf_fs_ds_file_borrow_packet_header_context_fields(
 		struct ctf_fs_ds_file *ds_file,
 		struct bt_field **packet_header_field,
 		struct bt_field **packet_context_field)
@@ -879,7 +863,7 @@ int ctf_fs_ds_file_get_packet_header_context_fields(
 	int ret = 0;
 
 	BT_ASSERT(ds_file);
-	notif_iter_status = bt_notif_iter_get_packet_header_context_fields(
+	notif_iter_status = bt_notif_iter_borrow_packet_header_context_fields(
 		ds_file->notif_iter, packet_header_field, packet_context_field);
 	switch (notif_iter_status) {
 	case BT_NOTIF_ITER_STATUS_EOF:
@@ -898,14 +882,6 @@ int ctf_fs_ds_file_get_packet_header_context_fields(
 
 error:
 	ret = -1;
-
-	if (packet_header_field) {
-		bt_put(*packet_header_field);
-	}
-
-	if (packet_context_field) {
-		bt_put(*packet_context_field);
-	}
 
 end:
 	return ret;

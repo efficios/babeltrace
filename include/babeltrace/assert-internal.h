@@ -25,6 +25,7 @@
  */
 
 #include <assert.h>
+#include <babeltrace/babeltrace-internal.h>
 
 #ifdef BT_DEBUG_MODE
 /*
@@ -50,7 +51,7 @@
  * In-depth explanation: https://stackoverflow.com/questions/37411809/how-to-elegantly-fix-this-unused-variable-warning/37412551#37412551
  */
 # define BT_ASSERT(_cond)	((void) sizeof((void) (_cond), 0))
-# define BT_ASSERT_FUNC		__attribute__((unused))
+# define BT_ASSERT_FUNC		BT_UNUSED
 #endif /* BT_DEBUG_MODE */
 
 #endif /* BABELTRACE_ASSERT_INTERNAL_H */

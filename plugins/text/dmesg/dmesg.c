@@ -47,6 +47,16 @@ struct dmesg_notif_iter {
 	char *linebuf;
 	size_t linebuf_len;
 	FILE *fp;
+	struct bt_notification *tmp_event_notif;
+
+	enum {
+		STATE_EMIT_STREAM_BEGINNING,
+		STATE_EMIT_PACKET_BEGINNING,
+		STATE_EMIT_EVENT,
+		STATE_EMIT_PACKET_END,
+		STATE_EMIT_STREAM_END,
+		STATE_DONE,
+	} state;
 };
 
 struct dmesg_component {
@@ -95,58 +105,6 @@ struct bt_field_type *create_packet_header_ft(void)
 	ft = bt_field_type_integer_create(8);
 	if (!ft) {
 		BT_LOGE_STR("Cannot create an integer field type object.");
-		goto error;
-	}
-
-	goto end;
-
-error:
-	BT_PUT(root_ft);
-
-end:
-	bt_put(ft);
-	return root_ft;
-}
-
-static
-struct bt_field_type *create_packet_context_ft(void)
-{
-	struct bt_field_type *root_ft = NULL;
-	struct bt_field_type *ft = NULL;
-	int ret;
-
-	root_ft = bt_field_type_structure_create();
-	if (!root_ft) {
-		BT_LOGE_STR("Cannot create an empty structure field type object.");
-		goto error;
-	}
-
-	ft = bt_field_type_integer_create(64);
-	if (!ft) {
-		BT_LOGE_STR("Cannot create an integer field type object.");
-		goto error;
-	}
-
-	ret = bt_field_type_structure_add_field(root_ft,
-		ft, "content_size");
-	if (ret) {
-		BT_LOGE("Cannot add `content_size` field type to structure field type: "
-			"ret=%d", ret);
-		goto error;
-	}
-
-	BT_PUT(ft);
-	ft = bt_field_type_integer_create(64);
-	if (!ft) {
-		BT_LOGE_STR("Cannot create an integer field type object.");
-		goto error;
-	}
-
-	ret = bt_field_type_structure_add_field(root_ft,
-		ft, "packet_size");
-	if (ret) {
-		BT_LOGE("Cannot add `packet_size` field type to structure field type: "
-			"ret=%d", ret);
 		goto error;
 	}
 
@@ -268,7 +226,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_trace_set_packet_header_type(dmesg_comp->trace, ft);
+	ret = bt_trace_set_packet_header_field_type(dmesg_comp->trace, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set trace's packet header field type.");
 		goto error;
@@ -294,23 +252,9 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		}
 	}
 
-	dmesg_comp->stream_class = bt_stream_class_create_empty(NULL);
+	dmesg_comp->stream_class = bt_stream_class_create(NULL);
 	if (!dmesg_comp->stream_class) {
 		BT_LOGE_STR("Cannot create an empty stream class object.");
-		goto error;
-	}
-
-	bt_put(ft);
-	ft = create_packet_context_ft();
-	if (!ft) {
-		BT_LOGE_STR("Cannot create packet context field type.");
-		goto error;
-	}
-
-	ret = bt_stream_class_set_packet_context_type(
-		dmesg_comp->stream_class, ft);
-	if (ret) {
-		BT_LOGE_STR("Cannot set stream class's packet context field type.");
 		goto error;
 	}
 
@@ -348,7 +292,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			goto error;
 		}
 
-		ret = bt_stream_class_set_event_header_type(
+		ret = bt_stream_class_set_event_header_field_type(
 			dmesg_comp->stream_class, ft);
 		if (ret) {
 			BT_LOGE_STR("Cannot set stream class's event header field type.");
@@ -369,7 +313,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_event_class_set_payload_type(dmesg_comp->event_class, ft);
+	ret = bt_event_class_set_payload_field_type(dmesg_comp->event_class, ft);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event class's event payload field type.");
 		goto error;
@@ -463,97 +407,38 @@ end:
 }
 
 static
-struct bt_field *create_packet_header_field(struct bt_field_type *ft)
+int fill_packet_header_field(struct bt_packet *packet)
 {
 	struct bt_field *ph = NULL;
 	struct bt_field *magic = NULL;
 	int ret;
 
-	ph = bt_field_create(ft);
-	if (!ph) {
-		BT_LOGE_STR("Cannot create field object.");
-		goto error;
-	}
-
-	magic = bt_field_structure_get_field_by_name(ph, "magic");
+	ph = bt_packet_borrow_header(packet);
+	BT_ASSERT(ph);
+	magic = bt_field_structure_borrow_field_by_name(ph, "magic");
 	if (!magic) {
-		BT_LOGE_STR("Cannot get `magic` field from structure field.");
+		BT_LOGE_STR("Cannot borrow `magic` field from structure field.");
 		goto error;
 	}
 
-	ret = bt_field_unsigned_integer_set_value(magic, 0xc1fc1fc1);
-	if (ret) {
-		BT_LOGE_STR("Cannot set integer field's value.");
-		goto error;
-	}
-
+	ret = bt_field_integer_unsigned_set_value(magic, 0xc1fc1fc1);
+	BT_ASSERT(ret == 0);
 	goto end;
 
 error:
-	BT_PUT(ph);
+	ret = -1;
 
 end:
-	bt_put(magic);
-	return ph;
-}
-
-static
-struct bt_field *create_packet_context_field(struct bt_field_type *ft)
-{
-	struct bt_field *pc = NULL;
-	struct bt_field *field = NULL;
-	int ret;
-
-	pc = bt_field_create(ft);
-	if (!pc) {
-		BT_LOGE_STR("Cannot create field object.");
-		goto error;
-	}
-
-	field = bt_field_structure_get_field_by_name(pc, "content_size");
-	if (!field) {
-		BT_LOGE_STR("Cannot get `content_size` field from structure field.");
-		goto error;
-	}
-
-	ret = bt_field_unsigned_integer_set_value(field, 0);
-	if (ret) {
-		BT_LOGE_STR("Cannot set integer field's value.");
-		goto error;
-	}
-
-	bt_put(field);
-	field = bt_field_structure_get_field_by_name(pc, "packet_size");
-	if (!field) {
-		BT_LOGE_STR("Cannot get `packet_size` field from structure field.");
-		goto error;
-	}
-
-	ret = bt_field_unsigned_integer_set_value(field, 0);
-	if (ret) {
-		BT_LOGE_STR("Cannot set integer field's value.");
-		goto error;
-	}
-
-	goto end;
-
-error:
-	BT_PUT(pc);
-
-end:
-	bt_put(field);
-	return pc;
+	return ret;
 }
 
 static
 int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 {
 	int ret = 0;
-	struct bt_field_type *ft = NULL;
-	struct bt_field *field = NULL;
 
 	dmesg_comp->stream = bt_stream_create(dmesg_comp->stream_class,
-		NULL);
+		NULL, 0);
 	if (!dmesg_comp->stream) {
 		BT_LOGE_STR("Cannot create stream object.");
 		goto error;
@@ -565,34 +450,9 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	ft = bt_trace_get_packet_header_type(dmesg_comp->trace);
-	BT_ASSERT(ft);
-	field = create_packet_header_field(ft);
-	if (!field) {
-		BT_LOGE_STR("Cannot create packet header field.");
-		goto error;
-	}
-
-	ret = bt_packet_set_header(dmesg_comp->packet, field);
+	ret = fill_packet_header_field(dmesg_comp->packet);
 	if (ret) {
-		BT_LOGE_STR("Cannot set packet's header field.");
-		goto error;
-	}
-
-	bt_put(ft);
-	bt_put(field);
-	ft = bt_stream_class_get_packet_context_type(
-		dmesg_comp->stream_class);
-	BT_ASSERT(ft);
-	field = create_packet_context_field(ft);
-	if (!field) {
-		BT_LOGE_STR("Cannot create packet context field.");
-		goto error;
-	}
-
-	ret = bt_packet_set_context(dmesg_comp->packet, field);
-	if (ret) {
-		BT_LOGE_STR("Cannot set packet's context field.");
+		BT_LOGE_STR("Cannot fill packet header field.");
 		goto error;
 	}
 
@@ -608,8 +468,6 @@ error:
 	ret = -1;
 
 end:
-	bt_put(field);
-	bt_put(ft);
 	return ret;
 }
 
@@ -738,24 +596,20 @@ void dmesg_finalize(struct bt_private_component *priv_comp)
 }
 
 static
-int create_event_header_from_line(
+struct bt_notification *create_init_event_notif_from_line(
 		struct dmesg_component *dmesg_comp,
-		const char *line, const char **new_start,
-		struct bt_field **user_field,
-		struct bt_clock_value **user_clock_value)
+		const char *line, const char **new_start)
 {
+	struct bt_event *event;
+	struct bt_notification *notif = NULL;
 	bool has_timestamp = false;
 	unsigned long sec, usec, msec;
 	unsigned int year, mon, mday, hour, min;
 	uint64_t ts = 0;
-	struct bt_clock_value *clock_value = NULL;
-	struct bt_field_type *ft = NULL;
 	struct bt_field *eh_field = NULL;
 	struct bt_field *ts_field = NULL;
 	int ret = 0;
 
-	BT_ASSERT(user_clock_value);
-	BT_ASSERT(user_field);
 	*new_start = line;
 
 	if (dmesg_comp->params.no_timestamp) {
@@ -818,78 +672,58 @@ skip_ts:
 		goto error;
 	}
 
+	notif = bt_notification_event_create(dmesg_comp->event_class,
+		dmesg_comp->packet, dmesg_comp->cc_prio_map);
+	if (!notif) {
+		BT_LOGE_STR("Cannot create event notification.");
+		goto error;
+	}
+
+	event = bt_notification_event_borrow_event(notif);
+	BT_ASSERT(event);
+
 	if (dmesg_comp->clock_class) {
-		clock_value = bt_clock_value_create(dmesg_comp->clock_class,
-			ts);
-		if (!clock_value) {
-			BT_LOGE_STR("Cannot create clock value object.");
-			goto error;
-		}
+		struct bt_clock_value *cv = bt_event_borrow_clock_value(event,
+			dmesg_comp->clock_class);
 
-		ft = bt_stream_class_get_event_header_type(
-			dmesg_comp->stream_class);
-		BT_ASSERT(ft);
-		eh_field = bt_field_create(ft);
-		if (!eh_field) {
-			BT_LOGE_STR("Cannot create event header field object.");
-			goto error;
-		}
-
-		ts_field = bt_field_structure_get_field_by_name(eh_field,
+		ret = bt_clock_value_set_value(cv, ts);
+		BT_ASSERT(ret == 0);
+		eh_field = bt_event_borrow_header(event);
+		BT_ASSERT(eh_field);
+		ts_field = bt_field_structure_borrow_field_by_name(eh_field,
 			"timestamp");
 		if (!ts_field) {
-			BT_LOGE_STR("Cannot get `timestamp` field from structure field.");
+			BT_LOGE_STR("Cannot borrow `timestamp` field from event header structure field.");
 			goto error;
 		}
 
-		ret = bt_field_unsigned_integer_set_value(ts_field, ts);
-		if (ret) {
-			BT_LOGE_STR("Cannot set integer field's value.");
-			goto error;
-		}
-
-		*user_clock_value = clock_value;
-		clock_value = NULL;
-		*user_field = eh_field;
-		eh_field = NULL;
+		ret = bt_field_integer_unsigned_set_value(ts_field, ts);
+		BT_ASSERT(ret == 0);
 	}
 
 	goto end;
 
 error:
-	ret = -1;
+	BT_PUT(notif);
 
 end:
-	bt_put(ft);
-	bt_put(ts_field);
-	bt_put(clock_value);
-	bt_put(eh_field);
-	return ret;
+	return notif;
 }
 
 static
-int create_event_payload_from_line(
-		struct dmesg_component *dmesg_comp,
-		const char *line, struct bt_field **user_field)
+int fill_event_payload_from_line(struct dmesg_component *dmesg_comp,
+		const char *line, struct bt_event *event)
 {
-	struct bt_field_type *ft = NULL;
 	struct bt_field *ep_field = NULL;
 	struct bt_field *str_field = NULL;
 	size_t len;
 	int ret;
 
-	BT_ASSERT(user_field);
-	ft = bt_event_class_get_payload_type(dmesg_comp->event_class);
-	BT_ASSERT(ft);
-	ep_field = bt_field_create(ft);
-	if (!ep_field) {
-		BT_LOGE_STR("Cannot create event payload field object.");
-		goto error;
-	}
-
-	str_field = bt_field_structure_get_field_by_name(ep_field, "str");
+	ep_field = bt_event_borrow_payload(event);
+	BT_ASSERT(ep_field);
+	str_field = bt_field_structure_borrow_field_by_name(ep_field, "str");
 	if (!str_field) {
-		BT_LOGE_STR("Cannot get `timestamp` field from structure field.");
+		BT_LOGE_STR("Cannot borrow `timestamp` field from event payload structure field.");
 		goto error;
 	}
 
@@ -899,6 +733,12 @@ int create_event_payload_from_line(
 		len--;
 	}
 
+	ret = bt_field_string_clear(str_field);
+	if (ret) {
+		BT_LOGE_STR("Cannot clear string field object.");
+		goto error;
+	}
+
 	ret = bt_field_string_append_len(str_field, line, len);
 	if (ret) {
 		BT_LOGE("Cannot append value to string field object: "
@@ -906,17 +746,12 @@ int create_event_payload_from_line(
 		goto error;
 	}
 
-	*user_field = ep_field;
-	ep_field = NULL;
 	goto end;
 
 error:
 	ret = -1;
 
 end:
-	bt_put(ft);
-	bt_put(ep_field);
-	bt_put(str_field);
 	return ret;
 }
 
@@ -924,68 +759,24 @@ static
 struct bt_notification *create_notif_from_line(
 		struct dmesg_component *dmesg_comp, const char *line)
 {
-	struct bt_field *eh_field = NULL;
-	struct bt_field *ep_field = NULL;
-	struct bt_clock_value *clock_value = NULL;
 	struct bt_event *event = NULL;
 	struct bt_notification *notif = NULL;
 	const char *new_start;
 	int ret;
 
-	ret = create_event_header_from_line(dmesg_comp, line, &new_start,
-		&eh_field, &clock_value);
-	if (ret) {
-		BT_LOGE("Cannot create event header field from line: "
-			"ret=%d", ret);
-		goto error;
-	}
-
-	ret = create_event_payload_from_line(dmesg_comp, new_start,
-		&ep_field);
-	if (ret) {
-		BT_LOGE("Cannot create event payload field from line: "
-			"ret=%d", ret);
-		goto error;
-	}
-
-	BT_ASSERT(ep_field);
-	event = bt_event_create(dmesg_comp->event_class);
-	if (!event) {
-		BT_LOGE_STR("Cannot create event object.");
-		goto error;
-	}
-
-	ret = bt_event_set_packet(event, dmesg_comp->packet);
-	if (ret) {
-		BT_LOGE_STR("Cannot set event's packet.");
-		goto error;
-	}
-
-	if (eh_field) {
-		ret = bt_event_set_header(event, eh_field);
-		if (ret) {
-			BT_LOGE_STR("Cannot set event's header field.");
-			goto error;
-		}
-	}
-
-	ret = bt_event_set_event_payload(event, ep_field);
-	if (ret) {
-		BT_LOGE_STR("Cannot set event's payload field.");
-		goto error;
-	}
-
-	if (clock_value) {
-		ret = bt_event_set_clock_value(event, clock_value);
-		if (ret) {
-			BT_LOGE_STR("Cannot set event's clock value.");
-			goto error;
-		}
-	}
-
-	notif = bt_notification_event_create(event, dmesg_comp->cc_prio_map);
+	notif = create_init_event_notif_from_line(dmesg_comp, line, &new_start);
 	if (!notif) {
-		BT_LOGE_STR("Cannot create event notification.");
+		BT_LOGE_STR("Cannot create and initialize event notification from line.");
+		goto error;
+	}
+
+	event = bt_notification_event_borrow_event(notif);
+	BT_ASSERT(event);
+	ret = fill_event_payload_from_line(dmesg_comp, new_start,
+		event);
+	if (ret) {
+		BT_LOGE("Cannot fill event payload field from line: "
+			"ret=%d", ret);
 		goto error;
 	}
 
@@ -995,10 +786,6 @@ error:
 	BT_PUT(notif);
 
 end:
-	bt_put(eh_field);
-	bt_put(ep_field);
-	bt_put(clock_value);
-	bt_put(event);
 	return notif;
 }
 
@@ -1015,6 +802,7 @@ void destroy_dmesg_notif_iter(struct dmesg_notif_iter *dmesg_notif_iter)
 		}
 	}
 
+	bt_put(dmesg_notif_iter->tmp_event_notif);
 	free(dmesg_notif_iter->linebuf);
 	g_free(dmesg_notif_iter);
 }
@@ -1097,6 +885,17 @@ struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
 	dmesg_comp = dmesg_notif_iter->dmesg_comp;
 	BT_ASSERT(dmesg_comp);
 
+	if (dmesg_notif_iter->state == STATE_DONE) {
+		next_ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		goto end;
+	}
+
+	if (dmesg_notif_iter->tmp_event_notif ||
+			dmesg_notif_iter->state == STATE_EMIT_PACKET_END ||
+			dmesg_notif_iter->state == STATE_EMIT_STREAM_END) {
+		goto handle_state;
+	}
+
 	while (true) {
 		const char *ch;
 		bool only_spaces = true;
@@ -1111,8 +910,17 @@ struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
 				next_ret.status =
 					BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 			} else {
-				next_ret.status =
-					BT_NOTIFICATION_ITERATOR_STATUS_END;
+				if (dmesg_notif_iter->state == STATE_EMIT_STREAM_BEGINNING) {
+					/* Stream did not even begin */
+					next_ret.status =
+						BT_NOTIFICATION_ITERATOR_STATUS_END;
+					goto end;
+				} else {
+					/* End current packet now */
+					dmesg_notif_iter->state =
+						STATE_EMIT_PACKET_END;
+					goto handle_state;
+				}
 			}
 
 			goto end;
@@ -1133,12 +941,54 @@ struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
 		}
 	}
 
-	next_ret.notification = create_notif_from_line(dmesg_comp,
+	dmesg_notif_iter->tmp_event_notif = create_notif_from_line(dmesg_comp,
 		dmesg_notif_iter->linebuf);
-	if (!next_ret.notification) {
+	if (!dmesg_notif_iter->tmp_event_notif) {
 		BT_LOGE("Cannot create event notification from line: "
 			"dmesg-comp-addr=%p, line=\"%s\"", dmesg_comp,
 			dmesg_notif_iter->linebuf);
+		goto end;
+	}
+
+handle_state:
+	BT_ASSERT(dmesg_comp->trace);
+
+	switch (dmesg_notif_iter->state) {
+	case STATE_EMIT_STREAM_BEGINNING:
+		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
+		next_ret.notification = bt_notification_stream_begin_create(
+			dmesg_comp->stream);
+		dmesg_notif_iter->state = STATE_EMIT_PACKET_BEGINNING;
+		break;
+	case STATE_EMIT_PACKET_BEGINNING:
+		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
+		next_ret.notification = bt_notification_packet_begin_create(
+			dmesg_comp->packet);
+		dmesg_notif_iter->state = STATE_EMIT_EVENT;
+		break;
+	case STATE_EMIT_EVENT:
+		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
+		BT_MOVE(next_ret.notification,
+			dmesg_notif_iter->tmp_event_notif);
+		break;
+	case STATE_EMIT_PACKET_END:
+		next_ret.notification = bt_notification_packet_end_create(
+			dmesg_comp->packet);
+		dmesg_notif_iter->state = STATE_EMIT_STREAM_END;
+		break;
+	case STATE_EMIT_STREAM_END:
+		next_ret.notification = bt_notification_stream_end_create(
+			dmesg_comp->stream);
+		dmesg_notif_iter->state = STATE_DONE;
+		break;
+	default:
+		break;
+	}
+
+	if (!next_ret.notification) {
+		BT_LOGE("Cannot create notification: dmesg-comp-addr=%p",
+			dmesg_comp);
+		next_ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 	}
 
 end:

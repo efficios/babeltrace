@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/object-pool-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/types.h>
@@ -70,6 +71,9 @@ struct bt_trace {
 	GArray *is_static_listeners;
 	bt_bool is_static;
 	bt_bool in_remove_listener;
+
+	/* Pool of `struct bt_field_wrapper *` */
+	struct bt_object_pool packet_header_field_pool;
 };
 
 BT_HIDDEN

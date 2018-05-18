@@ -36,10 +36,13 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/clock.h \
 	babeltrace/ctf-ir/event-class.h \
 	babeltrace/ctf-ir/event.h \
+	babeltrace/ctf-ir/event-header-field.h \
 	babeltrace/ctf-ir/field-path.h \
 	babeltrace/ctf-ir/field-types.h \
 	babeltrace/ctf-ir/fields.h \
 	babeltrace/ctf-ir/packet.h \
+	babeltrace/ctf-ir/packet-context-field.h \
+	babeltrace/ctf-ir/packet-header-field.h \
 	babeltrace/ctf-ir/stream-class.h \
 	babeltrace/ctf-ir/stream.h \
 	babeltrace/ctf-ir/trace.h \
@@ -105,6 +108,7 @@ noinst_HEADERS = \
 	babeltrace/common-internal.h \
 	babeltrace/bitfield-internal.h \
 	babeltrace/object-internal.h \
+	babeltrace/object-pool-internal.h \
 	babeltrace/plugin/plugin-internal.h \
 	babeltrace/plugin/plugin-so-internal.h \
 	babeltrace/plugin/python-plugin-provider-internal.h \
@@ -132,6 +136,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/stream-class-internal.h \
 	babeltrace/ctf-ir/event-internal.h \
 	babeltrace/ctf-ir/field-path-internal.h \
+	babeltrace/ctf-ir/field-wrapper-internal.h \
 	babeltrace/ctf-ir/trace-internal.h \
 	babeltrace/ctf-ir/clock-class-internal.h \
 	babeltrace/ctf-ir/field-types-internal.h \
