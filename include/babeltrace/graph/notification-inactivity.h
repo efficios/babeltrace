@@ -55,19 +55,6 @@ extern struct bt_clock_value *bt_notification_inactivity_borrow_clock_value(
 		struct bt_notification *notification,
 		struct bt_clock_class *clock_class);
 
-static inline
-struct bt_clock_value *bt_notification_inactivity_get_clock_value(
-		struct bt_notification *notification,
-		struct bt_clock_class *clock_class)
-{
-	return bt_get(bt_notification_inactivity_borrow_clock_value(
-		notification, clock_class));
-}
-
-extern int bt_notification_inactivity_set_clock_value(
-		struct bt_notification *notification,
-		struct bt_clock_value *clock_value);
-
 #ifdef __cplusplus
 }
 #endif

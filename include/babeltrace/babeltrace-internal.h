@@ -85,4 +85,6 @@
 
 #define TOSTRING(x)	__STRINGIFY(x)
 
+#define BT_UNUSED	__attribute__((unused))
+
 #endif

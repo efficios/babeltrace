@@ -5,10 +5,14 @@ libctf_ir_la_SOURCES = \
 	clock-class.c \
 	event.c \
 	event-class.c \
+	event-header-field.c \
+	field-wrapper.c \
 	fields.c \
 	field-types.c \
 	field-path.c \
 	packet.c \
+	packet-context-field.c \
+	packet-header-field.c \
 	stream.c \
 	stream-class.c \
 	trace.c \

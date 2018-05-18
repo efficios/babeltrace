@@ -42,7 +42,6 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(pretty,
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(pretty,
 	"Pretty-print notifications (`text` format of Babeltrace 1).");
 
-#if 0
 /* dmesg source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(dmesg, dmesg_notif_iter_next);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(dmesg,
@@ -53,4 +52,3 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(dmesg,
 	dmesg_notif_iter_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(dmesg,
 	dmesg_notif_iter_finalize);
-#endif

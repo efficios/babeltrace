@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
+#include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
@@ -80,6 +81,7 @@ void bt_stream_destroy(struct bt_object *obj)
 
 	BT_LOGD("Destroying stream object: addr=%p, name=\"%s\"",
 		stream, bt_stream_get_name(stream));
+	bt_object_pool_finalize(&stream->packet_pool);
 	bt_stream_common_finalize((void *) obj);
 	g_free(stream);
 }
@@ -174,6 +176,12 @@ end:
 }
 
 static
+void bt_stream_free_packet(struct bt_packet *packet, struct bt_stream *stream)
+{
+	bt_packet_destroy(packet);
+}
+
+static
 struct bt_stream *bt_stream_create_with_id_no_check(
 		struct bt_stream_class *stream_class,
 		const char *name, uint64_t id)
@@ -223,6 +231,15 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 		BT_TO_COMMON(stream_class), name, id, bt_stream_destroy);
 	if (ret) {
 		/* bt_stream_common_initialize() logs errors */
+		goto error;
+	}
+
+	ret = bt_object_pool_initialize(&stream->packet_pool,
+		(bt_object_pool_new_object_func) bt_packet_new,
+		(bt_object_pool_destroy_object_func) bt_stream_free_packet,
+		stream);
+	if (ret) {
+		BT_LOGE("Failed to initialize packet pool: ret=%d", ret);
 		goto error;
 	}
 

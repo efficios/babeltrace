@@ -38,6 +38,7 @@
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/object-pool-internal.h>
 #include <glib.h>
 
 struct bt_event_class_common {
@@ -63,6 +64,9 @@ struct bt_event_class_common {
 
 struct bt_event_class {
 	struct bt_event_class_common common;
+
+	/* Pool of `struct bt_event *` */
+	struct bt_object_pool event_pool;
 };
 
 BT_HIDDEN
@@ -97,6 +101,10 @@ BT_HIDDEN
 int bt_event_class_common_validate_single_clock_class(
 		struct bt_event_class_common *event_class,
 		struct bt_clock_class **expected_clock_class);
+
+BT_HIDDEN
+int bt_event_class_update_event_pool_clock_values(
+		struct bt_event_class *event_class);
 
 static inline
 const char *bt_event_class_common_get_name(

@@ -78,6 +78,8 @@ extern const unsigned char *bt_clock_class_get_uuid(
 		struct bt_clock_class *clock_class);
 extern int bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 		const unsigned char *uuid);
+extern int bt_clock_class_cycles_to_ns(struct bt_clock_class *clock_class,
+		uint64_t cycles, int64_t *ns);
 
 #ifdef __cplusplus
 }

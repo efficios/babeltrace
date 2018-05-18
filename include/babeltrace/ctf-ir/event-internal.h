@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
+#include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -46,7 +47,7 @@ struct bt_stream_pos;
 struct bt_event_common {
 	struct bt_object base;
 	struct bt_event_class_common *class;
-	struct bt_field_common *header_field;
+	struct bt_field_wrapper *header_field;
 	struct bt_field_common *stream_event_context_field;
 	struct bt_field_common *context_field;
 	struct bt_field_common *payload_field;
@@ -101,7 +102,10 @@ int bt_event_common_initialize(struct bt_event_common *event,
 		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,
 			struct bt_field_type_common *packet_context_field_type,
 			struct bt_field_type_common *event_header_field_type),
-		void *(*create_field_func)(void *));
+		void *(*create_field_func)(void *),
+		void (*release_field_func)(void *),
+		void *(*create_header_field_func)(void *, void *),
+		void (*release_header_field_func)(void *));
 
 static inline
 struct bt_field_common *bt_event_common_borrow_payload(
@@ -126,39 +130,6 @@ end:
 }
 
 static inline
-int bt_event_common_set_payload(struct bt_event_common *event,
-		struct bt_field_common *payload)
-{
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_EVENT_COMMON_HOT(event, "Event");
-
-	if (payload) {
-		BT_ASSERT_PRE(bt_field_type_common_compare(payload->type,
-			event->class->payload_field_type) == 0,
-			"Payload field's type is different from the "
-			"expected field type: %![event-]+_e, %![ft-]+_F, "
-			"%![expected-ft-]+_F",
-			event, payload->type,
-			event->class->payload_field_type);
-	} else {
-		BT_ASSERT_PRE(!event->class->payload_field_type,
-			"Setting no event payload field, "
-			"but event payload field type is not NULL: ",
-			"%![event-]+_e, %![payload-ft-]+_F",
-			event, event->class->payload_field_type);
-	}
-
-	bt_put(event->payload_field);
-	event->payload_field = bt_get(payload);
-	BT_LOGV("Set event's payload field: event-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"payload-field-addr=%p",
-		event, bt_event_class_common_get_name(event->class),
-		bt_event_class_common_get_id(event->class), payload);
-	return 0;
-}
-
-static inline
 struct bt_field_common *bt_event_common_borrow_header(
 		struct bt_event_common *event)
 {
@@ -174,48 +145,10 @@ struct bt_field_common *bt_event_common_borrow_header(
 		goto end;
 	}
 
-	header = event->header_field;
+	header = event->header_field->field;
 
 end:
 	return header;
-}
-
-static inline
-int bt_event_common_set_header(struct bt_event_common *event,
-		struct bt_field_common *header)
-{
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_EVENT_COMMON_HOT(event, "Event");
-
-	/*
-	 * Ensure the provided header's type matches the one registered to the
-	 * stream class.
-	 */
-	if (header) {
-		BT_ASSERT_PRE(bt_field_type_common_compare(header->type,
-			bt_event_class_common_borrow_stream_class(event->class)->event_header_field_type) == 0,
-			"Header field's type is different from the "
-			"expected field type: %![event-]+_e, %![ft-]+_F, "
-			"%![expected-ft-]+_F",
-			event, header->type,
-			bt_event_class_common_borrow_stream_class(event->class)->event_header_field_type);
-	} else {
-		BT_ASSERT_PRE(!bt_event_class_common_borrow_stream_class(event->class)->event_header_field_type,
-			"Setting no event header field, "
-			"but event header field type is not NULL: ",
-			"%![event-]+_e, %![header-ft-]+_F",
-			event,
-			bt_event_class_common_borrow_stream_class(event->class)->event_header_field_type);
-	}
-
-	bt_put(event->header_field);
-	event->header_field = bt_get(header);
-	BT_LOGV("Set event's header field: event-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"header-field-addr=%p",
-		event, bt_event_class_common_get_name(event->class),
-		bt_event_class_common_get_id(event->class), header);
-	return 0;
 }
 
 static inline
@@ -241,38 +174,6 @@ end:
 }
 
 static inline
-int bt_event_common_set_context(struct bt_event_common *event,
-		struct bt_field_common *context)
-{
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_EVENT_COMMON_HOT(event, "Event");
-
-	if (context) {
-		BT_ASSERT_PRE(bt_field_type_common_compare(context->type,
-			event->class->context_field_type) == 0,
-			"Context field's type is different from the "
-			"expected field type: %![event-]+_e, %![ft-]+_F, "
-			"%![expected-ft-]+_F",
-			event, context->type, event->class->context_field_type);
-	} else {
-		BT_ASSERT_PRE(!event->class->context_field_type,
-			"Setting no event context field, "
-			"but event context field type is not NULL: ",
-			"%![event-]+_e, %![context-ft-]+_F",
-			event, event->class->context_field_type);
-	}
-
-	bt_put(event->context_field);
-	event->context_field = bt_get(context);
-	BT_LOGV("Set event's context field: event-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"context-field-addr=%p",
-		event, bt_event_class_common_get_name(event->class),
-		bt_event_class_common_get_id(event->class), context);
-	return 0;
-}
-
-static inline
 struct bt_field_common *bt_event_common_borrow_stream_event_context(
 		struct bt_event_common *event)
 {
@@ -295,50 +196,43 @@ end:
 }
 
 static inline
-int bt_event_common_set_stream_event_context(struct bt_event_common *event,
-		struct bt_field_common *stream_event_context)
-{
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_EVENT_COMMON_HOT(event, "Event");
-
-	if (stream_event_context) {
-		BT_ASSERT_PRE(bt_field_type_common_compare(stream_event_context->type,
-			bt_event_class_common_borrow_stream_class(event->class)->event_context_field_type) == 0,
-			"Stream event context field's type is different from the "
-			"expected field type: %![event-]+_e, %![ft-]+_F, "
-			"%![expected-ft-]+_F",
-			event, stream_event_context->type,
-			bt_event_class_common_borrow_stream_class(event->class)->event_context_field_type);
-	} else {
-		BT_ASSERT_PRE(!bt_event_class_common_borrow_stream_class(event->class)->event_context_field_type,
-			"Setting no stream event context field, "
-			"but stream event context field type is not NULL: ",
-			"%![event-]+_e, %![context-ft-]+_F",
-			event,
-			bt_event_class_common_borrow_stream_class(event->class)->event_context_field_type);
-	}
-
-	bt_get(stream_event_context);
-	BT_MOVE(event->stream_event_context_field, stream_event_context);
-	BT_LOGV("Set event's stream event context field: event-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"stream-event-context-field-addr=%p",
-		event, bt_event_class_common_get_name(event->class),
-		bt_event_class_common_get_id(event->class),
-		stream_event_context);
-	return 0;
-}
-
-static inline
-void bt_event_common_finalize(struct bt_object *obj)
+void bt_event_common_finalize(struct bt_object *obj,
+		void (*field_release_func)(void *),
+		void (*header_field_release_func)(void *, struct bt_event_common *))
 {
 	struct bt_event_common *event = (void *) obj;
 
 	BT_LOGD("Destroying event: addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
-		event, bt_event_class_common_get_name(event->class),
-		bt_event_class_common_get_id(event->class));
+		event,
+		event->class ? bt_event_class_common_get_name(event->class) : NULL,
+		event->class ? bt_event_class_common_get_id(event->class) : INT64_C(-1));
 
+	if (event->header_field) {
+		BT_LOGD_STR("Releasing event's header field.");
+		header_field_release_func(event->header_field, event);
+	}
+
+	if (event->stream_event_context_field) {
+		BT_LOGD_STR("Releasing event's stream event context field.");
+		field_release_func(event->stream_event_context_field);
+	}
+
+	if (event->context_field) {
+		BT_LOGD_STR("Releasing event's context field.");
+		field_release_func(event->context_field);
+	}
+
+	if (event->payload_field) {
+		BT_LOGD_STR("Releasing event's payload field.");
+		field_release_func(event->payload_field);
+	}
+
+	/*
+	 * Leave this after calling header_field_release_func() because
+	 * this function receives the event object and could need its
+	 * class to perform some cleanup.
+	 */
 	if (!event->base.parent) {
 		/*
 		 * Event was keeping a reference to its class since it shared no
@@ -347,15 +241,22 @@ void bt_event_common_finalize(struct bt_object *obj)
 		 */
 		bt_put(event->class);
 	}
-
-	bt_put(event->header_field);
-	BT_LOGD_STR("Putting event's stream event context field.");
-	bt_put(event->stream_event_context_field);
-	BT_LOGD_STR("Putting event's context field.");
-	bt_put(event->context_field);
-	BT_LOGD_STR("Putting event's payload field.");
-	bt_put(event->payload_field);
-	BT_LOGD_STR("Putting event's packet.");
 }
+
+BT_HIDDEN
+struct bt_event *bt_event_new(struct bt_event_class *event_class);
+
+BT_HIDDEN
+struct bt_event *bt_event_create(struct bt_event_class *event_class,
+		struct bt_packet *packet);
+
+BT_HIDDEN
+void bt_event_recycle(struct bt_event *event);
+
+BT_HIDDEN
+void bt_event_destroy(struct bt_event *event);
+
+BT_HIDDEN
+int bt_event_set_packet(struct bt_event *event, struct bt_packet *packet);
 
 #endif /* BABELTRACE_CTF_IR_EVENT_INTERNAL_H */

@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_CTF_IR_PACKET_INTERNAL_H
-#define BABELTRACE_CTF_IR_PACKET_INTERNAL_H
+#ifndef BABELTRACE_CTF_IR_PACKET_CONTEXT_FIELD_H
+#define BABELTRACE_CTF_IR_PACKET_CONTEXT_FIELD_H
 
 /*
- * Babeltrace - CTF IR: Stream packet internal
- *
- * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,39 +21,27 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * The Common Trace Format (CTF) Specification is available at
+ * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/field-wrapper-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/babeltrace-internal.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct bt_packet {
-	struct bt_object base;
-	struct bt_field_wrapper *header;
-	struct bt_field_wrapper *context;
-	struct bt_stream *stream;
-	int frozen;
-};
+struct bt_packet_context_field;
+struct bt_field;
 
-BT_HIDDEN
-void _bt_packet_freeze(struct bt_packet *packet);
+extern
+struct bt_field *bt_packet_context_field_borrow_field(
+		struct bt_packet_context_field *field);
 
-#ifdef BT_DEV_MODE
-# define bt_packet_freeze	_bt_packet_freeze
-#else
-# define bt_packet_freeze(_packet)
-#endif /* BT_DEV_MODE */
+extern
+void bt_packet_context_field_release(struct bt_packet_context_field *field);
 
-BT_HIDDEN
-struct bt_packet *bt_packet_new(struct bt_stream *stream);
+#ifdef __cplusplus
+}
+#endif
 
-BT_HIDDEN
-void bt_packet_recycle(struct bt_packet *packet);
-
-BT_HIDDEN
-void bt_packet_destroy(struct bt_packet *packet);
-
-#endif /* BABELTRACE_CTF_IR_PACKET_INTERNAL_H */
+#endif /* BABELTRACE_CTF_IR_PACKET_CONTEXT_FIELD_H */

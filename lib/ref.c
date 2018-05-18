@@ -27,6 +27,7 @@
 #define BT_LOG_TAG "REF"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/object-internal.h>
 
@@ -37,6 +38,8 @@ void *bt_get(void *ptr)
 	if (unlikely(!obj)) {
 		goto end;
 	}
+
+	BT_ASSERT_PRE(obj->is_shared, "Object is not shared: addr=%p", obj);
 
 	if (unlikely(!obj->ref_count.release)) {
 		goto end;
@@ -65,6 +68,8 @@ void bt_put(void *ptr)
 	if (unlikely(!obj)) {
 		return;
 	}
+
+	BT_ASSERT_PRE(obj->is_shared, "Object is not shared: addr=%p", obj);
 
 	if (unlikely(!obj->ref_count.release)) {
 		return;

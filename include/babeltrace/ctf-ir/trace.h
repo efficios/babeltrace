@@ -44,9 +44,6 @@
 extern "C" {
 #endif
 
-struct bt_field_type;
-struct bt_value;
-
 /**
 @defgroup ctfirtraceclass CTF IR trace class
 @ingroup ctfir
@@ -152,6 +149,9 @@ struct bt_trace;
 struct bt_stream;
 struct bt_stream_class;
 struct bt_clock_class;
+struct bt_field_type;
+struct bt_value;
+struct bt_packet_header_field;
 
 /**
 @brief	User function type to use with
@@ -587,6 +587,9 @@ struct bt_field_type *bt_trace_get_packet_header_field_type(
 {
 	return bt_get(bt_trace_borrow_packet_header_field_type(trace_class));
 }
+
+extern struct bt_packet_header_field *bt_trace_create_packet_header_field(
+		struct bt_trace *trace);
 
 /**
 @brief	Sets the packet header field type of the CTF IR trace class

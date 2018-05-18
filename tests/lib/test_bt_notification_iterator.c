@@ -402,18 +402,6 @@ enum bt_notification_iterator_status src_iter_init(
 }
 
 static
-struct bt_event *src_create_event(struct bt_packet *packet)
-{
-	struct bt_event *event = bt_event_create(src_event_class);
-	int ret;
-
-	assert(event);
-	ret = bt_event_set_packet(event, packet);
-	assert(ret == 0);
-	return event;
-}
-
-static
 struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		struct src_iter_user_data *user_data)
 {
@@ -513,12 +501,10 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 	}
 
 	if (event_packet) {
-		struct bt_event *event = src_create_event(event_packet);
-
-		assert(event);
-		next_return.notification = bt_notification_event_create(event,
+		next_return.notification =
+			bt_notification_event_create(src_event_class,
+			event_packet,
 			src_empty_cc_prio_map);
-		bt_put(event);
 		assert(next_return.notification);
 	}
 
@@ -599,12 +585,10 @@ enum bt_notification_iterator_status common_consume(
 		struct bt_event *event;
 
 		test_event.type = TEST_EV_TYPE_NOTIF_EVENT;
-		event = bt_notification_event_get_event(notification);
+		event = bt_notification_event_borrow_event(notification);
 		assert(event);
-		test_event.packet = bt_event_get_packet(event);
-		bt_put(event);
+		test_event.packet = bt_event_borrow_packet(event);
 		assert(test_event.packet);
-		bt_put(test_event.packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
@@ -613,30 +597,26 @@ enum bt_notification_iterator_status common_consume(
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
 		test_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
 		test_event.stream =
-			bt_notification_stream_begin_get_stream(notification);
+			bt_notification_stream_begin_borrow_stream(notification);
 		assert(test_event.stream);
-		bt_put(test_event.stream);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 		test_event.type = TEST_EV_TYPE_NOTIF_STREAM_END;
 		test_event.stream =
-			bt_notification_stream_end_get_stream(notification);
+			bt_notification_stream_end_borrow_stream(notification);
 		assert(test_event.stream);
-		bt_put(test_event.stream);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 		test_event.type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN;
 		test_event.packet =
-			bt_notification_packet_begin_get_packet(notification);
+			bt_notification_packet_begin_borrow_packet(notification);
 		assert(test_event.packet);
-		bt_put(test_event.packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		test_event.type = TEST_EV_TYPE_NOTIF_PACKET_END;
 		test_event.packet =
-			bt_notification_packet_end_get_packet(notification);
+			bt_notification_packet_end_borrow_packet(notification);
 		assert(test_event.packet);
-		bt_put(test_event.packet);
 		break;
 	default:
 		test_event.type = TEST_EV_TYPE_NOTIF_UNEXPECTED;
@@ -644,9 +624,8 @@ enum bt_notification_iterator_status common_consume(
 	}
 
 	if (test_event.packet) {
-		test_event.stream = bt_packet_get_stream(test_event.packet);
+		test_event.stream = bt_packet_borrow_stream(test_event.packet);
 		assert(test_event.stream);
-		bt_put(test_event.stream);
 	}
 
 end:

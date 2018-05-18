@@ -39,6 +39,7 @@
 #include <babeltrace/ctf-ir/visitor-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ctf-ir/utils-internal.h>
+#include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
@@ -115,8 +116,34 @@ void bt_stream_class_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying stream class: addr=%p, name=\"%s\", id=%" PRId64,
 		stream_class, bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class));
+
+	/*
+	 * IMPORTANT: Finalize the common stream class BEFORE finalizing
+	 * the pools because otherwise this scenario is possible:
+	 *
+	 * 1. Event header field object pool is finalized, thus
+	 *    destroying its internal array and state.
+	 *
+	 * 2. Stream class is finalized: each event class is destroyed.
+	 *
+	 * 3. Destroying an event class finalizes its event pool,
+	 *    destroying each contained event.
+	 *
+	 * 4. Destroying an event makes it recycle its event header
+	 *    field to its stream class's event header field pool. But
+	 *    said pool is already destroyed.
+	 */
 	bt_stream_class_common_finalize(BT_TO_COMMON(stream_class));
+	bt_object_pool_finalize(&stream_class->event_header_field_pool);
+	bt_object_pool_finalize(&stream_class->packet_context_field_pool);
 	g_free(stream_class);
+}
+
+static
+void free_field_wrapper(struct bt_field_wrapper *field_wrapper,
+		struct bt_stream_class *stream_class)
+{
+	bt_field_wrapper_destroy((void *) field_wrapper);
 }
 
 struct bt_stream_class *bt_stream_class_create(const char *name)
@@ -138,6 +165,26 @@ struct bt_stream_class *bt_stream_class_create(const char *name)
 		goto error;
 	}
 
+	ret = bt_object_pool_initialize(&stream_class->event_header_field_pool,
+		(bt_object_pool_new_object_func) bt_field_wrapper_new,
+		(bt_object_pool_destroy_object_func) free_field_wrapper,
+		stream_class);
+	if (ret) {
+		BT_LOGE("Failed to initialize event header field pool: ret=%d",
+			ret);
+		goto error;
+	}
+
+	ret = bt_object_pool_initialize(&stream_class->packet_context_field_pool,
+		(bt_object_pool_new_object_func) bt_field_wrapper_new,
+		(bt_object_pool_destroy_object_func) free_field_wrapper,
+		stream_class);
+	if (ret) {
+		BT_LOGE("Failed to initialize packet context field pool: ret=%d",
+			ret);
+		goto error;
+	}
+
 	BT_LOGD("Created stream class object: addr=%p, name=\"%s\"",
 		stream_class, name);
 	return stream_class;
@@ -145,6 +192,72 @@ struct bt_stream_class *bt_stream_class_create(const char *name)
 error:
 	bt_put(stream_class);
 	return NULL;
+}
+
+struct bt_event_header_field *bt_stream_class_create_event_header_field(
+		struct bt_stream_class *stream_class)
+{
+	struct bt_field_wrapper *field_wrapper;
+
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(stream_class->common.frozen,
+		"Stream class is not part of a trace: %!+S", stream_class);
+	BT_ASSERT_PRE(stream_class->common.event_header_field_type,
+		"Stream class has no event header field type: %!+S",
+		stream_class);
+	field_wrapper = bt_field_wrapper_create(
+		&stream_class->event_header_field_pool,
+		(void *) stream_class->common.event_header_field_type);
+	if (!field_wrapper) {
+		BT_LIB_LOGE("Cannot allocate one event header field from stream class: "
+			"%![sc-]+S", stream_class);
+		goto error;
+	}
+
+	BT_ASSERT(field_wrapper->field);
+	goto end;
+
+error:
+	if (field_wrapper) {
+		bt_field_wrapper_destroy(field_wrapper);
+		field_wrapper = NULL;
+	}
+
+end:
+	return (void *) field_wrapper;
+}
+
+struct bt_packet_context_field *bt_stream_class_create_packet_context_field(
+		struct bt_stream_class *stream_class)
+{
+	struct bt_field_wrapper *field_wrapper;
+
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(stream_class->common.frozen,
+		"Stream class is not part of a trace: %!+S", stream_class);
+	BT_ASSERT_PRE(stream_class->common.packet_context_field_type,
+		"Stream class has no packet context field type: %!+S",
+		stream_class);
+	field_wrapper = bt_field_wrapper_create(
+		&stream_class->packet_context_field_pool,
+		(void *) stream_class->common.packet_context_field_type);
+	if (!field_wrapper) {
+		BT_LIB_LOGE("Cannot allocate one packet context field from stream class: "
+			"%![sc-]+S", stream_class);
+		goto error;
+	}
+
+	BT_ASSERT(field_wrapper->field);
+	goto end;
+
+error:
+	if (field_wrapper) {
+		bt_field_wrapper_destroy(field_wrapper);
+		field_wrapper = NULL;
+	}
+
+end:
+	return (void *) field_wrapper;
 }
 
 struct bt_trace *bt_stream_class_borrow_trace(struct bt_stream_class *stream_class)
@@ -465,6 +578,8 @@ int bt_stream_class_add_event_class(
 {
 	struct bt_trace *trace;
 	int ret = 0;
+	uint64_t i;
+	struct bt_clock_class *old_clock_class;
 
 	if (!stream_class) {
 		BT_LOGW("Invalid parameter: stream class is NULL: "
@@ -473,6 +588,7 @@ int bt_stream_class_add_event_class(
 		goto end;
 	}
 
+	old_clock_class = stream_class->common.clock_class;
 	trace = BT_FROM_COMMON(bt_stream_class_common_borrow_trace(
 		BT_TO_COMMON(stream_class)));
 	if (trace && trace->is_static) {
@@ -496,6 +612,28 @@ int bt_stream_class_add_event_class(
 				.type = BT_VISITOR_OBJECT_TYPE_EVENT_CLASS };
 
 		(void) bt_trace_object_modification(&obj, trace);
+	}
+
+	if (!old_clock_class && stream_class->common.clock_class) {
+		/*
+		 * Adding this event class updated the stream class's
+		 * single clock class: make sure all the events which
+		 * exist in event pools have an existing clock value for
+		 * this clock class so that any created event object in
+		 * the future (from a pool or not) has this clock value
+		 * available.
+		 */
+		for (i = 0; i < stream_class->common.event_classes->len; i++) {
+			struct bt_event_class *event_class =
+				stream_class->common.event_classes->pdata[i];
+
+			BT_ASSERT(event_class);
+			ret = bt_event_class_update_event_pool_clock_values(
+				event_class);
+			if (ret) {
+				goto end;
+			}
+		}
 	}
 
 end:

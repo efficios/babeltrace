@@ -53,10 +53,13 @@
 #include <babeltrace/ctf-ir/clock-value.h>
 #include <babeltrace/ctf-ir/clock.h>
 #include <babeltrace/ctf-ir/event-class.h>
+#include <babeltrace/ctf-ir/event-header-field.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/ctf-ir/field-path.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/fields.h>
+#include <babeltrace/ctf-ir/packet-context-field.h>
+#include <babeltrace/ctf-ir/packet-header-field.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>

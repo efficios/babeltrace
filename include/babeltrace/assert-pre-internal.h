@@ -1,6 +1,8 @@
 #ifndef BABELTRACE_ASSERT_PRE_INTERNAL_H
 #define BABELTRACE_ASSERT_PRE_INTERNAL_H
 
+#include <babeltrace/babeltrace-internal.h>
+
 /*
  * Copyright (c) 2018 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2018 Philippe Proulx <pproulx@efficios.com>
@@ -33,7 +35,7 @@
  * also need to define it before including this header.
  *
  * This is a reminder that in order to use
- * <babeltrace/assert-internal.hpp>, you also need to use logging
+ * <babeltrace/assert-pre-internal.h>, you also need to use logging
  * explicitly.
  */
 #ifndef BABELTRACE_LIB_LOGGING_INTERNAL_H
@@ -97,7 +99,7 @@
 # define BT_ASSERT_PRE_MSG	BT_LIB_LOGF
 #else
 # define BT_ASSERT_PRE(_cond, _fmt, ...)
-# define BT_ASSERT_PRE_FUNC	__attribute__((unused))
+# define BT_ASSERT_PRE_FUNC	BT_UNUSED
 # define BT_ASSERT_PRE_MSG(_fmt, ...)
 #endif /* BT_DEV_MODE */
 

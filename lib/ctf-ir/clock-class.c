@@ -29,6 +29,7 @@
 #define BT_LOG_TAG "CLOCK-CLASS"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/ctf-ir/clock-value-internal.h>
@@ -43,6 +44,12 @@
 
 static
 void bt_clock_class_destroy(struct bt_object *obj);
+
+static
+struct bt_clock_value *bt_clock_value_new(struct bt_clock_class *clock_class);
+
+static
+void bt_clock_value_destroy(struct bt_clock_value *clock_value);
 
 BT_HIDDEN
 bt_bool bt_clock_class_is_valid(struct bt_clock_class *clock_class)
@@ -112,6 +119,13 @@ end:
 	return is_valid;
 }
 
+static
+void bt_clock_class_free_clock_value(struct bt_clock_value *clock_value,
+		struct bt_clock_class *clock_class)
+{
+	bt_clock_value_destroy(clock_value);
+}
+
 struct bt_clock_class *bt_clock_class_create(const char *name,
 		uint64_t freq)
 {
@@ -142,6 +156,17 @@ struct bt_clock_class *bt_clock_class_create(const char *name,
 			/* bt_clock_class_set_name() logs errors */
 			goto error;
 		}
+	}
+
+	ret = bt_object_pool_initialize(&clock_class->cv_pool,
+		(bt_object_pool_new_object_func) bt_clock_value_new,
+		(bt_object_pool_destroy_object_func)
+			bt_clock_class_free_clock_value,
+		clock_class);
+	if (ret) {
+		BT_LOGE("Failed to initialize clock value pool: ret=%d",
+			ret);
+		goto error;
 	}
 
 	BT_LOGD("Created clock class object: addr=%p, name=\"%s\"",
@@ -506,11 +531,12 @@ end:
 	return ret;
 }
 
-static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
+static inline
+uint64_t ns_from_value(uint64_t frequency, uint64_t value)
 {
 	uint64_t ns;
 
-	if (frequency == 1000000000) {
+	if (frequency == UINT64_C(1000000000)) {
 		ns = value;
 	} else {
 		double dblres = ((1e9 * (double) value) / (double) frequency);
@@ -546,70 +572,70 @@ void bt_clock_class_destroy(struct bt_object *obj)
 	clock_class = container_of(obj, struct bt_clock_class, base);
 	BT_LOGD("Destroying clock class: addr=%p, name=\"%s\"",
 		obj, bt_clock_class_get_name(clock_class));
+
 	if (clock_class->name) {
 		g_string_free(clock_class->name, TRUE);
 	}
+
 	if (clock_class->description) {
 		g_string_free(clock_class->description, TRUE);
 	}
 
+	bt_object_pool_finalize(&clock_class->cv_pool);
 	g_free(clock_class);
 }
 
 static
-void bt_clock_value_destroy(struct bt_object *obj)
+void bt_clock_value_destroy(struct bt_clock_value *clock_value)
 {
-	struct bt_clock_value *value;
-
-	if (!obj) {
-		return;
-	}
-
-	value = container_of(obj, struct bt_clock_value, base);
 	BT_LOGD("Destroying clock value: addr=%p, clock-class-addr=%p, "
-		"clock-class-name=\"%s\"", obj, value->clock_class,
-		bt_clock_class_get_name(value->clock_class));
-	bt_put(value->clock_class);
-	g_free(value);
+		"clock-class-name=\"%s\"", clock_value,
+		clock_value->clock_class,
+		bt_clock_class_get_name(clock_value->clock_class));
+	bt_put(clock_value->clock_class);
+	g_free(clock_value);
 }
 
-static
-void set_ns_from_epoch(struct bt_clock_value *clock_value)
+static inline
+int ns_from_epoch(struct bt_clock_class *clock_class, uint64_t value,
+		int64_t *ns_from_epoch, bool *overflows)
 {
-	struct bt_clock_class *clock_class = clock_value->clock_class;
+	int ret = 0;
 	int64_t diff;
 	int64_t s_ns;
 	uint64_t u_ns;
 	uint64_t cycles;
 
+	*overflows = false;
+
 	/* Initialize nanosecond timestamp to clock's offset in seconds */
-	if (clock_class->offset_s <= (INT64_MIN / 1000000000) ||
-			clock_class->offset_s >= (INT64_MAX / 1000000000)) {
+	if (clock_class->offset_s <= (INT64_MIN / INT64_C(1000000000)) ||
+			clock_class->offset_s >= (INT64_MAX / INT64_C(1000000000))) {
 		/*
 		 * Overflow: offset in seconds converted to nanoseconds
 		 * is outside the int64_t range.
 		 */
-		clock_value->ns_from_epoch_overflows = true;
+		*overflows = true;
 		goto end;
 	}
 
-	clock_value->ns_from_epoch = clock_class->offset_s * (int64_t) 1000000000;
+	*ns_from_epoch = clock_class->offset_s * INT64_C(1000000000);
 
 	/* Add offset in cycles */
 	if (clock_class->offset < 0) {
-		cycles = (uint64_t) (-clock_class->offset);
+		cycles = (uint64_t) -clock_class->offset;
 	} else {
 		cycles = (uint64_t) clock_class->offset;
 	}
 
 	u_ns = ns_from_value(clock_class->frequency, cycles);
 
-	if (u_ns == -1ULL || u_ns >= INT64_MAX) {
+	if (u_ns == UINT64_C(-1) || u_ns >= INT64_MAX) {
 		/*
 		 * Overflow: offset in cycles converted to nanoseconds
 		 * is outside the int64_t range.
 		 */
-		clock_value->ns_from_epoch_overflows = true;
+		*overflows = true;
 		goto end;
 	}
 
@@ -617,7 +643,7 @@ void set_ns_from_epoch(struct bt_clock_value *clock_value)
 	BT_ASSERT(s_ns >= 0);
 
 	if (clock_class->offset < 0) {
-		if (clock_value->ns_from_epoch >= 0) {
+		if (*ns_from_epoch >= 0) {
 			/*
 			 * Offset in cycles is negative so it must also
 			 * be negative once converted to nanoseconds.
@@ -626,7 +652,7 @@ void set_ns_from_epoch(struct bt_clock_value *clock_value)
 			goto offset_ok;
 		}
 
-		diff = clock_value->ns_from_epoch - INT64_MIN;
+		diff = *ns_from_epoch - INT64_MIN;
 
 		if (s_ns >= diff) {
 			/*
@@ -634,7 +660,7 @@ void set_ns_from_epoch(struct bt_clock_value *clock_value)
 			 * plus the offset in cycles converted to
 			 * nanoseconds is outside the int64_t range.
 			 */
-			clock_value->ns_from_epoch_overflows = true;
+			*overflows = true;
 			goto end;
 		}
 
@@ -644,11 +670,11 @@ void set_ns_from_epoch(struct bt_clock_value *clock_value)
 		 */
 		s_ns = -s_ns;
 	} else {
-		if (clock_value->ns_from_epoch <= 0) {
+		if (*ns_from_epoch <= 0) {
 			goto offset_ok;
 		}
 
-		diff = INT64_MAX - clock_value->ns_from_epoch;
+		diff = INT64_MAX - *ns_from_epoch;
 
 		if (s_ns >= diff) {
 			/*
@@ -656,23 +682,23 @@ void set_ns_from_epoch(struct bt_clock_value *clock_value)
 			 * plus the offset in cycles converted to
 			 * nanoseconds is outside the int64_t range.
 			 */
-			clock_value->ns_from_epoch_overflows = true;
+			*overflows = true;
 			goto end;
 		}
 	}
 
 offset_ok:
-	clock_value->ns_from_epoch += s_ns;
+	*ns_from_epoch += s_ns;
 
 	/* Add clock value (cycles) */
-	u_ns = ns_from_value(clock_class->frequency, clock_value->value);
+	u_ns = ns_from_value(clock_class->frequency, value);
 
 	if (u_ns == -1ULL || u_ns >= INT64_MAX) {
 		/*
 		 * Overflow: value converted to nanoseconds is outside
 		 * the int64_t range.
 		 */
-		clock_value->ns_from_epoch_overflows = true;
+		*overflows = true;
 		goto end;
 	}
 
@@ -680,11 +706,11 @@ offset_ok:
 	BT_ASSERT(s_ns >= 0);
 
 	/* Clock value (cycles) is always positive */
-	if (clock_value->ns_from_epoch <= 0) {
+	if (*ns_from_epoch <= 0) {
 		goto value_ok;
 	}
 
-	diff = INT64_MAX - clock_value->ns_from_epoch;
+	diff = INT64_MAX - *ns_from_epoch;
 
 	if (s_ns >= diff) {
 		/*
@@ -692,27 +718,38 @@ offset_ok:
 		 * clock value converted to nanoseconds is outside the
 		 * int64_t range.
 		 */
-		clock_value->ns_from_epoch_overflows = true;
+		*overflows = true;
 		goto end;
 	}
 
 value_ok:
-	clock_value->ns_from_epoch += s_ns;
+	*ns_from_epoch += s_ns;
 
 end:
-	if (clock_value->ns_from_epoch_overflows) {
-		clock_value->ns_from_epoch = 0;
+	if (*overflows) {
+		*ns_from_epoch = 0;
+		ret = -1;
 	}
+
+	return ret;
 }
 
-struct bt_clock_value *bt_clock_value_create(
-		struct bt_clock_class *clock_class, uint64_t value)
+static
+void set_ns_from_epoch(struct bt_clock_value *clock_value)
+{
+	(void) ns_from_epoch(clock_value->clock_class,
+		clock_value->value, &clock_value->ns_from_epoch,
+		&clock_value->ns_from_epoch_overflows);
+}
+
+static
+struct bt_clock_value *bt_clock_value_new(struct bt_clock_class *clock_class)
 {
 	struct bt_clock_value *ret = NULL;
 
 	BT_LOGD("Creating clock value object: clock-class-addr=%p, "
-		"clock-class-name=\"%s\", value=%" PRIu64, clock_class,
-		bt_clock_class_get_name(clock_class), value);
+		"clock-class-name=\"%s\"", clock_class,
+		bt_clock_class_get_name(clock_class));
 
 	if (!clock_class) {
 		BT_LOGW_STR("Invalid parameter: clock class is NULL.");
@@ -725,10 +762,9 @@ struct bt_clock_value *bt_clock_value_create(
 		goto end;
 	}
 
-	bt_object_init(ret, bt_clock_value_destroy);
+	bt_object_init(ret, NULL);
+	bt_object_set_is_shared((void *) ret, false);
 	ret->clock_class = bt_get(clock_class);
-	ret->value = value;
-	set_ns_from_epoch(ret);
 	bt_clock_class_freeze(clock_class);
 	BT_LOGD("Created clock value object: clock-value-addr=%p, "
 		"clock-class-addr=%p, clock-class-name=\"%s\", "
@@ -740,8 +776,95 @@ end:
 	return ret;
 }
 
-int bt_clock_value_get_value(
-		struct bt_clock_value *clock_value, uint64_t *raw_value)
+BT_HIDDEN
+struct bt_clock_value *bt_clock_value_create(struct bt_clock_class *clock_class)
+{
+	struct bt_clock_value *clock_value = NULL;
+
+	BT_ASSERT(clock_class);
+	clock_value = bt_object_pool_create_object(&clock_class->cv_pool);
+	if (!clock_value) {
+		BT_LIB_LOGE("Cannot allocate one clock value from clock class's clock value pool: "
+			"%![cc-]+K", clock_class);
+		goto error;
+	}
+
+	if (!clock_value->clock_class) {
+		clock_value->clock_class = bt_get(clock_class);
+	}
+
+	goto end;
+
+error:
+	if (clock_value) {
+		bt_clock_value_recycle(clock_value);
+		clock_value = NULL;
+	}
+
+end:
+	return clock_value;
+}
+
+BT_HIDDEN
+void bt_clock_value_recycle(struct bt_clock_value *clock_value)
+{
+	struct bt_clock_class *clock_class;
+
+	BT_ASSERT(clock_value);
+	BT_LIB_LOGD("Recycling clock value: %!+k", clock_value);
+
+	/*
+	 * Those are the important ordered steps:
+	 *
+	 * 1. Reset the clock value object, but do NOT put its clock
+	 *    class's reference. This clock class contains the pool to
+	 *    which we're about to recycle this clock value object, so
+	 *    we must guarantee its existence thanks to this existing
+	 *    reference.
+	 *
+	 * 2. Move the clock class reference to our `clock_class`
+	 *    variable so that we can set the clock value's clock class
+	 *    member to NULL before recycling it. We CANNOT do this
+	 *    after we put the clock class reference because this
+	 *    bt_put() could destroy the clock class, also destroying
+	 *    its clock value pool, thus also destroying our clock value
+	 *    object (this would result in an invalid write access).
+	 *
+	 * 3. Recycle the clock value object.
+	 *
+	 * 4. Put our clock class reference.
+	 */
+	bt_clock_value_reset(clock_value);
+	bt_clock_value_set_is_frozen(clock_value, false);
+	clock_class = clock_value->clock_class;
+	BT_ASSERT(clock_class);
+	clock_value->clock_class = NULL;
+	bt_object_pool_recycle_object(&clock_class->cv_pool, clock_value);
+	bt_put(clock_class);
+}
+
+BT_HIDDEN
+void bt_clock_value_set_raw_value(struct bt_clock_value *clock_value,
+		uint64_t cycles)
+{
+	BT_ASSERT(clock_value);
+
+	clock_value->value = cycles;
+	set_ns_from_epoch(clock_value);
+	bt_clock_value_set(clock_value);
+}
+
+int bt_clock_value_set_value(struct bt_clock_value *clock_value,
+		uint64_t raw_value)
+{
+	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
+	BT_ASSERT_PRE_HOT(clock_value, "Clock value", ": %!+k", clock_value);
+	bt_clock_value_set_raw_value(clock_value, raw_value);
+	return 0;
+}
+
+int bt_clock_value_get_value(struct bt_clock_value *clock_value,
+		uint64_t *raw_value)
 {
 	int ret = 0;
 
@@ -949,6 +1072,36 @@ int bt_clock_class_compare(struct bt_clock_class *clock_class_a,
 
 	/* Equal */
 	ret = 0;
+
+end:
+	return ret;
+}
+
+int bt_clock_class_cycles_to_ns(struct bt_clock_class *clock_class,
+		uint64_t cycles, int64_t *ns)
+{
+	int ret;
+	bool overflows;
+
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_NON_NULL(ns, "Nanoseconds");
+
+	ret = ns_from_epoch(clock_class, cycles, ns, &overflows);
+	if (ret) {
+		if (overflows) {
+			BT_LIB_LOGW("Cannot convert cycles to nanoseconds "
+				"from Epoch for given clock class: "
+				"value overflow: %![cc-]+K, cycles=%" PRIu64,
+				clock_class, cycles);
+		} else {
+			BT_LIB_LOGW("Cannot convert cycles to nanoseconds "
+				"from Epoch for given clock class: "
+				"%![cc-]+K, cycles=%" PRIu64,
+				clock_class, cycles);
+		}
+
+		goto end;
+	}
 
 end:
 	return ret;

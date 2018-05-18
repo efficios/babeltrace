@@ -80,6 +80,7 @@ struct bt_value bt_value_null_instance = {
 		},
 		.release = NULL,
 		.parent = NULL,
+		.is_shared = true,
 	},
 	.type = BT_VALUE_TYPE_NULL,
 	.frozen = BT_TRUE,

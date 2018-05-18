@@ -302,6 +302,8 @@ void init_static_data(void)
 	struct bt_trace *trace;
 	struct bt_stream *stream;
 	struct bt_field_type *empty_struct_ft;
+	struct bt_field_type *eh_ft;
+	struct bt_field_type *eh_ts_ft;
 
 	/* Test events */
 	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
@@ -310,6 +312,8 @@ void init_static_data(void)
 	/* Metadata */
 	empty_struct_ft = bt_field_type_structure_create();
 	assert(empty_struct_ft);
+	src_clock_class = bt_clock_class_create("my-clock", 1000000000);
+	assert(src_clock_class);
 	trace = bt_trace_create();
 	assert(trace);
 	ret = bt_trace_set_native_byte_order(trace,
@@ -317,8 +321,6 @@ void init_static_data(void)
 	assert(ret == 0);
 	ret = bt_trace_set_packet_header_field_type(trace, empty_struct_ft);
 	assert(ret == 0);
-	src_clock_class = bt_clock_class_create("my-clock", 1000000000);
-	assert(src_clock_class);
 	ret = bt_clock_class_set_is_absolute(src_clock_class, 1);
 	assert(ret == 0);
 	ret = bt_trace_add_clock_class(trace, src_clock_class);
@@ -335,8 +337,17 @@ void init_static_data(void)
 	ret = bt_stream_class_set_packet_context_field_type(src_stream_class,
 		empty_struct_ft);
 	assert(ret == 0);
+	eh_ft = bt_field_type_structure_create();
+	assert(eh_ft);
+	eh_ts_ft = bt_field_type_integer_create(64);
+	assert(eh_ts_ft);
+	ret = bt_field_type_structure_add_field(eh_ft, eh_ts_ft, "ts");
+	assert(ret == 0);
+	ret = bt_field_type_integer_set_mapped_clock_class(eh_ts_ft,
+		src_clock_class);
+	assert(ret == 0);
 	ret = bt_stream_class_set_event_header_field_type(src_stream_class,
-		empty_struct_ft);
+		eh_ft);
 	assert(ret == 0);
 	ret = bt_stream_class_set_event_context_field_type(src_stream_class,
 		empty_struct_ft);
@@ -376,6 +387,8 @@ void init_static_data(void)
 
 	bt_put(trace);
 	bt_put(empty_struct_ft);
+	bt_put(eh_ft);
+	bt_put(eh_ts_ft);
 }
 
 static
@@ -493,28 +506,31 @@ enum bt_notification_iterator_status src_iter_init(
 }
 
 static
-struct bt_event *src_create_event(struct bt_packet *packet,
-		int64_t ts_ns)
+struct bt_notification *src_create_event_notif(struct bt_packet *packet,
+		struct bt_clock_class_priority_map *cc_prio_map, int64_t ts_ns)
 {
-	struct bt_event *event = bt_event_create(src_event_class);
 	int ret;
+	struct bt_event *event;
+	struct bt_notification *notif;
+	struct bt_clock_value *clock_value;
+	struct bt_field *field;
 
+	notif = bt_notification_event_create(src_event_class,
+		packet, cc_prio_map);
+	assert(notif);
+	event = bt_notification_event_borrow_event(notif);
 	assert(event);
-	ret = bt_event_set_packet(event, packet);
+	field = bt_event_borrow_header(event);
+	assert(field);
+	field = bt_field_structure_borrow_field_by_name(field, "ts");
+	assert(field);
+	ret = bt_field_integer_unsigned_set_value(field, (uint64_t) ts_ns);
 	assert(ret == 0);
-
-	if (ts_ns != -1) {
-		struct bt_clock_value *clock_value;
-
-		clock_value = bt_clock_value_create(src_clock_class,
-			(uint64_t) ts_ns);
-		assert(clock_value);
-		ret = bt_event_set_clock_value(event, clock_value);
-		assert(ret == 0);
-		bt_put(clock_value);
-	}
-
-	return event;
+	clock_value = bt_event_borrow_clock_value(event, src_clock_class);
+	assert(clock_value);
+	ret = bt_clock_value_set_value(clock_value, (uint64_t) ts_ns);
+	assert(ret == 0);
+	return notif;
 }
 
 static
@@ -565,13 +581,8 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		break;
 	default:
 	{
-		struct bt_event *event = src_create_event(
-			user_data->packet, cur_ts_ns);
-
-		assert(event);
-		next_return.notification = bt_notification_event_create(event,
-			src_cc_prio_map);
-		bt_put(event);
+		next_return.notification = src_create_event_notif(
+			user_data->packet, src_cc_prio_map, cur_ts_ns);
 		assert(next_return.notification);
 		break;
 	}
@@ -618,15 +629,11 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 						user_data->packet);
 				assert(next_return.notification);
 			} else if (user_data->at < 7) {
-				struct bt_event *event = src_create_event(
-					user_data->packet, -1);
-
-				assert(event);
 				next_return.notification =
-					bt_notification_event_create(event,
-						src_empty_cc_prio_map);
+					src_create_event_notif(
+						user_data->packet,
+						src_empty_cc_prio_map, 0);
 				assert(next_return.notification);
-				bt_put(event);
 			} else if (user_data->at == 7) {
 				next_return.notification =
 					bt_notification_packet_end_create(
@@ -792,33 +799,29 @@ enum bt_component_status sink_consume(
 
 		test_event.type = TEST_EV_TYPE_NOTIF_EVENT;
 		cc_prio_map =
-			bt_notification_event_get_clock_class_priority_map(
+			bt_notification_event_borrow_clock_class_priority_map(
 				notification);
 		assert(cc_prio_map);
-		event = bt_notification_event_get_event(notification);
+		event = bt_notification_event_borrow_event(notification);
 		assert(event);
 
 		if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) > 0) {
 			struct bt_clock_value *clock_value;
 			struct bt_clock_class *clock_class =
-				bt_clock_class_priority_map_get_highest_priority_clock_class(
+				bt_clock_class_priority_map_borrow_highest_priority_clock_class(
 					cc_prio_map);
 
 			assert(clock_class);
-			clock_value = bt_event_get_clock_value(event,
+			clock_value = bt_event_borrow_clock_value(event,
 				clock_class);
 			assert(clock_value);
 			ret = bt_clock_value_get_value_ns_from_epoch(
 					clock_value, &test_event.ts_ns);
 			assert(ret == 0);
-			bt_put(clock_value);
-			bt_put(clock_class);
 		} else {
 			test_event.ts_ns = -1;
 		}
 
-		bt_put(cc_prio_map);
-		bt_put(event);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
@@ -826,31 +829,28 @@ enum bt_component_status sink_consume(
 		struct bt_clock_class_priority_map *cc_prio_map;
 
 		test_event.type = TEST_EV_TYPE_NOTIF_INACTIVITY;
-		cc_prio_map = bt_notification_event_get_clock_class_priority_map(
+		cc_prio_map = bt_notification_inactivity_borrow_clock_class_priority_map(
 			notification);
 		assert(cc_prio_map);
 
 		if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) > 0) {
 			struct bt_clock_value *clock_value;
 			struct bt_clock_class *clock_class =
-				bt_clock_class_priority_map_get_highest_priority_clock_class(
+				bt_clock_class_priority_map_borrow_highest_priority_clock_class(
 					cc_prio_map);
 
 			assert(clock_class);
 			clock_value =
-				bt_notification_inactivity_get_clock_value(
+				bt_notification_inactivity_borrow_clock_value(
 					notification, clock_class);
 			assert(clock_value);
 			ret = bt_clock_value_get_value_ns_from_epoch(
 					clock_value, &test_event.ts_ns);
 			assert(ret == 0);
-			bt_put(clock_value);
-			bt_put(clock_class);
 		} else {
 			test_event.ts_ns = -1;
 		}
 
-		bt_put(cc_prio_map);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:

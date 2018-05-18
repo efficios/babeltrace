@@ -44,6 +44,14 @@
 #define BT_ASSERT_PRE_FT_HOT(_ft, _name)				\
 	BT_ASSERT_PRE_HOT((_ft), (_name), ": +%!+_F", (_ft))
 
+#define BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(_ft, _index)	\
+	(&g_array_index(((struct bt_field_type_common_structure *) (_ft))->fields, \
+		struct bt_field_type_common_structure_field, (_index)))
+
+#define BT_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(_ft, _index)	\
+	(&g_array_index(((struct bt_field_type_common_variant *) (_ft))->choices, \
+		struct bt_field_type_common_variant_choice, (_index)))
+
 struct bt_field_common;
 struct bt_field_type_common;
 struct bt_field_type;
@@ -118,7 +126,10 @@ struct bt_field_type_common {
 
 struct bt_field_type_common_integer {
 	struct bt_field_type_common common;
+
+	/* Owned by this */
 	struct bt_clock_class *mapped_clock_class;
+
 	enum bt_byte_order user_byte_order;
 	bt_bool is_signed;
 	unsigned int size;
@@ -131,7 +142,6 @@ struct enumeration_mapping {
 		uint64_t _unsigned;
 		int64_t _signed;
 	} range_start;
-
 	union {
 		uint64_t _unsigned;
 		int64_t _signed;
@@ -141,9 +151,14 @@ struct enumeration_mapping {
 
 struct bt_field_type_common_enumeration {
 	struct bt_field_type_common common;
+
+	/* Owned by this */
 	struct bt_field_type_common_integer *container_ft;
-	GPtrArray *entries; /* Array of ptrs to struct enumeration_mapping */
-	/* Only set during validation. */
+
+	/* Array of `struct enumeration_mapping *`, owned by this */
+	GPtrArray *entries;
+
+	/* Only set during validation */
 	bt_bool has_overlapping_ranges;
 };
 
@@ -155,7 +170,10 @@ enum bt_field_type_enumeration_mapping_iterator_type {
 
 struct bt_field_type_enumeration_mapping_iterator {
 	struct bt_object base;
+
+	/* Owned by this */
 	struct bt_field_type_common_enumeration *enumeration_ft;
+
 	enum bt_field_type_enumeration_mapping_iterator_type type;
 	int index;
 	union {
@@ -172,37 +190,82 @@ struct bt_field_type_common_floating_point {
 	unsigned int mant_dig;
 };
 
-struct structure_field_common {
-	struct bt_field_type_common common;
+struct bt_field_type_common_structure_field {
 	GQuark name;
+
+	/* Owned by this */
 	struct bt_field_type_common *type;
 };
 
 struct bt_field_type_common_structure {
 	struct bt_field_type_common common;
 	GHashTable *field_name_to_index;
-	GPtrArray *fields; /* Array of pointers to struct structure_field_common */
+
+	/*
+	 * Array of `struct bt_field_type_common_structure_field`,
+	 * owned by this
+	 */
+	GArray *fields;
+};
+
+struct bt_field_type_common_variant_choice_range {
+	union {
+		int64_t i;
+		uint64_t u;
+	} lower;
+	union {
+		int64_t i;
+		uint64_t u;
+	} upper;
+};
+
+struct bt_field_type_common_variant_choice {
+	GQuark name;
+
+	/* Owned by this */
+	struct bt_field_type_common *type;
+
+	/* Array of `struct bt_field_type_common_variant_choice_range` */
+	GArray *ranges;
 };
 
 struct bt_field_type_common_variant {
 	struct bt_field_type_common common;
 	GString *tag_name;
+	bool choices_up_to_date;
+
+	/* Owned by this */
 	struct bt_field_type_common_enumeration *tag_ft;
+
+	/* Owned by this */
 	struct bt_field_path *tag_field_path;
-	GHashTable *field_name_to_index;
-	GPtrArray *fields; /* Array of pointers to struct structure_field_common */
+
+	GHashTable *choice_name_to_index;
+
+	/*
+	 * Array of `struct bt_field_type_common_variant_choice`,
+	 * owned by this */
+	GArray *choices;
 };
 
 struct bt_field_type_common_array {
 	struct bt_field_type_common common;
+
+	/* Owned by this */
 	struct bt_field_type_common *element_ft;
-	unsigned int length; /* Number of elements */
+
+	unsigned int length;
 };
 
 struct bt_field_type_common_sequence {
 	struct bt_field_type_common common;
+
+	/* Owned by this */
 	struct bt_field_type_common *element_ft;
+
 	GString *length_field_name;
+
+	/* Owned by this */
 	struct bt_field_path *length_field_path;
 };
 
@@ -483,17 +546,14 @@ int bt_field_type_common_variant_add_field(struct bt_field_type_common *ft,
 		const char *field_name);
 
 BT_HIDDEN
+int bt_field_type_common_variant_update_choices(
+		struct bt_field_type_common *ft);
+
+BT_HIDDEN
 struct bt_field_type_common *
 bt_field_type_common_variant_borrow_field_type_by_name(
 		struct bt_field_type_common *ft,
 		const char *field_name);
-
-BT_HIDDEN
-struct bt_field_type_common *
-bt_field_type_common_variant_borrow_field_type_from_tag(
-		struct bt_field_type_common *ft,
-		struct bt_field_common *tag_field,
-		bt_field_common_create_func field_create_func);
 
 BT_HIDDEN
 int64_t bt_field_type_common_variant_get_field_count(
@@ -723,5 +783,10 @@ BT_HIDDEN
 int bt_field_type_common_validate_single_clock_class(
 		struct bt_field_type_common *ft,
 		struct bt_clock_class **expected_clock_class);
+
+BT_HIDDEN
+int64_t bt_field_type_common_variant_find_choice_index(
+		struct bt_field_type_common *ft, uint64_t uval,
+		bool is_signed);
 
 #endif /* BABELTRACE_CTF_IR_FIELD_TYPES_INTERNAL_H */

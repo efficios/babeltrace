@@ -57,7 +57,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 347
+#define NR_TESTS 346
 
 struct bt_utsname {
 	char sysname[BABELTRACE_HOST_NAME_MAX];
@@ -511,7 +511,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		*inner_structure_field, *complex_structure_field,
 		*a_sequence_field, *enum_variant_field, *enum_container_field,
 		*variant_field, *an_array_field, *stream_event_ctx_field,
-		*stream_event_ctx_int_field, *ret_field;
+		*stream_event_ctx_int_field;
 	uint64_t ret_unsigned_int;
 	int64_t ret_signed_int;
 	const char *ret_string;
@@ -769,9 +769,6 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 
 	ok(bt_ctf_field_sequence_set_length(a_sequence_field,
 		uint_35_field) == 0, "Set a sequence field's length");
-	ret_field = bt_ctf_field_sequence_get_length(a_sequence_field);
-	ok(ret_field == uint_35_field,
-		"bt_ctf_field_sequence_get_length returns the correct length field");
 
 	for (i = 0; i < SEQUENCE_TEST_LENGTH; i++) {
 		int_16_field = bt_ctf_field_sequence_get_field(
@@ -820,7 +817,6 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_put(enum_variant_field);
 	bt_put(enum_container_field);
 	bt_put(variant_field);
-	bt_put(ret_field);
 	bt_put(packet_context_field);
 	bt_put(packet_context);
 	bt_put(uint_35_type);

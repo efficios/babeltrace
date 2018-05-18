@@ -226,7 +226,7 @@ struct bt_notif_iter_medium_ops {
 	 * @returns		Stream instance (weak reference) or
 	 *			\c NULL on error
 	 */
-	struct bt_stream * (* get_stream)(
+	struct bt_stream * (* borrow_stream)(
 			struct bt_stream_class *stream_class,
 			uint64_t stream_id, void *data);
 };
@@ -318,7 +318,7 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 
 /**
  * Returns the first packet header and context fields. This function
- * never needs to call the `get_stream()` medium operation because
+ * never needs to call the `borrow_stream()` medium operation because
  * it does not create packet or event objects.
  *
  * @param notif_iter		CTF notification iterator
@@ -329,7 +329,7 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
  * @returns			One of #bt_notif_iter_status values
  */
 BT_HIDDEN
-enum bt_notif_iter_status bt_notif_iter_get_packet_header_context_fields(
+enum bt_notif_iter_status bt_notif_iter_borrow_packet_header_context_fields(
 		struct bt_notif_iter *notit,
 		struct bt_field **packet_header_field,
 		struct bt_field **packet_context_field);

@@ -439,7 +439,6 @@ uint64_t get_packet_header_stream_instance_id(struct ctf_fs_trace *ctf_fs_trace,
 	}
 
 end:
-	bt_put(stream_instance_id_field);
 	return stream_instance_id;
 }
 
@@ -454,7 +453,6 @@ uint64_t get_packet_context_timestamp_begin_ns(
 	uint64_t timestamp_begin_ns = -1ULL;
 	int64_t timestamp_begin_ns_signed;
 	struct bt_clock_class *timestamp_begin_clock_class = NULL;
-	struct bt_clock_value *clock_value = NULL;
 
 	if (!packet_context_field) {
 		goto end;
@@ -480,14 +478,8 @@ uint64_t get_packet_context_timestamp_begin_ns(
 		goto end;
 	}
 
-	clock_value = bt_clock_value_create(timestamp_begin_clock_class,
-		timestamp_begin_raw_value);
-	if (!clock_value) {
-		goto end;
-	}
-
-	ret = bt_clock_value_get_value_ns_from_epoch(clock_value,
-		&timestamp_begin_ns_signed);
+	ret = bt_clock_class_cycles_to_ns(timestamp_begin_clock_class,
+		timestamp_begin_raw_value, &timestamp_begin_ns_signed);
 	if (ret) {
 		goto end;
 	}
@@ -495,7 +487,6 @@ uint64_t get_packet_context_timestamp_begin_ns(
 	timestamp_begin_ns = (uint64_t) timestamp_begin_ns_signed;
 
 end:
-	bt_put(clock_value);
 	return timestamp_begin_ns;
 }
 
@@ -678,7 +669,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
-	ret = ctf_fs_ds_file_get_packet_header_context_fields(ds_file,
+	ret = ctf_fs_ds_file_borrow_packet_header_context_fields(ds_file,
 		&packet_header_field, &packet_context_field);
 	if (ret) {
 		BT_LOGE("Cannot get stream file's first packet's header and context fields (`%s`).",
@@ -789,8 +780,6 @@ end:
 	}
 
 	ctf_fs_ds_index_destroy(index);
-	bt_put(packet_header_field);
-	bt_put(packet_context_field);
 	return ret;
 }
 

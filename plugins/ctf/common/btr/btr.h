@@ -53,7 +53,7 @@
  */
 enum bt_btr_status {
 	/** Out of memory. */
-	BT_BTR_STATUS_ENOMEM =	-5,
+	BT_BTR_STATUS_ENOMEM =		-5,
 	/**
 	 * The binary stream reader reached the end of the user-provided
 	 * buffer, but data is still needed to finish decoding the
@@ -66,10 +66,10 @@ enum bt_btr_status {
 	BT_BTR_STATUS_EOF =		1,
 
 	/** Invalid argument. */
-	BT_BTR_STATUS_INVAL =	-3,
+	BT_BTR_STATUS_INVAL =		-3,
 
 	/** General error. */
-	BT_BTR_STATUS_ERROR =	-1,
+	BT_BTR_STATUS_ERROR =		-1,
 
 	/** Everything okay. */
 	BT_BTR_STATUS_OK =		0,

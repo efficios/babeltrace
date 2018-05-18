@@ -39,6 +39,7 @@
 #include <babeltrace/ctf-ir/event-class-internal.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-writer/clock-internal.h>
+#include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
@@ -103,6 +104,7 @@ void bt_trace_destroy(struct bt_object *obj)
 		g_ptr_array_free(trace->listeners, TRUE);
 	}
 
+	bt_object_pool_finalize(&trace->packet_header_field_pool);
 	bt_trace_common_finalize(BT_TO_COMMON(trace));
 	g_free(trace);
 }
@@ -188,6 +190,13 @@ void bt_trace_common_finalize(struct bt_trace_common *trace)
 	bt_put(trace->packet_header_field_type);
 }
 
+static
+void free_packet_header_field(struct bt_field_wrapper *field_wrapper,
+		struct bt_trace *trace)
+{
+	bt_field_wrapper_destroy(field_wrapper);
+}
+
 struct bt_trace *bt_trace_create(void)
 {
 	struct bt_trace *trace = NULL;
@@ -217,6 +226,16 @@ struct bt_trace *bt_trace_create(void)
 		sizeof(struct bt_trace_is_static_listener_elem));
 	if (!trace->is_static_listeners) {
 		BT_LOGE_STR("Failed to allocate one GArray.");
+		goto error;
+	}
+
+	ret = bt_object_pool_initialize(&trace->packet_header_field_pool,
+		(bt_object_pool_new_object_func) bt_field_wrapper_new,
+		(bt_object_pool_destroy_object_func) free_packet_header_field,
+		trace);
+	if (ret) {
+		BT_LOGE("Failed to initialize packet header field pool: ret=%d",
+			ret);
 		goto error;
 	}
 
@@ -1965,4 +1984,36 @@ int bt_trace_remove_is_static_listener(
 
 end:
 	return ret;
+}
+
+struct bt_packet_header_field *bt_trace_create_packet_header_field(
+		struct bt_trace *trace)
+{
+	struct bt_field_wrapper *field_wrapper;
+
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(trace->common.packet_header_field_type,
+		"Trace has no packet header field type: %!+t",
+		trace);
+	field_wrapper = bt_field_wrapper_create(
+		&trace->packet_header_field_pool,
+		(void *) trace->common.packet_header_field_type);
+	if (!field_wrapper) {
+		BT_LIB_LOGE("Cannot allocate one packet header field from trace: "
+			"%![trace-]+t", trace);
+		goto error;
+	}
+
+	BT_ASSERT(field_wrapper->field);
+	bt_trace_common_freeze(BT_TO_COMMON(trace));
+	goto end;
+
+error:
+	if (field_wrapper) {
+		bt_field_wrapper_destroy(field_wrapper);
+		field_wrapper = NULL;
+	}
+
+end:
+	return (void *) field_wrapper;
 }
