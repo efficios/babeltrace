@@ -38,13 +38,6 @@ struct bt_port {
 };
 
 static inline
-struct bt_port *bt_port_borrow_from_private(
-		struct bt_private_port *private_port)
-{
-	return (void *) private_port;
-}
-
-static inline
 struct bt_private_port *bt_private_port_from_port(
 		struct bt_port *port)
 {

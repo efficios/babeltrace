@@ -66,6 +66,7 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
+	struct bt_graph *graph; /* Weak */
 	struct bt_trace *trace;
 	struct bt_stream_class *stream_class;
 	struct bt_event_class *event_class;
@@ -546,6 +547,9 @@ enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
 		goto error;
 	}
 
+	dmesg_comp->graph = bt_component_borrow_graph(
+		bt_component_borrow_from_private(priv_comp));
+	BT_ASSERT(dmesg_comp->graph);
 	dmesg_comp->params.path = g_string_new(NULL);
 	if (!dmesg_comp->params.path) {
 		BT_LOGE_STR("Failed to allocate a GString.");
@@ -672,8 +676,9 @@ skip_ts:
 		goto error;
 	}
 
-	notif = bt_notification_event_create(dmesg_comp->event_class,
-		dmesg_comp->packet, dmesg_comp->cc_prio_map);
+	notif = bt_notification_event_create(dmesg_comp->graph,
+		dmesg_comp->event_class, dmesg_comp->packet,
+		dmesg_comp->cc_prio_map);
 	if (!notif) {
 		BT_LOGE_STR("Cannot create event notification.");
 		goto error;
@@ -957,13 +962,13 @@ handle_state:
 	case STATE_EMIT_STREAM_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
 		next_ret.notification = bt_notification_stream_begin_create(
-			dmesg_comp->stream);
+			dmesg_comp->graph, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_EMIT_PACKET_BEGINNING;
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
 		next_ret.notification = bt_notification_packet_begin_create(
-			dmesg_comp->packet);
+			dmesg_comp->graph, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
@@ -973,12 +978,12 @@ handle_state:
 		break;
 	case STATE_EMIT_PACKET_END:
 		next_ret.notification = bt_notification_packet_end_create(
-			dmesg_comp->packet);
+			dmesg_comp->graph, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_STREAM_END;
 		break;
 	case STATE_EMIT_STREAM_END:
 		next_ret.notification = bt_notification_stream_end_create(
-			dmesg_comp->stream);
+			dmesg_comp->graph, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_DONE;
 		break;
 	default:

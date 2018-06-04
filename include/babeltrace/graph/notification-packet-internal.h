@@ -42,4 +42,22 @@ struct bt_notification_packet_end {
 	struct bt_packet *packet;
 };
 
+BT_HIDDEN
+struct bt_notification *bt_notification_packet_begin_new(
+		struct bt_graph *graph);
+BT_HIDDEN
+void bt_notification_packet_begin_recycle(struct bt_notification *notif);
+
+BT_HIDDEN
+void bt_notification_packet_begin_destroy(struct bt_notification *notif);
+
+BT_HIDDEN
+struct bt_notification *bt_notification_packet_end_new(struct bt_graph *graph);
+
+BT_HIDDEN
+void bt_notification_packet_end_recycle(struct bt_notification *notif);
+
+BT_HIDDEN
+void bt_notification_packet_end_destroy(struct bt_notification *notif);
+
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_PACKET_INTERNAL_H */

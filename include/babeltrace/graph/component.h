@@ -33,6 +33,9 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
+/* For bt_get */
+#include <babeltrace/ref.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -84,7 +87,13 @@ bt_bool bt_component_is_sink(struct bt_component *component)
 		BT_COMPONENT_CLASS_TYPE_SINK;
 }
 
-extern struct bt_graph *bt_component_get_graph(struct bt_component *component);
+extern struct bt_graph *bt_component_borrow_graph(struct bt_component *component);
+
+static inline
+struct bt_graph *bt_component_get_graph(struct bt_component *component)
+{
+	return bt_get(bt_component_borrow_graph(component));
+}
 
 #ifdef __cplusplus
 }

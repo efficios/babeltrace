@@ -52,6 +52,7 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 }
 
 struct bt_notification *bt_notification_inactivity_create(
+		struct bt_graph *graph,
 		struct bt_clock_class_priority_map *cc_prio_map)
 {
 	struct bt_notification_inactivity *notification;
@@ -79,7 +80,7 @@ struct bt_notification *bt_notification_inactivity_create(
 	}
 	bt_notification_init(&notification->parent,
 		BT_NOTIFICATION_TYPE_INACTIVITY,
-		bt_notification_inactivity_destroy);
+		bt_notification_inactivity_destroy, NULL);
 	ret_notif = &notification->parent;
 	notification->clock_values = g_hash_table_new_full(g_direct_hash,
 		g_direct_equal, NULL, (GDestroyNotify) bt_clock_value_recycle);

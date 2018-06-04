@@ -737,7 +737,7 @@ error:
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_notif_iter *notif_iter,
+		struct bt_graph *graph, struct bt_notif_iter *notif_iter,
 		struct bt_stream *stream, const char *path)
 {
 	int ret;
@@ -748,6 +748,7 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		goto error;
 	}
 
+	ds_file->graph = graph;
 	ds_file->file = ctf_fs_file_create();
 	if (!ds_file->file) {
 		goto error;
@@ -827,7 +828,8 @@ struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
 	};
 
 	notif_iter_status = bt_notif_iter_get_next_notification(
-		ds_file->notif_iter, ds_file->cc_prio_map, &ret.notification);
+		ds_file->notif_iter, ds_file->cc_prio_map, ds_file->graph,
+		&ret.notification);
 
 	switch (notif_iter_status) {
 	case BT_NOTIF_ITER_STATUS_EOF:

@@ -29,7 +29,6 @@ TESTS_LIB = \
 	lib/test_ctf_ir_ref \
 	lib/test_bt_ctf_field_type_validation \
 	lib/test_ir_visit \
-	lib/test_bt_notification_heap \
 	lib/test_graph_topo \
 	lib/test_cc_prio_map \
 	lib/test_bt_notification_iterator

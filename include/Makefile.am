@@ -73,7 +73,6 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification-discarded-events.h \
 	babeltrace/graph/notification-discarded-packets.h \
 	babeltrace/graph/notification-event.h \
-	babeltrace/graph/notification-heap.h \
 	babeltrace/graph/notification-inactivity.h \
 	babeltrace/graph/notification-iterator.h \
 	babeltrace/graph/notification-packet.h \
@@ -159,7 +158,6 @@ noinst_HEADERS = \
 	babeltrace/graph/graph-internal.h \
 	babeltrace/graph/component-class-sink-colander-internal.h \
 	babeltrace/graph/notification-inactivity-internal.h \
-	babeltrace/graph/notification-heap-internal.h \
 	babeltrace/graph/component-source-internal.h \
 	babeltrace/graph/notification-discarded-elements-internal.h \
 	babeltrace/graph/notification-packet-internal.h \

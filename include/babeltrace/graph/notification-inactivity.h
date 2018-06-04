@@ -34,7 +34,9 @@ struct bt_notification;
 struct bt_clock_class_priority_map;
 struct bt_clock_class;
 
-extern struct bt_notification *bt_notification_inactivity_create(
+extern
+struct bt_notification *bt_notification_inactivity_create(
+		struct bt_graph *graph,
 		struct bt_clock_class_priority_map *clock_class_priority_map);
 
 extern struct bt_clock_class_priority_map *

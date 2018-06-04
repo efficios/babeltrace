@@ -144,10 +144,10 @@ void bt_component_destroy(struct bt_object *obj)
 	g_free(component);
 }
 
-struct bt_component *bt_component_from_private(
+struct bt_component *bt_component_borrow_from_private(
 		struct bt_private_component *private_component)
 {
-	return bt_get(bt_component_borrow_from_private(private_component));
+	return (void *) private_component;
 }
 
 enum bt_component_class_type bt_component_get_class_type(
@@ -371,10 +371,9 @@ void bt_component_set_graph(struct bt_component *component,
 	bt_object_set_parent(component, graph ? &graph->base : NULL);
 }
 
-struct bt_graph *bt_component_get_graph(
-		struct bt_component *component)
+struct bt_graph *bt_component_borrow_graph(struct bt_component *component)
 {
-	return (struct bt_graph *) bt_object_get_parent(&component->base);
+	return (struct bt_graph *) bt_object_borrow_parent(&component->base);
 }
 
 static

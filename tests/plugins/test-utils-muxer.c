@@ -72,6 +72,7 @@ struct graph_listener_data {
 static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
+static struct bt_graph *graph;
 static struct bt_clock_class_priority_map *src_cc_prio_map;
 static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
 static struct bt_clock_class *src_clock_class;
@@ -429,7 +430,7 @@ enum bt_notification_iterator_status src_iter_init(
 {
 	struct src_iter_user_data *user_data =
 		g_new0(struct src_iter_user_data, 1);
-	struct bt_port *port = bt_port_from_private(private_port);
+	struct bt_port *port = bt_port_borrow_from_private(private_port);
 	const char *port_name;
 	int ret;
 
@@ -441,7 +442,6 @@ enum bt_notification_iterator_status src_iter_init(
 	port_name = bt_port_get_name(port);
 	assert(port_name);
 	user_data->iter_index = port_name[3] - '0';
-	bt_put(port);
 
 	switch (user_data->iter_index) {
 	case 0:
@@ -515,7 +515,7 @@ struct bt_notification *src_create_event_notif(struct bt_packet *packet,
 	struct bt_clock_value *clock_value;
 	struct bt_field *field;
 
-	notif = bt_notification_event_create(src_event_class,
+	notif = bt_notification_event_create(graph, src_event_class,
 		packet, cc_prio_map);
 	assert(notif);
 	event = bt_notification_event_borrow_event(notif);
@@ -557,25 +557,27 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		break;
 	case SEQ_PACKET_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(user_data->packet);
+			bt_notification_packet_begin_create(graph,
+				user_data->packet);
 		assert(next_return.notification);
 		break;
 	case SEQ_PACKET_END:
 		next_return.notification =
-			bt_notification_packet_end_create(user_data->packet);
+			bt_notification_packet_end_create(graph,
+				user_data->packet);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM_BEGIN:
 		stream = bt_packet_get_stream(user_data->packet);
 		next_return.notification =
-			bt_notification_stream_begin_create(stream);
+			bt_notification_stream_begin_create(graph, stream);
 		assert(next_return.notification);
 		bt_put(stream);
 		break;
 	case SEQ_STREAM_END:
 		stream = bt_packet_get_stream(user_data->packet);
 		next_return.notification =
-			bt_notification_stream_end_create(stream);
+			bt_notification_stream_end_create(graph, stream);
 		assert(next_return.notification);
 		bt_put(stream);
 		break;
@@ -620,13 +622,13 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 				stream = bt_packet_get_stream(user_data->packet);
 				next_return.notification =
 					bt_notification_stream_begin_create(
-						stream);
+						graph, stream);
 				bt_put(stream);
 				assert(next_return.notification);
 			} else if (user_data->at == 1) {
 				next_return.notification =
 					bt_notification_packet_begin_create(
-						user_data->packet);
+						graph, user_data->packet);
 				assert(next_return.notification);
 			} else if (user_data->at < 7) {
 				next_return.notification =
@@ -637,13 +639,13 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 			} else if (user_data->at == 7) {
 				next_return.notification =
 					bt_notification_packet_end_create(
-						user_data->packet);
+						graph, user_data->packet);
 				assert(next_return.notification);
 			} else if (user_data->at == 8) {
 				stream = bt_packet_get_stream(user_data->packet);
 				next_return.notification =
 					bt_notification_stream_end_create(
-						stream);
+						graph, stream);
 				bt_put(stream);
 				assert(next_return.notification);
 			} else {
@@ -991,7 +993,6 @@ void do_std_test(enum test test, const char *name,
 	struct bt_component *sink_comp;
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
-	struct bt_graph *graph;
 	int64_t i;
 	int64_t count;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
@@ -999,6 +1000,7 @@ void do_std_test(enum test test, const char *name,
 	clear_test_events();
 	current_test = test;
 	diag("test: %s", name);
+	assert(!graph);
 	graph = bt_graph_create();
 	assert(graph);
 	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
@@ -1047,7 +1049,7 @@ void do_std_test(enum test test, const char *name,
 	bt_put(src_comp);
 	bt_put(muxer_comp);
 	bt_put(sink_comp);
-	bt_put(graph);
+	BT_PUT(graph);
 }
 
 static
@@ -1406,7 +1408,6 @@ void test_single_end_then_multiple_full(void)
 	struct bt_component *sink_comp;
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
-	struct bt_graph *graph;
 	int64_t i;
 	int64_t count;
 	int ret;
@@ -1473,6 +1474,7 @@ void test_single_end_then_multiple_full(void)
 	clear_test_events();
 	current_test = TEST_SINGLE_END_THEN_MULTIPLE_FULL;
 	diag("test: single end then multiple full");
+	assert(!graph);
 	graph = bt_graph_create();
 	assert(graph);
 	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
@@ -1522,7 +1524,7 @@ void test_single_end_then_multiple_full(void)
 	bt_put(src_comp);
 	bt_put(muxer_comp);
 	bt_put(sink_comp);
-	bt_put(graph);
+	BT_PUT(graph);
 }
 
 static
@@ -1533,7 +1535,6 @@ void test_single_again_end_then_multiple_full(void)
 	struct bt_component *sink_comp;
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
-	struct bt_graph *graph;
 	int64_t i;
 	int64_t count;
 	int ret;
@@ -1601,6 +1602,7 @@ void test_single_again_end_then_multiple_full(void)
 	clear_test_events();
 	current_test = TEST_SINGLE_AGAIN_END_THEN_MULTIPLE_FULL;
 	diag("test: single again then end then multiple full");
+	assert(!graph);
 	graph = bt_graph_create();
 	assert(graph);
 	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
@@ -1650,7 +1652,7 @@ void test_single_again_end_then_multiple_full(void)
 	bt_put(src_comp);
 	bt_put(muxer_comp);
 	bt_put(sink_comp);
-	bt_put(graph);
+	BT_PUT(graph);
 }
 
 #define DEBUG_ENV_VAR	"TEST_UTILS_MUXER_DEBUG"

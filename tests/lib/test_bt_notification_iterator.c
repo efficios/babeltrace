@@ -87,6 +87,7 @@ struct test_event {
 static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
+static struct bt_graph *graph;
 static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
 static struct bt_stream_class *src_stream_class;
 static struct bt_event_class *src_event_class;
@@ -421,67 +422,76 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		break;
 	case SEQ_INACTIVITY:
 		next_return.notification =
-			bt_notification_inactivity_create(src_empty_cc_prio_map);
+			bt_notification_inactivity_create(graph,
+				src_empty_cc_prio_map);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_BEGIN:
 		next_return.notification =
-			bt_notification_stream_begin_create(src_stream1);
+			bt_notification_stream_begin_create(graph, src_stream1);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_BEGIN:
 		next_return.notification =
-			bt_notification_stream_begin_create(src_stream2);
+			bt_notification_stream_begin_create(graph, src_stream2);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_END:
 		next_return.notification =
-			bt_notification_stream_end_create(src_stream1);
+			bt_notification_stream_end_create(graph, src_stream1);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_END:
 		next_return.notification =
-			bt_notification_stream_end_create(src_stream2);
+			bt_notification_stream_end_create(graph, src_stream2);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET1_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream1_packet1);
+			bt_notification_packet_begin_create(graph,
+				src_stream1_packet1);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET2_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream1_packet2);
+			bt_notification_packet_begin_create(graph,
+				src_stream1_packet2);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET1_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream2_packet1);
+			bt_notification_packet_begin_create(graph,
+				src_stream2_packet1);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET2_BEGIN:
 		next_return.notification =
-			bt_notification_packet_begin_create(src_stream2_packet2);
+			bt_notification_packet_begin_create(graph,
+				src_stream2_packet2);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET1_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream1_packet1);
+			bt_notification_packet_end_create(graph,
+				src_stream1_packet1);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM1_PACKET2_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream1_packet2);
+			bt_notification_packet_end_create(graph,
+				src_stream1_packet2);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET1_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream2_packet1);
+			bt_notification_packet_end_create(graph,
+				src_stream2_packet1);
 		assert(next_return.notification);
 		break;
 	case SEQ_STREAM2_PACKET2_END:
 		next_return.notification =
-			bt_notification_packet_end_create(src_stream2_packet2);
+			bt_notification_packet_end_create(graph,
+				src_stream2_packet2);
 		assert(next_return.notification);
 		break;
 	case SEQ_EVENT_STREAM1_PACKET1:
@@ -502,9 +512,8 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 
 	if (event_packet) {
 		next_return.notification =
-			bt_notification_event_create(src_event_class,
-			event_packet,
-			src_empty_cc_prio_map);
+			bt_notification_event_create(graph, src_event_class,
+			event_packet, src_empty_cc_prio_map);
 		assert(next_return.notification);
 	}
 
@@ -777,12 +786,12 @@ void do_std_test(enum test test, const char *name,
 	struct bt_component *sink_comp;
 	struct bt_port *upstream_port;
 	struct bt_port *downstream_port;
-	struct bt_graph *graph;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 
 	clear_test_events();
 	current_test = test;
 	diag("test: %s", name);
+	assert(!graph);
 	graph = bt_graph_create();
 	assert(graph);
 	create_source_sink(graph, &src_comp, &sink_comp);
@@ -813,7 +822,7 @@ void do_std_test(enum test test, const char *name,
 
 	bt_put(src_comp);
 	bt_put(sink_comp);
-	bt_put(graph);
+	BT_PUT(graph);
 }
 
 static
@@ -872,11 +881,11 @@ void test_output_port_notification_iterator(void)
 	enum bt_notification_iterator_status iter_status =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 	struct bt_port *upstream_port;
-	struct bt_graph *graph;
 
 	clear_test_events();
 	current_test = TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR;
 	diag("test: output port notification iterator");
+	assert(!graph);
 	graph = bt_graph_create();
 	assert(graph);
 	create_source_sink(graph, &src_comp, NULL);
@@ -901,7 +910,7 @@ void test_output_port_notification_iterator(void)
 		"the produced sequence of test events is the expected one");
 
 	bt_put(src_comp);
-	bt_put(graph);
+	BT_PUT(graph);
 	bt_put(notif_iter);
 }
 
@@ -911,11 +920,11 @@ void test_output_port_notification_iterator_cannot_consume(void)
 	struct bt_component *src_comp;
 	struct bt_notification_iterator *notif_iter;
 	struct bt_port *upstream_port;
-	struct bt_graph *graph;
 
 	clear_test_events();
 	current_test = TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR;
 	diag("test: cannot consume graph with existing output port notification iterator");
+	assert(!graph);
 	graph = bt_graph_create();
 	assert(graph);
 	create_source_sink(graph, &src_comp, NULL);
@@ -935,7 +944,7 @@ void test_output_port_notification_iterator_cannot_consume(void)
 		"bt_graph_run() returns BT_GRAPH_STATUS_CANNOT_CONSUME when there's an output port notification iterator");
 
 	bt_put(src_comp);
-	bt_put(graph);
+	BT_PUT(graph);
 	bt_put(notif_iter);
 }
 

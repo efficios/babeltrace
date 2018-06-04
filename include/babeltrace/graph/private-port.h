@@ -32,7 +32,8 @@ struct bt_private_port;
 struct bt_private_component;
 struct bt_private_connection;
 
-struct bt_port *bt_port_from_private(struct bt_private_port *private_port);
+struct bt_port *bt_port_borrow_from_private(
+		struct bt_private_port *private_port);
 extern struct bt_private_connection *bt_private_port_get_private_connection(
 		struct bt_private_port *private_port);
 extern struct bt_private_component *bt_private_port_get_private_component(

@@ -43,6 +43,7 @@ struct bt_notification_discarded_elements {
 
 BT_HIDDEN
 struct bt_notification *bt_notification_discarded_elements_create(
+		struct bt_graph *graph,
 		enum bt_notification_type type,
 		struct bt_stream *stream,
 		struct bt_clock_value *begin_clock_value,
