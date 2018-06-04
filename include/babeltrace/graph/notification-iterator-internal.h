@@ -95,6 +95,7 @@ struct bt_notification_iterator_private_connection {
 	struct bt_component *upstream_component; /* Weak */
 	struct bt_port *upstream_port; /* Weak */
 	struct bt_connection *connection; /* Weak */
+	struct bt_graph *graph; /* Weak */
 
 	/*
 	 * This hash table keeps the state of a stream as viewed by
@@ -143,14 +144,6 @@ void bt_notification_iterator_replace_current_notification(
 	BT_ASSERT(iterator);
 	bt_put(iterator->current_notification);
 	iterator->current_notification = bt_get(notification);
-}
-
-static inline
-struct bt_notification_iterator_private_connection *
-bt_private_connection_notification_iterator_borrow_from_private(
-		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
-{
-	return (void *) private_notification_iterator;
 }
 
 static inline

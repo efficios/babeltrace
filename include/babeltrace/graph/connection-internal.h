@@ -61,13 +61,6 @@ struct bt_connection {
 };
 
 static inline
-struct bt_connection *bt_connection_borrow_from_private(
-		struct bt_private_connection *private_connection)
-{
-	return (void *) private_connection;
-}
-
-static inline
 struct bt_private_connection *bt_private_connection_from_connection(
 		struct bt_connection *connection)
 {

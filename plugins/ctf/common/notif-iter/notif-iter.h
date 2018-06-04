@@ -314,6 +314,7 @@ BT_HIDDEN
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
 		struct bt_clock_class_priority_map *cc_prio_map,
+		struct bt_graph *graph,
 		struct bt_notification **notification);
 
 /**

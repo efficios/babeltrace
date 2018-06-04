@@ -37,11 +37,14 @@ extern "C" {
 struct bt_notification;
 struct bt_packet;
 
-extern struct bt_notification *bt_notification_packet_begin_create(
-		struct bt_packet *packet);
+extern
+struct bt_notification *bt_notification_packet_begin_create(
+		struct bt_graph *graph, struct bt_packet *packet);
 
-extern struct bt_notification *bt_notification_packet_end_create(
-		struct bt_packet *packet);
+extern
+struct bt_notification *bt_notification_packet_end_create(
+		struct bt_graph *graph, struct bt_packet *packet);
+
 
 extern struct bt_packet *bt_notification_packet_begin_borrow_packet(
 		struct bt_notification *notification);

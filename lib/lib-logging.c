@@ -66,7 +66,6 @@
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/notification-discarded-elements-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
-#include <babeltrace/graph/notification-heap-internal.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
@@ -586,6 +585,9 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	SET_TMP_PREFIX("ehf-pool-");
 	format_object_pool(buf_ch, extended, prefix,
 		&stream_class->event_header_field_pool);
+	SET_TMP_PREFIX("pcf-pool-");
+	format_object_pool(buf_ch, extended, prefix,
+		&stream_class->packet_context_field_pool);
 }
 
 static inline void format_writer_stream_class(char **buf_ch, bool extended,
@@ -1038,7 +1040,8 @@ static inline void format_notification(char **buf_ch, bool extended,
 		return;
 	}
 
-	BUF_APPEND(", %sis-frozen=%d", PRFIELD(notif->frozen));
+	BUF_APPEND(", %sis-frozen=%d, %sgraph-addr=%p",
+		PRFIELD(notif->frozen), PRFIELD(notif->graph));
 
 	switch (notif->type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -1240,6 +1243,8 @@ static inline void format_connection(char **buf_ch, bool extended,
 static inline void format_graph(char **buf_ch, bool extended,
 		const char *prefix, struct bt_graph *graph)
 {
+	char tmp_prefix[64];
+
 	BUF_APPEND(", %sis-canceled=%d", PRFIELD(graph->canceled));
 
 	if (!extended) {
@@ -1255,6 +1260,16 @@ static inline void format_graph(char **buf_ch, bool extended,
 		BUF_APPEND(", %sconn-count=%u",
 			PRFIELD(graph->connections->len));
 	}
+
+	SET_TMP_PREFIX("en-pool-");
+	format_object_pool(buf_ch, extended, prefix,
+		&graph->event_notif_pool);
+	SET_TMP_PREFIX("pbn-pool-");
+	format_object_pool(buf_ch, extended, prefix,
+		&graph->packet_begin_notif_pool);
+	SET_TMP_PREFIX("pen-pool-");
+	format_object_pool(buf_ch, extended, prefix,
+		&graph->packet_end_notif_pool);
 }
 
 static inline void format_notification_iterator(char **buf_ch,

@@ -53,6 +53,7 @@ void bt_notification_discarded_elements_destroy(struct bt_object *obj)
 
 BT_HIDDEN
 struct bt_notification *bt_notification_discarded_elements_create(
+		struct bt_graph *graph,
 		enum bt_notification_type type,
 		struct bt_stream *stream,
 		struct bt_clock_value *begin_clock_value,
@@ -77,7 +78,7 @@ struct bt_notification *bt_notification_discarded_elements_create(
 	}
 
 	bt_notification_init(&notification->parent, type,
-		bt_notification_discarded_elements_destroy);
+		bt_notification_discarded_elements_destroy, NULL);
 	ret_notif = &notification->parent;
 	notification->stream = bt_get(stream);
 	notification->begin_clock_value = bt_get(begin_clock_value);

@@ -39,7 +39,8 @@ struct bt_event;
 struct bt_event_class;
 struct bt_clock_class_priority_map;
 
-extern struct bt_notification *bt_notification_event_create(
+extern
+struct bt_notification *bt_notification_event_create(struct bt_graph *graph,
 		struct bt_event_class *event_class,
 		struct bt_packet *packet,
 		struct bt_clock_class_priority_map *clock_class_priority_map);
