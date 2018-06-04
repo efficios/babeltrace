@@ -38,6 +38,7 @@ struct bt_port;
 struct bt_connection;
 struct bt_component;
 struct bt_component_class;
+struct bt_value;
 
 enum bt_graph_status {
 	BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION = 111,

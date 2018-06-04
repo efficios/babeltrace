@@ -33,6 +33,7 @@
 #include <babeltrace/ctf-ir/event-class-internal.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
@@ -41,21 +42,6 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <stdbool.h>
 #include <inttypes.h>
-
-static
-void bt_notification_event_destroy(struct bt_object *obj)
-{
-	struct bt_notification_event *notification =
-			(struct bt_notification_event *) obj;
-
-	BT_LOGD("Destroying event notification: addr=%p", notification);
-	BT_LOGD_STR("Recycling event.");
-	bt_event_recycle(notification->event);
-	notification->event = NULL;
-	BT_LOGD_STR("Putting clock class priority map.");
-	BT_PUT(notification->cc_prio_map);
-	g_free(notification);
-}
 
 BT_ASSERT_PRE_FUNC
 static inline bool event_class_has_trace(struct bt_event_class *event_class)
@@ -67,7 +53,30 @@ static inline bool event_class_has_trace(struct bt_event_class *event_class)
 	return bt_stream_class_borrow_trace(stream_class) != NULL;
 }
 
+BT_HIDDEN
+struct bt_notification *bt_notification_event_new(struct bt_graph *graph)
+{
+	struct bt_notification_event *notification = NULL;
+
+	notification = g_new0(struct bt_notification_event, 1);
+	if (!notification) {
+		BT_LOGE_STR("Failed to allocate one event notification.");
+		goto error;
+	}
+
+	bt_notification_init(&notification->parent, BT_NOTIFICATION_TYPE_EVENT,
+		(bt_object_release_func) bt_notification_event_recycle, graph);
+	goto end;
+
+error:
+	BT_PUT(notification);
+
+end:
+	return (void *) notification;
+}
+
 struct bt_notification *bt_notification_event_create(
+		struct bt_graph *graph,
 		struct bt_event_class *event_class,
 		struct bt_packet *packet,
 		struct bt_clock_class_priority_map *cc_prio_map)
@@ -99,14 +108,13 @@ struct bt_notification *bt_notification_event_create(
 
 	BT_ASSERT_PRE(event_class_has_trace(event_class),
 		"Event class is not part of a trace: %!+E", event_class);
-	notification = g_new0(struct bt_notification_event, 1);
+	notification = (void *) bt_notification_create_from_pool(
+		&graph->event_notif_pool, graph);
 	if (!notification) {
-		BT_LOGE_STR("Failed to allocate one event notification.");
+		/* bt_notification_create_from_pool() logs errors */
 		goto error;
 	}
 
-	bt_notification_init(&notification->parent, BT_NOTIFICATION_TYPE_EVENT,
-		bt_notification_event_destroy);
 	notification->event = bt_event_create(event_class, packet);
 	if (!notification->event) {
 		BT_LIB_LOGE("Cannot create event from event class: "
@@ -132,7 +140,52 @@ error:
 
 end:
 	bt_put(cc_prio_map);
-	return &notification->parent;
+	return (void *) notification;
+}
+
+BT_HIDDEN
+void bt_notification_event_destroy(struct bt_notification *notif)
+{
+	struct bt_notification_event *event_notif = (void *) notif;
+
+	BT_LOGD("Destroying event notification: addr=%p", notif);
+
+	if (event_notif->event) {
+		BT_LOGD_STR("Recycling event.");
+		bt_event_recycle(event_notif->event);
+	}
+
+	BT_LOGD_STR("Putting clock class priority map.");
+	BT_PUT(event_notif->cc_prio_map);
+	g_free(notif);
+}
+
+BT_HIDDEN
+void bt_notification_event_recycle(struct bt_notification *notif)
+{
+	struct bt_notification_event *event_notif = (void *) notif;
+	struct bt_graph *graph;
+
+	BT_ASSERT(event_notif);
+
+	if (!notif->graph) {
+		bt_notification_event_destroy(notif);
+		return;
+	}
+
+	BT_LOGD("Recycling event notification: addr=%p", notif);
+	bt_notification_reset(notif);
+
+	if (event_notif->event) {
+		BT_LOGD_STR("Recycling event.");
+		bt_event_recycle(event_notif->event);
+		event_notif->event = NULL;
+	}
+
+	BT_PUT(event_notif->cc_prio_map);
+	graph = notif->graph;
+	notif->graph = NULL;
+	bt_object_pool_recycle_object(&graph->event_notif_pool, notif);
 }
 
 struct bt_event *bt_notification_event_borrow_event(

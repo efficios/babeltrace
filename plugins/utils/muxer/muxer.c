@@ -406,7 +406,7 @@ static
 struct bt_notification_iterator *create_notif_iter_on_input_port(
 		struct bt_private_port *priv_port, int *ret)
 {
-	struct bt_port *port = bt_port_from_private(priv_port);
+	struct bt_port *port = bt_port_borrow_from_private(priv_port);
 	struct bt_notification_iterator *notif_iter = NULL;
 	struct bt_private_connection *priv_conn = NULL;
 	enum bt_connection_status conn_status;
@@ -439,7 +439,6 @@ struct bt_notification_iterator *create_notif_iter_on_input_port(
 		port, bt_port_get_name(port), priv_conn, notif_iter);
 
 end:
-	bt_put(port);
 	bt_put(priv_conn);
 	return notif_iter;
 }
@@ -530,7 +529,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 		}
 
 		priv_port = node->data;
-		port = bt_port_from_private(priv_port);
+		port = bt_port_borrow_from_private(priv_port);
 		BT_ASSERT(port);
 
 		if (!bt_port_is_connected(port)) {
@@ -543,7 +542,6 @@ int muxer_notif_iter_handle_newly_connected_ports(
 			goto remove_node;
 		}
 
-		BT_PUT(port);
 		upstream_notif_iter = create_notif_iter_on_input_port(priv_port,
 			&ret);
 		if (ret) {
@@ -567,7 +565,6 @@ int muxer_notif_iter_handle_newly_connected_ports(
 
 remove_node:
 		bt_put(upstream_notif_iter);
-		bt_put(port);
 		muxer_notif_iter->newly_connected_priv_ports =
 			g_list_delete_link(
 				muxer_notif_iter->newly_connected_priv_ports,
@@ -1159,7 +1156,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 	 * iterator's list of newly connected ports. They will be
 	 * handled by muxer_notif_iter_handle_newly_connected_ports().
 	 */
-	comp = bt_component_from_private(muxer_comp->priv_comp);
+	comp = bt_component_borrow_from_private(muxer_comp->priv_comp);
 	BT_ASSERT(comp);
 	count = bt_component_filter_get_input_port_count(comp);
 	if (count < 0) {
@@ -1176,7 +1173,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 		struct bt_port *port;
 
 		BT_ASSERT(priv_port);
-		port = bt_port_from_private(priv_port);
+		port = bt_port_borrow_from_private(priv_port);
 		BT_ASSERT(port);
 
 		if (!bt_port_is_connected(port)) {
@@ -1184,11 +1181,9 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 				"muxer-comp-addr=%p, port-addr=%p, port-name\"%s\"",
 				muxer_comp, port, bt_port_get_name(port));
 			bt_put(priv_port);
-			bt_put(port);
 			continue;
 		}
 
-		bt_put(port);
 		bt_put(priv_port);
 		muxer_notif_iter->newly_connected_priv_ports =
 			g_list_append(
@@ -1210,7 +1205,6 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 	}
 
 end:
-	bt_put(comp);
 	return ret;
 }
 
@@ -1397,7 +1391,7 @@ void muxer_port_connected(
 		struct bt_port *other_port)
 {
 	struct bt_port *self_port =
-		bt_port_from_private(self_private_port);
+		bt_port_borrow_from_private(self_private_port);
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 	size_t i;
@@ -1462,14 +1456,14 @@ void muxer_port_connected(
 	}
 
 end:
-	bt_put(self_port);
+	return;
 }
 
 BT_HIDDEN
 void muxer_port_disconnected(struct bt_private_component *priv_comp,
 		struct bt_private_port *priv_port)
 {
-	struct bt_port *port = bt_port_from_private(priv_port);
+	struct bt_port *port = bt_port_borrow_from_private(priv_port);
 	struct muxer_comp *muxer_comp =
 		bt_private_component_get_user_data(priv_comp);
 
@@ -1500,6 +1494,4 @@ void muxer_port_disconnected(struct bt_private_component *priv_comp,
 			priv_comp, muxer_comp, port, bt_port_get_name(port),
 			muxer_comp->available_input_ports);
 	}
-
-	bt_put(port);
 }

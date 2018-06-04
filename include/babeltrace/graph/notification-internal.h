@@ -30,8 +30,10 @@
 #include <babeltrace/ref-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/object-pool-internal.h>
 #include <babeltrace/types.h>
 
 typedef struct bt_stream *(*get_stream_func)(
@@ -40,9 +42,11 @@ typedef struct bt_stream *(*get_stream_func)(
 struct bt_notification {
 	struct bt_object base;
 	enum bt_notification_type type;
-	get_stream_func get_stream;
 	uint64_t seq_num;
 	bt_bool frozen;
+
+	/* Owned by this; keeps the graph alive while the notif. is alive */
+	struct bt_graph *graph;
 };
 
 #define BT_ASSERT_PRE_NOTIF_IS_TYPE(_notif, _type)			\
@@ -54,12 +58,60 @@ struct bt_notification {
 BT_HIDDEN
 void bt_notification_init(struct bt_notification *notification,
 		enum bt_notification_type type,
-		bt_object_release_func release);
+		bt_object_release_func release,
+		struct bt_graph *graph);
 
-static inline void bt_notification_freeze(struct bt_notification *notification)
+static inline
+void bt_notification_reset(struct bt_notification *notification)
+{
+	BT_ASSERT(notification);
+
+#ifdef BT_DEV_MODE
+	notification->frozen = BT_FALSE;
+	notification->seq_num = UINT64_C(-1);
+#endif
+}
+
+static inline
+struct bt_notification *bt_notification_create_from_pool(
+		struct bt_object_pool *pool, struct bt_graph *graph)
+{
+	struct bt_notification *notif = bt_object_pool_create_object(pool);
+
+	if (!notif) {
+#ifdef BT_LIB_LOGE
+		BT_LIB_LOGE("Cannot allocate one notification from notification pool: "
+			"%![pool-]+o, %![graph-]+g", pool, graph);
+#endif
+		goto error;
+	}
+
+	if (!notif->graph) {
+		notif->graph = graph;
+	}
+
+	goto end;
+
+error:
+	BT_PUT(notif);
+
+end:
+	return notif;
+}
+
+static inline void _bt_notification_freeze(struct bt_notification *notification)
 {
 	notification->frozen = BT_TRUE;
 }
+
+BT_HIDDEN
+void bt_notification_unlink_graph(struct bt_notification *notif);
+
+#ifdef BT_DEV_MODE
+# define bt_notification_freeze		_bt_notification_freeze
+#else
+# define bt_notification_freeze(_x)
+#endif /* BT_DEV_MODE */
 
 static inline
 const char *bt_notification_type_string(enum bt_notification_type type)

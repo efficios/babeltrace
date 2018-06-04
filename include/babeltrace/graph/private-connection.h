@@ -36,7 +36,7 @@ struct bt_private_port;
 struct bt_private_connection;
 struct bt_notification_iterator;
 
-extern struct bt_connection *bt_connection_from_private(
+extern struct bt_connection *bt_connection_borrow_from_private(
 		struct bt_private_connection *private_connection);
 
 extern enum bt_connection_status

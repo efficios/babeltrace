@@ -59,6 +59,7 @@ int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_ite
 	ctf_fs_ds_file_destroy(notif_iter_data->ds_file);
 	notif_iter_data->ds_file = ctf_fs_ds_file_create(
 		notif_iter_data->ds_file_group->ctf_fs_trace,
+		notif_iter_data->graph,
 		notif_iter_data->notif_iter,
 		notif_iter_data->ds_file_group->stream,
 		ds_file_info->path->str);
@@ -215,6 +216,8 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 		goto error;
 	}
 
+	notif_iter_data->graph = bt_component_borrow_graph(
+		bt_component_borrow_from_private(port_data->ctf_fs->priv_comp));
 	notif_iter_data->notif_iter = bt_notif_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->trace,
 		bt_common_get_page_size() * 8,
@@ -366,6 +369,7 @@ int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 		goto error;
 	}
 
+	port_data->ctf_fs = ctf_fs;
 	port_data->ds_file_group = ds_file_group;
 	ret = bt_private_component_source_add_output_private_port(
 		ctf_fs->priv_comp, port_name->str, port_data, NULL);
@@ -642,7 +646,7 @@ end:
 
 static
 int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
-		const char *path)
+		struct bt_graph *graph, const char *path)
 {
 	struct bt_field *packet_header_field = NULL;
 	struct bt_field *packet_context_field = NULL;
@@ -664,7 +668,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
-	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, notif_iter, NULL, path);
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, graph, notif_iter,
+		NULL, path);
 	if (!ds_file) {
 		goto error;
 	}
@@ -784,7 +789,8 @@ end:
 }
 
 static
-int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
+int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace,
+		struct bt_graph *graph)
 {
 	int ret = 0;
 	const char *basename;
@@ -849,7 +855,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 			continue;
 		}
 
-		ret = add_ds_file_to_ds_file_group(ctf_fs_trace,
+		ret = add_ds_file_to_ds_file_group(ctf_fs_trace, graph,
 			file->path->str);
 		if (ret) {
 			BT_LOGE("Cannot add stream file `%s` to stream file group",
@@ -956,7 +962,8 @@ end:
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
-		struct ctf_fs_metadata_config *metadata_config)
+		struct ctf_fs_metadata_config *metadata_config,
+		struct bt_graph *graph)
 {
 	struct ctf_fs_trace *ctf_fs_trace;
 	int ret;
@@ -992,7 +999,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		goto error;
 	}
 
-	ret = create_ds_file_groups(ctf_fs_trace);
+	ret = create_ds_file_groups(ctf_fs_trace, graph);
 	if (ret) {
 		goto error;
 	}
@@ -1238,9 +1245,13 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 			tn_node = g_list_next(tn_node)) {
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
+		struct bt_graph *graph = bt_component_borrow_graph(
+			bt_component_borrow_from_private(ctf_fs->priv_comp));
 
+		BT_ASSERT(graph);
 		ctf_fs_trace = ctf_fs_trace_create(trace_path->str,
-				trace_name->str, &ctf_fs->metadata_config);
+				trace_name->str, &ctf_fs->metadata_config,
+				graph);
 		if (!ctf_fs_trace) {
 			BT_LOGE("Cannot create trace for `%s`.",
 				trace_path->str);

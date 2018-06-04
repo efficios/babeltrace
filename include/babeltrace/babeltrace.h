@@ -87,7 +87,6 @@
 #include <babeltrace/graph/notification-discarded-events.h>
 #include <babeltrace/graph/notification-discarded-packets.h>
 #include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-heap.h>
 #include <babeltrace/graph/notification-inactivity.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-packet.h>

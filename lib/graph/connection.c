@@ -117,10 +117,10 @@ void bt_connection_parent_is_owner(struct bt_object *obj)
 	bt_connection_try_remove_from_graph(connection);
 }
 
-struct bt_connection *bt_connection_from_private(
+struct bt_connection *bt_connection_borrow_from_private(
 		struct bt_private_connection *private_connection)
 {
-	return bt_get(bt_connection_borrow_from_private(private_connection));
+	return (void *) private_connection;
 }
 
 BT_HIDDEN

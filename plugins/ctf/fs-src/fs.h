@@ -120,9 +120,15 @@ struct ctf_fs_ds_file_group {
 struct ctf_fs_port_data {
 	/* Weak, belongs to ctf_fs_trace */
 	struct ctf_fs_ds_file_group *ds_file_group;
+
+	/* Weak */
+	struct ctf_fs_component *ctf_fs;
 };
 
 struct ctf_fs_notif_iter_data {
+	/* Weak */
+	struct bt_graph *graph;
+
 	/* Weak, belongs to ctf_fs_trace */
 	struct ctf_fs_ds_file_group *ds_file_group;
 
@@ -154,7 +160,7 @@ struct bt_component_class_query_method_return ctf_fs_query(
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
-		struct ctf_fs_metadata_config *config);
+		struct ctf_fs_metadata_config *config, struct bt_graph *graph);
 
 BT_HIDDEN
 void ctf_fs_trace_destroy(struct ctf_fs_trace *trace);

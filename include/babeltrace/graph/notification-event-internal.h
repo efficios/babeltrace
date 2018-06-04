@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/clock-class-priority-map.h>
@@ -42,6 +43,15 @@ struct bt_notification_event {
 	struct bt_event *event;
 	struct bt_clock_class_priority_map *cc_prio_map;
 };
+
+BT_HIDDEN
+struct bt_notification *bt_notification_event_new(struct bt_graph *graph);
+
+BT_HIDDEN
+void bt_notification_event_recycle(struct bt_notification *notif);
+
+BT_HIDDEN
+void bt_notification_event_destroy(struct bt_notification *notif);
 
 #ifdef __cplusplus
 }

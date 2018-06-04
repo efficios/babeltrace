@@ -131,7 +131,7 @@ void bt_stream_class_destroy(struct bt_object *obj)
 	 *
 	 * 4. Destroying an event makes it recycle its event header
 	 *    field to its stream class's event header field pool. But
-	 *    said pool is already destroyed.
+	 *    said pool is already finalized.
 	 */
 	bt_stream_class_common_finalize(BT_TO_COMMON(stream_class));
 	bt_object_pool_finalize(&stream_class->event_header_field_pool);

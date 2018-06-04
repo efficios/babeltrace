@@ -31,6 +31,7 @@
 
 #include <babeltrace/ref.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/port-internal.h>

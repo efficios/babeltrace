@@ -49,7 +49,7 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 }
 
 struct bt_notification *bt_notification_stream_end_create(
-		struct bt_stream *stream)
+		struct bt_graph *graph, struct bt_stream *stream)
 {
 	struct bt_notification_stream_end *notification;
 	struct bt_stream_class *stream_class;
@@ -73,7 +73,7 @@ struct bt_notification *bt_notification_stream_end_create(
 
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_STREAM_END,
-			bt_notification_stream_end_destroy);
+			bt_notification_stream_end_destroy, NULL);
 	notification->stream = bt_get(stream);
 	BT_LOGD("Created stream end notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "
@@ -115,7 +115,7 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 }
 
 struct bt_notification *bt_notification_stream_begin_create(
-		struct bt_stream *stream)
+		struct bt_graph *graph, struct bt_stream *stream)
 {
 	struct bt_notification_stream_begin *notification;
 	struct bt_stream_class *stream_class;
@@ -139,7 +139,7 @@ struct bt_notification *bt_notification_stream_begin_create(
 
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN,
-			bt_notification_stream_begin_destroy);
+			bt_notification_stream_begin_destroy, NULL);
 	notification->stream = bt_get(stream);
 	BT_LOGD("Created stream beginning notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "

@@ -31,6 +31,7 @@
 
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
+#include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component-filter-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>

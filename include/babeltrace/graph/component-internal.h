@@ -70,24 +70,10 @@ struct bt_component {
 };
 
 static inline
-struct bt_component *bt_component_borrow_from_private(
-		struct bt_private_component *private_component)
-{
-	return (void *) private_component;
-}
-
-static inline
 struct bt_private_component *bt_private_component_from_component(
 		struct bt_component *component)
 {
 	return (void *) component;
-}
-
-static inline
-struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
-{
-	BT_ASSERT(comp);
-	return (void *) comp->base.parent;
 }
 
 BT_HIDDEN

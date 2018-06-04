@@ -34,7 +34,7 @@ struct bt_private_connection;
 struct bt_private_connection_private_notification_iterator;
 
 extern struct bt_notification_iterator *
-bt_private_connection_notification_iterator_from_private(
+bt_private_connection_notification_iterator_borrow_from_private(
 		struct bt_private_connection_private_notification_iterator *private_notification_iterator);
 
 extern struct bt_private_component *
@@ -47,6 +47,9 @@ bt_private_connection_private_notification_iterator_set_user_data(
 		void *user_data);
 
 extern void *bt_private_connection_private_notification_iterator_get_user_data(
+		struct bt_private_connection_private_notification_iterator *private_notification_iterator);
+
+extern struct bt_graph *bt_private_connection_private_notification_iterator_borrow_graph(
 		struct bt_private_connection_private_notification_iterator *private_notification_iterator);
 
 #ifdef __cplusplus

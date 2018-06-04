@@ -347,6 +347,7 @@ enum bt_connection_status bt_private_connection_notification_iterator_create(
 	iterator->upstream_component = upstream_comp;
 	iterator->upstream_port = upstream_port;
 	iterator->connection = connection;
+	iterator->graph = bt_component_borrow_graph(upstream_comp);
 	iterator->state = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_NON_INITIALIZED;
 	BT_LOGD("Created notification iterator: "
 		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
@@ -368,7 +369,7 @@ end:
 void *bt_private_connection_private_notification_iterator_get_user_data(
 		struct bt_private_connection_private_notification_iterator *private_iterator)
 {
-	struct bt_notification_iterator_private_connection *iterator =
+	struct bt_notification_iterator_private_connection *iterator = (void *)
 		bt_private_connection_notification_iterator_borrow_from_private(private_iterator);
 
 	BT_ASSERT_PRE_NON_NULL(private_iterator, "Notification iterator");
@@ -380,7 +381,7 @@ bt_private_connection_private_notification_iterator_set_user_data(
 		struct bt_private_connection_private_notification_iterator *private_iterator,
 		void *data)
 {
-	struct bt_notification_iterator_private_connection *iterator =
+	struct bt_notification_iterator_private_connection *iterator = (void *)
 		bt_private_connection_notification_iterator_borrow_from_private(private_iterator);
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Notification iterator");
@@ -388,6 +389,17 @@ bt_private_connection_private_notification_iterator_set_user_data(
 	BT_LOGV("Set notification iterator's user data: "
 		"iter-addr=%p, user-data-addr=%p", iterator, data);
 	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+}
+
+struct bt_graph *bt_private_connection_private_notification_iterator_borrow_graph(
+		struct bt_private_connection_private_notification_iterator *private_iterator)
+{
+	struct bt_notification_iterator_private_connection *iterator = (void *)
+		bt_private_connection_notification_iterator_borrow_from_private(
+			private_iterator);
+
+	BT_ASSERT_PRE_NON_NULL(iterator, "Notification iterator");
+	return iterator->graph;
 }
 
 struct bt_notification *bt_notification_iterator_borrow_notification(
@@ -1004,10 +1016,8 @@ end:
 }
 
 struct bt_notification_iterator *
-bt_private_connection_notification_iterator_from_private(
+bt_private_connection_notification_iterator_borrow_from_private(
 		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
 {
-	return bt_get(
-		bt_private_connection_notification_iterator_borrow_from_private(
-			private_notification_iterator));
+	return (void *) private_notification_iterator;
 }

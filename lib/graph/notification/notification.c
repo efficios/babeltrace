@@ -28,13 +28,14 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/graph/notification-internal.h>
+#include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 
 BT_ASSERT_PRE_FUNC
 static inline void _init_seq_num(struct bt_notification *notification)
 {
-	notification->seq_num = -1ULL;
+	notification->seq_num = UINT64_C(-1);
 }
 
 #ifdef BT_DEV_MODE
@@ -46,12 +47,18 @@ static inline void _init_seq_num(struct bt_notification *notification)
 BT_HIDDEN
 void bt_notification_init(struct bt_notification *notification,
 		enum bt_notification_type type,
-		bt_object_release_func release)
+		bt_object_release_func release,
+		struct bt_graph *graph)
 {
 	BT_ASSERT(type >= 0 && type < BT_NOTIFICATION_TYPE_NR);
 	notification->type = type;
 	init_seq_num(notification);
 	bt_object_init(&notification->base, release);
+	notification->graph = graph;
+
+	if (graph) {
+		bt_graph_add_notification(graph, notification);
+	}
 }
 
 enum bt_notification_type bt_notification_get_type(
@@ -59,4 +66,11 @@ enum bt_notification_type bt_notification_get_type(
 {
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	return notification->type;
+}
+
+BT_HIDDEN
+void bt_notification_unlink_graph(struct bt_notification *notif)
+{
+	BT_ASSERT(notif);
+	notif->graph = NULL;
 }

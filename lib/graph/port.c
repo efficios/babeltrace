@@ -52,10 +52,10 @@ void bt_port_destroy(struct bt_object *obj)
 	g_free(port);
 }
 
-struct bt_port *bt_port_from_private(
+struct bt_port *bt_port_borrow_from_private(
 		struct bt_private_port *private_port)
 {
-	return bt_get(bt_port_borrow_from_private(private_port));
+	return (void *) private_port;
 }
 
 BT_HIDDEN
