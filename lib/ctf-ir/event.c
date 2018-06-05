@@ -137,10 +137,10 @@ static
 int bt_event_common_create_fields(
 		struct bt_stream_class_common *stream_class,
 		struct bt_validation_output *validation_output,
-		void *(*create_field_func)(void *),
-		void (*release_field_func)(void *),
-		void *(*create_header_field_func)(void *, void *),
-		void (*release_header_field_func)(void *),
+		create_field_func create_field_func,
+		release_field_func release_field_func,
+		create_header_field_func create_header_field_func,
+		release_header_field_func release_header_field_func,
 		struct bt_field_wrapper **header_field,
 		struct bt_field_common **stream_event_context_field,
 		struct bt_field_common **context_field,
@@ -197,7 +197,7 @@ int bt_event_common_create_fields(
 
 error:
 	if (*header_field) {
-		release_header_field_func(*header_field);
+		release_header_field_func(*header_field, stream_class);
 	}
 
 	if (*stream_event_context_field) {
@@ -326,10 +326,10 @@ int bt_event_common_initialize(struct bt_event_common *event,
 		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,
 			struct bt_field_type_common *packet_context_field_type,
 			struct bt_field_type_common *event_header_field_type),
-		void *(*create_field_func)(void *),
-		void (*release_field_func)(void *),
-		void *(*create_header_field_func)(void *, void *),
-		void (*release_header_field_func)(void *))
+		create_field_func create_field_func,
+		release_field_func release_field_func,
+		create_header_field_func create_header_field_func,
+		release_header_field_func release_header_field_func)
 {
 	int ret;
 	struct bt_trace_common *trace = NULL;
@@ -499,7 +499,7 @@ error:
 	bt_put(expected_clock_class);
 
 	if (event_header) {
-		release_header_field_func(event_header);
+		release_header_field_func(event_header, stream_class);
 	}
 
 	if (stream_event_context) {
@@ -575,10 +575,10 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 		BT_TO_COMMON(event_class), NULL, NULL,
 		(bt_validation_flag_copy_field_type_func) bt_field_type_copy,
 		true, NULL,
-		(void *) bt_field_create_recursive,
-		(void *) bt_field_destroy_recursive,
-		(void *) create_event_header_field,
-		(void *) bt_event_header_field_recycle);
+		(create_field_func) bt_field_create_recursive,
+		(release_field_func) bt_field_destroy_recursive,
+		(create_header_field_func) create_event_header_field,
+		(release_header_field_func) bt_event_header_field_recycle);
 	if (ret) {
 		/* bt_event_common_initialize() logs errors */
 		goto error;
