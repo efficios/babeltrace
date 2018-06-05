@@ -37,7 +37,7 @@
 #include <babeltrace/compat/limits-internal.h>
 #include <babeltrace/compat/stdio-internal.h>
 #include <string.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <fcntl.h>
 #include "tap/tap.h"
 #include <math.h>
@@ -301,7 +301,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_event_class_add_field(simple_event_class, float_type,
 		"float_field");
 
-	assert(!bt_ctf_event_class_set_id(simple_event_class, 13));
+	BT_ASSERT(!bt_ctf_event_class_set_id(simple_event_class, 13));
 
 	/* Set an event context type which will contain a single integer. */
 	ok(!bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
@@ -329,22 +329,22 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	BT_PUT(event_payload_type);
 	event_payload_type = bt_ctf_event_class_get_payload_field_type(
 		simple_event_class);
-	assert(event_payload_type);
+	BT_ASSERT(event_payload_type);
 	event_context_type = bt_ctf_event_class_get_context_field_type(
 		simple_event_class);
-	assert(event_context_type);
+	BT_ASSERT(event_context_type);
 	ep_integer_field_type =
 		bt_ctf_field_type_structure_get_field_type_by_name(
 			event_payload_type, "integer_field");
-	assert(ep_integer_field_type);
+	BT_ASSERT(ep_integer_field_type);
 	ep_enum_field_type =
 		bt_ctf_field_type_structure_get_field_type_by_name(
 			event_payload_type, "enum_field");
-	assert(ep_enum_field_type);
+	BT_ASSERT(ep_enum_field_type);
 	ep_enum_field_unsigned_type =
 		bt_ctf_field_type_structure_get_field_type_by_name(
 			event_payload_type, "enum_field_unsigned");
-	assert(ep_enum_field_unsigned_type);
+	BT_ASSERT(ep_enum_field_unsigned_type);
 
 	ok(bt_ctf_stream_class_get_event_class_count(stream_class) == 1,
 		"bt_ctf_stream_class_get_event_class_count returns a correct number of event classes");
@@ -377,18 +377,18 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_floating_point_get_value returns a correct value");
 
 	enum_field = bt_ctf_field_create(ep_enum_field_type);
-	assert(enum_field);
+	BT_ASSERT(enum_field);
 
 	enum_container_field = bt_ctf_field_enumeration_get_container(enum_field);
 	ok(bt_ctf_field_integer_signed_set_value(
 		enum_container_field, -42) == 0,
 		"Set signed enumeration container value");
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	BT_PUT(iter);
 
 	enum_field_unsigned = bt_ctf_field_create(ep_enum_field_unsigned_type);
-	assert(enum_field_unsigned);
+	BT_ASSERT(enum_field_unsigned);
 	enum_container_field_unsigned = bt_ctf_field_enumeration_get_container(
 		enum_field_unsigned);
 	ok(bt_ctf_field_integer_unsigned_set_value(
@@ -396,14 +396,14 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"Set unsigned enumeration container value");
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field_unsigned",
 		enum_field_unsigned);
-	assert(!ret);
+	BT_ASSERT(!ret);
 
 	ok(bt_ctf_clock_set_time(clock, current_time) == 0, "Set clock time");
 
 	/* Populate stream event context */
 	stream_event_context =
 		bt_ctf_event_get_stream_event_context(simple_event);
-	assert(stream_event_context);
+	BT_ASSERT(stream_event_context);
 	stream_event_context_field = bt_ctf_field_structure_get_field_by_name(
 		stream_event_context, "common_event_context");
 	bt_ctf_field_integer_unsigned_set_value(stream_event_context_field, 42);
@@ -785,7 +785,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	}
 
 	stream_event_ctx_field = bt_ctf_event_get_stream_event_context(event);
-	assert(stream_event_ctx_field);
+	BT_ASSERT(stream_event_ctx_field);
 	stream_event_ctx_int_field = bt_ctf_field_structure_get_field_by_name(
 		stream_event_ctx_field, "common_event_context");
 	BT_PUT(stream_event_ctx_field);
@@ -917,7 +917,7 @@ void type_field_tests()
 		"bt_ctf_field_type_integer_get_encoding returns a correct value");
 
 	int_16_type = bt_ctf_field_type_integer_create(16);
-	assert(int_16_type);
+	BT_ASSERT(int_16_type);
 	ok(!bt_ctf_field_type_integer_set_signed(int_16_type, 1),
 		"Set signedness of 16 bit integer to true");
 	ok(bt_ctf_field_type_integer_get_signed(int_16_type) == 1,
@@ -1102,13 +1102,13 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 	 * appropriate fields.
 	 */
 	ep_type = bt_ctf_event_class_get_payload_field_type(event_class);
-	assert(ep_type);
+	BT_ASSERT(ep_type);
 	ep_field_1_type = bt_ctf_field_type_structure_get_field_type_by_name(
 		ep_type, "field_1");
-	assert(ep_field_1_type);
+	BT_ASSERT(ep_field_1_type);
 	ep_a_string_type = bt_ctf_field_type_structure_get_field_type_by_name(
 		ep_type, "a_string");
-	assert(ep_a_string_type);
+	BT_ASSERT(ep_a_string_type);
 
 	event = bt_ctf_event_create(event_class);
 	ret_field = bt_ctf_event_get_payload(event, 0);
@@ -1212,9 +1212,9 @@ void test_empty_stream(struct bt_ctf_writer *writer)
 	}
 
 	ret = bt_ctf_stream_class_set_packet_context_type(stream_class, NULL);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_ctf_stream_class_set_event_header_type(stream_class, NULL);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	ok(bt_ctf_stream_class_get_trace(stream_class) == NULL,
 		"bt_ctf_stream_class_get_trace returns NULL when stream class is orphaned");
@@ -1539,14 +1539,14 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 	struct bt_ctf_event_class *event_class;
 
 	event_class = bt_ctf_event_class_create("Simple Event");
-	assert(event_class);
+	BT_ASSERT(event_class);
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class) == 0,
 		"two event classes with the same name may cohabit within the same stream class");
 	bt_put(event_class);
 
 	event_class = bt_ctf_event_class_create("different name, ok");
-	assert(event_class);
-	assert(!bt_ctf_event_class_set_id(event_class, 13));
+	BT_ASSERT(event_class);
+	BT_ASSERT(!bt_ctf_event_class_set_id(event_class, 13));
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
 		"two event classes with the same ID cannot cohabit within the same stream class");
 	bt_put(event_class);
@@ -1559,15 +1559,15 @@ void test_clock_utils(void)
 	struct bt_ctf_clock *clock = NULL;
 
 	clock = bt_ctf_clock_create("water");
-	assert(clock);
+	BT_ASSERT(clock);
 	ret = bt_ctf_clock_set_offset_s(clock, 1234);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	ret = bt_ctf_clock_set_offset(clock, 1000);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	ret = bt_ctf_clock_set_frequency(clock, 1000000000);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	ret = bt_ctf_clock_set_frequency(clock, 1534);
-	assert(!ret);
+	BT_ASSERT(!ret);
 
 	BT_PUT(clock);
 }
@@ -1667,7 +1667,7 @@ int main(int argc, char **argv)
 
 	/* Test bt_ctf_trace_set_environment_field with an integer object */
 	obj = bt_value_integer_create_init(23);
-	assert(obj);
+	BT_ASSERT(obj);
 	ok(bt_ctf_trace_set_environment_field(NULL, "test_env_int_obj", obj),
 		"bt_ctf_trace_set_environment_field handles a NULL trace correctly");
 	ok(bt_ctf_trace_set_environment_field(trace, NULL, obj),
@@ -1680,7 +1680,7 @@ int main(int argc, char **argv)
 
 	/* Test bt_ctf_trace_set_environment_field with a string object */
 	obj = bt_value_string_create_init("the value");
-	assert(obj);
+	BT_ASSERT(obj);
 	ok(!bt_ctf_trace_set_environment_field(trace, "test_env_str_obj", obj),
 		"bt_ctf_trace_set_environment_field succeeds in adding a string object");
 	BT_PUT(obj);
@@ -1997,7 +1997,7 @@ int main(int argc, char **argv)
 
 	/* Instantiate a stream and append events */
 	ret = bt_ctf_writer_add_clock(writer, clock);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	ok(bt_ctf_trace_get_stream_count(trace) == 0,
 		"bt_ctf_trace_get_stream_count() succeeds and returns the correct value (0)");
@@ -2045,13 +2045,13 @@ int main(int argc, char **argv)
 	BT_PUT(packet_context_type);
 	BT_PUT(stream_event_context_type);
 	packet_header_type = bt_ctf_trace_get_packet_header_field_type(trace);
-	assert(packet_header_type);
+	BT_ASSERT(packet_header_type);
 	packet_context_type =
 		bt_ctf_stream_class_get_packet_context_type(stream_class);
-	assert(packet_context_type);
+	BT_ASSERT(packet_context_type);
 	stream_event_context_type =
 		bt_ctf_stream_class_get_event_context_type(stream_class);
-	assert(stream_event_context_type);
+	BT_ASSERT(stream_event_context_type);
 
 	/*
 	 * Try to modify the packet context type after a stream has been

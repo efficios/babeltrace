@@ -22,7 +22,7 @@
 
 #include <babeltrace/ref.h>
 #include <babeltrace/values.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <string.h>
 #include "tap/tap.h"
 
@@ -55,7 +55,7 @@ void test_bool(void)
 	ret = bt_value_bool_get(obj, &value);
 	ok(!ret && !value, "default boolean value object value is BT_FALSE");
 
-	assert(!bt_value_bool_set(obj, BT_FALSE));
+	BT_ASSERT(!bt_value_bool_set(obj, BT_FALSE));
 	ret = bt_value_bool_set(obj, BT_TRUE);
 	ok(!ret, "bt_value_bool_set() succeeds");
 	ret = bt_value_bool_get(obj, &value);
@@ -233,7 +233,7 @@ void test_array(void)
 		"bt_value_array_get() returns an value object with the appropriate type (null)");
 
 	obj = bt_value_integer_create_init(1001);
-	assert(obj);
+	BT_ASSERT(obj);
 	ok(!bt_value_array_set(array_obj, 2, obj),
 		"bt_value_array_set() succeeds");
 	BT_PUT(obj);
@@ -241,7 +241,7 @@ void test_array(void)
 	ok(obj && bt_value_is_integer(obj),
 		"bt_value_array_set() inserts an value object with the appropriate type");
 	ret = bt_value_integer_get(obj, &int_value);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	ok(int_value == 1001,
 		"bt_value_array_set() inserts an value object with the appropriate value");
 	BT_PUT(obj);
@@ -636,7 +636,7 @@ void test_compare_bool(void)
 	struct bt_value *bool2 = bt_value_bool_create_init(BT_TRUE);
 	struct bt_value *bool3 = bt_value_bool_create_init(BT_FALSE);
 
-	assert(bool1 && bool2 && bool3);
+	BT_ASSERT(bool1 && bool2 && bool3);
 	ok(!bt_value_compare(bt_value_null, bool1),
 		"cannot compare null value object and bt_bool value object");
 	ok(!bt_value_compare(bool1, bool2),
@@ -656,7 +656,7 @@ void test_compare_integer(void)
 	struct bt_value *int2 = bt_value_integer_create_init(-23);
 	struct bt_value *int3 = bt_value_integer_create_init(10);
 
-	assert(int1 && int2 && int3);
+	BT_ASSERT(int1 && int2 && int3);
 	ok(!bt_value_compare(bt_value_null, int1),
 		"cannot compare null value object and integer value object");
 	ok(!bt_value_compare(int1, int2),
@@ -676,7 +676,7 @@ void test_compare_float(void)
 	struct bt_value *float2 = bt_value_float_create_init(-14.23);
 	struct bt_value *float3 = bt_value_float_create_init(17.38);
 
-	assert(float1 && float2 && float3);
+	BT_ASSERT(float1 && float2 && float3);
 
 	ok(!bt_value_compare(bt_value_null, float1),
 		"cannot compare null value object and floating point number value object");
@@ -697,7 +697,7 @@ void test_compare_string(void)
 	struct bt_value *string2 = bt_value_string_create_init("bt_value");
 	struct bt_value *string3 = bt_value_string_create_init("hello");
 
-	assert(string1 && string2 && string3);
+	BT_ASSERT(string1 && string2 && string3);
 
 	ok(!bt_value_compare(bt_value_null, string1),
 		"cannot compare null value object and string value object");
@@ -718,23 +718,23 @@ void test_compare_array(void)
 	struct bt_value *array2 = bt_value_array_create();
 	struct bt_value *array3 = bt_value_array_create();
 
-	assert(array1 && array2 && array3);
+	BT_ASSERT(array1 && array2 && array3);
 
 	ok(bt_value_compare(array1, array2),
 		"empty array value objects are equivalent");
 
-	assert(!bt_value_array_append_integer(array1, 23));
-	assert(!bt_value_array_append_float(array1, 14.2));
-	assert(!bt_value_array_append_bool(array1, BT_FALSE));
-	assert(!bt_value_array_append_float(array2, 14.2));
-	assert(!bt_value_array_append_integer(array2, 23));
-	assert(!bt_value_array_append_bool(array2, BT_FALSE));
-	assert(!bt_value_array_append_integer(array3, 23));
-	assert(!bt_value_array_append_float(array3, 14.2));
-	assert(!bt_value_array_append_bool(array3, BT_FALSE));
-	assert(bt_value_array_size(array1) == 3);
-	assert(bt_value_array_size(array2) == 3);
-	assert(bt_value_array_size(array3) == 3);
+	BT_ASSERT(!bt_value_array_append_integer(array1, 23));
+	BT_ASSERT(!bt_value_array_append_float(array1, 14.2));
+	BT_ASSERT(!bt_value_array_append_bool(array1, BT_FALSE));
+	BT_ASSERT(!bt_value_array_append_float(array2, 14.2));
+	BT_ASSERT(!bt_value_array_append_integer(array2, 23));
+	BT_ASSERT(!bt_value_array_append_bool(array2, BT_FALSE));
+	BT_ASSERT(!bt_value_array_append_integer(array3, 23));
+	BT_ASSERT(!bt_value_array_append_float(array3, 14.2));
+	BT_ASSERT(!bt_value_array_append_bool(array3, BT_FALSE));
+	BT_ASSERT(bt_value_array_size(array1) == 3);
+	BT_ASSERT(bt_value_array_size(array2) == 3);
+	BT_ASSERT(bt_value_array_size(array3) == 3);
 
 	ok(!bt_value_compare(bt_value_null, array1),
 		"cannot compare null value object and array value object");
@@ -755,23 +755,23 @@ void test_compare_map(void)
 	struct bt_value *map2 = bt_value_map_create();
 	struct bt_value *map3 = bt_value_map_create();
 
-	assert(map1 && map2 && map3);
+	BT_ASSERT(map1 && map2 && map3);
 
 	ok(bt_value_compare(map1, map2),
 		"empty map value objects are equivalent");
 
-	assert(!bt_value_map_insert_integer(map1, "one", 23));
-	assert(!bt_value_map_insert_float(map1, "two", 14.2));
-	assert(!bt_value_map_insert_bool(map1, "three", BT_FALSE));
-	assert(!bt_value_map_insert_float(map2, "one", 14.2));
-	assert(!bt_value_map_insert_integer(map2, "two", 23));
-	assert(!bt_value_map_insert_bool(map2, "three", BT_FALSE));
-	assert(!bt_value_map_insert_bool(map3, "three", BT_FALSE));
-	assert(!bt_value_map_insert_integer(map3, "one", 23));
-	assert(!bt_value_map_insert_float(map3, "two", 14.2));
-	assert(bt_value_map_size(map1) == 3);
-	assert(bt_value_map_size(map2) == 3);
-	assert(bt_value_map_size(map3) == 3);
+	BT_ASSERT(!bt_value_map_insert_integer(map1, "one", 23));
+	BT_ASSERT(!bt_value_map_insert_float(map1, "two", 14.2));
+	BT_ASSERT(!bt_value_map_insert_bool(map1, "three", BT_FALSE));
+	BT_ASSERT(!bt_value_map_insert_float(map2, "one", 14.2));
+	BT_ASSERT(!bt_value_map_insert_integer(map2, "two", 23));
+	BT_ASSERT(!bt_value_map_insert_bool(map2, "three", BT_FALSE));
+	BT_ASSERT(!bt_value_map_insert_bool(map3, "three", BT_FALSE));
+	BT_ASSERT(!bt_value_map_insert_integer(map3, "one", 23));
+	BT_ASSERT(!bt_value_map_insert_float(map3, "two", 14.2));
+	BT_ASSERT(bt_value_map_size(map1) == 3);
+	BT_ASSERT(bt_value_map_size(map2) == 3);
+	BT_ASSERT(bt_value_map_size(map3) == 3);
 
 	ok(!bt_value_compare(bt_value_null, map1),
 		"cannot compare null value object and map value object");
@@ -823,15 +823,15 @@ void test_copy(void)
 	array_obj = bt_value_array_create();
 	map_obj = bt_value_map_create();
 
-	assert(bool_obj && integer_obj && float_obj && string_obj &&
+	BT_ASSERT(bool_obj && integer_obj && float_obj && string_obj &&
 		array_obj && map_obj);
 
-	assert(!bt_value_array_append(array_obj, bool_obj));
-	assert(!bt_value_array_append(array_obj, integer_obj));
-	assert(!bt_value_array_append(array_obj, float_obj));
-	assert(!bt_value_array_append(array_obj, bt_value_null));
-	assert(!bt_value_map_insert(map_obj, "array", array_obj));
-	assert(!bt_value_map_insert(map_obj, "string", string_obj));
+	BT_ASSERT(!bt_value_array_append(array_obj, bool_obj));
+	BT_ASSERT(!bt_value_array_append(array_obj, integer_obj));
+	BT_ASSERT(!bt_value_array_append(array_obj, float_obj));
+	BT_ASSERT(!bt_value_array_append(array_obj, bt_value_null));
+	BT_ASSERT(!bt_value_map_insert(map_obj, "array", array_obj));
+	BT_ASSERT(!bt_value_map_insert(map_obj, "string", string_obj));
 
 	map_copy_obj = bt_value_copy(map_obj);
 	ok(map_copy_obj,
@@ -901,23 +901,23 @@ void test_extend(void)
 	struct bt_value *array = bt_value_array_create();
 	enum bt_value_status status;
 
-	assert(base_map);
-	assert(extension_map);
-	assert(array);
+	BT_ASSERT(base_map);
+	BT_ASSERT(extension_map);
+	BT_ASSERT(array);
 	status = bt_value_map_insert_bool(base_map, "file", BT_TRUE);
-	assert(status == BT_VALUE_STATUS_OK);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_bool(base_map, "edit", BT_FALSE);
-	assert(status == BT_VALUE_STATUS_OK);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_integer(base_map, "selection", 17);
-	assert(status == BT_VALUE_STATUS_OK);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_integer(base_map, "find", -34);
-	assert(status == BT_VALUE_STATUS_OK);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_bool(extension_map, "edit", BT_TRUE);
-	assert(status == BT_VALUE_STATUS_OK);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_integer(extension_map, "find", 101);
-	assert(status == BT_VALUE_STATUS_OK);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_float(extension_map, "project", -404);
-	assert(status == BT_VALUE_STATUS_OK);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	extended_map = bt_value_map_extend(base_map, extension_map);
 	ok(extended_map, "bt_value_map_extend() succeeds");
 	ok(bt_value_map_size(extended_map) == 5,

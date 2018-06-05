@@ -21,7 +21,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <string.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace.h>
 #include <glib.h>
 
@@ -262,7 +262,7 @@ bool compare_test_events(const struct test_event *expected_events)
 	const struct test_event *expected_event = expected_events;
 	size_t i = 0;
 
-	assert(expected_events);
+	BT_ASSERT(expected_events);
 
 	while (true) {
 		const struct test_event *event;
@@ -308,82 +308,82 @@ void init_static_data(void)
 
 	/* Test events */
 	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
-	assert(test_events);
+	BT_ASSERT(test_events);
 
 	/* Metadata */
 	empty_struct_ft = bt_field_type_structure_create();
-	assert(empty_struct_ft);
+	BT_ASSERT(empty_struct_ft);
 	src_clock_class = bt_clock_class_create("my-clock", 1000000000);
-	assert(src_clock_class);
+	BT_ASSERT(src_clock_class);
 	trace = bt_trace_create();
-	assert(trace);
+	BT_ASSERT(trace);
 	ret = bt_trace_set_native_byte_order(trace,
 		BT_BYTE_ORDER_LITTLE_ENDIAN);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_trace_set_packet_header_field_type(trace, empty_struct_ft);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_clock_class_set_is_absolute(src_clock_class, 1);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_trace_add_clock_class(trace, src_clock_class);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	src_empty_cc_prio_map = bt_clock_class_priority_map_create();
-	assert(src_empty_cc_prio_map);
+	BT_ASSERT(src_empty_cc_prio_map);
 	src_cc_prio_map = bt_clock_class_priority_map_create();
-	assert(src_cc_prio_map);
+	BT_ASSERT(src_cc_prio_map);
 	ret = bt_clock_class_priority_map_add_clock_class(src_cc_prio_map,
 		src_clock_class, 0);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	src_stream_class = bt_stream_class_create("my-stream-class");
-	assert(src_stream_class);
+	BT_ASSERT(src_stream_class);
 	ret = bt_stream_class_set_packet_context_field_type(src_stream_class,
 		empty_struct_ft);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	eh_ft = bt_field_type_structure_create();
-	assert(eh_ft);
+	BT_ASSERT(eh_ft);
 	eh_ts_ft = bt_field_type_integer_create(64);
-	assert(eh_ts_ft);
+	BT_ASSERT(eh_ts_ft);
 	ret = bt_field_type_structure_add_field(eh_ft, eh_ts_ft, "ts");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_field_type_integer_set_mapped_clock_class(eh_ts_ft,
 		src_clock_class);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_stream_class_set_event_header_field_type(src_stream_class,
 		eh_ft);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_stream_class_set_event_context_field_type(src_stream_class,
 		empty_struct_ft);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	src_event_class = bt_event_class_create("my-event-class");
 	ret = bt_event_class_set_context_field_type(src_event_class,
 		empty_struct_ft);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_event_class_set_context_field_type(src_event_class,
 		empty_struct_ft);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_stream_class_add_event_class(src_stream_class,
 		src_event_class);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_trace_add_stream_class(trace, src_stream_class);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	stream = bt_stream_create(src_stream_class, "stream0", 0);
-	assert(stream);
+	BT_ASSERT(stream);
 	src_packet0 = bt_packet_create(stream);
-	assert(src_packet0);
+	BT_ASSERT(src_packet0);
 	bt_put(stream);
 	stream = bt_stream_create(src_stream_class, "stream1", 1);
-	assert(stream);
+	BT_ASSERT(stream);
 	src_packet1 = bt_packet_create(stream);
-	assert(src_packet0);
+	BT_ASSERT(src_packet0);
 	bt_put(stream);
 	stream = bt_stream_create(src_stream_class, "stream2", 2);
-	assert(stream);
+	BT_ASSERT(stream);
 	src_packet2 = bt_packet_create(stream);
-	assert(src_packet0);
+	BT_ASSERT(src_packet0);
 	bt_put(stream);
 	stream = bt_stream_create(src_stream_class, "stream3", 3);
-	assert(stream);
+	BT_ASSERT(stream);
 	src_packet3 = bt_packet_create(stream);
-	assert(src_packet0);
+	BT_ASSERT(src_packet0);
 	bt_put(stream);
 
 	bt_put(trace);
@@ -434,13 +434,13 @@ enum bt_notification_iterator_status src_iter_init(
 	const char *port_name;
 	int ret;
 
-	assert(user_data);
-	assert(port);
+	BT_ASSERT(user_data);
+	BT_ASSERT(port);
 	ret = bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
 		user_data);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	port_name = bt_port_get_name(port);
-	assert(port_name);
+	BT_ASSERT(port_name);
 	user_data->iter_index = port_name[3] - '0';
 
 	switch (user_data->iter_index) {
@@ -517,19 +517,19 @@ struct bt_notification *src_create_event_notif(struct bt_packet *packet,
 
 	notif = bt_notification_event_create(graph, src_event_class,
 		packet, cc_prio_map);
-	assert(notif);
+	BT_ASSERT(notif);
 	event = bt_notification_event_borrow_event(notif);
-	assert(event);
+	BT_ASSERT(event);
 	field = bt_event_borrow_header(event);
-	assert(field);
+	BT_ASSERT(field);
 	field = bt_field_structure_borrow_field_by_name(field, "ts");
-	assert(field);
+	BT_ASSERT(field);
 	ret = bt_field_integer_unsigned_set_value(field, (uint64_t) ts_ns);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	clock_value = bt_event_borrow_clock_value(event, src_clock_class);
-	assert(clock_value);
+	BT_ASSERT(clock_value);
 	ret = bt_clock_value_set_value(clock_value, (uint64_t) ts_ns);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	return notif;
 }
 
@@ -543,7 +543,7 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 	int64_t cur_ts_ns;
 	struct bt_stream *stream;
 
-	assert(user_data->seq);
+	BT_ASSERT(user_data->seq);
 	cur_ts_ns = user_data->seq[user_data->at];
 
 	switch (cur_ts_ns) {
@@ -559,33 +559,33 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 		next_return.notification =
 			bt_notification_packet_begin_create(graph,
 				user_data->packet);
-		assert(next_return.notification);
+		BT_ASSERT(next_return.notification);
 		break;
 	case SEQ_PACKET_END:
 		next_return.notification =
 			bt_notification_packet_end_create(graph,
 				user_data->packet);
-		assert(next_return.notification);
+		BT_ASSERT(next_return.notification);
 		break;
 	case SEQ_STREAM_BEGIN:
 		stream = bt_packet_get_stream(user_data->packet);
 		next_return.notification =
 			bt_notification_stream_begin_create(graph, stream);
-		assert(next_return.notification);
+		BT_ASSERT(next_return.notification);
 		bt_put(stream);
 		break;
 	case SEQ_STREAM_END:
 		stream = bt_packet_get_stream(user_data->packet);
 		next_return.notification =
 			bt_notification_stream_end_create(graph, stream);
-		assert(next_return.notification);
+		BT_ASSERT(next_return.notification);
 		bt_put(stream);
 		break;
 	default:
 	{
 		next_return.notification = src_create_event_notif(
 			user_data->packet, src_cc_prio_map, cur_ts_ns);
-		assert(next_return.notification);
+		BT_ASSERT(next_return.notification);
 		break;
 	}
 	}
@@ -612,8 +612,8 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 	struct bt_stream *stream;
 	int ret;
 
-	assert(user_data);
-	assert(private_component);
+	BT_ASSERT(user_data);
+	BT_ASSERT(private_component);
 
 	switch (current_test) {
 	case TEST_NO_TS:
@@ -624,30 +624,30 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 					bt_notification_stream_begin_create(
 						graph, stream);
 				bt_put(stream);
-				assert(next_return.notification);
+				BT_ASSERT(next_return.notification);
 			} else if (user_data->at == 1) {
 				next_return.notification =
 					bt_notification_packet_begin_create(
 						graph, user_data->packet);
-				assert(next_return.notification);
+				BT_ASSERT(next_return.notification);
 			} else if (user_data->at < 7) {
 				next_return.notification =
 					src_create_event_notif(
 						user_data->packet,
 						src_empty_cc_prio_map, 0);
-				assert(next_return.notification);
+				BT_ASSERT(next_return.notification);
 			} else if (user_data->at == 7) {
 				next_return.notification =
 					bt_notification_packet_end_create(
 						graph, user_data->packet);
-				assert(next_return.notification);
+				BT_ASSERT(next_return.notification);
 			} else if (user_data->at == 8) {
 				stream = bt_packet_get_stream(user_data->packet);
 				next_return.notification =
 					bt_notification_stream_end_create(
 						graph, stream);
 				bt_put(stream);
-				assert(next_return.notification);
+				BT_ASSERT(next_return.notification);
 			} else {
 				next_return.status =
 					BT_NOTIFICATION_ITERATOR_STATUS_END;
@@ -666,10 +666,10 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 		if (user_data->iter_index == 0) {
 			ret = bt_private_component_source_add_output_private_port(
 				private_component, "out1", NULL, NULL);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			ret = bt_private_component_source_add_output_private_port(
 				private_component, "out2", NULL, NULL);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 			next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		} else {
 			next_return = src_iter_next_seq(user_data);
@@ -683,10 +683,10 @@ struct bt_notification_iterator_next_method_return src_iter_next(
 			} else {
 				ret = bt_private_component_source_add_output_private_port(
 					private_component, "out1", NULL, NULL);
-				assert(ret == 0);
+				BT_ASSERT(ret == 0);
 				ret = bt_private_component_source_add_output_private_port(
 					private_component, "out2", NULL, NULL);
-				assert(ret == 0);
+				BT_ASSERT(ret == 0);
 				next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 			}
 		} else {
@@ -725,25 +725,25 @@ enum bt_component_status src_init(
 	if (nb_ports >= 1) {
 		ret = bt_private_component_source_add_output_private_port(
 			private_component, "out0", NULL, NULL);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	}
 
 	if (nb_ports >= 2) {
 		ret = bt_private_component_source_add_output_private_port(
 			private_component, "out1", NULL, NULL);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	}
 
 	if (nb_ports >= 3) {
 		ret = bt_private_component_source_add_output_private_port(
 			private_component, "out2", NULL, NULL);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	}
 
 	if (nb_ports >= 4) {
 		ret = bt_private_component_source_add_output_private_port(
 			private_component, "out3", NULL, NULL);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	}
 
 	return BT_COMPONENT_STATUS_OK;
@@ -766,7 +766,7 @@ enum bt_component_status sink_consume(
 	struct test_event test_event;
 	bool do_append_test_event = true;
 
-	assert(user_data && user_data->notif_iter);
+	BT_ASSERT(user_data && user_data->notif_iter);
 	it_ret = bt_notification_iterator_next(user_data->notif_iter);
 
 	if (it_ret < 0) {
@@ -791,7 +791,7 @@ enum bt_component_status sink_consume(
 
 	notification = bt_notification_iterator_get_notification(
 		user_data->notif_iter);
-	assert(notification);
+	BT_ASSERT(notification);
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -803,9 +803,9 @@ enum bt_component_status sink_consume(
 		cc_prio_map =
 			bt_notification_event_borrow_clock_class_priority_map(
 				notification);
-		assert(cc_prio_map);
+		BT_ASSERT(cc_prio_map);
 		event = bt_notification_event_borrow_event(notification);
-		assert(event);
+		BT_ASSERT(event);
 
 		if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) > 0) {
 			struct bt_clock_value *clock_value;
@@ -813,13 +813,13 @@ enum bt_component_status sink_consume(
 				bt_clock_class_priority_map_borrow_highest_priority_clock_class(
 					cc_prio_map);
 
-			assert(clock_class);
+			BT_ASSERT(clock_class);
 			clock_value = bt_event_borrow_clock_value(event,
 				clock_class);
-			assert(clock_value);
+			BT_ASSERT(clock_value);
 			ret = bt_clock_value_get_value_ns_from_epoch(
 					clock_value, &test_event.ts_ns);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 		} else {
 			test_event.ts_ns = -1;
 		}
@@ -833,7 +833,7 @@ enum bt_component_status sink_consume(
 		test_event.type = TEST_EV_TYPE_NOTIF_INACTIVITY;
 		cc_prio_map = bt_notification_inactivity_borrow_clock_class_priority_map(
 			notification);
-		assert(cc_prio_map);
+		BT_ASSERT(cc_prio_map);
 
 		if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) > 0) {
 			struct bt_clock_value *clock_value;
@@ -841,14 +841,14 @@ enum bt_component_status sink_consume(
 				bt_clock_class_priority_map_borrow_highest_priority_clock_class(
 					cc_prio_map);
 
-			assert(clock_class);
+			BT_ASSERT(clock_class);
 			clock_value =
 				bt_notification_inactivity_borrow_clock_value(
 					notification, clock_class);
-			assert(clock_value);
+			BT_ASSERT(clock_value);
 			ret = bt_clock_value_get_value_ns_from_epoch(
 					clock_value, &test_event.ts_ns);
-			assert(ret == 0);
+			BT_ASSERT(ret == 0);
 		} else {
 			test_event.ts_ns = -1;
 		}
@@ -892,11 +892,11 @@ void sink_port_connected(struct bt_private_component *private_component,
 		private_component);
 	enum bt_connection_status conn_status;
 
-	assert(user_data);
-	assert(priv_conn);
+	BT_ASSERT(user_data);
+	BT_ASSERT(priv_conn);
 	conn_status = bt_private_connection_create_notification_iterator(
 		priv_conn, &user_data->notif_iter);
-	assert(conn_status == 0);
+	BT_ASSERT(conn_status == 0);
 	bt_put(priv_conn);
 }
 
@@ -908,13 +908,13 @@ enum bt_component_status sink_init(
 	struct sink_user_data *user_data = g_new0(struct sink_user_data, 1);
 	int ret;
 
-	assert(user_data);
+	BT_ASSERT(user_data);
 	ret = bt_private_component_set_user_data(private_component,
 		user_data);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_private_component_sink_add_input_private_port(
 		private_component, "in", NULL, NULL);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -943,40 +943,40 @@ void create_source_muxer_sink(struct bt_graph *graph,
 
 	/* Create source component */
 	src_comp_class = bt_component_class_source_create("src", src_iter_next);
-	assert(src_comp_class);
+	BT_ASSERT(src_comp_class);
 	ret = bt_component_class_set_init_method(src_comp_class, src_init);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_finalize_method(src_comp_class,
 		src_finalize);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_notification_iterator_init_method(
 		src_comp_class, src_iter_init);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_source_set_notification_iterator_finalize_method(
 		src_comp_class, src_iter_finalize);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_graph_add_component(graph, src_comp_class, "source", NULL, source);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	/* Create muxer component */
 	muxer_comp_class = bt_plugin_find_component_class("utils", "muxer",
 		BT_COMPONENT_CLASS_TYPE_FILTER);
-	assert(muxer_comp_class);
+	BT_ASSERT(muxer_comp_class);
 	ret = bt_graph_add_component(graph, muxer_comp_class, "muxer", NULL, muxer);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	/* Create sink component */
 	sink_comp_class = bt_component_class_sink_create("sink", sink_consume);
-	assert(sink_comp_class);
+	BT_ASSERT(sink_comp_class);
 	ret = bt_component_class_set_init_method(sink_comp_class, sink_init);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_finalize_method(sink_comp_class,
 		sink_finalize);
 	ret = bt_component_class_set_port_connected_method(sink_comp_class,
 		sink_port_connected);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_graph_add_component(graph, sink_comp_class, "sink", NULL, sink);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	bt_put(src_comp_class);
 	bt_put(muxer_comp_class);
@@ -1000,26 +1000,26 @@ void do_std_test(enum test test, const char *name,
 	clear_test_events();
 	current_test = test;
 	diag("test: %s", name);
-	assert(!graph);
+	BT_ASSERT(!graph);
 	graph = bt_graph_create();
-	assert(graph);
+	BT_ASSERT(graph);
 	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
 
 	/* Connect source output ports to muxer input ports */
 	if (with_upstream) {
 		count = bt_component_source_get_output_port_count(src_comp);
-		assert(count >= 0);
+		BT_ASSERT(count >= 0);
 
 		for (i = 0; i < count; i++) {
 			upstream_port = bt_component_source_get_output_port_by_index(
 				src_comp, i);
-			assert(upstream_port);
+			BT_ASSERT(upstream_port);
 			downstream_port = bt_component_filter_get_input_port_by_index(
 				muxer_comp, i);
-			assert(downstream_port);
+			BT_ASSERT(downstream_port);
 			graph_status = bt_graph_connect_ports(graph,
 				upstream_port, downstream_port, NULL);
-			assert(graph_status == 0);
+			BT_ASSERT(graph_status == 0);
 			bt_put(upstream_port);
 			bt_put(downstream_port);
 		}
@@ -1028,12 +1028,12 @@ void do_std_test(enum test test, const char *name,
 	/* Connect muxer output port to sink input port */
 	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
-	assert(upstream_port);
+	BT_ASSERT(upstream_port);
 	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
-	assert(downstream_port);
+	BT_ASSERT(downstream_port);
 	graph_status = bt_graph_connect_ports(graph, upstream_port,
 		downstream_port, NULL);
-	assert(graph_status == 0);
+	BT_ASSERT(graph_status == 0);
 	bt_put(upstream_port);
 	bt_put(downstream_port);
 
@@ -1356,14 +1356,14 @@ void connect_port_to_first_avail_muxer_port(struct bt_graph *graph,
 	enum bt_graph_status graph_status;
 
 	count = bt_component_filter_get_input_port_count(muxer_comp);
-	assert(count >= 0);
+	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		struct bt_port *muxer_port =
 			bt_component_filter_get_input_port_by_index(
 				muxer_comp, i);
 
-		assert(muxer_port);
+		BT_ASSERT(muxer_port);
 
 		if (!bt_port_is_connected(muxer_port)) {
 			BT_MOVE(avail_muxer_port, muxer_port);
@@ -1375,7 +1375,7 @@ void connect_port_to_first_avail_muxer_port(struct bt_graph *graph,
 
 	graph_status = bt_graph_connect_ports(graph, source_port,
 		avail_muxer_port, NULL);
-	assert(graph_status == 0);
+	BT_ASSERT(graph_status == 0);
 	bt_put(avail_muxer_port);
 }
 
@@ -1387,7 +1387,7 @@ void graph_port_added_listener_connect_to_avail_muxer_port(struct bt_port *port,
 	struct bt_component *comp;
 
 	comp = bt_port_get_component(port);
-	assert(comp);
+	BT_ASSERT(comp);
 
 	if (comp != graph_listener_data->source) {
 		goto end;
@@ -1474,9 +1474,9 @@ void test_single_end_then_multiple_full(void)
 	clear_test_events();
 	current_test = TEST_SINGLE_END_THEN_MULTIPLE_FULL;
 	diag("test: single end then multiple full");
-	assert(!graph);
+	BT_ASSERT(!graph);
 	graph = bt_graph_create();
-	assert(graph);
+	BT_ASSERT(graph);
 	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
 	graph_listener_data.graph = graph;
 	graph_listener_data.source = src_comp;
@@ -1485,16 +1485,16 @@ void test_single_end_then_multiple_full(void)
 	ret = bt_graph_add_port_added_listener(graph,
 		graph_port_added_listener_connect_to_avail_muxer_port, NULL,
 		&graph_listener_data);
-	assert(ret >= 0);
+	BT_ASSERT(ret >= 0);
 
 	/* Connect source output ports to muxer input ports */
 	count = bt_component_source_get_output_port_count(src_comp);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	for (i = 0; i < count; i++) {
 		upstream_port = bt_component_source_get_output_port_by_index(
 			src_comp, i);
-		assert(upstream_port);
+		BT_ASSERT(upstream_port);
 		connect_port_to_first_avail_muxer_port(graph,
 			upstream_port, muxer_comp);
 		bt_put(upstream_port);
@@ -1503,12 +1503,12 @@ void test_single_end_then_multiple_full(void)
 	/* Connect muxer output port to sink input port */
 	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
-	assert(upstream_port);
+	BT_ASSERT(upstream_port);
 	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
-	assert(downstream_port);
+	BT_ASSERT(downstream_port);
 	graph_status = bt_graph_connect_ports(graph, upstream_port,
 		downstream_port, NULL);
-	assert(graph_status == 0);
+	BT_ASSERT(graph_status == 0);
 	bt_put(upstream_port);
 	bt_put(downstream_port);
 
@@ -1602,9 +1602,9 @@ void test_single_again_end_then_multiple_full(void)
 	clear_test_events();
 	current_test = TEST_SINGLE_AGAIN_END_THEN_MULTIPLE_FULL;
 	diag("test: single again then end then multiple full");
-	assert(!graph);
+	BT_ASSERT(!graph);
 	graph = bt_graph_create();
-	assert(graph);
+	BT_ASSERT(graph);
 	create_source_muxer_sink(graph, &src_comp, &muxer_comp, &sink_comp);
 	graph_listener_data.graph = graph;
 	graph_listener_data.source = src_comp;
@@ -1613,16 +1613,16 @@ void test_single_again_end_then_multiple_full(void)
 	ret = bt_graph_add_port_added_listener(graph,
 		graph_port_added_listener_connect_to_avail_muxer_port, NULL,
 		&graph_listener_data);
-	assert(ret >= 0);
+	BT_ASSERT(ret >= 0);
 
 	/* Connect source output ports to muxer input ports */
 	count = bt_component_source_get_output_port_count(src_comp);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	for (i = 0; i < count; i++) {
 		upstream_port = bt_component_source_get_output_port_by_index(
 			src_comp, i);
-		assert(upstream_port);
+		BT_ASSERT(upstream_port);
 		connect_port_to_first_avail_muxer_port(graph,
 			upstream_port, muxer_comp);
 		bt_put(upstream_port);
@@ -1631,12 +1631,12 @@ void test_single_again_end_then_multiple_full(void)
 	/* Connect muxer output port to sink input port */
 	upstream_port = bt_component_filter_get_output_port_by_name(muxer_comp,
 		"out");
-	assert(upstream_port);
+	BT_ASSERT(upstream_port);
 	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
-	assert(downstream_port);
+	BT_ASSERT(downstream_port);
 	graph_status = bt_graph_connect_ports(graph, upstream_port,
 		downstream_port, NULL);
-	assert(graph_status == 0);
+	BT_ASSERT(graph_status == 0);
 	bt_put(upstream_port);
 	bt_put(downstream_port);
 
