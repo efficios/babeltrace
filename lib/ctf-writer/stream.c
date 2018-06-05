@@ -1564,7 +1564,7 @@ void reset_structure_field(struct bt_ctf_field *structure, const char *name)
 
 	member = bt_ctf_field_structure_get_field_by_name(structure, name);
 	if (member) {
-		(void) bt_field_common_reset_recursive((void *) member);
+		bt_field_common_reset_recursive((void *) member);
 		bt_put(member);
 	}
 }
