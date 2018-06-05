@@ -623,12 +623,12 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 
 	BT_ASSERT_PRE_NON_NULL(length_field, "Length field");
 	BT_ASSERT_PRE_FIELD_COMMON_IS_SET((void *) length_field, "Length field");
-	BT_ASSERT_PRE(common_length_field->type->id == BT_CTF_FIELD_TYPE_ID_INTEGER ||
-			common_length_field->type->id == BT_CTF_FIELD_TYPE_ID_ENUM,
+	BT_ASSERT_PRE(common_length_field->type->id == BT_FIELD_TYPE_ID_INTEGER ||
+			common_length_field->type->id == BT_FIELD_TYPE_ID_ENUM,
 		"Length field must be an integer or enumeration field: %!+wf",
 		length_field);
 
-	if (common_length_field->type->id == BT_CTF_FIELD_TYPE_ID_ENUM) {
+	if (common_length_field->type->id == BT_FIELD_TYPE_ID_ENUM) {
 		struct bt_ctf_field_enumeration *enumeration = (void *)
 			length_field;
 

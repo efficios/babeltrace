@@ -68,7 +68,7 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos, union intval value,
 		unsigned int alignment, unsigned int size, bt_bool is_signed,
 		enum bt_ctf_byte_order byte_order)
 {
-	bt_bool rbo = (byte_order != BT_MY_BYTE_ORDER); /* reverse byte order */
+	bt_bool rbo = ((int) byte_order != BT_MY_BYTE_ORDER); /* reverse byte order */
 
 	if (!bt_ctf_stream_pos_align(pos, alignment))
 		return -EFAULT;
@@ -216,7 +216,7 @@ int bt_ctf_field_integer_write(struct bt_field_common *field,
 	union intval value;
 
 	byte_order = (int) int_type->user_byte_order;
-	if (byte_order == BT_BYTE_ORDER_NATIVE) {
+	if ((int) byte_order == BT_BYTE_ORDER_NATIVE) {
 		byte_order = native_byte_order;
 	}
 
@@ -241,7 +241,7 @@ int bt_ctf_field_floating_point_write(
 	unsigned int size;
 
 	byte_order = (int) flt_type->user_byte_order;
-	if (byte_order == BT_BYTE_ORDER_NATIVE) {
+	if ((int) byte_order == BT_BYTE_ORDER_NATIVE) {
 		byte_order = native_byte_order;
 	}
 

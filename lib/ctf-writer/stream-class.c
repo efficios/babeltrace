@@ -232,7 +232,7 @@ int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
 	}
 
 	BT_ASSERT(((struct bt_field_type_common *) ft)->id ==
-		BT_CTF_FIELD_TYPE_ID_INTEGER);
+		BT_FIELD_TYPE_ID_INTEGER);
 	mapped_clock_class =
 		bt_ctf_field_type_integer_get_mapped_clock_class(ft);
 	if (!mapped_clock_class) {
