@@ -64,8 +64,11 @@ struct stack_entry {
 
 /* Visit stack */
 struct stack {
-	/* Entries (struct stack_entry *) (top is last element) */
-	GPtrArray *entries;
+	/* Entries (struct stack_entry) */
+	GArray *entries;
+
+	/* Number of active entries */
+	size_t size;
 };
 
 /* State */
@@ -331,12 +334,6 @@ enum bt_btr_status btr_timestamp_end_cb(void *value,
 		struct bt_field_type *type, void *data);
 
 static
-void stack_entry_free_func(gpointer data)
-{
-	g_free(data);
-}
-
-static
 struct stack *stack_new(struct bt_notif_iter *notit)
 {
 	struct stack *stack = NULL;
@@ -347,9 +344,9 @@ struct stack *stack_new(struct bt_notif_iter *notit)
 		goto error;
 	}
 
-	stack->entries = g_ptr_array_new_with_free_func(stack_entry_free_func);
+	stack->entries = g_array_new(FALSE, TRUE, sizeof(struct stack_entry));
 	if (!stack->entries) {
-		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		BT_LOGE_STR("Failed to allocate a GArray.");
 		goto error;
 	}
 
@@ -366,41 +363,41 @@ void stack_destroy(struct stack *stack)
 {
 	BT_ASSERT(stack);
 	BT_LOGD("Destroying stack: addr=%p", stack);
-	g_ptr_array_free(stack->entries, TRUE);
+
+	if (stack->entries) {
+		g_array_free(stack->entries, TRUE);
+	}
+
 	g_free(stack);
 }
 
 static
 int stack_push(struct stack *stack, struct bt_field *base)
 {
-	int ret = 0;
 	struct stack_entry *entry;
 
 	BT_ASSERT(stack);
 	BT_ASSERT(base);
 	BT_LOGV("Pushing base field on stack: stack-addr=%p, "
-		"stack-size-before=%u, stack-size-after=%u",
-		stack, stack->entries->len, stack->entries->len + 1);
-	entry = g_new0(struct stack_entry, 1);
-	if (!entry) {
-		BT_LOGE_STR("Failed to allocate one stack entry.");
-		ret = -1;
-		goto end;
+		"stack-size-before=%zu, stack-size-after=%zu",
+		stack, stack->size, stack->size + 1);
+
+	if (stack->entries->len == stack->size) {
+		g_array_set_size(stack->entries, stack->size + 1);
 	}
 
+	entry = &g_array_index(stack->entries, struct stack_entry, stack->size);
 	entry->base = base;
-	g_ptr_array_add(stack->entries, entry);
-
-end:
-	return ret;
+	entry->index = 0;
+	stack->size++;
+	return 0;
 }
 
 static inline
 unsigned int stack_size(struct stack *stack)
 {
 	BT_ASSERT(stack);
-
-	return stack->entries->len;
+	return stack->size;
 }
 
 static
@@ -409,9 +406,9 @@ void stack_pop(struct stack *stack)
 	BT_ASSERT(stack);
 	BT_ASSERT(stack_size(stack));
 	BT_LOGV("Popping from stack: "
-		"stack-addr=%p, stack-size-before=%u, stack-size-after=%u",
-		stack, stack->entries->len, stack->entries->len - 1);
-	g_ptr_array_remove_index(stack->entries, stack->entries->len - 1);
+		"stack-addr=%p, stack-size-before=%zu, stack-size-after=%zu",
+		stack, stack->size, stack->size - 1);
+	stack->size--;
 }
 
 static inline
@@ -419,8 +416,8 @@ struct stack_entry *stack_top(struct stack *stack)
 {
 	BT_ASSERT(stack);
 	BT_ASSERT(stack_size(stack));
-
-	return g_ptr_array_index(stack->entries, stack->entries->len - 1);
+	return &g_array_index(stack->entries, struct stack_entry,
+		stack->size - 1);
 }
 
 static inline
@@ -433,14 +430,7 @@ static
 void stack_clear(struct stack *stack)
 {
 	BT_ASSERT(stack);
-
-	if (!stack_empty(stack)) {
-		BT_LOGV("Clearing stack: stack-addr=%p, stack-size=%u",
-			stack, stack->entries->len);
-		g_ptr_array_remove_range(stack->entries, 0, stack_size(stack));
-	}
-
-	BT_ASSERT(stack_empty(stack));
+	stack->size = 0;
 }
 
 static inline
