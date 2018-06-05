@@ -50,7 +50,7 @@ struct bt_object {
 
 	/*
 	 * True if this object is shared, that is, it uses reference
-	 * counting. Only used in developer mode.
+	 * counting.
 	 */
 	bool is_shared;
 };
@@ -137,26 +137,20 @@ void bt_object_set_parent(void *child_ptr, void *parent)
 #endif
 
 	/*
-	 * It is assumed that a "child" being "parented" is publicly reachable.
-	 * Therefore, a reference to its parent must be taken. The reference
-	 * to the parent will be released once the object's reference count
-	 * falls to zero.
+	 * It is assumed that a "child" being "parented" is publicly
+	 * reachable. Therefore, a reference to its parent must be
+	 * taken. The reference to the parent will be released once the
+	 * object's reference count falls to zero.
 	 */
 	BT_PUT(child->parent);
 	child->parent = bt_get(parent);
 }
 
-#ifdef BT_DEV_MODE
 static inline
-void _bt_object_set_is_shared(struct bt_object *obj, bool is_shared)
+void bt_object_set_is_shared(struct bt_object *obj, bool is_shared)
 {
 	obj->is_shared = is_shared;
 }
-
-# define bt_object_set_is_shared	_bt_object_set_is_shared
-#else
-# define bt_object_set_is_shared(_obj, _is_shared)
-#endif
 
 static inline
 void bt_object_init(void *ptr, bt_object_release_func release)
