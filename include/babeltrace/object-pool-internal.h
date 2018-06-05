@@ -119,11 +119,6 @@ void *bt_object_pool_create_object(struct bt_object_pool *pool)
 		pool->size--;
 		obj = pool->objects->pdata[pool->size];
 		pool->objects->pdata[pool->size] = NULL;
-
-		if (obj->is_shared) {
-			/* Object is shared: reset reference count to 1 */
-			obj->ref_count.count = 1;
-		}
 		goto end;
 	}
 
@@ -152,6 +147,8 @@ end:
 static inline
 void bt_object_pool_recycle_object(struct bt_object_pool *pool, void *obj)
 {
+	struct bt_object *bt_obj = obj;
+
 	BT_ASSERT(pool);
 	BT_ASSERT(obj);
 
@@ -170,6 +167,10 @@ void bt_object_pool_recycle_object(struct bt_object_pool *pool, void *obj)
 		g_ptr_array_set_size(pool->objects, pool->size + 1);
 	}
 
+	/* Reset reference count to 1 since it could be 0 now */
+	bt_obj->ref_count.count = 1;
+
+	/* Back to the pool */
 	pool->objects->pdata[pool->size] = obj;
 	pool->size++;
 
