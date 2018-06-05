@@ -628,7 +628,7 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 	graph->can_consume = BT_FALSE;
 	status = bt_graph_consume_no_check(graph);
 	graph->can_consume = BT_TRUE;
-	return BT_GRAPH_STATUS_OK;
+	return status;
 }
 
 enum bt_graph_status bt_graph_run(struct bt_graph *graph)
