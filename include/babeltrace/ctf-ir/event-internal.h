@@ -92,6 +92,11 @@ struct bt_event_class_common *bt_event_common_borrow_class(
 	return event->class;
 }
 
+typedef void *(*create_field_func)(void *);
+typedef void (*release_field_func)(void *);
+typedef void *(*create_header_field_func)(void *, void *);
+typedef void (*release_header_field_func)(void *, void *);
+
 BT_HIDDEN
 int bt_event_common_initialize(struct bt_event_common *event,
 		struct bt_event_class_common *event_class,
@@ -102,10 +107,10 @@ int bt_event_common_initialize(struct bt_event_common *event,
 		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,
 			struct bt_field_type_common *packet_context_field_type,
 			struct bt_field_type_common *event_header_field_type),
-		void *(*create_field_func)(void *),
-		void (*release_field_func)(void *),
-		void *(*create_header_field_func)(void *, void *),
-		void (*release_header_field_func)(void *));
+		create_field_func create_field_func,
+		release_field_func release_field_func,
+		create_header_field_func create_header_field_func,
+		release_header_field_func release_header_field_func);
 
 static inline
 struct bt_field_common *bt_event_common_borrow_payload(

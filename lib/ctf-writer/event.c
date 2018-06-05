@@ -132,10 +132,10 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 		(bt_validation_flag_copy_field_type_func)
 			bt_ctf_field_type_copy,
 		false, map_clock_classes_func,
-		(void *) bt_ctf_field_create,
-		(void *) bt_put,
-		(void *) create_event_header_field,
-		(void *) destroy_event_header_field);
+		(create_field_func) bt_ctf_field_create,
+		(release_field_func) bt_put,
+		(create_header_field_func) create_event_header_field,
+		(release_header_field_func) destroy_event_header_field);
 	if (ret) {
 		/* bt_event_common_initialize() logs errors */
 		goto error;
