@@ -36,7 +36,7 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compat/stdlib-internal.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include "common.h"
 
 #define NR_TESTS 41
@@ -196,7 +196,7 @@ static struct bt_event_class *create_simple_event(const char *name)
 	struct bt_event_class *event = NULL;
 	struct bt_field_type *payload = NULL;
 
-	assert(name);
+	BT_ASSERT(name);
 	event = bt_event_class_create(name);
 	if (!event) {
 		diag("Failed to create simple event");
@@ -238,7 +238,7 @@ static struct bt_event_class *create_complex_event(const char *name)
 	struct bt_event_class *event = NULL;
 	struct bt_field_type *inner = NULL, *outer = NULL;
 
-	assert(name);
+	BT_ASSERT(name);
 	event = bt_event_class_create(name);
 	if (!event) {
 		diag("Failed to create complex event");
@@ -287,35 +287,35 @@ static void set_stream_class_field_types(
 	int ret;
 
 	packet_context_type = bt_field_type_structure_create();
-	assert(packet_context_type);
+	BT_ASSERT(packet_context_type);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "packet_size");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "content_size");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 
 	event_header_type = bt_field_type_structure_create();
-	assert(event_header_type);
+	BT_ASSERT(event_header_type);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(event_header_type,
 		ft, "id");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 
 	ret = bt_stream_class_set_packet_context_field_type(stream_class,
 		packet_context_type);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_stream_class_set_event_header_field_type(stream_class,
 		event_header_type);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	bt_put(packet_context_type);
 	bt_put(event_header_type);
@@ -414,17 +414,17 @@ static void set_trace_packet_header(struct bt_trace *trace)
 	int ret;
 
 	packet_header_type = bt_field_type_structure_create();
-	assert(packet_header_type);
+	BT_ASSERT(packet_header_type);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(packet_header_type,
 		ft, "stream_id");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 
 	ret = bt_trace_set_packet_header_field_type(trace,
 		packet_header_type);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	bt_put(packet_header_type);
 }
@@ -647,51 +647,51 @@ static void create_writer_user_full(struct writer_user *user)
 	}
 
 	user->writer = bt_ctf_writer_create(trace_path);
-	assert(user->writer);
+	BT_ASSERT(user->writer);
 	ret = bt_ctf_writer_set_byte_order(user->writer,
 		BT_CTF_BYTE_ORDER_LITTLE_ENDIAN);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	user->tc = bt_ctf_writer_get_trace(user->writer);
-	assert(user->tc);
+	BT_ASSERT(user->tc);
 	user->sc = bt_ctf_stream_class_create("sc");
-	assert(user->sc);
+	BT_ASSERT(user->sc);
 	clock = bt_ctf_clock_create("the_clock");
-	assert(clock);
+	BT_ASSERT(clock);
 	ret = bt_ctf_writer_add_clock(user->writer, clock);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	ret = bt_ctf_stream_class_set_clock(user->sc, clock);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	BT_PUT(clock);
 	user->stream = bt_ctf_writer_create_stream(user->writer, user->sc);
-	assert(user->stream);
+	BT_ASSERT(user->stream);
 	user->ec = bt_ctf_event_class_create("ec");
-	assert(user->ec);
+	BT_ASSERT(user->ec);
 	ft = create_writer_integer_struct();
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_ctf_event_class_set_payload_field_type(user->ec, ft);
 	BT_PUT(ft);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	ret = bt_ctf_stream_class_add_event_class(user->sc, user->ec);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	user->event = bt_ctf_event_create(user->ec);
-	assert(user->event);
+	BT_ASSERT(user->event);
 	field = bt_ctf_event_get_payload(user->event, "payload_8");
-	assert(field);
+	BT_ASSERT(field);
 	ret = bt_ctf_field_integer_unsigned_set_value(field, 10);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	BT_PUT(field);
 	field = bt_ctf_event_get_payload(user->event, "payload_16");
-	assert(field);
+	BT_ASSERT(field);
 	ret = bt_ctf_field_integer_unsigned_set_value(field, 20);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	BT_PUT(field);
 	field = bt_ctf_event_get_payload(user->event, "payload_32");
-	assert(field);
+	BT_ASSERT(field);
 	ret = bt_ctf_field_integer_unsigned_set_value(field, 30);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	BT_PUT(field);
 	ret = bt_ctf_stream_append_event(user->stream, user->event);
-	assert(!ret);
+	BT_ASSERT(!ret);
 	recursive_rmdir(trace_path);
 	g_free(trace_path);
 }

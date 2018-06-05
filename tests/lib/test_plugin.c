@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 #include "tap/tap.h"
 #include "common.h"
@@ -114,7 +114,7 @@ static void test_minimal(const char *plugin_dir)
 	struct bt_plugin *plugin;
 	char *minimal_path = get_test_plugin_path(plugin_dir, "minimal");
 
-	assert(minimal_path);
+	BT_ASSERT(minimal_path);
 	diag("minimal plugin test below");
 
 	reset_test_plugin_env_vars();
@@ -172,12 +172,12 @@ static void test_sfs(const char *plugin_dir)
 	struct bt_query_executor *query_exec = bt_query_executor_create();
 	int ret;
 
-	assert(query_exec);
-	assert(sfs_path);
+	BT_ASSERT(query_exec);
+	BT_ASSERT(sfs_path);
 	diag("sfs plugin test below");
 
 	plugin_set = bt_plugin_create_all_from_file(sfs_path);
-	assert(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1);
+	BT_ASSERT(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1);
 	plugin = bt_plugin_set_get_plugin(plugin_set, 0);
 	ok(bt_plugin_get_version(plugin, &major, &minor, &patch, &extra) ==
 		BT_PLUGIN_STATUS_OK,
@@ -217,7 +217,7 @@ static void test_sfs(const char *plugin_dir)
 		BT_COMPONENT_CLASS_TYPE_SOURCE),
 		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
 	params = bt_value_integer_create_init(23);
-	assert(params);
+	BT_ASSERT(params);
 	ret = bt_query_executor_query(NULL, filter_comp_class, "object",
 		params, &results);
 	ok (ret, "bt_query_executor_query() handles NULL (query executor)");
@@ -230,11 +230,11 @@ static void test_sfs(const char *plugin_dir)
 	ret = bt_query_executor_query(query_exec, filter_comp_class,
 		"get-something", params, &results);
 	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
-	assert(bt_value_is_array(results) && bt_value_array_size(results) == 2);
+	BT_ASSERT(bt_value_is_array(results) && bt_value_array_size(results) == 2);
 	object = bt_value_array_get(results, 0);
-	assert(object && bt_value_is_string(object));
+	BT_ASSERT(object && bt_value_is_string(object));
 	value_ret = bt_value_string_get(object, &object_str);
-	assert(value_ret == BT_VALUE_STATUS_OK);
+	BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_get(results, 1);
@@ -244,7 +244,7 @@ static void test_sfs(const char *plugin_dir)
 	diag("> putting the plugin object here");
 	BT_PUT(plugin);
 	graph = bt_graph_create();
-	assert(graph);
+	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
@@ -253,7 +253,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_PUT(source_comp_class);
 	bt_put(graph);
 	graph = bt_graph_create();
-	assert(graph);
+	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
@@ -262,7 +262,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_PUT(filter_comp_class);
 	bt_put(graph);
 	graph = bt_graph_create();
-	assert(graph);
+	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
@@ -320,7 +320,7 @@ static void test_find(const char *plugin_dir)
 			"8db46494-a398-466a-9649-c765ae077629"
 			G_SEARCHPATH_SEPARATOR_S,
 		NON_EXISTING_PATH, plugin_dir);
-	assert(ret > 0 && plugin_path);
+	BT_ASSERT(ret > 0 && plugin_path);
 	g_setenv("BABELTRACE_PLUGIN_PATH", plugin_path, 1);
 	plugin = bt_plugin_find("test_minimal");
 	ok(plugin,
