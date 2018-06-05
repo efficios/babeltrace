@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 #include "tap/tap.h"
@@ -336,7 +336,7 @@ void src_port_connected(struct bt_private_component *private_component,
 	case TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED:
 		ret = bt_private_component_source_add_output_private_port(
 			private_component, "hello", NULL, NULL);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		break;
 	default:
 		break;
@@ -361,7 +361,7 @@ void src_port_disconnected(struct bt_private_component *private_component,
 	switch (current_test) {
 	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
 		ret = bt_private_port_remove_from_component(private_port);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 	default:
 		break;
 	}
@@ -375,7 +375,7 @@ enum bt_component_status src_init(struct bt_private_component *priv_comp,
 
 	ret = bt_private_component_source_add_output_private_port(
 		priv_comp, "out", NULL, NULL);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -391,9 +391,9 @@ enum bt_component_status sink_consume(
 	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
 		def_port = bt_private_component_sink_get_input_private_port_by_name(
 			priv_component, "in");
-		assert(def_port);
+		BT_ASSERT(def_port);
 		ret = bt_private_port_remove_from_component(def_port);
-		assert(ret == 0);
+		BT_ASSERT(ret == 0);
 		bt_put(def_port);
 		break;
 	default:
@@ -443,7 +443,7 @@ enum bt_component_status sink_init(struct bt_private_component *priv_comp,
 
 	ret = bt_private_component_sink_add_input_private_port(priv_comp,
 		"in", NULL, NULL);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -453,7 +453,7 @@ void graph_port_added(struct bt_port *port,
 {
 	struct bt_component *comp = bt_port_get_component(port);
 
-	assert(comp);
+	BT_ASSERT(comp);
 	bt_put(comp);
 
 	struct event event = {
@@ -492,9 +492,9 @@ void graph_ports_connected(struct bt_port *upstream_port,
 		bt_port_get_component(downstream_port);
 	struct bt_connection *conn = bt_port_get_connection(upstream_port);
 
-	assert(upstream_comp);
-	assert(downstream_comp);
-	assert(conn);
+	BT_ASSERT(upstream_comp);
+	BT_ASSERT(downstream_comp);
+	BT_ASSERT(conn);
 	bt_put(upstream_comp);
 	bt_put(downstream_comp);
 	bt_put(conn);
@@ -539,35 +539,35 @@ void init_test(void)
 	int ret;
 
 	src_comp_class = bt_component_class_source_create("src", src_iter_next);
-	assert(src_comp_class);
+	BT_ASSERT(src_comp_class);
 	ret = bt_component_class_set_init_method(src_comp_class, src_init);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_accept_port_connection_method(
 		src_comp_class, accept_port_connection);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_port_connected_method(src_comp_class,
 		src_port_connected);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_port_disconnected_method(
 		src_comp_class, src_port_disconnected);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	sink_comp_class = bt_component_class_sink_create("sink", sink_consume);
-	assert(sink_comp_class);
+	BT_ASSERT(sink_comp_class);
 	ret = bt_component_class_set_init_method(sink_comp_class, sink_init);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_accept_port_connection_method(
 		sink_comp_class, accept_port_connection);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_port_connected_method(sink_comp_class,
 		sink_port_connected);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_component_class_set_port_disconnected_method(sink_comp_class,
 		sink_port_disconnected);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_component_class_freeze(src_comp_class);
 	bt_component_class_freeze(sink_comp_class);
 	events = g_array_new(FALSE, TRUE, sizeof(struct event));
-	assert(events);
+	BT_ASSERT(events);
 }
 
 static
@@ -586,7 +586,7 @@ struct bt_component *create_src(struct bt_graph *graph)
 
 	ret = bt_graph_add_component(graph, src_comp_class, "src-comp", NULL,
 		&comp);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	return comp;
 }
 
@@ -598,7 +598,7 @@ struct bt_component *create_sink(struct bt_graph *graph)
 
 	ret = bt_graph_add_component(graph, sink_comp_class, "sink-comp",
 		NULL, &comp);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	return comp;
 }
 
@@ -608,19 +608,19 @@ struct bt_graph *create_graph(void)
 	struct bt_graph *graph = bt_graph_create();
 	int ret;
 
-	assert(graph);
+	BT_ASSERT(graph);
 	ret = bt_graph_add_port_added_listener(graph, graph_port_added, NULL,
 		NULL);
-	assert(ret >= 0);
+	BT_ASSERT(ret >= 0);
 	ret = bt_graph_add_port_removed_listener(graph, graph_port_removed,
 		NULL, NULL);
-	assert(ret >= 0);
+	BT_ASSERT(ret >= 0);
 	ret = bt_graph_add_ports_connected_listener(graph,
 		graph_ports_connected, NULL, NULL);
-	assert(ret >= 0);
+	BT_ASSERT(ret >= 0);
 	ret = bt_graph_add_ports_disconnected_listener(graph,
 		graph_ports_disconnected, NULL, NULL);
-	assert(ret >= 0);
+	BT_ASSERT(ret >= 0);
 	return graph;
 }
 
@@ -658,17 +658,17 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	prepare_test(TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT,
 		"sink removes port in consume, then source removes disconnected port");
 	graph = create_graph();
-	assert(graph);
+	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
-	assert(src_def_port);
+	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
-	assert(sink_def_port);
+	BT_ASSERT(sink_def_port);
 	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
-	assert(status == 0);
-	assert(conn);
+	BT_ASSERT(status == 0);
+	BT_ASSERT(conn);
 
 	/* We're supposed to have 7 events so far */
 	ok(events->len == 7, "we have the expected number of events (before consume)");
@@ -740,7 +740,7 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	/* Consume sink once */
 	clear_events();
 	ret = bt_graph_consume(graph);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	/* We're supposed to have 5 new events */
 	ok(events->len == 5, "we have the expected number of events (after consume)");
@@ -835,16 +835,16 @@ void test_sink_removes_port_in_port_connected(void)
 	prepare_test(TEST_SINK_REMOVES_PORT_IN_CONSUME,
 		"sink removes port in consume");
 	graph = create_graph();
-	assert(graph);
+	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
-	assert(src_def_port);
+	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
-	assert(sink_def_port);
+	BT_ASSERT(sink_def_port);
 	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
-	assert(status == 0);
+	BT_ASSERT(status == 0);
 
 	/* We're supposed to have 7 events so far */
 	ok(events->len == 7, "we have the expected number of events (before consume)");
@@ -916,7 +916,7 @@ void test_sink_removes_port_in_port_connected(void)
 	/* Consume sink once */
 	clear_events();
 	ret = bt_graph_consume(graph);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	/* We're supposed to have 4 new events */
 	ok(events->len == 4, "we have the expected number of events (after consume)");
@@ -993,19 +993,19 @@ void test_src_adds_port_in_port_connected(void)
 	prepare_test(TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED,
 		"source adds port in port connected");
 	graph = create_graph();
-	assert(graph);
+	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
-	assert(src_def_port);
+	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
-	assert(sink_def_port);
+	BT_ASSERT(sink_def_port);
 	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
-	assert(status == 0);
+	BT_ASSERT(status == 0);
 	src_hello_port = bt_component_source_get_output_port_by_name(src,
 		"hello");
-	assert(src_hello_port);
+	BT_ASSERT(src_hello_port);
 
 	/* We're supposed to have 8 events */
 	ok(events->len == 8, "we have the expected number of events");
@@ -1113,16 +1113,16 @@ void test_simple(void)
 
 	prepare_test(TEST_SIMPLE, "simple");
 	graph = create_graph();
-	assert(graph);
+	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
 	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
-	assert(src_def_port);
+	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
-	assert(sink_def_port);
+	BT_ASSERT(sink_def_port);
 	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
-	assert(status == 0);
+	BT_ASSERT(status == 0);
 
 	/* We're supposed to have 7 events */
 	ok(events->len == 7, "we have the expected number of events");

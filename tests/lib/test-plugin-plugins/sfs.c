@@ -19,7 +19,8 @@
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/values.h>
 #include <babeltrace/ref.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-internal.h>
 
 static enum bt_component_status sink_consume(
 		struct bt_private_component *private_component)
@@ -61,11 +62,11 @@ static struct bt_component_class_query_method_return query_method(
 	};
 	int iret;
 
-	assert(ret.result);
+	BT_ASSERT(ret.result);
 	iret = bt_value_array_append_string(ret.result, object);
-	assert(iret == 0);
+	BT_ASSERT(iret == 0);
 	iret = bt_value_array_append(ret.result, params);
-	assert(iret == 0);
+	BT_ASSERT(iret == 0);
 	return ret;
 }
 

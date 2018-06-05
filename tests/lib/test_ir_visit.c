@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <assert.h>
+#include <babeltrace/assert-internal.h>
 
 #define NR_TESTS 13
 
@@ -107,35 +107,35 @@ static void set_stream_class_field_types(
 	int ret;
 
 	packet_context_type = bt_field_type_structure_create();
-	assert(packet_context_type);
+	BT_ASSERT(packet_context_type);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "packet_size");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(packet_context_type,
 		ft, "content_size");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 
 	event_header_type = bt_field_type_structure_create();
-	assert(event_header_type);
+	BT_ASSERT(event_header_type);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(event_header_type,
 		ft, "id");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 
 	ret = bt_stream_class_set_packet_context_field_type(stream_class,
 		packet_context_type);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	ret = bt_stream_class_set_event_header_field_type(stream_class,
 		event_header_type);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	bt_put(packet_context_type);
 	bt_put(event_header_type);
@@ -148,17 +148,17 @@ static void set_trace_packet_header(struct bt_trace *trace)
 	int ret;
 
 	packet_header_type = bt_field_type_structure_create();
-	assert(packet_header_type);
+	BT_ASSERT(packet_header_type);
 	ft = bt_field_type_integer_create(32);
-	assert(ft);
+	BT_ASSERT(ft);
 	ret = bt_field_type_structure_add_field(packet_header_type,
 		ft, "stream_id");
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 	bt_put(ft);
 
 	ret = bt_trace_set_packet_header_field_type(trace,
 		packet_header_type);
-	assert(ret == 0);
+	BT_ASSERT(ret == 0);
 
 	bt_put(packet_header_type);
 }
