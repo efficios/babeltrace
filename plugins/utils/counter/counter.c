@@ -215,6 +215,7 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	struct counter *counter;
 	enum bt_notification_iterator_status it_ret;
 	int64_t count;
+	struct bt_notification *notif = NULL;
 
 	counter = bt_private_component_get_user_data(component);
 	BT_ASSERT(counter);
@@ -231,7 +232,8 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	}
 
 	/* Consume one notification  */
-	it_ret = bt_notification_iterator_next(counter->notif_iter);
+	it_ret = bt_private_connection_notification_iterator_next(
+		counter->notif_iter, &notif);
 	if (it_ret < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -247,10 +249,6 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
 	{
-		struct bt_notification *notif =
-			bt_notification_iterator_borrow_notification(
-				counter->notif_iter);
-
 		BT_ASSERT(notif);
 		switch (bt_notification_get_type(notif)) {
 		case BT_NOTIFICATION_TYPE_EVENT:
@@ -298,5 +296,6 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	try_print_count(counter);
 
 end:
+	bt_put(notif);
 	return ret;
 }

@@ -61,6 +61,9 @@ struct muxer_upstream_notif_iter {
 	/* Owned by this, NULL if ended */
 	struct bt_notification_iterator *notif_iter;
 
+	/* Owned by this */
+	struct bt_notification *notif;
+
 	/*
 	 * This flag is true if the upstream notification iterator's
 	 * current notification must be considered for the multiplexing
@@ -135,6 +138,7 @@ void destroy_muxer_upstream_notif_iter(
 		muxer_upstream_notif_iter->notif_iter,
 		muxer_upstream_notif_iter->is_valid);
 	bt_put(muxer_upstream_notif_iter->notif_iter);
+	bt_put(muxer_upstream_notif_iter->notif);
 	g_free(muxer_upstream_notif_iter);
 }
 
@@ -448,13 +452,14 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
 {
 	enum bt_notification_iterator_status status;
+	struct bt_notification *notif = NULL;
 
 	BT_LOGV("Calling upstream notification iterator's \"next\" method: "
 		"muxer-upstream-notif-iter-wrap-addr=%p, notif-iter-addr=%p",
 		muxer_upstream_notif_iter,
 		muxer_upstream_notif_iter->notif_iter);
-	status = bt_notification_iterator_next(
-		muxer_upstream_notif_iter->notif_iter);
+	status = bt_private_connection_notification_iterator_next(
+		muxer_upstream_notif_iter->notif_iter, &notif);
 	BT_LOGV("Upstream notification iterator's \"next\" method returned: "
 		"status=%s", bt_notification_iterator_status_string(status));
 
@@ -466,6 +471,7 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 		 */
 		BT_LOGV_STR("Validated upstream notification iterator wrapper.");
 		muxer_upstream_notif_iter->is_valid = true;
+		BT_MOVE(muxer_upstream_notif_iter->notif, notif);
 		break;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 		/*
@@ -497,6 +503,7 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 		break;
 	}
 
+	BT_ASSERT(!notif);
 	return status;
 }
 
@@ -900,8 +907,7 @@ muxer_notif_iter_youngest_upstream_notif_iter(
 		}
 
 		BT_ASSERT(cur_muxer_upstream_notif_iter->is_valid);
-		notif = bt_notification_iterator_borrow_notification(
-			cur_muxer_upstream_notif_iter->notif_iter);
+		notif = cur_muxer_upstream_notif_iter->notif;
 		BT_ASSERT(notif);
 		ret = get_notif_ts_ns(muxer_comp, muxer_notif_iter, notif,
 			muxer_notif_iter->last_returned_ts_ns, &notif_ts_ns);
@@ -1106,8 +1112,7 @@ struct bt_notification_iterator_next_method_return muxer_notif_iter_do_next(
 		muxer_notif_iter, muxer_upstream_notif_iter, next_return_ts);
 	BT_ASSERT(next_return.status == BT_NOTIFICATION_ITERATOR_STATUS_OK);
 	BT_ASSERT(muxer_upstream_notif_iter);
-	next_return.notification = bt_notification_iterator_get_notification(
-		muxer_upstream_notif_iter->notif_iter);
+	next_return.notification = bt_get(muxer_upstream_notif_iter->notif);
 	BT_ASSERT(next_return.notification);
 
 	/*

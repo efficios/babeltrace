@@ -179,7 +179,7 @@ BT_HIDDEN
 enum bt_component_status pretty_consume(struct bt_private_component *component)
 {
 	enum bt_component_status ret;
-	struct bt_notification *notification = NULL;
+	struct bt_notification *notif = NULL;
 	struct bt_notification_iterator *it;
 	struct pretty_component *pretty =
 		bt_private_component_get_user_data(component);
@@ -191,7 +191,7 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 	}
 
 	it = pretty->input_iterator;
-	it_ret = bt_notification_iterator_next(it);
+	it_ret = bt_private_connection_notification_iterator_next(it, &notif);
 
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
@@ -208,11 +208,11 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 		goto end;
 	}
 
-	notification = bt_notification_iterator_borrow_notification(it);
-	BT_ASSERT(notification);
-	ret = handle_notification(pretty, notification);
+	BT_ASSERT(notif);
+	ret = handle_notification(pretty, notif);
 
 end:
+	bt_put(notif);
 	return ret;
 }
 
