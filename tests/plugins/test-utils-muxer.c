@@ -767,7 +767,8 @@ enum bt_component_status sink_consume(
 	bool do_append_test_event = true;
 
 	BT_ASSERT(user_data && user_data->notif_iter);
-	it_ret = bt_notification_iterator_next(user_data->notif_iter);
+	it_ret = bt_private_connection_notification_iterator_next(
+		user_data->notif_iter, &notification);
 
 	if (it_ret < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -789,8 +790,6 @@ enum bt_component_status sink_consume(
 		break;
 	}
 
-	notification = bt_notification_iterator_get_notification(
-		user_data->notif_iter);
 	BT_ASSERT(notification);
 
 	switch (bt_notification_get_type(notification)) {

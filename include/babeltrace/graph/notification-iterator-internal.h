@@ -87,7 +87,6 @@ enum bt_private_connection_notification_iterator_state {
 struct bt_notification_iterator {
 	struct bt_object base;
 	enum bt_notification_iterator_type type;
-	struct bt_notification *current_notification; /* owned by this */
 };
 
 struct bt_notification_iterator_private_connection {
@@ -125,26 +124,10 @@ struct bt_notification_iterator_output_port {
 	struct bt_notification_iterator base;
 	struct bt_graph *graph; /* Owned by this */
 	struct bt_component *colander; /* Owned by this */
-	struct bt_port *output_port; /* Owned by this */
+
+	/* Only used temporarily: should always be NULL */
+	struct bt_notification *notif;
 };
-
-static inline
-struct bt_notification *bt_notification_iterator_borrow_current_notification(
-		struct bt_notification_iterator *iterator)
-{
-	BT_ASSERT(iterator);
-	return iterator->current_notification;
-}
-
-static inline
-void bt_notification_iterator_replace_current_notification(
-		struct bt_notification_iterator *iterator,
-		struct bt_notification *notification)
-{
-	BT_ASSERT(iterator);
-	bt_put(iterator->current_notification);
-	iterator->current_notification = bt_get(notification);
-}
 
 static inline
 struct bt_private_connection_private_notification_iterator *

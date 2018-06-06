@@ -29,6 +29,7 @@
 #include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/private-connection-notification-iterator.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -142,8 +143,8 @@ enum bt_component_status colander_consume(
 		goto end;
 	}
 
-	notif_iter_status = bt_notification_iterator_next(
-		colander_data->notif_iter);
+	notif_iter_status = bt_private_connection_notification_iterator_next(
+		colander_data->notif_iter, &notif);
 	switch (notif_iter_status) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_CANCELED:
 		status = BT_COMPONENT_STATUS_OK;
@@ -161,8 +162,6 @@ enum bt_component_status colander_consume(
 		goto end;
 	}
 
-	notif = bt_notification_iterator_get_notification(
-		colander_data->notif_iter);
 	BT_ASSERT(notif);
 
 end:

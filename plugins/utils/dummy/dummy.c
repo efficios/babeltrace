@@ -121,7 +121,8 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 	}
 
 	/* Consume one notification  */
-	it_ret = bt_notification_iterator_next(dummy->notif_iter);
+	it_ret = bt_private_connection_notification_iterator_next(
+		dummy->notif_iter, &notif);
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
 		ret = BT_COMPONENT_STATUS_ERROR;
