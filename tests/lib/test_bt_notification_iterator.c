@@ -51,6 +51,7 @@
 #include <babeltrace/graph/private-component-sink.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/private-connection-notification-iterator.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/plugin/plugin.h>
@@ -560,7 +561,8 @@ void src_finalize(struct bt_private_component *private_component)
 
 static
 enum bt_notification_iterator_status common_consume(
-		struct bt_notification_iterator *notif_iter)
+		struct bt_notification_iterator *notif_iter,
+		bool is_output_port_notif_iter)
 {
 	enum bt_notification_iterator_status ret;
 	struct bt_notification *notification = NULL;
@@ -568,7 +570,14 @@ enum bt_notification_iterator_status common_consume(
 	bool do_append_test_event = true;
 	BT_ASSERT(notif_iter);
 
-	ret = bt_notification_iterator_next(notif_iter);
+	if (is_output_port_notif_iter) {
+		ret = bt_output_port_notification_iterator_next(notif_iter,
+			&notification);
+	} else {
+		ret = bt_private_connection_notification_iterator_next(
+			notif_iter, &notification);
+	}
+
 	if (ret < 0) {
 		do_append_test_event = false;
 		goto end;
@@ -584,8 +593,6 @@ enum bt_notification_iterator_status common_consume(
 		break;
 	}
 
-	notification = bt_notification_iterator_get_notification(
-		notif_iter);
 	BT_ASSERT(notification);
 
 	switch (bt_notification_get_type(notification)) {
@@ -656,7 +663,7 @@ enum bt_component_status sink_consume(
 	enum bt_notification_iterator_status it_ret;
 
 	BT_ASSERT(user_data && user_data->notif_iter);
-	it_ret = common_consume(user_data->notif_iter);
+	it_ret = common_consume(user_data->notif_iter, false);
 
 	if (it_ret < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -899,7 +906,7 @@ void test_output_port_notification_iterator(void)
 
 	/* Consume the notification iterator */
 	while (iter_status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		iter_status = common_consume(notif_iter);
+		iter_status = common_consume(notif_iter, true);
 	}
 
 	ok(iter_status == BT_NOTIFICATION_ITERATOR_STATUS_END,

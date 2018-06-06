@@ -1325,9 +1325,6 @@ static inline void format_notification_iterator(char **buf_ch,
 		SET_TMP_PREFIX("colander-comp-");
 		format_component(buf_ch, false, tmp_prefix,
 			iter_output_port->colander);
-		SET_TMP_PREFIX("output-port-");
-		format_port(buf_ch, false, tmp_prefix,
-			iter_output_port->output_port);
 		break;
 	}
 	default:

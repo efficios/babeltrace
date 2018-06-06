@@ -61,41 +61,6 @@ enum bt_notification_iterator_status {
 	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -2,
 };
 
-extern struct bt_notification *bt_notification_iterator_borrow_notification(
-		struct bt_notification_iterator *iterator);
-
-/**
- * Get current notification at iterator's position.
- *
- * This functions will <b>not</b> advance the cursor's position.
- * The returned notification's reference count is already incremented.
- *
- * @param iterator	Iterator instance
- * @returns		Returns a bt_notification instance
- *
- * @see bt_put()
- */
-static inline
-struct bt_notification *bt_notification_iterator_get_notification(
-		struct bt_notification_iterator *iterator)
-{
-	return bt_get(bt_notification_iterator_borrow_notification(iterator));
-}
-
-/**
- * Advance the iterator's position forward.
- *
- * This function can be called repeatedly to iterate through the iterator's
- * associated trace.
- *
- * @param iterator	Iterator instance
- * @returns		Returns a bt_notification instance
- *
- * @see bt_notification_iterator_get_notification()
- */
-extern enum bt_notification_iterator_status
-bt_notification_iterator_next(struct bt_notification_iterator *iterator);
-
 #ifdef __cplusplus
 }
 #endif

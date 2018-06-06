@@ -23,18 +23,23 @@
  * SOFTWARE.
  */
 
-/* For enum bt_notification_type */
-#include <babeltrace/graph/notification.h>
+/* For enum bt_notification_iterator_status */
+#include <babeltrace/graph/notification-iterator.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_port;
+struct bt_notification;
 struct bt_notification_iterator;
 
 extern struct bt_notification_iterator *bt_output_port_notification_iterator_create(
 		struct bt_port *port, const char *colander_component_name);
+
+extern enum bt_notification_iterator_status
+bt_output_port_notification_iterator_next(struct bt_notification_iterator *iterator,
+		struct bt_notification **notification);
 
 #ifdef __cplusplus
 }
