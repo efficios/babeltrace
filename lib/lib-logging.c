@@ -334,10 +334,10 @@ static inline void format_field_common(char **buf_ch, bool extended,
 		struct bt_field_common_string *str =
 			BT_FROM_COMMON(field);
 
-		if (str->payload) {
-			BT_ASSERT(str->payload);
+		if (str->buf) {
+			BT_ASSERT(str->buf->data);
 			BUF_APPEND(", %spartial-value=\"%.32s\"",
-				PRFIELD(str->payload->str));
+				PRFIELD(str->buf->data));
 
 		}
 		break;

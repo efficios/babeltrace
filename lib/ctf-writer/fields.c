@@ -557,8 +557,8 @@ int bt_ctf_field_string_serialize(struct bt_field_common *field,
 	BT_LOGV_STR("Creating character field from string field's character field type.");
 	character = bt_ctf_field_create(character_type);
 
-	for (i = 0; i < string->payload->len + 1; i++) {
-		const uint64_t chr = (uint64_t) string->payload->str[i];
+	for (i = 0; i < string->size + 1; i++) {
+		const uint64_t chr = (uint64_t) ((char *) string->buf->data)[i];
 
 		ret = bt_ctf_field_integer_unsigned_set_value(character, chr);
 		BT_ASSERT(ret == 0);
@@ -1097,7 +1097,7 @@ struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *type)
 	BT_LOGD("Creating CTF writer string field object: ft-addr=%p", type);
 
 	if (string) {
-		bt_field_common_initialize(BT_TO_COMMON(string),
+		bt_field_common_string_initialize(BT_TO_COMMON(string),
 			(void *) type,
 			(bt_object_release_func)
 				bt_ctf_field_string_destroy,
