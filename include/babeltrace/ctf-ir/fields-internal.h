@@ -35,6 +35,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/types.h>
 #include <stdint.h>
+#include <string.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <glib.h>
@@ -149,7 +150,8 @@ struct bt_field_common_sequence {
 
 struct bt_field_common_string {
 	struct bt_field_common common;
-	GString *payload;
+	GArray *buf;
+	size_t size;
 };
 
 struct bt_field_enumeration {
@@ -191,6 +193,12 @@ int bt_field_common_variant_initialize(struct bt_field_common *field,
 		GDestroyNotify field_release_func);
 
 BT_HIDDEN
+int bt_field_common_string_initialize(struct bt_field_common *field,
+		struct bt_field_type_common *type,
+		bt_object_release_func release_func,
+		struct bt_field_common_methods *methods);
+
+BT_HIDDEN
 int bt_field_common_generic_validate(struct bt_field_common *field);
 
 BT_HIDDEN
@@ -219,9 +227,6 @@ void bt_field_common_array_reset_recursive(struct bt_field_common *field);
 
 BT_HIDDEN
 void bt_field_common_sequence_reset_recursive(struct bt_field_common *field);
-
-BT_HIDDEN
-void bt_field_common_string_reset(struct bt_field_common *field);
 
 BT_HIDDEN
 void bt_field_common_generic_set_is_frozen(struct bt_field_common *field,
@@ -645,7 +650,7 @@ const char *bt_field_common_string_get_value(struct bt_field_common *field)
 	BT_ASSERT_PRE_FIELD_COMMON_IS_SET(field, "String field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
-	return string->payload->str;
+	return (const char *) string->buf->data;
 }
 
 static inline
@@ -653,6 +658,7 @@ int bt_field_common_string_set_value(struct bt_field_common *field,
 		const char *value)
 {
 	struct bt_field_common_string *string = BT_FROM_COMMON(field);
+	size_t str_len;
 
 	BT_ASSERT_PRE_NON_NULL(field, "String field");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
@@ -660,34 +666,15 @@ int bt_field_common_string_set_value(struct bt_field_common *field,
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
 
-	if (string->payload) {
-		g_string_assign(string->payload, value);
-	} else {
-		string->payload = g_string_new(value);
+	str_len = strlen(value);
+
+	if (str_len + 1 > string->buf->len) {
+		g_array_set_size(string->buf, str_len + 1);
 	}
 
-	bt_field_common_set(field, true);
-	return 0;
-}
-
-static inline
-int bt_field_common_string_append(struct bt_field_common *field,
-		const char *value)
-{
-	struct bt_field_common_string *string_field = BT_FROM_COMMON(field);
-
-	BT_ASSERT_PRE_NON_NULL(field, "String field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_COMMON_HOT(field, "String field");
-	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_STRING, "Field");
-
-	if (string_field->payload) {
-		g_string_append(string_field->payload, value);
-	} else {
-		string_field->payload = g_string_new(value);
-	}
-
+	memcpy(string->buf->data, value, str_len);
+	((char *) string->buf->data)[str_len] = '\0';
+	string->size = str_len;
 	bt_field_common_set(field, true);
 	return 0;
 }
@@ -697,6 +684,8 @@ int bt_field_common_string_append_len(struct bt_field_common *field,
 		const char *value, unsigned int length)
 {
 	struct bt_field_common_string *string_field = BT_FROM_COMMON(field);
+	char *data;
+	size_t new_size;
 
 	BT_ASSERT_PRE_NON_NULL(field, "String field");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
@@ -704,19 +693,33 @@ int bt_field_common_string_append_len(struct bt_field_common *field,
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
 
-	/* make sure no null bytes are appended */
+	/* Make sure no null bytes are appended */
 	BT_ASSERT_PRE(memchr(value, '\0', length) == NULL,
 		"String value to append contains a null character: "
 		"partial-value=\"%.32s\", length=%u", value, length);
 
-	if (string_field->payload) {
-		g_string_append_len(string_field->payload, value, length);
-	} else {
-		string_field->payload = g_string_new_len(value, length);
+	new_size = string_field->size + length;
+
+	if (new_size + 1 > string_field->buf->len) {
+		g_array_set_size(string_field->buf, new_size + 1);
 	}
 
+	data = string_field->buf->data;
+	memcpy(data + string_field->size, value, length);
+	((char *) string_field->buf->data)[new_size] = '\0';
+	string_field->size = new_size;
 	bt_field_common_set(field, true);
 	return 0;
+}
+
+static inline
+int bt_field_common_string_append(struct bt_field_common *field,
+		const char *value)
+{
+	BT_ASSERT_PRE_NON_NULL(value, "Value");
+
+	return bt_field_common_string_append_len(field, value,
+		strlen(value));
 }
 
 static inline
@@ -728,13 +731,7 @@ int bt_field_common_string_clear(struct bt_field_common *field)
 	BT_ASSERT_PRE_FIELD_COMMON_HOT(field, "String field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
-
-	if (string_field->payload) {
-		g_string_set_size(string_field->payload, 0);
-	} else {
-		string_field->payload = g_string_new(NULL);
-	}
-
+	string_field->size = 0;
 	bt_field_common_set(field, true);
 	return 0;
 }
@@ -859,8 +856,8 @@ void bt_field_common_string_finalize(struct bt_field_common *field)
 	BT_LOGD("Finalizing common string field object: addr=%p", field);
 	bt_field_common_finalize(field);
 
-	if (string->payload) {
-		g_string_free(string->payload, TRUE);
+	if (string->buf) {
+		g_array_free(string->buf, TRUE);
 	}
 }
 
