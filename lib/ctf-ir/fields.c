@@ -75,7 +75,7 @@ static struct bt_field_common_methods bt_field_string_methods = {
 	.validate = bt_field_common_generic_validate,
 	.copy = NULL,
 	.is_set = bt_field_common_generic_is_set,
-	.reset = bt_field_common_string_reset,
+	.reset = bt_field_common_generic_reset,
 };
 
 static struct bt_field_common_methods bt_field_structure_methods = {
@@ -756,6 +756,31 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
+int bt_field_common_string_initialize(struct bt_field_common *field,
+		struct bt_field_type_common *type,
+		bt_object_release_func release_func,
+		struct bt_field_common_methods *methods)
+{
+	int ret = 0;
+	struct bt_field_common_string *string = BT_FROM_COMMON(field);
+
+	BT_LOGD("Initializing common string field object: ft-addr=%p", type);
+	bt_field_common_initialize(field, type, release_func, methods);
+	string->buf = g_array_sized_new(FALSE, FALSE, sizeof(char), 1);
+	if (!string->buf) {
+		ret = -1;
+		goto end;
+	}
+
+	g_array_index(string->buf, char, 0) = '\0';
+	BT_LOGD("Initialized common string field object: addr=%p, ft-addr=%p",
+		field, type);
+
+end:
+	return ret;
+}
+
 static
 struct bt_field *bt_field_variant_create(struct bt_field_type *type)
 {
@@ -926,7 +951,7 @@ struct bt_field *bt_field_string_create(struct bt_field_type *type)
 	BT_LOGD("Creating string field object: ft-addr=%p", type);
 
 	if (string) {
-		bt_field_common_initialize(BT_TO_COMMON(string),
+		bt_field_common_string_initialize(BT_TO_COMMON(string),
 			(void *) type, NULL, &bt_field_string_methods);
 		BT_LOGD("Created string field object: addr=%p, ft-addr=%p",
 			string, type);
@@ -1121,19 +1146,6 @@ void bt_field_common_sequence_reset_recursive(struct bt_field_common *field)
 	}
 
 	sequence->length = 0;
-}
-
-BT_HIDDEN
-void bt_field_common_string_reset(struct bt_field_common *field)
-{
-	struct bt_field_common_string *string = BT_FROM_COMMON(field);
-
-	BT_ASSERT(field);
-	bt_field_common_generic_reset(field);
-
-	if (string->payload) {
-		g_string_truncate(string->payload, 0);
-	}
 }
 
 BT_HIDDEN
