@@ -103,7 +103,7 @@ int setup_sighandler(void)
 static
 int parse_url(const char *path, struct lttng_live_ctx *ctx)
 {
-	char remain[3][MAXNAMLEN] = { 0 };
+	char remain[3][MAXNAMLEN] = { { 0 } };
 	int ret = -1, proto, proto_offset = 0;
 	size_t path_len = strlen(path);	/* not accounting \0 */
 
