@@ -3431,7 +3431,7 @@ int bt_field_type_is_variant(struct bt_field_type *type)
 }
 
 BT_HIDDEN
-void _bt_field_type_common_freeze(struct bt_field_type_common *ft)
+void bt_field_type_common_freeze(struct bt_field_type_common *ft)
 {
 	if (!ft || ft->frozen) {
 		return;
@@ -3442,9 +3442,9 @@ void _bt_field_type_common_freeze(struct bt_field_type_common *ft)
 }
 
 BT_HIDDEN
-void _bt_field_type_freeze(struct bt_field_type *ft)
+void bt_field_type_freeze(struct bt_field_type *ft)
 {
-	_bt_field_type_common_freeze((void *) ft);
+	bt_field_type_common_freeze((void *) ft);
 }
 
 BT_HIDDEN
