@@ -274,14 +274,6 @@ struct bt_field_type_common_string {
 	enum bt_string_encoding encoding;
 };
 
-#ifdef BT_DEV_MODE
-# define bt_field_type_freeze		_bt_field_type_freeze
-# define bt_field_type_common_freeze	_bt_field_type_common_freeze
-#else
-# define bt_field_type_freeze(_ft)
-# define bt_field_type_common_freeze(_ft)
-#endif
-
 typedef struct bt_field_common *(* bt_field_common_create_func)(
 		struct bt_field_type_common *);
 
@@ -620,10 +612,10 @@ enum bt_field_type_id bt_field_type_common_get_type_id(
 		struct bt_field_type_common *ft);
 
 BT_HIDDEN
-void _bt_field_type_common_freeze(struct bt_field_type_common *ft);
+void bt_field_type_common_freeze(struct bt_field_type_common *ft);
 
 BT_HIDDEN
-void _bt_field_type_freeze(struct bt_field_type *ft);
+void bt_field_type_freeze(struct bt_field_type *ft);
 
 BT_HIDDEN
 struct bt_field_type_common *
