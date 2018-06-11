@@ -301,7 +301,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_event_class_add_field(simple_event_class, float_type,
 		"float_field");
 
-	BT_ASSERT(!bt_ctf_event_class_set_id(simple_event_class, 13));
+	ret = bt_ctf_event_class_set_id(simple_event_class, 13);
+	BT_ASSERT(ret == 0);
 
 	/* Set an event context type which will contain a single integer. */
 	ok(!bt_ctf_field_type_structure_add_field(event_context_type, uint_12_type,
@@ -1536,6 +1537,7 @@ end:
 static
 void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 {
+	int ret;
 	struct bt_ctf_event_class *event_class;
 
 	event_class = bt_ctf_event_class_create("Simple Event");
@@ -1546,7 +1548,8 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 
 	event_class = bt_ctf_event_class_create("different name, ok");
 	BT_ASSERT(event_class);
-	BT_ASSERT(!bt_ctf_event_class_set_id(event_class, 13));
+	ret = bt_ctf_event_class_set_id(event_class, 13);
+	BT_ASSERT(ret == 0);
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
 		"two event classes with the same ID cannot cohabit within the same stream class");
 	bt_put(event_class);
