@@ -85,7 +85,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 		parent_component, bt_component_get_name(parent_component),
 		bt_port_type_string(type), name);
 
-	bt_object_init(port, bt_port_destroy);
+	bt_object_init_shared_with_parent(&port->base, bt_port_destroy);
 	port->name = g_string_new(name);
 	if (!port->name) {
 		BT_LOGE_STR("Failed to allocate one GString.");
@@ -95,7 +95,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 
 	port->type = type;
 	port->user_data = user_data;
-	bt_object_set_parent(port, &parent_component->base);
+	bt_object_set_parent(&port->base, &parent_component->base);
 	BT_LOGD("Created port for component: "
 		"comp-addr=%p, comp-name=\"%s\", port-type=%s, "
 		"port-name=\"%s\", port-addr=%p",
@@ -138,7 +138,7 @@ end:
 
 struct bt_component *bt_port_get_component(struct bt_port *port)
 {
-	return (struct bt_component *) bt_object_get_parent(port);
+	return (struct bt_component *) bt_object_get_parent(&port->base);
 }
 
 struct bt_private_connection *bt_private_port_get_private_connection(
@@ -184,7 +184,7 @@ enum bt_port_status bt_private_port_remove_from_component(
 		goto end;
 	}
 
-	comp = (void *) bt_object_get_parent(port);
+	comp = (void *) bt_object_get_parent(&port->base);
 	if (!comp) {
 		BT_LOGV("Port already removed from its component: "
 			"port-addr=%p, port-name=\"%s\", ",

@@ -175,7 +175,8 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 		goto error;
 	}
 
-	bt_object_init(shared_lib_handle, bt_plugin_so_shared_lib_handle_destroy);
+	bt_object_init_shared(&shared_lib_handle->base,
+		bt_plugin_so_shared_lib_handle_destroy);
 
 	if (!path) {
 		goto end;

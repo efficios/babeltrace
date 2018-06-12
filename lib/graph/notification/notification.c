@@ -53,7 +53,7 @@ void bt_notification_init(struct bt_notification *notification,
 	BT_ASSERT(type >= 0 && type < BT_NOTIFICATION_TYPE_NR);
 	notification->type = type;
 	init_seq_num(notification);
-	bt_object_init(&notification->base, release);
+	bt_object_init_shared(&notification->base, release);
 	notification->graph = graph;
 
 	if (graph) {

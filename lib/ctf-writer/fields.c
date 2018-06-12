@@ -882,6 +882,7 @@ struct bt_ctf_field *bt_ctf_field_integer_create(struct bt_ctf_field_type *type)
 
 	if (integer) {
 		bt_field_common_initialize(BT_TO_COMMON(integer), (void *) type,
+			true,
 			(bt_object_release_func) bt_ctf_field_integer_destroy,
 			&bt_ctf_field_integer_methods);
 		integer->common.spec.writer.serialize_func =
@@ -912,7 +913,7 @@ struct bt_ctf_field *bt_ctf_field_enumeration_create(
 
 	bt_field_common_initialize(BT_TO_COMMON(enumeration),
 		(void *) type,
-		(bt_object_release_func)
+		true, (bt_object_release_func)
 			bt_ctf_field_enumeration_destroy_recursive,
 		&bt_ctf_field_enumeration_methods);
 	enumeration->container = (void *) bt_ctf_field_create(
@@ -944,7 +945,7 @@ struct bt_ctf_field *bt_ctf_field_floating_point_create(
 	if (floating_point) {
 		bt_field_common_initialize(BT_TO_COMMON(floating_point),
 			(void *) type,
-			(bt_object_release_func)
+			true, (bt_object_release_func)
 				bt_ctf_field_floating_point_destroy,
 			&bt_ctf_field_floating_point_methods);
 		floating_point->common.spec.writer.serialize_func =
@@ -975,7 +976,7 @@ struct bt_ctf_field *bt_ctf_field_structure_create(
 
 	iret = bt_field_common_structure_initialize(BT_TO_COMMON(structure),
 		(void *) type,
-		(bt_object_release_func)
+		true, (bt_object_release_func)
 			bt_ctf_field_structure_destroy_recursive,
 		&bt_ctf_field_structure_methods,
 		(bt_field_common_create_func) bt_ctf_field_create,
@@ -1010,7 +1011,7 @@ struct bt_ctf_field *bt_ctf_field_variant_create(struct bt_ctf_field_type *type)
 
 	bt_field_common_variant_initialize(BT_TO_COMMON(BT_TO_COMMON(variant)),
 		(void *) type,
-		(bt_object_release_func)
+		true, (bt_object_release_func)
 			bt_ctf_field_variant_destroy_recursive,
 		&bt_ctf_field_variant_methods,
 		(bt_field_common_create_func) bt_ctf_field_create,
@@ -1043,7 +1044,7 @@ struct bt_ctf_field *bt_ctf_field_array_create(struct bt_ctf_field_type *type)
 
 	ret = bt_field_common_array_initialize(BT_TO_COMMON(array),
 		(void *) type,
-		(bt_object_release_func)
+		true, (bt_object_release_func)
 			bt_ctf_field_array_destroy_recursive,
 		&bt_ctf_field_array_methods,
 		(bt_field_common_create_func) bt_ctf_field_create,
@@ -1073,7 +1074,7 @@ struct bt_ctf_field *bt_ctf_field_sequence_create(struct bt_ctf_field_type *type
 	if (sequence) {
 		bt_field_common_sequence_initialize(BT_TO_COMMON(sequence),
 			(void *) type,
-			(bt_object_release_func)
+			true, (bt_object_release_func)
 				bt_ctf_field_sequence_destroy_recursive,
 			&bt_ctf_field_sequence_methods,
 			(GDestroyNotify) bt_put);
@@ -1099,7 +1100,7 @@ struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *type)
 	if (string) {
 		bt_field_common_string_initialize(BT_TO_COMMON(string),
 			(void *) type,
-			(bt_object_release_func)
+			true, (bt_object_release_func)
 				bt_ctf_field_string_destroy,
 			&bt_ctf_field_string_methods);
 		string->common.spec.writer.serialize_func =

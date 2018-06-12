@@ -101,7 +101,7 @@ BT_HIDDEN
 int bt_event_common_initialize(struct bt_event_common *event,
 		struct bt_event_class_common *event_class,
 		struct bt_clock_class *init_expected_clock_class,
-		bt_object_release_func release_func,
+		bool is_shared_with_parent, bt_object_release_func release_func,
 		bt_validation_flag_copy_field_type_func field_type_copy_func,
 		bool must_be_in_trace,
 		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,

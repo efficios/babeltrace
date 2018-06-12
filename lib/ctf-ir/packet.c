@@ -221,7 +221,8 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 		goto end;
 	}
 
-	bt_object_init(packet, (bt_object_release_func) bt_packet_recycle);
+	bt_object_init_shared(&packet->base,
+		(bt_object_release_func) bt_packet_recycle);
 	packet->stream = bt_get(stream);
 
 	if (trace->common.packet_header_field_type) {

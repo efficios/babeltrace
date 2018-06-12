@@ -86,7 +86,7 @@ void bt_component_destroy(struct bt_object *obj)
 	 * bt_put(): the reference count would go from 1 to 0 again and
 	 * this function would be called again.
 	 */
-	obj->ref_count.count++;
+	obj->ref_count++;
 	component = container_of(obj, struct bt_component, base);
 	BT_LOGD("Destroying component: addr=%p, name=\"%s\", graph-addr=%p",
 		component, bt_component_get_name(component),
@@ -266,7 +266,8 @@ enum bt_component_status bt_component_create(
 		goto end;
 	}
 
-	bt_object_init(component, bt_component_destroy);
+	bt_object_init_shared_with_parent(&component->base,
+		bt_component_destroy);
 	component->class = bt_get(component_class);
 	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
@@ -277,7 +278,7 @@ enum bt_component_status bt_component_create(
 	}
 
 	component->input_ports = g_ptr_array_new_with_free_func(
-		bt_object_release);
+		(GDestroyNotify) bt_object_try_spec_release);
 	if (!component->input_ports) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		status = BT_COMPONENT_STATUS_NOMEM;
@@ -285,7 +286,7 @@ enum bt_component_status bt_component_create(
 	}
 
 	component->output_ports = g_ptr_array_new_with_free_func(
-		bt_object_release);
+		(GDestroyNotify) bt_object_try_spec_release);
 	if (!component->output_ports) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		status = BT_COMPONENT_STATUS_NOMEM;
@@ -368,7 +369,8 @@ BT_HIDDEN
 void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph)
 {
-	bt_object_set_parent(component, graph ? &graph->base : NULL);
+	bt_object_set_parent(&component->base,
+		graph ? &graph->base : NULL);
 }
 
 struct bt_graph *bt_component_borrow_graph(struct bt_component *component)

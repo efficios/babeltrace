@@ -84,7 +84,7 @@ struct bt_stream_class_common *bt_event_class_common_borrow_stream_class(
 		struct bt_event_class_common *event_class)
 {
 	BT_ASSERT(event_class);
-	return (void *) bt_object_borrow_parent(event_class);
+	return (void *) bt_object_borrow_parent(&event_class->base);
 }
 
 typedef struct bt_field_type_common *(*bt_field_type_structure_create_func)();

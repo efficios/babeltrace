@@ -169,7 +169,7 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 		goto error;
 	}
 
-	bt_object_init(plugin, bt_plugin_destroy);
+	bt_object_init_shared(&plugin->base, bt_plugin_destroy);
 	plugin->type = type;
 
 	/* Create empty array of component classes */
@@ -349,7 +349,7 @@ struct bt_plugin_set *bt_plugin_set_create(void)
 	}
 
 	BT_LOGD_STR("Creating empty plugin set.");
-	bt_object_init(plugin_set, bt_plugin_set_destroy);
+	bt_object_init_shared(&plugin_set->base, bt_plugin_set_destroy);
 
 	plugin_set->plugins = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);

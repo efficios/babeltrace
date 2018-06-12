@@ -154,7 +154,9 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	trace = (struct bt_ctf_trace *) bt_object_get_parent(stream);
+	trace = (struct bt_ctf_trace *)
+		bt_object_get_parent(&stream->common.base);
+
 	for (i = 0; i < 16; i++) {
 		struct bt_ctf_field *uuid_element =
 			bt_ctf_field_array_get_field(uuid_field, i);
@@ -854,7 +856,7 @@ end:
 static
 void release_event(struct bt_ctf_event *event)
 {
-	if (bt_object_get_ref_count(event)) {
+	if (bt_object_get_ref_count(&event->common.base)) {
 		/*
 		 * The event is being orphaned, but it must guarantee the
 		 * existence of its event class for the duration of its
@@ -863,7 +865,7 @@ void release_event(struct bt_ctf_event *event)
 		bt_get(event->common.class);
 		BT_PUT(event->common.base.parent);
 	} else {
-		bt_object_release(event);
+		bt_object_try_spec_release(&event->common.base);
 	}
 }
 
@@ -1006,7 +1008,8 @@ struct bt_ctf_stream *bt_ctf_stream_create_with_id(
 	}
 
 	stream->pos.fd = -1;
-	writer = (struct bt_ctf_writer *) bt_object_get_parent(trace);
+	writer = (struct bt_ctf_writer *)
+		bt_object_get_parent(&trace->common.base);
 	stream->last_ts_end = -1ULL;
 	BT_LOGD("CTF writer stream object belongs writer's trace: "
 		"writer-addr=%p", writer);
@@ -1355,7 +1358,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	bt_object_set_parent(event, stream);
+	bt_object_set_parent(&event->common.base, &stream->common.base);
 	BT_LOGV_STR("Automatically populating the header of the event to append.");
 	ret = auto_populate_event_header(stream, event);
 	if (ret) {
@@ -1398,8 +1401,7 @@ error:
 	 * Orphan the event; we were not successful in associating it to
 	 * a stream.
 	 */
-	bt_object_set_parent(event, NULL);
-
+	bt_object_set_parent(&event->common.base, NULL);
 	return ret;
 }
 
@@ -1512,7 +1514,8 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	trace = (struct bt_ctf_trace *) bt_object_get_parent(stream);
+	trace = (struct bt_ctf_trace *)
+		bt_object_get_parent(&stream->common.base);
 
 	if (!field) {
 		if (trace->common.packet_header_field_type) {
