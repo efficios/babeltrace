@@ -287,7 +287,7 @@ end:
 BT_HIDDEN
 void _bt_ctf_event_freeze(struct bt_ctf_event *event)
 {
-	_bt_event_common_freeze(BT_TO_COMMON(event));
+	_bt_event_common_set_is_frozen(BT_TO_COMMON(event), true);
 }
 
 int bt_ctf_event_set_header(struct bt_ctf_event *event,

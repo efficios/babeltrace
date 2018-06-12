@@ -252,6 +252,22 @@ void bt_object_inc_ref_count(struct bt_object *obj)
 }
 
 static inline
+void bt_object_get_no_null_check_no_parent_check(struct bt_object *obj)
+{
+	BT_ASSERT(obj);
+	BT_ASSERT(obj->is_shared);
+
+#ifdef BT_LOGV
+	BT_LOGV("Incrementing object's reference count: %llu -> %llu: "
+		"addr=%p, cur-count=%llu, new-count=%llu",
+		obj->ref_count, obj->ref_count + 1,
+		obj, obj->ref_count, obj->ref_count + 1);
+#endif
+
+	bt_object_inc_ref_count(obj);
+}
+
+static inline
 void bt_object_get_no_null_check(struct bt_object *obj)
 {
 	BT_ASSERT(obj);

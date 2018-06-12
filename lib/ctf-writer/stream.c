@@ -1373,7 +1373,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 
 	/* Save the new event and freeze it */
 	BT_LOGV_STR("Freezing the event to append.");
-	bt_event_common_freeze(BT_TO_COMMON(event));
+	bt_event_common_set_is_frozen(BT_TO_COMMON(event), true);
 	g_ptr_array_add(stream->events, event);
 
 	/*

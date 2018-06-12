@@ -396,9 +396,12 @@ int bt_field_common_sequence_set_length(struct bt_field_common *field,
 	struct bt_field_common_sequence *sequence = BT_FROM_COMMON(field);
 
 	BT_ASSERT_PRE_NON_NULL(field, "Sequence field");
+	BT_ASSERT_PRE(((int64_t) length) >= 0,
+		"Invalid sequence length (too large): length=%" PRId64,
+		length);
 	BT_ASSERT_PRE_FIELD_COMMON_HOT(field, "Sequence field");
 
-	if (length > sequence->elements->len) {
+	if (unlikely(length > sequence->elements->len)) {
 		/* Make more room */
 		struct bt_field_type_common_sequence *sequence_ft;
 		uint64_t cur_len = sequence->elements->len;
@@ -654,27 +657,15 @@ const char *bt_field_common_string_get_value(struct bt_field_common *field)
 }
 
 static inline
-int bt_field_common_string_set_value(struct bt_field_common *field,
-		const char *value)
+int bt_field_common_string_clear(struct bt_field_common *field)
 {
-	struct bt_field_common_string *string = BT_FROM_COMMON(field);
-	size_t str_len;
+	struct bt_field_common_string *string_field = BT_FROM_COMMON(field);
 
 	BT_ASSERT_PRE_NON_NULL(field, "String field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_FIELD_COMMON_HOT(field, "String field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
-
-	str_len = strlen(value);
-
-	if (str_len + 1 > string->buf->len) {
-		g_array_set_size(string->buf, str_len + 1);
-	}
-
-	memcpy(string->buf->data, value, str_len);
-	((char *) string->buf->data)[str_len] = '\0';
-	string->size = str_len;
+	string_field->size = 0;
 	bt_field_common_set(field, true);
 	return 0;
 }
@@ -700,7 +691,7 @@ int bt_field_common_string_append_len(struct bt_field_common *field,
 
 	new_size = string_field->size + length;
 
-	if (new_size + 1 > string_field->buf->len) {
+	if (unlikely(new_size + 1 > string_field->buf->len)) {
 		g_array_set_size(string_field->buf, new_size + 1);
 	}
 
@@ -717,23 +708,22 @@ int bt_field_common_string_append(struct bt_field_common *field,
 		const char *value)
 {
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
-
 	return bt_field_common_string_append_len(field, value,
 		strlen(value));
 }
 
 static inline
-int bt_field_common_string_clear(struct bt_field_common *field)
+int bt_field_common_string_set_value(struct bt_field_common *field,
+		const char *value)
 {
-	struct bt_field_common_string *string_field = BT_FROM_COMMON(field);
-
 	BT_ASSERT_PRE_NON_NULL(field, "String field");
+	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_FIELD_COMMON_HOT(field, "String field");
 	BT_ASSERT_PRE_FIELD_COMMON_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
-	string_field->size = 0;
-	bt_field_common_set(field, true);
-	return 0;
+	bt_field_common_string_clear(field);
+	return bt_field_common_string_append_len(field,
+		value, strlen(value));
 }
 
 static inline

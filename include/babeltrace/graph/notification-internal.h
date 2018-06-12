@@ -29,6 +29,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/assert-internal.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/ctf-ir/stream.h>
@@ -77,7 +78,7 @@ struct bt_notification *bt_notification_create_from_pool(
 {
 	struct bt_notification *notif = bt_object_pool_create_object(pool);
 
-	if (!notif) {
+	if (unlikely(!notif)) {
 #ifdef BT_LIB_LOGE
 		BT_LIB_LOGE("Cannot allocate one notification from notification pool: "
 			"%![pool-]+o, %![graph-]+g", pool, graph);
@@ -85,14 +86,14 @@ struct bt_notification *bt_notification_create_from_pool(
 		goto error;
 	}
 
-	if (!notif->graph) {
+	if (likely(!notif->graph)) {
 		notif->graph = graph;
 	}
 
 	goto end;
 
 error:
-	BT_PUT(notif);
+	BT_ASSERT(!notif);
 
 end:
 	return notif;
