@@ -55,10 +55,10 @@ int bt_stream_class_common_initialize(struct bt_stream_class_common *stream_clas
 {
 	BT_LOGD("Initializing common stream class object: name=\"%s\"", name);
 
-	bt_object_init(stream_class, release_func);
+	bt_object_init_shared_with_parent(&stream_class->base, release_func);
 	stream_class->name = g_string_new(name);
 	stream_class->event_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_release);
+		(GDestroyNotify) bt_object_try_spec_release);
 	if (!stream_class->event_classes) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		goto error;
@@ -516,7 +516,7 @@ int bt_stream_class_common_add_event_class(
 		*event_id = stream_class->next_event_id;
 	}
 
-	bt_object_set_parent(event_class, stream_class);
+	bt_object_set_parent(&event_class->base, &stream_class->base);
 
 	if (trace) {
 		/*

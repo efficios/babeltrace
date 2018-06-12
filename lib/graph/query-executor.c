@@ -52,7 +52,8 @@ struct bt_query_executor *bt_query_executor_create(void)
 		goto end;
 	}
 
-	bt_object_init(query_exec, bt_query_executor_destroy);
+	bt_object_init_shared(&query_exec->base,
+		bt_query_executor_destroy);
 	BT_LOGD("Created query executor: addr=%p", query_exec);
 
 end:

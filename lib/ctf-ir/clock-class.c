@@ -148,7 +148,7 @@ struct bt_clock_class *bt_clock_class_create(const char *name,
 
 	clock_class->precision = 1;
 	clock_class->frequency = freq;
-	bt_object_init(clock_class, bt_clock_class_destroy);
+	bt_object_init_shared(&clock_class->base, bt_clock_class_destroy);
 
 	if (name) {
 		ret = bt_clock_class_set_name(clock_class, name);
@@ -762,8 +762,7 @@ struct bt_clock_value *bt_clock_value_new(struct bt_clock_class *clock_class)
 		goto end;
 	}
 
-	bt_object_init(ret, NULL);
-	bt_object_set_is_shared((void *) ret, false);
+	bt_object_init_unique(&ret->base);
 	ret->clock_class = bt_get(clock_class);
 	bt_clock_class_freeze(clock_class);
 	BT_LOGD("Created clock value object: clock-value-addr=%p, "

@@ -68,7 +68,7 @@ struct bt_field_path *bt_field_path_create(void)
 		goto error;
 	}
 
-	bt_object_init(field_path, field_path_destroy);
+	bt_object_init_shared(&field_path->base, field_path_destroy);
 	field_path->root = BT_SCOPE_UNKNOWN;
 	field_path->indexes = g_array_new(TRUE, FALSE, sizeof(int));
 	if (!field_path->indexes) {

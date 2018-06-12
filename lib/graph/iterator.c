@@ -158,7 +158,7 @@ void bt_private_connection_notification_iterator_destroy(struct bt_object *obj)
 	 * reference count would go from 1 to 0 again and this function
 	 * would be called again.
 	 */
-	obj->ref_count.count++;
+	obj->ref_count++;
 	iterator = (void *) obj;
 	BT_LOGD("Destroying private connection notification iterator object: addr=%p",
 		iterator);
@@ -292,7 +292,7 @@ void init_notification_iterator(struct bt_notification_iterator *iterator,
 		enum bt_notification_iterator_type type,
 		bt_object_release_func destroy)
 {
-	bt_object_init(iterator, destroy);
+	bt_object_init_shared(&iterator->base, destroy);
 	iterator->type = type;
 }
 

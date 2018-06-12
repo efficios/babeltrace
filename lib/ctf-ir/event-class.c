@@ -85,7 +85,7 @@ int bt_event_class_common_initialize(struct bt_event_class_common *event_class,
 
 	BT_LOGD("Initializing common event class object: name=\"%s\"",
 		name);
-	bt_object_init(event_class, release_func);
+	bt_object_init_shared_with_parent(&event_class->base, release_func);
 	event_class->payload_field_type = ft_struct_create_func();
 	if (!event_class->payload_field_type) {
 		BT_LOGE_STR("Cannot create event class's initial payload field type object.");

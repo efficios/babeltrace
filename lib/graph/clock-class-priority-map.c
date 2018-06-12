@@ -70,7 +70,8 @@ struct bt_clock_class_priority_map *bt_clock_class_priority_map_create()
 		goto error;
 	}
 
-	bt_object_init(cc_prio_map, bt_clock_class_priority_map_destroy);
+	bt_object_init_shared(&cc_prio_map->base,
+		bt_clock_class_priority_map_destroy);
 	cc_prio_map->entries = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
 	if (!cc_prio_map->entries) {

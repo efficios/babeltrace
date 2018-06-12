@@ -198,7 +198,6 @@ struct bt_field *bt_field_create_recursive(struct bt_field_type *type)
 		goto end;
 	}
 
-	bt_object_set_is_shared((void *) field, false);
 	bt_field_type_freeze(type);
 
 end:
@@ -581,7 +580,7 @@ struct bt_field *bt_field_integer_create(struct bt_field_type *type)
 
 	if (integer) {
 		bt_field_common_initialize(BT_TO_COMMON(integer), (void *) type,
-			NULL, &bt_field_integer_methods);
+			false, NULL, &bt_field_integer_methods);
 		BT_LOGD("Created integer field object: addr=%p, ft-addr=%p",
 			integer, type);
 	} else {
@@ -602,7 +601,8 @@ struct bt_field *bt_field_enumeration_create(struct bt_field_type *type)
 	if (enumeration) {
 		bt_field_common_initialize(
 			BT_TO_COMMON(BT_TO_COMMON(enumeration)),
-			(void *) type, NULL, &bt_field_enumeration_methods);
+			(void *) type, false, NULL,
+			&bt_field_enumeration_methods);
 		BT_LOGD("Created enumeration field object: addr=%p, ft-addr=%p",
 			enumeration, type);
 	} else {
@@ -622,7 +622,8 @@ struct bt_field *bt_field_floating_point_create(struct bt_field_type *type)
 
 	if (floating_point) {
 		bt_field_common_initialize(BT_TO_COMMON(floating_point),
-			(void *) type, NULL, &bt_field_floating_point_methods);
+			(void *) type, false, NULL,
+			&bt_field_floating_point_methods);
 		BT_LOGD("Created floating point number field object: addr=%p, ft-addr=%p",
 			floating_point, type);
 	} else {
@@ -635,7 +636,7 @@ struct bt_field *bt_field_floating_point_create(struct bt_field_type *type)
 BT_HIDDEN
 int bt_field_common_structure_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		bt_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func)
@@ -647,7 +648,8 @@ int bt_field_common_structure_initialize(struct bt_field_common *field,
 	size_t i;
 
 	BT_LOGD("Initializing common structure field object: ft-addr=%p", type);
-	bt_field_common_initialize(field, type, release_func, methods);
+	bt_field_common_initialize(field, type, is_shared,
+		release_func, methods);
 	structure->fields = g_ptr_array_new_with_free_func(field_release_func);
 	g_ptr_array_set_size(structure->fields, structure_type->fields->len);
 
@@ -690,7 +692,7 @@ struct bt_field *bt_field_structure_create(struct bt_field_type *type)
 	}
 
 	iret = bt_field_common_structure_initialize(BT_TO_COMMON(structure),
-		(void *) type, NULL, &bt_field_structure_methods,
+		(void *) type, false, NULL, &bt_field_structure_methods,
 		(bt_field_common_create_func) bt_field_create_recursive,
 		(GDestroyNotify) bt_field_destroy_recursive);
 	if (iret) {
@@ -708,7 +710,7 @@ end:
 BT_HIDDEN
 int bt_field_common_variant_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		bt_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func)
@@ -720,7 +722,8 @@ int bt_field_common_variant_initialize(struct bt_field_common *field,
 	size_t i;
 
 	BT_LOGD("Initializing common variant field object: ft-addr=%p", type);
-	bt_field_common_initialize(field, type, release_func, methods);
+	bt_field_common_initialize(field, type, is_shared,
+		release_func, methods);
 	ret = bt_field_type_common_variant_update_choices(type);
 	if (ret) {
 		BT_LOGE("Cannot update common variant field type choices: "
@@ -759,14 +762,15 @@ end:
 BT_HIDDEN
 int bt_field_common_string_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods)
 {
 	int ret = 0;
 	struct bt_field_common_string *string = BT_FROM_COMMON(field);
 
 	BT_LOGD("Initializing common string field object: ft-addr=%p", type);
-	bt_field_common_initialize(field, type, release_func, methods);
+	bt_field_common_initialize(field, type, is_shared,
+		release_func, methods);
 	string->buf = g_array_sized_new(FALSE, FALSE, sizeof(char), 1);
 	if (!string->buf) {
 		ret = -1;
@@ -796,7 +800,7 @@ struct bt_field *bt_field_variant_create(struct bt_field_type *type)
 	}
 
 	iret = bt_field_common_variant_initialize(BT_TO_COMMON(variant),
-		(void *) type, NULL, &bt_field_variant_methods,
+		(void *) type, false, NULL, &bt_field_variant_methods,
 		(bt_field_common_create_func) bt_field_create_recursive,
 		(GDestroyNotify) bt_field_destroy_recursive);
 	if (iret) {
@@ -814,7 +818,7 @@ end:
 BT_HIDDEN
 int bt_field_common_array_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		bt_field_common_create_func field_create_func,
 		GDestroyNotify field_destroy_func)
@@ -827,7 +831,8 @@ int bt_field_common_array_initialize(struct bt_field_common *field,
 
 	BT_LOGD("Initializing common array field object: ft-addr=%p", type);
 	BT_ASSERT(type);
-	bt_field_common_initialize(field, type, release_func, methods);
+	bt_field_common_initialize(field, type, is_shared,
+		release_func, methods);
 	array_length = array_type->length;
 	array->elements = g_ptr_array_sized_new(array_length);
 	if (!array->elements) {
@@ -870,7 +875,7 @@ struct bt_field *bt_field_array_create(struct bt_field_type *type)
 	}
 
 	ret = bt_field_common_array_initialize(BT_TO_COMMON(array),
-		(void *) type, NULL, &bt_field_array_methods,
+		(void *) type, false, NULL, &bt_field_array_methods,
 		(bt_field_common_create_func) bt_field_create_recursive,
 		(GDestroyNotify) bt_field_destroy_recursive);
 	if (ret) {
@@ -888,7 +893,7 @@ end:
 BT_HIDDEN
 int bt_field_common_sequence_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		GDestroyNotify field_destroy_func)
 {
@@ -897,7 +902,8 @@ int bt_field_common_sequence_initialize(struct bt_field_common *field,
 
 	BT_LOGD("Initializing common sequence field object: ft-addr=%p", type);
 	BT_ASSERT(type);
-	bt_field_common_initialize(field, type, release_func, methods);
+	bt_field_common_initialize(field, type, is_shared,
+		release_func, methods);
 	sequence->elements = g_ptr_array_new();
 	if (!sequence->elements) {
 		ret = -1;
@@ -928,7 +934,7 @@ struct bt_field *bt_field_sequence_create(struct bt_field_type *type)
 	}
 
 	ret = bt_field_common_sequence_initialize(BT_TO_COMMON(sequence),
-		(void *) type, NULL, &bt_field_sequence_methods,
+		(void *) type, false, NULL, &bt_field_sequence_methods,
 		(GDestroyNotify) bt_field_destroy_recursive);
 	if (ret) {
 		BT_PUT(sequence);
@@ -952,7 +958,7 @@ struct bt_field *bt_field_string_create(struct bt_field_type *type)
 
 	if (string) {
 		bt_field_common_string_initialize(BT_TO_COMMON(string),
-			(void *) type, NULL, &bt_field_string_methods);
+			(void *) type, false, NULL, &bt_field_string_methods);
 		BT_LOGD("Created string field object: addr=%p, ft-addr=%p",
 			string, type);
 	} else {

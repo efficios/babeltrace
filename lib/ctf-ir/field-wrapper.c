@@ -42,8 +42,7 @@ struct bt_field_wrapper *bt_field_wrapper_new(void *data)
 		goto end;
 	}
 
-	bt_object_init(field_wrapper, NULL);
-	bt_object_set_is_shared((void *) field_wrapper, false);
+	bt_object_init_unique(&field_wrapper->base);
 	BT_LOGD("Created empty field wrapper object: addr=%p",
 		field_wrapper);
 

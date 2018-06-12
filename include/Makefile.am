@@ -149,7 +149,6 @@ noinst_HEADERS = \
 	babeltrace/compiler-internal.h \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/assert-pre-internal.h \
-	babeltrace/ref-internal.h \
 	babeltrace/graph/component-internal.h \
 	babeltrace/graph/notification-stream-internal.h \
 	babeltrace/graph/connection-internal.h \

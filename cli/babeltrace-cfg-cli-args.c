@@ -784,7 +784,8 @@ struct bt_config_component *bt_config_component_create(
 		goto error;
 	}
 
-	bt_object_init(cfg_component, bt_config_component_destroy);
+	bt_object_init_shared(&cfg_component->base,
+		bt_config_component_destroy);
 	cfg_component->type = type;
 	cfg_component->plugin_name = g_string_new(plugin_name);
 	if (!cfg_component->plugin_name) {
@@ -1494,7 +1495,7 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 		goto error;
 	}
 
-	bt_object_init(cfg, bt_config_destroy);
+	bt_object_init_shared(&cfg->base, bt_config_destroy);
 	cfg->command = command;
 	cfg->command_needs_plugins = needs_plugins;
 
