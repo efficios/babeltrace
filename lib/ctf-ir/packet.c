@@ -62,7 +62,7 @@ struct bt_field *bt_packet_borrow_context(struct bt_packet *packet)
 }
 
 BT_HIDDEN
-void _bt_packet_freeze(struct bt_packet *packet)
+void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen)
 {
 	if (!packet || packet->frozen) {
 		return;
@@ -72,22 +72,24 @@ void _bt_packet_freeze(struct bt_packet *packet)
 
 	if (packet->header) {
 		BT_LOGD_STR("Freezing packet's header field.");
-		bt_field_set_is_frozen_recursive((void *) packet->header->field, true);
+		bt_field_set_is_frozen_recursive((void *) packet->header->field,
+			is_frozen);
 	}
 
 	if (packet->context) {
 		BT_LOGD_STR("Freezing packet's context field.");
-		bt_field_set_is_frozen_recursive((void *) packet->context->field, true);
+		bt_field_set_is_frozen_recursive((void *) packet->context->field,
+			is_frozen);
 	}
 
-	packet->frozen = 1;
+	packet->frozen = is_frozen;
 }
 
 static inline
 void bt_packet_reset(struct bt_packet *packet)
 {
 	BT_ASSERT(packet);
-	packet->frozen = false;
+	bt_packet_set_is_frozen(packet, false);
 
 	if (packet->header) {
 		bt_field_set_is_frozen_recursive(
@@ -161,7 +163,7 @@ void bt_packet_recycle(struct bt_packet *packet)
 	BT_ASSERT(stream);
 	packet->stream = NULL;
 	bt_object_pool_recycle_object(&stream->packet_pool, packet);
-	bt_put(stream);
+	bt_object_put_no_null_check(&stream->common.base);
 }
 
 BT_HIDDEN
@@ -263,23 +265,19 @@ struct bt_packet *bt_packet_create(struct bt_stream *stream)
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	packet = bt_object_pool_create_object(&stream->packet_pool);
-	if (!packet) {
+	if (unlikely(!packet)) {
 		BT_LIB_LOGE("Cannot allocate one packet from stream's packet pool: "
 			"%![stream-]+s", stream);
-		goto error;
+		goto end;
 	}
 
-	if (!packet->stream) {
-		packet->stream = bt_get(stream);
+	if (unlikely(!packet->stream)) {
+		packet->stream = stream;
+		bt_object_get_no_null_check_no_parent_check(
+			&packet->stream->common.base);
 	}
 
 	goto end;
-
-error:
-	if (packet) {
-		bt_packet_recycle(packet);
-		packet = NULL;
-	}
 
 end:
 	return packet;
