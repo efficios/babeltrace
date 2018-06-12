@@ -278,7 +278,8 @@ end:
 }
 
 BT_HIDDEN
-void _bt_event_common_freeze(struct bt_event_common *event)
+void _bt_event_common_set_is_frozen(struct bt_event_common *event,
+		bool is_frozen)
 {
 	BT_ASSERT(event);
 
@@ -294,26 +295,28 @@ void _bt_event_common_freeze(struct bt_event_common *event)
 	if (event->header_field) {
 		BT_LOGD_STR("Freezing event's header field.");
 		bt_field_common_set_is_frozen_recursive(
-			event->header_field->field, true);
+			event->header_field->field, is_frozen);
 	}
 
 	if (event->stream_event_context_field) {
 		BT_LOGD_STR("Freezing event's stream event context field.");
 		bt_field_common_set_is_frozen_recursive(
-			event->stream_event_context_field, true);
+			event->stream_event_context_field, is_frozen);
 	}
 
 	if (event->context_field) {
 		BT_LOGD_STR("Freezing event's context field.");
-		bt_field_common_set_is_frozen_recursive(event->context_field, true);
+		bt_field_common_set_is_frozen_recursive(event->context_field,
+			is_frozen);
 	}
 
 	if (event->payload_field) {
 		BT_LOGD_STR("Freezing event's payload field.");
-		bt_field_common_set_is_frozen_recursive(event->payload_field, true);
+		bt_field_common_set_is_frozen_recursive(event->payload_field,
+			is_frozen);
 	}
 
-	event->frozen = 1;
+	event->frozen = is_frozen;
 }
 
 BT_HIDDEN
@@ -622,105 +625,6 @@ end:
 	return event;
 }
 
-BT_ASSERT_PRE_FUNC
-static inline
-void _bt_event_reset_dev_mode(struct bt_event *event)
-{
-	GHashTableIter iter;
-	gpointer key, value;
-
-	BT_ASSERT(event);
-
-	if (event->common.header_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.header_field->field, false);
-		bt_field_common_reset_recursive(
-			event->common.header_field->field);
-	}
-
-	if (event->common.stream_event_context_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.stream_event_context_field, false);
-		bt_field_common_reset_recursive(
-			event->common.stream_event_context_field);
-	}
-
-	if (event->common.context_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.context_field, false);
-		bt_field_common_reset_recursive(event->common.context_field);
-	}
-
-	if (event->common.payload_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.payload_field, false);
-		bt_field_common_reset_recursive(event->common.payload_field);
-	}
-
-	g_hash_table_iter_init(&iter, event->clock_values);
-	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		struct bt_clock_value *clock_value = value;
-
-		BT_ASSERT(clock_value);
-		bt_clock_value_reset(clock_value);
-		bt_clock_value_set_is_frozen(clock_value, false);
-	}
-}
-
-#ifdef BT_DEV_MODE
-# define bt_event_reset_dev_mode	_bt_event_reset_dev_mode
-#else
-# define bt_event_reset_dev_mode(_x)
-#endif
-
-static inline
-void bt_event_reset(struct bt_event *event)
-{
-	BT_ASSERT(event);
-	event->common.frozen = false;
-	bt_event_reset_dev_mode(event);
-	BT_PUT(event->packet);
-}
-
-BT_HIDDEN
-struct bt_event *bt_event_create(struct bt_event_class *event_class,
-		struct bt_packet *packet)
-{
-	int ret;
-	struct bt_event *event = NULL;
-
-	BT_ASSERT(event_class);
-	event = bt_object_pool_create_object(&event_class->event_pool);
-	if (!event) {
-		BT_LIB_LOGE("Cannot allocate one event from event class's event pool: "
-			"%![event-class-]+E", event_class);
-		goto error;
-	}
-
-	if (!event->common.class) {
-		event->common.class = bt_get(event_class);
-	}
-
-	BT_ASSERT(packet);
-	ret = bt_event_set_packet(event, packet);
-	if (ret) {
-		BT_LIB_LOGE("Cannot set event's packet: "
-			"%![event-]+e, %![packet-]+a", event, packet);
-		goto error;
-	}
-
-	goto end;
-
-error:
-	if (event) {
-		bt_event_recycle(event);
-		event = NULL;
-	}
-
-end:
-	return event;
-}
-
 struct bt_event_class *bt_event_borrow_class(struct bt_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
@@ -833,84 +737,11 @@ end:
 }
 
 BT_HIDDEN
-int bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
+void _bt_event_set_is_frozen(struct bt_event *event, bool is_frozen)
 {
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_EVENT_COMMON_HOT(BT_TO_COMMON(event), "Event");
-
-	/*
-	 * Make sure the new packet was created by this event's
-	 * stream, if it is set.
-	 */
-	if (bt_event_borrow_stream(event)) {
-		BT_ASSERT_PRE(packet->stream == bt_event_borrow_stream(event),
-			"Packet's stream and event's stream differ: "
-			"%![event-]+e, %![packet-]+a",
-			event, packet);
-	} else {
-		BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
-			BT_FROM_COMMON(event->common.class)) ==
-			BT_FROM_COMMON(packet->stream->common.stream_class),
-			"Packet's stream class and event's stream class differ: "
-			"%![event-]+e, %![packet-]+a",
-			event, packet);
-	}
-
-	bt_get(packet);
-	BT_MOVE(event->packet, packet);
-	BT_LOGV("Set event's packet: event-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"packet-addr=%p",
-		event, bt_event_class_common_get_name(event->common.class),
-		bt_event_class_common_get_id(event->common.class), packet);
-	return 0;
-}
-
-BT_HIDDEN
-void _bt_event_freeze(struct bt_event *event)
-{
-	_bt_event_common_freeze(BT_TO_COMMON(event));
+	bt_event_common_set_is_frozen(BT_TO_COMMON(event), is_frozen);
 	BT_LOGD_STR("Freezing event's packet.");
-	bt_packet_freeze(event->packet);
-}
-
-BT_HIDDEN
-void bt_event_recycle(struct bt_event *event)
-{
-	struct bt_event_class *event_class;
-
-	BT_ASSERT(event);
-	BT_LIB_LOGD("Recycling event: %!+e", event);
-
-	/*
-	 * Those are the important ordered steps:
-	 *
-	 * 1. Reset the event object (put any permanent reference it
-	 *    has, unfreeze it and its fields in developer mode, etc.),
-	 *    but do NOT put its class's reference. This event class
-	 *    contains the pool to which we're about to recycle this
-	 *    event object, so we must guarantee its existence thanks
-	 *    to this existing reference.
-	 *
-	 * 2. Move the event class reference to our `event_class`
-	 *    variable so that we can set the event's class member
-	 *    to NULL before recycling it. We CANNOT do this after
-	 *    we put the event class reference because this bt_put()
-	 *    could destroy the event class, also destroying its
-	 *    event pool, thus also destroying our event object (this
-	 *    would result in an invalid write access).
-	 *
-	 * 3. Recycle the event object.
-	 *
-	 * 4. Put our event class reference.
-	 */
-	bt_event_reset(event);
-	event_class = BT_FROM_COMMON(event->common.class);
-	BT_ASSERT(event_class);
-	event->common.class = NULL;
-	bt_object_pool_recycle_object(&event_class->event_pool, event);
-	bt_put(event_class);
+	bt_packet_set_is_frozen(event->packet, is_frozen);
 }
 
 int bt_event_move_header(struct bt_event *event,

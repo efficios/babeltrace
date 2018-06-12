@@ -41,12 +41,12 @@ struct bt_packet {
 };
 
 BT_HIDDEN
-void _bt_packet_freeze(struct bt_packet *packet);
+void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen);
 
 #ifdef BT_DEV_MODE
-# define bt_packet_freeze	_bt_packet_freeze
+# define bt_packet_set_is_frozen	_bt_packet_set_is_frozen
 #else
-# define bt_packet_freeze(_packet)
+# define bt_packet_set_is_frozen(_packet, _is_frozen)
 #endif /* BT_DEV_MODE */
 
 BT_HIDDEN

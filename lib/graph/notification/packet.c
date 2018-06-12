@@ -37,6 +37,7 @@
 #include <babeltrace/graph/notification-packet-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/object-internal.h>
 #include <inttypes.h>
 
 BT_HIDDEN
@@ -87,10 +88,13 @@ struct bt_notification *bt_notification_packet_begin_create(
 		&graph->packet_begin_notif_pool, graph);
 	if (!notification) {
 		/* bt_notification_create_from_pool() logs errors */
-		goto error;
+		goto end;
 	}
 
-	notification->packet = bt_get(packet);
+	BT_ASSERT(!notification->packet);
+	notification->packet = packet;
+	bt_object_get_no_null_check_no_parent_check(
+		&notification->packet->base);
 	BT_LOGD("Created packet beginning notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -100,9 +104,6 @@ struct bt_notification *bt_notification_packet_begin_create(
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
 	goto end;
-
-error:
-	BT_PUT(notification);
 
 end:
 	return (void *) notification;
@@ -127,14 +128,15 @@ void bt_notification_packet_begin_recycle(struct bt_notification *notif)
 
 	BT_ASSERT(packet_begin_notif);
 
-	if (!notif->graph) {
+	if (unlikely(!notif->graph)) {
 		bt_notification_packet_begin_destroy(notif);
 		return;
 	}
 
 	BT_LOGD("Recycling packet beginning notification: addr=%p", notif);
 	bt_notification_reset(notif);
-	BT_PUT(packet_begin_notif->packet);
+	bt_object_put_no_null_check(&packet_begin_notif->packet->base);
+	packet_begin_notif->packet = NULL;
 	graph = notif->graph;
 	notif->graph = NULL;
 	bt_object_pool_recycle_object(&graph->packet_begin_notif_pool, notif);
@@ -201,10 +203,13 @@ struct bt_notification *bt_notification_packet_end_create(
 		&graph->packet_end_notif_pool, graph);
 	if (!notification) {
 		/* bt_notification_create_from_pool() logs errors */
-		goto error;
+		goto end;
 	}
 
-	notification->packet = bt_get(packet);
+	BT_ASSERT(!notification->packet);
+	notification->packet = packet;
+	bt_object_get_no_null_check_no_parent_check(
+		&notification->packet->base);
 	BT_LOGD("Created packet end notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -214,9 +219,6 @@ struct bt_notification *bt_notification_packet_end_create(
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
 	goto end;
-
-error:
-	BT_PUT(notification);
 
 end:
 	return (void *) notification;
