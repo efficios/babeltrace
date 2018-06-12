@@ -168,7 +168,7 @@ void bt_object_pool_recycle_object(struct bt_object_pool *pool, void *obj)
 	}
 
 	/* Reset reference count to 1 since it could be 0 now */
-	bt_obj->ref_count.count = 1;
+	bt_obj->ref_count = 1;
 
 	/* Back to the pool */
 	pool->objects->pdata[pool->size] = obj;

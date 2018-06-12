@@ -164,7 +164,7 @@ struct bt_field_common *bt_field_common_copy(struct bt_field_common *field);
 BT_HIDDEN
 int bt_field_common_structure_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		bt_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func);
@@ -172,7 +172,7 @@ int bt_field_common_structure_initialize(struct bt_field_common *field,
 BT_HIDDEN
 int bt_field_common_array_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		bt_field_common_create_func field_create_func,
 		GDestroyNotify field_destroy_func);
@@ -180,14 +180,14 @@ int bt_field_common_array_initialize(struct bt_field_common *field,
 BT_HIDDEN
 int bt_field_common_sequence_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		GDestroyNotify field_destroy_func);
 
 BT_HIDDEN
 int bt_field_common_variant_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods,
 		bt_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func);
@@ -195,7 +195,7 @@ int bt_field_common_variant_initialize(struct bt_field_common *field,
 BT_HIDDEN
 int bt_field_common_string_initialize(struct bt_field_common *field,
 		struct bt_field_type_common *type,
-		bt_object_release_func release_func,
+		bool is_shared, bt_object_release_func release_func,
 		struct bt_field_common_methods *methods);
 
 BT_HIDDEN
@@ -355,13 +355,13 @@ end:
 
 static inline
 void bt_field_common_initialize(struct bt_field_common *field,
-		struct bt_field_type_common *ft,
+		struct bt_field_type_common *ft, bool is_shared,
 		bt_object_release_func release_func,
 		struct bt_field_common_methods *methods)
 {
 	BT_ASSERT(field);
 	BT_ASSERT(ft);
-	bt_object_init(field, release_func);
+	bt_object_init(&field->base, is_shared, release_func);
 	field->methods = methods;
 	field->type = bt_get(ft);
 }

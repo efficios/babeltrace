@@ -118,7 +118,7 @@ void bt_graph_destroy(struct bt_object *obj)
 	 * ensures that this function is not called two times.
 	 */
 	BT_LOGD("Destroying graph: addr=%p", graph);
-	obj->ref_count.count++;
+	obj->ref_count++;
 
 	/*
 	 * Cancel the graph to disallow some operations, like creating
@@ -211,14 +211,15 @@ struct bt_graph *bt_graph_create(void)
 		goto end;
 	}
 
-	bt_object_init(graph, bt_graph_destroy);
-
-	graph->connections = g_ptr_array_new_with_free_func(bt_object_release);
+	bt_object_init_shared(&graph->base, bt_graph_destroy);
+	graph->connections = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_object_try_spec_release);
 	if (!graph->connections) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
 	}
-	graph->components = g_ptr_array_new_with_free_func(bt_object_release);
+	graph->components = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_object_try_spec_release);
 	if (!graph->components) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
@@ -1186,7 +1187,7 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 
 	BT_ASSERT(graph);
 	BT_ASSERT(component);
-	BT_ASSERT(component->base.ref_count.count == 0);
+	BT_ASSERT(component->base.ref_count == 0);
 	BT_ASSERT(bt_component_borrow_graph(component) == graph);
 
 	init_can_consume = graph->can_consume;
@@ -1244,8 +1245,8 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 	}
 
 	/*
-	 * This calls bt_object_release() on the component, and since
-	 * its reference count is 0, its destructor is called. Its
+	 * This calls bt_object_try_spec_release() on the component, and
+	 * since its reference count is 0, its destructor is called. Its
 	 * destructor calls the user's finalization method (if set).
 	 */
 	g_ptr_array_remove(graph->components, component);

@@ -28,7 +28,6 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/ref-internal.h>
 #include <babeltrace/object-internal.h>
 
 void *bt_get(void *ptr)
@@ -40,25 +39,10 @@ void *bt_get(void *ptr)
 	}
 
 	BT_ASSERT_PRE(obj->is_shared, "Object is not shared: addr=%p", obj);
-
-	if (unlikely(!obj->ref_count.release)) {
-		goto end;
-	}
-
-	if (unlikely(obj->parent && bt_object_get_ref_count(obj) == 0)) {
-		BT_LOGV("Incrementing object's parent's reference count: "
-			"addr=%p, parent-addr=%p", ptr, obj->parent);
-		bt_get(obj->parent);
-	}
-	BT_LOGV("Incrementing object's reference count: %lu -> %lu: "
-		"addr=%p, cur-count=%lu, new-count=%lu",
-		obj->ref_count.count, obj->ref_count.count + 1,
-		ptr,
-		obj->ref_count.count, obj->ref_count.count + 1);
-	bt_ref_get(&obj->ref_count);
+	bt_object_get_no_null_check(obj);
 
 end:
-	return obj;
+	return ptr;
 }
 
 void bt_put(void *ptr)
@@ -70,20 +54,7 @@ void bt_put(void *ptr)
 	}
 
 	BT_ASSERT_PRE(obj->is_shared, "Object is not shared: addr=%p", obj);
-
-	if (unlikely(!obj->ref_count.release)) {
-		return;
-	}
-
-	if (BT_LOG_ON_WARN && unlikely(bt_object_get_ref_count(obj) == 0)) {
-		BT_LOGW("Decrementing a reference count set to 0: addr=%p",
-			ptr);
-	}
-
-	BT_LOGV("Decrementing object's reference count: %lu -> %lu: "
-		"addr=%p, cur-count=%lu, new-count=%lu",
-		obj->ref_count.count, obj->ref_count.count - 1,
-		ptr,
-		obj->ref_count.count, obj->ref_count.count - 1);
-	bt_ref_put(&obj->ref_count);
+	BT_ASSERT_PRE(bt_object_get_ref_count(obj) > 0,
+		"Decrementing a reference count set to 0: addr=%p", ptr);
+	bt_object_put_no_null_check(obj);
 }

@@ -84,7 +84,7 @@ int bt_component_class_init(struct bt_component_class *class,
 {
 	int ret = 0;
 
-	bt_object_init(class, bt_component_class_destroy);
+	bt_object_init_shared(&class->base, bt_component_class_destroy);
 	class->type = type;
 	class->name = g_string_new(name);
 	if (!class->name) {

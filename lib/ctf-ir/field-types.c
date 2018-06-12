@@ -165,7 +165,7 @@ void bt_field_type_common_initialize(struct bt_field_type_common *ft,
 	BT_ASSERT(ft && (ft->id > BT_FIELD_TYPE_ID_UNKNOWN) &&
 		(ft->id < BT_FIELD_TYPE_ID_NR));
 
-	bt_object_init(ft, release_func);
+	bt_object_init_shared(&ft->base, release_func);
 	ft->methods = methods;
 
 	if (init_bo) {
@@ -1430,7 +1430,7 @@ bt_field_type_common_enumeration_find_mappings_type(
 		goto end;
 	}
 
-	bt_object_init(&iter->base, bt_field_type_enum_iter_destroy);
+	bt_object_init_shared(&iter->base, bt_field_type_enum_iter_destroy);
 	iter->enumeration_ft = bt_get(ft);
 	iter->index = -1;
 	iter->type = iterator_type;

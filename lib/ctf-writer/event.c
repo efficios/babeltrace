@@ -128,7 +128,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 
 	ret = bt_event_common_initialize(BT_TO_COMMON(event),
 		BT_TO_COMMON(event_class), expected_clock_class,
-		bt_ctf_event_destroy,
+		true, bt_ctf_event_destroy,
 		(bt_validation_flag_copy_field_type_func)
 			bt_ctf_field_type_copy,
 		false, map_clock_classes_func,
@@ -161,7 +161,7 @@ struct bt_ctf_stream *bt_ctf_event_borrow_stream(struct bt_ctf_event *event)
 {
 	BT_ASSERT(event);
 	return (struct bt_ctf_stream *)
-		bt_object_borrow_parent(BT_TO_COMMON(event));
+		bt_object_borrow_parent(&BT_TO_COMMON(event)->base);
 }
 
 struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)

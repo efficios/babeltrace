@@ -162,7 +162,7 @@ struct bt_trace_common *bt_stream_class_common_borrow_trace(
 		struct bt_stream_class_common *stream_class)
 {
 	BT_ASSERT(stream_class);
-	return (void *) bt_object_borrow_parent(stream_class);
+	return (void *) bt_object_borrow_parent(&stream_class->base);
 }
 
 static inline

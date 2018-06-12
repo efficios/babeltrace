@@ -120,7 +120,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 
 	metadata_path = g_build_filename(path, "metadata", NULL);
 
-	bt_object_init(writer, bt_ctf_writer_destroy);
+	bt_object_init_shared(&writer->base, bt_ctf_writer_destroy);
 	writer->path = g_string_new(path);
 	if (!writer->path) {
 		goto error_destroy;
@@ -148,7 +148,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
-	bt_object_set_parent(writer->trace, writer);
+	bt_object_set_parent(&writer->trace->common.base, &writer->base);
 	bt_put(writer->trace);
 
 	/* Default to little-endian */
@@ -195,7 +195,7 @@ void bt_ctf_writer_destroy(struct bt_object *obj)
 		}
 	}
 
-	bt_object_release(writer->trace);
+	bt_object_try_spec_release(&writer->trace->common.base);
 	g_free(writer);
 }
 

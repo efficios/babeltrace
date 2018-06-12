@@ -320,7 +320,7 @@ BT_HIDDEN
 int bt_event_common_initialize(struct bt_event_common *event,
 		struct bt_event_class_common *event_class,
 		struct bt_clock_class *init_expected_clock_class,
-		bt_object_release_func release_func,
+		bool is_shared_with_parent, bt_object_release_func release_func,
 		bt_validation_flag_copy_field_type_func field_type_copy_func,
 		bool must_be_in_trace,
 		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,
@@ -368,7 +368,11 @@ int bt_event_common_initialize(struct bt_event_common *event,
 	 * failure, the caller releases the reference to `event` to
 	 * destroy it.
 	 */
-	bt_object_init(event, release_func);
+	if (is_shared_with_parent) {
+		bt_object_init_shared_with_parent(&event->base, release_func);
+	} else {
+		bt_object_init_unique(&event->base);
+	}
 
 	if (!stream_class->frozen) {
 		/*
@@ -572,7 +576,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 	}
 
 	ret = bt_event_common_initialize(BT_TO_COMMON(event),
-		BT_TO_COMMON(event_class), NULL, NULL,
+		BT_TO_COMMON(event_class), NULL, false, NULL,
 		(bt_validation_flag_copy_field_type_func) bt_field_type_copy,
 		true, NULL,
 		(create_field_func) bt_field_create_recursive,
@@ -584,7 +588,6 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 		goto error;
 	}
 
-	bt_object_set_is_shared((void *) event, false);
 	event->clock_values = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL,
 			(GDestroyNotify) bt_clock_value_recycle);

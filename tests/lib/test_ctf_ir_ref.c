@@ -518,38 +518,38 @@ static void test_example_scenario(void)
 	init_weak_refs(tc1, &weak_tc1, &weak_sc1, &weak_sc2, &weak_ec1,
 			&weak_ec2, &weak_ec3);
 
-	ok(bt_object_get_ref_count(weak_sc1) == 0,
+	ok(bt_object_get_ref_count((void *) weak_sc1) == 0,
 			"Initial SC1 reference count is 0");
-	ok(bt_object_get_ref_count(weak_sc2) == 0,
+	ok(bt_object_get_ref_count((void *) weak_sc2) == 0,
 			"Initial SC2 reference count is 0");
-	ok(bt_object_get_ref_count(weak_ec1) == 0,
+	ok(bt_object_get_ref_count((void *) weak_ec1) == 0,
 			"Initial EC1 reference count is 0");
-	ok(bt_object_get_ref_count(weak_ec2) == 0,
+	ok(bt_object_get_ref_count((void *) weak_ec2) == 0,
 			"Initial EC2 reference count is 0");
-	ok(bt_object_get_ref_count(weak_ec3) == 0,
+	ok(bt_object_get_ref_count((void *) weak_ec3) == 0,
 			"Initial EC3 reference count is 0");
 
 	/* User A has ownership of the trace. */
 	BT_MOVE(user_a.tc, tc1);
-	ok(bt_object_get_ref_count(user_a.tc) == 1,
+	ok(bt_object_get_ref_count((void *) user_a.tc) == 1,
 			"TC1 reference count is 1");
 
 	/* User A acquires a reference to SC2 from TC1. */
 	user_a.sc = bt_trace_get_stream_class_by_index(user_a.tc, 1);
 	ok(user_a.sc, "User A acquires SC2 from TC1");
-	ok(bt_object_get_ref_count(weak_tc1) == 2,
+	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
-	ok(bt_object_get_ref_count(weak_sc2) == 1,
+	ok(bt_object_get_ref_count((void *) weak_sc2) == 1,
 			"SC2 reference count is 1");
 
 	/* User A acquires a reference to EC3 from SC2. */
 	user_a.ec = bt_stream_class_get_event_class_by_index(user_a.sc, 0);
 	ok(user_a.ec, "User A acquires EC3 from SC2");
-	ok(bt_object_get_ref_count(weak_tc1) == 2,
+	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
-	ok(bt_object_get_ref_count(weak_sc2) == 2,
+	ok(bt_object_get_ref_count((void *) weak_sc2) == 2,
 			"SC2 reference count is 2");
-	ok(bt_object_get_ref_count(weak_ec3) == 1,
+	ok(bt_object_get_ref_count((void *) weak_ec3) == 1,
 			"EC3 reference count is 1");
 
 	/* User A releases its reference to SC2. */
@@ -559,11 +559,11 @@ static void test_example_scenario(void)
 	 * We keep the pointer to SC2 around to validate its reference
 	 * count.
 	 */
-	ok(bt_object_get_ref_count(weak_tc1) == 2,
+	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
-	ok(bt_object_get_ref_count(weak_sc2) == 1,
+	ok(bt_object_get_ref_count((void *) weak_sc2) == 1,
 			"SC2 reference count is 1");
-	ok(bt_object_get_ref_count(weak_ec3) == 1,
+	ok(bt_object_get_ref_count((void *) weak_ec3) == 1,
 			"EC3 reference count is 1");
 
 	/* User A releases its reference to TC1. */
@@ -573,60 +573,60 @@ static void test_example_scenario(void)
 	 * We keep the pointer to TC1 around to validate its reference
 	 * count.
 	 */
-	ok(bt_object_get_ref_count(weak_tc1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_tc1) == 1,
 			"TC1 reference count is 1");
-	ok(bt_object_get_ref_count(weak_sc2) == 1,
+	ok(bt_object_get_ref_count((void *) weak_sc2) == 1,
 			"SC2 reference count is 1");
-	ok(bt_object_get_ref_count(weak_ec3) == 1,
+	ok(bt_object_get_ref_count((void *) weak_ec3) == 1,
 			"EC3 reference count is 1");
 
 	/* User B acquires a reference to SC1. */
 	diag("User B acquires a reference to SC1");
 	user_b.sc = bt_get(weak_sc1);
-	ok(bt_object_get_ref_count(weak_tc1) == 2,
+	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
-	ok(bt_object_get_ref_count(weak_sc1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_sc1) == 1,
 			"SC1 reference count is 1");
 
 	/* User C acquires a reference to EC1. */
 	diag("User C acquires a reference to EC1");
 	user_c.ec = bt_stream_class_get_event_class_by_index(user_b.sc, 0);
-	ok(bt_object_get_ref_count(weak_ec1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_ec1) == 1,
 			"EC1 reference count is 1");
-	ok(bt_object_get_ref_count(weak_sc1) == 2,
+	ok(bt_object_get_ref_count((void *) weak_sc1) == 2,
 			"SC1 reference count is 2");
 
 	/* User A releases its reference on EC3. */
 	diag("User A releases its reference on EC3");
 	BT_PUT(user_a.ec);
-	ok(bt_object_get_ref_count(weak_ec3) == 0,
+	ok(bt_object_get_ref_count((void *) weak_ec3) == 0,
 			"EC3 reference count is 1");
-	ok(bt_object_get_ref_count(weak_sc2) == 0,
+	ok(bt_object_get_ref_count((void *) weak_sc2) == 0,
 			"SC2 reference count is 0");
-	ok(bt_object_get_ref_count(weak_tc1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_tc1) == 1,
 			"TC1 reference count is 1");
 
 	/* User B releases its reference on SC1. */
 	diag("User B releases its reference on SC1");
 	BT_PUT(user_b.sc);
-	ok(bt_object_get_ref_count(weak_sc1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_sc1) == 1,
 			"SC1 reference count is 1");
 
 	/*
 	 * User C is the sole owner of an object and is keeping the whole
 	 * trace hierarchy "alive" by holding a reference to EC1.
 	 */
-	ok(bt_object_get_ref_count(weak_tc1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_tc1) == 1,
 			"TC1 reference count is 1");
-	ok(bt_object_get_ref_count(weak_sc1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_sc1) == 1,
 			"SC1 reference count is 1");
-	ok(bt_object_get_ref_count(weak_sc2) == 0,
+	ok(bt_object_get_ref_count((void *) weak_sc2) == 0,
 			"SC2 reference count is 0");
-	ok(bt_object_get_ref_count(weak_ec1) == 1,
+	ok(bt_object_get_ref_count((void *) weak_ec1) == 1,
 			"EC1 reference count is 1");
-	ok(bt_object_get_ref_count(weak_ec2) == 0,
+	ok(bt_object_get_ref_count((void *) weak_ec2) == 0,
 			"EC2 reference count is 0");
-	ok(bt_object_get_ref_count(weak_ec3) == 0,
+	ok(bt_object_get_ref_count((void *) weak_ec3) == 0,
 			"EC3 reference count is 0");
 
 	/* Reclaim last reference held by User C. */

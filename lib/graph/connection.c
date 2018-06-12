@@ -79,9 +79,9 @@ void bt_connection_destroy(struct bt_object *obj)
 static
 void bt_connection_try_remove_from_graph(struct bt_connection *connection)
 {
-	void *graph = bt_object_borrow_parent(&connection->base);
+	void *graph = (void *) bt_object_borrow_parent(&connection->base);
 
-	if (connection->base.ref_count.count > 0 ||
+	if (connection->base.ref_count > 0 ||
 			connection->downstream_port ||
 			connection->upstream_port ||
 			connection->iterators->len > 0) {
@@ -151,8 +151,9 @@ struct bt_connection *bt_connection_create(
 		goto end;
 	}
 
-	bt_object_init(connection, bt_connection_destroy);
-	bt_object_set_parent_is_owner_listener(connection,
+	bt_object_init_shared_with_parent(&connection->base,
+		bt_connection_destroy);
+	bt_object_set_parent_is_owner_listener_func(&connection->base,
 		bt_connection_parent_is_owner);
 	connection->iterators = g_ptr_array_new();
 	if (!connection->iterators) {
@@ -168,7 +169,7 @@ struct bt_connection *bt_connection_create(
 	bt_port_set_connection(upstream_port, connection);
 	BT_LOGD_STR("Setting downstream port's connection.");
 	bt_port_set_connection(downstream_port, connection);
-	bt_object_set_parent(connection, &graph->base);
+	bt_object_set_parent(&connection->base, &graph->base);
 	BT_LOGD("Created connection: "
 		"graph-addr=%p, upstream-port-addr=%p, uptream-port-name=\"%s\", "
 		"downstream-port-addr=%p, downstream-port-name=\"%s\", "

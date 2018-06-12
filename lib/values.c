@@ -72,15 +72,20 @@ struct bt_value {
 };
 
 static
+void bt_value_null_instance_release_func(struct bt_object *obj)
+{
+	BT_LOGW("Releasing the null value singleton: addr=%p", obj);
+}
+
+static
 struct bt_value bt_value_null_instance = {
 	.base = {
-		.ref_count = {
-			.count = 1,
-			.release = NULL,
-		},
-		.release = NULL,
-		.parent = NULL,
 		.is_shared = true,
+		.ref_count = 1,
+		.release_func = bt_value_null_instance_release_func,
+		.spec_release_func = NULL,
+		.parent_is_owner_listener_func = NULL,
+		.parent = NULL,
 	},
 	.type = BT_VALUE_TYPE_NULL,
 	.frozen = BT_TRUE,
@@ -572,12 +577,12 @@ enum bt_value_type bt_value_get_type(const struct bt_value *object)
 static
 struct bt_value bt_value_create_base(enum bt_value_type type)
 {
-	struct bt_value base;
+	struct bt_value value;
 
-	base.type = type;
-	base.frozen = BT_FALSE;
-	bt_object_init(&base, bt_value_destroy);
-	return base;
+	value.type = type;
+	value.frozen = BT_FALSE;
+	bt_object_init_shared(&value.base, bt_value_destroy);
+	return value;
 }
 
 struct bt_value *bt_value_bool_create_init(bt_bool val)

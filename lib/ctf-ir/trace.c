@@ -117,7 +117,7 @@ int bt_trace_common_initialize(struct bt_trace_common *trace,
 
 	BT_LOGD_STR("Initializing common trace object.");
 	trace->native_byte_order = BT_BYTE_ORDER_UNSPECIFIED;
-	bt_object_init(trace, release_func);
+	bt_object_init_shared_with_parent(&trace->base, release_func);
 	trace->clock_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_put);
 	if (!trace->clock_classes) {
@@ -126,14 +126,14 @@ int bt_trace_common_initialize(struct bt_trace_common *trace,
 	}
 
 	trace->streams = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_release);
+		(GDestroyNotify) bt_object_try_spec_release);
 	if (!trace->streams) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 
 	trace->stream_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_release);
+		(GDestroyNotify) bt_object_try_spec_release);
 	if (!trace->stream_classes) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
@@ -1412,7 +1412,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		}
 	}
 
-	bt_object_set_parent(stream_class, trace);
+	bt_object_set_parent(&stream_class->base, &trace->base);
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
 	/*
@@ -1473,7 +1473,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 
 end:
 	if (ret) {
-		bt_object_set_parent(stream_class, NULL);
+		bt_object_set_parent(&stream_class->base, NULL);
 
 		if (ec_validation_outputs) {
 			for (i = 0; i < event_class_count; i++) {

@@ -95,7 +95,7 @@ int bt_stream_common_initialize(
 	int ret = 0;
 	struct bt_trace_common *trace = NULL;
 
-	bt_object_init(stream, release_func);
+	bt_object_init_shared_with_parent(&stream->base, release_func);
 
 	if (!stream_class) {
 		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
@@ -144,7 +144,7 @@ int bt_stream_common_initialize(
 	 * Acquire reference to parent since stream will become publicly
 	 * reachable; it needs its parent to remain valid.
 	 */
-	bt_object_set_parent(stream, trace);
+	bt_object_set_parent(&stream->base, &trace->base);
 	stream->stream_class = stream_class;
 	stream->id = (int64_t) id;
 	stream->destroy_listeners = g_array_new(FALSE, TRUE,

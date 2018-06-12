@@ -32,7 +32,6 @@
 #include <glib.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/lib-logging-internal.h>
-#include <babeltrace/ref-internal.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/object-pool-internal.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
@@ -131,10 +130,10 @@ static inline void format_port(char **buf_ch, bool extended,
 static inline void format_connection(char **buf_ch, bool extended,
 		const char *prefix, struct bt_connection *connection);
 
-static inline void format_ref_count(char **buf_ch, bool extended,
+static inline void format_object(char **buf_ch, bool extended,
 		const char *prefix, struct bt_object *obj)
 {
-	BUF_APPEND(", %sref-count=%lu", prefix, obj->ref_count.count);
+	BUF_APPEND(", %sref-count=%llu", prefix, obj->ref_count);
 }
 
 static inline void format_object_pool(char **buf_ch, bool extended,
@@ -713,7 +712,7 @@ static inline void format_stream_common(char **buf_ch, bool extended,
 		return;
 	}
 
-	trace = (void *) bt_object_borrow_parent(stream);
+	trace = (void *) bt_object_borrow_parent(&stream->base);
 	if (!trace) {
 		return;
 	}
@@ -808,7 +807,7 @@ static inline void format_packet(char **buf_ch, bool extended,
 	BUF_APPEND(", %sstream-addr=%p", PRFIELD(stream));
 	SET_TMP_PREFIX("stream-");
 	format_stream(buf_ch, false, tmp_prefix, stream);
-	trace = (struct bt_trace *) bt_object_borrow_parent(stream);
+	trace = (struct bt_trace *) bt_object_borrow_parent(&stream->common.base);
 	if (!trace) {
 		return;
 	}
@@ -1489,9 +1488,6 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 	switch (cat) {
 	case CAT_DEFAULT:
 		switch (*fmt_ch) {
-		case 'r':
-			format_ref_count(buf_ch, extended, prefix, obj);
-			break;
 		case 'F':
 			format_field_type(buf_ch, extended, prefix, obj);
 			break;
@@ -1554,6 +1550,9 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 			break;
 		case 'o':
 			format_object_pool(buf_ch, extended, prefix, obj);
+			break;
+		case 'O':
+			format_object(buf_ch, extended, prefix, obj);
 			break;
 		default:
 			abort();

@@ -27,7 +27,6 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ref-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/graph/graph.h>
