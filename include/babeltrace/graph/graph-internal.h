@@ -110,14 +110,17 @@ struct bt_graph {
 };
 
 static inline
-void bt_graph_set_can_consume(struct bt_graph *graph, bt_bool can_consume)
+void _bt_graph_set_can_consume(struct bt_graph *graph, bt_bool can_consume)
 {
 	BT_ASSERT(graph);
 	graph->can_consume = can_consume;
 }
 
-BT_HIDDEN
-enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph);
+#ifdef BT_DEV_MODE
+# define bt_graph_set_can_consume	_bt_graph_set_can_consume
+#else
+# define bt_graph_set_can_consume(_graph, _can_consume)
+#endif
 
 BT_HIDDEN
 enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
@@ -183,8 +186,6 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION";
 	case BT_GRAPH_STATUS_NOMEM:
 		return "BT_GRAPH_STATUS_NOMEM";
-	case BT_GRAPH_STATUS_CANNOT_CONSUME:
-		return "BT_GRAPH_STATUS_CANNOT_CONSUME";
 	default:
 		return "(unknown)";
 	}

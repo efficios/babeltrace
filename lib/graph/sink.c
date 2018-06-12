@@ -60,30 +60,6 @@ end:
 	return sink ? &sink->parent : NULL;
 }
 
-BT_HIDDEN
-enum bt_component_status bt_component_sink_consume(
-		struct bt_component *component)
-{
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_component_class_sink *sink_class = NULL;
-
-	BT_ASSERT(component);
-	BT_ASSERT(bt_component_get_class_type(component) == BT_COMPONENT_CLASS_TYPE_SINK);
-	sink_class = container_of(component->class, struct bt_component_class_sink, parent);
-	BT_ASSERT(sink_class->methods.consume);
-	BT_LOGD("Calling user's consume method: "
-		"comp-addr=%p, comp-name=\"%s\"",
-		component, bt_component_get_name(component));
-	ret = sink_class->methods.consume(bt_private_component_from_component(component));
-	BT_LOGD("User method returned: status=%s",
-		bt_component_status_string(ret));
-	if (ret < 0) {
-		BT_LOGW_STR("Consume method failed.");
-	}
-
-	return ret;
-}
-
 int64_t bt_component_sink_get_input_port_count(struct bt_component *component)
 {
 	int64_t ret;

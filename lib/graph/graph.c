@@ -230,7 +230,7 @@ struct bt_graph *bt_graph_create(void)
 		goto error;
 	}
 
-	graph->can_consume = BT_TRUE;
+	bt_graph_set_can_consume(graph, BT_TRUE);
 	ret = init_listeners_array(&graph->listeners.port_added);
 	if (ret) {
 		BT_LOGE_STR("Cannot create the \"port added\" listener array.");
@@ -341,7 +341,7 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 		goto end;
 	}
 
-	graph->can_consume = BT_FALSE;
+	bt_graph_set_can_consume(graph, BT_FALSE);
 
 	/* Ensure appropriate types for upstream and downstream ports. */
 	if (bt_port_get_type(upstream_port) != BT_PORT_TYPE_OUTPUT) {
@@ -486,15 +486,15 @@ end:
 	bt_put(downstream_component);
 	bt_put(connection);
 	if (graph) {
-		graph->can_consume = init_can_consume;
+		(void) init_can_consume;
+		bt_graph_set_can_consume(graph, init_can_consume);
 	}
 	return status;
 }
 
-static
+static inline
 enum bt_graph_status consume_graph_sink(struct bt_component *sink)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	enum bt_component_status comp_status;
 
 	BT_ASSERT(sink);
@@ -502,25 +502,14 @@ enum bt_graph_status consume_graph_sink(struct bt_component *sink)
 	BT_LOGV("Consumed from sink: addr=%p, name=\"%s\", status=%s",
 		sink, bt_component_get_name(sink),
 		bt_component_status_string(comp_status));
-
-	switch (comp_status) {
-	case BT_COMPONENT_STATUS_OK:
-		break;
-	case BT_COMPONENT_STATUS_END:
-		status = BT_GRAPH_STATUS_END;
-		break;
-	case BT_COMPONENT_STATUS_AGAIN:
-		status = BT_GRAPH_STATUS_AGAIN;
-		break;
-	case BT_COMPONENT_STATUS_INVALID:
-		status = BT_GRAPH_STATUS_INVALID;
-		break;
-	default:
-		status = BT_GRAPH_STATUS_ERROR;
-		break;
-	}
-
-	return status;
+	BT_ASSERT_PRE(comp_status == BT_COMPONENT_STATUS_OK ||
+		comp_status == BT_COMPONENT_STATUS_END ||
+		comp_status == BT_COMPONENT_STATUS_AGAIN ||
+		comp_status == BT_COMPONENT_STATUS_ERROR ||
+		comp_status == BT_COMPONENT_STATUS_NOMEM,
+		"Invalid component status returned by consuming function: "
+		"status=%s", bt_component_status_string(comp_status));
+	return (enum bt_graph_status) comp_status;
 }
 
 /*
@@ -528,7 +517,7 @@ enum bt_graph_status consume_graph_sink(struct bt_component *sink)
  * this function. This function adds it back to the queue if there's
  * still something to consume afterwards.
  */
-static
+static inline
 enum bt_graph_status consume_sink_node(struct bt_graph *graph,
 		GList *node)
 {
@@ -537,7 +526,7 @@ enum bt_graph_status consume_sink_node(struct bt_graph *graph,
 
 	sink = node->data;
 	status = consume_graph_sink(sink);
-	if (status != BT_GRAPH_STATUS_END) {
+	if (unlikely(status != BT_GRAPH_STATUS_END)) {
 		g_queue_push_tail_link(graph->sinks_to_consume, node);
 		goto end;
 	}
@@ -591,7 +580,7 @@ end:
 	return status;
 }
 
-BT_HIDDEN
+static inline
 enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
 {
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
@@ -602,7 +591,7 @@ enum bt_graph_status bt_graph_consume_no_check(struct bt_graph *graph)
 	BT_ASSERT_PRE(graph->has_sink,
 		"Graph has no sink component: %!+g", graph);
 
-	if (g_queue_is_empty(graph->sinks_to_consume)) {
+	if (unlikely(g_queue_is_empty(graph->sinks_to_consume))) {
 		BT_LOGV_STR("Graph's sink queue is empty: end of graph.");
 		status = BT_GRAPH_STATUS_END;
 		goto end;
@@ -626,9 +615,9 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
-	graph->can_consume = BT_FALSE;
+	bt_graph_set_can_consume(graph, BT_FALSE);
 	status = bt_graph_consume_no_check(graph);
-	graph->can_consume = BT_TRUE;
+	bt_graph_set_can_consume(graph, BT_TRUE);
 	return status;
 }
 
@@ -649,13 +638,9 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		goto end;
 	}
 
-	if (!graph->can_consume) {
-		BT_LOGW_STR("Cannot run graph in its current state.");
-		status = BT_GRAPH_STATUS_CANNOT_CONSUME;
-		goto end;
-	}
-
-	graph->can_consume = BT_FALSE;
+	BT_ASSERT_PRE(graph->can_consume,
+		"Cannot consume graph in its current state: %!+g", graph);
+	bt_graph_set_can_consume(graph, BT_FALSE);
 	BT_LOGV("Running graph: addr=%p", graph);
 
 	do {
@@ -665,7 +650,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		 * signal, this is not a warning nor an error, it was
 		 * intentional: log with a DEBUG level only.
 		 */
-		if (graph->canceled) {
+		if (unlikely(graph->canceled)) {
 			BT_LOGD("Stopping the graph: graph is canceled: "
 				"graph-addr=%p", graph);
 			status = BT_GRAPH_STATUS_CANCELED;
@@ -673,7 +658,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		}
 
 		status = bt_graph_consume_no_check(graph);
-		if (status == BT_GRAPH_STATUS_AGAIN) {
+		if (unlikely(status == BT_GRAPH_STATUS_AGAIN)) {
 			/*
 			 * If AGAIN is received and there are multiple
 			 * sinks, go ahead and consume from the next
@@ -700,7 +685,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 end:
 	BT_LOGV("Graph ran: status=%s", bt_graph_status_string(status));
 	if (graph) {
-		graph->can_consume = BT_TRUE;
+		bt_graph_set_can_consume(graph, BT_TRUE);
 	}
 	return status;
 }

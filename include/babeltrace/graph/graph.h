@@ -30,6 +30,9 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
+/* For enum bt_component_status */
+#include <babeltrace/graph/component-status.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,20 +46,19 @@ struct bt_value;
 enum bt_graph_status {
 	BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION = 111,
 	/** Canceled. */
-	BT_GRAPH_STATUS_CANCELED = 125,
+	BT_GRAPH_STATUS_CANCELED = BT_COMPONENT_STATUS_GRAPH_IS_CANCELED,
 	/** No sink can consume at the moment. */
-	BT_GRAPH_STATUS_AGAIN = 11,
+	BT_GRAPH_STATUS_AGAIN = BT_COMPONENT_STATUS_AGAIN,
 	/** Downstream component does not support multiple inputs. */
-	BT_GRAPH_STATUS_END = 1,
-	BT_GRAPH_STATUS_OK = 0,
+	BT_GRAPH_STATUS_END = BT_COMPONENT_STATUS_END,
+	BT_GRAPH_STATUS_OK = BT_COMPONENT_STATUS_OK,
 	/** Invalid arguments. */
-	BT_GRAPH_STATUS_INVALID = -22,
+	BT_GRAPH_STATUS_INVALID = BT_COMPONENT_STATUS_INVALID,
 	/** No sink in graph. */
 	BT_GRAPH_STATUS_NO_SINK = -6,
 	/** General error. */
-	BT_GRAPH_STATUS_ERROR = -1,
-	BT_GRAPH_STATUS_CANNOT_CONSUME = -2,
-	BT_GRAPH_STATUS_NOMEM = -12,
+	BT_GRAPH_STATUS_ERROR = BT_COMPONENT_STATUS_ERROR,
+	BT_GRAPH_STATUS_NOMEM = BT_COMPONENT_STATUS_NOMEM,
 };
 
 typedef void (*bt_graph_port_added_listener)(struct bt_port *port,

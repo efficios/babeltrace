@@ -60,7 +60,7 @@
 
 #include "tap/tap.h"
 
-#define NR_TESTS	6
+#define NR_TESTS	5
 
 enum test {
 	TEST_NO_AUTO_NOTIFS,
@@ -921,40 +921,6 @@ void test_output_port_notification_iterator(void)
 	bt_put(notif_iter);
 }
 
-static
-void test_output_port_notification_iterator_cannot_consume(void)
-{
-	struct bt_component *src_comp;
-	struct bt_notification_iterator *notif_iter;
-	struct bt_port *upstream_port;
-
-	clear_test_events();
-	current_test = TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR;
-	diag("test: cannot consume graph with existing output port notification iterator");
-	BT_ASSERT(!graph);
-	graph = bt_graph_create();
-	BT_ASSERT(graph);
-	create_source_sink(graph, &src_comp, NULL);
-
-	/* Create notification iterator on source's output port */
-	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");
-	notif_iter = bt_output_port_notification_iterator_create(upstream_port,
-		NULL);
-	BT_ASSERT(notif_iter);
-	bt_put(upstream_port);
-
-	/*
-	 * This should fail because the graph is now managed by the
-	 * notification iterator.
-	 */
-	ok(bt_graph_run(graph) == BT_GRAPH_STATUS_CANNOT_CONSUME,
-		"bt_graph_run() returns BT_GRAPH_STATUS_CANNOT_CONSUME when there's an output port notification iterator");
-
-	bt_put(src_comp);
-	BT_PUT(graph);
-	bt_put(notif_iter);
-}
-
 #define DEBUG_ENV_VAR	"TEST_BT_NOTIFICATION_ITERATOR_DEBUG"
 
 int main(int argc, char **argv)
@@ -967,7 +933,6 @@ int main(int argc, char **argv)
 	init_static_data();
 	test_no_auto_notifs();
 	test_output_port_notification_iterator();
-	test_output_port_notification_iterator_cannot_consume();
 	fini_static_data();
 	return exit_status();
 }
