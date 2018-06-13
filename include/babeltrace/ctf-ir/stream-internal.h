@@ -39,22 +39,11 @@
 struct bt_stream_class;
 struct bt_stream_common;
 
-typedef void (*bt_stream_common_destroy_listener_func)(
-		struct bt_stream_common *stream, void *data);
-
-struct bt_stream_common_destroy_listener {
-	bt_stream_common_destroy_listener_func func;
-	void *data;
-};
-
 struct bt_stream_common {
 	struct bt_object base;
 	int64_t id;
 	struct bt_stream_class_common *stream_class;
 	GString *name;
-
-	/* Array of struct bt_stream_common_destroy_listener */
-	GArray *destroy_listeners;
 };
 
 struct bt_stream {
@@ -63,14 +52,6 @@ struct bt_stream {
 	/* Pool of `struct bt_packet *` */
 	struct bt_object_pool packet_pool;
 };
-
-BT_HIDDEN
-void bt_stream_common_add_destroy_listener(struct bt_stream_common *stream,
-		bt_stream_common_destroy_listener_func func, void *data);
-
-BT_HIDDEN
-void bt_stream_common_remove_destroy_listener(struct bt_stream_common *stream,
-		bt_stream_common_destroy_listener_func func, void *data);
 
 BT_HIDDEN
 int bt_stream_common_initialize(

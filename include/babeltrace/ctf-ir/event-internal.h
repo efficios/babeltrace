@@ -32,6 +32,7 @@
 #include <babeltrace/values.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/fields.h>
@@ -359,6 +360,13 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_EVENT_COMMON_HOT(BT_TO_COMMON(event), "Event");
+	BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
+		BT_FROM_COMMON(event->common.class)) ==
+		BT_FROM_COMMON(packet->stream->common.stream_class),
+		"Packet's stream class and event's stream class differ: "
+		"%![event-]+e, %![packet-]+a",
+		event, packet);
+
 	BT_ASSERT(!event->packet);
 	event->packet = packet;
 	bt_object_get_no_null_check_no_parent_check(&event->packet->base);

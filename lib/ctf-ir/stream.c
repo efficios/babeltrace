@@ -47,30 +47,11 @@
 BT_HIDDEN
 void bt_stream_common_finalize(struct bt_stream_common *stream)
 {
-	int i;
-
 	BT_LOGD("Finalizing common stream object: addr=%p, name=\"%s\"",
 		stream, bt_stream_common_get_name(stream));
 
-	/* Call destroy listeners in reverse registration order */
-	if (stream->destroy_listeners) {
-		for (i = stream->destroy_listeners->len - 1; i >= 0; i--) {
-			struct bt_stream_common_destroy_listener *listener =
-				&g_array_index(stream->destroy_listeners,
-					struct bt_stream_common_destroy_listener, i);
-
-			BT_LOGD("Calling destroy listener: func=%p, data=%p, index=%d",
-				listener->func, listener->data, i);
-			listener->func(stream, listener->data);
-		}
-	}
-
 	if (stream->name) {
 		g_string_free(stream->name, TRUE);
-	}
-
-	if (stream->destroy_listeners) {
-		g_array_free(stream->destroy_listeners, TRUE);
 	}
 }
 
@@ -147,12 +128,6 @@ int bt_stream_common_initialize(
 	bt_object_set_parent(&stream->base, &trace->base);
 	stream->stream_class = stream_class;
 	stream->id = (int64_t) id;
-	stream->destroy_listeners = g_array_new(FALSE, TRUE,
-		sizeof(struct bt_stream_common_destroy_listener));
-	if (!stream->destroy_listeners) {
-		BT_LOGE_STR("Failed to allocate a GArray.");
-		goto error;
-	}
 
 	if (name) {
 		stream->name = g_string_new(name);
@@ -292,45 +267,4 @@ const char *bt_stream_get_name(struct bt_stream *stream)
 int64_t bt_stream_get_id(struct bt_stream *stream)
 {
 	return bt_stream_common_get_id(BT_TO_COMMON(stream));
-}
-
-BT_HIDDEN
-void bt_stream_common_add_destroy_listener(struct bt_stream_common *stream,
-		bt_stream_common_destroy_listener_func func, void *data)
-{
-	struct bt_stream_common_destroy_listener listener;
-
-	BT_ASSERT(stream);
-	BT_ASSERT(func);
-	listener.func = func;
-	listener.data = data;
-	g_array_append_val(stream->destroy_listeners, listener);
-	BT_LOGV("Added stream destroy listener: stream-addr=%p, "
-		"stream-name=\"%s\", func=%p, data=%p",
-		stream, bt_stream_common_get_name(stream), func, data);
-}
-
-BT_HIDDEN
-void bt_stream_common_remove_destroy_listener(struct bt_stream_common *stream,
-		bt_stream_common_destroy_listener_func func, void *data)
-{
-	size_t i;
-
-	BT_ASSERT(stream);
-	BT_ASSERT(func);
-
-	for (i = 0; i < stream->destroy_listeners->len; i++) {
-		struct bt_stream_common_destroy_listener *listener =
-			&g_array_index(stream->destroy_listeners,
-				struct bt_stream_common_destroy_listener, i);
-
-		if (listener->func == func && listener->data == data) {
-			g_array_remove_index(stream->destroy_listeners, i);
-			i--;
-			BT_LOGV("Removed stream destroy listener: stream-addr=%p, "
-				"stream-name=\"%s\", func=%p, data=%p",
-				stream, bt_stream_common_get_name(stream),
-				func, data);
-		}
-	}
 }
