@@ -77,15 +77,7 @@ struct stream_state {
 	bt_bool is_ended;
 };
 
-static
-void stream_destroy_listener(struct bt_stream_common *stream, void *data)
-{
-	struct bt_notification_iterator_private_connection *iterator = data;
-
-	/* Remove associated stream state */
-	g_hash_table_remove(iterator->stream_states, stream);
-}
-
+BT_ASSERT_PRE_FUNC
 static
 void destroy_stream_state(struct stream_state *stream_state)
 {
@@ -103,6 +95,7 @@ void destroy_stream_state(struct stream_state *stream_state)
 	g_free(stream_state);
 }
 
+BT_ASSERT_PRE_FUNC
 static
 struct stream_state *create_stream_state(struct bt_stream *stream)
 {
@@ -171,20 +164,6 @@ void bt_private_connection_notification_iterator_destroy(struct bt_object *obj)
 		 * listener would be called with an invalid/other
 		 * notification iterator object.
 		 */
-		GHashTableIter ht_iter;
-		gpointer stream_gptr, stream_state_gptr;
-
-		g_hash_table_iter_init(&ht_iter, iterator->stream_states);
-
-		while (g_hash_table_iter_next(&ht_iter, &stream_gptr, &stream_state_gptr)) {
-			BT_ASSERT(stream_gptr);
-
-			BT_LOGD_STR("Removing stream's destroy listener for notification iterator.");
-			bt_stream_common_remove_destroy_listener(
-				(void *) stream_gptr, stream_destroy_listener,
-				iterator);
-		}
-
 		g_hash_table_destroy(iterator->stream_states);
 	}
 
