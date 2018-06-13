@@ -32,6 +32,7 @@
 #include <babeltrace/values.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/packet-internal.h>
 #include <babeltrace/ctf-ir/fields.h>
@@ -359,26 +360,12 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_EVENT_COMMON_HOT(BT_TO_COMMON(event), "Event");
-
-#ifdef BT_DEV_MODE
-	/*
-	 * Make sure the new packet was created by this event's
-	 * stream, if it is set.
-	 */
-	if (bt_event_borrow_stream(event)) {
-		BT_ASSERT_PRE(packet->stream == bt_event_borrow_stream(event),
-			"Packet's stream and event's stream differ: "
-			"%![event-]+e, %![packet-]+a",
-			event, packet);
-	} else {
-		BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
-			BT_FROM_COMMON(event->common.class)) ==
-			BT_FROM_COMMON(packet->stream->common.stream_class),
-			"Packet's stream class and event's stream class differ: "
-			"%![event-]+e, %![packet-]+a",
-			event, packet);
-	}
-#endif
+	BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
+		BT_FROM_COMMON(event->common.class)) ==
+		BT_FROM_COMMON(packet->stream->common.stream_class),
+		"Packet's stream class and event's stream class differ: "
+		"%![event-]+e, %![packet-]+a",
+		event, packet);
 
 	BT_ASSERT(!event->packet);
 	event->packet = packet;
