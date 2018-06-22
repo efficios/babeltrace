@@ -40,7 +40,7 @@ extern struct bt_component *bt_private_connection_notification_iterator_get_comp
 extern enum bt_notification_iterator_status
 bt_private_connection_notification_iterator_next(
 		struct bt_notification_iterator *iterator,
-		struct bt_notification **notification);
+		bt_notification_array *notifs, uint64_t *count);
 
 #ifdef __cplusplus
 }

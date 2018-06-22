@@ -3138,7 +3138,8 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 				goto end;
 			}
 
-			BT_MOVE(*notification, notit->event_notif);
+			*notification = notit->event_notif;
+			notit->event_notif = NULL;
 			goto end;
 		case STATE_EMIT_NOTIF_END_OF_PACKET:
 			/* Update clock with timestamp_end field. */

@@ -33,6 +33,8 @@ extern "C" {
 
 struct bt_notification;
 
+typedef struct bt_notification **bt_notification_array;
+
 /**
  * Notification types. Unhandled notification types should be ignored.
  */

@@ -86,6 +86,7 @@ enum bt_private_connection_notification_iterator_state {
 struct bt_notification_iterator {
 	struct bt_object base;
 	enum bt_notification_iterator_type type;
+	GPtrArray *notifs;
 };
 
 struct bt_notification_iterator_private_connection {
@@ -124,8 +125,11 @@ struct bt_notification_iterator_output_port {
 	struct bt_graph *graph; /* Owned by this */
 	struct bt_component *colander; /* Owned by this */
 
-	/* Only used temporarily: should always be NULL */
-	struct bt_notification *notif;
+	/*
+	 * Only used temporarily as a bridge between a colander sink and
+	 * the user.
+	 */
+	uint64_t count;
 };
 
 static inline

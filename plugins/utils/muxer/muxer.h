@@ -24,6 +24,7 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
 #include <babeltrace/babeltrace-internal.h>
 
 BT_HIDDEN
@@ -45,8 +46,10 @@ void muxer_notif_iter_finalize(
 		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_method_return muxer_notif_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
+enum bt_notification_iterator_status muxer_notif_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count);
 
 BT_HIDDEN
 void muxer_port_connected(

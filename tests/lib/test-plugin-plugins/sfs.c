@@ -40,15 +40,12 @@ static void dummy_iterator_finalize_method(
 {
 }
 
-static struct bt_notification_iterator_next_method_return dummy_iterator_next_method(
-		struct bt_private_connection_private_notification_iterator *private_iterator)
+static enum bt_notification_iterator_status dummy_iterator_next_method(
+		struct bt_private_connection_private_notification_iterator *private_iterator,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count)
 {
-	struct bt_notification_iterator_next_method_return next_return = {
-		.notification = NULL,
-		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
-	};
-
-	return next_return;
+	return BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 }
 
 static struct bt_component_class_query_method_return query_method(
