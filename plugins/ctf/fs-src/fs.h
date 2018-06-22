@@ -179,7 +179,9 @@ BT_HIDDEN
 void ctf_fs_iterator_finalize(struct bt_private_connection_private_notification_iterator *it);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator);
+enum bt_notification_iterator_status ctf_fs_iterator_next(
+		struct bt_private_connection_private_notification_iterator *iterator,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

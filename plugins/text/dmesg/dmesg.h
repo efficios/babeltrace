@@ -44,7 +44,9 @@ void dmesg_notif_iter_finalize(
 		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
+enum bt_notification_iterator_status dmesg_notif_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H */

@@ -404,96 +404,61 @@ enum bt_notification_iterator_status src_iter_init(
 }
 
 static
-struct bt_notification_iterator_next_method_return src_iter_next_seq(
-		struct src_iter_user_data *user_data)
+void src_iter_next_seq_one(struct src_iter_user_data *user_data,
+		struct bt_notification **notif)
 {
-	struct bt_notification_iterator_next_method_return next_return = {
-		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
-	};
-	int64_t cur_ts_ns;
 	struct bt_packet *event_packet = NULL;
 
-	BT_ASSERT(user_data->seq);
-	cur_ts_ns = user_data->seq[user_data->at];
-
-	switch (cur_ts_ns) {
-	case SEQ_END:
-		next_return.status =
-			BT_NOTIFICATION_ITERATOR_STATUS_END;
-		break;
+	switch (user_data->seq[user_data->at]) {
 	case SEQ_INACTIVITY:
-		next_return.notification =
-			bt_notification_inactivity_create(graph,
+		*notif = bt_notification_inactivity_create(graph,
 				src_empty_cc_prio_map);
-		BT_ASSERT(next_return.notification);
 		break;
 	case SEQ_STREAM1_BEGIN:
-		next_return.notification =
-			bt_notification_stream_begin_create(graph, src_stream1);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_stream_begin_create(graph,
+			src_stream1);
 		break;
 	case SEQ_STREAM2_BEGIN:
-		next_return.notification =
-			bt_notification_stream_begin_create(graph, src_stream2);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_stream_begin_create(graph,
+			src_stream2);
 		break;
 	case SEQ_STREAM1_END:
-		next_return.notification =
-			bt_notification_stream_end_create(graph, src_stream1);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_stream_end_create(graph, src_stream1);
 		break;
 	case SEQ_STREAM2_END:
-		next_return.notification =
-			bt_notification_stream_end_create(graph, src_stream2);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_stream_end_create(graph, src_stream2);
 		break;
 	case SEQ_STREAM1_PACKET1_BEGIN:
-		next_return.notification =
-			bt_notification_packet_begin_create(graph,
-				src_stream1_packet1);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_begin_create(graph,
+			src_stream1_packet1);
 		break;
 	case SEQ_STREAM1_PACKET2_BEGIN:
-		next_return.notification =
-			bt_notification_packet_begin_create(graph,
-				src_stream1_packet2);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_begin_create(graph,
+			src_stream1_packet2);
 		break;
 	case SEQ_STREAM2_PACKET1_BEGIN:
-		next_return.notification =
-			bt_notification_packet_begin_create(graph,
-				src_stream2_packet1);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_begin_create(graph,
+			src_stream2_packet1);
 		break;
 	case SEQ_STREAM2_PACKET2_BEGIN:
-		next_return.notification =
-			bt_notification_packet_begin_create(graph,
-				src_stream2_packet2);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_begin_create(graph,
+			src_stream2_packet2);
 		break;
 	case SEQ_STREAM1_PACKET1_END:
-		next_return.notification =
-			bt_notification_packet_end_create(graph,
-				src_stream1_packet1);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_end_create(graph,
+			src_stream1_packet1);
 		break;
 	case SEQ_STREAM1_PACKET2_END:
-		next_return.notification =
-			bt_notification_packet_end_create(graph,
-				src_stream1_packet2);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_end_create(graph,
+			src_stream1_packet2);
 		break;
 	case SEQ_STREAM2_PACKET1_END:
-		next_return.notification =
-			bt_notification_packet_end_create(graph,
-				src_stream2_packet1);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_end_create(graph,
+			src_stream2_packet1);
 		break;
 	case SEQ_STREAM2_PACKET2_END:
-		next_return.notification =
-			bt_notification_packet_end_create(graph,
-				src_stream2_packet2);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_packet_end_create(graph,
+			src_stream2_packet2);
 		break;
 	case SEQ_EVENT_STREAM1_PACKET1:
 		event_packet = src_stream1_packet1;
@@ -512,33 +477,54 @@ struct bt_notification_iterator_next_method_return src_iter_next_seq(
 	}
 
 	if (event_packet) {
-		next_return.notification =
-			bt_notification_event_create(graph, src_event_class,
-				event_packet, src_empty_cc_prio_map);
-		BT_ASSERT(next_return.notification);
+		*notif = bt_notification_event_create(graph, src_event_class,
+			event_packet, src_empty_cc_prio_map);
 	}
 
-	if (next_return.status != BT_NOTIFICATION_ITERATOR_STATUS_END) {
-		user_data->at++;
-	}
-
-	return next_return;
+	BT_ASSERT(*notif);
+	user_data->at++;
 }
 
 static
-struct bt_notification_iterator_next_method_return src_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_iterator)
+enum bt_notification_iterator_status src_iter_next_seq(
+		struct src_iter_user_data *user_data,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count)
 {
-	struct bt_notification_iterator_next_method_return next_return = {
-		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
-		.notification = NULL,
-	};
+	enum bt_notification_iterator_status status =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	uint64_t i = 0;
+
+	BT_ASSERT(user_data->seq);
+
+	if (user_data->seq[user_data->at] == SEQ_END) {
+		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		goto end;
+	}
+
+	while (i < capacity && user_data->seq[user_data->at] != SEQ_END) {
+		src_iter_next_seq_one(user_data, &notifs[i]);
+		i++;
+	}
+
+	BT_ASSERT(i > 0 && i <= capacity);
+	*count = i;
+
+end:
+	return status;
+}
+
+static
+enum bt_notification_iterator_status src_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_iterator,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count)
+{
 	struct src_iter_user_data *user_data =
 		bt_private_connection_private_notification_iterator_get_user_data(priv_iterator);
 
 	BT_ASSERT(user_data);
-	next_return = src_iter_next_seq(user_data);
-	return next_return;
+	return src_iter_next_seq(user_data, notifs, capacity, count);
 }
 
 static
@@ -560,40 +546,9 @@ void src_finalize(struct bt_private_component *private_component)
 }
 
 static
-enum bt_notification_iterator_status common_consume(
-		struct bt_notification_iterator *notif_iter,
-		bool is_output_port_notif_iter)
+void append_test_events_from_notification(struct bt_notification *notification)
 {
-	enum bt_notification_iterator_status ret;
-	struct bt_notification *notification = NULL;
 	struct test_event test_event = { 0 };
-	bool do_append_test_event = true;
-	BT_ASSERT(notif_iter);
-
-	if (is_output_port_notif_iter) {
-		ret = bt_output_port_notification_iterator_next(notif_iter,
-			&notification);
-	} else {
-		ret = bt_private_connection_notification_iterator_next(
-			notif_iter, &notification);
-	}
-
-	if (ret < 0) {
-		do_append_test_event = false;
-		goto end;
-	}
-
-	switch (ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
-		test_event.type = TEST_EV_TYPE_END;
-		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
-		abort();
-	default:
-		break;
-	}
-
-	BT_ASSERT(notification);
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -644,12 +599,54 @@ enum bt_notification_iterator_status common_consume(
 		BT_ASSERT(test_event.stream);
 	}
 
-end:
-	if (do_append_test_event) {
-		append_test_event(&test_event);
+	append_test_event(&test_event);
+}
+
+static
+enum bt_notification_iterator_status common_consume(
+		struct bt_notification_iterator *notif_iter,
+		bool is_output_port_notif_iter)
+{
+	enum bt_notification_iterator_status ret;
+	bt_notification_array notifications = NULL;
+	uint64_t count = 0;
+	struct test_event test_event = { 0 };
+	uint64_t i;
+
+	BT_ASSERT(notif_iter);
+
+	if (is_output_port_notif_iter) {
+		ret = bt_output_port_notification_iterator_next(notif_iter,
+			&notifications, &count);
+	} else {
+		ret = bt_private_connection_notification_iterator_next(
+			notif_iter, &notifications, &count);
 	}
 
-	bt_put(notification);
+	if (ret < 0) {
+		goto end;
+	}
+
+	switch (ret) {
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+		test_event.type = TEST_EV_TYPE_END;
+		append_test_event(&test_event);
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+		abort();
+	default:
+		break;
+	}
+
+	BT_ASSERT(notifications);
+	BT_ASSERT(count > 0);
+
+	for (i = 0; i < count; i++) {
+		append_test_events_from_notification(notifications[i]);
+		bt_put(notifications[i]);
+	}
+
+end:
 	return ret;
 }
 

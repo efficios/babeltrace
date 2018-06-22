@@ -39,6 +39,9 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
+/* For bt_notification_array */
+#include <babeltrace/graph/notification.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,11 +71,6 @@ enum bt_component_class_type {
 	BT_COMPONENT_CLASS_TYPE_FILTER =	2,
 };
 
-struct bt_notification_iterator_next_method_return {
-	struct bt_notification *notification;
-	enum bt_notification_iterator_status status;
-};
-
 struct bt_component_class_query_method_return {
 	struct bt_value *result;
 	enum bt_query_status status;
@@ -93,9 +91,11 @@ typedef enum bt_notification_iterator_status
 typedef void (*bt_component_class_notification_iterator_finalize_method)(
 		struct bt_private_connection_private_notification_iterator *notification_iterator);
 
-typedef struct bt_notification_iterator_next_method_return
+typedef enum bt_notification_iterator_status
 (*bt_component_class_notification_iterator_next_method)(
-		struct bt_private_connection_private_notification_iterator *notification_iterator);
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count);
 
 typedef struct bt_component_class_query_method_return (*bt_component_class_query_method)(
 		struct bt_component_class *component_class,
