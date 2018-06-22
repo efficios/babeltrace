@@ -44,6 +44,7 @@ struct counter {
 		uint64_t other;
 	} count;
 	uint64_t last_printed_total;
+	uint64_t at;
 	uint64_t step;
 	bool hide_zero;
 	bool error;

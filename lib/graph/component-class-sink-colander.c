@@ -39,8 +39,8 @@ static
 struct bt_component_class *colander_comp_cls;
 
 struct colander_data {
-	struct bt_notification **user_notif;
-	enum bt_notification_type *notif_types;
+	bt_notification_array notifs;
+	uint64_t *count_addr;
 	struct bt_notification_iterator *notif_iter;
 };
 
@@ -67,7 +67,8 @@ enum bt_component_status colander_init(
 		goto end;
 	}
 
-	colander_data->user_notif = user_provided_data->notification;
+	colander_data->notifs = user_provided_data->notifs;
+	colander_data->count_addr = user_provided_data->count_addr;
 	status = bt_private_component_sink_add_input_private_port(
 		priv_comp, "in", NULL, NULL);
 	if (status != BT_COMPONENT_STATUS_OK) {
@@ -95,7 +96,6 @@ void colander_finalize(struct bt_private_component *priv_comp)
 		bt_put(colander_data->notif_iter);
 	}
 
-	g_free(colander_data->notif_types);
 	g_free(colander_data);
 }
 
@@ -131,9 +131,9 @@ enum bt_component_status colander_consume(
 {
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	enum bt_notification_iterator_status notif_iter_status;
-	struct bt_notification *notif = NULL;
 	struct colander_data *colander_data =
 		bt_private_component_get_user_data(priv_comp);
+	bt_notification_array notifs;
 
 	BT_ASSERT(colander_data);
 
@@ -144,7 +144,7 @@ enum bt_component_status colander_consume(
 	}
 
 	notif_iter_status = bt_private_connection_notification_iterator_next(
-		colander_data->notif_iter, &notif);
+		colander_data->notif_iter, &notifs, colander_data->count_addr);
 	switch (notif_iter_status) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_CANCELED:
 		status = BT_COMPONENT_STATUS_OK;
@@ -156,17 +156,17 @@ enum bt_component_status colander_consume(
 		status = BT_COMPONENT_STATUS_END;
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+		/* Move notifications to user (count already set) */
+		memcpy(colander_data->notifs, notifs,
+			sizeof(*notifs) * *colander_data->count_addr);
 		break;
 	default:
 		status = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
-	BT_ASSERT(notif);
-
 end:
 	/* Move notification to user's pointer, even if NULL. */
-	*colander_data->user_notif = notif;
 	return status;
 }
 

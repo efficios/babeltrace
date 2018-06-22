@@ -179,11 +179,13 @@ BT_HIDDEN
 enum bt_component_status pretty_consume(struct bt_private_component *component)
 {
 	enum bt_component_status ret;
-	struct bt_notification *notif = NULL;
+	bt_notification_array notifs;
 	struct bt_notification_iterator *it;
 	struct pretty_component *pretty =
 		bt_private_component_get_user_data(component);
 	enum bt_notification_iterator_status it_ret;
+	uint64_t count = 0;
+	uint64_t i = 0;
 
 	if (unlikely(pretty->error)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -191,7 +193,8 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 	}
 
 	it = pretty->input_iterator;
-	it_ret = bt_private_connection_notification_iterator_next(it, &notif);
+	it_ret = bt_private_connection_notification_iterator_next(it, &notifs,
+		&count);
 
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
@@ -208,11 +211,22 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 		goto end;
 	}
 
-	BT_ASSERT(notif);
-	ret = handle_notification(pretty, notif);
+	BT_ASSERT(it_ret == BT_NOTIFICATION_ITERATOR_STATUS_OK);
+
+	for (i = 0; i < count; i++) {
+		ret = handle_notification(pretty, notifs[i]);
+		if (ret) {
+			goto end;
+		}
+
+		bt_put(notifs[i]);
+	}
 
 end:
-	bt_put(notif);
+	for (; i < count; i++) {
+		bt_put(notifs[i]);
+	}
+
 	return ret;
 }
 

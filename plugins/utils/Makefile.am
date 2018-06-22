@@ -1,6 +1,6 @@
 AM_CPPFLAGS += -I$(top_srcdir)/plugins
 
-SUBDIRS = dummy counter muxer .
+SUBDIRS = dummy muxer counter .
 # trimmer
 
 plugindir = "$(PLUGINSDIR)"

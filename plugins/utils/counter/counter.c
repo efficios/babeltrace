@@ -54,8 +54,10 @@ uint64_t get_total_count(struct counter *counter)
 }
 
 static
-void print_count(struct counter *counter, uint64_t total)
+void print_count(struct counter *counter)
 {
+	uint64_t total = get_total_count(counter);
+
 	PRINTF_COUNT("event", "events", event);
 	PRINTF_COUNT("stream beginning", "stream beginnings", stream_begin);
 	PRINTF_COUNT("stream end", "stream ends", stream_end);
@@ -83,19 +85,18 @@ void print_count(struct counter *counter, uint64_t total)
 }
 
 static
-void try_print_count(struct counter *counter)
+void try_print_count(struct counter *counter, uint64_t notif_count)
 {
-	uint64_t total;
-
 	if (counter->step == 0) {
 		/* No update */
 		return;
 	}
 
-	total = get_total_count(counter);
+	counter->at += notif_count;
 
-	if (total % counter->step == 0) {
-		print_count(counter, total);
+	if (counter->at >= counter->step) {
+		counter->at = 0;
+		print_count(counter);
 		putchar('\n');
 	}
 }
@@ -106,7 +107,7 @@ void try_print_last(struct counter *counter)
 	const uint64_t total = get_total_count(counter);
 
 	if (total != counter->last_printed_total) {
-		print_count(counter, total);
+		print_count(counter);
 	}
 }
 
@@ -215,7 +216,8 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	struct counter *counter;
 	enum bt_notification_iterator_status it_ret;
 	int64_t count;
-	struct bt_notification *notif = NULL;
+	uint64_t notif_count;
+	bt_notification_array notifs;
 
 	counter = bt_private_component_get_user_data(component);
 	BT_ASSERT(counter);
@@ -231,9 +233,9 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 		goto end;
 	}
 
-	/* Consume one notification  */
+	/* Consume notifications */
 	it_ret = bt_private_connection_notification_iterator_next(
-		counter->notif_iter, &notif);
+		counter->notif_iter, &notifs, &notif_count);
 	if (it_ret < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -249,53 +251,60 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
 	{
-		BT_ASSERT(notif);
-		switch (bt_notification_get_type(notif)) {
-		case BT_NOTIFICATION_TYPE_EVENT:
-			counter->count.event++;
-			break;
-		case BT_NOTIFICATION_TYPE_INACTIVITY:
-			counter->count.inactivity++;
-			break;
-		case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
-			counter->count.stream_begin++;
-			break;
-		case BT_NOTIFICATION_TYPE_STREAM_END:
-			counter->count.stream_end++;
-			break;
-		case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-			counter->count.packet_begin++;
-			break;
-		case BT_NOTIFICATION_TYPE_PACKET_END:
-			counter->count.packet_end++;
-			break;
-		case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
-			counter->count.discarded_events_notifs++;
-			count = bt_notification_discarded_events_get_count(
-				notif);
-			if (count >= 0) {
-				counter->count.discarded_events += count;
+		uint64_t i;
+
+		for (i = 0; i < notif_count; i++) {
+			struct bt_notification *notif = notifs[i];
+
+			BT_ASSERT(notif);
+			switch (bt_notification_get_type(notif)) {
+			case BT_NOTIFICATION_TYPE_EVENT:
+				counter->count.event++;
+				break;
+			case BT_NOTIFICATION_TYPE_INACTIVITY:
+				counter->count.inactivity++;
+				break;
+			case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+				counter->count.stream_begin++;
+				break;
+			case BT_NOTIFICATION_TYPE_STREAM_END:
+				counter->count.stream_end++;
+				break;
+			case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+				counter->count.packet_begin++;
+				break;
+			case BT_NOTIFICATION_TYPE_PACKET_END:
+				counter->count.packet_end++;
+				break;
+			case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
+				counter->count.discarded_events_notifs++;
+				count = bt_notification_discarded_events_get_count(
+					notif);
+				if (count >= 0) {
+					counter->count.discarded_events += count;
+				}
+				break;
+			case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
+				counter->count.discarded_packets_notifs++;
+				count = bt_notification_discarded_packets_get_count(
+					notif);
+				if (count >= 0) {
+					counter->count.discarded_packets += count;
+				}
+				break;
+			default:
+				counter->count.other++;
 			}
-			break;
-		case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
-			counter->count.discarded_packets_notifs++;
-			count = bt_notification_discarded_packets_get_count(
-				notif);
-			if (count >= 0) {
-				counter->count.discarded_packets += count;
-			}
-			break;
-		default:
-			counter->count.other++;
+
+			bt_put(notif);
 		}
 	}
 	default:
 		break;
 	}
 
-	try_print_count(counter);
+	try_print_count(counter, notif_count);
 
 end:
-	bt_put(notif);
 	return ret;
 }

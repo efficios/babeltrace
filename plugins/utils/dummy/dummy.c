@@ -103,9 +103,11 @@ end:
 enum bt_component_status dummy_consume(struct bt_private_component *component)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_notification *notif = NULL;
+	bt_notification_array notifs;
+	uint64_t count;
 	struct dummy *dummy;
 	enum bt_notification_iterator_status it_ret;
+	uint64_t i;
 
 	dummy = bt_private_component_get_user_data(component);
 	BT_ASSERT(dummy);
@@ -122,22 +124,29 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 
 	/* Consume one notification  */
 	it_ret = bt_private_connection_notification_iterator_next(
-		dummy->notif_iter, &notif);
+		dummy->notif_iter, &notifs, &count);
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+		ret = BT_COMPONENT_STATUS_OK;
+
+		for (i = 0; i < count; i++) {
+			bt_put(notifs[i]);
+		}
+
+		break;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 		ret = BT_COMPONENT_STATUS_AGAIN;
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		ret = BT_COMPONENT_STATUS_END;
 		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
+		ret = BT_COMPONENT_STATUS_ERROR;
+		goto end;
 	default:
 		break;
 	}
 
 end:
-	bt_put(notif);
 	return ret;
 }

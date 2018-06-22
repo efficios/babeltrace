@@ -285,14 +285,12 @@ size_t event_pos(struct event *event)
 }
 
 static
-struct bt_notification_iterator_next_method_return src_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_iterator)
+enum bt_notification_iterator_status src_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_iterator,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count)
 {
-	struct bt_notification_iterator_next_method_return ret = {
-		.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR,
-	};
-
-	return ret;
+	return BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 }
 
 static

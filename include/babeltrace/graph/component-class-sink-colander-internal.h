@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -33,7 +34,8 @@ struct bt_component_class;
 struct bt_notification;
 
 struct bt_component_class_sink_colander_data {
-	struct bt_notification **notification;
+	bt_notification_array notifs;
+	uint64_t *count_addr;
 };
 
 extern struct bt_component_class *bt_component_class_sink_colander_get(void);

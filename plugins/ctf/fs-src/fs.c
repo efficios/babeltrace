@@ -87,19 +87,19 @@ void ctf_fs_notif_iter_data_destroy(
 	g_free(notif_iter_data);
 }
 
-struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator)
+static
+enum bt_notification_iterator_status ctf_fs_iterator_next_one(
+		struct ctf_fs_notif_iter_data *notif_iter_data,
+		struct bt_notification **notif)
 {
-	struct bt_notification_iterator_next_method_return next_ret;
-	struct ctf_fs_notif_iter_data *notif_iter_data =
-		bt_private_connection_private_notification_iterator_get_user_data(iterator);
+	enum bt_notification_iterator_status status;
 	int ret;
 
 	BT_ASSERT(notif_iter_data->ds_file);
-	next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
+	status = ctf_fs_ds_file_next(notif_iter_data->ds_file, notif);
 
-	if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
-			bt_notification_get_type(next_ret.notification) ==
+	if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
+			bt_notification_get_type(*notif) ==
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
 		if (notif_iter_data->skip_stream_begin_notifs) {
 			/*
@@ -107,9 +107,10 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 			 * BT_NOTIFICATION_TYPE_STREAM_BEGIN
 			 * notification: skip this one, get a new one.
 			 */
-			BT_PUT(next_ret.notification);
-			next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
-			BT_ASSERT(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+			BT_PUT(*notif);
+			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
+				notif);
+			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
 			goto end;
 		} else {
 			/*
@@ -121,8 +122,8 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 		}
 	}
 
-	if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
-			bt_notification_get_type(next_ret.notification) ==
+	if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
+			bt_notification_get_type(*notif) ==
 			BT_NOTIFICATION_TYPE_STREAM_END) {
 		notif_iter_data->ds_file_info_index++;
 
@@ -140,7 +141,7 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 			goto end;
 		}
 
-		BT_PUT(next_ret.notification);
+		BT_PUT(*notif);
 		bt_notif_iter_reset(notif_iter_data->notif_iter);
 
 		/*
@@ -149,11 +150,11 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 		 */
 		ret = notif_iter_data_set_current_ds_file(notif_iter_data);
 		if (ret) {
-			next_ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
-		next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
+		status = ctf_fs_ds_file_next(notif_iter_data->ds_file, notif);
 
 		/*
 		 * If we get a notification, we expect to get a
@@ -173,17 +174,56 @@ struct bt_notification_iterator_next_method_return ctf_fs_iterator_next(
 		 */
 		BT_ASSERT(notif_iter_data->skip_stream_begin_notifs);
 
-		if (next_ret.status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-			BT_ASSERT(bt_notification_get_type(next_ret.notification) ==
+		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			BT_ASSERT(bt_notification_get_type(*notif) ==
 				BT_NOTIFICATION_TYPE_STREAM_BEGIN);
-			BT_PUT(next_ret.notification);
-			next_ret = ctf_fs_ds_file_next(notif_iter_data->ds_file);
-			BT_ASSERT(next_ret.status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+			BT_PUT(*notif);
+			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
+				notif);
+			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
 		}
 	}
 
 end:
-	return next_ret;
+	return status;
+}
+
+BT_HIDDEN
+enum bt_notification_iterator_status ctf_fs_iterator_next(
+		struct bt_private_connection_private_notification_iterator *iterator,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count)
+{
+	enum bt_notification_iterator_status status =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct ctf_fs_notif_iter_data *notif_iter_data =
+		bt_private_connection_private_notification_iterator_get_user_data(iterator);
+	uint64_t i = 0;
+
+	while (i < capacity && status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		status = ctf_fs_iterator_next_one(notif_iter_data, &notifs[i]);
+		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			i++;
+		}
+	}
+
+	if (i > 0) {
+		/*
+		 * Even if ctf_fs_iterator_next_one() returned something
+		 * else than BT_NOTIFICATION_ITERATOR_STATUS_OK, we
+		 * accumulated notification objects in the output
+		 * notification array, so we need to return
+		 * BT_NOTIFICATION_ITERATOR_STATUS_OK so that they are
+		 * transfered to downstream. This other status occurs
+		 * again the next time muxer_notif_iter_do_next() is
+		 * called, possibly without any accumulated
+		 * notification, in which case we'll return it.
+		 */
+		*count = i;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	}
+
+	return status;
 }
 
 void ctf_fs_iterator_finalize(struct bt_private_connection_private_notification_iterator *it)

@@ -872,26 +872,22 @@ void dmesg_notif_iter_finalize(
 		priv_notif_iter));
 }
 
-BT_HIDDEN
-struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
+static
+enum bt_notification_iterator_status dmesg_notif_iter_next_one(
+		struct dmesg_notif_iter *dmesg_notif_iter,
+		struct bt_notification **notif)
 {
 	ssize_t len;
-	struct dmesg_notif_iter *dmesg_notif_iter =
-		bt_private_connection_private_notification_iterator_get_user_data(
-			priv_notif_iter);
 	struct dmesg_component *dmesg_comp;
-	struct bt_notification_iterator_next_method_return next_ret = {
-		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
-		.notification = NULL
-	};
+	enum bt_notification_iterator_status status =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	BT_ASSERT(dmesg_notif_iter);
 	dmesg_comp = dmesg_notif_iter->dmesg_comp;
 	BT_ASSERT(dmesg_comp);
 
 	if (dmesg_notif_iter->state == STATE_DONE) {
-		next_ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
 	}
 
@@ -909,16 +905,14 @@ struct bt_notification_iterator_next_method_return dmesg_notif_iter_next(
 			&dmesg_notif_iter->linebuf_len, dmesg_notif_iter->fp);
 		if (len < 0) {
 			if (errno == EINVAL) {
-				next_ret.status =
-					BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 			} else if (errno == ENOMEM) {
-				next_ret.status =
+				status =
 					BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 			} else {
 				if (dmesg_notif_iter->state == STATE_EMIT_STREAM_BEGINNING) {
 					/* Stream did not even begin */
-					next_ret.status =
-						BT_NOTIFICATION_ITERATOR_STATUS_END;
+					status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 					goto end;
 				} else {
 					/* End current packet now */
@@ -961,28 +955,28 @@ handle_state:
 	switch (dmesg_notif_iter->state) {
 	case STATE_EMIT_STREAM_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		next_ret.notification = bt_notification_stream_begin_create(
+		*notif = bt_notification_stream_begin_create(
 			dmesg_comp->graph, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_EMIT_PACKET_BEGINNING;
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		next_ret.notification = bt_notification_packet_begin_create(
+		*notif = bt_notification_packet_begin_create(
 			dmesg_comp->graph, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		BT_MOVE(next_ret.notification,
-			dmesg_notif_iter->tmp_event_notif);
+		*notif = dmesg_notif_iter->tmp_event_notif;
+		dmesg_notif_iter->tmp_event_notif = NULL;
 		break;
 	case STATE_EMIT_PACKET_END:
-		next_ret.notification = bt_notification_packet_end_create(
+		*notif = bt_notification_packet_end_create(
 			dmesg_comp->graph, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_STREAM_END;
 		break;
 	case STATE_EMIT_STREAM_END:
-		next_ret.notification = bt_notification_stream_end_create(
+		*notif = bt_notification_stream_end_create(
 			dmesg_comp->graph, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_DONE;
 		break;
@@ -990,12 +984,52 @@ handle_state:
 		break;
 	}
 
-	if (!next_ret.notification) {
+	if (!*notif) {
 		BT_LOGE("Cannot create notification: dmesg-comp-addr=%p",
 			dmesg_comp);
-		next_ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 	}
 
 end:
-	return next_ret;
+	return status;
+}
+
+BT_HIDDEN
+enum bt_notification_iterator_status dmesg_notif_iter_next(
+		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
+		bt_notification_array notifs, uint64_t capacity,
+		uint64_t *count)
+{
+	struct dmesg_notif_iter *dmesg_notif_iter =
+		bt_private_connection_private_notification_iterator_get_user_data(
+			priv_notif_iter);
+	enum bt_notification_iterator_status status =
+		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	uint64_t i = 0;
+
+	while (i < capacity && status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		status = dmesg_notif_iter_next_one(dmesg_notif_iter, &notifs[i]);
+		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+			i++;
+		}
+	}
+
+	if (i > 0) {
+		/*
+		 * Even if dmesg_notif_iter_next_one() returned
+		 * something else than
+		 * BT_NOTIFICATION_ITERATOR_STATUS_OK, we accumulated
+		 * notification objects in the output notification
+		 * array, so we need to return
+		 * BT_NOTIFICATION_ITERATOR_STATUS_OK so that they are
+		 * transfered to downstream. This other status occurs
+		 * again the next time muxer_notif_iter_do_next() is
+		 * called, possibly without any accumulated
+		 * notification, in which case we'll return it.
+		 */
+		*count = i;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	}
+
+	return status;
 }

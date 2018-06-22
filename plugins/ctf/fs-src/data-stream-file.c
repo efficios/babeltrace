@@ -818,25 +818,23 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 }
 
 BT_HIDDEN
-struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
-		struct ctf_fs_ds_file *ds_file)
+enum bt_notification_iterator_status ctf_fs_ds_file_next(
+		struct ctf_fs_ds_file *ds_file,
+		struct bt_notification **notif)
 {
 	enum bt_notif_iter_status notif_iter_status;
-	struct bt_notification_iterator_next_method_return ret = {
-		.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR,
-		.notification = NULL,
-	};
+	enum bt_notification_iterator_status status;
 
 	notif_iter_status = bt_notif_iter_get_next_notification(
 		ds_file->notif_iter, ds_file->cc_prio_map, ds_file->graph,
-		&ret.notification);
+		notif);
 
 	switch (notif_iter_status) {
 	case BT_NOTIF_ITER_STATUS_EOF:
-		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
 		break;
 	case BT_NOTIF_ITER_STATUS_OK:
-		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 		break;
 	case BT_NOTIF_ITER_STATUS_AGAIN:
 		/*
@@ -848,11 +846,11 @@ struct bt_notification_iterator_next_method_return ctf_fs_ds_file_next(
 	case BT_NOTIF_ITER_STATUS_INVAL:
 	case BT_NOTIF_ITER_STATUS_ERROR:
 	default:
-		ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		break;
 	}
 
-	return ret;
+	return status;
 }
 
 BT_HIDDEN
