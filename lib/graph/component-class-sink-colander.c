@@ -100,10 +100,11 @@ void colander_finalize(struct bt_private_component *priv_comp)
 }
 
 static
-void colander_port_connected(struct bt_private_component *priv_comp,
+enum bt_component_status colander_port_connected(struct bt_private_component *priv_comp,
 		struct bt_private_port *self_priv_port,
 		struct bt_port *other_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	enum bt_connection_status conn_status;
 	struct bt_private_connection *priv_conn =
 		bt_private_port_get_private_connection(self_priv_port);
@@ -118,11 +119,13 @@ void colander_port_connected(struct bt_private_component *priv_comp,
 	if (conn_status) {
 		BT_LOGE("Cannot create notification iterator from connection: "
 			"comp-addr=%p, conn-addr=%p", priv_comp, priv_conn);
+		status = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 end:
 	bt_put(priv_conn);
+	return status;
 }
 
 static

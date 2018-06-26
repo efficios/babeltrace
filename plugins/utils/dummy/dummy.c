@@ -73,11 +73,12 @@ end:
 	return ret;
 }
 
-void dummy_port_connected(
+enum bt_component_status dummy_port_connected(
 		struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
 	struct bt_notification_iterator *iterator;
 	struct bt_private_connection *connection;
@@ -90,7 +91,7 @@ void dummy_port_connected(
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, &iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
-		dummy->error = true;
+		status = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
@@ -98,6 +99,7 @@ void dummy_port_connected(
 
 end:
 	bt_put(connection);
+	return status;
 }
 
 enum bt_component_status dummy_consume(struct bt_private_component *component)
@@ -111,11 +113,6 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 
 	dummy = bt_private_component_get_user_data(component);
 	BT_ASSERT(dummy);
-
-	if (unlikely(dummy->error)) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
 
 	if (unlikely(!dummy->notif_iter)) {
 		ret = BT_COMPONENT_STATUS_END;

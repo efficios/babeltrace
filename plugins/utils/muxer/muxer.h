@@ -52,7 +52,7 @@ enum bt_notification_iterator_status muxer_notif_iter_next(
 		uint64_t *count);
 
 BT_HIDDEN
-void muxer_port_connected(
+enum bt_component_status muxer_port_connected(
 		struct bt_private_component *priv_comp,
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port);

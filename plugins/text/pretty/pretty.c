@@ -152,11 +152,12 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 }
 
 BT_HIDDEN
-void pretty_port_connected(
+enum bt_component_status pretty_port_connected(
 		struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	enum bt_connection_status conn_status;
 	struct bt_private_connection *connection;
 	struct pretty_component *pretty;
@@ -169,10 +170,11 @@ void pretty_port_connected(
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, &pretty->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
-		pretty->error = true;
+		status = BT_COMPONENT_STATUS_ERROR;
 	}
 
 	bt_put(connection);
+	return status;
 }
 
 BT_HIDDEN
@@ -186,11 +188,6 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 	enum bt_notification_iterator_status it_ret;
 	uint64_t count = 0;
 	uint64_t i = 0;
-
-	if (unlikely(pretty->error)) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
 
 	it = pretty->input_iterator;
 	it_ret = bt_private_connection_notification_iterator_next(it, &notifs,

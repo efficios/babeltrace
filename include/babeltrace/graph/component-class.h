@@ -107,7 +107,7 @@ typedef enum bt_component_status (*bt_component_class_accept_port_connection_met
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port);
 
-typedef void (*bt_component_class_port_connected_method)(
+typedef enum bt_component_status (*bt_component_class_port_connected_method)(
 		struct bt_private_component *private_component,
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port);

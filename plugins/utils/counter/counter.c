@@ -183,11 +183,12 @@ end:
 	return ret;
 }
 
-void counter_port_connected(
+enum bt_component_status counter_port_connected(
 		struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct counter *counter;
 	struct bt_notification_iterator *iterator;
 	struct bt_private_connection *connection;
@@ -200,7 +201,7 @@ void counter_port_connected(
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, &iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
-		counter->error = true;
+		status = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
@@ -208,6 +209,7 @@ void counter_port_connected(
 
 end:
 	bt_put(connection);
+	return status;
 }
 
 enum bt_component_status counter_consume(struct bt_private_component *component)
@@ -221,11 +223,6 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 
 	counter = bt_private_component_get_user_data(component);
 	BT_ASSERT(counter);
-
-	if (unlikely(counter->error)) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
 
 	if (unlikely(!counter->notif_iter)) {
 		try_print_last(counter);

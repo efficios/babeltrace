@@ -898,7 +898,8 @@ end:
 }
 
 static
-void sink_port_connected(struct bt_private_component *private_component,
+enum bt_component_status sink_port_connected(
+		struct bt_private_component *private_component,
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port)
 {
@@ -914,6 +915,7 @@ void sink_port_connected(struct bt_private_component *private_component,
 		priv_conn, &user_data->notif_iter);
 	BT_ASSERT(conn_status == 0);
 	bt_put(priv_conn);
+	return BT_COMPONENT_STATUS_OK;
 }
 
 static

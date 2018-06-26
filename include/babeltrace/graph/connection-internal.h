@@ -58,6 +58,10 @@ struct bt_connection {
 	 * created on this connection.
 	 */
 	GPtrArray *iterators;
+
+	bool notified_upstream_port_connected;
+	bool notified_downstream_port_connected;
+	bool notified_graph_ports_connected;
 };
 
 static inline

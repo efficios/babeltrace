@@ -47,13 +47,13 @@ struct counter {
 	uint64_t at;
 	uint64_t step;
 	bool hide_zero;
-	bool error;
 };
 
 enum bt_component_status counter_init(struct bt_private_component *component,
 		struct bt_value *params, void *init_method_data);
 void counter_finalize(struct bt_private_component *component);
-void counter_port_connected(struct bt_private_component *component,
+enum bt_component_status counter_port_connected(
+		struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port);
 enum bt_component_status counter_consume(struct bt_private_component *component);
