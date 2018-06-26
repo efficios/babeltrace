@@ -601,9 +601,11 @@ enum bt_component_status bt_component_accept_port_connection(
 }
 
 BT_HIDDEN
-void bt_component_port_connected(struct bt_component *comp,
+enum bt_component_status bt_component_port_connected(struct bt_component *comp,
 		struct bt_port *self_port, struct bt_port *other_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+
 	BT_ASSERT(comp);
 	BT_ASSERT(self_port);
 	BT_ASSERT(other_port);
@@ -616,10 +618,12 @@ void bt_component_port_connected(struct bt_component *comp,
 			comp, bt_component_get_name(comp),
 			self_port, bt_port_get_name(self_port),
 			other_port, bt_port_get_name(other_port));
-		comp->class->methods.port_connected(
+		status = comp->class->methods.port_connected(
 			bt_private_component_from_component(comp),
 			bt_private_port_from_port(self_port), other_port);
 	}
+
+	return status;
 }
 
 BT_HIDDEN

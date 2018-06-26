@@ -82,7 +82,6 @@ struct pretty_component {
 	GString *tmp_string;
 	struct bt_value *plugin_opt_map;	/* Temporary parameter map. */
 	bool use_colors;
-	bool error;
 
 	uint64_t last_cycles_timestamp;
 	uint64_t delta_cycles;
@@ -116,7 +115,7 @@ BT_HIDDEN
 enum bt_component_status pretty_consume(struct bt_private_component *component);
 
 BT_HIDDEN
-void pretty_port_connected(
+enum bt_component_status pretty_port_connected(
 		struct bt_private_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port);

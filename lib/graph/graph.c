@@ -450,17 +450,56 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 	 * Notify both components that their port is connected.
 	 */
 	BT_LOGD_STR("Notifying upstream component that its port is connected.");
-	bt_component_port_connected(upstream_component, upstream_port,
-		downstream_port);
+	component_status = bt_component_port_connected(upstream_component,
+		upstream_port, downstream_port);
+	if (component_status != BT_COMPONENT_STATUS_OK) {
+		BT_LOGW("Error while notifying upstream component that its port is connected: "
+			"status=%s, graph-addr=%p, "
+			"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
+			"downstream-comp-addr=%p, downstream-comp-name=\"%s\", "
+			"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+			"downstream-port-addr=%p, downstream-port-name=\"%s\"",
+			bt_component_status_string(component_status), graph,
+			upstream_component, bt_component_get_name(upstream_component),
+			downstream_component, bt_component_get_name(downstream_component),
+			upstream_port, bt_port_get_name(upstream_port),
+			downstream_port, bt_port_get_name(downstream_port));
+		bt_connection_end(connection, true);
+		status = bt_graph_status_from_component_status(
+			component_status);
+		goto end;
+	}
+
+	connection->notified_upstream_port_connected = true;
 	BT_LOGD_STR("Notifying downstream component that its port is connected.");
-	bt_component_port_connected(downstream_component, downstream_port,
-		upstream_port);
+	component_status = bt_component_port_connected(downstream_component,
+		downstream_port, upstream_port);
+	if (component_status != BT_COMPONENT_STATUS_OK) {
+		BT_LOGW("Error while notifying downstream component that its port is connected: "
+			"status=%s, graph-addr=%p, "
+			"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
+			"downstream-comp-addr=%p, downstream-comp-name=\"%s\", "
+			"upstream-port-addr=%p, upstream-port-name=\"%s\", "
+			"downstream-port-addr=%p, downstream-port-name=\"%s\"",
+			bt_component_status_string(component_status), graph,
+			upstream_component, bt_component_get_name(upstream_component),
+			downstream_component, bt_component_get_name(downstream_component),
+			upstream_port, bt_port_get_name(upstream_port),
+			downstream_port, bt_port_get_name(downstream_port));
+		bt_connection_end(connection, true);
+		status = bt_graph_status_from_component_status(
+			component_status);
+		goto end;
+	}
+
+	connection->notified_downstream_port_connected = true;
 
 	/*
 	 * Notify the graph's creator that both ports are connected.
 	 */
 	BT_LOGD_STR("Notifying graph's user that new component ports are connected.");
 	bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
+	connection->notified_graph_ports_connected = true;
 	BT_LOGD("Connected component ports within graph: "
 		"graph-addr=%p, "
 		"upstream-comp-addr=%p, upstream-comp-name=\"%s\", "
