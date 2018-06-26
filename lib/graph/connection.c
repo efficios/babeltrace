@@ -214,21 +214,25 @@ void bt_connection_end(struct bt_connection *conn,
 		conn->upstream_port = NULL;
 	}
 
-	if (downstream_comp) {
+	if (downstream_comp && conn->notified_downstream_port_connected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(downstream_comp,
 			downstream_port);
 	}
 
-	if (upstream_comp) {
+	if (upstream_comp && conn->notified_upstream_port_connected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(upstream_comp, upstream_port);
 	}
 
 	BT_ASSERT(graph);
-	/* bt_graph_notify_ports_disconnected() logs details */
-	bt_graph_notify_ports_disconnected(graph, upstream_comp,
-		downstream_comp, upstream_port, downstream_port);
+
+	if (conn->notified_graph_ports_connected) {
+		/* bt_graph_notify_ports_disconnected() logs details */
+		bt_graph_notify_ports_disconnected(graph, upstream_comp,
+			downstream_comp, upstream_port, downstream_port);
+	}
+
 	bt_put(downstream_comp);
 	bt_put(upstream_comp);
 

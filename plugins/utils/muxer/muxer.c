@@ -52,7 +52,6 @@ struct muxer_comp {
 	struct bt_private_component *priv_comp;
 	unsigned int next_port_num;
 	size_t available_input_ports;
-	bool error;
 	bool initializing_muxer_notif_iter;
 	bool assume_absolute_clock_classes;
 };
@@ -1403,16 +1402,6 @@ enum bt_notification_iterator_status muxer_notif_iter_next(
 		"notif-iter-addr=%p",
 		priv_comp, muxer_comp, muxer_notif_iter, priv_notif_iter);
 
-	/* Are we in an error state set elsewhere? */
-	if (unlikely(muxer_comp->error)) {
-		BT_LOGE("Muxer component is already in an error state: returning BT_NOTIFICATION_ITERATOR_STATUS_ERROR: "
-			"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
-			"notif-iter-addr=%p",
-			priv_comp, muxer_comp, muxer_notif_iter, priv_notif_iter);
-		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
-		goto end;
-	}
-
 	status = muxer_notif_iter_do_next(muxer_comp, muxer_notif_iter,
 		notifs, capacity, count);
 	if (status < 0) {
@@ -1427,17 +1416,17 @@ enum bt_notification_iterator_status muxer_notif_iter_next(
 			bt_notification_iterator_status_string(status));
 	}
 
-end:
 	bt_put(priv_comp);
 	return status;
 }
 
 BT_HIDDEN
-void muxer_port_connected(
+enum bt_component_status muxer_port_connected(
 		struct bt_private_component *priv_comp,
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port)
 {
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_port *self_port =
 		bt_port_borrow_from_private(self_private_port);
 	struct muxer_comp *muxer_comp =
@@ -1478,7 +1467,7 @@ void muxer_port_connected(
 				"port-addr=%p, port-name=\"%s\", "
 				"muxer-notif-iter-addr=%p", self_port,
 				bt_port_get_name(self_port), muxer_notif_iter);
-			muxer_comp->error = true;
+			status = BT_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 
@@ -1499,12 +1488,12 @@ void muxer_port_connected(
 		BT_LOGE("Cannot ensure that at least one muxer component's input port is available: "
 			"muxer-comp-addr=%p, status=%s",
 			muxer_comp, bt_component_status_string(ret));
-		muxer_comp->error = true;
+		status = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 end:
-	return;
+	return status;
 }
 
 BT_HIDDEN
