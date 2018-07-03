@@ -1,3 +1,9 @@
+2018-07-03 babeltrace 1.5.6 (National Fried Clam Day)
+	* Fix: remove left-over debug logging statement
+	* Use trace->trace_id in check to remove trace from bt_ctx
+	* Fix: missing initializer braces warning
+	* Fix: zero out URL parsing array before use and ensure proper error reporting
+
 2018-03-26 babeltrace 1.5.5 (Purple Day)
 	* Propagate error from packet_seek in case of truncated packet
 	* Fix: report truncated files while reading
