@@ -1667,7 +1667,6 @@ retry:
 		 */
 		if (g_hash_table_size(ctx->session->ctf_traces) != nr_traces) {
 			printf_verbose("New trace(s) added during add_one_trace()\n");
-			printf_verbose("JORAJ: GREP HERE\n");
 			goto retry;
 		}
 	}
