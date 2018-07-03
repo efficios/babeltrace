@@ -390,6 +390,7 @@ int lttng_live_ctf_trace_assign(struct lttng_live_viewer_stream *stream,
 	if (!trace) {
 		trace = g_new0(struct lttng_live_ctf_trace, 1);
 		trace->ctf_trace_id = ctf_trace_id;
+		trace->trace_id = -1;
 		printf_verbose("Create trace ctf_trace_id %" PRIu64 "\n", ctf_trace_id);
 		BT_INIT_LIST_HEAD(&trace->stream_list);
 		g_hash_table_insert(stream->session->ctf_traces,
@@ -1466,7 +1467,7 @@ int del_traces(gpointer key, gpointer value, gpointer user_data)
 		lvstream->in_trace = 0;
 		bt_list_del(&lvstream->trace_stream_node);
 	}
-	if (trace->in_use) {
+	if (trace->in_use && trace->trace_id >= 0) {
 		ret = bt_context_remove_trace(bt_ctx, trace->trace_id);
 		if (ret < 0)
 			fprintf(stderr, "[error] removing trace from context\n");

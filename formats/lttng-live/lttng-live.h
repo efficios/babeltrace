@@ -88,6 +88,7 @@ struct lttng_live_ctf_trace {
 	struct bt_list_head stream_list;
 	FILE *metadata_fp;
 	struct bt_trace_handle *handle;
+	/* Set to -1 when not initialized. */
 	int trace_id;
 	int in_use;
 };
