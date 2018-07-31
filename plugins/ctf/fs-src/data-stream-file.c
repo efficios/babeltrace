@@ -826,8 +826,7 @@ enum bt_notification_iterator_status ctf_fs_ds_file_next(
 	enum bt_notification_iterator_status status;
 
 	notif_iter_status = bt_notif_iter_get_next_notification(
-		ds_file->notif_iter, ds_file->cc_prio_map, ds_file->graph,
-		notif);
+		ds_file->notif_iter, ds_file->graph, notif);
 
 	switch (notif_iter_status) {
 	case BT_NOTIF_ITER_STATUS_EOF:

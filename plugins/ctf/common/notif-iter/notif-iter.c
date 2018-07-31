@@ -130,6 +130,12 @@ struct field_cb_override {
 	void *data;
 };
 
+/* Clock value: clock class and raw value */
+struct clock_value {
+	struct bt_clock_class *clock_class; /* Weak */
+	uint64_t raw_value;
+};
+
 /* CTF notification iterator */
 struct bt_notif_iter {
 	/* Visit stack */
@@ -151,7 +157,6 @@ struct bt_notif_iter {
 		struct bt_trace *trace;
 		struct bt_stream_class *stream_class;
 		struct bt_event_class *event_class;
-		struct bt_clock_class_priority_map *cc_prio_map;
 	} meta;
 
 	/* Current packet header field wrapper (NULL if not created yet) */
@@ -247,6 +252,10 @@ struct bt_notif_iter {
 
 	/* Current content size (bits) (-1 if unknown) */
 	int64_t cur_content_size;
+
+	/* Current packet default beginning and end clock values */
+	struct clock_value cur_packet_begin_cv;
+	struct clock_value cur_packet_end_cv;
 
 	/*
 	 * Offset, in the underlying media, of the current packet's start
@@ -559,6 +568,14 @@ enum bt_notif_iter_status buf_ensure_available_bits(
 	}
 
 	return status;
+}
+
+static inline
+void reset_clock_value(struct clock_value *cv)
+{
+	BT_ASSERT(cv);
+	cv->clock_class = NULL;
+	cv->raw_value = UINT64_C(-1);
 }
 
 static
@@ -1244,6 +1261,64 @@ enum bt_notif_iter_status read_packet_context_continue_state(
 			STATE_AFTER_STREAM_PACKET_CONTEXT);
 }
 
+static inline
+uint64_t get_field_raw_clock_value(struct bt_field *base_field,
+		const char *field_name, struct bt_clock_class **user_cc)
+{
+	struct bt_field *field;
+	struct bt_field_type *ft;
+	struct bt_clock_class *clock_class = NULL;
+	uint64_t val = UINT64_C(-1);
+	int ret;
+
+	field = bt_field_structure_borrow_field_by_name(base_field, field_name);
+	if (!field) {
+		goto end;
+	}
+
+	ft = bt_field_borrow_type(field);
+	BT_ASSERT(ft);
+
+	if (!bt_field_type_is_integer(ft)) {
+		goto end;
+	}
+
+	clock_class = bt_field_type_integer_borrow_mapped_clock_class(ft);
+	if (!clock_class) {
+		goto end;
+	}
+
+	ret = bt_field_integer_unsigned_get_value(field, &val);
+	BT_ASSERT(ret == 0);
+
+end:
+	*user_cc = clock_class;
+	return val;
+}
+
+static
+void set_current_packet_begin_end(struct bt_notif_iter *notit)
+{
+	struct bt_clock_class *clock_class;
+	uint64_t val;
+
+	if (!notit->dscopes.stream_packet_context) {
+		goto end;
+	}
+
+	val = get_field_raw_clock_value(notit->dscopes.stream_packet_context,
+		"timestamp_begin", &clock_class);
+	notit->cur_packet_begin_cv.clock_class = clock_class;
+	notit->cur_packet_begin_cv.raw_value = val;
+	val = get_field_raw_clock_value(notit->dscopes.stream_packet_context,
+		"timestamp_end", &clock_class);
+	notit->cur_packet_end_cv.clock_class = clock_class;
+	notit->cur_packet_end_cv.raw_value = val;
+
+end:
+	return;
+}
+
 static
 enum bt_notif_iter_status set_current_packet_content_sizes(
 		struct bt_notif_iter *notit)
@@ -1327,14 +1402,19 @@ enum bt_notif_iter_status after_packet_context_state(
 	enum bt_notif_iter_status status;
 
 	status = set_current_packet_content_sizes(notit);
-	if (status == BT_NOTIF_ITER_STATUS_OK) {
-		if (notit->stream_begin_emitted) {
-			notit->state = STATE_EMIT_NOTIF_NEW_PACKET;
-		} else {
-			notit->state = STATE_EMIT_NOTIF_NEW_STREAM;
-		}
+	if (status != BT_NOTIF_ITER_STATUS_OK) {
+		goto end;
 	}
 
+	set_current_packet_begin_end(notit);
+
+	if (notit->stream_begin_emitted) {
+		notit->state = STATE_EMIT_NOTIF_NEW_PACKET;
+	} else {
+		notit->state = STATE_EMIT_NOTIF_NEW_STREAM;
+	}
+
+end:
 	return status;
 }
 
@@ -1577,8 +1657,7 @@ enum bt_notif_iter_status set_current_event_notification(
 		notit->packet);
 	BT_ASSERT(notit->graph);
 	notif = bt_notification_event_create(notit->graph,
-		notit->meta.event_class, notit->packet,
-		notit->meta.cc_prio_map);
+		notit->meta.event_class, notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create event notification: "
 			"notit-addr=%p, ec-addr=%p, ec-name=\"%s\", "
@@ -1970,6 +2049,8 @@ void bt_notif_iter_reset(struct bt_notif_iter *notit)
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
 	notit->cur_packet_offset = -1;
+	reset_clock_value(&notit->cur_packet_begin_cv);
+	reset_clock_value(&notit->cur_packet_end_cv);
 	notit->stream_begin_emitted = false;
 	notit->cur_timestamp_end = NULL;
 }
@@ -2026,6 +2107,8 @@ int bt_notif_iter_switch_packet(struct bt_notif_iter *notit)
 
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
+	reset_clock_value(&notit->cur_packet_begin_cv);
+	reset_clock_value(&notit->cur_packet_end_cv);
 	notit->cur_sc_field_path_cache = NULL;
 
 end:
@@ -2717,12 +2800,10 @@ int set_event_clocks(struct bt_notif_iter *notit)
 
 	while (g_hash_table_iter_next(&iter, (gpointer) &clock_class,
 			(gpointer) &clock_state)) {
-		struct bt_clock_value *clock_value;
-
-		clock_value = bt_event_borrow_clock_value(notit->event,
-			clock_class);
-		if (!clock_value) {
-			BT_LOGE("Cannot borrow clock value from event with given clock class: "
+		ret = bt_event_set_clock_value(notit->event, clock_class,
+			*clock_state, BT_TRUE);
+		if (ret) {
+			BT_LOGE("Cannot set event's default clock value: "
 				"notit-addr=%p, clock-class-addr=%p, "
 				"clock-class-name=\"%s\"",
 				notit, clock_class,
@@ -2730,12 +2811,10 @@ int set_event_clocks(struct bt_notif_iter *notit)
 			ret = -1;
 			goto end;
 		}
-
-		ret = bt_clock_value_set_value(clock_value, *clock_state);
-		BT_ASSERT(ret == 0);
 	}
 
 	ret = 0;
+
 end:
 	return ret;
 }
@@ -2841,6 +2920,30 @@ void notify_new_packet(struct bt_notif_iter *notit,
 			notit->dscopes.stream_packet_context);
 	}
 
+	if (notit->cur_packet_begin_cv.clock_class) {
+		ret = bt_packet_set_beginning_clock_value(notit->packet,
+			notit->cur_packet_begin_cv.clock_class,
+			notit->cur_packet_begin_cv.raw_value, BT_TRUE);
+		if (ret) {
+			BT_LOGE("Cannot set packet's default beginning clock value: "
+				"notit-addr=%p, packet-addr=%p",
+				notit, notit->packet);
+			goto end;
+		}
+	}
+
+	if (notit->cur_packet_end_cv.clock_class) {
+		ret = bt_packet_set_end_clock_value(notit->packet,
+			notit->cur_packet_end_cv.clock_class,
+			notit->cur_packet_end_cv.raw_value, BT_TRUE);
+		if (ret) {
+			BT_LOGE("Cannot set packet's default end clock value: "
+				"notit-addr=%p, packet-addr=%p",
+				notit, notit->packet);
+			goto end;
+		}
+	}
+
 	BT_ASSERT(notit->graph);
 	notif = bt_notification_packet_begin_create(notit->graph,
 		notit->packet);
@@ -2848,11 +2951,13 @@ void notify_new_packet(struct bt_notif_iter *notit,
 		BT_LOGE("Cannot create packet beginning notification: "
 			"notit-addr=%p, packet-addr=%p",
 			notit, notit->packet);
-		return;
+		goto end;
 	}
 
-end:
 	*notification = notif;
+
+end:
+	return;
 }
 
 static
@@ -3018,7 +3123,6 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 {
 	BT_PUT(notit->packet);
 	BT_PUT(notit->stream);
-	BT_PUT(notit->meta.cc_prio_map);
 	release_all_dscopes(notit);
 
 	BT_LOGD("Destroying CTF plugin notification iterator: addr=%p", notit);
@@ -3050,7 +3154,6 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
-		struct bt_clock_class_priority_map *cc_prio_map,
 		struct bt_graph *graph,
 		struct bt_notification **notification)
 {
@@ -3065,15 +3168,9 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		goto end;
 	}
 
-	if (cc_prio_map != notit->meta.cc_prio_map) {
-		bt_put(notit->meta.cc_prio_map);
-		notit->meta.cc_prio_map = bt_get(cc_prio_map);
-	}
-
 	notit->graph = graph;
 
-	BT_LOGV("Getting next notification: notit-addr=%p, cc-prio-map-addr=%p",
-		notit, cc_prio_map);
+	BT_LOGV("Getting next notification: notit-addr=%p", notit);
 
 	while (true) {
 		status = handle_state(notit);

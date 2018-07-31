@@ -131,10 +131,6 @@ const char *bt_notification_type_string(enum bt_notification_type type)
 		return "BT_NOTIFICATION_TYPE_PACKET_BEGIN";
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		return "BT_NOTIFICATION_TYPE_PACKET_END";
-	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
-		return "BT_NOTIFICATION_TYPE_DISCARDED_EVENTS";
-	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
-		return "BT_NOTIFICATION_TYPE_DISCARDED_PACKETS";
 	default:
 		return "(unknown)";
 	}

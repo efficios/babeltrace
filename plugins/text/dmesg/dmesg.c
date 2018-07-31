@@ -259,12 +259,6 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	dmesg_comp->cc_prio_map = bt_clock_class_priority_map_create();
-	if (!dmesg_comp->cc_prio_map) {
-		BT_LOGE_STR("Cannot create empty clock class priority map.");
-		goto error;
-	}
-
 	if (has_ts) {
 		dmesg_comp->clock_class = create_clock_class();
 		if (!dmesg_comp->clock_class) {
@@ -276,13 +270,6 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			dmesg_comp->clock_class);
 		if (ret) {
 			BT_LOGE_STR("Cannot add clock class to trace.");
-			goto error;
-		}
-
-		ret = bt_clock_class_priority_map_add_clock_class(
-			dmesg_comp->cc_prio_map, dmesg_comp->clock_class, 0);
-		if (ret) {
-			BT_LOGE_STR("Cannot add clock class to clock class priority map.");
 			goto error;
 		}
 
@@ -677,8 +664,7 @@ skip_ts:
 	}
 
 	notif = bt_notification_event_create(dmesg_comp->graph,
-		dmesg_comp->event_class, dmesg_comp->packet,
-		dmesg_comp->cc_prio_map);
+		dmesg_comp->event_class, dmesg_comp->packet);
 	if (!notif) {
 		BT_LOGE_STR("Cannot create event notification.");
 		goto error;
@@ -688,10 +674,8 @@ skip_ts:
 	BT_ASSERT(event);
 
 	if (dmesg_comp->clock_class) {
-		struct bt_clock_value *cv = bt_event_borrow_clock_value(event,
-			dmesg_comp->clock_class);
-
-		ret = bt_clock_value_set_value(cv, ts);
+		ret = bt_event_set_clock_value(event,
+			dmesg_comp->clock_class, ts, BT_TRUE);
 		BT_ASSERT(ret == 0);
 		eh_field = bt_event_borrow_header(event);
 		BT_ASSERT(eh_field);

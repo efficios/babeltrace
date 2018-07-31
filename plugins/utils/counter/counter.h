@@ -37,10 +37,6 @@ struct counter {
 		uint64_t packet_begin;
 		uint64_t packet_end;
 		uint64_t inactivity;
-		uint64_t discarded_events_notifs;
-		uint64_t discarded_events;
-		uint64_t discarded_packets_notifs;
-		uint64_t discarded_packets;
 		uint64_t other;
 	} count;
 	uint64_t last_printed_total;

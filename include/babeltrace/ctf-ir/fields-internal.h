@@ -51,7 +51,7 @@
 		_name " is not set: %!+_f", (_field))
 
 #define BT_ASSERT_PRE_FIELD_COMMON_HOT(_field, _name)			\
-	BT_ASSERT_PRE_HOT((_field), (_name), ": +%!+_f", (_field))
+	BT_ASSERT_PRE_HOT((_field), (_name), ": %!+_f", (_field))
 
 struct bt_field;
 struct bt_field_common;

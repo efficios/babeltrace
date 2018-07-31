@@ -72,7 +72,6 @@
 #include <babeltrace/plugin/plugin.h>
 
 /* Graph, component, and notification API */
-#include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/component-class-filter.h>
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/component-class-source.h>
@@ -84,8 +83,6 @@
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/graph.h>
-#include <babeltrace/graph/notification-discarded-events.h>
-#include <babeltrace/graph/notification-discarded-packets.h>
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-inactivity.h>
 #include <babeltrace/graph/notification-iterator.h>

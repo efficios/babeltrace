@@ -23,39 +23,30 @@
  * SOFTWARE.
  */
 
-/* For bt_get() */
-#include <babeltrace/ref.h>
+#include <stdint.h>
+
+/* For bt_bool */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
-struct bt_clock_class_priority_map;
+struct bt_clock_value;
 struct bt_clock_class;
 
 extern
 struct bt_notification *bt_notification_inactivity_create(
-		struct bt_graph *graph,
-		struct bt_clock_class_priority_map *clock_class_priority_map);
+		struct bt_graph *graph);
 
-extern struct bt_clock_class_priority_map *
-bt_notification_inactivity_borrow_clock_class_priority_map(
-		struct bt_notification *notification);
+extern int bt_notification_inactivity_set_clock_value(
+		struct bt_notification *notif,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default);
 
-static inline
-struct bt_clock_class_priority_map *
-bt_notification_inactivity_get_clock_class_priority_map(
-		struct bt_notification *notification)
-{
-	return bt_get(
-		bt_notification_inactivity_borrow_clock_class_priority_map(
-			notification));
-}
-
-extern struct bt_clock_value *bt_notification_inactivity_borrow_clock_value(
-		struct bt_notification *notification,
-		struct bt_clock_class *clock_class);
+extern struct bt_clock_value *bt_notification_inactivity_borrow_default_clock_value(
+		struct bt_notification *notif);
 
 #ifdef __cplusplus
 }
