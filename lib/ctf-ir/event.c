@@ -591,26 +591,11 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 		goto error;
 	}
 
-	event->clock_values = g_hash_table_new_full(g_direct_hash,
-			g_direct_equal, NULL,
-			(GDestroyNotify) bt_clock_value_recycle);
-	BT_ASSERT(event->clock_values);
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
-
-	if (stream_class->common.clock_class) {
-		struct bt_clock_value *clock_value;
-
-		clock_value = bt_clock_value_create(
-			stream_class->common.clock_class);
-		if (!clock_value) {
-			BT_LIB_LOGE("Cannot create clock value from clock class: "
-				"%![cc-]+K", stream_class->common.clock_class);
-			goto error;
-		}
-
-		g_hash_table_insert(event->clock_values,
-			stream_class->common.clock_class, clock_value);
+	ret = bt_clock_value_set_initialize(&event->cv_set);
+	if (ret) {
+		goto error;
 	}
 
 	goto end;
@@ -688,32 +673,36 @@ void bt_event_destroy(struct bt_event *event)
 	bt_event_common_finalize((void *) event,
 		(void *) bt_field_destroy_recursive,
 		(void *) release_event_header_field);
-	g_hash_table_destroy(event->clock_values);
+	bt_clock_value_set_finalize(&event->cv_set);
 	BT_LOGD_STR("Putting event's packet.");
 	bt_put(event->packet);
 	g_free(event);
 }
 
-struct bt_clock_value *bt_event_borrow_clock_value(
-		struct bt_event *event, struct bt_clock_class *clock_class)
+int bt_event_set_clock_value(struct bt_event *event,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default)
+{
+	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_HOT(BT_TO_COMMON(event), "Event", ": %!+e", event);
+	BT_ASSERT_PRE(is_default,
+		"You can only set a default clock value as of this version.");
+	return bt_clock_value_set_set_clock_value(&event->cv_set, clock_class,
+		raw_value, is_default);
+}
+
+struct bt_clock_value *bt_event_borrow_default_clock_value(
+		struct bt_event *event)
 {
 	struct bt_clock_value *clock_value = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	clock_value = g_hash_table_lookup(event->clock_values, clock_class);
+	clock_value = event->cv_set.default_cv;
 	if (!clock_value) {
-		BT_LOGV("No clock value associated to the given clock class: "
-			"event-addr=%p, event-class-name=\"%s\", "
-			"event-class-id=%" PRId64 ", clock-class-addr=%p, "
-			"clock-class-name=\"%s\"", event,
-			bt_event_class_common_get_name(event->common.class),
-			bt_event_class_common_get_id(event->common.class),
-			clock_class, bt_clock_class_get_name(clock_class));
-		goto end;
+		BT_LIB_LOGV("No default clock value: %![event-]+e", event);
 	}
 
-end:
 	return clock_value;
 }
 
@@ -752,7 +741,7 @@ int bt_event_move_header(struct bt_event *event,
 
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
-	BT_ASSERT_PRE_HOT(BT_TO_COMMON(event), "Event", ": +%!+e", event);
+	BT_ASSERT_PRE_HOT(BT_TO_COMMON(event), "Event", ": %!+e", event);
 	stream_class = bt_event_class_borrow_stream_class(
 		bt_event_borrow_class(event));
 	BT_ASSERT_PRE(stream_class->common.event_header_field_type,

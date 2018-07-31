@@ -531,27 +531,6 @@ end:
 	return ret;
 }
 
-static inline
-uint64_t ns_from_value(uint64_t frequency, uint64_t value)
-{
-	uint64_t ns;
-
-	if (frequency == UINT64_C(1000000000)) {
-		ns = value;
-	} else {
-		double dblres = ((1e9 * (double) value) / (double) frequency);
-
-		if (dblres >= (double) UINT64_MAX) {
-			/* Overflows uint64_t */
-			ns = -1ULL;
-		} else {
-			ns = (uint64_t) dblres;
-		}
-	}
-
-	return ns;
-}
-
 BT_HIDDEN
 void bt_clock_class_freeze(struct bt_clock_class *clock_class)
 {
@@ -594,152 +573,6 @@ void bt_clock_value_destroy(struct bt_clock_value *clock_value)
 		bt_clock_class_get_name(clock_value->clock_class));
 	bt_put(clock_value->clock_class);
 	g_free(clock_value);
-}
-
-static inline
-int ns_from_epoch(struct bt_clock_class *clock_class, uint64_t value,
-		int64_t *ns_from_epoch, bool *overflows)
-{
-	int ret = 0;
-	int64_t diff;
-	int64_t s_ns;
-	uint64_t u_ns;
-	uint64_t cycles;
-
-	*overflows = false;
-
-	/* Initialize nanosecond timestamp to clock's offset in seconds */
-	if (clock_class->offset_s <= (INT64_MIN / INT64_C(1000000000)) ||
-			clock_class->offset_s >= (INT64_MAX / INT64_C(1000000000))) {
-		/*
-		 * Overflow: offset in seconds converted to nanoseconds
-		 * is outside the int64_t range.
-		 */
-		*overflows = true;
-		goto end;
-	}
-
-	*ns_from_epoch = clock_class->offset_s * INT64_C(1000000000);
-
-	/* Add offset in cycles */
-	if (clock_class->offset < 0) {
-		cycles = (uint64_t) -clock_class->offset;
-	} else {
-		cycles = (uint64_t) clock_class->offset;
-	}
-
-	u_ns = ns_from_value(clock_class->frequency, cycles);
-
-	if (u_ns == UINT64_C(-1) || u_ns >= INT64_MAX) {
-		/*
-		 * Overflow: offset in cycles converted to nanoseconds
-		 * is outside the int64_t range.
-		 */
-		*overflows = true;
-		goto end;
-	}
-
-	s_ns = (int64_t) u_ns;
-	BT_ASSERT(s_ns >= 0);
-
-	if (clock_class->offset < 0) {
-		if (*ns_from_epoch >= 0) {
-			/*
-			 * Offset in cycles is negative so it must also
-			 * be negative once converted to nanoseconds.
-			 */
-			s_ns = -s_ns;
-			goto offset_ok;
-		}
-
-		diff = *ns_from_epoch - INT64_MIN;
-
-		if (s_ns >= diff) {
-			/*
-			 * Overflow: current timestamp in nanoseconds
-			 * plus the offset in cycles converted to
-			 * nanoseconds is outside the int64_t range.
-			 */
-			*overflows = true;
-			goto end;
-		}
-
-		/*
-		 * Offset in cycles is negative so it must also be
-		 * negative once converted to nanoseconds.
-		 */
-		s_ns = -s_ns;
-	} else {
-		if (*ns_from_epoch <= 0) {
-			goto offset_ok;
-		}
-
-		diff = INT64_MAX - *ns_from_epoch;
-
-		if (s_ns >= diff) {
-			/*
-			 * Overflow: current timestamp in nanoseconds
-			 * plus the offset in cycles converted to
-			 * nanoseconds is outside the int64_t range.
-			 */
-			*overflows = true;
-			goto end;
-		}
-	}
-
-offset_ok:
-	*ns_from_epoch += s_ns;
-
-	/* Add clock value (cycles) */
-	u_ns = ns_from_value(clock_class->frequency, value);
-
-	if (u_ns == -1ULL || u_ns >= INT64_MAX) {
-		/*
-		 * Overflow: value converted to nanoseconds is outside
-		 * the int64_t range.
-		 */
-		*overflows = true;
-		goto end;
-	}
-
-	s_ns = (int64_t) u_ns;
-	BT_ASSERT(s_ns >= 0);
-
-	/* Clock value (cycles) is always positive */
-	if (*ns_from_epoch <= 0) {
-		goto value_ok;
-	}
-
-	diff = INT64_MAX - *ns_from_epoch;
-
-	if (s_ns >= diff) {
-		/*
-		 * Overflow: current timestamp in nanoseconds plus the
-		 * clock value converted to nanoseconds is outside the
-		 * int64_t range.
-		 */
-		*overflows = true;
-		goto end;
-	}
-
-value_ok:
-	*ns_from_epoch += s_ns;
-
-end:
-	if (*overflows) {
-		*ns_from_epoch = 0;
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static
-void set_ns_from_epoch(struct bt_clock_value *clock_value)
-{
-	(void) ns_from_epoch(clock_value->clock_class,
-		clock_value->value, &clock_value->ns_from_epoch,
-		&clock_value->ns_from_epoch_overflows);
 }
 
 static
@@ -840,26 +673,6 @@ void bt_clock_value_recycle(struct bt_clock_value *clock_value)
 	clock_value->clock_class = NULL;
 	bt_object_pool_recycle_object(&clock_class->cv_pool, clock_value);
 	bt_put(clock_class);
-}
-
-BT_HIDDEN
-void bt_clock_value_set_raw_value(struct bt_clock_value *clock_value,
-		uint64_t cycles)
-{
-	BT_ASSERT(clock_value);
-
-	clock_value->value = cycles;
-	set_ns_from_epoch(clock_value);
-	bt_clock_value_set(clock_value);
-}
-
-int bt_clock_value_set_value(struct bt_clock_value *clock_value,
-		uint64_t raw_value)
-{
-	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
-	BT_ASSERT_PRE_HOT(clock_value, "Clock value", ": %!+k", clock_value);
-	bt_clock_value_set_raw_value(clock_value, raw_value);
-	return 0;
 }
 
 int bt_clock_value_get_value(struct bt_clock_value *clock_value,

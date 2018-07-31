@@ -31,7 +31,6 @@
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event.h>
 #include <babeltrace/graph/notification-internal.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/assert-internal.h>
 
 #ifdef __cplusplus
@@ -41,7 +40,6 @@ extern "C" {
 struct bt_notification_event {
 	struct bt_notification parent;
 	struct bt_event *event;
-	struct bt_clock_class_priority_map *cc_prio_map;
 };
 
 BT_HIDDEN

@@ -35,8 +35,6 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
-#include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
@@ -79,22 +77,19 @@ end:
 struct bt_notification *bt_notification_event_create(
 		struct bt_graph *graph,
 		struct bt_event_class *event_class,
-		struct bt_packet *packet,
-		struct bt_clock_class_priority_map *cc_prio_map)
+		struct bt_packet *packet)
 {
 	struct bt_notification_event *notification = NULL;
 	struct bt_event *event;
 
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(cc_prio_map, "Clock class priority map");
 	BT_LOGD("Creating event notification object: "
 		"event-class-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"cc-prio-map-addr=%p",
+		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		event_class,
 		bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class), cc_prio_map);
+		bt_event_class_get_id(event_class));
 	BT_ASSERT_PRE(event_class_has_trace(event_class),
 		"Event class is not part of a trace: %!+E", event_class);
 	event = bt_event_create(event_class, packet);
@@ -126,21 +121,15 @@ struct bt_notification *bt_notification_event_create(
 		goto error;
 	}
 
-	BT_ASSERT(!notification->cc_prio_map);
-	notification->cc_prio_map = cc_prio_map;
-	bt_object_get_no_null_check_no_parent_check(
-		&notification->cc_prio_map->base);
 	BT_ASSERT(!notification->event);
 	notification->event = event;
-	BT_LOGD_STR("Freezing event notification's clock class priority map.");
-	bt_clock_class_priority_map_freeze(notification->cc_prio_map);
 	BT_LOGD("Created event notification object: "
 		"event-addr=%p, event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"cc-prio-map-addr=%p, notif-addr=%p",
+		"notif-addr=%p",
 		notification->event, event_class,
 		bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class), cc_prio_map,
+		bt_event_class_get_id(event_class),
 		notification);
 	goto end;
 
@@ -164,8 +153,6 @@ void bt_notification_event_destroy(struct bt_notification *notif)
 		bt_event_recycle(event_notif->event);
 	}
 
-	BT_LOGD_STR("Putting clock class priority map.");
-	BT_PUT(event_notif->cc_prio_map);
 	g_free(notif);
 }
 
@@ -188,8 +175,6 @@ void bt_notification_event_recycle(struct bt_notification *notif)
 	BT_LOGD_STR("Recycling event.");
 	bt_event_recycle(event_notif->event);
 	event_notif->event = NULL;
-	bt_object_put_no_null_check(&event_notif->cc_prio_map->base);
-	event_notif->cc_prio_map = NULL;
 	graph = notif->graph;
 	notif->graph = NULL;
 	bt_object_pool_recycle_object(&graph->event_notif_pool, notif);
@@ -205,17 +190,4 @@ struct bt_event *bt_notification_event_borrow_event(
 	event_notification = container_of(notification,
 			struct bt_notification_event, parent);
 	return event_notification->event;
-}
-
-extern struct bt_clock_class_priority_map *
-bt_notification_event_borrow_clock_class_priority_map(
-		struct bt_notification *notification)
-{
-	struct bt_notification_event *event_notification;
-
-	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
-	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification, BT_NOTIFICATION_TYPE_EVENT);
-	event_notification = container_of(notification,
-			struct bt_notification_event, parent);
-	return event_notification->cc_prio_map;
 }

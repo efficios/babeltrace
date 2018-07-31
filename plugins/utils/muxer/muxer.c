@@ -601,7 +601,6 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		struct bt_notification *notif, int64_t last_returned_ts_ns,
 		int64_t *ts_ns)
 {
-	struct bt_clock_class_priority_map *cc_prio_map = NULL;
 	struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 	struct bt_event *event = NULL;
@@ -619,14 +618,14 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 
 	switch (bt_notification_get_type(notif)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
-		cc_prio_map =
-			bt_notification_event_borrow_clock_class_priority_map(
-				notif);
+		event = bt_notification_event_borrow_event(notif);
+		BT_ASSERT(event);
+		clock_value = bt_event_borrow_default_clock_value(event);
 		break;
 
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
-		cc_prio_map =
-			bt_notification_inactivity_borrow_clock_class_priority_map(
+		clock_value =
+			bt_notification_inactivity_borrow_default_clock_value(
 				notif);
 		break;
 	default:
@@ -636,33 +635,20 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto end;
 	}
 
-	if (!cc_prio_map) {
-		BT_LOGE("Cannot get notification's clock class priority map: "
-			"notif-addr=%p", notif);
-		goto error;
-	}
-
 	/*
-	 * If the clock class priority map is empty, then we consider
-	 * that this notification has no time. In this case it's always
-	 * the youngest.
+	 * If the clock value is missing, then we consider that this
+	 * notification has no time. In this case it's always the
+	 * youngest.
 	 */
-	if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) == 0) {
-		BT_LOGV_STR("Notification's clock class priority map contains 0 clock classes: "
+	if (!clock_value) {
+		BT_LOGV_STR("Notification's default clock value is missing: "
 			"using the last returned timestamp.");
 		*ts_ns = last_returned_ts_ns;
 		goto end;
 	}
 
-	clock_class =
-		bt_clock_class_priority_map_borrow_highest_priority_clock_class(
-			cc_prio_map);
-	if (!clock_class) {
-		BT_LOGE("Cannot get the clock class with the highest priority from clock class priority map: "
-			"cc-prio-map-addr=%p", cc_prio_map);
-		goto error;
-	}
-
+	clock_class = bt_clock_value_borrow_class(clock_value);
+	BT_ASSERT(clock_class);
 	cc_uuid = bt_clock_class_get_uuid(clock_class);
 	cc_name = bt_clock_class_get_name(clock_class);
 
@@ -812,30 +798,6 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 				muxer_notif_iter->clock_class_expectation);
 			abort();
 		}
-	}
-
-	switch (bt_notification_get_type(notif)) {
-	case BT_NOTIFICATION_TYPE_EVENT:
-		event = bt_notification_event_borrow_event(notif);
-		BT_ASSERT(event);
-		clock_value = bt_event_borrow_clock_value(event,
-			clock_class);
-		break;
-	case BT_NOTIFICATION_TYPE_INACTIVITY:
-		clock_value = bt_notification_inactivity_borrow_clock_value(
-			notif, clock_class);
-		break;
-	default:
-		BT_LOGF("Unexpected notification type at this point: "
-			"type=%d", bt_notification_get_type(notif));
-		abort();
-	}
-
-	if (!clock_value) {
-		BT_LOGE("Cannot get notification's clock value for clock class: "
-			"clock-class-addr=%p, clock-class-name=\"%s\"",
-			clock_class, cc_name);
-		goto error;
 	}
 
 	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ts_ns);

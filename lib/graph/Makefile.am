@@ -4,7 +4,6 @@ noinst_LTLIBRARIES = libgraph.la
 
 # Graph library
 libgraph_la_SOURCES = \
-	clock-class-priority-map.c \
 	component.c \
 	component-class.c \
 	graph.c \

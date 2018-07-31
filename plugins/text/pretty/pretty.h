@@ -127,9 +127,4 @@ BT_HIDDEN
 enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 		struct bt_notification *event_notif);
 
-BT_HIDDEN
-enum bt_component_status pretty_print_discarded_elements(
-		struct pretty_component *pretty,
-		struct bt_notification *notif);
-
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

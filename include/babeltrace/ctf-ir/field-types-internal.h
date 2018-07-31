@@ -42,7 +42,7 @@
 		"%![ft-]+_F", bt_common_field_type_id_string(_type_id), (_ft))
 
 #define BT_ASSERT_PRE_FT_HOT(_ft, _name)				\
-	BT_ASSERT_PRE_HOT((_ft), (_name), ": +%!+_F", (_ft))
+	BT_ASSERT_PRE_HOT((_ft), (_name), ": %!+_F", (_ft))
 
 #define BT_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(_ft, _index)	\
 	(&g_array_index(((struct bt_field_type_common_structure *) (_ft))->fields, \

@@ -102,6 +102,9 @@ void bt_packet_reset(struct bt_packet *packet)
 			(void *) packet->context->field, false);
 		bt_field_reset_recursive((void *) packet->context->field);
 	}
+
+	bt_clock_value_set_reset(&packet->begin_cv_set);
+	bt_clock_value_set_reset(&packet->end_cv_set);
 }
 
 static
@@ -193,6 +196,8 @@ void bt_packet_destroy(struct bt_packet *packet)
 		}
 	}
 
+	bt_clock_value_set_finalize(&packet->begin_cv_set);
+	bt_clock_value_set_finalize(&packet->end_cv_set);
 	BT_LOGD_STR("Putting packet's stream.");
 	bt_put(packet->stream);
 	g_free(packet);
@@ -253,6 +258,16 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 		}
 	}
 
+	if (bt_clock_value_set_initialize(&packet->begin_cv_set)) {
+		BT_PUT(packet);
+		goto end;
+	}
+
+	if (bt_clock_value_set_initialize(&packet->end_cv_set)) {
+		BT_PUT(packet);
+		goto end;
+	}
+
 	BT_LOGD("Created packet object: addr=%p", packet);
 
 end:
@@ -291,7 +306,7 @@ int bt_packet_move_header(struct bt_packet *packet,
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Event");
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
-	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
 	trace = bt_stream_class_borrow_trace(
 		bt_stream_borrow_class(packet->stream));
 	BT_ASSERT_PRE(trace->common.packet_header_field_type,
@@ -317,7 +332,7 @@ int bt_packet_move_context(struct bt_packet *packet,
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Event");
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Context field");
-	BT_ASSERT_PRE_HOT(packet, "Packet", ": +%!+a", packet);
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
 	stream_class = bt_stream_borrow_class(packet->stream);
 	BT_ASSERT_PRE(stream_class->common.packet_context_field_type,
 		"Stream class has no packet context field type: %!+S",
@@ -332,4 +347,58 @@ int bt_packet_move_context(struct bt_packet *packet,
 	/* Move new field */
 	packet->context = field_wrapper;
 	return 0;
+}
+
+int bt_packet_set_beginning_clock_value(struct bt_packet *packet,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
+	BT_ASSERT_PRE(is_default,
+		"You can only set a default clock value as of this version.");
+	return bt_clock_value_set_set_clock_value(&packet->begin_cv_set,
+		clock_class, raw_value, is_default);
+}
+
+struct bt_clock_value *bt_packet_borrow_default_begin_clock_value(
+		struct bt_packet *packet)
+{
+	struct bt_clock_value *clock_value = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	clock_value = packet->begin_cv_set.default_cv;
+	if (!clock_value) {
+		BT_LIB_LOGV("No default clock value: %![packet-]+a", packet);
+	}
+
+	return clock_value;
+}
+
+int bt_packet_set_end_clock_value(struct bt_packet *packet,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
+	BT_ASSERT_PRE(is_default,
+		"You can only set a default clock value as of this version.");
+	return bt_clock_value_set_set_clock_value(&packet->end_cv_set,
+		clock_class, raw_value, is_default);
+}
+
+struct bt_clock_value *bt_packet_borrow_default_end_clock_value(
+		struct bt_packet *packet)
+{
+	struct bt_clock_value *clock_value = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	clock_value = packet->end_cv_set.default_cv;
+	if (!clock_value) {
+		BT_LIB_LOGV("No default clock value: %![packet-]+a", packet);
+	}
+
+	return clock_value;
 }

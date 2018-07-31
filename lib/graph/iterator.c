@@ -53,7 +53,6 @@
 #include <babeltrace/graph/notification-packet-internal.h>
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification-stream-internal.h>
-#include <babeltrace/graph/notification-discarded-elements-internal.h>
 #include <babeltrace/graph/port.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/types.h>
@@ -69,16 +68,9 @@
  */
 #define NOTIF_BATCH_SIZE	15
 
-struct discarded_elements_state {
-	struct bt_clock_value *cur_begin;
-	uint64_t cur_count;
-};
-
 struct stream_state {
 	struct bt_stream *stream; /* owned by this */
 	struct bt_packet *cur_packet; /* owned by this */
-	struct discarded_elements_state discarded_packets_state;
-	struct discarded_elements_state discarded_events_state;
 	uint64_t expected_notif_seq_num;
 	bt_bool is_ended;
 };
@@ -96,8 +88,6 @@ void destroy_stream_state(struct stream_state *stream_state)
 	bt_put(stream_state->cur_packet);
 	BT_LOGV_STR("Putting stream state's stream.");
 	bt_put(stream_state->stream);
-	bt_put(stream_state->discarded_packets_state.cur_begin);
-	bt_put(stream_state->discarded_events_state.cur_begin);
 	g_free(stream_state);
 }
 
@@ -111,15 +101,6 @@ struct stream_state *create_stream_state(struct bt_stream *stream)
 		BT_LOGE_STR("Failed to allocate one stream state.");
 		goto end;
 	}
-
-	/*
-	 * The packet index is a monotonic counter which may not start
-	 * at 0 at the beginning of the stream. We therefore need to
-	 * have an internal object initial state of -1ULL to distinguish
-	 * between initial state and having seen a packet with
-	 * the sequence number 0.
-	 */
-	stream_state->discarded_packets_state.cur_count = -1ULL;
 
 	/*
 	 * We keep a reference to the stream until we know it's ended.

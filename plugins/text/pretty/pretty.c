@@ -140,10 +140,6 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 		fprintf(stderr, "Inactivity notification\n");
 		break;
-	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
-	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
-		ret = pretty_print_discarded_elements(pretty, notification);
-		break;
 	default:
 		break;
 	}

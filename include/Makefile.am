@@ -128,7 +128,6 @@ babeltraceplugininclude_HEADERS = \
 # Graph, component, and notification API
 babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
-	babeltrace/graph/clock-class-priority-map.h \
 	babeltrace/graph/component-class-filter.h \
 	babeltrace/graph/component-class-sink.h \
 	babeltrace/graph/component-class-source.h \
@@ -140,8 +139,6 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/component.h \
 	babeltrace/graph/connection.h \
 	babeltrace/graph/graph.h \
-	babeltrace/graph/notification-discarded-events.h \
-	babeltrace/graph/notification-discarded-packets.h \
 	babeltrace/graph/notification-event.h \
 	babeltrace/graph/notification-inactivity.h \
 	babeltrace/graph/notification-iterator.h \
@@ -210,6 +207,7 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/clock-class-internal.h \
 	babeltrace/ctf-ir/field-types-internal.h \
 	babeltrace/ctf-ir/clock-value-internal.h \
+	babeltrace/ctf-ir/clock-value-set-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
 	babeltrace/ctf-ir/stream-internal.h \
 	babeltrace/ctf-ir/resolve-internal.h \
@@ -228,7 +226,6 @@ noinst_HEADERS = \
 	babeltrace/graph/component-class-sink-colander-internal.h \
 	babeltrace/graph/notification-inactivity-internal.h \
 	babeltrace/graph/component-source-internal.h \
-	babeltrace/graph/notification-discarded-elements-internal.h \
 	babeltrace/graph/notification-packet-internal.h \
 	babeltrace/graph/notification-iterator-internal.h \
 	babeltrace/graph/notification-internal.h \
@@ -236,7 +233,6 @@ noinst_HEADERS = \
 	babeltrace/graph/component-class-internal.h \
 	babeltrace/graph/component-sink-internal.h \
 	babeltrace/graph/port-internal.h \
-	babeltrace/graph/clock-class-priority-map-internal.h \
 	babeltrace/list-internal.h \
 	version.h \
 	version.i
