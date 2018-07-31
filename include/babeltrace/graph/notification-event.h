@@ -37,29 +37,13 @@ extern "C" {
 struct bt_notification;
 struct bt_event;
 struct bt_event_class;
-struct bt_clock_class_priority_map;
 
 extern
 struct bt_notification *bt_notification_event_create(struct bt_graph *graph,
-		struct bt_event_class *event_class,
-		struct bt_packet *packet,
-		struct bt_clock_class_priority_map *clock_class_priority_map);
+		struct bt_event_class *event_class, struct bt_packet *packet);
 
 extern struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notification);
-
-extern struct bt_clock_class_priority_map *
-bt_notification_event_borrow_clock_class_priority_map(
-		struct bt_notification *notification);
-
-static inline
-struct bt_clock_class_priority_map *
-bt_notification_event_get_clock_class_priority_map(
-		struct bt_notification *notification)
-{
-	return bt_get(bt_notification_event_borrow_clock_class_priority_map(
-		notification));
-}
 
 #ifdef __cplusplus
 }

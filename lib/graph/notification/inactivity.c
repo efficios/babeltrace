@@ -27,8 +27,6 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/clock-class.h>
 #include <babeltrace/ctf-ir/clock-value-internal.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
-#include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
 #include <babeltrace/assert-pre-internal.h>
@@ -40,39 +38,18 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 			(struct bt_notification_inactivity *) obj;
 
 	BT_LOGD("Destroying inactivity notification: addr=%p", notification);
-	BT_LOGD_STR("Putting clock class priority map.");
-	bt_put(notification->cc_prio_map);
-
-	if (notification->clock_values) {
-		BT_LOGD_STR("Putting clock values.");
-		g_hash_table_destroy(notification->clock_values);
-	}
-
+	bt_clock_value_set_finalize(&notification->cv_set);
 	g_free(notification);
 }
 
 struct bt_notification *bt_notification_inactivity_create(
-		struct bt_graph *graph,
-		struct bt_clock_class_priority_map *cc_prio_map)
+		struct bt_graph *graph)
 {
 	struct bt_notification_inactivity *notification;
 	struct bt_notification *ret_notif = NULL;
-	uint64_t i;
+	int ret;
 
-	if (cc_prio_map) {
-		/* Function's reference, released at the end */
-		bt_get(cc_prio_map);
-	} else {
-		cc_prio_map = bt_clock_class_priority_map_create();
-		if (!cc_prio_map) {
-			BT_LOGE_STR("Cannot create empty clock class priority map.");
-			goto error;
-		}
-	}
-
-	BT_LOGD("Creating inactivity notification object: "
-		"cc-prio-map-addr=%p",
-		cc_prio_map);
+	BT_LOGD_STR("Creating inactivity notification object.");
 	notification = g_new0(struct bt_notification_inactivity, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one inactivity notification.");
@@ -82,71 +59,50 @@ struct bt_notification *bt_notification_inactivity_create(
 		BT_NOTIFICATION_TYPE_INACTIVITY,
 		bt_notification_inactivity_destroy, NULL);
 	ret_notif = &notification->parent;
-	notification->clock_values = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, (GDestroyNotify) bt_clock_value_recycle);
-	if (!notification->clock_values) {
-		BT_LOGE_STR("Failed to allocate a GHashTable.");
+	ret = bt_clock_value_set_initialize(&notification->cv_set);
+	if (ret) {
 		goto error;
 	}
 
-	for (i = 0; i < cc_prio_map->entries->len; i++) {
-		struct bt_clock_value *clock_value;
-		struct bt_clock_class *clock_class =
-			cc_prio_map->entries->pdata[i];
-
-		clock_value = bt_clock_value_create(clock_class);
-		if (!clock_value) {
-			BT_LIB_LOGE("Cannot create clock value from clock class: "
-				"%![cc-]+K", clock_class);
-			goto error;
-		}
-
-		g_hash_table_insert(notification->clock_values,
-			clock_class, clock_value);
-	}
-
-	notification->cc_prio_map = bt_get(cc_prio_map);
-	BT_LOGD_STR("Freezing inactivity notification's clock class priority map.");
-	bt_clock_class_priority_map_freeze(cc_prio_map);
-	BT_LOGD("Created inactivity notification object: "
-		"cc-prio-map-addr=%p, notif-addr=%p",
-		cc_prio_map, ret_notif);
+	BT_LOGD("Created inactivity notification object: addr=%p",
+		ret_notif);
 	goto end;
 
 error:
 	BT_PUT(ret_notif);
 
 end:
-	bt_put(cc_prio_map);
 	return ret_notif;
 }
 
-extern struct bt_clock_class_priority_map *
-bt_notification_inactivity_borrow_clock_class_priority_map(
-		struct bt_notification *notification)
+int bt_notification_inactivity_set_clock_value(struct bt_notification *notif,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default)
 {
-	struct bt_notification_inactivity *inactivity_notification;
+	struct bt_notification_inactivity *inactivity = (void *) notif;
 
-	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
-	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
-		BT_NOTIFICATION_TYPE_INACTIVITY);
-	inactivity_notification = container_of(notification,
-			struct bt_notification_inactivity, parent);
-	return inactivity_notification->cc_prio_map;
+	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
+	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
+	BT_ASSERT_PRE_HOT(notif, "Notification", ": %!+n", notif);
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_INACTIVITY);
+	BT_ASSERT_PRE(is_default,
+		"You can only set a default clock value as of this version.");
+	return bt_clock_value_set_set_clock_value(&inactivity->cv_set,
+		clock_class, raw_value, is_default);
 }
 
-struct bt_clock_value *bt_notification_inactivity_borrow_clock_value(
-		struct bt_notification *notification,
-		struct bt_clock_class *clock_class)
+struct bt_clock_value *bt_notification_inactivity_borrow_default_clock_value(
+		struct bt_notification *notif)
 {
-	struct bt_notification_inactivity *inactivity_notification;
+	struct bt_notification_inactivity *inactivity = (void *) notif;
+	struct bt_clock_value *clock_value = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
-		BT_NOTIFICATION_TYPE_INACTIVITY);
-	inactivity_notification = container_of(notification,
-		struct bt_notification_inactivity, parent);
-	return g_hash_table_lookup(
-		inactivity_notification->clock_values, clock_class);
+	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_INACTIVITY);
+	clock_value = inactivity->cv_set.default_cv;
+	if (!clock_value) {
+		BT_LIB_LOGV("No default clock value: %![notif-]+n", notif);
+	}
+
+	return clock_value;
 }

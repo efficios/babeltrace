@@ -31,12 +31,15 @@
 #include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/ctf-ir/clock-value-set-internal.h>
 
 struct bt_packet {
 	struct bt_object base;
 	struct bt_field_wrapper *header;
 	struct bt_field_wrapper *context;
 	struct bt_stream *stream;
+	struct bt_clock_value_set begin_cv_set;
+	struct bt_clock_value_set end_cv_set;
 	int frozen;
 };
 

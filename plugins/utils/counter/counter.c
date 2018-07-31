@@ -48,8 +48,6 @@ uint64_t get_total_count(struct counter *counter)
 		counter->count.packet_begin +
 		counter->count.packet_end +
 		counter->count.inactivity +
-		counter->count.discarded_events +
-		counter->count.discarded_packets +
 		counter->count.other;
 }
 
@@ -64,14 +62,6 @@ void print_count(struct counter *counter)
 	PRINTF_COUNT("packet beginning", "packet beginnings", packet_begin);
 	PRINTF_COUNT("packet end", "packet ends", packet_end);
 	PRINTF_COUNT("inactivity", "inactivities", inactivity);
-	PRINTF_COUNT("discarded events notification",
-		"discarded events notifications", discarded_events_notifs);
-	PRINTF_COUNT("  known discarded event", "  known discarded events",
-		discarded_events);
-	PRINTF_COUNT("discarded packets notification",
-		"discarded packets notifications", discarded_packets_notifs);
-	PRINTF_COUNT("  known discarded packet", "  known discarded packets",
-		discarded_packets);
 
 	if (counter->count.other > 0) {
 		PRINTF_COUNT("  other (unknown) notification",
@@ -217,7 +207,6 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct counter *counter;
 	enum bt_notification_iterator_status it_ret;
-	int64_t count;
 	uint64_t notif_count;
 	bt_notification_array notifs;
 
@@ -272,22 +261,6 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 				break;
 			case BT_NOTIFICATION_TYPE_PACKET_END:
 				counter->count.packet_end++;
-				break;
-			case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
-				counter->count.discarded_events_notifs++;
-				count = bt_notification_discarded_events_get_count(
-					notif);
-				if (count >= 0) {
-					counter->count.discarded_events += count;
-				}
-				break;
-			case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
-				counter->count.discarded_packets_notifs++;
-				count = bt_notification_discarded_packets_get_count(
-					notif);
-				if (count >= 0) {
-					counter->count.discarded_packets += count;
-				}
 				break;
 			default:
 				counter->count.other++;

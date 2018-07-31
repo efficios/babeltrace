@@ -304,8 +304,6 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notif_iter);
  * call this function again, until another status is returned.
  *
  * @param notif_iter		CTF notification iterator
- * @param cc_prio_map		Clock class priority map to use when
- *				creating an event notification
  * @param notification		Returned notification if the function's
  *				return value is #BT_NOTIF_ITER_STATUS_OK
  * @returns			One of #bt_notif_iter_status values
@@ -313,7 +311,6 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notif_iter);
 BT_HIDDEN
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
-		struct bt_clock_class_priority_map *cc_prio_map,
 		struct bt_graph *graph,
 		struct bt_notification **notification);
 

@@ -24,13 +24,12 @@
  */
 
 #include <glib.h>
-
-struct bt_clock_class_priority_map;
+#include <babeltrace/ctf-ir/clock-value-set-internal.h>
+#include <babeltrace/graph/notification.h>
 
 struct bt_notification_inactivity {
 	struct bt_notification parent;
-	struct bt_clock_class_priority_map *cc_prio_map;
-	GHashTable *clock_values;
+	struct bt_clock_value_set cv_set;
 };
 
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_INACTIVITY_INTERNAL_H */

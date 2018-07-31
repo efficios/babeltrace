@@ -876,6 +876,8 @@ int get_unary_unsigned(struct bt_list_head *head, uint64_t *value)
 	int ret = 0;
 	struct ctf_node *node;
 
+	*value = 0;
+
 	if (bt_list_empty(head)) {
 		ret = -1;
 		goto end;

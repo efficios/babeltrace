@@ -27,14 +27,21 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 /* For bt_get() */
 #include <babeltrace/ref.h>
+
+/* For bt_bool */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
+struct bt_clock_class;
+struct bt_clock_value;
 struct bt_stream;
 
 extern
@@ -57,6 +64,14 @@ struct bt_stream *bt_notification_stream_begin_get_stream(
 	return bt_get(bt_notification_stream_begin_borrow_stream(notification));
 }
 
+extern int bt_notification_stream_begin_set_clock_value(
+		struct bt_notification *notif,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default);
+
+extern struct bt_clock_value *bt_notification_stream_begin_borrow_default_clock_value(
+		struct bt_notification *notif);
+
 extern struct bt_stream *bt_notification_stream_end_borrow_stream(
 		struct bt_notification *notification);
 
@@ -66,6 +81,14 @@ struct bt_stream *bt_notification_stream_end_get_stream(
 {
 	return bt_get(bt_notification_stream_end_borrow_stream(notification));
 }
+
+extern int bt_notification_stream_end_set_clock_value(
+		struct bt_notification *notif,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default);
+
+extern struct bt_clock_value *bt_notification_stream_end_borrow_default_clock_value(
+		struct bt_notification *notif);
 
 #ifdef __cplusplus
 }

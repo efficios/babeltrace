@@ -57,7 +57,7 @@
 		(_value))
 
 #define BT_ASSERT_PRE_VALUE_HOT(_value, _name)				\
-	BT_ASSERT_PRE_HOT((_value), (_name), ": +%!+v", (_value))
+	BT_ASSERT_PRE_HOT((_value), (_name), ": %!+v", (_value))
 
 #define BT_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(_index, _count)		\
 	BT_ASSERT_PRE((_index) < (_count),				\

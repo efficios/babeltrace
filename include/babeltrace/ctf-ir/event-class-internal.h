@@ -102,10 +102,6 @@ int bt_event_class_common_validate_single_clock_class(
 		struct bt_event_class_common *event_class,
 		struct bt_clock_class **expected_clock_class);
 
-BT_HIDDEN
-int bt_event_class_update_event_pool_clock_values(
-		struct bt_event_class *event_class);
-
 static inline
 const char *bt_event_class_common_get_name(
 		struct bt_event_class_common *event_class)

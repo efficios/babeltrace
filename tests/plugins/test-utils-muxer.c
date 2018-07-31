@@ -73,8 +73,6 @@ static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_graph *graph;
-static struct bt_clock_class_priority_map *src_cc_prio_map;
-static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
 static struct bt_clock_class *src_clock_class;
 static struct bt_stream_class *src_stream_class;
 static struct bt_event_class *src_event_class;
@@ -326,13 +324,6 @@ void init_static_data(void)
 	BT_ASSERT(ret == 0);
 	ret = bt_trace_add_clock_class(trace, src_clock_class);
 	BT_ASSERT(ret == 0);
-	src_empty_cc_prio_map = bt_clock_class_priority_map_create();
-	BT_ASSERT(src_empty_cc_prio_map);
-	src_cc_prio_map = bt_clock_class_priority_map_create();
-	BT_ASSERT(src_cc_prio_map);
-	ret = bt_clock_class_priority_map_add_clock_class(src_cc_prio_map,
-		src_clock_class, 0);
-	BT_ASSERT(ret == 0);
 	src_stream_class = bt_stream_class_create("my-stream-class");
 	BT_ASSERT(src_stream_class);
 	ret = bt_stream_class_set_packet_context_field_type(src_stream_class,
@@ -399,8 +390,6 @@ void fini_static_data(void)
 	g_array_free(test_events, TRUE);
 
 	/* Metadata */
-	bt_put(src_empty_cc_prio_map);
-	bt_put(src_cc_prio_map);
 	bt_put(src_clock_class);
 	bt_put(src_stream_class);
 	bt_put(src_event_class);
@@ -507,16 +496,14 @@ enum bt_notification_iterator_status src_iter_init(
 
 static
 struct bt_notification *src_create_event_notif(struct bt_packet *packet,
-		struct bt_clock_class_priority_map *cc_prio_map, int64_t ts_ns)
+		int64_t ts_ns)
 {
 	int ret;
 	struct bt_event *event;
 	struct bt_notification *notif;
-	struct bt_clock_value *clock_value;
 	struct bt_field *field;
 
-	notif = bt_notification_event_create(graph, src_event_class,
-		packet, cc_prio_map);
+	notif = bt_notification_event_create(graph, src_event_class, packet);
 	BT_ASSERT(notif);
 	event = bt_notification_event_borrow_event(notif);
 	BT_ASSERT(event);
@@ -526,10 +513,13 @@ struct bt_notification *src_create_event_notif(struct bt_packet *packet,
 	BT_ASSERT(field);
 	ret = bt_field_integer_unsigned_set_value(field, (uint64_t) ts_ns);
 	BT_ASSERT(ret == 0);
-	clock_value = bt_event_borrow_clock_value(event, src_clock_class);
-	BT_ASSERT(clock_value);
-	ret = bt_clock_value_set_value(clock_value, (uint64_t) ts_ns);
-	BT_ASSERT(ret == 0);
+
+	if (ts_ns != UINT64_C(-1)) {
+		ret = bt_event_set_clock_value(event, src_clock_class, (uint64_t) ts_ns,
+			BT_TRUE);
+		BT_ASSERT(ret == 0);
+	}
+
 	return notif;
 }
 
@@ -578,7 +568,7 @@ enum bt_notification_iterator_status src_iter_next_seq(
 	default:
 	{
 		notifs[0] = src_create_event_notif(user_data->packet,
-			src_cc_prio_map, cur_ts_ns);
+			cur_ts_ns);
 		BT_ASSERT(notifs[0]);
 		break;
 	}
@@ -634,8 +624,7 @@ enum bt_notification_iterator_status src_iter_next(
 			} else if (user_data->at < 7) {
 				notifs[0] =
 					src_create_event_notif(
-						user_data->packet,
-						src_empty_cc_prio_map, 0);
+						user_data->packet, UINT64_C(-1));
 				BT_ASSERT(notifs[0]);
 			} else if (user_data->at == 7) {
 				notifs[0] =
@@ -760,33 +749,21 @@ void append_test_event_from_notification(struct bt_notification *notification)
 {
 	int ret;
 	struct test_event test_event;
+	struct bt_clock_value *cv;
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
 		struct bt_event *event;
-		struct bt_clock_class_priority_map *cc_prio_map;
 
 		test_event.type = TEST_EV_TYPE_NOTIF_EVENT;
-		cc_prio_map =
-			bt_notification_event_borrow_clock_class_priority_map(
-				notification);
-		BT_ASSERT(cc_prio_map);
 		event = bt_notification_event_borrow_event(notification);
 		BT_ASSERT(event);
+		cv = bt_event_borrow_default_clock_value(event);
 
-		if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) > 0) {
-			struct bt_clock_value *clock_value;
-			struct bt_clock_class *clock_class =
-				bt_clock_class_priority_map_borrow_highest_priority_clock_class(
-					cc_prio_map);
-
-			BT_ASSERT(clock_class);
-			clock_value = bt_event_borrow_clock_value(event,
-				clock_class);
-			BT_ASSERT(clock_value);
+		if (cv) {
 			ret = bt_clock_value_get_value_ns_from_epoch(
-					clock_value, &test_event.ts_ns);
+				cv, &test_event.ts_ns);
 			BT_ASSERT(ret == 0);
 		} else {
 			test_event.ts_ns = -1;
@@ -796,26 +773,13 @@ void append_test_event_from_notification(struct bt_notification *notification)
 	}
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 	{
-		struct bt_clock_class_priority_map *cc_prio_map;
-
 		test_event.type = TEST_EV_TYPE_NOTIF_INACTIVITY;
-		cc_prio_map = bt_notification_inactivity_borrow_clock_class_priority_map(
+		cv = bt_notification_inactivity_borrow_default_clock_value(
 			notification);
-		BT_ASSERT(cc_prio_map);
 
-		if (bt_clock_class_priority_map_get_clock_class_count(cc_prio_map) > 0) {
-			struct bt_clock_value *clock_value;
-			struct bt_clock_class *clock_class =
-				bt_clock_class_priority_map_borrow_highest_priority_clock_class(
-					cc_prio_map);
-
-			BT_ASSERT(clock_class);
-			clock_value =
-				bt_notification_inactivity_borrow_clock_value(
-					notification, clock_class);
-			BT_ASSERT(clock_value);
+		if (cv) {
 			ret = bt_clock_value_get_value_ns_from_epoch(
-					clock_value, &test_event.ts_ns);
+					cv, &test_event.ts_ns);
 			BT_ASSERT(ret == 0);
 		} else {
 			test_event.ts_ns = -1;

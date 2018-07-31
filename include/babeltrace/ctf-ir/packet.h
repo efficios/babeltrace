@@ -28,10 +28,13 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+
 /* For bt_get() */
 #include <babeltrace/ref.h>
 
-#include <stdint.h>
+/* For bt_bool */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,6 +103,8 @@ struct bt_packet;
 struct bt_packet_header_field;
 struct bt_packet_context_field;
 struct bt_stream;
+struct bt_clock_value;
+struct bt_clock_class;
 
 /**
 @name Creation and parent access functions
@@ -166,6 +171,20 @@ int bt_packet_move_context(struct bt_packet *packet,
 		struct bt_packet_context_field *context);
 
 /** @} */
+
+extern int bt_packet_set_beginning_clock_value(struct bt_packet *packet,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default);
+
+extern struct bt_clock_value *bt_packet_borrow_default_beginning_clock_value(
+		struct bt_packet *packet);
+
+extern int bt_packet_set_end_clock_value(struct bt_packet *packet,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default);
+
+extern struct bt_clock_value *bt_packet_borrow_default_end_clock_value(
+		struct bt_packet *packet);
 
 /** @} */
 

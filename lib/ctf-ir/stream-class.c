@@ -572,14 +572,11 @@ end:
 	return ret;
 }
 
-int bt_stream_class_add_event_class(
-		struct bt_stream_class *stream_class,
+int bt_stream_class_add_event_class(struct bt_stream_class *stream_class,
 		struct bt_event_class *event_class)
 {
 	struct bt_trace *trace;
 	int ret = 0;
-	uint64_t i;
-	struct bt_clock_class *old_clock_class;
 
 	if (!stream_class) {
 		BT_LOGW("Invalid parameter: stream class is NULL: "
@@ -588,7 +585,6 @@ int bt_stream_class_add_event_class(
 		goto end;
 	}
 
-	old_clock_class = stream_class->common.clock_class;
 	trace = BT_FROM_COMMON(bt_stream_class_common_borrow_trace(
 		BT_TO_COMMON(stream_class)));
 	if (trace && trace->is_static) {
@@ -612,28 +608,6 @@ int bt_stream_class_add_event_class(
 				.type = BT_VISITOR_OBJECT_TYPE_EVENT_CLASS };
 
 		(void) bt_trace_object_modification(&obj, trace);
-	}
-
-	if (!old_clock_class && stream_class->common.clock_class) {
-		/*
-		 * Adding this event class updated the stream class's
-		 * single clock class: make sure all the events which
-		 * exist in event pools have an existing clock value for
-		 * this clock class so that any created event object in
-		 * the future (from a pool or not) has this clock value
-		 * available.
-		 */
-		for (i = 0; i < stream_class->common.event_classes->len; i++) {
-			struct bt_event_class *event_class =
-				stream_class->common.event_classes->pdata[i];
-
-			BT_ASSERT(event_class);
-			ret = bt_event_class_update_event_pool_clock_values(
-				event_class);
-			if (ret) {
-				goto end;
-			}
-		}
 	}
 
 end:

@@ -964,42 +964,6 @@ end:
 	return ret;
 }
 
-static
-int create_cc_prio_map(struct ctf_fs_trace *ctf_fs_trace)
-{
-	int ret = 0;
-	size_t i;
-	int count;
-
-	BT_ASSERT(ctf_fs_trace);
-	ctf_fs_trace->cc_prio_map = bt_clock_class_priority_map_create();
-	if (!ctf_fs_trace->cc_prio_map) {
-		ret = -1;
-		goto end;
-	}
-
-	count = bt_trace_get_clock_class_count(
-		ctf_fs_trace->metadata->trace);
-	BT_ASSERT(count >= 0);
-
-	for (i = 0; i < count; i++) {
-		struct bt_clock_class *clock_class =
-			bt_trace_borrow_clock_class_by_index(
-				ctf_fs_trace->metadata->trace, i);
-
-		BT_ASSERT(clock_class);
-		ret = bt_clock_class_priority_map_add_clock_class(
-			ctf_fs_trace->cc_prio_map, clock_class, 0);
-
-		if (ret) {
-			goto end;
-		}
-	}
-
-end:
-	return ret;
-}
-
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		struct ctf_fs_metadata_config *metadata_config,
@@ -1040,11 +1004,6 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 	}
 
 	ret = create_ds_file_groups(ctf_fs_trace, graph);
-	if (ret) {
-		goto error;
-	}
-
-	ret = create_cc_prio_map(ctf_fs_trace);
 	if (ret) {
 		goto error;
 	}

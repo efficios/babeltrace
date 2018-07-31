@@ -38,7 +38,7 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
-#include <babeltrace/ctf-ir/clock-value-internal.h>
+#include <babeltrace/ctf-ir/clock-value-set-internal.h>
 #include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/object-internal.h>
@@ -59,9 +59,7 @@ struct bt_event_common {
 
 struct bt_event {
 	struct bt_event_common common;
-
-	/* Maps clock classes to bt_clock_value. */
-	GHashTable *clock_values;
+	struct bt_clock_value_set cv_set;
 	struct bt_packet *packet;
 };
 
@@ -86,7 +84,7 @@ void _bt_event_set_is_frozen(struct bt_event *event, bool is_frozen);
 #endif
 
 #define BT_ASSERT_PRE_EVENT_COMMON_HOT(_event, _name)			\
-	BT_ASSERT_PRE_HOT((_event), (_name), ": +%!+_e", (_event))
+	BT_ASSERT_PRE_HOT((_event), (_name), ": %!+_e", (_event))
 
 static inline
 struct bt_event_class_common *bt_event_common_borrow_class(
@@ -256,9 +254,6 @@ BT_UNUSED
 static inline
 void _bt_event_reset_dev_mode(struct bt_event *event)
 {
-	GHashTableIter iter;
-	gpointer key, value;
-
 	BT_ASSERT(event);
 
 	if (event->common.header_field) {
@@ -286,15 +281,6 @@ void _bt_event_reset_dev_mode(struct bt_event *event)
 			event->common.payload_field, false);
 		bt_field_common_reset_recursive(event->common.payload_field);
 	}
-
-	g_hash_table_iter_init(&iter, event->clock_values);
-	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		struct bt_clock_value *clock_value = value;
-
-		BT_ASSERT(clock_value);
-		bt_clock_value_reset(clock_value);
-		bt_clock_value_set_is_frozen(clock_value, false);
-	}
 }
 
 #ifdef BT_DEV_MODE
@@ -311,7 +297,7 @@ void bt_event_reset(struct bt_event *event)
 {
 	BT_ASSERT(event);
 	bt_event_set_is_frozen(event, false);
-	bt_event_reset_dev_mode(event);
+	bt_clock_value_set_reset(&event->cv_set);
 	bt_object_put_no_null_check(&event->packet->base);
 	event->packet = NULL;
 }

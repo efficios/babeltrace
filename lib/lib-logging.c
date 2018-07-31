@@ -54,7 +54,6 @@
 #include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/graph/clock-class-priority-map-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
 #include <babeltrace/graph/component-filter-internal.h>
@@ -63,7 +62,6 @@
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/notification-discarded-elements-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
 #include <babeltrace/graph/notification-internal.h>
@@ -130,10 +128,31 @@ static inline void format_port(char **buf_ch, bool extended,
 static inline void format_connection(char **buf_ch, bool extended,
 		const char *prefix, struct bt_connection *connection);
 
+static inline void format_clock_value(char **buf_ch, bool extended,
+		const char *prefix, struct bt_clock_value *clock_value);
+
 static inline void format_object(char **buf_ch, bool extended,
 		const char *prefix, struct bt_object *obj)
 {
 	BUF_APPEND(", %sref-count=%llu", prefix, obj->ref_count);
+}
+
+static inline void format_clock_value_set(char **buf_ch, bool extended,
+		const char *prefix, struct bt_clock_value_set *cv_set)
+{
+	char tmp_prefix[64];
+
+	if (!cv_set->clock_values) {
+		return;
+	}
+
+	BUF_APPEND(", %ssize=%u", PRFIELD(cv_set->clock_values->len));
+
+	if (cv_set->default_cv) {
+		SET_TMP_PREFIX("default-cv-");
+		format_clock_value(buf_ch, extended, tmp_prefix,
+			cv_set->default_cv);
+	}
 }
 
 static inline void format_object_pool(char **buf_ch, bool extended,
@@ -878,11 +897,8 @@ static inline void format_event(char **buf_ch, bool extended,
 		return;
 	}
 
-	if (event->clock_values) {
-		BUF_APPEND(", %sclock-value-count=%u",
-			PRFIELD(g_hash_table_size(event->clock_values)));
-	}
-
+	SET_TMP_PREFIX("cvs-");
+	format_clock_value_set(buf_ch, extended, tmp_prefix, &event->cv_set);
 	packet = bt_event_borrow_packet(event);
 	if (!packet) {
 		return;
@@ -947,7 +963,7 @@ static inline void format_clock_value(char **buf_ch, bool extended,
 		const char *prefix, struct bt_clock_value *clock_value)
 {
 	char tmp_prefix[64];
-	BUF_APPEND(", %svalue=%" PRIu64 ", %sns-from-epoch=%" PRId64,
+	BUF_APPEND(", %sraw-value=%" PRIu64 ", %sns-from-epoch=%" PRId64,
 		PRFIELD(clock_value->value),
 		PRFIELD(clock_value->ns_from_epoch));
 
@@ -1049,28 +1065,6 @@ static inline void format_notification(char **buf_ch, bool extended,
 
 		SET_TMP_PREFIX("event-");
 		format_event(buf_ch, true, tmp_prefix, notif_event->event);
-
-		if (!notif_event->cc_prio_map) {
-			return;
-		}
-
-		BUF_APPEND(", %scc-prio-map-addr=%p, %scc-prio-map-cc-count=%u",
-			PRFIELD(notif_event->cc_prio_map),
-			PRFIELD(notif_event->cc_prio_map->entries->len));
-		break;
-	}
-	case BT_NOTIFICATION_TYPE_INACTIVITY:
-	{
-		struct bt_notification_inactivity *notif_inactivity =
-			(void *) notif;
-
-		if (!notif_inactivity->cc_prio_map) {
-			return;
-		}
-
-		BUF_APPEND(", %scc-prio-map-addr=%p, %scc-prio-map-cc-count=%u",
-			PRFIELD(notif_inactivity->cc_prio_map),
-			PRFIELD(notif_inactivity->cc_prio_map->entries->len));
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
@@ -1107,28 +1101,6 @@ static inline void format_notification(char **buf_ch, bool extended,
 
 		SET_TMP_PREFIX("packet-");
 		format_packet(buf_ch, true, tmp_prefix, notif_packet->packet);
-		break;
-	}
-	case BT_NOTIFICATION_TYPE_DISCARDED_EVENTS:
-	case BT_NOTIFICATION_TYPE_DISCARDED_PACKETS:
-	{
-		struct bt_notification_discarded_elements *notif_discarded =
-			(void *) notif;
-
-		BUF_APPEND(", %scount=%" PRId64,
-			PRFIELD(notif_discarded->count));
-
-		if (notif_discarded->begin_clock_value) {
-			SET_TMP_PREFIX("begin-clock-value-");
-			format_clock_value(buf_ch, true, tmp_prefix,
-				notif_discarded->begin_clock_value);
-		}
-
-		if (notif_discarded->end_clock_value) {
-			SET_TMP_PREFIX("end-clock-value-");
-			format_clock_value(buf_ch, true, tmp_prefix,
-				notif_discarded->end_clock_value);
-		}
 		break;
 	}
 	default:

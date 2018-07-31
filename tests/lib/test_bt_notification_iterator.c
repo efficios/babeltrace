@@ -30,7 +30,6 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/graph/clock-class-priority-map.h>
 #include <babeltrace/graph/component-class-filter.h>
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/component-class-source.h>
@@ -89,7 +88,6 @@ static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_graph *graph;
-static struct bt_clock_class_priority_map *src_empty_cc_prio_map;
 static struct bt_stream_class *src_stream_class;
 static struct bt_event_class *src_event_class;
 static struct bt_stream *src_stream1;
@@ -295,8 +293,6 @@ void init_static_data(void)
 	BT_ASSERT(trace);
 	ret = bt_trace_set_packet_header_field_type(trace, empty_struct_ft);
 	BT_ASSERT(ret == 0);
-	src_empty_cc_prio_map = bt_clock_class_priority_map_create();
-	BT_ASSERT(src_empty_cc_prio_map);
 	src_stream_class = bt_stream_class_create("my-stream-class");
 	BT_ASSERT(src_stream_class);
 	ret = bt_stream_class_set_packet_context_field_type(src_stream_class,
@@ -353,7 +349,6 @@ void fini_static_data(void)
 	g_array_free(test_events, TRUE);
 
 	/* Metadata */
-	bt_put(src_empty_cc_prio_map);
 	bt_put(src_stream_class);
 	bt_put(src_event_class);
 	bt_put(src_stream1);
@@ -411,8 +406,7 @@ void src_iter_next_seq_one(struct src_iter_user_data *user_data,
 
 	switch (user_data->seq[user_data->at]) {
 	case SEQ_INACTIVITY:
-		*notif = bt_notification_inactivity_create(graph,
-				src_empty_cc_prio_map);
+		*notif = bt_notification_inactivity_create(graph);
 		break;
 	case SEQ_STREAM1_BEGIN:
 		*notif = bt_notification_stream_begin_create(graph,
@@ -478,7 +472,7 @@ void src_iter_next_seq_one(struct src_iter_user_data *user_data,
 
 	if (event_packet) {
 		*notif = bt_notification_event_create(graph, src_event_class,
-			event_packet, src_empty_cc_prio_map);
+			event_packet);
 	}
 
 	BT_ASSERT(*notif);

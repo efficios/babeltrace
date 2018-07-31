@@ -33,6 +33,9 @@
 /* For bt_get() */
 #include <babeltrace/ref.h>
 
+/* For bt_bool */
+#include <babeltrace/types.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -261,9 +264,12 @@ extern struct bt_field *bt_event_borrow_payload(struct bt_event *event);
 @{
 */
 
-extern struct bt_clock_value *bt_event_borrow_clock_value(
-		struct bt_event *event,
-		struct bt_clock_class *clock_class);
+extern int bt_event_set_clock_value(struct bt_event *event,
+		struct bt_clock_class *clock_class, uint64_t raw_value,
+		bt_bool is_default);
+
+extern struct bt_clock_value *bt_event_borrow_default_clock_value(
+		struct bt_event *event);
 
 /** @} */
 
