@@ -3390,46 +3390,6 @@ enum bt_field_type_id bt_field_type_get_type_id(struct bt_field_type *ft)
 	return bt_field_type_common_get_type_id((void *) ft);
 }
 
-int bt_field_type_is_integer(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_INTEGER;
-}
-
-int bt_field_type_is_floating_point(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_FLOAT;
-}
-
-int bt_field_type_is_enumeration(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_ENUM;
-}
-
-int bt_field_type_is_string(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_STRING;
-}
-
-int bt_field_type_is_structure(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_STRUCT;
-}
-
-int bt_field_type_is_array(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_ARRAY;
-}
-
-int bt_field_type_is_sequence(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_SEQUENCE;
-}
-
-int bt_field_type_is_variant(struct bt_field_type *type)
-{
-	return bt_field_type_get_type_id(type) == BT_FIELD_TYPE_ID_VARIANT;
-}
-
 BT_HIDDEN
 void bt_field_type_common_freeze(struct bt_field_type_common *ft)
 {
