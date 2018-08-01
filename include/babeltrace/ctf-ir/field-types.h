@@ -323,8 +323,12 @@ extern enum bt_field_type_id bt_field_type_get_type_id(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_integer(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_integer(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) ==
+		BT_FIELD_TYPE_ID_INTEGER;
+}
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @floatft.
@@ -340,8 +344,11 @@ extern bt_bool bt_field_type_is_integer(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_floating_point(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_floating_point(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) == BT_FIELD_TYPE_ID_FLOAT;
+}
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @enumft.
@@ -356,8 +363,11 @@ extern bt_bool bt_field_type_is_floating_point(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_enumeration(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_enumeration(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) == BT_FIELD_TYPE_ID_ENUM;
+}
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @stringft.
@@ -372,8 +382,11 @@ extern bt_bool bt_field_type_is_enumeration(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_string(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_string(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) == BT_FIELD_TYPE_ID_STRING;
+}
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @structft.
@@ -388,8 +401,11 @@ extern bt_bool bt_field_type_is_string(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_structure(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_structure(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) == BT_FIELD_TYPE_ID_STRUCT;
+}
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @arrayft.
@@ -404,8 +420,11 @@ extern bt_bool bt_field_type_is_structure(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_array(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_array(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) == BT_FIELD_TYPE_ID_ARRAY;
+}
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @seqft.
@@ -420,8 +439,12 @@ extern bt_bool bt_field_type_is_array(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_sequence(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_sequence(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) ==
+		BT_FIELD_TYPE_ID_SEQUENCE;
+}
 
 /**
 @brief	Returns whether or not the @ft \p field_type is a @varft.
@@ -436,8 +459,12 @@ extern bt_bool bt_field_type_is_sequence(
 @sa bt_field_type_get_type_id(): Returns the type ID of a given
 	field type.
 */
-extern bt_bool bt_field_type_is_variant(
-		struct bt_field_type *field_type);
+static inline
+bt_bool bt_field_type_is_variant(struct bt_field_type *field_type)
+{
+	return bt_field_type_get_type_id(field_type) ==
+		BT_FIELD_TYPE_ID_VARIANT;
+}
 
 /** @} */
 
