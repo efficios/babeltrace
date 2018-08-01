@@ -35,6 +35,7 @@
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/notification-packet-internal.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object-internal.h>
@@ -65,12 +66,15 @@ end:
 }
 
 struct bt_notification *bt_notification_packet_begin_create(
-		struct bt_graph *graph, struct bt_packet *packet)
+		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_packet *packet)
 {
 	struct bt_notification_packet_begin *notification;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
+	struct bt_graph *graph;
 
+	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	stream = bt_packet_borrow_stream(packet);
 	BT_ASSERT(stream);
@@ -84,6 +88,8 @@ struct bt_notification *bt_notification_packet_begin_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class));
+	graph = bt_private_connection_private_notification_iterator_borrow_graph(
+		notif_iter);
 	notification = (void *) bt_notification_create_from_pool(
 		&graph->packet_begin_notif_pool, graph);
 	if (!notification) {
@@ -180,12 +186,15 @@ end:
 }
 
 struct bt_notification *bt_notification_packet_end_create(
-		struct bt_graph *graph, struct bt_packet *packet)
+		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_packet *packet)
 {
 	struct bt_notification_packet_end *notification;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
+	struct bt_graph *graph;
 
+	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	stream = bt_packet_borrow_stream(packet);
 	BT_ASSERT(stream);
@@ -199,6 +208,8 @@ struct bt_notification *bt_notification_packet_end_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class));
+	graph = bt_private_connection_private_notification_iterator_borrow_graph(
+		notif_iter);
 	notification = (void *) bt_notification_create_from_pool(
 		&graph->packet_end_notif_pool, graph);
 	if (!notification) {

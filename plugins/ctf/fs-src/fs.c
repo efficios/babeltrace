@@ -59,7 +59,7 @@ int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_ite
 	ctf_fs_ds_file_destroy(notif_iter_data->ds_file);
 	notif_iter_data->ds_file = ctf_fs_ds_file_create(
 		notif_iter_data->ds_file_group->ctf_fs_trace,
-		notif_iter_data->graph,
+		notif_iter_data->pc_notif_iter,
 		notif_iter_data->notif_iter,
 		notif_iter_data->ds_file_group->stream,
 		ds_file_info->path->str);
@@ -256,8 +256,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 		goto error;
 	}
 
-	notif_iter_data->graph = bt_component_borrow_graph(
-		bt_component_borrow_from_private(port_data->ctf_fs->priv_comp));
+	notif_iter_data->pc_notif_iter = it;
 	notif_iter_data->notif_iter = bt_notif_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->trace,
 		bt_common_get_page_size() * 8,
@@ -708,7 +707,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
-	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, graph, notif_iter,
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, notif_iter,
 		NULL, path);
 	if (!ds_file) {
 		goto error;

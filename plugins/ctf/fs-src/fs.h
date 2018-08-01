@@ -127,7 +127,7 @@ struct ctf_fs_port_data {
 
 struct ctf_fs_notif_iter_data {
 	/* Weak */
-	struct bt_graph *graph;
+	struct bt_private_connection_private_notification_iterator *pc_notif_iter;
 
 	/* Weak, belongs to ctf_fs_trace */
 	struct ctf_fs_ds_file_group *ds_file_group;

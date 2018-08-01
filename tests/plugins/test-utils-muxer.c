@@ -73,6 +73,7 @@ static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_graph *graph;
+static struct bt_private_connection_private_notification_iterator *cur_notif_iter;
 static struct bt_clock_class *src_clock_class;
 static struct bt_stream_class *src_stream_class;
 static struct bt_event_class *src_event_class;
@@ -503,7 +504,8 @@ struct bt_notification *src_create_event_notif(struct bt_packet *packet,
 	struct bt_notification *notif;
 	struct bt_field *field;
 
-	notif = bt_notification_event_create(graph, src_event_class, packet);
+	notif = bt_notification_event_create(cur_notif_iter,
+		src_event_class, packet);
 	BT_ASSERT(notif);
 	event = bt_notification_event_borrow_event(notif);
 	BT_ASSERT(event);
@@ -544,24 +546,26 @@ enum bt_notification_iterator_status src_iter_next_seq(
 		status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
 		break;
 	case SEQ_PACKET_BEGIN:
-		notifs[0] = bt_notification_packet_begin_create(graph,
+		notifs[0] = bt_notification_packet_begin_create(cur_notif_iter,
 				user_data->packet);
 		BT_ASSERT(notifs[0]);
 		break;
 	case SEQ_PACKET_END:
-		notifs[0] = bt_notification_packet_end_create(graph,
+		notifs[0] = bt_notification_packet_end_create(cur_notif_iter,
 				user_data->packet);
 		BT_ASSERT(notifs[0]);
 		break;
 	case SEQ_STREAM_BEGIN:
 		stream = bt_packet_get_stream(user_data->packet);
-		notifs[0] = bt_notification_stream_begin_create(graph, stream);
+		notifs[0] = bt_notification_stream_begin_create(cur_notif_iter,
+			stream);
 		BT_ASSERT(notifs[0]);
 		bt_put(stream);
 		break;
 	case SEQ_STREAM_END:
 		stream = bt_packet_get_stream(user_data->packet);
-		notifs[0] = bt_notification_stream_end_create(graph, stream);
+		notifs[0] = bt_notification_stream_end_create(cur_notif_iter,
+			stream);
 		BT_ASSERT(notifs[0]);
 		bt_put(stream);
 		break;
@@ -598,6 +602,7 @@ enum bt_notification_iterator_status src_iter_next(
 
 	BT_ASSERT(user_data);
 	BT_ASSERT(private_component);
+	cur_notif_iter = priv_iterator;
 
 	/*
 	 * We can always set it to 1: it's not going to be considered
@@ -613,13 +618,14 @@ enum bt_notification_iterator_status src_iter_next(
 				stream = bt_packet_get_stream(user_data->packet);
 				notifs[0] =
 					bt_notification_stream_begin_create(
-						graph, stream);
+						cur_notif_iter, stream);
 				bt_put(stream);
 				BT_ASSERT(notifs[0]);
 			} else if (user_data->at == 1) {
 				notifs[0] =
 					bt_notification_packet_begin_create(
-						graph, user_data->packet);
+						cur_notif_iter,
+						user_data->packet);
 				BT_ASSERT(notifs[0]);
 			} else if (user_data->at < 7) {
 				notifs[0] =
@@ -629,13 +635,14 @@ enum bt_notification_iterator_status src_iter_next(
 			} else if (user_data->at == 7) {
 				notifs[0] =
 					bt_notification_packet_end_create(
-						graph, user_data->packet);
+						cur_notif_iter,
+						user_data->packet);
 				BT_ASSERT(notifs[0]);
 			} else if (user_data->at == 8) {
 				stream = bt_packet_get_stream(user_data->packet);
 				notifs[0] =
 					bt_notification_stream_end_create(
-						graph, stream);
+						cur_notif_iter, stream);
 				bt_put(stream);
 				BT_ASSERT(notifs[0]);
 			} else {

@@ -44,6 +44,7 @@ struct dmesg_component;
 
 struct dmesg_notif_iter {
 	struct dmesg_component *dmesg_comp;
+	struct bt_private_connection_private_notification_iterator *pc_notif_iter; /* Weak */
 	char *linebuf;
 	size_t linebuf_len;
 	FILE *fp;
@@ -66,7 +67,6 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
-	struct bt_graph *graph; /* Weak */
 	struct bt_trace *trace;
 	struct bt_stream_class *stream_class;
 	struct bt_event_class *event_class;
@@ -534,9 +534,6 @@ enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
 		goto error;
 	}
 
-	dmesg_comp->graph = bt_component_borrow_graph(
-		bt_component_borrow_from_private(priv_comp));
-	BT_ASSERT(dmesg_comp->graph);
 	dmesg_comp->params.path = g_string_new(NULL);
 	if (!dmesg_comp->params.path) {
 		BT_LOGE_STR("Failed to allocate a GString.");
@@ -588,7 +585,7 @@ void dmesg_finalize(struct bt_private_component *priv_comp)
 
 static
 struct bt_notification *create_init_event_notif_from_line(
-		struct dmesg_component *dmesg_comp,
+		struct dmesg_notif_iter *notif_iter,
 		const char *line, const char **new_start)
 {
 	struct bt_event *event;
@@ -600,6 +597,7 @@ struct bt_notification *create_init_event_notif_from_line(
 	struct bt_field *eh_field = NULL;
 	struct bt_field *ts_field = NULL;
 	int ret = 0;
+	struct dmesg_component *dmesg_comp = notif_iter->dmesg_comp;
 
 	*new_start = line;
 
@@ -663,7 +661,7 @@ skip_ts:
 		goto error;
 	}
 
-	notif = bt_notification_event_create(dmesg_comp->graph,
+	notif = bt_notification_event_create(notif_iter->pc_notif_iter,
 		dmesg_comp->event_class, dmesg_comp->packet);
 	if (!notif) {
 		BT_LOGE_STR("Cannot create event notification.");
@@ -700,8 +698,7 @@ end:
 }
 
 static
-int fill_event_payload_from_line(struct dmesg_component *dmesg_comp,
-		const char *line, struct bt_event *event)
+int fill_event_payload_from_line(const char *line, struct bt_event *event)
 {
 	struct bt_field *ep_field = NULL;
 	struct bt_field *str_field = NULL;
@@ -746,14 +743,15 @@ end:
 
 static
 struct bt_notification *create_notif_from_line(
-		struct dmesg_component *dmesg_comp, const char *line)
+		struct dmesg_notif_iter *dmesg_notif_iter, const char *line)
 {
 	struct bt_event *event = NULL;
 	struct bt_notification *notif = NULL;
 	const char *new_start;
 	int ret;
 
-	notif = create_init_event_notif_from_line(dmesg_comp, line, &new_start);
+	notif = create_init_event_notif_from_line(dmesg_notif_iter,
+		line, &new_start);
 	if (!notif) {
 		BT_LOGE_STR("Cannot create and initialize event notification from line.");
 		goto error;
@@ -761,8 +759,7 @@ struct bt_notification *create_notif_from_line(
 
 	event = bt_notification_event_borrow_event(notif);
 	BT_ASSERT(event);
-	ret = fill_event_payload_from_line(dmesg_comp, new_start,
-		event);
+	ret = fill_event_payload_from_line(new_start, event);
 	if (ret) {
 		BT_LOGE("Cannot fill event payload field from line: "
 			"ret=%d", ret);
@@ -819,6 +816,7 @@ enum bt_notification_iterator_status dmesg_notif_iter_init(
 	dmesg_comp = bt_private_component_get_user_data(priv_comp);
 	BT_ASSERT(dmesg_comp);
 	dmesg_notif_iter->dmesg_comp = dmesg_comp;
+	dmesg_notif_iter->pc_notif_iter = priv_notif_iter;
 
 	if (dmesg_comp->params.read_from_stdin) {
 		dmesg_notif_iter->fp = stdin;
@@ -924,8 +922,8 @@ enum bt_notification_iterator_status dmesg_notif_iter_next_one(
 		}
 	}
 
-	dmesg_notif_iter->tmp_event_notif = create_notif_from_line(dmesg_comp,
-		dmesg_notif_iter->linebuf);
+	dmesg_notif_iter->tmp_event_notif = create_notif_from_line(
+		dmesg_notif_iter, dmesg_notif_iter->linebuf);
 	if (!dmesg_notif_iter->tmp_event_notif) {
 		BT_LOGE("Cannot create event notification from line: "
 			"dmesg-comp-addr=%p, line=\"%s\"", dmesg_comp,
@@ -940,13 +938,13 @@ handle_state:
 	case STATE_EMIT_STREAM_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
 		*notif = bt_notification_stream_begin_create(
-			dmesg_comp->graph, dmesg_comp->stream);
+			dmesg_notif_iter->pc_notif_iter, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_EMIT_PACKET_BEGINNING;
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
 		*notif = bt_notification_packet_begin_create(
-			dmesg_comp->graph, dmesg_comp->packet);
+			dmesg_notif_iter->pc_notif_iter, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
@@ -956,12 +954,12 @@ handle_state:
 		break;
 	case STATE_EMIT_PACKET_END:
 		*notif = bt_notification_packet_end_create(
-			dmesg_comp->graph, dmesg_comp->packet);
+			dmesg_notif_iter->pc_notif_iter, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_STREAM_END;
 		break;
 	case STATE_EMIT_STREAM_END:
 		*notif = bt_notification_stream_end_create(
-			dmesg_comp->graph, dmesg_comp->stream);
+			dmesg_notif_iter->pc_notif_iter, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_DONE;
 		break;
 	default:

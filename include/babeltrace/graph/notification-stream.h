@@ -40,18 +40,19 @@ extern "C" {
 #endif
 
 struct bt_notification;
+struct bt_private_connection_private_notification_iterator;
 struct bt_clock_class;
 struct bt_clock_value;
 struct bt_stream;
 
 extern
 struct bt_notification *bt_notification_stream_begin_create(
-		struct bt_graph *graph,
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
 		struct bt_stream *stream);
 
 extern
 struct bt_notification *bt_notification_stream_end_create(
-		struct bt_graph *graph,
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
 		struct bt_stream *stream);
 
 extern struct bt_stream *bt_notification_stream_begin_borrow_stream(

@@ -36,6 +36,7 @@
 #include <babeltrace/ctf-ir/trace.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
@@ -53,7 +54,8 @@ static inline bool event_class_has_trace(struct bt_event_class *event_class)
 }
 
 BT_HIDDEN
-struct bt_notification *bt_notification_event_new(struct bt_graph *graph)
+struct bt_notification *bt_notification_event_new(
+		struct bt_graph *graph)
 {
 	struct bt_notification_event *notification = NULL;
 
@@ -75,13 +77,15 @@ end:
 }
 
 struct bt_notification *bt_notification_event_create(
-		struct bt_graph *graph,
+		struct bt_private_connection_private_notification_iterator *notif_iter,
 		struct bt_event_class *event_class,
 		struct bt_packet *packet)
 {
 	struct bt_notification_event *notification = NULL;
 	struct bt_event *event;
+	struct bt_graph *graph;
 
+	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_LOGD("Creating event notification object: "
@@ -114,6 +118,8 @@ struct bt_notification *bt_notification_event_create(
 	 *   to notify the graph (pool owner) so that it removes the
 	 *   notification from its notification array.
 	 */
+	graph = bt_private_connection_private_notification_iterator_borrow_graph(
+		notif_iter);
 	notification = (void *) bt_notification_create_from_pool(
 		&graph->event_notif_pool, graph);
 	if (unlikely(!notification)) {

@@ -86,7 +86,7 @@ struct ctf_fs_ds_file_info {
 
 struct ctf_fs_ds_file {
 	/* Weak */
-	struct bt_graph *graph;
+	struct bt_private_connection_private_notification_iterator *pc_notif_iter;
 
 	/* Owned by this */
 	struct ctf_fs_file *file;
@@ -126,7 +126,7 @@ struct ctf_fs_ds_file {
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_graph *graph,
+		struct bt_private_connection_private_notification_iterator *pc_notif_iter,
 		struct bt_notif_iter *notif_iter,
 		struct bt_stream *stream, const char *path);
 
