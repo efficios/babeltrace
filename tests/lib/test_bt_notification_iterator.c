@@ -88,6 +88,7 @@ static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_graph *graph;
+static struct bt_private_connection_private_notification_iterator *cur_notif_iter;
 static struct bt_stream_class *src_stream_class;
 static struct bt_event_class *src_event_class;
 static struct bt_stream *src_stream1;
@@ -406,52 +407,54 @@ void src_iter_next_seq_one(struct src_iter_user_data *user_data,
 
 	switch (user_data->seq[user_data->at]) {
 	case SEQ_INACTIVITY:
-		*notif = bt_notification_inactivity_create(graph);
+		*notif = bt_notification_inactivity_create(cur_notif_iter);
 		break;
 	case SEQ_STREAM1_BEGIN:
-		*notif = bt_notification_stream_begin_create(graph,
+		*notif = bt_notification_stream_begin_create(cur_notif_iter,
 			src_stream1);
 		break;
 	case SEQ_STREAM2_BEGIN:
-		*notif = bt_notification_stream_begin_create(graph,
+		*notif = bt_notification_stream_begin_create(cur_notif_iter,
 			src_stream2);
 		break;
 	case SEQ_STREAM1_END:
-		*notif = bt_notification_stream_end_create(graph, src_stream1);
+		*notif = bt_notification_stream_end_create(cur_notif_iter,
+			src_stream1);
 		break;
 	case SEQ_STREAM2_END:
-		*notif = bt_notification_stream_end_create(graph, src_stream2);
+		*notif = bt_notification_stream_end_create(cur_notif_iter,
+			src_stream2);
 		break;
 	case SEQ_STREAM1_PACKET1_BEGIN:
-		*notif = bt_notification_packet_begin_create(graph,
+		*notif = bt_notification_packet_begin_create(cur_notif_iter,
 			src_stream1_packet1);
 		break;
 	case SEQ_STREAM1_PACKET2_BEGIN:
-		*notif = bt_notification_packet_begin_create(graph,
+		*notif = bt_notification_packet_begin_create(cur_notif_iter,
 			src_stream1_packet2);
 		break;
 	case SEQ_STREAM2_PACKET1_BEGIN:
-		*notif = bt_notification_packet_begin_create(graph,
+		*notif = bt_notification_packet_begin_create(cur_notif_iter,
 			src_stream2_packet1);
 		break;
 	case SEQ_STREAM2_PACKET2_BEGIN:
-		*notif = bt_notification_packet_begin_create(graph,
+		*notif = bt_notification_packet_begin_create(cur_notif_iter,
 			src_stream2_packet2);
 		break;
 	case SEQ_STREAM1_PACKET1_END:
-		*notif = bt_notification_packet_end_create(graph,
+		*notif = bt_notification_packet_end_create(cur_notif_iter,
 			src_stream1_packet1);
 		break;
 	case SEQ_STREAM1_PACKET2_END:
-		*notif = bt_notification_packet_end_create(graph,
+		*notif = bt_notification_packet_end_create(cur_notif_iter,
 			src_stream1_packet2);
 		break;
 	case SEQ_STREAM2_PACKET1_END:
-		*notif = bt_notification_packet_end_create(graph,
+		*notif = bt_notification_packet_end_create(cur_notif_iter,
 			src_stream2_packet1);
 		break;
 	case SEQ_STREAM2_PACKET2_END:
-		*notif = bt_notification_packet_end_create(graph,
+		*notif = bt_notification_packet_end_create(cur_notif_iter,
 			src_stream2_packet2);
 		break;
 	case SEQ_EVENT_STREAM1_PACKET1:
@@ -471,8 +474,8 @@ void src_iter_next_seq_one(struct src_iter_user_data *user_data,
 	}
 
 	if (event_packet) {
-		*notif = bt_notification_event_create(graph, src_event_class,
-			event_packet);
+		*notif = bt_notification_event_create(cur_notif_iter,
+			src_event_class, event_packet);
 	}
 
 	BT_ASSERT(*notif);
@@ -518,6 +521,7 @@ enum bt_notification_iterator_status src_iter_next(
 		bt_private_connection_private_notification_iterator_get_user_data(priv_iterator);
 
 	BT_ASSERT(user_data);
+	cur_notif_iter = priv_iterator;
 	return src_iter_next_seq(user_data, notifs, capacity, count);
 }
 

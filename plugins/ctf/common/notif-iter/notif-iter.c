@@ -141,8 +141,8 @@ struct bt_notif_iter {
 	/* Visit stack */
 	struct stack *stack;
 
-	/* Current graph to create notifications (weak) */
-	struct bt_graph *graph;
+	/* Current notification iterator to create notifications (weak) */
+	struct bt_private_connection_private_notification_iterator *notif_iter;
 
 	/*
 	 * Current dynamic scope field pointer.
@@ -1655,8 +1655,8 @@ enum bt_notif_iter_status set_current_event_notification(
 		notit, notit->meta.event_class,
 		bt_event_class_get_name(notit->meta.event_class),
 		notit->packet);
-	BT_ASSERT(notit->graph);
-	notif = bt_notification_event_create(notit->graph,
+	BT_ASSERT(notit->notif_iter);
+	notif = bt_notification_event_create(notit->notif_iter,
 		notit->meta.event_class, notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create event notification: "
@@ -2833,8 +2833,9 @@ void notify_new_stream(struct bt_notif_iter *notit,
 	}
 
 	BT_ASSERT(notit->stream);
-	BT_ASSERT(notit->graph);
-	ret = bt_notification_stream_begin_create(notit->graph, notit->stream);
+	BT_ASSERT(notit->notif_iter);
+	ret = bt_notification_stream_begin_create(notit->notif_iter,
+		notit->stream);
 	if (!ret) {
 		BT_LOGE("Cannot create stream beginning notification: "
 			"notit-addr=%p, stream-addr=%p",
@@ -2858,8 +2859,9 @@ void notify_end_of_stream(struct bt_notif_iter *notit,
 		return;
 	}
 
-	BT_ASSERT(notit->graph);
-	ret = bt_notification_stream_end_create(notit->graph, notit->stream);
+	BT_ASSERT(notit->notif_iter);
+	ret = bt_notification_stream_end_create(notit->notif_iter,
+		notit->stream);
 	if (!ret) {
 		BT_LOGE("Cannot create stream beginning notification: "
 			"notit-addr=%p, stream-addr=%p",
@@ -2944,8 +2946,8 @@ void notify_new_packet(struct bt_notif_iter *notit,
 		}
 	}
 
-	BT_ASSERT(notit->graph);
-	notif = bt_notification_packet_begin_create(notit->graph,
+	BT_ASSERT(notit->notif_iter);
+	notif = bt_notification_packet_begin_create(notit->notif_iter,
 		notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create packet beginning notification: "
@@ -2970,8 +2972,9 @@ void notify_end_of_packet(struct bt_notif_iter *notit,
 		return;
 	}
 
-	BT_ASSERT(notit->graph);
-	notif = bt_notification_packet_end_create(notit->graph, notit->packet);
+	BT_ASSERT(notit->notif_iter);
+	notif = bt_notification_packet_end_create(notit->notif_iter,
+		notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create packet end notification: "
 			"notit-addr=%p, packet-addr=%p",
@@ -3154,7 +3157,7 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
-		struct bt_graph *graph,
+		struct bt_private_connection_private_notification_iterator *notif_iter,
 		struct bt_notification **notification)
 {
 	int ret;
@@ -3168,7 +3171,7 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		goto end;
 	}
 
-	notit->graph = graph;
+	notit->notif_iter = notif_iter;
 
 	BT_LOGV("Getting next notification: notit-addr=%p", notit);
 

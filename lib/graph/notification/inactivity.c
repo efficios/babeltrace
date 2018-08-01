@@ -29,6 +29,7 @@
 #include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/assert-pre-internal.h>
 
 static
@@ -43,7 +44,7 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 }
 
 struct bt_notification *bt_notification_inactivity_create(
-		struct bt_graph *graph)
+		struct bt_private_connection_private_notification_iterator *notif_iter)
 {
 	struct bt_notification_inactivity *notification;
 	struct bt_notification *ret_notif = NULL;
