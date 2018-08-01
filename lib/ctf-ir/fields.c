@@ -217,46 +217,6 @@ enum bt_field_type_id bt_field_get_type_id(struct bt_field *field)
 	return field_common->type->id;
 }
 
-bt_bool bt_field_is_integer(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_INTEGER;
-}
-
-bt_bool bt_field_is_floating_point(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_FLOAT;
-}
-
-bt_bool bt_field_is_enumeration(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_ENUM;
-}
-
-bt_bool bt_field_is_string(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_STRING;
-}
-
-bt_bool bt_field_is_structure(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_STRUCT;
-}
-
-bt_bool bt_field_is_array(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_ARRAY;
-}
-
-bt_bool bt_field_is_sequence(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_SEQUENCE;
-}
-
-bt_bool bt_field_is_variant(struct bt_field *field)
-{
-	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_VARIANT;
-}
-
 int64_t bt_field_sequence_get_length(struct bt_field *field)
 {
 	return bt_field_common_sequence_get_length((void *) field);

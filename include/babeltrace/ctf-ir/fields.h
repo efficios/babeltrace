@@ -39,6 +39,9 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
+/* For BT_FIELD_TYPE_ID_* */
+#include <babeltrace/ctf-ir/field-types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -219,7 +222,11 @@ extern enum bt_field_type_id bt_field_get_type_id(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_integer(struct bt_field *field);
+static inline
+bt_bool bt_field_is_integer(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_INTEGER;
+}
 
 /**
 @brief	Returns whether or not the @field \p field is a @floatfield.
@@ -235,7 +242,11 @@ extern bt_bool bt_field_is_integer(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_floating_point(struct bt_field *field);
+static inline
+bt_bool bt_field_is_floating_point(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_FLOAT;
+}
 
 /**
 @brief	Returns whether or not the @field \p field is a @enumfield.
@@ -251,7 +262,11 @@ extern bt_bool bt_field_is_floating_point(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_enumeration(struct bt_field *field);
+static inline
+bt_bool bt_field_is_enumeration(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_ENUM;
+}
 
 /**
 @brief	Returns whether or not the @field \p field is a @stringfield.
@@ -267,7 +282,11 @@ extern bt_bool bt_field_is_enumeration(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_string(struct bt_field *field);
+static inline
+bt_bool bt_field_is_string(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_STRING;
+}
 
 /**
 @brief	Returns whether or not the @field \p field is a @structfield.
@@ -283,7 +302,11 @@ extern bt_bool bt_field_is_string(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_structure(struct bt_field *field);
+static inline
+bt_bool bt_field_is_structure(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_STRUCT;
+}
 
 /**
 @brief	Returns whether or not the @field \p field is a @arrayfield.
@@ -299,7 +322,11 @@ extern bt_bool bt_field_is_structure(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_array(struct bt_field *field);
+static inline
+bt_bool bt_field_is_array(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_ARRAY;
+}
 
 /**
 @brief	Returns whether or not the @field \p field is a @seqfield.
@@ -315,7 +342,11 @@ extern bt_bool bt_field_is_array(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_sequence(struct bt_field *field);
+static inline
+bt_bool bt_field_is_sequence(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_SEQUENCE;
+}
 
 /**
 @brief	Returns whether or not the @field \p field is a @varfield.
@@ -331,7 +362,11 @@ extern bt_bool bt_field_is_sequence(struct bt_field *field);
 @sa bt_field_get_type_id(): Returns the type ID of a given
 	field's type.
 */
-extern bt_bool bt_field_is_variant(struct bt_field *field);
+static inline
+bt_bool bt_field_is_variant(struct bt_field *field)
+{
+	return bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_VARIANT;
+}
 
 /** @} */
 
