@@ -32,6 +32,7 @@
 #include <babeltrace/ctf-ir/stream-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/graph/notification-stream-internal.h>
+#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 
@@ -50,7 +51,8 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 }
 
 struct bt_notification *bt_notification_stream_end_create(
-		struct bt_graph *graph, struct bt_stream *stream)
+		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_stream *stream)
 {
 	struct bt_notification_stream_end *notification;
 	struct bt_stream_class *stream_class;
@@ -155,7 +157,8 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 }
 
 struct bt_notification *bt_notification_stream_begin_create(
-		struct bt_graph *graph, struct bt_stream *stream)
+		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_stream *stream)
 {
 	int ret;
 	struct bt_notification_stream_begin *notification;

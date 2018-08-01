@@ -33,12 +33,13 @@ extern "C" {
 #endif
 
 struct bt_notification;
+struct bt_private_connection_private_notification_iterator;
 struct bt_clock_value;
 struct bt_clock_class;
 
 extern
 struct bt_notification *bt_notification_inactivity_create(
-		struct bt_graph *graph);
+		struct bt_private_connection_private_notification_iterator *notification_iterator);
 
 extern int bt_notification_inactivity_set_clock_value(
 		struct bt_notification *notif,

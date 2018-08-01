@@ -35,11 +35,13 @@ extern "C" {
 #endif
 
 struct bt_notification;
+struct bt_private_connection_private_notification_iterator;
 struct bt_event;
 struct bt_event_class;
 
 extern
-struct bt_notification *bt_notification_event_create(struct bt_graph *graph,
+struct bt_notification *bt_notification_event_create(
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
 		struct bt_event_class *event_class, struct bt_packet *packet);
 
 extern struct bt_event *bt_notification_event_borrow_event(
