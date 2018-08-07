@@ -68,16 +68,19 @@ void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen)
 		return;
 	}
 
-	BT_LOGD("Freezing packet: addr=%p", packet);
+	BT_LOGD("Setting packet's frozen state: addr=%p, frozen=%d",
+		packet, is_frozen);
 
 	if (packet->header) {
-		BT_LOGD_STR("Freezing packet's header field.");
+		BT_LOGD("Setting packet's header field's frozen state: "
+			"frozen=%d", is_frozen);
 		bt_field_set_is_frozen_recursive((void *) packet->header->field,
 			is_frozen);
 	}
 
 	if (packet->context) {
-		BT_LOGD_STR("Freezing packet's context field.");
+		BT_LOGD("Setting packet's context field's frozen state: "
+			"frozen=%d", is_frozen);
 		bt_field_set_is_frozen_recursive((void *) packet->context->field,
 			is_frozen);
 	}
