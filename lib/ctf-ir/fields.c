@@ -1218,10 +1218,6 @@ void _bt_field_common_set_is_frozen_recursive(struct bt_field_common *field,
 		goto end;
 	}
 
-	if (field->frozen) {
-		goto end;
-	}
-
 	BT_LOGD("Setting field object's frozen state: addr=%p, is-frozen=%d",
 		field, is_frozen);
 	BT_ASSERT(field_type_common_has_known_id(field->type));
