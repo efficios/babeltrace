@@ -282,11 +282,6 @@ void _bt_event_common_set_is_frozen(struct bt_event_common *event,
 		bool is_frozen)
 {
 	BT_ASSERT(event);
-
-	if (event->frozen) {
-		return;
-	}
-
 	BT_LOGD("Freezing event: addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		event, bt_event_class_common_get_name(event->class),

@@ -64,7 +64,7 @@ struct bt_field *bt_packet_borrow_context(struct bt_packet *packet)
 BT_HIDDEN
 void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen)
 {
-	if (!packet || packet->frozen) {
+	if (!packet) {
 		return;
 	}
 
