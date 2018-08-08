@@ -171,6 +171,12 @@ struct bt_notif_iter {
 	/* Current packet (NULL if not created yet) */
 	struct bt_packet *packet;
 
+	/* Previous packet availability */
+	enum bt_packet_previous_packet_availability prev_packet_avail;
+
+	/* Previous packet (NULL if not available) */
+	struct bt_packet *prev_packet;
+
 	/* Current stream (NULL if not set yet) */
 	struct bt_stream *stream;
 
@@ -252,10 +258,6 @@ struct bt_notif_iter {
 
 	/* Current content size (bits) (-1 if unknown) */
 	int64_t cur_content_size;
-
-	/* Current packet default beginning and end clock values */
-	struct clock_value cur_packet_begin_cv;
-	struct clock_value cur_packet_end_cv;
 
 	/*
 	 * Offset, in the underlying media, of the current packet's start
@@ -1143,7 +1145,8 @@ enum bt_notif_iter_status set_current_packet(struct bt_notif_iter *notit)
 
 	/* Create packet */
 	BT_ASSERT(notit->stream);
-	packet = bt_packet_create(notit->stream);
+	packet = bt_packet_create(notit->stream, notit->prev_packet_avail,
+		notit->prev_packet);
 	if (!packet) {
 		BT_LOGE("Cannot create packet from stream: "
 			"notit-addr=%p, stream-addr=%p, "
@@ -1297,29 +1300,6 @@ end:
 }
 
 static
-void set_current_packet_begin_end(struct bt_notif_iter *notit)
-{
-	struct bt_clock_class *clock_class;
-	uint64_t val;
-
-	if (!notit->dscopes.stream_packet_context) {
-		goto end;
-	}
-
-	val = get_field_raw_clock_value(notit->dscopes.stream_packet_context,
-		"timestamp_begin", &clock_class);
-	notit->cur_packet_begin_cv.clock_class = clock_class;
-	notit->cur_packet_begin_cv.raw_value = val;
-	val = get_field_raw_clock_value(notit->dscopes.stream_packet_context,
-		"timestamp_end", &clock_class);
-	notit->cur_packet_end_cv.clock_class = clock_class;
-	notit->cur_packet_end_cv.raw_value = val;
-
-end:
-	return;
-}
-
-static
 enum bt_notif_iter_status set_current_packet_content_sizes(
 		struct bt_notif_iter *notit)
 {
@@ -1405,8 +1385,6 @@ enum bt_notif_iter_status after_packet_context_state(
 	if (status != BT_NOTIF_ITER_STATUS_OK) {
 		goto end;
 	}
-
-	set_current_packet_begin_end(notit);
 
 	if (notit->stream_begin_emitted) {
 		notit->state = STATE_EMIT_NOTIF_NEW_PACKET;
@@ -2020,6 +1998,8 @@ void bt_notif_iter_reset(struct bt_notif_iter *notit)
 	notit->meta.stream_class = NULL;
 	notit->meta.event_class = NULL;
 	BT_PUT(notit->packet);
+	notit->prev_packet_avail = BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE;
+	BT_PUT(notit->prev_packet);
 	BT_PUT(notit->stream);
 	BT_PUT(notit->event_notif);
 	release_all_dscopes(notit);
@@ -2049,8 +2029,6 @@ void bt_notif_iter_reset(struct bt_notif_iter *notit)
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
 	notit->cur_packet_offset = -1;
-	reset_clock_value(&notit->cur_packet_begin_cv);
-	reset_clock_value(&notit->cur_packet_end_cv);
 	notit->stream_begin_emitted = false;
 	notit->cur_timestamp_end = NULL;
 }
@@ -2107,8 +2085,6 @@ int bt_notif_iter_switch_packet(struct bt_notif_iter *notit)
 
 	notit->cur_content_size = -1;
 	notit->cur_packet_size = -1;
-	reset_clock_value(&notit->cur_packet_begin_cv);
-	reset_clock_value(&notit->cur_packet_end_cv);
 	notit->cur_sc_field_path_cache = NULL;
 
 end:
@@ -2922,30 +2898,6 @@ void notify_new_packet(struct bt_notif_iter *notit,
 			notit->dscopes.stream_packet_context);
 	}
 
-	if (notit->cur_packet_begin_cv.clock_class) {
-		ret = bt_packet_set_beginning_clock_value(notit->packet,
-			notit->cur_packet_begin_cv.clock_class,
-			notit->cur_packet_begin_cv.raw_value, BT_TRUE);
-		if (ret) {
-			BT_LOGE("Cannot set packet's default beginning clock value: "
-				"notit-addr=%p, packet-addr=%p",
-				notit, notit->packet);
-			goto end;
-		}
-	}
-
-	if (notit->cur_packet_end_cv.clock_class) {
-		ret = bt_packet_set_end_clock_value(notit->packet,
-			notit->cur_packet_end_cv.clock_class,
-			notit->cur_packet_end_cv.raw_value, BT_TRUE);
-		if (ret) {
-			BT_LOGE("Cannot set packet's default end clock value: "
-				"notit-addr=%p, packet-addr=%p",
-				notit, notit->packet);
-			goto end;
-		}
-	}
-
 	BT_ASSERT(notit->notif_iter);
 	notif = bt_notification_packet_begin_create(notit->notif_iter,
 		notit->packet);
@@ -2980,9 +2932,12 @@ void notify_end_of_packet(struct bt_notif_iter *notit,
 			"notit-addr=%p, packet-addr=%p",
 			notit, notit->packet);
 		return;
+
 	}
 
-	BT_PUT(notit->packet);
+	BT_MOVE(notit->prev_packet, notit->packet);
+	notit->prev_packet_avail =
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_AVAILABLE;
 	*notification = notif;
 }
 
@@ -3125,6 +3080,7 @@ error:
 void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 {
 	BT_PUT(notit->packet);
+	BT_PUT(notit->prev_packet);
 	BT_PUT(notit->stream);
 	release_all_dscopes(notit);
 

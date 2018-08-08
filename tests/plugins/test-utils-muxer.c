@@ -359,22 +359,26 @@ void init_static_data(void)
 	BT_ASSERT(ret == 0);
 	stream = bt_stream_create(src_stream_class, "stream0", 0);
 	BT_ASSERT(stream);
-	src_packet0 = bt_packet_create(stream);
+	src_packet0 = bt_packet_create(stream,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_packet0);
 	bt_put(stream);
 	stream = bt_stream_create(src_stream_class, "stream1", 1);
 	BT_ASSERT(stream);
-	src_packet1 = bt_packet_create(stream);
+	src_packet1 = bt_packet_create(stream,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_packet0);
 	bt_put(stream);
 	stream = bt_stream_create(src_stream_class, "stream2", 2);
 	BT_ASSERT(stream);
-	src_packet2 = bt_packet_create(stream);
+	src_packet2 = bt_packet_create(stream,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_packet0);
 	bt_put(stream);
 	stream = bt_stream_create(src_stream_class, "stream3", 3);
 	BT_ASSERT(stream);
-	src_packet3 = bt_packet_create(stream);
+	src_packet3 = bt_packet_create(stream,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_packet0);
 	bt_put(stream);
 

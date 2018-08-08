@@ -89,6 +89,32 @@ void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen)
 }
 
 static inline
+void bt_packet_reset_avail(struct bt_packet *packet)
+{
+	/* Previous packet */
+	packet->prev_packet_info.avail =
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NOT_AVAILABLE;
+	packet->prev_packet_info.discarded_event_counter.avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
+	packet->prev_packet_info.seq_num.avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
+	packet->prev_packet_info.default_end_cv.avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
+
+	/* Current packet */
+	packet->discarded_event_counter.avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
+	packet->seq_num.avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
+
+	/* Computed */
+	packet->discarded_event_count.avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
+	packet->discarded_packet_count.avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
+}
+
+static inline
 void bt_packet_reset(struct bt_packet *packet)
 {
 	BT_ASSERT(packet);
@@ -108,6 +134,13 @@ void bt_packet_reset(struct bt_packet *packet)
 
 	bt_clock_value_set_reset(&packet->begin_cv_set);
 	bt_clock_value_set_reset(&packet->end_cv_set);
+	bt_packet_reset_avail(packet);
+	bt_packet_invalidate_properties(packet);
+
+	if (packet->prev_packet_info.default_end_cv.cv) {
+		bt_clock_value_recycle(packet->prev_packet_info.default_end_cv.cv);
+		packet->prev_packet_info.default_end_cv.cv = NULL;
+	}
 }
 
 static
@@ -271,17 +304,220 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 		goto end;
 	}
 
+	bt_packet_reset_avail(packet);
 	BT_LOGD("Created packet object: addr=%p", packet);
 
 end:
 	return packet;
 }
 
-struct bt_packet *bt_packet_create(struct bt_stream *stream)
+static inline
+uint64_t get_uint_field_value(struct bt_field *parent_field, const char *name)
+{
+	uint64_t val = UINT64_C(-1);
+	struct bt_field *field = bt_field_structure_borrow_field_by_name(
+		parent_field, name);
+	int ret;
+
+	if (!field) {
+		goto end;
+	}
+
+	BT_ASSERT(bt_field_is_integer(field));
+	BT_ASSERT(!bt_field_type_integer_is_signed(
+		bt_field_borrow_type(field)));
+	ret = bt_field_integer_unsigned_get_value(field, &val);
+	BT_ASSERT(ret == 0);
+
+end:
+	return val;
+}
+
+static inline
+void set_packet_prop_uint64(struct bt_packet_prop_uint64 *prop, uint64_t val)
+{
+	BT_ASSERT(prop);
+	prop->value = val;
+	prop->avail = BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE;
+}
+
+static inline
+int set_packet_default_clock_value(struct bt_field *pkt_ctx_field,
+		const char *field_name, struct bt_clock_value_set *cv_set)
+{
+	int ret = 0;
+	uint64_t val = UINT64_C(-1);
+	struct bt_field *field = bt_field_structure_borrow_field_by_name(
+		pkt_ctx_field, field_name);
+	struct bt_clock_class *clock_class;
+
+	if (!field) {
+		goto end;
+	}
+
+	BT_ASSERT(bt_field_is_integer(field));
+	BT_ASSERT(!bt_field_type_integer_is_signed(
+		bt_field_borrow_type(field)));
+	clock_class = bt_field_type_integer_borrow_mapped_clock_class(
+		bt_field_borrow_type(field));
+	if (!clock_class) {
+		goto end;
+	}
+
+	ret = bt_field_integer_unsigned_get_value(field, &val);
+	BT_ASSERT(ret == 0);
+	ret = bt_clock_value_set_set_clock_value(cv_set, clock_class,
+		val, true);
+
+end:
+	return ret;
+}
+
+BT_HIDDEN
+int bt_packet_set_properties(struct bt_packet *packet)
+{
+	struct bt_field *pkt_context_field;
+	uint64_t val;
+	int ret = 0;
+
+	BT_ASSERT(!packet->props_are_set);
+
+	pkt_context_field = bt_packet_borrow_context(packet);
+	if (!pkt_context_field) {
+		goto end;
+	}
+
+	/* Discarded event counter */
+	val = get_uint_field_value(pkt_context_field, "events_discarded");
+	if (val != UINT64_C(-1)) {
+		set_packet_prop_uint64(&packet->discarded_event_counter, val);
+	}
+
+	/* Sequence number */
+	val = get_uint_field_value(pkt_context_field, "packet_seq_num");
+	if (val != UINT64_C(-1)) {
+		set_packet_prop_uint64(&packet->seq_num, val);
+	}
+
+	/* Beginning and end times */
+	ret = set_packet_default_clock_value(pkt_context_field,
+		"timestamp_begin", &packet->begin_cv_set);
+	if (ret) {
+		goto end;
+	}
+
+	ret = set_packet_default_clock_value(pkt_context_field,
+		"timestamp_end", &packet->end_cv_set);
+	if (ret) {
+		goto end;
+	}
+
+	/* Information from previous packet */
+	if (packet->prev_packet_info.avail ==
+			BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_AVAILABLE) {
+		/* Discarded event count */
+		if (packet->prev_packet_info.discarded_event_counter.avail ==
+				BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE) {
+			BT_ASSERT(packet->discarded_event_counter.avail ==
+				BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE);
+			set_packet_prop_uint64(&packet->discarded_event_count,
+				packet->discarded_event_counter.value -
+				packet->prev_packet_info.discarded_event_counter.value);
+		}
+
+		/* Discarded packet count */
+		if (packet->prev_packet_info.seq_num.avail ==
+				BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE) {
+			BT_ASSERT(packet->seq_num.avail ==
+				BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE);
+			set_packet_prop_uint64(&packet->discarded_packet_count,
+				packet->seq_num.value -
+				packet->prev_packet_info.seq_num.value - 1);
+		}
+	}
+
+end:
+	return ret;
+}
+
+static
+int snapshot_prev_packet_properties(struct bt_packet *packet,
+		enum bt_packet_previous_packet_availability prev_packet_avail,
+		struct bt_packet *prev_packet)
+{
+	int ret = 0;
+	struct bt_clock_value *prev_packet_default_end_cv;
+
+	if (!prev_packet) {
+		goto end;
+	}
+
+	if (!prev_packet->props_are_set) {
+		ret = bt_packet_set_properties(prev_packet);
+		if (ret) {
+			BT_LIB_LOGE("Cannot update previous packet's properties: "
+				"%![prev-packet-]+a", prev_packet);
+			goto end;
+		}
+	}
+
+	packet->prev_packet_info.avail = prev_packet_avail;
+	prev_packet_default_end_cv = prev_packet->end_cv_set.default_cv;
+
+	/* End time */
+	if (prev_packet_default_end_cv) {
+		/* Copy clock value */
+		packet->prev_packet_info.default_end_cv.cv =
+			bt_clock_value_create(
+				prev_packet_default_end_cv->clock_class);
+		if (!packet->prev_packet_info.default_end_cv.cv) {
+			BT_LIB_LOGE("Cannot create a clock value from a clock class: "
+				"%![cc-]+K",
+				prev_packet_default_end_cv->clock_class);
+			ret = -1;
+			goto end;
+		}
+
+		bt_clock_value_set_raw_value(
+			packet->prev_packet_info.default_end_cv.cv,
+			prev_packet_default_end_cv->value);
+		packet->prev_packet_info.default_end_cv.avail =
+			BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE;
+	}
+
+	/* Discarded event counter */
+	packet->prev_packet_info.discarded_event_counter =
+		prev_packet->discarded_event_counter;
+
+	/* Sequence number */
+	packet->prev_packet_info.seq_num = prev_packet->seq_num;
+
+end:
+	return ret;
+}
+
+struct bt_packet *bt_packet_create(struct bt_stream *stream,
+		enum bt_packet_previous_packet_availability prev_packet_avail,
+		struct bt_packet *prev_packet)
 {
 	struct bt_packet *packet = NULL;
+	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	BT_ASSERT_PRE(!prev_packet || prev_packet->stream == stream,
+		"New packet's and previous packet's stream are not the same: "
+		"%![new-packet-stream-]+s, %![prev-packet]+a, "
+		"%![prev-packet-stream]+s", stream, prev_packet,
+		prev_packet->stream);
+	BT_ASSERT_PRE(
+		prev_packet_avail == BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_AVAILABLE ||
+		prev_packet_avail == BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NOT_AVAILABLE ||
+		prev_packet_avail == BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE,
+		"Invalid previous packet availability value: val=%d",
+		prev_packet_avail);
+	BT_ASSERT_PRE(!prev_packet ||
+		prev_packet_avail == BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_AVAILABLE,
+		"Previous packet is available, but previous packet is NULL.");
 	packet = bt_object_pool_create_object(&stream->packet_pool);
 	if (unlikely(!packet)) {
 		BT_LIB_LOGE("Cannot allocate one packet from stream's packet pool: "
@@ -293,6 +529,19 @@ struct bt_packet *bt_packet_create(struct bt_stream *stream)
 		packet->stream = stream;
 		bt_object_get_no_null_check_no_parent_check(
 			&packet->stream->common.base);
+	}
+
+	ret = snapshot_prev_packet_properties(packet, prev_packet_avail,
+		prev_packet);
+	if (ret) {
+		/* Recycle */
+		BT_PUT(packet);
+		goto end;
+	}
+
+	if (prev_packet) {
+		bt_packet_validate_properties(prev_packet);
+		bt_packet_set_is_frozen(prev_packet, true);
 	}
 
 	goto end;
@@ -352,56 +601,90 @@ int bt_packet_move_context(struct bt_packet *packet,
 	return 0;
 }
 
-int bt_packet_set_beginning_clock_value(struct bt_packet *packet,
-		struct bt_clock_class *clock_class, uint64_t raw_value,
-		bt_bool is_default)
+enum bt_packet_property_availability
+bt_packet_borrow_default_beginning_clock_value(struct bt_packet *packet,
+		struct bt_clock_value **clock_value)
 {
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
-	BT_ASSERT_PRE(is_default,
-		"You can only set a default clock value as of this version.");
-	return bt_clock_value_set_set_clock_value(&packet->begin_cv_set,
-		clock_class, raw_value, is_default);
-}
-
-struct bt_clock_value *bt_packet_borrow_default_begin_clock_value(
-		struct bt_packet *packet)
-{
-	struct bt_clock_value *clock_value = NULL;
+	enum bt_packet_property_availability avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE;
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	clock_value = packet->begin_cv_set.default_cv;
-	if (!clock_value) {
-		BT_LIB_LOGV("No default clock value: %![packet-]+a", packet);
+	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
+	*clock_value = packet->begin_cv_set.default_cv;
+	if (!*clock_value) {
+		avail = BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
 	}
 
-	return clock_value;
+	return avail;
 }
 
-int bt_packet_set_end_clock_value(struct bt_packet *packet,
-		struct bt_clock_class *clock_class, uint64_t raw_value,
-		bt_bool is_default)
+enum bt_packet_property_availability
+bt_packet_borrow_default_end_clock_value(struct bt_packet *packet,
+		struct bt_clock_value **clock_value)
 {
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
-	BT_ASSERT_PRE(is_default,
-		"You can only set a default clock value as of this version.");
-	return bt_clock_value_set_set_clock_value(&packet->end_cv_set,
-		clock_class, raw_value, is_default);
-}
-
-struct bt_clock_value *bt_packet_borrow_default_end_clock_value(
-		struct bt_packet *packet)
-{
-	struct bt_clock_value *clock_value = NULL;
+	enum bt_packet_property_availability avail =
+		BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE;
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	clock_value = packet->end_cv_set.default_cv;
-	if (!clock_value) {
-		BT_LIB_LOGV("No default clock value: %![packet-]+a", packet);
+	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
+	*clock_value = packet->end_cv_set.default_cv;
+	if (!*clock_value) {
+		avail = BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
 	}
 
-	return clock_value;
+	return avail;
 }
+
+enum bt_packet_previous_packet_availability
+bt_packet_get_previous_packet_availability(struct bt_packet *packet)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	return packet->prev_packet_info.avail;
+}
+
+enum bt_packet_property_availability
+bt_packet_borrow_previous_packet_default_end_clock_value(
+		struct bt_packet *packet, struct bt_clock_value **clock_value)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
+	*clock_value = packet->prev_packet_info.default_end_cv.cv;
+	return packet->prev_packet_info.default_end_cv.avail;
+}
+
+enum bt_packet_property_availability bt_packet_get_discarded_event_counter(
+		struct bt_packet *packet, uint64_t *counter)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_NON_NULL(counter, "Counter");
+	*counter = packet->discarded_event_counter.value;
+	return packet->discarded_event_counter.avail;
+}
+
+enum bt_packet_property_availability bt_packet_get_sequence_number(
+		struct bt_packet *packet, uint64_t *sequence_number)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_NON_NULL(sequence_number, "Sequence number");
+	*sequence_number = packet->seq_num.value;
+	return packet->seq_num.avail;
+}
+
+enum bt_packet_property_availability bt_packet_get_discarded_event_count(
+		struct bt_packet *packet, uint64_t *count)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_NON_NULL(count, "Count");
+	*count = packet->discarded_event_count.value;
+	return packet->discarded_event_count.avail;
+}
+
+enum bt_packet_property_availability bt_packet_get_discarded_packet_count(
+		struct bt_packet *packet, uint64_t *count)
+{
+	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
+	BT_ASSERT_PRE_NON_NULL(count, "Count");
+	*count = packet->discarded_packet_count.value;
+	return packet->discarded_packet_count.avail;
+}
+
