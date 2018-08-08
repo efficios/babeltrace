@@ -134,6 +134,9 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 	BT_ASSERT(pretty);
 
 	switch (bt_notification_get_type(notification)) {
+	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+		ret = pretty_print_packet(pretty, notification);
+		break;
 	case BT_NOTIFICATION_TYPE_EVENT:
 		ret = pretty_print_event(pretty, notification);
 		break;
