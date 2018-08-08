@@ -321,13 +321,17 @@ void init_static_data(void)
 	BT_ASSERT(src_stream1);
 	src_stream2 = bt_stream_create(src_stream_class, "stream-2", 1);
 	BT_ASSERT(src_stream2);
-	src_stream1_packet1 = bt_packet_create(src_stream1);
+	src_stream1_packet1 = bt_packet_create(src_stream1,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_stream1_packet1);
-	src_stream1_packet2 = bt_packet_create(src_stream1);
+	src_stream1_packet2 = bt_packet_create(src_stream1,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_stream1_packet2);
-	src_stream2_packet1 = bt_packet_create(src_stream2);
+	src_stream2_packet1 = bt_packet_create(src_stream2,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_stream2_packet1);
-	src_stream2_packet2 = bt_packet_create(src_stream2);
+	src_stream2_packet2 = bt_packet_create(src_stream2,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	BT_ASSERT(src_stream2_packet2);
 
 	if (debug) {

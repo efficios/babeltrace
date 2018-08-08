@@ -106,6 +106,19 @@ struct bt_stream;
 struct bt_clock_value;
 struct bt_clock_class;
 
+enum bt_packet_previous_packet_availability {
+	BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_ERROR = -1,
+	BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_AVAILABLE,
+	BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NOT_AVAILABLE,
+	BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE,
+};
+
+enum bt_packet_property_availability {
+	BT_PACKET_PROPERTY_AVAILABILITY_ERROR = -1,
+	BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE,
+	BT_PACKET_PROPERTY_AVAILABILITY_NOT_AVAILABLE,
+};
+
 /**
 @name Creation and parent access functions
 @{
@@ -125,7 +138,9 @@ bt_packet_set_header() and bt_packet_set_context().
 @prenotnull{stream}
 @postsuccessrefcountret1
 */
-extern struct bt_packet *bt_packet_create(struct bt_stream *stream);
+extern struct bt_packet *bt_packet_create(struct bt_stream *stream,
+		enum bt_packet_previous_packet_availability previous_packet_availability,
+		struct bt_packet *previous_packet);
 
 extern struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet);
 
@@ -172,19 +187,40 @@ int bt_packet_move_context(struct bt_packet *packet,
 
 /** @} */
 
-extern int bt_packet_set_beginning_clock_value(struct bt_packet *packet,
-		struct bt_clock_class *clock_class, uint64_t raw_value,
-		bt_bool is_default);
+extern
+enum bt_packet_property_availability
+bt_packet_borrow_default_beginning_clock_value(struct bt_packet *packet,
+		struct bt_clock_value **clock_value);
 
-extern struct bt_clock_value *bt_packet_borrow_default_beginning_clock_value(
-		struct bt_packet *packet);
+extern
+enum bt_packet_property_availability
+bt_packet_borrow_default_end_clock_value(struct bt_packet *packet,
+		struct bt_clock_value **clock_value);
 
-extern int bt_packet_set_end_clock_value(struct bt_packet *packet,
-		struct bt_clock_class *clock_class, uint64_t raw_value,
-		bt_bool is_default);
+extern
+enum bt_packet_previous_packet_availability
+bt_packet_get_previous_packet_availability(struct bt_packet *packet);
 
-extern struct bt_clock_value *bt_packet_borrow_default_end_clock_value(
-		struct bt_packet *packet);
+extern
+enum bt_packet_property_availability
+bt_packet_borrow_previous_packet_default_end_clock_value(
+		struct bt_packet *packet, struct bt_clock_value **clock_value);
+
+extern
+enum bt_packet_property_availability bt_packet_get_discarded_event_counter(
+		struct bt_packet *packet, uint64_t *counter);
+
+extern
+enum bt_packet_property_availability bt_packet_get_sequence_number(
+		struct bt_packet *packet, uint64_t *sequence_number);
+
+extern
+enum bt_packet_property_availability bt_packet_get_discarded_event_count(
+		struct bt_packet *packet, uint64_t *count);
+
+extern
+enum bt_packet_property_availability bt_packet_get_discarded_packet_count(
+		struct bt_packet *packet, uint64_t *count);
 
 /** @} */
 
