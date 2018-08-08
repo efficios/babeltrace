@@ -432,7 +432,8 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	dmesg_comp->packet = bt_packet_create(dmesg_comp->stream);
+	dmesg_comp->packet = bt_packet_create(dmesg_comp->stream,
+		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
 	if (!dmesg_comp->packet) {
 		BT_LOGE_STR("Cannot create packet object.");
 		goto error;

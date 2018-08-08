@@ -84,6 +84,7 @@ struct bt_notification *bt_notification_event_create(
 	struct bt_notification_event *notification = NULL;
 	struct bt_event *event;
 	struct bt_graph *graph;
+	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
@@ -101,6 +102,20 @@ struct bt_notification *bt_notification_event_create(
 		BT_LIB_LOGE("Cannot create event from event class: "
 			"%![event-class-]+E", event_class);
 		goto error;
+	}
+
+	/*
+	 * Set packet's properties. This can fail so it happens before
+	 * creating the notification below. We freeze it after we know
+	 * this function succeeds.
+	 */
+	if (unlikely(!packet->props_are_set)) {
+		ret = bt_packet_set_properties(packet);
+		if (ret) {
+			BT_LIB_LOGE("Cannot update packet's properties: "
+				"%![prev-packet-]+a", packet);
+			goto error;
+		}
 	}
 
 	/*
@@ -129,6 +144,8 @@ struct bt_notification *bt_notification_event_create(
 
 	BT_ASSERT(!notification->event);
 	notification->event = event;
+	bt_packet_set_is_frozen(packet, true);
+	bt_packet_validate_properties(packet);
 	BT_LOGD("Created event notification object: "
 		"event-addr=%p, event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
