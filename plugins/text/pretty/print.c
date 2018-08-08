@@ -1450,7 +1450,7 @@ end:
 }
 
 static
-int flush_buf(struct pretty_component *pretty)
+int flush_buf(FILE *stream, struct pretty_component *pretty)
 {
 	int ret = 0;
 
@@ -1458,7 +1458,7 @@ int flush_buf(struct pretty_component *pretty)
 		goto end;
 	}
 
-	if (fwrite(pretty->string->str, pretty->string->len, 1, pretty->out) != 1) {
+	if (fwrite(pretty->string->str, pretty->string->len, 1, stream) != 1) {
 		ret = -1;
 	}
 
@@ -1510,11 +1510,162 @@ enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 	}
 
 	g_string_append_c(pretty->string, '\n');
-	if (flush_buf(pretty)) {
+	if (flush_buf(pretty->out, pretty)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 end:
 	return ret;
+}
+
+static
+enum bt_component_status print_discarded_elements_msg(
+		struct pretty_component *pretty, struct bt_packet *packet,
+		uint64_t count, const char *elem_type)
+{
+	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	struct bt_stream *stream = NULL;
+	struct bt_stream_class *stream_class = NULL;
+	struct bt_trace *trace = NULL;
+	const char *stream_name;
+	const char *trace_name;
+	const unsigned char *trace_uuid;
+	int64_t stream_class_id;
+	int64_t stream_id;
+	struct bt_clock_value *begin_clock_value = NULL;
+	struct bt_clock_value *end_clock_value = NULL;
+
+	/* Stream name */
+	BT_ASSERT(packet);
+	stream = bt_packet_borrow_stream(packet);
+	BT_ASSERT(stream);
+	stream_name = bt_stream_get_name(stream);
+
+	/* Stream class ID */
+	stream_class = bt_stream_borrow_class(stream);
+	BT_ASSERT(stream_class);
+	stream_class_id = bt_stream_class_get_id(stream_class);
+
+	/* Stream ID */
+	stream_id = bt_stream_get_id(stream);
+
+	/* Trace name */
+	trace = bt_stream_class_borrow_trace(stream_class);
+	BT_ASSERT(trace);
+	trace_name = bt_trace_get_name(trace);
+	if (!trace_name) {
+		trace_name = "(unknown)";
+	}
+
+	/* Trace UUID */
+	trace_uuid = bt_trace_get_uuid(trace);
+
+	/* Beginning and end times */
+	(void) bt_packet_borrow_previous_packet_default_end_clock_value(
+		packet, &begin_clock_value);
+	(void) bt_packet_borrow_default_end_clock_value(packet,
+		&end_clock_value);
+
+	/* Format message */
+	g_string_assign(pretty->string, "");
+	g_string_append_printf(pretty->string,
+		"%s%sWARNING%s%s: Tracer discarded %" PRId64 " %s%s ",
+		bt_common_color_fg_yellow(),
+		bt_common_color_bold(),
+		bt_common_color_reset(),
+		bt_common_color_fg_yellow(),
+		count, elem_type, count == 1 ? "" : "s");
+
+	if (begin_clock_value && end_clock_value) {
+		g_string_append(pretty->string, "between [");
+		print_timestamp_wall(pretty, begin_clock_value);
+		g_string_append(pretty->string, "] and [");
+		print_timestamp_wall(pretty, end_clock_value);
+		g_string_append(pretty->string, "]");
+	} else {
+		g_string_append(pretty->string, "(unknown time range)");
+	}
+
+	g_string_append_printf(pretty->string, " in trace \"%s\" ", trace_name);
+
+	if (trace_uuid) {
+		g_string_append_printf(pretty->string,
+			"(UUID: %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x) ",
+			trace_uuid[0],
+			trace_uuid[1],
+			trace_uuid[2],
+			trace_uuid[3],
+			trace_uuid[4],
+			trace_uuid[5],
+			trace_uuid[6],
+			trace_uuid[7],
+			trace_uuid[8],
+			trace_uuid[9],
+			trace_uuid[10],
+			trace_uuid[11],
+			trace_uuid[12],
+			trace_uuid[13],
+			trace_uuid[14],
+			trace_uuid[15]);
+	} else {
+		g_string_append(pretty->string, "(no UUID) ");
+	}
+
+	g_string_append_printf(pretty->string,
+		"within stream \"%s\" (stream class ID: %" PRId64 ", ",
+		stream_name, stream_class_id);
+
+	if (stream_id >= 0) {
+		g_string_append_printf(pretty->string,
+			"stream ID: %" PRId64, stream_id);
+	} else {
+		g_string_append(pretty->string, "no stream ID");
+	}
+
+	g_string_append_printf(pretty->string, ").%s\n",
+		bt_common_color_reset());
+
+	/*
+	 * Print to standard error stream to remain backward compatible
+	 * with Babeltrace 1.
+	 */
+	if (flush_buf(stderr, pretty)) {
+		ret = BT_COMPONENT_STATUS_ERROR;
+	}
+
+	return ret;
+}
+
+BT_HIDDEN
+enum bt_component_status pretty_print_packet(struct pretty_component *pretty,
+		struct bt_notification *packet_beginning_notif)
+{
+	struct bt_packet *packet = bt_notification_packet_begin_borrow_packet(
+		packet_beginning_notif);
+	uint64_t count;
+	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+
+	if (bt_packet_get_discarded_event_count(packet, &count) ==
+			BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE &&
+			count > 0) {
+		status = print_discarded_elements_msg(pretty, packet,
+			count, "event");
+		if (status != BT_COMPONENT_STATUS_OK) {
+			goto end;
+		}
+	}
+
+	if (bt_packet_get_discarded_packet_count(packet, &count) ==
+			BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE &&
+			count > 0) {
+		status = print_discarded_elements_msg(pretty, packet,
+			count, "packet");
+		if (status != BT_COMPONENT_STATUS_OK) {
+			goto end;
+		}
+	}
+
+end:
+	return status;
 }
