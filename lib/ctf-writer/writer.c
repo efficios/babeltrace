@@ -29,6 +29,9 @@
 #define BT_LOG_TAG "CTF-WRITER"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-writer/field-types-internal.h>
 #include <babeltrace/ctf-writer/fields-internal.h>
@@ -37,18 +40,15 @@
 #include <babeltrace/ctf-writer/stream-internal.h>
 #include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/ref.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace/ref.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <inttypes.h>
 
 static
 void bt_ctf_writer_destroy(struct bt_object *obj);
@@ -429,18 +429,18 @@ end:
 }
 
 BT_HIDDEN
-const char *get_byte_order_string(enum bt_byte_order byte_order)
+const char *bt_ctf_get_byte_order_string(enum bt_ctf_byte_order byte_order)
 {
 	const char *string;
 
 	switch (byte_order) {
-	case BT_BYTE_ORDER_LITTLE_ENDIAN:
+	case BT_CTF_BYTE_ORDER_LITTLE_ENDIAN:
 		string = "le";
 		break;
-	case BT_BYTE_ORDER_BIG_ENDIAN:
+	case BT_CTF_BYTE_ORDER_BIG_ENDIAN:
 		string = "be";
 		break;
-	case BT_BYTE_ORDER_NATIVE:
+	case BT_CTF_BYTE_ORDER_NATIVE:
 		string = "native";
 		break;
 	default:

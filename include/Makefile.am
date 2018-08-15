@@ -16,7 +16,6 @@ babeltracectfinclude_HEADERS = \
 # CTF writer API
 babeltracectfwriterincludedir = "$(includedir)/babeltrace/ctf-writer"
 babeltracectfwriterinclude_HEADERS = \
-	babeltrace/ctf-writer/clock-class.h \
 	babeltrace/ctf-writer/clock.h \
 	babeltrace/ctf-writer/event-fields.h \
 	babeltrace/ctf-writer/event.h \
@@ -26,6 +25,8 @@ babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/stream-class.h \
 	babeltrace/ctf-writer/stream.h \
 	babeltrace/ctf-writer/trace.h \
+	babeltrace/ctf-writer/utils.h \
+	babeltrace/ctf-writer/visitor.h \
 	babeltrace/ctf-writer/writer.h
 
 # CTF IR API
@@ -110,16 +111,25 @@ noinst_HEADERS = \
 	babeltrace/plugin/python-plugin-provider-internal.h \
 	babeltrace/assert-internal.h \
 	babeltrace/values-internal.h \
-	babeltrace/ctf-writer/fields-internal.h \
-	babeltrace/ctf-writer/stream-class-internal.h \
-	babeltrace/ctf-writer/event-internal.h \
-	babeltrace/ctf-writer/trace-internal.h \
-	babeltrace/ctf-writer/field-types-internal.h \
-	babeltrace/ctf-writer/serialize-internal.h \
-	babeltrace/ctf-writer/writer-internal.h \
-	babeltrace/ctf-writer/stream-internal.h \
+	babeltrace/ctf-writer/attributes-internal.h \
+	babeltrace/ctf-writer/clock-class-internal.h \
 	babeltrace/ctf-writer/clock-internal.h \
+	babeltrace/ctf-writer/event-class-internal.h \
+	babeltrace/ctf-writer/event-internal.h \
+	babeltrace/ctf-writer/field-path-internal.h \
+	babeltrace/ctf-writer/fields-internal.h \
+	babeltrace/ctf-writer/field-types-internal.h \
+	babeltrace/ctf-writer/field-wrapper-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
+	babeltrace/ctf-writer/resolve-internal.h \
+	babeltrace/ctf-writer/serialize-internal.h \
+	babeltrace/ctf-writer/stream-class-internal.h \
+	babeltrace/ctf-writer/stream-internal.h \
+	babeltrace/ctf-writer/trace-internal.h \
+	babeltrace/ctf-writer/utils-internal.h \
+	babeltrace/ctf-writer/validation-internal.h \
+	babeltrace/ctf-writer/visitor-internal.h \
+	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/mmap-align-internal.h \
 	babeltrace/align-internal.h \
 	babeltrace/logging-internal.h \

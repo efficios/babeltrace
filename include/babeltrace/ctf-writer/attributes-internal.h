@@ -1,10 +1,13 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
+#ifndef BABELTRACE_CTF_WRITER_ATTRIBUTES_H
+#define BABELTRACE_CTF_WRITER_ATTRIBUTES_H
 
 /*
- * BabelTrace - CTF writer: Clock internal
+ * attributes.c
  *
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Babeltrace - CTF writer: Attributes internal
+ *
+ * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
+ * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,27 +28,44 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/clock-class-internal.h>
-#include <babeltrace/ctf-writer/trace-internal.h>
-#include <babeltrace/object-internal.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <glib.h>
-#include <babeltrace/compat/uuid-internal.h>
-
-struct bt_ctf_clock {
-	struct bt_object base;
-	struct bt_ctf_clock_class *clock_class;
-	uint64_t value;		/* Current clock value */
-};
-
-struct metadata_context;
+#include <babeltrace/values.h>
 
 BT_HIDDEN
-int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value);
+struct bt_value *bt_ctf_attributes_create(void);
 
 BT_HIDDEN
-void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
-		struct metadata_context *context);
+void bt_ctf_attributes_destroy(struct bt_value *attr_obj);
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H */
+BT_HIDDEN
+int64_t bt_ctf_attributes_get_count(struct bt_value *attr_obj);
+
+BT_HIDDEN
+const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
+		uint64_t index);
+
+BT_HIDDEN
+struct bt_value *bt_ctf_attributes_borrow_field_value(struct bt_value *attr_obj,
+		uint64_t index);
+
+BT_HIDDEN
+int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
+		const char *name, struct bt_value *value_obj);
+
+BT_HIDDEN
+struct bt_value *bt_ctf_attributes_borrow_field_value_by_name(
+		struct bt_value *attr_obj, const char *name);
+
+BT_HIDDEN
+int bt_ctf_attributes_freeze(struct bt_value *attr_obj);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_CTF_WRITER_ATTRIBUTES_H */

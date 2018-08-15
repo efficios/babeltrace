@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H
+#ifndef BABELTRACE_CTF_WRITER_VISITOR_INTERNAL_H
+#define BABELTRACE_CTF_WRITER_VISITOR_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Writer internal
+ * BabelTrace - CTF writer: Visitor internal
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,45 +27,25 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/writer.h>
+#include <babeltrace/ctf-writer/visitor.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <glib.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <babeltrace/ctf-writer/trace.h>
-#include <babeltrace/object-internal.h>
 
-struct metadata_context {
-	GString *string;
-	GString *field_name;
-	unsigned int current_indentation_level;
-};
+typedef void *(*bt_ctf_child_accessor)(void *object, int index);
+typedef int64_t (*bt_ctf_child_count_accessor)(void *object);
+typedef int (*bt_ctf_child_visitor)(void *object, bt_ctf_visitor visitor,
+		void *data);
 
-struct bt_ctf_writer {
-	struct bt_object base;
-	int frozen; /* Protects attributes that can't be changed mid-trace */
-	struct bt_ctf_trace *trace;
-	GString *path;
-	int metadata_fd;
-};
-
-enum field_type_alias {
-	FIELD_TYPE_ALIAS_UINT5_T = 0,
-	FIELD_TYPE_ALIAS_UINT8_T,
-	FIELD_TYPE_ALIAS_UINT16_T,
-	FIELD_TYPE_ALIAS_UINT27_T,
-	FIELD_TYPE_ALIAS_UINT32_T,
-	FIELD_TYPE_ALIAS_UINT64_T,
-	NR_FIELD_TYPE_ALIAS,
+struct bt_ctf_visitor_object {
+	enum bt_ctf_visitor_object_type type;
+	void *object;
 };
 
 BT_HIDDEN
-struct bt_ctf_field_type *get_field_type(enum field_type_alias alias);
+int visitor_helper(struct bt_ctf_visitor_object *root,
+		bt_ctf_child_count_accessor child_counter,
+		bt_ctf_child_accessor child_accessor,
+		bt_ctf_child_visitor child_visitor,
+		bt_ctf_visitor visitor,
+		void *data);
 
-BT_HIDDEN
-const char *bt_ctf_get_byte_order_string(enum bt_ctf_byte_order byte_order);
-
-BT_HIDDEN
-void bt_ctf_writer_freeze(struct bt_ctf_writer *writer);
-
-#endif /* BABELTRACE_CTF_WRITER_WRITER_INTERNAL_H */
+#endif /* BABELTRACE_CTF_WRITER_VISITOR_INTERNAL_H */
