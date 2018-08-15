@@ -57,7 +57,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 346
+#define NR_TESTS 342
 
 struct bt_utsname {
 	char sysname[BABELTRACE_HOST_NAME_MAX];
@@ -1596,7 +1596,6 @@ int main(int argc, char **argv)
 	struct bt_utsname name = {"GNU/Linux", "testhost", "4.4.0-87-generic",
 		"#110-Ubuntu SMP Tue Jul 18 12:55:35 UTC 2017", "x86_64"};
 	struct bt_ctf_clock *clock, *ret_clock;
-	struct bt_ctf_clock_class *ret_clock_class;
 	struct bt_ctf_stream_class *stream_class, *ret_stream_class;
 	struct bt_ctf_stream *stream1;
 	struct bt_ctf_stream *stream;
@@ -2018,20 +2017,6 @@ int main(int argc, char **argv)
 	 * class to the writer's trace, thus registering the stream
 	 * class's clock to the trace.
 	 */
-	ok(bt_ctf_trace_get_clock_class_count(trace) == 1,
-		"bt_ctf_trace_get_clock_class_count returns the correct number of clocks");
-	ret_clock_class = bt_ctf_trace_get_clock_class_by_index(trace, 0);
-	ok(strcmp(bt_ctf_clock_class_get_name(ret_clock_class),
-		bt_ctf_clock_get_name(clock)) == 0,
-		"bt_ctf_trace_get_clock_class returns the right clock instance");
-	bt_put(ret_clock_class);
-	ret_clock_class = bt_ctf_trace_get_clock_class_by_name(trace, clock_name);
-	ok(strcmp(bt_ctf_clock_class_get_name(ret_clock_class),
-		bt_ctf_clock_get_name(clock)) == 0,
-		"bt_ctf_trace_get_clock_class returns the right clock instance");
-	bt_put(ret_clock_class);
-	ok(!bt_ctf_trace_get_clock_class_by_name(trace, "random"),
-		"bt_ctf_trace_get_clock_by_name fails when the requested clock doesn't exist");
 
 	ret_stream_class = bt_ctf_stream_get_class(stream1);
 	ok(ret_stream_class,

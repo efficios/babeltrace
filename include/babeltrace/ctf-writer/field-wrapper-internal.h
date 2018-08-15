@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
+#ifndef BABELTRACE_CTF_WRITER_FIELD_WRAPPER_INTERNAL_H
+#define BABELTRACE_CTF_WRITER_FIELD_WRAPPER_INTERNAL_H
 
 /*
- * BabelTrace - CTF writer: Clock internal
- *
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,27 +23,25 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/clock-class-internal.h>
-#include <babeltrace/ctf-writer/trace-internal.h>
+#include <babeltrace/ctf-writer/fields-internal.h>
+#include <babeltrace/object-pool-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <glib.h>
-#include <babeltrace/compat/uuid-internal.h>
 
-struct bt_ctf_clock {
+struct bt_ctf_field_wrapper {
 	struct bt_object base;
-	struct bt_ctf_clock_class *clock_class;
-	uint64_t value;		/* Current clock value */
+
+	/* Owned by this */
+	struct bt_ctf_field_common *field;
 };
 
-struct metadata_context;
+BT_HIDDEN
+struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_new(void *data);
 
 BT_HIDDEN
-int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value);
+void bt_ctf_field_wrapper_destroy(struct bt_ctf_field_wrapper *field);
 
 BT_HIDDEN
-void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
-		struct metadata_context *context);
+struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
+		struct bt_object_pool *pool, struct bt_ctf_field_type *ft);
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H */
+#endif /* BABELTRACE_CTF_WRITER_FIELD_WRAPPER_INTERNAL_H */

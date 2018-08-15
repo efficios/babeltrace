@@ -28,12 +28,12 @@
 
 #include <glib.h>
 #include <babeltrace/ctf-writer/functor-internal.h>
-#include <babeltrace/ctf-ir/utils-internal.h>
+#include <babeltrace/ctf-writer/utils-internal.h>
 
 BT_HIDDEN
 void value_exists(gpointer element, gpointer search_query)
 {
-	if (element == ((struct search_query *)search_query)->value) {
-		((struct search_query *)search_query)->found = 1;
+	if (element == ((struct bt_ctf_search_query *)search_query)->value) {
+		((struct bt_ctf_search_query *)search_query)->found = 1;
 	}
 }

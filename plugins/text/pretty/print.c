@@ -1262,9 +1262,9 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 
 	type_id = bt_field_get_type_id(field);
 	switch (type_id) {
-	case BT_CTF_FIELD_TYPE_ID_INTEGER:
+	case BT_FIELD_TYPE_ID_INTEGER:
 		return print_integer(pretty, field);
-	case BT_CTF_FIELD_TYPE_ID_FLOAT:
+	case BT_FIELD_TYPE_ID_FLOAT:
 	{
 		double v;
 
@@ -1280,9 +1280,9 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case BT_CTF_FIELD_TYPE_ID_ENUM:
+	case BT_FIELD_TYPE_ID_ENUM:
 		return print_enum(pretty, field);
-	case BT_CTF_FIELD_TYPE_ID_STRING:
+	case BT_FIELD_TYPE_ID_STRING:
 	{
 		const char *str;
 
@@ -1300,14 +1300,14 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case BT_CTF_FIELD_TYPE_ID_STRUCT:
+	case BT_FIELD_TYPE_ID_STRUCT:
 		return print_struct(pretty, field, print_names, filter_fields,
 				filter_array_len);
-	case BT_CTF_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_TYPE_ID_VARIANT:
 		return print_variant(pretty, field, print_names);
-	case BT_CTF_FIELD_TYPE_ID_ARRAY:
+	case BT_FIELD_TYPE_ID_ARRAY:
 		return print_array(pretty, field, print_names);
-	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_SEQUENCE:
 		return print_sequence(pretty, field, print_names);
 	default:
 		// TODO: log instead

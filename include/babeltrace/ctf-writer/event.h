@@ -31,8 +31,6 @@
  */
 
 #include <babeltrace/ref.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/event.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,55 +44,55 @@ struct bt_ctf_field_type;
 
 enum bt_ctf_event_class_log_level {
 	/// Unknown, used for errors.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN		= BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNKNOWN		= -1,
 
 	/// Unspecified log level.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED	= BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED	= 255,
 
 	/// System is unusable.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY		= BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_EMERGENCY		= 0,
 
 	/// Action must be taken immediately.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT		= BT_EVENT_CLASS_LOG_LEVEL_ALERT,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ALERT		= 1,
 
 	/// Critical conditions.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL		= BT_EVENT_CLASS_LOG_LEVEL_CRITICAL,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_CRITICAL		= 2,
 
 	/// Error conditions.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR		= BT_EVENT_CLASS_LOG_LEVEL_ERROR,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_ERROR		= 3,
 
 	/// Warning conditions.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING		= BT_EVENT_CLASS_LOG_LEVEL_WARNING,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_WARNING		= 4,
 
 	/// Normal, but significant, condition.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE		= BT_EVENT_CLASS_LOG_LEVEL_NOTICE,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_NOTICE		= 5,
 
 	/// Informational message.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO		= BT_EVENT_CLASS_LOG_LEVEL_INFO,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_INFO		= 6,
 
 	/// Debug information with system-level scope (set of programs).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM	= 7,
 
 	/// Debug information with program-level scope (set of processes).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM	= 8,
 
 	/// Debug information with process-level scope (set of modules).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS	= 9,
 
 	/// Debug information with module (executable/library) scope (set of units).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE	= 10,
 
 	/// Debug information with compilation unit scope (set of functions).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT		= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT		= 11,
 
 	/// Debug information with function-level scope.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION	= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION	= 12,
 
 	/// Debug information with line-level scope (default log level).
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE		= BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE		= 13,
 
 	/// Debug-level message.
-	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG		= BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
+	BT_CTF_EVENT_CLASS_LOG_LEVEL_DEBUG		= 14,
 };
 
 extern struct bt_ctf_event *bt_ctf_event_create(

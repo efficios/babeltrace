@@ -31,23 +31,23 @@
 #define BT_LOG_TAG "CTF-WRITER-SERIALIZE"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <babeltrace/ctf-writer/fields.h>
-#include <babeltrace/ctf-writer/field-types.h>
-#include <babeltrace/ctf-writer/serialize-internal.h>
-#include <babeltrace/ctf-ir/utils-internal.h>
-#include <babeltrace/ctf-ir/fields-internal.h>
-#include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/align-internal.h>
-#include <babeltrace/mmap-align-internal.h>
-#include <babeltrace/endian-internal.h>
 #include <babeltrace/bitfield-internal.h>
-#include <babeltrace/compat/fcntl-internal.h>
-#include <babeltrace/types.h>
 #include <babeltrace/common-internal.h>
+#include <babeltrace/compat/fcntl-internal.h>
+#include <babeltrace/ctf-writer/field-types-internal.h>
+#include <babeltrace/ctf-writer/field-types.h>
+#include <babeltrace/ctf-writer/fields-internal.h>
+#include <babeltrace/ctf-writer/fields.h>
+#include <babeltrace/ctf-writer/serialize-internal.h>
+#include <babeltrace/ctf-writer/utils-internal.h>
+#include <babeltrace/endian-internal.h>
+#include <babeltrace/mmap-align-internal.h>
+#include <babeltrace/types.h>
 #include <glib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #if (FLT_RADIX != 2)
 # error "Unsupported floating point radix"
@@ -205,18 +205,18 @@ int integer_write(struct bt_ctf_stream_pos *pos, union intval value,
 }
 
 BT_HIDDEN
-int bt_ctf_field_integer_write(struct bt_field_common *field,
+int bt_ctf_field_integer_write(struct bt_ctf_field_common *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	struct bt_field_type_common_integer *int_type =
-		BT_FROM_COMMON(field->type);
-	struct bt_field_common_integer *int_field = BT_FROM_COMMON(field);
+	struct bt_ctf_field_type_common_integer *int_type =
+		BT_CTF_FROM_COMMON(field->type);
+	struct bt_ctf_field_common_integer *int_field = BT_CTF_FROM_COMMON(field);
 	enum bt_ctf_byte_order byte_order;
 	union intval value;
 
 	byte_order = (int) int_type->user_byte_order;
-	if ((int) byte_order == BT_BYTE_ORDER_NATIVE) {
+	if ((int) byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
 		byte_order = native_byte_order;
 	}
 
@@ -229,19 +229,19 @@ int bt_ctf_field_integer_write(struct bt_field_common *field,
 
 BT_HIDDEN
 int bt_ctf_field_floating_point_write(
-		struct bt_field_common *field,
+		struct bt_ctf_field_common *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	struct bt_field_type_common_floating_point *flt_type =
-		BT_FROM_COMMON(field->type);
-	struct bt_field_common_floating_point *flt_field = BT_FROM_COMMON(field);
+	struct bt_ctf_field_type_common_floating_point *flt_type =
+		BT_CTF_FROM_COMMON(field->type);
+	struct bt_ctf_field_common_floating_point *flt_field = BT_CTF_FROM_COMMON(field);
 	enum bt_ctf_byte_order byte_order;
 	union intval value;
 	unsigned int size;
 
 	byte_order = (int) flt_type->user_byte_order;
-	if ((int) byte_order == BT_BYTE_ORDER_NATIVE) {
+	if ((int) byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
 		byte_order = native_byte_order;
 	}
 

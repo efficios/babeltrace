@@ -46,14 +46,6 @@
 #include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/ctf-ir/field-path-internal.h>
 #include <babeltrace/ctf-ir/utils-internal.h>
-#include <babeltrace/ctf-writer/field-types-internal.h>
-#include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/ctf-writer/event-internal.h>
-#include <babeltrace/ctf-writer/stream-class-internal.h>
-#include <babeltrace/ctf-writer/stream-internal.h>
-#include <babeltrace/ctf-writer/trace-internal.h>
-#include <babeltrace/ctf-writer/clock-internal.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
 #include <babeltrace/graph/component-filter-internal.h>
@@ -272,13 +264,6 @@ static inline void format_field_type(char **buf_ch, bool extended,
 		(void *) field_type);
 }
 
-static inline void format_writer_field_type(char **buf_ch, bool extended,
-		const char *prefix, struct bt_ctf_field_type *field_type)
-{
-	format_field_type_common(buf_ch, extended, prefix,
-		(void *) field_type);
-}
-
 static inline void format_field_common_integer_extended(char **buf_ch,
 		const char *prefix, struct bt_field_common *field)
 {
@@ -425,44 +410,6 @@ static inline void format_field(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_writer_field(char **buf_ch, bool extended,
-		const char *prefix, struct bt_ctf_field *field)
-{
-	struct bt_field_common *common_field = (void *) field;
-
-	format_field_common(buf_ch, extended, prefix, (void *) field);
-
-	if (!extended) {
-		return;
-	}
-
-	if (!common_field->type) {
-		return;
-	}
-
-	switch (common_field->type->id) {
-	case BT_FIELD_TYPE_ID_ENUM:
-	{
-		struct bt_ctf_field_enumeration *enumeration = (void *) field;
-
-		if (enumeration->container) {
-			format_writer_field(buf_ch, extended, prefix,
-				(void *) enumeration->container);
-		}
-		break;
-	}
-	case BT_FIELD_TYPE_ID_VARIANT:
-	{
-		struct bt_ctf_field_variant *variant = (void *) field;
-
-		BUF_APPEND(", %stag-field-addr=%p", PRFIELD(variant->tag));
-		break;
-	}
-	default:
-		break;
-	}
-}
-
 static inline void format_field_path(char **buf_ch, bool extended,
 		const char *prefix, struct bt_field_path *field_path)
 {
@@ -541,12 +488,6 @@ static inline void format_trace(char **buf_ch, bool extended,
 		&trace->packet_header_field_pool);
 }
 
-static inline void format_writer_trace(char **buf_ch, bool extended,
-		const char *prefix, struct bt_ctf_trace *trace)
-{
-	format_trace_common(buf_ch, extended, prefix, BT_TO_COMMON(trace));
-}
-
 static inline void format_stream_class_common(char **buf_ch, bool extended,
 		const char *prefix, struct bt_stream_class_common *stream_class,
 		format_func trace_format_func)
@@ -606,21 +547,6 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	SET_TMP_PREFIX("pcf-pool-");
 	format_object_pool(buf_ch, extended, prefix,
 		&stream_class->packet_context_field_pool);
-}
-
-static inline void format_writer_stream_class(char **buf_ch, bool extended,
-		const char *prefix, struct bt_ctf_stream_class *stream_class)
-{
-	format_stream_class_common(buf_ch, extended, prefix,
-		BT_TO_COMMON(stream_class), (format_func) format_writer_trace);
-
-	if (extended && stream_class->clock) {
-		BUF_APPEND(", %sctf-writer-clock-addr=%p, "
-			"%sctf-writer-clock-name=\"%s\"",
-			PRFIELD(stream_class->clock),
-			PRFIELD(bt_clock_class_get_name(
-				BT_TO_COMMON(stream_class->clock->clock_class))));
-	}
 }
 
 static inline void format_event_class_common(char **buf_ch, bool extended,
@@ -690,15 +616,6 @@ static inline void format_event_class(char **buf_ch, bool extended,
 	format_object_pool(buf_ch, extended, prefix, &event_class->event_pool);
 }
 
-static inline void format_writer_event_class(char **buf_ch, bool extended,
-		const char *prefix, struct bt_ctf_event_class *event_class)
-{
-	format_event_class_common(buf_ch, extended, prefix,
-		BT_TO_COMMON(event_class),
-		(format_func) format_writer_stream_class,
-		(format_func) format_writer_trace);
-}
-
 static inline void format_stream_common(char **buf_ch, bool extended,
 		const char *prefix, struct bt_stream_common *stream,
 		format_func format_stream_class_func,
@@ -751,55 +668,6 @@ static inline void format_stream(char **buf_ch, bool extended,
 		(format_func) format_trace);
 	SET_TMP_PREFIX("packet-pool-");
 	format_object_pool(buf_ch, extended, prefix, &stream->packet_pool);
-}
-
-static inline void format_writer_stream(char **buf_ch, bool extended,
-		const char *prefix, struct bt_ctf_stream *stream)
-{
-	format_stream_common(buf_ch, extended, prefix, BT_TO_COMMON(stream),
-		(format_func) format_writer_stream_class,
-		(format_func) format_writer_trace);
-
-	BUF_APPEND(", %sheader-field-addr=%p, %scontext-field-addr=%p"
-		", %sfd=%d, %smmap-offset=%zu, "
-		"%smmap-base-offset=%zu, %spacket-size=%" PRIu64 ", "
-		"%soffset=%" PRId64 ", %sevent-count=%u, "
-		"%sflushed-packet-count=%u, "
-		"%sdiscarded-event-count=%" PRIu64 ", "
-		"%ssize=%" PRIu64 ", %slast-ts-end=%" PRIu64,
-		PRFIELD(stream->packet_header),
-		PRFIELD(stream->packet_context),
-		PRFIELD(stream->pos.fd),
-		PRFIELD((size_t) stream->pos.mmap_offset),
-		PRFIELD((size_t) stream->pos.mmap_base_offset),
-		PRFIELD(stream->pos.packet_size),
-		PRFIELD(stream->pos.offset),
-		PRFIELD(stream->events->len),
-		PRFIELD(stream->flushed_packet_count),
-		PRFIELD(stream->discarded_events),
-		PRFIELD(stream->size), PRFIELD(stream->last_ts_end));
-
-	if (stream->events) {
-		BUF_APPEND(", %sevent-count=%u", PRFIELD(stream->events->len));
-	}
-
-	BUF_APPEND(", %sheader-field-addr=%p, %scontext-field-addr=%p"
-		", %sfd=%d, %smmap-offset=%zu, "
-		"%smmap-base-offset=%zu, %spacket-size=%" PRIu64 ", "
-		"%soffset=%" PRId64 ", "
-		"%sflushed-packet-count=%u, "
-		"%sdiscarded-event-count=%" PRIu64 ", "
-		"%ssize=%" PRIu64 ", %slast-ts-end=%" PRIu64,
-		PRFIELD(stream->packet_header),
-		PRFIELD(stream->packet_context),
-		PRFIELD(stream->pos.fd),
-		PRFIELD((size_t) stream->pos.mmap_offset),
-		PRFIELD((size_t) stream->pos.mmap_base_offset),
-		PRFIELD(stream->pos.packet_size),
-		PRFIELD(stream->pos.offset),
-		PRFIELD(stream->flushed_packet_count),
-		PRFIELD(stream->discarded_events),
-		PRFIELD(stream->size), PRFIELD(stream->last_ts_end));
 }
 
 static inline void format_packet(char **buf_ch, bool extended,
@@ -915,15 +783,6 @@ static inline void format_event(char **buf_ch, bool extended,
 	BUF_APPEND(", %sstream-addr=%p", PRFIELD(stream));
 	SET_TMP_PREFIX("stream-");
 	format_stream(buf_ch, false, tmp_prefix, stream);
-}
-
-static inline void format_writer_event(char **buf_ch, bool extended,
-		const char *prefix, struct bt_event *event)
-{
-	format_event_common(buf_ch, extended, prefix, BT_TO_COMMON(event),
-		(format_func) format_writer_event_class,
-		(format_func) format_writer_stream_class,
-		(format_func) format_writer_trace);
 }
 
 static inline void format_clock_class(char **buf_ch, bool extended,
@@ -1359,12 +1218,6 @@ static inline void format_plugin(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_ctf_writer(char **buf_ch, bool extended,
-		const char *prefix, struct bt_ctf_writer *writer)
-{
-	/* TODO */
-}
-
 static inline void format_stream_class_common_common(char **buf_ch,
 		bool extended, const char *prefix,
 		struct bt_stream_class_common *stream_class)
@@ -1411,7 +1264,6 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 	void *obj;
 	enum {
 		CAT_DEFAULT,
-		CAT_WRITER,
 		CAT_COMMON,
 	} cat = CAT_DEFAULT;
 
@@ -1442,10 +1294,7 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		fmt_ch++;
 	}
 
-	if (*fmt_ch == 'w') {
-		cat = CAT_WRITER;
-		fmt_ch++;
-	} else if (*fmt_ch == '_') {
+	if (*fmt_ch == '_') {
 		cat = CAT_COMMON;
 		fmt_ch++;
 	}
@@ -1525,36 +1374,6 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 			break;
 		case 'O':
 			format_object(buf_ch, extended, prefix, obj);
-			break;
-		default:
-			abort();
-		}
-		break;
-	case CAT_WRITER:
-		switch (*fmt_ch) {
-		case 'F':
-			format_writer_field_type(buf_ch, extended, prefix, obj);
-			break;
-		case 'f':
-			format_writer_field(buf_ch, extended, prefix, obj);
-			break;
-		case 'E':
-			format_writer_event_class(buf_ch, extended, prefix, obj);
-			break;
-		case 'e':
-			format_writer_event(buf_ch, extended, prefix, obj);
-			break;
-		case 'S':
-			format_writer_stream_class(buf_ch, extended, prefix, obj);
-			break;
-		case 's':
-			format_writer_stream(buf_ch, extended, prefix, obj);
-			break;
-		case 't':
-			format_writer_trace(buf_ch, extended, prefix, obj);
-			break;
-		case 'w':
-			format_ctf_writer(buf_ch, extended, prefix, obj);
 			break;
 		default:
 			abort();

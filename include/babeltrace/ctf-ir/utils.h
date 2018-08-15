@@ -71,13 +71,6 @@ extern bt_bool bt_identifier_is_valid(const char *identifier);
 
 /** @} */
 
-/* Pre-2.0 CTF writer compatibility */
-static inline
-int bt_ctf_validate_identifier(const char *identifier)
-{
-	return bt_identifier_is_valid(identifier) ? 1 : 0;
-}
-
 #ifdef __cplusplus
 }
 #endif

@@ -1,10 +1,10 @@
-#ifndef BABELTRACE_CTF_WRITER_EVENT_FIELDS_H
-#define BABELTRACE_CTF_WRITER_EVENT_FIELDS_H
+#ifndef BABELTRACE_CTF_WRITER_UTILS_H
+#define BABELTRACE_CTF_WRITER_UTILS_H
 
 /*
- * BabelTrace - CTF Writer: Event Fields
+ * BabelTrace - CTF writer: Utilities
  *
- * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -30,47 +30,19 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ref.h>
-#include <babeltrace/ctf-writer/field-types.h>
-#include <babeltrace/ctf-writer/fields.h>
+/* For bt_bool */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*
- * bt_ctf_field_get and bt_ctf_field_put: increment and decrement the
- * field's reference count.
- *
- * You may also use bt_get() and bt_put() with field objects.
- *
- * These functions ensure that the field won't be destroyed when it
- * is in use. The same number of get and put (plus one extra put to
- * release the initial reference done at creation) have to be done to
- * destroy a field.
- *
- * When the field's reference count is decremented to 0 by a bt_ctf_field_put,
- * the field is freed.
- *
- * @param field Field instance.
- */
+extern bt_bool bt_ctf_identifier_is_valid(const char *identifier);
 
-/* Pre-2.0 CTF writer compatibility */
 static inline
-void bt_ctf_field_get(struct bt_ctf_field *field)
+int bt_ctf_validate_identifier(const char *identifier)
 {
-	bt_get(field);
+	return bt_ctf_identifier_is_valid(identifier) ? 1 : 0;
 }
 
-/* Pre-2.0 CTF writer compatibility */
-static inline
-void bt_ctf_field_put(struct bt_ctf_field *field)
-{
-	bt_put(field);
-}
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_CTF_WRITER_EVENT_FIELDS_H */
+#endif /* BABELTRACE_CTF_WRITER_UTILS_H */

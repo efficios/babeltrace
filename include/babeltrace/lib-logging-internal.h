@@ -70,8 +70,8 @@ int bt_lib_log_level;
  * 3. Optional: `+` to print extended fields. This depends on the
  *    provided format specifier.
  *
- * 4. Objet category: `w` for CTF writer objects, `_` for common
- *    objects, or nothing for default objects (includes CTF IR).
+ * 4. Objet category: `_` for common objects, or nothing for default
+ *    objects (includes CTF IR).
  *
  * 5. Format specifier (see below).
  *
@@ -146,33 +146,6 @@ int bt_lib_log_level;
  *   `o`:
  *       Object pool. The parameter type is `struct bt_object_pool *`.
  *
- * CTF writer category:
- *   `F`:
- *       CTF writer field type. The parameter type is `struct bt_field_type *`.
- *
- *   `f`:
- *       CTF writer field. The parameter type is `struct bt_field *`.
- *
- *   `E`:
- *       CTF writer event class. The parameter type is
- *       `struct bt_event_class *`.
- *
- *   `e`:
- *       CTF writer event. The parameter type is `struct bt_event *`.
- *
- *   `S`:
- *       CTF writer stream class. The parameter type is
- *       `struct bt_stream_class *`.
- *
- *   `s`:
- *       CTF writer stream. The parameter type is `struct bt_stream *`.
- *
- *   `t`:
- *       CTF writer trace. The parameter type is `struct bt_trace *`.
- *
- *   `w`:
- *       CTF writer. The parameter type is `struct bt_ctf_writer *`.
- *
  * Common category:
  *   `F`:
  *       Common field type. The parameter type is `struct bt_field_type *`.
@@ -202,7 +175,6 @@ int bt_lib_log_level;
  *     %!f
  *     %![my-event-]+e
  *     %!_t
- *     %![ctf-writer-ec-]wE
  *     %!+_F
  *
  * The string `, ` is printed between individual fields, but not after

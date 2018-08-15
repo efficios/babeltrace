@@ -24,22 +24,119 @@
 #define BT_LOG_TAG "CTF-WRITER-STREAM"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/ref.h>
-#include <babeltrace/ctf-ir/event-class-internal.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/ctf-writer/stream.h>
-#include <babeltrace/ctf-writer/stream-internal.h>
-#include <babeltrace/ctf-writer/stream-class-internal.h>
+#include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/align-internal.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/compiler-internal.h>
+#include <babeltrace/ctf-writer/event-class-internal.h>
+#include <babeltrace/ctf-writer/event-internal.h>
 #include <babeltrace/ctf-writer/field-types.h>
 #include <babeltrace/ctf-writer/fields-internal.h>
+#include <babeltrace/ctf-writer/stream-class-internal.h>
+#include <babeltrace/ctf-writer/stream-class.h>
+#include <babeltrace/ctf-writer/stream-internal.h>
+#include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/trace-internal.h>
-#include <babeltrace/ctf-writer/event-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <unistd.h>
-#include <stdint.h>
+#include <babeltrace/ctf-writer/trace.h>
+#include <babeltrace/ctf-writer/writer-internal.h>
+#include <babeltrace/ref.h>
 #include <inttypes.h>
+#include <stdint.h>
+#include <unistd.h>
+
+BT_HIDDEN
+void bt_ctf_stream_common_finalize(struct bt_ctf_stream_common *stream)
+{
+	BT_LOGD("Finalizing common stream object: addr=%p, name=\"%s\"",
+		stream, bt_ctf_stream_common_get_name(stream));
+
+	if (stream->name) {
+		g_string_free(stream->name, TRUE);
+	}
+}
+
+BT_HIDDEN
+int bt_ctf_stream_common_initialize(
+		struct bt_ctf_stream_common *stream,
+		struct bt_ctf_stream_class_common *stream_class, const char *name,
+		uint64_t id, bt_object_release_func release_func)
+{
+	int ret = 0;
+	struct bt_ctf_trace_common *trace = NULL;
+
+	bt_object_init_shared_with_parent(&stream->base, release_func);
+
+	if (!stream_class) {
+		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
+		goto error;
+	}
+
+	BT_LOGD("Initializing common stream object: stream-class-addr=%p, "
+		"stream-class-name=\"%s\", stream-name=\"%s\", "
+		"stream-id=%" PRIu64,
+		stream_class, bt_ctf_stream_class_common_get_name(stream_class),
+		name, id);
+	trace = bt_ctf_stream_class_common_borrow_trace(stream_class);
+	if (!trace) {
+		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
+			"stream-class-addr=%p, stream-class-name=\"%s\", "
+			"stream-name=\"%s\"",
+			stream_class,
+			bt_ctf_stream_class_common_get_name(stream_class), name);
+		goto error;
+	}
+
+	if (id != -1ULL) {
+		/*
+		 * Validate that the given ID is unique amongst all the
+		 * existing trace's streams created from the same stream
+		 * class.
+		 */
+		size_t i;
+
+		for (i = 0; i < trace->streams->len; i++) {
+			struct bt_ctf_stream_common *trace_stream =
+				g_ptr_array_index(trace->streams, i);
+
+			if (trace_stream->stream_class != (void *) stream_class) {
+				continue;
+			}
+
+			if (trace_stream->id == id) {
+				BT_LOGW_STR("Invalid parameter: another stream in the same trace already has this ID.");
+				goto error;
+			}
+		}
+	}
+
+	/*
+	 * Acquire reference to parent since stream will become publicly
+	 * reachable; it needs its parent to remain valid.
+	 */
+	bt_object_set_parent(&stream->base, &trace->base);
+	stream->stream_class = stream_class;
+	stream->id = (int64_t) id;
+
+	if (name) {
+		stream->name = g_string_new(name);
+		if (!stream->name) {
+			BT_LOGE_STR("Failed to allocate a GString.");
+			goto error;
+		}
+	}
+
+	BT_LOGD("Set common stream's trace parent: trace-addr=%p", trace);
+
+	/* Add this stream to the trace's streams */
+	BT_LOGD("Created common stream object: addr=%p", stream);
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	return ret;
+}
 
 static
 void bt_ctf_stream_destroy(struct bt_object *obj);
@@ -68,7 +165,7 @@ int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
 		BT_LOGW("Invalid parameter: field's type is not an integer field type: "
 			"field-addr=%p, ft-addr=%p, ft-id=%s",
 			field, field_type,
-			bt_common_field_type_id_string((int)
+			bt_ctf_field_type_id_string((int)
 				bt_ctf_field_type_get_type_id(field_type)));
 		ret = -1;
 		goto end;
@@ -438,7 +535,7 @@ static
 int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 {
 	int ret = 0;
-	struct bt_field_common *field_common = (void *) field;
+	struct bt_ctf_field_common *field_common = (void *) field;
 
 	if (!field) {
 		goto end;
@@ -514,7 +611,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 	case BT_CTF_FIELD_TYPE_ID_SEQUENCE:
 	{
 		uint64_t i;
-		int64_t len = bt_field_common_sequence_get_length(
+		int64_t len = bt_ctf_field_common_sequence_get_length(
 			(void *) field);
 
 		if (len < 0) {
@@ -634,7 +731,7 @@ int set_packet_context_timestamps(struct bt_ctf_stream *stream)
 		stream->packet_context, "timestamp_begin");
 	struct bt_ctf_field *ts_end_field = bt_ctf_field_structure_get_field_by_name(
 		stream->packet_context, "timestamp_end");
-	struct bt_field_common *packet_context =
+	struct bt_ctf_field_common *packet_context =
 		(void *) stream->packet_context;
 	uint64_t i;
 	int64_t len;
@@ -749,8 +846,8 @@ int set_packet_context_timestamps(struct bt_ctf_stream *stream)
 				"event-class-name=\"%s\"",
 				stream, bt_ctf_stream_get_name(stream),
 				i, event,
-				bt_event_class_common_get_id(event->common.class),
-				bt_event_class_common_get_name(event->common.class));
+				bt_ctf_event_class_common_get_id(event->common.class),
+				bt_ctf_event_class_common_get_name(event->common.class));
 			goto end;
 		}
 	}
@@ -923,7 +1020,7 @@ int create_stream_file(struct bt_ctf_writer *writer,
 	g_string_assign(filename, "stream");
 
 append_ids:
-	stream_class_id = bt_stream_class_common_get_id(stream->common.stream_class);
+	stream_class_id = bt_ctf_stream_class_common_get_id(stream->common.stream_class);
 	BT_ASSERT(stream_class_id >= 0);
 	BT_ASSERT(stream->common.id >= 0);
 	g_string_append_printf(filename, "-%" PRId64 "-%" PRId64,
@@ -989,15 +1086,15 @@ struct bt_ctf_stream *bt_ctf_stream_create_with_id(
 		id = stream_class->next_stream_id;
 	}
 
-	ret = bt_stream_common_initialize(BT_TO_COMMON(stream),
-		BT_TO_COMMON(stream_class), name, id, bt_ctf_stream_destroy);
+	ret = bt_ctf_stream_common_initialize(BT_CTF_TO_COMMON(stream),
+		BT_CTF_TO_COMMON(stream_class), name, id, bt_ctf_stream_destroy);
 	if (ret) {
-		/* bt_stream_common_initialize() logs errors */
+		/* bt_ctf_stream_common_initialize() logs errors */
 		goto error;
 	}
 
-	trace = BT_FROM_COMMON(bt_stream_class_common_borrow_trace(
-		BT_TO_COMMON(stream_class)));
+	trace = BT_CTF_FROM_COMMON(bt_ctf_stream_class_common_borrow_trace(
+		BT_CTF_TO_COMMON(stream_class)));
 	if (!trace) {
 		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
 			"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -1230,8 +1327,8 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 	struct bt_ctf_field *id_field = NULL, *timestamp_field = NULL;
 	struct bt_ctf_clock_class *mapped_clock_class = NULL;
 	struct bt_ctf_stream_class *stream_class =
-		BT_FROM_COMMON(bt_stream_common_borrow_class(
-			BT_TO_COMMON(stream)));
+		BT_CTF_FROM_COMMON(bt_ctf_stream_common_borrow_class(
+			BT_CTF_TO_COMMON(stream)));
 	int64_t event_class_id;
 
 	BT_ASSERT(event);
@@ -1252,7 +1349,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 
 	id_field = bt_ctf_field_structure_get_field_by_name(
 		(void *) event->common.header_field->field, "id");
-	event_class_id = bt_event_class_common_get_id(event->common.class);
+	event_class_id = bt_ctf_event_class_common_get_id(event->common.class);
 	BT_ASSERT(event_class_id >= 0);
 
 	if (id_field && bt_ctf_field_get_type_id(id_field) == BT_CTF_FIELD_TYPE_ID_INTEGER) {
@@ -1281,7 +1378,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 			!bt_ctf_field_is_set_recursive(timestamp_field)) {
 		mapped_clock_class =
 			bt_ctf_field_type_integer_get_mapped_clock_class(
-				(void *) ((struct bt_field_common *) timestamp_field)->type);
+				(void *) ((struct bt_ctf_field_common *) timestamp_field)->type);
 		if (mapped_clock_class) {
 			uint64_t timestamp;
 
@@ -1340,10 +1437,10 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		stream, bt_ctf_stream_get_name(stream), event,
-		bt_event_class_common_get_name(
-			bt_event_common_borrow_class(BT_TO_COMMON(event))),
-		bt_event_class_common_get_id(
-			bt_event_common_borrow_class(BT_TO_COMMON(event))));
+		bt_ctf_event_class_common_get_name(
+			bt_ctf_event_common_borrow_class(BT_CTF_TO_COMMON(event))),
+		bt_ctf_event_class_common_get_id(
+			bt_ctf_event_common_borrow_class(BT_CTF_TO_COMMON(event))));
 
 	/*
 	 * The event is not supposed to have a parent stream at this
@@ -1368,12 +1465,12 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 
 	/* Make sure the various scopes of the event are set */
 	BT_LOGV_STR("Validating event to append.");
-	BT_ASSERT_PRE(bt_event_common_validate(BT_TO_COMMON(event)) == 0,
-		"Invalid event: %!+we", event);
+	BT_ASSERT_PRE(bt_ctf_event_common_validate(BT_CTF_TO_COMMON(event)) == 0,
+		"Invalid event: event-addr=%p", event);
 
 	/* Save the new event and freeze it */
 	BT_LOGV_STR("Freezing the event to append.");
-	bt_event_common_set_is_frozen(BT_TO_COMMON(event), true);
+	bt_ctf_event_common_set_is_frozen(BT_CTF_TO_COMMON(event), true);
 	g_ptr_array_add(stream->events, event);
 
 	/*
@@ -1388,10 +1485,10 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
 		stream, bt_ctf_stream_get_name(stream), event,
-		bt_event_class_common_get_name(
-			bt_event_common_borrow_class(BT_TO_COMMON(event))),
-		bt_event_class_common_get_id(
-			bt_event_common_borrow_class(BT_TO_COMMON(event))));
+		bt_ctf_event_class_common_get_name(
+			bt_ctf_event_common_borrow_class(BT_CTF_TO_COMMON(event))),
+		bt_ctf_event_class_common_get_id(
+			bt_ctf_event_common_borrow_class(BT_CTF_TO_COMMON(event))));
 
 end:
 	return ret;
@@ -1448,7 +1545,7 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 	}
 
 	field_type = bt_ctf_field_get_type(field);
-	if (bt_field_type_common_compare((void *) field_type,
+	if (bt_ctf_field_type_common_compare((void *) field_type,
 			stream->common.stream_class->packet_context_field_type)) {
 		BT_LOGW("Invalid parameter: packet context's field type is different from the stream's packet context field type: "
 			"stream-addr=%p, stream-name=\"%s\", "
@@ -1535,7 +1632,7 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 	field_type = bt_ctf_field_get_type(field);
 	BT_ASSERT(field_type);
 
-	if (bt_field_type_common_compare((void *) field_type,
+	if (bt_ctf_field_type_common_compare((void *) field_type,
 			trace->common.packet_header_field_type)) {
 		BT_LOGW("Invalid parameter: packet header's field type is different from the stream's packet header field type: "
 			"stream-addr=%p, stream-name=\"%s\", "
@@ -1567,7 +1664,7 @@ void reset_structure_field(struct bt_ctf_field *structure, const char *name)
 
 	member = bt_ctf_field_structure_get_field_by_name(structure, name);
 	if (member) {
-		bt_field_common_reset_recursive((void *) member);
+		bt_ctf_field_common_reset_recursive((void *) member);
 		bt_put(member);
 	}
 }
@@ -1619,7 +1716,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	BT_LOGV("Flushing stream's current packet: stream-addr=%p, "
 		"stream-name=\"%s\", packet-index=%u", stream,
 		bt_ctf_stream_get_name(stream), stream->flushed_packet_count);
-	trace = BT_FROM_COMMON(bt_stream_class_common_borrow_trace(
+	trace = BT_CTF_FROM_COMMON(bt_ctf_stream_class_common_borrow_trace(
 		stream->common.stream_class));
 	BT_ASSERT(trace);
 	native_byte_order = bt_ctf_trace_get_native_byte_order(trace);
@@ -1675,8 +1772,8 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		struct bt_ctf_event *event = g_ptr_array_index(
 			stream->events, i);
 		struct bt_ctf_event_class *event_class =
-			BT_FROM_COMMON(bt_event_common_borrow_class(
-				BT_TO_COMMON(event)));
+			BT_CTF_FROM_COMMON(bt_ctf_event_common_borrow_class(
+				BT_CTF_TO_COMMON(event)));
 
 		BT_LOGV("Serializing event: index=%zu, event-addr=%p, "
 			"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
@@ -1829,7 +1926,7 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying CTF writer stream object: addr=%p, name=\"%s\"",
 		stream, bt_ctf_stream_get_name(stream));
 
-	bt_stream_common_finalize(BT_TO_COMMON(stream));
+	bt_ctf_stream_common_finalize(BT_CTF_TO_COMMON(stream));
 	(void) bt_ctf_stream_pos_fini(&stream->pos);
 
 	if (stream->pos.fd >= 0) {
@@ -1905,7 +2002,7 @@ int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 		BT_LOGW("Invalid parameter: field's type is not an integer field type: "
 			"field-addr=%p, ft-addr=%p, ft-id=%s",
 			integer, field_type,
-			bt_common_field_type_id_string((int)
+			bt_ctf_field_type_id_string((int)
 				bt_ctf_field_type_get_type_id(field_type)));
 		ret = -1;
 		goto end;
@@ -1940,15 +2037,15 @@ int try_set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(
 		struct bt_ctf_stream *stream)
 {
-	return bt_get(bt_stream_common_borrow_class(BT_TO_COMMON(stream)));
+	return bt_get(bt_ctf_stream_common_borrow_class(BT_CTF_TO_COMMON(stream)));
 }
 
 const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)
 {
-	return bt_stream_common_get_name(BT_TO_COMMON(stream));
+	return bt_ctf_stream_common_get_name(BT_CTF_TO_COMMON(stream));
 }
 
 int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream)
 {
-	return bt_stream_common_get_id(BT_TO_COMMON(stream));
+	return bt_ctf_stream_common_get_id(BT_CTF_TO_COMMON(stream));
 }

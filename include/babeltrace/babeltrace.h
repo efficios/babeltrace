@@ -36,7 +36,6 @@
 #include <babeltrace/ctf/events.h>
 
 /* CTF writer API */
-#include <babeltrace/ctf-writer/clock-class.h>
 #include <babeltrace/ctf-writer/clock.h>
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/event-types.h>
@@ -46,6 +45,8 @@
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/trace.h>
+#include <babeltrace/ctf-writer/utils.h>
+#include <babeltrace/ctf-writer/visitor.h>
 #include <babeltrace/ctf-writer/writer.h>
 
 /* CTF IR API */

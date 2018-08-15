@@ -37,7 +37,6 @@ extern "C" {
 struct bt_ctf_trace;
 struct bt_ctf_stream_class;
 struct bt_ctf_stream;
-struct bt_ctf_clock_class;
 
 extern enum bt_ctf_byte_order bt_ctf_trace_get_native_byte_order(
 		struct bt_ctf_trace *trace);
@@ -83,18 +82,6 @@ extern struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_field_type(
 
 extern int bt_ctf_trace_set_packet_header_field_type(struct bt_ctf_trace *trace,
 		struct bt_ctf_field_type *packet_header_type);
-
-extern int64_t bt_ctf_trace_get_clock_class_count(
-		struct bt_ctf_trace *trace);
-
-extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
-		struct bt_ctf_trace *trace, uint64_t index);
-
-extern struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
-		struct bt_ctf_trace *trace, const char *name);
-
-extern int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
-		struct bt_ctf_clock_class *clock_class);
 
 extern int64_t bt_ctf_trace_get_stream_class_count(
 		struct bt_ctf_trace *trace);
