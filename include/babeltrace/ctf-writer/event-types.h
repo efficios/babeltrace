@@ -31,7 +31,7 @@
  */
 
 #include <babeltrace/ref.h>
-#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-writer/field-types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,14 +56,14 @@ extern "C" {
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
-void bt_ctf_field_type_get(struct bt_field_type *type)
+void bt_ctf_field_type_get(struct bt_ctf_field_type *type)
 {
 	bt_get(type);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
-void bt_ctf_field_type_put(struct bt_field_type *type)
+void bt_ctf_field_type_put(struct bt_ctf_field_type *type)
 {
 	bt_put(type);
 }

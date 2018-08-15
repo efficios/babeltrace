@@ -37,9 +37,9 @@
 #include <babeltrace/common-internal.h>
 #include <babeltrace/mmap-align-internal.h>
 #include <babeltrace/types.h>
-#include <babeltrace/ctf-writer/fields.h>
 #include <babeltrace/ctf-writer/field-types.h>
-#include <babeltrace/ctf-ir/fields-internal.h>
+#include <babeltrace/ctf-writer/fields-internal.h>
+#include <babeltrace/ctf-writer/fields.h>
 #include <babeltrace/assert-internal.h>
 
 #define PACKET_LEN_INCREMENT	(bt_common_get_page_size() * 8 * CHAR_BIT)
@@ -58,12 +58,12 @@ struct bt_ctf_stream_pos {
 };
 
 BT_HIDDEN
-int bt_ctf_field_integer_write(struct bt_field_common *field,
+int bt_ctf_field_integer_write(struct bt_ctf_field_common *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order);
 
 BT_HIDDEN
-int bt_ctf_field_floating_point_write(struct bt_field_common *field,
+int bt_ctf_field_floating_point_write(struct bt_ctf_field_common *field,
 		struct bt_ctf_stream_pos *pos,
 		enum bt_ctf_byte_order native_byte_order);
 

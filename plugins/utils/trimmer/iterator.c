@@ -286,7 +286,7 @@ int ns_from_integer_field(struct bt_field *integer, int64_t *ns)
 		goto end;
 	}
 
-	is_signed = bt_ctf_field_type_integer_get_signed(integer_type);
+	is_signed = bt_field_type_integer_is_signed(integer_type);
 	if (!is_signed) {
 		ret = bt_field_unsigned_integer_get_value(integer,
 				&raw_clock_value);
