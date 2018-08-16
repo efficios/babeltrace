@@ -49,12 +49,12 @@
  */
 static
 int validate_event_class_types(struct bt_value *environment,
-		struct bt_field_type_common *packet_header_type,
-		struct bt_field_type_common *packet_context_type,
-		struct bt_field_type_common *event_header_type,
-		struct bt_field_type_common *stream_event_ctx_type,
-		struct bt_field_type_common *event_context_type,
-		struct bt_field_type_common *event_payload_type)
+		struct bt_field_type *packet_header_type,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type,
+		struct bt_field_type *stream_event_ctx_type,
+		struct bt_field_type *event_context_type,
+		struct bt_field_type *event_payload_type)
 {
 	int ret = 0;
 
@@ -82,7 +82,7 @@ int validate_event_class_types(struct bt_value *environment,
 
 	/* Validate field types individually */
 	if (event_context_type) {
-		ret = bt_field_type_common_validate(event_context_type);
+		ret = bt_field_type_validate(event_context_type);
 		if (ret) {
 			BT_LOGW("Invalid event class's context field type: "
 				"ret=%d", ret);
@@ -91,7 +91,7 @@ int validate_event_class_types(struct bt_value *environment,
 	}
 
 	if (event_payload_type) {
-		ret = bt_field_type_common_validate(event_payload_type);
+		ret = bt_field_type_validate(event_payload_type);
 		if (ret) {
 			BT_LOGW("Invalid event class's payload field type: "
 				"ret=%d", ret);
@@ -113,10 +113,10 @@ end:
  */
 static
 int validate_stream_class_types(struct bt_value *environment,
-		struct bt_field_type_common *packet_header_type,
-		struct bt_field_type_common *packet_context_type,
-		struct bt_field_type_common *event_header_type,
-		struct bt_field_type_common *stream_event_ctx_type)
+		struct bt_field_type *packet_header_type,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type,
+		struct bt_field_type *stream_event_ctx_type)
 {
 	int ret = 0;
 
@@ -143,7 +143,7 @@ int validate_stream_class_types(struct bt_value *environment,
 
 	/* Validate field types individually */
 	if (packet_context_type) {
-		ret = bt_field_type_common_validate(packet_context_type);
+		ret = bt_field_type_validate(packet_context_type);
 		if (ret) {
 			BT_LOGW("Invalid stream class's packet context field type: "
 				"ret=%d", ret);
@@ -152,7 +152,7 @@ int validate_stream_class_types(struct bt_value *environment,
 	}
 
 	if (event_header_type) {
-		ret = bt_field_type_common_validate(event_header_type);
+		ret = bt_field_type_validate(event_header_type);
 		if (ret) {
 			BT_LOGW("Invalid stream class's event header field type: "
 				"ret=%d", ret);
@@ -161,7 +161,7 @@ int validate_stream_class_types(struct bt_value *environment,
 	}
 
 	if (stream_event_ctx_type) {
-		ret = bt_field_type_common_validate(
+		ret = bt_field_type_validate(
 			stream_event_ctx_type);
 		if (ret) {
 			BT_LOGW("Invalid stream class's event context field type: "
@@ -181,7 +181,7 @@ end:
  */
 static
 int validate_trace_types(struct bt_value *environment,
-		struct bt_field_type_common *packet_header_type)
+		struct bt_field_type *packet_header_type)
 {
 	int ret = 0;
 
@@ -200,7 +200,7 @@ int validate_trace_types(struct bt_value *environment,
 
 	/* Validate field types individually */
 	if (packet_header_type) {
-		ret = bt_field_type_common_validate(packet_header_type);
+		ret = bt_field_type_validate(packet_header_type);
 		if (ret) {
 			BT_LOGW("Invalid trace's packet header field type: "
 				"ret=%d", ret);
@@ -219,10 +219,10 @@ end:
  * `field_type` is owned by the caller.
  */
 static
-int field_type_contains_sequence_or_variant_ft(struct bt_field_type_common *type)
+int field_type_contains_sequence_or_variant_ft(struct bt_field_type *type)
 {
 	int ret = 0;
-	enum bt_field_type_id type_id = bt_field_type_common_get_type_id(type);
+	enum bt_field_type_id type_id = bt_field_type_get_type_id(type);
 
 	switch (type_id) {
 	case BT_FIELD_TYPE_ID_SEQUENCE:
@@ -233,7 +233,7 @@ int field_type_contains_sequence_or_variant_ft(struct bt_field_type_common *type
 	case BT_FIELD_TYPE_ID_STRUCT:
 	{
 		int i;
-		int field_count = bt_field_type_common_get_field_count(type);
+		int field_count = bt_field_type_get_field_count(type);
 
 		if (field_count < 0) {
 			ret = -1;
@@ -241,8 +241,8 @@ int field_type_contains_sequence_or_variant_ft(struct bt_field_type_common *type
 		}
 
 		for (i = 0; i < field_count; ++i) {
-			struct bt_field_type_common *child_type =
-				bt_field_type_common_borrow_field_at_index(
+			struct bt_field_type *child_type =
+				bt_field_type_borrow_field_at_index(
 					type, i);
 
 			ret = field_type_contains_sequence_or_variant_ft(
@@ -263,12 +263,12 @@ end:
 
 BT_HIDDEN
 int bt_validate_class_types(struct bt_value *environment,
-		struct bt_field_type_common *packet_header_type,
-		struct bt_field_type_common *packet_context_type,
-		struct bt_field_type_common *event_header_type,
-		struct bt_field_type_common *stream_event_ctx_type,
-		struct bt_field_type_common *event_context_type,
-		struct bt_field_type_common *event_payload_type,
+		struct bt_field_type *packet_header_type,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type,
+		struct bt_field_type *stream_event_ctx_type,
+		struct bt_field_type *event_context_type,
+		struct bt_field_type *event_payload_type,
 		int trace_valid, int stream_class_valid, int event_class_valid,
 		struct bt_validation_output *output,
 		enum bt_validation_flag validate_flags,
@@ -318,7 +318,7 @@ int bt_validate_class_types(struct bt_value *environment,
 
 	/* Validate trace */
 	if ((validate_flags & BT_VALIDATION_FLAG_TRACE) && !trace_valid) {
-		struct bt_field_type_common *packet_header_type_copy = NULL;
+		struct bt_field_type *packet_header_type_copy = NULL;
 
 		/* Create field type copies */
 		if (packet_header_type) {
@@ -349,7 +349,7 @@ int bt_validate_class_types(struct bt_value *environment,
 			 * caller, it cannot be modified any way since
 			 * it will be resolved.
 			 */
-			bt_field_type_common_freeze(packet_header_type_copy);
+			bt_field_type_freeze(packet_header_type_copy);
 		}
 
 skip_packet_header_type_copy:
@@ -368,9 +368,9 @@ skip_packet_header_type_copy:
 	/* Validate stream class */
 	if ((validate_flags & BT_VALIDATION_FLAG_STREAM) &&
 			!stream_class_valid) {
-		struct bt_field_type_common *packet_context_type_copy = NULL;
-		struct bt_field_type_common *event_header_type_copy = NULL;
-		struct bt_field_type_common *stream_event_ctx_type_copy = NULL;
+		struct bt_field_type *packet_context_type_copy = NULL;
+		struct bt_field_type *event_header_type_copy = NULL;
+		struct bt_field_type *stream_event_ctx_type_copy = NULL;
 
 		if (packet_context_type) {
 			contains_seq_var =
@@ -399,7 +399,7 @@ skip_packet_header_type_copy:
 			 * caller, it cannot be modified any way since
 			 * it will be resolved.
 			 */
-			bt_field_type_common_freeze(packet_context_type_copy);
+			bt_field_type_freeze(packet_context_type_copy);
 		}
 
 skip_packet_context_type_copy:
@@ -430,7 +430,7 @@ skip_packet_context_type_copy:
 			 * caller, it cannot be modified any way since
 			 * it will be resolved.
 			 */
-			bt_field_type_common_freeze(event_header_type_copy);
+			bt_field_type_freeze(event_header_type_copy);
 		}
 
 skip_event_header_type_copy:
@@ -462,7 +462,7 @@ skip_event_header_type_copy:
 			 * caller, it cannot be modified any way since
 			 * it will be resolved.
 			 */
-			bt_field_type_common_freeze(stream_event_ctx_type_copy);
+			bt_field_type_freeze(stream_event_ctx_type_copy);
 		}
 
 skip_stream_event_ctx_type_copy:
@@ -494,8 +494,8 @@ sc_validation_done:
 	/* Validate event class */
 	if ((validate_flags & BT_VALIDATION_FLAG_EVENT) &&
 			!event_class_valid) {
-		struct bt_field_type_common *event_context_type_copy = NULL;
-		struct bt_field_type_common *event_payload_type_copy = NULL;
+		struct bt_field_type *event_context_type_copy = NULL;
+		struct bt_field_type *event_payload_type_copy = NULL;
 
 		if (event_context_type) {
 			contains_seq_var =
@@ -524,7 +524,7 @@ sc_validation_done:
 			 * caller, it cannot be modified any way since
 			 * it will be resolved.
 			 */
-			bt_field_type_common_freeze(event_context_type_copy);
+			bt_field_type_freeze(event_context_type_copy);
 		}
 
 skip_event_context_type_copy:
@@ -555,7 +555,7 @@ skip_event_context_type_copy:
 			 * caller, it cannot be modified any way since
 			 * it will be resolved.
 			 */
-			bt_field_type_common_freeze(event_payload_type_copy);
+			bt_field_type_freeze(event_payload_type_copy);
 		}
 
 skip_event_payload_type_copy:
@@ -607,22 +607,22 @@ error:
 }
 
 BT_HIDDEN
-void bt_validation_replace_types(struct bt_trace_common *trace,
-		struct bt_stream_class_common *stream_class,
-		struct bt_event_class_common *event_class,
+void bt_validation_replace_types(struct bt_trace *trace,
+		struct bt_stream_class *stream_class,
+		struct bt_event_class *event_class,
 		struct bt_validation_output *output,
 		enum bt_validation_flag replace_flags)
 {
 	if ((replace_flags & BT_VALIDATION_FLAG_TRACE) && trace) {
-		bt_field_type_common_freeze(trace->packet_header_field_type);
+		bt_field_type_freeze(trace->packet_header_field_type);
 		BT_MOVE(trace->packet_header_field_type,
 			output->packet_header_type);
 	}
 
 	if ((replace_flags & BT_VALIDATION_FLAG_STREAM) && stream_class) {
-		bt_field_type_common_freeze(stream_class->packet_context_field_type);
-		bt_field_type_common_freeze(stream_class->event_header_field_type);
-		bt_field_type_common_freeze(stream_class->event_context_field_type);
+		bt_field_type_freeze(stream_class->packet_context_field_type);
+		bt_field_type_freeze(stream_class->event_header_field_type);
+		bt_field_type_freeze(stream_class->event_context_field_type);
 		BT_MOVE(stream_class->packet_context_field_type,
 			output->packet_context_type);
 		BT_MOVE(stream_class->event_header_field_type,
@@ -632,8 +632,8 @@ void bt_validation_replace_types(struct bt_trace_common *trace,
 	}
 
 	if ((replace_flags & BT_VALIDATION_FLAG_EVENT) && event_class) {
-		bt_field_type_common_freeze(event_class->context_field_type);
-		bt_field_type_common_freeze(event_class->payload_field_type);
+		bt_field_type_freeze(event_class->context_field_type);
+		bt_field_type_freeze(event_class->payload_field_type);
 		BT_MOVE(event_class->context_field_type, output->event_context_type);
 		BT_MOVE(event_class->payload_field_type, output->event_payload_type);
 	}

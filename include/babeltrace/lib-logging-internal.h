@@ -70,14 +70,10 @@ int bt_lib_log_level;
  * 3. Optional: `+` to print extended fields. This depends on the
  *    provided format specifier.
  *
- * 4. Objet category: `_` for common objects, or nothing for default
- *    objects (includes CTF IR).
- *
- * 5. Format specifier (see below).
+ * 4. Format specifier (see below).
  *
  * The available format specifiers are:
  *
- * Default category:
  *   `r`:
  *       Reference count information. The parameter is any Babeltrace
  *       object.
@@ -146,36 +142,12 @@ int bt_lib_log_level;
  *   `o`:
  *       Object pool. The parameter type is `struct bt_object_pool *`.
  *
- * Common category:
- *   `F`:
- *       Common field type. The parameter type is `struct bt_field_type *`.
- *
- *   `f`:
- *       Common field. The parameter type is `struct bt_field *`.
- *
- *   `E`:
- *       Common event class. The parameter type is
- *       `struct bt_event_class *`.
- *
- *   `e`:
- *       Common event. The parameter type is `struct bt_event *`.
- *
- *   `S`:
- *       Common stream class. The parameter type is
- *       `struct bt_stream_class *`.
- *
- *   `s`:
- *       Common stream. The parameter type is `struct bt_stream *`.
- *
- *   `t`:
- *       Common trace. The parameter type is `struct bt_trace *`.
- *
  * Conversion specifier examples:
  *
  *     %!f
  *     %![my-event-]+e
- *     %!_t
- *     %!+_F
+ *     %!t
+ *     %!+F
  *
  * The string `, ` is printed between individual fields, but not after
  * the last one. Therefore you must put this separator in the format

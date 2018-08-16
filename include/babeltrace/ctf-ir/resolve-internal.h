@@ -61,12 +61,12 @@ enum bt_resolve_flag {
  */
 BT_HIDDEN
 int bt_resolve_types(struct bt_value *environment,
-		struct bt_field_type_common *packet_header_type,
-		struct bt_field_type_common *packet_context_type,
-		struct bt_field_type_common *event_header_type,
-		struct bt_field_type_common *stream_event_ctx_type,
-		struct bt_field_type_common *event_context_type,
-		struct bt_field_type_common *event_payload_type,
+		struct bt_field_type *packet_header_type,
+		struct bt_field_type *packet_context_type,
+		struct bt_field_type *event_header_type,
+		struct bt_field_type *stream_event_ctx_type,
+		struct bt_field_type *event_context_type,
+		struct bt_field_type *event_payload_type,
 		enum bt_resolve_flag flags);
 
 #endif /* BABELTRACE_CTF_IR_RESOLVE_INTERNAL_H */
