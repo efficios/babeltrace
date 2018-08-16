@@ -47,208 +47,40 @@
 
 struct bt_stream_pos;
 
-struct bt_event_common {
+struct bt_event {
 	struct bt_object base;
-	struct bt_event_class_common *class;
+	struct bt_event_class *class;
 	struct bt_field_wrapper *header_field;
-	struct bt_field_common *stream_event_context_field;
-	struct bt_field_common *context_field;
-	struct bt_field_common *payload_field;
+	struct bt_field *stream_event_context_field;
+	struct bt_field *context_field;
+	struct bt_field *payload_field;
+	struct bt_clock_value_set cv_set;
+	struct bt_packet *packet;
 	int frozen;
 };
 
-struct bt_event {
-	struct bt_event_common common;
-	struct bt_clock_value_set cv_set;
-	struct bt_packet *packet;
-};
+BT_HIDDEN
+void bt_event_destroy(struct bt_event *event);
 
 BT_HIDDEN
-int _bt_event_common_validate(struct bt_event_common *event);
-
-BT_HIDDEN
-void _bt_event_common_set_is_frozen(struct bt_event_common *event,
-		bool is_frozen);
+struct bt_event *bt_event_new(struct bt_event_class *event_class);
 
 BT_HIDDEN
 void _bt_event_set_is_frozen(struct bt_event *event, bool is_frozen);
 
 #ifdef BT_DEV_MODE
-# define bt_event_common_validate	_bt_event_common_validate
-# define bt_event_common_set_is_frozen	_bt_event_common_set_is_frozen
 # define bt_event_set_is_frozen		_bt_event_set_is_frozen
 #else
-# define bt_event_common_validate(_event)			0
-# define bt_event_common_set_is_frozen(_event, _is_frozen)
 # define bt_event_set_is_frozen(_event, _is_frozen)
 #endif
 
-#define BT_ASSERT_PRE_EVENT_COMMON_HOT(_event, _name)			\
-	BT_ASSERT_PRE_HOT((_event), (_name), ": %!+_e", (_event))
-
-static inline
-struct bt_event_class_common *bt_event_common_borrow_class(
-		struct bt_event_common *event)
-{
-	BT_ASSERT(event);
-	return event->class;
-}
+#define BT_ASSERT_PRE_EVENT_HOT(_event, _name)			\
+	BT_ASSERT_PRE_HOT((_event), (_name), ": %!+e", (_event))
 
 typedef void *(*create_field_func)(void *);
 typedef void (*release_field_func)(void *);
 typedef void *(*create_header_field_func)(void *, void *);
 typedef void (*release_header_field_func)(void *, void *);
-
-BT_HIDDEN
-int bt_event_common_initialize(struct bt_event_common *event,
-		struct bt_event_class_common *event_class,
-		struct bt_clock_class *init_expected_clock_class,
-		bool is_shared_with_parent, bt_object_release_func release_func,
-		bt_validation_flag_copy_field_type_func field_type_copy_func,
-		bool must_be_in_trace,
-		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,
-			struct bt_field_type_common *packet_context_field_type,
-			struct bt_field_type_common *event_header_field_type),
-		create_field_func create_field_func,
-		release_field_func release_field_func,
-		create_header_field_func create_header_field_func,
-		release_header_field_func release_header_field_func);
-
-static inline
-struct bt_field_common *bt_event_common_borrow_payload(
-		struct bt_event_common *event)
-{
-	struct bt_field_common *payload = NULL;
-
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-
-	if (!event->payload_field) {
-		BT_LOGV("Event has no current payload field: addr=%p, "
-			"event-class-name=\"%s\", event-class-id=%" PRId64,
-			event, bt_event_class_common_get_name(event->class),
-			bt_event_class_common_get_id(event->class));
-		goto end;
-	}
-
-	payload = event->payload_field;
-
-end:
-	return payload;
-}
-
-static inline
-struct bt_field_common *bt_event_common_borrow_header(
-		struct bt_event_common *event)
-{
-	struct bt_field_common *header = NULL;
-
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-
-	if (!event->header_field) {
-		BT_LOGV("Event has no current header field: addr=%p, "
-			"event-class-name=\"%s\", event-class-id=%" PRId64,
-			event, bt_event_class_common_get_name(event->class),
-			bt_event_class_common_get_id(event->class));
-		goto end;
-	}
-
-	header = event->header_field->field;
-
-end:
-	return header;
-}
-
-static inline
-struct bt_field_common *bt_event_common_borrow_context(
-		struct bt_event_common *event)
-{
-	struct bt_field_common *context = NULL;
-
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-
-	if (!event->context_field) {
-		BT_LOGV("Event has no current context field: addr=%p, "
-			"event-class-name=\"%s\", event-class-id=%" PRId64,
-			event, bt_event_class_common_get_name(event->class),
-			bt_event_class_common_get_id(event->class));
-		goto end;
-	}
-
-	context = event->context_field;
-
-end:
-	return context;
-}
-
-static inline
-struct bt_field_common *bt_event_common_borrow_stream_event_context(
-		struct bt_event_common *event)
-{
-	struct bt_field_common *stream_event_context = NULL;
-
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-
-	if (!event->stream_event_context_field) {
-		BT_LOGV("Event has no current stream event context field: addr=%p, "
-			"event-class-name=\"%s\", event-class-id=%" PRId64,
-			event, bt_event_class_common_get_name(event->class),
-			bt_event_class_common_get_id(event->class));
-		goto end;
-	}
-
-	stream_event_context = event->stream_event_context_field;
-
-end:
-	return stream_event_context;
-}
-
-static inline
-void bt_event_common_finalize(struct bt_object *obj,
-		void (*field_release_func)(void *),
-		void (*header_field_release_func)(void *, struct bt_event_common *))
-{
-	struct bt_event_common *event = (void *) obj;
-
-	BT_LOGD("Destroying event: addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64,
-		event,
-		event->class ? bt_event_class_common_get_name(event->class) : NULL,
-		event->class ? bt_event_class_common_get_id(event->class) : INT64_C(-1));
-
-	if (event->header_field) {
-		BT_LOGD_STR("Releasing event's header field.");
-		header_field_release_func(event->header_field, event);
-	}
-
-	if (event->stream_event_context_field) {
-		BT_LOGD_STR("Releasing event's stream event context field.");
-		field_release_func(event->stream_event_context_field);
-	}
-
-	if (event->context_field) {
-		BT_LOGD_STR("Releasing event's context field.");
-		field_release_func(event->context_field);
-	}
-
-	if (event->payload_field) {
-		BT_LOGD_STR("Releasing event's payload field.");
-		field_release_func(event->payload_field);
-	}
-
-	/*
-	 * Leave this after calling header_field_release_func() because
-	 * this function receives the event object and could need its
-	 * class to perform some cleanup.
-	 */
-	if (!event->base.parent) {
-		/*
-		 * Event was keeping a reference to its class since it shared no
-		 * common ancestor with it to guarantee they would both have the
-		 * same lifetime.
-		 */
-		bt_put(event->class);
-	}
-}
 
 BT_UNUSED
 static inline
@@ -256,30 +88,30 @@ void _bt_event_reset_dev_mode(struct bt_event *event)
 {
 	BT_ASSERT(event);
 
-	if (event->common.header_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.header_field->field, false);
-		bt_field_common_reset_recursive(
-			event->common.header_field->field);
+	if (event->header_field) {
+		bt_field_set_is_frozen_recursive(
+			event->header_field->field, false);
+		bt_field_reset_recursive(
+			event->header_field->field);
 	}
 
-	if (event->common.stream_event_context_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.stream_event_context_field, false);
-		bt_field_common_reset_recursive(
-			event->common.stream_event_context_field);
+	if (event->stream_event_context_field) {
+		bt_field_set_is_frozen_recursive(
+			event->stream_event_context_field, false);
+		bt_field_reset_recursive(
+			event->stream_event_context_field);
 	}
 
-	if (event->common.context_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.context_field, false);
-		bt_field_common_reset_recursive(event->common.context_field);
+	if (event->context_field) {
+		bt_field_set_is_frozen_recursive(
+			event->context_field, false);
+		bt_field_reset_recursive(event->context_field);
 	}
 
-	if (event->common.payload_field) {
-		bt_field_common_set_is_frozen_recursive(
-			event->common.payload_field, false);
-		bt_field_common_reset_recursive(event->common.payload_field);
+	if (event->payload_field) {
+		bt_field_set_is_frozen_recursive(
+			event->payload_field, false);
+		bt_field_reset_recursive(event->payload_field);
 	}
 }
 
@@ -288,9 +120,6 @@ void _bt_event_reset_dev_mode(struct bt_event *event)
 #else
 # define bt_event_reset_dev_mode(_x)
 #endif
-
-BT_HIDDEN
-void bt_event_destroy(struct bt_event *event);
 
 static inline
 void bt_event_reset(struct bt_event *event)
@@ -333,11 +162,11 @@ void bt_event_recycle(struct bt_event *event)
 	 * 4. Put our event class reference.
 	 */
 	bt_event_reset(event);
-	event_class = BT_FROM_COMMON(event->common.class);
+	event_class = event->class;
 	BT_ASSERT(event_class);
-	event->common.class = NULL;
+	event->class = NULL;
 	bt_object_pool_recycle_object(&event_class->event_pool, event);
-	bt_object_put_no_null_check(&event_class->common.base);
+	bt_object_put_no_null_check(&event_class->base);
 }
 
 static inline
@@ -345,10 +174,9 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_EVENT_COMMON_HOT(BT_TO_COMMON(event), "Event");
+	BT_ASSERT_PRE_EVENT_HOT(event, "Event");
 	BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
-		BT_FROM_COMMON(event->common.class)) ==
-		BT_FROM_COMMON(packet->stream->common.stream_class),
+		event->class) == packet->stream->stream_class,
 		"Packet's stream class and event's stream class differ: "
 		"%![event-]+e, %![packet-]+a",
 		event, packet);
@@ -359,8 +187,8 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 	BT_LOGV("Set event's packet: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"packet-addr=%p",
-		event, bt_event_class_common_get_name(event->common.class),
-		bt_event_class_common_get_id(event->common.class), packet);
+		event, bt_event_class_get_name(event->class),
+		bt_event_class_get_id(event->class), packet);
 }
 
 static inline
@@ -377,9 +205,9 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 		goto end;
 	}
 
-	if (unlikely(!event->common.class)) {
-		event->common.class = BT_TO_COMMON(event_class);
-		bt_object_get_no_null_check(&event_class->common.base);
+	if (unlikely(!event->class)) {
+		event->class = event_class;
+		bt_object_get_no_null_check(&event_class->base);
 	}
 
 	BT_ASSERT(packet);
@@ -389,8 +217,5 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 end:
 	return event;
 }
-
-BT_HIDDEN
-struct bt_event *bt_event_new(struct bt_event_class *event_class);
 
 #endif /* BABELTRACE_CTF_IR_EVENT_INTERNAL_H */
