@@ -44,11 +44,11 @@
 #include <inttypes.h>
 #include <unistd.h>
 
-BT_HIDDEN
-void bt_stream_common_finalize(struct bt_stream_common *stream)
+static inline
+void bt_stream_finalize(struct bt_stream *stream)
 {
-	BT_LOGD("Finalizing common stream object: addr=%p, name=\"%s\"",
-		stream, bt_stream_common_get_name(stream));
+	BT_LOGD("Finalizing stream object: addr=%p, name=\"%s\"",
+		stream, bt_stream_get_name(stream));
 
 	if (stream->name) {
 		g_string_free(stream->name, TRUE);
@@ -63,18 +63,18 @@ void bt_stream_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying stream object: addr=%p, name=\"%s\"",
 		stream, bt_stream_get_name(stream));
 	bt_object_pool_finalize(&stream->packet_pool);
-	bt_stream_common_finalize((void *) obj);
+	bt_stream_finalize((void *) obj);
 	g_free(stream);
 }
 
-BT_HIDDEN
-int bt_stream_common_initialize(
-		struct bt_stream_common *stream,
-		struct bt_stream_class_common *stream_class, const char *name,
+static inline
+int bt_stream_initialize(
+		struct bt_stream *stream,
+		struct bt_stream_class *stream_class, const char *name,
 		uint64_t id, bt_object_release_func release_func)
 {
 	int ret = 0;
-	struct bt_trace_common *trace = NULL;
+	struct bt_trace *trace = NULL;
 
 	bt_object_init_shared_with_parent(&stream->base, release_func);
 
@@ -83,18 +83,18 @@ int bt_stream_common_initialize(
 		goto error;
 	}
 
-	BT_LOGD("Initializing common stream object: stream-class-addr=%p, "
+	BT_LOGD("Initializing stream object: stream-class-addr=%p, "
 		"stream-class-name=\"%s\", stream-name=\"%s\", "
 		"stream-id=%" PRIu64,
-		stream_class, bt_stream_class_common_get_name(stream_class),
+		stream_class, bt_stream_class_get_name(stream_class),
 		name, id);
-	trace = bt_stream_class_common_borrow_trace(stream_class);
+	trace = bt_stream_class_borrow_trace(stream_class);
 	if (!trace) {
 		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
 			"stream-class-addr=%p, stream-class-name=\"%s\", "
 			"stream-name=\"%s\"",
 			stream_class,
-			bt_stream_class_common_get_name(stream_class), name);
+			bt_stream_class_get_name(stream_class), name);
 		goto error;
 	}
 
@@ -107,7 +107,7 @@ int bt_stream_common_initialize(
 		size_t i;
 
 		for (i = 0; i < trace->streams->len; i++) {
-			struct bt_stream_common *trace_stream =
+			struct bt_stream *trace_stream =
 				g_ptr_array_index(trace->streams, i);
 
 			if (trace_stream->stream_class != (void *) stream_class) {
@@ -137,10 +137,10 @@ int bt_stream_common_initialize(
 		}
 	}
 
-	BT_LOGD("Set common stream's trace parent: trace-addr=%p", trace);
+	BT_LOGD("Set stream's trace parent: trace-addr=%p", trace);
 
 	/* Add this stream to the trace's streams */
-	BT_LOGD("Created common stream object: addr=%p", stream);
+	BT_LOGD("Created stream object: addr=%p", stream);
 	goto end;
 
 error:
@@ -171,8 +171,7 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 		stream_class, bt_stream_class_get_name(stream_class),
 		name, id);
 
-	trace = BT_FROM_COMMON(bt_stream_class_common_borrow_trace(
-		BT_TO_COMMON(stream_class)));
+	trace = bt_stream_class_borrow_trace(stream_class);
 	if (!trace) {
 		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
 			"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -202,10 +201,10 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 		goto error;
 	}
 
-	ret = bt_stream_common_initialize(BT_TO_COMMON(stream),
-		BT_TO_COMMON(stream_class), name, id, bt_stream_destroy);
+	ret = bt_stream_initialize(stream, stream_class, name,
+		id, bt_stream_destroy);
 	if (ret) {
-		/* bt_stream_common_initialize() logs errors */
+		/* bt_stream_initialize() logs errors */
 		goto error;
 	}
 
@@ -218,7 +217,7 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 		goto error;
 	}
 
-	g_ptr_array_add(trace->common.streams, stream);
+	g_ptr_array_add(trace->streams, stream);
 	BT_LOGD("Created stream object: addr=%p", stream);
 	goto end;
 
@@ -256,15 +255,26 @@ end:
 
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 {
-	return BT_FROM_COMMON(bt_stream_common_borrow_class(BT_TO_COMMON(stream)));
+	BT_ASSERT(stream);
+	return stream->stream_class;
 }
 
 const char *bt_stream_get_name(struct bt_stream *stream)
 {
-	return bt_stream_common_get_name(BT_TO_COMMON(stream));
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return stream->name ? stream->name->str : NULL;
 }
 
 int64_t bt_stream_get_id(struct bt_stream *stream)
 {
-	return bt_stream_common_get_id(BT_TO_COMMON(stream));
+	int64_t ret;
+
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	ret = stream->id;
+	if (ret < 0) {
+		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",
+			stream, bt_stream_get_name(stream));
+	}
+
+	return ret;
 }

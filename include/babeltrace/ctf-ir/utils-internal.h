@@ -27,9 +27,6 @@
 #include <babeltrace/ctf-ir/field-types.h>
 #include <stdint.h>
 
-#define BT_TO_COMMON(_obj)	(&(_obj)->common)
-#define BT_FROM_COMMON(_obj)	((void *) _obj)
-
 struct search_query {
 	gpointer value;
 	int found;

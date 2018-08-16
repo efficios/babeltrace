@@ -37,59 +37,16 @@
 #include <glib.h>
 
 struct bt_stream_class;
-struct bt_stream_common;
-
-struct bt_stream_common {
-	struct bt_object base;
-	int64_t id;
-	struct bt_stream_class_common *stream_class;
-	GString *name;
-};
+struct bt_stream;
 
 struct bt_stream {
-	struct bt_stream_common common;
+	struct bt_object base;
+	int64_t id;
+	struct bt_stream_class *stream_class;
+	GString *name;
 
 	/* Pool of `struct bt_packet *` */
 	struct bt_object_pool packet_pool;
 };
-
-BT_HIDDEN
-int bt_stream_common_initialize(
-		struct bt_stream_common *stream,
-		struct bt_stream_class_common *stream_class, const char *name,
-		uint64_t id, bt_object_release_func release_func);
-
-BT_HIDDEN
-void bt_stream_common_finalize(struct bt_stream_common *stream);
-
-static inline
-struct bt_stream_class_common *bt_stream_common_borrow_class(
-		struct bt_stream_common *stream)
-{
-	BT_ASSERT(stream);
-	return stream->stream_class;
-}
-
-static inline
-const char *bt_stream_common_get_name(struct bt_stream_common *stream)
-{
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	return stream->name ? stream->name->str : NULL;
-}
-
-static inline
-int64_t bt_stream_common_get_id(struct bt_stream_common *stream)
-{
-	int64_t ret;
-
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	ret = stream->id;
-	if (ret < 0) {
-		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",
-			stream, bt_stream_common_get_name(stream));
-	}
-
-	return ret;
-}
 
 #endif /* BABELTRACE_CTF_IR_STREAM_INTERNAL_H */

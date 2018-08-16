@@ -109,8 +109,6 @@ static char __thread lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 		strcat(tmp_prefix, (_prefix2));				\
 	} while (0)
 
-typedef void (*format_func)(char **, bool, const char *, void *);
-
 static inline void format_component(char **buf_ch, bool extended,
 		const char *prefix, struct bt_component *component);
 
@@ -157,8 +155,8 @@ static inline void format_object_pool(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_field_type_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_field_type_common *field_type)
+static inline void format_field_type(char **buf_ch, bool extended,
+		const char *prefix, struct bt_field_type *field_type)
 {
 	BUF_APPEND(", %stype-id=%s, %salignment=%u",
 		PRFIELD(bt_common_field_type_id_string(field_type->id)),
@@ -177,38 +175,39 @@ static inline void format_field_type_common(char **buf_ch, bool extended,
 	switch (field_type->id) {
 	case BT_FIELD_TYPE_ID_INTEGER:
 	{
-		struct bt_field_type_common_integer *integer =
-			BT_FROM_COMMON(field_type);
+		struct bt_field_type_integer *integer = (void *) field_type;
 
 		BUF_APPEND(", %ssize=%u, %sis-signed=%d, %sbyte-order=%s, "
 			"%sbase=%d, %sencoding=%s, "
 			"%smapped-clock-class-addr=%p",
 			PRFIELD(integer->size), PRFIELD(integer->is_signed),
-			PRFIELD(bt_common_byte_order_string(integer->user_byte_order)),
+			PRFIELD(bt_common_byte_order_string(
+				integer->user_byte_order)),
 			PRFIELD(integer->base),
-			PRFIELD(bt_common_string_encoding_string(integer->encoding)),
+			PRFIELD(bt_common_string_encoding_string(
+				integer->encoding)),
 			PRFIELD(integer->mapped_clock_class));
 
 		if (integer->mapped_clock_class) {
 			BUF_APPEND(", %smapped-clock-class-name=\"%s\"",
-				PRFIELD(bt_clock_class_get_name(integer->mapped_clock_class)));
+				PRFIELD(bt_clock_class_get_name(
+					integer->mapped_clock_class)));
 		}
 		break;
 	}
 	case BT_FIELD_TYPE_ID_FLOAT:
 	{
-		struct bt_field_type_common_floating_point *flt =
-			BT_FROM_COMMON(field_type);
+		struct bt_field_type_floating_point *flt = (void *) field_type;
 
 		BUF_APPEND(", %sexp-dig=%u, %smant-dig=%u, %sbyte-order=%s",
 			PRFIELD(flt->exp_dig), PRFIELD(flt->mant_dig),
-			PRFIELD(bt_common_byte_order_string(flt->user_byte_order)));
+			PRFIELD(bt_common_byte_order_string(
+				flt->user_byte_order)));
 		break;
 	}
 	case BT_FIELD_TYPE_ID_ENUM:
 	{
-		struct bt_field_type_common_enumeration *enm =
-			BT_FROM_COMMON(field_type);
+		struct bt_field_type_enumeration *enm = (void *) field_type;
 
 		BUF_APPEND(", %smapping-count=%u",
 			PRFIELD(enm->entries->len));
@@ -216,17 +215,16 @@ static inline void format_field_type_common(char **buf_ch, bool extended,
 	}
 	case BT_FIELD_TYPE_ID_STRING:
 	{
-		struct bt_field_type_common_string *str =
-			BT_FROM_COMMON(field_type);
+		struct bt_field_type_string *str = (void *) field_type;
 
 		BUF_APPEND(", %sencoding=%s",
-			PRFIELD(bt_common_string_encoding_string(str->encoding)));
+			PRFIELD(bt_common_string_encoding_string(
+				str->encoding)));
 		break;
 	}
 	case BT_FIELD_TYPE_ID_STRUCT:
 	{
-		struct bt_field_type_common_structure *structure =
-			BT_FROM_COMMON(field_type);
+		struct bt_field_type_structure *structure = (void *) field_type;
 
 		BUF_APPEND(", %sfield-count=%u",
 			PRFIELD(structure->fields->len));
@@ -234,8 +232,7 @@ static inline void format_field_type_common(char **buf_ch, bool extended,
 	}
 	case BT_FIELD_TYPE_ID_SEQUENCE:
 	{
-		struct bt_field_type_common_sequence *seq =
-			BT_FROM_COMMON(field_type);
+		struct bt_field_type_sequence *seq = (void *) field_type;
 
 		BUF_APPEND(", %slength-ft-addr=\"%s\", %selem-ft-addr=%p",
 			PRFIELD(seq->length_field_name->str),
@@ -244,8 +241,7 @@ static inline void format_field_type_common(char **buf_ch, bool extended,
 	}
 	case BT_FIELD_TYPE_ID_VARIANT:
 	{
-		struct bt_field_type_common_variant *variant =
-			BT_FROM_COMMON(field_type);
+		struct bt_field_type_variant *variant = (void *) field_type;
 
 		BUF_APPEND(", %stag-name=\"%s\", %sfield-count=%u",
 			PRFIELD(variant->tag_name->str),
@@ -257,19 +253,11 @@ static inline void format_field_type_common(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_field_type(char **buf_ch, bool extended,
-		const char *prefix, struct bt_field_type *field_type)
+static inline void format_field_integer_extended(char **buf_ch,
+		const char *prefix, struct bt_field *field)
 {
-	format_field_type_common(buf_ch, extended, prefix,
-		(void *) field_type);
-}
-
-static inline void format_field_common_integer_extended(char **buf_ch,
-		const char *prefix, struct bt_field_common *field)
-{
-	struct bt_field_common_integer *integer = BT_FROM_COMMON(field);
-	struct bt_field_type_common_integer *field_type =
-		BT_FROM_COMMON(field->type);
+	struct bt_field_integer *integer = (void *) field;
+	struct bt_field_type_integer *field_type = (void *) field->type;
 	const char *fmt = NULL;
 
 	BT_ASSERT(field_type);
@@ -295,9 +283,11 @@ static inline void format_field_common_integer_extended(char **buf_ch,
 	}
 }
 
-static inline void format_field_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_field_common *field)
+static inline void format_field(char **buf_ch, bool extended,
+		const char *prefix, struct bt_field *field)
 {
+	struct bt_field *common_field = (void *) field;
+
 	BUF_APPEND(", %sis-set=%d", PRFIELD(field->payload_set));
 
 	if (extended) {
@@ -321,21 +311,19 @@ static inline void format_field_common(char **buf_ch, bool extended,
 	switch (field->type->id) {
 	case BT_FIELD_TYPE_ID_INTEGER:
 	{
-		format_field_common_integer_extended(buf_ch, prefix, field);
+		format_field_integer_extended(buf_ch, prefix, field);
 		break;
 	}
 	case BT_FIELD_TYPE_ID_FLOAT:
 	{
-		struct bt_field_common_floating_point *flt =
-			BT_FROM_COMMON(field);
+		struct bt_field_floating_point *flt = (void *) field;
 
 		BUF_APPEND(", %svalue=%f", PRFIELD(flt->payload));
 		break;
 	}
 	case BT_FIELD_TYPE_ID_STRING:
 	{
-		struct bt_field_common_string *str =
-			BT_FROM_COMMON(field);
+		struct bt_field_string *str = (void *) field;
 
 		if (str->buf) {
 			BT_ASSERT(str->buf->data);
@@ -347,8 +335,7 @@ static inline void format_field_common(char **buf_ch, bool extended,
 	}
 	case BT_FIELD_TYPE_ID_SEQUENCE:
 	{
-		struct bt_field_common_sequence *seq =
-			BT_FROM_COMMON(field);
+		struct bt_field_sequence *seq = (void *) field;
 
 		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(seq->length));
 
@@ -360,8 +347,7 @@ static inline void format_field_common(char **buf_ch, bool extended,
 	}
 	case BT_FIELD_TYPE_ID_VARIANT:
 	{
-		struct bt_field_common_variant *variant =
-			BT_FROM_COMMON(field);
+		struct bt_field_variant *variant = (void *) field;
 
 		BUF_APPEND(", %scur-field-addr=%p",
 			PRFIELD(variant->current_field));
@@ -369,18 +355,6 @@ static inline void format_field_common(char **buf_ch, bool extended,
 	}
 	default:
 		break;
-	}
-}
-
-static inline void format_field(char **buf_ch, bool extended,
-		const char *prefix, struct bt_field *field)
-{
-	struct bt_field_common *common_field = (void *) field;
-
-	format_field_common(buf_ch, extended, prefix, (void *) field);
-
-	if (!extended) {
-		return;
 	}
 
 	if (!common_field->type) {
@@ -390,9 +364,9 @@ static inline void format_field(char **buf_ch, bool extended,
 	switch (common_field->type->id) {
 	case BT_FIELD_TYPE_ID_ENUM:
 	{
-		struct bt_field_common_integer *integer = (void *) field;
-		struct bt_field_type_common_enumeration *enum_ft =
-			BT_FROM_COMMON(common_field->type);
+		struct bt_field_integer *integer = (void *) field;
+		struct bt_field_type_enumeration *enum_ft =
+			(void *) common_field->type;
 
 		if (enum_ft->container_ft) {
 			if (enum_ft->container_ft->is_signed) {
@@ -417,14 +391,16 @@ static inline void format_field_path(char **buf_ch, bool extended,
 
 	if (field_path->indexes) {
 		BT_ASSERT(field_path->indexes);
-		BUF_APPEND(", %sindex-count=%u", PRFIELD(field_path->indexes->len));
+		BUF_APPEND(", %sindex-count=%u",
+			PRFIELD(field_path->indexes->len));
 	}
 
 	if (!extended || !field_path->indexes) {
 		return;
 	}
 
-	BUF_APPEND(", %spath=[%s", PRFIELD(bt_common_scope_string(field_path->root)));
+	BUF_APPEND(", %spath=[%s",
+		PRFIELD(bt_common_scope_string(field_path->root)));
 
 	for (i = 0; i < field_path->indexes->len; i++) {
 		int index = g_array_index(field_path->indexes, int, i);
@@ -435,9 +411,11 @@ static inline void format_field_path(char **buf_ch, bool extended,
 	BUF_APPEND("%s", "]");
 }
 
-static inline void format_trace_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_trace_common *trace)
+static inline void format_trace(char **buf_ch, bool extended,
+		const char *prefix, struct bt_trace *trace)
 {
+	char tmp_prefix[64];
+
 	if (trace->name) {
 		BUF_APPEND(", %sname=\"%s\"", PRFIELD(trace->name->str));
 	}
@@ -469,30 +447,16 @@ static inline void format_trace_common(char **buf_ch, bool extended,
 
 	BUF_APPEND(", %spacket-header-ft-addr=%p",
 		PRFIELD(trace->packet_header_field_type));
-}
-
-static inline void format_trace(char **buf_ch, bool extended,
-		const char *prefix, struct bt_trace *trace)
-{
-	char tmp_prefix[64];
-
-	format_trace_common(buf_ch, extended, prefix, BT_TO_COMMON(trace));
-
-	if (!extended) {
-		return;
-	}
-
 	BUF_APPEND(", %sis-static=%d", PRFIELD(trace->is_static));
 	SET_TMP_PREFIX("phf-pool-");
 	format_object_pool(buf_ch, extended, prefix,
 		&trace->packet_header_field_pool);
 }
 
-static inline void format_stream_class_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_stream_class_common *stream_class,
-		format_func trace_format_func)
+static inline void format_stream_class(char **buf_ch, bool extended,
+		const char *prefix, struct bt_stream_class *stream_class)
 {
-	struct bt_trace_common *trace;
+	struct bt_trace *trace;
 	char tmp_prefix[64];
 
 	if (stream_class->id_set) {
@@ -519,28 +483,14 @@ static inline void format_stream_class_common(char **buf_ch, bool extended,
 		PRFIELD(stream_class->packet_context_field_type),
 		PRFIELD(stream_class->event_header_field_type),
 		PRFIELD(stream_class->event_context_field_type));
-	trace = bt_stream_class_common_borrow_trace(stream_class);
+	trace = bt_stream_class_borrow_trace(stream_class);
 	if (!trace) {
 		return;
 	}
 
 	BUF_APPEND(", %strace-addr=%p", PRFIELD(trace));
 	SET_TMP_PREFIX("trace-");
-	trace_format_func(buf_ch, false, tmp_prefix, trace);
-}
-
-static inline void format_stream_class(char **buf_ch, bool extended,
-		const char *prefix, struct bt_stream_class *stream_class)
-{
-	char tmp_prefix[64];
-
-	format_stream_class_common(buf_ch, extended, prefix,
-		BT_TO_COMMON(stream_class), (format_func) format_trace);
-
-	if (!extended) {
-		return;
-	}
-
+	format_trace(buf_ch, false, tmp_prefix, trace);
 	SET_TMP_PREFIX("ehf-pool-");
 	format_object_pool(buf_ch, extended, prefix,
 		&stream_class->event_header_field_pool);
@@ -549,19 +499,18 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 		&stream_class->packet_context_field_pool);
 }
 
-static inline void format_event_class_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_event_class_common *event_class,
-		format_func format_stream_class_func,
-		format_func format_trace_func)
+static inline void format_event_class(char **buf_ch, bool extended,
+		const char *prefix, struct bt_event_class *event_class)
 {
-	struct bt_stream_class_common *stream_class;
-	struct bt_trace_common *trace;
+	struct bt_stream_class *stream_class;
+	struct bt_trace *trace;
 	char tmp_prefix[64];
 
 	BUF_APPEND(", %sid=%" PRId64, PRFIELD(event_class->id));
 
 	if (event_class->name) {
-		BUF_APPEND(", %sname=\"%s\"", PRFIELD(event_class->name->str));
+		BUF_APPEND(", %sname=\"%s\"",
+			PRFIELD(event_class->name->str));
 	}
 
 	if (!extended) {
@@ -570,7 +519,8 @@ static inline void format_event_class_common(char **buf_ch, bool extended,
 
 	BUF_APPEND(", %sis-frozen=%d, %slog-level=%s",
 		PRFIELD(event_class->frozen),
-		PRFIELD(bt_common_event_class_log_level_string(event_class->log_level)));
+		PRFIELD(bt_common_event_class_log_level_string(
+			event_class->log_level)));
 
 	if (event_class->emf_uri) {
 		BUF_APPEND(", %semf-uri=\"%s\"",
@@ -581,48 +531,31 @@ static inline void format_event_class_common(char **buf_ch, bool extended,
 		PRFIELD(event_class->context_field_type),
 		PRFIELD(event_class->payload_field_type));
 
-	stream_class = bt_event_class_common_borrow_stream_class(event_class);
+	stream_class = bt_event_class_borrow_stream_class(event_class);
 	if (!stream_class) {
 		return;
 	}
 
 	BUF_APPEND(", %sstream-class-addr=%p", PRFIELD(stream_class));
 	SET_TMP_PREFIX("stream-class-");
-	format_stream_class_func(buf_ch, false, tmp_prefix, stream_class);
-	trace = bt_stream_class_common_borrow_trace(stream_class);
+	format_stream_class(buf_ch, false, tmp_prefix, stream_class);
+	trace = bt_stream_class_borrow_trace(stream_class);
 	if (!trace) {
 		return;
 	}
 
 	BUF_APPEND(", %strace-addr=%p", PRFIELD(trace));
 	SET_TMP_PREFIX("trace-");
-	format_trace_func(buf_ch, false, tmp_prefix, trace);
-}
-
-static inline void format_event_class(char **buf_ch, bool extended,
-		const char *prefix, struct bt_event_class *event_class)
-{
-	char tmp_prefix[64];
-
-	format_event_class_common(buf_ch, extended, prefix,
-		BT_TO_COMMON(event_class), (format_func) format_stream_class,
-		(format_func) format_trace);
-
-	if (!extended) {
-		return;
-	}
-
+	format_trace(buf_ch, false, tmp_prefix, trace);
 	SET_TMP_PREFIX("event-pool-");
 	format_object_pool(buf_ch, extended, prefix, &event_class->event_pool);
 }
 
-static inline void format_stream_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_stream_common *stream,
-		format_func format_stream_class_func,
-		format_func format_trace_func)
+static inline void format_stream(char **buf_ch, bool extended,
+		const char *prefix, struct bt_stream *stream)
 {
-	struct bt_stream_class_common *stream_class;
-	struct bt_trace_common *trace;
+	struct bt_stream_class *stream_class;
+	struct bt_trace *trace;
 	char tmp_prefix[64];
 
 	BUF_APPEND(", %sid=%" PRId64, PRFIELD(stream->id));
@@ -635,15 +568,15 @@ static inline void format_stream_common(char **buf_ch, bool extended,
 		return;
 	}
 
-	stream_class = bt_stream_common_borrow_class(stream);
+	stream_class = bt_stream_borrow_class(stream);
 	if (!stream_class) {
 		return;
 	}
 
 	BUF_APPEND(", %sstream-class-addr=%p", PRFIELD(stream_class));
 	SET_TMP_PREFIX("stream-class-");
-	format_stream_class_func(buf_ch, false, tmp_prefix, stream_class);
-	trace = bt_stream_class_common_borrow_trace(stream_class);
+	format_stream_class(buf_ch, false, tmp_prefix, stream_class);
+	trace = bt_stream_class_borrow_trace(stream_class);
 	if (!trace) {
 		return;
 	}
@@ -655,17 +588,7 @@ static inline void format_stream_common(char **buf_ch, bool extended,
 
 	BUF_APPEND(", %strace-addr=%p", PRFIELD(trace));
 	SET_TMP_PREFIX("trace-");
-	format_trace_common(buf_ch, false, tmp_prefix, trace);
-}
-
-static inline void format_stream(char **buf_ch, bool extended,
-		const char *prefix, struct bt_stream *stream)
-{
-	char tmp_prefix[64];
-
-	format_stream_common(buf_ch, extended, prefix, BT_TO_COMMON(stream),
-		(format_func) format_stream_class,
-		(format_func) format_trace);
+	format_trace(buf_ch, false, tmp_prefix, trace);
 	SET_TMP_PREFIX("packet-pool-");
 	format_object_pool(buf_ch, extended, prefix, &stream->packet_pool);
 }
@@ -694,7 +617,8 @@ static inline void format_packet(char **buf_ch, bool extended,
 	BUF_APPEND(", %sstream-addr=%p", PRFIELD(stream));
 	SET_TMP_PREFIX("stream-");
 	format_stream(buf_ch, false, tmp_prefix, stream);
-	trace = (struct bt_trace *) bt_object_borrow_parent(&stream->common.base);
+	trace = (struct bt_trace *)
+		bt_object_borrow_parent(&stream->base);
 	if (!trace) {
 		return;
 	}
@@ -704,14 +628,13 @@ static inline void format_packet(char **buf_ch, bool extended,
 	format_trace(buf_ch, false, tmp_prefix, trace);
 }
 
-static inline void format_event_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_event_common *event,
-		format_func format_event_class_func,
-		format_func format_stream_class_func,
-		format_func format_trace_func)
+static inline void format_event(char **buf_ch, bool extended,
+		const char *prefix, struct bt_event *event)
 {
-	struct bt_trace_common *trace;
-	struct bt_stream_class_common *stream_class;
+	struct bt_packet *packet;
+	struct bt_stream *stream;
+	struct bt_trace *trace;
+	struct bt_stream_class *stream_class;
 	char tmp_prefix[64];
 
 	if (!extended) {
@@ -722,7 +645,8 @@ static inline void format_event_common(char **buf_ch, bool extended,
 		"%sstream-context-field-addr=%p, "
 		"%scontext-field-addr=%p, %spayload-field-addr=%p, ",
 		PRFIELD(event->frozen),
-		PRFIELD(event->header_field ? event->header_field->field : NULL),
+		PRFIELD(event->header_field ?
+			event->header_field->field : NULL),
 		PRFIELD(event->stream_event_context_field),
 		PRFIELD(event->context_field),
 		PRFIELD(event->payload_field));
@@ -733,36 +657,20 @@ static inline void format_event_common(char **buf_ch, bool extended,
 	}
 
 	SET_TMP_PREFIX("event-class-");
-	format_event_class_func(buf_ch, false, tmp_prefix, event->class);
-	stream_class = bt_event_class_common_borrow_stream_class(event->class);
+	format_event_class(buf_ch, false, tmp_prefix, event->class);
+	stream_class = bt_event_class_borrow_stream_class(event->class);
 	if (stream_class) {
 		BUF_APPEND(", %sstream-class-addr=%p", PRFIELD(stream_class));
 		SET_TMP_PREFIX("stream-class-");
-		format_stream_class_func(buf_ch, false, tmp_prefix,
+		format_stream_class(buf_ch, false, tmp_prefix,
 			stream_class);
 
-		trace = bt_stream_class_common_borrow_trace(stream_class);
+		trace = bt_stream_class_borrow_trace(stream_class);
 		if (trace) {
 			BUF_APPEND(", %strace-addr=%p", PRFIELD(trace));
 			SET_TMP_PREFIX("trace-");
-			format_trace_func(buf_ch, false, tmp_prefix, trace);
+			format_trace(buf_ch, false, tmp_prefix, trace);
 		}
-	}
-}
-
-static inline void format_event(char **buf_ch, bool extended,
-		const char *prefix, struct bt_event *event)
-{
-	struct bt_packet *packet;
-	struct bt_stream *stream;
-	char tmp_prefix[64];
-
-	format_event_common(buf_ch, extended, prefix, BT_TO_COMMON(event),
-		(format_func) format_event_class,
-		(format_func) format_stream_class, (format_func) format_trace);
-
-	if (!extended) {
-		return;
 	}
 
 	SET_TMP_PREFIX("cvs-");
@@ -1218,41 +1126,6 @@ static inline void format_plugin(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_stream_class_common_common(char **buf_ch,
-		bool extended, const char *prefix,
-		struct bt_stream_class_common *stream_class)
-{
-	format_stream_class_common(buf_ch, extended, prefix, stream_class,
-		(format_func) format_trace_common);
-}
-
-static inline void format_event_class_common_common(char **buf_ch,
-		bool extended, const char *prefix,
-		struct bt_event_class_common *event_class)
-{
-	format_event_class_common(buf_ch, extended, prefix, event_class,
-		(format_func) format_stream_class_common,
-		(format_func) format_trace_common);
-}
-
-static inline void format_event_common_common(char **buf_ch,
-		bool extended, const char *prefix,
-		struct bt_event_common *event)
-{
-	format_event_common(buf_ch, extended, prefix, event,
-		(format_func) format_event_class_common,
-		(format_func) format_stream_class_common,
-		(format_func) format_trace_common);
-}
-
-static inline void format_stream_common_common(char **buf_ch, bool extended,
-		const char *prefix, struct bt_stream_common *stream)
-{
-	format_stream_common(buf_ch, extended, prefix, stream,
-		(format_func) format_stream_class_common,
-		(format_func) format_trace_common);
-}
-
 static inline void handle_conversion_specifier_bt(void *priv_data,
 		char **buf_ch, size_t avail_size,
 		const char **out_fmt_ch, va_list *args)
@@ -1262,10 +1135,6 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 	char prefix[64];
 	char *prefix_ch = prefix;
 	void *obj;
-	enum {
-		CAT_DEFAULT,
-		CAT_COMMON,
-	} cat = CAT_DEFAULT;
 
 	/* skip "%!" */
 	fmt_ch += 2;
@@ -1294,11 +1163,6 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		fmt_ch++;
 	}
 
-	if (*fmt_ch == '_') {
-		cat = CAT_COMMON;
-		fmt_ch++;
-	}
-
 	obj = va_arg(*args, void *);
 	BUF_APPEND("%saddr=%p", prefix, obj);
 
@@ -1306,106 +1170,75 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		goto update_fmt;
 	}
 
-	switch (cat) {
-	case CAT_DEFAULT:
-		switch (*fmt_ch) {
-		case 'F':
-			format_field_type(buf_ch, extended, prefix, obj);
-			break;
-		case 'f':
-			format_field(buf_ch, extended, prefix, obj);
-			break;
-		case 'P':
-			format_field_path(buf_ch, extended, prefix, obj);
-			break;
-		case 'E':
-			format_event_class(buf_ch, extended, prefix, obj);
-			break;
-		case 'e':
-			format_event(buf_ch, extended, prefix, obj);
-			break;
-		case 'S':
-			format_stream_class(buf_ch, extended, prefix, obj);
-			break;
-		case 's':
-			format_stream(buf_ch, extended, prefix, obj);
-			break;
-		case 'a':
-			format_packet(buf_ch, extended, prefix, obj);
-			break;
-		case 't':
-			format_trace(buf_ch, extended, prefix, obj);
-			break;
-		case 'K':
-			format_clock_class(buf_ch, extended, prefix, obj);
-			break;
-		case 'k':
-			format_clock_value(buf_ch, extended, prefix, obj);
-			break;
-		case 'v':
-			format_value(buf_ch, extended, prefix, obj);
-			break;
-		case 'n':
-			format_notification(buf_ch, extended, prefix, obj);
-			break;
-		case 'i':
-			format_notification_iterator(buf_ch, extended, prefix, obj);
-			break;
-		case 'C':
-			format_component_class(buf_ch, extended, prefix, obj);
-			break;
-		case 'c':
-			format_component(buf_ch, extended, prefix, obj);
-			break;
-		case 'p':
-			format_port(buf_ch, extended, prefix, obj);
-			break;
-		case 'x':
-			format_connection(buf_ch, extended, prefix, obj);
-			break;
-		case 'u':
-			format_plugin(buf_ch, extended, prefix, obj);
-			break;
-		case 'g':
-			format_graph(buf_ch, extended, prefix, obj);
-			break;
-		case 'o':
-			format_object_pool(buf_ch, extended, prefix, obj);
-			break;
-		case 'O':
-			format_object(buf_ch, extended, prefix, obj);
-			break;
-		default:
-			abort();
-		}
+	switch (*fmt_ch) {
+	case 'F':
+		format_field_type(buf_ch, extended, prefix, obj);
 		break;
-	case CAT_COMMON:
-		switch (*fmt_ch) {
-		case 'F':
-			format_field_type_common(buf_ch, extended, prefix, obj);
-			break;
-		case 'f':
-			format_field_common(buf_ch, extended, prefix, obj);
-			break;
-		case 'E':
-			format_event_class_common_common(buf_ch, extended, prefix, obj);
-			break;
-		case 'e':
-			format_event_common_common(buf_ch, extended, prefix, obj);
-			break;
-		case 'S':
-			format_stream_class_common_common(buf_ch, extended, prefix, obj);
-			break;
-		case 's':
-			format_stream_common_common(buf_ch, extended, prefix, obj);
-			break;
-		case 't':
-			format_trace_common(buf_ch, extended, prefix, obj);
-			break;
-		default:
-			abort();
-		}
+	case 'f':
+		format_field(buf_ch, extended, prefix, obj);
 		break;
+	case 'P':
+		format_field_path(buf_ch, extended, prefix, obj);
+		break;
+	case 'E':
+		format_event_class(buf_ch, extended, prefix, obj);
+		break;
+	case 'e':
+		format_event(buf_ch, extended, prefix, obj);
+		break;
+	case 'S':
+		format_stream_class(buf_ch, extended, prefix, obj);
+		break;
+	case 's':
+		format_stream(buf_ch, extended, prefix, obj);
+		break;
+	case 'a':
+		format_packet(buf_ch, extended, prefix, obj);
+		break;
+	case 't':
+		format_trace(buf_ch, extended, prefix, obj);
+		break;
+	case 'K':
+		format_clock_class(buf_ch, extended, prefix, obj);
+		break;
+	case 'k':
+		format_clock_value(buf_ch, extended, prefix, obj);
+		break;
+	case 'v':
+		format_value(buf_ch, extended, prefix, obj);
+		break;
+	case 'n':
+		format_notification(buf_ch, extended, prefix, obj);
+		break;
+	case 'i':
+		format_notification_iterator(buf_ch, extended, prefix, obj);
+		break;
+	case 'C':
+		format_component_class(buf_ch, extended, prefix, obj);
+		break;
+	case 'c':
+		format_component(buf_ch, extended, prefix, obj);
+		break;
+	case 'p':
+		format_port(buf_ch, extended, prefix, obj);
+		break;
+	case 'x':
+		format_connection(buf_ch, extended, prefix, obj);
+		break;
+	case 'u':
+		format_plugin(buf_ch, extended, prefix, obj);
+		break;
+	case 'g':
+		format_graph(buf_ch, extended, prefix, obj);
+		break;
+	case 'o':
+		format_object_pool(buf_ch, extended, prefix, obj);
+		break;
+	case 'O':
+		format_object(buf_ch, extended, prefix, obj);
+		break;
+	default:
+		abort();
 	}
 
 update_fmt:

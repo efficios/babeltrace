@@ -31,7 +31,7 @@ struct bt_field_wrapper {
 	struct bt_object base;
 
 	/* Owned by this */
-	struct bt_field_common *field;
+	struct bt_field *field;
 };
 
 BT_HIDDEN

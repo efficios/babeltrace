@@ -72,6 +72,40 @@ struct bt_trace_is_static_listener_elem {
 	void *data;
 };
 
+static inline
+void bt_trace_finalize(struct bt_trace *trace)
+{
+	BT_LOGD("Finalizing trace object: addr=%p, name=\"%s\"",
+		trace, bt_trace_get_name(trace));
+
+	if (trace->environment) {
+		BT_LOGD_STR("Destroying environment attributes.");
+		bt_attributes_destroy(trace->environment);
+	}
+
+	if (trace->name) {
+		g_string_free(trace->name, TRUE);
+	}
+
+	if (trace->clock_classes) {
+		BT_LOGD_STR("Putting clock classes.");
+		g_ptr_array_free(trace->clock_classes, TRUE);
+	}
+
+	if (trace->streams) {
+		BT_LOGD_STR("Destroying streams.");
+		g_ptr_array_free(trace->streams, TRUE);
+	}
+
+	if (trace->stream_classes) {
+		BT_LOGD_STR("Destroying stream classes.");
+		g_ptr_array_free(trace->stream_classes, TRUE);
+	}
+
+	BT_LOGD_STR("Putting packet header field type.");
+	bt_put(trace->packet_header_field_type);
+}
+
 static
 void bt_trace_destroy(struct bt_object *obj)
 {
@@ -105,17 +139,17 @@ void bt_trace_destroy(struct bt_object *obj)
 	}
 
 	bt_object_pool_finalize(&trace->packet_header_field_pool);
-	bt_trace_common_finalize(BT_TO_COMMON(trace));
+	bt_trace_finalize(trace);
 	g_free(trace);
 }
 
-BT_HIDDEN
-int bt_trace_common_initialize(struct bt_trace_common *trace,
+static inline
+int bt_trace_initialize(struct bt_trace *trace,
 		bt_object_release_func release_func)
 {
 	int ret = 0;
 
-	BT_LOGD_STR("Initializing common trace object.");
+	BT_LOGD_STR("Initializing trace object.");
 	trace->native_byte_order = BT_BYTE_ORDER_UNSPECIFIED;
 	bt_object_init_shared_with_parent(&trace->base, release_func);
 	trace->clock_classes = g_ptr_array_new_with_free_func(
@@ -146,7 +180,7 @@ int bt_trace_common_initialize(struct bt_trace_common *trace,
 		goto error;
 	}
 
-	BT_LOGD("Initialized common trace object: addr=%p", trace);
+	BT_LOGD("Initialized trace object: addr=%p", trace);
 	goto end;
 
 error:
@@ -154,40 +188,6 @@ error:
 
 end:
 	return ret;
-}
-
-BT_HIDDEN
-void bt_trace_common_finalize(struct bt_trace_common *trace)
-{
-	BT_LOGD("Finalizing common trace object: addr=%p, name=\"%s\"",
-		trace, bt_trace_common_get_name(trace));
-
-	if (trace->environment) {
-		BT_LOGD_STR("Destroying environment attributes.");
-		bt_attributes_destroy(trace->environment);
-	}
-
-	if (trace->name) {
-		g_string_free(trace->name, TRUE);
-	}
-
-	if (trace->clock_classes) {
-		BT_LOGD_STR("Putting clock classes.");
-		g_ptr_array_free(trace->clock_classes, TRUE);
-	}
-
-	if (trace->streams) {
-		BT_LOGD_STR("Destroying streams.");
-		g_ptr_array_free(trace->streams, TRUE);
-	}
-
-	if (trace->stream_classes) {
-		BT_LOGD_STR("Destroying stream classes.");
-		g_ptr_array_free(trace->stream_classes, TRUE);
-	}
-
-	BT_LOGD_STR("Putting packet header field type.");
-	bt_put(trace->packet_header_field_type);
 }
 
 static
@@ -209,9 +209,9 @@ struct bt_trace *bt_trace_create(void)
 		goto error;
 	}
 
-	ret = bt_trace_common_initialize(BT_TO_COMMON(trace), bt_trace_destroy);
+	ret = bt_trace_initialize(trace, bt_trace_destroy);
 	if (ret) {
-		/* bt_trace_common_initialize() logs errors */
+		/* bt_trace_initialize() logs errors */
 		goto error;
 	}
 
@@ -249,11 +249,11 @@ error:
 
 const char *bt_trace_get_name(struct bt_trace *trace)
 {
-	return bt_trace_common_get_name(BT_TO_COMMON(trace));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->name ? trace->name->str : NULL;
 }
 
-BT_HIDDEN
-int bt_trace_common_set_name(struct bt_trace_common *trace, const char *name)
+int bt_trace_set_name(struct bt_trace *trace, const char *name)
 {
 	int ret = 0;
 
@@ -272,7 +272,7 @@ int bt_trace_common_set_name(struct bt_trace_common *trace, const char *name)
 	if (trace->frozen) {
 		BT_LOGW("Invalid parameter: trace is frozen: "
 			"addr=%p, name=\"%s\"",
-			trace, bt_trace_common_get_name(trace));
+			trace, bt_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -291,18 +291,13 @@ end:
 	return ret;
 }
 
-int bt_trace_set_name(struct bt_trace *trace, const char *name)
-{
-	return bt_trace_common_set_name(BT_TO_COMMON(trace), name);
-}
-
 const unsigned char *bt_trace_get_uuid(struct bt_trace *trace)
 {
-	return bt_trace_common_get_uuid(BT_TO_COMMON(trace));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->uuid_set ? trace->uuid : NULL;
 }
 
-BT_HIDDEN
-int bt_trace_common_set_uuid(struct bt_trace_common *trace,
+int bt_trace_set_uuid(struct bt_trace *trace,
 		const unsigned char *uuid)
 {
 	int ret = 0;
@@ -322,7 +317,7 @@ int bt_trace_common_set_uuid(struct bt_trace_common *trace,
 	if (trace->frozen) {
 		BT_LOGW("Invalid parameter: trace is frozen: "
 			"addr=%p, name=\"%s\"",
-			trace, bt_trace_common_get_name(trace));
+			trace, bt_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -331,7 +326,7 @@ int bt_trace_common_set_uuid(struct bt_trace_common *trace,
 	trace->uuid_set = BT_TRUE;
 	BT_LOGV("Set trace's UUID: addr=%p, name=\"%s\", "
 		"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
-		trace, bt_trace_common_get_name(trace),
+		trace, bt_trace_get_name(trace),
 		(unsigned int) uuid[0],
 		(unsigned int) uuid[1],
 		(unsigned int) uuid[2],
@@ -353,14 +348,7 @@ end:
 	return ret;
 }
 
-int bt_trace_set_uuid(struct bt_trace *trace,
-		const unsigned char *uuid)
-{
-	return bt_trace_common_set_uuid(BT_TO_COMMON(trace), uuid);
-}
-
-BT_HIDDEN
-int bt_trace_common_set_environment_field(struct bt_trace_common *trace,
+int bt_trace_set_environment_field(struct bt_trace *trace,
 		const char *name, struct bt_value *value)
 {
 	int ret = 0;
@@ -383,11 +371,19 @@ int bt_trace_common_set_environment_field(struct bt_trace_common *trace,
 		goto end;
 	}
 
+	if (trace->is_static) {
+		BT_LOGW("Invalid parameter: trace is static: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_trace_get_name(trace));
+		ret = -1;
+		goto end;
+	}
+
 	if (!bt_identifier_is_valid(name)) {
 		BT_LOGW("Invalid parameter: environment field's name is not a valid CTF identifier: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\"",
-			trace, bt_trace_common_get_name(trace), name);
+			trace, bt_trace_get_name(trace), name);
 		ret = -1;
 		goto end;
 	}
@@ -396,7 +392,7 @@ int bt_trace_common_set_environment_field(struct bt_trace_common *trace,
 		BT_LOGW("Invalid parameter: environment field's value is not an integer or string value: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\", env-value-type=%s",
-			trace, bt_trace_common_get_name(trace), name,
+			trace, bt_trace_get_name(trace), name,
 			bt_value_type_string(bt_value_get_type(value)));
 		ret = -1;
 		goto end;
@@ -417,7 +413,7 @@ int bt_trace_common_set_environment_field(struct bt_trace_common *trace,
 			BT_LOGW("Invalid parameter: trace is frozen and environment field already exists with this name: "
 				"trace-addr=%p, trace-name=\"%s\", "
 				"env-name=\"%s\"",
-				trace, bt_trace_common_get_name(trace), name);
+				trace, bt_trace_get_name(trace), name);
 			ret = -1;
 			goto end;
 		}
@@ -431,40 +427,19 @@ int bt_trace_common_set_environment_field(struct bt_trace_common *trace,
 		BT_LOGE("Cannot set environment field's value: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\"",
-			trace, bt_trace_common_get_name(trace), name);
+			trace, bt_trace_get_name(trace), name);
 	} else {
 		BT_LOGV("Set environment field's value: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\", value-addr=%p",
-			trace, bt_trace_common_get_name(trace), name, value);
+			trace, bt_trace_get_name(trace), name, value);
 	}
 
 end:
 	return ret;
 }
 
-int bt_trace_set_environment_field(struct bt_trace *trace,
-		const char *name, struct bt_value *value)
-{
-	int ret;
-
-	if (trace->is_static) {
-		BT_LOGW("Invalid parameter: trace is static: "
-			"addr=%p, name=\"%s\"",
-			trace, bt_trace_get_name(trace));
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_trace_common_set_environment_field(BT_TO_COMMON(trace),
-		name, value);
-
-end:
-	return ret;
-}
-
-BT_HIDDEN
-int bt_trace_common_set_environment_field_string(struct bt_trace_common *trace,
+int bt_trace_set_environment_field_string(struct bt_trace *trace,
 		const char *name, const char *value)
 {
 	int ret = 0;
@@ -483,8 +458,8 @@ int bt_trace_common_set_environment_field_string(struct bt_trace_common *trace,
 		goto end;
 	}
 
-	/* bt_trace_common_set_environment_field() logs errors */
-	ret = bt_trace_common_set_environment_field(trace, name,
+	/* bt_trace_set_environment_field() logs errors */
+	ret = bt_trace_set_environment_field(trace, name,
 		env_value_string_obj);
 
 end:
@@ -492,16 +467,8 @@ end:
 	return ret;
 }
 
-int bt_trace_set_environment_field_string(struct bt_trace *trace,
-		const char *name, const char *value)
-{
-	return bt_trace_common_set_environment_field_string(BT_TO_COMMON(trace),
-		name, value);
-}
-
-BT_HIDDEN
-int bt_trace_common_set_environment_field_integer(
-		struct bt_trace_common *trace, const char *name, int64_t value)
+int bt_trace_set_environment_field_integer(
+		struct bt_trace *trace, const char *name, int64_t value)
 {
 	int ret = 0;
 	struct bt_value *env_value_integer_obj = NULL;
@@ -513,8 +480,8 @@ int bt_trace_common_set_environment_field_integer(
 		goto end;
 	}
 
-	/* bt_trace_common_set_environment_field() logs errors */
-	ret = bt_trace_common_set_environment_field(trace, name,
+	/* bt_trace_set_environment_field() logs errors */
+	ret = bt_trace_set_environment_field(trace, name,
 		env_value_integer_obj);
 
 end:
@@ -522,42 +489,41 @@ end:
 	return ret;
 }
 
-int bt_trace_set_environment_field_integer(
-		struct bt_trace *trace, const char *name, int64_t value)
-{
-	return bt_trace_common_set_environment_field_integer(
-		BT_TO_COMMON(trace), name, value);
-}
-
 int64_t bt_trace_get_environment_field_count(struct bt_trace *trace)
 {
-	return bt_trace_common_get_environment_field_count(BT_TO_COMMON(trace));
+	int64_t ret;
+
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	ret = bt_attributes_get_count(trace->environment);
+	BT_ASSERT(ret >= 0);
+	return ret;
 }
 
 const char *
 bt_trace_get_environment_field_name_by_index(struct bt_trace *trace,
 		uint64_t index)
 {
-	return bt_trace_common_get_environment_field_name_by_index(
-		BT_TO_COMMON(trace), index);
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return bt_attributes_get_field_name(trace->environment, index);
 }
 
 struct bt_value *bt_trace_borrow_environment_field_value_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	return bt_trace_common_borrow_environment_field_value_by_index(
-		BT_TO_COMMON(trace), index);
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return bt_attributes_borrow_field_value(trace->environment, index);
 }
 
 struct bt_value *bt_trace_borrow_environment_field_value_by_name(
 		struct bt_trace *trace, const char *name)
 {
-	return bt_trace_common_borrow_environment_field_value_by_name(
-		BT_TO_COMMON(trace), name);
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	return bt_attributes_borrow_field_value_by_name(trace->environment,
+		name);
 }
 
-BT_HIDDEN
-int bt_trace_common_add_clock_class(struct bt_trace_common *trace,
+int bt_trace_add_clock_class(struct bt_trace *trace,
 		struct bt_clock_class *clock_class)
 {
 	int ret = 0;
@@ -568,22 +534,30 @@ int bt_trace_common_add_clock_class(struct bt_trace_common *trace,
 		goto end;
 	}
 
+	if (trace->is_static) {
+		BT_LOGW("Invalid parameter: trace is static: "
+			"addr=%p, name=\"%s\"",
+			trace, bt_trace_get_name(trace));
+		ret = -1;
+		goto end;
+	}
+
 	if (!bt_clock_class_is_valid(clock_class)) {
 		BT_LOGW("Invalid parameter: clock class is invalid: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"clock-class-addr=%p, clock-class-name=\"%s\"",
-			trace, bt_trace_common_get_name(trace),
+			trace, bt_trace_get_name(trace),
 			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
 	}
 
 	/* Check for duplicate clock classes */
-	if (bt_trace_common_has_clock_class(trace, clock_class)) {
+	if (bt_trace_has_clock_class(trace, clock_class)) {
 		BT_LOGW("Invalid parameter: clock class already exists in trace: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"clock-class-addr=%p, clock-class-name=\"%s\"",
-			trace, bt_trace_common_get_name(trace),
+			trace, bt_trace_get_name(trace),
 			clock_class, bt_clock_class_get_name(clock_class));
 		ret = -1;
 		goto end;
@@ -600,28 +574,8 @@ int bt_trace_common_add_clock_class(struct bt_trace_common *trace,
 	BT_LOGV("Added clock class to trace: "
 		"trace-addr=%p, trace-name=\"%s\", "
 		"clock-class-addr=%p, clock-class-name=\"%s\"",
-		trace, bt_trace_common_get_name(trace),
+		trace, bt_trace_get_name(trace),
 		clock_class, bt_clock_class_get_name(clock_class));
-
-end:
-	return ret;
-}
-
-int bt_trace_add_clock_class(struct bt_trace *trace,
-		struct bt_clock_class *clock_class)
-{
-	int ret;
-
-	if (trace->is_static) {
-		BT_LOGW("Invalid parameter: trace is static: "
-			"addr=%p, name=\"%s\"",
-			trace, bt_trace_get_name(trace));
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_trace_common_add_clock_class(BT_TO_COMMON(trace),
-		clock_class);
 
 end:
 	return ret;
@@ -629,23 +583,28 @@ end:
 
 int64_t bt_trace_get_clock_class_count(struct bt_trace *trace)
 {
-	return bt_trace_common_get_clock_class_count(BT_TO_COMMON(trace));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->clock_classes->len;
 }
 
 struct bt_clock_class *bt_trace_borrow_clock_class_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	return bt_trace_common_borrow_clock_class_by_index(
-		BT_TO_COMMON(trace), index);
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(index < trace->clock_classes->len,
+		"Index is out of bounds: index=%" PRIu64 ", "
+		"count=%u",
+		index, trace->clock_classes->len);
+	return g_ptr_array_index(trace->clock_classes, index);
 }
 
 static
-bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
-		struct bt_field_type_common *packet_header_type)
+bool packet_header_field_type_is_valid(struct bt_trace *trace,
+		struct bt_field_type *packet_header_type)
 {
 	int ret;
 	bool is_valid = true;
-	struct bt_field_type_common *field_type = NULL;
+	struct bt_field_type *field_type = NULL;
 
 	if (!packet_header_type) {
 		/*
@@ -678,7 +637,7 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 	 * integer field type. Also it must be the first field of the
 	 * packet header field type.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_header_type, "magic");
 	if (field_type) {
 		const char *field_name;
@@ -691,21 +650,21 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet header field type: `magic` field must be an unsigned integer field type: "
 				"magic-ft-addr=%p", field_type);
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_get_size(field_type) != 32) {
+		if (bt_field_type_integer_get_size(field_type) != 32) {
 			BT_LOGW("Invalid packet header field type: `magic` field must be a 32-bit unsigned integer field type: "
 				"magic-ft-addr=%p, magic-ft-size=%u",
 				field_type,
-				bt_field_type_common_integer_get_size(field_type));
+				bt_field_type_integer_get_size(field_type));
 			goto invalid;
 		}
 
-		ret = bt_field_type_common_structure_borrow_field_by_index(
+		ret = bt_field_type_structure_borrow_field_by_index(
 			packet_header_type, &field_name, NULL, 0);
 		BT_ASSERT(ret == 0);
 
@@ -721,10 +680,10 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 	 * If there's a `uuid` field, it must be an array field type of
 	 * length 16 with an 8-bit unsigned integer element field type.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_header_type, "uuid");
 	if (field_type) {
-		struct bt_field_type_common *elem_ft;
+		struct bt_field_type *elem_ft;
 
 		if (field_type->id != BT_FIELD_TYPE_ID_ARRAY) {
 			BT_LOGW("Invalid packet header field type: `uuid` field must be an array field type: "
@@ -734,15 +693,15 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_array_get_length(field_type) != 16) {
+		if (bt_field_type_array_get_length(field_type) != 16) {
 			BT_LOGW("Invalid packet header field type: `uuid` array field type's length must be 16: "
 				"uuid-ft-addr=%p, uuid-ft-length=%" PRId64,
 				field_type,
-				bt_field_type_common_array_get_length(field_type));
+				bt_field_type_array_get_length(field_type));
 			goto invalid;
 		}
 
-		elem_ft = bt_field_type_common_array_borrow_element_field_type(field_type);
+		elem_ft = bt_field_type_array_borrow_element_field_type(field_type);
 		BT_ASSERT(elem_ft);
 
 		if (elem_ft->id != BT_FIELD_TYPE_ID_INTEGER) {
@@ -753,17 +712,17 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(elem_ft)) {
+		if (bt_field_type_integer_is_signed(elem_ft)) {
 			BT_LOGW("Invalid packet header field type: `uuid` field's element field type must be an unsigned integer field type: "
 				"elem-ft-addr=%p", elem_ft);
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_get_size(elem_ft) != 8) {
+		if (bt_field_type_integer_get_size(elem_ft) != 8) {
 			BT_LOGW("Invalid packet header field type: `uuid` field's element field type must be an 8-bit unsigned integer field type: "
 				"elem-ft-addr=%p, elem-ft-size=%u",
 				elem_ft,
-				bt_field_type_common_integer_get_size(elem_ft));
+				bt_field_type_integer_get_size(elem_ft));
 			goto invalid;
 		}
 	}
@@ -772,7 +731,7 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 	 * The `stream_id` field must exist if there's more than one
 	 * stream classes in the trace.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_header_type, "stream_id");
 
 	if (!field_type && trace->stream_classes->len >= 1) {
@@ -794,7 +753,7 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet header field type: `stream_id` field must be an unsigned integer field type: "
 				"stream-id-ft-addr=%p", field_type);
 			goto invalid;
@@ -805,7 +764,7 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 	 * If there's a `packet_seq_num` field, it must be an unsigned
 	 * integer field type.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_header_type, "packet_seq_num");
 	if (field_type) {
 		if (field_type->id != BT_FIELD_TYPE_ID_INTEGER) {
@@ -816,7 +775,7 @@ bool packet_header_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet header field type: `packet_seq_num` field must be an unsigned integer field type: "
 				"packet-seq-num-ft-addr=%p", field_type);
 			goto invalid;
@@ -833,13 +792,13 @@ end:
 }
 
 static
-bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
-		struct bt_stream_class_common *stream_class,
-		struct bt_field_type_common *packet_context_type,
+bool packet_context_field_type_is_valid(struct bt_trace *trace,
+		struct bt_stream_class *stream_class,
+		struct bt_field_type *packet_context_type,
 		bool check_ts_begin_end_mapped)
 {
 	bool is_valid = true;
-	struct bt_field_type_common *field_type = NULL;
+	struct bt_field_type *field_type = NULL;
 
 	if (!packet_context_type) {
 		/* No packet context field type: valid at this point */
@@ -859,7 +818,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 	 * If there's a `packet_size` field, it must be an unsigned
 	 * integer field type.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_context_type, "packet_size");
 	if (field_type) {
 		if (field_type->id != BT_FIELD_TYPE_ID_INTEGER) {
@@ -870,7 +829,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet context field type: `packet_size` field must be an unsigned integer field type: "
 				"packet-size-ft-addr=%p", field_type);
 			goto invalid;
@@ -881,7 +840,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 	 * If there's a `content_size` field, it must be an unsigned
 	 * integer field type.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_context_type, "content_size");
 	if (field_type) {
 		if (field_type->id != BT_FIELD_TYPE_ID_INTEGER) {
@@ -892,7 +851,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet context field type: `content_size` field must be an unsigned integer field type: "
 				"content-size-ft-addr=%p", field_type);
 			goto invalid;
@@ -903,7 +862,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 	 * If there's a `events_discarded` field, it must be an unsigned
 	 * integer field type.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_context_type, "events_discarded");
 	if (field_type) {
 		if (field_type->id != BT_FIELD_TYPE_ID_INTEGER) {
@@ -914,7 +873,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet context field type: `events_discarded` field must be an unsigned integer field type: "
 				"events-discarded-ft-addr=%p", field_type);
 			goto invalid;
@@ -927,7 +886,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 	 * trace, then we cannot automatically set the mapped clock
 	 * class of this field, so it must have a mapped clock class.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_context_type, "timestamp_begin");
 	if (field_type) {
 		if (field_type->id != BT_FIELD_TYPE_ID_INTEGER) {
@@ -938,7 +897,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet context field type: `timestamp_begin` field must be an unsigned integer field type: "
 				"timestamp-begin-ft-addr=%p", field_type);
 			goto invalid;
@@ -946,7 +905,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 
 		if (check_ts_begin_end_mapped) {
 			struct bt_clock_class *clock_class =
-				bt_field_type_common_integer_borrow_mapped_clock_class(
+				bt_field_type_integer_borrow_mapped_clock_class(
 					field_type);
 
 			if (!clock_class) {
@@ -963,7 +922,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 	 * trace, then we cannot automatically set the mapped clock
 	 * class of this field, so it must have a mapped clock class.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		packet_context_type, "timestamp_end");
 	if (field_type) {
 		if (field_type->id != BT_FIELD_TYPE_ID_INTEGER) {
@@ -974,7 +933,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 			goto invalid;
 		}
 
-		if (bt_field_type_common_integer_is_signed(field_type)) {
+		if (bt_field_type_integer_is_signed(field_type)) {
 			BT_LOGW("Invalid packet context field type: `timestamp_end` field must be an unsigned integer field type: "
 				"timestamp-end-ft-addr=%p", field_type);
 			goto invalid;
@@ -982,7 +941,7 @@ bool packet_context_field_type_is_valid(struct bt_trace_common *trace,
 
 		if (check_ts_begin_end_mapped) {
 			struct bt_clock_class *clock_class =
-				bt_field_type_common_integer_borrow_mapped_clock_class(
+				bt_field_type_integer_borrow_mapped_clock_class(
 					field_type);
 
 			if (!clock_class) {
@@ -1003,12 +962,12 @@ end:
 }
 
 static
-bool event_header_field_type_is_valid(struct bt_trace_common *trace,
-		struct bt_stream_class_common *stream_class,
-		struct bt_field_type_common *event_header_type)
+bool event_header_field_type_is_valid(struct bt_trace *trace,
+		struct bt_stream_class *stream_class,
+		struct bt_field_type *event_header_type)
 {
 	bool is_valid = true;
-	struct bt_field_type_common *field_type = NULL;
+	struct bt_field_type *field_type = NULL;
 
 	/*
 	 * We do not validate that the `timestamp` field exists here
@@ -1021,7 +980,7 @@ bool event_header_field_type_is_valid(struct bt_trace_common *trace,
 		 * No event header field type: stream class must have
 		 * only one event class.
 		 */
-		if (bt_stream_class_common_get_event_class_count(stream_class) > 1) {
+		if (bt_stream_class_get_event_class_count(stream_class) > 1) {
 			BT_LOGW_STR("Invalid event header field type: "
 				"event header field type does not exist but there's more than one event class in the stream class.");
 			goto invalid;
@@ -1045,15 +1004,15 @@ bool event_header_field_type_is_valid(struct bt_trace_common *trace,
 	 * field type or an enumeration field type with an unsigned
 	 * integer container field type.
 	 */
-	field_type = bt_field_type_common_structure_borrow_field_type_by_name(
+	field_type = bt_field_type_structure_borrow_field_type_by_name(
 		event_header_type, "id");
 	if (field_type) {
-		struct bt_field_type_common *int_ft;
+		struct bt_field_type *int_ft;
 
 		if (field_type->id == BT_FIELD_TYPE_ID_INTEGER) {
 			int_ft = field_type;
 		} else if (field_type->id == BT_FIELD_TYPE_ID_ENUM) {
-			int_ft = bt_field_type_common_enumeration_borrow_container_field_type(
+			int_ft = bt_field_type_enumeration_borrow_container_field_type(
 				field_type);
 		} else {
 			BT_LOGW("Invalid event header field type: `id` field must be an integer or enumeration field type: "
@@ -1064,7 +1023,7 @@ bool event_header_field_type_is_valid(struct bt_trace_common *trace,
 		}
 
 		BT_ASSERT(int_ft);
-		if (bt_field_type_common_integer_is_signed(int_ft)) {
+		if (bt_field_type_integer_is_signed(int_ft)) {
 			BT_LOGW("Invalid event header field type: `id` field must be an unsigned integer or enumeration field type: "
 				"id-ft-addr=%p", int_ft);
 			goto invalid;
@@ -1081,14 +1040,14 @@ end:
 }
 
 static
-int check_packet_header_type_has_no_clock_class(struct bt_trace_common *trace)
+int check_packet_header_type_has_no_clock_class(struct bt_trace *trace)
 {
 	int ret = 0;
 
 	if (trace->packet_header_field_type) {
 		struct bt_clock_class *clock_class = NULL;
 
-		ret = bt_field_type_common_validate_single_clock_class(
+		ret = bt_field_type_validate_single_clock_class(
 			trace->packet_header_field_type,
 			&clock_class);
 		bt_put(clock_class);
@@ -1098,7 +1057,7 @@ int check_packet_header_type_has_no_clock_class(struct bt_trace_common *trace)
 				"a clock class: "
 				"trace-addr=%p, trace-name=\"%s\", "
 				"clock-class-name=\"%s\"",
-				trace, bt_trace_common_get_name(trace),
+				trace, bt_trace_get_name(trace),
 				clock_class ?
 					bt_clock_class_get_name(clock_class) :
 					NULL);
@@ -1109,15 +1068,8 @@ int check_packet_header_type_has_no_clock_class(struct bt_trace_common *trace)
 	return ret;
 }
 
-BT_HIDDEN
-int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
-		struct bt_stream_class_common *stream_class,
-		bt_validation_flag_copy_field_type_func copy_field_type_func,
-		struct bt_clock_class *init_expected_clock_class,
-		int (*map_clock_classes_func)(struct bt_stream_class_common *stream_class,
-			struct bt_field_type_common *packet_context_field_type,
-			struct bt_field_type_common *event_header_field_type),
-		bool check_ts_begin_end_mapped)
+int bt_trace_add_stream_class(struct bt_trace *trace,
+		struct bt_stream_class *stream_class)
 {
 	int ret;
 	int64_t i;
@@ -1129,19 +1081,22 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		BT_VALIDATION_FLAG_STREAM;
 	const enum bt_validation_flag ec_validation_flags =
 		BT_VALIDATION_FLAG_EVENT;
-	struct bt_field_type_common *packet_header_type = NULL;
-	struct bt_field_type_common *packet_context_type = NULL;
-	struct bt_field_type_common *event_header_type = NULL;
-	struct bt_field_type_common *stream_event_ctx_type = NULL;
+	struct bt_field_type *packet_header_type = NULL;
+	struct bt_field_type *packet_context_type = NULL;
+	struct bt_field_type *event_header_type = NULL;
+	struct bt_field_type *stream_event_ctx_type = NULL;
 	int64_t event_class_count;
-	struct bt_trace_common *current_parent_trace = NULL;
-	struct bt_clock_class *expected_clock_class =
-		bt_get(init_expected_clock_class);
-
-	BT_ASSERT(copy_field_type_func);
+	struct bt_trace *current_parent_trace = NULL;
+	struct bt_clock_class *expected_clock_class = NULL;
 
 	if (!trace) {
 		BT_LOGW_STR("Invalid parameter: trace is NULL.");
+		ret = -1;
+		goto end;
+	}
+
+	if (trace->is_static) {
+		BT_LOGW_STR("Invalid parameter: trace is static.");
 		ret = -1;
 		goto end;
 	}
@@ -1156,24 +1111,24 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		"trace-addr=%p, trace-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
-		trace, bt_trace_common_get_name(trace),
-		stream_class, bt_stream_class_common_get_name(stream_class),
-		bt_stream_class_common_get_id(stream_class));
+		trace, bt_trace_get_name(trace),
+		stream_class, bt_stream_class_get_name(stream_class),
+		bt_stream_class_get_id(stream_class));
 
-	current_parent_trace = bt_stream_class_common_borrow_trace(stream_class);
+	current_parent_trace = bt_stream_class_borrow_trace(stream_class);
 	if (current_parent_trace) {
 		/* Stream class is already associated to a trace, abort. */
 		BT_LOGW("Invalid parameter: stream class is already part of a trace: "
 			"stream-class-trace-addr=%p, "
 			"stream-class-trace-name=\"%s\"",
 			current_parent_trace,
-			bt_trace_common_get_name(current_parent_trace));
+			bt_trace_get_name(current_parent_trace));
 		ret = -1;
 		goto end;
 	}
 
 	event_class_count =
-		bt_stream_class_common_get_event_class_count(stream_class);
+		bt_stream_class_get_event_class_count(stream_class);
 	BT_ASSERT(event_class_count >= 0);
 
 	if (!stream_class->frozen) {
@@ -1181,7 +1136,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		 * Stream class is not frozen yet. Validate that the
 		 * stream class contains at most a single clock class
 		 * because the previous
-		 * bt_stream_class_common_add_event_class() calls did
+		 * bt_stream_class_add_event_class() calls did
 		 * not make this validation since the stream class's
 		 * direct field types (packet context, event header,
 		 * event context) could change afterwards. This stream
@@ -1191,13 +1146,13 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		 * At this point we're also sure that the stream class's
 		 * clock, if any, has the same class as the stream
 		 * class's expected clock class, if any. This is why, if
-		 * bt_stream_class_common_validate_single_clock_class()
+		 * bt_stream_class_validate_single_clock_class()
 		 * succeeds below, the call to
 		 * bt_stream_class_map_clock_class() at the end of this
 		 * function is safe because it maps to the same, single
 		 * clock class.
 		 */
-		ret = bt_stream_class_common_validate_single_clock_class(
+		ret = bt_stream_class_validate_single_clock_class(
 			stream_class, &expected_clock_class);
 		if (ret) {
 			BT_LOGW("Invalid parameter: stream class or one of its "
@@ -1209,8 +1164,8 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 				"stream-class-name=\"%s\", "
 				"expected-clock-class-addr=%p, "
 				"expected-clock-class-name=\"%s\"",
-				stream_class, bt_stream_class_common_get_id(stream_class),
-				bt_stream_class_common_get_name(stream_class),
+				stream_class, bt_stream_class_get_id(stream_class),
+				bt_stream_class_get_name(stream_class),
 				expected_clock_class,
 				expected_clock_class ?
 					bt_clock_class_get_name(expected_clock_class) :
@@ -1237,20 +1192,20 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 	 * class of this stream class can be validated individually.
 	 */
 	packet_header_type =
-		bt_trace_common_borrow_packet_header_field_type(trace);
+		bt_trace_borrow_packet_header_field_type(trace);
 	packet_context_type =
-		bt_stream_class_common_borrow_packet_context_field_type(stream_class);
+		bt_stream_class_borrow_packet_context_field_type(stream_class);
 	event_header_type =
-		bt_stream_class_common_borrow_event_header_field_type(stream_class);
+		bt_stream_class_borrow_event_header_field_type(stream_class);
 	stream_event_ctx_type =
-		bt_stream_class_common_borrow_event_context_field_type(stream_class);
+		bt_stream_class_borrow_event_context_field_type(stream_class);
 
 	BT_LOGD("Validating trace and stream class field types.");
 	ret = bt_validate_class_types(trace->environment,
 		packet_header_type, packet_context_type, event_header_type,
 		stream_event_ctx_type, NULL, NULL, trace->valid,
 		stream_class->valid, 1, &trace_sc_validation_output,
-		trace_sc_validation_flags, copy_field_type_func);
+		trace_sc_validation_flags, bt_field_type_copy);
 
 	if (ret) {
 		/*
@@ -1285,17 +1240,17 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 
 	/* Validate each event class individually */
 	for (i = 0; i < event_class_count; i++) {
-		struct bt_event_class_common *event_class =
-			bt_stream_class_common_borrow_event_class_by_index(
+		struct bt_event_class *event_class =
+			bt_stream_class_borrow_event_class_by_index(
 				stream_class, i);
-		struct bt_field_type_common *event_context_type = NULL;
-		struct bt_field_type_common *event_payload_type = NULL;
+		struct bt_field_type *event_context_type = NULL;
+		struct bt_field_type *event_payload_type = NULL;
 
 		event_context_type =
-			bt_event_class_common_borrow_context_field_type(
+			bt_event_class_borrow_context_field_type(
 				event_class);
 		event_payload_type =
-			bt_event_class_common_borrow_payload_field_type(
+			bt_event_class_borrow_payload_field_type(
 				event_class);
 
 		/*
@@ -1305,8 +1260,8 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		 */
 		BT_LOGD("Validating event class's field types: "
 			"addr=%p, name=\"%s\", id=%" PRId64,
-			event_class, bt_event_class_common_get_name(event_class),
-			bt_event_class_common_get_id(event_class));
+			event_class, bt_event_class_get_name(event_class),
+			bt_event_class_get_id(event_class));
 		ret = bt_validate_class_types(trace->environment,
 			trace_sc_validation_output.packet_header_type,
 			trace_sc_validation_output.packet_context_type,
@@ -1314,7 +1269,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 			trace_sc_validation_output.stream_event_ctx_type,
 			event_context_type, event_payload_type,
 			1, 1, event_class->valid, &ec_validation_outputs[i],
-			ec_validation_flags, copy_field_type_func);
+			ec_validation_flags, bt_field_type_copy);
 
 		if (ret) {
 			BT_LOGE("Failed to validate event class field types: "
@@ -1333,7 +1288,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		}
 	}
 
-	stream_id = bt_stream_class_common_get_id(stream_class);
+	stream_id = bt_stream_class_get_id(stream_class);
 	if (stream_id < 0) {
 		stream_id = trace->next_stream_id++;
 		if (stream_id < 0) {
@@ -1344,7 +1299,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 
 		/* Try to assign a new stream id */
 		for (i = 0; i < trace->stream_classes->len; i++) {
-			if (stream_id == bt_stream_class_common_get_id(
+			if (stream_id == bt_stream_class_get_id(
 				trace->stream_classes->pdata[i])) {
 				/* Duplicate stream id found */
 				BT_LOGW("Duplicate stream class ID: "
@@ -1354,7 +1309,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 			}
 		}
 
-		if (bt_stream_class_common_set_id_no_check(stream_class,
+		if (bt_stream_class_set_id_no_check(stream_class,
 				stream_id)) {
 			/* TODO Should retry with a different stream id */
 			BT_LOGE("Cannot set stream class's ID: "
@@ -1378,8 +1333,7 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 
 	if (!packet_context_field_type_is_valid(trace,
 			stream_class,
-			trace_sc_validation_output.packet_context_type,
-			check_ts_begin_end_mapped)) {
+			trace_sc_validation_output.packet_context_type, true)) {
 		BT_LOGW_STR("Invalid stream class's packet context field type.");
 		ret = -1;
 		goto end;
@@ -1391,25 +1345,6 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		BT_LOGW_STR("Invalid steam class's event header field type.");
 		ret = -1;
 		goto end;
-	}
-
-	/*
-	 * Now is the time to automatically map specific field types of
-	 * the stream class's packet context and event header field
-	 * types to the stream class's clock's class if they are not
-	 * mapped to a clock class yet. We do it here because we know
-	 * that after this point, everything is frozen so it won't be
-	 * possible for the user to modify the stream class's clock, or
-	 * to map those field types to other clock classes.
-	 */
-	if (map_clock_classes_func) {
-		if (map_clock_classes_func(stream_class,
-				trace_sc_validation_output.packet_context_type,
-				trace_sc_validation_output.event_header_type)) {
-			/* map_clock_classes_func() logs errors */
-			ret = -1;
-			goto end;
-		}
 	}
 
 	bt_object_set_parent(&stream_class->base, &trace->base);
@@ -1434,8 +1369,8 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 	bt_validation_output_put_types(&trace_sc_validation_output);
 
 	for (i = 0; i < event_class_count; i++) {
-		struct bt_event_class_common *event_class =
-			bt_stream_class_common_borrow_event_class_by_index(
+		struct bt_event_class *event_class =
+			bt_stream_class_borrow_event_class_by_index(
 				stream_class, i);
 
 		bt_validation_replace_types(NULL, NULL, event_class,
@@ -1452,8 +1387,8 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 	/*
 	 * Freeze the trace and the stream class.
 	 */
-	bt_stream_class_common_freeze(stream_class);
-	bt_trace_common_freeze(trace);
+	bt_stream_class_freeze(stream_class);
+	bt_trace_freeze(trace);
 
 	/*
 	 * It is safe to set the stream class's unique clock class
@@ -1463,13 +1398,16 @@ int bt_trace_common_add_stream_class(struct bt_trace_common *trace,
 		BT_MOVE(stream_class->clock_class, expected_clock_class);
 	}
 
+	/* Notify listeners of the trace's schema modification. */
+	bt_stream_class_visit(stream_class,
+			bt_trace_object_modification, trace);
 	BT_LOGD("Added stream class to trace: "
 		"trace-addr=%p, trace-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
 		"stream-class-id=%" PRId64,
-		trace, bt_trace_common_get_name(trace),
-		stream_class, bt_stream_class_common_get_name(stream_class),
-		bt_stream_class_common_get_id(stream_class));
+		trace, bt_trace_get_name(trace),
+		stream_class, bt_stream_class_get_name(stream_class),
+		bt_stream_class_get_id(stream_class));
 
 end:
 	if (ret) {
@@ -1489,80 +1427,98 @@ end:
 	return ret;
 }
 
-int bt_trace_add_stream_class(struct bt_trace *trace,
-		struct bt_stream_class *stream_class)
-{
-	int ret = 0;
-
-	if (!trace) {
-		BT_LOGW_STR("Invalid parameter: trace is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (trace->is_static) {
-		BT_LOGW_STR("Invalid parameter: trace is static.");
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_trace_common_add_stream_class(BT_TO_COMMON(trace),
-		BT_TO_COMMON(stream_class),
-		(bt_validation_flag_copy_field_type_func) bt_field_type_copy,
-		NULL, NULL, true);
-	if (ret) {
-		goto end;
-	}
-
-	/* Notifiy listeners of the trace's schema modification. */
-	bt_stream_class_common_visit(BT_TO_COMMON(stream_class),
-			bt_trace_object_modification, trace);
-
-end:
-	return ret;
-}
-
 int64_t bt_trace_get_stream_count(struct bt_trace *trace)
 {
-	return bt_trace_common_get_stream_count(BT_TO_COMMON(trace));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return (int64_t) trace->streams->len;
 }
 
 struct bt_stream *bt_trace_borrow_stream_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	return BT_FROM_COMMON(bt_trace_common_borrow_stream_by_index(
-		BT_TO_COMMON(trace), index));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(index < trace->streams->len,
+		"Index is out of bounds: index=%" PRIu64 ", "
+		"count=%u",
+		index, trace->streams->len);
+	return g_ptr_array_index(trace->streams, index);
 }
 
 int64_t bt_trace_get_stream_class_count(struct bt_trace *trace)
 {
-	return bt_trace_common_get_stream_class_count(BT_TO_COMMON(trace));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return (int64_t) trace->stream_classes->len;
 }
 
 struct bt_stream_class *bt_trace_borrow_stream_class_by_index(
 		struct bt_trace *trace, uint64_t index)
 {
-	return BT_FROM_COMMON(bt_trace_common_borrow_stream_class_by_index(
-		BT_TO_COMMON(trace), index));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(index < trace->stream_classes->len,
+		"Index is out of bounds: index=%" PRIu64 ", "
+		"count=%u",
+		index, trace->stream_classes->len);
+	return g_ptr_array_index(trace->stream_classes, index);
 }
 
 struct bt_stream_class *bt_trace_borrow_stream_class_by_id(
-		struct bt_trace *trace, uint64_t id)
+		struct bt_trace *trace, uint64_t id_param)
 {
-	return BT_FROM_COMMON(
-		bt_trace_common_borrow_stream_class_by_id(
-			BT_TO_COMMON(trace), id));
+	int i;
+	struct bt_stream_class *stream_class = NULL;
+	int64_t id = (int64_t) id_param;
+
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(id >= 0,
+		"Invalid stream class ID: %" PRIu64, id_param);
+
+	for (i = 0; i < trace->stream_classes->len; i++) {
+		struct bt_stream_class *stream_class_candidate;
+
+		stream_class_candidate =
+			g_ptr_array_index(trace->stream_classes, i);
+
+		if (bt_stream_class_get_id(stream_class_candidate) ==
+				(int64_t) id) {
+			stream_class = stream_class_candidate;
+			goto end;
+		}
+	}
+
+end:
+	return stream_class;
 }
 
 struct bt_clock_class *bt_trace_borrow_clock_class_by_name(
 		struct bt_trace *trace, const char *name)
 {
-	return bt_trace_common_borrow_clock_class_by_name(BT_TO_COMMON(trace),
-		name);
+	size_t i;
+	struct bt_clock_class *clock_class = NULL;
+
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+
+	for (i = 0; i < trace->clock_classes->len; i++) {
+		struct bt_clock_class *cur_clk =
+			g_ptr_array_index(trace->clock_classes, i);
+		const char *cur_clk_name = bt_clock_class_get_name(cur_clk);
+
+		if (!cur_clk_name) {
+			goto end;
+		}
+
+		if (!strcmp(cur_clk_name, name)) {
+			clock_class = cur_clk;
+			goto end;
+		}
+	}
+
+end:
+	return clock_class;
 }
 
 BT_HIDDEN
-bt_bool bt_trace_common_has_clock_class(struct bt_trace_common *trace,
+bt_bool bt_trace_has_clock_class(struct bt_trace *trace,
 		struct bt_clock_class *clock_class)
 {
 	struct search_query query = { .value = clock_class, .found = 0 };
@@ -1577,12 +1533,12 @@ bt_bool bt_trace_common_has_clock_class(struct bt_trace_common *trace,
 enum bt_byte_order bt_trace_get_native_byte_order(
 		struct bt_trace *trace)
 {
-	return bt_trace_common_get_native_byte_order(BT_TO_COMMON(trace));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->native_byte_order;
 }
 
-BT_HIDDEN
-int bt_trace_common_set_native_byte_order(struct bt_trace_common *trace,
-		enum bt_byte_order byte_order, bool allow_unspecified)
+int bt_trace_set_native_byte_order(struct bt_trace *trace,
+		enum bt_byte_order byte_order)
 {
 	int ret = 0;
 
@@ -1595,15 +1551,7 @@ int bt_trace_common_set_native_byte_order(struct bt_trace_common *trace,
 	if (trace->frozen) {
 		BT_LOGW("Invalid parameter: trace is frozen: "
 			"addr=%p, name=\"%s\"",
-			trace, bt_trace_common_get_name(trace));
-		ret = -1;
-		goto end;
-	}
-
-	if (byte_order == BT_BYTE_ORDER_UNSPECIFIED && !allow_unspecified) {
-		BT_LOGW("Invalid parameter: BT_BYTE_ORDER_UNSPECIFIED byte order is not allowed: "
-			"addr=%p, name=\"%s\"",
-			trace, bt_trace_common_get_name(trace));
+			trace, bt_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -1613,7 +1561,7 @@ int bt_trace_common_set_native_byte_order(struct bt_trace_common *trace,
 			byte_order != BT_BYTE_ORDER_NETWORK) {
 		BT_LOGW("Invalid parameter: invalid byte order: "
 			"addr=%p, name=\"%s\", bo=%s",
-			trace, bt_trace_common_get_name(trace),
+			trace, bt_trace_get_name(trace),
 			bt_common_byte_order_string(byte_order));
 		ret = -1;
 		goto end;
@@ -1622,30 +1570,22 @@ int bt_trace_common_set_native_byte_order(struct bt_trace_common *trace,
 	trace->native_byte_order = byte_order;
 	BT_LOGV("Set trace's native byte order: "
 		"addr=%p, name=\"%s\", bo=%s",
-		trace, bt_trace_common_get_name(trace),
+		trace, bt_trace_get_name(trace),
 		bt_common_byte_order_string(byte_order));
 
 end:
 	return ret;
 }
 
-int bt_trace_set_native_byte_order(struct bt_trace *trace,
-		enum bt_byte_order byte_order)
-{
-	return bt_trace_common_set_native_byte_order(BT_TO_COMMON(trace),
-		byte_order, true);
-}
-
 struct bt_field_type *bt_trace_borrow_packet_header_field_type(
 		struct bt_trace *trace)
 {
-	return BT_FROM_COMMON(bt_trace_common_borrow_packet_header_field_type(
-		BT_TO_COMMON(trace)));
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->packet_header_field_type;
 }
 
-BT_HIDDEN
-int bt_trace_common_set_packet_header_field_type(struct bt_trace_common *trace,
-		struct bt_field_type_common *packet_header_type)
+int bt_trace_set_packet_header_field_type(struct bt_trace *trace,
+		struct bt_field_type *packet_header_type)
 {
 	int ret = 0;
 
@@ -1658,7 +1598,7 @@ int bt_trace_common_set_packet_header_field_type(struct bt_trace_common *trace,
 	if (trace->frozen) {
 		BT_LOGW("Invalid parameter: trace is frozen: "
 			"addr=%p, name=\"%s\"",
-			trace, bt_trace_common_get_name(trace));
+			trace, bt_trace_get_name(trace));
 		ret = -1;
 		goto end;
 	}
@@ -1668,7 +1608,7 @@ int bt_trace_common_set_packet_header_field_type(struct bt_trace_common *trace,
 			packet_header_type->id != BT_FIELD_TYPE_ID_STRUCT) {
 		BT_LOGW("Invalid parameter: packet header field type must be a structure field type if it exists: "
 			"addr=%p, name=\"%s\", ft-addr=%p, ft-id=%s",
-			trace, bt_trace_common_get_name(trace),
+			trace, bt_trace_get_name(trace),
 			packet_header_type,
 			bt_common_field_type_id_string(packet_header_type->id));
 		ret = -1;
@@ -1679,16 +1619,9 @@ int bt_trace_common_set_packet_header_field_type(struct bt_trace_common *trace,
 	trace->packet_header_field_type = bt_get(packet_header_type);
 	BT_LOGV("Set trace's packet header field type: "
 		"addr=%p, name=\"%s\", packet-context-ft-addr=%p",
-		trace, bt_trace_common_get_name(trace), packet_header_type);
+		trace, bt_trace_get_name(trace), packet_header_type);
 end:
 	return ret;
-}
-
-int bt_trace_set_packet_header_field_type(struct bt_trace *trace,
-		struct bt_field_type *packet_header_type)
-{
-	return bt_trace_common_set_packet_header_field_type(BT_TO_COMMON(trace),
-		(void *) packet_header_type);
 }
 
 static
@@ -1823,14 +1756,14 @@ int bt_trace_set_is_static(struct bt_trace *trace)
 		goto end;
 	}
 
-	ret = check_packet_header_type_has_no_clock_class(BT_TO_COMMON(trace));
+	ret = check_packet_header_type_has_no_clock_class(trace);
 	if (ret) {
 		/* check_packet_header_type_has_no_clock_class() logs errors */
 		goto end;
 	}
 
 	trace->is_static = BT_TRUE;
-	bt_trace_common_freeze(BT_TO_COMMON(trace));
+	bt_trace_freeze(trace);
 	BT_LOGV("Set trace static: addr=%p, name=\"%s\"",
 		trace, bt_trace_get_name(trace));
 
@@ -1992,12 +1925,12 @@ struct bt_packet_header_field *bt_trace_create_packet_header_field(
 	struct bt_field_wrapper *field_wrapper;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(trace->common.packet_header_field_type,
+	BT_ASSERT_PRE(trace->packet_header_field_type,
 		"Trace has no packet header field type: %!+t",
 		trace);
 	field_wrapper = bt_field_wrapper_create(
 		&trace->packet_header_field_pool,
-		(void *) trace->common.packet_header_field_type);
+		(void *) trace->packet_header_field_type);
 	if (!field_wrapper) {
 		BT_LIB_LOGE("Cannot allocate one packet header field from trace: "
 			"%![trace-]+t", trace);
@@ -2005,7 +1938,7 @@ struct bt_packet_header_field *bt_trace_create_packet_header_field(
 	}
 
 	BT_ASSERT(field_wrapper->field);
-	bt_trace_common_freeze(BT_TO_COMMON(trace));
+	bt_trace_freeze(trace);
 	goto end;
 
 error:
