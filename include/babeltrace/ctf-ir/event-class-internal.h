@@ -39,40 +39,53 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/object-pool-internal.h>
+#include <babeltrace/property-internal.h>
 #include <glib.h>
+#include <stdbool.h>
 
 struct bt_event_class {
 	struct bt_object base;
-	struct bt_field_type *context_field_type;
-	struct bt_field_type *payload_field_type;
-	int frozen;
+	struct bt_field_type *specific_context_ft;
+	struct bt_field_type *payload_ft;
 
-	/*
-	 * This flag indicates if the event class is valid. A valid
-	 * event class is _always_ frozen. However, an event class
-	 * may be frozen, but not valid yet. This is okay, as long as
-	 * no events are created out of this event class.
-	 */
-	int valid;
+	struct {
+		GString *str;
 
-	/* Attributes */
-	GString *name;
-	int64_t id;
-	int log_level;
-	GString *emf_uri;
+		/* NULL or `str->str` above */
+		const char *value;
+	} name;
+
+	uint64_t id;
+	struct bt_property_uint log_level;
+
+	struct {
+		GString *str;
+
+		/* NULL or `str->str` above */
+		const char *value;
+	} emf_uri;
 
 	/* Pool of `struct bt_event *` */
 	struct bt_object_pool event_pool;
+
+	bool frozen;
 };
 
 BT_HIDDEN
-void bt_event_class_freeze(struct bt_event_class *event_class);
+void _bt_event_class_freeze(struct bt_event_class *event_class);
 
-typedef struct bt_field_type *(*bt_field_type_structure_create_func)();
+#ifdef BT_DEV_MODE
+# define bt_event_class_freeze		_bt_event_class_freeze
+#else
+# define bt_event_class_freeze(_ec)
+#endif
 
-BT_HIDDEN
-int bt_event_class_validate_single_clock_class(
-		struct bt_event_class *event_class,
-		struct bt_clock_class **expected_clock_class);
+static inline
+struct bt_stream_class *bt_event_class_borrow_stream_class_inline(
+		struct bt_event_class *event_class)
+{
+	BT_ASSERT(event_class);
+	return (void *) bt_object_borrow_parent(&event_class->base);
+}
 
 #endif /* BABELTRACE_CTF_IR_EVENT_CLASS_INTERNAL_H */

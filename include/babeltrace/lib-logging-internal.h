@@ -26,6 +26,10 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <stdarg.h>
 
+#ifndef BT_LOG_TAG
+# error Please define a tag with BT_LOG_TAG before including this file.
+#endif
+
 #define BT_LOG_OUTPUT_LEVEL bt_lib_log_level
 
 #include <babeltrace/logging-internal.h>
@@ -58,7 +62,7 @@ int bt_lib_log_level;
  *   `PRIi64`.
  *
  * The Babeltrace extension conversion specifier is accepted. Its syntax
- * is:
+ * is either `%!u` to format a UUID (`bt_uuid` type) or:
  *
  * 1. Introductory `%!` sequence.
  *
@@ -73,10 +77,6 @@ int bt_lib_log_level;
  * 4. Format specifier (see below).
  *
  * The available format specifiers are:
- *
- *   `r`:
- *       Reference count information. The parameter is any Babeltrace
- *       object.
  *
  *   `F`:
  *       CTF IR field type. The parameter type is `struct bt_field_type *`.
@@ -136,11 +136,14 @@ int bt_lib_log_level;
  *   `g`:
  *       Graph. The parameter type is `struct bt_graph *`.
  *
- *   `u`:
+ *   `l`:
  *       Plugin. The parameter type is `struct bt_plugin *`.
  *
  *   `o`:
  *       Object pool. The parameter type is `struct bt_object_pool *`.
+ *
+ *   `O`:
+ *       Object. The parameter type is `struct bt_object *`.
  *
  * Conversion specifier examples:
  *
@@ -153,7 +156,7 @@ int bt_lib_log_level;
  * the last one. Therefore you must put this separator in the format
  * string between two Babeltrace objects, e.g.:
  *
- *     BT_LIB_LOGW("Message: count=%u, %!E, %!+C", count, event_class,
+ *     BT_LIB_LOGW("Message: count=%u, %!E, %!+K", count, event_class,
  *                 clock_class);
  *
  * Example with a custom prefix:

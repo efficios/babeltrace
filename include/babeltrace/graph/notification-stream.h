@@ -65,10 +65,8 @@ struct bt_stream *bt_notification_stream_begin_get_stream(
 	return bt_get(bt_notification_stream_begin_borrow_stream(notification));
 }
 
-extern int bt_notification_stream_begin_set_clock_value(
-		struct bt_notification *notif,
-		struct bt_clock_class *clock_class, uint64_t raw_value,
-		bt_bool is_default);
+extern int bt_notification_stream_begin_set_default_clock_value(
+		struct bt_notification *notif, uint64_t value_cycles);
 
 extern struct bt_clock_value *bt_notification_stream_begin_borrow_default_clock_value(
 		struct bt_notification *notif);
@@ -83,10 +81,8 @@ struct bt_stream *bt_notification_stream_end_get_stream(
 	return bt_get(bt_notification_stream_end_borrow_stream(notification));
 }
 
-extern int bt_notification_stream_end_set_clock_value(
-		struct bt_notification *notif,
-		struct bt_clock_class *clock_class, uint64_t raw_value,
-		bt_bool is_default);
+extern int bt_notification_stream_end_set_default_clock_value(
+		struct bt_notification *notif, uint64_t value_cycles);
 
 extern struct bt_clock_value *bt_notification_stream_end_borrow_default_clock_value(
 		struct bt_notification *notif);

@@ -5,7 +5,7 @@
  * BabelTrace - CTF IR: Clock class
  *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -33,7 +33,7 @@
 
 #include <stdint.h>
 
-/* For bt_bool */
+/* For bt_bool, bt_uuid */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -43,43 +43,50 @@ extern "C" {
 struct bt_clock_class;
 struct bt_clock_value;
 
-extern struct bt_clock_class *bt_clock_class_create(const char *name,
-		uint64_t freq);
-extern const char *bt_clock_class_get_name(
-		struct bt_clock_class *clock_class);
+extern struct bt_clock_class *bt_clock_class_create(void);
+
+extern const char *bt_clock_class_get_name(struct bt_clock_class *clock_class);
+
 extern int bt_clock_class_set_name(struct bt_clock_class *clock_class,
 		const char *name);
+
 extern const char *bt_clock_class_get_description(
 		struct bt_clock_class *clock_class);
-extern int bt_clock_class_set_description(
-		struct bt_clock_class *clock_class,
-		const char *desc);
+
+extern int bt_clock_class_set_description(struct bt_clock_class *clock_class,
+		const char *description);
+
 extern uint64_t bt_clock_class_get_frequency(
 		struct bt_clock_class *clock_class);
-extern int bt_clock_class_set_frequency(
-		struct bt_clock_class *clock_class, uint64_t freq);
+
+extern int bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
+		uint64_t freq);
+
 extern uint64_t bt_clock_class_get_precision(
 		struct bt_clock_class *clock_class);
-extern int bt_clock_class_set_precision(
-		struct bt_clock_class *clock_class, uint64_t precision);
-extern int bt_clock_class_get_offset_s(
-		struct bt_clock_class *clock_class, int64_t *seconds);
-extern int bt_clock_class_set_offset_s(
-		struct bt_clock_class *clock_class, int64_t seconds);
-extern int bt_clock_class_get_offset_cycles(
-		struct bt_clock_class *clock_class, int64_t *cycles);
-extern int bt_clock_class_set_offset_cycles(
-		struct bt_clock_class *clock_class, int64_t cycles);
-extern bt_bool bt_clock_class_is_absolute(
-		struct bt_clock_class *clock_class);
-extern int bt_clock_class_set_is_absolute(
-		struct bt_clock_class *clock_class, bt_bool is_absolute);
-extern const unsigned char *bt_clock_class_get_uuid(
-		struct bt_clock_class *clock_class);
+
+extern int bt_clock_class_set_precision(struct bt_clock_class *clock_class,
+		uint64_t precision);
+
+extern void bt_clock_class_get_offset(struct bt_clock_class *clock_class,
+		int64_t *seconds, uint64_t *cycles);
+
+extern int bt_clock_class_set_offset(struct bt_clock_class *clock_class,
+		int64_t seconds, uint64_t cycles);
+
+extern bt_bool bt_clock_class_is_absolute(struct bt_clock_class *clock_class);
+
+extern int bt_clock_class_set_is_absolute(struct bt_clock_class *clock_class,
+		bt_bool is_absolute);
+
+extern bt_uuid bt_clock_class_get_uuid(struct bt_clock_class *clock_class);
+
 extern int bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
-		const unsigned char *uuid);
-extern int bt_clock_class_cycles_to_ns(struct bt_clock_class *clock_class,
-		uint64_t cycles, int64_t *ns);
+		bt_uuid uuid);
+
+extern int bt_clock_class_cycles_to_ns_from_origin(
+		struct bt_clock_class *clock_class,
+		uint64_t cycles, int64_t *ns_from_origin);
 
 #ifdef __cplusplus
 }

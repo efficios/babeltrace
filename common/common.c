@@ -1334,27 +1334,27 @@ static inline void handle_conversion_specifier_std(char *buf, char **buf_ch,
 	}
 
 	/* format (PRI*64) */
-	if (strncmp(fmt_ch, PRId64, sizeof(PRId64)) == 0) {
+	if (strncmp(fmt_ch, PRId64, sizeof(PRId64) - 1) == 0) {
 		fmt_ch += sizeof(PRId64);
 		BUF_STD_APPEND_SINGLE_ARG(int64_t);
 		goto update_rw_fmt;
-	} else if (strncmp(fmt_ch, PRIu64, sizeof(PRIu64)) == 0) {
+	} else if (strncmp(fmt_ch, PRIu64, sizeof(PRIu64) - 1) == 0) {
 		fmt_ch += sizeof(PRIu64);
 		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
 		goto update_rw_fmt;
-	} else if (strncmp(fmt_ch, PRIx64, sizeof(PRIx64)) == 0) {
+	} else if (strncmp(fmt_ch, PRIx64, sizeof(PRIx64) - 1) == 0) {
 		fmt_ch += sizeof(PRIx64);
 		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
 		goto update_rw_fmt;
-	} else if (strncmp(fmt_ch, PRIX64, sizeof(PRIX64)) == 0) {
+	} else if (strncmp(fmt_ch, PRIX64, sizeof(PRIX64) - 1) == 0) {
 		fmt_ch += sizeof(PRIX64);
 		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
 		goto update_rw_fmt;
-	} else if (strncmp(fmt_ch, PRIo64, sizeof(PRIo64)) == 0) {
+	} else if (strncmp(fmt_ch, PRIo64, sizeof(PRIo64) - 1) == 0) {
 		fmt_ch += sizeof(PRIo64);
 		BUF_STD_APPEND_SINGLE_ARG(uint64_t);
 		goto update_rw_fmt;
-	} else if (strncmp(fmt_ch, PRIi64, sizeof(PRIi64)) == 0) {
+	} else if (strncmp(fmt_ch, PRIi64, sizeof(PRIi64) - 1) == 0) {
 		fmt_ch += sizeof(PRIi64);
 		BUF_STD_APPEND_SINGLE_ARG(int64_t);
 		goto update_rw_fmt;

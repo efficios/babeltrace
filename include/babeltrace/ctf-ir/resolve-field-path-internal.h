@@ -1,12 +1,10 @@
-#ifndef BABELTRACE_CTF_IR_UTILS_H
-#define BABELTRACE_CTF_IR_UTILS_H
+#ifndef BABELTRACE_CTF_IR_RESOLVE_FIELD_PATH_INTERNAL
+#define BABELTRACE_CTF_IR_RESOLVE_FIELD_PATH_INTERNAL
 
 /*
- * BabelTrace - CTF IR: Utilities
+ * BabelTrace - CTF IR: Field path
  *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,49 +28,22 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool */
-#include <babeltrace/types.h>
+#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/field-path.h>
+#include <glib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct bt_resolve_field_path_context {
+	struct bt_field_type *packet_header;
+	struct bt_field_type *packet_context;
+	struct bt_field_type *event_header;
+	struct bt_field_type *event_common_context;
+	struct bt_field_type *event_specific_context;
+	struct bt_field_type *event_payload;
+};
 
-/**
-@defgroup ctfirutils CTF IR utilities
-@ingroup ctfir
-@brief CTF IR utilities.
+BT_HIDDEN
+int bt_resolve_field_paths(struct bt_field_type *ft,
+		struct bt_resolve_field_path_context *ctx);
 
-@code
-#include <babeltrace/ctf-ir/utils.h>
-@endcode
-
-@file
-@brief CTF IR utilities functions.
-@sa ctfirutils
-
-@addtogroup ctfirutils
-@{
-*/
-
-/**
-@brief	Returns whether or not the string \p identifier is a valid
-	identifier according to CTF.
-
-This function returns a negative value if \p identifier is a CTF keyword
-or if it does not meet any other imposed requirement.
-
-@param[in] identifier	String to test.
-@returns		#BT_TRUE if \p identifier is a valid CTF
-			identifier, or #BT_FALSE otherwise.
-
-@prenotnull{identifier}
-*/
-extern bt_bool bt_identifier_is_valid(const char *identifier);
-
-/** @} */
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_CTF_IR_UTILS_H */
+#endif /* BABELTRACE_CTF_IR_RESOLVE_FIELD_PATH_INTERNAL */

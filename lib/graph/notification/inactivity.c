@@ -39,17 +39,23 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 			(struct bt_notification_inactivity *) obj;
 
 	BT_LOGD("Destroying inactivity notification: addr=%p", notification);
-	bt_clock_value_set_finalize(&notification->cv_set);
+
+	if (notification->default_cv) {
+		bt_clock_value_recycle(notification->default_cv);
+	}
+
 	g_free(notification);
 }
 
 struct bt_notification *bt_notification_inactivity_create(
-		struct bt_private_connection_private_notification_iterator *notif_iter)
+		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_clock_class *default_clock_class)
 {
 	struct bt_notification_inactivity *notification;
 	struct bt_notification *ret_notif = NULL;
-	int ret;
 
+	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
+	BT_ASSERT_PRE_NON_NULL(default_clock_class, "Default clock class");
 	BT_LOGD_STR("Creating inactivity notification object.");
 	notification = g_new0(struct bt_notification_inactivity, 1);
 	if (!notification) {
@@ -60,8 +66,8 @@ struct bt_notification *bt_notification_inactivity_create(
 		BT_NOTIFICATION_TYPE_INACTIVITY,
 		bt_notification_inactivity_destroy, NULL);
 	ret_notif = &notification->parent;
-	ret = bt_clock_value_set_initialize(&notification->cv_set);
-	if (ret) {
+	notification->default_cv = bt_clock_value_create(default_clock_class);
+	if (!notification->default_cv) {
 		goto error;
 	}
 
@@ -76,34 +82,26 @@ end:
 	return ret_notif;
 }
 
-int bt_notification_inactivity_set_clock_value(struct bt_notification *notif,
-		struct bt_clock_class *clock_class, uint64_t raw_value,
-		bt_bool is_default)
+int bt_notification_inactivity_set_default_clock_value(
+		struct bt_notification *notif, uint64_t value_cycles)
 {
 	struct bt_notification_inactivity *inactivity = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
-	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	BT_ASSERT_PRE_HOT(notif, "Notification", ": %!+n", notif);
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_INACTIVITY);
-	BT_ASSERT_PRE(is_default,
-		"You can only set a default clock value as of this version.");
-	return bt_clock_value_set_set_clock_value(&inactivity->cv_set,
-		clock_class, raw_value, is_default);
+	BT_ASSERT_PRE_HOT(notif, "Notification", ": %!+n", notif);
+	bt_clock_value_set_value_inline(inactivity->default_cv, value_cycles);
+	BT_LIB_LOGV("Set inactivity notification's default clock value: "
+		"%![notif-]+n, value=%" PRIu64, notif, value_cycles);
+	return 0;
 }
 
 struct bt_clock_value *bt_notification_inactivity_borrow_default_clock_value(
 		struct bt_notification *notif)
 {
 	struct bt_notification_inactivity *inactivity = (void *) notif;
-	struct bt_clock_value *clock_value = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_INACTIVITY);
-	clock_value = inactivity->cv_set.default_cv;
-	if (!clock_value) {
-		BT_LIB_LOGV("No default clock value: %![notif-]+n", notif);
-	}
-
-	return clock_value;
+	return inactivity->default_cv;
 }

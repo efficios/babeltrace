@@ -27,9 +27,15 @@
  * SOFTWARE.
  */
 
+/* Protection: this file uses BT_LIB_LOG*() macros directly */
+#ifndef BABELTRACE_LIB_LOGGING_INTERNAL_H
+# error Please define include <babeltrace/lib-logging-internal.h> before including this file.
+#endif
+
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
+#include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/stream-internal.h>
@@ -38,25 +44,24 @@
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
-#include <babeltrace/ctf-ir/clock-value-set-internal.h>
 #include <babeltrace/ctf-ir/field-wrapper-internal.h>
-#include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <glib.h>
 
-struct bt_stream_pos;
+#define BT_ASSERT_PRE_EVENT_HOT(_event) \
+	BT_ASSERT_PRE_HOT((_event), "Event", ": %!+e", (_event))
 
 struct bt_event {
 	struct bt_object base;
 	struct bt_event_class *class;
-	struct bt_field_wrapper *header_field;
-	struct bt_field *stream_event_context_field;
-	struct bt_field *context_field;
-	struct bt_field *payload_field;
-	struct bt_clock_value_set cv_set;
 	struct bt_packet *packet;
-	int frozen;
+	struct bt_field_wrapper *header_field;
+	struct bt_field *common_context_field;
+	struct bt_field *specific_context_field;
+	struct bt_field *payload_field;
+	struct bt_clock_value *default_cv;
+	bool frozen;
 };
 
 BT_HIDDEN
@@ -74,14 +79,6 @@ void _bt_event_set_is_frozen(struct bt_event *event, bool is_frozen);
 # define bt_event_set_is_frozen(_event, _is_frozen)
 #endif
 
-#define BT_ASSERT_PRE_EVENT_HOT(_event, _name)			\
-	BT_ASSERT_PRE_HOT((_event), (_name), ": %!+e", (_event))
-
-typedef void *(*create_field_func)(void *);
-typedef void (*release_field_func)(void *);
-typedef void *(*create_header_field_func)(void *, void *);
-typedef void (*release_header_field_func)(void *, void *);
-
 BT_UNUSED
 static inline
 void _bt_event_reset_dev_mode(struct bt_event *event)
@@ -89,29 +86,29 @@ void _bt_event_reset_dev_mode(struct bt_event *event)
 	BT_ASSERT(event);
 
 	if (event->header_field) {
-		bt_field_set_is_frozen_recursive(
+		bt_field_set_is_frozen(
 			event->header_field->field, false);
-		bt_field_reset_recursive(
+		bt_field_reset(
 			event->header_field->field);
 	}
 
-	if (event->stream_event_context_field) {
-		bt_field_set_is_frozen_recursive(
-			event->stream_event_context_field, false);
-		bt_field_reset_recursive(
-			event->stream_event_context_field);
+	if (event->common_context_field) {
+		bt_field_set_is_frozen(
+			event->common_context_field, false);
+		bt_field_reset(
+			event->common_context_field);
 	}
 
-	if (event->context_field) {
-		bt_field_set_is_frozen_recursive(
-			event->context_field, false);
-		bt_field_reset_recursive(event->context_field);
+	if (event->specific_context_field) {
+		bt_field_set_is_frozen(
+			event->specific_context_field, false);
+		bt_field_reset(event->specific_context_field);
 	}
 
 	if (event->payload_field) {
-		bt_field_set_is_frozen_recursive(
+		bt_field_set_is_frozen(
 			event->payload_field, false);
-		bt_field_reset_recursive(event->payload_field);
+		bt_field_reset(event->payload_field);
 	}
 }
 
@@ -125,8 +122,13 @@ static inline
 void bt_event_reset(struct bt_event *event)
 {
 	BT_ASSERT(event);
+	BT_LIB_LOGD("Resetting event: %!+e", event);
 	bt_event_set_is_frozen(event, false);
-	bt_clock_value_set_reset(&event->cv_set);
+
+	if (event->default_cv) {
+		bt_clock_value_reset(event->default_cv);
+	}
+
 	bt_object_put_no_null_check(&event->packet->base);
 	event->packet = NULL;
 }
@@ -174,21 +176,17 @@ void bt_event_set_packet(struct bt_event *event, struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_EVENT_HOT(event, "Event");
+	BT_ASSERT_PRE_EVENT_HOT(event);
 	BT_ASSERT_PRE(bt_event_class_borrow_stream_class(
-		event->class) == packet->stream->stream_class,
+		event->class) == packet->stream->class,
 		"Packet's stream class and event's stream class differ: "
-		"%![event-]+e, %![packet-]+a",
-		event, packet);
+		"%![event-]+e, %![packet-]+a", event, packet);
 
 	BT_ASSERT(!event->packet);
 	event->packet = packet;
 	bt_object_get_no_null_check_no_parent_check(&event->packet->base);
-	BT_LOGV("Set event's packet: event-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"packet-addr=%p",
-		event, bt_event_class_get_name(event->class),
-		bt_event_class_get_id(event->class), packet);
+	BT_LIB_LOGV("Set event's packet: %![event-]+e, %![packet-]+a",
+		event, packet);
 }
 
 static inline
@@ -201,11 +199,11 @@ struct bt_event *bt_event_create(struct bt_event_class *event_class,
 	event = bt_object_pool_create_object(&event_class->event_pool);
 	if (unlikely(!event)) {
 		BT_LIB_LOGE("Cannot allocate one event from event class's event pool: "
-			"%![event-class-]+E", event_class);
+			"%![ec-]+E", event_class);
 		goto end;
 	}
 
-	if (unlikely(!event->class)) {
+	if (likely(!event->class)) {
 		event->class = event_class;
 		bt_object_get_no_null_check(&event_class->base);
 	}

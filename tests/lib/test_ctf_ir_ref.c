@@ -39,7 +39,7 @@
 #include <babeltrace/assert-internal.h>
 #include "common.h"
 
-#define NR_TESTS 41
+#define NR_TESTS 37
 
 struct user {
 	struct bt_trace *tc;
@@ -83,51 +83,32 @@ static struct bt_field_type *create_integer_struct(void)
 	struct bt_field_type *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
 
 	structure = bt_field_type_structure_create();
-	if (!structure) {
-		goto error;
-	}
-
-	ui8 = bt_field_type_integer_create(8);
-	if (!ui8) {
-		diag("Failed to create uint8_t type");
-		goto error;
-	}
-	ret = bt_field_type_structure_add_field(structure, ui8,
-		        "payload_8");
-	if (ret) {
-		diag("Failed to add uint8_t to structure");
-		goto error;
-	}
-	ui16 = bt_field_type_integer_create(16);
-	if (!ui16) {
-		diag("Failed to create uint16_t type");
-		goto error;
-	}
-	ret = bt_field_type_structure_add_field(structure, ui16,
-		        "payload_16");
-	if (ret) {
-		diag("Failed to add uint16_t to structure");
-		goto error;
-	}
-	ui32 = bt_field_type_integer_create(32);
-	if (!ui32) {
-		diag("Failed to create uint32_t type");
-		goto error;
-	}
-	ret = bt_field_type_structure_add_field(structure, ui32,
-		        "payload_32");
-	if (ret) {
-		diag("Failed to add uint32_t to structure");
-		goto error;
-	}
-end:
+	BT_ASSERT(structure);
+	ui8 = bt_field_type_unsigned_integer_create();
+	BT_ASSERT(ui8);
+	ret = bt_field_type_integer_set_field_value_range(ui8, 8);
+	BT_ASSERT(ret == 0);
+	ret = bt_field_type_structure_append_member(structure,
+		"payload_8", ui8);
+	BT_ASSERT(ret == 0);
+	ui16 = bt_field_type_unsigned_integer_create();
+	BT_ASSERT(ui16);
+	ret = bt_field_type_integer_set_field_value_range(ui16, 16);
+	BT_ASSERT(ret == 0);
+	ret = bt_field_type_structure_append_member(structure,
+		"payload_16", ui16);
+	BT_ASSERT(ret == 0);
+	ui32 = bt_field_type_unsigned_integer_create();
+	BT_ASSERT(ui32);
+	ret = bt_field_type_integer_set_field_value_range(ui32, 32);
+	BT_ASSERT(ret == 0);
+	ret = bt_field_type_structure_append_member(structure,
+		"payload_32", ui32);
+	BT_ASSERT(ret == 0);
 	BT_PUT(ui8);
 	BT_PUT(ui16);
 	BT_PUT(ui32);
 	return structure;
-error:
-	BT_PUT(structure);
-	goto end;
 }
 
 static struct bt_ctf_field_type *create_writer_integer_struct(void)
@@ -137,51 +118,26 @@ static struct bt_ctf_field_type *create_writer_integer_struct(void)
 	struct bt_ctf_field_type *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
 
 	structure = bt_ctf_field_type_structure_create();
-	if (!structure) {
-		goto error;
-	}
-
+	BT_ASSERT(structure);
 	ui8 = bt_ctf_field_type_integer_create(8);
-	if (!ui8) {
-		diag("Failed to create uint8_t type");
-		goto error;
-	}
+	BT_ASSERT(ui8);
 	ret = bt_ctf_field_type_structure_add_field(structure, ui8,
 		        "payload_8");
-	if (ret) {
-		diag("Failed to add uint8_t to structure");
-		goto error;
-	}
+	BT_ASSERT(ret == 0);
 	ui16 = bt_ctf_field_type_integer_create(16);
-	if (!ui16) {
-		diag("Failed to create uint16_t type");
-		goto error;
-	}
+	BT_ASSERT(ui16);
 	ret = bt_ctf_field_type_structure_add_field(structure, ui16,
 		        "payload_16");
-	if (ret) {
-		diag("Failed to add uint16_t to structure");
-		goto error;
-	}
+	BT_ASSERT(ret == 0);
 	ui32 = bt_ctf_field_type_integer_create(32);
-	if (!ui32) {
-		diag("Failed to create uint32_t type");
-		goto error;
-	}
+	BT_ASSERT(ui32);
 	ret = bt_ctf_field_type_structure_add_field(structure, ui32,
 		        "payload_32");
-	if (ret) {
-		diag("Failed to add uint32_t to structure");
-		goto error;
-	}
-end:
+	BT_ASSERT(ret == 0);
 	BT_PUT(ui8);
 	BT_PUT(ui16);
 	BT_PUT(ui32);
 	return structure;
-error:
-	BT_PUT(structure);
-	goto end;
 }
 
 /**
@@ -190,36 +146,24 @@ error:
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_event_class *create_simple_event(const char *name)
+static struct bt_event_class *create_simple_event(struct bt_stream_class *sc,
+		const char *name)
 {
 	int ret;
 	struct bt_event_class *event = NULL;
 	struct bt_field_type *payload = NULL;
 
 	BT_ASSERT(name);
-	event = bt_event_class_create(name);
-	if (!event) {
-		diag("Failed to create simple event");
-		goto error;
-	}
-
+	event = bt_event_class_create(sc);
+	BT_ASSERT(event);
+	ret = bt_event_class_set_name(event, name);
+	BT_ASSERT(ret == 0);
 	payload = create_integer_struct();
-	if (!payload) {
-		diag("Failed to initialize integer structure");
-		goto error;
-	}
-
+	BT_ASSERT(payload);
 	ret = bt_event_class_set_payload_field_type(event, payload);
-	if (ret) {
-		diag("Failed to set simple event payload");
-		goto error;
-	}
-end:
+	BT_ASSERT(ret == 0);
 	BT_PUT(payload);
 	return event;
-error:
-	BT_PUT(event);
-	goto end;;
 }
 
 /**
@@ -232,50 +176,30 @@ error:
  *           - uint16_t payload_16;
  *           - uint32_t payload_32;
  */
-static struct bt_event_class *create_complex_event(const char *name)
+static struct bt_event_class *create_complex_event(struct bt_stream_class *sc,
+		const char *name)
 {
 	int ret;
 	struct bt_event_class *event = NULL;
 	struct bt_field_type *inner = NULL, *outer = NULL;
 
 	BT_ASSERT(name);
-	event = bt_event_class_create(name);
-	if (!event) {
-		diag("Failed to create complex event");
-		goto error;
-	}
-
+	event = bt_event_class_create(sc);
+	BT_ASSERT(event);
+	ret = bt_event_class_set_name(event, name);
+	BT_ASSERT(ret == 0);
 	outer = create_integer_struct();
-	if (!outer) {
-		diag("Failed to initialize integer structure");
-		goto error;
-	}
-
+	BT_ASSERT(outer);
 	inner = create_integer_struct();
-	if (!inner) {
-		diag("Failed to initialize integer structure");
-		goto error;
-	}
-
-	ret = bt_field_type_structure_add_field(outer, inner,
-			"payload_struct");
-	if (ret) {
-		diag("Failed to add inner structure to outer structure");
-		goto error;
-	}
-
+	BT_ASSERT(inner);
+	ret = bt_field_type_structure_append_member(outer,
+		"payload_struct", inner);
+	BT_ASSERT(ret == 0);
 	ret = bt_event_class_set_payload_field_type(event, outer);
-	if (ret) {
-		diag("Failed to set complex event payload");
-		goto error;
-	}
-end:
+	BT_ASSERT(ret == 0);
 	BT_PUT(inner);
 	BT_PUT(outer);
 	return event;
-error:
-	BT_PUT(event);
-	goto end;;
 }
 
 static void set_stream_class_field_types(
@@ -288,123 +212,82 @@ static void set_stream_class_field_types(
 
 	packet_context_type = bt_field_type_structure_create();
 	BT_ASSERT(packet_context_type);
-	ft = bt_field_type_integer_create(32);
+	ft = bt_field_type_unsigned_integer_create();
 	BT_ASSERT(ft);
-	ret = bt_field_type_structure_add_field(packet_context_type,
-		ft, "packet_size");
+	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	BT_ASSERT(ret == 0);
+	ret = bt_field_type_structure_append_member(packet_context_type,
+		"packet_size", ft);
 	BT_ASSERT(ret == 0);
 	bt_put(ft);
-	ft = bt_field_type_integer_create(32);
+	ft = bt_field_type_unsigned_integer_create();
 	BT_ASSERT(ft);
-	ret = bt_field_type_structure_add_field(packet_context_type,
-		ft, "content_size");
+	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	BT_ASSERT(ret == 0);
+	ret = bt_field_type_structure_append_member(packet_context_type,
+		"content_size", ft);
 	BT_ASSERT(ret == 0);
 	bt_put(ft);
-
 	event_header_type = bt_field_type_structure_create();
 	BT_ASSERT(event_header_type);
-	ft = bt_field_type_integer_create(32);
+	ft = bt_field_type_unsigned_integer_create();
 	BT_ASSERT(ft);
-	ret = bt_field_type_structure_add_field(event_header_type,
-		ft, "id");
+	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	BT_ASSERT(ret == 0);
+	ret = bt_field_type_structure_append_member(event_header_type,
+		"id", ft);
 	BT_ASSERT(ret == 0);
 	bt_put(ft);
-
 	ret = bt_stream_class_set_packet_context_field_type(stream_class,
 		packet_context_type);
 	BT_ASSERT(ret == 0);
 	ret = bt_stream_class_set_event_header_field_type(stream_class,
 		event_header_type);
 	BT_ASSERT(ret == 0);
-
 	bt_put(packet_context_type);
 	bt_put(event_header_type);
 }
 
-static struct bt_stream_class *create_sc1(void)
+static void create_sc1(struct bt_trace *trace)
 {
 	int ret;
 	struct bt_event_class *ec1 = NULL, *ec2 = NULL;
 	struct bt_stream_class *sc1 = NULL, *ret_stream = NULL;
 
-	sc1 = bt_stream_class_create("sc1");
-	if (!sc1) {
-		diag("Failed to create Stream Class");
-		goto error;
-	}
-
+	sc1 = bt_stream_class_create(trace);
+	BT_ASSERT(sc1);
+	ret = bt_stream_class_set_name(sc1, "sc1");
+	BT_ASSERT(ret == 0);
 	set_stream_class_field_types(sc1);
-	ec1 = create_complex_event("ec1");
-	if (!ec1) {
-		diag("Failed to create complex event EC1");
-		goto error;
-	}
-	ret = bt_stream_class_add_event_class(sc1, ec1);
-	if (ret) {
-		diag("Failed to add EC1 to SC1");
-		goto error;
-	}
-
-	ec2 = create_simple_event("ec2");
-	if (!ec2) {
-		diag("Failed to create simple event EC2");
-		goto error;
-	}
-	ret = bt_stream_class_add_event_class(sc1, ec2);
-	if (ret) {
-		diag("Failed to add EC1 to SC1");
-		goto error;
-	}
-
-	ret_stream = bt_event_class_get_stream_class(ec1);
-	ok(ret_stream == sc1, "Get parent stream SC1 from EC1");
-	BT_PUT(ret_stream);
-
-	ret_stream = bt_event_class_get_stream_class(ec2);
-	ok(ret_stream == sc1, "Get parent stream SC1 from EC2");
-end:
-	BT_PUT(ret_stream);
+	ec1 = create_complex_event(sc1, "ec1");
+	BT_ASSERT(ec1);
+	ec2 = create_simple_event(sc1, "ec2");
+	BT_ASSERT(ec2);
+	ret_stream = bt_event_class_borrow_stream_class(ec1);
+	ok(ret_stream == sc1, "Borrow parent stream SC1 from EC1");
+	ret_stream = bt_event_class_borrow_stream_class(ec2);
+	ok(ret_stream == sc1, "Borrow parent stream SC1 from EC2");
 	BT_PUT(ec1);
 	BT_PUT(ec2);
-	return sc1;
-error:
 	BT_PUT(sc1);
-	goto end;
 }
 
-static struct bt_stream_class *create_sc2(void)
+static void create_sc2(struct bt_trace *trace)
 {
 	int ret;
 	struct bt_event_class *ec3 = NULL;
 	struct bt_stream_class *sc2 = NULL, *ret_stream = NULL;
 
-	sc2 = bt_stream_class_create("sc2");
-	if (!sc2) {
-		diag("Failed to create Stream Class");
-		goto error;
-	}
-
+	sc2 = bt_stream_class_create(trace);
+	BT_ASSERT(sc2);
+	ret = bt_stream_class_set_name(sc2, "sc2");
+	BT_ASSERT(ret == 0);
 	set_stream_class_field_types(sc2);
-	ec3 = create_simple_event("ec3");
-	if (!ec3) {
-		diag("Failed to create simple event EC3");
-		goto error;
-	}
-	ret = bt_stream_class_add_event_class(sc2, ec3);
-	if (ret) {
-		diag("Failed to add EC3 to SC2");
-		goto error;
-	}
-
-	ret_stream = bt_event_class_get_stream_class(ec3);
-	ok(ret_stream == sc2, "Get parent stream SC2 from EC3");
-end:
-	BT_PUT(ret_stream);
+	ec3 = create_simple_event(sc2, "ec3");
+	ret_stream = bt_event_class_borrow_stream_class(ec3);
+	ok(ret_stream == sc2, "Borrow parent stream SC2 from EC3");
 	BT_PUT(ec3);
-	return sc2;
-error:
 	BT_PUT(sc2);
-	goto end;
 }
 
 static void set_trace_packet_header(struct bt_trace *trace)
@@ -415,13 +298,14 @@ static void set_trace_packet_header(struct bt_trace *trace)
 
 	packet_header_type = bt_field_type_structure_create();
 	BT_ASSERT(packet_header_type);
-	ft = bt_field_type_integer_create(32);
+	ft = bt_field_type_unsigned_integer_create();
 	BT_ASSERT(ft);
-	ret = bt_field_type_structure_add_field(packet_header_type,
-		ft, "stream_id");
+	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	BT_ASSERT(ret == 0);
+	ret = bt_field_type_structure_append_member(packet_header_type,
+		"stream_id", ft);
 	BT_ASSERT(ret == 0);
 	bt_put(ft);
-
 	ret = bt_trace_set_packet_header_field_type(trace,
 		packet_header_type);
 	BT_ASSERT(ret == 0);
@@ -431,45 +315,14 @@ static void set_trace_packet_header(struct bt_trace *trace)
 
 static struct bt_trace *create_tc1(void)
 {
-	int ret;
 	struct bt_trace *tc1 = NULL;
-	struct bt_stream_class *sc1 = NULL, *sc2 = NULL;
 
 	tc1 = bt_trace_create();
-	if (!tc1) {
-		diag("bt_trace_create returned NULL");
-		goto error;
-	}
-
+	BT_ASSERT(tc1);
 	set_trace_packet_header(tc1);
-	sc1 = create_sc1();
-	ok(sc1, "Create SC1");
-	if (!sc1) {
-		goto error;
-	}
-	ret = bt_trace_add_stream_class(tc1, sc1);
-	ok(!ret, "Add SC1 to TC1");
-	if (ret) {
-		goto error;
-	}
-
-	sc2 = create_sc2();
-	ok(sc2, "Create SC2");
-	if (!sc2) {
-		goto error;
-	}
-	ret = bt_trace_add_stream_class(tc1, sc2);
-	ok(!ret, "Add SC2 to TC1");
-	if (ret) {
-		goto error;
-	}
-end:
-	BT_PUT(sc1);
-	BT_PUT(sc2);
+	create_sc1(tc1);
+	create_sc2(tc1);
 	return tc1;
-error:
-	BT_PUT(tc1);
-	goto end;
 }
 
 static void init_weak_refs(struct bt_trace *tc,
@@ -481,16 +334,11 @@ static void init_weak_refs(struct bt_trace *tc,
 		struct bt_event_class **ec3)
 {
 	*tc1 = tc;
-	*sc1 = bt_trace_get_stream_class_by_index(tc, 0);
-	*sc2 = bt_trace_get_stream_class_by_index(tc, 1);
-	*ec1 = bt_stream_class_get_event_class_by_index(*sc1, 0);
-	*ec2 = bt_stream_class_get_event_class_by_index(*sc1, 1);
-	*ec3 = bt_stream_class_get_event_class_by_index(*sc2, 0);
-	bt_put(*sc1);
-	bt_put(*sc2);
-	bt_put(*ec1);
-	bt_put(*ec2);
-	bt_put(*ec3);
+	*sc1 = bt_trace_borrow_stream_class_by_index(tc, 0);
+	*sc2 = bt_trace_borrow_stream_class_by_index(tc, 1);
+	*ec1 = bt_stream_class_borrow_event_class_by_index(*sc1, 0);
+	*ec2 = bt_stream_class_borrow_event_class_by_index(*sc1, 1);
+	*ec3 = bt_stream_class_borrow_event_class_by_index(*sc2, 0);
 }
 
 static void test_example_scenario(void)
@@ -511,13 +359,9 @@ static void test_example_scenario(void)
 	/* The only reference which exists at this point is on TC1. */
 	tc1 = create_tc1();
 	ok(tc1, "Initialize trace");
-	if (!tc1) {
-		return;
-	}
-
+	BT_ASSERT(tc1);
 	init_weak_refs(tc1, &weak_tc1, &weak_sc1, &weak_sc2, &weak_ec1,
 			&weak_ec2, &weak_ec3);
-
 	ok(bt_object_get_ref_count((void *) weak_sc1) == 0,
 			"Initial SC1 reference count is 0");
 	ok(bt_object_get_ref_count((void *) weak_sc2) == 0,
@@ -535,7 +379,7 @@ static void test_example_scenario(void)
 			"TC1 reference count is 1");
 
 	/* User A acquires a reference to SC2 from TC1. */
-	user_a.sc = bt_trace_get_stream_class_by_index(user_a.tc, 1);
+	user_a.sc = bt_get(bt_trace_borrow_stream_class_by_index(user_a.tc, 1));
 	ok(user_a.sc, "User A acquires SC2 from TC1");
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -543,7 +387,8 @@ static void test_example_scenario(void)
 			"SC2 reference count is 1");
 
 	/* User A acquires a reference to EC3 from SC2. */
-	user_a.ec = bt_stream_class_get_event_class_by_index(user_a.sc, 0);
+	user_a.ec = bt_get(
+		bt_stream_class_borrow_event_class_by_index(user_a.sc, 0));
 	ok(user_a.ec, "User A acquires EC3 from SC2");
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -590,7 +435,8 @@ static void test_example_scenario(void)
 
 	/* User C acquires a reference to EC1. */
 	diag("User C acquires a reference to EC1");
-	user_c.ec = bt_stream_class_get_event_class_by_index(user_b.sc, 0);
+	user_c.ec = bt_get(
+		bt_stream_class_borrow_event_class_by_index(user_b.sc, 0));
 	ok(bt_object_get_ref_count((void *) weak_ec1) == 1,
 			"EC1 reference count is 1");
 	ok(bt_object_get_ref_count((void *) weak_sc1) == 2,

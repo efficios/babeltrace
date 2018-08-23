@@ -40,7 +40,6 @@
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-inactivity.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/notification-stream.h>
@@ -69,7 +68,6 @@ enum test {
 enum test_event_type {
 	TEST_EV_TYPE_NOTIF_UNEXPECTED,
 	TEST_EV_TYPE_NOTIF_EVENT,
-	TEST_EV_TYPE_NOTIF_INACTIVITY,
 	TEST_EV_TYPE_NOTIF_STREAM_BEGIN,
 	TEST_EV_TYPE_NOTIF_PACKET_BEGIN,
 	TEST_EV_TYPE_NOTIF_PACKET_END,
@@ -116,7 +114,6 @@ enum {
 	SEQ_EVENT_STREAM1_PACKET2 = -15,
 	SEQ_EVENT_STREAM2_PACKET1 = -16,
 	SEQ_EVENT_STREAM2_PACKET2 = -17,
-	SEQ_INACTIVITY = -18,
 };
 
 struct src_iter_user_data {
@@ -169,9 +166,6 @@ void print_test_event(FILE *fp, const struct test_event *event)
 		break;
 	case TEST_EV_TYPE_NOTIF_EVENT:
 		fprintf(fp, "TEST_EV_TYPE_NOTIF_EVENT");
-		break;
-	case TEST_EV_TYPE_NOTIF_INACTIVITY:
-		fprintf(fp, "TEST_EV_TYPE_NOTIF_INACTIVITY");
 		break;
 	case TEST_EV_TYPE_NOTIF_STREAM_BEGIN:
 		fprintf(fp, "TEST_EV_TYPE_NOTIF_STREAM_BEGIN");
@@ -279,59 +273,30 @@ bool compare_test_events(const struct test_event *expected_events)
 static
 void init_static_data(void)
 {
-	int ret;
 	struct bt_trace *trace;
-	struct bt_field_type *empty_struct_ft;
 
 	/* Test events */
 	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
 	BT_ASSERT(test_events);
 
 	/* Metadata */
-	empty_struct_ft = bt_field_type_structure_create();
-	BT_ASSERT(empty_struct_ft);
 	trace = bt_trace_create();
 	BT_ASSERT(trace);
-	ret = bt_trace_set_packet_header_field_type(trace, empty_struct_ft);
-	BT_ASSERT(ret == 0);
-	src_stream_class = bt_stream_class_create("my-stream-class");
+	src_stream_class = bt_stream_class_create(trace);
 	BT_ASSERT(src_stream_class);
-	ret = bt_stream_class_set_packet_context_field_type(src_stream_class,
-		empty_struct_ft);
-	BT_ASSERT(ret == 0);
-	ret = bt_stream_class_set_event_header_field_type(src_stream_class,
-		empty_struct_ft);
-	BT_ASSERT(ret == 0);
-	ret = bt_stream_class_set_event_context_field_type(src_stream_class,
-		empty_struct_ft);
-	BT_ASSERT(ret == 0);
-	src_event_class = bt_event_class_create("my-event-class");
-	ret = bt_event_class_set_context_field_type(src_event_class,
-		empty_struct_ft);
-	BT_ASSERT(ret == 0);
-	ret = bt_event_class_set_payload_field_type(src_event_class,
-		empty_struct_ft);
-	BT_ASSERT(ret == 0);
-	ret = bt_stream_class_add_event_class(src_stream_class,
-		src_event_class);
-	BT_ASSERT(ret == 0);
-	ret = bt_trace_add_stream_class(trace, src_stream_class);
-	BT_ASSERT(ret == 0);
-	src_stream1 = bt_stream_create(src_stream_class, "stream-1", 0);
+	src_event_class = bt_event_class_create(src_stream_class);
+	BT_ASSERT(src_event_class);
+	src_stream1 = bt_stream_create(src_stream_class);
 	BT_ASSERT(src_stream1);
-	src_stream2 = bt_stream_create(src_stream_class, "stream-2", 1);
+	src_stream2 = bt_stream_create(src_stream_class);
 	BT_ASSERT(src_stream2);
-	src_stream1_packet1 = bt_packet_create(src_stream1,
-		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
+	src_stream1_packet1 = bt_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet1);
-	src_stream1_packet2 = bt_packet_create(src_stream1,
-		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
+	src_stream1_packet2 = bt_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet2);
-	src_stream2_packet1 = bt_packet_create(src_stream2,
-		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
+	src_stream2_packet1 = bt_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet1);
-	src_stream2_packet2 = bt_packet_create(src_stream2,
-		BT_PACKET_PREVIOUS_PACKET_AVAILABILITY_NONE, NULL);
+	src_stream2_packet2 = bt_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet2);
 
 	if (debug) {
@@ -344,7 +309,6 @@ void init_static_data(void)
 	}
 
 	bt_put(trace);
-	bt_put(empty_struct_ft);
 }
 
 static
@@ -410,9 +374,6 @@ void src_iter_next_seq_one(struct src_iter_user_data *user_data,
 	struct bt_packet *event_packet = NULL;
 
 	switch (user_data->seq[user_data->at]) {
-	case SEQ_INACTIVITY:
-		*notif = bt_notification_inactivity_create(cur_notif_iter);
-		break;
 	case SEQ_STREAM1_BEGIN:
 		*notif = bt_notification_stream_begin_create(cur_notif_iter,
 			src_stream1);
@@ -564,9 +525,6 @@ void append_test_events_from_notification(struct bt_notification *notification)
 		BT_ASSERT(test_event.packet);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_INACTIVITY:
-		test_event.type = TEST_EV_TYPE_NOTIF_INACTIVITY;
-		break;
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
 		test_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
 		test_event.stream =

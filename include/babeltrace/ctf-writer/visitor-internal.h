@@ -41,7 +41,7 @@ struct bt_ctf_visitor_object {
 };
 
 BT_HIDDEN
-int visitor_helper(struct bt_ctf_visitor_object *root,
+int bt_ctf_visitor_helper(struct bt_ctf_visitor_object *root,
 		bt_ctf_child_count_accessor child_counter,
 		bt_ctf_child_accessor child_accessor,
 		bt_ctf_child_visitor child_visitor,

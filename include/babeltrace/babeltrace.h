@@ -65,8 +65,6 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/utils.h>
-#include <babeltrace/ctf-ir/visitor.h>
 
 /* Plugin and plugin development API */
 #include <babeltrace/plugin/plugin-dev.h>

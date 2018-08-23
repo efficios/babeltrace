@@ -514,6 +514,10 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 
 	ret = ctf_visitor_generate_ir_visit_node(mdec->visitor,
 		&scanner->ast->root);
+	// TODO
+	ret = -1;
+	goto end;
+
 	switch (ret) {
 	case 0:
 		/* Success */
@@ -552,8 +556,15 @@ end:
 }
 
 BT_HIDDEN
-struct bt_trace *ctf_metadata_decoder_get_trace(
+struct bt_trace *ctf_metadata_decoder_get_ir_trace(
 		struct ctf_metadata_decoder *mdec)
 {
-	return ctf_visitor_generate_ir_get_trace(mdec->visitor);
+	return ctf_visitor_generate_ir_get_ir_trace(mdec->visitor);
+}
+
+BT_HIDDEN
+struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
+		struct ctf_metadata_decoder *mdec)
+{
+	return ctf_visitor_generate_ir_borrow_ctf_trace_class(mdec->visitor);
 }

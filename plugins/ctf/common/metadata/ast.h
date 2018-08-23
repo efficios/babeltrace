@@ -25,6 +25,7 @@
 #include <babeltrace/babeltrace-internal.h>
 
 #include "decoder.h"
+#include "ctf-meta.h"
 
 // the parameter name (of the reentrant 'yyparse' function)
 // data is a pointer to a 'SParserParam' structure
@@ -317,7 +318,11 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 
 BT_HIDDEN
-struct bt_trace *ctf_visitor_generate_ir_get_trace(
+struct bt_trace *ctf_visitor_generate_ir_get_ir_trace(
+		struct ctf_visitor_generate_ir *visitor);
+
+BT_HIDDEN
+struct ctf_trace_class *ctf_visitor_generate_ir_borrow_ctf_trace_class(
 		struct ctf_visitor_generate_ir *visitor);
 
 BT_HIDDEN

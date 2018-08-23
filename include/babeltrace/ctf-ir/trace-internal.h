@@ -32,7 +32,6 @@
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/ctf-ir/clock-class-internal.h>
 #include <babeltrace/object-internal.h>
@@ -46,101 +45,62 @@
 
 struct bt_trace {
 	struct bt_object base;
-	GString *name;
-	int frozen;
-	unsigned char uuid[BABELTRACE_UUID_LEN];
-	bt_bool uuid_set;
-	enum bt_byte_order native_byte_order;
+
+	struct {
+		GString *str;
+
+		/* NULL or `str->str` above */
+		const char *value;
+	} name;
+
+	struct {
+		uint8_t uuid[BABELTRACE_UUID_LEN];
+
+		/* NULL or `uuid` above */
+		bt_uuid value;
+	} uuid;
+
 	struct bt_value *environment;
-	GPtrArray *clock_classes; /* Array of pointers to bt_clock_class */
-	GPtrArray *stream_classes; /* Array of ptrs to bt_stream_class */
-	GPtrArray *streams; /* Array of ptrs to bt_stream */
-	struct bt_field_type *packet_header_field_type;
-	int64_t next_stream_id;
+
+	/* Array of `struct bt_stream_class *` */
+	GPtrArray *stream_classes;
+
+	/* Array of `struct bt_stream *` */
+	GPtrArray *streams;
 
 	/*
-	 * This flag indicates if the trace is valid. A valid
-	 * trace is _always_ frozen.
+	 * Stream class (weak) to number of instantiated streams, used
+	 * to automatically assign stream IDs per stream class.
 	 */
-	int valid;
+	GHashTable *stream_classes_stream_count;
 
-	GPtrArray *listeners; /* Array of struct listener_wrapper */
+	struct bt_field_type *packet_header_ft;
+	bool assigns_automatic_stream_class_id;
+
 	GArray *is_static_listeners;
-	bt_bool is_static;
-	bt_bool in_remove_listener;
+	bool is_static;
+	bool in_remove_listener;
 
 	/* Pool of `struct bt_field_wrapper *` */
 	struct bt_object_pool packet_header_field_pool;
+
+	bool frozen;
 };
 
 BT_HIDDEN
-int bt_trace_object_modification(struct bt_visitor_object *object,
-		void *trace_ptr);
+void _bt_trace_freeze(struct bt_trace *trace);
+
+#ifdef BT_DEV_MODE
+# define bt_trace_freeze		_bt_trace_freeze
+#else
+# define bt_trace_freeze(_trace)
+#endif
 
 BT_HIDDEN
-bt_bool bt_trace_has_clock_class(struct bt_trace *trace,
-		struct bt_clock_class *clock_class);
+void bt_trace_add_stream(struct bt_trace *trace, struct bt_stream *stream);
 
-/**
-@brief	User function type to use with bt_trace_add_listener().
-
-@param[in] obj	New CTF IR object which is part of the trace
-		class hierarchy.
-@param[in] data	User data.
-
-@prenotnull{obj}
-*/
-typedef void (*bt_listener_cb)(struct bt_visitor_object *obj, void *data);
-
-/**
-@brief	Adds the trace class modification listener \p listener to
-	the CTF IR trace class \p trace_class.
-
-Once you add \p listener to \p trace_class, whenever \p trace_class
-is modified, \p listener is called with the new element and with
-\p data (user data).
-
-@param[in] trace_class	Trace class to which to add \p listener.
-@param[in] listener	Modification listener function.
-@param[in] data		User data.
-@returns		0 on success, or a negative value on error.
-
-@prenotnull{trace_class}
-@prenotnull{listener}
-@postrefcountsame{trace_class}
-*/
 BT_HIDDEN
-int bt_trace_add_listener(struct bt_trace *trace_class,
-		bt_listener_cb listener, void *data);
-
-static inline
-void bt_trace_freeze(struct bt_trace *trace)
-{
-	int i;
-
-	if (trace->frozen) {
-		return;
-	}
-
-	BT_LOGD("Freezing trace: addr=%p, name=\"%s\"",
-		trace, bt_trace_get_name(trace));
-	BT_LOGD_STR("Freezing packet header field type.");
-	bt_field_type_freeze(trace->packet_header_field_type);
-	BT_LOGD_STR("Freezing environment attributes.");
-	bt_attributes_freeze(trace->environment);
-
-	if (trace->clock_classes->len > 0) {
-		BT_LOGD_STR("Freezing clock classes.");
-	}
-
-	for (i = 0; i < trace->clock_classes->len; i++) {
-		struct bt_clock_class *clock_class =
-			g_ptr_array_index(trace->clock_classes, i);
-
-		bt_clock_class_freeze(clock_class);
-	}
-
-	trace->frozen = 1;
-}
+uint64_t bt_trace_get_automatic_stream_id(struct bt_trace *trace,
+		struct bt_stream_class *stream_class);
 
 #endif /* BABELTRACE_CTF_IR_TRACE_INTERNAL_H */

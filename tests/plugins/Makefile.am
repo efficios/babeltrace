@@ -11,11 +11,7 @@ check_SCRIPTS =
 noinst_PROGRAMS =
 
 if !ENABLE_BUILT_IN_PLUGINS
-test_utils_muxer_SOURCES = test-utils-muxer.c
-test_utils_muxer_LDADD = $(COMMON_TEST_LDADD)
-
-noinst_PROGRAMS += test-utils-muxer
-check_SCRIPTS += test-utils-muxer-complete
+# plugin tests here
 endif # !ENABLE_BUILT_IN_PLUGINS
 
 if ENABLE_DEBUG_INFO

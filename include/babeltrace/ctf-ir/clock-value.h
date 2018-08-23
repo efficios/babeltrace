@@ -31,9 +31,6 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_get() */
-#include <babeltrace/ref.h>
-
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -43,20 +40,19 @@ extern "C" {
 struct bt_clock_class;
 struct bt_clock_value;
 
-extern struct bt_clock_class *bt_clock_value_borrow_class(
+enum bt_clock_value_status {
+	BT_CLOCK_VALUE_STATUS_KNOWN,
+	BT_CLOCK_VALUE_STATUS_UNKNOWN,
+};
+
+extern struct bt_clock_class *bt_clock_value_borrow_clock_class(
 		struct bt_clock_value *clock_value);
 
-static inline
-struct bt_clock_class *bt_clock_value_get_class(
-		struct bt_clock_value *clock_value)
-{
-	return bt_get(bt_clock_value_borrow_class(clock_value));
-}
+extern uint64_t bt_clock_value_get_value(
+		struct bt_clock_value *clock_value);
 
-extern int bt_clock_value_get_value(
-		struct bt_clock_value *clock_value, uint64_t *raw_value);
-extern int bt_clock_value_get_value_ns_from_epoch(
-		struct bt_clock_value *clock_value, int64_t *value_ns);
+extern int bt_clock_value_get_ns_from_origin(
+		struct bt_clock_value *clock_value, int64_t *ns_from_origin);
 
 #ifdef __cplusplus
 }

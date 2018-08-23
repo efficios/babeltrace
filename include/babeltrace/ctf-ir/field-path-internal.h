@@ -28,8 +28,8 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/common-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-ir/field-path.h>
 #include <babeltrace/assert-internal.h>
 #include <glib.h>
 
@@ -37,23 +37,20 @@ struct bt_field_path {
 	struct bt_object base;
 	enum bt_scope root;
 
-	/*
-	 * Array of integers (int) indicating the index in either
-	 * structures, variants, arrays, or sequences that make up
-	 * the path to a field type. -1 means the "current element
-	 * of an array or sequence type".
-	 */
+	/* Array of `uint64_t` (indexes) */
 	GArray *indexes;
 };
 
 BT_HIDDEN
 struct bt_field_path *bt_field_path_create(void);
 
-BT_HIDDEN
-void bt_field_path_clear(struct bt_field_path *field_path);
-
-BT_HIDDEN
-struct bt_field_path *bt_field_path_copy(
-		struct bt_field_path *path);
+static inline
+uint64_t bt_field_path_get_index_by_index_inline(
+		struct bt_field_path *field_path, uint64_t index)
+{
+	BT_ASSERT(field_path);
+	BT_ASSERT(index < field_path->indexes->len);
+	return g_array_index(field_path->indexes, uint64_t, index);
+}
 
 #endif /* BABELTRACE_CTF_IR_FIELD_PATH_INTERNAL */

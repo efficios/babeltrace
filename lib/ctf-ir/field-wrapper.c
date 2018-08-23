@@ -57,7 +57,7 @@ void bt_field_wrapper_destroy(struct bt_field_wrapper *field_wrapper)
 
 	if (field_wrapper->field) {
 		BT_LOGD_STR("Destroying field.");
-		bt_field_destroy_recursive((void *) field_wrapper->field);
+		bt_field_destroy((void *) field_wrapper->field);
 	}
 
 	BT_LOGD_STR("Putting stream class.");
@@ -80,7 +80,7 @@ struct bt_field_wrapper *bt_field_wrapper_create(
 	}
 
 	if (!field_wrapper->field) {
-		field_wrapper->field = (void *) bt_field_create_recursive(ft);
+		field_wrapper->field = (void *) bt_field_create(ft);
 		if (!field_wrapper->field) {
 			BT_LIB_LOGE("Cannot create field wrapper from field type: "
 				"%![ft-]+F", ft);

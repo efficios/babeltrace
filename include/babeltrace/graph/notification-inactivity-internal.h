@@ -24,12 +24,12 @@
  */
 
 #include <glib.h>
-#include <babeltrace/ctf-ir/clock-value-set-internal.h>
+#include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/graph/notification.h>
 
 struct bt_notification_inactivity {
 	struct bt_notification parent;
-	struct bt_clock_value_set cv_set;
+	struct bt_clock_value *default_cv;
 };
 
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_INACTIVITY_INTERNAL_H */

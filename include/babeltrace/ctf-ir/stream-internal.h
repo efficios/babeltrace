@@ -27,8 +27,6 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/assert-internal.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/utils-internal.h>
 #include <babeltrace/object-internal.h>
@@ -41,12 +39,32 @@ struct bt_stream;
 
 struct bt_stream {
 	struct bt_object base;
-	int64_t id;
-	struct bt_stream_class *stream_class;
-	GString *name;
+
+	/* Weak: parent is this class's trace */
+	struct bt_stream_class *class;
+
+	struct {
+		GString *str;
+
+		/* NULL or `str->str` above */
+		const char *value;
+	} name;
+
+	uint64_t id;
 
 	/* Pool of `struct bt_packet *` */
 	struct bt_object_pool packet_pool;
+
+	bool frozen;
 };
+
+BT_HIDDEN
+void _bt_stream_freeze(struct bt_stream *stream);
+
+#ifdef BT_DEV_MODE
+# define bt_stream_freeze		_bt_stream_freeze
+#else
+# define bt_stream_freeze(_stream)
+#endif
 
 #endif /* BABELTRACE_CTF_IR_STREAM_INTERNAL_H */

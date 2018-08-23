@@ -33,6 +33,7 @@
 #include <babeltrace/babeltrace.h>
 #include "data-stream-file.h"
 #include "metadata.h"
+#include "../common/metadata/decoder.h"
 
 BT_HIDDEN
 extern bool ctf_fs_debug;
@@ -49,7 +50,15 @@ struct ctf_fs_file {
 
 struct ctf_fs_metadata {
 	/* Owned by this */
+	struct ctf_metadata_decoder *decoder;
+
+	/* Owned by this */
 	struct bt_trace *trace;
+
+	/* Weak (owned by `decoder` above) */
+	struct ctf_trace_class *tc;
+
+	/* Owned by this */
 
 	/* Owned by this */
 	char *text;
@@ -75,9 +84,6 @@ struct ctf_fs_component {
 struct ctf_fs_trace {
 	/* Owned by this */
 	struct ctf_fs_metadata *metadata;
-
-	/* Owned by this */
-	struct bt_clock_class_priority_map *cc_prio_map;
 
 	/* Array of struct ctf_fs_ds_file_group *, owned by this */
 	GPtrArray *ds_file_groups;

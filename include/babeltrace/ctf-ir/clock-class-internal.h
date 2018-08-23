@@ -33,40 +33,76 @@
 #include <babeltrace/object-pool-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/property-internal.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <glib.h>
 
 struct bt_clock_class {
 	struct bt_object base;
-	GString *name;
-	GString *description;
+
+	struct {
+		GString *str;
+
+		/* NULL or `str->str` above */
+		const char *value;
+	} name;
+
+	struct {
+		GString *str;
+
+		/* NULL or `str->str` above */
+		const char *value;
+	} description;
+
 	uint64_t frequency;
 	uint64_t precision;
-	int64_t offset_s;	/* Offset in seconds */
-	int64_t offset;		/* Offset in ticks */
-	unsigned char uuid[BABELTRACE_UUID_LEN];
-	int uuid_set;
-	int absolute;
+	int64_t offset_seconds;
+	uint64_t offset_cycles;
+
+	struct {
+		uint8_t uuid[BABELTRACE_UUID_LEN];
+
+		/* NULL or `uuid` above */
+		bt_uuid value;
+	} uuid;
+
+	bool is_absolute;
 
 	/*
-	 * A clock's properties can't be modified once it is added to a stream
-	 * class.
+	 * This is computed every time you call
+	 * bt_clock_class_set_frequency() or
+	 * bt_clock_class_set_offset(), as well as initially. It is the
+	 * base offset in nanoseconds including both `offset_seconds`
+	 * and `offset_cycles` above in the result. It is used to
+	 * accelerate future calls to
+	 * bt_clock_value_get_ns_from_origin() and
+	 * bt_clock_class_cycles_to_ns_from_origin().
+	 *
+	 * `overflows` is true if the base offset cannot be computed
+	 * because of an overflow.
 	 */
-	int frozen;
+	struct {
+		int64_t value_ns;
+		bool overflows;
+	} base_offset;
 
 	/* Pool of `struct bt_clock_value *` */
 	struct bt_object_pool cv_pool;
+
+	bool frozen;
 };
 
 BT_HIDDEN
-void bt_clock_class_freeze(struct bt_clock_class *clock_class);
+void _bt_clock_class_freeze(struct bt_clock_class *clock_class);
+
+#ifdef BT_DEV_MODE
+# define bt_clock_class_freeze		_bt_clock_class_freeze
+#else
+# define bt_clock_class_freeze(_cc)
+#endif
 
 BT_HIDDEN
 bt_bool bt_clock_class_is_valid(struct bt_clock_class *clock_class);
-
-BT_HIDDEN
-int bt_clock_class_compare(struct bt_clock_class *clock_class_a,
-		struct bt_clock_class *clock_class_b);
 
 #endif /* BABELTRACE_CTF_IR_CLOCK_CLASS_INTERNAL_H */

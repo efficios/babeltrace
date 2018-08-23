@@ -82,24 +82,10 @@ static char __thread lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 	} while (0)
 
 #define BUF_APPEND_UUID(_uuid)						\
-	BUF_APPEND(", %suuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"", \
-		prefix,							\
-		(unsigned int) (_uuid)[0],				\
-		(unsigned int) (_uuid)[1],				\
-		(unsigned int) (_uuid)[2],				\
-		(unsigned int) (_uuid)[3],				\
-		(unsigned int) (_uuid)[4],				\
-		(unsigned int) (_uuid)[5],				\
-		(unsigned int) (_uuid)[6],				\
-		(unsigned int) (_uuid)[7],				\
-		(unsigned int) (_uuid)[8],				\
-		(unsigned int) (_uuid)[9],				\
-		(unsigned int) (_uuid)[10],				\
-		(unsigned int) (_uuid)[11],				\
-		(unsigned int) (_uuid)[12],				\
-		(unsigned int) (_uuid)[13],				\
-		(unsigned int) (_uuid)[14],				\
-		(unsigned int) (_uuid)[15])
+	do {								\
+		BUF_APPEND(", %suuid=", prefix);			\
+		format_uuid(buf_ch, (_uuid));				\
+	} while (0)
 
 #define PRFIELD(_expr)	prefix, (_expr)
 
@@ -121,28 +107,34 @@ static inline void format_connection(char **buf_ch, bool extended,
 static inline void format_clock_value(char **buf_ch, bool extended,
 		const char *prefix, struct bt_clock_value *clock_value);
 
+static inline void format_field_path(char **buf_ch, bool extended,
+		const char *prefix, struct bt_field_path *field_path);
+
 static inline void format_object(char **buf_ch, bool extended,
 		const char *prefix, struct bt_object *obj)
 {
 	BUF_APPEND(", %sref-count=%llu", prefix, obj->ref_count);
 }
 
-static inline void format_clock_value_set(char **buf_ch, bool extended,
-		const char *prefix, struct bt_clock_value_set *cv_set)
+static inline void format_uuid(char **buf_ch, bt_uuid uuid)
 {
-	char tmp_prefix[64];
-
-	if (!cv_set->clock_values) {
-		return;
-	}
-
-	BUF_APPEND(", %ssize=%u", PRFIELD(cv_set->clock_values->len));
-
-	if (cv_set->default_cv) {
-		SET_TMP_PREFIX("default-cv-");
-		format_clock_value(buf_ch, extended, tmp_prefix,
-			cv_set->default_cv);
-	}
+	BUF_APPEND("\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
+		(unsigned int) uuid[0],
+		(unsigned int) uuid[1],
+		(unsigned int) uuid[2],
+		(unsigned int) uuid[3],
+		(unsigned int) uuid[4],
+		(unsigned int) uuid[5],
+		(unsigned int) uuid[6],
+		(unsigned int) uuid[7],
+		(unsigned int) uuid[8],
+		(unsigned int) uuid[9],
+		(unsigned int) uuid[10],
+		(unsigned int) uuid[11],
+		(unsigned int) uuid[12],
+		(unsigned int) uuid[13],
+		(unsigned int) uuid[14],
+		(unsigned int) uuid[15]);
 }
 
 static inline void format_object_pool(char **buf_ch, bool extended,
@@ -155,97 +147,133 @@ static inline void format_object_pool(char **buf_ch, bool extended,
 	}
 }
 
+static inline void format_integer_field_type(char **buf_ch,
+		bool extended, const char *prefix,
+		struct bt_field_type *field_type)
+{
+	struct bt_field_type_integer *int_ft = (void *) field_type;
+
+	BUF_APPEND(", %srange-size=%" PRIu64 ", %sbase=%s",
+		PRFIELD(int_ft->range),
+		PRFIELD(bt_common_field_type_integer_preferred_display_base_string(int_ft->base)));
+}
+
+static inline void format_array_field_type(char **buf_ch,
+		bool extended, const char *prefix,
+		struct bt_field_type *field_type)
+{
+	struct bt_field_type_array *array_ft = (void *) field_type;
+
+	BUF_APPEND(", %selement-ft-addr=%p, %selement-ft-id=%s",
+		PRFIELD(array_ft->element_ft),
+		PRFIELD(bt_common_field_type_id_string(array_ft->element_ft->id)));
+}
+
 static inline void format_field_type(char **buf_ch, bool extended,
 		const char *prefix, struct bt_field_type *field_type)
 {
-	BUF_APPEND(", %stype-id=%s, %salignment=%u",
-		PRFIELD(bt_common_field_type_id_string(field_type->id)),
-		PRFIELD(field_type->alignment));
+	char tmp_prefix[64];
+
+	BUF_APPEND(", %sid=%s",
+		PRFIELD(bt_common_field_type_id_string(field_type->id)));
 
 	if (extended) {
 		BUF_APPEND(", %sis-frozen=%d", PRFIELD(field_type->frozen));
+		BUF_APPEND(", %sis-part-of-trace=%d",
+			PRFIELD(field_type->part_of_trace));
 	} else {
 		return;
 	}
 
-	if (field_type->id == BT_FIELD_TYPE_ID_UNKNOWN) {
-		return;
-	}
-
 	switch (field_type->id) {
-	case BT_FIELD_TYPE_ID_INTEGER:
+	case BT_FIELD_TYPE_ID_UNSIGNED_INTEGER:
+	case BT_FIELD_TYPE_ID_SIGNED_INTEGER:
 	{
-		struct bt_field_type_integer *integer = (void *) field_type;
-
-		BUF_APPEND(", %ssize=%u, %sis-signed=%d, %sbyte-order=%s, "
-			"%sbase=%d, %sencoding=%s, "
-			"%smapped-clock-class-addr=%p",
-			PRFIELD(integer->size), PRFIELD(integer->is_signed),
-			PRFIELD(bt_common_byte_order_string(
-				integer->user_byte_order)),
-			PRFIELD(integer->base),
-			PRFIELD(bt_common_string_encoding_string(
-				integer->encoding)),
-			PRFIELD(integer->mapped_clock_class));
-
-		if (integer->mapped_clock_class) {
-			BUF_APPEND(", %smapped-clock-class-name=\"%s\"",
-				PRFIELD(bt_clock_class_get_name(
-					integer->mapped_clock_class)));
-		}
+		format_integer_field_type(buf_ch, extended, prefix, field_type);
 		break;
 	}
-	case BT_FIELD_TYPE_ID_FLOAT:
+	case BT_FIELD_TYPE_ID_REAL:
 	{
-		struct bt_field_type_floating_point *flt = (void *) field_type;
+		struct bt_field_type_real *real_ft = (void *) field_type;
 
-		BUF_APPEND(", %sexp-dig=%u, %smant-dig=%u, %sbyte-order=%s",
-			PRFIELD(flt->exp_dig), PRFIELD(flt->mant_dig),
-			PRFIELD(bt_common_byte_order_string(
-				flt->user_byte_order)));
+		BUF_APPEND(", %sis-single-precision=%d",
+			PRFIELD(real_ft->is_single_precision));
 		break;
 	}
-	case BT_FIELD_TYPE_ID_ENUM:
+	case BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION:
+	case BT_FIELD_TYPE_ID_SIGNED_ENUMERATION:
 	{
-		struct bt_field_type_enumeration *enm = (void *) field_type;
+		struct bt_field_type_enumeration *enum_ft =
+			(void *) field_type;
 
+		format_integer_field_type(buf_ch, extended, prefix, field_type);
 		BUF_APPEND(", %smapping-count=%u",
-			PRFIELD(enm->entries->len));
+			PRFIELD(enum_ft->mappings->len));
 		break;
 	}
-	case BT_FIELD_TYPE_ID_STRING:
+	case BT_FIELD_TYPE_ID_STRUCTURE:
 	{
-		struct bt_field_type_string *str = (void *) field_type;
+		struct bt_field_type_structure *struct_ft =
+			(void *) field_type;
 
-		BUF_APPEND(", %sencoding=%s",
-			PRFIELD(bt_common_string_encoding_string(
-				str->encoding)));
+		if (struct_ft->common.named_fts) {
+			BUF_APPEND(", %smember-count=%u",
+				PRFIELD(struct_ft->common.named_fts->len));
+		}
+
 		break;
 	}
-	case BT_FIELD_TYPE_ID_STRUCT:
+	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
 	{
-		struct bt_field_type_structure *structure = (void *) field_type;
+		struct bt_field_type_static_array *array_ft =
+			(void *) field_type;
 
-		BUF_APPEND(", %sfield-count=%u",
-			PRFIELD(structure->fields->len));
+		format_array_field_type(buf_ch, extended, prefix, field_type);
+		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(array_ft->length));
 		break;
 	}
-	case BT_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
 	{
-		struct bt_field_type_sequence *seq = (void *) field_type;
+		struct bt_field_type_dynamic_array *array_ft =
+			(void *) field_type;
 
-		BUF_APPEND(", %slength-ft-addr=\"%s\", %selem-ft-addr=%p",
-			PRFIELD(seq->length_field_name->str),
-			PRFIELD(seq->element_ft));
+		format_array_field_type(buf_ch, extended, prefix, field_type);
+
+		if (array_ft->length_ft) {
+			SET_TMP_PREFIX("length-ft-");
+			format_field_type(buf_ch, extended, tmp_prefix,
+				array_ft->length_ft);
+		}
+
+		if (array_ft->length_field_path) {
+			SET_TMP_PREFIX("length-field-path-");
+			format_field_path(buf_ch, extended, tmp_prefix,
+				array_ft->length_field_path);
+		}
+
 		break;
 	}
 	case BT_FIELD_TYPE_ID_VARIANT:
 	{
-		struct bt_field_type_variant *variant = (void *) field_type;
+		struct bt_field_type_variant *var_ft = (void *) field_type;
 
-		BUF_APPEND(", %stag-name=\"%s\", %sfield-count=%u",
-			PRFIELD(variant->tag_name->str),
-			PRFIELD(variant->choices->len));
+		if (var_ft->common.named_fts) {
+			BUF_APPEND(", %soption-count=%u",
+				PRFIELD(var_ft->common.named_fts->len));
+		}
+
+		if (var_ft->selector_ft) {
+			SET_TMP_PREFIX("selector-ft-");
+			format_field_type(buf_ch, extended, tmp_prefix,
+				var_ft->selector_ft);
+		}
+
+		if (var_ft->selector_field_path) {
+			SET_TMP_PREFIX("selector-field-path-");
+			format_field_path(buf_ch, extended, tmp_prefix,
+				var_ft->selector_field_path);
+		}
+
 		break;
 	}
 	default:
@@ -262,33 +290,32 @@ static inline void format_field_integer_extended(char **buf_ch,
 
 	BT_ASSERT(field_type);
 
-	if (field_type->base == 8) {
+	if (field_type->base == BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL) {
 		fmt = ", %svalue=%" PRIo64;
-	} else if (field_type->base == 16) {
+	} else if (field_type->base == BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL) {
 		fmt = ", %svalue=%" PRIx64;
 	}
 
-	if (field_type->is_signed) {
+	if (field_type->common.id == BT_FIELD_TYPE_ID_SIGNED_INTEGER ||
+			field_type->common.id == BT_FIELD_TYPE_ID_SIGNED_ENUMERATION) {
 		if (!fmt) {
 			fmt = ", %svalue=%" PRId64;
 		}
 
-		BUF_APPEND(fmt, PRFIELD(integer->payload.signd));
+		BUF_APPEND(fmt, PRFIELD(integer->value.i));
 	} else {
 		if (!fmt) {
 			fmt = ", %svalue=%" PRIu64;
 		}
 
-		BUF_APPEND(fmt, PRFIELD(integer->payload.unsignd));
+		BUF_APPEND(fmt, PRFIELD(integer->value.u));
 	}
 }
 
 static inline void format_field(char **buf_ch, bool extended,
 		const char *prefix, struct bt_field *field)
 {
-	struct bt_field *common_field = (void *) field;
-
-	BUF_APPEND(", %sis-set=%d", PRFIELD(field->payload_set));
+	BUF_APPEND(", %sis-set=%d", PRFIELD(field->is_set));
 
 	if (extended) {
 		BUF_APPEND(", %sis-frozen=%d", PRFIELD(field->frozen));
@@ -303,22 +330,24 @@ static inline void format_field(char **buf_ch, bool extended,
 	BUF_APPEND(", %stype-id=%s",
 		PRFIELD(bt_common_field_type_id_string(field->type->id)));
 
-	if (!extended || field->type->id == BT_FIELD_TYPE_ID_UNKNOWN ||
-			!field->payload_set) {
+	if (!extended || !field->is_set) {
 		return;
 	}
 
 	switch (field->type->id) {
-	case BT_FIELD_TYPE_ID_INTEGER:
+	case BT_FIELD_TYPE_ID_UNSIGNED_INTEGER:
+	case BT_FIELD_TYPE_ID_SIGNED_INTEGER:
+	case BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION:
+	case BT_FIELD_TYPE_ID_SIGNED_ENUMERATION:
 	{
 		format_field_integer_extended(buf_ch, prefix, field);
 		break;
 	}
-	case BT_FIELD_TYPE_ID_FLOAT:
+	case BT_FIELD_TYPE_ID_REAL:
 	{
-		struct bt_field_floating_point *flt = (void *) field;
+		struct bt_field_real *real_field = (void *) field;
 
-		BUF_APPEND(", %svalue=%f", PRFIELD(flt->payload));
+		BUF_APPEND(", %svalue=%f", PRFIELD(real_field->value));
 		break;
 	}
 	case BT_FIELD_TYPE_ID_STRING:
@@ -329,54 +358,30 @@ static inline void format_field(char **buf_ch, bool extended,
 			BT_ASSERT(str->buf->data);
 			BUF_APPEND(", %spartial-value=\"%.32s\"",
 				PRFIELD(str->buf->data));
-
 		}
+
 		break;
 	}
-	case BT_FIELD_TYPE_ID_SEQUENCE:
+	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
+	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
 	{
-		struct bt_field_sequence *seq = (void *) field;
+		struct bt_field_array *array_field = (void *) field;
 
-		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(seq->length));
+		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(array_field->length));
 
-		if (seq->elements) {
+		if (array_field->fields) {
 			BUF_APPEND(", %sallocated-length=%u",
-				PRFIELD(seq->elements->len));
+				PRFIELD(array_field->fields->len));
 		}
+
 		break;
 	}
 	case BT_FIELD_TYPE_ID_VARIANT:
 	{
-		struct bt_field_variant *variant = (void *) field;
+		struct bt_field_variant *var_field = (void *) field;
 
-		BUF_APPEND(", %scur-field-addr=%p",
-			PRFIELD(variant->current_field));
-		break;
-	}
-	default:
-		break;
-	}
-
-	if (!common_field->type) {
-		return;
-	}
-
-	switch (common_field->type->id) {
-	case BT_FIELD_TYPE_ID_ENUM:
-	{
-		struct bt_field_integer *integer = (void *) field;
-		struct bt_field_type_enumeration *enum_ft =
-			(void *) common_field->type;
-
-		if (enum_ft->container_ft) {
-			if (enum_ft->container_ft->is_signed) {
-				BUF_APPEND(", %svalue=%" PRId64,
-					PRFIELD(integer->payload.signd));
-			} else {
-				BUF_APPEND(", %svalue=%" PRIu64,
-					PRFIELD(integer->payload.unsignd));
-			}
-		}
+		BUF_APPEND(", %sselected-field-index=%" PRIu64,
+			PRFIELD(var_field->selected_index));
 		break;
 	}
 	default:
@@ -403,9 +408,10 @@ static inline void format_field_path(char **buf_ch, bool extended,
 		PRFIELD(bt_common_scope_string(field_path->root)));
 
 	for (i = 0; i < field_path->indexes->len; i++) {
-		int index = g_array_index(field_path->indexes, int, i);
+		uint64_t index = bt_field_path_get_index_by_index_inline(
+			field_path, i);
 
-		BUF_APPEND(", %d", index);
+		BUF_APPEND(", %" PRIu64, index);
 	}
 
 	BUF_APPEND("%s", "]");
@@ -416,8 +422,8 @@ static inline void format_trace(char **buf_ch, bool extended,
 {
 	char tmp_prefix[64];
 
-	if (trace->name) {
-		BUF_APPEND(", %sname=\"%s\"", PRFIELD(trace->name->str));
+	if (trace->name.value) {
+		BUF_APPEND(", %sname=\"%s\"", PRFIELD(trace->name.value));
 	}
 
 	if (!extended) {
@@ -426,13 +432,8 @@ static inline void format_trace(char **buf_ch, bool extended,
 
 	BUF_APPEND(", %sis-frozen=%d", PRFIELD(trace->frozen));
 
-	if (trace->uuid_set) {
-		BUF_APPEND_UUID(trace->uuid);
-	}
-
-	if (trace->clock_classes) {
-		BUF_APPEND(", %sclock-class-count=%u",
-			PRFIELD(trace->clock_classes->len));
+	if (trace->uuid.value) {
+		BUF_APPEND_UUID(trace->uuid.value);
 	}
 
 	if (trace->stream_classes) {
@@ -445,9 +446,11 @@ static inline void format_trace(char **buf_ch, bool extended,
 			PRFIELD(trace->streams->len));
 	}
 
-	BUF_APPEND(", %spacket-header-ft-addr=%p",
-		PRFIELD(trace->packet_header_field_type));
-	BUF_APPEND(", %sis-static=%d", PRFIELD(trace->is_static));
+	BUF_APPEND(", %spacket-header-ft-addr=%p, %sis-static=%d, "
+		"%sassigns-auto-sc-id=%d",
+		PRFIELD(trace->packet_header_ft),
+		PRFIELD(trace->is_static),
+		PRFIELD(trace->assigns_automatic_stream_class_id));
 	SET_TMP_PREFIX("phf-pool-");
 	format_object_pool(buf_ch, extended, prefix,
 		&trace->packet_header_field_pool);
@@ -459,12 +462,11 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	struct bt_trace *trace;
 	char tmp_prefix[64];
 
-	if (stream_class->id_set) {
-		BUF_APPEND(", %sid=%" PRId64, PRFIELD(stream_class->id));
-	}
+	BUF_APPEND(", %sid=%" PRIu64, PRFIELD(stream_class->id));
 
-	if (stream_class->name) {
-		BUF_APPEND(", %sname=\"%s\"", PRFIELD(stream_class->name->str));
+	if (stream_class->name.value) {
+		BUF_APPEND(", %sname=\"%s\"",
+			PRFIELD(stream_class->name.value));
 	}
 
 	if (!extended) {
@@ -479,15 +481,26 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	}
 
 	BUF_APPEND(", %spacket-context-ft-addr=%p, "
-		"%sevent-header-ft-addr=%p, %sevent-context-ft-addr=%p",
-		PRFIELD(stream_class->packet_context_field_type),
-		PRFIELD(stream_class->event_header_field_type),
-		PRFIELD(stream_class->event_context_field_type));
-	trace = bt_stream_class_borrow_trace(stream_class);
+		"%sevent-header-ft-addr=%p, %sevent-common-context-ft-addr=%p",
+		PRFIELD(stream_class->packet_context_ft),
+		PRFIELD(stream_class->event_header_ft),
+		PRFIELD(stream_class->event_common_context_ft));
+	trace = bt_stream_class_borrow_trace_inline(stream_class);
 	if (!trace) {
 		return;
 	}
 
+	BUF_APPEND(", %sassigns-auto-ec-id=%d, %sassigns-auto-stream-id=%d, "
+		"%spackets-have-discarded-ev-counter-snapshot=%d, "
+		"%spackets-have-packet-counter-snapshot=%d, "
+		"%spackets-have-default-begin-cv=%d, "
+		"%spackets-have-default-end-cv=%d",
+		PRFIELD(stream_class->assigns_automatic_event_class_id),
+		PRFIELD(stream_class->assigns_automatic_stream_id),
+		PRFIELD(stream_class->packets_have_discarded_event_counter_snapshot),
+		PRFIELD(stream_class->packets_have_packet_counter_snapshot),
+		PRFIELD(stream_class->packets_have_default_beginning_cv),
+		PRFIELD(stream_class->packets_have_default_end_cv));
 	BUF_APPEND(", %strace-addr=%p", PRFIELD(trace));
 	SET_TMP_PREFIX("trace-");
 	format_trace(buf_ch, false, tmp_prefix, trace);
@@ -506,30 +519,33 @@ static inline void format_event_class(char **buf_ch, bool extended,
 	struct bt_trace *trace;
 	char tmp_prefix[64];
 
-	BUF_APPEND(", %sid=%" PRId64, PRFIELD(event_class->id));
+	BUF_APPEND(", %sid=%" PRIu64, PRFIELD(event_class->id));
 
-	if (event_class->name) {
+	if (event_class->name.value) {
 		BUF_APPEND(", %sname=\"%s\"",
-			PRFIELD(event_class->name->str));
+			PRFIELD(event_class->name.value));
 	}
 
 	if (!extended) {
 		return;
 	}
 
-	BUF_APPEND(", %sis-frozen=%d, %slog-level=%s",
-		PRFIELD(event_class->frozen),
-		PRFIELD(bt_common_event_class_log_level_string(
-			event_class->log_level)));
+	BUF_APPEND(", %sis-frozen=%d", PRFIELD(event_class->frozen));
 
-	if (event_class->emf_uri) {
-		BUF_APPEND(", %semf-uri=\"%s\"",
-			PRFIELD(event_class->emf_uri->str));
+	if (event_class->log_level.base.avail) {
+		BUF_APPEND(", %slog-level=%s",
+			PRFIELD(bt_common_event_class_log_level_string(
+				(int) event_class->log_level.value)));
 	}
 
-	BUF_APPEND(", %scontext-ft-addr=%p, %spayload-ft-addr=%p",
-		PRFIELD(event_class->context_field_type),
-		PRFIELD(event_class->payload_field_type));
+	if (event_class->emf_uri.value) {
+		BUF_APPEND(", %semf-uri=\"%s\"",
+			PRFIELD(event_class->emf_uri.value));
+	}
+
+	BUF_APPEND(", %sspecific-context-ft-addr=%p, %spayload-ft-addr=%p",
+		PRFIELD(event_class->specific_context_ft),
+		PRFIELD(event_class->payload_ft));
 
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	if (!stream_class) {
@@ -539,7 +555,7 @@ static inline void format_event_class(char **buf_ch, bool extended,
 	BUF_APPEND(", %sstream-class-addr=%p", PRFIELD(stream_class));
 	SET_TMP_PREFIX("stream-class-");
 	format_stream_class(buf_ch, false, tmp_prefix, stream_class);
-	trace = bt_stream_class_borrow_trace(stream_class);
+	trace = bt_stream_class_borrow_trace_inline(stream_class);
 	if (!trace) {
 		return;
 	}
@@ -558,10 +574,10 @@ static inline void format_stream(char **buf_ch, bool extended,
 	struct bt_trace *trace;
 	char tmp_prefix[64];
 
-	BUF_APPEND(", %sid=%" PRId64, PRFIELD(stream->id));
+	BUF_APPEND(", %sid=%" PRIu64, PRFIELD(stream->id));
 
-	if (stream->name) {
-		BUF_APPEND(", %sname=\"%s\"", PRFIELD(stream->name->str));
+	if (stream->name.value) {
+		BUF_APPEND(", %sname=\"%s\"", PRFIELD(stream->name.value));
 	}
 
 	if (!extended) {
@@ -576,7 +592,7 @@ static inline void format_stream(char **buf_ch, bool extended,
 	BUF_APPEND(", %sstream-class-addr=%p", PRFIELD(stream_class));
 	SET_TMP_PREFIX("stream-class-");
 	format_stream_class(buf_ch, false, tmp_prefix, stream_class);
-	trace = bt_stream_class_borrow_trace(stream_class);
+	trace = bt_stream_class_borrow_trace_inline(stream_class);
 	if (!trace) {
 		return;
 	}
@@ -607,18 +623,39 @@ static inline void format_packet(char **buf_ch, bool extended,
 	BUF_APPEND(", %sis-frozen=%d, %sheader-field-addr=%p, "
 		"%scontext-field-addr=%p",
 		PRFIELD(packet->frozen),
-		PRFIELD(packet->header ? packet->header->field : NULL),
-		PRFIELD(packet->context));
+		PRFIELD(packet->header_field ? packet->header_field->field : NULL),
+		PRFIELD(packet->context_field ? packet->context_field->field : NULL));
 	stream = bt_packet_borrow_stream(packet);
 	if (!stream) {
 		return;
 	}
 
+	if (packet->default_beginning_cv) {
+		SET_TMP_PREFIX("default-begin-cv-");
+		format_clock_value(buf_ch, true, tmp_prefix,
+			packet->default_beginning_cv);
+	}
+
+	if (packet->default_end_cv) {
+		SET_TMP_PREFIX("default-end-cv-");
+		format_clock_value(buf_ch, true, tmp_prefix,
+			packet->default_end_cv);
+	}
+
+	if (packet->discarded_event_counter_snapshot.base.avail) {
+		BUF_APPEND(", %sdiscarded-ev-counter-snapshot=%" PRIu64,
+			PRFIELD(packet->discarded_event_counter_snapshot.value));
+	}
+
+	if (packet->packet_counter_snapshot.base.avail) {
+		BUF_APPEND(", %spacket-counter-snapshot=%" PRIu64,
+			PRFIELD(packet->packet_counter_snapshot.value));
+	}
+
 	BUF_APPEND(", %sstream-addr=%p", PRFIELD(stream));
 	SET_TMP_PREFIX("stream-");
 	format_stream(buf_ch, false, tmp_prefix, stream);
-	trace = (struct bt_trace *)
-		bt_object_borrow_parent(&stream->base);
+	trace = (struct bt_trace *) bt_object_borrow_parent(&stream->base);
 	if (!trace) {
 		return;
 	}
@@ -642,13 +679,14 @@ static inline void format_event(char **buf_ch, bool extended,
 	}
 
 	BUF_APPEND(", %sis-frozen=%d, %sheader-field-addr=%p, "
-		"%sstream-context-field-addr=%p, "
-		"%scontext-field-addr=%p, %spayload-field-addr=%p, ",
+		"%scommon-context-field-addr=%p, "
+		"%specific-scontext-field-addr=%p, "
+		"%spayload-field-addr=%p, ",
 		PRFIELD(event->frozen),
 		PRFIELD(event->header_field ?
 			event->header_field->field : NULL),
-		PRFIELD(event->stream_event_context_field),
-		PRFIELD(event->context_field),
+		PRFIELD(event->common_context_field),
+		PRFIELD(event->specific_context_field),
 		PRFIELD(event->payload_field));
 	BUF_APPEND(", %sevent-class-addr=%p", PRFIELD(event->class));
 
@@ -665,7 +703,7 @@ static inline void format_event(char **buf_ch, bool extended,
 		format_stream_class(buf_ch, false, tmp_prefix,
 			stream_class);
 
-		trace = bt_stream_class_borrow_trace(stream_class);
+		trace = bt_stream_class_borrow_trace_inline(stream_class);
 		if (trace) {
 			BUF_APPEND(", %strace-addr=%p", PRFIELD(trace));
 			SET_TMP_PREFIX("trace-");
@@ -673,8 +711,12 @@ static inline void format_event(char **buf_ch, bool extended,
 		}
 	}
 
-	SET_TMP_PREFIX("cvs-");
-	format_clock_value_set(buf_ch, extended, tmp_prefix, &event->cv_set);
+	if (event->default_cv) {
+		SET_TMP_PREFIX("default-cv-");
+		format_clock_value(buf_ch, true, tmp_prefix,
+			event->default_cv);
+	}
+
 	packet = bt_event_borrow_packet(event);
 	if (!packet) {
 		return;
@@ -698,29 +740,34 @@ static inline void format_clock_class(char **buf_ch, bool extended,
 {
 	char tmp_prefix[64];
 
-	BUF_APPEND(", %sname=\"%s\", %sfreq=%" PRIu64,
-		PRFIELD(clock_class->name->str),
-		PRFIELD(clock_class->frequency));
+	if (clock_class->name.value) {
+		BUF_APPEND(", %sname=\"%s\"", PRFIELD(clock_class->name.value));
+	}
+
+	BUF_APPEND(", %sfreq=%" PRIu64, PRFIELD(clock_class->frequency));
 
 	if (!extended) {
 		return;
 	}
 
-	if (clock_class->description) {
-		BUF_APPEND(", %spartial-description=\"%.32s\"",
-			PRFIELD(clock_class->description->str));
+	if (clock_class->description.value) {
+		BUF_APPEND(", %spartial-descr=\"%.32s\"",
+			PRFIELD(clock_class->description.value));
+	}
+
+	if (clock_class->uuid.value) {
+		BUF_APPEND_UUID(clock_class->uuid.value);
 	}
 
 	BUF_APPEND(", %sis-frozen=%d, %sprecision=%" PRIu64 ", "
 		"%soffset-s=%" PRId64 ", "
-		"%soffset-cycles=%" PRId64 ", %sis-absolute=%d",
+		"%soffset-cycles=%" PRIu64 ", %sis-absolute=%d, "
+		"%sbase-offset-ns=%" PRId64,
 		PRFIELD(clock_class->frozen), PRFIELD(clock_class->precision),
-		PRFIELD(clock_class->offset_s), PRFIELD(clock_class->offset),
-		PRFIELD(clock_class->absolute));
-
-	if (clock_class->uuid_set) {
-		BUF_APPEND_UUID(clock_class->uuid);
-	}
+		PRFIELD(clock_class->offset_seconds),
+		PRFIELD(clock_class->offset_cycles),
+		PRFIELD(clock_class->is_absolute),
+		PRFIELD(clock_class->base_offset.value_ns));
 
 	SET_TMP_PREFIX("cv-pool-");
 	format_object_pool(buf_ch, extended, prefix, &clock_class->cv_pool);
@@ -730,16 +777,15 @@ static inline void format_clock_value(char **buf_ch, bool extended,
 		const char *prefix, struct bt_clock_value *clock_value)
 {
 	char tmp_prefix[64];
-	BUF_APPEND(", %sraw-value=%" PRIu64 ", %sns-from-epoch=%" PRId64,
-		PRFIELD(clock_value->value),
-		PRFIELD(clock_value->ns_from_epoch));
+	BUF_APPEND(", %svalue=%" PRIu64 ", %sns-from-origin=%" PRId64,
+		PRFIELD(clock_value->value_cycles),
+		PRFIELD(clock_value->ns_from_origin));
 
 	if (!extended) {
 		return;
 	}
 
-	BUF_APPEND(", %sis-frozen=%d, %sis-set=%d",
-		PRFIELD(clock_value->frozen), PRFIELD(clock_value->is_set));
+	BUF_APPEND(", %sis-set=%d", PRFIELD(clock_value->is_set));
 	BUF_APPEND(", %sclock-class-addr=%p",
 		PRFIELD(clock_value->clock_class));
 	SET_TMP_PREFIX("clock-class-");
@@ -1139,6 +1185,13 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 	/* skip "%!" */
 	fmt_ch += 2;
 
+	if (*fmt_ch == 'u') {
+		/* UUID */
+		obj = va_arg(*args, void *);
+		format_uuid(buf_ch, obj);
+		goto update_fmt;
+	}
+
 	if (*fmt_ch == '[') {
 		/* local prefix */
 		fmt_ch++;
@@ -1225,7 +1278,7 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 	case 'x':
 		format_connection(buf_ch, extended, prefix, obj);
 		break;
-	case 'u':
+	case 'l':
 		format_plugin(buf_ch, extended, prefix, obj);
 		break;
 	case 'g':

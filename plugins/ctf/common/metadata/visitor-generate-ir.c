@@ -6,7 +6,7 @@
  * Based on older ctf-visitor-generate-io-struct.c.
  *
  * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
- * Copyright 2015-2016 - Philippe Proulx <philippe.proulx@efficios.com>
+ * Copyright 2015-2018 - Philippe Proulx <philippe.proulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,8 @@
 #include "parser.h"
 #include "ast.h"
 #include "decoder.h"
+#include "ctf-meta.h"
+#include "ctf-meta-visitors.h"
 
 /* Bit value (left shift) */
 #define _BV(_val)		(1 << (_val))
@@ -58,6 +60,16 @@
 
 /* Set bit in a set of bits */
 #define _SET(_set, _mask)	(*(_set) |= (_mask))
+
+/* Try to push scope, or go to the `error` label */
+#define _TRY_PUSH_SCOPE_OR_GOTO_ERROR()					\
+	do {								\
+		ret = ctx_push_scope(ctx);				\
+		if (ret) {						\
+			BT_LOGE_STR("Cannot push scope.");		\
+			goto error;					\
+		}							\
+	} while (0)
 
 /* Bits for verifying existing attributes in various declarations */
 enum {
@@ -112,27 +124,27 @@ enum {
 	_EVENT_ID_SET =			_BV(1),
 	_EVENT_MODEL_EMF_URI_SET =	_BV(2),
 	_EVENT_STREAM_ID_SET =		_BV(3),
-	_EVENT_LOGLEVEL_SET =		_BV(4),
+	_EVENT_LOG_LEVEL_SET =		_BV(4),
 	_EVENT_CONTEXT_SET =		_BV(5),
 	_EVENT_FIELDS_SET =		_BV(6),
 };
 
 enum loglevel {
-        LOGLEVEL_EMERG                  = 0,
-        LOGLEVEL_ALERT                  = 1,
-        LOGLEVEL_CRIT                   = 2,
-        LOGLEVEL_ERR                    = 3,
-        LOGLEVEL_WARNING                = 4,
-        LOGLEVEL_NOTICE                 = 5,
-        LOGLEVEL_INFO                   = 6,
-        LOGLEVEL_DEBUG_SYSTEM           = 7,
-        LOGLEVEL_DEBUG_PROGRAM          = 8,
-        LOGLEVEL_DEBUG_PROCESS          = 9,
-        LOGLEVEL_DEBUG_MODULE           = 10,
-        LOGLEVEL_DEBUG_UNIT             = 11,
-        LOGLEVEL_DEBUG_FUNCTION         = 12,
-        LOGLEVEL_DEBUG_LINE             = 13,
-        LOGLEVEL_DEBUG                  = 14,
+        LOG_LEVEL_EMERG                  = 0,
+        LOG_LEVEL_ALERT                  = 1,
+        LOG_LEVEL_CRIT                   = 2,
+        LOG_LEVEL_ERR                    = 3,
+        LOG_LEVEL_WARNING                = 4,
+        LOG_LEVEL_NOTICE                 = 5,
+        LOG_LEVEL_INFO                   = 6,
+        LOG_LEVEL_DEBUG_SYSTEM           = 7,
+        LOG_LEVEL_DEBUG_PROGRAM          = 8,
+        LOG_LEVEL_DEBUG_PROCESS          = 9,
+        LOG_LEVEL_DEBUG_MODULE           = 10,
+        LOG_LEVEL_DEBUG_UNIT             = 11,
+        LOG_LEVEL_DEBUG_FUNCTION         = 12,
+        LOG_LEVEL_DEBUG_LINE             = 13,
+        LOG_LEVEL_DEBUG                  = 14,
 	_NR_LOGLEVELS			= 15,
 };
 
@@ -143,10 +155,8 @@ enum loglevel {
 #define _PREFIX_VARIANT			'v'
 
 /* First entry in a BT list */
-#define _BT_LIST_FIRST_ENTRY(_ptr, _type, _member)	\
+#define _BT_LIST_FIRST_ENTRY(_ptr, _type, _member)			\
 	bt_list_entry((_ptr)->next, _type, _member)
-
-#define _BT_FIELD_TYPE_INIT(_name)	struct bt_field_type *_name = NULL;
 
 #define _BT_LOGE_DUP_ATTR(_node, _attr, _entity)			\
 	_BT_LOGE_LINENO((_node)->lineno,				\
@@ -171,7 +181,7 @@ struct ctx_decl_scope {
 	/*
 	 * Alias name to field type.
 	 *
-	 * GQuark -> struct bt_field_type *
+	 * GQuark -> struct ctf_field_type * (owned by this)
 	 */
 	GHashTable *decl_map;
 
@@ -183,33 +193,23 @@ struct ctx_decl_scope {
  * Visitor context (private).
  */
 struct ctx {
-	/* Trace being filled (owned by this) */
+	/* Trace IR trace being filled (owned by this) */
 	struct bt_trace *trace;
 
-	/* Current declaration scope (top of the stack) */
+	/* CTF meta trace being filled (owned by this) */
+	struct ctf_trace_class *ctf_tc;
+
+	/* Current declaration scope (top of the stack) (owned by this) */
 	struct ctx_decl_scope *current_scope;
 
-	/* 1 if trace declaration is visited */
-	int is_trace_visited;
+	/* True if trace declaration is visited */
+	bool is_trace_visited;
 
-	/* 1 if this is an LTTng trace */
+	/* True if this is an LTTng trace */
 	bool is_lttng;
 
-	/* Eventual name suffix of the trace to set */
-	char *trace_name_suffix;
-
-	/* Trace attributes */
-	enum bt_byte_order trace_bo;
-	uint64_t trace_major;
-	uint64_t trace_minor;
-	unsigned char trace_uuid[BABELTRACE_UUID_LEN];
-
-	/*
-	 * Stream IDs to stream classes.
-	 *
-	 * int64_t -> struct bt_stream_class *
-	 */
-	GHashTable *stream_classes;
+	/* Eventual name suffix of the trace to set (owned by this) */
+	char *trace_class_name_suffix;
 
 	/* Config passed by the user */
 	struct ctf_metadata_decoder_config decoder_config;
@@ -218,7 +218,7 @@ struct ctx {
 /*
  * Visitor (public).
  */
-struct ctf_visitor_generate_ir { };
+struct ctf_visitor_generate_ir;
 
 /**
  * Creates a new declaration scope.
@@ -238,7 +238,7 @@ struct ctx_decl_scope *ctx_decl_scope_create(struct ctx_decl_scope *par_scope)
 	}
 
 	scope->decl_map = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-		NULL, (GDestroyNotify) bt_put);
+		NULL, (GDestroyNotify) ctf_field_type_destroy);
 	scope->parent_scope = par_scope;
 
 end:
@@ -301,24 +301,26 @@ end:
  * @param scope		Declaration scope
  * @param prefix	Prefix character
  * @param name		Alias name
- * @param level		Number of levels to dig (-1 means infinite)
- * @returns		Declaration, or NULL if not found
+ * @param levels	Number of levels to dig into (-1 means infinite)
+ * @param copy		True to return a copy
+ * @returns		Declaration (owned by caller if \p copy is true),
+ *			or NULL if not found
  */
 static
-struct bt_field_type *ctx_decl_scope_lookup_prefix_alias(
-	struct ctx_decl_scope *scope, char prefix,
-	const char *name, int levels)
+struct ctf_field_type *ctx_decl_scope_lookup_prefix_alias(
+		struct ctx_decl_scope *scope, char prefix, const char *name,
+		int levels, bool copy)
 {
 	GQuark qname = 0;
 	int cur_levels = 0;
-	_BT_FIELD_TYPE_INIT(decl);
+	struct ctf_field_type *decl = NULL;
 	struct ctx_decl_scope *cur_scope = scope;
 
 	BT_ASSERT(scope);
 	BT_ASSERT(name);
 	qname = get_prefixed_named_quark(prefix, name);
 	if (!qname) {
-		goto error;
+		goto end;
 	}
 
 	if (levels < 0) {
@@ -330,18 +332,20 @@ struct bt_field_type *ctx_decl_scope_lookup_prefix_alias(
 			(gconstpointer) GUINT_TO_POINTER(qname));
 		if (decl) {
 			/* Caller's reference */
-			bt_get(decl);
-			break;
+			if (copy) {
+				decl = ctf_field_type_copy(decl);
+				BT_ASSERT(decl);
+			}
+
+			goto end;
 		}
 
 		cur_scope = cur_scope->parent_scope;
 		cur_levels++;
 	}
 
+end:
 	return decl;
-
-error:
-	return NULL;
 }
 
 /**
@@ -349,15 +353,18 @@ error:
  *
  * @param scope		Declaration scope
  * @param name		Alias name
- * @param level		Number of levels to dig (-1 means infinite)
- * @returns		Declaration, or NULL if not found
+ * @param levels	Number of levels to dig into (-1 means infinite)
+ * @param copy		True to return a copy
+ * @returns		Declaration (owned by caller if \p copy is true),
+ *			or NULL if not found
  */
 static
-struct bt_field_type *ctx_decl_scope_lookup_alias(
-	struct ctx_decl_scope *scope, const char *name, int levels)
+struct ctf_field_type *ctx_decl_scope_lookup_alias(
+		struct ctx_decl_scope *scope, const char *name, int levels,
+		bool copy)
 {
 	return ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_ALIAS,
-		name, levels);
+		name, levels, copy);
 }
 
 /**
@@ -365,15 +372,18 @@ struct bt_field_type *ctx_decl_scope_lookup_alias(
  *
  * @param scope		Declaration scope
  * @param name		Enumeration name
- * @param level		Number of levels to dig (-1 means infinite)
- * @returns		Declaration, or NULL if not found
+ * @param levels	Number of levels to dig into (-1 means infinite)
+ * @param copy		True to return a copy
+ * @returns		Declaration (owned by caller if \p copy is true),
+ *			or NULL if not found
  */
 static
-struct bt_field_type *ctx_decl_scope_lookup_enum(
-	struct ctx_decl_scope *scope, const char *name, int levels)
+struct ctf_field_type_enum *ctx_decl_scope_lookup_enum(
+		struct ctx_decl_scope *scope, const char *name, int levels,
+		bool copy)
 {
-	return ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_ENUM,
-		name, levels);
+	return (void *) ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_ENUM,
+		name, levels, copy);
 }
 
 /**
@@ -381,15 +391,18 @@ struct bt_field_type *ctx_decl_scope_lookup_enum(
  *
  * @param scope		Declaration scope
  * @param name		Structure name
- * @param level		Number of levels to dig (-1 means infinite)
- * @returns		Declaration, or NULL if not found
+ * @param levels	Number of levels to dig into (-1 means infinite)
+ * @param copy		True to return a copy
+ * @returns		Declaration (owned by caller if \p copy is true),
+ *			or NULL if not found
  */
 static
-struct bt_field_type *ctx_decl_scope_lookup_struct(
-	struct ctx_decl_scope *scope, const char *name, int levels)
+struct ctf_field_type_struct *ctx_decl_scope_lookup_struct(
+		struct ctx_decl_scope *scope, const char *name, int levels,
+		bool copy)
 {
-	return ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_STRUCT,
-		name, levels);
+	return (void *) ctx_decl_scope_lookup_prefix_alias(scope,
+		_PREFIX_STRUCT, name, levels, copy);
 }
 
 /**
@@ -397,15 +410,18 @@ struct bt_field_type *ctx_decl_scope_lookup_struct(
  *
  * @param scope		Declaration scope
  * @param name		Variant name
- * @param level		Number of levels to dig (-1 means infinite)
- * @returns		Declaration, or NULL if not found
+ * @param levels	Number of levels to dig into (-1 means infinite)
+ * @param copy		True to return a copy
+ * @returns		Declaration (owned by caller if \p copy is true),
+ *			or NULL if not found
  */
 static
-struct bt_field_type *ctx_decl_scope_lookup_variant(
-	struct ctx_decl_scope *scope, const char *name, int levels)
+struct ctf_field_type_variant *ctx_decl_scope_lookup_variant(
+		struct ctx_decl_scope *scope, const char *name, int levels,
+		bool copy)
 {
-	return ctx_decl_scope_lookup_prefix_alias(scope, _PREFIX_VARIANT,
-		name, levels);
+	return (void *) ctx_decl_scope_lookup_prefix_alias(scope,
+		_PREFIX_VARIANT, name, levels, copy);
 }
 
 /**
@@ -414,16 +430,15 @@ struct bt_field_type *ctx_decl_scope_lookup_variant(
  * @param scope		Declaration scope
  * @param prefix	Prefix character
  * @param name		Alias name (non-NULL)
- * @param decl		Declaration to register
+ * @param decl		Field type to register (copied)
  * @returns		0 if registration went okay, negative value otherwise
  */
 static
 int ctx_decl_scope_register_prefix_alias(struct ctx_decl_scope *scope,
-	char prefix, const char *name, struct bt_field_type *decl)
+		char prefix, const char *name, struct ctf_field_type *decl)
 {
 	int ret = 0;
 	GQuark qname = 0;
-	_BT_FIELD_TYPE_INIT(edecl);
 
 	BT_ASSERT(scope);
 	BT_ASSERT(name);
@@ -431,26 +446,21 @@ int ctx_decl_scope_register_prefix_alias(struct ctx_decl_scope *scope,
 	qname = get_prefixed_named_quark(prefix, name);
 	if (!qname) {
 		ret = -ENOMEM;
-		goto error;
+		goto end;
 	}
 
 	/* Make sure alias does not exist in local scope */
-	edecl = ctx_decl_scope_lookup_prefix_alias(scope, prefix, name, 1);
-	if (edecl) {
-		BT_PUT(edecl);
+	if (ctx_decl_scope_lookup_prefix_alias(scope, prefix, name, 1,
+			false)) {
 		ret = -EEXIST;
-		goto error;
+		goto end;
 	}
 
-	g_hash_table_insert(scope->decl_map,
-		GUINT_TO_POINTER(qname), decl);
+	decl = ctf_field_type_copy(decl);
+	BT_ASSERT(decl);
+	g_hash_table_insert(scope->decl_map, GUINT_TO_POINTER(qname), decl);
 
-	/* Hash table's reference */
-	bt_get(decl);
-
-	return 0;
-
-error:
+end:
 	return ret;
 }
 
@@ -459,15 +469,15 @@ error:
  *
  * @param scope	Declaration scope
  * @param name	Alias name (non-NULL)
- * @param decl	Declaration to register
+ * @param decl	Field type to register (copied)
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
 int ctx_decl_scope_register_alias(struct ctx_decl_scope *scope,
-	const char *name, struct bt_field_type *decl)
+		const char *name, struct ctf_field_type *decl)
 {
 	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_ALIAS,
-		name, decl);
+		name, (void *) decl);
 }
 
 /**
@@ -475,15 +485,15 @@ int ctx_decl_scope_register_alias(struct ctx_decl_scope *scope,
  *
  * @param scope	Declaration scope
  * @param name	Enumeration name (non-NULL)
- * @param decl	Enumeration declaration to register
+ * @param decl	Enumeration field type to register (copied)
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
 int ctx_decl_scope_register_enum(struct ctx_decl_scope *scope,
-	const char *name, struct bt_field_type *decl)
+		const char *name, struct ctf_field_type_enum *decl)
 {
 	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_ENUM,
-		name, decl);
+		name, (void *) decl);
 }
 
 /**
@@ -491,15 +501,15 @@ int ctx_decl_scope_register_enum(struct ctx_decl_scope *scope,
  *
  * @param scope	Declaration scope
  * @param name	Structure name (non-NULL)
- * @param decl	Structure declaration to register
+ * @param decl	Structure field type to register (copied)
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
 int ctx_decl_scope_register_struct(struct ctx_decl_scope *scope,
-	const char *name, struct bt_field_type *decl)
+		const char *name, struct ctf_field_type_struct *decl)
 {
 	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_STRUCT,
-		name, decl);
+		name, (void *) decl);
 }
 
 /**
@@ -507,15 +517,15 @@ int ctx_decl_scope_register_struct(struct ctx_decl_scope *scope,
  *
  * @param scope	Declaration scope
  * @param name	Variant name (non-NULL)
- * @param decl	Variant declaration to register
+ * @param decl	Variant field type to register
  * @returns	0 if registration went okay, negative value otherwise
  */
 static
 int ctx_decl_scope_register_variant(struct ctx_decl_scope *scope,
-	const char *name, struct bt_field_type *decl)
+		const char *name, struct ctf_field_type_variant *decl)
 {
 	return ctx_decl_scope_register_prefix_alias(scope, _PREFIX_VARIANT,
-		name, decl);
+		name, (void *) decl);
 }
 
 /**
@@ -527,9 +537,6 @@ static
 void ctx_destroy(struct ctx *ctx)
 {
 	struct ctx_decl_scope *scope;
-	/*
-	 * Destroy all scopes, from current one to the root scope.
-	 */
 
 	if (!ctx) {
 		goto end;
@@ -537,6 +544,9 @@ void ctx_destroy(struct ctx *ctx)
 
 	scope = ctx->current_scope;
 
+	/*
+	 * Destroy all scopes, from current one to the root scope.
+	 */
 	while (scope) {
 		struct ctx_decl_scope *parent_scope = scope->parent_scope;
 
@@ -546,11 +556,14 @@ void ctx_destroy(struct ctx *ctx)
 
 	bt_put(ctx->trace);
 
-	if (ctx->stream_classes) {
-		g_hash_table_destroy(ctx->stream_classes);
+	if (ctx->ctf_tc) {
+		ctf_trace_class_destroy(ctx->ctf_tc);
 	}
 
-	free(ctx->trace_name_suffix);
+	if (ctx->trace_class_name_suffix) {
+		free(ctx->trace_class_name_suffix);
+	}
+
 	g_free(ctx);
 
 end:
@@ -564,12 +577,10 @@ end:
  * @returns	New visitor context, or NULL on error
  */
 static
-struct ctx *ctx_create(struct bt_trace *trace,
-		const struct ctf_metadata_decoder_config *decoder_config,
-		const char *trace_name_suffix)
+struct ctx *ctx_create(const struct ctf_metadata_decoder_config *decoder_config,
+		const char *trace_class_name_suffix)
 {
 	struct ctx *ctx = NULL;
-	struct ctx_decl_scope *scope = NULL;
 
 	BT_ASSERT(decoder_config);
 
@@ -579,39 +590,42 @@ struct ctx *ctx_create(struct bt_trace *trace,
 		goto error;
 	}
 
+	ctx->trace = bt_trace_create();
+	if (!ctx->trace) {
+		BT_LOGE_STR("Cannot create empty trace.");
+		goto error;
+	}
+
+	ctx->ctf_tc = ctf_trace_class_create();
+	if (!ctx->ctf_tc) {
+		BT_LOGE_STR("Cannot create CTF trace class.");
+		goto error;
+	}
+
 	/* Root declaration scope */
-	scope = ctx_decl_scope_create(NULL);
-	if (!scope) {
+	ctx->current_scope = ctx_decl_scope_create(NULL);
+	if (!ctx->current_scope) {
 		BT_LOGE_STR("Cannot create declaration scope.");
 		goto error;
 	}
 
-	ctx->stream_classes = g_hash_table_new_full(g_int64_hash,
-		g_int64_equal, g_free, (GDestroyNotify) bt_put);
-	if (!ctx->stream_classes) {
-		BT_LOGE_STR("Failed to allocate a GHashTable.");
-		goto error;
-	}
-
-	if (trace_name_suffix) {
-		ctx->trace_name_suffix = strdup(trace_name_suffix);
-		if (!ctx->trace_name_suffix) {
+	if (trace_class_name_suffix) {
+		ctx->trace_class_name_suffix = strdup(trace_class_name_suffix);
+		if (!ctx->trace_class_name_suffix) {
 			BT_LOGE_STR("Failed to copy string.");
 			goto error;
 		}
 	}
 
-	ctx->trace = trace;
-	ctx->current_scope = scope;
-	scope = NULL;
-	ctx->trace_bo = BT_BYTE_ORDER_NATIVE;
 	ctx->decoder_config = *decoder_config;
-	return ctx;
+	goto end;
 
 error:
 	ctx_destroy(ctx);
-	ctx_decl_scope_destroy(scope);
-	return NULL;
+	ctx = NULL;
+
+end:
+	return ctx;
 }
 
 /**
@@ -662,7 +676,7 @@ end:
 
 static
 int visit_type_specifier_list(struct ctx *ctx, struct ctf_node *ts_list,
-	struct bt_field_type **decl);
+		struct ctf_field_type **decl);
 
 static
 char *remove_underscores_from_field_ref(const char *field_ref)
@@ -1043,10 +1057,10 @@ end:
 }
 
 static
-enum bt_byte_order byte_order_from_unary_expr(struct ctf_node *unary_expr)
+enum ctf_byte_order byte_order_from_unary_expr(struct ctf_node *unary_expr)
 {
 	const char *str;
-	enum bt_byte_order bo = BT_BYTE_ORDER_UNKNOWN;
+	enum ctf_byte_order bo = -1;
 
 	if (unary_expr->u.unary_expression.type != UNARY_STRING) {
 		_BT_LOGE_NODE(unary_expr,
@@ -1057,11 +1071,11 @@ enum bt_byte_order byte_order_from_unary_expr(struct ctf_node *unary_expr)
 	str = unary_expr->u.unary_expression.u.string;
 
 	if (!strcmp(str, "be") || !strcmp(str, "network")) {
-		bo = BT_BYTE_ORDER_BIG_ENDIAN;
+		bo = CTF_BYTE_ORDER_BIG;
 	} else if (!strcmp(str, "le")) {
-		bo = BT_BYTE_ORDER_LITTLE_ENDIAN;
+		bo = CTF_BYTE_ORDER_LITTLE;
 	} else if (!strcmp(str, "native")) {
-		bo = BT_BYTE_ORDER_NATIVE;
+		bo = CTF_BYTE_ORDER_DEFAULT;
 	} else {
 		_BT_LOGE_NODE(unary_expr,
 			"Unexpected \"byte_order\" attribute value: "
@@ -1075,13 +1089,13 @@ end:
 }
 
 static
-enum bt_byte_order get_real_byte_order(struct ctx *ctx,
-	struct ctf_node *uexpr)
+enum ctf_byte_order get_real_byte_order(struct ctx *ctx,
+		struct ctf_node *uexpr)
 {
-	enum bt_byte_order bo = byte_order_from_unary_expr(uexpr);
+	enum ctf_byte_order bo = byte_order_from_unary_expr(uexpr);
 
-	if (bo == BT_BYTE_ORDER_NATIVE) {
-		bo = bt_trace_get_native_byte_order(ctx->trace);
+	if (bo == CTF_BYTE_ORDER_DEFAULT) {
+		bo = ctx->ctf_tc->default_byte_order;
 	}
 
 	return bo;
@@ -1090,12 +1104,12 @@ enum bt_byte_order get_real_byte_order(struct ctx *ctx,
 static
 int is_align_valid(uint64_t align)
 {
-	return (align != 0) && !(align & (align - 1ULL));
+	return (align != 0) && !(align & (align - UINT64_C(1)));
 }
 
 static
 int get_type_specifier_name(struct ctx *ctx, struct ctf_node *type_specifier,
-	GString *str)
+		GString *str)
 {
 	int ret = 0;
 
@@ -1213,7 +1227,7 @@ end:
 
 static
 int get_type_specifier_list_name(struct ctx *ctx,
-	struct ctf_node *type_specifier_list, GString *str)
+		struct ctf_node *type_specifier_list, GString *str)
 {
 	int ret = 0;
 	struct ctf_node *iter;
@@ -1239,8 +1253,8 @@ end:
 
 static
 GQuark create_typealias_identifier(struct ctx *ctx,
-	struct ctf_node *type_specifier_list,
-	struct ctf_node *node_type_declarator)
+		struct ctf_node *type_specifier_list,
+		struct ctf_node *node_type_declarator)
 {
 	int ret;
 	char *str_c;
@@ -1275,16 +1289,15 @@ end:
 
 static
 int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
-	GQuark *field_name, struct ctf_node *node_type_declarator,
-	struct bt_field_type **field_decl,
-	struct bt_field_type *nested_decl)
+		GQuark *field_name, struct ctf_node *node_type_declarator,
+		struct ctf_field_type **field_decl,
+		struct ctf_field_type *nested_decl)
 {
 	/*
 	 * During this whole function, nested_decl is always OURS,
 	 * whereas field_decl is an output which we create, but
 	 * belongs to the caller (it is moved).
 	 */
-
 	int ret = 0;
 	*field_decl = NULL;
 
@@ -1316,17 +1329,16 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 
 		if (node_type_declarator && !bt_list_empty(pointers)) {
 			GQuark qalias;
-			_BT_FIELD_TYPE_INIT(nested_decl_copy);
 
 			/*
 			 * If we have a pointer declarator, it HAS to
-			 * be present in the typealiases (else fail).
+		 	 * be present in the typealiases (else fail).
 			 */
 			qalias = create_typealias_identifier(ctx,
 				type_specifier_list, node_type_declarator);
 			nested_decl =
 				ctx_decl_scope_lookup_alias(ctx->current_scope,
-					g_quark_to_string(qalias), -1);
+					g_quark_to_string(qalias), -1, true);
 			if (!nested_decl) {
 				_BT_LOGE_NODE(node_type_declarator,
 					"Cannot find type alias: name=\"%s\"",
@@ -1335,24 +1347,13 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 				goto error;
 			}
 
-			/* Make a copy of it */
-			nested_decl_copy = bt_field_type_copy(nested_decl);
-			BT_PUT(nested_decl);
-			if (!nested_decl_copy) {
-				_BT_LOGE_NODE(node_type_declarator,
-					"Cannot copy nested field type.");
-				ret = -EINVAL;
-				goto error;
-			}
+			if (nested_decl->id == CTF_FIELD_TYPE_ID_INT) {
+				/* Pointer: force integer's base to 16 */
+				struct ctf_field_type_int *int_ft =
+					(void *) nested_decl;
 
-			BT_MOVE(nested_decl, nested_decl_copy);
-
-			/* Force integer's base to 16 since it's a pointer */
-			if (bt_field_type_is_integer(nested_decl)) {
-				ret = bt_field_type_integer_set_base(
-					nested_decl,
-					BT_INTEGER_BASE_HEXADECIMAL);
-				BT_ASSERT(ret == 0);
+				int_ft->disp_base =
+					BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL;
 			}
 		} else {
 			ret = visit_type_specifier_list(ctx,
@@ -1367,7 +1368,8 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 	BT_ASSERT(nested_decl);
 
 	if (!node_type_declarator) {
-		BT_MOVE(*field_decl, nested_decl);
+		*field_decl = nested_decl;
+		nested_decl = NULL;
 		goto end;
 	}
 
@@ -1385,12 +1387,13 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 			*field_name = 0;
 		}
 
-		BT_MOVE(*field_decl, nested_decl);
+		*field_decl = nested_decl;
+		nested_decl = NULL;
 		goto end;
 	} else {
 		struct ctf_node *first;
-		_BT_FIELD_TYPE_INIT(decl);
-		_BT_FIELD_TYPE_INIT(outer_field_decl);
+		struct ctf_field_type *decl = NULL;
+		struct ctf_field_type *outer_field_decl = NULL;
 		struct bt_list_head *length =
 			&node_type_declarator->
 				u.type_declarator.u.nested.length;
@@ -1415,29 +1418,22 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 		switch (first->u.unary_expression.type) {
 		case UNARY_UNSIGNED_CONSTANT:
 		{
-			size_t len;
-			_BT_FIELD_TYPE_INIT(array_decl);
+			struct ctf_field_type_array *array_decl = NULL;
 
-			len = first->u.unary_expression.u.unsigned_constant;
-			array_decl = bt_field_type_array_create(nested_decl,
-				len);
-			BT_PUT(nested_decl);
-			if (!array_decl) {
-				_BT_LOGE_NODE(first,
-					"Cannot create array field type.");
-				ret = -ENOMEM;
-				goto error;
-			}
-
-			BT_MOVE(decl, array_decl);
+			array_decl = ctf_field_type_array_create();
+			BT_ASSERT(array_decl);
+			array_decl->length =
+				first->u.unary_expression.u.unsigned_constant;
+			array_decl->base.elem_ft = nested_decl;
+			nested_decl = NULL;
+			decl = (void *) array_decl;
 			break;
 		}
 		case UNARY_STRING:
 		{
 			/* Lookup unsigned integer definition, create seq. */
-			_BT_FIELD_TYPE_INIT(seq_decl);
+			struct ctf_field_type_sequence *seq_decl = NULL;
 			char *length_name = concatenate_unary_strings(length);
-			char *length_name_no_underscore;
 
 			if (!length_name) {
 				_BT_LOGE_NODE(node_type_declarator,
@@ -1446,26 +1442,72 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 				goto error;
 			}
 
-			length_name_no_underscore =
-				remove_underscores_from_field_ref(length_name);
-			if (!length_name_no_underscore) {
-				/* remove_underscores_from_field_ref() logs errors */
-				ret = -EINVAL;
-				goto error;
-			}
-			seq_decl = bt_field_type_sequence_create(
-				nested_decl, length_name_no_underscore);
-			free(length_name_no_underscore);
-			g_free(length_name);
-			BT_PUT(nested_decl);
-			if (!seq_decl) {
-				_BT_LOGE_NODE(node_type_declarator,
-					"Cannot create sequence field type.");
-				ret = -ENOMEM;
-				goto error;
+			if (strncmp(length_name, "env.", 4) == 0) {
+				/* This is, in fact, an array */
+				const char *env_entry_name = &length_name[4];
+				struct ctf_trace_class_env_entry *env_entry =
+					ctf_trace_class_borrow_env_entry_by_name(
+						ctx->ctf_tc, env_entry_name);
+				struct ctf_field_type_array *array_decl;
+
+				if (!env_entry) {
+					_BT_LOGE_NODE(node_type_declarator,
+						"Cannot find environment entry: "
+						"name=\"%s\"", env_entry_name);
+					ret = -EINVAL;
+					goto error;
+				}
+
+				if (env_entry->type != CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT) {
+					_BT_LOGE_NODE(node_type_declarator,
+						"Wrong environment entry type "
+						"(expecting integer): "
+						"name=\"%s\"", env_entry_name);
+					ret = -EINVAL;
+					goto error;
+				}
+
+				if (env_entry->value.i < 0) {
+					_BT_LOGE_NODE(node_type_declarator,
+						"Invalid, negative array length: "
+						"env-entry-name=\"%s\", "
+						"value=%" PRId64,
+						env_entry_name,
+						env_entry->value.i);
+					ret = -EINVAL;
+					goto error;
+				}
+
+				array_decl = ctf_field_type_array_create();
+				BT_ASSERT(array_decl);
+				array_decl->length =
+					(uint64_t) env_entry->value.i;
+				array_decl->base.elem_ft = nested_decl;
+				nested_decl = NULL;
+				decl = (void *) array_decl;
+			} else {
+				char *length_name_no_underscore =
+					remove_underscores_from_field_ref(
+						length_name);
+				if (!length_name_no_underscore) {
+					/*
+					 * remove_underscores_from_field_ref()
+					 * logs errors
+					 */
+					ret = -EINVAL;
+					goto error;
+				}
+				seq_decl = ctf_field_type_sequence_create();
+				BT_ASSERT(seq_decl);
+				seq_decl->base.elem_ft = nested_decl;
+				nested_decl = NULL;
+				g_string_assign(seq_decl->length_ref,
+					length_name_no_underscore);
+				free(length_name_no_underscore);
+				decl = (void *) seq_decl;
 			}
 
-			BT_MOVE(decl, seq_decl);
+			g_free(length_name);
 			break;
 		}
 		default:
@@ -1497,37 +1539,41 @@ int visit_type_declarator(struct ctx *ctx, struct ctf_node *type_specifier_list,
 		}
 
 		BT_ASSERT(outer_field_decl);
-		BT_MOVE(*field_decl, outer_field_decl);
+		*field_decl = outer_field_decl;
+		outer_field_decl = NULL;
+	}
+
+	BT_ASSERT(*field_decl);
+	goto end;
+
+error:
+	ctf_field_type_destroy(*field_decl);
+	*field_decl = NULL;
+
+	if (ret >= 0) {
+		ret = -1;
 	}
 
 end:
-	BT_PUT(nested_decl);
-	BT_ASSERT(*field_decl);
-
-	return 0;
-
-error:
-	BT_PUT(nested_decl);
-	BT_PUT(*field_decl);
-
+	ctf_field_type_destroy(nested_decl);
+	nested_decl = NULL;
 	return ret;
 }
 
 static
 int visit_struct_decl_field(struct ctx *ctx,
-	struct bt_field_type *struct_decl,
-	struct ctf_node *type_specifier_list,
-	struct bt_list_head *type_declarators)
+		struct ctf_field_type_struct *struct_decl,
+		struct ctf_node *type_specifier_list,
+		struct bt_list_head *type_declarators)
 {
 	int ret = 0;
 	struct ctf_node *iter;
-	_BT_FIELD_TYPE_INIT(field_decl);
+	struct ctf_field_type *field_decl = NULL;
 
 	bt_list_for_each_entry(iter, type_declarators, siblings) {
 		field_decl = NULL;
 		GQuark qfield_name;
 		const char *field_name;
-		_BT_FIELD_TYPE_INIT(efield_decl);
 
 		ret = visit_type_declarator(ctx, type_specifier_list,
 			&qfield_name, iter, &field_decl, NULL);
@@ -1542,11 +1588,8 @@ int visit_struct_decl_field(struct ctx *ctx,
 		field_name = g_quark_to_string(qfield_name);
 
 		/* Check if field with same name already exists */
-		efield_decl =
-			bt_field_type_structure_get_field_type_by_name(
-				struct_decl, field_name);
-		if (efield_decl) {
-			BT_PUT(efield_decl);
+		if (ctf_field_type_struct_borrow_member_by_name(
+				struct_decl, field_name)) {
 			_BT_LOGE_NODE(type_specifier_list,
 				"Duplicate field in structure field type: "
 				"field-name=\"%s\"", field_name);
@@ -1555,41 +1598,33 @@ int visit_struct_decl_field(struct ctx *ctx,
 		}
 
 		/* Add field to structure */
-		ret = bt_field_type_structure_add_field(struct_decl,
-			field_decl, field_name);
-		BT_PUT(field_decl);
-		if (ret) {
-			_BT_LOGE_NODE(type_specifier_list,
-				"Cannot add field to structure field type: "
-				"field-name=\"%s\", ret=%d",
-				g_quark_to_string(qfield_name), ret);
-			goto error;
-		}
+		ctf_field_type_struct_append_member(struct_decl,
+			field_name, field_decl);
+		field_decl = NULL;
 	}
 
 	return 0;
 
 error:
-	BT_PUT(field_decl);
-
+	ctf_field_type_destroy(field_decl);
+	field_decl = NULL;
 	return ret;
 }
 
 static
 int visit_variant_decl_field(struct ctx *ctx,
-	struct bt_field_type *variant_decl,
-	struct ctf_node *type_specifier_list,
-	struct bt_list_head *type_declarators)
+		struct ctf_field_type_variant *variant_decl,
+		struct ctf_node *type_specifier_list,
+		struct bt_list_head *type_declarators)
 {
 	int ret = 0;
 	struct ctf_node *iter;
-	_BT_FIELD_TYPE_INIT(field_decl);
+	struct ctf_field_type *field_decl = NULL;
 
 	bt_list_for_each_entry(iter, type_declarators, siblings) {
 		field_decl = NULL;
 		GQuark qfield_name;
 		const char *field_name;
-		_BT_FIELD_TYPE_INIT(efield_decl);
 
 		ret = visit_type_declarator(ctx, type_specifier_list,
 			&qfield_name, iter, &field_decl, NULL);
@@ -1604,11 +1639,8 @@ int visit_variant_decl_field(struct ctx *ctx,
 		field_name = g_quark_to_string(qfield_name);
 
 		/* Check if field with same name already exists */
-		efield_decl =
-			bt_field_type_variant_get_field_type_by_name(
-				variant_decl, field_name);
-		if (efield_decl) {
-			BT_PUT(efield_decl);
+		if (ctf_field_type_variant_borrow_option_by_name(
+				variant_decl, field_name)) {
 			_BT_LOGE_NODE(type_specifier_list,
 				"Duplicate field in variant field type: "
 				"field-name=\"%s\"", field_name);
@@ -1617,34 +1649,27 @@ int visit_variant_decl_field(struct ctx *ctx,
 		}
 
 		/* Add field to structure */
-		ret = bt_field_type_variant_add_field(variant_decl,
-			field_decl, field_name);
-		BT_PUT(field_decl);
-		if (ret) {
-			_BT_LOGE_NODE(type_specifier_list,
-				"Cannot add field to variant field type: "
-				"field-name=\"%s\", ret=%d",
-				g_quark_to_string(qfield_name), ret);
-			goto error;
-		}
+		ctf_field_type_variant_append_option(variant_decl,
+			field_name, field_decl);
+		field_decl = NULL;
 	}
 
 	return 0;
 
 error:
-	BT_PUT(field_decl);
-
+	ctf_field_type_destroy(field_decl);
+	field_decl = NULL;
 	return ret;
 }
 
 static
 int visit_typedef(struct ctx *ctx, struct ctf_node *type_specifier_list,
-	struct bt_list_head *type_declarators)
+		struct bt_list_head *type_declarators)
 {
 	int ret = 0;
 	GQuark qidentifier;
 	struct ctf_node *iter;
-	_BT_FIELD_TYPE_INIT(type_decl);
+	struct ctf_field_type *type_decl = NULL;
 
 	bt_list_for_each_entry(iter, type_declarators, siblings) {
 		ret = visit_type_declarator(ctx, type_specifier_list,
@@ -1657,8 +1682,11 @@ int visit_typedef(struct ctx *ctx, struct ctf_node *type_specifier_list,
 		}
 
 		/* Do not allow typedef and typealias of untagged variants */
-		if (bt_field_type_is_variant(type_decl)) {
-			if (bt_field_type_variant_get_tag_name(type_decl)) {
+		if (type_decl->id == CTF_FIELD_TYPE_ID_VARIANT) {
+			struct ctf_field_type_variant *var_ft =
+				(void *) type_decl;
+
+			if (var_ft->tag_path.path->len == 0) {
 				_BT_LOGE_NODE(iter,
 					"Type definition of untagged variant field type is not allowed.");
 				ret = -EPERM;
@@ -1677,20 +1705,20 @@ int visit_typedef(struct ctx *ctx, struct ctf_node *type_specifier_list,
 	}
 
 end:
-	BT_PUT(type_decl);
-
+	ctf_field_type_destroy(type_decl);
+	type_decl = NULL;
 	return ret;
 }
 
 static
 int visit_typealias(struct ctx *ctx, struct ctf_node *target,
-	struct ctf_node *alias)
+		struct ctf_node *alias)
 {
 	int ret = 0;
 	GQuark qalias;
 	struct ctf_node *node;
 	GQuark qdummy_field_name;
-	_BT_FIELD_TYPE_INIT(type_decl);
+	struct ctf_field_type *type_decl = NULL;
 
 	/* Create target type declaration */
 	if (bt_list_empty(&target->u.typealias_target.type_declarators)) {
@@ -1712,8 +1740,10 @@ int visit_typealias(struct ctx *ctx, struct ctf_node *target,
 	}
 
 	/* Do not allow typedef and typealias of untagged variants */
-	if (bt_field_type_is_variant(type_decl)) {
-		if (bt_field_type_variant_get_tag_name(type_decl)) {
+	if (type_decl->id == CTF_FIELD_TYPE_ID_VARIANT) {
+		struct ctf_field_type_variant *var_ft = (void *) type_decl;
+
+		if (var_ft->tag_path.path->len == 0) {
 			_BT_LOGE_NODE(target,
 				"Type definition of untagged variant field type is not allowed.");
 			ret = -EPERM;
@@ -1748,14 +1778,14 @@ int visit_typealias(struct ctx *ctx, struct ctf_node *target,
 	}
 
 end:
-	BT_PUT(type_decl);
-
+	ctf_field_type_destroy(type_decl);
+	type_decl = NULL;
 	return ret;
 }
 
 static
 int visit_struct_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
-	struct bt_field_type *struct_decl)
+		struct ctf_field_type_struct *struct_decl)
 {
 	int ret = 0;
 
@@ -1805,7 +1835,7 @@ end:
 
 static
 int visit_variant_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
-	struct bt_field_type *variant_decl)
+		struct ctf_field_type_variant *variant_decl)
 {
 	int ret = 0;
 
@@ -1856,18 +1886,17 @@ end:
 
 static
 int visit_struct_decl(struct ctx *ctx, const char *name,
-	struct bt_list_head *decl_list, int has_body,
-	struct bt_list_head *min_align,
-	struct bt_field_type **struct_decl)
+		struct bt_list_head *decl_list, int has_body,
+		struct bt_list_head *min_align,
+		struct ctf_field_type_struct **struct_decl)
 {
 	int ret = 0;
 
+	BT_ASSERT(struct_decl);
 	*struct_decl = NULL;
 
 	/* For named struct (without body), lookup in declaration scope */
 	if (!has_body) {
-		_BT_FIELD_TYPE_INIT(struct_decl_copy);
-
 		if (!name) {
 			BT_LOGE_STR("Bodyless structure field type: missing name.");
 			ret = -EPERM;
@@ -1875,34 +1904,20 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 		}
 
 		*struct_decl = ctx_decl_scope_lookup_struct(ctx->current_scope,
-			name, -1);
+			name, -1, true);
 		if (!*struct_decl) {
 			BT_LOGE("Cannot find structure field type: name=\"struct %s\"",
 				name);
 			ret = -EINVAL;
 			goto error;
 		}
-
-		/* Make a copy of it */
-		struct_decl_copy = bt_field_type_copy(*struct_decl);
-		if (!struct_decl_copy) {
-			BT_LOGE_STR("Cannot create copy of structure field type.");
-			ret = -EINVAL;
-			goto error;
-		}
-
-		BT_MOVE(*struct_decl, struct_decl_copy);
 	} else {
 		struct ctf_node *entry_node;
 		uint64_t min_align_value = 0;
 
 		if (name) {
-			_BT_FIELD_TYPE_INIT(estruct_decl);
-
-			estruct_decl = ctx_decl_scope_lookup_struct(
-				ctx->current_scope, name, 1);
-			if (estruct_decl) {
-				BT_PUT(estruct_decl);
+			if (ctx_decl_scope_lookup_struct(
+					ctx->current_scope, name, 1, false)) {
 				BT_LOGE("Structure field type already declared in local scope: "
 					"name=\"struct %s\"", name);
 				ret = -EINVAL;
@@ -1919,28 +1934,14 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 			}
 		}
 
-		*struct_decl = bt_field_type_structure_create();
-		if (!*struct_decl) {
-			BT_LOGE_STR("Cannot create empty structure field type.");
-			ret = -ENOMEM;
-			goto error;
-		}
+		*struct_decl = ctf_field_type_struct_create();
+		BT_ASSERT(*struct_decl);
 
 		if (min_align_value != 0) {
-			ret = bt_field_type_set_alignment(*struct_decl,
-					min_align_value);
-			if (ret) {
-				BT_LOGE("Cannot set structure field type's alignment: "
-					"ret=%d", ret);
-				goto error;
-			}
+			(*struct_decl)->base.alignment = min_align_value;
 		}
 
-		ret = ctx_push_scope(ctx);
-		if (ret) {
-			BT_LOGE_STR("Cannot push scope.");
-			goto error;
-		}
+		_TRY_PUSH_SCOPE_OR_GOTO_ERROR();
 
 		bt_list_for_each_entry(entry_node, decl_list, siblings) {
 			ret = visit_struct_decl_entry(ctx, entry_node,
@@ -1970,25 +1971,24 @@ int visit_struct_decl(struct ctx *ctx, const char *name,
 	return 0;
 
 error:
-	BT_PUT(*struct_decl);
-
+	ctf_field_type_destroy((void *) *struct_decl);
+	*struct_decl = NULL;
 	return ret;
 }
 
 static
 int visit_variant_decl(struct ctx *ctx, const char *name,
 	const char *tag, struct bt_list_head *decl_list,
-	int has_body, struct bt_field_type **variant_decl)
+	int has_body, struct ctf_field_type_variant **variant_decl)
 {
 	int ret = 0;
-	_BT_FIELD_TYPE_INIT(untagged_variant_decl);
+	struct ctf_field_type_variant *untagged_variant_decl = NULL;
 
+	BT_ASSERT(variant_decl);
 	*variant_decl = NULL;
 
 	/* For named variant (without body), lookup in declaration scope */
 	if (!has_body) {
-		_BT_FIELD_TYPE_INIT(variant_decl_copy);
-
 		if (!name) {
 			BT_LOGE_STR("Bodyless variant field type: missing name.");
 			ret = -EPERM;
@@ -1997,34 +1997,19 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 
 		untagged_variant_decl =
 			ctx_decl_scope_lookup_variant(ctx->current_scope,
-				name, -1);
+				name, -1, true);
 		if (!untagged_variant_decl) {
 			BT_LOGE("Cannot find variant field type: name=\"variant %s\"",
 				name);
 			ret = -EINVAL;
 			goto error;
 		}
-
-		/* Make a copy of it */
-		variant_decl_copy = bt_field_type_copy(
-			untagged_variant_decl);
-		if (!variant_decl_copy) {
-			BT_LOGE_STR("Cannot create copy of variant field type.");
-			ret = -EINVAL;
-			goto error;
-		}
-
-		BT_MOVE(untagged_variant_decl, variant_decl_copy);
 	} else {
 		struct ctf_node *entry_node;
 
 		if (name) {
-			struct bt_field_type *evariant_decl =
-				ctx_decl_scope_lookup_struct(ctx->current_scope,
-					name, 1);
-
-			if (evariant_decl) {
-				BT_PUT(evariant_decl);
+			if (ctx_decl_scope_lookup_variant(ctx->current_scope,
+					name, 1, false)) {
 				BT_LOGE("Variant field type already declared in local scope: "
 					"name=\"variant %s\"", name);
 				ret = -EINVAL;
@@ -2032,19 +2017,9 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 			}
 		}
 
-		untagged_variant_decl = bt_field_type_variant_create(NULL,
-			NULL);
-		if (!untagged_variant_decl) {
-			BT_LOGE_STR("Cannot create empty variant field type.");
-			ret = -ENOMEM;
-			goto error;
-		}
-
-		ret = ctx_push_scope(ctx);
-		if (ret) {
-			BT_LOGE_STR("Cannot push scope.");
-			goto error;
-		}
+		untagged_variant_decl = ctf_field_type_variant_create();
+		BT_ASSERT(untagged_variant_decl);
+		_TRY_PUSH_SCOPE_OR_GOTO_ERROR();
 
 		bt_list_for_each_entry(entry_node, decl_list, siblings) {
 			ret = visit_variant_decl_entry(ctx, entry_node,
@@ -2077,7 +2052,8 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 	 * return untagged variant.
 	 */
 	if (!tag) {
-		BT_MOVE(*variant_decl, untagged_variant_decl);
+		*variant_decl = untagged_variant_decl;
+		untagged_variant_decl = NULL;
 	} else {
 		/*
 		 * At this point, we have a fresh untagged variant; nobody
@@ -2091,44 +2067,54 @@ int visit_variant_decl(struct ctx *ctx, const char *name,
 			goto error;
 		}
 
-		ret = bt_field_type_variant_set_tag_name(
-			untagged_variant_decl, tag_no_underscore);
+		g_string_assign(untagged_variant_decl->tag_ref,
+			tag_no_underscore);
 		free(tag_no_underscore);
-		if (ret) {
-			BT_LOGE("Cannot set variant field type's tag name: "
-				"tag-name=\"%s\"", tag);
-			goto error;
-		}
-
-		BT_MOVE(*variant_decl, untagged_variant_decl);
+		*variant_decl = untagged_variant_decl;
+		untagged_variant_decl = NULL;
 	}
 
 	BT_ASSERT(!untagged_variant_decl);
 	BT_ASSERT(*variant_decl);
-
 	return 0;
 
 error:
-	BT_PUT(untagged_variant_decl);
-	BT_PUT(*variant_decl);
-
+	ctf_field_type_destroy((void *) untagged_variant_decl);
+	untagged_variant_decl = NULL;
+	ctf_field_type_destroy((void *) *variant_decl);
+	*variant_decl = NULL;
 	return ret;
 }
 
+struct uori {
+	bool is_signed;
+	union {
+		uint64_t u;
+		uint64_t i;
+	} value;
+};
+
 static
 int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
-	struct bt_field_type *enum_decl, int64_t *last, bt_bool is_signed)
+		struct ctf_field_type_enum *enum_decl, struct uori *last)
 {
 	int ret = 0;
 	int nr_vals = 0;
 	struct ctf_node *iter;
-	int64_t start = 0, end = 0;
+	struct uori start = {
+		.is_signed = false,
+		.value.u = 0,
+	};
+	struct uori end = {
+		.is_signed = false,
+		.value.u = 0,
+	};
 	const char *label = enumerator->u.enumerator.id;
 	const char *effective_label = label;
 	struct bt_list_head *values = &enumerator->u.enumerator.values;
 
 	bt_list_for_each_entry(iter, values, siblings) {
-		int64_t *target;
+		struct uori *target;
 
 		if (iter->type != NODE_UNARY_EXPRESSION) {
 			_BT_LOGE_NODE(iter,
@@ -2147,10 +2133,13 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 
 		switch (iter->u.unary_expression.type) {
 		case UNARY_SIGNED_CONSTANT:
-			*target = iter->u.unary_expression.u.signed_constant;
+			target->is_signed = true;
+			target->value.i =
+				iter->u.unary_expression.u.signed_constant;
 			break;
 		case UNARY_UNSIGNED_CONSTANT:
-			*target = (int64_t)
+			target->is_signed = false;
+			target->value.u =
 				iter->u.unary_expression.u.unsigned_constant;
 			break;
 		default:
@@ -2182,7 +2171,11 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 		end = start;
 	}
 
-	*last = end + 1;
+	if (end.is_signed) {
+		last->value.i = end.value.i + 1;
+	} else {
+		last->value.u = end.value.u + 1;
+	}
 
 	if (label[0] == '_') {
 		/*
@@ -2196,23 +2189,8 @@ int visit_enum_decl_entry(struct ctx *ctx, struct ctf_node *enumerator,
 		effective_label = &label[1];
 	}
 
-	if (is_signed) {
-		ret = bt_field_type_enumeration_signed_add_mapping(enum_decl,
-			effective_label, start, end);
-	} else {
-		ret = bt_field_type_enumeration_unsigned_add_mapping(enum_decl,
-			effective_label, (uint64_t) start, (uint64_t) end);
-	}
-	if (ret) {
-		_BT_LOGE_NODE(enumerator,
-			"Cannot add mapping to enumeration field type: "
-			"label=\"%s\", ret=%d, "
-			"start-value-unsigned=%" PRIu64 ", "
-			"end-value-unsigned=%" PRIu64, label, ret,
-			(uint64_t) start, (uint64_t) end);
-		goto error;
-	}
-
+	ctf_field_type_enum_append_mapping(enum_decl, effective_label,
+		start.value.u, end.value.u);
 	return 0;
 
 error:
@@ -2221,21 +2199,19 @@ error:
 
 static
 int visit_enum_decl(struct ctx *ctx, const char *name,
-	struct ctf_node *container_type,
-	struct bt_list_head *enumerator_list,
-	int has_body,
-	struct bt_field_type **enum_decl)
+		struct ctf_node *container_type,
+		struct bt_list_head *enumerator_list,
+		int has_body, struct ctf_field_type_enum **enum_decl)
 {
 	int ret = 0;
 	GQuark qdummy_id;
-	_BT_FIELD_TYPE_INIT(integer_decl);
+	struct ctf_field_type_int *integer_decl = NULL;
 
+	BT_ASSERT(enum_decl);
 	*enum_decl = NULL;
 
 	/* For named enum (without body), lookup in declaration scope */
 	if (!has_body) {
-		_BT_FIELD_TYPE_INIT(enum_decl_copy);
-
 		if (!name) {
 			BT_LOGE_STR("Bodyless enumeration field type: missing name.");
 			ret = -EPERM;
@@ -2243,35 +2219,23 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		}
 
 		*enum_decl = ctx_decl_scope_lookup_enum(ctx->current_scope,
-			name, -1);
+			name, -1, true);
 		if (!*enum_decl) {
 			BT_LOGE("Cannot find enumeration field type: "
 				"name=\"enum %s\"", name);
 			ret = -EINVAL;
 			goto error;
 		}
-
-		/* Make a copy of it */
-		enum_decl_copy = bt_field_type_copy(*enum_decl);
-		if (!enum_decl_copy) {
-			BT_LOGE_STR("Cannot create copy of enumeration field type.");
-			ret = -EINVAL;
-			goto error;
-		}
-
-		BT_PUT(*enum_decl);
-		BT_MOVE(*enum_decl, enum_decl_copy);
 	} else {
 		struct ctf_node *iter;
-		int64_t last_value = 0;
+		struct uori last_value = {
+			.is_signed = false,
+			.value.u = 0,
+		};
 
 		if (name) {
-			_BT_FIELD_TYPE_INIT(eenum_decl);
-
-			eenum_decl = ctx_decl_scope_lookup_enum(
-				ctx->current_scope, name, 1);
-			if (eenum_decl) {
-				BT_PUT(eenum_decl);
+			if (ctx_decl_scope_lookup_enum(ctx->current_scope,
+					name, 1, false)) {
 				BT_LOGE("Enumeration field type already declared in local scope: "
 					"name=\"enum %s\"", name);
 				ret = -EINVAL;
@@ -2280,8 +2244,8 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		}
 
 		if (!container_type) {
-			integer_decl = ctx_decl_scope_lookup_alias(
-				ctx->current_scope, "int", -1);
+			integer_decl = (void *) ctx_decl_scope_lookup_alias(
+				ctx->current_scope, "int", -1, true);
 			if (!integer_decl) {
 				BT_LOGE_STR("Cannot find implicit `int` field type alias for enumeration field type.");
 				ret = -EINVAL;
@@ -2289,7 +2253,8 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 			}
 		} else {
 			ret = visit_type_declarator(ctx, container_type,
-				&qdummy_id, NULL, &integer_decl, NULL);
+				&qdummy_id, NULL, (void *) &integer_decl,
+				NULL);
 			if (ret) {
 				BT_ASSERT(!integer_decl);
 				ret = -EINVAL;
@@ -2299,26 +2264,24 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 
 		BT_ASSERT(integer_decl);
 
-		if (!bt_field_type_is_integer(integer_decl)) {
+		if (integer_decl->base.base.id != CTF_FIELD_TYPE_ID_INT) {
 			BT_LOGE("Container field type for enumeration field type is not an integer field type: "
-				"ft-id=%s",
-				bt_common_field_type_id_string(
-					bt_field_type_get_type_id(integer_decl)));
+				"ft-id=%d", integer_decl->base.base.id);
 			ret = -EINVAL;
 			goto error;
 		}
 
-		*enum_decl = bt_field_type_enumeration_create(integer_decl);
-		if (!*enum_decl) {
-			BT_LOGE_STR("Cannot create enumeration field type.");
-			ret = -ENOMEM;
-			goto error;
-		}
+		*enum_decl = ctf_field_type_enum_create();
+		BT_ASSERT(*enum_decl);
+		(*enum_decl)->base.base.base.alignment =
+			integer_decl->base.base.alignment;
+		ctf_field_type_int_copy_content((void *) *enum_decl,
+				(void *) integer_decl);
+		last_value.is_signed = (*enum_decl)->base.is_signed;
 
 		bt_list_for_each_entry(iter, enumerator_list, siblings) {
 			ret = visit_enum_decl_entry(ctx, iter, *enum_decl,
-				&last_value,
-				bt_field_type_integer_is_signed(integer_decl));
+				&last_value);
 			if (ret) {
 				_BT_LOGE_NODE(iter,
 					"Cannot visit enumeration field type entry: "
@@ -2338,25 +2301,25 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 		}
 	}
 
-	BT_PUT(integer_decl);
-
-	return 0;
+	goto end;
 
 error:
-	BT_PUT(integer_decl);
-	BT_PUT(*enum_decl);
+	ctf_field_type_destroy((void *) *enum_decl);
+	*enum_decl = NULL;
 
+end:
+	ctf_field_type_destroy((void *) integer_decl);
+	integer_decl = NULL;
 	return ret;
 }
 
 static
 int visit_type_specifier(struct ctx *ctx,
-	struct ctf_node *type_specifier_list,
-	struct bt_field_type **decl)
+		struct ctf_node *type_specifier_list,
+		struct ctf_field_type **decl)
 {
 	int ret = 0;
 	GString *str = NULL;
-	_BT_FIELD_TYPE_INIT(decl_copy);
 
 	*decl = NULL;
 	str = g_string_new("");
@@ -2367,7 +2330,8 @@ int visit_type_specifier(struct ctx *ctx,
 		goto error;
 	}
 
-	*decl = ctx_decl_scope_lookup_alias(ctx->current_scope, str->str, -1);
+	*decl = ctx_decl_scope_lookup_alias(ctx->current_scope, str->str, -1,
+		true);
 	if (!*decl) {
 		_BT_LOGE_NODE(type_specifier_list,
 			"Cannot find type alias: name=\"%s\"", str->str);
@@ -2375,46 +2339,35 @@ int visit_type_specifier(struct ctx *ctx,
 		goto error;
 	}
 
-	/* Make a copy of the type declaration */
-	decl_copy = bt_field_type_copy(*decl);
-	if (!decl_copy) {
-		_BT_LOGE_NODE(type_specifier_list,
-			"Cannot create field type copy.");
-		ret = -EINVAL;
-		goto error;
-	}
-
-	BT_MOVE(*decl, decl_copy);
-	(void) g_string_free(str, TRUE);
-	str = NULL;
-
-	return 0;
+	goto end;
 
 error:
-	if (str) {
-		(void) g_string_free(str, TRUE);
-	}
+	ctf_field_type_destroy(*decl);
+	*decl = NULL;
 
-	BT_PUT(*decl);
+end:
+	if (str) {
+		g_string_free(str, TRUE);
+	}
 
 	return ret;
 }
 
 static
 int visit_integer_decl(struct ctx *ctx,
-	struct bt_list_head *expressions,
-	struct bt_field_type **integer_decl)
+		struct bt_list_head *expressions,
+		struct ctf_field_type_int **integer_decl)
 {
 	int set = 0;
 	int ret = 0;
-	bt_bool signedness = 0;
+	int signedness = 0;
 	struct ctf_node *expression;
 	uint64_t alignment = 0, size = 0;
-	struct bt_clock_class *mapped_clock = NULL;
-	enum bt_string_encoding encoding = BT_STRING_ENCODING_NONE;
-	enum bt_integer_base base = BT_INTEGER_BASE_DECIMAL;
-	enum bt_byte_order byte_order =
-		bt_trace_get_native_byte_order(ctx->trace);
+	struct bt_clock_class *mapped_clock_class = NULL;
+	enum ctf_encoding encoding = CTF_ENCODING_NONE;
+	enum bt_field_type_integer_preferred_display_base base =
+		BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
+	enum ctf_byte_order byte_order = ctx->ctf_tc->default_byte_order;
 
 	*integer_decl = NULL;
 
@@ -2463,7 +2416,7 @@ int visit_integer_decl(struct ctx *ctx,
 			}
 
 			byte_order = get_real_byte_order(ctx, right);
-			if (byte_order == BT_BYTE_ORDER_UNKNOWN) {
+			if (byte_order == -1) {
 				_BT_LOGE_NODE(right,
 					"Invalid `byte_order` attribute in integer field type: "
 					"ret=%d", ret);
@@ -2557,16 +2510,16 @@ int visit_integer_decl(struct ctx *ctx,
 
 				switch (constant) {
 				case 2:
-					base = BT_INTEGER_BASE_BINARY;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_BINARY;
 					break;
 				case 8:
-					base = BT_INTEGER_BASE_OCTAL;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL;
 					break;
 				case 10:
-					base = BT_INTEGER_BASE_DECIMAL;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
 					break;
 				case 16:
-					base = BT_INTEGER_BASE_HEXADECIMAL;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL;
 					break;
 				default:
 					_BT_LOGE_NODE(right,
@@ -2594,20 +2547,20 @@ int visit_integer_decl(struct ctx *ctx,
 						!strcmp(s_right, "d") ||
 						!strcmp(s_right, "i") ||
 						!strcmp(s_right, "u")) {
-					base = BT_INTEGER_BASE_DECIMAL;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
 				} else if (!strcmp(s_right, "hexadecimal") ||
 						!strcmp(s_right, "hex") ||
 						!strcmp(s_right, "x") ||
 						!strcmp(s_right, "X") ||
 						!strcmp(s_right, "p")) {
-					base = BT_INTEGER_BASE_HEXADECIMAL;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL;
 				} else if (!strcmp(s_right, "octal") ||
 						!strcmp(s_right, "oct") ||
 						!strcmp(s_right, "o")) {
-					base = BT_INTEGER_BASE_OCTAL;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL;
 				} else if (!strcmp(s_right, "binary") ||
 						!strcmp(s_right, "b")) {
-					base = BT_INTEGER_BASE_BINARY;
+					base = BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_BINARY;
 				} else {
 					_BT_LOGE_NODE(right,
 						"Unexpected unary expression for integer field type's `base` attribute: "
@@ -2660,13 +2613,12 @@ int visit_integer_decl(struct ctx *ctx,
 			if (!strcmp(s_right, "UTF8") ||
 					!strcmp(s_right, "utf8") ||
 					!strcmp(s_right, "utf-8") ||
-					!strcmp(s_right, "UTF-8")) {
-				encoding = BT_STRING_ENCODING_UTF8;
-			} else if (!strcmp(s_right, "ASCII") ||
+					!strcmp(s_right, "UTF-8") ||
+					!strcmp(s_right, "ASCII") ||
 					!strcmp(s_right, "ascii")) {
-				encoding = BT_STRING_ENCODING_ASCII;
+				encoding = CTF_ENCODING_UTF8;
 			} else if (!strcmp(s_right, "none")) {
-				encoding = BT_STRING_ENCODING_NONE;
+				encoding = CTF_ENCODING_NONE;
 			} else {
 				_BT_LOGE_NODE(right,
 					"Invalid `encoding` attribute in integer field type: "
@@ -2720,9 +2672,10 @@ int visit_integer_decl(struct ctx *ctx,
 				continue;
 			}
 
-			mapped_clock = bt_trace_get_clock_class_by_name(
-				ctx->trace, clock_name);
-			if (!mapped_clock) {
+			mapped_clock_class =
+				ctf_trace_class_borrow_clock_class_by_name(
+					ctx->ctf_tc, clock_name);
+			if (!mapped_clock_class) {
 				_BT_LOGE_NODE(right,
 					"Invalid `map` attribute in integer field type: "
 					"cannot find clock class at this point: name=\"%s\"",
@@ -2756,57 +2709,33 @@ int visit_integer_decl(struct ctx *ctx,
 		}
 	}
 
-	*integer_decl = bt_field_type_integer_create((unsigned int) size);
-	if (!*integer_decl) {
-		BT_LOGE_STR("Cannot create integer field type.");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_field_type_integer_set_is_signed(*integer_decl, signedness);
-	ret |= bt_field_type_integer_set_base(*integer_decl, base);
-	ret |= bt_field_type_integer_set_encoding(*integer_decl, encoding);
-	ret |= bt_field_type_set_alignment(*integer_decl,
-		(unsigned int) alignment);
-	ret |= bt_field_type_set_byte_order(*integer_decl, byte_order);
-
-	if (mapped_clock) {
-		/* Move clock */
-		ret |= bt_field_type_integer_set_mapped_clock_class(
-			*integer_decl, mapped_clock);
-		bt_put(mapped_clock);
-		mapped_clock = NULL;
-	}
-
-	if (ret) {
-		BT_LOGE_STR("Cannot configure integer field type.");
-		ret = -EINVAL;
-		goto error;
-	}
-
+	*integer_decl = ctf_field_type_int_create();
+	BT_ASSERT(*integer_decl);
+	(*integer_decl)->base.base.alignment = alignment;
+	(*integer_decl)->base.byte_order = byte_order;
+	(*integer_decl)->base.size = size;
+	(*integer_decl)->is_signed = (signedness > 0);
+	(*integer_decl)->disp_base = base;
+	(*integer_decl)->encoding = encoding;
+	(*integer_decl)->mapped_clock_class = bt_get(mapped_clock_class);
 	return 0;
 
 error:
-	if (mapped_clock) {
-		bt_put(mapped_clock);
-	}
-
-	BT_PUT(*integer_decl);
-
+	ctf_field_type_destroy((void *) *integer_decl);
+	*integer_decl = NULL;
 	return ret;
 }
 
 static
 int visit_floating_point_number_decl(struct ctx *ctx,
-	struct bt_list_head *expressions,
-	struct bt_field_type **float_decl)
+		struct bt_list_head *expressions,
+		struct ctf_field_type_float **float_decl)
 {
 	int set = 0;
 	int ret = 0;
 	struct ctf_node *expression;
 	uint64_t alignment = 1, exp_dig = 0, mant_dig = 0;
-	enum bt_byte_order byte_order =
-		bt_trace_get_native_byte_order(ctx->trace);
+	enum ctf_byte_order byte_order = ctx->ctf_tc->default_byte_order;
 
 	*float_decl = NULL;
 
@@ -2836,7 +2765,7 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 			}
 
 			byte_order = get_real_byte_order(ctx, right);
-			if (byte_order == BT_BYTE_ORDER_UNKNOWN) {
+			if (byte_order == -1) {
 				_BT_LOGE_NODE(right,
 					"Invalid `byte_order` attribute in floating point number field type: "
 					"ret=%d", ret);
@@ -2943,6 +2872,24 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 		goto error;
 	}
 
+	if (mant_dig != 24 && mant_dig != 53) {
+		BT_LOGE_STR("`mant_dig` attribute: expecting 24 or 53.");
+		ret = -EPERM;
+		goto error;
+	}
+
+	if (mant_dig == 24 && exp_dig != 8) {
+		BT_LOGE_STR("`exp_dig` attribute: expecting 8 because `mant_dig` is 24.");
+		ret = -EPERM;
+		goto error;
+	}
+
+	if (mant_dig == 53 && exp_dig != 11) {
+		BT_LOGE_STR("`exp_dig` attribute: expecting 11 because `mant_dig` is 53.");
+		ret = -EPERM;
+		goto error;
+	}
+
 	if (!_IS_SET(&set, _INTEGER_ALIGN_SET)) {
 		if ((mant_dig + exp_dig) % CHAR_BIT) {
 			/* Bit-packed alignment */
@@ -2953,42 +2900,28 @@ int visit_floating_point_number_decl(struct ctx *ctx,
 		}
 	}
 
-	*float_decl = bt_field_type_floating_point_create();
-	if (!*float_decl) {
-		BT_LOGE_STR("Cannot create floating point number field type.");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_field_type_floating_point_set_exponent_digits(
-		*float_decl, exp_dig);
-	ret |= bt_field_type_floating_point_set_mantissa_digits(
-		*float_decl, mant_dig);
-	ret |= bt_field_type_set_byte_order(*float_decl, byte_order);
-	ret |= bt_field_type_set_alignment(*float_decl, alignment);
-	if (ret) {
-		BT_LOGE_STR("Cannot configure floating point number field type.");
-		ret = -EINVAL;
-		goto error;
-	}
-
+	*float_decl = ctf_field_type_float_create();
+	BT_ASSERT(*float_decl);
+	(*float_decl)->base.base.alignment = alignment;
+	(*float_decl)->base.byte_order = byte_order;
+	(*float_decl)->base.size = mant_dig + exp_dig;
 	return 0;
 
 error:
-	BT_PUT(*float_decl);
-
+	ctf_field_type_destroy((void *) *float_decl);
+	*float_decl = NULL;
 	return ret;
 }
 
 static
 int visit_string_decl(struct ctx *ctx,
-	struct bt_list_head *expressions,
-	struct bt_field_type **string_decl)
+		struct bt_list_head *expressions,
+		struct ctf_field_type_string **string_decl)
 {
 	int set = 0;
 	int ret = 0;
 	struct ctf_node *expression;
-	enum bt_string_encoding encoding = BT_STRING_ENCODING_UTF8;
+	enum ctf_encoding encoding = CTF_ENCODING_UTF8;
 
 	*string_decl = NULL;
 
@@ -3039,13 +2972,12 @@ int visit_string_decl(struct ctx *ctx,
 			if (!strcmp(s_right, "UTF8") ||
 					!strcmp(s_right, "utf8") ||
 					!strcmp(s_right, "utf-8") ||
-					!strcmp(s_right, "UTF-8")) {
-				encoding = BT_STRING_ENCODING_UTF8;
-			} else if (!strcmp(s_right, "ASCII") ||
+					!strcmp(s_right, "UTF-8") ||
+					!strcmp(s_right, "ASCII") ||
 					!strcmp(s_right, "ascii")) {
-				encoding = BT_STRING_ENCODING_ASCII;
+				encoding = CTF_ENCODING_UTF8;
 			} else if (!strcmp(s_right, "none")) {
-				encoding = BT_STRING_ENCODING_NONE;
+				encoding = CTF_ENCODING_NONE;
 			} else {
 				_BT_LOGE_NODE(right,
 					"Invalid `encoding` attribute in string field type: "
@@ -3066,32 +2998,20 @@ int visit_string_decl(struct ctx *ctx,
 		}
 	}
 
-	*string_decl = bt_field_type_string_create();
-	if (!*string_decl) {
-		BT_LOGE_STR("Cannot create string field type.");
-		ret = -ENOMEM;
-		goto error;
-	}
-
-	ret = bt_field_type_string_set_encoding(*string_decl, encoding);
-	if (ret) {
-		BT_LOGE_STR("Cannot configure string field type.");
-		ret = -EINVAL;
-		goto error;
-	}
-
+	*string_decl = ctf_field_type_string_create();
+	BT_ASSERT(*string_decl);
+	(*string_decl)->encoding = encoding;
 	return 0;
 
 error:
-	BT_PUT(*string_decl);
-
+	ctf_field_type_destroy((void *) *string_decl);
+	*string_decl = NULL;
 	return ret;
 }
 
 static
 int visit_type_specifier_list(struct ctx *ctx,
-	struct ctf_node *ts_list,
-	struct bt_field_type **decl)
+		struct ctf_node *ts_list, struct ctf_field_type **decl)
 {
 	int ret = 0;
 	struct ctf_node *first, *node;
@@ -3119,7 +3039,7 @@ int visit_type_specifier_list(struct ctx *ctx,
 	switch (first->u.type_specifier.type) {
 	case TYPESPEC_INTEGER:
 		ret = visit_integer_decl(ctx, &node->u.integer.expressions,
-			decl);
+			(void *) decl);
 		if (ret) {
 			BT_ASSERT(!*decl);
 			goto error;
@@ -3127,7 +3047,7 @@ int visit_type_specifier_list(struct ctx *ctx,
 		break;
 	case TYPESPEC_FLOATING_POINT:
 		ret = visit_floating_point_number_decl(ctx,
-			&node->u.floating_point.expressions, decl);
+			&node->u.floating_point.expressions, (void *) decl);
 		if (ret) {
 			BT_ASSERT(!*decl);
 			goto error;
@@ -3135,7 +3055,7 @@ int visit_type_specifier_list(struct ctx *ctx,
 		break;
 	case TYPESPEC_STRING:
 		ret = visit_string_decl(ctx,
-			&node->u.string.expressions, decl);
+			&node->u.string.expressions, (void *) decl);
 		if (ret) {
 			BT_ASSERT(!*decl);
 			goto error;
@@ -3145,7 +3065,7 @@ int visit_type_specifier_list(struct ctx *ctx,
 		ret = visit_struct_decl(ctx, node->u._struct.name,
 			&node->u._struct.declaration_list,
 			node->u._struct.has_body,
-			&node->u._struct.min_align, decl);
+			&node->u._struct.min_align, (void *) decl);
 		if (ret) {
 			BT_ASSERT(!*decl);
 			goto error;
@@ -3155,7 +3075,7 @@ int visit_type_specifier_list(struct ctx *ctx,
 		ret = visit_variant_decl(ctx, node->u.variant.name,
 			node->u.variant.choice,
 			&node->u.variant.declaration_list,
-			node->u.variant.has_body, decl);
+			node->u.variant.has_body, (void *) decl);
 		if (ret) {
 			BT_ASSERT(!*decl);
 			goto error;
@@ -3165,7 +3085,7 @@ int visit_type_specifier_list(struct ctx *ctx,
 		ret = visit_enum_decl(ctx, node->u._enum.enum_id,
 			node->u._enum.container_type,
 			&node->u._enum.enumerator_list,
-			node->u._enum.has_body, decl);
+			node->u._enum.has_body, (void *) decl);
 		if (ret) {
 			BT_ASSERT(!*decl);
 			goto error;
@@ -3203,23 +3123,21 @@ int visit_type_specifier_list(struct ctx *ctx,
 	}
 
 	BT_ASSERT(*decl);
-
 	return 0;
 
 error:
-	BT_PUT(*decl);
-
+	ctf_field_type_destroy((void *) *decl);
+	*decl = NULL;
 	return ret;
 }
 
 static
 int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
-	struct bt_event_class *event_class, int64_t *stream_id,
-	int *set)
+		struct ctf_event_class *event_class, uint64_t *stream_id,
+		int *set)
 {
 	int ret = 0;
 	char *left = NULL;
-	_BT_FIELD_TYPE_INIT(decl);
 
 	switch (node->type) {
 	case NODE_TYPEDEF:
@@ -3252,8 +3170,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 		if (!strcmp(left, "name")) {
 			/* This is already known at this stage */
 			if (_IS_SET(set, _EVENT_NAME_SET)) {
-				_BT_LOGE_DUP_ATTR(node, "name",
-					"event class");
+				_BT_LOGE_DUP_ATTR(node, "name", "event class");
 				ret = -EPERM;
 				goto error;
 			}
@@ -3263,8 +3180,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			int64_t id = -1;
 
 			if (_IS_SET(set, _EVENT_ID_SET)) {
-				_BT_LOGE_DUP_ATTR(node, "id",
-					"event class");
+				_BT_LOGE_DUP_ATTR(node, "id", "event class");
 				ret = -EPERM;
 				goto error;
 			}
@@ -3279,14 +3195,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_event_class_set_id(event_class, id);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set event class's ID: "
-					"id=%" PRId64, id);
-				goto error;
-			}
-
+			event_class->id = id;
 			_SET(set, _EVENT_ID_SET);
 		} else if (!strcmp(left, "stream_id")) {
 			if (_IS_SET(set, _EVENT_STREAM_ID_SET)) {
@@ -3297,7 +3206,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				(uint64_t *) stream_id);
+				stream_id);
+
 			/*
 			 * Only read "stream_id" if get_unary_unsigned()
 			 * succeeded.
@@ -3322,23 +3232,14 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				_BT_LIST_FIRST_ENTRY(
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings),
-				&decl);
+				&event_class->spec_context_ft);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot create event class's context field type.");
 				goto error;
 			}
 
-			BT_ASSERT(decl);
-			ret = bt_event_class_set_context_field_type(
-				event_class, decl);
-			BT_PUT(decl);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set event class's context field type.");
-				goto error;
-			}
-
+			BT_ASSERT(event_class->spec_context_ft);
 			_SET(set, _EVENT_CONTEXT_SET);
 		} else if (!strcmp(left, "fields")) {
 			if (_IS_SET(set, _EVENT_FIELDS_SET)) {
@@ -3352,30 +3253,20 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				_BT_LIST_FIRST_ENTRY(
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings),
-				&decl);
+				&event_class->payload_ft);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot create event class's payload field type.");
 				goto error;
 			}
 
-			BT_ASSERT(decl);
-			ret = bt_event_class_set_payload_field_type(
-				event_class, decl);
-			BT_PUT(decl);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set event class's payload field type.");
-				goto error;
-			}
-
+			BT_ASSERT(event_class->payload_ft);
 			_SET(set, _EVENT_FIELDS_SET);
 		} else if (!strcmp(left, "loglevel")) {
 			uint64_t loglevel_value;
-			enum bt_event_class_log_level log_level =
-				BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED;
+			enum bt_event_class_log_level log_level = -1;
 
-			if (_IS_SET(set, _EVENT_LOGLEVEL_SET)) {
+			if (_IS_SET(set, _EVENT_LOG_LEVEL_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "loglevel",
 					"event class");
 				ret = -EPERM;
@@ -3442,17 +3333,11 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 					"log-level=%" PRIu64, loglevel_value);
 			}
 
-			if (log_level != BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED) {
-				ret = bt_event_class_set_log_level(
-					event_class, log_level);
-				if (ret) {
-					_BT_LOGE_NODE(node,
-						"Cannot set event class's log level.");
-					goto error;
-				}
+			if (log_level != -1) {
+				event_class->log_level = log_level;
 			}
 
-			_SET(set, _EVENT_LOGLEVEL_SET);
+			_SET(set, _EVENT_LOG_LEVEL_SET);
 		} else if (!strcmp(left, "model.emf.uri")) {
 			char *right;
 
@@ -3476,13 +3361,8 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				_BT_LOGW_NODE(node,
 					"Not setting event class's EMF URI because it's empty.");
 			} else {
-				ret = bt_event_class_set_emf_uri(
-					event_class, right);
-				if (ret) {
-					_BT_LOGE_NODE(node,
-						"Cannot set event class's EMF URI.");
-					goto error;
-				}
+				g_string_assign(event_class->emf_uri,
+					right);
 			}
 
 			g_free(right);
@@ -3502,15 +3382,14 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 		goto error;
 	}
 
-	return 0;
+	goto end;
 
 error:
 	if (left) {
 		g_free(left);
 	}
 
-	BT_PUT(decl);
-
+end:
 	return ret;
 }
 
@@ -3556,93 +3435,6 @@ char *get_event_decl_name(struct ctx *ctx, struct ctf_node *node)
 
 error:
 	g_free(left);
-
-	return NULL;
-}
-
-static
-int reset_event_decl_types(struct ctx *ctx,
-	struct bt_event_class *event_class)
-{
-	int ret = 0;
-
-	/* Context type. */
-	ret = bt_event_class_set_context_field_type(event_class, NULL);
-	if (ret) {
-		BT_LOGE("Cannot reset initial event class's context field type: "
-			"event-name=\"%s\"",
-			bt_event_class_get_name(event_class));
-		goto end;
-	}
-
-	/* Event payload. */
-	ret = bt_event_class_set_payload_field_type(event_class, NULL);
-	if (ret) {
-		BT_LOGE("Cannot reset initial event class's payload field type: "
-			"event-name=\"%s\"",
-			bt_event_class_get_name(event_class));
-		goto end;
-	}
-end:
-	return ret;
-}
-
-static
-int reset_stream_decl_types(struct ctx *ctx,
-	struct bt_stream_class *stream_class)
-{
-	int ret = 0;
-
-	/* Packet context. */
-	ret = bt_stream_class_set_packet_context_field_type(stream_class, NULL);
-	if (ret) {
-		BT_LOGE_STR("Cannot reset initial stream class's packet context field type.");
-		goto end;
-	}
-
-	/* Event header. */
-	ret = bt_stream_class_set_event_header_field_type(stream_class, NULL);
-	if (ret) {
-		BT_LOGE_STR("Cannot reset initial stream class's event header field type.");
-		goto end;
-	}
-
-	/* Event context. */
-	ret = bt_stream_class_set_event_context_field_type(stream_class, NULL);
-	if (ret) {
-		BT_LOGE_STR("Cannot reset initial stream class's event context field type.");
-		goto end;
-	}
-end:
-	return ret;
-}
-
-static
-struct bt_stream_class *create_reset_stream_class(struct ctx *ctx)
-{
-	int ret;
-	struct bt_stream_class *stream_class;
-
-	stream_class = bt_stream_class_create(NULL);
-	if (!stream_class) {
-		BT_LOGE_STR("Cannot create empty stream class.");
-		goto error;
-	}
-
-	/*
-	 * Set packet context, event header, and event context to NULL to
-	 * override the default ones.
-	 */
-	ret = reset_stream_decl_types(ctx, stream_class);
-	if (ret) {
-		goto error;
-	}
-
-	return stream_class;
-
-error:
-	BT_PUT(stream_class);
-
 	return NULL;
 }
 
@@ -3651,13 +3443,11 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 {
 	int ret = 0;
 	int set = 0;
-	int64_t event_id;
 	struct ctf_node *iter;
-	int64_t stream_id = -1;
+	uint64_t stream_id = 0;
 	char *event_name = NULL;
-	struct bt_event_class *event_class = NULL;
-	struct bt_event_class *eevent_class;
-	struct bt_stream_class *stream_class = NULL;
+	struct ctf_event_class *event_class = NULL;
+	struct ctf_stream_class *stream_class = NULL;
 	struct bt_list_head *decl_list = &node->u.event.declaration_list;
 	bool pop_scope = false;
 
@@ -3674,25 +3464,10 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
-	event_class = bt_event_class_create(event_name);
-
-	/*
-	 * Unset context and fields to override the default ones.
-	 */
-	ret = reset_event_decl_types(ctx, event_class);
-	if (ret) {
-		_BT_LOGE_NODE(node,
-			"Cannot reset event class's field types: "
-			"ret=%d", ret);
-		goto error;
-	}
-
-	ret = ctx_push_scope(ctx);
-	if (ret) {
-		BT_LOGE_STR("Cannot push scope.");
-		goto error;
-	}
-
+	event_class = ctf_event_class_create();
+	BT_ASSERT(event_class);
+	g_string_assign(event_class->name, event_name);
+	_TRY_PUSH_SCOPE_OR_GOTO_ERROR();
 	pop_scope = true;
 
 	bt_list_for_each_entry(iter, decl_list, siblings) {
@@ -3706,71 +3481,25 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 	}
 
 	if (!_IS_SET(&set, _EVENT_STREAM_ID_SET)) {
-		GList *keys = NULL;
-		int64_t *new_stream_id;
-		struct bt_stream_class *new_stream_class;
-		size_t stream_class_count =
-			g_hash_table_size(ctx->stream_classes) +
-			bt_trace_get_stream_class_count(ctx->trace);
-
 		/*
 		 * Allow missing stream_id if there is only a single
 		 * stream class.
 		 */
-		switch (stream_class_count) {
+		switch (ctx->ctf_tc->stream_classes->len) {
 		case 0:
 			/* Create implicit stream class if there's none */
 			stream_id = 0;
-			new_stream_class = create_reset_stream_class(ctx);
-			if (!new_stream_class) {
-				_BT_LOGE_NODE(node,
-					"Cannot create empty stream class.");
-				ret = -EINVAL;
-				goto error;
-			}
-
-			ret = bt_stream_class_set_id(new_stream_class,
-				stream_id);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set stream class's ID: "
-					"id=0, ret=%d", ret);
-				BT_PUT(new_stream_class);
-				goto error;
-			}
-
-			new_stream_id = g_new0(int64_t, 1);
-			if (!new_stream_id) {
-				BT_LOGE_STR("Failed to allocate a int64_t.");
-				ret = -ENOMEM;
-				goto error;
-			}
-
-			*new_stream_id = stream_id;
-
-			/* Move reference to visitor's context */
-			g_hash_table_insert(ctx->stream_classes,
-				new_stream_id, new_stream_class);
-			new_stream_id = NULL;
-			new_stream_class = NULL;
+			stream_class = ctf_stream_class_create();
+			BT_ASSERT(stream_class);
+			stream_class->id = stream_id;
+			g_ptr_array_add(ctx->ctf_tc->stream_classes,
+				stream_class);
+			stream_class = stream_class;
 			break;
 		case 1:
 			/* Single stream class: get its ID */
-			if (g_hash_table_size(ctx->stream_classes) == 1) {
-				keys = g_hash_table_get_keys(ctx->stream_classes);
-				stream_id = *((int64_t *) keys->data);
-				g_list_free(keys);
-			} else {
-				BT_ASSERT(bt_trace_get_stream_class_count(
-					ctx->trace) == 1);
-				stream_class =
-					bt_trace_get_stream_class_by_index(
-						ctx->trace, 0);
-				BT_ASSERT(stream_class);
-				stream_id = bt_stream_class_get_id(
-					stream_class);
-				BT_PUT(stream_class);
-			}
+			stream_class = ctx->ctf_tc->stream_classes->pdata[0];
+			stream_id = stream_class->id;
 			break;
 		default:
 			_BT_LOGE_NODE(node,
@@ -3780,14 +3509,10 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		}
 	}
 
-	BT_ASSERT(stream_id >= 0);
-
 	/* We have the stream ID now; get the stream class if found */
-	stream_class = g_hash_table_lookup(ctx->stream_classes, &stream_id);
-	bt_get(stream_class);
 	if (!stream_class) {
-		stream_class = bt_trace_get_stream_class_by_id(ctx->trace,
-			stream_id);
+		stream_class = ctf_trace_class_borrow_stream_class_by_id(
+			ctx->ctf_tc, stream_id);
 		if (!stream_class) {
 			_BT_LOGE_NODE(node,
 				"Cannot find stream class at this point: "
@@ -3801,8 +3526,7 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 
 	if (!_IS_SET(&set, _EVENT_ID_SET)) {
 		/* Allow only one event without ID per stream */
-		if (bt_stream_class_get_event_class_count(stream_class) !=
-				0) {
+		if (stream_class->event_classes->len != 0) {
 			_BT_LOGE_NODE(node,
 				"Missing `id` attribute in event class.");
 			ret = -EPERM;
@@ -3810,114 +3534,97 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 		}
 
 		/* Automatic ID */
-		ret = bt_event_class_set_id(event_class, 0);
-		if (ret) {
-			_BT_LOGE_NODE(node,
-				"Cannot set event class's ID: id=0, ret=%d",
-				ret);
-			goto error;
-		}
+		event_class->id = 0;
 	}
 
-	event_id = bt_event_class_get_id(event_class);
-	if (event_id < 0) {
-		_BT_LOGE_NODE(node, "Cannot get event class's ID.");
-		ret = -EINVAL;
-		goto error;
-	}
-
-	eevent_class = bt_stream_class_get_event_class_by_id(stream_class,
-		event_id);
-	if (eevent_class) {
-		BT_PUT(eevent_class);
+	if (ctf_stream_class_borrow_event_class_by_id(stream_class,
+			event_class->id)) {
 		_BT_LOGE_NODE(node,
 			"Duplicate event class (same ID) in the same stream class: "
-			"id=%" PRId64, event_id);
+			"id=%" PRId64, event_class->id);
 		ret = -EEXIST;
 		goto error;
 	}
 
-	ret = bt_stream_class_add_event_class(stream_class, event_class);
-	BT_PUT(event_class);
-	if (ret) {
-		_BT_LOGE_NODE(node,
-			"Cannot add event class to stream class: ret=%d", ret);
-		goto error;
-	}
-
+	ctf_stream_class_append_event_class(stream_class, event_class);
+	event_class = NULL;
 	goto end;
 
 error:
-	bt_put(event_class);
+	ctf_event_class_destroy(event_class);
+	event_class = NULL;
+
+	if (ret >= 0) {
+		ret = -1;
+	}
 
 end:
 	if (pop_scope) {
 		ctx_pop_scope(ctx);
 	}
 
-	g_free(event_name);
-	bt_put(stream_class);
+	if (event_name) {
+		g_free(event_name);
+	}
+
 	return ret;
 }
 
 static
 int auto_map_field_to_trace_clock_class(struct ctx *ctx,
-		struct bt_field_type *ft)
+		struct ctf_field_type *ft)
 {
 	struct bt_clock_class *clock_class_to_map_to = NULL;
-	struct bt_clock_class *mapped_clock_class = NULL;
+	struct ctf_field_type_int *int_ft = (void *) ft;
 	int ret = 0;
-	int64_t clock_class_count;
+	uint64_t clock_class_count;
 
-	if (!ft || !bt_field_type_is_integer(ft)) {
+	if (!ft) {
 		goto end;
 	}
 
-	mapped_clock_class =
-		bt_field_type_integer_get_mapped_clock_class(ft);
-	if (mapped_clock_class) {
+	if (ft->id != CTF_FIELD_TYPE_ID_INT &&
+			ft->id != CTF_FIELD_TYPE_ID_ENUM) {
 		goto end;
 	}
 
-	clock_class_count = bt_trace_get_clock_class_count(ctx->trace);
-	BT_ASSERT(clock_class_count >= 0);
+	if (int_ft->mapped_clock_class) {
+		/* Already mapped */
+		goto end;
+	}
+
+	clock_class_count = ctx->ctf_tc->clock_classes->len;
 
 	switch (clock_class_count) {
 	case 0:
 		/*
-		 * No clock class exists in the trace at this
-		 * point. Create an implicit one at 1 GHz,
-		 * named `default`, and use this clock class.
+		 * No clock class exists in the trace at this point. Create an
+		 * implicit one at 1 GHz, named `default`, and use this clock
+		 * class.
 		 */
-		clock_class_to_map_to = bt_clock_class_create("default",
-			1000000000);
-		if (!clock_class_to_map_to) {
-			BT_LOGE_STR("Cannot create a clock class.");
-			ret = -1;
-			goto end;
-		}
-
-		ret = bt_trace_add_clock_class(ctx->trace,
-			clock_class_to_map_to);
-		if (ret) {
-			BT_LOGE_STR("Cannot add clock class to trace.");
-			goto end;
-		}
+		clock_class_to_map_to = bt_clock_class_create();
+		BT_ASSERT(clock_class_to_map_to);
+		ret = bt_clock_class_set_frequency(clock_class_to_map_to,
+			UINT64_C(1000000000));
+		BT_ASSERT(ret == 0);
+		ret = bt_clock_class_set_name(clock_class_to_map_to,
+			"default");
+		BT_ASSERT(ret == 0);
+		g_ptr_array_add(ctx->ctf_tc->clock_classes,
+			bt_get(clock_class_to_map_to));
 		break;
 	case 1:
 		/*
-		 * Only one clock class exists in the trace at
-		 * this point: use this one.
+		 * Only one clock class exists in the trace at this point: use
+		 * this one.
 		 */
 		clock_class_to_map_to =
-			bt_trace_get_clock_class_by_index(ctx->trace, 0);
-		BT_ASSERT(clock_class_to_map_to);
+			bt_get(ctx->ctf_tc->clock_classes->pdata[0]);
 		break;
 	default:
 		/*
-		 * Timestamp field not mapped to a clock class
-		 * and there's more than one clock class in the
-		 * trace: this is an error.
+		 * Timestamp field not mapped to a clock class and there's more
+		 * than one clock class in the trace: this is an error.
 		 */
 		BT_LOGE_STR("Timestamp field found with no mapped clock class, "
 			"but there's more than one clock class in the trace at this point.");
@@ -3926,76 +3633,64 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 	}
 
 	BT_ASSERT(clock_class_to_map_to);
-	ret = bt_field_type_integer_set_mapped_clock_class(ft,
-		clock_class_to_map_to);
-	if (ret) {
-		BT_LOGE("Cannot map field type's field to trace's clock class: "
-			"clock-class-name=\"%s\", ret=%d",
-			bt_clock_class_get_name(clock_class_to_map_to),
-			ret);
-		goto end;
-	}
+	int_ft->mapped_clock_class = bt_get(clock_class_to_map_to);
 
 end:
 	bt_put(clock_class_to_map_to);
-	bt_put(mapped_clock_class);
 	return ret;
 }
 
 static
 int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
-		struct bt_field_type *root_ft, const char *field_name)
+		struct ctf_field_type *root_ft, const char *field_name)
 {
 	int ret = 0;
-	int64_t i, count;
+	uint64_t i, count;
+	struct ctf_field_type_struct *struct_ft = (void *) root_ft;
+	struct ctf_field_type_variant *var_ft = (void *) root_ft;
 
 	if (!root_ft) {
 		goto end;
 	}
 
-	if (!bt_field_type_is_structure(root_ft) &&
-			!bt_field_type_is_variant(root_ft)) {
+	if (root_ft->id != CTF_FIELD_TYPE_ID_STRUCT &&
+			root_ft->id != CTF_FIELD_TYPE_ID_VARIANT) {
 		goto end;
 	}
 
-	if (bt_field_type_is_structure(root_ft)) {
-		count = bt_field_type_structure_get_field_count(root_ft);
+	if (root_ft->id == CTF_FIELD_TYPE_ID_STRUCT) {
+		count = struct_ft->members->len;
 	} else {
-		count = bt_field_type_variant_get_field_count(root_ft);
+		count = var_ft->options->len;
 	}
 
-	BT_ASSERT(count >= 0);
-
 	for (i = 0; i < count; i++) {
-		_BT_FIELD_TYPE_INIT(ft);
-		const char *name;
+		struct ctf_named_field_type *named_ft = NULL;
 
-		if (bt_field_type_is_structure(root_ft)) {
-			ret = bt_field_type_structure_get_field_by_index(
-				root_ft, &name, &ft, i);
-		} else if (bt_field_type_is_variant(root_ft)) {
-			ret = bt_field_type_variant_get_field_by_index(
-				root_ft, &name, &ft, i);
+		if (root_ft->id == CTF_FIELD_TYPE_ID_STRUCT) {
+			named_ft = ctf_field_type_struct_borrow_member_by_index(
+				struct_ft, i);
+		} else if (root_ft->id == CTF_FIELD_TYPE_ID_VARIANT) {
+			named_ft = ctf_field_type_variant_borrow_option_by_index(
+				var_ft, i);
 		}
 
-		BT_ASSERT(ret == 0);
-
-		if (strcmp(name, field_name) == 0) {
-			ret = auto_map_field_to_trace_clock_class(ctx, ft);
+		if (strcmp(named_ft->name->str, field_name) == 0) {
+			ret = auto_map_field_to_trace_clock_class(ctx,
+				named_ft->ft);
 			if (ret) {
 				BT_LOGE("Cannot automatically map field to trace's clock class: "
 					"field-name=\"%s\"", field_name);
-				bt_put(ft);
 				goto end;
 			}
 		}
 
-		ret = auto_map_fields_to_trace_clock_class(ctx, ft, field_name);
-		bt_put(ft);
+		ret = auto_map_fields_to_trace_clock_class(ctx, named_ft->ft,
+			field_name);
 		if (ret) {
 			BT_LOGE("Cannot automatically map structure or variant field type's fields to trace's clock class: "
 				"field-name=\"%s\", root-field-name=\"%s\"",
-				field_name, name);
+				field_name, named_ft->name->str);
 			goto end;
 		}
 	}
@@ -4006,11 +3701,10 @@ end:
 
 static
 int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
-	struct bt_stream_class *stream_class, int *set)
+		struct ctf_stream_class *stream_class, int *set)
 {
 	int ret = 0;
 	char *left = NULL;
-	_BT_FIELD_TYPE_INIT(decl);
 
 	switch (node->type) {
 	case NODE_TYPEDEF:
@@ -4042,7 +3736,6 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 		if (!strcmp(left, "id")) {
 			int64_t id;
-			gpointer ptr;
 
 			if (_IS_SET(set, _STREAM_ID_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "id",
@@ -4053,6 +3746,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
 				(uint64_t *) &id);
+
 			/* Only read "id" if get_unary_unsigned() succeeded. */
 			if (ret || (!ret && id < 0)) {
 				_BT_LOGE_NODE(node,
@@ -4061,8 +3755,8 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ptr = g_hash_table_lookup(ctx->stream_classes, &id);
-			if (ptr) {
+			if (ctf_trace_class_borrow_stream_class_by_id(
+					ctx->ctf_tc, id)) {
 				_BT_LOGE_NODE(node,
 					"Duplicate stream class (same ID): id=%" PRId64,
 					id);
@@ -4070,14 +3764,7 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				goto error;
 			}
 
-			ret = bt_stream_class_set_id(stream_class, id);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set stream class's ID: "
-					"id=%" PRId64 ", ret=%d", id, ret);
-				goto error;
-			}
-
+			stream_class->id = id;
 			_SET(set, _STREAM_ID_SET);
 		} else if (!strcmp(left, "event.header")) {
 			if (_IS_SET(set, _STREAM_EVENT_HEADER_SET)) {
@@ -4091,28 +3778,19 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				_BT_LIST_FIRST_ENTRY(
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings),
-				&decl);
+				&stream_class->event_header_ft);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot create stream class's event header field type.");
 				goto error;
 			}
 
-			BT_ASSERT(decl);
+			BT_ASSERT(stream_class->event_header_ft);
 			ret = auto_map_fields_to_trace_clock_class(ctx,
-				decl, "timestamp");
+				stream_class->event_header_ft, "timestamp");
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot automatically map specific event header field type fields named `timestamp` to trace's clock class.");
-				goto error;
-			}
-
-			ret = bt_stream_class_set_event_header_field_type(
-				stream_class, decl);
-			BT_PUT(decl);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set stream class's event header field type.");
 				goto error;
 			}
 
@@ -4129,24 +3807,14 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				_BT_LIST_FIRST_ENTRY(
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings),
-				&decl);
+				&stream_class->event_common_context_ft);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot create stream class's event context field type.");
 				goto error;
 			}
 
-			BT_ASSERT(decl);
-
-			ret = bt_stream_class_set_event_context_field_type(
-				stream_class, decl);
-			BT_PUT(decl);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set stream class's event context field type.");
-				goto error;
-			}
-
+			BT_ASSERT(stream_class->event_common_context_ft);
 			_SET(set, _STREAM_EVENT_CONTEXT_SET);
 		} else if (!strcmp(left, "packet.context")) {
 			if (_IS_SET(set, _STREAM_PACKET_CONTEXT_SET)) {
@@ -4160,16 +3828,17 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 				_BT_LIST_FIRST_ENTRY(
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings),
-				&decl);
+				&stream_class->packet_context_ft);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot create stream class's packet context field type.");
 				goto error;
 			}
 
-			BT_ASSERT(decl);
+			BT_ASSERT(stream_class->packet_context_ft);
 			ret = auto_map_fields_to_trace_clock_class(ctx,
-				decl, "timestamp_begin");
+				stream_class->packet_context_ft,
+				"timestamp_begin");
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot automatically map specific packet context field type fields named `timestamp_begin` to trace's clock class.");
@@ -4177,19 +3846,11 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			}
 
 			ret = auto_map_fields_to_trace_clock_class(ctx,
-				decl, "timestamp_end");
+				stream_class->packet_context_ft,
+				"timestamp_end");
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot automatically map specific packet context field type fields named `timestamp_end` to trace's clock class.");
-				goto error;
-			}
-
-			ret = bt_stream_class_set_packet_context_field_type(
-				stream_class, decl);
-			BT_PUT(decl);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set stream class's packet context field type.");
 				goto error;
 			}
 
@@ -4214,21 +3875,16 @@ int visit_stream_decl_entry(struct ctx *ctx, struct ctf_node *node,
 
 error:
 	g_free(left);
-	BT_PUT(decl);
-
 	return ret;
 }
 
 static
 int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 {
-	int64_t id;
-	int64_t *new_id;
 	int set = 0;
 	int ret = 0;
 	struct ctf_node *iter;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_stream_class *existing_stream_class = NULL;
+	struct ctf_stream_class *stream_class = NULL;
 	struct bt_list_head *decl_list = &node->u.stream.declaration_list;
 
 	if (node->visited) {
@@ -4236,18 +3892,9 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 	}
 
 	node->visited = TRUE;
-	stream_class = create_reset_stream_class(ctx);
-	if (!stream_class) {
-		_BT_LOGE_NODE(node, "Cannot create empty stream class.");
-		ret = -EINVAL;
-		goto error;
-	}
-
-	ret = ctx_push_scope(ctx);
-	if (ret) {
-		BT_LOGE_STR("Cannot push scope.");
-		goto error;
-	}
+	stream_class = ctf_stream_class_create();
+	BT_ASSERT(stream_class);
+	_TRY_PUSH_SCOPE_OR_GOTO_ERROR();
 
 	bt_list_for_each_entry(iter, decl_list, siblings) {
 		ret = visit_stream_decl_entry(ctx, iter, stream_class, &set);
@@ -4263,42 +3910,35 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 	ctx_pop_scope(ctx);
 
 	if (_IS_SET(&set, _STREAM_ID_SET)) {
-		/* Check that packet header has stream_id field */
-		_BT_FIELD_TYPE_INIT(stream_id_decl);
-		_BT_FIELD_TYPE_INIT(packet_header_decl);
+		/* Check that packet header has `stream_id` field */
+		struct ctf_named_field_type *named_ft = NULL;
 
-		packet_header_decl =
-			bt_trace_get_packet_header_field_type(ctx->trace);
-		if (!packet_header_decl) {
+		if (!ctx->ctf_tc->packet_header_ft) {
 			_BT_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
 				"but trace has no packet header field type.");
 			goto error;
 		}
 
-		stream_id_decl =
-			bt_field_type_structure_get_field_type_by_name(
-				packet_header_decl, "stream_id");
-		BT_PUT(packet_header_decl);
-		if (!stream_id_decl) {
+		named_ft = ctf_field_type_struct_borrow_member_by_name(
+			(void *) ctx->ctf_tc->packet_header_ft, "stream_id");
+		if (!named_ft) {
 			_BT_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
 				"but trace's packet header field type has no `stream_id` field.");
 			goto error;
 		}
 
-		if (!bt_field_type_is_integer(stream_id_decl)) {
-			BT_PUT(stream_id_decl);
+		if (named_ft->ft->id != CTF_FIELD_TYPE_ID_INT &&
+				named_ft->ft->id != CTF_FIELD_TYPE_ID_ENUM) {
 			_BT_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
 				"but trace's packet header field type's `stream_id` field is not an integer field type.");
 			goto error;
 		}
-
-		BT_PUT(stream_id_decl);
 	} else {
 		/* Allow only _one_ ID-less stream */
-		if (g_hash_table_size(ctx->stream_classes) != 0) {
+		if (ctx->ctf_tc->stream_classes->len != 0) {
 			_BT_LOGE_NODE(node,
 				"Missing `id` attribute in stream class as there's more than one stream class in the trace.");
 			ret = -EPERM;
@@ -4306,52 +3946,31 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 		}
 
 		/* Automatic ID: 0 */
-		ret = bt_stream_class_set_id(stream_class, 0);
-		BT_ASSERT(ret == 0);
-	}
-
-	id = bt_stream_class_get_id(stream_class);
-	if (id < 0) {
-		_BT_LOGE_NODE(node,
-			"Cannot get stream class's ID.");
-		ret = -EINVAL;
-		goto error;
+		stream_class->id = 0;
 	}
 
 	/*
 	 * Make sure that this stream class's ID is currently unique in
 	 * the trace.
 	 */
-	existing_stream_class = bt_trace_get_stream_class_by_id(ctx->trace,
-		id);
-	if (g_hash_table_lookup(ctx->stream_classes, &id) ||
-			existing_stream_class) {
+	if (ctf_trace_class_borrow_stream_class_by_id(ctx->ctf_tc,
+			stream_class->id)) {
 		_BT_LOGE_NODE(node,
 			"Duplicate stream class (same ID): id=%" PRId64,
-			id);
+			stream_class->id);
 		ret = -EINVAL;
 		goto error;
 	}
 
-	new_id = g_new0(int64_t, 1);
-	if (!new_id) {
-		BT_LOGE_STR("Failed to allocate a int64_t.");
-		ret = -ENOMEM;
-		goto error;
-	}
-	*new_id = id;
-
-	/* Move reference to visitor's context */
-	g_hash_table_insert(ctx->stream_classes, new_id,
-		stream_class);
+	g_ptr_array_add(ctx->ctf_tc->stream_classes, stream_class);
 	stream_class = NULL;
 	goto end;
 
 error:
-	bt_put(stream_class);
+	ctf_stream_class_destroy(stream_class);
+	stream_class = NULL;
 
 end:
-	bt_put(existing_stream_class);
 	return ret;
 }
 
@@ -4360,7 +3979,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 {
 	int ret = 0;
 	char *left = NULL;
-	_BT_FIELD_TYPE_INIT(packet_header_decl);
+	uint64_t val;
 
 	switch (node->type) {
 	case NODE_TYPEDEF:
@@ -4398,7 +4017,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			}
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				&ctx->trace_major);
+				&val);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Unexpected unary expression for trace's `major` attribute.");
@@ -4406,6 +4025,13 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
+			if (val != 1) {
+				_BT_LOGE_NODE(node,
+					"Invalid trace's `minor` attribute: expecting 1.");
+				goto error;
+			}
+
+			ctx->ctf_tc->major = val;
 			_SET(set, _TRACE_MAJOR_SET);
 		} else if (!strcmp(left, "minor")) {
 			if (_IS_SET(set, _TRACE_MINOR_SET)) {
@@ -4415,7 +4041,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			}
 
 			ret = get_unary_unsigned(&node->u.ctf_expression.right,
-				&ctx->trace_minor);
+				&val);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Unexpected unary expression for trace's `minor` attribute.");
@@ -4423,6 +4049,13 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
+			if (val != 8) {
+				_BT_LOGE_NODE(node,
+					"Invalid trace's `minor` attribute: expecting 8.");
+				goto error;
+			}
+
+			ctx->ctf_tc->minor = val;
 			_SET(set, _TRACE_MINOR_SET);
 		} else if (!strcmp(left, "uuid")) {
 			if (_IS_SET(set, _TRACE_UUID_SET)) {
@@ -4432,22 +4065,17 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 			}
 
 			ret = get_unary_uuid(&node->u.ctf_expression.right,
-				ctx->trace_uuid);
+				ctx->ctf_tc->uuid);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Invalid trace's `uuid` attribute.");
 				goto error;
 			}
 
-			ret = bt_trace_set_uuid(ctx->trace, ctx->trace_uuid);
-			if (ret) {
-				_BT_LOGE_NODE(node, "Cannot set trace's UUID.");
-				goto error;
-			}
-
+			ctx->ctf_tc->is_uuid_set = true;
 			_SET(set, _TRACE_UUID_SET);
 		} else if (!strcmp(left, "byte_order")) {
-			/* Native byte order is already known at this stage */
+			/* Default byte order is already known at this stage */
 			if (_IS_SET(set, _TRACE_BYTE_ORDER_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "byte_order",
 					"trace");
@@ -4455,6 +4083,7 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				goto error;
 			}
 
+			BT_ASSERT(ctx->ctf_tc->default_byte_order != -1);
 			_SET(set, _TRACE_BYTE_ORDER_SET);
 		} else if (!strcmp(left, "packet.header")) {
 			if (_IS_SET(set, _TRACE_PACKET_HEADER_SET)) {
@@ -4468,23 +4097,14 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 				_BT_LIST_FIRST_ENTRY(
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings),
-				&packet_header_decl);
+				&ctx->ctf_tc->packet_header_ft);
 			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Cannot create trace's packet header field type.");
 				goto error;
 			}
 
-			BT_ASSERT(packet_header_decl);
-			ret = bt_trace_set_packet_header_field_type(ctx->trace,
-				packet_header_decl);
-			BT_PUT(packet_header_decl);
-			if (ret) {
-				_BT_LOGE_NODE(node,
-					"Cannot set trace's packet header field type.");
-				goto error;
-			}
-
+			BT_ASSERT(ctx->ctf_tc->packet_header_ft);
 			_SET(set, _TRACE_PACKET_HEADER_SET);
 		} else {
 			_BT_LOGW_NODE(node,
@@ -4506,8 +4126,6 @@ int visit_trace_decl_entry(struct ctx *ctx, struct ctf_node *node, int *set)
 
 error:
 	g_free(left);
-	BT_PUT(packet_header_decl);
-
 	return ret;
 }
 
@@ -4531,11 +4149,7 @@ int visit_trace_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
-	ret = ctx_push_scope(ctx);
-	if (ret) {
-		BT_LOGE_STR("Cannot push scope.");
-		goto error;
-	}
+	_TRY_PUSH_SCOPE_OR_GOTO_ERROR();
 
 	bt_list_for_each_entry(iter, decl_list, siblings) {
 		ret = visit_trace_decl_entry(ctx, iter, &set);
@@ -4570,7 +4184,7 @@ int visit_trace_decl(struct ctx *ctx, struct ctf_node *node)
 		goto error;
 	}
 
-	ctx->is_trace_visited = TRUE;
+	ctx->is_trace_visited = true;
 
 end:
 	return 0;
@@ -4630,20 +4244,14 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 					BT_LOGI("Detected LTTng trace from `%s` environment value: "
 						"tracer-name=\"%s\"",
 						left, right);
-					ctx->is_lttng = 1;
+					ctx->is_lttng = true;
 				}
 			}
 
-			ret = bt_trace_set_environment_field_string(
-				ctx->trace, left, right);
+			ctf_trace_class_append_env_entry(ctx->ctf_tc,
+				left, CTF_TRACE_CLASS_ENV_ENTRY_TYPE_STR,
+				right, 0);
 			g_free(right);
-
-			if (ret) {
-				_BT_LOGE_NODE(entry_node,
-					"Cannot add string environment entry to trace: "
-					"name=\"%s\", ret=%d", left, ret);
-				goto error;
-			}
 		} else if (is_unary_unsigned(right_head) ||
 				is_unary_signed(right_head)) {
 			int64_t v;
@@ -4662,14 +4270,9 @@ int visit_env(struct ctx *ctx, struct ctf_node *node)
 				goto error;
 			}
 
-			ret = bt_trace_set_environment_field_integer(
-				ctx->trace, left, v);
-			if (ret) {
-				_BT_LOGE_NODE(entry_node,
-					"Cannot add integer environment entry to trace: "
-					"name=\"%s\", ret=%d", left, ret);
-				goto error;
-			}
+			ctf_trace_class_append_env_entry(ctx->ctf_tc,
+				left, CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT,
+				NULL, v);
 		} else {
 			_BT_LOGW_NODE(entry_node,
 				"Environment entry has unknown type: "
@@ -4685,7 +4288,6 @@ end:
 
 error:
 	g_free(left);
-
 	return ret;
 }
 
@@ -4712,7 +4314,7 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 			}
 
 			if (!strcmp(left, "byte_order")) {
-				enum bt_byte_order bo;
+				enum ctf_byte_order bo;
 
 				if (_IS_SET(&set, _TRACE_BYTE_ORDER_SET)) {
 					_BT_LOGE_DUP_ATTR(node, "byte_order",
@@ -4726,13 +4328,13 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 					&node->u.ctf_expression.right,
 					struct ctf_node, siblings);
 				bo = byte_order_from_unary_expr(right_node);
-				if (bo == BT_BYTE_ORDER_UNKNOWN) {
+				if (bo == -1) {
 					_BT_LOGE_NODE(node,
 						"Invalid `byte_order` attribute in trace (`trace` block): "
 						"expecting `le`, `be`, or `network`.");
 					ret = -EINVAL;
 					goto error;
-				} else if (bo == BT_BYTE_ORDER_NATIVE) {
+				} else if (bo == CTF_BYTE_ORDER_DEFAULT) {
 					_BT_LOGE_NODE(node,
 						"Invalid `byte_order` attribute in trace (`trace` block): "
 						"cannot be set to `native` here.");
@@ -4740,15 +4342,7 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 					goto error;
 				}
 
-				ctx->trace_bo = bo;
-				ret = bt_trace_set_native_byte_order(
-					ctx->trace, bo);
-				if (ret) {
-					_BT_LOGE_NODE(node,
-						"Cannot set trace's byte order: "
-						"ret=%d", ret);
-					goto error;
-				}
+				ctx->ctf_tc->default_byte_order = bo;
 			}
 
 			g_free(left);
@@ -4767,13 +4361,13 @@ int set_trace_byte_order(struct ctx *ctx, struct ctf_node *trace_node)
 
 error:
 	g_free(left);
-
 	return ret;
 }
 
 static
 int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
-	struct bt_clock_class *clock, int *set)
+	struct bt_clock_class *clock, int *set, int64_t *offset_seconds,
+	uint64_t *offset_cycles)
 {
 	int ret = 0;
 	char *left = NULL;
@@ -4822,7 +4416,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		g_free(right);
 		_SET(set, _CLOCK_NAME_SET);
 	} else if (!strcmp(left, "uuid")) {
-		unsigned char uuid[BABELTRACE_UUID_LEN];
+		uint8_t uuid[BABELTRACE_UUID_LEN];
 
 		if (_IS_SET(set, _CLOCK_UUID_SET)) {
 			_BT_LOGE_DUP_ATTR(entry_node, "uuid", "clock class");
@@ -4875,7 +4469,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		g_free(right);
 		_SET(set, _CLOCK_DESCRIPTION_SET);
 	} else if (!strcmp(left, "freq")) {
-		uint64_t freq = -1ULL;
+		uint64_t freq = UINT64_C(-1);
 
 		if (_IS_SET(set, _CLOCK_FREQ_SET)) {
 			_BT_LOGE_DUP_ATTR(entry_node, "freq", "clock class");
@@ -4892,7 +4486,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		if (freq == -1ULL || freq == 0) {
+		if (freq == UINT64_C(-1) || freq == 0) {
 			_BT_LOGE_NODE(entry_node,
 				"Invalid clock class frequency: freq=%" PRIu64,
 				freq);
@@ -4936,8 +4530,6 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 
 		_SET(set, _CLOCK_PRECISION_SET);
 	} else if (!strcmp(left, "offset_s")) {
-		int64_t offset_s;
-
 		if (_IS_SET(set, _CLOCK_OFFSET_S_SET)) {
 			_BT_LOGE_DUP_ATTR(entry_node, "offset_s",
 				"clock class");
@@ -4946,7 +4538,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 		}
 
 		ret = get_unary_signed(
-			&entry_node->u.ctf_expression.right, &offset_s);
+			&entry_node->u.ctf_expression.right, offset_seconds);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
 				"Unexpected unary expression for clock class's `offset_s` attribute.");
@@ -4954,36 +4546,20 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_clock_class_set_offset_s(clock, offset_s);
-		if (ret) {
-			_BT_LOGE_NODE(entry_node,
-				"Cannot set clock class's offset in seconds.");
-			goto error;
-		}
-
 		_SET(set, _CLOCK_OFFSET_S_SET);
 	} else if (!strcmp(left, "offset")) {
-		int64_t offset;
-
 		if (_IS_SET(set, _CLOCK_OFFSET_SET)) {
 			_BT_LOGE_DUP_ATTR(entry_node, "offset", "clock class");
 			ret = -EPERM;
 			goto error;
 		}
 
-		ret = get_unary_signed(
-			&entry_node->u.ctf_expression.right, &offset);
+		ret = get_unary_unsigned(
+			&entry_node->u.ctf_expression.right, offset_cycles);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
 				"Unexpected unary expression for clock class's `offset` attribute.");
 			ret = -EINVAL;
-			goto error;
-		}
-
-		ret = bt_clock_class_set_offset_cycles(clock, offset);
-		if (ret) {
-			_BT_LOGE_NODE(entry_node,
-				"Cannot set clock class's offset in cycles.");
 			goto error;
 		}
 
@@ -5025,22 +4601,20 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 
 	g_free(left);
 	left = NULL;
-
 	return 0;
 
 error:
 	g_free(left);
-
 	return ret;
 }
 
-static
-int64_t cycles_from_ns(uint64_t frequency, int64_t ns)
+static inline
+uint64_t cycles_from_ns(uint64_t frequency, uint64_t ns)
 {
-	int64_t cycles;
+	uint64_t cycles;
 
 	/* 1GHz */
-	if (frequency == 1000000000ULL) {
+	if (frequency == UINT64_C(1000000000)) {
 		cycles = ns;
 	} else {
 		cycles = (uint64_t) (((double) ns * (double) frequency) / 1e9);
@@ -5050,35 +4624,73 @@ int64_t cycles_from_ns(uint64_t frequency, int64_t ns)
 }
 
 static
-int apply_clock_class_offset(struct ctx *ctx, struct bt_clock_class *clock)
+void calibrate_clock_class_offsets(int64_t *offset_seconds,
+		uint64_t *offset_cycles, uint64_t freq)
+{
+	if (*offset_cycles >= freq) {
+		const uint64_t s_in_offset_cycles = *offset_cycles / freq;
+
+		*offset_seconds += (int64_t) s_in_offset_cycles;
+		*offset_cycles -= (s_in_offset_cycles * freq);
+	}
+}
+
+static
+void apply_clock_class_offset(struct ctx *ctx, struct bt_clock_class *clock)
 {
 	int ret;
 	uint64_t freq;
-	int64_t offset_cycles;
-	int64_t offset_to_apply;
+	int64_t offset_s_to_apply = ctx->decoder_config.clock_class_offset_s;
+	uint64_t offset_ns_to_apply;
+	int64_t cur_offset_s;
+	uint64_t cur_offset_cycles;
+
+	if (ctx->decoder_config.clock_class_offset_s == 0 &&
+			ctx->decoder_config.clock_class_offset_ns == 0) {
+		goto end;
+	}
+
+	/* Transfer nanoseconds to seconds as much as possible */
+	if (ctx->decoder_config.clock_class_offset_ns < 0) {
+		const int64_t abs_ns = -ctx->decoder_config.clock_class_offset_ns;
+		const int64_t abs_extra_s = abs_ns / INT64_C(1000000000) + 1;
+		const int64_t extra_s = -abs_extra_s;
+		const int64_t offset_ns = ctx->decoder_config.clock_class_offset_ns -
+			(extra_s * INT64_C(1000000000));
+
+		BT_ASSERT(offset_ns > 0);
+		offset_ns_to_apply = (uint64_t) offset_ns;
+		offset_s_to_apply += extra_s;
+	} else {
+		const int64_t extra_s = ctx->decoder_config.clock_class_offset_ns /
+			INT64_C(1000000000);
+		const int64_t offset_ns = ctx->decoder_config.clock_class_offset_ns -
+			(extra_s * INT64_C(1000000000));
+
+		BT_ASSERT(offset_ns >= 0);
+		offset_ns_to_apply = (uint64_t) offset_ns;
+		offset_s_to_apply += extra_s;
+	}
 
 	freq = bt_clock_class_get_frequency(clock);
-	if (freq == -1ULL) {
-		BT_LOGE_STR("Cannot get clock class's frequency.");
-		ret = -1;
-		goto end;
-	}
+	bt_clock_class_get_offset(clock, &cur_offset_s, &cur_offset_cycles);
 
-	ret = bt_clock_class_get_offset_cycles(clock, &offset_cycles);
-	if (ret) {
-		BT_LOGE_STR("Cannot get clock class's offset in cycles.");
-		ret = -1;
-		goto end;
-	}
+	/* Apply offsets */
+	cur_offset_s += offset_s_to_apply;
+	cur_offset_cycles += cycles_from_ns(freq, offset_ns_to_apply);
 
-	offset_to_apply =
-		ctx->decoder_config.clock_class_offset_s * 1000000000LL +
-		ctx->decoder_config.clock_class_offset_ns;
-	offset_cycles += cycles_from_ns(freq, offset_to_apply);
-	ret = bt_clock_class_set_offset_cycles(clock, offset_cycles);
+	/*
+	 * Recalibrate offsets because the part in cycles can be greater
+	 * than the frequency at this point.
+	 */
+	calibrate_clock_class_offsets(&cur_offset_s, &cur_offset_cycles, freq);
+
+	/* Set final offsets */
+	ret = bt_clock_class_set_offset(clock, cur_offset_s, cur_offset_cycles);
+	BT_ASSERT(ret == 0);
 
 end:
-	return ret;
+	return;
 }
 
 static
@@ -5090,6 +4702,9 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	struct ctf_node *entry_node;
 	struct bt_list_head *decl_list = &clock_node->u.clock.declaration_list;
 	const char *clock_class_name;
+	int64_t offset_seconds = 0;
+	uint64_t offset_cycles = 0;
+	uint64_t freq;
 
 	if (clock_node->visited) {
 		return 0;
@@ -5098,21 +4713,30 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	clock_node->visited = TRUE;
 
 	/* CTF 1.8's default frequency for a clock class is 1 GHz */
-	clock = bt_clock_class_create(NULL, 1000000000);
+	clock = bt_clock_class_create();
 	if (!clock) {
 		_BT_LOGE_NODE(clock_node,
 			"Cannot create default clock class.");
 		ret = -ENOMEM;
-		goto error;
+		goto end;
+	}
+
+	/* CTF: not absolute by default */
+	ret = bt_clock_class_set_is_absolute(clock, BT_FALSE);
+	if (ret) {
+		_BT_LOGE_NODE(clock_node,
+			"Cannot set clock class's absolute flag.");
+		goto end;
 	}
 
 	bt_list_for_each_entry(entry_node, decl_list, siblings) {
-		ret = visit_clock_decl_entry(ctx, entry_node, clock, &set);
+		ret = visit_clock_decl_entry(ctx, entry_node, clock, &set,
+			&offset_seconds, &offset_cycles);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
 				"Cannot visit clock class's entry: ret=%d",
 				ret);
-			goto error;
+			goto end;
 		}
 	}
 
@@ -5120,7 +4744,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		_BT_LOGE_NODE(clock_node,
 			"Missing `name` attribute in clock class.");
 		ret = -EPERM;
-		goto error;
+		goto end;
 	}
 
 	clock_class_name = bt_clock_class_get_name(clock);
@@ -5132,31 +4756,28 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		 * it's a condition to be able to sort notifications
 		 * from different sources.
 		 */
-		ret = bt_clock_class_set_is_absolute(clock, 1);
+		ret = bt_clock_class_set_is_absolute(clock, BT_TRUE);
 		if (ret) {
 			_BT_LOGE_NODE(clock_node,
 				"Cannot set clock class's absolute flag.");
-			goto error;
+			goto end;
 		}
 	}
 
-	ret = apply_clock_class_offset(ctx, clock);
-	if (ret) {
-		_BT_LOGE_NODE(clock_node,
-			"Cannot apply clock class's custom offset.");
-		goto error;
-	}
+	/*
+	 * Adjust offsets so that the part in cycles is less than the
+	 * frequency (move to the part in seconds).
+	 */
+	freq = bt_clock_class_get_frequency(clock);
+	calibrate_clock_class_offsets(&offset_seconds, &offset_cycles, freq);
+	BT_ASSERT(offset_cycles < bt_clock_class_get_frequency(clock));
+	ret = bt_clock_class_set_offset(clock, offset_seconds, offset_cycles);
+	BT_ASSERT(ret == 0);
+	apply_clock_class_offset(ctx, clock);
+	g_ptr_array_add(ctx->ctf_tc->clock_classes, bt_get(clock));
 
-	ret = bt_trace_add_clock_class(ctx->trace, clock);
-	if (ret) {
-		_BT_LOGE_NODE(clock_node,
-			"Cannot add clock class to trace.");
-		goto error;
-	}
-
-error:
+end:
 	BT_PUT(clock);
-
 	return ret;
 }
 
@@ -5193,7 +4814,7 @@ int visit_root_decl(struct ctx *ctx, struct ctf_node *root_decl_node)
 		break;
 	case NODE_TYPE_SPECIFIER_LIST:
 	{
-		_BT_FIELD_TYPE_INIT(decl);
+		struct ctf_field_type *decl = NULL;
 
 		/*
 		 * Just add the type specifier to the root
@@ -5208,7 +4829,8 @@ int visit_root_decl(struct ctx *ctx, struct ctf_node *root_decl_node)
 			goto end;
 		}
 
-		BT_PUT(decl);
+		ctf_field_type_destroy(decl);
+		decl = NULL;
 		break;
 	}
 	default:
@@ -5224,13 +4846,17 @@ end:
 }
 
 static
-int set_trace_name(struct ctx *ctx)
+int try_set_trace_class_name(struct ctx *ctx)
 {
-	GString *name;
+	GString *name = NULL;
 	int ret = 0;
-	struct bt_value *value = NULL;
+	struct ctf_trace_class_env_entry *env_entry;
 
-	BT_ASSERT(bt_trace_get_stream_class_count(ctx->trace) == 0);
+	if (ctx->ctf_tc->name->len > 0) {
+		/* Already set */
+		goto end;
+	}
+
 	name = g_string_new(NULL);
 	if (!name) {
 		BT_LOGE_STR("Failed to allocate a GString.");
@@ -5242,83 +4868,29 @@ int set_trace_name(struct ctx *ctx)
 	 * Check if we have a trace environment string value named `hostname`.
 	 * If so, use it as the trace name's prefix.
 	 */
-	value = bt_trace_get_environment_field_value_by_name(ctx->trace,
+	env_entry = ctf_trace_class_borrow_env_entry_by_name(ctx->ctf_tc,
 		"hostname");
-	if (value && bt_value_is_string(value)) {
-		const char *hostname;
+	if (env_entry &&
+			env_entry->type == CTF_TRACE_CLASS_ENV_ENTRY_TYPE_STR) {
+		g_string_append(name, env_entry->value.str->str);
 
-		ret = bt_value_string_get(value, &hostname);
-		BT_ASSERT(ret == 0);
-		g_string_append(name, hostname);
-
-		if (ctx->trace_name_suffix) {
+		if (ctx->trace_class_name_suffix) {
 			g_string_append_c(name, G_DIR_SEPARATOR);
 		}
 	}
 
-	if (ctx->trace_name_suffix) {
-		g_string_append(name, ctx->trace_name_suffix);
+	if (ctx->trace_class_name_suffix) {
+		g_string_append(name, ctx->trace_class_name_suffix);
 	}
 
-	ret = bt_trace_set_name(ctx->trace, name->str);
-	if (ret) {
-		BT_LOGE("Cannot set trace's name: name=\"%s\"", name->str);
-		goto error;
-	}
-
+	g_string_assign(ctx->ctf_tc->name, name->str);
 	goto end;
 
-error:
-	ret = -1;
-
 end:
-	bt_put(value);
-
 	if (name) {
 		g_string_free(name, TRUE);
 	}
 
-	return ret;
-}
-
-static
-int move_ctx_stream_classes_to_trace(struct ctx *ctx)
-{
-	int ret = 0;
-	GHashTableIter iter;
-	gpointer key, stream_class;
-
-	if (g_hash_table_size(ctx->stream_classes) > 0 &&
-			bt_trace_get_stream_class_count(ctx->trace) == 0) {
-		/*
-		 * We're about to add the first stream class to the
-		 * trace. This will freeze the trace, and after this
-		 * we cannot set the name anymore. At this point,
-		 * set the trace name.
-		 */
-		ret = set_trace_name(ctx);
-		if (ret) {
-			BT_LOGE_STR("Cannot set trace's name.");
-			goto end;
-		}
-	}
-
-	g_hash_table_iter_init(&iter, ctx->stream_classes);
-
-	while (g_hash_table_iter_next(&iter, &key, &stream_class)) {
-		ret = bt_trace_add_stream_class(ctx->trace,
-			stream_class);
-		if (ret) {
-			int64_t id = bt_stream_class_get_id(stream_class);
-			BT_LOGE("Cannot add stream class to trace: id=%" PRId64,
-				id);
-			goto end;
-		}
-	}
-
-	g_hash_table_remove_all(ctx->stream_classes);
-
-end:
 	return ret;
 }
 
@@ -5327,31 +4899,15 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 		const struct ctf_metadata_decoder_config *decoder_config,
 		const char *name)
 {
-	int ret;
 	struct ctx *ctx = NULL;
-	struct bt_trace *trace;
-
-	trace = bt_trace_create();
-	if (!trace) {
-		BT_LOGE_STR("Cannot create empty trace.");
-		goto error;
-	}
-
-	/* Set packet header to NULL to override the default one */
-	ret = bt_trace_set_packet_header_field_type(trace, NULL);
-	if (ret) {
-		BT_LOGE_STR("Cannot reset initial trace's packet header field type.");
-		goto error;
-	}
 
 	/* Create visitor's context */
-	ctx = ctx_create(trace, decoder_config, name);
+	ctx = ctx_create(decoder_config, name);
 	if (!ctx) {
 		BT_LOGE_STR("Cannot create visitor's context.");
 		goto error;
 	}
 
-	trace = NULL;
 	goto end;
 
 error:
@@ -5359,7 +4915,6 @@ error:
 	ctx = NULL;
 
 end:
-	bt_put(trace);
 	return (void *) ctx;
 }
 
@@ -5370,7 +4925,7 @@ void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
 }
 
 BT_HIDDEN
-struct bt_trace *ctf_visitor_generate_ir_get_trace(
+struct bt_trace *ctf_visitor_generate_ir_get_ir_trace(
 		struct ctf_visitor_generate_ir *visitor)
 {
 	struct ctx *ctx = (void *) visitor;
@@ -5378,6 +4933,17 @@ struct bt_trace *ctf_visitor_generate_ir_get_trace(
 	BT_ASSERT(ctx);
 	BT_ASSERT(ctx->trace);
 	return bt_get(ctx->trace);
+}
+
+BT_HIDDEN
+struct ctf_trace_class *ctf_visitor_generate_ir_borrow_ctf_trace_class(
+		struct ctf_visitor_generate_ir *visitor)
+{
+	struct ctx *ctx = (void *) visitor;
+
+	BT_ASSERT(ctx);
+	BT_ASSERT(ctx->ctf_tc);
+	return ctx->ctf_tc;
 }
 
 BT_HIDDEN
@@ -5393,7 +4959,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 	case NODE_ROOT:
 	{
 		struct ctf_node *iter;
-		int got_trace_decl = FALSE;
+		bool got_trace_decl = false;
 
 		/*
 		 * The first thing we need is the native byte order of
@@ -5402,7 +4968,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		 * have the native byte order yet, and we don't have any
 		 * trace block yet, then fail with EINCOMPLETE.
 		 */
-		if (ctx->trace_bo == BT_BYTE_ORDER_NATIVE) {
+		if (ctx->ctf_tc->default_byte_order == -1) {
 			bt_list_for_each_entry(iter, &node->u.root.trace, siblings) {
 				if (got_trace_decl) {
 					_BT_LOGE_NODE(node,
@@ -5419,7 +4985,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 					goto end;
 				}
 
-				got_trace_decl = TRUE;
+				got_trace_decl = true;
 			}
 
 			if (!got_trace_decl) {
@@ -5429,10 +4995,10 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 			}
 		}
 
-		BT_ASSERT(ctx->trace_bo == BT_BYTE_ORDER_LITTLE_ENDIAN ||
-			ctx->trace_bo == BT_BYTE_ORDER_BIG_ENDIAN);
+		BT_ASSERT(ctx->ctf_tc->default_byte_order == CTF_BYTE_ORDER_LITTLE ||
+			ctx->ctf_tc->default_byte_order == CTF_BYTE_ORDER_BIG);
 		BT_ASSERT(ctx->current_scope &&
-			ctx->current_scope->parent_scope == NULL);
+				ctx->current_scope->parent_scope == NULL);
 
 		/* Environment */
 		bt_list_for_each_entry(iter, &node->u.root.env, siblings) {
@@ -5542,10 +5108,67 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		goto end;
 	}
 
-	/* Move decoded stream classes to trace, if any */
-	ret = move_ctx_stream_classes_to_trace(ctx);
+	/* Update default clock classes */
+	ret = ctf_trace_class_update_default_clock_classes(ctx->ctf_tc);
 	if (ret) {
-		BT_LOGE("Cannot move stream classes to trace: ret=%d", ret);
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Set trace's name, if not already done */
+	ret = try_set_trace_class_name(ctx);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Update trace class meanings */
+	ret = ctf_trace_class_update_meanings(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Update text arrays and sequences */
+	ret = ctf_trace_class_update_text_array_sequence(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Resolve sequence lengths and variant tags */
+	ret = ctf_trace_class_resolve_field_types(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Update "in IR" for field types */
+	ret = ctf_trace_class_update_in_ir(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Update saved value indexes */
+	ret = ctf_trace_class_update_value_storing_indexes(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Validate what we have so far */
+	ret = ctf_trace_class_validate(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
+	/* Copy new CTF metadata -> new IR metadata */
+	ret = ctf_trace_class_translate(ctx->trace, ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
 	}
 
 end:

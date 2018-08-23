@@ -25,6 +25,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/ctf-ir/event-header-field.h>
+#include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
 #include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <glib.h>
@@ -35,8 +36,6 @@ struct bt_field *bt_event_header_field_borrow_field(
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Event header field");
-	BT_ASSERT_PRE_NON_NULL(field_wrapper->field,
-		"Event header field's field object");
 	return (void *) field_wrapper->field;
 }
 
@@ -54,4 +53,38 @@ void bt_event_header_field_release(struct bt_event_header_field *header_field)
 	 * after creating it.
 	 */
 	bt_field_wrapper_destroy(field_wrapper);
+}
+
+struct bt_event_header_field *bt_event_header_field_create(
+		struct bt_stream_class *stream_class)
+{
+	struct bt_field_wrapper *field_wrapper;
+
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(bt_stream_class_borrow_trace_inline(stream_class),
+		"Stream class is not part of a trace: %!+S", stream_class);
+	BT_ASSERT_PRE(stream_class->event_header_ft,
+		"Stream class has no event header field type: %!+S",
+		stream_class);
+	field_wrapper = bt_field_wrapper_create(
+		&stream_class->event_header_field_pool,
+		(void *) stream_class->event_header_ft);
+	if (!field_wrapper) {
+		BT_LIB_LOGE("Cannot allocate one event header field from stream class: "
+			"%![sc-]+S", stream_class);
+		goto error;
+	}
+
+	BT_ASSERT(field_wrapper->field);
+	bt_stream_class_freeze(stream_class);
+	goto end;
+
+error:
+	if (field_wrapper) {
+		bt_field_wrapper_destroy(field_wrapper);
+		field_wrapper = NULL;
+	}
+
+end:
+	return (void *) field_wrapper;
 }
