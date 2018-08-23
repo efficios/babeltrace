@@ -1,8 +1,6 @@
 #ifndef BABELTRACE_ASSERT_PRE_INTERNAL_H
 #define BABELTRACE_ASSERT_PRE_INTERNAL_H
 
-#include <babeltrace/babeltrace-internal.h>
-
 /*
  * Copyright (c) 2018 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2018 Philippe Proulx <pproulx@efficios.com>
@@ -43,6 +41,8 @@
 #endif
 
 #include <stdlib.h>
+#include <inttypes.h>
+#include <babeltrace/babeltrace-internal.h>
 
 #ifdef BT_DEV_MODE
 /*
