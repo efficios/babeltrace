@@ -40,14 +40,11 @@ bt_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
 static inline gboolean
 bt_g_hash_table_contains(GHashTable *hash_table, gconstpointer key)
 {
-       const char *value;
+	gpointer orig_key;
+	gpointer value;
 
-       value = g_hash_table_lookup(hash_table, key);
-       if (value == NULL) {
-               return FALSE;
-       }
-
-       return TRUE;
+	return g_hash_table_lookup_extended(hash_table, key, &orig_key,
+		&value);
 }
 
 #endif
