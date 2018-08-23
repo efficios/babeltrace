@@ -8,6 +8,8 @@
 #include <babeltrace/ctf-ir/field-path.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <stdarg.h>
+#include <inttypes.h>
+#include <stdint.h>
 #include <glib.h>
 
 #define BT_COMMON_COLOR_RESET              "\033[0m"
@@ -282,22 +284,24 @@ static inline
 const char *bt_common_field_type_id_string(enum bt_field_type_id type_id)
 {
 	switch (type_id) {
-	case BT_FIELD_TYPE_ID_UNKNOWN:
-		return "BT_FIELD_TYPE_ID_UNKNOWN";
-	case BT_FIELD_TYPE_ID_INTEGER:
-		return "BT_FIELD_TYPE_ID_INTEGER";
-	case BT_FIELD_TYPE_ID_FLOAT:
-		return "BT_FIELD_TYPE_ID_FLOAT";
-	case BT_FIELD_TYPE_ID_ENUM:
-		return "BT_FIELD_TYPE_ID_ENUM";
+	case BT_FIELD_TYPE_ID_UNSIGNED_INTEGER:
+		return "BT_FIELD_TYPE_ID_UNSIGNED_INTEGER";
+	case BT_FIELD_TYPE_ID_SIGNED_INTEGER:
+		return "BT_FIELD_TYPE_ID_SIGNED_INTEGER";
+	case BT_FIELD_TYPE_ID_REAL:
+		return "BT_FIELD_TYPE_ID_REAL";
+	case BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION:
+		return "BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION";
+	case BT_FIELD_TYPE_ID_SIGNED_ENUMERATION:
+		return "BT_FIELD_TYPE_ID_SIGNED_ENUMERATION";
 	case BT_FIELD_TYPE_ID_STRING:
 		return "BT_FIELD_TYPE_ID_STRING";
-	case BT_FIELD_TYPE_ID_STRUCT:
-		return "BT_FIELD_TYPE_ID_STRUCT";
-	case BT_FIELD_TYPE_ID_ARRAY:
-		return "BT_FIELD_TYPE_ID_ARRAY";
-	case BT_FIELD_TYPE_ID_SEQUENCE:
-		return "BT_FIELD_TYPE_ID_SEQUENCE";
+	case BT_FIELD_TYPE_ID_STRUCTURE:
+		return "BT_FIELD_TYPE_ID_STRUCTURE";
+	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
+		return "BT_FIELD_TYPE_ID_STATIC_ARRAY";
+	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
+		return "BT_FIELD_TYPE_ID_DYNAMIC_ARRAY";
 	case BT_FIELD_TYPE_ID_VARIANT:
 		return "BT_FIELD_TYPE_ID_VARIANT";
 	default:
@@ -306,59 +310,17 @@ const char *bt_common_field_type_id_string(enum bt_field_type_id type_id)
 };
 
 static inline
-const char *bt_common_byte_order_string(enum bt_byte_order bo)
-{
-	switch (bo) {
-	case BT_BYTE_ORDER_UNKNOWN:
-		return "BT_BYTE_ORDER_UNKNOWN";
-	case BT_BYTE_ORDER_UNSPECIFIED:
-		return "BT_BYTE_ORDER_UNSPECIFIED";
-	case BT_BYTE_ORDER_NATIVE:
-		return "BT_BYTE_ORDER_NATIVE";
-	case BT_BYTE_ORDER_LITTLE_ENDIAN:
-		return "BT_BYTE_ORDER_LITTLE_ENDIAN";
-	case BT_BYTE_ORDER_BIG_ENDIAN:
-		return "BT_BYTE_ORDER_BIG_ENDIAN";
-	case BT_BYTE_ORDER_NETWORK:
-		return "BT_BYTE_ORDER_NETWORK";
-	default:
-		return "(unknown)";
-	}
-};
-
-static inline
-const char *bt_common_string_encoding_string(enum bt_string_encoding encoding)
-{
-	switch (encoding) {
-	case BT_STRING_ENCODING_UNKNOWN:
-		return "BT_STRING_ENCODING_UNKNOWN";
-	case BT_STRING_ENCODING_NONE:
-		return "BT_STRING_ENCODING_NONE";
-	case BT_STRING_ENCODING_UTF8:
-		return "BT_STRING_ENCODING_UTF8";
-	case BT_STRING_ENCODING_ASCII:
-		return "BT_STRING_ENCODING_ASCII";
-	default:
-		return "(unknown)";
-	}
-};
-
-static inline
-const char *bt_common_integer_base_string(enum bt_integer_base base)
+const char *bt_common_field_type_integer_preferred_display_base_string(enum bt_field_type_integer_preferred_display_base base)
 {
 	switch (base) {
-	case BT_INTEGER_BASE_UNKNOWN:
-		return "BT_INTEGER_BASE_UNKNOWN";
-	case BT_INTEGER_BASE_UNSPECIFIED:
-		return "BT_INTEGER_BASE_UNSPECIFIED";
-	case BT_INTEGER_BASE_BINARY:
-		return "BT_INTEGER_BASE_BINARY";
-	case BT_INTEGER_BASE_OCTAL:
-		return "BT_INTEGER_BASE_OCTAL";
-	case BT_INTEGER_BASE_DECIMAL:
-		return "BT_INTEGER_BASE_DECIMAL";
-	case BT_INTEGER_BASE_HEXADECIMAL:
-		return "BT_INTEGER_BASE_HEXADECIMAL";
+	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_BINARY:
+		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_BINARY";
+	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL:
+		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL";
+	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL:
+		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL";
+	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL:
+		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL";
 	default:
 		return "(unknown)";
 	}
@@ -368,22 +330,18 @@ static inline
 const char *bt_common_scope_string(enum bt_scope scope)
 {
 	switch (scope) {
-	case BT_SCOPE_UNKNOWN:
-		return "BT_SCOPE_UNKNOWN";
-	case BT_SCOPE_TRACE_PACKET_HEADER:
-		return "BT_SCOPE_TRACE_PACKET_HEADER";
-	case BT_SCOPE_STREAM_PACKET_CONTEXT:
-		return "BT_SCOPE_STREAM_PACKET_CONTEXT";
-	case BT_SCOPE_STREAM_EVENT_HEADER:
-		return "BT_SCOPE_STREAM_EVENT_HEADER";
-	case BT_SCOPE_STREAM_EVENT_CONTEXT:
-		return "BT_SCOPE_STREAM_EVENT_CONTEXT";
-	case BT_SCOPE_EVENT_CONTEXT:
-		return "BT_SCOPE_EVENT_CONTEXT";
+	case BT_SCOPE_PACKET_HEADER:
+		return "BT_SCOPE_PACKET_HEADER";
+	case BT_SCOPE_PACKET_CONTEXT:
+		return "BT_SCOPE_PACKET_CONTEXT";
+	case BT_SCOPE_EVENT_HEADER:
+		return "BT_SCOPE_EVENT_HEADER";
+	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+		return "BT_SCOPE_EVENT_COMMON_CONTEXT";
+	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+		return "BT_SCOPE_EVENT_SPECIFIC_CONTEXT";
 	case BT_SCOPE_EVENT_PAYLOAD:
 		return "BT_SCOPE_EVENT_PAYLOAD";
-	case BT_SCOPE_ENV:
-		return "BT_SCOPE_ENV";
 	default:
 		return "(unknown)";
 	}
@@ -394,10 +352,6 @@ const char *bt_common_event_class_log_level_string(
 		enum bt_event_class_log_level level)
 {
 	switch (level) {
-	case BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN:
-		return "BT_EVENT_CLASS_LOG_LEVEL_UNKNOWN";
-	case BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED:
-		return "BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED";
 	case BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY:
 		return "BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY";
 	case BT_EVENT_CLASS_LOG_LEVEL_ALERT:
@@ -437,7 +391,7 @@ static inline
 GString *bt_field_path_string(struct bt_field_path *path)
 {
 	GString *str = g_string_new(NULL);
-	size_t i;
+	uint64_t i;
 
 	BT_ASSERT(path);
 
@@ -449,9 +403,8 @@ GString *bt_field_path_string(struct bt_field_path *path)
 		bt_field_path_get_root_scope(path)));
 
 	for (i = 0; i < bt_field_path_get_index_count(path); i++) {
-		int index = bt_field_path_get_index(path, i);
-
-		g_string_append_printf(str, ", %d", index);
+		g_string_append_printf(str, ", %" PRIu64,
+			bt_field_path_get_index_by_index(path, i));
 	}
 
 	g_string_append(str, "]");

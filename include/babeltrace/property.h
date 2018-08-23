@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_CTF_IR_VISITOR_INTERNAL_H
-#define BABELTRACE_CTF_IR_VISITOR_INTERNAL_H
+#ifndef BABELTRACE_PROPERTY_H
+#define BABELTRACE_PROPERTY_H
 
 /*
- * BabelTrace - CTF IR: Visitor internal
- *
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright (c) 2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,25 +23,17 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-ir/visitor.h>
-#include <babeltrace/babeltrace-internal.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-typedef void *(*bt_child_accessor)(void *object, int index);
-typedef int64_t (*bt_child_count_accessor)(void *object);
-typedef int (*bt_child_visitor)(void *object, bt_visitor visitor,
-		void *data);
-
-struct bt_visitor_object {
-	enum bt_visitor_object_type type;
-	void *object;
+enum bt_property_availability {
+	BT_PROPERTY_AVAILABILITY_AVAILABLE,
+	BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE,
 };
 
-BT_HIDDEN
-int visitor_helper(struct bt_visitor_object *root,
-		bt_child_count_accessor child_counter,
-		bt_child_accessor child_accessor,
-		bt_child_visitor child_visitor,
-		bt_visitor visitor,
-		void *data);
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* BABELTRACE_CTF_IR_VISITOR_INTERNAL_H */
+#endif /* BABELTRACE_PROPERTY_H */

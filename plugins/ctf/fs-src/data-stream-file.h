@@ -81,10 +81,15 @@ struct ctf_fs_ds_file_info {
 	GString *path;
 
 	/* Guaranteed to be set, as opposed to the index. */
-	uint64_t begin_ns;
+	int64_t begin_ns;
 };
 
+struct ctf_fs_metadata;
+
 struct ctf_fs_ds_file {
+	/* Weak */
+	struct ctf_fs_metadata *metadata;
+
 	/* Weak */
 	struct bt_private_connection_private_notification_iterator *pc_notif_iter;
 

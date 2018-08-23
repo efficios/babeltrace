@@ -41,113 +41,26 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/property-internal.h>
 #include <inttypes.h>
 #include <unistd.h>
 
-static inline
-void bt_stream_finalize(struct bt_stream *stream)
-{
-	BT_LOGD("Finalizing stream object: addr=%p, name=\"%s\"",
-		stream, bt_stream_get_name(stream));
-
-	if (stream->name) {
-		g_string_free(stream->name, TRUE);
-	}
-}
+#define BT_ASSERT_PRE_STREAM_HOT(_stream) \
+	BT_ASSERT_PRE_HOT((_stream), "Stream", ": %!+s", (_stream))
 
 static
-void bt_stream_destroy(struct bt_object *obj)
+void destroy_stream(struct bt_object *obj)
 {
 	struct bt_stream *stream = (void *) obj;
 
-	BT_LOGD("Destroying stream object: addr=%p, name=\"%s\"",
-		stream, bt_stream_get_name(stream));
+	BT_LIB_LOGD("Destroying stream object: %!+s", stream);
+
+	if (stream->name.str) {
+		g_string_free(stream->name.str, TRUE);
+	}
+
 	bt_object_pool_finalize(&stream->packet_pool);
-	bt_stream_finalize((void *) obj);
 	g_free(stream);
-}
-
-static inline
-int bt_stream_initialize(
-		struct bt_stream *stream,
-		struct bt_stream_class *stream_class, const char *name,
-		uint64_t id, bt_object_release_func release_func)
-{
-	int ret = 0;
-	struct bt_trace *trace = NULL;
-
-	bt_object_init_shared_with_parent(&stream->base, release_func);
-
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto error;
-	}
-
-	BT_LOGD("Initializing stream object: stream-class-addr=%p, "
-		"stream-class-name=\"%s\", stream-name=\"%s\", "
-		"stream-id=%" PRIu64,
-		stream_class, bt_stream_class_get_name(stream_class),
-		name, id);
-	trace = bt_stream_class_borrow_trace(stream_class);
-	if (!trace) {
-		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
-			"stream-class-addr=%p, stream-class-name=\"%s\", "
-			"stream-name=\"%s\"",
-			stream_class,
-			bt_stream_class_get_name(stream_class), name);
-		goto error;
-	}
-
-	if (id != -1ULL) {
-		/*
-		 * Validate that the given ID is unique amongst all the
-		 * existing trace's streams created from the same stream
-		 * class.
-		 */
-		size_t i;
-
-		for (i = 0; i < trace->streams->len; i++) {
-			struct bt_stream *trace_stream =
-				g_ptr_array_index(trace->streams, i);
-
-			if (trace_stream->stream_class != (void *) stream_class) {
-				continue;
-			}
-
-			if (trace_stream->id == id) {
-				BT_LOGW_STR("Invalid parameter: another stream in the same trace already has this ID.");
-				goto error;
-			}
-		}
-	}
-
-	/*
-	 * Acquire reference to parent since stream will become publicly
-	 * reachable; it needs its parent to remain valid.
-	 */
-	bt_object_set_parent(&stream->base, &trace->base);
-	stream->stream_class = stream_class;
-	stream->id = (int64_t) id;
-
-	if (name) {
-		stream->name = g_string_new(name);
-		if (!stream->name) {
-			BT_LOGE_STR("Failed to allocate a GString.");
-			goto error;
-		}
-	}
-
-	BT_LOGD("Set stream's trace parent: trace-addr=%p", trace);
-
-	/* Add this stream to the trace's streams */
-	BT_LOGD("Created stream object: addr=%p", stream);
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	return ret;
 }
 
 static
@@ -156,58 +69,61 @@ void bt_stream_free_packet(struct bt_packet *packet, struct bt_stream *stream)
 	bt_packet_destroy(packet);
 }
 
+BT_ASSERT_PRE_FUNC
+static inline
+bool stream_id_is_unique(struct bt_trace *trace,
+		struct bt_stream_class *stream_class, uint64_t id)
+{
+	uint64_t i;
+	bool is_unique = true;
+
+	for (i = 0; i < trace->streams->len; i++) {
+		struct bt_stream *stream = trace->streams->pdata[i];
+
+		if (stream->class != stream_class) {
+			continue;
+		}
+
+		if (stream->id == id) {
+			is_unique = false;
+			goto end;
+		}
+	}
+
+end:
+	return is_unique;
+}
+
 static
-struct bt_stream *bt_stream_create_with_id_no_check(
-		struct bt_stream_class *stream_class,
-		const char *name, uint64_t id)
+struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
+		  uint64_t id)
 {
 	int ret;
-	struct bt_stream *stream = NULL;
-	struct bt_trace *trace = NULL;
+	struct bt_stream *stream;
+	struct bt_trace *trace;
 
-	BT_LOGD("Creating stream object: stream-class-addr=%p, "
-		"stream-class-name=\"%s\", stream-name=\"%s\", "
-		"stream-id=%" PRIu64,
-		stream_class, bt_stream_class_get_name(stream_class),
-		name, id);
-
-	trace = bt_stream_class_borrow_trace(stream_class);
-	if (!trace) {
-		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is not part of trace: "
-			"stream-class-addr=%p, stream-class-name=\"%s\", "
-			"stream-name=\"%s\"",
-			stream_class, bt_stream_class_get_name(stream_class),
-			name);
-		goto error;
-	}
-
-	if (bt_trace_is_static(trace)) {
-		/*
-		 * A static trace has the property that all its stream
-		 * classes, clock classes, and streams are definitive:
-		 * no more can be added, and each object is also frozen.
-		 */
-		BT_LOGW("Invalid parameter: cannot create stream from a stream class which is part of a static trace: "
-			"stream-class-addr=%p, stream-class-name=\"%s\", "
-			"stream-name=\"%s\", trace-addr=%p",
-			stream_class, bt_stream_class_get_name(stream_class),
-			name, trace);
-		goto error;
-	}
-
+	BT_ASSERT(stream_class);
+	trace = bt_stream_class_borrow_trace_inline(stream_class);
+	BT_ASSERT_PRE(stream_id_is_unique(trace, stream_class, id),
+		"Duplicate stream ID: %![trace-]+t, id=%" PRIu64, trace, id);
+	BT_ASSERT_PRE(!trace->is_static,
+		"Trace is static: %![trace-]+t", trace);
+	BT_LIB_LOGD("Creating stream object: %![trace-]+t, id=%" PRIu64,
+		trace, id);
 	stream = g_new0(struct bt_stream, 1);
 	if (!stream) {
 		BT_LOGE_STR("Failed to allocate one stream.");
 		goto error;
 	}
 
-	ret = bt_stream_initialize(stream, stream_class, name,
-		id, bt_stream_destroy);
-	if (ret) {
-		/* bt_stream_initialize() logs errors */
+	bt_object_init_shared_with_parent(&stream->base, destroy_stream);
+	stream->name.str = g_string_new(NULL);
+	if (!stream->name.str) {
+		BT_LOGE_STR("Failed to allocate a GString.");
 		goto error;
 	}
 
+	stream->id = id;
 	ret = bt_object_pool_initialize(&stream->packet_pool,
 		(bt_object_pool_new_object_func) bt_packet_new,
 		(bt_object_pool_destroy_object_func) bt_stream_free_packet,
@@ -217,8 +133,10 @@ struct bt_stream *bt_stream_create_with_id_no_check(
 		goto error;
 	}
 
-	g_ptr_array_add(trace->streams, stream);
-	BT_LOGD("Created stream object: addr=%p", stream);
+	stream->class = stream_class;
+	bt_trace_add_stream(trace, stream);
+	bt_stream_class_freeze(stream_class);
+	BT_LIB_LOGD("Created stream object: %!+s", stream);
 	goto end;
 
 error:
@@ -228,53 +146,63 @@ end:
 	return stream;
 }
 
-struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
-		const char *name, uint64_t id_param)
+struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class)
 {
-	struct bt_stream *stream = NULL;
-	int64_t id = (int64_t) id_param;
+	uint64_t id;
 
-	if (!stream_class) {
-		BT_LOGW_STR("Invalid parameter: stream class is NULL.");
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(stream_class->assigns_automatic_stream_id,
+		"Stream class does not automatically assigns stream IDs: "
+		"%![sc-]+S", stream_class);
+	id = bt_trace_get_automatic_stream_id(
+			bt_stream_class_borrow_trace_inline(stream_class),
+			stream_class);
+	return create_stream_with_id(stream_class, id);
+}
 
-	if (id < 0) {
-		BT_LOGW("Invalid parameter: invalid stream's ID: "
-			"name=\"%s\", id=%" PRIu64,
-			name, id_param);
-		goto end;
-	}
-
-	stream = bt_stream_create_with_id_no_check(stream_class,
-		name, id_param);
-
-end:
-	return stream;
+struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
+		uint64_t id)
+{
+	BT_ASSERT_PRE(!stream_class->assigns_automatic_stream_id,
+		"Stream class automatically assigns stream IDs: "
+		"%![sc-]+S", stream_class);
+	return create_stream_with_id(stream_class, id);
 }
 
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 {
-	BT_ASSERT(stream);
-	return stream->stream_class;
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return stream->class;
 }
 
 const char *bt_stream_get_name(struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	return stream->name ? stream->name->str : NULL;
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream class");
+	return stream->name.value;
 }
 
-int64_t bt_stream_get_id(struct bt_stream *stream)
+int bt_stream_set_name(struct bt_stream *stream, const char *name)
 {
-	int64_t ret;
+	BT_ASSERT_PRE_NON_NULL(stream, "Clock class");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_STREAM_HOT(stream);
+	g_string_assign(stream->name.str, name);
+	stream->name.value = stream->name.str->str;
+	BT_LIB_LOGV("Set stream class's name: %!+S", stream);
+	return 0;
+}
 
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
-	ret = stream->id;
-	if (ret < 0) {
-		BT_LOGV("Stream's ID is not set: addr=%p, name=\"%s\"",
-			stream, bt_stream_get_name(stream));
-	}
+uint64_t bt_stream_get_id(struct bt_stream *stream)
+{
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream class");
+	return stream->id;
+}
 
-	return ret;
+BT_HIDDEN
+void _bt_stream_freeze(struct bt_stream *stream)
+{
+	/* The field types and default clock class are already frozen */
+	BT_ASSERT(stream);
+	BT_LIB_LOGD("Freezing stream: %!+s", stream);
+	stream->frozen = true;
 }

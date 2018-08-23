@@ -41,270 +41,155 @@
 #include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 
-#define BT_ASSERT_PRE_FIELD_IS_INT_OR_ENUM(_field, _name)		\
-	BT_ASSERT_PRE((_field)->type->id == BT_FIELD_TYPE_ID_INTEGER ||	\
-		(_field)->type->id == BT_FIELD_TYPE_ID_ENUM,		\
-		_name " is not an integer or an enumeration field: "	\
-		"%!+f",	(_field))
+static
+void reset_single_field(struct bt_field *field);
 
 static
-int bt_field_generic_validate(struct bt_field *field);
+void reset_array_field(struct bt_field *field);
 
 static
-int bt_field_structure_validate_recursive(struct bt_field *field);
+void reset_structure_field(struct bt_field *field);
 
 static
-int bt_field_variant_validate_recursive(struct bt_field *field);
+void reset_variant_field(struct bt_field *field);
 
 static
-int bt_field_array_validate_recursive(struct bt_field *field);
+void set_single_field_is_frozen(struct bt_field *field, bool is_frozen);
 
 static
-int bt_field_sequence_validate_recursive(struct bt_field *field);
+void set_array_field_is_frozen(struct bt_field *field, bool is_frozen);
 
 static
-void bt_field_generic_reset(struct bt_field *field);
+void set_structure_field_is_frozen(struct bt_field *field, bool is_frozen);
 
 static
-void bt_field_structure_reset_recursive(struct bt_field *field);
+void set_variant_field_is_frozen(struct bt_field *field, bool is_frozen);
 
 static
-void bt_field_variant_reset_recursive(struct bt_field *field);
+bool single_field_is_set(struct bt_field *field);
 
 static
-void bt_field_array_reset_recursive(struct bt_field *field);
+bool array_field_is_set(struct bt_field *field);
 
 static
-void bt_field_sequence_reset_recursive(struct bt_field *field);
+bool structure_field_is_set(struct bt_field *field);
 
 static
-void bt_field_generic_set_is_frozen(struct bt_field *field,
-		bool is_frozen);
+bool variant_field_is_set(struct bt_field *field);
 
 static
-void bt_field_structure_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen);
-
-static
-void bt_field_variant_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen);
-
-static
-void bt_field_array_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen);
-
-static
-void bt_field_sequence_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen);
-
-static
-bt_bool bt_field_generic_is_set(struct bt_field *field);
-
-static
-bt_bool bt_field_structure_is_set_recursive(
-		struct bt_field *field);
-
-static
-bt_bool bt_field_variant_is_set_recursive(struct bt_field *field);
-
-static
-bt_bool bt_field_array_is_set_recursive(struct bt_field *field);
-
-static
-bt_bool bt_field_sequence_is_set_recursive(struct bt_field *field);
-
-static struct bt_field_methods bt_field_integer_methods = {
-	.set_is_frozen = bt_field_generic_set_is_frozen,
-	.validate = bt_field_generic_validate,
-	.is_set = bt_field_generic_is_set,
-	.reset = bt_field_generic_reset,
-};
-
-static struct bt_field_methods bt_field_floating_point_methods = {
-	.set_is_frozen = bt_field_generic_set_is_frozen,
-	.validate = bt_field_generic_validate,
-	.is_set = bt_field_generic_is_set,
-	.reset = bt_field_generic_reset,
-};
-
-static struct bt_field_methods bt_field_enumeration_methods = {
-	.set_is_frozen = bt_field_generic_set_is_frozen,
-	.validate = bt_field_generic_validate,
-	.is_set = bt_field_generic_is_set,
-	.reset = bt_field_generic_reset,
-};
-
-static struct bt_field_methods bt_field_string_methods = {
-	.set_is_frozen = bt_field_generic_set_is_frozen,
-	.validate = bt_field_generic_validate,
-	.is_set = bt_field_generic_is_set,
-	.reset = bt_field_generic_reset,
-};
-
-static struct bt_field_methods bt_field_structure_methods = {
-	.set_is_frozen = bt_field_structure_set_is_frozen_recursive,
-	.validate = bt_field_structure_validate_recursive,
-	.is_set = bt_field_structure_is_set_recursive,
-	.reset = bt_field_structure_reset_recursive,
-};
-
-static struct bt_field_methods bt_field_sequence_methods = {
-	.set_is_frozen = bt_field_sequence_set_is_frozen_recursive,
-	.validate = bt_field_sequence_validate_recursive,
-	.is_set = bt_field_sequence_is_set_recursive,
-	.reset = bt_field_sequence_reset_recursive,
-};
-
-static struct bt_field_methods bt_field_array_methods = {
-	.set_is_frozen = bt_field_array_set_is_frozen_recursive,
-	.validate = bt_field_array_validate_recursive,
-	.is_set = bt_field_array_is_set_recursive,
-	.reset = bt_field_array_reset_recursive,
-};
-
-static struct bt_field_methods bt_field_variant_methods = {
-	.set_is_frozen = bt_field_variant_set_is_frozen_recursive,
-	.validate = bt_field_variant_validate_recursive,
-	.is_set = bt_field_variant_is_set_recursive,
-	.reset = bt_field_variant_reset_recursive,
+struct bt_field_methods integer_field_methods = {
+	.set_is_frozen = set_single_field_is_frozen,
+	.is_set = single_field_is_set,
+	.reset = reset_single_field,
 };
 
 static
-struct bt_field *bt_field_integer_create(struct bt_field_type *);
+struct bt_field_methods real_field_methods = {
+	.set_is_frozen = set_single_field_is_frozen,
+	.is_set = single_field_is_set,
+	.reset = reset_single_field,
+};
 
 static
-struct bt_field *bt_field_enumeration_create(struct bt_field_type *);
+struct bt_field_methods string_field_methods = {
+	.set_is_frozen = set_single_field_is_frozen,
+	.is_set = single_field_is_set,
+	.reset = reset_single_field,
+};
 
 static
-struct bt_field *bt_field_floating_point_create(struct bt_field_type *);
+struct bt_field_methods structure_field_methods = {
+	.set_is_frozen = set_structure_field_is_frozen,
+	.is_set = structure_field_is_set,
+	.reset = reset_structure_field,
+};
 
 static
-struct bt_field *bt_field_structure_create(struct bt_field_type *);
+struct bt_field_methods array_field_methods = {
+	.set_is_frozen = set_array_field_is_frozen,
+	.is_set = array_field_is_set,
+	.reset = reset_array_field,
+};
 
 static
-struct bt_field *bt_field_variant_create(struct bt_field_type *);
+struct bt_field_methods variant_field_methods = {
+	.set_is_frozen = set_variant_field_is_frozen,
+	.is_set = variant_field_is_set,
+	.reset = reset_variant_field,
+};
 
 static
-struct bt_field *bt_field_array_create(struct bt_field_type *);
+struct bt_field *create_integer_field(struct bt_field_type *);
 
 static
-struct bt_field *bt_field_sequence_create(struct bt_field_type *);
+struct bt_field *create_real_field(struct bt_field_type *);
 
 static
-struct bt_field *bt_field_string_create(struct bt_field_type *);
+struct bt_field *create_string_field(struct bt_field_type *);
+
+static
+struct bt_field *create_structure_field(struct bt_field_type *);
+
+static
+struct bt_field *create_static_array_field(struct bt_field_type *);
+
+static
+struct bt_field *create_dynamic_array_field(struct bt_field_type *);
+
+static
+struct bt_field *create_variant_field(struct bt_field_type *);
 
 static
 struct bt_field *(* const field_create_funcs[])(struct bt_field_type *) = {
-	[BT_FIELD_TYPE_ID_INTEGER] =	bt_field_integer_create,
-	[BT_FIELD_TYPE_ID_ENUM] =	bt_field_enumeration_create,
-	[BT_FIELD_TYPE_ID_FLOAT] =	bt_field_floating_point_create,
-	[BT_FIELD_TYPE_ID_STRUCT] =	bt_field_structure_create,
-	[BT_FIELD_TYPE_ID_VARIANT] =	bt_field_variant_create,
-	[BT_FIELD_TYPE_ID_ARRAY] =	bt_field_array_create,
-	[BT_FIELD_TYPE_ID_SEQUENCE] =	bt_field_sequence_create,
-	[BT_FIELD_TYPE_ID_STRING] =	bt_field_string_create,
+	[BT_FIELD_TYPE_ID_UNSIGNED_INTEGER]	= create_integer_field,
+	[BT_FIELD_TYPE_ID_SIGNED_INTEGER]	= create_integer_field,
+	[BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION] = create_integer_field,
+	[BT_FIELD_TYPE_ID_SIGNED_ENUMERATION]	= create_integer_field,
+	[BT_FIELD_TYPE_ID_REAL]			= create_real_field,
+	[BT_FIELD_TYPE_ID_STRING]		= create_string_field,
+	[BT_FIELD_TYPE_ID_STRUCTURE]		= create_structure_field,
+	[BT_FIELD_TYPE_ID_STATIC_ARRAY]		= create_static_array_field,
+	[BT_FIELD_TYPE_ID_DYNAMIC_ARRAY]	= create_dynamic_array_field,
+	[BT_FIELD_TYPE_ID_VARIANT]		= create_variant_field,
 };
 
 static
-void bt_field_integer_destroy(struct bt_field *field);
+void destroy_integer_field(struct bt_field *field);
 
 static
-void bt_field_enumeration_destroy(struct bt_field *field);
+void destroy_real_field(struct bt_field *field);
 
 static
-void bt_field_floating_point_destroy(struct bt_field *field);
+void destroy_string_field(struct bt_field *field);
 
 static
-void bt_field_structure_destroy_recursive(struct bt_field *field);
+void destroy_structure_field(struct bt_field *field);
 
 static
-void bt_field_variant_destroy_recursive(struct bt_field *field);
+void destroy_array_field(struct bt_field *field);
 
 static
-void bt_field_array_destroy_recursive(struct bt_field *field);
-
-static
-void bt_field_sequence_destroy_recursive(struct bt_field *field);
-
-static
-void bt_field_string_destroy(struct bt_field *field);
+void destroy_variant_field(struct bt_field *field);
 
 static
 void (* const field_destroy_funcs[])(struct bt_field *) = {
-	[BT_FIELD_TYPE_ID_INTEGER] =	bt_field_integer_destroy,
-	[BT_FIELD_TYPE_ID_ENUM] =	bt_field_enumeration_destroy,
-	[BT_FIELD_TYPE_ID_FLOAT] =	bt_field_floating_point_destroy,
-	[BT_FIELD_TYPE_ID_STRUCT] =	bt_field_structure_destroy_recursive,
-	[BT_FIELD_TYPE_ID_VARIANT] =	bt_field_variant_destroy_recursive,
-	[BT_FIELD_TYPE_ID_ARRAY] =	bt_field_array_destroy_recursive,
-	[BT_FIELD_TYPE_ID_SEQUENCE] =	bt_field_sequence_destroy_recursive,
-	[BT_FIELD_TYPE_ID_STRING] =	bt_field_string_destroy,
+	[BT_FIELD_TYPE_ID_UNSIGNED_INTEGER]	= destroy_integer_field,
+	[BT_FIELD_TYPE_ID_SIGNED_INTEGER]	= destroy_integer_field,
+	[BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION] = destroy_integer_field,
+	[BT_FIELD_TYPE_ID_SIGNED_ENUMERATION]	= destroy_integer_field,
+	[BT_FIELD_TYPE_ID_REAL]			= destroy_real_field,
+	[BT_FIELD_TYPE_ID_STRING]		= destroy_string_field,
+	[BT_FIELD_TYPE_ID_STRUCTURE]		= destroy_structure_field,
+	[BT_FIELD_TYPE_ID_STATIC_ARRAY]		= destroy_array_field,
+	[BT_FIELD_TYPE_ID_DYNAMIC_ARRAY]	= destroy_array_field,
+	[BT_FIELD_TYPE_ID_VARIANT]		= destroy_variant_field,
 };
-
-BT_ASSERT_PRE_FUNC
-static inline bool value_is_in_range_signed(unsigned int size, int64_t value)
-{
-	bool ret = true;
-	int64_t min_value, max_value;
-
-	min_value = -(1ULL << (size - 1));
-	max_value = (1ULL << (size - 1)) - 1;
-	if (value < min_value || value > max_value) {
-		BT_LOGF("Value is out of bounds: value=%" PRId64 ", "
-			"min-value=%" PRId64 ", max-value=%" PRId64,
-			value, min_value, max_value);
-		ret = false;
-	}
-
-	return ret;
-}
-
-BT_ASSERT_PRE_FUNC
-static inline bool value_is_in_range_unsigned(unsigned int size, uint64_t value)
-{
-	bool ret = true;
-	int64_t max_value;
-
-	max_value = (size == 64) ? UINT64_MAX : ((uint64_t) 1 << size) - 1;
-	if (value > max_value) {
-		BT_LOGF("Value is out of bounds: value=%" PRIu64 ", "
-			"max-value=%" PRIu64,
-			value, max_value);
-		ret = false;
-	}
-
-	return ret;
-}
-
-BT_HIDDEN
-struct bt_field *bt_field_create_recursive(struct bt_field_type *type)
-{
-	struct bt_field *field = NULL;
-	enum bt_field_type_id type_id;
-
-	BT_ASSERT_PRE_NON_NULL(type, "Field type");
-	BT_ASSERT(bt_field_type_has_known_id((void *) type));
-	BT_ASSERT_PRE(bt_field_type_validate((void *) type) == 0,
-		"Field type is invalid: %!+F", type);
-	type_id = bt_field_type_get_type_id(type);
-	field = field_create_funcs[type_id](type);
-	if (!field) {
-		goto end;
-	}
-
-	bt_field_type_freeze(type);
-
-end:
-	return field;
-}
 
 struct bt_field_type *bt_field_borrow_type(struct bt_field *field)
 {
-	struct bt_field_type *ret = NULL;
-
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
-	ret = field->type;
-	return ret;
+	return field->type;
 }
 
 enum bt_field_type_id bt_field_get_type_id(struct bt_field *field)
@@ -313,431 +198,465 @@ enum bt_field_type_id bt_field_get_type_id(struct bt_field *field)
 	return field->type->id;
 }
 
-int64_t bt_field_sequence_get_length(struct bt_field *field)
+BT_HIDDEN
+struct bt_field *bt_field_create(struct bt_field_type *ft)
 {
-	struct bt_field_sequence *sequence = (void *) field;
+	struct bt_field *field = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Sequence field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_SEQUENCE,
-		"Field");
-	return (int64_t) sequence->length;
-}
-
-int bt_field_sequence_set_length(struct bt_field *field, uint64_t length)
-{
-	int ret = 0;
-	struct bt_field_sequence *sequence = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Sequence field");
-	BT_ASSERT_PRE(((int64_t) length) >= 0,
-		"Invalid sequence length (too large): length=%" PRId64,
-		length);
-	BT_ASSERT_PRE_FIELD_HOT(field, "Sequence field");
-
-	if (unlikely(length > sequence->elements->len)) {
-		/* Make more room */
-		struct bt_field_type_sequence *sequence_ft;
-		uint64_t cur_len = sequence->elements->len;
-		uint64_t i;
-
-		g_ptr_array_set_size(sequence->elements, length);
-		sequence_ft = (void *) sequence->common.type;
-
-		for (i = cur_len; i < sequence->elements->len; i++) {
-			struct bt_field *elem_field =
-				bt_field_create_recursive(
-					sequence_ft->element_ft);
-
-			if (!elem_field) {
-				ret = -1;
-				goto end;
-			}
-
-			BT_ASSERT(!sequence->elements->pdata[i]);
-			sequence->elements->pdata[i] = elem_field;
-		}
+	BT_ASSERT_PRE_NON_NULL(ft, "Field type");
+	BT_ASSERT(bt_field_type_has_known_id(ft));
+	field = field_create_funcs[ft->id](ft);
+	if (!field) {
+		BT_LIB_LOGE("Cannot create field object from field type: "
+			"%![ft-]+F", ft);
+		goto end;
 	}
-
-	sequence->length = length;
 
 end:
-	return ret;
-}
-
-struct bt_field *bt_field_structure_borrow_field_by_index(
-		struct bt_field *field, uint64_t index)
-{
-	struct bt_field_structure *structure = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Structure field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_STRUCT, "Field");
-	BT_ASSERT_PRE(index < structure->fields->len,
-		"Index is out of bound: %![struct-field-]+f, "
-		"index=%" PRIu64 ", count=%u", field, index,
-		structure->fields->len);
-	return structure->fields->pdata[index];
-}
-
-struct bt_field *bt_field_structure_borrow_field_by_name(
-		struct bt_field *field, const char *name)
-{
-	struct bt_field *ret = NULL;
-	GQuark field_quark;
-	struct bt_field_type_structure *structure_ft;
-	struct bt_field_structure *structure = (void *) field;
-	size_t index;
-	GHashTable *field_name_to_index;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Structure field");
-	BT_ASSERT_PRE_NON_NULL(name, "Field name");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_STRUCT, "Field");
-	structure_ft = (void *) field->type;
-	field_name_to_index = structure_ft->field_name_to_index;
-	field_quark = g_quark_from_string(name);
-	if (!g_hash_table_lookup_extended(field_name_to_index,
-			GUINT_TO_POINTER(field_quark),
-			NULL, (gpointer *) &index)) {
-		BT_LOGV("Invalid parameter: no such field in structure field's type: "
-			"struct-field-addr=%p, struct-ft-addr=%p, name=\"%s\"",
-			field, field->type, name);
-		goto error;
-	}
-
-	ret = structure->fields->pdata[index];
-	BT_ASSERT(ret);
-
-error:
-	return ret;
-}
-
-struct bt_field *bt_field_array_borrow_field(
-		struct bt_field *field, uint64_t index)
-{
-	struct bt_field_array *array = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Array field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_ARRAY,
-		"Field");
-	BT_ASSERT_PRE(index < array->elements->len,
-		"Index is out of bound: %![array-field-]+f, "
-		"index=%" PRIu64 ", count=%u", field,
-		index, array->elements->len);
-	return array->elements->pdata[(size_t) index];
-}
-
-struct bt_field *bt_field_sequence_borrow_field(
-		struct bt_field *field, uint64_t index)
-{
-	struct bt_field_sequence *sequence = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Sequence field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_SEQUENCE,
-		"Field");
-	BT_ASSERT_PRE(index < sequence->length,
-		"Index is out of bound: %![seq-field-]+f, "
-		"index=%" PRIu64 ", count=%u", field, index,
-		sequence->elements->len);
-	return sequence->elements->pdata[(size_t) index];
-}
-
-struct bt_field *bt_field_variant_borrow_current_field(
-		struct bt_field *field)
-{
-	struct bt_field_variant *variant = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Variant field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_VARIANT, "Field");
-	BT_ASSERT_PRE(variant->current_field,
-		"Variant field has no current field: %!+f", field);
-	return variant->current_field;
+	return field;
 }
 
 static inline
-int bt_field_variant_set_tag(struct bt_field *field,
-		uint64_t tag_uval, bool is_signed)
+void init_field(struct bt_field *field, struct bt_field_type *ft,
+		struct bt_field_methods *methods)
+{
+	BT_ASSERT(field);
+	BT_ASSERT(ft);
+	bt_object_init_unique(&field->base);
+	field->methods = methods;
+	field->type = bt_get(ft);
+}
+
+static
+struct bt_field *create_integer_field(struct bt_field_type *ft)
+{
+	struct bt_field_integer *int_field;
+
+	BT_LIB_LOGD("Creating integer field object: %![ft-]+F", ft);
+	int_field = g_new0(struct bt_field_integer, 1);
+	if (!int_field) {
+		BT_LOGE_STR("Failed to allocate one integer field.");
+		goto end;
+	}
+
+	init_field((void *) int_field, ft, &integer_field_methods);
+	BT_LIB_LOGD("Created integer field object: %!+f", int_field);
+
+end:
+	return (void *) int_field;
+}
+
+static
+struct bt_field *create_real_field(struct bt_field_type *ft)
+{
+	struct bt_field_real *real_field;
+
+	BT_LIB_LOGD("Creating real field object: %![ft-]+F", ft);
+	real_field = g_new0(struct bt_field_real, 1);
+	if (!real_field) {
+		BT_LOGE_STR("Failed to allocate one real field.");
+		goto end;
+	}
+
+	init_field((void *) real_field, ft, &real_field_methods);
+	BT_LIB_LOGD("Created real field object: %!+f", real_field);
+
+end:
+	return (void *) real_field;
+}
+
+static
+struct bt_field *create_string_field(struct bt_field_type *ft)
+{
+	struct bt_field_string *string_field;
+
+	BT_LIB_LOGD("Creating string field object: %![ft-]+F", ft);
+	string_field = g_new0(struct bt_field_string, 1);
+	if (!string_field) {
+		BT_LOGE_STR("Failed to allocate one string field.");
+		goto end;
+	}
+
+	init_field((void *) string_field, ft, &string_field_methods);
+	string_field->buf = g_array_sized_new(FALSE, FALSE,
+		sizeof(char), 1);
+	if (!string_field->buf) {
+		BT_LOGE_STR("Failed to allocate a GArray.");
+		BT_PUT(string_field);
+		goto end;
+	}
+
+	g_array_index(string_field->buf, char, 0) = '\0';
+	BT_LIB_LOGD("Created string field object: %!+f", string_field);
+
+end:
+	return (void *) string_field;
+}
+
+static inline
+int create_fields_from_named_field_types(
+		struct bt_field_type_named_field_types_container *ft,
+		GPtrArray **fields)
 {
 	int ret = 0;
-	int64_t choice_index;
-	struct bt_field_variant *variant = (void *) field;
+	uint64_t i;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Variant field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_VARIANT, "Field");
-
-	/* Find matching index in variant field's type */
-	choice_index = bt_field_type_variant_find_choice_index(
-		field->type, tag_uval, is_signed);
-	if (choice_index < 0) {
+	*fields = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_field_destroy);
+	if (!*fields) {
+		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		ret = -1;
 		goto end;
 	}
 
-	/* Select corresponding field */
-	BT_ASSERT(choice_index < variant->fields->len);
-	variant->current_field = variant->fields->pdata[choice_index];
-	variant->tag_value.u = tag_uval;
+	g_ptr_array_set_size(*fields, ft->named_fts->len);
+
+	for (i = 0; i < ft->named_fts->len; i++) {
+		struct bt_field *field;
+		struct bt_named_field_type *named_ft =
+			BT_FIELD_TYPE_NAMED_FT_AT_INDEX(ft, i);
+
+		field = bt_field_create(named_ft->ft);
+		if (!field) {
+			BT_LIB_LOGE("Failed to create structure member or variant option field: "
+				"name=\"%s\", %![ft-]+F",
+				named_ft->name->str, named_ft->ft);
+			ret = -1;
+			goto end;
+		}
+
+		g_ptr_array_index(*fields, i) = field;
+	}
 
 end:
 	return ret;
 }
 
-int bt_field_variant_set_tag_signed(struct bt_field *variant_field,
-		int64_t tag)
+static
+struct bt_field *create_structure_field(struct bt_field_type *ft)
 {
-	return bt_field_variant_set_tag((void *) variant_field,
-		(uint64_t) tag, true);
-}
+	struct bt_field_structure *struct_field;
 
-int bt_field_variant_set_tag_unsigned(struct bt_field *variant_field,
-		uint64_t tag)
-{
-	return bt_field_variant_set_tag((void *) variant_field,
-		(uint64_t) tag, false);
-}
-
-int bt_field_variant_get_tag_signed(struct bt_field *field,
-		int64_t *tag)
-{
-	struct bt_field_variant *variant = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Variant field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_VARIANT, "Field");
-	BT_ASSERT_PRE(variant->current_field,
-		"Variant field has no current field: %!+f", field);
-	*tag = variant->tag_value.i;
-	return 0;
-}
-
-int bt_field_variant_get_tag_unsigned(struct bt_field *field,
-		uint64_t *tag)
-{
-	struct bt_field_variant *variant = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Variant field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_VARIANT, "Field");
-	BT_ASSERT_PRE(variant->current_field,
-		"Variant field has no current field: %!+f", field);
-	*tag = variant->tag_value.u;
-	return 0;
-}
-
-struct bt_field_type_enumeration_mapping_iterator *
-bt_field_enumeration_get_mappings(struct bt_field *field)
-{
-	struct bt_field_enumeration *enum_field = (void *) field;
-	struct bt_field_type_enumeration *enum_type = NULL;
-	struct bt_field_type_integer *integer_type = NULL;
-	struct bt_field_type_enumeration_mapping_iterator *iter = NULL;
-
-	BT_ASSERT(field);
-	BT_ASSERT(field->type->id == BT_FIELD_TYPE_ID_ENUM);
-	BT_ASSERT(field->payload_set);
-	BT_ASSERT_PRE_NON_NULL(field, "Enumeration field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID((struct bt_field *) field,
-		BT_FIELD_TYPE_ID_ENUM, "Field");
-	BT_ASSERT_PRE_FIELD_IS_SET((struct bt_field *) field,
-		"Enumeration field");
-	enum_type = (void *) field->type;
-	integer_type = enum_type->container_ft;
-
-	if (!integer_type->is_signed) {
-		iter = bt_field_type_enumeration_unsigned_find_mappings_by_value(
-				field->type,
-				enum_field->common.payload.unsignd);
-	} else {
-		iter = bt_field_type_enumeration_signed_find_mappings_by_value(
-				field->type,
-				enum_field->common.payload.signd);
+	BT_LIB_LOGD("Creating structure field object: %![ft-]+F", ft);
+	struct_field = g_new0(struct bt_field_structure, 1);
+	if (!struct_field) {
+		BT_LOGE_STR("Failed to allocate one structure field.");
+		goto end;
 	}
 
-	return iter;
+	init_field((void *) struct_field, ft, &structure_field_methods);
+
+	if (create_fields_from_named_field_types((void *) ft,
+			&struct_field->fields)) {
+		BT_LIB_LOGE("Cannot create structure member fields: "
+			"%![ft-]+F", ft);
+		BT_PUT(struct_field);
+		goto end;
+	}
+
+	BT_LIB_LOGD("Created structure field object: %!+f", struct_field);
+
+end:
+	return (void *) struct_field;
 }
 
-BT_ASSERT_PRE_FUNC
+static
+struct bt_field *create_variant_field(struct bt_field_type *ft)
+{
+	struct bt_field_variant *var_field;
+
+	BT_LIB_LOGD("Creating variant field object: %![ft-]+F", ft);
+	var_field = g_new0(struct bt_field_variant, 1);
+	if (!var_field) {
+		BT_LOGE_STR("Failed to allocate one variant field.");
+		goto end;
+	}
+
+	init_field((void *) var_field, ft, &variant_field_methods);
+
+	if (create_fields_from_named_field_types((void *) ft,
+			&var_field->fields)) {
+		BT_LIB_LOGE("Cannot create variant member fields: "
+			"%![ft-]+F", ft);
+		BT_PUT(var_field);
+		goto end;
+	}
+
+	BT_LIB_LOGD("Created variant field object: %!+f", var_field);
+
+end:
+	return (void *) var_field;
+}
+
 static inline
-struct bt_field_type_integer *get_int_enum_int_ft(
-		struct bt_field *field)
-{
-	struct bt_field_integer *int_field = (void *) field;
-	struct bt_field_type_integer *int_ft = NULL;
-
-	if (int_field->common.type->id == BT_FIELD_TYPE_ID_INTEGER) {
-		int_ft = (void *) int_field->common.type;
-	} else if (int_field->common.type->id == BT_FIELD_TYPE_ID_ENUM) {
-		struct bt_field_type_enumeration *enum_ft =
-			(void *) int_field->common.type;
-		int_ft = enum_ft->container_ft;
-	} else {
-		abort();
-	}
-
-	BT_ASSERT(int_ft);
-	return int_ft;
-}
-
-int bt_field_integer_signed_get_value(struct bt_field *field, int64_t *value)
-{
-	struct bt_field_integer *integer = (void *) field;
-
-	BT_ASSERT_PRE_NON_NULL(field, "Integer/enumeration field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_IS_SET(field,
-		"Integer/enumeration field");
-	BT_ASSERT_PRE_FIELD_IS_INT_OR_ENUM(field, "Field");
-	BT_ASSERT_PRE(bt_field_type_integer_is_signed(
-		(void *) get_int_enum_int_ft(field)),
-		"Field's type is unsigned: %!+f", field);
-	*value = integer->payload.signd;
-	return 0;
-}
-
-int bt_field_integer_signed_set_value(struct bt_field *field, int64_t value)
+int init_array_field_fields(struct bt_field_array *array_field)
 {
 	int ret = 0;
-	struct bt_field_integer *integer = (void *) field;
+	uint64_t i;
+	struct bt_field_type_array *array_ft;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Integer field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Integer field");
-	BT_ASSERT_PRE_FIELD_IS_INT_OR_ENUM(field, "Field");
-	BT_ASSERT_PRE(bt_field_type_integer_is_signed(
-		(void *) get_int_enum_int_ft(field)),
-		"Field's type is unsigned: %!+f", field);
-	BT_ASSERT_PRE(value_is_in_range_signed(
-		get_int_enum_int_ft(field)->size, value),
-		"Value is out of bounds: value=%" PRId64 ", %![field-]+f",
-		value, field);
-	integer->payload.signd = value;
-	bt_field_set(field, true);
+	BT_ASSERT(array_field);
+	array_ft = (void *) array_field->common.type;
+	array_field->fields = g_ptr_array_sized_new(array_field->length);
+	if (!array_field->fields) {
+		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		ret = -1;
+		goto end;
+	}
+
+	g_ptr_array_set_free_func(array_field->fields,
+		(GDestroyNotify) bt_field_destroy);
+	g_ptr_array_set_size(array_field->fields, array_field->length);
+
+	for (i = 0; i < array_field->length; i++) {
+		array_field->fields->pdata[i] = bt_field_create(
+			array_ft->element_ft);
+		if (!array_field->fields->pdata[i]) {
+			BT_LIB_LOGE("Cannot create array field's element field: "
+				"index=%" PRIu64 ", %![ft-]+F", i, array_ft);
+			ret = -1;
+			goto end;
+		}
+	}
+
+end:
 	return ret;
 }
 
-int bt_field_integer_unsigned_get_value(struct bt_field *field, uint64_t *value)
+static
+struct bt_field *create_static_array_field(struct bt_field_type *ft)
 {
-	struct bt_field_integer *integer = (void *) field;
+	struct bt_field_type_static_array *array_ft = (void *) ft;
+	struct bt_field_array *array_field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Integer field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Integer field");
-	BT_ASSERT_PRE_FIELD_IS_INT_OR_ENUM(field, "Field");
-	BT_ASSERT_PRE(!bt_field_type_integer_is_signed(
-		(void *) get_int_enum_int_ft(field)),
-		"Field's type is signed: %!+f", field);
-	*value = integer->payload.unsignd;
-	return 0;
+	BT_LIB_LOGD("Creating static array field object: %![ft-]+F", ft);
+	array_field = g_new0(struct bt_field_array, 1);
+	if (!array_field) {
+		BT_LOGE_STR("Failed to allocate one static array field.");
+		goto end;
+	}
+
+	init_field((void *) array_field, ft, &array_field_methods);
+	array_field->length = array_ft->length;
+
+	if (init_array_field_fields(array_field)) {
+		BT_LIB_LOGE("Cannot create static array fields: "
+			"%![ft-]+F", ft);
+		BT_PUT(array_field);
+		goto end;
+	}
+
+	BT_LIB_LOGD("Created static array field object: %!+f", array_field);
+
+end:
+	return (void *) array_field;
 }
 
-int bt_field_integer_unsigned_set_value(struct bt_field *field,
+static
+struct bt_field *create_dynamic_array_field(struct bt_field_type *ft)
+{
+	struct bt_field_array *array_field;
+
+	BT_LIB_LOGD("Creating dynamic array field object: %![ft-]+F", ft);
+	array_field = g_new0(struct bt_field_array, 1);
+	if (!array_field) {
+		BT_LOGE_STR("Failed to allocate one dynamic array field.");
+		goto end;
+	}
+
+	init_field((void *) array_field, ft, &array_field_methods);
+
+	if (init_array_field_fields(array_field)) {
+		BT_LIB_LOGE("Cannot create dynamic array fields: "
+			"%![ft-]+F", ft);
+		BT_PUT(array_field);
+		goto end;
+	}
+
+	BT_LIB_LOGD("Created dynamic array field object: %!+f", array_field);
+
+end:
+	return (void *) array_field;
+}
+
+int64_t bt_field_signed_integer_get_value(struct bt_field *field)
+{
+	struct bt_field_integer *int_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(field, "Field");
+	return int_field->value.i;
+}
+
+void bt_field_signed_integer_set_value(struct bt_field *field, int64_t value)
+{
+	struct bt_field_integer *int_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(field, "Field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE(bt_util_value_is_in_range_signed(
+		((struct bt_field_type_integer *) field->type)->range, value),
+		"Value is out of bounds: value=%" PRId64 ", %![field-]+f, "
+		"%![ft-]+F", value, field, field->type);
+	int_field->value.i = value;
+	bt_field_set_single(field, true);
+}
+
+uint64_t bt_field_unsigned_integer_get_value(struct bt_field *field)
+{
+	struct bt_field_integer *int_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(field, "Field");
+	return int_field->value.u;
+}
+
+void bt_field_unsigned_integer_set_value(struct bt_field *field,
 		uint64_t value)
 {
-	struct bt_field_integer *integer = (void *) field;
+	struct bt_field_integer *int_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Integer field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Integer field");
-	BT_ASSERT_PRE_FIELD_IS_INT_OR_ENUM(field, "Field");
-	BT_ASSERT_PRE(!bt_field_type_integer_is_signed(
-		(void *) get_int_enum_int_ft(field)),
-		"Field's type is signed: %!+f", field);
-	BT_ASSERT_PRE(value_is_in_range_unsigned(
-		get_int_enum_int_ft(field)->size, value),
-		"Value is out of bounds: value=%" PRIu64 ", %![field-]+f",
-		value, field);
-	integer->payload.unsignd = value;
-	bt_field_set(field, true);
-	return 0;
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(field, "Field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE(bt_util_value_is_in_range_unsigned(
+		((struct bt_field_type_integer *) field->type)->range, value),
+		"Value is out of bounds: value=%" PRIu64 ", %![field-]+f, "
+		"%![ft-]+F", value, field, field->type);
+	int_field->value.u = value;
+	bt_field_set_single(field, true);
 }
 
-int bt_field_floating_point_get_value(struct bt_field *field,
-		double *value)
+double bt_field_real_get_value(struct bt_field *field)
 {
-	struct bt_field_floating_point *floating_point = (void *) field;
+	struct bt_field_real *real_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Floating point number field");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "Floating point number field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_FLOAT, "Field");
-	*value = floating_point->payload;
-	return 0;
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_REAL, "Field");
+	return real_field->value;
 }
 
-int bt_field_floating_point_set_value(struct bt_field *field,
-		double value)
+void bt_field_real_set_value(struct bt_field *field, double value)
 {
-	struct bt_field_floating_point *floating_point = (void *) field;
+	struct bt_field_real *real_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "Floating point number field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "Floating point number field");
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_REAL, "Field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE(
+		!((struct bt_field_type_real *) field->type)->is_single_precision ||
+		(double) (float) value == value,
+		"Invalid value for a single-precision real number: value=%f, "
+		"%![ft-]+F", value, field->type);
+	real_field->value = value;
+	bt_field_set_single(field, true);
+}
+
+int bt_field_unsigned_enumeration_get_mapping_labels(struct bt_field *field,
+		bt_field_type_enumeration_mapping_label_array *label_array,
+		uint64_t *count)
+{
+	struct bt_field_integer *int_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
+	BT_ASSERT_PRE_NON_NULL(label_array, "Count (output)");
+	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_FLOAT, "Field");
-	floating_point->payload = value;
-	bt_field_set(field, true);
-	return 0;
+		BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION, "Field");
+	return bt_field_type_unsigned_enumeration_get_mapping_labels_by_value(
+		field->type, int_field->value.u, label_array, count);
+}
+
+int bt_field_signed_enumeration_get_mapping_labels(struct bt_field *field,
+		bt_field_type_enumeration_mapping_label_array *label_array,
+		uint64_t *count)
+{
+	struct bt_field_integer *int_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
+	BT_ASSERT_PRE_NON_NULL(label_array, "Count (output)");
+	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
+		BT_FIELD_TYPE_ID_SIGNED_ENUMERATION, "Field");
+	return bt_field_type_signed_enumeration_get_mapping_labels_by_value(
+		field->type, int_field->value.i, label_array, count);
 }
 
 const char *bt_field_string_get_value(struct bt_field *field)
 {
-	struct bt_field_string *string = (void *) field;
+	struct bt_field_string *string_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "String field");
-	BT_ASSERT_PRE_FIELD_IS_SET(field, "String field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_STRING, "Field");
-	return (const char *) string->buf->data;
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_STRING,
+		"Field");
+	return (const char *) string_field->buf->data;
+}
+
+uint64_t bt_field_string_get_length(struct bt_field *field)
+{
+	struct bt_field_string *string_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_STRING,
+		"Field");
+	return string_field->length;
 }
 
 int bt_field_string_set_value(struct bt_field *field, const char *value)
 {
-	BT_ASSERT_PRE_NON_NULL(field, "String field");
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_HOT(field, "String field");
-	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
-		BT_FIELD_TYPE_ID_STRING, "Field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field, BT_FIELD_TYPE_ID_STRING,
+		"Field");
 	bt_field_string_clear(field);
-	return bt_field_string_append_len(field,
-		value, strlen(value));
+	return bt_field_string_append_with_length(field, value,
+		(uint64_t) strlen(value));
 }
 
 int bt_field_string_append(struct bt_field *field, const char *value)
 {
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	return bt_field_string_append_len(field, value,
-		strlen(value));
+	return bt_field_string_append_with_length(field, value,
+		(uint64_t) strlen(value));
 }
 
-int bt_field_string_append_len(struct bt_field *field,
-		const char *value, unsigned int length)
+int bt_field_string_append_with_length(struct bt_field *field,
+		const char *value, uint64_t length)
 {
 	struct bt_field_string *string_field = (void *) field;
 	char *data;
-	size_t new_size;
+	uint64_t new_length;
 
-	BT_ASSERT_PRE_NON_NULL(field, "String field");
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_FIELD_HOT(field, "String field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
 
 	/* Make sure no null bytes are appended */
 	BT_ASSERT_PRE(memchr(value, '\0', length) == NULL,
 		"String value to append contains a null character: "
-		"partial-value=\"%.32s\", length=%u", value, length);
+		"partial-value=\"%.32s\", length=%" PRIu64, value, length);
 
-	new_size = string_field->size + length;
+	new_length = length + string_field->length;
 
-	if (unlikely(new_size + 1 > string_field->buf->len)) {
-		g_array_set_size(string_field->buf, new_size + 1);
+	if (unlikely(new_length + 1 > string_field->buf->len)) {
+		g_array_set_size(string_field->buf, new_length + 1);
 	}
 
 	data = string_field->buf->data;
-	memcpy(data + string_field->size, value, length);
-	((char *) string_field->buf->data)[new_size] = '\0';
-	string_field->size = new_size;
-	bt_field_set(field, true);
+	memcpy(data + string_field->length, value, length);
+	((char *) string_field->buf->data)[new_length] = '\0';
+	string_field->length = new_length;
+	bt_field_set_single(field, true);
 	return 0;
 }
 
@@ -745,13 +664,157 @@ int bt_field_string_clear(struct bt_field *field)
 {
 	struct bt_field_string *string_field = (void *) field;
 
-	BT_ASSERT_PRE_NON_NULL(field, "String field");
-	BT_ASSERT_PRE_FIELD_HOT(field, "String field");
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
 		BT_FIELD_TYPE_ID_STRING, "Field");
-	string_field->size = 0;
-	bt_field_set(field, true);
+	string_field->length = 0;
+	bt_field_set_single(field, true);
 	return 0;
+}
+
+uint64_t bt_field_array_get_length(struct bt_field *field)
+{
+	struct bt_field_array *array_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_ARRAY(field, "Field");
+	return array_field->length;
+}
+
+int bt_field_dynamic_array_set_length(struct bt_field *field,
+		uint64_t length)
+{
+	int ret = 0;
+	struct bt_field_array *array_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
+		BT_FIELD_TYPE_ID_DYNAMIC_ARRAY, "Field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
+
+	if (unlikely(length > array_field->fields->len)) {
+		/* Make more room */
+		struct bt_field_type_array *array_ft;
+		uint64_t cur_len = array_field->fields->len;
+		uint64_t i;
+
+		g_ptr_array_set_size(array_field->fields, length);
+		array_ft = (void *) field->type;
+
+		for (i = cur_len; i < array_field->fields->len; i++) {
+			struct bt_field *elem_field = bt_field_create(
+				array_ft->element_ft);
+
+			if (!elem_field) {
+				BT_LIB_LOGE("Cannot create element field for "
+					"dynamic array field: "
+					"index=%" PRIu64 ", "
+					"%![array-field-]+f", i, field);
+				ret = -1;
+				goto end;
+			}
+
+			BT_ASSERT(!array_field->fields->pdata[i]);
+			array_field->fields->pdata[i] = elem_field;
+		}
+	}
+
+	array_field->length = length;
+
+end:
+	return ret;
+}
+
+struct bt_field *bt_field_array_borrow_element_field_by_index(
+		struct bt_field *field, uint64_t index)
+{
+	struct bt_field_array *array_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_IS_ARRAY(field, "Field");
+	BT_ASSERT_PRE_VALID_INDEX(index, array_field->length);
+	return array_field->fields->pdata[index];
+}
+
+struct bt_field *bt_field_structure_borrow_member_field_by_index(
+		struct bt_field *field, uint64_t index)
+{
+	struct bt_field_structure *struct_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
+		BT_FIELD_TYPE_ID_STRUCTURE, "Field");
+	BT_ASSERT_PRE_VALID_INDEX(index, struct_field->fields->len);
+	return struct_field->fields->pdata[index];
+}
+
+struct bt_field *bt_field_structure_borrow_member_field_by_name(
+		struct bt_field *field, const char *name)
+{
+	struct bt_field *ret_field = NULL;
+	struct bt_field_type_structure *struct_ft;
+	struct bt_field_structure *struct_field = (void *) field;
+	gpointer orig_key;
+	gpointer index;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_NON_NULL(name, "Field name");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
+		BT_FIELD_TYPE_ID_STRUCTURE, "Field");
+	struct_ft = (void *) field->type;
+
+	if (!g_hash_table_lookup_extended(struct_ft->common.name_to_index, name,
+			&orig_key, &index)) {
+		goto end;
+	}
+
+	ret_field = struct_field->fields->pdata[GPOINTER_TO_UINT(index)];
+	BT_ASSERT(ret_field);
+
+end:
+	return ret_field;
+}
+
+struct bt_field *bt_field_variant_borrow_selected_option_field(
+		struct bt_field *field)
+{
+	struct bt_field_variant *var_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
+		BT_FIELD_TYPE_ID_VARIANT, "Field");
+	BT_ASSERT_PRE(var_field->selected_field,
+		"Variant field has no selected field: %!+f", field);
+	return var_field->selected_field;
+}
+
+int bt_field_variant_select_option_field(struct bt_field *field,
+		uint64_t index)
+{
+	struct bt_field_variant *var_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
+		BT_FIELD_TYPE_ID_VARIANT, "Field");
+	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
+	BT_ASSERT_PRE_VALID_INDEX(index, var_field->fields->len);
+	var_field->selected_field = var_field->fields->pdata[index];
+	var_field->selected_index = index;
+	return 0;
+}
+
+uint64_t bt_field_variant_get_selected_option_field_index(
+		struct bt_field *field)
+{
+	struct bt_field_variant *var_field = (void *) field;
+
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(field,
+		BT_FIELD_TYPE_ID_VARIANT, "Field");
+	BT_ASSERT_PRE(var_field->selected_field,
+		"Variant field has no selected field: %!+f", field);
+	return var_field->selected_index;
 }
 
 static inline
@@ -763,833 +826,239 @@ void bt_field_finalize(struct bt_field *field)
 }
 
 static
-void bt_field_integer_destroy(struct bt_field *field)
+void destroy_integer_field(struct bt_field *field)
 {
 	BT_ASSERT(field);
-	BT_LOGD("Destroying integer field object: addr=%p", field);
+	BT_LIB_LOGD("Destroying integer field object: %!+f", field);
 	bt_field_finalize(field);
 	g_free(field);
 }
 
 static
-void bt_field_floating_point_destroy(struct bt_field *field)
+void destroy_real_field(struct bt_field *field)
 {
 	BT_ASSERT(field);
-	BT_LOGD("Destroying floating point field object: addr=%p", field);
+	BT_LIB_LOGD("Destroying real field object: %!+f", field);
 	bt_field_finalize(field);
 	g_free(field);
 }
 
 static
-void bt_field_enumeration_destroy(struct bt_field *field)
+void destroy_structure_field(struct bt_field *field)
 {
-	BT_LOGD("Destroying enumeration field object: addr=%p", field);
-	bt_field_finalize((void *) field);
-	g_free(field);
-}
-
-static
-void bt_field_structure_destroy_recursive(struct bt_field *field)
-{
-	struct bt_field_structure *structure = (void *) field;
+	struct bt_field_structure *struct_field = (void *) field;
 
 	BT_ASSERT(field);
-	BT_LOGD("Destroying structure field object: addr=%p", field);
+	BT_LIB_LOGD("Destroying structure field object: %!+f", field);
 	bt_field_finalize(field);
 
-	if (structure->fields) {
-		g_ptr_array_free(structure->fields, TRUE);
+	if (struct_field->fields) {
+		g_ptr_array_free(struct_field->fields, TRUE);
 	}
 
 	g_free(field);
 }
 
 static
-void bt_field_variant_destroy_recursive(struct bt_field *field)
+void destroy_variant_field(struct bt_field *field)
 {
-	struct bt_field_variant *variant = (void *) field;
+	struct bt_field_variant *var_field = (void *) field;
 
 	BT_ASSERT(field);
-	BT_LOGD("Destroying variant field object: addr=%p", field);
+	BT_LIB_LOGD("Destroying variant field object: %!+f", field);
 	bt_field_finalize(field);
 
-	if (variant->fields) {
-		g_ptr_array_free(variant->fields, TRUE);
+	if (var_field->fields) {
+		g_ptr_array_free(var_field->fields, TRUE);
 	}
 
 	g_free(field);
 }
 
 static
-void bt_field_array_destroy_recursive(struct bt_field *field)
+void destroy_array_field(struct bt_field *field)
 {
-	struct bt_field_array *array = (void *) field;
+	struct bt_field_array *array_field = (void *) field;
 
 	BT_ASSERT(field);
-	BT_LOGD("Destroying array field object: addr=%p", field);
+	BT_LIB_LOGD("Destroying array field object: %!+f", field);
 	bt_field_finalize(field);
 
-	if (array->elements) {
-		g_ptr_array_free(array->elements, TRUE);
+	if (array_field->fields) {
+		g_ptr_array_free(array_field->fields, TRUE);
 	}
 
 	g_free(field);
 }
 
 static
-void bt_field_sequence_destroy_recursive(struct bt_field *field)
+void destroy_string_field(struct bt_field *field)
 {
-	struct bt_field_sequence *sequence = (void *) field;
+	struct bt_field_string *string_field = (void *) field;
 
 	BT_ASSERT(field);
-	BT_LOGD("Destroying sequence field object: addr=%p", field);
+	BT_LIB_LOGD("Destroying string field object: %!+f", field);
 	bt_field_finalize(field);
 
-	if (sequence->elements) {
-		g_ptr_array_free(sequence->elements, TRUE);
-	}
-	g_free(field);
-}
-
-static
-void bt_field_string_destroy(struct bt_field *field)
-{
-	struct bt_field_string *string = (void *) field;
-
-	BT_LOGD("Destroying string field object: addr=%p", field);
-	BT_ASSERT(field);
-	bt_field_finalize(field);
-
-	if (string->buf) {
-		g_array_free(string->buf, TRUE);
+	if (string_field->buf) {
+		g_array_free(string_field->buf, TRUE);
 	}
 
 	g_free(field);
 }
 
 BT_HIDDEN
-void bt_field_destroy_recursive(struct bt_field *field)
+void bt_field_destroy(struct bt_field *field)
 {
-	if (!field) {
-		return;
-	}
-
-	BT_ASSERT(bt_field_type_has_known_id((void *) field->type));
+	BT_ASSERT(field);
+	BT_ASSERT(bt_field_type_has_known_id(field->type));
 	field_destroy_funcs[field->type->id](field);
 }
 
-static inline
-void bt_field_initialize(struct bt_field *field,
-		struct bt_field_type *ft,
-		struct bt_field_methods *methods)
+static
+void reset_single_field(struct bt_field *field)
 {
 	BT_ASSERT(field);
-	BT_ASSERT(ft);
-	bt_object_init_unique(&field->base);
-	field->methods = methods;
-	field->type = bt_get(ft);
+	field->is_set = false;
 }
 
 static
-struct bt_field *bt_field_integer_create(struct bt_field_type *type)
+void reset_structure_field(struct bt_field *field)
 {
-	struct bt_field_integer *integer =
-		g_new0(struct bt_field_integer, 1);
-
-	BT_LOGD("Creating integer field object: ft-addr=%p", type);
-
-	if (integer) {
-		bt_field_initialize((void *) integer, (void *) type,
-			&bt_field_integer_methods);
-		BT_LOGD("Created integer field object: addr=%p, ft-addr=%p",
-			integer, type);
-	} else {
-		BT_LOGE_STR("Failed to allocate one integer field.");
-	}
-
-	return (void *) integer;
-}
-
-static
-struct bt_field *bt_field_enumeration_create(struct bt_field_type *type)
-{
-	struct bt_field_enumeration *enumeration = g_new0(
-		struct bt_field_enumeration, 1);
-
-	BT_LOGD("Creating enumeration field object: ft-addr=%p", type);
-
-	if (enumeration) {
-		bt_field_initialize((void *) enumeration,
-			(void *) type, &bt_field_enumeration_methods);
-		BT_LOGD("Created enumeration field object: addr=%p, ft-addr=%p",
-			enumeration, type);
-	} else {
-		BT_LOGE_STR("Failed to allocate one enumeration field.");
-	}
-
-	return (void *) enumeration;
-}
-
-static
-struct bt_field *bt_field_floating_point_create(struct bt_field_type *type)
-{
-	struct bt_field_floating_point *floating_point;
-
-	BT_LOGD("Creating floating point number field object: ft-addr=%p", type);
-	floating_point = g_new0(struct bt_field_floating_point, 1);
-
-	if (floating_point) {
-		bt_field_initialize((void *) floating_point,
-			(void *) type, &bt_field_floating_point_methods);
-		BT_LOGD("Created floating point number field object: addr=%p, ft-addr=%p",
-			floating_point, type);
-	} else {
-		BT_LOGE_STR("Failed to allocate one floating point number field.");
-	}
-
-	return (void *) floating_point;
-}
-
-static inline
-int bt_field_structure_initialize(struct bt_field *field,
-		struct bt_field_type *type,
-		struct bt_field_methods *methods,
-		bt_field_create_func field_create_func,
-		GDestroyNotify field_release_func)
-{
-	int ret = 0;
-	struct bt_field_type_structure *structure_type = (void *) type;
-	struct bt_field_structure *structure = (void *) field;
-	size_t i;
-
-	BT_LOGD("Initializing structure field object: ft-addr=%p", type);
-	bt_field_initialize(field, type, methods);
-	structure->fields = g_ptr_array_new_with_free_func(field_release_func);
-	g_ptr_array_set_size(structure->fields, structure_type->fields->len);
-
-	/* Create all fields contained in the structure field. */
-	for (i = 0; i < structure_type->fields->len; i++) {
-		struct bt_field *field;
-		struct bt_field_type_structure_field *struct_field =
-			BT_FIELD_TYPE_STRUCTURE_FIELD_AT_INDEX(
-				structure_type, i);
-		field = field_create_func(struct_field->type);
-		if (!field) {
-			BT_LOGE("Failed to create structure field's member: name=\"%s\", index=%zu",
-				g_quark_to_string(struct_field->name), i);
-			ret = -1;
-			goto end;
-		}
-
-		g_ptr_array_index(structure->fields, i) = field;
-	}
-
-	BT_LOGD("Initialized structure field object: addr=%p, ft-addr=%p",
-		field, type);
-
-end:
-	return ret;
-}
-
-static
-struct bt_field *bt_field_structure_create(struct bt_field_type *type)
-{
-	struct bt_field_structure *structure = g_new0(
-		struct bt_field_structure, 1);
-	int iret;
-
-	BT_LOGD("Creating structure field object: ft-addr=%p", type);
-
-	if (!structure) {
-		BT_LOGE_STR("Failed to allocate one structure field.");
-		goto end;
-	}
-
-	iret = bt_field_structure_initialize((void *) structure,
-		(void *) type, &bt_field_structure_methods,
-		(bt_field_create_func) bt_field_create_recursive,
-		(GDestroyNotify) bt_field_destroy_recursive);
-	if (iret) {
-		BT_PUT(structure);
-		goto end;
-	}
-
-	BT_LOGD("Created structure field object: addr=%p, ft-addr=%p",
-		structure, type);
-
-end:
-	return (void *) structure;
-}
-
-static inline
-int bt_field_variant_initialize(struct bt_field *field,
-		struct bt_field_type *type,
-		struct bt_field_methods *methods,
-		bt_field_create_func field_create_func,
-		GDestroyNotify field_release_func)
-{
-	int ret = 0;
-	struct bt_field_type_variant *variant_type = (void *) type;
-	struct bt_field_variant *variant = (void *) field;
-	size_t i;
-
-	BT_LOGD("Initializing variant field object: ft-addr=%p", type);
-	bt_field_initialize(field, type, methods);
-	ret = bt_field_type_variant_update_choices(type);
-	if (ret) {
-		BT_LOGE("Cannot update variant field type choices: "
-			"ret=%d", ret);
-		goto end;
-	}
-
-	variant->fields = g_ptr_array_new_with_free_func(field_release_func);
-	g_ptr_array_set_size(variant->fields, variant_type->choices->len);
-
-	/* Create all fields contained in the variant field. */
-	for (i = 0; i < variant_type->choices->len; i++) {
-		struct bt_field *field;
-		struct bt_field_type_variant_choice *var_choice =
-			BT_FIELD_TYPE_VARIANT_CHOICE_AT_INDEX(
-				variant_type, i);
-
-		field = field_create_func(var_choice->type);
-		if (!field) {
-			BT_LOGE("Failed to create variant field's member: name=\"%s\", index=%zu",
-				g_quark_to_string(var_choice->name), i);
-			ret = -1;
-			goto end;
-		}
-
-		g_ptr_array_index(variant->fields, i) = field;
-	}
-
-	BT_LOGD("Initialized variant field object: addr=%p, ft-addr=%p",
-		field, type);
-
-end:
-	return ret;
-}
-
-static inline
-int bt_field_string_initialize(struct bt_field *field,
-		struct bt_field_type *type,
-		struct bt_field_methods *methods)
-{
-	int ret = 0;
-	struct bt_field_string *string = (void *) field;
-
-	BT_LOGD("Initializing string field object: ft-addr=%p", type);
-	bt_field_initialize(field, type, methods);
-	string->buf = g_array_sized_new(FALSE, FALSE, sizeof(char), 1);
-	if (!string->buf) {
-		ret = -1;
-		goto end;
-	}
-
-	g_array_index(string->buf, char, 0) = '\0';
-	BT_LOGD("Initialized string field object: addr=%p, ft-addr=%p",
-		field, type);
-
-end:
-	return ret;
-}
-
-static
-struct bt_field *bt_field_variant_create(struct bt_field_type *type)
-{
-	struct bt_field_variant *variant = g_new0(
-		struct bt_field_variant, 1);
-	int iret;
-
-	BT_LOGD("Creating variant field object: ft-addr=%p", type);
-
-	if (!variant) {
-		BT_LOGE_STR("Failed to allocate one variant field.");
-		goto end;
-	}
-
-	iret = bt_field_variant_initialize((void *) variant,
-		(void *) type, &bt_field_variant_methods,
-		(bt_field_create_func) bt_field_create_recursive,
-		(GDestroyNotify) bt_field_destroy_recursive);
-	if (iret) {
-		BT_PUT(variant);
-		goto end;
-	}
-
-	BT_LOGD("Created variant field object: addr=%p, ft-addr=%p",
-		variant, type);
-
-end:
-	return (void *) variant;
-}
-
-static inline
-int bt_field_array_initialize(struct bt_field *field,
-		struct bt_field_type *type,
-		struct bt_field_methods *methods,
-		bt_field_create_func field_create_func,
-		GDestroyNotify field_destroy_func)
-{
-	struct bt_field_type_array *array_type = (void *) type;
-	struct bt_field_array *array = (void *) field;
-	unsigned int array_length;
-	int ret = 0;
 	uint64_t i;
-
-	BT_LOGD("Initializing array field object: ft-addr=%p", type);
-	BT_ASSERT(type);
-	bt_field_initialize(field, type, methods);
-	array_length = array_type->length;
-	array->elements = g_ptr_array_sized_new(array_length);
-	if (!array->elements) {
-		ret = -1;
-		goto end;
-	}
-
-	g_ptr_array_set_free_func(array->elements, field_destroy_func);
-	g_ptr_array_set_size(array->elements, array_length);
-
-	for (i = 0; i < array_length; i++) {
-		array->elements->pdata[i] = field_create_func(
-			array_type->element_ft);
-		if (!array->elements->pdata[i]) {
-			ret = -1;
-			goto end;
-		}
-	}
-
-	BT_LOGD("Initialized array field object: addr=%p, ft-addr=%p",
-		field, type);
-
-end:
-	return ret;
-}
-
-static
-struct bt_field *bt_field_array_create(struct bt_field_type *type)
-{
-	struct bt_field_array *array =
-		g_new0(struct bt_field_array, 1);
-	int ret;
-
-	BT_LOGD("Creating array field object: ft-addr=%p", type);
-	BT_ASSERT(type);
-
-	if (!array) {
-		BT_LOGE_STR("Failed to allocate one array field.");
-		goto end;
-	}
-
-	ret = bt_field_array_initialize((void *) array,
-		(void *) type, &bt_field_array_methods,
-		(bt_field_create_func) bt_field_create_recursive,
-		(GDestroyNotify) bt_field_destroy_recursive);
-	if (ret) {
-		BT_PUT(array);
-		goto end;
-	}
-
-	BT_LOGD("Created array field object: addr=%p, ft-addr=%p",
-		array, type);
-
-end:
-	return (void *) array;
-}
-
-static inline
-int bt_field_sequence_initialize(struct bt_field *field,
-		struct bt_field_type *type,
-		struct bt_field_methods *methods,
-		GDestroyNotify field_destroy_func)
-{
-	struct bt_field_sequence *sequence = (void *) field;
-	int ret = 0;
-
-	BT_LOGD("Initializing sequence field object: ft-addr=%p", type);
-	BT_ASSERT(type);
-	bt_field_initialize(field, type, methods);
-	sequence->elements = g_ptr_array_new();
-	if (!sequence->elements) {
-		ret = -1;
-		goto end;
-	}
-
-	g_ptr_array_set_free_func(sequence->elements, field_destroy_func);
-	BT_LOGD("Initialized sequence field object: addr=%p, ft-addr=%p",
-		field, type);
-
-end:
-	return ret;
-}
-
-static
-struct bt_field *bt_field_sequence_create(struct bt_field_type *type)
-{
-	struct bt_field_sequence *sequence =
-		g_new0(struct bt_field_sequence, 1);
-	int ret;
-
-	BT_LOGD("Creating sequence field object: ft-addr=%p", type);
-	BT_ASSERT(type);
-
-	if (!sequence) {
-		BT_LOGE_STR("Failed to allocate one sequence field.");
-		goto end;
-	}
-
-	ret = bt_field_sequence_initialize((void *) sequence,
-		(void *) type, &bt_field_sequence_methods,
-		(GDestroyNotify) bt_field_destroy_recursive);
-	if (ret) {
-		BT_PUT(sequence);
-		goto end;
-	}
-
-	BT_LOGD("Created sequence field object: addr=%p, ft-addr=%p",
-		sequence, type);
-
-end:
-	return (void *) sequence;
-}
-
-static
-struct bt_field *bt_field_string_create(struct bt_field_type *type)
-{
-	struct bt_field_string *string = g_new0(
-		struct bt_field_string, 1);
-
-	BT_LOGD("Creating string field object: ft-addr=%p", type);
-
-	if (string) {
-		bt_field_string_initialize((void *) string,
-			(void *) type, &bt_field_string_methods);
-		BT_LOGD("Created string field object: addr=%p, ft-addr=%p",
-			string, type);
-	} else {
-		BT_LOGE_STR("Failed to allocate one string field.");
-	}
-
-	return (void *) string;
-}
-
-static
-int bt_field_generic_validate(struct bt_field *field)
-{
-	return (field && field->payload_set) ? 0 : -1;
-}
-
-static
-int bt_field_structure_validate_recursive(struct bt_field *field)
-{
-	int64_t i;
-	int ret = 0;
-	struct bt_field_structure *structure = (void *) field;
+	struct bt_field_structure *struct_field = (void *) field;
 
 	BT_ASSERT(field);
 
-	for (i = 0; i < structure->fields->len; i++) {
-		ret = bt_field_validate_recursive(
-			(void *) structure->fields->pdata[i]);
-
-		if (ret) {
-			int this_ret;
-			const char *name;
-
-			this_ret = bt_field_type_structure_borrow_field_by_index(
-				field->type, &name, NULL, i);
-			BT_ASSERT(this_ret == 0);
-			BT_ASSERT_PRE_MSG("Invalid structure field's field: "
-				"%![struct-field-]+f, field-name=\"%s\", "
-				"index=%" PRId64 ", %![field-]+f",
-				field, name, i, structure->fields->pdata[i]);
-			goto end;
-		}
-	}
-
-end:
-	return ret;
-}
-
-static
-int bt_field_variant_validate_recursive(struct bt_field *field)
-{
-	int ret = 0;
-	struct bt_field_variant *variant = (void *) field;
-
-	BT_ASSERT(field);
-
-	if (!variant->current_field) {
-		ret = -1;
-		goto end;
-	}
-
-	ret = bt_field_validate_recursive(variant->current_field);
-
-end:
-	return ret;
-}
-
-static
-int bt_field_array_validate_recursive(struct bt_field *field)
-{
-	int64_t i;
-	int ret = 0;
-	struct bt_field_array *array = (void *) field;
-
-	BT_ASSERT(field);
-
-	for (i = 0; i < array->elements->len; i++) {
-		ret = bt_field_validate_recursive((void *) array->elements->pdata[i]);
-		if (ret) {
-			BT_ASSERT_PRE_MSG("Invalid array field's element field: "
-				"%![array-field-]+f, " PRId64 ", "
-				"%![elem-field-]+f",
-				field, i, array->elements->pdata[i]);
-			goto end;
-		}
-	}
-
-end:
-	return ret;
-}
-
-static
-int bt_field_sequence_validate_recursive(struct bt_field *field)
-{
-	size_t i;
-	int ret = 0;
-	struct bt_field_sequence *sequence = (void *) field;
-
-	BT_ASSERT(field);
-
-	for (i = 0; i < sequence->elements->len; i++) {
-		ret = bt_field_validate_recursive(
-			(void *) sequence->elements->pdata[i]);
-		if (ret) {
-			BT_ASSERT_PRE_MSG("Invalid sequence field's element field: "
-				"%![seq-field-]+f, " PRId64 ", "
-				"%![elem-field-]+f",
-				field, i, sequence->elements->pdata[i]);
-			goto end;
-		}
-	}
-end:
-	return ret;
-}
-
-static
-void bt_field_generic_reset(struct bt_field *field)
-{
-	BT_ASSERT(field);
-	field->payload_set = false;
-}
-
-static
-void bt_field_structure_reset_recursive(struct bt_field *field)
-{
-	int64_t i;
-	struct bt_field_structure *structure = (void *) field;
-
-	BT_ASSERT(field);
-
-	for (i = 0; i < structure->fields->len; i++) {
-		struct bt_field *member = structure->fields->pdata[i];
-
-		if (!member) {
-			/*
-			 * Structure members are lazily initialized;
-			 * skip if this member has not been allocated
-			 * yet.
-			 */
-			continue;
-		}
-
-		bt_field_reset_recursive(member);
+	for (i = 0; i < struct_field->fields->len; i++) {
+		bt_field_reset(struct_field->fields->pdata[i]);
 	}
 }
 
 static
-void bt_field_variant_reset_recursive(struct bt_field *field)
+void reset_variant_field(struct bt_field *field)
 {
-	struct bt_field_variant *variant = (void *) field;
-
-	BT_ASSERT(field);
-	variant->current_field = NULL;
-}
-
-static
-void bt_field_array_reset_recursive(struct bt_field *field)
-{
-	size_t i;
-	struct bt_field_array *array = (void *) field;
-
-	BT_ASSERT(field);
-
-	for (i = 0; i < array->elements->len; i++) {
-		struct bt_field *member = array->elements->pdata[i];
-
-		if (!member) {
-			/*
-			 * Array elements are lazily initialized; skip
-			 * if this member has not been allocated yet.
-			 */
-			continue;
-		}
-
-		bt_field_reset_recursive(member);
-	}
-}
-
-static
-void bt_field_sequence_reset_recursive(struct bt_field *field)
-{
-	struct bt_field_sequence *sequence = (void *) field;
 	uint64_t i;
+	struct bt_field_variant *var_field = (void *) field;
 
 	BT_ASSERT(field);
 
-	for (i = 0; i < sequence->elements->len; i++) {
-		if (sequence->elements->pdata[i]) {
-			bt_field_reset_recursive(
-				sequence->elements->pdata[i]);
-		}
+	for (i = 0; i < var_field->fields->len; i++) {
+		bt_field_reset(var_field->fields->pdata[i]);
 	}
-
-	sequence->length = 0;
 }
 
 static
-void bt_field_generic_set_is_frozen(struct bt_field *field,
-		bool is_frozen)
+void reset_array_field(struct bt_field *field)
+{
+	uint64_t i;
+	struct bt_field_array *array_field = (void *) field;
+
+	BT_ASSERT(field);
+
+	for (i = 0; i < array_field->fields->len; i++) {
+		bt_field_reset(array_field->fields->pdata[i]);
+	}
+}
+
+static
+void set_single_field_is_frozen(struct bt_field *field, bool is_frozen)
 {
 	field->frozen = is_frozen;
 }
 
 static
-void bt_field_structure_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen)
+void set_structure_field_is_frozen(struct bt_field *field, bool is_frozen)
 {
 	uint64_t i;
-	struct bt_field_structure *structure_field = (void *) field;
+	struct bt_field_structure *struct_field = (void *) field;
 
-	BT_LOGD("Freezing structure field object: addr=%p", field);
+	BT_LIB_LOGD("Setting structure field's frozen state: "
+		"%![field-]+f, is-frozen=%d", field, is_frozen);
 
-	for (i = 0; i < structure_field->fields->len; i++) {
-		struct bt_field *struct_field =
-			g_ptr_array_index(structure_field->fields, i);
+	for (i = 0; i < struct_field->fields->len; i++) {
+		struct bt_field *member_field = struct_field->fields->pdata[i];
 
-		BT_LOGD("Freezing structure field's field: field-addr=%p, index=%" PRId64,
-			struct_field, i);
-		bt_field_set_is_frozen_recursive(struct_field,
-			is_frozen);
+		BT_LIB_LOGD("Setting structure field's member field's "
+			"frozen state: %![field-]+f, index=%" PRIu64,
+			member_field, i);
+		bt_field_set_is_frozen(member_field, is_frozen);
 	}
 
-	bt_field_generic_set_is_frozen(field, is_frozen);
+	set_single_field_is_frozen(field, is_frozen);
 }
 
 static
-void bt_field_variant_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen)
+void set_variant_field_is_frozen(struct bt_field *field, bool is_frozen)
 {
 	uint64_t i;
-	struct bt_field_variant *variant_field = (void *) field;
+	struct bt_field_variant *var_field = (void *) field;
 
-	BT_LOGD("Freezing variant field object: addr=%p", field);
+	BT_LIB_LOGD("Setting variant field's frozen state: "
+		"%![field-]+f, is-frozen=%d", field, is_frozen);
 
-	for (i = 0; i < variant_field->fields->len; i++) {
-		struct bt_field *var_field =
-			g_ptr_array_index(variant_field->fields, i);
+	for (i = 0; i < var_field->fields->len; i++) {
+		struct bt_field *option_field = var_field->fields->pdata[i];
 
-		BT_LOGD("Freezing variant field's field: field-addr=%p, index=%" PRId64,
-			var_field, i);
-		bt_field_set_is_frozen_recursive(var_field, is_frozen);
+		BT_LIB_LOGD("Setting variant field's option field's "
+			"frozen state: %![field-]+f, index=%" PRIu64,
+			option_field, i);
+		bt_field_set_is_frozen(option_field, is_frozen);
 	}
 
-	bt_field_generic_set_is_frozen(field, is_frozen);
+	set_single_field_is_frozen(field, is_frozen);
 }
 
 static
-void bt_field_array_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen)
+void set_array_field_is_frozen(struct bt_field *field, bool is_frozen)
 {
-	int64_t i;
+	uint64_t i;
 	struct bt_field_array *array_field = (void *) field;
 
-	BT_LOGD("Freezing array field object: addr=%p", field);
+	BT_LIB_LOGD("Setting array field's frozen state: "
+		"%![field-]+f, is-frozen=%d", field, is_frozen);
 
-	for (i = 0; i < array_field->elements->len; i++) {
-		struct bt_field *elem_field =
-			g_ptr_array_index(array_field->elements, i);
+	for (i = 0; i < array_field->fields->len; i++) {
+		struct bt_field *elem_field = array_field->fields->pdata[i];
 
-		BT_LOGD("Freezing array field object's element field: "
-			"element-field-addr=%p, index=%" PRId64,
+		BT_LIB_LOGD("Setting array field's element field's "
+			"frozen state: %![field-]+f, index=%" PRIu64,
 			elem_field, i);
-		bt_field_set_is_frozen_recursive(elem_field, is_frozen);
+		bt_field_set_is_frozen(elem_field, is_frozen);
 	}
 
-	bt_field_generic_set_is_frozen(field, is_frozen);
-}
-
-static
-void bt_field_sequence_set_is_frozen_recursive(
-		struct bt_field *field, bool is_frozen)
-{
-	int64_t i;
-	struct bt_field_sequence *sequence_field = (void *) field;
-
-	BT_LOGD("Freezing sequence field object: addr=%p", field);
-
-	for (i = 0; i < sequence_field->length; i++) {
-		struct bt_field *elem_field =
-			g_ptr_array_index(sequence_field->elements, i);
-
-		BT_LOGD("Freezing sequence field object's element field: "
-			"element-field-addr=%p, index=%" PRId64,
-			elem_field, i);
-		bt_field_set_is_frozen_recursive(elem_field, is_frozen);
-	}
-
-	bt_field_generic_set_is_frozen(field, is_frozen);
+	set_single_field_is_frozen(field, is_frozen);
 }
 
 BT_HIDDEN
-void _bt_field_set_is_frozen_recursive(struct bt_field *field,
+void _bt_field_set_is_frozen(struct bt_field *field,
 		bool is_frozen)
 {
-	if (!field) {
-		goto end;
-	}
-
-	BT_LOGD("Setting field object's frozen state: addr=%p, is-frozen=%d",
+	BT_ASSERT(field);
+	BT_LIB_LOGD("Setting field object's frozen state: %!+f, is-frozen=%d",
 		field, is_frozen);
-	BT_ASSERT(bt_field_type_has_known_id(field->type));
 	BT_ASSERT(field->methods->set_is_frozen);
 	field->methods->set_is_frozen(field, is_frozen);
-
-end:
-	return;
 }
 
 static
-bt_bool bt_field_generic_is_set(struct bt_field *field)
+bool single_field_is_set(struct bt_field *field)
 {
-	return field && field->payload_set;
+	BT_ASSERT(field);
+	return field->is_set;
 }
 
 static
-bt_bool bt_field_structure_is_set_recursive(
-		struct bt_field *field)
+bool structure_field_is_set(struct bt_field *field)
 {
-	bt_bool is_set = BT_FALSE;
-	size_t i;
-	struct bt_field_structure *structure = (void *) field;
+	bool is_set = true;
+	uint64_t i;
+	struct bt_field_structure *struct_field = (void *) field;
 
 	BT_ASSERT(field);
 
-	for (i = 0; i < structure->fields->len; i++) {
-		is_set = bt_field_is_set_recursive(
-			structure->fields->pdata[i]);
+	for (i = 0; i < struct_field->fields->len; i++) {
+		is_set = bt_field_is_set(struct_field->fields->pdata[i]);
 		if (!is_set) {
 			goto end;
 		}
@@ -1600,57 +1069,31 @@ end:
 }
 
 static
-bt_bool bt_field_variant_is_set_recursive(struct bt_field *field)
+bool variant_field_is_set(struct bt_field *field)
 {
-	struct bt_field_variant *variant = (void *) field;
-	bt_bool is_set = BT_FALSE;
+	struct bt_field_variant *var_field = (void *) field;
+	bool is_set = false;
 
 	BT_ASSERT(field);
 
-	if (variant->current_field) {
-		is_set = bt_field_is_set_recursive(
-			variant->current_field);
+	if (var_field->selected_field) {
+		is_set = bt_field_is_set(var_field->selected_field);
 	}
 
 	return is_set;
 }
 
 static
-bt_bool bt_field_array_is_set_recursive(struct bt_field *field)
+bool array_field_is_set(struct bt_field *field)
 {
-	size_t i;
-	bt_bool is_set = BT_FALSE;
-	struct bt_field_array *array = (void *) field;
+	bool is_set = true;
+	uint64_t i;
+	struct bt_field_array *array_field = (void *) field;
 
 	BT_ASSERT(field);
 
-	for (i = 0; i < array->elements->len; i++) {
-		is_set = bt_field_is_set_recursive(array->elements->pdata[i]);
-		if (!is_set) {
-			goto end;
-		}
-	}
-
-end:
-	return is_set;
-}
-
-static
-bt_bool bt_field_sequence_is_set_recursive(struct bt_field *field)
-{
-	size_t i;
-	bt_bool is_set = BT_FALSE;
-	struct bt_field_sequence *sequence = (void *) field;
-
-	BT_ASSERT(field);
-
-	if (!sequence->elements) {
-		goto end;
-	}
-
-	for (i = 0; i < sequence->elements->len; i++) {
-		is_set = bt_field_is_set_recursive(
-			sequence->elements->pdata[i]);
+	for (i = 0; i < array_field->length; i++) {
+		is_set = bt_field_is_set(array_field->fields->pdata[i]);
 		if (!is_set) {
 			goto end;
 		}

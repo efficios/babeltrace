@@ -30,8 +30,13 @@
 extern "C" {
 #endif
 
+struct bt_trace;
 struct bt_packet_header_field;
 struct bt_field;
+
+extern
+struct bt_packet_header_field *bt_packet_header_field_create(
+		struct bt_trace *trace);
 
 extern
 struct bt_field *bt_packet_header_field_borrow_field(

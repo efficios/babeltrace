@@ -433,10 +433,10 @@ int bt_ctf_stream_class_common_visit(struct bt_ctf_stream_class_common *stream_c
 		goto end;
 	}
 
-	ret = visitor_helper(&obj, get_event_class_count,
+	ret = bt_ctf_visitor_helper(&obj, get_event_class_count,
 			get_event_class,
 			visit_event_class, visitor, data);
-	BT_LOGV("visitor_helper() returned: ret=%d", ret);
+	BT_LOGV("bt_ctf_visitor_helper() returned: ret=%d", ret);
 
 end:
 	return ret;

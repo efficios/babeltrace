@@ -23,6 +23,8 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,6 +73,8 @@ if (ret) {
 @endcode
 */
 typedef int bt_bool;
+
+typedef const uint8_t *bt_uuid;
 
 /** @} */
 

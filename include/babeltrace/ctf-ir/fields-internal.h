@@ -41,56 +41,77 @@
 #include <glib.h>
 
 #define BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(_field, _type_id, _name)	\
-	BT_ASSERT_PRE((_field)->type->id == ((int) (_type_id)),		\
+	BT_ASSERT_PRE(((struct bt_field *) (_field))->type->id == (_type_id), \
 		_name " has the wrong type ID: expected-type-id=%s, "	\
-		"%![field-]+f",					\
-		bt_common_field_type_id_string((int) (_type_id)), (_field))
+		"%![field-]+f",						\
+		bt_common_field_type_id_string(_type_id), (_field))
 
-#define BT_ASSERT_PRE_FIELD_IS_SET(_field, _name)		\
-	BT_ASSERT_PRE(bt_field_is_set_recursive(_field),		\
+#define BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(_field, _name)		\
+	BT_ASSERT_PRE(							\
+		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_UNSIGNED_INTEGER || \
+		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION, \
+		_name " is not an unsigned integer field: %![field-]+f", \
+		(_field))
+
+#define BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(_field, _name)		\
+	BT_ASSERT_PRE(							\
+		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_SIGNED_INTEGER || \
+		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_SIGNED_ENUMERATION, \
+		_name " is not a signed integer field: %![field-]+f", \
+		(_field))
+
+#define BT_ASSERT_PRE_FIELD_IS_ARRAY(_field, _name)			\
+	BT_ASSERT_PRE(							\
+		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_STATIC_ARRAY || \
+		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_DYNAMIC_ARRAY, \
+		_name " is not an array field: %![field-]+f", (_field))
+
+#define BT_ASSERT_PRE_FIELD_IS_SET(_field, _name)			\
+	BT_ASSERT_PRE(bt_field_is_set(_field),				\
 		_name " is not set: %!+f", (_field))
 
-#define BT_ASSERT_PRE_FIELD_HOT(_field, _name)			\
-	BT_ASSERT_PRE_HOT((_field), (_name), ": %!+f", (_field))
+#define BT_ASSERT_PRE_FIELD_HOT(_field, _name)				\
+	BT_ASSERT_PRE_HOT((struct bt_field *) (_field), (_name),	\
+		": %!+f", (_field))
 
 struct bt_field;
 
-typedef void (*bt_field_method_set_is_frozen)(struct bt_field *,
-		bool);
-typedef int (*bt_field_method_validate)(struct bt_field *);
-typedef bt_bool (*bt_field_method_is_set)(struct bt_field *);
+typedef struct bt_field *(* bt_field_create_func)(struct bt_field_type *);
+typedef void (*bt_field_method_set_is_frozen)(struct bt_field *, bool);
+typedef bool (*bt_field_method_is_set)(struct bt_field *);
 typedef void (*bt_field_method_reset)(struct bt_field *);
 
 struct bt_field_methods {
 	bt_field_method_set_is_frozen set_is_frozen;
-	bt_field_method_validate validate;
 	bt_field_method_is_set is_set;
 	bt_field_method_reset reset;
 };
 
 struct bt_field {
 	struct bt_object base;
+
+	/* Owned by this */
 	struct bt_field_type *type;
+
+	/* Virtual table for slow path (dev mode) operations */
 	struct bt_field_methods *methods;
-	bool payload_set;
+
+	bool is_set;
 	bool frozen;
 };
 
 struct bt_field_integer {
 	struct bt_field common;
+
 	union {
-		int64_t signd;
-		uint64_t unsignd;
-	} payload;
+		uint64_t u;
+		int64_t i;
+	} value;
 };
 
-struct bt_field_enumeration {
-	struct bt_field_integer common;
-};
-
-struct bt_field_floating_point {
+struct bt_field_real {
 	struct bt_field common;
-	double payload;
+	double value;
 };
 
 struct bt_field_structure {
@@ -103,13 +124,11 @@ struct bt_field_structure {
 struct bt_field_variant {
 	struct bt_field common;
 
-	union {
-		uint64_t u;
-		int64_t i;
-	} tag_value;
+	/* Weak: belongs to `fields` below */
+	struct bt_field *selected_field;
 
-	/* Weak: belongs to `choices` below */
-	struct bt_field *current_field;
+	/* Index of currently selected field */
+	uint64_t selected_index;
 
 	/* Array of `struct bt_field *`, owned by this */
 	GPtrArray *fields;
@@ -119,70 +138,35 @@ struct bt_field_array {
 	struct bt_field common;
 
 	/* Array of `struct bt_field *`, owned by this */
-	GPtrArray *elements;
-};
+	GPtrArray *fields;
 
-struct bt_field_sequence {
-	struct bt_field common;
-
-	/*
-	 * This is the true sequence field's length: its value can be
-	 * less than `elements->len` below because we never shrink the
-	 * array of elements to avoid reallocation.
-	 */
+	/* Current effective length */
 	uint64_t length;
-
-	/* Array of `struct bt_field *`, owned by this */
-	GPtrArray *elements;
 };
 
 struct bt_field_string {
 	struct bt_field common;
 	GArray *buf;
-	size_t size;
+	uint64_t length;
 };
 
 #ifdef BT_DEV_MODE
-# define bt_field_validate_recursive			_bt_field_validate_recursive
-# define bt_field_set_is_frozen_recursive		_bt_field_set_is_frozen_recursive
-# define bt_field_is_set_recursive			_bt_field_is_set_recursive
-# define bt_field_reset_recursive			_bt_field_reset_recursive
-# define bt_field_set					_bt_field_set
+# define bt_field_set_is_frozen		_bt_field_set_is_frozen
+# define bt_field_is_set		_bt_field_is_set
+# define bt_field_reset			_bt_field_reset
+# define bt_field_set_single		_bt_field_set_single
 #else
-# define bt_field_validate_recursive(_field)		(-1)
-# define bt_field_set_is_frozen_recursive(_field, _is_frozen)
-# define bt_field_is_set_recursive(_field)		(BT_FALSE)
-# define bt_field_reset_recursive(_field)
-# define bt_field_set(_field, _val)
+# define bt_field_set_is_frozen(_field, _is_frozen)
+# define bt_field_is_set(_field)	(BT_FALSE)
+# define bt_field_reset(_field)
+# define bt_field_set_single(_field, _val)
 #endif
 
 BT_HIDDEN
-void _bt_field_set_is_frozen_recursive(struct bt_field *field,
-		bool is_frozen);
+void _bt_field_set_is_frozen(struct bt_field *field, bool is_frozen);
 
 static inline
-int _bt_field_validate_recursive(struct bt_field *field)
-{
-	int ret = 0;
-
-	if (!field) {
-		BT_ASSERT_PRE_MSG("%s", "Invalid field: field is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	BT_ASSERT(bt_field_type_has_known_id(field->type));
-
-	if (field->methods->validate) {
-		ret = field->methods->validate(field);
-	}
-
-end:
-	return ret;
-}
-
-static inline
-void _bt_field_reset_recursive(struct bt_field *field)
+void _bt_field_reset(struct bt_field *field)
 {
 	BT_ASSERT(field);
 	BT_ASSERT(field->methods->reset);
@@ -190,14 +174,14 @@ void _bt_field_reset_recursive(struct bt_field *field)
 }
 
 static inline
-void _bt_field_set(struct bt_field *field, bool value)
+void _bt_field_set_single(struct bt_field *field, bool value)
 {
 	BT_ASSERT(field);
-	field->payload_set = value;
+	field->is_set = value;
 }
 
 static inline
-bt_bool _bt_field_is_set_recursive(struct bt_field *field)
+bt_bool _bt_field_is_set(struct bt_field *field)
 {
 	bt_bool is_set = BT_FALSE;
 
@@ -214,9 +198,9 @@ end:
 }
 
 BT_HIDDEN
-struct bt_field *bt_field_create_recursive(struct bt_field_type *type);
+struct bt_field *bt_field_create(struct bt_field_type *type);
 
 BT_HIDDEN
-void bt_field_destroy_recursive(struct bt_field *field);
+void bt_field_destroy(struct bt_field *field);
 
 #endif /* BABELTRACE_CTF_IR_FIELDS_INTERNAL_H */

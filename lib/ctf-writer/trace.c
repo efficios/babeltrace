@@ -1411,7 +1411,7 @@ int bt_ctf_trace_visit(struct bt_ctf_trace *trace,
 
 	BT_LOGV("Visiting trace: addr=%p, name=\"%s\"",
 		trace, bt_ctf_trace_get_name(trace));
-	ret = visitor_helper(&obj, get_stream_class_count,
+	ret = bt_ctf_visitor_helper(&obj, get_stream_class_count,
 			get_stream_class, visit_stream_class, visitor, data);
 end:
 	return ret;

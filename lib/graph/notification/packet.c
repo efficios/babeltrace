@@ -73,7 +73,6 @@ struct bt_notification *bt_notification_packet_begin_create(
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
 	struct bt_graph *graph;
-	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -89,16 +88,6 @@ struct bt_notification *bt_notification_packet_begin_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class));
-
-	if (likely(!packet->props_are_set)) {
-		ret = bt_packet_set_properties(packet);
-		if (ret) {
-			BT_LIB_LOGE("Cannot update packet's properties: "
-				"%![prev-packet-]+a", packet);
-			goto end;
-		}
-	}
-
 	graph = bt_private_connection_private_notification_iterator_borrow_graph(
 		notif_iter);
 	notification = (void *) bt_notification_create_from_pool(
@@ -113,7 +102,6 @@ struct bt_notification *bt_notification_packet_begin_create(
 	bt_object_get_no_null_check_no_parent_check(
 		&notification->packet->base);
 	bt_packet_set_is_frozen(packet, true);
-	bt_packet_validate_properties(packet);
 	BT_LOGD("Created packet beginning notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -206,7 +194,6 @@ struct bt_notification *bt_notification_packet_end_create(
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
 	struct bt_graph *graph;
-	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -222,16 +209,6 @@ struct bt_notification *bt_notification_packet_end_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class));
-
-	if (unlikely(!packet->props_are_set)) {
-		ret = bt_packet_set_properties(packet);
-		if (ret) {
-			BT_LIB_LOGE("Cannot update packet's properties: "
-				"%![prev-packet-]+a", packet);
-			goto end;
-		}
-	}
-
 	graph = bt_private_connection_private_notification_iterator_borrow_graph(
 		notif_iter);
 	notification = (void *) bt_notification_create_from_pool(
@@ -246,7 +223,6 @@ struct bt_notification *bt_notification_packet_end_create(
 	bt_object_get_no_null_check_no_parent_check(
 		&notification->packet->base);
 	bt_packet_set_is_frozen(packet, true);
-	bt_packet_validate_properties(packet);
 	BT_LOGD("Created packet end notification object: "
 		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "

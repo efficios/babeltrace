@@ -64,7 +64,7 @@ void ctf_metadata_decoder_destroy(
  * until the end of this file stream. If it finds new information (new
  * event class, new stream class, or new clock class), it appends this
  * information to the decoder's trace object (as returned by
- * ctf_metadata_get_trace()), or it creates this trace.
+ * ctf_metadata_decoder_get_ir_trace()), or it creates this trace.
  *
  * The metadata can be packetized or not.
  *
@@ -88,16 +88,13 @@ BT_HIDDEN
 enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		struct ctf_metadata_decoder *metadata_decoder, FILE *fp);
 
-/*
- * Returns a new reference to the current CTF IR trace object which is
- * the result of the metadata decoding process.
- *
- * The trace object, once created, remains the same until you call
- * ctf_metadata_decoder_destroy().
- */
 BT_HIDDEN
-struct bt_trace *ctf_metadata_decoder_get_trace(
-		struct ctf_metadata_decoder *metadata_decoder);
+struct bt_trace *ctf_metadata_decoder_get_ir_trace(
+		struct ctf_metadata_decoder *mdec);
+
+BT_HIDDEN
+struct ctf_trace_class *ctf_metadata_decoder_borrow_ctf_trace_class(
+		struct ctf_metadata_decoder *mdec);
 
 /*
  * Checks whether or not a given metadata file stream is packetized, and

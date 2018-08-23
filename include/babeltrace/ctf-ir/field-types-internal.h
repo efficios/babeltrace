@@ -36,189 +36,157 @@
 #include <stdint.h>
 #include <glib.h>
 
-#define BT_ASSERT_PRE_FT_HAS_ID(_ft, _type_id, _name)		\
-	BT_ASSERT_PRE(((struct bt_field_type *) (_ft))->id == (_type_id), \
-		_name " has the wrong type ID: expected-type-id=%s, "	\
-		"%![ft-]+F", bt_common_field_type_id_string(_type_id), (_ft))
+#define BT_ASSERT_PRE_FT_IS_INT(_ft, _name)				\
+	BT_ASSERT_PRE(							\
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_UNSIGNED_INTEGER || \
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_SIGNED_INTEGER || \
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION || \
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_SIGNED_ENUMERATION, \
+		_name " is not an integer field type: %![ft-]+F", (_ft))
+
+#define BT_ASSERT_PRE_FT_IS_UNSIGNED_INT(_ft, _name)			\
+	BT_ASSERT_PRE(							\
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_UNSIGNED_INTEGER || \
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION, \
+		_name " is not an unsigned integer field type: %![ft-]+F", (_ft))
+
+#define BT_ASSERT_PRE_FT_IS_ENUM(_ft, _name)				\
+	BT_ASSERT_PRE(							\
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION || \
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_SIGNED_ENUMERATION, \
+		_name " is not an enumeration field type: %![ft-]+F", (_ft))
+
+#define BT_ASSERT_PRE_FT_IS_ARRAY(_ft, _name)				\
+	BT_ASSERT_PRE(							\
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_STATIC_ARRAY || \
+		((struct bt_field_type *) (_ft))->id == BT_FIELD_TYPE_ID_DYNAMIC_ARRAY, \
+		_name " is not an array field type: %![ft-]+F", (_ft))
+
+#define BT_ASSERT_PRE_FT_HAS_ID(_ft, _id, _name)			\
+	BT_ASSERT_PRE(((struct bt_field_type *) (_ft))->id == (_id), 	\
+		_name " has the wrong ID: expected-id=%s, "		\
+		"%![ft-]+F", bt_common_field_type_id_string(_id), (_ft))
 
 #define BT_ASSERT_PRE_FT_HOT(_ft, _name)				\
-	BT_ASSERT_PRE_HOT((_ft), (_name), ": %!+F", (_ft))
+	BT_ASSERT_PRE_HOT((struct bt_field_type *) (_ft),		\
+		(_name), ": %!+F", (_ft))
 
-#define BT_FIELD_TYPE_STRUCTURE_FIELD_AT_INDEX(_ft, _index)	\
-	(&g_array_index(((struct bt_field_type_structure *) (_ft))->fields, \
-		struct bt_field_type_structure_field, (_index)))
+#define BT_FIELD_TYPE_NAMED_FT_AT_INDEX(_ft, _index)		\
+	(&g_array_index(((struct bt_field_type_named_field_types_container *) (_ft))->named_fts, \
+		struct bt_named_field_type, (_index)))
 
-#define BT_FIELD_TYPE_VARIANT_CHOICE_AT_INDEX(_ft, _index)	\
-	(&g_array_index(((struct bt_field_type_variant *) (_ft))->choices, \
-		struct bt_field_type_variant_choice, (_index)))
+#define BT_FIELD_TYPE_ENUM_MAPPING_AT_INDEX(_ft, _index)		\
+	(&g_array_index(((struct bt_field_type_enumeration *) (_ft))->mappings, \
+		struct bt_field_type_enumeration_mapping, (_index)))
+
+#define BT_FIELD_TYPE_ENUM_MAPPING_RANGE_AT_INDEX(_mapping, _index)	\
+	(&g_array_index((_mapping)->ranges,				\
+		struct bt_field_type_enumeration_mapping_range, (_index)))
 
 struct bt_field;
 struct bt_field_type;
 
-typedef void (*bt_field_type_method_freeze)(
-		struct bt_field_type *);
-typedef int (*bt_field_type_method_validate)(
-		struct bt_field_type *);
-typedef void (*bt_field_type_method_set_byte_order)(
-		struct bt_field_type *, enum bt_byte_order);
-typedef struct bt_field_type *(*bt_field_type_method_copy)(
-		struct bt_field_type *);
-typedef int (*bt_field_type_method_compare)(
-		struct bt_field_type *,
-		struct bt_field_type *);
-
-struct bt_field_type_methods {
-	bt_field_type_method_freeze freeze;
-	bt_field_type_method_validate validate;
-	bt_field_type_method_set_byte_order set_byte_order;
-	bt_field_type_method_copy copy;
-	bt_field_type_method_compare compare;
-};
-
 struct bt_field_type {
 	struct bt_object base;
 	enum bt_field_type_id id;
-	unsigned int alignment;
-
-	/* Virtual table */
-	struct bt_field_type_methods *methods;
+	bool frozen;
 
 	/*
-	 * A type can't be modified once it is added to an event or after a
-	 * a field has been instanciated from it.
+	 * Only used in developer mode, this flag indicates whether or
+	 * not this field type is part of a trace.
 	 */
-	int frozen;
-
-	/*
-	 * This flag indicates if the field type is valid. A valid
-	 * field type is _always_ frozen. All the nested field types of
-	 * a valid field type are also valid (and thus frozen).
-	 */
-	int valid;
+	bool part_of_trace;
 };
 
 struct bt_field_type_integer {
 	struct bt_field_type common;
 
-	/* Owned by this */
-	struct bt_clock_class *mapped_clock_class;
-
-	enum bt_byte_order user_byte_order;
-	bt_bool is_signed;
-	unsigned int size;
-	enum bt_integer_base base;
-	enum bt_string_encoding encoding;
-};
-
-struct enumeration_mapping {
-	union {
-		uint64_t _unsigned;
-		int64_t _signed;
-	} range_start;
-	union {
-		uint64_t _unsigned;
-		int64_t _signed;
-	} range_end;
-	GQuark string;
-};
-
-struct bt_field_type_enumeration {
-	struct bt_field_type common;
-
-	/* Owned by this */
-	struct bt_field_type_integer *container_ft;
-
-	/* Array of `struct enumeration_mapping *`, owned by this */
-	GPtrArray *entries;
-
-	/* Only set during validation */
-	bt_bool has_overlapping_ranges;
-};
-
-enum bt_field_type_enumeration_mapping_iterator_type {
-	ITERATOR_BY_NAME,
-	ITERATOR_BY_SIGNED_VALUE,
-	ITERATOR_BY_UNSIGNED_VALUE,
-};
-
-struct bt_field_type_enumeration_mapping_iterator {
-	struct bt_object base;
-
-	/* Owned by this */
-	struct bt_field_type_enumeration *enumeration_ft;
-
-	enum bt_field_type_enumeration_mapping_iterator_type type;
-	int index;
-	union {
-		GQuark name_quark;
-		int64_t signed_value;
-		uint64_t unsigned_value;
-	} u;
-};
-
-struct bt_field_type_floating_point {
-	struct bt_field_type common;
-	enum bt_byte_order user_byte_order;
-	unsigned int exp_dig;
-	unsigned int mant_dig;
-};
-
-struct bt_field_type_structure_field {
-	GQuark name;
-
-	/* Owned by this */
-	struct bt_field_type *type;
-};
-
-struct bt_field_type_structure {
-	struct bt_field_type common;
-	GHashTable *field_name_to_index;
-
 	/*
-	 * Array of `struct bt_field_type_structure_field`,
-	 * owned by this
+	 * Value range of fields built from this integer field type:
+	 * this is an equivalent integer size in bits. More formally,
+	 * `range` is `n` in:
+	 *
+	 * Unsigned range: [0, 2^n - 1]
+	 * Signed range: [-2^(n - 1), 2^(n - 1) - 1]
 	 */
-	GArray *fields;
+	uint64_t range;
+
+	enum bt_field_type_integer_preferred_display_base base;
 };
 
-struct bt_field_type_variant_choice_range {
+struct bt_field_type_enumeration_mapping_range {
 	union {
-		int64_t i;
 		uint64_t u;
+		int64_t i;
 	} lower;
+
 	union {
-		int64_t i;
 		uint64_t u;
+		int64_t i;
 	} upper;
 };
 
-struct bt_field_type_variant_choice {
-	GQuark name;
+struct bt_field_type_enumeration_mapping {
+	GString *label;
 
-	/* Owned by this */
-	struct bt_field_type *type;
-
-	/* Array of `struct bt_field_type_variant_choice_range` */
+	/* Array of `struct bt_field_type_enumeration_mapping_range` */
 	GArray *ranges;
 };
 
-struct bt_field_type_variant {
-	struct bt_field_type common;
-	GString *tag_name;
-	bool choices_up_to_date;
+struct bt_field_type_enumeration {
+	struct bt_field_type_integer common;
 
-	/* Owned by this */
-	struct bt_field_type_enumeration *tag_ft;
-
-	/* Owned by this */
-	struct bt_field_path *tag_field_path;
-
-	GHashTable *choice_name_to_index;
+	/* Array of `struct bt_field_type_enumeration_mapping *` */
+	GArray *mappings;
 
 	/*
-	 * Array of `struct bt_field_type_variant_choice`,
-	 * owned by this */
-	GArray *choices;
+	 * This is an array of `const char *` which acts as a temporary
+	 * (potentially growing) buffer for
+	 * bt_field_type_unsigned_enumeration_get_mapping_labels_by_value()
+	 * and
+	 * bt_field_type_signed_enumeration_get_mapping_labels_by_value().
+	 *
+	 * The actual strings are owned by the mappings above.
+	 */
+	GPtrArray *label_buf;
+};
+
+struct bt_field_type_real {
+	struct bt_field_type common;
+	bool is_single_precision;
+};
+
+struct bt_field_type_string {
+	struct bt_field_type common;
+};
+
+/* A named field type is a (name, field type) pair */
+struct bt_named_field_type {
+	GString *name;
+
+	/* Owned by this */
+	struct bt_field_type *ft;
+};
+
+/*
+ * This is the base field type for a container of named field types.
+ * Structure and variant field types inherit this.
+ */
+struct bt_field_type_named_field_types_container {
+	struct bt_field_type common;
+
+	/*
+	 * Key: `const char *`, not owned by this (owned by named field
+	 * type objects contained in `named_fts` below).
+	 */
+	GHashTable *name_to_index;
+
+	/* Array of `struct bt_named_field_type` */
+	GArray *named_fts;
+};
+
+struct bt_field_type_structure {
+	struct bt_field_type_named_field_types_container common;
 };
 
 struct bt_field_type_array {
@@ -226,81 +194,62 @@ struct bt_field_type_array {
 
 	/* Owned by this */
 	struct bt_field_type *element_ft;
-
-	unsigned int length;
 };
 
-struct bt_field_type_sequence {
-	struct bt_field_type common;
+struct bt_field_type_static_array {
+	struct bt_field_type_array common;
+	uint64_t length;
+};
 
-	/* Owned by this */
-	struct bt_field_type *element_ft;
+struct bt_field_type_dynamic_array {
+	struct bt_field_type_array common;
 
-	GString *length_field_name;
+	/* Weak: never dereferenced, only use to find it elsewhere */
+	struct bt_field_type *length_ft;
 
 	/* Owned by this */
 	struct bt_field_path *length_field_path;
 };
 
-struct bt_field_type_string {
-	struct bt_field_type common;
-	enum bt_string_encoding encoding;
+struct bt_field_type_variant {
+	struct bt_field_type_named_field_types_container common;
+
+	/* Weak: never dereferenced, only use to find it elsewhere */
+	struct bt_field_type *selector_ft;
+
+	/* Owned by this */
+	struct bt_field_path *selector_field_path;
 };
 
-typedef struct bt_field *(* bt_field_create_func)(
-		struct bt_field_type *);
-
-BT_ASSERT_FUNC
-static inline bool bt_field_type_has_known_id(
-		struct bt_field_type *ft)
+static inline
+bool bt_field_type_has_known_id(struct bt_field_type *ft)
 {
-	return (int) ft->id > BT_FIELD_TYPE_ID_UNKNOWN ||
-		(int) ft->id < BT_FIELD_TYPE_ID_NR;
+	return ft->id >= BT_FIELD_TYPE_ID_UNSIGNED_INTEGER &&
+		ft->id <= BT_FIELD_TYPE_ID_VARIANT;
 }
 
 BT_HIDDEN
-int bt_field_type_variant_update_choices(
-		struct bt_field_type *ft);
+void _bt_field_type_freeze(struct bt_field_type *field_type);
 
-BT_HIDDEN
-void bt_field_type_freeze(struct bt_field_type *ft);
+#ifdef BT_DEV_MODE
+# define bt_field_type_freeze		_bt_field_type_freeze
+#else
+# define bt_field_type_freeze(_ft)
+#endif
 
+/*
+ * This function recursively marks `field_type` and its children as
+ * being part of a trace. This is used to validate that all field types
+ * are used at a single location within trace objects even if they are
+ * shared objects for other purposes.
+ */
 BT_HIDDEN
-int bt_field_type_validate(struct bt_field_type *ft);
+void _bt_field_type_make_part_of_trace(struct bt_field_type *field_type);
 
-BT_HIDDEN
-int bt_field_type_sequence_set_length_field_path(
-		struct bt_field_type *ft, struct bt_field_path *path);
-
-BT_HIDDEN
-int bt_field_type_variant_set_tag_field_path(
-		struct bt_field_type *ft,
-		struct bt_field_path *path);
-
-BT_HIDDEN
-int bt_field_type_variant_set_tag_field_type(
-		struct bt_field_type *ft,
-		struct bt_field_type *tag_ft);
-
-BT_HIDDEN
-int64_t bt_field_type_get_field_count(struct bt_field_type *ft);
-
-BT_HIDDEN
-struct bt_field_type *bt_field_type_borrow_field_at_index(
-		struct bt_field_type *ft, int index);
-
-BT_HIDDEN
-int bt_field_type_get_field_index(struct bt_field_type *ft,
-		const char *name);
-
-BT_HIDDEN
-int bt_field_type_validate_single_clock_class(
-		struct bt_field_type *ft,
-		struct bt_clock_class **expected_clock_class);
-
-BT_HIDDEN
-int64_t bt_field_type_variant_find_choice_index(
-		struct bt_field_type *ft, uint64_t uval,
-		bool is_signed);
+#ifdef BT_DEV_MODE
+# define bt_field_type_make_part_of_trace	_bt_field_type_make_part_of_trace
+#else
+# define bt_field_type_make_part_of_trace(_ft)	((void) _ft)
+#endif
 
 #endif /* BABELTRACE_CTF_IR_FIELD_TYPES_INTERNAL_H */
