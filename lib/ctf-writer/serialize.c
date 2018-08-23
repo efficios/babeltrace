@@ -68,7 +68,8 @@ int aligned_integer_write(struct bt_ctf_stream_pos *pos, union intval value,
 		unsigned int alignment, unsigned int size, bt_bool is_signed,
 		enum bt_ctf_byte_order byte_order)
 {
-	bt_bool rbo = ((int) byte_order != BT_MY_BYTE_ORDER); /* reverse byte order */
+	/* reverse byte order */
+	bt_bool rbo = (byte_order != BT_CTF_MY_BYTE_ORDER);
 
 	if (!bt_ctf_stream_pos_align(pos, alignment))
 		return -EFAULT;

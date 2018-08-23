@@ -71,7 +71,6 @@ void bt_clock_value_set_reset(struct bt_clock_value_set *cv_set)
 
 		BT_ASSERT(cv);
 		bt_clock_value_reset(cv);
-		bt_clock_value_set_is_frozen(cv, false);
 	}
 
 	cv_set->default_cv = NULL;
@@ -100,10 +99,8 @@ void bt_clock_value_set_finalize(struct bt_clock_value_set *cv_set)
 }
 
 static inline
-int bt_clock_value_set_set_clock_value(
-		struct bt_clock_value_set *cv_set,
-		struct bt_clock_class *cc, uint64_t raw_value,
-		bt_bool is_default)
+int bt_clock_value_set_set_clock_value(struct bt_clock_value_set *cv_set,
+		struct bt_clock_class *cc, uint64_t raw_value)
 {
 	int ret = 0;
 	struct bt_clock_value *clock_value = NULL;
@@ -112,7 +109,12 @@ int bt_clock_value_set_set_clock_value(
 	BT_ASSERT(cv_set);
 	BT_ASSERT(cc);
 
-	/* Check if we already have a value for this clock class */
+	/*
+	 * Check if we already have a value for this clock class.
+	 *
+	 * TODO: When we have many clock classes, make this more
+	 * efficient.
+	 */
 	for (i = 0; i < cv_set->clock_values->len; i++) {
 		struct bt_clock_value *cv = cv_set->clock_values->pdata[i];
 
@@ -139,21 +141,19 @@ int bt_clock_value_set_set_clock_value(
 		g_ptr_array_add(cv_set->clock_values, clock_value);
 	}
 
-#ifdef BT_ASSERT_PRE_HOT
-	BT_ASSERT_PRE_HOT(clock_value, "Clock value", ": %!+k", clock_value);
-#endif
-
-	ret = bt_clock_value_set_value_inline(clock_value, raw_value);
-	if (ret) {
-		goto end;
-	}
-
-	if (is_default) {
-		cv_set->default_cv = clock_value;
-	}
+	bt_clock_value_set_value_inline(clock_value, raw_value);
 
 end:
 	return ret;
+}
+
+static inline
+void  bt_clock_value_set_set_default_clock_value(
+		struct bt_clock_value_set *cv_set, uint64_t raw_value)
+{
+	BT_ASSERT(cv_set);
+	BT_ASSERT(cv_set->default_cv);
+	bt_clock_value_set_value_inline(cv_set->default_cv, raw_value);
 }
 
 #endif /* BABELTRACE_GRAPH_CLOCK_VALUE_SET_H */

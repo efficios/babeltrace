@@ -30,19 +30,19 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/graph/notification-internal.h>
-#include <babeltrace/ctf-ir/clock-value-set-internal.h>
+#include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/assert-internal.h>
 
 struct bt_notification_stream_begin {
 	struct bt_notification parent;
 	struct bt_stream *stream;
-	struct bt_clock_value_set cv_set;
+	struct bt_clock_value *default_cv;
 };
 
 struct bt_notification_stream_end {
 	struct bt_notification parent;
 	struct bt_stream *stream;
-	struct bt_clock_value_set cv_set;
+	struct bt_clock_value *default_cv;
 };
 
 #endif /* BABELTRACE_GRAPH_NOTIFICATION_STREAM_INTERNAL_H */

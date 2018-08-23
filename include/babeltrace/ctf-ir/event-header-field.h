@@ -30,8 +30,13 @@
 extern "C" {
 #endif
 
+struct bt_stream_class;
 struct bt_event_header_field;
 struct bt_field;
+
+extern
+struct bt_event_header_field *bt_event_header_field_create(
+		struct bt_stream_class *stream_class);
 
 extern
 struct bt_field *bt_event_header_field_borrow_field(

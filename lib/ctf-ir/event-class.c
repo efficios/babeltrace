@@ -32,6 +32,7 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/ctf-ir/clock-value-internal.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
+#include <babeltrace/ctf-ir/field-types.h>
 #include <babeltrace/ctf-ir/field-types-internal.h>
 #include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event-class-internal.h>
@@ -39,9 +40,9 @@
 #include <babeltrace/ctf-ir/stream-class.h>
 #include <babeltrace/ctf-ir/stream-class-internal.h>
 #include <babeltrace/ctf-ir/trace-internal.h>
-#include <babeltrace/ctf-ir/validation-internal.h>
 #include <babeltrace/ctf-ir/utils.h>
 #include <babeltrace/ctf-ir/utils-internal.h>
+#include <babeltrace/ctf-ir/resolve-field-path-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/ctf-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -52,76 +53,28 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-static inline
-void bt_event_class_finalize(struct bt_object *obj)
-{
-	struct bt_event_class *event_class;
-
-	event_class = container_of(obj, struct bt_event_class, base);
-	BT_LOGD("Finalizing event class: addr=%p, name=\"%s\", id=%" PRId64,
-		event_class, bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class));
-
-	if (event_class->name) {
-		g_string_free(event_class->name, TRUE);
-	}
-
-	if (event_class->emf_uri) {
-		g_string_free(event_class->emf_uri, TRUE);
-	}
-
-	BT_LOGD_STR("Putting context field type.");
-	bt_put(event_class->context_field_type);
-	BT_LOGD_STR("Putting payload field type.");
-	bt_put(event_class->payload_field_type);
-}
-
-static inline
-int bt_event_class_initialize(struct bt_event_class *event_class,
-		const char *name, bt_object_release_func release_func,
-		bt_field_type_structure_create_func ft_struct_create_func)
-{
-	int ret = 0;
-
-	BT_LOGD("Initializing event class object: name=\"%s\"",
-		name);
-	bt_object_init_shared_with_parent(&event_class->base, release_func);
-	event_class->payload_field_type = ft_struct_create_func();
-	if (!event_class->payload_field_type) {
-		BT_LOGE_STR("Cannot create event class's initial payload field type object.");
-		goto error;
-	}
-
-	event_class->id = -1;
-	event_class->name = g_string_new(name);
-	if (!event_class->name) {
-		BT_LOGE_STR("Failed to allocate a GString.");
-		goto error;
-	}
-
-	event_class->emf_uri = g_string_new(NULL);
-	if (!event_class->emf_uri) {
-		BT_LOGE_STR("Failed to allocate a GString.");
-		goto error;
-	}
-
-	event_class->log_level = BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED;
-	BT_LOGD("Initialized event class object: addr=%p, name=\"%s\"",
-		event_class, bt_event_class_get_name(event_class));
-	return ret;
-
-error:
-	ret = -1;
-	return ret;
-}
+#define BT_ASSERT_PRE_EVENT_CLASS_HOT(_ec) \
+	BT_ASSERT_PRE_HOT((_ec), "Event class", ": %!+E", (_ec))
 
 static
-void bt_event_class_destroy(struct bt_object *obj)
+void destroy_event_class(struct bt_object *obj)
 {
 	struct bt_event_class *event_class = (void *) obj;
 
-	BT_LOGD("Destroying event class: addr=%p", obj);
-	bt_event_class_finalize(obj);
+	BT_LIB_LOGD("Destroying event class: %!+E", event_class);
+
+	if (event_class->name.str) {
+		g_string_free(event_class->name.str, TRUE);
+	}
+
+	if (event_class->emf_uri.str) {
+		g_string_free(event_class->emf_uri.str, TRUE);
+	}
+
+	BT_LOGD_STR("Putting context field type.");
+	bt_put(event_class->specific_context_ft);
+	BT_LOGD_STR("Putting payload field type.");
+	bt_put(event_class->payload_ft);
 	bt_object_pool_finalize(&event_class->event_pool);
 	g_free(obj);
 }
@@ -133,30 +86,63 @@ void free_event(struct bt_event *event,
 	bt_event_destroy(event);
 }
 
-struct bt_event_class *bt_event_class_create(const char *name)
+BT_ASSERT_PRE_FUNC
+static
+bool event_class_id_is_unique(struct bt_stream_class *stream_class, uint64_t id)
 {
-	int ret;
-	struct bt_event_class *event_class = NULL;
+	uint64_t i;
+	bool is_unique = true;
 
-	if (!name) {
-		BT_LOGW_STR("Invalid parameter: name is NULL.");
-		goto error;
+	for (i = 0; i < stream_class->event_classes->len; i++) {
+		struct bt_event_class *ec =
+			stream_class->event_classes->pdata[i];
+
+		if (ec->id == id) {
+			is_unique = false;
+			goto end;
+		}
 	}
 
-	BT_LOGD("Creating event class object: name=\"%s\"",
-		name);
+end:
+	return is_unique;
+}
+
+static
+struct bt_event_class *create_event_class_with_id(
+		struct bt_stream_class *stream_class, uint64_t id)
+{
+	int ret;
+	struct bt_event_class *event_class;
+
+	BT_ASSERT(stream_class);
+	BT_ASSERT_PRE(event_class_id_is_unique(stream_class, id),
+		"Duplicate event class ID: %![sc-]+S, id=%" PRIu64,
+		stream_class, id);
+	BT_LIB_LOGD("Creating event class object: %![sc-]+S, id=%" PRIu64,
+		stream_class, id);
 	event_class = g_new0(struct bt_event_class, 1);
 	if (!event_class) {
 		BT_LOGE_STR("Failed to allocate one event class.");
 		goto error;
 	}
 
-	ret = bt_event_class_initialize(event_class,
-		name, bt_event_class_destroy,
-		(bt_field_type_structure_create_func)
-			bt_field_type_structure_create);
-	if (ret) {
-		goto error;
+	bt_object_init_shared_with_parent(&event_class->base,
+		destroy_event_class);
+	event_class->id = id;
+	bt_property_uint_init(&event_class->log_level,
+			BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE, 0);
+	event_class->name.str = g_string_new(NULL);
+	if (!event_class->name.str) {
+		BT_LOGE_STR("Failed to allocate a GString.");
+		ret = -1;
+		goto end;
+	}
+
+	event_class->emf_uri.str = g_string_new(NULL);
+	if (!event_class->emf_uri.str) {
+		BT_LOGE_STR("Failed to allocate a GString.");
+		ret = -1;
+		goto end;
 	}
 
 	ret = bt_object_pool_initialize(&event_class->event_pool,
@@ -169,374 +155,224 @@ struct bt_event_class *bt_event_class_create(const char *name)
 		goto error;
 	}
 
-	BT_LOGD("Created event class object: addr=%p, name=\"%s\"",
-		event_class, bt_event_class_get_name(event_class));
+	bt_object_set_parent(&event_class->base, &stream_class->base);
+	g_ptr_array_add(stream_class->event_classes, event_class);
+	bt_stream_class_freeze(stream_class);
+	BT_LIB_LOGD("Created event class object: %!+E", event_class);
 	goto end;
 
 error:
-	bt_put(event_class);
+	BT_PUT(event_class);
 
 end:
 	return event_class;
 }
 
+struct bt_event_class *bt_event_class_create(
+		struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE(stream_class->assigns_automatic_event_class_id,
+		"Stream class does not automatically assigns event class IDs: "
+		"%![sc-]+S", stream_class);
+	return create_event_class_with_id(stream_class,
+		(uint64_t) stream_class->event_classes->len);
+}
+
+struct bt_event_class *bt_event_class_create_with_id(
+		struct bt_stream_class *stream_class, uint64_t id)
+{
+	BT_ASSERT_PRE(!stream_class->assigns_automatic_event_class_id,
+		"Stream class automatically assigns event class IDs: "
+		"%![sc-]+S", stream_class);
+	return create_event_class_with_id(stream_class, id);
+}
+
 const char *bt_event_class_get_name(struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT(event_class->name);
-	return event_class->name->str;
+	return event_class->name.value;
 }
 
-int64_t bt_event_class_get_id(struct bt_event_class *event_class)
+int bt_event_class_set_name(struct bt_event_class *event_class,
+		const char *name)
+{
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
+	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
+	g_string_assign(event_class->name.str, name);
+	event_class->name.value = event_class->name.str->str;
+	BT_LIB_LOGV("Set event class's name: %!+E", event_class);
+	return 0;
+}
+
+uint64_t bt_event_class_get_id(struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->id;
 }
 
-int bt_event_class_set_id(struct bt_event_class *event_class,
-		uint64_t id_param)
-{
-	int ret = 0;
-	int64_t id = (int64_t) id_param;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (event_class->frozen) {
-		BT_LOGW("Invalid parameter: event class is frozen: "
-			"addr=%p, name=\"%s\", id=%" PRId64,
-			event_class,
-			bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class));
-		ret = -1;
-		goto end;
-	}
-
-	if (id < 0) {
-		BT_LOGW("Invalid parameter: invalid event class's ID: "
-			"addr=%p, name=\"%s\", id=%" PRIu64,
-			event_class,
-			bt_event_class_get_name(event_class),
-			id_param);
-		ret = -1;
-		goto end;
-	}
-
-	event_class->id = id;
-	BT_LOGV("Set event class's ID: "
-		"addr=%p, name=\"%s\", id=%" PRId64,
-		event_class, bt_event_class_get_name(event_class), id);
-
-end:
-	return ret;
-}
-
-enum bt_event_class_log_level bt_event_class_get_log_level(
-		struct bt_event_class *event_class)
+enum bt_property_availability bt_event_class_get_log_level(
+		struct bt_event_class *event_class,
+		enum bt_event_class_log_level *log_level)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return event_class->log_level;
+	BT_ASSERT_PRE_NON_NULL(log_level, "Log level (output)");
+	*log_level = (enum bt_event_class_log_level)
+		event_class->log_level.value;
+	return event_class->log_level.base.avail;
 }
 
 int bt_event_class_set_log_level(struct bt_event_class *event_class,
 		enum bt_event_class_log_level log_level)
 {
-	int ret = 0;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (event_class->frozen) {
-		BT_LOGW("Invalid parameter: event class is frozen: "
-			"addr=%p, name=\"%s\", id=%" PRId64,
-			event_class,
-			bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class));
-		ret = -1;
-		goto end;
-	}
-
-	switch (log_level) {
-	case BT_EVENT_CLASS_LOG_LEVEL_UNSPECIFIED:
-	case BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY:
-	case BT_EVENT_CLASS_LOG_LEVEL_ALERT:
-	case BT_EVENT_CLASS_LOG_LEVEL_CRITICAL:
-	case BT_EVENT_CLASS_LOG_LEVEL_ERROR:
-	case BT_EVENT_CLASS_LOG_LEVEL_WARNING:
-	case BT_EVENT_CLASS_LOG_LEVEL_NOTICE:
-	case BT_EVENT_CLASS_LOG_LEVEL_INFO:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE:
-	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG:
-		break;
-	default:
-		BT_LOGW("Invalid parameter: unknown event class log level: "
-			"addr=%p, name=\"%s\", id=%" PRId64 ", log-level=%d",
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class), log_level);
-		ret = -1;
-		goto end;
-	}
-
-	event_class->log_level = log_level;
-	BT_LOGV("Set event class's log level: "
-		"addr=%p, name=\"%s\", id=%" PRId64 ", log-level=%s",
-		event_class, bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class),
-		bt_common_event_class_log_level_string(log_level));
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
+	bt_property_uint_set(&event_class->log_level,
+		(uint64_t) log_level);
+	BT_LIB_LOGV("Set event class's log level: %!+E", event_class);
+	return 0;
 }
 
 const char *bt_event_class_get_emf_uri(struct bt_event_class *event_class)
 {
-	const char *emf_uri = NULL;
-
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-
-	if (event_class->emf_uri->len > 0) {
-		emf_uri = event_class->emf_uri->str;
-	}
-
-	return emf_uri;
+	return event_class->emf_uri.value;
 }
 
 int bt_event_class_set_emf_uri(struct bt_event_class *event_class,
 		const char *emf_uri)
 {
-	int ret = 0;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (emf_uri && strlen(emf_uri) == 0) {
-		BT_LOGW_STR("Invalid parameter: EMF URI is empty.");
-		ret = -1;
-		goto end;
-	}
-
-	if (event_class->frozen) {
-		BT_LOGW("Invalid parameter: event class is frozen: "
-			"addr=%p, name=\"%s\", id=%" PRId64,
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class));
-		ret = -1;
-		goto end;
-	}
-
-	if (emf_uri) {
-		g_string_assign(event_class->emf_uri, emf_uri);
-		BT_LOGV("Set event class's EMF URI: "
-			"addr=%p, name=\"%s\", id=%" PRId64 ", emf-uri=\"%s\"",
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class), emf_uri);
-	} else {
-		g_string_assign(event_class->emf_uri, "");
-		BT_LOGV("Reset event class's EMF URI: "
-			"addr=%p, name=\"%s\", id=%" PRId64,
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class));
-	}
-
-end:
-	return ret;
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_NON_NULL(emf_uri, "EMF URI");
+	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
+	g_string_assign(event_class->emf_uri.str, emf_uri);
+	event_class->emf_uri.value = event_class->emf_uri.str->str;
+	BT_LIB_LOGV("Set event class's EMF URI: %!+E", event_class);
+	return 0;
 }
 
 struct bt_stream_class *bt_event_class_borrow_stream_class(
 		struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return (void *) bt_object_borrow_parent(&event_class->base);
+	return bt_event_class_borrow_stream_class_inline(event_class);
+}
+
+struct bt_field_type *bt_event_class_borrow_specific_context_field_type(
+		struct bt_event_class *event_class)
+{
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	return event_class->specific_context_ft;
+}
+
+int bt_event_class_set_specific_context_field_type(
+		struct bt_event_class *event_class,
+		struct bt_field_type *field_type)
+{
+	int ret;
+	struct bt_stream_class *stream_class;
+	struct bt_trace *trace;
+	struct bt_resolve_field_path_context resolve_ctx = {
+		.packet_header = NULL,
+		.packet_context = NULL,
+		.event_header = NULL,
+		.event_common_context = NULL,
+		.event_specific_context = field_type,
+		.event_payload = NULL,
+	};
+
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
+	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
+		BT_FIELD_TYPE_ID_STRUCTURE,
+		"Specific context field type is not a structure field type: "
+		"%!+F", field_type);
+	stream_class = bt_event_class_borrow_stream_class_inline(
+		event_class);
+	trace = bt_stream_class_borrow_trace_inline(stream_class);
+	resolve_ctx.packet_header = trace->packet_header_ft;
+	resolve_ctx.packet_context = stream_class->packet_context_ft;
+	resolve_ctx.event_header = stream_class->event_header_ft;
+	resolve_ctx.event_common_context =
+		stream_class->event_common_context_ft;
+
+	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+	if (ret) {
+		goto end;
+	}
+
+	bt_field_type_make_part_of_trace(field_type);
+	bt_put(event_class->specific_context_ft);
+	event_class->specific_context_ft = bt_get(field_type);
+	bt_field_type_freeze(field_type);
+	BT_LIB_LOGV("Set event class's specific context field type: %!+E",
+		event_class);
+
+end:
+	return ret;
 }
 
 struct bt_field_type *bt_event_class_borrow_payload_field_type(
 		struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return event_class->payload_field_type;
+	return event_class->payload_ft;
 }
 
 int bt_event_class_set_payload_field_type(struct bt_event_class *event_class,
 		struct bt_field_type *field_type)
 {
-	int ret = 0;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (field_type && bt_field_type_get_type_id(field_type) !=
-			BT_FIELD_TYPE_ID_STRUCT) {
-		BT_LOGW("Invalid parameter: event class's payload field type must be a structure: "
-			"addr=%p, name=\"%s\", id=%" PRId64 ", "
-			"payload-ft-addr=%p, payload-ft-id=%s",
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class), field_type,
-			bt_common_field_type_id_string(
-				bt_field_type_get_type_id(field_type)));
-		ret = -1;
-		goto end;
-	}
-
-	bt_put(event_class->payload_field_type);
-	event_class->payload_field_type = bt_get(field_type);
-	BT_LOGV("Set event class's payload field type: "
-		"event-class-addr=%p, event-class-name=\"%s\", "
-		"event-class-id=%" PRId64 ", payload-ft-addr=%p",
-		event_class, bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class), field_type);
-end:
-	return ret;
-}
-
-struct bt_field_type *bt_event_class_borrow_context_field_type(
-		struct bt_event_class *event_class)
-{
-	struct bt_field_type *context_ft = NULL;
+	int ret;
+	struct bt_stream_class *stream_class;
+	struct bt_trace *trace;
+	struct bt_resolve_field_path_context resolve_ctx = {
+		.packet_header = NULL,
+		.packet_context = NULL,
+		.event_header = NULL,
+		.event_common_context = NULL,
+		.event_specific_context = NULL,
+		.event_payload = field_type,
+	};
 
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
+	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
+		BT_FIELD_TYPE_ID_STRUCTURE,
+		"Payload field type is not a structure field type: %!+F",
+		field_type);
+	stream_class = bt_event_class_borrow_stream_class_inline(
+		event_class);
+	trace = bt_stream_class_borrow_trace_inline(stream_class);
+	resolve_ctx.packet_header = trace->packet_header_ft;
+	resolve_ctx.packet_context = stream_class->packet_context_ft;
+	resolve_ctx.event_header = stream_class->event_header_ft;
+	resolve_ctx.event_common_context =
+		stream_class->event_common_context_ft;
+	resolve_ctx.event_specific_context = event_class->specific_context_ft;
 
-	if (!event_class->context_field_type) {
-		BT_LOGV("Event class has no context field type: "
-			"addr=%p, name=\"%s\", id=%" PRId64,
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class));
+	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+	if (ret) {
 		goto end;
 	}
 
-	context_ft = event_class->context_field_type;
-
-end:
-	return context_ft;
-}
-
-int bt_event_class_set_context_field_type(
-		struct bt_event_class *event_class,
-		struct bt_field_type *field_type)
-{
-	int ret = 0;
-
-	if (!event_class) {
-		BT_LOGW_STR("Invalid parameter: event class is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (event_class->frozen) {
-		BT_LOGW("Invalid parameter: event class is frozen: "
-			"addr=%p, name=\"%s\", id=%" PRId64,
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class));
-		ret = -1;
-		goto end;
-	}
-
-	if (field_type && bt_field_type_get_type_id(field_type) !=
-			BT_FIELD_TYPE_ID_STRUCT) {
-		BT_LOGW("Invalid parameter: event class's context field type must be a structure: "
-			"addr=%p, name=\"%s\", id=%" PRId64 ", "
-			"context-ft-id=%s",
-			event_class, bt_event_class_get_name(event_class),
-			bt_event_class_get_id(event_class),
-			bt_common_field_type_id_string(
-				bt_field_type_get_type_id(field_type)));
-		ret = -1;
-		goto end;
-	}
-
-	bt_put(event_class->context_field_type);
-	event_class->context_field_type = bt_get(field_type);
-	BT_LOGV("Set event class's context field type: "
-		"event-class-addr=%p, event-class-name=\"%s\", "
-		"event-class-id=%" PRId64 ", context-ft-addr=%p",
-		event_class, bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class), field_type);
+	bt_field_type_make_part_of_trace(field_type);
+	bt_put(event_class->payload_ft);
+	event_class->payload_ft = bt_get(field_type);
+	bt_field_type_freeze(field_type);
+	BT_LIB_LOGV("Set event class's payload field type: %!+E", event_class);
 
 end:
 	return ret;
 }
 
 BT_HIDDEN
-void bt_event_class_freeze(struct bt_event_class *event_class)
+void _bt_event_class_freeze(struct bt_event_class *event_class)
 {
+	/* The field types are already frozen */
 	BT_ASSERT(event_class);
-
-	if (event_class->frozen) {
-		return;
-	}
-
-	BT_LOGD("Freezing event class: addr=%p, name=\"%s\", id=%" PRId64,
-		event_class, bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class));
-	event_class->frozen = 1;
-	BT_LOGD_STR("Freezing event class's context field type.");
-	bt_field_type_freeze(event_class->context_field_type);
-	BT_LOGD_STR("Freezing event class's payload field type.");
-	bt_field_type_freeze(event_class->payload_field_type);
-}
-
-BT_HIDDEN
-int bt_event_class_validate_single_clock_class(
-		struct bt_event_class *event_class,
-		struct bt_clock_class **expected_clock_class)
-{
-	int ret = 0;
-
-	BT_ASSERT(event_class);
-	BT_ASSERT(expected_clock_class);
-	ret = bt_field_type_validate_single_clock_class(
-		event_class->context_field_type,
-		expected_clock_class);
-	if (ret) {
-		BT_LOGW("Event class's context field type "
-			"is not recursively mapped to the "
-			"expected clock class: "
-			"event-class-addr=%p, "
-			"event-class-name=\"%s\", "
-			"event-class-id=%" PRId64 ", "
-			"ft-addr=%p",
-			event_class,
-			bt_event_class_get_name(event_class),
-			event_class->id,
-			event_class->context_field_type);
-		goto end;
-	}
-
-	ret = bt_field_type_validate_single_clock_class(
-		event_class->payload_field_type,
-		expected_clock_class);
-	if (ret) {
-		BT_LOGW("Event class's payload field type "
-			"is not recursively mapped to the "
-			"expected clock class: "
-			"event-class-addr=%p, "
-			"event-class-name=\"%s\", "
-			"event-class-id=%" PRId64 ", "
-			"ft-addr=%p",
-			event_class,
-			bt_event_class_get_name(event_class),
-			event_class->id,
-			event_class->payload_field_type);
-		goto end;
-	}
-
-end:
-	return ret;
+	BT_LIB_LOGD("Freezing event class: %!+E", event_class);
+	event_class->frozen = true;
 }

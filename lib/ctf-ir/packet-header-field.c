@@ -24,6 +24,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/ctf-ir/trace-internal.h>
 #include <babeltrace/ctf-ir/packet-header-field.h>
 #include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/ctf-ir/fields-internal.h>
@@ -34,9 +35,7 @@ struct bt_field *bt_packet_header_field_borrow_field(
 {
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
-	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Event header field");
-	BT_ASSERT_PRE_NON_NULL(field_wrapper->field,
-		"Event header field's field object");
+	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Packet header field");
 	return (void *) field_wrapper->field;
 }
 
@@ -44,7 +43,7 @@ void bt_packet_header_field_release(struct bt_packet_header_field *header_field)
 {
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
-	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Event header field");
+	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Packet header field");
 
 	/*
 	 * Do not recycle because the pool could be destroyed at this
@@ -54,4 +53,35 @@ void bt_packet_header_field_release(struct bt_packet_header_field *header_field)
 	 * bt_packet_move_header() after creating it.
 	 */
 	bt_field_wrapper_destroy(field_wrapper);
+}
+
+struct bt_packet_header_field *bt_packet_header_field_create(
+		struct bt_trace *trace)
+{
+	struct bt_field_wrapper *field_wrapper;
+
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	BT_ASSERT_PRE(trace->packet_header_ft,
+		"Trace has no packet header field type: %!+t", trace);
+	field_wrapper = bt_field_wrapper_create(
+		&trace->packet_header_field_pool,
+		(void *) trace->packet_header_ft);
+	if (!field_wrapper) {
+		BT_LIB_LOGE("Cannot allocate one packet header field from trace: "
+			"%![trace-]+t", trace);
+		goto error;
+	}
+
+	BT_ASSERT(field_wrapper->field);
+	bt_trace_freeze(trace);
+	goto end;
+
+error:
+	if (field_wrapper) {
+		bt_field_wrapper_destroy(field_wrapper);
+		field_wrapper = NULL;
+	}
+
+end:
+	return (void *) field_wrapper;
 }

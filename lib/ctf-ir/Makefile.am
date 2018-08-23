@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libctf-ir.la
 libctf_ir_la_SOURCES = \
 	attributes.c \
 	clock-class.c \
+	clock-value.c \
 	event.c \
 	event-class.c \
 	event-header-field.c \
@@ -13,12 +14,10 @@ libctf_ir_la_SOURCES = \
 	packet.c \
 	packet-context-field.c \
 	packet-header-field.c \
+	resolve-field-path.c \
 	stream.c \
 	stream-class.c \
 	trace.c \
-	utils.c \
-	resolve.c \
-	validation.c \
-	visitor.c
+	utils.c
 
 libctf_ir_la_LIBADD = $(UUID_LIBS)

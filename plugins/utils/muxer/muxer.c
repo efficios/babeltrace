@@ -607,6 +607,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	int ret = 0;
 	const unsigned char *cc_uuid;
 	const char *cc_name;
+	enum bt_clock_value_status cv_status = BT_CLOCK_VALUE_STATUS_KNOWN;
 
 	BT_ASSERT(notif);
 	BT_ASSERT(ts_ns);
@@ -620,7 +621,8 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	case BT_NOTIFICATION_TYPE_EVENT:
 		event = bt_notification_event_borrow_event(notif);
 		BT_ASSERT(event);
-		clock_value = bt_event_borrow_default_clock_value(event);
+		cv_status = bt_event_borrow_default_clock_value(event,
+			&clock_value);
 		break;
 
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
@@ -632,6 +634,12 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		/* All the other notifications have a higher priority */
 		BT_LOGV_STR("Notification has no timestamp: using the last returned timestamp.");
 		*ts_ns = last_returned_ts_ns;
+		goto end;
+	}
+
+	if (cv_status != BT_CLOCK_VALUE_STATUS_KNOWN) {
+		BT_LOGE_STR("Unsupported unknown clock value.");
+		ret = -1;
 		goto end;
 	}
 
@@ -647,7 +655,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto end;
 	}
 
-	clock_class = bt_clock_value_borrow_class(clock_value);
+	clock_class = bt_clock_value_borrow_clock_class(clock_value);
 	BT_ASSERT(clock_class);
 	cc_uuid = bt_clock_class_get_uuid(clock_class);
 	cc_name = bt_clock_class_get_name(clock_class);
@@ -800,7 +808,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		}
 	}
 
-	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ts_ns);
+	ret = bt_clock_value_get_ns_from_origin(clock_value, ts_ns);
 	if (ret) {
 		BT_LOGE("Cannot get nanoseconds from Epoch of clock value: "
 			"clock-value-addr=%p", clock_value);

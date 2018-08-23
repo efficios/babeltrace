@@ -27,54 +27,25 @@
 
 #include <stdbool.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/ctf-ir/clock-value.h>
 #include <babeltrace/ctf-ir/packet.h>
 #include <babeltrace/ctf-ir/fields.h>
 #include <babeltrace/ctf-ir/stream.h>
 #include <babeltrace/ctf-ir/field-wrapper-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/clock-value-set-internal.h>
-
-struct bt_packet_prop_uint64 {
-	enum bt_packet_property_availability avail;
-	uint64_t value;
-};
+#include <babeltrace/property-internal.h>
 
 struct bt_packet {
 	struct bt_object base;
-	struct bt_field_wrapper *header;
-	struct bt_field_wrapper *context;
+	struct bt_field_wrapper *header_field;
+	struct bt_field_wrapper *context_field;
 	struct bt_stream *stream;
-	struct bt_clock_value_set begin_cv_set;
-	struct bt_clock_value_set end_cv_set;
-	struct bt_packet_prop_uint64 discarded_event_counter;
-	struct bt_packet_prop_uint64 seq_num;
-	struct bt_packet_prop_uint64 discarded_event_count;
-	struct bt_packet_prop_uint64 discarded_packet_count;
-	bool props_are_set;
-
-	struct {
-		/*
-		 * We keep this here to avoid keeping a reference on the
-		 * previous packet object: those properties are
-		 * snapshots of the previous packet's properties when
-		 * calling bt_packet_create(). We know that the previous
-		 * packet's properties do not change afterwards because
-		 * we freeze the previous packet when bt_packet_create()
-		 * is successful.
-		 */
-		enum bt_packet_previous_packet_availability avail;
-		struct bt_packet_prop_uint64 discarded_event_counter;
-		struct bt_packet_prop_uint64 seq_num;
-		struct {
-			enum bt_packet_property_availability avail;
-
-			/* Owned by this (copy of previous packet's or NULL) */
-			struct bt_clock_value *cv;
-		} default_end_cv;
-	} prev_packet_info;
-
-	int frozen;
+	struct bt_clock_value *default_beginning_cv;
+	struct bt_clock_value *default_end_cv;
+	struct bt_property_uint discarded_event_counter_snapshot;
+	struct bt_property_uint packet_counter_snapshot;
+	bool frozen;
 };
 
 BT_HIDDEN
@@ -94,31 +65,5 @@ void bt_packet_recycle(struct bt_packet *packet);
 
 BT_HIDDEN
 void bt_packet_destroy(struct bt_packet *packet);
-
-/*
- * Sets a packet's properties using its current context fields and its
- * previous packet's snapshotted properties (if any). The packet context
- * field must not be modified until the packet is recycled.
- *
- * This function does NOT set the `props_are_set` flag (does not
- * validate the properties): call bt_packet_validate_properties() to
- * mark the properties as definitely cached.
- */
-BT_HIDDEN
-int bt_packet_set_properties(struct bt_packet *packet);
-
-static inline
-void bt_packet_invalidate_properties(struct bt_packet *packet)
-{
-	BT_ASSERT(packet);
-	packet->props_are_set = false;
-}
-
-static inline
-void bt_packet_validate_properties(struct bt_packet *packet)
-{
-	BT_ASSERT(packet);
-	packet->props_are_set = true;
-}
 
 #endif /* BABELTRACE_CTF_IR_PACKET_INTERNAL_H */

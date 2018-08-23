@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <babeltrace/align-internal.h>
+#include <babeltrace/endian-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/mmap-align-internal.h>
 #include <babeltrace/types.h>
@@ -43,6 +44,12 @@
 #include <babeltrace/assert-internal.h>
 
 #define PACKET_LEN_INCREMENT	(bt_common_get_page_size() * 8 * CHAR_BIT)
+
+#if (BYTE_ORDER == BIG_ENDIAN)
+# define BT_CTF_MY_BYTE_ORDER	BT_CTF_BYTE_ORDER_BIG_ENDIAN
+#else
+# define BT_CTF_MY_BYTE_ORDER	BT_CTF_BYTE_ORDER_LITTLE_ENDIAN
+#endif
 
 struct bt_ctf_stream_pos {
 	int fd;

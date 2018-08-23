@@ -46,9 +46,7 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/packet-header-field.h \
 	babeltrace/ctf-ir/stream-class.h \
 	babeltrace/ctf-ir/stream.h \
-	babeltrace/ctf-ir/trace.h \
-	babeltrace/ctf-ir/utils.h \
-	babeltrace/ctf-ir/visitor.h
+	babeltrace/ctf-ir/trace.h
 
 # Plugin and plugin development API
 babeltracepluginincludedir = "$(includedir)/babeltrace/plugin"
@@ -137,7 +135,6 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/packet-internal.h \
 	babeltrace/ctf-ir/event-class-internal.h \
 	babeltrace/ctf-ir/utils-internal.h \
-	babeltrace/ctf-ir/validation-internal.h \
 	babeltrace/ctf-ir/fields-internal.h \
 	babeltrace/ctf-ir/stream-class-internal.h \
 	babeltrace/ctf-ir/event-internal.h \
@@ -147,11 +144,9 @@ noinst_HEADERS = \
 	babeltrace/ctf-ir/clock-class-internal.h \
 	babeltrace/ctf-ir/field-types-internal.h \
 	babeltrace/ctf-ir/clock-value-internal.h \
-	babeltrace/ctf-ir/clock-value-set-internal.h \
 	babeltrace/ctf-ir/attributes-internal.h \
 	babeltrace/ctf-ir/stream-internal.h \
-	babeltrace/ctf-ir/resolve-internal.h \
-	babeltrace/ctf-ir/visitor-internal.h \
+	babeltrace/ctf-ir/resolve-field-path-internal.h \
 	babeltrace/prio-heap-internal.h \
 	babeltrace/lib-logging-internal.h \
 	babeltrace/compiler-internal.h \
