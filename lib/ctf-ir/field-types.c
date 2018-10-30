@@ -2997,6 +2997,15 @@ int bt_field_type_get_alignment(struct bt_field_type *type)
 		ret = (int) type->alignment;
 		break;
 	}
+	case BT_FIELD_TYPE_ID_ENUM:
+	{
+		struct bt_field_type *container =
+			bt_field_type_enumeration_get_container_type(type);
+
+		ret = bt_field_type_get_alignment(container);
+		bt_put(container);
+		break;
+	}
 	case BT_FIELD_TYPE_ID_UNKNOWN:
 		BT_LOGW("Invalid parameter: unknown field type ID: "
 			"addr=%p, ft-id=%d", type, type_id);
@@ -3725,6 +3734,7 @@ void bt_field_type_enumeration_freeze(struct bt_field_type *type)
 		type, struct bt_field_type_enumeration, parent);
 
 	BT_LOGD("Freezing enumeration field type object: addr=%p", type);
+	type->alignment = bt_field_type_get_alignment(type);
 	set_enumeration_range_overlap(type);
 	generic_field_type_freeze(type);
 	BT_LOGD("Freezing enumeration field type object's container field type: int-ft-addr=%p",
