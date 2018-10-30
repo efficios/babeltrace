@@ -408,7 +408,7 @@ struct declaration_enum *
 	bt_declaration_ref(&integer_declaration->p);
 	enum_declaration->integer_declaration = integer_declaration;
 	enum_declaration->p.id = CTF_TYPE_ENUM;
-	enum_declaration->p.alignment = 1;
+	enum_declaration->p.alignment = integer_declaration->p.alignment;
 	enum_declaration->p.declaration_free = _enum_declaration_free;
 	enum_declaration->p.definition_new = _enum_definition_new;
 	enum_declaration->p.definition_free = _enum_definition_free;
