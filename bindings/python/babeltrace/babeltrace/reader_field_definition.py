@@ -79,6 +79,14 @@ class _Definition:
                 if type(elem_ft) is bt2.IntegerFieldType:
                     if elem_ft.size == 8 and elem_ft.encoding != bt2.Encoding.NONE:
                         return bytes(x for x in self._field._value if x != 0).decode()
+            elif type(self._field) is bt2._EnumerationField:
+                interger_val = self._field._value
+                # Iterate over the mappings and find the label of the first
+                # range in which the value matches.
+                for enum_mapping in self._field.mappings:
+                    if interger_val >= enum_mapping.lower and \
+                            interger_val <= enum_mapping.upper:
+                        return enum_mapping.name
 
             return self._field._value
         except bt2.Error:

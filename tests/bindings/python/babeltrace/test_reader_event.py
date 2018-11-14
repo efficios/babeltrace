@@ -37,11 +37,14 @@ class EventTestCase(unittest.TestCase):
             'seh_field' : 'another string',
             'sec_field' : 68752,
             'ec_field' : 89,
-            'ef_field' : 8476,
+            'ef_field_int' : 8476,
+            'ef_field_enum' : 18,
         }
 
         self._int_ft = bt2.IntegerFieldType(32)
         self._str_ft = bt2.StringFieldType()
+        self._enum_ft = bt2.EnumerationFieldType(size=32)
+        self._enum_ft.append_mapping('A', self._values['ef_field_enum'])
 
         self._trace = bt2.Trace()
         self._trace.packet_header_field_type = bt2.StructureFieldType()
@@ -76,7 +79,8 @@ class EventTestCase(unittest.TestCase):
         ])
         self._ec.payload_field_type = bt2.StructureFieldType()
         self._ec.payload_field_type += collections.OrderedDict([
-            ('ef_field', self._int_ft),
+            ('ef_field_int', self._int_ft),
+            ('ef_field_enum', self._enum_ft),
         ])
 
         self._sc.add_event_class(self._ec)
@@ -96,7 +100,8 @@ class EventTestCase(unittest.TestCase):
         self._event.stream_event_context_field['sec_field'] = self._values[
             'sec_field']
         self._event.context_field['ec_field'] = self._values['ec_field']
-        self._event.payload_field['ef_field'] = self._values['ef_field']
+        self._event.payload_field['ef_field_int'] = self._values['ef_field_int']
+        self._event.payload_field['ef_field_enum'] = self._values['ef_field_enum']
         self._event.packet = self._packet
 
     def tearDown(self):
@@ -104,6 +109,7 @@ class EventTestCase(unittest.TestCase):
         del self._sc
         del self._ec
         del self._int_ft
+        del self._enum_ft
         del self._str_ft
         del self._clock_class
         del self._cc_prio_map
@@ -137,7 +143,10 @@ class EventTestCase(unittest.TestCase):
     def test_getitem(self):
         event = self._get_event()
         for name, value in self._values.items():
-            self.assertEqual(event[name], value)
+            if name == 'ef_field_enum':
+                self.assertEqual(event[name], 'A')
+            else:
+                self.assertEqual(event[name], value)
 
         with self.assertRaises(KeyError):
             field = event['non-existant-key']
@@ -172,7 +181,7 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(
             set(event.field_list_with_scope(
                 babeltrace.CTFScope.EVENT_FIELDS)),
-            set(['ef_field']))
+            set(['ef_field_int', 'ef_field_enum']))
 
     def test_field_with_scope(self):
         event = self._get_event()
