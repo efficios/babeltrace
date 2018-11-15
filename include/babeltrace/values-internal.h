@@ -64,8 +64,8 @@ const char *bt_value_type_string(enum bt_value_type type)
 		return "BT_VALUE_TYPE_BOOL";
 	case BT_VALUE_TYPE_INTEGER:
 		return "BT_VALUE_TYPE_INTEGER";
-	case BT_VALUE_TYPE_FLOAT:
-		return "BT_VALUE_TYPE_FLOAT";
+	case BT_VALUE_TYPE_REAL:
+		return "BT_VALUE_TYPE_REAL";
 	case BT_VALUE_TYPE_STRING:
 		return "BT_VALUE_TYPE_STRING";
 	case BT_VALUE_TYPE_ARRAY:
