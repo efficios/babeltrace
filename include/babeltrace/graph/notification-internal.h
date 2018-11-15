@@ -32,7 +32,7 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/notification.h>
-#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/object-pool-internal.h>
 #include <babeltrace/types.h>
 

@@ -26,7 +26,7 @@ TESTS_CLI = \
 TESTS_LIB = \
 	lib/test_ctf_writer_complete \
 	lib/test_bt_values \
-	lib/test_ctf_ir_ref \
+	lib/test_trace_ir_ref \
 	lib/test_bt_ctf_field_type_validation \
 	lib/test_ir_visit \
 	lib/test_graph_topo \
@@ -38,7 +38,7 @@ TESTS_LIB += lib/test_plugin_complete
 endif
 
 if ENABLE_PYTHON_BINDINGS
-TESTS_LIB += lib/ctf-ir/test_ctf_ir
+TESTS_LIB += lib/trace-ir/test_trace_ir
 TESTS_LIB += lib/ctf-writer/test_ctf_writer
 endif
 
