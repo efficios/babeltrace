@@ -119,7 +119,7 @@ enum bt_component_status update_packet_context_field(FILE *err,
 			continue;
 		}
 		if (bt_field_class_id(field_class) !=
-				BT_FIELD_CLASS_ID_INTEGER) {
+				BT_FIELD_CLASS_TYPE_INTEGER) {
 			BT_LOGE("Expecting an integer for this field: field-name=\"%s\"",
 					name);
 			goto error;

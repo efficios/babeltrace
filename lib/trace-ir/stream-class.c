@@ -291,8 +291,8 @@ int bt_stream_class_set_packet_context_field_class(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
-		BT_FIELD_CLASS_ID_STRUCTURE,
+	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
+		BT_FIELD_CLASS_TYPE_STRUCTURE,
 		"Packet context field classe is not a structure field classe: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
@@ -337,8 +337,8 @@ int bt_stream_class_set_event_header_field_class(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
-		BT_FIELD_CLASS_ID_STRUCTURE,
+	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
+		BT_FIELD_CLASS_TYPE_STRUCTURE,
 		"Event header field classe is not a structure field classe: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
@@ -384,8 +384,8 @@ int bt_stream_class_set_event_common_context_field_class(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
-		BT_FIELD_CLASS_ID_STRUCTURE,
+	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
+		BT_FIELD_CLASS_TYPE_STRUCTURE,
 		"Event common context field classe is not a structure field classe: %!+F",
 		field_class);
 	resolve_ctx.packet_header =

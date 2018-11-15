@@ -35,7 +35,7 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
-/* For enum bt_field_class_id */
+/* For enum bt_field_class_type */
 #include <babeltrace/trace-ir/field-classes.h>
 
 #ifdef __cplusplus
@@ -48,7 +48,7 @@ struct bt_field_class_enumeration_mapping_iterator;
 
 extern struct bt_field_class *bt_field_borrow_class(struct bt_field *field);
 
-extern enum bt_field_class_id bt_field_get_class_id(struct bt_field *field);
+extern enum bt_field_class_type bt_field_get_class_type(struct bt_field *field);
 
 extern int64_t bt_field_signed_integer_get_value(struct bt_field *field);
 

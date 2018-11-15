@@ -284,8 +284,8 @@ int bt_event_class_set_specific_context_field_class(
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
-		BT_FIELD_CLASS_ID_STRUCTURE,
+	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
+		BT_FIELD_CLASS_TYPE_STRUCTURE,
 		"Specific context field classe is not a structure field classe: "
 		"%!+F", field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
@@ -338,8 +338,8 @@ int bt_event_class_set_payload_field_class(struct bt_event_class *event_class,
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
-		BT_FIELD_CLASS_ID_STRUCTURE,
+	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
+		BT_FIELD_CLASS_TYPE_STRUCTURE,
 		"Payload field classe is not a structure field classe: %!+F",
 		field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(

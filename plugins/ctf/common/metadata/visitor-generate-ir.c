@@ -1349,7 +1349,7 @@ int visit_field_class_declarator(struct ctx *ctx,
 				goto error;
 			}
 
-			if (nested_decl->id == CTF_FIELD_CLASS_ID_INT) {
+			if (nested_decl->type == CTF_FIELD_CLASS_TYPE_INT) {
 				/* Pointer: force integer's base to 16 */
 				struct ctf_field_class_int *int_fc =
 					(void *) nested_decl;
@@ -1684,7 +1684,7 @@ int visit_field_class_def(struct ctx *ctx, struct ctf_node *cls_specifier_list,
 		}
 
 		/* Do not allow field class def and alias of untagged variants */
-		if (class_decl->id == CTF_FIELD_CLASS_ID_VARIANT) {
+		if (class_decl->type == CTF_FIELD_CLASS_TYPE_VARIANT) {
 			struct ctf_field_class_variant *var_fc =
 				(void *) class_decl;
 
@@ -1742,7 +1742,7 @@ int visit_field_class_alias(struct ctx *ctx, struct ctf_node *target,
 	}
 
 	/* Do not allow field class def and alias of untagged variants */
-	if (class_decl->id == CTF_FIELD_CLASS_ID_VARIANT) {
+	if (class_decl->type == CTF_FIELD_CLASS_TYPE_VARIANT) {
 		struct ctf_field_class_variant *var_fc = (void *) class_decl;
 
 		if (var_fc->tag_path.path->len == 0) {
@@ -2266,9 +2266,9 @@ int visit_enum_decl(struct ctx *ctx, const char *name,
 
 		BT_ASSERT(integer_decl);
 
-		if (integer_decl->base.base.id != CTF_FIELD_CLASS_ID_INT) {
+		if (integer_decl->base.base.type != CTF_FIELD_CLASS_TYPE_INT) {
 			BT_LOGE("Container field class for enumeration field class is not an integer field class: "
-				"fc-id=%d", integer_decl->base.base.id);
+				"fc-type=%d", integer_decl->base.base.type);
 			ret = -EINVAL;
 			goto error;
 		}
@@ -3585,8 +3585,8 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		goto end;
 	}
 
-	if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-			fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+	if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+			fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 		goto end;
 	}
 
@@ -3655,12 +3655,12 @@ int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
 		goto end;
 	}
 
-	if (root_fc->id != CTF_FIELD_CLASS_ID_STRUCT &&
-			root_fc->id != CTF_FIELD_CLASS_ID_VARIANT) {
+	if (root_fc->type != CTF_FIELD_CLASS_TYPE_STRUCT &&
+			root_fc->type != CTF_FIELD_CLASS_TYPE_VARIANT) {
 		goto end;
 	}
 
-	if (root_fc->id == CTF_FIELD_CLASS_ID_STRUCT) {
+	if (root_fc->type == CTF_FIELD_CLASS_TYPE_STRUCT) {
 		count = struct_fc->members->len;
 	} else {
 		count = var_fc->options->len;
@@ -3669,10 +3669,10 @@ int auto_map_fields_to_trace_clock_class(struct ctx *ctx,
 	for (i = 0; i < count; i++) {
 		struct ctf_named_field_class *named_fc = NULL;
 
-		if (root_fc->id == CTF_FIELD_CLASS_ID_STRUCT) {
+		if (root_fc->type == CTF_FIELD_CLASS_TYPE_STRUCT) {
 			named_fc = ctf_field_class_struct_borrow_member_by_index(
 				struct_fc, i);
-		} else if (root_fc->id == CTF_FIELD_CLASS_ID_VARIANT) {
+		} else if (root_fc->type == CTF_FIELD_CLASS_TYPE_VARIANT) {
 			named_fc = ctf_field_class_variant_borrow_option_by_index(
 				var_fc, i);
 		}
@@ -3931,8 +3931,8 @@ int visit_stream_decl(struct ctx *ctx, struct ctf_node *node)
 			goto error;
 		}
 
-		if (named_fc->fc->id != CTF_FIELD_CLASS_ID_INT &&
-				named_fc->fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (named_fc->fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				named_fc->fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			_BT_LOGE_NODE(node,
 				"Stream class has a `id` attribute, "
 				"but trace's packet header field class's `stream_id` field is not an integer field class.");

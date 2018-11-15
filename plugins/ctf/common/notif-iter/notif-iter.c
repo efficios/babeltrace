@@ -1683,8 +1683,8 @@ struct bt_field *borrow_next_field(struct bt_notif_iter *notit)
 	base_fc = bt_field_borrow_class(base_field);
 	BT_ASSERT(base_fc);
 
-	switch (bt_field_class_get_id(base_fc)) {
-	case BT_FIELD_CLASS_ID_STRUCTURE:
+	switch (bt_field_class_get_type(base_fc)) {
+	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 	{
 		BT_ASSERT(index <
 			bt_field_class_structure_get_member_count(
@@ -1693,13 +1693,13 @@ struct bt_field *borrow_next_field(struct bt_notif_iter *notit)
 			base_field, index);
 		break;
 	}
-	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
-	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		BT_ASSERT(index < bt_field_array_get_length(base_field));
 		next_field = bt_field_array_borrow_element_field_by_index(
 			base_field, index);
 		break;
-	case BT_FIELD_CLASS_ID_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT:
 		BT_ASSERT(index == 0);
 		next_field = bt_field_variant_borrow_selected_option_field(
 			base_field);
@@ -1765,8 +1765,8 @@ enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
 
 	BT_LOGV("Unsigned integer function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d, value=%" PRIu64,
-		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
+		"fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
+		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 
 	if (likely(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE)) {
 		goto update_def_clock;
@@ -1830,8 +1830,8 @@ update_def_clock:
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER ||
-		bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION);
+	BT_ASSERT(bt_field_get_class_type(field) == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
+		bt_field_get_class_type(field) == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
 	bt_field_unsigned_integer_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
@@ -1852,8 +1852,8 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 
 	BT_LOGV("Unsigned integer character function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d, value=%" PRIu64,
-		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
+		"fc-type=%d, fc-in-ir=%d, value=%" PRIu64,
+		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 	BT_ASSERT(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 	BT_ASSERT(!int_fc->mapped_clock_class);
 	BT_ASSERT(int_fc->storing_index < 0);
@@ -1872,7 +1872,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 	}
 
 	string_field = stack_top(notit->stack)->base;
-	BT_ASSERT(bt_field_get_class_id(string_field) == BT_FIELD_CLASS_ID_STRING);
+	BT_ASSERT(bt_field_get_class_type(string_field) == BT_FIELD_CLASS_TYPE_STRING);
 
 	/* Append character */
 	str[0] = (char) value;
@@ -1900,8 +1900,8 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 
 	BT_LOGV("Signed integer function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d, value=%" PRId64,
-		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
+		"fc-type=%d, fc-in-ir=%d, value=%" PRId64,
+		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 	BT_ASSERT(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 
 	if (unlikely(int_fc->storing_index >= 0)) {
@@ -1916,8 +1916,8 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_SIGNED_INTEGER ||
-		bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION);
+	BT_ASSERT(bt_field_get_class_type(field) == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
+		bt_field_get_class_type(field) == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
 	bt_field_signed_integer_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
@@ -1935,13 +1935,13 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 
 	BT_LOGV("Floating point number function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d, value=%f",
-		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
+		"fc-type=%d, fc-in-ir=%d, value=%f",
+		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
 	BT_ASSERT(fc->in_ir);
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_REAL);
+	BT_ASSERT(bt_field_get_class_type(field) == BT_FIELD_CLASS_TYPE_REAL);
 	bt_field_real_set_value(field, value);
 	stack_top(notit->stack)->index++;
 	return status;
@@ -1957,14 +1957,14 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 
 	BT_LOGV("String (beginning) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d",
-		notit, notit->bfcr, fc, fc->id, fc->in_ir);
+		"fc-type=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
 	BT_ASSERT(fc->in_ir);
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
-	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_STRING);
+	BT_ASSERT(bt_field_get_class_type(field) == BT_FIELD_CLASS_TYPE_STRING);
 	ret = bt_field_string_clear(field);
 	BT_ASSERT(ret == 0);
 
@@ -1988,8 +1988,8 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 
 	BT_LOGV("String (substring) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d, string-length=%zu",
-		notit, notit->bfcr, fc, fc->id, fc->in_ir,
+		"fc-type=%d, fc-in-ir=%d, string-length=%zu",
+		notit, notit->bfcr, fc, fc->type, fc->in_ir,
 		len);
 	BT_ASSERT(fc->in_ir);
 	field = stack_top(notit->stack)->base;
@@ -2017,8 +2017,8 @@ enum bt_bfcr_status bfcr_string_end_cb(
 
 	BT_LOGV("String (end) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d",
-		notit, notit->bfcr, fc, fc->id, fc->in_ir);
+		"fc-type=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 	BT_ASSERT(fc->in_ir);
 
 	/* Pop string field */
@@ -2037,8 +2037,8 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 
 	BT_LOGV("Compound (beginning) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d",
-		notit, notit->bfcr, fc, fc->id, fc->in_ir);
+		"fc-type=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
 	if (!fc->in_ir) {
 		goto end;
@@ -2062,15 +2062,15 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 	 * Change BFCR "unsigned int" callback if it's a text
 	 * array/sequence.
 	 */
-	if (fc->id == CTF_FIELD_CLASS_ID_ARRAY ||
-			fc->id == CTF_FIELD_CLASS_ID_SEQUENCE) {
+	if (fc->type == CTF_FIELD_CLASS_TYPE_ARRAY ||
+			fc->type == CTF_FIELD_CLASS_TYPE_SEQUENCE) {
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
 		if (array_fc->is_text) {
 			int ret;
 
-			BT_ASSERT(bt_field_get_class_id(field) ==
-				BT_FIELD_CLASS_ID_STRING);
+			BT_ASSERT(bt_field_get_class_type(field) ==
+				BT_FIELD_CLASS_TYPE_STRING);
 			notit->done_filling_string = false;
 			ret = bt_field_string_clear(field);
 			BT_ASSERT(ret == 0);
@@ -2090,8 +2090,8 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 
 	BT_LOGV("Compound (end) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
-		"fc-id=%d, fc-in-ir=%d",
-		notit, notit->bfcr, fc, fc->id, fc->in_ir);
+		"fc-type=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
 	if (!fc->in_ir) {
 		goto end;
@@ -2105,14 +2105,14 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 	 * Reset BFCR "unsigned int" callback if it's a text
 	 * array/sequence.
 	 */
-	if (fc->id == CTF_FIELD_CLASS_ID_ARRAY ||
-			fc->id == CTF_FIELD_CLASS_ID_SEQUENCE) {
+	if (fc->type == CTF_FIELD_CLASS_TYPE_ARRAY ||
+			fc->type == CTF_FIELD_CLASS_TYPE_SEQUENCE) {
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
 		if (array_fc->is_text) {
-			BT_ASSERT(bt_field_get_class_id(
+			BT_ASSERT(bt_field_get_class_type(
 				stack_top(notit->stack)->base) ==
-					BT_FIELD_CLASS_ID_STRING);
+					BT_FIELD_CLASS_TYPE_STRING);
 			bt_bfcr_set_unsigned_int_cb(notit->bfcr,
 				bfcr_unsigned_int_cb);
 		}

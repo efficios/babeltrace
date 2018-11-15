@@ -454,8 +454,8 @@ int bt_trace_set_packet_header_field_class(struct bt_trace *trace,
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_TRACE_HOT(trace);
-	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
-		BT_FIELD_CLASS_ID_STRUCTURE,
+	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
+		BT_FIELD_CLASS_TYPE_STRUCTURE,
 		"Packet header field classe is not a structure field classe: %!+F",
 		field_class);
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);

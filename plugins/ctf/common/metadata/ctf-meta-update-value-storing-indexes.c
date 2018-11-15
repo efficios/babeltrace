@@ -41,8 +41,8 @@ int update_field_class_stored_value_index(struct ctf_field_class *fc,
 		goto end;
 	}
 
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct ctf_field_class_variant *var_fc = (void *) fc;
 
@@ -51,7 +51,7 @@ int update_field_class_stored_value_index(struct ctf_field_class *fc,
 		tgt_fc = (void *) var_fc->tag_fc;
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_sequence *seq_fc = (void *) fc;
 
@@ -66,8 +66,8 @@ int update_field_class_stored_value_index(struct ctf_field_class *fc,
 
 	if (field_path) {
 		BT_ASSERT(tgt_fc);
-		BT_ASSERT(tgt_fc->base.base.id == CTF_FIELD_CLASS_ID_INT ||
-			tgt_fc->base.base.id == CTF_FIELD_CLASS_ID_ENUM);
+		BT_ASSERT(tgt_fc->base.base.type == CTF_FIELD_CLASS_TYPE_INT ||
+			tgt_fc->base.base.type == CTF_FIELD_CLASS_TYPE_ENUM);
 		if (tgt_fc->storing_index >= 0) {
 			/* Already storing its value */
 			*stored_value_index = (uint64_t) tgt_fc->storing_index;
@@ -79,8 +79,8 @@ int update_field_class_stored_value_index(struct ctf_field_class *fc,
 		}
 	}
 
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_STRUCT:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
 	{
 		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
@@ -98,7 +98,7 @@ int update_field_class_stored_value_index(struct ctf_field_class *fc,
 
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct ctf_field_class_variant *var_fc = (void *) fc;
 
@@ -116,8 +116,8 @@ int update_field_class_stored_value_index(struct ctf_field_class *fc,
 
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_ARRAY:
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
