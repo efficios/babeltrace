@@ -42,7 +42,7 @@ extern "C" {
 struct bt_trace;
 struct bt_stream;
 struct bt_stream_class;
-struct bt_field_type;
+struct bt_field_class;
 struct bt_value;
 struct bt_packet_header_field;
 
@@ -85,11 +85,11 @@ extern int bt_trace_set_environment_entry_string(
 		struct bt_trace *trace, const char *name,
 		const char *value);
 
-extern struct bt_field_type *bt_trace_borrow_packet_header_field_type(
+extern struct bt_field_class *bt_trace_borrow_packet_header_field_class(
 		struct bt_trace *trace);
 
-extern int bt_trace_set_packet_header_field_type(struct bt_trace *trace,
-		struct bt_field_type *packet_header_type);
+extern int bt_trace_set_packet_header_field_class(struct bt_trace *trace,
+		struct bt_field_class *packet_header_field_class);
 
 extern uint64_t bt_trace_get_stream_class_count(struct bt_trace *trace);
 

@@ -29,21 +29,21 @@
  */
 
 #include <babeltrace/object-internal.h>
-#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/field-path.h>
 #include <glib.h>
 
 struct bt_resolve_field_path_context {
-	struct bt_field_type *packet_header;
-	struct bt_field_type *packet_context;
-	struct bt_field_type *event_header;
-	struct bt_field_type *event_common_context;
-	struct bt_field_type *event_specific_context;
-	struct bt_field_type *event_payload;
+	struct bt_field_class *packet_header;
+	struct bt_field_class *packet_context;
+	struct bt_field_class *event_header;
+	struct bt_field_class *event_common_context;
+	struct bt_field_class *event_specific_context;
+	struct bt_field_class *event_payload;
 };
 
 BT_HIDDEN
-int bt_resolve_field_paths(struct bt_field_type *ft,
+int bt_resolve_field_paths(struct bt_field_class *field_class,
 		struct bt_resolve_field_path_context *ctx);
 
 #endif /* BABELTRACE_TRACE_IR_RESOLVE_FIELD_PATH_INTERNAL */

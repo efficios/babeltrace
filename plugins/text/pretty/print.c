@@ -549,20 +549,20 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		struct bt_field *field)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	enum bt_field_type_integer_preferred_display_base base;
-	struct bt_field_type *int_ft;
+	enum bt_field_class_integer_preferred_display_base base;
+	struct bt_field_class *int_fc;
 	union {
 		uint64_t u;
 		int64_t s;
 	} v;
 	bool rst_color = false;
-	enum bt_field_type_id ft_id;
+	enum bt_field_class_id ft_id;
 
-	int_ft = bt_field_borrow_type(field);
-	BT_ASSERT(int_ft);
-	ft_id = bt_field_get_type_id(field);
-	if (ft_id == BT_FIELD_TYPE_ID_UNSIGNED_INTEGER ||
-			ft_id == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION) {
+	int_fc = bt_field_borrow_class(field);
+	BT_ASSERT(int_fc);
+	ft_id = bt_field_get_class_id(field);
+	if (ft_id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER ||
+			ft_id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION) {
 		v.u = bt_field_unsigned_integer_get_value(field);
 	} else {
 		v.s = bt_field_signed_integer_get_value(field);
@@ -573,13 +573,13 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		rst_color = true;
 	}
 
-	base = bt_field_type_integer_get_preferred_display_base(int_ft);
+	base = bt_field_class_integer_get_preferred_display_base(int_fc);
 	switch (base) {
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_BINARY:
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY:
 	{
 		int bitnr, len;
 
-		len = bt_field_type_integer_get_field_value_range(int_ft);
+		len = bt_field_class_integer_get_field_value_range(int_fc);
 		g_string_append(pretty->string, "0b");
 		v.u = _bt_piecewise_lshift(v.u, 64 - len);
 		for (bitnr = 0; bitnr < len; bitnr++) {
@@ -588,14 +588,14 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		}
 		break;
 	}
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL:
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL:
 	{
-		if (ft_id == BT_FIELD_TYPE_ID_SIGNED_INTEGER ||
-				ft_id == BT_FIELD_TYPE_ID_SIGNED_ENUMERATION) {
+		if (ft_id == BT_FIELD_CLASS_ID_SIGNED_INTEGER ||
+				ft_id == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION) {
 			int len;
 
-			len = bt_field_type_integer_get_field_value_range(
-				int_ft);
+			len = bt_field_class_integer_get_field_value_range(
+				int_fc);
 			if (len < 64) {
 			        size_t rounded_len;
 
@@ -609,19 +609,19 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		g_string_append_printf(pretty->string, "0%" PRIo64, v.u);
 		break;
 	}
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL:
-		if (ft_id == BT_FIELD_TYPE_ID_UNSIGNED_INTEGER ||
-				ft_id == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION) {
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL:
+		if (ft_id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER ||
+				ft_id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION) {
 			g_string_append_printf(pretty->string, "%" PRIu64, v.u);
 		} else {
 			g_string_append_printf(pretty->string, "%" PRId64, v.s);
 		}
 		break;
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL:
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL:
 	{
 		int len;
 
-		len = bt_field_type_integer_get_field_value_range(int_ft);
+		len = bt_field_class_integer_get_field_value_range(int_fc);
 		if (len < 64) {
 			/* Round length to the nearest nibble */
 			uint8_t rounded_len = ((len + 3) & ~0x3);
@@ -716,23 +716,23 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 		struct bt_field *field)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_field_type *enumeration_field_type = NULL;
-	bt_field_type_enumeration_mapping_label_array label_array;
+	struct bt_field_class *enumeration_field_class = NULL;
+	bt_field_class_enumeration_mapping_label_array label_array;
 	uint64_t label_count;
 	uint64_t i;
 
-	enumeration_field_type = bt_field_borrow_type(field);
-	if (!enumeration_field_type) {
+	enumeration_field_class = bt_field_borrow_class(field);
+	if (!enumeration_field_class) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
-	switch (bt_field_get_type_id(field)) {
-	case BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION:
+	switch (bt_field_get_class_id(field)) {
+	case BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION:
 		ret = bt_field_unsigned_enumeration_get_mapping_labels(field,
 			&label_array, &label_count);
 		break;
-	case BT_FIELD_TYPE_ID_SIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_ID_SIGNED_ENUMERATION:
 		ret = bt_field_signed_enumeration_get_mapping_labels(field,
 			&label_array, &label_count);
 		break;
@@ -803,14 +803,14 @@ int filter_field_name(struct pretty_component *pretty, const char *field_name,
 static
 enum bt_component_status print_struct_field(struct pretty_component *pretty,
 		struct bt_field *_struct,
-		struct bt_field_type *struct_type,
+		struct bt_field_class *struct_class,
 		uint64_t i, bool print_names, uint64_t *nr_printed_fields,
 		GQuark *filter_fields, int filter_array_len)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	const char *field_name;
 	struct bt_field *field = NULL;
-	struct bt_field_type *field_type = NULL;;
+	struct bt_field_class *field_class = NULL;;
 
 	field = bt_field_structure_borrow_member_field_by_index(_struct, i);
 	if (!field) {
@@ -818,8 +818,8 @@ enum bt_component_status print_struct_field(struct pretty_component *pretty,
 		goto end;
 	}
 
-	bt_field_type_structure_borrow_member_by_index(struct_type, i,
-		&field_name, &field_type);
+	bt_field_class_structure_borrow_member_by_index(struct_class, i,
+		&field_name, &field_class);
 
 	if (filter_fields && !filter_field_name(pretty, field_name,
 				filter_fields, filter_array_len)) {
@@ -848,15 +848,15 @@ enum bt_component_status print_struct(struct pretty_component *pretty,
 		GQuark *filter_fields, int filter_array_len)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_field_type *struct_type = NULL;
+	struct bt_field_class *struct_class = NULL;
 	uint64_t nr_fields, i, nr_printed_fields;
 
-	struct_type = bt_field_borrow_type(_struct);
-	if (!struct_type) {
+	struct_class = bt_field_borrow_class(_struct);
+	if (!struct_class) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
-	nr_fields = bt_field_type_structure_get_member_count(struct_type);
+	nr_fields = bt_field_class_structure_get_member_count(struct_class);
 	if (nr_fields < 0) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
@@ -865,7 +865,7 @@ enum bt_component_status print_struct(struct pretty_component *pretty,
 	pretty->depth++;
 	nr_printed_fields = 0;
 	for (i = 0; i < nr_fields; i++) {
-		ret = print_struct_field(pretty, _struct, struct_type, i,
+		ret = print_struct_field(pretty, _struct, struct_class, i,
 				print_names, &nr_printed_fields, filter_fields,
 				filter_array_len);
 		if (ret != BT_COMPONENT_STATUS_OK) {
@@ -904,12 +904,12 @@ enum bt_component_status print_array(struct pretty_component *pretty,
 		struct bt_field *array, bool print_names)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_field_type *array_type = NULL;
+	struct bt_field_class *array_class = NULL;
 	uint64_t len;
 	uint64_t i;
 
-	array_type = bt_field_borrow_type(array);
-	if (!array_type) {
+	array_class = bt_field_borrow_class(array);
+	if (!array_class) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
@@ -1010,14 +1010,14 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		struct bt_field *field, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
-	enum bt_field_type_id type_id;
+	enum bt_field_class_id class_id;
 
-	type_id = bt_field_get_type_id(field);
-	switch (type_id) {
-	case BT_FIELD_TYPE_ID_UNSIGNED_INTEGER:
-	case BT_FIELD_TYPE_ID_SIGNED_INTEGER:
+	class_id = bt_field_get_class_id(field);
+	switch (class_id) {
+	case BT_FIELD_CLASS_ID_UNSIGNED_INTEGER:
+	case BT_FIELD_CLASS_ID_SIGNED_INTEGER:
 		return print_integer(pretty, field);
-	case BT_FIELD_TYPE_ID_REAL:
+	case BT_FIELD_CLASS_ID_REAL:
 	{
 		double v;
 
@@ -1031,10 +1031,10 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION:
-	case BT_FIELD_TYPE_ID_SIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_ID_SIGNED_ENUMERATION:
 		return print_enum(pretty, field);
-	case BT_FIELD_TYPE_ID_STRING:
+	case BT_FIELD_CLASS_ID_STRING:
 	{
 		const char *str;
 
@@ -1052,18 +1052,18 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case BT_FIELD_TYPE_ID_STRUCTURE:
+	case BT_FIELD_CLASS_ID_STRUCTURE:
 		return print_struct(pretty, field, print_names, filter_fields,
 				filter_array_len);
-	case BT_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_CLASS_ID_VARIANT:
 		return print_variant(pretty, field, print_names);
-	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
+	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
 		return print_array(pretty, field, print_names);
-	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
 		return print_sequence(pretty, field, print_names);
 	default:
 		// TODO: log instead
-		fprintf(pretty->err, "[error] Unknown type id: %d\n", (int) type_id);
+		fprintf(pretty->err, "[error] Unknown type id: %d\n", (int) class_id);
 		return BT_COMPONENT_STATUS_ERROR;
 	}
 }

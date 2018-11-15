@@ -31,8 +31,6 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
 #include <babeltrace/trace-ir/fields.h>
-#include <babeltrace/trace-ir/field-types.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
 #include <babeltrace/trace-ir/event-internal.h>
 #include <babeltrace/trace-ir/packet-internal.h>
 #include <babeltrace/trace-ir/stream-internal.h>

@@ -33,7 +33,6 @@ babeltracectfwriterinclude_HEADERS = \
 babeltracectfirincludedir = "$(includedir)/babeltrace/ctf-ir"
 babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/clock.h \
-	babeltrace/ctf-ir/event-class.h \
 	babeltrace/ctf-ir/event-fields.h \
 	babeltrace/ctf-ir/event-types.h \
 	babeltrace/ctf-ir/event.h \
@@ -54,7 +53,7 @@ babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/event.h \
 	babeltrace/trace-ir/event-header-field.h \
 	babeltrace/trace-ir/field-path.h \
-	babeltrace/trace-ir/field-types.h \
+	babeltrace/trace-ir/field-classes.h \
 	babeltrace/trace-ir/fields.h \
 	babeltrace/trace-ir/packet.h \
 	babeltrace/trace-ir/packet-context-field.h \
@@ -157,7 +156,7 @@ noinst_HEADERS = \
 	babeltrace/trace-ir/field-wrapper-internal.h \
 	babeltrace/trace-ir/trace-internal.h \
 	babeltrace/trace-ir/clock-class-internal.h \
-	babeltrace/trace-ir/field-types-internal.h \
+	babeltrace/trace-ir/field-classes-internal.h \
 	babeltrace/trace-ir/clock-value-internal.h \
 	babeltrace/trace-ir/attributes-internal.h \
 	babeltrace/trace-ir/stream-internal.h \

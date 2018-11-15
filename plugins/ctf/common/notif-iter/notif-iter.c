@@ -39,7 +39,7 @@
 #include <stdlib.h>
 
 #include "notif-iter.h"
-#include "../btr/btr.h"
+#include "../bfcr/bfcr.h"
 
 struct bt_notif_iter;
 
@@ -179,7 +179,7 @@ struct bt_notif_iter {
 	} buf;
 
 	/* Binary type reader */
-	struct bt_btr *btr;
+	struct bt_bfcr *bfcr;
 
 	/* Current medium data */
 	struct {
@@ -518,36 +518,36 @@ enum bt_notif_iter_status buf_ensure_available_bits(
 static
 enum bt_notif_iter_status read_dscope_begin_state(
 		struct bt_notif_iter *notit,
-		struct ctf_field_type *dscope_ft,
+		struct ctf_field_class *dscope_fc,
 		enum state done_state, enum state continue_state,
 		struct bt_field *dscope_field)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	enum bt_btr_status btr_status;
+	enum bt_bfcr_status bfcr_status;
 	size_t consumed_bits;
 
 	notit->cur_dscope_field = dscope_field;
-	BT_LOGV("Starting BTR: notit-addr=%p, btr-addr=%p, ft-addr=%p",
-		notit, notit->btr, dscope_ft);
-	consumed_bits = bt_btr_start(notit->btr, dscope_ft,
+	BT_LOGV("Starting BFCR: notit-addr=%p, bfcr-addr=%p, fc-addr=%p",
+		notit, notit->bfcr, dscope_fc);
+	consumed_bits = bt_bfcr_start(notit->bfcr, dscope_fc,
 		notit->buf.addr, notit->buf.at, packet_at(notit),
-		notit->buf.sz, &btr_status);
-	BT_LOGV("BTR consumed bits: size=%zu", consumed_bits);
+		notit->buf.sz, &bfcr_status);
+	BT_LOGV("BFCR consumed bits: size=%zu", consumed_bits);
 
-	switch (btr_status) {
-	case BT_BTR_STATUS_OK:
-		/* type was read completely */
+	switch (bfcr_status) {
+	case BT_BFCR_STATUS_OK:
+		/* Field class was read completely */
 		BT_LOGV_STR("Field was completely decoded.");
 		notit->state = done_state;
 		break;
-	case BT_BTR_STATUS_EOF:
-		BT_LOGV_STR("BTR needs more data to decode field completely.");
+	case BT_BFCR_STATUS_EOF:
+		BT_LOGV_STR("BFCR needs more data to decode field completely.");
 		notit->state = continue_state;
 		break;
 	default:
-		BT_LOGW("BTR failed to start: notit-addr=%p, btr-addr=%p, "
-			"status=%s", notit, notit->btr,
-			bt_btr_status_string(btr_status));
+		BT_LOGW("BFCR failed to start: notit-addr=%p, bfcr-addr=%p, "
+			"status=%s", notit, notit->bfcr,
+			bt_bfcr_status_string(bfcr_status));
 		status = BT_NOTIF_ITER_STATUS_ERROR;
 		goto end;
 	}
@@ -564,11 +564,11 @@ enum bt_notif_iter_status read_dscope_continue_state(
 		struct bt_notif_iter *notit, enum state done_state)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	enum bt_btr_status btr_status;
+	enum bt_bfcr_status bfcr_status;
 	size_t consumed_bits;
 
-	BT_LOGV("Continuing BTR: notit-addr=%p, btr-addr=%p",
-		notit, notit->btr);
+	BT_LOGV("Continuing BFCR: notit-addr=%p, bfcr-addr=%p",
+		notit, notit->bfcr);
 
 	status = buf_ensure_available_bits(notit);
 	if (status != BT_NOTIF_ITER_STATUS_OK) {
@@ -585,24 +585,24 @@ enum bt_notif_iter_status read_dscope_continue_state(
 		goto end;
 	}
 
-	consumed_bits = bt_btr_continue(notit->btr, notit->buf.addr,
-		notit->buf.sz, &btr_status);
-	BT_LOGV("BTR consumed bits: size=%zu", consumed_bits);
+	consumed_bits = bt_bfcr_continue(notit->bfcr, notit->buf.addr,
+		notit->buf.sz, &bfcr_status);
+	BT_LOGV("BFCR consumed bits: size=%zu", consumed_bits);
 
-	switch (btr_status) {
-	case BT_BTR_STATUS_OK:
+	switch (bfcr_status) {
+	case BT_BFCR_STATUS_OK:
 		/* Type was read completely. */
 		BT_LOGV_STR("Field was completely decoded.");
 		notit->state = done_state;
 		break;
-	case BT_BTR_STATUS_EOF:
+	case BT_BFCR_STATUS_EOF:
 		/* Stay in this continue state. */
-		BT_LOGV_STR("BTR needs more data to decode field completely.");
+		BT_LOGV_STR("BFCR needs more data to decode field completely.");
 		break;
 	default:
-		BT_LOGW("BTR failed to continue: notit-addr=%p, btr-addr=%p, "
-			"status=%s", notit, notit->btr,
-			bt_btr_status_string(btr_status));
+		BT_LOGW("BFCR failed to continue: notit-addr=%p, bfcr-addr=%p, "
+			"status=%s", notit, notit->bfcr,
+			bt_bfcr_status_string(bfcr_status));
 		status = BT_NOTIF_ITER_STATUS_ERROR;
 		goto end;
 	}
@@ -652,7 +652,7 @@ static
 enum bt_notif_iter_status read_packet_header_begin_state(
 		struct bt_notif_iter *notit)
 {
-	struct ctf_field_type *packet_header_ft = NULL;
+	struct ctf_field_class *packet_header_fc = NULL;
 	enum bt_notif_iter_status ret = BT_NOTIF_ITER_STATUS_OK;
 
 	if (bt_notif_iter_switch_packet(notit)) {
@@ -661,16 +661,16 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 		goto end;
 	}
 
-	/* Packet header type is common to the whole trace. */
-	packet_header_ft = notit->meta.tc->packet_header_ft;
-	if (!packet_header_ft) {
+	/* Packet header class is common to the whole trace. */
+	packet_header_fc = notit->meta.tc->packet_header_fc;
+	if (!packet_header_fc) {
 		notit->state = STATE_AFTER_TRACE_PACKET_HEADER;
 		goto end;
 	}
 
 	BT_ASSERT(!notit->packet_header_field);
 
-	if (packet_header_ft->in_ir) {
+	if (packet_header_fc->in_ir) {
 		/*
 		 * Create free packet header field from trace. This
 		 * field is going to be moved to the packet once we
@@ -698,20 +698,20 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 	notit->cur_event_class_id = -1;
 	notit->cur_data_stream_id = -1;
 	BT_LOGV("Decoding packet header field:"
-		"notit-addr=%p, trace-addr=%p, trace-name=\"%s\", ft-addr=%p",
+		"notit-addr=%p, trace-addr=%p, trace-name=\"%s\", fc-addr=%p",
 		notit, notit->meta.tc,
-		notit->meta.tc->name->str, packet_header_ft);
-	ret = read_dscope_begin_state(notit, packet_header_ft,
+		notit->meta.tc->name->str, packet_header_fc);
+	ret = read_dscope_begin_state(notit, packet_header_fc,
 		STATE_AFTER_TRACE_PACKET_HEADER,
 		STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE,
 		notit->dscopes.trace_packet_header);
 	if (ret < 0) {
 		BT_LOGW("Cannot decode packet header field: "
 			"notit-addr=%p, trace-addr=%p, "
-			"trace-name=\"%s\", ft-addr=%p",
+			"trace-name=\"%s\", fc-addr=%p",
 			notit, notit->meta.tc,
 			notit->meta.tc->name->str,
-			packet_header_ft);
+			packet_header_fc);
 	}
 
 end:
@@ -889,12 +889,12 @@ enum bt_notif_iter_status read_packet_context_begin_state(
 		struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct ctf_field_type *packet_context_ft;
+	struct ctf_field_class *packet_context_fc;
 
 	BT_ASSERT(notit->meta.sc);
-	packet_context_ft = notit->meta.sc->packet_context_ft;
-	if (!packet_context_ft) {
-		BT_LOGV("No packet packet context field type in stream class: continuing: "
+	packet_context_fc = notit->meta.sc->packet_context_fc;
+	if (!packet_context_fc) {
+		BT_LOGV("No packet packet context field class in stream class: continuing: "
 			"notit-addr=%p, stream-class-addr=%p, "
 			"stream-class-id=%" PRId64,
 			notit, notit->meta.sc,
@@ -905,7 +905,7 @@ enum bt_notif_iter_status read_packet_context_begin_state(
 
 	BT_ASSERT(!notit->packet_context_field);
 
-	if (packet_context_ft->in_ir) {
+	if (packet_context_fc->in_ir) {
 		/*
 		 * Create free packet context field from stream class.
 		 * This field is going to be moved to the packet once we
@@ -930,20 +930,20 @@ enum bt_notif_iter_status read_packet_context_begin_state(
 
 	BT_LOGV("Decoding packet context field: "
 		"notit-addr=%p, stream-class-addr=%p, "
-		"stream-class-id=%" PRId64 ", ft-addr=%p",
+		"stream-class-id=%" PRId64 ", fc-addr=%p",
 		notit, notit->meta.sc,
-		notit->meta.sc->id, packet_context_ft);
-	status = read_dscope_begin_state(notit, packet_context_ft,
+		notit->meta.sc->id, packet_context_fc);
+	status = read_dscope_begin_state(notit, packet_context_fc,
 		STATE_AFTER_STREAM_PACKET_CONTEXT,
 		STATE_DSCOPE_STREAM_PACKET_CONTEXT_CONTINUE,
 		notit->dscopes.stream_packet_context);
 	if (status < 0) {
 		BT_LOGW("Cannot decode packet context field: "
 			"notit-addr=%p, stream-class-addr=%p, "
-			"stream-class-id=%" PRId64 ", ft-addr=%p",
+			"stream-class-id=%" PRId64 ", fc-addr=%p",
 			notit, notit->meta.sc,
 			notit->meta.sc->id,
-			packet_context_ft);
+			packet_context_fc);
 	}
 
 end:
@@ -1029,7 +1029,7 @@ enum bt_notif_iter_status read_event_header_begin_state(
 		struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct ctf_field_type *event_header_ft = NULL;
+	struct ctf_field_class *event_header_fc = NULL;
 
 	/* Reset the position of the last event header */
 	notit->buf.last_eh_at = notit->buf.at;
@@ -1083,13 +1083,13 @@ enum bt_notif_iter_status read_event_header_begin_state(
 
 	release_event_dscopes(notit);
 	BT_ASSERT(notit->meta.sc);
-	event_header_ft = notit->meta.sc->event_header_ft;
-	if (!event_header_ft) {
+	event_header_fc = notit->meta.sc->event_header_fc;
+	if (!event_header_fc) {
 		notit->state = STATE_AFTER_EVENT_HEADER;
 		goto end;
 	}
 
-	if (event_header_ft->in_ir) {
+	if (event_header_fc->in_ir) {
 		BT_ASSERT(!notit->event_header_field);
 		notit->event_header_field = bt_event_header_field_create(
 			notit->meta.sc->ir_sc);
@@ -1107,21 +1107,21 @@ enum bt_notif_iter_status read_event_header_begin_state(
 	BT_LOGV("Decoding event header field: "
 		"notit-addr=%p, stream-class-addr=%p, "
 		"stream-class-id=%" PRId64 ", "
-		"ft-addr=%p",
+		"fc-addr=%p",
 		notit, notit->meta.sc,
 		notit->meta.sc->id,
-		event_header_ft);
-	status = read_dscope_begin_state(notit, event_header_ft,
+		event_header_fc);
+	status = read_dscope_begin_state(notit, event_header_fc,
 		STATE_AFTER_EVENT_HEADER,
 		STATE_DSCOPE_EVENT_HEADER_CONTINUE,
 		notit->dscopes.event_header);
 	if (status < 0) {
 		BT_LOGW("Cannot decode event header field: "
 			"notit-addr=%p, stream-class-addr=%p, "
-			"stream-class-id=%" PRId64 ", ft-addr=%p",
+			"stream-class-id=%" PRId64 ", fc-addr=%p",
 			notit, notit->meta.sc,
 			notit->meta.sc->id,
-			event_header_ft);
+			event_header_fc);
 	}
 
 end:
@@ -1277,15 +1277,15 @@ enum bt_notif_iter_status read_event_common_context_begin_state(
 		struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct ctf_field_type *event_common_context_ft;
+	struct ctf_field_class *event_common_context_fc;
 
-	event_common_context_ft = notit->meta.sc->event_common_context_ft;
-	if (!event_common_context_ft) {
+	event_common_context_fc = notit->meta.sc->event_common_context_fc;
+	if (!event_common_context_fc) {
 		notit->state = STATE_DSCOPE_EVENT_SPEC_CONTEXT_BEGIN;
 		goto end;
 	}
 
-	if (event_common_context_ft->in_ir) {
+	if (event_common_context_fc->in_ir) {
 		BT_ASSERT(!notit->dscopes.event_common_context);
 		notit->dscopes.event_common_context =
 			bt_event_borrow_common_context_field(notit->event);
@@ -1295,21 +1295,21 @@ enum bt_notif_iter_status read_event_common_context_begin_state(
 	BT_LOGV("Decoding event common context field: "
 		"notit-addr=%p, stream-class-addr=%p, "
 		"stream-class-id=%" PRId64 ", "
-		"ft-addr=%p",
+		"fc-addr=%p",
 		notit, notit->meta.sc,
 		notit->meta.sc->id,
-		event_common_context_ft);
-	status = read_dscope_begin_state(notit, event_common_context_ft,
+		event_common_context_fc);
+	status = read_dscope_begin_state(notit, event_common_context_fc,
 		STATE_DSCOPE_EVENT_SPEC_CONTEXT_BEGIN,
 		STATE_DSCOPE_EVENT_COMMON_CONTEXT_CONTINUE,
 		notit->dscopes.event_common_context);
 	if (status < 0) {
 		BT_LOGW("Cannot decode event common context field: "
 			"notit-addr=%p, stream-class-addr=%p, "
-			"stream-class-id=%" PRId64 ", ft-addr=%p",
+			"stream-class-id=%" PRId64 ", fc-addr=%p",
 			notit, notit->meta.sc,
 			notit->meta.sc->id,
-			event_common_context_ft);
+			event_common_context_fc);
 	}
 
 end:
@@ -1329,15 +1329,15 @@ enum bt_notif_iter_status read_event_spec_context_begin_state(
 		struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct ctf_field_type *event_spec_context_ft;
+	struct ctf_field_class *event_spec_context_fc;
 
-	event_spec_context_ft = notit->meta.ec->spec_context_ft;
-	if (!event_spec_context_ft) {
+	event_spec_context_fc = notit->meta.ec->spec_context_fc;
+	if (!event_spec_context_fc) {
 		notit->state = STATE_DSCOPE_EVENT_PAYLOAD_BEGIN;
 		goto end;
 	}
 
-	if (event_spec_context_ft->in_ir) {
+	if (event_spec_context_fc->in_ir) {
 		BT_ASSERT(!notit->dscopes.event_spec_context);
 		notit->dscopes.event_spec_context = bt_event_borrow_specific_context_field(
 			notit->event);
@@ -1347,12 +1347,12 @@ enum bt_notif_iter_status read_event_spec_context_begin_state(
 	BT_LOGV("Decoding event specific context field: "
 		"notit-addr=%p, event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"ft-addr=%p",
+		"fc-addr=%p",
 		notit, notit->meta.ec,
 		notit->meta.ec->name->str,
 		notit->meta.ec->id,
-		event_spec_context_ft);
-	status = read_dscope_begin_state(notit, event_spec_context_ft,
+		event_spec_context_fc);
+	status = read_dscope_begin_state(notit, event_spec_context_fc,
 		STATE_DSCOPE_EVENT_PAYLOAD_BEGIN,
 		STATE_DSCOPE_EVENT_SPEC_CONTEXT_CONTINUE,
 		notit->dscopes.event_spec_context);
@@ -1360,11 +1360,11 @@ enum bt_notif_iter_status read_event_spec_context_begin_state(
 		BT_LOGW("Cannot decode event specific context field: "
 			"notit-addr=%p, event-class-addr=%p, "
 			"event-class-name=\"%s\", "
-			"event-class-id=%" PRId64 ", ft-addr=%p",
+			"event-class-id=%" PRId64 ", fc-addr=%p",
 			notit, notit->meta.ec,
 			notit->meta.ec->name->str,
 			notit->meta.ec->id,
-			event_spec_context_ft);
+			event_spec_context_fc);
 	}
 
 end:
@@ -1384,15 +1384,15 @@ enum bt_notif_iter_status read_event_payload_begin_state(
 		struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct ctf_field_type *event_payload_ft;
+	struct ctf_field_class *event_payload_fc;
 
-	event_payload_ft = notit->meta.ec->payload_ft;
-	if (!event_payload_ft) {
+	event_payload_fc = notit->meta.ec->payload_fc;
+	if (!event_payload_fc) {
 		notit->state = STATE_EMIT_NOTIF_EVENT;
 		goto end;
 	}
 
-	if (event_payload_ft->in_ir) {
+	if (event_payload_fc->in_ir) {
 		BT_ASSERT(!notit->dscopes.event_payload);
 		notit->dscopes.event_payload = bt_event_borrow_payload_field(
 			notit->event);
@@ -1402,12 +1402,12 @@ enum bt_notif_iter_status read_event_payload_begin_state(
 	BT_LOGV("Decoding event payload field: "
 		"notit-addr=%p, event-class-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"ft-addr=%p",
+		"fc-addr=%p",
 		notit, notit->meta.ec,
 		notit->meta.ec->name->str,
 		notit->meta.ec->id,
-		event_payload_ft);
-	status = read_dscope_begin_state(notit, event_payload_ft,
+		event_payload_fc);
+	status = read_dscope_begin_state(notit, event_payload_fc,
 		STATE_EMIT_NOTIF_EVENT,
 		STATE_DSCOPE_EVENT_PAYLOAD_CONTINUE,
 		notit->dscopes.event_payload);
@@ -1415,11 +1415,11 @@ enum bt_notif_iter_status read_event_payload_begin_state(
 		BT_LOGW("Cannot decode event payload field: "
 			"notit-addr=%p, event-class-addr=%p, "
 			"event-class-name=\"%s\", "
-			"event-class-id=%" PRId64 ", ft-addr=%p",
+			"event-class-id=%" PRId64 ", fc-addr=%p",
 			notit, notit->meta.ec,
 			notit->meta.ec->name->str,
 			notit->meta.ec->id,
-			event_payload_ft);
+			event_payload_fc);
 	}
 
 end:
@@ -1673,33 +1673,33 @@ struct bt_field *borrow_next_field(struct bt_notif_iter *notit)
 {
 	struct bt_field *next_field = NULL;
 	struct bt_field *base_field;
-	struct bt_field_type *base_ft;
+	struct bt_field_class *base_fc;
 	size_t index;
 
 	BT_ASSERT(!stack_empty(notit->stack));
 	index = stack_top(notit->stack)->index;
 	base_field = stack_top(notit->stack)->base;
 	BT_ASSERT(base_field);
-	base_ft = bt_field_borrow_type(base_field);
-	BT_ASSERT(base_ft);
+	base_fc = bt_field_borrow_class(base_field);
+	BT_ASSERT(base_fc);
 
-	switch (bt_field_type_get_type_id(base_ft)) {
-	case BT_FIELD_TYPE_ID_STRUCTURE:
+	switch (bt_field_class_get_id(base_fc)) {
+	case BT_FIELD_CLASS_ID_STRUCTURE:
 	{
 		BT_ASSERT(index <
-			bt_field_type_structure_get_member_count(
-				bt_field_borrow_type(base_field)));
+			bt_field_class_structure_get_member_count(
+				bt_field_borrow_class(base_field)));
 		next_field = bt_field_structure_borrow_member_field_by_index(
 			base_field, index);
 		break;
 	}
-	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
-	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
+	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
 		BT_ASSERT(index < bt_field_array_get_length(base_field));
 		next_field = bt_field_array_borrow_element_field_by_index(
 			base_field, index);
 		break;
-	case BT_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_CLASS_ID_VARIANT:
 		BT_ASSERT(index == 0);
 		next_field = bt_field_variant_borrow_selected_option_field(
 			base_field);
@@ -1755,58 +1755,58 @@ end:
 }
 
 static
-enum bt_btr_status btr_unsigned_int_cb(uint64_t value,
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
+		struct ctf_field_class *fc, void *data)
 {
 	struct bt_notif_iter *notit = data;
-	enum bt_btr_status status = BT_BTR_STATUS_OK;
+	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	struct bt_field *field = NULL;
-	struct ctf_field_type_int *int_ft = (void *) ft;
+	struct ctf_field_class_int *int_fc = (void *) fc;
 
-	BT_LOGV("Unsigned integer function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d, value=%" PRIu64,
-		notit, notit->btr, ft, ft->id, ft->in_ir, value);
+	BT_LOGV("Unsigned integer function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d, value=%" PRIu64,
+		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
 
-	if (likely(int_ft->meaning == CTF_FIELD_TYPE_MEANING_NONE)) {
+	if (likely(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE)) {
 		goto update_def_clock;
 	}
 
-	switch (int_ft->meaning) {
-	case CTF_FIELD_TYPE_MEANING_EVENT_CLASS_ID:
+	switch (int_fc->meaning) {
+	case CTF_FIELD_CLASS_MEANING_EVENT_CLASS_ID:
 		notit->cur_event_class_id = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_DATA_STREAM_ID:
+	case CTF_FIELD_CLASS_MEANING_DATA_STREAM_ID:
 		notit->cur_data_stream_id = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_PACKET_BEGINNING_TIME:
+	case CTF_FIELD_CLASS_MEANING_PACKET_BEGINNING_TIME:
 		notit->snapshots.beginning_clock = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_PACKET_END_TIME:
+	case CTF_FIELD_CLASS_MEANING_PACKET_END_TIME:
 		notit->snapshots.end_clock = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_STREAM_CLASS_ID:
+	case CTF_FIELD_CLASS_MEANING_STREAM_CLASS_ID:
 		notit->cur_stream_class_id = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_MAGIC:
+	case CTF_FIELD_CLASS_MEANING_MAGIC:
 		if (value != 0xc1fc1fc1) {
 			BT_LOGW("Invalid CTF magic number: notit-addr=%p, "
 				"magic=%" PRIx64, notit, value);
-			status = BT_BTR_STATUS_ERROR;
+			status = BT_BFCR_STATUS_ERROR;
 			goto end;
 		}
 
 		break;
-	case CTF_FIELD_TYPE_MEANING_PACKET_COUNTER_SNAPSHOT:
+	case CTF_FIELD_CLASS_MEANING_PACKET_COUNTER_SNAPSHOT:
 		notit->snapshots.packets = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT:
+	case CTF_FIELD_CLASS_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT:
 		notit->snapshots.discarded_events = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_EXP_PACKET_TOTAL_SIZE:
+	case CTF_FIELD_CLASS_MEANING_EXP_PACKET_TOTAL_SIZE:
 		notit->cur_exp_packet_total_size = value;
 		break;
-	case CTF_FIELD_TYPE_MEANING_EXP_PACKET_CONTENT_SIZE:
+	case CTF_FIELD_CLASS_MEANING_EXP_PACKET_CONTENT_SIZE:
 		notit->cur_exp_packet_content_size = value;
 		break;
 	default:
@@ -1814,24 +1814,24 @@ enum bt_btr_status btr_unsigned_int_cb(uint64_t value,
 	}
 
 update_def_clock:
-	if (unlikely(int_ft->mapped_clock_class)) {
-		update_default_clock(notit, value, int_ft->base.size);
+	if (unlikely(int_fc->mapped_clock_class)) {
+		update_default_clock(notit, value, int_fc->base.size);
 	}
 
-	if (unlikely(int_ft->storing_index >= 0)) {
+	if (unlikely(int_fc->storing_index >= 0)) {
 		g_array_index(notit->stored_values, uint64_t,
-			(uint64_t) int_ft->storing_index) = value;
+			(uint64_t) int_fc->storing_index) = value;
 	}
 
-	if (unlikely(!ft->in_ir)) {
+	if (unlikely(!fc->in_ir)) {
 		goto end;
 	}
 
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_type(field) == ft->ir_ft);
-	BT_ASSERT(bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_UNSIGNED_INTEGER ||
-		bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION);
+	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER ||
+		bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION);
 	bt_field_unsigned_integer_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
@@ -1840,25 +1840,25 @@ end:
 }
 
 static
-enum bt_btr_status btr_unsigned_int_char_cb(uint64_t value,
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
+		struct ctf_field_class *fc, void *data)
 {
 	int ret;
 	struct bt_notif_iter *notit = data;
-	enum bt_btr_status status = BT_BTR_STATUS_OK;
+	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	struct bt_field *string_field = NULL;
-	struct ctf_field_type_int *int_ft = (void *) ft;
+	struct ctf_field_class_int *int_fc = (void *) fc;
 	char str[2] = {'\0', '\0'};
 
-	BT_LOGV("Unsigned integer character function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d, value=%" PRIu64,
-		notit, notit->btr, ft, ft->id, ft->in_ir, value);
-	BT_ASSERT(int_ft->meaning == CTF_FIELD_TYPE_MEANING_NONE);
-	BT_ASSERT(!int_ft->mapped_clock_class);
-	BT_ASSERT(int_ft->storing_index < 0);
+	BT_LOGV("Unsigned integer character function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d, value=%" PRIu64,
+		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
+	BT_ASSERT(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
+	BT_ASSERT(!int_fc->mapped_clock_class);
+	BT_ASSERT(int_fc->storing_index < 0);
 
-	if (unlikely(!ft->in_ir)) {
+	if (unlikely(!fc->in_ir)) {
 		goto end;
 	}
 
@@ -1872,7 +1872,7 @@ enum bt_btr_status btr_unsigned_int_char_cb(uint64_t value,
 	}
 
 	string_field = stack_top(notit->stack)->base;
-	BT_ASSERT(bt_field_get_type_id(string_field) == BT_FIELD_TYPE_ID_STRING);
+	BT_ASSERT(bt_field_get_class_id(string_field) == BT_FIELD_CLASS_ID_STRING);
 
 	/* Append character */
 	str[0] = (char) value;
@@ -1881,7 +1881,7 @@ enum bt_btr_status btr_unsigned_int_char_cb(uint64_t value,
 		BT_LOGE("Cannot append character to string field's value: "
 			"notit-addr=%p, field-addr=%p, ret=%d",
 			notit, string_field, ret);
-		status = BT_BTR_STATUS_ERROR;
+		status = BT_BFCR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -1890,34 +1890,34 @@ end:
 }
 
 static
-enum bt_btr_status btr_signed_int_cb(int64_t value,
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
+		struct ctf_field_class *fc, void *data)
 {
-	enum bt_btr_status status = BT_BTR_STATUS_OK;
+	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	struct bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
-	struct ctf_field_type_int *int_ft = (void *) ft;
+	struct ctf_field_class_int *int_fc = (void *) fc;
 
-	BT_LOGV("Signed integer function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d, value=%" PRId64,
-		notit, notit->btr, ft, ft->id, ft->in_ir, value);
-	BT_ASSERT(int_ft->meaning == CTF_FIELD_TYPE_MEANING_NONE);
+	BT_LOGV("Signed integer function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d, value=%" PRId64,
+		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
+	BT_ASSERT(int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE);
 
-	if (unlikely(int_ft->storing_index >= 0)) {
+	if (unlikely(int_fc->storing_index >= 0)) {
 		g_array_index(notit->stored_values, uint64_t,
-			(uint64_t) int_ft->storing_index) = (uint64_t) value;
+			(uint64_t) int_fc->storing_index) = (uint64_t) value;
 	}
 
-	if (unlikely(!ft->in_ir)) {
+	if (unlikely(!fc->in_ir)) {
 		goto end;
 	}
 
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_type(field) == ft->ir_ft);
-	BT_ASSERT(bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_SIGNED_INTEGER ||
-		bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_SIGNED_ENUMERATION);
+	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_SIGNED_INTEGER ||
+		bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION);
 	bt_field_signed_integer_set_value(field, value);
 	stack_top(notit->stack)->index++;
 
@@ -1926,72 +1926,72 @@ end:
 }
 
 static
-enum bt_btr_status btr_floating_point_cb(double value,
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_floating_point_cb(double value,
+		struct ctf_field_class *fc, void *data)
 {
-	enum bt_btr_status status = BT_BTR_STATUS_OK;
+	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	struct bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
 
-	BT_LOGV("Floating point number function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d, value=%f",
-		notit, notit->btr, ft, ft->id, ft->in_ir, value);
-	BT_ASSERT(ft->in_ir);
+	BT_LOGV("Floating point number function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d, value=%f",
+		notit, notit->bfcr, fc, fc->id, fc->in_ir, value);
+	BT_ASSERT(fc->in_ir);
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_type(field) == ft->ir_ft);
-	BT_ASSERT(bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_REAL);
+	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_REAL);
 	bt_field_real_set_value(field, value);
 	stack_top(notit->stack)->index++;
 	return status;
 }
 
 static
-enum bt_btr_status btr_string_begin_cb(
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_string_begin_cb(
+		struct ctf_field_class *fc, void *data)
 {
 	struct bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
 	int ret;
 
-	BT_LOGV("String (beginning) function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d",
-		notit, notit->btr, ft, ft->id, ft->in_ir);
+	BT_LOGV("String (beginning) function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->id, fc->in_ir);
 
-	BT_ASSERT(ft->in_ir);
+	BT_ASSERT(fc->in_ir);
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_type(field) == ft->ir_ft);
-	BT_ASSERT(bt_field_get_type_id(field) == BT_FIELD_TYPE_ID_STRING);
+	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_field_get_class_id(field) == BT_FIELD_CLASS_ID_STRING);
 	ret = bt_field_string_clear(field);
 	BT_ASSERT(ret == 0);
 
 	/*
-	 * Push on stack. Not a compound type per se, but we know that
-	 * only btr_string_cb() may be called between this call and a
-	 * subsequent call to btr_string_end_cb().
+	 * Push on stack. Not a compound class per se, but we know that
+	 * only bfcr_string_cb() may be called between this call and a
+	 * subsequent call to bfcr_string_end_cb().
 	 */
 	stack_push(notit->stack, field);
-	return BT_BTR_STATUS_OK;
+	return BT_BFCR_STATUS_OK;
 }
 
 static
-enum bt_btr_status btr_string_cb(const char *value,
-		size_t len, struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_string_cb(const char *value,
+		size_t len, struct ctf_field_class *fc, void *data)
 {
-	enum bt_btr_status status = BT_BTR_STATUS_OK;
+	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
 	struct bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
 	int ret;
 
-	BT_LOGV("String (substring) function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d, string-length=%zu",
-		notit, notit->btr, ft, ft->id, ft->in_ir,
+	BT_LOGV("String (substring) function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d, string-length=%zu",
+		notit, notit->bfcr, fc, fc->id, fc->in_ir,
 		len);
-	BT_ASSERT(ft->in_ir);
+	BT_ASSERT(fc->in_ir);
 	field = stack_top(notit->stack)->base;
 	BT_ASSERT(field);
 
@@ -2001,7 +2001,7 @@ enum bt_btr_status btr_string_cb(const char *value,
 		BT_LOGE("Cannot append substring to string field's value: "
 			"notit-addr=%p, field-addr=%p, string-length=%zu, "
 			"ret=%d", notit, field, len, ret);
-		status = BT_BTR_STATUS_ERROR;
+		status = BT_BFCR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -2010,37 +2010,37 @@ end:
 }
 
 static
-enum bt_btr_status btr_string_end_cb(
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_string_end_cb(
+		struct ctf_field_class *fc, void *data)
 {
 	struct bt_notif_iter *notit = data;
 
-	BT_LOGV("String (end) function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d",
-		notit, notit->btr, ft, ft->id, ft->in_ir);
-	BT_ASSERT(ft->in_ir);
+	BT_LOGV("String (end) function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->id, fc->in_ir);
+	BT_ASSERT(fc->in_ir);
 
 	/* Pop string field */
 	stack_pop(notit->stack);
 
 	/* Go to next field */
 	stack_top(notit->stack)->index++;
-	return BT_BTR_STATUS_OK;
+	return BT_BFCR_STATUS_OK;
 }
 
-enum bt_btr_status btr_compound_begin_cb(
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_compound_begin_cb(
+		struct ctf_field_class *fc, void *data)
 {
 	struct bt_notif_iter *notit = data;
 	struct bt_field *field;
 
-	BT_LOGV("Compound (beginning) function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d",
-		notit, notit->btr, ft, ft->id, ft->in_ir);
+	BT_LOGV("Compound (beginning) function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->id, fc->in_ir);
 
-	if (!ft->in_ir) {
+	if (!fc->in_ir) {
 		goto end;
 	}
 
@@ -2055,66 +2055,66 @@ enum bt_btr_status btr_compound_begin_cb(
 
 	/* Push field */
 	BT_ASSERT(field);
-	BT_ASSERT(bt_field_borrow_type(field) == ft->ir_ft);
+	BT_ASSERT(bt_field_borrow_class(field) == fc->ir_fc);
 	stack_push(notit->stack, field);
 
 	/*
-	 * Change BTR "unsigned int" callback if it's a text
+	 * Change BFCR "unsigned int" callback if it's a text
 	 * array/sequence.
 	 */
-	if (ft->id == CTF_FIELD_TYPE_ID_ARRAY ||
-			ft->id == CTF_FIELD_TYPE_ID_SEQUENCE) {
-		struct ctf_field_type_array_base *array_ft = (void *) ft;
+	if (fc->id == CTF_FIELD_CLASS_ID_ARRAY ||
+			fc->id == CTF_FIELD_CLASS_ID_SEQUENCE) {
+		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
-		if (array_ft->is_text) {
+		if (array_fc->is_text) {
 			int ret;
 
-			BT_ASSERT(bt_field_get_type_id(field) ==
-				BT_FIELD_TYPE_ID_STRING);
+			BT_ASSERT(bt_field_get_class_id(field) ==
+				BT_FIELD_CLASS_ID_STRING);
 			notit->done_filling_string = false;
 			ret = bt_field_string_clear(field);
 			BT_ASSERT(ret == 0);
-			bt_btr_set_unsigned_int_cb(notit->btr,
-				btr_unsigned_int_char_cb);
+			bt_bfcr_set_unsigned_int_cb(notit->bfcr,
+				bfcr_unsigned_int_char_cb);
 		}
 	}
 
 end:
-	return BT_BTR_STATUS_OK;
+	return BT_BFCR_STATUS_OK;
 }
 
-enum bt_btr_status btr_compound_end_cb(
-		struct ctf_field_type *ft, void *data)
+enum bt_bfcr_status bfcr_compound_end_cb(
+		struct ctf_field_class *fc, void *data)
 {
 	struct bt_notif_iter *notit = data;
 
-	BT_LOGV("Compound (end) function called from BTR: "
-		"notit-addr=%p, btr-addr=%p, ft-addr=%p, "
-		"ft-id=%d, ft-in-ir=%d",
-		notit, notit->btr, ft, ft->id, ft->in_ir);
+	BT_LOGV("Compound (end) function called from BFCR: "
+		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
+		"fc-id=%d, fc-in-ir=%d",
+		notit, notit->bfcr, fc, fc->id, fc->in_ir);
 
-	if (!ft->in_ir) {
+	if (!fc->in_ir) {
 		goto end;
 	}
 
 	BT_ASSERT(!stack_empty(notit->stack));
-	BT_ASSERT(bt_field_borrow_type(stack_top(notit->stack)->base) ==
-		ft->ir_ft);
+	BT_ASSERT(bt_field_borrow_class(stack_top(notit->stack)->base) ==
+		fc->ir_fc);
 
 	/*
-	 * Reset BTR "unsigned int" callback if it's a text
+	 * Reset BFCR "unsigned int" callback if it's a text
 	 * array/sequence.
 	 */
-	if (ft->id == CTF_FIELD_TYPE_ID_ARRAY ||
-			ft->id == CTF_FIELD_TYPE_ID_SEQUENCE) {
-		struct ctf_field_type_array_base *array_ft = (void *) ft;
+	if (fc->id == CTF_FIELD_CLASS_ID_ARRAY ||
+			fc->id == CTF_FIELD_CLASS_ID_SEQUENCE) {
+		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
-		if (array_ft->is_text) {
-			BT_ASSERT(bt_field_get_type_id(
+		if (array_fc->is_text) {
+			BT_ASSERT(bt_field_get_class_id(
 				stack_top(notit->stack)->base) ==
-					BT_FIELD_TYPE_ID_STRING);
-			bt_btr_set_unsigned_int_cb(notit->btr,
-				btr_unsigned_int_cb);
+					BT_FIELD_CLASS_ID_STRING);
+			bt_bfcr_set_unsigned_int_cb(notit->bfcr,
+				bfcr_unsigned_int_cb);
 		}
 	}
 
@@ -2127,20 +2127,20 @@ enum bt_btr_status btr_compound_end_cb(
 	}
 
 end:
-	return BT_BTR_STATUS_OK;
+	return BT_BFCR_STATUS_OK;
 }
 
 static
-int64_t btr_get_sequence_length_cb(struct ctf_field_type *ft, void *data)
+int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 {
 	struct bt_field *seq_field;
 	struct bt_notif_iter *notit = data;
-	struct ctf_field_type_sequence *seq_ft = (void *) ft;
+	struct ctf_field_class_sequence *seq_fc = (void *) fc;
 	int64_t length = -1;
 	int ret;
 
 	length = (uint64_t) g_array_index(notit->stored_values, uint64_t,
-		seq_ft->stored_length_index);
+		seq_fc->stored_length_index);
 	seq_field = stack_top(notit->stack)->base;
 	BT_ASSERT(seq_field);
 	ret = bt_field_dynamic_array_set_length(seq_field, (uint64_t) length);
@@ -2154,16 +2154,16 @@ int64_t btr_get_sequence_length_cb(struct ctf_field_type *ft, void *data)
 }
 
 static
-struct ctf_field_type *btr_borrow_variant_selected_field_type_cb(
-		struct ctf_field_type *ft, void *data)
+struct ctf_field_class *bfcr_borrow_variant_selected_field_class_cb(
+		struct ctf_field_class *fc, void *data)
 {
 	int ret;
 	uint64_t i;
 	int64_t option_index = -1;
 	struct bt_notif_iter *notit = data;
-	struct ctf_field_type_variant *var_ft = (void *) ft;
-	struct ctf_named_field_type *selected_option = NULL;
-	struct ctf_field_type *ret_ft = NULL;
+	struct ctf_field_class_variant *var_fc = (void *) fc;
+	struct ctf_named_field_class *selected_option = NULL;
+	struct ctf_field_class *ret_fc = NULL;
 	union {
 		uint64_t u;
 		int64_t i;
@@ -2171,16 +2171,16 @@ struct ctf_field_type *btr_borrow_variant_selected_field_type_cb(
 
 	/* Get variant's tag */
 	tag.u = g_array_index(notit->stored_values, uint64_t,
-		var_ft->stored_tag_index);
+		var_fc->stored_tag_index);
 
 	/*
 	 * Check each range to find the selected option's index.
 	 */
-	if (var_ft->tag_ft->base.is_signed) {
-		for (i = 0; i < var_ft->ranges->len; i++) {
-			struct ctf_field_type_variant_range *range =
-				ctf_field_type_variant_borrow_range_by_index(
-					var_ft, i);
+	if (var_fc->tag_fc->base.is_signed) {
+		for (i = 0; i < var_fc->ranges->len; i++) {
+			struct ctf_field_class_variant_range *range =
+				ctf_field_class_variant_borrow_range_by_index(
+					var_fc, i);
 
 			if (tag.i >= range->range.lower.i &&
 					tag.i <= range->range.upper.i) {
@@ -2189,10 +2189,10 @@ struct ctf_field_type *btr_borrow_variant_selected_field_type_cb(
 			}
 		}
 	} else {
-		for (i = 0; i < var_ft->ranges->len; i++) {
-			struct ctf_field_type_variant_range *range =
-				ctf_field_type_variant_borrow_range_by_index(
-					var_ft, i);
+		for (i = 0; i < var_fc->ranges->len; i++) {
+			struct ctf_field_class_variant_range *range =
+				ctf_field_class_variant_borrow_range_by_index(
+					var_fc, i);
 
 			if (tag.u >= range->range.lower.u &&
 					tag.u <= range->range.upper.u) {
@@ -2203,16 +2203,16 @@ struct ctf_field_type *btr_borrow_variant_selected_field_type_cb(
 	}
 
 	if (option_index < 0) {
-		BT_LOGW("Cannot find variant field type's option: "
-			"notit-addr=%p, var-ft-addr=%p, u-tag=%" PRIu64 ", "
-			"i-tag=%" PRId64, notit, var_ft, tag.u, tag.i);
+		BT_LOGW("Cannot find variant field class's option: "
+			"notit-addr=%p, var-fc-addr=%p, u-tag=%" PRIu64 ", "
+			"i-tag=%" PRId64, notit, var_fc, tag.u, tag.i);
 		goto end;
 	}
 
-	selected_option = ctf_field_type_variant_borrow_option_by_index(
-		var_ft, (uint64_t) option_index);
+	selected_option = ctf_field_class_variant_borrow_option_by_index(
+		var_fc, (uint64_t) option_index);
 
-	if (selected_option->ft->in_ir) {
+	if (selected_option->fc->in_ir) {
 		struct bt_field *var_field = stack_top(notit->stack)->base;
 
 		ret = bt_field_variant_select_option_field(var_field,
@@ -2226,10 +2226,10 @@ struct ctf_field_type *btr_borrow_variant_selected_field_type_cb(
 		}
 	}
 
-	ret_ft = selected_option->ft;
+	ret_fc = selected_option->fc;
 
 end:
-	return ret_ft;
+	return ret_fc;
 }
 
 static
@@ -2435,20 +2435,20 @@ struct bt_notif_iter *bt_notif_iter_create(struct ctf_trace_class *tc,
 		struct bt_notif_iter_medium_ops medops, void *data)
 {
 	struct bt_notif_iter *notit = NULL;
-	struct bt_btr_cbs cbs = {
-		.types = {
-			.signed_int = btr_signed_int_cb,
-			.unsigned_int = btr_unsigned_int_cb,
-			.floating_point = btr_floating_point_cb,
-			.string_begin = btr_string_begin_cb,
-			.string = btr_string_cb,
-			.string_end = btr_string_end_cb,
-			.compound_begin = btr_compound_begin_cb,
-			.compound_end = btr_compound_end_cb,
+	struct bt_bfcr_cbs cbs = {
+		.classes = {
+			.signed_int = bfcr_signed_int_cb,
+			.unsigned_int = bfcr_unsigned_int_cb,
+			.floating_point = bfcr_floating_point_cb,
+			.string_begin = bfcr_string_begin_cb,
+			.string = bfcr_string_cb,
+			.string_end = bfcr_string_end_cb,
+			.compound_begin = bfcr_compound_begin_cb,
+			.compound_end = bfcr_compound_end_cb,
 		},
 		.query = {
-			.get_sequence_length = btr_get_sequence_length_cb,
-			.borrow_variant_selected_field_type = btr_borrow_variant_selected_field_type_cb,
+			.get_sequence_length = bfcr_get_sequence_length_cb,
+			.borrow_variant_selected_field_class = bfcr_borrow_variant_selected_field_class_cb,
 		},
 	};
 
@@ -2476,9 +2476,9 @@ struct bt_notif_iter *bt_notif_iter_create(struct ctf_trace_class *tc,
 		goto error;
 	}
 
-	notit->btr = bt_btr_create(cbs, notit);
-	if (!notit->btr) {
-		BT_LOGE_STR("Failed to create binary type reader (BTR).");
+	notit->bfcr = bt_bfcr_create(cbs, notit);
+	if (!notit->bfcr) {
+		BT_LOGE_STR("Failed to create binary class reader (BFCR).");
 		goto error;
 	}
 
@@ -2512,9 +2512,9 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 		stack_destroy(notit->stack);
 	}
 
-	if (notit->btr) {
-		BT_LOGD("Destroying BTR: btr-addr=%p", notit->btr);
-		bt_btr_destroy(notit->btr);
+	if (notit->bfcr) {
+		BT_LOGD("Destroying BFCR: bfcr-addr=%p", notit->bfcr);
+		bt_bfcr_destroy(notit->bfcr);
 	}
 
 	if (notit->stored_values) {

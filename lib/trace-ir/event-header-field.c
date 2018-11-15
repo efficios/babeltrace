@@ -63,12 +63,12 @@ struct bt_event_header_field *bt_event_header_field_create(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE(bt_stream_class_borrow_trace_inline(stream_class),
 		"Stream class is not part of a trace: %!+S", stream_class);
-	BT_ASSERT_PRE(stream_class->event_header_ft,
-		"Stream class has no event header field type: %!+S",
+	BT_ASSERT_PRE(stream_class->event_header_fc,
+		"Stream class has no event header field classe: %!+S",
 		stream_class);
 	field_wrapper = bt_field_wrapper_create(
 		&stream_class->event_header_field_pool,
-		(void *) stream_class->event_header_ft);
+		(void *) stream_class->event_header_fc);
 	if (!field_wrapper) {
 		BT_LIB_LOGE("Cannot allocate one event header field from stream class: "
 			"%![sc-]+S", stream_class);

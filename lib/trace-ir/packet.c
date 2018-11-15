@@ -250,22 +250,22 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 	trace = bt_stream_class_borrow_trace_inline(stream->class);
 	BT_ASSERT(trace);
 
-	if (trace->packet_header_ft) {
+	if (trace->packet_header_fc) {
 		BT_LOGD_STR("Creating initial packet header field.");
 		packet->header_field = bt_field_wrapper_create(
 			&trace->packet_header_field_pool,
-			trace->packet_header_ft);
+			trace->packet_header_fc);
 		if (!packet->header_field) {
 			BT_LOGE_STR("Cannot create packet header field wrapper.");
 			goto error;
 		}
 	}
 
-	if (stream->class->packet_context_ft) {
+	if (stream->class->packet_context_fc) {
 		BT_LOGD_STR("Creating initial packet context field.");
 		packet->context_field = bt_field_wrapper_create(
 			&stream->class->packet_context_field_pool,
-			stream->class->packet_context_ft);
+			stream->class->packet_context_fc);
 		if (!packet->context_field) {
 			BT_LOGE_STR("Cannot create packet context field wrapper.");
 			goto error;
@@ -335,14 +335,14 @@ int bt_packet_move_header_field(struct bt_packet *packet,
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
 	BT_ASSERT_PRE_PACKET_HOT(packet);
 	trace = bt_stream_class_borrow_trace_inline(packet->stream->class);
-	BT_ASSERT_PRE(trace->packet_header_ft,
-		"Trace has no packet header field type: %!+t",
+	BT_ASSERT_PRE(trace->packet_header_fc,
+		"Trace has no packet header field classe: %!+t",
 		trace);
-	BT_ASSERT_PRE(field_wrapper->field->type ==
-		trace->packet_header_ft,
-		"Unexpected packet header field's type: "
-		"%![ft-]+F, %![expected-ft-]+F", field_wrapper->field->type,
-		trace->packet_header_ft);
+	BT_ASSERT_PRE(field_wrapper->field->class ==
+		trace->packet_header_fc,
+		"Unexpected packet header field's class: "
+		"%![fc-]+F, %![expected-fc-]+F", field_wrapper->field->class,
+		trace->packet_header_fc);
 
 	/* Recycle current header field: always exists */
 	BT_ASSERT(packet->header_field);
@@ -363,14 +363,14 @@ int bt_packet_move_context_field(struct bt_packet *packet,
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Context field");
 	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
 	stream_class = packet->stream->class;
-	BT_ASSERT_PRE(stream_class->packet_context_ft,
-		"Stream class has no packet context field type: %!+S",
+	BT_ASSERT_PRE(stream_class->packet_context_fc,
+		"Stream class has no packet context field classe: %!+S",
 		stream_class);
-	BT_ASSERT_PRE(field_wrapper->field->type ==
-		stream_class->packet_context_ft,
-		"Unexpected packet header field's type: "
-		"%![ft-]+F, %![expected-ft-]+F", field_wrapper->field->type,
-		stream_class->packet_context_ft);
+	BT_ASSERT_PRE(field_wrapper->field->class ==
+		stream_class->packet_context_fc,
+		"Unexpected packet header field's class: "
+		"%![fc-]+F, %![expected-fc-]+F", field_wrapper->field->class,
+		stream_class->packet_context_fc);
 
 	/* Recycle current context field: always exists */
 	BT_ASSERT(packet->context_field);

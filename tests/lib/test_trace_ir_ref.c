@@ -76,33 +76,33 @@ static const size_t WRITER_USER_NR_ELEMENTS =
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_field_type *create_integer_struct(void)
+static struct bt_field_class *create_integer_struct(void)
 {
 	int ret;
-	struct bt_field_type *structure = NULL;
-	struct bt_field_type *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
+	struct bt_field_class *structure = NULL;
+	struct bt_field_class *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
 
-	structure = bt_field_type_structure_create();
+	structure = bt_field_class_structure_create();
 	BT_ASSERT(structure);
-	ui8 = bt_field_type_unsigned_integer_create();
+	ui8 = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(ui8);
-	ret = bt_field_type_integer_set_field_value_range(ui8, 8);
+	ret = bt_field_class_integer_set_field_value_range(ui8, 8);
 	BT_ASSERT(ret == 0);
-	ret = bt_field_type_structure_append_member(structure,
+	ret = bt_field_class_structure_append_member(structure,
 		"payload_8", ui8);
 	BT_ASSERT(ret == 0);
-	ui16 = bt_field_type_unsigned_integer_create();
+	ui16 = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(ui16);
-	ret = bt_field_type_integer_set_field_value_range(ui16, 16);
+	ret = bt_field_class_integer_set_field_value_range(ui16, 16);
 	BT_ASSERT(ret == 0);
-	ret = bt_field_type_structure_append_member(structure,
+	ret = bt_field_class_structure_append_member(structure,
 		"payload_16", ui16);
 	BT_ASSERT(ret == 0);
-	ui32 = bt_field_type_unsigned_integer_create();
+	ui32 = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(ui32);
-	ret = bt_field_type_integer_set_field_value_range(ui32, 32);
+	ret = bt_field_class_integer_set_field_value_range(ui32, 32);
 	BT_ASSERT(ret == 0);
-	ret = bt_field_type_structure_append_member(structure,
+	ret = bt_field_class_structure_append_member(structure,
 		"payload_32", ui32);
 	BT_ASSERT(ret == 0);
 	BT_PUT(ui8);
@@ -151,7 +151,7 @@ static struct bt_event_class *create_simple_event(struct bt_stream_class *sc,
 {
 	int ret;
 	struct bt_event_class *event = NULL;
-	struct bt_field_type *payload = NULL;
+	struct bt_field_class *payload = NULL;
 
 	BT_ASSERT(name);
 	event = bt_event_class_create(sc);
@@ -160,7 +160,7 @@ static struct bt_event_class *create_simple_event(struct bt_stream_class *sc,
 	BT_ASSERT(ret == 0);
 	payload = create_integer_struct();
 	BT_ASSERT(payload);
-	ret = bt_event_class_set_payload_field_type(event, payload);
+	ret = bt_event_class_set_payload_field_class(event, payload);
 	BT_ASSERT(ret == 0);
 	BT_PUT(payload);
 	return event;
@@ -181,7 +181,7 @@ static struct bt_event_class *create_complex_event(struct bt_stream_class *sc,
 {
 	int ret;
 	struct bt_event_class *event = NULL;
-	struct bt_field_type *inner = NULL, *outer = NULL;
+	struct bt_field_class *inner = NULL, *outer = NULL;
 
 	BT_ASSERT(name);
 	event = bt_event_class_create(sc);
@@ -192,56 +192,56 @@ static struct bt_event_class *create_complex_event(struct bt_stream_class *sc,
 	BT_ASSERT(outer);
 	inner = create_integer_struct();
 	BT_ASSERT(inner);
-	ret = bt_field_type_structure_append_member(outer,
+	ret = bt_field_class_structure_append_member(outer,
 		"payload_struct", inner);
 	BT_ASSERT(ret == 0);
-	ret = bt_event_class_set_payload_field_type(event, outer);
+	ret = bt_event_class_set_payload_field_class(event, outer);
 	BT_ASSERT(ret == 0);
 	BT_PUT(inner);
 	BT_PUT(outer);
 	return event;
 }
 
-static void set_stream_class_field_types(
+static void set_stream_class_field_classes(
 		struct bt_stream_class *stream_class)
 {
-	struct bt_field_type *packet_context_type;
-	struct bt_field_type *event_header_type;
-	struct bt_field_type *ft;
+	struct bt_field_class *packet_context_type;
+	struct bt_field_class *event_header_type;
+	struct bt_field_class *fc;
 	int ret;
 
-	packet_context_type = bt_field_type_structure_create();
+	packet_context_type = bt_field_class_structure_create();
 	BT_ASSERT(packet_context_type);
-	ft = bt_field_type_unsigned_integer_create();
-	BT_ASSERT(ft);
-	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	fc = bt_field_class_unsigned_integer_create();
+	BT_ASSERT(fc);
+	ret = bt_field_class_integer_set_field_value_range(fc, 32);
 	BT_ASSERT(ret == 0);
-	ret = bt_field_type_structure_append_member(packet_context_type,
-		"packet_size", ft);
+	ret = bt_field_class_structure_append_member(packet_context_type,
+		"packet_size", fc);
 	BT_ASSERT(ret == 0);
-	bt_put(ft);
-	ft = bt_field_type_unsigned_integer_create();
-	BT_ASSERT(ft);
-	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	bt_put(fc);
+	fc = bt_field_class_unsigned_integer_create();
+	BT_ASSERT(fc);
+	ret = bt_field_class_integer_set_field_value_range(fc, 32);
 	BT_ASSERT(ret == 0);
-	ret = bt_field_type_structure_append_member(packet_context_type,
-		"content_size", ft);
+	ret = bt_field_class_structure_append_member(packet_context_type,
+		"content_size", fc);
 	BT_ASSERT(ret == 0);
-	bt_put(ft);
-	event_header_type = bt_field_type_structure_create();
+	bt_put(fc);
+	event_header_type = bt_field_class_structure_create();
 	BT_ASSERT(event_header_type);
-	ft = bt_field_type_unsigned_integer_create();
-	BT_ASSERT(ft);
-	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	fc = bt_field_class_unsigned_integer_create();
+	BT_ASSERT(fc);
+	ret = bt_field_class_integer_set_field_value_range(fc, 32);
 	BT_ASSERT(ret == 0);
-	ret = bt_field_type_structure_append_member(event_header_type,
-		"id", ft);
+	ret = bt_field_class_structure_append_member(event_header_type,
+		"id", fc);
 	BT_ASSERT(ret == 0);
-	bt_put(ft);
-	ret = bt_stream_class_set_packet_context_field_type(stream_class,
+	bt_put(fc);
+	ret = bt_stream_class_set_packet_context_field_class(stream_class,
 		packet_context_type);
 	BT_ASSERT(ret == 0);
-	ret = bt_stream_class_set_event_header_field_type(stream_class,
+	ret = bt_stream_class_set_event_header_field_class(stream_class,
 		event_header_type);
 	BT_ASSERT(ret == 0);
 	bt_put(packet_context_type);
@@ -258,7 +258,7 @@ static void create_sc1(struct bt_trace *trace)
 	BT_ASSERT(sc1);
 	ret = bt_stream_class_set_name(sc1, "sc1");
 	BT_ASSERT(ret == 0);
-	set_stream_class_field_types(sc1);
+	set_stream_class_field_classes(sc1);
 	ec1 = create_complex_event(sc1, "ec1");
 	BT_ASSERT(ec1);
 	ec2 = create_simple_event(sc1, "ec2");
@@ -282,7 +282,7 @@ static void create_sc2(struct bt_trace *trace)
 	BT_ASSERT(sc2);
 	ret = bt_stream_class_set_name(sc2, "sc2");
 	BT_ASSERT(ret == 0);
-	set_stream_class_field_types(sc2);
+	set_stream_class_field_classes(sc2);
 	ec3 = create_simple_event(sc2, "ec3");
 	ret_stream = bt_event_class_borrow_stream_class(ec3);
 	ok(ret_stream == sc2, "Borrow parent stream SC2 from EC3");
@@ -292,21 +292,21 @@ static void create_sc2(struct bt_trace *trace)
 
 static void set_trace_packet_header(struct bt_trace *trace)
 {
-	struct bt_field_type *packet_header_type;
-	struct bt_field_type *ft;
+	struct bt_field_class *packet_header_type;
+	struct bt_field_class *fc;
 	int ret;
 
-	packet_header_type = bt_field_type_structure_create();
+	packet_header_type = bt_field_class_structure_create();
 	BT_ASSERT(packet_header_type);
-	ft = bt_field_type_unsigned_integer_create();
-	BT_ASSERT(ft);
-	ret = bt_field_type_integer_set_field_value_range(ft, 32);
+	fc = bt_field_class_unsigned_integer_create();
+	BT_ASSERT(fc);
+	ret = bt_field_class_integer_set_field_value_range(fc, 32);
 	BT_ASSERT(ret == 0);
-	ret = bt_field_type_structure_append_member(packet_header_type,
-		"stream_id", ft);
+	ret = bt_field_class_structure_append_member(packet_header_type,
+		"stream_id", fc);
 	BT_ASSERT(ret == 0);
-	bt_put(ft);
-	ret = bt_trace_set_packet_header_field_type(trace,
+	bt_put(fc);
+	ret = bt_trace_set_packet_header_field_class(trace,
 		packet_header_type);
 	BT_ASSERT(ret == 0);
 

@@ -26,49 +26,49 @@
 #include "ctf-meta-visitors.h"
 
 static inline
-int find_mapped_clock_class(struct ctf_field_type *ft,
+int find_mapped_clock_class(struct ctf_field_class *fc,
 		struct bt_clock_class **clock_class)
 {
 	int ret = 0;
 	uint64_t i;
 
-	if (!ft) {
+	if (!fc) {
 		goto end;
 	}
 
-	switch (ft->id) {
-	case CTF_FIELD_TYPE_ID_INT:
-	case CTF_FIELD_TYPE_ID_ENUM:
+	switch (fc->id) {
+	case CTF_FIELD_CLASS_ID_INT:
+	case CTF_FIELD_CLASS_ID_ENUM:
 	{
-		struct ctf_field_type_int *int_ft = (void *) ft;
+		struct ctf_field_class_int *int_fc = (void *) fc;
 
-		if (int_ft->mapped_clock_class) {
+		if (int_fc->mapped_clock_class) {
 			if (*clock_class && *clock_class !=
-					int_ft->mapped_clock_class) {
+					int_fc->mapped_clock_class) {
 				BT_LOGE("Stream class contains more than one "
 					"clock class: expected-cc-name=\"%s\", "
 					"other-cc-name=\"%s\"",
 					bt_clock_class_get_name(*clock_class),
-					bt_clock_class_get_name(int_ft->mapped_clock_class));
+					bt_clock_class_get_name(int_fc->mapped_clock_class));
 				ret = -1;
 				goto end;
 			}
 
-			*clock_class = int_ft->mapped_clock_class;
+			*clock_class = int_fc->mapped_clock_class;
 		}
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_STRUCT:
+	case CTF_FIELD_CLASS_ID_STRUCT:
 	{
-		struct ctf_field_type_struct *struct_ft = (void *) ft;
+		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
-		for (i = 0; i < struct_ft->members->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				ctf_field_type_struct_borrow_member_by_index(
-					struct_ft, i);
+		for (i = 0; i < struct_fc->members->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_struct_borrow_member_by_index(
+					struct_fc, i);
 
-			ret = find_mapped_clock_class(named_ft->ft,
+			ret = find_mapped_clock_class(named_fc->fc,
 				clock_class);
 			if (ret) {
 				goto end;
@@ -77,16 +77,16 @@ int find_mapped_clock_class(struct ctf_field_type *ft,
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_VARIANT:
+	case CTF_FIELD_CLASS_ID_VARIANT:
 	{
-		struct ctf_field_type_variant *var_ft = (void *) ft;
+		struct ctf_field_class_variant *var_fc = (void *) fc;
 
-		for (i = 0; i < var_ft->options->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				ctf_field_type_variant_borrow_option_by_index(
-					var_ft, i);
+		for (i = 0; i < var_fc->options->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_variant_borrow_option_by_index(
+					var_fc, i);
 
-			ret = find_mapped_clock_class(named_ft->ft,
+			ret = find_mapped_clock_class(named_fc->fc,
 				clock_class);
 			if (ret) {
 				goto end;
@@ -95,12 +95,12 @@ int find_mapped_clock_class(struct ctf_field_type *ft,
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_ARRAY:
-	case CTF_FIELD_TYPE_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_ID_ARRAY:
+	case CTF_FIELD_CLASS_ID_SEQUENCE:
 	{
-		struct ctf_field_type_array_base *array_ft = (void *) ft;
+		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
-		ret = find_mapped_clock_class(array_ft->elem_ft, clock_class);
+		ret = find_mapped_clock_class(array_fc->elem_fc, clock_class);
 		if (ret) {
 			goto end;
 		}
@@ -123,19 +123,19 @@ int update_stream_class_default_clock_class(
 	struct bt_clock_class *clock_class = stream_class->default_clock_class;
 	uint64_t i;
 
-	ret = find_mapped_clock_class(stream_class->packet_context_ft,
+	ret = find_mapped_clock_class(stream_class->packet_context_fc,
 		&clock_class);
 	if (ret) {
 		goto end;
 	}
 
-	ret = find_mapped_clock_class(stream_class->event_header_ft,
+	ret = find_mapped_clock_class(stream_class->event_header_fc,
 		&clock_class);
 	if (ret) {
 		goto end;
 	}
 
-	ret = find_mapped_clock_class(stream_class->event_common_context_ft,
+	ret = find_mapped_clock_class(stream_class->event_common_context_fc,
 		&clock_class);
 	if (ret) {
 		goto end;
@@ -145,13 +145,13 @@ int update_stream_class_default_clock_class(
 		struct ctf_event_class *event_class =
 			stream_class->event_classes->pdata[i];
 
-		ret = find_mapped_clock_class(event_class->spec_context_ft,
+		ret = find_mapped_clock_class(event_class->spec_context_fc,
 			&clock_class);
 		if (ret) {
 			goto end;
 		}
 
-		ret = find_mapped_clock_class(event_class->payload_ft,
+		ret = find_mapped_clock_class(event_class->payload_fc,
 			&clock_class);
 		if (ret) {
 			goto end;
@@ -173,7 +173,7 @@ int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc)
 	int ret = 0;
 	struct bt_clock_class *clock_class = NULL;
 
-	ret = find_mapped_clock_class(ctf_tc->packet_header_ft,
+	ret = find_mapped_clock_class(ctf_tc->packet_header_fc,
 		&clock_class);
 	if (ret) {
 		goto end;

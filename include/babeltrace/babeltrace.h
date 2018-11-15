@@ -49,15 +49,27 @@
 #include <babeltrace/ctf-writer/visitor.h>
 #include <babeltrace/ctf-writer/writer.h>
 
+/* Legacy API (for CTF writer) */
+#include <babeltrace/ctf-ir/clock.h>
+#include <babeltrace/ctf-ir/event-class.h>
+#include <babeltrace/ctf-ir/event-fields.h>
+#include <babeltrace/ctf-ir/event-types.h>
+#include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/ctf-ir/field-types.h>
+#include <babeltrace/ctf-ir/fields.h>
+#include <babeltrace/ctf-ir/stream-class.h>
+#include <babeltrace/ctf-ir/stream.h>
+#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/ctf-ir/utils.h>
+
 /* Trace IR API */
 #include <babeltrace/trace-ir/clock-class.h>
 #include <babeltrace/trace-ir/clock-value.h>
-#include <babeltrace/trace-ir/clock.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event-header-field.h>
 #include <babeltrace/trace-ir/event.h>
+#include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/field-path.h>
-#include <babeltrace/trace-ir/field-types.h>
 #include <babeltrace/trace-ir/fields.h>
 #include <babeltrace/trace-ir/packet-context-field.h>
 #include <babeltrace/trace-ir/packet-header-field.h>

@@ -22,30 +22,30 @@
 #include <stdint.h>
 #include <string.h>
 
-enum ctf_field_type_id {
-	CTF_FIELD_TYPE_ID_INT,
-	CTF_FIELD_TYPE_ID_ENUM,
-	CTF_FIELD_TYPE_ID_FLOAT,
-	CTF_FIELD_TYPE_ID_STRING,
-	CTF_FIELD_TYPE_ID_STRUCT,
-	CTF_FIELD_TYPE_ID_ARRAY,
-	CTF_FIELD_TYPE_ID_SEQUENCE,
-	CTF_FIELD_TYPE_ID_VARIANT,
+enum ctf_field_class_id {
+	CTF_FIELD_CLASS_ID_INT,
+	CTF_FIELD_CLASS_ID_ENUM,
+	CTF_FIELD_CLASS_ID_FLOAT,
+	CTF_FIELD_CLASS_ID_STRING,
+	CTF_FIELD_CLASS_ID_STRUCT,
+	CTF_FIELD_CLASS_ID_ARRAY,
+	CTF_FIELD_CLASS_ID_SEQUENCE,
+	CTF_FIELD_CLASS_ID_VARIANT,
 };
 
-enum ctf_field_type_meaning {
-	CTF_FIELD_TYPE_MEANING_NONE,
-	CTF_FIELD_TYPE_MEANING_PACKET_BEGINNING_TIME,
-	CTF_FIELD_TYPE_MEANING_PACKET_END_TIME,
-	CTF_FIELD_TYPE_MEANING_EVENT_CLASS_ID,
-	CTF_FIELD_TYPE_MEANING_STREAM_CLASS_ID,
-	CTF_FIELD_TYPE_MEANING_DATA_STREAM_ID,
-	CTF_FIELD_TYPE_MEANING_MAGIC,
-	CTF_FIELD_TYPE_MEANING_PACKET_COUNTER_SNAPSHOT,
-	CTF_FIELD_TYPE_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT,
-	CTF_FIELD_TYPE_MEANING_EXP_PACKET_TOTAL_SIZE,
-	CTF_FIELD_TYPE_MEANING_EXP_PACKET_CONTENT_SIZE,
-	CTF_FIELD_TYPE_MEANING_UUID,
+enum ctf_field_class_meaning {
+	CTF_FIELD_CLASS_MEANING_NONE,
+	CTF_FIELD_CLASS_MEANING_PACKET_BEGINNING_TIME,
+	CTF_FIELD_CLASS_MEANING_PACKET_END_TIME,
+	CTF_FIELD_CLASS_MEANING_EVENT_CLASS_ID,
+	CTF_FIELD_CLASS_MEANING_STREAM_CLASS_ID,
+	CTF_FIELD_CLASS_MEANING_DATA_STREAM_ID,
+	CTF_FIELD_CLASS_MEANING_MAGIC,
+	CTF_FIELD_CLASS_MEANING_PACKET_COUNTER_SNAPSHOT,
+	CTF_FIELD_CLASS_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT,
+	CTF_FIELD_CLASS_MEANING_EXP_PACKET_TOTAL_SIZE,
+	CTF_FIELD_CLASS_MEANING_EXP_PACKET_CONTENT_SIZE,
+	CTF_FIELD_CLASS_MEANING_UUID,
 };
 
 enum ctf_byte_order {
@@ -59,27 +59,27 @@ enum ctf_encoding {
 	CTF_ENCODING_UTF8,
 };
 
-struct ctf_field_type {
-	enum ctf_field_type_id id;
+struct ctf_field_class {
+	enum ctf_field_class_id id;
 	unsigned int alignment;
 	bool is_compound;
 	bool in_ir;
 
 	/* Weak, set during translation. NULL if `in_ir` is false below. */
-	struct bt_field_type *ir_ft;
+	struct bt_field_class *ir_fc;
 };
 
-struct ctf_field_type_bit_array {
-	struct ctf_field_type base;
+struct ctf_field_class_bit_array {
+	struct ctf_field_class base;
 	enum ctf_byte_order byte_order;
 	unsigned int size;
 };
 
-struct ctf_field_type_int {
-	struct ctf_field_type_bit_array base;
-	enum ctf_field_type_meaning meaning;
+struct ctf_field_class_int {
+	struct ctf_field_class_bit_array base;
+	enum ctf_field_class_meaning meaning;
 	bool is_signed;
-	enum bt_field_type_integer_preferred_display_base disp_base;
+	enum bt_field_class_integer_preferred_display_base disp_base;
 	enum ctf_encoding encoding;
 	int64_t storing_index;
 
@@ -99,38 +99,38 @@ struct ctf_range {
 	} upper;
 };
 
-struct ctf_field_type_enum_mapping {
+struct ctf_field_class_enum_mapping {
 	GString *label;
 	struct ctf_range range;
 };
 
-struct ctf_field_type_enum {
-	struct ctf_field_type_int base;
+struct ctf_field_class_enum {
+	struct ctf_field_class_int base;
 
-	/* Array of `struct ctf_field_type_enum_mapping` */
+	/* Array of `struct ctf_field_class_enum_mapping` */
 	GArray *mappings;
 };
 
-struct ctf_field_type_float {
-	struct ctf_field_type_bit_array base;
+struct ctf_field_class_float {
+	struct ctf_field_class_bit_array base;
 };
 
-struct ctf_field_type_string {
-	struct ctf_field_type base;
+struct ctf_field_class_string {
+	struct ctf_field_class base;
 	enum ctf_encoding encoding;
 };
 
-struct ctf_named_field_type {
+struct ctf_named_field_class {
 	GString *name;
 
 	/* Owned by this */
-	struct ctf_field_type *ft;
+	struct ctf_field_class *fc;
 };
 
-struct ctf_field_type_struct {
-	struct ctf_field_type base;
+struct ctf_field_class_struct {
+	struct ctf_field_class base;
 
-	/* Array of `struct ctf_named_field_type` */
+	/* Array of `struct ctf_named_field_class` */
 	GArray *members;
 };
 
@@ -141,47 +141,47 @@ struct ctf_field_path {
 	GArray *path;
 };
 
-struct ctf_field_type_variant_range {
+struct ctf_field_class_variant_range {
 	struct ctf_range range;
 	uint64_t option_index;
 };
 
-struct ctf_field_type_variant {
-	struct ctf_field_type base;
+struct ctf_field_class_variant {
+	struct ctf_field_class base;
 	GString *tag_ref;
 	struct ctf_field_path tag_path;
 	uint64_t stored_tag_index;
 
-	/* Array of `struct ctf_named_field_type` */
+	/* Array of `struct ctf_named_field_class` */
 	GArray *options;
 
-	/* Array of `struct ctf_field_type_variant_range` */
+	/* Array of `struct ctf_field_class_variant_range` */
 	GArray *ranges;
 
 	/* Weak */
-	struct ctf_field_type_enum *tag_ft;
+	struct ctf_field_class_enum *tag_fc;
 };
 
-struct ctf_field_type_array_base {
-	struct ctf_field_type base;
-	struct ctf_field_type *elem_ft;
+struct ctf_field_class_array_base {
+	struct ctf_field_class base;
+	struct ctf_field_class *elem_fc;
 	bool is_text;
 };
 
-struct ctf_field_type_array {
-	struct ctf_field_type_array_base base;
-	enum ctf_field_type_meaning meaning;
+struct ctf_field_class_array {
+	struct ctf_field_class_array_base base;
+	enum ctf_field_class_meaning meaning;
 	uint64_t length;
 };
 
-struct ctf_field_type_sequence {
-	struct ctf_field_type_array_base base;
+struct ctf_field_class_sequence {
+	struct ctf_field_class_array_base base;
 	GString *length_ref;
 	struct ctf_field_path length_path;
 	uint64_t stored_length_index;
 
 	/* Weak */
-	struct ctf_field_type_int *length_ft;
+	struct ctf_field_class_int *length_fc;
 };
 
 struct ctf_event_class {
@@ -192,10 +192,10 @@ struct ctf_event_class {
 	bool is_translated;
 
 	/* Owned by this */
-	struct ctf_field_type *spec_context_ft;
+	struct ctf_field_class *spec_context_fc;
 
 	/* Owned by this */
-	struct ctf_field_type *payload_ft;
+	struct ctf_field_class *payload_fc;
 
 	/* Weak, set during translation */
 	struct bt_event_class *ir_ec;
@@ -206,13 +206,13 @@ struct ctf_stream_class {
 	bool is_translated;
 
 	/* Owned by this */
-	struct ctf_field_type *packet_context_ft;
+	struct ctf_field_class *packet_context_fc;
 
 	/* Owned by this */
-	struct ctf_field_type *event_header_ft;
+	struct ctf_field_class *event_header_fc;
 
 	/* Owned by this */
-	struct ctf_field_type *event_common_context_ft;
+	struct ctf_field_class *event_common_context_fc;
 
 	/* Array of `struct ctf_event_class *`, owned by this */
 	GPtrArray *event_classes;
@@ -254,7 +254,7 @@ struct ctf_trace_class {
 	enum ctf_byte_order default_byte_order;
 
 	/* Owned by this */
-	struct ctf_field_type *packet_header_ft;
+	struct ctf_field_class *packet_header_fc;
 
 	uint64_t stored_value_count;
 
@@ -274,32 +274,32 @@ struct ctf_trace_class {
 };
 
 static inline
-void ctf_field_type_destroy(struct ctf_field_type *ft);
+void ctf_field_class_destroy(struct ctf_field_class *fc);
 
 static inline
-void _ctf_field_type_init(struct ctf_field_type *ft, enum ctf_field_type_id id,
+void _ctf_field_class_init(struct ctf_field_class *fc, enum ctf_field_class_id id,
 		unsigned int alignment)
 {
-	BT_ASSERT(ft);
-	ft->id = id;
-	ft->alignment = alignment;
-	ft->in_ir = false;
+	BT_ASSERT(fc);
+	fc->id = id;
+	fc->alignment = alignment;
+	fc->in_ir = false;
 }
 
 static inline
-void _ctf_field_type_bit_array_init(struct ctf_field_type_bit_array *ft,
-		enum ctf_field_type_id id)
+void _ctf_field_class_bit_array_init(struct ctf_field_class_bit_array *fc,
+		enum ctf_field_class_id id)
 {
-	_ctf_field_type_init((void *) ft, id, 1);
+	_ctf_field_class_init((void *) fc, id, 1);
 }
 
 static inline
-void _ctf_field_type_int_init(struct ctf_field_type_int *ft,
-		enum ctf_field_type_id id)
+void _ctf_field_class_int_init(struct ctf_field_class_int *fc,
+		enum ctf_field_class_id id)
 {
-	_ctf_field_type_bit_array_init((void *) ft, id);
-	ft->meaning = CTF_FIELD_TYPE_MEANING_NONE;
-	ft->storing_index = -1;
+	_ctf_field_class_bit_array_init((void *) fc, id);
+	fc->meaning = CTF_FIELD_CLASS_MEANING_NONE;
+	fc->storing_index = -1;
 }
 
 static inline
@@ -321,28 +321,28 @@ void ctf_field_path_fini(struct ctf_field_path *field_path)
 }
 
 static inline
-void _ctf_named_field_type_init(struct ctf_named_field_type *named_ft)
+void _ctf_named_field_class_init(struct ctf_named_field_class *named_fc)
 {
-	BT_ASSERT(named_ft);
-	named_ft->name = g_string_new(NULL);
-	BT_ASSERT(named_ft->name);
+	BT_ASSERT(named_fc);
+	named_fc->name = g_string_new(NULL);
+	BT_ASSERT(named_fc->name);
 }
 
 static inline
-void _ctf_named_field_type_fini(struct ctf_named_field_type *named_ft)
+void _ctf_named_field_class_fini(struct ctf_named_field_class *named_fc)
 {
-	BT_ASSERT(named_ft);
+	BT_ASSERT(named_fc);
 
-	if (named_ft->name) {
-		g_string_free(named_ft->name, TRUE);
+	if (named_fc->name) {
+		g_string_free(named_fc->name, TRUE);
 	}
 
-	ctf_field_type_destroy(named_ft->ft);
+	ctf_field_class_destroy(named_fc->fc);
 }
 
 static inline
-void _ctf_field_type_enum_mapping_init(
-		struct ctf_field_type_enum_mapping *mapping)
+void _ctf_field_class_enum_mapping_init(
+		struct ctf_field_class_enum_mapping *mapping)
 {
 	BT_ASSERT(mapping);
 	mapping->label = g_string_new(NULL);
@@ -350,8 +350,8 @@ void _ctf_field_type_enum_mapping_init(
 }
 
 static inline
-void _ctf_field_type_enum_mapping_fini(
-		struct ctf_field_type_enum_mapping *mapping)
+void _ctf_field_class_enum_mapping_fini(
+		struct ctf_field_class_enum_mapping *mapping)
 {
 	BT_ASSERT(mapping);
 
@@ -361,271 +361,271 @@ void _ctf_field_type_enum_mapping_fini(
 }
 
 static inline
-struct ctf_field_type_int *ctf_field_type_int_create(void)
+struct ctf_field_class_int *ctf_field_class_int_create(void)
 {
-	struct ctf_field_type_int *ft = g_new0(struct ctf_field_type_int, 1);
+	struct ctf_field_class_int *fc = g_new0(struct ctf_field_class_int, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_int_init(ft, CTF_FIELD_TYPE_ID_INT);
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_int_init(fc, CTF_FIELD_CLASS_ID_INT);
+	return fc;
 }
 
 static inline
-struct ctf_field_type_float *ctf_field_type_float_create(void)
+struct ctf_field_class_float *ctf_field_class_float_create(void)
 {
-	struct ctf_field_type_float *ft =
-		g_new0(struct ctf_field_type_float, 1);
+	struct ctf_field_class_float *fc =
+		g_new0(struct ctf_field_class_float, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_bit_array_init((void *) ft, CTF_FIELD_TYPE_ID_FLOAT);
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_bit_array_init((void *) fc, CTF_FIELD_CLASS_ID_FLOAT);
+	return fc;
 }
 
 static inline
-struct ctf_field_type_string *ctf_field_type_string_create(void)
+struct ctf_field_class_string *ctf_field_class_string_create(void)
 {
-	struct ctf_field_type_string *ft =
-		g_new0(struct ctf_field_type_string, 1);
+	struct ctf_field_class_string *fc =
+		g_new0(struct ctf_field_class_string, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_init((void *) ft, CTF_FIELD_TYPE_ID_STRING, 8);
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_init((void *) fc, CTF_FIELD_CLASS_ID_STRING, 8);
+	return fc;
 }
 
 static inline
-struct ctf_field_type_enum *ctf_field_type_enum_create(void)
+struct ctf_field_class_enum *ctf_field_class_enum_create(void)
 {
-	struct ctf_field_type_enum *ft = g_new0(struct ctf_field_type_enum, 1);
+	struct ctf_field_class_enum *fc = g_new0(struct ctf_field_class_enum, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_int_init((void *) ft, CTF_FIELD_TYPE_ID_ENUM);
-	ft->mappings = g_array_new(FALSE, TRUE,
-		sizeof(struct ctf_field_type_enum_mapping));
-	BT_ASSERT(ft->mappings);
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_int_init((void *) fc, CTF_FIELD_CLASS_ID_ENUM);
+	fc->mappings = g_array_new(FALSE, TRUE,
+		sizeof(struct ctf_field_class_enum_mapping));
+	BT_ASSERT(fc->mappings);
+	return fc;
 }
 
 static inline
-struct ctf_field_type_struct *ctf_field_type_struct_create(void)
+struct ctf_field_class_struct *ctf_field_class_struct_create(void)
 {
-	struct ctf_field_type_struct *ft =
-		g_new0(struct ctf_field_type_struct, 1);
+	struct ctf_field_class_struct *fc =
+		g_new0(struct ctf_field_class_struct, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_init((void *) ft, CTF_FIELD_TYPE_ID_STRUCT, 1);
-	ft->members = g_array_new(FALSE, TRUE,
-		sizeof(struct ctf_named_field_type));
-	BT_ASSERT(ft->members);
-	ft->base.is_compound = true;
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_init((void *) fc, CTF_FIELD_CLASS_ID_STRUCT, 1);
+	fc->members = g_array_new(FALSE, TRUE,
+		sizeof(struct ctf_named_field_class));
+	BT_ASSERT(fc->members);
+	fc->base.is_compound = true;
+	return fc;
 }
 
 static inline
-struct ctf_field_type_variant *ctf_field_type_variant_create(void)
+struct ctf_field_class_variant *ctf_field_class_variant_create(void)
 {
-	struct ctf_field_type_variant *ft =
-		g_new0(struct ctf_field_type_variant, 1);
+	struct ctf_field_class_variant *fc =
+		g_new0(struct ctf_field_class_variant, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_init((void *) ft, CTF_FIELD_TYPE_ID_VARIANT, 1);
-	ft->options = g_array_new(FALSE, TRUE,
-		sizeof(struct ctf_named_field_type));
-	BT_ASSERT(ft->options);
-	ft->ranges = g_array_new(FALSE, TRUE,
-		sizeof(struct ctf_field_type_variant_range));
-	BT_ASSERT(ft->ranges);
-	ft->tag_ref = g_string_new(NULL);
-	BT_ASSERT(ft->tag_ref);
-	ctf_field_path_init(&ft->tag_path);
-	ft->base.is_compound = true;
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_init((void *) fc, CTF_FIELD_CLASS_ID_VARIANT, 1);
+	fc->options = g_array_new(FALSE, TRUE,
+		sizeof(struct ctf_named_field_class));
+	BT_ASSERT(fc->options);
+	fc->ranges = g_array_new(FALSE, TRUE,
+		sizeof(struct ctf_field_class_variant_range));
+	BT_ASSERT(fc->ranges);
+	fc->tag_ref = g_string_new(NULL);
+	BT_ASSERT(fc->tag_ref);
+	ctf_field_path_init(&fc->tag_path);
+	fc->base.is_compound = true;
+	return fc;
 }
 
 static inline
-struct ctf_field_type_array *ctf_field_type_array_create(void)
+struct ctf_field_class_array *ctf_field_class_array_create(void)
 {
-	struct ctf_field_type_array *ft =
-		g_new0(struct ctf_field_type_array, 1);
+	struct ctf_field_class_array *fc =
+		g_new0(struct ctf_field_class_array, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_init((void *) ft, CTF_FIELD_TYPE_ID_ARRAY, 1);
-	ft->base.base.is_compound = true;
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_init((void *) fc, CTF_FIELD_CLASS_ID_ARRAY, 1);
+	fc->base.base.is_compound = true;
+	return fc;
 }
 
 static inline
-struct ctf_field_type_sequence *ctf_field_type_sequence_create(void)
+struct ctf_field_class_sequence *ctf_field_class_sequence_create(void)
 {
-	struct ctf_field_type_sequence *ft =
-		g_new0(struct ctf_field_type_sequence, 1);
+	struct ctf_field_class_sequence *fc =
+		g_new0(struct ctf_field_class_sequence, 1);
 
-	BT_ASSERT(ft);
-	_ctf_field_type_init((void *) ft, CTF_FIELD_TYPE_ID_SEQUENCE, 1);
-	ft->length_ref = g_string_new(NULL);
-	BT_ASSERT(ft->length_ref);
-	ctf_field_path_init(&ft->length_path);
-	ft->base.base.is_compound = true;
-	return ft;
+	BT_ASSERT(fc);
+	_ctf_field_class_init((void *) fc, CTF_FIELD_CLASS_ID_SEQUENCE, 1);
+	fc->length_ref = g_string_new(NULL);
+	BT_ASSERT(fc->length_ref);
+	ctf_field_path_init(&fc->length_path);
+	fc->base.base.is_compound = true;
+	return fc;
 }
 
 static inline
-void _ctf_field_type_int_destroy(struct ctf_field_type_int *ft)
+void _ctf_field_class_int_destroy(struct ctf_field_class_int *fc)
 {
-	BT_ASSERT(ft);
-	bt_put(ft->mapped_clock_class);
-	g_free(ft);
+	BT_ASSERT(fc);
+	bt_put(fc->mapped_clock_class);
+	g_free(fc);
 }
 
 static inline
-void _ctf_field_type_enum_destroy(struct ctf_field_type_enum *ft)
+void _ctf_field_class_enum_destroy(struct ctf_field_class_enum *fc)
 {
-	BT_ASSERT(ft);
-	bt_put(ft->base.mapped_clock_class);
+	BT_ASSERT(fc);
+	bt_put(fc->base.mapped_clock_class);
 
-	if (ft->mappings) {
+	if (fc->mappings) {
 		uint64_t i;
 
-		for (i = 0; i < ft->mappings->len; i++) {
-			struct ctf_field_type_enum_mapping *mapping =
-				&g_array_index(ft->mappings,
-					struct ctf_field_type_enum_mapping, i);
+		for (i = 0; i < fc->mappings->len; i++) {
+			struct ctf_field_class_enum_mapping *mapping =
+				&g_array_index(fc->mappings,
+					struct ctf_field_class_enum_mapping, i);
 
-			_ctf_field_type_enum_mapping_fini(mapping);
+			_ctf_field_class_enum_mapping_fini(mapping);
 		}
 
-		g_array_free(ft->mappings, TRUE);
+		g_array_free(fc->mappings, TRUE);
 	}
 
-	g_free(ft);
+	g_free(fc);
 }
 
 static inline
-void _ctf_field_type_float_destroy(struct ctf_field_type_float *ft)
+void _ctf_field_class_float_destroy(struct ctf_field_class_float *fc)
 {
-	BT_ASSERT(ft);
-	g_free(ft);
+	BT_ASSERT(fc);
+	g_free(fc);
 }
 
 static inline
-void _ctf_field_type_string_destroy(struct ctf_field_type_string *ft)
+void _ctf_field_class_string_destroy(struct ctf_field_class_string *fc)
 {
-	BT_ASSERT(ft);
-	g_free(ft);
+	BT_ASSERT(fc);
+	g_free(fc);
 }
 
 static inline
-void _ctf_field_type_struct_destroy(struct ctf_field_type_struct *ft)
+void _ctf_field_class_struct_destroy(struct ctf_field_class_struct *fc)
 {
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 
-	if (ft->members) {
+	if (fc->members) {
 		uint64_t i;
 
-		for (i = 0; i < ft->members->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				&g_array_index(ft->members,
-					struct ctf_named_field_type, i);
+		for (i = 0; i < fc->members->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				&g_array_index(fc->members,
+					struct ctf_named_field_class, i);
 
-			_ctf_named_field_type_fini(named_ft);
+			_ctf_named_field_class_fini(named_fc);
 		}
 
-		g_array_free(ft->members, TRUE);
+		g_array_free(fc->members, TRUE);
 	}
 
-	g_free(ft);
+	g_free(fc);
 }
 
 static inline
-void _ctf_field_type_array_base_fini(struct ctf_field_type_array_base *ft)
+void _ctf_field_class_array_base_fini(struct ctf_field_class_array_base *fc)
 {
-	BT_ASSERT(ft);
-	ctf_field_type_destroy(ft->elem_ft);
+	BT_ASSERT(fc);
+	ctf_field_class_destroy(fc->elem_fc);
 }
 
 static inline
-void _ctf_field_type_array_destroy(struct ctf_field_type_array *ft)
+void _ctf_field_class_array_destroy(struct ctf_field_class_array *fc)
 {
-	BT_ASSERT(ft);
-	_ctf_field_type_array_base_fini((void *) ft);
-	g_free(ft);
+	BT_ASSERT(fc);
+	_ctf_field_class_array_base_fini((void *) fc);
+	g_free(fc);
 }
 
 static inline
-void _ctf_field_type_sequence_destroy(struct ctf_field_type_sequence *ft)
+void _ctf_field_class_sequence_destroy(struct ctf_field_class_sequence *fc)
 {
-	BT_ASSERT(ft);
-	_ctf_field_type_array_base_fini((void *) ft);
+	BT_ASSERT(fc);
+	_ctf_field_class_array_base_fini((void *) fc);
 
-	if (ft->length_ref) {
-		g_string_free(ft->length_ref, TRUE);
+	if (fc->length_ref) {
+		g_string_free(fc->length_ref, TRUE);
 	}
 
-	ctf_field_path_fini(&ft->length_path);
-	g_free(ft);
+	ctf_field_path_fini(&fc->length_path);
+	g_free(fc);
 }
 
 static inline
-void _ctf_field_type_variant_destroy(struct ctf_field_type_variant *ft)
+void _ctf_field_class_variant_destroy(struct ctf_field_class_variant *fc)
 {
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 
-	if (ft->options) {
+	if (fc->options) {
 		uint64_t i;
 
-		for (i = 0; i < ft->options->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				&g_array_index(ft->options,
-					struct ctf_named_field_type, i);
+		for (i = 0; i < fc->options->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				&g_array_index(fc->options,
+					struct ctf_named_field_class, i);
 
-			_ctf_named_field_type_fini(named_ft);
+			_ctf_named_field_class_fini(named_fc);
 		}
 
-		g_array_free(ft->options, TRUE);
+		g_array_free(fc->options, TRUE);
 	}
 
-	if (ft->ranges) {
-		g_array_free(ft->ranges, TRUE);
+	if (fc->ranges) {
+		g_array_free(fc->ranges, TRUE);
 	}
 
-	if (ft->tag_ref) {
-		g_string_free(ft->tag_ref, TRUE);
+	if (fc->tag_ref) {
+		g_string_free(fc->tag_ref, TRUE);
 	}
 
-	ctf_field_path_fini(&ft->tag_path);
-	g_free(ft);
+	ctf_field_path_fini(&fc->tag_path);
+	g_free(fc);
 }
 
 static inline
-void ctf_field_type_destroy(struct ctf_field_type *ft)
+void ctf_field_class_destroy(struct ctf_field_class *fc)
 {
-	if (!ft) {
+	if (!fc) {
 		return;
 	}
 
-	switch (ft->id) {
-	case CTF_FIELD_TYPE_ID_INT:
-		_ctf_field_type_int_destroy((void *) ft);
+	switch (fc->id) {
+	case CTF_FIELD_CLASS_ID_INT:
+		_ctf_field_class_int_destroy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_ENUM:
-		_ctf_field_type_enum_destroy((void *) ft);
+	case CTF_FIELD_CLASS_ID_ENUM:
+		_ctf_field_class_enum_destroy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_FLOAT:
-		_ctf_field_type_float_destroy((void *) ft);
+	case CTF_FIELD_CLASS_ID_FLOAT:
+		_ctf_field_class_float_destroy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_STRING:
-		_ctf_field_type_string_destroy((void *) ft);
+	case CTF_FIELD_CLASS_ID_STRING:
+		_ctf_field_class_string_destroy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_STRUCT:
-		_ctf_field_type_struct_destroy((void *) ft);
+	case CTF_FIELD_CLASS_ID_STRUCT:
+		_ctf_field_class_struct_destroy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_ARRAY:
-		_ctf_field_type_array_destroy((void *) ft);
+	case CTF_FIELD_CLASS_ID_ARRAY:
+		_ctf_field_class_array_destroy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_SEQUENCE:
-		_ctf_field_type_sequence_destroy((void *) ft);
+	case CTF_FIELD_CLASS_ID_SEQUENCE:
+		_ctf_field_class_sequence_destroy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_VARIANT:
-		_ctf_field_type_variant_destroy((void *) ft);
+	case CTF_FIELD_CLASS_ID_VARIANT:
+		_ctf_field_class_variant_destroy((void *) fc);
 		break;
 	default:
 		abort();
@@ -633,296 +633,296 @@ void ctf_field_type_destroy(struct ctf_field_type *ft)
 }
 
 static inline
-void ctf_field_type_enum_append_mapping(struct ctf_field_type_enum *ft,
+void ctf_field_class_enum_append_mapping(struct ctf_field_class_enum *fc,
 		const char *label, uint64_t u_lower, uint64_t u_upper)
 {
-	struct ctf_field_type_enum_mapping *mapping;
+	struct ctf_field_class_enum_mapping *mapping;
 
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 	BT_ASSERT(label);
-	g_array_set_size(ft->mappings, ft->mappings->len + 1);
+	g_array_set_size(fc->mappings, fc->mappings->len + 1);
 
-	mapping = &g_array_index(ft->mappings,
-		struct ctf_field_type_enum_mapping, ft->mappings->len - 1);
-	_ctf_field_type_enum_mapping_init(mapping);
+	mapping = &g_array_index(fc->mappings,
+		struct ctf_field_class_enum_mapping, fc->mappings->len - 1);
+	_ctf_field_class_enum_mapping_init(mapping);
 	g_string_assign(mapping->label, label);
 	mapping->range.lower.u = u_lower;
 	mapping->range.upper.u = u_upper;
 }
 
 static inline
-struct ctf_field_type_enum_mapping *ctf_field_type_enum_borrow_mapping_by_index(
-		struct ctf_field_type_enum *ft, uint64_t index)
+struct ctf_field_class_enum_mapping *ctf_field_class_enum_borrow_mapping_by_index(
+		struct ctf_field_class_enum *fc, uint64_t index)
 {
-	BT_ASSERT(ft);
-	BT_ASSERT(index < ft->mappings->len);
-	return &g_array_index(ft->mappings, struct ctf_field_type_enum_mapping,
+	BT_ASSERT(fc);
+	BT_ASSERT(index < fc->mappings->len);
+	return &g_array_index(fc->mappings, struct ctf_field_class_enum_mapping,
 		index);
 }
 
 static inline
-struct ctf_named_field_type *ctf_field_type_struct_borrow_member_by_index(
-		struct ctf_field_type_struct *ft, uint64_t index)
+struct ctf_named_field_class *ctf_field_class_struct_borrow_member_by_index(
+		struct ctf_field_class_struct *fc, uint64_t index)
 {
-	BT_ASSERT(ft);
-	BT_ASSERT(index < ft->members->len);
-	return &g_array_index(ft->members, struct ctf_named_field_type,
+	BT_ASSERT(fc);
+	BT_ASSERT(index < fc->members->len);
+	return &g_array_index(fc->members, struct ctf_named_field_class,
 		index);
 }
 
 static inline
-struct ctf_named_field_type *ctf_field_type_struct_borrow_member_by_name(
-		struct ctf_field_type_struct *ft, const char *name)
+struct ctf_named_field_class *ctf_field_class_struct_borrow_member_by_name(
+		struct ctf_field_class_struct *fc, const char *name)
 {
 	uint64_t i;
-	struct ctf_named_field_type *ret_named_ft = NULL;
+	struct ctf_named_field_class *ret_named_fc = NULL;
 
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 	BT_ASSERT(name);
 
-	for (i = 0; i < ft->members->len; i++) {
-		struct ctf_named_field_type *named_ft =
-			ctf_field_type_struct_borrow_member_by_index(ft, i);
+	for (i = 0; i < fc->members->len; i++) {
+		struct ctf_named_field_class *named_fc =
+			ctf_field_class_struct_borrow_member_by_index(fc, i);
 
-		if (strcmp(name, named_ft->name->str) == 0) {
-			ret_named_ft = named_ft;
+		if (strcmp(name, named_fc->name->str) == 0) {
+			ret_named_fc = named_fc;
 			goto end;
 		}
 	}
 
 end:
-	return ret_named_ft;
+	return ret_named_fc;
 }
 
 static inline
-struct ctf_field_type *ctf_field_type_struct_borrow_member_field_type_by_name(
-		struct ctf_field_type_struct *struct_ft, const char *name)
+struct ctf_field_class *ctf_field_class_struct_borrow_member_field_class_by_name(
+		struct ctf_field_class_struct *struct_fc, const char *name)
 {
-	struct ctf_named_field_type *named_ft = NULL;
-	struct ctf_field_type *ft = NULL;
+	struct ctf_named_field_class *named_fc = NULL;
+	struct ctf_field_class *fc = NULL;
 
-	if (!struct_ft) {
+	if (!struct_fc) {
 		goto end;
 	}
 
-	named_ft = ctf_field_type_struct_borrow_member_by_name(struct_ft, name);
-	if (!named_ft) {
+	named_fc = ctf_field_class_struct_borrow_member_by_name(struct_fc, name);
+	if (!named_fc) {
 		goto end;
 	}
 
-	ft = named_ft->ft;
+	fc = named_fc->fc;
 
 end:
-	return ft;
+	return fc;
 }
 
 static inline
-struct ctf_field_type_int *
-ctf_field_type_struct_borrow_member_int_field_type_by_name(
-		struct ctf_field_type_struct *struct_ft, const char *name)
+struct ctf_field_class_int *
+ctf_field_class_struct_borrow_member_int_field_class_by_name(
+		struct ctf_field_class_struct *struct_fc, const char *name)
 {
-	struct ctf_field_type_int *int_ft = NULL;
+	struct ctf_field_class_int *int_fc = NULL;
 
-	int_ft = (void *)
-		ctf_field_type_struct_borrow_member_field_type_by_name(
-			struct_ft, name);
-	if (!int_ft) {
+	int_fc = (void *)
+		ctf_field_class_struct_borrow_member_field_class_by_name(
+			struct_fc, name);
+	if (!int_fc) {
 		goto end;
 	}
 
-	if (int_ft->base.base.id != CTF_FIELD_TYPE_ID_INT &&
-			int_ft->base.base.id != CTF_FIELD_TYPE_ID_ENUM) {
-		int_ft = NULL;
+	if (int_fc->base.base.id != CTF_FIELD_CLASS_ID_INT &&
+			int_fc->base.base.id != CTF_FIELD_CLASS_ID_ENUM) {
+		int_fc = NULL;
 		goto end;
 	}
 
 end:
-	return int_ft;
+	return int_fc;
 }
 
 
 static inline
-void ctf_field_type_struct_append_member(struct ctf_field_type_struct *ft,
-		const char *name, struct ctf_field_type *member_ft)
+void ctf_field_class_struct_append_member(struct ctf_field_class_struct *fc,
+		const char *name, struct ctf_field_class *member_fc)
 {
-	struct ctf_named_field_type *named_ft;
+	struct ctf_named_field_class *named_fc;
 
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 	BT_ASSERT(name);
-	g_array_set_size(ft->members, ft->members->len + 1);
+	g_array_set_size(fc->members, fc->members->len + 1);
 
-	named_ft = &g_array_index(ft->members, struct ctf_named_field_type,
-		ft->members->len - 1);
-	_ctf_named_field_type_init(named_ft);
-	g_string_assign(named_ft->name, name);
-	named_ft->ft = member_ft;
+	named_fc = &g_array_index(fc->members, struct ctf_named_field_class,
+		fc->members->len - 1);
+	_ctf_named_field_class_init(named_fc);
+	g_string_assign(named_fc->name, name);
+	named_fc->fc = member_fc;
 
-	if (member_ft->alignment > ft->base.alignment) {
-		ft->base.alignment = member_ft->alignment;
+	if (member_fc->alignment > fc->base.alignment) {
+		fc->base.alignment = member_fc->alignment;
 	}
 }
 
 static inline
-struct ctf_named_field_type *ctf_field_type_variant_borrow_option_by_index(
-		struct ctf_field_type_variant *ft, uint64_t index)
+struct ctf_named_field_class *ctf_field_class_variant_borrow_option_by_index(
+		struct ctf_field_class_variant *fc, uint64_t index)
 {
-	BT_ASSERT(ft);
-	BT_ASSERT(index < ft->options->len);
-	return &g_array_index(ft->options, struct ctf_named_field_type,
+	BT_ASSERT(fc);
+	BT_ASSERT(index < fc->options->len);
+	return &g_array_index(fc->options, struct ctf_named_field_class,
 		index);
 }
 
 static inline
-struct ctf_named_field_type *ctf_field_type_variant_borrow_option_by_name(
-		struct ctf_field_type_variant *ft, const char *name)
+struct ctf_named_field_class *ctf_field_class_variant_borrow_option_by_name(
+		struct ctf_field_class_variant *fc, const char *name)
 {
 	uint64_t i;
-	struct ctf_named_field_type *ret_named_ft = NULL;
+	struct ctf_named_field_class *ret_named_fc = NULL;
 
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 	BT_ASSERT(name);
 
-	for (i = 0; i < ft->options->len; i++) {
-		struct ctf_named_field_type *named_ft =
-			ctf_field_type_variant_borrow_option_by_index(ft, i);
+	for (i = 0; i < fc->options->len; i++) {
+		struct ctf_named_field_class *named_fc =
+			ctf_field_class_variant_borrow_option_by_index(fc, i);
 
-		if (strcmp(name, named_ft->name->str) == 0) {
-			ret_named_ft = named_ft;
+		if (strcmp(name, named_fc->name->str) == 0) {
+			ret_named_fc = named_fc;
 			goto end;
 		}
 	}
 
 end:
-	return ret_named_ft;
+	return ret_named_fc;
 }
 
 static inline
-struct ctf_field_type_variant_range *
-ctf_field_type_variant_borrow_range_by_index(
-		struct ctf_field_type_variant *ft, uint64_t index)
+struct ctf_field_class_variant_range *
+ctf_field_class_variant_borrow_range_by_index(
+		struct ctf_field_class_variant *fc, uint64_t index)
 {
-	BT_ASSERT(ft);
-	BT_ASSERT(index < ft->ranges->len);
-	return &g_array_index(ft->ranges, struct ctf_field_type_variant_range,
+	BT_ASSERT(fc);
+	BT_ASSERT(index < fc->ranges->len);
+	return &g_array_index(fc->ranges, struct ctf_field_class_variant_range,
 		index);
 }
 
 static inline
-void ctf_field_type_variant_append_option(struct ctf_field_type_variant *ft,
-		const char *name, struct ctf_field_type *option_ft)
+void ctf_field_class_variant_append_option(struct ctf_field_class_variant *fc,
+		const char *name, struct ctf_field_class *option_fc)
 {
-	struct ctf_named_field_type *named_ft;
+	struct ctf_named_field_class *named_fc;
 
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 	BT_ASSERT(name);
-	g_array_set_size(ft->options, ft->options->len + 1);
+	g_array_set_size(fc->options, fc->options->len + 1);
 
-	named_ft = &g_array_index(ft->options, struct ctf_named_field_type,
-		ft->options->len - 1);
-	_ctf_named_field_type_init(named_ft);
-	g_string_assign(named_ft->name, name);
-	named_ft->ft = option_ft;
+	named_fc = &g_array_index(fc->options, struct ctf_named_field_class,
+		fc->options->len - 1);
+	_ctf_named_field_class_init(named_fc);
+	g_string_assign(named_fc->name, name);
+	named_fc->fc = option_fc;
 }
 
 static inline
-void ctf_field_type_variant_set_tag_field_type(
-		struct ctf_field_type_variant *ft,
-		struct ctf_field_type_enum *tag_ft)
+void ctf_field_class_variant_set_tag_field_class(
+		struct ctf_field_class_variant *fc,
+		struct ctf_field_class_enum *tag_fc)
 {
 	uint64_t option_i;
 
-	BT_ASSERT(ft);
-	BT_ASSERT(tag_ft);
-	ft->tag_ft = tag_ft;
+	BT_ASSERT(fc);
+	BT_ASSERT(tag_fc);
+	fc->tag_fc = tag_fc;
 
-	for (option_i = 0; option_i < ft->options->len; option_i++) {
+	for (option_i = 0; option_i < fc->options->len; option_i++) {
 		uint64_t mapping_i;
-		struct ctf_named_field_type *named_ft =
-			ctf_field_type_variant_borrow_option_by_index(
-				ft, option_i);
+		struct ctf_named_field_class *named_fc =
+			ctf_field_class_variant_borrow_option_by_index(
+				fc, option_i);
 
-		for (mapping_i = 0; mapping_i < tag_ft->mappings->len;
+		for (mapping_i = 0; mapping_i < tag_fc->mappings->len;
 				mapping_i++) {
-			struct ctf_field_type_enum_mapping *mapping =
-				ctf_field_type_enum_borrow_mapping_by_index(
-					tag_ft, mapping_i);
+			struct ctf_field_class_enum_mapping *mapping =
+				ctf_field_class_enum_borrow_mapping_by_index(
+					tag_fc, mapping_i);
 
-			if (strcmp(named_ft->name->str,
+			if (strcmp(named_fc->name->str,
 					mapping->label->str) == 0) {
-				struct ctf_field_type_variant_range range;
+				struct ctf_field_class_variant_range range;
 
 				range.range = mapping->range;
 				range.option_index = option_i;
-				g_array_append_val(ft->ranges, range);
+				g_array_append_val(fc->ranges, range);
 			}
 		}
 	}
 }
 
 static inline
-struct ctf_field_type *ctf_field_type_compound_borrow_field_type_by_index(
-		struct ctf_field_type *comp_ft, uint64_t index)
+struct ctf_field_class *ctf_field_class_compound_borrow_field_class_by_index(
+		struct ctf_field_class *comp_fc, uint64_t index)
 {
-	struct ctf_field_type *ft = NULL;
+	struct ctf_field_class *fc = NULL;
 
-	switch (comp_ft->id) {
-	case CTF_FIELD_TYPE_ID_STRUCT:
+	switch (comp_fc->id) {
+	case CTF_FIELD_CLASS_ID_STRUCT:
 	{
-		struct ctf_named_field_type *named_ft =
-			ctf_field_type_struct_borrow_member_by_index(
-				(void *) comp_ft, index);
+		struct ctf_named_field_class *named_fc =
+			ctf_field_class_struct_borrow_member_by_index(
+				(void *) comp_fc, index);
 
-		BT_ASSERT(named_ft);
-		ft = named_ft->ft;
+		BT_ASSERT(named_fc);
+		fc = named_fc->fc;
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_VARIANT:
+	case CTF_FIELD_CLASS_ID_VARIANT:
 	{
-		struct ctf_named_field_type *named_ft =
-			ctf_field_type_variant_borrow_option_by_index(
-				(void *) comp_ft, index);
+		struct ctf_named_field_class *named_fc =
+			ctf_field_class_variant_borrow_option_by_index(
+				(void *) comp_fc, index);
 
-		BT_ASSERT(named_ft);
-		ft = named_ft->ft;
+		BT_ASSERT(named_fc);
+		fc = named_fc->fc;
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_ARRAY:
-	case CTF_FIELD_TYPE_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_ID_ARRAY:
+	case CTF_FIELD_CLASS_ID_SEQUENCE:
 	{
-		struct ctf_field_type_array_base *array_ft = (void *) comp_ft;
+		struct ctf_field_class_array_base *array_fc = (void *) comp_fc;
 
-		ft = array_ft->elem_ft;
+		fc = array_fc->elem_fc;
 		break;
 	}
 	default:
 		break;
 	}
 
-	return ft;
+	return fc;
 }
 
 static inline
-uint64_t ctf_field_type_compound_get_field_type_count(struct ctf_field_type *ft)
+uint64_t ctf_field_class_compound_get_field_class_count(struct ctf_field_class *fc)
 {
 	uint64_t field_count;
 
-	switch (ft->id) {
-	case CTF_FIELD_TYPE_ID_STRUCT:
+	switch (fc->id) {
+	case CTF_FIELD_CLASS_ID_STRUCT:
 	{
-		struct ctf_field_type_struct *struct_ft = (void *) ft;
+		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
-		field_count = struct_ft->members->len;
+		field_count = struct_fc->members->len;
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_VARIANT:
+	case CTF_FIELD_CLASS_ID_VARIANT:
 	{
-		struct ctf_field_type_variant *var_ft = (void *) ft;
+		struct ctf_field_class_variant *var_fc = (void *) fc;
 
-		field_count = var_ft->options->len;
+		field_count = var_fc->options->len;
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_ARRAY:
-	case CTF_FIELD_TYPE_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_ID_ARRAY:
+	case CTF_FIELD_CLASS_ID_SEQUENCE:
 		/*
 		 * Array and sequence types always contain a single
 		 * member (the element type).
@@ -937,23 +937,23 @@ uint64_t ctf_field_type_compound_get_field_type_count(struct ctf_field_type *ft)
 }
 
 static inline
-int64_t ctf_field_type_compound_get_field_type_index_from_name(
-		struct ctf_field_type *ft, const char *name)
+int64_t ctf_field_class_compound_get_field_class_index_from_name(
+		struct ctf_field_class *fc, const char *name)
 {
 	int64_t ret_index = -1;
 	uint64_t i;
 
-	switch (ft->id) {
-	case CTF_FIELD_TYPE_ID_STRUCT:
+	switch (fc->id) {
+	case CTF_FIELD_CLASS_ID_STRUCT:
 	{
-		struct ctf_field_type_struct *struct_ft = (void *) ft;
+		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
-		for (i = 0; i < struct_ft->members->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				ctf_field_type_struct_borrow_member_by_index(
-					struct_ft, i);
+		for (i = 0; i < struct_fc->members->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_struct_borrow_member_by_index(
+					struct_fc, i);
 
-			if (strcmp(name, named_ft->name->str) == 0) {
+			if (strcmp(name, named_fc->name->str) == 0) {
 				ret_index = (int64_t) i;
 				goto end;
 			}
@@ -961,16 +961,16 @@ int64_t ctf_field_type_compound_get_field_type_index_from_name(
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_VARIANT:
+	case CTF_FIELD_CLASS_ID_VARIANT:
 	{
-		struct ctf_field_type_variant *var_ft = (void *) ft;
+		struct ctf_field_class_variant *var_fc = (void *) fc;
 
-		for (i = 0; i < var_ft->options->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				ctf_field_type_variant_borrow_option_by_index(
-					var_ft, i);
+		for (i = 0; i < var_fc->options->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_variant_borrow_option_by_index(
+					var_fc, i);
 
-			if (strcmp(name, named_ft->name->str) == 0) {
+			if (strcmp(name, named_fc->name->str) == 0) {
 				ret_index = (int64_t) i;
 				goto end;
 			}
@@ -1036,156 +1036,156 @@ end:
 }
 
 static inline
-struct ctf_field_type *ctf_field_path_borrow_field_type(
+struct ctf_field_class *ctf_field_path_borrow_field_class(
 		struct ctf_field_path *field_path,
 		struct ctf_trace_class *tc,
 		struct ctf_stream_class *sc,
 		struct ctf_event_class *ec)
 {
 	uint64_t i;
-	struct ctf_field_type *ft;
+	struct ctf_field_class *fc;
 
 	switch (field_path->root) {
 	case BT_SCOPE_PACKET_HEADER:
-		ft = tc->packet_header_ft;
+		fc = tc->packet_header_fc;
 		break;
 	case BT_SCOPE_PACKET_CONTEXT:
-		ft = sc->packet_context_ft;
+		fc = sc->packet_context_fc;
 		break;
 	case BT_SCOPE_EVENT_HEADER:
-		ft = sc->event_header_ft;
+		fc = sc->event_header_fc;
 		break;
 	case BT_SCOPE_EVENT_COMMON_CONTEXT:
-		ft = sc->event_common_context_ft;
+		fc = sc->event_common_context_fc;
 		break;
 	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
-		ft = ec->spec_context_ft;
+		fc = ec->spec_context_fc;
 		break;
 	case BT_SCOPE_EVENT_PAYLOAD:
-		ft = ec->payload_ft;
+		fc = ec->payload_fc;
 		break;
 	default:
 		abort();
 	}
 
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 
 	for (i = 0; i < field_path->path->len; i++) {
 		int64_t child_index =
 			ctf_field_path_borrow_index_by_index(field_path, i);
-		struct ctf_field_type *child_ft =
-			ctf_field_type_compound_borrow_field_type_by_index(
-				ft, child_index);
-		BT_ASSERT(child_ft);
-		ft = child_ft;
+		struct ctf_field_class *child_fc =
+			ctf_field_class_compound_borrow_field_class_by_index(
+				fc, child_index);
+		BT_ASSERT(child_fc);
+		fc = child_fc;
 	}
 
-	BT_ASSERT(ft);
-	return ft;
+	BT_ASSERT(fc);
+	return fc;
 }
 
 static inline
-struct ctf_field_type *ctf_field_type_copy(struct ctf_field_type *ft);
+struct ctf_field_class *ctf_field_class_copy(struct ctf_field_class *fc);
 
 static inline
-void ctf_field_type_bit_array_copy_content(
-		struct ctf_field_type_bit_array *dst_ft,
-		struct ctf_field_type_bit_array *src_ft)
+void ctf_field_class_bit_array_copy_content(
+		struct ctf_field_class_bit_array *dst_fc,
+		struct ctf_field_class_bit_array *src_fc)
 {
-	BT_ASSERT(dst_ft);
-	BT_ASSERT(src_ft);
-	dst_ft->byte_order = src_ft->byte_order;
-	dst_ft->size = src_ft->size;
+	BT_ASSERT(dst_fc);
+	BT_ASSERT(src_fc);
+	dst_fc->byte_order = src_fc->byte_order;
+	dst_fc->size = src_fc->size;
 }
 
 static inline
-void ctf_field_type_int_copy_content(
-		struct ctf_field_type_int *dst_ft,
-		struct ctf_field_type_int *src_ft)
+void ctf_field_class_int_copy_content(
+		struct ctf_field_class_int *dst_fc,
+		struct ctf_field_class_int *src_fc)
 {
-	ctf_field_type_bit_array_copy_content((void *) dst_ft, (void *) src_ft);
-	dst_ft->meaning = src_ft->meaning;
-	dst_ft->is_signed = src_ft->is_signed;
-	dst_ft->disp_base = src_ft->disp_base;
-	dst_ft->encoding = src_ft->encoding;
-	dst_ft->mapped_clock_class = bt_get(src_ft->mapped_clock_class);
-	dst_ft->storing_index = src_ft->storing_index;
+	ctf_field_class_bit_array_copy_content((void *) dst_fc, (void *) src_fc);
+	dst_fc->meaning = src_fc->meaning;
+	dst_fc->is_signed = src_fc->is_signed;
+	dst_fc->disp_base = src_fc->disp_base;
+	dst_fc->encoding = src_fc->encoding;
+	dst_fc->mapped_clock_class = bt_get(src_fc->mapped_clock_class);
+	dst_fc->storing_index = src_fc->storing_index;
 }
 
 static inline
-struct ctf_field_type_int *_ctf_field_type_int_copy(
-		struct ctf_field_type_int *ft)
+struct ctf_field_class_int *_ctf_field_class_int_copy(
+		struct ctf_field_class_int *fc)
 {
-	struct ctf_field_type_int *copy_ft = ctf_field_type_int_create();
+	struct ctf_field_class_int *copy_fc = ctf_field_class_int_create();
 
-	BT_ASSERT(copy_ft);
-	ctf_field_type_int_copy_content(copy_ft, ft);
-	return copy_ft;
+	BT_ASSERT(copy_fc);
+	ctf_field_class_int_copy_content(copy_fc, fc);
+	return copy_fc;
 }
 
 static inline
-struct ctf_field_type_enum *_ctf_field_type_enum_copy(
-		struct ctf_field_type_enum *ft)
+struct ctf_field_class_enum *_ctf_field_class_enum_copy(
+		struct ctf_field_class_enum *fc)
 {
-	struct ctf_field_type_enum *copy_ft = ctf_field_type_enum_create();
+	struct ctf_field_class_enum *copy_fc = ctf_field_class_enum_create();
 	uint64_t i;
 
-	BT_ASSERT(copy_ft);
-	ctf_field_type_int_copy_content((void *) copy_ft, (void *) ft);
+	BT_ASSERT(copy_fc);
+	ctf_field_class_int_copy_content((void *) copy_fc, (void *) fc);
 
-	for (i = 0; i < ft->mappings->len; i++) {
-		struct ctf_field_type_enum_mapping *mapping =
-			&g_array_index(ft->mappings,
-				struct ctf_field_type_enum_mapping, i);
+	for (i = 0; i < fc->mappings->len; i++) {
+		struct ctf_field_class_enum_mapping *mapping =
+			&g_array_index(fc->mappings,
+				struct ctf_field_class_enum_mapping, i);
 
-		ctf_field_type_enum_append_mapping(copy_ft, mapping->label->str,
+		ctf_field_class_enum_append_mapping(copy_fc, mapping->label->str,
 			mapping->range.lower.u, mapping->range.upper.u);
 	}
 
-	return copy_ft;
+	return copy_fc;
 }
 
 static inline
-struct ctf_field_type_float *_ctf_field_type_float_copy(
-		struct ctf_field_type_float *ft)
+struct ctf_field_class_float *_ctf_field_class_float_copy(
+		struct ctf_field_class_float *fc)
 {
-	struct ctf_field_type_float *copy_ft = ctf_field_type_float_create();
+	struct ctf_field_class_float *copy_fc = ctf_field_class_float_create();
 
-	BT_ASSERT(copy_ft);
-	ctf_field_type_bit_array_copy_content((void *) copy_ft, (void *) ft);
-	return copy_ft;
+	BT_ASSERT(copy_fc);
+	ctf_field_class_bit_array_copy_content((void *) copy_fc, (void *) fc);
+	return copy_fc;
 }
 
 static inline
-struct ctf_field_type_string *_ctf_field_type_string_copy(
-		struct ctf_field_type_string *ft)
+struct ctf_field_class_string *_ctf_field_class_string_copy(
+		struct ctf_field_class_string *fc)
 {
-	struct ctf_field_type_string *copy_ft = ctf_field_type_string_create();
+	struct ctf_field_class_string *copy_fc = ctf_field_class_string_create();
 
-	BT_ASSERT(copy_ft);
-	return copy_ft;
+	BT_ASSERT(copy_fc);
+	return copy_fc;
 }
 
 static inline
-struct ctf_field_type_struct *_ctf_field_type_struct_copy(
-		struct ctf_field_type_struct *ft)
+struct ctf_field_class_struct *_ctf_field_class_struct_copy(
+		struct ctf_field_class_struct *fc)
 {
-	struct ctf_field_type_struct *copy_ft = ctf_field_type_struct_create();
+	struct ctf_field_class_struct *copy_fc = ctf_field_class_struct_create();
 	uint64_t i;
 
-	BT_ASSERT(copy_ft);
+	BT_ASSERT(copy_fc);
 
-	for (i = 0; i < ft->members->len; i++) {
-		struct ctf_named_field_type *named_ft =
-			&g_array_index(ft->members,
-				struct ctf_named_field_type, i);
+	for (i = 0; i < fc->members->len; i++) {
+		struct ctf_named_field_class *named_fc =
+			&g_array_index(fc->members,
+				struct ctf_named_field_class, i);
 
-		ctf_field_type_struct_append_member(copy_ft,
-			named_ft->name->str,
-			ctf_field_type_copy(named_ft->ft));
+		ctf_field_class_struct_append_member(copy_fc,
+			named_fc->name->str,
+			ctf_field_class_copy(named_fc->fc));
 	}
 
-	return copy_ft;
+	return copy_fc;
 }
 
 static inline
@@ -1208,126 +1208,126 @@ void ctf_field_path_copy_content(struct ctf_field_path *dst_fp,
 }
 
 static inline
-struct ctf_field_type_variant *_ctf_field_type_variant_copy(
-		struct ctf_field_type_variant *ft)
+struct ctf_field_class_variant *_ctf_field_class_variant_copy(
+		struct ctf_field_class_variant *fc)
 {
-	struct ctf_field_type_variant *copy_ft =
-		ctf_field_type_variant_create();
+	struct ctf_field_class_variant *copy_fc =
+		ctf_field_class_variant_create();
 	uint64_t i;
 
-	BT_ASSERT(copy_ft);
+	BT_ASSERT(copy_fc);
 
-	for (i = 0; i < ft->options->len; i++) {
-		struct ctf_named_field_type *named_ft =
-			&g_array_index(ft->options,
-				struct ctf_named_field_type, i);
+	for (i = 0; i < fc->options->len; i++) {
+		struct ctf_named_field_class *named_fc =
+			&g_array_index(fc->options,
+				struct ctf_named_field_class, i);
 
-		ctf_field_type_variant_append_option(copy_ft,
-			named_ft->name->str,
-			ctf_field_type_copy(named_ft->ft));
+		ctf_field_class_variant_append_option(copy_fc,
+			named_fc->name->str,
+			ctf_field_class_copy(named_fc->fc));
 	}
 
-	for (i = 0; i < ft->ranges->len; i++) {
-		struct ctf_field_type_variant_range *range =
-			&g_array_index(ft->ranges,
-				struct ctf_field_type_variant_range, i);
+	for (i = 0; i < fc->ranges->len; i++) {
+		struct ctf_field_class_variant_range *range =
+			&g_array_index(fc->ranges,
+				struct ctf_field_class_variant_range, i);
 
-		g_array_append_val(copy_ft->ranges, *range);
+		g_array_append_val(copy_fc->ranges, *range);
 	}
 
-	ctf_field_path_copy_content(&copy_ft->tag_path, &ft->tag_path);
-	g_string_assign(copy_ft->tag_ref, ft->tag_ref->str);
-	copy_ft->stored_tag_index = ft->stored_tag_index;
-	return copy_ft;
+	ctf_field_path_copy_content(&copy_fc->tag_path, &fc->tag_path);
+	g_string_assign(copy_fc->tag_ref, fc->tag_ref->str);
+	copy_fc->stored_tag_index = fc->stored_tag_index;
+	return copy_fc;
 }
 
 static inline
-void ctf_field_type_array_base_copy_content(
-		struct ctf_field_type_array_base *dst_ft,
-		struct ctf_field_type_array_base *src_ft)
+void ctf_field_class_array_base_copy_content(
+		struct ctf_field_class_array_base *dst_fc,
+		struct ctf_field_class_array_base *src_fc)
 {
-	BT_ASSERT(dst_ft);
-	BT_ASSERT(src_ft);
-	dst_ft->elem_ft = ctf_field_type_copy(src_ft->elem_ft);
-	dst_ft->is_text = src_ft->is_text;
+	BT_ASSERT(dst_fc);
+	BT_ASSERT(src_fc);
+	dst_fc->elem_fc = ctf_field_class_copy(src_fc->elem_fc);
+	dst_fc->is_text = src_fc->is_text;
 }
 
 static inline
-struct ctf_field_type_array *_ctf_field_type_array_copy(
-		struct ctf_field_type_array *ft)
+struct ctf_field_class_array *_ctf_field_class_array_copy(
+		struct ctf_field_class_array *fc)
 {
-	struct ctf_field_type_array *copy_ft = ctf_field_type_array_create();
+	struct ctf_field_class_array *copy_fc = ctf_field_class_array_create();
 
-	BT_ASSERT(copy_ft);
-	ctf_field_type_array_base_copy_content((void *) copy_ft, (void *) ft);
-	copy_ft->length = ft->length;
-	return copy_ft;
+	BT_ASSERT(copy_fc);
+	ctf_field_class_array_base_copy_content((void *) copy_fc, (void *) fc);
+	copy_fc->length = fc->length;
+	return copy_fc;
 }
 
 static inline
-struct ctf_field_type_sequence *_ctf_field_type_sequence_copy(
-		struct ctf_field_type_sequence *ft)
+struct ctf_field_class_sequence *_ctf_field_class_sequence_copy(
+		struct ctf_field_class_sequence *fc)
 {
-	struct ctf_field_type_sequence *copy_ft =
-		ctf_field_type_sequence_create();
+	struct ctf_field_class_sequence *copy_fc =
+		ctf_field_class_sequence_create();
 
-	BT_ASSERT(copy_ft);
-	ctf_field_type_array_base_copy_content((void *) copy_ft, (void *) ft);
-	ctf_field_path_copy_content(&copy_ft->length_path, &ft->length_path);
-	g_string_assign(copy_ft->length_ref, ft->length_ref->str);
-	copy_ft->stored_length_index = ft->stored_length_index;
-	return copy_ft;
+	BT_ASSERT(copy_fc);
+	ctf_field_class_array_base_copy_content((void *) copy_fc, (void *) fc);
+	ctf_field_path_copy_content(&copy_fc->length_path, &fc->length_path);
+	g_string_assign(copy_fc->length_ref, fc->length_ref->str);
+	copy_fc->stored_length_index = fc->stored_length_index;
+	return copy_fc;
 }
 
 static inline
-struct ctf_field_type *ctf_field_type_copy(struct ctf_field_type *ft)
+struct ctf_field_class *ctf_field_class_copy(struct ctf_field_class *fc)
 {
-	struct ctf_field_type *copy_ft = NULL;
+	struct ctf_field_class *copy_fc = NULL;
 
-	if (!ft) {
+	if (!fc) {
 		goto end;
 	}
 
 	/*
 	 * Translation should not have happened yet.
 	 */
-	BT_ASSERT(!ft->ir_ft);
+	BT_ASSERT(!fc->ir_fc);
 
-	switch (ft->id) {
-	case CTF_FIELD_TYPE_ID_INT:
-		copy_ft = (void *) _ctf_field_type_int_copy((void *) ft);
+	switch (fc->id) {
+	case CTF_FIELD_CLASS_ID_INT:
+		copy_fc = (void *) _ctf_field_class_int_copy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_ENUM:
-		copy_ft = (void *) _ctf_field_type_enum_copy((void *) ft);
+	case CTF_FIELD_CLASS_ID_ENUM:
+		copy_fc = (void *) _ctf_field_class_enum_copy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_FLOAT:
-		copy_ft = (void *) _ctf_field_type_float_copy((void *) ft);
+	case CTF_FIELD_CLASS_ID_FLOAT:
+		copy_fc = (void *) _ctf_field_class_float_copy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_STRING:
-		copy_ft = (void *) _ctf_field_type_string_copy((void *) ft);
+	case CTF_FIELD_CLASS_ID_STRING:
+		copy_fc = (void *) _ctf_field_class_string_copy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_STRUCT:
-		copy_ft = (void *) _ctf_field_type_struct_copy((void *) ft);
+	case CTF_FIELD_CLASS_ID_STRUCT:
+		copy_fc = (void *) _ctf_field_class_struct_copy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_ARRAY:
-		copy_ft = (void *) _ctf_field_type_array_copy((void *) ft);
+	case CTF_FIELD_CLASS_ID_ARRAY:
+		copy_fc = (void *) _ctf_field_class_array_copy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_SEQUENCE:
-		copy_ft = (void *) _ctf_field_type_sequence_copy((void *) ft);
+	case CTF_FIELD_CLASS_ID_SEQUENCE:
+		copy_fc = (void *) _ctf_field_class_sequence_copy((void *) fc);
 		break;
-	case CTF_FIELD_TYPE_ID_VARIANT:
-		copy_ft = (void *) _ctf_field_type_variant_copy((void *) ft);
+	case CTF_FIELD_CLASS_ID_VARIANT:
+		copy_fc = (void *) _ctf_field_class_variant_copy((void *) fc);
 		break;
 	default:
 		abort();
 	}
 
-	copy_ft->id = ft->id;
-	copy_ft->alignment = ft->alignment;
-	copy_ft->in_ir = ft->in_ir;
+	copy_fc->id = fc->id;
+	copy_fc->alignment = fc->alignment;
+	copy_fc->in_ir = fc->in_ir;
 
 end:
-	return copy_ft;
+	return copy_fc;
 }
 
 static inline
@@ -1359,8 +1359,8 @@ void ctf_event_class_destroy(struct ctf_event_class *ec)
 		g_string_free(ec->emf_uri, TRUE);
 	}
 
-	ctf_field_type_destroy(ec->spec_context_ft);
-	ctf_field_type_destroy(ec->payload_ft);
+	ctf_field_class_destroy(ec->spec_context_fc);
+	ctf_field_class_destroy(ec->payload_fc);
 	g_free(ec);
 }
 
@@ -1394,9 +1394,9 @@ void ctf_stream_class_destroy(struct ctf_stream_class *sc)
 		g_hash_table_destroy(sc->event_classes_by_id);
 	}
 
-	ctf_field_type_destroy(sc->packet_context_ft);
-	ctf_field_type_destroy(sc->event_header_ft);
-	ctf_field_type_destroy(sc->event_common_context_ft);
+	ctf_field_class_destroy(sc->packet_context_fc);
+	ctf_field_class_destroy(sc->event_header_fc);
+	ctf_field_class_destroy(sc->event_common_context_fc);
 	bt_put(sc->default_clock_class);
 	g_free(sc);
 }
@@ -1474,7 +1474,7 @@ void ctf_trace_class_destroy(struct ctf_trace_class *tc)
 		g_string_free(tc->name, TRUE);
 	}
 
-	ctf_field_type_destroy(tc->packet_header_ft);
+	ctf_field_class_destroy(tc->packet_header_fc);
 
 	if (tc->clock_classes) {
 		g_ptr_array_free(tc->clock_classes, TRUE);

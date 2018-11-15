@@ -61,11 +61,11 @@ struct bt_packet_header_field *bt_packet_header_field_create(
 	struct bt_field_wrapper *field_wrapper;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(trace->packet_header_ft,
-		"Trace has no packet header field type: %!+t", trace);
+	BT_ASSERT_PRE(trace->packet_header_fc,
+		"Trace has no packet header field classe: %!+t", trace);
 	field_wrapper = bt_field_wrapper_create(
 		&trace->packet_header_field_pool,
-		(void *) trace->packet_header_ft);
+		(void *) trace->packet_header_fc);
 	if (!field_wrapper) {
 		BT_LIB_LOGE("Cannot allocate one packet header field from trace: "
 			"%![trace-]+t", trace);

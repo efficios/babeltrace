@@ -32,7 +32,7 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
@@ -69,12 +69,12 @@ void destroy_stream_class(struct bt_object *obj)
 		g_string_free(stream_class->name.str, TRUE);
 	}
 
-	BT_LOGD_STR("Putting event header field type.");
-	bt_put(stream_class->event_header_ft);
-	BT_LOGD_STR("Putting packet context field type.");
-	bt_put(stream_class->packet_context_ft);
-	BT_LOGD_STR("Putting event common context field type.");
-	bt_put(stream_class->event_common_context_ft);
+	BT_LOGD_STR("Putting event header field classe.");
+	bt_put(stream_class->event_header_fc);
+	BT_LOGD_STR("Putting packet context field classe.");
+	bt_put(stream_class->packet_context_fc);
+	BT_LOGD_STR("Putting event common context field classe.");
+	bt_put(stream_class->event_common_context_fc);
 	bt_object_pool_finalize(&stream_class->event_header_field_pool);
 	bt_object_pool_finalize(&stream_class->packet_context_field_pool);
 	g_free(stream_class);
@@ -267,21 +267,21 @@ end:
 	return event_class;
 }
 
-struct bt_field_type *bt_stream_class_borrow_packet_context_field_type(
+struct bt_field_class *bt_stream_class_borrow_packet_context_field_class(
 		struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return stream_class->packet_context_ft;
+	return stream_class->packet_context_fc;
 }
 
-int bt_stream_class_set_packet_context_field_type(
+int bt_stream_class_set_packet_context_field_class(
 		struct bt_stream_class *stream_class,
-		struct bt_field_type *field_type)
+		struct bt_field_class *field_class)
 {
 	int ret;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
-		.packet_context = field_type,
+		.packet_context = field_class,
 		.event_header = NULL,
 		.event_common_context = NULL,
 		.event_specific_context = NULL,
@@ -289,119 +289,119 @@ int bt_stream_class_set_packet_context_field_type(
 	};
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
-		BT_FIELD_TYPE_ID_STRUCTURE,
-		"Packet context field type is not a structure field type: %!+F",
-		field_type);
+	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
+		BT_FIELD_CLASS_ID_STRUCTURE,
+		"Packet context field classe is not a structure field classe: %!+F",
+		field_class);
 	resolve_ctx.packet_header =
-		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_ft;
-	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_fc;
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_type_make_part_of_trace(field_type);
-	bt_put(stream_class->packet_context_ft);
-	stream_class->packet_context_ft = bt_get(field_type);
-	bt_field_type_freeze(field_type);
-	BT_LIB_LOGV("Set stream class's packet context field type: %!+S",
+	bt_field_class_make_part_of_trace(field_class);
+	bt_put(stream_class->packet_context_fc);
+	stream_class->packet_context_fc = bt_get(field_class);
+	bt_field_class_freeze(field_class);
+	BT_LIB_LOGV("Set stream class's packet context field classe: %!+S",
 		stream_class);
 
 end:
 	return ret;
 }
 
-struct bt_field_type *bt_stream_class_borrow_event_header_field_type(
+struct bt_field_class *bt_stream_class_borrow_event_header_field_class(
 		struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return stream_class->event_header_ft;
+	return stream_class->event_header_fc;
 }
 
-int bt_stream_class_set_event_header_field_type(
+int bt_stream_class_set_event_header_field_class(
 		struct bt_stream_class *stream_class,
-		struct bt_field_type *field_type)
+		struct bt_field_class *field_class)
 {
 	int ret;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
 		.packet_context = NULL,
-		.event_header = field_type,
+		.event_header = field_class,
 		.event_common_context = NULL,
 		.event_specific_context = NULL,
 		.event_payload = NULL,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
-		BT_FIELD_TYPE_ID_STRUCTURE,
-		"Event header field type is not a structure field type: %!+F",
-		field_type);
+	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
+		BT_FIELD_CLASS_ID_STRUCTURE,
+		"Event header field classe is not a structure field classe: %!+F",
+		field_class);
 	resolve_ctx.packet_header =
-		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_ft;
-	resolve_ctx.packet_context = stream_class->packet_context_ft;
-	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_fc;
+	resolve_ctx.packet_context = stream_class->packet_context_fc;
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_type_make_part_of_trace(field_type);
-	bt_put(stream_class->event_header_ft);
-	stream_class->event_header_ft = bt_get(field_type);
-	bt_field_type_freeze(field_type);
-	BT_LIB_LOGV("Set stream class's event header field type: %!+S",
+	bt_field_class_make_part_of_trace(field_class);
+	bt_put(stream_class->event_header_fc);
+	stream_class->event_header_fc = bt_get(field_class);
+	bt_field_class_freeze(field_class);
+	BT_LIB_LOGV("Set stream class's event header field classe: %!+S",
 		stream_class);
 
 end:
 	return ret;
 }
 
-struct bt_field_type *bt_stream_class_borrow_event_common_context_field_type(
+struct bt_field_class *bt_stream_class_borrow_event_common_context_field_class(
 		struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return stream_class->event_common_context_ft;
+	return stream_class->event_common_context_fc;
 }
 
-int bt_stream_class_set_event_common_context_field_type(
+int bt_stream_class_set_event_common_context_field_class(
 		struct bt_stream_class *stream_class,
-		struct bt_field_type *field_type)
+		struct bt_field_class *field_class)
 {
 	int ret;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
 		.packet_context = NULL,
 		.event_header = NULL,
-		.event_common_context = field_type,
+		.event_common_context = field_class,
 		.event_specific_context = NULL,
 		.event_payload = NULL,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
-		BT_FIELD_TYPE_ID_STRUCTURE,
-		"Event common context field type is not a structure field type: %!+F",
-		field_type);
+	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
+		BT_FIELD_CLASS_ID_STRUCTURE,
+		"Event common context field classe is not a structure field classe: %!+F",
+		field_class);
 	resolve_ctx.packet_header =
-		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_ft;
-	resolve_ctx.packet_context = stream_class->packet_context_ft;
-	resolve_ctx.event_header = stream_class->event_header_ft;
-	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_fc;
+	resolve_ctx.packet_context = stream_class->packet_context_fc;
+	resolve_ctx.event_header = stream_class->event_header_fc;
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_type_make_part_of_trace(field_type);
-	bt_put(stream_class->event_common_context_ft);
-	stream_class->event_common_context_ft = bt_get(field_type);
-	bt_field_type_freeze(field_type);
-	BT_LIB_LOGV("Set stream class's event common context field type: %!+S",
+	bt_field_class_make_part_of_trace(field_class);
+	bt_put(stream_class->event_common_context_fc);
+	stream_class->event_common_context_fc = bt_get(field_class);
+	bt_field_class_freeze(field_class);
+	BT_LIB_LOGV("Set stream class's event common context field classe: %!+S",
 		stream_class);
 
 end:
@@ -411,7 +411,7 @@ end:
 BT_HIDDEN
 void _bt_stream_class_freeze(struct bt_stream_class *stream_class)
 {
-	/* The field types and default clock class are already frozen */
+	/* The field classes and default clock class are already frozen */
 	BT_ASSERT(stream_class);
 	BT_LIB_LOGD("Freezing stream class: %!+S", stream_class);
 	stream_class->frozen = true;

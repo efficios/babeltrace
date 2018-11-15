@@ -25,7 +25,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/assert-internal.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
 #include <babeltrace/trace-ir/field-path.h>
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
@@ -35,32 +35,32 @@
 #include <glib.h>
 
 static
-bool find_field_type_recursive(struct bt_field_type *ft,
-		struct bt_field_type *tgt_ft, struct bt_field_path *field_path)
+bool find_field_class_recursive(struct bt_field_class *fc,
+		struct bt_field_class *tgt_fc, struct bt_field_path *field_path)
 {
 	bool found = false;
 
-	if (tgt_ft == ft) {
+	if (tgt_fc == fc) {
 		found = true;
 		goto end;
 	}
 
-	switch (ft->id) {
-	case BT_FIELD_TYPE_ID_STRUCTURE:
-	case BT_FIELD_TYPE_ID_VARIANT:
+	switch (fc->id) {
+	case BT_FIELD_CLASS_ID_STRUCTURE:
+	case BT_FIELD_CLASS_ID_VARIANT:
 	{
-		struct bt_field_type_named_field_types_container *container_ft =
-			(void *) ft;
+		struct bt_field_class_named_field_class_container *container_fc =
+			(void *) fc;
 		uint64_t i;
 
-		for (i = 0; i < container_ft->named_fts->len; i++) {
-			struct bt_named_field_type *named_ft =
-				BT_FIELD_TYPE_NAMED_FT_AT_INDEX(
-					container_ft, i);
+		for (i = 0; i < container_fc->named_fcs->len; i++) {
+			struct bt_named_field_class *named_fc =
+				BT_FIELD_CLASS_NAMED_FC_AT_INDEX(
+					container_fc, i);
 
 			g_array_append_val(field_path->indexes, i);
-			found = find_field_type_recursive(named_ft->ft,
-				tgt_ft, field_path);
+			found = find_field_class_recursive(named_fc->fc,
+				tgt_fc, field_path);
 			if (found) {
 				goto end;
 			}
@@ -71,13 +71,13 @@ bool find_field_type_recursive(struct bt_field_type *ft,
 
 		break;
 	}
-	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
-	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
+	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
 	{
-		struct bt_field_type_array *array_ft = (void *) ft;
+		struct bt_field_class_array *array_fc = (void *) fc;
 
-		found = find_field_type_recursive(array_ft->element_ft,
-			tgt_ft, field_path);
+		found = find_field_class_recursive(array_fc->element_fc,
+			tgt_fc, field_path);
 		break;
 	}
 	default:
@@ -89,14 +89,14 @@ end:
 }
 
 static
-int find_field_type(struct bt_field_type *root_ft,
-		enum bt_scope root_scope, struct bt_field_type *tgt_ft,
+int find_field_class(struct bt_field_class *root_fc,
+		enum bt_scope root_scope, struct bt_field_class *tgt_fc,
 		struct bt_field_path **ret_field_path)
 {
 	int ret = 0;
 	struct bt_field_path *field_path = NULL;
 
-	if (!root_ft) {
+	if (!root_fc) {
 		goto end;
 	}
 
@@ -107,7 +107,7 @@ int find_field_type(struct bt_field_type *root_ft,
 	}
 
 	field_path->root = root_scope;
-	if (!find_field_type_recursive(root_ft, tgt_ft, field_path)) {
+	if (!find_field_class_recursive(root_fc, tgt_fc, field_path)) {
 		/* Not found here */
 		BT_PUT(field_path);
 	}
@@ -118,44 +118,44 @@ end:
 }
 
 static
-struct bt_field_path *find_field_type_in_ctx(struct bt_field_type *ft,
+struct bt_field_path *find_field_class_in_ctx(struct bt_field_class *fc,
 		struct bt_resolve_field_path_context *ctx)
 {
 	struct bt_field_path *field_path = NULL;
 	int ret;
 
-	ret = find_field_type(ctx->packet_header, BT_SCOPE_PACKET_HEADER,
-		ft, &field_path);
+	ret = find_field_class(ctx->packet_header, BT_SCOPE_PACKET_HEADER,
+		fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
-	ret = find_field_type(ctx->packet_context, BT_SCOPE_PACKET_CONTEXT,
-		ft, &field_path);
+	ret = find_field_class(ctx->packet_context, BT_SCOPE_PACKET_CONTEXT,
+		fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
-	ret = find_field_type(ctx->event_header, BT_SCOPE_EVENT_HEADER,
-		ft, &field_path);
+	ret = find_field_class(ctx->event_header, BT_SCOPE_EVENT_HEADER,
+		fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
-	ret = find_field_type(ctx->event_common_context,
-		BT_SCOPE_EVENT_COMMON_CONTEXT, ft, &field_path);
+	ret = find_field_class(ctx->event_common_context,
+		BT_SCOPE_EVENT_COMMON_CONTEXT, fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
-	ret = find_field_type(ctx->event_specific_context,
-		BT_SCOPE_EVENT_SPECIFIC_CONTEXT, ft, &field_path);
+	ret = find_field_class(ctx->event_specific_context,
+		BT_SCOPE_EVENT_SPECIFIC_CONTEXT, fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
 
-	ret = find_field_type(ctx->event_payload, BT_SCOPE_EVENT_PAYLOAD,
-		ft, &field_path);
+	ret = find_field_class(ctx->event_payload, BT_SCOPE_EVENT_PAYLOAD,
+		fc, &field_path);
 	if (ret || field_path) {
 		goto end;
 	}
@@ -205,7 +205,7 @@ end:
 
 BT_ASSERT_PRE_FUNC
 static inline
-struct bt_field_type *borrow_root_field_type(
+struct bt_field_class *borrow_root_field_class(
 		struct bt_resolve_field_path_context *ctx, enum bt_scope scope)
 {
 	switch (scope) {
@@ -230,28 +230,28 @@ struct bt_field_type *borrow_root_field_type(
 
 BT_ASSERT_PRE_FUNC
 static inline
-struct bt_field_type *borrow_child_field_type(struct bt_field_type *parent_ft,
+struct bt_field_class *borrow_child_field_class(struct bt_field_class *parent_fc,
 		uint64_t index, bool *advance)
 {
-	struct bt_field_type *child_ft = NULL;
+	struct bt_field_class *child_fc = NULL;
 
-	switch (parent_ft->id) {
-	case BT_FIELD_TYPE_ID_STRUCTURE:
-	case BT_FIELD_TYPE_ID_VARIANT:
+	switch (parent_fc->id) {
+	case BT_FIELD_CLASS_ID_STRUCTURE:
+	case BT_FIELD_CLASS_ID_VARIANT:
 	{
-		struct bt_named_field_type *named_ft =
-			BT_FIELD_TYPE_NAMED_FT_AT_INDEX(parent_ft, index);
+		struct bt_named_field_class *named_fc =
+			BT_FIELD_CLASS_NAMED_FC_AT_INDEX(parent_fc, index);
 
-		child_ft = named_ft->ft;
+		child_fc = named_fc->fc;
 		*advance = true;
 		break;
 	}
-	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
-	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
+	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
 	{
-		struct bt_field_type_array *array_ft = (void *) parent_ft;
+		struct bt_field_class_array *array_fc = (void *) parent_fc;
 
-		child_ft = array_ft->element_ft;
+		child_fc = array_fc->element_fc;
 		*advance = false;
 		break;
 	}
@@ -259,39 +259,39 @@ struct bt_field_type *borrow_child_field_type(struct bt_field_type *parent_ft,
 		break;
 	}
 
-	return child_ft;
+	return child_fc;
 }
 
 BT_ASSERT_PRE_FUNC
 static inline
-bool target_field_path_in_different_scope_has_struct_ft_only(
+bool target_field_path_in_different_scope_has_struct_fc_only(
 		struct bt_field_path *src_field_path,
 		struct bt_field_path *tgt_field_path,
 		struct bt_resolve_field_path_context *ctx)
 {
 	bool is_valid = true;
 	uint64_t i = 0;
-	struct bt_field_type *ft;
+	struct bt_field_class *fc;
 
 	if (src_field_path->root == tgt_field_path->root) {
 		goto end;
 	}
 
-	ft = borrow_root_field_type(ctx, tgt_field_path->root);
+	fc = borrow_root_field_class(ctx, tgt_field_path->root);
 
 	while (i < tgt_field_path->indexes->len) {
 		uint64_t index = bt_field_path_get_index_by_index_inline(
 			tgt_field_path, i);
 		bool advance;
 
-		if (ft->id == BT_FIELD_TYPE_ID_STATIC_ARRAY ||
-				ft->id == BT_FIELD_TYPE_ID_DYNAMIC_ARRAY ||
-				ft->id == BT_FIELD_TYPE_ID_VARIANT) {
+		if (fc->id == BT_FIELD_CLASS_ID_STATIC_ARRAY ||
+				fc->id == BT_FIELD_CLASS_ID_DYNAMIC_ARRAY ||
+				fc->id == BT_FIELD_CLASS_ID_VARIANT) {
 			is_valid = false;
 			goto end;
 		}
 
-		ft = borrow_child_field_type(ft, index, &advance);
+		fc = borrow_child_field_class(fc, index, &advance);
 
 		if (advance) {
 			i++;
@@ -304,24 +304,24 @@ end:
 
 BT_ASSERT_PRE_FUNC
 static inline
-bool lca_is_structure_field_type(struct bt_field_path *src_field_path,
+bool lca_is_structure_field_class(struct bt_field_path *src_field_path,
 		struct bt_field_path *tgt_field_path,
 		struct bt_resolve_field_path_context *ctx)
 {
 	bool is_valid = true;
-	struct bt_field_type *src_ft;
-	struct bt_field_type *tgt_ft;
-	struct bt_field_type *prev_ft = NULL;
+	struct bt_field_class *src_fc;
+	struct bt_field_class *tgt_fc;
+	struct bt_field_class *prev_fc = NULL;
 	uint64_t src_i = 0, tgt_i = 0;
 
 	if (src_field_path->root != tgt_field_path->root) {
 		goto end;
 	}
 
-	src_ft = borrow_root_field_type(ctx, src_field_path->root);
-	tgt_ft = borrow_root_field_type(ctx, tgt_field_path->root);
-	BT_ASSERT(src_ft);
-	BT_ASSERT(tgt_ft);
+	src_fc = borrow_root_field_class(ctx, src_field_path->root);
+	tgt_fc = borrow_root_field_class(ctx, tgt_field_path->root);
+	BT_ASSERT(src_fc);
+	BT_ASSERT(tgt_fc);
 
 	while (src_i < src_field_path->indexes->len &&
 			tgt_i < tgt_field_path->indexes->len) {
@@ -331,31 +331,31 @@ bool lca_is_structure_field_type(struct bt_field_path *src_field_path,
 		uint64_t tgt_index = bt_field_path_get_index_by_index_inline(
 			tgt_field_path, tgt_i);
 
-		if (src_ft != tgt_ft) {
-			if (!prev_ft) {
+		if (src_fc != tgt_fc) {
+			if (!prev_fc) {
 				/*
 				 * This is correct: the LCA is the root
-				 * scope field type, which must be a
-				 * structure field type.
+				 * scope field classe, which must be a
+				 * structure field classe.
 				 */
 				break;
 			}
 
-			if (prev_ft->id != BT_FIELD_TYPE_ID_STRUCTURE) {
+			if (prev_fc->id != BT_FIELD_CLASS_ID_STRUCTURE) {
 				is_valid = false;
 			}
 
 			break;
 		}
 
-		prev_ft = src_ft;
-		src_ft = borrow_child_field_type(src_ft, src_index, &advance);
+		prev_fc = src_fc;
+		src_fc = borrow_child_field_class(src_fc, src_index, &advance);
 
 		if (advance) {
 			src_i++;
 		}
 
-		tgt_ft = borrow_child_field_type(tgt_ft, tgt_index, &advance);
+		tgt_fc = borrow_child_field_class(tgt_fc, tgt_index, &advance);
 
 		if (advance) {
 			tgt_i++;
@@ -368,24 +368,24 @@ end:
 
 BT_ASSERT_PRE_FUNC
 static inline
-bool lca_to_target_has_struct_ft_only(struct bt_field_path *src_field_path,
+bool lca_to_target_has_struct_fc_only(struct bt_field_path *src_field_path,
 		struct bt_field_path *tgt_field_path,
 		struct bt_resolve_field_path_context *ctx)
 {
 	bool is_valid = true;
-	struct bt_field_type *src_ft;
-	struct bt_field_type *tgt_ft;
+	struct bt_field_class *src_fc;
+	struct bt_field_class *tgt_fc;
 	uint64_t src_i = 0, tgt_i = 0;
 
 	if (src_field_path->root != tgt_field_path->root) {
 		goto end;
 	}
 
-	src_ft = borrow_root_field_type(ctx, src_field_path->root);
-	tgt_ft = borrow_root_field_type(ctx, tgt_field_path->root);
-	BT_ASSERT(src_ft);
-	BT_ASSERT(tgt_ft);
-	BT_ASSERT(src_ft == tgt_ft);
+	src_fc = borrow_root_field_class(ctx, src_field_path->root);
+	tgt_fc = borrow_root_field_class(ctx, tgt_field_path->root);
+	BT_ASSERT(src_fc);
+	BT_ASSERT(tgt_fc);
+	BT_ASSERT(src_fc == tgt_fc);
 
 	/* Find LCA */
 	while (src_i < src_field_path->indexes->len &&
@@ -397,37 +397,37 @@ bool lca_to_target_has_struct_ft_only(struct bt_field_path *src_field_path,
 			tgt_field_path, tgt_i);
 
 		if (src_i != tgt_i) {
-			/* Next FT is different: LCA is `tgt_ft` */
+			/* Next field class is different: LCA is `tgt_fc` */
 			break;
 		}
 
-		src_ft = borrow_child_field_type(src_ft, src_index, &advance);
+		src_fc = borrow_child_field_class(src_fc, src_index, &advance);
 
 		if (advance) {
 			src_i++;
 		}
 
-		tgt_ft = borrow_child_field_type(tgt_ft, tgt_index, &advance);
+		tgt_fc = borrow_child_field_class(tgt_fc, tgt_index, &advance);
 
 		if (advance) {
 			tgt_i++;
 		}
 	}
 
-	/* Only structure field types to the target */
+	/* Only structure field classes to the target */
 	while (tgt_i < tgt_field_path->indexes->len) {
 		bool advance;
 		uint64_t tgt_index = bt_field_path_get_index_by_index_inline(
 			tgt_field_path, tgt_i);
 
-		if (tgt_ft->id == BT_FIELD_TYPE_ID_STATIC_ARRAY ||
-				tgt_ft->id == BT_FIELD_TYPE_ID_DYNAMIC_ARRAY ||
-				tgt_ft->id == BT_FIELD_TYPE_ID_VARIANT) {
+		if (tgt_fc->id == BT_FIELD_CLASS_ID_STATIC_ARRAY ||
+				tgt_fc->id == BT_FIELD_CLASS_ID_DYNAMIC_ARRAY ||
+				tgt_fc->id == BT_FIELD_CLASS_ID_VARIANT) {
 			is_valid = false;
 			goto end;
 		}
 
-		tgt_ft = borrow_child_field_type(tgt_ft, tgt_index, &advance);
+		tgt_fc = borrow_child_field_class(tgt_fc, tgt_index, &advance);
 
 		if (advance) {
 			tgt_i++;
@@ -440,71 +440,71 @@ end:
 
 BT_ASSERT_PRE_FUNC
 static inline
-bool field_path_is_valid(struct bt_field_type *src_ft,
-		struct bt_field_type *tgt_ft,
+bool field_path_is_valid(struct bt_field_class *src_fc,
+		struct bt_field_class *tgt_fc,
 		struct bt_resolve_field_path_context *ctx)
 {
 	bool is_valid = true;
-	struct bt_field_path *src_field_path = find_field_type_in_ctx(
-		src_ft, ctx);
-	struct bt_field_path *tgt_field_path = find_field_type_in_ctx(
-		tgt_ft, ctx);
+	struct bt_field_path *src_field_path = find_field_class_in_ctx(
+		src_fc, ctx);
+	struct bt_field_path *tgt_field_path = find_field_class_in_ctx(
+		tgt_fc, ctx);
 
 	if (!src_field_path) {
-		BT_ASSERT_PRE_MSG("Cannot find requesting field type in "
-			"resolving context: %!+F", src_ft);
+		BT_ASSERT_PRE_MSG("Cannot find requesting field classe in "
+			"resolving context: %!+F", src_fc);
 		is_valid = false;
 		goto end;
 	}
 
 	if (!tgt_field_path) {
-		BT_ASSERT_PRE_MSG("Cannot find target field type in "
-			"resolving context: %!+F", tgt_ft);
+		BT_ASSERT_PRE_MSG("Cannot find target field classe in "
+			"resolving context: %!+F", tgt_fc);
 		is_valid = false;
 		goto end;
 	}
 
 	/* Target must be before source */
 	if (!target_is_before_source(src_field_path, tgt_field_path)) {
-		BT_ASSERT_PRE_MSG("Target field type is located after "
-			"requesting field type: %![req-ft-]+F, %![tgt-ft-]+F",
-			src_ft, tgt_ft);
+		BT_ASSERT_PRE_MSG("Target field classe is located after "
+			"requesting field classe: %![req-fc-]+F, %![tgt-fc-]+F",
+			src_fc, tgt_fc);
 		is_valid = false;
 		goto end;
 	}
 
 	/*
 	 * If target is in a different scope than source, there are no
-	 * array or variant field types on the way to the target.
+	 * array or variant field classes on the way to the target.
 	 */
-	if (!target_field_path_in_different_scope_has_struct_ft_only(
+	if (!target_field_path_in_different_scope_has_struct_fc_only(
 			src_field_path, tgt_field_path, ctx)) {
-		BT_ASSERT_PRE_MSG("Target field type is located in a "
-			"different scope than requesting field type, "
-			"but within an array or a variant field type: "
-			"%![req-ft-]+F, %![tgt-ft-]+F",
-			src_ft, tgt_ft);
+		BT_ASSERT_PRE_MSG("Target field classe is located in a "
+			"different scope than requesting field classe, "
+			"but within an array or a variant field classe: "
+			"%![req-fc-]+F, %![tgt-fc-]+F",
+			src_fc, tgt_fc);
 		is_valid = false;
 		goto end;
 	}
 
-	/* Same scope: LCA must be a structure field type */
-	if (!lca_is_structure_field_type(src_field_path, tgt_field_path, ctx)) {
+	/* Same scope: LCA must be a structure field classe */
+	if (!lca_is_structure_field_class(src_field_path, tgt_field_path, ctx)) {
 		BT_ASSERT_PRE_MSG("Lowest common ancestor of target and "
-			"requesting field types is not a structure field type: "
-			"%![req-ft-]+F, %![tgt-ft-]+F",
-			src_ft, tgt_ft);
+			"requesting field classes is not a structure field classe: "
+			"%![req-fc-]+F, %![tgt-fc-]+F",
+			src_fc, tgt_fc);
 		is_valid = false;
 		goto end;
 	}
 
 	/* Same scope: path from LCA to target has no array/variant FTs */
-	if (!lca_to_target_has_struct_ft_only(src_field_path, tgt_field_path,
+	if (!lca_to_target_has_struct_fc_only(src_field_path, tgt_field_path,
 			ctx)) {
 		BT_ASSERT_PRE_MSG("Path from lowest common ancestor of target "
-			"and requesting field types to target field type "
-			"contains an array or a variant field type: "
-			"%![req-ft-]+F, %![tgt-ft-]+F", src_ft, tgt_ft);
+			"and requesting field classes to target field classe "
+			"contains an array or a variant field classe: "
+			"%![req-fc-]+F, %![tgt-fc-]+F", src_fc, tgt_fc);
 		is_valid = false;
 		goto end;
 	}
@@ -516,35 +516,35 @@ end:
 }
 
 static
-struct bt_field_path *resolve_field_path(struct bt_field_type *src_ft,
-		struct bt_field_type *tgt_ft,
+struct bt_field_path *resolve_field_path(struct bt_field_class *src_fc,
+		struct bt_field_class *tgt_fc,
 		struct bt_resolve_field_path_context *ctx)
 {
-	BT_ASSERT_PRE(field_path_is_valid(src_ft, tgt_ft, ctx),
-		"Invalid target field type: %![req-ft-]+F, %![tgt-ft-]+F",
-		src_ft, tgt_ft);
-	return find_field_type_in_ctx(tgt_ft, ctx);
+	BT_ASSERT_PRE(field_path_is_valid(src_fc, tgt_fc, ctx),
+		"Invalid target field classe: %![req-fc-]+F, %![tgt-fc-]+F",
+		src_fc, tgt_fc);
+	return find_field_class_in_ctx(tgt_fc, ctx);
 }
 
 BT_HIDDEN
-int bt_resolve_field_paths(struct bt_field_type *ft,
+int bt_resolve_field_paths(struct bt_field_class *fc,
 		struct bt_resolve_field_path_context *ctx)
 {
 	int ret = 0;
 
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 
-	/* Resolving part for dynamic array and variant field types */
-	switch (ft->id) {
-	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
+	/* Resolving part for dynamic array and variant field classes */
+	switch (fc->id) {
+	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
 	{
-		struct bt_field_type_dynamic_array *dyn_array_ft = (void *) ft;
+		struct bt_field_class_dynamic_array *dyn_array_fc = (void *) fc;
 
-		if (dyn_array_ft->length_ft) {
-			BT_ASSERT(!dyn_array_ft->length_field_path);
-			dyn_array_ft->length_field_path = resolve_field_path(
-				ft, dyn_array_ft->length_ft, ctx);
-			if (!dyn_array_ft->length_field_path) {
+		if (dyn_array_fc->length_fc) {
+			BT_ASSERT(!dyn_array_fc->length_field_path);
+			dyn_array_fc->length_field_path = resolve_field_path(
+				fc, dyn_array_fc->length_fc, ctx);
+			if (!dyn_array_fc->length_field_path) {
 				ret = -1;
 				goto end;
 			}
@@ -552,16 +552,16 @@ int bt_resolve_field_paths(struct bt_field_type *ft,
 
 		break;
 	}
-	case BT_FIELD_TYPE_ID_VARIANT:
+	case BT_FIELD_CLASS_ID_VARIANT:
 	{
-		struct bt_field_type_variant *var_ft = (void *) ft;
+		struct bt_field_class_variant *var_fc = (void *) fc;
 
-		if (var_ft->selector_ft) {
-			BT_ASSERT(!var_ft->selector_field_path);
-			var_ft->selector_field_path =
-				resolve_field_path(ft,
-					var_ft->selector_ft, ctx);
-			if (!var_ft->selector_field_path) {
+		if (var_fc->selector_fc) {
+			BT_ASSERT(!var_fc->selector_field_path);
+			var_fc->selector_field_path =
+				resolve_field_path(fc,
+					var_fc->selector_fc, ctx);
+			if (!var_fc->selector_field_path) {
 				ret = -1;
 				goto end;
 			}
@@ -572,20 +572,20 @@ int bt_resolve_field_paths(struct bt_field_type *ft,
 	}
 
 	/* Recursive part */
-	switch (ft->id) {
-	case BT_FIELD_TYPE_ID_STRUCTURE:
-	case BT_FIELD_TYPE_ID_VARIANT:
+	switch (fc->id) {
+	case BT_FIELD_CLASS_ID_STRUCTURE:
+	case BT_FIELD_CLASS_ID_VARIANT:
 	{
-		struct bt_field_type_named_field_types_container *container_ft =
-			(void *) ft;
+		struct bt_field_class_named_field_class_container *container_fc =
+			(void *) fc;
 		uint64_t i;
 
-		for (i = 0; i < container_ft->named_fts->len; i++) {
-			struct bt_named_field_type *named_ft =
-				BT_FIELD_TYPE_NAMED_FT_AT_INDEX(
-					container_ft, i);
+		for (i = 0; i < container_fc->named_fcs->len; i++) {
+			struct bt_named_field_class *named_fc =
+				BT_FIELD_CLASS_NAMED_FC_AT_INDEX(
+					container_fc, i);
 
-			ret = bt_resolve_field_paths(named_ft->ft, ctx);
+			ret = bt_resolve_field_paths(named_fc->fc, ctx);
 			if (ret) {
 				goto end;
 			}
@@ -593,12 +593,12 @@ int bt_resolve_field_paths(struct bt_field_type *ft,
 
 		break;
 	}
-	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
-	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
+	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
 	{
-		struct bt_field_type_array *array_ft = (void *) ft;
+		struct bt_field_class_array *array_fc = (void *) fc;
 
-		ret = bt_resolve_field_paths(array_ft->element_ft, ctx);
+		ret = bt_resolve_field_paths(array_fc->element_fc, ctx);
 		break;
 	}
 	default:

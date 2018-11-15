@@ -32,8 +32,8 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>
-#include <babeltrace/trace-ir/field-types.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/field-classes.h>
+#include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
 #include <babeltrace/trace-ir/event-internal.h>
@@ -70,10 +70,10 @@ void destroy_event_class(struct bt_object *obj)
 		g_string_free(event_class->emf_uri.str, TRUE);
 	}
 
-	BT_LOGD_STR("Putting context field type.");
-	bt_put(event_class->specific_context_ft);
-	BT_LOGD_STR("Putting payload field type.");
-	bt_put(event_class->payload_ft);
+	BT_LOGD_STR("Putting context field classe.");
+	bt_put(event_class->specific_context_fc);
+	BT_LOGD_STR("Putting payload field classe.");
+	bt_put(event_class->payload_fc);
 	bt_object_pool_finalize(&event_class->event_pool);
 	g_free(obj);
 }
@@ -258,16 +258,16 @@ struct bt_stream_class *bt_event_class_borrow_stream_class(
 	return bt_event_class_borrow_stream_class_inline(event_class);
 }
 
-struct bt_field_type *bt_event_class_borrow_specific_context_field_type(
+struct bt_field_class *bt_event_class_borrow_specific_context_field_class(
 		struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return event_class->specific_context_ft;
+	return event_class->specific_context_fc;
 }
 
-int bt_event_class_set_specific_context_field_type(
+int bt_event_class_set_specific_context_field_class(
 		struct bt_event_class *event_class,
-		struct bt_field_type *field_type)
+		struct bt_field_class *field_class)
 {
 	int ret;
 	struct bt_stream_class *stream_class;
@@ -277,51 +277,51 @@ int bt_event_class_set_specific_context_field_type(
 		.packet_context = NULL,
 		.event_header = NULL,
 		.event_common_context = NULL,
-		.event_specific_context = field_type,
+		.event_specific_context = field_class,
 		.event_payload = NULL,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
-		BT_FIELD_TYPE_ID_STRUCTURE,
-		"Specific context field type is not a structure field type: "
-		"%!+F", field_type);
+	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
+		BT_FIELD_CLASS_ID_STRUCTURE,
+		"Specific context field classe is not a structure field classe: "
+		"%!+F", field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
 	trace = bt_stream_class_borrow_trace_inline(stream_class);
-	resolve_ctx.packet_header = trace->packet_header_ft;
-	resolve_ctx.packet_context = stream_class->packet_context_ft;
-	resolve_ctx.event_header = stream_class->event_header_ft;
+	resolve_ctx.packet_header = trace->packet_header_fc;
+	resolve_ctx.packet_context = stream_class->packet_context_fc;
+	resolve_ctx.event_header = stream_class->event_header_fc;
 	resolve_ctx.event_common_context =
-		stream_class->event_common_context_ft;
+		stream_class->event_common_context_fc;
 
-	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_type_make_part_of_trace(field_type);
-	bt_put(event_class->specific_context_ft);
-	event_class->specific_context_ft = bt_get(field_type);
-	bt_field_type_freeze(field_type);
-	BT_LIB_LOGV("Set event class's specific context field type: %!+E",
+	bt_field_class_make_part_of_trace(field_class);
+	bt_put(event_class->specific_context_fc);
+	event_class->specific_context_fc = bt_get(field_class);
+	bt_field_class_freeze(field_class);
+	BT_LIB_LOGV("Set event class's specific context field classe: %!+E",
 		event_class);
 
 end:
 	return ret;
 }
 
-struct bt_field_type *bt_event_class_borrow_payload_field_type(
+struct bt_field_class *bt_event_class_borrow_payload_field_class(
 		struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return event_class->payload_ft;
+	return event_class->payload_fc;
 }
 
-int bt_event_class_set_payload_field_type(struct bt_event_class *event_class,
-		struct bt_field_type *field_type)
+int bt_event_class_set_payload_field_class(struct bt_event_class *event_class,
+		struct bt_field_class *field_class)
 {
 	int ret;
 	struct bt_stream_class *stream_class;
@@ -332,36 +332,36 @@ int bt_event_class_set_payload_field_type(struct bt_event_class *event_class,
 		.event_header = NULL,
 		.event_common_context = NULL,
 		.event_specific_context = NULL,
-		.event_payload = field_type,
+		.event_payload = field_class,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
-	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
-		BT_FIELD_TYPE_ID_STRUCTURE,
-		"Payload field type is not a structure field type: %!+F",
-		field_type);
+	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
+		BT_FIELD_CLASS_ID_STRUCTURE,
+		"Payload field classe is not a structure field classe: %!+F",
+		field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
 	trace = bt_stream_class_borrow_trace_inline(stream_class);
-	resolve_ctx.packet_header = trace->packet_header_ft;
-	resolve_ctx.packet_context = stream_class->packet_context_ft;
-	resolve_ctx.event_header = stream_class->event_header_ft;
+	resolve_ctx.packet_header = trace->packet_header_fc;
+	resolve_ctx.packet_context = stream_class->packet_context_fc;
+	resolve_ctx.event_header = stream_class->event_header_fc;
 	resolve_ctx.event_common_context =
-		stream_class->event_common_context_ft;
-	resolve_ctx.event_specific_context = event_class->specific_context_ft;
+		stream_class->event_common_context_fc;
+	resolve_ctx.event_specific_context = event_class->specific_context_fc;
 
-	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_type_make_part_of_trace(field_type);
-	bt_put(event_class->payload_ft);
-	event_class->payload_ft = bt_get(field_type);
-	bt_field_type_freeze(field_type);
-	BT_LIB_LOGV("Set event class's payload field type: %!+E", event_class);
+	bt_field_class_make_part_of_trace(field_class);
+	bt_put(event_class->payload_fc);
+	event_class->payload_fc = bt_get(field_class);
+	bt_field_class_freeze(field_class);
+	BT_LIB_LOGV("Set event class's payload field classe: %!+E", event_class);
 
 end:
 	return ret;
@@ -370,7 +370,7 @@ end:
 BT_HIDDEN
 void _bt_event_class_freeze(struct bt_event_class *event_class)
 {
-	/* The field types are already frozen */
+	/* The field classes are already frozen */
 	BT_ASSERT(event_class);
 	BT_LIB_LOGD("Freezing event class: %!+E", event_class);
 	event_class->frozen = true;

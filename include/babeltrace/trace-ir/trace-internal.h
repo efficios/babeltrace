@@ -30,7 +30,7 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/fields.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
@@ -74,7 +74,7 @@ struct bt_trace {
 	 */
 	GHashTable *stream_classes_stream_count;
 
-	struct bt_field_type *packet_header_ft;
+	struct bt_field_class *packet_header_fc;
 	bool assigns_automatic_stream_class_id;
 
 	GArray *is_static_listeners;

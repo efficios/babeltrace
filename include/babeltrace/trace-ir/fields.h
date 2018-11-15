@@ -35,20 +35,20 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
-/* For enum bt_field_type_id */
-#include <babeltrace/trace-ir/field-types.h>
+/* For enum bt_field_class_id */
+#include <babeltrace/trace-ir/field-classes.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_field;
-struct bt_field_type;
-struct bt_field_type_enumeration_mapping_iterator;
+struct bt_field_class;
+struct bt_field_class_enumeration_mapping_iterator;
 
-extern struct bt_field_type *bt_field_borrow_type(struct bt_field *field);
+extern struct bt_field_class *bt_field_borrow_class(struct bt_field *field);
 
-extern enum bt_field_type_id bt_field_get_type_id(struct bt_field *field);
+extern enum bt_field_class_id bt_field_get_class_id(struct bt_field *field);
 
 extern int64_t bt_field_signed_integer_get_value(struct bt_field *field);
 
@@ -66,12 +66,12 @@ extern void bt_field_real_set_value(struct bt_field *field, double value);
 
 extern int bt_field_unsigned_enumeration_get_mapping_labels(
 		struct bt_field *field,
-		bt_field_type_enumeration_mapping_label_array *label_array,
+		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
 extern int bt_field_signed_enumeration_get_mapping_labels(
 		struct bt_field *field,
-		bt_field_type_enumeration_mapping_label_array *label_array,
+		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
 extern const char *bt_field_string_get_value(struct bt_field *field);
