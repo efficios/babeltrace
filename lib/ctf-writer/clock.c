@@ -38,7 +38,7 @@
 #include <babeltrace/ctf-writer/utils.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <inttypes.h>
 
 static
@@ -76,7 +76,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	return clock;
 
 error:
-	BT_PUT(clock);
+	BT_OBJECT_PUT_REF_AND_RESET(clock);
 	return clock;
 }
 
@@ -217,7 +217,7 @@ void bt_ctf_clock_destroy(struct bt_object *obj)
 	struct bt_ctf_clock *clock;
 
 	clock = container_of(obj, struct bt_ctf_clock, base);
-	bt_put(clock->clock_class);
+	bt_object_put_ref(clock->clock_class);
 	g_free(clock);
 }
 

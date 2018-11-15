@@ -28,7 +28,7 @@
 
 void destroy_private_dummy_data(struct dummy *dummy)
 {
-	bt_put(dummy->notif_iter);
+	bt_object_put_ref(dummy->notif_iter);
 	g_free(dummy);
 }
 
@@ -95,10 +95,10 @@ enum bt_component_status dummy_port_connected(
 		goto end;
 	}
 
-	BT_MOVE(dummy->notif_iter, iterator);
+	BT_OBJECT_MOVE_REF(dummy->notif_iter, iterator);
 
 end:
-	bt_put(connection);
+	bt_object_put_ref(connection);
 	return status;
 }
 
@@ -127,7 +127,7 @@ enum bt_component_status dummy_consume(struct bt_private_component *component)
 		ret = BT_COMPONENT_STATUS_OK;
 
 		for (i = 0; i < count; i++) {
-			bt_put(notifs[i]);
+			bt_object_put_ref(notifs[i]);
 		}
 
 		break;

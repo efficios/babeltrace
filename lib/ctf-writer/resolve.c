@@ -38,7 +38,7 @@
 #include <babeltrace/ctf-writer/resolve-internal.h>
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/utils-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
 #include <glib.h>
@@ -115,7 +115,7 @@ void type_stack_destroy_notify(gpointer data)
 {
 	struct type_stack_frame *frame = data;
 
-	BT_PUT(frame->type);
+	BT_OBJECT_PUT_REF_AND_RESET(frame->type);
 	g_free(frame);
 }
 
@@ -165,7 +165,7 @@ int type_stack_push(type_stack *stack, struct bt_ctf_field_type_common *type)
 
 	BT_LOGV("Pushing field type on context's stack: "
 		"ft-addr=%p, stack-size-before=%u", type, stack->len);
-	frame->type = bt_get(type);
+	frame->type = bt_object_get_ref(type);
 	g_ptr_array_add(stack, frame);
 
 end:
@@ -402,7 +402,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 	bt_bool first_level_done = BT_FALSE;
 
 	/* Get our own reference */
-	bt_get(type);
+	bt_object_get_ref(type);
 
 	/* Locate target */
 	while (cur_ptoken) {
@@ -460,12 +460,12 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 		}
 
 		/* Move child type to current type */
-		bt_get(child_type);
-		BT_MOVE(type, child_type);
+		bt_object_get_ref(child_type);
+		BT_OBJECT_MOVE_REF(type, child_type);
 	}
 
 end:
-	bt_put(type);
+	bt_object_put_ref(type);
 	return ret;
 }
 
@@ -617,7 +617,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 	}
 
 end:
-	BT_PUT(tail_field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(tail_field_path);
 	return ret;
 }
 
@@ -704,7 +704,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 
 end:
 	if (ret) {
-		BT_PUT(field_path);
+		BT_OBJECT_PUT_REF_AND_RESET(field_path);
 	}
 
 	ptokens_destroy(ptokens);
@@ -727,7 +727,7 @@ struct bt_ctf_field_type_common *field_path_to_field_type(
 
 	/* Start with root type */
 	type = get_type_from_ctx(ctx, field_path->root);
-	bt_get(type);
+	bt_object_get_ref(type);
 	if (!type) {
 		/* Error: root type is not available */
 		BT_LOGW("Root field type is not available: root-scope=%s",
@@ -751,14 +751,14 @@ struct bt_ctf_field_type_common *field_path_to_field_type(
 		}
 
 		/* Move child type to current type */
-		bt_get(child_type);
-		BT_MOVE(type, child_type);
+		bt_object_get_ref(child_type);
+		BT_OBJECT_MOVE_REF(type, child_type);
 	}
 
 	return type;
 
 error:
-	BT_PUT(type);
+	BT_OBJECT_PUT_REF_AND_RESET(type);
 	return type;
 }
 
@@ -792,7 +792,7 @@ struct bt_ctf_field_path *get_ctx_stack_field_path(struct resolve_context *ctx)
 	return field_path;
 
 error:
-	BT_PUT(field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(field_path);
 	return field_path;
 }
 
@@ -988,7 +988,7 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 	}
 
 end:
-	BT_PUT(ctx_field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(ctx_field_path);
 	return ret;
 }
 
@@ -1104,8 +1104,8 @@ end:
 		g_string_free(target_field_path_pretty, TRUE);
 	}
 
-	BT_PUT(target_field_path);
-	BT_PUT(target_type);
+	BT_OBJECT_PUT_REF_AND_RESET(target_field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(target_type);
 	return ret;
 }
 

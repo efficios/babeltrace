@@ -76,7 +76,7 @@ bt_object_get_object() accessors to get the type and wrapped
 CTF IR object of a CTF IR object wrapper.
 
 A CTF IR object wrapper has <strong>no reference count</strong>: do \em
-not use bt_put() or bt_get() on it.
+not use bt_object_put_ref() or bt_object_get_ref() on it.
 
 @sa ctfirvisitor
 */
@@ -116,7 +116,7 @@ bt_ctf_stream_class_visit() when visiting the CTF IR object wrapper
 \p object.
 
 \p object has <strong>no reference count</strong>: do \em not use
-bt_put() or bt_get() on it.
+bt_object_put_ref() or bt_object_get_ref() on it.
 
 @param[in] object	Currently visited CTF IR object wrapper.
 @param[in] data		User data.
@@ -151,7 +151,7 @@ enum bt_ctf_visitor_object_type bt_ctf_visitor_object_get_type(
 	wrapper \p object.
 
 The reference count of \p object is \em not incremented by this
-function. On success, you must call bt_get() on the return value to
+function. On success, you must call bt_object_get_ref() on the return value to
 have your own reference.
 
 @param[in] object	Object wrapper of which to get the wrapped

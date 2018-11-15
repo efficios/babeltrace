@@ -23,7 +23,7 @@
 #define BT_LOG_TAG "COLANDER"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/private-component-sink.h>
@@ -93,7 +93,7 @@ void colander_finalize(struct bt_private_component *priv_comp)
 	}
 
 	if (colander_data->notif_iter) {
-		bt_put(colander_data->notif_iter);
+		bt_object_put_ref(colander_data->notif_iter);
 	}
 
 	g_free(colander_data);
@@ -113,7 +113,7 @@ enum bt_component_status colander_port_connected(struct bt_private_component *pr
 
 	BT_ASSERT(priv_conn);
 	BT_ASSERT(colander_data);
-	BT_PUT(colander_data->notif_iter);
+	BT_OBJECT_PUT_REF_AND_RESET(colander_data->notif_iter);
 	conn_status = bt_private_connection_create_notification_iterator(
 		priv_conn, &colander_data->notif_iter);
 	if (conn_status) {
@@ -124,7 +124,7 @@ enum bt_component_status colander_port_connected(struct bt_private_component *pr
 	}
 
 end:
-	bt_put(priv_conn);
+	bt_object_put_ref(priv_conn);
 	return status;
 }
 
@@ -195,10 +195,10 @@ struct bt_component_class *bt_component_class_sink_colander_get(void)
 	(void) bt_component_class_freeze(colander_comp_cls);
 
 end:
-	return bt_get(colander_comp_cls);
+	return bt_object_get_ref(colander_comp_cls);
 }
 
 __attribute__((destructor)) static
 void put_colander(void) {
-	BT_PUT(colander_comp_cls);
+	BT_OBJECT_PUT_REF_AND_RESET(colander_comp_cls);
 }

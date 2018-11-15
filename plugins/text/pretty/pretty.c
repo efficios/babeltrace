@@ -70,7 +70,7 @@ const char *plugin_options[] = {
 static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
-	bt_put(pretty->input_iterator);
+	bt_object_put_ref(pretty->input_iterator);
 
 	if (pretty->string) {
 		(void) g_string_free(pretty->string, TRUE);
@@ -172,7 +172,7 @@ enum bt_component_status pretty_port_connected(
 		status = BT_COMPONENT_STATUS_ERROR;
 	}
 
-	bt_put(connection);
+	bt_object_put_ref(connection);
 	return status;
 }
 
@@ -195,7 +195,7 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		ret = BT_COMPONENT_STATUS_END;
-		BT_PUT(pretty->input_iterator);
+		BT_OBJECT_PUT_REF_AND_RESET(pretty->input_iterator);
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 		ret = BT_COMPONENT_STATUS_AGAIN;
@@ -215,12 +215,12 @@ enum bt_component_status pretty_consume(struct bt_private_component *component)
 			goto end;
 		}
 
-		bt_put(notifs[i]);
+		bt_object_put_ref(notifs[i]);
 	}
 
 end:
 	for (; i < count; i++) {
-		bt_put(notifs[i]);
+		bt_object_put_ref(notifs[i]);
 	}
 
 	return ret;
@@ -675,7 +675,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 	}
 
 end:
-	bt_put(pretty->plugin_opt_map);
+	bt_object_put_ref(pretty->plugin_opt_map);
 	pretty->plugin_opt_map = NULL;
 	g_free(str);
 	return ret;

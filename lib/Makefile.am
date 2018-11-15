@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libbabeltrace.la libbabeltrace-ctf.la
 libbabeltrace_la_SOURCES = \
 	babeltrace.c \
 	values.c \
-	ref.c \
+	object.c \
 	lib-logging.c \
 	logging.c \
 	object-pool.c

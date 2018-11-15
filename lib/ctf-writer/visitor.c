@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/ctf-writer/visitor-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 
 BT_HIDDEN
 int bt_ctf_visitor_helper(struct bt_ctf_visitor_object *root,
@@ -59,7 +59,7 @@ int bt_ctf_visitor_helper(struct bt_ctf_visitor_object *root,
 			goto end;
 		}
 		ret = child_visitor(child, visitor, data);
-		BT_PUT(child);
+		BT_OBJECT_PUT_REF_AND_RESET(child);
 	        if (ret) {
 			goto end;
 		}

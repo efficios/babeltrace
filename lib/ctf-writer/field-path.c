@@ -79,7 +79,7 @@ struct bt_ctf_field_path *bt_ctf_field_path_create(void)
 	return field_path;
 
 error:
-	BT_PUT(field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(field_path);
 	return NULL;
 }
 

@@ -44,7 +44,7 @@ gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
 {
 	struct bt_packet *writer_packet = value;
 
-	bt_put(writer_packet);
+	bt_object_put_ref(writer_packet);
 	return TRUE;
 }
 
@@ -56,7 +56,7 @@ void trimmer_iterator_finalize(struct bt_private_connection_private_notification
 	trim_it = bt_private_connection_private_notification_iterator_get_user_data(it);
 	BT_ASSERT(trim_it);
 
-	bt_put(trim_it->input_iterator);
+	bt_object_put_ref(trim_it->input_iterator);
 	g_hash_table_foreach_remove(trim_it->packet_map,
 			close_packets, NULL);
 	g_hash_table_destroy(trim_it->packet_map);
@@ -107,9 +107,9 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 		goto end;
 	}
 end:
-	bt_put(component);
-	bt_put(connection);
-	bt_put(input_port);
+	bt_object_put_ref(component);
+	bt_object_put_ref(connection);
+	bt_object_put_ref(input_port);
 	return ret;
 }
 
@@ -202,7 +202,7 @@ struct bt_notification *evaluate_event_notification(
 	BT_ASSERT(writer_event);
 	new_notification = bt_notification_event_create(writer_event, cc_prio_map);
 	BT_ASSERT(new_notification);
-	bt_put(cc_prio_map);
+	bt_object_put_ref(cc_prio_map);
 
 	stream = bt_event_get_stream(event);
 	BT_ASSERT(stream);
@@ -254,15 +254,15 @@ struct bt_notification *evaluate_event_notification(
 	goto end;
 
 error:
-	BT_PUT(new_notification);
+	BT_OBJECT_PUT_REF_AND_RESET(new_notification);
 end:
-	bt_put(event);
-	bt_put(writer_event);
-	bt_put(clock_class);
-	bt_put(trace);
-	bt_put(stream);
-	bt_put(stream_class);
-	bt_put(clock_value);
+	bt_object_put_ref(event);
+	bt_object_put_ref(writer_event);
+	bt_object_put_ref(clock_class);
+	bt_object_put_ref(trace);
+	bt_object_put_ref(stream);
+	bt_object_put_ref(stream_class);
+	bt_object_put_ref(clock_value);
 	*_event_in_range = in_range;
 	return new_notification;
 }
@@ -306,9 +306,9 @@ int ns_from_integer_field(struct bt_field *integer, int64_t *ns)
 
 	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ns);
 end:
-	bt_put(integer_class);
-	bt_put(clock_class);
-	bt_put(clock_value);
+	bt_object_put_ref(integer_class);
+	bt_object_put_ref(clock_class);
+	bt_object_put_ref(clock_value);
 	return ret;
 }
 
@@ -366,10 +366,10 @@ int64_t get_raw_timestamp(struct bt_packet *writer_packet,
 
 	ns += ns_from_value(freq, cycles_offset);
 
-	bt_put(writer_clock_class);
-	bt_put(writer_trace);
-	bt_put(writer_stream_class);
-	bt_put(writer_stream);
+	bt_object_put_ref(writer_clock_class);
+	bt_object_put_ref(writer_trace);
+	bt_object_put_ref(writer_stream_class);
+	bt_object_put_ref(writer_stream);
 
 	return timestamp - ns;
 }
@@ -492,11 +492,11 @@ end:
 	}
 end_no_notif:
 	*_packet_in_range = in_range;
-	bt_put(packet);
-	bt_put(writer_packet);
-	bt_put(packet_context);
-	bt_put(timestamp_begin);
-	bt_put(timestamp_end);
+	bt_object_put_ref(packet);
+	bt_object_put_ref(writer_packet);
+	bt_object_put_ref(packet_context);
+	bt_object_put_ref(timestamp_begin);
+	bt_object_put_ref(timestamp_end);
 	return new_notification;
 }
 
@@ -545,7 +545,7 @@ enum bt_notification_iterator_status evaluate_notification(
 	default:
 		break;
 	}
-	BT_PUT(*notification);
+	BT_OBJECT_PUT_REF_AND_RESET(*notification);
 	*notification = new_notification;
 
 	if (finished) {
@@ -598,7 +598,7 @@ struct bt_notification_iterator_next_method_return trimmer_iterator_next(
 				&trimmer->begin, &trimmer->end,
 				&notification_in_range);
 		if (!notification_in_range) {
-			BT_PUT(ret.notification);
+			BT_OBJECT_PUT_REF_AND_RESET(ret.notification);
 		}
 
 		if (ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
@@ -606,6 +606,6 @@ struct bt_notification_iterator_next_method_return trimmer_iterator_next(
 		}
 	}
 end:
-	bt_put(component);
+	bt_object_put_ref(component);
 	return ret;
 }

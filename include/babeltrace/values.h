@@ -32,8 +32,8 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
-/* For bt_get() */
-#include <babeltrace/ref.h>
+/* For bt_object_get_ref() */
+#include <babeltrace/object.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -201,7 +201,7 @@ one. You can compare any value object address to the null value object
 singleton to check if it's the null value object, or otherwise with
 bt_value_is_null().
 
-You can pass \ref bt_value_null to bt_get() or bt_put(): it has
+You can pass \ref bt_value_null to bt_object_get_ref() or bt_object_put_ref(): it has
 <em>no effect</em>.
 
 The null value object singleton is <em>always frozen</em> (see
@@ -1067,7 +1067,7 @@ extern struct bt_value *bt_value_map_borrow_entry_value(
 /**
 @brief	User function type to use with bt_value_map_foreach_entry().
 
-\p object is a <em>weak reference</em>: you \em must pass it to bt_get()
+\p object is a <em>weak reference</em>: you \em must pass it to bt_object_get_ref()
 if you need to keep a reference after this function returns.
 
 This function \em must return #BT_TRUE to continue the map value object
@@ -1091,7 +1091,7 @@ typedef bt_bool (* bt_value_map_foreach_entry_cb)(const char *key,
 	map value object \p map_obj.
 
 The value object passed to the user function is a <b>weak reference</b>:
-you \em must pass it to bt_get() if you need to keep a persistent
+you \em must pass it to bt_object_get_ref() if you need to keep a persistent
 reference after the user function returns.
 
 The key passed to the user function is only valid in the scope of

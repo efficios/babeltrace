@@ -165,7 +165,7 @@ struct bt_component_class_query_method_return metadata_info_query(
 	goto end;
 
 error:
-	BT_PUT(query_ret.result);
+	BT_OBJECT_PUT_REF_AND_RESET(query_ret.result);
 
 	if (query_ret.status >= 0) {
 		query_ret.status = BT_QUERY_STATUS_ERROR;
@@ -224,7 +224,7 @@ int add_range(struct bt_value *info, struct range *range,
 		goto end;
 	}
 end:
-	bt_put(range_map);
+	bt_object_put_ref(range_map);
 	return ret;
 }
 
@@ -339,7 +339,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		goto end;
 	}
 end:
-	bt_put(file_paths);
+	bt_object_put_ref(file_paths);
 	return ret;
 }
 
@@ -411,7 +411,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 
 		ret = populate_stream_info(group, group_info, &group_range);
 		if (ret) {
-			bt_put(group_info);
+			bt_object_put_ref(group_info);
 			goto end;
 		}
 
@@ -428,7 +428,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 					group_range.end_ns);
 			trace_intersection.set = true;
 			status = bt_value_array_append_element(file_groups, group_info);
-			bt_put(group_info);
+			bt_object_put_ref(group_info);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto end;
 			}
@@ -449,14 +449,14 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 	}
 
 	status = bt_value_map_insert_entry(trace_info, "streams", file_groups);
-	BT_PUT(file_groups);
+	BT_OBJECT_PUT_REF_AND_RESET(file_groups);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
 end:
-	bt_put(file_groups);
+	bt_object_put_ref(file_groups);
 	ctf_fs_trace_destroy(trace);
 	return ret;
 }
@@ -539,12 +539,12 @@ struct bt_component_class_query_method_return trace_info_query(
 		ret = populate_trace_info(trace_path->str, trace_name->str,
 			trace_info);
 		if (ret) {
-			bt_put(trace_info);
+			bt_object_put_ref(trace_info);
 			goto error;
 		}
 
 		status = bt_value_array_append_element(query_ret.result, trace_info);
-		bt_put(trace_info);
+		bt_object_put_ref(trace_info);
 		if (status != BT_VALUE_STATUS_OK) {
 			goto error;
 		}
@@ -553,7 +553,7 @@ struct bt_component_class_query_method_return trace_info_query(
 	goto end;
 
 error:
-	BT_PUT(query_ret.result);
+	BT_OBJECT_PUT_REF_AND_RESET(query_ret.result);
 
 	if (query_ret.status >= 0) {
 		query_ret.status = BT_QUERY_STATUS_ERROR;

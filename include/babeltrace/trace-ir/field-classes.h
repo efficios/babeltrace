@@ -30,8 +30,8 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_get() */
-#include <babeltrace/ref.h>
+/* For bt_object_get_ref() */
+#include <babeltrace/object.h>
 
 /* For bt_bool */
 #include <babeltrace/types.h>

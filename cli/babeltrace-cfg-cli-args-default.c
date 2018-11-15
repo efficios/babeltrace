@@ -58,10 +58,10 @@ struct bt_config *bt_config_cli_args_create_with_default(int argc,
 
 error:
 	*retcode = 1;
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	bt_put(initial_plugin_paths);
+	bt_object_put_ref(initial_plugin_paths);
 	return cfg;
 }
 

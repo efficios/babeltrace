@@ -33,7 +33,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/values.h>
 #include <babeltrace/compat/glib-internal.h>
 #include <babeltrace/types.h>
@@ -226,16 +226,16 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 			BT_LOGE("Cannot copy array value's element: "
 				"array-addr=%p, index=%d",
 				array_obj, i);
-			BT_PUT(copy_obj);
+			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
 			goto end;
 		}
 
 		ret = bt_value_array_append_element(copy_obj, element_obj_copy);
-		BT_PUT(element_obj_copy);
+		BT_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
 		if (ret) {
 			BT_LOGE("Cannot append to array value: addr=%p",
 				array_obj);
-			BT_PUT(copy_obj);
+			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
 			goto end;
 		}
 	}
@@ -277,16 +277,16 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 			BT_LOGE("Cannot copy map value's element: "
 				"map-addr=%p, key=\"%s\"",
 				map_obj, key_str);
-			BT_PUT(copy_obj);
+			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
 			goto end;
 		}
 
 		ret = bt_value_map_insert_entry(copy_obj, key_str, element_obj_copy);
-		BT_PUT(element_obj_copy);
+		BT_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
 		if (ret) {
 			BT_LOGE("Cannot insert into map value: addr=%p, key=\"%s\"",
 				map_obj, key_str);
-			BT_PUT(copy_obj);
+			BT_OBJECT_PUT_REF_AND_RESET(copy_obj);
 			goto end;
 		}
 	}
@@ -708,7 +708,7 @@ struct bt_value *bt_value_array_create(void)
 
 	array_obj->base = bt_value_create_base(BT_VALUE_TYPE_ARRAY);
 	array_obj->garray = bt_g_ptr_array_new_full(0,
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_put_ref);
 	if (!array_obj->garray) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		g_free(array_obj);
@@ -736,7 +736,7 @@ struct bt_value *bt_value_map_create(void)
 
 	map_obj->base = bt_value_create_base(BT_VALUE_TYPE_MAP);
 	map_obj->ght = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-		NULL, (GDestroyNotify) bt_put);
+		NULL, (GDestroyNotify) bt_object_put_ref);
 	if (!map_obj->ght) {
 		BT_LOGE_STR("Failed to allocate a GHashTable.");
 		g_free(map_obj);
@@ -875,7 +875,7 @@ enum bt_value_status bt_value_array_append_element(struct bt_value *array_obj,
 	BT_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
 	BT_ASSERT_PRE_VALUE_HOT(array_obj, "Array value object");
 	g_ptr_array_add(typed_array_obj->garray, element_obj);
-	bt_get(element_obj);
+	bt_object_get_ref(element_obj);
 	BT_LOGV("Appended element to array value: array-value-addr=%p, "
 		"element-value-addr=%p, new-size=%u",
 		array_obj, element_obj, typed_array_obj->garray->len);
@@ -890,7 +890,7 @@ enum bt_value_status bt_value_array_append_bool_element(struct bt_value *array_o
 
 	bool_obj = bt_value_bool_create_init(val);
 	ret = bt_value_array_append_element(array_obj, bool_obj);
-	bt_put(bool_obj);
+	bt_object_put_ref(bool_obj);
 	return ret;
 }
 
@@ -902,7 +902,7 @@ enum bt_value_status bt_value_array_append_integer_element(
 
 	integer_obj = bt_value_integer_create_init(val);
 	ret = bt_value_array_append_element(array_obj, integer_obj);
-	bt_put(integer_obj);
+	bt_object_put_ref(integer_obj);
 	return ret;
 }
 
@@ -914,7 +914,7 @@ enum bt_value_status bt_value_array_append_real_element(struct bt_value *array_o
 
 	real_obj = bt_value_real_create_init(val);
 	ret = bt_value_array_append_element(array_obj, real_obj);
-	bt_put(real_obj);
+	bt_object_put_ref(real_obj);
 	return ret;
 }
 
@@ -926,7 +926,7 @@ enum bt_value_status bt_value_array_append_string_element(struct bt_value *array
 
 	string_obj = bt_value_string_create_init(val);
 	ret = bt_value_array_append_element(array_obj, string_obj);
-	bt_put(string_obj);
+	bt_object_put_ref(string_obj);
 	return ret;
 }
 
@@ -938,7 +938,7 @@ enum bt_value_status bt_value_array_append_empty_array_element(
 
 	empty_array_obj = bt_value_array_create();
 	ret = bt_value_array_append_element(array_obj, empty_array_obj);
-	bt_put(empty_array_obj);
+	bt_object_put_ref(empty_array_obj);
 	return ret;
 }
 
@@ -949,7 +949,7 @@ enum bt_value_status bt_value_array_append_empty_map_element(struct bt_value *ar
 
 	map_obj = bt_value_map_create();
 	ret = bt_value_array_append_element(array_obj, map_obj);
-	bt_put(map_obj);
+	bt_object_put_ref(map_obj);
 	return ret;
 }
 
@@ -965,9 +965,9 @@ enum bt_value_status bt_value_array_set_element_by_index(struct bt_value *array_
 	BT_ASSERT_PRE_VALUE_HOT(array_obj, "Array value object");
 	BT_ASSERT_PRE_VALUE_INDEX_IN_BOUNDS(index,
 		typed_array_obj->garray->len);
-	bt_put(g_ptr_array_index(typed_array_obj->garray, index));
+	bt_object_put_ref(g_ptr_array_index(typed_array_obj->garray, index));
 	g_ptr_array_index(typed_array_obj->garray, index) = element_obj;
-	bt_get(element_obj);
+	bt_object_get_ref(element_obj);
 	BT_LOGV("Set array value's element: array-value-addr=%p, "
 		"index=%" PRIu64 ", element-value-addr=%p",
 		array_obj, index, element_obj);
@@ -1015,7 +1015,7 @@ enum bt_value_status bt_value_map_insert_entry(struct bt_value *map_obj,
 	BT_ASSERT_PRE_VALUE_HOT(map_obj, "Map value object");
 	g_hash_table_insert(BT_VALUE_TO_MAP(map_obj)->ght,
 		GUINT_TO_POINTER(g_quark_from_string(key)), element_obj);
-	bt_get(element_obj);
+	bt_object_get_ref(element_obj);
 	BT_LOGV("Inserted value into map value: map-value-addr=%p, "
 		"key=\"%s\", element-value-addr=%p",
 		map_obj, key, element_obj);
@@ -1030,7 +1030,7 @@ enum bt_value_status bt_value_map_insert_bool_entry(struct bt_value *map_obj,
 
 	bool_obj = bt_value_bool_create_init(val);
 	ret = bt_value_map_insert_entry(map_obj, key, bool_obj);
-	bt_put(bool_obj);
+	bt_object_put_ref(bool_obj);
 	return ret;
 }
 
@@ -1042,7 +1042,7 @@ enum bt_value_status bt_value_map_insert_integer_entry(struct bt_value *map_obj,
 
 	integer_obj = bt_value_integer_create_init(val);
 	ret = bt_value_map_insert_entry(map_obj, key, integer_obj);
-	bt_put(integer_obj);
+	bt_object_put_ref(integer_obj);
 	return ret;
 }
 
@@ -1054,7 +1054,7 @@ enum bt_value_status bt_value_map_insert_real_entry(struct bt_value *map_obj,
 
 	real_obj = bt_value_real_create_init(val);
 	ret = bt_value_map_insert_entry(map_obj, key, real_obj);
-	bt_put(real_obj);
+	bt_object_put_ref(real_obj);
 	return ret;
 }
 
@@ -1066,7 +1066,7 @@ enum bt_value_status bt_value_map_insert_string_entry(struct bt_value *map_obj,
 
 	string_obj = bt_value_string_create_init(val);
 	ret = bt_value_map_insert_entry(map_obj, key, string_obj);
-	bt_put(string_obj);
+	bt_object_put_ref(string_obj);
 	return ret;
 }
 
@@ -1078,7 +1078,7 @@ enum bt_value_status bt_value_map_insert_empty_array_entry(struct bt_value *map_
 
 	array_obj = bt_value_array_create();
 	ret = bt_value_map_insert_entry(map_obj, key, array_obj);
-	bt_put(array_obj);
+	bt_object_put_ref(array_obj);
 	return ret;
 }
 
@@ -1090,7 +1090,7 @@ enum bt_value_status bt_value_map_insert_empty_map_entry(struct bt_value *map_ob
 
 	empty_map_obj = bt_value_map_create();
 	ret = bt_value_map_insert_entry(map_obj, key, empty_map_obj);
-	bt_put(empty_map_obj);
+	bt_object_put_ref(empty_map_obj);
 	return ret;
 }
 
@@ -1156,7 +1156,7 @@ error:
 	extend_data->got_error = BT_TRUE;
 
 end:
-	BT_PUT(extension_obj_elem_copy);
+	BT_OBJECT_PUT_REF_AND_RESET(extension_obj_elem_copy);
 	return ret;
 }
 
@@ -1205,7 +1205,7 @@ struct bt_value *bt_value_map_extend(struct bt_value *base_map_obj,
 	goto end;
 
 error:
-	BT_PUT(extended_obj);
+	BT_OBJECT_PUT_REF_AND_RESET(extended_obj);
 
 end:
 	return extended_obj;

@@ -40,7 +40,7 @@
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 
@@ -172,7 +172,7 @@ void bt_packet_recycle(struct bt_packet *packet)
 	 * 2. Move the stream reference to our `stream`
 	 *    variable so that we can set the packet's stream member
 	 *    to NULL before recycling it. We CANNOT do this after
-	 *    we put the stream reference because this bt_put()
+	 *    we put the stream reference because this bt_object_put_ref()
 	 *    could destroy the stream, also destroying its
 	 *    packet pool, thus also destroying our packet object (this
 	 *    would result in an invalid write access).
@@ -226,7 +226,7 @@ void bt_packet_destroy(struct bt_packet *packet)
 	}
 
 	BT_LOGD_STR("Putting packet's stream.");
-	bt_put(packet->stream);
+	bt_object_put_ref(packet->stream);
 	g_free(packet);
 }
 
@@ -246,7 +246,7 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 
 	bt_object_init_shared(&packet->base,
 		(bt_object_release_func) bt_packet_recycle);
-	packet->stream = bt_get(stream);
+	packet->stream = bt_object_get_ref(stream);
 	trace = bt_stream_class_borrow_trace_inline(stream->class);
 	BT_ASSERT(trace);
 
@@ -297,7 +297,7 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 	goto end;
 
 error:
-	BT_PUT(packet);
+	BT_OBJECT_PUT_REF_AND_RESET(packet);
 
 end:
 	return packet;

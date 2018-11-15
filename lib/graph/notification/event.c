@@ -70,7 +70,7 @@ struct bt_notification *bt_notification_event_new(
 	goto end;
 
 error:
-	BT_PUT(notification);
+	BT_OBJECT_PUT_REF_AND_RESET(notification);
 
 end:
 	return (void *) notification;

@@ -42,7 +42,7 @@
 #include <babeltrace/ctf-writer/validation-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values-internal.h>
 #include <glib.h>
@@ -69,9 +69,9 @@ void bt_ctf_event_class_common_finalize(struct bt_object *obj)
 	}
 
 	BT_LOGD_STR("Putting context field type.");
-	bt_put(event_class->context_field_type);
+	bt_object_put_ref(event_class->context_field_type);
 	BT_LOGD_STR("Putting payload field type.");
-	bt_put(event_class->payload_field_type);
+	bt_object_put_ref(event_class->payload_field_type);
 }
 
 BT_HIDDEN
@@ -217,7 +217,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 	goto end;
 
 error:
-	bt_put(ctf_event_class);
+	bt_object_put_ref(ctf_event_class);
 
 end:
 	return ctf_event_class;
@@ -269,14 +269,14 @@ struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		struct bt_ctf_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return bt_get(bt_ctf_event_class_common_borrow_stream_class(
+	return bt_object_get_ref(bt_ctf_event_class_common_borrow_stream_class(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
 struct bt_ctf_field_type *bt_ctf_event_class_get_payload_field_type(
 		struct bt_ctf_event_class *event_class)
 {
-	return bt_get(bt_ctf_event_class_common_borrow_payload_field_type(
+	return bt_object_get_ref(bt_ctf_event_class_common_borrow_payload_field_type(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
@@ -291,7 +291,7 @@ int bt_ctf_event_class_set_payload_field_type(
 struct bt_ctf_field_type *bt_ctf_event_class_get_context_field_type(
 		struct bt_ctf_event_class *event_class)
 {
-	return bt_get(bt_ctf_event_class_common_borrow_context_field_type(
+	return bt_object_get_ref(bt_ctf_event_class_common_borrow_context_field_type(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
@@ -539,7 +539,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 end:
 	context->current_indentation_level = 0;
-	BT_PUT(attr_value);
+	BT_OBJECT_PUT_REF_AND_RESET(attr_value);
 	return ret;
 }
 
@@ -577,7 +577,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 	 * No need to increment field_type's reference count since getting it
 	 * from the structure already does.
 	 */
-	field_type = bt_get(
+	field_type = bt_object_get_ref(
 		bt_ctf_field_type_common_structure_borrow_field_type_by_name(
 			event_class->common.payload_field_type, name));
 

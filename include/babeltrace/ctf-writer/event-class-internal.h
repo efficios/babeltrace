@@ -335,8 +335,8 @@ int bt_ctf_event_class_common_set_context_field_type(
 		goto end;
 	}
 
-	bt_put(event_class->context_field_type);
-	event_class->context_field_type = bt_get(context_ft);
+	bt_object_put_ref(event_class->context_field_type);
+	event_class->context_field_type = bt_object_get_ref(context_ft);
 	BT_LOGV("Set event class's context field type: "
 		"event-class-addr=%p, event-class-name=\"%s\", "
 		"event-class-id=%" PRId64 ", context-ft-addr=%p",
@@ -381,8 +381,8 @@ int bt_ctf_event_class_common_set_payload_field_type(
 		goto end;
 	}
 
-	bt_put(event_class->payload_field_type);
-	event_class->payload_field_type = bt_get(payload_ft);
+	bt_object_put_ref(event_class->payload_field_type);
+	event_class->payload_field_type = bt_object_get_ref(payload_ft);
 	BT_LOGV("Set event class's payload field type: "
 		"event-class-addr=%p, event-class-name=\"%s\", "
 		"event-class-id=%" PRId64 ", payload-ft-addr=%p",

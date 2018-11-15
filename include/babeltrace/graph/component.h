@@ -33,8 +33,8 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
-/* For bt_get */
-#include <babeltrace/ref.h>
+/* For bt_object_get_ref */
+#include <babeltrace/object.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,7 +92,7 @@ extern struct bt_graph *bt_component_borrow_graph(struct bt_component *component
 static inline
 struct bt_graph *bt_component_get_graph(struct bt_component *component)
 {
-	return bt_get(bt_component_borrow_graph(component));
+	return bt_object_get_ref(bt_component_borrow_graph(component));
 }
 
 #ifdef __cplusplus

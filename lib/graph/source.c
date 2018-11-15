@@ -29,7 +29,7 @@
 #define BT_LOG_TAG "COMP-SOURCE"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/private-component.h>
 #include <babeltrace/graph/component-source-internal.h>
@@ -214,6 +214,6 @@ enum bt_component_status bt_private_component_source_add_output_private_port(
 	}
 
 end:
-	bt_put(port);
+	bt_object_put_ref(port);
 	return status;
 }

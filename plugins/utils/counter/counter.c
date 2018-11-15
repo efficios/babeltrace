@@ -103,7 +103,7 @@ void try_print_last(struct counter *counter)
 
 void destroy_private_counter_data(struct counter *counter)
 {
-	bt_put(counter->notif_iter);
+	bt_object_put_ref(counter->notif_iter);
 	g_free(counter);
 }
 
@@ -115,7 +115,7 @@ void counter_finalize(struct bt_private_component *component)
 	counter = bt_private_component_get_user_data(component);
 	BT_ASSERT(counter);
 	try_print_last(counter);
-	bt_put(counter->notif_iter);
+	bt_object_put_ref(counter->notif_iter);
 	g_free(counter);
 }
 
@@ -195,10 +195,10 @@ enum bt_component_status counter_port_connected(
 		goto end;
 	}
 
-	BT_MOVE(counter->notif_iter, iterator);
+	BT_OBJECT_MOVE_REF(counter->notif_iter, iterator);
 
 end:
-	bt_put(connection);
+	bt_object_put_ref(connection);
 	return status;
 }
 
@@ -266,7 +266,7 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 				counter->count.other++;
 			}
 
-			bt_put(notif);
+			bt_object_put_ref(notif);
 		}
 	}
 	default:

@@ -29,7 +29,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/graph/component-class.h>
@@ -375,7 +375,7 @@ struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 error:
 	print_python_traceback_warn();
 	pyerr_clear();
-	BT_PUT(plugin);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin);
 
 end:
 	Py_XDECREF(py_name);
@@ -492,10 +492,10 @@ struct bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 	goto end;
 
 error:
-	BT_PUT(plugin_set);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 
 end:
-	bt_put(plugin);
+	bt_object_put_ref(plugin);
 	Py_XDECREF(py_plugin_info);
 	g_free(basename);
 	return plugin_set;

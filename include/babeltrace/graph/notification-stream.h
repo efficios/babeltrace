@@ -29,8 +29,8 @@
 
 #include <stdint.h>
 
-/* For bt_get() */
-#include <babeltrace/ref.h>
+/* For bt_object_get_ref() */
+#include <babeltrace/object.h>
 
 /* For bt_bool */
 #include <babeltrace/types.h>
@@ -62,7 +62,7 @@ static inline
 struct bt_stream *bt_notification_stream_begin_get_stream(
 		struct bt_notification *notification)
 {
-	return bt_get(bt_notification_stream_begin_borrow_stream(notification));
+	return bt_object_get_ref(bt_notification_stream_begin_borrow_stream(notification));
 }
 
 extern int bt_notification_stream_begin_set_default_clock_value(
@@ -78,7 +78,7 @@ static inline
 struct bt_stream *bt_notification_stream_end_get_stream(
 		struct bt_notification *notification)
 {
-	return bt_get(bt_notification_stream_end_borrow_stream(notification));
+	return bt_object_get_ref(bt_notification_stream_end_borrow_stream(notification));
 }
 
 extern int bt_notification_stream_end_set_default_clock_value(

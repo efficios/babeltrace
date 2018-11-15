@@ -189,14 +189,14 @@ extern int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 static inline
 void bt_ctf_writer_get(struct bt_ctf_writer *writer)
 {
-	bt_get(writer);
+	bt_object_get_ref(writer);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
 void bt_ctf_writer_put(struct bt_ctf_writer *writer)
 {
-	bt_put(writer);
+	bt_object_put_ref(writer);
 }
 
 #ifdef __cplusplus

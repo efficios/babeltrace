@@ -421,7 +421,7 @@ success:
 	}
 
 end:
-	BT_PUT(value);
+	BT_OBJECT_PUT_REF_AND_RESET(value);
 	return ret;
 }
 
@@ -538,7 +538,7 @@ struct bt_value *bt_value_from_ini(const char *arg, GString *ini_error)
 	goto end;
 
 error:
-	BT_PUT(state.params);
+	BT_OBJECT_PUT_REF_AND_RESET(state.params);
 
 end:
 	if (state.scanner) {
@@ -757,7 +757,7 @@ void bt_config_component_destroy(struct bt_object *obj)
 		g_string_free(bt_config_component->instance_name, TRUE);
 	}
 
-	BT_PUT(bt_config_component->params);
+	BT_OBJECT_PUT_REF_AND_RESET(bt_config_component->params);
 	g_free(bt_config_component);
 
 end:
@@ -815,7 +815,7 @@ struct bt_config_component *bt_config_component_create(
 	goto end;
 
 error:
-	BT_PUT(cfg_component);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg_component);
 
 end:
 	return cfg_component;
@@ -851,7 +851,7 @@ struct bt_config_component *bt_config_component_from_arg(const char *arg)
 	goto end;
 
 error:
-	BT_PUT(cfg_comp);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg_comp);
 
 end:
 	g_free(name);
@@ -873,7 +873,7 @@ void bt_config_destroy(struct bt_object *obj)
 		goto end;
 	}
 
-	BT_PUT(cfg->plugin_paths);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg->plugin_paths);
 
 	switch (cfg->command) {
 	case BT_CONFIG_COMMAND_RUN:
@@ -897,10 +897,10 @@ void bt_config_destroy(struct bt_object *obj)
 	case BT_CONFIG_COMMAND_LIST_PLUGINS:
 		break;
 	case BT_CONFIG_COMMAND_HELP:
-		BT_PUT(cfg->cmd_data.help.cfg_component);
+		BT_OBJECT_PUT_REF_AND_RESET(cfg->cmd_data.help.cfg_component);
 		break;
 	case BT_CONFIG_COMMAND_QUERY:
-		BT_PUT(cfg->cmd_data.query.cfg_component);
+		BT_OBJECT_PUT_REF_AND_RESET(cfg->cmd_data.query.cfg_component);
 
 		if (cfg->cmd_data.query.object) {
 			g_string_free(cfg->cmd_data.query.object, TRUE);
@@ -1102,7 +1102,7 @@ end:
 	return names;
 
 error:
-	BT_PUT(names);
+	BT_OBJECT_PUT_REF_AND_RESET(names);
 	if (scanner) {
 		g_scanner_destroy(scanner);
 	}
@@ -1175,7 +1175,7 @@ struct bt_value *fields_from_arg(const char *arg)
 	goto end;
 
 error:
-	BT_PUT(fields);
+	BT_OBJECT_PUT_REF_AND_RESET(fields);
 
 end:
 	if (scanner) {
@@ -1359,7 +1359,7 @@ void add_run_cfg_comp(struct bt_config *cfg,
 		struct bt_config_component *cfg_comp,
 		enum bt_config_component_dest dest)
 {
-	bt_get(cfg_comp);
+	bt_object_get_ref(cfg_comp);
 
 	switch (dest) {
 	case BT_CONFIG_COMPONENT_DEST_SOURCE:
@@ -1500,7 +1500,7 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	cfg->command_needs_plugins = needs_plugins;
 
 	if (initial_plugin_paths) {
-		cfg->plugin_paths = bt_get(initial_plugin_paths);
+		cfg->plugin_paths = bt_object_get_ref(initial_plugin_paths);
 	} else {
 		cfg->plugin_paths = bt_value_array_create();
 		if (!cfg->plugin_paths) {
@@ -1512,7 +1512,7 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	goto end;
 
 error:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	return cfg;
@@ -1532,21 +1532,21 @@ struct bt_config *bt_config_run_create(
 	}
 
 	cfg->cmd_data.run.sources = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_put_ref);
 	if (!cfg->cmd_data.run.sources) {
 		print_err_oom();
 		goto error;
 	}
 
 	cfg->cmd_data.run.filters = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_put_ref);
 	if (!cfg->cmd_data.run.filters) {
 		print_err_oom();
 		goto error;
 	}
 
 	cfg->cmd_data.run.sinks = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_put_ref);
 	if (!cfg->cmd_data.run.sinks) {
 		print_err_oom();
 		goto error;
@@ -1562,7 +1562,7 @@ struct bt_config *bt_config_run_create(
 	goto end;
 
 error:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	return cfg;
@@ -1584,7 +1584,7 @@ struct bt_config *bt_config_list_plugins_create(
 	goto end;
 
 error:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	return cfg;
@@ -1613,7 +1613,7 @@ struct bt_config *bt_config_help_create(
 	goto end;
 
 error:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	return cfg;
@@ -1641,7 +1641,7 @@ struct bt_config *bt_config_query_create(
 	goto end;
 
 error:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	return cfg;
@@ -1675,7 +1675,7 @@ struct bt_config *bt_config_print_ctf_metadata_create(
 	goto end;
 
 error:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	return cfg;
@@ -1710,7 +1710,7 @@ struct bt_config *bt_config_print_lttng_live_sessions_create(
 	goto end;
 
 error:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	return cfg;
@@ -1871,7 +1871,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		case OPT_HELP:
 			print_help_usage(stdout);
 			*retcode = -1;
-			BT_PUT(cfg);
+			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
 			printf_err("Unknown command-line option specified (option code %d)\n",
@@ -1914,7 +1914,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 	} else {
 		print_help_usage(stdout);
 		*retcode = -1;
-		BT_PUT(cfg);
+		BT_OBJECT_PUT_REF_AND_RESET(cfg);
 		goto end;
 	}
 
@@ -1926,7 +1926,7 @@ struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 
 error:
 	*retcode = 1;
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	g_free(plugin_name);
@@ -2034,7 +2034,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			break;
 		case OPT_PARAMS:
 		{
-			bt_put(params);
+			bt_object_put_ref(params);
 			params = bt_value_from_arg(arg);
 			if (!params) {
 				printf_err("Invalid format for --params option's argument:\n    %s\n",
@@ -2046,7 +2046,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		case OPT_HELP:
 			print_query_usage(stdout);
 			*retcode = -1;
-			BT_PUT(cfg);
+			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
 			printf_err("Unknown command-line option specified (option code %d)\n",
@@ -2080,11 +2080,11 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		}
 
 		BT_ASSERT(params);
-		BT_MOVE(cfg->cmd_data.query.cfg_component->params, params);
+		BT_OBJECT_MOVE_REF(cfg->cmd_data.query.cfg_component->params, params);
 	} else {
 		print_query_usage(stdout);
 		*retcode = -1;
-		BT_PUT(cfg);
+		BT_OBJECT_PUT_REF_AND_RESET(cfg);
 		goto end;
 	}
 
@@ -2099,7 +2099,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	} else {
 		print_query_usage(stdout);
 		*retcode = -1;
-		BT_PUT(cfg);
+		BT_OBJECT_PUT_REF_AND_RESET(cfg);
 		goto end;
 	}
 
@@ -2117,14 +2117,14 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 
 error:
 	*retcode = 1;
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	if (pc) {
 		poptFreeContext(pc);
 	}
 
-	bt_put(params);
+	bt_object_put_ref(params);
 	free(arg);
 	return cfg;
 }
@@ -2222,7 +2222,7 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		case OPT_HELP:
 			print_list_plugins_usage(stdout);
 			*retcode = -1;
-			BT_PUT(cfg);
+			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
 			printf_err("Unknown command-line option specified (option code %d)\n",
@@ -2255,7 +2255,7 @@ struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 
 error:
 	*retcode = 1;
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	if (pc) {
@@ -2471,7 +2471,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				ret = add_run_cfg_comp_check_name(cfg,
 					cur_cfg_comp, cur_cfg_comp_dest,
 					instance_names);
-				BT_PUT(cur_cfg_comp);
+				BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
 				if (ret) {
 					goto error;
 				}
@@ -2499,7 +2499,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			}
 
 			BT_ASSERT(cur_base_params);
-			bt_put(cur_cfg_comp->params);
+			bt_object_put_ref(cur_cfg_comp->params);
 			cur_cfg_comp->params = bt_value_copy(cur_base_params);
 			if (!cur_cfg_comp->params) {
 				print_err_oom();
@@ -2529,14 +2529,14 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 			params_to_set = bt_value_map_extend(cur_cfg_comp->params,
 				params);
-			BT_PUT(params);
+			BT_OBJECT_PUT_REF_AND_RESET(params);
 			if (!params_to_set) {
 				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
 					arg);
 				goto error;
 			}
 
-			BT_MOVE(cur_cfg_comp->params, params_to_set);
+			BT_OBJECT_MOVE_REF(cur_cfg_comp->params, params_to_set);
 			break;
 		}
 		case OPT_KEY:
@@ -2585,11 +2585,11 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			BT_MOVE(cur_base_params, params);
+			BT_OBJECT_MOVE_REF(cur_base_params, params);
 			break;
 		}
 		case OPT_RESET_BASE_PARAMS:
-			BT_PUT(cur_base_params);
+			BT_OBJECT_PUT_REF_AND_RESET(cur_base_params);
 			cur_base_params = bt_value_map_create();
 			if (!cur_base_params) {
 				print_err_oom();
@@ -2616,7 +2616,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		case OPT_HELP:
 			print_run_usage(stdout);
 			*retcode = -1;
-			BT_PUT(cfg);
+			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		default:
 			printf_err("Unknown command-line option specified (option code %d)\n",
@@ -2645,7 +2645,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	if (cur_cfg_comp) {
 		ret = add_run_cfg_comp_check_name(cfg, cur_cfg_comp,
 			cur_cfg_comp_dest, instance_names);
-		BT_PUT(cur_cfg_comp);
+		BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
 		if (ret) {
 			goto error;
 		}
@@ -2676,7 +2676,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 error:
 	*retcode = 1;
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	if (pc) {
@@ -2688,10 +2688,10 @@ end:
 	}
 
 	free(arg);
-	BT_PUT(cur_cfg_comp);
-	BT_PUT(cur_base_params);
-	BT_PUT(instance_names);
-	BT_PUT(connection_args);
+	BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
+	BT_OBJECT_PUT_REF_AND_RESET(cur_base_params);
+	BT_OBJECT_PUT_REF_AND_RESET(instance_names);
+	BT_OBJECT_PUT_REF_AND_RESET(connection_args);
 	return cfg;
 }
 
@@ -3087,7 +3087,7 @@ void finalize_implicit_component_args(struct implicit_component_args *args)
 		g_string_free(args->params_arg, TRUE);
 	}
 
-	bt_put(args->extra_params);
+	bt_object_put_ref(args->extra_params);
 }
 
 static
@@ -3534,7 +3534,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		 * We need our own copy of the extra parameters because
 		 * this is where the unique path goes.
 		 */
-		BT_PUT(impl_args->extra_params);
+		BT_OBJECT_PUT_REF_AND_RESET(impl_args->extra_params);
 		impl_args->extra_params =
 			bt_value_copy(base_implicit_ctf_input_args->extra_params);
 		if (!impl_args->extra_params) {
@@ -3607,7 +3607,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct implicit_component_args implicit_debug_info_args = { 0 };
 	struct implicit_component_args implicit_muxer_args = { 0 };
 	struct implicit_component_args implicit_trimmer_args = { 0 };
-	struct bt_value *plugin_paths = bt_get(initial_plugin_paths);
+	struct bt_value *plugin_paths = bt_object_get_ref(initial_plugin_paths);
 	char error_buf[256] = { 0 };
 	size_t i;
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
@@ -3934,7 +3934,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_HELP:
 			print_convert_usage(stdout);
 			*retcode = -1;
-			BT_PUT(cfg);
+			BT_OBJECT_PUT_REF_AND_RESET(cfg);
 			goto end;
 		case OPT_BEGIN:
 		case OPT_CLOCK_CYCLES:
@@ -4155,7 +4155,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
 				fields, "field");
-			bt_put(fields);
+			bt_object_put_ref(fields);
 			if (ret) {
 				goto error;
 			}
@@ -4173,7 +4173,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
 				names, "name");
-			bt_put(names);
+			bt_object_put_ref(names);
 			if (ret) {
 				goto error;
 			}
@@ -4701,7 +4701,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 
 		*retcode = -1;
-		BT_PUT(cfg);
+		BT_OBJECT_PUT_REF_AND_RESET(cfg);
 		goto end;
 	}
 
@@ -4717,7 +4717,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 error:
 	*retcode = 1;
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
 	if (pc) {
@@ -4739,8 +4739,8 @@ end:
 		g_ptr_array_free(implicit_ctf_inputs_args, TRUE);
 	}
 
-	bt_put(run_args);
-	bt_put(all_names);
+	bt_object_put_ref(run_args);
+	bt_object_put_ref(all_names);
 	destroy_glist_of_gstring(source_names);
 	destroy_glist_of_gstring(filter_names);
 	destroy_glist_of_gstring(sink_names);
@@ -4753,7 +4753,7 @@ end:
 	finalize_implicit_component_args(&implicit_debug_info_args);
 	finalize_implicit_component_args(&implicit_muxer_args);
 	finalize_implicit_component_args(&implicit_trimmer_args);
-	bt_put(plugin_paths);
+	bt_object_put_ref(plugin_paths);
 	bt_common_destroy_lttng_live_url_parts(&lttng_live_url_parts);
 	return cfg;
 }
@@ -4848,7 +4848,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			goto end;
 		}
 	} else {
-		bt_get(initial_plugin_paths);
+		bt_object_get_ref(initial_plugin_paths);
 	}
 
 	if (argc <= 1) {
@@ -5010,6 +5010,6 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	}
 
 end:
-	bt_put(initial_plugin_paths);
+	bt_object_put_ref(initial_plugin_paths);
 	return config;
 }

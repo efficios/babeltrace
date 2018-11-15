@@ -53,7 +53,7 @@
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/private-port.h>
 #include <babeltrace/plugin/plugin.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <glib.h>
 
 #include "tap/tap.h"
@@ -308,7 +308,7 @@ void init_static_data(void)
 		fprintf(stderr, ":: stream 2, packet 2: %p\n", src_stream2_packet2);
 	}
 
-	bt_put(trace);
+	bt_object_put_ref(trace);
 }
 
 static
@@ -318,14 +318,14 @@ void fini_static_data(void)
 	g_array_free(test_events, TRUE);
 
 	/* Metadata */
-	bt_put(src_stream_class);
-	bt_put(src_event_class);
-	bt_put(src_stream1);
-	bt_put(src_stream2);
-	bt_put(src_stream1_packet1);
-	bt_put(src_stream1_packet2);
-	bt_put(src_stream2_packet1);
-	bt_put(src_stream2_packet2);
+	bt_object_put_ref(src_stream_class);
+	bt_object_put_ref(src_event_class);
+	bt_object_put_ref(src_stream1);
+	bt_object_put_ref(src_stream2);
+	bt_object_put_ref(src_stream1_packet1);
+	bt_object_put_ref(src_stream1_packet2);
+	bt_object_put_ref(src_stream2_packet1);
+	bt_object_put_ref(src_stream2_packet2);
 }
 
 static
@@ -603,7 +603,7 @@ enum bt_notification_iterator_status common_consume(
 
 	for (i = 0; i < count; i++) {
 		append_test_events_from_notification(notifications[i]);
-		bt_put(notifications[i]);
+		bt_object_put_ref(notifications[i]);
 	}
 
 end:
@@ -630,7 +630,7 @@ enum bt_component_status sink_consume(
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		ret = BT_COMPONENT_STATUS_END;
-		BT_PUT(user_data->notif_iter);
+		BT_OBJECT_PUT_REF_AND_RESET(user_data->notif_iter);
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 		abort();
@@ -659,7 +659,7 @@ enum bt_component_status sink_port_connected(
 	conn_status = bt_private_connection_create_notification_iterator(
 		priv_conn, &user_data->notif_iter);
 	BT_ASSERT(conn_status == 0);
-	bt_put(priv_conn);
+	bt_object_put_ref(priv_conn);
 	return BT_COMPONENT_STATUS_OK;
 }
 
@@ -688,7 +688,7 @@ void sink_finalize(struct bt_private_component *private_component)
 		private_component);
 
 	if (user_data) {
-		bt_put(user_data->notif_iter);
+		bt_object_put_ref(user_data->notif_iter);
 		g_free(user_data);
 	}
 }
@@ -721,7 +721,7 @@ void create_source_sink(struct bt_graph *graph, struct bt_component **source,
 		ret = bt_graph_add_component(graph, src_comp_class, "source",
 			NULL, source);
 		BT_ASSERT(ret == 0);
-		bt_put(src_comp_class);
+		bt_object_put_ref(src_comp_class);
 	}
 
 	/* Create sink component */
@@ -740,7 +740,7 @@ void create_source_sink(struct bt_graph *graph, struct bt_component **source,
 		ret = bt_graph_add_component(graph, sink_comp_class, "sink",
 			NULL, sink);
 		BT_ASSERT(ret == 0);
-		bt_put(sink_comp_class);
+		bt_object_put_ref(sink_comp_class);
 	}
 }
 
@@ -769,8 +769,8 @@ void do_std_test(enum test test, const char *name,
 	BT_ASSERT(downstream_port);
 	graph_status = bt_graph_connect_ports(graph, upstream_port,
 		downstream_port, NULL);
-	bt_put(upstream_port);
-	bt_put(downstream_port);
+	bt_object_put_ref(upstream_port);
+	bt_object_put_ref(downstream_port);
 
 	/* Run the graph until the end */
 	while (graph_status == BT_GRAPH_STATUS_OK ||
@@ -786,9 +786,9 @@ void do_std_test(enum test test, const char *name,
 			"the produced sequence of test events is the expected one");
 	}
 
-	bt_put(src_comp);
-	bt_put(sink_comp);
-	BT_PUT(graph);
+	bt_object_put_ref(src_comp);
+	bt_object_put_ref(sink_comp);
+	BT_OBJECT_PUT_REF_AND_RESET(graph);
 }
 
 static
@@ -861,7 +861,7 @@ void test_output_port_notification_iterator(void)
 	notif_iter = bt_output_port_notification_iterator_create(upstream_port,
 		NULL);
 	ok(notif_iter, "bt_output_port_notification_iterator_create() succeeds");
-	bt_put(upstream_port);
+	bt_object_put_ref(upstream_port);
 
 	/* Consume the notification iterator */
 	while (iter_status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
@@ -875,9 +875,9 @@ void test_output_port_notification_iterator(void)
 	ok(compare_test_events(expected_test_events),
 		"the produced sequence of test events is the expected one");
 
-	bt_put(src_comp);
-	BT_PUT(graph);
-	bt_put(notif_iter);
+	bt_object_put_ref(src_comp);
+	BT_OBJECT_PUT_REF_AND_RESET(graph);
+	bt_object_put_ref(notif_iter);
 }
 
 #define DEBUG_ENV_VAR	"TEST_BT_NOTIFICATION_ITERATOR_DEBUG"

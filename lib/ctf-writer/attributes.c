@@ -31,7 +31,7 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compat/string-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/values.h>
 #include <inttypes.h>
@@ -74,7 +74,7 @@ BT_HIDDEN
 void bt_ctf_attributes_destroy(struct bt_value *attr_obj)
 {
 	BT_LOGD("Destroying attributes object: addr=%p", attr_obj);
-	bt_put(attr_obj);
+	bt_object_put_ref(attr_obj);
 }
 
 BT_HIDDEN
@@ -272,7 +272,7 @@ int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
 	}
 
 end:
-	bt_put(attr_field_obj);
+	bt_object_put_ref(attr_field_obj);
 	return ret;
 }
 

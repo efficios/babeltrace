@@ -24,13 +24,13 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_TAG "REF"
+#define BT_LOG_TAG "OBJECT"
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object-internal.h>
 
-void *bt_get(void *ptr)
+void *bt_object_get_ref(void *ptr)
 {
 	struct bt_object *obj = ptr;
 
@@ -45,7 +45,7 @@ end:
 	return ptr;
 }
 
-void bt_put(void *ptr)
+void bt_object_put_ref(void *ptr)
 {
 	struct bt_object *obj = ptr;
 

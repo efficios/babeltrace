@@ -639,7 +639,7 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		goto error;
 	}
 
-	ds_file->stream = bt_get(stream);
+	ds_file->stream = bt_object_get_ref(stream);
 	ds_file->metadata = ctf_fs_trace->metadata;
 	g_string_assign(ds_file->file->path, path);
 	ret = ctf_fs_file_open(ds_file->file, "rb");
@@ -691,8 +691,8 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 		return;
 	}
 
-	bt_put(ds_file->cc_prio_map);
-	bt_put(ds_file->stream);
+	bt_object_put_ref(ds_file->cc_prio_map);
+	bt_object_put_ref(ds_file->stream);
 	(void) ds_file_munmap(ds_file);
 
 	if (ds_file->file) {
