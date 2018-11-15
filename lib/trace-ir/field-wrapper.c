@@ -66,12 +66,12 @@ void bt_field_wrapper_destroy(struct bt_field_wrapper *field_wrapper)
 
 BT_HIDDEN
 struct bt_field_wrapper *bt_field_wrapper_create(
-		struct bt_object_pool *pool, struct bt_field_type *ft)
+		struct bt_object_pool *pool, struct bt_field_class *fc)
 {
 	struct bt_field_wrapper *field_wrapper = NULL;
 
 	BT_ASSERT(pool);
-	BT_ASSERT(ft);
+	BT_ASSERT(fc);
 	field_wrapper = bt_object_pool_create_object(pool);
 	if (!field_wrapper) {
 		BT_LIB_LOGE("Cannot allocate one field wrapper from field wrapper pool: "
@@ -80,10 +80,10 @@ struct bt_field_wrapper *bt_field_wrapper_create(
 	}
 
 	if (!field_wrapper->field) {
-		field_wrapper->field = (void *) bt_field_create(ft);
+		field_wrapper->field = (void *) bt_field_create(fc);
 		if (!field_wrapper->field) {
-			BT_LIB_LOGE("Cannot create field wrapper from field type: "
-				"%![ft-]+F", ft);
+			BT_LIB_LOGE("Cannot create field wrapper from field classe: "
+				"%![fc-]+F", fc);
 			goto error;
 		}
 

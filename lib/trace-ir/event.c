@@ -31,7 +31,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
 #include <babeltrace/trace-ir/clock-value.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
@@ -110,7 +110,7 @@ struct bt_field_wrapper *create_event_header_field(
 
 	field_wrapper = bt_field_wrapper_create(
 		&stream_class->event_header_field_pool,
-		bt_stream_class_borrow_event_header_field_type(stream_class));
+		bt_stream_class_borrow_event_header_field_class(stream_class));
 	if (!field_wrapper) {
 		goto error;
 	}
@@ -132,7 +132,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 {
 	struct bt_event *event = NULL;
 	struct bt_stream_class *stream_class;
-	struct bt_field_type *ft;
+	struct bt_field_class *fc;
 
 	BT_ASSERT(event_class);
 	event = g_new0(struct bt_event, 1);
@@ -145,7 +145,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
 
-	if (bt_stream_class_borrow_event_header_field_type(stream_class)) {
+	if (bt_stream_class_borrow_event_header_field_class(stream_class)) {
 		event->header_field = create_event_header_field(stream_class);
 		if (!event->header_field) {
 			BT_LOGE_STR("Cannot create event header field.");
@@ -153,28 +153,28 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 		}
 	}
 
-	ft = bt_stream_class_borrow_event_common_context_field_type(
+	fc = bt_stream_class_borrow_event_common_context_field_class(
 		stream_class);
-	if (ft) {
-		event->common_context_field = bt_field_create(ft);
+	if (fc) {
+		event->common_context_field = bt_field_create(fc);
 		if (!event->common_context_field) {
 			/* bt_field_create() logs errors */
 			goto error;
 		}
 	}
 
-	ft = bt_event_class_borrow_specific_context_field_type(event_class);
-	if (ft) {
-		event->specific_context_field = bt_field_create(ft);
+	fc = bt_event_class_borrow_specific_context_field_class(event_class);
+	if (fc) {
+		event->specific_context_field = bt_field_create(fc);
 		if (!event->specific_context_field) {
 			/* bt_field_create() logs errors */
 			goto error;
 		}
 	}
 
-	ft = bt_event_class_borrow_payload_field_type(event_class);
-	if (ft) {
-		event->payload_field = bt_field_create(ft);
+	fc = bt_event_class_borrow_payload_field_class(event_class);
+	if (fc) {
+		event->payload_field = bt_field_create(fc);
 		if (!event->payload_field) {
 			/* bt_field_create() logs errors */
 			goto error;
@@ -335,8 +335,8 @@ int bt_event_move_header(struct bt_event *event,
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
 	BT_ASSERT_PRE_EVENT_HOT(event);
 	stream_class = bt_event_class_borrow_stream_class_inline(event->class);
-	BT_ASSERT_PRE(stream_class->event_header_ft,
-		"Stream class has no event header field type: %!+S",
+	BT_ASSERT_PRE(stream_class->event_header_fc,
+		"Stream class has no event header field classe: %!+S",
 		stream_class);
 
 	/* Recycle current header field: always exists */

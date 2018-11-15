@@ -87,7 +87,7 @@ int ctf_visitor_type_specifier(int depth, struct ctf_node *node)
 {
 	int ret;
 
-	switch (node->u.type_specifier.type) {
+	switch (node->u.field_class_specifier.type) {
 	case TYPESPEC_VOID:
 	case TYPESPEC_CHAR:
 	case TYPESPEC_SHORT:
@@ -109,8 +109,8 @@ int ctf_visitor_type_specifier(int depth, struct ctf_node *node)
 	case TYPESPEC_STRUCT:
 	case TYPESPEC_VARIANT:
 	case TYPESPEC_ENUM:
-		node->u.type_specifier.node->parent = node;
-		ret = ctf_visitor_parent_links(depth + 1, node->u.type_specifier.node);
+		node->u.field_class_specifier.node->parent = node;
+		ret = ctf_visitor_parent_links(depth + 1, node->u.field_class_specifier.node);
 		if (ret)
 			return ret;
 		break;
@@ -119,21 +119,21 @@ int ctf_visitor_type_specifier(int depth, struct ctf_node *node)
 	default:
 		_BT_LOGE_LINENO(node->lineno,
 			"Unknown type specifier: type=%d\n",
-			node->u.type_specifier.type);
+			node->u.field_class_specifier.type);
 		return -EINVAL;
 	}
 	return 0;
 }
 
 static
-int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
+int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node)
 {
 	int ret = 0;
 	struct ctf_node *iter;
 
 	depth++;
 
-	bt_list_for_each_entry(iter, &node->u.type_declarator.pointers,
+	bt_list_for_each_entry(iter, &node->u.field_class_declarator.pointers,
 				siblings) {
 		iter->parent = node;
 		ret = ctf_visitor_parent_links(depth + 1, iter);
@@ -141,19 +141,19 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 			return ret;
 	}
 
-	switch (node->u.type_declarator.type) {
+	switch (node->u.field_class_declarator.type) {
 	case TYPEDEC_ID:
 		break;
 	case TYPEDEC_NESTED:
-		if (node->u.type_declarator.u.nested.type_declarator) {
-			node->u.type_declarator.u.nested.type_declarator->parent = node;
+		if (node->u.field_class_declarator.u.nested.field_class_declarator) {
+			node->u.field_class_declarator.u.nested.field_class_declarator->parent = node;
 			ret = ctf_visitor_parent_links(depth + 1,
-				node->u.type_declarator.u.nested.type_declarator);
+				node->u.field_class_declarator.u.nested.field_class_declarator);
 			if (ret)
 				return ret;
 		}
-		if (!node->u.type_declarator.u.nested.abstract_array) {
-			bt_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+		if (!node->u.field_class_declarator.u.nested.abstract_array) {
+			bt_list_for_each_entry(iter, &node->u.field_class_declarator.u.nested.length,
 						siblings) {
 				iter->parent = node;
 				ret = ctf_visitor_parent_links(depth + 1, iter);
@@ -161,10 +161,10 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 					return ret;
 			}
 		}
-		if (node->u.type_declarator.bitfield_len) {
-			node->u.type_declarator.bitfield_len = node;
+		if (node->u.field_class_declarator.bitfield_len) {
+			node->u.field_class_declarator.bitfield_len = node;
 			ret = ctf_visitor_parent_links(depth + 1,
-				node->u.type_declarator.bitfield_len);
+				node->u.field_class_declarator.bitfield_len);
 			if (ret)
 				return ret;
 		}
@@ -173,7 +173,7 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 	default:
 		_BT_LOGE_LINENO(node->lineno,
 			"Unknown type declarator: type=%d\n",
-			node->u.type_declarator.type);
+			node->u.field_class_declarator.type);
 		return -EINVAL;
 	}
 	depth--;
@@ -298,11 +298,11 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 
 	case NODE_TYPEDEF:
 		depth++;
-		node->u._typedef.type_specifier_list->parent = node;
-		ret = ctf_visitor_parent_links(depth + 1, node->u._typedef.type_specifier_list);
+		node->u.field_class_def.field_class_specifier_list->parent = node;
+		ret = ctf_visitor_parent_links(depth + 1, node->u.field_class_def.field_class_specifier_list);
 		if (ret)
 			return ret;
-		bt_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.field_class_def.field_class_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(depth + 1, iter);
 			if (ret)
@@ -312,11 +312,11 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 		break;
 	case NODE_TYPEALIAS_TARGET:
 		depth++;
-		node->u.typealias_target.type_specifier_list->parent = node;
-		ret = ctf_visitor_parent_links(depth + 1, node->u.typealias_target.type_specifier_list);
+		node->u.field_class_alias_target.field_class_specifier_list->parent = node;
+		ret = ctf_visitor_parent_links(depth + 1, node->u.field_class_alias_target.field_class_specifier_list);
 		if (ret)
 			return ret;
-		bt_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.field_class_alias_target.field_class_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(depth + 1, iter);
 			if (ret)
@@ -326,11 +326,11 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 		break;
 	case NODE_TYPEALIAS_ALIAS:
 		depth++;
-		node->u.typealias_alias.type_specifier_list->parent = node;
-		ret = ctf_visitor_parent_links(depth + 1, node->u.typealias_alias.type_specifier_list);
+		node->u.field_class_alias_name.field_class_specifier_list->parent = node;
+		ret = ctf_visitor_parent_links(depth + 1, node->u.field_class_alias_name.field_class_specifier_list);
 		if (ret)
 			return ret;
-		bt_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.field_class_alias_name.field_class_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(depth + 1, iter);
 			if (ret)
@@ -339,18 +339,18 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 		depth--;
 		break;
 	case NODE_TYPEALIAS:
-		node->u.typealias.target->parent = node;
-		ret = ctf_visitor_parent_links(depth + 1, node->u.typealias.target);
+		node->u.field_class_alias.target->parent = node;
+		ret = ctf_visitor_parent_links(depth + 1, node->u.field_class_alias.target);
 		if (ret)
 			return ret;
-		node->u.typealias.alias->parent = node;
-		ret = ctf_visitor_parent_links(depth + 1, node->u.typealias.alias);
+		node->u.field_class_alias.alias->parent = node;
+		ret = ctf_visitor_parent_links(depth + 1, node->u.field_class_alias.alias);
 		if (ret)
 			return ret;
 		break;
 
 	case NODE_TYPE_SPECIFIER_LIST:
-		bt_list_for_each_entry(iter, &node->u.type_specifier_list.head, siblings) {
+		bt_list_for_each_entry(iter, &node->u.field_class_specifier_list.head, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(depth + 1, iter);
 			if (ret)
@@ -366,7 +366,7 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 	case NODE_POINTER:
 		break;
 	case NODE_TYPE_DECLARATOR:
-		ret = ctf_visitor_type_declarator(depth, node);
+		ret = ctf_visitor_field_class_declarator(depth, node);
 		if (ret)
 			return ret;
 		break;
@@ -405,8 +405,8 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 		break;
 	case NODE_ENUM:
 		depth++;
-		if (node->u._enum.container_type) {
-			ret = ctf_visitor_parent_links(depth + 1, node->u._enum.container_type);
+		if (node->u._enum.container_field_class) {
+			ret = ctf_visitor_parent_links(depth + 1, node->u._enum.container_field_class);
 			if (ret)
 				return ret;
 		}
@@ -420,12 +420,12 @@ int ctf_visitor_parent_links(int depth, struct ctf_node *node)
 		depth--;
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		node->u.struct_or_variant_declaration.type_specifier_list->parent = node;
+		node->u.struct_or_variant_declaration.field_class_specifier_list->parent = node;
 		ret = ctf_visitor_parent_links(depth + 1,
-			node->u.struct_or_variant_declaration.type_specifier_list);
+			node->u.struct_or_variant_declaration.field_class_specifier_list);
 		if (ret)
 			return ret;
-		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.field_class_declarators, siblings) {
 			iter->parent = node;
 			ret = ctf_visitor_parent_links(depth + 1, iter);
 			if (ret)

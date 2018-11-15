@@ -24,7 +24,7 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event.h>
-#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/fields.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/stream-class.h>

@@ -304,13 +304,13 @@ static void init_scope(struct ctf_scanner_scope *scope,
 		       struct ctf_scanner_scope *parent)
 {
 	scope->parent = parent;
-	scope->types = g_hash_table_new_full(g_str_hash, g_str_equal,
+	scope->classes = g_hash_table_new_full(g_str_hash, g_str_equal,
 					     NULL, NULL);
 }
 
 static void finalize_scope(struct ctf_scanner_scope *scope)
 {
-	g_hash_table_destroy(scope->types);
+	g_hash_table_destroy(scope->classes);
 }
 
 static void push_scope(struct ctf_scanner *scanner)
@@ -338,7 +338,7 @@ static int lookup_type(struct ctf_scanner_scope *s, const char *id)
 {
 	int ret;
 
-	ret = GPOINTER_TO_INT(g_hash_table_lookup(s->types, id));
+	ret = GPOINTER_TO_INT(g_hash_table_lookup(s->classes, id));
 	BT_LOGV("Looked up type: scanner-addr=%p, id=\"%s\", ret=%d",
 		s, id, ret);
 	return ret;
@@ -367,7 +367,7 @@ static void add_type(struct ctf_scanner *scanner, char *id)
 		scanner, id);
 	if (lookup_type(scanner->cs, id))
 		return;
-	g_hash_table_insert(scanner->cs->types, id, id);
+	g_hash_table_insert(scanner->cs->classes, id, id);
 }
 
 static struct ctf_node *make_node(struct ctf_scanner *scanner,
@@ -418,25 +418,25 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 	case NODE_UNARY_EXPRESSION:
 		break;
 	case NODE_TYPEDEF:
-		BT_INIT_LIST_HEAD(&node->u._typedef.type_declarators);
+		BT_INIT_LIST_HEAD(&node->u.field_class_def.field_class_declarators);
 		break;
 	case NODE_TYPEALIAS_TARGET:
-		BT_INIT_LIST_HEAD(&node->u.typealias_target.type_declarators);
+		BT_INIT_LIST_HEAD(&node->u.field_class_alias_target.field_class_declarators);
 		break;
 	case NODE_TYPEALIAS_ALIAS:
-		BT_INIT_LIST_HEAD(&node->u.typealias_alias.type_declarators);
+		BT_INIT_LIST_HEAD(&node->u.field_class_alias_name.field_class_declarators);
 		break;
 	case NODE_TYPEALIAS:
 		break;
 	case NODE_TYPE_SPECIFIER:
 		break;
 	case NODE_TYPE_SPECIFIER_LIST:
-		BT_INIT_LIST_HEAD(&node->u.type_specifier_list.head);
+		BT_INIT_LIST_HEAD(&node->u.field_class_specifier_list.head);
 		break;
 	case NODE_POINTER:
 		break;
 	case NODE_TYPE_DECLARATOR:
-		BT_INIT_LIST_HEAD(&node->u.type_declarator.pointers);
+		BT_INIT_LIST_HEAD(&node->u.field_class_declarator.pointers);
 		break;
 	case NODE_FLOATING_POINT:
 		BT_INIT_LIST_HEAD(&node->u.floating_point.expressions);
@@ -454,7 +454,7 @@ static struct ctf_node *make_node(struct ctf_scanner *scanner,
 		BT_INIT_LIST_HEAD(&node->u._enum.enumerator_list);
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		BT_INIT_LIST_HEAD(&node->u.struct_or_variant_declaration.type_declarators);
+		BT_INIT_LIST_HEAD(&node->u.struct_or_variant_declaration.field_class_declarators);
 		break;
 	case NODE_VARIANT:
 		BT_INIT_LIST_HEAD(&node->u.variant.declaration_list);
@@ -589,7 +589,7 @@ static int reparent_typedef(struct ctf_node *node, struct ctf_node *parent)
 	return 0;
 }
 
-static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
+static int reparent_field_class_alias(struct ctf_node *node, struct ctf_node *parent)
 {
 	switch (parent->type) {
 	case NODE_ROOT:
@@ -646,12 +646,12 @@ static int reparent_typealias(struct ctf_node *node, struct ctf_node *parent)
 	return 0;
 }
 
-static int reparent_type_specifier(struct ctf_node *node,
+static int reparent_field_class_specifier(struct ctf_node *node,
 				   struct ctf_node *parent)
 {
 	switch (parent->type) {
 	case NODE_TYPE_SPECIFIER_LIST:
-		_bt_list_splice_tail(&node->tmp_head, &parent->u.type_specifier_list.head);
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.field_class_specifier_list.head);
 		break;
 
 	case NODE_TYPE_SPECIFIER:
@@ -687,7 +687,7 @@ static int reparent_type_specifier(struct ctf_node *node,
 	return 0;
 }
 
-static int reparent_type_specifier_list(struct ctf_node *node,
+static int reparent_field_class_specifier_list(struct ctf_node *node,
 					struct ctf_node *parent)
 {
 	switch (parent->type) {
@@ -719,19 +719,19 @@ static int reparent_type_specifier_list(struct ctf_node *node,
 		bt_list_add_tail(&node->siblings, &parent->u._struct.declaration_list);
 		break;
 	case NODE_TYPEDEF:
-		parent->u._typedef.type_specifier_list = node;
+		parent->u.field_class_def.field_class_specifier_list = node;
 		break;
 	case NODE_TYPEALIAS_TARGET:
-		parent->u.typealias_target.type_specifier_list = node;
+		parent->u.field_class_alias_target.field_class_specifier_list = node;
 		break;
 	case NODE_TYPEALIAS_ALIAS:
-		parent->u.typealias_alias.type_specifier_list = node;
+		parent->u.field_class_alias_name.field_class_specifier_list = node;
 		break;
 	case NODE_ENUM:
-		parent->u._enum.container_type = node;
+		parent->u._enum.container_field_class = node;
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		parent->u.struct_or_variant_declaration.type_specifier_list = node;
+		parent->u.struct_or_variant_declaration.field_class_specifier_list = node;
 		break;
 	case NODE_TYPE_DECLARATOR:
 	case NODE_TYPE_SPECIFIER:
@@ -753,25 +753,25 @@ static int reparent_type_specifier_list(struct ctf_node *node,
 	return 0;
 }
 
-static int reparent_type_declarator(struct ctf_node *node,
+static int reparent_field_class_declarator(struct ctf_node *node,
 				    struct ctf_node *parent)
 {
 	switch (parent->type) {
 	case NODE_TYPE_DECLARATOR:
-		parent->u.type_declarator.type = TYPEDEC_NESTED;
-		parent->u.type_declarator.u.nested.type_declarator = node;
+		parent->u.field_class_declarator.type = TYPEDEC_NESTED;
+		parent->u.field_class_declarator.u.nested.field_class_declarator = node;
 		break;
 	case NODE_STRUCT_OR_VARIANT_DECLARATION:
-		_bt_list_splice_tail(&node->tmp_head, &parent->u.struct_or_variant_declaration.type_declarators);
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.struct_or_variant_declaration.field_class_declarators);
 		break;
 	case NODE_TYPEDEF:
-		_bt_list_splice_tail(&node->tmp_head, &parent->u._typedef.type_declarators);
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.field_class_def.field_class_declarators);
 		break;
 	case NODE_TYPEALIAS_TARGET:
-		_bt_list_splice_tail(&node->tmp_head, &parent->u.typealias_target.type_declarators);
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.field_class_alias_target.field_class_declarators);
 		break;
 	case NODE_TYPEALIAS_ALIAS:
-		_bt_list_splice_tail(&node->tmp_head, &parent->u.typealias_alias.type_declarators);
+		_bt_list_splice_tail(&node->tmp_head, &parent->u.field_class_alias_name.field_class_declarators);
 		break;
 
 	case NODE_ROOT:
@@ -871,7 +871,7 @@ static int set_parent_node(struct ctf_node *node,
 		return reparent_ctf_expression(node, parent);
 	case NODE_UNARY_EXPRESSION:
 		if (parent->type == NODE_TYPE_DECLARATOR)
-			parent->u.type_declarator.bitfield_len = node;
+			parent->u.field_class_declarator.bitfield_len = node;
 		else
 			return -EPERM;
 		break;
@@ -880,31 +880,31 @@ static int set_parent_node(struct ctf_node *node,
 		return reparent_typedef(node, parent);
 	case NODE_TYPEALIAS_TARGET:
 		if (parent->type == NODE_TYPEALIAS)
-			parent->u.typealias.target = node;
+			parent->u.field_class_alias.target = node;
 		else
 			return -EINVAL;
 	case NODE_TYPEALIAS_ALIAS:
 		if (parent->type == NODE_TYPEALIAS)
-			parent->u.typealias.alias = node;
+			parent->u.field_class_alias.alias = node;
 		else
 			return -EINVAL;
 	case NODE_TYPEALIAS:
-		return reparent_typealias(node, parent);
+		return reparent_field_class_alias(node, parent);
 
 	case NODE_POINTER:
 		if (parent->type == NODE_TYPE_DECLARATOR) {
-			_bt_list_splice_tail(&node->tmp_head, &parent->u.type_declarator.pointers);
+			_bt_list_splice_tail(&node->tmp_head, &parent->u.field_class_declarator.pointers);
 		} else
 			return -EPERM;
 		break;
 	case NODE_TYPE_DECLARATOR:
-		return reparent_type_declarator(node, parent);
+		return reparent_field_class_declarator(node, parent);
 
 	case NODE_TYPE_SPECIFIER_LIST:
-		return reparent_type_specifier_list(node, parent);
+		return reparent_field_class_specifier_list(node, parent);
 
 	case NODE_TYPE_SPECIFIER:
-		return reparent_type_specifier(node, parent);
+		return reparent_field_class_specifier(node, parent);
 
 	case NODE_FLOATING_POINT:
 	case NODE_INTEGER:
@@ -1087,12 +1087,12 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> declaration_specifiers
 %type <n> alias_declaration_specifiers
 
-%type <n> type_declarator_list
-%type <n> integer_type_specifier
-%type <n> type_specifier
-%type <n> struct_type_specifier
-%type <n> variant_type_specifier
-%type <n> enum_type_specifier
+%type <n> field_class_declarator_list
+%type <n> integer_field_class_specifier
+%type <n> field_class_specifier
+%type <n> struct_class_specifier
+%type <n> variant_field_class_specifier
+%type <n> enum_field_class_specifier
 %type <n> struct_or_variant_declaration_list
 %type <n> struct_or_variant_declaration
 %type <n> struct_or_variant_declarator_list
@@ -1107,8 +1107,8 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 %type <n> direct_alias_abstract_declarator
 %type <n> declarator
 %type <n> direct_declarator
-%type <n> type_declarator
-%type <n> direct_type_declarator
+%type <n> field_class_declarator
+%type <n> direct_field_class_declarator
 %type <n> pointer
 %type <n> ctf_assignment_expression_list
 %type <n> ctf_assignment_expression
@@ -1339,54 +1339,54 @@ declaration:
 		{	$$ = $1;	}
 	|	callsite_declaration
 		{	$$ = $1;	}
-	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers field_class_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u._typedef.type_specifier_list = list;
-			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
+			$$->u.field_class_def.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($1)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
-	|	CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
+	|	CTF_TYPEDEF declaration_specifiers field_class_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u._typedef.type_specifier_list = list;
-			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
+			$$->u.field_class_def.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($2)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
-	|	declaration_specifiers CTF_TYPEDEF type_declarator_list CTF_SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF field_class_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u._typedef.type_specifier_list = list;
-			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
+			$$->u.field_class_def.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($1)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
 	|	CTF_TYPEALIAS declaration_specifiers abstract_declarator_list CTF_TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEALIAS);
-			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
-			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
+			$$->u.field_class_alias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
+			$$->u.field_class_alias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u.typealias.target->u.typealias_target.type_specifier_list = list;
-			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
+			$$->u.field_class_alias.target->u.field_class_alias_target.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($2)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_alias.target->u.field_class_alias_target.field_class_declarators);
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u.typealias.alias->u.typealias_alias.type_specifier_list = list;
-			_bt_list_splice_tail(&($5)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
+			$$->u.field_class_alias.alias->u.field_class_alias_name.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($5)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($6)->tmp_head, &($$)->u.field_class_alias.alias->u.field_class_alias_name.field_class_declarators);
 		}
 	;
 
@@ -1536,16 +1536,16 @@ integer_declaration_specifiers:
 
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_CONST;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_CONST;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
-	|	integer_type_specifier
+	|	integer_field_class_specifier
 		{
 			struct ctf_node *node;
 
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = $1;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	|	integer_declaration_specifiers CTF_CONST
 		{
@@ -1553,13 +1553,13 @@ integer_declaration_specifiers:
 
 			$$ = $1;
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_CONST;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_CONST;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
-	|	integer_declaration_specifiers integer_type_specifier
+	|	integer_declaration_specifiers integer_field_class_specifier
 		{
 			$$ = $1;
-			bt_list_add_tail(&($2)->siblings, &($$)->u.type_specifier_list.head);
+			bt_list_add_tail(&($2)->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	;
 
@@ -1570,16 +1570,16 @@ declaration_specifiers:
 
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_CONST;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_CONST;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
-	|	type_specifier
+	|	field_class_specifier
 		{
 			struct ctf_node *node;
 
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = $1;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	|	declaration_specifiers CTF_CONST
 		{
@@ -1587,220 +1587,220 @@ declaration_specifiers:
 
 			$$ = $1;
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_CONST;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_CONST;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
-	|	declaration_specifiers type_specifier
+	|	declaration_specifiers field_class_specifier
 		{
 			$$ = $1;
-			bt_list_add_tail(&($2)->siblings, &($$)->u.type_specifier_list.head);
+			bt_list_add_tail(&($2)->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	;
 
-type_declarator_list:
-		type_declarator
+field_class_declarator_list:
+		field_class_declarator
 		{	$$ = $1;	}
-	|	type_declarator_list CTF_COMMA type_declarator
+	|	field_class_declarator_list CTF_COMMA field_class_declarator
 		{
 			$$ = $1;
 			bt_list_add_tail(&($3)->siblings, &($$)->tmp_head);
 		}
 	;
 
-integer_type_specifier:
+integer_field_class_specifier:
 		CTF_CHAR
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_CHAR;
+			$$->u.field_class_specifier.type = TYPESPEC_CHAR;
 		}
 	|	CTF_SHORT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_SHORT;
+			$$->u.field_class_specifier.type = TYPESPEC_SHORT;
 		}
 	|	CTF_INT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_INT;
+			$$->u.field_class_specifier.type = TYPESPEC_INT;
 		}
 	|	CTF_LONG
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_LONG;
+			$$->u.field_class_specifier.type = TYPESPEC_LONG;
 		}
 	|	CTF_SIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_SIGNED;
+			$$->u.field_class_specifier.type = TYPESPEC_SIGNED;
 		}
 	|	CTF_UNSIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_UNSIGNED;
+			$$->u.field_class_specifier.type = TYPESPEC_UNSIGNED;
 		}
 	|	CTF_BOOL
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_BOOL;
+			$$->u.field_class_specifier.type = TYPESPEC_BOOL;
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			$$->u.type_specifier.id_type = yylval.s;
+			$$->u.field_class_specifier.type = TYPESPEC_ID_TYPE;
+			$$->u.field_class_specifier.id_type = yylval.s;
 		}
 	|	CTF_INTEGER CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_INTEGER;
-			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
+			$$->u.field_class_specifier.type = TYPESPEC_INTEGER;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_INTEGER);
 		}
 	|	CTF_INTEGER CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_INTEGER;
-			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
-			if (set_parent_node($3, $$->u.type_specifier.node))
+			$$->u.field_class_specifier.type = TYPESPEC_INTEGER;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_INTEGER);
+			if (set_parent_node($3, $$->u.field_class_specifier.node))
 				reparent_error(scanner, "integer reparent error");
 		}
 	;
 
-type_specifier:
+field_class_specifier:
 		CTF_VOID
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_VOID;
+			$$->u.field_class_specifier.type = TYPESPEC_VOID;
 		}
 	|	CTF_CHAR
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_CHAR;
+			$$->u.field_class_specifier.type = TYPESPEC_CHAR;
 		}
 	|	CTF_SHORT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_SHORT;
+			$$->u.field_class_specifier.type = TYPESPEC_SHORT;
 		}
 	|	CTF_INT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_INT;
+			$$->u.field_class_specifier.type = TYPESPEC_INT;
 		}
 	|	CTF_LONG
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_LONG;
+			$$->u.field_class_specifier.type = TYPESPEC_LONG;
 		}
 	|	CTF_FLOAT
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_FLOAT;
+			$$->u.field_class_specifier.type = TYPESPEC_FLOAT;
 		}
 	|	CTF_DOUBLE
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_DOUBLE;
+			$$->u.field_class_specifier.type = TYPESPEC_DOUBLE;
 		}
 	|	CTF_SIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_SIGNED;
+			$$->u.field_class_specifier.type = TYPESPEC_SIGNED;
 		}
 	|	CTF_UNSIGNED
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_UNSIGNED;
+			$$->u.field_class_specifier.type = TYPESPEC_UNSIGNED;
 		}
 	|	CTF_BOOL
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_BOOL;
+			$$->u.field_class_specifier.type = TYPESPEC_BOOL;
 		}
 	|	CTF_COMPLEX
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_COMPLEX;
+			$$->u.field_class_specifier.type = TYPESPEC_COMPLEX;
 		}
 	|	CTF_IMAGINARY
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_IMAGINARY;
+			$$->u.field_class_specifier.type = TYPESPEC_IMAGINARY;
 		}
 	|	ID_TYPE
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			$$->u.type_specifier.id_type = yylval.s;
+			$$->u.field_class_specifier.type = TYPESPEC_ID_TYPE;
+			$$->u.field_class_specifier.id_type = yylval.s;
 		}
 	|	CTF_FLOATING_POINT CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_FLOATING_POINT;
-			$$->u.type_specifier.node = make_node(scanner, NODE_FLOATING_POINT);
+			$$->u.field_class_specifier.type = TYPESPEC_FLOATING_POINT;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_FLOATING_POINT);
 		}
 	|	CTF_FLOATING_POINT CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_FLOATING_POINT;
-			$$->u.type_specifier.node = make_node(scanner, NODE_FLOATING_POINT);
-			if (set_parent_node($3, $$->u.type_specifier.node))
+			$$->u.field_class_specifier.type = TYPESPEC_FLOATING_POINT;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_FLOATING_POINT);
+			if (set_parent_node($3, $$->u.field_class_specifier.node))
 				reparent_error(scanner, "floating point reparent error");
 		}
 	|	CTF_INTEGER CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_INTEGER;
-			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
+			$$->u.field_class_specifier.type = TYPESPEC_INTEGER;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_INTEGER);
 		}
 	|	CTF_INTEGER CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_INTEGER;
-			$$->u.type_specifier.node = make_node(scanner, NODE_INTEGER);
-			if (set_parent_node($3, $$->u.type_specifier.node))
+			$$->u.field_class_specifier.type = TYPESPEC_INTEGER;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_INTEGER);
+			if (set_parent_node($3, $$->u.field_class_specifier.node))
 				reparent_error(scanner, "integer reparent error");
 		}
 	|	CTF_STRING
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_STRING;
-			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
+			$$->u.field_class_specifier.type = TYPESPEC_STRING;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_STRING);
 		}
 	|	CTF_STRING CTF_LBRAC CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_STRING;
-			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
+			$$->u.field_class_specifier.type = TYPESPEC_STRING;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_STRING);
 		}
 	|	CTF_STRING CTF_LBRAC ctf_assignment_expression_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_STRING;
-			$$->u.type_specifier.node = make_node(scanner, NODE_STRING);
-			if (set_parent_node($3, $$->u.type_specifier.node))
+			$$->u.field_class_specifier.type = TYPESPEC_STRING;
+			$$->u.field_class_specifier.node = make_node(scanner, NODE_STRING);
+			if (set_parent_node($3, $$->u.field_class_specifier.node))
 				reparent_error(scanner, "string reparent error");
 		}
-	|	CTF_ENUM enum_type_specifier
+	|	CTF_ENUM enum_field_class_specifier
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_ENUM;
-			$$->u.type_specifier.node = $2;
+			$$->u.field_class_specifier.type = TYPESPEC_ENUM;
+			$$->u.field_class_specifier.node = $2;
 		}
-	|	CTF_VARIANT variant_type_specifier
+	|	CTF_VARIANT variant_field_class_specifier
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_VARIANT;
-			$$->u.type_specifier.node = $2;
+			$$->u.field_class_specifier.type = TYPESPEC_VARIANT;
+			$$->u.field_class_specifier.node = $2;
 		}
-	|	CTF_STRUCT struct_type_specifier
+	|	CTF_STRUCT struct_class_specifier
 		{
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER);
-			$$->u.type_specifier.type = TYPESPEC_STRUCT;
-			$$->u.type_specifier.node = $2;
+			$$->u.field_class_specifier.type = TYPESPEC_STRUCT;
+			$$->u.field_class_specifier.node = $2;
 		}
 	;
 
-struct_type_specifier:
+struct_class_specifier:
 		struct_declaration_begin struct_or_variant_declaration_list struct_declaration_end
 		{
 			$$ = make_node(scanner, NODE_STRUCT);
@@ -1874,7 +1874,7 @@ struct_declaration_end:
 		{	pop_scope(scanner);	}
 	;
 
-variant_type_specifier:
+variant_field_class_specifier:
 		variant_declaration_begin struct_or_variant_declaration_list variant_declaration_end
 		{
 			$$ = make_node(scanner, NODE_VARIANT);
@@ -1990,7 +1990,7 @@ variant_declaration_end:
 		{	pop_scope(scanner);	}
 	;
 
-enum_type_specifier:
+enum_field_class_specifier:
 		CTF_LBRAC enumerator_list CTF_RBRAC
 		{
 			$$ = make_node(scanner, NODE_ENUM);
@@ -2001,7 +2001,7 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			($$)->u._enum.container_type = $2;
+			($$)->u._enum.container_field_class = $2;
 			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER CTF_LBRAC enumerator_list CTF_RBRAC
@@ -2016,7 +2016,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
-			($$)->u._enum.container_type = $3;
+			($$)->u._enum.container_field_class = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE CTF_LBRAC enumerator_list CTF_RBRAC
@@ -2031,7 +2031,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
-			($$)->u._enum.container_type = $3;
+			($$)->u._enum.container_field_class = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
@@ -2044,7 +2044,7 @@ enum_type_specifier:
 		{
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
-			($$)->u._enum.container_type = $2;
+			($$)->u._enum.container_field_class = $2;
 			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER CTF_LBRAC enumerator_list CTF_COMMA CTF_RBRAC
@@ -2059,7 +2059,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
-			($$)->u._enum.container_type = $3;
+			($$)->u._enum.container_field_class = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	IDENTIFIER
@@ -2080,7 +2080,7 @@ enum_type_specifier:
 			$$ = make_node(scanner, NODE_ENUM);
 			$$->u._enum.has_body = 1;
 			$$->u._enum.enum_id = $1;
-			($$)->u._enum.container_type = $3;
+			($$)->u._enum.container_field_class = $3;
 			_bt_list_splice_tail(&($5)->tmp_head, &($$)->u._enum.enumerator_list);
 		}
 	|	ID_TYPE
@@ -2112,59 +2112,59 @@ struct_or_variant_declaration:
 			struct ctf_node *list;
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
+			_bt_list_splice_tail(&($1)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
 			$$ = make_node(scanner, NODE_STRUCT_OR_VARIANT_DECLARATION);
-			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
-			_bt_list_splice_tail(&($2)->tmp_head, &($$)->u.struct_or_variant_declaration.type_declarators);
+			($$)->u.struct_or_variant_declaration.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($2)->tmp_head, &($$)->u.struct_or_variant_declaration.field_class_declarators);
 		}
-	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers field_class_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u._typedef.type_specifier_list = list;
-			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
+			$$->u.field_class_def.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($1)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
-	|	CTF_TYPEDEF declaration_specifiers type_declarator_list CTF_SEMICOLON
+	|	CTF_TYPEDEF declaration_specifiers field_class_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u._typedef.type_specifier_list = list;
-			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
+			$$->u.field_class_def.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($2)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
-	|	declaration_specifiers CTF_TYPEDEF type_declarator_list CTF_SEMICOLON
+	|	declaration_specifiers CTF_TYPEDEF field_class_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
+			_bt_list_splice_tail(&($1)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
+			($$)->u.struct_or_variant_declaration.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
 	|	CTF_TYPEALIAS declaration_specifiers abstract_declarator_list CTF_TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list CTF_SEMICOLON
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEALIAS);
-			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
-			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
+			$$->u.field_class_alias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
+			$$->u.field_class_alias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u.typealias.target->u.typealias_target.type_specifier_list = list;
-			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
+			$$->u.field_class_alias.target->u.field_class_alias_target.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($2)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_alias.target->u.field_class_alias_target.field_class_declarators);
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u.typealias.alias->u.typealias_alias.type_specifier_list = list;
-			_bt_list_splice_tail(&($5)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
+			$$->u.field_class_alias.alias->u.field_class_alias_name.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($5)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($6)->tmp_head, &($$)->u.field_class_alias.alias->u.field_class_alias_name.field_class_declarators);
 		}
 	;
 
@@ -2175,16 +2175,16 @@ alias_declaration_specifiers:
 
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_CONST;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_CONST;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
-	|	type_specifier
+	|	field_class_specifier
 		{
 			struct ctf_node *node;
 
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = $1;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	|	IDENTIFIER
 		{
@@ -2193,9 +2193,9 @@ alias_declaration_specifiers:
 			add_type(scanner, $1);
 			$$ = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			node->u.type_specifier.id_type = yylval.s;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_ID_TYPE;
+			node->u.field_class_specifier.id_type = yylval.s;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	|	alias_declaration_specifiers CTF_CONST
 		{
@@ -2203,13 +2203,13 @@ alias_declaration_specifiers:
 
 			$$ = $1;
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_CONST;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_CONST;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
-	|	alias_declaration_specifiers type_specifier
+	|	alias_declaration_specifiers field_class_specifier
 		{
 			$$ = $1;
-			bt_list_add_tail(&($2)->siblings, &($$)->u.type_specifier_list.head);
+			bt_list_add_tail(&($2)->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	|	alias_declaration_specifiers IDENTIFIER
 		{
@@ -2218,9 +2218,9 @@ alias_declaration_specifiers:
 			add_type(scanner, $2);
 			$$ = $1;
 			node = make_node(scanner, NODE_TYPE_SPECIFIER);
-			node->u.type_specifier.type = TYPESPEC_ID_TYPE;
-			node->u.type_specifier.id_type = yylval.s;
-			bt_list_add_tail(&node->siblings, &($$)->u.type_specifier_list.head);
+			node->u.field_class_specifier.type = TYPESPEC_ID_TYPE;
+			node->u.field_class_specifier.id_type = yylval.s;
+			bt_list_add_tail(&node->siblings, &($$)->u.field_class_specifier_list.head);
 		}
 	;
 
@@ -2320,7 +2320,7 @@ abstract_declarator:
 	|	pointer direct_abstract_declarator
 		{
 			$$ = $2;
-			bt_list_splice(&($1)->tmp_head, &($$)->u.type_declarator.pointers);
+			bt_list_splice(&($1)->tmp_head, &($$)->u.field_class_declarator.pointers);
 		}
 	;
 
@@ -2328,35 +2328,35 @@ direct_abstract_declarator:
 		/* empty */
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-                        $$->u.type_declarator.type = TYPEDEC_ID;
+                        $$->u.field_class_declarator.type = TYPEDEC_ID;
 			/* id is NULL */
 		}
 	|	IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_ID;
-			$$->u.type_declarator.u.id = $1;
+			$$->u.field_class_declarator.type = TYPEDEC_ID;
+			$$->u.field_class_declarator.u.id = $1;
 		}
 	|	CTF_LPAREN abstract_declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $2;
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $2;
 		}
 	|	direct_abstract_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			BT_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $1;
+			BT_INIT_LIST_HEAD(&($$)->u.field_class_declarator.u.nested.length);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_declarator.u.nested.length);
 		}
 	|	direct_abstract_declarator CTF_LSBRAC CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.abstract_array = 1;
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $1;
+			$$->u.field_class_declarator.u.nested.abstract_array = 1;
 		}
 	;
 
@@ -2376,7 +2376,7 @@ alias_abstract_declarator:
 	|	pointer direct_alias_abstract_declarator
 		{
 			$$ = $2;
-			bt_list_splice(&($1)->tmp_head, &($$)->u.type_declarator.pointers);
+			bt_list_splice(&($1)->tmp_head, &($$)->u.field_class_declarator.pointers);
 		}
 	;
 
@@ -2384,29 +2384,29 @@ direct_alias_abstract_declarator:
 		/* empty */
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-                        $$->u.type_declarator.type = TYPEDEC_ID;
+                        $$->u.field_class_declarator.type = TYPEDEC_ID;
 			/* id is NULL */
 		}
 	|	CTF_LPAREN alias_abstract_declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $2;
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $2;
 		}
 	|	direct_alias_abstract_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			BT_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $1;
+			BT_INIT_LIST_HEAD(&($$)->u.field_class_declarator.u.nested.length);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_declarator.u.nested.length);
 		}
 	|	direct_alias_abstract_declarator CTF_LSBRAC CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			$$->u.type_declarator.u.nested.abstract_array = 1;
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $1;
+			$$->u.field_class_declarator.u.nested.abstract_array = 1;
 		}
 	;
 
@@ -2416,7 +2416,7 @@ declarator:
 	|	pointer direct_declarator
 		{
 			$$ = $2;
-			bt_list_splice(&($1)->tmp_head, &($$)->u.type_declarator.pointers);
+			bt_list_splice(&($1)->tmp_head, &($$)->u.field_class_declarator.pointers);
 		}
 	;
 
@@ -2424,56 +2424,56 @@ direct_declarator:
 		IDENTIFIER
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_ID;
-			$$->u.type_declarator.u.id = $1;
+			$$->u.field_class_declarator.type = TYPEDEC_ID;
+			$$->u.field_class_declarator.u.id = $1;
 		}
 	|	CTF_LPAREN declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $2;
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $2;
 		}
 	|	direct_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			BT_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $1;
+			BT_INIT_LIST_HEAD(&($$)->u.field_class_declarator.u.nested.length);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_declarator.u.nested.length);
 		}
 	;
 
-type_declarator:
-		direct_type_declarator
+field_class_declarator:
+		direct_field_class_declarator
 		{	$$ = $1;	}
-	|	pointer direct_type_declarator
+	|	pointer direct_field_class_declarator
 		{
 			$$ = $2;
-			bt_list_splice(&($1)->tmp_head, &($$)->u.type_declarator.pointers);
+			bt_list_splice(&($1)->tmp_head, &($$)->u.field_class_declarator.pointers);
 		}
 	;
 
-direct_type_declarator:
+direct_field_class_declarator:
 		IDENTIFIER
 		{
 			add_type(scanner, $1);
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_ID;
-			$$->u.type_declarator.u.id = $1;
+			$$->u.field_class_declarator.type = TYPEDEC_ID;
+			$$->u.field_class_declarator.u.id = $1;
 		}
-	|	CTF_LPAREN type_declarator CTF_RPAREN
+	|	CTF_LPAREN field_class_declarator CTF_RPAREN
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $2;
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $2;
 		}
-	|	direct_type_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
+	|	direct_field_class_declarator CTF_LSBRAC unary_expression CTF_RSBRAC
 		{
 			$$ = make_node(scanner, NODE_TYPE_DECLARATOR);
-			$$->u.type_declarator.type = TYPEDEC_NESTED;
-			$$->u.type_declarator.u.nested.type_declarator = $1;
-			BT_INIT_LIST_HEAD(&($$)->u.type_declarator.u.nested.length);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.type_declarator.u.nested.length);
+			$$->u.field_class_declarator.type = TYPEDEC_NESTED;
+			$$->u.field_class_declarator.u.nested.field_class_declarator = $1;
+			BT_INIT_LIST_HEAD(&($$)->u.field_class_declarator.u.nested.length);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_declarator.u.nested.length);
 		}
 	;
 
@@ -2538,53 +2538,53 @@ ctf_assignment_expression:
 				reparent_error(scanner, "ctf_assignment_expression left expects string");
 			bt_list_add_tail(&($3)->siblings, &($$)->u.ctf_expression.right);
 		}
-	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers type_declarator_list
+	|	declaration_specifiers CTF_TYPEDEF declaration_specifiers field_class_declarator_list
 		{
 			struct ctf_node *list;
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
+			_bt_list_splice_tail(&($1)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
-			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u._typedef.type_declarators);
+			($$)->u.struct_or_variant_declaration.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($4)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
-	|	CTF_TYPEDEF declaration_specifiers type_declarator_list
+	|	CTF_TYPEDEF declaration_specifiers field_class_declarator_list
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEDEF);
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u._typedef.type_specifier_list = list;
-			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
+			$$->u.field_class_def.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($2)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
-	|	declaration_specifiers CTF_TYPEDEF type_declarator_list
+	|	declaration_specifiers CTF_TYPEDEF field_class_declarator_list
 		{
 			struct ctf_node *list;
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			_bt_list_splice_tail(&($1)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
+			_bt_list_splice_tail(&($1)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
 			$$ = make_node(scanner, NODE_TYPEDEF);
-			($$)->u.struct_or_variant_declaration.type_specifier_list = list;
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u._typedef.type_declarators);
+			($$)->u.struct_or_variant_declaration.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_def.field_class_declarators);
 		}
 	|	CTF_TYPEALIAS declaration_specifiers abstract_declarator_list CTF_TYPEASSIGN alias_declaration_specifiers alias_abstract_declarator_list
 		{
 			struct ctf_node *list;
 
 			$$ = make_node(scanner, NODE_TYPEALIAS);
-			$$->u.typealias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
-			$$->u.typealias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
+			$$->u.field_class_alias.target = make_node(scanner, NODE_TYPEALIAS_TARGET);
+			$$->u.field_class_alias.alias = make_node(scanner, NODE_TYPEALIAS_ALIAS);
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u.typealias.target->u.typealias_target.type_specifier_list = list;
-			_bt_list_splice_tail(&($2)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.typealias.target->u.typealias_target.type_declarators);
+			$$->u.field_class_alias.target->u.field_class_alias_target.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($2)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($3)->tmp_head, &($$)->u.field_class_alias.target->u.field_class_alias_target.field_class_declarators);
 
 			list = make_node(scanner, NODE_TYPE_SPECIFIER_LIST);
-			$$->u.typealias.alias->u.typealias_alias.type_specifier_list = list;
-			_bt_list_splice_tail(&($5)->u.type_specifier_list.head, &list->u.type_specifier_list.head);
-			_bt_list_splice_tail(&($6)->tmp_head, &($$)->u.typealias.alias->u.typealias_alias.type_declarators);
+			$$->u.field_class_alias.alias->u.field_class_alias_name.field_class_specifier_list = list;
+			_bt_list_splice_tail(&($5)->u.field_class_specifier_list.head, &list->u.field_class_specifier_list.head);
+			_bt_list_splice_tail(&($6)->tmp_head, &($$)->u.field_class_alias.alias->u.field_class_alias_name.field_class_declarators);
 		}
 	;

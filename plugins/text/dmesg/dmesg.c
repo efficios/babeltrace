@@ -77,27 +77,27 @@ struct dmesg_component {
 };
 
 static
-struct bt_field_type *create_event_payload_ft(void)
+struct bt_field_class *create_event_payload_fc(void)
 {
-	struct bt_field_type *root_ft = NULL;
-	struct bt_field_type *ft = NULL;
+	struct bt_field_class *root_fc = NULL;
+	struct bt_field_class *fc = NULL;
 	int ret;
 
-	root_ft = bt_field_type_structure_create();
-	if (!root_ft) {
-		BT_LOGE_STR("Cannot create an empty structure field type object.");
+	root_fc = bt_field_class_structure_create();
+	if (!root_fc) {
+		BT_LOGE_STR("Cannot create an empty structure field class object.");
 		goto error;
 	}
 
-	ft = bt_field_type_string_create();
-	if (!ft) {
-		BT_LOGE_STR("Cannot create a string field type object.");
+	fc = bt_field_class_string_create();
+	if (!fc) {
+		BT_LOGE_STR("Cannot create a string field class object.");
 		goto error;
 	}
 
-	ret = bt_field_type_structure_append_member(root_ft, "str", ft);
+	ret = bt_field_class_structure_append_member(root_fc, "str", fc);
 	if (ret) {
-		BT_LOGE("Cannot add `str` member to structure field type: "
+		BT_LOGE("Cannot add `str` member to structure field class: "
 			"ret=%d", ret);
 		goto error;
 	}
@@ -105,17 +105,17 @@ struct bt_field_type *create_event_payload_ft(void)
 	goto end;
 
 error:
-	BT_PUT(root_ft);
+	BT_PUT(root_fc);
 
 end:
-	bt_put(ft);
-	return root_ft;
+	bt_put(fc);
+	return root_fc;
 }
 
 static
 int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 {
-	struct bt_field_type *ft = NULL;
+	struct bt_field_class *fc = NULL;
 	const char *trace_name = NULL;
 	gchar *basename = NULL;
 	int ret = 0;
@@ -180,15 +180,15 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ft = create_event_payload_ft();
-	if (!ft) {
-		BT_LOGE_STR("Cannot create event payload field type.");
+	fc = create_event_payload_fc();
+	if (!fc) {
+		BT_LOGE_STR("Cannot create event payload field class.");
 		goto error;
 	}
 
-	ret = bt_event_class_set_payload_field_type(dmesg_comp->event_class, ft);
+	ret = bt_event_class_set_payload_field_class(dmesg_comp->event_class, fc);
 	if (ret) {
-		BT_LOGE_STR("Cannot set event class's event payload field type.");
+		BT_LOGE_STR("Cannot set event class's event payload field class.");
 		goto error;
 	}
 
@@ -198,7 +198,7 @@ error:
 	ret = -1;
 
 end:
-	bt_put(ft);
+	bt_put(fc);
 
 	if (basename) {
 		g_free(basename);
@@ -488,7 +488,7 @@ struct bt_notification *create_init_event_notif_from_line(
 skip_ts:
 	/*
 	 * At this point, we know if the stream class's event header
-	 * field type should have a timestamp or not, so we can lazily
+	 * field class should have a timestamp or not, so we can lazily
 	 * create the metadata, stream, and packet objects.
 	 */
 	ret = try_create_meta_stream_packet(dmesg_comp, has_timestamp);

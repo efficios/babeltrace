@@ -9,7 +9,7 @@ libtrace_ir_la_SOURCES = \
 	event-header-field.c \
 	field-wrapper.c \
 	fields.c \
-	field-types.c \
+	field-classes.c \
 	field-path.c \
 	packet.c \
 	packet-context-field.c \

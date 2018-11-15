@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/field-path.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <stdarg.h>
@@ -281,46 +281,46 @@ BT_HIDDEN
 size_t bt_common_get_page_size(void);
 
 static inline
-const char *bt_common_field_type_id_string(enum bt_field_type_id type_id)
+const char *bt_common_field_class_id_string(enum bt_field_class_id class_id)
 {
-	switch (type_id) {
-	case BT_FIELD_TYPE_ID_UNSIGNED_INTEGER:
-		return "BT_FIELD_TYPE_ID_UNSIGNED_INTEGER";
-	case BT_FIELD_TYPE_ID_SIGNED_INTEGER:
-		return "BT_FIELD_TYPE_ID_SIGNED_INTEGER";
-	case BT_FIELD_TYPE_ID_REAL:
-		return "BT_FIELD_TYPE_ID_REAL";
-	case BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION:
-		return "BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION";
-	case BT_FIELD_TYPE_ID_SIGNED_ENUMERATION:
-		return "BT_FIELD_TYPE_ID_SIGNED_ENUMERATION";
-	case BT_FIELD_TYPE_ID_STRING:
-		return "BT_FIELD_TYPE_ID_STRING";
-	case BT_FIELD_TYPE_ID_STRUCTURE:
-		return "BT_FIELD_TYPE_ID_STRUCTURE";
-	case BT_FIELD_TYPE_ID_STATIC_ARRAY:
-		return "BT_FIELD_TYPE_ID_STATIC_ARRAY";
-	case BT_FIELD_TYPE_ID_DYNAMIC_ARRAY:
-		return "BT_FIELD_TYPE_ID_DYNAMIC_ARRAY";
-	case BT_FIELD_TYPE_ID_VARIANT:
-		return "BT_FIELD_TYPE_ID_VARIANT";
+	switch (class_id) {
+	case BT_FIELD_CLASS_ID_UNSIGNED_INTEGER:
+		return "BT_FIELD_CLASS_ID_UNSIGNED_INTEGER";
+	case BT_FIELD_CLASS_ID_SIGNED_INTEGER:
+		return "BT_FIELD_CLASS_ID_SIGNED_INTEGER";
+	case BT_FIELD_CLASS_ID_REAL:
+		return "BT_FIELD_CLASS_ID_REAL";
+	case BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION:
+		return "BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION";
+	case BT_FIELD_CLASS_ID_SIGNED_ENUMERATION:
+		return "BT_FIELD_CLASS_ID_SIGNED_ENUMERATION";
+	case BT_FIELD_CLASS_ID_STRING:
+		return "BT_FIELD_CLASS_ID_STRING";
+	case BT_FIELD_CLASS_ID_STRUCTURE:
+		return "BT_FIELD_CLASS_ID_STRUCTURE";
+	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
+		return "BT_FIELD_CLASS_ID_STATIC_ARRAY";
+	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
+		return "BT_FIELD_CLASS_ID_DYNAMIC_ARRAY";
+	case BT_FIELD_CLASS_ID_VARIANT:
+		return "BT_FIELD_CLASS_ID_VARIANT";
 	default:
 		return "(unknown)";
 	}
 };
 
 static inline
-const char *bt_common_field_type_integer_preferred_display_base_string(enum bt_field_type_integer_preferred_display_base base)
+const char *bt_common_field_class_integer_preferred_display_base_string(enum bt_field_class_integer_preferred_display_base base)
 {
 	switch (base) {
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_BINARY:
-		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_BINARY";
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL:
-		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL";
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL:
-		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL";
-	case BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL:
-		return "BT_FIELD_TYPE_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL";
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY:
+		return "BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY";
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL:
+		return "BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL";
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL:
+		return "BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL";
+	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL:
+		return "BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL";
 	default:
 		return "(unknown)";
 	}

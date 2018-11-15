@@ -1,5 +1,5 @@
-#ifndef CTF_BTR_LOGGING_H
-#define CTF_BTR_LOGGING_H
+#ifndef CTF_BFCR_LOGGING_H
+#define CTF_BFCR_LOGGING_H
 
 /*
  * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,9 +23,9 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_OUTPUT_LEVEL btr_log_level
+#define BT_LOG_OUTPUT_LEVEL bfcr_log_level
 #include <babeltrace/logging-internal.h>
 
-BT_LOG_LEVEL_EXTERN_SYMBOL(btr_log_level);
+BT_LOG_LEVEL_EXTERN_SYMBOL(bfcr_log_level);
 
-#endif /* CTF_BTR_LOGGING_H */
+#endif /* CTF_BFCR_LOGGING_H */

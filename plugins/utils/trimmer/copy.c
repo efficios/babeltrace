@@ -82,7 +82,7 @@ enum bt_component_status update_packet_context_field(FILE *err,
 {
 	enum bt_component_status ret;
 	struct bt_field *packet_context = NULL, *writer_packet_context = NULL;
-	struct bt_field_type *struct_type = NULL, *field_type = NULL;
+	struct bt_field_class *struct_class = NULL, *field_class = NULL;
 	struct bt_field *field = NULL, *writer_field = NULL;
 	int nr_fields, i, int_ret;
 
@@ -90,13 +90,13 @@ enum bt_component_status update_packet_context_field(FILE *err,
 	packet_context = bt_packet_get_context(writer_packet);
 	BT_ASSERT(packet_context);
 
-	struct_type = bt_field_get_type(packet_context);
-	BT_ASSERT(struct_type);
+	struct_class = bt_field_get_class(packet_context);
+	BT_ASSERT(struct_class);
 
 	writer_packet_context = bt_packet_get_context(writer_packet);
 	BT_ASSERT(writer_packet_context);
 
-	nr_fields = bt_field_type_structure_get_field_count(struct_type);
+	nr_fields = bt_field_class_structure_get_field_count(struct_class);
 	for (i = 0; i < nr_fields; i++) {
 		const char *field_name;
 
@@ -107,19 +107,19 @@ enum bt_component_status update_packet_context_field(FILE *err,
 					name);
 			goto error;
 		}
-		if (bt_field_type_structure_get_field_by_index(struct_type,
-					&field_name, &field_type, i) < 0) {
+		if (bt_field_class_structure_get_field_by_index(struct_class,
+					&field_name, &field_class, i) < 0) {
 			BT_LOGE("Failed to get field: field-name=\"%s\"",
 					field_name);
 			goto error;
 		}
 		if (strcmp(field_name, name)) {
-			BT_PUT(field_type);
+			BT_PUT(field_class);
 			BT_PUT(field);
 			continue;
 		}
-		if (bt_field_type_get_type_id(field_type) !=
-				BT_FIELD_TYPE_ID_INTEGER) {
+		if (bt_field_class_id(field_class) !=
+				BT_FIELD_CLASS_ID_INTEGER) {
 			BT_LOGE("Expecting an integer for this field: field-name=\"%s\"",
 					name);
 			goto error;
@@ -133,7 +133,7 @@ enum bt_component_status update_packet_context_field(FILE *err,
 		BT_ASSERT(int_ret == 0);
 
 		BT_PUT(writer_field);
-		BT_PUT(field_type);
+		BT_PUT(field_class);
 		BT_PUT(field);
 	}
 
@@ -142,11 +142,11 @@ enum bt_component_status update_packet_context_field(FILE *err,
 
 error:
 	bt_put(writer_field);
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
-	bt_put(struct_type);
+	bt_put(struct_class);
 	bt_put(packet_context);
 	return ret;
 }

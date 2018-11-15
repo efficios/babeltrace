@@ -96,8 +96,8 @@ struct ctf_node {
 		} unknown;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef,
-			 * typealias and type_specifier_list.
+			 * Children nodes are ctf_expression, field_class_def,
+			 * field_class_alias and field_class_specifier_list.
 			 */
 			struct bt_list_head declaration_list;
 			struct bt_list_head trace;
@@ -109,43 +109,43 @@ struct ctf_node {
 		} root;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef,
-			 * typealias and type_specifier_list.
+			 * Children nodes are ctf_expression, field_class_def,
+			 * field_class_alias and field_class_specifier_list.
 			 */
 			struct bt_list_head declaration_list;
 		} event;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef,
-			 * typealias and type_specifier_list.
+			 * Children nodes are ctf_expression, field_class_def,
+			 * field_class_alias and field_class_specifier_list.
 			 */
 			struct bt_list_head declaration_list;
 		} stream;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef,
-			 * typealias and type_specifier_list.
+			 * Children nodes are ctf_expression, field_class_def,
+			 * field_class_alias and field_class_specifier_list.
 			 */
 			struct bt_list_head declaration_list;
 		} env;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef,
-			 * typealias and type_specifier_list.
+			 * Children nodes are ctf_expression, field_class_def,
+			 * field_class_alias and field_class_specifier_list.
 			 */
 			struct bt_list_head declaration_list;
 		} trace;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef,
-			 * typealias and type_specifier_list.
+			 * Children nodes are ctf_expression, field_class_def,
+			 * field_class_alias and field_class_specifier_list.
 			 */
 			struct bt_list_head declaration_list;
 		} clock;
 		struct {
 			/*
-			 * Children nodes are ctf_expression, typedef,
-			 * typealias and type_specifier_list.
+			 * Children nodes are ctf_expression, field_class_def,
+			 * field_class_alias and field_class_specifier_list.
 			 */
 			struct bt_list_head declaration_list;
 		} callsite;
@@ -179,22 +179,22 @@ struct ctf_node {
 			} link;
 		} unary_expression;
 		struct {
-			struct ctf_node *type_specifier_list;
-			struct bt_list_head type_declarators;
-		} _typedef;
+			struct ctf_node *field_class_specifier_list;
+			struct bt_list_head field_class_declarators;
+		} field_class_def;
 		/* new type is "alias", existing type "target" */
 		struct {
-			struct ctf_node *type_specifier_list;
-			struct bt_list_head type_declarators;
-		} typealias_target;
+			struct ctf_node *field_class_specifier_list;
+			struct bt_list_head field_class_declarators;
+		} field_class_alias_target;
 		struct {
-			struct ctf_node *type_specifier_list;
-			struct bt_list_head type_declarators;
-		} typealias_alias;
+			struct ctf_node *field_class_specifier_list;
+			struct bt_list_head field_class_declarators;
+		} field_class_alias_name;
 		struct {
 			struct ctf_node *target;
 			struct ctf_node *alias;
-		} typealias;
+		} field_class_alias;
 		struct {
 			enum {
 				TYPESPEC_UNKNOWN = 0,
@@ -222,11 +222,11 @@ struct ctf_node {
 			/* For struct, variant and enum */
 			struct ctf_node *node;
 			const char *id_type;
-		} type_specifier;
+		} field_class_specifier;
 		struct {
-			/* list of type_specifier */
+			/* list of field_class_specifier */
 			struct bt_list_head head;
-		} type_specifier_list;
+		} field_class_specifier_list;
 		struct {
 			unsigned int const_qualifier;
 		} pointer;
@@ -241,10 +241,10 @@ struct ctf_node {
 				char *id;
 				struct {
 					/* typedec has no pointer list */
-					struct ctf_node *type_declarator;
+					struct ctf_node *field_class_declarator;
 					/*
 					 * unary expression (value) or
-					 * type_specifier_list.
+					 * field_class_specifier_list.
 					 */
 					struct bt_list_head length;
 					/* for abstract type declarator */
@@ -252,7 +252,7 @@ struct ctf_node {
 				} nested;
 			} u;
 			struct ctf_node *bitfield_len;
-		} type_declarator;
+		} field_class_declarator;
 		struct {
 			/* Children nodes are ctf_expression. */
 			struct bt_list_head expressions;
@@ -277,26 +277,32 @@ struct ctf_node {
 			char *enum_id;
 			/*
 			 * Either NULL, or points to unary expression or
-			 * type_specifier_list.
+			 * field_class_specifier_list.
 			 */
-			struct ctf_node *container_type;
+			struct ctf_node *container_field_class;
 			struct bt_list_head enumerator_list;
 			int has_body;
 		} _enum;
 		struct {
-			struct ctf_node *type_specifier_list;
-			struct bt_list_head type_declarators;
+			struct ctf_node *field_class_specifier_list;
+			struct bt_list_head field_class_declarators;
 		} struct_or_variant_declaration;
 		struct {
 			char *name;
 			char *choice;
-			/* list of typedef, typealias and declarations */
+			/*
+			 * list of field_class_def, field_class_alias and
+			 * declarations
+			 */
 			struct bt_list_head declaration_list;
 			int has_body;
 		} variant;
 		struct {
 			char *name;
-			/* list of typedef, typealias and declarations */
+			/*
+			 * list of field_class_def, field_class_alias and
+			 * declarations
+			 */
 			struct bt_list_head declaration_list;
 			int has_body;
 			struct bt_list_head min_align;	/* align() attribute */

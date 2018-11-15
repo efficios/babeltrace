@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#define BT_LOG_OUTPUT_LEVEL btr_log_level
+#define BT_LOG_OUTPUT_LEVEL bfcr_log_level
 #include <babeltrace/logging-internal.h>
 
-BT_LOG_INIT_LOG_LEVEL(btr_log_level, "BABELTRACE_PLUGIN_CTF_BTR_LOG_LEVEL");
+BT_LOG_INIT_LOG_LEVEL(bfcr_log_level, "BABELTRACE_PLUGIN_CTF_BFCR_LOG_LEVEL");

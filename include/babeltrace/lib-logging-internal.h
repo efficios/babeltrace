@@ -79,8 +79,8 @@ int bt_lib_log_level;
  * The available format specifiers are:
  *
  *   `F`:
- *       Trace IR field type. The parameter type is `struct
- *       bt_field_type *`.
+ *       Trace IR field class. The parameter type is
+ *	 `structbt_field_class *`.
  *
  *   `f`:
  *       Trace IR field. The parameter type is `struct bt_field *`.
@@ -89,15 +89,15 @@ int bt_lib_log_level;
  *       Field path. The parameter type is `struct bt_field_path *`.
  *
  *   `E`:
- *       Trace IR event class. The parameter type is `struct
- *       bt_event_class *`.
+ *       Trace IR event class. The parameter type is
+ *	 `struct bt_event_class *`.
  *
  *   `e`:
  *       Trace IR event. The parameter type is `struct bt_event *`.
  *
  *   `S`:
- *       Trace IR stream class. The parameter type is `struct
- *       bt_stream_class *`.
+ *       Trace IR stream class. The parameter type is
+ *	 `struct bt_stream_class *`.
  *
  *   `s`:
  *       Trace IR stream. The parameter type is `struct bt_stream *`.

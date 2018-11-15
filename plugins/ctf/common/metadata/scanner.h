@@ -28,7 +28,7 @@ typedef void* yyscan_t;
 struct ctf_scanner_scope;
 struct ctf_scanner_scope {
 	struct ctf_scanner_scope *parent;
-	GHashTable *types;
+	GHashTable *classes;
 };
 
 struct ctf_scanner {

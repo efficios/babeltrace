@@ -27,79 +27,79 @@
 #include "ctf-meta-visitors.h"
 
 static
-void update_field_type_in_ir(struct ctf_field_type *ft,
+void update_field_class_in_ir(struct ctf_field_class *fc,
 		GHashTable *ft_dependents)
 {
 	int64_t i;
 
-	if (!ft) {
+	if (!fc) {
 		goto end;
 	}
 
-	switch (ft->id) {
-	case CTF_FIELD_TYPE_ID_INT:
-	case CTF_FIELD_TYPE_ID_ENUM:
+	switch (fc->id) {
+	case CTF_FIELD_CLASS_ID_INT:
+	case CTF_FIELD_CLASS_ID_ENUM:
 	{
-		struct ctf_field_type_int *int_ft = (void *) ft;
+		struct ctf_field_class_int *int_fc = (void *) fc;
 
-		if (int_ft->mapped_clock_class ||
-				int_ft->meaning == CTF_FIELD_TYPE_MEANING_NONE ||
-				bt_g_hash_table_contains(ft_dependents, ft)) {
+		if (int_fc->mapped_clock_class ||
+				int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE ||
+				bt_g_hash_table_contains(ft_dependents, fc)) {
 			/*
-			 * Field type does not update a clock, has no
+			 * Field class does not update a clock, has no
 			 * special meaning, and no sequence/variant
-			 * field type which is part of IR depends on it.
+			 * field class which is part of IR depends on it.
 			 */
-			ft->in_ir = true;
+			fc->in_ir = true;
 		}
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_STRUCT:
+	case CTF_FIELD_CLASS_ID_STRUCT:
 	{
-		struct ctf_field_type_struct *struct_ft = (void *) ft;
+		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
 		/* Reverse order */
-		for (i = (int64_t) struct_ft->members->len - 1; i >= 0; i--) {
-			struct ctf_named_field_type *named_ft =
-				ctf_field_type_struct_borrow_member_by_index(
-					struct_ft, i);
+		for (i = (int64_t) struct_fc->members->len - 1; i >= 0; i--) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_struct_borrow_member_by_index(
+					struct_fc, i);
 
-			update_field_type_in_ir(named_ft->ft, ft_dependents);
+			update_field_class_in_ir(named_fc->fc, ft_dependents);
 
-			if (named_ft->ft->in_ir) {
+			if (named_fc->fc->in_ir) {
 				/* At least one member is part of IR */
-				ft->in_ir = true;
+				fc->in_ir = true;
 			}
 		}
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_VARIANT:
+	case CTF_FIELD_CLASS_ID_VARIANT:
 	{
-		struct ctf_named_field_type *named_ft;
-		struct ctf_field_type_variant *var_ft = (void *) ft;
+		struct ctf_named_field_class *named_fc;
+		struct ctf_field_class_variant *var_fc = (void *) fc;
 
 		/*
 		 * Reverse order, although it is not important for this
-		 * loop because a field type within a variant field
-		 * type's option cannot depend on a field type in
-		 * another option of the same variant field type.
+		 * loop because a field class within a variant field
+		 * type's option cannot depend on a field class in
+		 * another option of the same variant field class.
 		 */
-		for (i = (int64_t) var_ft->options->len - 1; i >= 0; i--) {
-			named_ft =
-				ctf_field_type_variant_borrow_option_by_index(
-					var_ft, i);
+		for (i = (int64_t) var_fc->options->len - 1; i >= 0; i--) {
+			named_fc =
+				ctf_field_class_variant_borrow_option_by_index(
+					var_fc, i);
 
-			update_field_type_in_ir(named_ft->ft, ft_dependents);
+			update_field_class_in_ir(named_fc->fc, ft_dependents);
 
-			if (named_ft->ft->in_ir) {
+			if (named_fc->fc->in_ir) {
 				/* At least one option is part of IR */
-				ft->in_ir = true;
+				fc->in_ir = true;
 			}
 		}
 
-		if (ft->in_ir) {
+		if (fc->in_ir) {
 			/*
 			 * At least one option will make it to IR. In
 			 * this case, make all options part of IR
@@ -109,62 +109,62 @@ void update_field_type_in_ir(struct ctf_field_type *ft,
 			 * example, but at least all the options are
 			 * selectable.
 			 */
-			for (i = 0; i < var_ft->options->len; i++) {
-				ctf_field_type_variant_borrow_option_by_index(
-					var_ft, i)->ft->in_ir = true;
+			for (i = 0; i < var_fc->options->len; i++) {
+				ctf_field_class_variant_borrow_option_by_index(
+					var_fc, i)->fc->in_ir = true;
 			}
 
 			/*
-			 * This variant field type is part of IR and
-			 * depends on a tag field type (which must also
+			 * This variant field class is part of IR and
+			 * depends on a tag field class (which must also
 			 * be part of IR).
 			 */
-			g_hash_table_insert(ft_dependents, var_ft->tag_ft,
-				var_ft->tag_ft);
+			g_hash_table_insert(ft_dependents, var_fc->tag_fc,
+				var_fc->tag_fc);
 		}
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_ARRAY:
-	case CTF_FIELD_TYPE_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_ID_ARRAY:
+	case CTF_FIELD_CLASS_ID_SEQUENCE:
 	{
-		struct ctf_field_type_array_base *array_ft = (void *) ft;
+		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
-		update_field_type_in_ir(array_ft->elem_ft, ft_dependents);
-		ft->in_ir = array_ft->elem_ft->in_ir;
+		update_field_class_in_ir(array_fc->elem_fc, ft_dependents);
+		fc->in_ir = array_fc->elem_fc->in_ir;
 
-		if (ft->id == CTF_FIELD_TYPE_ID_ARRAY) {
-			struct ctf_field_type_array *arr_ft = (void *) ft;
+		if (fc->id == CTF_FIELD_CLASS_ID_ARRAY) {
+			struct ctf_field_class_array *arr_fc = (void *) fc;
 
-			assert(arr_ft->meaning == CTF_FIELD_TYPE_MEANING_NONE ||
-				arr_ft->meaning == CTF_FIELD_TYPE_MEANING_UUID);
+			assert(arr_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE ||
+				arr_fc->meaning == CTF_FIELD_CLASS_MEANING_UUID);
 
 			/*
-			 * UUID field type: nothing depends on this, so
+			 * UUID field class: nothing depends on this, so
 			 * it's not part of IR.
 			 */
-			if (arr_ft->meaning == CTF_FIELD_TYPE_MEANING_UUID) {
-				ft->in_ir = false;
-				array_ft->elem_ft->in_ir = false;
+			if (arr_fc->meaning == CTF_FIELD_CLASS_MEANING_UUID) {
+				fc->in_ir = false;
+				array_fc->elem_fc->in_ir = false;
 			}
-		} else if (ft->id == CTF_FIELD_TYPE_ID_SEQUENCE) {
-			if (ft->in_ir) {
-				struct ctf_field_type_sequence *seq_ft = (void *) ft;
+		} else if (fc->id == CTF_FIELD_CLASS_ID_SEQUENCE) {
+			if (fc->in_ir) {
+				struct ctf_field_class_sequence *seq_fc = (void *) fc;
 
 				/*
-				 * This sequence field type is part of
-				 * IR and depends on a length field type
+				 * This sequence field class is part of
+				 * IR and depends on a length field class
 				 * (which must also be part of IR).
 				 */
 				g_hash_table_insert(ft_dependents,
-					seq_ft->length_ft, seq_ft->length_ft);
+					seq_fc->length_fc, seq_fc->length_fc);
 			}
 		}
 
 		break;
 	}
 	default:
-		ft->in_ir = true;
+		fc->in_ir = true;
 		break;
 	}
 
@@ -173,10 +173,10 @@ end:
 }
 
 /*
- * Scopes and field types are processed in reverse order because we need
- * to know if a given integer field type has dependents (sequence or
- * variant field types) when we reach it. Dependents can only be located
- * after the length/tag field type in the metadata tree.
+ * Scopes and field classes are processed in reverse order because we need
+ * to know if a given integer field class has dependents (sequence or
+ * variant field classes) when we reach it. Dependents can only be located
+ * after the length/tag field class in the metadata tree.
  */
 BT_HIDDEN
 int ctf_trace_class_update_in_ir(struct ctf_trace_class *ctf_tc)
@@ -200,23 +200,23 @@ int ctf_trace_class_update_in_ir(struct ctf_trace_class *ctf_tc)
 				continue;
 			}
 
-			update_field_type_in_ir(ec->payload_ft, ft_dependents);
-			update_field_type_in_ir(ec->spec_context_ft,
+			update_field_class_in_ir(ec->payload_fc, ft_dependents);
+			update_field_class_in_ir(ec->spec_context_fc,
 				ft_dependents);
 		}
 
 		if (!sc->is_translated) {
-			update_field_type_in_ir(sc->event_common_context_ft,
+			update_field_class_in_ir(sc->event_common_context_fc,
 				ft_dependents);
-			update_field_type_in_ir(sc->event_header_ft,
+			update_field_class_in_ir(sc->event_header_fc,
 				ft_dependents);
-			update_field_type_in_ir(sc->packet_context_ft,
+			update_field_class_in_ir(sc->packet_context_fc,
 				ft_dependents);
 		}
 	}
 
 	if (!ctf_tc->is_translated) {
-		update_field_type_in_ir(ctf_tc->packet_header_ft,
+		update_field_class_in_ir(ctf_tc->packet_header_fc,
 			ft_dependents);
 	}
 

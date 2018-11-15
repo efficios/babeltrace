@@ -26,26 +26,26 @@
 #include "ctf-meta-visitors.h"
 
 static inline
-int set_text_array_sequence_field_type(struct ctf_field_type *ft)
+int set_text_array_sequence_field_class(struct ctf_field_class *fc)
 {
 	int ret = 0;
 	uint64_t i;
 
-	if (!ft) {
+	if (!fc) {
 		goto end;
 	}
 
-	switch (ft->id) {
-	case CTF_FIELD_TYPE_ID_STRUCT:
+	switch (fc->id) {
+	case CTF_FIELD_CLASS_ID_STRUCT:
 	{
-		struct ctf_field_type_struct *struct_ft = (void *) ft;
+		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
-		for (i = 0; i < struct_ft->members->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				ctf_field_type_struct_borrow_member_by_index(
-					struct_ft, i);
+		for (i = 0; i < struct_fc->members->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_struct_borrow_member_by_index(
+					struct_fc, i);
 
-			ret = set_text_array_sequence_field_type(named_ft->ft);
+			ret = set_text_array_sequence_field_class(named_fc->fc);
 			if (ret) {
 				goto end;
 			}
@@ -53,16 +53,16 @@ int set_text_array_sequence_field_type(struct ctf_field_type *ft)
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_VARIANT:
+	case CTF_FIELD_CLASS_ID_VARIANT:
 	{
-		struct ctf_field_type_variant *var_ft = (void *) ft;
+		struct ctf_field_class_variant *var_fc = (void *) fc;
 
-		for (i = 0; i < var_ft->options->len; i++) {
-			struct ctf_named_field_type *named_ft =
-				ctf_field_type_variant_borrow_option_by_index(
-					var_ft, i);
+		for (i = 0; i < var_fc->options->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_variant_borrow_option_by_index(
+					var_fc, i);
 
-			ret = set_text_array_sequence_field_type(named_ft->ft);
+			ret = set_text_array_sequence_field_class(named_fc->fc);
 			if (ret) {
 				goto end;
 			}
@@ -70,20 +70,20 @@ int set_text_array_sequence_field_type(struct ctf_field_type *ft)
 
 		break;
 	}
-	case CTF_FIELD_TYPE_ID_ARRAY:
-	case CTF_FIELD_TYPE_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_ID_ARRAY:
+	case CTF_FIELD_CLASS_ID_SEQUENCE:
 	{
-		struct ctf_field_type_array_base *array_ft = (void *) ft;
+		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
-		if (array_ft->elem_ft->id == CTF_FIELD_TYPE_ID_INT ||
-				array_ft->elem_ft->id == CTF_FIELD_TYPE_ID_ENUM) {
-			struct ctf_field_type_int *int_ft =
-				(void *) array_ft->elem_ft;
+		if (array_fc->elem_fc->id == CTF_FIELD_CLASS_ID_INT ||
+				array_fc->elem_fc->id == CTF_FIELD_CLASS_ID_ENUM) {
+			struct ctf_field_class_int *int_fc =
+				(void *) array_fc->elem_fc;
 
-			if (int_ft->base.base.alignment == 8 &&
-					int_ft->base.size == 8 &&
-					int_ft->encoding == CTF_ENCODING_UTF8) {
-				array_ft->is_text = true;
+			if (int_fc->base.base.alignment == 8 &&
+					int_fc->base.size == 8 &&
+					int_fc->encoding == CTF_ENCODING_UTF8) {
+				array_fc->is_text = true;
 
 				/*
 				 * Force integer element to be unsigned;
@@ -92,11 +92,11 @@ int set_text_array_sequence_field_type(struct ctf_field_type *ft)
 				 * array/sequence and we can safely
 				 * decode bytes as characters anyway.
 				 */
-				int_ft->is_signed = false;
+				int_fc->is_signed = false;
 			}
 		}
 
-		ret = set_text_array_sequence_field_type(array_ft->elem_ft);
+		ret = set_text_array_sequence_field_class(array_fc->elem_fc);
 		if (ret) {
 			goto end;
 		}
@@ -118,8 +118,8 @@ int ctf_trace_class_update_text_array_sequence(struct ctf_trace_class *ctf_tc)
 	uint64_t i;
 
 	if (!ctf_tc->is_translated) {
-		ret = set_text_array_sequence_field_type(
-			ctf_tc->packet_header_ft);
+		ret = set_text_array_sequence_field_class(
+			ctf_tc->packet_header_fc);
 		if (ret) {
 			goto end;
 		}
@@ -130,20 +130,20 @@ int ctf_trace_class_update_text_array_sequence(struct ctf_trace_class *ctf_tc)
 		uint64_t j;
 
 		if (!sc->is_translated) {
-			ret = set_text_array_sequence_field_type(
-				sc->packet_context_ft);
+			ret = set_text_array_sequence_field_class(
+				sc->packet_context_fc);
 			if (ret) {
 				goto end;
 			}
 
-			ret = set_text_array_sequence_field_type(
-				sc->event_header_ft);
+			ret = set_text_array_sequence_field_class(
+				sc->event_header_fc);
 			if (ret) {
 				goto end;
 			}
 
-			ret = set_text_array_sequence_field_type(
-				sc->event_common_context_ft);
+			ret = set_text_array_sequence_field_class(
+				sc->event_common_context_fc);
 			if (ret) {
 				goto end;
 			}
@@ -157,14 +157,14 @@ int ctf_trace_class_update_text_array_sequence(struct ctf_trace_class *ctf_tc)
 				continue;
 			}
 
-			ret = set_text_array_sequence_field_type(
-				ec->spec_context_ft);
+			ret = set_text_array_sequence_field_class(
+				ec->spec_context_fc);
 			if (ret) {
 				goto end;
 			}
 
-			ret = set_text_array_sequence_field_type(
-				ec->payload_ft);
+			ret = set_text_array_sequence_field_class(
+				ec->payload_fc);
 			if (ret) {
 				goto end;
 			}

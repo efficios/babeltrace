@@ -77,15 +77,15 @@ struct bt_field *get_payload_field(FILE *err,
 		struct bt_event *event, const char *field_name)
 {
 	struct bt_field *field = NULL, *payload = NULL;
-	struct bt_field_type *payload_type = NULL;
+	struct bt_field_class *payload_class = NULL;
 
 	payload = bt_event_get_payload(event, NULL);
 	BT_ASSERT(payload);
 
-	payload_type = bt_field_get_type(payload);
-	BT_ASSERT(payload_type);
+	payload_class = bt_field_get_class(payload);
+	BT_ASSERT(payload_class);
 
-	if (bt_field_type_get_type_id(payload_type) != BT_FIELD_TYPE_ID_STRUCT) {
+	if (bt_field_class_id(payload_class) != BT_FIELD_CLASS_ID_STRUCT) {
 		BT_LOGE("Wrong type, expected struct: field-name=\"%s\"",
 				field_name);
 		goto end;
@@ -94,7 +94,7 @@ struct bt_field *get_payload_field(FILE *err,
 	field = bt_field_structure_get_field_by_name(payload, field_name);
 
 end:
-	bt_put(payload_type);
+	bt_put(payload_class);
 	bt_put(payload);
 	return field;
 }
@@ -104,17 +104,17 @@ struct bt_field *get_stream_event_context_field(FILE *err,
 		struct bt_event *event, const char *field_name)
 {
 	struct bt_field *field = NULL, *sec = NULL;
-	struct bt_field_type *sec_type = NULL;
+	struct bt_field_class *sec_class = NULL;
 
 	sec = bt_event_get_stream_event_context(event);
 	if (!sec) {
 		goto end;
 	}
 
-	sec_type = bt_field_get_type(sec);
-	BT_ASSERT(sec_type);
+	sec_class = bt_field_get_class(sec);
+	BT_ASSERT(sec_class);
 
-	if (bt_field_type_get_type_id(sec_type) != BT_FIELD_TYPE_ID_STRUCT) {
+	if (bt_field_class_id(sec_class) != BT_FIELD_CLASS_ID_STRUCT) {
 		BT_LOGE("Wrong type, expected struct, field-name=\"%s\"",
 				field_name);
 		goto end;
@@ -123,7 +123,7 @@ struct bt_field *get_stream_event_context_field(FILE *err,
 	field = bt_field_structure_get_field_by_name(sec, field_name);
 
 end:
-	bt_put(sec_type);
+	bt_put(sec_class);
 	bt_put(sec);
 	return field;
 }
@@ -135,23 +135,23 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 {
 	int ret;
 	struct bt_field *field = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 
 	field = get_stream_event_context_field(err, event, field_name);
 	if (!field) {
 		goto error;
 	}
 
-	field_type = bt_field_get_type(field);
-	BT_ASSERT(field_type);
+	field_class = bt_field_get_class(field);
+	BT_ASSERT(field_class);
 
-	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
 				field_name);
 		goto error;
 	}
 
-	if (bt_ctf_field_type_integer_get_signed(field_type) != 0) {
+	if (bt_ctf_field_class_integer_get_signed(field_class) != 0) {
 		BT_LOGE("Wrong type, expected unsigned integer: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -168,7 +168,7 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
 	return ret;
 }
@@ -178,7 +178,7 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_event *event,
 		const char *field_name, int64_t *value)
 {
 	struct bt_field *field = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 	int ret;
 
 	field = get_stream_event_context_field(err, event, field_name);
@@ -186,15 +186,15 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_event *event,
 		goto error;
 	}
 
-	field_type = bt_field_get_type(field);
-	BT_ASSERT(field_type);
+	field_class = bt_field_get_class(field);
+	BT_ASSERT(field_class);
 
-	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
 		goto error;
 	}
 
-	if (bt_ctf_field_type_integer_get_signed(field_type) != 1) {
+	if (bt_ctf_field_class_integer_get_signed(field_class) != 1) {
 		BT_LOGE("Wrong type, expected signed integer: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -206,7 +206,7 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_event *event,
 error:
 	ret = -1;
 end:
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
 	return ret;
 }
@@ -217,7 +217,7 @@ int get_payload_unsigned_int_field_value(FILE *err,
 		uint64_t *value)
 {
 	struct bt_field *field = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 	int ret;
 
 	field = get_payload_field(err, event, field_name);
@@ -226,16 +226,16 @@ int get_payload_unsigned_int_field_value(FILE *err,
 		goto error;
 	}
 
-	field_type = bt_field_get_type(field);
-	BT_ASSERT(field_type);
+	field_class = bt_field_get_class(field);
+	BT_ASSERT(field_class);
 
-	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
 				field_name);
 		goto error;
 	}
 
-	if (bt_ctf_field_type_integer_get_signed(field_type) != 0) {
+	if (bt_ctf_field_class_integer_get_signed(field_class) != 0) {
 		BT_LOGE("Wrong type, expected unsigned integer: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -252,7 +252,7 @@ int get_payload_unsigned_int_field_value(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
 	return ret;
 }
@@ -262,7 +262,7 @@ int get_payload_int_field_value(FILE *err, struct bt_event *event,
 		const char *field_name, int64_t *value)
 {
 	struct bt_field *field = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 	int ret;
 
 	field = get_payload_field(err, event, field_name);
@@ -271,15 +271,15 @@ int get_payload_int_field_value(FILE *err, struct bt_event *event,
 		goto error;
 	}
 
-	field_type = bt_field_get_type(field);
-	BT_ASSERT(field_type);
+	field_class = bt_field_get_class(field);
+	BT_ASSERT(field_class);
 
-	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
 		goto error;
 	}
 
-	if (bt_ctf_field_type_integer_get_signed(field_type) != 1) {
+	if (bt_ctf_field_class_integer_get_signed(field_class) != 1) {
 		BT_LOGE("Wrong type, expected signed integer field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -296,7 +296,7 @@ int get_payload_int_field_value(FILE *err, struct bt_event *event,
 error:
 	ret = -1;
 end:
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
 	return ret;
 }
@@ -307,7 +307,7 @@ int get_payload_string_field_value(FILE *err,
 		const char **value)
 {
 	struct bt_field *field = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 	int ret;
 
 	/*
@@ -318,10 +318,10 @@ int get_payload_string_field_value(FILE *err,
 		goto error;
 	}
 
-	field_type = bt_field_get_type(field);
-	BT_ASSERT(field_type);
+	field_class = bt_field_get_class(field);
+	BT_ASSERT(field_class);
 
-	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_STRING) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_STRING) {
 		BT_LOGE("Wrong type, expected string: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -340,7 +340,7 @@ int get_payload_string_field_value(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
 	return ret;
 }
@@ -351,7 +351,7 @@ int get_payload_build_id_field_value(FILE *err,
 		uint8_t **build_id, uint64_t *build_id_len)
 {
 	struct bt_field *field = NULL, *seq_len = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 	struct bt_field *seq_field = NULL;
 	uint64_t i;
 	int ret;
@@ -364,14 +364,14 @@ int get_payload_build_id_field_value(FILE *err,
 		goto error;
 	}
 
-	field_type = bt_field_get_type(field);
-	BT_ASSERT(field_type);
+	field_class = bt_field_get_class(field);
+	BT_ASSERT(field_class);
 
-	if (bt_field_type_get_type_id(field_type) != BT_FIELD_TYPE_ID_SEQUENCE) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_SEQUENCE) {
 		BT_LOGE("Wrong type, expected sequence: field-name=\"%s\"", field_name);
 		goto error;
 	}
-	BT_PUT(field_type);
+	BT_PUT(field_class);
 
 	seq_len = bt_field_sequence_get_length(field);
 	BT_ASSERT(seq_len);
@@ -417,7 +417,7 @@ error:
 	g_free(*build_id);
 	ret = -1;
 end:
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
 	return ret;
 }
@@ -808,77 +808,77 @@ end:
 
 static
 int add_debug_info_fields(FILE *err,
-		struct bt_field_type *writer_event_context_type,
+		struct bt_field_class *writer_event_context_class,
 		struct debug_info_component *component)
 {
-	struct bt_field_type *ip_field = NULL, *debug_field_type = NULL,
-				 *bin_field_type = NULL, *func_field_type = NULL,
-				 *src_field_type = NULL;
+	struct bt_field_class *ip_field = NULL, *debug_field_class = NULL,
+				 *bin_field_class = NULL, *func_field_class = NULL,
+				 *src_field_class = NULL;
 	int ret = 0;
 
-	ip_field = bt_field_type_structure_get_field_type_by_name(
-			writer_event_context_type, IP_FIELD_NAME);
+	ip_field = bt_field_class_structure_get_field_class_by_name(
+			writer_event_context_class, IP_FIELD_NAME);
 	/* No ip field, so no debug info. */
 	if (!ip_field) {
 		goto end;
 	}
 	BT_PUT(ip_field);
 
-	debug_field_type = bt_field_type_structure_get_field_type_by_name(
-			writer_event_context_type,
+	debug_field_class = bt_field_class_structure_get_field_class_by_name(
+			writer_event_context_class,
 			component->arg_debug_info_field_name);
 	/* Already existing debug_info field, no need to add it. */
-	if (debug_field_type) {
+	if (debug_field_class) {
 		goto end;
 	}
 
-	debug_field_type = bt_field_type_structure_create();
-	if (!debug_field_type) {
+	debug_field_class = bt_field_class_structure_create();
+	if (!debug_field_class) {
 		BT_LOGE_STR("Failed to create debug_info structure.");
 		goto error;
 	}
 
-	bin_field_type = bt_field_type_string_create();
-	if (!bin_field_type) {
+	bin_field_class = bt_field_class_string_create();
+	if (!bin_field_class) {
 		BT_LOGE_STR("Failed to create string for field=bin.");
 		goto error;
 	}
 
-	func_field_type = bt_field_type_string_create();
-	if (!func_field_type) {
+	func_field_class = bt_field_class_string_create();
+	if (!func_field_class) {
 		BT_LOGE_STR("Failed to create string for field=func.");
 		goto error;
 	}
 
-	src_field_type = bt_field_type_string_create();
-	if (!src_field_type) {
+	src_field_class = bt_field_class_string_create();
+	if (!src_field_class) {
 		BT_LOGE_STR("Failed to create string for field=src.");
 		goto error;
 	}
 
-	ret = bt_field_type_structure_add_field(debug_field_type,
-			bin_field_type, "bin");
+	ret = bt_field_class_structure_add_field(debug_field_class,
+			bin_field_class, "bin");
 	if (ret) {
 		BT_LOGE_STR("Failed to add a field to debug_info struct: field=bin.");
 		goto error;
 	}
 
-	ret = bt_field_type_structure_add_field(debug_field_type,
-			func_field_type, "func");
+	ret = bt_field_class_structure_add_field(debug_field_class,
+			func_field_class, "func");
 	if (ret) {
 		BT_LOGE_STR("Failed to add a field to debug_info struct: field=func.");
 		goto error;
 	}
 
-	ret = bt_field_type_structure_add_field(debug_field_type,
-			src_field_type, "src");
+	ret = bt_field_class_structure_add_field(debug_field_class,
+			src_field_class, "src");
 	if (ret) {
 		BT_LOGE_STR("Failed to add a field to debug_info struct: field=src.");
 		goto error;
 	}
 
-	ret = bt_field_type_structure_add_field(writer_event_context_type,
-			debug_field_type, component->arg_debug_info_field_name);
+	ret = bt_field_class_structure_add_field(writer_event_context_class,
+			debug_field_class, component->arg_debug_info_field_name);
 	if (ret) {
 		BT_LOGE_STR("Failed to add debug_info field to event_context.");
 		goto error;
@@ -888,39 +888,39 @@ int add_debug_info_fields(FILE *err,
 	goto end;
 
 error:
-	BT_PUT(debug_field_type);
+	BT_PUT(debug_field_class);
 	ret = -1;
 end:
-	bt_put(src_field_type);
-	bt_put(func_field_type);
-	bt_put(bin_field_type);
-	bt_put(debug_field_type);
+	bt_put(src_field_class);
+	bt_put(func_field_class);
+	bt_put(bin_field_class);
+	bt_put(debug_field_class);
 	return ret;
 }
 
 static
-int create_debug_info_event_context_type(FILE *err,
-		struct bt_field_type *event_context_type,
-		struct bt_field_type *writer_event_context_type,
+int create_debug_info_event_context_class(FILE *err,
+		struct bt_field_class *event_context_class,
+		struct bt_field_class *writer_event_context_class,
 		struct debug_info_component *component)
 {
 	int ret, nr_fields, i;
 
-	nr_fields = bt_field_type_structure_get_field_count(event_context_type);
+	nr_fields = bt_field_class_structure_get_field_count(event_context_class);
 	for (i = 0; i < nr_fields; i++) {
-		struct bt_field_type *field_type = NULL;
+		struct bt_field_class *field_class = NULL;
 		const char *field_name;
 
-		if (bt_field_type_structure_get_field_by_index(event_context_type,
-					&field_name, &field_type, i) < 0) {
+		if (bt_field_class_structure_get_field_by_index(event_context_class,
+					&field_name, &field_class, i) < 0) {
 			BT_LOGE("Failed to get a field from the event-context: field-name=\"%s\"",
 					field_name);
 			goto error;
 		}
 
-		ret = bt_field_type_structure_add_field(writer_event_context_type,
-				field_type, field_name);
-		BT_PUT(field_type);
+		ret = bt_field_class_structure_add_field(writer_event_context_class,
+				field_class, field_name);
+		BT_PUT(field_class);
 		if (ret) {
 			BT_LOGE("Failed to add a field to the event-context: field-name=\"%s\"",
 					field_name);
@@ -928,7 +928,7 @@ int create_debug_info_event_context_type(FILE *err,
 		}
 	}
 
-	ret = add_debug_info_fields(err, writer_event_context_type,
+	ret = add_debug_info_fields(err, writer_event_context_class,
 			component);
 	goto end;
 
@@ -944,9 +944,9 @@ struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
 		struct bt_trace *writer_trace,
 		struct debug_info_component *component)
 {
-	struct bt_field_type *type = NULL;
+	struct bt_field_class *cls = NULL;
 	struct bt_stream_class *writer_stream_class = NULL;
-	struct bt_field_type *writer_event_context_type = NULL;
+	struct bt_field_class *writer_event_context_class = NULL;
 	int ret_int;
 	const char *name = bt_stream_class_get_name(stream_class);
 
@@ -956,9 +956,9 @@ struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
 		goto error;
 	}
 
-	type = bt_stream_class_get_packet_context_type(stream_class);
+	type = bt_stream_class_get_packet_context_class(stream_class);
 	if (type) {
-		ret_int = bt_stream_class_set_packet_context_type(
+		ret_int = bt_stream_class_set_packet_context_class(
 				writer_stream_class, type);
 		if (ret_int < 0) {
 			BT_LOGE_STR("Failed to set packet_context type.");
@@ -978,28 +978,28 @@ struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
 		BT_PUT(type);
 	}
 
-	type = bt_stream_class_get_event_context_type(stream_class);
+	type = bt_stream_class_get_event_context_class(stream_class);
 	if (type) {
-		writer_event_context_type = bt_field_type_structure_create();
-		if (!writer_event_context_type) {
+		writer_event_context_class = bt_field_class_structure_create();
+		if (!writer_event_context_class) {
 			BT_LOGE_STR("Failed to create writer_event_context struct type.");
 			goto error;
 		}
-		ret_int = create_debug_info_event_context_type(err, type,
-				writer_event_context_type, component);
+		ret_int = create_debug_info_event_context_class(err, type,
+				writer_event_context_class, component);
 		if (ret_int) {
 			BT_LOGE_STR("Failed to create debug_info event_context type.");
 			goto error;
 		}
 		BT_PUT(type);
 
-		ret_int = bt_stream_class_set_event_context_type(
-				writer_stream_class, writer_event_context_type);
+		ret_int = bt_stream_class_set_event_context_class(
+				writer_stream_class, writer_event_context_class);
 		if (ret_int < 0) {
 			BT_LOGE_STR("Failed to set event_context type.");
 			goto error;
 		}
-		BT_PUT(writer_event_context_type);
+		BT_PUT(writer_event_context_class);
 	}
 
 	goto end;
@@ -1007,7 +1007,7 @@ struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
 error:
 	BT_PUT(writer_stream_class);
 end:
-	bt_put(writer_event_context_type);
+	bt_put(writer_event_context_class);
 	bt_put(type);
 	return writer_stream_class;
 }
@@ -1485,24 +1485,24 @@ int set_debug_info_field(FILE *err, struct bt_field *debug_field,
 		struct debug_info_component *component)
 {
 	int i, nr_fields, ret = 0;
-	struct bt_field_type *debug_field_type = NULL;
+	struct bt_field_class *debug_field_class = NULL;
 	struct bt_field *field = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 
-	debug_field_type = bt_field_get_type(debug_field);
-	BT_ASSERT(debug_field_type);
+	debug_field_class = bt_field_get_class(debug_field);
+	BT_ASSERT(debug_field_class);
 
-	nr_fields = bt_field_type_structure_get_field_count(debug_field_type);
+	nr_fields = bt_field_class_structure_get_field_count(debug_field_class);
 	for (i = 0; i < nr_fields; i++) {
 		const char *field_name;
 
-		if (bt_field_type_structure_get_field_by_index(debug_field_type,
-					&field_name, &field_type, i) < 0) {
+		if (bt_field_class_structure_get_field_by_index(debug_field_class,
+					&field_name, &field_class, i) < 0) {
 			BT_LOGE("Failed to get field from debug_info struct: field-name=\"%s\"",
 					field_name);
 			goto error;
 		}
-		BT_PUT(field_type);
+		BT_PUT(field_class);
 
 		field = bt_field_structure_get_field_by_index(debug_field, i);
 		if (!strcmp(field_name, "bin")) {
@@ -1562,9 +1562,9 @@ int set_debug_info_field(FILE *err, struct bt_field *debug_field,
 error:
 	ret = -1;
 end:
-	bt_put(field_type);
+	bt_put(field_class);
 	bt_put(field);
-	bt_put(debug_field_type);
+	bt_put(debug_field_class);
 	return ret;
 }
 
@@ -1576,40 +1576,40 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 		struct debug_info *debug_info,
 		struct debug_info_component *component)
 {
-	struct bt_field_type *writer_event_context_type = NULL,
-				 *event_context_type = NULL;
+	struct bt_field_class *writer_event_context_class = NULL,
+				 *event_context_class = NULL;
 	struct bt_field *writer_event_context = NULL;
 	struct bt_field *field = NULL, *copy_field = NULL, *debug_field = NULL;
-	struct bt_field_type *field_type = NULL;
+	struct bt_field_class *field_class = NULL;
 	struct debug_info_source *dbg_info_src;
 	int ret, nr_fields, i;
 
 	writer_event_context = bt_event_get_stream_event_context(writer_event);
 	BT_ASSERT(writer_event_context);
 
-	writer_event_context_type = bt_field_get_type(writer_event_context);
-	BT_ASSERT(writer_event_context_type);
+	writer_event_context_class = bt_field_get_class(writer_event_context);
+	BT_ASSERT(writer_event_context_class);
 
-	event_context_type = bt_field_get_type(event_context);
-	BT_ASSERT(event_context_type);
+	event_context_class = bt_field_get_class(event_context);
+	BT_ASSERT(event_context_class);
 
 	/*
 	 * If it is not a structure, we did not modify it to add the debug info
 	 * fields, so just assign it as is.
 	 */
-	if (bt_field_type_get_type_id(writer_event_context_type) != BT_FIELD_TYPE_ID_STRUCT) {
+	if (bt_field_class_id(writer_event_context_class) != BT_FIELD_CLASS_ID_STRUCT) {
 		ret = bt_event_set_event_context(writer_event, event_context);
 		goto end;
 	}
 
 	dbg_info_src = lookup_debug_info(err, event, debug_info);
 
-	nr_fields = bt_field_type_structure_get_field_count(writer_event_context_type);
+	nr_fields = bt_field_class_structure_get_field_count(writer_event_context_class);
 	for (i = 0; i < nr_fields; i++) {
 		const char *field_name;
 
-		if (bt_field_type_structure_get_field_by_index(writer_event_context_type,
-					&field_name, &field_type, i) < 0) {
+		if (bt_field_class_structure_get_field_by_index(writer_event_context_class,
+					&field_name, &field_class, i) < 0) {
 			BT_LOGE("Failed to get field from event-context: field-name=\"%s\"",
 					field_name);
 			goto error;
@@ -1618,7 +1618,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 		/*
 		 * Prevent illegal access in the event_context.
 		 */
-		if (i < bt_field_type_structure_get_field_count(event_context_type)) {
+		if (i < bt_field_class_structure_get_field_count(event_context_class)) {
 			field = bt_field_structure_get_field_by_index(event_context, i);
 		}
 		/*
@@ -1656,7 +1656,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 			}
 			BT_PUT(copy_field);
 		}
-		BT_PUT(field_type);
+		BT_PUT(field_class);
 		BT_PUT(field);
 	}
 
@@ -1666,13 +1666,13 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_put(event_context_type);
-	bt_put(writer_event_context_type);
+	bt_put(event_context_class);
+	bt_put(writer_event_context_class);
 	bt_put(writer_event_context);
 	bt_put(field);
 	bt_put(copy_field);
 	bt_put(debug_field);
-	bt_put(field_type);
+	bt_put(field_class);
 	return ret;
 }
 

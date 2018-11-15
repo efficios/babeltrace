@@ -74,28 +74,28 @@ extern int bt_stream_class_set_assigns_automatic_stream_id(
 
 extern uint64_t bt_stream_class_get_id(struct bt_stream_class *stream_class);
 
-extern struct bt_field_type *bt_stream_class_borrow_packet_context_field_type(
+extern struct bt_field_class *bt_stream_class_borrow_packet_context_field_class(
 		struct bt_stream_class *stream_class);
 
-extern int bt_stream_class_set_packet_context_field_type(
+extern int bt_stream_class_set_packet_context_field_class(
 		struct bt_stream_class *stream_class,
-		struct bt_field_type *field_type);
+		struct bt_field_class *field_class);
 
-extern struct bt_field_type *
-bt_stream_class_borrow_event_header_field_type(
+extern struct bt_field_class *
+bt_stream_class_borrow_event_header_field_class(
 		struct bt_stream_class *stream_class);
 
-extern int bt_stream_class_set_event_header_field_type(
+extern int bt_stream_class_set_event_header_field_class(
 		struct bt_stream_class *stream_class,
-		struct bt_field_type *field_type);
+		struct bt_field_class *field_class);
 
-extern struct bt_field_type *
-bt_stream_class_borrow_event_common_context_field_type(
+extern struct bt_field_class *
+bt_stream_class_borrow_event_common_context_field_class(
 		struct bt_stream_class *stream_class);
 
-extern int bt_stream_class_set_event_common_context_field_type(
+extern int bt_stream_class_set_event_common_context_field_class(
 		struct bt_stream_class *stream_class,
-		struct bt_field_type *field_type);
+		struct bt_field_class *field_class);
 
 extern uint64_t bt_stream_class_get_event_class_count(
 		struct bt_stream_class *stream_class);

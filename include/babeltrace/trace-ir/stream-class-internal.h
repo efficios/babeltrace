@@ -29,7 +29,7 @@
 
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/common-internal.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/object-internal.h>
@@ -55,9 +55,9 @@ struct bt_stream_class {
 	bool packets_have_packet_counter_snapshot;
 	bool packets_have_default_beginning_cv;
 	bool packets_have_default_end_cv;
-	struct bt_field_type *packet_context_ft;
-	struct bt_field_type *event_header_ft;
-	struct bt_field_type *event_common_context_ft;
+	struct bt_field_class *packet_context_fc;
+	struct bt_field_class *event_header_fc;
+	struct bt_field_class *event_common_context_fc;
 	struct bt_clock_class *default_clock_class;
 
 	/* Array of `struct bt_event_class *` */

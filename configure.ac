@@ -770,7 +770,7 @@ AC_CONFIG_FILES([
 	plugins/Makefile
 	plugins/ctf/Makefile
 	plugins/ctf/common/Makefile
-	plugins/ctf/common/btr/Makefile
+	plugins/ctf/common/bfcr/Makefile
 	plugins/ctf/common/metadata/Makefile
 	plugins/ctf/common/notif-iter/Makefile
 	plugins/ctf/common/utils/Makefile
