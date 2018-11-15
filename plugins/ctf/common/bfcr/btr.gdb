@@ -11,11 +11,11 @@ define ctf-btr-show-stack
 
             if ($stack_at == $stack_size - 1)
                 printf "%3d    %10p    %3d    %3d  <-- top\n", $stack_at, \
-                    $stack_entry->base_type, $stack_entry->base_len, \
+                    $stack_entry->base_class, $stack_entry->base_len, \
                     $stack_entry->index
             else
                 printf "%3d    %10p    %3d    %3d\n", $stack_at, \
-                    $stack_entry->base_type, $stack_entry->base_len, \
+                    $stack_entry->base_class, $stack_entry->base_len, \
                     $stack_entry->index
             end
             set $stack_at = $stack_at - 1

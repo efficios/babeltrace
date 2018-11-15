@@ -40,7 +40,7 @@
 #include <babeltrace/ctf-writer/functor-internal.h>
 #include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
@@ -118,8 +118,8 @@ void destroy_trace(struct bt_object *obj)
 		g_hash_table_destroy(trace->stream_classes_stream_count);
 	}
 
-	BT_LOGD_STR("Putting packet header field type.");
-	bt_put(trace->packet_header_ft);
+	BT_LOGD_STR("Putting packet header field classe.");
+	bt_put(trace->packet_header_fc);
 	g_free(trace);
 }
 
@@ -431,19 +431,19 @@ end:
 	return stream_class;
 }
 
-struct bt_field_type *bt_trace_borrow_packet_header_field_type(
+struct bt_field_class *bt_trace_borrow_packet_header_field_class(
 		struct bt_trace *trace)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return trace->packet_header_ft;
+	return trace->packet_header_fc;
 }
 
-int bt_trace_set_packet_header_field_type(struct bt_trace *trace,
-		struct bt_field_type *field_type)
+int bt_trace_set_packet_header_field_class(struct bt_trace *trace,
+		struct bt_field_class *field_class)
 {
 	int ret;
 	struct bt_resolve_field_path_context resolve_ctx = {
-		.packet_header = field_type,
+		.packet_header = field_class,
 		.packet_context = NULL,
 		.event_header = NULL,
 		.event_common_context = NULL,
@@ -452,22 +452,22 @@ int bt_trace_set_packet_header_field_type(struct bt_trace *trace,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(field_type, "Field type");
+	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
 	BT_ASSERT_PRE_TRACE_HOT(trace);
-	BT_ASSERT_PRE(bt_field_type_get_type_id(field_type) ==
-		BT_FIELD_TYPE_ID_STRUCTURE,
-		"Packet header field type is not a structure field type: %!+F",
-		field_type);
-	ret = bt_resolve_field_paths(field_type, &resolve_ctx);
+	BT_ASSERT_PRE(bt_field_class_get_id(field_class) ==
+		BT_FIELD_CLASS_ID_STRUCTURE,
+		"Packet header field classe is not a structure field classe: %!+F",
+		field_class);
+	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_type_make_part_of_trace(field_type);
-	bt_put(trace->packet_header_ft);
-	trace->packet_header_ft = bt_get(field_type);
-	bt_field_type_freeze(field_type);
-	BT_LIB_LOGV("Set trace's packet header field type: %!+t", trace);
+	bt_field_class_make_part_of_trace(field_class);
+	bt_put(trace->packet_header_fc);
+	trace->packet_header_fc = bt_get(field_class);
+	bt_field_class_freeze(field_class);
+	BT_LIB_LOGV("Set trace's packet header field classe: %!+t", trace);
 
 end:
 	return ret;
@@ -599,7 +599,7 @@ int bt_trace_remove_is_static_listener(
 BT_HIDDEN
 void _bt_trace_freeze(struct bt_trace *trace)
 {
-	/* The packet header field type is already frozen */
+	/* The packet header field classe is already frozen */
 	BT_ASSERT(trace);
 	BT_LIB_LOGD("Freezing trace: %!+t", trace);
 	trace->frozen = true;

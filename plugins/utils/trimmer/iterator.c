@@ -273,20 +273,20 @@ int ns_from_integer_field(struct bt_field *integer, int64_t *ns)
 	int ret = 0;
 	int is_signed;
 	uint64_t raw_clock_value;
-	struct bt_field_type *integer_type = NULL;
+	struct bt_field_class *integer_class = NULL;
 	struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 
-	integer_type = bt_field_get_type(integer);
-	BT_ASSERT(integer_type);
-	clock_class = bt_field_type_integer_get_mapped_clock_class(
-		integer_type);
+	integer_class = bt_field_get_class(integer);
+	BT_ASSERT(integer_class);
+	clock_class = bt_field_class_integer_get_mapped_clock_class(
+		integer_class);
 	if (!clock_class) {
 		ret = -1;
 		goto end;
 	}
 
-	is_signed = bt_field_type_integer_is_signed(integer_type);
+	is_signed = bt_field_class_integer_is_signed(integer_class);
 	if (!is_signed) {
 		ret = bt_field_unsigned_integer_get_value(integer,
 				&raw_clock_value);
@@ -306,7 +306,7 @@ int ns_from_integer_field(struct bt_field *integer, int64_t *ns)
 
 	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ns);
 end:
-	bt_put(integer_type);
+	bt_put(integer_class);
 	bt_put(clock_class);
 	bt_put(clock_value);
 	return ret;

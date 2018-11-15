@@ -83,7 +83,7 @@ int ctf_visitor_unary_expression(int depth, struct ctf_node *node)
 			break;
 		default:
 			_BT_LOGE_LINENO(node->lineno,
-				"Children of type declarator and `enum` can only be unsigned numeric constants or references to fields (e.g., `a.b.c`).");
+				"Children of field class declarator and `enum` can only be unsigned numeric constants or references to fields (e.g., `a.b.c`).");
 			goto errperm;
 		}
 		break;			/* OK */
@@ -217,7 +217,7 @@ errperm:
 }
 
 static
-int ctf_visitor_type_specifier_list(int depth, struct ctf_node *node)
+int ctf_visitor_field_class_specifier_list(int depth, struct ctf_node *node)
 {
 	switch (node->parent->type) {
 	case NODE_CTF_EXPRESSION:
@@ -259,7 +259,7 @@ errinval:
 }
 
 static
-int ctf_visitor_type_specifier(int depth, struct ctf_node *node)
+int ctf_visitor_field_class_specifier(int depth, struct ctf_node *node)
 {
 	switch (node->parent->type) {
 	case NODE_TYPE_SPECIFIER_LIST:
@@ -301,7 +301,7 @@ errinval:
 }
 
 static
-int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
+int ctf_visitor_field_class_declarator(int depth, struct ctf_node *node)
 {
 	int ret = 0;
 	struct ctf_node *iter;
@@ -311,9 +311,10 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 	switch (node->parent->type) {
 	case NODE_TYPE_DECLARATOR:
 		/*
-		 * A nested type declarator is not allowed to contain pointers.
+		 * A nested field class declarator is not allowed to
+		 * contain pointers.
 		 */
-		if (!bt_list_empty(&node->u.type_declarator.pointers))
+		if (!bt_list_empty(&node->u.field_class_declarator.pointers))
 			goto errperm;
 		break;			/* OK */
 	case NODE_TYPEALIAS_TARGET:
@@ -326,30 +327,30 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 		 * NOT accepting alias names containing [] (would otherwise
 		 * cause semantic clash for later declarations of
 		 * arrays/sequences of elements, where elements could be
-		 * arrays/sequences themselves (if allowed in typealias).
+		 * arrays/sequences themselves (if allowed in field class alias).
 		 * NOT accepting alias with identifier. The declarator should
 		 * be either empty or contain pointer(s).
 		 */
-		if (node->u.type_declarator.type == TYPEDEC_NESTED)
+		if (node->u.field_class_declarator.type == TYPEDEC_NESTED)
 			goto errperm;
-		bt_list_for_each_entry(iter, &node->parent->u.typealias_alias.type_specifier_list->u.type_specifier_list.head,
+		bt_list_for_each_entry(iter, &node->parent->u.field_class_alias_name.field_class_specifier_list->u.field_class_specifier_list.head,
 					siblings) {
-			switch (iter->u.type_specifier.type) {
+			switch (iter->u.field_class_specifier.type) {
 			case TYPESPEC_FLOATING_POINT:
 			case TYPESPEC_INTEGER:
 			case TYPESPEC_STRING:
 			case TYPESPEC_STRUCT:
 			case TYPESPEC_VARIANT:
 			case TYPESPEC_ENUM:
-				if (bt_list_empty(&node->u.type_declarator.pointers))
+				if (bt_list_empty(&node->u.field_class_declarator.pointers))
 					goto errperm;
 				break;
 			default:
 				break;
 			}
 		}
-		if (node->u.type_declarator.type == TYPEDEC_ID &&
-		    node->u.type_declarator.u.id != NULL)
+		if (node->u.field_class_declarator.type == TYPEDEC_ID &&
+		    node->u.field_class_declarator.u.id != NULL)
 			goto errperm;
 		break;			/* OK */
 	case NODE_TYPEDEF:
@@ -379,26 +380,26 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 		goto errinval;
 	}
 
-	bt_list_for_each_entry(iter, &node->u.type_declarator.pointers,
+	bt_list_for_each_entry(iter, &node->u.field_class_declarator.pointers,
 				siblings) {
 		ret = _ctf_visitor_semantic_check(depth + 1, iter);
 		if (ret)
 			return ret;
 	}
 
-	switch (node->u.type_declarator.type) {
+	switch (node->u.field_class_declarator.type) {
 	case TYPEDEC_ID:
 		break;
 	case TYPEDEC_NESTED:
 	{
-		if (node->u.type_declarator.u.nested.type_declarator) {
+		if (node->u.field_class_declarator.u.nested.field_class_declarator) {
 			ret = _ctf_visitor_semantic_check(depth + 1,
-				node->u.type_declarator.u.nested.type_declarator);
+				node->u.field_class_declarator.u.nested.field_class_declarator);
 			if (ret)
 				return ret;
 		}
-		if (!node->u.type_declarator.u.nested.abstract_array) {
-			bt_list_for_each_entry(iter, &node->u.type_declarator.u.nested.length,
+		if (!node->u.field_class_declarator.u.nested.abstract_array) {
+			bt_list_for_each_entry(iter, &node->u.field_class_declarator.u.nested.length,
 						siblings) {
 				if (iter->type != NODE_UNARY_EXPRESSION) {
 					_BT_LOGE_LINENO(node->lineno,
@@ -413,13 +414,13 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 		} else {
 			if (node->parent->type == NODE_TYPEALIAS_TARGET) {
 				_BT_LOGE_LINENO(node->lineno,
-					"Abstract array declarator not permitted as target of type alias.");
+					"Abstract array declarator not permitted as target of field class alias.");
 				return -EINVAL;
 			}
 		}
-		if (node->u.type_declarator.bitfield_len) {
+		if (node->u.field_class_declarator.bitfield_len) {
 			ret = _ctf_visitor_semantic_check(depth + 1,
-				node->u.type_declarator.bitfield_len);
+				node->u.field_class_declarator.bitfield_len);
 			if (ret)
 				return ret;
 		}
@@ -428,8 +429,8 @@ int ctf_visitor_type_declarator(int depth, struct ctf_node *node)
 	case TYPEDEC_UNKNOWN:
 	default:
 		_BT_LOGE_LINENO(node->lineno,
-			"Unknown type declarator: type=%d",
-			node->u.type_declarator.type);
+			"Unknown field class declarator: type=%d",
+			node->u.field_class_declarator.type);
 		return -EINVAL;
 	}
 	depth--;
@@ -650,10 +651,10 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 		depth++;
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u._typedef.type_specifier_list);
+			node->u.field_class_def.field_class_specifier_list);
 		if (ret)
 			return ret;
-		bt_list_for_each_entry(iter, &node->u._typedef.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.field_class_def.field_class_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
@@ -673,11 +674,11 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 		depth++;
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u.typealias_target.type_specifier_list);
+			node->u.field_class_alias_target.field_class_specifier_list);
 		if (ret)
 			return ret;
 		nr_declarators = 0;
-		bt_list_for_each_entry(iter, &node->u.typealias_target.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.field_class_alias_target.field_class_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
@@ -685,7 +686,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 		if (nr_declarators > 1) {
 			_BT_LOGE_LINENO(node->lineno,
-				"Too many declarators in type alias's name (maximum is 1): count=%d",
+				"Too many declarators in field class alias's name (maximum is 1): count=%d",
 				nr_declarators);
 			return -EINVAL;
 		}
@@ -705,11 +706,11 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 
 		depth++;
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u.typealias_alias.type_specifier_list);
+			node->u.field_class_alias_name.field_class_specifier_list);
 		if (ret)
 			return ret;
 		nr_declarators = 0;
-		bt_list_for_each_entry(iter, &node->u.typealias_alias.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.field_class_alias_name.field_class_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;
@@ -717,7 +718,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 		if (nr_declarators > 1) {
 			_BT_LOGE_LINENO(node->lineno,
-				"Too many declarators in type alias's name (maximum is 1): count=%d",
+				"Too many declarators in field class alias's name (maximum is 1): count=%d",
 				nr_declarators);
 			return -EINVAL;
 		}
@@ -757,21 +758,21 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			goto errinval;
 		}
 
-		ret = _ctf_visitor_semantic_check(depth + 1, node->u.typealias.target);
+		ret = _ctf_visitor_semantic_check(depth + 1, node->u.field_class_alias.target);
 		if (ret)
 			return ret;
-		ret = _ctf_visitor_semantic_check(depth + 1, node->u.typealias.alias);
+		ret = _ctf_visitor_semantic_check(depth + 1, node->u.field_class_alias.alias);
 		if (ret)
 			return ret;
 		break;
 
 	case NODE_TYPE_SPECIFIER_LIST:
-		ret = ctf_visitor_type_specifier_list(depth, node);
+		ret = ctf_visitor_field_class_specifier_list(depth, node);
 		if (ret)
 			return ret;
 		break;
 	case NODE_TYPE_SPECIFIER:
-		ret = ctf_visitor_type_specifier(depth, node);
+		ret = ctf_visitor_field_class_specifier(depth, node);
 		if (ret)
 			return ret;
 		break;
@@ -784,7 +785,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 		break;
 	case NODE_TYPE_DECLARATOR:
-		ret = ctf_visitor_type_declarator(depth, node);
+		ret = ctf_visitor_field_class_declarator(depth, node);
 		if (ret)
 			return ret;
 		break;
@@ -897,7 +898,7 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 		}
 
 		depth++;
-		ret = _ctf_visitor_semantic_check(depth + 1, node->u._enum.container_type);
+		ret = _ctf_visitor_semantic_check(depth + 1, node->u._enum.container_field_class);
 		if (ret)
 			return ret;
 
@@ -917,10 +918,10 @@ int _ctf_visitor_semantic_check(int depth, struct ctf_node *node)
 			goto errinval;
 		}
 		ret = _ctf_visitor_semantic_check(depth + 1,
-			node->u.struct_or_variant_declaration.type_specifier_list);
+			node->u.struct_or_variant_declaration.field_class_specifier_list);
 		if (ret)
 			return ret;
-		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.type_declarators, siblings) {
+		bt_list_for_each_entry(iter, &node->u.struct_or_variant_declaration.field_class_declarators, siblings) {
 			ret = _ctf_visitor_semantic_check(depth + 1, iter);
 			if (ret)
 				return ret;

@@ -63,12 +63,12 @@ struct bt_packet_context_field *bt_packet_context_field_create(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE(stream_class->frozen,
 		"Stream class is not part of a trace: %!+S", stream_class);
-	BT_ASSERT_PRE(stream_class->packet_context_ft,
-		"Stream class has no packet context field type: %!+S",
+	BT_ASSERT_PRE(stream_class->packet_context_fc,
+		"Stream class has no packet context field classe: %!+S",
 		stream_class);
 	field_wrapper = bt_field_wrapper_create(
 		&stream_class->packet_context_field_pool,
-		(void *) stream_class->packet_context_ft);
+		(void *) stream_class->packet_context_fc);
 	if (!field_wrapper) {
 		BT_LIB_LOGE("Cannot allocate one packet context field from stream class: "
 			"%![sc-]+S", stream_class);

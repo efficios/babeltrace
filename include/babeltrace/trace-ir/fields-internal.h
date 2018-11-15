@@ -29,7 +29,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/common-internal.h>
-#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
@@ -40,30 +40,30 @@
 #include <stdbool.h>
 #include <glib.h>
 
-#define BT_ASSERT_PRE_FIELD_HAS_TYPE_ID(_field, _type_id, _name)	\
-	BT_ASSERT_PRE(((struct bt_field *) (_field))->type->id == (_type_id), \
-		_name " has the wrong type ID: expected-type-id=%s, "	\
+#define BT_ASSERT_PRE_FIELD_HAS_CLASS_ID(_field, _cls_id, _name)	\
+	BT_ASSERT_PRE(((struct bt_field *) (_field))->class->id == (_cls_id), \
+		_name " has the wrong class ID: expected-class-id=%s, "	\
 		"%![field-]+f",						\
-		bt_common_field_type_id_string(_type_id), (_field))
+		bt_common_field_class_id_string(_cls_id), (_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(_field, _name)		\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_UNSIGNED_INTEGER || \
-		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_UNSIGNED_ENUMERATION, \
+		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER || \
+		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION, \
 		_name " is not an unsigned integer field: %![field-]+f", \
 		(_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(_field, _name)		\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_SIGNED_INTEGER || \
-		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_SIGNED_ENUMERATION, \
+		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_SIGNED_INTEGER || \
+		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION, \
 		_name " is not a signed integer field: %![field-]+f", \
 		(_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_ARRAY(_field, _name)			\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_STATIC_ARRAY || \
-		((struct bt_field *) (_field))->type->id == BT_FIELD_TYPE_ID_DYNAMIC_ARRAY, \
+		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_STATIC_ARRAY || \
+		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_DYNAMIC_ARRAY, \
 		_name " is not an array field: %![field-]+f", (_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_SET(_field, _name)			\
@@ -76,7 +76,7 @@
 
 struct bt_field;
 
-typedef struct bt_field *(* bt_field_create_func)(struct bt_field_type *);
+typedef struct bt_field *(* bt_field_create_func)(struct bt_field_class *);
 typedef void (*bt_field_method_set_is_frozen)(struct bt_field *, bool);
 typedef bool (*bt_field_method_is_set)(struct bt_field *);
 typedef void (*bt_field_method_reset)(struct bt_field *);
@@ -91,7 +91,7 @@ struct bt_field {
 	struct bt_object base;
 
 	/* Owned by this */
-	struct bt_field_type *type;
+	struct bt_field_class *class;
 
 	/* Virtual table for slow path (dev mode) operations */
 	struct bt_field_methods *methods;
@@ -189,7 +189,7 @@ bt_bool _bt_field_is_set(struct bt_field *field)
 		goto end;
 	}
 
-	BT_ASSERT(bt_field_type_has_known_id(field->type));
+	BT_ASSERT(bt_field_class_has_known_id(field->class));
 	BT_ASSERT(field->methods->is_set);
 	is_set = field->methods->is_set(field);
 
@@ -198,7 +198,7 @@ end:
 }
 
 BT_HIDDEN
-struct bt_field *bt_field_create(struct bt_field_type *type);
+struct bt_field *bt_field_create(struct bt_field_class *class);
 
 BT_HIDDEN
 void bt_field_destroy(struct bt_field *field);

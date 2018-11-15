@@ -41,7 +41,7 @@ extern "C" {
 #endif
 
 struct bt_event_class;
-struct bt_field_type;
+struct bt_field_class;
 struct bt_stream_class;
 
 enum bt_event_class_log_level {
@@ -91,19 +91,19 @@ extern const char *bt_event_class_get_emf_uri(
 extern int bt_event_class_set_emf_uri(struct bt_event_class *event_class,
 		const char *emf_uri);
 
-extern struct bt_field_type *bt_event_class_borrow_specific_context_field_type(
+extern struct bt_field_class *bt_event_class_borrow_specific_context_field_class(
 		struct bt_event_class *event_class);
 
-extern int bt_event_class_set_specific_context_field_type(
+extern int bt_event_class_set_specific_context_field_class(
 		struct bt_event_class *event_class,
-		struct bt_field_type *field_type);
+		struct bt_field_class *field_class);
 
-extern struct bt_field_type *bt_event_class_borrow_payload_field_type(
+extern struct bt_field_class *bt_event_class_borrow_payload_field_class(
 		struct bt_event_class *event_class);
 
-extern int bt_event_class_set_payload_field_type(
+extern int bt_event_class_set_payload_field_class(
 		struct bt_event_class *event_class,
-		struct bt_field_type *field_type);
+		struct bt_field_class *field_class);
 
 #ifdef __cplusplus
 }

@@ -201,7 +201,7 @@ uint64_t bt_stream_get_id(struct bt_stream *stream)
 BT_HIDDEN
 void _bt_stream_freeze(struct bt_stream *stream)
 {
-	/* The field types and default clock class are already frozen */
+	/* The field classes and default clock class are already frozen */
 	BT_ASSERT(stream);
 	BT_LIB_LOGD("Freezing stream: %!+s", stream);
 	stream->frozen = true;

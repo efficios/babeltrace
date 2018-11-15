@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/fields.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/values.h>
@@ -45,8 +45,8 @@
 
 struct bt_event_class {
 	struct bt_object base;
-	struct bt_field_type *specific_context_ft;
-	struct bt_field_type *payload_ft;
+	struct bt_field_class *specific_context_fc;
+	struct bt_field_class *payload_fc;
 
 	struct {
 		GString *str;
