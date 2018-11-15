@@ -27,7 +27,7 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/compat/string-internal.h>
@@ -39,7 +39,7 @@ BT_HIDDEN
 void bt_clock_value_destroy(struct bt_clock_value *clock_value)
 {
 	BT_LIB_LOGD("Destroying clock value: %!+k", clock_value);
-	bt_put(clock_value->clock_class);
+	bt_object_put_ref(clock_value->clock_class);
 	g_free(clock_value);
 }
 
@@ -58,7 +58,7 @@ struct bt_clock_value *bt_clock_value_new(struct bt_clock_class *clock_class)
 	}
 
 	bt_object_init_unique(&ret->base);
-	ret->clock_class = bt_get(clock_class);
+	ret->clock_class = bt_object_get_ref(clock_class);
 	bt_clock_class_freeze(clock_class);
 	BT_LIB_LOGD("Created clock value object: %!+k", ret);
 
@@ -80,7 +80,7 @@ struct bt_clock_value *bt_clock_value_create(struct bt_clock_class *clock_class)
 	}
 
 	if (likely(!clock_value->clock_class)) {
-		clock_value->clock_class = bt_get(clock_class);
+		clock_value->clock_class = bt_object_get_ref(clock_class);
 	}
 
 	goto end;
@@ -116,7 +116,7 @@ void bt_clock_value_recycle(struct bt_clock_value *clock_value)
 	 *    variable so that we can set the clock value's clock class
 	 *    member to NULL before recycling it. We CANNOT do this
 	 *    after we put the clock class reference because this
-	 *    bt_put() could destroy the clock class, also destroying
+	 *    bt_object_put_ref() could destroy the clock class, also destroying
 	 *    its clock value pool, thus also destroying our clock value
 	 *    object (this would result in an invalid write access).
 	 *
@@ -129,7 +129,7 @@ void bt_clock_value_recycle(struct bt_clock_value *clock_value)
 	BT_ASSERT(clock_class);
 	clock_value->clock_class = NULL;
 	bt_object_pool_recycle_object(&clock_class->cv_pool, clock_value);
-	bt_put(clock_class);
+	bt_object_put_ref(clock_class);
 }
 
 uint64_t bt_clock_value_get_value(struct bt_clock_value *clock_value)

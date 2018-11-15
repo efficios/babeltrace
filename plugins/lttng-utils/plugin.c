@@ -78,7 +78,7 @@ end:
 static
 void unref_trace(struct debug_info_trace *di_trace)
 {
-	bt_put(di_trace->writer_trace);
+	bt_object_put_ref(di_trace->writer_trace);
 	g_free(di_trace);
 }
 
@@ -98,8 +98,8 @@ void debug_info_iterator_destroy(struct bt_private_connection_private_notificati
 			empty_trace_map, it_data);
 	g_hash_table_destroy(it_data->trace_map);
 
-	bt_put(it_data->current_notification);
-	bt_put(it_data->input_iterator);
+	bt_object_put_ref(it_data->current_notification);
+	bt_object_put_ref(it_data->input_iterator);
 
 	g_free(it_data);
 }
@@ -127,8 +127,8 @@ struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_packet_begin_create(
 				writer_packet);
 		BT_ASSERT(new_notification);
-		bt_put(packet);
-		bt_put(writer_packet);
+		bt_object_put_ref(packet);
+		bt_object_put_ref(writer_packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -146,8 +146,8 @@ struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_packet_end_create(
 				writer_packet);
 		BT_ASSERT(new_notification);
-		bt_put(packet);
-		bt_put(writer_packet);
+		bt_object_put_ref(packet);
+		bt_object_put_ref(writer_packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -166,10 +166,10 @@ struct bt_notification *handle_notification(FILE *err,
 		BT_ASSERT(writer_event);
 		new_notification = bt_notification_event_create(writer_event,
 				cc_prio_map);
-		bt_put(cc_prio_map);
+		bt_object_put_ref(cc_prio_map);
 		BT_ASSERT(new_notification);
-		bt_put(event);
-		bt_put(writer_event);
+		bt_object_put_ref(event);
+		bt_object_put_ref(writer_event);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
@@ -187,8 +187,8 @@ struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_stream_begin_create(
 				writer_stream);
 		BT_ASSERT(new_notification);
-		bt_put(stream);
-		bt_put(writer_stream);
+		bt_object_put_ref(stream);
+		bt_object_put_ref(writer_stream);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -206,12 +206,12 @@ struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_stream_end_create(
 				writer_stream);
 		BT_ASSERT(new_notification);
-		bt_put(stream);
-		bt_put(writer_stream);
+		bt_object_put_ref(stream);
+		bt_object_put_ref(writer_stream);
 		break;
 	}
 	default:
-		new_notification = bt_get(notification);
+		new_notification = bt_object_get_ref(notification);
 		break;
 	}
 
@@ -258,10 +258,10 @@ struct bt_notification_iterator_next_method_return debug_info_iterator_next(
 	ret.notification = handle_notification(debug_info->err, debug_it,
 			notification);
 	BT_ASSERT(ret.notification);
-	bt_put(notification);
+	bt_object_put_ref(notification);
 
 end:
-	bt_put(component);
+	bt_object_put_ref(component);
 	return ret;
 }
 
@@ -293,7 +293,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	}
 
 	connection = bt_private_port_get_private_connection(input_port);
-	bt_put(input_port);
+	bt_object_put_ref(input_port);
 	if (!connection) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
@@ -318,8 +318,8 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	}
 
 end:
-	bt_put(connection);
-	bt_put(component);
+	bt_object_put_ref(connection);
+	bt_object_put_ref(component);
 	return ret;
 }
 
@@ -345,7 +345,7 @@ enum bt_component_status init_from_params(
 					"Expecting a string.");
 		}
 		strcpy(debug_info_component->arg_debug_info_field_name, tmp);
-		bt_put(value);
+		bt_object_put_ref(value);
 	} else {
 		debug_info_component->arg_debug_info_field_name =
 			malloc(strlen("debug_info") + 1);
@@ -373,7 +373,7 @@ enum bt_component_status init_from_params(
 					"Expecting a string.");
 		}
 	}
-	bt_put(value);
+	bt_object_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -390,7 +390,7 @@ enum bt_component_status init_from_params(
 					"Expecting a string.");
 		}
 	}
-	bt_put(value);
+	bt_object_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -410,7 +410,7 @@ enum bt_component_status init_from_params(
 
 		debug_info_component->arg_full_path = bool_val;
 	}
-	bt_put(value);
+	bt_object_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}

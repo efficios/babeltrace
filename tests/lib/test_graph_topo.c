@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-source.h>
 #include <babeltrace/graph/component-class-sink.h>
@@ -399,7 +399,7 @@ enum bt_component_status sink_consume(
 		BT_ASSERT(def_port);
 		ret = bt_private_port_remove_from_component(def_port);
 		BT_ASSERT(ret == 0);
-		bt_put(def_port);
+		bt_object_put_ref(def_port);
 		break;
 	default:
 		break;
@@ -466,7 +466,7 @@ void graph_port_added(struct bt_port *port,
 	struct bt_component *comp = bt_port_get_component(port);
 
 	BT_ASSERT(comp);
-	bt_put(comp);
+	bt_object_put_ref(comp);
 
 	struct event event = {
 		.type = GRAPH_PORT_ADDED,
@@ -507,9 +507,9 @@ void graph_ports_connected(struct bt_port *upstream_port,
 	BT_ASSERT(upstream_comp);
 	BT_ASSERT(downstream_comp);
 	BT_ASSERT(conn);
-	bt_put(upstream_comp);
-	bt_put(downstream_comp);
-	bt_put(conn);
+	bt_object_put_ref(upstream_comp);
+	bt_object_put_ref(downstream_comp);
+	bt_object_put_ref(conn);
 
 	struct event event = {
 		.type = GRAPH_PORTS_CONNECTED,
@@ -585,8 +585,8 @@ void init_test(void)
 static
 void fini_test(void)
 {
-	bt_put(src_comp_class);
-	bt_put(sink_comp_class);
+	bt_object_put_ref(src_comp_class);
+	bt_object_put_ref(sink_comp_class);
 	g_array_free(events, TRUE);
 }
 
@@ -814,12 +814,12 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	ok(graph_port_removed_src_pos < graph_port_removed_sink_pos,
 		"event order is good (13)");
 
-	bt_put(graph);
-	bt_put(sink);
-	bt_put(src);
-	bt_put(conn);
-	bt_put(src_def_port);
-	bt_put(sink_def_port);
+	bt_object_put_ref(graph);
+	bt_object_put_ref(sink);
+	bt_object_put_ref(src);
+	bt_object_put_ref(conn);
+	bt_object_put_ref(src_def_port);
+	bt_object_put_ref(sink_def_port);
 }
 
 static
@@ -975,12 +975,12 @@ void test_sink_removes_port_in_port_connected(void)
 	ok(graph_ports_disconnected_pos < graph_port_removed_sink_pos,
 		"event order is good (11)");
 
-	bt_put(graph);
-	bt_put(sink);
-	bt_put(src);
-	bt_put(conn);
-	bt_put(src_def_port);
-	bt_put(sink_def_port);
+	bt_object_put_ref(graph);
+	bt_object_put_ref(sink);
+	bt_object_put_ref(src);
+	bt_object_put_ref(conn);
+	bt_object_put_ref(src_def_port);
+	bt_object_put_ref(sink_def_port);
 }
 
 static
@@ -1097,13 +1097,13 @@ void test_src_adds_port_in_port_connected(void)
 	ok(graph_port_added_src_pos < graph_ports_connected_pos,
 		"event order is good (6)");
 
-	bt_put(graph);
-	bt_put(sink);
-	bt_put(src);
-	bt_put(conn);
-	bt_put(src_def_port);
-	bt_put(sink_def_port);
-	bt_put(src_hello_port);
+	bt_object_put_ref(graph);
+	bt_object_put_ref(sink);
+	bt_object_put_ref(src);
+	bt_object_put_ref(conn);
+	bt_object_put_ref(src_def_port);
+	bt_object_put_ref(sink_def_port);
+	bt_object_put_ref(src_hello_port);
 }
 
 static
@@ -1203,12 +1203,12 @@ void test_simple(void)
 	ok(sink_accept_port_connection_pos < sink_port_connected_pos,
 		"event order is good (4)");
 
-	bt_put(graph);
-	bt_put(sink);
-	bt_put(src);
-	bt_put(conn);
-	bt_put(src_def_port);
-	bt_put(sink_def_port);
+	bt_object_put_ref(graph);
+	bt_object_put_ref(sink);
+	bt_object_put_ref(src);
+	bt_object_put_ref(conn);
+	bt_object_put_ref(src_def_port);
+	bt_object_put_ref(sink_def_port);
 }
 
 static
@@ -1282,12 +1282,12 @@ void test_src_port_connected_error(void)
 	ok(src_accept_port_connection_pos < src_port_connected_pos,
 		"event order is good (1)");
 
-	bt_put(graph);
-	bt_put(sink);
-	bt_put(src);
-	bt_put(conn);
-	bt_put(src_def_port);
-	bt_put(sink_def_port);
+	bt_object_put_ref(graph);
+	bt_object_put_ref(sink);
+	bt_object_put_ref(src);
+	bt_object_put_ref(conn);
+	bt_object_put_ref(src_def_port);
+	bt_object_put_ref(sink_def_port);
 }
 
 static
@@ -1384,12 +1384,12 @@ void test_sink_port_connected_error(void)
 	ok(sink_port_connected_pos < src_port_disconnected_pos,
 		"event order is good (3)");
 
-	bt_put(graph);
-	bt_put(sink);
-	bt_put(src);
-	bt_put(conn);
-	bt_put(src_def_port);
-	bt_put(sink_def_port);
+	bt_object_put_ref(graph);
+	bt_object_put_ref(sink);
+	bt_object_put_ref(src);
+	bt_object_put_ref(conn);
+	bt_object_put_ref(src_def_port);
+	bt_object_put_ref(sink_def_port);
 }
 
 static
@@ -1400,7 +1400,7 @@ void test_empty_graph(void)
 	prepare_test(TEST_EMPTY_GRAPH, "empty graph");
 	graph = create_graph();
 	ok(events->len == 0, "empty graph generates no events");
-	bt_put(graph);
+	bt_object_put_ref(graph);
 }
 
 int main(int argc, char **argv)

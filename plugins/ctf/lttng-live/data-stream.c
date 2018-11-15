@@ -209,14 +209,14 @@ void lttng_live_stream_iterator_destroy(struct lttng_live_stream_iterator *strea
 	BT_ASSERT(!ret);
 
 	if (stream->stream) {
-		BT_PUT(stream->stream);
+		BT_OBJECT_PUT_REF_AND_RESET(stream->stream);
 	}
 
 	if (stream->notif_iter) {
 		bt_notif_iter_destroy(stream->notif_iter);
 	}
 	g_free(stream->buf);
-	BT_PUT(stream->packet_end_notif_queue);
+	BT_OBJECT_PUT_REF_AND_RESET(stream->packet_end_notif_queue);
 	bt_list_del(&stream->node);
 	/*
 	 * Ensure we poke the trace metadata in the future, which is

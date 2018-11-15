@@ -52,7 +52,7 @@ gboolean empty_trace_map(gpointer key, gpointer value, gpointer user_data)
 static
 void destroy_writer_component_data(struct writer_component *writer_component)
 {
-	bt_put(writer_component->input_iterator);
+	bt_object_put_ref(writer_component->input_iterator);
 
 	g_hash_table_foreach_remove(writer_component->trace_map,
 			empty_trace_map, writer_component);
@@ -75,7 +75,7 @@ void writer_component_finalize(struct bt_private_component *component)
 static
 void free_fs_writer(struct fs_writer *fs_writer)
 {
-	bt_put(fs_writer->writer);
+	bt_object_put_ref(fs_writer->writer);
 	g_free(fs_writer);
 }
 
@@ -132,7 +132,7 @@ enum bt_component_status handle_notification(
 		}
 
 		ret = writer_new_packet(writer_component, packet);
-		bt_put(packet);
+		bt_object_put_ref(packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -145,7 +145,7 @@ enum bt_component_status handle_notification(
 			goto end;
 		}
 		ret = writer_close_packet(writer_component, packet);
-		bt_put(packet);
+		bt_object_put_ref(packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -158,7 +158,7 @@ enum bt_component_status handle_notification(
 			goto end;
 		}
 		ret = writer_output_event(writer_component, event);
-		bt_put(event);
+		bt_object_put_ref(event);
 		if (ret != BT_COMPONENT_STATUS_OK) {
 			goto end;
 		}
@@ -174,7 +174,7 @@ enum bt_component_status handle_notification(
 			goto end;
 		}
 		ret = writer_stream_begin(writer_component, stream);
-		bt_put(stream);
+		bt_object_put_ref(stream);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -187,7 +187,7 @@ enum bt_component_status handle_notification(
 			goto end;
 		}
 		ret = writer_stream_end(writer_component, stream);
-		bt_put(stream);
+		bt_object_put_ref(stream);
 		break;
 	}
 	default:
@@ -218,7 +218,7 @@ void writer_component_port_connected(
 		writer->error = true;
 	}
 
-	bt_put(connection);
+	bt_object_put_ref(connection);
 }
 
 BT_HIDDEN
@@ -243,7 +243,7 @@ enum bt_component_status writer_run(struct bt_private_component *component)
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		ret = BT_COMPONENT_STATUS_END;
-		BT_PUT(writer_component->input_iterator);
+		BT_OBJECT_PUT_REF_AND_RESET(writer_component->input_iterator);
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 		ret = BT_COMPONENT_STATUS_AGAIN;
@@ -259,7 +259,7 @@ enum bt_component_status writer_run(struct bt_private_component *component)
 	BT_ASSERT(notification);
 	ret = handle_notification(writer_component, notification);
 end:
-	bt_put(notification);
+	bt_object_put_ref(notification);
 	return ret;
 }
 
@@ -289,7 +289,7 @@ enum bt_component_status apply_one_bool(const char *key,
 		*found = true;
 	}
 end:
-	bt_put(value);
+	bt_object_put_ref(value);
 	return ret;
 }
 
@@ -327,7 +327,7 @@ enum bt_component_status writer_component_init(
 		ret = BT_COMPONENT_STATUS_INVALID;
 		goto error;
 	}
-	bt_put(value);
+	bt_object_put_ref(value);
 
 	writer_component->base_path = g_string_new(path);
 	if (!writer_component->base_path) {

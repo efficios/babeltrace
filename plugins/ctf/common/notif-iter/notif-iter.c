@@ -803,7 +803,7 @@ enum bt_notif_iter_status set_current_stream(struct bt_notif_iter *notit)
 		"stream-class-addr=%p, stream-class-id=%" PRId64,
 		notit, notit->meta.sc,
 		notit->meta.sc->id);
-	stream = bt_get(notit->medium.medops.borrow_stream(
+	stream = bt_object_get_ref(notit->medium.medops.borrow_stream(
 		notit->meta.sc->ir_sc, notit->cur_data_stream_id,
 		notit->medium.data));
 	BT_LOGV("User function returned: stream-addr=%p", stream);
@@ -821,10 +821,10 @@ enum bt_notif_iter_status set_current_stream(struct bt_notif_iter *notit)
 		goto end;
 	}
 
-	BT_MOVE(notit->stream, stream);
+	BT_OBJECT_MOVE_REF(notit->stream, stream);
 
 end:
-	bt_put(stream);
+	bt_object_put_ref(stream);
 	return status;
 }
 
@@ -859,11 +859,11 @@ enum bt_notif_iter_status set_current_packet(struct bt_notif_iter *notit)
 	goto end;
 
 error:
-	BT_PUT(packet);
+	BT_OBJECT_PUT_REF_AND_RESET(packet);
 	status = BT_NOTIF_ITER_STATUS_ERROR;
 
 end:
-	BT_MOVE(notit->packet, packet);
+	BT_OBJECT_MOVE_REF(notit->packet, packet);
 	return status;
 }
 
@@ -1217,11 +1217,11 @@ enum bt_notif_iter_status set_current_event_notification(
 	goto end;
 
 error:
-	BT_PUT(notif);
+	BT_OBJECT_PUT_REF_AND_RESET(notif);
 	status = BT_NOTIF_ITER_STATUS_ERROR;
 
 end:
-	BT_MOVE(notit->event_notif, notif);
+	BT_OBJECT_MOVE_REF(notit->event_notif, notif);
 	return status;
 }
 
@@ -1569,9 +1569,9 @@ void bt_notif_iter_reset(struct bt_notif_iter *notit)
 	stack_clear(notit->stack);
 	notit->meta.sc = NULL;
 	notit->meta.ec = NULL;
-	BT_PUT(notit->packet);
-	BT_PUT(notit->stream);
-	BT_PUT(notit->event_notif);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->stream);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->event_notif);
 	release_all_dscopes(notit);
 	notit->cur_dscope_field = NULL;
 
@@ -1626,8 +1626,8 @@ int bt_notif_iter_switch_packet(struct bt_notif_iter *notit)
 		notit->cur_packet_offset);
 	stack_clear(notit->stack);
 	notit->meta.ec = NULL;
-	BT_PUT(notit->packet);
-	BT_PUT(notit->event_notif);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->event_notif);
 	release_all_dscopes(notit);
 	notit->cur_dscope_field = NULL;
 
@@ -2258,7 +2258,7 @@ void notify_new_stream(struct bt_notif_iter *notit,
 
 	status = set_current_stream(notit);
 	if (status != BT_NOTIF_ITER_STATUS_OK) {
-		BT_PUT(ret);
+		BT_OBJECT_PUT_REF_AND_RESET(ret);
 		goto end;
 	}
 
@@ -2425,7 +2425,7 @@ void notify_end_of_packet(struct bt_notif_iter *notit,
 
 	}
 
-	BT_PUT(notit->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->packet);
 	*notification = notif;
 }
 
@@ -2501,8 +2501,8 @@ error:
 
 void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 {
-	BT_PUT(notit->packet);
-	BT_PUT(notit->stream);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(notit->stream);
 	release_all_dscopes(notit);
 
 	BT_LOGD("Destroying CTF plugin notification iterator: addr=%p", notit);

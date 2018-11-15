@@ -31,7 +31,7 @@
 
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
 #include <glib.h>
@@ -114,7 +114,7 @@ int bt_component_class_init(struct bt_component_class *class,
 	goto end;
 
 error:
-	BT_PUT(class);
+	BT_OBJECT_PUT_REF_AND_RESET(class);
 	ret = -1;
 
 end:

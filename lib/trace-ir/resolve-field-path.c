@@ -109,7 +109,7 @@ int find_field_class(struct bt_field_class *root_fc,
 	field_path->root = root_scope;
 	if (!find_field_class_recursive(root_fc, tgt_fc, field_path)) {
 		/* Not found here */
-		BT_PUT(field_path);
+		BT_OBJECT_PUT_REF_AND_RESET(field_path);
 	}
 
 end:
@@ -510,8 +510,8 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 	}
 
 end:
-	bt_put(src_field_path);
-	bt_put(tgt_field_path);
+	bt_object_put_ref(src_field_path);
+	bt_object_put_ref(tgt_field_path);
 	return is_valid;
 }
 

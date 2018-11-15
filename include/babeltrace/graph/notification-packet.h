@@ -27,8 +27,8 @@
  * SOFTWARE.
  */
 
-/* For bt_get() */
-#include <babeltrace/ref.h>
+/* For bt_object_get_ref() */
+#include <babeltrace/object.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,7 +56,7 @@ static inline
 struct bt_packet *bt_notification_packet_begin_get_packet(
 		struct bt_notification *notification)
 {
-	return bt_get(bt_notification_packet_begin_borrow_packet(notification));
+	return bt_object_get_ref(bt_notification_packet_begin_borrow_packet(notification));
 }
 
 extern struct bt_packet *bt_notification_packet_end_borrow_packet(
@@ -66,7 +66,7 @@ static inline
 struct bt_packet *bt_notification_packet_end_get_packet(
 		struct bt_notification *notification)
 {
-	return bt_get(bt_notification_packet_end_borrow_packet(notification));
+	return bt_object_get_ref(bt_notification_packet_end_borrow_packet(notification));
 }
 
 #ifdef __cplusplus

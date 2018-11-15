@@ -31,7 +31,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
 #include <babeltrace/plugin/plugin-dev.h>
@@ -96,7 +96,7 @@ void fini_comp_class_list(void)
 
 	bt_list_for_each_entry_safe(comp_class, tmp, &component_class_list, node) {
 		bt_list_del(&comp_class->node);
-		BT_PUT(comp_class->so_handle);
+		BT_OBJECT_PUT_REF_AND_RESET(comp_class->so_handle);
 	}
 	BT_LOGD_STR("Released references from all component classes to shared library handles.");
 }
@@ -205,7 +205,7 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 	goto end;
 
 error:
-	BT_PUT(shared_lib_handle);
+	BT_OBJECT_PUT_REF_AND_RESET(shared_lib_handle);
 
 end:
 	if (shared_lib_handle) {
@@ -227,7 +227,7 @@ void bt_plugin_so_destroy_spec_data(struct bt_plugin *plugin)
 
 	BT_ASSERT(plugin->type == BT_PLUGIN_TYPE_SO);
 	BT_ASSERT(spec);
-	BT_PUT(spec->shared_lib_handle);
+	BT_OBJECT_PUT_REF_AND_RESET(spec->shared_lib_handle);
 	g_free(plugin->spec_data);
 	plugin->spec_data = NULL;
 }
@@ -581,7 +581,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's description.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -592,7 +592,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's help string.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -603,7 +603,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's initialization method.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -614,7 +614,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's finalization method.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -625,7 +625,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's query method.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -636,7 +636,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's \"accept port connection\" method.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -647,7 +647,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's \"port connected\" method.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -658,7 +658,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's \"port disconnected\" method.");
 				status = BT_PLUGIN_STATUS_ERROR;
-				BT_PUT(comp_class);
+				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 				goto end;
 			}
 		}
@@ -672,7 +672,7 @@ enum bt_plugin_status bt_plugin_so_init(
 				if (ret) {
 					BT_LOGE_STR("Cannot set component class's notification iterator initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
-					BT_PUT(comp_class);
+					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 					goto end;
 				}
 			}
@@ -684,7 +684,7 @@ enum bt_plugin_status bt_plugin_so_init(
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's notification iterator finalization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
-					BT_PUT(comp_class);
+					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 					goto end;
 				}
 			}
@@ -697,7 +697,7 @@ enum bt_plugin_status bt_plugin_so_init(
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's notification iterator initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
-					BT_PUT(comp_class);
+					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 					goto end;
 				}
 			}
@@ -709,7 +709,7 @@ enum bt_plugin_status bt_plugin_so_init(
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's notification iterator finalization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
-					BT_PUT(comp_class);
+					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 					goto end;
 				}
 			}
@@ -730,7 +730,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		 */
 		status = bt_plugin_add_component_class(plugin,
 			comp_class);
-		BT_PUT(comp_class);
+		BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 		if (status < 0) {
 			BT_LOGE("Cannot add component class to plugin.");
 			goto end;
@@ -770,11 +770,11 @@ struct bt_plugin *bt_plugin_so_create_empty(
 	}
 
 	spec = plugin->spec_data;
-	spec->shared_lib_handle = bt_get(shared_lib_handle);
+	spec->shared_lib_handle = bt_object_get_ref(shared_lib_handle);
 	goto end;
 
 error:
-	BT_PUT(plugin);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin);
 
 end:
 	return plugin;
@@ -893,19 +893,19 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			 * even a warning.
 			 */
 			BT_LOGD_STR("Cannot initialize SO plugin object from sections.");
-			BT_PUT(plugin);
+			BT_OBJECT_PUT_REF_AND_RESET(plugin);
 			goto error;
 		}
 
 		/* Add to plugin set */
 		bt_plugin_set_add_plugin(plugin_set, plugin);
-		bt_put(plugin);
+		bt_object_put_ref(plugin);
 	}
 
 	goto end;
 
 error:
-	BT_PUT(plugin_set);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 
 end:
 	return plugin_set;
@@ -934,7 +934,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_static(void)
 		__bt_get_end_section_component_class_descriptor_attributes());
 
 end:
-	BT_PUT(shared_lib_handle);
+	BT_OBJECT_PUT_REF_AND_RESET(shared_lib_handle);
 
 	return plugin_set;
 }
@@ -1114,7 +1114,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path)
 		cc_descr_attrs_begin, cc_descr_attrs_end);
 
 end:
-	BT_PUT(shared_lib_handle);
+	BT_OBJECT_PUT_REF_AND_RESET(shared_lib_handle);
 	return plugin_set;
 }
 
@@ -1123,7 +1123,7 @@ void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
 		void *data)
 {
 	bt_list_del(&comp_class->node);
-	BT_PUT(comp_class->so_handle);
+	BT_OBJECT_PUT_REF_AND_RESET(comp_class->so_handle);
 	BT_LOGV("Component class destroyed: removed entry from list: "
 		"comp-cls-addr=%p", comp_class);
 }
@@ -1138,7 +1138,7 @@ void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 	BT_ASSERT(plugin->type == BT_PLUGIN_TYPE_SO);
 
 	bt_list_add(&comp_class->node, &component_class_list);
-	comp_class->so_handle = bt_get(spec->shared_lib_handle);
+	comp_class->so_handle = bt_object_get_ref(spec->shared_lib_handle);
 
 	/* Add our custom destroy listener */
 	bt_component_class_add_destroy_listener(comp_class,

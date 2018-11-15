@@ -554,7 +554,7 @@ void ctx_destroy(struct ctx *ctx)
 		scope = parent_scope;
 	}
 
-	bt_put(ctx->trace);
+	bt_object_put_ref(ctx->trace);
 
 	if (ctx->ctf_tc) {
 		ctf_trace_class_destroy(ctx->ctf_tc);
@@ -2719,7 +2719,7 @@ int visit_integer_decl(struct ctx *ctx,
 	(*integer_decl)->is_signed = (signedness > 0);
 	(*integer_decl)->disp_base = base;
 	(*integer_decl)->encoding = encoding;
-	(*integer_decl)->mapped_clock_class = bt_get(mapped_clock_class);
+	(*integer_decl)->mapped_clock_class = bt_object_get_ref(mapped_clock_class);
 	return 0;
 
 error:
@@ -3613,7 +3613,7 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 			"default");
 		BT_ASSERT(ret == 0);
 		g_ptr_array_add(ctx->ctf_tc->clock_classes,
-			bt_get(clock_class_to_map_to));
+			bt_object_get_ref(clock_class_to_map_to));
 		break;
 	case 1:
 		/*
@@ -3621,7 +3621,7 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		 * this one.
 		 */
 		clock_class_to_map_to =
-			bt_get(ctx->ctf_tc->clock_classes->pdata[0]);
+			bt_object_get_ref(ctx->ctf_tc->clock_classes->pdata[0]);
 		break;
 	default:
 		/*
@@ -3635,10 +3635,10 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 	}
 
 	BT_ASSERT(clock_class_to_map_to);
-	int_fc->mapped_clock_class = bt_get(clock_class_to_map_to);
+	int_fc->mapped_clock_class = bt_object_get_ref(clock_class_to_map_to);
 
 end:
-	bt_put(clock_class_to_map_to);
+	bt_object_put_ref(clock_class_to_map_to);
 	return ret;
 }
 
@@ -4776,10 +4776,10 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	ret = bt_clock_class_set_offset(clock, offset_seconds, offset_cycles);
 	BT_ASSERT(ret == 0);
 	apply_clock_class_offset(ctx, clock);
-	g_ptr_array_add(ctx->ctf_tc->clock_classes, bt_get(clock));
+	g_ptr_array_add(ctx->ctf_tc->clock_classes, bt_object_get_ref(clock));
 
 end:
-	BT_PUT(clock);
+	BT_OBJECT_PUT_REF_AND_RESET(clock);
 	return ret;
 }
 
@@ -4934,7 +4934,7 @@ struct bt_trace *ctf_visitor_generate_ir_get_ir_trace(
 
 	BT_ASSERT(ctx);
 	BT_ASSERT(ctx->trace);
-	return bt_get(ctx->trace);
+	return bt_object_get_ref(ctx->trace);
 }
 
 BT_HIDDEN

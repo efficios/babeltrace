@@ -31,7 +31,7 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -273,14 +273,14 @@ extern int bt_ctf_clock_set_time(struct bt_ctf_clock *clock,
 static inline
 void bt_ctf_clock_get(struct bt_ctf_clock *clock)
 {
-        bt_get(clock);
+        bt_object_get_ref(clock);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
 void bt_ctf_clock_put(struct bt_ctf_clock *clock)
 {
-        bt_put(clock);
+        bt_object_put_ref(clock);
 }
 
 extern struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,

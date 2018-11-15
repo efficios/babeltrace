@@ -33,5 +33,5 @@
 #include <glib.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>

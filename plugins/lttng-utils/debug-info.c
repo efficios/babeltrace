@@ -741,7 +741,7 @@ void debug_info_handle_event(FILE *err, struct bt_event *event,
 	}
 
 end_put_class:
-	bt_put(event_class);
+	bt_object_put_ref(event_class);
 end:
 	return;
 }

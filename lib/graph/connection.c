@@ -70,7 +70,7 @@ void bt_connection_destroy(struct bt_object *obj)
 	g_ptr_array_free(connection->iterators, TRUE);
 
 	/*
-	 * No bt_put on ports as a connection only holds _weak_
+	 * No bt_object_put_ref on ports as a connection only holds _weak_
 	 * references to them.
 	 */
 	g_free(connection);
@@ -158,7 +158,7 @@ struct bt_connection *bt_connection_create(
 	connection->iterators = g_ptr_array_new();
 	if (!connection->iterators) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
-		BT_PUT(connection);
+		BT_OBJECT_PUT_REF_AND_RESET(connection);
 		goto end;
 	}
 
@@ -233,8 +233,8 @@ void bt_connection_end(struct bt_connection *conn,
 			downstream_comp, upstream_port, downstream_port);
 	}
 
-	bt_put(downstream_comp);
-	bt_put(upstream_comp);
+	bt_object_put_ref(downstream_comp);
+	bt_object_put_ref(upstream_comp);
 
 	/*
 	 * Because this connection is ended, finalize (cancel) each
@@ -267,13 +267,13 @@ void bt_connection_end(struct bt_connection *conn,
 struct bt_port *bt_connection_get_upstream_port(
 		struct bt_connection *connection)
 {
-	return connection ? bt_get(connection->upstream_port) : NULL;
+	return connection ? bt_object_get_ref(connection->upstream_port) : NULL;
 }
 
 struct bt_port *bt_connection_get_downstream_port(
 		struct bt_connection *connection)
 {
-	return connection ? bt_get(connection->downstream_port) : NULL;
+	return connection ? bt_object_get_ref(connection->downstream_port) : NULL;
 }
 
 enum bt_connection_status
@@ -407,8 +407,8 @@ bt_private_connection_create_notification_iterator(
 	iterator = NULL;
 
 end:
-	bt_put(upstream_component);
-	bt_put(iterator);
+	bt_object_put_ref(upstream_component);
+	bt_object_put_ref(iterator);
 	return status;
 }
 

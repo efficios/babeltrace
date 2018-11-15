@@ -43,7 +43,7 @@
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
 #include <babeltrace/values-internal.h>
@@ -81,9 +81,9 @@ void bt_component_destroy(struct bt_object *obj)
 	 * The component's reference count is 0 if we're here. Increment
 	 * it to avoid a double-destroy (possibly infinitely recursive).
 	 * This could happen for example if the component's finalization
-	 * function does bt_get() (or anything that causes bt_get() to
+	 * function does bt_object_get_ref() (or anything that causes bt_object_get_ref() to
 	 * be called) on itself (ref. count goes from 0 to 1), and then
-	 * bt_put(): the reference count would go from 1 to 0 again and
+	 * bt_object_put_ref(): the reference count would go from 1 to 0 again and
 	 * this function would be called again.
 	 */
 	obj->ref_count++;
@@ -140,7 +140,7 @@ void bt_component_destroy(struct bt_object *obj)
 	}
 
 	BT_LOGD("Putting component class.");
-	bt_put(component_class);
+	bt_object_put_ref(component_class);
 	g_free(component);
 }
 
@@ -216,7 +216,7 @@ struct bt_port *bt_component_add_port(
 	graph = bt_component_get_graph(component);
 	if (graph) {
 		bt_graph_notify_port_added(graph, new_port);
-		BT_PUT(graph);
+		BT_OBJECT_PUT_REF_AND_RESET(graph);
 	}
 
 	BT_LOGD("Created and added port to component: comp-addr=%p, comp-name=\"%s\", "
@@ -268,7 +268,7 @@ enum bt_component_status bt_component_create(
 
 	bt_object_init_shared_with_parent(&component->base,
 		bt_component_destroy);
-	component->class = bt_get(component_class);
+	component->class = bt_object_get_ref(component_class);
 	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
 	if (!component->name) {
@@ -305,10 +305,10 @@ enum bt_component_status bt_component_create(
 		"comp-cls-addr=%p, comp-cls-type=%s, name=\"%s\", comp-addr=%p",
 		component_class, bt_component_class_type_string(type), name,
 		component);
-	BT_MOVE(*user_component, component);
+	BT_OBJECT_MOVE_REF(*user_component, component);
 
 end:
-	bt_put(component);
+	bt_object_put_ref(component);
 	return status;
 }
 
@@ -330,7 +330,7 @@ end:
 struct bt_component_class *bt_component_get_class(
 		struct bt_component *component)
 {
-	return component ? bt_get(component->class) : NULL;
+	return component ? bt_object_get_ref(component->class) : NULL;
 }
 
 void *bt_private_component_get_user_data(
@@ -396,7 +396,7 @@ struct bt_port *bt_component_get_port_by_name(GPtrArray *ports,
 		}
 
 		if (!strcmp(name, port_name)) {
-			ret_port = bt_get(port);
+			ret_port = bt_object_get_ref(port);
 			break;
 		}
 	}
@@ -434,7 +434,7 @@ struct bt_port *bt_component_get_port_by_index(GPtrArray *ports, uint64_t index)
 		goto end;
 	}
 
-	port = bt_get(g_ptr_array_index(ports, index));
+	port = bt_object_get_ref(g_ptr_array_index(ports, index));
 end:
 	return port;
 }
@@ -503,7 +503,7 @@ void bt_component_remove_port_by_index(struct bt_component *component,
 	g_ptr_array_remove_index(ports, index);
 
 	/* Detach port from its component parent */
-	BT_PUT(port->base.parent);
+	BT_OBJECT_PUT_REF_AND_RESET(port->base.parent);
 
 	/*
 	 * Notify the graph's creator that a port is removed.
@@ -511,7 +511,7 @@ void bt_component_remove_port_by_index(struct bt_component *component,
 	graph = bt_component_get_graph(component);
 	if (graph) {
 		bt_graph_notify_port_removed(graph, component, port);
-		BT_PUT(graph);
+		BT_OBJECT_PUT_REF_AND_RESET(graph);
 	}
 
 	BT_LOGD("Removed port from component: "

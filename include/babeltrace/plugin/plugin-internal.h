@@ -174,7 +174,7 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 
 	/* Create empty array of component classes */
 	plugin->comp_classes =
-		g_ptr_array_new_with_free_func((GDestroyNotify) bt_put);
+		g_ptr_array_new_with_free_func((GDestroyNotify) bt_object_put_ref);
 	if (!plugin->comp_classes) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		goto error;
@@ -222,7 +222,7 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 	goto end;
 
 error:
-	BT_PUT(plugin);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin);
 
 end:
 	return plugin;
@@ -352,10 +352,10 @@ struct bt_plugin_set *bt_plugin_set_create(void)
 	bt_object_init_shared(&plugin_set->base, bt_plugin_set_destroy);
 
 	plugin_set->plugins = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_put_ref);
 	if (!plugin_set->plugins) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
-		BT_PUT(plugin_set);
+		BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 		goto end;
 	}
 
@@ -371,7 +371,7 @@ void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 {
 	BT_ASSERT(plugin_set);
 	BT_ASSERT(plugin);
-	g_ptr_array_add(plugin_set->plugins, bt_get(plugin));
+	g_ptr_array_add(plugin_set->plugins, bt_object_get_ref(plugin));
 	BT_LOGV("Added plugin to plugin set: "
 		"plugin-set-addr=%p, plugin-addr=%p, plugin-name=\"%s\", "
 		"plugin-path=\"%s\"",

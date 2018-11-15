@@ -39,7 +39,7 @@
 #include <babeltrace/ctf-writer/utils.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <float.h>
 #include <inttypes.h>
 #include <stdlib.h>
@@ -125,7 +125,7 @@ void bt_ctf_field_type_common_enumeration_initialize(
 	BT_LOGD("Initializing common enumeration field type object: int-ft-addr=%p",
 		container_ft);
 	ft->id = BT_CTF_FIELD_TYPE_ID_ENUM;
-	enum_ft->container_ft = bt_get(container_ft);
+	enum_ft->container_ft = bt_object_get_ref(container_ft);
 	enum_ft->entries = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) destroy_enumeration_mapping);
 	bt_ctf_field_type_common_initialize(ft, false, release_func, methods);
@@ -180,7 +180,7 @@ void bt_ctf_field_type_common_array_initialize(
 	BT_LOGD("Initializing common array field type object: element-ft-addr=%p, "
 		"length=%u", element_ft, length);
 	ft->id = BT_CTF_FIELD_TYPE_ID_ARRAY;
-	array_ft->element_ft = bt_get(element_ft);
+	array_ft->element_ft = bt_object_get_ref(element_ft);
 	array_ft->length = length;
 	bt_ctf_field_type_common_initialize(ft, false, release_func, methods);
 	BT_LOGD("Initialized common array field type object: addr=%p, "
@@ -203,7 +203,7 @@ void bt_ctf_field_type_common_sequence_initialize(
 	BT_LOGD("Initializing common sequence field type object: element-ft-addr=%p, "
 		"length-field-name=\"%s\"", element_ft, length_field_name);
 	ft->id = BT_CTF_FIELD_TYPE_ID_SEQUENCE;
-	seq_ft->element_ft = bt_get(element_ft);
+	seq_ft->element_ft = bt_object_get_ref(element_ft);
 	seq_ft->length_field_name = g_string_new(length_field_name);
 	bt_ctf_field_type_common_initialize(ft, false, release_func, methods);
 	BT_LOGD("Initialized common sequence field type object: addr=%p, "
@@ -232,7 +232,7 @@ void bt_ctf_field_type_common_variant_initialize(
 		sizeof(struct bt_ctf_field_type_common_variant_choice));
 
 	if (tag_ft) {
-		var_ft->tag_ft = bt_get(tag_ft);
+		var_ft->tag_ft = bt_object_get_ref(tag_ft);
 	}
 
 	bt_ctf_field_type_common_initialize(ft, true, release_func, methods);
@@ -254,7 +254,7 @@ void bt_ctf_field_type_common_integer_destroy(struct bt_object *obj)
 
 	BT_LOGD("Destroying integer field type object: addr=%p", ft);
 	BT_LOGD_STR("Putting mapped clock class.");
-	bt_put(ft->mapped_clock_class);
+	bt_object_put_ref(ft->mapped_clock_class);
 	g_free(ft);
 }
 
@@ -283,7 +283,7 @@ void bt_ctf_field_type_common_enumeration_destroy_recursive(struct bt_object *ob
 	BT_LOGD("Destroying enumeration field type object: addr=%p", ft);
 	g_ptr_array_free(ft->entries, TRUE);
 	BT_LOGD_STR("Putting container field type.");
-	bt_put(ft->container_ft);
+	bt_object_put_ref(ft->container_ft);
 	g_free(ft);
 }
 
@@ -312,7 +312,7 @@ void bt_ctf_field_type_common_structure_field_finalize(
 		"addr=%p, field-ft-addr=%p, field-name=\"%s\"",
 		field, field->type, g_quark_to_string(field->name));
 	BT_LOGD_STR("Putting field type.");
-	bt_put(field->type);
+	bt_object_put_ref(field->type);
 }
 
 BT_HIDDEN
@@ -355,7 +355,7 @@ void bt_ctf_field_type_common_array_destroy_recursive(struct bt_object *obj)
 
 	BT_LOGD("Destroying array field type object: addr=%p", ft);
 	BT_LOGD_STR("Putting element field type.");
-	bt_put(ft->element_ft);
+	bt_object_put_ref(ft->element_ft);
 	g_free(ft);
 }
 
@@ -370,10 +370,10 @@ void bt_ctf_field_type_common_sequence_destroy_recursive(struct bt_object *obj)
 
 	BT_LOGD("Destroying sequence field type object: addr=%p", ft);
 	BT_LOGD_STR("Putting element field type.");
-	bt_put(ft->element_ft);
+	bt_object_put_ref(ft->element_ft);
 	g_string_free(ft->length_field_name, TRUE);
 	BT_LOGD_STR("Putting length field path.");
-	bt_put(ft->length_field_path);
+	bt_object_put_ref(ft->length_field_path);
 	g_free(ft);
 }
 
@@ -389,7 +389,7 @@ void bt_ctf_field_type_common_variant_choice_finalize(
 		"addr=%p, field-ft-addr=%p, field-name=\"%s\"",
 		choice, choice->type, g_quark_to_string(choice->name));
 	BT_LOGD_STR("Putting field type.");
-	bt_put(choice->type);
+	bt_object_put_ref(choice->type);
 
 	if (choice->ranges) {
 		g_array_free(choice->ranges, TRUE);
@@ -427,9 +427,9 @@ void bt_ctf_field_type_common_variant_destroy_recursive(struct bt_object *obj)
 	}
 
 	BT_LOGD_STR("Putting tag field type.");
-	bt_put(ft->tag_ft);
+	bt_object_put_ref(ft->tag_ft);
 	BT_LOGD_STR("Putting tag field path.");
-	bt_put(ft->tag_field_path);
+	bt_object_put_ref(ft->tag_field_path);
 	g_free(ft);
 }
 
@@ -568,7 +568,7 @@ int add_structure_variant_member(GArray *members,
 	}
 
 	*member_name = name_quark;
-	*member_ft = bt_get(field_type);
+	*member_ft = bt_object_get_ref(field_type);
 	g_hash_table_insert(field_name_to_index,
 		GUINT_TO_POINTER(name_quark),
 		GUINT_TO_POINTER(members->len - 1));
@@ -609,7 +609,7 @@ void bt_ctf_field_type_enum_iter_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying enumeration field type mapping iterator: addr=%p",
 		obj);
 	BT_LOGD_STR("Putting parent enumeration field type.");
-	bt_put(iter->enumeration_ft);
+	bt_object_put_ref(iter->enumeration_ft);
 	g_free(iter);
 }
 
@@ -631,7 +631,7 @@ bt_ctf_field_type_common_enumeration_find_mappings_type(
 	}
 
 	bt_object_init_shared(&iter->base, bt_ctf_field_type_enum_iter_destroy);
-	iter->enumeration_ft = bt_get(ft);
+	iter->enumeration_ft = bt_object_get_ref(ft);
 	iter->index = -1;
 	iter->type = iterator_type;
 
@@ -666,7 +666,7 @@ bt_ctf_field_type_common_enumeration_find_mappings_by_name(
 	return iter;
 
 error:
-	bt_put(iter);
+	bt_object_put_ref(iter);
 	return NULL;
 }
 
@@ -773,7 +773,7 @@ bt_ctf_field_type_common_enumeration_signed_find_mappings_by_value(
 	return iter;
 
 error:
-	bt_put(iter);
+	bt_object_put_ref(iter);
 	return NULL;
 }
 
@@ -804,7 +804,7 @@ bt_ctf_field_type_common_enumeration_unsigned_find_mappings_by_value(
 	return iter;
 
 error:
-	bt_put(iter);
+	bt_object_put_ref(iter);
 	return NULL;
 }
 
@@ -1381,8 +1381,8 @@ int bt_ctf_field_type_common_integer_set_mapped_clock_class_no_check_frozen(
 		goto end;
 	}
 
-	bt_put(int_ft->mapped_clock_class);
-	int_ft->mapped_clock_class = bt_get(clock_class);
+	bt_object_put_ref(int_ft->mapped_clock_class);
+	int_ft->mapped_clock_class = bt_object_get_ref(clock_class);
 	BT_LOGV("Set integer field type's mapped clock class: ft-addr=%p, "
 		"clock-class-addr=%p, clock-class-name=\"%s\"",
 		ft, clock_class, bt_ctf_clock_class_get_name(clock_class));
@@ -1832,8 +1832,8 @@ int bt_ctf_field_type_common_structure_replace_field(
 			BT_CTF_FIELD_TYPE_COMMON_STRUCTURE_FIELD_AT_INDEX(ft, i);
 
 		if (field->name == name_quark) {
-			bt_put(field->type);
-			field->type = bt_get(field_type);
+			bt_object_put_ref(field->type);
+			field->type = bt_object_get_ref(field_type);
 		}
 	}
 
@@ -2343,10 +2343,10 @@ int bt_ctf_field_type_common_array_set_element_field_type(
 	}
 
 	if (array_ft->element_ft) {
-		BT_PUT(array_ft->element_ft);
+		BT_OBJECT_PUT_REF_AND_RESET(array_ft->element_ft);
 	}
 
-	array_ft->element_ft = bt_get(element_ft);
+	array_ft->element_ft = bt_object_get_ref(element_ft);
 	BT_LOGV("Set array field type's element field type: array-ft-addr=%p, "
 		"element-ft-addr=%p", ft, element_ft);
 
@@ -2406,11 +2406,11 @@ int bt_ctf_field_type_common_sequence_set_element_field_type(
 	}
 
 	if (seq_ft->element_ft) {
-		BT_PUT(seq_ft->element_ft);
+		BT_OBJECT_PUT_REF_AND_RESET(seq_ft->element_ft);
 	}
 
 	seq_ft->element_ft = element_ft;
-	bt_get(seq_ft->element_ft);
+	bt_object_get_ref(seq_ft->element_ft);
 	BT_LOGV("Set sequence field type's element field type: sequence-ft-addr=%p, "
 		"element-ft-addr=%p", ft, element_ft);
 
@@ -2925,8 +2925,8 @@ int bt_ctf_field_type_common_sequence_set_length_field_path(
 		goto end;
 	}
 
-	bt_get(path);
-	BT_MOVE(seq_ft->length_field_path, path);
+	bt_object_get_ref(path);
+	BT_OBJECT_MOVE_REF(seq_ft->length_field_path, path);
 	BT_LOGV("Set sequence field type's length field path: ft-addr=%p, "
 		"field-path-addr=%p", ft, path);
 
@@ -2956,8 +2956,8 @@ int bt_ctf_field_type_common_variant_set_tag_field_path(
 		goto end;
 	}
 
-	bt_get(path);
-	BT_MOVE(var_ft->tag_field_path, path);
+	bt_object_get_ref(path);
+	BT_OBJECT_MOVE_REF(var_ft->tag_field_path, path);
 	BT_LOGV("Set variant field type's tag field path: ft-addr=%p, "
 		"field-path-addr=%p", ft, path);
 
@@ -2993,8 +2993,8 @@ int bt_ctf_field_type_common_variant_set_tag_field_type(
 		goto end;
 	}
 
-	bt_put(var_ft->tag_ft);
-	var_ft->tag_ft = bt_get(tag_ft);
+	bt_object_put_ref(var_ft->tag_ft);
+	var_ft->tag_ft = bt_object_get_ref(tag_ft);
 	BT_LOGV("Set variant field type's tag field type: variant-ft-addr=%p, "
 		"tag-ft-addr=%p", ft, tag_ft);
 
@@ -3093,7 +3093,7 @@ int bt_ctf_field_type_common_variant_update_choices(struct bt_ctf_field_type_com
 			g_array_append_val(choice->ranges, range);
 		}
 
-		bt_put(iter);
+		bt_object_put_ref(iter);
 	}
 
 	var_ft->choices_up_to_date = true;
@@ -3891,7 +3891,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 
 		if (!*expected_clock_class) {
 			/* Move reference to output parameter */
-			*expected_clock_class = bt_get(mapped_clock_class);
+			*expected_clock_class = bt_object_get_ref(mapped_clock_class);
 			mapped_clock_class = NULL;
 			BT_LOGV("Setting expected clock class: "
 				"expected-clock-class-addr=%p",
@@ -3908,7 +3908,7 @@ int bt_ctf_field_type_common_validate_single_clock_class(
 					bt_ctf_clock_class_get_name(mapped_clock_class),
 					*expected_clock_class,
 					bt_ctf_clock_class_get_name(*expected_clock_class));
-				bt_put(mapped_clock_class);
+				bt_object_put_ref(mapped_clock_class);
 				ret = -1;
 				goto end;
 			}
@@ -4583,7 +4583,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_create(unsigned int size)
 	goto end;
 
 error:
-	BT_PUT(integer);
+	BT_OBJECT_PUT_REF_AND_RESET(integer);
 
 end:
 	return (void *) integer;
@@ -4641,7 +4641,7 @@ int bt_ctf_field_type_integer_set_encoding(struct bt_ctf_field_type *ft,
 struct bt_ctf_clock_class *bt_ctf_field_type_integer_get_mapped_clock_class(
 		struct bt_ctf_field_type *ft)
 {
-	return bt_get(bt_ctf_field_type_common_integer_borrow_mapped_clock_class(
+	return bt_object_get_ref(bt_ctf_field_type_common_integer_borrow_mapped_clock_class(
 		(void *) ft));
 }
 
@@ -4710,7 +4710,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_create(
 	goto end;
 
 error:
-	BT_PUT(enumeration);
+	BT_OBJECT_PUT_REF_AND_RESET(enumeration);
 
 end:
 	return (void *) enumeration;
@@ -4719,7 +4719,7 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_enumeration_get_container_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return bt_get(
+	return bt_object_get_ref(
 		bt_ctf_field_type_common_enumeration_borrow_container_field_type(
 			(void *) ft));
 }
@@ -4822,7 +4822,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_structure_create(void)
 	goto end;
 
 error:
-	BT_PUT(structure);
+	BT_OBJECT_PUT_REF_AND_RESET(structure);
 
 end:
 	return (void *) structure;
@@ -4850,7 +4850,7 @@ int bt_ctf_field_type_structure_get_field_by_index(
 		(void *) ft, field_name, (void *) field_type, index);
 
 	if (ret == 0 && field_type) {
-		bt_get(*field_type);
+		bt_object_get_ref(*field_type);
 	}
 
 	return ret;
@@ -4859,7 +4859,7 @@ int bt_ctf_field_type_structure_get_field_by_index(
 struct bt_ctf_field_type *bt_ctf_field_type_structure_get_field_type_by_name(
 		struct bt_ctf_field_type *ft, const char *name)
 {
-	return bt_get(bt_ctf_field_type_common_structure_borrow_field_type_by_name(
+	return bt_object_get_ref(bt_ctf_field_type_common_structure_borrow_field_type_by_name(
 		(void *) ft, name));
 }
 
@@ -4897,7 +4897,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_create(
 	goto end;
 
 error:
-	BT_PUT(var_ft);
+	BT_OBJECT_PUT_REF_AND_RESET(var_ft);
 
 end:
 	return (void *) var_ft;
@@ -4906,7 +4906,7 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_variant_get_tag_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return bt_get(bt_ctf_field_type_common_variant_borrow_tag_field_type(
+	return bt_object_get_ref(bt_ctf_field_type_common_variant_borrow_tag_field_type(
 		(void *) ft));
 }
 
@@ -4933,7 +4933,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_get_field_type_by_name(
 		struct bt_ctf_field_type *ft,
 		const char *field_name)
 {
-	return bt_get(bt_ctf_field_type_common_variant_borrow_field_type_by_name(
+	return bt_object_get_ref(bt_ctf_field_type_common_variant_borrow_field_type_by_name(
 		(void *) ft, field_name));
 }
 
@@ -5005,7 +5005,7 @@ int bt_ctf_field_type_variant_get_field_by_index(struct bt_ctf_field_type *ft,
 		(void *) ft, field_name, (void *) field_type, index);
 
 	if (ret == 0 && field_type) {
-		bt_get(*field_type);
+		bt_object_get_ref(*field_type);
 	}
 
 	return ret;
@@ -5047,7 +5047,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_create(
 	goto end;
 
 error:
-	BT_PUT(array);
+	BT_OBJECT_PUT_REF_AND_RESET(array);
 
 end:
 	return (void *) array;
@@ -5056,7 +5056,7 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_array_get_element_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return bt_get(bt_ctf_field_type_common_array_borrow_element_field_type(
+	return bt_object_get_ref(bt_ctf_field_type_common_array_borrow_element_field_type(
 		(void *) ft));
 }
 
@@ -5103,7 +5103,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_create(
 	goto end;
 
 error:
-	BT_PUT(sequence);
+	BT_OBJECT_PUT_REF_AND_RESET(sequence);
 
 end:
 	return (void *) sequence;
@@ -5112,7 +5112,7 @@ end:
 struct bt_ctf_field_type *bt_ctf_field_type_sequence_get_element_field_type(
 		struct bt_ctf_field_type *ft)
 {
-	return bt_get(bt_ctf_field_type_common_sequence_borrow_element_field_type(
+	return bt_object_get_ref(bt_ctf_field_type_common_sequence_borrow_element_field_type(
 		(void *) ft));
 }
 
@@ -5206,7 +5206,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_integer_copy(
 		goto end;
 	}
 
-	copy_ft->mapped_clock_class = bt_get(int_ft->mapped_clock_class);
+	copy_ft->mapped_clock_class = bt_object_get_ref(int_ft->mapped_clock_class);
 	copy_ft->user_byte_order = int_ft->user_byte_order;
 	copy_ft->is_signed = int_ft->is_signed;
 	copy_ft->size = int_ft->size;
@@ -5266,12 +5266,12 @@ struct bt_ctf_field_type *bt_ctf_field_type_enumeration_copy_recursive(
 		ft, copy_ft);
 
 end:
-	bt_put(container_copy_ft);
+	bt_object_put_ref(container_copy_ft);
 	return (void *) copy_ft;
 
 error:
-	bt_put(container_copy_ft);
-        BT_PUT(copy_ft);
+	bt_object_put_ref(container_copy_ft);
+        BT_OBJECT_PUT_REF_AND_RESET(copy_ft);
 	return (void *) copy_ft;
 }
 
@@ -5359,7 +5359,7 @@ end:
 	return (void *) copy_ft;
 
 error:
-        BT_PUT(copy_ft);
+        BT_OBJECT_PUT_REF_AND_RESET(copy_ft);
 	return NULL;
 }
 
@@ -5455,12 +5455,12 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 		ft, copy_ft);
 
 end:
-	bt_put(tag_ft_copy);
+	bt_object_put_ref(tag_ft_copy);
 	return (void *) copy_ft;
 
 error:
-	bt_put(tag_ft_copy);
-        BT_PUT(copy_ft);
+	bt_object_put_ref(tag_ft_copy);
+        BT_OBJECT_PUT_REF_AND_RESET(copy_ft);
 	return NULL;
 }
 
@@ -5491,7 +5491,7 @@ struct bt_ctf_field_type *bt_ctf_field_type_array_copy_recursive(
 		ft, copy_ft);
 
 end:
-	bt_put(container_ft_copy);
+	bt_object_put_ref(container_ft_copy);
 	return (void *) copy_ft;
 }
 
@@ -5534,11 +5534,11 @@ struct bt_ctf_field_type *bt_ctf_field_type_sequence_copy_recursive(
 		ft, copy_ft);
 
 end:
-	bt_put(container_ft_copy);
+	bt_object_put_ref(container_ft_copy);
 	return (void *) copy_ft;
 error:
-	bt_put(container_ft_copy);
-	BT_PUT(copy_ft);
+	bt_object_put_ref(container_ft_copy);
+	BT_OBJECT_PUT_REF_AND_RESET(copy_ft);
 	return NULL;
 }
 

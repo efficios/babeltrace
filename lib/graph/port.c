@@ -89,7 +89,7 @@ struct bt_port *bt_port_create(struct bt_component *parent_component,
 	port->name = g_string_new(name);
 	if (!port->name) {
 		BT_LOGE_STR("Failed to allocate one GString.");
-		BT_PUT(port);
+		BT_OBJECT_PUT_REF_AND_RESET(port);
 		goto end;
 	}
 
@@ -130,7 +130,7 @@ struct bt_connection *bt_port_get_connection(struct bt_port *port)
 		goto end;
 	}
 
-	connection = bt_get(port->connection);
+	connection = bt_object_get_ref(port->connection);
 
 end:
 	return connection;
@@ -201,7 +201,7 @@ enum bt_port_status bt_private_port_remove_from_component(
 	}
 
 end:
-	bt_put(comp);
+	bt_object_put_ref(comp);
 	return status;
 }
 

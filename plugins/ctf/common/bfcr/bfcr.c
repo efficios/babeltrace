@@ -37,7 +37,7 @@
 #include <babeltrace/bitfield-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/align-internal.h>
 #include <glib.h>
 

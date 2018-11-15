@@ -238,7 +238,7 @@ void bt_ctf_event_common_finalize(struct bt_object *obj,
 		 * common ancestor with it to guarantee they would both have the
 		 * same lifetime.
 		 */
-		bt_put(event->class);
+		bt_object_put_ref(event->class);
 	}
 }
 

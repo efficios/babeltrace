@@ -47,7 +47,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/values-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -119,7 +119,7 @@ void destroy_trace(struct bt_object *obj)
 	}
 
 	BT_LOGD_STR("Putting packet header field classe.");
-	bt_put(trace->packet_header_fc);
+	bt_object_put_ref(trace->packet_header_fc);
 	g_free(trace);
 }
 
@@ -198,7 +198,7 @@ struct bt_trace *bt_trace_create(void)
 	goto end;
 
 error:
-	BT_PUT(trace);
+	BT_OBJECT_PUT_REF_AND_RESET(trace);
 
 end:
 	return trace;
@@ -298,7 +298,7 @@ int bt_trace_set_environment_entry_string(struct bt_trace *trace,
 	ret = set_environment_entry(trace, name, value_obj);
 
 end:
-	bt_put(value_obj);
+	bt_object_put_ref(value_obj);
 	return ret;
 }
 
@@ -321,7 +321,7 @@ int bt_trace_set_environment_entry_integer(
 	ret = set_environment_entry(trace, name, value_obj);
 
 end:
-	bt_put(value_obj);
+	bt_object_put_ref(value_obj);
 	return ret;
 }
 
@@ -464,8 +464,8 @@ int bt_trace_set_packet_header_field_class(struct bt_trace *trace,
 	}
 
 	bt_field_class_make_part_of_trace(field_class);
-	bt_put(trace->packet_header_fc);
-	trace->packet_header_fc = bt_get(field_class);
+	bt_object_put_ref(trace->packet_header_fc);
+	trace->packet_header_fc = bt_object_get_ref(field_class);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set trace's packet header field classe: %!+t", trace);
 

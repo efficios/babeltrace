@@ -30,7 +30,7 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,14 +107,14 @@ extern struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
 static inline
 void bt_ctf_stream_class_get(struct bt_ctf_stream_class *stream_class)
 {
-	bt_get(stream_class);
+	bt_object_get_ref(stream_class);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
 void bt_ctf_stream_class_put(struct bt_ctf_stream_class *stream_class)
 {
-	bt_put(stream_class);
+	bt_object_put_ref(stream_class);
 }
 
 #ifdef __cplusplus

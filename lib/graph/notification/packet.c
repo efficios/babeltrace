@@ -59,7 +59,7 @@ struct bt_notification *bt_notification_packet_begin_new(struct bt_graph *graph)
 	goto end;
 
 error:
-	BT_PUT(notification);
+	BT_OBJECT_PUT_REF_AND_RESET(notification);
 
 end:
 	return (void *) notification;
@@ -123,7 +123,7 @@ void bt_notification_packet_begin_destroy(struct bt_notification *notif)
 
 	BT_LOGD("Destroying packet beginning notification: addr=%p", notif);
 	BT_LOGD_STR("Putting packet.");
-	BT_PUT(packet_begin_notif->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(packet_begin_notif->packet);
 	g_free(notif);
 }
 
@@ -180,7 +180,7 @@ struct bt_notification *bt_notification_packet_end_new(struct bt_graph *graph)
 	goto end;
 
 error:
-	BT_PUT(notification);
+	BT_OBJECT_PUT_REF_AND_RESET(notification);
 
 end:
 	return (void *) notification;
@@ -244,7 +244,7 @@ void bt_notification_packet_end_destroy(struct bt_notification *notif)
 
 	BT_LOGD("Destroying packet end notification: addr=%p", notif);
 	BT_LOGD_STR("Putting packet.");
-	BT_PUT(packet_end_notif->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(packet_end_notif->packet);
 	g_free(notif);
 }
 
@@ -263,7 +263,7 @@ void bt_notification_packet_end_recycle(struct bt_notification *notif)
 
 	BT_LOGD("Recycling packet end notification: addr=%p", notif);
 	bt_notification_reset(notif);
-	BT_PUT(packet_end_notif->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(packet_end_notif->packet);
 	graph = notif->graph;
 	notif->graph = NULL;
 	bt_object_pool_recycle_object(&graph->packet_end_notif_pool, notif);

@@ -34,7 +34,7 @@
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/compat/fcntl-internal.h>
 #include <babeltrace/align-internal.h>
@@ -224,7 +224,7 @@ void init_field(struct bt_field *field, struct bt_field_class *fc,
 	BT_ASSERT(fc);
 	bt_object_init_unique(&field->base);
 	field->methods = methods;
-	field->class = bt_get(fc);
+	field->class = bt_object_get_ref(fc);
 }
 
 static
@@ -282,7 +282,7 @@ struct bt_field *create_string_field(struct bt_field_class *fc)
 		sizeof(char), 1);
 	if (!string_field->buf) {
 		BT_LOGE_STR("Failed to allocate a GArray.");
-		BT_PUT(string_field);
+		BT_OBJECT_PUT_REF_AND_RESET(string_field);
 		goto end;
 	}
 
@@ -350,7 +350,7 @@ struct bt_field *create_structure_field(struct bt_field_class *fc)
 			&struct_field->fields)) {
 		BT_LIB_LOGE("Cannot create structure member fields: "
 			"%![fc-]+F", fc);
-		BT_PUT(struct_field);
+		BT_OBJECT_PUT_REF_AND_RESET(struct_field);
 		goto end;
 	}
 
@@ -378,7 +378,7 @@ struct bt_field *create_variant_field(struct bt_field_class *fc)
 			&var_field->fields)) {
 		BT_LIB_LOGE("Cannot create variant member fields: "
 			"%![fc-]+F", fc);
-		BT_PUT(var_field);
+		BT_OBJECT_PUT_REF_AND_RESET(var_field);
 		goto end;
 	}
 
@@ -442,7 +442,7 @@ struct bt_field *create_static_array_field(struct bt_field_class *fc)
 	if (init_array_field_fields(array_field)) {
 		BT_LIB_LOGE("Cannot create static array fields: "
 			"%![fc-]+F", fc);
-		BT_PUT(array_field);
+		BT_OBJECT_PUT_REF_AND_RESET(array_field);
 		goto end;
 	}
 
@@ -469,7 +469,7 @@ struct bt_field *create_dynamic_array_field(struct bt_field_class *fc)
 	if (init_array_field_fields(array_field)) {
 		BT_LIB_LOGE("Cannot create dynamic array fields: "
 			"%![fc-]+F", fc);
-		BT_PUT(array_field);
+		BT_OBJECT_PUT_REF_AND_RESET(array_field);
 		goto end;
 	}
 
@@ -822,7 +822,7 @@ void bt_field_finalize(struct bt_field *field)
 {
 	BT_ASSERT(field);
 	BT_LOGD_STR("Putting field's class.");
-	bt_put(field->class);
+	bt_object_put_ref(field->class);
 }
 
 static

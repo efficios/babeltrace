@@ -46,7 +46,7 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying stream end notification: addr=%p",
 		notification);
 	BT_LOGD_STR("Putting stream.");
-	BT_PUT(notification->stream);
+	BT_OBJECT_PUT_REF_AND_RESET(notification->stream);
 
 	if (notification->default_cv) {
 		bt_clock_value_recycle(notification->default_cv);
@@ -82,7 +82,7 @@ struct bt_notification *bt_notification_stream_end_create(
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_STREAM_END,
 			bt_notification_stream_end_destroy, NULL);
-	notification->stream = bt_get(stream);
+	notification->stream = bt_object_get_ref(stream);
 	BT_LOGD("Created stream end notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "
@@ -158,7 +158,7 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying stream beginning notification: addr=%p",
 		notification);
 	BT_LOGD_STR("Putting stream.");
-	BT_PUT(notification->stream);
+	BT_OBJECT_PUT_REF_AND_RESET(notification->stream);
 
 	if (notification->default_cv) {
 		bt_clock_value_recycle(notification->default_cv);
@@ -194,7 +194,7 @@ struct bt_notification *bt_notification_stream_begin_create(
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN,
 			bt_notification_stream_begin_destroy, NULL);
-	notification->stream = bt_get(stream);
+	notification->stream = bt_object_get_ref(stream);
 	BT_LOGD("Created stream beginning notification object: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"stream-class-addr=%p, stream-class-name=\"%s\", "

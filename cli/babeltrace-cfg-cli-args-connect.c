@@ -295,7 +295,7 @@ static struct bt_config_component *find_component_in_array(GPtrArray *comps,
 		struct bt_config_component *comp = g_ptr_array_index(comps, i);
 
 		if (strcmp(name, comp->instance_name->str) == 0) {
-			found_comp = bt_get(comp);
+			found_comp = bt_object_get_ref(comp);
 			goto end;
 		}
 	}
@@ -340,7 +340,7 @@ static int validate_all_endpoints_exist(struct bt_config *cfg, char *error_buf,
 		struct bt_config_component *comp;
 
 		comp = find_component(cfg, connection->upstream_comp_name->str);
-		bt_put(comp);
+		bt_object_put_ref(comp);
 		if (!comp) {
 			snprintf(error_buf, error_buf_size,
 				"Invalid connection: cannot find upstream component `%s`:\n    %s\n",
@@ -351,7 +351,7 @@ static int validate_all_endpoints_exist(struct bt_config *cfg, char *error_buf,
 		}
 
 		comp = find_component(cfg, connection->downstream_comp_name->str);
-		bt_put(comp);
+		bt_object_put_ref(comp);
 		if (!comp) {
 			snprintf(error_buf, error_buf_size,
 				"Invalid connection: cannot find downstream component `%s`:\n    %s\n",
@@ -415,13 +415,13 @@ static int validate_connection_directions(struct bt_config *cfg,
 			goto end;
 		}
 
-		BT_PUT(src_comp);
-		BT_PUT(dst_comp);
+		BT_OBJECT_PUT_REF_AND_RESET(src_comp);
+		BT_OBJECT_PUT_REF_AND_RESET(dst_comp);
 	}
 
 end:
-	bt_put(src_comp);
-	bt_put(dst_comp);
+	bt_object_put_ref(src_comp);
+	bt_object_put_ref(dst_comp);
 	return ret;
 }
 
@@ -580,7 +580,7 @@ static int validate_all_components_connected(struct bt_config *cfg,
 	}
 
 end:
-	bt_put(connected_components);
+	bt_object_put_ref(connected_components);
 	return ret;
 }
 
@@ -630,7 +630,7 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 	}
 
 end:
-	bt_put(flat_connection_names);
+	bt_object_put_ref(flat_connection_names);
 
 	if (flat_connection_name) {
 		g_string_free(flat_connection_name, TRUE);

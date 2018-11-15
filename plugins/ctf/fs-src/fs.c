@@ -107,7 +107,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 			 * BT_NOTIFICATION_TYPE_STREAM_BEGIN
 			 * notification: skip this one, get a new one.
 			 */
-			BT_PUT(*notif);
+			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				notif);
 			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
@@ -141,7 +141,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 			goto end;
 		}
 
-		BT_PUT(*notif);
+		BT_OBJECT_PUT_REF_AND_RESET(*notif);
 		bt_notif_iter_reset(notif_iter_data->notif_iter);
 
 		/*
@@ -177,7 +177,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 			BT_ASSERT(bt_notification_get_type(*notif) ==
 				BT_NOTIFICATION_TYPE_STREAM_BEGIN);
-			BT_PUT(*notif);
+			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				notif);
 			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
@@ -508,8 +508,8 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 		g_ptr_array_free(ds_file_group->ds_file_infos, TRUE);
 	}
 
-	bt_put(ds_file_group->stream);
-	bt_put(ds_file_group->stream_class);
+	bt_object_put_ref(ds_file_group->stream);
+	bt_object_put_ref(ds_file_group->stream_class);
 	g_free(ds_file_group);
 }
 
@@ -534,7 +534,7 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 
 	ds_file_group->stream_id = stream_instance_id;
 	BT_ASSERT(stream_class);
-	ds_file_group->stream_class = bt_get(stream_class);
+	ds_file_group->stream_class = bt_object_get_ref(stream_class);
 	ds_file_group->ctf_fs_trace = ctf_fs_trace;
 	goto end;
 

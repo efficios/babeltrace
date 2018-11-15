@@ -35,11 +35,11 @@
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/fields.h>
 #include <babeltrace/trace-ir/utils-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/clock-class.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -101,7 +101,7 @@ struct bt_field_class *create_integer_field_class(enum bt_field_class_type type)
 	goto end;
 
 error:
-	BT_PUT(int_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(int_fc);
 
 end:
 	return (void *) int_fc;
@@ -255,7 +255,7 @@ struct bt_field_class *create_enumeration_field_class(enum bt_field_class_type t
 	goto end;
 
 error:
-	BT_PUT(enum_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(enum_fc);
 
 end:
 	return (void *) enum_fc;
@@ -591,7 +591,7 @@ struct bt_field_class *bt_field_class_real_create(void)
 	goto end;
 
 error:
-	BT_PUT(real_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(real_fc);
 
 end:
 	return (void *) real_fc;
@@ -661,7 +661,7 @@ void finalize_named_field_class(struct bt_named_field_class *named_fc)
 	}
 
 	BT_LOGD_STR("Putting named field classe's field classe.");
-	bt_put(named_fc->fc);
+	bt_object_put_ref(named_fc->fc);
 }
 
 static
@@ -718,7 +718,7 @@ struct bt_field_class *bt_field_class_structure_create(void)
 	goto end;
 
 error:
-	BT_PUT(struct_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(struct_fc);
 
 end:
 	return (void *) struct_fc;
@@ -753,7 +753,7 @@ int append_named_field_class_to_container_field_class(
 	named_fc = &g_array_index(container_fc->named_fcs,
 		struct bt_named_field_class, container_fc->named_fcs->len - 1);
 	named_fc->name = name_str;
-	named_fc->fc = bt_get(fc);
+	named_fc->fc = bt_object_get_ref(fc);
 	g_hash_table_insert(container_fc->name_to_index, named_fc->name->str,
 		GUINT_TO_POINTER(container_fc->named_fcs->len - 1));
 	bt_field_class_freeze(fc);
@@ -850,7 +850,7 @@ void destroy_variant_field_class(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying variant field classe object: %!+F", fc);
 	finalize_named_field_classes_container((void *) fc);
 	BT_LOGD_STR("Putting selector field path.");
-	bt_put(fc->selector_field_path);
+	bt_object_put_ref(fc->selector_field_path);
 	g_free(fc);
 }
 
@@ -876,7 +876,7 @@ struct bt_field_class *bt_field_class_variant_create(void)
 	goto end;
 
 error:
-	BT_PUT(var_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(var_fc);
 
 end:
 	return (void *) var_fc;
@@ -952,7 +952,7 @@ void init_array_field_class(struct bt_field_class_array *fc,
 {
 	BT_ASSERT(element_fc);
 	init_field_class((void *) fc, type, release_func);
-	fc->element_fc = bt_get(element_fc);
+	fc->element_fc = bt_object_get_ref(element_fc);
 	bt_field_class_freeze(element_fc);
 }
 
@@ -961,7 +961,7 @@ void finalize_array_field_class(struct bt_field_class_array *array_fc)
 {
 	BT_ASSERT(array_fc);
 	BT_LOGD_STR("Putting element field classe.");
-	bt_put(array_fc->element_fc);
+	bt_object_put_ref(array_fc->element_fc);
 }
 
 static
@@ -993,7 +993,7 @@ struct bt_field_class *bt_field_class_static_array_create(
 	goto end;
 
 error:
-	BT_PUT(array_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(array_fc);
 
 end:
 	return (void *) array_fc;
@@ -1028,7 +1028,7 @@ void destroy_dynamic_array_field_class(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying dynamic array field classe object: %!+F", fc);
 	finalize_array_field_class((void *) fc);
 	BT_LOGD_STR("Putting length field path.");
-	bt_put(fc->length_field_path);
+	bt_object_put_ref(fc->length_field_path);
 	g_free(fc);
 }
 
@@ -1051,7 +1051,7 @@ struct bt_field_class *bt_field_class_dynamic_array_create(
 	goto end;
 
 error:
-	BT_PUT(array_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(array_fc);
 
 end:
 	return (void *) array_fc;
@@ -1109,7 +1109,7 @@ struct bt_field_class *bt_field_class_string_create(void)
 	goto end;
 
 error:
-	BT_PUT(string_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(string_fc);
 
 end:
 	return (void *) string_fc;

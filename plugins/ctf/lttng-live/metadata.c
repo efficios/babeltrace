@@ -62,7 +62,7 @@ enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
 	size_t i;
 	int count, ret;
 
-	BT_PUT(trace->cc_prio_map);
+	BT_OBJECT_PUT_REF_AND_RESET(trace->cc_prio_map);
 	trace->cc_prio_map = bt_clock_class_priority_map_create();
 	if (!trace->cc_prio_map) {
 		goto error;
@@ -78,7 +78,7 @@ enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
 		BT_ASSERT(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
 			trace->cc_prio_map, clock_class, 0);
-		BT_PUT(clock_class);
+		BT_OBJECT_PUT_REF_AND_RESET(clock_class);
 
 		if (ret) {
 			goto error;
@@ -195,7 +195,7 @@ enum bt_lttng_live_iterator_status lttng_live_metadata_update(
 	decoder_status = ctf_metadata_decoder_decode(metadata->decoder, fp);
 	switch (decoder_status) {
 	case CTF_METADATA_DECODER_STATUS_OK:
-		BT_PUT(trace->trace);
+		BT_OBJECT_PUT_REF_AND_RESET(trace->trace);
 		trace->trace = ctf_metadata_decoder_get_trace(metadata->decoder);
 		trace->new_metadata_needed = false;
 		status = lttng_live_update_clock_map(trace);

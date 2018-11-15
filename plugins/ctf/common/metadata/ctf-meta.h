@@ -472,7 +472,7 @@ static inline
 void _ctf_field_class_int_destroy(struct ctf_field_class_int *fc)
 {
 	BT_ASSERT(fc);
-	bt_put(fc->mapped_clock_class);
+	bt_object_put_ref(fc->mapped_clock_class);
 	g_free(fc);
 }
 
@@ -480,7 +480,7 @@ static inline
 void _ctf_field_class_enum_destroy(struct ctf_field_class_enum *fc)
 {
 	BT_ASSERT(fc);
-	bt_put(fc->base.mapped_clock_class);
+	bt_object_put_ref(fc->base.mapped_clock_class);
 
 	if (fc->mappings) {
 		uint64_t i;
@@ -1108,7 +1108,7 @@ void ctf_field_class_int_copy_content(
 	dst_fc->is_signed = src_fc->is_signed;
 	dst_fc->disp_base = src_fc->disp_base;
 	dst_fc->encoding = src_fc->encoding;
-	dst_fc->mapped_clock_class = bt_get(src_fc->mapped_clock_class);
+	dst_fc->mapped_clock_class = bt_object_get_ref(src_fc->mapped_clock_class);
 	dst_fc->storing_index = src_fc->storing_index;
 }
 
@@ -1397,7 +1397,7 @@ void ctf_stream_class_destroy(struct ctf_stream_class *sc)
 	ctf_field_class_destroy(sc->packet_context_fc);
 	ctf_field_class_destroy(sc->event_header_fc);
 	ctf_field_class_destroy(sc->event_common_context_fc);
-	bt_put(sc->default_clock_class);
+	bt_object_put_ref(sc->default_clock_class);
 	g_free(sc);
 }
 
@@ -1453,7 +1453,7 @@ struct ctf_trace_class *ctf_trace_class_create(void)
 	tc->default_byte_order = -1;
 	BT_ASSERT(tc->name);
 	tc->clock_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_put);
+		(GDestroyNotify) bt_object_put_ref);
 	BT_ASSERT(tc->clock_classes);
 	tc->stream_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) ctf_stream_class_destroy);

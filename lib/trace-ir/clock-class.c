@@ -34,7 +34,7 @@
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/compat/string-internal.h>
@@ -150,7 +150,7 @@ struct bt_clock_class *bt_clock_class_create(void)
 	goto end;
 
 error:
-	BT_PUT(clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(clock_class);
 
 end:
 	return clock_class;

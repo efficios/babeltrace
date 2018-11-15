@@ -38,7 +38,7 @@
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/endian-internal.h>
@@ -58,7 +58,7 @@ void destroy_stream_class(struct bt_object *obj)
 
 	BT_LIB_LOGD("Destroying stream class: %!+S", stream_class);
 	BT_LOGD_STR("Putting default clock class.");
-	bt_put(stream_class->default_clock_class);
+	bt_object_put_ref(stream_class->default_clock_class);
 
 	if (stream_class->event_classes) {
 		BT_LOGD_STR("Destroying event classes.");
@@ -70,11 +70,11 @@ void destroy_stream_class(struct bt_object *obj)
 	}
 
 	BT_LOGD_STR("Putting event header field classe.");
-	bt_put(stream_class->event_header_fc);
+	bt_object_put_ref(stream_class->event_header_fc);
 	BT_LOGD_STR("Putting packet context field classe.");
-	bt_put(stream_class->packet_context_fc);
+	bt_object_put_ref(stream_class->packet_context_fc);
 	BT_LOGD_STR("Putting event common context field classe.");
-	bt_put(stream_class->event_common_context_fc);
+	bt_object_put_ref(stream_class->event_common_context_fc);
 	bt_object_pool_finalize(&stream_class->event_header_field_pool);
 	bt_object_pool_finalize(&stream_class->packet_context_field_pool);
 	g_free(stream_class);
@@ -174,7 +174,7 @@ struct bt_stream_class *create_stream_class_with_id(struct bt_trace *trace,
 	goto end;
 
 error:
-	BT_PUT(stream_class);
+	BT_OBJECT_PUT_REF_AND_RESET(stream_class);
 
 end:
 	return stream_class;
@@ -303,8 +303,8 @@ int bt_stream_class_set_packet_context_field_class(
 	}
 
 	bt_field_class_make_part_of_trace(field_class);
-	bt_put(stream_class->packet_context_fc);
-	stream_class->packet_context_fc = bt_get(field_class);
+	bt_object_put_ref(stream_class->packet_context_fc);
+	stream_class->packet_context_fc = bt_object_get_ref(field_class);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set stream class's packet context field classe: %!+S",
 		stream_class);
@@ -350,8 +350,8 @@ int bt_stream_class_set_event_header_field_class(
 	}
 
 	bt_field_class_make_part_of_trace(field_class);
-	bt_put(stream_class->event_header_fc);
-	stream_class->event_header_fc = bt_get(field_class);
+	bt_object_put_ref(stream_class->event_header_fc);
+	stream_class->event_header_fc = bt_object_get_ref(field_class);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set stream class's event header field classe: %!+S",
 		stream_class);
@@ -398,8 +398,8 @@ int bt_stream_class_set_event_common_context_field_class(
 	}
 
 	bt_field_class_make_part_of_trace(field_class);
-	bt_put(stream_class->event_common_context_fc);
-	stream_class->event_common_context_fc = bt_get(field_class);
+	bt_object_put_ref(stream_class->event_common_context_fc);
+	stream_class->event_common_context_fc = bt_object_get_ref(field_class);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set stream class's event common context field classe: %!+S",
 		stream_class);
@@ -424,8 +424,8 @@ int bt_stream_class_set_default_clock_class(
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
-	bt_put(stream_class->default_clock_class);
-	stream_class->default_clock_class = bt_get(clock_class);
+	bt_object_put_ref(stream_class->default_clock_class);
+	stream_class->default_clock_class = bt_object_get_ref(clock_class);
 	bt_clock_class_freeze(clock_class);
 	BT_LIB_LOGV("Set stream class's default clock class: %!+S",
 		stream_class);

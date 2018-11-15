@@ -39,7 +39,7 @@
 #include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/trace.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -191,7 +191,7 @@ int set_integer_field_value(struct bt_ctf_field* field, uint64_t value)
 		}
 	}
 end:
-	bt_put(field_type);
+	bt_object_put_ref(field_type);
 	return ret;
 }
 
@@ -228,7 +228,7 @@ int set_packet_header_magic(struct bt_ctf_stream *stream)
 			magic_field, (uint64_t) magic_value);
 	}
 end:
-	bt_put(magic_field);
+	bt_object_put_ref(magic_field);
 	return ret;
 }
 
@@ -260,7 +260,7 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 
 		ret = bt_ctf_field_integer_unsigned_set_value(
 			uuid_element, (uint64_t) trace->common.uuid[i]);
-		bt_put(uuid_element);
+		bt_object_put_ref(uuid_element);
 		if (ret) {
 			BT_LOGW("Cannot set integer field's value (for `uuid` packet header field): "
 				"stream-addr=%p, stream-name=\"%s\", field-addr=%p, "
@@ -276,8 +276,8 @@ int set_packet_header_uuid(struct bt_ctf_stream *stream)
 		stream, bt_ctf_stream_get_name(stream), uuid_field);
 
 end:
-	bt_put(uuid_field);
-	BT_PUT(trace);
+	bt_object_put_ref(uuid_field);
+	BT_OBJECT_PUT_REF_AND_RESET(trace);
 	return ret;
 }
 static
@@ -313,7 +313,7 @@ int set_packet_header_stream_id(struct bt_ctf_stream *stream)
 	}
 
 end:
-	bt_put(stream_id_field);
+	bt_object_put_ref(stream_id_field);
 	return ret;
 }
 
@@ -390,7 +390,7 @@ int set_packet_context_packet_size(struct bt_ctf_stream *stream)
 	}
 
 end:
-	bt_put(field);
+	bt_object_put_ref(field);
 	return ret;
 }
 
@@ -426,7 +426,7 @@ int set_packet_context_content_size(struct bt_ctf_stream *stream)
 	}
 
 end:
-	bt_put(field);
+	bt_object_put_ref(field);
 	return ret;
 }
 
@@ -494,7 +494,7 @@ int set_packet_context_events_discarded(struct bt_ctf_stream *stream)
 	}
 
 end:
-	bt_put(field);
+	bt_object_put_ref(field);
 	return ret;
 }
 
@@ -554,7 +554,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 			goto end;
 		}
 
-		bt_put(cc);
+		bt_object_put_ref(cc);
 		val_size = bt_ctf_field_type_integer_get_size(
 			(void *) field_common->type);
 		BT_ASSERT(val_size >= 1);
@@ -584,7 +584,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 
 		BT_ASSERT(int_field);
 		ret = visit_field_update_clock_value(int_field, val);
-		bt_put(int_field);
+		bt_object_put_ref(int_field);
 		break;
 	}
 	case BT_CTF_FIELD_TYPE_ID_ARRAY:
@@ -601,7 +601,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 
 			BT_ASSERT(elem_field);
 			ret = visit_field_update_clock_value(elem_field, val);
-			bt_put(elem_field);
+			bt_object_put_ref(elem_field);
 			if (ret) {
 				goto end;
 			}
@@ -625,7 +625,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 
 			BT_ASSERT(elem_field);
 			ret = visit_field_update_clock_value(elem_field, val);
-			bt_put(elem_field);
+			bt_object_put_ref(elem_field);
 			if (ret) {
 				goto end;
 			}
@@ -646,7 +646,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 
 			BT_ASSERT(member_field);
 			ret = visit_field_update_clock_value(member_field, val);
-			bt_put(member_field);
+			bt_object_put_ref(member_field);
 			if (ret) {
 				goto end;
 			}
@@ -664,7 +664,7 @@ int visit_field_update_clock_value(struct bt_ctf_field *field, uint64_t *val)
 		}
 
 		ret = visit_field_update_clock_value(cur_field, val);
-		bt_put(cur_field);
+		bt_object_put_ref(cur_field);
 		break;
 	}
 	default:
@@ -682,7 +682,7 @@ int visit_event_update_clock_value(struct bt_ctf_event *event, uint64_t *val)
 
 	field = bt_ctf_event_get_header(event);
 	ret = visit_field_update_clock_value(field, val);
-	bt_put(field);
+	bt_object_put_ref(field);
 	if (ret) {
 		BT_LOGW_STR("Cannot automatically update clock value in "
 			"event's header.");
@@ -691,7 +691,7 @@ int visit_event_update_clock_value(struct bt_ctf_event *event, uint64_t *val)
 
 	field = bt_ctf_event_get_stream_event_context(event);
 	ret = visit_field_update_clock_value(field, val);
-	bt_put(field);
+	bt_object_put_ref(field);
 	if (ret) {
 		BT_LOGW_STR("Cannot automatically update clock value in "
 			"event's stream event context.");
@@ -700,7 +700,7 @@ int visit_event_update_clock_value(struct bt_ctf_event *event, uint64_t *val)
 
 	field = bt_ctf_event_get_context(event);
 	ret = visit_field_update_clock_value(field, val);
-	bt_put(field);
+	bt_object_put_ref(field);
 	if (ret) {
 		BT_LOGW_STR("Cannot automatically update clock value in "
 			"event's context.");
@@ -709,7 +709,7 @@ int visit_event_update_clock_value(struct bt_ctf_event *event, uint64_t *val)
 
 	field = bt_ctf_event_get_payload_field(event);
 	ret = visit_field_update_clock_value(field, val);
-	bt_put(field);
+	bt_object_put_ref(field);
 	if (ret) {
 		BT_LOGW_STR("Cannot automatically update clock value in "
 			"event's payload.");
@@ -796,31 +796,31 @@ int set_packet_context_timestamps(struct bt_ctf_stream *stream)
 
 		if (strcmp(member_name, "packet_size") == 0 &&
 				!bt_ctf_field_is_set_recursive(member_field)) {
-			bt_put(member_field);
+			bt_object_put_ref(member_field);
 			continue;
 		}
 
 		if (strcmp(member_name, "content_size") == 0 &&
 				!bt_ctf_field_is_set_recursive(member_field)) {
-			bt_put(member_field);
+			bt_object_put_ref(member_field);
 			continue;
 		}
 
 		if (strcmp(member_name, "events_discarded") == 0 &&
 				!bt_ctf_field_is_set_recursive(member_field)) {
-			bt_put(member_field);
+			bt_object_put_ref(member_field);
 			continue;
 		}
 
 		if (strcmp(member_name, "packet_seq_num") == 0 &&
 				!bt_ctf_field_is_set_recursive(member_field)) {
-			bt_put(member_field);
+			bt_object_put_ref(member_field);
 			continue;
 		}
 
 		ret = visit_field_update_clock_value(member_field,
 			&cur_clock_value);
-		bt_put(member_field);
+		bt_object_put_ref(member_field);
 		if (ret) {
 			BT_LOGW("Cannot automatically update clock value "
 				"in stream's packet context: "
@@ -894,8 +894,8 @@ int set_packet_context_timestamps(struct bt_ctf_stream *stream)
 	}
 
 end:
-	bt_put(ts_begin_field);
-	bt_put(ts_end_field);
+	bt_object_put_ref(ts_begin_field);
+	bt_object_put_ref(ts_end_field);
 	return ret;
 }
 
@@ -959,8 +959,8 @@ void release_event(struct bt_ctf_event *event)
 		 * existence of its event class for the duration of its
 		 * lifetime.
 		 */
-		bt_get(event->common.class);
-		BT_PUT(event->common.base.parent);
+		bt_object_get_ref(event->common.class);
+		BT_OBJECT_PUT_REF_AND_RESET(event->common.base.parent);
 	} else {
 		bt_object_try_spec_release(&event->common.base);
 	}
@@ -1187,10 +1187,10 @@ struct bt_ctf_stream *bt_ctf_stream_create_with_id(
 	goto end;
 
 error:
-	BT_PUT(stream);
+	BT_OBJECT_PUT_REF_AND_RESET(stream);
 
 end:
-	bt_put(writer);
+	bt_object_put_ref(writer);
 	return stream;
 }
 
@@ -1260,7 +1260,7 @@ int set_packet_context_events_discarded_field(struct bt_ctf_stream *stream,
 	}
 
 end:
-	bt_put(events_discarded_field);
+	bt_object_put_ref(events_discarded_field);
 	return ret;
 }
 
@@ -1317,7 +1317,7 @@ void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 		stream, bt_ctf_stream_get_name(stream), event_count);
 
 end:
-	bt_put(events_discarded_field);
+	bt_object_put_ref(events_discarded_field);
 }
 
 static int auto_populate_event_header(struct bt_ctf_stream *stream,
@@ -1404,9 +1404,9 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 		stream, bt_ctf_stream_get_name(stream), event);
 
 end:
-	bt_put(id_field);
-	bt_put(timestamp_field);
-	bt_put(mapped_clock_class);
+	bt_object_put_ref(id_field);
+	bt_object_put_ref(timestamp_field);
+	bt_object_put_ref(mapped_clock_class);
 	return ret;
 }
 
@@ -1480,7 +1480,7 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 	 * longer needed.
 	 */
 	BT_LOGV_STR("Putting the event's class.");
-	bt_put(event->common.class);
+	bt_object_put_ref(event->common.class);
 	BT_LOGV("Appended event to stream: "
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
@@ -1520,7 +1520,7 @@ struct bt_ctf_field *bt_ctf_stream_get_packet_context(struct bt_ctf_stream *stre
 
 	packet_context = stream->packet_context;
 	if (packet_context) {
-		bt_get(packet_context);
+		bt_object_get_ref(packet_context);
 	}
 end:
 	return packet_context;
@@ -1557,9 +1557,9 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	bt_put(field_type);
-	bt_put(stream->packet_context);
-	stream->packet_context = bt_get(field);
+	bt_object_put_ref(field_type);
+	bt_object_put_ref(stream->packet_context);
+	stream->packet_context = bt_object_get_ref(field);
 	BT_LOGV("Set stream's packet context field: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"packet-context-field-addr=%p",
@@ -1586,7 +1586,7 @@ struct bt_ctf_field *bt_ctf_stream_get_packet_header(struct bt_ctf_stream *strea
 
 	packet_header = stream->packet_header;
 	if (packet_header) {
-		bt_get(packet_header);
+		bt_object_get_ref(packet_header);
 	}
 end:
 	return packet_header;
@@ -1645,15 +1645,15 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 	}
 
 skip_validation:
-	bt_put(stream->packet_header);
-	stream->packet_header = bt_get(field);
+	bt_object_put_ref(stream->packet_header);
+	stream->packet_header = bt_object_get_ref(field);
 	BT_LOGV("Set stream's packet header field: "
 		"stream-addr=%p, stream-name=\"%s\", "
 		"packet-header-field-addr=%p",
 		stream, bt_ctf_stream_get_name(stream), field);
 end:
-	BT_PUT(trace);
-	bt_put(field_type);
+	BT_OBJECT_PUT_REF_AND_RESET(trace);
+	bt_object_put_ref(field_type);
 	return ret;
 }
 
@@ -1665,7 +1665,7 @@ void reset_structure_field(struct bt_ctf_field *structure, const char *name)
 	member = bt_ctf_field_structure_get_field_by_name(structure, name);
 	if (member) {
 		bt_ctf_field_common_reset_recursive((void *) member);
-		bt_put(member);
+		bt_object_put_ref(member);
 	}
 }
 
@@ -1696,7 +1696,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		packet_size_field = bt_ctf_field_structure_get_field_by_name(
 				stream->packet_context, "packet_size");
 		has_packet_size = (packet_size_field != NULL);
-		bt_put(packet_size_field);
+		bt_object_put_ref(packet_size_field);
 	}
 
 	if (stream->flushed_packet_count == 1) {
@@ -1846,7 +1846,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		struct bt_ctf_field *field = bt_ctf_field_structure_get_field_by_name(
 			stream->packet_context, "content_size");
 
-		bt_put(field);
+		bt_object_put_ref(field);
 		if (!field) {
 			if (stream->pos.offset != stream->pos.packet_size) {
 				BT_LOGW("Stream's packet context's `content_size` field is missing, "
@@ -1958,9 +1958,9 @@ void bt_ctf_stream_destroy(struct bt_object *obj)
 	}
 
 	BT_LOGD_STR("Putting packet header field.");
-	bt_put(stream->packet_header);
+	bt_object_put_ref(stream->packet_header);
 	BT_LOGD_STR("Putting packet context field.");
-	bt_put(stream->packet_context);
+	bt_object_put_ref(stream->packet_context);
 	g_free(stream);
 }
 
@@ -2016,8 +2016,8 @@ int _set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 	}
 	ret = !ret ? 1 : ret;
 end:
-	bt_put(integer);
-	bt_put(field_type);
+	bt_object_put_ref(integer);
+	bt_object_put_ref(field_type);
 	return ret;
 }
 
@@ -2037,7 +2037,7 @@ int try_set_structure_field_integer(struct bt_ctf_field *structure, char *name,
 struct bt_ctf_stream_class *bt_ctf_stream_get_class(
 		struct bt_ctf_stream *stream)
 {
-	return bt_get(bt_ctf_stream_common_borrow_class(BT_CTF_TO_COMMON(stream)));
+	return bt_object_get_ref(bt_ctf_stream_common_borrow_class(BT_CTF_TO_COMMON(stream)));
 }
 
 const char *bt_ctf_stream_get_name(struct bt_ctf_stream *stream)

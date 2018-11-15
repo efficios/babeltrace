@@ -42,7 +42,7 @@
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/endian-internal.h>
@@ -71,9 +71,9 @@ void destroy_event_class(struct bt_object *obj)
 	}
 
 	BT_LOGD_STR("Putting context field classe.");
-	bt_put(event_class->specific_context_fc);
+	bt_object_put_ref(event_class->specific_context_fc);
 	BT_LOGD_STR("Putting payload field classe.");
-	bt_put(event_class->payload_fc);
+	bt_object_put_ref(event_class->payload_fc);
 	bt_object_pool_finalize(&event_class->event_pool);
 	g_free(obj);
 }
@@ -161,7 +161,7 @@ struct bt_event_class *create_event_class_with_id(
 	goto end;
 
 error:
-	BT_PUT(event_class);
+	BT_OBJECT_PUT_REF_AND_RESET(event_class);
 
 end:
 	return event_class;
@@ -303,8 +303,8 @@ int bt_event_class_set_specific_context_field_class(
 	}
 
 	bt_field_class_make_part_of_trace(field_class);
-	bt_put(event_class->specific_context_fc);
-	event_class->specific_context_fc = bt_get(field_class);
+	bt_object_put_ref(event_class->specific_context_fc);
+	event_class->specific_context_fc = bt_object_get_ref(field_class);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set event class's specific context field classe: %!+E",
 		event_class);
@@ -358,8 +358,8 @@ int bt_event_class_set_payload_field_class(struct bt_event_class *event_class,
 	}
 
 	bt_field_class_make_part_of_trace(field_class);
-	bt_put(event_class->payload_fc);
-	event_class->payload_fc = bt_get(field_class);
+	bt_object_put_ref(event_class->payload_fc);
+	event_class->payload_fc = bt_object_get_ref(field_class);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set event class's payload field classe: %!+E", event_class);
 
