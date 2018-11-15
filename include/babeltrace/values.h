@@ -222,9 +222,6 @@ extern struct bt_value *bt_value_null;
 @brief Value object type.
 */
 enum bt_value_type {
-	/// Unknown value object, used as an error code.
-	BT_VALUE_TYPE_UNKNOWN =		-1,
-
 	/// Null value object.
 	BT_VALUE_TYPE_NULL =		0,
 
