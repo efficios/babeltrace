@@ -35,8 +35,8 @@ int set_text_array_sequence_field_class(struct ctf_field_class *fc)
 		goto end;
 	}
 
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_STRUCT:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
 	{
 		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
@@ -53,7 +53,7 @@ int set_text_array_sequence_field_class(struct ctf_field_class *fc)
 
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct ctf_field_class_variant *var_fc = (void *) fc;
 
@@ -70,13 +70,13 @@ int set_text_array_sequence_field_class(struct ctf_field_class *fc)
 
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_ARRAY:
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
-		if (array_fc->elem_fc->id == CTF_FIELD_CLASS_ID_INT ||
-				array_fc->elem_fc->id == CTF_FIELD_CLASS_ID_ENUM) {
+		if (array_fc->elem_fc->type == CTF_FIELD_CLASS_TYPE_INT ||
+				array_fc->elem_fc->type == CTF_FIELD_CLASS_TYPE_ENUM) {
 			struct ctf_field_class_int *int_fc =
 				(void *) array_fc->elem_fc;
 

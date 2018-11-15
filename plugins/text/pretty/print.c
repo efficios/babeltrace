@@ -556,13 +556,13 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		int64_t s;
 	} v;
 	bool rst_color = false;
-	enum bt_field_class_id ft_id;
+	enum bt_field_class_type ft_type;
 
 	int_fc = bt_field_borrow_class(field);
 	BT_ASSERT(int_fc);
-	ft_id = bt_field_get_class_id(field);
-	if (ft_id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER ||
-			ft_id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION) {
+	ft_type = bt_field_get_class_type(field);
+	if (ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
+			ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
 		v.u = bt_field_unsigned_integer_get_value(field);
 	} else {
 		v.s = bt_field_signed_integer_get_value(field);
@@ -590,8 +590,8 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 	}
 	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL:
 	{
-		if (ft_id == BT_FIELD_CLASS_ID_SIGNED_INTEGER ||
-				ft_id == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION) {
+		if (ft_type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
+				ft_type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
 			int len;
 
 			len = bt_field_class_integer_get_field_value_range(
@@ -610,8 +610,8 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		break;
 	}
 	case BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL:
-		if (ft_id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER ||
-				ft_id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION) {
+		if (ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
+				ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION) {
 			g_string_append_printf(pretty->string, "%" PRIu64, v.u);
 		} else {
 			g_string_append_printf(pretty->string, "%" PRId64, v.s);
@@ -727,12 +727,12 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 		goto end;
 	}
 
-	switch (bt_field_get_class_id(field)) {
-	case BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION:
+	switch (bt_field_get_class_type(field)) {
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
 		ret = bt_field_unsigned_enumeration_get_mapping_labels(field,
 			&label_array, &label_count);
 		break;
-	case BT_FIELD_CLASS_ID_SIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 		ret = bt_field_signed_enumeration_get_mapping_labels(field,
 			&label_array, &label_count);
 		break;
@@ -1010,14 +1010,14 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		struct bt_field *field, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
-	enum bt_field_class_id class_id;
+	enum bt_field_class_type class_id;
 
-	class_id = bt_field_get_class_id(field);
+	class_id = bt_field_get_class_type(field);
 	switch (class_id) {
-	case BT_FIELD_CLASS_ID_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_ID_SIGNED_INTEGER:
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
+	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 		return print_integer(pretty, field);
-	case BT_FIELD_CLASS_ID_REAL:
+	case BT_FIELD_CLASS_TYPE_REAL:
 	{
 		double v;
 
@@ -1031,10 +1031,10 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_ID_SIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 		return print_enum(pretty, field);
-	case BT_FIELD_CLASS_ID_STRING:
+	case BT_FIELD_CLASS_TYPE_STRING:
 	{
 		const char *str;
 
@@ -1052,14 +1052,14 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		}
 		return BT_COMPONENT_STATUS_OK;
 	}
-	case BT_FIELD_CLASS_ID_STRUCTURE:
+	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 		return print_struct(pretty, field, print_names, filter_fields,
 				filter_array_len);
-	case BT_FIELD_CLASS_ID_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT:
 		return print_variant(pretty, field, print_names);
-	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 		return print_array(pretty, field, print_names);
-	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		return print_sequence(pretty, field, print_names);
 	default:
 		// TODO: log instead

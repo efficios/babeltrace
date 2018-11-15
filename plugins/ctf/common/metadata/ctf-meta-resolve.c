@@ -394,8 +394,8 @@ int ptokens_to_field_path(GList *ptokens, struct ctf_field_path *field_path,
 		BT_LOGV("Current path token: token=\"%s\"", ft_name);
 
 		/* Find to which index corresponds the current path token */
-		if (fc->id == CTF_FIELD_CLASS_ID_ARRAY ||
-				fc->id == CTF_FIELD_CLASS_ID_SEQUENCE) {
+		if (fc->type == CTF_FIELD_CLASS_TYPE_ARRAY ||
+				fc->type == CTF_FIELD_CLASS_TYPE_SEQUENCE) {
 			child_index = -1;
 		} else {
 			child_index =
@@ -910,25 +910,25 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 	/*
 	 * Make sure the target class has the right class and properties.
 	 */
-	switch (ctx->cur_fc->id) {
-	case CTF_FIELD_CLASS_ID_VARIANT:
-		if (target_fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+	switch (ctx->cur_fc->type) {
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
+		if (target_fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE("Variant field class's tag field class is not an enumeration field class: "
 				"tag-fc-addr=%p, tag-fc-id=%d",
-				target_fc, target_fc->id);
+				target_fc, target_fc->type);
 			ret = -1;
 			goto end;
 		}
 		break;
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_int *int_fc = (void *) target_fc;
 
-		if (target_fc->id != CTF_FIELD_CLASS_ID_INT &&
-				target_fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (target_fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				target_fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE("Sequence field class's length field class is not an unsigned integer field class: "
 				"length-fc-addr=%p, length-fc-id=%d",
-				target_fc, target_fc->id);
+				target_fc, target_fc->type);
 			ret = -1;
 			goto end;
 		}
@@ -936,7 +936,7 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 		if (int_fc->is_signed) {
 			BT_LOGE("Sequence field class's length field class is not an unsigned integer field class: "
 				"length-fc-addr=%p, length-fc-id=%d",
-				target_fc, target_fc->id);
+				target_fc, target_fc->type);
 			ret = -1;
 			goto end;
 		}
@@ -968,14 +968,14 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 	ctf_field_path_init(&target_field_path);
 
 	/* Get path string */
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_sequence *seq_fc = (void *) fc;
 		pathstr = seq_fc->length_ref->str;
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct ctf_field_class_variant *var_fc = (void *) fc;
 		pathstr = var_fc->tag_ref->str;
@@ -1024,8 +1024,8 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 	}
 
 	/* Set target field path and target field class */
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_sequence *seq_fc = (void *) fc;
 
@@ -1034,7 +1034,7 @@ int resolve_sequence_or_variant_field_class(struct ctf_field_class *fc,
 		seq_fc->length_fc = (void *) target_fc;
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct ctf_field_class_variant *var_fc = (void *) fc;
 
@@ -1073,9 +1073,9 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 	ctx->cur_fc = fc;
 
 	/* Resolve sequence/variant field class */
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 		ret = resolve_sequence_or_variant_field_class(fc, ctx);
 		if (ret) {
 			BT_LOGE("Cannot resolve sequence field class's length or variant field class's tag: "
@@ -1089,11 +1089,11 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 	}
 
 	/* Recurse into compound classes */
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_STRUCT:
-	case CTF_FIELD_CLASS_ID_VARIANT:
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
-	case CTF_FIELD_CLASS_ID_ARRAY:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
 	{
 		uint64_t i;
 		uint64_t field_count =
@@ -1113,8 +1113,8 @@ int resolve_field_class(struct ctf_field_class *fc, struct resolve_context *ctx)
 
 			BT_ASSERT(child_fc);
 
-			if (fc->id == CTF_FIELD_CLASS_ID_ARRAY||
-					fc->id == CTF_FIELD_CLASS_ID_SEQUENCE) {
+			if (fc->type == CTF_FIELD_CLASS_TYPE_ARRAY||
+					fc->type == CTF_FIELD_CLASS_TYPE_SEQUENCE) {
 				field_class_stack_peek(
 					ctx->field_class_stack)->index = -1;
 			} else {

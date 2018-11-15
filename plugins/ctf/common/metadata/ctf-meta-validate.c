@@ -41,8 +41,8 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 		(void *) sc->packet_context_fc, "timestamp_begin");
 	if (fc) {
-		if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-				fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE_STR("Invalid packet context field class: "
 				"`timestamp_begin` member is not an integer field class.");
 			goto invalid;
@@ -60,8 +60,8 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 		(void *) sc->packet_context_fc, "timestamp_end");
 	if (fc) {
-		if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-				fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE_STR("Invalid packet context field class: "
 				"`timestamp_end` member is not an integer field class.");
 			goto invalid;
@@ -79,8 +79,8 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 		(void *) sc->packet_context_fc, "events_discarded");
 	if (fc) {
-		if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-				fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE_STR("Invalid packet context field class: "
 				"`events_discarded` member is not an integer field class.");
 			goto invalid;
@@ -98,8 +98,8 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 		(void *) sc->packet_context_fc, "packet_seq_num");
 	if (fc) {
-		if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-				fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE_STR("Invalid packet context field class: "
 				"`packet_seq_num` member is not an integer field class.");
 			goto invalid;
@@ -117,8 +117,8 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 		(void *) sc->packet_context_fc, "packet_size");
 	if (fc) {
-		if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-				fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE_STR("Invalid packet context field class: "
 				"`packet_size` member is not an integer field class.");
 			goto invalid;
@@ -138,8 +138,8 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 		(void *) sc->packet_context_fc, "content_size");
 	if (fc) {
-		if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-				fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE_STR("Invalid packet context field class: "
 				"`content_size` member is not an integer field class.");
 			goto invalid;
@@ -166,8 +166,8 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 		(void *) sc->event_header_fc, "id");
 	if (fc) {
-		if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-				fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+		if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+				fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 			BT_LOGE_STR("Invalid event header field class: "
 				"`id` member is not an integer field class.");
 			goto invalid;
@@ -222,8 +222,8 @@ int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc)
 				goto invalid;
 			}
 
-			if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-					fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+			if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+					fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 				BT_LOGE_STR("Invalid packet header field class: "
 					"`magic` member is not an integer field class.");
 				goto invalid;
@@ -247,8 +247,8 @@ int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc)
 		fc = ctf_field_class_struct_borrow_member_field_class_by_name(
 			(void *) ctf_tc->packet_header_fc, "stream_id");
 		if (fc) {
-			if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-					fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+			if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+					fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 				BT_LOGE_STR("Invalid packet header field class: "
 					"`stream_id` member is not an integer field class.");
 				goto invalid;
@@ -274,8 +274,8 @@ int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc)
 			(void *) ctf_tc->packet_header_fc,
 			"stream_instance_id");
 		if (fc) {
-			if (fc->id != CTF_FIELD_CLASS_ID_INT &&
-					fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+			if (fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+					fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 				BT_LOGE_STR("Invalid packet header field class: "
 					"`stream_instance_id` member is not an integer field class.");
 				goto invalid;
@@ -295,7 +295,7 @@ int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc)
 		if (fc) {
 			struct ctf_field_class_array *array_fc = (void *) fc;
 
-			if (fc->id != CTF_FIELD_CLASS_ID_ARRAY) {
+			if (fc->type != CTF_FIELD_CLASS_TYPE_ARRAY) {
 				BT_LOGE_STR("Invalid packet header field class: "
 					"`uuid` member is not an array field class.");
 				goto invalid;
@@ -309,7 +309,7 @@ int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc)
 				goto invalid;
 			}
 
-			if (array_fc->base.elem_fc->id != CTF_FIELD_CLASS_ID_INT) {
+			if (array_fc->base.elem_fc->type != CTF_FIELD_CLASS_TYPE_INT) {
 				BT_LOGE_STR("Invalid packet header field class: "
 					"`uuid` member's element field class is not "
 					"an integer field class.");

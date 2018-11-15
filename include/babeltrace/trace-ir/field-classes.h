@@ -50,17 +50,17 @@ struct bt_field_class_unsigned_enumeration_mapping_ranges;
 
 typedef const char * const *bt_field_class_enumeration_mapping_label_array;
 
-enum bt_field_class_id {
-	BT_FIELD_CLASS_ID_UNSIGNED_INTEGER,
-	BT_FIELD_CLASS_ID_SIGNED_INTEGER,
-	BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION,
-	BT_FIELD_CLASS_ID_SIGNED_ENUMERATION,
-	BT_FIELD_CLASS_ID_REAL,
-	BT_FIELD_CLASS_ID_STRING,
-	BT_FIELD_CLASS_ID_STRUCTURE,
-	BT_FIELD_CLASS_ID_STATIC_ARRAY,
-	BT_FIELD_CLASS_ID_DYNAMIC_ARRAY,
-	BT_FIELD_CLASS_ID_VARIANT,
+enum bt_field_class_type {
+	BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER,
+	BT_FIELD_CLASS_TYPE_SIGNED_INTEGER,
+	BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
+	BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
+	BT_FIELD_CLASS_TYPE_REAL,
+	BT_FIELD_CLASS_TYPE_STRING,
+	BT_FIELD_CLASS_TYPE_STRUCTURE,
+	BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
+	BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
+	BT_FIELD_CLASS_TYPE_VARIANT,
 };
 
 enum bt_field_class_integer_preferred_display_base {
@@ -70,7 +70,7 @@ enum bt_field_class_integer_preferred_display_base {
 	BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL,
 };
 
-extern enum bt_field_class_id bt_field_class_get_id(
+extern enum bt_field_class_type bt_field_class_get_type(
 		struct bt_field_class *field_class);
 
 extern struct bt_field_class *bt_field_class_unsigned_integer_create(void);

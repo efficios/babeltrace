@@ -279,29 +279,29 @@ struct bt_field_class *ctf_field_class_to_ir(struct ctf_field_class *fc,
 	BT_ASSERT(fc);
 	BT_ASSERT(fc->in_ir);
 
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_INT:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_INT:
 		ir_fc = ctf_field_class_int_to_ir((void *) fc);
 		break;
-	case CTF_FIELD_CLASS_ID_ENUM:
+	case CTF_FIELD_CLASS_TYPE_ENUM:
 		ir_fc = ctf_field_class_enum_to_ir((void *) fc);
 		break;
-	case CTF_FIELD_CLASS_ID_FLOAT:
+	case CTF_FIELD_CLASS_TYPE_FLOAT:
 		ir_fc = ctf_field_class_float_to_ir((void *) fc);
 		break;
-	case CTF_FIELD_CLASS_ID_STRING:
+	case CTF_FIELD_CLASS_TYPE_STRING:
 		ir_fc = ctf_field_class_string_to_ir((void *) fc);
 		break;
-	case CTF_FIELD_CLASS_ID_STRUCT:
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
 		ir_fc = ctf_field_class_struct_to_ir((void *) fc, tc, sc, ec);
 		break;
-	case CTF_FIELD_CLASS_ID_ARRAY:
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
 		ir_fc = ctf_field_class_array_to_ir((void *) fc, tc, sc, ec);
 		break;
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 		ir_fc = ctf_field_class_sequence_to_ir((void *) fc, tc, sc, ec);
 		break;
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 		ir_fc = ctf_field_class_variant_to_ir((void *) fc, tc, sc, ec);
 		break;
 	default:
@@ -345,7 +345,7 @@ struct bt_field_class *scope_ctf_field_class_to_ir(struct ctf_field_class *fc,
 		goto end;
 	}
 
-	BT_ASSERT(fc->id == CTF_FIELD_CLASS_ID_STRUCT);
+	BT_ASSERT(fc->type == CTF_FIELD_CLASS_TYPE_STRUCT);
 
 	if (!ctf_field_class_struct_has_immediate_member_in_ir((void *) fc)) {
 		/*
@@ -377,8 +377,8 @@ struct ctf_field_class_int *borrow_named_int_field_class(
 		goto end;
 	}
 
-	if (named_fc->fc->id != CTF_FIELD_CLASS_ID_INT &&
-			named_fc->fc->id != CTF_FIELD_CLASS_ID_ENUM) {
+	if (named_fc->fc->type != CTF_FIELD_CLASS_TYPE_INT &&
+			named_fc->fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
 		goto end;
 	}
 

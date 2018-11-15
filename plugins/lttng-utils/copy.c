@@ -85,7 +85,7 @@ struct bt_field *get_payload_field(FILE *err,
 	payload_class = bt_field_get_class(payload);
 	BT_ASSERT(payload_class);
 
-	if (bt_field_class_id(payload_class) != BT_FIELD_CLASS_ID_STRUCT) {
+	if (bt_field_class_id(payload_class) != BT_FIELD_CLASS_TYPE_STRUCT) {
 		BT_LOGE("Wrong type, expected struct: field-name=\"%s\"",
 				field_name);
 		goto end;
@@ -114,7 +114,7 @@ struct bt_field *get_stream_event_context_field(FILE *err,
 	sec_class = bt_field_get_class(sec);
 	BT_ASSERT(sec_class);
 
-	if (bt_field_class_id(sec_class) != BT_FIELD_CLASS_ID_STRUCT) {
+	if (bt_field_class_id(sec_class) != BT_FIELD_CLASS_TYPE_STRUCT) {
 		BT_LOGE("Wrong type, expected struct, field-name=\"%s\"",
 				field_name);
 		goto end;
@@ -145,7 +145,7 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 	field_class = bt_field_get_class(field);
 	BT_ASSERT(field_class);
 
-	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_TYPE_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -189,7 +189,7 @@ int get_stream_event_context_int_field_value(FILE *err, struct bt_event *event,
 	field_class = bt_field_get_class(field);
 	BT_ASSERT(field_class);
 
-	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_TYPE_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
 		goto error;
 	}
@@ -229,7 +229,7 @@ int get_payload_unsigned_int_field_value(FILE *err,
 	field_class = bt_field_get_class(field);
 	BT_ASSERT(field_class);
 
-	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_TYPE_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -274,7 +274,7 @@ int get_payload_int_field_value(FILE *err, struct bt_event *event,
 	field_class = bt_field_get_class(field);
 	BT_ASSERT(field_class);
 
-	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_INTEGER) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_TYPE_INTEGER) {
 		BT_LOGE("Wrong type, expected integer: field-name=\"%s\"", field_name);
 		goto error;
 	}
@@ -321,7 +321,7 @@ int get_payload_string_field_value(FILE *err,
 	field_class = bt_field_get_class(field);
 	BT_ASSERT(field_class);
 
-	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_STRING) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_TYPE_STRING) {
 		BT_LOGE("Wrong type, expected string: field-name=\"%s\"",
 				field_name);
 		goto error;
@@ -367,7 +367,7 @@ int get_payload_build_id_field_value(FILE *err,
 	field_class = bt_field_get_class(field);
 	BT_ASSERT(field_class);
 
-	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_ID_SEQUENCE) {
+	if (bt_field_class_id(field_class) != BT_FIELD_CLASS_TYPE_SEQUENCE) {
 		BT_LOGE("Wrong type, expected sequence: field-name=\"%s\"", field_name);
 		goto error;
 	}
@@ -1597,7 +1597,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 	 * If it is not a structure, we did not modify it to add the debug info
 	 * fields, so just assign it as is.
 	 */
-	if (bt_field_class_id(writer_event_context_class) != BT_FIELD_CLASS_ID_STRUCT) {
+	if (bt_field_class_id(writer_event_context_class) != BT_FIELD_CLASS_TYPE_STRUCT) {
 		ret = bt_event_set_event_context(writer_event, event_context);
 		goto end;
 	}
