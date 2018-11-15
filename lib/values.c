@@ -535,7 +535,6 @@ void bt_value_destroy(struct bt_object *obj)
 	struct bt_value *value;
 
 	value = container_of(obj, struct bt_value, base);
-	BT_ASSERT(value->type != BT_VALUE_TYPE_UNKNOWN);
 	BT_LOGD("Destroying value: addr=%p", value);
 
 	if (bt_value_is_null(value)) {

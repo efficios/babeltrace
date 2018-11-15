@@ -58,8 +58,6 @@ static inline
 const char *bt_value_type_string(enum bt_value_type type)
 {
 	switch (type) {
-	case BT_VALUE_TYPE_UNKNOWN:
-		return "BT_VALUE_TYPE_UNKNOWN";
 	case BT_VALUE_TYPE_NULL:
 		return "BT_VALUE_TYPE_NULL";
 	case BT_VALUE_TYPE_BOOL:
