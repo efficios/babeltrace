@@ -18,7 +18,7 @@
 /tests/lib/test_bt_notification_heap
 /tests/lib/test_bt_objects
 /tests/lib/test_bt_values
-/tests/lib/test_ctf_ir_ref
+/tests/lib/test_trace_ir_ref
 /tests/lib/test_ctf_writer
 /tests/lib/test_ctf_writer_complete
 /tests/lib/test_dwarf
@@ -33,7 +33,7 @@
 /tests/lib/test_bt_notification_iterator
 /tests/lib/test_cc_prio_map
 /tests/lib/test_graph_topo
-/tests/lib/ctf-ir/test_ctf_ir
+/tests/lib/trace-ir/test_trace_ir
 /tests/lib/ctf-writer/test_ctf_writer
 /tests/plugins/test-utils-muxer
 /tests/plugins/test-utils-muxer-complete

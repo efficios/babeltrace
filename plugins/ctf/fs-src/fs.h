@@ -106,7 +106,7 @@ struct ctf_fs_ds_file_group {
 	 * belong to this group (a single stream instance).
 	 *
 	 * You can call ctf_fs_ds_file_create() with one of those paths
-	 * and the CTF IR stream below.
+	 * and the trace IR stream below.
 	 */
 	GPtrArray *ds_file_infos;
 

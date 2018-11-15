@@ -1,4 +1,4 @@
-SUBDIRS = ctf-ir ctf-writer prio_heap plugin graph .
+SUBDIRS = trace-ir ctf-writer prio_heap plugin graph .
 
 lib_LTLIBRARIES = libbabeltrace.la libbabeltrace-ctf.la
 
@@ -16,7 +16,7 @@ libbabeltrace_la_LIBADD = \
 	prio_heap/libprio_heap.la \
 	graph/libgraph.la \
 	plugin/libplugin.la \
-	ctf-ir/libctf-ir.la \
+	trace-ir/libtrace-ir.la \
 	ctf-writer/libctf-writer.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
@@ -36,7 +36,7 @@ libbabeltrace_ctf_la_LDFLAGS = $(LT_NO_UNDEFINED) \
 
 libbabeltrace_ctf_la_LIBADD = \
 	graph/libgraph.la \
-	ctf-ir/libctf-ir.la \
+	trace-ir/libtrace-ir.la \
 	ctf-writer/libctf-writer.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/common/libbabeltrace-common.la \

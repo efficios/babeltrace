@@ -30,12 +30,12 @@
 
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ref.h>
-#include <babeltrace/ctf-ir/fields.h>
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/field-types-internal.h>
-#include <babeltrace/ctf-ir/event-internal.h>
-#include <babeltrace/ctf-ir/packet-internal.h>
-#include <babeltrace/ctf-ir/stream-internal.h>
+#include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/field-types-internal.h>
+#include <babeltrace/trace-ir/event-internal.h>
+#include <babeltrace/trace-ir/packet-internal.h>
+#include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/component.h>

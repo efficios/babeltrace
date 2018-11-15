@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/field-path.h>
-#include <babeltrace/ctf-ir/event-class.h>
+#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/field-path.h>
+#include <babeltrace/trace-ir/event-class.h>
 #include <stdarg.h>
 #include <inttypes.h>
 #include <stdint.h>

@@ -1,7 +1,7 @@
 /*
  * test_plugin.c
  *
- * CTF IR Reference Count test
+ * Trace IR Reference Count test
  *
  * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *

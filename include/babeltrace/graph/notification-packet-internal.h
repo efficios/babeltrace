@@ -28,7 +28,7 @@
  */
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/assert-internal.h>
 

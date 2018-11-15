@@ -28,9 +28,9 @@
  */
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-ir/packet.h>
+#include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/graph/notification-internal.h>
-#include <babeltrace/ctf-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/assert-internal.h>
 
 struct bt_notification_stream_begin {

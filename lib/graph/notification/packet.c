@@ -28,11 +28,11 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-ir/packet.h>
-#include <babeltrace/ctf-ir/packet-internal.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/stream.h>
-#include <babeltrace/ctf-ir/stream-internal.h>
+#include <babeltrace/trace-ir/packet.h>
+#include <babeltrace/trace-ir/packet-internal.h>
+#include <babeltrace/trace-ir/stream-class.h>
+#include <babeltrace/trace-ir/stream.h>
+#include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/notification-packet-internal.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>

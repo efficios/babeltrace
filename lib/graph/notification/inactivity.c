@@ -25,8 +25,8 @@
 
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-ir/clock-class.h>
-#include <babeltrace/ctf-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-class.h>
+#include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>

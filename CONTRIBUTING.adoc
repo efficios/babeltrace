@@ -69,9 +69,9 @@ node of the graph keeps all other reachable nodes alive.
 
 The scheme employed in Babeltrace to break this cycle consists in the
 "children" holding *reverse component references* to their parents. That
-is, in the context of CTF IR, that event classes hold a reference to
-their parent stream class and stream classes hold a reference to their
-parent trace.
+is, in the context of the trace IR, that event classes hold a reference
+to their parent stream class and stream classes hold a reference to
+their parent trace.
 
 On the other hand, parents hold *claiming aggregation references* to
 their children. A claiming aggregation reference means that the object
