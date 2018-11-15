@@ -48,28 +48,29 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
-enum bt_field_class_id bt_field_class_get_id(struct bt_field_class *fc)
+enum bt_field_class_type bt_field_class_get_type(struct bt_field_class *fc)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	return fc->id;
+	return fc->type;
 }
 
 static
-void init_field_class(struct bt_field_class *fc, enum bt_field_class_id id,
+void init_field_class(struct bt_field_class *fc, enum bt_field_class_type type,
 		bt_object_release_func release_func)
 {
 	BT_ASSERT(fc);
-	BT_ASSERT(bt_field_class_has_known_id(fc));
+	BT_ASSERT(bt_field_class_has_known_type(fc));
 	BT_ASSERT(release_func);
 	bt_object_init_shared(&fc->base, release_func);
-	fc->id = id;
+	fc->type = type;
 }
 
 static
-void init_integer_field_class(struct bt_field_class_integer *fc, enum bt_field_class_id id,
+void init_integer_field_class(struct bt_field_class_integer *fc,
+		enum bt_field_class_type type,
 		bt_object_release_func release_func)
 {
-	init_field_class((void *) fc, id, release_func);
+	init_field_class((void *) fc, type, release_func);
 	fc->range = 64;
 	fc->base = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
 }
@@ -83,19 +84,19 @@ void destroy_integer_field_class(struct bt_object *obj)
 }
 
 static inline
-struct bt_field_class *create_integer_field_class(enum bt_field_class_id id)
+struct bt_field_class *create_integer_field_class(enum bt_field_class_type type)
 {
 	struct bt_field_class_integer *int_fc = NULL;
 
-	BT_LOGD("Creating default integer field classe object: id=%s",
-		bt_common_field_class_id_string(id));
+	BT_LOGD("Creating default integer field classe object: type=%s",
+		bt_common_field_class_type_string(type));
 	int_fc = g_new0(struct bt_field_class_integer, 1);
 	if (!int_fc) {
 		BT_LOGE_STR("Failed to allocate one integer field classe.");
 		goto error;
 	}
 
-	init_integer_field_class(int_fc, id, destroy_integer_field_class);
+	init_integer_field_class(int_fc, type, destroy_integer_field_class);
 	BT_LIB_LOGD("Created integer field classe object: %!+F", int_fc);
 	goto end;
 
@@ -108,12 +109,12 @@ end:
 
 struct bt_field_class *bt_field_class_unsigned_integer_create(void)
 {
-	return create_integer_field_class(BT_FIELD_CLASS_ID_UNSIGNED_INTEGER);
+	return create_integer_field_class(BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
 }
 
 struct bt_field_class *bt_field_class_signed_integer_create(void)
 {
-	return create_integer_field_class(BT_FIELD_CLASS_ID_SIGNED_INTEGER);
+	return create_integer_field_class(BT_FIELD_CLASS_TYPE_SIGNED_INTEGER);
 }
 
 uint64_t bt_field_class_integer_get_field_value_range(
@@ -146,8 +147,9 @@ int bt_field_class_integer_set_field_value_range(
 	BT_ASSERT_PRE(size <= 64,
 		"Unsupported size for integer field classe's field value range "
 		"(maximum is 64): size=%" PRIu64, size);
-	BT_ASSERT_PRE(int_fc->common.id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER ||
-		int_fc->common.id == BT_FIELD_CLASS_ID_SIGNED_INTEGER ||
+	BT_ASSERT_PRE(
+		int_fc->common.type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
+		int_fc->common.type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
 		size_is_valid_for_enumeration_field_class(fc, size),
 		"Invalid field value range for enumeration field classe: "
 		"at least one of the current mapping ranges contains values "
@@ -222,19 +224,19 @@ void destroy_enumeration_field_class(struct bt_object *obj)
 }
 
 static
-struct bt_field_class *create_enumeration_field_class(enum bt_field_class_id id)
+struct bt_field_class *create_enumeration_field_class(enum bt_field_class_type type)
 {
 	struct bt_field_class_enumeration *enum_fc = NULL;
 
-	BT_LOGD("Creating default enumeration field classe object: id=%s",
-		bt_common_field_class_id_string(id));
+	BT_LOGD("Creating default enumeration field classe object: type=%s",
+		bt_common_field_class_type_string(type));
 	enum_fc = g_new0(struct bt_field_class_enumeration, 1);
 	if (!enum_fc) {
 		BT_LOGE_STR("Failed to allocate one enumeration field classe.");
 		goto error;
 	}
 
-	init_integer_field_class((void *) enum_fc, id,
+	init_integer_field_class((void *) enum_fc, type,
 		destroy_enumeration_field_class);
 	enum_fc->mappings = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_field_class_enumeration_mapping));
@@ -262,13 +264,13 @@ end:
 struct bt_field_class *bt_field_class_unsigned_enumeration_create(void)
 {
 	return create_enumeration_field_class(
-		BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION);
+		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
 }
 
 struct bt_field_class *bt_field_class_signed_enumeration_create(void)
 {
 	return create_enumeration_field_class(
-		BT_FIELD_CLASS_ID_SIGNED_ENUMERATION);
+		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
 }
 
 uint64_t bt_field_class_enumeration_get_mapping_count(struct bt_field_class *fc)
@@ -292,7 +294,7 @@ void bt_field_class_unsigned_enumeration_borrow_mapping_by_index(
 	BT_ASSERT_PRE_NON_NULL(name, "Name (output)");
 	BT_ASSERT_PRE_NON_NULL(ranges, "Ranges (output)");
 	BT_ASSERT_PRE_VALID_INDEX(index, enum_fc->mappings->len);
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
 		"Field class");
 	mapping = BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
 	*name = mapping->label->str;
@@ -311,7 +313,7 @@ void bt_field_class_signed_enumeration_borrow_mapping_by_index(
 	BT_ASSERT_PRE_NON_NULL(name, "Name (output)");
 	BT_ASSERT_PRE_NON_NULL(ranges, "Ranges (output)");
 	BT_ASSERT_PRE_VALID_INDEX(index, enum_fc->mappings->len);
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_SIGNED_ENUMERATION,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
 		"Field class");
 	mapping = BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
 	*name = mapping->label->str;
@@ -383,7 +385,7 @@ int bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
 	BT_ASSERT_PRE_NON_NULL(count, "Count (output)");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
 		"Field class");
 	g_ptr_array_set_size(enum_fc->label_buf, 0);
 
@@ -422,7 +424,7 @@ int bt_field_class_signed_enumeration_get_mapping_labels_by_value(
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
 	BT_ASSERT_PRE_NON_NULL(count, "Count (output)");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_SIGNED_ENUMERATION,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
 		"Field class");
 	g_ptr_array_set_size(enum_fc->label_buf, 0);
 
@@ -521,7 +523,7 @@ int bt_field_class_unsigned_enumeration_map_range(
 	struct bt_field_class_enumeration *enum_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
 		"Field class");
 	BT_ASSERT_PRE(range_lower <= range_upper,
 		"Range's upper bound is less than lower bound: "
@@ -546,7 +548,7 @@ int bt_field_class_signed_enumeration_map_range(
 	struct bt_field_class_enumeration *enum_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_SIGNED_ENUMERATION,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
 		"Field class");
 	BT_ASSERT_PRE(range_lower <= range_upper,
 		"Range's upper bound is less than lower bound: "
@@ -583,7 +585,7 @@ struct bt_field_class *bt_field_class_real_create(void)
 		goto error;
 	}
 
-	init_field_class((void *) real_fc, BT_FIELD_CLASS_ID_REAL,
+	init_field_class((void *) real_fc, BT_FIELD_CLASS_TYPE_REAL,
 		destroy_real_field_class);
 	BT_LIB_LOGD("Created real field classe object: %!+F", real_fc);
 	goto end;
@@ -600,7 +602,7 @@ bt_bool bt_field_class_real_is_single_precision(struct bt_field_class *fc)
 	struct bt_field_class_real *real_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_REAL, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_REAL, "Field class");
 	return real_fc->is_single_precision;
 }
 
@@ -610,7 +612,7 @@ int bt_field_class_real_set_is_single_precision(struct bt_field_class *fc,
 	struct bt_field_class_real *real_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_REAL, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_REAL, "Field class");
 	BT_ASSERT_PRE_FC_HOT(fc, "Field class");
 	real_fc->is_single_precision = (bool) is_single_precision;
 	BT_LIB_LOGV("Set real field classe's \"is single precision\" property: "
@@ -621,11 +623,11 @@ int bt_field_class_real_set_is_single_precision(struct bt_field_class *fc,
 static
 int init_named_field_classes_container(
 		struct bt_field_class_named_field_class_container *fc,
-		enum bt_field_class_id id, bt_object_release_func release_func)
+		enum bt_field_class_type type, bt_object_release_func release_func)
 {
 	int ret = 0;
 
-	init_field_class((void *) fc, id, release_func);
+	init_field_class((void *) fc, type, release_func);
 	fc->named_fcs = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_named_field_class));
 	if (!fc->named_fcs) {
@@ -707,7 +709,7 @@ struct bt_field_class *bt_field_class_structure_create(void)
 	}
 
 	ret = init_named_field_classes_container((void *) struct_fc,
-		BT_FIELD_CLASS_ID_STRUCTURE, destroy_structure_field_class);
+		BT_FIELD_CLASS_TYPE_STRUCTURE, destroy_structure_field_class);
 	if (ret) {
 		goto error;
 	}
@@ -764,7 +766,7 @@ int bt_field_class_structure_append_member(struct bt_field_class *fc,
 		const char *name, struct bt_field_class *member_fc)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_STRUCTURE, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
 	return append_named_field_class_to_container_field_class((void *) fc,
 		name, member_fc);
 }
@@ -774,7 +776,7 @@ uint64_t bt_field_class_structure_get_member_count(struct bt_field_class *fc)
 	struct bt_field_class_structure *struct_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_STRUCTURE, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
 	return (uint64_t) struct_fc->common.named_fcs->len;
 }
 
@@ -800,7 +802,7 @@ void bt_field_class_structure_borrow_member_by_index(
 		const char **name, struct bt_field_class **out_fc)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_STRUCTURE, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
 	borrow_named_field_class_from_container_field_class_at_index((void *) fc,
 		index, name, out_fc);
 }
@@ -834,7 +836,7 @@ struct bt_field_class *bt_field_class_structure_borrow_member_field_class_by_nam
 		struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_STRUCTURE, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
 	return borrow_field_class_from_container_field_class_by_name((void *) fc,
 		name);
 }
@@ -865,7 +867,7 @@ struct bt_field_class *bt_field_class_variant_create(void)
 	}
 
 	ret = init_named_field_classes_container((void *) var_fc,
-		BT_FIELD_CLASS_ID_VARIANT, destroy_variant_field_class);
+		BT_FIELD_CLASS_TYPE_VARIANT, destroy_variant_field_class);
 	if (ret) {
 		goto error;
 	}
@@ -887,7 +889,7 @@ int bt_field_class_variant_set_selector_field_class(
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Variant field classe");
 	BT_ASSERT_PRE_NON_NULL(selector_fc, "Selector field classe");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_VARIANT, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
 	BT_ASSERT_PRE_FC_IS_ENUM(selector_fc, "Selector field classe");
 	BT_ASSERT_PRE_FC_HOT(fc, "Variant field classe");
 	var_fc->selector_fc = selector_fc;
@@ -899,7 +901,7 @@ int bt_field_class_variant_append_option(struct bt_field_class *fc,
 		const char *name, struct bt_field_class *option_fc)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_VARIANT, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
 	return append_named_field_class_to_container_field_class((void *) fc,
 		name, option_fc);
 }
@@ -908,7 +910,7 @@ struct bt_field_class *bt_field_class_variant_borrow_option_field_class_by_name(
 		struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_VARIANT, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
 	return borrow_field_class_from_container_field_class_by_name((void *) fc,
 		name);
 }
@@ -918,7 +920,7 @@ uint64_t bt_field_class_variant_get_option_count(struct bt_field_class *fc)
 	struct bt_field_class_variant *var_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_VARIANT, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
 	return (uint64_t) var_fc->common.named_fcs->len;
 }
 
@@ -927,7 +929,7 @@ void bt_field_class_variant_borrow_option_by_index(
 		const char **name, struct bt_field_class **out_fc)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_VARIANT, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
 	borrow_named_field_class_from_container_field_class_at_index((void *) fc,
 		index, name, out_fc);
 }
@@ -938,18 +940,18 @@ struct bt_field_path *bt_field_class_variant_borrow_selector_field_path(
 	struct bt_field_class_variant *var_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_VARIANT,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT,
 		"Field class");
 	return var_fc->selector_field_path;
 }
 
 static
 void init_array_field_class(struct bt_field_class_array *fc,
-		enum bt_field_class_id id, bt_object_release_func release_func,
+		enum bt_field_class_type type, bt_object_release_func release_func,
 		struct bt_field_class *element_fc)
 {
 	BT_ASSERT(element_fc);
-	init_field_class((void *) fc, id, release_func);
+	init_field_class((void *) fc, type, release_func);
 	fc->element_fc = bt_get(element_fc);
 	bt_field_class_freeze(element_fc);
 }
@@ -984,7 +986,7 @@ struct bt_field_class *bt_field_class_static_array_create(
 		goto error;
 	}
 
-	init_array_field_class((void *) array_fc, BT_FIELD_CLASS_ID_STATIC_ARRAY,
+	init_array_field_class((void *) array_fc, BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
 		destroy_static_array_field_class, element_fc);
 	array_fc->length = length;
 	BT_LIB_LOGD("Created static array field classe object: %!+F", array_fc);
@@ -1012,7 +1014,7 @@ uint64_t bt_field_class_static_array_get_length(struct bt_field_class *fc)
 	struct bt_field_class_static_array *array_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_STATIC_ARRAY,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
 		"Field class");
 	return (uint64_t) array_fc->length;
 }
@@ -1043,7 +1045,7 @@ struct bt_field_class *bt_field_class_dynamic_array_create(
 		goto error;
 	}
 
-	init_array_field_class((void *) array_fc, BT_FIELD_CLASS_ID_DYNAMIC_ARRAY,
+	init_array_field_class((void *) array_fc, BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
 		destroy_dynamic_array_field_class, element_fc);
 	BT_LIB_LOGD("Created dynamic array field classe object: %!+F", array_fc);
 	goto end;
@@ -1062,7 +1064,7 @@ int bt_field_class_dynamic_array_set_length_field_class(struct bt_field_class *f
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Dynamic array field classe");
 	BT_ASSERT_PRE_NON_NULL(length_fc, "Length field classe");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_DYNAMIC_ARRAY,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
 		"Field class");
 	BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc, "Length field classe");
 	BT_ASSERT_PRE_FC_HOT(fc, "Dynamic array field classe");
@@ -1077,7 +1079,7 @@ struct bt_field_path *bt_field_class_dynamic_array_borrow_length_field_path(
 	struct bt_field_class_dynamic_array *seq_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_ID_DYNAMIC_ARRAY,
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY,
 		"Field class");
 	return seq_fc->length_field_path;
 }
@@ -1101,7 +1103,7 @@ struct bt_field_class *bt_field_class_string_create(void)
 		goto error;
 	}
 
-	init_field_class((void *) string_fc, BT_FIELD_CLASS_ID_STRING,
+	init_field_class((void *) string_fc, BT_FIELD_CLASS_TYPE_STRING,
 		destroy_string_field_class);
 	BT_LIB_LOGD("Created string field classe object: %!+F", string_fc);
 	goto end;
@@ -1132,9 +1134,9 @@ void _bt_field_class_make_part_of_trace(struct bt_field_class *fc)
 		"Field class is already part of a trace: %!+F", fc);
 	fc->part_of_trace = true;
 
-	switch (fc->id) {
-	case BT_FIELD_CLASS_ID_STRUCTURE:
-	case BT_FIELD_CLASS_ID_VARIANT:
+	switch (fc->type) {
+	case BT_FIELD_CLASS_TYPE_STRUCTURE:
+	case BT_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct bt_field_class_named_field_class_container *container_fc =
 			(void *) fc;
@@ -1150,8 +1152,8 @@ void _bt_field_class_make_part_of_trace(struct bt_field_class *fc)
 
 		break;
 	}
-	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
-	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 	{
 		struct bt_field_class_array *array_fc = (void *) fc;
 

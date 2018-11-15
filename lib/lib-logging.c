@@ -164,9 +164,9 @@ static inline void format_array_field_class(char **buf_ch,
 {
 	struct bt_field_class_array *array_fc = (void *) field_class;
 
-	BUF_APPEND(", %selement-fc-addr=%p, %selement-fc-id=%s",
+	BUF_APPEND(", %selement-fc-addr=%p, %selement-fc-type=%s",
 		PRFIELD(array_fc->element_fc),
-		PRFIELD(bt_common_field_class_id_string(array_fc->element_fc->id)));
+		PRFIELD(bt_common_field_class_type_string(array_fc->element_fc->type)));
 }
 
 static inline void format_field_class(char **buf_ch, bool extended,
@@ -174,8 +174,8 @@ static inline void format_field_class(char **buf_ch, bool extended,
 {
 	char tmp_prefix[64];
 
-	BUF_APPEND(", %sid=%s",
-		PRFIELD(bt_common_field_class_id_string(field_class->id)));
+	BUF_APPEND(", %stype=%s",
+		PRFIELD(bt_common_field_class_type_string(field_class->type)));
 
 	if (extended) {
 		BUF_APPEND(", %sis-frozen=%d", PRFIELD(field_class->frozen));
@@ -185,14 +185,14 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		return;
 	}
 
-	switch (field_class->id) {
-	case BT_FIELD_CLASS_ID_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_ID_SIGNED_INTEGER:
+	switch (field_class->type) {
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
+	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
 	{
 		format_integer_field_class(buf_ch, extended, prefix, field_class);
 		break;
 	}
-	case BT_FIELD_CLASS_ID_REAL:
+	case BT_FIELD_CLASS_TYPE_REAL:
 	{
 		struct bt_field_class_real *real_fc = (void *) field_class;
 
@@ -200,8 +200,8 @@ static inline void format_field_class(char **buf_ch, bool extended,
 			PRFIELD(real_fc->is_single_precision));
 		break;
 	}
-	case BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_ID_SIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 	{
 		struct bt_field_class_enumeration *enum_fc =
 			(void *) field_class;
@@ -211,7 +211,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 			PRFIELD(enum_fc->mappings->len));
 		break;
 	}
-	case BT_FIELD_CLASS_ID_STRUCTURE:
+	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 	{
 		struct bt_field_class_structure *struct_fc =
 			(void *) field_class;
@@ -223,7 +223,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 	{
 		struct bt_field_class_static_array *array_fc =
 			(void *) field_class;
@@ -232,7 +232,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 		BUF_APPEND(", %slength=%" PRIu64, PRFIELD(array_fc->length));
 		break;
 	}
-	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 	{
 		struct bt_field_class_dynamic_array *array_fc =
 			(void *) field_class;
@@ -253,7 +253,7 @@ static inline void format_field_class(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_ID_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct bt_field_class_variant *var_fc = (void *) field_class;
 
@@ -296,8 +296,8 @@ static inline void format_field_integer_extended(char **buf_ch,
 		fmt = ", %svalue=%" PRIx64;
 	}
 
-	if (field_class->common.id == BT_FIELD_CLASS_ID_SIGNED_INTEGER ||
-			field_class->common.id == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION) {
+	if (field_class->common.type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
+			field_class->common.type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION) {
 		if (!fmt) {
 			fmt = ", %svalue=%" PRId64;
 		}
@@ -321,36 +321,36 @@ static inline void format_field(char **buf_ch, bool extended,
 		BUF_APPEND(", %sis-frozen=%d", PRFIELD(field->frozen));
 	}
 
-	BUF_APPEND(", %stype-addr=%p", PRFIELD(field->class));
+	BUF_APPEND(", %sclass-addr=%p", PRFIELD(field->class));
 
 	if (!field->class) {
 		return;
 	}
 
-	BUF_APPEND(", %stype-id=%s",
-		PRFIELD(bt_common_field_class_id_string(field->class->id)));
+	BUF_APPEND(", %sclass-type=%s",
+		PRFIELD(bt_common_field_class_type_string(field->class->type)));
 
 	if (!extended || !field->is_set) {
 		return;
 	}
 
-	switch (field->class->id) {
-	case BT_FIELD_CLASS_ID_UNSIGNED_INTEGER:
-	case BT_FIELD_CLASS_ID_SIGNED_INTEGER:
-	case BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION:
-	case BT_FIELD_CLASS_ID_SIGNED_ENUMERATION:
+	switch (field->class->type) {
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER:
+	case BT_FIELD_CLASS_TYPE_SIGNED_INTEGER:
+	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
+	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
 	{
 		format_field_integer_extended(buf_ch, prefix, field);
 		break;
 	}
-	case BT_FIELD_CLASS_ID_REAL:
+	case BT_FIELD_CLASS_TYPE_REAL:
 	{
 		struct bt_field_real *real_field = (void *) field;
 
 		BUF_APPEND(", %svalue=%f", PRFIELD(real_field->value));
 		break;
 	}
-	case BT_FIELD_CLASS_ID_STRING:
+	case BT_FIELD_CLASS_TYPE_STRING:
 	{
 		struct bt_field_string *str = (void *) field;
 
@@ -362,8 +362,8 @@ static inline void format_field(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_ID_STATIC_ARRAY:
-	case BT_FIELD_CLASS_ID_DYNAMIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
+	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 	{
 		struct bt_field_array *array_field = (void *) field;
 
@@ -376,7 +376,7 @@ static inline void format_field(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_FIELD_CLASS_ID_VARIANT:
+	case BT_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct bt_field_variant *var_field = (void *) field;
 

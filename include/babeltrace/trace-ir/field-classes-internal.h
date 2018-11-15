@@ -38,34 +38,34 @@
 
 #define BT_ASSERT_PRE_FC_IS_INT(_fc, _name)				\
 	BT_ASSERT_PRE(							\
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER || \
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_SIGNED_INTEGER || \
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION || \
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION, \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION || \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
 		_name " is not an integer field class: %![fc-]+F", (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(_fc, _name)			\
 	BT_ASSERT_PRE(							\
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER || \
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION, \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, \
 		_name " is not an unsigned integer field class: %![fc-]+F", (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_ENUM(_fc, _name)				\
 	BT_ASSERT_PRE(							\
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION || \
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION, \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION || \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
 		_name " is not an enumeration field class: %![fc-]+F", (_fc))
 
 #define BT_ASSERT_PRE_FC_IS_ARRAY(_fc, _name)				\
 	BT_ASSERT_PRE(							\
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_STATIC_ARRAY || \
-		((struct bt_field_class *) (_fc))->id == BT_FIELD_CLASS_ID_DYNAMIC_ARRAY, \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
+		((struct bt_field_class *) (_fc))->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
 		_name " is not an array field class: %![fc-]+F", (_fc))
 
-#define BT_ASSERT_PRE_FC_HAS_ID(_fc, _id, _name)			\
-	BT_ASSERT_PRE(((struct bt_field_class *) (_fc))->id == (_id), 	\
-		_name " has the wrong ID: expected-id=%s, "		\
-		"%![fc-]+F", bt_common_field_class_id_string(_id), (_fc))
+#define BT_ASSERT_PRE_FC_HAS_ID(_fc, _type, _name)			\
+	BT_ASSERT_PRE(((struct bt_field_class *) (_fc))->type == (_type), 	\
+		_name " has the wrong type: expected-type=%s, "		\
+		"%![fc-]+F", bt_common_field_class_type_string(_type), (_fc))
 
 #define BT_ASSERT_PRE_FC_HOT(_fc, _name)				\
 	BT_ASSERT_PRE_HOT((struct bt_field_class *) (_fc),		\
@@ -88,7 +88,7 @@ struct bt_field_class;
 
 struct bt_field_class {
 	struct bt_object base;
-	enum bt_field_class_id id;
+	enum bt_field_class_type type;
 	bool frozen;
 
 	/*
@@ -222,10 +222,10 @@ struct bt_field_class_variant {
 };
 
 static inline
-bool bt_field_class_has_known_id(struct bt_field_class *fc)
+bool bt_field_class_has_known_type(struct bt_field_class *fc)
 {
-	return fc->id >= BT_FIELD_CLASS_ID_UNSIGNED_INTEGER &&
-		fc->id <= BT_FIELD_CLASS_ID_VARIANT;
+	return fc->type >= BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER &&
+		fc->type <= BT_FIELD_CLASS_TYPE_VARIANT;
 }
 
 BT_HIDDEN

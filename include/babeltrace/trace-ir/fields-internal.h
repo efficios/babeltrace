@@ -40,30 +40,30 @@
 #include <stdbool.h>
 #include <glib.h>
 
-#define BT_ASSERT_PRE_FIELD_HAS_CLASS_ID(_field, _cls_id, _name)	\
-	BT_ASSERT_PRE(((struct bt_field *) (_field))->class->id == (_cls_id), \
-		_name " has the wrong class ID: expected-class-id=%s, "	\
+#define BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(_field, _cls_type, _name)	\
+	BT_ASSERT_PRE(((struct bt_field *) (_field))->class->type == (_cls_type), \
+		_name " has the wrong class type: expected-class-type=%s, " \
 		"%![field-]+f",						\
-		bt_common_field_class_id_string(_cls_id), (_field))
+		bt_common_field_class_type_string(_cls_type), (_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(_field, _name)		\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_UNSIGNED_INTEGER || \
-		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_UNSIGNED_ENUMERATION, \
+		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
+		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, \
 		_name " is not an unsigned integer field: %![field-]+f", \
 		(_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(_field, _name)		\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_SIGNED_INTEGER || \
-		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_SIGNED_ENUMERATION, \
+		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
+		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
 		_name " is not a signed integer field: %![field-]+f", \
 		(_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_ARRAY(_field, _name)			\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_STATIC_ARRAY || \
-		((struct bt_field *) (_field))->class->id == BT_FIELD_CLASS_ID_DYNAMIC_ARRAY, \
+		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
+		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
 		_name " is not an array field: %![field-]+f", (_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_SET(_field, _name)			\
@@ -189,7 +189,7 @@ bt_bool _bt_field_is_set(struct bt_field *field)
 		goto end;
 	}
 
-	BT_ASSERT(bt_field_class_has_known_id(field->class));
+	BT_ASSERT(bt_field_class_has_known_type(field->class));
 	BT_ASSERT(field->methods->is_set);
 	is_set = field->methods->is_set(field);
 

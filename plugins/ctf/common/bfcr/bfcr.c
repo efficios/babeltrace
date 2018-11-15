@@ -228,9 +228,9 @@ int stack_push(struct stack *stack, struct ctf_field_class *base_class,
 	BT_ASSERT(stack);
 	BT_ASSERT(base_class);
 	BT_LOGV("Pushing field class on stack: stack-addr=%p, "
-		"fc-addr=%p, fc-id=%d, base-length=%zu, "
+		"fc-addr=%p, fc-type=%d, base-length=%zu, "
 		"stack-size-before=%zu, stack-size-after=%zu",
-		stack, base_class, base_class->id,
+		stack, base_class, base_class->type,
 		base_len, stack->size, stack->size + 1);
 
 	if (stack->entries->len == stack->size) {
@@ -251,28 +251,28 @@ int64_t get_compound_field_class_length(struct bt_bfcr *bfcr,
 {
 	int64_t length;
 
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_STRUCT:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
 	{
 		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
 		length = (int64_t) struct_fc->members->len;
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
 		/* Variant field classes always "contain" a single class */
 		length = 1;
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_ARRAY:
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
 	{
 		struct ctf_field_class_array *array_fc = (void *) fc;
 
 		length = (int64_t) array_fc->length;
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 		length = bfcr->user.cbs.query.get_sequence_length(fc,
 			bfcr->user.data);
 		break;
@@ -291,8 +291,8 @@ int stack_push_with_len(struct bt_bfcr *bfcr, struct ctf_field_class *base_class
 
 	if (length < 0) {
 		BT_LOGW("Cannot get compound field class's field count: "
-			"bfcr-addr=%p, fc-addr=%p, fc-id=%d",
-			bfcr, base_class, base_class->id);
+			"bfcr-addr=%p, fc-addr=%p, fc-type=%d",
+			bfcr, base_class, base_class->type);
 		ret = BT_BFCR_STATUS_ERROR;
 		goto end;
 	}
@@ -917,15 +917,15 @@ enum bt_bfcr_status read_basic_begin_state(struct bt_bfcr *bfcr)
 
 	BT_ASSERT(bfcr->cur_basic_field_class);
 
-	switch (bfcr->cur_basic_field_class->id) {
-	case CTF_FIELD_CLASS_ID_INT:
-	case CTF_FIELD_CLASS_ID_ENUM:
+	switch (bfcr->cur_basic_field_class->type) {
+	case CTF_FIELD_CLASS_TYPE_INT:
+	case CTF_FIELD_CLASS_TYPE_ENUM:
 		status = read_basic_int_class_and_call_begin(bfcr);
 		break;
-	case CTF_FIELD_CLASS_ID_FLOAT:
+	case CTF_FIELD_CLASS_TYPE_FLOAT:
 		status = read_basic_float_class_and_call_begin(bfcr);
 		break;
-	case CTF_FIELD_CLASS_ID_STRING:
+	case CTF_FIELD_CLASS_TYPE_STRING:
 		status = read_basic_string_class_and_call(bfcr, true);
 		break;
 	default:
@@ -942,15 +942,15 @@ enum bt_bfcr_status read_basic_continue_state(struct bt_bfcr *bfcr)
 
 	BT_ASSERT(bfcr->cur_basic_field_class);
 
-	switch (bfcr->cur_basic_field_class->id) {
-	case CTF_FIELD_CLASS_ID_INT:
-	case CTF_FIELD_CLASS_ID_ENUM:
+	switch (bfcr->cur_basic_field_class->type) {
+	case CTF_FIELD_CLASS_TYPE_INT:
+	case CTF_FIELD_CLASS_TYPE_ENUM:
 		status = read_basic_int_class_and_call_continue(bfcr);
 		break;
-	case CTF_FIELD_CLASS_ID_FLOAT:
+	case CTF_FIELD_CLASS_TYPE_FLOAT:
 		status = read_basic_float_class_and_call_continue(bfcr);
 		break;
-	case CTF_FIELD_CLASS_ID_STRING:
+	case CTF_FIELD_CLASS_TYPE_STRING:
 		status = read_basic_string_class_and_call(bfcr, false);
 		break;
 	default:
@@ -1062,13 +1062,13 @@ enum bt_bfcr_status next_field_state(struct bt_bfcr *bfcr)
 	}
 
 	/* Get next field's class */
-	switch (top->base_class->id) {
-	case CTF_FIELD_CLASS_ID_STRUCT:
+	switch (top->base_class->type) {
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
 		next_field_class = ctf_field_class_struct_borrow_member_by_index(
 			(void *) top->base_class, (uint64_t) top->index)->fc;
 		break;
-	case CTF_FIELD_CLASS_ID_ARRAY:
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_array_base *array_fc =
 			(void *) top->base_class;
@@ -1076,7 +1076,7 @@ enum bt_bfcr_status next_field_state(struct bt_bfcr *bfcr)
 		next_field_class = array_fc->elem_fc;
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 		/* Variant classes are dynamic: the user should know! */
 		next_field_class =
 			bfcr->user.cbs.query.borrow_variant_selected_field_class(
@@ -1088,9 +1088,10 @@ enum bt_bfcr_status next_field_state(struct bt_bfcr *bfcr)
 
 	if (!next_field_class) {
 		BT_LOGW("Cannot get the field class of the next field: "
-			"bfcr-addr=%p, base-fc-addr=%p, base-fc-id=%d, "
+			"bfcr-addr=%p, base-fc-addr=%p, base-fc-type=%d, "
 			"index=%" PRId64,
-			bfcr, top->base_class, top->base_class->id, top->index);
+			bfcr, top->base_class, top->base_class->type,
+			top->index);
 		status = BT_BFCR_STATUS_ERROR;
 		goto end;
 	}

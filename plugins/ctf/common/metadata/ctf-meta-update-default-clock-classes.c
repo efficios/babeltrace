@@ -36,9 +36,9 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 		goto end;
 	}
 
-	switch (fc->id) {
-	case CTF_FIELD_CLASS_ID_INT:
-	case CTF_FIELD_CLASS_ID_ENUM:
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_INT:
+	case CTF_FIELD_CLASS_TYPE_ENUM:
 	{
 		struct ctf_field_class_int *int_fc = (void *) fc;
 
@@ -59,7 +59,7 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_STRUCT:
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
 	{
 		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
@@ -77,7 +77,7 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_VARIANT:
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
 	{
 		struct ctf_field_class_variant *var_fc = (void *) fc;
 
@@ -95,8 +95,8 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 
 		break;
 	}
-	case CTF_FIELD_CLASS_ID_ARRAY:
-	case CTF_FIELD_CLASS_ID_SEQUENCE:
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_array_base *array_fc = (void *) fc;
 
