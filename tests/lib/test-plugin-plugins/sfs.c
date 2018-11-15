@@ -60,9 +60,9 @@ static struct bt_component_class_query_method_return query_method(
 	int iret;
 
 	BT_ASSERT(ret.result);
-	iret = bt_value_array_append_string(ret.result, object);
+	iret = bt_value_array_append_string_element(ret.result, object);
 	BT_ASSERT(iret == 0);
-	iret = bt_value_array_append(ret.result, params);
+	iret = bt_value_array_append_element(ret.result, params);
 	BT_ASSERT(iret == 0);
 	return ret;
 }

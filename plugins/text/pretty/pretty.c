@@ -236,7 +236,7 @@ enum bt_component_status add_params_to_map(struct bt_value *plugin_opt_map)
 		const char *key = plugin_options[i];
 		enum bt_value_status status;
 
-		status = bt_value_map_insert(plugin_opt_map, key, bt_value_null);
+		status = bt_value_map_insert_entry(plugin_opt_map, key, bt_value_null);
 		switch (status) {
 		case BT_VALUE_STATUS_OK:
 			break;
@@ -255,7 +255,7 @@ bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 	struct pretty_component *pretty = data;
 	struct bt_value *plugin_opt_map = pretty->plugin_opt_map;
 
-	if (!bt_value_map_has_key(plugin_opt_map, key)) {
+	if (!bt_value_map_has_entry(plugin_opt_map, key)) {
 		fprintf(pretty->err,
 			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
 	}
@@ -272,7 +272,7 @@ enum bt_component_status apply_one_string(const char *key,
 	enum bt_value_status status;
 	const char *str;
 
-	value = bt_value_map_borrow(params, key);
+	value = bt_value_map_borrow_entry_value(params, key);
 	if (!value) {
 		goto end;
 	}
@@ -303,7 +303,7 @@ enum bt_component_status apply_one_bool(const char *key,
 	enum bt_value_status status;
 	bt_bool bool_val;
 
-	value = bt_value_map_borrow(params, key);
+	value = bt_value_map_borrow_entry_value(params, key);
 	if (!value) {
 		goto end;
 	}
@@ -372,7 +372,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 		goto end;
 	}
 	/* Report unknown parameters. */
-	status = bt_value_map_foreach(params, check_param_exists, pretty);
+	status = bt_value_map_foreach_entry(params, check_param_exists, pretty);
 	switch (status) {
 	case BT_VALUE_STATUS_OK:
 		break;
@@ -382,11 +382,11 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 	}
 	/* Known parameters. */
 	pretty->options.color = PRETTY_COLOR_OPT_AUTO;
-	if (bt_value_map_has_key(params, "color")) {
+	if (bt_value_map_has_entry(params, "color")) {
 		struct bt_value *color_value;
 		const char *color;
 
-		color_value = bt_value_map_borrow(params, "color");
+		color_value = bt_value_map_borrow_entry_value(params, "color");
 		if (!color_value) {
 			goto end;
 		}

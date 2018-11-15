@@ -254,7 +254,7 @@ struct bt_value *get_default_params(void)
 		goto error;
 	}
 
-	ret = bt_value_map_insert_bool(params,
+	ret = bt_value_map_insert_bool_entry(params,
 		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME, false);
 	if (ret) {
 		BT_LOGE_STR("Cannot add boolean value to map value object.");
@@ -295,7 +295,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 		goto error;
 	}
 
-	assume_absolute_clock_classes = bt_value_map_borrow(real_params,
+	assume_absolute_clock_classes = bt_value_map_borrow_entry_value(real_params,
 		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
 	if (assume_absolute_clock_classes &&
 			!bt_value_is_bool(assume_absolute_clock_classes)) {

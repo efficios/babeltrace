@@ -515,7 +515,7 @@ static int validate_all_components_connected_in_array(GPtrArray *comps,
 	for (i = 0; i < comps->len; i++) {
 		struct bt_config_component *comp = g_ptr_array_index(comps, i);
 
-		if (!bt_value_map_has_key(connected_components,
+		if (!bt_value_map_has_entry(connected_components,
 				comp->instance_name->str)) {
 			snprintf(error_buf, error_buf_size,
 				"Component `%s` is not connected\n",
@@ -545,13 +545,13 @@ static int validate_all_components_connected(struct bt_config *cfg,
 		struct bt_config_connection *connection =
 			g_ptr_array_index(cfg->cmd_data.run.connections, i);
 
-		ret = bt_value_map_insert(connected_components,
+		ret = bt_value_map_insert_entry(connected_components,
 			connection->upstream_comp_name->str, bt_value_null);
 		if (ret) {
 			goto end;
 		}
 
-		ret = bt_value_map_insert(connected_components,
+		ret = bt_value_map_insert_entry(connected_components,
 			connection->downstream_comp_name->str, bt_value_null);
 		if (ret) {
 			goto end;
@@ -613,7 +613,7 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 			connection->downstream_comp_name->str,
 			connection->downstream_port_glob->str);
 
-		if (bt_value_map_has_key(flat_connection_names,
+		if (bt_value_map_has_entry(flat_connection_names,
 				flat_connection_name->str)) {
 			snprintf(error_buf, error_buf_size,
 				"Duplicate connection:\n    %s\n",
@@ -622,7 +622,7 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 			goto end;
 		}
 
-		ret = bt_value_map_insert(flat_connection_names,
+		ret = bt_value_map_insert_entry(flat_connection_names,
 			flat_connection_name->str, bt_value_null);
 		if (ret) {
 			goto end;
@@ -686,14 +686,14 @@ int bt_config_cli_args_create_connections(struct bt_config *cfg,
 		goto error;
 	}
 
-	for (i = 0; i < bt_value_array_size(connection_args); i++) {
+	for (i = 0; i < bt_value_array_get_size(connection_args); i++) {
 		struct bt_value *arg_value =
-			bt_value_array_get(connection_args, i);
+			bt_value_array_borrow_element_by_index(
+				connection_args, i);
 		const char *arg;
 		struct bt_config_connection *cfg_connection;
 
 		ret = bt_value_string_get(arg_value, &arg);
-		BT_PUT(arg_value);
 		BT_ASSERT(ret == 0);
 		cfg_connection = cfg_connection_from_arg(arg);
 		if (!cfg_connection) {

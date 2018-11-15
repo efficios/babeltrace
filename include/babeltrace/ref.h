@@ -83,7 +83,7 @@ The Babeltrace C API complies with the following key principles:
 
    @image html ref-count-callback.png
 
-   For example, see bt_value_map_foreach().
+   For example, see bt_value_map_foreach_entry().
 
 The two macros BT_PUT() and BT_MOVE() operate on \em variables rather
 than pointer values. You should use BT_PUT() instead of bt_put() when

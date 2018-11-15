@@ -210,13 +210,13 @@ end:
 static
 int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 {
-	struct bt_value *read_from_stdin = NULL;
 	struct bt_value *no_timestamp = NULL;
 	struct bt_value *path = NULL;
 	const char *path_str;
 	int ret = 0;
 
-	no_timestamp = bt_value_map_get(params, "no-extract-timestamp");
+	no_timestamp = bt_value_map_borrow_entry_value(params,
+		"no-extract-timestamp");
 	if (no_timestamp) {
 		if (!bt_value_is_bool(no_timestamp)) {
 			BT_LOGE("Expecting a boolean value for the `no-extract-timestamp` parameter: "
@@ -231,7 +231,7 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 		BT_ASSERT(ret == 0);
 	}
 
-	path = bt_value_map_get(params, "path");
+	path = bt_value_map_borrow_entry_value(params, "path");
 	if (path) {
 		if (dmesg_comp->params.read_from_stdin) {
 			BT_LOGE_STR("Cannot specify both `read-from-stdin` and `path` parameters.");
@@ -259,9 +259,6 @@ error:
 	ret = -1;
 
 end:
-	bt_put(read_from_stdin);
-	bt_put(path);
-	bt_put(no_timestamp);
 	return ret;
 }
 
