@@ -140,7 +140,7 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 
 	counter->last_printed_total = -1ULL;
 	counter->step = 1000;
-	step = bt_value_map_borrow(params, "step");
+	step = bt_value_map_borrow_entry_value(params, "step");
 	if (step && bt_value_is_integer(step)) {
 		int64_t val;
 
@@ -151,7 +151,7 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 		}
 	}
 
-	hide_zero = bt_value_map_borrow(params, "hide-zero");
+	hide_zero = bt_value_map_borrow_entry_value(params, "hide-zero");
 	if (hide_zero && bt_value_is_bool(hide_zero)) {
 		bt_bool val;
 

@@ -230,14 +230,14 @@ static void test_sfs(const char *plugin_dir)
 	ret = bt_query_executor_query(query_exec, filter_comp_class,
 		"get-something", params, &results);
 	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
-	BT_ASSERT(bt_value_is_array(results) && bt_value_array_size(results) == 2);
-	object = bt_value_array_get(results, 0);
+	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
+	object = bt_value_array_borrow_element_by_index(results, 0);
 	BT_ASSERT(object && bt_value_is_string(object));
 	value_ret = bt_value_string_get(object, &object_str);
 	BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
-	res_params = bt_value_array_get(results, 1);
+	res_params = bt_value_array_borrow_element_by_index(results, 1);
 	ok(res_params == params,
 		"bt_component_class_query() receives the expected parameters");
 
@@ -273,8 +273,6 @@ static void test_sfs(const char *plugin_dir)
 	free(sfs_path);
 	bt_put(graph);
 	bt_put(plugin_set);
-	bt_put(object);
-	bt_put(res_params);
 	bt_put(results);
 	bt_put(params);
 	bt_put(query_exec);

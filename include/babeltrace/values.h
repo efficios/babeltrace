@@ -63,8 +63,8 @@ functions documented here, you can create and modify:
 
 As with any Babeltrace object, value objects have
 <a href="https://en.wikipedia.org/wiki/Reference_counting">reference
-counts</a>. When you \link bt_value_array_append() append a value object
-to an array value object\endlink, or when you \link bt_value_map_insert()
+counts</a>. When you \link bt_value_array_append_element() append a value object
+to an array value object\endlink, or when you \link bt_value_map_insert_entry()
 insert a value object into a map value object\endlink, its reference
 count is incremented, as well as when you get a value object back from
 those objects. See \ref refs to learn more about the reference counting
@@ -132,14 +132,14 @@ to use for each value object type:
     <td>bt_value_array_create()
     <td>bt_value_is_array()
     <td>bt_value_array_get()
-    <td>bt_value_array_append()<br>
-        bt_value_array_append_bool()<br>
-        bt_value_array_append_integer()<br>
-        bt_value_array_append_float()<br>
-        bt_value_array_append_string()<br>
-        bt_value_array_append_empty_array()<br>
-        bt_value_array_append_empty_map()<br>
-        bt_value_array_set()
+    <td>bt_value_array_append_element()<br>
+        bt_value_array_append_bool_element()<br>
+        bt_value_array_append_integer_element()<br>
+        bt_value_array_append_element_float()<br>
+        bt_value_array_append_string_element()<br>
+        bt_value_array_append_empty_array_element()<br>
+        bt_value_array_append_empty_map_element()<br>
+        bt_value_array_set_element_by_index()
   </tr>
   <tr>
     <th>Map
@@ -147,14 +147,14 @@ to use for each value object type:
         bt_value_map_extend()
     <td>bt_value_is_map()
     <td>bt_value_map_get()<br>
-        bt_value_map_foreach()
-    <td>bt_value_map_insert()<br>
-        bt_value_map_insert_bool()<br>
-        bt_value_map_insert_integer()<br>
-        bt_value_map_insert_float()<br>
-        bt_value_map_insert_string()<br>
-        bt_value_map_insert_empty_array()<br>
-        bt_value_map_insert_empty_map()
+        bt_value_map_foreach_entry()
+    <td>bt_value_map_insert_entry()<br>
+        bt_value_map_insert_bool_entry()<br>
+        bt_value_map_insert_integer_entry()<br>
+        bt_value_map_insert_float_entry()<br>
+        bt_value_map_insert_string_entry()<br>
+        bt_value_map_insert_empty_array_entry()<br>
+        bt_value_map_insert_empty_map_entry()
   </tr>
 </table>
 
@@ -793,7 +793,7 @@ extern struct bt_value *bt_value_array_create(void);
 @sa bt_value_array_is_empty(): Checks whether or not a given array
 	value object is empty.
 */
-extern int64_t bt_value_array_size(const struct bt_value *array_obj);
+extern int64_t bt_value_array_get_size(const struct bt_value *array_obj);
 
 /**
 @brief	Checks whether or not the array value object \p array_obj
@@ -806,37 +806,13 @@ extern int64_t bt_value_array_size(const struct bt_value *array_obj);
 @pre \p array_obj is an array value object.
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_size(): Returns the size of a given array value
+@sa bt_value_array_get_size(): Returns the size of a given array value
 	object.
 */
 extern bt_bool bt_value_array_is_empty(const struct bt_value *array_obj);
 
-extern struct bt_value *bt_value_array_borrow(const struct bt_value *array_obj,
-		uint64_t index);
-
-/**
-@brief	Returns the value object contained in the array value object
-	\p array_obj at the index \p index.
-
-@param[in] array_obj	Array value object of which to get an element.
-@param[in] index	Index of value object to get.
-@returns		Value object at index \p index on
-			success, or \c NULL on error.
-
-@prenotnull{array_obj}
-@pre \p array_obj is an array value object.
-@pre \p index is lesser than the size of \p array_obj (see
-	bt_value_array_size()).
-@post <strong>On success, if the returned value object is not
-	\ref bt_value_null</strong>, its reference count is incremented.
-@postrefcountsame{array_obj}
-*/
-static inline
-struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
-		uint64_t index)
-{
-	return bt_get(bt_value_array_borrow(array_obj, index));
-}
+extern struct bt_value *bt_value_array_borrow_element_by_index(
+		const struct bt_value *array_obj, uint64_t index);
 
 /**
 @brief	Appends the value object \p element_obj to the array value
@@ -855,21 +831,21 @@ struct bt_value *bt_value_array_get(const struct bt_value *array_obj,
 	\ref bt_value_null</strong>, its reference count is incremented.
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_append_bool(): Appends a boolean raw value to a
+@sa bt_value_array_append_bool_element(): Appends a boolean raw value to a
 	given array value object.
-@sa bt_value_array_append_integer(): Appends an integer raw value
+@sa bt_value_array_append_integer_element(): Appends an integer raw value
 	to a given array value object.
-@sa bt_value_array_append_float(): Appends a floating point number
+@sa bt_value_array_append_element_float(): Appends a floating point number
 	raw value to a given array value object.
-@sa bt_value_array_append_string(): Appends a string raw value to a
+@sa bt_value_array_append_string_element(): Appends a string raw value to a
 	given array value object.
-@sa bt_value_array_append_empty_array(): Appends an empty array value
+@sa bt_value_array_append_empty_array_element(): Appends an empty array value
 	object to a given array value object.
-@sa bt_value_array_append_empty_map(): Appends an empty map value
+@sa bt_value_array_append_empty_map_element(): Appends an empty map value
 	object to a given array value object.
 */
-extern enum bt_value_status bt_value_array_append(struct bt_value *array_obj,
-		struct bt_value *element_obj);
+extern enum bt_value_status bt_value_array_append_element(
+		struct bt_value *array_obj, struct bt_value *element_obj);
 
 /**
 @brief	Appends the boolean raw value \p val to the array value object
@@ -887,10 +863,10 @@ value object before appending it.
 @prehot{array_obj}
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_append(): Appends a value object to a given
+@sa bt_value_array_append_element(): Appends a value object to a given
 	array value object.
 */
-extern enum bt_value_status bt_value_array_append_bool(
+extern enum bt_value_status bt_value_array_append_bool_element(
 		struct bt_value *array_obj, bt_bool val);
 
 /**
@@ -909,10 +885,10 @@ value object before appending it.
 @prehot{array_obj}
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_append(): Appends a value object to a given
+@sa bt_value_array_append_element(): Appends a value object to a given
 	array value object.
 */
-extern enum bt_value_status bt_value_array_append_integer(
+extern enum bt_value_status bt_value_array_append_integer_element(
 		struct bt_value *array_obj, int64_t val);
 
 /**
@@ -932,10 +908,10 @@ point number value object before appending it.
 @prehot{array_obj}
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_append(): Appends a value object to a given
+@sa bt_value_array_append_element(): Appends a value object to a given
 	array value object.
 */
-extern enum bt_value_status bt_value_array_append_real(
+extern enum bt_value_status bt_value_array_append_real_element(
 		struct bt_value *array_obj, double val);
 
 /**
@@ -958,10 +934,10 @@ On success, \p val is copied.
 @prehot{array_obj}
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_append(): Appends a value object to a given
+@sa bt_value_array_append_element(): Appends a value object to a given
 	array value object.
 */
-extern enum bt_value_status bt_value_array_append_string(
+extern enum bt_value_status bt_value_array_append_string_element(
 		struct bt_value *array_obj, const char *val);
 
 /**
@@ -980,10 +956,10 @@ object before appending it.
 @prehot{array_obj}
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_append(): Appends a value object to a given
+@sa bt_value_array_append_element(): Appends a value object to a given
 	array value object.
 */
-extern enum bt_value_status bt_value_array_append_empty_array(
+extern enum bt_value_status bt_value_array_append_empty_array_element(
 		struct bt_value *array_obj);
 
 /**
@@ -1002,10 +978,10 @@ object before appending it.
 @prehot{array_obj}
 @postrefcountsame{array_obj}
 
-@sa bt_value_array_append(): Appends a value object to a given
+@sa bt_value_array_append_element(): Appends a value object to a given
 	array value object.
 */
-extern enum bt_value_status bt_value_array_append_empty_map(
+extern enum bt_value_status bt_value_array_append_empty_map_element(
 		struct bt_value *array_obj);
 
 /**
@@ -1024,7 +1000,7 @@ extern enum bt_value_status bt_value_array_append_empty_map(
 @prenotnull{element_obj}
 @pre \p array_obj is an array value object.
 @pre \p index is lesser than the size of \p array_obj (see
-	bt_value_array_size()).
+	bt_value_array_get_size()).
 @prehot{array_obj}
 @post <strong>On success, if the replaced value object is not
 	\ref bt_value_null</strong>, its reference count is decremented.
@@ -1032,8 +1008,9 @@ extern enum bt_value_status bt_value_array_append_empty_map(
 	\ref bt_value_null</strong>, its reference count is incremented.
 @postrefcountsame{array_obj}
 */
-extern enum bt_value_status bt_value_array_set(struct bt_value *array_obj,
-		uint64_t index, struct bt_value *element_obj);
+extern enum bt_value_status bt_value_array_set_element_by_index(
+		struct bt_value *array_obj, uint64_t index,
+		struct bt_value *element_obj);
 
 /** @} */
 
@@ -1068,7 +1045,7 @@ extern struct bt_value *bt_value_map_create(void);
 @sa bt_value_map_is_empty(): Checks whether or not a given map value
 	object is empty.
 */
-extern int64_t bt_value_map_size(const struct bt_value *map_obj);
+extern int64_t bt_value_map_get_size(const struct bt_value *map_obj);
 
 /**
 @brief	Checks whether or not the map value object \p map_obj is empty.
@@ -1080,38 +1057,15 @@ extern int64_t bt_value_map_size(const struct bt_value *map_obj);
 @pre \p map_obj is a map value object.
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_size(): Returns the size of a given map value object.
+@sa bt_value_map_get_size(): Returns the size of a given map value object.
 */
 extern bt_bool bt_value_map_is_empty(const struct bt_value *map_obj);
 
-extern struct bt_value *bt_value_map_borrow(const struct bt_value *map_obj,
-		const char *key);
+extern struct bt_value *bt_value_map_borrow_entry_value(
+		const struct bt_value *map_obj, const char *key);
 
 /**
-@brief	Returns the value object associated with the key \p key within
-	the map value object \p map_obj.
-
-@param[in] map_obj	Map value object of which to get an entry.
-@param[in] key		Key of the value object to get.
-@returns		Value object associated with the key \p key
-			on success, or \c NULL on error.
-
-@prenotnull{map_obj}
-@prenotnull{key}
-@pre \p map_obj is a map value object.
-@postrefcountsame{map_obj}
-@post <strong>On success, if the returned value object is not
-	\ref bt_value_null</strong>, its reference count is incremented.
-*/
-static inline
-struct bt_value *bt_value_map_get(const struct bt_value *map_obj,
-		const char *key)
-{
-	return bt_get(bt_value_map_borrow(map_obj, key));
-}
-
-/**
-@brief	User function type to use with bt_value_map_foreach().
+@brief	User function type to use with bt_value_map_foreach_entry().
 
 \p object is a <em>weak reference</em>: you \em must pass it to bt_get()
 if you need to keep a reference after this function returns.
@@ -1129,7 +1083,7 @@ traversal, or #BT_FALSE to break it.
 @post The reference count of \p object is not lesser than what it is
 	when the function is called.
 */
-typedef bt_bool (* bt_value_map_foreach_cb)(const char *key,
+typedef bt_bool (* bt_value_map_foreach_entry_cb)(const char *key,
 	struct bt_value *object, void *data);
 
 /**
@@ -1159,9 +1113,9 @@ The user function \em must return #BT_TRUE to continue the traversal of
 @pre \p map_obj is a map value object.
 @postrefcountsame{map_obj}
 */
-extern enum bt_value_status bt_value_map_foreach(
-		const struct bt_value *map_obj, bt_value_map_foreach_cb cb,
-		void *data);
+extern enum bt_value_status bt_value_map_foreach_entry(
+		const struct bt_value *map_obj,
+		bt_value_map_foreach_entry_cb cb, void *data);
 
 /**
 @brief	Returns whether or not the map value object \p map_obj contains
@@ -1178,7 +1132,7 @@ extern enum bt_value_status bt_value_map_foreach(
 @pre \p map_obj is a map value object.
 @postrefcountsame{map_obj}
 */
-extern bt_bool bt_value_map_has_key(const struct bt_value *map_obj,
+extern bt_bool bt_value_map_has_entry(const struct bt_value *map_obj,
 		const char *key);
 
 /**
@@ -1208,20 +1162,20 @@ On success, \p key is copied.
 	\ref bt_value_null</strong>, its reference count is incremented.
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_insert_bool(): Inserts a boolean raw value into a
+@sa bt_value_map_insert_bool_entry(): Inserts a boolean raw value into a
 	given map value object.
-@sa bt_value_map_insert_integer(): Inserts an integer raw value into
+@sa bt_value_map_insert_integer_entry(): Inserts an integer raw value into
 	a given map value object.
-@sa bt_value_map_insert_float(): Inserts a floating point number raw
+@sa bt_value_map_insert_float_entry(): Inserts a floating point number raw
 	value into a given map value object.
-@sa bt_value_map_insert_string(): Inserts a string raw value into a
+@sa bt_value_map_insert_string_entry(): Inserts a string raw value into a
 	given map value object.
-@sa bt_value_map_insert_empty_array(): Inserts an empty array value
+@sa bt_value_map_insert_empty_array_entry(): Inserts an empty array value
 	object into a given map value object.
-@sa bt_value_map_insert_empty_map(): Inserts an empty map value
+@sa bt_value_map_insert_empty_map_entry(): Inserts an empty map value
 	object into a given map value object.
 */
-extern enum bt_value_status bt_value_map_insert(
+extern enum bt_value_status bt_value_map_insert_entry(
 		struct bt_value *map_obj, const char *key,
 		struct bt_value *element_obj);
 
@@ -1247,10 +1201,10 @@ On success, \p key is copied.
 @prehot{map_obj}
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_insert(): Inserts a value object into a given map
+@sa bt_value_map_insert_entry(): Inserts a value object into a given map
 	value object.
 */
-extern enum bt_value_status bt_value_map_insert_bool(
+extern enum bt_value_status bt_value_map_insert_bool_entry(
 		struct bt_value *map_obj, const char *key, bt_bool val);
 
 /**
@@ -1275,10 +1229,10 @@ On success, \p key is copied.
 @prehot{map_obj}
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_insert(): Inserts a value object into a given map
+@sa bt_value_map_insert_entry(): Inserts a value object into a given map
 	value object.
 */
-extern enum bt_value_status bt_value_map_insert_integer(
+extern enum bt_value_status bt_value_map_insert_integer_entry(
 		struct bt_value *map_obj, const char *key, int64_t val);
 
 /**
@@ -1303,10 +1257,10 @@ On success, \p key is copied.
 @prehot{map_obj}
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_insert(): Inserts a value object into a given map
+@sa bt_value_map_insert_entry(): Inserts a value object into a given map
 	value object.
 */
-extern enum bt_value_status bt_value_map_insert_real(
+extern enum bt_value_status bt_value_map_insert_real_entry(
 		struct bt_value *map_obj, const char *key, double val);
 
 /**
@@ -1332,10 +1286,10 @@ On success, \p val and \p key are copied.
 @prehot{map_obj}
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_insert(): Inserts a value object into a given map
+@sa bt_value_map_insert_entry(): Inserts a value object into a given map
 	value object.
 */
-extern enum bt_value_status bt_value_map_insert_string(
+extern enum bt_value_status bt_value_map_insert_string_entry(
 		struct bt_value *map_obj, const char *key, const char *val);
 
 /**
@@ -1359,10 +1313,10 @@ On success, \p key is copied.
 @prehot{map_obj}
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_insert(): Inserts a value object into a given map
+@sa bt_value_map_insert_entry(): Inserts a value object into a given map
 	value object.
 */
-extern enum bt_value_status bt_value_map_insert_empty_array(
+extern enum bt_value_status bt_value_map_insert_empty_array_entry(
 		struct bt_value *map_obj, const char *key);
 
 /**
@@ -1386,10 +1340,10 @@ On success, \p key is copied.
 @prehot{map_obj}
 @postrefcountsame{map_obj}
 
-@sa bt_value_map_insert(): Inserts a value object into a given map
+@sa bt_value_map_insert_entry(): Inserts a value object into a given map
 	value object.
 */
-extern enum bt_value_status bt_value_map_insert_empty_map(
+extern enum bt_value_status bt_value_map_insert_empty_map_entry(
 		struct bt_value *map_obj, const char *key);
 
 /**

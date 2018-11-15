@@ -487,7 +487,7 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_ARRAY:
-		size = bt_value_array_size(value);
+		size = bt_value_array_get_size(value);
 		if (size < 0) {
 			goto error;
 		}
@@ -500,7 +500,8 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 
 		for (i = 0; i < size; i++) {
 			struct bt_value *element =
-					bt_value_array_get(value, i);
+				bt_value_array_borrow_element_by_index(
+					value, i);
 
 			if (!element) {
 				goto error;
@@ -526,7 +527,6 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			}
 
 			print_value_rec(fp, element, indent + 2);
-			BT_PUT(element);
 		}
 		break;
 	case BT_VALUE_TYPE_MAP:
@@ -542,7 +542,7 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			break;
 		}
 
-		bt_value_map_foreach(value, print_map_value, &data);
+		bt_value_map_foreach_entry(value, print_map_value, &data);
 		break;
 	}
 	default:
@@ -749,7 +749,7 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 {
 	int nr_paths, i, ret = 0;
 
-	nr_paths = bt_value_array_size(plugin_paths);
+	nr_paths = bt_value_array_get_size(plugin_paths);
 	if (nr_paths < 0) {
 		BT_LOGE_STR("Cannot load dynamic plugins: no plugin path.");
 		ret = -1;
@@ -764,11 +764,11 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		struct bt_plugin_set *plugin_set;
 		enum bt_value_status status;
 
-		plugin_path_value = bt_value_array_get(plugin_paths, i);
+		plugin_path_value = bt_value_array_borrow_element_by_index(
+			plugin_paths, i);
 		status = bt_value_string_get(plugin_path_value, &plugin_path);
 		if (status != BT_VALUE_STATUS_OK) {
 			BT_LOGD_STR("Cannot get plugin path string.");
-			BT_PUT(plugin_path_value);
 			continue;
 		}
 
@@ -780,7 +780,6 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		if (!g_file_test(plugin_path, G_FILE_TEST_IS_DIR)) {
 			BT_LOGV("Skipping nonexistent directory path: "
 				"path=\"%s\"", plugin_path);
-			BT_PUT(plugin_path_value);
 			continue;
 		}
 
@@ -788,13 +787,11 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		if (!plugin_set) {
 			BT_LOGD("Unable to load dynamic plugins: path=\"%s\"",
 				plugin_path);
-			BT_PUT(plugin_path_value);
 			continue;
 		}
 
 		add_to_loaded_plugins(plugin_set);
 		bt_put(plugin_set);
-		BT_PUT(plugin_path_value);
 	}
 end:
 	return ret;
@@ -1182,7 +1179,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		goto error;
 	}
 
-	ret = bt_value_map_insert_string(params, "url",
+	ret = bt_value_map_insert_string_entry(params, "url",
 		cfg->cmd_data.print_lttng_live_sessions.url->str);
 	if (ret) {
 		goto error;
@@ -1217,12 +1214,12 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		}
 	}
 
-	array_size = bt_value_array_size(results);
+	array_size = bt_value_array_get_size(results);
 	for (i = 0; i < array_size; i++) {
 		const char *url_text;
 		int64_t timer_us, streams, clients;
 
-		map = bt_value_array_get(results, i);
+		map = bt_value_array_borrow_element_by_index(results, i);
 		if (!map) {
 			BT_LOGE_STR("Unexpected empty array entry.");
 			goto error;
@@ -1232,7 +1229,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			goto error;
 		}
 
-		v = bt_value_map_get(map, "url");
+		v = bt_value_map_borrow_entry_value(map, "url");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"url\" entry.");
 			goto error;
@@ -1240,9 +1237,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		ret = bt_value_string_get(v, &url_text);
 		BT_ASSERT(ret == 0);
 		fprintf(out_stream, "%s", url_text);
-		BT_PUT(v);
-
-		v = bt_value_map_get(map, "timer-us");
+		v = bt_value_map_borrow_entry_value(map, "timer-us");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"timer-us\" entry.");
 			goto error;
@@ -1250,9 +1245,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		ret = bt_value_integer_get(v, &timer_us);
 		BT_ASSERT(ret == 0);
 		fprintf(out_stream, " (timer = %" PRIu64 ", ", timer_us);
-		BT_PUT(v);
-
-		v = bt_value_map_get(map, "stream-count");
+		v = bt_value_map_borrow_entry_value(map, "stream-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"stream-count\" entry.");
 			goto error;
@@ -1260,9 +1253,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		ret = bt_value_integer_get(v, &streams);
 		BT_ASSERT(ret == 0);
 		fprintf(out_stream, "%" PRIu64 " stream(s), ", streams);
-		BT_PUT(v);
-
-		v = bt_value_map_get(map, "client-count");
+		v = bt_value_map_borrow_entry_value(map, "client-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"client-count\" entry.");
 			goto error;
@@ -1270,9 +1261,6 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		ret = bt_value_integer_get(v, &clients);
 		BT_ASSERT(ret == 0);
 		fprintf(out_stream, "%" PRIu64 " client(s) connected)\n", clients);
-		BT_PUT(v);
-
-		BT_PUT(map);
 	}
 
 	goto end;
@@ -1289,8 +1277,6 @@ error:
 	ret = -1;
 
 end:
-	bt_put(v);
-	bt_put(map);
 	bt_put(results);
 	bt_put(params);
 	bt_put(comp_cls);
@@ -1349,7 +1335,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		goto end;
 	}
 
-	ret = bt_value_map_insert_string(params, "path",
+	ret = bt_value_map_insert_string_entry(params, "path",
 		cfg->cmd_data.print_ctf_metadata.path->str);
 	if (ret) {
 		ret = -1;
@@ -1361,7 +1347,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		goto failed;
 	}
 
-	metadata_text_value = bt_value_map_get(results, "text");
+	metadata_text_value = bt_value_map_borrow_entry_value(results, "text");
 	if (!metadata_text_value) {
 		BT_LOGE_STR("Cannot find `text` string value in the resulting metadata info object.");
 		ret = -1;
@@ -1405,7 +1391,6 @@ end:
 	destroy_the_query_executor();
 	bt_put(results);
 	bt_put(params);
-	bt_put(metadata_text_value);
 	bt_put(comp_cls);
 
 	if (out_stream && out_stream != stdout) {
@@ -1589,12 +1574,13 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 				goto error;
 			}
 
-			status = bt_value_map_insert_string(trimmer_params,
-				"begin", intersection_begin);
+			status = bt_value_map_insert_string_entry(
+				trimmer_params, "begin", intersection_begin);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto error;
 			}
-			status = bt_value_map_insert_string(trimmer_params,
+			status = bt_value_map_insert_string_entry(
+				trimmer_params,
 				"end", intersection_end);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto error;
@@ -2123,7 +2109,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	struct trace_range *trace_range = NULL;
 	const char *fail_reason = NULL;
 
-	component_path_value = bt_value_map_get(cfg_comp->params, "path");
+	component_path_value = bt_value_map_borrow_entry_value(cfg_comp->params,
+		"path");
 	if (component_path_value && !bt_value_is_string(component_path_value)) {
 		BT_LOGD("Cannot get path parameter: component-name=%s",
 			cfg_comp->instance_name->str);
@@ -2146,7 +2133,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		goto error;
 	}
 
-	value_status = bt_value_map_insert(query_params, "path", component_path_value);
+	value_status = bt_value_map_insert_entry(query_params, "path",
+		component_path_value);
 	if (value_status != BT_VALUE_STATUS_OK) {
 		BT_LOGE_STR("Cannot insert path parameter in query parameter map.");
 		ret = -1;
@@ -2173,7 +2161,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		goto error;
 	}
 
-	trace_count = bt_value_array_size(query_result);
+	trace_count = bt_value_array_get_size(query_result);
 	if (trace_count < 0) {
 		ret = -1;
 		goto error;
@@ -2184,14 +2172,15 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		uint64_t stream_idx;
 		int64_t stream_count;
 
-		trace_info = bt_value_array_get(query_result, trace_idx);
+		trace_info = bt_value_array_borrow_element_by_index(
+			query_result, trace_idx);
 		if (!trace_info || !bt_value_is_map(trace_info)) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve trace from query result.");
 			goto error;
 		}
 
-		intersection_range = bt_value_map_get(trace_info,
+		intersection_range = bt_value_map_borrow_entry_value(trace_info,
 			"intersection-range-ns");
 		if (!intersection_range) {
 			ret = -1;
@@ -2199,16 +2188,16 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		intersection_begin = bt_value_map_get(intersection_range,
-			"begin");
+		intersection_begin = bt_value_map_borrow_entry_value(
+			intersection_range, "begin");
 		if (!intersection_begin) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve intersection-range-ns \'begin\' field from query result.");
 			goto error;
 		}
 
-		intersection_end = bt_value_map_get(intersection_range,
-			"end");
+		intersection_end = bt_value_map_borrow_entry_value(
+			intersection_range, "end");
 		if (!intersection_end) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve intersection-range-ns \'end\' field from query result.");
@@ -2238,14 +2227,15 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		stream_infos = bt_value_map_get(trace_info, "streams");
+		stream_infos = bt_value_map_borrow_entry_value(trace_info,
+			"streams");
 		if (!stream_infos || !bt_value_is_array(stream_infos)) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve stream information from trace in query result.");
 			goto error;
 		}
 
-		stream_count = bt_value_array_size(stream_infos);
+		stream_count = bt_value_array_get_size(stream_infos);
 		if (stream_count < 0) {
 			ret = -1;
 			goto error;
@@ -2288,22 +2278,25 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			trace_range->intersection_range_begin_ns = begin;
 			trace_range->intersection_range_end_ns = end;
 
-			stream_info = bt_value_array_get(stream_infos,
-				stream_idx);
+			stream_info = bt_value_array_borrow_element_by_index(
+				stream_infos, stream_idx);
 			if (!stream_info || !bt_value_is_map(stream_info)) {
 				ret = -1;
 				BT_LOGD_STR("Cannot retrieve stream informations from trace in query result.");
 				goto error;
 			}
 
-			stream_paths = bt_value_map_get(stream_info, "paths");
+			stream_paths = bt_value_map_borrow_entry_value(
+				stream_info, "paths");
 			if (!stream_paths || !bt_value_is_array(stream_paths)) {
 				ret = -1;
 				BT_LOGD_STR("Cannot retrieve stream paths from trace in query result.");
 				goto error;
 			}
 
-			stream_path_value = bt_value_array_get(stream_paths, 0);
+			stream_path_value =
+				bt_value_array_borrow_element_by_index(
+					stream_paths, 0);
 			if (!stream_path_value ||
 				!bt_value_is_string(stream_path_value)) {
 				ret = -1;
@@ -2331,19 +2324,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 
 			port_id = NULL;
 			trace_range = NULL;
-			BT_PUT(stream_info);
-			BT_PUT(stream_paths);
-			BT_PUT(stream_path_value);
 		}
-
-		BT_PUT(trace_info);
-		BT_PUT(stream_paths);
-		BT_PUT(stream_path_value);
-		BT_PUT(intersection_range);
-		BT_PUT(intersection_begin);
-		BT_PUT(intersection_end);
-		BT_PUT(stream_paths);
-		BT_PUT(stream_path_value);
 	}
 
 	goto end;
@@ -2355,17 +2336,8 @@ error:
 		path ? path : "(unknown)",
 		bt_common_color_reset());
 end:
-	bt_put(component_path_value);
 	bt_put(query_params);
 	bt_put(query_result);
-	bt_put(trace_info);
-	bt_put(intersection_range);
-	bt_put(intersection_begin);
-	bt_put(intersection_end);
-	bt_put(stream_infos);
-	bt_put(stream_info);
-	bt_put(stream_paths);
-	bt_put(stream_path_value);
 	g_free(port_id);
 	g_free(trace_range);
 	return ret;
