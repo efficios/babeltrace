@@ -51,7 +51,6 @@
 
 /* Legacy API (for CTF writer) */
 #include <babeltrace/ctf-ir/clock.h>
-#include <babeltrace/ctf-ir/event-class.h>
 #include <babeltrace/ctf-ir/event-fields.h>
 #include <babeltrace/ctf-ir/event-types.h>
 #include <babeltrace/ctf-ir/event.h>
