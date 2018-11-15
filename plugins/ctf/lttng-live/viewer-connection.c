@@ -300,7 +300,7 @@ enum bt_value_status list_update_session(struct bt_value *results,
 	int i, len;
 	bool found = false;
 
-	len = bt_value_array_size(results);
+	len = bt_value_array_get_size(results);
 	if (len < 0) {
 		ret = BT_VALUE_STATUS_ERROR;
 		goto end;
@@ -433,7 +433,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	g_string_append_c(url, '/');
 	g_string_append(url, session->session_name);
 
-	ret = bt_value_map_insert_string(map, "url", url->str);
+	ret = bt_value_map_insert_string_entry(map, "url", url->str);
 	if (ret != BT_VALUE_STATUS_OK) {
 		goto end;
 	}
@@ -442,7 +442,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	 * key = "target-hostname",
 	 * value = <string>,
 	 */
-	ret = bt_value_map_insert_string(map, "target-hostname",
+	ret = bt_value_map_insert_string_entry(map, "target-hostname",
 		session->hostname);
 	if (ret != BT_VALUE_STATUS_OK) {
 		goto end;
@@ -452,7 +452,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	 * key = "session-name",
 	 * value = <string>,
 	 */
-	ret = bt_value_map_insert_string(map, "session-name",
+	ret = bt_value_map_insert_string_entry(map, "session-name",
 		session->session_name);
 	if (ret != BT_VALUE_STATUS_OK) {
 		goto end;
@@ -465,7 +465,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	{
 		uint32_t live_timer = be32toh(session->live_timer);
 
-		ret = bt_value_map_insert_integer(map, "timer-us",
+		ret = bt_value_map_insert_integer_entry(map, "timer-us",
 			live_timer);
 		if (ret != BT_VALUE_STATUS_OK) {
 			goto end;
@@ -479,7 +479,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	{
 		uint32_t streams = be32toh(session->streams);
 
-		ret = bt_value_map_insert_integer(map, "stream-count",
+		ret = bt_value_map_insert_integer_entry(map, "stream-count",
 			streams);
 		if (ret != BT_VALUE_STATUS_OK) {
 			goto end;
@@ -494,14 +494,14 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	{
 		uint32_t clients = be32toh(session->clients);
 
-		ret = bt_value_map_insert_integer(map, "client-count",
+		ret = bt_value_map_insert_integer_entry(map, "client-count",
 			clients);
 		if (ret != BT_VALUE_STATUS_OK) {
 			goto end;
 		}
 	}
 
-	ret = bt_value_array_append(results, map);
+	ret = bt_value_array_append_element(results, map);
 end:
 	if (url) {
 		g_string_free(url, TRUE);

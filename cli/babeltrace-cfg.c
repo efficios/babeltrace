@@ -59,7 +59,7 @@ enum bt_value_status bt_config_append_plugin_paths(
 	for (i = 0; i < dirs->len; i++) {
 		GString *dir = g_ptr_array_index(dirs, i);
 
-		status = bt_value_array_append_string(plugin_paths, dir->str);
+		status = bt_value_array_append_string_element(plugin_paths, dir->str);
 		if (status != BT_VALUE_STATUS_OK) {
 			break;
 		}

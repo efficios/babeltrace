@@ -78,7 +78,7 @@ struct bt_component_class_query_method_return metadata_info_query(
 		goto error;
 	}
 
-	path_value = bt_value_map_borrow(params, "path");
+	path_value = bt_value_map_borrow_entry_value(params, "path");
 	ret = bt_value_string_get(path_value, &path);
 	if (ret) {
 		BT_LOGE_STR("Cannot get `path` string parameter.");
@@ -148,14 +148,14 @@ struct bt_component_class_query_method_return metadata_info_query(
 
 	g_string_append(g_metadata_text, metadata_text);
 
-	ret = bt_value_map_insert_string(query_ret.result, "text",
+	ret = bt_value_map_insert_string_entry(query_ret.result, "text",
 		g_metadata_text->str);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert metadata text into query result.");
 		goto error;
 	}
 
-	ret = bt_value_map_insert_bool(query_ret.result, "is-packetized",
+	ret = bt_value_map_insert_bool_entry(query_ret.result, "is-packetized",
 		is_packetized);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert \"is-packetized\" attribute into query result.");
@@ -204,21 +204,21 @@ int add_range(struct bt_value *info, struct range *range,
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer(range_map, "begin",
+	status = bt_value_map_insert_integer_entry(range_map, "begin",
 			range->begin_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer(range_map, "end",
+	status = bt_value_map_insert_integer_entry(range_map, "end",
 			range->end_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_value_map_insert(info, range_name, range_map);
+	status = bt_value_map_insert_entry(info, range_name, range_map);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -238,7 +238,7 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 
 	stream_instance_id = bt_stream_get_id(stream);
 	if (stream_instance_id != -1) {
-		status = bt_value_map_insert_integer(info, "id",
+		status = bt_value_map_insert_integer_entry(info, "id",
 				stream_instance_id);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
@@ -258,7 +258,7 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer(info, "class-id", stream_class_id);
+	status = bt_value_map_insert_integer_entry(info, "class-id", stream_class_id);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -300,7 +300,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 			goto end;
 		}
 
-		status = bt_value_array_append_string(file_paths,
+		status = bt_value_array_append_string_element(file_paths,
 				info->path->str);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
@@ -328,7 +328,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		}
 	}
 
-	status = bt_value_map_insert(group_info, "paths", file_paths);
+	status = bt_value_map_insert_entry(group_info, "paths", file_paths);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -368,13 +368,13 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		goto end;
 	}
 
-	status = bt_value_map_insert_string(trace_info, "name",
+	status = bt_value_map_insert_string_entry(trace_info, "name",
 			trace_name);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
-	status = bt_value_map_insert_string(trace_info, "path",
+	status = bt_value_map_insert_string_entry(trace_info, "path",
 			trace_path);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -427,7 +427,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 			trace_intersection.end_ns = min(trace_intersection.end_ns,
 					group_range.end_ns);
 			trace_intersection.set = true;
-			status = bt_value_array_append(file_groups, group_info);
+			status = bt_value_array_append_element(file_groups, group_info);
 			bt_put(group_info);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto end;
@@ -448,7 +448,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		}
 	}
 
-	status = bt_value_map_insert(trace_info, "streams", file_groups);
+	status = bt_value_map_insert_entry(trace_info, "streams", file_groups);
 	BT_PUT(file_groups);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -488,7 +488,7 @@ struct bt_component_class_query_method_return trace_info_query(
 		goto error;
 	}
 
-	path_value = bt_value_map_borrow(params, "path");
+	path_value = bt_value_map_borrow_entry_value(params, "path");
 	ret = bt_value_string_get(path_value, &path);
 	if (ret) {
 		BT_LOGE("Cannot get `path` string parameter.");
@@ -543,7 +543,7 @@ struct bt_component_class_query_method_return trace_info_query(
 			goto error;
 		}
 
-		status = bt_value_array_append(query_ret.result, trace_info);
+		status = bt_value_array_append_element(query_ret.result, trace_info);
 		bt_put(trace_info);
 		if (status != BT_VALUE_STATUS_OK) {
 			goto error;

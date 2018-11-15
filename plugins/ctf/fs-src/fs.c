@@ -1268,14 +1268,14 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	 * private component should also exist.
 	 */
 	ctf_fs->priv_comp = priv_comp;
-	value = bt_value_map_borrow(params, "path");
+	value = bt_value_map_borrow_entry_value(params, "path");
 	if (value && !bt_value_is_string(value)) {
 		goto error;
 	}
 
 	value_ret = bt_value_string_get(value, &path_param);
 	BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
-	value = bt_value_map_borrow(params, "clock-class-offset-s");
+	value = bt_value_map_borrow_entry_value(params, "clock-class-offset-s");
 	if (value) {
 		if (!bt_value_is_integer(value)) {
 			BT_LOGE("clock-class-offset-s should be an integer");
@@ -1286,7 +1286,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
 	}
 
-	value = bt_value_map_borrow(params, "clock-class-offset-ns");
+	value = bt_value_map_borrow_entry_value(params, "clock-class-offset-ns");
 	if (value) {
 		if (!bt_value_is_integer(value)) {
 			BT_LOGE("clock-class-offset-ns should be an integer");
