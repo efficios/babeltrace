@@ -29,11 +29,11 @@
 
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/ctf-ir/event.h>
-#include <babeltrace/ctf-ir/event-internal.h>
-#include <babeltrace/ctf-ir/event-class-internal.h>
-#include <babeltrace/ctf-ir/stream-class-internal.h>
-#include <babeltrace/ctf-ir/trace.h>
+#include <babeltrace/trace-ir/event.h>
+#include <babeltrace/trace-ir/event-internal.h>
+#include <babeltrace/trace-ir/event-class-internal.h>
+#include <babeltrace/trace-ir/stream-class-internal.h>
+#include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>

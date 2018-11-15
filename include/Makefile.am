@@ -29,24 +29,39 @@ babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/visitor.h \
 	babeltrace/ctf-writer/writer.h
 
-# CTF IR API
+# Legacy API (for CTF writer)
 babeltracectfirincludedir = "$(includedir)/babeltrace/ctf-ir"
 babeltracectfirinclude_HEADERS = \
-	babeltrace/ctf-ir/clock-class.h \
-	babeltrace/ctf-ir/clock-value.h \
 	babeltrace/ctf-ir/clock.h \
 	babeltrace/ctf-ir/event-class.h \
+	babeltrace/ctf-ir/event-fields.h \
+	babeltrace/ctf-ir/event-types.h \
 	babeltrace/ctf-ir/event.h \
-	babeltrace/ctf-ir/event-header-field.h \
-	babeltrace/ctf-ir/field-path.h \
 	babeltrace/ctf-ir/field-types.h \
 	babeltrace/ctf-ir/fields.h \
-	babeltrace/ctf-ir/packet.h \
-	babeltrace/ctf-ir/packet-context-field.h \
-	babeltrace/ctf-ir/packet-header-field.h \
 	babeltrace/ctf-ir/stream-class.h \
 	babeltrace/ctf-ir/stream.h \
-	babeltrace/ctf-ir/trace.h
+	babeltrace/ctf-ir/trace.h \
+	babeltrace/ctf-ir/utils.h
+
+
+# Trace IR API
+babeltracetraceirincludedir = "$(includedir)/babeltrace/trace-ir"
+babeltracetraceirinclude_HEADERS = \
+	babeltrace/trace-ir/clock-class.h \
+	babeltrace/trace-ir/clock-value.h \
+	babeltrace/trace-ir/event-class.h \
+	babeltrace/trace-ir/event.h \
+	babeltrace/trace-ir/event-header-field.h \
+	babeltrace/trace-ir/field-path.h \
+	babeltrace/trace-ir/field-types.h \
+	babeltrace/trace-ir/fields.h \
+	babeltrace/trace-ir/packet.h \
+	babeltrace/trace-ir/packet-context-field.h \
+	babeltrace/trace-ir/packet-header-field.h \
+	babeltrace/trace-ir/stream-class.h \
+	babeltrace/trace-ir/stream.h \
+	babeltrace/trace-ir/trace.h
 
 # Plugin and plugin development API
 babeltracepluginincludedir = "$(includedir)/babeltrace/plugin"
@@ -132,21 +147,21 @@ noinst_HEADERS = \
 	babeltrace/align-internal.h \
 	babeltrace/logging-internal.h \
 	babeltrace/endian-internal.h \
-	babeltrace/ctf-ir/packet-internal.h \
-	babeltrace/ctf-ir/event-class-internal.h \
-	babeltrace/ctf-ir/utils-internal.h \
-	babeltrace/ctf-ir/fields-internal.h \
-	babeltrace/ctf-ir/stream-class-internal.h \
-	babeltrace/ctf-ir/event-internal.h \
-	babeltrace/ctf-ir/field-path-internal.h \
-	babeltrace/ctf-ir/field-wrapper-internal.h \
-	babeltrace/ctf-ir/trace-internal.h \
-	babeltrace/ctf-ir/clock-class-internal.h \
-	babeltrace/ctf-ir/field-types-internal.h \
-	babeltrace/ctf-ir/clock-value-internal.h \
-	babeltrace/ctf-ir/attributes-internal.h \
-	babeltrace/ctf-ir/stream-internal.h \
-	babeltrace/ctf-ir/resolve-field-path-internal.h \
+	babeltrace/trace-ir/packet-internal.h \
+	babeltrace/trace-ir/event-class-internal.h \
+	babeltrace/trace-ir/utils-internal.h \
+	babeltrace/trace-ir/fields-internal.h \
+	babeltrace/trace-ir/stream-class-internal.h \
+	babeltrace/trace-ir/event-internal.h \
+	babeltrace/trace-ir/field-path-internal.h \
+	babeltrace/trace-ir/field-wrapper-internal.h \
+	babeltrace/trace-ir/trace-internal.h \
+	babeltrace/trace-ir/clock-class-internal.h \
+	babeltrace/trace-ir/field-types-internal.h \
+	babeltrace/trace-ir/clock-value-internal.h \
+	babeltrace/trace-ir/attributes-internal.h \
+	babeltrace/trace-ir/stream-internal.h \
+	babeltrace/trace-ir/resolve-field-path-internal.h \
 	babeltrace/prio-heap-internal.h \
 	babeltrace/lib-logging-internal.h \
 	babeltrace/compiler-internal.h \

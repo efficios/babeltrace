@@ -1,7 +1,7 @@
 /*
  * test_ir_visit.c
  *
- * CTF IR visitor interface test
+ * Trace IR visitor interface test
  *
  * Copyright 2016 - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -21,11 +21,11 @@
 
 #include "tap/tap.h"
 #include <babeltrace/ref.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/field-types.h>
-#include <babeltrace/ctf-ir/stream-class.h>
-#include <babeltrace/ctf-ir/trace.h>
-#include <babeltrace/ctf-ir/visitor.h>
+#include <babeltrace/trace-ir/event-class.h>
+#include <babeltrace/trace-ir/field-types.h>
+#include <babeltrace/trace-ir/stream-class.h>
+#include <babeltrace/trace-ir/trace.h>
+#include <babeltrace/trace-ir/visitor.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>

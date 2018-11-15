@@ -28,8 +28,8 @@
  */
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-ir/event-class.h>
-#include <babeltrace/ctf-ir/event.h>
+#include <babeltrace/trace-ir/event-class.h>
+#include <babeltrace/trace-ir/event.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/assert-internal.h>
 

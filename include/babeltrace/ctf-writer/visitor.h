@@ -40,7 +40,7 @@ extern "C" {
 @brief CTF IR visitor.
 
 @code
-#include <babeltrace/ctf-ir/visitor.h>
+#include <babeltrace/trace-ir/visitor.h>
 @endcode
 
 A CTF IR <strong><em>visitor</em></strong> is a function that you
