@@ -45,7 +45,7 @@
 #define BT_VALUE_FROM_CONCRETE(_concrete) ((struct bt_value *) (_concrete))
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
 #define BT_VALUE_TO_INTEGER(_base) ((struct bt_value_integer *) (_base))
-#define BT_VALUE_TO_FLOAT(_base) ((struct bt_value_float *) (_base))
+#define BT_VALUE_TO_REAL(_base) ((struct bt_value_real *) (_base))
 #define BT_VALUE_TO_STRING(_base) ((struct bt_value_string *) (_base))
 #define BT_VALUE_TO_ARRAY(_base) ((struct bt_value_array *) (_base))
 #define BT_VALUE_TO_MAP(_base) ((struct bt_value_map *) (_base))
@@ -103,7 +103,7 @@ struct bt_value_integer {
 	int64_t value;
 };
 
-struct bt_value_float {
+struct bt_value_real {
 	struct bt_value base;
 	double value;
 };
@@ -158,7 +158,7 @@ void (* const destroy_funcs[])(struct bt_value *) = {
 	[BT_VALUE_TYPE_NULL] =		NULL,
 	[BT_VALUE_TYPE_BOOL] =		NULL,
 	[BT_VALUE_TYPE_INTEGER] =	NULL,
-	[BT_VALUE_TYPE_FLOAT] =		NULL,
+	[BT_VALUE_TYPE_REAL] =		NULL,
 	[BT_VALUE_TYPE_STRING] =	bt_value_string_destroy,
 	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_destroy,
 	[BT_VALUE_TYPE_MAP] =		bt_value_map_destroy,
@@ -184,10 +184,10 @@ struct bt_value *bt_value_integer_copy(const struct bt_value *integer_obj)
 }
 
 static
-struct bt_value *bt_value_float_copy(const struct bt_value *float_obj)
+struct bt_value *bt_value_real_copy(const struct bt_value *real_obj)
 {
-	return bt_value_float_create_init(
-		BT_VALUE_TO_FLOAT(float_obj)->value);
+	return bt_value_real_create_init(
+		BT_VALUE_TO_REAL(real_obj)->value);
 }
 
 static
@@ -302,7 +302,7 @@ struct bt_value *(* const copy_funcs[])(const struct bt_value *) = {
 	[BT_VALUE_TYPE_NULL] =		bt_value_null_copy,
 	[BT_VALUE_TYPE_BOOL] =		bt_value_bool_copy,
 	[BT_VALUE_TYPE_INTEGER] =	bt_value_integer_copy,
-	[BT_VALUE_TYPE_FLOAT] =		bt_value_float_copy,
+	[BT_VALUE_TYPE_REAL] =		bt_value_real_copy,
 	[BT_VALUE_TYPE_STRING] =	bt_value_string_copy,
 	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_copy,
 	[BT_VALUE_TYPE_MAP] =		bt_value_map_copy,
@@ -353,15 +353,15 @@ bt_bool bt_value_integer_compare(const struct bt_value *object_a,
 }
 
 static
-bt_bool bt_value_float_compare(const struct bt_value *object_a,
+bt_bool bt_value_real_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
-	if (BT_VALUE_TO_FLOAT(object_a)->value !=
-			BT_VALUE_TO_FLOAT(object_b)->value) {
-		BT_LOGV("Floating point number value objects are different: "
-			"float-a-val=%f, float-b-val=%f",
-			BT_VALUE_TO_FLOAT(object_a)->value,
-			BT_VALUE_TO_FLOAT(object_b)->value);
+	if (BT_VALUE_TO_REAL(object_a)->value !=
+			BT_VALUE_TO_REAL(object_b)->value) {
+		BT_LOGV("Real number value objects are different: "
+			"real-a-val=%f, real-b-val=%f",
+			BT_VALUE_TO_REAL(object_a)->value,
+			BT_VALUE_TO_REAL(object_b)->value);
 		return BT_FALSE;
 	}
 
@@ -471,7 +471,7 @@ bt_bool (* const compare_funcs[])(const struct bt_value *,
 	[BT_VALUE_TYPE_NULL] =		bt_value_null_compare,
 	[BT_VALUE_TYPE_BOOL] =		bt_value_bool_compare,
 	[BT_VALUE_TYPE_INTEGER] =	bt_value_integer_compare,
-	[BT_VALUE_TYPE_FLOAT] =		bt_value_float_compare,
+	[BT_VALUE_TYPE_REAL] =		bt_value_real_compare,
 	[BT_VALUE_TYPE_STRING] =	bt_value_string_compare,
 	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_compare,
 	[BT_VALUE_TYPE_MAP] =		bt_value_map_compare,
@@ -523,7 +523,7 @@ void (* const freeze_funcs[])(struct bt_value *) = {
 	[BT_VALUE_TYPE_NULL] =		bt_value_null_freeze,
 	[BT_VALUE_TYPE_BOOL] =		bt_value_generic_freeze,
 	[BT_VALUE_TYPE_INTEGER] =	bt_value_generic_freeze,
-	[BT_VALUE_TYPE_FLOAT] =		bt_value_generic_freeze,
+	[BT_VALUE_TYPE_REAL] =		bt_value_generic_freeze,
 	[BT_VALUE_TYPE_STRING] =	bt_value_generic_freeze,
 	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_freeze,
 	[BT_VALUE_TYPE_MAP] =		bt_value_map_freeze,
@@ -633,29 +633,29 @@ struct bt_value *bt_value_integer_create(void)
 	return bt_value_integer_create_init(0);
 }
 
-struct bt_value *bt_value_float_create_init(double val)
+struct bt_value *bt_value_real_create_init(double val)
 {
-	struct bt_value_float *float_obj;
+	struct bt_value_real *real_obj;
 
-	BT_LOGD("Creating floating point number value object: val=%f", val);
-	float_obj = g_new0(struct bt_value_float, 1);
-	if (!float_obj) {
-		BT_LOGE_STR("Failed to allocate one floating point number value object.");
+	BT_LOGD("Creating real number value object: val=%f", val);
+	real_obj = g_new0(struct bt_value_real, 1);
+	if (!real_obj) {
+		BT_LOGE_STR("Failed to allocate one real number value object.");
 		goto end;
 	}
 
-	float_obj->base = bt_value_create_base(BT_VALUE_TYPE_FLOAT);
-	float_obj->value = val;
-	BT_LOGD("Created floating point number value object: addr=%p",
-		float_obj);
+	real_obj->base = bt_value_create_base(BT_VALUE_TYPE_REAL);
+	real_obj->value = val;
+	BT_LOGD("Created real number value object: addr=%p",
+		real_obj);
 
 end:
-	return BT_VALUE_FROM_CONCRETE(float_obj);
+	return BT_VALUE_FROM_CONCRETE(real_obj);
 }
 
-struct bt_value *bt_value_float_create(void)
+struct bt_value *bt_value_real_create(void)
 {
-	return bt_value_float_create_init(0.);
+	return bt_value_real_create_init(0.);
 }
 
 struct bt_value *bt_value_string_create_init(const char *val)
@@ -794,25 +794,25 @@ enum bt_value_status bt_value_integer_set(struct bt_value *integer_obj,
 	return BT_VALUE_STATUS_OK;
 }
 
-enum bt_value_status bt_value_float_get(const struct bt_value *float_obj,
+enum bt_value_status bt_value_real_get(const struct bt_value *real_obj,
 		double *val)
 {
-	BT_ASSERT_PRE_NON_NULL(float_obj, "Value object");
+	BT_ASSERT_PRE_NON_NULL(real_obj, "Value object");
 	BT_ASSERT_PRE_NON_NULL(val, "Raw value");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(float_obj, BT_VALUE_TYPE_FLOAT);
-	*val = BT_VALUE_TO_FLOAT(float_obj)->value;
+	BT_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_VALUE_TYPE_REAL);
+	*val = BT_VALUE_TO_REAL(real_obj)->value;
 	return BT_VALUE_STATUS_OK;
 }
 
-enum bt_value_status bt_value_float_set(struct bt_value *float_obj,
+enum bt_value_status bt_value_real_set(struct bt_value *real_obj,
 		double val)
 {
-	BT_ASSERT_PRE_NON_NULL(float_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(float_obj, BT_VALUE_TYPE_FLOAT);
-	BT_ASSERT_PRE_VALUE_HOT(float_obj, "Value object");
-	BT_VALUE_TO_FLOAT(float_obj)->value = val;
-	BT_LOGV("Set floating point number value's raw value: value-addr=%p, value=%f",
-		float_obj, val);
+	BT_ASSERT_PRE_NON_NULL(real_obj, "Value object");
+	BT_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_VALUE_TYPE_REAL);
+	BT_ASSERT_PRE_VALUE_HOT(real_obj, "Value object");
+	BT_VALUE_TO_REAL(real_obj)->value = val;
+	BT_LOGV("Set real number value's raw value: value-addr=%p, value=%f",
+		real_obj, val);
 	return BT_VALUE_STATUS_OK;
 }
 
@@ -906,15 +906,15 @@ enum bt_value_status bt_value_array_append_integer(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_float(struct bt_value *array_obj,
+enum bt_value_status bt_value_array_append_real(struct bt_value *array_obj,
 		double val)
 {
 	enum bt_value_status ret;
-	struct bt_value *float_obj = NULL;
+	struct bt_value *real_obj = NULL;
 
-	float_obj = bt_value_float_create_init(val);
-	ret = bt_value_array_append(array_obj, float_obj);
-	bt_put(float_obj);
+	real_obj = bt_value_real_create_init(val);
+	ret = bt_value_array_append(array_obj, real_obj);
+	bt_put(real_obj);
 	return ret;
 }
 
@@ -1046,15 +1046,15 @@ enum bt_value_status bt_value_map_insert_integer(struct bt_value *map_obj,
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_float(struct bt_value *map_obj,
+enum bt_value_status bt_value_map_insert_real(struct bt_value *map_obj,
 		const char *key, double val)
 {
 	enum bt_value_status ret;
-	struct bt_value *float_obj = NULL;
+	struct bt_value *real_obj = NULL;
 
-	float_obj = bt_value_float_create_init(val);
-	ret = bt_value_map_insert(map_obj, key, float_obj);
-	bt_put(float_obj);
+	real_obj = bt_value_real_create_init(val);
+	ret = bt_value_map_insert(map_obj, key, real_obj);
+	bt_put(real_obj);
 	return ret;
 }
 

@@ -298,7 +298,7 @@ int ini_handle_state(struct ini_parsing_state *state)
 		}
 		case G_TOKEN_FLOAT:
 			/* Positive floating point number */
-			value = bt_value_float_create_init(
+			value = bt_value_real_create_init(
 				state->scanner->value.v_float);
 			break;
 		case G_TOKEN_STRING:
@@ -372,7 +372,7 @@ int ini_handle_state(struct ini_parsing_state *state)
 		}
 		case G_TOKEN_FLOAT:
 			/* Negative floating point number */
-			value = bt_value_float_create_init(
+			value = bt_value_real_create_init(
 				-state->scanner->value.v_float);
 			break;
 		default:

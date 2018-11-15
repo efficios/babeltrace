@@ -232,7 +232,7 @@ enum bt_value_type {
 	BT_VALUE_TYPE_INTEGER =		2,
 
 	/// Floating point number value object (holds a \c double raw value).
-	BT_VALUE_TYPE_FLOAT =		3,
+	BT_VALUE_TYPE_REAL =		3,
 
 	/// String value object.
 	BT_VALUE_TYPE_STRING =		4,
@@ -342,9 +342,9 @@ bt_bool bt_value_is_integer(const struct bt_value *object)
 @sa bt_value_get_type(): Returns the type of a given value object.
 */
 static inline
-bt_bool bt_value_is_float(const struct bt_value *object)
+bt_bool bt_value_is_real(const struct bt_value *object)
 {
-	return bt_value_get_type(object) == BT_VALUE_TYPE_FLOAT;
+	return bt_value_get_type(object) == BT_VALUE_TYPE_REAL;
 }
 
 /**
@@ -614,7 +614,7 @@ The created floating point number value object's initial raw value is 0.
 @sa bt_value_float_create_init(): Creates an initialized floating
 	point number value object.
 */
-extern struct bt_value *bt_value_float_create(void);
+extern struct bt_value *bt_value_real_create(void);
 
 /**
 @brief	Creates a floating point number value object with its initial raw
@@ -629,7 +629,7 @@ extern struct bt_value *bt_value_float_create(void);
 @sa bt_value_float_create(): Creates a default floating point number
 	value object.
 */
-extern struct bt_value *bt_value_float_create_init(double val);
+extern struct bt_value *bt_value_real_create_init(double val);
 
 /**
 @brief	Returns the floating point number raw value of the floating point
@@ -648,8 +648,8 @@ extern struct bt_value *bt_value_float_create_init(double val);
 @sa bt_value_float_set(): Sets the raw value of a given floating
 	point number value object.
 */
-extern enum bt_value_status bt_value_float_get(
-		const struct bt_value *float_obj, double *val);
+extern enum bt_value_status bt_value_real_get(
+		const struct bt_value *real_obj, double *val);
 
 /**
 @brief	Sets the floating point number raw value of the floating point
@@ -668,8 +668,8 @@ extern enum bt_value_status bt_value_float_get(
 @sa bt_value_float_get(): Returns the raw value of a floating point
 	number value object.
 */
-extern enum bt_value_status bt_value_float_set(
-		struct bt_value *float_obj, double val);
+extern enum bt_value_status bt_value_real_set(
+		struct bt_value *real_obj, double val);
 
 /** @} */
 
@@ -935,7 +935,7 @@ point number value object before appending it.
 @sa bt_value_array_append(): Appends a value object to a given
 	array value object.
 */
-extern enum bt_value_status bt_value_array_append_float(
+extern enum bt_value_status bt_value_array_append_real(
 		struct bt_value *array_obj, double val);
 
 /**
@@ -1306,7 +1306,7 @@ On success, \p key is copied.
 @sa bt_value_map_insert(): Inserts a value object into a given map
 	value object.
 */
-extern enum bt_value_status bt_value_map_insert_float(
+extern enum bt_value_status bt_value_map_insert_real(
 		struct bt_value *map_obj, const char *key, double val);
 
 /**

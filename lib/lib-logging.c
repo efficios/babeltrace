@@ -819,11 +819,11 @@ static inline void format_value(char **buf_ch, bool extended,
 		BUF_APPEND(", %svalue=%" PRId64, PRFIELD(val));
 		break;
 	}
-	case BT_VALUE_TYPE_FLOAT:
+	case BT_VALUE_TYPE_REAL:
 	{
 		double val;
 
-		(void) bt_value_float_get(value, &val);
+		(void) bt_value_real_get(value, &val);
 		BUF_APPEND(", %svalue=%f", PRFIELD(val));
 		break;
 	}
