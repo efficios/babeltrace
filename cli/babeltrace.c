@@ -468,8 +468,8 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			bt_common_color_fg_red(), int_val,
 			bt_common_color_reset());
 		break;
-	case BT_VALUE_TYPE_FLOAT:
-		status = bt_value_float_get(value, &dbl_val);
+	case BT_VALUE_TYPE_REAL:
+		status = bt_value_real_get(value, &dbl_val);
 		if (status != BT_VALUE_STATUS_OK) {
 			goto error;
 		}

@@ -109,35 +109,35 @@ void test_integer(void)
 }
 
 static
-void test_float(void)
+void test_real(void)
 {
 	int ret;
 	double value;
 	struct bt_value *obj;
 
-	obj = bt_value_float_create();
-	ok(obj && bt_value_is_float(obj),
-		"bt_value_float_create() returns a floating point number value object");
+	obj = bt_value_real_create();
+	ok(obj && bt_value_is_real(obj),
+		"bt_value_real_create() returns a real number value object");
 
 	value = 17.34;
-	ret = bt_value_float_get(obj, &value);
+	ret = bt_value_real_get(obj, &value);
 	ok(!ret && value == 0.,
-		"default floating point number value object value is 0");
+		"default real number value object value is 0");
 
-	ret = bt_value_float_set(obj, -3.1416);
-	ok(!ret, "bt_value_float_set() succeeds");
-	ret = bt_value_float_get(obj, &value);
-	ok(!ret && value == -3.1416, "bt_value_float_set() works");
+	ret = bt_value_real_set(obj, -3.1416);
+	ok(!ret, "bt_value_real_set() succeeds");
+	ret = bt_value_real_get(obj, &value);
+	ok(!ret && value == -3.1416, "bt_value_real_set() works");
 
 	BT_PUT(obj);
-	pass("putting an existing floating point number value object does not cause a crash")
+	pass("putting an existing real number value object does not cause a crash")
 
-	obj = bt_value_float_create_init(33.1649758);
-	ok(obj && bt_value_is_float(obj),
-		"bt_value_float_create_init() returns a floating point number value object");
-	ret = bt_value_float_get(obj, &value);
+	obj = bt_value_real_create_init(33.1649758);
+	ok(obj && bt_value_is_real(obj),
+		"bt_value_real_create_init() returns a real number value object");
+	ret = bt_value_real_get(obj, &value);
 	ok(!ret && value == 33.1649758,
-		"bt_value_float_create_init() sets the appropriate initial value");
+		"bt_value_real_create_init() sets the appropriate initial value");
 
 	BT_PUT(obj);
 }
@@ -182,7 +182,7 @@ void test_array(void)
 	int ret;
 	bt_bool bool_value;
 	int64_t int_value;
-	double float_value;
+	double real_value;
 	struct bt_value *obj;
 	const char *string_value;
 	struct bt_value *array_obj;
@@ -196,7 +196,7 @@ void test_array(void)
 	obj = bt_value_integer_create_init(345);
 	ret = bt_value_array_append(array_obj, obj);
 	BT_PUT(obj);
-	obj = bt_value_float_create_init(-17.45);
+	obj = bt_value_real_create_init(-17.45);
 	ret |= bt_value_array_append(array_obj, obj);
 	BT_PUT(obj);
 	obj = bt_value_bool_create_init(BT_TRUE);
@@ -215,11 +215,11 @@ void test_array(void)
 		"bt_value_array_get() returns an value object with the appropriate value (integer)");
 	BT_PUT(obj);
 	obj = bt_value_array_get(array_obj, 1);
-	ok(obj && bt_value_is_float(obj),
-		"bt_value_array_get() returns an value object with the appropriate type (floating point number)");
-	ret = bt_value_float_get(obj, &float_value);
-	ok(!ret && float_value == -17.45,
-		"bt_value_array_get() returns an value object with the appropriate value (floating point number)");
+	ok(obj && bt_value_is_real(obj),
+		"bt_value_array_get() returns an value object with the appropriate type (real number)");
+	ret = bt_value_real_get(obj, &real_value);
+	ok(!ret && real_value == -17.45,
+		"bt_value_array_get() returns an value object with the appropriate value (real number)");
 	BT_PUT(obj);
 	obj = bt_value_array_get(array_obj, 2);
 	ok(obj && bt_value_is_bool(obj),
@@ -250,8 +250,8 @@ void test_array(void)
 	ok(!ret, "bt_value_array_append_bool() succeeds");
 	ret = bt_value_array_append_integer(array_obj, 98765);
 	ok(!ret, "bt_value_array_append_integer() succeeds");
-	ret = bt_value_array_append_float(array_obj, 2.49578);
-	ok(!ret, "bt_value_array_append_float() succeeds");
+	ret = bt_value_array_append_real(array_obj, 2.49578);
+	ok(!ret, "bt_value_array_append_real() succeeds");
 	ret = bt_value_array_append_string(array_obj, "bt_value");
 	ok(!ret, "bt_value_array_append_string() succeeds");
 	ret = bt_value_array_append_empty_array(array_obj);
@@ -279,11 +279,11 @@ void test_array(void)
 		"bt_value_array_append_integer() appends the appropriate value");
 	BT_PUT(obj);
 	obj = bt_value_array_get(array_obj, 6);
-	ok(obj && bt_value_is_float(obj),
-		"bt_value_array_append_float() appends a floating point number value object");
-	ret = bt_value_float_get(obj, &float_value);
-	ok(!ret && float_value == 2.49578,
-		"bt_value_array_append_float() appends the appropriate value");
+	ok(obj && bt_value_is_real(obj),
+		"bt_value_array_append_real() appends a real number value object");
+	ret = bt_value_real_get(obj, &real_value);
+	ok(!ret && real_value == 2.49578,
+		"bt_value_array_append_real() appends the appropriate value");
 	BT_PUT(obj);
 	obj = bt_value_array_get(array_obj, 7);
 	ok(obj && bt_value_is_string(obj),
@@ -327,11 +327,11 @@ bt_bool test_map_foreach_cb_count(const char *key, struct bt_value *object,
 struct map_foreach_checklist {
 	bt_bool bool1;
 	bt_bool int1;
-	bt_bool float1;
+	bt_bool real1;
 	bt_bool null1;
 	bt_bool bool2;
 	bt_bool int2;
-	bt_bool float2;
+	bt_bool real2;
 	bt_bool string2;
 	bt_bool array2;
 	bt_bool map2;
@@ -376,20 +376,20 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 				fail("test_map_foreach_cb_check(): \"int\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "float")) {
-		if (checklist->float1) {
-			fail("test_map_foreach_cb_check(): duplicate key \"float\"");
+	} else if (!strcmp(key, "real")) {
+		if (checklist->real1) {
+			fail("test_map_foreach_cb_check(): duplicate key \"real\"");
 		} else {
 			double val = 0;
 
-			ret = bt_value_float_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"float\" value");
+			ret = bt_value_real_get(object, &val);
+			ok(!ret, "test_map_foreach_cb_check(): success getting \"real\" value");
 
 			if (val == 5.444) {
-				pass("test_map_foreach_cb_check(): \"float\" value object has the right value");
-				checklist->float1 = BT_TRUE;
+				pass("test_map_foreach_cb_check(): \"real\" value object has the right value");
+				checklist->real1 = BT_TRUE;
 			} else {
-				fail("test_map_foreach_cb_check(): \"float\" value object has the wrong value");
+				fail("test_map_foreach_cb_check(): \"real\" value object has the wrong value");
 			}
 		}
 	} else if (!strcmp(key, "null")) {
@@ -431,20 +431,20 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 				fail("test_map_foreach_cb_check(): \"int2\" value object has the wrong value");
 			}
 		}
-	} else if (!strcmp(key, "float2")) {
-		if (checklist->float2) {
-			fail("test_map_foreach_cb_check(): duplicate key \"float2\"");
+	} else if (!strcmp(key, "real2")) {
+		if (checklist->real2) {
+			fail("test_map_foreach_cb_check(): duplicate key \"real2\"");
 		} else {
 			double val = 0;
 
-			ret = bt_value_float_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"float2\" value");
+			ret = bt_value_real_get(object, &val);
+			ok(!ret, "test_map_foreach_cb_check(): success getting \"real2\" value");
 
 			if (val == -49.0001) {
-				pass("test_map_foreach_cb_check(): \"float2\" value object has the right value");
-				checklist->float2 = BT_TRUE;
+				pass("test_map_foreach_cb_check(): \"real2\" value object has the right value");
+				checklist->real2 = BT_TRUE;
 			} else {
-				fail("test_map_foreach_cb_check(): \"float2\" value object has the wrong value");
+				fail("test_map_foreach_cb_check(): \"real2\" value object has the wrong value");
 			}
 		}
 	} else if (!strcmp(key, "string2")) {
@@ -495,7 +495,7 @@ void test_map(void)
 	int count = 0;
 	bt_bool bool_value;
 	int64_t int_value;
-	double float_value;
+	double real_value;
 	struct bt_value *obj;
 	struct bt_value *map_obj;
 	struct map_foreach_checklist checklist;
@@ -509,8 +509,8 @@ void test_map(void)
 	obj = bt_value_integer_create_init(19457);
 	ret = bt_value_map_insert(map_obj, "int", obj);
 	BT_PUT(obj);
-	obj = bt_value_float_create_init(5.444);
-	ret |= bt_value_map_insert(map_obj, "float", obj);
+	obj = bt_value_real_create_init(5.444);
+	ret |= bt_value_map_insert(map_obj, "real", obj);
 	BT_PUT(obj);
 	obj = bt_value_bool_create();
 	ret |= bt_value_map_insert(map_obj, "bt_bool", obj);
@@ -527,12 +527,12 @@ void test_map(void)
 
 	obj = bt_value_map_get(map_obj, "life");
 	ok(!obj, "bt_value_map_get() returns NULL with an non existing key");
-	obj = bt_value_map_get(map_obj, "float");
-	ok(obj && bt_value_is_float(obj),
-		"bt_value_map_get() returns an value object with the appropriate type (float)");
-	ret = bt_value_float_get(obj, &float_value);
-	ok(!ret && float_value == 5.444,
-		"bt_value_map_get() returns an value object with the appropriate value (float)");
+	obj = bt_value_map_get(map_obj, "real");
+	ok(obj && bt_value_is_real(obj),
+		"bt_value_map_get() returns an value object with the appropriate type (real)");
+	ret = bt_value_real_get(obj, &real_value);
+	ok(!ret && real_value == 5.444,
+		"bt_value_map_get() returns an value object with the appropriate value (real)");
 	BT_PUT(obj);
 	obj = bt_value_map_get(map_obj, "int");
 	ok(obj && bt_value_is_integer(obj),
@@ -556,8 +556,8 @@ void test_map(void)
 	ok(!ret, "bt_value_map_insert_bool() succeeds");
 	ret = bt_value_map_insert_integer(map_obj, "int2", 98765);
 	ok(!ret, "bt_value_map_insert_integer() succeeds");
-	ret = bt_value_map_insert_float(map_obj, "float2", -49.0001);
-	ok(!ret, "bt_value_map_insert_float() succeeds");
+	ret = bt_value_map_insert_real(map_obj, "real2", -49.0001);
+	ok(!ret, "bt_value_map_insert_real() succeeds");
 	ret = bt_value_map_insert_string(map_obj, "string2", "bt_value");
 	ok(!ret, "bt_value_map_insert_string() succeeds");
 	ret = bt_value_map_insert_empty_array(map_obj, "array2");
@@ -574,16 +574,16 @@ void test_map(void)
 		"map value object has key \"bt_bool\"");
 	ok(bt_value_map_has_key(map_obj, "int"),
 		"map value object has key \"int\"");
-	ok(bt_value_map_has_key(map_obj, "float"),
-		"map value object has key \"float\"");
+	ok(bt_value_map_has_key(map_obj, "real"),
+		"map value object has key \"real\"");
 	ok(bt_value_map_has_key(map_obj, "null"),
 		"map value object has key \"null\"");
 	ok(bt_value_map_has_key(map_obj, "bool2"),
 		"map value object has key \"bool2\"");
 	ok(bt_value_map_has_key(map_obj, "int2"),
 		"map value object has key \"int2\"");
-	ok(bt_value_map_has_key(map_obj, "float2"),
-		"map value object has key \"float2\"");
+	ok(bt_value_map_has_key(map_obj, "real2"),
+		"map value object has key \"real2\"");
 	ok(bt_value_map_has_key(map_obj, "string2"),
 		"map value object has key \"string2\"");
 	ok(bt_value_map_has_key(map_obj, "array2"),
@@ -600,9 +600,9 @@ void test_map(void)
 		&checklist);
 	ok(ret == BT_VALUE_STATUS_OK,
 		"bt_value_map_foreach() succeeds with test_map_foreach_cb_check()");
-	ok(checklist.bool1 && checklist.int1 && checklist.float1 &&
+	ok(checklist.bool1 && checklist.int1 && checklist.real1 &&
 		checklist.null1 && checklist.bool2 && checklist.int2 &&
-		checklist.float2 && checklist.string2 &&
+		checklist.real2 && checklist.string2 &&
 		checklist.array2 && checklist.map2,
 		"bt_value_map_foreach() iterates over all the map value object's elements");
 
@@ -616,7 +616,7 @@ void test_types(void)
 	test_null();
 	test_bool();
 	test_integer();
-	test_float();
+	test_real();
 	test_string();
 	test_array();
 	test_map();
@@ -670,24 +670,24 @@ void test_compare_integer(void)
 }
 
 static
-void test_compare_float(void)
+void test_compare_real(void)
 {
-	struct bt_value *float1 = bt_value_float_create_init(17.38);
-	struct bt_value *float2 = bt_value_float_create_init(-14.23);
-	struct bt_value *float3 = bt_value_float_create_init(17.38);
+	struct bt_value *real1 = bt_value_real_create_init(17.38);
+	struct bt_value *real2 = bt_value_real_create_init(-14.23);
+	struct bt_value *real3 = bt_value_real_create_init(17.38);
 
-	BT_ASSERT(float1 && float2 && float3);
+	BT_ASSERT(real1 && real2 && real3);
 
-	ok(!bt_value_compare(bt_value_null, float1),
-		"cannot compare null value object and floating point number value object");
-	ok(!bt_value_compare(float1, float2),
-		"floating point number value objects are not equivalent (17.38 and -14.23)");
-	ok(bt_value_compare(float1, float3),
-		"floating point number value objects are equivalent (17.38 and 17.38)");
+	ok(!bt_value_compare(bt_value_null, real1),
+		"cannot compare null value object and real number value object");
+	ok(!bt_value_compare(real1, real2),
+		"real number value objects are not equivalent (17.38 and -14.23)");
+	ok(bt_value_compare(real1, real3),
+		"real number value objects are equivalent (17.38 and 17.38)");
 
-	BT_PUT(float1);
-	BT_PUT(float2);
-	BT_PUT(float3);
+	BT_PUT(real1);
+	BT_PUT(real2);
+	BT_PUT(real3);
 }
 
 static
@@ -724,13 +724,13 @@ void test_compare_array(void)
 		"empty array value objects are equivalent");
 
 	BT_ASSERT(!bt_value_array_append_integer(array1, 23));
-	BT_ASSERT(!bt_value_array_append_float(array1, 14.2));
+	BT_ASSERT(!bt_value_array_append_real(array1, 14.2));
 	BT_ASSERT(!bt_value_array_append_bool(array1, BT_FALSE));
-	BT_ASSERT(!bt_value_array_append_float(array2, 14.2));
+	BT_ASSERT(!bt_value_array_append_real(array2, 14.2));
 	BT_ASSERT(!bt_value_array_append_integer(array2, 23));
 	BT_ASSERT(!bt_value_array_append_bool(array2, BT_FALSE));
 	BT_ASSERT(!bt_value_array_append_integer(array3, 23));
-	BT_ASSERT(!bt_value_array_append_float(array3, 14.2));
+	BT_ASSERT(!bt_value_array_append_real(array3, 14.2));
 	BT_ASSERT(!bt_value_array_append_bool(array3, BT_FALSE));
 	BT_ASSERT(bt_value_array_size(array1) == 3);
 	BT_ASSERT(bt_value_array_size(array2) == 3);
@@ -761,14 +761,14 @@ void test_compare_map(void)
 		"empty map value objects are equivalent");
 
 	BT_ASSERT(!bt_value_map_insert_integer(map1, "one", 23));
-	BT_ASSERT(!bt_value_map_insert_float(map1, "two", 14.2));
+	BT_ASSERT(!bt_value_map_insert_real(map1, "two", 14.2));
 	BT_ASSERT(!bt_value_map_insert_bool(map1, "three", BT_FALSE));
-	BT_ASSERT(!bt_value_map_insert_float(map2, "one", 14.2));
+	BT_ASSERT(!bt_value_map_insert_real(map2, "one", 14.2));
 	BT_ASSERT(!bt_value_map_insert_integer(map2, "two", 23));
 	BT_ASSERT(!bt_value_map_insert_bool(map2, "three", BT_FALSE));
 	BT_ASSERT(!bt_value_map_insert_bool(map3, "three", BT_FALSE));
 	BT_ASSERT(!bt_value_map_insert_integer(map3, "one", 23));
-	BT_ASSERT(!bt_value_map_insert_float(map3, "two", 14.2));
+	BT_ASSERT(!bt_value_map_insert_real(map3, "two", 14.2));
 	BT_ASSERT(bt_value_map_size(map1) == 3);
 	BT_ASSERT(bt_value_map_size(map2) == 3);
 	BT_ASSERT(bt_value_map_size(map3) == 3);
@@ -791,7 +791,7 @@ void test_compare(void)
 	test_compare_null();
 	test_compare_bool();
 	test_compare_integer();
-	test_compare_float();
+	test_compare_real();
 	test_compare_string();
 	test_compare_array();
 	test_compare_map();
@@ -811,24 +811,24 @@ void test_copy(void)
 	struct bt_value *null_copy_obj;
 	struct bt_value *bool_obj, *bool_copy_obj;
 	struct bt_value *integer_obj, *integer_copy_obj;
-	struct bt_value *float_obj, *float_copy_obj;
+	struct bt_value *real_obj, *real_copy_obj;
 	struct bt_value *string_obj, *string_copy_obj;
 	struct bt_value *array_obj, *array_copy_obj;
 	struct bt_value *map_obj, *map_copy_obj;
 
 	bool_obj = bt_value_bool_create_init(BT_TRUE);
 	integer_obj = bt_value_integer_create_init(23);
-	float_obj = bt_value_float_create_init(-3.1416);
+	real_obj = bt_value_real_create_init(-3.1416);
 	string_obj = bt_value_string_create_init("test");
 	array_obj = bt_value_array_create();
 	map_obj = bt_value_map_create();
 
-	BT_ASSERT(bool_obj && integer_obj && float_obj && string_obj &&
+	BT_ASSERT(bool_obj && integer_obj && real_obj && string_obj &&
 		array_obj && map_obj);
 
 	BT_ASSERT(!bt_value_array_append(array_obj, bool_obj));
 	BT_ASSERT(!bt_value_array_append(array_obj, integer_obj));
-	BT_ASSERT(!bt_value_array_append(array_obj, float_obj));
+	BT_ASSERT(!bt_value_array_append(array_obj, real_obj));
 	BT_ASSERT(!bt_value_array_append(array_obj, bt_value_null));
 	BT_ASSERT(!bt_value_map_insert(map_obj, "array", array_obj));
 	BT_ASSERT(!bt_value_map_insert(map_obj, "string", string_obj));
@@ -851,9 +851,9 @@ void test_copy(void)
 	integer_copy_obj = bt_value_array_get(array_copy_obj, 1);
 	ok(integer_copy_obj != integer_obj,
 		"bt_value_copy() returns a different pointer (integer)");
-	float_copy_obj = bt_value_array_get(array_copy_obj, 2);
-	ok(float_copy_obj != float_obj,
-		"bt_value_copy() returns a different pointer (float)");
+	real_copy_obj = bt_value_array_get(array_copy_obj, 2);
+	ok(real_copy_obj != real_obj,
+		"bt_value_copy() returns a different pointer (real)");
 	null_copy_obj = bt_value_array_get(array_copy_obj, 3);
 	ok(null_copy_obj == bt_value_null,
 		"bt_value_copy() returns the same pointer (null)");
@@ -863,13 +863,13 @@ void test_copy(void)
 
 	BT_PUT(bool_copy_obj);
 	BT_PUT(integer_copy_obj);
-	BT_PUT(float_copy_obj);
+	BT_PUT(real_copy_obj);
 	BT_PUT(string_copy_obj);
 	BT_PUT(array_copy_obj);
 	BT_PUT(map_copy_obj);
 	BT_PUT(bool_obj);
 	BT_PUT(integer_obj);
-	BT_PUT(float_obj);
+	BT_PUT(real_obj);
 	BT_PUT(string_obj);
 	BT_PUT(array_obj);
 	BT_PUT(map_obj);
@@ -916,7 +916,7 @@ void test_extend(void)
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_integer(extension_map, "find", 101);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_float(extension_map, "project", -404);
+	status = bt_value_map_insert_real(extension_map, "project", -404);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	extended_map = bt_value_map_extend(base_map, extension_map);
 	ok(extended_map, "bt_value_map_extend() succeeds");
