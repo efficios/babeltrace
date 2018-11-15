@@ -37,7 +37,7 @@
 #include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -140,7 +140,7 @@ struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
 	goto end;
 
 error:
-	BT_PUT(stream);
+	BT_OBJECT_PUT_REF_AND_RESET(stream);
 
 end:
 	return stream;

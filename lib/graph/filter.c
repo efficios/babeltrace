@@ -295,7 +295,7 @@ enum bt_component_status bt_private_component_filter_add_input_private_port(
 	}
 
 end:
-	bt_put(port);
+	bt_object_put_ref(port);
 	return status;
 }
 
@@ -371,6 +371,6 @@ enum bt_component_status bt_private_component_filter_add_output_private_port(
 	}
 
 end:
-	bt_put(port);
+	bt_object_put_ref(port);
 	return status;
 }

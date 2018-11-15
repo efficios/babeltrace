@@ -357,7 +357,7 @@ void bt_ctf_field_common_initialize(struct bt_ctf_field_common *field,
 	BT_ASSERT(ft);
 	bt_object_init(&field->base, is_shared, release_func);
 	field->methods = methods;
-	field->type = bt_get(ft);
+	field->type = bt_object_get_ref(ft);
 }
 
 static inline
@@ -698,7 +698,7 @@ void bt_ctf_field_common_finalize(struct bt_ctf_field_common *field)
 {
 	BT_ASSERT(field);
 	BT_LOGD_STR("Putting field's type.");
-	bt_put(field->type);
+	bt_object_put_ref(field->type);
 }
 
 static inline

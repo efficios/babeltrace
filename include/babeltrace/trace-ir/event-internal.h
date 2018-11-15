@@ -154,7 +154,7 @@ void bt_event_recycle(struct bt_event *event)
 	 * 2. Move the event class reference to our `event_class`
 	 *    variable so that we can set the event's class member
 	 *    to NULL before recycling it. We CANNOT do this after
-	 *    we put the event class reference because this bt_put()
+	 *    we put the event class reference because this bt_object_put_ref()
 	 *    could destroy the event class, also destroying its
 	 *    event pool, thus also destroying our event object (this
 	 *    would result in an invalid write access).

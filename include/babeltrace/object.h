@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_REF_H
-#define BABELTRACE_REF_H
+#ifndef BABELTRACE_OBJECT_H
+#define BABELTRACE_OBJECT_H
 
 /*
  * BabelTrace: common reference counting
@@ -37,7 +37,7 @@ extern "C" {
 @brief Common reference counting management for all Babeltrace objects.
 
 @code
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 @endcode
 
 The macros and functions of this module are everything that is needed
@@ -62,7 +62,7 @@ The Babeltrace C API complies with the following key principles:
 
    In other words, the caller still owns the object after calling any
    API function: no function "steals" the user's reference (except
-   bt_put()).
+   bt_object_put_ref()).
 
 2. An API function which \em returns a Babeltrace object pointer to the
    user returns a <strong>new reference</strong>. The caller becomes an
@@ -71,7 +71,7 @@ The Babeltrace C API complies with the following key principles:
    @image html ref-count-api-returns.png
 
    It is your responsibility to discard the object when you don't
-   need it anymore with bt_put().
+   need it anymore with bt_object_put_ref().
 
    For example, see bt_value_array_get().
 
@@ -79,16 +79,16 @@ The Babeltrace C API complies with the following key principles:
    function called back from an API function is a
    <strong>borrowed</strong>, or <strong>weak reference</strong>: if you
    need a reference which is more persistent than the duration of the
-   user function, call bt_get() on the pointer.
+   user function, call bt_object_get_ref() on the pointer.
 
    @image html ref-count-callback.png
 
    For example, see bt_value_map_foreach_entry().
 
-The two macros BT_PUT() and BT_MOVE() operate on \em variables rather
-than pointer values. You should use BT_PUT() instead of bt_put() when
+The two macros BT_OBJECT_PUT_REF_AND_RESET() and BT_OBJECT_MOVE_REF() operate on \em variables rather
+than pointer values. You should use BT_OBJECT_PUT_REF_AND_RESET() instead of bt_object_put_ref() when
 possible to avoid "double puts". For the same reason, you should use use
-BT_MOVE() instead of performing manual reference moves between
+BT_OBJECT_MOVE_REF() instead of performing manual reference moves between
 variables.
 
 @file
@@ -100,13 +100,13 @@ variables.
 */
 
 /**
-@brief	Calls bt_put() on a variable named \p _var, then
+@brief	Calls bt_object_put_ref() on a variable named \p _var, then
 	sets \p _var to \c NULL.
 
-Using this macro is considered safer than calling bt_put() because it
+Using this macro is considered safer than calling bt_object_put_ref() because it
 makes sure that the variable which used to contain a reference to a
-Babeltrace object is set to \c NULL so that a future BT_PUT() or
-bt_put() call will not cause another, unwanted reference decrementation.
+Babeltrace object is set to \c NULL so that a future BT_OBJECT_PUT_REF_AND_RESET() or
+bt_object_put_ref() call will not cause another, unwanted reference decrementation.
 
 @param[in,out] _var	Name of a variable containing a
 			Babeltrace object's address (this address
@@ -116,13 +116,13 @@ bt_put() call will not cause another, unwanted reference decrementation.
 	its reference count is decremented.
 @post \p _var contains \c NULL.
 
-@sa BT_MOVE(): Transfers the ownership of a Babeltrace object from a
+@sa BT_OBJECT_MOVE_REF(): Transfers the ownership of a Babeltrace object from a
 	variable to another.
 */
-#define BT_PUT(_var)		\
-	do {			\
-		bt_put(_var);	\
-		(_var) = NULL;	\
+#define BT_OBJECT_PUT_REF_AND_RESET(_var)	\
+	do {					\
+		bt_object_put_ref(_var);	\
+		(_var) = NULL;			\
 	} while (0)
 
 /**
@@ -131,7 +131,7 @@ bt_put() call will not cause another, unwanted reference decrementation.
 
 This macro implements the following common pattern:
 
-  1. Call bt_put() on \p _var_dst to make sure the previous reference
+  1. Call bt_object_put_ref() on \p _var_dst to make sure the previous reference
      held by \p _var_dst is discarded.
   2. Assign \p _var_src to \p _var_dst.
   3. Set \p _var_src to \c NULL to avoid future, unwanted reference
@@ -140,7 +140,7 @@ This macro implements the following common pattern:
 @warning
 You must \em not use this macro when both \p _var_dst and
 \p _var_src contain the same Babeltrace object address and the reference
-count of this object is 1. The initial call to bt_put() on \p _var_dst
+count of this object is 1. The initial call to bt_object_put_ref() on \p _var_dst
 would destroy the object and leave a dangling pointer in \p _var_dst.
 
 @param[in,out] _var_dst	Name of the destination variable, containing
@@ -159,11 +159,11 @@ would destroy the object and leave a dangling pointer in \p _var_dst.
 	you called this macro.
 @post \p _var_src is \c NULL.
 
-@sa BT_PUT(): Calls bt_put() on a variable, then sets it to \c NULL.
+@sa BT_OBJECT_PUT_REF_AND_RESET(): Calls bt_object_put_ref() on a variable, then sets it to \c NULL.
 */
-#define BT_MOVE(_var_dst, _var_src)		\
+#define BT_OBJECT_MOVE_REF(_var_dst, _var_src)	\
 	do {					\
-		bt_put(_var_dst);		\
+		bt_object_put_ref(_var_dst);	\
 		(_var_dst) = (_var_src);	\
 		(_var_src) = NULL;		\
 	} while (0)
@@ -178,9 +178,9 @@ would destroy the object and leave a dangling pointer in \p _var_dst.
 @post <strong>If \c obj is not \c NULL</strong>, its reference
 	count is incremented.
 
-@sa bt_put(): Decrements the reference count of a Babeltrace object.
+@sa bt_object_put_ref(): Decrements the reference count of a Babeltrace object.
 */
-void *bt_get(void *obj);
+void *bt_object_get_ref(void *obj);
 
 /**
 @brief	Decrements the reference count of the Babeltrace object
@@ -190,7 +190,7 @@ When the object's reference count reaches 0, the object can no longer
 be accessed and is considered \em destroyed.
 
 @remarks
-You should use the BT_PUT() macro instead of calling bt_put() since the
+You should use the BT_OBJECT_PUT_REF_AND_RESET() macro instead of calling bt_object_put_ref() since the
 former is generally safer.
 
 @param[in] obj	Babeltrace object of which to drop a reference
@@ -199,12 +199,12 @@ former is generally safer.
 @post <strong>If \c obj is not \c NULL</strong>, its reference
 	count is decremented.
 
-@sa BT_PUT(): Calls bt_put() on a variable, then sets it to \c NULL.
-@sa BT_MOVE(): Transfers the ownership of a Babeltrace object from a
+@sa BT_OBJECT_PUT_REF_AND_RESET(): Calls bt_object_put_ref() on a variable, then sets it to \c NULL.
+@sa BT_OBJECT_MOVE_REF(): Transfers the ownership of a Babeltrace object from a
 	variable to another.
-@sa bt_get(): Increments the reference count of a Babeltrace object.
+@sa bt_object_get_ref(): Increments the reference count of a Babeltrace object.
 */
-void bt_put(void *obj);
+void bt_object_put_ref(void *obj);
 
 /**
 @}
@@ -214,4 +214,4 @@ void bt_put(void *obj);
 }
 #endif
 
-#endif /* BABELTRACE_REF_H */
+#endif /* BABELTRACE_OBJECT_H */

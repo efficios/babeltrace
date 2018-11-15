@@ -29,7 +29,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/fields.h>
 #include <babeltrace/trace-ir/event-internal.h>
 #include <babeltrace/trace-ir/packet-internal.h>
@@ -83,9 +83,9 @@ void destroy_stream_state(struct stream_state *stream_state)
 
 	BT_LOGV("Destroying stream state: stream-state-addr=%p", stream_state);
 	BT_LOGV_STR("Putting stream state's current packet.");
-	bt_put(stream_state->cur_packet);
+	bt_object_put_ref(stream_state->cur_packet);
 	BT_LOGV_STR("Putting stream state's stream.");
-	bt_put(stream_state->stream);
+	bt_object_put_ref(stream_state->stream);
 	g_free(stream_state);
 }
 
@@ -103,7 +103,7 @@ struct stream_state *create_stream_state(struct bt_stream *stream)
 	/*
 	 * We keep a reference to the stream until we know it's ended.
 	 */
-	stream_state->stream = bt_get(stream);
+	stream_state->stream = bt_object_get_ref(stream);
 	BT_LOGV("Created stream state: stream-addr=%p, stream-name=\"%s\", "
 		"stream-state-addr=%p",
 		stream, bt_stream_get_name(stream), stream_state);
@@ -137,9 +137,9 @@ void bt_private_connection_notification_iterator_destroy(struct bt_object *obj)
 	 * The notification iterator's reference count is 0 if we're
 	 * here. Increment it to avoid a double-destroy (possibly
 	 * infinitely recursive). This could happen for example if the
-	 * notification iterator's finalization function does bt_get()
-	 * (or anything that causes bt_get() to be called) on itself
-	 * (ref. count goes from 0 to 1), and then bt_put(): the
+	 * notification iterator's finalization function does bt_object_get_ref()
+	 * (or anything that causes bt_object_get_ref() to be called) on itself
+	 * (ref. count goes from 0 to 1), and then bt_object_put_ref(): the
 	 * reference count would go from 1 to 0 again and this function
 	 * would be called again.
 	 */
@@ -348,7 +348,7 @@ enum bt_connection_status bt_private_connection_notification_iterator_create(
 	iterator = NULL;
 
 end:
-	bt_put(iterator);
+	bt_object_put_ref(iterator);
 	return status;
 }
 
@@ -544,7 +544,7 @@ bool validate_notification(
 			goto end;
 		}
 		stream_state->expected_notif_seq_num++;
-		stream_state->cur_packet = bt_get(packet);
+		stream_state->cur_packet = bt_object_get_ref(packet);
 		goto end;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		if (!stream_state->cur_packet) {
@@ -559,7 +559,7 @@ bool validate_notification(
 			goto end;
 		}
 		stream_state->expected_notif_seq_num++;
-		BT_PUT(stream_state->cur_packet);
+		BT_OBJECT_PUT_REF_AND_RESET(stream_state->cur_packet);
 		goto end;
 	case BT_NOTIFICATION_TYPE_EVENT:
 		if (packet != stream_state->cur_packet) {
@@ -718,7 +718,7 @@ bt_private_connection_notification_iterator_next(
 		 * created. In this case, said connection is ended, and
 		 * all its notification iterators are finalized.
 		 *
-		 * Only bt_put() the returned notification if
+		 * Only bt_object_put_ref() the returned notification if
 		 * the status is
 		 * BT_NOTIFICATION_ITERATOR_STATUS_OK because
 		 * otherwise this field could be garbage.
@@ -729,7 +729,7 @@ bt_private_connection_notification_iterator_next(
 				(void *) user_iterator->notifs->pdata;
 
 			for (i = 0; i < *user_count; i++) {
-				bt_put(notifs[i]);
+				bt_object_put_ref(notifs[i]);
 			}
 		}
 
@@ -834,7 +834,7 @@ struct bt_component *bt_private_connection_notification_iterator_get_component(
 		"Notification iterator was not created from a private connection: "
 		"%!+i", iterator);
 	iter_priv_conn = (void *) iterator;
-	return bt_get(iter_priv_conn->upstream_component);
+	return bt_object_get_ref(iter_priv_conn->upstream_component);
 }
 
 struct bt_private_component *
@@ -855,9 +855,9 @@ void bt_output_port_notification_iterator_destroy(struct bt_object *obj)
 	BT_LOGD("Destroying output port notification iterator object: addr=%p",
 		iterator);
 	BT_LOGD_STR("Putting graph.");
-	bt_put(iterator->graph);
+	bt_object_put_ref(iterator->graph);
 	BT_LOGD_STR("Putting colander sink component.");
-	bt_put(iterator->colander);
+	bt_object_put_ref(iterator->colander);
 	destroy_base_notification_iterator(obj);
 }
 
@@ -901,7 +901,7 @@ struct bt_notification_iterator *bt_output_port_notification_iterator_create(
 		bt_output_port_notification_iterator_destroy);
 	if (ret) {
 		/* init_notification_iterator() logs errors */
-		BT_PUT(iterator);
+		BT_OBJECT_PUT_REF_AND_RESET(iterator);
 		goto end;
 	}
 
@@ -912,7 +912,7 @@ struct bt_notification_iterator *bt_output_port_notification_iterator_create(
 		goto error;
 	}
 
-	BT_MOVE(iterator->graph, graph);
+	BT_OBJECT_MOVE_REF(iterator->graph, graph);
 	colander_comp_name =
 		colander_component_name ? colander_component_name : "colander";
 	colander_data.notifs = (void *) iterator->base.notifs->pdata;
@@ -963,7 +963,7 @@ error:
 
 		/* Remove created colander component from graph if any */
 		colander_comp = iterator->colander;
-		BT_PUT(iterator->colander);
+		BT_OBJECT_PUT_REF_AND_RESET(iterator->colander);
 
 		/*
 		 * At this point the colander component's reference
@@ -981,13 +981,13 @@ error:
 		BT_ASSERT(ret == 0);
 	}
 
-	BT_PUT(iterator);
+	BT_OBJECT_PUT_REF_AND_RESET(iterator);
 
 end:
-	bt_put(colander_in_port);
-	bt_put(colander_comp_cls);
-	bt_put(output_port_comp);
-	bt_put(graph);
+	bt_object_put_ref(colander_in_port);
+	bt_object_put_ref(colander_comp_cls);
+	bt_object_put_ref(output_port_comp);
+	bt_object_put_ref(graph);
 	return (void *) iterator;
 }
 

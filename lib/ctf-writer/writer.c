@@ -41,7 +41,7 @@
 #include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -95,10 +95,10 @@ int init_trace_packet_header(struct bt_ctf_trace *trace)
 		goto end;
 	}
 end:
-	bt_put(uuid_array_type);
-	bt_put(_uint32_t);
-	bt_put(_uint8_t);
-	bt_put(trace_packet_header_type);
+	bt_object_put_ref(uuid_array_type);
+	bt_object_put_ref(_uint32_t);
+	bt_object_put_ref(_uint8_t);
+	bt_object_put_ref(trace_packet_header_type);
 	return ret;
 }
 
@@ -149,7 +149,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	}
 
 	bt_object_set_parent(&writer->trace->common.base, &writer->base);
-	bt_put(writer->trace);
+	bt_object_put_ref(writer->trace);
 
 	/* Default to little-endian */
 	ret = bt_ctf_writer_set_byte_order(writer, BT_CTF_BYTE_ORDER_NATIVE);
@@ -173,7 +173,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	return writer;
 
 error_destroy:
-	BT_PUT(writer);
+	BT_OBJECT_PUT_REF_AND_RESET(writer);
 error:
 	g_free(metadata_path);
 	return writer;
@@ -208,7 +208,7 @@ struct bt_ctf_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
 	}
 
 	trace = writer->trace;
-	bt_get(trace);
+	bt_object_get_ref(trace);
 end:
 	return trace;
 }
@@ -240,7 +240,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 			stream_class_found = BT_TRUE;
 		}
 
-		BT_PUT(existing_stream_class);
+		BT_OBJECT_PUT_REF_AND_RESET(existing_stream_class);
 
 		if (stream_class_found) {
 			break;
@@ -264,7 +264,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 	return stream;
 
 error:
-        BT_PUT(stream);
+        BT_OBJECT_PUT_REF_AND_RESET(stream);
 	return stream;
 }
 
@@ -422,7 +422,7 @@ struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 	field_type = bt_ctf_field_type_integer_create(size);
 	ret = bt_ctf_field_type_set_alignment(field_type, alignment);
 	if (ret) {
-		BT_PUT(field_type);
+		BT_OBJECT_PUT_REF_AND_RESET(field_type);
 	}
 end:
 	return field_type;

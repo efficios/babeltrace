@@ -18,7 +18,7 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/values.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-internal.h>
 

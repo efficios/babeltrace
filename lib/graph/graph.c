@@ -292,7 +292,7 @@ struct bt_graph *bt_graph_create(void)
 end:
 	return graph;
 error:
-	BT_PUT(graph);
+	BT_OBJECT_PUT_REF_AND_RESET(graph);
 	goto end;
 }
 
@@ -519,11 +519,11 @@ enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
 	}
 
 end:
-	bt_put(upstream_graph);
-	bt_put(downstream_graph);
-	bt_put(upstream_component);
-	bt_put(downstream_component);
-	bt_put(connection);
+	bt_object_put_ref(upstream_graph);
+	bt_object_put_ref(downstream_graph);
+	bt_object_put_ref(upstream_component);
+	bt_object_put_ref(downstream_component);
+	bt_object_put_ref(connection);
 	if (graph) {
 		(void) init_can_consume;
 		bt_graph_set_can_consume(graph, init_can_consume);
@@ -1035,7 +1035,7 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 	size_t i;
 	bt_bool init_can_consume;
 
-	bt_get(params);
+	bt_object_get_ref(params);
 
 	if (!graph) {
 		BT_LOGW_STR("Invalid parameter: graph is NULL.");
@@ -1182,8 +1182,8 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 	}
 
 end:
-	bt_put(component);
-	bt_put(params);
+	bt_object_put_ref(component);
+	bt_object_put_ref(params);
 	if (graph) {
 		graph->can_consume = init_can_consume;
 	}
@@ -1222,7 +1222,7 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 			bt_component_get_input_port_by_index(component, i);
 
 		BT_ASSERT(port);
-		bt_put(port);
+		bt_object_put_ref(port);
 
 		if (bt_port_is_connected(port)) {
 			BT_LOGW("Cannot remove component from graph: "
@@ -1244,7 +1244,7 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 			bt_component_get_output_port_by_index(component, i);
 
 		BT_ASSERT(port);
-		bt_put(port);
+		bt_object_put_ref(port);
 
 		if (bt_port_is_connected(port)) {
 			BT_LOGW("Cannot remove component from graph: "

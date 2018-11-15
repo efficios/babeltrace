@@ -91,7 +91,7 @@ int update_header_clock_int_field_type(FILE *err, struct bt_field_type *type,
 	if (!clock) {
 		return 0;
 	}
-	BT_PUT(clock);
+	BT_OBJECT_PUT_REF_AND_RESET(clock);
 
 	ret = bt_field_type_integer_set_size(type, 64);
 	if (ret) {
@@ -169,7 +169,7 @@ int find_update_variant_clock_fields(FILE *err, struct bt_field_type *type,
 			BT_LOGE_STR("Failed to find clock fields.");
 			goto error;
 		}
-		BT_PUT(entry_type);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_type);
 	}
 
 	ret = 0;
@@ -178,7 +178,7 @@ int find_update_variant_clock_fields(FILE *err, struct bt_field_type *type,
 error:
 	ret = -1;
 end:
-	bt_put(entry_type);
+	bt_object_put_ref(entry_type);
 	return ret;
 }
 
@@ -206,14 +206,14 @@ int find_update_struct_clock_fields(FILE *err, struct bt_field_type *type,
 			BT_LOGE_STR("Failed to find clock fields.");
 			goto error;
 		}
-		BT_PUT(entry_type);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_type);
 	}
 
 	ret = 0;
 	goto end;
 
 error:
-	bt_put(entry_type);
+	bt_object_put_ref(entry_type);
 end:
 	return ret;
 }
@@ -229,7 +229,7 @@ int find_update_sequence_clock_fields(FILE *err, struct bt_field_type *type,
 	BT_ASSERT(entry_type);
 
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
-	BT_PUT(entry_type);
+	BT_OBJECT_PUT_REF_AND_RESET(entry_type);
 	if (ret) {
 		BT_LOGE_STR("Failed to find clock fields.");
 		goto error;
@@ -255,7 +255,7 @@ int find_update_array_clock_fields(FILE *err, struct bt_field_type *type,
 	BT_ASSERT(entry_type);
 
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
-	BT_PUT(entry_type);
+	BT_OBJECT_PUT_REF_AND_RESET(entry_type);
 	if (ret) {
 		BT_LOGE_STR("Failed to find clock fields.");
 		ret = -1;
@@ -277,7 +277,7 @@ int find_update_enum_clock_fields(FILE *err, struct bt_field_type *type,
 	BT_ASSERT(entry_type);
 
 	ret = find_update_clock_fields(err, entry_type, writer_clock_class);
-	BT_PUT(entry_type);
+	BT_OBJECT_PUT_REF_AND_RESET(entry_type);
 	if (ret) {
 		BT_LOGE_STR("Failed to find clock fields.");
 		goto error;
@@ -322,13 +322,13 @@ struct bt_field_type *override_header_type(FILE *err,
 		BT_LOGE_STR("Failed to find clock fields in struct.");
 		goto error;
 	}
-	BT_PUT(writer_clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_class);
 
 	goto end;
 
 error:
-	bt_put(writer_clock_class);
-	BT_PUT(new_type);
+	bt_object_put_ref(writer_clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(new_type);
 end:
 	return new_type;
 }
@@ -441,7 +441,7 @@ int copy_override_field(FILE *err, struct bt_event *event,
 		break;
 	}
 
-	BT_PUT(type);
+	BT_OBJECT_PUT_REF_AND_RESET(type);
 
 	return ret;
 }
@@ -474,8 +474,8 @@ int copy_find_clock_enum_field(FILE *err, struct bt_event *event,
 error:
 	ret = -1;
 end:
-	bt_put(copy_container);
-	bt_put(container);
+	bt_object_put_ref(copy_container);
+	bt_object_put_ref(container);
 	return ret;
 }
 
@@ -513,9 +513,9 @@ int copy_find_clock_variant_field(FILE *err, struct bt_event *event,
 error:
 	ret = -1;
 end:
-	bt_put(copy_variant_field);
-	bt_put(variant_field);
-	bt_put(tag);
+	bt_object_put_ref(copy_variant_field);
+	bt_object_put_ref(variant_field);
+	bt_object_put_ref(tag);
 	return ret;
 }
 
@@ -544,7 +544,7 @@ int copy_find_clock_sequence_field(FILE *err,
 		BT_LOGE_STR("Failed to set sequence length.");
 		goto error;
 	}
-	BT_PUT(length_field);
+	BT_OBJECT_PUT_REF_AND_RESET(length_field);
 
 	for (i = 0; i < count; i++) {
 		entry_field = bt_field_sequence_get_field(field, i);
@@ -562,17 +562,17 @@ int copy_find_clock_sequence_field(FILE *err,
 			BT_LOGE_STR("Faield to override field in sequence.");
 			goto error;
 		}
-		BT_PUT(entry_field);
-		BT_PUT(entry_copy);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_field);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_copy);
 	}
 
 	ret = 0;
 	goto end;
 
 error:
-	bt_put(length_field);
-	bt_put(entry_field);
-	bt_put(entry_copy);
+	bt_object_put_ref(length_field);
+	bt_object_put_ref(entry_field);
+	bt_object_put_ref(entry_copy);
 	ret = -1;
 end:
 	return ret;
@@ -606,16 +606,16 @@ int copy_find_clock_array_field(FILE *err,
 			BT_LOGE_STR("Failed to override field in array.");
 			goto error;
 		}
-		BT_PUT(entry_field);
-		BT_PUT(entry_copy);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_field);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_copy);
 	}
 
 	ret = 0;
 	goto end;
 
 error:
-	bt_put(entry_field);
-	bt_put(entry_copy);
+	bt_object_put_ref(entry_field);
+	bt_object_put_ref(entry_copy);
 
 end:
 	return ret;
@@ -657,18 +657,18 @@ int copy_find_clock_struct_field(FILE *err,
 			BT_LOGE_STR("Failed to override field in struct.");
 			goto error;
 		}
-		BT_PUT(entry_copy);
-		BT_PUT(entry_field);
-		BT_PUT(entry_type);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_copy);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_field);
+		BT_OBJECT_PUT_REF_AND_RESET(entry_type);
 	}
 
 	ret = 0;
 	goto end;
 
 error:
-	bt_put(entry_type);
-	bt_put(entry_field);
-	bt_put(entry_copy);
+	bt_object_put_ref(entry_type);
+	bt_object_put_ref(entry_field);
+	bt_object_put_ref(entry_copy);
 	ret = -1;
 end:
 	return ret;
@@ -732,7 +732,7 @@ struct bt_clock_class *stream_class_get_clock_class(FILE *err,
 	/* FIXME multi-clock? */
 	clock_class = bt_trace_get_clock_class_by_index(trace, 0);
 
-	bt_put(trace);
+	bt_object_put_ref(trace);
 
 	return clock_class;
 }
@@ -747,11 +747,11 @@ struct bt_clock_class *event_get_clock_class(FILE *err, struct bt_event *event)
 	BT_ASSERT(event_class);
 
 	stream_class = bt_event_class_get_stream_class(event_class);
-	BT_PUT(event_class);
+	BT_OBJECT_PUT_REF_AND_RESET(event_class);
 	BT_ASSERT(stream_class);
 
 	clock_class = stream_class_get_clock_class(err, stream_class);
-	bt_put(stream_class);
+	bt_object_put_ref(stream_class);
 
 	return clock_class;
 }
@@ -773,11 +773,11 @@ int copy_find_clock_int_field(FILE *err,
 	}
 
 	clock_value = bt_event_get_clock_value(event, clock_class);
-	BT_PUT(clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(clock_class);
 	BT_ASSERT(clock_value);
 
 	ret = bt_clock_value_get_value(clock_value, &value);
-	BT_PUT(clock_value);
+	BT_OBJECT_PUT_REF_AND_RESET(clock_value);
 	if (ret) {
 		BT_LOGE("Failed to get clock value.");
 		goto error;
@@ -793,14 +793,14 @@ int copy_find_clock_int_field(FILE *err,
 	BT_ASSERT(writer_clock_class);
 
 	writer_clock_value = bt_clock_value_create(writer_clock_class, value);
-	BT_PUT(writer_clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_class);
 	if (!writer_clock_value) {
 		BT_LOGE_STR("Failed to create clock value.");
 		goto error;
 	}
 
 	ret = bt_event_set_clock_value(writer_event, writer_clock_value);
-	BT_PUT(writer_clock_value);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_value);
 	if (ret) {
 		BT_LOGE_STR("Failed to set clock value.");
 		goto error;

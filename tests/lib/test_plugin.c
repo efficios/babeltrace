@@ -20,7 +20,7 @@
  */
 
 #include <babeltrace/plugin/plugin.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/values.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/graph.h>
@@ -142,8 +142,8 @@ static void test_minimal(const char *plugin_dir)
 		"bt_plugin_get_path() returns the expected path");
 	ok(bt_plugin_get_component_class_count(plugin) == 0,
 		"bt_plugin_get_component_class_count() returns the expected value");
-	bt_put(plugin);
-	bt_put(plugin_set);
+	bt_object_put_ref(plugin);
+	bt_object_put_ref(plugin_set);
 	ok(check_env_var("BT_TEST_PLUGIN_EXIT_CALLED") == 1,
 		"plugin's exit function is called when the plugin is destroyed");
 
@@ -242,40 +242,40 @@ static void test_sfs(const char *plugin_dir)
 		"bt_component_class_query() receives the expected parameters");
 
 	diag("> putting the plugin object here");
-	BT_PUT(plugin);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin);
 	graph = bt_graph_create();
 	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_component() still works after the plugin object is destroyed");
-	BT_PUT(sink_component);
-	BT_PUT(source_comp_class);
-	bt_put(graph);
+	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
+	BT_OBJECT_PUT_REF_AND_RESET(source_comp_class);
+	bt_object_put_ref(graph);
 	graph = bt_graph_create();
 	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_component() still works after the source component class object is destroyed");
-	BT_PUT(sink_component);
-	BT_PUT(filter_comp_class);
-	bt_put(graph);
+	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
+	BT_OBJECT_PUT_REF_AND_RESET(filter_comp_class);
+	bt_object_put_ref(graph);
 	graph = bt_graph_create();
 	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_component() still works after the filter component class object is destroyed");
-	BT_PUT(sink_comp_class);
-	BT_PUT(sink_component);
+	BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
 
 	free(sfs_path);
-	bt_put(graph);
-	bt_put(plugin_set);
-	bt_put(results);
-	bt_put(params);
-	bt_put(query_exec);
+	bt_object_put_ref(graph);
+	bt_object_put_ref(plugin_set);
+	bt_object_put_ref(results);
+	bt_object_put_ref(params);
+	bt_object_put_ref(query_exec);
 }
 
 static void test_create_all_from_dir(const char *plugin_dir)
@@ -296,7 +296,7 @@ static void test_create_all_from_dir(const char *plugin_dir)
 		bt_plugin_set_get_plugin_count(plugin_set) == 4,
 		"bt_plugin_create_all_from_dir() returns the expected number of plugin objects");
 
-	bt_put(plugin_set);
+	bt_object_put_ref(plugin_set);
 }
 
 static void test_find(const char *plugin_dir)
@@ -325,7 +325,7 @@ static void test_find(const char *plugin_dir)
 		"bt_plugin_find() succeeds with a plugin name it can find");
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
 		"bt_plugin_find() finds the correct plugin for a given name");
-	BT_PUT(plugin);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin);
 	comp_cls_sink = bt_plugin_find_component_class(NULL, "sink",
 		BT_COMPONENT_CLASS_TYPE_SINK);
 	ok(!comp_cls_sink, "bt_plugin_find_component_class() handles NULL (plugin name)");
@@ -345,8 +345,8 @@ static void test_find(const char *plugin_dir)
 	ok(comp_cls_sink, "bt_plugin_find_component_class() succeeds with another component class name (same plugin)");
 	ok(strcmp(bt_component_class_get_name(comp_cls_source), "source") == 0,
 		"bt_plugin_find_component_class() returns the appropriate component class (source)");
-	BT_PUT(comp_cls_sink);
-	BT_PUT(comp_cls_source);
+	BT_OBJECT_PUT_REF_AND_RESET(comp_cls_sink);
+	BT_OBJECT_PUT_REF_AND_RESET(comp_cls_source);
 	free(plugin_path);
 }
 

@@ -76,7 +76,7 @@ struct bt_notification *bt_notification_inactivity_create(
 	goto end;
 
 error:
-	BT_PUT(ret_notif);
+	BT_OBJECT_PUT_REF_AND_RESET(ret_notif);
 
 end:
 	return ret_notif;

@@ -123,7 +123,7 @@ enum bt_query_status bt_query_executor_query(
 	BT_LOGD("User method returned: status=%s, result-addr=%p",
 		bt_query_status_string(ret.status), ret.result);
 	if (query_exec->canceled) {
-		BT_PUT(ret.result);
+		BT_OBJECT_PUT_REF_AND_RESET(ret.result);
 		ret.status = BT_QUERY_STATUS_EXECUTOR_CANCELED;
 		goto end;
 	} else {
@@ -132,7 +132,7 @@ enum bt_query_status bt_query_executor_query(
 			 * The user cannot decide that the executor is
 			 * canceled if it's not.
 			 */
-			BT_PUT(ret.result);
+			BT_OBJECT_PUT_REF_AND_RESET(ret.result);
 			ret.status = BT_QUERY_STATUS_ERROR;
 			goto end;
 		}
@@ -144,7 +144,7 @@ enum bt_query_status bt_query_executor_query(
 		 * This is reserved for invalid parameters passed to
 		 * this function.
 		 */
-		BT_PUT(ret.result);
+		BT_OBJECT_PUT_REF_AND_RESET(ret.result);
 		ret.status = BT_QUERY_STATUS_ERROR;
 		break;
 	case BT_QUERY_STATUS_OK:
@@ -157,7 +157,7 @@ enum bt_query_status bt_query_executor_query(
 			BT_LOGW("User method did not return BT_QUERY_STATUS_OK, but result is not NULL: "
 				"status=%s, result-addr=%p",
 				bt_query_status_string(ret.status), ret.result);
-			BT_PUT(ret.result);
+			BT_OBJECT_PUT_REF_AND_RESET(ret.result);
 		}
 	}
 
@@ -167,7 +167,7 @@ end:
 		ret.result = NULL;
 	}
 
-	bt_put(ret.result);
+	bt_object_put_ref(ret.result);
 	return ret.status;
 }
 

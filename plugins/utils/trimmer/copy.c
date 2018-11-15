@@ -70,7 +70,7 @@ struct bt_packet *insert_new_packet(struct trimmer_iterator *trim_it,
 	goto end;
 
 error:
-	BT_PUT(writer_packet);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_packet);
 end:
 	return writer_packet;
 }
@@ -114,8 +114,8 @@ enum bt_component_status update_packet_context_field(FILE *err,
 			goto error;
 		}
 		if (strcmp(field_name, name)) {
-			BT_PUT(field_class);
-			BT_PUT(field);
+			BT_OBJECT_PUT_REF_AND_RESET(field_class);
+			BT_OBJECT_PUT_REF_AND_RESET(field);
 			continue;
 		}
 		if (bt_field_class_id(field_class) !=
@@ -132,22 +132,22 @@ enum bt_component_status update_packet_context_field(FILE *err,
 		int_ret = bt_field_unsigned_integer_set_value(writer_field, value);
 		BT_ASSERT(int_ret == 0);
 
-		BT_PUT(writer_field);
-		BT_PUT(field_class);
-		BT_PUT(field);
+		BT_OBJECT_PUT_REF_AND_RESET(writer_field);
+		BT_OBJECT_PUT_REF_AND_RESET(field_class);
+		BT_OBJECT_PUT_REF_AND_RESET(field);
 	}
 
 	ret = BT_COMPONENT_STATUS_OK;
 	goto end;
 
 error:
-	bt_put(writer_field);
-	bt_put(field_class);
-	bt_put(field);
+	bt_object_put_ref(writer_field);
+	bt_object_put_ref(field_class);
+	bt_object_put_ref(field);
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
-	bt_put(struct_class);
-	bt_put(packet_context);
+	bt_object_put_ref(struct_class);
+	bt_object_put_ref(packet_context);
 	return ret;
 }
 
@@ -170,7 +170,7 @@ struct bt_packet *trimmer_new_packet(
 	writer_packet = lookup_packet(trim_it, packet);
 	if (writer_packet) {
 		g_hash_table_remove(trim_it->packet_map, packet);
-		BT_PUT(writer_packet);
+		BT_OBJECT_PUT_REF_AND_RESET(writer_packet);
 	}
 
 	writer_packet = insert_new_packet(trim_it, packet, stream);
@@ -178,7 +178,7 @@ struct bt_packet *trimmer_new_packet(
 		BT_LOGE_STR("Failed to insert new packet.");
 		goto error;
 	}
-	bt_get(writer_packet);
+	bt_object_get_ref(writer_packet);
 
 	int_ret = ctf_packet_copy_context(trim_it->err, packet,
 			stream, writer_packet);
@@ -190,9 +190,9 @@ struct bt_packet *trimmer_new_packet(
 	goto end;
 
 error:
-	BT_PUT(writer_packet);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_packet);
 end:
-	bt_put(stream);
+	bt_object_put_ref(stream);
 	return writer_packet;
 }
 
@@ -247,7 +247,7 @@ struct bt_event *trimmer_output_event(
 		BT_LOGE_STR("Failed to find existing packet.");
 		goto error;
 	}
-	bt_get(writer_packet);
+	bt_object_get_ref(writer_packet);
 
 	int_ret = bt_event_set_packet(writer_event, writer_packet);
 	if (int_ret < 0) {
@@ -261,10 +261,10 @@ struct bt_event *trimmer_output_event(
 	goto end;
 
 error:
-	BT_PUT(writer_event);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_event);
 end:
-	bt_put(writer_packet);
-	bt_put(packet);
-	bt_put(event_class);
+	bt_object_put_ref(writer_packet);
+	bt_object_put_ref(packet);
+	bt_object_put_ref(event_class);
 	return writer_event;
 }

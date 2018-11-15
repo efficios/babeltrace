@@ -32,7 +32,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
@@ -147,7 +147,7 @@ struct bt_plugin *bt_plugin_set_get_plugin(struct bt_plugin_set *plugin_set,
 		goto end;
 	}
 
-	plugin = bt_get(g_ptr_array_index(plugin_set->plugins, index));
+	plugin = bt_object_get_ref(g_ptr_array_index(plugin_set->plugins, index));
 
 end:
 	return plugin;
@@ -279,7 +279,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	for (i = 0; i < dirs->len; i++) {
 		GString *dir = g_ptr_array_index(dirs, i);
 
-		BT_PUT(plugin_set);
+		BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 
 		/*
 		 * Skip this if the directory does not exist because
@@ -307,7 +307,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 					plugin_name) == 0) {
 				BT_LOGD("Plugin found in directory: name=\"%s\", path=\"%s\"",
 					plugin_name, dir->str);
-				plugin = bt_get(candidate_plugin);
+				plugin = bt_object_get_ref(candidate_plugin);
 				goto end;
 			}
 		}
@@ -316,7 +316,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 			plugin_name, dir->str);
 	}
 
-	bt_put(plugin_set);
+	bt_object_put_ref(plugin_set);
 	plugin_set = bt_plugin_create_all_from_static();
 	if (plugin_set) {
 		for (j = 0; j < plugin_set->plugins->len; j++) {
@@ -327,7 +327,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 					plugin_name) == 0) {
 				BT_LOGD("Plugin found in built-in plugins: "
 					"name=\"%s\"", plugin_name);
-				plugin = bt_get(candidate_plugin);
+				plugin = bt_object_get_ref(candidate_plugin);
 				goto end;
 			}
 		}
@@ -335,7 +335,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 
 end:
 	free(home_plugin_dir);
-	bt_put(plugin_set);
+	bt_object_put_ref(plugin_set);
 
 	if (dirs) {
 		g_ptr_array_free(dirs, TRUE);
@@ -388,7 +388,7 @@ struct bt_component_class *bt_plugin_find_component_class(
 	}
 
 end:
-	bt_put(plugin);
+	bt_object_put_ref(plugin);
 	return comp_cls;
 }
 
@@ -438,7 +438,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 				bt_plugin_set_add_plugin(append_all_from_dir_info.plugin_set, plugin);
 			}
 
-			bt_put(plugins_from_file);
+			bt_object_put_ref(plugins_from_file);
 		}
 		break;
 	}
@@ -527,7 +527,7 @@ struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
 	goto end;
 
 error:
-	BT_PUT(plugin_set);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 
 end:
 	return plugin_set;
@@ -679,11 +679,11 @@ struct bt_component_class *bt_plugin_get_component_class_by_index(
 	}
 
 	comp_class = g_ptr_array_index(plugin->comp_classes, index);
-	bt_get(comp_class);
+	bt_object_get_ref(comp_class);
 	goto end;
 
 error:
-	BT_PUT(comp_class);
+	BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 
 end:
 	return comp_class;
@@ -719,7 +719,7 @@ struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 
 		if (strcmp(name, comp_class_cand_name) == 0 &&
 				comp_class_cand_type == type) {
-			comp_class = bt_get(comp_class_candidate);
+			comp_class = bt_object_get_ref(comp_class_candidate);
 			break;
 		}
 	}
@@ -727,7 +727,7 @@ struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
 	goto end;
 
 error:
-	BT_PUT(comp_class);
+	BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 
 end:
 	return comp_class;
@@ -775,7 +775,7 @@ enum bt_plugin_status bt_plugin_add_component_class(
 
 	/* Add new component class */
 	comp_class_index = plugin->comp_classes->len;
-	g_ptr_array_add(plugin->comp_classes, bt_get(comp_class));
+	g_ptr_array_add(plugin->comp_classes, bt_object_get_ref(comp_class));
 
 	/* Special case for a shared object plugin */
 	if (plugin->type == BT_PLUGIN_TYPE_SO) {
@@ -803,6 +803,6 @@ error:
 	status = BT_PLUGIN_STATUS_ERROR;
 
 end:
-	bt_put(comp_class_dup);
+	bt_object_put_ref(comp_class_dup);
 	return status;
 }

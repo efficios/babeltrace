@@ -33,7 +33,7 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/ctf-writer/clock-class-internal.h>
 #include <babeltrace/ctf-writer/utils.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/compat/string-internal.h>
@@ -150,7 +150,7 @@ struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
 		clock_class, name);
 	return clock_class;
 error:
-	BT_PUT(clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(clock_class);
 	return clock_class;
 }
 

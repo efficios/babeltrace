@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <babeltrace/values.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/component-class.h>
@@ -129,7 +129,7 @@ static inline
 struct bt_config_component *bt_config_get_component(GPtrArray *array,
 		size_t index)
 {
-	return bt_get(g_ptr_array_index(array, index));
+	return bt_object_get_ref(g_ptr_array_index(array, index));
 }
 
 enum bt_value_status bt_config_append_plugin_paths(

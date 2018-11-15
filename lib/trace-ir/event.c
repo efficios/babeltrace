@@ -47,7 +47,7 @@
 #include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/ref.h>
+#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -280,14 +280,14 @@ void bt_event_destroy(struct bt_event *event)
 	}
 
 	BT_LOGD_STR("Putting event's class.");
-	bt_put(event->class);
+	bt_object_put_ref(event->class);
 
 	if (event->default_cv) {
 		bt_clock_value_recycle(event->default_cv);
 	}
 
 	BT_LOGD_STR("Putting event's packet.");
-	bt_put(event->packet);
+	bt_object_put_ref(event->packet);
 	g_free(event);
 }
 

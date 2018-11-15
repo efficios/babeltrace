@@ -40,13 +40,13 @@
 static
 void unref_stream_class(struct bt_stream_class *writer_stream_class)
 {
-	bt_put(writer_stream_class);
+	bt_object_put_ref(writer_stream_class);
 }
 
 static
 void unref_stream(struct bt_stream_class *writer_stream)
 {
-	bt_put(writer_stream);
+	bt_object_put_ref(writer_stream);
 }
 
 static
@@ -145,10 +145,10 @@ struct bt_stream_class *insert_new_stream_class(
 	goto end;
 
 error:
-	BT_PUT(writer_stream_class);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_stream_class);
 end:
-	bt_put(writer_trace);
-	bt_put(trace);
+	bt_object_put_ref(writer_trace);
+	bt_object_put_ref(trace);
 	return writer_stream_class;
 }
 
@@ -315,7 +315,7 @@ struct fs_writer *insert_new_writer(
 	ret = ctf_copy_trace(writer_component->err, trace, writer_trace);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		BT_LOGE_STR("Failed to copy trace.");
-		BT_PUT(ctf_writer);
+		BT_OBJECT_PUT_REF_AND_RESET(ctf_writer);
 		goto error;
 	}
 
@@ -328,7 +328,7 @@ struct fs_writer *insert_new_writer(
 	fs_writer->trace = trace;
 	fs_writer->writer_trace = writer_trace;
 	fs_writer->writer_component = writer_component;
-	BT_PUT(writer_trace);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_trace);
 	fs_writer->stream_class_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_stream_class);
 	fs_writer->stream_map = g_hash_table_new_full(g_direct_hash,
@@ -343,7 +343,7 @@ struct fs_writer *insert_new_writer(
 		BT_ASSERT(stream);
 
 		insert_new_stream_state(writer_component, fs_writer, stream);
-		BT_PUT(stream);
+		BT_OBJECT_PUT_REF_AND_RESET(stream);
 	}
 
 	/* Check if the trace is already static or register a listener. */
@@ -366,9 +366,9 @@ struct fs_writer *insert_new_writer(
 error:
 	g_free(fs_writer);
 	fs_writer = NULL;
-	bt_put(writer_trace);
-	bt_put(stream);
-	BT_PUT(ctf_writer);
+	bt_object_put_ref(writer_trace);
+	bt_object_put_ref(stream);
+	BT_OBJECT_PUT_REF_AND_RESET(ctf_writer);
 end:
 	return fs_writer;
 }
@@ -388,7 +388,7 @@ struct fs_writer *get_fs_writer(struct writer_component *writer_component,
 	if (!fs_writer) {
 		fs_writer = insert_new_writer(writer_component, trace);
 	}
-	BT_PUT(trace);
+	BT_OBJECT_PUT_REF_AND_RESET(trace);
 
 	return fs_writer;
 }
@@ -406,7 +406,7 @@ struct fs_writer *get_fs_writer_from_stream(
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
 
-	bt_put(stream_class);
+	bt_object_put_ref(stream_class);
 	return fs_writer;
 }
 
@@ -442,7 +442,7 @@ struct bt_stream *insert_new_stream(
 {
 	struct bt_stream *writer_stream = NULL;
 	struct bt_stream_class *writer_stream_class = NULL;
-	struct bt_ctf_writer *ctf_writer = bt_get(fs_writer->writer);
+	struct bt_ctf_writer *ctf_writer = bt_object_get_ref(fs_writer->writer);
 
 	writer_stream_class = lookup_stream_class(writer_component,
 			stream_class);
@@ -454,7 +454,7 @@ struct bt_stream *insert_new_stream(
 			goto error;
 		}
 	}
-	bt_get(writer_stream_class);
+	bt_object_get_ref(writer_stream_class);
 
 	writer_stream = bt_stream_create(writer_stream_class,
 		bt_stream_get_name(stream));
@@ -466,10 +466,10 @@ struct bt_stream *insert_new_stream(
 	goto end;
 
 error:
-	BT_PUT(writer_stream);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
 end:
-	bt_put(ctf_writer);
-	bt_put(writer_stream_class);
+	bt_object_put_ref(ctf_writer);
+	bt_object_put_ref(writer_stream_class);
 	return writer_stream;
 }
 
@@ -494,12 +494,12 @@ struct bt_stream *get_writer_stream(
 		BT_LOGE_STR("Failed to find existing stream.");
 		goto error;
 	}
-	bt_get(writer_stream);
+	bt_object_get_ref(writer_stream);
 
 	goto end;
 
 error:
-	BT_PUT(writer_stream);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
 end:
 	return writer_stream;
 }
@@ -577,7 +577,7 @@ enum bt_component_status writer_stream_begin(
 error:
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
-	bt_put(stream_class);
+	bt_object_put_ref(stream_class);
 	return ret;
 }
 
@@ -627,8 +627,8 @@ enum bt_component_status writer_stream_end(
 error:
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
-	BT_PUT(trace);
-	BT_PUT(stream_class);
+	BT_OBJECT_PUT_REF_AND_RESET(trace);
+	BT_OBJECT_PUT_REF_AND_RESET(stream_class);
 	return ret;
 }
 
@@ -649,7 +649,7 @@ enum bt_component_status writer_new_packet(
 		BT_LOGE_STR("Failed to get writer_stream.");
 		goto error;
 	}
-	BT_PUT(stream);
+	BT_OBJECT_PUT_REF_AND_RESET(stream);
 
 	int_ret = ctf_stream_copy_packet_context(
 			writer_component->err, packet, writer_stream);
@@ -670,8 +670,8 @@ enum bt_component_status writer_new_packet(
 error:
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
-	bt_put(writer_stream);
-	bt_put(stream);
+	bt_object_put_ref(writer_stream);
+	bt_object_put_ref(stream);
 	return ret;
 }
 
@@ -691,9 +691,9 @@ enum bt_component_status writer_close_packet(
 		BT_LOGE_STR("Failed to find existing stream.");
 		goto error;
 	}
-	BT_PUT(stream);
+	BT_OBJECT_PUT_REF_AND_RESET(stream);
 
-	bt_get(writer_stream);
+	bt_object_get_ref(writer_stream);
 
 	ret = bt_stream_flush(writer_stream);
 	if (ret) {
@@ -701,7 +701,7 @@ enum bt_component_status writer_close_packet(
 		goto error;
 	}
 
-	BT_PUT(writer_stream);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
 
 	ret = BT_COMPONENT_STATUS_OK;
 	goto end;
@@ -709,8 +709,8 @@ enum bt_component_status writer_close_packet(
 error:
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
-	bt_put(writer_stream);
-	bt_put(stream);
+	bt_object_put_ref(writer_stream);
+	bt_object_put_ref(stream);
 	return ret;
 }
 
@@ -734,7 +734,7 @@ enum bt_component_status writer_output_event(
 	BT_ASSERT(stream);
 
 	writer_stream = lookup_stream(writer_component, stream);
-	if (!writer_stream || !bt_get(writer_stream)) {
+	if (!writer_stream || !bt_object_get_ref(writer_stream)) {
 		BT_LOGE_STR("Failed for find existing stream.");
 		goto error;
 	}
@@ -743,7 +743,7 @@ enum bt_component_status writer_output_event(
 	BT_ASSERT(stream_class);
 
 	writer_stream_class = lookup_stream_class(writer_component, stream_class);
-	if (!writer_stream_class || !bt_get(writer_stream_class)) {
+	if (!writer_stream_class || !bt_object_get_ref(writer_stream_class)) {
 		BT_LOGE_STR("Failed to find existing stream_class.");
 		goto error;
 	}
@@ -790,13 +790,13 @@ enum bt_component_status writer_output_event(
 error:
 	ret = BT_COMPONENT_STATUS_ERROR;
 end:
-	bt_put(writer_trace);
-	bt_put(writer_event);
-	bt_put(writer_event_class);
-	bt_put(writer_stream_class);
-	bt_put(stream_class);
-	bt_put(writer_stream);
-	bt_put(stream);
-	bt_put(event_class);
+	bt_object_put_ref(writer_trace);
+	bt_object_put_ref(writer_event);
+	bt_object_put_ref(writer_event_class);
+	bt_object_put_ref(writer_stream_class);
+	bt_object_put_ref(stream_class);
+	bt_object_put_ref(writer_stream);
+	bt_object_put_ref(stream);
+	bt_object_put_ref(event_class);
 	return ret;
 }

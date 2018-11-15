@@ -152,7 +152,7 @@ struct bt_field_class *ctf_field_class_struct_to_ir(
 		ret = bt_field_class_structure_append_member(ir_fc,
 			named_fc->name->str, member_ir_fc);
 		BT_ASSERT(ret == 0);
-		bt_put(member_ir_fc);
+		bt_object_put_ref(member_ir_fc);
 	}
 
 	return ir_fc;
@@ -205,7 +205,7 @@ struct bt_field_class *ctf_field_class_variant_to_ir(
 		ret = bt_field_class_variant_append_option(ir_fc,
 			named_fc->name->str, option_ir_fc);
 		BT_ASSERT(ret == 0);
-		bt_put(option_ir_fc);
+		bt_object_put_ref(option_ir_fc);
 	}
 
 	return ir_fc;
@@ -231,7 +231,7 @@ struct bt_field_class *ctf_field_class_array_to_ir(
 	BT_ASSERT(elem_ir_fc);
 	ir_fc = bt_field_class_static_array_create(elem_ir_fc, fc->length);
 	BT_ASSERT(ir_fc);
-	bt_put(elem_ir_fc);
+	bt_object_put_ref(elem_ir_fc);
 
 end:
 	return ir_fc;
@@ -258,7 +258,7 @@ struct bt_field_class *ctf_field_class_sequence_to_ir(
 	BT_ASSERT(elem_ir_fc);
 	ir_fc = bt_field_class_dynamic_array_create(elem_ir_fc);
 	BT_ASSERT(ir_fc);
-	bt_put(elem_ir_fc);
+	bt_object_put_ref(elem_ir_fc);
 	BT_ASSERT(ir_fc);
 	ret = bt_field_class_dynamic_array_set_length_field_class(ir_fc,
 		borrow_ir_ft_from_field_path(&fc->length_path, tc, sc, ec));
@@ -405,7 +405,7 @@ struct bt_event_class *ctf_event_class_to_ir(struct ctf_event_class *ec,
 
 	ir_ec = bt_event_class_create_with_id(ir_sc, ec->id);
 	BT_ASSERT(ir_ec);
-	bt_put(ir_ec);
+	bt_object_put_ref(ir_ec);
 
 	if (ec->spec_context_fc) {
 		struct bt_field_class *ir_fc = scope_ctf_field_class_to_ir(
@@ -415,7 +415,7 @@ struct bt_event_class *ctf_event_class_to_ir(struct ctf_event_class *ec,
 			ret = bt_event_class_set_specific_context_field_class(
 				ir_ec, ir_fc);
 			BT_ASSERT(ret == 0);
-			bt_put(ir_fc);
+			bt_object_put_ref(ir_fc);
 		}
 	}
 
@@ -427,7 +427,7 @@ struct bt_event_class *ctf_event_class_to_ir(struct ctf_event_class *ec,
 			ret = bt_event_class_set_payload_field_class(ir_ec,
 				ir_fc);
 			BT_ASSERT(ret == 0);
-			bt_put(ir_fc);
+			bt_object_put_ref(ir_fc);
 		}
 	}
 
@@ -470,7 +470,7 @@ struct bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
 
 	ir_sc = bt_stream_class_create_with_id(ir_trace, sc->id);
 	BT_ASSERT(ir_sc);
-	bt_put(ir_sc);
+	bt_object_put_ref(ir_sc);
 
 	if (sc->packet_context_fc) {
 		struct bt_field_class *ir_fc = scope_ctf_field_class_to_ir(
@@ -480,7 +480,7 @@ struct bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
 			ret = bt_stream_class_set_packet_context_field_class(
 				ir_sc, ir_fc);
 			BT_ASSERT(ret == 0);
-			bt_put(ir_fc);
+			bt_object_put_ref(ir_fc);
 		}
 	}
 
@@ -492,7 +492,7 @@ struct bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
 			ret = bt_stream_class_set_event_header_field_class(ir_sc,
 				ir_fc);
 			BT_ASSERT(ret == 0);
-			bt_put(ir_fc);
+			bt_object_put_ref(ir_fc);
 		}
 	}
 
@@ -504,7 +504,7 @@ struct bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
 			ret = bt_stream_class_set_event_common_context_field_class(
 				ir_sc, ir_fc);
 			BT_ASSERT(ret == 0);
-			bt_put(ir_fc);
+			bt_object_put_ref(ir_fc);
 		}
 	}
 
@@ -586,7 +586,7 @@ int ctf_trace_class_to_ir(struct bt_trace *ir_trace,
 			ret = bt_trace_set_packet_header_field_class(ir_trace,
 				ir_fc);
 			BT_ASSERT(ret == 0);
-			bt_put(ir_fc);
+			bt_object_put_ref(ir_fc);
 		}
 	}
 

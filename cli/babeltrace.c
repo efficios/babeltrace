@@ -139,7 +139,7 @@ void set_signal_handler(void)
 static
 void init_static_data(void)
 {
-	loaded_plugins = g_ptr_array_new_with_free_func(bt_put);
+	loaded_plugins = g_ptr_array_new_with_free_func(bt_object_put_ref);
 }
 
 static
@@ -165,7 +165,7 @@ int create_the_query_executor(void)
 static
 void destroy_the_query_executor(void)
 {
-	BT_PUT(the_query_executor);
+	BT_OBJECT_PUT_REF_AND_RESET(the_query_executor);
 }
 
 static
@@ -254,7 +254,7 @@ error:
 
 end:
 	destroy_the_query_executor();
-	bt_put(result);
+	bt_object_put_ref(result);
 	return ret;
 }
 
@@ -285,7 +285,7 @@ struct bt_plugin *find_plugin(const char *name)
 		}
 	}
 
-	return bt_get(plugin);
+	return bt_object_get_ref(plugin);
 }
 
 static
@@ -308,7 +308,7 @@ struct bt_component_class *find_component_class(const char *plugin_name,
 
 	comp_class = bt_plugin_get_component_class_by_name_and_type(plugin,
 			comp_class_name, comp_class_type);
-	BT_PUT(plugin);
+	BT_OBJECT_PUT_REF_AND_RESET(plugin);
 
 end:
 	if (BT_LOG_ON_DEBUG) {
@@ -592,7 +592,7 @@ void print_bt_config_components(GPtrArray *array)
 		struct bt_config_component *cfg_component =
 				bt_config_get_component(array, i);
 		print_bt_config_component(cfg_component);
-		BT_PUT(cfg_component);
+		BT_OBJECT_PUT_REF_AND_RESET(cfg_component);
 	}
 }
 
@@ -732,15 +732,15 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 				bt_plugin_get_name(plugin),
 				bt_plugin_get_path(plugin),
 				bt_plugin_get_path(loaded_plugin));
-			bt_put(loaded_plugin);
+			bt_object_put_ref(loaded_plugin);
 		} else {
 			/* Add to global array. */
 			BT_LOGD("Adding plugin to loaded plugins: plugin-path=\"%s\"",
 				bt_plugin_get_name(plugin));
-			g_ptr_array_add(loaded_plugins, bt_get(plugin));
+			g_ptr_array_add(loaded_plugins, bt_object_get_ref(plugin));
 		}
 
-		bt_put(plugin);
+		bt_object_put_ref(plugin);
 	}
 }
 
@@ -791,7 +791,7 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		}
 
 		add_to_loaded_plugins(plugin_set);
-		bt_put(plugin_set);
+		bt_object_put_ref(plugin_set);
 	}
 end:
 	return ret;
@@ -812,7 +812,7 @@ int load_static_plugins(void)
 	}
 
 	add_to_loaded_plugins(plugin_set);
-	bt_put(plugin_set);
+	bt_object_put_ref(plugin_set);
 end:
 	return ret;
 }
@@ -954,8 +954,8 @@ failed:
 	ret = -1;
 
 end:
-	bt_put(comp_cls);
-	bt_put(results);
+	bt_object_put_ref(comp_cls);
+	bt_object_put_ref(results);
 	return ret;
 }
 
@@ -1013,7 +1013,7 @@ int cmd_help(struct bt_config *cfg)
 			goto end;
 		}
 
-		bt_put(needed_comp_cls);
+		bt_object_put_ref(needed_comp_cls);
 	}
 
 	for (i = 0; i < bt_plugin_get_component_class_count(plugin); i++) {
@@ -1035,7 +1035,7 @@ int cmd_help(struct bt_config *cfg)
 			if (strcmp(cfg->cmd_data.help.cfg_component->comp_cls_name->str,
 					comp_class_name) != 0 ||
 					type != cfg->cmd_data.help.cfg_component->type) {
-				bt_put(comp_cls);
+				bt_object_put_ref(comp_cls);
 				continue;
 			}
 		}
@@ -1054,11 +1054,11 @@ int cmd_help(struct bt_config *cfg)
 			printf("\n%s\n", comp_class_help);
 		}
 
-		bt_put(comp_cls);
+		bt_object_put_ref(comp_cls);
 	}
 
 end:
-	bt_put(plugin);
+	bt_object_put_ref(plugin);
 	return ret;
 }
 
@@ -1131,7 +1131,7 @@ int cmd_list_plugins(struct bt_config *cfg)
 			}
 
 			printf("\n");
-			bt_put(comp_class);
+			bt_object_put_ref(comp_class);
 		}
 	}
 
@@ -1277,9 +1277,9 @@ error:
 	ret = -1;
 
 end:
-	bt_put(results);
-	bt_put(params);
-	bt_put(comp_cls);
+	bt_object_put_ref(results);
+	bt_object_put_ref(params);
+	bt_object_put_ref(comp_cls);
 
 	if (out_stream && out_stream != stdout) {
 		int fclose_ret = fclose(out_stream);
@@ -1389,9 +1389,9 @@ failed:
 
 end:
 	destroy_the_query_executor();
-	bt_put(results);
-	bt_put(params);
-	bt_put(comp_cls);
+	bt_object_put_ref(results);
+	bt_object_put_ref(params);
+	bt_object_put_ref(comp_cls);
 
 	if (out_stream && out_stream != stdout) {
 		int fclose_ret = fclose(out_stream);
@@ -1643,7 +1643,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 
 		/* Skip port if it's already connected. */
 		if (bt_port_is_connected(downstream_port)) {
-			bt_put(downstream_port);
+			bt_object_put_ref(downstream_port);
 			BT_LOGD("Skipping downstream port: already connected: "
 				"port-addr=%p, port-name=\"%s\"",
 				downstream_port,
@@ -1659,7 +1659,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		if (!bt_common_star_glob_match(
 				cfg_conn->downstream_port_glob->str, SIZE_MAX,
 				downstream_port_name, SIZE_MAX)) {
-			bt_put(downstream_port);
+			bt_object_put_ref(downstream_port);
 			continue;
 		}
 
@@ -1715,7 +1715,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			 * Replace the current downstream port by the trimmer's
 			 * upstream port.
 			 */
-		        BT_MOVE(downstream_port, trimmer_input);
+		        BT_OBJECT_MOVE_REF(downstream_port, trimmer_input);
 			downstream_port_name = bt_port_get_name(
 				downstream_port);
 			if (!downstream_port_name) {
@@ -1726,7 +1726,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		/* We have a winner! */
 		status = bt_graph_connect_ports(ctx->graph,
 			upstream_port, downstream_port, NULL);
-		BT_PUT(downstream_port);
+		BT_OBJECT_PUT_REF_AND_RESET(downstream_port);
 		switch (status) {
 		case BT_GRAPH_STATUS_OK:
 			break;
@@ -1822,11 +1822,11 @@ error:
 end:
 	free(intersection_begin);
 	free(intersection_end);
-	BT_PUT(trimmer_params);
-	BT_PUT(trimmer_class);
-	BT_PUT(trimmer);
-	BT_PUT(trimmer_input);
-	BT_PUT(trimmer_output);
+	BT_OBJECT_PUT_REF_AND_RESET(trimmer_params);
+	BT_OBJECT_PUT_REF_AND_RESET(trimmer_class);
+	BT_OBJECT_PUT_REF_AND_RESET(trimmer);
+	BT_OBJECT_PUT_REF_AND_RESET(trimmer_input);
+	BT_OBJECT_PUT_REF_AND_RESET(trimmer_output);
 	return ret;
 }
 
@@ -1904,7 +1904,7 @@ error:
 	ret = -1;
 
 end:
-	bt_put(upstream_comp);
+	bt_object_put_ref(upstream_comp);
 	return ret;
 }
 
@@ -1946,7 +1946,7 @@ void graph_port_added_listener(struct bt_port *port, void *data)
 	}
 
 end:
-	bt_put(comp);
+	bt_object_put_ref(comp);
 	return;
 }
 
@@ -1978,8 +1978,8 @@ void graph_ports_connected_listener(struct bt_port *upstream_port,
 		upstream_port, bt_port_get_name(upstream_port),
 		downstream_comp, bt_component_get_name(downstream_comp),
 		downstream_port, bt_port_get_name(downstream_port));
-	bt_put(upstream_comp);
-	bt_put(downstream_comp);
+	bt_object_put_ref(upstream_comp);
+	bt_object_put_ref(downstream_comp);
 }
 
 static
@@ -2013,7 +2013,7 @@ void cmd_run_ctx_destroy(struct cmd_run_ctx *ctx)
 		ctx->intersections = NULL;
 	}
 
-	BT_PUT(ctx->graph);
+	BT_OBJECT_PUT_REF_AND_RESET(ctx->graph);
 	the_graph = NULL;
 	ctx->cfg = NULL;
 }
@@ -2026,7 +2026,7 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 	ctx->cfg = cfg;
 	ctx->connect_ports = false;
 	ctx->components = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-		NULL, bt_put);
+		NULL, bt_object_put_ref);
 	if (!ctx->components) {
 		goto error;
 	}
@@ -2336,8 +2336,8 @@ error:
 		path ? path : "(unknown)",
 		bt_common_color_reset());
 end:
-	bt_put(query_params);
-	bt_put(query_result);
+	bt_object_put_ref(query_params);
+	bt_object_put_ref(query_result);
 	g_free(port_id);
 	g_free(trace_range);
 	return ret;
@@ -2409,7 +2409,7 @@ int cmd_run_ctx_create_components_from_config_components(
 		g_hash_table_insert(ctx->components,
 			GUINT_TO_POINTER(quark), comp);
 		comp = NULL;
-		BT_PUT(comp_cls);
+		BT_OBJECT_PUT_REF_AND_RESET(comp_cls);
 	}
 
 	goto end;
@@ -2418,8 +2418,8 @@ error:
 	ret = -1;
 
 end:
-	bt_put(comp);
-	bt_put(comp_cls);
+	bt_object_put_ref(comp);
+	bt_object_put_ref(comp_cls);
 	return ret;
 }
 
@@ -2479,7 +2479,7 @@ int cmd_run_ctx_connect_comp_ports(struct cmd_run_ctx *ctx,
 
 		BT_ASSERT(upstream_port);
 		ret = cmd_run_ctx_connect_upstream_port(ctx, upstream_port);
-		bt_put(upstream_port);
+		bt_object_put_ref(upstream_port);
 		if (ret) {
 			goto end;
 		}
@@ -2894,7 +2894,7 @@ int main(int argc, const char **argv)
 	retcode = ret ? 1 : 0;
 
 end:
-	BT_PUT(cfg);
+	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 	fini_static_data();
 	return retcode;
 }

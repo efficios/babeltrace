@@ -359,8 +359,8 @@ int bt_ctf_stream_class_common_set_packet_context_field_type(
 		goto end;
 	}
 
-	bt_put(stream_class->packet_context_field_type);
-	bt_get(packet_context_type);
+	bt_object_put_ref(stream_class->packet_context_field_type);
+	bt_object_get_ref(packet_context_type);
 	stream_class->packet_context_field_type = packet_context_type;
 	BT_LOGV("Set stream class's packet context field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
@@ -436,8 +436,8 @@ int bt_ctf_stream_class_common_set_event_header_field_type(
 		goto end;
 	}
 
-	bt_put(stream_class->event_header_field_type);
-	stream_class->event_header_field_type = bt_get(event_header_type);
+	bt_object_put_ref(stream_class->event_header_field_type);
+	stream_class->event_header_field_type = bt_object_get_ref(event_header_type);
 	BT_LOGV("Set stream class's event header field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"event-header-ft-addr=%p",
@@ -505,8 +505,8 @@ int bt_ctf_stream_class_common_set_event_context_field_type(
 		goto end;
 	}
 
-	bt_put(stream_class->event_context_field_type);
-	stream_class->event_context_field_type = bt_get(event_context_type);
+	bt_object_put_ref(stream_class->event_context_field_type);
+	stream_class->event_context_field_type = bt_object_get_ref(event_context_type);
 	BT_LOGV("Set stream class's event context field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"event-context-ft-addr=%p",

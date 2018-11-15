@@ -74,7 +74,7 @@ struct bt_field_path *bt_field_path_create(void)
 	goto end;
 
 error:
-	BT_PUT(field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(field_path);
 
 end:
 	return field_path;

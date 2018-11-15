@@ -27,8 +27,8 @@
  * SOFTWARE.
  */
 
-/* For bt_get() */
-#include <babeltrace/ref.h>
+/* For bt_object_get_ref() */
+#include <babeltrace/object.h>
 
 #include <stdint.h>
 
