@@ -37,44 +37,4 @@ enum bt_value_status _bt_value_freeze(struct bt_value *object);
 # define bt_value_freeze(_value)
 #endif /* BT_DEV_MODE */
 
-static inline
-const char *bt_value_status_string(enum bt_value_status status)
-{
-	switch (status) {
-	case BT_VALUE_STATUS_CANCELED:
-		return "BT_VALUE_STATUS_CANCELED";
-	case BT_VALUE_STATUS_INVAL:
-		return "BT_VALUE_STATUS_INVAL";
-	case BT_VALUE_STATUS_ERROR:
-		return "BT_VALUE_STATUS_ERROR";
-	case BT_VALUE_STATUS_OK:
-		return "BT_VALUE_STATUS_OK";
-	default:
-		return "(unknown)";
-	}
-};
-
-static inline
-const char *bt_value_type_string(enum bt_value_type type)
-{
-	switch (type) {
-	case BT_VALUE_TYPE_NULL:
-		return "BT_VALUE_TYPE_NULL";
-	case BT_VALUE_TYPE_BOOL:
-		return "BT_VALUE_TYPE_BOOL";
-	case BT_VALUE_TYPE_INTEGER:
-		return "BT_VALUE_TYPE_INTEGER";
-	case BT_VALUE_TYPE_REAL:
-		return "BT_VALUE_TYPE_REAL";
-	case BT_VALUE_TYPE_STRING:
-		return "BT_VALUE_TYPE_STRING";
-	case BT_VALUE_TYPE_ARRAY:
-		return "BT_VALUE_TYPE_ARRAY";
-	case BT_VALUE_TYPE_MAP:
-		return "BT_VALUE_TYPE_MAP";
-	default:
-		return "(unknown)";
-	}
-};
-
 #endif /* BABELTRACE_VALUES_INTERNAL_H */

@@ -46,6 +46,7 @@
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/object.h>
 #include <babeltrace/types.h>
@@ -242,18 +243,15 @@ BT_ASSERT_FUNC
 static
 bool trace_has_environment_entry(struct bt_trace *trace, const char *name)
 {
-	struct bt_value *attribute;
-
 	BT_ASSERT(trace);
 
-	attribute = bt_attributes_borrow_field_value_by_name(
-		trace->environment, name);
-	return attribute != NULL;
+	return bt_attributes_borrow_field_value_by_name(
+		trace->environment, name) != NULL;
 }
 
 static
 int set_environment_entry(struct bt_trace *trace, const char *name,
-		struct bt_value *value)
+		struct bt_private_value *value)
 {
 	int ret;
 
@@ -266,7 +264,7 @@ int set_environment_entry(struct bt_trace *trace, const char *name,
 		"%![trace-]+t, entry-name=\"%s\"", trace, name);
 	ret = bt_attributes_set_field_value(trace->environment, name,
 		value);
-	bt_value_freeze(value);
+	bt_value_freeze(bt_value_borrow_from_private(value));
 	if (ret) {
 		BT_LIB_LOGE("Cannot set trace's environment entry: "
 			"%![trace-]+t, entry-name=\"%s\"", trace, name);
@@ -282,12 +280,12 @@ int bt_trace_set_environment_entry_string(struct bt_trace *trace,
 		const char *name, const char *value)
 {
 	int ret;
-	struct bt_value *value_obj;
+	struct bt_private_value *value_obj;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	value_obj = bt_value_string_create_init(value);
+	value_obj = bt_private_value_string_create_init(value);
 	if (!value_obj) {
 		BT_LOGE_STR("Cannot create a string value object.");
 		ret = -1;
@@ -306,11 +304,11 @@ int bt_trace_set_environment_entry_integer(
 		struct bt_trace *trace, const char *name, int64_t value)
 {
 	int ret;
-	struct bt_value *value_obj;
+	struct bt_private_value *value_obj;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	value_obj = bt_value_integer_create_init(value);
+	value_obj = bt_private_value_integer_create_init(value);
 	if (!value_obj) {
 		BT_LOGE_STR("Cannot create an integer value object.");
 		ret = -1;
@@ -344,7 +342,8 @@ void bt_trace_borrow_environment_entry_by_index(
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_VALID_INDEX(index,
 		bt_attributes_get_count(trace->environment));
-	*value = bt_attributes_borrow_field_value(trace->environment, index);
+	*value = bt_value_borrow_from_private(
+		bt_attributes_borrow_field_value(trace->environment, index));
 	BT_ASSERT(*value);
 	*name = bt_attributes_get_field_name(trace->environment, index);
 	BT_ASSERT(*name);
@@ -355,8 +354,9 @@ struct bt_value *bt_trace_borrow_environment_entry_value_by_name(
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	return bt_attributes_borrow_field_value_by_name(trace->environment,
-		name);
+	return bt_value_borrow_from_private(
+		bt_attributes_borrow_field_value_by_name(trace->environment,
+			name));
 }
 
 uint64_t bt_trace_get_stream_count(struct bt_trace *trace)

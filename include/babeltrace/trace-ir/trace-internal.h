@@ -60,7 +60,7 @@ struct bt_trace {
 		bt_uuid value;
 	} uuid;
 
-	struct bt_value *environment;
+	struct bt_private_value *environment;
 
 	/* Array of `struct bt_stream_class *` */
 	GPtrArray *stream_classes;
