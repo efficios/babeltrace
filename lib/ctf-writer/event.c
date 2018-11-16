@@ -66,7 +66,7 @@ int bt_ctf_event_common_validate_types_for_create(
 	struct bt_ctf_field_type_common *event_context_type = NULL;
 	struct bt_ctf_field_type_common *event_payload_type = NULL;
 	int trace_valid = 0;
-	struct bt_value *environment = NULL;
+	struct bt_private_value *environment = NULL;
 
 	stream_class = bt_ctf_event_class_common_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);

@@ -230,7 +230,7 @@ end:
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
-		const char *name, struct bt_value *value)
+		const char *name, struct bt_private_value *value)
 {
 	int ret = 0;
 
@@ -261,12 +261,15 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 		goto end;
 	}
 
-	if (!bt_value_is_integer(value) && !bt_value_is_string(value)) {
+	if (!bt_value_is_integer(bt_value_borrow_from_private(value)) &&
+			!bt_value_is_string(bt_value_borrow_from_private(value))) {
 		BT_LOGW("Invalid parameter: environment field's value is not an integer or string value: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\", env-value-type=%s",
 			trace, bt_ctf_trace_common_get_name(trace), name,
-			bt_value_type_string(bt_value_get_type(value)));
+			bt_common_value_type_string(
+				bt_value_get_type(
+					bt_value_borrow_from_private(value))));
 		ret = -1;
 		goto end;
 	}
@@ -278,7 +281,7 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 		 *
 		 * The object passed is frozen like all other attributes.
 		 */
-		struct bt_value *attribute =
+		struct bt_private_value *attribute =
 			bt_ctf_attributes_borrow_field_value_by_name(
 				trace->environment, name);
 
@@ -291,7 +294,7 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 			goto end;
 		}
 
-		bt_value_freeze(value);
+		bt_value_freeze(bt_value_borrow_from_private(value));
 	}
 
 	ret = bt_ctf_attributes_set_field_value(trace->environment, name,
@@ -317,7 +320,7 @@ int bt_ctf_trace_common_set_environment_field_string(struct bt_ctf_trace_common 
 		const char *name, const char *value)
 {
 	int ret = 0;
-	struct bt_value *env_value_string_obj = NULL;
+	struct bt_private_value *env_value_string_obj = NULL;
 
 	if (!value) {
 		BT_LOGW_STR("Invalid parameter: value is NULL.");
@@ -325,7 +328,7 @@ int bt_ctf_trace_common_set_environment_field_string(struct bt_ctf_trace_common 
 		goto end;
 	}
 
-	env_value_string_obj = bt_value_string_create_init(value);
+	env_value_string_obj = bt_private_value_string_create_init(value);
 	if (!env_value_string_obj) {
 		BT_LOGE_STR("Cannot create string value object.");
 		ret = -1;
@@ -346,9 +349,9 @@ int bt_ctf_trace_common_set_environment_field_integer(
 		struct bt_ctf_trace_common *trace, const char *name, int64_t value)
 {
 	int ret = 0;
-	struct bt_value *env_value_integer_obj = NULL;
+	struct bt_private_value *env_value_integer_obj = NULL;
 
-	env_value_integer_obj = bt_value_integer_create_init(value);
+	env_value_integer_obj = bt_private_value_integer_create_init(value);
 	if (!env_value_integer_obj) {
 		BT_LOGE_STR("Cannot create integer value object.");
 		ret = -1;
@@ -1467,13 +1470,6 @@ int bt_ctf_trace_set_uuid(struct bt_ctf_trace *trace,
 	return bt_ctf_trace_common_set_uuid(BT_CTF_TO_COMMON(trace), uuid);
 }
 
-int bt_ctf_trace_set_environment_field(struct bt_ctf_trace *trace,
-		const char *name, struct bt_value *value)
-{
-	return bt_ctf_trace_common_set_environment_field(BT_CTF_TO_COMMON(trace),
-		name, value);
-}
-
 int bt_ctf_trace_set_environment_field_string(struct bt_ctf_trace *trace,
 		const char *name, const char *value)
 {
@@ -1752,7 +1748,7 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 	g_string_append(context->string, "env {\n");
 
 	for (i = 0; i < env_size; i++) {
-		struct bt_value *env_field_value_obj = NULL;
+		struct bt_private_value *env_field_value_obj = NULL;
 		const char *entry_name;
 
 		entry_name = bt_ctf_attributes_get_field_name(
@@ -1763,14 +1759,16 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 		BT_ASSERT(entry_name);
 		BT_ASSERT(env_field_value_obj);
 
-		switch (bt_value_get_type(env_field_value_obj)) {
+		switch (bt_value_get_type(
+			bt_value_borrow_from_private(env_field_value_obj))) {
 		case BT_VALUE_TYPE_INTEGER:
 		{
 			int ret;
 			int64_t int_value;
 
-			ret = bt_value_integer_get(env_field_value_obj,
-				&int_value);
+			ret = bt_value_integer_get(
+				bt_value_borrow_from_private(
+					env_field_value_obj), &int_value);
 			BT_ASSERT(ret == 0);
 			g_string_append_printf(context->string,
 				"\t%s = %" PRId64 ";\n", entry_name,
@@ -1783,8 +1781,9 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 			const char *str_value;
 			char *escaped_str = NULL;
 
-			ret = bt_value_string_get(env_field_value_obj,
-				&str_value);
+			ret = bt_value_string_get(
+				bt_value_borrow_from_private(
+					env_field_value_obj), &str_value);
 			BT_ASSERT(ret == 0);
 			escaped_str = g_strescape(str_value, NULL);
 			if (!escaped_str) {

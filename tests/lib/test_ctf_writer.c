@@ -57,7 +57,7 @@
 #define DEFAULT_CLOCK_TIME 0
 #define DEFAULT_CLOCK_VALUE 0
 
-#define NR_TESTS 342
+#define NR_TESTS 335
 
 struct bt_utsname {
 	char sysname[BABELTRACE_HOST_NAME_MAX];
@@ -1667,26 +1667,6 @@ int main(int argc, char **argv)
 		NULL),
 		"bt_ctf_writer_add_environment_field error with NULL field value");
 
-	/* Test bt_ctf_trace_set_environment_field with an integer object */
-	obj = bt_value_integer_create_init(23);
-	BT_ASSERT(obj);
-	ok(bt_ctf_trace_set_environment_field(NULL, "test_env_int_obj", obj),
-		"bt_ctf_trace_set_environment_field handles a NULL trace correctly");
-	ok(bt_ctf_trace_set_environment_field(trace, NULL, obj),
-		"bt_ctf_trace_set_environment_field handles a NULL name correctly");
-	ok(bt_ctf_trace_set_environment_field(trace, "test_env_int_obj", NULL),
-		"bt_ctf_trace_set_environment_field handles a NULL value correctly");
-	ok(!bt_ctf_trace_set_environment_field(trace, "test_env_int_obj", obj),
-		"bt_ctf_trace_set_environment_field succeeds in adding an integer object");
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
-
-	/* Test bt_ctf_trace_set_environment_field with a string object */
-	obj = bt_value_string_create_init("the value");
-	BT_ASSERT(obj);
-	ok(!bt_ctf_trace_set_environment_field(trace, "test_env_str_obj", obj),
-		"bt_ctf_trace_set_environment_field succeeds in adding a string object");
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
-
 	/* Test bt_ctf_trace_set_environment_field_integer */
 	ok(bt_ctf_trace_set_environment_field_integer(NULL, "test_env_int",
 		-194875),
@@ -1711,7 +1691,7 @@ int main(int argc, char **argv)
 		"bt_ctf_trace_set_environment_field_string succeeds");
 
 	/* Test bt_ctf_trace_get_environment_field_count */
-	ok(bt_ctf_trace_get_environment_field_count(trace) == 5,
+	ok(bt_ctf_trace_get_environment_field_count(trace) == 3,
 		"bt_ctf_trace_get_environment_field_count returns a correct number of environment fields");
 
 	/* Test bt_ctf_trace_get_environment_field_name */
@@ -1719,27 +1699,21 @@ int main(int argc, char **argv)
 	ok(ret_string && !strcmp(ret_string, "host"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
 	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 1);
-	ok(ret_string && !strcmp(ret_string, "test_env_int_obj"),
-		"bt_ctf_trace_get_environment_field_name returns a correct field name");
-	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 2);
-	ok(ret_string && !strcmp(ret_string, "test_env_str_obj"),
-		"bt_ctf_trace_get_environment_field_name returns a correct field name");
-	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 3);
 	ok(ret_string && !strcmp(ret_string, "test_env_int"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
-	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 4);
+	ret_string = bt_ctf_trace_get_environment_field_name_by_index(trace, 2);
 	ok(ret_string && !strcmp(ret_string, "test_env_str"),
 		"bt_ctf_trace_get_environment_field_name returns a correct field name");
 
 	/* Test bt_ctf_trace_get_environment_field_value */
 	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 1);
 	ret = bt_value_integer_get(obj, &ret_int64_t);
-	ok(!ret && ret_int64_t == 23,
+	ok(!ret && ret_int64_t == -164973,
 		"bt_ctf_trace_get_environment_field_value succeeds in getting an integer value");
 	BT_OBJECT_PUT_REF_AND_RESET(obj);
 	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 2);
 	ret = bt_value_string_get(obj, &ret_string);
-	ok(!ret && ret_string && !strcmp(ret_string, "the value"),
+	ok(!ret && ret_string && !strcmp(ret_string, "oh yeah"),
 		"bt_ctf_trace_get_environment_field_value succeeds in getting a string value");
 	BT_OBJECT_PUT_REF_AND_RESET(obj);
 
@@ -1757,9 +1731,9 @@ int main(int argc, char **argv)
 	ok(!bt_ctf_trace_set_environment_field_integer(trace, "test_env_int",
 		654321),
 		"bt_ctf_trace_set_environment_field_integer succeeds with an existing name");
-	ok(bt_ctf_trace_get_environment_field_count(trace) == 5,
+	ok(bt_ctf_trace_get_environment_field_count(trace) == 3,
 		"bt_ctf_trace_set_environment_field_integer with an existing key does not increase the environment size");
-	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 3);
+	obj = bt_ctf_trace_get_environment_field_value_by_index(trace, 1);
 	ret = bt_value_integer_get(obj, &ret_int64_t);
 	ok(!ret && ret_int64_t == 654321,
 		"bt_ctf_trace_get_environment_field_value successfully replaces an existing field");

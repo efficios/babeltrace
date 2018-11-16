@@ -34,35 +34,35 @@ extern "C" {
 
 #include <stdint.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 
 BT_HIDDEN
-struct bt_value *bt_ctf_attributes_create(void);
+struct bt_private_value *bt_ctf_attributes_create(void);
 
 BT_HIDDEN
-void bt_ctf_attributes_destroy(struct bt_value *attr_obj);
+void bt_ctf_attributes_destroy(struct bt_private_value *attr_obj);
 
 BT_HIDDEN
-int64_t bt_ctf_attributes_get_count(struct bt_value *attr_obj);
+int64_t bt_ctf_attributes_get_count(struct bt_private_value *attr_obj);
 
 BT_HIDDEN
-const char *bt_ctf_attributes_get_field_name(struct bt_value *attr_obj,
+const char *bt_ctf_attributes_get_field_name(struct bt_private_value *attr_obj,
 		uint64_t index);
 
 BT_HIDDEN
-struct bt_value *bt_ctf_attributes_borrow_field_value(struct bt_value *attr_obj,
+struct bt_private_value *bt_ctf_attributes_borrow_field_value(struct bt_private_value *attr_obj,
 		uint64_t index);
 
 BT_HIDDEN
-int bt_ctf_attributes_set_field_value(struct bt_value *attr_obj,
-		const char *name, struct bt_value *value_obj);
+int bt_ctf_attributes_set_field_value(struct bt_private_value *attr_obj,
+		const char *name, struct bt_private_value *value_obj);
 
 BT_HIDDEN
-struct bt_value *bt_ctf_attributes_borrow_field_value_by_name(
-		struct bt_value *attr_obj, const char *name);
+struct bt_private_value *bt_ctf_attributes_borrow_field_value_by_name(
+		struct bt_private_value *attr_obj, const char *name);
 
 BT_HIDDEN
-int bt_ctf_attributes_freeze(struct bt_value *attr_obj);
+int bt_ctf_attributes_freeze(struct bt_private_value *attr_obj);
 
 #ifdef __cplusplus
 }

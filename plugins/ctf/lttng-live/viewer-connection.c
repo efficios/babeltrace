@@ -353,7 +353,7 @@ enum bt_value_status list_update_session(struct bt_value *results,
 			}
 			/* sum */
 			val += streams;
-			ret = bt_value_integer_set(btval, val);
+			ret = bt_private_integer_bool_set(btval, val);
 			if (ret != BT_VALUE_STATUS_OK) {
 				goto end;
 			}
@@ -370,7 +370,7 @@ enum bt_value_status list_update_session(struct bt_value *results,
 			}
 			/* max */
 			val = max_t(int64_t, clients, val);
-			ret = bt_value_integer_set(btval, val);
+			ret = bt_private_integer_bool_set(btval, val);
 			if (ret != BT_VALUE_STATUS_OK) {
 				goto end;
 			}
@@ -413,7 +413,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 		goto end;
 	}
 
-	map = bt_value_map_create();
+	map = bt_private_value_map_create();
 	if (!map) {
 		ret = BT_VALUE_STATUS_ERROR;
 		goto end;
@@ -433,7 +433,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	g_string_append_c(url, '/');
 	g_string_append(url, session->session_name);
 
-	ret = bt_value_map_insert_string_entry(map, "url", url->str);
+	ret = bt_private_value_map_insert_string_entry(map, "url", url->str);
 	if (ret != BT_VALUE_STATUS_OK) {
 		goto end;
 	}
@@ -442,7 +442,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	 * key = "target-hostname",
 	 * value = <string>,
 	 */
-	ret = bt_value_map_insert_string_entry(map, "target-hostname",
+	ret = bt_private_value_map_insert_string_entry(map, "target-hostname",
 		session->hostname);
 	if (ret != BT_VALUE_STATUS_OK) {
 		goto end;
@@ -452,7 +452,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	 * key = "session-name",
 	 * value = <string>,
 	 */
-	ret = bt_value_map_insert_string_entry(map, "session-name",
+	ret = bt_private_value_map_insert_string_entry(map, "session-name",
 		session->session_name);
 	if (ret != BT_VALUE_STATUS_OK) {
 		goto end;
@@ -465,7 +465,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	{
 		uint32_t live_timer = be32toh(session->live_timer);
 
-		ret = bt_value_map_insert_integer_entry(map, "timer-us",
+		ret = bt_private_value_map_insert_integer_entry(map, "timer-us",
 			live_timer);
 		if (ret != BT_VALUE_STATUS_OK) {
 			goto end;
@@ -479,7 +479,7 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	{
 		uint32_t streams = be32toh(session->streams);
 
-		ret = bt_value_map_insert_integer_entry(map, "stream-count",
+		ret = bt_private_value_map_insert_integer_entry(map, "stream-count",
 			streams);
 		if (ret != BT_VALUE_STATUS_OK) {
 			goto end;
@@ -494,14 +494,14 @@ enum bt_value_status list_append_session(struct bt_value *results,
 	{
 		uint32_t clients = be32toh(session->clients);
 
-		ret = bt_value_map_insert_integer_entry(map, "client-count",
+		ret = bt_private_value_map_insert_integer_entry(map, "client-count",
 			clients);
 		if (ret != BT_VALUE_STATUS_OK) {
 			goto end;
 		}
 	}
 
-	ret = bt_value_array_append_element(results, map);
+	ret = bt_private_value_array_append_element(results, map);
 end:
 	if (url) {
 		g_string_free(url, TRUE);
@@ -559,7 +559,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 		goto error;
 	}
 
-	results = bt_value_array_create();
+	results = bt_private_value_array_create();
 	if (!results) {
 		BT_LOGE("Error creating array");
 		goto error;

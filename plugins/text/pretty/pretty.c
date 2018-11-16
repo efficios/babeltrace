@@ -227,7 +227,8 @@ end:
 }
 
 static
-enum bt_component_status add_params_to_map(struct bt_value *plugin_opt_map)
+enum bt_component_status add_params_to_map(
+		struct bt_private_value *plugin_opt_map)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	unsigned int i;
@@ -236,7 +237,8 @@ enum bt_component_status add_params_to_map(struct bt_value *plugin_opt_map)
 		const char *key = plugin_options[i];
 		enum bt_value_status status;
 
-		status = bt_value_map_insert_entry(plugin_opt_map, key, bt_value_null);
+		status = bt_private_value_map_insert_entry(plugin_opt_map, key,
+			bt_value_null);
 		switch (status) {
 		case BT_VALUE_STATUS_OK:
 			break;
@@ -253,9 +255,10 @@ static
 bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 {
 	struct pretty_component *pretty = data;
-	struct bt_value *plugin_opt_map = pretty->plugin_opt_map;
 
-	if (!bt_value_map_has_entry(plugin_opt_map, key)) {
+	if (!bt_value_map_has_entry(
+			bt_value_borrow_from_private(pretty->plugin_opt_map),
+			key)) {
 		fprintf(pretty->err,
 			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
 	}
@@ -362,7 +365,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 	bool value, found;
 	char *str = NULL;
 
-	pretty->plugin_opt_map = bt_value_map_create();
+	pretty->plugin_opt_map = bt_private_value_map_create();
 	if (!pretty->plugin_opt_map) {
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;

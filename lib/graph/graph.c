@@ -39,8 +39,10 @@
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/graph/notification-packet-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
@@ -1100,12 +1102,14 @@ enum bt_graph_status bt_graph_add_component_with_init_method_data(
 		if (!bt_value_is_map(params)) {
 			BT_LOGW("Invalid parameter: initialization parameters must be a map value: "
 				"type=%s",
-				bt_value_type_string(bt_value_get_type(params)));
+				bt_common_value_type_string(
+					bt_value_get_type(params)));
 			graph_status = BT_GRAPH_STATUS_INVALID;
 			goto end;
 		}
 	} else {
-		params = bt_value_map_create();
+		params = bt_value_borrow_from_private(
+			bt_private_value_map_create());
 		if (!params) {
 			BT_LOGE_STR("Cannot create map value object.");
 			graph_status = BT_GRAPH_STATUS_NOMEM;
