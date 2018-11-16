@@ -55,6 +55,7 @@ struct bt_component_class_query_method_return metadata_info_query(
 		.status = BT_QUERY_STATUS_OK,
 	};
 
+	struct bt_private_value *result = NULL;
 	struct bt_value *path_value = NULL;
 	char *metadata_text = NULL;
 	FILE *metadata_fp = NULL;
@@ -64,12 +65,13 @@ struct bt_component_class_query_method_return metadata_info_query(
 	const char *path;
 	bool is_packetized;
 
-	query_ret.result = bt_value_map_create();
-	if (!query_ret.result) {
+	result = bt_private_value_map_create();
+	if (!result) {
 		query_ret.status = BT_QUERY_STATUS_NOMEM;
 		goto error;
 	}
 
+	query_ret.result = bt_value_borrow_from_private(result);
 	BT_ASSERT(params);
 
 	if (!bt_value_is_map(params)) {
@@ -148,14 +150,14 @@ struct bt_component_class_query_method_return metadata_info_query(
 
 	g_string_append(g_metadata_text, metadata_text);
 
-	ret = bt_value_map_insert_string_entry(query_ret.result, "text",
+	ret = bt_private_value_map_insert_string_entry(result, "text",
 		g_metadata_text->str);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert metadata text into query result.");
 		goto error;
 	}
 
-	ret = bt_value_map_insert_bool_entry(query_ret.result, "is-packetized",
+	ret = bt_private_value_map_insert_bool_entry(result, "is-packetized",
 		is_packetized);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert \"is-packetized\" attribute into query result.");
@@ -165,7 +167,8 @@ struct bt_component_class_query_method_return metadata_info_query(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(query_ret.result);
+	BT_OBJECT_PUT_REF_AND_RESET(result);
+	query_ret.result = NULL;
 
 	if (query_ret.status >= 0) {
 		query_ret.status = BT_QUERY_STATUS_ERROR;
@@ -186,50 +189,52 @@ end:
 }
 
 static
-int add_range(struct bt_value *info, struct range *range,
+int add_range(struct bt_private_value *info, struct range *range,
 		const char *range_name)
 {
 	int ret = 0;
 	enum bt_value_status status;
-	struct bt_value *range_map = NULL;
+	struct bt_private_value *range_map = NULL;
 
 	if (!range->set) {
 		/* Not an error. */
 		goto end;
 	}
 
-	range_map = bt_value_map_create();
+	range_map = bt_private_value_map_create();
 	if (!range_map) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer_entry(range_map, "begin",
+	status = bt_private_value_map_insert_integer_entry(range_map, "begin",
 			range->begin_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer_entry(range_map, "end",
+	status = bt_private_value_map_insert_integer_entry(range_map, "end",
 			range->end_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_value_map_insert_entry(info, range_name, range_map);
+	status = bt_private_value_map_insert_entry(info, range_name,
+		bt_value_borrow_from_private(range_map));
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
+
 end:
 	bt_object_put_ref(range_map);
 	return ret;
 }
 
 static
-int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
+int add_stream_ids(struct bt_private_value *info, struct bt_stream *stream)
 {
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
@@ -238,7 +243,7 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 
 	stream_instance_id = bt_stream_get_id(stream);
 	if (stream_instance_id != -1) {
-		status = bt_value_map_insert_integer_entry(info, "id",
+		status = bt_private_value_map_insert_integer_entry(info, "id",
 				stream_instance_id);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
@@ -258,7 +263,7 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer_entry(info, "class-id", stream_class_id);
+	status = bt_private_value_map_insert_integer_entry(info, "class-id", stream_class_id);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -270,18 +275,18 @@ end:
 
 static
 int populate_stream_info(struct ctf_fs_ds_file_group *group,
-		struct bt_value *group_info,
+		struct bt_private_value *group_info,
 		struct range *stream_range)
 {
 	int ret = 0;
 	size_t file_idx;
 	enum bt_value_status status;
-	struct bt_value *file_paths;
+	struct bt_private_value *file_paths;
 
 	stream_range->begin_ns = INT64_MAX;
 	stream_range->end_ns = 0;
 
-	file_paths = bt_value_array_create();
+	file_paths = bt_private_value_array_create();
 	if (!file_paths) {
 		ret = -1;
 		goto end;
@@ -300,7 +305,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 			goto end;
 		}
 
-		status = bt_value_array_append_string_element(file_paths,
+		status = bt_private_value_array_append_string_element(file_paths,
 				info->path->str);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
@@ -328,7 +333,8 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		}
 	}
 
-	status = bt_value_map_insert_entry(group_info, "paths", file_paths);
+	status = bt_private_value_map_insert_entry(group_info, "paths",
+		bt_value_borrow_from_private(file_paths));
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -345,13 +351,13 @@ end:
 
 static
 int populate_trace_info(const char *trace_path, const char *trace_name,
-		struct bt_value *trace_info)
+		struct bt_private_value *trace_info)
 {
 	int ret = 0;
 	size_t group_idx;
 	struct ctf_fs_trace *trace = NULL;
 	enum bt_value_status status;
-	struct bt_value *file_groups;
+	struct bt_private_value *file_groups;
 	struct range trace_range = {
 		.begin_ns = INT64_MAX,
 		.end_ns = 0,
@@ -363,18 +369,18 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		.set = false,
 	};
 
-	file_groups = bt_value_array_create();
+	file_groups = bt_private_value_array_create();
 	if (!file_groups) {
 		goto end;
 	}
 
-	status = bt_value_map_insert_string_entry(trace_info, "name",
-			trace_name);
+	status = bt_private_value_map_insert_string_entry(trace_info, "name",
+		trace_name);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
-	status = bt_value_map_insert_string_entry(trace_info, "path",
+	status = bt_private_value_map_insert_string_entry(trace_info, "path",
 			trace_path);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -398,12 +404,12 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 	/* Find range of all stream groups, and of the trace. */
 	for (group_idx = 0; group_idx < trace->ds_file_groups->len;
 			group_idx++) {
-		struct bt_value *group_info;
+		struct bt_private_value *group_info;
 		struct range group_range = { .set = false };
 		struct ctf_fs_ds_file_group *group = g_ptr_array_index(
 				trace->ds_file_groups, group_idx);
 
-		group_info = bt_value_map_create();
+		group_info = bt_private_value_map_create();
 		if (!group_info) {
 			ret = -1;
 			goto end;
@@ -427,7 +433,9 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 			trace_intersection.end_ns = min(trace_intersection.end_ns,
 					group_range.end_ns);
 			trace_intersection.set = true;
-			status = bt_value_array_append_element(file_groups, group_info);
+			status = bt_private_value_array_append_element(
+				file_groups,
+				bt_value_borrow_from_private(group_info));
 			bt_object_put_ref(group_info);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto end;
@@ -448,7 +456,8 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		}
 	}
 
-	status = bt_value_map_insert_entry(trace_info, "streams", file_groups);
+	status = bt_private_value_map_insert_entry(trace_info, "streams",
+		bt_value_borrow_from_private(file_groups));
 	BT_OBJECT_PUT_REF_AND_RESET(file_groups);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -471,6 +480,7 @@ struct bt_component_class_query_method_return trace_info_query(
 		.status = BT_QUERY_STATUS_OK,
 	};
 
+	struct bt_private_value *result = NULL;
 	struct bt_value *path_value = NULL;
 	int ret = 0;
 	const char *path = NULL;
@@ -515,11 +525,13 @@ struct bt_component_class_query_method_return trace_info_query(
 		goto error;
 	}
 
-	query_ret.result = bt_value_array_create();
-	if (!query_ret.result) {
+	result = bt_private_value_array_create();
+	if (!result) {
 		query_ret.status = BT_QUERY_STATUS_NOMEM;
 		goto error;
 	}
+
+	query_ret.result = bt_value_borrow_from_private(result);
 
 	/* Iterates over both trace paths and names simultaneously. */
 	for (tp_node = trace_paths, tn_node = trace_names; tp_node;
@@ -528,9 +540,9 @@ struct bt_component_class_query_method_return trace_info_query(
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
 		enum bt_value_status status;
-		struct bt_value *trace_info;
+		struct bt_private_value *trace_info;
 
-		trace_info = bt_value_map_create();
+		trace_info = bt_private_value_map_create();
 		if (!trace_info) {
 			BT_LOGE("Failed to create trace info map.");
 			goto error;
@@ -543,7 +555,8 @@ struct bt_component_class_query_method_return trace_info_query(
 			goto error;
 		}
 
-		status = bt_value_array_append_element(query_ret.result, trace_info);
+		status = bt_private_value_array_append_element(result,
+			bt_value_borrow_from_private(trace_info));
 		bt_object_put_ref(trace_info);
 		if (status != BT_VALUE_STATUS_OK) {
 			goto error;
@@ -553,7 +566,8 @@ struct bt_component_class_query_method_return trace_info_query(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(query_ret.result);
+	BT_OBJECT_PUT_REF_AND_RESET(result);
+	query_ret.result = NULL;
 
 	if (query_ret.status >= 0) {
 		query_ret.status = BT_QUERY_STATUS_ERROR;

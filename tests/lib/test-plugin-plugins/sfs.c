@@ -18,6 +18,7 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 #include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -53,16 +54,17 @@ static struct bt_component_class_query_method_return query_method(
 		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
+	struct bt_private_value *results = bt_private_value_array_create();
 	struct bt_component_class_query_method_return ret = {
 		.status = BT_QUERY_STATUS_OK,
-		.result = bt_value_array_create(),
+		.result = bt_value_borrow_from_private(results),
 	};
 	int iret;
 
 	BT_ASSERT(ret.result);
-	iret = bt_value_array_append_string_element(ret.result, object);
+	iret = bt_private_value_array_append_string_element(results, object);
 	BT_ASSERT(iret == 0);
-	iret = bt_value_array_append_element(ret.result, params);
+	iret = bt_private_value_array_append_element(results, params);
 	BT_ASSERT(iret == 0);
 	return ret;
 }

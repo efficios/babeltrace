@@ -22,6 +22,7 @@
  */
 
 #include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args.h"
 #include "babeltrace-cfg-cli-args-default.h"
@@ -37,11 +38,11 @@
 struct bt_config *bt_config_cli_args_create_with_default(int argc,
 		const char *argv[], int *retcode)
 {
-	struct bt_value *initial_plugin_paths;
+	struct bt_private_value *initial_plugin_paths;
 	struct bt_config *cfg = NULL;
 	int ret;
 
-	initial_plugin_paths = bt_value_array_create();
+	initial_plugin_paths = bt_private_value_array_create();
 	if (!initial_plugin_paths) {
 		goto error;
 	}

@@ -7,6 +7,7 @@
 #include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/field-path.h>
 #include <babeltrace/trace-ir/event-class.h>
+#include <babeltrace/values.h>
 #include <stdarg.h>
 #include <inttypes.h>
 #include <stdint.h>
@@ -382,6 +383,29 @@ const char *bt_common_event_class_log_level_string(
 		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE";
 	case BT_EVENT_CLASS_LOG_LEVEL_DEBUG:
 		return "BT_EVENT_CLASS_LOG_LEVEL_DEBUG";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline
+const char *bt_common_value_type_string(enum bt_value_type type)
+{
+	switch (type) {
+	case BT_VALUE_TYPE_NULL:
+		return "BT_VALUE_TYPE_NULL";
+	case BT_VALUE_TYPE_BOOL:
+		return "BT_VALUE_TYPE_BOOL";
+	case BT_VALUE_TYPE_INTEGER:
+		return "BT_VALUE_TYPE_INTEGER";
+	case BT_VALUE_TYPE_REAL:
+		return "BT_VALUE_TYPE_REAL";
+	case BT_VALUE_TYPE_STRING:
+		return "BT_VALUE_TYPE_STRING";
+	case BT_VALUE_TYPE_ARRAY:
+		return "BT_VALUE_TYPE_ARRAY";
+	case BT_VALUE_TYPE_MAP:
+		return "BT_VALUE_TYPE_MAP";
 	default:
 		return "(unknown)";
 	}

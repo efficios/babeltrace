@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 #include <babeltrace/common-internal.h>
 #include "babeltrace-cfg.h"
 #include "babeltrace-cfg-cli-args-connect.h"
@@ -534,7 +535,8 @@ static int validate_all_components_connected(struct bt_config *cfg,
 {
 	size_t i;
 	int ret = 0;
-	struct bt_value *connected_components = bt_value_map_create();
+	struct bt_private_value *connected_components =
+		bt_private_value_map_create();
 
 	if (!connected_components) {
 		ret = -1;
@@ -545,13 +547,13 @@ static int validate_all_components_connected(struct bt_config *cfg,
 		struct bt_config_connection *connection =
 			g_ptr_array_index(cfg->cmd_data.run.connections, i);
 
-		ret = bt_value_map_insert_entry(connected_components,
+		ret = bt_private_value_map_insert_entry(connected_components,
 			connection->upstream_comp_name->str, bt_value_null);
 		if (ret) {
 			goto end;
 		}
 
-		ret = bt_value_map_insert_entry(connected_components,
+		ret = bt_private_value_map_insert_entry(connected_components,
 			connection->downstream_comp_name->str, bt_value_null);
 		if (ret) {
 			goto end;
@@ -559,21 +561,24 @@ static int validate_all_components_connected(struct bt_config *cfg,
 	}
 
 	ret = validate_all_components_connected_in_array(
-		cfg->cmd_data.run.sources, connected_components,
+		cfg->cmd_data.run.sources,
+		bt_value_borrow_from_private(connected_components),
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
 	}
 
 	ret = validate_all_components_connected_in_array(
-		cfg->cmd_data.run.filters, connected_components,
+		cfg->cmd_data.run.filters,
+		bt_value_borrow_from_private(connected_components),
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
 	}
 
 	ret = validate_all_components_connected_in_array(
-		cfg->cmd_data.run.sinks, connected_components,
+		cfg->cmd_data.run.sinks,
+		bt_value_borrow_from_private(connected_components),
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
@@ -589,7 +594,8 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 {
 	size_t i;
 	int ret = 0;
-	struct bt_value *flat_connection_names = bt_value_map_create();
+	struct bt_private_value *flat_connection_names =
+		bt_private_value_map_create();
 	GString *flat_connection_name = NULL;
 
 	if (!flat_connection_names) {
@@ -613,7 +619,8 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 			connection->downstream_comp_name->str,
 			connection->downstream_port_glob->str);
 
-		if (bt_value_map_has_entry(flat_connection_names,
+		if (bt_value_map_has_entry(bt_value_borrow_from_private(
+				flat_connection_names),
 				flat_connection_name->str)) {
 			snprintf(error_buf, error_buf_size,
 				"Duplicate connection:\n    %s\n",
@@ -622,7 +629,7 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 			goto end;
 		}
 
-		ret = bt_value_map_insert_entry(flat_connection_names,
+		ret = bt_private_value_map_insert_entry(flat_connection_names,
 			flat_connection_name->str, bt_value_null);
 		if (ret) {
 			goto end;

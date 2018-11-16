@@ -80,7 +80,7 @@ struct pretty_component {
 	bool start_line;
 	GString *string;
 	GString *tmp_string;
-	struct bt_value *plugin_opt_map;	/* Temporary parameter map. */
+	struct bt_private_value *plugin_opt_map; /* Temporary parameter map. */
 	bool use_colors;
 
 	uint64_t last_cycles_timestamp;

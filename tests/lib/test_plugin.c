@@ -22,6 +22,7 @@
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/object.h>
 #include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/query-executor.h>
@@ -161,7 +162,7 @@ static void test_sfs(const char *plugin_dir)
 	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
 	unsigned int major, minor, patch;
 	const char *extra;
-	struct bt_value *params;
+	struct bt_private_value *params;
 	struct bt_value *results;
 	struct bt_value *object;
 	struct bt_value *res_params;
@@ -216,19 +217,20 @@ static void test_sfs(const char *plugin_dir)
 	ok(!bt_plugin_get_component_class_by_name_and_type(plugin, "filter",
 		BT_COMPONENT_CLASS_TYPE_SOURCE),
 		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
-	params = bt_value_integer_create_init(23);
+	params = bt_private_value_integer_create_init(23);
 	BT_ASSERT(params);
 	ret = bt_query_executor_query(NULL, filter_comp_class, "object",
-		params, &results);
+		bt_value_borrow_from_private(params), &results);
 	ok (ret, "bt_query_executor_query() handles NULL (query executor)");
 	ret = bt_query_executor_query(query_exec, NULL, "object",
-		params, &results);
+		bt_value_borrow_from_private(params), &results);
 	ok (ret, "bt_query_executor_query() handles NULL (component class)");
 	ret = bt_query_executor_query(query_exec, filter_comp_class, NULL,
-		params, &results);
+		bt_value_borrow_from_private(params), &results);
 	ok (ret, "bt_query_executor_query() handles NULL (object)");
 	ret = bt_query_executor_query(query_exec, filter_comp_class,
-		"get-something", params, &results);
+		"get-something", bt_value_borrow_from_private(params),
+		&results);
 	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
 	object = bt_value_array_borrow_element_by_index(results, 0);
@@ -238,7 +240,7 @@ static void test_sfs(const char *plugin_dir)
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_borrow_element_by_index(results, 1);
-	ok(res_params == params,
+	ok(res_params == bt_value_borrow_from_private(params),
 		"bt_component_class_query() receives the expected parameters");
 
 	diag("> putting the plugin object here");

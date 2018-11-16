@@ -37,6 +37,6 @@
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_value *initial_plugin_paths);
+		struct bt_private_value *initial_plugin_paths);
 
 #endif /* CLI_BABELTRACE_CFG_CLI_ARGS_H */

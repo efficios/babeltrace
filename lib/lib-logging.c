@@ -796,7 +796,7 @@ static inline void format_value(char **buf_ch, bool extended,
 		const char *prefix, struct bt_value *value)
 {
 	BUF_APPEND(", %stype=%s",
-		PRFIELD(bt_value_type_string(bt_value_get_type(value))));
+		PRFIELD(bt_common_value_type_string(bt_value_get_type(value))));
 
 	if (!extended) {
 		return;

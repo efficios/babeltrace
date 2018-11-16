@@ -76,7 +76,7 @@ struct type_stack_frame {
  *   * Event payload
  */
 struct resolve_context {
-	struct bt_value *environment;
+	struct bt_private_value *environment;
 	struct bt_ctf_field_type_common *scopes[6];
 
 	/* Root scope being visited */
@@ -1229,7 +1229,7 @@ int resolve_root_type(enum bt_ctf_scope root_scope, struct resolve_context *ctx)
 
 BT_HIDDEN
 int bt_ctf_resolve_types(
-		struct bt_value *environment,
+		struct bt_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,

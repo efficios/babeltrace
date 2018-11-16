@@ -48,7 +48,7 @@
  * All parameters are owned by the caller.
  */
 static
-int validate_event_class_types(struct bt_value *environment,
+int validate_event_class_types(struct bt_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,
@@ -112,7 +112,7 @@ end:
  * All parameters are owned by the caller.
  */
 static
-int validate_stream_class_types(struct bt_value *environment,
+int validate_stream_class_types(struct bt_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,
@@ -180,7 +180,7 @@ end:
  * All parameters are owned by the caller.
  */
 static
-int validate_trace_types(struct bt_value *environment,
+int validate_trace_types(struct bt_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type)
 {
 	int ret = 0;
@@ -262,7 +262,7 @@ end:
 }
 
 BT_HIDDEN
-int bt_ctf_validate_class_types(struct bt_value *environment,
+int bt_ctf_validate_class_types(struct bt_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,

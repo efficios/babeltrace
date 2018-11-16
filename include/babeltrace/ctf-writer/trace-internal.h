@@ -43,6 +43,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
+#include <babeltrace/private-values.h>
 #include <glib.h>
 #include <sys/types.h>
 
@@ -53,7 +54,7 @@ struct bt_ctf_trace_common {
 	unsigned char uuid[BABELTRACE_UUID_LEN];
 	bt_bool uuid_set;
 	enum bt_ctf_byte_order native_byte_order;
-	struct bt_value *environment;
+	struct bt_private_value *environment;
 	GPtrArray *clock_classes; /* Array of pointers to bt_ctf_clock_class */
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class_common */
 	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream_common */
@@ -100,7 +101,7 @@ int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace, const unsign
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
-		const char *name, struct bt_value *value);
+		const char *name, struct bt_private_value *value);
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_environment_field_string(struct bt_ctf_trace_common *trace,
@@ -132,7 +133,8 @@ bt_ctf_trace_common_get_environment_field_name_by_index(
 }
 
 static inline
-struct bt_value *bt_ctf_trace_common_borrow_environment_field_value_by_index(
+struct bt_private_value *
+bt_ctf_trace_common_borrow_environment_field_value_by_index(
 		struct bt_ctf_trace_common *trace, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
@@ -140,7 +142,8 @@ struct bt_value *bt_ctf_trace_common_borrow_environment_field_value_by_index(
 }
 
 static inline
-struct bt_value *bt_ctf_trace_common_borrow_environment_field_value_by_name(
+struct bt_private_value *
+bt_ctf_trace_common_borrow_environment_field_value_by_name(
 		struct bt_ctf_trace_common *trace, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");

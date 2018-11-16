@@ -49,7 +49,7 @@ struct bt_config_component {
 	enum bt_component_class_type type;
 	GString *plugin_name;
 	GString *comp_cls_name;
-	struct bt_value *params;
+	struct bt_private_value *params;
 	GString *instance_name;
 };
 
@@ -65,7 +65,7 @@ struct bt_config {
 	struct bt_object base;
 	bool debug;
 	bool verbose;
-	struct bt_value *plugin_paths;
+	struct bt_private_value *plugin_paths;
 	bool omit_system_plugin_path;
 	bool omit_home_plugin_path;
 	bool command_needs_plugins;
@@ -133,7 +133,7 @@ struct bt_config_component *bt_config_get_component(GPtrArray *array,
 }
 
 enum bt_value_status bt_config_append_plugin_paths(
-		struct bt_value *plugin_paths, const char *arg);
+		struct bt_private_value *plugin_paths, const char *arg);
 
 void bt_config_connection_destroy(struct bt_config_connection *connection);
 

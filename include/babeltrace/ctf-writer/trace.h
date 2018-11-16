@@ -65,10 +65,6 @@ extern struct bt_value *
 bt_ctf_trace_get_environment_field_value_by_name(
 		struct bt_ctf_trace *trace, const char *name);
 
-extern int bt_ctf_trace_set_environment_field(
-		struct bt_ctf_trace *trace, const char *name,
-		struct bt_value *value);
-
 extern int bt_ctf_trace_set_environment_field_integer(
 		struct bt_ctf_trace *trace, const char *name,
 		int64_t value);

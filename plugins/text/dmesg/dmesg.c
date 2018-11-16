@@ -29,6 +29,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/common-internal.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/compat/utc-internal.h>
@@ -221,7 +222,7 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 		if (!bt_value_is_bool(no_timestamp)) {
 			BT_LOGE("Expecting a boolean value for the `no-extract-timestamp` parameter: "
 				"type=%s",
-				bt_value_type_string(
+				bt_common_value_type_string(
 					bt_value_get_type(no_timestamp)));
 			goto error;
 		}
@@ -241,7 +242,7 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 		if (!bt_value_is_string(path)) {
 			BT_LOGE("Expecting a string value for the `path` parameter: "
 				"type=%s",
-				bt_value_type_string(
+				bt_common_value_type_string(
 					bt_value_get_type(path)));
 			goto error;
 		}
