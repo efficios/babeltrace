@@ -1252,7 +1252,6 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 	struct bt_value *value = NULL;
 	const char *path_param;
 	enum bt_component_status ret;
-	enum bt_value_status value_ret;
 
 	ctf_fs = g_new0(struct ctf_fs_component, 1);
 	if (!ctf_fs) {
@@ -1273,17 +1272,14 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 		goto error;
 	}
 
-	value_ret = bt_value_string_get(value, &path_param);
-	BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
+	path_param = bt_value_string_get(value);
 	value = bt_value_map_borrow_entry_value(params, "clock-class-offset-s");
 	if (value) {
 		if (!bt_value_is_integer(value)) {
 			BT_LOGE("clock-class-offset-s should be an integer");
 			goto error;
 		}
-		value_ret = bt_value_integer_get(value,
-			&ctf_fs->metadata_config.clock_class_offset_s);
-		BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
+		ctf_fs->metadata_config.clock_class_offset_s = bt_value_integer_get(value);
 	}
 
 	value = bt_value_map_borrow_entry_value(params, "clock-class-offset-ns");
@@ -1292,9 +1288,7 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 			BT_LOGE("clock-class-offset-ns should be an integer");
 			goto error;
 		}
-		value_ret = bt_value_integer_get(value,
-			&ctf_fs->metadata_config.clock_class_offset_ns);
-		BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
+		ctf_fs->metadata_config.clock_class_offset_ns = bt_value_integer_get(value);
 	}
 
 	ctf_fs->port_data = g_ptr_array_new_with_free_func(port_data_destroy);

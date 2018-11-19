@@ -132,8 +132,8 @@ struct bt_config_component *bt_config_get_component(GPtrArray *array,
 	return bt_object_get_ref(g_ptr_array_index(array, index));
 }
 
-enum bt_value_status bt_config_append_plugin_paths(
-		struct bt_private_value *plugin_paths, const char *arg);
+int bt_config_append_plugin_paths(struct bt_private_value *plugin_paths,
+		const char *arg);
 
 void bt_config_connection_destroy(struct bt_config_connection *connection);
 

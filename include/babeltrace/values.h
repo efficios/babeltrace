@@ -41,13 +41,13 @@ extern "C" {
 */
 enum bt_value_status {
 	/// Operation canceled.
-	BT_VALUE_STATUS_CANCELED =	-3,
+	BT_VALUE_STATUS_CANCELED	= 125,
 
-	/// General error.
-	BT_VALUE_STATUS_ERROR =		-1,
+	/// Cannot allocate memory.
+	BT_VALUE_STATUS_NOMEM		= -12,
 
 	/// Okay, no error.
-	BT_VALUE_STATUS_OK =		0,
+	BT_VALUE_STATUS_OK		= 0,
 };
 
 struct bt_value;
@@ -122,33 +122,38 @@ bt_bool bt_value_is_map(const struct bt_value *object)
 	return bt_value_get_type(object) == BT_VALUE_TYPE_MAP;
 }
 
-extern struct bt_private_value *bt_value_copy(const struct bt_value *object);
+extern enum bt_value_status bt_value_copy(struct bt_private_value **copy,
+		const struct bt_value *object);
 
 extern bt_bool bt_value_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b);
 
-extern enum bt_value_status bt_value_bool_get(
-		const struct bt_value *bool_obj, bt_bool *val);
+extern bt_bool bt_value_bool_get(const struct bt_value *bool_obj);
 
-extern enum bt_value_status bt_value_integer_get(
-		const struct bt_value *integer_obj, int64_t *val);
+extern int64_t bt_value_integer_get(const struct bt_value *integer_obj);
 
-extern enum bt_value_status bt_value_real_get(
-		const struct bt_value *real_obj, double *val);
+extern double bt_value_real_get(const struct bt_value *real_obj);
 
-extern enum bt_value_status bt_value_string_get(
-		const struct bt_value *string_obj, const char **val);
+extern const char *bt_value_string_get(const struct bt_value *string_obj);
 
-extern int64_t bt_value_array_get_size(const struct bt_value *array_obj);
+extern uint64_t bt_value_array_get_size(const struct bt_value *array_obj);
 
-extern bt_bool bt_value_array_is_empty(const struct bt_value *array_obj);
+static inline
+bt_bool bt_value_array_is_empty(const struct bt_value *array_obj)
+{
+	return bt_value_array_get_size(array_obj) == 0;
+}
 
 extern struct bt_value *bt_value_array_borrow_element_by_index(
 		const struct bt_value *array_obj, uint64_t index);
 
-extern int64_t bt_value_map_get_size(const struct bt_value *map_obj);
+extern uint64_t bt_value_map_get_size(const struct bt_value *map_obj);
 
-extern bt_bool bt_value_map_is_empty(const struct bt_value *map_obj);
+static inline
+bt_bool bt_value_map_is_empty(const struct bt_value *map_obj)
+{
+	return bt_value_map_get_size(map_obj) == 0;
+}
 
 extern struct bt_value *bt_value_map_borrow_entry_value(
 		const struct bt_value *map_obj, const char *key);
@@ -163,7 +168,8 @@ extern enum bt_value_status bt_value_map_foreach_entry(
 extern bt_bool bt_value_map_has_entry(const struct bt_value *map_obj,
 		const char *key);
 
-extern struct bt_private_value *bt_value_map_extend(
+extern enum bt_value_status bt_value_map_extend(
+		struct bt_private_value **extended_map_obj,
 		struct bt_value *base_map_obj,
 		struct bt_value *extension_map_obj);
 

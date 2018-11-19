@@ -227,9 +227,8 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 			goto error;
 		}
 
-		ret = bt_value_bool_get(no_timestamp,
-			&dmesg_comp->params.no_timestamp);
-		BT_ASSERT(ret == 0);
+		dmesg_comp->params.no_timestamp =
+			bt_value_bool_get(no_timestamp);
 	}
 
 	path = bt_value_map_borrow_entry_value(params, "path");
@@ -247,8 +246,7 @@ int handle_params(struct dmesg_component *dmesg_comp, struct bt_value *params)
 			goto error;
 		}
 
-		ret = bt_value_string_get(path, &path_str);
-		BT_ASSERT(ret == 0);
+		path_str = bt_value_string_get(path);
 		g_string_assign(dmesg_comp->params.path, path_str);
 	} else {
 		dmesg_comp->params.read_from_stdin = true;

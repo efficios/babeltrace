@@ -81,12 +81,7 @@ struct bt_component_class_query_method_return metadata_info_query(
 	}
 
 	path_value = bt_value_map_borrow_entry_value(params, "path");
-	ret = bt_value_string_get(path_value, &path);
-	if (ret) {
-		BT_LOGE_STR("Cannot get `path` string parameter.");
-		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
-		goto error;
-	}
+	path = bt_value_string_get(path_value);
 
 	BT_ASSERT(path);
 	metadata_fp = ctf_fs_metadata_open_file(path);
@@ -499,12 +494,7 @@ struct bt_component_class_query_method_return trace_info_query(
 	}
 
 	path_value = bt_value_map_borrow_entry_value(params, "path");
-	ret = bt_value_string_get(path_value, &path);
-	if (ret) {
-		BT_LOGE("Cannot get `path` string parameter.");
-		query_ret.status = BT_QUERY_STATUS_INVALID_PARAMS;
-		goto error;
-	}
+	path = bt_value_string_get(path_value);
 
 	normalized_path = bt_common_normalize_path(path, NULL);
 	if (!normalized_path) {

@@ -88,7 +88,6 @@ BT_HIDDEN
 const char *bt_ctf_attributes_get_field_name(struct bt_private_value *attr_obj,
 		uint64_t index)
 {
-	int rc;
 	const char *ret = NULL;
 	struct bt_private_value *attr_field_obj = NULL;
 	struct bt_private_value *attr_field_name_obj = NULL;
@@ -123,13 +122,8 @@ const char *bt_ctf_attributes_get_field_name(struct bt_private_value *attr_obj,
 		goto end;
 	}
 
-	rc = bt_value_string_get(
-		bt_value_borrow_from_private(attr_field_name_obj), &ret);
-	if (rc) {
-		BT_LOGE("Cannot get raw value from string value: value-addr=%p",
-			attr_field_name_obj);
-		ret = NULL;
-	}
+	ret = bt_value_string_get(
+		bt_value_borrow_from_private(attr_field_name_obj));
 
 end:
 	return ret;
@@ -191,7 +185,6 @@ struct bt_private_value *bt_ctf_attributes_borrow_field_by_name(
 	}
 
 	for (i = 0; i < attr_size; ++i) {
-		int ret;
 		const char *field_name;
 
 		value_obj = bt_private_value_array_borrow_element_by_index(attr_obj, i);
@@ -210,14 +203,8 @@ struct bt_private_value *bt_ctf_attributes_borrow_field_by_name(
 			goto error;
 		}
 
-		ret = bt_value_string_get(
-			bt_value_borrow_from_private(attr_field_name_obj),
-			&field_name);
-		if (ret) {
-			BT_LOGE("Cannot get raw value from string value: value-addr=%p",
-				attr_field_name_obj);
-			goto error;
-		}
+		field_name = bt_value_string_get(
+			bt_value_borrow_from_private(attr_field_name_obj));
 
 		if (!strcmp(field_name, name)) {
 			break;

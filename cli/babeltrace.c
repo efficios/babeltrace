@@ -438,7 +438,6 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 	const char *str_val;
 	int size;
 	int i;
-	enum bt_value_status status;
 
 	if (!value) {
 		return;
@@ -450,37 +449,25 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_BOOL:
-		status = bt_value_bool_get(value, &bool_val);
-		if (status != BT_VALUE_STATUS_OK) {
-			goto error;
-		}
+		bool_val = bt_value_bool_get(value);
 		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
 			bt_common_color_fg_cyan(), bool_val ? "yes" : "no",
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_INTEGER:
-		status = bt_value_integer_get(value, &int_val);
-		if (status != BT_VALUE_STATUS_OK) {
-			goto error;
-		}
+		int_val = bt_value_integer_get(value);
 		fprintf(fp, "%s%s%" PRId64 "%s\n", bt_common_color_bold(),
 			bt_common_color_fg_red(), int_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_REAL:
-		status = bt_value_real_get(value, &dbl_val);
-		if (status != BT_VALUE_STATUS_OK) {
-			goto error;
-		}
+		dbl_val = bt_value_real_get(value);
 		fprintf(fp, "%s%s%lf%s\n", bt_common_color_bold(),
 			bt_common_color_fg_red(), dbl_val,
 			bt_common_color_reset());
 		break;
 	case BT_VALUE_TYPE_STRING:
-		status = bt_value_string_get(value, &str_val);
-		if (status != BT_VALUE_STATUS_OK) {
-			goto error;
-		}
+		str_val = bt_value_string_get(value);
 		fprintf(fp, "%s%s%s%s\n", bt_common_color_bold(),
 			bt_common_color_fg_green(), str_val,
 			bt_common_color_reset());
@@ -762,15 +749,10 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 		struct bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
 		struct bt_plugin_set *plugin_set;
-		enum bt_value_status status;
 
 		plugin_path_value = bt_value_array_borrow_element_by_index(
 			plugin_paths, i);
-		status = bt_value_string_get(plugin_path_value, &plugin_path);
-		if (status != BT_VALUE_STATUS_OK) {
-			BT_LOGD_STR("Cannot get plugin path string.");
-			continue;
-		}
+		plugin_path = bt_value_string_get(plugin_path_value);
 
 		/*
 		 * Skip this if the directory does not exist because
@@ -1235,32 +1217,28 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			BT_LOGE_STR("Unexpected empty array \"url\" entry.");
 			goto error;
 		}
-		ret = bt_value_string_get(v, &url_text);
-		BT_ASSERT(ret == 0);
+		url_text = bt_value_string_get(v);
 		fprintf(out_stream, "%s", url_text);
 		v = bt_value_map_borrow_entry_value(map, "timer-us");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"timer-us\" entry.");
 			goto error;
 		}
-		ret = bt_value_integer_get(v, &timer_us);
-		BT_ASSERT(ret == 0);
+		timer_us = bt_value_integer_get(v);
 		fprintf(out_stream, " (timer = %" PRIu64 ", ", timer_us);
 		v = bt_value_map_borrow_entry_value(map, "stream-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"stream-count\" entry.");
 			goto error;
 		}
-		ret = bt_value_integer_get(v, &streams);
-		BT_ASSERT(ret == 0);
+		streams = bt_value_integer_get(v);
 		fprintf(out_stream, "%" PRIu64 " stream(s), ", streams);
 		v = bt_value_map_borrow_entry_value(map, "client-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"client-count\" entry.");
 			goto error;
 		}
-		ret = bt_value_integer_get(v, &clients);
-		BT_ASSERT(ret == 0);
+		clients = bt_value_integer_get(v);
 		fprintf(out_stream, "%" PRIu64 " client(s) connected)\n", clients);
 	}
 
@@ -1356,8 +1334,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		goto end;
 	}
 
-	ret = bt_value_string_get(metadata_text_value, &metadata_text);
-	BT_ASSERT(ret == 0);
+	metadata_text = bt_value_string_get(metadata_text_value);
 
 	if (cfg->cmd_data.print_ctf_metadata.output_path->len > 0) {
 		out_stream =
@@ -2122,14 +2099,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		goto error;
 	}
 
-	value_status = bt_value_string_get(component_path_value, &path);
-	if (value_status != BT_VALUE_STATUS_OK) {
-		BT_LOGD("Cannot get path string value: component-name=%s",
-			cfg_comp->instance_name->str);
-		ret = -1;
-		goto error;
-	}
-
+	path = bt_value_string_get(component_path_value);
 	query_params = bt_private_value_map_create();
 	if (!query_params) {
 		BT_LOGE_STR("Cannot create query parameters.");
@@ -2209,19 +2179,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		value_status = bt_value_integer_get(intersection_begin, &begin);
-		if (value_status != BT_VALUE_STATUS_OK) {
-			ret = -1;
-			BT_LOGD_STR("Cannot retrieve value of intersection-range-ns \'begin\' field from query result.");
-			goto error;
-		}
-
-		value_status = bt_value_integer_get(intersection_end, &end);
-		if (value_status != BT_VALUE_STATUS_OK) {
-			ret = -1;
-			BT_LOGD_STR("Cannot retrieve value of intersection-range-ns \'end\' field from query result.");
-			goto error;
-		}
+		begin = bt_value_integer_get(intersection_begin);
+		end = bt_value_integer_get(intersection_end);
 
 		if (begin < 0 || end < 0 || end < begin) {
 			BT_LOGW("Invalid trace stream intersection values: "
@@ -2309,13 +2268,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				goto error;
 			}
 
-			value_status = bt_value_string_get(stream_path_value,
-				&stream_path);
-			if (value_status != BT_VALUE_STATUS_OK) {
-				ret = -1;
-				goto error;
-			}
-
+			stream_path = bt_value_string_get(stream_path_value);
 			port_id->port_name = strdup(stream_path);
 			if (!port_id->port_name) {
 				ret = -1;

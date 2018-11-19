@@ -1080,11 +1080,7 @@ struct lttng_live_component *lttng_live_component_create(struct bt_value *params
 		BT_LOGW("Mandatory \"url\" parameter missing");
 		goto error;
 	}
-	ret = bt_value_string_get(value, &url);
-	if (ret != BT_VALUE_STATUS_OK) {
-		BT_LOGW("\"url\" parameter is required to be a string value");
-		goto error;
-	}
+	url = bt_value_string_get(value);
 	lttng_live->url = g_string_new(url);
 	if (!lttng_live->url) {
 		goto error;

@@ -327,14 +327,8 @@ enum bt_value_status list_update_session(struct bt_value *results,
 			ret = BT_VALUE_STATUS_ERROR;
 			goto end;
 		}
-		ret = bt_value_string_get(hostname, &hostname_str);
-		if (ret != BT_VALUE_STATUS_OK) {
-			goto end;
-		}
-		ret = bt_value_string_get(session_name, &session_name_str);
-		if (ret != BT_VALUE_STATUS_OK) {
-			goto end;
-		}
+		hostname_str = bt_value_string_get(hostname);
+		session_name_str = bt_value_string_get(session_name);
 
 		if (!strcmp(session->hostname, hostname_str)
 				&& !strcmp(session->session_name,
@@ -350,10 +344,7 @@ enum bt_value_status list_update_session(struct bt_value *results,
 				ret = BT_VALUE_STATUS_ERROR;
 				goto end;
 			}
-			ret = bt_value_integer_get(btval, &val);
-			if (ret != BT_VALUE_STATUS_OK) {
-				goto end;
-			}
+			val = bt_value_integer_get(btval);
 			/* sum */
 			val += streams;
 			ret = bt_private_integer_bool_set(btval, val);
@@ -367,10 +358,7 @@ enum bt_value_status list_update_session(struct bt_value *results,
 				ret = BT_VALUE_STATUS_ERROR;
 				goto end;
 			}
-			ret = bt_value_integer_get(btval, &val);
-			if (ret != BT_VALUE_STATUS_OK) {
-				goto end;
-			}
+			val = bt_value_integer_get(btval);
 			/* max */
 			val = max_t(int64_t, clients, val);
 			ret = bt_private_integer_bool_set(btval, val);
