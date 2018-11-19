@@ -44,7 +44,6 @@ extern struct bt_value *bt_value_borrow_from_private(
 
 extern struct bt_private_value *bt_private_value_bool_create(void);
 
-
 extern struct bt_private_value *bt_private_value_bool_create_init(bt_bool val);
 
 extern void bt_private_value_bool_set(struct bt_private_value *bool_obj,

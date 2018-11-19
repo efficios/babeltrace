@@ -170,8 +170,8 @@ extern bt_bool bt_value_map_has_entry(const struct bt_value *map_obj,
 
 extern enum bt_value_status bt_value_map_extend(
 		struct bt_private_value **extended_map_obj,
-		struct bt_value *base_map_obj,
-		struct bt_value *extension_map_obj);
+		const struct bt_value *base_map_obj,
+		const struct bt_value *extension_map_obj);
 
 #ifdef __cplusplus
 }
