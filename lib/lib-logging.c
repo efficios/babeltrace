@@ -805,33 +805,29 @@ static inline void format_value(char **buf_ch, bool extended,
 	switch (bt_value_get_type(value)) {
 	case BT_VALUE_TYPE_BOOL:
 	{
-		bt_bool val;
+		bt_bool val = bt_value_bool_get(value);
 
-		(void) bt_value_bool_get(value, &val);
 		BUF_APPEND(", %svalue=%d", PRFIELD(val));
 		break;
 	}
 	case BT_VALUE_TYPE_INTEGER:
 	{
-		int64_t val;
+		int64_t val = bt_value_integer_get(value);
 
-		(void) bt_value_integer_get(value, &val);
 		BUF_APPEND(", %svalue=%" PRId64, PRFIELD(val));
 		break;
 	}
 	case BT_VALUE_TYPE_REAL:
 	{
-		double val;
+		double val = bt_value_real_get(value);
 
-		(void) bt_value_real_get(value, &val);
 		BUF_APPEND(", %svalue=%f", PRFIELD(val));
 		break;
 	}
 	case BT_VALUE_TYPE_STRING:
 	{
-		const char *val;
+		const char *val = bt_value_string_get(value);
 
-		(void) bt_value_string_get(value, &val);
 		BUF_APPEND(", %spartial-value=\"%.32s\"", PRFIELD(val));
 		break;
 	}

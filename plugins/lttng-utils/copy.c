@@ -448,8 +448,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	if (!field) {
 		goto end;
 	}
-	ret = bt_value_string_get(field, &str_value);
-	BT_ASSERT(ret == BT_VALUE_STATUS_OK);
+	str_value = bt_value_string_get(field);
 
 	/* Domain not ust, no debug info */
 	if (strcmp(str_value, "ust") != 0) {
@@ -464,8 +463,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	if (!field) {
 		goto end;
 	}
-	ret = bt_value_string_get(field, &str_value);
-	BT_ASSERT(ret == BT_VALUE_STATUS_OK);
+	str_value = bt_value_string_get(field);
 
 	/* Tracer_name not lttng-ust, no debug info */
 	if (strcmp(str_value, "lttng-ust") != 0) {

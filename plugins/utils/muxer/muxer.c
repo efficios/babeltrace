@@ -287,9 +287,9 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 		goto error;
 	}
 
-	real_params = bt_value_map_extend(
+	ret = bt_value_map_extend(&real_params,
 		bt_value_borrow_from_private(default_params), params);
-	if (!real_params) {
+	if (ret) {
 		BT_LOGE("Cannot extend default parameters map value: "
 			"muxer-comp-addr=%p, def-params-addr=%p, "
 			"params-addr=%p", muxer_comp, default_params,
@@ -310,8 +310,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 		goto error;
 	}
 
-	ret = bt_value_bool_get(assume_absolute_clock_classes, &bool_val);
-	BT_ASSERT(ret == 0);
+	bool_val = bt_value_bool_get(assume_absolute_clock_classes);
 	muxer_comp->assume_absolute_clock_classes = (bool) bool_val;
 	BT_LOGD("Configured muxer component: muxer-comp-addr=%p, "
 		"assume-absolute-clock-classes=%d",

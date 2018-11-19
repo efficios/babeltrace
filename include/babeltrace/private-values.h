@@ -47,28 +47,31 @@ extern struct bt_private_value *bt_private_value_bool_create(void);
 
 extern struct bt_private_value *bt_private_value_bool_create_init(bt_bool val);
 
-extern enum bt_value_status bt_private_value_bool_set(struct bt_private_value *bool_obj,
+extern void bt_private_value_bool_set(struct bt_private_value *bool_obj,
 		bt_bool val);
 
 extern struct bt_private_value *bt_private_value_integer_create(void);
 
-extern struct bt_private_value *bt_private_value_integer_create_init(int64_t val);
+extern struct bt_private_value *bt_private_value_integer_create_init(
+		int64_t val);
 
-extern enum bt_value_status bt_private_integer_bool_set(
+extern void bt_private_value_integer_set(
 		struct bt_private_value *integer_obj, int64_t val);
 
 extern struct bt_private_value *bt_private_value_real_create(void);
 
 extern struct bt_private_value *bt_private_value_real_create_init(double val);
 
-extern enum bt_value_status bt_private_value_real_set(
+extern void bt_private_value_real_set(
 		struct bt_private_value *real_obj, double val);
 
 extern struct bt_private_value *bt_private_value_string_create(void);
 
-extern struct bt_private_value *bt_private_value_string_create_init(const char *val);
+extern struct bt_private_value *bt_private_value_string_create_init(
+		const char *val);
 
-extern enum bt_value_status bt_private_value_string_set(struct bt_private_value *string_obj,
+extern enum bt_value_status bt_private_value_string_set(
+		struct bt_private_value *string_obj,
 		const char *val);
 
 extern struct bt_private_value *bt_private_value_array_create(void);
@@ -77,16 +80,20 @@ extern struct bt_private_value *bt_private_value_array_borrow_element_by_index(
 		const struct bt_private_value *array_obj, uint64_t index);
 
 extern enum bt_value_status bt_private_value_array_append_element(
-		struct bt_private_value *array_obj, struct bt_value *element_obj);
+		struct bt_private_value *array_obj,
+		struct bt_value *element_obj);
 
 extern enum bt_value_status bt_private_value_array_append_bool_element(
-		struct bt_private_value *array_obj, bt_bool val);
+		struct bt_private_value *array_obj,
+		bt_bool val);
 
 extern enum bt_value_status bt_private_value_array_append_integer_element(
-		struct bt_private_value *array_obj, int64_t val);
+		struct bt_private_value *array_obj,
+		int64_t val);
 
 extern enum bt_value_status bt_private_value_array_append_real_element(
-		struct bt_private_value *array_obj, double val);
+		struct bt_private_value *array_obj,
+		double val);
 
 extern enum bt_value_status bt_private_value_array_append_string_element(
 		struct bt_private_value *array_obj, const char *val);
@@ -107,7 +114,7 @@ extern struct bt_private_value *bt_private_value_map_borrow_entry_value(
 		const struct bt_private_value *map_obj, const char *key);
 
 typedef bt_bool (* bt_private_value_map_foreach_entry_cb)(const char *key,
-	struct bt_private_value *object, void *data);
+		struct bt_private_value *object, void *data);
 
 extern enum bt_value_status bt_private_value_map_foreach_entry(
 		const struct bt_private_value *map_obj,
@@ -127,7 +134,8 @@ extern enum bt_value_status bt_private_value_map_insert_real_entry(
 		struct bt_private_value *map_obj, const char *key, double val);
 
 extern enum bt_value_status bt_private_value_map_insert_string_entry(
-		struct bt_private_value *map_obj, const char *key, const char *val);
+		struct bt_private_value *map_obj, const char *key,
+		const char *val);
 
 extern enum bt_value_status bt_private_value_map_insert_empty_array_entry(
 		struct bt_private_value *map_obj, const char *key);

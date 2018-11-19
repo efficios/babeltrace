@@ -1763,13 +1763,11 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 			bt_value_borrow_from_private(env_field_value_obj))) {
 		case BT_VALUE_TYPE_INTEGER:
 		{
-			int ret;
 			int64_t int_value;
 
-			ret = bt_value_integer_get(
+			int_value = bt_value_integer_get(
 				bt_value_borrow_from_private(
-					env_field_value_obj), &int_value);
-			BT_ASSERT(ret == 0);
+					env_field_value_obj));
 			g_string_append_printf(context->string,
 				"\t%s = %" PRId64 ";\n", entry_name,
 				int_value);
@@ -1777,14 +1775,12 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 		}
 		case BT_VALUE_TYPE_STRING:
 		{
-			int ret;
 			const char *str_value;
 			char *escaped_str = NULL;
 
-			ret = bt_value_string_get(
+			str_value = bt_value_string_get(
 				bt_value_borrow_from_private(
-					env_field_value_obj), &str_value);
-			BT_ASSERT(ret == 0);
+					env_field_value_obj));
 			escaped_str = g_strescape(str_value, NULL);
 			if (!escaped_str) {
 				BT_LOGE("Cannot escape string: string=\"%s\"",

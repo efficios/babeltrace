@@ -278,11 +278,7 @@ enum bt_component_status apply_one_bool(const char *key,
 	if (!value) {
 		goto end;
 	}
-	status = bt_value_bool_get(value, &bool_val);
-	if (status != BT_VALUE_STATUS_OK) {
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
+	bool_val = bt_value_bool_get(value);
 
 	*option = (bool) bool_val;
 	if (found) {

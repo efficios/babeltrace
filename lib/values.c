@@ -94,7 +94,8 @@ struct bt_value bt_value_null_instance = {
 };
 
 struct bt_value *bt_value_null = &bt_value_null_instance;
-struct bt_private_value *bt_private_value_null = (void *) &bt_value_null_instance;
+struct bt_private_value *bt_private_value_null =
+	(void *) &bt_value_null_instance;
 
 struct bt_value_bool {
 	struct bt_value base;
@@ -176,7 +177,8 @@ struct bt_private_value *bt_value_null_copy(const struct bt_value *null_obj)
 static
 struct bt_private_value *bt_value_bool_copy(const struct bt_value *bool_obj)
 {
-	return bt_private_value_bool_create_init(BT_VALUE_TO_BOOL(bool_obj)->value);
+	return bt_private_value_bool_create_init(
+		BT_VALUE_TO_BOOL(bool_obj)->value);
 }
 
 static
@@ -218,15 +220,16 @@ struct bt_private_value *bt_value_array_copy(const struct bt_value *array_obj)
 	}
 
 	for (i = 0; i < typed_array_obj->garray->len; ++i) {
-		struct bt_private_value *element_obj_copy;
-		struct bt_value *element_obj = bt_value_array_borrow_element_by_index(
-			array_obj, i);
+		struct bt_private_value *element_obj_copy = NULL;
+		struct bt_value *element_obj =
+			bt_value_array_borrow_element_by_index(
+				array_obj, i);
 
 		BT_ASSERT(element_obj);
 		BT_LOGD("Copying array value's element: element-addr=%p, "
 			"index=%d", element_obj, i);
-		element_obj_copy = bt_value_copy(element_obj);
-		if (!element_obj_copy) {
+		ret = bt_value_copy(&element_obj_copy, element_obj);
+		if (ret) {
 			BT_LOGE("Cannot copy array value's element: "
 				"array-addr=%p, index=%d",
 				array_obj, i);
@@ -234,6 +237,7 @@ struct bt_private_value *bt_value_array_copy(const struct bt_value *array_obj)
 			goto end;
 		}
 
+		BT_ASSERT(element_obj_copy);
 		ret = bt_private_value_array_append_element(copy_obj,
 			(void *) element_obj_copy);
 		BT_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
@@ -259,7 +263,7 @@ struct bt_private_value *bt_value_map_copy(const struct bt_value *map_obj)
 	GHashTableIter iter;
 	gpointer key, element_obj;
 	struct bt_private_value *copy_obj;
-	struct bt_private_value *element_obj_copy;
+	struct bt_private_value *element_obj_copy = NULL;
 	struct bt_value_map *typed_map_obj;
 
 	BT_LOGD("Copying map value: addr=%p", map_obj);
@@ -277,8 +281,8 @@ struct bt_private_value *bt_value_map_copy(const struct bt_value *map_obj)
 		BT_ASSERT(key_str);
 		BT_LOGD("Copying map value's element: element-addr=%p, "
 			"key=\"%s\"", element_obj, key_str);
-		element_obj_copy = bt_value_copy(element_obj);
-		if (!element_obj_copy) {
+		ret = bt_value_copy(&element_obj_copy, element_obj);
+		if (ret) {
 			BT_LOGE("Cannot copy map value's element: "
 				"map-addr=%p, key=\"%s\"",
 				map_obj, key_str);
@@ -286,6 +290,7 @@ struct bt_private_value *bt_value_map_copy(const struct bt_value *map_obj)
 			goto end;
 		}
 
+		BT_ASSERT(element_obj_copy);
 		ret = bt_private_value_map_insert_entry(copy_obj, key_str,
 			(void *) element_obj_copy);
 		BT_OBJECT_PUT_REF_AND_RESET(element_obj_copy);
@@ -442,7 +447,8 @@ bt_bool bt_value_map_compare(const struct bt_value *object_a,
 	gpointer key, element_obj_a;
 	const struct bt_value_map *map_obj_a = BT_VALUE_TO_MAP(object_a);
 
-	if (bt_value_map_get_size(object_a) != bt_value_map_get_size(object_b)) {
+	if (bt_value_map_get_size(object_a) !=
+			bt_value_map_get_size(object_b)) {
 		BT_LOGV("Map values are different: size mismatch "
 			"value-a-addr=%p, value-b-addr=%p, "
 			"value-a-size=%" PRId64 ", value-b-size=%" PRId64,
@@ -761,18 +767,14 @@ end:
 	return (void *) BT_VALUE_FROM_CONCRETE(map_obj);
 }
 
-enum bt_value_status bt_value_bool_get(const struct bt_value *bool_obj,
-		bt_bool *val)
+bt_bool bt_value_bool_get(const struct bt_value *bool_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(val, "Raw value");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_VALUE_TYPE_BOOL);
-	*val = BT_VALUE_TO_BOOL(bool_obj)->value;
-	return BT_VALUE_STATUS_OK;
+	return BT_VALUE_TO_BOOL(bool_obj)->value;
 }
 
-enum bt_value_status bt_private_value_bool_set(struct bt_private_value *bool_obj,
-	bt_bool val)
+void bt_private_value_bool_set(struct bt_private_value *bool_obj, bt_bool val)
 {
 	BT_ASSERT_PRE_NON_NULL(bool_obj, "Value object");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(bool_obj, BT_VALUE_TYPE_BOOL);
@@ -780,20 +782,16 @@ enum bt_value_status bt_private_value_bool_set(struct bt_private_value *bool_obj
 	BT_VALUE_TO_BOOL(bool_obj)->value = val;
 	BT_LOGV("Set boolean value's raw value: value-addr=%p, value=%d",
 		bool_obj, val);
-	return BT_VALUE_STATUS_OK;
 }
 
-enum bt_value_status bt_value_integer_get(const struct bt_value *integer_obj,
-		int64_t *val)
+int64_t bt_value_integer_get(const struct bt_value *integer_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(val, "Raw value");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_VALUE_TYPE_INTEGER);
-	*val = BT_VALUE_TO_INTEGER(integer_obj)->value;
-	return BT_VALUE_STATUS_OK;
+	return BT_VALUE_TO_INTEGER(integer_obj)->value;
 }
 
-enum bt_value_status bt_private_integer_bool_set(struct bt_private_value *integer_obj,
+void bt_private_value_integer_set(struct bt_private_value *integer_obj,
 		int64_t val)
 {
 	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
@@ -802,21 +800,16 @@ enum bt_value_status bt_private_integer_bool_set(struct bt_private_value *intege
 	BT_VALUE_TO_INTEGER(integer_obj)->value = val;
 	BT_LOGV("Set integer value's raw value: value-addr=%p, value=%" PRId64,
 		integer_obj, val);
-	return BT_VALUE_STATUS_OK;
 }
 
-enum bt_value_status bt_value_real_get(const struct bt_value *real_obj,
-		double *val)
+double bt_value_real_get(const struct bt_value *real_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(real_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(val, "Raw value");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_VALUE_TYPE_REAL);
-	*val = BT_VALUE_TO_REAL(real_obj)->value;
-	return BT_VALUE_STATUS_OK;
+	return BT_VALUE_TO_REAL(real_obj)->value;
 }
 
-enum bt_value_status bt_private_value_real_set(struct bt_private_value *real_obj,
-		double val)
+void bt_private_value_real_set(struct bt_private_value *real_obj, double val)
 {
 	BT_ASSERT_PRE_NON_NULL(real_obj, "Value object");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(real_obj, BT_VALUE_TYPE_REAL);
@@ -824,24 +817,19 @@ enum bt_value_status bt_private_value_real_set(struct bt_private_value *real_obj
 	BT_VALUE_TO_REAL(real_obj)->value = val;
 	BT_LOGV("Set real number value's raw value: value-addr=%p, value=%f",
 		real_obj, val);
-	return BT_VALUE_STATUS_OK;
 }
 
-enum bt_value_status bt_value_string_get(const struct bt_value *string_obj,
-		const char **val)
+const char *bt_value_string_get(const struct bt_value *string_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(string_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(val, "Raw value");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(string_obj, BT_VALUE_TYPE_STRING);
-	*val = BT_VALUE_TO_STRING(string_obj)->gstr->str;
-	return BT_VALUE_STATUS_OK;
+	return BT_VALUE_TO_STRING(string_obj)->gstr->str;
 }
 
-enum bt_value_status bt_private_value_string_set(struct bt_private_value *string_obj,
-		const char *val)
+enum bt_value_status bt_private_value_string_set(
+		struct bt_private_value *string_obj, const char *val)
 {
 	BT_ASSERT_PRE_NON_NULL(string_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(val, "Raw value");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(string_obj, BT_VALUE_TYPE_STRING);
 	BT_ASSERT_PRE_VALUE_HOT(string_obj, "Value object");
 	g_string_assign(BT_VALUE_TO_STRING(string_obj)->gstr, val);
@@ -850,16 +838,11 @@ enum bt_value_status bt_private_value_string_set(struct bt_private_value *string
 	return BT_VALUE_STATUS_OK;
 }
 
-int64_t bt_value_array_get_size(const struct bt_value *array_obj)
+uint64_t bt_value_array_get_size(const struct bt_value *array_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(array_obj, "Value object");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(array_obj, BT_VALUE_TYPE_ARRAY);
-	return (int64_t) BT_VALUE_TO_ARRAY(array_obj)->garray->len;
-}
-
-bt_bool bt_value_array_is_empty(const struct bt_value *array_obj)
-{
-	return bt_value_array_get_size(array_obj) == 0;
+	return (uint64_t) BT_VALUE_TO_ARRAY(array_obj)->garray->len;
 }
 
 struct bt_value *bt_value_array_borrow_element_by_index(
@@ -1003,16 +986,11 @@ enum bt_value_status bt_private_value_array_set_element_by_index(
 	return BT_VALUE_STATUS_OK;
 }
 
-int64_t bt_value_map_get_size(const struct bt_value *map_obj)
+uint64_t bt_value_map_get_size(const struct bt_value *map_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(map_obj, "Value object");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
-	return (int64_t) g_hash_table_size(BT_VALUE_TO_MAP(map_obj)->ght);
-}
-
-bt_bool bt_value_map_is_empty(const struct bt_value *map_obj)
-{
-	return bt_value_map_get_size(map_obj) == 0;
+	return (uint64_t) g_hash_table_size(BT_VALUE_TO_MAP(map_obj)->ght);
 }
 
 struct bt_value *bt_value_map_borrow_entry_value(const struct bt_value *map_obj,
@@ -1098,7 +1076,8 @@ enum bt_value_status bt_private_value_map_insert_real_entry(
 }
 
 enum bt_value_status bt_private_value_map_insert_string_entry(
-		struct bt_private_value *map_obj, const char *key, const char *val)
+		struct bt_private_value *map_obj, const char *key,
+		const char *val)
 {
 	enum bt_value_status ret;
 	struct bt_private_value *string_obj = NULL;
@@ -1174,7 +1153,7 @@ enum bt_value_status bt_private_value_map_foreach_entry(
 
 struct extend_map_element_data {
 	struct bt_private_value *extended_obj;
-	bt_bool got_error;
+	enum bt_value_status status;
 };
 
 static
@@ -1182,16 +1161,25 @@ bt_bool extend_map_element(const char *key,
 		struct bt_value *extension_obj_elem, void *data)
 {
 	bt_bool ret = BT_TRUE;
-
 	struct extend_map_element_data *extend_data = data;
+	struct bt_private_value *extension_obj_elem_copy = NULL;
 
 	/* Copy object which is to replace the current one */
-	struct bt_private_value *extension_obj_elem_copy =
-		bt_value_copy(extension_obj_elem);
+	extend_data->status = bt_value_copy(&extension_obj_elem_copy,
+		extension_obj_elem);
+	if (extend_data->status) {
+		BT_LOGE("Cannot copy map element: addr=%p",
+			extension_obj_elem);
+		goto error;
+	}
+
+	BT_ASSERT(extension_obj_elem_copy);
 
 	/* Replace in extended object */
-	if (bt_private_value_map_insert_entry(extend_data->extended_obj, key,
-			(void *) extension_obj_elem_copy)) {
+	extend_data->status = bt_private_value_map_insert_entry(
+		extend_data->extended_obj, key,
+		(void *) extension_obj_elem_copy);
+	if (extend_data->status) {
 		BT_LOGE("Cannot replace value in extended value: key=\"%s\", "
 			"extended-value-addr=%p, element-value-addr=%p",
 			key, extend_data->extended_obj,
@@ -1202,40 +1190,49 @@ bt_bool extend_map_element(const char *key,
 	goto end;
 
 error:
+	BT_ASSERT(extend_data->status != BT_VALUE_STATUS_OK);
 	ret = BT_FALSE;
-	extend_data->got_error = BT_TRUE;
 
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(extension_obj_elem_copy);
 	return ret;
 }
 
-struct bt_private_value *bt_value_map_extend(struct bt_value *base_map_obj,
+enum bt_value_status bt_value_map_extend(
+		struct bt_private_value **extended_map_obj,
+		struct bt_value *base_map_obj,
 		struct bt_value *extension_obj)
 {
-	struct bt_private_value *extended_obj = NULL;
-	struct extend_map_element_data extend_data = { 0 };
+	struct extend_map_element_data extend_data = {
+		.extended_obj = NULL,
+		.status = BT_VALUE_STATUS_OK,
+	};
 
 	BT_ASSERT_PRE_NON_NULL(base_map_obj, "Base value object");
 	BT_ASSERT_PRE_NON_NULL(extension_obj, "Extension value object");
+	BT_ASSERT_PRE_NON_NULL(extended_map_obj,
+		"Extended value object (output)");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(base_map_obj, BT_VALUE_TYPE_MAP);
 	BT_ASSERT_PRE_VALUE_IS_TYPE(extension_obj, BT_VALUE_TYPE_MAP);
 	BT_LOGD("Extending map value: base-value-addr=%p, extension-value-addr=%p",
 		base_map_obj, extension_obj);
+	*extended_map_obj = NULL;
 
 	/* Create copy of base map object to start with */
-	extended_obj = bt_value_copy(base_map_obj);
-	if (!extended_obj) {
+	extend_data.status = bt_value_copy(extended_map_obj, base_map_obj);
+	if (extend_data.status) {
 		BT_LOGE("Cannot copy base value: base-value-addr=%p",
 			base_map_obj);
 		goto error;
 	}
 
+	BT_ASSERT(extended_map_obj);
+
 	/*
 	 * For each key in the extension map object, replace this key
 	 * in the copied map object.
 	 */
-	extend_data.extended_obj = extended_obj;
+	extend_data.extended_obj = *extended_map_obj;
 
 	if (bt_value_map_foreach_entry(extension_obj, extend_map_element,
 			&extend_data)) {
@@ -1244,38 +1241,43 @@ struct bt_private_value *bt_value_map_extend(struct bt_value *base_map_obj,
 		goto error;
 	}
 
-	if (extend_data.got_error) {
+	if (extend_data.status) {
 		BT_LOGE("Failed to successfully iterate on the extension object's elements: "
 			"extension-value-addr=%p", extension_obj);
 		goto error;
 	}
 
 	BT_LOGD("Extended map value: extended-value-addr=%p",
-		extended_obj);
+		*extended_map_obj);
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(extended_obj);
+	BT_OBJECT_PUT_REF_AND_RESET(*extended_map_obj);
+	*extended_map_obj = NULL;
 
 end:
-	return (void *) extended_obj;
+	return extend_data.status;
 }
 
-struct bt_private_value *bt_value_copy(const struct bt_value *object)
+enum bt_value_status bt_value_copy(struct bt_private_value **copy_obj,
+		const struct bt_value *object)
 {
-	struct bt_private_value *copy_obj = NULL;
+	enum bt_value_status status = BT_VALUE_STATUS_OK;
 
 	BT_ASSERT_PRE_NON_NULL(object, "Value object");
+	BT_ASSERT_PRE_NON_NULL(copy_obj, "Value object copy (output)");
 	BT_LOGD("Copying value object: addr=%p", object);
-	copy_obj = copy_funcs[object->type](object);
-	if (copy_obj) {
+	*copy_obj = copy_funcs[object->type](object);
+	if (*copy_obj) {
 		BT_LOGD("Copied value object: copy-value-addr=%p",
 			copy_obj);
 	} else {
+		status = BT_VALUE_STATUS_NOMEM;
+		*copy_obj = NULL;
 		BT_LOGE_STR("Failed to copy value object.");
 	}
 
-	return (void *) copy_obj;
+	return status;
 }
 
 bt_bool bt_value_compare(const struct bt_value *object_a,

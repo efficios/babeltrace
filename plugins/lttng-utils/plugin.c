@@ -338,12 +338,7 @@ enum bt_component_status init_from_params(
 		enum bt_value_status value_ret;
 		const char *tmp;
 
-		value_ret = bt_value_string_get(value, &tmp);
-		if (value_ret) {
-			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve debug-info-field-name value. "
-					"Expecting a string.");
-		}
+		tmp = bt_value_string_get(value);
 		strcpy(debug_info_component->arg_debug_info_field_name, tmp);
 		bt_object_put_ref(value);
 	} else {
@@ -365,13 +360,7 @@ enum bt_component_status init_from_params(
 	if (value) {
 		enum bt_value_status value_ret;
 
-		value_ret = bt_value_string_get(value,
-				&debug_info_component->arg_debug_dir);
-		if (value_ret) {
-			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve debug-info-dir value. "
-					"Expecting a string.");
-		}
+		debug_info_component->arg_debug_dir = bt_value_string_get(value);
 	}
 	bt_object_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
@@ -382,13 +371,7 @@ enum bt_component_status init_from_params(
 	if (value) {
 		enum bt_value_status value_ret;
 
-		value_ret = bt_value_string_get(value,
-				&debug_info_component->arg_target_prefix);
-		if (value_ret) {
-			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve target-prefix value. "
-					"Expecting a string.");
-		}
+		debug_info_component->arg_target_prefix = bt_value_string_get(value);
 	}
 	bt_object_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
@@ -400,13 +383,7 @@ enum bt_component_status init_from_params(
 		enum bt_value_status value_ret;
 		bt_bool bool_val;
 
-		value_ret = bt_value_bool_get(value,
-				&bool_val);
-		if (value_ret) {
-			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve full-path value. "
-					"Expecting a boolean.");
-		}
+		bool_val = bt_value_bool_get(value);
 
 		debug_info_component->arg_full_path = bool_val;
 	}

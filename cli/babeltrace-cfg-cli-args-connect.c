@@ -700,8 +700,7 @@ int bt_config_cli_args_create_connections(struct bt_config *cfg,
 		const char *arg;
 		struct bt_config_connection *cfg_connection;
 
-		ret = bt_value_string_get(arg_value, &arg);
-		BT_ASSERT(ret == 0);
+		arg = bt_value_string_get(arg_value);
 		cfg_connection = cfg_connection_from_arg(arg);
 		if (!cfg_connection) {
 			snprintf(error_buf, error_buf_size, "Cannot parse --connect option's argument:\n    %s\n",
