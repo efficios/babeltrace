@@ -304,11 +304,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 	if (value) {
 		enum bt_value_status value_ret;
 
-		value_ret = bt_value_bool_get(value, &gmt);
-		if (value_ret) {
-			ret = BT_COMPONENT_STATUS_INVALID;
-			BT_LOGE_STR("Failed to retrieve clock-gmt value. Expecting a boolean");
-		}
+		gmt = bt_value_bool_get(value);
 	}
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;

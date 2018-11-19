@@ -144,8 +144,7 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 	if (step && bt_value_is_integer(step)) {
 		int64_t val;
 
-		(void) bt_value_integer_get(step, &val);
-
+		val = bt_value_integer_get(step);
 		if (val >= 0) {
 			counter->step = (uint64_t) val;
 		}
@@ -155,7 +154,7 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 	if (hide_zero && bt_value_is_bool(hide_zero)) {
 		bt_bool val;
 
-		(void) bt_value_bool_get(hide_zero, &val);
+		val = bt_value_bool_get(hide_zero);
 		counter->hide_zero = (bool) val;
 	}
 

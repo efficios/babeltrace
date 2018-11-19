@@ -379,10 +379,8 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 			if (print_names) {
 				print_name_equal(pretty, "trace:hostname");
 			}
-			if (bt_value_string_get(hostname_str, &str)
-					== BT_VALUE_STATUS_OK) {
-				g_string_append(pretty->string, str);
-			}
+			str = bt_value_string_get(hostname_str);
+			g_string_append(pretty->string, str);
 			dom_print = 1;
 		}
 	}
@@ -402,10 +400,8 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 			} else if (dom_print) {
 				g_string_append(pretty->string, ":");
 			}
-			if (bt_value_string_get(domain_str, &str)
-					== BT_VALUE_STATUS_OK) {
-				g_string_append(pretty->string, str);
-			}
+			str = bt_value_string_get(domain_str);
+			g_string_append(pretty->string, str);
 			dom_print = 1;
 		}
 	}
@@ -425,11 +421,8 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 			} else if (dom_print) {
 				g_string_append(pretty->string, ":");
 			}
-			if (bt_value_string_get(procname_str, &str)
-					== BT_VALUE_STATUS_OK) {
-				g_string_append(pretty->string, str);
-			}
-
+			str = bt_value_string_get(procname_str);
+			g_string_append(pretty->string, str);
 			dom_print = 1;
 		}
 	}
@@ -449,11 +442,9 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 			} else if (dom_print) {
 				g_string_append(pretty->string, ":");
 			}
-			if (bt_value_integer_get(vpid_value, &value)
-					== BT_VALUE_STATUS_OK) {
-				g_string_append_printf(pretty->string, "(%" PRId64 ")", value);
-			}
-
+			value = bt_value_integer_get(vpid_value);
+			g_string_append_printf(pretty->string,
+				"(%" PRId64 ")", value);
 			dom_print = 1;
 		}
 	}

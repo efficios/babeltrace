@@ -27,7 +27,7 @@
 #include <string.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 158
+#define NR_TESTS 147
 
 static
 void test_null(void)
@@ -44,7 +44,6 @@ void test_null(void)
 static
 void test_bool(void)
 {
-	int ret;
 	bt_bool value;
 	struct bt_private_value *priv_obj;
 	struct bt_value *obj;
@@ -55,14 +54,13 @@ void test_bool(void)
 		"bt_private_value_bool_create() returns a boolean value object");
 
 	value = BT_TRUE;
-	ret = bt_value_bool_get(obj, &value);
-	ok(!ret && !value, "default boolean value object value is BT_FALSE");
+	value = bt_value_bool_get(obj);
+	ok(!value, "default boolean value object value is BT_FALSE");
 
-	BT_ASSERT(!bt_private_value_bool_set(priv_obj, BT_FALSE));
-	ret = bt_private_value_bool_set(priv_obj, BT_TRUE);
-	ok(!ret, "bt_private_value_bool_set() succeeds");
-	ret = bt_value_bool_get(obj, &value);
-	ok(!ret && value, "bt_private_value_bool_set() works");
+	bt_private_value_bool_set(priv_obj, BT_FALSE);
+	bt_private_value_bool_set(priv_obj, BT_TRUE);
+	value = bt_value_bool_get(obj);
+	ok(value, "bt_private_value_bool_set() works");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	pass("putting an existing boolean value object does not cause a crash")
@@ -72,8 +70,8 @@ void test_bool(void)
 	obj = bt_value_borrow_from_private(priv_obj);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_private_value_bool_create_init() returns a boolean value object");
-	ret = bt_value_bool_get(obj, &value);
-	ok(!ret && value,
+	value = bt_value_bool_get(obj);
+	ok(value,
 		"bt_private_value_bool_create_init() sets the appropriate initial value");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
@@ -82,7 +80,6 @@ void test_bool(void)
 static
 void test_integer(void)
 {
-	int ret;
 	int64_t value;
 	struct bt_private_value *priv_obj;
 	struct bt_value *obj;
@@ -93,13 +90,12 @@ void test_integer(void)
 		"bt_private_value_integer_create() returns an integer value object");
 
 	value = 1961;
-	ret = bt_value_integer_get(obj, &value);
-	ok(!ret && value == 0, "default integer value object value is 0");
+	value = bt_value_integer_get(obj);
+	ok(value == 0, "default integer value object value is 0");
 
-	ret = bt_private_integer_bool_set(priv_obj, -98765);
-	ok(!ret, "bt_private_integer_bool_set() succeeds");
-	ret = bt_value_integer_get(obj, &value);
-	ok(!ret && value == -98765, "bt_private_integer_bool_set() works");
+	bt_private_value_integer_set(priv_obj, -98765);
+	value = bt_value_integer_get(obj);
+	ok(value == -98765, "bt_private_integer_bool_set() works");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	pass("putting an existing integer value object does not cause a crash")
@@ -108,8 +104,8 @@ void test_integer(void)
 	obj = bt_value_borrow_from_private(priv_obj);
 	ok(obj && bt_value_is_integer(obj),
 		"bt_private_value_integer_create_init() returns an integer value object");
-	ret = bt_value_integer_get(obj, &value);
-	ok(!ret && value == 321456987,
+	value = bt_value_integer_get(obj);
+	ok(value == 321456987,
 		"bt_private_value_integer_create_init() sets the appropriate initial value");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
@@ -118,7 +114,6 @@ void test_integer(void)
 static
 void test_real(void)
 {
-	int ret;
 	double value;
 	struct bt_private_value *priv_obj;
 	struct bt_value *obj;
@@ -129,14 +124,13 @@ void test_real(void)
 		"bt_private_value_real_create() returns a real number value object");
 
 	value = 17.34;
-	ret = bt_value_real_get(obj, &value);
-	ok(!ret && value == 0.,
+	value = bt_value_real_get(obj);
+	ok(value == 0.,
 		"default real number value object value is 0");
 
-	ret = bt_private_value_real_set(priv_obj, -3.1416);
-	ok(!ret, "bt_private_value_real_set() succeeds");
-	ret = bt_value_real_get(obj, &value);
-	ok(!ret && value == -3.1416, "bt_private_value_real_set() works");
+	bt_private_value_real_set(priv_obj, -3.1416);
+	value = bt_value_real_get(obj);
+	ok(value == -3.1416, "bt_private_value_real_set() works");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	pass("putting an existing real number value object does not cause a crash")
@@ -145,8 +139,8 @@ void test_real(void)
 	obj = bt_value_borrow_from_private(priv_obj);
 	ok(obj && bt_value_is_real(obj),
 		"bt_private_value_real_create_init() returns a real number value object");
-	ret = bt_value_real_get(obj, &value);
-	ok(!ret && value == 33.1649758,
+	value = bt_value_real_get(obj);
+	ok(value == 33.1649758,
 		"bt_private_value_real_create_init() sets the appropriate initial value");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
@@ -155,7 +149,6 @@ void test_real(void)
 static
 void test_string(void)
 {
-	int ret;
 	const char *value;
 	struct bt_private_value *priv_obj;
 	struct bt_value *obj;
@@ -165,14 +158,13 @@ void test_string(void)
 	ok(obj && bt_value_is_string(obj),
 		"bt_private_value_string_create() returns a string value object");
 
-	ret = bt_value_string_get(obj, &value);
-	ok(!ret && value && !strcmp(value, ""),
+	value = bt_value_string_get(obj);
+	ok(value && !strcmp(value, ""),
 		"default string value object value is \"\"");
 
-	ret = bt_private_value_string_set(priv_obj, "hello worldz");
-	ok(!ret, "bt_private_value_string_set() succeeds");
-	ret = bt_value_string_get(obj, &value);
-	ok(!ret && value && !strcmp(value, "hello worldz"),
+	bt_private_value_string_set(priv_obj, "hello worldz");
+	value = bt_value_string_get(obj);
+	ok(value && !strcmp(value, "hello worldz"),
 		"bt_value_string_get() works");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
@@ -182,8 +174,8 @@ void test_string(void)
 	obj = bt_value_borrow_from_private(priv_obj);
 	ok(obj && bt_value_is_string(obj),
 		"bt_private_value_string_create_init() returns a string value object");
-	ret = bt_value_string_get(obj, &value);
-	ok(!ret && value && !strcmp(value, "initial value"),
+	value = bt_value_string_get(obj);
+	ok(value && !strcmp(value, "initial value"),
 		"bt_private_value_string_create_init() sets the appropriate initial value");
 
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
@@ -230,20 +222,20 @@ void test_array(void)
 	obj = bt_value_array_borrow_element_by_index(array_obj, 0);
 	ok(obj && bt_value_is_integer(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (integer)");
-	ret = bt_value_integer_get(obj, &int_value);
-	ok(!ret && int_value == 345,
+	int_value = bt_value_integer_get(obj);
+	ok(int_value == 345,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (integer)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 1);
 	ok(obj && bt_value_is_real(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (real number)");
-	ret = bt_value_real_get(obj, &real_value);
-	ok(!ret && real_value == -17.45,
+	real_value = bt_value_real_get(obj);
+	ok(real_value == -17.45,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (real number)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (boolean)");
-	ret = bt_value_bool_get(obj, &bool_value);
-	ok(!ret && bool_value,
+	bool_value = bt_value_bool_get(obj);
+	ok(bool_value,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (boolean)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 3);
 	ok(obj == bt_value_null,
@@ -258,7 +250,7 @@ void test_array(void)
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
 	ok(obj && bt_value_is_integer(obj),
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate type");
-	ret = bt_value_integer_get(obj, &int_value);
+	int_value = bt_value_integer_get(obj);
 	BT_ASSERT(!ret);
 	ok(int_value == 1001,
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate value");
@@ -288,25 +280,25 @@ void test_array(void)
 	obj = bt_value_array_borrow_element_by_index(array_obj, 4);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_private_value_array_append_bool_element() appends a boolean value object");
-	ret = bt_value_bool_get(obj, &bool_value);
-	ok(!ret && !bool_value,
+	bool_value = bt_value_bool_get(obj);
+	ok(!bool_value,
 		"bt_private_value_array_append_bool_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 5);
 	ok(obj && bt_value_is_integer(obj),
 		"bt_private_value_array_append_integer_element() appends an integer value object");
-	ret = bt_value_integer_get(obj, &int_value);
-	ok(!ret && int_value == 98765,
+	int_value = bt_value_integer_get(obj);
+	ok(int_value == 98765,
 		"bt_private_value_array_append_integer_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 6);
 	ok(obj && bt_value_is_real(obj),
 		"bt_private_value_array_append_real_element() appends a real number value object");
-	ret = bt_value_real_get(obj, &real_value);
-	ok(!ret && real_value == 2.49578,
+	real_value = bt_value_real_get(obj);
+	ok(real_value == 2.49578,
 		"bt_private_value_array_append_real_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 7);
 	ok(obj && bt_value_is_string(obj),
 		"bt_private_value_array_append_string_element() appends a string value object");
-	ret = bt_value_string_get(obj, &string_value);
+	string_value = bt_value_string_get(obj);
 	ok(!ret && string_value && !strcmp(string_value, "bt_value"),
 		"bt_private_value_array_append_string_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 8);
@@ -356,7 +348,6 @@ static
 bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 	void *data)
 {
-	int ret;
 	struct map_foreach_checklist *checklist = data;
 
 	if (!strcmp(key, "bt_bool")) {
@@ -365,8 +356,7 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 		} else {
 			bt_bool val = BT_FALSE;
 
-			ret = bt_value_bool_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"bt_bool\" value");
+			val = bt_value_bool_get(object);
 
 			if (val) {
 				pass("test_map_foreach_cb_check(): \"bt_bool\" value object has the right value");
@@ -381,8 +371,7 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 		} else {
 			int64_t val = 0;
 
-			ret = bt_value_integer_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"int\" value");
+			val = bt_value_integer_get(object);
 
 			if (val == 19457) {
 				pass("test_map_foreach_cb_check(): \"int\" value object has the right value");
@@ -397,8 +386,7 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 		} else {
 			double val = 0;
 
-			ret = bt_value_real_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"real\" value");
+			val = bt_value_real_get(object);
 
 			if (val == 5.444) {
 				pass("test_map_foreach_cb_check(): \"real\" value object has the right value");
@@ -420,8 +408,7 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 		} else {
 			bt_bool val = BT_FALSE;
 
-			ret = bt_value_bool_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"bool2\" value");
+			val = bt_value_bool_get(object);
 
 			if (val) {
 				pass("test_map_foreach_cb_check(): \"bool2\" value object has the right value");
@@ -436,8 +423,7 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 		} else {
 			int64_t val = 0;
 
-			ret = bt_value_integer_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"int2\" value");
+			val = bt_value_integer_get(object);
 
 			if (val == 98765) {
 				pass("test_map_foreach_cb_check(): \"int2\" value object has the right value");
@@ -452,8 +438,7 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 		} else {
 			double val = 0;
 
-			ret = bt_value_real_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"real2\" value");
+			val = bt_value_real_get(object);
 
 			if (val == -49.0001) {
 				pass("test_map_foreach_cb_check(): \"real2\" value object has the right value");
@@ -468,8 +453,7 @@ bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
 		} else {
 			const char *val;
 
-			ret = bt_value_string_get(object, &val);
-			ok(!ret, "test_map_foreach_cb_check(): success getting \"string2\" value");
+			val = bt_value_string_get(object);
 
 			if (val && !strcmp(val, "bt_value")) {
 				pass("test_map_foreach_cb_check(): \"string2\" value object has the right value");
@@ -554,14 +538,14 @@ void test_map(void)
 	obj = bt_value_map_borrow_entry_value(map_obj, "real");
 	ok(obj && bt_value_is_real(obj),
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (real)");
-	ret = bt_value_real_get(obj, &real_value);
-	ok(!ret && real_value == 5.444,
+	real_value = bt_value_real_get(obj);
+	ok(real_value == 5.444,
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (real)");
 	obj = bt_value_map_borrow_entry_value(map_obj, "int");
 	ok(obj && bt_value_is_integer(obj),
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (integer)");
-	ret = bt_value_integer_get(obj, &int_value);
-	ok(!ret && int_value == 19457,
+	int_value = bt_value_integer_get(obj);
+	ok(int_value == 19457,
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (integer)");
 	obj = bt_value_map_borrow_entry_value(map_obj, "null");
 	ok(obj && bt_value_is_null(obj),
@@ -569,8 +553,8 @@ void test_map(void)
 	obj = bt_value_map_borrow_entry_value(map_obj, "bt_bool");
 	ok(obj && bt_value_is_bool(obj),
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (boolean)");
-	ret = bt_value_bool_get(obj, &bool_value);
-	ok(!ret && bool_value,
+	bool_value = bt_value_bool_get(obj);
+	ok(bool_value,
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (boolean)");
 
 	ret = bt_private_value_map_insert_bool_entry(priv_map_obj, "bool2",
@@ -935,8 +919,9 @@ void test_copy(void)
 		bt_value_borrow_from_private(string_obj));
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 
-	map_copy_obj = bt_value_copy(bt_value_borrow_from_private(map_obj));
-	ok(map_copy_obj,
+	status = bt_value_copy(&map_copy_obj,
+		bt_value_borrow_from_private(map_obj));
+	ok(status == BT_VALUE_STATUS_OK && map_copy_obj,
 		"bt_value_copy() succeeds");
 
 	ok(map_obj != map_copy_obj,
@@ -1026,10 +1011,12 @@ void test_extend(void)
 	status = bt_private_value_map_insert_real_entry(extension_map,
 		"project", -404);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	extended_map = bt_value_map_extend(
+	status = bt_value_map_extend(
+		&extended_map,
 		bt_value_borrow_from_private(base_map),
 		bt_value_borrow_from_private(extension_map));
-	ok(extended_map, "bt_value_map_extend() succeeds");
+	ok(status == BT_VALUE_STATUS_OK &&
+		extended_map, "bt_value_map_extend() succeeds");
 	ok(bt_value_map_get_size(
 		bt_value_borrow_from_private(extended_map)) == 5,
 		"bt_value_map_extend() returns a map object with the correct size");

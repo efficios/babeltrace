@@ -1260,11 +1260,7 @@ int insert_flat_params_from_array(GString *params_arg,
 			goto end;
 		}
 
-		ret = bt_value_string_get(str_obj, &suffix);
-		if (ret) {
-			printf_err("Unexpected error\n");
-			goto end;
-		}
+		suffix = bt_value_string_get(str_obj);
 
 		g_string_assign(tmpstr, prefix);
 		g_string_append(tmpstr, "-");
@@ -2392,6 +2388,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	GString *cur_param_key = NULL;
 	char error_buf[256] = { 0 };
 	long retry_duration = -1;
+	enum bt_value_status status;
 	struct poptOption run_long_options[] = {
 		{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
 		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
@@ -2516,9 +2513,10 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 			BT_ASSERT(cur_base_params);
 			bt_object_put_ref(cur_cfg_comp->params);
-			cur_cfg_comp->params = bt_value_copy(
+			status = bt_value_copy(
+				&cur_cfg_comp->params,
 				bt_value_borrow_from_private(cur_base_params));
-			if (!cur_cfg_comp->params) {
+			if (status != BT_VALUE_STATUS_OK) {
 				print_err_oom();
 				goto error;
 			}
@@ -2544,11 +2542,11 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			params_to_set = bt_value_map_extend(
+			status = bt_value_map_extend(&params_to_set,
 				bt_value_borrow_from_private(cur_cfg_comp->params),
 				bt_value_borrow_from_private(params));
 			BT_OBJECT_PUT_REF_AND_RESET(params);
-			if (!params_to_set) {
+			if (status != BT_VALUE_STATUS_OK) {
 				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
 					arg);
 				goto error;
@@ -2740,14 +2738,12 @@ struct bt_config *bt_config_run_from_args_array(struct bt_value *run_args,
 		goto end;
 	}
 	for (i = 0; i < len; i++) {
-		int ret;
 		struct bt_value *arg_value =
 			bt_value_array_borrow_element_by_index(run_args, i);
 		const char *arg;
 
 		BT_ASSERT(arg_value);
-		ret = bt_value_string_get(arg_value, &arg);
-		BT_ASSERT(ret == 0);
+		arg = bt_value_string_get(arg_value);
 		BT_ASSERT(arg);
 		argv[i + 1] = arg;
 	}
@@ -3074,10 +3070,7 @@ int append_run_args_for_implicit_component(
 		}
 
 		BT_ASSERT(bt_value_is_string(elem));
-		if (bt_value_string_get(elem, &arg)) {
-			goto error;
-		}
-
+		arg = bt_value_string_get(elem);
 		ret = bt_private_value_array_append_string_element(run_args, arg);
 		if (ret) {
 			print_err_oom();
@@ -3538,6 +3531,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 {
 	int ret = 0;
 	GList *leftover;
+	enum bt_value_status status;
 
 	for (leftover = leftovers; leftover != NULL;
 			leftover = g_list_next(leftover)) {
@@ -3561,10 +3555,10 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		 * this is where the unique path goes.
 		 */
 		BT_OBJECT_PUT_REF_AND_RESET(impl_args->extra_params);
-		impl_args->extra_params =
-			bt_value_copy(bt_value_borrow_from_private(
+		status = bt_value_copy(&impl_args->extra_params,
+				bt_value_borrow_from_private(
 				base_implicit_ctf_input_args->extra_params));
-		if (!impl_args->extra_params) {
+		if (status != BT_VALUE_STATUS_OK) {
 			print_err_oom();
 			destroy_implicit_component_args(impl_args);
 			goto error;
@@ -4701,8 +4695,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			const char *arg_to_print;
 
 			BT_ASSERT(arg_value);
-			ret = bt_value_string_get(arg_value, &arg);
-			BT_ASSERT(ret == 0);
+			arg = bt_value_string_get(arg_value);
 
 			if (print_run_args) {
 				quoted = bt_common_shell_quote(arg, true);

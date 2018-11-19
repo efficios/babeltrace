@@ -168,7 +168,6 @@ static void test_sfs(const char *plugin_dir)
 	struct bt_value *res_params;
 	struct bt_graph *graph;
 	const char *object_str;
-	enum bt_value_status value_ret;
 	enum bt_graph_status graph_ret;
 	struct bt_query_executor *query_exec = bt_query_executor_create();
 	int ret;
@@ -235,8 +234,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
 	object = bt_value_array_borrow_element_by_index(results, 0);
 	BT_ASSERT(object && bt_value_is_string(object));
-	value_ret = bt_value_string_get(object, &object_str);
-	BT_ASSERT(value_ret == BT_VALUE_STATUS_OK);
+	object_str = bt_value_string_get(object);
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_borrow_element_by_index(results, 1);

@@ -272,7 +272,6 @@ enum bt_component_status apply_one_string(const char *key,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_value *value = NULL;
-	enum bt_value_status status;
 	const char *str;
 
 	value = bt_value_map_borrow_entry_value(params, key);
@@ -282,15 +281,9 @@ enum bt_component_status apply_one_string(const char *key,
 	if (bt_value_is_null(value)) {
 		goto end;
 	}
-	status = bt_value_string_get(value, &str);
-	switch (status) {
-	case BT_VALUE_STATUS_OK:
-		break;
-	default:
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
+	str = bt_value_string_get(value);
 	*option = g_strdup(str);
+
 end:
 	return ret;
 }
@@ -303,21 +296,13 @@ enum bt_component_status apply_one_bool(const char *key,
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_value *value = NULL;
-	enum bt_value_status status;
 	bt_bool bool_val;
 
 	value = bt_value_map_borrow_entry_value(params, key);
 	if (!value) {
 		goto end;
 	}
-	status = bt_value_bool_get(value, &bool_val);
-	switch (status) {
-	case BT_VALUE_STATUS_OK:
-		break;
-	default:
-		ret = BT_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
+	bool_val = bt_value_bool_get(value);
 	*option = (bool) bool_val;
 	if (found) {
 		*found = true;
@@ -394,19 +379,16 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 			goto end;
 		}
 
-		status = bt_value_string_get(color_value, &color);
-		if (status) {
-			warn_wrong_color_param(pretty);
+		color = bt_value_string_get(color_value);
+
+		if (strcmp(color, "never") == 0) {
+			pretty->options.color = PRETTY_COLOR_OPT_NEVER;
+		} else if (strcmp(color, "auto") == 0) {
+			pretty->options.color = PRETTY_COLOR_OPT_AUTO;
+		} else if (strcmp(color, "always") == 0) {
+			pretty->options.color = PRETTY_COLOR_OPT_ALWAYS;
 		} else {
-			if (strcmp(color, "never") == 0) {
-				pretty->options.color = PRETTY_COLOR_OPT_NEVER;
-			} else if (strcmp(color, "auto") == 0) {
-				pretty->options.color = PRETTY_COLOR_OPT_AUTO;
-			} else if (strcmp(color, "always") == 0) {
-				pretty->options.color = PRETTY_COLOR_OPT_ALWAYS;
-			} else {
-				warn_wrong_color_param(pretty);
-			}
+			warn_wrong_color_param(pretty);
 		}
 	}
 

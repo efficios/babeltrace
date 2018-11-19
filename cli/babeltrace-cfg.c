@@ -38,38 +38,38 @@ void destroy_gstring(void *data)
  * Extracts the various paths from the string arg, delimited by ':',
  * and appends them to the array value object plugin_paths.
  */
-enum bt_value_status bt_config_append_plugin_paths(
+int bt_config_append_plugin_paths(
 		struct bt_private_value *plugin_paths, const char *arg)
 {
-	enum bt_value_status status = BT_VALUE_STATUS_OK;
+	int ret = 0;
 	GPtrArray *dirs = g_ptr_array_new_with_free_func(destroy_gstring);
-	int ret;
 	size_t i;
 
 	if (!dirs) {
-		status = BT_VALUE_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
 	ret = bt_common_append_plugin_path_dirs(arg, dirs);
 	if (ret) {
-		status = BT_VALUE_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
 	for (i = 0; i < dirs->len; i++) {
 		GString *dir = g_ptr_array_index(dirs, i);
 
-		status = bt_private_value_array_append_string_element(
+		ret = bt_private_value_array_append_string_element(
 			plugin_paths, dir->str);
-		if (status != BT_VALUE_STATUS_OK) {
-			break;
+		if (ret != BT_VALUE_STATUS_OK) {
+			ret = -1;
+			goto end;
 		}
 	}
 
 end:
 	g_ptr_array_free(dirs, TRUE);
-	return status;
+	return ret;
 }
 
 void bt_config_connection_destroy(struct bt_config_connection *connection)
