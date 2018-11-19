@@ -1200,8 +1200,8 @@ end:
 
 enum bt_value_status bt_value_map_extend(
 		struct bt_private_value **extended_map_obj,
-		struct bt_value *base_map_obj,
-		struct bt_value *extension_obj)
+		const struct bt_value *base_map_obj,
+		const struct bt_value *extension_obj)
 {
 	struct extend_map_element_data extend_data = {
 		.extended_obj = NULL,
