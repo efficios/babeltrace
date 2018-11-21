@@ -154,7 +154,7 @@ struct bt_private_field_class *ctf_field_class_struct_to_ir(
 
 		member_ir_fc = ctf_field_class_to_ir(named_fc->fc, tc, sc, ec);
 		BT_ASSERT(member_ir_fc);
-		ret = bt_private_field_class_structure_append_private_member(
+		ret = bt_private_field_class_structure_append_member(
 			ir_fc, named_fc->name->str, member_ir_fc);
 		BT_ASSERT(ret == 0);
 		bt_object_put_ref(member_ir_fc);
@@ -196,7 +196,7 @@ struct bt_private_field_class *ctf_field_class_variant_to_ir(
 	uint64_t i;
 
 	BT_ASSERT(ir_fc);
-	ret = bt_private_field_class_variant_set_selector_private_field_class(
+	ret = bt_private_field_class_variant_set_selector_field_class(
 		ir_fc, borrow_ir_ft_from_field_path(&fc->tag_path, tc, sc, ec));
 	BT_ASSERT(ret == 0);
 
@@ -267,7 +267,7 @@ struct bt_private_field_class *ctf_field_class_sequence_to_ir(
 	BT_ASSERT(ir_fc);
 	bt_object_put_ref(elem_ir_fc);
 	BT_ASSERT(ir_fc);
-	ret = bt_private_field_class_dynamic_array_set_length_private_field_class(
+	ret = bt_private_field_class_dynamic_array_set_length_field_class(
 		ir_fc,
 		borrow_ir_ft_from_field_path(&fc->length_path, tc, sc, ec));
 	BT_ASSERT(ret == 0);
@@ -405,7 +405,7 @@ struct bt_private_event_class *ctf_event_class_to_ir(struct ctf_event_class *ec,
 	struct bt_private_event_class *ir_ec = NULL;
 
 	if (ec->is_translated) {
-		ir_ec = bt_private_stream_class_borrow_private_event_class_by_id(
+		ir_ec = bt_private_stream_class_borrow_event_class_by_id(
 			ir_sc, ec->id);
 		BT_ASSERT(ir_ec);
 		goto end;
@@ -420,7 +420,7 @@ struct bt_private_event_class *ctf_event_class_to_ir(struct ctf_event_class *ec,
 			ec->spec_context_fc, tc, sc, ec);
 
 		if (ir_fc) {
-			ret = bt_private_event_class_set_specific_context_private_field_class(
+			ret = bt_private_event_class_set_specific_context_field_class(
 				ir_ec, ir_fc);
 			BT_ASSERT(ret == 0);
 			bt_object_put_ref(ir_fc);
@@ -432,7 +432,7 @@ struct bt_private_event_class *ctf_event_class_to_ir(struct ctf_event_class *ec,
 			ec->payload_fc, tc, sc, ec);
 
 		if (ir_fc) {
-			ret = bt_private_event_class_set_payload_private_field_class(ir_ec,
+			ret = bt_private_event_class_set_payload_field_class(ir_ec,
 				ir_fc);
 			BT_ASSERT(ret == 0);
 			bt_object_put_ref(ir_fc);
@@ -471,7 +471,7 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 	struct ctf_field_class_int *int_fc;
 
 	if (sc->is_translated) {
-		ir_sc = bt_private_trace_borrow_private_stream_class_by_id(
+		ir_sc = bt_private_trace_borrow_stream_class_by_id(
 			ir_trace, sc->id);
 		BT_ASSERT(ir_sc);
 		goto end;
@@ -486,7 +486,7 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 			sc->packet_context_fc, tc, sc, NULL);
 
 		if (ir_fc) {
-			ret = bt_private_stream_class_set_packet_context_private_field_class(
+			ret = bt_private_stream_class_set_packet_context_field_class(
 				ir_sc, ir_fc);
 			BT_ASSERT(ret == 0);
 			bt_object_put_ref(ir_fc);
@@ -498,7 +498,7 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 			sc->event_header_fc, tc, sc, NULL);
 
 		if (ir_fc) {
-			ret = bt_private_stream_class_set_event_header_private_field_class(
+			ret = bt_private_stream_class_set_event_header_field_class(
 				ir_sc, ir_fc);
 			BT_ASSERT(ret == 0);
 			bt_object_put_ref(ir_fc);
@@ -510,7 +510,7 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 			sc->event_common_context_fc, tc, sc, NULL);
 
 		if (ir_fc) {
-			ret = bt_private_stream_class_set_event_common_context_private_field_class(
+			ret = bt_private_stream_class_set_event_common_context_field_class(
 				ir_sc, ir_fc);
 			BT_ASSERT(ret == 0);
 			bt_object_put_ref(ir_fc);
@@ -592,7 +592,7 @@ int ctf_trace_class_to_ir(struct bt_private_trace *ir_trace,
 			tc->packet_header_fc, tc, NULL, NULL);
 
 		if (ir_fc) {
-			ret = bt_private_trace_set_packet_header_private_field_class(
+			ret = bt_private_trace_set_packet_header_field_class(
 				ir_trace, ir_fc);
 			BT_ASSERT(ret == 0);
 			bt_object_put_ref(ir_fc);
@@ -619,12 +619,12 @@ int ctf_trace_class_to_ir(struct bt_private_trace *ir_trace,
 
 		switch (env_entry->type) {
 		case CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT:
-			ret = bt_private_trace_set_private_environment_entry_integer(
+			ret = bt_private_trace_set_environment_entry_integer(
 				ir_trace, env_entry->name->str,
 				env_entry->value.i);
 			break;
 		case CTF_TRACE_CLASS_ENV_ENTRY_TYPE_STR:
-			ret = bt_private_trace_set_private_environment_entry_string(
+			ret = bt_private_trace_set_environment_entry_string(
 				ir_trace, env_entry->name->str,
 				env_entry->value.str->str);
 			break;

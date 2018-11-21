@@ -52,7 +52,7 @@ extern struct bt_private_stream_class *bt_private_stream_class_create(
 extern struct bt_private_stream_class *bt_private_stream_class_create_with_id(
 		struct bt_private_trace *trace, uint64_t id);
 
-extern struct bt_private_trace *bt_private_stream_class_borrow_private_trace(
+extern struct bt_private_trace *bt_private_stream_class_borrow_trace(
 		struct bt_private_stream_class *stream_class);
 
 extern int bt_private_stream_class_set_name(
@@ -66,36 +66,36 @@ extern int bt_private_stream_class_set_assigns_automatic_stream_id(
 		struct bt_private_stream_class *stream_class, bt_bool value);
 
 extern struct bt_private_field_class *
-bt_private_stream_class_borrow_packet_context_private_field_class(
+bt_private_stream_class_borrow_packet_context_field_class(
 		struct bt_private_stream_class *stream_class);
 
-extern int bt_private_stream_class_set_packet_context_private_field_class(
+extern int bt_private_stream_class_set_packet_context_field_class(
 		struct bt_private_stream_class *stream_class,
 		struct bt_private_field_class *field_class);
 
 extern struct bt_private_field_class *
-bt_private_stream_class_borrow_event_header_private_field_class(
+bt_private_stream_class_borrow_event_header_field_class(
 		struct bt_private_stream_class *stream_class);
 
-extern int bt_private_stream_class_set_event_header_private_field_class(
+extern int bt_private_stream_class_set_event_header_field_class(
 		struct bt_private_stream_class *stream_class,
 		struct bt_private_field_class *field_class);
 
 extern struct bt_private_field_class *
-bt_private_stream_class_borrow_event_common_context_private_field_class(
+bt_private_stream_class_borrow_event_common_context_field_class(
 		struct bt_private_stream_class *stream_class);
 
 extern int
-bt_private_stream_class_set_event_common_context_private_field_class(
+bt_private_stream_class_set_event_common_context_field_class(
 		struct bt_private_stream_class *stream_class,
 		struct bt_private_field_class *field_class);
 
 extern struct bt_private_event_class *
-bt_private_stream_class_borrow_private_event_class_by_index(
+bt_private_stream_class_borrow_event_class_by_index(
 		struct bt_private_stream_class *stream_class, uint64_t index);
 
 extern struct bt_private_event_class *
-bt_private_stream_class_borrow_private_event_class_by_id(
+bt_private_stream_class_borrow_event_class_by_id(
 		struct bt_private_stream_class *stream_class, uint64_t id);
 
 extern int bt_private_stream_class_set_default_clock_class(

@@ -181,7 +181,7 @@ struct bt_private_stream *medop_borrow_stream(
 	struct bt_private_stream_class *ds_file_stream_class;
 	struct bt_private_stream *stream = NULL;
 
-	ds_file_stream_class = bt_private_stream_borrow_private_class(
+	ds_file_stream_class = bt_private_stream_borrow_class(
 		ds_file->stream);
 
 	if (stream_class != ds_file_stream_class) {

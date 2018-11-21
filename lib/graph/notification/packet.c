@@ -164,7 +164,7 @@ struct bt_packet *bt_notification_packet_begin_borrow_packet(
 }
 
 struct bt_private_packet *
-bt_private_notification_packet_begin_borrow_private_packet(
+bt_private_notification_packet_begin_borrow_packet(
 		struct bt_private_notification *notification)
 {
 	return (void *) bt_notification_packet_begin_borrow_packet(

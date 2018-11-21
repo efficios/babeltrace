@@ -30,7 +30,7 @@
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <glib.h>
 
-struct bt_private_field *bt_private_event_header_field_borrow_private_field(
+struct bt_private_field *bt_private_event_header_field_borrow_field(
 		struct bt_private_event_header_field *header_field)
 {
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;

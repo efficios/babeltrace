@@ -285,14 +285,14 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 		goto end;
 	}
 
-	input_port = bt_private_component_filter_get_input_private_port_by_name(
+	input_port = bt_private_component_filter_get_input_port_by_name(
 			component, "in");
 	if (!input_port) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
-	connection = bt_private_port_get_private_connection(input_port);
+	connection = bt_private_port_get_connection(input_port);
 	bt_object_put_ref(input_port);
 	if (!connection) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
@@ -413,13 +413,13 @@ enum bt_component_status debug_info_component_init(
 		goto error;
 	}
 
-	ret = bt_private_component_filter_add_input_private_port(
+	ret = bt_private_component_filter_add_input_port(
 		component, "in", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
-	ret = bt_private_component_filter_add_output_private_port(
+	ret = bt_private_component_filter_add_output_port(
 		component, "out", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
