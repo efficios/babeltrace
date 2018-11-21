@@ -1,8 +1,4 @@
 /*
- * test_plugin.c
- *
- * Trace IR Reference Count test
- *
  * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +20,7 @@
 #include <babeltrace/values.h>
 #include <babeltrace/private-values.h>
 #include <babeltrace/graph/component.h>
+#include <babeltrace/graph/private-graph.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/query-executor.h>
 #include <stdlib.h>
@@ -166,7 +163,7 @@ static void test_sfs(const char *plugin_dir)
 	struct bt_value *results;
 	struct bt_value *object;
 	struct bt_value *res_params;
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 	const char *object_str;
 	enum bt_graph_status graph_ret;
 	struct bt_query_executor *query_exec = bt_query_executor_create();
@@ -243,30 +240,30 @@ static void test_sfs(const char *plugin_dir)
 
 	diag("> putting the plugin object here");
 	BT_OBJECT_PUT_REF_AND_RESET(plugin);
-	graph = bt_graph_create();
+	graph = bt_private_graph_create();
 	BT_ASSERT(graph);
-	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
+	graph_ret = bt_private_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
-		"bt_graph_add_component() still works after the plugin object is destroyed");
+		"bt_private_graph_add_component() still works after the plugin object is destroyed");
 	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
 	BT_OBJECT_PUT_REF_AND_RESET(source_comp_class);
 	bt_object_put_ref(graph);
-	graph = bt_graph_create();
+	graph = bt_private_graph_create();
 	BT_ASSERT(graph);
-	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
+	graph_ret = bt_private_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
-		"bt_graph_add_component() still works after the source component class object is destroyed");
+		"bt_private_graph_add_component() still works after the source component class object is destroyed");
 	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
 	BT_OBJECT_PUT_REF_AND_RESET(filter_comp_class);
 	bt_object_put_ref(graph);
-	graph = bt_graph_create();
+	graph = bt_private_graph_create();
 	BT_ASSERT(graph);
-	graph_ret = bt_graph_add_component(graph, sink_comp_class, "the-sink",
+	graph_ret = bt_private_graph_add_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
-		"bt_graph_add_component() still works after the filter component class object is destroyed");
+		"bt_private_graph_add_component() still works after the filter component class object is destroyed");
 	BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
 

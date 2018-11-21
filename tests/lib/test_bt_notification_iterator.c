@@ -54,7 +54,7 @@ struct test_event {
 static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
-static struct bt_graph *graph;
+static struct bt_private_graph *graph;
 static struct bt_private_connection_private_notification_iterator *cur_notif_iter;
 static struct bt_private_stream_class *src_stream_class;
 static struct bt_private_event_class *src_event_class;
@@ -692,7 +692,7 @@ void sink_finalize(struct bt_private_component *private_component)
 }
 
 static
-void create_source_sink(struct bt_graph *graph, struct bt_component **source,
+void create_source_sink(struct bt_private_graph *graph, struct bt_component **source,
 		struct bt_component **sink)
 {
 	struct bt_component_class *src_comp_class;
@@ -716,7 +716,7 @@ void create_source_sink(struct bt_graph *graph, struct bt_component **source,
 		ret = bt_component_class_source_set_notification_iterator_finalize_method(
 			src_comp_class, src_iter_finalize);
 		BT_ASSERT(ret == 0);
-		ret = bt_graph_add_component(graph, src_comp_class, "source",
+		ret = bt_private_graph_add_component(graph, src_comp_class, "source",
 			NULL, source);
 		BT_ASSERT(ret == 0);
 		bt_object_put_ref(src_comp_class);
@@ -735,7 +735,7 @@ void create_source_sink(struct bt_graph *graph, struct bt_component **source,
 		ret = bt_component_class_set_port_connected_method(
 			sink_comp_class, sink_port_connected);
 		BT_ASSERT(ret == 0);
-		ret = bt_graph_add_component(graph, sink_comp_class, "sink",
+		ret = bt_private_graph_add_component(graph, sink_comp_class, "sink",
 			NULL, sink);
 		BT_ASSERT(ret == 0);
 		bt_object_put_ref(sink_comp_class);
@@ -756,7 +756,7 @@ void do_std_test(enum test test, const char *name,
 	current_test = test;
 	diag("test: %s", name);
 	BT_ASSERT(!graph);
-	graph = bt_graph_create();
+	graph = bt_private_graph_create();
 	BT_ASSERT(graph);
 	create_source_sink(graph, &src_comp, &sink_comp);
 
@@ -765,7 +765,7 @@ void do_std_test(enum test test, const char *name,
 	BT_ASSERT(upstream_port);
 	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
 	BT_ASSERT(downstream_port);
-	graph_status = bt_graph_connect_ports(graph, upstream_port,
+	graph_status = bt_private_graph_connect_ports(graph, upstream_port,
 		downstream_port, NULL);
 	bt_object_put_ref(upstream_port);
 	bt_object_put_ref(downstream_port);
@@ -773,7 +773,7 @@ void do_std_test(enum test test, const char *name,
 	/* Run the graph until the end */
 	while (graph_status == BT_GRAPH_STATUS_OK ||
 			graph_status == BT_GRAPH_STATUS_AGAIN) {
-		graph_status = bt_graph_run(graph);
+		graph_status = bt_private_graph_run(graph);
 	}
 
 	ok(graph_status == BT_GRAPH_STATUS_END, "graph finishes without any error");
@@ -850,7 +850,7 @@ void test_output_port_notification_iterator(void)
 	current_test = TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR;
 	diag("test: output port notification iterator");
 	BT_ASSERT(!graph);
-	graph = bt_graph_create();
+	graph = bt_private_graph_create();
 	BT_ASSERT(graph);
 	create_source_sink(graph, &src_comp, NULL);
 

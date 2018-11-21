@@ -1,8 +1,4 @@
 /*
- * graph.c
- *
- * Babeltrace Plugin Component Graph
- *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
@@ -29,6 +25,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/private-graph.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/component-sink-internal.h>
@@ -51,7 +48,7 @@
 
 struct bt_graph_listener {
 	void *func;
-	bt_graph_listener_removed removed;
+	bt_private_graph_listener_removed removed;
 	void *data;
 };
 
@@ -126,7 +123,7 @@ void bt_graph_destroy(struct bt_object *obj)
 	 * Cancel the graph to disallow some operations, like creating
 	 * notification iterators and adding ports to components.
 	 */
-	(void) bt_graph_cancel(graph);
+	(void) bt_private_graph_cancel((void *) graph);
 
 	/* Call all remove listeners */
 	call_remove_listeners(graph->listeners.port_added);
@@ -201,7 +198,7 @@ void notify_notification_graph_is_destroyed(struct bt_notification *notif)
 	bt_notification_unlink_graph(notif);
 }
 
-struct bt_graph *bt_graph_create(void)
+struct bt_private_graph *bt_private_graph_create(void)
 {
 	struct bt_graph *graph;
 	int ret;
@@ -292,16 +289,18 @@ struct bt_graph *bt_graph_create(void)
 	BT_LOGD("Created graph object: addr=%p", graph);
 
 end:
-	return graph;
+	return (void *) graph;
 error:
 	BT_OBJECT_PUT_REF_AND_RESET(graph);
 	goto end;
 }
 
-enum bt_graph_status bt_graph_connect_ports(struct bt_graph *graph,
+enum bt_graph_status bt_private_graph_connect_ports(
+		struct bt_private_graph *priv_graph,
 		struct bt_port *upstream_port, struct bt_port *downstream_port,
 		struct bt_connection **user_connection)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	struct bt_connection *connection = NULL;
 	struct bt_graph *upstream_graph = NULL;
@@ -648,8 +647,10 @@ end:
 	return status;
 }
 
-enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
+enum bt_graph_status bt_private_graph_consume(
+		struct bt_private_graph *priv_graph)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	enum bt_graph_status status;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
@@ -662,8 +663,10 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 	return status;
 }
 
-enum bt_graph_status bt_graph_run(struct bt_graph *graph)
+enum bt_graph_status bt_private_graph_run(
+		struct bt_private_graph *priv_graph)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 
 	if (!graph) {
@@ -744,11 +747,12 @@ int add_listener(GArray *listeners, void *func, void *removed, void *data)
 	return listeners->len - 1;
 }
 
-int bt_graph_add_port_added_listener(
-		struct bt_graph *graph,
-		bt_graph_port_added_listener listener,
-		bt_graph_listener_removed listener_removed, void *data)
+int bt_private_graph_add_port_added_listener(
+		struct bt_private_graph *priv_graph,
+		bt_private_graph_port_added_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	int ret;
 
 	if (!graph) {
@@ -780,11 +784,12 @@ end:
 	return ret;
 }
 
-int bt_graph_add_port_removed_listener(
-		struct bt_graph *graph,
-		bt_graph_port_removed_listener listener,
-		bt_graph_listener_removed listener_removed, void *data)
+int bt_private_graph_add_port_removed_listener(
+		struct bt_private_graph *priv_graph,
+		bt_private_graph_port_removed_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	int ret;
 
 	if (!graph) {
@@ -816,11 +821,12 @@ end:
 	return ret;
 }
 
-int bt_graph_add_ports_connected_listener(
-		struct bt_graph *graph,
-		bt_graph_ports_connected_listener listener,
-		bt_graph_listener_removed listener_removed, void *data)
+int bt_private_graph_add_ports_connected_listener(
+		struct bt_private_graph *priv_graph,
+		bt_private_graph_ports_connected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	int ret;
 
 	if (!graph) {
@@ -852,11 +858,12 @@ end:
 	return ret;
 }
 
-int bt_graph_add_ports_disconnected_listener(
-		struct bt_graph *graph,
-		bt_graph_ports_disconnected_listener listener,
-		bt_graph_listener_removed listener_removed, void *data)
+int bt_private_graph_add_ports_disconnected_listener(
+		struct bt_private_graph *priv_graph,
+		bt_private_graph_ports_disconnected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	int ret;
 
 	if (!graph) {
@@ -901,7 +908,7 @@ void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port)
 		struct bt_graph_listener listener =
 			g_array_index(graph->listeners.port_added,
 				struct bt_graph_listener, i);
-		bt_graph_port_added_listener func = listener.func;
+		bt_private_graph_port_added_listener func = listener.func;
 
 		BT_ASSERT(func);
 		func(port, listener.data);
@@ -922,7 +929,7 @@ void bt_graph_notify_port_removed(struct bt_graph *graph,
 		struct bt_graph_listener listener =
 			g_array_index(graph->listeners.port_removed,
 				struct bt_graph_listener, i);
-		bt_graph_port_removed_listener func = listener.func;
+		bt_private_graph_port_removed_listener func = listener.func;
 
 		BT_ASSERT(func);
 		func(comp, port, listener.data);
@@ -946,7 +953,7 @@ void bt_graph_notify_ports_connected(struct bt_graph *graph,
 		struct bt_graph_listener listener =
 			g_array_index(graph->listeners.ports_connected,
 				struct bt_graph_listener, i);
-		bt_graph_ports_connected_listener func = listener.func;
+		bt_private_graph_ports_connected_listener func = listener.func;
 
 		BT_ASSERT(func);
 		func(upstream_port, downstream_port, listener.data);
@@ -972,7 +979,7 @@ void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
 		struct bt_graph_listener listener =
 			g_array_index(graph->listeners.ports_disconnected,
 				struct bt_graph_listener, i);
-		bt_graph_ports_disconnected_listener func = listener.func;
+		bt_private_graph_ports_disconnected_listener func = listener.func;
 
 		BT_ASSERT(func);
 		func(upstream_comp, downstream_comp, upstream_port,
@@ -980,8 +987,10 @@ void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
 	}
 }
 
-enum bt_graph_status bt_graph_cancel(struct bt_graph *graph)
+enum bt_graph_status bt_private_graph_cancel(
+		struct bt_private_graph *priv_graph)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	enum bt_graph_status ret = BT_GRAPH_STATUS_OK;
 
 	if (!graph) {
@@ -1023,13 +1032,14 @@ void bt_graph_remove_connection(struct bt_graph *graph,
 	g_ptr_array_remove(graph->connections, connection);
 }
 
-enum bt_graph_status bt_graph_add_component_with_init_method_data(
-		struct bt_graph *graph,
+enum bt_graph_status bt_private_graph_add_component_with_init_method_data(
+		struct bt_private_graph *priv_graph,
 		struct bt_component_class *component_class,
 		const char *name, struct bt_value *params,
 		void *init_method_data,
 		struct bt_component **user_component)
 {
+	struct bt_graph *graph = (void *) priv_graph;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 	enum bt_component_status comp_status;
 	struct bt_component *component = NULL;
@@ -1194,13 +1204,13 @@ end:
 	return graph_status;
 }
 
-enum bt_graph_status bt_graph_add_component(
-		struct bt_graph *graph,
+enum bt_graph_status bt_private_graph_add_component(
+		struct bt_private_graph *graph,
 		struct bt_component_class *component_class,
 		const char *name, struct bt_value *params,
 		struct bt_component **component)
 {
-	return bt_graph_add_component_with_init_method_data(graph,
+	return bt_private_graph_add_component_with_init_method_data(graph,
 		component_class, name, params, NULL, component);
 }
 
@@ -1304,4 +1314,10 @@ void bt_graph_add_notification(struct bt_graph *graph,
 	 *   graph, which means the original graph is already destroyed.
 	 */
 	g_ptr_array_add(graph->notifications, notif);
+}
+
+struct bt_graph *bt_graph_borrow_from_private(
+		struct bt_private_graph *priv_graph)
+{
+	return (void *) priv_graph;
 }
