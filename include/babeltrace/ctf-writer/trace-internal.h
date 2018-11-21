@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_TRACE_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Trace
- *
  * Copyright 2014 EfficiOS Inc.
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

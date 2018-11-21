@@ -2,8 +2,6 @@
 #define BABELTRACE_VALUES_H
 
 /*
- * Babeltrace - Value objects
- *
  * Copyright (c) 2015-2016 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015-2016 Philippe Proulx <pproulx@efficios.com>
  *

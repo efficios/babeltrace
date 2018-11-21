@@ -2,7 +2,7 @@
 #define BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H
 
 /*
- * Copyright 2017 Philippe Proulx <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,24 +28,26 @@
 #include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
-enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
+enum bt_self_component_status dmesg_init(
+		struct bt_self_component_source *self_comp,
 		struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
-void dmesg_finalize(struct bt_private_component *priv_comp);
+void dmesg_finalize(struct bt_self_component_source *self_comp);
 
 BT_HIDDEN
-enum bt_notification_iterator_status dmesg_notif_iter_init(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
-		struct bt_private_port *priv_port);
+enum bt_self_notification_iterator_status dmesg_notif_iter_init(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_port);
 
 BT_HIDDEN
 void dmesg_notif_iter_finalize(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
+		struct bt_self_notification_iterator *self_notif_iter);
 
 BT_HIDDEN
-enum bt_notification_iterator_status dmesg_notif_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
+enum bt_self_notification_iterator_status dmesg_notif_iter_next(
+		struct bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count);
 

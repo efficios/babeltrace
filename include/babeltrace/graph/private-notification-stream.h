@@ -32,17 +32,17 @@ extern "C" {
 #endif
 
 struct bt_private_notification;
-struct bt_private_connection_private_notification_iterator;
+struct bt_self_notification_iterator;
 struct bt_private_stream;
 
 extern
 struct bt_private_notification *bt_private_notification_stream_begin_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_private_stream *stream);
 
 extern
 struct bt_private_notification *bt_private_notification_stream_end_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_private_stream *stream);
 
 extern struct bt_private_stream *

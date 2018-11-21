@@ -63,10 +63,10 @@ void destroy_writer_component_data(struct writer_component *writer_component)
 }
 
 BT_HIDDEN
-void writer_component_finalize(struct bt_private_component *component)
+void writer_component_finalize(struct bt_self_component *component)
 {
 	struct writer_component *writer_component = (struct writer_component *)
-		bt_private_component_get_user_data(component);
+		bt_self_component_get_user_data(component);
 
 	destroy_writer_component_data(writer_component);
 	g_free(writer_component);
@@ -199,7 +199,7 @@ end:
 
 BT_HIDDEN
 void writer_component_port_connected(
-		struct bt_private_component *component,
+		struct bt_self_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port)
 {
@@ -207,7 +207,7 @@ void writer_component_port_connected(
 	struct writer_component *writer;
 	enum bt_connection_status conn_status;
 
-	writer = bt_private_component_get_user_data(component);
+	writer = bt_self_component_get_user_data(component);
 	BT_ASSERT(writer);
 	BT_ASSERT(!writer->input_iterator);
 	connection = bt_private_port_get_connection(self_port);
@@ -222,13 +222,13 @@ void writer_component_port_connected(
 }
 
 BT_HIDDEN
-enum bt_component_status writer_run(struct bt_private_component *component)
+enum bt_component_status writer_run(struct bt_self_component *component)
 {
 	enum bt_component_status ret;
 	struct bt_notification *notification = NULL;
 	struct bt_notification_iterator *it;
 	struct writer_component *writer_component =
-		bt_private_component_get_user_data(component);
+		bt_self_component_get_user_data(component);
 	enum bt_notification_iterator_status it_ret;
 
 	if (unlikely(writer_component->error)) {
@@ -291,7 +291,7 @@ end:
 
 BT_HIDDEN
 enum bt_component_status writer_component_init(
-	struct bt_private_component *component, struct bt_value *params,
+	struct bt_self_component *component, struct bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -305,7 +305,7 @@ enum bt_component_status writer_component_init(
 		goto end;
 	}
 
-	ret = bt_private_component_sink_add_input_port(component,
+	ret = bt_self_component_sink_add_input_port(component,
 		"in", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
@@ -338,7 +338,7 @@ enum bt_component_status writer_component_init(
 		goto end;
 	}
 
-	ret = bt_private_component_set_user_data(component, writer_component);
+	ret = bt_self_component_set_user_data(component, writer_component);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}

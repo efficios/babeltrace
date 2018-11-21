@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_VISITOR_INTERNAL_H
 
 /*
- * BabelTrace - CTF writer: Visitor internal
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

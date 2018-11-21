@@ -1,8 +1,4 @@
 /*
- * print.c
- *
- * Babeltrace CTF Text Output Plugin Event Printing
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2016 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -54,7 +50,7 @@ struct timestamp {
 };
 
 static
-enum bt_component_status print_field(struct pretty_component *pretty,
+int print_field(struct pretty_component *pretty,
 		struct bt_field *field, bool print_names,
 		GQuark *filters_fields, int filter_array_len);
 
@@ -219,11 +215,11 @@ end:
 }
 
 static
-enum bt_component_status print_event_timestamp(struct pretty_component *pretty,
+int print_event_timestamp(struct pretty_component *pretty,
 		struct bt_event *event, bool *start_line)
 {
 	bool print_names = pretty->options.print_header_field_names;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_stream *stream = NULL;
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_trace *trace = NULL;
@@ -232,18 +228,18 @@ enum bt_component_status print_event_timestamp(struct pretty_component *pretty,
 
 	stream = bt_event_borrow_stream(event);
 	if (!stream) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
 	stream_class = bt_stream_borrow_class(stream);
 	if (!stream_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	trace = bt_stream_class_borrow_trace(stream_class);
 	if (!trace) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
@@ -316,11 +312,11 @@ end:
 }
 
 static
-enum bt_component_status print_event_header(struct pretty_component *pretty,
+int print_event_header(struct pretty_component *pretty,
 		struct bt_event *event)
 {
 	bool print_names = pretty->options.print_header_field_names;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_event_class *event_class = NULL;
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_trace *trace_class = NULL;
@@ -329,21 +325,21 @@ enum bt_component_status print_event_header(struct pretty_component *pretty,
 
 	event_class = bt_event_borrow_class(event);
 	if (!event_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	if (!stream_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	trace_class = bt_stream_class_borrow_trace(stream_class);
 	if (!trace_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	ret = print_event_timestamp(pretty, event, &pretty->start_line);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret) {
 		goto end;
 	}
 	if (pretty->options.print_trace_field) {
@@ -536,10 +532,10 @@ end:
 }
 
 static
-enum bt_component_status print_integer(struct pretty_component *pretty,
+int print_integer(struct pretty_component *pretty,
 		struct bt_field *field)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	enum bt_field_class_integer_preferred_display_base base;
 	struct bt_field_class *int_fc;
 	union {
@@ -624,7 +620,7 @@ enum bt_component_status print_integer(struct pretty_component *pretty,
 		break;
 	}
 	default:
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 end:
@@ -703,10 +699,10 @@ void print_escape_string(struct pretty_component *pretty, const char *str)
 }
 
 static
-enum bt_component_status print_enum(struct pretty_component *pretty,
+int print_enum(struct pretty_component *pretty,
 		struct bt_field *field)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field_class *enumeration_field_class = NULL;
 	bt_field_class_enumeration_mapping_label_array label_array;
 	uint64_t label_count;
@@ -714,7 +710,7 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 
 	enumeration_field_class = bt_field_borrow_class(field);
 	if (!enumeration_field_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
@@ -732,7 +728,7 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 	}
 
 	if (ret) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
@@ -764,7 +760,7 @@ enum bt_component_status print_enum(struct pretty_component *pretty,
 skip_loop:
 	g_string_append(pretty->string, " : container = ");
 	ret = print_integer(pretty, field);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret != 0) {
 		goto end;
 	}
 	g_string_append(pretty->string, " )");
@@ -792,20 +788,20 @@ int filter_field_name(struct pretty_component *pretty, const char *field_name,
 }
 
 static
-enum bt_component_status print_struct_field(struct pretty_component *pretty,
+int print_struct_field(struct pretty_component *pretty,
 		struct bt_field *_struct,
 		struct bt_field_class *struct_class,
 		uint64_t i, bool print_names, uint64_t *nr_printed_fields,
 		GQuark *filter_fields, int filter_array_len)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	const char *field_name;
 	struct bt_field *field = NULL;
 	struct bt_field_class *field_class = NULL;;
 
 	field = bt_field_structure_borrow_member_field_by_index(_struct, i);
 	if (!field) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
@@ -814,7 +810,7 @@ enum bt_component_status print_struct_field(struct pretty_component *pretty,
 
 	if (filter_fields && !filter_field_name(pretty, field_name,
 				filter_fields, filter_array_len)) {
-		ret = BT_COMPONENT_STATUS_OK;
+		ret = 0;
 		goto end;
 	}
 
@@ -834,22 +830,22 @@ end:
 }
 
 static
-enum bt_component_status print_struct(struct pretty_component *pretty,
+int print_struct(struct pretty_component *pretty,
 		struct bt_field *_struct, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field_class *struct_class = NULL;
 	uint64_t nr_fields, i, nr_printed_fields;
 
 	struct_class = bt_field_borrow_class(_struct);
 	if (!struct_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	nr_fields = bt_field_class_structure_get_member_count(struct_class);
 	if (nr_fields < 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	g_string_append(pretty->string, "{");
@@ -859,7 +855,7 @@ enum bt_component_status print_struct(struct pretty_component *pretty,
 		ret = print_struct_field(pretty, _struct, struct_class, i,
 				print_names, &nr_printed_fields, filter_fields,
 				filter_array_len);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		if (ret != 0) {
 			goto end;
 		}
 	}
@@ -871,7 +867,7 @@ end:
 }
 
 static
-enum bt_component_status print_array_field(struct pretty_component *pretty,
+int print_array_field(struct pretty_component *pretty,
 		struct bt_field *array, uint64_t i, bool print_names)
 {
 	struct bt_field *field = NULL;
@@ -891,17 +887,17 @@ enum bt_component_status print_array_field(struct pretty_component *pretty,
 }
 
 static
-enum bt_component_status print_array(struct pretty_component *pretty,
+int print_array(struct pretty_component *pretty,
 		struct bt_field *array, bool print_names)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field_class *array_class = NULL;
 	uint64_t len;
 	uint64_t i;
 
 	array_class = bt_field_borrow_class(array);
 	if (!array_class) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	len = bt_field_array_get_length(array);
@@ -909,7 +905,7 @@ enum bt_component_status print_array(struct pretty_component *pretty,
 	pretty->depth++;
 	for (i = 0; i < len; i++) {
 		ret = print_array_field(pretty, array, i, print_names);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		if (ret != 0) {
 			goto end;
 		}
 	}
@@ -921,7 +917,7 @@ end:
 }
 
 static
-enum bt_component_status print_sequence_field(struct pretty_component *pretty,
+int print_sequence_field(struct pretty_component *pretty,
 		struct bt_field *seq, uint64_t i, bool print_names)
 {
 	struct bt_field *field = NULL;
@@ -941,16 +937,16 @@ enum bt_component_status print_sequence_field(struct pretty_component *pretty,
 }
 
 static
-enum bt_component_status print_sequence(struct pretty_component *pretty,
+int print_sequence(struct pretty_component *pretty,
 		struct bt_field *seq, bool print_names)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	uint64_t len;
 	uint64_t i;
 
 	len = bt_field_array_get_length(seq);
 	if (len < 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
@@ -959,7 +955,7 @@ enum bt_component_status print_sequence(struct pretty_component *pretty,
 	pretty->depth++;
 	for (i = 0; i < len; i++) {
 		ret = print_sequence_field(pretty, seq, i, print_names);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		if (ret != 0) {
 			goto end;
 		}
 	}
@@ -971,10 +967,10 @@ end:
 }
 
 static
-enum bt_component_status print_variant(struct pretty_component *pretty,
+int print_variant(struct pretty_component *pretty,
 		struct bt_field *variant, bool print_names)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field *field = NULL;
 
 	field = bt_field_variant_borrow_selected_option_field(variant);
@@ -986,7 +982,7 @@ enum bt_component_status print_variant(struct pretty_component *pretty,
 		// print_field_name_equal(pretty, tag_choice);
 	}
 	ret = print_field(pretty, field, print_names, NULL, 0);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret != 0) {
 		goto end;
 	}
 	pretty->depth--;
@@ -997,7 +993,7 @@ end:
 }
 
 static
-enum bt_component_status print_field(struct pretty_component *pretty,
+int print_field(struct pretty_component *pretty,
 		struct bt_field *field, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
@@ -1020,7 +1016,7 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		if (pretty->use_colors) {
 			g_string_append(pretty->string, COLOR_RST);
 		}
-		return BT_COMPONENT_STATUS_OK;
+		return 0;
 	}
 	case BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION:
 	case BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION:
@@ -1031,7 +1027,7 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 
 		str = bt_field_string_get_value(field);
 		if (!str) {
-			return BT_COMPONENT_STATUS_ERROR;
+			return -1;
 		}
 
 		if (pretty->use_colors) {
@@ -1041,7 +1037,7 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 		if (pretty->use_colors) {
 			g_string_append(pretty->string, COLOR_RST);
 		}
-		return BT_COMPONENT_STATUS_OK;
+		return 0;
 	}
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 		return print_struct(pretty, field, print_names, filter_fields,
@@ -1055,21 +1051,21 @@ enum bt_component_status print_field(struct pretty_component *pretty,
 	default:
 		// TODO: log instead
 		fprintf(pretty->err, "[error] Unknown type id: %d\n", (int) class_id);
-		return BT_COMPONENT_STATUS_ERROR;
+		return -1;
 	}
 }
 
 static
-enum bt_component_status print_stream_packet_context(struct pretty_component *pretty,
+int print_stream_packet_context(struct pretty_component *pretty,
 		struct bt_event *event)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_packet *packet = NULL;
 	struct bt_field *main_field = NULL;
 
 	packet = bt_event_borrow_packet(event);
 	if (!packet) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	main_field = bt_packet_borrow_context_field(packet);
@@ -1093,10 +1089,10 @@ end:
 }
 
 static
-enum bt_component_status print_event_header_raw(struct pretty_component *pretty,
+int print_event_header_raw(struct pretty_component *pretty,
 		struct bt_event *event)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field *main_field = NULL;
 
 	main_field = bt_event_borrow_header_field(event);
@@ -1118,10 +1114,10 @@ end:
 }
 
 static
-enum bt_component_status print_stream_event_context(struct pretty_component *pretty,
+int print_stream_event_context(struct pretty_component *pretty,
 		struct bt_event *event)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field *main_field = NULL;
 
 	main_field = bt_event_borrow_common_context_field(event);
@@ -1143,10 +1139,10 @@ end:
 }
 
 static
-enum bt_component_status print_event_context(struct pretty_component *pretty,
+int print_event_context(struct pretty_component *pretty,
 		struct bt_event *event)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field *main_field = NULL;
 
 	main_field = bt_event_borrow_specific_context_field(event);
@@ -1168,10 +1164,10 @@ end:
 }
 
 static
-enum bt_component_status print_event_payload(struct pretty_component *pretty,
+int print_event_payload(struct pretty_component *pretty,
 		struct bt_event *event)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_field *main_field = NULL;
 
 	main_field = bt_event_borrow_payload_field(event);
@@ -1210,10 +1206,10 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status pretty_print_event(struct pretty_component *pretty,
+int pretty_print_event(struct pretty_component *pretty,
 		struct bt_notification *event_notif)
 {
-	enum bt_component_status ret;
+	int ret;
 	struct bt_event *event =
 		bt_notification_event_borrow_event(event_notif);
 
@@ -1221,40 +1217,40 @@ enum bt_component_status pretty_print_event(struct pretty_component *pretty,
 	pretty->start_line = true;
 	g_string_assign(pretty->string, "");
 	ret = print_event_header(pretty, event);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret != 0) {
 		goto end;
 	}
 
 	ret = print_stream_packet_context(pretty, event);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret != 0) {
 		goto end;
 	}
 
 	if (pretty->options.verbose) {
 		ret = print_event_header_raw(pretty, event);
-		if (ret != BT_COMPONENT_STATUS_OK) {
+		if (ret != 0) {
 			goto end;
 		}
 	}
 
 	ret = print_stream_event_context(pretty, event);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret != 0) {
 		goto end;
 	}
 
 	ret = print_event_context(pretty, event);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret != 0) {
 		goto end;
 	}
 
 	ret = print_event_payload(pretty, event);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret != 0) {
 		goto end;
 	}
 
 	g_string_append_c(pretty->string, '\n');
 	if (flush_buf(pretty->out, pretty)) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
@@ -1263,12 +1259,12 @@ end:
 }
 
 static
-enum bt_component_status print_discarded_elements_msg(
+int print_discarded_elements_msg(
 		struct pretty_component *pretty, struct bt_packet *packet,
 		uint64_t count, const char *elem_type)
 {
 #if 0
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	struct bt_stream *stream = NULL;
 	struct bt_stream_class *stream_class = NULL;
 	struct bt_trace *trace = NULL;
@@ -1375,7 +1371,7 @@ enum bt_component_status print_discarded_elements_msg(
 	 * with Babeltrace 1.
 	 */
 	if (flush_buf(stderr, pretty)) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 	}
 
 	return ret;
@@ -1384,21 +1380,21 @@ enum bt_component_status print_discarded_elements_msg(
 }
 
 BT_HIDDEN
-enum bt_component_status pretty_print_packet(struct pretty_component *pretty,
+int pretty_print_packet(struct pretty_component *pretty,
 		struct bt_notification *packet_beginning_notif)
 {
 #if 0
 	struct bt_packet *packet = bt_notification_packet_begin_borrow_packet(
 		packet_beginning_notif);
 	uint64_t count;
-	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+	int status = 0;
 
 	if (bt_packet_get_discarded_event_count(packet, &count) ==
 			BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE &&
 			count > 0) {
 		status = print_discarded_elements_msg(pretty, packet,
 			count, "event");
-		if (status != BT_COMPONENT_STATUS_OK) {
+		if (status != 0) {
 			goto end;
 		}
 	}
@@ -1408,7 +1404,7 @@ enum bt_component_status pretty_print_packet(struct pretty_component *pretty,
 			count > 0) {
 		status = print_discarded_elements_msg(pretty, packet,
 			count, "packet");
-		if (status != BT_COMPONENT_STATUS_OK) {
+		if (status != 0) {
 			goto end;
 		}
 	}

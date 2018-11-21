@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_STREAM_H
 
 /*
- * BabelTrace - CTF Writer: Stream
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

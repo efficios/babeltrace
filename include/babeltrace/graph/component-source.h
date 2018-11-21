@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_SOURCE_H
 
 /*
- * BabelTrace - Source Plug-in Interface
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -34,13 +32,24 @@ extern "C" {
 #endif
 
 struct bt_component;
+struct bt_component_source;
+struct bt_port_output;
 
-extern int64_t bt_component_source_get_output_port_count(
-		struct bt_component *component);
-extern struct bt_port *bt_component_source_get_output_port_by_name(
-		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_source_get_output_port_by_index(
-		struct bt_component *component, uint64_t index);
+static inline
+struct bt_component *bt_component_source_borrow_component(
+		struct bt_component_source *component)
+{
+	return (void *) component;
+}
+
+extern uint64_t bt_component_source_get_output_port_count(
+		struct bt_component_source *component);
+
+extern struct bt_port_output *bt_component_source_borrow_output_port_by_name(
+		struct bt_component_source *component, const char *name);
+
+extern struct bt_port_output *bt_component_source_borrow_output_port_by_index(
+		struct bt_component_source *component, uint64_t index);
 
 #ifdef __cplusplus
 }

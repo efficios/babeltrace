@@ -30,12 +30,12 @@ extern "C" {
 #endif
 
 struct bt_private_notification;
-struct bt_private_connection_private_notification_iterator;
+struct bt_self_notification_iterator;
 struct bt_clock_class;
 
 extern
 struct bt_private_notification *bt_private_notification_inactivity_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_clock_class *default_clock_class);
 
 extern int bt_private_notification_inactivity_set_default_clock_value(

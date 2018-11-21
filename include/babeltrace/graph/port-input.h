@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_COMPONENT_H
-#define BABELTRACE_GRAPH_PRIVATE_COMPONENT_H
+#ifndef BABELTRACE_GRAPH_PORT_INPUT_H
+#define BABELTRACE_GRAPH_PORT_INPUT_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +25,23 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_private_component;
+struct bt_port;
+struct bt_port_input;
 
-extern struct bt_component *bt_component_borrow_from_private(
-		struct bt_private_component *private_component);
-
-extern void *bt_private_component_get_user_data(
-		struct bt_private_component *private_component);
-
-extern enum bt_component_status bt_private_component_set_user_data(
-		struct bt_private_component *private_component,
-		void *user_data);
+static inline
+struct bt_port *bt_port_input_borrow_port(struct bt_port_input *port_input)
+{
+	return (void *) port_input;
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_COMPONENT_H */
+#endif /* BABELTRACE_GRAPH_PORT_INPUT_H */

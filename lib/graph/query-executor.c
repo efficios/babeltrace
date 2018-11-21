@@ -23,13 +23,17 @@
 #define BT_LOG_TAG "QUERY-EXECUTOR"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/graph/private-query-executor.h>
 #include <babeltrace/graph/query-executor.h>
 #include <babeltrace/graph/query-executor-internal.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 
 static
 void bt_query_executor_destroy(struct bt_object *obj)
@@ -37,11 +41,11 @@ void bt_query_executor_destroy(struct bt_object *obj)
 	struct bt_query_executor *query_exec =
 		container_of(obj, struct bt_query_executor, base);
 
-	BT_LOGD("Destroying port: addr=%p", query_exec);
+	BT_LOGD("Destroying query executor: addr=%p", query_exec);
 	g_free(query_exec);
 }
 
-struct bt_query_executor *bt_query_executor_create(void)
+struct bt_private_query_executor *bt_private_query_executor_create(void)
 {
 	struct bt_query_executor *query_exec;
 
@@ -57,149 +61,102 @@ struct bt_query_executor *bt_query_executor_create(void)
 	BT_LOGD("Created query executor: addr=%p", query_exec);
 
 end:
-	return query_exec;
+	return (void *) query_exec;
 }
 
-enum bt_query_status bt_query_executor_query(
-		struct bt_query_executor *query_exec,
-		struct bt_component_class *component_class,
+enum bt_query_status bt_private_query_executor_query(
+		struct bt_private_query_executor *priv_query_exec,
+		struct bt_component_class *comp_cls,
 		const char *object, struct bt_value *params,
 		struct bt_value **user_result)
 {
-	struct bt_component_class_query_method_return ret = {
-		.result = NULL,
-		.status = BT_QUERY_STATUS_OK,
-	};
+	typedef enum bt_query_status (*method_t)(void *, void *,
+		const void *, void *, void *);
 
-	if (!query_exec) {
-		BT_LOGW_STR("Invalid parameter: query executor is NULL.");
-		ret.status = BT_QUERY_STATUS_INVALID;
-		goto end;
-	}
+	struct bt_query_executor *query_exec = (void *) priv_query_exec;
+	enum bt_query_status status;
+	method_t method = NULL;
 
-	if (query_exec->canceled) {
-		BT_LOGW_STR("Invalid parameter: query executor is canceled.");
-		ret.status = BT_QUERY_STATUS_EXECUTOR_CANCELED;
-		goto end;
-	}
-
-	if (!component_class) {
-		BT_LOGW_STR("Invalid parameter: component class is NULL.");
-		ret.status = BT_QUERY_STATUS_INVALID;
-		goto end;
-	}
-
-	if (!object) {
-		BT_LOGW_STR("Invalid parameter: object string is NULL.");
-		ret.status = BT_QUERY_STATUS_INVALID;
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(object, "Object");
+	BT_ASSERT_PRE_NON_NULL(user_result, "Result (output)");
+	BT_ASSERT_PRE(!query_exec->canceled, "Query executor is canceled.");
 
 	if (!params) {
 		params = bt_value_null;
 	}
 
-	if (!component_class->methods.query) {
-		/* Not an error: nothing to query */
-		BT_LOGD("Component class has no registered query method: "
-			"addr=%p, name=\"%s\", type=%s",
-			component_class,
-			bt_component_class_get_name(component_class),
-			bt_component_class_type_string(component_class->type));
-		ret.status = BT_QUERY_STATUS_ERROR;
-		goto end;
-	}
+	switch (comp_cls->type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+	{
+		struct bt_component_class_source *src_cc = (void *) comp_cls;
 
-	BT_LOGD("Calling user's query method: "
-		"query-exec-addr=%p, comp-class-addr=%p, "
-		"comp-class-name=\"%s\", comp-class-type=%s, "
-		"object=\"%s\", params-addr=%p",
-		query_exec, component_class,
-		bt_component_class_get_name(component_class),
-		bt_component_class_type_string(component_class->type),
-		object, params);
-	ret = component_class->methods.query(component_class, query_exec,
-		object, params);
-	BT_LOGD("User method returned: status=%s, result-addr=%p",
-		bt_query_status_string(ret.status), ret.result);
-	if (query_exec->canceled) {
-		BT_OBJECT_PUT_REF_AND_RESET(ret.result);
-		ret.status = BT_QUERY_STATUS_EXECUTOR_CANCELED;
-		goto end;
-	} else {
-		if (ret.status == BT_QUERY_STATUS_EXECUTOR_CANCELED) {
-			/*
-			 * The user cannot decide that the executor is
-			 * canceled if it's not.
-			 */
-			BT_OBJECT_PUT_REF_AND_RESET(ret.result);
-			ret.status = BT_QUERY_STATUS_ERROR;
-			goto end;
-		}
+		method = (method_t) src_cc->methods.query;
+		break;
 	}
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+	{
+		struct bt_component_class_filter *flt_cc = (void *) comp_cls;
 
-	switch (ret.status) {
-	case BT_QUERY_STATUS_INVALID:
-		/*
-		 * This is reserved for invalid parameters passed to
-		 * this function.
-		 */
-		BT_OBJECT_PUT_REF_AND_RESET(ret.result);
-		ret.status = BT_QUERY_STATUS_ERROR;
+		method = (method_t) flt_cc->methods.query;
 		break;
-	case BT_QUERY_STATUS_OK:
-		if (!ret.result) {
-			ret.result = bt_value_null;
-		}
+	}
+	case BT_COMPONENT_CLASS_TYPE_SINK:
+	{
+		struct bt_component_class_sink *sink_cc = (void *) comp_cls;
+
+		method = (method_t) sink_cc->methods.query;
 		break;
+	}
 	default:
-		if (ret.result) {
-			BT_LOGW("User method did not return BT_QUERY_STATUS_OK, but result is not NULL: "
-				"status=%s, result-addr=%p",
-				bt_query_status_string(ret.status), ret.result);
-			BT_OBJECT_PUT_REF_AND_RESET(ret.result);
-		}
+		abort();
+	}
+
+	if (!method) {
+		/* Not an error: nothing to query */
+		BT_LIB_LOGD("Component class has no registered query method: "
+			"%!+C", comp_cls);
+		status = BT_QUERY_STATUS_UNSUPPORTED;
+		goto end;
+	}
+
+	BT_LIB_LOGD("Calling user's query method: "
+		"query-exec-addr=%p, %![cc-]+C, object=\"%s\", %![params-]+v",
+		query_exec, comp_cls, object, params);
+	*user_result = NULL;
+	status = method(comp_cls, query_exec, object, params, user_result);
+	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
+		bt_query_status_string(status), *user_result);
+	BT_ASSERT_PRE(status != BT_QUERY_STATUS_EXECUTOR_CANCELED &&
+		status != BT_QUERY_STATUS_UNSUPPORTED,
+		"Unexpected (illegal) returned status: status=%s",
+		bt_query_status_string(status));
+	BT_ASSERT_PRE(status != BT_QUERY_STATUS_OK || *user_result,
+		"User method returned `BT_QUERY_STATUS_OK` without a result.");
+	if (query_exec->canceled) {
+		BT_OBJECT_PUT_REF_AND_RESET(*user_result);
+		status = BT_QUERY_STATUS_EXECUTOR_CANCELED;
+		goto end;
 	}
 
 end:
-	if (user_result) {
-		*user_result = ret.result;
-		ret.result = NULL;
-	}
-
-	bt_object_put_ref(ret.result);
-	return ret.status;
+	return status;
 }
 
-enum bt_query_status bt_query_executor_cancel(
-		struct bt_query_executor *query_exec)
+enum bt_query_status bt_private_query_executor_cancel(
+		struct bt_private_query_executor *priv_query_exec)
 {
-	enum bt_query_status ret = BT_QUERY_STATUS_OK;
+	struct bt_query_executor *query_exec = (void *) priv_query_exec;
 
-	if (!query_exec) {
-		BT_LOGW_STR("Invalid parameter: query executor is NULL.");
-		ret = BT_QUERY_STATUS_INVALID;
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	query_exec->canceled = BT_TRUE;
 	BT_LOGV("Canceled query executor: addr=%p", query_exec);
-
-end:
-	return ret;
+	return BT_QUERY_STATUS_OK;
 }
 
 bt_bool bt_query_executor_is_canceled(struct bt_query_executor *query_exec)
 {
-	bt_bool canceled = BT_FALSE;
-
-	if (!query_exec) {
-		BT_LOGW_STR("Invalid parameter: query executor is NULL.");
-		goto end;
-	}
-
-	canceled = query_exec->canceled;
-
-end:
-	return canceled;
+	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
+	return query_exec->canceled;
 }

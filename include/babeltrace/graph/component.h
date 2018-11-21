@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_H
 
 /*
- * BabelTrace - Babeltrace Component Interface
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -32,9 +30,6 @@
 
 /* For bt_bool */
 #include <babeltrace/types.h>
-
-/* For bt_object_get_ref */
-#include <babeltrace/object.h>
 
 #ifdef __cplusplus
 extern "C" {

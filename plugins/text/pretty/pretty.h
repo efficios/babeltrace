@@ -2,8 +2,6 @@
 #define BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H
 
 /*
- * BabelTrace - CTF Text Output Plug-in
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -74,7 +72,7 @@ struct pretty_options {
 
 struct pretty_component {
 	struct pretty_options options;
-	struct bt_notification_iterator *input_iterator;
+	struct bt_self_component_port_input_notification_iterator *iterator;
 	FILE *out, *err;
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;
@@ -106,29 +104,30 @@ extern
 GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
 
 BT_HIDDEN
-enum bt_component_status pretty_init(
-		struct bt_private_component *component,
+enum bt_self_component_status pretty_init(
+		struct bt_self_component_sink *component,
 		struct bt_value *params,
 		void *init_method_data);
 
 BT_HIDDEN
-enum bt_component_status pretty_consume(struct bt_private_component *component);
+enum bt_self_component_status pretty_consume(
+		struct bt_self_component_sink *component);
 
 BT_HIDDEN
-enum bt_component_status pretty_port_connected(
-		struct bt_private_component *component,
-		struct bt_private_port *self_port,
-		struct bt_port *other_port);
+enum bt_self_component_status pretty_port_connected(
+		struct bt_self_component_sink *component,
+		struct bt_self_component_port_input *self_port,
+		struct bt_port_output *other_port);
 
 BT_HIDDEN
-void pretty_finalize(struct bt_private_component *component);
+void pretty_finalize(struct bt_self_component_sink *component);
 
 BT_HIDDEN
-enum bt_component_status pretty_print_event(struct pretty_component *pretty,
+int pretty_print_event(struct pretty_component *pretty,
 		struct bt_notification *event_notif);
 
 BT_HIDDEN
-enum bt_component_status pretty_print_packet(struct pretty_component *pretty,
+int pretty_print_packet(struct pretty_component *pretty,
 		struct bt_notification *packet_beginning_notif);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

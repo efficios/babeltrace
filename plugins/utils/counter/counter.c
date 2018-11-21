@@ -107,35 +107,39 @@ void destroy_private_counter_data(struct counter *counter)
 	g_free(counter);
 }
 
-void counter_finalize(struct bt_private_component *component)
+BT_HIDDEN
+void counter_finalize(struct bt_self_component_sink *comp)
 {
 	struct counter *counter;
 
-	BT_ASSERT(component);
-	counter = bt_private_component_get_user_data(component);
+	BT_ASSERT(comp);
+	counter = bt_self_component_get_data(
+			bt_self_component_sink_borrow_self_component(comp));
 	BT_ASSERT(counter);
 	try_print_last(counter);
 	bt_object_put_ref(counter->notif_iter);
 	g_free(counter);
 }
 
-enum bt_component_status counter_init(struct bt_private_component *component,
+BT_HIDDEN
+enum bt_self_component_status counter_init(
+		struct bt_self_component_sink *component,
 		struct bt_value *params, UNUSED_VAR void *init_method_data)
 {
-	enum bt_component_status ret;
+	enum bt_self_component_status ret;
 	struct counter *counter = g_new0(struct counter, 1);
 	struct bt_value *step = NULL;
 	struct bt_value *hide_zero = NULL;
 
 	if (!counter) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
-		goto end;
+		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+		goto error;
 	}
 
-	ret = bt_private_component_sink_add_input_port(component,
+	ret = bt_self_component_sink_add_input_port(component,
 		"in", NULL, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
+	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
+		goto error;
 	}
 
 	counter->last_printed_total = -1ULL;
@@ -158,11 +162,9 @@ enum bt_component_status counter_init(struct bt_private_component *component,
 		counter->hide_zero = (bool) val;
 	}
 
-	ret = bt_private_component_set_user_data(component, counter);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
+	bt_self_component_set_data(
+		bt_self_component_sink_borrow_self_component(component),
+		counter);
 	goto end;
 
 error:
@@ -172,68 +174,61 @@ end:
 	return ret;
 }
 
-enum bt_component_status counter_port_connected(
-		struct bt_private_component *component,
-		struct bt_private_port *self_port,
-		struct bt_port *other_port)
+BT_HIDDEN
+enum bt_self_component_status counter_port_connected(
+		struct bt_self_component_sink *comp,
+		struct bt_self_component_port_input *self_port,
+		struct bt_port_output *other_port)
 {
-	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
-	struct bt_notification_iterator *iterator;
-	struct bt_private_connection *connection;
-	enum bt_connection_status conn_status;
+	struct bt_self_component_port_input_notification_iterator *iterator;
 
-	counter = bt_private_component_get_user_data(component);
+	counter = bt_self_component_get_data(
+		bt_self_component_sink_borrow_self_component(comp));
 	BT_ASSERT(counter);
-	connection = bt_private_port_get_connection(self_port);
-	BT_ASSERT(connection);
-	conn_status = bt_private_connection_create_notification_iterator(
-		connection, &iterator);
-	if (conn_status != BT_CONNECTION_STATUS_OK) {
-		status = BT_COMPONENT_STATUS_ERROR;
+	iterator = bt_self_component_port_input_notification_iterator_create(
+		self_port);
+	if (!iterator) {
+		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
 	BT_OBJECT_MOVE_REF(counter->notif_iter, iterator);
 
 end:
-	bt_object_put_ref(connection);
 	return status;
 }
 
-enum bt_component_status counter_consume(struct bt_private_component *component)
+BT_HIDDEN
+enum bt_self_component_status counter_consume(
+		struct bt_self_component_sink *comp)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
 	enum bt_notification_iterator_status it_ret;
 	uint64_t notif_count;
 	bt_notification_array notifs;
 
-	counter = bt_private_component_get_user_data(component);
+	counter = bt_self_component_get_data(
+			bt_self_component_sink_borrow_self_component(comp));
 	BT_ASSERT(counter);
 
 	if (unlikely(!counter->notif_iter)) {
 		try_print_last(counter);
-		ret = BT_COMPONENT_STATUS_END;
+		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto end;
 	}
 
 	/* Consume notifications */
-	it_ret = bt_private_connection_notification_iterator_next(
+	it_ret = bt_self_component_port_input_notification_iterator_next(
 		counter->notif_iter, &notifs, &notif_count);
 	if (it_ret < 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
-		ret = BT_COMPONENT_STATUS_AGAIN;
-		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
-		try_print_last(counter);
-		ret = BT_COMPONENT_STATUS_END;
-		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
 	{
 		uint64_t i;
@@ -267,7 +262,20 @@ enum bt_component_status counter_consume(struct bt_private_component *component)
 
 			bt_object_put_ref(notif);
 		}
+
+		ret = BT_SELF_COMPONENT_STATUS_OK;
+		break;
 	}
+	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+		ret = BT_SELF_COMPONENT_STATUS_AGAIN;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+		try_print_last(counter);
+		ret = BT_SELF_COMPONENT_STATUS_END;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_NOMEM:
+		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+		goto end;
 	default:
 		break;
 	}

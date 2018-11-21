@@ -2,8 +2,6 @@
 #define _BABELTRACE_COMPAT_UUID_H
 
 /*
- * babeltrace/compat/uuid.h
- *
  * Copyright (C) 2011   Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

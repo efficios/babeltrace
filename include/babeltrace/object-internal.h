@@ -2,8 +2,6 @@
 #define BABELTRACE_OBJECT_INTERNAL_H
 
 /*
- * Babeltrace - Base object
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

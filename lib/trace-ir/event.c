@@ -378,9 +378,3 @@ int bt_private_event_move_header_field(
 	event->header_field = field_wrapper;
 	return 0;
 }
-
-struct bt_event *bt_event_borrow_from_private(
-		struct bt_private_event *priv_event)
-{
-	return (void *) priv_event;
-}

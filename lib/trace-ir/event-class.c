@@ -414,9 +414,3 @@ void _bt_event_class_freeze(struct bt_event_class *event_class)
 	BT_LIB_LOGD("Freezing event class: %!+E", event_class);
 	event_class->frozen = true;
 }
-
-struct bt_event_class *bt_event_class_borrow_from_private(
-		struct bt_private_event_class *priv_event_class)
-{
-	return (void *) priv_event_class;
-}

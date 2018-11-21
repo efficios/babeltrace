@@ -28,7 +28,7 @@
 
 struct bt_query_executor {
 	struct bt_object base;
-	bt_bool canceled;
+	bool canceled;
 };
 
 static inline const char *bt_query_status_string(enum bt_query_status status)
@@ -40,10 +40,10 @@ static inline const char *bt_query_status_string(enum bt_query_status status)
 		return "BT_QUERY_STATUS_AGAIN";
 	case BT_QUERY_STATUS_EXECUTOR_CANCELED:
 		return "BT_QUERY_STATUS_EXECUTOR_CANCELED";
+	case BT_QUERY_STATUS_UNSUPPORTED:
+		return "BT_QUERY_STATUS_UNSUPPORTED";
 	case BT_QUERY_STATUS_ERROR:
 		return "BT_QUERY_STATUS_ERROR";
-	case BT_QUERY_STATUS_INVALID:
-		return "BT_QUERY_STATUS_INVALID";
 	case BT_QUERY_STATUS_INVALID_OBJECT:
 		return "BT_QUERY_STATUS_INVALID_OBJECT";
 	case BT_QUERY_STATUS_INVALID_PARAMS:

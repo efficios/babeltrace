@@ -92,19 +92,19 @@ enum bt_component_status writer_stream_end(struct writer_component *writer,
 
 BT_HIDDEN
 enum bt_component_status writer_component_init(
-	struct bt_private_component *component, struct bt_value *params,
+	struct bt_self_component *component, struct bt_value *params,
 	void *init_method_data);
 
 BT_HIDDEN
-enum bt_component_status writer_run(struct bt_private_component *component);
+enum bt_component_status writer_run(struct bt_self_component *component);
 
 BT_HIDDEN
 void writer_component_port_connected(
-		struct bt_private_component *component,
+		struct bt_self_component *component,
 		struct bt_private_port *self_port,
 		struct bt_port *other_port);
 
 BT_HIDDEN
-void writer_component_finalize(struct bt_private_component *component);
+void writer_component_finalize(struct bt_self_component *component);
 
 #endif /* BABELTRACE_PLUGIN_WRITER_H */

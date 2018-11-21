@@ -643,9 +643,3 @@ bt_bool bt_stream_class_default_clock_is_always_known(
 	/* BT_CLOCK_VALUE_STATUS_UNKNOWN is not supported as of 2.0 */
 	return BT_TRUE;
 }
-
-struct bt_stream_class *bt_stream_class_borrow_from_private(
-		struct bt_private_stream_class *priv_stream_class)
-{
-	return (void *) priv_stream_class;
-}

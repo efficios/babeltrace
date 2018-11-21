@@ -1560,7 +1560,7 @@ struct bt_private_clock_class *ctf_trace_class_borrow_clock_class_by_name(
 	for (i = 0; i < tc->clock_classes->len; i++) {
 		struct bt_private_clock_class *cc = tc->clock_classes->pdata[i];
 		const char *cc_name = bt_clock_class_get_name(
-			bt_clock_class_borrow_from_private(cc));
+			bt_private_clock_class_borrow_clock_class(cc));
 
 		BT_ASSERT(cc_name);
 		if (strcmp(cc_name, name) == 0) {

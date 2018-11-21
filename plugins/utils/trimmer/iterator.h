@@ -41,14 +41,14 @@ struct trimmer_iterator {
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
-		struct bt_private_connection_private_notification_iterator *iterator,
+		struct bt_self_notification_iterator *iterator,
 		struct bt_private_port *port);
 
 BT_HIDDEN
-void trimmer_iterator_finalize(struct bt_private_connection_private_notification_iterator *it);
+void trimmer_iterator_finalize(struct bt_self_notification_iterator *it);
 
 BT_HIDDEN
 struct bt_notification_iterator_next_method_return trimmer_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator);
+		struct bt_self_notification_iterator *iterator);
 
 #endif /* BABELTRACE_PLUGIN_TRIMMER_ITERATOR_H */

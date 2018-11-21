@@ -54,9 +54,9 @@ void destroy_debug_info_data(struct debug_info_component *debug_info)
 }
 
 static
-void destroy_debug_info_component(struct bt_private_component *component)
+void destroy_debug_info_component(struct bt_self_component *component)
 {
-	void *data = bt_private_component_get_user_data(component);
+	void *data = bt_self_component_get_user_data(component);
 	destroy_debug_info_data(data);
 }
 
@@ -83,11 +83,11 @@ void unref_trace(struct debug_info_trace *di_trace)
 }
 
 static
-void debug_info_iterator_destroy(struct bt_private_connection_private_notification_iterator *it)
+void debug_info_iterator_destroy(struct bt_self_notification_iterator *it)
 {
 	struct debug_info_iterator *it_data;
 
-	it_data = bt_private_connection_private_notification_iterator_get_user_data(it);
+	it_data = bt_self_notification_iterator_get_user_data(it);
 	BT_ASSERT(it_data);
 
 	if (it_data->input_iterator_group) {
@@ -221,10 +221,10 @@ end:
 
 static
 struct bt_notification_iterator_next_method_return debug_info_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator)
+		struct bt_self_notification_iterator *iterator)
 {
 	struct debug_info_iterator *debug_it = NULL;
-	struct bt_private_component *component = NULL;
+	struct bt_self_component *component = NULL;
 	struct debug_info_component *debug_info = NULL;
 	struct bt_notification_iterator *source_it = NULL;
 	struct bt_notification *notification;
@@ -233,12 +233,12 @@ struct bt_notification_iterator_next_method_return debug_info_iterator_next(
 		.notification = NULL,
 	};
 
-	debug_it = bt_private_connection_private_notification_iterator_get_user_data(iterator);
+	debug_it = bt_self_notification_iterator_get_user_data(iterator);
 	BT_ASSERT(debug_it);
 
-	component = bt_private_connection_private_notification_iterator_get_private_component(iterator);
+	component = bt_self_notification_iterator_get_private_component(iterator);
 	BT_ASSERT(component);
-	debug_info = bt_private_component_get_user_data(component);
+	debug_info = bt_self_component_get_user_data(component);
 	BT_ASSERT(debug_info);
 
 	source_it = debug_it->input_iterator;
@@ -267,7 +267,7 @@ end:
 
 static
 enum bt_notification_iterator_status debug_info_iterator_init(
-		struct bt_private_connection_private_notification_iterator *iterator,
+		struct bt_self_notification_iterator *iterator,
 		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
@@ -275,8 +275,8 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	enum bt_notification_iterator_status it_ret;
 	enum bt_connection_status conn_status;
 	struct bt_private_connection *connection = NULL;
-	struct bt_private_component *component =
-		bt_private_connection_private_notification_iterator_get_private_component(iterator);
+	struct bt_self_component *component =
+		bt_self_notification_iterator_get_private_component(iterator);
 	struct debug_info_iterator *it_data = g_new0(struct debug_info_iterator, 1);
 	struct bt_private_port *input_port;
 
@@ -285,7 +285,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 		goto end;
 	}
 
-	input_port = bt_private_component_filter_get_input_port_by_name(
+	input_port = bt_self_component_filter_get_input_port_by_name(
 			component, "in");
 	if (!input_port) {
 		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
@@ -307,12 +307,12 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	}
 
 	it_data->debug_info_component = (struct debug_info_component *)
-		bt_private_component_get_user_data(component);
+		bt_self_component_get_user_data(component);
 	it_data->err = it_data->debug_info_component->err;
 	it_data->trace_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_trace);
 
-	it_ret = bt_private_connection_private_notification_iterator_set_user_data(iterator, it_data);
+	it_ret = bt_self_notification_iterator_set_user_data(iterator, it_data);
 	if (it_ret) {
 		goto end;
 	}
@@ -397,7 +397,7 @@ end:
 }
 
 enum bt_component_status debug_info_component_init(
-	struct bt_private_component *component, struct bt_value *params,
+	struct bt_self_component *component, struct bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
@@ -408,18 +408,18 @@ enum bt_component_status debug_info_component_init(
 		goto end;
 	}
 
-	ret = bt_private_component_set_user_data(component, debug_info);
+	ret = bt_self_component_set_user_data(component, debug_info);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
-	ret = bt_private_component_filter_add_input_port(
+	ret = bt_self_component_filter_add_input_port(
 		component, "in", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
-	ret = bt_private_component_filter_add_output_port(
+	ret = bt_self_component_filter_add_output_port(
 		component, "out", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;

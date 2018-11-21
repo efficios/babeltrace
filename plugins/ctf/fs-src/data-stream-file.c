@@ -297,7 +297,7 @@ int convert_cycles_to_ns(struct bt_private_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
 	return bt_clock_class_cycles_to_ns_from_origin(
-		bt_clock_class_borrow_from_private(clock_class), cycles, ns);
+		bt_private_clock_class_borrow_clock_class(clock_class), cycles, ns);
 }
 
 static
@@ -624,7 +624,7 @@ error:
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_private_connection_private_notification_iterator *pc_notif_iter,
+		struct bt_self_notification_iterator *pc_notif_iter,
 		struct bt_notif_iter *notif_iter,
 		struct bt_private_stream *stream, const char *path)
 {

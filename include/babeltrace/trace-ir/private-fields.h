@@ -38,8 +38,12 @@ struct bt_field;
 struct bt_private_field;
 struct bt_private_field_class;
 
-extern struct bt_field *bt_field_borrow_from_private(
-		struct bt_private_field *priv_field);
+static inline
+struct bt_field *bt_private_field_borrow_field(
+		struct bt_private_field *priv_field)
+{
+	return (void *) priv_field;
+}
 
 extern struct bt_private_field_class *bt_private_field_borrow_class(
 		struct bt_private_field *field);

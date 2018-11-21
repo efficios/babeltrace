@@ -1,8 +1,4 @@
 /*
- * field-path.c
- *
- * Babeltrace trace IR - Field path
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *

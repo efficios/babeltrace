@@ -1,6 +1,4 @@
 /*
- * Babeltrace Plug-in Notification
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -74,10 +72,4 @@ void bt_notification_unlink_graph(struct bt_notification *notif)
 {
 	BT_ASSERT(notif);
 	notif->graph = NULL;
-}
-
-struct bt_notification *bt_notification_borrow_from_private(
-		struct bt_private_notification *priv_notif)
-{
-	return (void *) priv_notif;
 }

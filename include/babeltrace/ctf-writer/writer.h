@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_WRITER_H
 
 /*
- * BabelTrace - CTF Writer: Writer
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_TRACE_INTERNAL_H
 
 /*
- * BabelTrace - Trace IR: Trace internal
- *
  * Copyright 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

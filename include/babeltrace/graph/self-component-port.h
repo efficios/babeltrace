@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_COMPONENT_SINK_H
-#define BABELTRACE_GRAPH_PRIVATE_COMPONENT_SINK_H
+#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_PORT_H
+#define BABELTRACE_GRAPH_SELF_COMPONENT_PORT_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,36 +23,39 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-
-/* For enum bt_component_status */
-#include <babeltrace/graph/component-status.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_private_component;
-struct bt_private_port;
+struct bt_port;
+struct bt_self_component_port;
+struct bt_self_component;
+struct bt_connection;
 
-extern struct bt_private_port *
-bt_private_component_sink_get_input_port_by_name(
-		struct bt_private_component *private_component,
-		const char *name);
+enum bt_self_component_port_status {
+	BT_SELF_PORT_STATUS_OK = 0,
+	BT_SELF_PORT_STATUS_ERROR = -1,
+};
 
-extern struct bt_private_port *
-bt_private_component_sink_get_input_port_by_index(
-		struct bt_private_component *private_component, uint64_t index);
+static inline
+struct bt_port *bt_self_component_port_borrow_port(
+		struct bt_self_component_port *self_port)
+{
+	return (void *) self_port;
+}
 
-extern enum bt_component_status
-bt_private_component_sink_add_input_port(
-		struct bt_private_component *private_component,
-		const char *name, void *user_data,
-		struct bt_private_port **private_port);
+extern struct bt_self_component *bt_self_component_port_borrow_component(
+		struct bt_self_component_port *self_port);
+
+extern enum bt_self_component_port_status
+bt_self_component_port_remove_from_component(
+		struct bt_self_component_port *self_port);
+
+extern void *bt_self_component_port_get_data(
+		struct bt_self_component_port *self_port);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_COMPONENT_SINK_H */
+#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_PORT_H */

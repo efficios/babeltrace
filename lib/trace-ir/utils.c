@@ -1,8 +1,4 @@
 /*
- * utils.c
- *
- * Babeltrace trace IR - Utilities
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

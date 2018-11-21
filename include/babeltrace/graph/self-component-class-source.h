@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_OUTPUT_PORT_NOTIFICATION_ITERATOR_H
-#define BABELTRACE_GRAPH_OUTPUT_PORT_NOTIFICATION_ITERATOR_H
+#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
+#define BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,23 @@
  * SOFTWARE.
  */
 
-/* For enum bt_notification_iterator_status */
-#include <babeltrace/graph/notification-iterator.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_notification;
-struct bt_notification_iterator;
+struct bt_component_class_source;
+struct bt_self_component_class_source;
 
-extern struct bt_notification_iterator *bt_output_port_notification_iterator_create(
-		struct bt_port *port, const char *colander_component_name);
-
-extern enum bt_notification_iterator_status
-bt_output_port_notification_iterator_next(
-		struct bt_notification_iterator *iterator,
-		bt_notification_array *notifs, uint64_t *count);
+static inline
+struct bt_component_class_source *
+bt_self_component_class_source_borrow_component_class_source(
+		struct bt_self_component_class_source *self_comp_cls_source)
+{
+	return (void *) self_comp_cls_source;
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_OUTPUT_PORT_NOTIFICATION_ITERATOR_H */
+#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H */

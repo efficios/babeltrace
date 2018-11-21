@@ -39,8 +39,12 @@ struct bt_private_value;
 
 extern struct bt_private_value *bt_private_value_null;
 
-extern struct bt_value *bt_value_borrow_from_private(
-		struct bt_private_value *priv_value);
+static inline
+struct bt_value *bt_private_value_borrow_value(
+		struct bt_private_value *priv_value)
+{
+	return (void *) priv_value;
+}
 
 extern struct bt_private_value *bt_private_value_bool_create(void);
 

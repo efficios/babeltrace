@@ -2,8 +2,6 @@
 #define BABELTRACE_LOGGING_H
 
 /*
- * Babeltrace - Logging
- *
  * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

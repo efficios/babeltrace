@@ -217,9 +217,3 @@ void _bt_stream_freeze(struct bt_stream *stream)
 	BT_LIB_LOGD("Freezing stream: %!+s", stream);
 	stream->frozen = true;
 }
-
-struct bt_stream *bt_stream_borrow_from_private(
-		struct bt_private_stream *priv_stream)
-{
-	return (void *) priv_stream;
-}

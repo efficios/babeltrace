@@ -113,7 +113,7 @@ int lttng_live_add_port(struct lttng_live_component *lttng_live,
 	if (lttng_live_is_canceled(lttng_live)) {
 		return 0;
 	}
-	status = bt_private_component_source_add_output_port(
+	status = bt_self_component_source_add_output_port(
 			lttng_live->private_component, name, stream_iter,
 			&private_port);
 	switch (status) {
@@ -163,7 +163,7 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 		if (lttng_live_is_canceled(lttng_live)) {
 			return 0;
 		}
-		status = bt_private_component_source_add_output_port(lttng_live->private_component,
+		status = bt_self_component_source_add_output_port(lttng_live->private_component,
 				"no-stream", lttng_live->no_stream_iter,
 				&lttng_live->no_stream_port);
 		switch (status) {
@@ -339,10 +339,10 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 }
 
 BT_HIDDEN
-void lttng_live_iterator_finalize(struct bt_private_connection_private_notification_iterator *it)
+void lttng_live_iterator_finalize(struct bt_self_notification_iterator *it)
 {
 	struct lttng_live_stream_iterator_generic *s =
-			bt_private_connection_private_notification_iterator_get_user_data(it);
+			bt_self_notification_iterator_get_user_data(it);
 
 	switch (s->type) {
 	case LIVE_STREAM_TYPE_NO_STREAM:
@@ -756,7 +756,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_da
  */
 static
 struct bt_notification_iterator_next_method_return lttng_live_iterator_next_stream(
-		struct bt_private_connection_private_notification_iterator *iterator,
+		struct bt_self_notification_iterator *iterator,
 		struct lttng_live_stream_iterator *stream_iter)
 {
 	enum bt_lttng_live_iterator_status status;
@@ -827,7 +827,7 @@ end:
 
 static
 struct bt_notification_iterator_next_method_return lttng_live_iterator_next_no_stream(
-		struct bt_private_connection_private_notification_iterator *iterator,
+		struct bt_self_notification_iterator *iterator,
 		struct lttng_live_no_stream_iterator *no_stream_iter)
 {
 	enum bt_lttng_live_iterator_status status;
@@ -876,10 +876,10 @@ end:
 
 BT_HIDDEN
 struct bt_notification_iterator_next_method_return lttng_live_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator)
+		struct bt_self_notification_iterator *iterator)
 {
 	struct lttng_live_stream_iterator_generic *s =
-			bt_private_connection_private_notification_iterator_get_user_data(iterator);
+			bt_self_notification_iterator_get_user_data(iterator);
 	struct bt_notification_iterator_next_method_return next_return;
 
 	switch (s->type) {
@@ -900,7 +900,7 @@ struct bt_notification_iterator_next_method_return lttng_live_iterator_next(
 
 BT_HIDDEN
 enum bt_notification_iterator_status lttng_live_iterator_init(
-		struct bt_private_connection_private_notification_iterator *it,
+		struct bt_self_notification_iterator *it,
 		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
@@ -916,7 +916,7 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_no_stream_iterator *no_stream_iter =
 			container_of(s, struct lttng_live_no_stream_iterator, p);
-		ret = bt_private_connection_private_notification_iterator_set_user_data(it, no_stream_iter);
+		ret = bt_self_notification_iterator_set_user_data(it, no_stream_iter);
 		if (ret) {
 			goto error;
 		}
@@ -926,7 +926,7 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_stream_iterator *stream_iter =
 			container_of(s, struct lttng_live_stream_iterator, p);
-		ret = bt_private_connection_private_notification_iterator_set_user_data(it, stream_iter);
+		ret = bt_self_notification_iterator_set_user_data(it, stream_iter);
 		if (ret) {
 			goto error;
 		}
@@ -940,7 +940,7 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 end:
 	return ret;
 error:
-	if (bt_private_connection_private_notification_iterator_set_user_data(it, NULL)
+	if (bt_self_notification_iterator_set_user_data(it, NULL)
 			!= BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 		BT_LOGE("Error setting private data to NULL");
 	}
@@ -1049,9 +1049,9 @@ void lttng_live_component_destroy_data(struct lttng_live_component *lttng_live)
 }
 
 BT_HIDDEN
-void lttng_live_component_finalize(struct bt_private_component *component)
+void lttng_live_component_finalize(struct bt_self_component *component)
 {
-	void *data = bt_private_component_get_user_data(component);
+	void *data = bt_self_component_get_user_data(component);
 
 	if (!data) {
 		return;
@@ -1061,7 +1061,7 @@ void lttng_live_component_finalize(struct bt_private_component *component)
 
 static
 struct lttng_live_component *lttng_live_component_create(struct bt_value *params,
-		struct bt_private_component *private_component)
+		struct bt_self_component *private_component)
 {
 	struct lttng_live_component *lttng_live;
 	struct bt_value *value = NULL;
@@ -1107,7 +1107,7 @@ end:
 
 BT_HIDDEN
 enum bt_component_status lttng_live_component_init(
-		struct bt_private_component *private_component,
+		struct bt_self_component *private_component,
 		struct bt_value *params, void *init_method_data)
 {
 	struct lttng_live_component *lttng_live;
@@ -1128,7 +1128,7 @@ enum bt_component_status lttng_live_component_init(
 	if (lttng_live_is_canceled(lttng_live)) {
 		goto end;
 	}
-	ret = bt_private_component_source_add_output_port(
+	ret = bt_self_component_source_add_output_port(
 				lttng_live->private_component, "no-stream",
 				lttng_live->no_stream_iter,
 				&lttng_live->no_stream_port);
@@ -1138,7 +1138,7 @@ enum bt_component_status lttng_live_component_init(
 	bt_object_put_ref(lttng_live->no_stream_port);	/* weak */
 	lttng_live->no_stream_iter->port = lttng_live->no_stream_port;
 
-	ret = bt_private_component_set_user_data(private_component, lttng_live);
+	ret = bt_self_component_set_user_data(private_component, lttng_live);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
@@ -1146,19 +1146,19 @@ enum bt_component_status lttng_live_component_init(
 end:
 	return ret;
 error:
-	(void) bt_private_component_set_user_data(private_component, NULL);
+	(void) bt_self_component_set_user_data(private_component, NULL);
 	lttng_live_component_destroy_data(lttng_live);
 	return ret;
 }
 
 BT_HIDDEN
 enum bt_component_status lttng_live_accept_port_connection(
-		struct bt_private_component *private_component,
+		struct bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port)
 {
 	struct lttng_live_component *lttng_live =
-			bt_private_component_get_user_data(private_component);
+			bt_self_component_get_user_data(private_component);
 	struct bt_component *other_component;
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	struct bt_port *self_port = bt_port_from_private(self_private_port);

@@ -43,8 +43,12 @@ struct bt_private_trace;
 struct bt_private_event_class;
 struct bt_private_clock_class;
 
-extern struct bt_stream_class *bt_stream_class_borrow_from_private(
-		struct bt_private_stream_class *priv_stream_class);
+static inline
+struct bt_stream_class *bt_private_stream_class_borrow_stream_class(
+		struct bt_private_stream_class *priv_stream_class)
+{
+	return (void *) priv_stream_class;
+}
 
 extern struct bt_private_stream_class *bt_private_stream_class_create(
 		struct bt_private_trace *trace);

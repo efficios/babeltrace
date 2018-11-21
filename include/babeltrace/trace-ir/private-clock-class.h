@@ -41,8 +41,12 @@ extern "C" {
 struct bt_clock_class;
 struct bt_private_clock_class;
 
-extern struct bt_clock_class *bt_clock_class_borrow_from_private(
-		struct bt_private_clock_class *priv_clock_class);
+static inline
+struct bt_clock_class *bt_private_clock_class_borrow_clock_class(
+		struct bt_private_clock_class *priv_clock_class)
+{
+	return (void *) priv_clock_class;
+}
 
 extern struct bt_private_clock_class *bt_private_clock_class_create(void);
 

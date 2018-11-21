@@ -2,8 +2,6 @@
 #define _BABELTRACE_INCLUDE_COMPAT_TIME_H
 
 /*
- * babeltrace/compat/time.h
- *
  * Copyright (C) 2013 JP Ikaheimonen <jp_ikaheimonen@mentor.com>
  *               2016 Michael Jeanson <mjeanson@efficios.com>
  *

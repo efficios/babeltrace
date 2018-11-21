@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_NOTIFICATION_STREAM_INTERNAL_H
 
 /*
- * BabelTrace - Stream-related Notifications
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

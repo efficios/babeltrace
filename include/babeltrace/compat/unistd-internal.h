@@ -2,8 +2,6 @@
 #define _BABELTRACE_COMPAT_UNISTD_H
 
 /*
- * babeltrace/compat/unistd.h
- *
  * (C) Copyright 2016 - Michael Jeanson <mjeanson@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

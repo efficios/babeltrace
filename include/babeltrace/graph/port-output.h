@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_STATUS_H
-#define BABELTRACE_GRAPH_COMPONENT_STATUS_H
+#ifndef BABELTRACE_GRAPH_PORT_OUTPUT_H
+#define BABELTRACE_GRAPH_PORT_OUTPUT_H
 
 /*
- * BabelTrace - Babeltrace Component Interface
- *
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -27,40 +25,23 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * Status code. Errors are always negative.
- */
-enum bt_component_status {
-	/** No error, okay. */
-	BT_COMPONENT_STATUS_OK				= 0,
-	/** No more work to be done by this component. **/
-	BT_COMPONENT_STATUS_END				= 1,
-	/**
-	 * Component can't process a notification at this time
-	 * (e.g. would block), try again later.
-	 */
-	BT_COMPONENT_STATUS_AGAIN			= 11,
-	/** Refuse port connection. */
-	BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION	= 111,
-	/** General error. */
-	BT_COMPONENT_STATUS_ERROR			= -1,
-	/** Unsupported component feature. */
-	BT_COMPONENT_STATUS_UNSUPPORTED			= -2,
-	/** Invalid arguments. */
-	BT_COMPONENT_STATUS_INVALID			= -22,
-	/** Memory allocation failure. */
-	BT_COMPONENT_STATUS_NOMEM			= -12,
-	/** Element not found. */
-	BT_COMPONENT_STATUS_NOT_FOUND			= -19,
-	BT_COMPONENT_STATUS_GRAPH_IS_CANCELED		= 125,
-};
+struct bt_port;
+struct bt_port_output;
+
+static inline
+struct bt_port *bt_port_output_borrow_port(struct bt_port_output *port_output)
+{
+	return (void *) port_output;
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_STATUS_H */
+#endif /* BABELTRACE_GRAPH_PORT_OUTPUT_H */

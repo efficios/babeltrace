@@ -2,8 +2,6 @@
 #define _BABELTRACE_COMPAT_MMAN_H
 
 /*
- * babeltrace/compat/mman.h
- *
  * Copyright (C) 2015-2016  Michael Jeanson <mjeanson@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

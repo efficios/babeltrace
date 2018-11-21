@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_CLASS_FILTER_H
 
 /*
- * Babeltrace - Component Class Interface.
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,28 +23,20 @@
  * SOFTWARE.
  */
 
-/* For component class method type definitions */
-#include <babeltrace/graph/component-class.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component_class;
+struct bt_component_class_filter;
 
-extern
-struct bt_component_class *bt_component_class_filter_create(const char *name,
-		bt_component_class_notification_iterator_next_method method);
-
-extern
-int bt_component_class_filter_set_notification_iterator_init_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_init_method method);
-
-extern
-int bt_component_class_filter_set_notification_iterator_finalize_method(
-		struct bt_component_class *component_class,
-		bt_component_class_notification_iterator_finalize_method method);
+static inline
+struct bt_component_class *
+bt_component_class_filter_borrow_component_class(
+		struct bt_component_class_filter *comp_cls_filter)
+{
+	return (void *) comp_cls_filter;
+}
 
 #ifdef __cplusplus
 }

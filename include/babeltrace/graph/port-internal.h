@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_PORT_INTERNAL_H
 
 /*
- * BabelTrace - Babeltrace Component Port
- *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -37,13 +35,6 @@ struct bt_port {
 	void *user_data;
 };
 
-static inline
-struct bt_private_port *bt_private_port_from_port(
-		struct bt_port *port)
-{
-	return (void *) port;
-}
-
 BT_HIDDEN
 struct bt_port *bt_port_create(struct bt_component *parent_component,
 		enum bt_port_type type, const char *name, void *user_data);
@@ -60,8 +51,6 @@ const char *bt_port_type_string(enum bt_port_type port_type)
 		return "BT_PORT_TYPE_INPUT";
 	case BT_PORT_TYPE_OUTPUT:
 		return "BT_PORT_TYPE_OUTPUT";
-	case BT_PORT_TYPE_UNKOWN:
-		return "BT_PORT_TYPE_UNKOWN";
 	default:
 		return "(unknown)";
 	}

@@ -30,7 +30,6 @@
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/private-notification-inactivity.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object.h>
 
@@ -40,7 +39,7 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 	struct bt_notification_inactivity *notification =
 			(struct bt_notification_inactivity *) obj;
 
-	BT_LOGD("Destroying inactivity notification: addr=%p", notification);
+	BT_LIB_LOGD("Destroying inactivity notification: %!+n", notification);
 
 	if (notification->default_cv) {
 		bt_clock_value_recycle(notification->default_cv);
@@ -50,15 +49,19 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 }
 
 struct bt_private_notification *bt_private_notification_inactivity_create(
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_clock_class *default_clock_class)
 {
+	struct bt_self_component_port_input_notification_iterator *notif_iter =
+		(void *) self_notif_iter;
 	struct bt_notification_inactivity *notification;
 	struct bt_notification *ret_notif = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(default_clock_class, "Default clock class");
-	BT_LOGD_STR("Creating inactivity notification object.");
+	BT_LIB_LOGD("Creating inactivity notification object: "
+		"%![iter-]+i, %![default-cc-]+K", notif_iter,
+		default_clock_class);
 	notification = g_new0(struct bt_notification_inactivity, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one inactivity notification.");
@@ -73,8 +76,7 @@ struct bt_private_notification *bt_private_notification_inactivity_create(
 		goto error;
 	}
 
-	BT_LOGD("Created inactivity notification object: addr=%p",
-		ret_notif);
+	BT_LIB_LOGD("Created inactivity notification object: %!+n", ret_notif);
 	goto end;
 
 error:

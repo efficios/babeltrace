@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_SINK_H
 
 /*
- * BabelTrace - Sink Component Interface
- *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -34,13 +32,24 @@ extern "C" {
 #endif
 
 struct bt_component;
+struct bt_component_sink;
+struct bt_port_input;
 
-extern int64_t bt_component_sink_get_input_port_count(
-		struct bt_component *component);
-extern struct bt_port *bt_component_sink_get_input_port_by_name(
-		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_sink_get_input_port_by_index(
-		struct bt_component *component, uint64_t index);
+static inline
+struct bt_component *bt_component_sink_borrow_component(
+		struct bt_component_sink *component)
+{
+	return (void *) component;
+}
+
+extern uint64_t bt_component_sink_get_input_port_count(
+		struct bt_component_sink *component);
+
+extern struct bt_port_input *bt_component_sink_borrow_input_port_by_name(
+		struct bt_component_sink *component, const char *name);
+
+extern struct bt_port_input *bt_component_sink_borrow_input_port_by_index(
+		struct bt_component_sink *component, uint64_t index);
 
 #ifdef __cplusplus
 }

@@ -2,8 +2,6 @@
 #define _BABELTRACE_COMPAT_SOCKET_H
 
 /*
- * babeltrace/compat/socket.h
- *
  * Copyright (C) 2015-2017  Michael Jeanson <mjeanson@efficios.com>
  *               2015  Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *

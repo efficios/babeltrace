@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_EVENT_CLASS_INTERNAL_H
 
 /*
- * Babeltrace - Trace IR: Event class internal
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

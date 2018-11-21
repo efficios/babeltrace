@@ -515,9 +515,3 @@ int bt_private_packet_set_packet_counter_snapshot(
 	bt_property_uint_set(&packet->packet_counter_snapshot, value);
 	return 0;
 }
-
-struct bt_packet *bt_packet_borrow_from_private(
-		struct bt_private_packet *priv_packet)
-{
-	return (void *) priv_packet;
-}

@@ -55,7 +55,6 @@ static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_private_graph *graph;
-static struct bt_private_connection_private_notification_iterator *cur_notif_iter;
 static struct bt_private_stream_class *src_stream_class;
 static struct bt_private_event_class *src_event_class;
 static struct bt_private_stream *src_stream1;
@@ -97,7 +96,7 @@ struct src_iter_user_data {
 };
 
 struct sink_user_data {
-	struct bt_notification_iterator *notif_iter;
+	void *notif_iter;
 };
 
 /*
@@ -263,25 +262,25 @@ void init_static_data(void)
 	BT_ASSERT(src_event_class);
 	src_stream1 = bt_private_stream_create(src_stream_class);
 	BT_ASSERT(src_stream1);
-	pub_src_stream1 = bt_stream_borrow_from_private(src_stream1);
+	pub_src_stream1 = bt_private_stream_borrow_stream(src_stream1);
 	src_stream2 = bt_private_stream_create(src_stream_class);
 	BT_ASSERT(src_stream2);
-	pub_src_stream2 = bt_stream_borrow_from_private(src_stream2);
+	pub_src_stream2 = bt_private_stream_borrow_stream(src_stream2);
 	src_stream1_packet1 = bt_private_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet1);
-	pub_src_stream1_packet1 = bt_packet_borrow_from_private(
+	pub_src_stream1_packet1 = bt_private_packet_borrow_packet(
 		src_stream1_packet1);
 	src_stream1_packet2 = bt_private_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet2);
-	pub_src_stream1_packet2 = bt_packet_borrow_from_private(
+	pub_src_stream1_packet2 = bt_private_packet_borrow_packet(
 		src_stream1_packet2);
 	src_stream2_packet1 = bt_private_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet1);
-	pub_src_stream2_packet1 = bt_packet_borrow_from_private(
+	pub_src_stream2_packet1 = bt_private_packet_borrow_packet(
 		src_stream2_packet1);
 	src_stream2_packet2 = bt_private_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet2);
-	pub_src_stream2_packet2 = bt_packet_borrow_from_private(
+	pub_src_stream2_packet2 = bt_private_packet_borrow_packet(
 		src_stream2_packet2);
 
 	if (debug) {
@@ -314,12 +313,11 @@ void fini_static_data(void)
 }
 
 static
-void src_iter_finalize(
-		struct bt_private_connection_private_notification_iterator *private_notification_iterator)
+void src_iter_finalize(struct bt_self_notification_iterator *self_notif_iter)
 {
 	struct src_iter_user_data *user_data =
-		bt_private_connection_private_notification_iterator_get_user_data(
-			private_notification_iterator);
+		bt_self_notification_iterator_get_data(
+			self_notif_iter);
 
 	if (user_data) {
 		g_free(user_data);
@@ -327,18 +325,16 @@ void src_iter_finalize(
 }
 
 static
-enum bt_notification_iterator_status src_iter_init(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
-		struct bt_private_port *private_port)
+enum bt_self_notification_iterator_status src_iter_init(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_port)
 {
 	struct src_iter_user_data *user_data =
 		g_new0(struct src_iter_user_data, 1);
-	int ret;
 
 	BT_ASSERT(user_data);
-	ret = bt_private_connection_private_notification_iterator_set_user_data(
-		priv_notif_iter, user_data);
-	BT_ASSERT(ret == 0);
+	bt_self_notification_iterator_set_data(self_notif_iter, user_data);
 
 	switch (current_test) {
 	case TEST_NO_AUTO_NOTIFS:
@@ -349,75 +345,76 @@ enum bt_notification_iterator_status src_iter_init(
 		abort();
 	}
 
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static
-void src_iter_next_seq_one(struct src_iter_user_data *user_data,
+void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
+		struct src_iter_user_data *user_data,
 		struct bt_notification **notif)
 {
 	struct bt_private_packet *event_packet = NULL;
 
 	switch (user_data->seq[user_data->at]) {
 	case SEQ_STREAM1_BEGIN:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_stream_begin_create(
-				cur_notif_iter, src_stream1));
+				notif_iter, src_stream1));
 		break;
 	case SEQ_STREAM2_BEGIN:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_stream_begin_create(
-				cur_notif_iter, src_stream2));
+				notif_iter, src_stream2));
 		break;
 	case SEQ_STREAM1_END:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_stream_end_create(
-				cur_notif_iter, src_stream1));
+				notif_iter, src_stream1));
 		break;
 	case SEQ_STREAM2_END:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_stream_end_create(
-				cur_notif_iter, src_stream2));
+				notif_iter, src_stream2));
 		break;
 	case SEQ_STREAM1_PACKET1_BEGIN:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_begin_create(
-				cur_notif_iter, src_stream1_packet1));
+				notif_iter, src_stream1_packet1));
 		break;
 	case SEQ_STREAM1_PACKET2_BEGIN:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_begin_create(
-				cur_notif_iter, src_stream1_packet2));
+				notif_iter, src_stream1_packet2));
 		break;
 	case SEQ_STREAM2_PACKET1_BEGIN:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_begin_create(
-				cur_notif_iter, src_stream2_packet1));
+				notif_iter, src_stream2_packet1));
 		break;
 	case SEQ_STREAM2_PACKET2_BEGIN:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_begin_create(
-				cur_notif_iter, src_stream2_packet2));
+				notif_iter, src_stream2_packet2));
 		break;
 	case SEQ_STREAM1_PACKET1_END:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_end_create(
-				cur_notif_iter, src_stream1_packet1));
+				notif_iter, src_stream1_packet1));
 		break;
 	case SEQ_STREAM1_PACKET2_END:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_end_create(
-				cur_notif_iter, src_stream1_packet2));
+				notif_iter, src_stream1_packet2));
 		break;
 	case SEQ_STREAM2_PACKET1_END:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_end_create(
-				cur_notif_iter, src_stream2_packet1));
+				notif_iter, src_stream2_packet1));
 		break;
 	case SEQ_STREAM2_PACKET2_END:
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_packet_end_create(
-				cur_notif_iter, src_stream2_packet2));
+				notif_iter, src_stream2_packet2));
 		break;
 	case SEQ_EVENT_STREAM1_PACKET1:
 		event_packet = src_stream1_packet1;
@@ -436,9 +433,9 @@ void src_iter_next_seq_one(struct src_iter_user_data *user_data,
 	}
 
 	if (event_packet) {
-		*notif = bt_notification_borrow_from_private(
+		*notif = bt_private_notification_borrow_notification(
 			bt_private_notification_event_create(
-				cur_notif_iter, src_event_class, event_packet));
+				notif_iter, src_event_class, event_packet));
 	}
 
 	BT_ASSERT(*notif);
@@ -446,24 +443,25 @@ void src_iter_next_seq_one(struct src_iter_user_data *user_data,
 }
 
 static
-enum bt_notification_iterator_status src_iter_next_seq(
+enum bt_self_notification_iterator_status src_iter_next_seq(
+		struct bt_self_notification_iterator *notif_iter,
 		struct src_iter_user_data *user_data,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_self_notification_iterator_status status =
+		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 
 	BT_ASSERT(user_data->seq);
 
 	if (user_data->seq[user_data->at] == SEQ_END) {
-		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
 	}
 
 	while (i < capacity && user_data->seq[user_data->at] != SEQ_END) {
-		src_iter_next_seq_one(user_data, &notifs[i]);
+		src_iter_next_seq_one(notif_iter, user_data, &notifs[i]);
 		i++;
 	}
 
@@ -475,34 +473,34 @@ end:
 }
 
 static
-enum bt_notification_iterator_status src_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_iterator,
+enum bt_self_notification_iterator_status src_iter_next(
+		struct bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count)
 {
 	struct src_iter_user_data *user_data =
-		bt_private_connection_private_notification_iterator_get_user_data(priv_iterator);
+		bt_self_notification_iterator_get_data(self_notif_iter);
 
 	BT_ASSERT(user_data);
-	cur_notif_iter = priv_iterator;
-	return src_iter_next_seq(user_data, notifs, capacity, count);
+	return src_iter_next_seq(self_notif_iter, user_data, notifs,
+		capacity, count);
 }
 
 static
-enum bt_component_status src_init(
-		struct bt_private_component *private_component,
+enum bt_self_component_status src_init(
+		struct bt_self_component_source *self_comp,
 		struct bt_value *params, void *init_method_data)
 {
 	int ret;
 
-	ret = bt_private_component_source_add_output_port(
-		private_component, "out", NULL, NULL);
+	ret = bt_self_component_source_add_output_port(
+		self_comp, "out", NULL, NULL);
 	BT_ASSERT(ret == 0);
-	return BT_COMPONENT_STATUS_OK;
+	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
 static
-void src_finalize(struct bt_private_component *private_component)
+void src_finalize(struct bt_self_component_source *self_comp)
 {
 }
 
@@ -562,8 +560,7 @@ void append_test_events_from_notification(struct bt_notification *notification)
 
 static
 enum bt_notification_iterator_status common_consume(
-		struct bt_notification_iterator *notif_iter,
-		bool is_output_port_notif_iter)
+		void *notif_iter, bool is_output_port_notif_iter)
 {
 	enum bt_notification_iterator_status ret;
 	bt_notification_array notifications = NULL;
@@ -574,10 +571,10 @@ enum bt_notification_iterator_status common_consume(
 	BT_ASSERT(notif_iter);
 
 	if (is_output_port_notif_iter) {
-		ret = bt_output_port_notification_iterator_next(notif_iter,
+		ret = bt_port_output_notification_iterator_next(notif_iter,
 			&notifications, &count);
 	} else {
-		ret = bt_private_connection_notification_iterator_next(
+		ret = bt_self_component_port_input_notification_iterator_next(
 			notif_iter, &notifications, &count);
 	}
 
@@ -609,25 +606,27 @@ end:
 }
 
 static
-enum bt_component_status sink_consume(
-		struct bt_private_component *priv_component)
+enum bt_self_component_status sink_consume(
+		struct bt_self_component_sink *self_comp)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct sink_user_data *user_data =
-		bt_private_component_get_user_data(priv_component);
+		bt_self_component_get_data(
+			bt_self_component_sink_borrow_self_component(
+				self_comp));
 	enum bt_notification_iterator_status it_ret;
 
 	BT_ASSERT(user_data && user_data->notif_iter);
 	it_ret = common_consume(user_data->notif_iter, false);
 
 	if (it_ret < 0) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
-		ret = BT_COMPONENT_STATUS_END;
+		ret = BT_SELF_COMPONENT_STATUS_END;
 		BT_OBJECT_PUT_REF_AND_RESET(user_data->notif_iter);
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
@@ -641,49 +640,48 @@ end:
 }
 
 static
-enum bt_component_status sink_port_connected(
-		struct bt_private_component *private_component,
-		struct bt_private_port *self_private_port,
-		struct bt_port *other_port)
+enum bt_self_component_status sink_port_connected(
+		struct bt_self_component_sink *self_comp,
+		struct bt_self_component_port_input *self_port,
+		struct bt_port_output *other_port)
 {
-	struct bt_private_connection *priv_conn =
-		bt_private_port_get_connection(self_private_port);
-	struct sink_user_data *user_data = bt_private_component_get_user_data(
-		private_component);
-	enum bt_connection_status conn_status;
+	struct sink_user_data *user_data =
+		bt_self_component_get_data(
+			bt_self_component_sink_borrow_self_component(
+				self_comp));
 
 	BT_ASSERT(user_data);
-	BT_ASSERT(priv_conn);
-	conn_status = bt_private_connection_create_notification_iterator(
-		priv_conn, &user_data->notif_iter);
-	BT_ASSERT(conn_status == 0);
-	bt_object_put_ref(priv_conn);
-	return BT_COMPONENT_STATUS_OK;
+	user_data->notif_iter =
+		bt_self_component_port_input_notification_iterator_create(
+			self_port);
+	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
 static
-enum bt_component_status sink_init(
-		struct bt_private_component *private_component,
+enum bt_self_component_status sink_init(
+		struct bt_self_component_sink *self_comp,
 		struct bt_value *params, void *init_method_data)
 {
 	struct sink_user_data *user_data = g_new0(struct sink_user_data, 1);
 	int ret;
 
 	BT_ASSERT(user_data);
-	ret = bt_private_component_set_user_data(private_component,
+	bt_self_component_set_data(
+		bt_self_component_sink_borrow_self_component(self_comp),
 		user_data);
+	ret = bt_self_component_sink_add_input_port(
+		self_comp, "in", NULL, NULL);
 	BT_ASSERT(ret == 0);
-	ret = bt_private_component_sink_add_input_port(
-		private_component, "in", NULL, NULL);
-	BT_ASSERT(ret == 0);
-	return BT_COMPONENT_STATUS_OK;
+	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
 static
-void sink_finalize(struct bt_private_component *private_component)
+void sink_finalize(struct bt_self_component_sink *self_comp)
 {
-	struct sink_user_data *user_data = bt_private_component_get_user_data(
-		private_component);
+	struct sink_user_data *user_data =
+		bt_self_component_get_data(
+			bt_self_component_sink_borrow_self_component(
+				self_comp));
 
 	if (user_data) {
 		bt_object_put_ref(user_data->notif_iter);
@@ -692,51 +690,55 @@ void sink_finalize(struct bt_private_component *private_component)
 }
 
 static
-void create_source_sink(struct bt_private_graph *graph, struct bt_component **source,
-		struct bt_component **sink)
+void create_source_sink(struct bt_private_graph *graph,
+		struct bt_component_source **source,
+		struct bt_component_sink **sink)
 {
-	struct bt_component_class *src_comp_class;
-	struct bt_component_class *sink_comp_class;
+	struct bt_private_component_class_source *src_comp_class;
+	struct bt_private_component_class_sink *sink_comp_class;
 	int ret;
 
 	/* Create source component */
 	if (source) {
-		src_comp_class = bt_component_class_source_create("src",
+		src_comp_class = bt_private_component_class_source_create("src",
 			src_iter_next);
 		BT_ASSERT(src_comp_class);
-		ret = bt_component_class_set_init_method(src_comp_class,
-			src_init);
+		ret = bt_private_component_class_source_set_init_method(
+			src_comp_class, src_init);
 		BT_ASSERT(ret == 0);
-		ret = bt_component_class_set_finalize_method(src_comp_class,
-			src_finalize);
+		ret = bt_private_component_class_source_set_finalize_method(
+			src_comp_class, src_finalize);
 		BT_ASSERT(ret == 0);
-		ret = bt_component_class_source_set_notification_iterator_init_method(
+		ret = bt_private_component_class_source_set_notification_iterator_init_method(
 			src_comp_class, src_iter_init);
 		BT_ASSERT(ret == 0);
-		ret = bt_component_class_source_set_notification_iterator_finalize_method(
+		ret = bt_private_component_class_source_set_notification_iterator_finalize_method(
 			src_comp_class, src_iter_finalize);
 		BT_ASSERT(ret == 0);
-		ret = bt_private_graph_add_component(graph, src_comp_class, "source",
-			NULL, source);
+		ret = bt_private_graph_add_source_component(graph,
+			bt_private_component_class_source_borrow_component_class_source(
+				src_comp_class), "source", NULL, source);
 		BT_ASSERT(ret == 0);
 		bt_object_put_ref(src_comp_class);
 	}
 
 	/* Create sink component */
 	if (sink) {
-		sink_comp_class = bt_component_class_sink_create("sink",
+		sink_comp_class = bt_private_component_class_sink_create("sink",
 			sink_consume);
 		BT_ASSERT(sink_comp_class);
-		ret = bt_component_class_set_init_method(sink_comp_class,
-			sink_init);
+		ret = bt_private_component_class_sink_set_init_method(
+			sink_comp_class, sink_init);
 		BT_ASSERT(ret == 0);
-		ret = bt_component_class_set_finalize_method(sink_comp_class,
-			sink_finalize);
-		ret = bt_component_class_set_port_connected_method(
+		ret = bt_private_component_class_sink_set_finalize_method(
+			sink_comp_class, sink_finalize);
+		ret = bt_private_component_class_sink_set_input_port_connected_method(
 			sink_comp_class, sink_port_connected);
 		BT_ASSERT(ret == 0);
-		ret = bt_private_graph_add_component(graph, sink_comp_class, "sink",
-			NULL, sink);
+		ret = bt_private_graph_add_sink_component(graph,
+			bt_private_component_class_sink_borrow_component_class_sink(
+				sink_comp_class),
+			"sink", NULL, sink);
 		BT_ASSERT(ret == 0);
 		bt_object_put_ref(sink_comp_class);
 	}
@@ -746,10 +748,10 @@ static
 void do_std_test(enum test test, const char *name,
 		const struct test_event *expected_test_events)
 {
-	struct bt_component *src_comp;
-	struct bt_component *sink_comp;
-	struct bt_port *upstream_port;
-	struct bt_port *downstream_port;
+	struct bt_component_source *src_comp;
+	struct bt_component_sink *sink_comp;
+	struct bt_port_output *upstream_port;
+	struct bt_port_input *downstream_port;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 
 	clear_test_events();
@@ -761,14 +763,14 @@ void do_std_test(enum test test, const char *name,
 	create_source_sink(graph, &src_comp, &sink_comp);
 
 	/* Connect source to sink */
-	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");
+	upstream_port = bt_component_source_borrow_output_port_by_name(
+		src_comp, "out");
 	BT_ASSERT(upstream_port);
-	downstream_port = bt_component_sink_get_input_port_by_name(sink_comp, "in");
+	downstream_port = bt_component_sink_borrow_input_port_by_name(
+		sink_comp, "in");
 	BT_ASSERT(downstream_port);
 	graph_status = bt_private_graph_connect_ports(graph, upstream_port,
 		downstream_port, NULL);
-	bt_object_put_ref(upstream_port);
-	bt_object_put_ref(downstream_port);
 
 	/* Run the graph until the end */
 	while (graph_status == BT_GRAPH_STATUS_OK ||
@@ -776,7 +778,8 @@ void do_std_test(enum test test, const char *name,
 		graph_status = bt_private_graph_run(graph);
 	}
 
-	ok(graph_status == BT_GRAPH_STATUS_END, "graph finishes without any error");
+	ok(graph_status == BT_GRAPH_STATUS_END,
+		"graph finishes without any error");
 
 	/* Compare the resulting test events */
 	if (expected_test_events) {
@@ -840,11 +843,11 @@ void test_output_port_notification_iterator(void)
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
-	struct bt_component *src_comp;
-	struct bt_notification_iterator *notif_iter;
+	struct bt_component_source *src_comp;
+	struct bt_port_output_notification_iterator *notif_iter;
 	enum bt_notification_iterator_status iter_status =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	struct bt_port *upstream_port;
+	struct bt_port_output *upstream_port;
 
 	clear_test_events();
 	current_test = TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR;
@@ -855,11 +858,11 @@ void test_output_port_notification_iterator(void)
 	create_source_sink(graph, &src_comp, NULL);
 
 	/* Create notification iterator on source's output port */
-	upstream_port = bt_component_source_get_output_port_by_name(src_comp, "out");
-	notif_iter = bt_output_port_notification_iterator_create(upstream_port,
-		NULL);
+	upstream_port = bt_component_source_borrow_output_port_by_name(
+		src_comp, "out");
+	notif_iter = bt_port_output_notification_iterator_create(graph,
+		upstream_port, NULL);
 	ok(notif_iter, "bt_private_output_port_notification_iterator_create() succeeds");
-	bt_object_put_ref(upstream_port);
 
 	/* Consume the notification iterator */
 	while (iter_status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {

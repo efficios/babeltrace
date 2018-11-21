@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_CLOCK_CLASS_INTERNAL_H
 
 /*
- * BabelTrace - CTF writer: Clock class internal
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

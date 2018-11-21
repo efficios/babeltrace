@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_CONNECTION_H
-#define BABELTRACE_GRAPH_PRIVATE_CONNECTION_H
+#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_PORT_INPUT_H
+#define BABELTRACE_GRAPH_SELF_COMPONENT_PORT_INPUT_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,29 +23,34 @@
  * SOFTWARE.
  */
 
-/* For enum bt_notification_type */
-#include <babeltrace/graph/notification.h>
+/* For enum bt_self_component_port_status */
+#include <babeltrace/graph/self-component-port.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_connection;
-struct bt_private_port;
-struct bt_private_connection;
-struct bt_notification_iterator;
+struct bt_port_input;
+struct bt_self_component_port;
+struct bt_self_component_port_input;
 
-extern struct bt_connection *bt_connection_borrow_from_private(
-		struct bt_private_connection *private_connection);
+static inline
+struct bt_self_component_port *
+bt_self_component_port_input_borrow_self_component_port(
+		struct bt_self_component_port_input *self_component_port)
+{
+	return (void *) self_component_port;
+}
 
-extern enum bt_connection_status
-bt_private_connection_create_notification_iterator(
-		struct bt_private_connection *private_connection,
-		struct bt_notification_iterator **iterator);
+static inline
+struct bt_port_input *bt_self_component_port_input_borrow_port_input(
+		struct bt_self_component_port_input *self_component_port)
+{
+	return (void *) self_component_port;
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_CONNECTION_H */
+#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_PORT_INPUT_H */

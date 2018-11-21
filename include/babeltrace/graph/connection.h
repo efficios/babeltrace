@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_CONNECTION_H
 
 /*
- * BabelTrace - Babeltrace Component Connection Interface
- *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -34,23 +32,14 @@
 extern "C" {
 #endif
 
-struct bt_component;
+struct bt_port_input;
+struct bt_port_output;
 struct bt_connection;
 
-enum bt_connection_status {
-	BT_CONNECTION_STATUS_GRAPH_IS_CANCELED = 125,
-	BT_CONNECTION_STATUS_OK = 0,
-	BT_CONNECTION_STATUS_INVALID = -22,
-	BT_CONNECTION_STATUS_ERROR = -1,
-	BT_CONNECTION_STATUS_NOMEM = -12,
-	BT_CONNECTION_STATUS_IS_ENDED = 104,
-};
-
-/* Returns the "downstream" input port. */
-extern struct bt_port *bt_connection_get_downstream_port(
+extern struct bt_port_input *bt_connection_borrow_downstream_port(
 		struct bt_connection *connection);
-/* Returns the "upstream" output port. */
-extern struct bt_port *bt_connection_get_upstream_port(
+
+extern struct bt_port_output *bt_connection_borrow_upstream_port(
 		struct bt_connection *connection);
 
 extern bt_bool bt_connection_is_ended(struct bt_connection *connection);

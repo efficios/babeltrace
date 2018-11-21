@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 struct bt_notification;
-struct bt_private_connection_private_notification_iterator;
+struct bt_self_notification_iterator;
 struct bt_clock_value;
 struct bt_stream;
 

@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_FIELD_PATH_INTERNAL
 
 /*
- * BabelTrace - CTF writer: Field path
- *
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

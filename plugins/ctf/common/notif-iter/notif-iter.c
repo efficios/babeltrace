@@ -103,7 +103,7 @@ struct bt_notif_iter {
 	struct stack *stack;
 
 	/* Current notification iterator to create notifications (weak) */
-	struct bt_private_connection_private_notification_iterator *notif_iter;
+	struct bt_self_notification_iterator *notif_iter;
 
 	/*
 	 * Current dynamic scope field pointer.
@@ -1693,12 +1693,13 @@ struct bt_private_field *borrow_next_field(struct bt_notif_iter *notit)
 	base_fc = bt_private_field_borrow_class(base_field);
 	BT_ASSERT(base_fc);
 
-	switch (bt_field_class_get_type(bt_field_class_borrow_from_private(base_fc))) {
+	switch (bt_field_class_get_type(
+		bt_private_field_class_borrow_field_class(base_fc))) {
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 	{
 		BT_ASSERT(index <
 			bt_field_class_structure_get_member_count(
-				bt_field_class_borrow_from_private(
+				bt_private_field_class_borrow_field_class(
 					bt_private_field_borrow_class(
 						base_field))));
 		next_field =
@@ -1709,7 +1710,7 @@ struct bt_private_field *borrow_next_field(struct bt_notif_iter *notit)
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		BT_ASSERT(index < bt_field_array_get_length(
-			bt_field_borrow_from_private(base_field)));
+			bt_private_field_borrow_field(base_field)));
 		next_field = bt_private_field_array_borrow_element_field_by_index(
 			base_field, index);
 		break;
@@ -1845,9 +1846,9 @@ update_def_clock:
 	BT_ASSERT(field);
 	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
-		bt_field_borrow_from_private(field)) ==
+		bt_private_field_borrow_field(field)) ==
 		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
-		bt_field_get_class_type(bt_field_borrow_from_private(field)) ==
+		bt_field_get_class_type(bt_private_field_borrow_field(field)) ==
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
 	bt_private_field_unsigned_integer_set_value(field, value);
 	stack_top(notit->stack)->index++;
@@ -1890,7 +1891,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 
 	string_field = stack_top(notit->stack)->base;
 	BT_ASSERT(bt_field_get_class_type(
-		bt_field_borrow_from_private(string_field)) ==
+		bt_private_field_borrow_field(string_field)) ==
 		BT_FIELD_CLASS_TYPE_STRING);
 
 	/* Append character */
@@ -1936,9 +1937,9 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 	BT_ASSERT(field);
 	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
-		bt_field_borrow_from_private(field)) ==
+		bt_private_field_borrow_field(field)) ==
 		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
-		bt_field_get_class_type(bt_field_borrow_from_private(field)) ==
+		bt_field_get_class_type(bt_private_field_borrow_field(field)) ==
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
 	bt_private_field_signed_integer_set_value(field, value);
 	stack_top(notit->stack)->index++;
@@ -1964,7 +1965,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 	BT_ASSERT(field);
 	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
-		bt_field_borrow_from_private(field)) ==
+		bt_private_field_borrow_field(field)) ==
 		BT_FIELD_CLASS_TYPE_REAL);
 	bt_private_field_real_set_value(field, value);
 	stack_top(notit->stack)->index++;
@@ -1989,7 +1990,7 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 	BT_ASSERT(field);
 	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
-		bt_field_borrow_from_private(field)) ==
+		bt_private_field_borrow_field(field)) ==
 		BT_FIELD_CLASS_TYPE_STRING);
 	ret = bt_private_field_string_clear(field);
 	BT_ASSERT(ret == 0);
@@ -2096,7 +2097,7 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 			int ret;
 
 			BT_ASSERT(bt_field_get_class_type(
-				bt_field_borrow_from_private(field)) ==
+				bt_private_field_borrow_field(field)) ==
 				BT_FIELD_CLASS_TYPE_STRING);
 			notit->done_filling_string = false;
 			ret = bt_private_field_string_clear(field);
@@ -2138,7 +2139,7 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 
 		if (array_fc->is_text) {
 			BT_ASSERT(bt_field_get_class_type(
-				bt_field_borrow_from_private(
+				bt_private_field_borrow_field(
 					stack_top(notit->stack)->base)) ==
 				BT_FIELD_CLASS_TYPE_STRING);
 			bt_bfcr_set_unsigned_int_cb(notit->bfcr,
@@ -2266,7 +2267,7 @@ void set_event_default_clock_value(struct bt_notif_iter *notit)
 	struct bt_private_event *event =
 		bt_private_notification_event_borrow_event(
 			notit->event_notif);
-	struct bt_stream_class *sc = bt_stream_class_borrow_from_private(
+	struct bt_stream_class *sc = bt_private_stream_class_borrow_stream_class(
 		notit->meta.sc->ir_sc);
 
 	BT_ASSERT(event);
@@ -2346,7 +2347,7 @@ void notify_new_packet(struct bt_notif_iter *notit,
 	}
 
 	BT_ASSERT(notit->packet);
-	sc = bt_stream_class_borrow_from_private(notit->meta.sc->ir_sc);
+	sc = bt_private_stream_class_borrow_stream_class(notit->meta.sc->ir_sc);
 	BT_ASSERT(sc);
 
 	if (bt_stream_class_packets_have_discarded_event_counter_snapshot(sc)) {
@@ -2558,7 +2559,7 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *notif_iter,
 		struct bt_private_notification **notification)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;

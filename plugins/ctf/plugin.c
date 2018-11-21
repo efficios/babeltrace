@@ -28,8 +28,6 @@
 
 #include <babeltrace/babeltrace.h>
 #include "fs-src/fs.h"
-#include "fs-sink/writer.h"
-#include "lttng-live/lttng-live-internal.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
 BT_PLUGIN_MODULE();

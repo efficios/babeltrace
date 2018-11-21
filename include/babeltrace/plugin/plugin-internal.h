@@ -2,8 +2,6 @@
 #define BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H
 
 /*
- * BabelTrace - Plug-in Internal
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -28,9 +26,12 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/plugin/plugin.h>
 #include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/plugin/plugin-so-internal.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
 #include <glib.h>
@@ -43,10 +44,11 @@ enum bt_plugin_type {
 struct bt_plugin {
 	struct bt_object base;
 	enum bt_plugin_type type;
-	bt_bool frozen;
 
-	/* Array of pointers to bt_component_class (owned by this) */
-	GPtrArray *comp_classes;
+	/* Arrays of `struct bt_component_class *` (owned by this) */
+	GPtrArray *src_comp_classes;
+	GPtrArray *flt_comp_classes;
+	GPtrArray *sink_comp_classes;
 
 	/* Info (owned by this) */
 	struct {
@@ -61,12 +63,12 @@ struct bt_plugin {
 			unsigned int patch;
 			GString *extra;
 		} version;
-		bt_bool path_set;
-		bt_bool name_set;
-		bt_bool author_set;
-		bt_bool license_set;
-		bt_bool description_set;
-		bt_bool version_set;
+		bool path_set;
+		bool name_set;
+		bool author_set;
+		bool license_set;
+		bool description_set;
+		bool version_set;
 	} info;
 
 	/* Value depends on the specific plugin type */
@@ -116,16 +118,25 @@ void bt_plugin_destroy(struct bt_object *obj)
 
 	BT_ASSERT(obj);
 	plugin = container_of(obj, struct bt_plugin, base);
-	BT_LOGD("Destroying plugin object: addr=%p, name=\"%s\"",
-		plugin, plugin->info.name ? plugin->info.name->str : NULL);
+	BT_LIB_LOGD("Destroying plugin object: %!+l", plugin);
 
 	if (plugin->destroy_spec_data) {
 		plugin->destroy_spec_data(plugin);
 	}
 
-	if (plugin->comp_classes) {
-		BT_LOGD_STR("Putting component classes.");
-		g_ptr_array_free(plugin->comp_classes, TRUE);
+	if (plugin->src_comp_classes) {
+		BT_LOGD_STR("Putting source component classes.");
+		g_ptr_array_free(plugin->src_comp_classes, TRUE);
+	}
+
+	if (plugin->flt_comp_classes) {
+		BT_LOGD_STR("Putting filter component classes.");
+		g_ptr_array_free(plugin->flt_comp_classes, TRUE);
+	}
+
+	if (plugin->sink_comp_classes) {
+		BT_LOGD_STR("Putting sink component classes.");
+		g_ptr_array_free(plugin->sink_comp_classes, TRUE);
 	}
 
 	if (plugin->info.name) {
@@ -172,10 +183,27 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 	bt_object_init_shared(&plugin->base, bt_plugin_destroy);
 	plugin->type = type;
 
-	/* Create empty array of component classes */
-	plugin->comp_classes =
-		g_ptr_array_new_with_free_func((GDestroyNotify) bt_object_put_ref);
-	if (!plugin->comp_classes) {
+	/* Create empty arrays of component classes */
+	plugin->src_comp_classes =
+		g_ptr_array_new_with_free_func(
+			(GDestroyNotify) bt_object_put_ref);
+	if (!plugin->src_comp_classes) {
+		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		goto error;
+	}
+
+	plugin->flt_comp_classes =
+		g_ptr_array_new_with_free_func(
+			(GDestroyNotify) bt_object_put_ref);
+	if (!plugin->flt_comp_classes) {
+		BT_LOGE_STR("Failed to allocate a GPtrArray.");
+		goto error;
+	}
+
+	plugin->sink_comp_classes =
+		g_ptr_array_new_with_free_func(
+			(GDestroyNotify) bt_object_put_ref);
+	if (!plugin->sink_comp_classes) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		goto error;
 	}
@@ -217,8 +245,7 @@ struct bt_plugin *bt_plugin_create_empty(enum bt_plugin_type type)
 		goto error;
 	}
 
-	BT_LOGD("Created empty plugin object: type=%s, addr=%p",
-		bt_plugin_type_string(type), plugin);
+	BT_LIB_LOGD("Created empty plugin object: %!+l", plugin);
 	goto end;
 
 error:
@@ -235,8 +262,8 @@ void bt_plugin_set_path(struct bt_plugin *plugin, const char *path)
 	BT_ASSERT(path);
 	g_string_assign(plugin->info.path, path);
 	plugin->info.path_set = BT_TRUE;
-	BT_LOGV("Set plugin's path: addr=%p, name=\"%s\", path=\"%s\"",
-		plugin, bt_plugin_get_name(plugin), path);
+	BT_LIB_LOGV("Set plugin's path: %![plugin-]+l, path=\"%s\"",
+		plugin, path);
 }
 
 static inline
@@ -246,7 +273,7 @@ void bt_plugin_set_name(struct bt_plugin *plugin, const char *name)
 	BT_ASSERT(name);
 	g_string_assign(plugin->info.name, name);
 	plugin->info.name_set = BT_TRUE;
-	BT_LOGV("Set plugin's name: addr=%p, name=\"%s\"",
+	BT_LIB_LOGV("Set plugin's name: %![plugin-]+l, name=\"%s\"",
 		plugin, name);
 }
 
@@ -258,8 +285,7 @@ void bt_plugin_set_description(struct bt_plugin *plugin,
 	BT_ASSERT(description);
 	g_string_assign(plugin->info.description, description);
 	plugin->info.description_set = BT_TRUE;
-	BT_LOGV("Set plugin's description: addr=%p, name=\"%s\"",
-		plugin, bt_plugin_get_name(plugin));
+	BT_LIB_LOGV("Set plugin's description: %![plugin-]+l", plugin);
 }
 
 static inline
@@ -269,8 +295,8 @@ void bt_plugin_set_author(struct bt_plugin *plugin, const char *author)
 	BT_ASSERT(author);
 	g_string_assign(plugin->info.author, author);
 	plugin->info.author_set = BT_TRUE;
-	BT_LOGV("Set plugin's author: addr=%p, name=\"%s\", author=\"%s\"",
-		plugin, bt_plugin_get_name(plugin), author);
+	BT_LIB_LOGV("Set plugin's author: %![plugin-]+l, author=\"%s\"",
+		plugin, author);
 }
 
 static inline
@@ -280,8 +306,8 @@ void bt_plugin_set_license(struct bt_plugin *plugin, const char *license)
 	BT_ASSERT(license);
 	g_string_assign(plugin->info.license, license);
 	plugin->info.license_set = BT_TRUE;
-	BT_LOGV("Set plugin's path: addr=%p, name=\"%s\", license=\"%s\"",
-		plugin, bt_plugin_get_name(plugin), license);
+	BT_LIB_LOGV("Set plugin's path: %![plugin-]+l, license=\"%s\"",
+		plugin, license);
 }
 
 static inline
@@ -298,25 +324,45 @@ void bt_plugin_set_version(struct bt_plugin *plugin, unsigned int major,
 	}
 
 	plugin->info.version_set = BT_TRUE;
-	BT_LOGV("Set plugin's version: addr=%p, name=\"%s\", "
+	BT_LIB_LOGV("Set plugin's version: %![plugin-]+l, "
 		"major=%u, minor=%u, patch=%u, extra=\"%s\"",
-		plugin, bt_plugin_get_name(plugin),
-		major, minor, patch, extra);
+		plugin, major, minor, patch, extra);
 }
 
 static inline
-void bt_plugin_freeze(struct bt_plugin *plugin)
+enum bt_plugin_status bt_plugin_add_component_class(
+	struct bt_plugin *plugin, struct bt_component_class *comp_class)
 {
-	BT_ASSERT(plugin);
+	GPtrArray *comp_classes;
 
-	if (plugin->frozen) {
-		return;
+	BT_ASSERT(plugin);
+	BT_ASSERT(comp_class);
+
+	switch (comp_class->type) {
+	case BT_COMPONENT_CLASS_TYPE_SOURCE:
+		comp_classes = plugin->src_comp_classes;
+		break;
+	case BT_COMPONENT_CLASS_TYPE_FILTER:
+		comp_classes = plugin->flt_comp_classes;
+		break;
+	case BT_COMPONENT_CLASS_TYPE_SINK:
+		comp_classes = plugin->sink_comp_classes;
+		break;
+	default:
+		abort();
 	}
 
-	BT_LOGD("Freezing plugin: addr=%p, name=\"%s\", path=\"%s\"",
-		plugin, bt_plugin_get_name(plugin),
-		bt_plugin_get_path(plugin));
-	plugin->frozen = BT_TRUE;
+	/* Add new component class */
+	g_ptr_array_add(comp_classes, bt_object_get_ref(comp_class));
+
+	/* Special case for a shared object plugin */
+	if (plugin->type == BT_PLUGIN_TYPE_SO) {
+		bt_plugin_so_on_add_component_class(plugin, comp_class);
+	}
+
+	BT_LIB_LOGD("Added component class to plugin: "
+		"%![plugin-]+l, %![cc-]+C", plugin, comp_class);
+	return BT_PLUGIN_STATUS_OK;
 }
 
 static
@@ -372,11 +418,9 @@ void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 	BT_ASSERT(plugin_set);
 	BT_ASSERT(plugin);
 	g_ptr_array_add(plugin_set->plugins, bt_object_get_ref(plugin));
-	BT_LOGV("Added plugin to plugin set: "
-		"plugin-set-addr=%p, plugin-addr=%p, plugin-name=\"%s\", "
-		"plugin-path=\"%s\"",
-		plugin_set, plugin, bt_plugin_get_name(plugin),
-		bt_plugin_get_path(plugin));
+	BT_LIB_LOGV("Added plugin to plugin set: "
+		"plugin-set-addr=%p, %![plugin-]+l",
+		plugin_set, plugin);
 }
 
 #endif /* BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H */
