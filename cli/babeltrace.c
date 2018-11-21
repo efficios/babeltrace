@@ -1,8 +1,4 @@
 /*
- * babeltrace.c
- *
- * Babeltrace Trace Converter
- *
  * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
  *
  * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
@@ -73,19 +69,20 @@ static const char* log_level_env_var_names[] = {
 };
 
 /* Application's processing graph (weak) */
-static struct bt_graph *the_graph;
+static struct bt_private_graph *the_graph;
 static struct bt_query_executor *the_query_executor;
 static bool canceled = false;
 
 GPtrArray *loaded_plugins;
 
 #ifdef __MINGW32__
+
 #include <windows.h>
 
 static
 BOOL WINAPI signal_handler(DWORD signal) {
 	if (the_graph) {
-		bt_graph_cancel(the_graph);
+		bt_private_graph_cancel(the_graph);
 	}
 
 	canceled = true;
@@ -100,7 +97,9 @@ void set_signal_handler(void)
 		BT_LOGE("Failed to set the ctrl+c handler.");
 	}
 }
+
 #else /* __MINGW32__ */
+
 static
 void signal_handler(int signum)
 {
@@ -109,7 +108,7 @@ void signal_handler(int signum)
 	}
 
 	if (the_graph) {
-		bt_graph_cancel(the_graph);
+		bt_private_graph_cancel(the_graph);
 	}
 
 	if (the_query_executor) {
@@ -133,6 +132,7 @@ void set_signal_handler(void)
 		sigaction(SIGINT, &new_action, NULL);
 	}
 }
+
 #endif /* __MINGW32__ */
 
 static
@@ -1437,7 +1437,7 @@ struct cmd_run_ctx {
 	GHashTable *components;
 
 	/* Owned by this */
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 
 	/* Weak */
 	struct bt_config *cfg;
@@ -1668,7 +1668,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			ret = 0;
 
 			ctx->connect_ports = false;
-			graph_status = bt_graph_add_component(ctx->graph,
+			graph_status = bt_private_graph_add_component(ctx->graph,
 				trimmer_class, trimmer_name,
 				bt_value_borrow_from_private(trimmer_params),
 				&trimmer);
@@ -1704,7 +1704,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		}
 
 		/* We have a winner! */
-		status = bt_graph_connect_ports(ctx->graph,
+		status = bt_private_graph_connect_ports(ctx->graph,
 			upstream_port, downstream_port, NULL);
 		BT_OBJECT_PUT_REF_AND_RESET(downstream_port);
 		switch (status) {
@@ -2020,34 +2020,34 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 		}
 	}
 
-	ctx->graph = bt_graph_create();
+	ctx->graph = bt_private_graph_create();
 	if (!ctx->graph) {
 		goto error;
 	}
 
 	the_graph = ctx->graph;
-	ret = bt_graph_add_port_added_listener(ctx->graph,
+	ret = bt_private_graph_add_port_added_listener(ctx->graph,
 		graph_port_added_listener, NULL, ctx);
 	if (ret < 0) {
 		BT_LOGE_STR("Cannot add \"port added\" listener to graph.");
 		goto error;
 	}
 
-	ret = bt_graph_add_port_removed_listener(ctx->graph,
+	ret = bt_private_graph_add_port_removed_listener(ctx->graph,
 		graph_port_removed_listener, NULL, ctx);
 	if (ret < 0) {
 		BT_LOGE_STR("Cannot add \"port removed\" listener to graph.");
 		goto error;
 	}
 
-	ret = bt_graph_add_ports_connected_listener(ctx->graph,
+	ret = bt_private_graph_add_ports_connected_listener(ctx->graph,
 		graph_ports_connected_listener, NULL, ctx);
 	if (ret < 0) {
 		BT_LOGE_STR("Cannot add \"ports connected\" listener to graph.");
 		goto error;
 	}
 
-	ret = bt_graph_add_ports_disconnected_listener(ctx->graph,
+	ret = bt_private_graph_add_ports_disconnected_listener(ctx->graph,
 		graph_ports_disconnected_listener, NULL, ctx);
 	if (ret < 0) {
 		BT_LOGE_STR("Cannot add \"ports disconnected\" listener to graph.");
@@ -2335,7 +2335,7 @@ int cmd_run_ctx_create_components_from_config_components(
 			goto error;
 		}
 
-		ret = bt_graph_add_component(ctx->graph, comp_cls,
+		ret = bt_private_graph_add_component(ctx->graph, comp_cls,
 			cfg_comp->instance_name->str,
 			bt_value_borrow_from_private(cfg_comp->params), &comp);
 		if (ret) {
@@ -2560,7 +2560,7 @@ int cmd_run(struct bt_config *cfg)
 
 	/* Run the graph */
 	while (true) {
-		enum bt_graph_status graph_status = bt_graph_run(ctx.graph);
+		enum bt_graph_status graph_status = bt_private_graph_run(ctx.graph);
 
 		/*
 		 * Reset console in case something messed with console
@@ -2569,7 +2569,7 @@ int cmd_run(struct bt_config *cfg)
 		printf("%s", bt_common_color_reset());
 		fflush(stdout);
 		fprintf(stderr, "%s", bt_common_color_reset());
-		BT_LOGV("bt_graph_run() returned: status=%s",
+		BT_LOGV("bt_private_graph_run() returned: status=%s",
 			bt_graph_status_str(graph_status));
 
 		switch (graph_status) {
@@ -2579,7 +2579,8 @@ int cmd_run(struct bt_config *cfg)
 			BT_LOGI_STR("Graph was canceled by user.");
 			goto error;
 		case BT_GRAPH_STATUS_AGAIN:
-			if (bt_graph_is_canceled(ctx.graph)) {
+			if (bt_graph_is_canceled(
+					bt_graph_borrow_from_private(ctx.graph))) {
 				BT_LOGI_STR("Graph was canceled by user.");
 				goto error;
 			}
@@ -2590,7 +2591,8 @@ int cmd_run(struct bt_config *cfg)
 					cfg->cmd_data.run.retry_duration_us);
 
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
-					if (bt_graph_is_canceled(ctx.graph)) {
+					if (bt_graph_is_canceled(
+							bt_graph_borrow_from_private(ctx.graph))) {
 						BT_LOGI_STR("Graph was canceled by user.");
 						goto error;
 					}

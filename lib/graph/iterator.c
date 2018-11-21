@@ -53,6 +53,7 @@
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <babeltrace/graph/port.h>
+#include <babeltrace/graph/private-graph.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
@@ -919,8 +920,8 @@ struct bt_notification_iterator *bt_output_port_notification_iterator_create(
 	colander_data.notifs = (void *) iterator->base.notifs->pdata;
 	colander_data.count_addr = &iterator->count;
 
-	graph_status = bt_graph_add_component_with_init_method_data(
-		iterator->graph, colander_comp_cls, colander_comp_name,
+	graph_status = bt_private_graph_add_component_with_init_method_data(
+		(void *) iterator->graph, colander_comp_cls, colander_comp_name,
 		NULL, &colander_data, &iterator->colander);
 	if (graph_status != BT_GRAPH_STATUS_OK) {
 		BT_LOGW("Cannot add colander sink component to graph: "
@@ -937,7 +938,7 @@ struct bt_notification_iterator *bt_output_port_notification_iterator_create(
 	colander_in_port = bt_component_sink_get_input_port_by_index(
 		iterator->colander, 0);
 	BT_ASSERT(colander_in_port);
-	graph_status = bt_graph_connect_ports(iterator->graph,
+	graph_status = bt_private_graph_connect_ports((void *) iterator->graph,
 		output_port, colander_in_port, NULL);
 	if (graph_status != BT_GRAPH_STATUS_OK) {
 		BT_LOGW("Cannot add colander sink component to graph: "

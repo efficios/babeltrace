@@ -44,7 +44,6 @@ babeltracectfirinclude_HEADERS = \
 	babeltrace/ctf-ir/trace.h \
 	babeltrace/ctf-ir/utils.h
 
-
 # Trace IR API
 babeltracetraceirincludedir = "$(includedir)/babeltrace/trace-ir"
 babeltracetraceirinclude_HEADERS = \
@@ -107,6 +106,7 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/private-connection-notification-iterator.h \
 	babeltrace/graph/private-connection-private-notification-iterator.h \
 	babeltrace/graph/private-connection.h \
+	babeltrace/graph/private-graph.h \
 	babeltrace/graph/private-notification-event.h \
 	babeltrace/graph/private-notification-inactivity.h \
 	babeltrace/graph/private-notification-packet.h \
