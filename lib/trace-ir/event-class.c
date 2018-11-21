@@ -270,7 +270,7 @@ struct bt_stream_class *bt_event_class_borrow_stream_class(
 }
 
 struct bt_private_stream_class *
-bt_private_event_class_borrow_private_stream_class(
+bt_private_event_class_borrow_stream_class(
 		struct bt_private_event_class *event_class)
 {
 	return (void *) bt_event_class_borrow_stream_class(
@@ -285,14 +285,14 @@ struct bt_field_class *bt_event_class_borrow_specific_context_field_class(
 }
 
 struct bt_private_field_class *
-bt_private_event_class_borrow_specific_context_private_field_class(
+bt_private_event_class_borrow_specific_context_field_class(
 		struct bt_private_event_class *event_class)
 {
 	return (void *) bt_event_class_borrow_specific_context_field_class(
 		(void *) event_class);
 }
 
-int bt_private_event_class_set_specific_context_private_field_class(
+int bt_private_event_class_set_specific_context_field_class(
 		struct bt_private_event_class *priv_event_class,
 		struct bt_private_field_class *priv_field_class)
 {
@@ -349,14 +349,14 @@ struct bt_field_class *bt_event_class_borrow_payload_field_class(
 	return event_class->payload_fc;
 }
 
-struct bt_private_field_class *bt_private_event_class_borrow_payload_private_field_class(
+struct bt_private_field_class *bt_private_event_class_borrow_payload_field_class(
 		struct bt_private_event_class *event_class)
 {
 	return (void *) bt_event_class_borrow_payload_field_class(
 		(void *) event_class);
 }
 
-int bt_private_event_class_set_payload_private_field_class(
+int bt_private_event_class_set_payload_field_class(
 		struct bt_private_event_class *priv_event_class,
 		struct bt_private_field_class *priv_field_class)
 {

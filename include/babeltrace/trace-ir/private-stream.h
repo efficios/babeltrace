@@ -47,7 +47,7 @@ extern struct bt_private_stream *bt_private_stream_create(
 extern struct bt_private_stream *bt_private_stream_create_with_id(
 		struct bt_private_stream_class *stream_class, uint64_t id);
 
-extern struct bt_private_stream_class *bt_private_stream_borrow_private_class(
+extern struct bt_private_stream_class *bt_private_stream_borrow_class(
 		struct bt_private_stream *stream);
 
 extern int bt_private_stream_set_name(struct bt_private_stream *stream,

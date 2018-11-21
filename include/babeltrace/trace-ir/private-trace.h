@@ -65,40 +65,40 @@ extern int bt_private_trace_set_name(struct bt_private_trace *trace,
 extern int bt_private_trace_set_uuid(struct bt_private_trace *trace,
 		bt_uuid uuid);
 
-extern void bt_private_trace_borrow_private_environment_entry_by_index(
+extern void bt_private_trace_borrow_environment_entry_by_index(
 		struct bt_private_trace *trace, uint64_t index,
 		const char **name, struct bt_private_value **value);
 
 extern struct bt_private_value *
-bt_private_trace_borrow_private_environment_entry_value_by_name(
+bt_private_trace_borrow_environment_entry_value_by_name(
 		struct bt_private_trace *trace, const char *name);
 
-extern int bt_private_trace_set_private_environment_entry_integer(
+extern int bt_private_trace_set_environment_entry_integer(
 		struct bt_private_trace *trace, const char *name,
 		int64_t value);
 
-extern int bt_private_trace_set_private_environment_entry_string(
+extern int bt_private_trace_set_environment_entry_string(
 		struct bt_private_trace *trace, const char *name,
 		const char *value);
 
 extern struct bt_private_field_class *
-bt_private_trace_borrow_packet_header_private_field_class(
+bt_private_trace_borrow_packet_header_field_class(
 		struct bt_private_trace *trace);
 
-extern int bt_private_trace_set_packet_header_private_field_class(
+extern int bt_private_trace_set_packet_header_field_class(
 		struct bt_private_trace *trace,
 		struct bt_private_field_class *packet_header_field_class);
 
 extern struct bt_private_stream_class *
-bt_private_trace_borrow_private_stream_class_by_index(
+bt_private_trace_borrow_stream_class_by_index(
 		struct bt_private_trace *trace, uint64_t index);
 
 extern struct bt_private_stream_class *
-bt_private_trace_borrow_private_stream_class_by_id(
+bt_private_trace_borrow_stream_class_by_id(
 		struct bt_private_trace *trace, uint64_t id);
 
 extern struct bt_private_stream *
-bt_private_trace_borrow_private_stream_by_index(
+bt_private_trace_borrow_stream_by_index(
 		struct bt_private_trace *trace, uint64_t index);
 
 extern struct bt_private_stream *bt_private_trace_borrow_stream_by_id(

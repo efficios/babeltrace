@@ -495,7 +495,7 @@ enum bt_component_status src_init(
 {
 	int ret;
 
-	ret = bt_private_component_source_add_output_private_port(
+	ret = bt_private_component_source_add_output_port(
 		private_component, "out", NULL, NULL);
 	BT_ASSERT(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
@@ -647,7 +647,7 @@ enum bt_component_status sink_port_connected(
 		struct bt_port *other_port)
 {
 	struct bt_private_connection *priv_conn =
-		bt_private_port_get_private_connection(self_private_port);
+		bt_private_port_get_connection(self_private_port);
 	struct sink_user_data *user_data = bt_private_component_get_user_data(
 		private_component);
 	enum bt_connection_status conn_status;
@@ -673,7 +673,7 @@ enum bt_component_status sink_init(
 	ret = bt_private_component_set_user_data(private_component,
 		user_data);
 	BT_ASSERT(ret == 0);
-	ret = bt_private_component_sink_add_input_private_port(
+	ret = bt_private_component_sink_add_input_port(
 		private_component, "in", NULL, NULL);
 	BT_ASSERT(ret == 0);
 	return BT_COMPONENT_STATUS_OK;

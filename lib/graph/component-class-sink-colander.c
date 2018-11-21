@@ -69,7 +69,7 @@ enum bt_component_status colander_init(
 
 	colander_data->notifs = user_provided_data->notifs;
 	colander_data->count_addr = user_provided_data->count_addr;
-	status = bt_private_component_sink_add_input_private_port(
+	status = bt_private_component_sink_add_input_port(
 		priv_comp, "in", NULL, NULL);
 	if (status != BT_COMPONENT_STATUS_OK) {
 		BT_LOGE_STR("Cannot add input port.");
@@ -107,7 +107,7 @@ enum bt_component_status colander_port_connected(struct bt_private_component *pr
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
 	enum bt_connection_status conn_status;
 	struct bt_private_connection *priv_conn =
-		bt_private_port_get_private_connection(self_priv_port);
+		bt_private_port_get_connection(self_priv_port);
 	struct colander_data *colander_data =
 		bt_private_component_get_user_data(priv_comp);
 

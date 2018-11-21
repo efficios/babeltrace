@@ -35,10 +35,10 @@ struct bt_private_connection;
 struct bt_port *bt_port_borrow_from_private(
 		struct bt_private_port *private_port);
 
-extern struct bt_private_connection *bt_private_port_get_private_connection(
+extern struct bt_private_connection *bt_private_port_get_connection(
 		struct bt_private_port *private_port);
 
-extern struct bt_private_component *bt_private_port_get_private_component(
+extern struct bt_private_component *bt_private_port_get_component(
 		struct bt_private_port *private_port);
 
 extern enum bt_port_status bt_private_port_remove_from_component(

@@ -39,7 +39,7 @@ struct bt_private_event_header_field *bt_private_event_header_field_create(
 		struct bt_private_stream_class *stream_class);
 
 extern
-struct bt_private_field *bt_private_event_header_field_borrow_private_field(
+struct bt_private_field *bt_private_event_header_field_borrow_field(
 		struct bt_private_event_header_field *field);
 
 extern

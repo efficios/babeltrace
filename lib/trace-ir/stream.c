@@ -177,7 +177,7 @@ struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 	return stream->class;
 }
 
-struct bt_private_stream_class *bt_private_stream_borrow_private_class(
+struct bt_private_stream_class *bt_private_stream_borrow_class(
 		struct bt_private_stream *priv_stream)
 {
 	return (void *) bt_stream_borrow_class((void *) priv_stream);

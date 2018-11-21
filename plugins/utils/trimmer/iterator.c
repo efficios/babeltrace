@@ -84,10 +84,10 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	}
 
 	/* Create a new iterator on the upstream component. */
-	input_port = bt_private_component_filter_get_input_private_port_by_name(
+	input_port = bt_private_component_filter_get_input_port_by_name(
 		component, "in");
 	BT_ASSERT(input_port);
-	connection = bt_private_port_get_private_connection(input_port);
+	connection = bt_private_port_get_connection(input_port);
 	BT_ASSERT(connection);
 
 	conn_status = bt_private_connection_create_notification_iterator(connection,

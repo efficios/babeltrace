@@ -278,7 +278,7 @@ int set_environment_entry(struct bt_trace *trace, const char *name,
 	return ret;
 }
 
-int bt_private_trace_set_private_environment_entry_string(
+int bt_private_trace_set_environment_entry_string(
 		struct bt_private_trace *priv_trace,
 		const char *name, const char *value)
 {
@@ -304,7 +304,7 @@ end:
 	return ret;
 }
 
-int bt_private_trace_set_private_environment_entry_integer(
+int bt_private_trace_set_environment_entry_integer(
 		struct bt_private_trace *priv_trace,
 		const char *name, int64_t value)
 {
@@ -355,7 +355,7 @@ void bt_trace_borrow_environment_entry_by_index(
 	BT_ASSERT(*name);
 }
 
-void bt_private_trace_borrow_private_environment_entry_by_index(
+void bt_private_trace_borrow_environment_entry_by_index(
 		struct bt_private_trace *trace, uint64_t index,
 		const char **name, struct bt_private_value **value)
 {
@@ -374,7 +374,7 @@ struct bt_value *bt_trace_borrow_environment_entry_value_by_name(
 }
 
 struct bt_private_value *
-bt_private_trace_borrow_private_environment_entry_value_by_name(
+bt_private_trace_borrow_environment_entry_value_by_name(
 		struct bt_private_trace *trace, const char *name)
 {
 	return (void *) bt_trace_borrow_environment_entry_value_by_name(
@@ -395,7 +395,7 @@ struct bt_stream *bt_trace_borrow_stream_by_index(
 	return g_ptr_array_index(trace->streams, index);
 }
 
-struct bt_private_stream *bt_private_trace_borrow_private_stream_by_index(
+struct bt_private_stream *bt_private_trace_borrow_stream_by_index(
 		struct bt_private_trace *trace, uint64_t index)
 {
 	return (void *) bt_trace_borrow_stream_by_index((void *) trace, index);
@@ -444,7 +444,7 @@ struct bt_stream_class *bt_trace_borrow_stream_class_by_index(
 }
 
 struct bt_private_stream_class *
-bt_private_trace_borrow_private_stream_class_by_index(
+bt_private_trace_borrow_stream_class_by_index(
 		struct bt_private_trace *trace, uint64_t index)
 {
 	return (void *) bt_trace_borrow_stream_class_by_index(
@@ -474,7 +474,7 @@ end:
 }
 
 struct bt_private_stream_class *
-bt_private_trace_borrow_private_stream_class_by_id(
+bt_private_trace_borrow_stream_class_by_id(
 		struct bt_private_trace *trace, uint64_t id)
 {
 	return (void *) bt_trace_borrow_stream_class_by_id((void *) trace, id);
@@ -487,7 +487,7 @@ struct bt_field_class *bt_trace_borrow_packet_header_field_class(
 	return trace->packet_header_fc;
 }
 
-int bt_private_trace_set_packet_header_private_field_class(
+int bt_private_trace_set_packet_header_field_class(
 		struct bt_private_trace *priv_trace,
 		struct bt_private_field_class *priv_field_class)
 {

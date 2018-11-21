@@ -202,7 +202,7 @@ struct bt_event *bt_notification_event_borrow_event(
 	return event_notification->event;
 }
 
-struct bt_private_event *bt_private_notification_event_borrow_private_event(
+struct bt_private_event *bt_private_notification_event_borrow_event(
 		struct bt_private_notification *notification)
 {
 	return (void *) bt_notification_event_borrow_event(

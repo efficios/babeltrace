@@ -210,7 +210,7 @@ void writer_component_port_connected(
 	writer = bt_private_component_get_user_data(component);
 	BT_ASSERT(writer);
 	BT_ASSERT(!writer->input_iterator);
-	connection = bt_private_port_get_private_connection(self_port);
+	connection = bt_private_port_get_connection(self_port);
 	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, &writer->input_iterator);
@@ -305,7 +305,7 @@ enum bt_component_status writer_component_init(
 		goto end;
 	}
 
-	ret = bt_private_component_sink_add_input_private_port(component,
+	ret = bt_private_component_sink_add_input_port(component,
 		"in", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;

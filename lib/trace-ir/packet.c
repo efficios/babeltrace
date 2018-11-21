@@ -50,7 +50,7 @@ struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 	return packet->stream;
 }
 
-struct bt_private_stream *bt_private_packet_borrow_private_stream(
+struct bt_private_stream *bt_private_packet_borrow_stream(
 		struct bt_private_packet *packet)
 {
 	return (void *) bt_packet_borrow_stream((void *) packet);
@@ -62,7 +62,7 @@ struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet)
 	return packet->header_field ? packet->header_field->field : NULL;
 }
 
-struct bt_private_field *bt_private_packet_borrow_header_private_field(
+struct bt_private_field *bt_private_packet_borrow_header_field(
 		struct bt_private_packet *packet)
 {
 	return (void *) bt_packet_borrow_header_field((void *) packet);
@@ -74,7 +74,7 @@ struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
 	return packet->context_field ? packet->context_field->field : NULL;
 }
 
-struct bt_private_field *bt_private_packet_borrow_context_private_field(
+struct bt_private_field *bt_private_packet_borrow_context_field(
 		struct bt_private_packet *packet)
 {
 	return (void *) bt_packet_borrow_context_field((void *) packet);
@@ -342,7 +342,7 @@ end:
 	return (void *) packet;
 }
 
-int bt_private_packet_move_private_header_field(
+int bt_private_packet_move_header_field(
 		struct bt_private_packet *priv_packet,
 		struct bt_private_packet_header_field *header_field)
 {
@@ -372,7 +372,7 @@ int bt_private_packet_move_private_header_field(
 	return 0;
 }
 
-int bt_private_packet_move_private_context_field(
+int bt_private_packet_move_context_field(
 		struct bt_private_packet *priv_packet,
 		struct bt_private_packet_context_field *context_field)
 {

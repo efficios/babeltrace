@@ -164,7 +164,7 @@ enum bt_component_status pretty_port_connected(
 	pretty = bt_private_component_get_user_data(component);
 	BT_ASSERT(pretty);
 	BT_ASSERT(!pretty->input_iterator);
-	connection = bt_private_port_get_private_connection(self_port);
+	connection = bt_private_port_get_connection(self_port);
 	BT_ASSERT(connection);
 	conn_status = bt_private_connection_create_notification_iterator(
 		connection, &pretty->input_iterator);
@@ -716,7 +716,7 @@ enum bt_component_status pretty_init(
 		goto end;
 	}
 
-	ret = bt_private_component_sink_add_input_private_port(component,
+	ret = bt_private_component_sink_add_input_port(component,
 		"in", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;

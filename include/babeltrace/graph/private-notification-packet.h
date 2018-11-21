@@ -44,11 +44,11 @@ struct bt_private_notification *bt_private_notification_packet_end_create(
 		struct bt_private_packet *packet);
 
 extern struct bt_private_packet *
-bt_private_notification_packet_begin_borrow_private_packet(
+bt_private_notification_packet_begin_borrow_packet(
 		struct bt_private_notification *notification);
 
 extern struct bt_private_packet *
-bt_private_notification_packet_end_borrow_private_packet(
+bt_private_notification_packet_end_borrow_packet(
 		struct bt_private_notification *notification);
 
 #ifdef __cplusplus
