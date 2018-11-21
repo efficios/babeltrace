@@ -1,8 +1,4 @@
 /*
- * trace.c
- *
- * Babeltrace trace IR - Trace
- *
  * Copyright 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -30,6 +26,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/trace-ir/private-trace.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/stream-internal.h>
@@ -59,8 +56,8 @@
 #include <stdlib.h>
 
 struct bt_trace_is_static_listener_elem {
-	bt_trace_is_static_listener func;
-	bt_trace_listener_removed removed;
+	bt_private_trace_is_static_listener func;
+	bt_private_trace_listener_removed removed;
 	void *data;
 };
 
@@ -87,7 +84,7 @@ void destroy_trace(struct bt_object *obj)
 					struct bt_trace_is_static_listener_elem, i);
 
 			if (elem.removed) {
-				elem.removed(trace, elem.data);
+				elem.removed((void *) trace, elem.data);
 			}
 		}
 
@@ -131,7 +128,7 @@ void free_packet_header_field(struct bt_field_wrapper *field_wrapper,
 	bt_field_wrapper_destroy(field_wrapper);
 }
 
-struct bt_trace *bt_trace_create(void)
+struct bt_private_trace *bt_private_trace_create(void)
 {
 	struct bt_trace *trace = NULL;
 	int ret;
@@ -202,7 +199,7 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(trace);
 
 end:
-	return trace;
+	return (void *) trace;
 }
 
 const char *bt_trace_get_name(struct bt_trace *trace)
@@ -211,8 +208,11 @@ const char *bt_trace_get_name(struct bt_trace *trace)
 	return trace->name.value;
 }
 
-int bt_trace_set_name(struct bt_trace *trace, const char *name)
+int bt_private_trace_set_name(struct bt_private_trace *priv_trace,
+		const char *name)
 {
+	struct bt_trace *trace = (void *) priv_trace;
+
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_TRACE_HOT(trace);
@@ -228,8 +228,10 @@ bt_uuid bt_trace_get_uuid(struct bt_trace *trace)
 	return trace->uuid.value;
 }
 
-int bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
+int bt_private_trace_set_uuid(struct bt_private_trace *priv_trace, bt_uuid uuid)
 {
+	struct bt_trace *trace = (void *) priv_trace;
+
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
 	BT_ASSERT_PRE_TRACE_HOT(trace);
@@ -276,11 +278,13 @@ int set_environment_entry(struct bt_trace *trace, const char *name,
 	return ret;
 }
 
-int bt_trace_set_environment_entry_string(struct bt_trace *trace,
+int bt_private_trace_set_private_environment_entry_string(
+		struct bt_private_trace *priv_trace,
 		const char *name, const char *value)
 {
 	int ret;
 	struct bt_private_value *value_obj;
+	struct bt_trace *trace = (void *) priv_trace;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -300,11 +304,13 @@ end:
 	return ret;
 }
 
-int bt_trace_set_environment_entry_integer(
-		struct bt_trace *trace, const char *name, int64_t value)
+int bt_private_trace_set_private_environment_entry_integer(
+		struct bt_private_trace *priv_trace,
+		const char *name, int64_t value)
 {
 	int ret;
 	struct bt_private_value *value_obj;
+	struct bt_trace *trace = (void *) priv_trace;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -349,6 +355,14 @@ void bt_trace_borrow_environment_entry_by_index(
 	BT_ASSERT(*name);
 }
 
+void bt_private_trace_borrow_private_environment_entry_by_index(
+		struct bt_private_trace *trace, uint64_t index,
+		const char **name, struct bt_private_value **value)
+{
+	bt_trace_borrow_environment_entry_by_index((void *) trace,
+		index, name, (void *) value);
+}
+
 struct bt_value *bt_trace_borrow_environment_entry_value_by_name(
 		struct bt_trace *trace, const char *name)
 {
@@ -357,6 +371,14 @@ struct bt_value *bt_trace_borrow_environment_entry_value_by_name(
 	return bt_value_borrow_from_private(
 		bt_attributes_borrow_field_value_by_name(trace->environment,
 			name));
+}
+
+struct bt_private_value *
+bt_private_trace_borrow_private_environment_entry_value_by_name(
+		struct bt_private_trace *trace, const char *name)
+{
+	return (void *) bt_trace_borrow_environment_entry_value_by_name(
+		(void *) trace, name);
 }
 
 uint64_t bt_trace_get_stream_count(struct bt_trace *trace)
@@ -371,6 +393,12 @@ struct bt_stream *bt_trace_borrow_stream_by_index(
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_VALID_INDEX(index, trace->streams->len);
 	return g_ptr_array_index(trace->streams, index);
+}
+
+struct bt_private_stream *bt_private_trace_borrow_private_stream_by_index(
+		struct bt_private_trace *trace, uint64_t index)
+{
+	return (void *) bt_trace_borrow_stream_by_index((void *) trace, index);
 }
 
 struct bt_stream *bt_trace_borrow_stream_by_id(
@@ -395,6 +423,12 @@ end:
 	return stream;
 }
 
+struct bt_private_stream *bt_private_trace_borrow_private_stream_by_id(
+		struct bt_private_trace *trace, uint64_t id)
+{
+	return (void *) bt_trace_borrow_stream_by_id((void *) trace, id);
+}
+
 uint64_t bt_trace_get_stream_class_count(struct bt_trace *trace)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
@@ -407,6 +441,14 @@ struct bt_stream_class *bt_trace_borrow_stream_class_by_index(
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_VALID_INDEX(index, trace->stream_classes->len);
 	return g_ptr_array_index(trace->stream_classes, index);
+}
+
+struct bt_private_stream_class *
+bt_private_trace_borrow_private_stream_class_by_index(
+		struct bt_private_trace *trace, uint64_t index)
+{
+	return (void *) bt_trace_borrow_stream_class_by_index(
+		(void *) trace, index);
 }
 
 struct bt_stream_class *bt_trace_borrow_stream_class_by_id(
@@ -431,6 +473,13 @@ end:
 	return stream_class;
 }
 
+struct bt_private_stream_class *
+bt_private_trace_borrow_private_stream_class_by_id(
+		struct bt_private_trace *trace, uint64_t id)
+{
+	return (void *) bt_trace_borrow_stream_class_by_id((void *) trace, id);
+}
+
 struct bt_field_class *bt_trace_borrow_packet_header_field_class(
 		struct bt_trace *trace)
 {
@@ -438,10 +487,13 @@ struct bt_field_class *bt_trace_borrow_packet_header_field_class(
 	return trace->packet_header_fc;
 }
 
-int bt_trace_set_packet_header_field_class(struct bt_trace *trace,
-		struct bt_field_class *field_class)
+int bt_private_trace_set_packet_header_private_field_class(
+		struct bt_private_trace *priv_trace,
+		struct bt_private_field_class *priv_field_class)
 {
 	int ret;
+	struct bt_trace *trace = (void *) priv_trace;
+	struct bt_field_class *field_class = (void *) priv_field_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = field_class,
 		.packet_context = NULL,
@@ -479,8 +531,9 @@ bt_bool bt_trace_is_static(struct bt_trace *trace)
 	return (bt_bool) trace->is_static;
 }
 
-int bt_trace_make_static(struct bt_trace *trace)
+int bt_private_trace_make_static(struct bt_private_trace *priv_trace)
 {
+	struct bt_trace *trace = (void *) priv_trace;
 	uint64_t i;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
@@ -495,18 +548,20 @@ int bt_trace_make_static(struct bt_trace *trace)
 				struct bt_trace_is_static_listener_elem, i);
 
 		if (elem.func) {
-			elem.func(trace, elem.data);
+			elem.func((void *) trace, elem.data);
 		}
 	}
 
 	return 0;
 }
 
-int bt_trace_add_is_static_listener(struct bt_trace *trace,
-		bt_trace_is_static_listener listener,
-		bt_trace_listener_removed listener_removed, void *data,
+int bt_private_trace_add_is_static_listener(
+		struct bt_private_trace *priv_trace,
+		bt_private_trace_is_static_listener listener,
+		bt_private_trace_listener_removed listener_removed, void *data,
 		uint64_t *listener_id)
 {
+	struct bt_trace *trace = (void *) priv_trace;
 	uint64_t i;
 	struct bt_trace_is_static_listener_elem new_elem = {
 		.func = listener,
@@ -558,9 +613,10 @@ bool has_listener_id(struct bt_trace *trace, uint64_t listener_id)
 			listener_id))->func != NULL;
 }
 
-int bt_trace_remove_is_static_listener(
-		struct bt_trace *trace, uint64_t listener_id)
+int bt_private_trace_remove_is_static_listener(
+		struct bt_private_trace *priv_trace, uint64_t listener_id)
 {
+	struct bt_trace *trace = (void *) priv_trace;
 	struct bt_trace_is_static_listener_elem *elem;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
@@ -583,7 +639,7 @@ int bt_trace_remove_is_static_listener(
 			"%![trace-]+t, listener-id=%" PRIu64,
 			trace, listener_id);
 		trace->in_remove_listener = true;
-		elem->removed(trace, elem->data);
+		elem->removed((void *) trace, elem->data);
 		trace->in_remove_listener = false;
 	}
 
@@ -611,9 +667,11 @@ bt_bool bt_trace_assigns_automatic_stream_class_id(struct bt_trace *trace)
 	return (bt_bool) trace->assigns_automatic_stream_class_id;
 }
 
-int bt_trace_set_assigns_automatic_stream_class_id(
-		struct bt_trace *trace, bt_bool value)
+int bt_private_trace_set_assigns_automatic_stream_class_id(
+		struct bt_private_trace *priv_trace, bt_bool value)
 {
+	struct bt_trace *trace = (void *) priv_trace;
+
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_TRACE_HOT(trace);
 	trace->assigns_automatic_stream_class_id = (bool) value;

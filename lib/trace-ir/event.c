@@ -1,8 +1,4 @@
 /*
- * event.c
- *
- * Babeltrace trace IR - Event
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -36,6 +32,7 @@
 #include <babeltrace/trace-ir/clock-value.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
+#include <babeltrace/trace-ir/private-event.h>
 #include <babeltrace/trace-ir/event-internal.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
@@ -220,10 +217,22 @@ struct bt_field *bt_event_borrow_header_field(struct bt_event *event)
 	return event->header_field ? event->header_field->field : NULL;
 }
 
+struct bt_private_field *bt_private_event_borrow_header_private_field(
+		struct bt_private_event *event)
+{
+	return (void *) bt_event_borrow_header_field((void *) event);
+}
+
 struct bt_field *bt_event_borrow_common_context_field(struct bt_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	return event->common_context_field;
+}
+
+struct bt_private_field *bt_private_event_borrow_common_context_private_field(
+		struct bt_private_event *event)
+{
+	return (void *) bt_event_borrow_common_context_field((void *) event);
 }
 
 struct bt_field *bt_event_borrow_specific_context_field(struct bt_event *event)
@@ -232,10 +241,22 @@ struct bt_field *bt_event_borrow_specific_context_field(struct bt_event *event)
 	return event->specific_context_field;
 }
 
+struct bt_private_field *bt_private_event_borrow_specific_context_private_field(
+		struct bt_private_event *event)
+{
+	return (void *) bt_event_borrow_specific_context_field((void *) event);
+}
+
 struct bt_field *bt_event_borrow_payload_field(struct bt_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	return event->payload_field;
+}
+
+struct bt_private_field *bt_private_event_borrow_payload_private_field(
+		struct bt_private_event *event)
+{
+	return (void *) bt_event_borrow_payload_field((void *) event);
 }
 
 static
@@ -291,9 +312,10 @@ void bt_event_destroy(struct bt_event *event)
 	g_free(event);
 }
 
-int bt_event_set_default_clock_value(struct bt_event *event,
-		uint64_t value_cycles)
+int bt_private_event_set_default_clock_value(
+		struct bt_private_event *priv_event, uint64_t value_cycles)
 {
+	struct bt_event *event = (void *) priv_event;
 	struct bt_stream_class *sc;
 
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
@@ -325,11 +347,20 @@ struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
 	return event->packet;
 }
 
-int bt_event_move_header(struct bt_event *event,
-		struct bt_event_header_field *header_field)
+struct bt_private_packet *bt_private_event_borrow_packet(
+		struct bt_private_event *event)
+{
+	return (void *) bt_event_borrow_packet((void *) event);
+}
+
+int bt_private_event_move_private_header_field(
+		struct bt_private_event *priv_event,
+		struct bt_private_event_header_field *priv_header_field)
 {
 	struct bt_stream_class *stream_class;
-	struct bt_field_wrapper *field_wrapper = (void *) header_field;
+	struct bt_event *event = (void *) priv_event;
+	struct bt_event_class *event_class = (void *) event_class;
+	struct bt_field_wrapper *field_wrapper = (void *) priv_header_field;
 
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
@@ -346,4 +377,10 @@ int bt_event_move_header(struct bt_event *event,
 	/* Move new field */
 	event->header_field = field_wrapper;
 	return 0;
+}
+
+struct bt_event *bt_event_borrow_from_private(
+		struct bt_private_event *priv_event)
+{
+	return (void *) priv_event;
 }

@@ -66,7 +66,7 @@ struct ctf_field_class {
 	bool in_ir;
 
 	/* Weak, set during translation. NULL if `in_ir` is false below. */
-	struct bt_field_class *ir_fc;
+	struct bt_private_field_class *ir_fc;
 };
 
 struct ctf_field_class_bit_array {
@@ -84,7 +84,7 @@ struct ctf_field_class_int {
 	int64_t storing_index;
 
 	/* Owned by this */
-	struct bt_clock_class *mapped_clock_class;
+	struct bt_private_clock_class *mapped_clock_class;
 };
 
 struct ctf_range {
@@ -198,7 +198,7 @@ struct ctf_event_class {
 	struct ctf_field_class *payload_fc;
 
 	/* Weak, set during translation */
-	struct bt_event_class *ir_ec;
+	struct bt_private_event_class *ir_ec;
 };
 
 struct ctf_stream_class {
@@ -224,10 +224,10 @@ struct ctf_stream_class {
 	GHashTable *event_classes_by_id;
 
 	/* Owned by this */
-	struct bt_clock_class *default_clock_class;
+	struct bt_private_clock_class *default_clock_class;
 
 	/* Weak, set during translation */
-	struct bt_stream_class *ir_sc;
+	struct bt_private_stream_class *ir_sc;
 };
 
 enum ctf_trace_class_env_entry_type {
@@ -258,7 +258,7 @@ struct ctf_trace_class {
 
 	uint64_t stored_value_count;
 
-	/* Array of `struct bt_clock_class *` (owned by this) */
+	/* Array of `struct bt_private_clock_class *` (owned by this) */
 	GPtrArray *clock_classes;
 
 	/* Array of `struct ctf_stream_class *` */
@@ -270,7 +270,7 @@ struct ctf_trace_class {
 	bool is_translated;
 
 	/* Weak, set during translation */
-	struct bt_trace *ir_tc;
+	struct bt_private_trace *ir_tc;
 };
 
 static inline
@@ -1548,18 +1548,19 @@ end:
 }
 
 static inline
-struct bt_clock_class *ctf_trace_class_borrow_clock_class_by_name(
+struct bt_private_clock_class *ctf_trace_class_borrow_clock_class_by_name(
 		struct ctf_trace_class *tc, const char *name)
 {
 	uint64_t i;
-	struct bt_clock_class *ret_cc = NULL;
+	struct bt_private_clock_class *ret_cc = NULL;
 
 	BT_ASSERT(tc);
 	BT_ASSERT(name);
 
 	for (i = 0; i < tc->clock_classes->len; i++) {
-		struct bt_clock_class *cc = tc->clock_classes->pdata[i];
-		const char *cc_name = bt_clock_class_get_name(cc);
+		struct bt_private_clock_class *cc = tc->clock_classes->pdata[i];
+		const char *cc_name = bt_clock_class_get_name(
+			bt_clock_class_borrow_from_private(cc));
 
 		BT_ASSERT(cc_name);
 		if (strcmp(cc_name, name) == 0) {

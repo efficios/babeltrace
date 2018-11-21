@@ -33,6 +33,7 @@
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
 #include <babeltrace/trace-ir/field-path.h>
+#include <babeltrace/object.h>
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>

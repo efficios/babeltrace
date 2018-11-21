@@ -1,8 +1,4 @@
 /*
- * component.c
- *
- * Babeltrace Plugin Component
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -213,7 +209,7 @@ struct bt_port *bt_component_add_port(
 	/*
 	 * Notify the graph's creator that a new port was added.
 	 */
-	graph = bt_component_get_graph(component);
+	graph = bt_object_get_ref(bt_component_borrow_graph(component));
 	if (graph) {
 		bt_graph_notify_port_added(graph, new_port);
 		BT_OBJECT_PUT_REF_AND_RESET(graph);
@@ -373,9 +369,10 @@ void bt_component_set_graph(struct bt_component *component,
 		graph ? &graph->base : NULL);
 }
 
-struct bt_graph *bt_component_borrow_graph(struct bt_component *component)
+bt_bool bt_component_graph_is_canceled(struct bt_component *component)
 {
-	return (struct bt_graph *) bt_object_borrow_parent(&component->base);
+	return bt_graph_is_canceled(
+		(void *) bt_object_borrow_parent(&component->base));
 }
 
 static
@@ -508,7 +505,7 @@ void bt_component_remove_port_by_index(struct bt_component *component,
 	/*
 	 * Notify the graph's creator that a port is removed.
 	 */
-	graph = bt_component_get_graph(component);
+	graph = bt_object_get_ref(bt_component_borrow_graph(component));
 	if (graph) {
 		bt_graph_notify_port_removed(graph, component, port);
 		BT_OBJECT_PUT_REF_AND_RESET(graph);

@@ -45,6 +45,8 @@ struct bt_component_destroy_listener {
 	void *data;
 };
 
+struct bt_graph;
+
 struct bt_component {
 	struct bt_object base;
 	struct bt_component_class *class;
@@ -74,6 +76,13 @@ struct bt_private_component *bt_private_component_from_component(
 		struct bt_component *component)
 {
 	return (void *) component;
+}
+
+static inline
+struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
+{
+	BT_ASSERT(comp);
+	return (void *) bt_object_borrow_parent(&comp->base);
 }
 
 BT_HIDDEN

@@ -53,7 +53,7 @@ struct ctf_fs_metadata {
 	struct ctf_metadata_decoder *decoder;
 
 	/* Owned by this */
-	struct bt_trace *trace;
+	struct bt_private_trace *trace;
 
 	/* Weak (owned by `decoder` above) */
 	struct ctf_trace_class *tc;
@@ -111,10 +111,10 @@ struct ctf_fs_ds_file_group {
 	GPtrArray *ds_file_infos;
 
 	/* Owned by this */
-	struct bt_stream_class *stream_class;
+	struct bt_private_stream_class *stream_class;
 
 	/* Owned by this */
-	struct bt_stream *stream;
+	struct bt_private_stream *stream;
 
 	/* Stream (instance) ID; -1ULL means none */
 	uint64_t stream_id;
@@ -166,7 +166,7 @@ struct bt_component_class_query_method_return ctf_fs_query(
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
-		struct ctf_fs_metadata_config *config, struct bt_graph *graph);
+		struct ctf_fs_metadata_config *config);
 
 BT_HIDDEN
 void ctf_fs_trace_destroy(struct ctf_fs_trace *trace);

@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_FIELD_PATH_H
 
 /*
- * BabelTrace - Trace IR: Field path
- *
  * Copyright 2016-2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

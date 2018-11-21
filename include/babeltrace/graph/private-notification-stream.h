@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_NOTIFICATION_STREAM_H
-#define BABELTRACE_GRAPH_NOTIFICATION_STREAM_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_STREAM_H
+#define BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_STREAM_H
 
 /*
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -25,29 +25,42 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
+struct bt_private_notification;
 struct bt_private_connection_private_notification_iterator;
-struct bt_clock_value;
-struct bt_stream;
+struct bt_private_stream;
 
-extern struct bt_stream *bt_notification_stream_begin_borrow_stream(
-		struct bt_notification *notification);
+extern
+struct bt_private_notification *bt_private_notification_stream_begin_create(
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_private_stream *stream);
 
-extern struct bt_clock_value *bt_notification_stream_begin_borrow_default_clock_value(
-		struct bt_notification *notif);
+extern
+struct bt_private_notification *bt_private_notification_stream_end_create(
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_private_stream *stream);
 
-extern struct bt_stream *bt_notification_stream_end_borrow_stream(
-		struct bt_notification *notification);
+extern struct bt_private_stream *
+bt_private_notification_stream_begin_borrow_private_stream(
+		struct bt_private_notification *notification);
 
-extern struct bt_clock_value *bt_notification_stream_end_borrow_default_clock_value(
-		struct bt_notification *notif);
+extern int bt_private_notification_stream_begin_set_default_clock_value(
+		struct bt_private_notification *notif, uint64_t value_cycles);
+
+extern struct bt_private_stream *
+bt_private_notification_stream_end_borrow_private_stream(
+		struct bt_private_notification *notification);
+
+extern int bt_private_notification_stream_end_set_default_clock_value(
+		struct bt_private_notification *notif, uint64_t value_cycles);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_NOTIFICATION_STREAM_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_STREAM_H */

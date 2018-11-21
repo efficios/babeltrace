@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_CLOCK_VALUE_H
 
 /*
- * BabelTrace - Trace IR: Clock class
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *

@@ -50,7 +50,7 @@
 #include <glib.h>
 
 #define BT_ASSERT_PRE_EVENT_HOT(_event) \
-	BT_ASSERT_PRE_HOT((_event), "Event", ": %!+e", (_event))
+	BT_ASSERT_PRE_HOT(((struct bt_event *) (_event)), "Event", ": %!+e", (_event))
 
 struct bt_event {
 	struct bt_object base;

@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_TRACE_IR_EVENT_HEADER_FIELD_H
-#define BABELTRACE_TRACE_IR_EVENT_HEADER_FIELD_H
+#ifndef BABELTRACE_TRACE_IR_PRIVATE_STREAM_H
+#define BABELTRACE_TRACE_IR_PRIVATE_STREAM_H
 
 /*
- * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,27 +28,33 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_stream_class;
-struct bt_event_header_field;
-struct bt_field;
+struct bt_stream;
+struct bt_private_stream;
+struct bt_private_stream_class;
 
-extern
-struct bt_event_header_field *bt_event_header_field_create(
-		struct bt_stream_class *stream_class);
+extern struct bt_stream *bt_stream_borrow_from_private(
+		struct bt_private_stream *priv_stream);
 
-extern
-struct bt_field *bt_event_header_field_borrow_field(
-		struct bt_event_header_field *field);
+extern struct bt_private_stream *bt_private_stream_create(
+		struct bt_private_stream_class *stream_class);
 
-extern
-void bt_event_header_field_release(struct bt_event_header_field *field);
+extern struct bt_private_stream *bt_private_stream_create_with_id(
+		struct bt_private_stream_class *stream_class, uint64_t id);
+
+extern struct bt_private_stream_class *bt_private_stream_borrow_private_class(
+		struct bt_private_stream *stream);
+
+extern int bt_private_stream_set_name(struct bt_private_stream *stream,
+		const char *name);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_EVENT_HEADER_FIELD_H */
+#endif /* BABELTRACE_TRACE_IR_PRIVATE_STREAM_H */

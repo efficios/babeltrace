@@ -1,6 +1,4 @@
 /*
- * Babeltrace Plug-in Packet-related Notifications
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -34,8 +32,10 @@
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/graph/graph-internal.h>
+#include <babeltrace/graph/private-notification-packet.h>
 #include <babeltrace/graph/notification-packet-internal.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
+#include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object-internal.h>
@@ -65,10 +65,11 @@ end:
 	return (void *) notification;
 }
 
-struct bt_notification *bt_notification_packet_begin_create(
+struct bt_private_notification *bt_private_notification_packet_begin_create(
 		struct bt_private_connection_private_notification_iterator *notif_iter,
-		struct bt_packet *packet)
+		struct bt_private_packet *priv_packet)
 {
+	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_packet_begin *notification = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
@@ -162,6 +163,14 @@ struct bt_packet *bt_notification_packet_begin_borrow_packet(
 	return packet_begin->packet;
 }
 
+struct bt_private_packet *
+bt_private_notification_packet_begin_borrow_private_packet(
+		struct bt_private_notification *notification)
+{
+	return (void *) bt_notification_packet_begin_borrow_packet(
+		(void *) notification);
+}
+
 BT_HIDDEN
 struct bt_notification *bt_notification_packet_end_new(struct bt_graph *graph)
 {
@@ -186,10 +195,11 @@ end:
 	return (void *) notification;
 }
 
-struct bt_notification *bt_notification_packet_end_create(
+struct bt_private_notification *bt_private_notification_packet_end_create(
 		struct bt_private_connection_private_notification_iterator *notif_iter,
-		struct bt_packet *packet)
+		struct bt_private_packet *priv_packet)
 {
+	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_packet_end *notification = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
@@ -280,4 +290,11 @@ struct bt_packet *bt_notification_packet_end_borrow_packet(
 	packet_end = container_of(notification,
 			struct bt_notification_packet_end, parent);
 	return packet_end->packet;
+}
+
+struct bt_private_packet *bt_private_notification_packet_end_borrow_packet(
+		struct bt_private_notification *notification)
+{
+	return (void *) bt_notification_packet_end_borrow_packet(
+		(void *) notification);
 }

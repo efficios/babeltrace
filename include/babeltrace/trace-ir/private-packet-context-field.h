@@ -1,12 +1,8 @@
-#ifndef BABELTRACE_TRACE_IR_CLOCK_H
-#define BABELTRACE_TRACE_IR_CLOCK_H
+#ifndef BABELTRACE_TRACE_IR_PRIVATE_PACKET_CONTEXT_FIELD_H
+#define BABELTRACE_TRACE_IR_PRIVATE_PACKET_CONTEXT_FIELD_H
 
 /*
- * BabelTrace - Trace IR: Clock
- *
- * Copyright 2018 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +26,28 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/ctf-writer/clock.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif /* BABELTRACE_TRACE_IR_CLOCK_H */
+struct bt_private_stream_class;
+struct bt_private_packet_context_field;
+struct bt_private_field;
+
+extern
+struct bt_private_packet_context_field *bt_private_packet_context_field_create(
+		struct bt_private_stream_class *stream_class);
+
+extern
+struct bt_private_field *bt_private_packet_context_field_borrow_private_field(
+		struct bt_private_packet_context_field *field);
+
+extern
+void bt_private_packet_context_field_release(
+		struct bt_private_packet_context_field *field);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_TRACE_IR_PRIVATE_PACKET_CONTEXT_FIELD_H */
