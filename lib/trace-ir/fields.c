@@ -189,7 +189,7 @@ struct bt_field_class *bt_field_borrow_class(struct bt_field *field)
 	return field->class;
 }
 
-struct bt_private_field_class *bt_private_field_borrow_private_class(
+struct bt_private_field_class *bt_private_field_borrow_class(
 		struct bt_private_field *field)
 {
 	return (void *) bt_field_borrow_class((void *) field);
@@ -754,7 +754,7 @@ struct bt_field *bt_field_array_borrow_element_field_by_index(
 }
 
 struct bt_private_field *
-bt_private_field_array_borrow_element_private_field_by_index(
+bt_private_field_array_borrow_element_field_by_index(
 		struct bt_private_field *field, uint64_t index)
 {
 	return (void *) bt_field_array_borrow_element_field_by_index(
@@ -774,7 +774,7 @@ struct bt_field *bt_field_structure_borrow_member_field_by_index(
 }
 
 struct bt_private_field *
-bt_private_field_structure_borrow_member_private_field_by_index(
+bt_private_field_structure_borrow_member_field_by_index(
 		struct bt_private_field *field, uint64_t index)
 {
 	return (void *) bt_field_structure_borrow_member_field_by_index(
@@ -809,7 +809,7 @@ end:
 }
 
 struct bt_private_field *
-bt_private_field_structure_borrow_member_private_field_by_name(
+bt_private_field_structure_borrow_member_field_by_name(
 		struct bt_private_field *field, const char *name)
 {
 	return (void *) bt_field_structure_borrow_member_field_by_name(
@@ -830,14 +830,14 @@ struct bt_field *bt_field_variant_borrow_selected_option_field(
 }
 
 struct bt_private_field *
-bt_private_field_variant_borrow_selected_option_private_field(
+bt_private_field_variant_borrow_selected_option_field(
 		struct bt_private_field *field)
 {
 	return (void *) bt_field_variant_borrow_selected_option_field(
 		(void *) field);
 }
 
-int bt_private_field_variant_select_option_private_field(
+int bt_private_field_variant_select_option_field(
 		struct bt_private_field *priv_field, uint64_t index)
 {
 	struct bt_field *field = (void *) priv_field;

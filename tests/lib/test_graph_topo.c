@@ -336,7 +336,7 @@ enum bt_component_status src_port_connected(
 
 	switch (current_test) {
 	case TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED:
-		ret = bt_private_component_source_add_output_private_port(
+		ret = bt_private_component_source_add_output_port(
 			private_component, "hello", NULL, NULL);
 		BT_ASSERT(ret == 0);
 		break;
@@ -379,7 +379,7 @@ enum bt_component_status src_init(struct bt_private_component *priv_comp,
 {
 	int ret;
 
-	ret = bt_private_component_source_add_output_private_port(
+	ret = bt_private_component_source_add_output_port(
 		priv_comp, "out", NULL, NULL);
 	BT_ASSERT(ret == 0);
 	return BT_COMPONENT_STATUS_OK;
@@ -395,7 +395,7 @@ enum bt_component_status sink_consume(
 	switch (current_test) {
 	case TEST_SINK_REMOVES_PORT_IN_CONSUME:
 	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
-		def_port = bt_private_component_sink_get_input_private_port_by_name(
+		def_port = bt_private_component_sink_get_input_port_by_name(
 			priv_component, "in");
 		BT_ASSERT(def_port);
 		ret = bt_private_port_remove_from_component(def_port);
@@ -454,7 +454,7 @@ enum bt_component_status sink_init(struct bt_private_component *priv_comp,
 {
 	int ret;
 
-	ret = bt_private_component_sink_add_input_private_port(priv_comp,
+	ret = bt_private_component_sink_add_input_port(priv_comp,
 		"in", NULL, NULL);
 	BT_ASSERT(ret == 0);
 	return BT_COMPONENT_STATUS_OK;

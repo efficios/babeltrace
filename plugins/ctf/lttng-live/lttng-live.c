@@ -113,7 +113,7 @@ int lttng_live_add_port(struct lttng_live_component *lttng_live,
 	if (lttng_live_is_canceled(lttng_live)) {
 		return 0;
 	}
-	status = bt_private_component_source_add_output_private_port(
+	status = bt_private_component_source_add_output_port(
 			lttng_live->private_component, name, stream_iter,
 			&private_port);
 	switch (status) {
@@ -163,7 +163,7 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 		if (lttng_live_is_canceled(lttng_live)) {
 			return 0;
 		}
-		status = bt_private_component_source_add_output_private_port(lttng_live->private_component,
+		status = bt_private_component_source_add_output_port(lttng_live->private_component,
 				"no-stream", lttng_live->no_stream_iter,
 				&lttng_live->no_stream_port);
 		switch (status) {
@@ -1128,7 +1128,7 @@ enum bt_component_status lttng_live_component_init(
 	if (lttng_live_is_canceled(lttng_live)) {
 		goto end;
 	}
-	ret = bt_private_component_source_add_output_private_port(
+	ret = bt_private_component_source_add_output_port(
 				lttng_live->private_component, "no-stream",
 				lttng_live->no_stream_iter,
 				&lttng_live->no_stream_port);

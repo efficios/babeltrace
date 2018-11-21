@@ -44,24 +44,24 @@ extern struct bt_packet *bt_packet_borrow_from_private(
 extern struct bt_private_packet *bt_private_packet_create(
 		struct bt_private_stream *stream);
 
-extern struct bt_private_stream *bt_private_packet_borrow_private_stream(
+extern struct bt_private_stream *bt_private_packet_borrow_stream(
 		struct bt_private_packet *packet);
 
 extern
-struct bt_private_field *bt_private_packet_borrow_header_private_field(
+struct bt_private_field *bt_private_packet_borrow_header_field(
 		struct bt_private_packet *packet);
 
 extern
-int bt_private_packet_move_private_header_field(
+int bt_private_packet_move_header_field(
 		struct bt_private_packet *packet,
 		struct bt_private_packet_header_field *header);
 
 extern
-struct bt_private_field *bt_private_packet_borrow_context_private_field(
+struct bt_private_field *bt_private_packet_borrow_context_field(
 		struct bt_private_packet *packet);
 
 extern
-int bt_private_packet_move_private_context_field(
+int bt_private_packet_move_context_field(
 		struct bt_private_packet *packet,
 		struct bt_private_packet_context_field *context);
 

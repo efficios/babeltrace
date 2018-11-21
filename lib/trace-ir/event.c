@@ -217,7 +217,7 @@ struct bt_field *bt_event_borrow_header_field(struct bt_event *event)
 	return event->header_field ? event->header_field->field : NULL;
 }
 
-struct bt_private_field *bt_private_event_borrow_header_private_field(
+struct bt_private_field *bt_private_event_borrow_header_field(
 		struct bt_private_event *event)
 {
 	return (void *) bt_event_borrow_header_field((void *) event);
@@ -229,7 +229,7 @@ struct bt_field *bt_event_borrow_common_context_field(struct bt_event *event)
 	return event->common_context_field;
 }
 
-struct bt_private_field *bt_private_event_borrow_common_context_private_field(
+struct bt_private_field *bt_private_event_borrow_common_context_field(
 		struct bt_private_event *event)
 {
 	return (void *) bt_event_borrow_common_context_field((void *) event);
@@ -241,7 +241,7 @@ struct bt_field *bt_event_borrow_specific_context_field(struct bt_event *event)
 	return event->specific_context_field;
 }
 
-struct bt_private_field *bt_private_event_borrow_specific_context_private_field(
+struct bt_private_field *bt_private_event_borrow_specific_context_field(
 		struct bt_private_event *event)
 {
 	return (void *) bt_event_borrow_specific_context_field((void *) event);
@@ -253,7 +253,7 @@ struct bt_field *bt_event_borrow_payload_field(struct bt_event *event)
 	return event->payload_field;
 }
 
-struct bt_private_field *bt_private_event_borrow_payload_private_field(
+struct bt_private_field *bt_private_event_borrow_payload_field(
 		struct bt_private_event *event)
 {
 	return (void *) bt_event_borrow_payload_field((void *) event);
@@ -353,7 +353,7 @@ struct bt_private_packet *bt_private_event_borrow_packet(
 	return (void *) bt_event_borrow_packet((void *) event);
 }
 
-int bt_private_event_move_private_header_field(
+int bt_private_event_move_header_field(
 		struct bt_private_event *priv_event,
 		struct bt_private_event_header_field *priv_header_field)
 {

@@ -772,7 +772,7 @@ end:
 	return ret;
 }
 
-int bt_private_field_class_structure_append_private_member(
+int bt_private_field_class_structure_append_member(
 		struct bt_private_field_class *priv_fc,
 		const char *name, struct bt_private_field_class *member_fc)
 {
@@ -820,7 +820,7 @@ void bt_field_class_structure_borrow_member_by_index(
 		index, name, out_fc);
 }
 
-void bt_private_field_class_structure_borrow_private_member_by_index(
+void bt_private_field_class_structure_borrow_member_by_index(
 		struct bt_private_field_class *fc, uint64_t index,
 		const char **name, struct bt_private_field_class **out_fc)
 {
@@ -863,7 +863,7 @@ struct bt_field_class *bt_field_class_structure_borrow_member_field_class_by_nam
 }
 
 struct bt_private_field_class *
-bt_private_field_class_structure_borrow_member_private_field_class_by_name(
+bt_private_field_class_structure_borrow_member_field_class_by_name(
 		struct bt_private_field_class *fc, const char *name)
 {
 	return (void *) bt_field_class_structure_borrow_member_field_class_by_name(
@@ -911,7 +911,7 @@ end:
 	return (void *) var_fc;
 }
 
-int bt_private_field_class_variant_set_selector_private_field_class(
+int bt_private_field_class_variant_set_selector_field_class(
 		struct bt_private_field_class *priv_fc,
 		struct bt_private_field_class *selector_fc)
 {
@@ -950,7 +950,7 @@ struct bt_field_class *bt_field_class_variant_borrow_option_field_class_by_name(
 }
 
 struct bt_private_field_class *
-bt_private_field_class_variant_borrow_option_private_field_class_by_name(
+bt_private_field_class_variant_borrow_option_field_class_by_name(
 		struct bt_private_field_class *fc, const char *name)
 {
 	return (void *) bt_field_class_variant_borrow_option_field_class_by_name(
@@ -976,7 +976,7 @@ void bt_field_class_variant_borrow_option_by_index(
 		index, name, out_fc);
 }
 
-void bt_private_field_class_variant_borrow_private_option_by_index(
+void bt_private_field_class_variant_borrow_option_by_index(
 		struct bt_private_field_class *fc, uint64_t index,
 		const char **name, struct bt_private_field_class **out_fc)
 {
@@ -1119,7 +1119,7 @@ end:
 	return (void *) array_fc;
 }
 
-int bt_private_field_class_dynamic_array_set_length_private_field_class(
+int bt_private_field_class_dynamic_array_set_length_field_class(
 		struct bt_private_field_class *priv_fc,
 		struct bt_private_field_class *priv_length_fc)
 {

@@ -141,14 +141,14 @@ struct bt_component *bt_port_get_component(struct bt_port *port)
 	return (struct bt_component *) bt_object_get_parent(&port->base);
 }
 
-struct bt_private_connection *bt_private_port_get_private_connection(
+struct bt_private_connection *bt_private_port_get_connection(
 		struct bt_private_port *private_port)
 {
 	return bt_private_connection_from_connection(bt_port_get_connection(
 		bt_port_borrow_from_private(private_port)));
 }
 
-struct bt_private_component *bt_private_port_get_private_component(
+struct bt_private_component *bt_private_port_get_component(
 		struct bt_private_port *private_port)
 {
 	return bt_private_component_from_component(bt_port_get_component(

@@ -39,7 +39,7 @@ struct bt_private_packet_header_field *bt_private_packet_header_field_create(
 		struct bt_private_trace *trace);
 
 extern
-struct bt_private_field *bt_private_packet_header_field_borrow_private_field(
+struct bt_private_field *bt_private_packet_header_field_borrow_field(
 		struct bt_private_packet_header_field *field);
 
 extern

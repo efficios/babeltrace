@@ -258,7 +258,7 @@ struct bt_event_class *bt_stream_class_borrow_event_class_by_index(
 }
 
 struct bt_private_event_class *
-bt_private_stream_class_borrow_private_event_class_by_index(
+bt_private_stream_class_borrow_event_class_by_index(
 		struct bt_private_stream_class *stream_class, uint64_t index)
 {
 	return (void *) bt_stream_class_borrow_event_class_by_index(
@@ -288,7 +288,7 @@ end:
 }
 
 struct bt_private_event_class *
-bt_private_stream_class_borrow_private_event_class_by_id(
+bt_private_stream_class_borrow_event_class_by_id(
 		struct bt_private_stream_class *stream_class, uint64_t id)
 {
 	return (void *) bt_stream_class_borrow_event_class_by_id(
@@ -303,14 +303,14 @@ struct bt_field_class *bt_stream_class_borrow_packet_context_field_class(
 }
 
 struct bt_private_field_class *
-bt_private_stream_class_borrow_packet_context_private_field_class(
+bt_private_stream_class_borrow_packet_context_field_class(
 		struct bt_private_stream_class *stream_class)
 {
 	return (void *) bt_stream_class_borrow_packet_context_field_class(
 		(void *) stream_class);
 }
 
-int bt_private_stream_class_set_packet_context_private_field_class(
+int bt_private_stream_class_set_packet_context_field_class(
 		struct bt_private_stream_class *priv_stream_class,
 		struct bt_private_field_class *priv_field_class)
 {
@@ -359,14 +359,14 @@ struct bt_field_class *bt_stream_class_borrow_event_header_field_class(
 }
 
 struct bt_private_field_class *
-bt_private_stream_class_borrow_event_header_private_field_class(
+bt_private_stream_class_borrow_event_header_field_class(
 		struct bt_private_stream_class *stream_class)
 {
 	return (void *) bt_stream_class_borrow_event_header_field_class(
 		(void *) stream_class);
 }
 
-int bt_private_stream_class_set_event_header_private_field_class(
+int bt_private_stream_class_set_event_header_field_class(
 		struct bt_private_stream_class *priv_stream_class,
 		struct bt_private_field_class *priv_field_class)
 {
@@ -416,14 +416,14 @@ struct bt_field_class *bt_stream_class_borrow_event_common_context_field_class(
 }
 
 struct bt_private_field_class *
-bt_private_stream_class_borrow_event_common_context_private_field_class(
+bt_private_stream_class_borrow_event_common_context_field_class(
 		struct bt_private_stream_class *stream_class)
 {
 	return (void *) bt_stream_class_borrow_event_common_context_field_class(
 		(void *) stream_class);
 }
 
-int bt_private_stream_class_set_event_common_context_private_field_class(
+int bt_private_stream_class_set_event_common_context_field_class(
 		struct bt_private_stream_class *priv_stream_class,
 		struct bt_private_field_class *priv_field_class)
 {

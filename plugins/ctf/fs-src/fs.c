@@ -414,7 +414,7 @@ int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 
 	port_data->ctf_fs = ctf_fs;
 	port_data->ds_file_group = ds_file_group;
-	ret = bt_private_component_source_add_output_private_port(
+	ret = bt_private_component_source_add_output_port(
 		ctf_fs->priv_comp, port_name->str, port_data, NULL);
 	if (ret) {
 		goto error;

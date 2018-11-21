@@ -95,7 +95,7 @@ struct bt_private_field_class *create_event_payload_fc(void)
 		goto error;
 	}
 
-	ret = bt_private_field_class_structure_append_private_member(root_fc,
+	ret = bt_private_field_class_structure_append_member(root_fc,
 		"str", fc);
 	if (ret) {
 		BT_LOGE("Cannot add `str` member to structure field class: "
@@ -190,7 +190,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_private_event_class_set_payload_private_field_class(dmesg_comp->event_class, fc);
+	ret = bt_private_event_class_set_payload_field_class(dmesg_comp->event_class, fc);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event class's event payload field class.");
 		goto error;
@@ -353,7 +353,7 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 static
 enum bt_component_status create_port(struct bt_private_component *priv_comp)
 {
-	return bt_private_component_source_add_output_private_port(priv_comp,
+	return bt_private_component_source_add_output_port(priv_comp,
 		"out", NULL, NULL);
 }
 
@@ -502,7 +502,7 @@ skip_ts:
 		goto error;
 	}
 
-	event = bt_private_notification_event_borrow_private_event(notif);
+	event = bt_private_notification_event_borrow_event(notif);
 	BT_ASSERT(event);
 
 	if (dmesg_comp->clock_class) {
@@ -528,9 +528,9 @@ int fill_event_payload_from_line(const char *line,
 	size_t len;
 	int ret;
 
-	ep_field = bt_private_event_borrow_payload_private_field(event);
+	ep_field = bt_private_event_borrow_payload_field(event);
 	BT_ASSERT(ep_field);
-	str_field = bt_private_field_structure_borrow_member_private_field_by_index(
+	str_field = bt_private_field_structure_borrow_member_field_by_index(
 		ep_field, 0);
 	if (!str_field) {
 		BT_LOGE_STR("Cannot borrow `timestamp` field from event payload structure field.");
@@ -581,7 +581,7 @@ struct bt_private_notification *create_notif_from_line(
 		goto error;
 	}
 
-	event = bt_private_notification_event_borrow_private_event(notif);
+	event = bt_private_notification_event_borrow_event(notif);
 	BT_ASSERT(event);
 	ret = fill_event_payload_from_line(new_start, event);
 	if (ret) {

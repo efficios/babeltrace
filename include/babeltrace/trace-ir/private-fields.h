@@ -41,7 +41,7 @@ struct bt_private_field_class;
 extern struct bt_field *bt_field_borrow_from_private(
 		struct bt_private_field *priv_field);
 
-extern struct bt_private_field_class *bt_private_field_borrow_private_class(
+extern struct bt_private_field_class *bt_private_field_borrow_class(
 		struct bt_private_field *field);
 
 extern void bt_private_field_signed_integer_set_value(
@@ -66,28 +66,25 @@ extern int bt_private_field_string_append_with_length(
 extern int bt_private_field_string_clear(struct bt_private_field *field);
 
 extern struct bt_private_field *
-bt_private_field_structure_borrow_member_private_field_by_index(
+bt_private_field_structure_borrow_member_field_by_index(
 		struct bt_private_field *field, uint64_t index);
 
 extern struct bt_private_field *
-bt_private_field_structure_borrow_member_private_field_by_name(
+bt_private_field_structure_borrow_member_field_by_name(
 		struct bt_private_field *field, const char *name);
 
 extern struct bt_private_field *
-bt_private_field_array_borrow_element_private_field_by_index(
+bt_private_field_array_borrow_element_field_by_index(
 		struct bt_private_field *field, uint64_t index);
 
 extern int bt_private_field_dynamic_array_set_length(
 		struct bt_private_field *field, uint64_t length);
 
-extern int bt_private_field_variant_select_option_private_field(
+extern int bt_private_field_variant_select_option_field(
 		struct bt_private_field *field, uint64_t index);
 
-extern uint64_t bt_private_field_variant_get_selected_option_private_field_index(
-		struct bt_private_field *field);
-
 extern struct bt_private_field *
-bt_private_field_variant_borrow_selected_option_private_field(
+bt_private_field_variant_borrow_selected_option_field(
 		struct bt_private_field *field);
 
 #ifdef __cplusplus

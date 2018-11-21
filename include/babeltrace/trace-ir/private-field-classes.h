@@ -92,17 +92,17 @@ bt_private_field_class_string_create(void);
 extern struct bt_private_field_class *
 bt_private_field_class_structure_create(void);
 
-extern void bt_private_field_class_structure_borrow_private_member_by_index(
+extern void bt_private_field_class_structure_borrow_member_by_index(
 		struct bt_private_field_class *struct_field_class,
 		uint64_t index, const char **name,
 		struct bt_private_field_class **field_class);
 
 extern
 struct bt_private_field_class *
-bt_private_field_class_structure_borrow_member_private_field_class_by_name(
+bt_private_field_class_structure_borrow_member_field_class_by_name(
 		struct bt_private_field_class *field_class, const char *name);
 
-extern int bt_private_field_class_structure_append_private_member(
+extern int bt_private_field_class_structure_append_member(
 		struct bt_private_field_class *struct_field_class,
 		const char *name, struct bt_private_field_class *field_class);
 
@@ -116,28 +116,28 @@ bt_private_field_class_dynamic_array_create(
 		struct bt_private_field_class *elem_field_class);
 
 extern struct bt_private_field_class *
-bt_private_field_class_array_borrow_element_private_field_class(
+bt_private_field_class_array_borrow_element_field_class(
 		struct bt_private_field_class *field_class);
 
-extern int bt_private_field_class_dynamic_array_set_length_private_field_class(
+extern int bt_private_field_class_dynamic_array_set_length_field_class(
 		struct bt_private_field_class *field_class,
 		struct bt_private_field_class *length_field_class);
 
 extern struct bt_private_field_class *
 bt_private_field_class_variant_create(void);
 
-extern int bt_private_field_class_variant_set_selector_private_field_class(
+extern int bt_private_field_class_variant_set_selector_field_class(
 		struct bt_private_field_class *field_class,
 		struct bt_private_field_class *selector_field_class);
 
-extern void bt_private_field_class_variant_borrow_private_option_by_index(
+extern void bt_private_field_class_variant_borrow_option_by_index(
 		struct bt_private_field_class *variant_field_class,
 		uint64_t index, const char **name,
 		struct bt_private_field_class **field_class);
 
 extern
 struct bt_private_field_class *
-bt_private_field_class_variant_borrow_option_private_field_class_by_name(
+bt_private_field_class_variant_borrow_option_field_class_by_name(
 		struct bt_private_field_class *field_class, const char *name);
 
 extern int bt_private_field_class_variant_append_private_option(

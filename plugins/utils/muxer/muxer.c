@@ -193,7 +193,7 @@ enum bt_component_status ensure_available_input_port(
 	}
 
 	g_string_append_printf(port_name, "%u", muxer_comp->next_port_num);
-	status = bt_private_component_filter_add_input_private_port(
+	status = bt_private_component_filter_add_input_port(
 		priv_comp, port_name->str, NULL, NULL);
 	if (status != BT_COMPONENT_STATUS_OK) {
 		BT_LOGE("Cannot add input port to muxer component: "
@@ -220,7 +220,7 @@ static
 enum bt_component_status create_output_port(
 		struct bt_private_component *priv_comp)
 {
-	return bt_private_component_filter_add_output_private_port(
+	return bt_private_component_filter_add_output_port(
 		priv_comp, "out", NULL, NULL);
 }
 
@@ -421,7 +421,7 @@ struct bt_notification_iterator *create_notif_iter_on_input_port(
 	*ret = 0;
 	BT_ASSERT(port);
 	BT_ASSERT(bt_port_is_connected(port));
-	priv_conn = bt_private_port_get_private_connection(priv_port);
+	priv_conn = bt_private_port_get_connection(priv_port);
 	BT_ASSERT(priv_conn);
 
 	// TODO: Advance the iterator to >= the time of the latest
@@ -1187,7 +1187,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 
 	for (i = 0; i < count; i++) {
 		struct bt_private_port *priv_port =
-			bt_private_component_filter_get_input_private_port_by_index(
+			bt_private_component_filter_get_input_port_by_index(
 				muxer_comp->priv_comp, i);
 		struct bt_port *port;
 

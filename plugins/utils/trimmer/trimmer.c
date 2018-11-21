@@ -357,13 +357,13 @@ enum bt_component_status trimmer_component_init(
 	}
 
 	/* Create input and output ports */
-	ret = bt_private_component_filter_add_input_private_port(
+	ret = bt_private_component_filter_add_input_port(
 		component, "in", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
-	ret = bt_private_component_filter_add_output_private_port(
+	ret = bt_private_component_filter_add_output_port(
 		component, "out", NULL, NULL);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto error;

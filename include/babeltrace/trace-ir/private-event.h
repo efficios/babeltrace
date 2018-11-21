@@ -50,22 +50,22 @@ extern struct bt_private_packet *bt_private_event_borrow_packet(
 extern struct bt_private_stream *bt_private_event_borrow_stream(
 		struct bt_private_event *event);
 
-extern struct bt_private_field *bt_private_event_borrow_header_private_field(
+extern struct bt_private_field *bt_private_event_borrow_header_field(
 		struct bt_private_event *event);
 
-extern int bt_private_event_move_private_header_field(
+extern int bt_private_event_move_header_field(
 		struct bt_private_event *event,
 		struct bt_private_event_header_field *header);
 
 extern struct bt_private_field *
-bt_private_event_borrow_common_context_private_field(
+bt_private_event_borrow_common_context_field(
 		struct bt_private_event *event);
 
 extern struct bt_private_field *
-bt_private_event_borrow_specific_context_private_field(
+bt_private_event_borrow_specific_context_field(
 		struct bt_private_event *event);
 
-extern struct bt_private_field *bt_private_event_borrow_payload_private_field(
+extern struct bt_private_field *bt_private_event_borrow_payload_field(
 		struct bt_private_event *event);
 
 extern int bt_private_event_set_default_clock_value(

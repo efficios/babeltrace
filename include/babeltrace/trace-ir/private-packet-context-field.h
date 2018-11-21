@@ -39,7 +39,7 @@ struct bt_private_packet_context_field *bt_private_packet_context_field_create(
 		struct bt_private_stream_class *stream_class);
 
 extern
-struct bt_private_field *bt_private_packet_context_field_borrow_private_field(
+struct bt_private_field *bt_private_packet_context_field_borrow_field(
 		struct bt_private_packet_context_field *field);
 
 extern

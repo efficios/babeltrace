@@ -37,16 +37,16 @@ struct bt_private_component;
 struct bt_private_port;
 
 extern struct bt_private_port *
-bt_private_component_sink_get_input_private_port_by_name(
+bt_private_component_sink_get_input_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name);
 
 extern struct bt_private_port *
-bt_private_component_sink_get_input_private_port_by_index(
+bt_private_component_sink_get_input_port_by_index(
 		struct bt_private_component *private_component, uint64_t index);
 
 extern enum bt_component_status
-bt_private_component_sink_add_input_private_port(
+bt_private_component_sink_add_input_port(
 		struct bt_private_component *private_component,
 		const char *name, void *user_data,
 		struct bt_private_port **private_port);

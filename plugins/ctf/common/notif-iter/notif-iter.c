@@ -691,7 +691,7 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 		}
 
 		notit->dscopes.trace_packet_header =
-			bt_private_packet_header_field_borrow_private_field(
+			bt_private_packet_header_field_borrow_field(
 				notit->packet_header_field);
 		BT_ASSERT(notit->dscopes.trace_packet_header);
 	}
@@ -927,7 +927,7 @@ enum bt_notif_iter_status read_packet_context_begin_state(
 		}
 
 		notit->dscopes.stream_packet_context =
-			bt_private_packet_context_field_borrow_private_field(
+			bt_private_packet_context_field_borrow_field(
 				notit->packet_context_field);
 		BT_ASSERT(notit->dscopes.stream_packet_context);
 	}
@@ -1105,7 +1105,7 @@ enum bt_notif_iter_status read_event_header_begin_state(
 		}
 
 		notit->dscopes.event_header =
-			bt_private_event_header_field_borrow_private_field(
+			bt_private_event_header_field_borrow_field(
 				notit->event_header_field);
 		BT_ASSERT(notit->dscopes.event_header);
 	}
@@ -1247,7 +1247,7 @@ enum bt_notif_iter_status after_event_header_state(
 		goto end;
 	}
 
-	notit->event = bt_private_notification_event_borrow_private_event(
+	notit->event = bt_private_notification_event_borrow_event(
 		notit->event_notif);
 	BT_ASSERT(notit->event);
 
@@ -1255,7 +1255,7 @@ enum bt_notif_iter_status after_event_header_state(
 		int ret;
 
 		BT_ASSERT(notit->event);
-		ret = bt_private_event_move_private_header_field(notit->event,
+		ret = bt_private_event_move_header_field(notit->event,
 			notit->event_header_field);
 		if (ret) {
 			status = BT_NOTIF_ITER_STATUS_ERROR;
@@ -1269,7 +1269,7 @@ enum bt_notif_iter_status after_event_header_state(
 		 * the same value as the event header field within
 		 * notit->event.
 		 */
-		BT_ASSERT(bt_private_event_borrow_header_private_field(
+		BT_ASSERT(bt_private_event_borrow_header_field(
 			notit->event) == notit->dscopes.event_header);
 	}
 
@@ -1295,7 +1295,7 @@ enum bt_notif_iter_status read_event_common_context_begin_state(
 	if (event_common_context_fc->in_ir) {
 		BT_ASSERT(!notit->dscopes.event_common_context);
 		notit->dscopes.event_common_context =
-			bt_private_event_borrow_common_context_private_field(
+			bt_private_event_borrow_common_context_field(
 				notit->event);
 		BT_ASSERT(notit->dscopes.event_common_context);
 	}
@@ -1348,7 +1348,7 @@ enum bt_notif_iter_status read_event_spec_context_begin_state(
 	if (event_spec_context_fc->in_ir) {
 		BT_ASSERT(!notit->dscopes.event_spec_context);
 		notit->dscopes.event_spec_context =
-			bt_private_event_borrow_specific_context_private_field(
+			bt_private_event_borrow_specific_context_field(
 				notit->event);
 		BT_ASSERT(notit->dscopes.event_spec_context);
 	}
@@ -1404,7 +1404,7 @@ enum bt_notif_iter_status read_event_payload_begin_state(
 	if (event_payload_fc->in_ir) {
 		BT_ASSERT(!notit->dscopes.event_payload);
 		notit->dscopes.event_payload =
-			bt_private_event_borrow_payload_private_field(
+			bt_private_event_borrow_payload_field(
 				notit->event);
 		BT_ASSERT(notit->dscopes.event_payload);
 	}
@@ -1690,7 +1690,7 @@ struct bt_private_field *borrow_next_field(struct bt_notif_iter *notit)
 	index = stack_top(notit->stack)->index;
 	base_field = stack_top(notit->stack)->base;
 	BT_ASSERT(base_field);
-	base_fc = bt_private_field_borrow_private_class(base_field);
+	base_fc = bt_private_field_borrow_class(base_field);
 	BT_ASSERT(base_fc);
 
 	switch (bt_field_class_get_type(bt_field_class_borrow_from_private(base_fc))) {
@@ -1699,10 +1699,10 @@ struct bt_private_field *borrow_next_field(struct bt_notif_iter *notit)
 		BT_ASSERT(index <
 			bt_field_class_structure_get_member_count(
 				bt_field_class_borrow_from_private(
-					bt_private_field_borrow_private_class(
+					bt_private_field_borrow_class(
 						base_field))));
 		next_field =
-			bt_private_field_structure_borrow_member_private_field_by_index(
+			bt_private_field_structure_borrow_member_field_by_index(
 				base_field, index);
 		break;
 	}
@@ -1710,12 +1710,12 @@ struct bt_private_field *borrow_next_field(struct bt_notif_iter *notit)
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 		BT_ASSERT(index < bt_field_array_get_length(
 			bt_field_borrow_from_private(base_field)));
-		next_field = bt_private_field_array_borrow_element_private_field_by_index(
+		next_field = bt_private_field_array_borrow_element_field_by_index(
 			base_field, index);
 		break;
 	case BT_FIELD_CLASS_TYPE_VARIANT:
 		BT_ASSERT(index == 0);
-		next_field = bt_private_field_variant_borrow_selected_option_private_field(
+		next_field = bt_private_field_variant_borrow_selected_option_field(
 			base_field);
 		break;
 	default:
@@ -1843,7 +1843,7 @@ update_def_clock:
 
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_private_field_borrow_private_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
 		bt_field_borrow_from_private(field)) ==
 		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
@@ -1934,7 +1934,7 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_private_field_borrow_private_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
 		bt_field_borrow_from_private(field)) ==
 		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER ||
@@ -1962,7 +1962,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 	BT_ASSERT(fc->in_ir);
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_private_field_borrow_private_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
 		bt_field_borrow_from_private(field)) ==
 		BT_FIELD_CLASS_TYPE_REAL);
@@ -1987,7 +1987,7 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 	BT_ASSERT(fc->in_ir);
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
-	BT_ASSERT(bt_private_field_borrow_private_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	BT_ASSERT(bt_field_get_class_type(
 		bt_field_borrow_from_private(field)) ==
 		BT_FIELD_CLASS_TYPE_STRING);
@@ -2081,7 +2081,7 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 
 	/* Push field */
 	BT_ASSERT(field);
-	BT_ASSERT(bt_private_field_borrow_private_class(field) == fc->ir_fc);
+	BT_ASSERT(bt_private_field_borrow_class(field) == fc->ir_fc);
 	stack_push(notit->stack, field);
 
 	/*
@@ -2125,7 +2125,7 @@ enum bt_bfcr_status bfcr_compound_end_cb(
 	}
 
 	BT_ASSERT(!stack_empty(notit->stack));
-	BT_ASSERT(bt_private_field_borrow_private_class(stack_top(notit->stack)->base) ==
+	BT_ASSERT(bt_private_field_borrow_class(stack_top(notit->stack)->base) ==
 		fc->ir_fc);
 
 	/*
@@ -2243,7 +2243,7 @@ struct ctf_field_class *bfcr_borrow_variant_selected_field_class_cb(
 	if (selected_option->fc->in_ir) {
 		struct bt_private_field *var_field = stack_top(notit->stack)->base;
 
-		ret = bt_private_field_variant_select_option_private_field(
+		ret = bt_private_field_variant_select_option_field(
 			var_field, option_index);
 		if (ret) {
 			BT_LOGW("Cannot select variant field's option field: "
@@ -2264,7 +2264,7 @@ static
 void set_event_default_clock_value(struct bt_notif_iter *notit)
 {
 	struct bt_private_event *event =
-		bt_private_notification_event_borrow_private_event(
+		bt_private_notification_event_borrow_event(
 			notit->event_notif);
 	struct bt_stream_class *sc = bt_stream_class_borrow_from_private(
 		notit->meta.sc->ir_sc);
@@ -2378,7 +2378,7 @@ void notify_new_packet(struct bt_notif_iter *notit,
 	}
 
 	if (notit->packet_header_field) {
-		ret = bt_private_packet_move_private_header_field(
+		ret = bt_private_packet_move_header_field(
 			notit->packet, notit->packet_header_field);
 		if (ret) {
 			goto end;
@@ -2391,13 +2391,13 @@ void notify_new_packet(struct bt_notif_iter *notit,
 		 * the same value as the packet header field within
 		 * notit->packet.
 		 */
-		BT_ASSERT(bt_private_packet_borrow_header_private_field(
+		BT_ASSERT(bt_private_packet_borrow_header_field(
 			notit->packet) ==
 			notit->dscopes.trace_packet_header);
 	}
 
 	if (notit->packet_context_field) {
-		ret = bt_private_packet_move_private_context_field(
+		ret = bt_private_packet_move_context_field(
 			notit->packet, notit->packet_context_field);
 		if (ret) {
 			goto end;
@@ -2410,7 +2410,7 @@ void notify_new_packet(struct bt_notif_iter *notit,
 		 * the same value as the packet header field within
 		 * notit->packet.
 		 */
-		BT_ASSERT(bt_private_packet_borrow_context_private_field(
+		BT_ASSERT(bt_private_packet_borrow_context_field(
 			notit->packet) ==
 			notit->dscopes.stream_packet_context);
 	}

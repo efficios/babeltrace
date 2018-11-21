@@ -30,7 +30,7 @@
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <glib.h>
 
-struct bt_private_field *bt_private_packet_context_field_borrow_private_field(
+struct bt_private_field *bt_private_packet_context_field_borrow_field(
 		struct bt_private_packet_context_field *context_field)
 {
 	struct bt_field_wrapper *field_wrapper = (void *) context_field;

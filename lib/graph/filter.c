@@ -224,7 +224,7 @@ end:
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_input_private_port_by_index(
+bt_private_component_filter_get_input_port_by_index(
 		struct bt_private_component *private_component, uint64_t index)
 {
 	/* bt_component_filter_get_input_port_by_index() logs details/errors */
@@ -234,7 +234,7 @@ bt_private_component_filter_get_input_private_port_by_index(
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_input_private_port_by_name(
+bt_private_component_filter_get_input_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name)
 {
@@ -244,7 +244,7 @@ bt_private_component_filter_get_input_private_port_by_name(
 			bt_component_borrow_from_private(private_component), name));
 }
 
-enum bt_component_status bt_private_component_filter_add_input_private_port(
+enum bt_component_status bt_private_component_filter_add_input_port(
 		struct bt_private_component *private_component,
 		const char *name, void *user_data,
 		struct bt_private_port **user_priv_port)
@@ -300,7 +300,7 @@ end:
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_output_private_port_by_index(
+bt_private_component_filter_get_output_port_by_index(
 		struct bt_private_component *private_component, uint64_t index)
 {
 	/* bt_component_filter_get_output_port_by_index() logs details/errors */
@@ -310,7 +310,7 @@ bt_private_component_filter_get_output_private_port_by_index(
 }
 
 struct bt_private_port *
-bt_private_component_filter_get_output_private_port_by_name(
+bt_private_component_filter_get_output_port_by_name(
 		struct bt_private_component *private_component,
 		const char *name)
 {
@@ -320,7 +320,7 @@ bt_private_component_filter_get_output_private_port_by_name(
 			bt_component_borrow_from_private(private_component), name));
 }
 
-enum bt_component_status bt_private_component_filter_add_output_private_port(
+enum bt_component_status bt_private_component_filter_add_output_port(
 		struct bt_private_component *private_component,
 		const char *name, void *user_data,
 		struct bt_private_port **user_priv_port)

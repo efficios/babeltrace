@@ -42,7 +42,7 @@ struct bt_private_notification *bt_private_notification_event_create(
 		struct bt_private_packet *packet);
 
 extern struct bt_private_event *
-bt_private_notification_event_borrow_private_event(
+bt_private_notification_event_borrow_event(
 		struct bt_private_notification *notification);
 
 #ifdef __cplusplus
