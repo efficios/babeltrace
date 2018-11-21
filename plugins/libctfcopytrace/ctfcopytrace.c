@@ -260,7 +260,7 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 
 	name = bt_event_class_get_name(event_class);
 
-	writer_event_class = bt_event_class_create(name);
+	writer_event_class = bt_private_event_class_create(name);
 	BT_ASSERT(writer_event_class);
 
 	id = bt_event_class_get_id(event_class);
@@ -278,7 +278,7 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 		goto error;
 	}
 
-	ret = bt_event_class_set_log_level(writer_event_class, log_level);
+	ret = bt_private_event_class_set_log_level(writer_event_class, log_level);
 	if (ret) {
 		BT_LOGE_STR("Failed to set log_level.");
 		goto error;
@@ -286,7 +286,7 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 
 	emf_uri = bt_event_class_get_emf_uri(event_class);
 	if (emf_uri) {
-		ret = bt_event_class_set_emf_uri(writer_event_class,
+		ret = bt_private_event_class_set_emf_uri(writer_event_class,
 			emf_uri);
 		if (ret) {
 			BT_LOGE_STR("Failed to set emf uri.");

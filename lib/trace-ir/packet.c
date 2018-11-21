@@ -1,8 +1,4 @@
 /*
- * packet.c
- *
- * Babeltrace trace IR - Stream packet
- *
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,6 +25,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/private-packet.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/packet-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
@@ -53,16 +50,34 @@ struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 	return packet->stream;
 }
 
+struct bt_private_stream *bt_private_packet_borrow_private_stream(
+		struct bt_private_packet *packet)
+{
+	return (void *) bt_packet_borrow_stream((void *) packet);
+}
+
 struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	return packet->header_field ? packet->header_field->field : NULL;
 }
 
+struct bt_private_field *bt_private_packet_borrow_header_private_field(
+		struct bt_private_packet *packet)
+{
+	return (void *) bt_packet_borrow_header_field((void *) packet);
+}
+
 struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	return packet->context_field ? packet->context_field->field : NULL;
+}
+
+struct bt_private_field *bt_private_packet_borrow_context_private_field(
+		struct bt_private_packet *packet)
+{
+	return (void *) bt_packet_borrow_context_field((void *) packet);
 }
 
 BT_HIDDEN
@@ -303,8 +318,10 @@ end:
 	return packet;
 }
 
-struct bt_packet *bt_packet_create(struct bt_stream *stream)
+struct bt_private_packet *bt_private_packet_create(
+		struct bt_private_stream *priv_stream)
 {
+	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_packet *packet = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
@@ -322,12 +339,14 @@ struct bt_packet *bt_packet_create(struct bt_stream *stream)
 	}
 
 end:
-	return packet;
+	return (void *) packet;
 }
 
-int bt_packet_move_header_field(struct bt_packet *packet,
-		struct bt_packet_header_field *header_field)
+int bt_private_packet_move_private_header_field(
+		struct bt_private_packet *priv_packet,
+		struct bt_private_packet_header_field *header_field)
 {
+	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_trace *trace;
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
@@ -353,9 +372,11 @@ int bt_packet_move_header_field(struct bt_packet *packet,
 	return 0;
 }
 
-int bt_packet_move_context_field(struct bt_packet *packet,
-		struct bt_packet_context_field *context_field)
+int bt_private_packet_move_private_context_field(
+		struct bt_private_packet *priv_packet,
+		struct bt_private_packet_context_field *context_field)
 {
+	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_stream_class *stream_class;
 	struct bt_field_wrapper *field_wrapper = (void *) context_field;
 
@@ -381,9 +402,11 @@ int bt_packet_move_context_field(struct bt_packet *packet,
 	return 0;
 }
 
-int bt_packet_set_default_beginning_clock_value(struct bt_packet *packet,
+int bt_private_packet_set_default_beginning_clock_value(
+		struct bt_private_packet *priv_packet,
 		uint64_t value_cycles)
 {
+	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_stream_class *sc;
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -400,7 +423,7 @@ int bt_packet_set_default_beginning_clock_value(struct bt_packet *packet,
 	BT_ASSERT(packet->default_beginning_cv);
 	bt_clock_value_set_value_inline(packet->default_beginning_cv, value_cycles);
 	BT_LIB_LOGV("Set packet's default beginning clock value: "
-		"%![packet-]+a, value=%" PRIu64, value_cycles);
+		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
 	return 0;
 }
 
@@ -413,9 +436,11 @@ enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value(
 	return BT_CLOCK_VALUE_STATUS_KNOWN;
 }
 
-int bt_packet_set_default_end_clock_value(struct bt_packet *packet,
+int bt_private_packet_set_default_end_clock_value(
+		struct bt_private_packet *priv_packet,
 		uint64_t value_cycles)
 {
+	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_stream_class *sc;
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -432,7 +457,7 @@ int bt_packet_set_default_end_clock_value(struct bt_packet *packet,
 	BT_ASSERT(packet->default_end_cv);
 	bt_clock_value_set_value_inline(packet->default_end_cv, value_cycles);
 	BT_LIB_LOGV("Set packet's default end clock value: "
-		"%![packet-]+a, value=%" PRIu64, value_cycles);
+		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
 	return 0;
 }
 
@@ -454,9 +479,11 @@ enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
 	return packet->discarded_event_counter_snapshot.base.avail;
 }
 
-int bt_packet_set_discarded_event_counter_snapshot(struct bt_packet *packet,
-		uint64_t value)
+int bt_private_packet_set_discarded_event_counter_snapshot(
+		struct bt_private_packet *priv_packet, uint64_t value)
 {
+	struct bt_packet *packet = (void *) priv_packet;
+
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_PACKET_HOT(packet);
 	BT_ASSERT_PRE(packet->stream->class->packets_have_discarded_event_counter_snapshot,
@@ -475,9 +502,11 @@ enum bt_property_availability bt_packet_get_packet_counter_snapshot(
 	return packet->packet_counter_snapshot.base.avail;
 }
 
-int bt_packet_set_packet_counter_snapshot(struct bt_packet *packet,
-		uint64_t value)
+int bt_private_packet_set_packet_counter_snapshot(
+		struct bt_private_packet *priv_packet, uint64_t value)
 {
+	struct bt_packet *packet = (void *) priv_packet;
+
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_PACKET_HOT(packet);
 	BT_ASSERT_PRE(packet->stream->class->packets_have_packet_counter_snapshot,
@@ -485,4 +514,10 @@ int bt_packet_set_packet_counter_snapshot(struct bt_packet *packet,
 		"%![packet-]+a", packet);
 	bt_property_uint_set(&packet->packet_counter_snapshot, value);
 	return 0;
+}
+
+struct bt_packet *bt_packet_borrow_from_private(
+		struct bt_private_packet *priv_packet)
+{
+	return (void *) priv_packet;
 }

@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_TRACE_IR_PACKET_H
-#define BABELTRACE_TRACE_IR_PACKET_H
+#ifndef BABELTRACE_TRACE_IR_PRIVATE_EVENT_HEADER_FIELD_H
+#define BABELTRACE_TRACE_IR_PRIVATE_EVENT_HEADER_FIELD_H
 
 /*
- * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,50 +26,28 @@
  * http://www.efficios.com/ctf
  */
 
-#include <stdint.h>
-
-/* For enum bt_property_availability */
-#include <babeltrace/property.h>
-
-/* For enum bt_clock_value_status */
-#include <babeltrace/trace-ir/clock-value.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_packet;
-struct bt_packet_header_field;
-struct bt_packet_context_field;
-struct bt_stream;
-struct bt_clock_value;
-
-extern struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet);
+struct bt_private_stream_class;
+struct bt_private_event_header_field;
+struct bt_private_field;
 
 extern
-struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet);
+struct bt_private_event_header_field *bt_private_event_header_field_create(
+		struct bt_private_stream_class *stream_class);
 
 extern
-struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet);
+struct bt_private_field *bt_private_event_header_field_borrow_private_field(
+		struct bt_private_event_header_field *field);
 
 extern
-enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value(
-		struct bt_packet *packet, struct bt_clock_value **clock_value);
-
-extern
-enum bt_clock_value_status bt_packet_borrow_default_end_clock_valeu(
-		struct bt_packet *packet, struct bt_clock_value **clock_value);
-
-extern
-enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
-		struct bt_packet *packet, uint64_t *value);
-
-extern
-enum bt_property_availability bt_packet_get_packet_counter_snapshot(
-		struct bt_packet *packet, uint64_t *value);
+void bt_private_event_header_field_release(
+		struct bt_private_event_header_field *field);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PACKET_H */
+#endif /* BABELTRACE_TRACE_IR_PRIVATE_EVENT_HEADER_FIELD_H */

@@ -25,21 +25,22 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/packet-context-field.h>
+#include <babeltrace/trace-ir/private-packet-context-field.h>
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <glib.h>
 
-struct bt_field *bt_packet_context_field_borrow_field(
-		struct bt_packet_context_field *context_field)
+struct bt_private_field *bt_private_packet_context_field_borrow_private_field(
+		struct bt_private_packet_context_field *context_field)
 {
 	struct bt_field_wrapper *field_wrapper = (void *) context_field;
 
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Packet context field");
-	return field_wrapper->field;
+	return (void *) field_wrapper->field;
 }
 
-void bt_packet_context_field_release(struct bt_packet_context_field *context_field)
+void bt_private_packet_context_field_release(
+		struct bt_private_packet_context_field *context_field)
 {
 	struct bt_field_wrapper *field_wrapper = (void *) context_field;
 
@@ -55,9 +56,10 @@ void bt_packet_context_field_release(struct bt_packet_context_field *context_fie
 	bt_field_wrapper_destroy(field_wrapper);
 }
 
-struct bt_packet_context_field *bt_packet_context_field_create(
-		struct bt_stream_class *stream_class)
+struct bt_private_packet_context_field *bt_private_packet_context_field_create(
+		struct bt_private_stream_class *priv_stream_class)
 {
+	struct bt_stream_class *stream_class = (void *) priv_stream_class;
 	struct bt_field_wrapper *field_wrapper;
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");

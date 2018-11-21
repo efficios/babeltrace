@@ -1,6 +1,4 @@
 /*
- * Babeltrace Plug-in Stream-related Notifications
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -32,9 +30,11 @@
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
+#include <babeltrace/graph/private-notification-stream.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/object.h>
 #include <inttypes.h>
 
 static
@@ -55,10 +55,11 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_stream_end_create(
+struct bt_private_notification *bt_private_notification_stream_end_create(
 		struct bt_private_connection_private_notification_iterator *notif_iter,
-		struct bt_stream *stream)
+		struct bt_private_stream *priv_stream)
 {
+	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_notification_stream_end *notification;
 	struct bt_stream_class *stream_class;
 
@@ -91,7 +92,8 @@ struct bt_notification *bt_notification_stream_end_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
-	return &notification->parent;
+
+	return (void *) &notification->parent;
 error:
 	return NULL;
 }
@@ -109,10 +111,19 @@ struct bt_stream *bt_notification_stream_end_borrow_stream(
 	return stream_end->stream;
 }
 
-int bt_notification_stream_end_set_default_clock_value(
-		struct bt_notification *notif, uint64_t value_cycles)
+struct bt_private_stream *bt_private_notification_stream_end_borrow_stream(
+		struct bt_private_notification *notification)
+{
+	return (void *) bt_notification_stream_end_borrow_stream(
+		(void *) notification);
+}
+
+int bt_private_notification_stream_end_set_default_clock_value(
+		struct bt_private_notification *priv_notif,
+		uint64_t value_cycles)
 {
 	int ret = 0;
+	struct bt_notification *notif = (void *) priv_notif;
 	struct bt_notification_stream_end *se_notif = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
@@ -167,10 +178,11 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_stream_begin_create(
+struct bt_private_notification *bt_private_notification_stream_begin_create(
 		struct bt_private_connection_private_notification_iterator *notif_iter,
-		struct bt_stream *stream)
+		struct bt_private_stream *priv_stream)
 {
+	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_notification_stream_begin *notification;
 	struct bt_stream_class *stream_class;
 
@@ -203,7 +215,7 @@ struct bt_notification *bt_notification_stream_begin_create(
 		stream_class,
 		bt_stream_class_get_name(stream_class),
 		bt_stream_class_get_id(stream_class), notification);
-	return &notification->parent;
+	return (void *) &notification->parent;
 error:
 	return NULL;
 }
@@ -221,10 +233,19 @@ struct bt_stream *bt_notification_stream_begin_borrow_stream(
 	return stream_begin->stream;
 }
 
-int bt_notification_stream_begin_set_default_clock_value(
-		struct bt_notification *notif, uint64_t value_cycles)
+struct bt_private_stream *bt_private_notification_stream_begin_borrow_stream(
+		struct bt_private_notification *notification)
+{
+	return (void *) bt_notification_stream_begin_borrow_stream(
+		(void *) notification);
+}
+
+int bt_private_notification_stream_begin_set_default_clock_value(
+		struct bt_private_notification *priv_notif,
+		uint64_t value_cycles)
 {
 	int ret = 0;
+	struct bt_notification *notif = (void *) priv_notif;
 	struct bt_notification_stream_begin *sb_notif = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");

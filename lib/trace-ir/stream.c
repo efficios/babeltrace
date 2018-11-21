@@ -1,8 +1,4 @@
 /*
- * stream.c
- *
- * Babeltrace trace IR - Stream
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -30,6 +26,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/trace-ir/private-stream.h>
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
@@ -146,8 +143,10 @@ end:
 	return stream;
 }
 
-struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class)
+struct bt_private_stream *bt_private_stream_create(
+		struct bt_private_stream_class *priv_stream_class)
 {
+	struct bt_stream_class *stream_class = (void *) priv_stream_class;
 	uint64_t id;
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
@@ -157,16 +156,19 @@ struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class)
 	id = bt_trace_get_automatic_stream_id(
 			bt_stream_class_borrow_trace_inline(stream_class),
 			stream_class);
-	return create_stream_with_id(stream_class, id);
+	return (void *) create_stream_with_id(stream_class, id);
 }
 
-struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
+struct bt_private_stream *bt_private_stream_create_with_id(
+		struct bt_private_stream_class *priv_stream_class,
 		uint64_t id)
 {
+	struct bt_stream_class *stream_class = (void *) priv_stream_class;
+
 	BT_ASSERT_PRE(!stream_class->assigns_automatic_stream_id,
 		"Stream class automatically assigns stream IDs: "
 		"%![sc-]+S", stream_class);
-	return create_stream_with_id(stream_class, id);
+	return (void *) create_stream_with_id(stream_class, id);
 }
 
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
@@ -175,20 +177,29 @@ struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
 	return stream->class;
 }
 
+struct bt_private_stream_class *bt_private_stream_borrow_private_class(
+		struct bt_private_stream *priv_stream)
+{
+	return (void *) bt_stream_borrow_class((void *) priv_stream);
+}
+
 const char *bt_stream_get_name(struct bt_stream *stream)
 {
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream class");
 	return stream->name.value;
 }
 
-int bt_stream_set_name(struct bt_stream *stream, const char *name)
+int bt_private_stream_set_name(struct bt_private_stream *priv_stream,
+		const char *name)
 {
+	struct bt_stream *stream = (void *) priv_stream;
+
 	BT_ASSERT_PRE_NON_NULL(stream, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_STREAM_HOT(stream);
 	g_string_assign(stream->name.str, name);
 	stream->name.value = stream->name.str->str;
-	BT_LIB_LOGV("Set stream class's name: %!+S", stream);
+	BT_LIB_LOGV("Set stream class's name: %!+s", stream);
 	return 0;
 }
 
@@ -205,4 +216,10 @@ void _bt_stream_freeze(struct bt_stream *stream)
 	BT_ASSERT(stream);
 	BT_LIB_LOGD("Freezing stream: %!+s", stream);
 	stream->frozen = true;
+}
+
+struct bt_stream *bt_stream_borrow_from_private(
+		struct bt_private_stream *priv_stream)
+{
+	return (void *) priv_stream;
 }

@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_EVENT_CLASS_H
 
 /*
- * BabelTrace - Trace IR: Event class
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -62,19 +60,10 @@ enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
 };
 
-extern struct bt_event_class *bt_event_class_create(
-		struct bt_stream_class *stream_class);
-
-extern struct bt_event_class *bt_event_class_create_with_id(
-		struct bt_stream_class *stream_class, uint64_t id);
-
 extern struct bt_stream_class *bt_event_class_borrow_stream_class(
 		struct bt_event_class *event_class);
 
 extern const char *bt_event_class_get_name(struct bt_event_class *event_class);
-
-extern int bt_event_class_set_name(struct bt_event_class *event_class,
-		const char *name);
 
 extern uint64_t bt_event_class_get_id(struct bt_event_class *event_class);
 
@@ -82,28 +71,14 @@ extern enum bt_property_availability bt_event_class_get_log_level(
 		struct bt_event_class *event_class,
 		enum bt_event_class_log_level *log_level);
 
-extern int bt_event_class_set_log_level(struct bt_event_class *event_class,
-		enum bt_event_class_log_level log_level);
-
 extern const char *bt_event_class_get_emf_uri(
 		struct bt_event_class *event_class);
-
-extern int bt_event_class_set_emf_uri(struct bt_event_class *event_class,
-		const char *emf_uri);
 
 extern struct bt_field_class *bt_event_class_borrow_specific_context_field_class(
 		struct bt_event_class *event_class);
 
-extern int bt_event_class_set_specific_context_field_class(
-		struct bt_event_class *event_class,
-		struct bt_field_class *field_class);
-
 extern struct bt_field_class *bt_event_class_borrow_payload_field_class(
 		struct bt_event_class *event_class);
-
-extern int bt_event_class_set_payload_field_class(
-		struct bt_event_class *event_class,
-		struct bt_field_class *field_class);
 
 #ifdef __cplusplus
 }

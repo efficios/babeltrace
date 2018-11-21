@@ -52,13 +52,22 @@ babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/clock-value.h \
 	babeltrace/trace-ir/event-class.h \
 	babeltrace/trace-ir/event.h \
-	babeltrace/trace-ir/event-header-field.h \
-	babeltrace/trace-ir/field-path.h \
 	babeltrace/trace-ir/field-classes.h \
+	babeltrace/trace-ir/field-path.h \
 	babeltrace/trace-ir/fields.h \
 	babeltrace/trace-ir/packet.h \
-	babeltrace/trace-ir/packet-context-field.h \
-	babeltrace/trace-ir/packet-header-field.h \
+	babeltrace/trace-ir/private-clock-class.h \
+	babeltrace/trace-ir/private-event-class.h \
+	babeltrace/trace-ir/private-event-header-field.h \
+	babeltrace/trace-ir/private-event.h \
+	babeltrace/trace-ir/private-field-classes.h \
+	babeltrace/trace-ir/private-fields.h \
+	babeltrace/trace-ir/private-packet-context-field.h \
+	babeltrace/trace-ir/private-packet-header-field.h \
+	babeltrace/trace-ir/private-packet.h \
+	babeltrace/trace-ir/private-stream-class.h \
+	babeltrace/trace-ir/private-stream.h \
+	babeltrace/trace-ir/private-trace.h \
 	babeltrace/trace-ir/stream-class.h \
 	babeltrace/trace-ir/stream.h \
 	babeltrace/trace-ir/trace.h
@@ -98,6 +107,11 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/private-connection-notification-iterator.h \
 	babeltrace/graph/private-connection-private-notification-iterator.h \
 	babeltrace/graph/private-connection.h \
+	babeltrace/graph/private-notification-event.h \
+	babeltrace/graph/private-notification-inactivity.h \
+	babeltrace/graph/private-notification-packet.h \
+	babeltrace/graph/private-notification-stream.h \
+	babeltrace/graph/private-notification.h \
 	babeltrace/graph/private-port.h \
 	babeltrace/graph/query-executor.h
 

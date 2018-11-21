@@ -93,10 +93,12 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 		struct bt_notification **notif)
 {
 	enum bt_notification_iterator_status status;
+	struct bt_private_notification *priv_notif;
 	int ret;
 
 	BT_ASSERT(notif_iter_data->ds_file);
-	status = ctf_fs_ds_file_next(notif_iter_data->ds_file, notif);
+	status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
+	*notif = bt_notification_borrow_from_private(priv_notif);
 
 	if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
 			bt_notification_get_type(*notif) ==
@@ -109,7 +111,8 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 			 */
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
-				notif);
+				&priv_notif);
+			*notif = bt_notification_borrow_from_private(priv_notif);
 			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
 			goto end;
 		} else {
@@ -154,7 +157,8 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 			goto end;
 		}
 
-		status = ctf_fs_ds_file_next(notif_iter_data->ds_file, notif);
+		status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
+		*notif = bt_notification_borrow_from_private(priv_notif);
 
 		/*
 		 * If we get a notification, we expect to get a
@@ -179,7 +183,8 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 				BT_NOTIFICATION_TYPE_STREAM_BEGIN);
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
-				notif);
+				&priv_notif);
+			*notif = bt_notification_borrow_from_private(priv_notif);
 			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
 		}
 	}
@@ -516,7 +521,7 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 static
 struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_stream_class *stream_class,
+		struct bt_private_stream_class *stream_class,
 		uint64_t stream_instance_id)
 {
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -607,9 +612,9 @@ end:
 
 static
 int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_graph *graph, const char *path)
+		const char *path)
 {
-	struct bt_stream_class *stream_class = NULL;
+	struct bt_private_stream_class *stream_class = NULL;
 	int64_t stream_instance_id = -1;
 	int64_t begin_ns = -1;
 	struct ctf_fs_ds_file_group *ds_file_group = NULL;
@@ -655,7 +660,8 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	if (props.snapshots.beginning_clock != UINT64_C(-1)) {
 		BT_ASSERT(sc->default_clock_class);
 		ret = bt_clock_class_cycles_to_ns_from_origin(
-			sc->default_clock_class,
+			bt_clock_class_borrow_from_private(
+				sc->default_clock_class),
 			props.snapshots.beginning_clock, &begin_ns);
 		if (ret) {
 			BT_LOGE("Cannot convert clock cycles to nanoseconds from origin (`%s`).",
@@ -761,8 +767,7 @@ end:
 }
 
 static
-int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_graph *graph)
+int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 {
 	int ret = 0;
 	const char *basename;
@@ -827,7 +832,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace,
 			continue;
 		}
 
-		ret = add_ds_file_to_ds_file_group(ctf_fs_trace, graph,
+		ret = add_ds_file_to_ds_file_group(ctf_fs_trace,
 			file->path->str);
 		if (ret) {
 			BT_LOGE("Cannot add stream file `%s` to stream file group",
@@ -857,13 +862,13 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace,
 
 		if (ds_file_group->stream_id == UINT64_C(-1)) {
 			/* No stream ID: use 0 */
-			ds_file_group->stream = bt_stream_create_with_id(
+			ds_file_group->stream = bt_private_stream_create_with_id(
 				ds_file_group->stream_class,
 				ctf_fs_trace->next_stream_id);
 			ctf_fs_trace->next_stream_id++;
 		} else {
 			/* Specific stream ID */
-			ds_file_group->stream = bt_stream_create_with_id(
+			ds_file_group->stream = bt_private_stream_create_with_id(
 				ds_file_group->stream_class,
 				(uint64_t) ds_file_group->stream_id);
 		}
@@ -876,7 +881,8 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace,
 			goto error;
 		}
 
-		ret = bt_stream_set_name(ds_file_group->stream, name->str);
+		ret = bt_private_stream_set_name(ds_file_group->stream,
+			name->str);
 		if (ret) {
 			BT_LOGE("Cannot set stream's name: "
 				"addr=%p, stream-name=\"%s\"",
@@ -908,8 +914,7 @@ end:
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
-		struct ctf_fs_metadata_config *metadata_config,
-		struct bt_graph *graph)
+		struct ctf_fs_metadata_config *metadata_config)
 {
 	struct ctf_fs_trace *ctf_fs_trace;
 	int ret;
@@ -946,7 +951,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		goto error;
 	}
 
-	ret = create_ds_file_groups(ctf_fs_trace, graph);
+	ret = create_ds_file_groups(ctf_fs_trace);
 	if (ret) {
 		goto error;
 	}
@@ -956,7 +961,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 	 * trace needs. There won't be any more. Therefore it is safe to
 	 * make this trace static.
 	 */
-	(void) bt_trace_make_static(ctf_fs_trace->metadata->trace);
+	(void) bt_private_trace_make_static(ctf_fs_trace->metadata->trace);
 
 	goto end;
 
@@ -1188,13 +1193,9 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 			tn_node = g_list_next(tn_node)) {
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
-		struct bt_graph *graph = bt_component_borrow_graph(
-			bt_component_borrow_from_private(ctf_fs->priv_comp));
 
-		BT_ASSERT(graph);
 		ctf_fs_trace = ctf_fs_trace_create(trace_path->str,
-				trace_name->str, &ctf_fs->metadata_config,
-				graph);
+				trace_name->str, &ctf_fs->metadata_config);
 		if (!ctf_fs_trace) {
 			BT_LOGE("Cannot create trace for `%s`.",
 				trace_path->str);

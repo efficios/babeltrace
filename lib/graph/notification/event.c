@@ -1,6 +1,4 @@
 /*
- * Babeltrace Plug-in Event Notification
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -35,11 +33,13 @@
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/graph/graph-internal.h>
+#include <babeltrace/graph/private-notification-event.h>
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/object.h>
 #include <stdbool.h>
 #include <inttypes.h>
 
@@ -76,11 +76,13 @@ end:
 	return (void *) notification;
 }
 
-struct bt_notification *bt_notification_event_create(
+struct bt_private_notification *bt_private_notification_event_create(
 		struct bt_private_connection_private_notification_iterator *notif_iter,
-		struct bt_event_class *event_class,
-		struct bt_packet *packet)
+		struct bt_private_event_class *priv_event_class,
+		struct bt_private_packet *priv_packet)
 {
+	struct bt_event_class *event_class = (void *) priv_event_class;
+	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_event *notification = NULL;
 	struct bt_event *event;
 	struct bt_graph *graph;
@@ -198,4 +200,11 @@ struct bt_event *bt_notification_event_borrow_event(
 	event_notification = container_of(notification,
 			struct bt_notification_event, parent);
 	return event_notification->event;
+}
+
+struct bt_private_event *bt_private_notification_event_borrow_private_event(
+		struct bt_private_notification *notification)
+{
+	return (void *) bt_notification_event_borrow_event(
+		(void *) notification);
 }
