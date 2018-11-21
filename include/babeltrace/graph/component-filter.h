@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_FILTER_H
 
 /*
- * BabelTrace - Filter Plug-in Interface
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -33,22 +31,35 @@
 extern "C" {
 #endif
 
-struct bt_port;
 struct bt_component;
+struct bt_component_filter;
+struct bt_port_input;
+struct bt_port_output;
 
-extern int64_t bt_component_filter_get_input_port_count(
-		struct bt_component *component);
-extern struct bt_port *bt_component_filter_get_input_port_by_name(
-		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_filter_get_input_port_by_index(
-		struct bt_component *component, uint64_t index);
+static inline
+struct bt_component *bt_component_filter_borrow_component(
+		struct bt_component_filter *component)
+{
+	return (void *) component;
+}
 
-extern int64_t bt_component_filter_get_output_port_count(
-		struct bt_component *component);
-extern struct bt_port *bt_component_filter_get_output_port_by_name(
-		struct bt_component *component, const char *name);
-extern struct bt_port *bt_component_filter_get_output_port_by_index(
-		struct bt_component *component, uint64_t index);
+extern uint64_t bt_component_filter_get_input_port_count(
+		struct bt_component_filter *component);
+
+extern struct bt_port_input *bt_component_filter_borrow_input_port_by_name(
+		struct bt_component_filter *component, const char *name);
+
+extern struct bt_port_input *bt_component_filter_borrow_input_port_by_index(
+		struct bt_component_filter *component, uint64_t index);
+
+extern uint64_t bt_component_filter_get_output_port_count(
+		struct bt_component_filter *component);
+
+extern struct bt_port_output *bt_component_filter_borrow_output_port_by_name(
+		struct bt_component_filter *component, const char *name);
+
+extern struct bt_port_output *bt_component_filter_borrow_output_port_by_index(
+		struct bt_component_filter *component, uint64_t index);
 
 #ifdef __cplusplus
 }

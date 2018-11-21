@@ -1,8 +1,4 @@
 /*
- * Values.c: value objects
- *
- * Babeltrace Library
- *
  * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  *
@@ -1302,10 +1298,4 @@ bt_bool bt_value_compare(const struct bt_value *object_a,
 
 end:
 	return ret;
-}
-
-struct bt_value *bt_value_borrow_from_private(
-		struct bt_private_value *priv_value)
-{
-	return (void *) priv_value;
 }

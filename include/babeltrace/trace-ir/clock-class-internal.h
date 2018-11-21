@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_CLOCK_CLASS_INTERNAL_H
 
 /*
- * BabelTrace - Trace IR: Clock internal
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

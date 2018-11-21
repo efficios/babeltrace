@@ -88,19 +88,19 @@ void ctf_fs_notif_iter_data_destroy(
 }
 
 static
-enum bt_notification_iterator_status ctf_fs_iterator_next_one(
+enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 		struct ctf_fs_notif_iter_data *notif_iter_data,
 		struct bt_notification **notif)
 {
-	enum bt_notification_iterator_status status;
+	enum bt_self_notification_iterator_status status;
 	struct bt_private_notification *priv_notif;
 	int ret;
 
 	BT_ASSERT(notif_iter_data->ds_file);
 	status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-	*notif = bt_notification_borrow_from_private(priv_notif);
+	*notif = bt_private_notification_borrow_notification(priv_notif);
 
-	if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
+	if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK &&
 			bt_notification_get_type(*notif) ==
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
 		if (notif_iter_data->skip_stream_begin_notifs) {
@@ -112,8 +112,8 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
-			*notif = bt_notification_borrow_from_private(priv_notif);
-			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+			*notif = bt_private_notification_borrow_notification(priv_notif);
+			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
 			goto end;
 		} else {
 			/*
@@ -125,7 +125,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 		}
 	}
 
-	if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK &&
+	if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK &&
 			bt_notification_get_type(*notif) ==
 			BT_NOTIFICATION_TYPE_STREAM_END) {
 		notif_iter_data->ds_file_info_index++;
@@ -139,7 +139,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 			 * The next time ctf_fs_iterator_next() is
 			 * called for this notification iterator,
 			 * ctf_fs_ds_file_next() will return
-			 * BT_NOTIFICATION_ITERATOR_STATUS_END().
+			 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_END().
 			 */
 			goto end;
 		}
@@ -153,12 +153,12 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 		 */
 		ret = notif_iter_data_set_current_ds_file(notif_iter_data);
 		if (ret) {
-			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
 		status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-		*notif = bt_notification_borrow_from_private(priv_notif);
+		*notif = bt_private_notification_borrow_notification(priv_notif);
 
 		/*
 		 * If we get a notification, we expect to get a
@@ -178,14 +178,14 @@ enum bt_notification_iterator_status ctf_fs_iterator_next_one(
 		 */
 		BT_ASSERT(notif_iter_data->skip_stream_begin_notifs);
 
-		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 			BT_ASSERT(bt_notification_get_type(*notif) ==
 				BT_NOTIFICATION_TYPE_STREAM_BEGIN);
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
-			*notif = bt_notification_borrow_from_private(priv_notif);
-			BT_ASSERT(status != BT_NOTIFICATION_ITERATOR_STATUS_END);
+			*notif = bt_private_notification_borrow_notification(priv_notif);
+			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
 		}
 	}
 
@@ -194,20 +194,20 @@ end:
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status ctf_fs_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator,
+enum bt_self_notification_iterator_status ctf_fs_iterator_next(
+		struct bt_self_notification_iterator *iterator,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_self_notification_iterator_status status =
+		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 	struct ctf_fs_notif_iter_data *notif_iter_data =
-		bt_private_connection_private_notification_iterator_get_user_data(iterator);
+		bt_self_notification_iterator_get_data(iterator);
 	uint64_t i = 0;
 
-	while (i < capacity && status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+	while (i < capacity && status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 		status = ctf_fs_iterator_next_one(notif_iter_data, &notifs[i]);
-		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 			i++;
 		}
 	}
@@ -215,72 +215,70 @@ enum bt_notification_iterator_status ctf_fs_iterator_next(
 	if (i > 0) {
 		/*
 		 * Even if ctf_fs_iterator_next_one() returned something
-		 * else than BT_NOTIFICATION_ITERATOR_STATUS_OK, we
+		 * else than BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK, we
 		 * accumulated notification objects in the output
 		 * notification array, so we need to return
-		 * BT_NOTIFICATION_ITERATOR_STATUS_OK so that they are
+		 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK so that they are
 		 * transfered to downstream. This other status occurs
 		 * again the next time muxer_notif_iter_do_next() is
 		 * called, possibly without any accumulated
 		 * notification, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 	}
 
 	return status;
 }
 
-void ctf_fs_iterator_finalize(struct bt_private_connection_private_notification_iterator *it)
+void ctf_fs_iterator_finalize(struct bt_self_notification_iterator *it)
 {
-	void *notif_iter_data =
-		bt_private_connection_private_notification_iterator_get_user_data(it);
-
-	ctf_fs_notif_iter_data_destroy(notif_iter_data);
+	ctf_fs_notif_iter_data_destroy(
+		bt_self_notification_iterator_get_data(it));
 }
 
-enum bt_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_private_connection_private_notification_iterator *it,
-		struct bt_private_port *port)
+enum bt_self_notification_iterator_status ctf_fs_iterator_init(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_port)
 {
 	struct ctf_fs_port_data *port_data;
 	struct ctf_fs_notif_iter_data *notif_iter_data = NULL;
-	enum bt_notification_iterator_status ret =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_self_notification_iterator_status ret =
+		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 	int iret;
 
-	port_data = bt_private_port_get_user_data(port);
-	if (!port_data) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
-		goto error;
-	}
-
+	port_data = bt_self_component_port_get_data(
+		bt_self_component_port_output_borrow_self_component_port(
+			self_port));
+	BT_ASSERT(port_data);
 	notif_iter_data = g_new0(struct ctf_fs_notif_iter_data, 1);
 	if (!notif_iter_data) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		ret = BT_SELF_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto error;
 	}
 
-	notif_iter_data->pc_notif_iter = it;
+	notif_iter_data->pc_notif_iter = self_notif_iter;
 	notif_iter_data->notif_iter = bt_notif_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size() * 8,
 		ctf_fs_ds_file_medops, NULL);
 	if (!notif_iter_data->notif_iter) {
 		BT_LOGE_STR("Cannot create a CTF notification iterator.");
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		ret = BT_SELF_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 		goto error;
 	}
 
 	notif_iter_data->ds_file_group = port_data->ds_file_group;
 	iret = notif_iter_data_set_current_ds_file(notif_iter_data);
 	if (iret) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		ret = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
 		goto error;
 	}
 
-	ret = bt_private_connection_private_notification_iterator_set_user_data(it, notif_iter_data);
-	if (ret != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+	bt_self_notification_iterator_set_data(self_notif_iter,
+		notif_iter_data);
+	if (ret != BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 		goto error;
 	}
 
@@ -288,7 +286,7 @@ enum bt_notification_iterator_status ctf_fs_iterator_init(
 	goto end;
 
 error:
-	(void) bt_private_connection_private_notification_iterator_set_user_data(it, NULL);
+	bt_self_notification_iterator_set_data(self_notif_iter, NULL);
 
 end:
 	ctf_fs_notif_iter_data_destroy(notif_iter_data);
@@ -347,11 +345,10 @@ void ctf_fs_trace_destroy_notifier(void *data)
 	ctf_fs_trace_destroy(trace);
 }
 
-void ctf_fs_finalize(struct bt_private_component *component)
+void ctf_fs_finalize(struct bt_self_component_source *component)
 {
-	void *data = bt_private_component_get_user_data(component);
-
-	ctf_fs_destroy(data);
+	ctf_fs_destroy(bt_self_component_get_data(
+		bt_self_component_source_borrow_self_component(component)));
 }
 
 static
@@ -414,8 +411,8 @@ int create_one_port_for_trace(struct ctf_fs_component *ctf_fs,
 
 	port_data->ctf_fs = ctf_fs;
 	port_data->ds_file_group = ds_file_group;
-	ret = bt_private_component_source_add_output_port(
-		ctf_fs->priv_comp, port_name->str, port_data, NULL);
+	ret = bt_self_component_source_add_output_port(
+		ctf_fs->self_comp, port_name->str, port_data, NULL);
 	if (ret) {
 		goto error;
 	}
@@ -660,7 +657,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	if (props.snapshots.beginning_clock != UINT64_C(-1)) {
 		BT_ASSERT(sc->default_clock_class);
 		ret = bt_clock_class_cycles_to_ns_from_origin(
-			bt_clock_class_borrow_from_private(
+			bt_private_clock_class_borrow_clock_class(
 				sc->default_clock_class),
 			props.snapshots.beginning_clock, &begin_ns);
 		if (ret) {
@@ -1246,28 +1243,29 @@ end:
 }
 
 static
-struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
+struct ctf_fs_component *ctf_fs_create(
+		struct bt_self_component_source *self_comp,
 		struct bt_value *params)
 {
 	struct ctf_fs_component *ctf_fs;
 	struct bt_value *value = NULL;
 	const char *path_param;
-	enum bt_component_status ret;
 
 	ctf_fs = g_new0(struct ctf_fs_component, 1);
 	if (!ctf_fs) {
 		goto end;
 	}
 
-	ret = bt_private_component_set_user_data(priv_comp, ctf_fs);
-	BT_ASSERT(ret == BT_COMPONENT_STATUS_OK);
+	bt_self_component_set_data(
+		bt_self_component_source_borrow_self_component(self_comp),
+		ctf_fs);
 
 	/*
 	 * We don't need to get a new reference here because as long as
 	 * our private ctf_fs_component object exists, the containing
 	 * private component should also exist.
 	 */
-	ctf_fs->priv_comp = priv_comp;
+	ctf_fs->self_comp = self_comp;
 	value = bt_value_map_borrow_entry_value(params, "path");
 	if (value && !bt_value_is_string(value)) {
 		goto error;
@@ -1312,48 +1310,48 @@ struct ctf_fs_component *ctf_fs_create(struct bt_private_component *priv_comp,
 error:
 	ctf_fs_destroy(ctf_fs);
 	ctf_fs = NULL;
-	ret = bt_private_component_set_user_data(priv_comp, NULL);
-	BT_ASSERT(ret == BT_COMPONENT_STATUS_OK);
+	bt_self_component_set_data(
+		bt_self_component_source_borrow_self_component(self_comp),
+		NULL);
 
 end:
 	return ctf_fs;
 }
 
 BT_HIDDEN
-enum bt_component_status ctf_fs_init(struct bt_private_component *priv_comp,
+enum bt_self_component_status ctf_fs_init(
+		struct bt_self_component_source *self_comp,
 		struct bt_value *params, UNUSED_VAR void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 
-	ctf_fs = ctf_fs_create(priv_comp, params);
+	ctf_fs = ctf_fs_create(self_comp, params);
 	if (!ctf_fs) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = BT_SELF_COMPONENT_STATUS_ERROR;
 	}
 
 	return ret;
 }
 
 BT_HIDDEN
-struct bt_component_class_query_method_return ctf_fs_query(
-		struct bt_component_class *comp_class,
+enum bt_query_status ctf_fs_query(
+		struct bt_self_component_class_source *comp_class,
 		struct bt_query_executor *query_exec,
-		const char *object, struct bt_value *params)
+		const char *object, struct bt_value *params,
+		struct bt_value **result)
 {
-	struct bt_component_class_query_method_return ret = {
-		.result = NULL,
-		.status = BT_QUERY_STATUS_OK,
-	};
+	enum bt_query_status status = BT_QUERY_STATUS_OK;
 
 	if (!strcmp(object, "metadata-info")) {
-		ret = metadata_info_query(comp_class, params);
+		status = metadata_info_query(comp_class, params, result);
 	} else if (!strcmp(object, "trace-info")) {
-		ret = trace_info_query(comp_class, params);
+		status = trace_info_query(comp_class, params, result);
 	} else {
 		BT_LOGE("Unknown query object `%s`", object);
-		ret.status = BT_QUERY_STATUS_INVALID_OBJECT;
+		status = BT_QUERY_STATUS_INVALID_OBJECT;
 		goto end;
 	}
 end:
-	return ret;
+	return status;
 }

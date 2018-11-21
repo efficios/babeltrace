@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_RESOLVE_INTERNAL_H
 
 /*
- * Babeltrace - CTF writer: Type resolving internal
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *

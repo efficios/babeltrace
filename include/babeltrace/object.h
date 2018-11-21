@@ -2,8 +2,6 @@
 #define BABELTRACE_OBJECT_H
 
 /*
- * BabelTrace: common reference counting
- *
  * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  * Copyright (c) 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>

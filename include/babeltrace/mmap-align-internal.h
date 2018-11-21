@@ -2,8 +2,6 @@
 #define _BABELTRACE_MMAP_ALIGN_H
 
 /*
- * BabelTrace mmap-align.h - mmap alignment header
- *
  * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

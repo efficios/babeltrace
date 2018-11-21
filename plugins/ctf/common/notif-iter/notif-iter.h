@@ -287,7 +287,7 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notif_iter);
 BT_HIDDEN
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *notif_iter,
 		struct bt_private_notification **notification);
 
 /**

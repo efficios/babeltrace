@@ -17,26 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/object.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/component-class-source.h>
-#include <babeltrace/graph/component-class-sink.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/component-source.h>
-#include <babeltrace/graph/component-sink.h>
-#include <babeltrace/graph/private-graph.h>
-#include <babeltrace/graph/graph.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/port.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-component-source.h>
-#include <babeltrace/graph/private-component-sink.h>
-#include <babeltrace/graph/private-port.h>
-#include <babeltrace/graph/private-connection.h>
+#include <babeltrace/babeltrace.h>
+#include <babeltrace/assert-internal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 #include "tap/tap.h"
@@ -44,13 +29,18 @@
 #define NR_TESTS	99
 
 enum event_type {
-	COMP_ACCEPT_PORT_CONNECTION,
-	COMP_PORT_CONNECTED,
-	COMP_PORT_DISCONNECTED,
-	GRAPH_PORT_ADDED,
-	GRAPH_PORT_REMOVED,
-	GRAPH_PORTS_CONNECTED,
-	GRAPH_PORTS_DISCONNECTED,
+	SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION,
+	SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION,
+	SRC_COMP_OUTPUT_PORT_CONNECTED,
+	SINK_COMP_INPUT_PORT_CONNECTED,
+	SRC_COMP_OUTPUT_PORT_DISCONNECTED,
+	SINK_COMP_INPUT_PORT_DISCONNECTED,
+	GRAPH_SRC_OUTPUT_PORT_ADDED,
+	GRAPH_SINK_INPUT_PORT_ADDED,
+	GRAPH_SRC_OUTPUT_PORT_REMOVED,
+	GRAPH_SINK_INPUT_PORT_REMOVED,
+	GRAPH_SRC_SINK_PORTS_CONNECTED,
+	GRAPH_SRC_SINK_PORTS_DISCONNECTED,
 };
 
 enum test {
@@ -71,49 +61,75 @@ struct event {
 			struct bt_component *comp;
 			struct bt_port *self_port;
 			struct bt_port *other_port;
-		} comp_accept_port_connection;
+		} src_comp_accept_output_port_connection;
 
 		struct {
 			struct bt_component *comp;
 			struct bt_port *self_port;
 			struct bt_port *other_port;
-		} comp_port_connected;
+		} sink_comp_accept_input_port_connection;
+
+		struct {
+			struct bt_component *comp;
+			struct bt_port *self_port;
+			struct bt_port *other_port;
+		} src_comp_output_port_connected;
+
+		struct {
+			struct bt_component *comp;
+			struct bt_port *self_port;
+			struct bt_port *other_port;
+		} sink_comp_input_port_connected;
+
+		struct {
+			struct bt_component *comp;
+			struct bt_port *self_port;
+		} src_comp_output_port_disconnected;
+
+		struct {
+			struct bt_component *comp;
+			struct bt_port *self_port;
+		} sink_comp_input_port_disconnected;
 
 		struct {
 			struct bt_component *comp;
 			struct bt_port *port;
-		} comp_port_disconnected;
+		} graph_src_output_port_added;
 
 		struct {
 			struct bt_component *comp;
 			struct bt_port *port;
-		} graph_port_added;
+		} graph_sink_input_port_added;
 
 		struct {
 			struct bt_component *comp;
 			struct bt_port *port;
-		} graph_port_removed;
+		} graph_src_output_port_removed;
+
+		struct {
+			struct bt_component *comp;
+			struct bt_port *port;
+		} graph_sink_input_port_removed;
 
 		struct {
 			struct bt_component *upstream_comp;
 			struct bt_component *downstream_comp;
 			struct bt_port *upstream_port;
 			struct bt_port *downstream_port;
-			struct bt_connection *conn;
-		} graph_ports_connected;
+		} graph_src_sink_ports_connected;
 
 		struct {
 			struct bt_component *upstream_comp;
 			struct bt_component *downstream_comp;
 			struct bt_port *upstream_port;
 			struct bt_port *downstream_port;
-		} graph_ports_disconnected;
+		} graph_src_sink_ports_disconnected;
 	} data;
 };
 
 static GArray *events;
-static struct bt_component_class *src_comp_class;
-static struct bt_component_class *sink_comp_class;
+static struct bt_private_component_class_source *src_comp_class;
+static struct bt_private_component_class_sink *sink_comp_class;
 static enum test current_test;
 
 static
@@ -136,115 +152,175 @@ bool compare_events(struct event *ev_a, struct event *ev_b)
 	}
 
 	switch (ev_a->type) {
-		case COMP_ACCEPT_PORT_CONNECTION:
-			if (ev_a->data.comp_accept_port_connection.comp !=
-					ev_b->data.comp_accept_port_connection.comp) {
+		case SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION:
+			if (ev_a->data.src_comp_accept_output_port_connection.comp !=
+					ev_b->data.src_comp_accept_output_port_connection.comp) {
 				return false;
 			}
 
-			if (ev_a->data.comp_accept_port_connection.self_port !=
-					ev_b->data.comp_accept_port_connection.self_port) {
+			if (ev_a->data.src_comp_accept_output_port_connection.self_port !=
+					ev_b->data.src_comp_accept_output_port_connection.self_port) {
 				return false;
 			}
 
-			if (ev_a->data.comp_accept_port_connection.other_port !=
-					ev_b->data.comp_accept_port_connection.other_port) {
+			if (ev_a->data.src_comp_accept_output_port_connection.other_port !=
+					ev_b->data.src_comp_accept_output_port_connection.other_port) {
 				return false;
 			}
 			break;
-		case COMP_PORT_CONNECTED:
-			if (ev_a->data.comp_port_connected.comp !=
-					ev_b->data.comp_port_connected.comp) {
+		case SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION:
+			if (ev_a->data.sink_comp_accept_input_port_connection.comp !=
+					ev_b->data.sink_comp_accept_input_port_connection.comp) {
 				return false;
 			}
 
-			if (ev_a->data.comp_port_connected.self_port !=
-					ev_b->data.comp_port_connected.self_port) {
+			if (ev_a->data.sink_comp_accept_input_port_connection.self_port !=
+					ev_b->data.sink_comp_accept_input_port_connection.self_port) {
 				return false;
 			}
 
-			if (ev_a->data.comp_port_connected.other_port !=
-					ev_b->data.comp_port_connected.other_port) {
+			if (ev_a->data.sink_comp_accept_input_port_connection.other_port !=
+					ev_b->data.sink_comp_accept_input_port_connection.other_port) {
 				return false;
 			}
 			break;
-		case COMP_PORT_DISCONNECTED:
-			if (ev_a->data.comp_port_disconnected.comp !=
-					ev_b->data.comp_port_disconnected.comp) {
+		case SRC_COMP_OUTPUT_PORT_CONNECTED:
+			if (ev_a->data.src_comp_output_port_connected.comp !=
+					ev_b->data.src_comp_output_port_connected.comp) {
 				return false;
 			}
 
-			if (ev_a->data.comp_port_disconnected.port !=
-					ev_b->data.comp_port_disconnected.port) {
+			if (ev_a->data.src_comp_output_port_connected.self_port !=
+					ev_b->data.src_comp_output_port_connected.self_port) {
+				return false;
+			}
+
+			if (ev_a->data.src_comp_output_port_connected.other_port !=
+					ev_b->data.src_comp_output_port_connected.other_port) {
 				return false;
 			}
 			break;
-		case GRAPH_PORT_ADDED:
-			if (ev_a->data.graph_port_added.comp !=
-					ev_b->data.graph_port_added.comp) {
+		case SINK_COMP_INPUT_PORT_CONNECTED:
+			if (ev_a->data.sink_comp_input_port_connected.comp !=
+					ev_b->data.sink_comp_input_port_connected.comp) {
 				return false;
 			}
 
-			if (ev_a->data.graph_port_added.port !=
-					ev_b->data.graph_port_added.port) {
+			if (ev_a->data.sink_comp_input_port_connected.self_port !=
+					ev_b->data.sink_comp_input_port_connected.self_port) {
+				return false;
+			}
+
+			if (ev_a->data.sink_comp_input_port_connected.other_port !=
+					ev_b->data.sink_comp_input_port_connected.other_port) {
 				return false;
 			}
 			break;
-		case GRAPH_PORT_REMOVED:
-			if (ev_a->data.graph_port_removed.comp !=
-					ev_b->data.graph_port_removed.comp) {
+		case SRC_COMP_OUTPUT_PORT_DISCONNECTED:
+			if (ev_a->data.src_comp_output_port_disconnected.comp !=
+					ev_b->data.src_comp_output_port_disconnected.comp) {
 				return false;
 			}
 
-			if (ev_a->data.graph_port_removed.port !=
-					ev_b->data.graph_port_removed.port) {
+			if (ev_a->data.src_comp_output_port_disconnected.self_port !=
+					ev_b->data.src_comp_output_port_disconnected.self_port) {
 				return false;
 			}
 			break;
-		case GRAPH_PORTS_CONNECTED:
-			if (ev_a->data.graph_ports_connected.upstream_comp !=
-					ev_b->data.graph_ports_connected.upstream_comp) {
+		case SINK_COMP_INPUT_PORT_DISCONNECTED:
+			if (ev_a->data.sink_comp_input_port_disconnected.comp !=
+					ev_b->data.sink_comp_input_port_disconnected.comp) {
 				return false;
 			}
 
-			if (ev_a->data.graph_ports_connected.downstream_comp !=
-					ev_b->data.graph_ports_connected.downstream_comp) {
-				return false;
-			}
-
-			if (ev_a->data.graph_ports_connected.upstream_port !=
-					ev_b->data.graph_ports_connected.upstream_port) {
-				return false;
-			}
-
-			if (ev_a->data.graph_ports_connected.downstream_port !=
-					ev_b->data.graph_ports_connected.downstream_port) {
-				return false;
-			}
-
-			if (ev_a->data.graph_ports_connected.conn !=
-					ev_b->data.graph_ports_connected.conn) {
+			if (ev_a->data.sink_comp_input_port_disconnected.self_port !=
+					ev_b->data.sink_comp_input_port_disconnected.self_port) {
 				return false;
 			}
 			break;
-		case GRAPH_PORTS_DISCONNECTED:
-			if (ev_a->data.graph_ports_disconnected.upstream_comp !=
-					ev_b->data.graph_ports_disconnected.upstream_comp) {
+		case GRAPH_SRC_OUTPUT_PORT_ADDED:
+			if (ev_a->data.graph_src_output_port_added.comp !=
+					ev_b->data.graph_src_output_port_added.comp) {
 				return false;
 			}
 
-			if (ev_a->data.graph_ports_disconnected.downstream_comp !=
-					ev_b->data.graph_ports_disconnected.downstream_comp) {
+			if (ev_a->data.graph_src_output_port_added.port !=
+					ev_b->data.graph_src_output_port_added.port) {
+				return false;
+			}
+			break;
+		case GRAPH_SINK_INPUT_PORT_ADDED:
+			if (ev_a->data.graph_sink_input_port_added.comp !=
+					ev_b->data.graph_sink_input_port_added.comp) {
 				return false;
 			}
 
-			if (ev_a->data.graph_ports_disconnected.upstream_port !=
-					ev_b->data.graph_ports_disconnected.upstream_port) {
+			if (ev_a->data.graph_sink_input_port_added.port !=
+					ev_b->data.graph_sink_input_port_added.port) {
+				return false;
+			}
+			break;
+		case GRAPH_SRC_OUTPUT_PORT_REMOVED:
+			if (ev_a->data.graph_src_output_port_removed.comp !=
+					ev_b->data.graph_src_output_port_removed.comp) {
 				return false;
 			}
 
-			if (ev_a->data.graph_ports_disconnected.downstream_port !=
-					ev_b->data.graph_ports_disconnected.downstream_port) {
+			if (ev_a->data.graph_src_output_port_removed.port !=
+					ev_b->data.graph_src_output_port_removed.port) {
+				return false;
+			}
+			break;
+		case GRAPH_SINK_INPUT_PORT_REMOVED:
+			if (ev_a->data.graph_sink_input_port_removed.comp !=
+					ev_b->data.graph_sink_input_port_removed.comp) {
+				return false;
+			}
+
+			if (ev_a->data.graph_sink_input_port_removed.port !=
+					ev_b->data.graph_sink_input_port_removed.port) {
+				return false;
+			}
+			break;
+		case GRAPH_SRC_SINK_PORTS_CONNECTED:
+			if (ev_a->data.graph_src_sink_ports_connected.upstream_comp !=
+					ev_b->data.graph_src_sink_ports_connected.upstream_comp) {
+				return false;
+			}
+
+			if (ev_a->data.graph_src_sink_ports_connected.downstream_comp !=
+					ev_b->data.graph_src_sink_ports_connected.downstream_comp) {
+				return false;
+			}
+
+			if (ev_a->data.graph_src_sink_ports_connected.upstream_port !=
+					ev_b->data.graph_src_sink_ports_connected.upstream_port) {
+				return false;
+			}
+
+			if (ev_a->data.graph_src_sink_ports_connected.downstream_port !=
+					ev_b->data.graph_src_sink_ports_connected.downstream_port) {
+				return false;
+			}
+			break;
+		case GRAPH_SRC_SINK_PORTS_DISCONNECTED:
+			if (ev_a->data.graph_src_sink_ports_disconnected.upstream_comp !=
+					ev_b->data.graph_src_sink_ports_disconnected.upstream_comp) {
+				return false;
+			}
+
+			if (ev_a->data.graph_src_sink_ports_disconnected.downstream_comp !=
+					ev_b->data.graph_src_sink_ports_disconnected.downstream_comp) {
+				return false;
+			}
+
+			if (ev_a->data.graph_src_sink_ports_disconnected.upstream_port !=
+					ev_b->data.graph_src_sink_ports_disconnected.upstream_port) {
+				return false;
+			}
+
+			if (ev_a->data.graph_src_sink_ports_disconnected.downstream_port !=
+					ev_b->data.graph_src_sink_ports_disconnected.downstream_port) {
 				return false;
 			}
 			break;
@@ -288,47 +364,77 @@ size_t event_pos(struct event *event)
 }
 
 static
-enum bt_notification_iterator_status src_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_iterator,
+enum bt_self_notification_iterator_status src_iter_next(
+		struct bt_self_notification_iterator *self_iterator,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
 }
 
 static
-enum bt_component_status accept_port_connection(
-		struct bt_private_component *private_component,
-		struct bt_private_port *self_private_port,
-		struct bt_port *other_port)
+enum bt_self_component_status src_accept_output_port_connection(
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_comp_port,
+		struct bt_port_input *other_port)
 {
 	struct event event = {
-		.type = COMP_ACCEPT_PORT_CONNECTION,
-		.data.comp_accept_port_connection = {
-			.comp = bt_component_borrow_from_private(private_component),
-			.self_port = bt_port_borrow_from_private(self_private_port),
-			.other_port = other_port,
+		.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION,
+		.data.src_comp_accept_output_port_connection = {
+			.comp = bt_self_component_borrow_component(
+				bt_self_component_source_borrow_self_component(
+					self_comp)),
+			.self_port = bt_self_component_port_borrow_port(
+				bt_self_component_port_output_borrow_self_component_port(
+					self_comp_port)),
+			.other_port = bt_port_input_borrow_port(other_port),
 		},
 	};
 
 	append_event(&event);
-	return BT_COMPONENT_STATUS_OK;
+	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
 static
-enum bt_component_status src_port_connected(
-		struct bt_private_component *private_component,
-		struct bt_private_port *self_private_port,
-		struct bt_port *other_port)
+enum bt_self_component_status sink_accept_input_port_connection(
+		struct bt_self_component_sink *self_comp,
+		struct bt_self_component_port_input *self_comp_port,
+		struct bt_port_output *other_port)
+{
+	struct event event = {
+		.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION,
+		.data.sink_comp_accept_input_port_connection = {
+			.comp = bt_self_component_borrow_component(
+				bt_self_component_sink_borrow_self_component(
+					self_comp)),
+			.self_port = bt_self_component_port_borrow_port(
+				bt_self_component_port_input_borrow_self_component_port(
+					self_comp_port)),
+			.other_port = bt_port_output_borrow_port(other_port),
+		},
+	};
+
+	append_event(&event);
+	return BT_SELF_COMPONENT_STATUS_OK;
+}
+
+static
+enum bt_self_component_status src_output_port_connected(
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_comp_port,
+		struct bt_port_input *other_port)
 {
 	int ret;
-
 	struct event event = {
-		.type = COMP_PORT_CONNECTED,
-		.data.comp_port_connected = {
-			.comp = bt_component_borrow_from_private(private_component),
-			.self_port = bt_port_borrow_from_private(self_private_port),
-			.other_port = other_port,
+		.type = SRC_COMP_OUTPUT_PORT_CONNECTED,
+		.data.src_comp_output_port_connected = {
+			.comp = bt_self_component_borrow_component(
+				bt_self_component_source_borrow_self_component(
+					self_comp)),
+			.self_port = bt_self_component_port_borrow_port(
+				bt_self_component_port_output_borrow_self_component_port(
+					self_comp_port)),
+			.other_port = bt_port_input_borrow_port(other_port),
 		},
 	};
 
@@ -336,112 +442,90 @@ enum bt_component_status src_port_connected(
 
 	switch (current_test) {
 	case TEST_SRC_ADDS_PORT_IN_PORT_CONNECTED:
-		ret = bt_private_component_source_add_output_port(
-			private_component, "hello", NULL, NULL);
+		ret = bt_self_component_source_add_output_port(
+			self_comp, "hello", NULL, NULL);
 		BT_ASSERT(ret == 0);
 		break;
 	case TEST_SRC_PORT_CONNECTED_ERROR:
-		return BT_COMPONENT_STATUS_ERROR;
+		return BT_SELF_COMPONENT_STATUS_ERROR;
 	default:
 		break;
 	}
 
-	return BT_COMPONENT_STATUS_OK;
+	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
 static
-void src_port_disconnected(struct bt_private_component *private_component,
-		struct bt_private_port *private_port)
-{
-	int ret;
-	struct event event = {
-		.type = COMP_PORT_DISCONNECTED,
-		.data.comp_port_disconnected = {
-			.comp = bt_component_borrow_from_private(private_component),
-			.port = bt_port_borrow_from_private(private_port),
-		},
-	};
-
-	append_event(&event);
-
-	switch (current_test) {
-	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
-		ret = bt_private_port_remove_from_component(private_port);
-		BT_ASSERT(ret == 0);
-	default:
-		break;
-	}
-}
-
-static
-enum bt_component_status src_init(struct bt_private_component *priv_comp,
-	struct bt_value *params, void *init_method_data)
-{
-	int ret;
-
-	ret = bt_private_component_source_add_output_port(
-		priv_comp, "out", NULL, NULL);
-	BT_ASSERT(ret == 0);
-	return BT_COMPONENT_STATUS_OK;
-}
-
-static
-enum bt_component_status sink_consume(
-		struct bt_private_component *priv_component)
-{
-	struct bt_private_port *def_port;
-	int ret;
-
-	switch (current_test) {
-	case TEST_SINK_REMOVES_PORT_IN_CONSUME:
-	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
-		def_port = bt_private_component_sink_get_input_port_by_name(
-			priv_component, "in");
-		BT_ASSERT(def_port);
-		ret = bt_private_port_remove_from_component(def_port);
-		BT_ASSERT(ret == 0);
-		bt_object_put_ref(def_port);
-		break;
-	default:
-		break;
-	}
-
-	return BT_COMPONENT_STATUS_OK;
-}
-
-static
-enum bt_component_status sink_port_connected(
-		struct bt_private_component *private_component,
-		struct bt_private_port *self_private_port,
-		struct bt_port *other_port)
+enum bt_self_component_status sink_input_port_connected(
+		struct bt_self_component_sink *self_comp,
+		struct bt_self_component_port_input *self_comp_port,
+		struct bt_port_output *other_port)
 {
 	struct event event = {
-		.type = COMP_PORT_CONNECTED,
-		.data.comp_port_connected = {
-			.comp = bt_component_borrow_from_private(private_component),
-			.self_port = bt_port_borrow_from_private(self_private_port),
-			.other_port = other_port,
+		.type = SINK_COMP_INPUT_PORT_CONNECTED,
+		.data.sink_comp_input_port_connected = {
+			.comp = bt_self_component_borrow_component(
+				bt_self_component_sink_borrow_self_component(
+					self_comp)),
+			.self_port = bt_self_component_port_borrow_port(
+				bt_self_component_port_input_borrow_self_component_port(
+					self_comp_port)),
+			.other_port = bt_port_output_borrow_port(other_port),
 		},
 	};
 
 	append_event(&event);
 
 	if (current_test == TEST_SINK_PORT_CONNECTED_ERROR) {
-		return BT_COMPONENT_STATUS_ERROR;
+		return BT_SELF_COMPONENT_STATUS_ERROR;
 	} else {
-		return BT_COMPONENT_STATUS_OK;
+		return BT_SELF_COMPONENT_STATUS_OK;
 	}
 }
 
 static
-void sink_port_disconnected(struct bt_private_component *private_component,
-		struct bt_private_port *private_port)
+void src_output_port_disconnected(struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_comp_port)
+{
+	int ret;
+	struct event event = {
+		.type = SRC_COMP_OUTPUT_PORT_DISCONNECTED,
+		.data.src_comp_output_port_disconnected = {
+			.comp = bt_self_component_borrow_component(
+				bt_self_component_source_borrow_self_component(
+					self_comp)),
+			.self_port = bt_self_component_port_borrow_port(
+				bt_self_component_port_output_borrow_self_component_port(
+					self_comp_port)),
+		},
+	};
+
+	append_event(&event);
+
+	switch (current_test) {
+	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
+		ret = bt_self_component_port_remove_from_component(
+			bt_self_component_port_output_borrow_self_component_port(
+					self_comp_port));
+		BT_ASSERT(ret == 0);
+	default:
+		break;
+	}
+}
+
+static
+void sink_input_port_disconnected(struct bt_self_component_sink *self_comp,
+		struct bt_self_component_port_input *self_comp_port)
 {
 	struct event event = {
-		.type = COMP_PORT_DISCONNECTED,
-		.data.comp_port_disconnected = {
-			.comp = bt_component_borrow_from_private(private_component),
-			.port = bt_port_borrow_from_private(private_port),
+		.type = SINK_COMP_INPUT_PORT_DISCONNECTED,
+		.data.sink_comp_input_port_disconnected = {
+			.comp = bt_self_component_borrow_component(
+				bt_self_component_sink_borrow_self_component(
+					self_comp)),
+			.self_port = bt_self_component_port_borrow_port(
+				bt_self_component_port_input_borrow_self_component_port(
+					self_comp_port)),
 		},
 	};
 
@@ -449,31 +533,65 @@ void sink_port_disconnected(struct bt_private_component *private_component,
 }
 
 static
-enum bt_component_status sink_init(struct bt_private_component *priv_comp,
+enum bt_self_component_status src_init(
+	struct bt_self_component_source *self_comp,
 	struct bt_value *params, void *init_method_data)
 {
 	int ret;
 
-	ret = bt_private_component_sink_add_input_port(priv_comp,
+	ret = bt_self_component_source_add_output_port(
+		self_comp, "out", NULL, NULL);
+	BT_ASSERT(ret == 0);
+	return BT_SELF_COMPONENT_STATUS_OK;
+}
+
+static
+enum bt_self_component_status sink_init(
+	struct bt_self_component_sink *self_comp,
+	struct bt_value *params, void *init_method_data)
+{
+	int ret;
+
+	ret = bt_self_component_sink_add_input_port(self_comp,
 		"in", NULL, NULL);
 	BT_ASSERT(ret == 0);
-	return BT_COMPONENT_STATUS_OK;
+	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
 static
-void graph_port_added(struct bt_port *port,
-		void *data)
+enum bt_self_component_status sink_consume(
+		struct bt_self_component_sink *self_comp)
 {
-	struct bt_component *comp = bt_port_get_component(port);
+	struct bt_self_component_port_input *def_port;
+	int ret;
 
-	BT_ASSERT(comp);
-	bt_object_put_ref(comp);
+	switch (current_test) {
+	case TEST_SINK_REMOVES_PORT_IN_CONSUME:
+	case TEST_SINK_REMOVES_PORT_IN_CONSUME_THEN_SRC_REMOVES_DISCONNECTED_PORT:
+		def_port = bt_self_component_sink_borrow_input_port_by_name(
+			self_comp, "in");
+		BT_ASSERT(def_port);
+		ret = bt_self_component_port_remove_from_component(
+			bt_self_component_port_input_borrow_self_component_port(
+				def_port));
+		BT_ASSERT(ret == 0);
+		break;
+	default:
+		break;
+	}
 
+	return BT_SELF_COMPONENT_STATUS_OK;
+}
+
+static
+void graph_src_output_port_added(struct bt_component_source *comp,
+		struct bt_port_output *port, void *data)
+{
 	struct event event = {
-		.type = GRAPH_PORT_ADDED,
-		.data.graph_port_added = {
-			.comp = comp,
-			.port = port,
+		.type = GRAPH_SRC_OUTPUT_PORT_ADDED,
+		.data.graph_src_output_port_added = {
+			.comp = bt_component_source_borrow_component(comp),
+			.port = bt_port_output_borrow_port(port),
 		},
 	};
 
@@ -481,14 +599,14 @@ void graph_port_added(struct bt_port *port,
 }
 
 static
-void graph_port_removed(struct bt_component *component,
-		struct bt_port *port, void *data)
+void graph_sink_input_port_added(struct bt_component_sink *comp,
+		struct bt_port_input *port, void *data)
 {
 	struct event event = {
-		.type = GRAPH_PORT_REMOVED,
-		.data.graph_port_removed = {
-			.comp = component,
-			.port = port,
+		.type = GRAPH_SINK_INPUT_PORT_ADDED,
+		.data.graph_sink_input_port_added = {
+			.comp = bt_component_sink_borrow_component(comp),
+			.port = bt_port_input_borrow_port(port),
 		},
 	};
 
@@ -496,30 +614,14 @@ void graph_port_removed(struct bt_component *component,
 }
 
 static
-void graph_ports_connected(struct bt_port *upstream_port,
-		struct bt_port *downstream_port, void *data)
+void graph_src_output_port_removed(struct bt_component_source *comp,
+		struct bt_port_output *port, void *data)
 {
-	struct bt_component *upstream_comp =
-		bt_port_get_component(upstream_port);
-	struct bt_component *downstream_comp =
-		bt_port_get_component(downstream_port);
-	struct bt_connection *conn = bt_port_get_connection(upstream_port);
-
-	BT_ASSERT(upstream_comp);
-	BT_ASSERT(downstream_comp);
-	BT_ASSERT(conn);
-	bt_object_put_ref(upstream_comp);
-	bt_object_put_ref(downstream_comp);
-	bt_object_put_ref(conn);
-
 	struct event event = {
-		.type = GRAPH_PORTS_CONNECTED,
-		.data.graph_ports_connected = {
-			.upstream_comp = upstream_comp,
-			.downstream_comp = downstream_comp,
-			.upstream_port = upstream_port,
-			.downstream_port = downstream_port,
-			.conn = conn,
+		.type = GRAPH_SRC_OUTPUT_PORT_REMOVED,
+		.data.graph_src_output_port_removed = {
+			.comp = bt_component_source_borrow_component(comp),
+			.port = bt_port_output_borrow_port(port),
 		},
 	};
 
@@ -527,19 +629,60 @@ void graph_ports_connected(struct bt_port *upstream_port,
 }
 
 static
-void graph_ports_disconnected(
-		struct bt_component *upstream_comp,
-		struct bt_component *downstream_comp,
-		struct bt_port *upstream_port, struct bt_port *downstream_port,
-		void *data)
+void graph_sink_input_port_removed(struct bt_component_sink *comp,
+		struct bt_port_input *port, void *data)
 {
 	struct event event = {
-		.type = GRAPH_PORTS_DISCONNECTED,
-		.data.graph_ports_disconnected = {
-			.upstream_comp = upstream_comp,
-			.downstream_comp = downstream_comp,
-			.upstream_port = upstream_port,
-			.downstream_port = downstream_port,
+		.type = GRAPH_SINK_INPUT_PORT_REMOVED,
+		.data.graph_sink_input_port_removed = {
+			.comp = bt_component_sink_borrow_component(comp),
+			.port = bt_port_input_borrow_port(port),
+		},
+	};
+
+	append_event(&event);
+}
+
+static
+void graph_src_sink_ports_connected(struct bt_component_source *upstream_comp,
+		struct bt_component_sink *downstream_comp,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port, void *data)
+{
+	struct event event = {
+		.type = GRAPH_SRC_SINK_PORTS_CONNECTED,
+		.data.graph_src_sink_ports_connected = {
+			.upstream_comp =
+				bt_component_source_borrow_component(upstream_comp),
+			.downstream_comp =
+				bt_component_sink_borrow_component(downstream_comp),
+			.upstream_port =
+				bt_port_output_borrow_port(upstream_port),
+			.downstream_port =
+				bt_port_input_borrow_port(downstream_port),
+		},
+	};
+
+	append_event(&event);
+}
+
+static
+void graph_src_sink_ports_disconnected(struct bt_component_source *upstream_comp,
+		struct bt_component_sink *downstream_comp,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port, void *data)
+{
+	struct event event = {
+		.type = GRAPH_SRC_SINK_PORTS_DISCONNECTED,
+		.data.graph_src_sink_ports_disconnected = {
+			.upstream_comp =
+				bt_component_source_borrow_component(upstream_comp),
+			.downstream_comp =
+				bt_component_sink_borrow_component(downstream_comp),
+			.upstream_port =
+				bt_port_output_borrow_port(upstream_port),
+			.downstream_port =
+				bt_port_input_borrow_port(downstream_port),
 		},
 	};
 
@@ -551,34 +694,36 @@ void init_test(void)
 {
 	int ret;
 
-	src_comp_class = bt_component_class_source_create("src", src_iter_next);
+	src_comp_class = bt_private_component_class_source_create(
+		"src", src_iter_next);
 	BT_ASSERT(src_comp_class);
-	ret = bt_component_class_set_init_method(src_comp_class, src_init);
+	ret = bt_private_component_class_source_set_init_method(
+		src_comp_class, src_init);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_set_accept_port_connection_method(
-		src_comp_class, accept_port_connection);
+	ret = bt_private_component_class_source_set_accept_output_port_connection_method(
+		src_comp_class, src_accept_output_port_connection);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_set_port_connected_method(src_comp_class,
-		src_port_connected);
+	ret = bt_private_component_class_source_set_output_port_connected_method(
+		src_comp_class, src_output_port_connected);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_set_port_disconnected_method(
-		src_comp_class, src_port_disconnected);
+	ret = bt_private_component_class_source_set_output_port_disconnected_method(
+		src_comp_class, src_output_port_disconnected);
 	BT_ASSERT(ret == 0);
-	sink_comp_class = bt_component_class_sink_create("sink", sink_consume);
+	sink_comp_class = bt_private_component_class_sink_create("sink",
+		sink_consume);
 	BT_ASSERT(sink_comp_class);
-	ret = bt_component_class_set_init_method(sink_comp_class, sink_init);
+	ret = bt_private_component_class_sink_set_init_method(sink_comp_class,
+		sink_init);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_set_accept_port_connection_method(
-		sink_comp_class, accept_port_connection);
+	ret = bt_private_component_class_sink_set_accept_input_port_connection_method(
+		sink_comp_class, sink_accept_input_port_connection);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_set_port_connected_method(sink_comp_class,
-		sink_port_connected);
+	ret = bt_private_component_class_sink_set_input_port_connected_method(
+		sink_comp_class, sink_input_port_connected);
 	BT_ASSERT(ret == 0);
-	ret = bt_component_class_set_port_disconnected_method(sink_comp_class,
-		sink_port_disconnected);
+	ret = bt_private_component_class_sink_set_input_port_disconnected_method(
+		sink_comp_class, sink_input_port_disconnected);
 	BT_ASSERT(ret == 0);
-	bt_component_class_freeze(src_comp_class);
-	bt_component_class_freeze(sink_comp_class);
 	events = g_array_new(FALSE, TRUE, sizeof(struct event));
 	BT_ASSERT(events);
 }
@@ -592,25 +737,29 @@ void fini_test(void)
 }
 
 static
-struct bt_component *create_src(struct bt_private_graph *graph)
+struct bt_component_source *create_src(struct bt_private_graph *graph)
 {
-	struct bt_component *comp;
+	struct bt_component_source *comp;
 	int ret;
 
-	ret = bt_private_graph_add_component(graph, src_comp_class, "src-comp", NULL,
-		&comp);
+	ret = bt_private_graph_add_source_component(graph,
+		bt_private_component_class_source_borrow_component_class_source(
+			src_comp_class),
+		"src-comp", NULL, &comp);
 	BT_ASSERT(ret == 0);
 	return comp;
 }
 
 static
-struct bt_component *create_sink(struct bt_private_graph *graph)
+struct bt_component_sink *create_sink(struct bt_private_graph *graph)
 {
-	struct bt_component *comp;
+	struct bt_component_sink *comp;
 	int ret;
 
-	ret = bt_private_graph_add_component(graph, sink_comp_class, "sink-comp",
-		NULL, &comp);
+	ret = bt_private_graph_add_sink_component(graph,
+		bt_private_component_class_sink_borrow_component_class_sink(
+			sink_comp_class),
+		"sink-comp", NULL, &comp);
 	BT_ASSERT(ret == 0);
 	return comp;
 }
@@ -622,17 +771,23 @@ struct bt_private_graph *create_graph(void)
 	int ret;
 
 	BT_ASSERT(graph);
-	ret = bt_private_graph_add_port_added_listener(graph, graph_port_added, NULL,
-		NULL);
+	ret = bt_private_graph_add_source_component_output_port_added_listener(
+		graph, graph_src_output_port_added, NULL, NULL, NULL);
 	BT_ASSERT(ret >= 0);
-	ret = bt_private_graph_add_port_removed_listener(graph, graph_port_removed,
-		NULL, NULL);
+	ret = bt_private_graph_add_sink_component_input_port_added_listener(
+		graph, graph_sink_input_port_added, NULL, NULL, NULL);
 	BT_ASSERT(ret >= 0);
-	ret = bt_private_graph_add_ports_connected_listener(graph,
-		graph_ports_connected, NULL, NULL);
+	ret = bt_private_graph_add_source_component_output_port_removed_listener(
+		graph, graph_src_output_port_removed, NULL, NULL, NULL);
 	BT_ASSERT(ret >= 0);
-	ret = bt_private_graph_add_ports_disconnected_listener(graph,
-		graph_ports_disconnected, NULL, NULL);
+	ret = bt_private_graph_add_sink_component_input_port_removed_listener(
+		graph, graph_sink_input_port_removed, NULL, NULL, NULL);
+	BT_ASSERT(ret >= 0);
+	ret = bt_private_graph_add_source_sink_component_ports_connected_listener(
+		graph, graph_src_sink_ports_connected, NULL, NULL, NULL);
+	BT_ASSERT(ret >= 0);
+	ret = bt_private_graph_add_source_sink_component_ports_disconnected_listener(
+		graph, graph_src_sink_ports_disconnected, NULL, NULL, NULL);
 	BT_ASSERT(ret >= 0);
 	return graph;
 }
@@ -646,22 +801,25 @@ void prepare_test(enum test test, const char *name)
 }
 
 static
-void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port(void)
+void test_sink_removes_port_in_consume_then_src_removes_disconnected_port(void)
 {
 	int ret;
-	struct bt_component *src;
-	struct bt_component *sink;
+	struct bt_component_source *src;
+	struct bt_component_sink *sink;
+	struct bt_component *gsrc;
+	struct bt_component *gsink;
 	struct bt_private_graph *graph;
-	struct bt_port *src_def_port;
-	struct bt_port *sink_def_port;
-	struct bt_connection *conn;
+	struct bt_port_output *src_def_port;
+	struct bt_port_input *sink_def_port;
+	struct bt_port *gsrc_def_port;
+	struct bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
 	size_t sink_port_connected_pos;
-	size_t graph_ports_connected;
+	size_t graph_ports_connected_pos;
 	size_t src_port_disconnected_pos;
 	size_t sink_port_disconnected_pos;
 	size_t graph_ports_disconnected_pos;
@@ -674,76 +832,78 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
-	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
+	src_def_port = bt_component_source_borrow_output_port_by_name(src, "out");
 	BT_ASSERT(src_def_port);
-	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
+	sink_def_port = bt_component_sink_borrow_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
-		&conn);
+	status = bt_private_graph_connect_ports(graph, src_def_port,
+		sink_def_port, NULL);
 	BT_ASSERT(status == 0);
-	BT_ASSERT(conn);
+	gsrc = bt_component_source_borrow_component(src);
+	gsink = bt_component_sink_borrow_component(sink);
+	gsrc_def_port = bt_port_output_borrow_port(src_def_port);
+	gsink_def_port = bt_port_input_borrow_port(sink_def_port);
 
 	/* We're supposed to have 7 events so far */
 	ok(events->len == 7, "we have the expected number of events (before consume)");
 
 	/* Source's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = src;
-	event.data.graph_port_added.port = src_def_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
+	event.data.graph_src_output_port_added.comp = gsrc;
+	event.data.graph_src_output_port_added.port = gsrc_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
 
 	/* Sink's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = sink;
-	event.data.graph_port_added.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_ADDED;
+	event.data.graph_sink_input_port_added.comp = gsink;
+	event.data.graph_sink_input_port_added.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = src;
-	event.data.comp_accept_port_connection.self_port = src_def_port;
-	event.data.comp_accept_port_connection.other_port = sink_def_port;
+	event.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION;
+	event.data.src_comp_accept_output_port_connection.comp = gsrc;
+	event.data.src_comp_accept_output_port_connection.self_port = gsrc_def_port;
+	event.data.src_comp_accept_output_port_connection.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's accept port connection event");
 	src_accept_port_connection_pos = event_pos(&event);
 
 	/* Sink's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = sink;
-	event.data.comp_accept_port_connection.self_port = sink_def_port;
-	event.data.comp_accept_port_connection.other_port = src_def_port;
+	event.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION;
+	event.data.sink_comp_accept_input_port_connection.comp = gsink;
+	event.data.sink_comp_accept_input_port_connection.self_port = gsink_def_port;
+	event.data.sink_comp_accept_input_port_connection.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's accept port connection event");
 	sink_accept_port_connection_pos = event_pos(&event);
 
 	/* Source's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = src;
-	event.data.comp_port_connected.self_port = src_def_port;
-	event.data.comp_port_connected.other_port = sink_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_CONNECTED;
+	event.data.src_comp_output_port_connected.comp = gsrc;
+	event.data.src_comp_output_port_connected.self_port = gsrc_def_port;
+	event.data.src_comp_output_port_connected.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's port connected event");
 	src_port_connected_pos = event_pos(&event);
 
 	/* Sink's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = sink;
-	event.data.comp_port_connected.self_port = sink_def_port;
-	event.data.comp_port_connected.other_port = src_def_port;
+	event.type = SINK_COMP_INPUT_PORT_CONNECTED;
+	event.data.sink_comp_input_port_connected.comp = gsink;
+	event.data.sink_comp_input_port_connected.self_port = gsink_def_port;
+	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
 	sink_port_connected_pos = event_pos(&event);
 
 	/* Graph's ports connected */
-	event.type = GRAPH_PORTS_CONNECTED;
-	event.data.graph_ports_connected.upstream_comp = src;
-	event.data.graph_ports_connected.downstream_comp = sink;
-	event.data.graph_ports_connected.upstream_port = src_def_port;
-	event.data.graph_ports_connected.downstream_port = sink_def_port;
-	event.data.graph_ports_connected.conn = conn;
+	event.type = GRAPH_SRC_SINK_PORTS_CONNECTED;
+	event.data.graph_src_sink_ports_connected.upstream_comp = gsrc;
+	event.data.graph_src_sink_ports_connected.downstream_comp = gsink;
+	event.data.graph_src_sink_ports_connected.upstream_port = gsrc_def_port;
+	event.data.graph_src_sink_ports_connected.downstream_port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's ports connected event");
-	graph_ports_connected = event_pos(&event);
+	graph_ports_connected_pos = event_pos(&event);
 
 	/* Order of events */
-	ok(src_port_connected_pos < graph_ports_connected,
+	ok(src_port_connected_pos < graph_ports_connected_pos,
 		"event order is good (1)");
-	ok(sink_port_connected_pos < graph_ports_connected,
+	ok(sink_port_connected_pos < graph_ports_connected_pos,
 		"event order is good (2)");
 	ok(src_accept_port_connection_pos < src_port_connected_pos,
 		"event order is good (3)");
@@ -759,39 +919,39 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	ok(events->len == 5, "we have the expected number of events (after consume)");
 
 	/* Source's port disconnected */
-	event.type = COMP_PORT_DISCONNECTED;
-	event.data.comp_port_disconnected.comp = src;
-	event.data.comp_port_disconnected.port = src_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_DISCONNECTED;
+	event.data.src_comp_output_port_disconnected.comp = gsrc;
+	event.data.src_comp_output_port_disconnected.self_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected source's port disconnected event");
 	src_port_disconnected_pos = event_pos(&event);
 
 	/* Sink's port disconnected */
-	event.type = COMP_PORT_DISCONNECTED;
-	event.data.comp_port_disconnected.comp = sink;
-	event.data.comp_port_disconnected.port = sink_def_port;
+	event.type = SINK_COMP_INPUT_PORT_DISCONNECTED;
+	event.data.sink_comp_input_port_disconnected.comp = gsink;
+	event.data.sink_comp_input_port_disconnected.self_port = gsink_def_port;
 	ok(has_event(&event), "got the expected sink's port disconnected event");
 	sink_port_disconnected_pos = event_pos(&event);
 
 	/* Graph's ports disconnected */
-	event.type = GRAPH_PORTS_DISCONNECTED;
-	event.data.graph_ports_disconnected.upstream_comp = src;
-	event.data.graph_ports_disconnected.downstream_comp = sink;
-	event.data.graph_ports_disconnected.upstream_port = src_def_port;
-	event.data.graph_ports_disconnected.downstream_port = sink_def_port;
+	event.type = GRAPH_SRC_SINK_PORTS_DISCONNECTED;
+	event.data.graph_src_sink_ports_disconnected.upstream_comp = gsrc;
+	event.data.graph_src_sink_ports_disconnected.downstream_comp = gsink;
+	event.data.graph_src_sink_ports_disconnected.upstream_port = gsrc_def_port;
+	event.data.graph_src_sink_ports_disconnected.downstream_port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's ports disconnected event");
 	graph_ports_disconnected_pos = event_pos(&event);
 
 	/* Graph's port removed (sink) */
-	event.type = GRAPH_PORT_REMOVED;
-	event.data.graph_port_removed.comp = sink;
-	event.data.graph_port_removed.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_REMOVED;
+	event.data.graph_sink_input_port_removed.comp = gsink;
+	event.data.graph_sink_input_port_removed.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port removed event (for sink)");
 	graph_port_removed_sink_pos = event_pos(&event);
 
 	/* Graph's port removed (source) */
-	event.type = GRAPH_PORT_REMOVED;
-	event.data.graph_port_removed.comp = src;
-	event.data.graph_port_removed.port = src_def_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_REMOVED;
+	event.data.graph_src_output_port_removed.comp = gsrc;
+	event.data.graph_src_output_port_removed.port = gsrc_def_port;
 	ok(has_event(&event), "got the expected graph's port removed event (for source)");
 	graph_port_removed_src_pos = event_pos(&event);
 
@@ -818,21 +978,21 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	bt_object_put_ref(graph);
 	bt_object_put_ref(sink);
 	bt_object_put_ref(src);
-	bt_object_put_ref(conn);
-	bt_object_put_ref(src_def_port);
-	bt_object_put_ref(sink_def_port);
 }
 
 static
-void test_sink_removes_port_in_port_connected(void)
+void test_sink_removes_port_in_consume(void)
 {
 	int ret;
-	struct bt_component *src;
-	struct bt_component *sink;
+	struct bt_component_source *src;
+	struct bt_component_sink *sink;
+	struct bt_component *gsrc;
+	struct bt_component *gsink;
 	struct bt_private_graph *graph;
-	struct bt_port *src_def_port;
-	struct bt_port *sink_def_port;
-	struct bt_connection *conn;
+	struct bt_port_output *src_def_port;
+	struct bt_port_input *sink_def_port;
+	struct bt_port *gsrc_def_port;
+	struct bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -851,68 +1011,71 @@ void test_sink_removes_port_in_port_connected(void)
 	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
-	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
+	src_def_port = bt_component_source_borrow_output_port_by_name(src, "out");
 	BT_ASSERT(src_def_port);
-	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
+	sink_def_port = bt_component_sink_borrow_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
-		&conn);
+	status = bt_private_graph_connect_ports(graph, src_def_port,
+		sink_def_port, NULL);
 	BT_ASSERT(status == 0);
+	gsrc = bt_component_source_borrow_component(src);
+	gsink = bt_component_sink_borrow_component(sink);
+	gsrc_def_port = bt_port_output_borrow_port(src_def_port);
+	gsink_def_port = bt_port_input_borrow_port(sink_def_port);
 
 	/* We're supposed to have 7 events so far */
 	ok(events->len == 7, "we have the expected number of events (before consume)");
 
 	/* Source's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = src;
-	event.data.graph_port_added.port = src_def_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
+	event.data.graph_src_output_port_added.comp = gsrc;
+	event.data.graph_src_output_port_added.port = gsrc_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
 
 	/* Sink's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = sink;
-	event.data.graph_port_added.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_ADDED;
+	event.data.graph_sink_input_port_added.comp = gsink;
+	event.data.graph_sink_input_port_added.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = src;
-	event.data.comp_accept_port_connection.self_port = src_def_port;
-	event.data.comp_accept_port_connection.other_port = sink_def_port;
+	event.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION;
+	event.data.src_comp_accept_output_port_connection.comp = gsrc;
+	event.data.src_comp_accept_output_port_connection.self_port = gsrc_def_port;
+	event.data.src_comp_accept_output_port_connection.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's accept port connection event");
 	src_accept_port_connection_pos = event_pos(&event);
 
 	/* Sink's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = sink;
-	event.data.comp_accept_port_connection.self_port = sink_def_port;
-	event.data.comp_accept_port_connection.other_port = src_def_port;
+	event.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION;
+	event.data.sink_comp_accept_input_port_connection.comp = gsink;
+	event.data.sink_comp_accept_input_port_connection.self_port = gsink_def_port;
+	event.data.sink_comp_accept_input_port_connection.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's accept port connection event");
 	sink_accept_port_connection_pos = event_pos(&event);
 
 	/* Source's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = src;
-	event.data.comp_port_connected.self_port = src_def_port;
-	event.data.comp_port_connected.other_port = sink_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_CONNECTED;
+	event.data.src_comp_output_port_connected.comp = gsrc;
+	event.data.src_comp_output_port_connected.self_port = gsrc_def_port;
+	event.data.src_comp_output_port_connected.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's port connected event");
 	src_port_connected_pos = event_pos(&event);
 
 	/* Sink's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = sink;
-	event.data.comp_port_connected.self_port = sink_def_port;
-	event.data.comp_port_connected.other_port = src_def_port;
+	event.type = SINK_COMP_INPUT_PORT_CONNECTED;
+	event.data.sink_comp_input_port_connected.comp = gsink;
+	event.data.sink_comp_input_port_connected.self_port = gsink_def_port;
+	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
 	sink_port_connected_pos = event_pos(&event);
 
 	/* Graph's ports connected */
-	event.type = GRAPH_PORTS_CONNECTED;
-	event.data.graph_ports_connected.upstream_comp = src;
-	event.data.graph_ports_connected.downstream_comp = sink;
-	event.data.graph_ports_connected.upstream_port = src_def_port;
-	event.data.graph_ports_connected.downstream_port = sink_def_port;
-	event.data.graph_ports_connected.conn = conn;
+	event.type = GRAPH_SRC_SINK_PORTS_CONNECTED;
+	event.data.graph_src_sink_ports_connected.upstream_comp = gsrc;
+	event.data.graph_src_sink_ports_connected.downstream_comp = gsink;
+	event.data.graph_src_sink_ports_connected.upstream_port = gsrc_def_port;
+	event.data.graph_src_sink_ports_connected.downstream_port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's ports connected event");
 	graph_ports_connected_pos = event_pos(&event);
 
@@ -935,32 +1098,32 @@ void test_sink_removes_port_in_port_connected(void)
 	ok(events->len == 4, "we have the expected number of events (after consume)");
 
 	/* Source's port disconnected */
-	event.type = COMP_PORT_DISCONNECTED;
-	event.data.comp_port_disconnected.comp = src;
-	event.data.comp_port_disconnected.port = src_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_DISCONNECTED;
+	event.data.src_comp_output_port_disconnected.comp = gsrc;
+	event.data.src_comp_output_port_disconnected.self_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected source's port disconnected event");
 	src_port_disconnected_pos = event_pos(&event);
 
 	/* Sink's port disconnected */
-	event.type = COMP_PORT_DISCONNECTED;
-	event.data.comp_port_disconnected.comp = sink;
-	event.data.comp_port_disconnected.port = sink_def_port;
+	event.type = SINK_COMP_INPUT_PORT_DISCONNECTED;
+	event.data.sink_comp_input_port_disconnected.comp = gsink;
+	event.data.sink_comp_input_port_disconnected.self_port = gsink_def_port;
 	ok(has_event(&event), "got the expected sink's port disconnected event");
 	sink_port_disconnected_pos = event_pos(&event);
 
 	/* Graph's ports disconnected */
-	event.type = GRAPH_PORTS_DISCONNECTED;
-	event.data.graph_ports_disconnected.upstream_comp = src;
-	event.data.graph_ports_disconnected.downstream_comp = sink;
-	event.data.graph_ports_disconnected.upstream_port = src_def_port;
-	event.data.graph_ports_disconnected.downstream_port = sink_def_port;
+	event.type = GRAPH_SRC_SINK_PORTS_DISCONNECTED;
+	event.data.graph_src_sink_ports_disconnected.upstream_comp = gsrc;
+	event.data.graph_src_sink_ports_disconnected.downstream_comp = gsink;
+	event.data.graph_src_sink_ports_disconnected.upstream_port = gsrc_def_port;
+	event.data.graph_src_sink_ports_disconnected.downstream_port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's ports disconnected event");
 	graph_ports_disconnected_pos = event_pos(&event);
 
 	/* Graph's port removed (sink) */
-	event.type = GRAPH_PORT_REMOVED;
-	event.data.graph_port_removed.comp = sink;
-	event.data.graph_port_removed.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_REMOVED;
+	event.data.graph_sink_input_port_removed.comp = gsink;
+	event.data.graph_sink_input_port_removed.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port removed event (for sink)");
 	graph_port_removed_sink_pos = event_pos(&event);
 
@@ -976,24 +1139,25 @@ void test_sink_removes_port_in_port_connected(void)
 	ok(graph_ports_disconnected_pos < graph_port_removed_sink_pos,
 		"event order is good (11)");
 
-	bt_object_put_ref(graph);
 	bt_object_put_ref(sink);
 	bt_object_put_ref(src);
-	bt_object_put_ref(conn);
-	bt_object_put_ref(src_def_port);
-	bt_object_put_ref(sink_def_port);
+	bt_object_put_ref(graph);
 }
 
 static
 void test_src_adds_port_in_port_connected(void)
 {
-	struct bt_component *src;
-	struct bt_component *sink;
+	struct bt_component_source *src;
+	struct bt_component_sink *sink;
+	struct bt_component *gsrc;
+	struct bt_component *gsink;
 	struct bt_private_graph *graph;
-	struct bt_port *src_def_port;
-	struct bt_port *sink_def_port;
-	struct bt_port *src_hello_port;
-	struct bt_connection *conn;
+	struct bt_port_output *src_def_port;
+	struct bt_port_output *src_hello_port;
+	struct bt_port_input *sink_def_port;
+	struct bt_port *gsrc_def_port;
+	struct bt_port *gsrc_hello_port;
+	struct bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -1009,79 +1173,83 @@ void test_src_adds_port_in_port_connected(void)
 	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
-	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
+	src_def_port = bt_component_source_borrow_output_port_by_name(src, "out");
 	BT_ASSERT(src_def_port);
-	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
+	sink_def_port = bt_component_sink_borrow_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
-		&conn);
+	status = bt_private_graph_connect_ports(graph, src_def_port,
+		sink_def_port, NULL);
 	BT_ASSERT(status == 0);
-	src_hello_port = bt_component_source_get_output_port_by_name(src,
+	src_hello_port = bt_component_source_borrow_output_port_by_name(src,
 		"hello");
 	BT_ASSERT(src_hello_port);
+	gsrc = bt_component_source_borrow_component(src);
+	gsink = bt_component_sink_borrow_component(sink);
+	gsrc_def_port = bt_port_output_borrow_port(src_def_port);
+	gsrc_hello_port = bt_port_output_borrow_port(src_hello_port);
+	gsink_def_port = bt_port_input_borrow_port(sink_def_port);
 
 	/* We're supposed to have 8 events */
 	ok(events->len == 8, "we have the expected number of events");
 
 	/* Source's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = src;
-	event.data.graph_port_added.port = src_def_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
+	event.data.graph_src_output_port_added.comp = gsrc;
+	event.data.graph_src_output_port_added.port = gsrc_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
 
 	/* Sink's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = sink;
-	event.data.graph_port_added.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_ADDED;
+	event.data.graph_sink_input_port_added.comp = gsink;
+	event.data.graph_sink_input_port_added.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = src;
-	event.data.comp_accept_port_connection.self_port = src_def_port;
-	event.data.comp_accept_port_connection.other_port = sink_def_port;
+	event.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION;
+	event.data.src_comp_accept_output_port_connection.comp = gsrc;
+	event.data.src_comp_accept_output_port_connection.self_port = gsrc_def_port;
+	event.data.src_comp_accept_output_port_connection.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's accept port connection event");
 	src_accept_port_connection_pos = event_pos(&event);
 
 	/* Sink's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = sink;
-	event.data.comp_accept_port_connection.self_port = sink_def_port;
-	event.data.comp_accept_port_connection.other_port = src_def_port;
+	event.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION;
+	event.data.sink_comp_accept_input_port_connection.comp = gsink;
+	event.data.sink_comp_accept_input_port_connection.self_port = gsink_def_port;
+	event.data.sink_comp_accept_input_port_connection.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's accept port connection event");
 	sink_accept_port_connection_pos = event_pos(&event);
 
 	/* Source's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = src;
-	event.data.comp_port_connected.self_port = src_def_port;
-	event.data.comp_port_connected.other_port = sink_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_CONNECTED;
+	event.data.src_comp_output_port_connected.comp = gsrc;
+	event.data.src_comp_output_port_connected.self_port = gsrc_def_port;
+	event.data.src_comp_output_port_connected.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's port connected event");
 	src_port_connected_pos = event_pos(&event);
 
 	/* Graph's port added (source) */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = src;
-	event.data.graph_port_added.port = src_hello_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
+	event.data.graph_src_output_port_added.comp = gsrc;
+	event.data.graph_src_output_port_added.port = gsrc_hello_port;
 	ok(has_event(&event), "got the expected graph's port added event (for source)");
 	graph_port_added_src_pos = event_pos(&event);
 
 	/* Sink's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = sink;
-	event.data.comp_port_connected.self_port = sink_def_port;
-	event.data.comp_port_connected.other_port = src_def_port;
+	event.type = SINK_COMP_INPUT_PORT_CONNECTED;
+	event.data.sink_comp_input_port_connected.comp = gsink;
+	event.data.sink_comp_input_port_connected.self_port = gsink_def_port;
+	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
 	sink_port_connected_pos = event_pos(&event);
 
 	/* Graph's ports connected */
-	event.type = GRAPH_PORTS_CONNECTED;
-	event.data.graph_ports_connected.upstream_comp = src;
-	event.data.graph_ports_connected.downstream_comp = sink;
-	event.data.graph_ports_connected.upstream_port = src_def_port;
-	event.data.graph_ports_connected.downstream_port = sink_def_port;
-	event.data.graph_ports_connected.conn = conn;
-	ok(has_event(&event), "got the expected graph's port connected event (for source)");
+	event.type = GRAPH_SRC_SINK_PORTS_CONNECTED;
+	event.data.graph_src_sink_ports_connected.upstream_comp = gsrc;
+	event.data.graph_src_sink_ports_connected.downstream_comp = gsink;
+	event.data.graph_src_sink_ports_connected.upstream_port = gsrc_def_port;
+	event.data.graph_src_sink_ports_connected.downstream_port = gsink_def_port;
+	ok(has_event(&event), "got the expected graph's ports connected event");
 	graph_ports_connected_pos = event_pos(&event);
 
 	/* Order of events */
@@ -1098,24 +1266,23 @@ void test_src_adds_port_in_port_connected(void)
 	ok(graph_port_added_src_pos < graph_ports_connected_pos,
 		"event order is good (6)");
 
-	bt_object_put_ref(graph);
-	bt_object_put_ref(sink);
 	bt_object_put_ref(src);
-	bt_object_put_ref(conn);
-	bt_object_put_ref(src_def_port);
-	bt_object_put_ref(sink_def_port);
-	bt_object_put_ref(src_hello_port);
+	bt_object_put_ref(sink);
+	bt_object_put_ref(graph);
 }
 
 static
 void test_simple(void)
 {
-	struct bt_component *src;
-	struct bt_component *sink;
+	struct bt_component_source *src;
+	struct bt_component_sink *sink;
+	struct bt_component *gsrc;
+	struct bt_component *gsink;
 	struct bt_private_graph *graph;
-	struct bt_port *src_def_port;
-	struct bt_port *sink_def_port;
-	struct bt_connection *conn;
+	struct bt_port_output *src_def_port;
+	struct bt_port_input *sink_def_port;
+	struct bt_port *gsrc_def_port;
+	struct bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -1129,68 +1296,71 @@ void test_simple(void)
 	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
-	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
+	src_def_port = bt_component_source_borrow_output_port_by_name(src, "out");
 	BT_ASSERT(src_def_port);
-	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
+	sink_def_port = bt_component_sink_borrow_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
-		&conn);
+	status = bt_private_graph_connect_ports(graph, src_def_port,
+		sink_def_port, NULL);
 	BT_ASSERT(status == 0);
+	gsrc = bt_component_source_borrow_component(src);
+	gsink = bt_component_sink_borrow_component(sink);
+	gsrc_def_port = bt_port_output_borrow_port(src_def_port);
+	gsink_def_port = bt_port_input_borrow_port(sink_def_port);
 
 	/* We're supposed to have 7 events */
 	ok(events->len == 7, "we have the expected number of events");
 
 	/* Source's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = src;
-	event.data.graph_port_added.port = src_def_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
+	event.data.graph_src_output_port_added.comp = gsrc;
+	event.data.graph_src_output_port_added.port = gsrc_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
 
 	/* Sink's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = sink;
-	event.data.graph_port_added.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_ADDED;
+	event.data.graph_sink_input_port_added.comp = gsink;
+	event.data.graph_sink_input_port_added.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = src;
-	event.data.comp_accept_port_connection.self_port = src_def_port;
-	event.data.comp_accept_port_connection.other_port = sink_def_port;
+	event.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION;
+	event.data.src_comp_accept_output_port_connection.comp = gsrc;
+	event.data.src_comp_accept_output_port_connection.self_port = gsrc_def_port;
+	event.data.src_comp_accept_output_port_connection.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's accept port connection event");
 	src_accept_port_connection_pos = event_pos(&event);
 
 	/* Sink's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = sink;
-	event.data.comp_accept_port_connection.self_port = sink_def_port;
-	event.data.comp_accept_port_connection.other_port = src_def_port;
+	event.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION;
+	event.data.sink_comp_accept_input_port_connection.comp = gsink;
+	event.data.sink_comp_accept_input_port_connection.self_port = gsink_def_port;
+	event.data.sink_comp_accept_input_port_connection.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's accept port connection event");
 	sink_accept_port_connection_pos = event_pos(&event);
 
 	/* Source's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = src;
-	event.data.comp_port_connected.self_port = src_def_port;
-	event.data.comp_port_connected.other_port = sink_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_CONNECTED;
+	event.data.src_comp_output_port_connected.comp = gsrc;
+	event.data.src_comp_output_port_connected.self_port = gsrc_def_port;
+	event.data.src_comp_output_port_connected.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's port connected event");
 	src_port_connected_pos = event_pos(&event);
 
 	/* Sink's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = sink;
-	event.data.comp_port_connected.self_port = sink_def_port;
-	event.data.comp_port_connected.other_port = src_def_port;
+	event.type = SINK_COMP_INPUT_PORT_CONNECTED;
+	event.data.sink_comp_input_port_connected.comp = gsink;
+	event.data.sink_comp_input_port_connected.self_port = gsink_def_port;
+	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
 	sink_port_connected_pos = event_pos(&event);
 
-	/* Graph's port connected */
-	event.type = GRAPH_PORTS_CONNECTED;
-	event.data.graph_ports_connected.upstream_comp = src;
-	event.data.graph_ports_connected.downstream_comp = sink;
-	event.data.graph_ports_connected.upstream_port = src_def_port;
-	event.data.graph_ports_connected.downstream_port = sink_def_port;
-	event.data.graph_ports_connected.conn = conn;
+	/* Graph's ports connected */
+	event.type = GRAPH_SRC_SINK_PORTS_CONNECTED;
+	event.data.graph_src_sink_ports_connected.upstream_comp = gsrc;
+	event.data.graph_src_sink_ports_connected.downstream_comp = gsink;
+	event.data.graph_src_sink_ports_connected.upstream_port = gsrc_def_port;
+	event.data.graph_src_sink_ports_connected.downstream_port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's ports connected event");
 	graph_ports_connected_pos = event_pos(&event);
 
@@ -1204,22 +1374,23 @@ void test_simple(void)
 	ok(sink_accept_port_connection_pos < sink_port_connected_pos,
 		"event order is good (4)");
 
-	bt_object_put_ref(graph);
 	bt_object_put_ref(sink);
+	bt_object_put_ref(graph);
 	bt_object_put_ref(src);
-	bt_object_put_ref(conn);
-	bt_object_put_ref(src_def_port);
-	bt_object_put_ref(sink_def_port);
 }
 
 static
 void test_src_port_connected_error(void)
 {
-	struct bt_component *src;
-	struct bt_component *sink;
+	struct bt_component_source *src;
+	struct bt_component_sink *sink;
+	struct bt_component *gsrc;
+	struct bt_component *gsink;
 	struct bt_private_graph *graph;
-	struct bt_port *src_def_port;
-	struct bt_port *sink_def_port;
+	struct bt_port_output *src_def_port;
+	struct bt_port_input *sink_def_port;
+	struct bt_port *gsrc_def_port;
+	struct bt_port *gsink_def_port;
 	struct bt_connection *conn = NULL;
 	struct event event;
 	enum bt_graph_status status;
@@ -1231,51 +1402,55 @@ void test_src_port_connected_error(void)
 	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
-	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
+	src_def_port = bt_component_source_borrow_output_port_by_name(src, "out");
 	BT_ASSERT(src_def_port);
-	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
+	sink_def_port = bt_component_sink_borrow_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
-		&conn);
+	status = bt_private_graph_connect_ports(graph, src_def_port,
+		sink_def_port, &conn);
 	ok(status != BT_GRAPH_STATUS_OK,
 		"bt_private_graph_connect_ports() returns an error");
-	ok(!conn, "returned connection is NULL");
+	ok(!conn, "returned connection is still NULL");
+	gsrc = bt_component_source_borrow_component(src);
+	gsink = bt_component_sink_borrow_component(sink);
+	gsrc_def_port = bt_port_output_borrow_port(src_def_port);
+	gsink_def_port = bt_port_input_borrow_port(sink_def_port);
 
 	/* We're supposed to have 5 events */
 	ok(events->len == 5, "we have the expected number of events");
 
 	/* Source's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = src;
-	event.data.graph_port_added.port = src_def_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
+	event.data.graph_src_output_port_added.comp = gsrc;
+	event.data.graph_src_output_port_added.port = gsrc_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
 
 	/* Sink's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = sink;
-	event.data.graph_port_added.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_ADDED;
+	event.data.graph_sink_input_port_added.comp = gsink;
+	event.data.graph_sink_input_port_added.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = src;
-	event.data.comp_accept_port_connection.self_port = src_def_port;
-	event.data.comp_accept_port_connection.other_port = sink_def_port;
+	event.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION;
+	event.data.src_comp_accept_output_port_connection.comp = gsrc;
+	event.data.src_comp_accept_output_port_connection.self_port = gsrc_def_port;
+	event.data.src_comp_accept_output_port_connection.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's accept port connection event");
 	src_accept_port_connection_pos = event_pos(&event);
 
 	/* Sink's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = sink;
-	event.data.comp_accept_port_connection.self_port = sink_def_port;
-	event.data.comp_accept_port_connection.other_port = src_def_port;
+	event.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION;
+	event.data.sink_comp_accept_input_port_connection.comp = gsink;
+	event.data.sink_comp_accept_input_port_connection.self_port = gsink_def_port;
+	event.data.sink_comp_accept_input_port_connection.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's accept port connection event");
 
 	/* Source's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = src;
-	event.data.comp_port_connected.self_port = src_def_port;
-	event.data.comp_port_connected.other_port = sink_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_CONNECTED;
+	event.data.src_comp_output_port_connected.comp = gsrc;
+	event.data.src_comp_output_port_connected.self_port = gsrc_def_port;
+	event.data.src_comp_output_port_connected.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's port connected event");
 	src_port_connected_pos = event_pos(&event);
 
@@ -1287,18 +1462,20 @@ void test_src_port_connected_error(void)
 	bt_object_put_ref(sink);
 	bt_object_put_ref(src);
 	bt_object_put_ref(conn);
-	bt_object_put_ref(src_def_port);
-	bt_object_put_ref(sink_def_port);
 }
 
 static
 void test_sink_port_connected_error(void)
 {
-	struct bt_component *src;
-	struct bt_component *sink;
+	struct bt_component_source *src;
+	struct bt_component_sink *sink;
+	struct bt_component *gsrc;
+	struct bt_component *gsink;
 	struct bt_private_graph *graph;
-	struct bt_port *src_def_port;
-	struct bt_port *sink_def_port;
+	struct bt_port_output *src_def_port;
+	struct bt_port_input *sink_def_port;
+	struct bt_port *gsrc_def_port;
+	struct bt_port *gsink_def_port;
 	struct bt_connection *conn = NULL;
 	struct event event;
 	enum bt_graph_status status;
@@ -1313,67 +1490,71 @@ void test_sink_port_connected_error(void)
 	BT_ASSERT(graph);
 	src = create_src(graph);
 	sink = create_sink(graph);
-	src_def_port = bt_component_source_get_output_port_by_name(src, "out");
+	src_def_port = bt_component_source_borrow_output_port_by_name(src, "out");
 	BT_ASSERT(src_def_port);
-	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
+	sink_def_port = bt_component_sink_borrow_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
-		&conn);
+	status = bt_private_graph_connect_ports(graph, src_def_port,
+		sink_def_port, &conn);
 	ok(status != BT_GRAPH_STATUS_OK,
 		"bt_private_graph_connect_ports() returns an error");
-	ok(!conn, "returned connection is NULL");
+	ok(!conn, "returned connection is still NULL");
+	gsrc = bt_component_source_borrow_component(src);
+	gsink = bt_component_sink_borrow_component(sink);
+	gsrc_def_port = bt_port_output_borrow_port(src_def_port);
+	gsink_def_port = bt_port_input_borrow_port(sink_def_port);
 
 	/* We're supposed to have 5 events */
 	ok(events->len == 7, "we have the expected number of events");
 
 	/* Source's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = src;
-	event.data.graph_port_added.port = src_def_port;
+	event.type = GRAPH_SRC_OUTPUT_PORT_ADDED;
+	event.data.graph_src_output_port_added.comp = gsrc;
+	event.data.graph_src_output_port_added.port = gsrc_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for source, initial)");
 
 	/* Sink's port added */
-	event.type = GRAPH_PORT_ADDED;
-	event.data.graph_port_added.comp = sink;
-	event.data.graph_port_added.port = sink_def_port;
+	event.type = GRAPH_SINK_INPUT_PORT_ADDED;
+	event.data.graph_sink_input_port_added.comp = gsink;
+	event.data.graph_sink_input_port_added.port = gsink_def_port;
 	ok(has_event(&event), "got the expected graph's port added event (for sink, initial)");
 
 	/* Source's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = src;
-	event.data.comp_accept_port_connection.self_port = src_def_port;
-	event.data.comp_accept_port_connection.other_port = sink_def_port;
+	event.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION;
+	event.data.src_comp_accept_output_port_connection.comp = gsrc;
+	event.data.src_comp_accept_output_port_connection.self_port = gsrc_def_port;
+	event.data.src_comp_accept_output_port_connection.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's accept port connection event");
 	src_accept_port_connection_pos = event_pos(&event);
 
 	/* Sink's accept port connection */
-	event.type = COMP_ACCEPT_PORT_CONNECTION;
-	event.data.comp_accept_port_connection.comp = sink;
-	event.data.comp_accept_port_connection.self_port = sink_def_port;
-	event.data.comp_accept_port_connection.other_port = src_def_port;
+	event.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION;
+	event.data.sink_comp_accept_input_port_connection.comp = gsink;
+	event.data.sink_comp_accept_input_port_connection.self_port = gsink_def_port;
+	event.data.sink_comp_accept_input_port_connection.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's accept port connection event");
 	sink_accept_port_connection_pos = event_pos(&event);
 
 	/* Source's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = src;
-	event.data.comp_port_connected.self_port = src_def_port;
-	event.data.comp_port_connected.other_port = sink_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_CONNECTED;
+	event.data.src_comp_output_port_connected.comp = gsrc;
+	event.data.src_comp_output_port_connected.self_port = gsrc_def_port;
+	event.data.src_comp_output_port_connected.other_port = gsink_def_port;
 	ok(has_event(&event), "got the expected source's port connected event");
 	src_port_connected_pos = event_pos(&event);
 
 	/* Sink's port connected */
-	event.type = COMP_PORT_CONNECTED;
-	event.data.comp_port_connected.comp = sink;
-	event.data.comp_port_connected.self_port = sink_def_port;
-	event.data.comp_port_connected.other_port = src_def_port;
+	event.type = SINK_COMP_INPUT_PORT_CONNECTED;
+	event.data.sink_comp_input_port_connected.comp = gsink;
+	event.data.sink_comp_input_port_connected.self_port = gsink_def_port;
+	event.data.sink_comp_input_port_connected.other_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected sink's port connected event");
 	sink_port_connected_pos = event_pos(&event);
 
 	/* Source's port disconnected */
-	event.type = COMP_PORT_DISCONNECTED;
-	event.data.comp_port_disconnected.comp = src;
-	event.data.comp_port_disconnected.port = src_def_port;
+	event.type = SRC_COMP_OUTPUT_PORT_DISCONNECTED;
+	event.data.src_comp_output_port_disconnected.comp = gsrc;
+	event.data.src_comp_output_port_disconnected.self_port = gsrc_def_port;
 	ok(has_event(&event), "got the expected source's port disconnected event");
 	src_port_disconnected_pos = event_pos(&event);
 
@@ -1385,12 +1566,10 @@ void test_sink_port_connected_error(void)
 	ok(sink_port_connected_pos < src_port_disconnected_pos,
 		"event order is good (3)");
 
+	bt_object_put_ref(conn);
 	bt_object_put_ref(graph);
 	bt_object_put_ref(sink);
 	bt_object_put_ref(src);
-	bt_object_put_ref(conn);
-	bt_object_put_ref(src_def_port);
-	bt_object_put_ref(sink_def_port);
 }
 
 static
@@ -1413,8 +1592,8 @@ int main(int argc, char **argv)
 	test_src_port_connected_error();
 	test_sink_port_connected_error();
 	test_src_adds_port_in_port_connected();
-	test_sink_removes_port_in_port_connected();
-	test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port();
+	test_sink_removes_port_in_consume();
+	test_sink_removes_port_in_consume_then_src_removes_disconnected_port();
 	fini_test();
 	return exit_status();
 }

@@ -35,7 +35,6 @@
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/private-notification-event.h>
 #include <babeltrace/graph/notification-event-internal.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
@@ -77,31 +76,28 @@ end:
 }
 
 struct bt_private_notification *bt_private_notification_event_create(
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_private_event_class *priv_event_class,
 		struct bt_private_packet *priv_packet)
 {
+	struct bt_self_component_port_input_notification_iterator *notif_iter =
+		(void *) self_notif_iter;
 	struct bt_event_class *event_class = (void *) priv_event_class;
 	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_event *notification = NULL;
 	struct bt_event *event;
-	struct bt_graph *graph;
 
 	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_LOGD("Creating event notification object: "
-		"event-class-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64,
-		event_class,
-		bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class));
 	BT_ASSERT_PRE(event_class_has_trace(event_class),
 		"Event class is not part of a trace: %!+E", event_class);
+	BT_LIB_LOGD("Creating event notification object: %![ec-]+E",
+		event_class);
 	event = bt_event_create(event_class, packet);
 	if (unlikely(!event)) {
 		BT_LIB_LOGE("Cannot create event from event class: "
-			"%![event-class-]+E", event_class);
+			"%![ec-]+E", event_class);
 		goto error;
 	}
 
@@ -120,10 +116,8 @@ struct bt_private_notification *bt_private_notification_event_create(
 	 *   to notify the graph (pool owner) so that it removes the
 	 *   notification from its notification array.
 	 */
-	graph = bt_private_connection_private_notification_iterator_borrow_graph(
-		notif_iter);
 	notification = (void *) bt_notification_create_from_pool(
-		&graph->event_notif_pool, graph);
+		&notif_iter->graph->event_notif_pool, notif_iter->graph);
 	if (unlikely(!notification)) {
 		/* bt_notification_create_from_pool() logs errors */
 		goto error;
@@ -133,14 +127,8 @@ struct bt_private_notification *bt_private_notification_event_create(
 	notification->event = event;
 	bt_packet_set_is_frozen(packet, true);
 	bt_event_class_freeze(event_class);
-	BT_LOGD("Created event notification object: "
-		"event-addr=%p, event-class-addr=%p, "
-		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-		"notif-addr=%p",
-		notification->event, event_class,
-		bt_event_class_get_name(event_class),
-		bt_event_class_get_id(event_class),
-		notification);
+	BT_LIB_LOGD("Created event notification object: "
+		"%![notif-]+n, %![event-]+e", notification, event);
 	goto end;
 
 error:
@@ -156,11 +144,12 @@ void bt_notification_event_destroy(struct bt_notification *notif)
 {
 	struct bt_notification_event *event_notif = (void *) notif;
 
-	BT_LOGD("Destroying event notification: addr=%p", notif);
+	BT_LIB_LOGD("Destroying event notification: %!+n", notif);
 
 	if (event_notif->event) {
-		BT_LOGD_STR("Recycling event.");
+		BT_LIB_LOGD("Recycling event: %!+e", event_notif->event);
 		bt_event_recycle(event_notif->event);
+		event_notif->event = NULL;
 	}
 
 	g_free(notif);
@@ -179,10 +168,10 @@ void bt_notification_event_recycle(struct bt_notification *notif)
 		return;
 	}
 
-	BT_LOGD("Recycling event notification: addr=%p", notif);
+	BT_LIB_LOGD("Recycling event notification: %![notif-]+n, %![event-]+e",
+		notif, event_notif->event);
 	bt_notification_reset(notif);
 	BT_ASSERT(event_notif->event);
-	BT_LOGD_STR("Recycling event.");
 	bt_event_recycle(event_notif->event);
 	event_notif->event = NULL;
 	graph = notif->graph;

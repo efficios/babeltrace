@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
 
 /*
- * BabelTrace - CTF writer: Clock internal
- *
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

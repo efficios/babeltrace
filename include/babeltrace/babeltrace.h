@@ -4,7 +4,7 @@
 /*
  * Babeltrace API
  *
- * Copyright 2010-2017 EfficiOS Inc. <http://www.efficios.com/>
+ * Copyright 2010-2018 EfficiOS Inc. <http://www.efficios.com/>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@
 #include <babeltrace/logging.h>
 #include <babeltrace/object.h>
 #include <babeltrace/private-values.h>
+#include <babeltrace/property.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
 #include <babeltrace/version.h>
@@ -99,7 +100,6 @@
 #include <babeltrace/graph/component-filter.h>
 #include <babeltrace/graph/component-sink.h>
 #include <babeltrace/graph/component-source.h>
-#include <babeltrace/graph/component-status.h>
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/graph.h>
@@ -109,22 +109,33 @@
 #include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/notification-stream.h>
 #include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/output-port-notification-iterator.h>
+#include <babeltrace/graph/port-input.h>
+#include <babeltrace/graph/port-output-notification-iterator.h>
+#include <babeltrace/graph/port-output.h>
 #include <babeltrace/graph/port.h>
-#include <babeltrace/graph/private-component-filter.h>
-#include <babeltrace/graph/private-component-sink.h>
-#include <babeltrace/graph/private-component-source.h>
-#include <babeltrace/graph/private-component.h>
-#include <babeltrace/graph/private-connection-notification-iterator.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
-#include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/private-component-class-filter.h>
+#include <babeltrace/graph/private-component-class-sink.h>
+#include <babeltrace/graph/private-component-class-source.h>
+#include <babeltrace/graph/private-component-class.h>
 #include <babeltrace/graph/private-graph.h>
 #include <babeltrace/graph/private-notification-event.h>
 #include <babeltrace/graph/private-notification-inactivity.h>
 #include <babeltrace/graph/private-notification-packet.h>
 #include <babeltrace/graph/private-notification-stream.h>
 #include <babeltrace/graph/private-notification.h>
-#include <babeltrace/graph/private-port.h>
+#include <babeltrace/graph/private-query-executor.h>
 #include <babeltrace/graph/query-executor.h>
+#include <babeltrace/graph/self-component-class-filter.h>
+#include <babeltrace/graph/self-component-class-sink.h>
+#include <babeltrace/graph/self-component-class-source.h>
+#include <babeltrace/graph/self-component-filter.h>
+#include <babeltrace/graph/self-component-port-input-notification-iterator.h>
+#include <babeltrace/graph/self-component-port-input.h>
+#include <babeltrace/graph/self-component-port-output.h>
+#include <babeltrace/graph/self-component-port.h>
+#include <babeltrace/graph/self-component-sink.h>
+#include <babeltrace/graph/self-component-source.h>
+#include <babeltrace/graph/self-component.h>
+#include <babeltrace/graph/self-notification-iterator.h>
 
 #endif /* BABELTRACE_BABELTRACE_H */

@@ -2,10 +2,6 @@
 #define _BABELTRACE_BITFIELD_H
 
 /*
- * BabelTrace
- *
- * Bitfields read/write functions.
- *
  * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

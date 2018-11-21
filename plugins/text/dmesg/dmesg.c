@@ -1,6 +1,6 @@
 /*
  * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
- * Copyright 2017 Philippe Proulx <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ struct dmesg_component;
 
 struct dmesg_notif_iter {
 	struct dmesg_component *dmesg_comp;
-	struct bt_private_connection_private_notification_iterator *pc_notif_iter; /* Weak */
+	struct bt_self_notification_iterator *pc_notif_iter; /* Weak */
 	char *linebuf;
 	size_t linebuf_len;
 	FILE *fp;
@@ -163,7 +163,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 
 		ret = bt_private_stream_class_set_default_clock_class(
 			dmesg_comp->stream_class,
-			bt_clock_class_borrow_from_private(
+			bt_private_clock_class_borrow_clock_class(
 				dmesg_comp->clock_class));
 		if (ret) {
 			BT_LOGE_STR("Cannot set stream class's default clock class.");
@@ -351,19 +351,21 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 }
 
 static
-enum bt_component_status create_port(struct bt_private_component *priv_comp)
+enum bt_self_component_status create_port(
+		struct bt_self_component_source *self_comp)
 {
-	return bt_private_component_source_add_output_port(priv_comp,
+	return bt_self_component_source_add_output_port(self_comp,
 		"out", NULL, NULL);
 }
 
 BT_HIDDEN
-enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
+enum bt_self_component_status dmesg_init(
+		struct bt_self_component_source *self_comp,
 		struct bt_value *params, void *init_method_data)
 {
 	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
-	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 
 	if (!dmesg_comp) {
 		BT_LOGE_STR("Failed to allocate one dmesg component structure.");
@@ -378,7 +380,7 @@ enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
 
 	ret = handle_params(dmesg_comp, params);
 	if (ret) {
-		BT_LOGE("Invalid parameters: comp-addr=%p", priv_comp);
+		BT_LOGE("Invalid parameters: comp-addr=%p", self_comp);
 		goto error;
 	}
 
@@ -386,25 +388,29 @@ enum bt_component_status dmesg_init(struct bt_private_component *priv_comp,
 			!g_file_test(dmesg_comp->params.path->str,
 			G_FILE_TEST_IS_REGULAR)) {
 		BT_LOGE("Input path is not a regular file: "
-			"comp-addr=%p, path=\"%s\"", priv_comp,
+			"comp-addr=%p, path=\"%s\"", self_comp,
 			dmesg_comp->params.path->str);
 		goto error;
 	}
 
-	status = create_port(priv_comp);
-	if (status != BT_COMPONENT_STATUS_OK) {
+	status = create_port(self_comp);
+	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto error;
 	}
 
-	(void) bt_private_component_set_user_data(priv_comp, dmesg_comp);
+	bt_self_component_set_data(
+		bt_self_component_source_borrow_self_component(self_comp),
+		dmesg_comp);
 	goto end;
 
 error:
 	destroy_dmesg_component(dmesg_comp);
-	(void) bt_private_component_set_user_data(priv_comp, NULL);
+	bt_self_component_set_data(
+		bt_self_component_source_borrow_self_component(self_comp),
+		NULL);
 
 	if (status >= 0) {
-		status = BT_COMPONENT_STATUS_ERROR;
+		status = BT_SELF_COMPONENT_STATUS_ERROR;
 	}
 
 end:
@@ -412,11 +418,10 @@ end:
 }
 
 BT_HIDDEN
-void dmesg_finalize(struct bt_private_component *priv_comp)
+void dmesg_finalize(struct bt_self_component_source *self_comp)
 {
-	void *data = bt_private_component_get_user_data(priv_comp);
-
-	destroy_dmesg_component(data);
+	destroy_dmesg_component(bt_self_component_get_data(
+		bt_self_component_source_borrow_self_component(self_comp)));
 }
 
 static
@@ -618,29 +623,27 @@ void destroy_dmesg_notif_iter(struct dmesg_notif_iter *dmesg_notif_iter)
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status dmesg_notif_iter_init(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
-		struct bt_private_port *priv_port)
+enum bt_self_notification_iterator_status dmesg_notif_iter_init(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_port)
 {
-	struct bt_private_component *priv_comp = NULL;
 	struct dmesg_component *dmesg_comp;
 	struct dmesg_notif_iter *dmesg_notif_iter =
 		g_new0(struct dmesg_notif_iter, 1);
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_self_notification_iterator_status status =
+		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	if (!dmesg_notif_iter) {
 		BT_LOGE_STR("Failed to allocate on dmesg notification iterator structure.");
 		goto error;
 	}
 
-	priv_comp = bt_private_connection_private_notification_iterator_get_private_component(
-		priv_notif_iter);
-	BT_ASSERT(priv_comp);
-	dmesg_comp = bt_private_component_get_user_data(priv_comp);
+	dmesg_comp = bt_self_component_get_data(
+		bt_self_component_source_borrow_self_component(self_comp));
 	BT_ASSERT(dmesg_comp);
 	dmesg_notif_iter->dmesg_comp = dmesg_comp;
-	dmesg_notif_iter->pc_notif_iter = priv_notif_iter;
+	dmesg_notif_iter->pc_notif_iter = self_notif_iter;
 
 	if (dmesg_comp->params.read_from_stdin) {
 		dmesg_notif_iter->fp = stdin;
@@ -653,47 +656,45 @@ enum bt_notification_iterator_status dmesg_notif_iter_init(
 		}
 	}
 
-	(void) bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
+	bt_self_notification_iterator_set_data(self_notif_iter,
 		dmesg_notif_iter);
 	goto end;
 
 error:
 	destroy_dmesg_notif_iter(dmesg_notif_iter);
-	(void) bt_private_connection_private_notification_iterator_set_user_data(priv_notif_iter,
-		NULL);
+	bt_self_notification_iterator_set_data(self_notif_iter, NULL);
 	if (status >= 0) {
-		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
 	}
 
 end:
-	bt_object_put_ref(priv_comp);
 	return status;
 }
 
 BT_HIDDEN
 void dmesg_notif_iter_finalize(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter)
+		struct bt_self_notification_iterator *priv_notif_iter)
 {
-	destroy_dmesg_notif_iter(bt_private_connection_private_notification_iterator_get_user_data(
+	destroy_dmesg_notif_iter(bt_self_notification_iterator_get_data(
 		priv_notif_iter));
 }
 
 static
-enum bt_notification_iterator_status dmesg_notif_iter_next_one(
+enum bt_self_notification_iterator_status dmesg_notif_iter_next_one(
 		struct dmesg_notif_iter *dmesg_notif_iter,
 		struct bt_private_notification **notif)
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_self_notification_iterator_status status =
+		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 
 	BT_ASSERT(dmesg_notif_iter);
 	dmesg_comp = dmesg_notif_iter->dmesg_comp;
 	BT_ASSERT(dmesg_comp);
 
 	if (dmesg_notif_iter->state == STATE_DONE) {
-		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_END;
 		goto end;
 	}
 
@@ -711,14 +712,14 @@ enum bt_notification_iterator_status dmesg_notif_iter_next_one(
 			&dmesg_notif_iter->linebuf_len, dmesg_notif_iter->fp);
 		if (len < 0) {
 			if (errno == EINVAL) {
-				status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+				status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
 			} else if (errno == ENOMEM) {
 				status =
-					BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+					BT_SELF_NOTIFICATION_ITERATOR_STATUS_NOMEM;
 			} else {
 				if (dmesg_notif_iter->state == STATE_EMIT_STREAM_BEGINNING) {
 					/* Stream did not even begin */
-					status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+					status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_END;
 					goto end;
 				} else {
 					/* End current packet now */
@@ -793,7 +794,7 @@ handle_state:
 	if (!*notif) {
 		BT_LOGE("Cannot create notification: dmesg-comp-addr=%p",
 			dmesg_comp);
-		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
 	}
 
 end:
@@ -801,25 +802,27 @@ end:
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status dmesg_notif_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
+enum bt_self_notification_iterator_status dmesg_notif_iter_next(
+		struct bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count)
 {
 	struct dmesg_notif_iter *dmesg_notif_iter =
-		bt_private_connection_private_notification_iterator_get_user_data(
-			priv_notif_iter);
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		bt_self_notification_iterator_get_data(
+			self_notif_iter);
+	enum bt_self_notification_iterator_status status =
+		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 
-	while (i < capacity && status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		struct bt_private_notification *priv_notif;
+	while (i < capacity &&
+			status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
+		struct bt_private_notification *priv_notif = NULL;
 
 		status = dmesg_notif_iter_next_one(dmesg_notif_iter,
 			&priv_notif);
-		notifs[i] = bt_notification_borrow_from_private(priv_notif);
-		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		notifs[i] = bt_private_notification_borrow_notification(
+			priv_notif);
+		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 			i++;
 		}
 	}
@@ -828,17 +831,17 @@ enum bt_notification_iterator_status dmesg_notif_iter_next(
 		/*
 		 * Even if dmesg_notif_iter_next_one() returned
 		 * something else than
-		 * BT_NOTIFICATION_ITERATOR_STATUS_OK, we accumulated
-		 * notification objects in the output notification
-		 * array, so we need to return
-		 * BT_NOTIFICATION_ITERATOR_STATUS_OK so that they are
-		 * transfered to downstream. This other status occurs
-		 * again the next time muxer_notif_iter_do_next() is
-		 * called, possibly without any accumulated
+		 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK, we
+		 * accumulated notification objects in the output
+		 * notification array, so we need to return
+		 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK so that they
+		 * are transfered to downstream. This other status
+		 * occurs again the next time muxer_notif_iter_do_next()
+		 * is called, possibly without any accumulated
 		 * notification, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 	}
 
 	return status;

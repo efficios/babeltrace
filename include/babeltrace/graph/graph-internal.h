@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_GRAPH_INTERNAL_H
 
 /*
- * BabelTrace - Component Graph Internal
- *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -29,7 +27,6 @@
 
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/component-status.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
@@ -61,27 +58,37 @@ struct bt_graph {
 	/* Queue of pointers (weak references) to sink bt_components. */
 	GQueue *sinks_to_consume;
 
-	bt_bool canceled;
-	bt_bool in_remove_listener;
-	bt_bool has_sink;
+	bool canceled;
+	bool in_remove_listener;
+	bool has_sink;
 
 	/*
-	 * If this is BT_FALSE, then the public API's consuming
+	 * If this is false, then the public API's consuming
 	 * functions (bt_graph_consume() and bt_graph_run()) return
 	 * BT_GRAPH_STATUS_CANNOT_CONSUME. The internal "no check"
 	 * functions always work.
 	 *
-	 * In bt_output_port_notification_iterator_create(), on success,
+	 * In bt_port_output_notification_iterator_create(), on success,
 	 * this flag is cleared so that the iterator remains the only
 	 * consumer for the graph's lifetime.
 	 */
-	bt_bool can_consume;
+	bool can_consume;
 
 	struct {
-		GArray *port_added;
-		GArray *port_removed;
-		GArray *ports_connected;
-		GArray *ports_disconnected;
+		GArray *source_output_port_added;
+		GArray *filter_output_port_added;
+		GArray *filter_input_port_added;
+		GArray *sink_input_port_added;
+		GArray *source_output_port_removed;
+		GArray *filter_output_port_removed;
+		GArray *filter_input_port_removed;
+		GArray *sink_input_port_removed;
+		GArray *source_filter_ports_connected;
+		GArray *source_sink_ports_connected;
+		GArray *filter_sink_ports_connected;
+		GArray *source_filter_ports_disconnected;
+		GArray *source_sink_ports_disconnected;
+		GArray *filter_sink_ports_disconnected;
 	} listeners;
 
 	/* Pool of `struct bt_notification_event *` */
@@ -111,7 +118,7 @@ struct bt_graph {
 };
 
 static inline
-void _bt_graph_set_can_consume(struct bt_graph *graph, bt_bool can_consume)
+void _bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
 {
 	BT_ASSERT(graph);
 	graph->can_consume = can_consume;
@@ -125,7 +132,7 @@ void _bt_graph_set_can_consume(struct bt_graph *graph, bt_bool can_consume)
 
 BT_HIDDEN
 enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
-		struct bt_component *sink);
+		struct bt_component_sink *sink);
 
 BT_HIDDEN
 void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port);
@@ -177,8 +184,6 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_END";
 	case BT_GRAPH_STATUS_OK:
 		return "BT_GRAPH_STATUS_OK";
-	case BT_GRAPH_STATUS_INVALID:
-		return "BT_GRAPH_STATUS_INVALID";
 	case BT_GRAPH_STATUS_NO_SINK:
 		return "BT_GRAPH_STATUS_NO_SINK";
 	case BT_GRAPH_STATUS_ERROR:
@@ -189,37 +194,6 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_NOMEM";
 	default:
 		return "(unknown)";
-	}
-}
-
-static inline
-enum bt_graph_status bt_graph_status_from_component_status(
-		enum bt_component_status comp_status)
-{
-	switch (comp_status) {
-	case BT_COMPONENT_STATUS_OK:
-		return BT_GRAPH_STATUS_OK;
-	case BT_COMPONENT_STATUS_END:
-		return BT_GRAPH_STATUS_END;
-	case BT_COMPONENT_STATUS_AGAIN:
-		return BT_GRAPH_STATUS_AGAIN;
-	case BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
-		return BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION;
-	case BT_COMPONENT_STATUS_ERROR:
-		return BT_GRAPH_STATUS_ERROR;
-	case BT_COMPONENT_STATUS_UNSUPPORTED:
-		return BT_GRAPH_STATUS_ERROR;
-	case BT_COMPONENT_STATUS_INVALID:
-		return BT_GRAPH_STATUS_INVALID;
-	case BT_COMPONENT_STATUS_NOMEM:
-		return BT_GRAPH_STATUS_NOMEM;
-	case BT_COMPONENT_STATUS_NOT_FOUND:
-		return BT_GRAPH_STATUS_ERROR;
-	default:
-#ifdef BT_LOGF
-		BT_LOGF("Unknown component status: status=%d", comp_status);
-#endif
-		abort();
 	}
 }
 

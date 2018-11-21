@@ -89,6 +89,8 @@ static char __thread lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 
 #define PRFIELD(_expr)	prefix, (_expr)
 
+#define PRFIELD_GSTRING(_expr)	PRFIELD((_expr) ? (_expr)->str : NULL)
+
 #define SET_TMP_PREFIX(_prefix2)					\
 	do {								\
 		strcpy(tmp_prefix, prefix);				\
@@ -597,11 +599,6 @@ static inline void format_stream(char **buf_ch, bool extended,
 		return;
 	}
 
-	trace = (void *) bt_object_borrow_parent(&stream->base);
-	if (!trace) {
-		return;
-	}
-
 	BUF_APPEND(", %strace-addr=%p", PRFIELD(trace));
 	SET_TMP_PREFIX("trace-");
 	format_trace(buf_ch, false, tmp_prefix, trace);
@@ -680,7 +677,7 @@ static inline void format_event(char **buf_ch, bool extended,
 
 	BUF_APPEND(", %sis-frozen=%d, %sheader-field-addr=%p, "
 		"%scommon-context-field-addr=%p, "
-		"%specific-scontext-field-addr=%p, "
+		"%sspecific-context-field-addr=%p, "
 		"%spayload-field-addr=%p, ",
 		PRFIELD(event->frozen),
 		PRFIELD(event->header_field ?
@@ -786,10 +783,14 @@ static inline void format_clock_value(char **buf_ch, bool extended,
 	}
 
 	BUF_APPEND(", %sis-set=%d", PRFIELD(clock_value->is_set));
-	BUF_APPEND(", %sclock-class-addr=%p",
-		PRFIELD(clock_value->clock_class));
-	SET_TMP_PREFIX("clock-class-");
-	format_clock_class(buf_ch, false, tmp_prefix, clock_value->clock_class);
+
+	if (clock_value->clock_class) {
+		BUF_APPEND(", %sclock-class-addr=%p",
+			PRFIELD(clock_value->clock_class));
+		SET_TMP_PREFIX("clock-class-");
+		format_clock_class(buf_ch, false, tmp_prefix,
+			clock_value->clock_class);
+	}
 }
 
 static inline void format_value(char **buf_ch, bool extended,
@@ -872,8 +873,11 @@ static inline void format_notification(char **buf_ch, bool extended,
 	{
 		struct bt_notification_event *notif_event = (void *) notif;
 
-		SET_TMP_PREFIX("event-");
-		format_event(buf_ch, true, tmp_prefix, notif_event->event);
+		if (notif_event->event) {
+			SET_TMP_PREFIX("event-");
+			format_event(buf_ch, true, tmp_prefix, notif_event->event);
+		}
+
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
@@ -881,8 +885,11 @@ static inline void format_notification(char **buf_ch, bool extended,
 		struct bt_notification_stream_begin *notif_stream =
 			(void *) notif;
 
-		SET_TMP_PREFIX("stream-");
-		format_stream(buf_ch, true, tmp_prefix, notif_stream->stream);
+		if (notif_stream->stream) {
+			SET_TMP_PREFIX("stream-");
+			format_stream(buf_ch, true, tmp_prefix, notif_stream->stream);
+		}
+
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -890,8 +897,11 @@ static inline void format_notification(char **buf_ch, bool extended,
 		struct bt_notification_stream_end *notif_stream =
 			(void *) notif;
 
-		SET_TMP_PREFIX("stream-");
-		format_stream(buf_ch, true, tmp_prefix, notif_stream->stream);
+		if (notif_stream->stream) {
+			SET_TMP_PREFIX("stream-");
+			format_stream(buf_ch, true, tmp_prefix, notif_stream->stream);
+		}
+
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
@@ -899,8 +909,11 @@ static inline void format_notification(char **buf_ch, bool extended,
 		struct bt_notification_packet_begin *notif_packet =
 			(void *) notif;
 
-		SET_TMP_PREFIX("packet-");
-		format_packet(buf_ch, true, tmp_prefix, notif_packet->packet);
+		if (notif_packet->packet) {
+			SET_TMP_PREFIX("packet-");
+			format_packet(buf_ch, true, tmp_prefix, notif_packet->packet);
+		}
+
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -908,8 +921,11 @@ static inline void format_notification(char **buf_ch, bool extended,
 		struct bt_notification_packet_end *notif_packet =
 			(void *) notif;
 
-		SET_TMP_PREFIX("packet-");
-		format_packet(buf_ch, true, tmp_prefix, notif_packet->packet);
+		if (notif_packet->packet) {
+			SET_TMP_PREFIX("packet-");
+			format_packet(buf_ch, true, tmp_prefix, notif_packet->packet);
+		}
+
 		break;
 	}
 	default:
@@ -924,7 +940,7 @@ static inline void format_plugin_so_shared_lib_handle(char **buf_ch,
 	BUF_APPEND(", %saddr=%p", PRFIELD(handle));
 
 	if (handle->path) {
-		BUF_APPEND(", %spath=\"%s\"", PRFIELD(handle->path->str));
+		BUF_APPEND(", %spath=\"%s\"", PRFIELD_GSTRING(handle->path));
 	}
 }
 
@@ -935,11 +951,11 @@ static inline void format_component_class(char **buf_ch, bool extended,
 
 	BUF_APPEND(", %stype=%s, %sname=\"%s\"",
 		PRFIELD(bt_component_class_type_string(comp_class->type)),
-		PRFIELD(comp_class->name ? comp_class->name->str : NULL));
+		PRFIELD_GSTRING(comp_class->name));
 
 	if (comp_class->description) {
 		BUF_APPEND(", %spartial-descr=\"%.32s\"",
-			PRFIELD(comp_class->description->str));
+			PRFIELD_GSTRING(comp_class->description));
 	}
 
 	if (!extended) {
@@ -960,9 +976,14 @@ static inline void format_component(char **buf_ch, bool extended,
 {
 	char tmp_prefix[64];
 
-	BUF_APPEND(", %sname=\"%s\"", PRFIELD(component->name->str));
-	SET_TMP_PREFIX("class-");
-	format_component_class(buf_ch, extended, tmp_prefix, component->class);
+	BUF_APPEND(", %sname=\"%s\"",
+		PRFIELD_GSTRING(component->name));
+
+	if (component->class) {
+		SET_TMP_PREFIX("class-");
+		format_component_class(buf_ch, extended, tmp_prefix,
+			component->class);
+	}
 
 	if (!extended) {
 		return;
@@ -986,7 +1007,7 @@ static inline void format_port(char **buf_ch, bool extended,
 
 	BUF_APPEND(", %stype=%s, %sname=\"%s\"",
 		PRFIELD(bt_port_type_string(port->type)),
-		PRFIELD(port->name->str));
+		PRFIELD_GSTRING(port->name));
 
 	if (!extended) {
 		return;
@@ -1059,10 +1080,10 @@ static inline void format_notification_iterator(char **buf_ch,
 	const char *type;
 	char tmp_prefix[64];
 
-	if (iterator->type == BT_NOTIFICATION_ITERATOR_TYPE_PRIVATE_CONNECTION) {
-		type = "BT_NOTIFICATION_ITERATOR_TYPE_PRIVATE_CONNECTION";
-	} else if (iterator->type == BT_NOTIFICATION_ITERATOR_TYPE_OUTPUT_PORT) {
-		type = "BT_NOTIFICATION_ITERATOR_TYPE_OUTPUT_PORT";
+	if (iterator->type == BT_NOTIFICATION_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT) {
+		type = "BT_NOTIFICATION_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT";
+	} else if (iterator->type == BT_NOTIFICATION_ITERATOR_TYPE_PORT_OUTPUT) {
+		type = "BT_NOTIFICATION_ITERATOR_TYPE_PORT_OUTPUT";
 	} else {
 		type = "(unknown)";
 	}
@@ -1070,41 +1091,47 @@ static inline void format_notification_iterator(char **buf_ch,
 	BUF_APPEND(", %stype=%s", PRFIELD(type));
 
 	switch (iterator->type) {
-	case BT_NOTIFICATION_ITERATOR_TYPE_PRIVATE_CONNECTION:
+	case BT_NOTIFICATION_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT:
 	{
-		struct bt_notification_iterator_private_connection *
-			iter_priv_conn = (void *) iterator;
+		struct bt_self_component_port_input_notification_iterator *
+			port_in_iter = (void *) iterator;
 
-		if (iter_priv_conn->upstream_component) {
+		if (port_in_iter->upstream_component) {
 			SET_TMP_PREFIX("upstream-comp-");
 			format_component(buf_ch, false, tmp_prefix,
-				iter_priv_conn->upstream_component);
+				port_in_iter->upstream_component);
 		}
 
-		if (iter_priv_conn->upstream_port) {
+		if (port_in_iter->upstream_port) {
 			SET_TMP_PREFIX("upstream-port-");
 			format_port(buf_ch, false, tmp_prefix,
-				iter_priv_conn->upstream_port);
+				port_in_iter->upstream_port);
 		}
 
-		if (iter_priv_conn->connection) {
+		if (port_in_iter->connection) {
 			SET_TMP_PREFIX("upstream-conn-");
 			format_connection(buf_ch, false, tmp_prefix,
-				iter_priv_conn->connection);
+				port_in_iter->connection);
 		}
 		break;
 	}
-	case BT_NOTIFICATION_ITERATOR_TYPE_OUTPUT_PORT:
+	case BT_NOTIFICATION_ITERATOR_TYPE_PORT_OUTPUT:
 	{
-		struct bt_notification_iterator_output_port *iter_output_port =
+		struct bt_port_output_notification_iterator *port_out_iter =
 			(void *) iterator;
 
-		SET_TMP_PREFIX("graph-");
-		format_graph(buf_ch, false, tmp_prefix,
-			iter_output_port->graph);
-		SET_TMP_PREFIX("colander-comp-");
-		format_component(buf_ch, false, tmp_prefix,
-			iter_output_port->colander);
+		if (port_out_iter->graph) {
+			SET_TMP_PREFIX("graph-");
+			format_graph(buf_ch, false, tmp_prefix,
+				port_out_iter->graph);
+		}
+
+		if (port_out_iter->colander) {
+			SET_TMP_PREFIX("colander-comp-");
+			format_component(buf_ch, false, tmp_prefix,
+				(void *) port_out_iter->colander);
+		}
+
 		break;
 	}
 	default:
@@ -1121,12 +1148,12 @@ static inline void format_plugin(char **buf_ch, bool extended,
 
 	if (plugin->info.path_set) {
 		BUF_APPEND(", %spath=\"%s\"",
-			PRFIELD(plugin->info.path->str));
+			PRFIELD_GSTRING(plugin->info.path));
 	}
 
 	if (plugin->info.name_set) {
 		BUF_APPEND(", %sname=\"%s\"",
-			PRFIELD(plugin->info.name->str));
+			PRFIELD_GSTRING(plugin->info.name));
 	}
 
 	if (!extended) {
@@ -1135,12 +1162,12 @@ static inline void format_plugin(char **buf_ch, bool extended,
 
 	if (plugin->info.author_set) {
 		BUF_APPEND(", %sauthor=\"%s\"",
-			PRFIELD(plugin->info.author->str));
+			PRFIELD_GSTRING(plugin->info.author));
 	}
 
 	if (plugin->info.license_set) {
 		BUF_APPEND(", %slicense=\"%s\"",
-			PRFIELD(plugin->info.license->str));
+			PRFIELD_GSTRING(plugin->info.license));
 	}
 
 	if (plugin->info.version_set) {
@@ -1152,9 +1179,11 @@ static inline void format_plugin(char **buf_ch, bool extended,
 				plugin->info.version.extra->str : "");
 	}
 
-	BUF_APPEND(", %sis-frozen=%d, %scomp-class-count=%u",
-		PRFIELD(plugin->frozen),
-		PRFIELD(plugin->comp_classes->len));
+	BUF_APPEND(", %ssrc-comp-class-count=%u, %sflt-comp-class-count=%u, "
+		"%ssink-comp-class-count=%u",
+		PRFIELD(plugin->src_comp_classes->len),
+		PRFIELD(plugin->flt_comp_classes->len),
+		PRFIELD(plugin->sink_comp_classes->len));
 
 	if (plugin->spec_data) {
 		struct bt_plugin_so_spec_data *spec_data =

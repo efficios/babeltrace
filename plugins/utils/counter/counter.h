@@ -29,7 +29,7 @@
 #include <stdint.h>
 
 struct counter {
-	struct bt_notification_iterator *notif_iter;
+	struct bt_self_component_port_input_notification_iterator *notif_iter;
 	struct {
 		uint64_t event;
 		uint64_t stream_begin;
@@ -45,13 +45,21 @@ struct counter {
 	bool hide_zero;
 };
 
-enum bt_component_status counter_init(struct bt_private_component *component,
+BT_HIDDEN
+enum bt_self_component_status counter_init(
+		struct bt_self_component_sink *component,
 		struct bt_value *params, void *init_method_data);
-void counter_finalize(struct bt_private_component *component);
-enum bt_component_status counter_port_connected(
-		struct bt_private_component *component,
-		struct bt_private_port *self_port,
-		struct bt_port *other_port);
-enum bt_component_status counter_consume(struct bt_private_component *component);
+
+BT_HIDDEN
+void counter_finalize(struct bt_self_component_sink *component);
+
+BT_HIDDEN
+enum bt_self_component_status counter_port_connected(
+		struct bt_self_component_sink *component,
+		struct bt_self_component_port_input *self_port,
+		struct bt_port_output *other_port);
+
+BT_HIDDEN
+enum bt_self_component_status counter_consume(struct bt_self_component_sink *component);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_COUNTER_H */

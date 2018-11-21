@@ -30,17 +30,17 @@ extern "C" {
 #endif
 
 struct bt_private_notification;
-struct bt_private_connection_private_notification_iterator;
+struct bt_self_notification_iterator;
 struct bt_private_packet;
 
 extern
 struct bt_private_notification *bt_private_notification_packet_begin_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_private_packet *packet);
 
 extern
 struct bt_private_notification *bt_private_notification_packet_end_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_private_packet *packet);
 
 extern struct bt_private_packet *

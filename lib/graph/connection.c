@@ -1,8 +1,4 @@
 /*
- * connection.c
- *
- * Babeltrace Connection
- *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -31,25 +27,24 @@
 
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/component-source-internal.h>
-#include <babeltrace/graph/component-filter-internal.h>
 #include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/private-connection.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <stdlib.h>
 #include <glib.h>
 
 static
-void bt_connection_destroy(struct bt_object *obj)
+void destroy_connection(struct bt_object *obj)
 {
 	struct bt_connection *connection = container_of(obj,
 			struct bt_connection, base);
 
-	BT_LOGD("Destroying connection: addr=%p", connection);
+	BT_LIB_LOGD("Destroying connection: %!+x", connection);
 
 	/*
 	 * Make sure that each notification iterator which was created
@@ -68,6 +63,7 @@ void bt_connection_destroy(struct bt_object *obj)
 	 */
 	bt_connection_end(connection, false);
 	g_ptr_array_free(connection->iterators, TRUE);
+	connection->iterators = NULL;
 
 	/*
 	 * No bt_object_put_ref on ports as a connection only holds _weak_
@@ -77,7 +73,7 @@ void bt_connection_destroy(struct bt_object *obj)
 }
 
 static
-void bt_connection_try_remove_from_graph(struct bt_connection *connection)
+void try_remove_connection_from_graph(struct bt_connection *connection)
 {
 	void *graph = (void *) bt_object_borrow_parent(&connection->base);
 
@@ -103,48 +99,30 @@ void bt_connection_try_remove_from_graph(struct bt_connection *connection)
 	 * It is safe to remove the connection from the graph, therefore
 	 * destroying it.
 	 */
-	BT_LOGD("Removing self from graph's connections: "
-		"graph-addr=%p, conn-addr=%p", graph, connection);
+	BT_LIB_LOGD("Removing self from graph's connections: "
+		"%![graph-]+g, %![conn-]+x", graph, connection);
 	bt_graph_remove_connection(graph, connection);
 }
 
 static
-void bt_connection_parent_is_owner(struct bt_object *obj)
+void parent_is_owner(struct bt_object *obj)
 {
 	struct bt_connection *connection = container_of(obj,
 			struct bt_connection, base);
 
-	bt_connection_try_remove_from_graph(connection);
-}
-
-struct bt_connection *bt_connection_borrow_from_private(
-		struct bt_private_connection *private_connection)
-{
-	return (void *) private_connection;
+	try_remove_connection_from_graph(connection);
 }
 
 BT_HIDDEN
-struct bt_connection *bt_connection_create(
-		struct bt_graph *graph,
+struct bt_connection *bt_connection_create(struct bt_graph *graph,
 		struct bt_port *upstream_port,
 		struct bt_port *downstream_port)
 {
 	struct bt_connection *connection = NULL;
 
-	if (bt_port_get_type(upstream_port) != BT_PORT_TYPE_OUTPUT) {
-		BT_LOGW_STR("Invalid parameter: upstream port is not an output port.");
-		goto end;
-	}
-	if (bt_port_get_type(downstream_port) != BT_PORT_TYPE_INPUT) {
-		BT_LOGW_STR("Invalid parameter: downstream port is not an input port.");
-		goto end;
-	}
-
-	BT_LOGD("Creating connection: "
-		"graph-addr=%p, upstream-port-addr=%p, uptream-port-name=\"%s\", "
-		"downstream-port-addr=%p, downstream-port-name=\"%s\"",
-		graph, upstream_port, bt_port_get_name(upstream_port),
-		downstream_port, bt_port_get_name(downstream_port));
+	BT_LIB_LOGD("Creating connection: "
+		"%![graph-]+g, %![up-port-]+p, %![down-port-]+p",
+		graph, upstream_port, downstream_port);
 	connection = g_new0(struct bt_connection, 1);
 	if (!connection) {
 		BT_LOGE_STR("Failed to allocate one connection.");
@@ -152,9 +130,9 @@ struct bt_connection *bt_connection_create(
 	}
 
 	bt_object_init_shared_with_parent(&connection->base,
-		bt_connection_destroy);
+		destroy_connection);
 	bt_object_set_parent_is_owner_listener_func(&connection->base,
-		bt_connection_parent_is_owner);
+		parent_is_owner);
 	connection->iterators = g_ptr_array_new();
 	if (!connection->iterators) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
@@ -165,26 +143,20 @@ struct bt_connection *bt_connection_create(
 	/* Weak references are taken, see comment in header. */
 	connection->upstream_port = upstream_port;
 	connection->downstream_port = downstream_port;
-	BT_LOGD_STR("Setting upstream port's connection.");
+	BT_LIB_LOGD("Setting upstream port's connection: %!+p", upstream_port);
 	bt_port_set_connection(upstream_port, connection);
-	BT_LOGD_STR("Setting downstream port's connection.");
+	BT_LIB_LOGD("Setting downstream port's connection: %!+p",
+		downstream_port);
 	bt_port_set_connection(downstream_port, connection);
 	bt_object_set_parent(&connection->base, &graph->base);
-	BT_LOGD("Created connection: "
-		"graph-addr=%p, upstream-port-addr=%p, uptream-port-name=\"%s\", "
-		"downstream-port-addr=%p, downstream-port-name=\"%s\", "
-		"conn-addr=%p",
-		graph, upstream_port, bt_port_get_name(upstream_port),
-		downstream_port, bt_port_get_name(downstream_port),
-		connection);
+	BT_LIB_LOGD("Created connection: %!+x", connection);
 
 end:
 	return connection;
 }
 
 BT_HIDDEN
-void bt_connection_end(struct bt_connection *conn,
-		bool try_remove_from_graph)
+void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 {
 	struct bt_component *downstream_comp = NULL;
 	struct bt_component *upstream_comp = NULL;
@@ -193,233 +165,117 @@ void bt_connection_end(struct bt_connection *conn,
 	struct bt_graph *graph = bt_connection_borrow_graph(conn);
 	size_t i;
 
-	BT_LOGD("Ending connection: conn-addr=%p, try-remove-from-graph=%d",
+	BT_LIB_LOGD("Ending connection: %!+x, try-remove-from-graph=%d",
 		conn, try_remove_from_graph);
 
+	/*
+	 * Any of the following notification callback functions could
+	 * remove one of the connection's ports from its component. To
+	 * make sure that at least logging in called functions works
+	 * with existing objects, get a local reference on both ports.
+	 */
+	bt_object_get_ref(downstream_port);
+	bt_object_get_ref(upstream_port);
+
 	if (downstream_port) {
-		BT_LOGD("Disconnecting connection's downstream port: "
-			"port-addr=%p, port-name=\"%s\"",
-			downstream_port, bt_port_get_name(downstream_port));
-		downstream_comp = bt_port_get_component(downstream_port);
+		BT_LIB_LOGD("Disconnecting connection's downstream port: %!+p",
+			downstream_port);
+		downstream_comp = bt_port_borrow_component(downstream_port);
 		bt_port_set_connection(downstream_port, NULL);
 		conn->downstream_port = NULL;
 	}
 
 	if (upstream_port) {
-		BT_LOGD("Disconnecting connection's upstream port: "
-			"port-addr=%p, port-name=\"%s\"",
-			upstream_port, bt_port_get_name(upstream_port));
-		upstream_comp = bt_port_get_component(upstream_port);
+		BT_LIB_LOGD("Disconnecting connection's upstream port: %!+p",
+			upstream_port);
+		upstream_comp = bt_port_borrow_component(upstream_port);
 		bt_port_set_connection(upstream_port, NULL);
 		conn->upstream_port = NULL;
 	}
 
-	if (downstream_comp && conn->notified_downstream_port_connected) {
+	if (downstream_comp && conn->notified_downstream_port_connected &&
+			!conn->notified_downstream_port_disconnected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(downstream_comp,
 			downstream_port);
+		conn->notified_downstream_port_disconnected = true;
 	}
 
-	if (upstream_comp && conn->notified_upstream_port_connected) {
+	if (upstream_comp && conn->notified_upstream_port_connected &&
+			!conn->notified_upstream_port_disconnected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(upstream_comp, upstream_port);
+		conn->notified_upstream_port_disconnected = true;
 	}
 
 	BT_ASSERT(graph);
 
-	if (conn->notified_graph_ports_connected) {
+	if (conn->notified_graph_ports_connected &&
+			!conn->notified_graph_ports_disconnected) {
 		/* bt_graph_notify_ports_disconnected() logs details */
 		bt_graph_notify_ports_disconnected(graph, upstream_comp,
 			downstream_comp, upstream_port, downstream_port);
+		conn->notified_graph_ports_disconnected = true;
 	}
 
-	bt_object_put_ref(downstream_comp);
-	bt_object_put_ref(upstream_comp);
+	/*
+	 * It is safe to put the local port references now that we don't
+	 * need them anymore. This could indeed destroy them.
+	 */
+	bt_object_put_ref(downstream_port);
+	bt_object_put_ref(upstream_port);
 
 	/*
 	 * Because this connection is ended, finalize (cancel) each
 	 * notification iterator created from it.
 	 */
 	for (i = 0; i < conn->iterators->len; i++) {
-		struct bt_notification_iterator_private_connection *iterator =
+		struct bt_self_component_port_input_notification_iterator *iterator =
 			g_ptr_array_index(conn->iterators, i);
 
-		BT_LOGD("Finalizing notification iterator created by this ended connection: "
-			"conn-addr=%p, iter-addr=%p", conn, iterator);
-		bt_private_connection_notification_iterator_finalize(iterator);
+		BT_LIB_LOGD("Finalizing notification iterator created by "
+			"this ended connection: %![iter-]+i", iterator);
+		bt_self_component_port_input_notification_iterator_finalize(
+			iterator);
 
 		/*
 		 * Make sure this iterator does not try to remove itself
 		 * from this connection's iterators on destruction
 		 * because this connection won't exist anymore.
 		 */
-		bt_private_connection_notification_iterator_set_connection(
+		bt_self_component_port_input_notification_iterator_set_connection(
 			iterator, NULL);
 	}
 
 	g_ptr_array_set_size(conn->iterators, 0);
 
 	if (try_remove_from_graph) {
-		bt_connection_try_remove_from_graph(conn);
+		try_remove_connection_from_graph(conn);
 	}
 }
 
-struct bt_port *bt_connection_get_upstream_port(
+struct bt_port_output *bt_connection_borrow_upstream_port(
 		struct bt_connection *connection)
 {
-	return connection ? bt_object_get_ref(connection->upstream_port) : NULL;
+	BT_ASSERT_PRE_NON_NULL(connection, "Connection");
+	return (void *) connection->upstream_port;
 }
 
-struct bt_port *bt_connection_get_downstream_port(
+struct bt_port_input *bt_connection_borrow_downstream_port(
 		struct bt_connection *connection)
 {
-	return connection ? bt_object_get_ref(connection->downstream_port) : NULL;
-}
-
-enum bt_connection_status
-bt_private_connection_create_notification_iterator(
-		struct bt_private_connection *private_connection,
-		struct bt_notification_iterator **user_iterator)
-{
-	enum bt_component_class_type upstream_comp_class_type;
-	struct bt_notification_iterator_private_connection *iterator = NULL;
-	struct bt_port *upstream_port = NULL;
-	struct bt_component *upstream_component = NULL;
-	struct bt_component_class *upstream_comp_class = NULL;
-	struct bt_connection *connection = NULL;
-	bt_component_class_notification_iterator_init_method init_method = NULL;
-	enum bt_connection_status status;
-
-	if (!private_connection) {
-		BT_LOGW_STR("Invalid parameter: private connection is NULL.");
-		status = BT_CONNECTION_STATUS_INVALID;
-		goto end;
-	}
-
-	if (!user_iterator) {
-		BT_LOGW_STR("Invalid parameter: notification iterator pointer is NULL.");
-		status = BT_CONNECTION_STATUS_INVALID;
-		goto end;
-	}
-
-	connection = bt_connection_borrow_from_private(private_connection);
-
-	if (bt_graph_is_canceled(bt_connection_borrow_graph(connection))) {
-		BT_LOGW("Cannot create notification iterator from connection: "
-			"connection's graph is canceled: "
-			"conn-addr=%p, upstream-port-addr=%p, "
-			"upstream-port-name=\"%s\", upstream-comp-addr=%p, "
-			"upstream-comp-name=\"%s\", graph-addr=%p",
-			connection, connection->upstream_port,
-			bt_port_get_name(connection->upstream_port),
-			upstream_component,
-			bt_component_get_name(upstream_component),
-			bt_connection_borrow_graph(connection));
-		status = BT_CONNECTION_STATUS_GRAPH_IS_CANCELED;
-		goto end;
-	}
-
-	if (bt_connection_is_ended(connection)) {
-		BT_LOGW("Invalid parameter: connection is ended: "
-			"conn-addr=%p", connection);
-		status = BT_CONNECTION_STATUS_IS_ENDED;
-		goto end;
-	}
-
-	upstream_port = connection->upstream_port;
-	BT_ASSERT(upstream_port);
-	upstream_component = bt_port_get_component(upstream_port);
-	BT_ASSERT(upstream_component);
-	upstream_comp_class = upstream_component->class;
-	BT_LOGD("Creating notification iterator from connection: "
-		"conn-addr=%p, upstream-port-addr=%p, "
-		"upstream-port-name=\"%s\", upstream-comp-addr=%p, "
-		"upstream-comp-name=\"%s\"",
-		connection, connection->upstream_port,
-		bt_port_get_name(connection->upstream_port),
-		upstream_component, bt_component_get_name(upstream_component));
-	upstream_comp_class_type =
-		bt_component_get_class_type(upstream_component);
-	BT_ASSERT(upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_SOURCE ||
-			upstream_comp_class_type == BT_COMPONENT_CLASS_TYPE_FILTER);
-	status = bt_private_connection_notification_iterator_create(upstream_component,
-		upstream_port, connection, &iterator);
-	if (status != BT_CONNECTION_STATUS_OK) {
-		BT_LOGW("Cannot create notification iterator from connection.");
-		goto end;
-	}
-
-	switch (upstream_comp_class_type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *source_class =
-			container_of(upstream_comp_class,
-				struct bt_component_class_source, parent);
-		init_method = source_class->methods.iterator.init;
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *filter_class =
-			container_of(upstream_comp_class,
-				struct bt_component_class_filter, parent);
-		init_method = filter_class->methods.iterator.init;
-		break;
-	}
-	default:
-		/* Unreachable. */
-		BT_LOGF("Unknown component class type: type=%d",
-			upstream_comp_class_type);
-		abort();
-	}
-
-	if (init_method) {
-		enum bt_notification_iterator_status iter_status;
-
-		BT_LOGD("Calling user's initialization method: iter-addr=%p",
-			iterator);
-		iter_status = init_method(
-			bt_private_connection_private_notification_iterator_from_notification_iterator((void *) iterator),
-			bt_private_port_from_port(upstream_port));
-		BT_LOGD("User method returned: status=%s",
-			bt_notification_iterator_status_string(iter_status));
-		if (iter_status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-			BT_LOGW_STR("Initialization method failed.");
-			status = bt_connection_status_from_notification_iterator_status(
-				iter_status);
-			goto end;
-		}
-	}
-
-	iterator->state = BT_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_STATE_ACTIVE;
-	g_ptr_array_add(connection->iterators, iterator);
-	BT_LOGD("Created notification iterator from connection: "
-		"conn-addr=%p, upstream-port-addr=%p, "
-		"upstream-port-name=\"%s\", upstream-comp-addr=%p, "
-		"upstream-comp-name=\"%s\", iter-addr=%p",
-		connection, connection->upstream_port,
-		bt_port_get_name(connection->upstream_port),
-		upstream_component, bt_component_get_name(upstream_component),
-		iterator);
-
-	/* Move reference to user */
-	*user_iterator = (void *) iterator;
-	iterator = NULL;
-
-end:
-	bt_object_put_ref(upstream_component);
-	bt_object_put_ref(iterator);
-	return status;
+	BT_ASSERT_PRE_NON_NULL(connection, "Connection");
+	return (void *) connection->downstream_port;
 }
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
-		struct bt_notification_iterator_private_connection *iterator)
+		struct bt_self_component_port_input_notification_iterator *iterator)
 {
 	g_ptr_array_remove(conn->iterators, iterator);
-	BT_LOGV("Removed notification iterator from connection: "
-		"conn-addr=%p, iter-addr=%p", conn, iterator);
-	bt_connection_try_remove_from_graph(conn);
+	BT_LIB_LOGV("Removed notification iterator from connection: "
+		"%![conn-]+x, %![iter-]+i", conn, iterator);
+	try_remove_connection_from_graph(conn);
 }
 
 bt_bool bt_connection_is_ended(struct bt_connection *connection)

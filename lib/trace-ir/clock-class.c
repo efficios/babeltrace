@@ -344,9 +344,3 @@ int bt_clock_class_cycles_to_ns_from_origin(struct bt_clock_class *clock_class,
 
 	return ret;
 }
-
-struct bt_clock_class *bt_clock_class_borrow_from_private(
-		struct bt_private_clock_class *priv_clock_class)
-{
-	return (void *) priv_clock_class;
-}

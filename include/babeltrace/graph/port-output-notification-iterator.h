@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_COMPONENT_SOURCE_H
-#define BABELTRACE_GRAPH_PRIVATE_COMPONENT_SOURCE_H
+#ifndef BABELTRACE_GRAPH_PORT_OUTPUT_NOTIFICATION_ITERATOR_H
+#define BABELTRACE_GRAPH_PORT_OUTPUT_NOTIFICATION_ITERATOR_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -25,35 +25,43 @@
 
 #include <stdint.h>
 
-/* For enum bt_component_status */
-#include <babeltrace/graph/component-status.h>
+/* For enum bt_notification_iterator_status */
+#include <babeltrace/graph/notification-iterator.h>
+
+/* For bt_notification_array */
+#include <babeltrace/graph/notification.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_private_component;
-struct bt_private_port;
+struct bt_port;
+struct bt_notification;
+struct bt_notification_iterator;
+struct bt_port_output_notification_iterator;
+struct bt_private_graph;
+struct bt_port_output;
 
-extern struct bt_private_port *
-bt_private_component_source_get_output_port_by_name(
-		struct bt_private_component *private_component,
-		const char *name);
+static inline
+struct bt_notification_iterator *
+bt_port_output_notification_iterator_borrow_notification_iterator(
+		struct bt_port_output_notification_iterator *iterator)
+{
+	return (void *) iterator;
+}
 
-extern struct bt_private_port *
-bt_private_component_source_get_output_port_by_index(
-		struct bt_private_component *private_component,
-		uint64_t index);
+extern struct bt_port_output_notification_iterator *bt_port_output_notification_iterator_create(
+		struct bt_private_graph *graph,
+		struct bt_port_output *output_port,
+		const char *colander_component_name);
 
-extern enum bt_component_status
-bt_private_component_source_add_output_port(
-		struct bt_private_component *private_component,
-		const char *name, void *user_data,
-		struct bt_private_port **private_port);
+extern enum bt_notification_iterator_status
+bt_port_output_notification_iterator_next(
+		struct bt_port_output_notification_iterator *iterator,
+		bt_notification_array *notifs, uint64_t *count);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_COMPONENT_SOURCE_H */
+#endif /* BABELTRACE_GRAPH_PORT_OUTPUT_NOTIFICATION_ITERATOR_H */

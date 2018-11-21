@@ -1,8 +1,4 @@
 /*
- * ref.c: reference counting
- *
- * Babeltrace Library
- *
  * Copyright (c) 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

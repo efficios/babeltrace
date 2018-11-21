@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_UTILS_H
 
 /*
- * BabelTrace - CTF writer: Utilities
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

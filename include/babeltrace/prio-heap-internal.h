@@ -2,8 +2,6 @@
 #define _BABELTRACE_PRIO_HEAP_H
 
 /*
- * prio_heap.h
- *
  * Static-sized priority heap containing pointers. Based on CLRS,
  * chapter 6.
  *

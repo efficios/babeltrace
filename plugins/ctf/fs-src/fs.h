@@ -70,7 +70,7 @@ struct ctf_fs_metadata {
 
 struct ctf_fs_component {
 	/* Weak, guaranteed to exist */
-	struct bt_private_component *priv_comp;
+	struct bt_self_component_source *self_comp;
 
 	/* Array of struct ctf_fs_port_data *, owned by this */
 	GPtrArray *port_data;
@@ -133,7 +133,7 @@ struct ctf_fs_port_data {
 
 struct ctf_fs_notif_iter_data {
 	/* Weak */
-	struct bt_private_connection_private_notification_iterator *pc_notif_iter;
+	struct bt_self_notification_iterator *pc_notif_iter;
 
 	/* Weak, belongs to ctf_fs_trace */
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -152,17 +152,19 @@ struct ctf_fs_notif_iter_data {
 };
 
 BT_HIDDEN
-enum bt_component_status ctf_fs_init(struct bt_private_component *source,
+enum bt_self_component_status ctf_fs_init(
+		struct bt_self_component_source *source,
 		struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
-void ctf_fs_finalize(struct bt_private_component *component);
+void ctf_fs_finalize(struct bt_self_component_source *component);
 
 BT_HIDDEN
-struct bt_component_class_query_method_return ctf_fs_query(
-		struct bt_component_class *comp_class,
+enum bt_query_status ctf_fs_query(
+		struct bt_self_component_class_source *comp_class,
 		struct bt_query_executor *query_exec,
-		const char *object, struct bt_value *params);
+		const char *object, struct bt_value *params,
+		struct bt_value **result);
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
@@ -178,15 +180,17 @@ BT_HIDDEN
 GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path);
 
 BT_HIDDEN
-enum bt_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_private_connection_private_notification_iterator *it,
-		struct bt_private_port *port);
-BT_HIDDEN
-void ctf_fs_iterator_finalize(struct bt_private_connection_private_notification_iterator *it);
+enum bt_self_notification_iterator_status ctf_fs_iterator_init(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_port);
 
 BT_HIDDEN
-enum bt_notification_iterator_status ctf_fs_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator,
+void ctf_fs_iterator_finalize(struct bt_self_notification_iterator *it);
+
+BT_HIDDEN
+enum bt_self_notification_iterator_status ctf_fs_iterator_next(
+		struct bt_self_notification_iterator *iterator,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count);
 

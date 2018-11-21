@@ -23,50 +23,57 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-internal.h>
 
-static enum bt_component_status sink_consume(
-		struct bt_private_component *private_component)
+static enum bt_self_component_status sink_consume(
+		struct bt_self_component_sink *self_comp)
 {
-	return BT_COMPONENT_STATUS_OK;
+	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
-static enum bt_notification_iterator_status dummy_iterator_init_method(
-		struct bt_private_connection_private_notification_iterator *private_iterator,
-		struct bt_private_port *private_port)
+static enum bt_self_notification_iterator_status src_dummy_iterator_init_method(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_source *self_comp,
+		struct bt_self_component_port_output *self_port)
 {
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+}
+
+static enum bt_self_notification_iterator_status flt_dummy_iterator_init_method(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_filter *self_comp,
+		struct bt_self_component_port_output *self_port)
+{
+	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
-		struct bt_private_connection_private_notification_iterator *private_iterator)
+		struct bt_self_notification_iterator *self_notif_iter)
 {
 }
 
-static enum bt_notification_iterator_status dummy_iterator_next_method(
-		struct bt_private_connection_private_notification_iterator *private_iterator,
+static enum bt_self_notification_iterator_status dummy_iterator_next_method(
+		struct bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
 }
 
-static struct bt_component_class_query_method_return query_method(
-		struct bt_component_class *component_class,
+static enum bt_query_status flt_query_method(
+		struct bt_self_component_class_filter *component_class,
 		struct bt_query_executor *query_exec,
-		const char *object, struct bt_value *params)
+		const char *object, struct bt_value *params,
+		struct bt_value **result)
 {
-	struct bt_private_value *results = bt_private_value_array_create();
-	struct bt_component_class_query_method_return ret = {
-		.status = BT_QUERY_STATUS_OK,
-		.result = bt_value_borrow_from_private(results),
-	};
+	struct bt_private_value *res = bt_private_value_array_create();
+	*result = bt_private_value_borrow_value(res);
 	int iret;
 
-	BT_ASSERT(ret.result);
-	iret = bt_private_value_array_append_string_element(results, object);
+	BT_ASSERT(*result);
+	iret = bt_private_value_array_append_string_element(res, object);
 	BT_ASSERT(iret == 0);
-	iret = bt_private_value_array_append_element(results, params);
+	iret = bt_private_value_array_append_element(res, params);
 	BT_ASSERT(iret == 0);
-	return ret;
+	return BT_QUERY_STATUS_OK;
 }
 
 BT_PLUGIN_MODULE();
@@ -79,7 +86,7 @@ BT_PLUGIN_VERSION(1, 2, 3, "yes");
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(source, dummy_iterator_next_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(source, "A source.");
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(source,
-	dummy_iterator_init_method);
+	src_dummy_iterator_init_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(source,
 	dummy_iterator_finalize_method);
 
@@ -95,7 +102,7 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_HELP(sink,
 BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_iterator_next_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(filter, "A filter.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(filter,
-	dummy_iterator_init_method);
+	flt_dummy_iterator_init_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(filter,
 	dummy_iterator_finalize_method);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(filter, query_method);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(filter, flt_query_method);

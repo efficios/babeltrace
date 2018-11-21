@@ -2,8 +2,6 @@
 #define _BABELTRACE_ALIGN_H
 
 /*
- * BabelTrace align.h - alignment header
- *
  * Copyright 2010 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

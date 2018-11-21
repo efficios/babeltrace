@@ -2,8 +2,6 @@
 #define _BABELTRACE_FORMAT_CTF_MEMSTREAM_H
 
 /*
- * format/ctf/memstream.h
- *
  * Copyright 2012 (c) - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * memstream compatibility layer.

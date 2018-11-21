@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_NOTIFICATION_H
 
 /*
- * BabelTrace - Plug-in Notification
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

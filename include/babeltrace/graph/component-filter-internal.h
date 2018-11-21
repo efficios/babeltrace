@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_FILTER_INTERNAL_H
 
 /*
- * BabelTrace - Filter Component Internal
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -31,19 +29,10 @@
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 
-struct bt_value;
-
 struct bt_component_filter {
 	struct bt_component parent;
 };
 
-/**
- * Allocate a filter component.
- *
- * @param class			Component class
- * @param params		A dictionary of component parameters
- * @returns			A filter component instance
- */
 BT_HIDDEN
 struct bt_component *bt_component_filter_create(
 		struct bt_component_class *class);

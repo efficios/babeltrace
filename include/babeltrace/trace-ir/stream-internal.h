@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_STREAM_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Stream internal
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

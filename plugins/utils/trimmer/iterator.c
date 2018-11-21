@@ -49,11 +49,11 @@ gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
 }
 
 BT_HIDDEN
-void trimmer_iterator_finalize(struct bt_private_connection_private_notification_iterator *it)
+void trimmer_iterator_finalize(struct bt_self_notification_iterator *it)
 {
 	struct trimmer_iterator *trim_it;
 
-	trim_it = bt_private_connection_private_notification_iterator_get_user_data(it);
+	trim_it = bt_self_notification_iterator_get_user_data(it);
 	BT_ASSERT(trim_it);
 
 	bt_object_put_ref(trim_it->input_iterator);
@@ -65,7 +65,7 @@ void trimmer_iterator_finalize(struct bt_private_connection_private_notification
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
-		struct bt_private_connection_private_notification_iterator *iterator,
+		struct bt_self_notification_iterator *iterator,
 		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
@@ -74,8 +74,8 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	enum bt_connection_status conn_status;
 	struct bt_private_port *input_port = NULL;
 	struct bt_private_connection *connection = NULL;
-	struct bt_private_component *component =
-		bt_private_connection_private_notification_iterator_get_private_component(iterator);
+	struct bt_self_component *component =
+		bt_self_notification_iterator_get_private_component(iterator);
 	struct trimmer_iterator *it_data = g_new0(struct trimmer_iterator, 1);
 
 	if (!it_data) {
@@ -84,7 +84,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	}
 
 	/* Create a new iterator on the upstream component. */
-	input_port = bt_private_component_filter_get_input_port_by_name(
+	input_port = bt_self_component_filter_get_input_port_by_name(
 		component, "in");
 	BT_ASSERT(input_port);
 	connection = bt_private_port_get_connection(input_port);
@@ -101,7 +101,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	it_data->packet_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, NULL);
 
-	it_ret = bt_private_connection_private_notification_iterator_set_user_data(iterator,
+	it_ret = bt_self_notification_iterator_set_user_data(iterator,
 		it_data);
 	if (it_ret) {
 		goto end;
@@ -557,10 +557,10 @@ enum bt_notification_iterator_status evaluate_notification(
 
 BT_HIDDEN
 struct bt_notification_iterator_next_method_return trimmer_iterator_next(
-		struct bt_private_connection_private_notification_iterator *iterator)
+		struct bt_self_notification_iterator *iterator)
 {
 	struct trimmer_iterator *trim_it = NULL;
-	struct bt_private_component *component = NULL;
+	struct bt_self_component *component = NULL;
 	struct trimmer *trimmer = NULL;
 	struct bt_notification_iterator *source_it = NULL;
 	struct bt_notification_iterator_next_method_return ret = {
@@ -569,13 +569,13 @@ struct bt_notification_iterator_next_method_return trimmer_iterator_next(
 	};
 	bool notification_in_range = false;
 
-	trim_it = bt_private_connection_private_notification_iterator_get_user_data(iterator);
+	trim_it = bt_self_notification_iterator_get_user_data(iterator);
 	BT_ASSERT(trim_it);
 
-	component = bt_private_connection_private_notification_iterator_get_private_component(
+	component = bt_self_notification_iterator_get_private_component(
 		iterator);
 	BT_ASSERT(component);
-	trimmer = bt_private_component_get_user_data(component);
+	trimmer = bt_self_component_get_user_data(component);
 	BT_ASSERT(trimmer);
 
 	source_it = trim_it->input_iterator;
