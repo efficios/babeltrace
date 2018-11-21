@@ -229,7 +229,8 @@ end:
 }
 
 static
-int add_stream_ids(struct bt_private_value *info, struct bt_stream *stream)
+int add_stream_ids(struct bt_private_value *info,
+		struct bt_stream *stream)
 {
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
@@ -335,7 +336,8 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		goto end;
 	}
 
-	ret = add_stream_ids(group_info, group->stream);
+	ret = add_stream_ids(group_info,
+		bt_stream_borrow_from_private(group->stream));
 	if (ret) {
 		goto end;
 	}
@@ -382,7 +384,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		goto end;
 	}
 
-	trace = ctf_fs_trace_create(trace_path, trace_name, NULL, NULL);
+	trace = ctf_fs_trace_create(trace_path, trace_name, NULL);
 	if (!trace) {
 		BT_LOGE("Failed to create fs trace at \'%s\'", trace_path);
 		ret = -1;

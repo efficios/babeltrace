@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_EVENT_H
 
 /*
- * BabelTrace - Trace IR: Event
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -30,9 +28,6 @@
  * http://www.efficios.com/ctf
  */
 
-#include <stdint.h>
-#include <stddef.h>
-
 /* For enum bt_clock_value_status */
 #include <babeltrace/trace-ir/clock-value.h>
 
@@ -41,7 +36,6 @@ extern "C" {
 #endif
 
 struct bt_event;
-struct bt_event_header_field;
 struct bt_clock_value;
 struct bt_event_class;
 struct bt_field;
@@ -55,9 +49,6 @@ extern struct bt_stream *bt_event_borrow_stream(struct bt_event *event);
 
 extern struct bt_field *bt_event_borrow_header_field(struct bt_event *event);
 
-extern int bt_event_move_header(struct bt_event *event,
-		struct bt_event_header_field *header);
-
 extern struct bt_field *bt_event_borrow_common_context_field(
 		struct bt_event *event);
 
@@ -65,9 +56,6 @@ extern struct bt_field *bt_event_borrow_specific_context_field(
 		struct bt_event *event);
 
 extern struct bt_field *bt_event_borrow_payload_field(struct bt_event *event);
-
-extern int bt_event_set_default_clock_value(struct bt_event *event,
-		uint64_t value_cycles);
 
 extern enum bt_clock_value_status bt_event_borrow_default_clock_value(
 		struct bt_event *event, struct bt_clock_value **clock_value);

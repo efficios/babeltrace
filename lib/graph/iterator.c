@@ -37,6 +37,7 @@
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
@@ -882,7 +883,7 @@ struct bt_notification_iterator *bt_output_port_notification_iterator_create(
 	output_port_comp = bt_port_get_component(output_port);
 	BT_ASSERT_PRE(output_port_comp,
 		"Output port has no component: %!+p", output_port);
-	graph = bt_component_get_graph(output_port_comp);
+	graph = bt_object_get_ref(bt_component_borrow_graph(output_port_comp));
 	BT_ASSERT(graph);
 
 	/* Create notification iterator */

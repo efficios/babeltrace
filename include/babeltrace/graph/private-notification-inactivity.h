@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_PORT_H
-#define BABELTRACE_GRAPH_PRIVATE_PORT_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_INACTIVITY_H
+#define BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_INACTIVITY_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,32 +23,26 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_private_port;
-struct bt_private_component;
-struct bt_private_connection;
+struct bt_private_notification;
+struct bt_private_connection_private_notification_iterator;
+struct bt_clock_class;
 
-struct bt_port *bt_port_borrow_from_private(
-		struct bt_private_port *private_port);
+extern
+struct bt_private_notification *bt_private_notification_inactivity_create(
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_clock_class *default_clock_class);
 
-extern struct bt_private_connection *bt_private_port_get_private_connection(
-		struct bt_private_port *private_port);
-
-extern struct bt_private_component *bt_private_port_get_private_component(
-		struct bt_private_port *private_port);
-
-extern enum bt_port_status bt_private_port_remove_from_component(
-		struct bt_private_port *private_port);
-
-extern void *bt_private_port_get_user_data(
-		struct bt_private_port *private_port);
+extern int bt_private_notification_inactivity_set_default_clock_value(
+		struct bt_private_notification *notif, uint64_t raw_value);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_PORT_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_INACTIVITY_H */

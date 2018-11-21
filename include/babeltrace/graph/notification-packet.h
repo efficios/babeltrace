@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_NOTIFICATION_PACKET_H
 
 /*
- * BabelTrace - Plug-in Packet-related Notifications
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -27,47 +25,18 @@
  * SOFTWARE.
  */
 
-/* For bt_object_get_ref() */
-#include <babeltrace/object.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
-struct bt_private_connection_private_notification_iterator;
 struct bt_packet;
-
-extern
-struct bt_notification *bt_notification_packet_begin_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
-		struct bt_packet *packet);
-
-extern
-struct bt_notification *bt_notification_packet_end_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
-		struct bt_packet *packet);
-
 
 extern struct bt_packet *bt_notification_packet_begin_borrow_packet(
 		struct bt_notification *notification);
 
-static inline
-struct bt_packet *bt_notification_packet_begin_get_packet(
-		struct bt_notification *notification)
-{
-	return bt_object_get_ref(bt_notification_packet_begin_borrow_packet(notification));
-}
-
 extern struct bt_packet *bt_notification_packet_end_borrow_packet(
 		struct bt_notification *notification);
-
-static inline
-struct bt_packet *bt_notification_packet_end_get_packet(
-		struct bt_notification *notification)
-{
-	return bt_object_get_ref(bt_notification_packet_end_borrow_packet(notification));
-}
 
 #ifdef __cplusplus
 }

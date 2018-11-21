@@ -27,6 +27,7 @@
 #define BT_LOG_TAG "NOTIF"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/graph/private-notification.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -73,4 +74,10 @@ void bt_notification_unlink_graph(struct bt_notification *notif)
 {
 	BT_ASSERT(notif);
 	notif->graph = NULL;
+}
+
+struct bt_notification *bt_notification_borrow_from_private(
+		struct bt_private_notification *priv_notif)
+{
+	return (void *) priv_notif;
 }

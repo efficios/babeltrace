@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_NOTIFICATION_ITERATOR_H
 
 /*
- * BabelTrace - Notification Iterator
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -26,11 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-/* For bt_object_get_ref() */
-#include <babeltrace/object.h>
-
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

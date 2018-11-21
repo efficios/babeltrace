@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_PORT_H
-#define BABELTRACE_GRAPH_PRIVATE_PORT_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_EVENT_H
+#define BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_EVENT_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,28 +29,24 @@
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_private_port;
-struct bt_private_component;
-struct bt_private_connection;
+struct bt_private_notification;
+struct bt_private_connection_private_notification_iterator;
+struct bt_private_event;
+struct bt_private_packet;
+struct bt_private_event_class;
 
-struct bt_port *bt_port_borrow_from_private(
-		struct bt_private_port *private_port);
+extern
+struct bt_private_notification *bt_private_notification_event_create(
+		struct bt_private_connection_private_notification_iterator *notification_iterator,
+		struct bt_private_event_class *event_class,
+		struct bt_private_packet *packet);
 
-extern struct bt_private_connection *bt_private_port_get_private_connection(
-		struct bt_private_port *private_port);
-
-extern struct bt_private_component *bt_private_port_get_private_component(
-		struct bt_private_port *private_port);
-
-extern enum bt_port_status bt_private_port_remove_from_component(
-		struct bt_private_port *private_port);
-
-extern void *bt_private_port_get_user_data(
-		struct bt_private_port *private_port);
+extern struct bt_private_event *
+bt_private_notification_event_borrow_private_event(
+		struct bt_private_notification *notification);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_PORT_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_EVENT_H */

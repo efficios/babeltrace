@@ -87,13 +87,7 @@ bt_bool bt_component_is_sink(struct bt_component *component)
 		BT_COMPONENT_CLASS_TYPE_SINK;
 }
 
-extern struct bt_graph *bt_component_borrow_graph(struct bt_component *component);
-
-static inline
-struct bt_graph *bt_component_get_graph(struct bt_component *component)
-{
-	return bt_object_get_ref(bt_component_borrow_graph(component));
-}
+extern bt_bool bt_component_graph_is_canceled(struct bt_component *component);
 
 #ifdef __cplusplus
 }

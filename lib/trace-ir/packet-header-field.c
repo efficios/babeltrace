@@ -25,13 +25,13 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/trace-internal.h>
-#include <babeltrace/trace-ir/packet-header-field.h>
+#include <babeltrace/trace-ir/private-packet-header-field.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <glib.h>
 
-struct bt_field *bt_packet_header_field_borrow_field(
-		struct bt_packet_header_field *header_field)
+struct bt_private_field *bt_private_packet_header_field_borrow_private_field(
+		struct bt_private_packet_header_field *header_field)
 {
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
@@ -39,7 +39,8 @@ struct bt_field *bt_packet_header_field_borrow_field(
 	return (void *) field_wrapper->field;
 }
 
-void bt_packet_header_field_release(struct bt_packet_header_field *header_field)
+void bt_private_packet_header_field_release(
+		struct bt_private_packet_header_field *header_field)
 {
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
@@ -55,10 +56,11 @@ void bt_packet_header_field_release(struct bt_packet_header_field *header_field)
 	bt_field_wrapper_destroy(field_wrapper);
 }
 
-struct bt_packet_header_field *bt_packet_header_field_create(
-		struct bt_trace *trace)
+struct bt_private_packet_header_field *bt_private_packet_header_field_create(
+		struct bt_private_trace *priv_trace)
 {
 	struct bt_field_wrapper *field_wrapper;
+	struct bt_trace *trace = (void *) priv_trace;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(trace->packet_header_fc,

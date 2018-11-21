@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_NOTIFICATION_EVENT_H
 
 /*
- * BabelTrace - Plug-in Event Notification
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -27,22 +25,12 @@
  * SOFTWARE.
  */
 
-/* For bt_object_get_ref() */
-#include <babeltrace/object.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
-struct bt_private_connection_private_notification_iterator;
 struct bt_event;
-struct bt_event_class;
-
-extern
-struct bt_notification *bt_notification_event_create(
-		struct bt_private_connection_private_notification_iterator *notification_iterator,
-		struct bt_event_class *event_class, struct bt_packet *packet);
 
 extern struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notification);

@@ -1,8 +1,9 @@
-#ifndef BABELTRACE_TRACE_IR_STREAM_H
-#define BABELTRACE_TRACE_IR_STREAM_H
+#ifndef BABELTRACE_TRACE_IR_PRIVATE_CLOCK_CLASS_H
+#define BABELTRACE_TRACE_IR_PRIVATE_CLOCK_CLASS_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -30,21 +31,49 @@
 
 #include <stdint.h>
 
+/* For bt_bool, bt_uuid */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_stream;
-struct bt_stream_class;
+struct bt_clock_class;
+struct bt_private_clock_class;
 
-extern struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream);
+extern struct bt_clock_class *bt_clock_class_borrow_from_private(
+		struct bt_private_clock_class *priv_clock_class);
 
-extern const char *bt_stream_get_name(struct bt_stream *stream);
+extern struct bt_private_clock_class *bt_private_clock_class_create(void);
 
-extern uint64_t bt_stream_get_id(struct bt_stream *stream);
+extern int bt_private_clock_class_set_name(
+		struct bt_private_clock_class *clock_class,
+		const char *name);
+
+extern int bt_private_clock_class_set_description(
+		struct bt_private_clock_class *clock_class,
+		const char *description);
+
+extern int bt_private_clock_class_set_frequency(
+		struct bt_private_clock_class *clock_class, uint64_t freq);
+
+extern int bt_private_clock_class_set_precision(
+		struct bt_private_clock_class *clock_class,
+		uint64_t precision);
+
+extern int bt_private_clock_class_set_offset(
+		struct bt_private_clock_class *clock_class,
+		int64_t seconds, uint64_t cycles);
+
+extern int bt_private_clock_class_set_is_absolute(
+		struct bt_private_clock_class *clock_class,
+		bt_bool is_absolute);
+
+extern int bt_private_clock_class_set_uuid(
+		struct bt_private_clock_class *clock_class, bt_uuid uuid);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_STREAM_H */
+#endif /* BABELTRACE_TRACE_IR_PRIVATE_CLOCK_CLASS_H */
