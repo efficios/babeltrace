@@ -32,7 +32,6 @@
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/graph/private-notification-stream.h>
 #include <babeltrace/graph/notification-stream-internal.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/object.h>
 #include <inttypes.h>
@@ -43,37 +42,33 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 	struct bt_notification_stream_end *notification =
 			(struct bt_notification_stream_end *) obj;
 
-	BT_LOGD("Destroying stream end notification: addr=%p",
+	BT_LIB_LOGD("Destroying stream end notification: %!+n",
 		notification);
-	BT_LOGD_STR("Putting stream.");
+	BT_LIB_LOGD("Putting stream: %!+s", notification->stream);
 	BT_OBJECT_PUT_REF_AND_RESET(notification->stream);
 
 	if (notification->default_cv) {
 		bt_clock_value_recycle(notification->default_cv);
+		notification->default_cv = NULL;
 	}
 
 	g_free(notification);
 }
 
 struct bt_private_notification *bt_private_notification_stream_end_create(
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_private_stream *priv_stream)
 {
 	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_notification_stream_end *notification;
 	struct bt_stream_class *stream_class;
 
+	BT_ASSERT_PRE_NON_NULL(self_notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
-	BT_LOGD("Creating stream end notification object: "
-		"stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64,
-		stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class));
+	BT_LIB_LOGD("Creating stream end notification object: "
+		"%![stream-]+s, %![sc-]+S", stream, stream_class);
 	notification = g_new0(struct bt_notification_stream_end, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one stream end notification.");
@@ -84,14 +79,9 @@ struct bt_private_notification *bt_private_notification_stream_end_create(
 			BT_NOTIFICATION_TYPE_STREAM_END,
 			bt_notification_stream_end_destroy, NULL);
 	notification->stream = bt_object_get_ref(stream);
-	BT_LOGD("Created stream end notification object: "
-		"stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64 ", addr=%p",
-		stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class), notification);
+	BT_LIB_LOGD("Created stream end notification object: "
+		"%![notif-]+n, %![stream-]+s, %![sc-]+S", notification,
+		stream, stream_class);
 
 	return (void *) &notification->parent;
 error:
@@ -166,37 +156,33 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 	struct bt_notification_stream_begin *notification =
 			(struct bt_notification_stream_begin *) obj;
 
-	BT_LOGD("Destroying stream beginning notification: addr=%p",
+	BT_LIB_LOGD("Destroying stream beginning notification: %!+n",
 		notification);
-	BT_LOGD_STR("Putting stream.");
+	BT_LIB_LOGD("Putting stream: %!+s", notification->stream);
 	BT_OBJECT_PUT_REF_AND_RESET(notification->stream);
 
 	if (notification->default_cv) {
 		bt_clock_value_recycle(notification->default_cv);
+		notification->default_cv = NULL;
 	}
 
 	g_free(notification);
 }
 
 struct bt_private_notification *bt_private_notification_stream_begin_create(
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_private_stream *priv_stream)
 {
 	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_notification_stream_begin *notification;
 	struct bt_stream_class *stream_class;
 
+	BT_ASSERT_PRE_NON_NULL(self_notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
-	BT_LOGD("Creating stream beginning notification object: "
-		"stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64,
-		stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class));
+	BT_LIB_LOGD("Creating stream beginning notification object: "
+		"%![stream-]+s, %![sc-]+S", stream, stream_class);
 	notification = g_new0(struct bt_notification_stream_begin, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one stream beginning notification.");
@@ -207,14 +193,9 @@ struct bt_private_notification *bt_private_notification_stream_begin_create(
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN,
 			bt_notification_stream_begin_destroy, NULL);
 	notification->stream = bt_object_get_ref(stream);
-	BT_LOGD("Created stream beginning notification object: "
-		"stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64 ", addr=%p",
-		stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class), notification);
+	BT_LIB_LOGD("Created stream beginning notification object: "
+		"%![notif-]+n, %![stream-]+s, %![sc-]+S", notification,
+		stream, stream_class);
 	return (void *) &notification->parent;
 error:
 	return NULL;

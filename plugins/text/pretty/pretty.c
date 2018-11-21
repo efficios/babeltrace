@@ -1,8 +1,4 @@
 /*
- * pretty.c
- *
- * Babeltrace CTF Text Output Plugin
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2016 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
@@ -70,7 +66,7 @@ const char *plugin_options[] = {
 static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
-	bt_object_put_ref(pretty->input_iterator);
+	bt_object_put_ref(pretty->iterator);
 
 	if (pretty->string) {
 		(void) g_string_free(pretty->string, TRUE);
@@ -118,27 +114,32 @@ error:
 }
 
 BT_HIDDEN
-void pretty_finalize(struct bt_private_component *component)
+void pretty_finalize(struct bt_self_component_sink *comp)
 {
-	void *data = bt_private_component_get_user_data(component);
-
-	destroy_pretty_data(data);
+	destroy_pretty_data(
+		bt_self_component_get_data(
+			bt_self_component_sink_borrow_self_component(comp)));
 }
 
 static
-enum bt_component_status handle_notification(struct pretty_component *pretty,
+enum bt_self_component_status handle_notification(
+		struct pretty_component *pretty,
 		struct bt_notification *notification)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 
 	BT_ASSERT(pretty);
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-		ret = pretty_print_packet(pretty, notification);
+		if (pretty_print_packet(pretty, notification)) {
+			ret = BT_SELF_COMPONENT_STATUS_ERROR;
+		}
 		break;
 	case BT_NOTIFICATION_TYPE_EVENT:
-		ret = pretty_print_event(pretty, notification);
+		if (pretty_print_event(pretty, notification)) {
+			ret = BT_SELF_COMPONENT_STATUS_ERROR;
+		}
 		break;
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 		fprintf(stderr, "Inactivity notification\n");
@@ -151,59 +152,59 @@ enum bt_component_status handle_notification(struct pretty_component *pretty,
 }
 
 BT_HIDDEN
-enum bt_component_status pretty_port_connected(
-		struct bt_private_component *component,
-		struct bt_private_port *self_port,
-		struct bt_port *other_port)
+enum bt_self_component_status pretty_port_connected(
+		struct bt_self_component_sink *comp,
+		struct bt_self_component_port_input *self_port,
+		struct bt_port_output *other_port)
 {
-	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
-	enum bt_connection_status conn_status;
-	struct bt_private_connection *connection;
+	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct pretty_component *pretty;
 
-	pretty = bt_private_component_get_user_data(component);
+	pretty = bt_self_component_get_data(
+			bt_self_component_sink_borrow_self_component(comp));
 	BT_ASSERT(pretty);
-	BT_ASSERT(!pretty->input_iterator);
-	connection = bt_private_port_get_connection(self_port);
-	BT_ASSERT(connection);
-	conn_status = bt_private_connection_create_notification_iterator(
-		connection, &pretty->input_iterator);
-	if (conn_status != BT_CONNECTION_STATUS_OK) {
-		status = BT_COMPONENT_STATUS_ERROR;
+	BT_ASSERT(!pretty->iterator);
+	pretty->iterator = bt_self_component_port_input_notification_iterator_create(
+		self_port);
+	if (!pretty->iterator) {
+		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 	}
 
-	bt_object_put_ref(connection);
 	return status;
 }
 
 BT_HIDDEN
-enum bt_component_status pretty_consume(struct bt_private_component *component)
+enum bt_self_component_status pretty_consume(
+		struct bt_self_component_sink *comp)
 {
-	enum bt_component_status ret;
+	enum bt_self_component_status ret;
 	bt_notification_array notifs;
-	struct bt_notification_iterator *it;
-	struct pretty_component *pretty =
-		bt_private_component_get_user_data(component);
+	struct bt_self_component_port_input_notification_iterator *it;
+	struct pretty_component *pretty = bt_self_component_get_data(
+		bt_self_component_sink_borrow_self_component(comp));
 	enum bt_notification_iterator_status it_ret;
 	uint64_t count = 0;
 	uint64_t i = 0;
 
-	it = pretty->input_iterator;
-	it_ret = bt_private_connection_notification_iterator_next(it, &notifs,
-		&count);
+	it = pretty->iterator;
+	it_ret = bt_self_component_port_input_notification_iterator_next(it,
+		&notifs, &count);
 
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
-		ret = BT_COMPONENT_STATUS_END;
-		BT_OBJECT_PUT_REF_AND_RESET(pretty->input_iterator);
-		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
-		ret = BT_COMPONENT_STATUS_AGAIN;
-		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
 		break;
+	case BT_NOTIFICATION_ITERATOR_STATUS_NOMEM:
+		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+		ret = BT_SELF_COMPONENT_STATUS_AGAIN;
+		goto end;
+	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+		ret = BT_SELF_COMPONENT_STATUS_END;
+		BT_OBJECT_PUT_REF_AND_RESET(pretty->iterator);
+		goto end;
 	default:
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
@@ -227,10 +228,9 @@ end:
 }
 
 static
-enum bt_component_status add_params_to_map(
-		struct bt_private_value *plugin_opt_map)
+int add_params_to_map(struct bt_private_value *plugin_opt_map)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	unsigned int i;
 
 	for (i = 0; i < BT_ARRAY_SIZE(plugin_options); i++) {
@@ -243,7 +243,7 @@ enum bt_component_status add_params_to_map(
 		case BT_VALUE_STATUS_OK:
 			break;
 		default:
-			ret = BT_COMPONENT_STATUS_ERROR;
+			ret = -1;
 			goto end;
 		}
 	}
@@ -257,7 +257,7 @@ bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 	struct pretty_component *pretty = data;
 
 	if (!bt_value_map_has_entry(
-			bt_value_borrow_from_private(pretty->plugin_opt_map),
+			bt_private_value_borrow_value(pretty->plugin_opt_map),
 			key)) {
 		fprintf(pretty->err,
 			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
@@ -266,11 +266,8 @@ bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 }
 
 static
-enum bt_component_status apply_one_string(const char *key,
-		struct bt_value *params,
-		char **option)
+void apply_one_string(const char *key, struct bt_value *params, char **option)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_value *value = NULL;
 	const char *str;
 
@@ -285,16 +282,13 @@ enum bt_component_status apply_one_string(const char *key,
 	*option = g_strdup(str);
 
 end:
-	return ret;
+	return;
 }
 
 static
-enum bt_component_status apply_one_bool(const char *key,
-		struct bt_value *params,
-		bool *option,
+void apply_one_bool(const char *key, struct bt_value *params, bool *option,
 		bool *found)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	struct bt_value *value = NULL;
 	bt_bool bool_val;
 
@@ -309,7 +303,7 @@ enum bt_component_status apply_one_bool(const char *key,
 	}
 
 end:
-	return ret;
+	return;
 }
 
 static
@@ -320,9 +314,9 @@ void warn_wrong_color_param(struct pretty_component *pretty)
 }
 
 static
-enum bt_component_status open_output_file(struct pretty_component *pretty)
+int open_output_file(struct pretty_component *pretty)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 
 	if (!pretty->options.output_path) {
 		goto end;
@@ -336,27 +330,27 @@ enum bt_component_status open_output_file(struct pretty_component *pretty)
 	goto end;
 
 error:
-	ret = BT_COMPONENT_STATUS_ERROR;
+	ret = -1;
+
 end:
 	return ret;
 }
 
 static
-enum bt_component_status apply_params(struct pretty_component *pretty,
-		struct bt_value *params)
+int apply_params(struct pretty_component *pretty, struct bt_value *params)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	int ret = 0;
 	enum bt_value_status status;
 	bool value, found;
 	char *str = NULL;
 
 	pretty->plugin_opt_map = bt_private_value_map_create();
 	if (!pretty->plugin_opt_map) {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	ret = add_params_to_map(pretty->plugin_opt_map);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret) {
 		goto end;
 	}
 	/* Report unknown parameters. */
@@ -365,7 +359,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 	case BT_VALUE_STATUS_OK:
 		break;
 	default:
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	/* Known parameters. */
@@ -392,62 +386,38 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 		}
 	}
 
-	ret = apply_one_string("path", params, &pretty->options.output_path);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_string("path", params, &pretty->options.output_path);
 	ret = open_output_file(pretty);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (ret) {
 		goto end;
 	}
 
 	value = false;		/* Default. */
-	ret = apply_one_bool("no-delta", params, &value, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("no-delta", params, &value, NULL);
 	pretty->options.print_delta_field = !value;	/* Reverse logic. */
 
 	value = false;		/* Default. */
-	ret = apply_one_bool("clock-cycles", params, &value, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("clock-cycles", params, &value, NULL);
 	pretty->options.print_timestamp_cycles = value;
 
 	value = false;		/* Default. */
-	ret = apply_one_bool("clock-seconds", params, &value, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("clock-seconds", params, &value, NULL);
 	pretty->options.clock_seconds = value;
 
 	value = false;		/* Default. */
-	ret = apply_one_bool("clock-date", params, &value, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("clock-date", params, &value, NULL);
 	pretty->options.clock_date = value;
 
 	value = false;		/* Default. */
-	ret = apply_one_bool("clock-gmt", params, &value, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("clock-gmt", params, &value, NULL);
 	pretty->options.clock_gmt = value;
 
 	value = false;		/* Default. */
-	ret = apply_one_bool("verbose", params, &value, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("verbose", params, &value, NULL);
 	pretty->options.verbose = value;
 
 	/* Names. */
-	ret = apply_one_string("name-default", params, &str);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_string("name-default", params, &str);
 	if (!str) {
 		pretty->options.name_default = PRETTY_DEFAULT_UNSET;
 	} else if (!strcmp(str, "show")) {
@@ -455,7 +425,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 	} else if (!strcmp(str, "hide")) {
 		pretty->options.name_default = PRETTY_DEFAULT_HIDE;
 	} else {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	g_free(str);
@@ -481,55 +451,40 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 		pretty->options.print_scope_field_names = false;
 		break;
 	default:
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("name-payload", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("name-payload", params, &value, &found);
 	if (found) {
 		pretty->options.print_payload_field_names = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("name-context", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("name-context", params, &value, &found);
 	if (found) {
 		pretty->options.print_context_field_names = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("name-header", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("name-header", params, &value, &found);
 	if (found) {
 		pretty->options.print_header_field_names = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("name-scope", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("name-scope", params, &value, &found);
 	if (found) {
 		pretty->options.print_scope_field_names = value;
 	}
 
 	/* Fields. */
-	ret = apply_one_string("field-default", params, &str);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_string("field-default", params, &str);
 	if (!str) {
 		pretty->options.field_default = PRETTY_DEFAULT_UNSET;
 	} else if (!strcmp(str, "show")) {
@@ -537,7 +492,7 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 	} else if (!strcmp(str, "hide")) {
 		pretty->options.field_default = PRETTY_DEFAULT_HIDE;
 	} else {
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 	g_free(str);
@@ -575,86 +530,62 @@ enum bt_component_status apply_params(struct pretty_component *pretty,
 		pretty->options.print_callsite_field = false;
 		break;
 	default:
-		ret = BT_COMPONENT_STATUS_ERROR;
+		ret = -1;
 		goto end;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-trace", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-trace", params, &value, &found);
 	if (found) {
 		pretty->options.print_trace_field = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-trace:hostname", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-trace:hostname", params, &value, &found);
 	if (found) {
 		pretty->options.print_trace_hostname_field = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-trace:domain", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-trace:domain", params, &value, &found);
 	if (found) {
 		pretty->options.print_trace_domain_field = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-trace:procname", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-trace:procname", params, &value, &found);
 	if (found) {
 		pretty->options.print_trace_procname_field = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-trace:vpid", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-trace:vpid", params, &value, &found);
 	if (found) {
 		pretty->options.print_trace_vpid_field = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-loglevel", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-loglevel", params, &value, &found);
 	if (found) {
 		pretty->options.print_loglevel_field = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-emf", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-emf", params, &value, &found);
 	if (found) {
 		pretty->options.print_emf_field = value;
 	}
 
 	value = false;
 	found = false;
-	ret = apply_one_bool("field-callsite", params, &value, &found);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto end;
-	}
+	apply_one_bool("field-callsite", params, &value, &found);
 	if (found) {
 		pretty->options.print_callsite_field = value;
 	}
@@ -703,22 +634,21 @@ void init_stream_packet_context_quarks(void)
 }
 
 BT_HIDDEN
-enum bt_component_status pretty_init(
-		struct bt_private_component *component,
+enum bt_self_component_status pretty_init(
+		struct bt_self_component_sink *comp,
 		struct bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
-	enum bt_component_status ret;
+	enum bt_self_component_status ret;
 	struct pretty_component *pretty = create_pretty();
 
 	if (!pretty) {
-		ret = BT_COMPONENT_STATUS_NOMEM;
+		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
-	ret = bt_private_component_sink_add_input_port(component,
-		"in", NULL, NULL);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	ret = bt_self_component_sink_add_input_port(comp, "in", NULL, NULL);
+	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
@@ -731,21 +661,19 @@ enum bt_component_status pretty_init(
 	pretty->delta_real_timestamp = -1ULL;
 	pretty->last_real_timestamp = -1ULL;
 
-	ret = apply_params(pretty, params);
-	if (ret != BT_COMPONENT_STATUS_OK) {
+	if (apply_params(pretty, params)) {
+		ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto error;
 	}
 
 	set_use_colors(pretty);
-	ret = bt_private_component_set_user_data(component, pretty);
-	if (ret != BT_COMPONENT_STATUS_OK) {
-		goto error;
-	}
-
+	bt_self_component_set_data(
+		bt_self_component_sink_borrow_self_component(comp), pretty);
 	init_stream_packet_context_quarks();
 
 end:
 	return ret;
+
 error:
 	destroy_pretty_data(pretty);
 	return ret;

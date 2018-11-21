@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_PORT_H
 
 /*
- * BabelTrace - Babeltrace Component Connection Interface
- *
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -38,24 +36,21 @@ extern "C" {
 
 struct bt_port;
 struct bt_connection;
-
-enum bt_port_status {
-	BT_PORT_STATUS_OK = 0,
-	BT_PORT_STATUS_ERROR = -1,
-	BT_PORT_STATUS_INVALID = -2,
-};
+struct bt_component;
 
 enum bt_port_type {
 	BT_PORT_TYPE_INPUT = 0,
 	BT_PORT_TYPE_OUTPUT = 1,
-	BT_PORT_TYPE_UNKOWN = -1,
 };
 
 extern const char *bt_port_get_name(struct bt_port *port);
+
 extern enum bt_port_type bt_port_get_type(struct bt_port *port);
-extern struct bt_connection *bt_port_get_connection(struct bt_port *port);
-extern struct bt_component *bt_port_get_component(struct bt_port *port);
-extern enum bt_port_status bt_port_disconnect(struct bt_port *port);
+
+extern struct bt_connection *bt_port_borrow_connection(struct bt_port *port);
+
+extern struct bt_component *bt_port_borrow_component(struct bt_port *port);
+
 extern bt_bool bt_port_is_connected(struct bt_port *port);
 
 static inline

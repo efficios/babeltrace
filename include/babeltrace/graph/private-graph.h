@@ -37,94 +37,245 @@ extern "C" {
 
 struct bt_graph;
 struct bt_private_graph;
-struct bt_port;
+struct bt_port_input;
+struct bt_port_output;
 struct bt_connection;
 struct bt_component;
+struct bt_component_source;
+struct bt_component_filter;
+struct bt_component_sink;
 struct bt_component_class;
 struct bt_value;
 
-typedef void (*bt_private_graph_port_added_listener)(struct bt_port *port,
+typedef void (*bt_private_graph_filter_component_input_port_added_listener)(
+		struct bt_component_filter *component,
+		struct bt_port_input *port, void *data);
+
+typedef void (*bt_private_graph_sink_component_input_port_added_listener)(
+		struct bt_component_sink *component,
+		struct bt_port_input *port, void *data);
+
+typedef void (*bt_private_graph_source_component_output_port_added_listener)(
+		struct bt_component_source *component,
+		struct bt_port_output *port, void *data);
+
+typedef void (*bt_private_graph_filter_component_output_port_added_listener)(
+		struct bt_component_filter *component,
+		struct bt_port_output *port, void *data);
+
+typedef void (*bt_private_graph_filter_component_input_port_removed_listener)(
+		struct bt_component_filter *component,
+		struct bt_port_input *port, void *data);
+
+typedef void (*bt_private_graph_sink_component_input_port_removed_listener)(
+		struct bt_component_sink *component,
+		struct bt_port_input *port, void *data);
+
+typedef void (*bt_private_graph_source_component_output_port_removed_listener)(
+		struct bt_component_source *component,
+		struct bt_port_output *port, void *data);
+
+typedef void (*bt_private_graph_filter_component_output_port_removed_listener)(
+		struct bt_component_filter *component,
+		struct bt_port_output *port, void *data);
+
+typedef void (*bt_private_graph_source_filter_component_ports_connected_listener)(
+		struct bt_component_source *source_component,
+		struct bt_component_filter *filter_component,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port, void *data);
+
+typedef void (*bt_private_graph_source_sink_component_ports_connected_listener)(
+		struct bt_component_source *source_component,
+		struct bt_component_sink *sink_component,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port, void *data);
+
+typedef void (*bt_private_graph_filter_sink_component_ports_connected_listener)(
+		struct bt_component_filter *filter_component,
+		struct bt_component_sink *sink_component,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port, void *data);
+
+typedef void (*bt_private_graph_source_filter_component_ports_disconnected_listener)(
+		struct bt_component_source *source_component,
+		struct bt_component_filter *filter_component,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port,
 		void *data);
 
-typedef void (*bt_private_graph_port_removed_listener)(
-		struct bt_component *component,
-		struct bt_port *port, void *data);
+typedef void (*bt_private_graph_source_sink_component_ports_disconnected_listener)(
+		struct bt_component_source *source_component,
+		struct bt_component_sink *sink_component,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port,
+		void *data);
 
-typedef void (*bt_private_graph_ports_connected_listener)(
-		struct bt_port *upstream_port,
-		struct bt_port *downstream_port, void *data);
-
-typedef void (*bt_private_graph_ports_disconnected_listener)(
-		struct bt_component *upstream_component,
-		struct bt_component *downstream_component,
-		struct bt_port *upstream_port, struct bt_port *downstream_port,
+typedef void (*bt_private_graph_filter_sink_component_ports_disconnected_listener)(
+		struct bt_component_filter *filter_component,
+		struct bt_component_sink *sink_component,
+		struct bt_port_output *upstream_port,
+		struct bt_port_input *downstream_port,
 		void *data);
 
 typedef void (* bt_private_graph_listener_removed)(void *data);
 
-extern struct bt_graph *bt_graph_borrow_from_private(
-		struct bt_private_graph *priv_graph);
+static inline
+struct bt_graph *bt_private_graph_borrow_graph(struct bt_private_graph *graph)
+{
+	return (void *) graph;
+}
 
 extern struct bt_private_graph *bt_private_graph_create(void);
 
-extern enum bt_graph_status bt_private_graph_add_component(
+extern enum bt_graph_status bt_private_graph_add_source_component(
 		struct bt_private_graph *graph,
-		struct bt_component_class *component_class,
+		struct bt_component_class_source *component_class,
 		const char *name, struct bt_value *params,
-		struct bt_component **component);
+		struct bt_component_source **component);
 
 extern enum bt_graph_status
-bt_private_graph_add_component_with_init_method_data(
+bt_private_graph_add_source_component_with_init_method_data(
 		struct bt_private_graph *graph,
-		struct bt_component_class *component_class,
+		struct bt_component_class_source *component_class,
 		const char *name, struct bt_value *params,
-		void *init_method_data, struct bt_component **component);
+		void *init_method_data, struct bt_component_source **component);
 
-/**
- * Creates a connection between two components using the two ports specified
- * and adds the connection and components (if not already added) to the graph.
- */
+extern enum bt_graph_status bt_private_graph_add_filter_component(
+		struct bt_private_graph *graph,
+		struct bt_component_class_filter *component_class,
+		const char *name, struct bt_value *params,
+		struct bt_component_filter **component);
+
+extern enum bt_graph_status
+bt_private_graph_add_filter_component_with_init_method_data(
+		struct bt_private_graph *graph,
+		struct bt_component_class_filter *component_class,
+		const char *name, struct bt_value *params,
+		void *init_method_data, struct bt_component_filter **component);
+
+extern enum bt_graph_status bt_private_graph_add_sink_component(
+		struct bt_private_graph *graph,
+		struct bt_component_class_sink *component_class,
+		const char *name, struct bt_value *params,
+		struct bt_component_sink **component);
+
+extern enum bt_graph_status
+bt_private_graph_add_sink_component_with_init_method_data(
+		struct bt_private_graph *graph,
+		struct bt_component_class_sink *component_class,
+		const char *name, struct bt_value *params,
+		void *init_method_data, struct bt_component_sink **component);
+
 extern enum bt_graph_status bt_private_graph_connect_ports(
 		struct bt_private_graph *graph,
-		struct bt_port *upstream, struct bt_port *downstream,
+		struct bt_port_output *upstream,
+		struct bt_port_input *downstream,
 		struct bt_connection **connection);
 
-/**
- * Run graph to completion or until a single sink is left and "AGAIN" is received.
- *
- * Runs "bt_component_sink_consume()" on all sinks in round-robin until they all
- * indicate that the end is reached or that an error occured.
- */
 extern enum bt_graph_status bt_private_graph_run(
 		struct bt_private_graph *graph);
 
-/**
- * Runs "bt_component_sink_consume()" on the graph's sinks. Each invokation will
- * invoke "bt_component_sink_consume()" on the next sink, in round-robin, until
- * they all indicated that the end is reached.
- */
 extern enum bt_graph_status bt_private_graph_consume(
 		struct bt_private_graph *graph);
 
-extern int bt_private_graph_add_port_added_listener(
+extern enum bt_graph_status
+bt_private_graph_add_filter_component_input_port_added_listener(
 		struct bt_private_graph *graph,
-		bt_private_graph_port_added_listener listener,
-		bt_private_graph_listener_removed listener_removed, void *data);
+		bt_private_graph_filter_component_input_port_added_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
 
-extern int bt_private_graph_add_port_removed_listener(
+extern enum bt_graph_status
+bt_private_graph_add_sink_component_input_port_added_listener(
 		struct bt_private_graph *graph,
-		bt_private_graph_port_removed_listener listener,
-		bt_private_graph_listener_removed listener_removed, void *data);
+		bt_private_graph_sink_component_input_port_added_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
 
-extern int bt_private_graph_add_ports_connected_listener(
+extern enum bt_graph_status
+bt_private_graph_add_source_component_output_port_added_listener(
 		struct bt_private_graph *graph,
-		bt_private_graph_ports_connected_listener listener,
-		bt_private_graph_listener_removed listener_removed, void *data);
+		bt_private_graph_source_component_output_port_added_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
 
-extern int bt_private_graph_add_ports_disconnected_listener(
+extern enum bt_graph_status
+bt_private_graph_add_filter_component_output_port_added_listener(
 		struct bt_private_graph *graph,
-		bt_private_graph_ports_disconnected_listener listener,
-		bt_private_graph_listener_removed listener_removed, void *data);
+		bt_private_graph_filter_component_output_port_added_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_filter_component_input_port_removed_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_filter_component_input_port_removed_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_sink_component_input_port_removed_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_sink_component_input_port_removed_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_source_component_output_port_removed_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_source_component_output_port_removed_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_filter_component_output_port_removed_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_filter_component_output_port_removed_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_source_filter_component_ports_connected_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_source_filter_component_ports_connected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_source_sink_component_ports_connected_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_source_sink_component_ports_connected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_filter_sink_component_ports_connected_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_filter_sink_component_ports_connected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_source_filter_component_ports_disconnected_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_source_filter_component_ports_disconnected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_source_sink_component_ports_disconnected_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_source_sink_component_ports_disconnected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
+
+extern enum bt_graph_status
+bt_private_graph_add_filter_sink_component_ports_disconnected_listener(
+		struct bt_private_graph *graph,
+		bt_private_graph_filter_sink_component_ports_disconnected_listener listener,
+		bt_private_graph_listener_removed listener_removed, void *data,
+		int *listener_id);
 
 extern enum bt_graph_status bt_private_graph_cancel(
 		struct bt_private_graph *graph);

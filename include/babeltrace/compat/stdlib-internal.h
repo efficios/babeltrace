@@ -2,8 +2,6 @@
 #define _BABELTRACE_COMPAT_STDLIB_H
 
 /*
- * babeltrace/compat/stdlib.h
- *
  * Copyright (C) 2015 Michael Jeanson <mjeanson@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

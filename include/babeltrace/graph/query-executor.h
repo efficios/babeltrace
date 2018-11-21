@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_QUERY_EXECUTOR_H
 
 /*
- * BabelTrace - Babeltrace Component Connection Interface
- *
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,34 +30,18 @@
 extern "C" {
 #endif
 
-struct bt_value;
 struct bt_query_executor;
-struct bt_component_class;
 
 enum bt_query_status {
-	BT_QUERY_STATUS_OK			= 0,
-	BT_QUERY_STATUS_AGAIN			= 11,
-	BT_QUERY_STATUS_EXECUTOR_CANCELED	= 125,
-	BT_QUERY_STATUS_ERROR			= -1,
-	BT_QUERY_STATUS_INVALID			= -22,
-	BT_QUERY_STATUS_INVALID_OBJECT		= -23,
-	BT_QUERY_STATUS_INVALID_PARAMS		= -24,
-	BT_QUERY_STATUS_NOMEM			= -12,
+	BT_QUERY_STATUS_OK = 0,
+	BT_QUERY_STATUS_AGAIN = 11,
+	BT_QUERY_STATUS_UNSUPPORTED = 95,
+	BT_QUERY_STATUS_EXECUTOR_CANCELED = 125,
+	BT_QUERY_STATUS_ERROR = -1,
+	BT_QUERY_STATUS_NOMEM = -12,
+	BT_QUERY_STATUS_INVALID_OBJECT = -23,
+	BT_QUERY_STATUS_INVALID_PARAMS = -24,
 };
-
-extern
-struct bt_query_executor *bt_query_executor_create(void);
-
-extern
-enum bt_query_status bt_query_executor_query(
-		struct bt_query_executor *query_executor,
-		struct bt_component_class *component_class,
-		const char *object, struct bt_value *params,
-		struct bt_value **result);
-
-extern
-enum bt_query_status bt_query_executor_cancel(
-		struct bt_query_executor *query_executor);
 
 extern
 bt_bool bt_query_executor_is_canceled(struct bt_query_executor *query_executor);

@@ -32,26 +32,13 @@ extern "C" {
 struct bt_notification;
 struct bt_notification_iterator;
 
-/**
- * Status code. Errors are always negative.
- */
 enum bt_notification_iterator_status {
-	/** Canceled. */
-	BT_NOTIFICATION_ITERATOR_STATUS_CANCELED = 125,
-	/** No notifications available for now. Try again later. */
-	BT_NOTIFICATION_ITERATOR_STATUS_AGAIN = 11,
-	/** No more notifications to be delivered. */
-	BT_NOTIFICATION_ITERATOR_STATUS_END = 1,
-	/** No error, okay. */
 	BT_NOTIFICATION_ITERATOR_STATUS_OK = 0,
-	/** Invalid arguments. */
-	BT_NOTIFICATION_ITERATOR_STATUS_INVALID = -22,
-	/** General error. */
+	BT_NOTIFICATION_ITERATOR_STATUS_END = 1,
+	BT_NOTIFICATION_ITERATOR_STATUS_AGAIN = 11,
+	BT_NOTIFICATION_ITERATOR_STATUS_CANCELED = 125,
 	BT_NOTIFICATION_ITERATOR_STATUS_ERROR = -1,
-	/** Out of memory. */
 	BT_NOTIFICATION_ITERATOR_STATUS_NOMEM = -12,
-	/** Unsupported iterator feature. */
-	BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED = -2,
 };
 
 #ifdef __cplusplus

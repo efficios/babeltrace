@@ -1,6 +1,4 @@
 /*
- * prio_heap.c
- *
  * Static-sized priority heap containing pointers. Based on CLRS,
  * chapter 6.
  *

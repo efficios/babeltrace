@@ -266,7 +266,7 @@ int set_environment_entry(struct bt_trace *trace, const char *name,
 		"%![trace-]+t, entry-name=\"%s\"", trace, name);
 	ret = bt_attributes_set_field_value(trace->environment, name,
 		value);
-	bt_value_freeze(bt_value_borrow_from_private(value));
+	bt_value_freeze(bt_private_value_borrow_value(value));
 	if (ret) {
 		BT_LIB_LOGE("Cannot set trace's environment entry: "
 			"%![trace-]+t, entry-name=\"%s\"", trace, name);
@@ -348,7 +348,7 @@ void bt_trace_borrow_environment_entry_by_index(
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_VALID_INDEX(index,
 		bt_attributes_get_count(trace->environment));
-	*value = bt_value_borrow_from_private(
+	*value = bt_private_value_borrow_value(
 		bt_attributes_borrow_field_value(trace->environment, index));
 	BT_ASSERT(*value);
 	*name = bt_attributes_get_field_name(trace->environment, index);
@@ -368,7 +368,7 @@ struct bt_value *bt_trace_borrow_environment_entry_value_by_name(
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	return bt_value_borrow_from_private(
+	return bt_private_value_borrow_value(
 		bt_attributes_borrow_field_value_by_name(trace->environment,
 			name));
 }

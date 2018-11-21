@@ -1,8 +1,4 @@
 /*
- * plugin-so.c
- *
- * Babeltrace Plugin (shared object)
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
@@ -37,6 +33,10 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/graph/private-component-class.h>
+#include <babeltrace/graph/private-component-class-source.h>
+#include <babeltrace/graph/private-component-class-filter.h>
+#include <babeltrace/graph/private-component-class-sink.h>
 #include <babeltrace/types.h>
 #include <babeltrace/list-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -98,6 +98,7 @@ void fini_comp_class_list(void)
 		bt_list_del(&comp_class->node);
 		BT_OBJECT_PUT_REF_AND_RESET(comp_class->so_handle);
 	}
+
 	BT_LOGD_STR("Released references from all component classes to shared library handles.");
 }
 
@@ -278,13 +279,42 @@ enum bt_plugin_status bt_plugin_so_init(
 		const struct __bt_plugin_component_class_descriptor *descriptor;
 		const char *description;
 		const char *help;
-		bt_component_class_init_method init_method;
-		bt_component_class_finalize_method finalize_method;
-		bt_component_class_query_method query_method;
-		bt_component_class_accept_port_connection_method accept_port_connection_method;
-		bt_component_class_port_connected_method port_connected_method;
-		bt_component_class_port_disconnected_method port_disconnected_method;
-		struct bt_component_class_notification_iterator_methods iterator_methods;
+
+		union {
+			struct {
+				bt_private_component_class_source_init_method init;
+				bt_private_component_class_source_finalize_method finalize;
+				bt_private_component_class_source_query_method query;
+				bt_private_component_class_source_accept_output_port_connection_method accept_output_port_connection;
+				bt_private_component_class_source_output_port_connected_method output_port_connected;
+				bt_private_component_class_source_output_port_disconnected_method output_port_disconnected;
+				bt_private_component_class_source_notification_iterator_init_method notif_iter_init;
+				bt_private_component_class_source_notification_iterator_finalize_method notif_iter_finalize;
+			} source;
+
+			struct {
+				bt_private_component_class_filter_init_method init;
+				bt_private_component_class_filter_finalize_method finalize;
+				bt_private_component_class_filter_query_method query;
+				bt_private_component_class_filter_accept_input_port_connection_method accept_input_port_connection;
+				bt_private_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
+				bt_private_component_class_filter_input_port_connected_method input_port_connected;
+				bt_private_component_class_filter_output_port_connected_method output_port_connected;
+				bt_private_component_class_filter_input_port_disconnected_method input_port_disconnected;
+				bt_private_component_class_filter_output_port_disconnected_method output_port_disconnected;
+				bt_private_component_class_filter_notification_iterator_init_method notif_iter_init;
+				bt_private_component_class_filter_notification_iterator_finalize_method notif_iter_finalize;
+			} filter;
+
+			struct {
+				bt_private_component_class_sink_init_method init;
+				bt_private_component_class_sink_finalize_method finalize;
+				bt_private_component_class_sink_query_method query;
+				bt_private_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
+				bt_private_component_class_sink_input_port_connected_method input_port_connected;
+				bt_private_component_class_sink_input_port_disconnected_method input_port_disconnected;
+			} sink;
+		} methods;
 	};
 
 	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
@@ -409,6 +439,7 @@ enum bt_plugin_status bt_plugin_so_init(
 	for (cur_cc_descr_attr_ptr = cc_descr_attrs_begin; cur_cc_descr_attr_ptr != cc_descr_attrs_end; cur_cc_descr_attr_ptr++) {
 		const struct __bt_plugin_component_class_descriptor_attribute *cur_cc_descr_attr =
 			*cur_cc_descr_attr_ptr;
+		enum bt_component_class_type cc_type;
 
 		if (cur_cc_descr_attr == NULL) {
 			continue;
@@ -419,83 +450,220 @@ enum bt_plugin_status bt_plugin_so_init(
 			continue;
 		}
 
+		cc_type = cur_cc_descr_attr->comp_class_descriptor->type;
+
 		/* Find the corresponding component class descriptor entry */
 		for (i = 0; i < comp_class_full_descriptors->len; i++) {
 			struct comp_class_full_descriptor *cc_full_descr =
 				&g_array_index(comp_class_full_descriptors,
 					struct comp_class_full_descriptor, i);
 
-			if (cur_cc_descr_attr->comp_class_descriptor ==
+			if (cur_cc_descr_attr->comp_class_descriptor !=
 					cc_full_descr->descriptor) {
-				switch (cur_cc_descr_attr->type) {
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION:
-					cc_full_descr->description =
-						cur_cc_descr_attr->value.description;
+				continue;
+			}
+
+			switch (cur_cc_descr_attr->type) {
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_DESCRIPTION:
+				cc_full_descr->description =
+					cur_cc_descr_attr->value.description;
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP:
+				cc_full_descr->help =
+					cur_cc_descr_attr->value.help;
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.init =
+						cur_cc_descr_attr->value.source_init_method;
 					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_HELP:
-					cc_full_descr->help =
-						cur_cc_descr_attr->value.help;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.init =
+						cur_cc_descr_attr->value.filter_init_method;
 					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD:
-					cc_full_descr->init_method =
-						cur_cc_descr_attr->value.init_method;
-					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD:
-					cc_full_descr->finalize_method =
-						cur_cc_descr_attr->value.finalize_method;
-					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD:
-					cc_full_descr->query_method =
-						cur_cc_descr_attr->value.query_method;
-					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_PORT_CONNECTION_METHOD:
-					cc_full_descr->accept_port_connection_method =
-						cur_cc_descr_attr->value.accept_port_connection_method;
-					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_CONNECTED_METHOD:
-					cc_full_descr->port_connected_method =
-						cur_cc_descr_attr->value.port_connected_method;
-					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_PORT_DISCONNECTED_METHOD:
-					cc_full_descr->port_disconnected_method =
-						cur_cc_descr_attr->value.port_disconnected_method;
-					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD:
-					cc_full_descr->iterator_methods.init =
-						cur_cc_descr_attr->value.notif_iter_init_method;
-					break;
-				case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD:
-					cc_full_descr->iterator_methods.finalize =
-						cur_cc_descr_attr->value.notif_iter_finalize_method;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.init =
+						cur_cc_descr_attr->value.sink_init_method;
 					break;
 				default:
-					/*
-					 * WARN-level logging because
-					 * this should not happen with
-					 * the appropriate ABI version.
-					 * If we're here, we know that
-					 * for the reported version of
-					 * the ABI, this attribute is
-					 * unknown.
-					 */
-					BT_LOGW("Ignoring unknown component class descriptor attribute: "
-						"plugin-path=\"%s\", "
-						"plugin-name=\"%s\", "
-						"comp-class-name=\"%s\", "
-						"comp-class-type=%s, "
-						"attr-type-name=\"%s\", "
-						"attr-type-id=%d",
-						spec->shared_lib_handle->path ?
-							spec->shared_lib_handle->path->str :
-							NULL,
-						descriptor->name,
-						cur_cc_descr_attr->comp_class_descriptor->name,
-						bt_component_class_type_string(
-							cur_cc_descr_attr->comp_class_descriptor->type),
-						cur_cc_descr_attr->type_name,
-						cur_cc_descr_attr->type);
-					break;
+					abort();
 				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.finalize =
+						cur_cc_descr_attr->value.source_finalize_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.finalize =
+						cur_cc_descr_attr->value.filter_finalize_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.finalize =
+						cur_cc_descr_attr->value.sink_finalize_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.query =
+						cur_cc_descr_attr->value.source_query_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.query =
+						cur_cc_descr_attr->value.filter_query_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.query =
+						cur_cc_descr_attr->value.sink_query_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.accept_input_port_connection =
+						cur_cc_descr_attr->value.filter_accept_input_port_connection_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.accept_input_port_connection =
+						cur_cc_descr_attr->value.sink_accept_input_port_connection_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.accept_output_port_connection =
+						cur_cc_descr_attr->value.source_accept_output_port_connection_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.accept_output_port_connection =
+						cur_cc_descr_attr->value.filter_accept_output_port_connection_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.input_port_connected =
+						cur_cc_descr_attr->value.filter_input_port_connected_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.input_port_connected =
+						cur_cc_descr_attr->value.sink_input_port_connected_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.output_port_connected =
+						cur_cc_descr_attr->value.source_output_port_connected_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.output_port_connected =
+						cur_cc_descr_attr->value.filter_output_port_connected_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.input_port_disconnected =
+						cur_cc_descr_attr->value.filter_input_port_disconnected_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.input_port_disconnected =
+						cur_cc_descr_attr->value.sink_input_port_disconnected_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.output_port_disconnected =
+						cur_cc_descr_attr->value.source_output_port_disconnected_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.output_port_disconnected =
+						cur_cc_descr_attr->value.filter_output_port_disconnected_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.notif_iter_init =
+						cur_cc_descr_attr->value.source_notif_iter_init_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.notif_iter_init =
+						cur_cc_descr_attr->value.filter_notif_iter_init_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.notif_iter_finalize =
+						cur_cc_descr_attr->value.source_notif_iter_finalize_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.notif_iter_finalize =
+						cur_cc_descr_attr->value.filter_notif_iter_finalize_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			default:
+				/*
+				 * WARN-level logging because this
+				 * should not happen with the
+				 * appropriate ABI version. If we're
+				 * here, we know that for the reported
+				 * version of the ABI, this attribute is
+				 * unknown.
+				 */
+				BT_LOGW("Ignoring unknown component class descriptor attribute: "
+					"plugin-path=\"%s\", "
+					"plugin-name=\"%s\", "
+					"comp-class-name=\"%s\", "
+					"comp-class-type=%s, "
+					"attr-type-name=\"%s\", "
+					"attr-type-id=%d",
+					spec->shared_lib_handle->path ?
+						spec->shared_lib_handle->path->str :
+						NULL,
+					descriptor->name,
+					cur_cc_descr_attr->comp_class_descriptor->name,
+					bt_component_class_type_string(
+						cur_cc_descr_attr->comp_class_descriptor->type),
+					cur_cc_descr_attr->type_name,
+					cur_cc_descr_attr->type);
+				break;
 			}
 		}
 	}
@@ -520,7 +688,10 @@ enum bt_plugin_status bt_plugin_so_init(
 		struct comp_class_full_descriptor *cc_full_descr =
 			&g_array_index(comp_class_full_descriptors,
 				struct comp_class_full_descriptor, i);
-		struct bt_component_class *comp_class;
+		struct bt_private_component_class *comp_class = NULL;
+		struct bt_private_component_class_source *src_comp_class = NULL;
+		struct bt_private_component_class_filter *flt_comp_class = NULL;
+		struct bt_private_component_class_sink *sink_comp_class = NULL;
 
 		BT_LOGD("Creating and setting properties of plugin's component class: "
 			"plugin-path=\"%s\", plugin-name=\"%s\", "
@@ -535,19 +706,25 @@ enum bt_plugin_status bt_plugin_so_init(
 
 		switch (cc_full_descr->descriptor->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
-			comp_class = bt_component_class_source_create(
+			src_comp_class = bt_private_component_class_source_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
+			comp_class = bt_private_component_class_source_borrow_private_component_class(
+				src_comp_class);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
-			comp_class = bt_component_class_filter_create(
+			flt_comp_class = bt_private_component_class_filter_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
+			comp_class = bt_private_component_class_filter_borrow_private_component_class(
+				flt_comp_class);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
-			comp_class = bt_component_class_sink_create(
+			sink_comp_class = bt_private_component_class_sink_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.sink.consume);
+			comp_class = bt_private_component_class_sink_borrow_private_component_class(
+				sink_comp_class);
 			break;
 		default:
 			/*
@@ -576,8 +753,8 @@ enum bt_plugin_status bt_plugin_so_init(
 		}
 
 		if (cc_full_descr->description) {
-			ret = bt_component_class_set_description(comp_class,
-				cc_full_descr->description);
+			ret = bt_private_component_class_set_description(
+				comp_class, cc_full_descr->description);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's description.");
 				status = BT_PLUGIN_STATUS_ERROR;
@@ -587,7 +764,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		}
 
 		if (cc_full_descr->help) {
-			ret = bt_component_class_set_help(comp_class,
+			ret = bt_private_component_class_set_help(comp_class,
 				cc_full_descr->help);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's help string.");
@@ -597,124 +774,312 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 		}
 
-		if (cc_full_descr->init_method) {
-			ret = bt_component_class_set_init_method(comp_class,
-				cc_full_descr->init_method);
-			if (ret) {
-				BT_LOGE_STR("Cannot set component class's initialization method.");
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-				goto end;
-			}
-		}
-
-		if (cc_full_descr->finalize_method) {
-			ret = bt_component_class_set_finalize_method(comp_class,
-				cc_full_descr->finalize_method);
-			if (ret) {
-				BT_LOGE_STR("Cannot set component class's finalization method.");
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-				goto end;
-			}
-		}
-
-		if (cc_full_descr->query_method) {
-			ret = bt_component_class_set_query_method(
-				comp_class, cc_full_descr->query_method);
-			if (ret) {
-				BT_LOGE_STR("Cannot set component class's query method.");
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-				goto end;
-			}
-		}
-
-		if (cc_full_descr->accept_port_connection_method) {
-			ret = bt_component_class_set_accept_port_connection_method(
-				comp_class, cc_full_descr->accept_port_connection_method);
-			if (ret) {
-				BT_LOGE_STR("Cannot set component class's \"accept port connection\" method.");
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-				goto end;
-			}
-		}
-
-		if (cc_full_descr->port_connected_method) {
-			ret = bt_component_class_set_port_connected_method(
-				comp_class, cc_full_descr->port_connected_method);
-			if (ret) {
-				BT_LOGE_STR("Cannot set component class's \"port connected\" method.");
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-				goto end;
-			}
-		}
-
-		if (cc_full_descr->port_disconnected_method) {
-			ret = bt_component_class_set_port_disconnected_method(
-				comp_class, cc_full_descr->port_disconnected_method);
-			if (ret) {
-				BT_LOGE_STR("Cannot set component class's \"port disconnected\" method.");
-				status = BT_PLUGIN_STATUS_ERROR;
-				BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-				goto end;
-			}
-		}
-
 		switch (cc_full_descr->descriptor->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
-			if (cc_full_descr->iterator_methods.init) {
-				ret = bt_component_class_source_set_notification_iterator_init_method(
-					comp_class,
-					cc_full_descr->iterator_methods.init);
+			if (cc_full_descr->methods.source.init) {
+				ret = bt_private_component_class_source_set_init_method(
+					src_comp_class,
+					cc_full_descr->methods.source.init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set component class's notification iterator initialization method.");
+					BT_LOGE_STR("Cannot set source component class's initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
 			}
 
-			if (cc_full_descr->iterator_methods.finalize) {
-				ret = bt_component_class_source_set_notification_iterator_finalize_method(
-					comp_class,
-					cc_full_descr->iterator_methods.finalize);
+			if (cc_full_descr->methods.source.finalize) {
+				ret = bt_private_component_class_source_set_finalize_method(
+					src_comp_class,
+					cc_full_descr->methods.source.finalize);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's finalization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.query) {
+				ret = bt_private_component_class_source_set_query_method(
+					src_comp_class,
+					cc_full_descr->methods.source.query);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's query method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.accept_output_port_connection) {
+				ret = bt_private_component_class_source_set_accept_output_port_connection_method(
+					src_comp_class,
+					cc_full_descr->methods.source.accept_output_port_connection);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's \"accept input output connection\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.output_port_connected) {
+				ret = bt_private_component_class_source_set_output_port_connected_method(
+					src_comp_class,
+					cc_full_descr->methods.source.output_port_connected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's \"output port connected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.output_port_disconnected) {
+				ret = bt_private_component_class_source_set_output_port_disconnected_method(
+					src_comp_class,
+					cc_full_descr->methods.source.output_port_disconnected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's \"output port disconnected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.notif_iter_init) {
+				ret = bt_private_component_class_source_set_notification_iterator_init_method(
+					src_comp_class,
+					cc_full_descr->methods.source.notif_iter_init);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's notification iterator initialization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.notif_iter_finalize) {
+				ret = bt_private_component_class_source_set_notification_iterator_finalize_method(
+					src_comp_class,
+					cc_full_descr->methods.source.notif_iter_finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set source component class's notification iterator finalization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-					goto end;
-				}
-			}
-			break;
-		case BT_COMPONENT_CLASS_TYPE_FILTER:
-			if (cc_full_descr->iterator_methods.init) {
-				ret = bt_component_class_filter_set_notification_iterator_init_method(
-					comp_class,
-					cc_full_descr->iterator_methods.init);
-				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's notification iterator initialization method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
 			}
 
-			if (cc_full_descr->iterator_methods.finalize) {
-				ret = bt_component_class_filter_set_notification_iterator_finalize_method(
-					comp_class,
-					cc_full_descr->iterator_methods.finalize);
+			break;
+		case BT_COMPONENT_CLASS_TYPE_FILTER:
+			if (cc_full_descr->methods.filter.init) {
+				ret = bt_private_component_class_filter_set_init_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's notification iterator finalization method.");
+					BT_LOGE_STR("Cannot set filter component class's initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(comp_class);
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
 			}
+
+			if (cc_full_descr->methods.filter.finalize) {
+				ret = bt_private_component_class_filter_set_finalize_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.finalize);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's finalization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.query) {
+				ret = bt_private_component_class_filter_set_query_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.query);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's query method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.accept_input_port_connection) {
+				ret = bt_private_component_class_filter_set_accept_input_port_connection_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.accept_input_port_connection);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's \"accept input port connection\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.accept_output_port_connection) {
+				ret = bt_private_component_class_filter_set_accept_output_port_connection_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.accept_output_port_connection);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's \"accept input output connection\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.input_port_connected) {
+				ret = bt_private_component_class_filter_set_input_port_connected_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.input_port_connected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's \"input port connected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.output_port_connected) {
+				ret = bt_private_component_class_filter_set_output_port_connected_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.output_port_connected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's \"output port connected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.input_port_disconnected) {
+				ret = bt_private_component_class_filter_set_input_port_disconnected_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.input_port_disconnected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's \"input port disconnected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.output_port_disconnected) {
+				ret = bt_private_component_class_filter_set_output_port_disconnected_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.output_port_disconnected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's \"output port disconnected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.notif_iter_init) {
+				ret = bt_private_component_class_filter_set_notification_iterator_init_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.notif_iter_init);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's notification iterator initialization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.notif_iter_finalize) {
+				ret = bt_private_component_class_filter_set_notification_iterator_finalize_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.notif_iter_finalize);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's notification iterator finalization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
+			if (cc_full_descr->methods.sink.init) {
+				ret = bt_private_component_class_sink_set_init_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.init);
+				if (ret) {
+					BT_LOGE_STR("Cannot set sink component class's initialization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.sink.finalize) {
+				ret = bt_private_component_class_sink_set_finalize_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.finalize);
+				if (ret) {
+					BT_LOGE_STR("Cannot set sink component class's finalization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.sink.query) {
+				ret = bt_private_component_class_sink_set_query_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.query);
+				if (ret) {
+					BT_LOGE_STR("Cannot set sink component class's query method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.sink.accept_input_port_connection) {
+				ret = bt_private_component_class_sink_set_accept_input_port_connection_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.accept_input_port_connection);
+				if (ret) {
+					BT_LOGE_STR("Cannot set sink component class's \"accept input port connection\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.sink.input_port_connected) {
+				ret = bt_private_component_class_sink_set_input_port_connected_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.input_port_connected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set sink component class's \"input port connected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.sink.input_port_disconnected) {
+				ret = bt_private_component_class_sink_set_input_port_disconnected_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.input_port_disconnected);
+				if (ret) {
+					BT_LOGE_STR("Cannot set sink component class's \"input port disconnected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
 			break;
 		default:
 			abort();
@@ -725,25 +1090,17 @@ enum bt_plugin_status bt_plugin_so_init(
 		 *
 		 * This will call back
 		 * bt_plugin_so_on_add_component_class() so that we can
-		 * add a mapping in the component class list when
-		 * we know the component class is successfully added.
+		 * add a mapping in the component class list when we
+		 * know the component class is successfully added.
 		 */
 		status = bt_plugin_add_component_class(plugin,
-			comp_class);
+			(void *) comp_class);
 		BT_OBJECT_PUT_REF_AND_RESET(comp_class);
 		if (status < 0) {
 			BT_LOGE("Cannot add component class to plugin.");
 			goto end;
 		}
 	}
-
-	/*
-	 * All the plugin's component classes should be added at this
-	 * point. We freeze the plugin so that it's not possible to add
-	 * component classes to this plugin object after this stage
-	 * (plugin object becomes immutable).
-	 */
-	bt_plugin_freeze(plugin);
 
 end:
 	g_array_free(comp_class_full_descriptors, TRUE);

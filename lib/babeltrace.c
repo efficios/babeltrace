@@ -1,8 +1,4 @@
 /*
- * babeltrace.c
- *
- * Babeltrace Library
- *
  * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
  *
  * Author: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>

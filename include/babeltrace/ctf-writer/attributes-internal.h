@@ -2,10 +2,6 @@
 #define BABELTRACE_CTF_WRITER_ATTRIBUTES_H
 
 /*
- * attributes.c
- *
- * Babeltrace - CTF writer: Attributes internal
- *
  * Copyright (c) 2015 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015 Philippe Proulx <pproulx@efficios.com>
  *

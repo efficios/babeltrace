@@ -1151,9 +1151,3 @@ bool array_field_is_set(struct bt_field *field)
 end:
 	return is_set;
 }
-
-struct bt_field *bt_field_borrow_from_private(
-		struct bt_private_field *priv_field)
-{
-	return (void *) priv_field;
-}

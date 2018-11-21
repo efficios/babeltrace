@@ -38,8 +38,12 @@ struct bt_private_event_class;
 struct bt_private_field;
 struct bt_private_packet;
 
-extern struct bt_event *bt_event_borrow_from_private(
-		struct bt_private_event *priv_event);
+static inline
+struct bt_event *bt_private_event_borrow_event(
+		struct bt_private_event *priv_event)
+{
+	return (void *) priv_event;
+}
 
 extern struct bt_private_event_class *bt_private_event_borrow_class(
 		struct bt_private_event *event);

@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_INTERNAL_H
 
 /*
- * BabelTrace - Component internal
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -72,13 +70,6 @@ struct bt_component {
 };
 
 static inline
-struct bt_private_component *bt_private_component_from_component(
-		struct bt_component *component)
-{
-	return (void *) component;
-}
-
-static inline
 struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
 {
 	BT_ASSERT(comp);
@@ -86,17 +77,16 @@ struct bt_graph *bt_component_borrow_graph(struct bt_component *comp)
 }
 
 BT_HIDDEN
-enum bt_component_status bt_component_create(
-		struct bt_component_class *component_class,
+int bt_component_create(struct bt_component_class *component_class,
 		const char *name, struct bt_component **component);
 
 BT_HIDDEN
-enum bt_component_status bt_component_accept_port_connection(
+enum bt_self_component_status bt_component_accept_port_connection(
 		struct bt_component *component, struct bt_port *self_port,
 		struct bt_port *other_port);
 
 BT_HIDDEN
-enum bt_component_status bt_component_port_connected(
+enum bt_self_component_status bt_component_port_connected(
 		struct bt_component *comp,
 		struct bt_port *self_port, struct bt_port *other_port);
 
@@ -109,40 +99,40 @@ void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph);
 
 BT_HIDDEN
-int64_t bt_component_get_input_port_count(struct bt_component *comp);
+uint64_t bt_component_get_input_port_count(struct bt_component *comp);
 
 BT_HIDDEN
-int64_t bt_component_get_output_port_count(struct bt_component *comp);
+uint64_t bt_component_get_output_port_count(struct bt_component *comp);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_input_port_by_index(struct bt_component *comp,
-		uint64_t index);
+struct bt_port_input *bt_component_borrow_input_port_by_index(
+		struct bt_component *comp, uint64_t index);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_output_port_by_index(struct bt_component *comp,
-		uint64_t index);
+struct bt_port_output *bt_component_borrow_output_port_by_index(
+		struct bt_component *comp, uint64_t index);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_input_port_by_name(struct bt_component *comp,
-		const char *name);
+struct bt_port_input *bt_component_borrow_input_port_by_name(
+		struct bt_component *comp, const char *name);
 
 BT_HIDDEN
-struct bt_port *bt_component_get_output_port_by_name(struct bt_component *comp,
-		const char *name);
+struct bt_port_output *bt_component_borrow_output_port_by_name(
+		struct bt_component *comp, const char *name);
 
 BT_HIDDEN
-struct bt_port *bt_component_add_input_port(
+struct bt_port_input *bt_component_add_input_port(
 		struct bt_component *component, const char *name,
 		void *user_data);
 
 BT_HIDDEN
-struct bt_port *bt_component_add_output_port(
+struct bt_port_output *bt_component_add_output_port(
 		struct bt_component *component, const char *name,
 		void *user_data);
 
 BT_HIDDEN
-enum bt_component_status bt_component_remove_port(
-		struct bt_component *component, struct bt_port *port);
+void bt_component_remove_port(struct bt_component *component,
+		struct bt_port *port);
 
 BT_HIDDEN
 void bt_component_add_destroy_listener(struct bt_component *component,
@@ -153,29 +143,22 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 		bt_component_destroy_listener_func func, void *data);
 
 static inline
-const char *bt_component_status_string(enum bt_component_status status)
+const char *bt_self_component_status_string(
+		enum bt_self_component_status status)
 {
 	switch (status) {
-	case BT_COMPONENT_STATUS_OK:
-		return "BT_COMPONENT_STATUS_OK";
-	case BT_COMPONENT_STATUS_END:
-		return "BT_COMPONENT_STATUS_END";
-	case BT_COMPONENT_STATUS_AGAIN:
-		return "BT_COMPONENT_STATUS_AGAIN";
-	case BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
-		return "BT_COMPONENT_STATUS_REFUSE_PORT_CONNECTION";
-	case BT_COMPONENT_STATUS_ERROR:
-		return "BT_COMPONENT_STATUS_ERROR";
-	case BT_COMPONENT_STATUS_UNSUPPORTED:
-		return "BT_COMPONENT_STATUS_UNSUPPORTED";
-	case BT_COMPONENT_STATUS_INVALID:
-		return "BT_COMPONENT_STATUS_INVALID";
-	case BT_COMPONENT_STATUS_NOMEM:
-		return "BT_COMPONENT_STATUS_NOMEM";
-	case BT_COMPONENT_STATUS_NOT_FOUND:
-		return "BT_COMPONENT_STATUS_NOT_FOUND";
-	case BT_COMPONENT_STATUS_GRAPH_IS_CANCELED:
-		return "BT_COMPONENT_STATUS_GRAPH_IS_CANCELED";
+	case BT_SELF_COMPONENT_STATUS_OK:
+		return "BT_SELF_COMPONENT_STATUS_OK";
+	case BT_SELF_COMPONENT_STATUS_END:
+		return "BT_SELF_COMPONENT_STATUS_END";
+	case BT_SELF_COMPONENT_STATUS_AGAIN:
+		return "BT_SELF_COMPONENT_STATUS_AGAIN";
+	case BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
+		return "BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION";
+	case BT_SELF_COMPONENT_STATUS_ERROR:
+		return "BT_SELF_COMPONENT_STATUS_ERROR";
+	case BT_SELF_COMPONENT_STATUS_NOMEM:
+		return "BT_SELF_COMPONENT_STATUS_NOMEM";
 	default:
 		return "(unknown)";
 	}

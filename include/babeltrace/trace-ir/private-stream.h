@@ -38,8 +38,12 @@ struct bt_stream;
 struct bt_private_stream;
 struct bt_private_stream_class;
 
-extern struct bt_stream *bt_stream_borrow_from_private(
-		struct bt_private_stream *priv_stream);
+static inline
+struct bt_stream *bt_private_stream_borrow_stream(
+		struct bt_private_stream *priv_stream)
+{
+	return (void *) priv_stream;
+}
 
 extern struct bt_private_stream *bt_private_stream_create(
 		struct bt_private_stream_class *stream_class);

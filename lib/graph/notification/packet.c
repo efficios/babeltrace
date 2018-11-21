@@ -34,7 +34,6 @@
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/private-notification-packet.h>
 #include <babeltrace/graph/notification-packet-internal.h>
-#include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
@@ -66,14 +65,15 @@ end:
 }
 
 struct bt_private_notification *bt_private_notification_packet_begin_create(
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_private_packet *priv_packet)
 {
+	struct bt_self_component_port_input_notification_iterator *notif_iter =
+		(void *) self_notif_iter;
 	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_packet_begin *notification = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
-	struct bt_graph *graph;
 
 	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -81,18 +81,11 @@ struct bt_private_notification *bt_private_notification_packet_begin_create(
 	BT_ASSERT(stream);
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
-	BT_LOGD("Creating packet beginning notification object: "
-		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64,
-		packet, stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class));
-	graph = bt_private_connection_private_notification_iterator_borrow_graph(
-		notif_iter);
+	BT_LIB_LOGD("Creating packet beginning notification object: "
+		"%![packet-]+a, %![stream-]+s, %![sc-]+S",
+		packet, stream, stream_class);
 	notification = (void *) bt_notification_create_from_pool(
-		&graph->packet_begin_notif_pool, graph);
+		&notif_iter->graph->packet_begin_notif_pool, notif_iter->graph);
 	if (!notification) {
 		/* bt_notification_create_from_pool() logs errors */
 		goto end;
@@ -103,14 +96,9 @@ struct bt_private_notification *bt_private_notification_packet_begin_create(
 	bt_object_get_no_null_check_no_parent_check(
 		&notification->packet->base);
 	bt_packet_set_is_frozen(packet, true);
-	BT_LOGD("Created packet beginning notification object: "
-		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64 ", addr=%p",
-		packet, stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class), notification);
+	BT_LIB_LOGD("Created packet beginning notification object: "
+		"%![notif-]+n, %![packet-]+a, %![stream-]+s, %![sc-]+S",
+		notification, packet, stream, stream_class);
 	goto end;
 
 end:
@@ -122,8 +110,8 @@ void bt_notification_packet_begin_destroy(struct bt_notification *notif)
 {
 	struct bt_notification_packet_begin *packet_begin_notif = (void *) notif;
 
-	BT_LOGD("Destroying packet beginning notification: addr=%p", notif);
-	BT_LOGD_STR("Putting packet.");
+	BT_LIB_LOGD("Destroying packet beginning notification: %!+n", notif);
+	BT_LIB_LOGD("Putting packet: %!+a", packet_begin_notif->packet);
 	BT_OBJECT_PUT_REF_AND_RESET(packet_begin_notif->packet);
 	g_free(notif);
 }
@@ -141,7 +129,7 @@ void bt_notification_packet_begin_recycle(struct bt_notification *notif)
 		return;
 	}
 
-	BT_LOGD("Recycling packet beginning notification: addr=%p", notif);
+	BT_LIB_LOGD("Recycling packet beginning notification: %!+n", notif);
 	bt_notification_reset(notif);
 	bt_object_put_no_null_check(&packet_begin_notif->packet->base);
 	packet_begin_notif->packet = NULL;
@@ -196,14 +184,15 @@ end:
 }
 
 struct bt_private_notification *bt_private_notification_packet_end_create(
-		struct bt_private_connection_private_notification_iterator *notif_iter,
+		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_private_packet *priv_packet)
 {
+	struct bt_self_component_port_input_notification_iterator *notif_iter =
+		(void *) self_notif_iter;
 	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_packet_end *notification = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
-	struct bt_graph *graph;
 
 	BT_ASSERT_PRE_NON_NULL(notif_iter, "Notification iterator");
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -211,18 +200,11 @@ struct bt_private_notification *bt_private_notification_packet_end_create(
 	BT_ASSERT(stream);
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
-	BT_LOGD("Creating packet end notification object: "
-		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64,
-		packet, stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class));
-	graph = bt_private_connection_private_notification_iterator_borrow_graph(
-		notif_iter);
+	BT_LIB_LOGD("Creating packet end notification object: "
+		"%![packet-]+a, %![stream-]+s, %![sc-]+S",
+		packet, stream, stream_class);
 	notification = (void *) bt_notification_create_from_pool(
-		&graph->packet_end_notif_pool, graph);
+		&notif_iter->graph->packet_end_notif_pool, notif_iter->graph);
 	if (!notification) {
 		/* bt_notification_create_from_pool() logs errors */
 		goto end;
@@ -233,14 +215,9 @@ struct bt_private_notification *bt_private_notification_packet_end_create(
 	bt_object_get_no_null_check_no_parent_check(
 		&notification->packet->base);
 	bt_packet_set_is_frozen(packet, true);
-	BT_LOGD("Created packet end notification object: "
-		"packet-addr=%p, stream-addr=%p, stream-name=\"%s\", "
-		"stream-class-addr=%p, stream-class-name=\"%s\", "
-		"stream-class-id=%" PRId64 ", addr=%p",
-		packet, stream, bt_stream_get_name(stream),
-		stream_class,
-		bt_stream_class_get_name(stream_class),
-		bt_stream_class_get_id(stream_class), notification);
+	BT_LIB_LOGD("Created packet end notification object: "
+		"%![notif-]+n, %![packet-]+a, %![stream-]+s, %![sc-]+S",
+		notification, packet, stream, stream_class);
 	goto end;
 
 end:
@@ -252,8 +229,8 @@ void bt_notification_packet_end_destroy(struct bt_notification *notif)
 {
 	struct bt_notification_packet_end *packet_end_notif = (void *) notif;
 
-	BT_LOGD("Destroying packet end notification: addr=%p", notif);
-	BT_LOGD_STR("Putting packet.");
+	BT_LIB_LOGD("Destroying packet end notification: %!+n", notif);
+	BT_LIB_LOGD("Putting packet: %!+a", packet_end_notif->packet);
 	BT_OBJECT_PUT_REF_AND_RESET(packet_end_notif->packet);
 	g_free(notif);
 }
@@ -271,7 +248,7 @@ void bt_notification_packet_end_recycle(struct bt_notification *notif)
 		return;
 	}
 
-	BT_LOGD("Recycling packet end notification: addr=%p", notif);
+	BT_LIB_LOGD("Recycling packet end notification: %!+n", notif);
 	bt_notification_reset(notif);
 	BT_OBJECT_PUT_REF_AND_RESET(packet_end_notif->packet);
 	graph = notif->graph;

@@ -29,13 +29,13 @@
 #include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
-struct bt_component_class_query_method_return metadata_info_query(
-		struct bt_component_class *comp_class,
-		struct bt_value *params);
+enum bt_query_status metadata_info_query(
+		struct bt_self_component_class_source *comp_class,
+		struct bt_value *params, struct bt_value **result);
 
 BT_HIDDEN
-struct bt_component_class_query_method_return trace_info_query(
-		struct bt_component_class *comp_class,
-		struct bt_value *params);
+enum bt_query_status trace_info_query(
+		struct bt_self_component_class_source *comp_class,
+		struct bt_value *params, struct bt_value **result);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_QUERY_H */

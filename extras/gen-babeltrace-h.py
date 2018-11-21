@@ -65,7 +65,7 @@ def _main():
 /*
  * Babeltrace API
  *
- * Copyright 2010-2017 EfficiOS Inc. <http://www.efficios.com/>
+ * Copyright 2010-2018 EfficiOS Inc. <http://www.efficios.com/>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

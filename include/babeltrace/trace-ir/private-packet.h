@@ -38,8 +38,12 @@ struct bt_private_packet_header_field;
 struct bt_private_packet_context_field;
 struct bt_private_stream;
 
-extern struct bt_packet *bt_packet_borrow_from_private(
-		struct bt_private_packet *priv_packet);
+static inline
+struct bt_packet *bt_private_packet_borrow_packet(
+		struct bt_private_packet *priv_packet)
+{
+	return (void *) priv_packet;
+}
 
 extern struct bt_private_packet *bt_private_packet_create(
 		struct bt_private_stream *stream);

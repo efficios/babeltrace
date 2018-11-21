@@ -4,8 +4,9 @@ babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
 	babeltrace/logging.h \
 	babeltrace/object.h \
-	babeltrace/types.h \
 	babeltrace/private-values.h \
+	babeltrace/property.h \
+	babeltrace/types.h \
 	babeltrace/values.h \
 	babeltrace/version.h
 
@@ -57,13 +58,13 @@ babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/packet.h \
 	babeltrace/trace-ir/private-clock-class.h \
 	babeltrace/trace-ir/private-event-class.h \
-	babeltrace/trace-ir/private-event-header-field.h \
 	babeltrace/trace-ir/private-event.h \
+	babeltrace/trace-ir/private-event-header-field.h \
 	babeltrace/trace-ir/private-field-classes.h \
 	babeltrace/trace-ir/private-fields.h \
 	babeltrace/trace-ir/private-packet-context-field.h \
-	babeltrace/trace-ir/private-packet-header-field.h \
 	babeltrace/trace-ir/private-packet.h \
+	babeltrace/trace-ir/private-packet-header-field.h \
 	babeltrace/trace-ir/private-stream-class.h \
 	babeltrace/trace-ir/private-stream.h \
 	babeltrace/trace-ir/private-trace.h \
@@ -81,14 +82,13 @@ babeltraceplugininclude_HEADERS = \
 babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/component-class-filter.h \
+	babeltrace/graph/component-class.h \
 	babeltrace/graph/component-class-sink.h \
 	babeltrace/graph/component-class-source.h \
-	babeltrace/graph/component-class.h \
 	babeltrace/graph/component-filter.h \
+	babeltrace/graph/component.h \
 	babeltrace/graph/component-sink.h \
 	babeltrace/graph/component-source.h \
-	babeltrace/graph/component-status.h \
-	babeltrace/graph/component.h \
 	babeltrace/graph/connection.h \
 	babeltrace/graph/graph.h \
 	babeltrace/graph/notification-event.h \
@@ -97,23 +97,34 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/notification-packet.h \
 	babeltrace/graph/notification-stream.h \
 	babeltrace/graph/notification.h \
-	babeltrace/graph/output-port-notification-iterator.h \
+	babeltrace/graph/port-input.h \
+	babeltrace/graph/port-output-notification-iterator.h \
+	babeltrace/graph/port-output.h \
 	babeltrace/graph/port.h \
-	babeltrace/graph/private-component-filter.h \
-	babeltrace/graph/private-component-sink.h \
-	babeltrace/graph/private-component-source.h \
-	babeltrace/graph/private-component.h \
-	babeltrace/graph/private-connection-notification-iterator.h \
-	babeltrace/graph/private-connection-private-notification-iterator.h \
-	babeltrace/graph/private-connection.h \
+	babeltrace/graph/private-component-class-filter.h \
+	babeltrace/graph/private-component-class-sink.h \
+	babeltrace/graph/private-component-class-source.h \
+	babeltrace/graph/private-component-class.h \
 	babeltrace/graph/private-graph.h \
 	babeltrace/graph/private-notification-event.h \
 	babeltrace/graph/private-notification-inactivity.h \
 	babeltrace/graph/private-notification-packet.h \
 	babeltrace/graph/private-notification-stream.h \
 	babeltrace/graph/private-notification.h \
-	babeltrace/graph/private-port.h \
-	babeltrace/graph/query-executor.h
+	babeltrace/graph/private-query-executor.h \
+	babeltrace/graph/query-executor.h \
+	babeltrace/graph/self-component-class-filter.h \
+	babeltrace/graph/self-component-class-sink.h \
+	babeltrace/graph/self-component-class-source.h \
+	babeltrace/graph/self-component-filter.h \
+	babeltrace/graph/self-component-port-input-notification-iterator.h \
+	babeltrace/graph/self-component-port-input.h \
+	babeltrace/graph/self-component-port-output.h \
+	babeltrace/graph/self-component-port.h \
+	babeltrace/graph/self-component-sink.h \
+	babeltrace/graph/self-component-source.h \
+	babeltrace/graph/self-component.h \
+	babeltrace/graph/self-notification-iterator.h
 
 noinst_HEADERS = \
 	babeltrace/compat/stdlib-internal.h \
@@ -161,40 +172,41 @@ noinst_HEADERS = \
 	babeltrace/align-internal.h \
 	babeltrace/logging-internal.h \
 	babeltrace/endian-internal.h \
-	babeltrace/trace-ir/packet-internal.h \
-	babeltrace/trace-ir/event-class-internal.h \
-	babeltrace/trace-ir/utils-internal.h \
-	babeltrace/trace-ir/fields-internal.h \
-	babeltrace/trace-ir/stream-class-internal.h \
-	babeltrace/trace-ir/event-internal.h \
-	babeltrace/trace-ir/field-path-internal.h \
-	babeltrace/trace-ir/field-wrapper-internal.h \
-	babeltrace/trace-ir/trace-internal.h \
-	babeltrace/trace-ir/clock-class-internal.h \
-	babeltrace/trace-ir/field-classes-internal.h \
-	babeltrace/trace-ir/clock-value-internal.h \
 	babeltrace/trace-ir/attributes-internal.h \
-	babeltrace/trace-ir/stream-internal.h \
+	babeltrace/trace-ir/clock-class-internal.h \
+	babeltrace/trace-ir/clock-value-internal.h \
+	babeltrace/trace-ir/clock-value-set-internal.h \
+	babeltrace/trace-ir/event-class-internal.h \
+	babeltrace/trace-ir/event-internal.h \
+	babeltrace/trace-ir/field-classes-internal.h \
+	babeltrace/trace-ir/field-path-internal.h \
+	babeltrace/trace-ir/fields-internal.h \
+	babeltrace/trace-ir/field-wrapper-internal.h \
+	babeltrace/trace-ir/packet-internal.h \
 	babeltrace/trace-ir/resolve-field-path-internal.h \
+	babeltrace/trace-ir/stream-class-internal.h \
+	babeltrace/trace-ir/stream-internal.h \
+	babeltrace/trace-ir/trace-internal.h \
+	babeltrace/trace-ir/utils-internal.h \
 	babeltrace/prio-heap-internal.h \
 	babeltrace/lib-logging-internal.h \
 	babeltrace/compiler-internal.h \
 	babeltrace/babeltrace-internal.h \
 	babeltrace/assert-pre-internal.h \
-	babeltrace/graph/component-internal.h \
-	babeltrace/graph/notification-stream-internal.h \
-	babeltrace/graph/connection-internal.h \
-	babeltrace/graph/notification-event-internal.h \
-	babeltrace/graph/query-executor-internal.h \
-	babeltrace/graph/graph-internal.h \
-	babeltrace/graph/component-class-sink-colander-internal.h \
-	babeltrace/graph/notification-inactivity-internal.h \
-	babeltrace/graph/component-source-internal.h \
-	babeltrace/graph/notification-packet-internal.h \
-	babeltrace/graph/notification-iterator-internal.h \
-	babeltrace/graph/notification-internal.h \
-	babeltrace/graph/component-filter-internal.h \
 	babeltrace/graph/component-class-internal.h \
+	babeltrace/graph/component-class-sink-colander-internal.h \
+	babeltrace/graph/component-filter-internal.h \
+	babeltrace/graph/component-internal.h \
 	babeltrace/graph/component-sink-internal.h \
+	babeltrace/graph/component-source-internal.h \
+	babeltrace/graph/connection-internal.h \
+	babeltrace/graph/graph-internal.h \
+	babeltrace/graph/notification-event-internal.h \
+	babeltrace/graph/notification-inactivity-internal.h \
+	babeltrace/graph/notification-internal.h \
+	babeltrace/graph/notification-iterator-internal.h \
+	babeltrace/graph/notification-packet-internal.h \
+	babeltrace/graph/notification-stream-internal.h \
 	babeltrace/graph/port-internal.h \
+	babeltrace/graph/query-executor-internal.h \
 	babeltrace/list-internal.h

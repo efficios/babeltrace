@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_FIELD_TYPES_H
 
 /*
- * Babeltrace - CTF writer: Event Fields
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

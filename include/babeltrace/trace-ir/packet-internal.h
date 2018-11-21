@@ -2,8 +2,6 @@
 #define BABELTRACE_TRACE_IR_PACKET_INTERNAL_H
 
 /*
- * Babeltrace - Trace IR: Stream packet internal
- *
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

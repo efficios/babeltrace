@@ -32,8 +32,12 @@ extern "C" {
 struct bt_notification;
 struct bt_private_notification;
 
-extern struct bt_notification *bt_notification_borrow_from_private(
-		struct bt_private_notification *priv_notif);
+static inline
+struct bt_notification *bt_private_notification_borrow_notification(
+		struct bt_private_notification *notification)
+{
+	return (void *) notification;
+}
 
 #ifdef __cplusplus
 }

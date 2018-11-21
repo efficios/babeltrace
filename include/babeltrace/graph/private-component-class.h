@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_PORT_H
-#define BABELTRACE_GRAPH_PRIVATE_PORT_H
+#ifndef BABELTRACE_GRAPH_PRIVATE_COMPONENT_CLASS_H
+#define BABELTRACE_GRAPH_PRIVATE_COMPONENT_CLASS_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,34 @@
  * SOFTWARE.
  */
 
+/* For enum bt_query_status */
+#include <babeltrace/graph/query-executor.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_private_port;
-struct bt_private_component;
-struct bt_private_connection;
+struct bt_component_class;
+struct bt_private_component_class;
 
-struct bt_port *bt_port_borrow_from_private(
-		struct bt_private_port *private_port);
+static inline
+struct bt_component_class *
+bt_private_component_class_borrow_component_class(
+		struct bt_private_component_class *priv_comp_cls)
+{
+	return (void *) priv_comp_cls;
+}
 
-extern struct bt_private_connection *bt_private_port_get_connection(
-		struct bt_private_port *private_port);
+extern int bt_private_component_class_set_description(
+		struct bt_private_component_class *component_class,
+		const char *description);
 
-extern struct bt_private_component *bt_private_port_get_component(
-		struct bt_private_port *private_port);
-
-extern enum bt_port_status bt_private_port_remove_from_component(
-		struct bt_private_port *private_port);
-
-extern void *bt_private_port_get_user_data(
-		struct bt_private_port *private_port);
+extern int bt_private_component_class_set_help(
+		struct bt_private_component_class *component_class,
+		const char *help);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_PORT_H */
+#endif /* BABELTRACE_GRAPH_PRIVATE_COMPONENT_CLASS_H */

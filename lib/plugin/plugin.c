@@ -1,8 +1,4 @@
 /*
- * plugin.c
- *
- * Babeltrace Plugin (generic)
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
@@ -40,6 +36,7 @@
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -113,44 +110,19 @@ void fini_python_plugin_provider(void) {
 }
 #endif
 
-extern
-int64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
+uint64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
 {
-	int64_t count = -1;
-
-	if (!plugin_set) {
-		BT_LOGW_STR("Invalid parameter: plugin set is NULL.");
-		goto end;
-	}
-
-	count = (int64_t) plugin_set->plugins->len;
-
-end:
-	return count;
+	BT_ASSERT_PRE_NON_NULL(plugin_set, "Plugin set");
+	return (uint64_t) plugin_set->plugins->len;
 }
 
-extern
-struct bt_plugin *bt_plugin_set_get_plugin(struct bt_plugin_set *plugin_set,
+struct bt_plugin *bt_plugin_set_borrow_plugin_by_index(
+		struct bt_plugin_set *plugin_set,
 		uint64_t index)
 {
-	struct bt_plugin *plugin = NULL;
-
-	if (!plugin_set) {
-		BT_LOGW_STR("Invalid parameter: plugin set is NULL.");
-		goto end;
-	}
-
-	if (index >= plugin_set->plugins->len) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, index=%" PRIu64 ", count=%u",
-			plugin_set, index, plugin_set->plugins->len);
-		goto end;
-	}
-
-	plugin = bt_object_get_ref(g_ptr_array_index(plugin_set->plugins, index));
-
-end:
-	return plugin;
+	BT_ASSERT_PRE_NON_NULL(plugin_set, "Plugin set");
+	BT_ASSERT_PRE_VALID_INDEX(index, plugin_set->plugins->len);
+	return g_ptr_array_index(plugin_set->plugins, index);
 }
 
 struct bt_plugin_set *bt_plugin_create_all_from_static(void)
@@ -163,11 +135,7 @@ struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path)
 {
 	struct bt_plugin_set *plugin_set = NULL;
 
-	if (!path) {
-		BT_LOGW_STR("Invalid parameter: path is NULL.");
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(path, "Path");
 	BT_LOGD("Creating plugins from file: path=\"%s\"", path);
 
 	/* Try shared object plugins */
@@ -214,11 +182,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	int ret;
 	size_t i, j;
 
-	if (!plugin_name) {
-		BT_LOGW_STR("Invalid parameter: plugin name is NULL.");
-		goto end;
-	}
-
+	BT_ASSERT_PRE_NON_NULL(plugin_name, "Name");
 	BT_LOGD("Finding named plugin in standard directories and built-in plugins: "
 		"name=\"%s\"", plugin_name);
 	dirs = g_ptr_array_new_with_free_func((GDestroyNotify) destroy_gstring);
@@ -342,9 +306,8 @@ end:
 	}
 
 	if (plugin) {
-		BT_LOGD("Found plugin in standard directories and built-in plugins: "
-			"addr=%p, name=\"%s\", path=\"%s\"",
-			plugin, plugin_name, bt_plugin_get_path(plugin));
+		BT_LIB_LOGD("Found plugin in standard directories and built-in plugins: "
+			"%!+l", plugin);
 	} else {
 		BT_LOGD("No plugin found in standard directories and built-in plugins: "
 			"name=\"%s\"", plugin_name);
@@ -353,49 +316,10 @@ end:
 	return plugin;
 }
 
-struct bt_component_class *bt_plugin_find_component_class(
-		const char *plugin_name, const char *comp_cls_name,
-		enum bt_component_class_type comp_cls_type)
-{
-	struct bt_plugin *plugin = NULL;
-	struct bt_component_class *comp_cls = NULL;
-
-	if (!plugin_name) {
-		BT_LOGW_STR("Invalid parameter: plugin name is NULL.");
-		goto end;
-	}
-
-	if (!comp_cls_name) {
-		BT_LOGW_STR("Invalid parameter: component class name is NULL.");
-		goto end;
-	}
-
-	BT_LOGD("Finding named plugin and component class in standard directories and built-in plugins: "
-		"plugin-name=\"%s\", comp-class-name=\"%s\"",
-		plugin_name, comp_cls_name);
-	plugin = bt_plugin_find(plugin_name);
-	if (!plugin) {
-		BT_LOGD_STR("Plugin not found.");
-		goto end;
-	}
-
-	comp_cls = bt_plugin_get_component_class_by_name_and_type(
-		plugin, comp_cls_name, comp_cls_type);
-	if (!comp_cls) {
-		BT_LOGD("Component class not found in plugin: "
-			"plugin-addr=%p, plugin-path=\"%s\"",
-			plugin, bt_plugin_get_path(plugin));
-	}
-
-end:
-	bt_object_put_ref(plugin);
-	return comp_cls;
-}
-
 static struct {
 	pthread_mutex_t lock;
 	struct bt_plugin_set *plugin_set;
-	bt_bool recurse;
+	bool recurse;
 } append_all_from_dir_info = {
 	.lock = PTHREAD_MUTEX_INITIALIZER
 };
@@ -432,9 +356,9 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 				struct bt_plugin *plugin =
 					g_ptr_array_index(plugins_from_file->plugins, j);
 
-				BT_LOGD("Adding plugin to plugin set: "
-					"plugin-path=\"%s\", plugin-addr=%p, plugin-name=\"%s\"",
-					file, plugin, bt_plugin_get_name(plugin));
+				BT_LIB_LOGD("Adding plugin to plugin set: "
+					"plugin-path=\"%s\", %![plugin-]+l",
+					file, plugin);
 				bt_plugin_set_add_plugin(append_all_from_dir_info.plugin_set, plugin);
 			}
 
@@ -462,39 +386,22 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 		bt_bool recurse)
 {
 	int nftw_flags = FTW_PHYS;
-	size_t path_len;
 	enum bt_plugin_status ret = BT_PLUGIN_STATUS_OK;
 
-	if (!path) {
-		BT_LOGW_STR("Invalid parameter: path is NULL.");
-		ret = BT_PLUGIN_STATUS_ERROR;
-		goto end;
-	}
-
-	path_len = strlen(path);
-	if (path_len >= PATH_MAX) {
-		BT_LOGW("Invalid parameter: path length is too large: "
-			"path-length=%zu", path_len);
-		ret = BT_PLUGIN_STATUS_ERROR;
-		goto end;
-	}
-
+	BT_ASSERT(plugin_set);
+	BT_ASSERT(path);
+	BT_ASSERT(strlen(path) < PATH_MAX);
 	pthread_mutex_lock(&append_all_from_dir_info.lock);
-
 	append_all_from_dir_info.plugin_set = plugin_set;
 	append_all_from_dir_info.recurse = recurse;
 	ret = nftw(path, nftw_append_all_from_dir,
 		APPEND_ALL_FROM_DIR_NFDOPEN_MAX, nftw_flags);
-
 	pthread_mutex_unlock(&append_all_from_dir_info.lock);
-
 	if (ret != 0) {
-		BT_LOGW("Cannot open directory: %s: path=\"%s\", errno=%d",
-			strerror(errno), path, errno);
+		BT_LOGW_ERRNO("Cannot open directory", ": path=\"%s\"", path);
 		ret = BT_PLUGIN_STATUS_ERROR;
 	}
 
-end:
 	return ret;
 }
 
@@ -535,104 +442,47 @@ end:
 
 const char *bt_plugin_get_name(struct bt_plugin *plugin)
 {
-	const char *val = NULL;
-
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto end;
-	}
-
-	if (plugin->info.name_set) {
-		val = plugin->info.name->str;
-	}
-
-end:
-	return val;
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return plugin->info.name_set ? plugin->info.name->str : NULL;
 }
 
 const char *bt_plugin_get_author(struct bt_plugin *plugin)
 {
-	const char *val = NULL;
-
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto end;
-	}
-
-	if (plugin->info.author_set) {
-		val = plugin->info.author->str;
-	}
-
-end:
-	return val;
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return plugin->info.author_set ? plugin->info.author->str : NULL;
 }
 
 const char *bt_plugin_get_license(struct bt_plugin *plugin)
 {
-	const char *val = NULL;
-
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto end;
-	}
-
-	if (plugin->info.license_set) {
-		val = plugin->info.license->str;
-	}
-
-end:
-	return val;
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return plugin->info.license_set ? plugin->info.license->str : NULL;
 }
 
 const char *bt_plugin_get_path(struct bt_plugin *plugin)
 {
-	const char *val = NULL;
-
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto end;
-	}
-
-	if (plugin->info.path_set) {
-		val = plugin->info.path->str;
-	}
-
-end:
-	return val;
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return plugin->info.path_set ? plugin->info.path->str : NULL;
 }
 
 const char *bt_plugin_get_description(struct bt_plugin *plugin)
 {
-	const char *val = NULL;
-
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto end;
-	}
-
-	if (plugin->info.description_set) {
-		val = plugin->info.description->str;
-	}
-
-end:
-	return val;
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return plugin->info.description_set ?
+		plugin->info.description->str : NULL;
 }
 
-enum bt_plugin_status bt_plugin_get_version(struct bt_plugin *plugin,
+enum bt_property_availability bt_plugin_get_version(struct bt_plugin *plugin,
 		unsigned int *major, unsigned int *minor, unsigned int *patch,
 		const char **extra)
 {
-	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
+	enum bt_property_availability avail =
+		BT_PROPERTY_AVAILABILITY_AVAILABLE;
 
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		status = BT_PLUGIN_STATUS_ERROR;
-		goto end;
-	}
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 
 	if (!plugin->info.version_set) {
-		BT_LOGV("Plugin's version is not set: addr=%p", plugin);
-		status = BT_PLUGIN_STATUS_ERROR;
+		BT_LIB_LOGV("Plugin's version is not set: %!+l", plugin);
+		avail = BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
 		goto end;
 	}
 
@@ -653,156 +503,110 @@ enum bt_plugin_status bt_plugin_get_version(struct bt_plugin *plugin,
 	}
 
 end:
-	return status;
+	return avail;
 }
 
-int64_t bt_plugin_get_component_class_count(struct bt_plugin *plugin)
+uint64_t bt_plugin_get_source_component_class_count(struct bt_plugin *plugin)
 {
-	return plugin ? plugin->comp_classes->len : (int64_t) -1;
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return (uint64_t) plugin->src_comp_classes->len;
 }
 
-struct bt_component_class *bt_plugin_get_component_class_by_index(
+uint64_t bt_plugin_get_filter_component_class_count(struct bt_plugin *plugin)
+{
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return (uint64_t) plugin->flt_comp_classes->len;
+}
+
+uint64_t bt_plugin_get_sink_component_class_count(struct bt_plugin *plugin)
+{
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	return (uint64_t) plugin->sink_comp_classes->len;
+}
+
+static inline
+struct bt_component_class *borrow_component_class_by_index(
+		struct bt_plugin *plugin, GPtrArray *comp_classes,
+		uint64_t index)
+{
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_VALID_INDEX(index, comp_classes->len);
+	return g_ptr_array_index(comp_classes, index);
+}
+
+
+struct bt_component_class_source *
+bt_plugin_borrow_source_component_class_by_index(
 		struct bt_plugin *plugin, uint64_t index)
 {
-	struct bt_component_class *comp_class = NULL;
-
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto error;
-	}
-
-	if (index >= plugin->comp_classes->len) {
-		BT_LOGW("Invalid parameter: index is out of bounds: "
-			"addr=%p, index=%" PRIu64 ", count=%u",
-			plugin, index, plugin->comp_classes->len);
-		goto error;
-	}
-
-	comp_class = g_ptr_array_index(plugin->comp_classes, index);
-	bt_object_get_ref(comp_class);
-	goto end;
-
-error:
-	BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-
-end:
-	return comp_class;
+	return (void *) borrow_component_class_by_index(plugin,
+		plugin->src_comp_classes, index);
 }
 
-struct bt_component_class *bt_plugin_get_component_class_by_name_and_type(
-		struct bt_plugin *plugin, const char *name,
-		enum bt_component_class_type type)
+struct bt_component_class_filter *
+bt_plugin_borrow_filter_component_class_by_index(
+		struct bt_plugin *plugin, uint64_t index)
+{
+	return (void *) borrow_component_class_by_index(plugin,
+		plugin->flt_comp_classes, index);
+}
+
+struct bt_component_class_sink *
+bt_plugin_borrow_sink_component_class_by_index(
+		struct bt_plugin *plugin, uint64_t index)
+{
+	return (void *) borrow_component_class_by_index(plugin,
+		plugin->sink_comp_classes, index);
+}
+
+static inline
+struct bt_component_class *borrow_component_class_by_name(
+		struct bt_plugin *plugin, GPtrArray *comp_classes,
+		const char *name)
 {
 	struct bt_component_class *comp_class = NULL;
 	size_t i;
 
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto error;
-	}
+	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
+	BT_ASSERT_PRE_NON_NULL(name, "Name");
 
-	if (!name) {
-		BT_LOGW_STR("Invalid parameter: name is NULL.");
-		goto error;
-	}
-
-	for (i = 0; i < plugin->comp_classes->len; i++) {
+	for (i = 0; i < comp_classes->len; i++) {
 		struct bt_component_class *comp_class_candidate =
-			g_ptr_array_index(plugin->comp_classes, i);
+			g_ptr_array_index(comp_classes, i);
 		const char *comp_class_cand_name =
 			bt_component_class_get_name(comp_class_candidate);
-		enum bt_component_class_type comp_class_cand_type =
-			bt_component_class_get_type(comp_class_candidate);
 
 		BT_ASSERT(comp_class_cand_name);
-		BT_ASSERT(comp_class_cand_type >= 0);
 
-		if (strcmp(name, comp_class_cand_name) == 0 &&
-				comp_class_cand_type == type) {
-			comp_class = bt_object_get_ref(comp_class_candidate);
+		if (strcmp(name, comp_class_cand_name) == 0) {
+			comp_class = comp_class_candidate;
 			break;
 		}
 	}
 
-	goto end;
-
-error:
-	BT_OBJECT_PUT_REF_AND_RESET(comp_class);
-
-end:
 	return comp_class;
 }
 
-enum bt_plugin_status bt_plugin_add_component_class(
-	struct bt_plugin *plugin, struct bt_component_class *comp_class)
+struct bt_component_class_source *
+bt_plugin_borrow_source_component_class_by_name(struct bt_plugin *plugin,
+		const char *name)
 {
-	enum bt_plugin_status status = BT_PLUGIN_STATUS_OK;
-	struct bt_component_class *comp_class_dup = NULL;
-	int comp_class_index = -1;
+	return (void *) borrow_component_class_by_name(plugin,
+		plugin->src_comp_classes, name);
+}
 
-	if (!plugin) {
-		BT_LOGW_STR("Invalid parameter: plugin is NULL.");
-		goto error;
-	}
+struct bt_component_class_filter *
+bt_plugin_borrow_filter_component_class_by_name(struct bt_plugin *plugin,
+		const char *name)
+{
+	return (void *) borrow_component_class_by_name(plugin,
+		plugin->flt_comp_classes, name);
+}
 
-	if (!comp_class) {
-		BT_LOGW_STR("Invalid parameter: component class is NULL.");
-		goto error;
-	}
-
-	if (plugin->frozen) {
-		BT_LOGW("Invalid parameter: plugin is frozen: "
-			"addr=%p, name=\"%s\"", plugin,
-			bt_plugin_get_name(plugin));
-		goto error;
-	}
-
-	/* Check for duplicate */
-	comp_class_dup = bt_plugin_get_component_class_by_name_and_type(plugin,
-		bt_component_class_get_name(comp_class),
-		bt_component_class_get_type(comp_class));
-	if (comp_class_dup) {
-		BT_LOGW("Invalid parameter: a component class with this name and type already exists in the plugin: "
-			"plugin-addr=%p, plugin-name=\"%s\", plugin-path=\"%s\", "
-			"comp-class-name=\"%s\", comp-class-type=%s",
-			plugin, bt_plugin_get_name(plugin),
-			bt_plugin_get_path(plugin),
-			bt_component_class_get_name(comp_class),
-			bt_component_class_type_string(
-				bt_component_class_get_type(comp_class)));
-		goto error;
-	}
-
-	/* Add new component class */
-	comp_class_index = plugin->comp_classes->len;
-	g_ptr_array_add(plugin->comp_classes, bt_object_get_ref(comp_class));
-
-	/* Special case for a shared object plugin */
-	if (plugin->type == BT_PLUGIN_TYPE_SO) {
-		bt_plugin_so_on_add_component_class(plugin, comp_class);
-	}
-
-	BT_LOGD("Added component class to plugin: "
-		"plugin-addr=%p, plugin-name=\"%s\", plugin-path=\"%s\", "
-		"comp-class-addr=%p, comp-class-name=\"%s\", comp-class-type=%s",
-		plugin, bt_plugin_get_name(plugin),
-		bt_plugin_get_path(plugin),
-		comp_class,
-		bt_component_class_get_name(comp_class),
-		bt_component_class_type_string(
-			bt_component_class_get_type(comp_class)));
-	goto end;
-
-error:
-	/* Remove entry from plugin's component classes (if added) */
-	if (comp_class_index >= 0) {
-		g_ptr_array_remove_index(plugin->comp_classes,
-			comp_class_index);
-	}
-
-	status = BT_PLUGIN_STATUS_ERROR;
-
-end:
-	bt_object_put_ref(comp_class_dup);
-	return status;
+struct bt_component_class_sink *
+bt_plugin_borrow_sink_component_class_by_name(struct bt_plugin *plugin,
+		const char *name)
+{
+	return (void *) borrow_component_class_by_name(plugin,
+		plugin->sink_comp_classes, name);
 }

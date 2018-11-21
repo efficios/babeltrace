@@ -2,8 +2,6 @@
 #define BABELTRACE_PLUGIN_PLUGIN_SO_INTERNAL_H
 
 /*
- * BabelTrace - Babeltrace Plug-in Interface
- *
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *

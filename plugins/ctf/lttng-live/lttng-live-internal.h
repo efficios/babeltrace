@@ -174,7 +174,7 @@ struct lttng_live_session {
  */
 struct lttng_live_component {
 	struct bt_object obj;
-	struct bt_private_component *private_component;	/* weak */
+	struct bt_self_component *private_component;	/* weak */
 	struct bt_live_viewer_connection *viewer_connection;
 
 	/* List of struct lttng_live_session */
@@ -209,7 +209,7 @@ enum bt_lttng_live_iterator_status {
 	BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED = -4,
 };
 
-enum bt_component_status lttng_live_component_init(struct bt_private_component *source,
+enum bt_component_status lttng_live_component_init(struct bt_self_component *source,
 		struct bt_value *params, void *init_method_data);
 
 struct bt_component_class_query_method_return lttng_live_query(
@@ -217,21 +217,21 @@ struct bt_component_class_query_method_return lttng_live_query(
 		struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params);
 
-void lttng_live_component_finalize(struct bt_private_component *component);
+void lttng_live_component_finalize(struct bt_self_component *component);
 
 struct bt_notification_iterator_next_method_return lttng_live_iterator_next(
-        struct bt_private_connection_private_notification_iterator *iterator);
+        struct bt_self_notification_iterator *iterator);
 
 enum bt_component_status lttng_live_accept_port_connection(
-		struct bt_private_component *private_component,
+		struct bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
 		struct bt_port *other_port);
 
 enum bt_notification_iterator_status lttng_live_iterator_init(
-		struct bt_private_connection_private_notification_iterator *it,
+		struct bt_self_notification_iterator *it,
 		struct bt_private_port *port);
 
-void lttng_live_iterator_finalize(struct bt_private_connection_private_notification_iterator *it);
+void lttng_live_iterator_finalize(struct bt_self_notification_iterator *it);
 
 int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live);
 int lttng_live_attach_session(struct lttng_live_session *session);

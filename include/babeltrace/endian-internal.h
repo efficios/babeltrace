@@ -2,8 +2,6 @@
 #define _BABELTRACE_ENDIAN_H
 
 /*
- * babeltrace/endian.h
- *
  * Copyright 2012 (c) - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * endian.h compatibility layer.

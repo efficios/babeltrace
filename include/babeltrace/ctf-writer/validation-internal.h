@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_VALIDATION_INTERNAL_H
 
 /*
- * Babeltrace - CTF writer: Validation of trace, stream class, and event class
- *
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

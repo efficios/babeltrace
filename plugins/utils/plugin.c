@@ -23,8 +23,6 @@
 #include <babeltrace/babeltrace.h>
 #include "dummy/dummy.h"
 #include "counter/counter.h"
-#include "trimmer/trimmer.h"
-#include "trimmer/iterator.h"
 #include "muxer/muxer.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
@@ -40,7 +38,7 @@ BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(dummy, dummy_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(dummy, dummy_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(dummy, dummy_finalize);
-BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(dummy,
+BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(dummy,
 	dummy_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
 	"Consume notifications and discard them.");
@@ -49,7 +47,7 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
 BT_PLUGIN_SINK_COMPONENT_CLASS(counter, counter_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(counter, counter_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(counter, counter_finalize);
-BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(counter,
+BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(counter,
 	counter_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(counter,
 	"Count notifications and print the results.");
@@ -73,10 +71,10 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(muxer,
 	"Sort notifications from multiple input ports to a single output port by time.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(muxer, muxer_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(muxer, muxer_finalize);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_PORT_DISCONNECTED_METHOD(muxer,
-	muxer_port_disconnected);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_PORT_CONNECTED_METHOD(muxer,
-	muxer_port_connected);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD(muxer,
+	muxer_input_port_disconnected);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(muxer,
+	muxer_input_port_connected);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(muxer,
 	muxer_notif_iter_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(muxer,

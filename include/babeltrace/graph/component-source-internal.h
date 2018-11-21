@@ -2,8 +2,6 @@
 #define BABELTRACE_GRAPH_COMPONENT_SOURCE_INTERNAL_H
 
 /*
- * BabelTrace - Source Component internal
- *
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -31,19 +29,10 @@
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 
-struct bt_value;
-
 struct bt_component_source {
 	struct bt_component parent;
 };
 
-/**
- * Allocate a source component.
- *
- * @param class			Component class
- * @param params		A dictionary of component parameters
- * @returns			A source component instance
- */
 BT_HIDDEN
 struct bt_component *bt_component_source_create(
 		struct bt_component_class *class);

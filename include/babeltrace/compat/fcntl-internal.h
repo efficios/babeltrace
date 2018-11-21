@@ -2,8 +2,6 @@
 #define _BABELTRACE_COMPAT_FCNTL_H
 
 /*
- * babeltrace/compat/fcntl.h
- *
  * Copyright 2015 (c) - Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * fcntl compatibility layer.

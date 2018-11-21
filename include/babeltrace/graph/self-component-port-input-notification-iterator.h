@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_H
-#define BABELTRACE_GRAPH_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_H
+#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_H
+#define BABELTRACE_GRAPH_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_H
 
 /*
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
@@ -23,27 +23,46 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 /* For enum bt_notification_iterator_status */
 #include <babeltrace/graph/notification-iterator.h>
+
+/* For bt_notification_array */
+#include <babeltrace/graph/notification.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component;
-struct bt_notification;
 struct bt_notification_iterator;
+struct bt_self_component_port_input_notification_iterator;
+struct bt_self_component_port_input;
 
-extern struct bt_component *bt_private_connection_notification_iterator_get_component(
-		struct bt_notification_iterator *iterator);
+static inline
+struct bt_notification_iterator *
+bt_self_component_port_input_notification_iterator_borrow_notification_iterator(
+		struct bt_self_component_port_input_notification_iterator *iterator)
+{
+	return (void *) iterator;
+}
+
+extern struct bt_self_component_port_input_notification_iterator *
+bt_self_component_port_input_notification_iterator_create(
+		struct bt_self_component_port_input *input_port);
+
+extern struct bt_component *
+bt_self_component_port_input_notification_iterator_borrow_component(
+		struct bt_self_component_port_input_notification_iterator *iterator);
 
 extern enum bt_notification_iterator_status
-bt_private_connection_notification_iterator_next(
-		struct bt_notification_iterator *iterator,
+bt_self_component_port_input_notification_iterator_next(
+		struct bt_self_component_port_input_notification_iterator *iterator,
 		bt_notification_array *notifs, uint64_t *count);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_CONNECTION_NOTIFICATION_ITERATOR_H */
+#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_H */

@@ -25,41 +25,42 @@
  */
 
 #include <stdint.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 
 BT_HIDDEN
-enum bt_component_status muxer_init(
-		struct bt_private_component *priv_comp,
+enum bt_self_component_status muxer_init(
+		struct bt_self_component_filter *self_comp,
 		struct bt_value *params, void *init_data);
 
 BT_HIDDEN
-void muxer_finalize(
-		struct bt_private_component *priv_comp);
+void muxer_finalize(struct bt_self_component_filter *self_comp);
 
 BT_HIDDEN
-enum bt_notification_iterator_status muxer_notif_iter_init(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
-		struct bt_private_port *priv_port);
+enum bt_self_notification_iterator_status muxer_notif_iter_init(
+		struct bt_self_notification_iterator *self_notif_iter,
+		struct bt_self_component_filter *self_comp,
+		struct bt_self_component_port_output *self_port);
 
 BT_HIDDEN
 void muxer_notif_iter_finalize(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter);
+		struct bt_self_notification_iterator *self_notif_iter);
 
 BT_HIDDEN
-enum bt_notification_iterator_status muxer_notif_iter_next(
-		struct bt_private_connection_private_notification_iterator *priv_notif_iter,
+enum bt_self_notification_iterator_status muxer_notif_iter_next(
+		struct bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array notifs, uint64_t capacity,
 		uint64_t *count);
 
 BT_HIDDEN
-enum bt_component_status muxer_port_connected(
-		struct bt_private_component *priv_comp,
-		struct bt_private_port *self_private_port,
-		struct bt_port *other_port);
+enum bt_self_component_status muxer_input_port_connected(
+		struct bt_self_component_filter *comp,
+		struct bt_self_component_port_input *self_port,
+		struct bt_port_output *other_port);
 
 BT_HIDDEN
-void muxer_port_disconnected(
-		struct bt_private_component *priv_comp,
-		struct bt_private_port *priv_port);
+void muxer_input_port_disconnected(
+		struct bt_self_component_filter *self_component,
+		struct bt_self_component_port_input *self_port);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_MUXER_H */

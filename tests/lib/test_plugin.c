@@ -15,14 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/plugin/plugin.h>
-#include <babeltrace/object.h>
-#include <babeltrace/values.h>
-#include <babeltrace/private-values.h>
-#include <babeltrace/graph/component.h>
-#include <babeltrace/graph/private-graph.h>
-#include <babeltrace/graph/graph.h>
-#include <babeltrace/graph/query-executor.h>
+#include <babeltrace/babeltrace.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -31,7 +24,7 @@
 #include "tap/tap.h"
 #include "common.h"
 
-#define NR_TESTS 		58
+#define NR_TESTS 		35
 #define NON_EXISTING_PATH	"/this/hopefully/does/not/exist/5bc75f8d-0dba-4043-a509-d7984b97e42b.so"
 
 /* Those symbols are written to by some test plugins */
@@ -69,43 +62,6 @@ static char *get_test_plugin_path(const char *plugin_dir,
 	return ret;
 }
 
-static void test_invalid(const char *plugin_dir)
-{
-	struct bt_plugin_set *plugin_set;
-
-	diag("invalid plugin test below");
-
-	plugin_set = bt_plugin_create_all_from_file(NON_EXISTING_PATH);
-	ok(!plugin_set, "bt_plugin_create_all_from_file() fails with a non-existing file");
-
-	plugin_set = bt_plugin_create_all_from_file(plugin_dir);
-	ok(!plugin_set, "bt_plugin_create_all_from_file() fails with a directory");
-
-	ok(!bt_plugin_create_all_from_file(NULL),
-		"bt_plugin_create_all_from_file() handles NULL correctly");
-	ok(!bt_plugin_create_all_from_dir(NULL, BT_FALSE),
-		"bt_plugin_create_all_from_dir() handles NULL correctly");
-	ok(!bt_plugin_get_name(NULL),
-		"bt_plugin_get_name() handles NULL correctly");
-	ok(!bt_plugin_get_description(NULL),
-		"bt_plugin_get_description() handles NULL correctly");
-	ok(bt_plugin_get_version(NULL, NULL, NULL, NULL, NULL) !=
-		BT_PLUGIN_STATUS_OK,
-		"bt_plugin_get_version() handles NULL correctly");
-	ok(!bt_plugin_get_author(NULL),
-		"bt_plugin_get_author() handles NULL correctly");
-	ok(!bt_plugin_get_license(NULL),
-		"bt_plugin_get_license() handles NULL correctly");
-	ok(!bt_plugin_get_path(NULL),
-		"bt_plugin_get_path() handles NULL correctly");
-	ok(bt_plugin_get_component_class_count(NULL) < 0,
-		"bt_plugin_get_component_class_count() handles NULL correctly");
-	ok(!bt_plugin_get_component_class_by_index(NULL, 0),
-		"bt_plugin_get_component_class_by_index() handles NULL correctly");
-	ok(!bt_plugin_get_component_class_by_name_and_type(NULL, NULL, 0),
-		"bt_plugin_get_component_class_by_name_and_type() handles NULL correctly");
-}
-
 static void test_minimal(const char *plugin_dir)
 {
 	struct bt_plugin_set *plugin_set;
@@ -123,14 +79,14 @@ static void test_minimal(const char *plugin_dir)
 		"plugin's initialization function is called during bt_plugin_create_all_from_file()");
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 1,
 		"bt_plugin_create_all_from_file() returns the expected number of plugins");
-	plugin = bt_plugin_set_get_plugin(plugin_set, 0);
+	plugin = bt_plugin_set_borrow_plugin_by_index(plugin_set, 0);
 	ok(strcmp(bt_plugin_get_name(plugin), "test_minimal") == 0,
 		"bt_plugin_get_name() returns the expected name");
 	ok(strcmp(bt_plugin_get_description(plugin),
 		"Minimal Babeltrace plugin with no component classes") == 0,
 		"bt_plugin_get_description() returns the expected description");
-	ok(bt_plugin_get_version(plugin, NULL, NULL, NULL, NULL) !=
-		BT_PLUGIN_STATUS_OK,
+	ok(bt_plugin_get_version(plugin, NULL, NULL, NULL, NULL) ==
+		BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE,
 		"bt_plugin_get_version() fails when there's no version");
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
 		"bt_plugin_get_author() returns the expected author");
@@ -138,9 +94,12 @@ static void test_minimal(const char *plugin_dir)
 		"bt_plugin_get_license() returns the expected license");
 	ok(strcmp(bt_plugin_get_path(plugin), minimal_path) == 0,
 		"bt_plugin_get_path() returns the expected path");
-	ok(bt_plugin_get_component_class_count(plugin) == 0,
-		"bt_plugin_get_component_class_count() returns the expected value");
-	bt_object_put_ref(plugin);
+	ok(bt_plugin_get_source_component_class_count(plugin) == 0,
+		"bt_plugin_get_source_component_class_count() returns the expected value");
+	ok(bt_plugin_get_filter_component_class_count(plugin) == 0,
+		"bt_plugin_get_filter_component_class_count() returns the expected value");
+	ok(bt_plugin_get_sink_component_class_count(plugin) == 0,
+		"bt_plugin_get_sink_component_class_count() returns the expected value");
 	bt_object_put_ref(plugin_set);
 	ok(check_env_var("BT_TEST_PLUGIN_EXIT_CALLED") == 1,
 		"plugin's exit function is called when the plugin is destroyed");
@@ -152,10 +111,10 @@ static void test_sfs(const char *plugin_dir)
 {
 	struct bt_plugin_set *plugin_set;
 	struct bt_plugin *plugin;
-	struct bt_component_class *sink_comp_class;
-	struct bt_component_class *source_comp_class;
-	struct bt_component_class *filter_comp_class;
-	struct bt_component *sink_component;
+	struct bt_component_class_sink *sink_comp_class;
+	struct bt_component_class_source *source_comp_class;
+	struct bt_component_class_filter *filter_comp_class;
+	struct bt_component_sink *sink_component;
 	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
 	unsigned int major, minor, patch;
 	const char *extra;
@@ -166,7 +125,8 @@ static void test_sfs(const char *plugin_dir)
 	struct bt_private_graph *graph;
 	const char *object_str;
 	enum bt_graph_status graph_ret;
-	struct bt_query_executor *query_exec = bt_query_executor_create();
+	struct bt_private_query_executor *query_exec =
+		bt_private_query_executor_create();
 	int ret;
 
 	BT_ASSERT(query_exec);
@@ -175,9 +135,9 @@ static void test_sfs(const char *plugin_dir)
 
 	plugin_set = bt_plugin_create_all_from_file(sfs_path);
 	BT_ASSERT(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1);
-	plugin = bt_plugin_set_get_plugin(plugin_set, 0);
+	plugin = bt_plugin_set_borrow_plugin_by_index(plugin_set, 0);
 	ok(bt_plugin_get_version(plugin, &major, &minor, &patch, &extra) ==
-		BT_PLUGIN_STATUS_OK,
+		BT_PROPERTY_AVAILABILITY_AVAILABLE,
 		"bt_plugin_get_version() succeeds when there's a version");
 	ok(major == 1,
 		"bt_plugin_get_version() returns the expected major version");
@@ -187,47 +147,41 @@ static void test_sfs(const char *plugin_dir)
 		"bt_plugin_get_version() returns the expected patch version");
 	ok(strcmp(extra, "yes") == 0,
 		"bt_plugin_get_version() returns the expected extra version");
-	ok(bt_plugin_get_component_class_count(plugin) == 3,
-		"bt_plugin_get_component_class_count() returns the expected value");
+	ok(bt_plugin_get_source_component_class_count(plugin) == 1,
+		"bt_plugin_get_source_component_class_count() returns the expected value");
+	ok(bt_plugin_get_filter_component_class_count(plugin) == 1,
+		"bt_plugin_get_filter_component_class_count() returns the expected value");
+	ok(bt_plugin_get_sink_component_class_count(plugin) == 1,
+		"bt_plugin_get_sink_component_class_count() returns the expected value");
 
-	source_comp_class = bt_plugin_get_component_class_by_name_and_type(
-		plugin, "source", BT_COMPONENT_CLASS_TYPE_SOURCE);
+	source_comp_class = bt_plugin_borrow_source_component_class_by_name(
+		plugin, "source");
 	ok(source_comp_class,
-		"bt_plugin_get_component_class_by_name_and_type() finds a source component class");
+		"bt_plugin_borrow_source_component_class_by_name() finds a source component class");
 
-	sink_comp_class = bt_plugin_get_component_class_by_name_and_type(
-		plugin, "sink", BT_COMPONENT_CLASS_TYPE_SINK);
+	sink_comp_class = bt_plugin_borrow_sink_component_class_by_name(
+		plugin, "sink");
 	ok(sink_comp_class,
-		"bt_plugin_get_component_class_by_name_and_type() finds a sink component class");
-	ok(strcmp(bt_component_class_get_help(sink_comp_class),
+		"bt_plugin_borrow_sink_component_class_by_name() finds a sink component class");
+	ok(strcmp(bt_component_class_get_help(
+		bt_component_class_sink_borrow_component_class(sink_comp_class)),
 		"Bacon ipsum dolor amet strip steak cupim pastrami venison shoulder.\n"
 		"Prosciutto beef ribs flank meatloaf pancetta brisket kielbasa drumstick\n"
 		"venison tenderloin cow tail. Beef short loin shoulder meatball, sirloin\n"
 		"ground round brisket salami cupim pork bresaola turkey bacon boudin.\n") == 0,
 		"bt_component_class_get_help() returns the expected help text");
 
-	filter_comp_class = bt_plugin_get_component_class_by_name_and_type(
-		plugin, "filter", BT_COMPONENT_CLASS_TYPE_FILTER);
+	filter_comp_class = bt_plugin_borrow_filter_component_class_by_name(
+		plugin, "filter");
 	ok(filter_comp_class,
-		"bt_plugin_get_component_class_by_name_and_type() finds a filter component class");
-	ok(!bt_plugin_get_component_class_by_name_and_type(plugin, "filter",
-		BT_COMPONENT_CLASS_TYPE_SOURCE),
-		"bt_plugin_get_component_class_by_name_and_type() does not find a component class given the wrong type");
+		"bt_plugin_borrow_filter_component_class_by_name() finds a filter component class");
 	params = bt_private_value_integer_create_init(23);
 	BT_ASSERT(params);
-	ret = bt_query_executor_query(NULL, filter_comp_class, "object",
-		bt_value_borrow_from_private(params), &results);
-	ok (ret, "bt_query_executor_query() handles NULL (query executor)");
-	ret = bt_query_executor_query(query_exec, NULL, "object",
-		bt_value_borrow_from_private(params), &results);
-	ok (ret, "bt_query_executor_query() handles NULL (component class)");
-	ret = bt_query_executor_query(query_exec, filter_comp_class, NULL,
-		bt_value_borrow_from_private(params), &results);
-	ok (ret, "bt_query_executor_query() handles NULL (object)");
-	ret = bt_query_executor_query(query_exec, filter_comp_class,
-		"get-something", bt_value_borrow_from_private(params),
+	ret = bt_private_query_executor_query(query_exec,
+		bt_component_class_filter_borrow_component_class(filter_comp_class),
+		"get-something", bt_private_value_borrow_value(params),
 		&results);
-	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
+	ok(ret == 0 && results, "bt_private_query_executor_query() succeeds");
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
 	object = bt_value_array_borrow_element_by_index(results, 0);
 	BT_ASSERT(object && bt_value_is_string(object));
@@ -235,41 +189,23 @@ static void test_sfs(const char *plugin_dir)
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_borrow_element_by_index(results, 1);
-	ok(res_params == bt_value_borrow_from_private(params),
+	ok(res_params == bt_private_value_borrow_value(params),
 		"bt_component_class_query() receives the expected parameters");
 
-	diag("> putting the plugin object here");
-	BT_OBJECT_PUT_REF_AND_RESET(plugin);
+	bt_object_get_ref(sink_comp_class);
+	diag("> putting the plugin set object here");
+	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 	graph = bt_private_graph_create();
 	BT_ASSERT(graph);
-	graph_ret = bt_private_graph_add_component(graph, sink_comp_class, "the-sink",
+	graph_ret = bt_private_graph_add_sink_component(graph, sink_comp_class, "the-sink",
 		NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
-		"bt_private_graph_add_component() still works after the plugin object is destroyed");
+		"bt_private_graph_add_sink_component() still works after the plugin object is destroyed");
 	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
-	BT_OBJECT_PUT_REF_AND_RESET(source_comp_class);
 	bt_object_put_ref(graph);
-	graph = bt_private_graph_create();
-	BT_ASSERT(graph);
-	graph_ret = bt_private_graph_add_component(graph, sink_comp_class, "the-sink",
-		NULL, &sink_component);
-	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
-		"bt_private_graph_add_component() still works after the source component class object is destroyed");
-	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
-	BT_OBJECT_PUT_REF_AND_RESET(filter_comp_class);
-	bt_object_put_ref(graph);
-	graph = bt_private_graph_create();
-	BT_ASSERT(graph);
-	graph_ret = bt_private_graph_add_component(graph, sink_comp_class, "the-sink",
-		NULL, &sink_component);
-	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
-		"bt_private_graph_add_component() still works after the filter component class object is destroyed");
-	BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
-	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
 
 	free(sfs_path);
-	bt_object_put_ref(graph);
-	bt_object_put_ref(plugin_set);
+	bt_object_put_ref(sink_comp_class);
 	bt_object_put_ref(results);
 	bt_object_put_ref(params);
 	bt_object_put_ref(query_exec);
@@ -300,12 +236,8 @@ static void test_find(const char *plugin_dir)
 {
 	int ret;
 	struct bt_plugin *plugin;
-	struct bt_component_class *comp_cls_sink;
-	struct bt_component_class *comp_cls_source;
 	char *plugin_path;
 
-	ok(!bt_plugin_find(NULL),
-		"bt_plugin_find() handles NULL");
 	ok(!bt_plugin_find(NON_EXISTING_PATH),
 		"bt_plugin_find() returns NULL with an unknown plugin name");
 	ret = asprintf(&plugin_path, "%s" G_SEARCHPATH_SEPARATOR_S
@@ -323,27 +255,6 @@ static void test_find(const char *plugin_dir)
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
 		"bt_plugin_find() finds the correct plugin for a given name");
 	BT_OBJECT_PUT_REF_AND_RESET(plugin);
-	comp_cls_sink = bt_plugin_find_component_class(NULL, "sink",
-		BT_COMPONENT_CLASS_TYPE_SINK);
-	ok(!comp_cls_sink, "bt_plugin_find_component_class() handles NULL (plugin name)");
-	comp_cls_sink = bt_plugin_find_component_class("test_sfs", NULL,
-		BT_COMPONENT_CLASS_TYPE_SINK);
-	ok(!comp_cls_sink, "bt_plugin_find_component_class() handles NULL (component class name)");
-	comp_cls_sink = bt_plugin_find_component_class("test_sfs", "sink2",
-		BT_COMPONENT_CLASS_TYPE_SINK);
-	ok(!comp_cls_sink, "bt_plugin_find_component_class() fails with an unknown component class name");
-	comp_cls_sink = bt_plugin_find_component_class("test_sfs", "sink",
-		BT_COMPONENT_CLASS_TYPE_SINK);
-	ok(comp_cls_sink, "bt_plugin_find_component_class() succeeds with valid parameters");
-	ok(strcmp(bt_component_class_get_name(comp_cls_sink), "sink") == 0,
-		"bt_plugin_find_component_class() returns the appropriate component class (sink)");
-	comp_cls_source = bt_plugin_find_component_class("test_sfs", "source",
-		BT_COMPONENT_CLASS_TYPE_SOURCE);
-	ok(comp_cls_sink, "bt_plugin_find_component_class() succeeds with another component class name (same plugin)");
-	ok(strcmp(bt_component_class_get_name(comp_cls_source), "source") == 0,
-		"bt_plugin_find_component_class() returns the appropriate component class (source)");
-	BT_OBJECT_PUT_REF_AND_RESET(comp_cls_sink);
-	BT_OBJECT_PUT_REF_AND_RESET(comp_cls_source);
 	free(plugin_path);
 }
 
@@ -360,7 +271,6 @@ int main(int argc, char **argv)
 
 	plugin_dir = argv[1];
 	plan_tests(NR_TESTS);
-	test_invalid(plugin_dir);
 	test_minimal(plugin_dir);
 	test_sfs(plugin_dir);
 	test_create_all_from_dir(plugin_dir);

@@ -2,8 +2,6 @@
 #define _BABELTRACE_INTERNAL_H
 
 /*
- * babeltrace/babeltrace-internal.h
- *
  * Copyright 2012 - Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -2,8 +2,6 @@
 #define BABELTRACE_CTF_WRITER_FUNCTOR_INTERNAL_H
 
 /*
- * BabelTrace - CTF Writer: Functors for use with glib data structures
- *
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>

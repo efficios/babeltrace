@@ -1229,9 +1229,3 @@ void _bt_field_class_make_part_of_trace(struct bt_field_class *fc)
 		break;
 	}
 }
-
-struct bt_field_class *bt_field_class_borrow_from_private(
-		struct bt_private_field_class *priv_field_class)
-{
-	return (void *) priv_field_class;
-}
