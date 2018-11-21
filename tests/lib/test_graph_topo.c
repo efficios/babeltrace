@@ -24,6 +24,7 @@
 #include <babeltrace/graph/component.h>
 #include <babeltrace/graph/component-source.h>
 #include <babeltrace/graph/component-sink.h>
+#include <babeltrace/graph/private-graph.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/connection.h>
 #include <babeltrace/graph/port.h>
@@ -591,46 +592,46 @@ void fini_test(void)
 }
 
 static
-struct bt_component *create_src(struct bt_graph *graph)
+struct bt_component *create_src(struct bt_private_graph *graph)
 {
 	struct bt_component *comp;
 	int ret;
 
-	ret = bt_graph_add_component(graph, src_comp_class, "src-comp", NULL,
+	ret = bt_private_graph_add_component(graph, src_comp_class, "src-comp", NULL,
 		&comp);
 	BT_ASSERT(ret == 0);
 	return comp;
 }
 
 static
-struct bt_component *create_sink(struct bt_graph *graph)
+struct bt_component *create_sink(struct bt_private_graph *graph)
 {
 	struct bt_component *comp;
 	int ret;
 
-	ret = bt_graph_add_component(graph, sink_comp_class, "sink-comp",
+	ret = bt_private_graph_add_component(graph, sink_comp_class, "sink-comp",
 		NULL, &comp);
 	BT_ASSERT(ret == 0);
 	return comp;
 }
 
 static
-struct bt_graph *create_graph(void)
+struct bt_private_graph *create_graph(void)
 {
-	struct bt_graph *graph = bt_graph_create();
+	struct bt_private_graph *graph = bt_private_graph_create();
 	int ret;
 
 	BT_ASSERT(graph);
-	ret = bt_graph_add_port_added_listener(graph, graph_port_added, NULL,
+	ret = bt_private_graph_add_port_added_listener(graph, graph_port_added, NULL,
 		NULL);
 	BT_ASSERT(ret >= 0);
-	ret = bt_graph_add_port_removed_listener(graph, graph_port_removed,
+	ret = bt_private_graph_add_port_removed_listener(graph, graph_port_removed,
 		NULL, NULL);
 	BT_ASSERT(ret >= 0);
-	ret = bt_graph_add_ports_connected_listener(graph,
+	ret = bt_private_graph_add_ports_connected_listener(graph,
 		graph_ports_connected, NULL, NULL);
 	BT_ASSERT(ret >= 0);
-	ret = bt_graph_add_ports_disconnected_listener(graph,
+	ret = bt_private_graph_add_ports_disconnected_listener(graph,
 		graph_ports_disconnected, NULL, NULL);
 	BT_ASSERT(ret >= 0);
 	return graph;
@@ -650,7 +651,7 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	int ret;
 	struct bt_component *src;
 	struct bt_component *sink;
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 	struct bt_port *src_def_port;
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn;
@@ -677,7 +678,7 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
 	BT_ASSERT(status == 0);
 	BT_ASSERT(conn);
@@ -751,7 +752,7 @@ void test_sink_removes_port_in_port_connected_then_src_removes_disconnected_port
 
 	/* Consume sink once */
 	clear_events();
-	ret = bt_graph_consume(graph);
+	ret = bt_private_graph_consume(graph);
 	BT_ASSERT(ret == 0);
 
 	/* We're supposed to have 5 new events */
@@ -828,7 +829,7 @@ void test_sink_removes_port_in_port_connected(void)
 	int ret;
 	struct bt_component *src;
 	struct bt_component *sink;
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 	struct bt_port *src_def_port;
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn;
@@ -854,7 +855,7 @@ void test_sink_removes_port_in_port_connected(void)
 	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
 	BT_ASSERT(status == 0);
 
@@ -927,7 +928,7 @@ void test_sink_removes_port_in_port_connected(void)
 
 	/* Consume sink once */
 	clear_events();
-	ret = bt_graph_consume(graph);
+	ret = bt_private_graph_consume(graph);
 	BT_ASSERT(ret == 0);
 
 	/* We're supposed to have 4 new events */
@@ -988,7 +989,7 @@ void test_src_adds_port_in_port_connected(void)
 {
 	struct bt_component *src;
 	struct bt_component *sink;
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 	struct bt_port *src_def_port;
 	struct bt_port *sink_def_port;
 	struct bt_port *src_hello_port;
@@ -1012,7 +1013,7 @@ void test_src_adds_port_in_port_connected(void)
 	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
 	BT_ASSERT(status == 0);
 	src_hello_port = bt_component_source_get_output_port_by_name(src,
@@ -1111,7 +1112,7 @@ void test_simple(void)
 {
 	struct bt_component *src;
 	struct bt_component *sink;
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 	struct bt_port *src_def_port;
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn;
@@ -1132,7 +1133,7 @@ void test_simple(void)
 	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
 	BT_ASSERT(status == 0);
 
@@ -1216,7 +1217,7 @@ void test_src_port_connected_error(void)
 {
 	struct bt_component *src;
 	struct bt_component *sink;
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 	struct bt_port *src_def_port;
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn = NULL;
@@ -1234,10 +1235,10 @@ void test_src_port_connected_error(void)
 	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
 	ok(status != BT_GRAPH_STATUS_OK,
-		"bt_graph_connect_ports() returns an error");
+		"bt_private_graph_connect_ports() returns an error");
 	ok(!conn, "returned connection is NULL");
 
 	/* We're supposed to have 5 events */
@@ -1295,7 +1296,7 @@ void test_sink_port_connected_error(void)
 {
 	struct bt_component *src;
 	struct bt_component *sink;
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 	struct bt_port *src_def_port;
 	struct bt_port *sink_def_port;
 	struct bt_connection *conn = NULL;
@@ -1316,10 +1317,10 @@ void test_sink_port_connected_error(void)
 	BT_ASSERT(src_def_port);
 	sink_def_port = bt_component_sink_get_input_port_by_name(sink, "in");
 	BT_ASSERT(sink_def_port);
-	status = bt_graph_connect_ports(graph, src_def_port, sink_def_port,
+	status = bt_private_graph_connect_ports(graph, src_def_port, sink_def_port,
 		&conn);
 	ok(status != BT_GRAPH_STATUS_OK,
-		"bt_graph_connect_ports() returns an error");
+		"bt_private_graph_connect_ports() returns an error");
 	ok(!conn, "returned connection is NULL");
 
 	/* We're supposed to have 5 events */
@@ -1395,7 +1396,7 @@ void test_sink_port_connected_error(void)
 static
 void test_empty_graph(void)
 {
-	struct bt_graph *graph;
+	struct bt_private_graph *graph;
 
 	prepare_test(TEST_EMPTY_GRAPH, "empty graph");
 	graph = create_graph();

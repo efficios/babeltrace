@@ -92,7 +92,7 @@ bt_bool lttng_live_is_canceled(struct lttng_live_component *lttng_live)
 
 	component = bt_component_from_private(lttng_live->private_component);
 	graph = bt_component_get_graph(component);
-	ret = bt_graph_is_canceled(graph);
+	ret = bt_private_graph_is_canceled(graph);
 	bt_object_put_ref(graph);
 	bt_object_put_ref(component);
 	return ret;

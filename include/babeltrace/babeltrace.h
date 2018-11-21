@@ -118,6 +118,7 @@
 #include <babeltrace/graph/private-connection-notification-iterator.h>
 #include <babeltrace/graph/private-connection-private-notification-iterator.h>
 #include <babeltrace/graph/private-connection.h>
+#include <babeltrace/graph/private-graph.h>
 #include <babeltrace/graph/private-notification-event.h>
 #include <babeltrace/graph/private-notification-inactivity.h>
 #include <babeltrace/graph/private-notification-packet.h>

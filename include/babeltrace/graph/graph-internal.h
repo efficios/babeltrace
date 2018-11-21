@@ -28,6 +28,7 @@
  */
 
 #include <babeltrace/graph/graph.h>
+#include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/component-status.h>
 #include <babeltrace/graph/notification.h>
 #include <babeltrace/babeltrace-internal.h>
