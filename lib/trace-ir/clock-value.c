@@ -39,7 +39,7 @@ BT_HIDDEN
 void bt_clock_value_destroy(struct bt_clock_value *clock_value)
 {
 	BT_LIB_LOGD("Destroying clock value: %!+k", clock_value);
-	bt_object_put_ref(clock_value->clock_class);
+	BT_OBJECT_PUT_REF_AND_RESET(clock_value->clock_class);
 	g_free(clock_value);
 }
 

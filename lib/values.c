@@ -130,6 +130,7 @@ static
 void bt_value_string_destroy(struct bt_value *object)
 {
 	g_string_free(BT_VALUE_TO_STRING(object)->gstr, TRUE);
+	BT_VALUE_TO_STRING(object)->gstr = NULL;
 }
 
 static
@@ -140,6 +141,7 @@ void bt_value_array_destroy(struct bt_value *object)
 	 * of putting each contained object.
 	 */
 	g_ptr_array_free(BT_VALUE_TO_ARRAY(object)->garray, TRUE);
+	BT_VALUE_TO_ARRAY(object)->garray = NULL;
 }
 
 static
@@ -151,6 +153,7 @@ void bt_value_map_destroy(struct bt_value *object)
 	 * be destroyed anyway.
 	 */
 	g_hash_table_destroy(BT_VALUE_TO_MAP(object)->ght);
+	BT_VALUE_TO_MAP(object)->ght = NULL;
 }
 
 static

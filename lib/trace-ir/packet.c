@@ -218,6 +218,8 @@ void bt_packet_destroy(struct bt_packet *packet)
 		} else {
 			bt_field_wrapper_destroy(packet->header_field);
 		}
+
+		packet->header_field = NULL;
 	}
 
 	if (packet->context_field) {
@@ -228,20 +230,24 @@ void bt_packet_destroy(struct bt_packet *packet)
 		} else {
 			bt_field_wrapper_destroy(packet->context_field);
 		}
+
+		packet->context_field = NULL;
 	}
 
 	if (packet->default_beginning_cv) {
 		BT_LOGD_STR("Recycling beginning clock value.");
 		bt_clock_value_recycle(packet->default_beginning_cv);
+		packet->default_beginning_cv = NULL;
 	}
 
 	if (packet->default_end_cv) {
 		BT_LOGD_STR("Recycling end clock value.");
 		bt_clock_value_recycle(packet->default_end_cv);
+		packet->default_end_cv = NULL;
 	}
 
 	BT_LOGD_STR("Putting packet's stream.");
-	bt_object_put_ref(packet->stream);
+	BT_OBJECT_PUT_REF_AND_RESET(packet->stream);
 	g_free(packet);
 }
 
