@@ -49,7 +49,7 @@ void test_bool(void)
 	struct bt_value *obj;
 
 	priv_obj = bt_private_value_bool_create();
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_private_value_bool_create() returns a boolean value object");
 
@@ -67,7 +67,7 @@ void test_bool(void)
 
 	value = BT_FALSE;
 	priv_obj = bt_private_value_bool_create_init(BT_TRUE);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_private_value_bool_create_init() returns a boolean value object");
 	value = bt_value_bool_get(obj);
@@ -85,7 +85,7 @@ void test_integer(void)
 	struct bt_value *obj;
 
 	priv_obj = bt_private_value_integer_create();
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_integer(obj),
 		"bt_private_value_integer_create() returns an integer value object");
 
@@ -101,7 +101,7 @@ void test_integer(void)
 	pass("putting an existing integer value object does not cause a crash")
 
 	priv_obj = bt_private_value_integer_create_init(321456987);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_integer(obj),
 		"bt_private_value_integer_create_init() returns an integer value object");
 	value = bt_value_integer_get(obj);
@@ -119,7 +119,7 @@ void test_real(void)
 	struct bt_value *obj;
 
 	priv_obj = bt_private_value_real_create();
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_real(obj),
 		"bt_private_value_real_create() returns a real number value object");
 
@@ -136,7 +136,7 @@ void test_real(void)
 	pass("putting an existing real number value object does not cause a crash")
 
 	priv_obj = bt_private_value_real_create_init(33.1649758);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_real(obj),
 		"bt_private_value_real_create_init() returns a real number value object");
 	value = bt_value_real_get(obj);
@@ -154,7 +154,7 @@ void test_string(void)
 	struct bt_value *obj;
 
 	priv_obj = bt_private_value_string_create();
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_string(obj),
 		"bt_private_value_string_create() returns a string value object");
 
@@ -171,7 +171,7 @@ void test_string(void)
 	pass("putting an existing string value object does not cause a crash")
 
 	priv_obj = bt_private_value_string_create_init("initial value");
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ok(obj && bt_value_is_string(obj),
 		"bt_private_value_string_create_init() returns a string value object");
 	value = bt_value_string_get(obj);
@@ -195,22 +195,22 @@ void test_array(void)
 	struct bt_value *array_obj;
 
 	priv_array_obj = bt_private_value_array_create();
-	array_obj = bt_private_value_borrow_value(priv_array_obj);
+	array_obj = bt_private_value_as_value(priv_array_obj);
 	ok(array_obj && bt_value_is_array(array_obj),
 		"bt_private_value_array_create() returns an array value object");
 	ok(bt_value_array_is_empty(array_obj),
 		"initial array value object size is 0");
 
 	priv_obj = bt_private_value_integer_create_init(345);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ret = bt_private_value_array_append_element(priv_array_obj, obj);
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	priv_obj = bt_private_value_real_create_init(-17.45);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ret |= bt_private_value_array_append_element(priv_array_obj, obj);
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	priv_obj = bt_private_value_bool_create_init(BT_TRUE);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ret |= bt_private_value_array_append_element(priv_array_obj, obj);
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	ret |= bt_private_value_array_append_element(priv_array_obj,
@@ -242,7 +242,7 @@ void test_array(void)
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (null)");
 
 	priv_obj = bt_private_value_integer_create_init(1001);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	BT_ASSERT(obj);
 	ok(!bt_private_value_array_set_element_by_index(priv_array_obj, 2, obj),
 		"bt_value_array_set_element_by_index() succeeds");
@@ -503,22 +503,22 @@ void test_map(void)
 	struct map_foreach_checklist checklist;
 
 	priv_map_obj = bt_private_value_map_create();
-	map_obj = bt_private_value_borrow_value(priv_map_obj);
+	map_obj = bt_private_value_as_value(priv_map_obj);
 	ok(map_obj && bt_value_is_map(map_obj),
 		"bt_private_value_map_create() returns a map value object");
 	ok(bt_value_map_get_size(map_obj) == 0,
 		"initial map value object size is 0");
 
 	priv_obj = bt_private_value_integer_create_init(19457);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ret = bt_private_value_map_insert_entry(priv_map_obj, "int", obj);
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	priv_obj = bt_private_value_real_create_init(5.444);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ret |= bt_private_value_map_insert_entry(priv_map_obj, "real", obj);
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	priv_obj = bt_private_value_bool_create();
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ret |= bt_private_value_map_insert_entry(priv_map_obj, "bt_bool", obj);
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	ret |= bt_private_value_map_insert_entry(priv_map_obj, "null",
@@ -528,7 +528,7 @@ void test_map(void)
 		"inserting an element into a map value object increment its size");
 
 	priv_obj = bt_private_value_bool_create_init(BT_TRUE);
-	obj = bt_private_value_borrow_value(priv_obj);
+	obj = bt_private_value_as_value(priv_obj);
 	ret = bt_private_value_map_insert_entry(priv_map_obj, "bt_bool", obj);
 	BT_OBJECT_PUT_REF_AND_RESET(priv_obj);
 	ok(!ret, "bt_private_value_map_insert_entry() accepts an existing key");
@@ -652,13 +652,13 @@ void test_compare_bool(void)
 
 	BT_ASSERT(bool1 && bool2 && bool3);
 	ok(!bt_value_compare(bt_value_null,
-		bt_private_value_borrow_value(bool1)),
+		bt_private_value_as_value(bool1)),
 		"cannot compare null value object and bt_bool value object");
-	ok(!bt_value_compare(bt_private_value_borrow_value(bool1),
-		bt_private_value_borrow_value(bool2)),
+	ok(!bt_value_compare(bt_private_value_as_value(bool1),
+		bt_private_value_as_value(bool2)),
 		"boolean value objects are not equivalent (BT_FALSE and BT_TRUE)");
-	ok(bt_value_compare(bt_private_value_borrow_value(bool1),
-		bt_private_value_borrow_value(bool3)),
+	ok(bt_value_compare(bt_private_value_as_value(bool1),
+		bt_private_value_as_value(bool3)),
 		"boolean value objects are equivalent (BT_FALSE and BT_FALSE)");
 
 	BT_OBJECT_PUT_REF_AND_RESET(bool1);
@@ -678,13 +678,13 @@ void test_compare_integer(void)
 
 	BT_ASSERT(int1 && int2 && int3);
 	ok(!bt_value_compare(bt_value_null,
-		bt_private_value_borrow_value(int1)),
+		bt_private_value_as_value(int1)),
 		"cannot compare null value object and integer value object");
-	ok(!bt_value_compare(bt_private_value_borrow_value(int1),
-		bt_private_value_borrow_value(int2)),
+	ok(!bt_value_compare(bt_private_value_as_value(int1),
+		bt_private_value_as_value(int2)),
 		"integer value objects are not equivalent (10 and -23)");
-	ok(bt_value_compare(bt_private_value_borrow_value(int1),
-		bt_private_value_borrow_value(int3)),
+	ok(bt_value_compare(bt_private_value_as_value(int1),
+		bt_private_value_as_value(int3)),
 		"integer value objects are equivalent (10 and 10)");
 
 	BT_OBJECT_PUT_REF_AND_RESET(int1);
@@ -705,13 +705,13 @@ void test_compare_real(void)
 	BT_ASSERT(real1 && real2 && real3);
 
 	ok(!bt_value_compare(bt_value_null,
-		bt_private_value_borrow_value(real1)),
+		bt_private_value_as_value(real1)),
 		"cannot compare null value object and real number value object");
-	ok(!bt_value_compare(bt_private_value_borrow_value(real1),
-		bt_private_value_borrow_value(real2)),
+	ok(!bt_value_compare(bt_private_value_as_value(real1),
+		bt_private_value_as_value(real2)),
 		"real number value objects are not equivalent (17.38 and -14.23)");
-	ok(bt_value_compare(bt_private_value_borrow_value(real1),
-		bt_private_value_borrow_value(real3)),
+	ok(bt_value_compare(bt_private_value_as_value(real1),
+		bt_private_value_as_value(real3)),
 		"real number value objects are equivalent (17.38 and 17.38)");
 
 	BT_OBJECT_PUT_REF_AND_RESET(real1);
@@ -732,13 +732,13 @@ void test_compare_string(void)
 	BT_ASSERT(string1 && string2 && string3);
 
 	ok(!bt_value_compare(bt_value_null,
-		bt_private_value_borrow_value(string1)),
+		bt_private_value_as_value(string1)),
 		"cannot compare null value object and string value object");
-	ok(!bt_value_compare(bt_private_value_borrow_value(string1),
-		bt_private_value_borrow_value(string2)),
+	ok(!bt_value_compare(bt_private_value_as_value(string1),
+		bt_private_value_as_value(string2)),
 		"string value objects are not equivalent (\"hello\" and \"bt_value\")");
-	ok(bt_value_compare(bt_private_value_borrow_value(string1),
-		bt_private_value_borrow_value(string3)),
+	ok(bt_value_compare(bt_private_value_as_value(string1),
+		bt_private_value_as_value(string3)),
 		"string value objects are equivalent (\"hello\" and \"hello\")");
 
 	BT_OBJECT_PUT_REF_AND_RESET(string1);
@@ -756,8 +756,8 @@ void test_compare_array(void)
 
 	BT_ASSERT(array1 && array2 && array3);
 
-	ok(bt_value_compare(bt_private_value_borrow_value(array1),
-		bt_private_value_borrow_value(array2)),
+	ok(bt_value_compare(bt_private_value_as_value(array1),
+		bt_private_value_as_value(array2)),
 		"empty array value objects are equivalent");
 
 	status = bt_private_value_array_append_integer_element(array1, 23);
@@ -779,20 +779,20 @@ void test_compare_array(void)
 	status = bt_private_value_array_append_bool_element(array3, BT_FALSE);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	BT_ASSERT(bt_value_array_get_size(
-		bt_private_value_borrow_value(array1)) == 3);
+		bt_private_value_as_value(array1)) == 3);
 	BT_ASSERT(bt_value_array_get_size(
-		bt_private_value_borrow_value(array2)) == 3);
+		bt_private_value_as_value(array2)) == 3);
 	BT_ASSERT(bt_value_array_get_size(
-		bt_private_value_borrow_value(array3)) == 3);
+		bt_private_value_as_value(array3)) == 3);
 
 	ok(!bt_value_compare(bt_value_null,
-		bt_private_value_borrow_value(array1)),
+		bt_private_value_as_value(array1)),
 		"cannot compare null value object and array value object");
-	ok(!bt_value_compare(bt_private_value_borrow_value(array1),
-		bt_private_value_borrow_value(array2)),
+	ok(!bt_value_compare(bt_private_value_as_value(array1),
+		bt_private_value_as_value(array2)),
 		"array value objects are not equivalent ([23, 14.2, BT_FALSE] and [14.2, 23, BT_FALSE])");
-	ok(bt_value_compare(bt_private_value_borrow_value(array1),
-		bt_private_value_borrow_value(array3)),
+	ok(bt_value_compare(bt_private_value_as_value(array1),
+		bt_private_value_as_value(array3)),
 		"array value objects are equivalent ([23, 14.2, BT_FALSE] and [23, 14.2, BT_FALSE])");
 
 	BT_OBJECT_PUT_REF_AND_RESET(array1);
@@ -810,8 +810,8 @@ void test_compare_map(void)
 
 	BT_ASSERT(map1 && map2 && map3);
 
-	ok(bt_value_compare(bt_private_value_borrow_value(map1),
-		bt_private_value_borrow_value(map2)),
+	ok(bt_value_compare(bt_private_value_as_value(map1),
+		bt_private_value_as_value(map2)),
 		"empty map value objects are equivalent");
 
 
@@ -837,20 +837,20 @@ void test_compare_map(void)
 	status = bt_private_value_map_insert_real_entry(map3, "two", 14.2);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	BT_ASSERT(bt_value_map_get_size(
-		bt_private_value_borrow_value(map1)) == 3);
+		bt_private_value_as_value(map1)) == 3);
 	BT_ASSERT(bt_value_map_get_size(
-		bt_private_value_borrow_value(map2)) == 3);
+		bt_private_value_as_value(map2)) == 3);
 	BT_ASSERT(bt_value_map_get_size(
-		bt_private_value_borrow_value(map3)) == 3);
+		bt_private_value_as_value(map3)) == 3);
 
 	ok(!bt_value_compare(bt_value_null,
-		bt_private_value_borrow_value(map1)),
+		bt_private_value_as_value(map1)),
 		"cannot compare null value object and map value object");
-	ok(!bt_value_compare(bt_private_value_borrow_value(map1),
-		bt_private_value_borrow_value(map2)),
+	ok(!bt_value_compare(bt_private_value_as_value(map1),
+		bt_private_value_as_value(map2)),
 		"map value objects are not equivalent");
-	ok(bt_value_compare(bt_private_value_borrow_value(map1),
-		bt_private_value_borrow_value(map3)),
+	ok(bt_value_compare(bt_private_value_as_value(map1),
+		bt_private_value_as_value(map3)),
 		"map value objects are equivalent");
 
 	BT_OBJECT_PUT_REF_AND_RESET(map1);
@@ -901,26 +901,26 @@ void test_copy(void)
 		array_obj && map_obj);
 
 	status = bt_private_value_array_append_element(array_obj,
-		bt_private_value_borrow_value(bool_obj));
+		bt_private_value_as_value(bool_obj));
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_private_value_array_append_element(array_obj,
-		bt_private_value_borrow_value(integer_obj));
+		bt_private_value_as_value(integer_obj));
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_private_value_array_append_element(array_obj,
-		bt_private_value_borrow_value(real_obj));
+		bt_private_value_as_value(real_obj));
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_private_value_array_append_element(array_obj,
 		bt_value_null);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_private_value_map_insert_entry(map_obj, "array",
-		bt_private_value_borrow_value(array_obj));
+		bt_private_value_as_value(array_obj));
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_private_value_map_insert_entry(map_obj, "string",
-		bt_private_value_borrow_value(string_obj));
+		bt_private_value_as_value(string_obj));
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 
 	status = bt_value_copy(&map_copy_obj,
-		bt_private_value_borrow_value(map_obj));
+		bt_private_value_as_value(map_obj));
 	ok(status == BT_VALUE_STATUS_OK && map_copy_obj,
 		"bt_value_copy() succeeds");
 
@@ -948,11 +948,11 @@ void test_copy(void)
 		"bt_value_copy() returns a different pointer (real)");
 	null_copy_obj = bt_private_value_array_borrow_element_by_index(
 		array_copy_obj, 3);
-	ok(bt_private_value_borrow_value(null_copy_obj) == bt_value_null,
+	ok(bt_private_value_as_value(null_copy_obj) == bt_value_null,
 		"bt_value_copy() returns the same pointer (null)");
 
-	ok(bt_value_compare(bt_private_value_borrow_value(map_obj),
-		bt_private_value_borrow_value(map_copy_obj)),
+	ok(bt_value_compare(bt_private_value_as_value(map_obj),
+		bt_private_value_as_value(map_copy_obj)),
 		"source and destination value objects have the same content");
 
 	BT_OBJECT_PUT_REF_AND_RESET(map_copy_obj);
@@ -1013,27 +1013,27 @@ void test_extend(void)
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_extend(
 		&extended_map,
-		bt_private_value_borrow_value(base_map),
-		bt_private_value_borrow_value(extension_map));
+		bt_private_value_as_value(base_map),
+		bt_private_value_as_value(extension_map));
 	ok(status == BT_VALUE_STATUS_OK &&
 		extended_map, "bt_value_map_extend() succeeds");
 	ok(bt_value_map_get_size(
-		bt_private_value_borrow_value(extended_map)) == 5,
+		bt_private_value_as_value(extended_map)) == 5,
 		"bt_value_map_extend() returns a map object with the correct size");
-	ok(compare_map_elements(bt_private_value_borrow_value(base_map),
-		bt_private_value_borrow_value(extended_map), "file"),
+	ok(compare_map_elements(bt_private_value_as_value(base_map),
+		bt_private_value_as_value(extended_map), "file"),
 		"bt_value_map_extend() picks the appropriate element (file)");
-	ok(compare_map_elements(bt_private_value_borrow_value(extension_map),
-		bt_private_value_borrow_value(extended_map), "edit"),
+	ok(compare_map_elements(bt_private_value_as_value(extension_map),
+		bt_private_value_as_value(extended_map), "edit"),
 		"bt_value_map_extend() picks the appropriate element (edit)");
-	ok(compare_map_elements(bt_private_value_borrow_value(base_map),
-		bt_private_value_borrow_value(extended_map), "selection"),
+	ok(compare_map_elements(bt_private_value_as_value(base_map),
+		bt_private_value_as_value(extended_map), "selection"),
 		"bt_value_map_extend() picks the appropriate element (selection)");
-	ok(compare_map_elements(bt_private_value_borrow_value(extension_map),
-		bt_private_value_borrow_value(extended_map), "find"),
+	ok(compare_map_elements(bt_private_value_as_value(extension_map),
+		bt_private_value_as_value(extended_map), "find"),
 		"bt_value_map_extend() picks the appropriate element (find)");
-	ok(compare_map_elements(bt_private_value_borrow_value(extension_map),
-		bt_private_value_borrow_value(extended_map), "project"),
+	ok(compare_map_elements(bt_private_value_as_value(extension_map),
+		bt_private_value_as_value(extended_map), "project"),
 		"bt_value_map_extend() picks the appropriate element (project)");
 
 	BT_OBJECT_PUT_REF_AND_RESET(array);

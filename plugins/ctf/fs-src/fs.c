@@ -98,7 +98,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 
 	BT_ASSERT(notif_iter_data->ds_file);
 	status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-	*notif = bt_private_notification_borrow_notification(priv_notif);
+	*notif = bt_private_notification_as_notification(priv_notif);
 
 	if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK &&
 			bt_notification_get_type(*notif) ==
@@ -112,7 +112,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
-			*notif = bt_private_notification_borrow_notification(priv_notif);
+			*notif = bt_private_notification_as_notification(priv_notif);
 			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
 			goto end;
 		} else {
@@ -158,7 +158,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 		}
 
 		status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-		*notif = bt_private_notification_borrow_notification(priv_notif);
+		*notif = bt_private_notification_as_notification(priv_notif);
 
 		/*
 		 * If we get a notification, we expect to get a
@@ -184,7 +184,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
-			*notif = bt_private_notification_borrow_notification(priv_notif);
+			*notif = bt_private_notification_as_notification(priv_notif);
 			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
 		}
 	}
@@ -249,7 +249,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_init(
 	int iret;
 
 	port_data = bt_self_component_port_get_data(
-		bt_self_component_port_output_borrow_self_component_port(
+		bt_self_component_port_output_as_self_component_port(
 			self_port));
 	BT_ASSERT(port_data);
 	notif_iter_data = g_new0(struct ctf_fs_notif_iter_data, 1);
@@ -348,7 +348,7 @@ void ctf_fs_trace_destroy_notifier(void *data)
 void ctf_fs_finalize(struct bt_self_component_source *component)
 {
 	ctf_fs_destroy(bt_self_component_get_data(
-		bt_self_component_source_borrow_self_component(component)));
+		bt_self_component_source_as_self_component(component)));
 }
 
 static
@@ -657,7 +657,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	if (props.snapshots.beginning_clock != UINT64_C(-1)) {
 		BT_ASSERT(sc->default_clock_class);
 		ret = bt_clock_class_cycles_to_ns_from_origin(
-			bt_private_clock_class_borrow_clock_class(
+			bt_private_clock_class_as_clock_class(
 				sc->default_clock_class),
 			props.snapshots.beginning_clock, &begin_ns);
 		if (ret) {
@@ -1257,7 +1257,7 @@ struct ctf_fs_component *ctf_fs_create(
 	}
 
 	bt_self_component_set_data(
-		bt_self_component_source_borrow_self_component(self_comp),
+		bt_self_component_source_as_self_component(self_comp),
 		ctf_fs);
 
 	/*
@@ -1311,7 +1311,7 @@ error:
 	ctf_fs_destroy(ctf_fs);
 	ctf_fs = NULL;
 	bt_self_component_set_data(
-		bt_self_component_source_borrow_self_component(self_comp),
+		bt_self_component_source_as_self_component(self_comp),
 		NULL);
 
 end:

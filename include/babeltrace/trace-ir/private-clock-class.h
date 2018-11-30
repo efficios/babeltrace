@@ -42,7 +42,7 @@ struct bt_clock_class;
 struct bt_private_clock_class;
 
 static inline
-struct bt_clock_class *bt_private_clock_class_borrow_clock_class(
+struct bt_clock_class *bt_private_clock_class_as_clock_class(
 		struct bt_private_clock_class *priv_clock_class)
 {
 	return (void *) priv_clock_class;

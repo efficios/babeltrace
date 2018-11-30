@@ -121,7 +121,7 @@ typedef void (*bt_private_graph_filter_sink_component_ports_disconnected_listene
 typedef void (* bt_private_graph_listener_removed)(void *data);
 
 static inline
-struct bt_graph *bt_private_graph_borrow_graph(struct bt_private_graph *graph)
+struct bt_graph *bt_private_graph_as_graph(struct bt_private_graph *graph)
 {
 	return (void *) graph;
 }

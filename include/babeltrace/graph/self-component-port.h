@@ -37,7 +37,7 @@ enum bt_self_component_port_status {
 };
 
 static inline
-struct bt_port *bt_self_component_port_borrow_port(
+struct bt_port *bt_self_component_port_as_port(
 		struct bt_self_component_port *self_port)
 {
 	return (void *) self_port;

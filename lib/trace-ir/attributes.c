@@ -77,7 +77,7 @@ void bt_attributes_destroy(struct bt_private_value *attr_obj)
 BT_HIDDEN
 int64_t bt_attributes_get_count(struct bt_private_value *attr_obj)
 {
-	return bt_value_array_get_size(bt_private_value_borrow_value(attr_obj));
+	return bt_value_array_get_size(bt_private_value_as_value(attr_obj));
 }
 
 BT_HIDDEN
@@ -94,11 +94,11 @@ const char *bt_attributes_get_field_name(struct bt_private_value *attr_obj,
 	}
 
 	if (index >= bt_value_array_get_size(
-			bt_private_value_borrow_value(attr_obj))) {
+			bt_private_value_as_value(attr_obj))) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
 			"index=%" PRIu64 ", count=%" PRId64,
 			index, bt_value_array_get_size(
-				bt_private_value_borrow_value(attr_obj)));
+				bt_private_value_as_value(attr_obj)));
 		goto end;
 	}
 
@@ -121,7 +121,7 @@ const char *bt_attributes_get_field_name(struct bt_private_value *attr_obj,
 	}
 
 	ret = bt_value_string_get(
-		bt_private_value_borrow_value(attr_field_name_obj));
+		bt_private_value_as_value(attr_field_name_obj));
 
 end:
 	return ret;
@@ -139,11 +139,11 @@ struct bt_private_value *bt_attributes_borrow_field_value(
 		goto end;
 	}
 
-	if (index >= bt_value_array_get_size(bt_private_value_borrow_value(attr_obj))) {
+	if (index >= bt_value_array_get_size(bt_private_value_as_value(attr_obj))) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
 			"index=%" PRIu64 ", count=%" PRId64,
 			index, bt_value_array_get_size(
-				bt_private_value_borrow_value(attr_obj)));
+				bt_private_value_as_value(attr_obj)));
 		goto end;
 	}
 
@@ -177,7 +177,7 @@ struct bt_private_value *bt_attributes_borrow_field_by_name(
 	struct bt_private_value *attr_field_name_obj = NULL;
 
 	attr_size = bt_value_array_get_size(
-		bt_private_value_borrow_value(attr_obj));
+		bt_private_value_as_value(attr_obj));
 	if (attr_size < 0) {
 		BT_LOGE("Cannot get array value's size: value-addr=%p",
 			attr_obj);
@@ -206,7 +206,7 @@ struct bt_private_value *bt_attributes_borrow_field_by_name(
 		}
 
 		field_name = bt_value_string_get(
-			bt_private_value_borrow_value(attr_field_name_obj));
+			bt_private_value_as_value(attr_field_name_obj));
 
 		if (!strcmp(field_name, name)) {
 			break;
@@ -241,7 +241,7 @@ int bt_attributes_set_field_value(struct bt_private_value *attr_obj,
 	if (attr_field_obj) {
 		ret = bt_private_value_array_set_element_by_index(
 			attr_field_obj, BT_ATTR_VALUE_INDEX,
-			bt_private_value_borrow_value(value_obj));
+			bt_private_value_as_value(value_obj));
 		attr_field_obj = NULL;
 		goto end;
 	}
@@ -256,7 +256,7 @@ int bt_attributes_set_field_value(struct bt_private_value *attr_obj,
 	ret = bt_private_value_array_append_string_element(attr_field_obj,
 		name);
 	ret |= bt_private_value_array_append_element(attr_field_obj,
-		bt_private_value_borrow_value(value_obj));
+		bt_private_value_as_value(value_obj));
 	if (ret) {
 		BT_LOGE("Cannot append elements to array value: addr=%p",
 			attr_field_obj);
@@ -264,7 +264,7 @@ int bt_attributes_set_field_value(struct bt_private_value *attr_obj,
 	}
 
 	ret = bt_private_value_array_append_element(attr_obj,
-		bt_private_value_borrow_value(attr_field_obj));
+		bt_private_value_as_value(attr_field_obj));
 	if (ret) {
 		BT_LOGE("Cannot append element to array value: "
 			"array-value-addr=%p, element-value-addr=%p",
@@ -322,7 +322,7 @@ int bt_attributes_freeze(struct bt_private_value *attr_obj)
 	}
 
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
-	count = bt_value_array_get_size(bt_private_value_borrow_value(attr_obj));
+	count = bt_value_array_get_size(bt_private_value_as_value(attr_obj));
 	BT_ASSERT(count >= 0);
 
 	/*
@@ -342,7 +342,7 @@ int bt_attributes_freeze(struct bt_private_value *attr_obj)
 			goto end;
 		}
 
-		bt_value_freeze(bt_private_value_borrow_value(obj));
+		bt_value_freeze(bt_private_value_as_value(obj));
 	}
 
 end:

@@ -42,7 +42,7 @@ struct bt_private_event_class;
 struct bt_private_stream_class;
 
 static inline
-struct bt_event_class *bt_private_event_class_borrow_event_class(
+struct bt_event_class *bt_private_event_class_as_event_class(
 		struct bt_private_event_class *priv_event_class)
 {
 	return (void *) priv_event_class;

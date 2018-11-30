@@ -37,7 +37,7 @@ struct bt_port_input;
 struct bt_port_output;
 
 static inline
-struct bt_component *bt_component_filter_borrow_component(
+struct bt_component *bt_component_filter_as_component(
 		struct bt_component_filter *component)
 {
 	return (void *) component;

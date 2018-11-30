@@ -40,7 +40,7 @@ void dummy_finalize(struct bt_self_component_sink *comp)
 
 	BT_ASSERT(comp);
 	dummy = bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(comp));
+			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(dummy);
 	destroy_private_dummy_data(dummy);
 }
@@ -65,7 +65,7 @@ enum bt_self_component_status dummy_init(
 	}
 
 	bt_self_component_set_data(
-		bt_self_component_sink_borrow_self_component(component), dummy);
+		bt_self_component_sink_as_self_component(component), dummy);
 	goto end;
 
 error:
@@ -86,7 +86,7 @@ enum bt_self_component_status dummy_port_connected(
 	struct bt_self_component_port_input_notification_iterator *iterator;
 
 	dummy = bt_self_component_get_data(
-		bt_self_component_sink_borrow_self_component(comp));
+		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(dummy);
 	iterator = bt_self_component_port_input_notification_iterator_create(
 		self_port);
@@ -113,7 +113,7 @@ enum bt_self_component_status dummy_consume(
 	uint64_t i;
 
 	dummy = bt_self_component_get_data(
-		bt_self_component_sink_borrow_self_component(component));
+		bt_self_component_sink_as_self_component(component));
 	BT_ASSERT(dummy);
 
 	if (unlikely(!dummy->notif_iter)) {

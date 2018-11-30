@@ -40,7 +40,7 @@ enum bt_self_component_status {
 };
 
 static inline
-struct bt_component *bt_self_component_borrow_component(
+struct bt_component *bt_self_component_as_component(
 		struct bt_self_component *self_component)
 {
 	return (void *) self_component;

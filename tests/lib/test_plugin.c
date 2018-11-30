@@ -164,7 +164,7 @@ static void test_sfs(const char *plugin_dir)
 	ok(sink_comp_class,
 		"bt_plugin_borrow_sink_component_class_by_name() finds a sink component class");
 	ok(strcmp(bt_component_class_get_help(
-		bt_component_class_sink_borrow_component_class(sink_comp_class)),
+		bt_component_class_sink_as_component_class(sink_comp_class)),
 		"Bacon ipsum dolor amet strip steak cupim pastrami venison shoulder.\n"
 		"Prosciutto beef ribs flank meatloaf pancetta brisket kielbasa drumstick\n"
 		"venison tenderloin cow tail. Beef short loin shoulder meatball, sirloin\n"
@@ -178,8 +178,8 @@ static void test_sfs(const char *plugin_dir)
 	params = bt_private_value_integer_create_init(23);
 	BT_ASSERT(params);
 	ret = bt_private_query_executor_query(query_exec,
-		bt_component_class_filter_borrow_component_class(filter_comp_class),
-		"get-something", bt_private_value_borrow_value(params),
+		bt_component_class_filter_as_component_class(filter_comp_class),
+		"get-something", bt_private_value_as_value(params),
 		&results);
 	ok(ret == 0 && results, "bt_private_query_executor_query() succeeds");
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
@@ -189,7 +189,7 @@ static void test_sfs(const char *plugin_dir)
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
 	res_params = bt_value_array_borrow_element_by_index(results, 1);
-	ok(res_params == bt_private_value_borrow_value(params),
+	ok(res_params == bt_private_value_as_value(params),
 		"bt_component_class_query() receives the expected parameters");
 
 	bt_object_get_ref(sink_comp_class);

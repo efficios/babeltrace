@@ -4650,8 +4650,8 @@ void apply_clock_class_offset(struct ctx *ctx,
 	}
 
 	freq = bt_clock_class_get_frequency(
-		bt_private_clock_class_borrow_clock_class(clock));
-	bt_clock_class_get_offset(bt_private_clock_class_borrow_clock_class(clock),
+		bt_private_clock_class_as_clock_class(clock));
+	bt_clock_class_get_offset(bt_private_clock_class_as_clock_class(clock),
 		&cur_offset_s, &cur_offset_cycles);
 
 	/* Apply offsets */
@@ -4721,7 +4721,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	}
 
 	clock_class_name = bt_clock_class_get_name(
-		bt_private_clock_class_borrow_clock_class(clock));
+		bt_private_clock_class_as_clock_class(clock));
 	BT_ASSERT(clock_class_name);
 	if (ctx->is_lttng && strcmp(clock_class_name, "monotonic") == 0) {
 		/*
@@ -4738,10 +4738,10 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	 * frequency (move to the part in seconds).
 	 */
 	freq = bt_clock_class_get_frequency(
-		bt_private_clock_class_borrow_clock_class(clock));
+		bt_private_clock_class_as_clock_class(clock));
 	calibrate_clock_class_offsets(&offset_seconds, &offset_cycles, freq);
 	BT_ASSERT(offset_cycles < bt_clock_class_get_frequency(
-		bt_private_clock_class_borrow_clock_class(clock)));
+		bt_private_clock_class_as_clock_class(clock)));
 	bt_private_clock_class_set_offset(clock, offset_seconds, offset_cycles);
 	apply_clock_class_offset(ctx, clock);
 	g_ptr_array_add(ctx->ctf_tc->clock_classes, bt_object_get_ref(clock));
