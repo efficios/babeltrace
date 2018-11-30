@@ -60,16 +60,16 @@ bt_private_field_class_unsigned_integer_create(void);
 extern struct bt_private_field_class *
 bt_private_field_class_signed_integer_create(void);
 
-extern int bt_private_field_class_integer_set_field_value_range(
+extern void bt_private_field_class_integer_set_field_value_range(
 		struct bt_private_field_class *field_class, uint64_t size);
 
-extern int bt_private_field_class_integer_set_preferred_display_base(
+extern void bt_private_field_class_integer_set_preferred_display_base(
 		struct bt_private_field_class *field_class,
 		enum bt_field_class_integer_preferred_display_base base);
 
 extern struct bt_private_field_class *bt_private_field_class_real_create(void);
 
-extern int bt_private_field_class_real_set_is_single_precision(
+extern void bt_private_field_class_real_set_is_single_precision(
 		struct bt_private_field_class *field_class,
 		bt_bool is_single_precision);
 

@@ -312,7 +312,7 @@ void bt_event_destroy(struct bt_event *event)
 	g_free(event);
 }
 
-int bt_private_event_set_default_clock_value(
+void bt_private_event_set_default_clock_value(
 		struct bt_private_event *priv_event, uint64_t value_cycles)
 {
 	struct bt_event *event = (void *) priv_event;
@@ -329,7 +329,6 @@ int bt_private_event_set_default_clock_value(
 	bt_clock_value_set_value_inline(event->default_cv, value_cycles);
 	BT_LIB_LOGV("Set event's default clock value: %![event-]+e, "
 		"value=%" PRIu64, event, value_cycles);
-	return 0;
 }
 
 enum bt_clock_value_status bt_event_borrow_default_clock_value(

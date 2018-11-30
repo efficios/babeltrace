@@ -202,7 +202,7 @@ uint64_t bt_clock_class_get_frequency(struct bt_clock_class *clock_class)
 	return clock_class->frequency;
 }
 
-int bt_private_clock_class_set_frequency(
+void bt_private_clock_class_set_frequency(
 		struct bt_private_clock_class *priv_clock_class,
 		uint64_t frequency)
 {
@@ -219,7 +219,6 @@ int bt_private_clock_class_set_frequency(
 	clock_class->frequency = frequency;
 	set_base_offset(clock_class);
 	BT_LIB_LOGV("Set clock class's frequency: %!+K", clock_class);
-	return 0;
 }
 
 uint64_t bt_clock_class_get_precision(struct bt_clock_class *clock_class)
@@ -228,7 +227,7 @@ uint64_t bt_clock_class_get_precision(struct bt_clock_class *clock_class)
 	return clock_class->precision;
 }
 
-int bt_private_clock_class_set_precision(
+void bt_private_clock_class_set_precision(
 		struct bt_private_clock_class *priv_clock_class,
 		uint64_t precision)
 {
@@ -241,7 +240,6 @@ int bt_private_clock_class_set_precision(
 		clock_class, precision);
 	clock_class->precision = precision;
 	BT_LIB_LOGV("Set clock class's precision: %!+K", clock_class);
-	return 0;
 }
 
 void bt_clock_class_get_offset(struct bt_clock_class *clock_class,
@@ -254,7 +252,7 @@ void bt_clock_class_get_offset(struct bt_clock_class *clock_class,
 	*cycles = clock_class->offset_cycles;
 }
 
-int bt_private_clock_class_set_offset(
+void bt_private_clock_class_set_offset(
 		struct bt_private_clock_class *priv_clock_class,
 		int64_t seconds, uint64_t cycles)
 {
@@ -269,7 +267,6 @@ int bt_private_clock_class_set_offset(
 	clock_class->offset_cycles = cycles;
 	set_base_offset(clock_class);
 	BT_LIB_LOGV("Set clock class's offset: %!+K", clock_class);
-	return 0;
 }
 
 bt_bool bt_clock_class_is_absolute(struct bt_clock_class *clock_class)
@@ -278,7 +275,7 @@ bt_bool bt_clock_class_is_absolute(struct bt_clock_class *clock_class)
 	return (bool) clock_class->is_absolute;
 }
 
-int bt_private_clock_class_set_is_absolute(
+void bt_private_clock_class_set_is_absolute(
 		struct bt_private_clock_class *priv_clock_class,
 		bt_bool is_absolute)
 {
@@ -289,7 +286,6 @@ int bt_private_clock_class_set_is_absolute(
 	clock_class->is_absolute = (bool) is_absolute;
 	BT_LIB_LOGV("Set clock class's absolute property: %!+K",
 		clock_class);
-	return 0;
 }
 
 bt_uuid bt_clock_class_get_uuid(struct bt_clock_class *clock_class)
@@ -298,7 +294,7 @@ bt_uuid bt_clock_class_get_uuid(struct bt_clock_class *clock_class)
 	return clock_class->uuid.value;
 }
 
-int bt_private_clock_class_set_uuid(
+void bt_private_clock_class_set_uuid(
 		struct bt_private_clock_class *priv_clock_class,
 		bt_uuid uuid)
 {
@@ -310,7 +306,6 @@ int bt_private_clock_class_set_uuid(
 	memcpy(clock_class->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
 	clock_class->uuid.value = clock_class->uuid.uuid;
 	BT_LIB_LOGV("Set clock class's UUID: %!+K", clock_class);
-	return 0;
 }
 
 BT_HIDDEN

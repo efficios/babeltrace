@@ -227,7 +227,7 @@ enum bt_property_availability bt_event_class_get_log_level(
 	return event_class->log_level.base.avail;
 }
 
-int bt_private_event_class_set_log_level(
+void bt_private_event_class_set_log_level(
 		struct bt_private_event_class *priv_event_class,
 		enum bt_event_class_log_level log_level)
 {
@@ -238,7 +238,6 @@ int bt_private_event_class_set_log_level(
 	bt_property_uint_set(&event_class->log_level,
 		(uint64_t) log_level);
 	BT_LIB_LOGV("Set event class's log level: %!+E", event_class);
-	return 0;
 }
 
 const char *bt_event_class_get_emf_uri(struct bt_event_class *event_class)

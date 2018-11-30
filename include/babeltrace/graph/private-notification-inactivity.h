@@ -38,7 +38,7 @@ struct bt_private_notification *bt_private_notification_inactivity_create(
 		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_clock_class *default_clock_class);
 
-extern int bt_private_notification_inactivity_set_default_clock_value(
+extern void bt_private_notification_inactivity_set_default_clock_value(
 		struct bt_private_notification *notif, uint64_t raw_value);
 
 #ifdef __cplusplus

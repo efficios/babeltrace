@@ -61,7 +61,7 @@ bt_private_event_class_borrow_stream_class(
 extern int bt_private_event_class_set_name(
 		struct bt_private_event_class *event_class, const char *name);
 
-extern int bt_private_event_class_set_log_level(
+extern void bt_private_event_class_set_log_level(
 		struct bt_private_event_class *event_class,
 		enum bt_event_class_log_level log_level);
 

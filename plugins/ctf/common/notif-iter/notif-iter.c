@@ -2273,10 +2273,8 @@ void set_event_default_clock_value(struct bt_notif_iter *notit)
 	BT_ASSERT(event);
 
 	if (bt_stream_class_borrow_default_clock_class(sc)) {
-		int ret = bt_private_event_set_default_clock_value(event,
+		bt_private_event_set_default_clock_value(event,
 			notit->default_clock_val);
-
-		BT_ASSERT(ret == 0);
 	}
 }
 
@@ -2352,30 +2350,26 @@ void notify_new_packet(struct bt_notif_iter *notit,
 
 	if (bt_stream_class_packets_have_discarded_event_counter_snapshot(sc)) {
 		BT_ASSERT(notit->snapshots.discarded_events != UINT64_C(-1));
-		ret = bt_private_packet_set_discarded_event_counter_snapshot(
+		bt_private_packet_set_discarded_event_counter_snapshot(
 			notit->packet, notit->snapshots.discarded_events);
-		BT_ASSERT(ret == 0);
 	}
 
 	if (bt_stream_class_packets_have_packet_counter_snapshot(sc)) {
 		BT_ASSERT(notit->snapshots.packets != UINT64_C(-1));
-		ret = bt_private_packet_set_packet_counter_snapshot(
+		bt_private_packet_set_packet_counter_snapshot(
 			notit->packet, notit->snapshots.packets);
-		BT_ASSERT(ret == 0);
 	}
 
 	if (bt_stream_class_packets_have_default_beginning_clock_value(sc)) {
 		BT_ASSERT(notit->snapshots.beginning_clock != UINT64_C(-1));
-		ret = bt_private_packet_set_default_beginning_clock_value(
+		bt_private_packet_set_default_beginning_clock_value(
 			notit->packet, notit->snapshots.beginning_clock);
-		BT_ASSERT(ret == 0);
 	}
 
 	if (bt_stream_class_packets_have_default_end_clock_value(sc)) {
 		BT_ASSERT(notit->snapshots.end_clock != UINT64_C(-1));
-		ret = bt_private_packet_set_default_end_clock_value(
+		bt_private_packet_set_default_end_clock_value(
 			notit->packet, notit->snapshots.end_clock);
-		BT_ASSERT(ret == 0);
 	}
 
 	if (notit->packet_header_field) {

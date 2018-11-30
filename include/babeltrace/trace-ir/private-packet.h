@@ -70,19 +70,19 @@ int bt_private_packet_move_context_field(
 		struct bt_private_packet_context_field *context);
 
 extern
-int bt_private_packet_set_default_beginning_clock_value(
+void bt_private_packet_set_default_beginning_clock_value(
 		struct bt_private_packet *packet, uint64_t value_cycles);
 
 extern
-int bt_private_packet_set_default_end_clock_value(
+void bt_private_packet_set_default_end_clock_value(
 		struct bt_private_packet *packet, uint64_t value_cycles);
 
 extern
-int bt_private_packet_set_discarded_event_counter_snapshot(
+void bt_private_packet_set_discarded_event_counter_snapshot(
 		struct bt_private_packet *packet, uint64_t value);
 
 extern
-int bt_private_packet_set_packet_counter_snapshot(
+void bt_private_packet_set_packet_counter_snapshot(
 		struct bt_private_packet *packet, uint64_t value);
 
 #ifdef __cplusplus

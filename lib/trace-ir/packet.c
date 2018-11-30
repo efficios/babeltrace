@@ -402,7 +402,7 @@ int bt_private_packet_move_context_field(
 	return 0;
 }
 
-int bt_private_packet_set_default_beginning_clock_value(
+void bt_private_packet_set_default_beginning_clock_value(
 		struct bt_private_packet *priv_packet,
 		uint64_t value_cycles)
 {
@@ -421,10 +421,10 @@ int bt_private_packet_set_default_beginning_clock_value(
 		"no default beginning clock value: %![packet-]+a, %![sc-]+S",
 		packet, sc);
 	BT_ASSERT(packet->default_beginning_cv);
-	bt_clock_value_set_value_inline(packet->default_beginning_cv, value_cycles);
+	bt_clock_value_set_value_inline(packet->default_beginning_cv,
+		value_cycles);
 	BT_LIB_LOGV("Set packet's default beginning clock value: "
 		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
-	return 0;
 }
 
 enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value(
@@ -436,7 +436,7 @@ enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value(
 	return BT_CLOCK_VALUE_STATUS_KNOWN;
 }
 
-int bt_private_packet_set_default_end_clock_value(
+void bt_private_packet_set_default_end_clock_value(
 		struct bt_private_packet *priv_packet,
 		uint64_t value_cycles)
 {
@@ -458,7 +458,6 @@ int bt_private_packet_set_default_end_clock_value(
 	bt_clock_value_set_value_inline(packet->default_end_cv, value_cycles);
 	BT_LIB_LOGV("Set packet's default end clock value: "
 		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
-	return 0;
 }
 
 enum bt_clock_value_status bt_packet_borrow_default_end_clock_value(
@@ -479,7 +478,7 @@ enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
 	return packet->discarded_event_counter_snapshot.base.avail;
 }
 
-int bt_private_packet_set_discarded_event_counter_snapshot(
+void bt_private_packet_set_discarded_event_counter_snapshot(
 		struct bt_private_packet *priv_packet, uint64_t value)
 {
 	struct bt_packet *packet = (void *) priv_packet;
@@ -490,7 +489,6 @@ int bt_private_packet_set_discarded_event_counter_snapshot(
 		"Packet's stream's discarded event counter is not enabled: "
 		"%![packet-]+a", packet);
 	bt_property_uint_set(&packet->discarded_event_counter_snapshot, value);
-	return 0;
 }
 
 enum bt_property_availability bt_packet_get_packet_counter_snapshot(
@@ -502,7 +500,7 @@ enum bt_property_availability bt_packet_get_packet_counter_snapshot(
 	return packet->packet_counter_snapshot.base.avail;
 }
 
-int bt_private_packet_set_packet_counter_snapshot(
+void bt_private_packet_set_packet_counter_snapshot(
 		struct bt_private_packet *priv_packet, uint64_t value)
 {
 	struct bt_packet *packet = (void *) priv_packet;
@@ -513,5 +511,4 @@ int bt_private_packet_set_packet_counter_snapshot(
 		"Packet's stream's packet counter is not enabled: "
 		"%![packet-]+a", packet);
 	bt_property_uint_set(&packet->packet_counter_snapshot, value);
-	return 0;
 }

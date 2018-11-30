@@ -73,22 +73,19 @@ static struct bt_private_field_class *create_integer_struct(void)
 	BT_ASSERT(structure);
 	ui8 = bt_private_field_class_unsigned_integer_create();
 	BT_ASSERT(ui8);
-	ret = bt_private_field_class_integer_set_field_value_range(ui8, 8);
-	BT_ASSERT(ret == 0);
+	bt_private_field_class_integer_set_field_value_range(ui8, 8);
 	ret = bt_private_field_class_structure_append_member(structure,
 		"payload_8", ui8);
 	BT_ASSERT(ret == 0);
 	ui16 = bt_private_field_class_unsigned_integer_create();
 	BT_ASSERT(ui16);
-	ret = bt_private_field_class_integer_set_field_value_range(ui16, 16);
-	BT_ASSERT(ret == 0);
+	bt_private_field_class_integer_set_field_value_range(ui16, 16);
 	ret = bt_private_field_class_structure_append_member(structure,
 		"payload_16", ui16);
 	BT_ASSERT(ret == 0);
 	ui32 = bt_private_field_class_unsigned_integer_create();
 	BT_ASSERT(ui32);
-	ret = bt_private_field_class_integer_set_field_value_range(ui32, 32);
-	BT_ASSERT(ret == 0);
+	bt_private_field_class_integer_set_field_value_range(ui32, 32);
 	ret = bt_private_field_class_structure_append_member(structure,
 		"payload_32", ui32);
 	BT_ASSERT(ret == 0);
@@ -202,16 +199,14 @@ static void set_stream_class_field_classes(
 	BT_ASSERT(packet_context_type);
 	fc = bt_private_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	ret = bt_private_field_class_integer_set_field_value_range(fc, 32);
-	BT_ASSERT(ret == 0);
+	bt_private_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_private_field_class_structure_append_member(packet_context_type,
 		"packet_size", fc);
 	BT_ASSERT(ret == 0);
 	bt_object_put_ref(fc);
 	fc = bt_private_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	ret = bt_private_field_class_integer_set_field_value_range(fc, 32);
-	BT_ASSERT(ret == 0);
+	bt_private_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_private_field_class_structure_append_member(packet_context_type,
 		"content_size", fc);
 	BT_ASSERT(ret == 0);
@@ -220,8 +215,7 @@ static void set_stream_class_field_classes(
 	BT_ASSERT(event_header_type);
 	fc = bt_private_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	ret = bt_private_field_class_integer_set_field_value_range(fc, 32);
-	BT_ASSERT(ret == 0);
+	bt_private_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_private_field_class_structure_append_member(event_header_type,
 		"id", fc);
 	BT_ASSERT(ret == 0);
@@ -288,8 +282,7 @@ static void set_trace_packet_header(struct bt_private_trace *trace)
 	BT_ASSERT(packet_header_type);
 	fc = bt_private_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	ret = bt_private_field_class_integer_set_field_value_range(fc, 32);
-	BT_ASSERT(ret == 0);
+	bt_private_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_private_field_class_structure_append_member(packet_header_type,
 		"stream_id", fc);
 	BT_ASSERT(ret == 0);

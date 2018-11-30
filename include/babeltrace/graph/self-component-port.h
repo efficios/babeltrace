@@ -34,7 +34,6 @@ struct bt_connection;
 
 enum bt_self_component_port_status {
 	BT_SELF_PORT_STATUS_OK = 0,
-	BT_SELF_PORT_STATUS_ERROR = -1,
 };
 
 static inline

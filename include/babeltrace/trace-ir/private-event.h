@@ -72,7 +72,7 @@ bt_private_event_borrow_specific_context_field(
 extern struct bt_private_field *bt_private_event_borrow_payload_field(
 		struct bt_private_event *event);
 
-extern int bt_private_event_set_default_clock_value(
+extern void bt_private_event_set_default_clock_value(
 		struct bt_private_event *event, uint64_t value_cycles);
 
 #ifdef __cplusplus

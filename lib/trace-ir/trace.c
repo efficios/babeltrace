@@ -228,7 +228,8 @@ bt_uuid bt_trace_get_uuid(struct bt_trace *trace)
 	return trace->uuid.value;
 }
 
-int bt_private_trace_set_uuid(struct bt_private_trace *priv_trace, bt_uuid uuid)
+void bt_private_trace_set_uuid(struct bt_private_trace *priv_trace,
+		bt_uuid uuid)
 {
 	struct bt_trace *trace = (void *) priv_trace;
 
@@ -238,7 +239,6 @@ int bt_private_trace_set_uuid(struct bt_private_trace *priv_trace, bt_uuid uuid)
 	memcpy(trace->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
 	trace->uuid.value = trace->uuid.uuid;
 	BT_LIB_LOGV("Set trace's UUID: %!+t", trace);
-	return 0;
 }
 
 BT_ASSERT_FUNC
@@ -667,7 +667,7 @@ bt_bool bt_trace_assigns_automatic_stream_class_id(struct bt_trace *trace)
 	return (bt_bool) trace->assigns_automatic_stream_class_id;
 }
 
-int bt_private_trace_set_assigns_automatic_stream_class_id(
+void bt_private_trace_set_assigns_automatic_stream_class_id(
 		struct bt_private_trace *priv_trace, bt_bool value)
 {
 	struct bt_trace *trace = (void *) priv_trace;
@@ -677,7 +677,6 @@ int bt_private_trace_set_assigns_automatic_stream_class_id(
 	trace->assigns_automatic_stream_class_id = (bool) value;
 	BT_LIB_LOGV("Set trace's automatic stream class ID "
 		"assignment property: %!+t", trace);
-	return 0;
 }
 
 BT_HIDDEN
