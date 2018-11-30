@@ -127,40 +127,49 @@ void bt_plugin_destroy(struct bt_object *obj)
 	if (plugin->src_comp_classes) {
 		BT_LOGD_STR("Putting source component classes.");
 		g_ptr_array_free(plugin->src_comp_classes, TRUE);
+		plugin->src_comp_classes = NULL;
 	}
 
 	if (plugin->flt_comp_classes) {
 		BT_LOGD_STR("Putting filter component classes.");
 		g_ptr_array_free(plugin->flt_comp_classes, TRUE);
+		plugin->flt_comp_classes = NULL;
 	}
 
 	if (plugin->sink_comp_classes) {
 		BT_LOGD_STR("Putting sink component classes.");
 		g_ptr_array_free(plugin->sink_comp_classes, TRUE);
+		plugin->sink_comp_classes = NULL;
 	}
 
 	if (plugin->info.name) {
 		g_string_free(plugin->info.name, TRUE);
+		plugin->info.name = NULL;
 	}
 
 	if (plugin->info.path) {
 		g_string_free(plugin->info.path, TRUE);
+		plugin->info.path = NULL;
 	}
 
 	if (plugin->info.description) {
 		g_string_free(plugin->info.description, TRUE);
+		plugin->info.description = NULL;
 	}
 
 	if (plugin->info.author) {
 		g_string_free(plugin->info.author, TRUE);
+		plugin->info.author = NULL;
 	}
 
 	if (plugin->info.license) {
 		g_string_free(plugin->info.license, TRUE);
+		plugin->info.license = NULL;
 	}
 
 	if (plugin->info.version.extra) {
 		g_string_free(plugin->info.version.extra, TRUE);
+		plugin->info.version.extra = NULL;
 	}
 
 	g_free(plugin);

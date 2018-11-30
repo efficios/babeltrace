@@ -148,6 +148,8 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 				BT_LOGE("Cannot close GModule: %s: path=\"%s\"",
 					g_module_error(), path);
 			}
+
+			shared_lib_handle->module = NULL;
 #ifndef NDEBUG
 		} else {
 			BT_LOGD("Not closing GModule because `BABELTRACE_NO_DLCLOSE=1`: "
@@ -158,6 +160,7 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 
 	if (shared_lib_handle->path) {
 		g_string_free(shared_lib_handle->path, TRUE);
+		shared_lib_handle->path = NULL;
 	}
 
 	g_free(shared_lib_handle);
