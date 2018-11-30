@@ -174,7 +174,7 @@ enum bt_self_component_status ensure_available_input_port(
 		struct bt_self_component_filter *self_comp)
 {
 	struct muxer_comp *muxer_comp = bt_self_component_get_data(
-		bt_self_component_filter_borrow_self_component(self_comp));
+		bt_self_component_filter_as_self_component(self_comp));
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	GString *port_name = NULL;
 
@@ -287,7 +287,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 	}
 
 	ret = bt_value_map_extend(&real_params,
-		bt_private_value_borrow_value(default_params), params);
+		bt_private_value_as_value(default_params), params);
 	if (ret) {
 		BT_LOGE("Cannot extend default parameters map value: "
 			"muxer-comp-addr=%p, def-params-addr=%p, "
@@ -297,7 +297,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 	}
 
 	assume_absolute_clock_classes = bt_value_map_borrow_entry_value(
-		bt_private_value_borrow_value(real_params),
+		bt_private_value_as_value(real_params),
 		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
 	if (assume_absolute_clock_classes &&
 			!bt_value_is_bool(assume_absolute_clock_classes)) {
@@ -358,7 +358,7 @@ enum bt_self_component_status muxer_init(
 
 	muxer_comp->self_comp = self_comp;
 	bt_self_component_set_data(
-		bt_self_component_filter_borrow_self_component(self_comp),
+		bt_self_component_filter_as_self_component(self_comp),
 		muxer_comp);
 	status = ensure_available_input_port(self_comp);
 	if (status != BT_SELF_COMPONENT_STATUS_OK) {
@@ -387,7 +387,7 @@ enum bt_self_component_status muxer_init(
 error:
 	destroy_muxer_comp(muxer_comp);
 	bt_self_component_set_data(
-		bt_self_component_filter_borrow_self_component(self_comp),
+		bt_self_component_filter_as_self_component(self_comp),
 		NULL);
 
 	if (status == BT_SELF_COMPONENT_STATUS_OK) {
@@ -402,7 +402,7 @@ BT_HIDDEN
 void muxer_finalize(struct bt_self_component_filter *self_comp)
 {
 	struct muxer_comp *muxer_comp = bt_self_component_get_data(
-		bt_self_component_filter_borrow_self_component(self_comp));
+		bt_self_component_filter_as_self_component(self_comp));
 
 	BT_LOGD("Finalizing muxer component: comp-addr=%p",
 		self_comp);
@@ -414,8 +414,8 @@ struct bt_self_component_port_input_notification_iterator *
 create_notif_iter_on_input_port(
 		struct bt_self_component_port_input *self_port, int *ret)
 {
-	struct bt_port *port = bt_self_component_port_borrow_port(
-		bt_self_component_port_input_borrow_self_component_port(
+	struct bt_port *port = bt_self_component_port_as_port(
+		bt_self_component_port_input_as_self_component_port(
 			self_port));
 	struct bt_self_component_port_input_notification_iterator *notif_iter =
 		NULL;
@@ -542,8 +542,8 @@ int muxer_notif_iter_handle_newly_connected_ports(
 		}
 
 		self_port = node->data;
-		port = bt_self_component_port_borrow_port(
-			bt_self_component_port_input_borrow_self_component_port(
+		port = bt_self_component_port_as_port(
+			bt_self_component_port_input_as_self_component_port(
 				(self_port)));
 		BT_ASSERT(port);
 
@@ -1174,7 +1174,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 	 * handled by muxer_notif_iter_handle_newly_connected_ports().
 	 */
 	count = bt_component_filter_get_input_port_count(
-		bt_self_component_filter_borrow_component_filter(
+		bt_self_component_filter_as_component_filter(
 			muxer_comp->self_comp));
 	if (count < 0) {
 		BT_LOGD("No input port to initialize for muxer component's notification iterator: "
@@ -1190,8 +1190,8 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 		struct bt_port *port;
 
 		BT_ASSERT(self_port);
-		port = bt_self_component_port_borrow_port(
-			bt_self_component_port_input_borrow_self_component_port(
+		port = bt_self_component_port_as_port(
+			bt_self_component_port_input_as_self_component_port(
 				self_port));
 		BT_ASSERT(port);
 
@@ -1238,7 +1238,7 @@ enum bt_self_notification_iterator_status muxer_notif_iter_init(
 	int ret;
 
 	muxer_comp = bt_self_component_get_data(
-		bt_self_component_filter_borrow_self_component(self_comp));
+		bt_self_component_filter_as_self_component(self_comp));
 	BT_ASSERT(muxer_comp);
 	BT_LOGD("Initializing muxer component's notification iterator: "
 		"comp-addr=%p, muxer-comp-addr=%p, notif-iter-addr=%p",
@@ -1389,12 +1389,12 @@ enum bt_self_component_status muxer_input_port_connected(
 		struct bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
-	struct bt_port *port = bt_self_component_port_borrow_port(
-		bt_self_component_port_input_borrow_self_component_port(
+	struct bt_port *port = bt_self_component_port_as_port(
+		bt_self_component_port_input_as_self_component_port(
 			self_port));
 	struct muxer_comp *muxer_comp =
 		bt_self_component_get_data(
-			bt_self_component_filter_borrow_self_component(
+			bt_self_component_filter_as_self_component(
 				self_comp));
 	size_t i;
 	int ret;
@@ -1407,7 +1407,7 @@ enum bt_self_component_status muxer_input_port_connected(
 		"other-port-addr=%p, other-port-name=\"%s\"",
 		self_comp, muxer_comp, self_port, bt_port_get_name(port),
 		other_port,
-		bt_port_get_name(bt_port_output_borrow_port(other_port)));
+		bt_port_get_name(bt_port_output_as_port(other_port)));
 
 	for (i = 0; i < muxer_comp->muxer_notif_iters->len; i++) {
 		struct muxer_notif_iter *muxer_notif_iter =
@@ -1465,11 +1465,11 @@ void muxer_input_port_disconnected(
 {
 	struct muxer_comp *muxer_comp =
 		bt_self_component_get_data(
-			bt_self_component_filter_borrow_self_component(
+			bt_self_component_filter_as_self_component(
 				self_component));
 	struct bt_port *port =
-		bt_self_component_port_borrow_port(
-			bt_self_component_port_input_borrow_self_component_port(
+		bt_self_component_port_as_port(
+			bt_self_component_port_input_as_self_component_port(
 				self_port));
 
 	BT_ASSERT(port);

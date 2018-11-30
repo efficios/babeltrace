@@ -65,7 +65,7 @@ static enum bt_query_status flt_query_method(
 		struct bt_value **result)
 {
 	struct bt_private_value *res = bt_private_value_array_create();
-	*result = bt_private_value_borrow_value(res);
+	*result = bt_private_value_as_value(res);
 	int iret;
 
 	BT_ASSERT(*result);

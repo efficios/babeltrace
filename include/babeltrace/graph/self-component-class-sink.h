@@ -32,7 +32,7 @@ struct bt_self_component_class_sink;
 
 static inline
 struct bt_component_class_sink *
-bt_self_component_class_sink_borrow_component_class_sink(
+bt_self_component_class_sink_as_component_class_sink(
 		struct bt_self_component_class_sink *self_comp_cls_sink)
 {
 	return (void *) self_comp_cls_sink;

@@ -36,14 +36,14 @@ struct bt_self_component_port_input;
 
 static inline
 struct bt_self_component_port *
-bt_self_component_port_input_borrow_self_component_port(
+bt_self_component_port_input_as_self_component_port(
 		struct bt_self_component_port_input *self_component_port)
 {
 	return (void *) self_component_port;
 }
 
 static inline
-struct bt_port_input *bt_self_component_port_input_borrow_port_input(
+struct bt_port_input *bt_self_component_port_input_as_port_input(
 		struct bt_self_component_port_input *self_component_port)
 {
 	return (void *) self_component_port;

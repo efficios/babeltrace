@@ -49,10 +49,10 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 					"clock class: expected-cc-name=\"%s\", "
 					"other-cc-name=\"%s\"",
 					bt_clock_class_get_name(
-						bt_private_clock_class_borrow_clock_class(
+						bt_private_clock_class_as_clock_class(
 							*clock_class)),
 					bt_clock_class_get_name(
-						bt_private_clock_class_borrow_clock_class(
+						bt_private_clock_class_as_clock_class(
 							int_fc->mapped_clock_class)));
 				ret = -1;
 				goto end;

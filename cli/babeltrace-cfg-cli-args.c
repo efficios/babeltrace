@@ -242,7 +242,7 @@ int ini_handle_state(struct ini_parsing_state *state)
 		}
 
 		if (bt_value_map_has_entry(
-				bt_private_value_borrow_value(state->params),
+				bt_private_value_as_value(state->params),
 				state->last_map_key)) {
 			g_string_append_printf(state->ini_error,
 				"Duplicate parameter key: `%s`\n",
@@ -294,20 +294,20 @@ int ini_handle_state(struct ini_parsing_state *state)
 				goto error;
 			}
 
-			value = bt_private_value_borrow_value(
+			value = bt_private_value_as_value(
 				bt_private_value_integer_create_init(
 					(int64_t) int_val));
 			break;
 		}
 		case G_TOKEN_FLOAT:
 			/* Positive floating point number */
-			value = bt_private_value_borrow_value(
+			value = bt_private_value_as_value(
 				bt_private_value_real_create_init(
 					state->scanner->value.v_float));
 			break;
 		case G_TOKEN_STRING:
 			/* Quoted string */
-			value = bt_private_value_borrow_value(
+			value = bt_private_value_as_value(
 				bt_private_value_string_create_init(
 					state->scanner->value.v_string));
 			break;
@@ -331,16 +331,16 @@ int ini_handle_state(struct ini_parsing_state *state)
 			} else if (!strcmp(id, "true") || !strcmp(id, "TRUE") ||
 					!strcmp(id, "yes") ||
 					!strcmp(id, "YES")) {
-				value = bt_private_value_borrow_value(
+				value = bt_private_value_as_value(
 					bt_private_value_bool_create_init(true));
 			} else if (!strcmp(id, "false") ||
 					!strcmp(id, "FALSE") ||
 					!strcmp(id, "no") ||
 					!strcmp(id, "NO")) {
-				value = bt_private_value_borrow_value(
+				value = bt_private_value_as_value(
 					bt_private_value_bool_create_init(false));
 			} else {
-				value = bt_private_value_borrow_value(
+				value = bt_private_value_as_value(
 					bt_private_value_string_create_init(id));
 			}
 			break;
@@ -374,14 +374,14 @@ int ini_handle_state(struct ini_parsing_state *state)
 				goto error;
 			}
 
-			value = bt_private_value_borrow_value(
+			value = bt_private_value_as_value(
 				bt_private_value_integer_create_init(
 					-((int64_t) int_val)));
 			break;
 		}
 		case G_TOKEN_FLOAT:
 			/* Negative floating point number */
-			value = bt_private_value_borrow_value(
+			value = bt_private_value_as_value(
 				bt_private_value_real_create_init(
 					-state->scanner->value.v_float));
 			break;
@@ -1399,7 +1399,7 @@ int add_run_cfg_comp_check_name(struct bt_config *cfg,
 		goto end;
 	}
 
-	if (bt_value_map_has_entry(bt_private_value_borrow_value(instance_names),
+	if (bt_value_map_has_entry(bt_private_value_as_value(instance_names),
 			cfg_comp->instance_name->str)) {
 		printf_err("Duplicate component instance name:\n    %s\n",
 			cfg_comp->instance_name->str);
@@ -2512,7 +2512,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			bt_object_put_ref(cur_cfg_comp->params);
 			status = bt_value_copy(
 				&cur_cfg_comp->params,
-				bt_private_value_borrow_value(cur_base_params));
+				bt_private_value_as_value(cur_base_params));
 			if (status != BT_VALUE_STATUS_OK) {
 				print_err_oom();
 				goto error;
@@ -2540,8 +2540,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			}
 
 			status = bt_value_map_extend(&params_to_set,
-				bt_private_value_borrow_value(cur_cfg_comp->params),
-				bt_private_value_borrow_value(params));
+				bt_private_value_as_value(cur_cfg_comp->params),
+				bt_private_value_as_value(params));
 			BT_OBJECT_PUT_REF_AND_RESET(params);
 			if (status != BT_VALUE_STATUS_OK) {
 				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
@@ -2680,7 +2680,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	}
 
 	ret = bt_config_cli_args_create_connections(cfg,
-		bt_private_value_borrow_value(connection_args),
+		bt_private_value_as_value(connection_args),
 		error_buf, 256);
 	if (ret) {
 		printf_err("Cannot creation connections:\n%s", error_buf);
@@ -2979,7 +2979,7 @@ int assign_name_to_implicit_component(struct implicit_component_args *args,
 	}
 
 	name = get_component_auto_name(prefix,
-		bt_private_value_borrow_value(existing_names));
+		bt_private_value_as_value(existing_names));
 
 	if (!name) {
 		ret = -1;
@@ -3054,13 +3054,13 @@ int append_run_args_for_implicit_component(
 	}
 
 	for (i = 0; i < bt_value_array_get_size(
-			bt_private_value_borrow_value(impl_args->extra_params));
+			bt_private_value_as_value(impl_args->extra_params));
 			i++) {
 		struct bt_value *elem;
 		const char *arg;
 
 		elem = bt_value_array_borrow_element_by_index(
-			bt_private_value_borrow_value(impl_args->extra_params),
+			bt_private_value_as_value(impl_args->extra_params),
 			i);
 		if (!elem) {
 			goto error;
@@ -3208,7 +3208,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 			 * component.
 			 */
 			name = get_component_auto_name(cur_name_prefix->str,
-				bt_private_value_borrow_value(all_names));
+				bt_private_value_as_value(all_names));
 			append_name_opt = true;
 		} else {
 			/*
@@ -3216,7 +3216,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 			 * component.
 			 */
 			if (bt_value_map_has_entry(
-					bt_private_value_borrow_value(all_names),
+					bt_private_value_as_value(all_names),
 					cur_name->str)) {
 				printf_err("Duplicate component instance name:\n    %s\n",
 					cur_name->str);
@@ -3553,7 +3553,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		 */
 		BT_OBJECT_PUT_REF_AND_RESET(impl_args->extra_params);
 		status = bt_value_copy(&impl_args->extra_params,
-				bt_private_value_borrow_value(
+				bt_private_value_as_value(
 				base_implicit_ctf_input_args->extra_params));
 		if (status != BT_VALUE_STATUS_OK) {
 			print_err_oom();
@@ -4173,7 +4173,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
-				bt_private_value_borrow_value(fields), "field");
+				bt_private_value_as_value(fields), "field");
 			bt_object_put_ref(fields);
 			if (ret) {
 				goto error;
@@ -4191,7 +4191,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
-				bt_private_value_borrow_value(names), "name");
+				bt_private_value_as_value(names), "name");
 			bt_object_put_ref(names);
 			if (ret) {
 				goto error;
@@ -4682,10 +4682,10 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 
 		for (i = 0; i < bt_value_array_get_size(
-				bt_private_value_borrow_value(run_args)); i++) {
+				bt_private_value_as_value(run_args)); i++) {
 			struct bt_value *arg_value =
 				bt_value_array_borrow_element_by_index(
-					bt_private_value_borrow_value(run_args),
+					bt_private_value_as_value(run_args),
 					i);
 			const char *arg;
 			GString *quoted = NULL;
@@ -4712,7 +4712,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 			if (i < bt_value_array_get_size(
-					bt_private_value_borrow_value(run_args)) - 1) {
+					bt_private_value_as_value(run_args)) - 1) {
 				if (print_run_args) {
 					putchar(' ');
 				} else {
@@ -4727,7 +4727,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	cfg = bt_config_run_from_args_array(
-		bt_private_value_borrow_value(run_args), retcode,
+		bt_private_value_as_value(run_args), retcode,
 		force_omit_system_plugin_path, force_omit_home_plugin_path,
 		initial_plugin_paths);
 	if (!cfg) {

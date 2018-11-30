@@ -89,7 +89,7 @@ typedef enum bt_self_component_status
 
 static inline
 struct bt_private_component_class *
-bt_private_component_class_sink_borrow_private_component_class(
+bt_private_component_class_sink_as_private_component_class(
 		struct bt_private_component_class_sink *priv_comp_cls_sink)
 {
 	return (void *) priv_comp_cls_sink;
@@ -97,7 +97,7 @@ bt_private_component_class_sink_borrow_private_component_class(
 
 static inline
 struct bt_component_class_sink *
-bt_private_component_class_sink_borrow_component_class_sink(
+bt_private_component_class_sink_as_component_class_sink(
 		struct bt_private_component_class_sink *priv_comp_cls_sink)
 {
 	return (void *) priv_comp_cls_sink;

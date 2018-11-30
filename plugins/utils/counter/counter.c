@@ -114,7 +114,7 @@ void counter_finalize(struct bt_self_component_sink *comp)
 
 	BT_ASSERT(comp);
 	counter = bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(comp));
+			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 	try_print_last(counter);
 	bt_object_put_ref(counter->notif_iter);
@@ -163,7 +163,7 @@ enum bt_self_component_status counter_init(
 	}
 
 	bt_self_component_set_data(
-		bt_self_component_sink_borrow_self_component(component),
+		bt_self_component_sink_as_self_component(component),
 		counter);
 	goto end;
 
@@ -185,7 +185,7 @@ enum bt_self_component_status counter_port_connected(
 	struct bt_self_component_port_input_notification_iterator *iterator;
 
 	counter = bt_self_component_get_data(
-		bt_self_component_sink_borrow_self_component(comp));
+		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 	iterator = bt_self_component_port_input_notification_iterator_create(
 		self_port);
@@ -211,7 +211,7 @@ enum bt_self_component_status counter_consume(
 	bt_notification_array notifs;
 
 	counter = bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(comp));
+			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 
 	if (unlikely(!counter->notif_iter)) {

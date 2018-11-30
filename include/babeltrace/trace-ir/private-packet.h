@@ -39,7 +39,7 @@ struct bt_private_packet_context_field;
 struct bt_private_stream;
 
 static inline
-struct bt_packet *bt_private_packet_borrow_packet(
+struct bt_packet *bt_private_packet_as_packet(
 		struct bt_private_packet *priv_packet)
 {
 	return (void *) priv_packet;

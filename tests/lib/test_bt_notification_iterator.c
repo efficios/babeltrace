@@ -262,25 +262,25 @@ void init_static_data(void)
 	BT_ASSERT(src_event_class);
 	src_stream1 = bt_private_stream_create(src_stream_class);
 	BT_ASSERT(src_stream1);
-	pub_src_stream1 = bt_private_stream_borrow_stream(src_stream1);
+	pub_src_stream1 = bt_private_stream_as_stream(src_stream1);
 	src_stream2 = bt_private_stream_create(src_stream_class);
 	BT_ASSERT(src_stream2);
-	pub_src_stream2 = bt_private_stream_borrow_stream(src_stream2);
+	pub_src_stream2 = bt_private_stream_as_stream(src_stream2);
 	src_stream1_packet1 = bt_private_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet1);
-	pub_src_stream1_packet1 = bt_private_packet_borrow_packet(
+	pub_src_stream1_packet1 = bt_private_packet_as_packet(
 		src_stream1_packet1);
 	src_stream1_packet2 = bt_private_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet2);
-	pub_src_stream1_packet2 = bt_private_packet_borrow_packet(
+	pub_src_stream1_packet2 = bt_private_packet_as_packet(
 		src_stream1_packet2);
 	src_stream2_packet1 = bt_private_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet1);
-	pub_src_stream2_packet1 = bt_private_packet_borrow_packet(
+	pub_src_stream2_packet1 = bt_private_packet_as_packet(
 		src_stream2_packet1);
 	src_stream2_packet2 = bt_private_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet2);
-	pub_src_stream2_packet2 = bt_private_packet_borrow_packet(
+	pub_src_stream2_packet2 = bt_private_packet_as_packet(
 		src_stream2_packet2);
 
 	if (debug) {
@@ -357,62 +357,62 @@ void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
 
 	switch (user_data->seq[user_data->at]) {
 	case SEQ_STREAM1_BEGIN:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_stream_begin_create(
 				notif_iter, src_stream1));
 		break;
 	case SEQ_STREAM2_BEGIN:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_stream_begin_create(
 				notif_iter, src_stream2));
 		break;
 	case SEQ_STREAM1_END:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_stream_end_create(
 				notif_iter, src_stream1));
 		break;
 	case SEQ_STREAM2_END:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_stream_end_create(
 				notif_iter, src_stream2));
 		break;
 	case SEQ_STREAM1_PACKET1_BEGIN:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_begin_create(
 				notif_iter, src_stream1_packet1));
 		break;
 	case SEQ_STREAM1_PACKET2_BEGIN:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_begin_create(
 				notif_iter, src_stream1_packet2));
 		break;
 	case SEQ_STREAM2_PACKET1_BEGIN:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_begin_create(
 				notif_iter, src_stream2_packet1));
 		break;
 	case SEQ_STREAM2_PACKET2_BEGIN:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_begin_create(
 				notif_iter, src_stream2_packet2));
 		break;
 	case SEQ_STREAM1_PACKET1_END:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_end_create(
 				notif_iter, src_stream1_packet1));
 		break;
 	case SEQ_STREAM1_PACKET2_END:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_end_create(
 				notif_iter, src_stream1_packet2));
 		break;
 	case SEQ_STREAM2_PACKET1_END:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_end_create(
 				notif_iter, src_stream2_packet1));
 		break;
 	case SEQ_STREAM2_PACKET2_END:
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_packet_end_create(
 				notif_iter, src_stream2_packet2));
 		break;
@@ -433,7 +433,7 @@ void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
 	}
 
 	if (event_packet) {
-		*notif = bt_private_notification_borrow_notification(
+		*notif = bt_private_notification_as_notification(
 			bt_private_notification_event_create(
 				notif_iter, src_event_class, event_packet));
 	}
@@ -612,7 +612,7 @@ enum bt_self_component_status sink_consume(
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct sink_user_data *user_data =
 		bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(
+			bt_self_component_sink_as_self_component(
 				self_comp));
 	enum bt_notification_iterator_status it_ret;
 
@@ -647,7 +647,7 @@ enum bt_self_component_status sink_port_connected(
 {
 	struct sink_user_data *user_data =
 		bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(
+			bt_self_component_sink_as_self_component(
 				self_comp));
 
 	BT_ASSERT(user_data);
@@ -667,7 +667,7 @@ enum bt_self_component_status sink_init(
 
 	BT_ASSERT(user_data);
 	bt_self_component_set_data(
-		bt_self_component_sink_borrow_self_component(self_comp),
+		bt_self_component_sink_as_self_component(self_comp),
 		user_data);
 	ret = bt_self_component_sink_add_input_port(
 		self_comp, "in", NULL, NULL);
@@ -680,7 +680,7 @@ void sink_finalize(struct bt_self_component_sink *self_comp)
 {
 	struct sink_user_data *user_data =
 		bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(
+			bt_self_component_sink_as_self_component(
 				self_comp));
 
 	if (user_data) {
@@ -716,7 +716,7 @@ void create_source_sink(struct bt_private_graph *graph,
 			src_comp_class, src_iter_finalize);
 		BT_ASSERT(ret == 0);
 		ret = bt_private_graph_add_source_component(graph,
-			bt_private_component_class_source_borrow_component_class_source(
+			bt_private_component_class_source_as_component_class_source(
 				src_comp_class), "source", NULL, source);
 		BT_ASSERT(ret == 0);
 		bt_object_put_ref(src_comp_class);
@@ -736,7 +736,7 @@ void create_source_sink(struct bt_private_graph *graph,
 			sink_comp_class, sink_port_connected);
 		BT_ASSERT(ret == 0);
 		ret = bt_private_graph_add_sink_component(graph,
-			bt_private_component_class_sink_borrow_component_class_sink(
+			bt_private_component_class_sink_as_component_class_sink(
 				sink_comp_class),
 			"sink", NULL, sink);
 		BT_ASSERT(ret == 0);

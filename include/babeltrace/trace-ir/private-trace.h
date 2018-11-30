@@ -52,7 +52,7 @@ typedef void (* bt_private_trace_listener_removed)(
 	struct bt_private_trace *trace, void *data);
 
 static inline
-struct bt_trace *bt_private_trace_borrow_trace(
+struct bt_trace *bt_private_trace_as_trace(
 		struct bt_private_trace *priv_trace)
 {
 	return (void *) priv_trace;
