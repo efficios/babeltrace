@@ -37,14 +37,12 @@ typedef struct bt_notification **bt_notification_array;
  * Notification types. Unhandled notification types should be ignored.
  */
 enum bt_notification_type {
-	BT_NOTIFICATION_TYPE_UNKNOWN =			-1,
 	BT_NOTIFICATION_TYPE_EVENT =			0,
 	BT_NOTIFICATION_TYPE_INACTIVITY =		1,
 	BT_NOTIFICATION_TYPE_STREAM_BEGIN =		2,
 	BT_NOTIFICATION_TYPE_STREAM_END =		3,
 	BT_NOTIFICATION_TYPE_PACKET_BEGIN =		4,
 	BT_NOTIFICATION_TYPE_PACKET_END =		5,
-	BT_NOTIFICATION_TYPE_NR, /* Not part of ABI. */
 };
 
 /**

@@ -115,8 +115,6 @@ static inline
 const char *bt_notification_type_string(enum bt_notification_type type)
 {
 	switch (type) {
-	case BT_NOTIFICATION_TYPE_UNKNOWN:
-		return "BT_NOTIFICATION_TYPE_UNKNOWN";
 	case BT_NOTIFICATION_TYPE_EVENT:
 		return "BT_NOTIFICATION_TYPE_EVENT";
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
