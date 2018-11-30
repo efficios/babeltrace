@@ -32,7 +32,7 @@ struct bt_self_component_class_filter;
 
 static inline
 struct bt_component_class_filter *
-bt_self_component_class_filter_borrow_component_class_filter(
+bt_self_component_class_filter_as_component_class_filter(
 		struct bt_self_component_class_filter *self_comp_cls_filter)
 {
 	return (void *) self_comp_cls_filter;

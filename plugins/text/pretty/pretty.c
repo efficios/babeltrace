@@ -118,7 +118,7 @@ void pretty_finalize(struct bt_self_component_sink *comp)
 {
 	destroy_pretty_data(
 		bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(comp)));
+			bt_self_component_sink_as_self_component(comp)));
 }
 
 static
@@ -161,7 +161,7 @@ enum bt_self_component_status pretty_port_connected(
 	struct pretty_component *pretty;
 
 	pretty = bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(comp));
+			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(pretty);
 	BT_ASSERT(!pretty->iterator);
 	pretty->iterator = bt_self_component_port_input_notification_iterator_create(
@@ -181,7 +181,7 @@ enum bt_self_component_status pretty_consume(
 	bt_notification_array notifs;
 	struct bt_self_component_port_input_notification_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
-		bt_self_component_sink_borrow_self_component(comp));
+		bt_self_component_sink_as_self_component(comp));
 	enum bt_notification_iterator_status it_ret;
 	uint64_t count = 0;
 	uint64_t i = 0;
@@ -257,7 +257,7 @@ bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 	struct pretty_component *pretty = data;
 
 	if (!bt_value_map_has_entry(
-			bt_private_value_borrow_value(pretty->plugin_opt_map),
+			bt_private_value_as_value(pretty->plugin_opt_map),
 			key)) {
 		fprintf(pretty->err,
 			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
@@ -668,7 +668,7 @@ enum bt_self_component_status pretty_init(
 
 	set_use_colors(pretty);
 	bt_self_component_set_data(
-		bt_self_component_sink_borrow_self_component(comp), pretty);
+		bt_self_component_sink_as_self_component(comp), pretty);
 	init_stream_packet_context_quarks();
 
 end:

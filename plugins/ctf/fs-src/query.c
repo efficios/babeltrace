@@ -175,7 +175,7 @@ end:
 		fclose(metadata_fp);
 	}
 
-	*user_result = bt_private_value_borrow_value(result);
+	*user_result = bt_private_value_as_value(result);
 	return status;
 }
 
@@ -213,7 +213,7 @@ int add_range(struct bt_private_value *info, struct range *range,
 	}
 
 	status = bt_private_value_map_insert_entry(info, range_name,
-		bt_private_value_borrow_value(range_map));
+		bt_private_value_as_value(range_map));
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -326,14 +326,14 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	}
 
 	status = bt_private_value_map_insert_entry(group_info, "paths",
-		bt_private_value_borrow_value(file_paths));
+		bt_private_value_as_value(file_paths));
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
 	ret = add_stream_ids(group_info,
-		bt_private_stream_borrow_stream(group->stream));
+		bt_private_stream_as_stream(group->stream));
 	if (ret) {
 		goto end;
 	}
@@ -428,7 +428,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 			trace_intersection.set = true;
 			status = bt_private_value_array_append_element(
 				file_groups,
-				bt_private_value_borrow_value(group_info));
+				bt_private_value_as_value(group_info));
 			bt_object_put_ref(group_info);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto end;
@@ -450,7 +450,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 	}
 
 	status = bt_private_value_map_insert_entry(trace_info, "streams",
-		bt_private_value_borrow_value(file_groups));
+		bt_private_value_as_value(file_groups));
 	BT_OBJECT_PUT_REF_AND_RESET(file_groups);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -538,7 +538,7 @@ enum bt_query_status trace_info_query(
 		}
 
 		status = bt_private_value_array_append_element(result,
-			bt_private_value_borrow_value(trace_info));
+			bt_private_value_as_value(trace_info));
 		bt_object_put_ref(trace_info);
 		if (status != BT_VALUE_STATUS_OK) {
 			goto error;
@@ -576,6 +576,6 @@ end:
 		g_list_free(trace_names);
 	}
 
-	*user_result = bt_private_value_borrow_value(result);
+	*user_result = bt_private_value_as_value(result);
 	return status;
 }

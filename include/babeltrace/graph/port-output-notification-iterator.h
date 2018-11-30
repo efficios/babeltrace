@@ -44,7 +44,7 @@ struct bt_port_output;
 
 static inline
 struct bt_notification_iterator *
-bt_port_output_notification_iterator_borrow_notification_iterator(
+bt_port_output_notification_iterator_as_notification_iterator(
 		struct bt_port_output_notification_iterator *iterator)
 {
 	return (void *) iterator;

@@ -40,7 +40,7 @@ struct bt_private_value;
 extern struct bt_private_value *bt_private_value_null;
 
 static inline
-struct bt_value *bt_private_value_borrow_value(
+struct bt_value *bt_private_value_as_value(
 		struct bt_private_value *priv_value)
 {
 	return (void *) priv_value;

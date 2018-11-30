@@ -42,7 +42,7 @@ struct bt_self_component_port_input;
 
 static inline
 struct bt_notification_iterator *
-bt_self_component_port_input_notification_iterator_borrow_notification_iterator(
+bt_self_component_port_input_notification_iterator_as_notification_iterator(
 		struct bt_self_component_port_input_notification_iterator *iterator)
 {
 	return (void *) iterator;

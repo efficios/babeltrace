@@ -562,7 +562,7 @@ static int validate_all_components_connected(struct bt_config *cfg,
 
 	ret = validate_all_components_connected_in_array(
 		cfg->cmd_data.run.sources,
-		bt_private_value_borrow_value(connected_components),
+		bt_private_value_as_value(connected_components),
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
@@ -570,7 +570,7 @@ static int validate_all_components_connected(struct bt_config *cfg,
 
 	ret = validate_all_components_connected_in_array(
 		cfg->cmd_data.run.filters,
-		bt_private_value_borrow_value(connected_components),
+		bt_private_value_as_value(connected_components),
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
@@ -578,7 +578,7 @@ static int validate_all_components_connected(struct bt_config *cfg,
 
 	ret = validate_all_components_connected_in_array(
 		cfg->cmd_data.run.sinks,
-		bt_private_value_borrow_value(connected_components),
+		bt_private_value_as_value(connected_components),
 		error_buf, error_buf_size);
 	if (ret) {
 		goto end;
@@ -619,7 +619,7 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 			connection->downstream_comp_name->str,
 			connection->downstream_port_glob->str);
 
-		if (bt_value_map_has_entry(bt_private_value_borrow_value(
+		if (bt_value_map_has_entry(bt_private_value_as_value(
 				flat_connection_names),
 				flat_connection_name->str)) {
 			snprintf(error_buf, error_buf_size,

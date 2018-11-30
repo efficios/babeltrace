@@ -32,7 +32,7 @@ struct bt_component_class_source;
 
 static inline
 struct bt_component_class *
-bt_component_class_source_borrow_component_class(
+bt_component_class_source_as_component_class(
 		struct bt_component_class_source *comp_cls_source)
 {
 	return (void *) comp_cls_source;

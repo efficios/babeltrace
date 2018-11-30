@@ -38,7 +38,7 @@ struct bt_self_component_sink;
 struct bt_self_component_port_input;
 
 static inline
-struct bt_self_component *bt_self_component_sink_borrow_self_component(
+struct bt_self_component *bt_self_component_sink_as_self_component(
 		struct bt_self_component_sink *self_comp_sink)
 {
 	return (void *) self_comp_sink;
@@ -46,7 +46,7 @@ struct bt_self_component *bt_self_component_sink_borrow_self_component(
 
 static inline
 struct bt_component_sink *
-bt_self_component_sink_borrow_component_sink(
+bt_self_component_sink_as_component_sink(
 		struct bt_self_component_sink *self_comp_sink)
 {
 	return (void *) self_comp_sink;

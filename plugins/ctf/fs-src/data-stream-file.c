@@ -297,7 +297,7 @@ int convert_cycles_to_ns(struct bt_private_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
 	return bt_clock_class_cycles_to_ns_from_origin(
-		bt_private_clock_class_borrow_clock_class(clock_class), cycles, ns);
+		bt_private_clock_class_as_clock_class(clock_class), cycles, ns);
 }
 
 static

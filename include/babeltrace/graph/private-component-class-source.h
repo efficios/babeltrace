@@ -104,7 +104,7 @@ typedef void
 
 static inline
 struct bt_private_component_class *
-bt_private_component_class_source_borrow_private_component_class(
+bt_private_component_class_source_as_private_component_class(
 		struct bt_private_component_class_source *priv_comp_cls_source)
 {
 	return (void *) priv_comp_cls_source;
@@ -112,7 +112,7 @@ bt_private_component_class_source_borrow_private_component_class(
 
 static inline
 struct bt_component_class_source *
-bt_private_component_class_source_borrow_component_class_source(
+bt_private_component_class_source_as_component_class_source(
 		struct bt_private_component_class_source *priv_comp_cls_source)
 {
 	return (void *) priv_comp_cls_source;

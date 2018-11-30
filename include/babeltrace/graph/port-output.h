@@ -35,7 +35,7 @@ struct bt_port;
 struct bt_port_output;
 
 static inline
-struct bt_port *bt_port_output_borrow_port(struct bt_port_output *port_output)
+struct bt_port *bt_port_output_as_port(struct bt_port_output *port_output)
 {
 	return (void *) port_output;
 }

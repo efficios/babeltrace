@@ -39,7 +39,7 @@ struct bt_private_field;
 struct bt_private_packet;
 
 static inline
-struct bt_event *bt_private_event_borrow_event(
+struct bt_event *bt_private_event_as_event(
 		struct bt_private_event *priv_event)
 {
 	return (void *) priv_event;

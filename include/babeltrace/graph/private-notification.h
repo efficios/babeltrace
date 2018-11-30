@@ -33,7 +33,7 @@ struct bt_notification;
 struct bt_private_notification;
 
 static inline
-struct bt_notification *bt_private_notification_borrow_notification(
+struct bt_notification *bt_private_notification_as_notification(
 		struct bt_private_notification *notification)
 {
 	return (void *) notification;

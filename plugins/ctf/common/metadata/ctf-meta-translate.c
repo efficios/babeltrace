@@ -516,7 +516,7 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 
 	if (sc->default_clock_class) {
 		ret = bt_private_stream_class_set_default_clock_class(ir_sc,
-			bt_private_clock_class_borrow_clock_class(sc->default_clock_class));
+			bt_private_clock_class_as_clock_class(sc->default_clock_class));
 		BT_ASSERT(ret == 0);
 	}
 

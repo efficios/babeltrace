@@ -123,7 +123,7 @@ typedef void
 
 static inline
 struct bt_private_component_class *
-bt_private_component_class_filter_borrow_private_component_class(
+bt_private_component_class_filter_as_private_component_class(
 		struct bt_private_component_class_filter *priv_comp_cls_filter)
 {
 	return (void *) priv_comp_cls_filter;
@@ -131,7 +131,7 @@ bt_private_component_class_filter_borrow_private_component_class(
 
 static inline
 struct bt_component_class_filter *
-bt_private_component_class_filter_borrow_component_class_filter(
+bt_private_component_class_filter_as_component_class_filter(
 		struct bt_private_component_class_filter *priv_comp_cls_filter)
 {
 	return (void *) priv_comp_cls_filter;

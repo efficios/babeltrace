@@ -163,7 +163,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 
 		ret = bt_private_stream_class_set_default_clock_class(
 			dmesg_comp->stream_class,
-			bt_private_clock_class_borrow_clock_class(
+			bt_private_clock_class_as_clock_class(
 				dmesg_comp->clock_class));
 		if (ret) {
 			BT_LOGE_STR("Cannot set stream class's default clock class.");
@@ -399,14 +399,14 @@ enum bt_self_component_status dmesg_init(
 	}
 
 	bt_self_component_set_data(
-		bt_self_component_source_borrow_self_component(self_comp),
+		bt_self_component_source_as_self_component(self_comp),
 		dmesg_comp);
 	goto end;
 
 error:
 	destroy_dmesg_component(dmesg_comp);
 	bt_self_component_set_data(
-		bt_self_component_source_borrow_self_component(self_comp),
+		bt_self_component_source_as_self_component(self_comp),
 		NULL);
 
 	if (status >= 0) {
@@ -421,7 +421,7 @@ BT_HIDDEN
 void dmesg_finalize(struct bt_self_component_source *self_comp)
 {
 	destroy_dmesg_component(bt_self_component_get_data(
-		bt_self_component_source_borrow_self_component(self_comp)));
+		bt_self_component_source_as_self_component(self_comp)));
 }
 
 static
@@ -639,7 +639,7 @@ enum bt_self_notification_iterator_status dmesg_notif_iter_init(
 	}
 
 	dmesg_comp = bt_self_component_get_data(
-		bt_self_component_source_borrow_self_component(self_comp));
+		bt_self_component_source_as_self_component(self_comp));
 	BT_ASSERT(dmesg_comp);
 	dmesg_notif_iter->dmesg_comp = dmesg_comp;
 	dmesg_notif_iter->pc_notif_iter = self_notif_iter;
@@ -819,7 +819,7 @@ enum bt_self_notification_iterator_status dmesg_notif_iter_next(
 
 		status = dmesg_notif_iter_next_one(dmesg_notif_iter,
 			&priv_notif);
-		notifs[i] = bt_private_notification_borrow_notification(
+		notifs[i] = bt_private_notification_as_notification(
 			priv_notif);
 		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 			i++;

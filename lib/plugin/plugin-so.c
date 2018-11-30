@@ -712,21 +712,21 @@ enum bt_plugin_status bt_plugin_so_init(
 			src_comp_class = bt_private_component_class_source_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
-			comp_class = bt_private_component_class_source_borrow_private_component_class(
+			comp_class = bt_private_component_class_source_as_private_component_class(
 				src_comp_class);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			flt_comp_class = bt_private_component_class_filter_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
-			comp_class = bt_private_component_class_filter_borrow_private_component_class(
+			comp_class = bt_private_component_class_filter_as_private_component_class(
 				flt_comp_class);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			sink_comp_class = bt_private_component_class_sink_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.sink.consume);
-			comp_class = bt_private_component_class_sink_borrow_private_component_class(
+			comp_class = bt_private_component_class_sink_as_private_component_class(
 				sink_comp_class);
 			break;
 		default:

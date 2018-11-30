@@ -1705,7 +1705,7 @@ enum bt_graph_status add_component_with_init_method_data(
 		graph, comp_cls, name, params, init_method_data);
 
 	if (!params) {
-		params = bt_private_value_borrow_value(
+		params = bt_private_value_as_value(
 			bt_private_value_map_create());
 		if (!params) {
 			BT_LOGE_STR("Cannot create map value object.");

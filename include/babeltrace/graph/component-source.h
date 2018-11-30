@@ -36,7 +36,7 @@ struct bt_component_source;
 struct bt_port_output;
 
 static inline
-struct bt_component *bt_component_source_borrow_component(
+struct bt_component *bt_component_source_as_component(
 		struct bt_component_source *component)
 {
 	return (void *) component;

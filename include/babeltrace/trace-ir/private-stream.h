@@ -39,7 +39,7 @@ struct bt_private_stream;
 struct bt_private_stream_class;
 
 static inline
-struct bt_stream *bt_private_stream_borrow_stream(
+struct bt_stream *bt_private_stream_as_stream(
 		struct bt_private_stream *priv_stream)
 {
 	return (void *) priv_stream;

@@ -76,7 +76,7 @@ enum bt_self_component_status colander_init(
 	}
 
 	bt_self_component_set_data(
-		bt_self_component_sink_borrow_self_component(self_comp),
+		bt_self_component_sink_as_self_component(self_comp),
 		colander_data);
 
 end:
@@ -88,7 +88,7 @@ void colander_finalize(struct bt_self_component_sink *self_comp)
 {
 	struct colander_data *colander_data =
 		bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(self_comp));
+			bt_self_component_sink_as_self_component(self_comp));
 
 	if (!colander_data) {
 		return;
@@ -107,7 +107,7 @@ enum bt_self_component_status colander_input_port_connected(
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct colander_data *colander_data =
 		bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(self_comp));
+			bt_self_component_sink_as_self_component(self_comp));
 
 	BT_ASSERT(colander_data);
 	BT_OBJECT_PUT_REF_AND_RESET(colander_data->notif_iter);
@@ -134,7 +134,7 @@ enum bt_self_component_status colander_consume(
 	enum bt_notification_iterator_status notif_iter_status;
 	struct colander_data *colander_data =
 		bt_self_component_get_data(
-			bt_self_component_sink_borrow_self_component(self_comp));
+			bt_self_component_sink_as_self_component(self_comp));
 	bt_notification_array notifs;
 
 	BT_ASSERT(colander_data);
@@ -196,7 +196,7 @@ struct bt_component_class_sink *bt_component_class_sink_colander_get(void)
 
 end:
 	return bt_object_get_ref(
-		bt_private_component_class_sink_borrow_component_class_sink(
+		bt_private_component_class_sink_as_component_class_sink(
 			colander_comp_cls));
 }
 

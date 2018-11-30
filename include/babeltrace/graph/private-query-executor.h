@@ -36,7 +36,7 @@ struct bt_component_class;
 struct bt_value;
 
 static inline
-struct bt_query_executor *bt_private_query_executor_borrow_query_executor(
+struct bt_query_executor *bt_private_query_executor_as_query_executor(
 		struct bt_private_query_executor *priv_query_executor)
 {
 	return (void *) priv_query_executor;

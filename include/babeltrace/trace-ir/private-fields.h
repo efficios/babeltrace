@@ -39,7 +39,7 @@ struct bt_private_field;
 struct bt_private_field_class;
 
 static inline
-struct bt_field *bt_private_field_borrow_field(
+struct bt_field *bt_private_field_as_field(
 		struct bt_private_field *priv_field)
 {
 	return (void *) priv_field;

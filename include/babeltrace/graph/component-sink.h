@@ -36,7 +36,7 @@ struct bt_component_sink;
 struct bt_port_input;
 
 static inline
-struct bt_component *bt_component_sink_borrow_component(
+struct bt_component *bt_component_sink_as_component(
 		struct bt_component_sink *component)
 {
 	return (void *) component;

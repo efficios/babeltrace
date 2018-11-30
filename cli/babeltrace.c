@@ -210,7 +210,7 @@ int query(struct bt_component_class *comp_cls, const char *obj,
 
 			if (usleep(sleep_time_us)) {
 				if (bt_query_executor_is_canceled(
-						bt_private_query_executor_borrow_query_executor(the_query_executor))) {
+						bt_private_query_executor_as_query_executor(the_query_executor))) {
 					BT_LOGI("Query was canceled by user: "
 						"comp-cls-addr=%p, comp-cls-name=\"%s\", "
 						"query-obj=\"%s\"", comp_cls,
@@ -362,17 +362,17 @@ struct bt_component_class *find_component_class(const char *plugin_name,
 
 	switch (comp_class_type) {
 	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		comp_cls = bt_component_class_source_borrow_component_class(
+		comp_cls = bt_component_class_source_as_component_class(
 			find_source_component_class(plugin_name,
 				comp_class_name));
 		break;
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		comp_cls = bt_component_class_filter_borrow_component_class(
+		comp_cls = bt_component_class_filter_as_component_class(
 			find_filter_component_class(plugin_name,
 				comp_class_name));
 		break;
 	case BT_COMPONENT_CLASS_TYPE_SINK:
-		comp_cls = bt_component_class_sink_borrow_component_class(
+		comp_cls = bt_component_class_sink_as_component_class(
 			find_sink_component_class(plugin_name,
 				comp_class_name));
 		break;
@@ -627,7 +627,7 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 
 	fprintf(stderr, "      Parameters:\n");
 	print_value(stderr,
-		bt_private_value_borrow_value(bt_config_component->params), 8);
+		bt_private_value_as_value(bt_config_component->params), 8);
 }
 
 static
@@ -655,7 +655,7 @@ void print_cfg_run(struct bt_config *cfg)
 {
 	size_t i;
 
-	print_plugin_paths(bt_private_value_borrow_value(cfg->plugin_paths));
+	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
 	fprintf(stderr, "  Source component instances:\n");
 	print_bt_config_components(cfg->cmd_data.run.sources);
 
@@ -686,19 +686,19 @@ void print_cfg_run(struct bt_config *cfg)
 static
 void print_cfg_list_plugins(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_borrow_value(cfg->plugin_paths));
+	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
 }
 
 static
 void print_cfg_help(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_borrow_value(cfg->plugin_paths));
+	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
 }
 
 static
 void print_cfg_print_ctf_metadata(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_borrow_value(cfg->plugin_paths));
+	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
 	fprintf(stderr, "  Path: %s\n",
 		cfg->cmd_data.print_ctf_metadata.path->str);
 }
@@ -706,7 +706,7 @@ void print_cfg_print_ctf_metadata(struct bt_config *cfg)
 static
 void print_cfg_print_lttng_live_sessions(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_borrow_value(cfg->plugin_paths));
+	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
 	fprintf(stderr, "  URL: %s\n",
 		cfg->cmd_data.print_lttng_live_sessions.url->str);
 }
@@ -714,7 +714,7 @@ void print_cfg_print_lttng_live_sessions(struct bt_config *cfg)
 static
 void print_cfg_query(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_borrow_value(cfg->plugin_paths));
+	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
 	fprintf(stderr, "  Object: `%s`\n", cfg->cmd_data.query.object->str);
 	fprintf(stderr, "  Component class:\n");
 	print_bt_config_component(cfg->cmd_data.query.cfg_component);
@@ -961,7 +961,7 @@ int cmd_query(struct bt_config *cfg)
 	}
 
 	ret = query(comp_cls, cfg->cmd_data.query.object->str,
-		bt_private_value_borrow_value(
+		bt_private_value_as_value(
 			cfg->cmd_data.query.cfg_component->params),
 		&results, &fail_reason);
 	if (ret) {
@@ -1155,7 +1155,7 @@ int cmd_list_plugins(struct bt_config *cfg)
 	int plugins_count, component_classes_count = 0, i;
 
 	printf("From the following plugin paths:\n\n");
-	print_value(stdout, bt_private_value_borrow_value(cfg->plugin_paths), 2);
+	print_value(stdout, bt_private_value_as_value(cfg->plugin_paths), 2);
 	printf("\n");
 	plugins_count = loaded_plugins->len;
 	if (plugins_count == 0) {
@@ -1190,19 +1190,19 @@ int cmd_list_plugins(struct bt_config *cfg)
 			(plugin_borrow_comp_cls_by_index_func_t)
 				bt_plugin_borrow_source_component_class_by_name,
 			(spec_comp_cls_borrow_comp_cls_func_t)
-				bt_component_class_source_borrow_component_class);
+				bt_component_class_source_as_component_class);
 		cmd_list_plugins_print_component_classes(plugin, "Filter",
 			bt_plugin_get_filter_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
 				bt_plugin_borrow_filter_component_class_by_name,
 			(spec_comp_cls_borrow_comp_cls_func_t)
-				bt_component_class_filter_borrow_component_class);
+				bt_component_class_filter_as_component_class);
 		cmd_list_plugins_print_component_classes(plugin, "Sink",
 			bt_plugin_get_sink_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
 				bt_plugin_borrow_sink_component_class_by_name,
 			(spec_comp_cls_borrow_comp_cls_func_t)
-				bt_component_class_sink_borrow_component_class);
+				bt_component_class_sink_as_component_class);
 	}
 
 end:
@@ -1255,7 +1255,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		goto error;
 	}
 
-	ret = query(comp_cls, "sessions", bt_private_value_borrow_value(params),
+	ret = query(comp_cls, "sessions", bt_private_value_as_value(params),
 		&results, &fail_reason);
 	if (ret) {
 		goto failed;
@@ -1410,7 +1410,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	}
 
 	ret = query(comp_cls, "metadata-info",
-		bt_private_value_borrow_value(params), &results, &fail_reason);
+		bt_private_value_as_value(params), &results, &fail_reason);
 	if (ret) {
 		goto failed;
 	}
@@ -1601,7 +1601,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	typedef struct bt_port_input *(*borrow_input_port_by_index_func_t)(
 		void *, uint64_t);
 	struct bt_port *upstream_port =
-		bt_port_output_borrow_port(out_upstream_port);
+		bt_port_output_as_port(out_upstream_port);
 
 	int ret = 0;
 	GQuark downstreamp_comp_name_quark;
@@ -1713,7 +1713,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		struct bt_port_input *in_downstream_port =
 			port_by_index_fn(downstream_comp, i);
 		struct bt_port *downstream_port =
-			bt_port_input_borrow_port(in_downstream_port);
+			bt_port_input_as_port(in_downstream_port);
 		const char *upstream_port_name;
 		const char *downstream_port_name;
 
@@ -1769,7 +1769,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			ctx->connect_ports = false;
 			graph_status = bt_private_graph_add_filter_component(
 				ctx->graph, trimmer_class, trimmer_name,
-				bt_private_value_borrow_value(trimmer_params),
+				bt_private_value_as_value(trimmer_params),
 				&trimmer);
 			free(trimmer_name);
 			if (graph_status != BT_GRAPH_STATUS_OK) {
@@ -1796,7 +1796,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			 */
 			in_downstream_port = trimmer_input;
 			downstream_port =
-				bt_port_input_borrow_port(in_downstream_port);
+				bt_port_input_as_port(in_downstream_port);
 			downstream_port_name = bt_port_get_name(
 				downstream_port);
 			BT_ASSERT(downstream_port_name);
@@ -1871,7 +1871,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			 */
 			ret = cmd_run_ctx_connect_upstream_port_to_downstream_component(
 				ctx,
-				bt_component_filter_borrow_component(trimmer),
+				bt_component_filter_as_component(trimmer),
 				trimmer_output, cfg_conn);
 			if (ret) {
 				goto error;
@@ -1922,10 +1922,10 @@ int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
 	BT_ASSERT(ctx);
 	BT_ASSERT(upstream_port);
 	upstream_port_name = bt_port_get_name(
-		bt_port_output_borrow_port(upstream_port));
+		bt_port_output_as_port(upstream_port));
 	BT_ASSERT(upstream_port_name);
 	upstream_comp = bt_port_borrow_component(
-		bt_port_output_borrow_port(upstream_port));
+		bt_port_output_as_port(upstream_port));
 	if (!upstream_comp) {
 		BT_LOGW("Upstream port to connect is not part of a component: "
 			"port-addr=%p, port-name=\"%s\"",
@@ -1993,7 +1993,7 @@ void graph_output_port_added_listener(struct cmd_run_ctx *ctx,
 		struct bt_port_output *out_port)
 {
 	struct bt_component *comp;
-	struct bt_port *port = bt_port_output_borrow_port(out_port);
+	struct bt_port *port = bt_port_output_as_port(out_port);
 
 	comp = bt_port_borrow_component(port);
 	BT_LOGI("Port added to a graph's component: comp-addr=%p, "
@@ -2165,10 +2165,10 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	struct trace_range *trace_range = NULL;
 	const char *fail_reason = NULL;
 	struct bt_component_class *comp_cls =
-		bt_component_class_source_borrow_component_class(src_comp_cls);
+		bt_component_class_source_as_component_class(src_comp_cls);
 
 	component_path_value = bt_value_map_borrow_entry_value(
-		bt_private_value_borrow_value(cfg_comp->params),
+		bt_private_value_as_value(cfg_comp->params),
 		"path");
 	if (component_path_value && !bt_value_is_string(component_path_value)) {
 		BT_LOGD("Cannot get path parameter: component-name=%s",
@@ -2194,7 +2194,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	}
 
 	ret = query(comp_cls, "trace-info",
-		bt_private_value_borrow_value(query_params), &query_result,
+		bt_private_value_as_value(query_params), &query_result,
 		&fail_reason);
 	if (ret) {
 		BT_LOGD("Component class does not support the `trace-info` query: %s: "
@@ -2435,19 +2435,19 @@ int cmd_run_ctx_create_components_from_config_components(
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			ret = bt_private_graph_add_source_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				bt_private_value_borrow_value(cfg_comp->params),
+				bt_private_value_as_value(cfg_comp->params),
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			ret = bt_private_graph_add_filter_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				bt_private_value_borrow_value(cfg_comp->params),
+				bt_private_value_as_value(cfg_comp->params),
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			ret = bt_private_graph_add_sink_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				bt_private_value_borrow_value(cfg_comp->params),
+				bt_private_value_as_value(cfg_comp->params),
 				(void *) &comp);
 			break;
 		default:
@@ -2715,7 +2715,7 @@ int cmd_run(struct bt_config *cfg)
 			goto error;
 		case BT_GRAPH_STATUS_AGAIN:
 			if (bt_graph_is_canceled(
-					bt_private_graph_borrow_graph(ctx.graph))) {
+					bt_private_graph_as_graph(ctx.graph))) {
 				BT_LOGI_STR("Graph was canceled by user.");
 				goto error;
 			}
@@ -2727,7 +2727,7 @@ int cmd_run(struct bt_config *cfg)
 
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
 					if (bt_graph_is_canceled(
-							bt_private_graph_borrow_graph(ctx.graph))) {
+							bt_private_graph_as_graph(ctx.graph))) {
 						BT_LOGI_STR("Graph was canceled by user.");
 						goto error;
 					}
@@ -2950,7 +2950,7 @@ int main(int argc, const char **argv)
 
 	if (cfg->command_needs_plugins) {
 		ret = load_all_plugins(
-			bt_private_value_borrow_value(cfg->plugin_paths));
+			bt_private_value_as_value(cfg->plugin_paths));
 		if (ret) {
 			BT_LOGE("Failed to load plugins: ret=%d", ret);
 			retcode = 1;

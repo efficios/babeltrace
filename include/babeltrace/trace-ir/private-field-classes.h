@@ -48,7 +48,7 @@ struct bt_private_field_class_signed_enumeration_mapping_ranges;
 struct bt_private_field_class_unsigned_enumeration_mapping_ranges;
 
 static inline
-struct bt_field_class *bt_private_field_class_borrow_field_class(
+struct bt_field_class *bt_private_field_class_as_field_class(
 		struct bt_private_field_class *priv_field_class)
 {
 	return (void *) priv_field_class;

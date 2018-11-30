@@ -39,7 +39,7 @@ struct bt_self_component_port_input;
 struct bt_self_component_port_output;
 
 static inline
-struct bt_self_component *bt_self_component_filter_borrow_self_component(
+struct bt_self_component *bt_self_component_filter_as_self_component(
 		struct bt_self_component_filter *self_comp_filter)
 {
 	return (void *) self_comp_filter;
@@ -47,7 +47,7 @@ struct bt_self_component *bt_self_component_filter_borrow_self_component(
 
 static inline
 struct bt_component_filter *
-bt_self_component_filter_borrow_component_filter(
+bt_self_component_filter_as_component_filter(
 		struct bt_self_component_filter *self_comp_filter)
 {
 	return (void *) self_comp_filter;
