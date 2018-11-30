@@ -90,6 +90,7 @@
 
 /* Plugin and plugin development API */
 #include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/plugin/plugin-set.h>
 #include <babeltrace/plugin/plugin.h>
 
 /* Graph, component, and notification API */

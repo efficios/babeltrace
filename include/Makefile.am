@@ -76,7 +76,8 @@ babeltracetraceirinclude_HEADERS = \
 babeltracepluginincludedir = "$(includedir)/babeltrace/plugin"
 babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin-dev.h \
-	babeltrace/plugin/plugin.h
+	babeltrace/plugin/plugin.h \
+	babeltrace/plugin/plugin-set.h
 
 # Graph, component, and notification API
 babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
