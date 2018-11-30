@@ -52,8 +52,7 @@ bt_port_output_notification_iterator_as_notification_iterator(
 
 extern struct bt_port_output_notification_iterator *bt_port_output_notification_iterator_create(
 		struct bt_private_graph *graph,
-		struct bt_port_output *output_port,
-		const char *colander_component_name);
+		struct bt_port_output *output_port);
 
 extern enum bt_notification_iterator_status
 bt_port_output_notification_iterator_next(

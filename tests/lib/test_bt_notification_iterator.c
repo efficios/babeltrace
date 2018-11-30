@@ -861,7 +861,7 @@ void test_output_port_notification_iterator(void)
 	upstream_port = bt_component_source_borrow_output_port_by_name(
 		src_comp, "out");
 	notif_iter = bt_port_output_notification_iterator_create(graph,
-		upstream_port, NULL);
+		upstream_port);
 	ok(notif_iter, "bt_private_output_port_notification_iterator_create() succeeds");
 
 	/* Consume the notification iterator */

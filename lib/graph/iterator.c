@@ -909,8 +909,7 @@ void bt_port_output_notification_iterator_destroy(struct bt_object *obj)
 struct bt_port_output_notification_iterator *
 bt_port_output_notification_iterator_create(
 		struct bt_private_graph *priv_graph,
-		struct bt_port_output *output_port,
-		const char *colander_component_name)
+		struct bt_port_output *output_port)
 {
 	struct bt_port_output_notification_iterator *iterator = NULL;
 	struct bt_component_class_sink *colander_comp_cls = NULL;
@@ -918,7 +917,6 @@ bt_port_output_notification_iterator_create(
 	struct bt_component_sink *colander_comp;
 	struct bt_graph *graph = (void *) priv_graph;
 	enum bt_graph_status graph_status;
-	const char *colander_comp_name;
 	struct bt_port_input *colander_in_port = NULL;
 	struct bt_component_class_sink_colander_data colander_data;
 	int ret;
@@ -959,13 +957,14 @@ bt_port_output_notification_iterator_create(
 	}
 
 	iterator->graph = bt_object_get_ref(graph);
-	colander_comp_name =
-		colander_component_name ? colander_component_name : "colander";
 	colander_data.notifs = (void *) iterator->base.notifs->pdata;
 	colander_data.count_addr = &iterator->count;
+
+	/* Hope that nobody uses this very unique name */
 	graph_status =
 		bt_private_graph_add_sink_component_with_init_method_data(
-			(void *) graph, colander_comp_cls, colander_comp_name,
+			(void *) graph, colander_comp_cls,
+			"colander-36ac3409-b1a8-4d60-ab1f-4fdf341a8fb1",
 			NULL, &colander_data, &iterator->colander);
 	if (graph_status != BT_GRAPH_STATUS_OK) {
 		BT_LIB_LOGW("Cannot add colander sink component to graph: "
