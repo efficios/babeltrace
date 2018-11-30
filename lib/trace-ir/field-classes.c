@@ -216,10 +216,12 @@ void destroy_enumeration_field_class(struct bt_object *obj)
 		}
 
 		g_array_free(fc->mappings, TRUE);
+		fc->mappings = NULL;
 	}
 
 	if (fc->label_buf) {
 		g_ptr_array_free(fc->label_buf, TRUE);
+		fc->label_buf = NULL;
 	}
 
 	g_free(fc);
@@ -668,7 +670,7 @@ void finalize_named_field_class(struct bt_named_field_class *named_fc)
 	}
 
 	BT_LOGD_STR("Putting named field class's field class.");
-	bt_object_put_ref(named_fc->fc);
+	BT_OBJECT_PUT_REF_AND_RESET(named_fc->fc);
 }
 
 static
@@ -876,7 +878,9 @@ void destroy_variant_field_class(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying variant field class object: %!+F", fc);
 	finalize_named_field_classes_container((void *) fc);
 	BT_LOGD_STR("Putting selector field path.");
-	bt_object_put_ref(fc->selector_field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(fc->selector_field_path);
+	BT_LOGD_STR("Putting selector field class.");
+	BT_OBJECT_PUT_REF_AND_RESET(fc->selector_fc);
 	g_free(fc);
 }
 
@@ -920,7 +924,7 @@ int bt_private_field_class_variant_set_selector_field_class(
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
 	BT_ASSERT_PRE_FC_IS_ENUM(selector_fc, "Selector field class");
 	BT_ASSERT_PRE_FC_HOT(fc, "Variant field class");
-	var_fc->selector_fc = (void *) selector_fc;
+	var_fc->selector_fc = bt_object_get_ref(selector_fc);
 	bt_field_class_freeze((void *) selector_fc);
 	return 0;
 }
@@ -1008,7 +1012,7 @@ void finalize_array_field_class(struct bt_field_class_array *array_fc)
 {
 	BT_ASSERT(array_fc);
 	BT_LOGD_STR("Putting element field class.");
-	bt_object_put_ref(array_fc->element_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(array_fc->element_fc);
 }
 
 static
@@ -1086,7 +1090,9 @@ void destroy_dynamic_array_field_class(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying dynamic array field class object: %!+F", fc);
 	finalize_array_field_class((void *) fc);
 	BT_LOGD_STR("Putting length field path.");
-	bt_object_put_ref(fc->length_field_path);
+	BT_OBJECT_PUT_REF_AND_RESET(fc->length_field_path);
+	BT_LOGD_STR("Putting length field class.");
+	BT_OBJECT_PUT_REF_AND_RESET(fc->length_fc);
 	g_free(fc);
 }
 
@@ -1130,7 +1136,7 @@ int bt_private_field_class_dynamic_array_set_length_field_class(
 		"Field class");
 	BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc, "Length field class");
 	BT_ASSERT_PRE_FC_HOT(fc, "Dynamic array field class");
-	array_fc->length_fc = length_fc;
+	array_fc->length_fc = bt_object_get_ref(length_fc);
 	bt_field_class_freeze(length_fc);
 	return 0;
 }

@@ -283,21 +283,25 @@ void bt_event_destroy(struct bt_event *event)
 	if (event->header_field) {
 		BT_LOGD_STR("Releasing event's header field.");
 		release_event_header_field(event->header_field, event);
+		event->header_field = NULL;
 	}
 
 	if (event->common_context_field) {
 		BT_LOGD_STR("Destroying event's stream event context field.");
 		bt_field_destroy(event->common_context_field);
+		event->common_context_field = NULL;
 	}
 
 	if (event->specific_context_field) {
 		BT_LOGD_STR("Destroying event's context field.");
 		bt_field_destroy(event->specific_context_field);
+		event->specific_context_field = NULL;
 	}
 
 	if (event->payload_field) {
 		BT_LOGD_STR("Destroying event's payload field.");
 		bt_field_destroy(event->payload_field);
+		event->payload_field = NULL;
 	}
 
 	BT_LOGD_STR("Putting event's class.");
@@ -305,10 +309,11 @@ void bt_event_destroy(struct bt_event *event)
 
 	if (event->default_cv) {
 		bt_clock_value_recycle(event->default_cv);
+		event->default_cv = NULL;
 	}
 
 	BT_LOGD_STR("Putting event's packet.");
-	bt_object_put_ref(event->packet);
+	BT_OBJECT_PUT_REF_AND_RESET(event->packet);
 	g_free(event);
 }
 

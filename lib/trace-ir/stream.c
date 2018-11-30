@@ -54,6 +54,8 @@ void destroy_stream(struct bt_object *obj)
 
 	if (stream->name.str) {
 		g_string_free(stream->name.str, TRUE);
+		stream->name.str = NULL;
+		stream->name.value = NULL;
 	}
 
 	bt_object_pool_finalize(&stream->packet_pool);

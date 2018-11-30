@@ -89,6 +89,7 @@ void destroy_trace(struct bt_object *obj)
 		}
 
 		g_array_free(trace->is_static_listeners, TRUE);
+		trace->is_static_listeners = NULL;
 	}
 
 	bt_object_pool_finalize(&trace->packet_header_field_pool);
@@ -96,28 +97,35 @@ void destroy_trace(struct bt_object *obj)
 	if (trace->environment) {
 		BT_LOGD_STR("Destroying environment attributes.");
 		bt_attributes_destroy(trace->environment);
+		trace->environment = NULL;
 	}
 
 	if (trace->name.str) {
 		g_string_free(trace->name.str, TRUE);
+		trace->name.str = NULL;
+		trace->name.value = NULL;
 	}
 
 	if (trace->streams) {
 		BT_LOGD_STR("Destroying streams.");
 		g_ptr_array_free(trace->streams, TRUE);
+		trace->streams = NULL;
 	}
 
 	if (trace->stream_classes) {
 		BT_LOGD_STR("Destroying stream classes.");
 		g_ptr_array_free(trace->stream_classes, TRUE);
+		trace->stream_classes = NULL;
 	}
 
 	if (trace->stream_classes_stream_count) {
 		g_hash_table_destroy(trace->stream_classes_stream_count);
+		trace->stream_classes_stream_count = NULL;
 	}
 
 	BT_LOGD_STR("Putting packet header field classe.");
 	bt_object_put_ref(trace->packet_header_fc);
+	trace->packet_header_fc = NULL;
 	g_free(trace);
 }
 
