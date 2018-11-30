@@ -120,12 +120,6 @@ extern struct bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_name(struct bt_plugin *plugin,
 		const char *name);
 
-extern uint64_t bt_plugin_set_get_plugin_count(
-		struct bt_plugin_set *plugin_set);
-
-extern struct bt_plugin *bt_plugin_set_borrow_plugin_by_index(
-		struct bt_plugin_set *plugin_set, uint64_t index);
-
 #ifdef __cplusplus
 }
 #endif
