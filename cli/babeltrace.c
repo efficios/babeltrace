@@ -173,7 +173,7 @@ int query(struct bt_component_class *comp_cls, const char *obj,
 		const char **fail_reason)
 {
 	struct bt_value *result = NULL;
-	enum bt_query_status status;
+	enum bt_query_executor_status status;
 	*fail_reason = "unknown error";
 	int ret = 0;
 
@@ -198,14 +198,14 @@ int query(struct bt_component_class *comp_cls, const char *obj,
 		status = bt_private_query_executor_query(the_query_executor,
 			comp_cls, obj, params, &result);
 		switch (status) {
-		case BT_QUERY_STATUS_OK:
+		case BT_QUERY_EXECUTOR_STATUS_OK:
 			goto ok;
-		case BT_QUERY_STATUS_AGAIN:
+		case BT_QUERY_EXECUTOR_STATUS_AGAIN:
 		{
 			const uint64_t sleep_time_us = 100000;
 
 			/* Wait 100 ms and retry */
-			BT_LOGV("Got BT_QUERY_STATUS_AGAIN: sleeping: "
+			BT_LOGV("Got BT_QUERY_EXECUTOR_STATUS_AGAIN: sleeping: "
 				"time-us=%" PRIu64, sleep_time_us);
 
 			if (usleep(sleep_time_us)) {
@@ -223,18 +223,21 @@ int query(struct bt_component_class *comp_cls, const char *obj,
 
 			continue;
 		}
-		case BT_QUERY_STATUS_EXECUTOR_CANCELED:
+		case BT_QUERY_EXECUTOR_STATUS_CANCELED:
 			*fail_reason = "canceled by user";
 			goto error;
-		case BT_QUERY_STATUS_ERROR:
+		case BT_QUERY_EXECUTOR_STATUS_ERROR:
 			goto error;
-		case BT_QUERY_STATUS_INVALID_OBJECT:
+		case BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT:
 			*fail_reason = "invalid or unknown query object";
 			goto error;
-		case BT_QUERY_STATUS_INVALID_PARAMS:
+		case BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS:
 			*fail_reason = "invalid query parameters";
 			goto error;
-		case BT_QUERY_STATUS_NOMEM:
+		case BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED:
+			*fail_reason = "unsupported action";
+			goto error;
+		case BT_QUERY_EXECUTOR_STATUS_NOMEM:
 			*fail_reason = "not enough memory";
 			goto error;
 		default:

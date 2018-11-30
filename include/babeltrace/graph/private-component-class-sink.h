@@ -32,9 +32,6 @@
 #include <babeltrace/graph/self-component.h>
 
 /* For enum bt_query_status */
-#include <babeltrace/graph/query-executor.h>
-
-/* For struct bt_private_component_class_query_method_return */
 #include <babeltrace/graph/private-component-class.h>
 
 #ifdef __cplusplus
