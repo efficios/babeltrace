@@ -137,7 +137,7 @@ bool size_is_valid_for_enumeration_field_class(struct bt_field_class *fc,
 	return true;
 }
 
-int bt_private_field_class_integer_set_field_value_range(
+void bt_private_field_class_integer_set_field_value_range(
 		struct bt_private_field_class *priv_fc, uint64_t size)
 {
 	struct bt_field_class *fc = (void *) priv_fc;
@@ -158,7 +158,6 @@ int bt_private_field_class_integer_set_field_value_range(
 		"which are outside this range: %!+F, size=%" PRIu64, fc, size);
 	int_fc->range = size;
 	BT_LIB_LOGV("Set integer field class's field value range: %!+F", fc);
-	return 0;
 }
 
 enum bt_field_class_integer_preferred_display_base
@@ -171,7 +170,7 @@ bt_field_class_integer_get_preferred_display_base(struct bt_field_class *fc)
 	return int_fc->base;
 }
 
-int bt_private_field_class_integer_set_preferred_display_base(
+void bt_private_field_class_integer_set_preferred_display_base(
 		struct bt_private_field_class *priv_fc,
 		enum bt_field_class_integer_preferred_display_base base)
 {
@@ -183,7 +182,6 @@ int bt_private_field_class_integer_set_preferred_display_base(
 	BT_ASSERT_PRE_FC_HOT(fc, "Field class");
 	int_fc->base = base;
 	BT_LIB_LOGV("Set integer field class's preferred display base: %!+F", fc);
-	return 0;
 }
 
 static
@@ -614,7 +612,7 @@ bt_bool bt_field_class_real_is_single_precision(struct bt_field_class *fc)
 	return real_fc->is_single_precision;
 }
 
-int bt_private_field_class_real_set_is_single_precision(
+void bt_private_field_class_real_set_is_single_precision(
 		struct bt_private_field_class *priv_fc,
 		bt_bool is_single_precision)
 {
@@ -627,7 +625,6 @@ int bt_private_field_class_real_set_is_single_precision(
 	real_fc->is_single_precision = (bool) is_single_precision;
 	BT_LIB_LOGV("Set real field class's \"is single precision\" property: "
 		"%!+F", fc);
-	return 0;
 }
 
 static

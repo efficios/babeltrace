@@ -58,22 +58,22 @@ extern int bt_private_clock_class_set_description(
 		struct bt_private_clock_class *clock_class,
 		const char *description);
 
-extern int bt_private_clock_class_set_frequency(
+extern void bt_private_clock_class_set_frequency(
 		struct bt_private_clock_class *clock_class, uint64_t freq);
 
-extern int bt_private_clock_class_set_precision(
+extern void bt_private_clock_class_set_precision(
 		struct bt_private_clock_class *clock_class,
 		uint64_t precision);
 
-extern int bt_private_clock_class_set_offset(
+extern void bt_private_clock_class_set_offset(
 		struct bt_private_clock_class *clock_class,
 		int64_t seconds, uint64_t cycles);
 
-extern int bt_private_clock_class_set_is_absolute(
+extern void bt_private_clock_class_set_is_absolute(
 		struct bt_private_clock_class *clock_class,
 		bt_bool is_absolute);
 
-extern int bt_private_clock_class_set_uuid(
+extern void bt_private_clock_class_set_uuid(
 		struct bt_private_clock_class *clock_class, bt_uuid uuid);
 
 #ifdef __cplusplus

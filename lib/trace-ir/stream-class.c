@@ -506,7 +506,7 @@ bt_bool bt_stream_class_assigns_automatic_event_class_id(
 	return (bt_bool) stream_class->assigns_automatic_event_class_id;
 }
 
-int bt_private_stream_class_set_assigns_automatic_event_class_id(
+void bt_private_stream_class_set_assigns_automatic_event_class_id(
 		struct bt_private_stream_class *priv_stream_class,
 		bt_bool value)
 {
@@ -517,7 +517,6 @@ int bt_private_stream_class_set_assigns_automatic_event_class_id(
 	stream_class->assigns_automatic_event_class_id = (bool) value;
 	BT_LIB_LOGV("Set stream class's automatic event class ID "
 		"assignment property: %!+S", stream_class);
-	return 0;
 }
 
 bt_bool bt_stream_class_assigns_automatic_stream_id(
@@ -527,7 +526,7 @@ bt_bool bt_stream_class_assigns_automatic_stream_id(
 	return (bt_bool) stream_class->assigns_automatic_stream_id;
 }
 
-int bt_private_stream_class_set_assigns_automatic_stream_id(
+void bt_private_stream_class_set_assigns_automatic_stream_id(
 		struct bt_private_stream_class *priv_stream_class,
 		bt_bool value)
 {
@@ -538,7 +537,6 @@ int bt_private_stream_class_set_assigns_automatic_stream_id(
 	stream_class->assigns_automatic_stream_id = (bool) value;
 	BT_LIB_LOGV("Set stream class's automatic stream ID "
 		"assignment property: %!+S", stream_class);
-	return 0;
 }
 
 bt_bool bt_stream_class_packets_have_discarded_event_counter_snapshot(
@@ -548,7 +546,7 @@ bt_bool bt_stream_class_packets_have_discarded_event_counter_snapshot(
 	return (bt_bool) stream_class->packets_have_discarded_event_counter_snapshot;
 }
 
-int bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
+void bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
 		struct bt_private_stream_class *priv_stream_class,
 		bt_bool value)
 {
@@ -561,7 +559,6 @@ int bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
 	BT_LIB_LOGV("Set stream class's "
 		"\"packets have discarded event counter snapshot\" property: "
 		"%!+S", stream_class);
-	return 0;
 }
 
 bt_bool bt_stream_class_packets_have_packet_counter_snapshot(
@@ -571,7 +568,7 @@ bt_bool bt_stream_class_packets_have_packet_counter_snapshot(
 	return (bt_bool) stream_class->packets_have_packet_counter_snapshot;
 }
 
-int bt_private_stream_class_set_packets_have_packet_counter_snapshot(
+void bt_private_stream_class_set_packets_have_packet_counter_snapshot(
 		struct bt_private_stream_class *priv_stream_class,
 		bt_bool value)
 {
@@ -584,7 +581,6 @@ int bt_private_stream_class_set_packets_have_packet_counter_snapshot(
 	BT_LIB_LOGV("Set stream class's "
 		"\"packets have packet counter snapshot\" property: "
 		"%!+S", stream_class);
-	return 0;
 }
 
 bt_bool bt_stream_class_packets_have_default_beginning_clock_value(
@@ -594,7 +590,7 @@ bt_bool bt_stream_class_packets_have_default_beginning_clock_value(
 	return (bt_bool) stream_class->packets_have_default_beginning_cv;
 }
 
-int bt_private_stream_class_set_packets_have_default_beginning_clock_value(
+void bt_private_stream_class_set_packets_have_default_beginning_clock_value(
 		struct bt_private_stream_class *priv_stream_class,
 		bt_bool value)
 {
@@ -609,7 +605,6 @@ int bt_private_stream_class_set_packets_have_default_beginning_clock_value(
 	BT_LIB_LOGV("Set stream class's "
 		"\"packets have default beginning clock value\" property: "
 		"%!+S", stream_class);
-	return 0;
 }
 
 bt_bool bt_stream_class_packets_have_default_end_clock_value(
@@ -619,7 +614,7 @@ bt_bool bt_stream_class_packets_have_default_end_clock_value(
 	return (bt_bool) stream_class->packets_have_default_end_cv;
 }
 
-int bt_private_stream_class_set_packets_have_default_end_clock_value(
+void bt_private_stream_class_set_packets_have_default_end_clock_value(
 		struct bt_private_stream_class *priv_stream_class,
 		bt_bool value)
 {
@@ -634,7 +629,6 @@ int bt_private_stream_class_set_packets_have_default_end_clock_value(
 	BT_LIB_LOGV("Set stream class's "
 		"\"packets have default end clock value\" property: "
 		"%!+S", stream_class);
-	return 0;
 }
 
 bt_bool bt_stream_class_default_clock_is_always_known(

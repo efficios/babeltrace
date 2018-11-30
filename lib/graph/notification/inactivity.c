@@ -86,7 +86,7 @@ end:
 	return (void *) ret_notif;
 }
 
-int bt_private_notification_inactivity_set_default_clock_value(
+void bt_private_notification_inactivity_set_default_clock_value(
 		struct bt_private_notification *priv_notif,
 		uint64_t value_cycles)
 {
@@ -99,7 +99,6 @@ int bt_private_notification_inactivity_set_default_clock_value(
 	bt_clock_value_set_value_inline(inactivity->default_cv, value_cycles);
 	BT_LIB_LOGV("Set inactivity notification's default clock value: "
 		"%![notif-]+n, value=%" PRIu64, notif, value_cycles);
-	return 0;
 }
 
 struct bt_clock_value *bt_notification_inactivity_borrow_default_clock_value(
