@@ -63,10 +63,10 @@ extern int bt_private_stream_class_set_name(
 		struct bt_private_stream_class *stream_class,
 		const char *name);
 
-extern int bt_private_stream_class_set_assigns_automatic_event_class_id(
+extern void bt_private_stream_class_set_assigns_automatic_event_class_id(
 		struct bt_private_stream_class *stream_class, bt_bool value);
 
-extern int bt_private_stream_class_set_assigns_automatic_stream_id(
+extern void bt_private_stream_class_set_assigns_automatic_stream_id(
 		struct bt_private_stream_class *stream_class, bt_bool value);
 
 extern struct bt_private_field_class *
@@ -109,19 +109,19 @@ extern int bt_private_stream_class_set_default_clock_class(
 extern bt_bool bt_private_stream_class_default_clock_is_always_known(
 		struct bt_private_stream_class *stream_class);
 
-extern int
+extern void
 bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
 		struct bt_private_stream_class *stream_class, bt_bool value);
 
-extern int
+extern void
 bt_private_stream_class_set_packets_have_packet_counter_snapshot(
 		struct bt_private_stream_class *stream_class, bt_bool value);
 
-extern int
+extern void
 bt_private_stream_class_set_packets_have_default_beginning_clock_value(
 		struct bt_private_stream_class *stream_class, bt_bool value);
 
-extern int
+extern void
 bt_private_stream_class_set_packets_have_default_end_clock_value(
 		struct bt_private_stream_class *stream_class, bt_bool value);
 

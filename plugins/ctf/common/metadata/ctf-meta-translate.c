@@ -35,14 +35,10 @@ static inline
 void ctf_field_class_int_set_props(struct ctf_field_class_int *fc,
 		struct bt_private_field_class *ir_fc)
 {
-	int ret;
-
-	ret = bt_private_field_class_integer_set_field_value_range(ir_fc,
+	bt_private_field_class_integer_set_field_value_range(ir_fc,
 		fc->base.size);
-	BT_ASSERT(ret == 0);
-	ret = bt_private_field_class_integer_set_preferred_display_base(ir_fc,
+	bt_private_field_class_integer_set_preferred_display_base(ir_fc,
 		fc->disp_base);
-	BT_ASSERT(ret == 0);
 }
 
 static inline
@@ -104,15 +100,13 @@ struct bt_private_field_class *ctf_field_class_float_to_ir(
 		struct ctf_field_class_float *fc)
 {
 	struct bt_private_field_class *ir_fc;
-	int ret;
 
 	ir_fc = bt_private_field_class_real_create();
 	BT_ASSERT(ir_fc);
 
 	if (fc->base.size == 32) {
-		ret = bt_private_field_class_real_set_is_single_precision(ir_fc,
+		bt_private_field_class_real_set_is_single_precision(ir_fc,
 			BT_TRUE);
-		BT_ASSERT(ret == 0);
 	}
 
 	return ir_fc;
@@ -450,8 +444,7 @@ struct bt_private_event_class *ctf_event_class_to_ir(struct ctf_event_class *ec,
 	}
 
 	if (ec->log_level != -1) {
-		ret = bt_private_event_class_set_log_level(ir_ec, ec->log_level);
-		BT_ASSERT(ret == 0);
+		bt_private_event_class_set_log_level(ir_ec, ec->log_level);
 	}
 
 	ec->is_translated = true;
@@ -517,11 +510,9 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 		}
 	}
 
-	ret = bt_private_stream_class_set_assigns_automatic_event_class_id(ir_sc,
+	bt_private_stream_class_set_assigns_automatic_event_class_id(ir_sc,
 		BT_FALSE);
-	BT_ASSERT(ret == 0);
-	ret = bt_private_stream_class_set_assigns_automatic_stream_id(ir_sc, BT_FALSE);
-	BT_ASSERT(ret == 0);
+	bt_private_stream_class_set_assigns_automatic_stream_id(ir_sc, BT_FALSE);
 
 	if (sc->default_clock_class) {
 		ret = bt_private_stream_class_set_default_clock_class(ir_sc,
@@ -533,9 +524,8 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 		"events_discarded");
 	if (int_fc) {
 		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT) {
-			ret = bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
+			bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
 				ir_sc, BT_TRUE);
-			BT_ASSERT(ret == 0);
 		}
 	}
 
@@ -543,9 +533,8 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 		"packet_seq_num");
 	if (int_fc) {
 		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_COUNTER_SNAPSHOT) {
-			ret = bt_private_stream_class_set_packets_have_packet_counter_snapshot(
+			bt_private_stream_class_set_packets_have_packet_counter_snapshot(
 				ir_sc, BT_TRUE);
-			BT_ASSERT(ret == 0);
 		}
 	}
 
@@ -553,9 +542,8 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 		"timestamp_begin");
 	if (int_fc) {
 		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_BEGINNING_TIME) {
-			ret = bt_private_stream_class_set_packets_have_default_beginning_clock_value(
+			bt_private_stream_class_set_packets_have_default_beginning_clock_value(
 				ir_sc, BT_TRUE);
-			BT_ASSERT(ret == 0);
 		}
 	}
 
@@ -563,9 +551,8 @@ struct bt_private_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *
 		"timestamp_end");
 	if (int_fc) {
 		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_END_TIME) {
-			ret = bt_private_stream_class_set_packets_have_default_end_clock_value(
+			bt_private_stream_class_set_packets_have_default_end_clock_value(
 				ir_sc, BT_TRUE);
-			BT_ASSERT(ret == 0);
 		}
 	}
 
@@ -607,10 +594,7 @@ int ctf_trace_class_to_ir(struct bt_private_trace *ir_trace,
 	}
 
 	if (tc->is_uuid_set) {
-		ret = bt_private_trace_set_uuid(ir_trace, tc->uuid);
-		if (ret) {
-			goto end;
-		}
+		bt_private_trace_set_uuid(ir_trace, tc->uuid);
 	}
 
 	for (i = 0; i < tc->env_entries->len; i++) {
@@ -637,12 +621,8 @@ int ctf_trace_class_to_ir(struct bt_private_trace *ir_trace,
 		}
 	}
 
-	ret = bt_private_trace_set_assigns_automatic_stream_class_id(ir_trace,
+	bt_private_trace_set_assigns_automatic_stream_class_id(ir_trace,
 		BT_FALSE);
-	if (ret) {
-		goto end;
-	}
-
 	tc->is_translated = true;
 	tc->ir_tc = ir_trace;
 

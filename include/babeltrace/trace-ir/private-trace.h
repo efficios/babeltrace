@@ -60,13 +60,13 @@ struct bt_trace *bt_private_trace_borrow_trace(
 
 extern struct bt_private_trace *bt_private_trace_create(void);
 
-extern int bt_private_trace_set_assigns_automatic_stream_class_id(
+extern void bt_private_trace_set_assigns_automatic_stream_class_id(
 		struct bt_private_trace *trace, bt_bool value);
 
 extern int bt_private_trace_set_name(struct bt_private_trace *trace,
 		const char *name);
 
-extern int bt_private_trace_set_uuid(struct bt_private_trace *trace,
+extern void bt_private_trace_set_uuid(struct bt_private_trace *trace,
 		bt_uuid uuid);
 
 extern void bt_private_trace_borrow_environment_entry_by_index(
