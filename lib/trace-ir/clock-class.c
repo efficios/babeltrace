@@ -50,10 +50,14 @@ void destroy_clock_class(struct bt_object *obj)
 
 	if (clock_class->name.str) {
 		g_string_free(clock_class->name.str, TRUE);
+		clock_class->name.str = NULL;
+		clock_class->name.value = NULL;
 	}
 
 	if (clock_class->description.str) {
 		g_string_free(clock_class->description.str, TRUE);
+		clock_class->description.str = NULL;
+		clock_class->description.value = NULL;
 	}
 
 	bt_object_pool_finalize(&clock_class->cv_pool);

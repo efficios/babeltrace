@@ -44,6 +44,7 @@ void destroy_field_path(struct bt_object *obj)
 	BT_ASSERT(field_path);
 	BT_LIB_LOGD("Destroying field path: %!+P", field_path);
 	g_array_free(field_path->indexes, TRUE);
+	field_path->indexes = NULL;
 	g_free(field_path);
 }
 

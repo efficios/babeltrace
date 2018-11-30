@@ -63,16 +63,18 @@ void destroy_event_class(struct bt_object *obj)
 
 	if (event_class->name.str) {
 		g_string_free(event_class->name.str, TRUE);
+		event_class->name.str = NULL;
 	}
 
 	if (event_class->emf_uri.str) {
 		g_string_free(event_class->emf_uri.str, TRUE);
+		event_class->emf_uri.str = NULL;
 	}
 
 	BT_LOGD_STR("Putting context field classe.");
-	bt_object_put_ref(event_class->specific_context_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(event_class->specific_context_fc);
 	BT_LOGD_STR("Putting payload field classe.");
-	bt_object_put_ref(event_class->payload_fc);
+	BT_OBJECT_PUT_REF_AND_RESET(event_class->payload_fc);
 	bt_object_pool_finalize(&event_class->event_pool);
 	g_free(obj);
 }

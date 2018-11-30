@@ -871,7 +871,7 @@ void bt_field_finalize(struct bt_field *field)
 {
 	BT_ASSERT(field);
 	BT_LOGD_STR("Putting field's class.");
-	bt_object_put_ref(field->class);
+	BT_OBJECT_PUT_REF_AND_RESET(field->class);
 }
 
 static
@@ -903,6 +903,7 @@ void destroy_structure_field(struct bt_field *field)
 
 	if (struct_field->fields) {
 		g_ptr_array_free(struct_field->fields, TRUE);
+		struct_field->fields = NULL;
 	}
 
 	g_free(field);
@@ -919,6 +920,7 @@ void destroy_variant_field(struct bt_field *field)
 
 	if (var_field->fields) {
 		g_ptr_array_free(var_field->fields, TRUE);
+		var_field->fields = NULL;
 	}
 
 	g_free(field);
@@ -935,6 +937,7 @@ void destroy_array_field(struct bt_field *field)
 
 	if (array_field->fields) {
 		g_ptr_array_free(array_field->fields, TRUE);
+		array_field->fields = NULL;
 	}
 
 	g_free(field);
@@ -951,6 +954,7 @@ void destroy_string_field(struct bt_field *field)
 
 	if (string_field->buf) {
 		g_array_free(string_field->buf, TRUE);
+		string_field->buf = NULL;
 	}
 
 	g_free(field);

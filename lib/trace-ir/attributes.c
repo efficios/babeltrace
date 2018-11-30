@@ -71,7 +71,7 @@ BT_HIDDEN
 void bt_attributes_destroy(struct bt_private_value *attr_obj)
 {
 	BT_LOGD("Destroying attributes object: addr=%p", attr_obj);
-	bt_object_put_ref(attr_obj);
+	BT_OBJECT_PUT_REF_AND_RESET(attr_obj);
 }
 
 BT_HIDDEN

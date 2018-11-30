@@ -58,6 +58,7 @@ void bt_field_wrapper_destroy(struct bt_field_wrapper *field_wrapper)
 	if (field_wrapper->field) {
 		BT_LOGD_STR("Destroying field.");
 		bt_field_destroy((void *) field_wrapper->field);
+		field_wrapper->field = NULL;
 	}
 
 	BT_LOGD_STR("Putting stream class.");
