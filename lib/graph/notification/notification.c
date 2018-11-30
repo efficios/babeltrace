@@ -49,7 +49,8 @@ void bt_notification_init(struct bt_notification *notification,
 		bt_object_release_func release,
 		struct bt_graph *graph)
 {
-	BT_ASSERT(type >= 0 && type < BT_NOTIFICATION_TYPE_NR);
+	BT_ASSERT(type >= 0 &&
+		type <= BT_NOTIFICATION_TYPE_PACKET_END);
 	notification->type = type;
 	init_seq_num(notification);
 	bt_object_init_shared(&notification->base, release);
