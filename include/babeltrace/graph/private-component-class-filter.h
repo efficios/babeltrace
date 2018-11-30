@@ -31,13 +31,11 @@
 /* For enum bt_self_component_status */
 #include <babeltrace/graph/self-component.h>
 
-/* For enum bt_query_status */
-#include <babeltrace/graph/query-executor.h>
 
 /* For enum bt_self_notification_iterator_status */
 #include <babeltrace/graph/self-notification-iterator.h>
 
-/* For struct bt_private_component_class_query_method_return */
+/* For enum bt_query_status */
 #include <babeltrace/graph/private-component-class.h>
 
 #ifdef __cplusplus

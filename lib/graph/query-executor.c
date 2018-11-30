@@ -64,7 +64,7 @@ end:
 	return (void *) query_exec;
 }
 
-enum bt_query_status bt_private_query_executor_query(
+enum bt_query_executor_status bt_private_query_executor_query(
 		struct bt_private_query_executor *priv_query_exec,
 		struct bt_component_class *comp_cls,
 		const char *object, struct bt_value *params,
@@ -75,6 +75,7 @@ enum bt_query_status bt_private_query_executor_query(
 
 	struct bt_query_executor *query_exec = (void *) priv_query_exec;
 	enum bt_query_status status;
+	enum bt_query_executor_status exec_status;
 	method_t method = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
@@ -117,7 +118,7 @@ enum bt_query_status bt_private_query_executor_query(
 		/* Not an error: nothing to query */
 		BT_LIB_LOGD("Component class has no registered query method: "
 			"%!+C", comp_cls);
-		status = BT_QUERY_STATUS_UNSUPPORTED;
+		exec_status = BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED;
 		goto end;
 	}
 
@@ -128,23 +129,20 @@ enum bt_query_status bt_private_query_executor_query(
 	status = method(comp_cls, query_exec, object, params, user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
 		bt_query_status_string(status), *user_result);
-	BT_ASSERT_PRE(status != BT_QUERY_STATUS_EXECUTOR_CANCELED &&
-		status != BT_QUERY_STATUS_UNSUPPORTED,
-		"Unexpected (illegal) returned status: status=%s",
-		bt_query_status_string(status));
 	BT_ASSERT_PRE(status != BT_QUERY_STATUS_OK || *user_result,
 		"User method returned `BT_QUERY_STATUS_OK` without a result.");
+	exec_status = (int) status;
 	if (query_exec->canceled) {
 		BT_OBJECT_PUT_REF_AND_RESET(*user_result);
-		status = BT_QUERY_STATUS_EXECUTOR_CANCELED;
+		status = BT_QUERY_EXECUTOR_STATUS_CANCELED;
 		goto end;
 	}
 
 end:
-	return status;
+	return exec_status;
 }
 
-enum bt_query_status bt_private_query_executor_cancel(
+enum bt_query_executor_status bt_private_query_executor_cancel(
 		struct bt_private_query_executor *priv_query_exec)
 {
 	struct bt_query_executor *query_exec = (void *) priv_query_exec;
@@ -152,7 +150,7 @@ enum bt_query_status bt_private_query_executor_cancel(
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	query_exec->canceled = BT_TRUE;
 	BT_LOGV("Canceled query executor: addr=%p", query_exec);
-	return BT_QUERY_STATUS_OK;
+	return BT_QUERY_EXECUTOR_STATUS_OK;
 }
 
 bt_bool bt_query_executor_is_canceled(struct bt_query_executor *query_exec)
