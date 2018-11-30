@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-/* For enum bt_query_status */
+/* For enum bt_query_executor_status */
 #include <babeltrace/graph/query-executor.h>
 
 #ifdef __cplusplus
@@ -32,6 +32,15 @@ extern "C" {
 
 struct bt_component_class;
 struct bt_private_component_class;
+
+enum bt_query_status {
+	BT_QUERY_STATUS_OK = BT_QUERY_EXECUTOR_STATUS_OK,
+	BT_QUERY_STATUS_AGAIN = BT_QUERY_EXECUTOR_STATUS_AGAIN,
+	BT_QUERY_STATUS_ERROR = BT_QUERY_EXECUTOR_STATUS_ERROR,
+	BT_QUERY_STATUS_NOMEM = BT_QUERY_EXECUTOR_STATUS_NOMEM,
+	BT_QUERY_STATUS_INVALID_OBJECT = BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT,
+	BT_QUERY_STATUS_INVALID_PARAMS = BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS,
+};
 
 static inline
 struct bt_component_class *

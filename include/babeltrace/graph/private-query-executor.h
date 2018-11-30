@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-/* For enum bt_query_status */
+/* For enum bt_query_executor_status */
 #include <babeltrace/graph/query-executor.h>
 
 #ifdef __cplusplus
@@ -46,14 +46,14 @@ extern
 struct bt_private_query_executor *bt_private_query_executor_create(void);
 
 extern
-enum bt_query_status bt_private_query_executor_query(
+enum bt_query_executor_status bt_private_query_executor_query(
 		struct bt_private_query_executor *query_executor,
 		struct bt_component_class *component_class,
 		const char *object, struct bt_value *params,
 		struct bt_value **result);
 
 extern
-enum bt_query_status bt_private_query_executor_cancel(
+enum bt_query_executor_status bt_private_query_executor_cancel(
 		struct bt_private_query_executor *query_executor);
 
 #ifdef __cplusplus

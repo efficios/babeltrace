@@ -25,6 +25,8 @@
 
 #include <babeltrace/types.h>
 #include <babeltrace/object-internal.h>
+#include <babeltrace/graph/query-executor.h>
+#include <babeltrace/graph/private-component-class.h>
 
 struct bt_query_executor {
 	struct bt_object base;
@@ -38,10 +40,6 @@ static inline const char *bt_query_status_string(enum bt_query_status status)
 		return "BT_QUERY_STATUS_OK";
 	case BT_QUERY_STATUS_AGAIN:
 		return "BT_QUERY_STATUS_AGAIN";
-	case BT_QUERY_STATUS_EXECUTOR_CANCELED:
-		return "BT_QUERY_STATUS_EXECUTOR_CANCELED";
-	case BT_QUERY_STATUS_UNSUPPORTED:
-		return "BT_QUERY_STATUS_UNSUPPORTED";
 	case BT_QUERY_STATUS_ERROR:
 		return "BT_QUERY_STATUS_ERROR";
 	case BT_QUERY_STATUS_INVALID_OBJECT:
@@ -50,6 +48,31 @@ static inline const char *bt_query_status_string(enum bt_query_status status)
 		return "BT_QUERY_STATUS_INVALID_PARAMS";
 	case BT_QUERY_STATUS_NOMEM:
 		return "BT_QUERY_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+};
+
+static inline const char *bt_query_executor_status_string(
+		enum bt_query_executor_status status)
+{
+	switch (status) {
+	case BT_QUERY_EXECUTOR_STATUS_OK:
+		return "BT_QUERY_EXECUTOR_STATUS_OK";
+	case BT_QUERY_EXECUTOR_STATUS_AGAIN:
+		return "BT_QUERY_EXECUTOR_STATUS_AGAIN";
+	case BT_QUERY_EXECUTOR_STATUS_CANCELED:
+		return "BT_QUERY_EXECUTOR_STATUS_CANCELED";
+	case BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED:
+		return "BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED";
+	case BT_QUERY_EXECUTOR_STATUS_ERROR:
+		return "BT_QUERY_EXECUTOR_STATUS_ERROR";
+	case BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT:
+		return "BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT";
+	case BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS:
+		return "BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS";
+	case BT_QUERY_EXECUTOR_STATUS_NOMEM:
+		return "BT_QUERY_EXECUTOR_STATUS_NOMEM";
 	default:
 		return "(unknown)";
 	}
