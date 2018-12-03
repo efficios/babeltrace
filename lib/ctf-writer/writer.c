@@ -41,7 +41,7 @@
 #include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -51,7 +51,7 @@
 #include <unistd.h>
 
 static
-void bt_ctf_writer_destroy(struct bt_object *obj);
+void bt_ctf_writer_destroy(struct bt_ctf_object *obj);
 
 static
 int init_trace_packet_header(struct bt_ctf_trace *trace)
@@ -95,10 +95,10 @@ int init_trace_packet_header(struct bt_ctf_trace *trace)
 		goto end;
 	}
 end:
-	bt_object_put_ref(uuid_array_type);
-	bt_object_put_ref(_uint32_t);
-	bt_object_put_ref(_uint8_t);
-	bt_object_put_ref(trace_packet_header_type);
+	bt_ctf_object_put_ref(uuid_array_type);
+	bt_ctf_object_put_ref(_uint32_t);
+	bt_ctf_object_put_ref(_uint8_t);
+	bt_ctf_object_put_ref(trace_packet_header_type);
 	return ret;
 }
 
@@ -120,7 +120,7 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 
 	metadata_path = g_build_filename(path, "metadata", NULL);
 
-	bt_object_init_shared(&writer->base, bt_ctf_writer_destroy);
+	bt_ctf_object_init_shared(&writer->base, bt_ctf_writer_destroy);
 	writer->path = g_string_new(path);
 	if (!writer->path) {
 		goto error_destroy;
@@ -148,8 +148,8 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 		goto error_destroy;
 	}
 
-	bt_object_set_parent(&writer->trace->common.base, &writer->base);
-	bt_object_put_ref(writer->trace);
+	bt_ctf_object_set_parent(&writer->trace->common.base, &writer->base);
+	bt_ctf_object_put_ref(writer->trace);
 
 	/* Default to little-endian */
 	ret = bt_ctf_writer_set_byte_order(writer, BT_CTF_BYTE_ORDER_NATIVE);
@@ -173,13 +173,13 @@ struct bt_ctf_writer *bt_ctf_writer_create(const char *path)
 	return writer;
 
 error_destroy:
-	BT_OBJECT_PUT_REF_AND_RESET(writer);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(writer);
 error:
 	g_free(metadata_path);
 	return writer;
 }
 
-void bt_ctf_writer_destroy(struct bt_object *obj)
+void bt_ctf_writer_destroy(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_writer *writer;
 
@@ -195,7 +195,7 @@ void bt_ctf_writer_destroy(struct bt_object *obj)
 		}
 	}
 
-	bt_object_try_spec_release(&writer->trace->common.base);
+	bt_ctf_object_try_spec_release(&writer->trace->common.base);
 	g_free(writer);
 }
 
@@ -208,7 +208,7 @@ struct bt_ctf_trace *bt_ctf_writer_get_trace(struct bt_ctf_writer *writer)
 	}
 
 	trace = writer->trace;
-	bt_object_get_ref(trace);
+	bt_ctf_object_get_ref(trace);
 end:
 	return trace;
 }
@@ -240,7 +240,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 			stream_class_found = BT_TRUE;
 		}
 
-		BT_OBJECT_PUT_REF_AND_RESET(existing_stream_class);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(existing_stream_class);
 
 		if (stream_class_found) {
 			break;
@@ -264,7 +264,7 @@ struct bt_ctf_stream *bt_ctf_writer_create_stream(struct bt_ctf_writer *writer,
 	return stream;
 
 error:
-        BT_OBJECT_PUT_REF_AND_RESET(stream);
+        BT_CTF_OBJECT_PUT_REF_AND_RESET(stream);
 	return stream;
 }
 
@@ -422,7 +422,7 @@ struct bt_ctf_field_type *get_field_type(enum field_type_alias alias)
 	field_type = bt_ctf_field_type_integer_create(size);
 	ret = bt_ctf_field_type_set_alignment(field_type, alignment);
 	if (ret) {
-		BT_OBJECT_PUT_REF_AND_RESET(field_type);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(field_type);
 	}
 end:
 	return field_type;

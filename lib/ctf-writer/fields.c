@@ -34,8 +34,8 @@
 #include <babeltrace/ctf-writer/fields-internal.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object-internal.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <float.h>
 #include <inttypes.h>
 #include <inttypes.h>
@@ -70,7 +70,7 @@ end:
 BT_HIDDEN
 int bt_ctf_field_common_structure_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func)
@@ -114,7 +114,7 @@ end:
 BT_HIDDEN
 int bt_ctf_field_common_variant_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func)
@@ -166,7 +166,7 @@ end:
 BT_HIDDEN
 int bt_ctf_field_common_string_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods)
 {
 	int ret = 0;
@@ -192,7 +192,7 @@ end:
 BT_HIDDEN
 int bt_ctf_field_common_array_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_destroy_func)
@@ -236,7 +236,7 @@ end:
 BT_HIDDEN
 int bt_ctf_field_common_sequence_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		GDestroyNotify field_destroy_func)
 {
@@ -806,7 +806,7 @@ void bt_ctf_field_enumeration_destroy_recursive(struct bt_ctf_field *field)
 	BT_LOGD("Destroying CTF writer enumeration field object: addr=%p",
 		field);
 	BT_LOGD_STR("Putting container field.");
-	bt_object_put_ref(enumeration->container);
+	bt_ctf_object_put_ref(enumeration->container);
 	bt_ctf_field_common_finalize((void *) field);
 	g_free(field);
 }
@@ -826,7 +826,7 @@ void bt_ctf_field_variant_destroy_recursive(struct bt_ctf_field *field)
 
 	BT_LOGD("Destroying CTF writer variant field object: addr=%p", field);
 	BT_LOGD_STR("Putting tag field.");
-	bt_object_put_ref(variant->tag);
+	bt_ctf_object_put_ref(variant->tag);
 	bt_ctf_field_common_variant_finalize_recursive((void *) field);
 	g_free(field);
 }
@@ -1184,8 +1184,8 @@ int bt_ctf_field_string_serialize(struct bt_ctf_field_common *field,
 	}
 
 end:
-	bt_object_put_ref(character);
-	bt_object_put_ref(character_type);
+	bt_ctf_object_put_ref(character);
+	bt_ctf_object_put_ref(character_type);
 	return ret;
 }
 
@@ -1212,7 +1212,7 @@ end:
 
 struct bt_ctf_field_type *bt_ctf_field_get_type(struct bt_ctf_field *field)
 {
-	return bt_object_get_ref(bt_ctf_field_common_borrow_type((void *) field));
+	return bt_ctf_object_get_ref(bt_ctf_field_common_borrow_type((void *) field));
 }
 
 enum bt_ctf_field_type_id bt_ctf_field_get_type_id(struct bt_ctf_field *field)
@@ -1253,28 +1253,28 @@ int bt_ctf_field_sequence_set_length(struct bt_ctf_field *field,
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_index(
 		struct bt_ctf_field *field, uint64_t index)
 {
-	return bt_object_get_ref(bt_ctf_field_common_structure_borrow_field_by_index(
+	return bt_ctf_object_get_ref(bt_ctf_field_common_structure_borrow_field_by_index(
 		(void *) field, index));
 }
 
 struct bt_ctf_field *bt_ctf_field_structure_get_field_by_name(
 		struct bt_ctf_field *field, const char *name)
 {
-	return bt_object_get_ref(bt_ctf_field_common_structure_borrow_field_by_name(
+	return bt_ctf_object_get_ref(bt_ctf_field_common_structure_borrow_field_by_name(
 		(void *) field, name));
 }
 
 struct bt_ctf_field *bt_ctf_field_array_get_field(
 		struct bt_ctf_field *field, uint64_t index)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_field_common_array_borrow_field((void *) field, index));
 }
 
 struct bt_ctf_field *bt_ctf_field_sequence_get_field(
 		struct bt_ctf_field *field, uint64_t index)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_field_common_sequence_borrow_field((void *) field, index));
 }
 
@@ -1329,8 +1329,8 @@ struct bt_ctf_field *bt_ctf_field_variant_get_field(struct bt_ctf_field *field,
 		goto end;
 	}
 
-	bt_object_put_ref(variant_field->tag);
-	variant_field->tag = bt_object_get_ref(tag_field);
+	bt_ctf_object_put_ref(variant_field->tag);
+	variant_field->tag = bt_ctf_object_get_ref(tag_field);
 	current_field = bt_ctf_field_variant_get_current_field(field);
 	BT_ASSERT(current_field);
 
@@ -1341,7 +1341,7 @@ end:
 struct bt_ctf_field *bt_ctf_field_variant_get_current_field(
 		struct bt_ctf_field *variant_field)
 {
-	return bt_object_get_ref(bt_ctf_field_common_variant_borrow_current_field(
+	return bt_ctf_object_get_ref(bt_ctf_field_common_variant_borrow_current_field(
 		(void *) variant_field));
 }
 
@@ -1361,7 +1361,7 @@ struct bt_ctf_field *bt_ctf_field_enumeration_borrow_container(
 struct bt_ctf_field *bt_ctf_field_enumeration_get_container(
 		struct bt_ctf_field *field)
 {
-	return bt_object_get_ref(bt_ctf_field_enumeration_borrow_container(field));
+	return bt_ctf_object_get_ref(bt_ctf_field_enumeration_borrow_container(field));
 }
 
 int bt_ctf_field_integer_signed_get_value(struct bt_ctf_field *field,
@@ -1492,7 +1492,7 @@ struct bt_ctf_field *bt_ctf_field_integer_create(struct bt_ctf_field_type *type)
 	if (integer) {
 		bt_ctf_field_common_initialize(BT_CTF_TO_COMMON(integer), (void *) type,
 			true,
-			(bt_object_release_func) bt_ctf_field_integer_destroy,
+			(bt_ctf_object_release_func) bt_ctf_field_integer_destroy,
 			&bt_ctf_field_integer_methods);
 		integer->common.spec.writer.serialize_func =
 			(bt_ctf_field_serialize_recursive_func) bt_ctf_field_integer_serialize;
@@ -1522,13 +1522,13 @@ struct bt_ctf_field *bt_ctf_field_enumeration_create(
 
 	bt_ctf_field_common_initialize(BT_CTF_TO_COMMON(enumeration),
 		(void *) type,
-		true, (bt_object_release_func)
+		true, (bt_ctf_object_release_func)
 			bt_ctf_field_enumeration_destroy_recursive,
 		&bt_ctf_field_enumeration_methods);
 	enumeration->container = (void *) bt_ctf_field_create(
 		BT_CTF_FROM_COMMON(enum_ft->container_ft));
 	if (!enumeration->container) {
-		BT_OBJECT_PUT_REF_AND_RESET(enumeration);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(enumeration);
 		goto end;
 	}
 
@@ -1554,7 +1554,7 @@ struct bt_ctf_field *bt_ctf_field_floating_point_create(
 	if (floating_point) {
 		bt_ctf_field_common_initialize(BT_CTF_TO_COMMON(floating_point),
 			(void *) type,
-			true, (bt_object_release_func)
+			true, (bt_ctf_object_release_func)
 				bt_ctf_field_floating_point_destroy,
 			&bt_ctf_field_floating_point_methods);
 		floating_point->common.spec.writer.serialize_func =
@@ -1585,15 +1585,15 @@ struct bt_ctf_field *bt_ctf_field_structure_create(
 
 	iret = bt_ctf_field_common_structure_initialize(BT_CTF_TO_COMMON(structure),
 		(void *) type,
-		true, (bt_object_release_func)
+		true, (bt_ctf_object_release_func)
 			bt_ctf_field_structure_destroy_recursive,
 		&bt_ctf_field_structure_methods,
 		(bt_ctf_field_common_create_func) bt_ctf_field_create,
-		(GDestroyNotify) bt_object_put_ref);
+		(GDestroyNotify) bt_ctf_object_put_ref);
 	structure->common.spec.writer.serialize_func =
 		(bt_ctf_field_serialize_recursive_func) bt_ctf_field_structure_serialize_recursive;
 	if (iret) {
-		BT_OBJECT_PUT_REF_AND_RESET(structure);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(structure);
 		goto end;
 	}
 
@@ -1620,11 +1620,11 @@ struct bt_ctf_field *bt_ctf_field_variant_create(struct bt_ctf_field_type *type)
 
 	bt_ctf_field_common_variant_initialize(BT_CTF_TO_COMMON(BT_CTF_TO_COMMON(variant)),
 		(void *) type,
-		true, (bt_object_release_func)
+		true, (bt_ctf_object_release_func)
 			bt_ctf_field_variant_destroy_recursive,
 		&bt_ctf_field_variant_methods,
 		(bt_ctf_field_common_create_func) bt_ctf_field_create,
-		(GDestroyNotify) bt_object_put_ref);
+		(GDestroyNotify) bt_ctf_object_put_ref);
 	variant->tag = (void *) bt_ctf_field_create(
 		BT_CTF_FROM_COMMON(var_ft->tag_ft));
 	variant->common.common.spec.writer.serialize_func =
@@ -1653,15 +1653,15 @@ struct bt_ctf_field *bt_ctf_field_array_create(struct bt_ctf_field_type *type)
 
 	ret = bt_ctf_field_common_array_initialize(BT_CTF_TO_COMMON(array),
 		(void *) type,
-		true, (bt_object_release_func)
+		true, (bt_ctf_object_release_func)
 			bt_ctf_field_array_destroy_recursive,
 		&bt_ctf_field_array_methods,
 		(bt_ctf_field_common_create_func) bt_ctf_field_create,
-		(GDestroyNotify) bt_object_put_ref);
+		(GDestroyNotify) bt_ctf_object_put_ref);
 	array->common.spec.writer.serialize_func =
 		(bt_ctf_field_serialize_recursive_func) bt_ctf_field_array_serialize_recursive;
 	if (ret) {
-		BT_OBJECT_PUT_REF_AND_RESET(array);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(array);
 		goto end;
 	}
 
@@ -1683,10 +1683,10 @@ struct bt_ctf_field *bt_ctf_field_sequence_create(struct bt_ctf_field_type *type
 	if (sequence) {
 		bt_ctf_field_common_sequence_initialize(BT_CTF_TO_COMMON(sequence),
 			(void *) type,
-			true, (bt_object_release_func)
+			true, (bt_ctf_object_release_func)
 				bt_ctf_field_sequence_destroy_recursive,
 			&bt_ctf_field_sequence_methods,
-			(GDestroyNotify) bt_object_put_ref);
+			(GDestroyNotify) bt_ctf_object_put_ref);
 		sequence->common.spec.writer.serialize_func =
 			(bt_ctf_field_serialize_recursive_func) bt_ctf_field_sequence_serialize_recursive;
 		BT_LOGD("Created CTF writer sequence field object: addr=%p, ft-addr=%p",
@@ -1709,7 +1709,7 @@ struct bt_ctf_field *bt_ctf_field_string_create(struct bt_ctf_field_type *type)
 	if (string) {
 		bt_ctf_field_common_string_initialize(BT_CTF_TO_COMMON(string),
 			(void *) type,
-			true, (bt_object_release_func)
+			true, (bt_ctf_object_release_func)
 				bt_ctf_field_string_destroy,
 			&bt_ctf_field_string_methods);
 		string->common.spec.writer.serialize_func =
@@ -1905,8 +1905,8 @@ int bt_ctf_field_structure_set_field_by_name(struct bt_ctf_field *field,
 		ret = -1;
 		goto end;
 	}
-	bt_object_get_ref(value);
-	BT_OBJECT_MOVE_REF(structure->fields->pdata[index], value);
+	bt_ctf_object_get_ref(value);
+	BT_CTF_OBJECT_MOVE_REF(structure->fields->pdata[index], value);
 
 end:
 	return ret;

@@ -38,7 +38,7 @@
 #include <stdint.h>
 
 static
-void field_path_destroy(struct bt_object *obj)
+void field_path_destroy(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_field_path *field_path = (struct bt_ctf_field_path *) obj;
 
@@ -67,7 +67,7 @@ struct bt_ctf_field_path *bt_ctf_field_path_create(void)
 		goto error;
 	}
 
-	bt_object_init_shared(&field_path->base, field_path_destroy);
+	bt_ctf_object_init_shared(&field_path->base, field_path_destroy);
 	field_path->root = BT_CTF_SCOPE_UNKNOWN;
 	field_path->indexes = g_array_new(TRUE, FALSE, sizeof(int));
 	if (!field_path->indexes) {
@@ -79,7 +79,7 @@ struct bt_ctf_field_path *bt_ctf_field_path_create(void)
 	return field_path;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(field_path);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(field_path);
 	return NULL;
 }
 

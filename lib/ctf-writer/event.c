@@ -44,7 +44,7 @@
 #include <babeltrace/ctf-writer/trace.h>
 #include <babeltrace/ctf-writer/utils.h>
 #include <babeltrace/ctf-writer/validation-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <inttypes.h>
 
 static
@@ -66,7 +66,7 @@ int bt_ctf_event_common_validate_types_for_create(
 	struct bt_ctf_field_type_common *event_context_type = NULL;
 	struct bt_ctf_field_type_common *event_payload_type = NULL;
 	int trace_valid = 0;
-	struct bt_private_value *environment = NULL;
+	struct bt_ctf_private_value *environment = NULL;
 
 	stream_class = bt_ctf_event_class_common_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
@@ -310,7 +310,7 @@ BT_HIDDEN
 int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		struct bt_ctf_event_class_common *event_class,
 		struct bt_ctf_clock_class *init_expected_clock_class,
-		bool is_shared_with_parent, bt_object_release_func release_func,
+		bool is_shared_with_parent, bt_ctf_object_release_func release_func,
 		bt_ctf_validation_flag_copy_field_type_func field_type_copy_func,
 		bool must_be_in_trace,
 		int (*map_clock_classes_func)(struct bt_ctf_stream_class_common *stream_class,
@@ -330,7 +330,7 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 	struct bt_ctf_field_common *event_payload = NULL;
 	struct bt_ctf_validation_output validation_output = { 0 };
 	struct bt_ctf_clock_class *expected_clock_class =
-		init_expected_clock_class ? bt_object_get_ref(init_expected_clock_class) :
+		init_expected_clock_class ? bt_ctf_object_get_ref(init_expected_clock_class) :
 		NULL;
 
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
@@ -360,9 +360,9 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 	 * destroy it.
 	 */
 	if (is_shared_with_parent) {
-		bt_object_init_shared_with_parent(&event->base, release_func);
+		bt_ctf_object_init_shared_with_parent(&event->base, release_func);
 	} else {
-		bt_object_init_unique(&event->base);
+		bt_ctf_object_init_unique(&event->base);
 	}
 
 	if (!stream_class->frozen) {
@@ -425,7 +425,7 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 	 * from that point, the event and its class will share the same
 	 * lifetime.
 	 */
-	event->class = bt_object_get_ref(event_class);
+	event->class = bt_ctf_object_get_ref(event_class);
 
 	ret = bt_ctf_event_common_create_fields(stream_class,
 		&validation_output,
@@ -472,7 +472,7 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 	 * now because the stream class is frozen.
 	 */
 	if (expected_clock_class) {
-		BT_OBJECT_MOVE_REF(stream_class->clock_class, expected_clock_class);
+		BT_CTF_OBJECT_MOVE_REF(stream_class->clock_class, expected_clock_class);
 	}
 
 	/*
@@ -491,7 +491,7 @@ int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 
 error:
 	bt_ctf_validation_output_put_types(&validation_output);
-	bt_object_put_ref(expected_clock_class);
+	bt_ctf_object_put_ref(expected_clock_class);
 
 	if (event_header) {
 		release_header_field_func(event_header, stream_class);
@@ -535,7 +535,7 @@ static
 void destroy_event_header_field(struct bt_ctf_field_wrapper *field_wrapper)
 {
 	BT_ASSERT(field_wrapper);
-	bt_object_put_ref(field_wrapper->field);
+	bt_ctf_object_put_ref(field_wrapper->field);
 	bt_ctf_field_wrapper_destroy(field_wrapper);
 }
 
@@ -561,7 +561,7 @@ struct bt_ctf_field_wrapper *create_event_header_field(
 	goto end;
 
 error:
-	bt_object_put_ref(field);
+	bt_ctf_object_put_ref(field);
 
 	if (field_wrapper) {
 		destroy_event_header_field(field_wrapper);
@@ -577,14 +577,14 @@ void release_event_header_field(struct bt_ctf_field_wrapper *field_wrapper,
 		struct bt_ctf_event_common *event_common)
 {
 	BT_ASSERT(field_wrapper);
-	BT_OBJECT_PUT_REF_AND_RESET(field_wrapper->field);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(field_wrapper->field);
 	bt_ctf_field_wrapper_destroy(field_wrapper);
 }
 
 static
-void bt_ctf_event_destroy(struct bt_object *obj)
+void bt_ctf_event_destroy(struct bt_ctf_object *obj)
 {
-	bt_ctf_event_common_finalize(obj, (void *) bt_object_put_ref,
+	bt_ctf_event_common_finalize(obj, (void *) bt_ctf_object_put_ref,
 		(void *) release_event_header_field);
 	g_free(obj);
 }
@@ -618,7 +618,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 			bt_ctf_field_type_copy,
 		false, map_clock_classes_func,
 		(create_field_func) bt_ctf_field_create,
-		(release_field_func) bt_object_put_ref,
+		(release_field_func) bt_ctf_object_put_ref,
 		(create_header_field_func) create_event_header_field,
 		(release_header_field_func) destroy_event_header_field);
 	if (ret) {
@@ -629,7 +629,7 @@ struct bt_ctf_event *bt_ctf_event_create(struct bt_ctf_event_class *event_class)
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(event);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(event);
 
 end:
 	return event;
@@ -638,7 +638,7 @@ end:
 struct bt_ctf_event_class *bt_ctf_event_get_class(struct bt_ctf_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	return bt_object_get_ref(bt_ctf_event_common_borrow_class(BT_CTF_TO_COMMON(event)));
+	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_class(BT_CTF_TO_COMMON(event)));
 }
 
 BT_HIDDEN
@@ -646,13 +646,13 @@ struct bt_ctf_stream *bt_ctf_event_borrow_stream(struct bt_ctf_event *event)
 {
 	BT_ASSERT(event);
 	return (struct bt_ctf_stream *)
-		bt_object_borrow_parent(&BT_CTF_TO_COMMON(event)->base);
+		bt_ctf_object_borrow_parent(&BT_CTF_TO_COMMON(event)->base);
 }
 
 struct bt_ctf_stream *bt_ctf_event_get_stream(struct bt_ctf_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	return bt_object_get_ref(bt_ctf_event_borrow_stream(event));
+	return bt_ctf_object_get_ref(bt_ctf_event_borrow_stream(event));
 }
 
 int bt_ctf_event_set_payload(struct bt_ctf_event *event, const char *name,
@@ -677,7 +677,7 @@ struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 			BT_CTF_FROM_COMMON(event->common.payload_field), name);
 	} else {
 		field = BT_CTF_FROM_COMMON(event->common.payload_field);
-		bt_object_get_ref(field);
+		bt_ctf_object_get_ref(field);
 	}
 
 	return field;
@@ -686,23 +686,23 @@ struct bt_ctf_field *bt_ctf_event_get_payload(struct bt_ctf_event *event,
 struct bt_ctf_field *bt_ctf_event_get_payload_field(
 		struct bt_ctf_event *event)
 {
-	return bt_object_get_ref(bt_ctf_event_common_borrow_payload(BT_CTF_TO_COMMON(event)));
+	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_payload(BT_CTF_TO_COMMON(event)));
 }
 
 struct bt_ctf_field *bt_ctf_event_get_header(struct bt_ctf_event *event)
 {
-	return bt_object_get_ref(bt_ctf_event_common_borrow_header(BT_CTF_TO_COMMON(event)));
+	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_header(BT_CTF_TO_COMMON(event)));
 }
 
 struct bt_ctf_field *bt_ctf_event_get_context(struct bt_ctf_event *event)
 {
-	return bt_object_get_ref(bt_ctf_event_common_borrow_context(BT_CTF_TO_COMMON(event)));
+	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_context(BT_CTF_TO_COMMON(event)));
 }
 
 struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 		struct bt_ctf_event *event)
 {
-	return bt_object_get_ref(bt_ctf_event_common_borrow_stream_event_context(
+	return bt_ctf_object_get_ref(bt_ctf_event_common_borrow_stream_event_context(
 		BT_CTF_TO_COMMON(event)));
 }
 
@@ -786,8 +786,8 @@ int bt_ctf_event_set_header(struct bt_ctf_event *event,
 			bt_ctf_event_class_common_borrow_stream_class(event->common.class)->event_header_field_type);
 	}
 
-	bt_object_put_ref(event->common.header_field->field);
-	event->common.header_field->field = bt_object_get_ref(header);
+	bt_ctf_object_put_ref(event->common.header_field->field);
+	event->common.header_field->field = bt_ctf_object_get_ref(header);
 	BT_LOGV("Set event's header field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"header-field-addr=%p",
@@ -820,8 +820,8 @@ int bt_ctf_event_common_set_payload(struct bt_ctf_event *event,
 			event, event->common.class->payload_field_type);
 	}
 
-	bt_object_put_ref(event->common.payload_field);
-	event->common.payload_field = bt_object_get_ref(payload);
+	bt_ctf_object_put_ref(event->common.payload_field);
+	event->common.payload_field = bt_ctf_object_get_ref(payload);
 	BT_LOGV("Set event's payload field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"payload-field-addr=%p",
@@ -853,8 +853,8 @@ int bt_ctf_event_set_context(struct bt_ctf_event *event,
 			event, event->common.class->context_field_type);
 	}
 
-	bt_object_put_ref(event->common.context_field);
-	event->common.context_field = bt_object_get_ref(context);
+	bt_ctf_object_put_ref(event->common.context_field);
+	event->common.context_field = bt_ctf_object_get_ref(context);
 	BT_LOGV("Set event's context field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"context-field-addr=%p",
@@ -888,8 +888,8 @@ int bt_ctf_event_set_stream_event_context(struct bt_ctf_event *event,
 			bt_ctf_event_class_common_borrow_stream_class(event->common.class)->event_context_field_type);
 	}
 
-	bt_object_put_ref(event->common.stream_event_context_field);
-	event->common.stream_event_context_field = bt_object_get_ref(stream_event_context);
+	bt_ctf_object_put_ref(event->common.stream_event_context_field);
+	event->common.stream_event_context_field = bt_ctf_object_get_ref(stream_event_context);
 	BT_LOGV("Set event's stream event context field: event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
 		"stream-event-context-field-addr=%p",

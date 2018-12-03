@@ -38,9 +38,9 @@
 #include <babeltrace/ctf-writer/resolve-internal.h>
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/utils-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -76,7 +76,7 @@ struct type_stack_frame {
  *   * Event payload
  */
 struct resolve_context {
-	struct bt_private_value *environment;
+	struct bt_ctf_private_value *environment;
 	struct bt_ctf_field_type_common *scopes[6];
 
 	/* Root scope being visited */
@@ -115,7 +115,7 @@ void type_stack_destroy_notify(gpointer data)
 {
 	struct type_stack_frame *frame = data;
 
-	BT_OBJECT_PUT_REF_AND_RESET(frame->type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(frame->type);
 	g_free(frame);
 }
 
@@ -165,7 +165,7 @@ int type_stack_push(type_stack *stack, struct bt_ctf_field_type_common *type)
 
 	BT_LOGV("Pushing field type on context's stack: "
 		"ft-addr=%p, stack-size-before=%u", type, stack->len);
-	frame->type = bt_object_get_ref(type);
+	frame->type = bt_ctf_object_get_ref(type);
 	g_ptr_array_add(stack, frame);
 
 end:
@@ -402,7 +402,7 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 	bt_bool first_level_done = BT_FALSE;
 
 	/* Get our own reference */
-	bt_object_get_ref(type);
+	bt_ctf_object_get_ref(type);
 
 	/* Locate target */
 	while (cur_ptoken) {
@@ -460,12 +460,12 @@ int ptokens_to_field_path(GList *ptokens, struct bt_ctf_field_path *field_path,
 		}
 
 		/* Move child type to current type */
-		bt_object_get_ref(child_type);
-		BT_OBJECT_MOVE_REF(type, child_type);
+		bt_ctf_object_get_ref(child_type);
+		BT_CTF_OBJECT_MOVE_REF(type, child_type);
 	}
 
 end:
-	bt_object_put_ref(type);
+	bt_ctf_object_put_ref(type);
 	return ret;
 }
 
@@ -617,7 +617,7 @@ int relative_ptokens_to_field_path(GList *ptokens,
 	}
 
 end:
-	BT_OBJECT_PUT_REF_AND_RESET(tail_field_path);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(tail_field_path);
 	return ret;
 }
 
@@ -704,7 +704,7 @@ struct bt_ctf_field_path *pathstr_to_field_path(const char *pathstr,
 
 end:
 	if (ret) {
-		BT_OBJECT_PUT_REF_AND_RESET(field_path);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(field_path);
 	}
 
 	ptokens_destroy(ptokens);
@@ -727,7 +727,7 @@ struct bt_ctf_field_type_common *field_path_to_field_type(
 
 	/* Start with root type */
 	type = get_type_from_ctx(ctx, field_path->root);
-	bt_object_get_ref(type);
+	bt_ctf_object_get_ref(type);
 	if (!type) {
 		/* Error: root type is not available */
 		BT_LOGW("Root field type is not available: root-scope=%s",
@@ -751,14 +751,14 @@ struct bt_ctf_field_type_common *field_path_to_field_type(
 		}
 
 		/* Move child type to current type */
-		bt_object_get_ref(child_type);
-		BT_OBJECT_MOVE_REF(type, child_type);
+		bt_ctf_object_get_ref(child_type);
+		BT_CTF_OBJECT_MOVE_REF(type, child_type);
 	}
 
 	return type;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(type);
 	return type;
 }
 
@@ -792,7 +792,7 @@ struct bt_ctf_field_path *get_ctx_stack_field_path(struct resolve_context *ctx)
 	return field_path;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(field_path);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(field_path);
 	return field_path;
 }
 
@@ -988,7 +988,7 @@ int validate_target_field_path(struct bt_ctf_field_path *target_field_path,
 	}
 
 end:
-	BT_OBJECT_PUT_REF_AND_RESET(ctx_field_path);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(ctx_field_path);
 	return ret;
 }
 
@@ -1104,8 +1104,8 @@ end:
 		g_string_free(target_field_path_pretty, TRUE);
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(target_field_path);
-	BT_OBJECT_PUT_REF_AND_RESET(target_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(target_field_path);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(target_type);
 	return ret;
 }
 
@@ -1229,7 +1229,7 @@ int resolve_root_type(enum bt_ctf_scope root_scope, struct resolve_context *ctx)
 
 BT_HIDDEN
 int bt_ctf_resolve_types(
-		struct bt_private_value *environment,
+		struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,

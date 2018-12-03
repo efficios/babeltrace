@@ -24,11 +24,11 @@
  */
 
 #include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/object-pool-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-pool-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 
 struct bt_ctf_field_wrapper {
-	struct bt_object base;
+	struct bt_ctf_object base;
 
 	/* Owned by this */
 	struct bt_ctf_field_common *field;
@@ -42,6 +42,6 @@ void bt_ctf_field_wrapper_destroy(struct bt_ctf_field_wrapper *field);
 
 BT_HIDDEN
 struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
-		struct bt_object_pool *pool, struct bt_ctf_field_type *ft);
+		struct bt_ctf_object_pool *pool, struct bt_ctf_field_type *ft);
 
 #endif /* BABELTRACE_CTF_WRITER_FIELD_WRAPPER_INTERNAL_H */
