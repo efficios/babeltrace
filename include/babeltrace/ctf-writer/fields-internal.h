@@ -39,7 +39,7 @@
 #include <babeltrace/ctf-writer/fields.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/ctf-writer/utils-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/types.h>
 #include <glib.h>
 #include <inttypes.h>
@@ -79,7 +79,7 @@ struct bt_ctf_field_common_methods {
 };
 
 struct bt_ctf_field_common {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	struct bt_ctf_field_type_common *type;
 	struct bt_ctf_field_common_methods *methods;
 	bool payload_set;
@@ -166,7 +166,7 @@ struct bt_ctf_field_common *bt_ctf_field_common_copy(struct bt_ctf_field_common 
 BT_HIDDEN
 int bt_ctf_field_common_structure_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func);
@@ -174,7 +174,7 @@ int bt_ctf_field_common_structure_initialize(struct bt_ctf_field_common *field,
 BT_HIDDEN
 int bt_ctf_field_common_array_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_destroy_func);
@@ -182,14 +182,14 @@ int bt_ctf_field_common_array_initialize(struct bt_ctf_field_common *field,
 BT_HIDDEN
 int bt_ctf_field_common_sequence_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		GDestroyNotify field_destroy_func);
 
 BT_HIDDEN
 int bt_ctf_field_common_variant_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods,
 		bt_ctf_field_common_create_func field_create_func,
 		GDestroyNotify field_release_func);
@@ -197,7 +197,7 @@ int bt_ctf_field_common_variant_initialize(struct bt_ctf_field_common *field,
 BT_HIDDEN
 int bt_ctf_field_common_string_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *type,
-		bool is_shared, bt_object_release_func release_func,
+		bool is_shared, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods);
 
 BT_HIDDEN
@@ -348,14 +348,14 @@ end:
 static inline
 void bt_ctf_field_common_initialize(struct bt_ctf_field_common *field,
 		struct bt_ctf_field_type_common *ft, bool is_shared,
-		bt_object_release_func release_func,
+		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_common_methods *methods)
 {
 	BT_ASSERT(field);
 	BT_ASSERT(ft);
-	bt_object_init(&field->base, is_shared, release_func);
+	bt_ctf_object_init(&field->base, is_shared, release_func);
 	field->methods = methods;
-	field->type = bt_object_get_ref(ft);
+	field->type = (void *) bt_ctf_object_get_ref(ft);
 }
 
 static inline
@@ -696,7 +696,7 @@ void bt_ctf_field_common_finalize(struct bt_ctf_field_common *field)
 {
 	BT_ASSERT(field);
 	BT_LOGD_STR("Putting field's type.");
-	bt_object_put_ref(field->type);
+	bt_ctf_object_put_ref(field->type);
 }
 
 static inline

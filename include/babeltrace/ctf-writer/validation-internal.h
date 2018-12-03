@@ -23,8 +23,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/private-values.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/values-internal.h>
 
 struct bt_ctf_trace_common;
 struct bt_ctf_stream_class_common;
@@ -80,7 +80,7 @@ struct bt_ctf_validation_output {
  * All parameters are owned by the caller.
  */
 BT_HIDDEN
-int bt_ctf_validate_class_types(struct bt_private_value *environment,
+int bt_ctf_validate_class_types(struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,

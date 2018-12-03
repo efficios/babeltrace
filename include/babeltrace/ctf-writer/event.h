@@ -28,7 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -136,14 +136,14 @@ extern struct bt_ctf_event_class *bt_ctf_event_get_class(
 static inline
 void bt_ctf_event_get(struct bt_ctf_event *event)
 {
-	bt_object_get_ref(event);
+	bt_ctf_object_get_ref(event);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
 void bt_ctf_event_put(struct bt_ctf_event *event)
 {
-	bt_object_put_ref(event);
+	bt_ctf_object_put_ref(event);
 }
 
 extern struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name);
@@ -199,14 +199,14 @@ extern struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 static inline
 void bt_ctf_event_class_get(struct bt_ctf_event_class *event_class)
 {
-	bt_object_get_ref(event_class);
+	bt_ctf_object_get_ref(event_class);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
 void bt_ctf_event_class_put(struct bt_ctf_event_class *event_class)
 {
-	bt_object_put_ref(event_class);
+	bt_ctf_object_put_ref(event_class);
 }
 
 #ifdef __cplusplus

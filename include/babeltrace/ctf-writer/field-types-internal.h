@@ -36,7 +36,7 @@
 #include <babeltrace/ctf-writer/clock-class-internal.h>
 #include <babeltrace/ctf-writer/field-types.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/types.h>
 
 #define BT_ASSERT_PRE_CTF_FT_COMMON_HAS_ID(_ft, _type_id, _name)	\
@@ -79,7 +79,7 @@ struct bt_ctf_field_type_common_methods {
 };
 
 struct bt_ctf_field_type_common {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	enum bt_ctf_field_type_id id;
 	unsigned int alignment;
 
@@ -171,7 +171,7 @@ enum bt_ctf_field_type_enumeration_mapping_iterator_type {
 };
 
 struct bt_ctf_field_type_enumeration_mapping_iterator {
-	struct bt_object base;
+	struct bt_ctf_object base;
 
 	/* Owned by this */
 	struct bt_ctf_field_type_common_enumeration *enumeration_ft;
@@ -281,45 +281,45 @@ typedef struct bt_ctf_field_common *(* bt_ctf_field_common_create_func)(
 
 BT_HIDDEN
 void bt_ctf_field_type_common_initialize(struct bt_ctf_field_type_common *ft,
-		bool init_bo, bt_object_release_func release_func,
+		bool init_bo, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
 void bt_ctf_field_type_common_integer_initialize(
 		struct bt_ctf_field_type_common *ft,
-		unsigned int size, bt_object_release_func release_func,
+		unsigned int size, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
 void bt_ctf_field_type_common_floating_point_initialize(
 		struct bt_ctf_field_type_common *ft,
-		bt_object_release_func release_func,
+		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
 void bt_ctf_field_type_common_enumeration_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *container_ft,
-		bt_object_release_func release_func,
+		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
 void bt_ctf_field_type_common_string_initialize(
 		struct bt_ctf_field_type_common *ft,
-		bt_object_release_func release_func,
+		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
 void bt_ctf_field_type_common_structure_initialize(
 		struct bt_ctf_field_type_common *ft,
-		bt_object_release_func release_func,
+		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
 void bt_ctf_field_type_common_array_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *element_ft,
-		unsigned int length, bt_object_release_func release_func,
+		unsigned int length, bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
@@ -327,7 +327,7 @@ void bt_ctf_field_type_common_sequence_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *element_ft,
 		const char *length_field_name,
-		bt_object_release_func release_func,
+		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
@@ -335,32 +335,32 @@ void bt_ctf_field_type_common_variant_initialize(
 		struct bt_ctf_field_type_common *ft,
 		struct bt_ctf_field_type_common *tag_ft,
 		const char *tag_name,
-		bt_object_release_func release_func,
+		bt_ctf_object_release_func release_func,
 		struct bt_ctf_field_type_common_methods *methods);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_integer_destroy(struct bt_object *obj);
+void bt_ctf_field_type_common_integer_destroy(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_floating_point_destroy(struct bt_object *obj);
+void bt_ctf_field_type_common_floating_point_destroy(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_enumeration_destroy_recursive(struct bt_object *obj);
+void bt_ctf_field_type_common_enumeration_destroy_recursive(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_string_destroy(struct bt_object *obj);
+void bt_ctf_field_type_common_string_destroy(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_structure_destroy_recursive(struct bt_object *obj);
+void bt_ctf_field_type_common_structure_destroy_recursive(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_array_destroy_recursive(struct bt_object *obj);
+void bt_ctf_field_type_common_array_destroy_recursive(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_sequence_destroy_recursive(struct bt_object *obj);
+void bt_ctf_field_type_common_sequence_destroy_recursive(struct bt_ctf_object *obj);
 
 BT_HIDDEN
-void bt_ctf_field_type_common_variant_destroy_recursive(struct bt_object *obj);
+void bt_ctf_field_type_common_variant_destroy_recursive(struct bt_ctf_object *obj);
 
 BT_HIDDEN
 int bt_ctf_field_type_common_integer_validate(struct bt_ctf_field_type_common *ft);

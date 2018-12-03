@@ -31,7 +31,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <babeltrace/ctf-writer/trace.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 
 struct metadata_context {
 	GString *string;
@@ -40,7 +40,7 @@ struct metadata_context {
 };
 
 struct bt_ctf_writer {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	int frozen; /* Protects attributes that can't be changed mid-trace */
 	struct bt_ctf_trace *trace;
 	GString *path;

@@ -36,13 +36,13 @@
 #include <babeltrace/ctf-writer/stream-internal.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/utils-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <stdint.h>
 
 struct bt_ctf_stream_common;
 
 struct bt_ctf_stream_common {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	int64_t id;
 	struct bt_ctf_stream_class_common *stream_class;
 	GString *name;
@@ -52,7 +52,7 @@ BT_HIDDEN
 int bt_ctf_stream_common_initialize(
 		struct bt_ctf_stream_common *stream,
 		struct bt_ctf_stream_class_common *stream_class, const char *name,
-		uint64_t id, bt_object_release_func release_func);
+		uint64_t id, bt_ctf_object_release_func release_func);
 
 BT_HIDDEN
 void bt_ctf_stream_common_finalize(struct bt_ctf_stream_common *stream);

@@ -38,21 +38,20 @@
 #include <babeltrace/ctf-writer/stream-class-internal.h>
 #include <babeltrace/ctf-writer/trace.h>
 #include <babeltrace/ctf-writer/validation-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values.h>
-#include <babeltrace/private-values.h>
+#include <babeltrace/values-internal.h>
 #include <glib.h>
 #include <sys/types.h>
 
 struct bt_ctf_trace_common {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	GString *name;
 	int frozen;
 	unsigned char uuid[BABELTRACE_UUID_LEN];
 	bt_bool uuid_set;
 	enum bt_ctf_byte_order native_byte_order;
-	struct bt_private_value *environment;
+	struct bt_ctf_private_value *environment;
 	GPtrArray *clock_classes; /* Array of pointers to bt_ctf_clock_class */
 	GPtrArray *stream_classes; /* Array of ptrs to bt_ctf_stream_class_common */
 	GPtrArray *streams; /* Array of ptrs to bt_ctf_stream_common */
@@ -72,7 +71,7 @@ bt_bool bt_ctf_trace_common_has_clock_class(struct bt_ctf_trace_common *trace,
 
 BT_HIDDEN
 int bt_ctf_trace_common_initialize(struct bt_ctf_trace_common *trace,
-		bt_object_release_func release_func);
+		bt_ctf_object_release_func release_func);
 
 BT_HIDDEN
 void bt_ctf_trace_common_finalize(struct bt_ctf_trace_common *trace);
@@ -99,7 +98,7 @@ int bt_ctf_trace_common_set_uuid(struct bt_ctf_trace_common *trace, const unsign
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
-		const char *name, struct bt_private_value *value);
+		const char *name, struct bt_ctf_private_value *value);
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_environment_field_string(struct bt_ctf_trace_common *trace,
@@ -131,7 +130,7 @@ bt_ctf_trace_common_get_environment_field_name_by_index(
 }
 
 static inline
-struct bt_private_value *
+struct bt_ctf_private_value *
 bt_ctf_trace_common_borrow_environment_field_value_by_index(
 		struct bt_ctf_trace_common *trace, uint64_t index)
 {
@@ -140,7 +139,7 @@ bt_ctf_trace_common_borrow_environment_field_value_by_index(
 }
 
 static inline
-struct bt_private_value *
+struct bt_ctf_private_value *
 bt_ctf_trace_common_borrow_environment_field_value_by_name(
 		struct bt_ctf_trace_common *trace, const char *name)
 {
@@ -369,5 +368,23 @@ struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 BT_HIDDEN
 int bt_ctf_trace_add_clock_class(struct bt_ctf_trace *trace,
 		struct bt_ctf_clock_class *clock_class);
+
+BT_HIDDEN
+int64_t bt_ctf_trace_get_environment_field_count(
+		struct bt_ctf_trace *trace);
+
+BT_HIDDEN
+const char *bt_ctf_trace_get_environment_field_name_by_index(
+		struct bt_ctf_trace *trace, uint64_t index);
+
+BT_HIDDEN
+struct bt_ctf_value *
+bt_ctf_trace_get_environment_field_value_by_index(struct bt_ctf_trace *trace,
+		uint64_t index);
+
+BT_HIDDEN
+struct bt_ctf_value *
+bt_ctf_trace_get_environment_field_value_by_name(
+		struct bt_ctf_trace *trace, const char *name);
 
 #endif /* BABELTRACE_CTF_WRITER_TRACE_INTERNAL_H */

@@ -33,12 +33,12 @@
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/trace-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/values.h>
 #include <glib.h>
 
 struct bt_ctf_event_class_common {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	struct bt_ctf_field_type_common *context_field_type;
 	struct bt_ctf_field_type_common *payload_field_type;
 	int frozen;
@@ -70,18 +70,18 @@ struct bt_ctf_stream_class_common *bt_ctf_event_class_common_borrow_stream_class
 		struct bt_ctf_event_class_common *event_class)
 {
 	BT_ASSERT(event_class);
-	return (void *) bt_object_borrow_parent(&event_class->base);
+	return (void *) bt_ctf_object_borrow_parent(&event_class->base);
 }
 
 typedef struct bt_ctf_field_type_common *(*bt_ctf_field_type_structure_create_func)();
 
 BT_HIDDEN
 int bt_ctf_event_class_common_initialize(struct bt_ctf_event_class_common *event_class,
-		const char *name, bt_object_release_func release_func,
+		const char *name, bt_ctf_object_release_func release_func,
 		bt_ctf_field_type_structure_create_func ft_struct_create_func);
 
 BT_HIDDEN
-void bt_ctf_event_class_common_finalize(struct bt_object *obj);
+void bt_ctf_event_class_common_finalize(struct bt_ctf_object *obj);
 
 BT_HIDDEN
 int bt_ctf_event_class_common_validate_single_clock_class(
@@ -333,8 +333,9 @@ int bt_ctf_event_class_common_set_context_field_type(
 		goto end;
 	}
 
-	bt_object_put_ref(event_class->context_field_type);
-	event_class->context_field_type = bt_object_get_ref(context_ft);
+	bt_ctf_object_put_ref(event_class->context_field_type);
+	event_class->context_field_type = context_ft;
+	bt_ctf_object_get_ref(event_class->context_field_type);
 	BT_LOGV("Set event class's context field type: "
 		"event-class-addr=%p, event-class-name=\"%s\", "
 		"event-class-id=%" PRId64 ", context-ft-addr=%p",
@@ -379,8 +380,9 @@ int bt_ctf_event_class_common_set_payload_field_type(
 		goto end;
 	}
 
-	bt_object_put_ref(event_class->payload_field_type);
-	event_class->payload_field_type = bt_object_get_ref(payload_ft);
+	bt_ctf_object_put_ref(event_class->payload_field_type);
+	event_class->payload_field_type = payload_ft;
+	bt_ctf_object_get_ref(event_class->payload_field_type);
 	BT_LOGV("Set event class's payload field type: "
 		"event-class-addr=%p, event-class-name=\"%s\", "
 		"event-class-id=%" PRId64 ", payload-ft-addr=%p",

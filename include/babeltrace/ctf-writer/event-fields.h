@@ -28,7 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <babeltrace/ctf-writer/field-types.h>
 #include <babeltrace/ctf-writer/fields.h>
 
@@ -40,7 +40,7 @@ extern "C" {
  * bt_ctf_field_get and bt_ctf_field_put: increment and decrement the
  * field's reference count.
  *
- * You may also use bt_object_get_ref() and bt_object_put_ref() with field objects.
+ * You may also use bt_ctf_object_get_ref() and bt_ctf_object_put_ref() with field objects.
  *
  * These functions ensure that the field won't be destroyed when it
  * is in use. The same number of get and put (plus one extra put to
@@ -57,14 +57,14 @@ extern "C" {
 static inline
 void bt_ctf_field_get(struct bt_ctf_field *field)
 {
-	bt_object_get_ref(field);
+	bt_ctf_object_get_ref(field);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
 void bt_ctf_field_put(struct bt_ctf_field *field)
 {
-	bt_object_put_ref(field);
+	bt_ctf_object_put_ref(field);
 }
 
 #ifdef __cplusplus

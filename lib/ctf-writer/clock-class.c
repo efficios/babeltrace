@@ -33,16 +33,16 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/ctf-writer/clock-class-internal.h>
 #include <babeltrace/ctf-writer/utils.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/compat/string-internal.h>
 #include <inttypes.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/assert-internal.h>
 
 static
-void bt_ctf_clock_class_destroy(struct bt_object *obj);
+void bt_ctf_clock_class_destroy(struct bt_ctf_object *obj);
 
 BT_HIDDEN
 bt_bool bt_ctf_clock_class_is_valid(struct bt_ctf_clock_class *clock_class)
@@ -136,7 +136,7 @@ struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
 
 	clock_class->precision = 1;
 	clock_class->frequency = freq;
-	bt_object_init_shared(&clock_class->base, bt_ctf_clock_class_destroy);
+	bt_ctf_object_init_shared(&clock_class->base, bt_ctf_clock_class_destroy);
 
 	if (name) {
 		ret = bt_ctf_clock_class_set_name(clock_class, name);
@@ -150,7 +150,7 @@ struct bt_ctf_clock_class *bt_ctf_clock_class_create(const char *name,
 		clock_class, name);
 	return clock_class;
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(clock_class);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(clock_class);
 	return clock_class;
 }
 
@@ -536,7 +536,7 @@ void bt_ctf_clock_class_freeze(struct bt_ctf_clock_class *clock_class)
 }
 
 static
-void bt_ctf_clock_class_destroy(struct bt_object *obj)
+void bt_ctf_clock_class_destroy(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_clock_class *clock_class;
 

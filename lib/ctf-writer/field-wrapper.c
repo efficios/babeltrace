@@ -26,7 +26,7 @@
 #include <babeltrace/ctf-writer/field-wrapper-internal.h>
 #include <babeltrace/ctf-writer/fields-internal.h>
 #include <babeltrace/object-pool-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <glib.h>
 
 BT_HIDDEN
@@ -42,7 +42,7 @@ struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_new(void *data)
 		goto end;
 	}
 
-	bt_object_init_unique(&field_wrapper->base);
+	bt_ctf_object_init_unique(&field_wrapper->base);
 	BT_LOGD("Created empty field wrapper object: addr=%p",
 		field_wrapper);
 
@@ -61,13 +61,13 @@ void bt_ctf_field_wrapper_destroy(struct bt_ctf_field_wrapper *field_wrapper)
 
 BT_HIDDEN
 struct bt_ctf_field_wrapper *bt_ctf_field_wrapper_create(
-		struct bt_object_pool *pool, struct bt_ctf_field_type *ft)
+		struct bt_ctf_object_pool *pool, struct bt_ctf_field_type *ft)
 {
 	struct bt_ctf_field_wrapper *field_wrapper = NULL;
 
 	BT_ASSERT(pool);
 	BT_ASSERT(ft);
-	field_wrapper = bt_object_pool_create_object(pool);
+	field_wrapper = bt_ctf_object_pool_create_object(pool);
 	if (!field_wrapper) {
 		BT_LIB_LOGE("Cannot allocate one field wrapper from field wrapper pool: "
 			"%![pool-]+o", pool);

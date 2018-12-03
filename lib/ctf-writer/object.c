@@ -1,8 +1,5 @@
-#ifndef BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
-#define BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H
-
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright (c) 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +20,25 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/clock-class-internal.h>
-#include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <glib.h>
-#include <babeltrace/compat/uuid-internal.h>
 
-struct bt_ctf_clock {
-	struct bt_ctf_object base;
-	struct bt_ctf_clock_class *clock_class;
-	uint64_t value;		/* Current clock value */
-};
+void *bt_ctf_object_get_ref(void *obj)
+{
+	if (unlikely(!obj)) {
+		goto end;
+	}
 
-struct metadata_context;
+	bt_ctf_object_get_no_null_check(obj);
 
-BT_HIDDEN
-int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value);
+end:
+	return obj;
+}
 
-BT_HIDDEN
-void bt_ctf_clock_class_serialize(struct bt_ctf_clock_class *clock_class,
-		struct metadata_context *context);
+void bt_ctf_object_put_ref(void *obj)
+{
+	if (unlikely(!obj)) {
+		return;
+	}
 
-#endif /* BABELTRACE_CTF_WRITER_CLOCK_INTERNAL_H */
+	bt_ctf_object_put_no_null_check(obj);
+}

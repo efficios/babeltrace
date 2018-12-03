@@ -43,21 +43,21 @@
 #include <babeltrace/ctf-writer/visitor-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 BT_HIDDEN
 int bt_ctf_stream_class_common_initialize(struct bt_ctf_stream_class_common *stream_class,
-		const char *name, bt_object_release_func release_func)
+		const char *name, bt_ctf_object_release_func release_func)
 {
 	BT_LOGD("Initializing common stream class object: name=\"%s\"", name);
 
-	bt_object_init_shared_with_parent(&stream_class->base, release_func);
+	bt_ctf_object_init_shared_with_parent(&stream_class->base, release_func);
 	stream_class->name = g_string_new(name);
 	stream_class->event_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_try_spec_release);
+		(GDestroyNotify) bt_ctf_object_try_spec_release);
 	if (!stream_class->event_classes) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		goto error;
@@ -84,7 +84,7 @@ void bt_ctf_stream_class_common_finalize(struct bt_ctf_stream_class_common *stre
 	BT_LOGD("Finalizing common stream class: addr=%p, name=\"%s\", id=%" PRId64,
 		stream_class, bt_ctf_stream_class_common_get_name(stream_class),
 		bt_ctf_stream_class_common_get_id(stream_class));
-	bt_object_put_ref(stream_class->clock_class);
+	bt_ctf_object_put_ref(stream_class->clock_class);
 
 	if (stream_class->event_classes_ht) {
 		g_hash_table_destroy(stream_class->event_classes_ht);
@@ -99,11 +99,11 @@ void bt_ctf_stream_class_common_finalize(struct bt_ctf_stream_class_common *stre
 	}
 
 	BT_LOGD_STR("Putting event header field type.");
-	bt_object_put_ref(stream_class->event_header_field_type);
+	bt_ctf_object_put_ref(stream_class->event_header_field_type);
 	BT_LOGD_STR("Putting packet context field type.");
-	bt_object_put_ref(stream_class->packet_context_field_type);
+	bt_ctf_object_put_ref(stream_class->packet_context_field_type);
 	BT_LOGD_STR("Putting event context field type.");
-	bt_object_put_ref(stream_class->event_context_field_type);
+	bt_ctf_object_put_ref(stream_class->event_context_field_type);
 }
 
 static
@@ -198,7 +198,7 @@ int bt_ctf_stream_class_common_add_event_class(
 		 * context) could change before the next call to one of
 		 * those two functions.
 		 */
-		expected_clock_class = bt_object_get_ref(stream_class->clock_class);
+		expected_clock_class = bt_ctf_object_get_ref(stream_class->clock_class);
 
 		/*
 		 * At this point, `expected_clock_class` can be NULL,
@@ -334,7 +334,7 @@ int bt_ctf_stream_class_common_add_event_class(
 		*event_id = stream_class->next_event_id;
 	}
 
-	bt_object_set_parent(&event_class->base, &stream_class->base);
+	bt_ctf_object_set_parent(&event_class->base, &stream_class->base);
 
 	if (trace) {
 		/*
@@ -370,7 +370,7 @@ int bt_ctf_stream_class_common_add_event_class(
 	if (stream_class->frozen && expected_clock_class) {
 		BT_ASSERT(!stream_class->clock_class ||
 			stream_class->clock_class == expected_clock_class);
-		BT_OBJECT_MOVE_REF(stream_class->clock_class, expected_clock_class);
+		BT_CTF_OBJECT_MOVE_REF(stream_class->clock_class, expected_clock_class);
 	}
 
 	BT_LOGD("Added event class to stream class: "
@@ -385,7 +385,7 @@ int bt_ctf_stream_class_common_add_event_class(
 
 end:
 	bt_ctf_validation_output_put_types(&validation_output);
-	bt_object_put_ref(expected_clock_class);
+	bt_ctf_object_put_ref(expected_clock_class);
 	g_free(event_id);
 	return ret;
 }
@@ -587,18 +587,18 @@ int init_event_header(struct bt_ctf_stream_class *stream_class)
 		goto end;
 	}
 
-	bt_object_put_ref(stream_class->common.event_header_field_type);
+	bt_ctf_object_put_ref(stream_class->common.event_header_field_type);
 	stream_class->common.event_header_field_type =
 		(void *) event_header_type;
 	event_header_type = NULL;
 
 end:
 	if (ret) {
-		bt_object_put_ref(event_header_type);
+		bt_ctf_object_put_ref(event_header_type);
 	}
 
-	bt_object_put_ref(_uint32_t);
-	bt_object_put_ref(_uint64_t);
+	bt_ctf_object_put_ref(_uint32_t);
+	bt_ctf_object_put_ref(_uint64_t);
 	return ret;
 }
 
@@ -664,24 +664,24 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class)
 		goto end;
 	}
 
-	bt_object_put_ref(stream_class->common.packet_context_field_type);
+	bt_ctf_object_put_ref(stream_class->common.packet_context_field_type);
 	stream_class->common.packet_context_field_type =
 		(void *) packet_context_type;
 	packet_context_type = NULL;
 
 end:
 	if (ret) {
-		bt_object_put_ref(packet_context_type);
+		bt_ctf_object_put_ref(packet_context_type);
 		goto end;
 	}
 
-	bt_object_put_ref(_uint64_t);
-	bt_object_put_ref(ts_begin_end_uint64_t);
+	bt_ctf_object_put_ref(_uint64_t);
+	bt_ctf_object_put_ref(ts_begin_end_uint64_t);
 	return ret;
 }
 
 static
-void bt_ctf_stream_class_destroy(struct bt_object *obj)
+void bt_ctf_stream_class_destroy(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_stream_class *stream_class;
 
@@ -690,7 +690,7 @@ void bt_ctf_stream_class_destroy(struct bt_object *obj)
 		stream_class, bt_ctf_stream_class_get_name(stream_class),
 		bt_ctf_stream_class_get_id(stream_class));
 	bt_ctf_stream_class_common_finalize(BT_CTF_TO_COMMON(stream_class));
-	bt_object_put_ref(stream_class->clock);
+	bt_ctf_object_put_ref(stream_class->clock);
 	g_free(stream_class);
 }
 
@@ -730,7 +730,7 @@ struct bt_ctf_stream_class *bt_ctf_stream_class_create(const char *name)
 	return stream_class;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(stream_class);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(stream_class);
 	return stream_class;
 }
 
@@ -781,7 +781,7 @@ int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
 
 		ret = bt_ctf_field_type_common_structure_replace_field(
 			(void *) parent_ft, field_name, (void *) ft_copy);
-		bt_object_put_ref(ft_copy);
+		bt_ctf_object_put_ref(ft_copy);
 		BT_LOGV("Automatically mapped field type to stream class's clock class: "
 			"stream-class-addr=%p, stream-class-name=\"%s\", "
 			"stream-class-id=%" PRId64 ", ft-addr=%p, "
@@ -792,8 +792,8 @@ int try_map_clock_class(struct bt_ctf_stream_class *stream_class,
 	}
 
 end:
-	bt_object_put_ref(ft);
-	bt_object_put_ref(mapped_clock_class);
+	bt_ctf_object_put_ref(ft);
+	bt_ctf_object_put_ref(mapped_clock_class);
 	return ret;
 }
 
@@ -860,7 +860,7 @@ struct bt_ctf_clock *bt_ctf_stream_class_get_clock(
 		goto end;
 	}
 
-	clock = bt_object_get_ref(stream_class->clock);
+	clock = bt_ctf_object_get_ref(stream_class->clock);
 
 end:
 	return clock;
@@ -891,8 +891,8 @@ int bt_ctf_stream_class_set_clock(
 	}
 
 	/* Replace the current clock of this stream class. */
-	bt_object_put_ref(stream_class->clock);
-	stream_class->clock = bt_object_get_ref(clock);
+	bt_ctf_object_put_ref(stream_class->clock);
+	stream_class->clock = bt_ctf_object_get_ref(clock);
 	BT_LOGV("Set stream class's clock: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"clock-addr=%p, clock-name=\"%s\"",
@@ -961,7 +961,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 				"\tid = %" PRId64 ";\n",
 				stream_class->common.id);
 		}
-		bt_object_put_ref(stream_id_type);
+		bt_ctf_object_put_ref(stream_id_type);
 	}
 	if (stream_class->common.event_header_field_type) {
 		BT_LOGD_STR("Serializing stream class's event header field type's metadata.");
@@ -1025,7 +1025,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 	}
 
 end:
-	bt_object_put_ref(packet_header_type);
+	bt_ctf_object_put_ref(packet_header_type);
 	context->current_indentation_level = 0;
 	return ret;
 }
@@ -1033,7 +1033,7 @@ end:
 struct bt_ctf_trace *bt_ctf_stream_class_get_trace(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return bt_object_get_ref(bt_ctf_stream_class_common_borrow_trace(
+	return bt_ctf_object_get_ref(bt_ctf_stream_class_common_borrow_trace(
 		BT_CTF_TO_COMMON(stream_class)));
 }
 
@@ -1065,7 +1065,7 @@ int bt_ctf_stream_class_set_id(
 struct bt_ctf_field_type *bt_ctf_stream_class_get_packet_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_stream_class_common_borrow_packet_context_field_type(
 			BT_CTF_TO_COMMON(stream_class)));
 }
@@ -1082,7 +1082,7 @@ struct bt_ctf_field_type *
 bt_ctf_stream_class_get_event_header_type(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_stream_class_common_borrow_event_header_field_type(
 			BT_CTF_TO_COMMON(stream_class)));
 }
@@ -1099,7 +1099,7 @@ struct bt_ctf_field_type *
 bt_ctf_stream_class_get_event_context_type(
 		struct bt_ctf_stream_class *stream_class)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_stream_class_common_borrow_event_context_field_type(
 			BT_CTF_TO_COMMON(stream_class)));
 }
@@ -1122,7 +1122,7 @@ int64_t bt_ctf_stream_class_get_event_class_count(
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
 		struct bt_ctf_stream_class *stream_class, uint64_t index)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_stream_class_common_borrow_event_class_by_index(
 			BT_CTF_TO_COMMON(stream_class), index));
 }
@@ -1130,7 +1130,7 @@ struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_index(
 struct bt_ctf_event_class *bt_ctf_stream_class_get_event_class_by_id(
 		struct bt_ctf_stream_class *stream_class, uint64_t id)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_stream_class_common_borrow_event_class_by_id(
 			BT_CTF_TO_COMMON(stream_class), id));
 }

@@ -38,11 +38,11 @@
 #include <babeltrace/ctf-writer/utils-internal.h>
 #include <babeltrace/ctf-writer/validation-internal.h>
 #include <babeltrace/ctf-writer/visitor.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <inttypes.h>
 
 struct bt_ctf_stream_class_common {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	GString *name;
 
 	/* Array of pointers to event class addresses */
@@ -89,7 +89,7 @@ struct bt_ctf_event_class_common;
 
 BT_HIDDEN
 int bt_ctf_stream_class_common_initialize(struct bt_ctf_stream_class_common *stream_class,
-		const char *name, bt_object_release_func release_func);
+		const char *name, bt_ctf_object_release_func release_func);
 
 BT_HIDDEN
 void bt_ctf_stream_class_common_finalize(struct bt_ctf_stream_class_common *stream_class);
@@ -155,7 +155,7 @@ struct bt_ctf_trace_common *bt_ctf_stream_class_common_borrow_trace(
 		struct bt_ctf_stream_class_common *stream_class)
 {
 	BT_ASSERT(stream_class);
-	return (void *) bt_object_borrow_parent(&stream_class->base);
+	return (void *) bt_ctf_object_borrow_parent(&stream_class->base);
 }
 
 static inline
@@ -357,9 +357,9 @@ int bt_ctf_stream_class_common_set_packet_context_field_type(
 		goto end;
 	}
 
-	bt_object_put_ref(stream_class->packet_context_field_type);
-	bt_object_get_ref(packet_context_type);
+	bt_ctf_object_put_ref(stream_class->packet_context_field_type);
 	stream_class->packet_context_field_type = packet_context_type;
+	bt_ctf_object_get_ref(stream_class->packet_context_field_type);
 	BT_LOGV("Set stream class's packet context field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"packet-context-ft-addr=%p",
@@ -434,8 +434,9 @@ int bt_ctf_stream_class_common_set_event_header_field_type(
 		goto end;
 	}
 
-	bt_object_put_ref(stream_class->event_header_field_type);
-	stream_class->event_header_field_type = bt_object_get_ref(event_header_type);
+	bt_ctf_object_put_ref(stream_class->event_header_field_type);
+	stream_class->event_header_field_type = event_header_type;
+	bt_ctf_object_get_ref(stream_class->event_header_field_type);
 	BT_LOGV("Set stream class's event header field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"event-header-ft-addr=%p",
@@ -503,8 +504,9 @@ int bt_ctf_stream_class_common_set_event_context_field_type(
 		goto end;
 	}
 
-	bt_object_put_ref(stream_class->event_context_field_type);
-	stream_class->event_context_field_type = bt_object_get_ref(event_context_type);
+	bt_ctf_object_put_ref(stream_class->event_context_field_type);
+	stream_class->event_context_field_type = event_context_type;
+	bt_ctf_object_get_ref(stream_class->event_context_field_type);
 	BT_LOGV("Set stream class's event context field type: "
 		"addr=%p, name=\"%s\", id=%" PRId64 ", "
 		"event-context-ft-addr=%p",

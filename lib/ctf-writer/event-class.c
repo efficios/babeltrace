@@ -42,16 +42,16 @@
 #include <babeltrace/ctf-writer/validation-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <inttypes.h>
 #include <stdlib.h>
 
 BT_HIDDEN
-void bt_ctf_event_class_common_finalize(struct bt_object *obj)
+void bt_ctf_event_class_common_finalize(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_event_class_common *event_class;
 
@@ -69,21 +69,21 @@ void bt_ctf_event_class_common_finalize(struct bt_object *obj)
 	}
 
 	BT_LOGD_STR("Putting context field type.");
-	bt_object_put_ref(event_class->context_field_type);
+	bt_ctf_object_put_ref(event_class->context_field_type);
 	BT_LOGD_STR("Putting payload field type.");
-	bt_object_put_ref(event_class->payload_field_type);
+	bt_ctf_object_put_ref(event_class->payload_field_type);
 }
 
 BT_HIDDEN
 int bt_ctf_event_class_common_initialize(struct bt_ctf_event_class_common *event_class,
-		const char *name, bt_object_release_func release_func,
+		const char *name, bt_ctf_object_release_func release_func,
 		bt_ctf_field_type_structure_create_func ft_struct_create_func)
 {
 	int ret = 0;
 
 	BT_LOGD("Initializing common event class object: name=\"%s\"",
 		name);
-	bt_object_init_shared_with_parent(&event_class->base, release_func);
+	bt_ctf_object_init_shared_with_parent(&event_class->base, release_func);
 	event_class->payload_field_type = ft_struct_create_func();
 	if (!event_class->payload_field_type) {
 		BT_LOGE_STR("Cannot create event class's initial payload field type object.");
@@ -182,7 +182,7 @@ end:
 }
 
 static
-void bt_ctf_event_class_destroy(struct bt_object *obj)
+void bt_ctf_event_class_destroy(struct bt_ctf_object *obj)
 {
 	bt_ctf_event_class_common_finalize(obj);
 	g_free(obj);
@@ -217,7 +217,7 @@ struct bt_ctf_event_class *bt_ctf_event_class_create(const char *name)
 	goto end;
 
 error:
-	bt_object_put_ref(ctf_event_class);
+	bt_ctf_object_put_ref(ctf_event_class);
 
 end:
 	return ctf_event_class;
@@ -269,14 +269,14 @@ struct bt_ctf_stream_class *bt_ctf_event_class_get_stream_class(
 		struct bt_ctf_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
-	return bt_object_get_ref(bt_ctf_event_class_common_borrow_stream_class(
+	return bt_ctf_object_get_ref(bt_ctf_event_class_common_borrow_stream_class(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
 struct bt_ctf_field_type *bt_ctf_event_class_get_payload_field_type(
 		struct bt_ctf_event_class *event_class)
 {
-	return bt_object_get_ref(bt_ctf_event_class_common_borrow_payload_field_type(
+	return bt_ctf_object_get_ref(bt_ctf_event_class_common_borrow_payload_field_type(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
@@ -291,7 +291,7 @@ int bt_ctf_event_class_set_payload_field_type(
 struct bt_ctf_field_type *bt_ctf_event_class_get_context_field_type(
 		struct bt_ctf_event_class *event_class)
 {
-	return bt_object_get_ref(bt_ctf_event_class_common_borrow_context_field_type(
+	return bt_ctf_object_get_ref(bt_ctf_event_class_common_borrow_context_field_type(
 		BT_CTF_TO_COMMON(event_class)));
 }
 
@@ -470,7 +470,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 		struct metadata_context *context)
 {
 	int ret = 0;
-	struct bt_value *attr_value = NULL;
+	struct bt_ctf_value *attr_value = NULL;
 
 	BT_ASSERT(event_class);
 	BT_ASSERT(context);
@@ -539,7 +539,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 end:
 	context->current_indentation_level = 0;
-	BT_OBJECT_PUT_REF_AND_RESET(attr_value);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(attr_value);
 	return ret;
 }
 
@@ -577,7 +577,7 @@ struct bt_ctf_field_type *bt_ctf_event_class_get_field_by_name(
 	 * No need to increment field_type's reference count since getting it
 	 * from the structure already does.
 	 */
-	field_type = bt_object_get_ref(
+	field_type = bt_ctf_object_get_ref(
 		bt_ctf_field_type_common_structure_borrow_field_type_by_name(
 			event_class->common.payload_field_type, name));
 

@@ -41,7 +41,7 @@
 #include <babeltrace/ctf-writer/stream-internal.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/validation-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/values.h>
 
 struct bt_ctf_stream_class;
@@ -49,7 +49,7 @@ struct bt_ctf_stream_pos;
 struct metadata_context;
 
 struct bt_ctf_event_common {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	struct bt_ctf_event_class_common *class;
 	struct bt_ctf_field_wrapper *header_field;
 	struct bt_ctf_field_common *stream_event_context_field;
@@ -93,7 +93,7 @@ BT_HIDDEN
 int bt_ctf_event_common_initialize(struct bt_ctf_event_common *event,
 		struct bt_ctf_event_class_common *event_class,
 		struct bt_ctf_clock_class *init_expected_clock_class,
-		bool is_shared_with_parent, bt_object_release_func release_func,
+		bool is_shared_with_parent, bt_ctf_object_release_func release_func,
 		bt_ctf_validation_flag_copy_field_type_func field_type_copy_func,
 		bool must_be_in_trace,
 		int (*map_clock_classes_func)(struct bt_ctf_stream_class_common *stream_class,
@@ -193,7 +193,7 @@ end:
 }
 
 static inline
-void bt_ctf_event_common_finalize(struct bt_object *obj,
+void bt_ctf_event_common_finalize(struct bt_ctf_object *obj,
 		void (*field_release_func)(void *),
 		void (*header_field_release_func)(void *, struct bt_ctf_event_common *))
 {
@@ -236,7 +236,7 @@ void bt_ctf_event_common_finalize(struct bt_object *obj,
 		 * common ancestor with it to guarantee they would both have the
 		 * same lifetime.
 		 */
-		bt_object_put_ref(event->class);
+		bt_ctf_object_put_ref(event->class);
 	}
 }
 

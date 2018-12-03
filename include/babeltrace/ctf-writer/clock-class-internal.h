@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-pool-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
@@ -35,7 +35,7 @@
 #include <glib.h>
 
 struct bt_ctf_clock_class {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	GString *name;
 	GString *description;
 	uint64_t frequency;

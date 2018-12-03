@@ -170,14 +170,14 @@ extern int64_t bt_ctf_stream_get_id(struct bt_ctf_stream *stream);
 static inline
 void bt_ctf_stream_get(struct bt_ctf_stream *stream)
 {
-	bt_object_get_ref(stream);
+	bt_ctf_object_get_ref(stream);
 }
 
 /* Pre-2.0 CTF writer compatibility */
 static inline
 void bt_ctf_stream_put(struct bt_ctf_stream *stream)
 {
-	bt_object_put_ref(stream);
+	bt_ctf_object_put_ref(stream);
 }
 
 #ifdef __cplusplus
