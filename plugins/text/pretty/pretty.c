@@ -24,7 +24,6 @@
  */
 
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/values.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>
 #include <plugins-common.h>
@@ -228,7 +227,7 @@ end:
 }
 
 static
-int add_params_to_map(struct bt_private_value *plugin_opt_map)
+int add_params_to_map(struct bt_value *plugin_opt_map)
 {
 	int ret = 0;
 	unsigned int i;
@@ -237,7 +236,7 @@ int add_params_to_map(struct bt_private_value *plugin_opt_map)
 		const char *key = plugin_options[i];
 		enum bt_value_status status;
 
-		status = bt_private_value_map_insert_entry(plugin_opt_map, key,
+		status = bt_value_map_insert_entry(plugin_opt_map, key,
 			bt_value_null);
 		switch (status) {
 		case BT_VALUE_STATUS_OK:
@@ -252,13 +251,13 @@ end:
 }
 
 static
-bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
+bt_bool check_param_exists(const char *key, const struct bt_value *object,
+		void *data)
 {
 	struct pretty_component *pretty = data;
 
-	if (!bt_value_map_has_entry(
-			bt_private_value_as_value(pretty->plugin_opt_map),
-			key)) {
+	if (!bt_value_map_has_entry(pretty->plugin_opt_map,
+				    key)) {
 		fprintf(pretty->err,
 			"[warning] Parameter \"%s\" unknown to \"text.pretty\" sink component\n", key);
 	}
@@ -266,12 +265,12 @@ bt_bool check_param_exists(const char *key, struct bt_value *object, void *data)
 }
 
 static
-void apply_one_string(const char *key, struct bt_value *params, char **option)
+void apply_one_string(const char *key, const struct bt_value *params, char **option)
 {
-	struct bt_value *value = NULL;
+	const struct bt_value *value = NULL;
 	const char *str;
 
-	value = bt_value_map_borrow_entry_value(params, key);
+	value = bt_value_map_borrow_entry_value_const(params, key);
 	if (!value) {
 		goto end;
 	}
@@ -286,13 +285,13 @@ end:
 }
 
 static
-void apply_one_bool(const char *key, struct bt_value *params, bool *option,
+void apply_one_bool(const char *key, const struct bt_value *params, bool *option,
 		bool *found)
 {
-	struct bt_value *value = NULL;
+	const struct bt_value *value = NULL;
 	bt_bool bool_val;
 
-	value = bt_value_map_borrow_entry_value(params, key);
+	value = bt_value_map_borrow_entry_value_const(params, key);
 	if (!value) {
 		goto end;
 	}
@@ -337,14 +336,14 @@ end:
 }
 
 static
-int apply_params(struct pretty_component *pretty, struct bt_value *params)
+int apply_params(struct pretty_component *pretty, const struct bt_value *params)
 {
 	int ret = 0;
 	enum bt_value_status status;
 	bool value, found;
 	char *str = NULL;
 
-	pretty->plugin_opt_map = bt_private_value_map_create();
+	pretty->plugin_opt_map = bt_value_map_create();
 	if (!pretty->plugin_opt_map) {
 		ret = -1;
 		goto end;
@@ -354,7 +353,8 @@ int apply_params(struct pretty_component *pretty, struct bt_value *params)
 		goto end;
 	}
 	/* Report unknown parameters. */
-	status = bt_value_map_foreach_entry(params, check_param_exists, pretty);
+	status = bt_value_map_foreach_entry_const(params,
+		check_param_exists, pretty);
 	switch (status) {
 	case BT_VALUE_STATUS_OK:
 		break;
@@ -365,10 +365,11 @@ int apply_params(struct pretty_component *pretty, struct bt_value *params)
 	/* Known parameters. */
 	pretty->options.color = PRETTY_COLOR_OPT_AUTO;
 	if (bt_value_map_has_entry(params, "color")) {
-		struct bt_value *color_value;
+		const struct bt_value *color_value;
 		const char *color;
 
-		color_value = bt_value_map_borrow_entry_value(params, "color");
+		color_value = bt_value_map_borrow_entry_value_const(params,
+			"color");
 		if (!color_value) {
 			goto end;
 		}
@@ -636,7 +637,7 @@ void init_stream_packet_context_quarks(void)
 BT_HIDDEN
 enum bt_self_component_status pretty_init(
 		struct bt_self_component_sink *comp,
-		struct bt_value *params,
+		const struct bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
 	enum bt_self_component_status ret;

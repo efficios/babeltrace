@@ -535,7 +535,7 @@ void sink_input_port_disconnected(struct bt_self_component_sink *self_comp,
 static
 enum bt_self_component_status src_init(
 	struct bt_self_component_source *self_comp,
-	struct bt_value *params, void *init_method_data)
+	const struct bt_value *params, void *init_method_data)
 {
 	int ret;
 
@@ -548,7 +548,7 @@ enum bt_self_component_status src_init(
 static
 enum bt_self_component_status sink_init(
 	struct bt_self_component_sink *self_comp,
-	struct bt_value *params, void *init_method_data)
+	const struct bt_value *params, void *init_method_data)
 {
 	int ret;
 

@@ -124,12 +124,13 @@ void counter_finalize(struct bt_self_component_sink *comp)
 BT_HIDDEN
 enum bt_self_component_status counter_init(
 		struct bt_self_component_sink *component,
-		struct bt_value *params, UNUSED_VAR void *init_method_data)
+		const struct bt_value *params,
+		UNUSED_VAR void *init_method_data)
 {
 	enum bt_self_component_status ret;
 	struct counter *counter = g_new0(struct counter, 1);
-	struct bt_value *step = NULL;
-	struct bt_value *hide_zero = NULL;
+	const struct bt_value *step = NULL;
+	const struct bt_value *hide_zero = NULL;
 
 	if (!counter) {
 		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
@@ -144,7 +145,7 @@ enum bt_self_component_status counter_init(
 
 	counter->last_printed_total = -1ULL;
 	counter->step = 1000;
-	step = bt_value_map_borrow_entry_value(params, "step");
+	step = bt_value_map_borrow_entry_value_const(params, "step");
 	if (step && bt_value_is_integer(step)) {
 		int64_t val;
 
@@ -154,7 +155,7 @@ enum bt_self_component_status counter_init(
 		}
 	}
 
-	hide_zero = bt_value_map_borrow_entry_value(params, "hide-zero");
+	hide_zero = bt_value_map_borrow_entry_value_const(params, "hide-zero");
 	if (hide_zero && bt_value_is_bool(hide_zero)) {
 		bt_bool val;
 

@@ -42,7 +42,7 @@ struct bt_private_trace;
 struct bt_private_stream;
 struct bt_private_stream_class;
 struct bt_private_field_class;
-struct bt_private_value;
+struct bt_value;
 struct bt_private_packet_header_field;
 
 typedef void (* bt_private_trace_is_static_listener)(
@@ -71,9 +71,9 @@ extern void bt_private_trace_set_uuid(struct bt_private_trace *trace,
 
 extern void bt_private_trace_borrow_environment_entry_by_index(
 		struct bt_private_trace *trace, uint64_t index,
-		const char **name, struct bt_private_value **value);
+		const char **name, const struct bt_value **value);
 
-extern struct bt_private_value *
+extern const struct bt_value *
 bt_private_trace_borrow_environment_entry_value_by_name(
 		struct bt_private_trace *trace, const char *name);
 

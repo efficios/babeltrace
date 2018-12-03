@@ -1246,10 +1246,10 @@ end:
 static
 struct ctf_fs_component *ctf_fs_create(
 		struct bt_self_component_source *self_comp,
-		struct bt_value *params)
+		const struct bt_value *params)
 {
 	struct ctf_fs_component *ctf_fs;
-	struct bt_value *value = NULL;
+	const struct bt_value *value = NULL;
 	const char *path_param;
 
 	ctf_fs = g_new0(struct ctf_fs_component, 1);
@@ -1267,13 +1267,14 @@ struct ctf_fs_component *ctf_fs_create(
 	 * private component should also exist.
 	 */
 	ctf_fs->self_comp = self_comp;
-	value = bt_value_map_borrow_entry_value(params, "path");
+	value = bt_value_map_borrow_entry_value_const(params, "path");
 	if (value && !bt_value_is_string(value)) {
 		goto error;
 	}
 
 	path_param = bt_value_string_get(value);
-	value = bt_value_map_borrow_entry_value(params, "clock-class-offset-s");
+	value = bt_value_map_borrow_entry_value_const(params,
+		"clock-class-offset-s");
 	if (value) {
 		if (!bt_value_is_integer(value)) {
 			BT_LOGE("clock-class-offset-s should be an integer");
@@ -1282,7 +1283,8 @@ struct ctf_fs_component *ctf_fs_create(
 		ctf_fs->metadata_config.clock_class_offset_s = bt_value_integer_get(value);
 	}
 
-	value = bt_value_map_borrow_entry_value(params, "clock-class-offset-ns");
+	value = bt_value_map_borrow_entry_value_const(params,
+		"clock-class-offset-ns");
 	if (value) {
 		if (!bt_value_is_integer(value)) {
 			BT_LOGE("clock-class-offset-ns should be an integer");
@@ -1322,7 +1324,7 @@ end:
 BT_HIDDEN
 enum bt_self_component_status ctf_fs_init(
 		struct bt_self_component_source *self_comp,
-		struct bt_value *params, UNUSED_VAR void *init_method_data)
+		const struct bt_value *params, UNUSED_VAR void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
@@ -1339,8 +1341,8 @@ BT_HIDDEN
 enum bt_query_status ctf_fs_query(
 		struct bt_self_component_class_source *comp_class,
 		struct bt_query_executor *query_exec,
-		const char *object, struct bt_value *params,
-		struct bt_value **result)
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result)
 {
 	enum bt_query_status status = BT_QUERY_STATUS_OK;
 

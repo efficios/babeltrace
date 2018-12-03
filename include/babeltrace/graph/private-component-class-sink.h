@@ -51,7 +51,7 @@ struct bt_value;
 typedef enum bt_self_component_status
 (*bt_private_component_class_sink_init_method)(
 		struct bt_self_component_sink *self_component,
-		struct bt_value *params, void *init_method_data);
+		const struct bt_value *params, void *init_method_data);
 
 typedef void (*bt_private_component_class_sink_finalize_method)(
 		struct bt_self_component_sink *self_component);
@@ -60,8 +60,8 @@ typedef enum bt_query_status
 (*bt_private_component_class_sink_query_method)(
 		struct bt_self_component_class_sink *comp_class,
 		struct bt_query_executor *query_executor,
-		const char *object, struct bt_value *params,
-		struct bt_value **result);
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result);
 
 typedef enum bt_self_component_status
 (*bt_private_component_class_sink_accept_input_port_connection_method)(

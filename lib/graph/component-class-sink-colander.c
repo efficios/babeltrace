@@ -46,7 +46,7 @@ struct colander_data {
 static
 enum bt_self_component_status colander_init(
 		struct bt_self_component_sink *self_comp,
-		struct bt_value *params, void *init_method_data)
+		const struct bt_value *params, void *init_method_data)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct colander_data *colander_data = NULL;
