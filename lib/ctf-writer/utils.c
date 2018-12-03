@@ -33,7 +33,7 @@
 #include <babeltrace/ctf-writer/clock-class-internal.h>
 #include <babeltrace/ctf-writer/field-types-internal.h>
 #include <babeltrace/ctf-writer/utils.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <glib.h>
 #include <stdlib.h>
 

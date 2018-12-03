@@ -27,13 +27,13 @@
  */
 
 #include <babeltrace/common-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/ctf-writer/field-types.h>
 #include <glib.h>
 
 struct bt_ctf_field_path {
-	struct bt_object base;
+	struct bt_ctf_object base;
 	enum bt_ctf_scope root;
 
 	/*

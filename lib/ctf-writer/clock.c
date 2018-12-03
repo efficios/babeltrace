@@ -37,12 +37,12 @@
 #include <babeltrace/ctf-writer/clock-internal.h>
 #include <babeltrace/ctf-writer/utils.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object-internal.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <inttypes.h>
 
 static
-void bt_ctf_clock_destroy(struct bt_object *obj);
+void bt_ctf_clock_destroy(struct bt_ctf_object *obj);
 
 struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 {
@@ -56,7 +56,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 		goto error;
 	}
 
-	bt_object_init_shared(&clock->base, bt_ctf_clock_destroy);
+	bt_ctf_object_init_shared(&clock->base, bt_ctf_clock_destroy);
 	clock->value = 0;
 
 	/* Pre-2.0.0 backward compatibility: default frequency is 1 GHz */
@@ -76,7 +76,7 @@ struct bt_ctf_clock *bt_ctf_clock_create(const char *name)
 	return clock;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(clock);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(clock);
 	return clock;
 }
 
@@ -212,12 +212,12 @@ int bt_ctf_clock_get_value(struct bt_ctf_clock *clock, uint64_t *value)
 }
 
 static
-void bt_ctf_clock_destroy(struct bt_object *obj)
+void bt_ctf_clock_destroy(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_clock *clock;
 
 	clock = container_of(obj, struct bt_ctf_clock, base);
-	bt_object_put_ref(clock->clock_class);
+	bt_ctf_object_put_ref(clock->clock_class);
 	g_free(clock);
 }
 

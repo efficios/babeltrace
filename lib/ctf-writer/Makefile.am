@@ -11,6 +11,8 @@ libctf_writer_la_SOURCES = \
 	field-types.c \
 	field-wrapper.c \
 	functor.c \
+	object.c \
+	object-pool.c \
 	resolve.c \
 	serialize.c \
 	stream.c \
@@ -18,6 +20,7 @@ libctf_writer_la_SOURCES = \
 	trace.c \
 	utils.c \
 	validation.c \
+	values.c \
 	visitor.c \
 	writer.c
 

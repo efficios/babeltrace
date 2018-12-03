@@ -44,10 +44,9 @@
 #include <babeltrace/ctf-writer/visitor-internal.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/endian-internal.h>
-#include <babeltrace/object.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -58,29 +57,29 @@
 
 BT_HIDDEN
 int bt_ctf_trace_common_initialize(struct bt_ctf_trace_common *trace,
-		bt_object_release_func release_func)
+		bt_ctf_object_release_func release_func)
 {
 	int ret = 0;
 
 	BT_LOGD_STR("Initializing common trace object.");
 	trace->native_byte_order = BT_CTF_BYTE_ORDER_UNSPECIFIED;
-	bt_object_init_shared_with_parent(&trace->base, release_func);
+	bt_ctf_object_init_shared_with_parent(&trace->base, release_func);
 	trace->clock_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_put_ref);
+		(GDestroyNotify) bt_ctf_object_put_ref);
 	if (!trace->clock_classes) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 
 	trace->streams = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_try_spec_release);
+		(GDestroyNotify) bt_ctf_object_try_spec_release);
 	if (!trace->streams) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
 	}
 
 	trace->stream_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_try_spec_release);
+		(GDestroyNotify) bt_ctf_object_try_spec_release);
 	if (!trace->stream_classes) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
@@ -134,7 +133,7 @@ void bt_ctf_trace_common_finalize(struct bt_ctf_trace_common *trace)
 	}
 
 	BT_LOGD_STR("Putting packet header field type.");
-	bt_object_put_ref(trace->packet_header_field_type);
+	bt_ctf_object_put_ref(trace->packet_header_field_type);
 }
 
 BT_HIDDEN
@@ -230,7 +229,7 @@ end:
 
 BT_HIDDEN
 int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
-		const char *name, struct bt_private_value *value)
+		const char *name, struct bt_ctf_private_value *value)
 {
 	int ret = 0;
 
@@ -261,15 +260,15 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 		goto end;
 	}
 
-	if (!bt_value_is_integer(bt_private_value_as_value(value)) &&
-			!bt_value_is_string(bt_private_value_as_value(value))) {
+	if (!bt_ctf_value_is_integer(bt_ctf_private_value_as_value(value)) &&
+			!bt_ctf_value_is_string(bt_ctf_private_value_as_value(value))) {
 		BT_LOGW("Invalid parameter: environment field's value is not an integer or string value: "
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\", env-value-type=%s",
 			trace, bt_ctf_trace_common_get_name(trace), name,
 			bt_common_value_type_string(
-				bt_value_get_type(
-					bt_private_value_as_value(value))));
+				bt_ctf_value_get_type(
+					bt_ctf_private_value_as_value(value))));
 		ret = -1;
 		goto end;
 	}
@@ -281,7 +280,7 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 		 *
 		 * The object passed is frozen like all other attributes.
 		 */
-		struct bt_private_value *attribute =
+		struct bt_ctf_private_value *attribute =
 			bt_ctf_attributes_borrow_field_value_by_name(
 				trace->environment, name);
 
@@ -294,7 +293,7 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 			goto end;
 		}
 
-		bt_value_freeze(bt_private_value_as_value(value));
+		bt_ctf_value_freeze(bt_ctf_private_value_as_value(value));
 	}
 
 	ret = bt_ctf_attributes_set_field_value(trace->environment, name,
@@ -320,7 +319,7 @@ int bt_ctf_trace_common_set_environment_field_string(struct bt_ctf_trace_common 
 		const char *name, const char *value)
 {
 	int ret = 0;
-	struct bt_private_value *env_value_string_obj = NULL;
+	struct bt_ctf_private_value *env_value_string_obj = NULL;
 
 	if (!value) {
 		BT_LOGW_STR("Invalid parameter: value is NULL.");
@@ -328,7 +327,7 @@ int bt_ctf_trace_common_set_environment_field_string(struct bt_ctf_trace_common 
 		goto end;
 	}
 
-	env_value_string_obj = bt_private_value_string_create_init(value);
+	env_value_string_obj = bt_ctf_private_value_string_create_init(value);
 	if (!env_value_string_obj) {
 		BT_LOGE_STR("Cannot create string value object.");
 		ret = -1;
@@ -340,7 +339,7 @@ int bt_ctf_trace_common_set_environment_field_string(struct bt_ctf_trace_common 
 		env_value_string_obj);
 
 end:
-	bt_object_put_ref(env_value_string_obj);
+	bt_ctf_object_put_ref(env_value_string_obj);
 	return ret;
 }
 
@@ -349,9 +348,9 @@ int bt_ctf_trace_common_set_environment_field_integer(
 		struct bt_ctf_trace_common *trace, const char *name, int64_t value)
 {
 	int ret = 0;
-	struct bt_private_value *env_value_integer_obj = NULL;
+	struct bt_ctf_private_value *env_value_integer_obj = NULL;
 
-	env_value_integer_obj = bt_private_value_integer_create_init(value);
+	env_value_integer_obj = bt_ctf_private_value_integer_create_init(value);
 	if (!env_value_integer_obj) {
 		BT_LOGE_STR("Cannot create integer value object.");
 		ret = -1;
@@ -363,7 +362,7 @@ int bt_ctf_trace_common_set_environment_field_integer(
 		env_value_integer_obj);
 
 end:
-	bt_object_put_ref(env_value_integer_obj);
+	bt_ctf_object_put_ref(env_value_integer_obj);
 	return ret;
 }
 
@@ -400,7 +399,7 @@ int bt_ctf_trace_common_add_clock_class(struct bt_ctf_trace_common *trace,
 		goto end;
 	}
 
-	bt_object_get_ref(clock_class);
+	bt_ctf_object_get_ref(clock_class);
 	g_ptr_array_add(trace->clock_classes, clock_class);
 
 	if (trace->frozen) {
@@ -870,7 +869,7 @@ int check_packet_header_type_has_no_clock_class(struct bt_ctf_trace_common *trac
 		ret = bt_ctf_field_type_common_validate_single_clock_class(
 			trace->packet_header_field_type,
 			&clock_class);
-		bt_object_put_ref(clock_class);
+		bt_ctf_object_put_ref(clock_class);
 		if (ret || clock_class) {
 			BT_LOGW("Trace's packet header field type cannot "
 				"contain a field type which is mapped to "
@@ -915,7 +914,7 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 	int64_t event_class_count;
 	struct bt_ctf_trace_common *current_parent_trace = NULL;
 	struct bt_ctf_clock_class *expected_clock_class =
-		bt_object_get_ref(init_expected_clock_class);
+		bt_ctf_object_get_ref(init_expected_clock_class);
 
 	BT_ASSERT(copy_field_type_func);
 
@@ -1191,7 +1190,7 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 		}
 	}
 
-	bt_object_set_parent(&stream_class->base, &trace->base);
+	bt_ctf_object_set_parent(&stream_class->base, &trace->base);
 	g_ptr_array_add(trace->stream_classes, stream_class);
 
 	/*
@@ -1239,7 +1238,7 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 	 * now because the stream class is frozen.
 	 */
 	if (expected_clock_class) {
-		BT_OBJECT_MOVE_REF(stream_class->clock_class, expected_clock_class);
+		BT_CTF_OBJECT_MOVE_REF(stream_class->clock_class, expected_clock_class);
 	}
 
 	BT_LOGD("Added stream class to trace: "
@@ -1252,7 +1251,7 @@ int bt_ctf_trace_common_add_stream_class(struct bt_ctf_trace_common *trace,
 
 end:
 	if (ret) {
-		bt_object_set_parent(&stream_class->base, NULL);
+		bt_ctf_object_set_parent(&stream_class->base, NULL);
 
 		if (ec_validation_outputs) {
 			for (i = 0; i < event_class_count; i++) {
@@ -1264,7 +1263,7 @@ end:
 
 	g_free(ec_validation_outputs);
 	bt_ctf_validation_output_put_types(&trace_sc_validation_output);
-	bt_object_put_ref(expected_clock_class);
+	bt_ctf_object_put_ref(expected_clock_class);
 	return ret;
 }
 
@@ -1362,8 +1361,8 @@ int bt_ctf_trace_common_set_packet_header_field_type(struct bt_ctf_trace_common 
 		goto end;
 	}
 
-	bt_object_put_ref(trace->packet_header_field_type);
-	trace->packet_header_field_type = bt_object_get_ref(packet_header_type);
+	bt_ctf_object_put_ref(trace->packet_header_field_type);
+	trace->packet_header_field_type = bt_ctf_object_get_ref(packet_header_type);
 	BT_LOGV("Set trace's packet header field type: "
 		"addr=%p, name=\"%s\", packet-context-ft-addr=%p",
 		trace, bt_ctf_trace_common_get_name(trace), packet_header_type);
@@ -1421,7 +1420,7 @@ end:
 }
 
 static
-void bt_ctf_trace_destroy(struct bt_object *obj)
+void bt_ctf_trace_destroy(struct bt_ctf_object *obj)
 {
 	struct bt_ctf_trace *trace = (void *) obj;
 
@@ -1455,7 +1454,7 @@ struct bt_ctf_trace *bt_ctf_trace_create(void)
 	return trace;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(trace);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(trace);
 	return trace;
 }
 
@@ -1497,17 +1496,17 @@ bt_ctf_trace_get_environment_field_name_by_index(struct bt_ctf_trace *trace,
 		BT_CTF_TO_COMMON(trace), index);
 }
 
-struct bt_value *bt_ctf_trace_get_environment_field_value_by_index(
+struct bt_ctf_value *bt_ctf_trace_get_environment_field_value_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return bt_object_get_ref(bt_ctf_trace_common_borrow_environment_field_value_by_index(
+	return bt_ctf_object_get_ref(bt_ctf_trace_common_borrow_environment_field_value_by_index(
 		BT_CTF_TO_COMMON(trace), index));
 }
 
-struct bt_value *bt_ctf_trace_get_environment_field_value_by_name(
+struct bt_ctf_value *bt_ctf_trace_get_environment_field_value_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
-	return bt_object_get_ref(bt_ctf_trace_common_borrow_environment_field_value_by_name(
+	return bt_ctf_object_get_ref(bt_ctf_trace_common_borrow_environment_field_value_by_name(
 		BT_CTF_TO_COMMON(trace), name));
 }
 
@@ -1529,7 +1528,7 @@ BT_HIDDEN
 struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return bt_object_get_ref(bt_ctf_trace_common_borrow_clock_class_by_index(
+	return bt_ctf_object_get_ref(bt_ctf_trace_common_borrow_clock_class_by_index(
 		BT_CTF_TO_COMMON(trace), index));
 }
 
@@ -1646,7 +1645,7 @@ int64_t bt_ctf_trace_get_stream_count(struct bt_ctf_trace *trace)
 struct bt_ctf_stream *bt_ctf_trace_get_stream_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return bt_object_get_ref(bt_ctf_trace_common_borrow_stream_by_index(
+	return bt_ctf_object_get_ref(bt_ctf_trace_common_borrow_stream_by_index(
 		BT_CTF_TO_COMMON(trace), index));
 }
 
@@ -1658,14 +1657,14 @@ int64_t bt_ctf_trace_get_stream_class_count(struct bt_ctf_trace *trace)
 struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_index(
 		struct bt_ctf_trace *trace, uint64_t index)
 {
-	return bt_object_get_ref(bt_ctf_trace_common_borrow_stream_class_by_index(
+	return bt_ctf_object_get_ref(bt_ctf_trace_common_borrow_stream_class_by_index(
 		BT_CTF_TO_COMMON(trace), index));
 }
 
 struct bt_ctf_stream_class *bt_ctf_trace_get_stream_class_by_id(
 		struct bt_ctf_trace *trace, uint64_t id)
 {
-	return bt_object_get_ref(bt_ctf_trace_common_borrow_stream_class_by_id(
+	return bt_ctf_object_get_ref(bt_ctf_trace_common_borrow_stream_class_by_id(
 		BT_CTF_TO_COMMON(trace), id));
 }
 
@@ -1673,7 +1672,7 @@ BT_HIDDEN
 struct bt_ctf_clock_class *bt_ctf_trace_get_clock_class_by_name(
 		struct bt_ctf_trace *trace, const char *name)
 {
-	return bt_object_get_ref(
+	return bt_ctf_object_get_ref(
 		bt_ctf_trace_common_borrow_clock_class_by_name(BT_CTF_TO_COMMON(trace),
 			name));
 }
@@ -1748,7 +1747,7 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 	g_string_append(context->string, "env {\n");
 
 	for (i = 0; i < env_size; i++) {
-		struct bt_private_value *env_field_value_obj = NULL;
+		struct bt_ctf_private_value *env_field_value_obj = NULL;
 		const char *entry_name;
 
 		entry_name = bt_ctf_attributes_get_field_name(
@@ -1759,27 +1758,27 @@ void append_env_metadata(struct bt_ctf_trace *trace,
 		BT_ASSERT(entry_name);
 		BT_ASSERT(env_field_value_obj);
 
-		switch (bt_value_get_type(
-			bt_private_value_as_value(env_field_value_obj))) {
-		case BT_VALUE_TYPE_INTEGER:
+		switch (bt_ctf_value_get_type(
+			bt_ctf_private_value_as_value(env_field_value_obj))) {
+		case BT_CTF_VALUE_TYPE_INTEGER:
 		{
 			int64_t int_value;
 
-			int_value = bt_value_integer_get(
-				bt_private_value_as_value(
+			int_value = bt_ctf_value_integer_get(
+				bt_ctf_private_value_as_value(
 					env_field_value_obj));
 			g_string_append_printf(context->string,
 				"\t%s = %" PRId64 ";\n", entry_name,
 				int_value);
 			break;
 		}
-		case BT_VALUE_TYPE_STRING:
+		case BT_CTF_VALUE_TYPE_STRING:
 		{
 			const char *str_value;
 			char *escaped_str = NULL;
 
-			str_value = bt_value_string_get(
-				bt_private_value_as_value(
+			str_value = bt_ctf_value_string_get(
+				bt_ctf_private_value_as_value(
 					env_field_value_obj));
 			escaped_str = g_strescape(str_value, NULL);
 			if (!escaped_str) {
@@ -1867,7 +1866,7 @@ int bt_ctf_trace_set_native_byte_order(struct bt_ctf_trace *trace,
 struct bt_ctf_field_type *bt_ctf_trace_get_packet_header_field_type(
 		struct bt_ctf_trace *trace)
 {
-	return bt_object_get_ref(bt_ctf_trace_common_borrow_packet_header_field_type(
+	return bt_ctf_object_get_ref(bt_ctf_trace_common_borrow_packet_header_field_type(
 		BT_CTF_TO_COMMON(trace)));
 }
 

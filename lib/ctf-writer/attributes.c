@@ -31,19 +31,19 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compat/string-internal.h>
-#include <babeltrace/object.h>
-#include <babeltrace/values-internal.h>
-#include <babeltrace/values.h>
-#include <babeltrace/private-values.h>
+#include <babeltrace/ctf-writer/object.h>
+#include <babeltrace/ctf-writer/values-internal.h>
+#include <babeltrace/ctf-writer/values-internal.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 #include <inttypes.h>
 
 #define BT_CTF_ATTR_NAME_INDEX		0
 #define BT_CTF_ATTR_VALUE_INDEX		1
 
 BT_HIDDEN
-struct bt_private_value *bt_ctf_attributes_create(void)
+struct bt_ctf_private_value *bt_ctf_attributes_create(void)
 {
-	struct bt_private_value *attr_obj;
+	struct bt_ctf_private_value *attr_obj;
 
 	/*
 	 * Attributes: array value object of array value objects, each one
@@ -60,7 +60,7 @@ struct bt_private_value *bt_ctf_attributes_create(void)
 	 *     ]
 	 */
 	BT_LOGD_STR("Creating attributes object.");
-	attr_obj = bt_private_value_array_create();
+	attr_obj = bt_ctf_private_value_array_create();
 	if (!attr_obj) {
 		BT_LOGE_STR("Failed to create array value.");
 	} else {
@@ -72,39 +72,39 @@ struct bt_private_value *bt_ctf_attributes_create(void)
 }
 
 BT_HIDDEN
-void bt_ctf_attributes_destroy(struct bt_private_value *attr_obj)
+void bt_ctf_attributes_destroy(struct bt_ctf_private_value *attr_obj)
 {
 	BT_LOGD("Destroying attributes object: addr=%p", attr_obj);
-	bt_object_put_ref(attr_obj);
+	bt_ctf_object_put_ref(attr_obj);
 }
 
 BT_HIDDEN
-int64_t bt_ctf_attributes_get_count(struct bt_private_value *attr_obj)
+int64_t bt_ctf_attributes_get_count(struct bt_ctf_private_value *attr_obj)
 {
-	return bt_value_array_get_size(bt_private_value_as_value(attr_obj));
+	return bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj));
 }
 
 BT_HIDDEN
-const char *bt_ctf_attributes_get_field_name(struct bt_private_value *attr_obj,
+const char *bt_ctf_attributes_get_field_name(struct bt_ctf_private_value *attr_obj,
 		uint64_t index)
 {
 	const char *ret = NULL;
-	struct bt_private_value *attr_field_obj = NULL;
-	struct bt_private_value *attr_field_name_obj = NULL;
+	struct bt_ctf_private_value *attr_field_obj = NULL;
+	struct bt_ctf_private_value *attr_field_name_obj = NULL;
 
 	if (!attr_obj) {
 		BT_LOGW_STR("Invalid parameter: attributes object is NULL.");
 		goto end;
 	}
 
-	if (index >= bt_value_array_get_size(bt_private_value_as_value(attr_obj))) {
+	if (index >= bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj))) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
 			"index=%" PRIu64 ", count=%" PRId64,
-			index, bt_value_array_get_size(bt_private_value_as_value(attr_obj)));
+			index, bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj)));
 		goto end;
 	}
 
-	attr_field_obj = bt_private_value_array_borrow_element_by_index(
+	attr_field_obj = bt_ctf_private_value_array_borrow_element_by_index(
 		attr_obj, index);
 	if (!attr_field_obj) {
 		BT_LOGE("Cannot get attributes object's array value's element by index: "
@@ -113,7 +113,7 @@ const char *bt_ctf_attributes_get_field_name(struct bt_private_value *attr_obj,
 	}
 
 	attr_field_name_obj =
-		bt_private_value_array_borrow_element_by_index(
+		bt_ctf_private_value_array_borrow_element_by_index(
 			attr_field_obj, BT_CTF_ATTR_NAME_INDEX);
 	if (!attr_field_name_obj) {
 		BT_LOGE("Cannot get attribute array value's element by index: "
@@ -122,33 +122,33 @@ const char *bt_ctf_attributes_get_field_name(struct bt_private_value *attr_obj,
 		goto end;
 	}
 
-	ret = bt_value_string_get(
-		bt_private_value_as_value(attr_field_name_obj));
+	ret = bt_ctf_value_string_get(
+		bt_ctf_private_value_as_value(attr_field_name_obj));
 
 end:
 	return ret;
 }
 
 BT_HIDDEN
-struct bt_private_value *bt_ctf_attributes_borrow_field_value(struct bt_private_value *attr_obj,
+struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_value(struct bt_ctf_private_value *attr_obj,
 		uint64_t index)
 {
-	struct bt_private_value *value_obj = NULL;
-	struct bt_private_value *attr_field_obj = NULL;
+	struct bt_ctf_private_value *value_obj = NULL;
+	struct bt_ctf_private_value *attr_field_obj = NULL;
 
 	if (!attr_obj) {
 		BT_LOGW_STR("Invalid parameter: attributes object is NULL.");
 		goto end;
 	}
 
-	if (index >= bt_value_array_get_size(bt_private_value_as_value(attr_obj))) {
+	if (index >= bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj))) {
 		BT_LOGW("Invalid parameter: index is out of bounds: "
 			"index=%" PRIu64 ", count=%" PRId64,
-			index, bt_value_array_get_size(bt_private_value_as_value(attr_obj)));
+			index, bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj)));
 		goto end;
 	}
 
-	attr_field_obj = bt_private_value_array_borrow_element_by_index(
+	attr_field_obj = bt_ctf_private_value_array_borrow_element_by_index(
 		attr_obj, index);
 	if (!attr_field_obj) {
 		BT_LOGE("Cannot get attributes object's array value's element by index: "
@@ -156,7 +156,7 @@ struct bt_private_value *bt_ctf_attributes_borrow_field_value(struct bt_private_
 		goto end;
 	}
 
-	value_obj = bt_private_value_array_borrow_element_by_index(attr_field_obj,
+	value_obj = bt_ctf_private_value_array_borrow_element_by_index(attr_field_obj,
 		BT_CTF_ATTR_VALUE_INDEX);
 	if (!value_obj) {
 		BT_LOGE("Cannot get attribute array value's element by index: "
@@ -169,15 +169,15 @@ end:
 }
 
 static
-struct bt_private_value *bt_ctf_attributes_borrow_field_by_name(
-		struct bt_private_value *attr_obj, const char *name)
+struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_by_name(
+		struct bt_ctf_private_value *attr_obj, const char *name)
 {
 	uint64_t i;
 	int64_t attr_size;
-	struct bt_private_value *value_obj = NULL;
-	struct bt_private_value *attr_field_name_obj = NULL;
+	struct bt_ctf_private_value *value_obj = NULL;
+	struct bt_ctf_private_value *attr_field_name_obj = NULL;
 
-	attr_size = bt_value_array_get_size(bt_private_value_as_value(attr_obj));
+	attr_size = bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj));
 	if (attr_size < 0) {
 		BT_LOGE("Cannot get array value's size: value-addr=%p",
 			attr_obj);
@@ -187,14 +187,14 @@ struct bt_private_value *bt_ctf_attributes_borrow_field_by_name(
 	for (i = 0; i < attr_size; ++i) {
 		const char *field_name;
 
-		value_obj = bt_private_value_array_borrow_element_by_index(attr_obj, i);
+		value_obj = bt_ctf_private_value_array_borrow_element_by_index(attr_obj, i);
 		if (!value_obj) {
 			BT_LOGE("Cannot get attributes object's array value's element by index: "
 				"value-addr=%p, index=%" PRIu64, attr_obj, i);
 			goto error;
 		}
 
-		attr_field_name_obj = bt_private_value_array_borrow_element_by_index(value_obj,
+		attr_field_name_obj = bt_ctf_private_value_array_borrow_element_by_index(value_obj,
 			BT_CTF_ATTR_NAME_INDEX);
 		if (!attr_field_name_obj) {
 			BT_LOGE("Cannot get attribute array value's element by index: "
@@ -203,8 +203,8 @@ struct bt_private_value *bt_ctf_attributes_borrow_field_by_name(
 			goto error;
 		}
 
-		field_name = bt_value_string_get(
-			bt_private_value_as_value(attr_field_name_obj));
+		field_name = bt_ctf_value_string_get(
+			bt_ctf_private_value_as_value(attr_field_name_obj));
 
 		if (!strcmp(field_name, name)) {
 			break;
@@ -221,11 +221,11 @@ error:
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_set_field_value(struct bt_private_value *attr_obj,
-		const char *name, struct bt_private_value *value_obj)
+int bt_ctf_attributes_set_field_value(struct bt_ctf_private_value *attr_obj,
+		const char *name, struct bt_ctf_private_value *value_obj)
 {
 	int ret = 0;
-	struct bt_private_value *attr_field_obj = NULL;
+	struct bt_ctf_private_value *attr_field_obj = NULL;
 
 	if (!attr_obj || !name || !value_obj) {
 		BT_LOGW("Invalid parameter: attributes object, name, or value object is NULL: "
@@ -237,31 +237,31 @@ int bt_ctf_attributes_set_field_value(struct bt_private_value *attr_obj,
 
 	attr_field_obj = bt_ctf_attributes_borrow_field_by_name(attr_obj, name);
 	if (attr_field_obj) {
-		ret = bt_private_value_array_set_element_by_index(
+		ret = bt_ctf_private_value_array_set_element_by_index(
 			attr_field_obj, BT_CTF_ATTR_VALUE_INDEX,
-			bt_private_value_as_value(value_obj));
+			bt_ctf_private_value_as_value(value_obj));
 		attr_field_obj = NULL;
 		goto end;
 	}
 
-	attr_field_obj = bt_private_value_array_create();
+	attr_field_obj = bt_ctf_private_value_array_create();
 	if (!attr_field_obj) {
 		BT_LOGE_STR("Failed to create empty array value.");
 		ret = -1;
 		goto end;
 	}
 
-	ret = bt_private_value_array_append_string_element(attr_field_obj, name);
-	ret |= bt_private_value_array_append_element(attr_field_obj,
-		bt_private_value_as_value(value_obj));
+	ret = bt_ctf_private_value_array_append_string_element(attr_field_obj, name);
+	ret |= bt_ctf_private_value_array_append_element(attr_field_obj,
+		bt_ctf_private_value_as_value(value_obj));
 	if (ret) {
 		BT_LOGE("Cannot append elements to array value: addr=%p",
 			attr_field_obj);
 		goto end;
 	}
 
-	ret = bt_private_value_array_append_element(attr_obj,
-		bt_private_value_as_value(attr_field_obj));
+	ret = bt_ctf_private_value_array_append_element(attr_obj,
+		bt_ctf_private_value_as_value(attr_field_obj));
 	if (ret) {
 		BT_LOGE("Cannot append element to array value: "
 			"array-value-addr=%p, element-value-addr=%p",
@@ -269,16 +269,16 @@ int bt_ctf_attributes_set_field_value(struct bt_private_value *attr_obj,
 	}
 
 end:
-	bt_object_put_ref(attr_field_obj);
+	bt_ctf_object_put_ref(attr_field_obj);
 	return ret;
 }
 
 BT_HIDDEN
-struct bt_private_value *bt_ctf_attributes_borrow_field_value_by_name(
-		struct bt_private_value *attr_obj, const char *name)
+struct bt_ctf_private_value *bt_ctf_attributes_borrow_field_value_by_name(
+		struct bt_ctf_private_value *attr_obj, const char *name)
 {
-	struct bt_private_value *value_obj = NULL;
-	struct bt_private_value *attr_field_obj = NULL;
+	struct bt_ctf_private_value *value_obj = NULL;
+	struct bt_ctf_private_value *attr_field_obj = NULL;
 
 	if (!attr_obj || !name) {
 		BT_LOGW("Invalid parameter: attributes object or name is NULL: "
@@ -293,7 +293,7 @@ struct bt_private_value *bt_ctf_attributes_borrow_field_value_by_name(
 		goto end;
 	}
 
-	value_obj = bt_private_value_array_borrow_element_by_index(attr_field_obj,
+	value_obj = bt_ctf_private_value_array_borrow_element_by_index(attr_field_obj,
 		BT_CTF_ATTR_VALUE_INDEX);
 	if (!value_obj) {
 		BT_LOGE("Cannot get attribute array value's element by index: "
@@ -306,7 +306,7 @@ end:
 }
 
 BT_HIDDEN
-int bt_ctf_attributes_freeze(struct bt_private_value *attr_obj)
+int bt_ctf_attributes_freeze(struct bt_ctf_private_value *attr_obj)
 {
 	uint64_t i;
 	int64_t count;
@@ -319,7 +319,7 @@ int bt_ctf_attributes_freeze(struct bt_private_value *attr_obj)
 	}
 
 	BT_LOGD("Freezing attributes object: value-addr=%p", attr_obj);
-	count = bt_value_array_get_size(bt_private_value_as_value(attr_obj));
+	count = bt_ctf_value_array_get_size(bt_ctf_private_value_as_value(attr_obj));
 	BT_ASSERT(count >= 0);
 
 	/*
@@ -328,7 +328,7 @@ int bt_ctf_attributes_freeze(struct bt_private_value *attr_obj)
 	 * attribute is frozen one by one.
 	 */
 	for (i = 0; i < count; ++i) {
-		struct bt_private_value *obj = NULL;
+		struct bt_ctf_private_value *obj = NULL;
 
 		obj = bt_ctf_attributes_borrow_field_value(attr_obj, i);
 		if (!obj) {
@@ -339,7 +339,7 @@ int bt_ctf_attributes_freeze(struct bt_private_value *attr_obj)
 			goto end;
 		}
 
-		bt_value_freeze(bt_private_value_as_value(obj));
+		bt_ctf_value_freeze(bt_ctf_private_value_as_value(obj));
 	}
 
 end:

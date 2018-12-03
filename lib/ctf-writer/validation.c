@@ -36,8 +36,8 @@
 #include <babeltrace/ctf-writer/stream-class-internal.h>
 #include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/validation-internal.h>
-#include <babeltrace/object.h>
-#include <babeltrace/values.h>
+#include <babeltrace/ctf-writer/object.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 
 /*
  * This function resolves and validates the field types of an event
@@ -48,7 +48,7 @@
  * All parameters are owned by the caller.
  */
 static
-int validate_event_class_types(struct bt_private_value *environment,
+int validate_event_class_types(struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,
@@ -112,7 +112,7 @@ end:
  * All parameters are owned by the caller.
  */
 static
-int validate_stream_class_types(struct bt_private_value *environment,
+int validate_stream_class_types(struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,
@@ -180,7 +180,7 @@ end:
  * All parameters are owned by the caller.
  */
 static
-int validate_trace_types(struct bt_private_value *environment,
+int validate_trace_types(struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type)
 {
 	int ret = 0;
@@ -262,7 +262,7 @@ end:
 }
 
 BT_HIDDEN
-int bt_ctf_validate_class_types(struct bt_private_value *environment,
+int bt_ctf_validate_class_types(struct bt_ctf_private_value *environment,
 		struct bt_ctf_field_type_common *packet_header_type,
 		struct bt_ctf_field_type_common *packet_context_type,
 		struct bt_ctf_field_type_common *event_header_type,
@@ -309,12 +309,12 @@ int bt_ctf_validate_class_types(struct bt_private_value *environment,
 	}
 
 	/* Own the type parameters */
-	bt_object_get_ref(packet_header_type);
-	bt_object_get_ref(packet_context_type);
-	bt_object_get_ref(event_header_type);
-	bt_object_get_ref(stream_event_ctx_type);
-	bt_object_get_ref(event_context_type);
-	bt_object_get_ref(event_payload_type);
+	bt_ctf_object_get_ref(packet_header_type);
+	bt_ctf_object_get_ref(packet_context_type);
+	bt_ctf_object_get_ref(event_header_type);
+	bt_ctf_object_get_ref(stream_event_ctx_type);
+	bt_ctf_object_get_ref(event_context_type);
+	bt_ctf_object_get_ref(event_payload_type);
 
 	/* Validate trace */
 	if ((validate_flags & BT_CTF_VALIDATION_FLAG_TRACE) && !trace_valid) {
@@ -331,7 +331,7 @@ int bt_ctf_validate_class_types(struct bt_private_value *environment,
 			} else if (!contains_seq_var) {
 				/* No copy is needed */
 				packet_header_type_copy = packet_header_type;
-				bt_object_get_ref(packet_header_type_copy);
+				bt_ctf_object_get_ref(packet_header_type_copy);
 				goto skip_packet_header_type_copy;
 			}
 
@@ -354,7 +354,7 @@ int bt_ctf_validate_class_types(struct bt_private_value *environment,
 
 skip_packet_header_type_copy:
 		/* Put original reference and move copy */
-		BT_OBJECT_MOVE_REF(packet_header_type, packet_header_type_copy);
+		BT_CTF_OBJECT_MOVE_REF(packet_header_type, packet_header_type_copy);
 
 		/* Validate trace field types */
 		valid_ret = validate_trace_types(environment,
@@ -382,7 +382,7 @@ skip_packet_header_type_copy:
 			} else if (!contains_seq_var) {
 				/* No copy is needed */
 				packet_context_type_copy = packet_context_type;
-				bt_object_get_ref(packet_context_type_copy);
+				bt_ctf_object_get_ref(packet_context_type_copy);
 				goto skip_packet_context_type_copy;
 			}
 
@@ -413,7 +413,7 @@ skip_packet_context_type_copy:
 			} else if (!contains_seq_var) {
 				/* No copy is needed */
 				event_header_type_copy = event_header_type;
-				bt_object_get_ref(event_header_type_copy);
+				bt_ctf_object_get_ref(event_header_type_copy);
 				goto skip_event_header_type_copy;
 			}
 
@@ -445,7 +445,7 @@ skip_event_header_type_copy:
 				/* No copy is needed */
 				stream_event_ctx_type_copy =
 					stream_event_ctx_type;
-				bt_object_get_ref(stream_event_ctx_type_copy);
+				bt_ctf_object_get_ref(stream_event_ctx_type_copy);
 				goto skip_stream_event_ctx_type_copy;
 			}
 
@@ -467,9 +467,9 @@ skip_event_header_type_copy:
 
 skip_stream_event_ctx_type_copy:
 		/* Put original references and move copies */
-		BT_OBJECT_MOVE_REF(packet_context_type, packet_context_type_copy);
-		BT_OBJECT_MOVE_REF(event_header_type, event_header_type_copy);
-		BT_OBJECT_MOVE_REF(stream_event_ctx_type, stream_event_ctx_type_copy);
+		BT_CTF_OBJECT_MOVE_REF(packet_context_type, packet_context_type_copy);
+		BT_CTF_OBJECT_MOVE_REF(event_header_type, event_header_type_copy);
+		BT_CTF_OBJECT_MOVE_REF(stream_event_ctx_type, stream_event_ctx_type_copy);
 
 		/* Validate stream class field types */
 		valid_ret = validate_stream_class_types(environment,
@@ -483,9 +483,9 @@ skip_stream_event_ctx_type_copy:
 		goto sc_validation_done;
 
 sc_validation_error:
-		BT_OBJECT_PUT_REF_AND_RESET(packet_context_type_copy);
-		BT_OBJECT_PUT_REF_AND_RESET(event_header_type_copy);
-		BT_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_type_copy);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(packet_context_type_copy);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(event_header_type_copy);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_type_copy);
 		ret = -1;
 		goto error;
 	}
@@ -507,7 +507,7 @@ sc_validation_done:
 			} else if (!contains_seq_var) {
 				/* No copy is needed */
 				event_context_type_copy = event_context_type;
-				bt_object_get_ref(event_context_type_copy);
+				bt_ctf_object_get_ref(event_context_type_copy);
 				goto skip_event_context_type_copy;
 			}
 
@@ -538,7 +538,7 @@ skip_event_context_type_copy:
 			} else if (!contains_seq_var) {
 				/* No copy is needed */
 				event_payload_type_copy = event_payload_type;
-				bt_object_get_ref(event_payload_type_copy);
+				bt_ctf_object_get_ref(event_payload_type_copy);
 				goto skip_event_payload_type_copy;
 			}
 
@@ -560,8 +560,8 @@ skip_event_context_type_copy:
 
 skip_event_payload_type_copy:
 		/* Put original references and move copies */
-		BT_OBJECT_MOVE_REF(event_context_type, event_context_type_copy);
-		BT_OBJECT_MOVE_REF(event_payload_type, event_payload_type_copy);
+		BT_CTF_OBJECT_MOVE_REF(event_context_type, event_context_type_copy);
+		BT_CTF_OBJECT_MOVE_REF(event_payload_type, event_payload_type_copy);
 
 		/* Validate event class field types */
 		valid_ret = validate_event_class_types(environment,
@@ -576,8 +576,8 @@ skip_event_payload_type_copy:
 		goto ec_validation_done;
 
 ec_validation_error:
-		BT_OBJECT_PUT_REF_AND_RESET(event_context_type_copy);
-		BT_OBJECT_PUT_REF_AND_RESET(event_payload_type_copy);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(event_context_type_copy);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(event_payload_type_copy);
 		ret = -1;
 		goto error;
 	}
@@ -588,21 +588,21 @@ ec_validation_done:
 	 * to validate (and that were possibly altered by the validation
 	 * process) to the output values.
 	 */
-	BT_OBJECT_MOVE_REF(output->packet_header_type, packet_header_type);
-	BT_OBJECT_MOVE_REF(output->packet_context_type, packet_context_type);
-	BT_OBJECT_MOVE_REF(output->event_header_type, event_header_type);
-	BT_OBJECT_MOVE_REF(output->stream_event_ctx_type, stream_event_ctx_type);
-	BT_OBJECT_MOVE_REF(output->event_context_type, event_context_type);
-	BT_OBJECT_MOVE_REF(output->event_payload_type, event_payload_type);
+	BT_CTF_OBJECT_MOVE_REF(output->packet_header_type, packet_header_type);
+	BT_CTF_OBJECT_MOVE_REF(output->packet_context_type, packet_context_type);
+	BT_CTF_OBJECT_MOVE_REF(output->event_header_type, event_header_type);
+	BT_CTF_OBJECT_MOVE_REF(output->stream_event_ctx_type, stream_event_ctx_type);
+	BT_CTF_OBJECT_MOVE_REF(output->event_context_type, event_context_type);
+	BT_CTF_OBJECT_MOVE_REF(output->event_payload_type, event_payload_type);
 	return ret;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(packet_header_type);
-	BT_OBJECT_PUT_REF_AND_RESET(packet_context_type);
-	BT_OBJECT_PUT_REF_AND_RESET(event_header_type);
-	BT_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_type);
-	BT_OBJECT_PUT_REF_AND_RESET(event_context_type);
-	BT_OBJECT_PUT_REF_AND_RESET(event_payload_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(packet_header_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(packet_context_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(event_header_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(event_context_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(event_payload_type);
 	return ret;
 }
 
@@ -615,7 +615,7 @@ void bt_ctf_validation_replace_types(struct bt_ctf_trace_common *trace,
 {
 	if ((replace_flags & BT_CTF_VALIDATION_FLAG_TRACE) && trace) {
 		bt_ctf_field_type_common_freeze(trace->packet_header_field_type);
-		BT_OBJECT_MOVE_REF(trace->packet_header_field_type,
+		BT_CTF_OBJECT_MOVE_REF(trace->packet_header_field_type,
 			output->packet_header_type);
 	}
 
@@ -623,19 +623,19 @@ void bt_ctf_validation_replace_types(struct bt_ctf_trace_common *trace,
 		bt_ctf_field_type_common_freeze(stream_class->packet_context_field_type);
 		bt_ctf_field_type_common_freeze(stream_class->event_header_field_type);
 		bt_ctf_field_type_common_freeze(stream_class->event_context_field_type);
-		BT_OBJECT_MOVE_REF(stream_class->packet_context_field_type,
+		BT_CTF_OBJECT_MOVE_REF(stream_class->packet_context_field_type,
 			output->packet_context_type);
-		BT_OBJECT_MOVE_REF(stream_class->event_header_field_type,
+		BT_CTF_OBJECT_MOVE_REF(stream_class->event_header_field_type,
 			output->event_header_type);
-		BT_OBJECT_MOVE_REF(stream_class->event_context_field_type,
+		BT_CTF_OBJECT_MOVE_REF(stream_class->event_context_field_type,
 			output->stream_event_ctx_type);
 	}
 
 	if ((replace_flags & BT_CTF_VALIDATION_FLAG_EVENT) && event_class) {
 		bt_ctf_field_type_common_freeze(event_class->context_field_type);
 		bt_ctf_field_type_common_freeze(event_class->payload_field_type);
-		BT_OBJECT_MOVE_REF(event_class->context_field_type, output->event_context_type);
-		BT_OBJECT_MOVE_REF(event_class->payload_field_type, output->event_payload_type);
+		BT_CTF_OBJECT_MOVE_REF(event_class->context_field_type, output->event_context_type);
+		BT_CTF_OBJECT_MOVE_REF(event_class->payload_field_type, output->event_payload_type);
 	}
 }
 
@@ -643,10 +643,10 @@ BT_HIDDEN
 void bt_ctf_validation_output_put_types(
 		struct bt_ctf_validation_output *output)
 {
-	BT_OBJECT_PUT_REF_AND_RESET(output->packet_header_type);
-	BT_OBJECT_PUT_REF_AND_RESET(output->packet_context_type);
-	BT_OBJECT_PUT_REF_AND_RESET(output->event_header_type);
-	BT_OBJECT_PUT_REF_AND_RESET(output->stream_event_ctx_type);
-	BT_OBJECT_PUT_REF_AND_RESET(output->event_context_type);
-	BT_OBJECT_PUT_REF_AND_RESET(output->event_payload_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(output->packet_header_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(output->packet_context_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(output->event_header_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(output->stream_event_ctx_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(output->event_context_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(output->event_payload_type);
 }
