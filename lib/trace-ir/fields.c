@@ -227,7 +227,8 @@ void init_field(struct bt_field *field, struct bt_field_class *fc,
 	BT_ASSERT(fc);
 	bt_object_init_unique(&field->base);
 	field->methods = methods;
-	field->class = bt_object_get_ref(fc);
+	field->class = fc;
+	bt_object_get_no_null_check(fc);
 }
 
 static

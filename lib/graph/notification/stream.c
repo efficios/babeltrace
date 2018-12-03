@@ -78,7 +78,8 @@ struct bt_private_notification *bt_private_notification_stream_end_create(
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_STREAM_END,
 			bt_notification_stream_end_destroy, NULL);
-	notification->stream = bt_object_get_ref(stream);
+	notification->stream = stream;
+	bt_object_get_no_null_check(notification->stream);
 	BT_LIB_LOGD("Created stream end notification object: "
 		"%![notif-]+n, %![stream-]+s, %![sc-]+S", notification,
 		stream, stream_class);
@@ -183,7 +184,8 @@ struct bt_private_notification *bt_private_notification_stream_begin_create(
 	bt_notification_init(&notification->parent,
 			BT_NOTIFICATION_TYPE_STREAM_BEGIN,
 			bt_notification_stream_begin_destroy, NULL);
-	notification->stream = bt_object_get_ref(stream);
+	notification->stream = stream;
+	bt_object_get_no_null_check(notification->stream);
 	BT_LIB_LOGD("Created stream beginning notification object: "
 		"%![notif-]+n, %![stream-]+s, %![sc-]+S", notification,
 		stream, stream_class);

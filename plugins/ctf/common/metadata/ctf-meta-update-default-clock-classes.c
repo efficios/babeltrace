@@ -164,7 +164,8 @@ int update_stream_class_default_clock_class(
 	}
 
 	if (!stream_class->default_clock_class) {
-		stream_class->default_clock_class = bt_object_get_ref(clock_class);
+		stream_class->default_clock_class = clock_class;
+		bt_object_get_ref(stream_class->default_clock_class);
 	}
 
 end:

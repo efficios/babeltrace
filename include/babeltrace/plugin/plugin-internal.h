@@ -362,7 +362,8 @@ enum bt_plugin_status bt_plugin_add_component_class(
 	}
 
 	/* Add new component class */
-	g_ptr_array_add(comp_classes, bt_object_get_ref(comp_class));
+	bt_object_get_ref(comp_class);
+	g_ptr_array_add(comp_classes, comp_class);
 
 	/* Special case for a shared object plugin */
 	if (plugin->type == BT_PLUGIN_TYPE_SO) {
@@ -426,7 +427,8 @@ void bt_plugin_set_add_plugin(struct bt_plugin_set *plugin_set,
 {
 	BT_ASSERT(plugin_set);
 	BT_ASSERT(plugin);
-	g_ptr_array_add(plugin_set->plugins, bt_object_get_ref(plugin));
+	bt_object_get_ref(plugin);
+	g_ptr_array_add(plugin_set->plugins, plugin);
 	BT_LIB_LOGV("Added plugin to plugin set: "
 		"plugin-set-addr=%p, %![plugin-]+l",
 		plugin_set, plugin);

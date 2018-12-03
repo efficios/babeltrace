@@ -151,7 +151,8 @@ struct muxer_upstream_notif_iter *muxer_notif_iter_add_upstream_notif_iter(
 		goto end;
 	}
 
-	muxer_upstream_notif_iter->notif_iter = bt_object_get_ref(self_notif_iter);
+	muxer_upstream_notif_iter->notif_iter = self_notif_iter;
+	bt_object_get_ref(muxer_upstream_notif_iter->notif_iter);
 	muxer_upstream_notif_iter->notifs = g_queue_new();
 	if (!muxer_upstream_notif_iter->notifs) {
 		BT_LOGE_STR("Failed to allocate a GQueue.");

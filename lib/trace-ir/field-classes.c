@@ -762,7 +762,8 @@ int append_named_field_class_to_container_field_class(
 	named_fc = &g_array_index(container_fc->named_fcs,
 		struct bt_named_field_class, container_fc->named_fcs->len - 1);
 	named_fc->name = name_str;
-	named_fc->fc = bt_object_get_ref(fc);
+	named_fc->fc = fc;
+	bt_object_get_no_null_check(fc);
 	g_hash_table_insert(container_fc->name_to_index, named_fc->name->str,
 		GUINT_TO_POINTER(container_fc->named_fcs->len - 1));
 	bt_field_class_freeze(fc);
@@ -924,7 +925,8 @@ int bt_private_field_class_variant_set_selector_field_class(
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
 	BT_ASSERT_PRE_FC_IS_ENUM(selector_fc, "Selector field class");
 	BT_ASSERT_PRE_FC_HOT(fc, "Variant field class");
-	var_fc->selector_fc = bt_object_get_ref(selector_fc);
+	var_fc->selector_fc = (void *) selector_fc;
+	bt_object_get_no_null_check(selector_fc);
 	bt_field_class_freeze((void *) selector_fc);
 	return 0;
 }
@@ -1003,7 +1005,8 @@ void init_array_field_class(struct bt_field_class_array *fc,
 {
 	BT_ASSERT(element_fc);
 	init_field_class((void *) fc, type, release_func);
-	fc->element_fc = bt_object_get_ref(element_fc);
+	fc->element_fc = element_fc;
+	bt_object_get_no_null_check(element_fc);
 	bt_field_class_freeze(element_fc);
 }
 
@@ -1136,7 +1139,8 @@ int bt_private_field_class_dynamic_array_set_length_field_class(
 		"Field class");
 	BT_ASSERT_PRE_FC_IS_UNSIGNED_INT(length_fc, "Length field class");
 	BT_ASSERT_PRE_FC_HOT(fc, "Dynamic array field class");
-	array_fc->length_fc = bt_object_get_ref(length_fc);
+	array_fc->length_fc = (void *) length_fc;
+	bt_object_get_no_null_check(length_fc);
 	bt_field_class_freeze(length_fc);
 	return 0;
 }

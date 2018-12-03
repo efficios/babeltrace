@@ -267,7 +267,8 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 
 	bt_object_init_shared(&packet->base,
 		(bt_object_release_func) bt_packet_recycle);
-	packet->stream = bt_object_get_ref(stream);
+	packet->stream = stream;
+	bt_object_get_no_null_check(stream);
 	trace = bt_stream_class_borrow_trace_inline(stream->class);
 	BT_ASSERT(trace);
 

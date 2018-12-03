@@ -138,7 +138,8 @@ void set_signal_handler(void)
 static
 void init_static_data(void)
 {
-	loaded_plugins = g_ptr_array_new_with_free_func(bt_object_put_ref);
+	loaded_plugins = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) bt_object_put_ref);
 }
 
 static
@@ -287,7 +288,8 @@ struct bt_plugin *find_plugin(const char *name)
 		}
 	}
 
-	return bt_object_get_ref(plugin);
+	bt_object_get_ref(plugin);
+	return plugin;
 }
 
 typedef void *(*plugin_borrow_comp_cls_func_t)(struct bt_plugin *,
@@ -309,8 +311,8 @@ void *find_component_class_from_plugin(const char *plugin_name,
 		goto end;
 	}
 
-	comp_class = bt_object_get_ref(
-		plugin_borrow_comp_cls_func(plugin, comp_class_name));
+	comp_class = plugin_borrow_comp_cls_func(plugin, comp_class_name);
+	bt_object_get_ref(comp_class);
 	BT_OBJECT_PUT_REF_AND_RESET(plugin);
 
 end:
@@ -787,7 +789,8 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 			/* Add to global array. */
 			BT_LOGD("Adding plugin to loaded plugins: plugin-path=\"%s\"",
 				bt_plugin_get_name(plugin));
-			g_ptr_array_add(loaded_plugins, bt_object_get_ref(plugin));
+			bt_object_get_ref(plugin);
+			g_ptr_array_add(loaded_plugins, plugin);
 		}
 	}
 }
@@ -2085,19 +2088,19 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 	ctx->cfg = cfg;
 	ctx->connect_ports = false;
 	ctx->src_components = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, bt_object_put_ref);
+		g_direct_equal, NULL, (GDestroyNotify) bt_object_put_ref);
 	if (!ctx->src_components) {
 		goto error;
 	}
 
 	ctx->flt_components = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, bt_object_put_ref);
+		g_direct_equal, NULL, (GDestroyNotify) bt_object_put_ref);
 	if (!ctx->flt_components) {
 		goto error;
 	}
 
 	ctx->sink_components = g_hash_table_new_full(g_direct_hash,
-		g_direct_equal, NULL, bt_object_put_ref);
+		g_direct_equal, NULL, (GDestroyNotify) bt_object_put_ref);
 	if (!ctx->sink_components) {
 		goto error;
 	}

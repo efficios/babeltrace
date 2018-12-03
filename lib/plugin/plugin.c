@@ -271,7 +271,8 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 					plugin_name) == 0) {
 				BT_LOGD("Plugin found in directory: name=\"%s\", path=\"%s\"",
 					plugin_name, dir->str);
-				plugin = bt_object_get_ref(candidate_plugin);
+				plugin = candidate_plugin;
+				bt_object_get_no_null_check(plugin);
 				goto end;
 			}
 		}
@@ -291,7 +292,8 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 					plugin_name) == 0) {
 				BT_LOGD("Plugin found in built-in plugins: "
 					"name=\"%s\"", plugin_name);
-				plugin = bt_object_get_ref(candidate_plugin);
+				plugin = candidate_plugin;
+				bt_object_get_no_null_check(plugin);
 				goto end;
 			}
 		}
