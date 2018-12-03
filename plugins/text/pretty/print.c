@@ -362,7 +362,7 @@ int print_event_header(struct pretty_component *pretty,
 		}
 	}
 	if (pretty->options.print_trace_hostname_field) {
-		struct bt_value *hostname_str;
+		const struct bt_value *hostname_str;
 
 		hostname_str = bt_trace_borrow_environment_entry_value_by_name(
 			trace_class, "hostname");
@@ -381,7 +381,7 @@ int print_event_header(struct pretty_component *pretty,
 		}
 	}
 	if (pretty->options.print_trace_domain_field) {
-		struct bt_value *domain_str;
+		const struct bt_value *domain_str;
 
 		domain_str = bt_trace_borrow_environment_entry_value_by_name(
 			trace_class, "domain");
@@ -402,7 +402,7 @@ int print_event_header(struct pretty_component *pretty,
 		}
 	}
 	if (pretty->options.print_trace_procname_field) {
-		struct bt_value *procname_str;
+		const struct bt_value *procname_str;
 
 		procname_str = bt_trace_borrow_environment_entry_value_by_name(
 			trace_class, "procname");
@@ -423,7 +423,7 @@ int print_event_header(struct pretty_component *pretty,
 		}
 	}
 	if (pretty->options.print_trace_vpid_field) {
-		struct bt_value *vpid_value;
+		const struct bt_value *vpid_value;
 
 		vpid_value = bt_trace_borrow_environment_entry_value_by_name(
 			trace_class, "vpid");

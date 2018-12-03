@@ -30,7 +30,7 @@
 BT_HIDDEN
 enum bt_self_component_status dmesg_init(
 		struct bt_self_component_source *self_comp,
-		struct bt_value *params, void *init_method_data);
+		const struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
 void dmesg_finalize(struct bt_self_component_source *self_comp);

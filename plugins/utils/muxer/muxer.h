@@ -31,7 +31,7 @@
 BT_HIDDEN
 enum bt_self_component_status muxer_init(
 		struct bt_self_component_filter *self_comp,
-		struct bt_value *params, void *init_data);
+		const struct bt_value *params, void *init_data);
 
 BT_HIDDEN
 void muxer_finalize(struct bt_self_component_filter *self_comp);

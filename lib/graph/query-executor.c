@@ -28,7 +28,7 @@
 #include <babeltrace/graph/query-executor-internal.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/values-const.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
@@ -67,11 +67,11 @@ end:
 enum bt_query_executor_status bt_private_query_executor_query(
 		struct bt_private_query_executor *priv_query_exec,
 		struct bt_component_class *comp_cls,
-		const char *object, struct bt_value *params,
-		struct bt_value **user_result)
+		const char *object, const struct bt_value *params,
+		const struct bt_value **user_result)
 {
 	typedef enum bt_query_status (*method_t)(void *, void *,
-		const void *, void *, void *);
+		const void *, const void *, void *);
 
 	struct bt_query_executor *query_exec = (void *) priv_query_exec;
 	enum bt_query_status status;

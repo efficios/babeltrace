@@ -154,7 +154,7 @@ struct ctf_fs_notif_iter_data {
 BT_HIDDEN
 enum bt_self_component_status ctf_fs_init(
 		struct bt_self_component_source *source,
-		struct bt_value *params, void *init_method_data);
+		const struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
 void ctf_fs_finalize(struct bt_self_component_source *component);
@@ -163,8 +163,8 @@ BT_HIDDEN
 enum bt_query_status ctf_fs_query(
 		struct bt_self_component_class_source *comp_class,
 		struct bt_query_executor *query_exec,
-		const char *object, struct bt_value *params,
-		struct bt_value **result);
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result);
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,

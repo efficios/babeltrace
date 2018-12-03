@@ -33,6 +33,7 @@
 #include <babeltrace/common-internal.h>
 #include <babeltrace/lib-logging-internal.h>
 #include <babeltrace/values-internal.h>
+#include <babeltrace/values-internal.h>
 #include <babeltrace/object-pool-internal.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>

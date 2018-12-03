@@ -25,9 +25,10 @@
  */
 
 #include <babeltrace/values.h>
+#include <babeltrace/values-const.h>
 
 BT_HIDDEN
-enum bt_value_status _bt_value_freeze(struct bt_value *object);
+enum bt_value_status _bt_value_freeze(const struct bt_value *object);
 
 #ifdef BT_DEV_MODE
 # define bt_value_freeze	_bt_value_freeze

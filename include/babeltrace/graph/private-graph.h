@@ -131,40 +131,40 @@ extern struct bt_private_graph *bt_private_graph_create(void);
 extern enum bt_graph_status bt_private_graph_add_source_component(
 		struct bt_private_graph *graph,
 		struct bt_component_class_source *component_class,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		struct bt_component_source **component);
 
 extern enum bt_graph_status
 bt_private_graph_add_source_component_with_init_method_data(
 		struct bt_private_graph *graph,
 		struct bt_component_class_source *component_class,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		void *init_method_data, struct bt_component_source **component);
 
 extern enum bt_graph_status bt_private_graph_add_filter_component(
 		struct bt_private_graph *graph,
 		struct bt_component_class_filter *component_class,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		struct bt_component_filter **component);
 
 extern enum bt_graph_status
 bt_private_graph_add_filter_component_with_init_method_data(
 		struct bt_private_graph *graph,
 		struct bt_component_class_filter *component_class,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		void *init_method_data, struct bt_component_filter **component);
 
 extern enum bt_graph_status bt_private_graph_add_sink_component(
 		struct bt_private_graph *graph,
 		struct bt_component_class_sink *component_class,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		struct bt_component_sink **component);
 
 extern enum bt_graph_status
 bt_private_graph_add_sink_component_with_init_method_data(
 		struct bt_private_graph *graph,
 		struct bt_component_class_sink *component_class,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		void *init_method_data, struct bt_component_sink **component);
 
 extern enum bt_graph_status bt_private_graph_connect_ports(

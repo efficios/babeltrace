@@ -54,9 +54,9 @@ extern uint64_t bt_trace_get_environment_entry_count(struct bt_trace *trace);
 
 extern void bt_trace_borrow_environment_entry_by_index(
 		struct bt_trace *trace, uint64_t index,
-		const char **name, struct bt_value **value);
+		const char **name, const struct bt_value **value);
 
-extern struct bt_value *bt_trace_borrow_environment_entry_value_by_name(
+extern const struct bt_value *bt_trace_borrow_environment_entry_value_by_name(
 		struct bt_trace *trace, const char *name);
 
 extern struct bt_field_class *bt_trace_borrow_packet_header_field_class(

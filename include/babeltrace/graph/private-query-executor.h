@@ -49,8 +49,8 @@ extern
 enum bt_query_executor_status bt_private_query_executor_query(
 		struct bt_private_query_executor *query_executor,
 		struct bt_component_class *component_class,
-		const char *object, struct bt_value *params,
-		struct bt_value **result);
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result);
 
 extern
 enum bt_query_executor_status bt_private_query_executor_cancel(

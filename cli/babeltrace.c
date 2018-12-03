@@ -170,10 +170,10 @@ void destroy_the_query_executor(void)
 
 static
 int query(struct bt_component_class *comp_cls, const char *obj,
-		struct bt_value *params, struct bt_value **user_result,
+		const struct bt_value *params, const struct bt_value **user_result,
 		const char **fail_reason)
 {
-	struct bt_value *result = NULL;
+	const struct bt_value *result = NULL;
 	enum bt_query_executor_status status;
 	*fail_reason = "unknown error";
 	int ret = 0;
@@ -453,10 +453,10 @@ end:
 }
 
 static
-void print_value(FILE *, struct bt_value *, size_t);
+void print_value(FILE *, const struct bt_value *, size_t);
 
 static
-void print_value_rec(FILE *, struct bt_value *, size_t);
+void print_value_rec(FILE *, const struct bt_value *, size_t);
 
 struct print_map_value_data {
 	size_t indent;
@@ -464,7 +464,8 @@ struct print_map_value_data {
 };
 
 static
-bt_bool print_map_value(const char *key, struct bt_value *object, void *data)
+bt_bool print_map_value(const char *key, const struct bt_value *object,
+		void *data)
 {
 	struct print_map_value_data *print_map_value_data = data;
 
@@ -495,7 +496,7 @@ bt_bool print_map_value(const char *key, struct bt_value *object, void *data)
 }
 
 static
-void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
+void print_value_rec(FILE *fp, const struct bt_value *value, size_t indent)
 {
 	bt_bool bool_val;
 	int64_t int_val;
@@ -550,8 +551,8 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 		}
 
 		for (i = 0; i < size; i++) {
-			struct bt_value *element =
-				bt_value_array_borrow_element_by_index(
+			const struct bt_value *element =
+				bt_value_array_borrow_element_by_index_const(
 					value, i);
 
 			if (!element) {
@@ -593,7 +594,7 @@ void print_value_rec(FILE *fp, struct bt_value *value, size_t indent)
 			break;
 		}
 
-		bt_value_map_foreach_entry(value, print_map_value, &data);
+		bt_value_map_foreach_entry_const(value, print_map_value, &data);
 		break;
 	}
 	default:
@@ -607,7 +608,7 @@ error:
 }
 
 static
-void print_value(FILE *fp, struct bt_value *value, size_t indent)
+void print_value(FILE *fp, const struct bt_value *value, size_t indent)
 {
 	if (!bt_value_is_array(value) && !bt_value_is_map(value)) {
 		print_indent(fp, indent);
@@ -631,8 +632,7 @@ void print_bt_config_component(struct bt_config_component *bt_config_component)
 	}
 
 	fprintf(stderr, "      Parameters:\n");
-	print_value(stderr,
-		bt_private_value_as_value(bt_config_component->params), 8);
+	print_value(stderr, bt_config_component->params, 8);
 }
 
 static
@@ -649,7 +649,7 @@ void print_bt_config_components(GPtrArray *array)
 }
 
 static
-void print_plugin_paths(struct bt_value *plugin_paths)
+void print_plugin_paths(const struct bt_value *plugin_paths)
 {
 	fprintf(stderr, "  Plugin paths:\n");
 	print_value(stderr, plugin_paths, 4);
@@ -660,7 +660,7 @@ void print_cfg_run(struct bt_config *cfg)
 {
 	size_t i;
 
-	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
+	print_plugin_paths(cfg->plugin_paths);
 	fprintf(stderr, "  Source component instances:\n");
 	print_bt_config_components(cfg->cmd_data.run.sources);
 
@@ -691,19 +691,19 @@ void print_cfg_run(struct bt_config *cfg)
 static
 void print_cfg_list_plugins(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
+	print_plugin_paths(cfg->plugin_paths);
 }
 
 static
 void print_cfg_help(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
+	print_plugin_paths(cfg->plugin_paths);
 }
 
 static
 void print_cfg_print_ctf_metadata(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
+	print_plugin_paths(cfg->plugin_paths);
 	fprintf(stderr, "  Path: %s\n",
 		cfg->cmd_data.print_ctf_metadata.path->str);
 }
@@ -711,7 +711,7 @@ void print_cfg_print_ctf_metadata(struct bt_config *cfg)
 static
 void print_cfg_print_lttng_live_sessions(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
+	print_plugin_paths(cfg->plugin_paths);
 	fprintf(stderr, "  URL: %s\n",
 		cfg->cmd_data.print_lttng_live_sessions.url->str);
 }
@@ -719,7 +719,7 @@ void print_cfg_print_lttng_live_sessions(struct bt_config *cfg)
 static
 void print_cfg_query(struct bt_config *cfg)
 {
-	print_plugin_paths(bt_private_value_as_value(cfg->plugin_paths));
+	print_plugin_paths(cfg->plugin_paths);
 	fprintf(stderr, "  Object: `%s`\n", cfg->cmd_data.query.object->str);
 	fprintf(stderr, "  Component class:\n");
 	print_bt_config_component(cfg->cmd_data.query.cfg_component);
@@ -796,7 +796,7 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 }
 
 static
-int load_dynamic_plugins(struct bt_value *plugin_paths)
+int load_dynamic_plugins(const struct bt_value *plugin_paths)
 {
 	int nr_paths, i, ret = 0;
 
@@ -810,12 +810,13 @@ int load_dynamic_plugins(struct bt_value *plugin_paths)
 	BT_LOGI("Loading dynamic plugins.");
 
 	for (i = 0; i < nr_paths; i++) {
-		struct bt_value *plugin_path_value = NULL;
+		const struct bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
 		struct bt_plugin_set *plugin_set;
 
-		plugin_path_value = bt_value_array_borrow_element_by_index(
-			plugin_paths, i);
+		plugin_path_value =
+			bt_value_array_borrow_element_by_index_const(
+				plugin_paths, i);
 		plugin_path = bt_value_string_get(plugin_path_value);
 
 		/*
@@ -864,7 +865,7 @@ end:
 }
 
 static
-int load_all_plugins(struct bt_value *plugin_paths)
+int load_all_plugins(const struct bt_value *plugin_paths)
 {
 	int ret = 0;
 
@@ -940,7 +941,7 @@ int cmd_query(struct bt_config *cfg)
 {
 	int ret = 0;
 	struct bt_component_class *comp_cls = NULL;
-	struct bt_value *results = NULL;
+	const struct bt_value *results = NULL;
 	const char *fail_reason = NULL;
 
 	comp_cls = find_component_class(
@@ -967,8 +968,7 @@ int cmd_query(struct bt_config *cfg)
 	}
 
 	ret = query(comp_cls, cfg->cmd_data.query.object->str,
-		bt_private_value_as_value(
-			cfg->cmd_data.query.cfg_component->params),
+		cfg->cmd_data.query.cfg_component->params,
 		&results, &fail_reason);
 	if (ret) {
 		goto failed;
@@ -1161,7 +1161,7 @@ int cmd_list_plugins(struct bt_config *cfg)
 	int plugins_count, component_classes_count = 0, i;
 
 	printf("From the following plugin paths:\n\n");
-	print_value(stdout, bt_private_value_as_value(cfg->plugin_paths), 2);
+	print_value(stdout, cfg->plugin_paths, 2);
 	printf("\n");
 	plugins_count = loaded_plugins->len;
 	if (plugins_count == 0) {
@@ -1220,10 +1220,10 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 {
 	int ret = 0;
 	struct bt_component_class *comp_cls = NULL;
-	struct bt_value *results = NULL;
-	struct bt_private_value *params = NULL;
-	struct bt_value *map = NULL;
-	struct bt_value *v = NULL;
+	const struct bt_value *results = NULL;
+	struct bt_value *params = NULL;
+	const struct bt_value *map = NULL;
+	const struct bt_value *v = NULL;
 	static const char * const plugin_name = "ctf";
 	static const char * const comp_cls_name = "lttng-live";
 	static const enum bt_component_class_type comp_cls_type =
@@ -1250,19 +1250,19 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		goto error;
 	}
 
-	params = bt_private_value_map_create();
+	params = bt_value_map_create();
 	if (!params) {
 		goto error;
 	}
 
-	ret = bt_private_value_map_insert_string_entry(params, "url",
+	ret = bt_value_map_insert_string_entry(params, "url",
 		cfg->cmd_data.print_lttng_live_sessions.url->str);
 	if (ret) {
 		goto error;
 	}
 
-	ret = query(comp_cls, "sessions", bt_private_value_as_value(params),
-		&results, &fail_reason);
+	ret = query(comp_cls, "sessions", params,
+		    &results, &fail_reason);
 	if (ret) {
 		goto failed;
 	}
@@ -1296,7 +1296,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 		const char *url_text;
 		int64_t timer_us, streams, clients;
 
-		map = bt_value_array_borrow_element_by_index(results, i);
+		map = bt_value_array_borrow_element_by_index_const(results, i);
 		if (!map) {
 			BT_LOGE_STR("Unexpected empty array entry.");
 			goto error;
@@ -1306,28 +1306,28 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			goto error;
 		}
 
-		v = bt_value_map_borrow_entry_value(map, "url");
+		v = bt_value_map_borrow_entry_value_const(map, "url");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"url\" entry.");
 			goto error;
 		}
 		url_text = bt_value_string_get(v);
 		fprintf(out_stream, "%s", url_text);
-		v = bt_value_map_borrow_entry_value(map, "timer-us");
+		v = bt_value_map_borrow_entry_value_const(map, "timer-us");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"timer-us\" entry.");
 			goto error;
 		}
 		timer_us = bt_value_integer_get(v);
 		fprintf(out_stream, " (timer = %" PRIu64 ", ", timer_us);
-		v = bt_value_map_borrow_entry_value(map, "stream-count");
+		v = bt_value_map_borrow_entry_value_const(map, "stream-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"stream-count\" entry.");
 			goto error;
 		}
 		streams = bt_value_integer_get(v);
 		fprintf(out_stream, "%" PRIu64 " stream(s), ", streams);
-		v = bt_value_map_borrow_entry_value(map, "client-count");
+		v = bt_value_map_borrow_entry_value_const(map, "client-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"client-count\" entry.");
 			goto error;
@@ -1372,9 +1372,9 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 {
 	int ret = 0;
 	struct bt_component_class *comp_cls = NULL;
-	struct bt_value *results = NULL;
-	struct bt_private_value *params = NULL;
-	struct bt_value *metadata_text_value = NULL;
+	const struct bt_value *results = NULL;
+	struct bt_value *params = NULL;
+	const struct bt_value *metadata_text_value = NULL;
 	const char *metadata_text = NULL;
 	static const char * const plugin_name = "ctf";
 	static const char * const comp_cls_name = "fs";
@@ -1402,13 +1402,13 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 		goto end;
 	}
 
-	params = bt_private_value_map_create();
+	params = bt_value_map_create();
 	if (!params) {
 		ret = -1;
 		goto end;
 	}
 
-	ret = bt_private_value_map_insert_string_entry(params, "path",
+	ret = bt_value_map_insert_string_entry(params, "path",
 		cfg->cmd_data.print_ctf_metadata.path->str);
 	if (ret) {
 		ret = -1;
@@ -1416,12 +1416,13 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	}
 
 	ret = query(comp_cls, "metadata-info",
-		bt_private_value_as_value(params), &results, &fail_reason);
+		params, &results, &fail_reason);
 	if (ret) {
 		goto failed;
 	}
 
-	metadata_text_value = bt_value_map_borrow_entry_value(results, "text");
+	metadata_text_value = bt_value_map_borrow_entry_value_const(results,
+								    "text");
 	if (!metadata_text_value) {
 		BT_LOGE_STR("Cannot find `text` string value in the resulting metadata info object.");
 		ret = -1;
@@ -1618,7 +1619,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	borrow_input_port_by_index_func_t port_by_index_fn;
 	enum bt_graph_status status = BT_GRAPH_STATUS_ERROR;
 	bool insert_trimmer = false;
-	struct bt_private_value *trimmer_params = NULL;
+	struct bt_value *trimmer_params = NULL;
 	char *intersection_begin = NULL;
 	char *intersection_end = NULL;
 	struct bt_component_filter *trimmer = NULL;
@@ -1654,17 +1655,17 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			}
 
 			insert_trimmer = true;
-			trimmer_params = bt_private_value_map_create();
+			trimmer_params = bt_value_map_create();
 			if (!trimmer_params) {
 				goto error;
 			}
 
-			status = bt_private_value_map_insert_string_entry(
+			status = bt_value_map_insert_string_entry(
 				trimmer_params, "begin", intersection_begin);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto error;
 			}
-			status = bt_private_value_map_insert_string_entry(
+			status = bt_value_map_insert_string_entry(
 				trimmer_params,
 				"end", intersection_end);
 			if (status != BT_VALUE_STATUS_OK) {
@@ -1775,7 +1776,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			ctx->connect_ports = false;
 			graph_status = bt_private_graph_add_filter_component(
 				ctx->graph, trimmer_class, trimmer_name,
-				bt_private_value_as_value(trimmer_params),
+				trimmer_params,
 				&trimmer);
 			free(trimmer_name);
 			if (graph_status != BT_GRAPH_STATUS_OK) {
@@ -2156,26 +2157,25 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	int64_t trace_count;
 	enum bt_value_status value_status;
 	const char *path = NULL;
-	struct bt_value *component_path_value = NULL;
-	struct bt_private_value *query_params = NULL;
-	struct bt_value *query_result = NULL;
-	struct bt_value *trace_info = NULL;
-	struct bt_value *intersection_range = NULL;
-	struct bt_value *intersection_begin = NULL;
-	struct bt_value *intersection_end = NULL;
-	struct bt_value *stream_path_value = NULL;
-	struct bt_value *stream_paths = NULL;
-	struct bt_value *stream_infos = NULL;
-	struct bt_value *stream_info = NULL;
+	const struct bt_value *component_path_value = NULL;
+	struct bt_value *query_params = NULL;
+	const struct bt_value *query_result = NULL;
+	const struct bt_value *trace_info = NULL;
+	const struct bt_value *intersection_range = NULL;
+	const struct bt_value *intersection_begin = NULL;
+	const struct bt_value *intersection_end = NULL;
+	const struct bt_value *stream_path_value = NULL;
+	const struct bt_value *stream_paths = NULL;
+	const struct bt_value *stream_infos = NULL;
+	const struct bt_value *stream_info = NULL;
 	struct port_id *port_id = NULL;
 	struct trace_range *trace_range = NULL;
 	const char *fail_reason = NULL;
 	struct bt_component_class *comp_cls =
 		bt_component_class_source_as_component_class(src_comp_cls);
 
-	component_path_value = bt_value_map_borrow_entry_value(
-		bt_private_value_as_value(cfg_comp->params),
-		"path");
+	component_path_value = bt_value_map_borrow_entry_value(cfg_comp->params,
+							       "path");
 	if (component_path_value && !bt_value_is_string(component_path_value)) {
 		BT_LOGD("Cannot get path parameter: component-name=%s",
 			cfg_comp->instance_name->str);
@@ -2184,15 +2184,15 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	}
 
 	path = bt_value_string_get(component_path_value);
-	query_params = bt_private_value_map_create();
+	query_params = bt_value_map_create();
 	if (!query_params) {
 		BT_LOGE_STR("Cannot create query parameters.");
 		ret = -1;
 		goto error;
 	}
 
-	value_status = bt_private_value_map_insert_entry(query_params, "path",
-		component_path_value);
+	value_status = bt_value_map_insert_string_entry(query_params, "path",
+		path);
 	if (value_status != BT_VALUE_STATUS_OK) {
 		BT_LOGE_STR("Cannot insert path parameter in query parameter map.");
 		ret = -1;
@@ -2200,7 +2200,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	}
 
 	ret = query(comp_cls, "trace-info",
-		bt_private_value_as_value(query_params), &query_result,
+		query_params, &query_result,
 		&fail_reason);
 	if (ret) {
 		BT_LOGD("Component class does not support the `trace-info` query: %s: "
@@ -2231,7 +2231,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 		uint64_t stream_idx;
 		int64_t stream_count;
 
-		trace_info = bt_value_array_borrow_element_by_index(
+		trace_info = bt_value_array_borrow_element_by_index_const(
 			query_result, trace_idx);
 		if (!trace_info || !bt_value_is_map(trace_info)) {
 			ret = -1;
@@ -2239,24 +2239,24 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		intersection_range = bt_value_map_borrow_entry_value(trace_info,
-			"intersection-range-ns");
+		intersection_range = bt_value_map_borrow_entry_value_const(
+			trace_info, "intersection-range-ns");
 		if (!intersection_range) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve \'intersetion-range-ns\' field from query result.");
 			goto error;
 		}
 
-		intersection_begin = bt_value_map_borrow_entry_value(
-			intersection_range, "begin");
+		intersection_begin = bt_value_map_borrow_entry_value_const(intersection_range,
+									   "begin");
 		if (!intersection_begin) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve intersection-range-ns \'begin\' field from query result.");
 			goto error;
 		}
 
-		intersection_end = bt_value_map_borrow_entry_value(
-			intersection_range, "end");
+		intersection_end = bt_value_map_borrow_entry_value_const(intersection_range,
+									 "end");
 		if (!intersection_end) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve intersection-range-ns \'end\' field from query result.");
@@ -2275,8 +2275,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		stream_infos = bt_value_map_borrow_entry_value(trace_info,
-			"streams");
+		stream_infos = bt_value_map_borrow_entry_value_const(trace_info,
+								     "streams");
 		if (!stream_infos || !bt_value_is_array(stream_infos)) {
 			ret = -1;
 			BT_LOGD_STR("Cannot retrieve stream information from trace in query result.");
@@ -2326,7 +2326,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			trace_range->intersection_range_begin_ns = begin;
 			trace_range->intersection_range_end_ns = end;
 
-			stream_info = bt_value_array_borrow_element_by_index(
+			stream_info = bt_value_array_borrow_element_by_index_const(
 				stream_infos, stream_idx);
 			if (!stream_info || !bt_value_is_map(stream_info)) {
 				ret = -1;
@@ -2334,8 +2334,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				goto error;
 			}
 
-			stream_paths = bt_value_map_borrow_entry_value(
-				stream_info, "paths");
+			stream_paths = bt_value_map_borrow_entry_value_const(stream_info,
+									     "paths");
 			if (!stream_paths || !bt_value_is_array(stream_paths)) {
 				ret = -1;
 				BT_LOGD_STR("Cannot retrieve stream paths from trace in query result.");
@@ -2343,7 +2343,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			}
 
 			stream_path_value =
-				bt_value_array_borrow_element_by_index(
+				bt_value_array_borrow_element_by_index_const(
 					stream_paths, 0);
 			if (!stream_path_value ||
 				!bt_value_is_string(stream_path_value)) {
@@ -2441,19 +2441,19 @@ int cmd_run_ctx_create_components_from_config_components(
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			ret = bt_private_graph_add_source_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				bt_private_value_as_value(cfg_comp->params),
+				cfg_comp->params,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			ret = bt_private_graph_add_filter_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				bt_private_value_as_value(cfg_comp->params),
+				cfg_comp->params,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			ret = bt_private_graph_add_sink_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
-				bt_private_value_as_value(cfg_comp->params),
+				cfg_comp->params,
 				(void *) &comp);
 			break;
 		default:
@@ -2955,8 +2955,7 @@ int main(int argc, const char **argv)
 	print_cfg(cfg);
 
 	if (cfg->command_needs_plugins) {
-		ret = load_all_plugins(
-			bt_private_value_as_value(cfg->plugin_paths));
+		ret = load_all_plugins(cfg->plugin_paths);
 		if (ret) {
 			BT_LOGE("Failed to load plugins: ret=%d", ret);
 			retcode = 1;

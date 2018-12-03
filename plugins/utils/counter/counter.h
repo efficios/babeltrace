@@ -48,7 +48,7 @@ struct counter {
 BT_HIDDEN
 enum bt_self_component_status counter_init(
 		struct bt_self_component_sink *component,
-		struct bt_value *params, void *init_method_data);
+		const struct bt_value *params, void *init_method_data);
 
 BT_HIDDEN
 void counter_finalize(struct bt_self_component_sink *component);
