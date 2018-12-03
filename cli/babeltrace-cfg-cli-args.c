@@ -34,8 +34,6 @@
 #include <inttypes.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/common-internal.h>
-#include <babeltrace/values.h>
-#include <babeltrace/private-values.h>
 #include <popt.h>
 #include <glib.h>
 #include <sys/types.h>
@@ -84,7 +82,7 @@ struct ini_parsing_state {
 	GScanner *scanner;
 
 	/* Output map value object being filled (owned by this) */
-	struct bt_private_value *params;
+	struct bt_value *params;
 
 	/* Next expected FSM state */
 	enum ini_parsing_fsm_state expecting;
@@ -121,8 +119,8 @@ struct text_legacy_opts {
 	GString *output;
 	GString *dbg_info_dir;
 	GString *dbg_info_target_prefix;
-	struct bt_value *names;
-	struct bt_value *fields;
+	const struct bt_value *names;
+	const struct bt_value *fields;
 
 	/* Flags */
 	bool no_delta;
@@ -241,9 +239,8 @@ int ini_handle_state(struct ini_parsing_state *state)
 			goto error;
 		}
 
-		if (bt_value_map_has_entry(
-				bt_private_value_as_value(state->params),
-				state->last_map_key)) {
+		if (bt_value_map_has_entry(state->params,
+					   state->last_map_key)) {
 			g_string_append_printf(state->ini_error,
 				"Duplicate parameter key: `%s`\n",
 				state->last_map_key);
@@ -294,22 +291,16 @@ int ini_handle_state(struct ini_parsing_state *state)
 				goto error;
 			}
 
-			value = bt_private_value_as_value(
-				bt_private_value_integer_create_init(
-					(int64_t) int_val));
+			value = bt_value_integer_create_init((int64_t)int_val);
 			break;
 		}
 		case G_TOKEN_FLOAT:
 			/* Positive floating point number */
-			value = bt_private_value_as_value(
-				bt_private_value_real_create_init(
-					state->scanner->value.v_float));
+			value = bt_value_real_create_init(state->scanner->value.v_float);
 			break;
 		case G_TOKEN_STRING:
 			/* Quoted string */
-			value = bt_private_value_as_value(
-				bt_private_value_string_create_init(
-					state->scanner->value.v_string));
+			value = bt_value_string_create_init(state->scanner->value.v_string);
 			break;
 		case G_TOKEN_IDENTIFIER:
 		{
@@ -331,17 +322,14 @@ int ini_handle_state(struct ini_parsing_state *state)
 			} else if (!strcmp(id, "true") || !strcmp(id, "TRUE") ||
 					!strcmp(id, "yes") ||
 					!strcmp(id, "YES")) {
-				value = bt_private_value_as_value(
-					bt_private_value_bool_create_init(true));
+				value = bt_value_bool_create_init(true);
 			} else if (!strcmp(id, "false") ||
 					!strcmp(id, "FALSE") ||
 					!strcmp(id, "no") ||
 					!strcmp(id, "NO")) {
-				value = bt_private_value_as_value(
-					bt_private_value_bool_create_init(false));
+				value = bt_value_bool_create_init(false);
 			} else {
-				value = bt_private_value_as_value(
-					bt_private_value_string_create_init(id));
+				value = bt_value_string_create_init(id);
 			}
 			break;
 		}
@@ -374,16 +362,12 @@ int ini_handle_state(struct ini_parsing_state *state)
 				goto error;
 			}
 
-			value = bt_private_value_as_value(
-				bt_private_value_integer_create_init(
-					-((int64_t) int_val)));
+			value = bt_value_integer_create_init(-((int64_t)int_val));
 			break;
 		}
 		case G_TOKEN_FLOAT:
 			/* Negative floating point number */
-			value = bt_private_value_as_value(
-				bt_private_value_real_create_init(
-					-state->scanner->value.v_float));
+			value = bt_value_real_create_init(-state->scanner->value.v_float);
 			break;
 		default:
 			/* Unset value variable will trigger the error */
@@ -424,7 +408,7 @@ error:
 
 success:
 	if (value) {
-		if (bt_private_value_map_insert_entry(state->params,
+		if (bt_value_map_insert_entry(state->params,
 				state->last_map_key, value)) {
 			/* Only override return value on error */
 			ret = -1;
@@ -442,7 +426,7 @@ end:
  * Return value is owned by the caller.
  */
 static
-struct bt_private_value *bt_private_value_from_ini(const char *arg,
+struct bt_value *bt_value_from_ini(const char *arg,
 		GString *ini_error)
 {
 	/* Lexical scanner configuration */
@@ -522,7 +506,7 @@ struct bt_private_value *bt_private_value_from_ini(const char *arg,
 		.ini_error = ini_error,
 	};
 
-	state.params = bt_private_value_map_create();
+	state.params = bt_value_map_create();
 	if (!state.params) {
 		goto error;
 	}
@@ -568,9 +552,9 @@ end:
  * Return value is owned by the caller.
  */
 static
-struct bt_private_value *bt_private_value_from_arg(const char *arg)
+struct bt_value *bt_value_from_arg(const char *arg)
 {
-	struct bt_private_value *params = NULL;
+	struct bt_value *params = NULL;
 	GString *ini_error = NULL;
 
 	ini_error = g_string_new(NULL);
@@ -580,7 +564,7 @@ struct bt_private_value *bt_private_value_from_arg(const char *arg)
 	}
 
 	/* Try INI-style parsing */
-	params = bt_private_value_from_ini(arg, ini_error);
+	params = bt_value_from_ini(arg, ini_error);
 	if (!params) {
 		printf_err("%s", ini_error->str);
 		goto end;
@@ -819,7 +803,7 @@ struct bt_config_component *bt_config_component_create(
 	}
 
 	/* Start with empty parameters */
-	cfg_component->params = bt_private_value_map_create();
+	cfg_component->params = bt_value_map_create();
 	if (!cfg_component->params) {
 		print_err_oom();
 		goto error;
@@ -1018,13 +1002,13 @@ GScanner *create_csv_identifiers_scanner(void)
  * Return value is owned by the caller.
  */
 static
-struct bt_private_value *names_from_arg(const char *arg)
+struct bt_value *names_from_arg(const char *arg)
 {
 	GScanner *scanner = NULL;
-	struct bt_private_value *names = NULL;
+	struct bt_value *names = NULL;
 	bool found_all = false, found_none = false, found_item = false;
 
-	names = bt_private_value_array_create();
+	names = bt_value_array_create();
 	if (!names) {
 		print_err_oom();
 		goto error;
@@ -1049,33 +1033,33 @@ struct bt_private_value *names_from_arg(const char *arg)
 					!strcmp(identifier, "args") ||
 					!strcmp(identifier, "arg")) {
 				found_item = true;
-				if (bt_private_value_array_append_string_element(names,
+				if (bt_value_array_append_string_element(names,
 						"payload")) {
 					goto error;
 				}
 			} else if (!strcmp(identifier, "context") ||
 					!strcmp(identifier, "ctx")) {
 				found_item = true;
-				if (bt_private_value_array_append_string_element(names,
+				if (bt_value_array_append_string_element(names,
 						"context")) {
 					goto error;
 				}
 			} else if (!strcmp(identifier, "scope") ||
 					!strcmp(identifier, "header")) {
 				found_item = true;
-				if (bt_private_value_array_append_string_element(names,
+				if (bt_value_array_append_string_element(names,
 						identifier)) {
 					goto error;
 				}
 			} else if (!strcmp(identifier, "all")) {
 				found_all = true;
-				if (bt_private_value_array_append_string_element(names,
+				if (bt_value_array_append_string_element(names,
 						identifier)) {
 					goto error;
 				}
 			} else if (!strcmp(identifier, "none")) {
 				found_none = true;
-				if (bt_private_value_array_append_string_element(names,
+				if (bt_value_array_append_string_element(names,
 						identifier)) {
 					goto error;
 				}
@@ -1105,7 +1089,7 @@ end:
 	 * least one item is specified.
 	 */
 	if (found_item && !found_none && !found_all) {
-		if (bt_private_value_array_append_string_element(names, "none")) {
+		if (bt_value_array_append_string_element(names, "none")) {
 			goto error;
 		}
 	}
@@ -1130,12 +1114,12 @@ error:
  * Return value is owned by the caller.
  */
 static
-struct bt_private_value *fields_from_arg(const char *arg)
+struct bt_value *fields_from_arg(const char *arg)
 {
 	GScanner *scanner = NULL;
-	struct bt_private_value *fields;
+	struct bt_value *fields;
 
-	fields = bt_private_value_array_create();
+	fields = bt_value_array_create();
 	if (!fields) {
 		print_err_oom();
 		goto error;
@@ -1165,7 +1149,7 @@ struct bt_private_value *fields_from_arg(const char *arg)
 					!strcmp(identifier, "emf") ||
 					!strcmp(identifier, "callsite") ||
 					!strcmp(identifier, "all")) {
-				if (bt_private_value_array_append_string_element(fields,
+				if (bt_value_array_append_string_element(fields,
 						identifier)) {
 					goto error;
 				}
@@ -1219,7 +1203,7 @@ void append_param_arg(GString *params_arg, const char *key, const char *value)
  */
 static
 int insert_flat_params_from_array(GString *params_arg,
-		struct bt_value *names_array, const char *prefix)
+		const struct bt_value *names_array, const char *prefix)
 {
 	int ret = 0;
 	int i;
@@ -1249,8 +1233,9 @@ int insert_flat_params_from_array(GString *params_arg,
 	}
 
 	for (i = 0; i < bt_value_array_get_size(names_array); i++) {
-		struct bt_value *str_obj =
-			bt_value_array_borrow_element_by_index(names_array, i);
+		const struct bt_value *str_obj =
+			bt_value_array_borrow_element_by_index_const(names_array,
+								     i);
 		const char *suffix;
 		bool is_default = false;
 
@@ -1389,7 +1374,7 @@ static
 int add_run_cfg_comp_check_name(struct bt_config *cfg,
 		struct bt_config_component *cfg_comp,
 		enum bt_config_component_dest dest,
-		struct bt_private_value *instance_names)
+		struct bt_value *instance_names)
 {
 	int ret = 0;
 
@@ -1399,15 +1384,15 @@ int add_run_cfg_comp_check_name(struct bt_config *cfg,
 		goto end;
 	}
 
-	if (bt_value_map_has_entry(bt_private_value_as_value(instance_names),
-			cfg_comp->instance_name->str)) {
+	if (bt_value_map_has_entry(instance_names,
+				   cfg_comp->instance_name->str)) {
 		printf_err("Duplicate component instance name:\n    %s\n",
 			cfg_comp->instance_name->str);
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_private_value_map_insert_entry(instance_names,
+	if (bt_value_map_insert_entry(instance_names,
 			cfg_comp->instance_name->str, bt_value_null)) {
 		print_err_oom();
 		ret = -1;
@@ -1421,7 +1406,7 @@ end:
 }
 
 static
-int append_env_var_plugin_paths(struct bt_private_value *plugin_paths)
+int append_env_var_plugin_paths(struct bt_value *plugin_paths)
 {
 	int ret = 0;
 	const char *envvar;
@@ -1447,7 +1432,7 @@ end:
 }
 
 static
-int append_home_and_system_plugin_paths(struct bt_private_value *plugin_paths,
+int append_home_and_system_plugin_paths(struct bt_value *plugin_paths,
 		bool omit_system_plugin_path, bool omit_home_plugin_path)
 {
 	int ret;
@@ -1494,7 +1479,7 @@ int append_home_and_system_plugin_paths_cfg(struct bt_config *cfg)
 
 static
 struct bt_config *bt_config_base_create(enum bt_config_command command,
-		struct bt_private_value *initial_plugin_paths,
+		const struct bt_value *initial_plugin_paths,
 		bool needs_plugins)
 {
 	struct bt_config *cfg;
@@ -1511,10 +1496,13 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	cfg->command_needs_plugins = needs_plugins;
 
 	if (initial_plugin_paths) {
-		cfg->plugin_paths = initial_plugin_paths;
-		bt_object_get_ref(cfg->plugin_paths);
+		struct bt_value *initial_plugin_paths_copy;
+
+		(void) bt_value_copy(&initial_plugin_paths_copy,
+			initial_plugin_paths);
+		cfg->plugin_paths = initial_plugin_paths_copy;
 	} else {
-		cfg->plugin_paths = bt_private_value_array_create();
+		cfg->plugin_paths = bt_value_array_create();
 		if (!cfg->plugin_paths) {
 			print_err_oom();
 			goto error;
@@ -1532,7 +1520,7 @@ end:
 
 static
 struct bt_config *bt_config_run_create(
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1582,7 +1570,7 @@ end:
 
 static
 struct bt_config *bt_config_list_plugins_create(
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1604,7 +1592,7 @@ end:
 
 static
 struct bt_config *bt_config_help_create(
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1632,7 +1620,7 @@ end:
 
 static
 struct bt_config *bt_config_query_create(
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1660,7 +1648,7 @@ end:
 
 static
 struct bt_config *bt_config_print_ctf_metadata_create(
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1694,7 +1682,7 @@ end:
 
 static
 struct bt_config *bt_config_print_lttng_live_sessions_create(
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1729,7 +1717,7 @@ end:
 
 static
 int bt_config_append_plugin_paths_check_setuid_setgid(
-		struct bt_private_value *plugin_paths, const char *arg)
+		struct bt_value *plugin_paths, const char *arg)
 {
 	int ret = 0;
 
@@ -1830,7 +1818,7 @@ static
 struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -1992,7 +1980,7 @@ static
 struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -2000,7 +1988,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	int ret;
 	struct bt_config *cfg = NULL;
 	const char *leftover;
-	struct bt_private_value *params = bt_private_value_null;
+	struct bt_value *params = bt_value_null;
 
 	*retcode = 0;
 	cfg = bt_config_query_create(initial_plugin_paths);
@@ -2044,7 +2032,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		case OPT_PARAMS:
 		{
 			bt_object_put_ref(params);
-			params = bt_private_value_from_arg(arg);
+			params = bt_value_from_arg(arg);
 			if (!params) {
 				printf_err("Invalid format for --params option's argument:\n    %s\n",
 					arg);
@@ -2181,7 +2169,7 @@ static
 struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -2371,18 +2359,18 @@ static
 struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
 	struct bt_config_component *cur_cfg_comp = NULL;
 	enum bt_config_component_dest cur_cfg_comp_dest =
 			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
-	struct bt_private_value *cur_base_params = NULL;
+	struct bt_value *cur_base_params = NULL;
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
-	struct bt_private_value *instance_names = NULL;
-	struct bt_private_value *connection_args = NULL;
+	struct bt_value *instance_names = NULL;
+	struct bt_value *connection_args = NULL;
 	GString *cur_param_key = NULL;
 	char error_buf[256] = { 0 };
 	long retry_duration = -1;
@@ -2425,19 +2413,19 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	cfg->cmd_data.run.retry_duration_us = 100000;
 	cfg->omit_system_plugin_path = force_omit_system_plugin_path;
 	cfg->omit_home_plugin_path = force_omit_home_plugin_path;
-	cur_base_params = bt_private_value_map_create();
+	cur_base_params = bt_value_map_create();
 	if (!cur_base_params) {
 		print_err_oom();
 		goto error;
 	}
 
-	instance_names = bt_private_value_map_create();
+	instance_names = bt_value_map_create();
 	if (!instance_names) {
 		print_err_oom();
 		goto error;
 	}
 
-	connection_args = bt_private_value_array_create();
+	connection_args = bt_value_array_create();
 	if (!connection_args) {
 		print_err_oom();
 		goto error;
@@ -2513,7 +2501,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			bt_object_put_ref(cur_cfg_comp->params);
 			status = bt_value_copy(
 				&cur_cfg_comp->params,
-				bt_private_value_as_value(cur_base_params));
+				cur_base_params);
 			if (status != BT_VALUE_STATUS_OK) {
 				print_err_oom();
 				goto error;
@@ -2524,8 +2512,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		}
 		case OPT_PARAMS:
 		{
-			struct bt_private_value *params;
-			struct bt_private_value *params_to_set;
+			struct bt_value *params;
+			struct bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
 				printf_err("Cannot add parameters to unavailable component:\n    %s\n",
@@ -2533,7 +2521,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			params = bt_private_value_from_arg(arg);
+			params = bt_value_from_arg(arg);
 			if (!params) {
 				printf_err("Invalid format for --params option's argument:\n    %s\n",
 					arg);
@@ -2541,8 +2529,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			}
 
 			status = bt_value_map_extend(&params_to_set,
-				bt_private_value_as_value(cur_cfg_comp->params),
-				bt_private_value_as_value(params));
+				cur_cfg_comp->params,
+				params);
 			BT_OBJECT_PUT_REF_AND_RESET(params);
 			if (status != BT_VALUE_STATUS_OK) {
 				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
@@ -2574,7 +2562,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_private_value_map_insert_string_entry(cur_cfg_comp->params,
+			if (bt_value_map_insert_string_entry(cur_cfg_comp->params,
 					cur_param_key->str, arg)) {
 				print_err_oom();
 				goto error;
@@ -2591,8 +2579,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			break;
 		case OPT_BASE_PARAMS:
 		{
-			struct bt_private_value *params =
-				bt_private_value_from_arg(arg);
+			struct bt_value *params =
+				bt_value_from_arg(arg);
 
 			if (!params) {
 				printf_err("Invalid format for --base-params option's argument:\n    %s\n",
@@ -2605,14 +2593,14 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		}
 		case OPT_RESET_BASE_PARAMS:
 			BT_OBJECT_PUT_REF_AND_RESET(cur_base_params);
-			cur_base_params = bt_private_value_map_create();
+			cur_base_params = bt_value_map_create();
 			if (!cur_base_params) {
 				print_err_oom();
 				goto error;
 			}
 			break;
 		case OPT_CONNECT:
-			if (bt_private_value_array_append_string_element(
+			if (bt_value_array_append_string_element(
 					connection_args, arg)) {
 				print_err_oom();
 				goto error;
@@ -2681,7 +2669,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	}
 
 	ret = bt_config_cli_args_create_connections(cfg,
-		bt_private_value_as_value(connection_args),
+		connection_args,
 		error_buf, 256);
 	if (ret) {
 		printf_err("Cannot creation connections:\n%s", error_buf);
@@ -2712,10 +2700,10 @@ end:
 }
 
 static
-struct bt_config *bt_config_run_from_args_array(struct bt_value *run_args,
+struct bt_config *bt_config_run_from_args_array(const struct bt_value *run_args,
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg = NULL;
 	const char **argv;
@@ -2736,8 +2724,9 @@ struct bt_config *bt_config_run_from_args_array(struct bt_value *run_args,
 		goto end;
 	}
 	for (i = 0; i < len; i++) {
-		struct bt_value *arg_value =
-			bt_value_array_borrow_element_by_index(run_args, i);
+		const struct bt_value *arg_value =
+			bt_value_array_borrow_element_by_index_const(run_args,
+								     i);
 		const char *arg;
 
 		BT_ASSERT(arg_value);
@@ -2935,7 +2924,7 @@ struct poptOption convert_long_options[] = {
 
 static
 GString *get_component_auto_name(const char *prefix,
-		struct bt_value *existing_names)
+		const struct bt_value *existing_names)
 {
 	unsigned int i = 0;
 	GString *auto_name = g_string_new(NULL);
@@ -2964,12 +2953,12 @@ struct implicit_component_args {
 	GString *comp_arg;
 	GString *name_arg;
 	GString *params_arg;
-	struct bt_private_value *extra_params;
+	struct bt_value *extra_params;
 };
 
 static
 int assign_name_to_implicit_component(struct implicit_component_args *args,
-		const char *prefix, struct bt_private_value *existing_names,
+		const char *prefix, struct bt_value *existing_names,
 		GList **comp_names, bool append_to_comp_names)
 {
 	int ret = 0;
@@ -2980,7 +2969,7 @@ int assign_name_to_implicit_component(struct implicit_component_args *args,
 	}
 
 	name = get_component_auto_name(prefix,
-		bt_private_value_as_value(existing_names));
+		existing_names);
 
 	if (!name) {
 		ret = -1;
@@ -2989,7 +2978,7 @@ int assign_name_to_implicit_component(struct implicit_component_args *args,
 
 	g_string_assign(args->name_arg, name->str);
 
-	if (bt_private_value_map_insert_entry(existing_names, name->str,
+	if (bt_value_map_insert_entry(existing_names, name->str,
 			bt_value_null)) {
 		print_err_oom();
 		ret = -1;
@@ -3012,7 +3001,7 @@ end:
 static
 int append_run_args_for_implicit_component(
 		struct implicit_component_args *impl_args,
-		struct bt_private_value *run_args)
+		struct bt_value *run_args)
 {
 	int ret = 0;
 	size_t i;
@@ -3021,55 +3010,53 @@ int append_run_args_for_implicit_component(
 		goto end;
 	}
 
-	if (bt_private_value_array_append_string_element(run_args, "--component")) {
+	if (bt_value_array_append_string_element(run_args, "--component")) {
 		print_err_oom();
 		goto error;
 	}
 
-	if (bt_private_value_array_append_string_element(run_args, impl_args->comp_arg->str)) {
+	if (bt_value_array_append_string_element(run_args, impl_args->comp_arg->str)) {
 		print_err_oom();
 		goto error;
 	}
 
-	if (bt_private_value_array_append_string_element(run_args, "--name")) {
+	if (bt_value_array_append_string_element(run_args, "--name")) {
 		print_err_oom();
 		goto error;
 	}
 
-	if (bt_private_value_array_append_string_element(run_args, impl_args->name_arg->str)) {
+	if (bt_value_array_append_string_element(run_args, impl_args->name_arg->str)) {
 		print_err_oom();
 		goto error;
 	}
 
 	if (impl_args->params_arg->len > 0) {
-		if (bt_private_value_array_append_string_element(run_args, "--params")) {
+		if (bt_value_array_append_string_element(run_args, "--params")) {
 			print_err_oom();
 			goto error;
 		}
 
-		if (bt_private_value_array_append_string_element(run_args,
+		if (bt_value_array_append_string_element(run_args,
 				impl_args->params_arg->str)) {
 			print_err_oom();
 			goto error;
 		}
 	}
 
-	for (i = 0; i < bt_value_array_get_size(
-			bt_private_value_as_value(impl_args->extra_params));
+	for (i = 0; i < bt_value_array_get_size(impl_args->extra_params);
 			i++) {
-		struct bt_value *elem;
+		const struct bt_value *elem;
 		const char *arg;
 
-		elem = bt_value_array_borrow_element_by_index(
-			bt_private_value_as_value(impl_args->extra_params),
-			i);
+		elem = bt_value_array_borrow_element_by_index(impl_args->extra_params,
+							      i);
 		if (!elem) {
 			goto error;
 		}
 
 		BT_ASSERT(bt_value_is_string(elem));
 		arg = bt_value_string_get(elem);
-		ret = bt_private_value_array_append_string_element(run_args, arg);
+		ret = bt_value_array_append_string_element(run_args, arg);
 		if (ret) {
 			print_err_oom();
 			goto error;
@@ -3126,7 +3113,7 @@ int init_implicit_component_args(struct implicit_component_args *args,
 	args->comp_arg = g_string_new(comp_arg);
 	args->name_arg = g_string_new(NULL);
 	args->params_arg = g_string_new(NULL);
-	args->extra_params = bt_private_value_array_create();
+	args->extra_params = bt_value_array_create();
 
 	if (!args->comp_arg || !args->name_arg ||
 			!args->params_arg || !args->extra_params) {
@@ -3160,25 +3147,25 @@ int append_implicit_component_extra_param(struct implicit_component_args *args,
 	BT_ASSERT(key);
 	BT_ASSERT(value);
 
-	if (bt_private_value_array_append_string_element(args->extra_params, "--key")) {
+	if (bt_value_array_append_string_element(args->extra_params, "--key")) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_private_value_array_append_string_element(args->extra_params, key)) {
+	if (bt_value_array_append_string_element(args->extra_params, key)) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_private_value_array_append_string_element(args->extra_params, "--value")) {
+	if (bt_value_array_append_string_element(args->extra_params, "--value")) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_private_value_array_append_string_element(args->extra_params, value)) {
+	if (bt_value_array_append_string_element(args->extra_params, value)) {
 		print_err_oom();
 		ret = -1;
 		goto end;
@@ -3191,8 +3178,8 @@ end:
 static
 int convert_append_name_param(enum bt_config_component_dest dest,
 		GString *cur_name, GString *cur_name_prefix,
-		struct bt_private_value *run_args,
-		struct bt_private_value *all_names,
+		struct bt_value *run_args,
+		struct bt_value *all_names,
 		GList **source_names, GList **filter_names,
 		GList **sink_names)
 {
@@ -3209,16 +3196,15 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 			 * component.
 			 */
 			name = get_component_auto_name(cur_name_prefix->str,
-				bt_private_value_as_value(all_names));
+				all_names);
 			append_name_opt = true;
 		} else {
 			/*
 			 * An explicit name was provided for the user
 			 * component.
 			 */
-			if (bt_value_map_has_entry(
-					bt_private_value_as_value(all_names),
-					cur_name->str)) {
+			if (bt_value_map_has_entry(all_names,
+						   cur_name->str)) {
 				printf_err("Duplicate component instance name:\n    %s\n",
 					cur_name->str);
 				goto error;
@@ -3236,7 +3222,7 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 		 * Remember this name globally, for the uniqueness of
 		 * all component names.
 		 */
-		if (bt_private_value_map_insert_entry(all_names, name->str, bt_value_null)) {
+		if (bt_value_map_insert_entry(all_names, name->str, bt_value_null)) {
 			print_err_oom();
 			goto error;
 		}
@@ -3245,12 +3231,12 @@ int convert_append_name_param(enum bt_config_component_dest dest,
 		 * Append the --name option if necessary.
 		 */
 		if (append_name_opt) {
-			if (bt_private_value_array_append_string_element(run_args, "--name")) {
+			if (bt_value_array_append_string_element(run_args, "--name")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, name->str)) {
+			if (bt_value_array_append_string_element(run_args, name->str)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3318,7 +3304,7 @@ end:
  * function.
  */
 static
-int append_connect_arg(struct bt_private_value *run_args,
+int append_connect_arg(struct bt_value *run_args,
 		const char *upstream_name, const char *downstream_name)
 {
 	int ret = 0;
@@ -3332,7 +3318,7 @@ int append_connect_arg(struct bt_private_value *run_args,
 		goto end;
 	}
 
-	ret = bt_private_value_array_append_string_element(run_args, "--connect");
+	ret = bt_value_array_append_string_element(run_args, "--connect");
 	if (ret) {
 		print_err_oom();
 		ret = -1;
@@ -3342,7 +3328,7 @@ int append_connect_arg(struct bt_private_value *run_args,
 	g_string_append(arg, e_upstream_name->str);
 	g_string_append_c(arg, ':');
 	g_string_append(arg, e_downstream_name->str);
-	ret = bt_private_value_array_append_string_element(run_args, arg->str);
+	ret = bt_value_array_append_string_element(run_args, arg->str);
 	if (ret) {
 		print_err_oom();
 		ret = -1;
@@ -3369,7 +3355,7 @@ end:
  * Appends the run command's --connect options for the convert command.
  */
 static
-int convert_auto_connect(struct bt_private_value *run_args,
+int convert_auto_connect(struct bt_value *run_args,
 		GList *source_names, GList *filter_names,
 		GList *sink_names)
 {
@@ -3554,8 +3540,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		 */
 		BT_OBJECT_PUT_REF_AND_RESET(impl_args->extra_params);
 		status = bt_value_copy(&impl_args->extra_params,
-				bt_private_value_as_value(
-				base_implicit_ctf_input_args->extra_params));
+				base_implicit_ctf_input_args->extra_params);
 		if (status != BT_VALUE_STATUS_OK) {
 			print_err_oom();
 			destroy_implicit_component_args(impl_args);
@@ -3592,7 +3577,7 @@ static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_private_value *initial_plugin_paths, char *log_level)
+		const struct bt_value *initial_plugin_paths, char *log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -3611,8 +3596,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	bool print_run_args = false;
 	bool print_run_args_0 = false;
 	bool print_ctf_metadata = false;
-	struct bt_private_value *run_args = NULL;
-	struct bt_private_value *all_names = NULL;
+	struct bt_value *run_args = NULL;
+	struct bt_value *all_names = NULL;
 	GList *source_names = NULL;
 	GList *filter_names = NULL;
 	GList *sink_names = NULL;
@@ -3626,14 +3611,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct implicit_component_args implicit_debug_info_args = { 0 };
 	struct implicit_component_args implicit_muxer_args = { 0 };
 	struct implicit_component_args implicit_trimmer_args = { 0 };
-	struct bt_private_value *plugin_paths;
+	struct bt_value *plugin_paths;
 	char error_buf[256] = { 0 };
 	size_t i;
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
 	char *output = NULL;
 
-	plugin_paths = initial_plugin_paths;
-	bt_object_get_ref(plugin_paths);
+	(void) bt_value_copy(&plugin_paths, initial_plugin_paths);
 
 	*retcode = 0;
 
@@ -3690,13 +3674,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	all_names = bt_private_value_map_create();
+	all_names = bt_value_map_create();
 	if (!all_names) {
 		print_err_oom();
 		goto error;
 	}
 
-	run_args = bt_private_value_array_create();
+	run_args = bt_value_array_create();
 	if (!run_args) {
 		print_err_oom();
 		goto error;
@@ -3793,13 +3777,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				abort();
 			}
 
-			if (bt_private_value_array_append_string_element(run_args,
+			if (bt_value_array_append_string_element(run_args,
 					"--component")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args, arg)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3822,13 +3806,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args,
+			if (bt_value_array_append_string_element(run_args,
 					"--params")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args, arg)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3840,22 +3824,22 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, "--key")) {
+			if (bt_value_array_append_string_element(run_args, "--key")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, "path")) {
+			if (bt_value_array_append_string_element(run_args, "path")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, "--value")) {
+			if (bt_value_array_append_string_element(run_args, "--value")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args, arg)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3867,22 +3851,22 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, "--key")) {
+			if (bt_value_array_append_string_element(run_args, "--key")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, "url")) {
+			if (bt_value_array_append_string_element(run_args, "url")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, "--value")) {
+			if (bt_value_array_append_string_element(run_args, "--value")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args, arg)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3894,12 +3878,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, "--name")) {
+			if (bt_value_array_append_string_element(run_args, "--name")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args, arg)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3909,20 +3893,20 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_OMIT_HOME_PLUGIN_PATH:
 			force_omit_home_plugin_path = true;
 
-			if (bt_private_value_array_append_string_element(run_args,
+			if (bt_value_array_append_string_element(run_args,
 					"--omit-home-plugin-path")) {
 				print_err_oom();
 				goto error;
 			}
 			break;
 		case OPT_RETRY_DURATION:
-			if (bt_private_value_array_append_string_element(run_args,
+			if (bt_value_array_append_string_element(run_args,
 					"--retry-duration")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args, arg)) {
 				print_err_oom();
 				goto error;
 			}
@@ -3930,7 +3914,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		case OPT_OMIT_SYSTEM_PLUGIN_PATH:
 			force_omit_system_plugin_path = true;
 
-			if (bt_private_value_array_append_string_element(run_args,
+			if (bt_value_array_append_string_element(run_args,
 					"--omit-system-plugin-path")) {
 				print_err_oom();
 				goto error;
@@ -3942,13 +3926,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args,
+			if (bt_value_array_append_string_element(run_args,
 					"--plugin-path")) {
 				print_err_oom();
 				goto error;
 			}
 
-			if (bt_private_value_array_append_string_element(run_args, arg)) {
+			if (bt_value_array_append_string_element(run_args, arg)) {
 				print_err_oom();
 				goto error;
 			}
@@ -4167,7 +4151,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_FIELDS:
 		{
-			struct bt_private_value *fields = fields_from_arg(arg);
+			struct bt_value *fields = fields_from_arg(arg);
 
 			if (!fields) {
 				goto error;
@@ -4176,7 +4160,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
-				bt_private_value_as_value(fields), "field");
+				fields, "field");
 			bt_object_put_ref(fields);
 			if (ret) {
 				goto error;
@@ -4185,7 +4169,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 		case OPT_NAMES:
 		{
-			struct bt_private_value *names = names_from_arg(arg);
+			struct bt_value *names = names_from_arg(arg);
 
 			if (!names) {
 				goto error;
@@ -4194,7 +4178,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
-				bt_private_value_as_value(names), "name");
+				names, "name");
 			bt_object_put_ref(names);
 			if (ret) {
 				goto error;
@@ -4684,12 +4668,10 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		for (i = 0; i < bt_value_array_get_size(
-				bt_private_value_as_value(run_args)); i++) {
-			struct bt_value *arg_value =
-				bt_value_array_borrow_element_by_index(
-					bt_private_value_as_value(run_args),
-					i);
+		for (i = 0; i < bt_value_array_get_size(run_args); i++) {
+			const struct bt_value *arg_value =
+				bt_value_array_borrow_element_by_index(run_args,
+								       i);
 			const char *arg;
 			GString *quoted = NULL;
 			const char *arg_to_print;
@@ -4714,8 +4696,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				g_string_free(quoted, TRUE);
 			}
 
-			if (i < bt_value_array_get_size(
-					bt_private_value_as_value(run_args)) - 1) {
+			if (i < bt_value_array_get_size(run_args) - 1) {
 				if (print_run_args) {
 					putchar(' ');
 				} else {
@@ -4729,10 +4710,10 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	cfg = bt_config_run_from_args_array(
-		bt_private_value_as_value(run_args), retcode,
-		force_omit_system_plugin_path, force_omit_home_plugin_path,
-		initial_plugin_paths);
+	cfg = bt_config_run_from_args_array(run_args, retcode,
+					    force_omit_system_plugin_path,
+					    force_omit_home_plugin_path,
+					    initial_plugin_paths);
 	if (!cfg) {
 		goto error;
 	}
@@ -4846,7 +4827,7 @@ char log_level_from_arg(const char *arg)
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		struct bt_private_value *initial_plugin_paths)
+		const struct bt_value *initial_plugin_paths)
 {
 	struct bt_config *config = NULL;
 	int i;
@@ -4867,7 +4848,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	*retcode = -1;
 
 	if (!initial_plugin_paths) {
-		initial_plugin_paths = bt_private_value_array_create();
+		initial_plugin_paths = bt_value_array_create();
 		if (!initial_plugin_paths) {
 			*retcode = 1;
 			goto end;

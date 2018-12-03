@@ -15,7 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/plugin/plugin-dev.h>
+#include <babeltrace/babeltrace.h>
 #include <stdlib.h>
 #include <glib.h>
 

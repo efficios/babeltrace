@@ -28,9 +28,9 @@
 /* Core API */
 #include <babeltrace/logging.h>
 #include <babeltrace/object.h>
-#include <babeltrace/private-values.h>
 #include <babeltrace/property.h>
 #include <babeltrace/types.h>
+#include <babeltrace/values-const.h>
 #include <babeltrace/values.h>
 #include <babeltrace/version.h>
 

@@ -78,7 +78,7 @@ struct pretty_component {
 	bool start_line;
 	GString *string;
 	GString *tmp_string;
-	struct bt_private_value *plugin_opt_map; /* Temporary parameter map. */
+	struct bt_value *plugin_opt_map; /* Temporary parameter map. */
 	bool use_colors;
 
 	uint64_t last_cycles_timestamp;
@@ -106,7 +106,7 @@ GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
 BT_HIDDEN
 enum bt_self_component_status pretty_init(
 		struct bt_self_component_sink *component,
-		struct bt_value *params,
+		const struct bt_value *params,
 		void *init_method_data);
 
 BT_HIDDEN

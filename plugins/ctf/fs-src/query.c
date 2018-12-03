@@ -48,11 +48,12 @@ struct range {
 BT_HIDDEN
 enum bt_query_status metadata_info_query(
 		struct bt_self_component_class_source *comp_class,
-		struct bt_value *params, struct bt_value **user_result)
+		const struct bt_value *params,
+		const struct bt_value **user_result)
 {
 	enum bt_query_status status = BT_QUERY_STATUS_OK;
-	struct bt_private_value *result = NULL;
-	struct bt_value *path_value = NULL;
+	struct bt_value *result = NULL;
+	const struct bt_value *path_value = NULL;
 	char *metadata_text = NULL;
 	FILE *metadata_fp = NULL;
 	GString *g_metadata_text = NULL;
@@ -61,7 +62,7 @@ enum bt_query_status metadata_info_query(
 	const char *path;
 	bool is_packetized;
 
-	result = bt_private_value_map_create();
+	result = bt_value_map_create();
 	if (!result) {
 		status = BT_QUERY_STATUS_NOMEM;
 		goto error;
@@ -75,7 +76,7 @@ enum bt_query_status metadata_info_query(
 		goto error;
 	}
 
-	path_value = bt_value_map_borrow_entry_value(params, "path");
+	path_value = bt_value_map_borrow_entry_value_const(params, "path");
 	path = bt_value_string_get(path_value);
 
 	BT_ASSERT(path);
@@ -140,14 +141,14 @@ enum bt_query_status metadata_info_query(
 
 	g_string_append(g_metadata_text, metadata_text);
 
-	ret = bt_private_value_map_insert_string_entry(result, "text",
+	ret = bt_value_map_insert_string_entry(result, "text",
 		g_metadata_text->str);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert metadata text into query result.");
 		goto error;
 	}
 
-	ret = bt_private_value_map_insert_bool_entry(result, "is-packetized",
+	ret = bt_value_map_insert_bool_entry(result, "is-packetized",
 		is_packetized);
 	if (ret) {
 		BT_LOGE_STR("Cannot insert \"is-packetized\" attribute into query result.");
@@ -175,45 +176,45 @@ end:
 		fclose(metadata_fp);
 	}
 
-	*user_result = bt_private_value_as_value(result);
+	*user_result = result;
 	return status;
 }
 
 static
-int add_range(struct bt_private_value *info, struct range *range,
+int add_range(struct bt_value *info, struct range *range,
 		const char *range_name)
 {
 	int ret = 0;
 	enum bt_value_status status;
-	struct bt_private_value *range_map = NULL;
+	struct bt_value *range_map = NULL;
 
 	if (!range->set) {
 		/* Not an error. */
 		goto end;
 	}
 
-	range_map = bt_private_value_map_create();
+	range_map = bt_value_map_create();
 	if (!range_map) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_private_value_map_insert_integer_entry(range_map, "begin",
+	status = bt_value_map_insert_integer_entry(range_map, "begin",
 			range->begin_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_private_value_map_insert_integer_entry(range_map, "end",
+	status = bt_value_map_insert_integer_entry(range_map, "end",
 			range->end_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_private_value_map_insert_entry(info, range_name,
-		bt_private_value_as_value(range_map));
+	status = bt_value_map_insert_entry(info, range_name,
+		range_map);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -225,8 +226,7 @@ end:
 }
 
 static
-int add_stream_ids(struct bt_private_value *info,
-		struct bt_stream *stream)
+int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 {
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
@@ -235,7 +235,7 @@ int add_stream_ids(struct bt_private_value *info,
 
 	stream_instance_id = bt_stream_get_id(stream);
 	if (stream_instance_id != -1) {
-		status = bt_private_value_map_insert_integer_entry(info, "id",
+		status = bt_value_map_insert_integer_entry(info, "id",
 				stream_instance_id);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
@@ -255,7 +255,7 @@ int add_stream_ids(struct bt_private_value *info,
 		goto end;
 	}
 
-	status = bt_private_value_map_insert_integer_entry(info, "class-id", stream_class_id);
+	status = bt_value_map_insert_integer_entry(info, "class-id", stream_class_id);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -267,18 +267,17 @@ end:
 
 static
 int populate_stream_info(struct ctf_fs_ds_file_group *group,
-		struct bt_private_value *group_info,
-		struct range *stream_range)
+		struct bt_value *group_info, struct range *stream_range)
 {
 	int ret = 0;
 	size_t file_idx;
 	enum bt_value_status status;
-	struct bt_private_value *file_paths;
+	struct bt_value *file_paths;
 
 	stream_range->begin_ns = INT64_MAX;
 	stream_range->end_ns = 0;
 
-	file_paths = bt_private_value_array_create();
+	file_paths = bt_value_array_create();
 	if (!file_paths) {
 		ret = -1;
 		goto end;
@@ -297,7 +296,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 			goto end;
 		}
 
-		status = bt_private_value_array_append_string_element(file_paths,
+		status = bt_value_array_append_string_element(file_paths,
 				info->path->str);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
@@ -325,8 +324,8 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		}
 	}
 
-	status = bt_private_value_map_insert_entry(group_info, "paths",
-		bt_private_value_as_value(file_paths));
+	status = bt_value_map_insert_entry(group_info, "paths",
+		file_paths);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -344,13 +343,13 @@ end:
 
 static
 int populate_trace_info(const char *trace_path, const char *trace_name,
-		struct bt_private_value *trace_info)
+		struct bt_value *trace_info)
 {
 	int ret = 0;
 	size_t group_idx;
 	struct ctf_fs_trace *trace = NULL;
 	enum bt_value_status status;
-	struct bt_private_value *file_groups;
+	struct bt_value *file_groups;
 	struct range trace_range = {
 		.begin_ns = INT64_MAX,
 		.end_ns = 0,
@@ -362,18 +361,18 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		.set = false,
 	};
 
-	file_groups = bt_private_value_array_create();
+	file_groups = bt_value_array_create();
 	if (!file_groups) {
 		goto end;
 	}
 
-	status = bt_private_value_map_insert_string_entry(trace_info, "name",
+	status = bt_value_map_insert_string_entry(trace_info, "name",
 		trace_name);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
-	status = bt_private_value_map_insert_string_entry(trace_info, "path",
+	status = bt_value_map_insert_string_entry(trace_info, "path",
 			trace_path);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -397,12 +396,12 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 	/* Find range of all stream groups, and of the trace. */
 	for (group_idx = 0; group_idx < trace->ds_file_groups->len;
 			group_idx++) {
-		struct bt_private_value *group_info;
+		struct bt_value *group_info;
 		struct range group_range = { .set = false };
 		struct ctf_fs_ds_file_group *group = g_ptr_array_index(
 				trace->ds_file_groups, group_idx);
 
-		group_info = bt_private_value_map_create();
+		group_info = bt_value_map_create();
 		if (!group_info) {
 			ret = -1;
 			goto end;
@@ -426,9 +425,9 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 			trace_intersection.end_ns = min(trace_intersection.end_ns,
 					group_range.end_ns);
 			trace_intersection.set = true;
-			status = bt_private_value_array_append_element(
+			status = bt_value_array_append_element(
 				file_groups,
-				bt_private_value_as_value(group_info));
+				group_info);
 			bt_object_put_ref(group_info);
 			if (status != BT_VALUE_STATUS_OK) {
 				goto end;
@@ -449,8 +448,8 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		}
 	}
 
-	status = bt_private_value_map_insert_entry(trace_info, "streams",
-		bt_private_value_as_value(file_groups));
+	status = bt_value_map_insert_entry(trace_info, "streams",
+		file_groups);
 	BT_OBJECT_PUT_REF_AND_RESET(file_groups);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -466,11 +465,12 @@ end:
 BT_HIDDEN
 enum bt_query_status trace_info_query(
 		struct bt_self_component_class_source *comp_class,
-		struct bt_value *params, struct bt_value **user_result)
+		const struct bt_value *params,
+		const struct bt_value **user_result)
 {
 	enum bt_query_status status = BT_QUERY_STATUS_OK;
-	struct bt_private_value *result = NULL;
-	struct bt_value *path_value = NULL;
+	struct bt_value *result = NULL;
+	const struct bt_value *path_value = NULL;
 	int ret = 0;
 	const char *path = NULL;
 	GList *trace_paths = NULL;
@@ -487,7 +487,7 @@ enum bt_query_status trace_info_query(
 		goto error;
 	}
 
-	path_value = bt_value_map_borrow_entry_value(params, "path");
+	path_value = bt_value_map_borrow_entry_value_const(params, "path");
 	path = bt_value_string_get(path_value);
 
 	normalized_path = bt_common_normalize_path(path, NULL);
@@ -509,7 +509,7 @@ enum bt_query_status trace_info_query(
 		goto error;
 	}
 
-	result = bt_private_value_array_create();
+	result = bt_value_array_create();
 	if (!result) {
 		status = BT_QUERY_STATUS_NOMEM;
 		goto error;
@@ -522,9 +522,9 @@ enum bt_query_status trace_info_query(
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
 		enum bt_value_status status;
-		struct bt_private_value *trace_info;
+		struct bt_value *trace_info;
 
-		trace_info = bt_private_value_map_create();
+		trace_info = bt_value_map_create();
 		if (!trace_info) {
 			BT_LOGE("Failed to create trace info map.");
 			goto error;
@@ -537,8 +537,7 @@ enum bt_query_status trace_info_query(
 			goto error;
 		}
 
-		status = bt_private_value_array_append_element(result,
-			bt_private_value_as_value(trace_info));
+		status = bt_value_array_append_element(result, trace_info);
 		bt_object_put_ref(trace_info);
 		if (status != BT_VALUE_STATUS_OK) {
 			goto error;
@@ -576,6 +575,6 @@ end:
 		g_list_free(trace_names);
 	}
 
-	*user_result = bt_private_value_as_value(result);
+	*user_result = result;
 	return status;
 }

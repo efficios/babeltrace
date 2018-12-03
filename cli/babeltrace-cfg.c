@@ -23,8 +23,7 @@
  */
 
 #include <babeltrace/common-internal.h>
-#include <babeltrace/values.h>
-#include <babeltrace/private-values.h>
+#include <babeltrace/babeltrace.h>
 #include <glib.h>
 #include "babeltrace-cfg.h"
 
@@ -39,7 +38,7 @@ void destroy_gstring(void *data)
  * and appends them to the array value object plugin_paths.
  */
 int bt_config_append_plugin_paths(
-		struct bt_private_value *plugin_paths, const char *arg)
+		struct bt_value *plugin_paths, const char *arg)
 {
 	int ret = 0;
 	GPtrArray *dirs = g_ptr_array_new_with_free_func(destroy_gstring);
@@ -59,7 +58,7 @@ int bt_config_append_plugin_paths(
 	for (i = 0; i < dirs->len; i++) {
 		GString *dir = g_ptr_array_index(dirs, i);
 
-		ret = bt_private_value_array_append_string_element(
+		ret = bt_value_array_append_string_element(
 			plugin_paths, dir->str);
 		if (ret != BT_VALUE_STATUS_OK) {
 			ret = -1;

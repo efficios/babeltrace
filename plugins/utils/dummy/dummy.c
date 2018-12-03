@@ -48,7 +48,8 @@ void dummy_finalize(struct bt_self_component_sink *comp)
 BT_HIDDEN
 enum bt_self_component_status dummy_init(
 		struct bt_self_component_sink *component,
-		struct bt_value *params, UNUSED_VAR void *init_method_data)
+		const struct bt_value *params,
+		UNUSED_VAR void *init_method_data)
 {
 	enum bt_self_component_status ret;
 	struct dummy *dummy = g_new0(struct dummy, 1);

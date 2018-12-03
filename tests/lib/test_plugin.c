@@ -118,10 +118,10 @@ static void test_sfs(const char *plugin_dir)
 	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
 	unsigned int major, minor, patch;
 	const char *extra;
-	struct bt_private_value *params;
-	struct bt_value *results;
-	struct bt_value *object;
-	struct bt_value *res_params;
+	struct bt_value *params;
+	const struct bt_value *results;
+	const struct bt_value *object;
+	const struct bt_value *res_params;
 	struct bt_private_graph *graph;
 	const char *object_str;
 	enum bt_graph_status graph_ret;
@@ -175,21 +175,20 @@ static void test_sfs(const char *plugin_dir)
 		plugin, "filter");
 	ok(filter_comp_class,
 		"bt_plugin_borrow_filter_component_class_by_name() finds a filter component class");
-	params = bt_private_value_integer_create_init(23);
+	params = bt_value_integer_create_init(23);
 	BT_ASSERT(params);
 	ret = bt_private_query_executor_query(query_exec,
 		bt_component_class_filter_as_component_class(filter_comp_class),
-		"get-something", bt_private_value_as_value(params),
-		&results);
+		"get-something", params, &results);
 	ok(ret == 0 && results, "bt_private_query_executor_query() succeeds");
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
-	object = bt_value_array_borrow_element_by_index(results, 0);
+	object = bt_value_array_borrow_element_by_index_const(results, 0);
 	BT_ASSERT(object && bt_value_is_string(object));
 	object_str = bt_value_string_get(object);
 	ok(strcmp(object_str, "get-something") == 0,
 		"bt_component_class_query() receives the expected object name");
-	res_params = bt_value_array_borrow_element_by_index(results, 1);
-	ok(res_params == bt_private_value_as_value(params),
+	res_params = bt_value_array_borrow_element_by_index_const(results, 1);
+	ok(bt_value_compare(res_params, params),
 		"bt_component_class_query() receives the expected parameters");
 
 	bt_object_get_ref(sink_comp_class);

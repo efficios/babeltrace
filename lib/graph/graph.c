@@ -39,7 +39,7 @@
 #include <babeltrace/common-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/values.h>
-#include <babeltrace/private-values.h>
+#include <babeltrace/values-const.h>
 #include <babeltrace/values-internal.h>
 #include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
@@ -51,7 +51,7 @@ typedef void (*port_added_func_t)(void *, void *, void *);
 typedef void (*port_removed_func_t)(void *, void *, void *);
 typedef void (*ports_connected_func_t)(void *, void *, void *, void *, void *);
 typedef void (*ports_disconnected_func_t)(void *, void *, void *, void *, void *);
-typedef enum bt_self_component_status (*comp_init_method_t)(void *, void *, void *);
+typedef enum bt_self_component_status (*comp_init_method_t)(void *, const void *, void *);
 
 struct bt_graph_listener {
 	bt_private_graph_listener_removed removed;
@@ -1678,7 +1678,7 @@ enum bt_graph_status add_component_with_init_method_data(
 		struct bt_private_graph *priv_graph,
 		struct bt_component_class *comp_cls,
 		comp_init_method_t init_method,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		void *init_method_data, struct bt_component **user_component)
 {
 	struct bt_graph *graph = (void *) priv_graph;
@@ -1687,6 +1687,7 @@ enum bt_graph_status add_component_with_init_method_data(
 	struct bt_component *component = NULL;
 	int ret;
 	bool init_can_consume;
+	struct bt_value *new_params = NULL;
 
 	BT_ASSERT(comp_cls);
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
@@ -1696,7 +1697,6 @@ enum bt_graph_status add_component_with_init_method_data(
 		"Duplicate component name: %!+g, name=\"%s\"", graph, name);
 	BT_ASSERT_PRE(!params || bt_value_is_map(params),
 		"Parameter value is not a map value: %!+v", params);
-	bt_object_get_ref(params);
 	init_can_consume = graph->can_consume;
 	bt_graph_set_can_consume(graph, false);
 	BT_LIB_LOGD("Adding component to graph: "
@@ -1705,13 +1705,14 @@ enum bt_graph_status add_component_with_init_method_data(
 		graph, comp_cls, name, params, init_method_data);
 
 	if (!params) {
-		params = bt_private_value_as_value(
-			bt_private_value_map_create());
-		if (!params) {
+		new_params = bt_value_map_create();
+		if (!new_params) {
 			BT_LOGE_STR("Cannot create map value object.");
 			graph_status = BT_GRAPH_STATUS_NOMEM;
 			goto end;
 		}
+
+		params = new_params;
 	}
 
 	ret = bt_component_create(comp_cls, name, &component);
@@ -1778,7 +1779,7 @@ enum bt_graph_status add_component_with_init_method_data(
 
 end:
 	bt_object_put_ref(component);
-	bt_object_put_ref(params);
+	bt_object_put_ref(new_params);
 	(void) init_can_consume;
 	bt_graph_set_can_consume(graph, init_can_consume);
 	return graph_status;
@@ -1788,7 +1789,7 @@ enum bt_graph_status
 bt_private_graph_add_source_component_with_init_method_data(
 		struct bt_private_graph *graph,
 		struct bt_component_class_source *comp_cls,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		void *init_method_data, struct bt_component_source **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
@@ -1800,7 +1801,7 @@ bt_private_graph_add_source_component_with_init_method_data(
 enum bt_graph_status bt_private_graph_add_source_component(
 		struct bt_private_graph *graph,
 		struct bt_component_class_source *comp_cls,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		struct bt_component_source **component)
 {
 	return bt_private_graph_add_source_component_with_init_method_data(
@@ -1811,7 +1812,7 @@ enum bt_graph_status
 bt_private_graph_add_filter_component_with_init_method_data(
 		struct bt_private_graph *graph,
 		struct bt_component_class_filter *comp_cls,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		void *init_method_data, struct bt_component_filter **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
@@ -1823,7 +1824,7 @@ bt_private_graph_add_filter_component_with_init_method_data(
 enum bt_graph_status bt_private_graph_add_filter_component(
 		struct bt_private_graph *graph,
 		struct bt_component_class_filter *comp_cls,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		struct bt_component_filter **component)
 {
 	return bt_private_graph_add_filter_component_with_init_method_data(
@@ -1834,7 +1835,7 @@ enum bt_graph_status
 bt_private_graph_add_sink_component_with_init_method_data(
 		struct bt_private_graph *graph,
 		struct bt_component_class_sink *comp_cls,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		void *init_method_data, struct bt_component_sink **component)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
@@ -1846,7 +1847,7 @@ bt_private_graph_add_sink_component_with_init_method_data(
 enum bt_graph_status bt_private_graph_add_sink_component(
 		struct bt_private_graph *graph,
 		struct bt_component_class_sink *comp_cls,
-		const char *name, struct bt_value *params,
+		const char *name, const struct bt_value *params,
 		struct bt_component_sink **component)
 {
 	return bt_private_graph_add_sink_component_with_init_method_data(

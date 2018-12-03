@@ -244,18 +244,18 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 }
 
 static
-struct bt_private_value *get_default_params(void)
+struct bt_value *get_default_params(void)
 {
-	struct bt_private_value *params;
+	struct bt_value *params;
 	int ret;
 
-	params = bt_private_value_map_create();
+	params = bt_value_map_create();
 	if (!params) {
 		BT_LOGE_STR("Cannot create a map value object.");
 		goto error;
 	}
 
-	ret = bt_private_value_map_insert_bool_entry(params,
+	ret = bt_value_map_insert_bool_entry(params,
 		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME, false);
 	if (ret) {
 		BT_LOGE_STR("Cannot add boolean value to map value object.");
@@ -272,11 +272,12 @@ end:
 }
 
 static
-int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
+int configure_muxer_comp(struct muxer_comp *muxer_comp,
+		const struct bt_value *params)
 {
-	struct bt_private_value *default_params = NULL;
-	struct bt_private_value *real_params = NULL;
-	struct bt_value *assume_absolute_clock_classes = NULL;
+	struct bt_value *default_params = NULL;
+	struct bt_value *real_params = NULL;
+	const struct bt_value *assume_absolute_clock_classes = NULL;
 	int ret = 0;
 	bt_bool bool_val;
 
@@ -288,7 +289,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 	}
 
 	ret = bt_value_map_extend(&real_params,
-		bt_private_value_as_value(default_params), params);
+		default_params, params);
 	if (ret) {
 		BT_LOGE("Cannot extend default parameters map value: "
 			"muxer-comp-addr=%p, def-params-addr=%p, "
@@ -297,9 +298,8 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp, struct bt_value *params)
 		goto error;
 	}
 
-	assume_absolute_clock_classes = bt_value_map_borrow_entry_value(
-		bt_private_value_as_value(real_params),
-		ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
+	assume_absolute_clock_classes = bt_value_map_borrow_entry_value(real_params,
+									ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME);
 	if (assume_absolute_clock_classes &&
 			!bt_value_is_bool(assume_absolute_clock_classes)) {
 		BT_LOGE("Expecting a boolean value for the `%s` parameter: "

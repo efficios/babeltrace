@@ -15,12 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/values.h>
-#include <babeltrace/private-values.h>
-#include <babeltrace/object.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace/babeltrace.h>
 #include <babeltrace/assert-internal.h>
 
 static enum bt_self_component_status sink_consume(
@@ -61,18 +56,22 @@ static enum bt_self_notification_iterator_status dummy_iterator_next_method(
 static enum bt_query_status flt_query_method(
 		struct bt_self_component_class_filter *component_class,
 		struct bt_query_executor *query_exec,
-		const char *object, struct bt_value *params,
-		struct bt_value **result)
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result)
 {
-	struct bt_private_value *res = bt_private_value_array_create();
-	*result = bt_private_value_as_value(res);
+	struct bt_value *res = bt_value_array_create();
+	struct bt_value *val;
+	*result = res;
 	int iret;
 
 	BT_ASSERT(*result);
-	iret = bt_private_value_array_append_string_element(res, object);
+	iret = bt_value_array_append_string_element(res, object);
 	BT_ASSERT(iret == 0);
-	iret = bt_private_value_array_append_element(res, params);
+	iret = bt_value_copy(&val, params);
 	BT_ASSERT(iret == 0);
+	iret = bt_value_array_append_element(res, val);
+	BT_ASSERT(iret == 0);
+	bt_object_put_ref(val);
 	return BT_QUERY_STATUS_OK;
 }
 
