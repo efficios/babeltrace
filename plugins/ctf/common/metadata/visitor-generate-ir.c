@@ -2719,7 +2719,8 @@ int visit_integer_decl(struct ctx *ctx,
 	(*integer_decl)->is_signed = (signedness > 0);
 	(*integer_decl)->disp_base = base;
 	(*integer_decl)->encoding = encoding;
-	(*integer_decl)->mapped_clock_class = bt_object_get_ref(mapped_clock_class);
+	(*integer_decl)->mapped_clock_class = mapped_clock_class;
+	bt_object_get_ref((*integer_decl)->mapped_clock_class);
 	return 0;
 
 error:
@@ -3612,15 +3613,16 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 			"default");
 		BT_ASSERT(ret == 0);
 		g_ptr_array_add(ctx->ctf_tc->clock_classes,
-			bt_object_get_ref(clock_class_to_map_to));
+			clock_class_to_map_to);
+		bt_object_get_ref(clock_class_to_map_to);
 		break;
 	case 1:
 		/*
 		 * Only one clock class exists in the trace at this point: use
 		 * this one.
 		 */
-		clock_class_to_map_to =
-			bt_object_get_ref(ctx->ctf_tc->clock_classes->pdata[0]);
+		clock_class_to_map_to = ctx->ctf_tc->clock_classes->pdata[0];
+		bt_object_get_ref(clock_class_to_map_to);
 		break;
 	default:
 		/*
@@ -3634,7 +3636,8 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 	}
 
 	BT_ASSERT(clock_class_to_map_to);
-	int_fc->mapped_clock_class = bt_object_get_ref(clock_class_to_map_to);
+	int_fc->mapped_clock_class = clock_class_to_map_to;
+	bt_object_get_ref(int_fc->mapped_clock_class);
 
 end:
 	bt_object_put_ref(clock_class_to_map_to);
@@ -4744,7 +4747,8 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		bt_private_clock_class_as_clock_class(clock)));
 	bt_private_clock_class_set_offset(clock, offset_seconds, offset_cycles);
 	apply_clock_class_offset(ctx, clock);
-	g_ptr_array_add(ctx->ctf_tc->clock_classes, bt_object_get_ref(clock));
+	g_ptr_array_add(ctx->ctf_tc->clock_classes, clock);
+	bt_object_get_ref(clock);
 
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(clock);
@@ -4902,7 +4906,8 @@ struct bt_private_trace *ctf_visitor_generate_ir_get_ir_trace(
 
 	BT_ASSERT(ctx);
 	BT_ASSERT(ctx->trace);
-	return bt_object_get_ref(ctx->trace);
+	bt_object_get_ref(ctx->trace);
+	return ctx->trace;
 }
 
 BT_HIDDEN

@@ -129,7 +129,10 @@ static inline
 struct bt_config_component *bt_config_get_component(GPtrArray *array,
 		size_t index)
 {
-	return bt_object_get_ref(g_ptr_array_index(array, index));
+	struct bt_config_component *comp = g_ptr_array_index(array, index);
+
+	bt_object_get_ref(comp);
+	return comp;
 }
 
 int bt_config_append_plugin_paths(struct bt_private_value *plugin_paths,

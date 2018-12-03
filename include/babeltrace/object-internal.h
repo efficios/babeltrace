@@ -36,10 +36,10 @@ typedef void (*bt_object_parent_is_owner_listener_func)(
 		struct bt_object *);
 
 static inline
-void bt_object_get_no_null_check(struct bt_object *obj);
+void bt_object_get_no_null_check(const void *obj);
 
 static inline
-void bt_object_put_no_null_check(struct bt_object *obj);
+void bt_object_put_no_null_check(const void *obj);
 
 /*
  * Babeltrace object base.
@@ -89,24 +89,29 @@ struct bt_object {
 };
 
 static inline
-unsigned long long bt_object_get_ref_count(struct bt_object *obj)
+unsigned long long bt_object_get_ref_count(const struct bt_object *c_obj)
 {
+	struct bt_object *obj = (void *) c_obj;
+
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 	return obj->ref_count;
 }
 
 static inline
-struct bt_object *bt_object_borrow_parent(struct bt_object *obj)
+struct bt_object *bt_object_borrow_parent(const struct bt_object *c_obj)
 {
+	struct bt_object *obj = (void *) c_obj;
+
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 	return obj->parent;
 }
 
 static inline
-struct bt_object *bt_object_get_parent(struct bt_object *obj)
+struct bt_object *bt_object_get_parent(const struct bt_object *c_obj)
 {
+	struct bt_object *obj = (void *) c_obj;
 	struct bt_object *parent = bt_object_borrow_parent(obj);
 
 	if (parent) {
@@ -241,8 +246,10 @@ void bt_object_set_parent_is_owner_listener_func(struct bt_object *obj,
 }
 
 static inline
-void bt_object_inc_ref_count(struct bt_object *obj)
+void bt_object_inc_ref_count(const struct bt_object *c_obj)
 {
+	struct bt_object *obj = (void *) c_obj;
+
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 	obj->ref_count++;
@@ -250,8 +257,10 @@ void bt_object_inc_ref_count(struct bt_object *obj)
 }
 
 static inline
-void bt_object_get_no_null_check_no_parent_check(struct bt_object *obj)
+void bt_object_get_no_null_check_no_parent_check(const struct bt_object *c_obj)
 {
+	struct bt_object *obj = (void *) c_obj;
+
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 
@@ -266,8 +275,10 @@ void bt_object_get_no_null_check_no_parent_check(struct bt_object *obj)
 }
 
 static inline
-void bt_object_get_no_null_check(struct bt_object *obj)
+void bt_object_get_no_null_check(const void *c_obj)
 {
+	struct bt_object *obj = (void *) c_obj;
+
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 
@@ -291,8 +302,10 @@ void bt_object_get_no_null_check(struct bt_object *obj)
 }
 
 static inline
-void bt_object_put_no_null_check(struct bt_object *obj)
+void bt_object_put_no_null_check(const void *c_obj)
 {
+	struct bt_object *obj = (void *) c_obj;
+
 	BT_ASSERT(obj);
 	BT_ASSERT(obj->is_shared);
 	BT_ASSERT(obj->ref_count > 0);

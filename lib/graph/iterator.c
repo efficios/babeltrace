@@ -103,7 +103,8 @@ struct stream_state *create_stream_state(struct bt_stream *stream)
 	/*
 	 * We keep a reference to the stream until we know it's ended.
 	 */
-	stream_state->stream = bt_object_get_ref(stream);
+	stream_state->stream = stream;
+	bt_object_get_no_null_check(stream_state->stream);
 	BT_LIB_LOGV("Created stream state: %![stream-]+s, "
 		"stream-state-addr=%p",
 		stream, stream_state);
@@ -609,7 +610,8 @@ bool validate_notification(
 			goto end;
 		}
 		stream_state->expected_notif_seq_num++;
-		stream_state->cur_packet = bt_object_get_ref(packet);
+		stream_state->cur_packet = packet;
+		bt_object_get_no_null_check(stream_state->cur_packet);
 		goto end;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		if (!stream_state->cur_packet) {
@@ -956,7 +958,8 @@ bt_port_output_notification_iterator_create(
 		goto error;
 	}
 
-	iterator->graph = bt_object_get_ref(graph);
+	iterator->graph = graph;
+	bt_object_get_no_null_check(iterator->graph);
 	colander_data.notifs = (void *) iterator->base.notifs->pdata;
 	colander_data.count_addr = &iterator->count;
 

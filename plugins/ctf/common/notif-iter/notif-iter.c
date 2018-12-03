@@ -805,9 +805,10 @@ enum bt_notif_iter_status set_current_stream(struct bt_notif_iter *notit)
 		"stream-class-addr=%p, stream-class-id=%" PRId64,
 		notit, notit->meta.sc,
 		notit->meta.sc->id);
-	stream = bt_object_get_ref(notit->medium.medops.borrow_stream(
+	stream = notit->medium.medops.borrow_stream(
 		notit->meta.sc->ir_sc, notit->cur_data_stream_id,
-		notit->medium.data));
+		notit->medium.data);
+	bt_object_get_ref(stream);
 	BT_LOGV("User function returned: stream-addr=%p", stream);
 	if (!stream) {
 		BT_LOGW_STR("User function failed to return a stream object "

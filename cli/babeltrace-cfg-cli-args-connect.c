@@ -296,7 +296,8 @@ static struct bt_config_component *find_component_in_array(GPtrArray *comps,
 		struct bt_config_component *comp = g_ptr_array_index(comps, i);
 
 		if (strcmp(name, comp->instance_name->str) == 0) {
-			found_comp = bt_object_get_ref(comp);
+			found_comp = comp;
+			bt_object_get_ref(found_comp);
 			goto end;
 		}
 	}

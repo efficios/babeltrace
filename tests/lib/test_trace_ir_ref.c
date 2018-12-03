@@ -360,9 +360,9 @@ static void test_example_scenario(void)
 			"TC1 reference count is 1");
 
 	/* User A acquires a reference to SC2 from TC1. */
-	user_a.sc = bt_object_get_ref(
-		bt_private_trace_borrow_stream_class_by_index(
-			user_a.tc, 1));
+	user_a.sc = bt_private_trace_borrow_stream_class_by_index(
+			user_a.tc, 1);
+	bt_object_get_ref(user_a.sc);
 	ok(user_a.sc, "User A acquires SC2 from TC1");
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -370,9 +370,9 @@ static void test_example_scenario(void)
 			"SC2 reference count is 1");
 
 	/* User A acquires a reference to EC3 from SC2. */
-	user_a.ec = bt_object_get_ref(
-		bt_private_stream_class_borrow_event_class_by_index(
-			user_a.sc, 0));
+	user_a.ec = bt_private_stream_class_borrow_event_class_by_index(
+			user_a.sc, 0);
+	bt_object_get_ref(user_a.ec);
 	ok(user_a.ec, "User A acquires EC3 from SC2");
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -411,7 +411,8 @@ static void test_example_scenario(void)
 
 	/* User B acquires a reference to SC1. */
 	diag("User B acquires a reference to SC1");
-	user_b.sc = bt_object_get_ref(weak_sc1);
+	user_b.sc = weak_sc1;
+	bt_object_get_ref(user_b.sc);
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
 	ok(bt_object_get_ref_count((void *) weak_sc1) == 1,
@@ -419,9 +420,9 @@ static void test_example_scenario(void)
 
 	/* User C acquires a reference to EC1. */
 	diag("User C acquires a reference to EC1");
-	user_c.ec = bt_object_get_ref(
-		bt_private_stream_class_borrow_event_class_by_index(
-			user_b.sc, 0));
+	user_c.ec = bt_private_stream_class_borrow_event_class_by_index(
+			user_b.sc, 0);
+	bt_object_get_ref(user_c.ec);
 	ok(bt_object_get_ref_count((void *) weak_ec1) == 1,
 			"EC1 reference count is 1");
 	ok(bt_object_get_ref_count((void *) weak_sc1) == 2,

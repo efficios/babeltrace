@@ -525,7 +525,8 @@ int bt_private_trace_set_packet_header_field_class(
 
 	bt_field_class_make_part_of_trace(field_class);
 	bt_object_put_ref(trace->packet_header_fc);
-	trace->packet_header_fc = bt_object_get_ref(field_class);
+	trace->packet_header_fc = field_class;
+	bt_object_get_no_null_check(trace->packet_header_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set trace's packet header field classe: %!+t", trace);
 

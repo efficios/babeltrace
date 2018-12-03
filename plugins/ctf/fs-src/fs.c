@@ -536,7 +536,8 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 
 	ds_file_group->stream_id = stream_instance_id;
 	BT_ASSERT(stream_class);
-	ds_file_group->stream_class = bt_object_get_ref(stream_class);
+	ds_file_group->stream_class = stream_class;
+	bt_object_get_ref(ds_file_group->stream_class);
 	ds_file_group->ctf_fs_trace = ctf_fs_trace;
 	goto end;
 
