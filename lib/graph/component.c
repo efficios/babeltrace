@@ -227,7 +227,8 @@ struct bt_port *add_port(
 	/*
 	 * Notify the graph's creator that a new port was added.
 	 */
-	graph = bt_object_get_ref(bt_component_borrow_graph(component));
+	bt_object_get_ref(bt_component_borrow_graph(component));
+	graph = bt_component_borrow_graph(component);
 	if (graph) {
 		bt_graph_notify_port_added(graph, new_port);
 		BT_OBJECT_PUT_REF_AND_RESET(graph);
@@ -278,7 +279,8 @@ int bt_component_create(struct bt_component_class *component_class,
 
 	bt_object_init_shared_with_parent(&component->base,
 		destroy_component);
-	component->class = bt_object_get_ref(component_class);
+	component->class = component_class;
+	bt_object_get_no_null_check(component->class);
 	component->destroy = component_destroy_funcs[type];
 	component->name = g_string_new(name);
 	if (!component->name) {

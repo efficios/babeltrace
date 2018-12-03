@@ -195,9 +195,8 @@ struct bt_component_class_sink *bt_component_class_sink_colander_get(void)
 		colander_comp_cls, colander_input_port_connected);
 
 end:
-	return bt_object_get_ref(
-		bt_private_component_class_sink_as_component_class_sink(
-			colander_comp_cls));
+	bt_object_get_ref(colander_comp_cls);
+	return (void *) colander_comp_cls;
 }
 
 __attribute__((destructor)) static

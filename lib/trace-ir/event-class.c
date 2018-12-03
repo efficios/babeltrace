@@ -334,7 +334,8 @@ int bt_private_event_class_set_specific_context_field_class(
 
 	bt_field_class_make_part_of_trace(field_class);
 	bt_object_put_ref(event_class->specific_context_fc);
-	event_class->specific_context_fc = bt_object_get_ref(field_class);
+	event_class->specific_context_fc = field_class;
+	bt_object_get_no_null_check(event_class->specific_context_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set event class's specific context field classe: %!+E",
 		event_class);
@@ -399,7 +400,8 @@ int bt_private_event_class_set_payload_field_class(
 
 	bt_field_class_make_part_of_trace(field_class);
 	bt_object_put_ref(event_class->payload_fc);
-	event_class->payload_fc = bt_object_get_ref(field_class);
+	event_class->payload_fc = field_class;
+	bt_object_get_no_null_check(event_class->payload_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set event class's payload field classe: %!+E", event_class);
 

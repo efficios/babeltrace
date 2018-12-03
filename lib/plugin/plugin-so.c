@@ -1130,7 +1130,8 @@ struct bt_plugin *bt_plugin_so_create_empty(
 	}
 
 	spec = plugin->spec_data;
-	spec->shared_lib_handle = bt_object_get_ref(shared_lib_handle);
+	spec->shared_lib_handle = shared_lib_handle;
+	bt_object_get_no_null_check(spec->shared_lib_handle);
 	goto end;
 
 error:
@@ -1498,7 +1499,8 @@ void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 	BT_ASSERT(plugin->type == BT_PLUGIN_TYPE_SO);
 
 	bt_list_add(&comp_class->node, &component_class_list);
-	comp_class->so_handle = bt_object_get_ref(spec->shared_lib_handle);
+	comp_class->so_handle = spec->shared_lib_handle;
+	bt_object_get_no_null_check(comp_class->so_handle);
 
 	/* Add our custom destroy listener */
 	bt_component_class_add_destroy_listener(comp_class,

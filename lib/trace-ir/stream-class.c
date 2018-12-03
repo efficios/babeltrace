@@ -345,7 +345,8 @@ int bt_private_stream_class_set_packet_context_field_class(
 
 	bt_field_class_make_part_of_trace(field_class);
 	bt_object_put_ref(stream_class->packet_context_fc);
-	stream_class->packet_context_fc = bt_object_get_ref(field_class);
+	stream_class->packet_context_fc = field_class;
+	bt_object_get_no_null_check(stream_class->packet_context_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set stream class's packet context field classe: %!+S",
 		stream_class);
@@ -402,7 +403,8 @@ int bt_private_stream_class_set_event_header_field_class(
 
 	bt_field_class_make_part_of_trace(field_class);
 	bt_object_put_ref(stream_class->event_header_fc);
-	stream_class->event_header_fc = bt_object_get_ref(field_class);
+	stream_class->event_header_fc = field_class;
+	bt_object_get_no_null_check(stream_class->event_header_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set stream class's event header field classe: %!+S",
 		stream_class);
@@ -460,7 +462,8 @@ int bt_private_stream_class_set_event_common_context_field_class(
 
 	bt_field_class_make_part_of_trace(field_class);
 	bt_object_put_ref(stream_class->event_common_context_fc);
-	stream_class->event_common_context_fc = bt_object_get_ref(field_class);
+	stream_class->event_common_context_fc = field_class;
+	bt_object_get_no_null_check(stream_class->event_common_context_fc);
 	bt_field_class_freeze(field_class);
 	BT_LIB_LOGV("Set stream class's event common context field classe: %!+S",
 		stream_class);
@@ -488,7 +491,8 @@ int bt_private_stream_class_set_default_clock_class(
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	bt_object_put_ref(stream_class->default_clock_class);
-	stream_class->default_clock_class = bt_object_get_ref(clock_class);
+	stream_class->default_clock_class = clock_class;
+	bt_object_get_no_null_check(stream_class->default_clock_class);
 	bt_clock_class_freeze(clock_class);
 	BT_LIB_LOGV("Set stream class's default clock class: %!+S",
 		stream_class);

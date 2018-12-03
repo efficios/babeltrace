@@ -178,7 +178,7 @@ would destroy the object and leave a dangling pointer in \p _var_dst.
 
 @sa bt_object_put_ref(): Decrements the reference count of a Babeltrace object.
 */
-void *bt_object_get_ref(void *obj);
+void bt_object_get_ref(const void *obj);
 
 /**
 @brief	Decrements the reference count of the Babeltrace object
@@ -202,7 +202,7 @@ former is generally safer.
 	variable to another.
 @sa bt_object_get_ref(): Increments the reference count of a Babeltrace object.
 */
-void bt_object_put_ref(void *obj);
+void bt_object_put_ref(const void *obj);
 
 /**
 @}

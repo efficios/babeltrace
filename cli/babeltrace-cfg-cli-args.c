@@ -1511,7 +1511,8 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	cfg->command_needs_plugins = needs_plugins;
 
 	if (initial_plugin_paths) {
-		cfg->plugin_paths = bt_object_get_ref(initial_plugin_paths);
+		cfg->plugin_paths = initial_plugin_paths;
+		bt_object_get_ref(cfg->plugin_paths);
 	} else {
 		cfg->plugin_paths = bt_private_value_array_create();
 		if (!cfg->plugin_paths) {
@@ -3625,12 +3626,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct implicit_component_args implicit_debug_info_args = { 0 };
 	struct implicit_component_args implicit_muxer_args = { 0 };
 	struct implicit_component_args implicit_trimmer_args = { 0 };
-	struct bt_private_value *plugin_paths =
-		bt_object_get_ref(initial_plugin_paths);
+	struct bt_private_value *plugin_paths;
 	char error_buf[256] = { 0 };
 	size_t i;
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
 	char *output = NULL;
+
+	plugin_paths = initial_plugin_paths;
+	bt_object_get_ref(plugin_paths);
 
 	*retcode = 0;
 

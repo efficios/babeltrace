@@ -58,7 +58,8 @@ struct bt_clock_value *bt_clock_value_new(struct bt_clock_class *clock_class)
 	}
 
 	bt_object_init_unique(&ret->base);
-	ret->clock_class = bt_object_get_ref(clock_class);
+	ret->clock_class = clock_class;
+	bt_object_get_no_null_check(clock_class);
 	bt_clock_class_freeze(clock_class);
 	BT_LIB_LOGD("Created clock value object: %!+k", ret);
 
@@ -80,7 +81,8 @@ struct bt_clock_value *bt_clock_value_create(struct bt_clock_class *clock_class)
 	}
 
 	if (likely(!clock_value->clock_class)) {
-		clock_value->clock_class = bt_object_get_ref(clock_class);
+		clock_value->clock_class = clock_class;
+		bt_object_get_no_null_check(clock_class);
 	}
 
 	goto end;

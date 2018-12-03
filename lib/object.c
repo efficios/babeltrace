@@ -26,9 +26,9 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object-internal.h>
 
-void *bt_object_get_ref(void *ptr)
+void bt_object_get_ref(const void *ptr)
 {
-	struct bt_object *obj = ptr;
+	struct bt_object *obj = (void *) ptr;
 
 	if (unlikely(!obj)) {
 		goto end;
@@ -38,12 +38,12 @@ void *bt_object_get_ref(void *ptr)
 	bt_object_get_no_null_check(obj);
 
 end:
-	return ptr;
+	return;
 }
 
-void bt_object_put_ref(void *ptr)
+void bt_object_put_ref(const void *ptr)
 {
-	struct bt_object *obj = ptr;
+	struct bt_object *obj = (void *) ptr;
 
 	if (unlikely(!obj)) {
 		return;

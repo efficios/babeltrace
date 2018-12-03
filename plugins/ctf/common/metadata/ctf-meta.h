@@ -1108,7 +1108,8 @@ void ctf_field_class_int_copy_content(
 	dst_fc->is_signed = src_fc->is_signed;
 	dst_fc->disp_base = src_fc->disp_base;
 	dst_fc->encoding = src_fc->encoding;
-	dst_fc->mapped_clock_class = bt_object_get_ref(src_fc->mapped_clock_class);
+	dst_fc->mapped_clock_class = src_fc->mapped_clock_class;
+	bt_object_get_ref(dst_fc->mapped_clock_class);
 	dst_fc->storing_index = src_fc->storing_index;
 }
 
