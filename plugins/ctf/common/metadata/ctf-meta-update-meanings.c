@@ -114,54 +114,58 @@ int update_stream_class_meanings(struct ctf_stream_class *sc)
 	uint64_t i;
 
 	if (!sc->is_translated) {
-		int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
-			(void *) sc->packet_context_fc, "timestamp_begin");
-		if (int_fc) {
-			int_fc->meaning = CTF_FIELD_CLASS_MEANING_PACKET_BEGINNING_TIME;
+		if (sc->packet_context_fc) {
+			int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
+				(void *) sc->packet_context_fc, "timestamp_begin");
+			if (int_fc) {
+				int_fc->meaning = CTF_FIELD_CLASS_MEANING_PACKET_BEGINNING_TIME;
+			}
+
+			int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
+				(void *) sc->packet_context_fc, "timestamp_end");
+			if (int_fc) {
+				int_fc->meaning = CTF_FIELD_CLASS_MEANING_PACKET_END_TIME;
+
+				/*
+				 * Remove mapped clock class to avoid updating
+				 * the clock immediately when decoding.
+				 */
+				int_fc->mapped_clock_class = NULL;
+			}
+
+			int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
+				(void *) sc->packet_context_fc, "events_discarded");
+			if (int_fc) {
+				int_fc->meaning = CTF_FIELD_CLASS_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT;
+			}
+
+			int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
+				(void *) sc->packet_context_fc, "packet_seq_num");
+			if (int_fc) {
+				int_fc->meaning = CTF_FIELD_CLASS_MEANING_PACKET_COUNTER_SNAPSHOT;
+
+			}
+
+			int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
+				(void *) sc->packet_context_fc, "packet_size");
+			if (int_fc) {
+				int_fc->meaning = CTF_FIELD_CLASS_MEANING_EXP_PACKET_TOTAL_SIZE;
+			}
+
+			int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
+				(void *) sc->packet_context_fc, "content_size");
+			if (int_fc) {
+				int_fc->meaning = CTF_FIELD_CLASS_MEANING_EXP_PACKET_CONTENT_SIZE;
+			}
 		}
 
-		int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
-			(void *) sc->packet_context_fc, "timestamp_end");
-		if (int_fc) {
-			int_fc->meaning = CTF_FIELD_CLASS_MEANING_PACKET_END_TIME;
-
-			/*
-			 * Remove mapped clock class to avoid updating
-			 * the clock immediately when decoding.
-			 */
-			int_fc->mapped_clock_class = NULL;
-		}
-
-		int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
-			(void *) sc->packet_context_fc, "events_discarded");
-		if (int_fc) {
-			int_fc->meaning = CTF_FIELD_CLASS_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT;
-		}
-
-		int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
-			(void *) sc->packet_context_fc, "packet_seq_num");
-		if (int_fc) {
-			int_fc->meaning = CTF_FIELD_CLASS_MEANING_PACKET_COUNTER_SNAPSHOT;
-
-		}
-
-		int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
-			(void *) sc->packet_context_fc, "packet_size");
-		if (int_fc) {
-			int_fc->meaning = CTF_FIELD_CLASS_MEANING_EXP_PACKET_TOTAL_SIZE;
-		}
-
-		int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
-			(void *) sc->packet_context_fc, "content_size");
-		if (int_fc) {
-			int_fc->meaning = CTF_FIELD_CLASS_MEANING_EXP_PACKET_CONTENT_SIZE;
-		}
-
-		ret = set_int_field_class_meaning_by_name(
-			sc->event_header_fc, NULL, "id",
-			CTF_FIELD_CLASS_MEANING_EVENT_CLASS_ID);
-		if (ret) {
-			goto end;
+		if (sc->event_header_fc) {
+			ret = set_int_field_class_meaning_by_name(
+				sc->event_header_fc, NULL, "id",
+				CTF_FIELD_CLASS_MEANING_EVENT_CLASS_ID);
+			if (ret) {
+				goto end;
+			}
 		}
 	}
 
@@ -185,7 +189,7 @@ int ctf_trace_class_update_meanings(struct ctf_trace_class *ctf_tc)
 	struct ctf_named_field_class *named_fc;
 	uint64_t i;
 
-	if (!ctf_tc->is_translated) {
+	if (!ctf_tc->is_translated && ctf_tc->packet_header_fc) {
 		int_fc = ctf_field_class_struct_borrow_member_int_field_class_by_name(
 			(void *) ctf_tc->packet_header_fc, "magic");
 		if (int_fc) {
