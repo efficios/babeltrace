@@ -89,9 +89,9 @@
 #include <babeltrace/trace-ir/trace.h>
 
 /* Plugin and plugin development API */
+#include <babeltrace/plugin/plugin-const.h>
 #include <babeltrace/plugin/plugin-dev.h>
-#include <babeltrace/plugin/plugin-set.h>
-#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-set-const.h>
 
 /* Graph, component, and notification API */
 #include <babeltrace/graph/component-class-filter.h>

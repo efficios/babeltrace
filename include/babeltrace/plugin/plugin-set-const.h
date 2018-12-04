@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_PLUGIN_PLUGIN_SET_H
-#define BABELTRACE_PLUGIN_PLUGIN_SET_H
+#ifndef BABELTRACE_PLUGIN_PLUGIN_SET_CONST_H
+#define BABELTRACE_PLUGIN_PLUGIN_SET_CONST_H
 
 /*
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -36,13 +36,13 @@ struct bt_plugin;
 struct bt_plugin_set;
 
 extern uint64_t bt_plugin_set_get_plugin_count(
-		struct bt_plugin_set *plugin_set);
+		const struct bt_plugin_set *plugin_set);
 
-extern struct bt_plugin *bt_plugin_set_borrow_plugin_by_index(
-		struct bt_plugin_set *plugin_set, uint64_t index);
+extern const struct bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
+		const struct bt_plugin_set *plugin_set, uint64_t index);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_PLUGIN_PLUGIN_SET_H */
+#endif /* BABELTRACE_PLUGIN_PLUGIN_SET_CONST_H */

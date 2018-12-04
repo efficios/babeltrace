@@ -64,8 +64,8 @@ static char *get_test_plugin_path(const char *plugin_dir,
 
 static void test_minimal(const char *plugin_dir)
 {
-	struct bt_plugin_set *plugin_set;
-	struct bt_plugin *plugin;
+	const struct bt_plugin_set *plugin_set;
+	const struct bt_plugin *plugin;
 	char *minimal_path = get_test_plugin_path(plugin_dir, "minimal");
 
 	BT_ASSERT(minimal_path);
@@ -79,7 +79,7 @@ static void test_minimal(const char *plugin_dir)
 		"plugin's initialization function is called during bt_plugin_create_all_from_file()");
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 1,
 		"bt_plugin_create_all_from_file() returns the expected number of plugins");
-	plugin = bt_plugin_set_borrow_plugin_by_index(plugin_set, 0);
+	plugin = bt_plugin_set_borrow_plugin_by_index_const(plugin_set, 0);
 	ok(strcmp(bt_plugin_get_name(plugin), "test_minimal") == 0,
 		"bt_plugin_get_name() returns the expected name");
 	ok(strcmp(bt_plugin_get_description(plugin),
@@ -109,8 +109,8 @@ static void test_minimal(const char *plugin_dir)
 
 static void test_sfs(const char *plugin_dir)
 {
-	struct bt_plugin_set *plugin_set;
-	struct bt_plugin *plugin;
+	const struct bt_plugin_set *plugin_set;
+	const struct bt_plugin *plugin;
 	struct bt_component_class_sink *sink_comp_class;
 	struct bt_component_class_source *source_comp_class;
 	struct bt_component_class_filter *filter_comp_class;
@@ -135,7 +135,7 @@ static void test_sfs(const char *plugin_dir)
 
 	plugin_set = bt_plugin_create_all_from_file(sfs_path);
 	BT_ASSERT(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1);
-	plugin = bt_plugin_set_borrow_plugin_by_index(plugin_set, 0);
+	plugin = bt_plugin_set_borrow_plugin_by_index_const(plugin_set, 0);
 	ok(bt_plugin_get_version(plugin, &major, &minor, &patch, &extra) ==
 		BT_PROPERTY_AVAILABILITY_AVAILABLE,
 		"bt_plugin_get_version() succeeds when there's a version");
@@ -154,15 +154,15 @@ static void test_sfs(const char *plugin_dir)
 	ok(bt_plugin_get_sink_component_class_count(plugin) == 1,
 		"bt_plugin_get_sink_component_class_count() returns the expected value");
 
-	source_comp_class = bt_plugin_borrow_source_component_class_by_name(
+	source_comp_class = bt_plugin_borrow_source_component_class_by_name_const(
 		plugin, "source");
 	ok(source_comp_class,
-		"bt_plugin_borrow_source_component_class_by_name() finds a source component class");
+		"bt_plugin_borrow_source_component_class_by_name_const() finds a source component class");
 
-	sink_comp_class = bt_plugin_borrow_sink_component_class_by_name(
+	sink_comp_class = bt_plugin_borrow_sink_component_class_by_name_const(
 		plugin, "sink");
 	ok(sink_comp_class,
-		"bt_plugin_borrow_sink_component_class_by_name() finds a sink component class");
+		"bt_plugin_borrow_sink_component_class_by_name_const() finds a sink component class");
 	ok(strcmp(bt_component_class_get_help(
 		bt_component_class_sink_as_component_class(sink_comp_class)),
 		"Bacon ipsum dolor amet strip steak cupim pastrami venison shoulder.\n"
@@ -171,10 +171,10 @@ static void test_sfs(const char *plugin_dir)
 		"ground round brisket salami cupim pork bresaola turkey bacon boudin.\n") == 0,
 		"bt_component_class_get_help() returns the expected help text");
 
-	filter_comp_class = bt_plugin_borrow_filter_component_class_by_name(
+	filter_comp_class = bt_plugin_borrow_filter_component_class_by_name_const(
 		plugin, "filter");
 	ok(filter_comp_class,
-		"bt_plugin_borrow_filter_component_class_by_name() finds a filter component class");
+		"bt_plugin_borrow_filter_component_class_by_name_const() finds a filter component class");
 	params = bt_value_integer_create_init(23);
 	BT_ASSERT(params);
 	ret = bt_private_query_executor_query(query_exec,
@@ -212,7 +212,7 @@ static void test_sfs(const char *plugin_dir)
 
 static void test_create_all_from_dir(const char *plugin_dir)
 {
-	struct bt_plugin_set *plugin_set;
+	const struct bt_plugin_set *plugin_set;
 
 	diag("create from all test below");
 
@@ -234,7 +234,7 @@ static void test_create_all_from_dir(const char *plugin_dir)
 static void test_find(const char *plugin_dir)
 {
 	int ret;
-	struct bt_plugin *plugin;
+	const struct bt_plugin *plugin;
 	char *plugin_path;
 
 	ok(!bt_plugin_find(NON_EXISTING_PATH),

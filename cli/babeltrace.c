@@ -262,10 +262,10 @@ end:
 }
 
 static
-struct bt_plugin *find_plugin(const char *name)
+const struct bt_plugin *find_plugin(const char *name)
 {
 	int i;
-	struct bt_plugin *plugin = NULL;
+	const struct bt_plugin *plugin = NULL;
 
 	BT_ASSERT(name);
 	BT_LOGD("Finding plugin: name=\"%s\"", name);
@@ -292,7 +292,7 @@ struct bt_plugin *find_plugin(const char *name)
 	return plugin;
 }
 
-typedef void *(*plugin_borrow_comp_cls_func_t)(struct bt_plugin *,
+typedef void *(*plugin_borrow_comp_cls_func_t)(const struct bt_plugin *,
 	const char *);
 
 static
@@ -301,7 +301,7 @@ void *find_component_class_from_plugin(const char *plugin_name,
 		plugin_borrow_comp_cls_func_t plugin_borrow_comp_cls_func)
 {
 	void *comp_class = NULL;
-	struct bt_plugin *plugin;
+	const struct bt_plugin *plugin;
 
 	BT_LOGD("Finding component class: plugin-name=\"%s\", "
 		"comp-cls-name=\"%s\"", plugin_name, comp_class_name);
@@ -335,7 +335,7 @@ struct bt_component_class_source *find_source_component_class(
 	return (void *) find_component_class_from_plugin(plugin_name,
 		comp_class_name,
 		(plugin_borrow_comp_cls_func_t)
-			bt_plugin_borrow_source_component_class_by_name);
+			bt_plugin_borrow_source_component_class_by_name_const);
 }
 
 static
@@ -345,7 +345,7 @@ struct bt_component_class_filter *find_filter_component_class(
 	return (void *) find_component_class_from_plugin(plugin_name,
 		comp_class_name,
 		(plugin_borrow_comp_cls_func_t)
-			bt_plugin_borrow_filter_component_class_by_name);
+			bt_plugin_borrow_filter_component_class_by_name_const);
 }
 
 static
@@ -355,7 +355,7 @@ struct bt_component_class_sink *find_sink_component_class(
 	return (void *) find_component_class_from_plugin(plugin_name,
 		comp_class_name,
 		(plugin_borrow_comp_cls_func_t)
-			bt_plugin_borrow_sink_component_class_by_name);
+			bt_plugin_borrow_sink_component_class_by_name_const);
 }
 
 static
@@ -761,7 +761,7 @@ void print_cfg(struct bt_config *cfg)
 }
 
 static
-void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
+void add_to_loaded_plugins(const struct bt_plugin_set *plugin_set)
 {
 	int64_t i;
 	int64_t count;
@@ -770,9 +770,9 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
-		struct bt_plugin *plugin =
-			bt_plugin_set_borrow_plugin_by_index(plugin_set, i);
-		struct bt_plugin *loaded_plugin =
+		const struct bt_plugin *plugin =
+			bt_plugin_set_borrow_plugin_by_index_const(plugin_set, i);
+		const struct bt_plugin *loaded_plugin =
 			find_plugin(bt_plugin_get_name(plugin));
 
 		BT_ASSERT(plugin);
@@ -790,7 +790,7 @@ void add_to_loaded_plugins(struct bt_plugin_set *plugin_set)
 			BT_LOGD("Adding plugin to loaded plugins: plugin-path=\"%s\"",
 				bt_plugin_get_name(plugin));
 			bt_object_get_ref(plugin);
-			g_ptr_array_add(loaded_plugins, plugin);
+			g_ptr_array_add(loaded_plugins, (void *) plugin);
 		}
 	}
 }
@@ -812,7 +812,7 @@ int load_dynamic_plugins(const struct bt_value *plugin_paths)
 	for (i = 0; i < nr_paths; i++) {
 		const struct bt_value *plugin_path_value = NULL;
 		const char *plugin_path;
-		struct bt_plugin_set *plugin_set;
+		const struct bt_plugin_set *plugin_set;
 
 		plugin_path_value =
 			bt_value_array_borrow_element_by_index_const(
@@ -848,7 +848,7 @@ static
 int load_static_plugins(void)
 {
 	int ret = 0;
-	struct bt_plugin_set *plugin_set;
+	const struct bt_plugin_set *plugin_set;
 
 	BT_LOGI("Loading static plugins.");
 	plugin_set = bt_plugin_create_all_from_static();
@@ -886,7 +886,7 @@ end:
 }
 
 static
-void print_plugin_info(struct bt_plugin *plugin)
+void print_plugin_info(const struct bt_plugin *plugin)
 {
 	unsigned int major, minor, patch;
 	const char *extra;
@@ -1035,7 +1035,7 @@ static
 int cmd_help(struct bt_config *cfg)
 {
 	int ret = 0;
-	struct bt_plugin *plugin = NULL;
+	const struct bt_plugin *plugin = NULL;
 	struct bt_component_class *needed_comp_cls = NULL;
 
 	plugin = find_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
@@ -1104,12 +1104,12 @@ end:
 	return ret;
 }
 
-typedef void *(* plugin_borrow_comp_cls_by_index_func_t)(struct bt_plugin *,
+typedef void *(* plugin_borrow_comp_cls_by_index_func_t)(const struct bt_plugin *,
 	uint64_t);
 typedef struct bt_component_class *(* spec_comp_cls_borrow_comp_cls_func_t)(
 	void *);
 
-void cmd_list_plugins_print_component_classes(struct bt_plugin *plugin,
+void cmd_list_plugins_print_component_classes(const struct bt_plugin *plugin,
 		const char *cc_type_name, uint64_t count,
 		plugin_borrow_comp_cls_by_index_func_t borrow_comp_cls_by_index_func,
 		spec_comp_cls_borrow_comp_cls_func_t spec_comp_cls_borrow_comp_cls_func)
@@ -1170,7 +1170,7 @@ int cmd_list_plugins(struct bt_config *cfg)
 	}
 
 	for (i = 0; i < plugins_count; i++) {
-		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
+		const struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
 
 		component_classes_count +=
 			bt_plugin_get_source_component_class_count(plugin) +
@@ -1187,26 +1187,26 @@ int cmd_list_plugins(struct bt_config *cfg)
 		bt_common_color_reset());
 
 	for (i = 0; i < plugins_count; i++) {
-		struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
+		const struct bt_plugin *plugin = g_ptr_array_index(loaded_plugins, i);
 
 		printf("\n");
 		print_plugin_info(plugin);
 		cmd_list_plugins_print_component_classes(plugin, "Source",
 			bt_plugin_get_source_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
-				bt_plugin_borrow_source_component_class_by_name,
+				bt_plugin_borrow_source_component_class_by_name_const,
 			(spec_comp_cls_borrow_comp_cls_func_t)
 				bt_component_class_source_as_component_class);
 		cmd_list_plugins_print_component_classes(plugin, "Filter",
 			bt_plugin_get_filter_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
-				bt_plugin_borrow_filter_component_class_by_name,
+				bt_plugin_borrow_filter_component_class_by_name_const,
 			(spec_comp_cls_borrow_comp_cls_func_t)
 				bt_component_class_filter_as_component_class);
 		cmd_list_plugins_print_component_classes(plugin, "Sink",
 			bt_plugin_get_sink_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
-				bt_plugin_borrow_sink_component_class_by_name,
+				bt_plugin_borrow_sink_component_class_by_name_const,
 			(spec_comp_cls_borrow_comp_cls_func_t)
 				bt_component_class_sink_as_component_class);
 	}
