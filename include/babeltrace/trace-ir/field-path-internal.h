@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/object-internal.h>
-#include <babeltrace/trace-ir/field-path.h>
+#include <babeltrace/trace-ir/field-path-const.h>
 #include <babeltrace/assert-internal.h>
 #include <glib.h>
 
@@ -44,7 +44,7 @@ struct bt_field_path *bt_field_path_create(void);
 
 static inline
 uint64_t bt_field_path_get_index_by_index_inline(
-		struct bt_field_path *field_path, uint64_t index)
+		const struct bt_field_path *field_path, uint64_t index)
 {
 	BT_ASSERT(field_path);
 	BT_ASSERT(index < field_path->indexes->len);

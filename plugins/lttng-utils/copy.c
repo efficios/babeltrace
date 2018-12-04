@@ -37,25 +37,25 @@
 #include "debug-info.h"
 
 static
-struct bt_stream *insert_new_stream(
+const struct bt_stream *insert_new_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_stream *stream,
+		const struct bt_stream *stream,
 		struct debug_info_trace *di_trace);
 
 static
-void unref_stream(struct bt_stream *stream)
+void unref_stream(const struct bt_stream *stream)
 {
 	bt_object_put_ref(stream);
 }
 
 static
-void unref_packet(struct bt_packet *packet)
+void unref_packet(const struct bt_packet *packet)
 {
 	bt_object_put_ref(packet);
 }
 
 static
-void unref_stream_class(struct bt_stream_class *stream_class)
+void unref_stream_class(const struct bt_stream_class *stream_class)
 {
 	bt_object_put_ref(stream_class);
 }
@@ -73,11 +73,11 @@ void destroy_stream_state_key(gpointer key)
 }
 
 static
-struct bt_field *get_payload_field(FILE *err,
-		struct bt_event *event, const char *field_name)
+const struct bt_field *get_payload_field(FILE *err,
+		const struct bt_event *event, const char *field_name)
 {
-	struct bt_field *field = NULL, *payload = NULL;
-	struct bt_field_class *payload_class = NULL;
+	const struct bt_field *field = NULL, *payload = NULL;
+	const struct bt_field_class *payload_class = NULL;
 
 	payload = bt_event_get_payload(event, NULL);
 	BT_ASSERT(payload);
@@ -100,11 +100,11 @@ end:
 }
 
 static
-struct bt_field *get_stream_event_context_field(FILE *err,
-		struct bt_event *event, const char *field_name)
+const struct bt_field *get_stream_event_context_field(FILE *err,
+		const struct bt_event *event, const char *field_name)
 {
-	struct bt_field *field = NULL, *sec = NULL;
-	struct bt_field_class *sec_class = NULL;
+	const struct bt_field *field = NULL, *sec = NULL;
+	const struct bt_field_class *sec_class = NULL;
 
 	sec = bt_event_get_stream_event_context(event);
 	if (!sec) {
@@ -130,12 +130,12 @@ end:
 
 BT_HIDDEN
 int get_stream_event_context_unsigned_int_field_value(FILE *err,
-		struct bt_event *event, const char *field_name,
+		const struct bt_event *event, const char *field_name,
 		uint64_t *value)
 {
 	int ret;
-	struct bt_field *field = NULL;
-	struct bt_field_class *field_class = NULL;
+	const struct bt_field *field = NULL;
+	const struct bt_field_class *field_class = NULL;
 
 	field = get_stream_event_context_field(err, event, field_name);
 	if (!field) {
@@ -174,11 +174,11 @@ end:
 }
 
 BT_HIDDEN
-int get_stream_event_context_int_field_value(FILE *err, struct bt_event *event,
+int get_stream_event_context_int_field_value(FILE *err, const struct bt_event *event,
 		const char *field_name, int64_t *value)
 {
-	struct bt_field *field = NULL;
-	struct bt_field_class *field_class = NULL;
+	const struct bt_field *field = NULL;
+	const struct bt_field_class *field_class = NULL;
 	int ret;
 
 	field = get_stream_event_context_field(err, event, field_name);
@@ -213,11 +213,11 @@ end:
 
 BT_HIDDEN
 int get_payload_unsigned_int_field_value(FILE *err,
-		struct bt_event *event, const char *field_name,
+		const struct bt_event *event, const char *field_name,
 		uint64_t *value)
 {
-	struct bt_field *field = NULL;
-	struct bt_field_class *field_class = NULL;
+	const struct bt_field *field = NULL;
+	const struct bt_field_class *field_class = NULL;
 	int ret;
 
 	field = get_payload_field(err, event, field_name);
@@ -258,11 +258,11 @@ end:
 }
 
 BT_HIDDEN
-int get_payload_int_field_value(FILE *err, struct bt_event *event,
+int get_payload_int_field_value(FILE *err, const struct bt_event *event,
 		const char *field_name, int64_t *value)
 {
-	struct bt_field *field = NULL;
-	struct bt_field_class *field_class = NULL;
+	const struct bt_field *field = NULL;
+	const struct bt_field_class *field_class = NULL;
 	int ret;
 
 	field = get_payload_field(err, event, field_name);
@@ -303,11 +303,11 @@ end:
 
 BT_HIDDEN
 int get_payload_string_field_value(FILE *err,
-		struct bt_event *event, const char *field_name,
+		const struct bt_event *event, const char *field_name,
 		const char **value)
 {
-	struct bt_field *field = NULL;
-	struct bt_field_class *field_class = NULL;
+	const struct bt_field *field = NULL;
+	const struct bt_field_class *field_class = NULL;
 	int ret;
 
 	/*
@@ -347,12 +347,12 @@ end:
 
 BT_HIDDEN
 int get_payload_build_id_field_value(FILE *err,
-		struct bt_event *event, const char *field_name,
+		const struct bt_event *event, const char *field_name,
 		uint8_t **build_id, uint64_t *build_id_len)
 {
-	struct bt_field *field = NULL, *seq_len = NULL;
-	struct bt_field_class *field_class = NULL;
-	struct bt_field *seq_field = NULL;
+	const struct bt_field *field = NULL, *seq_len = NULL;
+	const struct bt_field_class *field_class = NULL;
+	const struct bt_field *seq_field = NULL;
 	uint64_t i;
 	int ret;
 
@@ -424,7 +424,7 @@ end:
 
 static
 struct debug_info *lookup_trace_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_trace *writer_trace,
+		const struct bt_trace *writer_trace,
 		struct debug_info_trace *di_trace)
 {
 	return (struct debug_info *) g_hash_table_lookup(
@@ -434,7 +434,7 @@ struct debug_info *lookup_trace_debug_info(struct debug_info_iterator *debug_it,
 
 static
 struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_trace *writer_trace,
+		const struct bt_trace *writer_trace,
 		struct debug_info_trace *di_trace)
 {
 	struct debug_info *debug_info = NULL;
@@ -487,7 +487,7 @@ end:
 
 static
 struct debug_info *get_trace_debug_info(struct debug_info_iterator *debug_it,
-		struct bt_trace *writer_trace,
+		const struct bt_trace *writer_trace,
 		struct debug_info_trace *di_trace)
 {
 	struct debug_info *debug_info;
@@ -505,7 +505,7 @@ end:
 
 static
 struct debug_info_trace *lookup_trace(struct debug_info_iterator *debug_it,
-		struct bt_trace *trace)
+		const struct bt_trace *trace)
 {
 	return (struct debug_info_trace *) g_hash_table_lookup(
 			debug_it->trace_map,
@@ -515,7 +515,7 @@ struct debug_info_trace *lookup_trace(struct debug_info_iterator *debug_it,
 static
 enum debug_info_stream_state *insert_new_stream_state(
 		struct debug_info_iterator *debug_it,
-		struct debug_info_trace *di_trace, struct bt_stream *stream)
+		struct debug_info_trace *di_trace, const struct bt_stream *stream)
 {
 	enum debug_info_stream_state *v = NULL;
 
@@ -586,11 +586,11 @@ void debug_info_close_trace(struct debug_info_iterator *debug_it,
 
 static
 int sync_event_classes(struct debug_info_iterator *debug_it,
-		struct bt_stream *stream,
-		struct bt_stream *writer_stream)
+		const struct bt_stream *stream,
+		const struct bt_stream *writer_stream)
 {
 	int int_ret;
-	struct bt_stream_class *stream_class = NULL,
+	const struct bt_stream_class *stream_class = NULL,
 				   *writer_stream_class = NULL;
 	enum bt_component_status ret;
 
@@ -619,12 +619,12 @@ end:
 }
 
 static
-void trace_is_static_listener(struct bt_trace *trace, void *data)
+void trace_is_static_listener(const struct bt_trace *trace, void *data)
 {
 	struct debug_info_trace *di_trace = data;
 	int trace_completed = 1, ret, nr_stream, i;
-	struct bt_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_trace *writer_trace = di_trace->writer_trace;
+	const struct bt_stream *stream = NULL, *writer_stream = NULL;
+	const struct bt_trace *writer_trace = di_trace->writer_trace;
 
 	/*
 	 * When the trace becomes static, make sure that we have all
@@ -666,12 +666,12 @@ error:
 
 static
 struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
-		struct bt_stream *stream) {
-	struct bt_trace *writer_trace = NULL;
+		const struct bt_stream *stream) {
+	const struct bt_trace *writer_trace = NULL;
 	struct debug_info_trace *di_trace = NULL;
-	struct bt_trace *trace = NULL;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_stream *writer_stream = NULL;
+	const struct bt_trace *trace = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_stream *writer_stream = NULL;
 	int ret, nr_stream, i;
 
 	writer_trace = bt_trace_create();
@@ -764,22 +764,22 @@ end:
 }
 
 static
-struct bt_packet *lookup_packet(struct debug_info_iterator *debug_it,
-		struct bt_packet *packet,
+const struct bt_packet *lookup_packet(struct debug_info_iterator *debug_it,
+		const struct bt_packet *packet,
 		struct debug_info_trace *di_trace)
 {
-	return (struct bt_packet *) g_hash_table_lookup(
+	return (const struct bt_packet *) g_hash_table_lookup(
 			di_trace->packet_map,
 			(gpointer) packet);
 }
 
 static
-struct bt_packet *insert_new_packet(struct debug_info_iterator *debug_it,
-		struct bt_packet *packet,
-		struct bt_stream *writer_stream,
+const struct bt_packet *insert_new_packet(struct debug_info_iterator *debug_it,
+		const struct bt_packet *packet,
+		const struct bt_stream *writer_stream,
 		struct debug_info_trace *di_trace)
 {
-	struct bt_packet *writer_packet;
+	const struct bt_packet *writer_packet;
 	int ret;
 
 	writer_packet = bt_packet_create(writer_stream);
@@ -806,10 +806,10 @@ end:
 
 static
 int add_debug_info_fields(FILE *err,
-		struct bt_field_class *writer_event_context_class,
+		const struct bt_field_class *writer_event_context_class,
 		struct debug_info_component *component)
 {
-	struct bt_field_class *ip_field = NULL, *debug_field_class = NULL,
+	const struct bt_field_class *ip_field = NULL, *debug_field_class = NULL,
 				 *bin_field_class = NULL, *func_field_class = NULL,
 				 *src_field_class = NULL;
 	int ret = 0;
@@ -898,15 +898,15 @@ end:
 
 static
 int create_debug_info_event_context_class(FILE *err,
-		struct bt_field_class *event_context_class,
-		struct bt_field_class *writer_event_context_class,
+		const struct bt_field_class *event_context_class,
+		const struct bt_field_class *writer_event_context_class,
 		struct debug_info_component *component)
 {
 	int ret, nr_fields, i;
 
 	nr_fields = bt_field_class_structure_get_field_count(event_context_class);
 	for (i = 0; i < nr_fields; i++) {
-		struct bt_field_class *field_class = NULL;
+		const struct bt_field_class *field_class = NULL;
 		const char *field_name;
 
 		if (bt_field_class_structure_get_field_by_index(event_context_class,
@@ -937,14 +937,14 @@ end:
 }
 
 static
-struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
-		struct bt_stream_class *stream_class,
-		struct bt_trace *writer_trace,
+const struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
+		const struct bt_stream_class *stream_class,
+		const struct bt_trace *writer_trace,
 		struct debug_info_component *component)
 {
-	struct bt_field_class *cls = NULL;
-	struct bt_stream_class *writer_stream_class = NULL;
-	struct bt_field_class *writer_event_context_class = NULL;
+	const struct bt_field_class *cls = NULL;
+	const struct bt_stream_class *writer_stream_class = NULL;
+	const struct bt_field_class *writer_event_context_class = NULL;
 	int ret_int;
 	const char *name = bt_stream_class_get_name(stream_class);
 
@@ -1016,18 +1016,18 @@ end:
  * to update the integers mapping to a clock.
  */
 static
-int add_clock_classes(FILE *err, struct bt_trace *writer_trace,
-		struct bt_stream_class *writer_stream_class,
-		struct bt_trace *trace)
+int add_clock_classes(FILE *err, const struct bt_trace *writer_trace,
+		const struct bt_stream_class *writer_stream_class,
+		const struct bt_trace *trace)
 {
 	int ret, clock_class_count, i;
 
 	clock_class_count = bt_trace_get_clock_class_count(trace);
 
 	for (i = 0; i < clock_class_count; i++) {
-		struct bt_clock_class *clock_class =
+		const struct bt_clock_class *clock_class =
 			bt_trace_get_clock_class_by_index(trace, i);
-		struct bt_clock_class *existing_clock_class = NULL;
+		const struct bt_clock_class *existing_clock_class = NULL;
 
 		BT_ASSERT(clock_class);
 
@@ -1058,12 +1058,12 @@ end:
 }
 
 static
-struct bt_stream_class *insert_new_stream_class(
+const struct bt_stream_class *insert_new_stream_class(
 		struct debug_info_iterator *debug_it,
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
-	struct bt_stream_class *writer_stream_class = NULL;
-	struct bt_trace *trace, *writer_trace = NULL;
+	const struct bt_stream_class *writer_stream_class = NULL;
+	const struct bt_trace *trace, *writer_trace = NULL;
 	struct debug_info_trace *di_trace;
 	enum bt_component_status ret;
 	int int_ret;
@@ -1114,14 +1114,14 @@ end:
 }
 
 static
-struct bt_stream *insert_new_stream(
+const struct bt_stream *insert_new_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_stream *stream,
+		const struct bt_stream *stream,
 		struct debug_info_trace *di_trace)
 {
-	struct bt_stream *writer_stream = NULL;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_stream_class *writer_stream_class = NULL;
+	const struct bt_stream *writer_stream = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_stream_class *writer_stream_class = NULL;
 	int64_t id;
 
 	stream_class = bt_stream_get_class(stream);
@@ -1170,18 +1170,18 @@ end:
 }
 
 static
-struct bt_stream *lookup_stream(struct debug_info_iterator *debug_it,
-		struct bt_stream *stream,
+const struct bt_stream *lookup_stream(struct debug_info_iterator *debug_it,
+		const struct bt_stream *stream,
 		struct debug_info_trace *di_trace)
 {
-	return (struct bt_stream *) g_hash_table_lookup(
+	return (const struct bt_stream *) g_hash_table_lookup(
 			di_trace->stream_map, (gpointer) stream);
 }
 
 static
-struct bt_event_class *get_event_class(struct debug_info_iterator *debug_it,
-		struct bt_stream_class *writer_stream_class,
-		struct bt_event_class *event_class)
+const struct bt_event_class *get_event_class(struct debug_info_iterator *debug_it,
+		const struct bt_stream_class *writer_stream_class,
+		const struct bt_event_class *event_class)
 {
 	return bt_stream_class_get_event_class_by_id(writer_stream_class,
 			bt_event_class_get_id(event_class));
@@ -1190,10 +1190,10 @@ struct bt_event_class *get_event_class(struct debug_info_iterator *debug_it,
 static
 struct debug_info_trace *lookup_di_trace_from_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_stream *stream)
+		const struct bt_stream *stream)
 {
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_trace *trace = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_trace *trace = NULL;
 	struct debug_info_trace *di_trace = NULL;
 
 	stream_class = bt_stream_get_class(stream);
@@ -1211,12 +1211,12 @@ struct debug_info_trace *lookup_di_trace_from_stream(
 }
 
 static
-struct bt_stream *get_writer_stream(
+const struct bt_stream *get_writer_stream(
 		struct debug_info_iterator *debug_it,
-		struct bt_packet *packet, struct bt_stream *stream)
+		const struct bt_packet *packet, const struct bt_stream *stream)
 {
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_stream *writer_stream = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_stream *writer_stream = NULL;
 	struct debug_info_trace *di_trace = NULL;
 
 	stream_class = bt_stream_get_class(stream);
@@ -1245,13 +1245,13 @@ end:
 }
 
 BT_HIDDEN
-struct bt_packet *debug_info_new_packet(
+const struct bt_packet *debug_info_new_packet(
 		struct debug_info_iterator *debug_it,
-		struct bt_packet *packet)
+		const struct bt_packet *packet)
 {
-	struct bt_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_packet *writer_packet = NULL;
-	struct bt_field *packet_context = NULL;
+	const struct bt_stream *stream = NULL, *writer_stream = NULL;
+	const struct bt_packet *writer_packet = NULL;
+	const struct bt_field *packet_context = NULL;
 	struct debug_info_trace *di_trace;
 	int int_ret;
 
@@ -1311,12 +1311,12 @@ end:
 }
 
 BT_HIDDEN
-struct bt_packet *debug_info_close_packet(
+const struct bt_packet *debug_info_close_packet(
 		struct debug_info_iterator *debug_it,
-		struct bt_packet *packet)
+		const struct bt_packet *packet)
 {
-	struct bt_packet *writer_packet = NULL;
-	struct bt_stream *stream = NULL;
+	const struct bt_packet *writer_packet = NULL;
+	const struct bt_stream *stream = NULL;
 	struct debug_info_trace *di_trace;
 
 	stream = bt_packet_get_stream(packet);
@@ -1342,11 +1342,11 @@ end:
 }
 
 BT_HIDDEN
-struct bt_stream *debug_info_stream_begin(
+const struct bt_stream *debug_info_stream_begin(
 		struct debug_info_iterator *debug_it,
-		struct bt_stream *stream)
+		const struct bt_stream *stream)
 {
-	struct bt_stream *writer_stream = NULL;
+	const struct bt_stream *writer_stream = NULL;
 	enum debug_info_stream_state *state;
 	struct debug_info_trace *di_trace = NULL;
 
@@ -1394,10 +1394,10 @@ end:
 }
 
 BT_HIDDEN
-struct bt_stream *debug_info_stream_end(struct debug_info_iterator *debug_it,
-		struct bt_stream *stream)
+const struct bt_stream *debug_info_stream_end(struct debug_info_iterator *debug_it,
+		const struct bt_stream *stream)
 {
-	struct bt_stream *writer_stream = NULL;
+	const struct bt_stream *writer_stream = NULL;
 	struct debug_info_trace *di_trace = NULL;
 	enum debug_info_stream_state *state;
 
@@ -1450,7 +1450,7 @@ end:
 
 static
 struct debug_info_source *lookup_debug_info(FILE *err,
-		struct bt_event *event,
+		const struct bt_event *event,
 		struct debug_info *debug_info)
 {
 	int64_t vpid;
@@ -1478,14 +1478,14 @@ end:
 }
 
 static
-int set_debug_info_field(FILE *err, struct bt_field *debug_field,
+int set_debug_info_field(FILE *err, const struct bt_field *debug_field,
 		struct debug_info_source *dbg_info_src,
 		struct debug_info_component *component)
 {
 	int i, nr_fields, ret = 0;
-	struct bt_field_class *debug_field_class = NULL;
-	struct bt_field *field = NULL;
-	struct bt_field_class *field_class = NULL;
+	const struct bt_field_class *debug_field_class = NULL;
+	const struct bt_field *field = NULL;
+	const struct bt_field_class *field_class = NULL;
 
 	debug_field_class = bt_field_get_class(debug_field);
 	BT_ASSERT(debug_field_class);
@@ -1568,17 +1568,17 @@ end:
 
 static
 int copy_set_debug_info_stream_event_context(FILE *err,
-		struct bt_field *event_context,
-		struct bt_event *event,
-		struct bt_event *writer_event,
+		const struct bt_field *event_context,
+		const struct bt_event *event,
+		const struct bt_event *writer_event,
 		struct debug_info *debug_info,
 		struct debug_info_component *component)
 {
-	struct bt_field_class *writer_event_context_class = NULL,
+	const struct bt_field_class *writer_event_context_class = NULL,
 				 *event_context_class = NULL;
-	struct bt_field *writer_event_context = NULL;
-	struct bt_field *field = NULL, *copy_field = NULL, *debug_field = NULL;
-	struct bt_field_class *field_class = NULL;
+	const struct bt_field *writer_event_context = NULL;
+	const struct bt_field *field = NULL, *copy_field = NULL, *debug_field = NULL;
+	const struct bt_field_class *field_class = NULL;
 	struct debug_info_source *dbg_info_src;
 	int ret, nr_fields, i;
 
@@ -1675,11 +1675,11 @@ end:
 }
 
 static
-struct bt_clock_class *stream_class_get_clock_class(FILE *err,
-		struct bt_stream_class *stream_class)
+const struct bt_clock_class *stream_class_get_clock_class(FILE *err,
+		const struct bt_stream_class *stream_class)
 {
-	struct bt_trace *trace = NULL;
-	struct bt_clock_class *clock_class = NULL;
+	const struct bt_trace *trace = NULL;
+	const struct bt_clock_class *clock_class = NULL;
 
 	trace = bt_stream_class_get_trace(stream_class);
 	BT_ASSERT(trace);
@@ -1699,11 +1699,11 @@ end:
 }
 
 static
-struct bt_clock_class *event_get_clock_class(FILE *err, struct bt_event *event)
+const struct bt_clock_class *event_get_clock_class(FILE *err, const struct bt_event *event)
 {
-	struct bt_event_class *event_class = NULL;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_clock_class *clock_class = NULL;
+	const struct bt_event_class *event_class = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_clock_class *clock_class = NULL;
 
 	event_class = bt_event_get_class(event);
 	BT_ASSERT(event_class);
@@ -1721,10 +1721,10 @@ end:
 }
 
 static
-int set_event_clock_value(FILE *err, struct bt_event *event,
-		struct bt_event *writer_event)
+int set_event_clock_value(FILE *err, const struct bt_event *event,
+		const struct bt_event *writer_event)
 {
-	struct bt_clock_class *clock_class = NULL;
+	const struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 	int ret = 0;
 
@@ -1762,13 +1762,13 @@ end:
 }
 
 static
-struct bt_event *debug_info_copy_event(FILE *err, struct bt_event *event,
-		struct bt_event_class *writer_event_class,
+const struct bt_event *debug_info_copy_event(FILE *err, const struct bt_event *event,
+		const struct bt_event_class *writer_event_class,
 		struct debug_info *debug_info,
 		struct debug_info_component *component)
 {
-	struct bt_event *writer_event = NULL;
-	struct bt_field *field = NULL, *copy_field = NULL;
+	const struct bt_event *writer_event = NULL;
+	const struct bt_field *field = NULL, *copy_field = NULL;
 	int ret;
 
 	writer_event = bt_event_create(writer_event_class);
@@ -1850,16 +1850,16 @@ end:
 }
 
 BT_HIDDEN
-struct bt_event *debug_info_output_event(
+const struct bt_event *debug_info_output_event(
 		struct debug_info_iterator *debug_it,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
-	struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
-	struct bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;
-	struct bt_event *writer_event = NULL;
-	struct bt_packet *packet = NULL, *writer_packet = NULL;
-	struct bt_trace *writer_trace = NULL;
-	struct bt_stream *stream = NULL;
+	const struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
+	const struct bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;
+	const struct bt_event *writer_event = NULL;
+	const struct bt_packet *packet = NULL, *writer_packet = NULL;
+	const struct bt_trace *writer_trace = NULL;
+	const struct bt_stream *stream = NULL;
 	struct debug_info_trace *di_trace;
 	struct debug_info *debug_info;
 	int int_ret;

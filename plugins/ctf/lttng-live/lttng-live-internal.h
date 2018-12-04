@@ -69,7 +69,7 @@ struct lttng_live_stream_iterator_generic {
 struct lttng_live_stream_iterator {
 	struct lttng_live_stream_iterator_generic p;
 
-	struct bt_stream *stream;
+	const struct bt_stream *stream;
 	struct lttng_live_trace *trace;
 	struct bt_private_port *port;	/* weak ref. */
 
@@ -138,7 +138,7 @@ struct lttng_live_trace {
 
 	uint64_t id;	/* ctf trace ID within the session. */
 
-	struct bt_trace *trace;
+	const struct bt_trace *trace;
 
 	struct lttng_live_metadata *metadata;
 	struct bt_clock_class_priority_map *cc_prio_map;

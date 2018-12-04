@@ -106,7 +106,7 @@ end:
 	return;
 }
 
-struct bt_private_clock_class *bt_private_clock_class_create(void)
+struct bt_clock_class *bt_clock_class_create(void)
 {
 	int ret;
 	struct bt_clock_class *clock_class = NULL;
@@ -153,22 +153,18 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(clock_class);
 
 end:
-	return (void *) clock_class;
+	return clock_class;
 }
 
-const char *bt_clock_class_get_name(
-		struct bt_clock_class *clock_class)
+const char *bt_clock_class_get_name(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	return clock_class->name.value;
 }
 
-int bt_private_clock_class_set_name(
-		struct bt_private_clock_class *priv_clock_class,
+int bt_clock_class_set_name(struct bt_clock_class *clock_class,
 		const char *name)
 {
-	struct bt_clock_class *clock_class = (void *) priv_clock_class;
-
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
@@ -178,18 +174,16 @@ int bt_private_clock_class_set_name(
 	return 0;
 }
 
-const char *bt_clock_class_get_description(struct bt_clock_class *clock_class)
+const char *bt_clock_class_get_description(
+		const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	return clock_class->description.value;
 }
 
-int bt_private_clock_class_set_description(
-		struct bt_private_clock_class *priv_clock_class,
+int bt_clock_class_set_description(struct bt_clock_class *clock_class,
 		const char *descr)
 {
-	struct bt_clock_class *clock_class = (void *) priv_clock_class;
-
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(descr, "Description");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
@@ -200,18 +194,15 @@ int bt_private_clock_class_set_description(
 	return 0;
 }
 
-uint64_t bt_clock_class_get_frequency(struct bt_clock_class *clock_class)
+uint64_t bt_clock_class_get_frequency(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	return clock_class->frequency;
 }
 
-void bt_private_clock_class_set_frequency(
-		struct bt_private_clock_class *priv_clock_class,
+void bt_clock_class_set_frequency(struct bt_clock_class *clock_class,
 		uint64_t frequency)
 {
-	struct bt_clock_class *clock_class = (void *) priv_clock_class;
-
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	BT_ASSERT_PRE(frequency != UINT64_C(-1) && frequency != 0,
@@ -225,18 +216,15 @@ void bt_private_clock_class_set_frequency(
 	BT_LIB_LOGV("Set clock class's frequency: %!+K", clock_class);
 }
 
-uint64_t bt_clock_class_get_precision(struct bt_clock_class *clock_class)
+uint64_t bt_clock_class_get_precision(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	return clock_class->precision;
 }
 
-void bt_private_clock_class_set_precision(
-		struct bt_private_clock_class *priv_clock_class,
+void bt_clock_class_set_precision(struct bt_clock_class *clock_class,
 		uint64_t precision)
 {
-	struct bt_clock_class *clock_class = (void *) priv_clock_class;
-
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	BT_ASSERT_PRE(precision != UINT64_C(-1),
@@ -246,7 +234,7 @@ void bt_private_clock_class_set_precision(
 	BT_LIB_LOGV("Set clock class's precision: %!+K", clock_class);
 }
 
-void bt_clock_class_get_offset(struct bt_clock_class *clock_class,
+void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
 		int64_t *seconds, uint64_t *cycles)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
@@ -256,12 +244,9 @@ void bt_clock_class_get_offset(struct bt_clock_class *clock_class,
 	*cycles = clock_class->offset_cycles;
 }
 
-void bt_private_clock_class_set_offset(
-		struct bt_private_clock_class *priv_clock_class,
+void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 		int64_t seconds, uint64_t cycles)
 {
-	struct bt_clock_class *clock_class = (void *) priv_clock_class;
-
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	BT_ASSERT_PRE(cycles < clock_class->frequency,
@@ -273,18 +258,15 @@ void bt_private_clock_class_set_offset(
 	BT_LIB_LOGV("Set clock class's offset: %!+K", clock_class);
 }
 
-bt_bool bt_clock_class_is_absolute(struct bt_clock_class *clock_class)
+bt_bool bt_clock_class_is_absolute(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	return (bool) clock_class->is_absolute;
 }
 
-void bt_private_clock_class_set_is_absolute(
-		struct bt_private_clock_class *priv_clock_class,
+void bt_clock_class_set_is_absolute(struct bt_clock_class *clock_class,
 		bt_bool is_absolute)
 {
-	struct bt_clock_class *clock_class = (void *) priv_clock_class;
-
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
 	clock_class->is_absolute = (bool) is_absolute;
@@ -292,18 +274,15 @@ void bt_private_clock_class_set_is_absolute(
 		clock_class);
 }
 
-bt_uuid bt_clock_class_get_uuid(struct bt_clock_class *clock_class)
+bt_uuid bt_clock_class_get_uuid(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	return clock_class->uuid.value;
 }
 
-void bt_private_clock_class_set_uuid(
-		struct bt_private_clock_class *priv_clock_class,
+void bt_clock_class_set_uuid(struct bt_clock_class *clock_class,
 		bt_uuid uuid)
 {
-	struct bt_clock_class *clock_class = (void *) priv_clock_class;
-
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
@@ -313,7 +292,7 @@ void bt_private_clock_class_set_uuid(
 }
 
 BT_HIDDEN
-void _bt_clock_class_freeze(struct bt_clock_class *clock_class)
+void _bt_clock_class_freeze(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT(clock_class);
 
@@ -322,10 +301,11 @@ void _bt_clock_class_freeze(struct bt_clock_class *clock_class)
 	}
 
 	BT_LIB_LOGD("Freezing clock class: %!+K", clock_class);
-	clock_class->frozen = 1;
+	((struct bt_clock_class *) clock_class)->frozen = 1;
 }
 
-int bt_clock_class_cycles_to_ns_from_origin(struct bt_clock_class *clock_class,
+int bt_clock_class_cycles_to_ns_from_origin(
+		const struct bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
 	int ret;

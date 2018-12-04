@@ -30,14 +30,45 @@
 /* For bt_bool */
 #include <babeltrace/types.h>
 
-/* For enum bt_value_status, enum bt_value_type */
-#include <babeltrace/values.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_value;
+
+enum bt_value_status {
+	/// Operation canceled.
+	BT_VALUE_STATUS_CANCELED	= 125,
+
+	/// Cannot allocate memory.
+	BT_VALUE_STATUS_NOMEM		= -12,
+
+	/// Okay, no error.
+	BT_VALUE_STATUS_OK		= 0,
+};
+
+enum bt_value_type {
+	/// Null value object.
+	BT_VALUE_TYPE_NULL =		0,
+
+	/// Boolean value object (holds #BT_TRUE or #BT_FALSE).
+	BT_VALUE_TYPE_BOOL =		1,
+
+	/// Integer value object (holds a signed 64-bit integer raw value).
+	BT_VALUE_TYPE_INTEGER =		2,
+
+	/// Floating point number value object (holds a \c double raw value).
+	BT_VALUE_TYPE_REAL =		3,
+
+	/// String value object.
+	BT_VALUE_TYPE_STRING =		4,
+
+	/// Array value object.
+	BT_VALUE_TYPE_ARRAY =		5,
+
+	/// Map value object.
+	BT_VALUE_TYPE_MAP =		6,
+};
 
 extern enum bt_value_type bt_value_get_type(const struct bt_value *object);
 
@@ -119,12 +150,12 @@ bt_bool bt_value_map_is_empty(const struct bt_value *map_obj)
 extern const struct bt_value *bt_value_map_borrow_entry_value_const(
 		const struct bt_value *map_obj, const char *key);
 
-typedef bt_bool (* bt_value_map_foreach_entry_const_cb)(const char *key,
+typedef bt_bool (* bt_value_map_foreach_entry_const_func)(const char *key,
 		const struct bt_value *object, void *data);
 
 extern enum bt_value_status bt_value_map_foreach_entry_const(
 		const struct bt_value *map_obj,
-		bt_value_map_foreach_entry_const_cb cb, void *data);
+		bt_value_map_foreach_entry_const_func func, void *data);
 
 extern bt_bool bt_value_map_has_entry(const struct bt_value *map_obj,
 		const char *key);

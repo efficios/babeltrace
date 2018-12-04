@@ -70,7 +70,7 @@ struct bt_event_class {
 };
 
 BT_HIDDEN
-void _bt_event_class_freeze(struct bt_event_class *event_class);
+void _bt_event_class_freeze(const struct bt_event_class *event_class);
 
 #ifdef BT_DEV_MODE
 # define bt_event_class_freeze		_bt_event_class_freeze
@@ -80,7 +80,7 @@ void _bt_event_class_freeze(struct bt_event_class *event_class);
 
 static inline
 struct bt_stream_class *bt_event_class_borrow_stream_class_inline(
-		struct bt_event_class *event_class)
+		const struct bt_event_class *event_class)
 {
 	BT_ASSERT(event_class);
 	return (void *) bt_object_borrow_parent(&event_class->base);

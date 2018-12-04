@@ -25,7 +25,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>
-#include <babeltrace/trace-ir/private-packet.h>
+#include <babeltrace/trace-ir/packet-const.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/packet-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
@@ -50,10 +50,10 @@ struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)
 	return packet->stream;
 }
 
-struct bt_private_stream *bt_private_packet_borrow_stream(
-		struct bt_private_packet *packet)
+const struct bt_stream *bt_packet_borrow_stream_const(
+		const struct bt_packet *packet)
 {
-	return (void *) bt_packet_borrow_stream((void *) packet);
+	return bt_packet_borrow_stream((void *) packet);
 }
 
 struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet)
@@ -62,10 +62,10 @@ struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet)
 	return packet->header_field ? packet->header_field->field : NULL;
 }
 
-struct bt_private_field *bt_private_packet_borrow_header_field(
-		struct bt_private_packet *packet)
+const struct bt_field *bt_packet_borrow_header_field_const(
+		const struct bt_packet *packet)
 {
-	return (void *) bt_packet_borrow_header_field((void *) packet);
+	return bt_packet_borrow_header_field((void *) packet);
 }
 
 struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
@@ -74,14 +74,14 @@ struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
 	return packet->context_field ? packet->context_field->field : NULL;
 }
 
-struct bt_private_field *bt_private_packet_borrow_context_field(
-		struct bt_private_packet *packet)
+const struct bt_field *bt_packet_borrow_context_field_const(
+		const struct bt_packet *packet)
 {
-	return (void *) bt_packet_borrow_context_field((void *) packet);
+	return bt_packet_borrow_context_field((void *) packet);
 }
 
 BT_HIDDEN
-void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen)
+void _bt_packet_set_is_frozen(const struct bt_packet *packet, bool is_frozen)
 {
 	if (!packet) {
 		return;
@@ -102,7 +102,7 @@ void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen)
 			is_frozen);
 	}
 
-	packet->frozen = is_frozen;
+	((struct bt_packet *) packet)->frozen = is_frozen;
 }
 
 static inline
@@ -325,10 +325,8 @@ end:
 	return packet;
 }
 
-struct bt_private_packet *bt_private_packet_create(
-		struct bt_private_stream *priv_stream)
+struct bt_packet *bt_packet_create(struct bt_stream *stream)
 {
-	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_packet *packet = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
@@ -349,11 +347,9 @@ end:
 	return (void *) packet;
 }
 
-int bt_private_packet_move_header_field(
-		struct bt_private_packet *priv_packet,
-		struct bt_private_packet_header_field *header_field)
+int bt_packet_move_header_field(struct bt_packet *packet,
+		struct bt_packet_header_field *header_field)
 {
-	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_trace *trace;
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
@@ -379,11 +375,9 @@ int bt_private_packet_move_header_field(
 	return 0;
 }
 
-int bt_private_packet_move_context_field(
-		struct bt_private_packet *priv_packet,
-		struct bt_private_packet_context_field *context_field)
+int bt_packet_move_context_field(struct bt_packet *packet,
+		struct bt_packet_context_field *context_field)
 {
-	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_stream_class *stream_class;
 	struct bt_field_wrapper *field_wrapper = (void *) context_field;
 
@@ -409,11 +403,9 @@ int bt_private_packet_move_context_field(
 	return 0;
 }
 
-void bt_private_packet_set_default_beginning_clock_value(
-		struct bt_private_packet *priv_packet,
+void bt_packet_set_default_beginning_clock_value(struct bt_packet *packet,
 		uint64_t value_cycles)
 {
-	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_stream_class *sc;
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -435,7 +427,8 @@ void bt_private_packet_set_default_beginning_clock_value(
 }
 
 enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value(
-		struct bt_packet *packet, struct bt_clock_value **clock_value)
+		const struct bt_packet *packet,
+		const struct bt_clock_value **clock_value)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value (output)");
@@ -443,11 +436,9 @@ enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value(
 	return BT_CLOCK_VALUE_STATUS_KNOWN;
 }
 
-void bt_private_packet_set_default_end_clock_value(
-		struct bt_private_packet *priv_packet,
+void bt_packet_set_default_end_clock_value(struct bt_packet *packet,
 		uint64_t value_cycles)
 {
-	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_stream_class *sc;
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -468,7 +459,8 @@ void bt_private_packet_set_default_end_clock_value(
 }
 
 enum bt_clock_value_status bt_packet_borrow_default_end_clock_value(
-		struct bt_packet *packet, struct bt_clock_value **clock_value)
+		const struct bt_packet *packet,
+		const struct bt_clock_value **clock_value)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value (output)");
@@ -477,7 +469,7 @@ enum bt_clock_value_status bt_packet_borrow_default_end_clock_value(
 }
 
 enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
-		struct bt_packet *packet, uint64_t *value)
+		const struct bt_packet *packet, uint64_t *value)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_NON_NULL(value, "Value (output)");
@@ -485,11 +477,9 @@ enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
 	return packet->discarded_event_counter_snapshot.base.avail;
 }
 
-void bt_private_packet_set_discarded_event_counter_snapshot(
-		struct bt_private_packet *priv_packet, uint64_t value)
+void bt_packet_set_discarded_event_counter_snapshot(struct bt_packet *packet,
+		uint64_t value)
 {
-	struct bt_packet *packet = (void *) priv_packet;
-
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_PACKET_HOT(packet);
 	BT_ASSERT_PRE(packet->stream->class->packets_have_discarded_event_counter_snapshot,
@@ -499,7 +489,7 @@ void bt_private_packet_set_discarded_event_counter_snapshot(
 }
 
 enum bt_property_availability bt_packet_get_packet_counter_snapshot(
-		struct bt_packet *packet, uint64_t *value)
+		const struct bt_packet *packet, uint64_t *value)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_NON_NULL(value, "Value (output)");
@@ -507,11 +497,9 @@ enum bt_property_availability bt_packet_get_packet_counter_snapshot(
 	return packet->packet_counter_snapshot.base.avail;
 }
 
-void bt_private_packet_set_packet_counter_snapshot(
-		struct bt_private_packet *priv_packet, uint64_t value)
+void bt_packet_set_packet_counter_snapshot(struct bt_packet *packet,
+		uint64_t value)
 {
-	struct bt_packet *packet = (void *) priv_packet;
-
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_PACKET_HOT(packet);
 	BT_ASSERT_PRE(packet->stream->class->packets_have_packet_counter_snapshot,

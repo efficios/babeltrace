@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_PACKET_H
-#define BABELTRACE_TRACE_IR_PACKET_H
+#ifndef BABELTRACE_TRACE_IR_PACKET_CONST_H
+#define BABELTRACE_TRACE_IR_PACKET_CONST_H
 
 /*
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
@@ -28,6 +28,12 @@
 
 #include <stdint.h>
 
+/* For enum bt_property_availability */
+#include <babeltrace/property.h>
+
+/* For enum bt_clock_value_status */
+#include <babeltrace/trace-ir/clock-value-const.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,43 +42,39 @@ struct bt_packet;
 struct bt_packet_header_field;
 struct bt_packet_context_field;
 struct bt_stream;
+struct bt_clock_value;
 
-extern struct bt_packet *bt_packet_create(struct bt_stream *stream);
-
-extern struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet);
-
-extern
-struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet);
+extern const struct bt_stream *bt_packet_borrow_stream_const(
+		const struct bt_packet *packet);
 
 extern
-int bt_packet_move_header_field(struct bt_packet *packet,
-		struct bt_packet_header_field *header);
+const struct bt_field *bt_packet_borrow_header_field_const(
+		const struct bt_packet *packet);
 
 extern
-struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet);
+const struct bt_field *bt_packet_borrow_context_field_const(
+		const struct bt_packet *packet);
 
 extern
-int bt_packet_move_context_field(struct bt_packet *packet,
-		struct bt_packet_context_field *context);
+enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value_const(
+		const struct bt_packet *packet,
+		const struct bt_clock_value **clock_value);
 
 extern
-void bt_packet_set_default_beginning_clock_value(struct bt_packet *packet,
-		uint64_t value_cycles);
+enum bt_clock_value_status bt_packet_borrow_default_end_clock_valeu_const(
+		const struct bt_packet *packet,
+		const struct bt_clock_value **clock_value);
 
 extern
-void bt_packet_set_default_end_clock_value(struct bt_packet *packet,
-		uint64_t value_cycles);
+enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
+		const struct bt_packet *packet, uint64_t *value);
 
 extern
-void bt_packet_set_discarded_event_counter_snapshot(struct bt_packet *packet,
-		uint64_t value);
-
-extern
-void bt_packet_set_packet_counter_snapshot(struct bt_packet *packet,
-		uint64_t value);
+enum bt_property_availability bt_packet_get_packet_counter_snapshot(
+		const struct bt_packet *packet, uint64_t *value);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PACKET_H */
+#endif /* BABELTRACE_TRACE_IR_PACKET_CONST_H */

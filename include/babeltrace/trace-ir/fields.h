@@ -30,9 +30,6 @@
 
 #include <stdint.h>
 
-/* For enum bt_field_class_type */
-#include <babeltrace/trace-ir/field-classes.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,29 +37,22 @@ extern "C" {
 struct bt_field;
 struct bt_field_class;
 
-extern struct bt_field_class *bt_field_borrow_class(struct bt_field *field);
+extern void bt_field_signed_integer_set_value(struct bt_field *field,
+		int64_t value);
 
-extern enum bt_field_class_type bt_field_get_class_type(struct bt_field *field);
+extern void bt_field_unsigned_integer_set_value(struct bt_field *field,
+		uint64_t value);
 
-extern int64_t bt_field_signed_integer_get_value(struct bt_field *field);
+extern void bt_field_real_set_value(struct bt_field *field, double value);
 
-extern uint64_t bt_field_unsigned_integer_get_value(struct bt_field *field);
+extern int bt_field_string_set_value(struct bt_field *field, const char *value);
 
-extern double bt_field_real_get_value(struct bt_field *field);
+extern int bt_field_string_append(struct bt_field *field, const char *value);
 
-extern int bt_field_unsigned_enumeration_get_mapping_labels(
-		struct bt_field *field,
-		bt_field_class_enumeration_mapping_label_array *label_array,
-		uint64_t *count);
+extern int bt_field_string_append_with_length(struct bt_field *field,
+		const char *value, uint64_t length);
 
-extern int bt_field_signed_enumeration_get_mapping_labels(
-		struct bt_field *field,
-		bt_field_class_enumeration_mapping_label_array *label_array,
-		uint64_t *count);
-
-extern const char *bt_field_string_get_value(struct bt_field *field);
-
-extern uint64_t bt_field_string_get_length(struct bt_field *field);
+extern int bt_field_string_clear(struct bt_field *field);
 
 extern struct bt_field *bt_field_structure_borrow_member_field_by_index(
 		struct bt_field *field, uint64_t index);
@@ -70,13 +60,14 @@ extern struct bt_field *bt_field_structure_borrow_member_field_by_index(
 extern struct bt_field *bt_field_structure_borrow_member_field_by_name(
 		struct bt_field *field, const char *name);
 
-extern uint64_t bt_field_array_get_length(struct bt_field *field);
-
 extern struct bt_field *bt_field_array_borrow_element_field_by_index(
 		struct bt_field *field, uint64_t index);
 
-extern uint64_t bt_field_variant_get_selected_option_field_index(
-		struct bt_field *field);
+extern int bt_field_dynamic_array_set_length(struct bt_field *field,
+		uint64_t length);
+
+extern int bt_field_variant_select_option_field(struct bt_field *field,
+		uint64_t index);
 
 extern struct bt_field *bt_field_variant_borrow_selected_option_field(
 		struct bt_field *field);

@@ -27,7 +27,7 @@
 
 static inline
 int find_mapped_clock_class(struct ctf_field_class *fc,
-		struct bt_private_clock_class **clock_class)
+		struct bt_clock_class **clock_class)
 {
 	int ret = 0;
 	uint64_t i;
@@ -48,12 +48,8 @@ int find_mapped_clock_class(struct ctf_field_class *fc,
 				BT_LOGE("Stream class contains more than one "
 					"clock class: expected-cc-name=\"%s\", "
 					"other-cc-name=\"%s\"",
-					bt_clock_class_get_name(
-						bt_private_clock_class_as_clock_class(
-							*clock_class)),
-					bt_clock_class_get_name(
-						bt_private_clock_class_as_clock_class(
-							int_fc->mapped_clock_class)));
+					bt_clock_class_get_name(*clock_class),
+					bt_clock_class_get_name(int_fc->mapped_clock_class));
 				ret = -1;
 				goto end;
 			}
@@ -124,7 +120,7 @@ int update_stream_class_default_clock_class(
 		struct ctf_stream_class *stream_class)
 {
 	int ret = 0;
-	struct bt_private_clock_class *clock_class =
+	struct bt_clock_class *clock_class =
 		stream_class->default_clock_class;
 	uint64_t i;
 
@@ -177,7 +173,7 @@ int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc)
 {
 	uint64_t i;
 	int ret = 0;
-	struct bt_private_clock_class *clock_class = NULL;
+	struct bt_clock_class *clock_class = NULL;
 
 	ret = find_mapped_clock_class(ctf_tc->packet_header_fc,
 		&clock_class);

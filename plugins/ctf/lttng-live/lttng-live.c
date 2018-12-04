@@ -562,7 +562,7 @@ enum bt_lttng_live_iterator_status emit_inactivity_notification(
 	enum bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct lttng_live_trace *trace;
-	struct bt_clock_class *clock_class = NULL;
+	const struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 	struct bt_notification *notif = NULL;
 	int retval;
@@ -607,7 +607,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent
 {
 	enum bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
-	struct bt_clock_class *clock_class = NULL;
+	const struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 
 	if (lttng_live_stream->state != LTTNG_LIVE_STREAM_QUIESCENT) {

@@ -28,57 +28,45 @@
  * http://www.efficios.com/ctf
  */
 
-/* For enum bt_property_availability */
-#include <babeltrace/property.h>
+/* For enum bt_event_class_log_level */
+#include <babeltrace/trace-ir/event-class-const.h>
 
 #include <stdint.h>
-#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_event_class;
-struct bt_field_class;
 struct bt_stream_class;
 
-enum bt_event_class_log_level {
-	BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
-	BT_EVENT_CLASS_LOG_LEVEL_ALERT,
-	BT_EVENT_CLASS_LOG_LEVEL_CRITICAL,
-	BT_EVENT_CLASS_LOG_LEVEL_ERROR,
-	BT_EVENT_CLASS_LOG_LEVEL_WARNING,
-	BT_EVENT_CLASS_LOG_LEVEL_NOTICE,
-	BT_EVENT_CLASS_LOG_LEVEL_INFO,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE,
-	BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
-};
+extern struct bt_event_class *bt_event_class_create(
+		struct bt_stream_class *stream_class);
+
+extern struct bt_event_class *bt_event_class_create_with_id(
+		struct bt_stream_class *stream_class, uint64_t id);
 
 extern struct bt_stream_class *bt_event_class_borrow_stream_class(
 		struct bt_event_class *event_class);
 
-extern const char *bt_event_class_get_name(struct bt_event_class *event_class);
+extern int bt_event_class_set_name(struct bt_event_class *event_class,
+		const char *name);
 
-extern uint64_t bt_event_class_get_id(struct bt_event_class *event_class);
-
-extern enum bt_property_availability bt_event_class_get_log_level(
+extern void bt_event_class_set_log_level(
 		struct bt_event_class *event_class,
-		enum bt_event_class_log_level *log_level);
+		enum bt_event_class_log_level log_level);
 
-extern const char *bt_event_class_get_emf_uri(
-		struct bt_event_class *event_class);
+extern int bt_event_class_set_emf_uri(
+		struct bt_event_class *event_class,
+		const char *emf_uri);
 
-extern struct bt_field_class *bt_event_class_borrow_specific_context_field_class(
-		struct bt_event_class *event_class);
+extern int bt_event_class_set_specific_context_field_class(
+		struct bt_event_class *event_class,
+		struct bt_field_class *field_class);
 
-extern struct bt_field_class *bt_event_class_borrow_payload_field_class(
-		struct bt_event_class *event_class);
+extern int bt_event_class_set_payload_field_class(
+		struct bt_event_class *event_class,
+		struct bt_field_class *field_class);
 
 #ifdef __cplusplus
 }

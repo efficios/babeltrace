@@ -48,7 +48,8 @@
 #include <glib.h>
 
 #define BT_ASSERT_PRE_EVENT_HOT(_event) \
-	BT_ASSERT_PRE_HOT(((struct bt_event *) (_event)), "Event", ": %!+e", (_event))
+	BT_ASSERT_PRE_HOT(((const struct bt_event *) (_event)), 	\
+		"Event", ": %!+e", (_event))
 
 struct bt_event {
 	struct bt_object base;
@@ -69,7 +70,7 @@ BT_HIDDEN
 struct bt_event *bt_event_new(struct bt_event_class *event_class);
 
 BT_HIDDEN
-void _bt_event_set_is_frozen(struct bt_event *event, bool is_frozen);
+void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen);
 
 #ifdef BT_DEV_MODE
 # define bt_event_set_is_frozen		_bt_event_set_is_frozen
