@@ -750,7 +750,6 @@ enum bt_notif_iter_status set_current_stream_class(struct bt_notif_iter *notit)
 
 		new_stream_class = notit->meta.tc->stream_classes->pdata[0];
 		notit->cur_stream_class_id = new_stream_class->id;
-		goto end;
 	}
 
 	new_stream_class = ctf_trace_class_borrow_stream_class_by_id(
@@ -1166,7 +1165,6 @@ enum bt_notif_iter_status set_current_event_class(struct bt_notif_iter *notit)
 
 		new_event_class = notit->meta.sc->event_classes->pdata[0];
 		notit->cur_event_class_id = new_event_class->id;
-		goto end;
 	}
 
 	new_event_class = ctf_stream_class_borrow_event_class_by_id(
