@@ -123,7 +123,7 @@ void pretty_finalize(struct bt_self_component_sink *comp)
 static
 enum bt_self_component_status handle_notification(
 		struct pretty_component *pretty,
-		struct bt_notification *notification)
+		const struct bt_notification *notification)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 
@@ -154,7 +154,7 @@ BT_HIDDEN
 enum bt_self_component_status pretty_port_connected(
 		struct bt_self_component_sink *comp,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port)
+		const struct bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct pretty_component *pretty;
@@ -177,7 +177,7 @@ enum bt_self_component_status pretty_consume(
 		struct bt_self_component_sink *comp)
 {
 	enum bt_self_component_status ret;
-	bt_notification_array notifs;
+	bt_notification_array_const notifs;
 	struct bt_self_component_port_input_notification_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));

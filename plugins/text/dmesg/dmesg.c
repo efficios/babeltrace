@@ -49,7 +49,7 @@ struct dmesg_notif_iter {
 	char *linebuf;
 	size_t linebuf_len;
 	FILE *fp;
-	struct bt_private_notification *tmp_event_notif;
+	struct bt_notification *tmp_event_notif;
 
 	enum {
 		STATE_EMIT_STREAM_BEGINNING,
@@ -424,12 +424,12 @@ void dmesg_finalize(struct bt_self_component_source *self_comp)
 }
 
 static
-struct bt_private_notification *create_init_event_notif_from_line(
+struct bt_notification *create_init_event_notif_from_line(
 		struct dmesg_notif_iter *notif_iter,
 		const char *line, const char **new_start)
 {
 	struct bt_event *event;
-	struct bt_private_notification *notif = NULL;
+	struct bt_notification *notif = NULL;
 	bool has_timestamp = false;
 	unsigned long sec, usec, msec;
 	unsigned int year, mon, mday, hour, min;
@@ -499,14 +499,14 @@ skip_ts:
 		goto error;
 	}
 
-	notif = bt_private_notification_event_create(notif_iter->pc_notif_iter,
+	notif = bt_notification_event_create(notif_iter->pc_notif_iter,
 		dmesg_comp->event_class, dmesg_comp->packet);
 	if (!notif) {
 		BT_LOGE_STR("Cannot create event notification.");
 		goto error;
 	}
 
-	event = bt_private_notification_event_borrow_event(notif);
+	event = bt_notification_event_borrow_event(notif);
 	BT_ASSERT(event);
 
 	if (dmesg_comp->clock_class) {
@@ -569,11 +569,11 @@ end:
 }
 
 static
-struct bt_private_notification *create_notif_from_line(
+struct bt_notification *create_notif_from_line(
 		struct dmesg_notif_iter *dmesg_notif_iter, const char *line)
 {
 	struct bt_event *event = NULL;
-	struct bt_private_notification *notif = NULL;
+	struct bt_notification *notif = NULL;
 	const char *new_start;
 	int ret;
 
@@ -584,7 +584,7 @@ struct bt_private_notification *create_notif_from_line(
 		goto error;
 	}
 
-	event = bt_private_notification_event_borrow_event(notif);
+	event = bt_notification_event_borrow_event(notif);
 	BT_ASSERT(event);
 	ret = fill_event_payload_from_line(new_start, event);
 	if (ret) {
@@ -680,7 +680,7 @@ void dmesg_notif_iter_finalize(
 static
 enum bt_self_notification_iterator_status dmesg_notif_iter_next_one(
 		struct dmesg_notif_iter *dmesg_notif_iter,
-		struct bt_private_notification **notif)
+		struct bt_notification **notif)
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
@@ -760,13 +760,13 @@ handle_state:
 	switch (dmesg_notif_iter->state) {
 	case STATE_EMIT_STREAM_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		*notif = bt_private_notification_stream_begin_create(
+		*notif = bt_notification_stream_begin_create(
 			dmesg_notif_iter->pc_notif_iter, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_EMIT_PACKET_BEGINNING;
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		*notif = bt_private_notification_packet_begin_create(
+		*notif = bt_notification_packet_begin_create(
 			dmesg_notif_iter->pc_notif_iter, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_EVENT;
 		break;
@@ -776,12 +776,12 @@ handle_state:
 		dmesg_notif_iter->tmp_event_notif = NULL;
 		break;
 	case STATE_EMIT_PACKET_END:
-		*notif = bt_private_notification_packet_end_create(
+		*notif = bt_notification_packet_end_create(
 			dmesg_notif_iter->pc_notif_iter, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_STREAM_END;
 		break;
 	case STATE_EMIT_STREAM_END:
-		*notif = bt_private_notification_stream_end_create(
+		*notif = bt_notification_stream_end_create(
 			dmesg_notif_iter->pc_notif_iter, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_DONE;
 		break;
@@ -802,7 +802,7 @@ end:
 BT_HIDDEN
 enum bt_self_notification_iterator_status dmesg_notif_iter_next(
 		struct bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
 	struct dmesg_notif_iter *dmesg_notif_iter =
@@ -814,12 +814,11 @@ enum bt_self_notification_iterator_status dmesg_notif_iter_next(
 
 	while (i < capacity &&
 			status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
-		struct bt_private_notification *priv_notif = NULL;
+		struct bt_notification *priv_notif = NULL;
 
 		status = dmesg_notif_iter_next_one(dmesg_notif_iter,
 			&priv_notif);
-		notifs[i] = bt_private_notification_as_notification(
-			priv_notif);
+		notifs[i] = priv_notif;
 		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 			i++;
 		}

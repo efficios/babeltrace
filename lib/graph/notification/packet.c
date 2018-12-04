@@ -32,7 +32,8 @@
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/private-notification-packet.h>
+#include <babeltrace/graph/notification-packet-const.h>
+#include <babeltrace/graph/notification-packet.h>
 #include <babeltrace/graph/notification-packet-internal.h>
 #include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
@@ -64,7 +65,7 @@ end:
 	return (void *) notification;
 }
 
-struct bt_private_notification *bt_private_notification_packet_begin_create(
+struct bt_notification *bt_notification_packet_begin_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_packet *packet)
 {
@@ -137,8 +138,8 @@ void bt_notification_packet_begin_recycle(struct bt_notification *notif)
 	bt_object_pool_recycle_object(&graph->packet_begin_notif_pool, notif);
 }
 
-struct bt_packet *bt_private_notification_packet_begin_borrow_packet(
-		struct bt_private_notification *notification)
+struct bt_packet *bt_notification_packet_begin_borrow_packet(
+		struct bt_notification *notification)
 {
 	struct bt_notification_packet_begin *packet_begin;
 
@@ -149,10 +150,10 @@ struct bt_packet *bt_private_notification_packet_begin_borrow_packet(
 	return packet_begin->packet;
 }
 
-const struct bt_packet *bt_notification_packet_begin_borrow_packet(
-		struct bt_notification *notification)
+const struct bt_packet *bt_notification_packet_begin_borrow_packet_const(
+		const struct bt_notification *notification)
 {
-	return bt_private_notification_packet_begin_borrow_packet(
+	return bt_notification_packet_begin_borrow_packet(
 		(void *) notification);
 }
 
@@ -180,7 +181,7 @@ end:
 	return (void *) notification;
 }
 
-struct bt_private_notification *bt_private_notification_packet_end_create(
+struct bt_notification *bt_notification_packet_end_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_packet *packet)
 {
@@ -252,8 +253,8 @@ void bt_notification_packet_end_recycle(struct bt_notification *notif)
 	bt_object_pool_recycle_object(&graph->packet_end_notif_pool, notif);
 }
 
-struct bt_packet *bt_private_notification_packet_end_borrow_packet(
-		struct bt_private_notification *notification)
+struct bt_packet *bt_notification_packet_end_borrow_packet(
+		struct bt_notification *notification)
 {
 	struct bt_notification_packet_end *packet_end;
 
@@ -264,9 +265,9 @@ struct bt_packet *bt_private_notification_packet_end_borrow_packet(
 	return packet_end->packet;
 }
 
-const struct bt_packet *bt_notification_packet_end_borrow_packet(
-		struct bt_notification *notification)
+const struct bt_packet *bt_notification_packet_end_borrow_packet_const(
+		const struct bt_notification *notification)
 {
-	return bt_private_notification_packet_end_borrow_packet(
+	return bt_notification_packet_end_borrow_packet(
 		(void *) notification);
 }

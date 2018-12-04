@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_FILTER_H
-#define BABELTRACE_GRAPH_COMPONENT_FILTER_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_CONST_H
+#define BABELTRACE_GRAPH_NOTIFICATION_CONST_H
 
 /*
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -25,44 +25,37 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_component_filter;
-struct bt_port_input;
-struct bt_port_output;
+struct bt_notification;
 
-static inline
-struct bt_component *bt_component_filter_as_component(
-		struct bt_component_filter *component)
-{
-	return (void *) component;
-}
+typedef struct bt_notification **bt_notification_array;
 
-extern uint64_t bt_component_filter_get_input_port_count(
-		struct bt_component_filter *component);
+/**
+ * Notification types. Unhandled notification types should be ignored.
+ */
+enum bt_notification_type {
+	BT_NOTIFICATION_TYPE_EVENT =			0,
+	BT_NOTIFICATION_TYPE_INACTIVITY =		1,
+	BT_NOTIFICATION_TYPE_STREAM_BEGIN =		2,
+	BT_NOTIFICATION_TYPE_STREAM_END =		3,
+	BT_NOTIFICATION_TYPE_PACKET_BEGIN =		4,
+	BT_NOTIFICATION_TYPE_PACKET_END =		5,
+};
 
-extern struct bt_port_input *bt_component_filter_borrow_input_port_by_name(
-		struct bt_component_filter *component, const char *name);
-
-extern struct bt_port_input *bt_component_filter_borrow_input_port_by_index(
-		struct bt_component_filter *component, uint64_t index);
-
-extern uint64_t bt_component_filter_get_output_port_count(
-		struct bt_component_filter *component);
-
-extern struct bt_port_output *bt_component_filter_borrow_output_port_by_name(
-		struct bt_component_filter *component, const char *name);
-
-extern struct bt_port_output *bt_component_filter_borrow_output_port_by_index(
-		struct bt_component_filter *component, uint64_t index);
+/**
+ * Get a notification's type.
+ *
+ * @param notification	Notification instance
+ * @returns		One of #bt_notification_type
+ */
+extern enum bt_notification_type bt_notification_get_type(
+		const struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_FILTER_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_CONST_H */

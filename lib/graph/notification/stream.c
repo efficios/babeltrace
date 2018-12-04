@@ -30,7 +30,8 @@
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/graph/private-notification-stream.h>
+#include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/graph/notification-stream-const.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/object.h>
@@ -55,7 +56,7 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_private_notification *bt_private_notification_stream_end_create(
+struct bt_notification *bt_notification_stream_end_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_stream *stream)
 {
@@ -88,8 +89,8 @@ error:
 	return NULL;
 }
 
-struct bt_stream *bt_private_notification_stream_end_borrow_stream(
-		struct bt_private_notification *notification)
+struct bt_stream *bt_notification_stream_end_borrow_stream(
+		struct bt_notification *notification)
 {
 	struct bt_notification_stream_end *stream_end;
 
@@ -100,18 +101,16 @@ struct bt_stream *bt_private_notification_stream_end_borrow_stream(
 	return stream_end->stream;
 }
 
-const struct bt_stream *bt_notification_stream_end_borrow_stream(
-		struct bt_notification *notification)
+const struct bt_stream *bt_notification_stream_end_borrow_stream_const(
+		const struct bt_notification *notification)
 {
-	return bt_private_notification_stream_end_borrow_stream(
+	return bt_notification_stream_end_borrow_stream(
 		(void *) notification);
 }
 
-void bt_private_notification_stream_end_set_default_clock_value(
-		struct bt_private_notification *priv_notif,
-		uint64_t value_cycles)
+void bt_notification_stream_end_set_default_clock_value(
+		struct bt_notification *notif, uint64_t value_cycles)
 {
-	struct bt_notification *notif = (void *) priv_notif;
 	struct bt_notification_stream_end *se_notif = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
@@ -159,7 +158,7 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_private_notification *bt_private_notification_stream_begin_create(
+struct bt_notification *bt_notification_stream_begin_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_stream *stream)
 {
@@ -191,8 +190,8 @@ error:
 	return NULL;
 }
 
-struct bt_stream *bt_private_notification_stream_begin_borrow_stream(
-		struct bt_private_notification *notification)
+struct bt_stream *bt_notification_stream_begin_borrow_stream(
+		struct bt_notification *notification)
 {
 	struct bt_notification_stream_begin *stream_begin;
 
@@ -203,18 +202,17 @@ struct bt_stream *bt_private_notification_stream_begin_borrow_stream(
 	return stream_begin->stream;
 }
 
-const struct bt_stream *bt_notification_stream_begin_borrow_stream(
-		struct bt_notification *notification)
+const struct bt_stream *bt_notification_stream_begin_borrow_stream_const(
+		const struct bt_notification *notification)
 {
-	return bt_private_notification_stream_begin_borrow_stream(
+	return bt_notification_stream_begin_borrow_stream(
 		(void *) notification);
 }
 
-void bt_private_notification_stream_begin_set_default_clock_value(
-		struct bt_private_notification *priv_notif,
+void bt_notification_stream_begin_set_default_clock_value(
+		struct bt_notification *notif,
 		uint64_t value_cycles)
 {
-	struct bt_notification *notif = (void *) priv_notif;
 	struct bt_notification_stream_begin *sb_notif = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");

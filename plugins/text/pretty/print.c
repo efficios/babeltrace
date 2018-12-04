@@ -1208,11 +1208,11 @@ end:
 
 BT_HIDDEN
 int pretty_print_event(struct pretty_component *pretty,
-		struct bt_notification *event_notif)
+		const struct bt_notification *event_notif)
 {
 	int ret;
 	const struct bt_event *event =
-		bt_notification_event_borrow_event(event_notif);
+		bt_notification_event_borrow_event_const(event_notif);
 
 	BT_ASSERT(event);
 	pretty->start_line = true;
@@ -1382,7 +1382,7 @@ int print_discarded_elements_msg(
 
 BT_HIDDEN
 int pretty_print_packet(struct pretty_component *pretty,
-		struct bt_notification *packet_beginning_notif)
+		const struct bt_notification *packet_beginning_notif)
 {
 #if 0
 	const struct bt_packet *packet = bt_notification_packet_begin_borrow_packet_const(

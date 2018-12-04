@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_CONNECTION_H
-#define BABELTRACE_GRAPH_CONNECTION_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_PACKET_CONST_H
+#define BABELTRACE_GRAPH_NOTIFICATION_PACKET_CONST_H
 
 /*
- * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -25,27 +25,21 @@
  * SOFTWARE.
  */
 
-/* For bt_bool */
-#include <babeltrace/types.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port_input;
-struct bt_port_output;
-struct bt_connection;
+struct bt_notification;
+struct bt_packet;
 
-extern struct bt_port_input *bt_connection_borrow_downstream_port(
-		struct bt_connection *connection);
+extern const struct bt_packet *bt_notification_packet_begin_borrow_packet_const(
+		const struct bt_notification *notification);
 
-extern struct bt_port_output *bt_connection_borrow_upstream_port(
-		struct bt_connection *connection);
-
-extern bt_bool bt_connection_is_ended(struct bt_connection *connection);
+extern const struct bt_packet *bt_notification_packet_end_borrow_packet_const(
+		const struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_CONNECTION_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_PACKET_CONST_H */

@@ -26,6 +26,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/graph/component-filter-const.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 
@@ -35,7 +36,7 @@ struct bt_component_filter {
 
 BT_HIDDEN
 struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class);
+		const struct bt_component_class *class);
 
 BT_HIDDEN
 void bt_component_filter_destroy(struct bt_component *component);

@@ -44,7 +44,7 @@ BT_HIDDEN
 enum bt_self_component_status dummy_port_connected(
 		struct bt_self_component_sink *comp,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port);
+		const struct bt_port_output *other_port);
 
 BT_HIDDEN
 enum bt_self_component_status dummy_consume(

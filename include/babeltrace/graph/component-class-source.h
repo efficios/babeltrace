@@ -23,20 +23,124 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
+/* For enum bt_notification_array_const */
+#include <babeltrace/graph/notification-const.h>
+
+/* For enum bt_self_component_status */
+#include <babeltrace/graph/self-component.h>
+
+/* For enum bt_self_notification_iterator_status */
+#include <babeltrace/graph/self-notification-iterator.h>
+
+/* For enum bt_query_status */
+#include <babeltrace/graph/component-class.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class;
+struct bt_self_component_class_source;
 struct bt_component_class_source;
+struct bt_self_component_source;
+struct bt_component_class_source;
+struct bt_self_component_port_output;
+struct bt_port_input;
+struct bt_query_executor;
+struct bt_value;
+
+typedef enum bt_self_component_status
+(*bt_component_class_source_init_method)(
+		struct bt_self_component_source *self_component,
+		const struct bt_value *params, void *init_method_data);
+
+typedef void (*bt_component_class_source_finalize_method)(
+		struct bt_self_component_source *self_component);
+
+typedef enum bt_self_notification_iterator_status
+(*bt_component_class_source_notification_iterator_init_method)(
+		struct bt_self_notification_iterator *notification_iterator,
+		struct bt_self_component_source *self_component,
+		struct bt_self_component_port_output *port);
+
+typedef void
+(*bt_component_class_source_notification_iterator_finalize_method)(
+		struct bt_self_notification_iterator *notification_iterator);
+
+typedef enum bt_self_notification_iterator_status
+(*bt_component_class_source_notification_iterator_next_method)(
+		struct bt_self_notification_iterator *notification_iterator,
+		bt_notification_array_const notifs, uint64_t capacity,
+		uint64_t *count);
+
+typedef enum bt_query_status
+(*bt_component_class_source_query_method)(
+		struct bt_self_component_class_source *comp_class,
+		const struct bt_query_executor *query_executor,
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result);
+
+typedef enum bt_self_component_status
+(*bt_component_class_source_accept_output_port_connection_method)(
+		struct bt_self_component_source *self_component,
+		struct bt_self_component_port_output *self_port,
+		const struct bt_port_input *other_port);
+
+typedef enum bt_self_component_status
+(*bt_component_class_source_output_port_connected_method)(
+		struct bt_self_component_source *self_component,
+		struct bt_self_component_port_output *self_port,
+		const struct bt_port_input *other_port);
+
+typedef void
+(*bt_component_class_source_output_port_disconnected_method)(
+		struct bt_self_component_source *self_component,
+		struct bt_self_component_port_output *self_port);
 
 static inline
-struct bt_component_class *
-bt_component_class_source_as_component_class(
+struct bt_component_class *bt_component_class_source_as_component_class(
 		struct bt_component_class_source *comp_cls_source)
 {
 	return (void *) comp_cls_source;
 }
+
+extern
+struct bt_component_class_source *bt_component_class_source_create(
+		const char *name,
+		bt_component_class_source_notification_iterator_next_method method);
+
+extern int bt_component_class_source_set_init_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_init_method method);
+
+extern int bt_component_class_source_set_finalize_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_finalize_method method);
+
+extern int bt_component_class_source_set_accept_output_port_connection_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_accept_output_port_connection_method method);
+
+extern int bt_component_class_source_set_output_port_connected_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_output_port_connected_method method);
+
+extern int bt_component_class_source_set_output_port_disconnected_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_output_port_disconnected_method method);
+
+extern int bt_component_class_source_set_query_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_query_method method);
+
+extern int bt_component_class_source_set_notification_iterator_init_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_notification_iterator_init_method method);
+
+extern int bt_component_class_source_set_notification_iterator_finalize_method(
+		struct bt_component_class_source *comp_class,
+		bt_component_class_source_notification_iterator_finalize_method method);
 
 #ifdef __cplusplus
 }

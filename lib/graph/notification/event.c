@@ -33,7 +33,8 @@
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/private-notification-event.h>
+#include <babeltrace/graph/notification-event-const.h>
+#include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
@@ -75,7 +76,7 @@ end:
 	return (void *) notification;
 }
 
-struct bt_private_notification *bt_private_notification_event_create(
+struct bt_notification *bt_notification_event_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_event_class *event_class,
 		struct bt_packet *packet)
@@ -189,14 +190,14 @@ struct bt_event *borrow_event(struct bt_notification *notification)
 	return event_notification->event;
 }
 
-struct bt_event *bt_private_notification_event_borrow_event(
-		struct bt_private_notification *notification)
-{
-	return borrow_event((void *) notification);
-}
-
-const struct bt_event *bt_notification_event_borrow_event(
+struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notification)
 {
 	return borrow_event(notification);
+}
+
+const struct bt_event *bt_notification_event_borrow_event_const(
+		const struct bt_notification *notification)
+{
+	return borrow_event((void *) notification);
 }

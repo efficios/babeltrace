@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PORT_H
-#define BABELTRACE_GRAPH_PORT_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_SINK_CONST_H
+#define BABELTRACE_GRAPH_COMPONENT_SINK_CONST_H
 
 /*
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -27,46 +27,34 @@
 
 #include <stdint.h>
 
-/* For bt_bool */
-#include <babeltrace/types.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_connection;
 struct bt_component;
-
-enum bt_port_type {
-	BT_PORT_TYPE_INPUT = 0,
-	BT_PORT_TYPE_OUTPUT = 1,
-};
-
-extern const char *bt_port_get_name(struct bt_port *port);
-
-extern enum bt_port_type bt_port_get_type(struct bt_port *port);
-
-extern struct bt_connection *bt_port_borrow_connection(struct bt_port *port);
-
-extern struct bt_component *bt_port_borrow_component(struct bt_port *port);
-
-extern bt_bool bt_port_is_connected(struct bt_port *port);
+struct bt_component_sink;
+struct bt_port_input;
 
 static inline
-bt_bool bt_port_is_input(struct bt_port *port)
+const struct bt_component *bt_component_sink_as_component_const(
+		const struct bt_component_sink *component)
 {
-	return bt_port_get_type(port) == BT_PORT_TYPE_INPUT;
+	return (const void *) component;
 }
 
-static inline
-bt_bool bt_port_is_output(struct bt_port *port)
-{
-	return bt_port_get_type(port) == BT_PORT_TYPE_OUTPUT;
-}
+extern uint64_t bt_component_sink_get_input_port_count(
+		const struct bt_component_sink *component);
+
+extern const struct bt_port_input *
+bt_component_sink_borrow_input_port_by_name_const(
+		const struct bt_component_sink *component, const char *name);
+
+extern const struct bt_port_input *
+bt_component_sink_borrow_input_port_by_index_const(
+		const struct bt_component_sink *component, uint64_t index);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PORT_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_SINK_CONST_H */

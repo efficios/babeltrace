@@ -28,6 +28,7 @@
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/connection-internal.h>
+#include <babeltrace/graph/connection-const.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
@@ -180,7 +181,8 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	if (downstream_port) {
 		BT_LIB_LOGD("Disconnecting connection's downstream port: %!+p",
 			downstream_port);
-		downstream_comp = bt_port_borrow_component(downstream_port);
+		downstream_comp = bt_port_borrow_component_inline(
+			downstream_port);
 		bt_port_set_connection(downstream_port, NULL);
 		conn->downstream_port = NULL;
 	}
@@ -188,7 +190,8 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	if (upstream_port) {
 		BT_LIB_LOGD("Disconnecting connection's upstream port: %!+p",
 			upstream_port);
-		upstream_comp = bt_port_borrow_component(upstream_port);
+		upstream_comp = bt_port_borrow_component_inline(
+			upstream_port);
 		bt_port_set_connection(upstream_port, NULL);
 		conn->upstream_port = NULL;
 	}
@@ -254,15 +257,15 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	}
 }
 
-struct bt_port_output *bt_connection_borrow_upstream_port(
-		struct bt_connection *connection)
+const struct bt_port_output *bt_connection_borrow_upstream_port_const(
+		const struct bt_connection *connection)
 {
 	BT_ASSERT_PRE_NON_NULL(connection, "Connection");
 	return (void *) connection->upstream_port;
 }
 
-struct bt_port_input *bt_connection_borrow_downstream_port(
-		struct bt_connection *connection)
+const struct bt_port_input *bt_connection_borrow_downstream_port_const(
+		const struct bt_connection *connection)
 {
 	BT_ASSERT_PRE_NON_NULL(connection, "Connection");
 	return (void *) connection->downstream_port;
@@ -278,7 +281,7 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 	try_remove_connection_from_graph(conn);
 }
 
-bt_bool bt_connection_is_ended(struct bt_connection *connection)
+bt_bool bt_connection_is_ended(const struct bt_connection *connection)
 {
 	return !connection->downstream_port && !connection->upstream_port;
 }

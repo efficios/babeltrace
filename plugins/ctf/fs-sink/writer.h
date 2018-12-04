@@ -102,7 +102,7 @@ BT_HIDDEN
 void writer_component_port_connected(
 		struct bt_self_component *component,
 		struct bt_private_port *self_port,
-		struct bt_port *other_port);
+		const struct bt_port *other_port);
 
 BT_HIDDEN
 void writer_component_finalize(struct bt_self_component *component);

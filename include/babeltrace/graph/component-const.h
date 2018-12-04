@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_H
-#define BABELTRACE_GRAPH_COMPONENT_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CONST_H
+#define BABELTRACE_GRAPH_COMPONENT_CONST_H
 
 /*
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -25,8 +25,8 @@
  * SOFTWARE.
  */
 
-/* For BT_COMPONENT_CLASS_TYPE_* */
-#include <babeltrace/graph/component-class.h>
+/* For enum bt_component_class_type */
+#include <babeltrace/graph/component-class-const.h>
 
 /* For bt_bool */
 #include <babeltrace/types.h>
@@ -47,7 +47,7 @@ struct bt_port;
  * @param component	Component instance of which to get the name
  * @returns		Returns a pointer to the component's name
  */
-extern const char *bt_component_get_name(struct bt_component *component);
+extern const char *bt_component_get_name(const struct bt_component *component);
 
 /**
  * Get component's class.
@@ -55,37 +55,38 @@ extern const char *bt_component_get_name(struct bt_component *component);
  * @param component	Component instance of which to get the class
  * @returns		The component's class
  */
-extern struct bt_component_class *bt_component_get_class(
-		struct bt_component *component);
+extern const struct bt_component_class *bt_component_borrow_class_const(
+		const struct bt_component *component);
 
 extern enum bt_component_class_type bt_component_get_class_type(
-		struct bt_component *component);
+		const struct bt_component *component);
 
 static inline
-bt_bool bt_component_is_source(struct bt_component *component)
+bt_bool bt_component_is_source(const struct bt_component *component)
 {
 	return bt_component_get_class_type(component) ==
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
 }
 
 static inline
-bt_bool bt_component_is_filter(struct bt_component *component)
+bt_bool bt_component_is_filter(const struct bt_component *component)
 {
 	return bt_component_get_class_type(component) ==
 		BT_COMPONENT_CLASS_TYPE_FILTER;
 }
 
 static inline
-bt_bool bt_component_is_sink(struct bt_component *component)
+bt_bool bt_component_is_sink(const struct bt_component *component)
 {
 	return bt_component_get_class_type(component) ==
 		BT_COMPONENT_CLASS_TYPE_SINK;
 }
 
-extern bt_bool bt_component_graph_is_canceled(struct bt_component *component);
+extern bt_bool bt_component_graph_is_canceled(
+		const struct bt_component *component);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CONST_H */

@@ -174,8 +174,8 @@ error:
 }
 
 static
-struct bt_notification *evaluate_event_notification(
-		struct bt_notification *notification,
+const struct bt_notification *evaluate_event_notification(
+		const struct bt_notification *notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_event_in_range, bool *finished)
@@ -190,7 +190,7 @@ struct bt_notification *evaluate_event_notification(
 	const struct bt_stream_class *stream_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 	bool lazy_update = false;
-	struct bt_notification *new_notification = NULL;
+	const struct bt_notification *new_notification = NULL;
 	struct bt_clock_class_priority_map *cc_prio_map;
 
 	event = bt_notification_event_get_event(notification);
@@ -375,8 +375,8 @@ int64_t get_raw_timestamp(const struct bt_packet *writer_packet,
 }
 
 static
-struct bt_notification *evaluate_packet_notification(
-		struct bt_notification *notification,
+const struct bt_notification *evaluate_packet_notification(
+		const struct bt_notification *notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_packet_in_range, bool *finished)
@@ -387,7 +387,7 @@ struct bt_notification *evaluate_packet_notification(
 	const struct bt_field *packet_context = NULL,
 			*timestamp_begin = NULL,
 			*timestamp_end = NULL;
-	struct bt_notification *new_notification = NULL;
+	const struct bt_notification *new_notification = NULL;
 	enum bt_component_status ret;
 	bool lazy_update = false;
 
@@ -501,8 +501,8 @@ end_no_notif:
 }
 
 static
-struct bt_notification *evaluate_stream_notification(
-		struct bt_notification *notification,
+const struct bt_notification *evaluate_stream_notification(
+		const struct bt_notification *notification,
 		struct trimmer_iterator *trim_it)
 {
 	const struct bt_stream *stream;
@@ -517,13 +517,13 @@ struct bt_notification *evaluate_stream_notification(
 /* Return true if the notification should be forwarded. */
 static
 enum bt_notification_iterator_status evaluate_notification(
-		struct bt_notification **notification,
+		const struct bt_notification **notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *in_range)
 {
 	enum bt_notification_type type;
-	struct bt_notification *new_notification = NULL;
+	const struct bt_notification *new_notification = NULL;
 	bool finished = false;
 
 	*in_range = true;

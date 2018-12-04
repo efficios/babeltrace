@@ -27,7 +27,7 @@
 
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/notification-const.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/object-pool-internal.h>

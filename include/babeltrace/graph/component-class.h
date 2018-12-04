@@ -23,8 +23,8 @@
  * SOFTWARE.
  */
 
-/* For bt_bool */
-#include <babeltrace/types.h>
+/* For enum bt_query_executor_status */
+#include <babeltrace/graph/query-executor-const.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,44 +32,22 @@ extern "C" {
 
 struct bt_component_class;
 
-enum bt_component_class_type {
-	BT_COMPONENT_CLASS_TYPE_SOURCE =	0,
-	BT_COMPONENT_CLASS_TYPE_FILTER =	1,
-	BT_COMPONENT_CLASS_TYPE_SINK =		2,
+enum bt_query_status {
+	BT_QUERY_STATUS_OK = BT_QUERY_EXECUTOR_STATUS_OK,
+	BT_QUERY_STATUS_AGAIN = BT_QUERY_EXECUTOR_STATUS_AGAIN,
+	BT_QUERY_STATUS_ERROR = BT_QUERY_EXECUTOR_STATUS_ERROR,
+	BT_QUERY_STATUS_NOMEM = BT_QUERY_EXECUTOR_STATUS_NOMEM,
+	BT_QUERY_STATUS_INVALID_OBJECT = BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT,
+	BT_QUERY_STATUS_INVALID_PARAMS = BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS,
 };
 
-extern const char *bt_component_class_get_name(
-		struct bt_component_class *component_class);
+extern int bt_component_class_set_description(
+		struct bt_component_class *component_class,
+		const char *description);
 
-extern const char *bt_component_class_get_description(
-		struct bt_component_class *component_class);
-
-extern const char *bt_component_class_get_help(
-		struct bt_component_class *component_class);
-
-extern enum bt_component_class_type bt_component_class_get_type(
-		struct bt_component_class *component_class);
-
-static inline
-bt_bool bt_component_class_is_source(struct bt_component_class *component_class)
-{
-	return bt_component_class_get_type(component_class) ==
-		BT_COMPONENT_CLASS_TYPE_SOURCE;
-}
-
-static inline
-bt_bool bt_component_class_is_filter(struct bt_component_class *component_class)
-{
-	return bt_component_class_get_type(component_class) ==
-		BT_COMPONENT_CLASS_TYPE_FILTER;
-}
-
-static inline
-bt_bool bt_component_class_is_sink(struct bt_component_class *component_class)
-{
-	return bt_component_class_get_type(component_class) ==
-		BT_COMPONENT_CLASS_TYPE_SINK;
-}
+extern int bt_component_class_set_help(
+		struct bt_component_class *component_class,
+		const char *help);
 
 #ifdef __cplusplus
 }

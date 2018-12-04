@@ -55,7 +55,7 @@ extern void bt_self_notification_iterator_set_data(
 		void *user_data);
 
 extern void *bt_self_notification_iterator_get_data(
-		struct bt_self_notification_iterator *notification_iterator);
+		const struct bt_self_notification_iterator *notification_iterator);
 
 #ifdef __cplusplus
 }

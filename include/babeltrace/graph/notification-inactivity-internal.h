@@ -25,7 +25,7 @@
 
 #include <glib.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
-#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/notification-const.h>
 
 struct bt_notification_inactivity {
 	struct bt_notification parent;

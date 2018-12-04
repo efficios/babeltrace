@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_H
-#define BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_SOURCE_CONST_H
+#define BABELTRACE_GRAPH_COMPONENT_SOURCE_CONST_H
 
 /*
- * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -25,22 +25,36 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_private_notification;
+struct bt_component;
+struct bt_component_source;
+struct bt_port_output;
 
 static inline
-struct bt_notification *bt_private_notification_as_notification(
-		struct bt_private_notification *notification)
+const struct bt_component *bt_component_source_as_component_const(
+		const struct bt_component_source *component)
 {
-	return (void *) notification;
+	return (void *) component;
 }
+
+extern uint64_t bt_component_source_get_output_port_count(
+		const struct bt_component_source *component);
+
+extern const struct bt_port_output *
+bt_component_source_borrow_output_port_by_name_const(
+		const struct bt_component_source *component, const char *name);
+
+extern const struct bt_port_output *
+bt_component_source_borrow_output_port_by_index_const(
+		const struct bt_component_source *component, uint64_t index);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_SOURCE_CONST_H */

@@ -80,7 +80,7 @@ BT_HIDDEN
 enum bt_self_component_status dummy_port_connected(
 		struct bt_self_component_sink *comp,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port)
+		const struct bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
@@ -107,7 +107,7 @@ enum bt_self_component_status dummy_consume(
 		struct bt_self_component_sink *component)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
-	bt_notification_array notifs;
+	bt_notification_array_const notifs;
 	uint64_t count;
 	struct dummy *dummy;
 	enum bt_notification_iterator_status it_ret;

@@ -25,7 +25,9 @@
 #define BT_LOG_TAG "PORT"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/graph/port.h>
+#include <babeltrace/graph/port-const.h>
+#include <babeltrace/graph/port-input-const.h>
+#include <babeltrace/graph/port-output-const.h>
 #include <babeltrace/graph/self-component-port.h>
 #include <babeltrace/graph/self-component-port-input.h>
 #include <babeltrace/graph/self-component-port-output.h>
@@ -90,28 +92,30 @@ end:
 	return port;
 }
 
-const char *bt_port_get_name(struct bt_port *port)
+const char *bt_port_get_name(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
 	return port->name->str;
 }
 
-enum bt_port_type bt_port_get_type(struct bt_port *port)
+enum bt_port_type bt_port_get_type(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
 	return port->type;
 }
 
-struct bt_connection *bt_port_borrow_connection(struct bt_port *port)
+const struct bt_connection *bt_port_borrow_connection_const(
+		const struct bt_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
 	return port->connection;
 }
 
-struct bt_component *bt_port_borrow_component(struct bt_port *port)
+const struct bt_component *bt_port_borrow_component_const(
+		const struct bt_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
-	return (struct bt_component *) bt_object_borrow_parent(&port->base);
+	return bt_port_borrow_component_inline(port);
 }
 
 struct bt_self_component *bt_self_component_port_borrow_component(
@@ -157,13 +161,13 @@ end:
 	return BT_SELF_PORT_STATUS_OK;
 }
 
-bt_bool bt_port_is_connected(struct bt_port *port)
+bt_bool bt_port_is_connected(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
 	return port->connection ? BT_TRUE : BT_FALSE;
 }
 
-void *bt_self_component_port_get_data(struct bt_self_component_port *port)
+void *bt_self_component_port_get_data(const struct bt_self_component_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
 	return ((struct bt_port *) port)->user_data;

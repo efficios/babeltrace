@@ -28,7 +28,8 @@
 #include <babeltrace/trace-ir/clock-class.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/graph/notification-internal.h>
-#include <babeltrace/graph/private-notification-inactivity.h>
+#include <babeltrace/graph/notification-inactivity-const.h>
+#include <babeltrace/graph/notification-inactivity.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object.h>
@@ -48,7 +49,7 @@ void bt_notification_inactivity_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_private_notification *bt_private_notification_inactivity_create(
+struct bt_notification *bt_notification_inactivity_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_clock_class *default_clock_class)
 {
@@ -86,11 +87,9 @@ end:
 	return (void *) ret_notif;
 }
 
-void bt_private_notification_inactivity_set_default_clock_value(
-		struct bt_private_notification *priv_notif,
-		uint64_t value_cycles)
+void bt_notification_inactivity_set_default_clock_value(
+		struct bt_notification *notif, uint64_t value_cycles)
 {
-	struct bt_notification *notif = (void *) priv_notif;
 	struct bt_notification_inactivity *inactivity = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
@@ -101,8 +100,9 @@ void bt_private_notification_inactivity_set_default_clock_value(
 		"%![notif-]+n, value=%" PRIu64, notif, value_cycles);
 }
 
-struct bt_clock_value *bt_notification_inactivity_borrow_default_clock_value(
-		struct bt_notification *notif)
+const struct bt_clock_value *
+bt_notification_inactivity_borrow_default_clock_value_const(
+		const struct bt_notification *notif)
 {
 	struct bt_notification_inactivity *inactivity = (void *) notif;
 

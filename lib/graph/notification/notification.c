@@ -25,7 +25,7 @@
 #define BT_LOG_TAG "NOTIF"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/graph/private-notification.h>
+#include <babeltrace/graph/notification-const.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -62,7 +62,7 @@ void bt_notification_init(struct bt_notification *notification,
 }
 
 enum bt_notification_type bt_notification_get_type(
-		struct bt_notification *notification)
+		const struct bt_notification *notification)
 {
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	return notification->type;

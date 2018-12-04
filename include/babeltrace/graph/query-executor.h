@@ -23,28 +23,30 @@
  * SOFTWARE.
  */
 
-/* For bt_bool */
-#include <babeltrace/types.h>
+/* For enum bt_query_executor_status */
+#include <babeltrace/graph/query-executor.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_query_executor;
-
-enum bt_query_executor_status {
-	BT_QUERY_EXECUTOR_STATUS_OK = 0,
-	BT_QUERY_EXECUTOR_STATUS_AGAIN = 11,
-	BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED = 95,
-	BT_QUERY_EXECUTOR_STATUS_CANCELED = 125,
-	BT_QUERY_EXECUTOR_STATUS_ERROR = -1,
-	BT_QUERY_EXECUTOR_STATUS_NOMEM = -12,
-	BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT = -23,
-	BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS = -24,
-};
+struct bt_component_class;
+struct bt_value;
 
 extern
-bt_bool bt_query_executor_is_canceled(struct bt_query_executor *query_executor);
+struct bt_query_executor *bt_query_executor_create(void);
+
+extern
+enum bt_query_executor_status bt_query_executor_query(
+		struct bt_query_executor *query_executor,
+		const struct bt_component_class *component_class,
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result);
+
+extern
+enum bt_query_executor_status bt_query_executor_cancel(
+		struct bt_query_executor *query_executor);
 
 #ifdef __cplusplus
 }

@@ -28,10 +28,9 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/graph/self-component-sink.h>
-#include <babeltrace/graph/component-sink.h>
+#include <babeltrace/graph/component-sink-const.h>
 #include <babeltrace/graph/component-sink-internal.h>
 #include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/notification.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
@@ -43,7 +42,8 @@ void bt_component_sink_destroy(struct bt_component *component)
 }
 
 BT_HIDDEN
-struct bt_component *bt_component_sink_create(struct bt_component_class *class)
+struct bt_component *bt_component_sink_create(
+		const struct bt_component_class *class)
 {
 	struct bt_component_sink *sink = NULL;
 
@@ -58,14 +58,15 @@ end:
 }
 
 uint64_t bt_component_sink_get_input_port_count(
-		struct bt_component_sink *component)
+		const struct bt_component_sink *component)
 {
 	/* bt_component_get_input_port_count() logs details/errors */
 	return bt_component_get_input_port_count((void *) component);
 }
 
-struct bt_port_input *bt_component_sink_borrow_input_port_by_name(
-		struct bt_component_sink *component, const char *name)
+const struct bt_port_input *
+bt_component_sink_borrow_input_port_by_name_const(
+		const struct bt_component_sink *component, const char *name)
 {
 	/* bt_component_borrow_input_port_by_name() logs details/errors */
 	return bt_component_borrow_input_port_by_name((void *) component, name);
@@ -80,8 +81,8 @@ bt_self_component_sink_borrow_input_port_by_name(
 		(void *) component, name);
 }
 
-struct bt_port_input *bt_component_sink_borrow_input_port_by_index(
-		struct bt_component_sink *component, uint64_t index)
+const struct bt_port_input *bt_component_sink_borrow_input_port_by_index_const(
+		const struct bt_component_sink *component, uint64_t index)
 {
 	/* bt_component_borrow_input_port_by_index() logs details/errors */
 	return bt_component_borrow_input_port_by_index(

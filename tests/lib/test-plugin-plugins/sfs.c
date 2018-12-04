@@ -47,7 +47,7 @@ static void dummy_iterator_finalize_method(
 
 static enum bt_self_notification_iterator_status dummy_iterator_next_method(
 		struct bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
 	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
@@ -55,7 +55,7 @@ static enum bt_self_notification_iterator_status dummy_iterator_next_method(
 
 static enum bt_query_status flt_query_method(
 		struct bt_self_component_class_filter *component_class,
-		struct bt_query_executor *query_exec,
+		const struct bt_query_executor *query_exec,
 		const char *object, const struct bt_value *params,
 		const struct bt_value **result)
 {

@@ -29,10 +29,18 @@
 extern "C" {
 #endif
 
-struct bt_notification;
+struct bt_self_notification_iterator;
 struct bt_event;
+struct bt_packet;
+struct bt_event_class;
 
-extern const struct bt_event *bt_notification_event_borrow_event(
+extern
+struct bt_notification *bt_notification_event_create(
+		struct bt_self_notification_iterator *notification_iterator,
+		struct bt_event_class *event_class,
+		struct bt_packet *packet);
+
+extern struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus

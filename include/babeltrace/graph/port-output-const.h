@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PORT_INPUT_H
-#define BABELTRACE_GRAPH_PORT_INPUT_H
+#ifndef BABELTRACE_GRAPH_PORT_OUTPUT_CONST_H
+#define BABELTRACE_GRAPH_PORT_OUTPUT_CONST_H
 
 /*
  * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -32,16 +32,17 @@ extern "C" {
 #endif
 
 struct bt_port;
-struct bt_port_input;
+struct bt_port_output;
 
 static inline
-struct bt_port *bt_port_input_as_port(struct bt_port_input *port_input)
+const struct bt_port *bt_port_output_as_port_const(
+		const struct bt_port_output *port_output)
 {
-	return (void *) port_input;
+	return (const void *) port_output;
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PORT_INPUT_H */
+#endif /* BABELTRACE_GRAPH_PORT_OUTPUT_CONST_H */

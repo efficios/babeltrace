@@ -23,7 +23,7 @@
 #define BT_LOG_TAG "QUERY-EXECUTOR"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/graph/private-query-executor.h>
+#include <babeltrace/graph/query-executor-const.h>
 #include <babeltrace/graph/query-executor.h>
 #include <babeltrace/graph/query-executor-internal.h>
 #include <babeltrace/graph/component-class.h>
@@ -46,7 +46,7 @@ void bt_query_executor_destroy(struct bt_object *obj)
 	g_free(query_exec);
 }
 
-struct bt_private_query_executor *bt_private_query_executor_create(void)
+struct bt_query_executor *bt_query_executor_create(void)
 {
 	struct bt_query_executor *query_exec;
 
@@ -65,16 +65,15 @@ end:
 	return (void *) query_exec;
 }
 
-enum bt_query_executor_status bt_private_query_executor_query(
-		struct bt_private_query_executor *priv_query_exec,
-		struct bt_component_class *comp_cls,
+enum bt_query_executor_status bt_query_executor_query(
+		struct bt_query_executor *query_exec,
+		const struct bt_component_class *comp_cls,
 		const char *object, const struct bt_value *params,
 		const struct bt_value **user_result)
 {
-	typedef enum bt_query_status (*method_t)(void *, void *,
-		const void *, const void *, void *);
+	typedef enum bt_query_status (*method_t)(void *, const void *,
+		const void *, const void *, const void *);
 
-	struct bt_query_executor *query_exec = (void *) priv_query_exec;
 	enum bt_query_status status;
 	enum bt_query_executor_status exec_status;
 	method_t method = NULL;
@@ -127,7 +126,8 @@ enum bt_query_executor_status bt_private_query_executor_query(
 		"query-exec-addr=%p, %![cc-]+C, object=\"%s\", %![params-]+v",
 		query_exec, comp_cls, object, params);
 	*user_result = NULL;
-	status = method(comp_cls, query_exec, object, params, user_result);
+	status = method((void *) comp_cls, query_exec, object, params,
+		user_result);
 	BT_LIB_LOGD("User method returned: status=%s, %![res-]+v",
 		bt_query_status_string(status), *user_result);
 	BT_ASSERT_PRE(status != BT_QUERY_STATUS_OK || *user_result,
@@ -143,18 +143,16 @@ end:
 	return exec_status;
 }
 
-enum bt_query_executor_status bt_private_query_executor_cancel(
-		struct bt_private_query_executor *priv_query_exec)
+enum bt_query_executor_status bt_query_executor_cancel(
+		struct bt_query_executor *query_exec)
 {
-	struct bt_query_executor *query_exec = (void *) priv_query_exec;
-
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	query_exec->canceled = BT_TRUE;
 	BT_LOGV("Canceled query executor: addr=%p", query_exec);
 	return BT_QUERY_EXECUTOR_STATUS_OK;
 }
 
-bt_bool bt_query_executor_is_canceled(struct bt_query_executor *query_exec)
+bt_bool bt_query_executor_is_canceled(const struct bt_query_executor *query_exec)
 {
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	return query_exec->canceled;

@@ -35,7 +35,7 @@ struct bt_component_source {
 
 BT_HIDDEN
 struct bt_component *bt_component_source_create(
-		struct bt_component_class *class);
+		const struct bt_component_class *class);
 
 BT_HIDDEN
 void bt_component_source_destroy(struct bt_component *component);

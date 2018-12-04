@@ -145,7 +145,7 @@ struct bt_notif_iter {
 	struct bt_event *event;
 
 	/* Current event notification (NULL if not created yet) */
-	struct bt_private_notification *event_notif;
+	struct bt_notification *event_notif;
 
 	/* Database of current dynamic scopes */
 	struct {
@@ -1197,7 +1197,7 @@ enum bt_notif_iter_status set_current_event_notification(
 		struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct bt_private_notification *notif = NULL;
+	struct bt_notification *notif = NULL;
 
 	BT_ASSERT(notit->meta.ec);
 	BT_ASSERT(notit->packet);
@@ -1207,7 +1207,7 @@ enum bt_notif_iter_status set_current_event_notification(
 		notit->meta.ec->name->str,
 		notit->packet);
 	BT_ASSERT(notit->notif_iter);
-	notif = bt_private_notification_event_create(notit->notif_iter,
+	notif = bt_notification_event_create(notit->notif_iter,
 		notit->meta.ec->ir_ec, notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create event notification: "
@@ -1246,7 +1246,7 @@ enum bt_notif_iter_status after_event_header_state(
 		goto end;
 	}
 
-	notit->event = bt_private_notification_event_borrow_event(
+	notit->event = bt_notification_event_borrow_event(
 		notit->event_notif);
 	BT_ASSERT(notit->event);
 
@@ -2254,7 +2254,7 @@ static
 void set_event_default_clock_value(struct bt_notif_iter *notit)
 {
 	struct bt_event *event =
-		bt_private_notification_event_borrow_event(
+		bt_notification_event_borrow_event(
 			notit->event_notif);
 	struct bt_stream_class *sc = notit->meta.sc->ir_sc;
 
@@ -2268,10 +2268,10 @@ void set_event_default_clock_value(struct bt_notif_iter *notit)
 
 static
 void notify_new_stream(struct bt_notif_iter *notit,
-		struct bt_private_notification **notification)
+		struct bt_notification **notification)
 {
 	enum bt_notif_iter_status status;
-	struct bt_private_notification *ret = NULL;
+	struct bt_notification *ret = NULL;
 
 	status = set_current_stream(notit);
 	if (status != BT_NOTIF_ITER_STATUS_OK) {
@@ -2281,7 +2281,7 @@ void notify_new_stream(struct bt_notif_iter *notit,
 
 	BT_ASSERT(notit->stream);
 	BT_ASSERT(notit->notif_iter);
-	ret = bt_private_notification_stream_begin_create(notit->notif_iter,
+	ret = bt_notification_stream_begin_create(notit->notif_iter,
 		notit->stream);
 	if (!ret) {
 		BT_LOGE("Cannot create stream beginning notification: "
@@ -2296,9 +2296,9 @@ end:
 
 static
 void notify_end_of_stream(struct bt_notif_iter *notit,
-		struct bt_private_notification **notification)
+		struct bt_notification **notification)
 {
-	struct bt_private_notification *ret;
+	struct bt_notification *ret;
 
 	if (!notit->stream) {
 		BT_LOGE("Cannot create stream for stream notification: "
@@ -2307,7 +2307,7 @@ void notify_end_of_stream(struct bt_notif_iter *notit,
 	}
 
 	BT_ASSERT(notit->notif_iter);
-	ret = bt_private_notification_stream_end_create(notit->notif_iter,
+	ret = bt_notification_stream_end_create(notit->notif_iter,
 		notit->stream);
 	if (!ret) {
 		BT_LOGE("Cannot create stream beginning notification: "
@@ -2320,11 +2320,11 @@ void notify_end_of_stream(struct bt_notif_iter *notit,
 
 static
 void notify_new_packet(struct bt_notif_iter *notit,
-		struct bt_private_notification **notification)
+		struct bt_notification **notification)
 {
 	int ret;
 	enum bt_notif_iter_status status;
-	struct bt_private_notification *notif = NULL;
+	struct bt_notification *notif = NULL;
 	const struct bt_stream_class *sc;
 
 	status = set_current_packet(notit);
@@ -2399,7 +2399,7 @@ void notify_new_packet(struct bt_notif_iter *notit,
 	}
 
 	BT_ASSERT(notit->notif_iter);
-	notif = bt_private_notification_packet_begin_create(notit->notif_iter,
+	notif = bt_notification_packet_begin_create(notit->notif_iter,
 		notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create packet beginning notification: "
@@ -2416,9 +2416,9 @@ end:
 
 static
 void notify_end_of_packet(struct bt_notif_iter *notit,
-		struct bt_private_notification **notification)
+		struct bt_notification **notification)
 {
-	struct bt_private_notification *notif;
+	struct bt_notification *notif;
 
 	if (!notit->packet) {
 		return;
@@ -2430,7 +2430,7 @@ void notify_end_of_packet(struct bt_notif_iter *notit,
 	}
 
 	BT_ASSERT(notit->notif_iter);
-	notif = bt_private_notification_packet_end_create(notit->notif_iter,
+	notif = bt_notification_packet_end_create(notit->notif_iter,
 		notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create packet end notification: "
@@ -2542,7 +2542,7 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
 		struct bt_self_notification_iterator *notif_iter,
-		struct bt_private_notification **notification)
+		struct bt_notification **notification)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 

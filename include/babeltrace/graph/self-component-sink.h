@@ -45,11 +45,11 @@ struct bt_self_component *bt_self_component_sink_as_self_component(
 }
 
 static inline
-struct bt_component_sink *
+const struct bt_component_sink *
 bt_self_component_sink_as_component_sink(
 		struct bt_self_component_sink *self_comp_sink)
 {
-	return (void *) self_comp_sink;
+	return (const void *) self_comp_sink;
 }
 
 extern struct bt_self_component_port_input *

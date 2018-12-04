@@ -26,7 +26,10 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/graph/self-component.h>
-#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-const.h>
+#include <babeltrace/graph/component-source-const.h>
+#include <babeltrace/graph/component-filter-const.h>
+#include <babeltrace/graph/component-sink-const.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/component-source-internal.h>
@@ -49,7 +52,7 @@
 
 static
 struct bt_component * (* const component_create_funcs[])(
-		struct bt_component_class *) = {
+		const struct bt_component_class *) = {
 	[BT_COMPONENT_CLASS_TYPE_SOURCE] = bt_component_source_create,
 	[BT_COMPONENT_CLASS_TYPE_SINK] = bt_component_sink_create,
 	[BT_COMPONENT_CLASS_TYPE_FILTER] = bt_component_filter_create,
@@ -182,7 +185,7 @@ void destroy_component(struct bt_object *obj)
 }
 
 enum bt_component_class_type bt_component_get_class_type(
-		struct bt_component *component)
+		const struct bt_component *component)
 {
 	BT_ASSERT_PRE_NON_NULL(component, "Component");
 	return component->class->type;
@@ -242,14 +245,14 @@ end:
 }
 
 BT_HIDDEN
-uint64_t bt_component_get_input_port_count(struct bt_component *comp)
+uint64_t bt_component_get_input_port_count(const struct bt_component *comp)
 {
 	BT_ASSERT_PRE_NON_NULL(comp, "Component");
 	return (uint64_t) comp->input_ports->len;
 }
 
 BT_HIDDEN
-uint64_t bt_component_get_output_port_count(struct bt_component *comp)
+uint64_t bt_component_get_output_port_count(const struct bt_component *comp)
 {
 	BT_ASSERT_PRE_NON_NULL(comp, "Component");
 	return (uint64_t) comp->output_ports->len;
@@ -322,20 +325,20 @@ end:
 	return ret;
 }
 
-const char *bt_component_get_name(struct bt_component *component)
+const char *bt_component_get_name(const struct bt_component *component)
 {
 	BT_ASSERT_PRE_NON_NULL(component, "Component");
 	return component->name->str;
 }
 
 struct bt_component_class *bt_component_borrow_class(
-		struct bt_component *component)
+		const struct bt_component *component)
 {
 	BT_ASSERT_PRE_NON_NULL(component, "Component");
 	return component->class;
 }
 
-void *bt_self_component_get_data(struct bt_self_component *self_comp)
+void *bt_self_component_get_data(const struct bt_self_component *self_comp)
 {
 	struct bt_component *component = (void *) self_comp;
 
@@ -361,7 +364,7 @@ void bt_component_set_graph(struct bt_component *component,
 		graph ? &graph->base : NULL);
 }
 
-bt_bool bt_component_graph_is_canceled(struct bt_component *component)
+bt_bool bt_component_graph_is_canceled(const struct bt_component *component)
 {
 	return bt_graph_is_canceled(
 		(void *) bt_object_borrow_parent(&component->base));
@@ -485,7 +488,7 @@ void remove_port_by_index(struct bt_component *component,
 	 * To avoid a destroyed port during the notification callback,
 	 * get a reference now, and put it (destroying the port if its
 	 * reference count is 0 at this point) after notifying the
-	 * private graph's user.
+	 * graph's user.
 	 */
 	bt_object_get_no_null_check(&port->base);
 
@@ -565,7 +568,7 @@ enum bt_self_component_status bt_component_accept_port_connection(
 		struct bt_port *other_port)
 {
 	typedef enum bt_self_component_status (*method_t)(
-		void *, void *, void *);
+		void *, void *, const void *);
 
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	method_t method = NULL;
@@ -628,7 +631,7 @@ enum bt_self_component_status bt_component_accept_port_connection(
 		BT_LIB_LOGD("Calling user's \"accept port connection\" method: "
 			"%![comp-]+c, %![self-port-]+p, %![other-port-]+p",
 			comp, self_port, other_port);
-		status = method(comp, self_port, other_port);
+		status = method(comp, self_port, (void *) other_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_self_component_status_string(status));
 	}
@@ -642,7 +645,7 @@ enum bt_self_component_status bt_component_port_connected(
 		struct bt_port *other_port)
 {
 	typedef enum bt_self_component_status (*method_t)(
-		void *, void *, void *);
+		void *, void *, const void *);
 
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	method_t method = NULL;
@@ -705,7 +708,7 @@ enum bt_self_component_status bt_component_port_connected(
 		BT_LIB_LOGD("Calling user's \"port connected\" method: "
 			"%![comp-]+c, %![self-port-]+p, %![other-port-]+p",
 			comp, self_port, other_port);
-		status = method(comp, self_port, other_port);
+		status = method(comp, self_port, (void *) other_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_self_component_status_string(status));
 	}

@@ -28,7 +28,7 @@
 #include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/self-component-source.h>
-#include <babeltrace/graph/component-source.h>
+#include <babeltrace/graph/component-source-const.h>
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/port-internal.h>
@@ -45,7 +45,7 @@ void bt_component_source_destroy(struct bt_component *component)
 
 BT_HIDDEN
 struct bt_component *bt_component_source_create(
-		struct bt_component_class *class)
+		const struct bt_component_class *class)
 {
 	struct bt_component_source *source = NULL;
 
@@ -60,13 +60,14 @@ end:
 }
 
 uint64_t bt_component_source_get_output_port_count(
-		struct bt_component_source *comp)
+		const struct bt_component_source *comp)
 {
 	return bt_component_get_output_port_count((void *) comp);
 }
 
-struct bt_port_output *bt_component_source_borrow_output_port_by_name(
-		struct bt_component_source *comp, const char *name)
+const struct bt_port_output *
+bt_component_source_borrow_output_port_by_name_const(
+		const struct bt_component_source *comp, const char *name)
 {
 	return bt_component_borrow_output_port_by_name((void *) comp, name);
 }
@@ -79,8 +80,9 @@ bt_self_component_source_borrow_output_port_by_name(
 		(void *) comp, name);
 }
 
-struct bt_port_output *bt_component_source_borrow_output_port_by_index(
-		struct bt_component_source *comp, uint64_t index)
+const struct bt_port_output *
+bt_component_source_borrow_output_port_by_index_const(
+		const struct bt_component_source *comp, uint64_t index)
 {
 	return bt_component_borrow_output_port_by_index((void *) comp, index);
 }

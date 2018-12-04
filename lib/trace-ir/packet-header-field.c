@@ -57,10 +57,9 @@ void bt_packet_header_field_release(
 }
 
 struct bt_packet_header_field *bt_packet_header_field_create(
-		struct bt_trace *priv_trace)
+		struct bt_trace *trace)
 {
 	struct bt_field_wrapper *field_wrapper;
-	struct bt_trace *trace = (void *) priv_trace;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(trace->packet_header_fc,
