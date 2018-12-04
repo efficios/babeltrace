@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
-#define BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_STREAM_CONST_H
+#define BABELTRACE_GRAPH_NOTIFICATION_STREAM_CONST_H
 
 /*
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,19 +29,27 @@
 extern "C" {
 #endif
 
-struct bt_component_class_source;
-struct bt_self_component_class_source;
+struct bt_notification;
+struct bt_self_notification_iterator;
+struct bt_clock_value;
+struct bt_stream;
 
-static inline
-const struct bt_component_class_source *
-bt_self_component_class_source_as_component_class_source(
-		struct bt_self_component_class_source *self_comp_cls_source)
-{
-	return (const void *) self_comp_cls_source;
-}
+extern const struct bt_stream *bt_notification_stream_begin_borrow_stream_const(
+		const struct bt_notification *notification);
+
+extern const struct bt_clock_value *
+bt_notification_stream_begin_borrow_default_clock_value_const(
+		const struct bt_notification *notif);
+
+extern const struct bt_stream *bt_notification_stream_end_borrow_stream_const(
+		const struct bt_notification *notification);
+
+extern const struct bt_clock_value *
+bt_notification_stream_end_borrow_default_clock_value_const(
+		const struct bt_notification *notif);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_STREAM_CONST_H */

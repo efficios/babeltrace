@@ -179,7 +179,7 @@ BT_HIDDEN
 enum bt_self_component_status counter_port_connected(
 		struct bt_self_component_sink *comp,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port)
+		const struct bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
@@ -209,7 +209,7 @@ enum bt_self_component_status counter_consume(
 	struct counter *counter;
 	enum bt_notification_iterator_status it_ret;
 	uint64_t notif_count;
-	bt_notification_array notifs;
+	bt_notification_array_const notifs;
 
 	counter = bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(comp));
@@ -235,7 +235,7 @@ enum bt_self_component_status counter_consume(
 		uint64_t i;
 
 		for (i = 0; i < notif_count; i++) {
-			struct bt_notification *notif = notifs[i];
+			const struct bt_notification *notif = notifs[i];
 
 			BT_ASSERT(notif);
 			switch (bt_notification_get_type(notif)) {

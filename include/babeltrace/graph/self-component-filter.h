@@ -46,15 +46,12 @@ struct bt_self_component *bt_self_component_filter_as_self_component(
 }
 
 static inline
-struct bt_component_filter *
+const struct bt_component_filter *
 bt_self_component_filter_as_component_filter(
 		struct bt_self_component_filter *self_comp_filter)
 {
-	return (void *) self_comp_filter;
+	return (const void *) self_comp_filter;
 }
-
-extern struct bt_self_component *bt_self_component_borrow_from_self_component_filter(
-		struct bt_self_component_filter *self_component);
 
 extern struct bt_component_filter *bt_component_filter_borrow_from_self(
 		struct bt_self_component_filter *self_component);

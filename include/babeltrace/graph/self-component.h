@@ -40,14 +40,14 @@ enum bt_self_component_status {
 };
 
 static inline
-struct bt_component *bt_self_component_as_component(
+const struct bt_component *bt_self_component_as_component(
 		struct bt_self_component *self_component)
 {
-	return (void *) self_component;
+	return (const void *) self_component;
 }
 
 extern void *bt_self_component_get_data(
-		struct bt_self_component *private_component);
+		const struct bt_self_component *private_component);
 
 extern void bt_self_component_set_data(
 		struct bt_self_component *private_component, void *data);

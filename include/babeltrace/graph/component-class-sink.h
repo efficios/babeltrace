@@ -23,20 +23,98 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
+/* For enum bt_self_component_status */
+#include <babeltrace/graph/self-component.h>
+
+/* For enum bt_query_status */
+#include <babeltrace/graph/component-class.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component_class;
 struct bt_component_class_sink;
+struct bt_port_output;
+struct bt_query_executor;
+struct bt_self_component_class_sink;
+struct bt_self_component_port_input;
+struct bt_self_component_sink;
+struct bt_value;
+
+typedef enum bt_self_component_status
+(*bt_component_class_sink_init_method)(
+		struct bt_self_component_sink *self_component,
+		const struct bt_value *params, void *init_method_data);
+
+typedef void (*bt_component_class_sink_finalize_method)(
+		struct bt_self_component_sink *self_component);
+
+typedef enum bt_query_status
+(*bt_component_class_sink_query_method)(
+		struct bt_self_component_class_sink *comp_class,
+		const struct bt_query_executor *query_executor,
+		const char *object, const struct bt_value *params,
+		const struct bt_value **result);
+
+typedef enum bt_self_component_status
+(*bt_component_class_sink_accept_input_port_connection_method)(
+		struct bt_self_component_sink *self_component,
+		struct bt_self_component_port_input *self_port,
+		const struct bt_port_output *other_port);
+
+typedef enum bt_self_component_status
+(*bt_component_class_sink_input_port_connected_method)(
+		struct bt_self_component_sink *self_component,
+		struct bt_self_component_port_input *self_port,
+		const struct bt_port_output *other_port);
+
+typedef void
+(*bt_component_class_sink_input_port_disconnected_method)(
+		struct bt_self_component_sink *self_component,
+		struct bt_self_component_port_input *self_port);
+
+typedef enum bt_self_component_status
+(*bt_component_class_sink_consume_method)(
+	struct bt_self_component_sink *self_component);
 
 static inline
-struct bt_component_class *
-bt_component_class_sink_as_component_class(
+struct bt_component_class *bt_component_class_sink_as_component_class(
 		struct bt_component_class_sink *comp_cls_sink)
 {
 	return (void *) comp_cls_sink;
 }
+
+extern
+struct bt_component_class_sink *bt_component_class_sink_create(
+		const char *name,
+		bt_component_class_sink_consume_method method);
+
+extern int bt_component_class_sink_set_init_method(
+		struct bt_component_class_sink *comp_class,
+		bt_component_class_sink_init_method method);
+
+extern int bt_component_class_sink_set_finalize_method(
+		struct bt_component_class_sink *comp_class,
+		bt_component_class_sink_finalize_method method);
+
+extern int bt_component_class_sink_set_accept_input_port_connection_method(
+		struct bt_component_class_sink *comp_class,
+		bt_component_class_sink_accept_input_port_connection_method method);
+
+extern int bt_component_class_sink_set_input_port_connected_method(
+		struct bt_component_class_sink *comp_class,
+		bt_component_class_sink_input_port_connected_method method);
+
+extern int bt_component_class_sink_set_input_port_disconnected_method(
+		struct bt_component_class_sink *comp_class,
+		bt_component_class_sink_input_port_disconnected_method method);
+
+extern int bt_component_class_sink_set_query_method(
+		struct bt_component_class_sink *comp_class,
+		bt_component_class_sink_query_method method);
 
 #ifdef __cplusplus
 }

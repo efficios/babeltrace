@@ -57,9 +57,8 @@ void bt_event_header_field_release(
 }
 
 struct bt_event_header_field *bt_event_header_field_create(
-		struct bt_stream_class *priv_stream_class)
+		struct bt_stream_class *stream_class)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
 	struct bt_field_wrapper *field_wrapper;
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");

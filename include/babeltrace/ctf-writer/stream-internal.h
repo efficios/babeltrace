@@ -31,7 +31,6 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
 #include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/ctf-writer/stream-internal.h>
 #include <babeltrace/ctf-writer/stream.h>

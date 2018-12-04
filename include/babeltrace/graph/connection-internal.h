@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/connection.h>
+#include <babeltrace/graph/connection-const.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/object-internal.h>

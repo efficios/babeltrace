@@ -95,7 +95,7 @@ struct lttng_live_stream_iterator {
 	enum lttng_live_stream_state state;
 
 	uint64_t current_packet_end_timestamp;
-	struct bt_notification *packet_end_notif_queue;
+	const struct bt_notification *packet_end_notif_queue;
 
 	uint8_t *buf;
 	size_t buflen;
@@ -213,8 +213,8 @@ enum bt_component_status lttng_live_component_init(struct bt_self_component *sou
 		struct bt_value *params, void *init_method_data);
 
 struct bt_component_class_query_method_return lttng_live_query(
-		struct bt_component_class *comp_class,
-		struct bt_query_executor *query_exec,
+		const struct bt_component_class *comp_class,
+		const struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params);
 
 void lttng_live_component_finalize(struct bt_self_component *component);
@@ -225,7 +225,7 @@ struct bt_notification_iterator_next_method_return lttng_live_iterator_next(
 enum bt_component_status lttng_live_accept_port_connection(
 		struct bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
-		struct bt_port *other_port);
+		const struct bt_port *other_port);
 
 enum bt_notification_iterator_status lttng_live_iterator_init(
 		struct bt_self_notification_iterator *it,

@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_INACTIVITY_H
-#define BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_INACTIVITY_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_FILTER_CONST_H
+#define BABELTRACE_GRAPH_COMPONENT_CLASS_FILTER_CONST_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,23 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_private_notification;
-struct bt_self_notification_iterator;
-struct bt_clock_class;
+struct bt_component_class;
+struct bt_component_class_filter;
 
-extern
-struct bt_private_notification *bt_private_notification_inactivity_create(
-		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_clock_class *default_clock_class);
-
-extern void bt_private_notification_inactivity_set_default_clock_value(
-		struct bt_private_notification *notif, uint64_t raw_value);
+static inline
+const struct bt_component_class *
+bt_component_class_filter_as_component_class_const(
+		const struct bt_component_class_filter *comp_cls_filter)
+{
+	return (const void *) comp_cls_filter;
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_INACTIVITY_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_FILTER_CONST_H */

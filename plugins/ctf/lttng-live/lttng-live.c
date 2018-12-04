@@ -68,7 +68,7 @@ static const char *print_state(struct lttng_live_stream_iterator *s)
 static
 void print_stream_state(struct lttng_live_stream_iterator *stream)
 {
-	struct bt_port *port;
+	const struct bt_port *port;
 
 	port = bt_port_from_private(stream->port);
 	print_dbg("stream %s state %s last_inact_ts %" PRId64 " cur_inact_ts %" PRId64,
@@ -83,7 +83,7 @@ BT_HIDDEN
 bt_bool lttng_live_is_canceled(struct lttng_live_component *lttng_live)
 {
 	struct bt_component *component;
-	struct bt_graph *graph;
+	const struct bt_graph *graph;
 	bt_bool ret;
 
 	if (!lttng_live) {
@@ -92,7 +92,7 @@ bt_bool lttng_live_is_canceled(struct lttng_live_component *lttng_live)
 
 	component = bt_component_from_private(lttng_live->private_component);
 	graph = bt_component_get_graph(component);
-	ret = bt_private_graph_is_canceled(graph);
+	ret = bt_graph_is_canceled(graph);
 	bt_object_put_ref(graph);
 	bt_object_put_ref(component);
 	return ret;
@@ -556,7 +556,7 @@ static
 enum bt_lttng_live_iterator_status emit_inactivity_notification(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
-		struct bt_notification **notification,
+		const struct bt_notification **notification,
 		uint64_t timestamp)
 {
 	enum bt_lttng_live_iterator_status ret =
@@ -564,7 +564,7 @@ enum bt_lttng_live_iterator_status emit_inactivity_notification(
 	struct lttng_live_trace *trace;
 	const struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
-	struct bt_notification *notif = NULL;
+	const struct bt_notification *notif = NULL;
 	int retval;
 
 	trace = lttng_live_stream->trace;
@@ -603,7 +603,7 @@ static
 enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
-		struct bt_notification **notification)
+		const struct bt_notification **notification)
 {
 	enum bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -636,7 +636,7 @@ static
 enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
-		struct bt_notification **notification)
+		const struct bt_notification **notification)
 {
 	enum bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -949,8 +949,8 @@ error:
 
 static
 struct bt_component_class_query_method_return lttng_live_query_list_sessions(
-		struct bt_component_class *comp_class,
-		struct bt_query_executor *query_exec,
+		const struct bt_component_class *comp_class,
+		const struct bt_query_executor *query_exec,
 		struct bt_value *params)
 {
 	struct bt_component_class_query_method_return query_ret = {
@@ -1005,8 +1005,8 @@ end:
 
 BT_HIDDEN
 struct bt_component_class_query_method_return lttng_live_query(
-		struct bt_component_class *comp_class,
-		struct bt_query_executor *query_exec,
+		const struct bt_component_class *comp_class,
+		const struct bt_query_executor *query_exec,
 		const char *object, struct bt_value *params)
 {
 	struct bt_component_class_query_method_return ret = {
@@ -1155,13 +1155,13 @@ BT_HIDDEN
 enum bt_component_status lttng_live_accept_port_connection(
 		struct bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
-		struct bt_port *other_port)
+		const struct bt_port *other_port)
 {
 	struct lttng_live_component *lttng_live =
 			bt_self_component_get_user_data(private_component);
 	struct bt_component *other_component;
 	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
-	struct bt_port *self_port = bt_port_from_private(self_private_port);
+	const struct bt_port *self_port = bt_port_from_private(self_private_port);
 
 	other_component = bt_port_get_component(other_port);
 	bt_object_put_ref(other_component);	/* weak */

@@ -34,10 +34,13 @@
 /* For enum bt_plugin_status */
 #include <babeltrace/plugin/plugin-const.h>
 
-/* For private component class method type definitions */
-#include <babeltrace/graph/private-component-class-source.h>
-#include <babeltrace/graph/private-component-class-filter.h>
-#include <babeltrace/graph/private-component-class-sink.h>
+/* For enum bt_component_class_type */
+#include <babeltrace/graph/component-class-const.h>
+
+/* For component class method type definitions */
+#include <babeltrace/graph/component-class-source-const.h>
+#include <babeltrace/graph/component-class-filter-const.h>
+#include <babeltrace/graph/component-class-sink-const.h>
 
 /*
  * _BT_HIDDEN: set the hidden attribute for internal functions
@@ -149,17 +152,17 @@ struct __bt_plugin_component_class_descriptor {
 	union {
 		/* BT_COMPONENT_CLASS_TYPE_SOURCE */
 		struct {
-			bt_private_component_class_source_notification_iterator_next_method notif_iter_next;
+			bt_component_class_source_notification_iterator_next_method notif_iter_next;
 		} source;
 
 		/* BT_COMPONENT_CLASS_TYPE_FILTER */
 		struct {
-			bt_private_component_class_filter_notification_iterator_next_method notif_iter_next;
+			bt_component_class_filter_notification_iterator_next_method notif_iter_next;
 		} filter;
 
 		/* BT_COMPONENT_CLASS_TYPE_SINK */
 		struct {
-			bt_private_component_class_sink_consume_method consume;
+			bt_component_class_sink_consume_method consume;
 		} sink;
 	} methods;
 } __attribute__((packed));
@@ -204,51 +207,51 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		const char *help;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD */
-		bt_private_component_class_source_init_method source_init_method;
-		bt_private_component_class_filter_init_method filter_init_method;
-		bt_private_component_class_sink_init_method sink_init_method;
+		bt_component_class_source_init_method source_init_method;
+		bt_component_class_filter_init_method filter_init_method;
+		bt_component_class_sink_init_method sink_init_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD */
-		bt_private_component_class_source_finalize_method source_finalize_method;
-		bt_private_component_class_filter_finalize_method filter_finalize_method;
-		bt_private_component_class_sink_finalize_method sink_finalize_method;
+		bt_component_class_source_finalize_method source_finalize_method;
+		bt_component_class_filter_finalize_method filter_finalize_method;
+		bt_component_class_sink_finalize_method sink_finalize_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD */
-		bt_private_component_class_source_query_method source_query_method;
-		bt_private_component_class_filter_query_method filter_query_method;
-		bt_private_component_class_sink_query_method sink_query_method;
+		bt_component_class_source_query_method source_query_method;
+		bt_component_class_filter_query_method filter_query_method;
+		bt_component_class_sink_query_method sink_query_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD */
-		bt_private_component_class_filter_accept_input_port_connection_method filter_accept_input_port_connection_method;
-		bt_private_component_class_sink_accept_input_port_connection_method sink_accept_input_port_connection_method;
+		bt_component_class_filter_accept_input_port_connection_method filter_accept_input_port_connection_method;
+		bt_component_class_sink_accept_input_port_connection_method sink_accept_input_port_connection_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD */
-		bt_private_component_class_source_accept_output_port_connection_method source_accept_output_port_connection_method;
-		bt_private_component_class_filter_accept_output_port_connection_method filter_accept_output_port_connection_method;
+		bt_component_class_source_accept_output_port_connection_method source_accept_output_port_connection_method;
+		bt_component_class_filter_accept_output_port_connection_method filter_accept_output_port_connection_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD */
-		bt_private_component_class_filter_input_port_connected_method filter_input_port_connected_method;
-		bt_private_component_class_sink_input_port_connected_method sink_input_port_connected_method;
+		bt_component_class_filter_input_port_connected_method filter_input_port_connected_method;
+		bt_component_class_sink_input_port_connected_method sink_input_port_connected_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD */
-		bt_private_component_class_source_output_port_connected_method source_output_port_connected_method;
-		bt_private_component_class_filter_output_port_connected_method filter_output_port_connected_method;
+		bt_component_class_source_output_port_connected_method source_output_port_connected_method;
+		bt_component_class_filter_output_port_connected_method filter_output_port_connected_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD */
-		bt_private_component_class_filter_input_port_disconnected_method filter_input_port_disconnected_method;
-		bt_private_component_class_sink_input_port_disconnected_method sink_input_port_disconnected_method;
+		bt_component_class_filter_input_port_disconnected_method filter_input_port_disconnected_method;
+		bt_component_class_sink_input_port_disconnected_method sink_input_port_disconnected_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD */
-		bt_private_component_class_source_output_port_disconnected_method source_output_port_disconnected_method;
-		bt_private_component_class_filter_output_port_disconnected_method filter_output_port_disconnected_method;
+		bt_component_class_source_output_port_disconnected_method source_output_port_disconnected_method;
+		bt_component_class_filter_output_port_disconnected_method filter_output_port_disconnected_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD */
-		bt_private_component_class_source_notification_iterator_init_method source_notif_iter_init_method;
-		bt_private_component_class_filter_notification_iterator_init_method filter_notif_iter_init_method;
+		bt_component_class_source_notification_iterator_init_method source_notif_iter_init_method;
+		bt_component_class_filter_notification_iterator_init_method filter_notif_iter_init_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD */
-		bt_private_component_class_source_notification_iterator_finalize_method source_notif_iter_finalize_method;
-		bt_private_component_class_filter_notification_iterator_finalize_method filter_notif_iter_finalize_method;
+		bt_component_class_source_notification_iterator_finalize_method source_notif_iter_finalize_method;
+		bt_component_class_filter_notification_iterator_finalize_method filter_notif_iter_finalize_method;
 	} value;
 } __attribute__((packed));
 
@@ -514,7 +517,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _comp_class_id:          Component class ID (C identifier).
  * _name:                   Component class name (C string).
  * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_private_component_class_source_notification_iterator_next_method).
+ *                          (bt_component_class_source_notification_iterator_next_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id = { \
@@ -534,7 +537,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _comp_class_id:          Component class ID (C identifier).
  * _name:                   Component class name (C string).
  * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_private_component_class_filter_notification_iterator_next_method).
+ *                          (bt_component_class_filter_notification_iterator_next_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id = { \
@@ -554,7 +557,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _comp_class_id:      Component class ID (C identifier).
  * _name:               Component class name (C string).
  * _consume_method:     Component class's iterator consume method
- *                      (bt_private_component_class_sink_consume_method).
+ *                      (bt_component_class_sink_consume_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _consume_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_sink_component_class_descriptor_##_id##_##_comp_class_id = { \
@@ -660,7 +663,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Initialization method (bt_private_component_class_source_init_method).
+ * _x:             Initialization method (bt_component_class_source_init_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, source, _x)
@@ -671,7 +674,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Initialization method (bt_private_component_class_filter_init_method).
+ * _x:             Initialization method (bt_component_class_filter_init_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, filter, _x)
@@ -682,7 +685,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Initialization method (bt_private_component_class_sink_init_method).
+ * _x:             Initialization method (bt_component_class_sink_init_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INIT_METHOD, _id, _comp_class_id, sink, _x)
@@ -693,7 +696,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Finalize method (bt_private_component_class_source_finalize_method).
+ * _x:             Finalize method (bt_component_class_source_finalize_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
@@ -704,7 +707,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Finalize method (bt_private_component_class_filter_finalize_method).
+ * _x:             Finalize method (bt_component_class_filter_finalize_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
@@ -715,7 +718,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Finalize method (bt_private_component_class_sink_finalize_method).
+ * _x:             Finalize method (bt_component_class_sink_finalize_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_FINALIZE_METHOD, _id, _comp_class_id, sink, _x)
@@ -726,7 +729,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Finalize method (bt_private_component_class_source_query_method).
+ * _x:             Finalize method (bt_component_class_source_query_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, source, _x)
@@ -737,7 +740,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Finalize method (bt_private_component_class_filter_query_method).
+ * _x:             Finalize method (bt_component_class_filter_query_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, filter, _x)
@@ -748,7 +751,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Finalize method (bt_private_component_class_sink_query_method).
+ * _x:             Finalize method (bt_component_class_sink_query_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_query_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_QUERY_METHOD, _id, _comp_class_id, sink, _x)
@@ -760,7 +763,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Accept port connection method
- *                 (bt_private_component_class_filter_accept_input_port_connection_method).
+ *                 (bt_component_class_filter_accept_input_port_connection_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_accept_input_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, filter, _x)
@@ -772,7 +775,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Accept port connection method
- *                 (bt_private_component_class_sink_accept_input_port_connection_method).
+ *                 (bt_component_class_sink_accept_input_port_connection_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_accept_input_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_INPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, sink, _x)
@@ -784,7 +787,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Accept port connection method
- *                 (bt_private_component_class_source_accept_output_port_connection_method).
+ *                 (bt_component_class_source_accept_output_port_connection_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_accept_output_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, source, _x)
@@ -796,7 +799,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Accept port connection method
- *                 (bt_private_component_class_filter_accept_output_port_connection_method).
+ *                 (bt_component_class_filter_accept_output_port_connection_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_accept_output_port_connection_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD, _id, _comp_class_id, filter, _x)
@@ -808,7 +811,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port connected method
- *                 (bt_private_component_class_filter_input_port_connected_method).
+ *                 (bt_component_class_filter_input_port_connected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_input_port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD, _id, _comp_class_id, filter, _x)
@@ -820,7 +823,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port connected method
- *                 (bt_private_component_class_sink_input_port_connected_method).
+ *                 (bt_component_class_sink_input_port_connected_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_input_port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD, _id, _comp_class_id, sink, _x)
@@ -832,7 +835,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port connected method
- *                 (bt_private_component_class_source_output_port_connected_method).
+ *                 (bt_component_class_source_output_port_connected_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_output_port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD, _id, _comp_class_id, source, _x)
@@ -844,7 +847,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port connected method
- *                 (bt_private_component_class_filter_output_port_connected_method).
+ *                 (bt_component_class_filter_output_port_connected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_output_port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD, _id, _comp_class_id, filter, _x)
@@ -856,7 +859,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port disconnected method
- *                 (bt_private_component_class_filter_input_port_disconnected_method).
+ *                 (bt_component_class_filter_input_port_disconnected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_input_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, filter, _x)
@@ -868,7 +871,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port disconnected method
- *                 (bt_private_component_class_sink_input_port_disconnected_method).
+ *                 (bt_component_class_sink_input_port_disconnected_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_input_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, sink, _x)
@@ -880,7 +883,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port disconnected method
- *                 (bt_private_component_class_source_output_port_disconnected_method).
+ *                 (bt_component_class_source_output_port_disconnected_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_output_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, source, _x)
@@ -892,7 +895,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Port disconnected method
- *                 (bt_private_component_class_filter_output_port_disconnected_method).
+ *                 (bt_component_class_filter_output_port_disconnected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_output_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, filter, _x)
@@ -904,7 +907,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator initialization method
- *                 (bt_private_component_class_source_notification_iterator_init_method).
+ *                 (bt_component_class_source_notification_iterator_init_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_notif_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD, _id, _comp_class_id, source, _x)
@@ -916,7 +919,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator finalize method
- *                 (bt_private_component_class_source_notification_iterator_finalize_method).
+ *                 (bt_component_class_source_notification_iterator_finalize_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
@@ -928,7 +931,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator initialization method
- *                 (bt_private_component_class_filter_notification_iterator_init_method).
+ *                 (bt_component_class_filter_notification_iterator_init_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_notif_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD, _id, _comp_class_id, filter, _x)
@@ -940,7 +943,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator finalize method
- *                 (bt_private_component_class_filter_notification_iterator_finalize_method).
+ *                 (bt_component_class_filter_notification_iterator_finalize_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
@@ -1010,7 +1013,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name:                   Component class name (C identifier).
  * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_private_component_class_source_notification_iterator_next_method).
+ *                          (bt_component_class_source_notification_iterator_next_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _notif_iter_next_method) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_next_method)
@@ -1022,7 +1025,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name:                   Component class name (C identifier).
  * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_private_component_class_filter_notification_iterator_next_method).
+ *                          (bt_component_class_filter_notification_iterator_next_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS(_name, _notif_iter_next_method) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_next_method)
@@ -1034,7 +1037,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name:           Component class name (C identifier).
  * _consume_method: Component class's consume method
- *                  (bt_private_component_class_sink_consume_method).
+ *                  (bt_component_class_sink_consume_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS(_name, _consume_method) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _consume_method)
@@ -1105,7 +1108,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_source_init_method).
+ * _x:    Initialization method (bt_component_class_source_init_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
@@ -1116,7 +1119,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_filter_init_method).
+ * _x:    Initialization method (bt_component_class_filter_init_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
@@ -1127,7 +1130,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_sink_init_method).
+ * _x:    Initialization method (bt_component_class_sink_init_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, _name, _x)
@@ -1138,7 +1141,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_source_finalize_method).
+ * _x:    Initialization method (bt_component_class_source_finalize_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
@@ -1149,7 +1152,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_filter_finalize_method).
+ * _x:    Initialization method (bt_component_class_filter_finalize_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
@@ -1159,7 +1162,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor which is attached to the automatic plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_sink_finalize_method).
+ * _x:    Initialization method (bt_component_class_sink_finalize_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
@@ -1170,7 +1173,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_source_query_method).
+ * _x:    Initialization method (bt_component_class_source_query_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(auto, _name, _x)
@@ -1181,7 +1184,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_filter_query_method).
+ * _x:    Initialization method (bt_component_class_filter_query_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(auto, _name, _x)
@@ -1192,7 +1195,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Initialization method (bt_private_component_class_sink_query_method).
+ * _x:    Initialization method (bt_component_class_sink_query_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(auto, _name, _x)
@@ -1204,7 +1207,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Accept port connection method
- *        (bt_private_component_class_filter_accept_input_port_connection_method).
+ *        (bt_component_class_filter_accept_input_port_connection_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
@@ -1216,7 +1219,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Accept port connection method
- *        (bt_private_component_class_sink_accept_input_port_connection_method).
+ *        (bt_component_class_sink_accept_input_port_connection_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_ACCEPT_INPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
@@ -1228,7 +1231,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Accept port connection method
- *        (bt_private_component_class_source_accept_output_port_connection_method).
+ *        (bt_component_class_source_accept_output_port_connection_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
@@ -1240,7 +1243,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Accept port connection method
- *        (bt_private_component_class_filter_accept_output_port_connection_method).
+ *        (bt_component_class_filter_accept_output_port_connection_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD_WITH_ID(auto, _name, _x)
@@ -1251,7 +1254,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port connected (bt_private_component_class_filter_input_port_connected_method).
+ * _x:    Port connected (bt_component_class_filter_input_port_connected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1262,7 +1265,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port connected (bt_private_component_class_sink_input_port_connected_method).
+ * _x:    Port connected (bt_component_class_sink_input_port_connected_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1273,7 +1276,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port connected (bt_private_component_class_source_output_port_connected_method).
+ * _x:    Port connected (bt_component_class_source_output_port_connected_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1284,7 +1287,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port connected (bt_private_component_class_filter_output_port_connected_method).
+ * _x:    Port connected (bt_component_class_filter_output_port_connected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1295,7 +1298,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_private_component_class_filter_input_port_disconnected_method).
+ * _x:    Port disconnected (bt_component_class_filter_input_port_disconnected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1306,7 +1309,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_private_component_class_sink_input_port_disconnected_method).
+ * _x:    Port disconnected (bt_component_class_sink_input_port_disconnected_method).
  */
 #define BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1317,7 +1320,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_private_component_class_source_output_port_disconnected_method).
+ * _x:    Port disconnected (bt_component_class_source_output_port_disconnected_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1328,7 +1331,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * plugin descriptor.
  *
  * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_private_component_class_filter_output_port_disconnected_method).
+ * _x:    Port disconnected (bt_component_class_filter_output_port_disconnected_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
@@ -1340,7 +1343,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator initialization method
- *        (bt_private_component_class_source_notification_iterator_init_method).
+ *        (bt_component_class_source_notification_iterator_init_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
@@ -1352,7 +1355,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator finalize method
- *        (bt_private_component_class_source_notification_iterator_finalize_method).
+ *        (bt_component_class_source_notification_iterator_finalize_method).
  */
 #define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(_name, _x) \
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
@@ -1364,7 +1367,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator initialization method
- *        (bt_private_component_class_filter_notification_iterator_init_method).
+ *        (bt_component_class_filter_notification_iterator_init_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
@@ -1376,7 +1379,7 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator finalize method
- *        (bt_private_component_class_filter_notification_iterator_finalize_method).
+ *        (bt_component_class_filter_notification_iterator_finalize_method).
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)

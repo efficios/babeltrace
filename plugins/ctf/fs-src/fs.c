@@ -90,15 +90,15 @@ void ctf_fs_notif_iter_data_destroy(
 static
 enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 		struct ctf_fs_notif_iter_data *notif_iter_data,
-		struct bt_notification **notif)
+		const struct bt_notification **notif)
 {
 	enum bt_self_notification_iterator_status status;
-	struct bt_private_notification *priv_notif;
+	struct bt_notification *priv_notif;
 	int ret;
 
 	BT_ASSERT(notif_iter_data->ds_file);
 	status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-	*notif = bt_private_notification_as_notification(priv_notif);
+	*notif = priv_notif;
 
 	if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK &&
 			bt_notification_get_type(*notif) ==
@@ -112,7 +112,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
-			*notif = bt_private_notification_as_notification(priv_notif);
+			*notif = priv_notif;
 			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
 			goto end;
 		} else {
@@ -158,7 +158,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 		}
 
 		status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-		*notif = bt_private_notification_as_notification(priv_notif);
+		*notif = priv_notif;
 
 		/*
 		 * If we get a notification, we expect to get a
@@ -184,7 +184,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
-			*notif = bt_private_notification_as_notification(priv_notif);
+			*notif = priv_notif;
 			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
 		}
 	}
@@ -196,7 +196,7 @@ end:
 BT_HIDDEN
 enum bt_self_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_self_notification_iterator *iterator,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
 	enum bt_self_notification_iterator_status status =
@@ -1339,7 +1339,7 @@ enum bt_self_component_status ctf_fs_init(
 BT_HIDDEN
 enum bt_query_status ctf_fs_query(
 		struct bt_self_component_class_source *comp_class,
-		struct bt_query_executor *query_exec,
+		const struct bt_query_executor *query_exec,
 		const char *object, const struct bt_value *params,
 		const struct bt_value **result)
 {

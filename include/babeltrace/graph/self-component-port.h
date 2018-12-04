@@ -37,10 +37,10 @@ enum bt_self_component_port_status {
 };
 
 static inline
-struct bt_port *bt_self_component_port_as_port(
+const struct bt_port *bt_self_component_port_as_port(
 		struct bt_self_component_port *self_port)
 {
-	return (void *) self_port;
+	return (const void *) self_port;
 }
 
 extern struct bt_self_component *bt_self_component_port_borrow_component(
@@ -51,7 +51,7 @@ bt_self_component_port_remove_from_component(
 		struct bt_self_component_port *self_port);
 
 extern void *bt_self_component_port_get_data(
-		struct bt_self_component_port *self_port);
+		const struct bt_self_component_port *self_port);
 
 #ifdef __cplusplus
 }

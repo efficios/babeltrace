@@ -24,8 +24,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/object.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/private-component-class-sink.h>
+#include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/self-component-sink.h>
 #include <babeltrace/graph/self-component-port.h>
 #include <babeltrace/graph/self-component-port-input-notification-iterator.h>
@@ -35,10 +34,10 @@
 #include <glib.h>
 
 static
-struct bt_private_component_class_sink *colander_comp_cls;
+struct bt_component_class_sink *colander_comp_cls;
 
 struct colander_data {
-	bt_notification_array notifs;
+	bt_notification_array_const notifs;
 	uint64_t *count_addr;
 	struct bt_self_component_port_input_notification_iterator *notif_iter;
 };
@@ -102,7 +101,7 @@ static
 enum bt_self_component_status colander_input_port_connected(
 		struct bt_self_component_sink *self_comp,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port)
+		const struct bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct colander_data *colander_data =
@@ -135,7 +134,7 @@ enum bt_self_component_status colander_consume(
 	struct colander_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
-	bt_notification_array notifs;
+	bt_notification_array_const notifs;
 
 	BT_ASSERT(colander_data);
 
@@ -180,18 +179,18 @@ struct bt_component_class_sink *bt_component_class_sink_colander_get(void)
 		goto end;
 	}
 
-	colander_comp_cls = bt_private_component_class_sink_create(
-		"colander", colander_consume);
+	colander_comp_cls = bt_component_class_sink_create("colander",
+		colander_consume);
 	if (!colander_comp_cls) {
 		BT_LOGE_STR("Cannot create sink colander component class.");
 		goto end;
 	}
 
-	(void) bt_private_component_class_sink_set_init_method(
+	(void) bt_component_class_sink_set_init_method(
 		colander_comp_cls, colander_init);
-	(void) bt_private_component_class_sink_set_finalize_method(
+	(void) bt_component_class_sink_set_finalize_method(
 		colander_comp_cls, colander_finalize);
-	(void) bt_private_component_class_sink_set_input_port_connected_method(
+	(void) bt_component_class_sink_set_input_port_connected_method(
 		colander_comp_cls, colander_input_port_connected);
 
 end:

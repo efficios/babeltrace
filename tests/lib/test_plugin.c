@@ -111,10 +111,10 @@ static void test_sfs(const char *plugin_dir)
 {
 	const struct bt_plugin_set *plugin_set;
 	const struct bt_plugin *plugin;
-	struct bt_component_class_sink *sink_comp_class;
-	struct bt_component_class_source *source_comp_class;
-	struct bt_component_class_filter *filter_comp_class;
-	struct bt_component_sink *sink_component;
+	const struct bt_component_class_sink *sink_comp_class;
+	const struct bt_component_class_source *source_comp_class;
+	const struct bt_component_class_filter *filter_comp_class;
+	const struct bt_component_sink *sink_component;
 	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
 	unsigned int major, minor, patch;
 	const char *extra;
@@ -122,11 +122,10 @@ static void test_sfs(const char *plugin_dir)
 	const struct bt_value *results;
 	const struct bt_value *object;
 	const struct bt_value *res_params;
-	struct bt_private_graph *graph;
+	struct bt_graph *graph;
 	const char *object_str;
 	enum bt_graph_status graph_ret;
-	struct bt_private_query_executor *query_exec =
-		bt_private_query_executor_create();
+	struct bt_query_executor *query_exec = bt_query_executor_create();
 	int ret;
 
 	BT_ASSERT(query_exec);
@@ -163,12 +162,11 @@ static void test_sfs(const char *plugin_dir)
 		plugin, "sink");
 	ok(sink_comp_class,
 		"bt_plugin_borrow_sink_component_class_by_name_const() finds a sink component class");
-	ok(strcmp(bt_component_class_get_help(
-		bt_component_class_sink_as_component_class(sink_comp_class)),
-		"Bacon ipsum dolor amet strip steak cupim pastrami venison shoulder.\n"
-		"Prosciutto beef ribs flank meatloaf pancetta brisket kielbasa drumstick\n"
-		"venison tenderloin cow tail. Beef short loin shoulder meatball, sirloin\n"
-		"ground round brisket salami cupim pork bresaola turkey bacon boudin.\n") == 0,
+	ok(strcmp(bt_component_class_get_help(bt_component_class_sink_as_component_class_const(sink_comp_class)),
+		  "Bacon ipsum dolor amet strip steak cupim pastrami venison shoulder.\n"
+		  "Prosciutto beef ribs flank meatloaf pancetta brisket kielbasa drumstick\n"
+		  "venison tenderloin cow tail. Beef short loin shoulder meatball, sirloin\n"
+		  "ground round brisket salami cupim pork bresaola turkey bacon boudin.\n") == 0,
 		"bt_component_class_get_help() returns the expected help text");
 
 	filter_comp_class = bt_plugin_borrow_filter_component_class_by_name_const(
@@ -177,10 +175,10 @@ static void test_sfs(const char *plugin_dir)
 		"bt_plugin_borrow_filter_component_class_by_name_const() finds a filter component class");
 	params = bt_value_integer_create_init(23);
 	BT_ASSERT(params);
-	ret = bt_private_query_executor_query(query_exec,
-		bt_component_class_filter_as_component_class(filter_comp_class),
+	ret = bt_query_executor_query(query_exec,
+		bt_component_class_filter_as_component_class_const(filter_comp_class),
 		"get-something", params, &results);
-	ok(ret == 0 && results, "bt_private_query_executor_query() succeeds");
+	ok(ret == 0 && results, "bt_query_executor_query() succeeds");
 	BT_ASSERT(bt_value_is_array(results) && bt_value_array_get_size(results) == 2);
 	object = bt_value_array_borrow_element_by_index_const(results, 0);
 	BT_ASSERT(object && bt_value_is_string(object));
@@ -194,12 +192,12 @@ static void test_sfs(const char *plugin_dir)
 	bt_object_get_ref(sink_comp_class);
 	diag("> putting the plugin set object here");
 	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
-	graph = bt_private_graph_create();
+	graph = bt_graph_create();
 	BT_ASSERT(graph);
-	graph_ret = bt_private_graph_add_sink_component(graph, sink_comp_class, "the-sink",
-		NULL, &sink_component);
+	graph_ret = bt_graph_add_sink_component(graph, sink_comp_class,
+		"the-sink", NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
-		"bt_private_graph_add_sink_component() still works after the plugin object is destroyed");
+		"bt_graph_add_sink_component() still works after the plugin object is destroyed");
 	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
 	bt_object_put_ref(graph);
 

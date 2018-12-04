@@ -82,37 +82,35 @@ babeltraceplugininclude_HEADERS = \
 # Graph, component, and notification API
 babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
+	babeltrace/graph/component-class-const.h \
+	babeltrace/graph/component-class-filter-const.h \
 	babeltrace/graph/component-class-filter.h \
-	babeltrace/graph/component-class.h \
+	babeltrace/graph/component-class-sink-const.h \
 	babeltrace/graph/component-class-sink.h \
+	babeltrace/graph/component-class-source-const.h \
 	babeltrace/graph/component-class-source.h \
-	babeltrace/graph/component-filter.h \
-	babeltrace/graph/component.h \
-	babeltrace/graph/component-sink.h \
-	babeltrace/graph/component-source.h \
-	babeltrace/graph/connection.h \
+	babeltrace/graph/component-class.h \
+	babeltrace/graph/component-const.h \
+	babeltrace/graph/component-filter-const.h \
+	babeltrace/graph/component-sink-const.h \
+	babeltrace/graph/component-source-const.h \
+	babeltrace/graph/connection-const.h \
+	babeltrace/graph/graph-const.h \
 	babeltrace/graph/graph.h \
+	babeltrace/graph/notification-const.h \
+	babeltrace/graph/notification-event-const.h \
 	babeltrace/graph/notification-event.h \
+	babeltrace/graph/notification-inactivity-const.h \
 	babeltrace/graph/notification-inactivity.h \
-	babeltrace/graph/notification-iterator.h \
+	babeltrace/graph/notification-packet-const.h \
 	babeltrace/graph/notification-packet.h \
+	babeltrace/graph/notification-stream-const.h \
 	babeltrace/graph/notification-stream.h \
-	babeltrace/graph/notification.h \
-	babeltrace/graph/port-input.h \
+	babeltrace/graph/port-const.h \
+	babeltrace/graph/port-input-const.h \
+	babeltrace/graph/port-output-const.h \
 	babeltrace/graph/port-output-notification-iterator.h \
-	babeltrace/graph/port-output.h \
-	babeltrace/graph/port.h \
-	babeltrace/graph/private-component-class-filter.h \
-	babeltrace/graph/private-component-class-sink.h \
-	babeltrace/graph/private-component-class-source.h \
-	babeltrace/graph/private-component-class.h \
-	babeltrace/graph/private-graph.h \
-	babeltrace/graph/private-notification-event.h \
-	babeltrace/graph/private-notification-inactivity.h \
-	babeltrace/graph/private-notification-packet.h \
-	babeltrace/graph/private-notification-stream.h \
-	babeltrace/graph/private-notification.h \
-	babeltrace/graph/private-query-executor.h \
+	babeltrace/graph/query-executor-const.h \
 	babeltrace/graph/query-executor.h \
 	babeltrace/graph/self-component-class-filter.h \
 	babeltrace/graph/self-component-class-sink.h \

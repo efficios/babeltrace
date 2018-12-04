@@ -43,10 +43,10 @@ bt_self_component_port_input_as_self_component_port(
 }
 
 static inline
-struct bt_port_input *bt_self_component_port_input_as_port_input(
-		struct bt_self_component_port_input *self_component_port)
+const struct bt_port_input *bt_self_component_port_input_as_port_input(
+		const struct bt_self_component_port_input *self_component_port)
 {
-	return (void *) self_component_port;
+	return (const void *) self_component_port;
 }
 
 #ifdef __cplusplus

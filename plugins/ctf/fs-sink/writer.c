@@ -111,7 +111,7 @@ end:
 static
 enum bt_component_status handle_notification(
 		struct writer_component *writer_component,
-		struct bt_notification *notification)
+		const struct bt_notification *notification)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
@@ -201,7 +201,7 @@ BT_HIDDEN
 void writer_component_port_connected(
 		struct bt_self_component *component,
 		struct bt_private_port *self_port,
-		struct bt_port *other_port)
+		const struct bt_port *other_port)
 {
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
@@ -225,7 +225,7 @@ BT_HIDDEN
 enum bt_component_status writer_run(struct bt_self_component *component)
 {
 	enum bt_component_status ret;
-	struct bt_notification *notification = NULL;
+	const struct bt_notification *notification = NULL;
 	struct bt_notification_iterator *it;
 	struct writer_component *writer_component =
 		bt_self_component_get_user_data(component);

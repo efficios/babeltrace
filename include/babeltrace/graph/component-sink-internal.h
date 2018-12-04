@@ -27,7 +27,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/graph/component-sink.h>
+#include <babeltrace/graph/component-sink-const.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 
@@ -37,7 +37,7 @@ struct bt_component_sink {
 
 BT_HIDDEN
 struct bt_component *bt_component_sink_create(
-		struct bt_component_class *class);
+		const struct bt_component_class *class);
 
 BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component);

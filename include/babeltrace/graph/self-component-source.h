@@ -45,11 +45,11 @@ struct bt_self_component *bt_self_component_source_as_self_component(
 }
 
 static inline
-struct bt_component_source *
+const struct bt_component_source *
 bt_self_component_source_as_component_source(
 		struct bt_self_component_source *self_comp_source)
 {
-	return (void *) self_comp_source;
+	return (const void *) self_comp_source;
 }
 
 extern struct bt_self_component_port_output *

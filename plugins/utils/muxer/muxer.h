@@ -49,14 +49,14 @@ void muxer_notif_iter_finalize(
 BT_HIDDEN
 enum bt_self_notification_iterator_status muxer_notif_iter_next(
 		struct bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count);
 
 BT_HIDDEN
 enum bt_self_component_status muxer_input_port_connected(
 		struct bt_self_component_filter *comp,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port);
+		const struct bt_port_output *other_port);
 
 BT_HIDDEN
 void muxer_input_port_disconnected(

@@ -33,10 +33,10 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/graph/private-component-class.h>
-#include <babeltrace/graph/private-component-class-source.h>
-#include <babeltrace/graph/private-component-class-filter.h>
-#include <babeltrace/graph/private-component-class-sink.h>
+#include <babeltrace/graph/component-class.h>
+#include <babeltrace/graph/component-class-source.h>
+#include <babeltrace/graph/component-class-filter.h>
+#include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/types.h>
 #include <babeltrace/list-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -285,37 +285,37 @@ enum bt_plugin_status bt_plugin_so_init(
 
 		union {
 			struct {
-				bt_private_component_class_source_init_method init;
-				bt_private_component_class_source_finalize_method finalize;
-				bt_private_component_class_source_query_method query;
-				bt_private_component_class_source_accept_output_port_connection_method accept_output_port_connection;
-				bt_private_component_class_source_output_port_connected_method output_port_connected;
-				bt_private_component_class_source_output_port_disconnected_method output_port_disconnected;
-				bt_private_component_class_source_notification_iterator_init_method notif_iter_init;
-				bt_private_component_class_source_notification_iterator_finalize_method notif_iter_finalize;
+				bt_component_class_source_init_method init;
+				bt_component_class_source_finalize_method finalize;
+				bt_component_class_source_query_method query;
+				bt_component_class_source_accept_output_port_connection_method accept_output_port_connection;
+				bt_component_class_source_output_port_connected_method output_port_connected;
+				bt_component_class_source_output_port_disconnected_method output_port_disconnected;
+				bt_component_class_source_notification_iterator_init_method notif_iter_init;
+				bt_component_class_source_notification_iterator_finalize_method notif_iter_finalize;
 			} source;
 
 			struct {
-				bt_private_component_class_filter_init_method init;
-				bt_private_component_class_filter_finalize_method finalize;
-				bt_private_component_class_filter_query_method query;
-				bt_private_component_class_filter_accept_input_port_connection_method accept_input_port_connection;
-				bt_private_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
-				bt_private_component_class_filter_input_port_connected_method input_port_connected;
-				bt_private_component_class_filter_output_port_connected_method output_port_connected;
-				bt_private_component_class_filter_input_port_disconnected_method input_port_disconnected;
-				bt_private_component_class_filter_output_port_disconnected_method output_port_disconnected;
-				bt_private_component_class_filter_notification_iterator_init_method notif_iter_init;
-				bt_private_component_class_filter_notification_iterator_finalize_method notif_iter_finalize;
+				bt_component_class_filter_init_method init;
+				bt_component_class_filter_finalize_method finalize;
+				bt_component_class_filter_query_method query;
+				bt_component_class_filter_accept_input_port_connection_method accept_input_port_connection;
+				bt_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
+				bt_component_class_filter_input_port_connected_method input_port_connected;
+				bt_component_class_filter_output_port_connected_method output_port_connected;
+				bt_component_class_filter_input_port_disconnected_method input_port_disconnected;
+				bt_component_class_filter_output_port_disconnected_method output_port_disconnected;
+				bt_component_class_filter_notification_iterator_init_method notif_iter_init;
+				bt_component_class_filter_notification_iterator_finalize_method notif_iter_finalize;
 			} filter;
 
 			struct {
-				bt_private_component_class_sink_init_method init;
-				bt_private_component_class_sink_finalize_method finalize;
-				bt_private_component_class_sink_query_method query;
-				bt_private_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
-				bt_private_component_class_sink_input_port_connected_method input_port_connected;
-				bt_private_component_class_sink_input_port_disconnected_method input_port_disconnected;
+				bt_component_class_sink_init_method init;
+				bt_component_class_sink_finalize_method finalize;
+				bt_component_class_sink_query_method query;
+				bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
+				bt_component_class_sink_input_port_connected_method input_port_connected;
+				bt_component_class_sink_input_port_disconnected_method input_port_disconnected;
 			} sink;
 		} methods;
 	};
@@ -691,10 +691,10 @@ enum bt_plugin_status bt_plugin_so_init(
 		struct comp_class_full_descriptor *cc_full_descr =
 			&g_array_index(comp_class_full_descriptors,
 				struct comp_class_full_descriptor, i);
-		struct bt_private_component_class *comp_class = NULL;
-		struct bt_private_component_class_source *src_comp_class = NULL;
-		struct bt_private_component_class_filter *flt_comp_class = NULL;
-		struct bt_private_component_class_sink *sink_comp_class = NULL;
+		struct bt_component_class *comp_class = NULL;
+		struct bt_component_class_source *src_comp_class = NULL;
+		struct bt_component_class_filter *flt_comp_class = NULL;
+		struct bt_component_class_sink *sink_comp_class = NULL;
 
 		BT_LOGD("Creating and setting properties of plugin's component class: "
 			"plugin-path=\"%s\", plugin-name=\"%s\", "
@@ -709,24 +709,24 @@ enum bt_plugin_status bt_plugin_so_init(
 
 		switch (cc_full_descr->descriptor->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
-			src_comp_class = bt_private_component_class_source_create(
+			src_comp_class = bt_component_class_source_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
-			comp_class = bt_private_component_class_source_as_private_component_class(
+			comp_class = bt_component_class_source_as_component_class(
 				src_comp_class);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
-			flt_comp_class = bt_private_component_class_filter_create(
+			flt_comp_class = bt_component_class_filter_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.source.notif_iter_next);
-			comp_class = bt_private_component_class_filter_as_private_component_class(
+			comp_class = bt_component_class_filter_as_component_class(
 				flt_comp_class);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
-			sink_comp_class = bt_private_component_class_sink_create(
+			sink_comp_class = bt_component_class_sink_create(
 				cc_full_descr->descriptor->name,
 				cc_full_descr->descriptor->methods.sink.consume);
-			comp_class = bt_private_component_class_sink_as_private_component_class(
+			comp_class = bt_component_class_sink_as_component_class(
 				sink_comp_class);
 			break;
 		default:
@@ -756,7 +756,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		}
 
 		if (cc_full_descr->description) {
-			ret = bt_private_component_class_set_description(
+			ret = bt_component_class_set_description(
 				comp_class, cc_full_descr->description);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's description.");
@@ -767,7 +767,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		}
 
 		if (cc_full_descr->help) {
-			ret = bt_private_component_class_set_help(comp_class,
+			ret = bt_component_class_set_help(comp_class,
 				cc_full_descr->help);
 			if (ret) {
 				BT_LOGE_STR("Cannot set component class's help string.");
@@ -780,7 +780,7 @@ enum bt_plugin_status bt_plugin_so_init(
 		switch (cc_full_descr->descriptor->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			if (cc_full_descr->methods.source.init) {
-				ret = bt_private_component_class_source_set_init_method(
+				ret = bt_component_class_source_set_init_method(
 					src_comp_class,
 					cc_full_descr->methods.source.init);
 				if (ret) {
@@ -792,7 +792,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.source.finalize) {
-				ret = bt_private_component_class_source_set_finalize_method(
+				ret = bt_component_class_source_set_finalize_method(
 					src_comp_class,
 					cc_full_descr->methods.source.finalize);
 				if (ret) {
@@ -804,7 +804,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.source.query) {
-				ret = bt_private_component_class_source_set_query_method(
+				ret = bt_component_class_source_set_query_method(
 					src_comp_class,
 					cc_full_descr->methods.source.query);
 				if (ret) {
@@ -816,7 +816,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.source.accept_output_port_connection) {
-				ret = bt_private_component_class_source_set_accept_output_port_connection_method(
+				ret = bt_component_class_source_set_accept_output_port_connection_method(
 					src_comp_class,
 					cc_full_descr->methods.source.accept_output_port_connection);
 				if (ret) {
@@ -828,7 +828,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.source.output_port_connected) {
-				ret = bt_private_component_class_source_set_output_port_connected_method(
+				ret = bt_component_class_source_set_output_port_connected_method(
 					src_comp_class,
 					cc_full_descr->methods.source.output_port_connected);
 				if (ret) {
@@ -840,7 +840,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.source.output_port_disconnected) {
-				ret = bt_private_component_class_source_set_output_port_disconnected_method(
+				ret = bt_component_class_source_set_output_port_disconnected_method(
 					src_comp_class,
 					cc_full_descr->methods.source.output_port_disconnected);
 				if (ret) {
@@ -852,7 +852,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.source.notif_iter_init) {
-				ret = bt_private_component_class_source_set_notification_iterator_init_method(
+				ret = bt_component_class_source_set_notification_iterator_init_method(
 					src_comp_class,
 					cc_full_descr->methods.source.notif_iter_init);
 				if (ret) {
@@ -864,7 +864,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.source.notif_iter_finalize) {
-				ret = bt_private_component_class_source_set_notification_iterator_finalize_method(
+				ret = bt_component_class_source_set_notification_iterator_finalize_method(
 					src_comp_class,
 					cc_full_descr->methods.source.notif_iter_finalize);
 				if (ret) {
@@ -878,7 +878,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			if (cc_full_descr->methods.filter.init) {
-				ret = bt_private_component_class_filter_set_init_method(
+				ret = bt_component_class_filter_set_init_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.init);
 				if (ret) {
@@ -890,7 +890,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.finalize) {
-				ret = bt_private_component_class_filter_set_finalize_method(
+				ret = bt_component_class_filter_set_finalize_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.finalize);
 				if (ret) {
@@ -902,7 +902,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.query) {
-				ret = bt_private_component_class_filter_set_query_method(
+				ret = bt_component_class_filter_set_query_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.query);
 				if (ret) {
@@ -914,7 +914,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.accept_input_port_connection) {
-				ret = bt_private_component_class_filter_set_accept_input_port_connection_method(
+				ret = bt_component_class_filter_set_accept_input_port_connection_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.accept_input_port_connection);
 				if (ret) {
@@ -926,7 +926,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.accept_output_port_connection) {
-				ret = bt_private_component_class_filter_set_accept_output_port_connection_method(
+				ret = bt_component_class_filter_set_accept_output_port_connection_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.accept_output_port_connection);
 				if (ret) {
@@ -938,7 +938,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.input_port_connected) {
-				ret = bt_private_component_class_filter_set_input_port_connected_method(
+				ret = bt_component_class_filter_set_input_port_connected_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.input_port_connected);
 				if (ret) {
@@ -950,7 +950,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.output_port_connected) {
-				ret = bt_private_component_class_filter_set_output_port_connected_method(
+				ret = bt_component_class_filter_set_output_port_connected_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.output_port_connected);
 				if (ret) {
@@ -962,7 +962,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.input_port_disconnected) {
-				ret = bt_private_component_class_filter_set_input_port_disconnected_method(
+				ret = bt_component_class_filter_set_input_port_disconnected_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.input_port_disconnected);
 				if (ret) {
@@ -974,7 +974,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.output_port_disconnected) {
-				ret = bt_private_component_class_filter_set_output_port_disconnected_method(
+				ret = bt_component_class_filter_set_output_port_disconnected_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.output_port_disconnected);
 				if (ret) {
@@ -986,7 +986,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.notif_iter_init) {
-				ret = bt_private_component_class_filter_set_notification_iterator_init_method(
+				ret = bt_component_class_filter_set_notification_iterator_init_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.notif_iter_init);
 				if (ret) {
@@ -998,7 +998,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.filter.notif_iter_finalize) {
-				ret = bt_private_component_class_filter_set_notification_iterator_finalize_method(
+				ret = bt_component_class_filter_set_notification_iterator_finalize_method(
 					flt_comp_class,
 					cc_full_descr->methods.filter.notif_iter_finalize);
 				if (ret) {
@@ -1012,7 +1012,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			if (cc_full_descr->methods.sink.init) {
-				ret = bt_private_component_class_sink_set_init_method(
+				ret = bt_component_class_sink_set_init_method(
 					sink_comp_class,
 					cc_full_descr->methods.sink.init);
 				if (ret) {
@@ -1024,7 +1024,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.sink.finalize) {
-				ret = bt_private_component_class_sink_set_finalize_method(
+				ret = bt_component_class_sink_set_finalize_method(
 					sink_comp_class,
 					cc_full_descr->methods.sink.finalize);
 				if (ret) {
@@ -1036,7 +1036,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.sink.query) {
-				ret = bt_private_component_class_sink_set_query_method(
+				ret = bt_component_class_sink_set_query_method(
 					sink_comp_class,
 					cc_full_descr->methods.sink.query);
 				if (ret) {
@@ -1048,7 +1048,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.sink.accept_input_port_connection) {
-				ret = bt_private_component_class_sink_set_accept_input_port_connection_method(
+				ret = bt_component_class_sink_set_accept_input_port_connection_method(
 					sink_comp_class,
 					cc_full_descr->methods.sink.accept_input_port_connection);
 				if (ret) {
@@ -1060,7 +1060,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.sink.input_port_connected) {
-				ret = bt_private_component_class_sink_set_input_port_connected_method(
+				ret = bt_component_class_sink_set_input_port_connected_method(
 					sink_comp_class,
 					cc_full_descr->methods.sink.input_port_connected);
 				if (ret) {
@@ -1072,7 +1072,7 @@ enum bt_plugin_status bt_plugin_so_init(
 			}
 
 			if (cc_full_descr->methods.sink.input_port_disconnected) {
-				ret = bt_private_component_class_sink_set_input_port_disconnected_method(
+				ret = bt_component_class_sink_set_input_port_disconnected_method(
 					sink_comp_class,
 					cc_full_descr->methods.sink.input_port_disconnected);
 				if (ret) {

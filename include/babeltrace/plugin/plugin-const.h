@@ -97,29 +97,29 @@ extern uint64_t bt_plugin_get_filter_component_class_count(
 extern uint64_t bt_plugin_get_sink_component_class_count(
 		const struct bt_plugin *plugin);
 
-extern struct bt_component_class_source *
+extern const struct bt_component_class_source *
 bt_plugin_borrow_source_component_class_by_index_const_const(
 		const struct bt_plugin *plugin, uint64_t index);
 
-extern struct bt_component_class_filter *
+extern const struct bt_component_class_filter *
 bt_plugin_borrow_filter_component_class_by_index_const(
 		const struct bt_plugin *plugin, uint64_t index);
 
-extern struct bt_component_class_sink *
+extern const struct bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_index_const(
 		const struct bt_plugin *plugin, uint64_t index);
 
-extern struct bt_component_class_source *
-bt_plugin_borrow_source_component_class_by_name_const(const struct bt_plugin *plugin,
-		const char *name);
+extern const struct bt_component_class_source *
+bt_plugin_borrow_source_component_class_by_name_const(
+		const struct bt_plugin *plugin, const char *name);
 
-extern struct bt_component_class_filter *
-bt_plugin_borrow_filter_component_class_by_name_const(const struct bt_plugin *plugin,
-		const char *name);
+extern const struct bt_component_class_filter *
+bt_plugin_borrow_filter_component_class_by_name_const(
+		const struct bt_plugin *plugin, const char *name);
 
-extern struct bt_component_class_sink *
-bt_plugin_borrow_sink_component_class_by_name_const(const struct bt_plugin *plugin,
-		const char *name);
+extern const struct bt_component_class_sink *
+bt_plugin_borrow_sink_component_class_by_name_const(
+		const struct bt_plugin *plugin, const char *name);
 
 #ifdef __cplusplus
 }

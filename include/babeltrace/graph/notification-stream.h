@@ -25,28 +25,37 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
 struct bt_self_notification_iterator;
-struct bt_clock_value;
 struct bt_stream;
 
-extern const struct bt_stream *bt_notification_stream_begin_borrow_stream(
+extern
+struct bt_notification *bt_notification_stream_begin_create(
+		struct bt_self_notification_iterator *notification_iterator,
+		struct bt_stream *stream);
+
+extern
+struct bt_notification *bt_notification_stream_end_create(
+		struct bt_self_notification_iterator *notification_iterator,
+		struct bt_stream *stream);
+
+extern struct bt_stream *bt_notification_stream_begin_borrow_stream(
 		struct bt_notification *notification);
 
-extern const struct bt_clock_value *
-bt_notification_stream_begin_borrow_default_clock_value(
-		struct bt_notification *notif);
+extern void bt_notification_stream_begin_set_default_clock_value(
+		struct bt_notification *notif, uint64_t value_cycles);
 
-extern const struct bt_stream *bt_notification_stream_end_borrow_stream(
+extern struct bt_stream *bt_notification_stream_end_borrow_stream(
 		struct bt_notification *notification);
 
-extern const struct bt_clock_value *
-bt_notification_stream_end_borrow_default_clock_value(
-		struct bt_notification *notif);
+extern void bt_notification_stream_end_set_default_clock_value(
+		struct bt_notification *notif, uint64_t value_cycles);
 
 #ifdef __cplusplus
 }

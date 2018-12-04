@@ -105,11 +105,11 @@ void debug_info_iterator_destroy(struct bt_self_notification_iterator *it)
 }
 
 static
-struct bt_notification *handle_notification(FILE *err,
+const struct bt_notification *handle_notification(FILE *err,
 		struct debug_info_iterator *debug_it,
-		struct bt_notification *notification)
+		const struct bt_notification *notification)
 {
-	struct bt_notification *new_notification = NULL;
+	const struct bt_notification *new_notification = NULL;
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
@@ -227,7 +227,7 @@ struct bt_notification_iterator_next_method_return debug_info_iterator_next(
 	struct bt_self_component *component = NULL;
 	struct debug_info_component *debug_info = NULL;
 	struct bt_notification_iterator *source_it = NULL;
-	struct bt_notification *notification;
+	const struct bt_notification *notification;
 	struct bt_notification_iterator_next_method_return ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,

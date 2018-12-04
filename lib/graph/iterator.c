@@ -32,28 +32,29 @@
 #include <babeltrace/trace-ir/packet-const.h>
 #include <babeltrace/trace-ir/packet-internal.h>
 #include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/graph/connection.h>
+#include <babeltrace/graph/connection-const.h>
 #include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-const.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
-#include <babeltrace/graph/component-sink.h>
-#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/component-sink-const.h>
+#include <babeltrace/graph/notification-const.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/self-component-port-input-notification-iterator.h>
 #include <babeltrace/graph/port-output-notification-iterator.h>
 #include <babeltrace/graph/notification-internal.h>
-#include <babeltrace/graph/notification-event.h>
+#include <babeltrace/graph/notification-event-const.h>
 #include <babeltrace/graph/notification-event-internal.h>
-#include <babeltrace/graph/notification-packet.h>
+#include <babeltrace/graph/notification-packet-const.h>
 #include <babeltrace/graph/notification-packet-internal.h>
-#include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/graph/notification-stream-const.h>
 #include <babeltrace/graph/notification-stream-internal.h>
-#include <babeltrace/graph/port.h>
-#include <babeltrace/graph/private-graph.h>
+#include <babeltrace/graph/port-const.h>
+#include <babeltrace/graph/graph.h>
+#include <babeltrace/graph/graph-const.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
@@ -360,7 +361,7 @@ bt_self_component_port_input_notification_iterator_create(
 	struct bt_component_class *upstream_comp_cls;
 
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
-	comp = bt_port_borrow_component(port);
+	comp = bt_port_borrow_component_inline(port);
 	BT_ASSERT_PRE(bt_port_is_connected(port),
 		"Port is not connected: %![port-]+p", port);
 	BT_ASSERT_PRE(comp, "Port is not part of a component: %![port-]+p",
@@ -371,7 +372,7 @@ bt_self_component_port_input_notification_iterator_create(
 	BT_ASSERT(port->connection);
 	upstream_port = port->connection->upstream_port;
 	BT_ASSERT(upstream_port);
-	upstream_comp = bt_port_borrow_component(upstream_port);
+	upstream_comp = bt_port_borrow_component_inline(upstream_port);
 	BT_ASSERT(upstream_comp);
 	upstream_comp_cls = upstream_comp->class;
 	BT_ASSERT(upstream_comp->class->type ==
@@ -435,7 +436,7 @@ end:
 }
 
 void *bt_self_notification_iterator_get_data(
-		struct bt_self_notification_iterator *self_iterator)
+		const struct bt_self_notification_iterator *self_iterator)
 {
 	struct bt_self_component_port_input_notification_iterator *iterator =
 		(void *) self_iterator;
@@ -458,7 +459,7 @@ void bt_self_notification_iterator_set_data(
 
 BT_ASSERT_PRE_FUNC
 static inline
-void bt_notification_borrow_packet_stream(struct bt_notification *notif,
+void bt_notification_borrow_packet_stream(const struct bt_notification *notif,
 		const struct bt_stream **stream,
 		const struct bt_packet **packet)
 {
@@ -467,21 +468,21 @@ void bt_notification_borrow_packet_stream(struct bt_notification *notif,
 	switch (notif->type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 		*packet = bt_event_borrow_packet_const(
-			bt_notification_event_borrow_event(notif));
+			bt_notification_event_borrow_event_const(notif));
 		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
-		*stream = bt_notification_stream_begin_borrow_stream(notif);
+		*stream = bt_notification_stream_begin_borrow_stream_const(notif);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
-		*stream = bt_notification_stream_end_borrow_stream(notif);
+		*stream = bt_notification_stream_end_borrow_stream_const(notif);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-		*packet = bt_notification_packet_begin_borrow_packet(notif);
+		*packet = bt_notification_packet_begin_borrow_packet_const(notif);
 		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
-		*packet = bt_notification_packet_end_borrow_packet(notif);
+		*packet = bt_notification_packet_end_borrow_packet_const(notif);
 		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
 	default:
@@ -493,15 +494,16 @@ BT_ASSERT_PRE_FUNC
 static inline
 bool validate_notification(
 		struct bt_self_component_port_input_notification_iterator *iterator,
-		struct bt_notification *notif)
+		const struct bt_notification *c_notif)
 {
 	bool is_valid = true;
 	struct stream_state *stream_state;
 	const struct bt_stream *stream = NULL;
 	const struct bt_packet *packet = NULL;
+	struct bt_notification *notif = (void *) c_notif;
 
 	BT_ASSERT(notif);
-	bt_notification_borrow_packet_stream(notif, &stream, &packet);
+	bt_notification_borrow_packet_stream(c_notif, &stream, &packet);
 
 	if (!stream) {
 		/* we don't care about notifications not attached to streams */
@@ -515,7 +517,7 @@ bool validate_notification(
 		 * MUST be a BT_NOTIFICATION_TYPE_STREAM_BEGIN notification
 		 * and its sequence number must be 0.
 		 */
-		if (notif->type != BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
+		if (c_notif->type != BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
 			BT_ASSERT_PRE_MSG("Unexpected notification: missing a "
 				"BT_NOTIFICATION_TYPE_STREAM_BEGIN "
 				"notification prior to this notification: "
@@ -524,17 +526,17 @@ bool validate_notification(
 			goto end;
 		}
 
-		if (notif->seq_num == -1ULL) {
+		if (c_notif->seq_num == -1ULL) {
 			notif->seq_num = 0;
 		}
 
-		if (notif->seq_num != 0) {
+		if (c_notif->seq_num != 0) {
 			BT_ASSERT_PRE_MSG("Unexpected notification sequence "
 				"number for this notification iterator: "
 				"this is the first notification for this "
 				"stream, expecting sequence number 0: "
 				"seq-num=%" PRIu64 ", %![stream-]+s",
-				notif->seq_num, stream);
+				c_notif->seq_num, stream);
 			is_valid = false;
 			goto end;
 		}
@@ -564,26 +566,26 @@ bool validate_notification(
 		goto end;
 	}
 
-	if (notif->seq_num == -1ULL) {
+	if (c_notif->seq_num == -1ULL) {
 		notif->seq_num = stream_state->expected_notif_seq_num;
 	}
 
-	if (notif->seq_num != -1ULL &&
-			notif->seq_num != stream_state->expected_notif_seq_num) {
+	if (c_notif->seq_num != -1ULL &&
+			c_notif->seq_num != stream_state->expected_notif_seq_num) {
 		BT_ASSERT_PRE_MSG("Unexpected notification sequence number: "
 			"seq-num=%" PRIu64 ", "
 			"expected-seq-num=%" PRIu64 ", %![stream-]+s",
-			notif->seq_num, stream_state->expected_notif_seq_num,
+			c_notif->seq_num, stream_state->expected_notif_seq_num,
 			stream);
 		is_valid = false;
 		goto end;
 	}
 
-	switch (notif->type) {
+	switch (c_notif->type) {
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
 		BT_ASSERT_PRE_MSG("Unexpected BT_NOTIFICATION_TYPE_STREAM_BEGIN "
 			"notification at this point: notif-seq-num=%" PRIu64 ", "
-			"%![stream-]+s", notif->seq_num, stream);
+			"%![stream-]+s", c_notif->seq_num, stream);
 		is_valid = false;
 		goto end;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -593,7 +595,7 @@ bool validate_notification(
 				"BT_NOTIFICATION_TYPE_PACKET_END notification "
 				"prior to this notification: "
 				"notif-seq-num=%" PRIu64 ", "
-				"%![stream-]+s", notif->seq_num, stream);
+				"%![stream-]+s", c_notif->seq_num, stream);
 			is_valid = false;
 			goto end;
 		}
@@ -607,7 +609,7 @@ bool validate_notification(
 				"BT_NOTIFICATION_TYPE_PACKET_END notification "
 				"prior to this notification: "
 				"notif-seq-num=%" PRIu64 ", %![stream-]+s, "
-				"%![packet-]+a", notif->seq_num, stream,
+				"%![packet-]+a", c_notif->seq_num, stream,
 				packet);
 			is_valid = false;
 			goto end;
@@ -623,7 +625,7 @@ bool validate_notification(
 				"BT_NOTIFICATION_TYPE_PACKET_BEGIN notification "
 				"prior to this notification: "
 				"notif-seq-num=%" PRIu64 ", %![stream-]+s, "
-				"%![packet-]+a", notif->seq_num, stream,
+				"%![packet-]+a", c_notif->seq_num, stream,
 				packet);
 			is_valid = false;
 			goto end;
@@ -637,7 +639,7 @@ bool validate_notification(
 				"BT_NOTIFICATION_TYPE_EVENT notification: "
 				"notif-seq-num=%" PRIu64 ", %![stream-]+s, "
 				"%![notif-packet-]+a, %![expected-packet-]+a",
-				notif->seq_num, stream,
+				c_notif->seq_num, stream,
 				stream_state->cur_packet, packet);
 			is_valid = false;
 			goto end;
@@ -659,7 +661,8 @@ bool validate_notifications(
 		uint64_t count)
 {
 	bool ret = true;
-	bt_notification_array notifs = (void *) iterator->base.notifs->pdata;
+	bt_notification_array_const notifs =
+		(void *) iterator->base.notifs->pdata;
 	uint64_t i;
 
 	for (i = 0; i < count; i++) {
@@ -673,7 +676,7 @@ bool validate_notifications(
 }
 
 BT_ASSERT_PRE_FUNC
-static inline bool priv_conn_notif_iter_can_end(
+static inline bool self_comp_port_input_notif_iter_can_end(
 		struct bt_self_component_port_input_notification_iterator *iterator)
 {
 	GHashTableIter iter;
@@ -710,10 +713,10 @@ end:
 enum bt_notification_iterator_status
 bt_self_component_port_input_notification_iterator_next(
 		struct bt_self_component_port_input_notification_iterator *iterator,
-		bt_notification_array *notifs, uint64_t *user_count)
+		bt_notification_array_const *notifs, uint64_t *user_count)
 {
 	typedef enum bt_self_notification_iterator_status (*method_t)(
-			void *, bt_notification_array, uint64_t, uint64_t *);
+			void *, bt_notification_array_const, uint64_t, uint64_t *);
 
 	method_t method = NULL;
 	struct bt_component_class *comp_cls;
@@ -786,7 +789,7 @@ bt_self_component_port_input_notification_iterator_next(
 		 */
 		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
 			uint64_t i;
-			bt_notification_array notifs =
+			bt_notification_array_const notifs =
 				(void *) iterator->base.notifs->pdata;
 
 			for (i = 0; i < *user_count; i++) {
@@ -809,7 +812,7 @@ bt_self_component_port_input_notification_iterator_next(
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
-		BT_ASSERT_PRE(priv_conn_notif_iter_can_end(iterator),
+		BT_ASSERT_PRE(self_comp_port_input_notif_iter_can_end(iterator),
 			"Notification iterator cannot end at this point: "
 			"%!+i", iterator);
 		BT_ASSERT(iterator->state ==
@@ -830,7 +833,7 @@ end:
 enum bt_notification_iterator_status
 bt_port_output_notification_iterator_next(
 		struct bt_port_output_notification_iterator *iterator,
-		bt_notification_array *notifs_to_user,
+		bt_notification_array_const *notifs_to_user,
 		uint64_t *count_to_user)
 {
 	enum bt_notification_iterator_status status;
@@ -913,14 +916,13 @@ void bt_port_output_notification_iterator_destroy(struct bt_object *obj)
 
 struct bt_port_output_notification_iterator *
 bt_port_output_notification_iterator_create(
-		struct bt_private_graph *priv_graph,
-		struct bt_port_output *output_port)
+		struct bt_graph *graph,
+		const struct bt_port_output *output_port)
 {
 	struct bt_port_output_notification_iterator *iterator = NULL;
 	struct bt_component_class_sink *colander_comp_cls = NULL;
 	struct bt_component *output_port_comp = NULL;
 	struct bt_component_sink *colander_comp;
-	struct bt_graph *graph = (void *) priv_graph;
 	enum bt_graph_status graph_status;
 	struct bt_port_input *colander_in_port = NULL;
 	struct bt_component_class_sink_colander_data colander_data;
@@ -928,7 +930,8 @@ bt_port_output_notification_iterator_create(
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(output_port, "Output port");
-	output_port_comp = bt_port_borrow_component((void *) output_port);
+	output_port_comp = bt_port_borrow_component_inline(
+		(const void *) output_port);
 	BT_ASSERT_PRE(output_port_comp,
 		"Output port has no component: %!+p", output_port);
 	BT_ASSERT_PRE(bt_component_borrow_graph(output_port_comp) ==
@@ -968,10 +971,10 @@ bt_port_output_notification_iterator_create(
 
 	/* Hope that nobody uses this very unique name */
 	graph_status =
-		bt_private_graph_add_sink_component_with_init_method_data(
+		bt_graph_add_sink_component_with_init_method_data(
 			(void *) graph, colander_comp_cls,
 			"colander-36ac3409-b1a8-4d60-ab1f-4fdf341a8fb1",
-			NULL, &colander_data, &iterator->colander);
+			NULL, &colander_data, (void *) &iterator->colander);
 	if (graph_status != BT_GRAPH_STATUS_OK) {
 		BT_LIB_LOGW("Cannot add colander sink component to graph: "
 			"%1[graph-]+g, status=%s", graph,
@@ -983,10 +986,11 @@ bt_port_output_notification_iterator_create(
 	 * Connect provided output port to the colander component's
 	 * input port.
 	 */
-	colander_in_port = bt_component_sink_borrow_input_port_by_index(
-		iterator->colander, 0);
+	colander_in_port =
+		(void *) bt_component_sink_borrow_input_port_by_index_const(
+			(void *) iterator->colander, 0);
 	BT_ASSERT(colander_in_port);
-	graph_status = bt_private_graph_connect_ports(priv_graph,
+	graph_status = bt_graph_connect_ports(graph,
 		output_port, colander_in_port, NULL);
 	if (graph_status != BT_GRAPH_STATUS_OK) {
 		BT_LIB_LOGW("Cannot add colander sink component to graph: "

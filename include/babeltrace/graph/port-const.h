@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
-#define BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
+#ifndef BABELTRACE_GRAPH_PORT_CONST_H
+#define BABELTRACE_GRAPH_PORT_CONST_H
 
 /*
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +25,50 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
+/* For bt_bool */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class_source;
-struct bt_self_component_class_source;
+struct bt_port;
+struct bt_connection;
+struct bt_component;
+
+enum bt_port_type {
+	BT_PORT_TYPE_INPUT = 0,
+	BT_PORT_TYPE_OUTPUT = 1,
+};
+
+extern const char *bt_port_get_name(const struct bt_port *port);
+
+extern enum bt_port_type bt_port_get_type(const struct bt_port *port);
+
+extern const struct bt_connection *bt_port_borrow_connection_const(
+		const struct bt_port *port);
+
+extern const struct bt_component *bt_port_borrow_component_const(
+		const struct bt_port *port);
+
+extern bt_bool bt_port_is_connected(const struct bt_port *port);
 
 static inline
-const struct bt_component_class_source *
-bt_self_component_class_source_as_component_class_source(
-		struct bt_self_component_class_source *self_comp_cls_source)
+bt_bool bt_port_is_input(const struct bt_port *port)
 {
-	return (const void *) self_comp_cls_source;
+	return bt_port_get_type(port) == BT_PORT_TYPE_INPUT;
+}
+
+static inline
+bt_bool bt_port_is_output(const struct bt_port *port)
+{
+	return bt_port_get_type(port) == BT_PORT_TYPE_OUTPUT;
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H */
+#endif /* BABELTRACE_GRAPH_PORT_CONST_H */

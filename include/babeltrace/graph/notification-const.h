@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_GRAPH_PORT_OUTPUT_H
-#define BABELTRACE_GRAPH_PORT_OUTPUT_H
+#ifndef BABELTRACE_GRAPH_NOTIFICATION_CONST_H
+#define BABELTRACE_GRAPH_NOTIFICATION_CONST_H
 
 /*
- * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -25,23 +25,37 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_port_output;
+struct bt_notification;
 
-static inline
-struct bt_port *bt_port_output_as_port(struct bt_port_output *port_output)
-{
-	return (void *) port_output;
-}
+typedef const struct bt_notification **bt_notification_array_const;
+
+/**
+ * Notification types. Unhandled notification types should be ignored.
+ */
+enum bt_notification_type {
+	BT_NOTIFICATION_TYPE_EVENT =			0,
+	BT_NOTIFICATION_TYPE_INACTIVITY =		1,
+	BT_NOTIFICATION_TYPE_STREAM_BEGIN =		2,
+	BT_NOTIFICATION_TYPE_STREAM_END =		3,
+	BT_NOTIFICATION_TYPE_PACKET_BEGIN =		4,
+	BT_NOTIFICATION_TYPE_PACKET_END =		5,
+};
+
+/**
+ * Get a notification's type.
+ *
+ * @param notification	Notification instance
+ * @returns		One of #bt_notification_type
+ */
+extern enum bt_notification_type bt_notification_get_type(
+		const struct bt_notification *notification);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PORT_OUTPUT_H */
+#endif /* BABELTRACE_GRAPH_NOTIFICATION_CONST_H */
