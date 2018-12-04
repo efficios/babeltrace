@@ -141,7 +141,7 @@ int bt_lib_log_level;
  *       Graph. The parameter type is `struct bt_graph *`.
  *
  *   `l`:
- *       Plugin. The parameter type is `struct bt_plugin *`.
+ *       Plugin. The parameter type is `const struct bt_plugin *`.
  *
  *   `o`:
  *       Object pool. The parameter type is `struct bt_object_pool *`.

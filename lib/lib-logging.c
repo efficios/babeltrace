@@ -1141,7 +1141,7 @@ static inline void format_notification_iterator(char **buf_ch,
 }
 
 static inline void format_plugin(char **buf_ch, bool extended,
-		const char *prefix, struct bt_plugin *plugin)
+		const char *prefix, const struct bt_plugin *plugin)
 {
 	char tmp_prefix[64];
 

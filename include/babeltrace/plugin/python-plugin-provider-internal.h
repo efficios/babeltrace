@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-const.h>
 
 extern
 struct bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path);

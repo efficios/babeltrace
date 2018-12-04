@@ -32,6 +32,7 @@
 #include <babeltrace/common-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
+#include <babeltrace/plugin/plugin-const.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
@@ -116,22 +117,21 @@ uint64_t bt_plugin_set_get_plugin_count(struct bt_plugin_set *plugin_set)
 	return (uint64_t) plugin_set->plugins->len;
 }
 
-struct bt_plugin *bt_plugin_set_borrow_plugin_by_index(
-		struct bt_plugin_set *plugin_set,
-		uint64_t index)
+const struct bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
+		const struct bt_plugin_set *plugin_set, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin_set, "Plugin set");
 	BT_ASSERT_PRE_VALID_INDEX(index, plugin_set->plugins->len);
 	return g_ptr_array_index(plugin_set->plugins, index);
 }
 
-struct bt_plugin_set *bt_plugin_create_all_from_static(void)
+const struct bt_plugin_set *bt_plugin_create_all_from_static(void)
 {
 	/* bt_plugin_so_create_all_from_static() logs errors */
 	return bt_plugin_so_create_all_from_static();
 }
 
-struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path)
+const struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path)
 {
 	struct bt_plugin_set *plugin_set = NULL;
 
@@ -171,13 +171,13 @@ static void destroy_gstring(void *data)
 	g_string_free(data, TRUE);
 }
 
-struct bt_plugin *bt_plugin_find(const char *plugin_name)
+const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 {
 	const char *system_plugin_dir;
 	char *home_plugin_dir = NULL;
 	const char *envvar;
-	struct bt_plugin *plugin = NULL;
-	struct bt_plugin_set *plugin_set = NULL;
+	const struct bt_plugin *plugin = NULL;
+	const struct bt_plugin_set *plugin_set = NULL;
 	GPtrArray *dirs = NULL;
 	int ret;
 	size_t i, j;
@@ -264,7 +264,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 		}
 
 		for (j = 0; j < plugin_set->plugins->len; j++) {
-			struct bt_plugin *candidate_plugin =
+			const struct bt_plugin *candidate_plugin =
 				g_ptr_array_index(plugin_set->plugins, j);
 
 			if (strcmp(bt_plugin_get_name(candidate_plugin),
@@ -285,7 +285,7 @@ struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	plugin_set = bt_plugin_create_all_from_static();
 	if (plugin_set) {
 		for (j = 0; j < plugin_set->plugins->len; j++) {
-			struct bt_plugin *candidate_plugin =
+			const struct bt_plugin *candidate_plugin =
 				g_ptr_array_index(plugin_set->plugins, j);
 
 			if (strcmp(bt_plugin_get_name(candidate_plugin),
@@ -341,7 +341,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 	switch (flag) {
 	case FTW_F:
 	{
-		struct bt_plugin_set *plugins_from_file;
+		const struct bt_plugin_set *plugins_from_file;
 
 		if (name[0] == '.') {
 			/* Skip hidden files */
@@ -361,7 +361,9 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 				BT_LIB_LOGD("Adding plugin to plugin set: "
 					"plugin-path=\"%s\", %![plugin-]+l",
 					file, plugin);
-				bt_plugin_set_add_plugin(append_all_from_dir_info.plugin_set, plugin);
+				bt_plugin_set_add_plugin(
+					append_all_from_dir_info.plugin_set,
+					plugin);
 			}
 
 			bt_object_put_ref(plugins_from_file);
@@ -407,7 +409,7 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 	return ret;
 }
 
-struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
+const struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
 		bt_bool recurse)
 {
 	struct bt_plugin_set *plugin_set;
@@ -442,38 +444,38 @@ end:
 	return plugin_set;
 }
 
-const char *bt_plugin_get_name(struct bt_plugin *plugin)
+const char *bt_plugin_get_name(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return plugin->info.name_set ? plugin->info.name->str : NULL;
 }
 
-const char *bt_plugin_get_author(struct bt_plugin *plugin)
+const char *bt_plugin_get_author(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return plugin->info.author_set ? plugin->info.author->str : NULL;
 }
 
-const char *bt_plugin_get_license(struct bt_plugin *plugin)
+const char *bt_plugin_get_license(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return plugin->info.license_set ? plugin->info.license->str : NULL;
 }
 
-const char *bt_plugin_get_path(struct bt_plugin *plugin)
+const char *bt_plugin_get_path(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return plugin->info.path_set ? plugin->info.path->str : NULL;
 }
 
-const char *bt_plugin_get_description(struct bt_plugin *plugin)
+const char *bt_plugin_get_description(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return plugin->info.description_set ?
 		plugin->info.description->str : NULL;
 }
 
-enum bt_property_availability bt_plugin_get_version(struct bt_plugin *plugin,
+enum bt_property_availability bt_plugin_get_version(const struct bt_plugin *plugin,
 		unsigned int *major, unsigned int *minor, unsigned int *patch,
 		const char **extra)
 {
@@ -508,19 +510,19 @@ end:
 	return avail;
 }
 
-uint64_t bt_plugin_get_source_component_class_count(struct bt_plugin *plugin)
+uint64_t bt_plugin_get_source_component_class_count(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return (uint64_t) plugin->src_comp_classes->len;
 }
 
-uint64_t bt_plugin_get_filter_component_class_count(struct bt_plugin *plugin)
+uint64_t bt_plugin_get_filter_component_class_count(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return (uint64_t) plugin->flt_comp_classes->len;
 }
 
-uint64_t bt_plugin_get_sink_component_class_count(struct bt_plugin *plugin)
+uint64_t bt_plugin_get_sink_component_class_count(const struct bt_plugin *plugin)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
 	return (uint64_t) plugin->sink_comp_classes->len;
@@ -528,7 +530,7 @@ uint64_t bt_plugin_get_sink_component_class_count(struct bt_plugin *plugin)
 
 static inline
 struct bt_component_class *borrow_component_class_by_index(
-		struct bt_plugin *plugin, GPtrArray *comp_classes,
+		const struct bt_plugin *plugin, GPtrArray *comp_classes,
 		uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(plugin, "Plugin");
@@ -538,24 +540,24 @@ struct bt_component_class *borrow_component_class_by_index(
 
 
 struct bt_component_class_source *
-bt_plugin_borrow_source_component_class_by_index(
-		struct bt_plugin *plugin, uint64_t index)
+bt_plugin_borrow_source_component_class_by_index_const_const(
+		const struct bt_plugin *plugin, uint64_t index)
 {
 	return (void *) borrow_component_class_by_index(plugin,
 		plugin->src_comp_classes, index);
 }
 
 struct bt_component_class_filter *
-bt_plugin_borrow_filter_component_class_by_index(
-		struct bt_plugin *plugin, uint64_t index)
+bt_plugin_borrow_filter_component_class_by_index_const(
+		const struct bt_plugin *plugin, uint64_t index)
 {
 	return (void *) borrow_component_class_by_index(plugin,
 		plugin->flt_comp_classes, index);
 }
 
 struct bt_component_class_sink *
-bt_plugin_borrow_sink_component_class_by_index(
-		struct bt_plugin *plugin, uint64_t index)
+bt_plugin_borrow_sink_component_class_by_index_const(
+		const struct bt_plugin *plugin, uint64_t index)
 {
 	return (void *) borrow_component_class_by_index(plugin,
 		plugin->sink_comp_classes, index);
@@ -563,7 +565,7 @@ bt_plugin_borrow_sink_component_class_by_index(
 
 static inline
 struct bt_component_class *borrow_component_class_by_name(
-		struct bt_plugin *plugin, GPtrArray *comp_classes,
+		const struct bt_plugin *plugin, GPtrArray *comp_classes,
 		const char *name)
 {
 	struct bt_component_class *comp_class = NULL;
@@ -590,24 +592,24 @@ struct bt_component_class *borrow_component_class_by_name(
 }
 
 struct bt_component_class_source *
-bt_plugin_borrow_source_component_class_by_name(struct bt_plugin *plugin,
-		const char *name)
+bt_plugin_borrow_source_component_class_by_name_const(
+		const struct bt_plugin *plugin, const char *name)
 {
 	return (void *) borrow_component_class_by_name(plugin,
 		plugin->src_comp_classes, name);
 }
 
 struct bt_component_class_filter *
-bt_plugin_borrow_filter_component_class_by_name(struct bt_plugin *plugin,
-		const char *name)
+bt_plugin_borrow_filter_component_class_by_name_const(
+		const struct bt_plugin *plugin, const char *name)
 {
 	return (void *) borrow_component_class_by_name(plugin,
 		plugin->flt_comp_classes, name);
 }
 
 struct bt_component_class_sink *
-bt_plugin_borrow_sink_component_class_by_name(struct bt_plugin *plugin,
-		const char *name)
+bt_plugin_borrow_sink_component_class_by_name_const(
+		const struct bt_plugin *plugin, const char *name)
 {
 	return (void *) borrow_component_class_by_name(plugin,
 		plugin->sink_comp_classes, name);

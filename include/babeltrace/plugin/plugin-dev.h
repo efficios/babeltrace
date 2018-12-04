@@ -32,7 +32,7 @@
 #include <stdint.h>
 
 /* For enum bt_plugin_status */
-#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-const.h>
 
 /* For private component class method type definitions */
 #include <babeltrace/graph/private-component-class-source.h>
@@ -63,7 +63,7 @@ extern "C" {
 
 /* Plugin initialization function type */
 typedef enum bt_plugin_status (*bt_plugin_init_func)(
-		struct bt_plugin *plugin);
+		const struct bt_plugin *plugin);
 
 /* Plugin exit function type */
 typedef enum bt_plugin_status (*bt_plugin_exit_func)(void);
