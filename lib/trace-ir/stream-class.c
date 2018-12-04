@@ -31,7 +31,7 @@
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/private-trace.h>
+#include <babeltrace/trace-ir/trace-const.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
@@ -90,13 +90,13 @@ void free_field_wrapper(struct bt_field_wrapper *field_wrapper,
 
 BT_ASSERT_PRE_FUNC
 static
-bool stream_class_id_is_unique(struct bt_trace *trace, uint64_t id)
+bool stream_class_id_is_unique(const struct bt_trace *trace, uint64_t id)
 {
 	uint64_t i;
 	bool is_unique = true;
 
 	for (i = 0; i < trace->stream_classes->len; i++) {
-		struct bt_stream_class *sc =
+		const struct bt_stream_class *sc =
 			trace->stream_classes->pdata[i];
 
 		if (sc->id == id) {
@@ -181,55 +181,49 @@ end:
 	return stream_class;
 }
 
-struct bt_private_stream_class *bt_private_stream_class_create(
-		struct bt_private_trace *priv_trace)
+struct bt_stream_class *bt_stream_class_create(struct bt_trace *trace)
 {
-	struct bt_trace *trace = (void *) priv_trace;
-
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(trace->assigns_automatic_stream_class_id,
 		"Trace does not automatically assigns stream class IDs: "
 		"%![sc-]+t", trace);
-	return (void *) create_stream_class_with_id(trace,
+	return create_stream_class_with_id(trace,
 		(uint64_t) trace->stream_classes->len);
 }
 
-struct bt_private_stream_class *bt_private_stream_class_create_with_id(
-		struct bt_private_trace *priv_trace, uint64_t id)
+struct bt_stream_class *bt_stream_class_create_with_id(
+		struct bt_trace *trace, uint64_t id)
 {
-	struct bt_trace *trace = (void *) priv_trace;
-
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(!trace->assigns_automatic_stream_class_id,
 		"Trace automatically assigns stream class IDs: "
 		"%![sc-]+t", trace);
-	return (void *) create_stream_class_with_id(trace, id);
+	return create_stream_class_with_id(trace, id);
 }
 
-struct bt_trace *bt_stream_class_borrow_trace(struct bt_stream_class *stream_class)
+struct bt_trace *bt_stream_class_borrow_trace(
+		struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return bt_stream_class_borrow_trace_inline(stream_class);
 }
 
-struct bt_private_trace *bt_private_stream_class_borrow_trace(
-		struct bt_private_stream_class *stream_class)
+const struct bt_trace *bt_stream_class_borrow_trace_const(
+		const struct bt_stream_class *stream_class)
 {
-	return (void *) bt_stream_class_borrow_trace((void *) stream_class);
+	return bt_stream_class_borrow_trace((void *) stream_class);
 }
 
-const char *bt_stream_class_get_name(struct bt_stream_class *stream_class)
+const char *bt_stream_class_get_name(const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->name.value;
 }
 
-int bt_private_stream_class_set_name(
-		struct bt_private_stream_class *priv_stream_class,
+int bt_stream_class_set_name(
+		struct bt_stream_class *stream_class,
 		const char *name)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
@@ -239,14 +233,14 @@ int bt_private_stream_class_set_name(
 	return 0;
 }
 
-uint64_t bt_stream_class_get_id(struct bt_stream_class *stream_class)
+uint64_t bt_stream_class_get_id(const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->id;
 }
 
 uint64_t bt_stream_class_get_event_class_count(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (uint64_t) stream_class->event_classes->len;
@@ -260,11 +254,11 @@ struct bt_event_class *bt_stream_class_borrow_event_class_by_index(
 	return g_ptr_array_index(stream_class->event_classes, index);
 }
 
-struct bt_private_event_class *
-bt_private_stream_class_borrow_event_class_by_index(
-		struct bt_private_stream_class *stream_class, uint64_t index)
+const struct bt_event_class *
+bt_stream_class_borrow_event_class_by_index_const(
+		const struct bt_stream_class *stream_class, uint64_t index)
 {
-	return (void *) bt_stream_class_borrow_event_class_by_index(
+	return bt_stream_class_borrow_event_class_by_index(
 		(void *) stream_class, index);
 }
 
@@ -290,36 +284,27 @@ end:
 	return event_class;
 }
 
-struct bt_private_event_class *
-bt_private_stream_class_borrow_event_class_by_id(
-		struct bt_private_stream_class *stream_class, uint64_t id)
+const struct bt_event_class *
+bt_stream_class_borrow_event_class_by_id_const(
+		const struct bt_stream_class *stream_class, uint64_t id)
 {
-	return (void *) bt_stream_class_borrow_event_class_by_id(
+	return bt_stream_class_borrow_event_class_by_id(
 		(void *) stream_class, id);
 }
 
-struct bt_field_class *bt_stream_class_borrow_packet_context_field_class(
-		struct bt_stream_class *stream_class)
+const struct bt_field_class *
+bt_stream_class_borrow_packet_context_field_class_const(
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->packet_context_fc;
 }
 
-struct bt_private_field_class *
-bt_private_stream_class_borrow_packet_context_field_class(
-		struct bt_private_stream_class *stream_class)
-{
-	return (void *) bt_stream_class_borrow_packet_context_field_class(
-		(void *) stream_class);
-}
-
-int bt_private_stream_class_set_packet_context_field_class(
-		struct bt_private_stream_class *priv_stream_class,
-		struct bt_private_field_class *priv_field_class)
+int bt_stream_class_set_packet_context_field_class(
+		struct bt_stream_class *stream_class,
+		struct bt_field_class *field_class)
 {
 	int ret;
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-	struct bt_field_class *field_class = (void *) priv_field_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
 		.packet_context = field_class,
@@ -355,28 +340,18 @@ end:
 	return ret;
 }
 
-struct bt_field_class *bt_stream_class_borrow_event_header_field_class(
-		struct bt_stream_class *stream_class)
+const struct bt_field_class *bt_stream_class_borrow_event_header_field_class_const(
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->event_header_fc;
 }
 
-struct bt_private_field_class *
-bt_private_stream_class_borrow_event_header_field_class(
-		struct bt_private_stream_class *stream_class)
-{
-	return (void *) bt_stream_class_borrow_event_header_field_class(
-		(void *) stream_class);
-}
-
-int bt_private_stream_class_set_event_header_field_class(
-		struct bt_private_stream_class *priv_stream_class,
-		struct bt_private_field_class *priv_field_class)
+int bt_stream_class_set_event_header_field_class(
+		struct bt_stream_class *stream_class,
+		struct bt_field_class *field_class)
 {
 	int ret;
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-	struct bt_field_class *field_class = (void *) priv_field_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
 		.packet_context = NULL,
@@ -413,28 +388,19 @@ end:
 	return ret;
 }
 
-struct bt_field_class *bt_stream_class_borrow_event_common_context_field_class(
-		struct bt_stream_class *stream_class)
+const struct bt_field_class *
+bt_stream_class_borrow_event_common_context_field_class_const(
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->event_common_context_fc;
 }
 
-struct bt_private_field_class *
-bt_private_stream_class_borrow_event_common_context_field_class(
-		struct bt_private_stream_class *stream_class)
-{
-	return (void *) bt_stream_class_borrow_event_common_context_field_class(
-		(void *) stream_class);
-}
-
-int bt_private_stream_class_set_event_common_context_field_class(
-		struct bt_private_stream_class *priv_stream_class,
-		struct bt_private_field_class *priv_field_class)
+int bt_stream_class_set_event_common_context_field_class(
+		struct bt_stream_class *stream_class,
+		struct bt_field_class *field_class)
 {
 	int ret;
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-	struct bt_field_class *field_class = (void *) priv_field_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
 		.packet_context = NULL,
@@ -473,20 +439,18 @@ end:
 }
 
 BT_HIDDEN
-void _bt_stream_class_freeze(struct bt_stream_class *stream_class)
+void _bt_stream_class_freeze(const struct bt_stream_class *stream_class)
 {
 	/* The field classes and default clock class are already frozen */
 	BT_ASSERT(stream_class);
 	BT_LIB_LOGD("Freezing stream class: %!+S", stream_class);
-	stream_class->frozen = true;
+	((struct bt_stream_class *) stream_class)->frozen = true;
 }
 
-int bt_private_stream_class_set_default_clock_class(
-		struct bt_private_stream_class *priv_stream_class,
+int bt_stream_class_set_default_clock_class(
+		struct bt_stream_class *stream_class,
 		struct bt_clock_class *clock_class)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
@@ -506,19 +470,24 @@ struct bt_clock_class *bt_stream_class_borrow_default_clock_class(
 	return stream_class->default_clock_class;
 }
 
+const struct bt_clock_class *bt_stream_class_borrow_default_clock_class_const(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return stream_class->default_clock_class;
+}
+
 bt_bool bt_stream_class_assigns_automatic_event_class_id(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (bt_bool) stream_class->assigns_automatic_event_class_id;
 }
 
-void bt_private_stream_class_set_assigns_automatic_event_class_id(
-		struct bt_private_stream_class *priv_stream_class,
+void bt_stream_class_set_assigns_automatic_event_class_id(
+		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	stream_class->assigns_automatic_event_class_id = (bool) value;
@@ -527,18 +496,16 @@ void bt_private_stream_class_set_assigns_automatic_event_class_id(
 }
 
 bt_bool bt_stream_class_assigns_automatic_stream_id(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (bt_bool) stream_class->assigns_automatic_stream_id;
 }
 
-void bt_private_stream_class_set_assigns_automatic_stream_id(
-		struct bt_private_stream_class *priv_stream_class,
+void bt_stream_class_set_assigns_automatic_stream_id(
+		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	stream_class->assigns_automatic_stream_id = (bool) value;
@@ -547,18 +514,16 @@ void bt_private_stream_class_set_assigns_automatic_stream_id(
 }
 
 bt_bool bt_stream_class_packets_have_discarded_event_counter_snapshot(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (bt_bool) stream_class->packets_have_discarded_event_counter_snapshot;
 }
 
-void bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
-		struct bt_private_stream_class *priv_stream_class,
+void bt_stream_class_set_packets_have_discarded_event_counter_snapshot(
+		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	stream_class->packets_have_discarded_event_counter_snapshot =
@@ -569,18 +534,16 @@ void bt_private_stream_class_set_packets_have_discarded_event_counter_snapshot(
 }
 
 bt_bool bt_stream_class_packets_have_packet_counter_snapshot(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (bt_bool) stream_class->packets_have_packet_counter_snapshot;
 }
 
-void bt_private_stream_class_set_packets_have_packet_counter_snapshot(
-		struct bt_private_stream_class *priv_stream_class,
+void bt_stream_class_set_packets_have_packet_counter_snapshot(
+		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	stream_class->packets_have_packet_counter_snapshot =
@@ -591,18 +554,16 @@ void bt_private_stream_class_set_packets_have_packet_counter_snapshot(
 }
 
 bt_bool bt_stream_class_packets_have_default_beginning_clock_value(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (bt_bool) stream_class->packets_have_default_beginning_cv;
 }
 
-void bt_private_stream_class_set_packets_have_default_beginning_clock_value(
-		struct bt_private_stream_class *priv_stream_class,
+void bt_stream_class_set_packets_have_default_beginning_clock_value(
+		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
@@ -615,18 +576,16 @@ void bt_private_stream_class_set_packets_have_default_beginning_clock_value(
 }
 
 bt_bool bt_stream_class_packets_have_default_end_clock_value(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return (bt_bool) stream_class->packets_have_default_end_cv;
 }
 
-void bt_private_stream_class_set_packets_have_default_end_clock_value(
-		struct bt_private_stream_class *priv_stream_class,
+void bt_stream_class_set_packets_have_default_end_clock_value(
+		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
@@ -639,7 +598,7 @@ void bt_private_stream_class_set_packets_have_default_end_clock_value(
 }
 
 bt_bool bt_stream_class_default_clock_is_always_known(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	/* BT_CLOCK_VALUE_STATUS_UNKNOWN is not supported as of 2.0 */
 	return BT_TRUE;

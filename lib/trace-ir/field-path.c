@@ -28,7 +28,7 @@
 #include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
-#include <babeltrace/trace-ir/field-path.h>
+#include <babeltrace/trace-ir/field-path-const.h>
 #include <babeltrace/object.h>
 #include <limits.h>
 #include <stdint.h>
@@ -78,20 +78,21 @@ end:
 	return field_path;
 }
 
-enum bt_scope bt_field_path_get_root_scope(struct bt_field_path *field_path)
+enum bt_scope bt_field_path_get_root_scope(
+		const struct bt_field_path *field_path)
 {
 	BT_ASSERT_PRE_NON_NULL(field_path, "Field path");
 	return field_path->root;
 }
 
-uint64_t bt_field_path_get_index_count(struct bt_field_path *field_path)
+uint64_t bt_field_path_get_index_count(const struct bt_field_path *field_path)
 {
 	BT_ASSERT_PRE_NON_NULL(field_path, "Field path");
 	return (uint64_t) field_path->indexes->len;
 }
 
-uint64_t bt_field_path_get_index_by_index(struct bt_field_path *field_path,
-		uint64_t index)
+uint64_t bt_field_path_get_index_by_index(
+		const struct bt_field_path *field_path, uint64_t index)
 {
 	BT_ASSERT_PRE_NON_NULL(field_path, "Field path");
 	BT_ASSERT_PRE_VALID_INDEX(index, field_path->indexes->len);

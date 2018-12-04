@@ -28,7 +28,7 @@
 #include <babeltrace/object.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
-#include <babeltrace/trace-ir/field-path.h>
+#include <babeltrace/trace-ir/field-path-const.h>
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
 #include <limits.h>
 #include <stdint.h>

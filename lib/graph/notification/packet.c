@@ -66,11 +66,10 @@ end:
 
 struct bt_private_notification *bt_private_notification_packet_begin_create(
 		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_private_packet *priv_packet)
+		struct bt_packet *packet)
 {
 	struct bt_self_component_port_input_notification_iterator *notif_iter =
 		(void *) self_notif_iter;
-	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_packet_begin *notification = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
@@ -138,24 +137,22 @@ void bt_notification_packet_begin_recycle(struct bt_notification *notif)
 	bt_object_pool_recycle_object(&graph->packet_begin_notif_pool, notif);
 }
 
-struct bt_packet *bt_notification_packet_begin_borrow_packet(
-		struct bt_notification *notification)
+struct bt_packet *bt_private_notification_packet_begin_borrow_packet(
+		struct bt_private_notification *notification)
 {
 	struct bt_notification_packet_begin *packet_begin;
 
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
 		BT_NOTIFICATION_TYPE_PACKET_BEGIN);
-	packet_begin = container_of(notification,
-			struct bt_notification_packet_begin, parent);
+	packet_begin = (void *) notification;
 	return packet_begin->packet;
 }
 
-struct bt_private_packet *
-bt_private_notification_packet_begin_borrow_packet(
-		struct bt_private_notification *notification)
+const struct bt_packet *bt_notification_packet_begin_borrow_packet(
+		struct bt_notification *notification)
 {
-	return (void *) bt_notification_packet_begin_borrow_packet(
+	return bt_private_notification_packet_begin_borrow_packet(
 		(void *) notification);
 }
 
@@ -185,11 +182,10 @@ end:
 
 struct bt_private_notification *bt_private_notification_packet_end_create(
 		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_private_packet *priv_packet)
+		struct bt_packet *packet)
 {
 	struct bt_self_component_port_input_notification_iterator *notif_iter =
 		(void *) self_notif_iter;
-	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_packet_end *notification = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
@@ -256,22 +252,21 @@ void bt_notification_packet_end_recycle(struct bt_notification *notif)
 	bt_object_pool_recycle_object(&graph->packet_end_notif_pool, notif);
 }
 
-struct bt_packet *bt_notification_packet_end_borrow_packet(
-		struct bt_notification *notification)
+struct bt_packet *bt_private_notification_packet_end_borrow_packet(
+		struct bt_private_notification *notification)
 {
 	struct bt_notification_packet_end *packet_end;
 
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
 		BT_NOTIFICATION_TYPE_PACKET_END);
-	packet_end = container_of(notification,
-			struct bt_notification_packet_end, parent);
+	packet_end = (void *) notification;
 	return packet_end->packet;
 }
 
-struct bt_private_packet *bt_private_notification_packet_end_borrow_packet(
-		struct bt_private_notification *notification)
+const struct bt_packet *bt_notification_packet_end_borrow_packet(
+		struct bt_notification *notification)
 {
-	return (void *) bt_notification_packet_end_borrow_packet(
+	return bt_private_notification_packet_end_borrow_packet(
 		(void *) notification);
 }

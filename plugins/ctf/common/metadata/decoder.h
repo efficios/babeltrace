@@ -89,7 +89,7 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 		struct ctf_metadata_decoder *metadata_decoder, FILE *fp);
 
 BT_HIDDEN
-struct bt_private_trace *ctf_metadata_decoder_get_ir_trace(
+struct bt_trace *ctf_metadata_decoder_get_ir_trace(
 		struct ctf_metadata_decoder *mdec);
 
 BT_HIDDEN

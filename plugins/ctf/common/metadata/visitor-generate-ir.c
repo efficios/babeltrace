@@ -194,7 +194,7 @@ struct ctx_decl_scope {
  */
 struct ctx {
 	/* Trace IR trace being filled (owned by this) */
-	struct bt_private_trace *trace;
+	struct bt_trace *trace;
 
 	/* CTF meta trace being filled (owned by this) */
 	struct ctf_trace_class *ctf_tc;
@@ -590,7 +590,7 @@ struct ctx *ctx_create(const struct ctf_metadata_decoder_config *decoder_config,
 		goto error;
 	}
 
-	ctx->trace = bt_private_trace_create();
+	ctx->trace = bt_trace_create();
 	if (!ctx->trace) {
 		BT_LOGE_STR("Cannot create empty trace.");
 		goto error;
@@ -2365,7 +2365,7 @@ int visit_integer_decl(struct ctx *ctx,
 	int signedness = 0;
 	struct ctf_node *expression;
 	uint64_t alignment = 0, size = 0;
-	struct bt_private_clock_class *mapped_clock_class = NULL;
+	struct bt_clock_class *mapped_clock_class = NULL;
 	enum ctf_encoding encoding = CTF_ENCODING_NONE;
 	enum bt_field_class_integer_preferred_display_base base =
 		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
@@ -3577,7 +3577,7 @@ static
 int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		struct ctf_field_class *fc)
 {
-	struct bt_private_clock_class *clock_class_to_map_to = NULL;
+	struct bt_clock_class *clock_class_to_map_to = NULL;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 	int ret = 0;
 	uint64_t clock_class_count;
@@ -3605,11 +3605,11 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		 * implicit one at 1 GHz, named `default`, and use this clock
 		 * class.
 		 */
-		clock_class_to_map_to = bt_private_clock_class_create();
+		clock_class_to_map_to = bt_clock_class_create();
 		BT_ASSERT(clock_class_to_map_to);
-		bt_private_clock_class_set_frequency(clock_class_to_map_to,
+		bt_clock_class_set_frequency(clock_class_to_map_to,
 			UINT64_C(1000000000));
-		ret = bt_private_clock_class_set_name(clock_class_to_map_to,
+		ret = bt_clock_class_set_name(clock_class_to_map_to,
 			"default");
 		BT_ASSERT(ret == 0);
 		g_ptr_array_add(ctx->ctf_tc->clock_classes,
@@ -4370,7 +4370,7 @@ error:
 
 static
 int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
-	struct bt_private_clock_class *clock, int *set, int64_t *offset_seconds,
+	struct bt_clock_class *clock, int *set, int64_t *offset_seconds,
 	uint64_t *offset_cycles)
 {
 	int ret = 0;
@@ -4409,7 +4409,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_private_clock_class_set_name(clock, right);
+		ret = bt_clock_class_set_name(clock, right);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
 				"cannot set clock class's name");
@@ -4435,7 +4435,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		bt_private_clock_class_set_uuid(clock, uuid);
+		bt_clock_class_set_uuid(clock, uuid);
 		_SET(set, _CLOCK_UUID_SET);
 	} else if (!strcmp(left, "description")) {
 		char *right;
@@ -4456,7 +4456,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		ret = bt_private_clock_class_set_description(clock, right);
+		ret = bt_clock_class_set_description(clock, right);
 		if (ret) {
 			_BT_LOGE_NODE(entry_node,
 				"Cannot set clock class's description.");
@@ -4492,7 +4492,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		bt_private_clock_class_set_frequency(clock, freq);
+		bt_clock_class_set_frequency(clock, freq);
 		_SET(set, _CLOCK_FREQ_SET);
 	} else if (!strcmp(left, "precision")) {
 		uint64_t precision;
@@ -4513,7 +4513,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		bt_private_clock_class_set_precision(clock, precision);
+		bt_clock_class_set_precision(clock, precision);
 		_SET(set, _CLOCK_PRECISION_SET);
 	} else if (!strcmp(left, "offset_s")) {
 		if (_IS_SET(set, _CLOCK_OFFSET_S_SET)) {
@@ -4571,7 +4571,7 @@ int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
 			goto error;
 		}
 
-		bt_private_clock_class_set_is_absolute(clock, ret);
+		bt_clock_class_set_is_absolute(clock, ret);
 		_SET(set, _CLOCK_ABSOLUTE_SET);
 	} else {
 		_BT_LOGW_NODE(entry_node,
@@ -4617,7 +4617,7 @@ void calibrate_clock_class_offsets(int64_t *offset_seconds,
 
 static
 void apply_clock_class_offset(struct ctx *ctx,
-		struct bt_private_clock_class *clock)
+		struct bt_clock_class *clock)
 {
 	uint64_t freq;
 	int64_t offset_s_to_apply = ctx->decoder_config.clock_class_offset_s;
@@ -4652,10 +4652,9 @@ void apply_clock_class_offset(struct ctx *ctx,
 		offset_s_to_apply += extra_s;
 	}
 
-	freq = bt_clock_class_get_frequency(
-		bt_private_clock_class_as_clock_class(clock));
-	bt_clock_class_get_offset(bt_private_clock_class_as_clock_class(clock),
-		&cur_offset_s, &cur_offset_cycles);
+	freq = bt_clock_class_get_frequency(clock);
+	bt_clock_class_get_offset(clock,
+				  &cur_offset_s, &cur_offset_cycles);
 
 	/* Apply offsets */
 	cur_offset_s += offset_s_to_apply;
@@ -4668,7 +4667,7 @@ void apply_clock_class_offset(struct ctx *ctx,
 	calibrate_clock_class_offsets(&cur_offset_s, &cur_offset_cycles, freq);
 
 	/* Set final offsets */
-	bt_private_clock_class_set_offset(clock, cur_offset_s, cur_offset_cycles);
+	bt_clock_class_set_offset(clock, cur_offset_s, cur_offset_cycles);
 
 end:
 	return;
@@ -4679,7 +4678,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 {
 	int ret = 0;
 	int set = 0;
-	struct bt_private_clock_class *clock;
+	struct bt_clock_class *clock;
 	struct ctf_node *entry_node;
 	struct bt_list_head *decl_list = &clock_node->u.clock.declaration_list;
 	const char *clock_class_name;
@@ -4694,7 +4693,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	clock_node->visited = TRUE;
 
 	/* CTF 1.8's default frequency for a clock class is 1 GHz */
-	clock = bt_private_clock_class_create();
+	clock = bt_clock_class_create();
 	if (!clock) {
 		_BT_LOGE_NODE(clock_node,
 			"Cannot create default clock class.");
@@ -4703,7 +4702,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	}
 
 	/* CTF: not absolute by default */
-	bt_private_clock_class_set_is_absolute(clock, BT_FALSE);
+	bt_clock_class_set_is_absolute(clock, BT_FALSE);
 
 	bt_list_for_each_entry(entry_node, decl_list, siblings) {
 		ret = visit_clock_decl_entry(ctx, entry_node, clock, &set,
@@ -4723,8 +4722,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		goto end;
 	}
 
-	clock_class_name = bt_clock_class_get_name(
-		bt_private_clock_class_as_clock_class(clock));
+	clock_class_name = bt_clock_class_get_name(clock);
 	BT_ASSERT(clock_class_name);
 	if (ctx->is_lttng && strcmp(clock_class_name, "monotonic") == 0) {
 		/*
@@ -4733,19 +4731,17 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		 * it's a condition to be able to sort notifications
 		 * from different sources.
 		 */
-		bt_private_clock_class_set_is_absolute(clock, BT_TRUE);
+		bt_clock_class_set_is_absolute(clock, BT_TRUE);
 	}
 
 	/*
 	 * Adjust offsets so that the part in cycles is less than the
 	 * frequency (move to the part in seconds).
 	 */
-	freq = bt_clock_class_get_frequency(
-		bt_private_clock_class_as_clock_class(clock));
+	freq = bt_clock_class_get_frequency(clock);
 	calibrate_clock_class_offsets(&offset_seconds, &offset_cycles, freq);
-	BT_ASSERT(offset_cycles < bt_clock_class_get_frequency(
-		bt_private_clock_class_as_clock_class(clock)));
-	bt_private_clock_class_set_offset(clock, offset_seconds, offset_cycles);
+	BT_ASSERT(offset_cycles < bt_clock_class_get_frequency(clock));
+	bt_clock_class_set_offset(clock, offset_seconds, offset_cycles);
 	apply_clock_class_offset(ctx, clock);
 	g_ptr_array_add(ctx->ctf_tc->clock_classes, clock);
 	bt_object_get_ref(clock);
@@ -4899,7 +4895,7 @@ void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
 }
 
 BT_HIDDEN
-struct bt_private_trace *ctf_visitor_generate_ir_get_ir_trace(
+struct bt_trace *ctf_visitor_generate_ir_get_ir_trace(
 		struct ctf_visitor_generate_ir *visitor)
 {
 	struct ctx *ctx = (void *) visitor;

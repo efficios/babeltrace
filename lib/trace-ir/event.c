@@ -29,14 +29,15 @@
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-value.h>
+#include <babeltrace/trace-ir/clock-value-const.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
-#include <babeltrace/trace-ir/private-event.h>
+#include <babeltrace/trace-ir/event-const.h>
 #include <babeltrace/trace-ir/event-internal.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
+#include <babeltrace/trace-ir/stream-class-const.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/trace-ir/packet.h>
@@ -51,7 +52,7 @@
 #include <inttypes.h>
 
 BT_HIDDEN
-void _bt_event_set_is_frozen(struct bt_event *event, bool is_frozen)
+void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)
 {
 	BT_ASSERT(event);
 	BT_LIB_LOGD("Setting event's frozen state: %!+e, is-frozen=%d",
@@ -81,7 +82,7 @@ void _bt_event_set_is_frozen(struct bt_event *event, bool is_frozen)
 			is_frozen);
 	}
 
-	event->frozen = is_frozen;
+	((struct bt_event *) event)->frozen = is_frozen;
 	BT_LOGD_STR("Setting event's packet's frozen state.");
 	bt_packet_set_is_frozen(event->packet, is_frozen);
 }
@@ -107,7 +108,7 @@ struct bt_field_wrapper *create_event_header_field(
 
 	field_wrapper = bt_field_wrapper_create(
 		&stream_class->event_header_field_pool,
-		bt_stream_class_borrow_event_header_field_class(stream_class));
+		stream_class->event_header_fc);
 	if (!field_wrapper) {
 		goto error;
 	}
@@ -142,7 +143,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
 
-	if (bt_stream_class_borrow_event_header_field_class(stream_class)) {
+	if (stream_class->event_header_fc) {
 		event->header_field = create_event_header_field(stream_class);
 		if (!event->header_field) {
 			BT_LOGE_STR("Cannot create event header field.");
@@ -150,8 +151,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 		}
 	}
 
-	fc = bt_stream_class_borrow_event_common_context_field_class(
-		stream_class);
+	fc = stream_class->event_common_context_fc;
 	if (fc) {
 		event->common_context_field = bt_field_create(fc);
 		if (!event->common_context_field) {
@@ -160,7 +160,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 		}
 	}
 
-	fc = bt_event_class_borrow_specific_context_field_class(event_class);
+	fc = event_class->specific_context_fc;
 	if (fc) {
 		event->specific_context_field = bt_field_create(fc);
 		if (!event->specific_context_field) {
@@ -169,7 +169,7 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 		}
 	}
 
-	fc = bt_event_class_borrow_payload_field_class(event_class);
+	fc = event_class->payload_fc;
 	if (fc) {
 		event->payload_field = bt_field_create(fc);
 		if (!event->payload_field) {
@@ -205,10 +205,22 @@ struct bt_event_class *bt_event_borrow_class(struct bt_event *event)
 	return event->class;
 }
 
+const struct bt_event_class *bt_event_borrow_class_const(
+		const struct bt_event *event)
+{
+	return bt_event_borrow_class((void *) event);
+}
+
 struct bt_stream *bt_event_borrow_stream(struct bt_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	return event->packet ? event->packet->stream : NULL;
+}
+
+const struct bt_stream *bt_event_borrow_stream_const(
+		const struct bt_event *event)
+{
+	return bt_event_borrow_stream((void *) event);
 }
 
 struct bt_field *bt_event_borrow_header_field(struct bt_event *event)
@@ -217,10 +229,11 @@ struct bt_field *bt_event_borrow_header_field(struct bt_event *event)
 	return event->header_field ? event->header_field->field : NULL;
 }
 
-struct bt_private_field *bt_private_event_borrow_header_field(
-		struct bt_private_event *event)
+const struct bt_field *bt_event_borrow_header_field_const(
+		const struct bt_event *event)
 {
-	return (void *) bt_event_borrow_header_field((void *) event);
+	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	return event->header_field ? event->header_field->field : NULL;
 }
 
 struct bt_field *bt_event_borrow_common_context_field(struct bt_event *event)
@@ -229,10 +242,11 @@ struct bt_field *bt_event_borrow_common_context_field(struct bt_event *event)
 	return event->common_context_field;
 }
 
-struct bt_private_field *bt_private_event_borrow_common_context_field(
-		struct bt_private_event *event)
+const struct bt_field *bt_event_borrow_common_context_field_const(
+		const struct bt_event *event)
 {
-	return (void *) bt_event_borrow_common_context_field((void *) event);
+	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	return event->common_context_field;
 }
 
 struct bt_field *bt_event_borrow_specific_context_field(struct bt_event *event)
@@ -241,10 +255,11 @@ struct bt_field *bt_event_borrow_specific_context_field(struct bt_event *event)
 	return event->specific_context_field;
 }
 
-struct bt_private_field *bt_private_event_borrow_specific_context_field(
-		struct bt_private_event *event)
+const struct bt_field *bt_event_borrow_specific_context_field_const(
+		const struct bt_event *event)
 {
-	return (void *) bt_event_borrow_specific_context_field((void *) event);
+	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	return event->specific_context_field;
 }
 
 struct bt_field *bt_event_borrow_payload_field(struct bt_event *event)
@@ -253,10 +268,11 @@ struct bt_field *bt_event_borrow_payload_field(struct bt_event *event)
 	return event->payload_field;
 }
 
-struct bt_private_field *bt_private_event_borrow_payload_field(
-		struct bt_private_event *event)
+const struct bt_field *bt_event_borrow_payload_field_const(
+		const struct bt_event *event)
 {
-	return (void *) bt_event_borrow_payload_field((void *) event);
+	BT_ASSERT_PRE_NON_NULL(event, "Event");
+	return event->payload_field;
 }
 
 static
@@ -317,10 +333,9 @@ void bt_event_destroy(struct bt_event *event)
 	g_free(event);
 }
 
-void bt_private_event_set_default_clock_value(
-		struct bt_private_event *priv_event, uint64_t value_cycles)
+void bt_event_set_default_clock_value(struct bt_event *event,
+		uint64_t value_cycles)
 {
-	struct bt_event *event = (void *) priv_event;
 	struct bt_stream_class *sc;
 
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
@@ -336,8 +351,9 @@ void bt_private_event_set_default_clock_value(
 		"value=%" PRIu64, event, value_cycles);
 }
 
-enum bt_clock_value_status bt_event_borrow_default_clock_value(
-		struct bt_event *event, struct bt_clock_value **clock_value)
+enum bt_clock_value_status bt_event_borrow_default_clock_value_const(
+		const struct bt_event *event,
+		const struct bt_clock_value **clock_value)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value (output)");
@@ -351,20 +367,17 @@ struct bt_packet *bt_event_borrow_packet(struct bt_event *event)
 	return event->packet;
 }
 
-struct bt_private_packet *bt_private_event_borrow_packet(
-		struct bt_private_event *event)
+const struct bt_packet *bt_event_borrow_packet_const(
+		const struct bt_event *event)
 {
-	return (void *) bt_event_borrow_packet((void *) event);
+	return bt_event_borrow_packet((void *) event);
 }
 
-int bt_private_event_move_header_field(
-		struct bt_private_event *priv_event,
-		struct bt_private_event_header_field *priv_header_field)
+int bt_event_move_header_field(struct bt_event *event,
+		struct bt_event_header_field *header_field)
 {
 	struct bt_stream_class *stream_class;
-	struct bt_event *event = (void *) priv_event;
-	struct bt_event_class *event_class = (void *) event_class;
-	struct bt_field_wrapper *field_wrapper = (void *) priv_header_field;
+	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");

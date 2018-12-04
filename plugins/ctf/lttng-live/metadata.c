@@ -72,7 +72,7 @@ enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
 	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
-		struct bt_clock_class *clock_class =
+		const struct bt_clock_class *clock_class =
 			bt_trace_get_clock_class_by_index(trace->trace, i);
 
 		BT_ASSERT(clock_class);

@@ -27,9 +27,9 @@
 #include <stdbool.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/trace-ir/field-classes.h>
-#include <babeltrace/trace-ir/field-path.h>
-#include <babeltrace/trace-ir/event-class.h>
+#include <babeltrace/trace-ir/field-classes-const.h>
+#include <babeltrace/trace-ir/field-path-const.h>
+#include <babeltrace/trace-ir/event-class-const.h>
 #include <babeltrace/values.h>
 #include <stdarg.h>
 #include <inttypes.h>

@@ -30,11 +30,10 @@
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
-#include <babeltrace/trace-ir/private-event-class.h>
 #include <babeltrace/trace-ir/event-class.h>
+#include <babeltrace/trace-ir/event-class-const.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
 #include <babeltrace/trace-ir/event-internal.h>
-#include <babeltrace/trace-ir/private-stream-class.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/trace-ir/trace-internal.h>
@@ -51,7 +50,7 @@
 #include <stdlib.h>
 
 #define BT_ASSERT_PRE_EVENT_CLASS_HOT(_ec) \
-	BT_ASSERT_PRE_HOT(((struct bt_event_class *) (_ec)),		\
+	BT_ASSERT_PRE_HOT(((const struct bt_event_class *) (_ec)),	\
 		"Event class", ": %!+E", (_ec))
 
 static
@@ -88,13 +87,14 @@ void free_event(struct bt_event *event,
 
 BT_ASSERT_PRE_FUNC
 static
-bool event_class_id_is_unique(struct bt_stream_class *stream_class, uint64_t id)
+bool event_class_id_is_unique(const struct bt_stream_class *stream_class,
+		uint64_t id)
 {
 	uint64_t i;
 	bool is_unique = true;
 
 	for (i = 0; i < stream_class->event_classes->len; i++) {
-		struct bt_event_class *ec =
+		const struct bt_event_class *ec =
 			stream_class->event_classes->pdata[i];
 
 		if (ec->id == id) {
@@ -168,41 +168,35 @@ end:
 	return event_class;
 }
 
-struct bt_private_event_class *bt_private_event_class_create(
-		struct bt_private_stream_class *priv_stream_class)
+struct bt_event_class *bt_event_class_create(
+		struct bt_stream_class *stream_class)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE(stream_class->assigns_automatic_event_class_id,
 		"Stream class does not automatically assigns event class IDs: "
 		"%![sc-]+S", stream_class);
-	return (void *) create_event_class_with_id((void *) stream_class,
+	return create_event_class_with_id(stream_class,
 		(uint64_t) stream_class->event_classes->len);
 }
 
-struct bt_private_event_class *bt_private_event_class_create_with_id(
-		struct bt_private_stream_class *priv_stream_class, uint64_t id)
+struct bt_event_class *bt_event_class_create_with_id(
+		struct bt_stream_class *stream_class, uint64_t id)
 {
-	struct bt_stream_class *stream_class = (void *) priv_stream_class;
-
 	BT_ASSERT_PRE(!stream_class->assigns_automatic_event_class_id,
 		"Stream class automatically assigns event class IDs: "
 		"%![sc-]+S", stream_class);
-	return (void *) create_event_class_with_id((void *) stream_class, id);
+	return create_event_class_with_id(stream_class, id);
 }
 
-const char *bt_event_class_get_name(struct bt_event_class *event_class)
+const char *bt_event_class_get_name(const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->name.value;
 }
 
-int bt_private_event_class_set_name(struct bt_private_event_class *priv_event_class,
+int bt_event_class_set_name(struct bt_event_class *event_class,
 		const char *name)
 {
-	struct bt_event_class *event_class = (void *) priv_event_class;
-
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
@@ -212,14 +206,14 @@ int bt_private_event_class_set_name(struct bt_private_event_class *priv_event_cl
 	return 0;
 }
 
-uint64_t bt_event_class_get_id(struct bt_event_class *event_class)
+uint64_t bt_event_class_get_id(const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->id;
 }
 
 enum bt_property_availability bt_event_class_get_log_level(
-		struct bt_event_class *event_class,
+		const struct bt_event_class *event_class,
 		enum bt_event_class_log_level *log_level)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
@@ -229,12 +223,10 @@ enum bt_property_availability bt_event_class_get_log_level(
 	return event_class->log_level.base.avail;
 }
 
-void bt_private_event_class_set_log_level(
-		struct bt_private_event_class *priv_event_class,
+void bt_event_class_set_log_level(
+		struct bt_event_class *event_class,
 		enum bt_event_class_log_level log_level)
 {
-	struct bt_event_class *event_class = (void *) priv_event_class;
-
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
 	bt_property_uint_set(&event_class->log_level,
@@ -242,18 +234,16 @@ void bt_private_event_class_set_log_level(
 	BT_LIB_LOGV("Set event class's log level: %!+E", event_class);
 }
 
-const char *bt_event_class_get_emf_uri(struct bt_event_class *event_class)
+const char *bt_event_class_get_emf_uri(const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->emf_uri.value;
 }
 
-int bt_private_event_class_set_emf_uri(
-		struct bt_private_event_class *priv_event_class,
+int bt_event_class_set_emf_uri(
+		struct bt_event_class *event_class,
 		const char *emf_uri)
 {
-	struct bt_event_class *event_class = (void *) priv_event_class;
-
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	BT_ASSERT_PRE_NON_NULL(emf_uri, "EMF URI");
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
@@ -270,36 +260,26 @@ struct bt_stream_class *bt_event_class_borrow_stream_class(
 	return bt_event_class_borrow_stream_class_inline(event_class);
 }
 
-struct bt_private_stream_class *
-bt_private_event_class_borrow_stream_class(
-		struct bt_private_event_class *event_class)
+const struct bt_stream_class *
+bt_event_class_borrow_stream_class_const(
+		const struct bt_event_class *event_class)
 {
-	return (void *) bt_event_class_borrow_stream_class(
-		(void *) event_class);
+	return bt_event_class_borrow_stream_class((void *) event_class);
 }
 
-struct bt_field_class *bt_event_class_borrow_specific_context_field_class(
-		struct bt_event_class *event_class)
+const struct bt_field_class *
+bt_event_class_borrow_specific_context_field_class_const(
+		const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->specific_context_fc;
 }
 
-struct bt_private_field_class *
-bt_private_event_class_borrow_specific_context_field_class(
-		struct bt_private_event_class *event_class)
-{
-	return (void *) bt_event_class_borrow_specific_context_field_class(
-		(void *) event_class);
-}
-
-int bt_private_event_class_set_specific_context_field_class(
-		struct bt_private_event_class *priv_event_class,
-		struct bt_private_field_class *priv_field_class)
+int bt_event_class_set_specific_context_field_class(
+		struct bt_event_class *event_class,
+		struct bt_field_class *field_class)
 {
 	int ret;
-	struct bt_event_class *event_class = (void *) priv_event_class;
-	struct bt_field_class *field_class = (void *) priv_field_class;
 	struct bt_stream_class *stream_class;
 	struct bt_trace *trace;
 	struct bt_resolve_field_path_context resolve_ctx = {
@@ -344,27 +324,18 @@ end:
 	return ret;
 }
 
-struct bt_field_class *bt_event_class_borrow_payload_field_class(
-		struct bt_event_class *event_class)
+const struct bt_field_class *bt_event_class_borrow_payload_field_class_const(
+		const struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->payload_fc;
 }
 
-struct bt_private_field_class *bt_private_event_class_borrow_payload_field_class(
-		struct bt_private_event_class *event_class)
-{
-	return (void *) bt_event_class_borrow_payload_field_class(
-		(void *) event_class);
-}
-
-int bt_private_event_class_set_payload_field_class(
-		struct bt_private_event_class *priv_event_class,
-		struct bt_private_field_class *priv_field_class)
+int bt_event_class_set_payload_field_class(
+		struct bt_event_class *event_class,
+		struct bt_field_class *field_class)
 {
 	int ret;
-	struct bt_event_class *event_class = (void *) priv_event_class;
-	struct bt_field_class *field_class = (void *) priv_field_class;
 	struct bt_stream_class *stream_class;
 	struct bt_trace *trace;
 	struct bt_resolve_field_path_context resolve_ctx = {
@@ -410,10 +381,10 @@ end:
 }
 
 BT_HIDDEN
-void _bt_event_class_freeze(struct bt_event_class *event_class)
+void _bt_event_class_freeze(const struct bt_event_class *event_class)
 {
 	/* The field classes are already frozen */
 	BT_ASSERT(event_class);
 	BT_LIB_LOGD("Freezing event class: %!+E", event_class);
-	event_class->frozen = true;
+	((struct bt_event_class *) event_class)->frozen = true;
 }

@@ -373,7 +373,7 @@ end:
 
 static
 void handle_statedump_build_id_event(FILE *err, struct debug_info *debug_info,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	struct proc_debug_info_sources *proc_dbg_info_src;
 	struct bin_info *bin = NULL;
@@ -439,7 +439,7 @@ end:
 
 static
 void handle_statedump_debug_link_event(FILE *err, struct debug_info *debug_info,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	struct proc_debug_info_sources *proc_dbg_info_src;
 	struct bin_info *bin = NULL;
@@ -508,7 +508,7 @@ end:
 
 static
 void handle_bin_info_event(FILE *err, struct debug_info *debug_info,
-		struct bt_event *event, bool has_pic_field)
+		const struct bt_event *event, bool has_pic_field)
 {
 	struct proc_debug_info_sources *proc_dbg_info_src;
 	struct bin_info *bin;
@@ -614,21 +614,21 @@ end:
 
 static inline
 void handle_statedump_bin_info_event(FILE *err, struct debug_info *debug_info,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	handle_bin_info_event(err, debug_info, event, true);
 }
 
 static inline
 void handle_lib_load_event(FILE *err, struct debug_info *debug_info,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	handle_bin_info_event(err, debug_info, event, false);
 }
 
 static inline
 void handle_lib_unload_event(FILE *err, struct debug_info *debug_info,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	struct proc_debug_info_sources *proc_dbg_info_src;
 	uint64_t baddr;
@@ -666,7 +666,7 @@ end:
 
 static
 void handle_statedump_start(FILE *err, struct debug_info *debug_info,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	struct proc_debug_info_sources *proc_dbg_info_src;
 	int64_t vpid;
@@ -692,10 +692,10 @@ end:
 }
 
 BT_HIDDEN
-void debug_info_handle_event(FILE *err, struct bt_event *event,
+void debug_info_handle_event(FILE *err, const struct bt_event *event,
 		struct debug_info *debug_info)
 {
-	struct bt_event_class *event_class;
+	const struct bt_event_class *event_class;
 	const char *event_name;
 	GQuark q_event_name;
 

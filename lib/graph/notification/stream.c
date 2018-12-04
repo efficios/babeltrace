@@ -57,9 +57,8 @@ void bt_notification_stream_end_destroy(struct bt_object *obj)
 
 struct bt_private_notification *bt_private_notification_stream_end_create(
 		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_private_stream *priv_stream)
+		struct bt_stream *stream)
 {
-	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_notification_stream_end *notification;
 	struct bt_stream_class *stream_class;
 
@@ -89,23 +88,22 @@ error:
 	return NULL;
 }
 
-struct bt_stream *bt_notification_stream_end_borrow_stream(
-		struct bt_notification *notification)
+struct bt_stream *bt_private_notification_stream_end_borrow_stream(
+		struct bt_private_notification *notification)
 {
 	struct bt_notification_stream_end *stream_end;
 
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
 		BT_NOTIFICATION_TYPE_STREAM_END);
-	stream_end = container_of(notification,
-			struct bt_notification_stream_end, parent);
+	stream_end = (void *) notification;
 	return stream_end->stream;
 }
 
-struct bt_private_stream *bt_private_notification_stream_end_borrow_stream(
-		struct bt_private_notification *notification)
+const struct bt_stream *bt_notification_stream_end_borrow_stream(
+		struct bt_notification *notification)
 {
-	return (void *) bt_notification_stream_end_borrow_stream(
+	return bt_private_notification_stream_end_borrow_stream(
 		(void *) notification);
 }
 
@@ -163,9 +161,8 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 
 struct bt_private_notification *bt_private_notification_stream_begin_create(
 		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_private_stream *priv_stream)
+		struct bt_stream *stream)
 {
-	struct bt_stream *stream = (void *) priv_stream;
 	struct bt_notification_stream_begin *notification;
 	struct bt_stream_class *stream_class;
 
@@ -194,23 +191,22 @@ error:
 	return NULL;
 }
 
-struct bt_stream *bt_notification_stream_begin_borrow_stream(
-		struct bt_notification *notification)
+struct bt_stream *bt_private_notification_stream_begin_borrow_stream(
+		struct bt_private_notification *notification)
 {
 	struct bt_notification_stream_begin *stream_begin;
 
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
 		BT_NOTIFICATION_TYPE_STREAM_BEGIN);
-	stream_begin = container_of(notification,
-			struct bt_notification_stream_begin, parent);
+	stream_begin = (void *) notification;
 	return stream_begin->stream;
 }
 
-struct bt_private_stream *bt_private_notification_stream_begin_borrow_stream(
-		struct bt_private_notification *notification)
+const struct bt_stream *bt_notification_stream_begin_borrow_stream(
+		struct bt_notification *notification)
 {
-	return (void *) bt_notification_stream_begin_borrow_stream(
+	return bt_private_notification_stream_begin_borrow_stream(
 		(void *) notification);
 }
 

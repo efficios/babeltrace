@@ -72,8 +72,8 @@ enum bt_notif_iter_medium_status medop_request_bytes(
 }
 
 static
-struct bt_stream *medop_get_stream(
-		struct bt_stream_class *stream_class,
+const struct bt_stream *medop_get_stream(
+		const struct bt_stream_class *stream_class,
 		uint64_t stream_id, void *data)
 {
 	struct lttng_live_stream_iterator *lttng_live_stream = data;

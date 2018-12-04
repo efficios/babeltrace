@@ -38,13 +38,13 @@
 #include "writer.h"
 
 static
-void unref_stream_class(struct bt_stream_class *writer_stream_class)
+void unref_stream_class(const struct bt_stream_class *writer_stream_class)
 {
 	bt_object_put_ref(writer_stream_class);
 }
 
 static
-void unref_stream(struct bt_stream_class *writer_stream)
+void unref_stream(const struct bt_stream_class *writer_stream)
 {
 	bt_object_put_ref(writer_stream);
 }
@@ -59,7 +59,7 @@ static
 gboolean empty_streams_ht(gpointer key, gpointer value, gpointer user_data)
 {
 	int ret;
-	struct bt_stream *writer_stream = value;
+	const struct bt_stream *writer_stream = value;
 
 	ret = bt_stream_flush(writer_stream);
 	if (ret) {
@@ -86,7 +86,7 @@ void check_completed_trace(gpointer key, gpointer value, gpointer user_data)
 }
 
 static
-void trace_is_static_listener(struct bt_trace *trace, void *data)
+void trace_is_static_listener(const struct bt_trace *trace, void *data)
 {
 	struct fs_writer *fs_writer = data;
 	int trace_completed = 1;
@@ -103,13 +103,13 @@ void trace_is_static_listener(struct bt_trace *trace, void *data)
 }
 
 static
-struct bt_stream_class *insert_new_stream_class(
+const struct bt_stream_class *insert_new_stream_class(
 		struct writer_component *writer_component,
 		struct fs_writer *fs_writer,
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
-	struct bt_stream_class *writer_stream_class = NULL;
-	struct bt_trace *trace = NULL, *writer_trace = NULL;
+	const struct bt_stream_class *writer_stream_class = NULL;
+	const struct bt_trace *trace = NULL, *writer_trace = NULL;
 	struct bt_ctf_writer *ctf_writer = fs_writer->writer;
 	enum bt_component_status ret;
 
@@ -155,7 +155,7 @@ end:
 static
 enum fs_writer_stream_state *insert_new_stream_state(
 		struct writer_component *writer_component,
-		struct fs_writer *fs_writer, struct bt_stream *stream)
+		struct fs_writer *fs_writer, const struct bt_stream *stream)
 {
 	enum fs_writer_stream_state *v = NULL;
 
@@ -214,7 +214,7 @@ end:
 
 static
 int make_trace_path(struct writer_component *writer_component,
-		struct bt_trace *trace, char *trace_path)
+		const struct bt_trace *trace, char *trace_path)
 {
 	int ret;
 	const char *trace_name;
@@ -280,13 +280,13 @@ end:
 static
 struct fs_writer *insert_new_writer(
 		struct writer_component *writer_component,
-		struct bt_trace *trace)
+		const struct bt_trace *trace)
 {
 	struct bt_ctf_writer *ctf_writer = NULL;
-	struct bt_trace *writer_trace = NULL;
+	const struct bt_trace *writer_trace = NULL;
 	char trace_path[PATH_MAX];
 	enum bt_component_status ret;
-	struct bt_stream *stream = NULL;
+	const struct bt_stream *stream = NULL;
 	struct fs_writer *fs_writer = NULL;
 	int nr_stream, i;
 
@@ -375,9 +375,9 @@ end:
 
 static
 struct fs_writer *get_fs_writer(struct writer_component *writer_component,
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
-	struct bt_trace *trace = NULL;
+	const struct bt_trace *trace = NULL;
 	struct fs_writer *fs_writer;
 
 	trace = bt_stream_class_get_trace(stream_class);
@@ -396,9 +396,9 @@ struct fs_writer *get_fs_writer(struct writer_component *writer_component,
 static
 struct fs_writer *get_fs_writer_from_stream(
 		struct writer_component *writer_component,
-		struct bt_stream *stream)
+		const struct bt_stream *stream)
 {
-	struct bt_stream_class *stream_class = NULL;
+	const struct bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
 
 	stream_class = bt_stream_get_class(stream);
@@ -411,37 +411,37 @@ struct fs_writer *get_fs_writer_from_stream(
 }
 
 static
-struct bt_stream_class *lookup_stream_class(
+const struct bt_stream_class *lookup_stream_class(
 		struct writer_component *writer_component,
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	struct fs_writer *fs_writer = get_fs_writer(
 			writer_component, stream_class);
 	BT_ASSERT(fs_writer);
-	return (struct bt_stream_class *) g_hash_table_lookup(
+	return (const struct bt_stream_class *) g_hash_table_lookup(
 			fs_writer->stream_class_map, (gpointer) stream_class);
 }
 
 static
-struct bt_stream *lookup_stream(struct writer_component *writer_component,
-		struct bt_stream *stream)
+const struct bt_stream *lookup_stream(struct writer_component *writer_component,
+		const struct bt_stream *stream)
 {
 	struct fs_writer *fs_writer = get_fs_writer_from_stream(
 			writer_component, stream);
 	BT_ASSERT(fs_writer);
-	return (struct bt_stream *) g_hash_table_lookup(
+	return (const struct bt_stream *) g_hash_table_lookup(
 			fs_writer->stream_map, (gpointer) stream);
 }
 
 static
-struct bt_stream *insert_new_stream(
+const struct bt_stream *insert_new_stream(
 		struct writer_component *writer_component,
 		struct fs_writer *fs_writer,
-		struct bt_stream_class *stream_class,
-		struct bt_stream *stream)
+		const struct bt_stream_class *stream_class,
+		const struct bt_stream *stream)
 {
-	struct bt_stream *writer_stream = NULL;
-	struct bt_stream_class *writer_stream_class = NULL;
+	const struct bt_stream *writer_stream = NULL;
+	const struct bt_stream_class *writer_stream_class = NULL;
 	struct bt_ctf_writer *ctf_writer = bt_object_get_ref(fs_writer->writer);
 
 	writer_stream_class = lookup_stream_class(writer_component,
@@ -474,20 +474,20 @@ end:
 }
 
 static
-struct bt_event_class *get_event_class(struct writer_component *writer_component,
-		struct bt_stream_class *writer_stream_class,
-		struct bt_event_class *event_class)
+const struct bt_event_class *get_event_class(struct writer_component *writer_component,
+		const struct bt_stream_class *writer_stream_class,
+		const struct bt_event_class *event_class)
 {
 	return bt_stream_class_get_event_class_by_id(writer_stream_class,
 			bt_event_class_get_id(event_class));
 }
 
 static
-struct bt_stream *get_writer_stream(
+const struct bt_stream *get_writer_stream(
 		struct writer_component *writer_component,
-		struct bt_packet *packet, struct bt_stream *stream)
+		const struct bt_packet *packet, const struct bt_stream *stream)
 {
-	struct bt_stream *writer_stream = NULL;
+	const struct bt_stream *writer_stream = NULL;
 
 	writer_stream = lookup_stream(writer_component, stream);
 	if (!writer_stream) {
@@ -532,11 +532,11 @@ void writer_close(struct writer_component *writer_component,
 BT_HIDDEN
 enum bt_component_status writer_stream_begin(
 		struct writer_component *writer_component,
-		struct bt_stream *stream)
+		const struct bt_stream *stream)
 {
-	struct bt_stream_class *stream_class = NULL;
+	const struct bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
-	struct bt_stream *writer_stream = NULL;
+	const struct bt_stream *writer_stream = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	enum fs_writer_stream_state *state;
 
@@ -584,11 +584,11 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_stream_end(
 		struct writer_component *writer_component,
-		struct bt_stream *stream)
+		const struct bt_stream *stream)
 {
-	struct bt_stream_class *stream_class = NULL;
+	const struct bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
-	struct bt_trace *trace = NULL;
+	const struct bt_trace *trace = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	enum fs_writer_stream_state *state;
 
@@ -635,9 +635,9 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_new_packet(
 		struct writer_component *writer_component,
-		struct bt_packet *packet)
+		const struct bt_packet *packet)
 {
-	struct bt_stream *stream = NULL, *writer_stream = NULL;
+	const struct bt_stream *stream = NULL, *writer_stream = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	int int_ret;
 
@@ -678,9 +678,9 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_close_packet(
 		struct writer_component *writer_component,
-		struct bt_packet *packet)
+		const struct bt_packet *packet)
 {
-	struct bt_stream *stream = NULL, *writer_stream = NULL;
+	const struct bt_stream *stream = NULL, *writer_stream = NULL;
 	enum bt_component_status ret;
 
 	stream = bt_packet_get_stream(packet);
@@ -717,15 +717,15 @@ end:
 BT_HIDDEN
 enum bt_component_status writer_output_event(
 		struct writer_component *writer_component,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	enum bt_component_status ret;
-	struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
-	struct bt_stream *stream = NULL, *writer_stream = NULL;
-	struct bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;
-	struct bt_event *writer_event = NULL;
+	const struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
+	const struct bt_stream *stream = NULL, *writer_stream = NULL;
+	const struct bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;
+	const struct bt_event *writer_event = NULL;
 	int int_ret;
-	struct bt_trace *writer_trace = NULL;
+	const struct bt_trace *writer_trace = NULL;
 
 	event_class = bt_event_get_class(event);
 	BT_ASSERT(event_class);

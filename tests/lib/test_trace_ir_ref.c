@@ -29,11 +29,11 @@
 #define NR_TESTS 37
 
 struct user {
-	struct bt_private_trace *tc;
-	struct bt_private_stream_class *sc;
-	struct bt_private_event_class *ec;
-	struct bt_private_stream *stream;
-	struct bt_private_event *event;
+	struct bt_trace *tc;
+	struct bt_stream_class *sc;
+	struct bt_event_class *ec;
+	struct bt_stream *stream;
+	struct bt_event *event;
 };
 
 struct writer_user {
@@ -63,30 +63,30 @@ static const size_t WRITER_USER_NR_ELEMENTS =
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_private_field_class *create_integer_struct(void)
+static struct bt_field_class *create_integer_struct(void)
 {
 	int ret;
-	struct bt_private_field_class *structure = NULL;
-	struct bt_private_field_class *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
+	struct bt_field_class *structure = NULL;
+	struct bt_field_class *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
 
-	structure = bt_private_field_class_structure_create();
+	structure = bt_field_class_structure_create();
 	BT_ASSERT(structure);
-	ui8 = bt_private_field_class_unsigned_integer_create();
+	ui8 = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(ui8);
-	bt_private_field_class_integer_set_field_value_range(ui8, 8);
-	ret = bt_private_field_class_structure_append_member(structure,
+	bt_field_class_integer_set_field_value_range(ui8, 8);
+	ret = bt_field_class_structure_append_member(structure,
 		"payload_8", ui8);
 	BT_ASSERT(ret == 0);
-	ui16 = bt_private_field_class_unsigned_integer_create();
+	ui16 = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(ui16);
-	bt_private_field_class_integer_set_field_value_range(ui16, 16);
-	ret = bt_private_field_class_structure_append_member(structure,
+	bt_field_class_integer_set_field_value_range(ui16, 16);
+	ret = bt_field_class_structure_append_member(structure,
 		"payload_16", ui16);
 	BT_ASSERT(ret == 0);
-	ui32 = bt_private_field_class_unsigned_integer_create();
+	ui32 = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(ui32);
-	bt_private_field_class_integer_set_field_value_range(ui32, 32);
-	ret = bt_private_field_class_structure_append_member(structure,
+	bt_field_class_integer_set_field_value_range(ui32, 32);
+	ret = bt_field_class_structure_append_member(structure,
 		"payload_32", ui32);
 	BT_ASSERT(ret == 0);
 	BT_OBJECT_PUT_REF_AND_RESET(ui8);
@@ -130,21 +130,21 @@ static struct bt_ctf_field_type *create_writer_integer_struct(void)
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_private_event_class *create_simple_event(
-		struct bt_private_stream_class *sc, const char *name)
+static struct bt_event_class *create_simple_event(
+		struct bt_stream_class *sc, const char *name)
 {
 	int ret;
-	struct bt_private_event_class *event = NULL;
-	struct bt_private_field_class *payload = NULL;
+	struct bt_event_class *event = NULL;
+	struct bt_field_class *payload = NULL;
 
 	BT_ASSERT(name);
-	event = bt_private_event_class_create(sc);
+	event = bt_event_class_create(sc);
 	BT_ASSERT(event);
-	ret = bt_private_event_class_set_name(event, name);
+	ret = bt_event_class_set_name(event, name);
 	BT_ASSERT(ret == 0);
 	payload = create_integer_struct();
 	BT_ASSERT(payload);
-	ret = bt_private_event_class_set_payload_field_class(event, payload);
+	ret = bt_event_class_set_payload_field_class(event, payload);
 	BT_ASSERT(ret == 0);
 	BT_OBJECT_PUT_REF_AND_RESET(payload);
 	return event;
@@ -160,27 +160,27 @@ static struct bt_private_event_class *create_simple_event(
  *           - uint16_t payload_16;
  *           - uint32_t payload_32;
  */
-static struct bt_private_event_class *create_complex_event(
-		struct bt_private_stream_class *sc,
+static struct bt_event_class *create_complex_event(
+		struct bt_stream_class *sc,
 		const char *name)
 {
 	int ret;
-	struct bt_private_event_class *event = NULL;
-	struct bt_private_field_class *inner = NULL, *outer = NULL;
+	struct bt_event_class *event = NULL;
+	struct bt_field_class *inner = NULL, *outer = NULL;
 
 	BT_ASSERT(name);
-	event = bt_private_event_class_create(sc);
+	event = bt_event_class_create(sc);
 	BT_ASSERT(event);
-	ret = bt_private_event_class_set_name(event, name);
+	ret = bt_event_class_set_name(event, name);
 	BT_ASSERT(ret == 0);
 	outer = create_integer_struct();
 	BT_ASSERT(outer);
 	inner = create_integer_struct();
 	BT_ASSERT(inner);
-	ret = bt_private_field_class_structure_append_member(outer,
+	ret = bt_field_class_structure_append_member(outer,
 		"payload_struct", inner);
 	BT_ASSERT(ret == 0);
-	ret = bt_private_event_class_set_payload_field_class(event, outer);
+	ret = bt_event_class_set_payload_field_class(event, outer);
 	BT_ASSERT(ret == 0);
 	BT_OBJECT_PUT_REF_AND_RESET(inner);
 	BT_OBJECT_PUT_REF_AND_RESET(outer);
@@ -188,117 +188,117 @@ static struct bt_private_event_class *create_complex_event(
 }
 
 static void set_stream_class_field_classes(
-		struct bt_private_stream_class *stream_class)
+		struct bt_stream_class *stream_class)
 {
-	struct bt_private_field_class *packet_context_type;
-	struct bt_private_field_class *event_header_type;
-	struct bt_private_field_class *fc;
+	struct bt_field_class *packet_context_type;
+	struct bt_field_class *event_header_type;
+	struct bt_field_class *fc;
 	int ret;
 
-	packet_context_type = bt_private_field_class_structure_create();
+	packet_context_type = bt_field_class_structure_create();
 	BT_ASSERT(packet_context_type);
-	fc = bt_private_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	bt_private_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_private_field_class_structure_append_member(packet_context_type,
+	bt_field_class_integer_set_field_value_range(fc, 32);
+	ret = bt_field_class_structure_append_member(packet_context_type,
 		"packet_size", fc);
 	BT_ASSERT(ret == 0);
 	bt_object_put_ref(fc);
-	fc = bt_private_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	bt_private_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_private_field_class_structure_append_member(packet_context_type,
+	bt_field_class_integer_set_field_value_range(fc, 32);
+	ret = bt_field_class_structure_append_member(packet_context_type,
 		"content_size", fc);
 	BT_ASSERT(ret == 0);
 	bt_object_put_ref(fc);
-	event_header_type = bt_private_field_class_structure_create();
+	event_header_type = bt_field_class_structure_create();
 	BT_ASSERT(event_header_type);
-	fc = bt_private_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	bt_private_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_private_field_class_structure_append_member(event_header_type,
+	bt_field_class_integer_set_field_value_range(fc, 32);
+	ret = bt_field_class_structure_append_member(event_header_type,
 		"id", fc);
 	BT_ASSERT(ret == 0);
 	bt_object_put_ref(fc);
-	ret = bt_private_stream_class_set_packet_context_field_class(
+	ret = bt_stream_class_set_packet_context_field_class(
 		stream_class, packet_context_type);
 	BT_ASSERT(ret == 0);
-	ret = bt_private_stream_class_set_event_header_field_class(
+	ret = bt_stream_class_set_event_header_field_class(
 		stream_class, event_header_type);
 	BT_ASSERT(ret == 0);
 	bt_object_put_ref(packet_context_type);
 	bt_object_put_ref(event_header_type);
 }
 
-static void create_sc1(struct bt_private_trace *trace)
+static void create_sc1(struct bt_trace *trace)
 {
 	int ret;
-	struct bt_private_event_class *ec1 = NULL, *ec2 = NULL;
-	struct bt_private_stream_class *sc1 = NULL, *ret_stream = NULL;
+	struct bt_event_class *ec1 = NULL, *ec2 = NULL;
+	struct bt_stream_class *sc1 = NULL, *ret_stream = NULL;
 
-	sc1 = bt_private_stream_class_create(trace);
+	sc1 = bt_stream_class_create(trace);
 	BT_ASSERT(sc1);
-	ret = bt_private_stream_class_set_name(sc1, "sc1");
+	ret = bt_stream_class_set_name(sc1, "sc1");
 	BT_ASSERT(ret == 0);
 	set_stream_class_field_classes(sc1);
 	ec1 = create_complex_event(sc1, "ec1");
 	BT_ASSERT(ec1);
 	ec2 = create_simple_event(sc1, "ec2");
 	BT_ASSERT(ec2);
-	ret_stream = bt_private_event_class_borrow_stream_class(ec1);
+	ret_stream = bt_event_class_borrow_stream_class(ec1);
 	ok(ret_stream == sc1, "Borrow parent stream SC1 from EC1");
-	ret_stream = bt_private_event_class_borrow_stream_class(ec2);
+	ret_stream = bt_event_class_borrow_stream_class(ec2);
 	ok(ret_stream == sc1, "Borrow parent stream SC1 from EC2");
 	BT_OBJECT_PUT_REF_AND_RESET(ec1);
 	BT_OBJECT_PUT_REF_AND_RESET(ec2);
 	BT_OBJECT_PUT_REF_AND_RESET(sc1);
 }
 
-static void create_sc2(struct bt_private_trace *trace)
+static void create_sc2(struct bt_trace *trace)
 {
 	int ret;
-	struct bt_private_event_class *ec3 = NULL;
-	struct bt_private_stream_class *sc2 = NULL, *ret_stream = NULL;
+	struct bt_event_class *ec3 = NULL;
+	struct bt_stream_class *sc2 = NULL, *ret_stream = NULL;
 
-	sc2 = bt_private_stream_class_create(trace);
+	sc2 = bt_stream_class_create(trace);
 	BT_ASSERT(sc2);
-	ret = bt_private_stream_class_set_name(sc2, "sc2");
+	ret = bt_stream_class_set_name(sc2, "sc2");
 	BT_ASSERT(ret == 0);
 	set_stream_class_field_classes(sc2);
 	ec3 = create_simple_event(sc2, "ec3");
-	ret_stream = bt_private_event_class_borrow_stream_class(ec3);
+	ret_stream = bt_event_class_borrow_stream_class(ec3);
 	ok(ret_stream == sc2, "Borrow parent stream SC2 from EC3");
 	BT_OBJECT_PUT_REF_AND_RESET(ec3);
 	BT_OBJECT_PUT_REF_AND_RESET(sc2);
 }
 
-static void set_trace_packet_header(struct bt_private_trace *trace)
+static void set_trace_packet_header(struct bt_trace *trace)
 {
-	struct bt_private_field_class *packet_header_type;
-	struct bt_private_field_class *fc;
+	struct bt_field_class *packet_header_type;
+	struct bt_field_class *fc;
 	int ret;
 
-	packet_header_type = bt_private_field_class_structure_create();
+	packet_header_type = bt_field_class_structure_create();
 	BT_ASSERT(packet_header_type);
-	fc = bt_private_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
-	bt_private_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_private_field_class_structure_append_member(packet_header_type,
+	bt_field_class_integer_set_field_value_range(fc, 32);
+	ret = bt_field_class_structure_append_member(packet_header_type,
 		"stream_id", fc);
 	BT_ASSERT(ret == 0);
 	bt_object_put_ref(fc);
-	ret = bt_private_trace_set_packet_header_field_class(trace,
+	ret = bt_trace_set_packet_header_field_class(trace,
 		packet_header_type);
 	BT_ASSERT(ret == 0);
 
 	bt_object_put_ref(packet_header_type);
 }
 
-static struct bt_private_trace *create_tc1(void)
+static struct bt_trace *create_tc1(void)
 {
-	struct bt_private_trace *tc1 = NULL;
+	struct bt_trace *tc1 = NULL;
 
-	tc1 = bt_private_trace_create();
+	tc1 = bt_trace_create();
 	BT_ASSERT(tc1);
 	set_trace_packet_header(tc1);
 	create_sc1(tc1);
@@ -306,20 +306,20 @@ static struct bt_private_trace *create_tc1(void)
 	return tc1;
 }
 
-static void init_weak_refs(struct bt_private_trace *tc,
-		struct bt_private_trace **tc1,
-		struct bt_private_stream_class **sc1,
-		struct bt_private_stream_class **sc2,
-		struct bt_private_event_class **ec1,
-		struct bt_private_event_class **ec2,
-		struct bt_private_event_class **ec3)
+static void init_weak_refs(struct bt_trace *tc,
+		struct bt_trace **tc1,
+		struct bt_stream_class **sc1,
+		struct bt_stream_class **sc2,
+		struct bt_event_class **ec1,
+		struct bt_event_class **ec2,
+		struct bt_event_class **ec3)
 {
 	*tc1 = tc;
-	*sc1 = bt_private_trace_borrow_stream_class_by_index(tc, 0);
-	*sc2 = bt_private_trace_borrow_stream_class_by_index(tc, 1);
-	*ec1 = bt_private_stream_class_borrow_event_class_by_index(*sc1, 0);
-	*ec2 = bt_private_stream_class_borrow_event_class_by_index(*sc1, 1);
-	*ec3 = bt_private_stream_class_borrow_event_class_by_index(*sc2, 0);
+	*sc1 = bt_trace_borrow_stream_class_by_index(tc, 0);
+	*sc2 = bt_trace_borrow_stream_class_by_index(tc, 1);
+	*ec1 = bt_stream_class_borrow_event_class_by_index(*sc1, 0);
+	*ec2 = bt_stream_class_borrow_event_class_by_index(*sc1, 1);
+	*ec3 = bt_stream_class_borrow_event_class_by_index(*sc2, 0);
 }
 
 static void test_example_scenario(void)
@@ -331,9 +331,9 @@ static void test_example_scenario(void)
 	 * of expected reference counts without affecting them by taking
 	 * "real" references to the objects.
 	 */
-	struct bt_private_trace *tc1 = NULL, *weak_tc1 = NULL;
-	struct bt_private_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
-	struct bt_private_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
+	struct bt_trace *tc1 = NULL, *weak_tc1 = NULL;
+	struct bt_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
+	struct bt_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
 			*weak_ec3 = NULL;
 	struct user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
 
@@ -360,7 +360,7 @@ static void test_example_scenario(void)
 			"TC1 reference count is 1");
 
 	/* User A acquires a reference to SC2 from TC1. */
-	user_a.sc = bt_private_trace_borrow_stream_class_by_index(
+	user_a.sc = bt_trace_borrow_stream_class_by_index(
 			user_a.tc, 1);
 	bt_object_get_ref(user_a.sc);
 	ok(user_a.sc, "User A acquires SC2 from TC1");
@@ -370,7 +370,7 @@ static void test_example_scenario(void)
 			"SC2 reference count is 1");
 
 	/* User A acquires a reference to EC3 from SC2. */
-	user_a.ec = bt_private_stream_class_borrow_event_class_by_index(
+	user_a.ec = bt_stream_class_borrow_event_class_by_index(
 			user_a.sc, 0);
 	bt_object_get_ref(user_a.ec);
 	ok(user_a.ec, "User A acquires EC3 from SC2");
@@ -420,7 +420,7 @@ static void test_example_scenario(void)
 
 	/* User C acquires a reference to EC1. */
 	diag("User C acquires a reference to EC1");
-	user_c.ec = bt_private_stream_class_borrow_event_class_by_index(
+	user_c.ec = bt_stream_class_borrow_event_class_by_index(
 			user_b.sc, 0);
 	bt_object_get_ref(user_c.ec);
 	ok(bt_object_get_ref_count((void *) weak_ec1) == 1,

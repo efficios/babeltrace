@@ -64,28 +64,28 @@
 #include <babeltrace/ctf-ir/utils.h>
 
 /* Trace IR API */
+#include <babeltrace/trace-ir/clock-class-const.h>
 #include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-value.h>
+#include <babeltrace/trace-ir/clock-value-const.h>
+#include <babeltrace/trace-ir/event-class-const.h>
 #include <babeltrace/trace-ir/event-class.h>
+#include <babeltrace/trace-ir/event-const.h>
+#include <babeltrace/trace-ir/event-header-field.h>
 #include <babeltrace/trace-ir/event.h>
+#include <babeltrace/trace-ir/field-classes-const.h>
 #include <babeltrace/trace-ir/field-classes.h>
-#include <babeltrace/trace-ir/field-path.h>
+#include <babeltrace/trace-ir/field-path-const.h>
+#include <babeltrace/trace-ir/fields-const.h>
 #include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/packet-const.h>
+#include <babeltrace/trace-ir/packet-context-field.h>
+#include <babeltrace/trace-ir/packet-header-field.h>
 #include <babeltrace/trace-ir/packet.h>
-#include <babeltrace/trace-ir/private-clock-class.h>
-#include <babeltrace/trace-ir/private-event-class.h>
-#include <babeltrace/trace-ir/private-event-header-field.h>
-#include <babeltrace/trace-ir/private-event.h>
-#include <babeltrace/trace-ir/private-field-classes.h>
-#include <babeltrace/trace-ir/private-fields.h>
-#include <babeltrace/trace-ir/private-packet-context-field.h>
-#include <babeltrace/trace-ir/private-packet-header-field.h>
-#include <babeltrace/trace-ir/private-packet.h>
-#include <babeltrace/trace-ir/private-stream-class.h>
-#include <babeltrace/trace-ir/private-stream.h>
-#include <babeltrace/trace-ir/private-trace.h>
+#include <babeltrace/trace-ir/stream-class-const.h>
 #include <babeltrace/trace-ir/stream-class.h>
+#include <babeltrace/trace-ir/stream-const.h>
 #include <babeltrace/trace-ir/stream.h>
+#include <babeltrace/trace-ir/trace-const.h>
 #include <babeltrace/trace-ir/trace.h>
 
 /* Plugin and plugin development API */

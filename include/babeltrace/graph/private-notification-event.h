@@ -31,17 +31,17 @@ extern "C" {
 
 struct bt_private_notification;
 struct bt_self_notification_iterator;
-struct bt_private_event;
-struct bt_private_packet;
-struct bt_private_event_class;
+struct bt_event;
+struct bt_packet;
+struct bt_event_class;
 
 extern
 struct bt_private_notification *bt_private_notification_event_create(
 		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_private_event_class *event_class,
-		struct bt_private_packet *packet);
+		struct bt_event_class *event_class,
+		struct bt_packet *packet);
 
-extern struct bt_private_event *
+extern struct bt_event *
 bt_private_notification_event_borrow_event(
 		struct bt_private_notification *notification);
 

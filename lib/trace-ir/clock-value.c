@@ -134,7 +134,7 @@ void bt_clock_value_recycle(struct bt_clock_value *clock_value)
 	bt_object_put_ref(clock_class);
 }
 
-uint64_t bt_clock_value_get_value(struct bt_clock_value *clock_value)
+uint64_t bt_clock_value_get_value(const struct bt_clock_value *clock_value)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
 	BT_ASSERT_PRE(clock_value->is_set,
@@ -142,7 +142,7 @@ uint64_t bt_clock_value_get_value(struct bt_clock_value *clock_value)
 	return clock_value->value_cycles;
 }
 
-int bt_clock_value_get_ns_from_origin(struct bt_clock_value *clock_value,
+int bt_clock_value_get_ns_from_origin(const struct bt_clock_value *clock_value,
 		int64_t *ret_value_ns)
 {
 	int ret = 0;
@@ -165,8 +165,8 @@ end:
 	return ret;
 }
 
-struct bt_clock_class *bt_clock_value_borrow_clock_class(
-		struct bt_clock_value *clock_value)
+const struct bt_clock_class *bt_clock_value_borrow_clock_class_const(
+		const struct bt_clock_value *clock_value)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value");
 	return clock_value->clock_class;

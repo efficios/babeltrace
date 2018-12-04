@@ -42,7 +42,7 @@
 static
 gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
 {
-	struct bt_packet *writer_packet = value;
+	const struct bt_packet *writer_packet = value;
 
 	bt_object_put_ref(writer_packet);
 	return TRUE;
@@ -182,12 +182,12 @@ struct bt_notification *evaluate_event_notification(
 {
 	int64_t ts;
 	int clock_ret;
-	struct bt_event *event = NULL, *writer_event;
+	const struct bt_event *event = NULL, *writer_event;
 	bool in_range = true;
-	struct bt_clock_class *clock_class = NULL;
-	struct bt_trace *trace = NULL;
-	struct bt_stream *stream = NULL;
-	struct bt_stream_class *stream_class = NULL;
+	const struct bt_clock_class *clock_class = NULL;
+	const struct bt_trace *trace = NULL;
+	const struct bt_stream *stream = NULL;
+	const struct bt_stream_class *stream_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 	bool lazy_update = false;
 	struct bt_notification *new_notification = NULL;
@@ -268,13 +268,13 @@ end:
 }
 
 static
-int ns_from_integer_field(struct bt_field *integer, int64_t *ns)
+int ns_from_integer_field(const struct bt_field *integer, int64_t *ns)
 {
 	int ret = 0;
 	int is_signed;
 	uint64_t raw_clock_value;
-	struct bt_field_class *integer_class = NULL;
-	struct bt_clock_class *clock_class = NULL;
+	const struct bt_field_class *integer_class = NULL;
+	const struct bt_clock_class *clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL;
 
 	integer_class = bt_field_get_class(integer);
@@ -329,14 +329,14 @@ static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
  * timestamp minus the offset.
  */
 static
-int64_t get_raw_timestamp(struct bt_packet *writer_packet,
+int64_t get_raw_timestamp(const struct bt_packet *writer_packet,
 		int64_t timestamp)
 {
-	struct bt_clock_class *writer_clock_class;
+	const struct bt_clock_class *writer_clock_class;
 	int64_t sec_offset, cycles_offset, ns;
-	struct bt_trace *writer_trace;
-	struct bt_stream *writer_stream;
-	struct bt_stream_class *writer_stream_class;
+	const struct bt_trace *writer_trace;
+	const struct bt_stream *writer_stream;
+	const struct bt_stream_class *writer_stream_class;
 	int ret;
 	uint64_t freq;
 
@@ -383,8 +383,8 @@ struct bt_notification *evaluate_packet_notification(
 {
 	int64_t begin_ns, pkt_begin_ns, end_ns, pkt_end_ns;
 	bool in_range = true;
-	struct bt_packet *packet = NULL, *writer_packet = NULL;
-	struct bt_field *packet_context = NULL,
+	const struct bt_packet *packet = NULL, *writer_packet = NULL;
+	const struct bt_field *packet_context = NULL,
 			*timestamp_begin = NULL,
 			*timestamp_end = NULL;
 	struct bt_notification *new_notification = NULL;
@@ -505,7 +505,7 @@ struct bt_notification *evaluate_stream_notification(
 		struct bt_notification *notification,
 		struct trimmer_iterator *trim_it)
 {
-	struct bt_stream *stream;
+	const struct bt_stream *stream;
 
 	stream = bt_notification_stream_end_get_stream(notification);
 	BT_ASSERT(stream);

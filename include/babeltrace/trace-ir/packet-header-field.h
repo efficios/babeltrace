@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_PRIVATE_PACKET_HEADER_FIELD_H
-#define BABELTRACE_TRACE_IR_PRIVATE_PACKET_HEADER_FIELD_H
+#ifndef BABELTRACE_TRACE_IR_PACKET_HEADER_FIELD_H
+#define BABELTRACE_TRACE_IR_PACKET_HEADER_FIELD_H
 
 /*
  * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
@@ -30,24 +30,24 @@
 extern "C" {
 #endif
 
-struct bt_private_trace;
-struct bt_private_packet_header_field;
-struct bt_private_field;
+struct bt_trace;
+struct bt_packet_header_field;
+struct bt_field;
 
 extern
-struct bt_private_packet_header_field *bt_private_packet_header_field_create(
-		struct bt_private_trace *trace);
+struct bt_packet_header_field *bt_packet_header_field_create(
+		struct bt_trace *trace);
 
 extern
-struct bt_private_field *bt_private_packet_header_field_borrow_field(
-		struct bt_private_packet_header_field *field);
+struct bt_field *bt_packet_header_field_borrow_field(
+		struct bt_packet_header_field *field);
 
 extern
-void bt_private_packet_header_field_release(
-		struct bt_private_packet_header_field *field);
+void bt_packet_header_field_release(
+		struct bt_packet_header_field *field);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PRIVATE_PACKET_HEADER_FIELD_H */
+#endif /* BABELTRACE_TRACE_IR_PACKET_HEADER_FIELD_H */

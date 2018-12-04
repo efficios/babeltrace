@@ -47,28 +47,28 @@ enum test_event_type {
 
 struct test_event {
 	enum test_event_type type;
-	struct bt_stream *stream;
-	struct bt_packet *packet;
+	const struct bt_stream *stream;
+	const struct bt_packet *packet;
 };
 
 static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
 static struct bt_private_graph *graph;
-static struct bt_private_stream_class *src_stream_class;
-static struct bt_private_event_class *src_event_class;
-static struct bt_private_stream *src_stream1;
-static struct bt_private_stream *src_stream2;
-static struct bt_private_packet *src_stream1_packet1;
-static struct bt_private_packet *src_stream1_packet2;
-static struct bt_private_packet *src_stream2_packet1;
-static struct bt_private_packet *src_stream2_packet2;
-static struct bt_stream *pub_src_stream1;
-static struct bt_stream *pub_src_stream2;
-static struct bt_packet *pub_src_stream1_packet1;
-static struct bt_packet *pub_src_stream1_packet2;
-static struct bt_packet *pub_src_stream2_packet1;
-static struct bt_packet *pub_src_stream2_packet2;
+static struct bt_stream_class *src_stream_class;
+static struct bt_event_class *src_event_class;
+static struct bt_stream *src_stream1;
+static struct bt_stream *src_stream2;
+static struct bt_packet *src_stream1_packet1;
+static struct bt_packet *src_stream1_packet2;
+static struct bt_packet *src_stream2_packet1;
+static struct bt_packet *src_stream2_packet2;
+static const struct bt_stream *pub_src_stream1;
+static const struct bt_stream *pub_src_stream2;
+static const struct bt_packet *pub_src_stream1_packet1;
+static const struct bt_packet *pub_src_stream1_packet2;
+static const struct bt_packet *pub_src_stream2_packet1;
+static const struct bt_packet *pub_src_stream2_packet2;
 
 enum {
 	SEQ_END = -1,
@@ -247,41 +247,37 @@ bool compare_test_events(const struct test_event *expected_events)
 static
 void init_static_data(void)
 {
-	struct bt_private_trace *trace;
+	struct bt_trace *trace;
 
 	/* Test events */
 	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
 	BT_ASSERT(test_events);
 
 	/* Metadata */
-	trace = bt_private_trace_create();
+	trace = bt_trace_create();
 	BT_ASSERT(trace);
-	src_stream_class = bt_private_stream_class_create(trace);
+	src_stream_class = bt_stream_class_create(trace);
 	BT_ASSERT(src_stream_class);
-	src_event_class = bt_private_event_class_create(src_stream_class);
+	src_event_class = bt_event_class_create(src_stream_class);
 	BT_ASSERT(src_event_class);
-	src_stream1 = bt_private_stream_create(src_stream_class);
+	src_stream1 = bt_stream_create(src_stream_class);
 	BT_ASSERT(src_stream1);
-	pub_src_stream1 = bt_private_stream_as_stream(src_stream1);
-	src_stream2 = bt_private_stream_create(src_stream_class);
+	pub_src_stream1 = src_stream1;
+	src_stream2 = bt_stream_create(src_stream_class);
 	BT_ASSERT(src_stream2);
-	pub_src_stream2 = bt_private_stream_as_stream(src_stream2);
-	src_stream1_packet1 = bt_private_packet_create(src_stream1);
+	pub_src_stream2 = src_stream2;
+	src_stream1_packet1 = bt_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet1);
-	pub_src_stream1_packet1 = bt_private_packet_as_packet(
-		src_stream1_packet1);
-	src_stream1_packet2 = bt_private_packet_create(src_stream1);
+	pub_src_stream1_packet1 = src_stream1_packet1;
+	src_stream1_packet2 = bt_packet_create(src_stream1);
 	BT_ASSERT(src_stream1_packet2);
-	pub_src_stream1_packet2 = bt_private_packet_as_packet(
-		src_stream1_packet2);
-	src_stream2_packet1 = bt_private_packet_create(src_stream2);
+	pub_src_stream1_packet2 = src_stream1_packet2;
+	src_stream2_packet1 = bt_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet1);
-	pub_src_stream2_packet1 = bt_private_packet_as_packet(
-		src_stream2_packet1);
-	src_stream2_packet2 = bt_private_packet_create(src_stream2);
+	pub_src_stream2_packet1 = src_stream2_packet1;
+	src_stream2_packet2 = bt_packet_create(src_stream2);
 	BT_ASSERT(src_stream2_packet2);
-	pub_src_stream2_packet2 = bt_private_packet_as_packet(
-		src_stream2_packet2);
+	pub_src_stream2_packet2 = src_stream2_packet2;
 
 	if (debug) {
 		fprintf(stderr, ":: stream 1: %p\n", src_stream1);
@@ -353,7 +349,7 @@ void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
 		struct src_iter_user_data *user_data,
 		struct bt_notification **notif)
 {
-	struct bt_private_packet *event_packet = NULL;
+	struct bt_packet *event_packet = NULL;
 
 	switch (user_data->seq[user_data->at]) {
 	case SEQ_STREAM1_BEGIN:
@@ -512,19 +508,20 @@ void append_test_events_from_notification(struct bt_notification *notification)
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
-		struct bt_event *event;
+		const struct bt_event *event;
 
 		test_event.type = TEST_EV_TYPE_NOTIF_EVENT;
 		event = bt_notification_event_borrow_event(notification);
 		BT_ASSERT(event);
-		test_event.packet = bt_event_borrow_packet(event);
+		test_event.packet = bt_event_borrow_packet_const(event);
 		BT_ASSERT(test_event.packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
 		test_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
 		test_event.stream =
-			bt_notification_stream_begin_borrow_stream(notification);
+			bt_notification_stream_begin_borrow_stream(
+				notification);
 		BT_ASSERT(test_event.stream);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -536,7 +533,8 @@ void append_test_events_from_notification(struct bt_notification *notification)
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 		test_event.type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN;
 		test_event.packet =
-			bt_notification_packet_begin_borrow_packet(notification);
+			bt_notification_packet_begin_borrow_packet(
+				notification);
 		BT_ASSERT(test_event.packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -551,7 +549,8 @@ void append_test_events_from_notification(struct bt_notification *notification)
 	}
 
 	if (test_event.packet) {
-		test_event.stream = bt_packet_borrow_stream(test_event.packet);
+		test_event.stream = bt_packet_borrow_stream_const(
+			test_event.packet);
 		BT_ASSERT(test_event.stream);
 	}
 

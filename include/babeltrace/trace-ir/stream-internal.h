@@ -57,7 +57,7 @@ struct bt_stream {
 };
 
 BT_HIDDEN
-void _bt_stream_freeze(struct bt_stream *stream);
+void _bt_stream_freeze(const struct bt_stream *stream);
 
 #ifdef BT_DEV_MODE
 # define bt_stream_freeze		_bt_stream_freeze

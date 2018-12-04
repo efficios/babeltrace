@@ -28,6 +28,7 @@
 #include <babeltrace/graph/query-executor-internal.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-internal.h>
+#include <babeltrace/values.h>
 #include <babeltrace/values-const.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/object.h>

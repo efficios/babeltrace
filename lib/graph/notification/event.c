@@ -77,13 +77,11 @@ end:
 
 struct bt_private_notification *bt_private_notification_event_create(
 		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_private_event_class *priv_event_class,
-		struct bt_private_packet *priv_packet)
+		struct bt_event_class *event_class,
+		struct bt_packet *packet)
 {
 	struct bt_self_component_port_input_notification_iterator *notif_iter =
 		(void *) self_notif_iter;
-	struct bt_event_class *event_class = (void *) priv_event_class;
-	struct bt_packet *packet = (void *) priv_packet;
 	struct bt_notification_event *notification = NULL;
 	struct bt_event *event;
 
@@ -179,8 +177,8 @@ void bt_notification_event_recycle(struct bt_notification *notif)
 	bt_object_pool_recycle_object(&graph->event_notif_pool, notif);
 }
 
-struct bt_event *bt_notification_event_borrow_event(
-		struct bt_notification *notification)
+static inline
+struct bt_event *borrow_event(struct bt_notification *notification)
 {
 	struct bt_notification_event *event_notification;
 
@@ -191,9 +189,14 @@ struct bt_event *bt_notification_event_borrow_event(
 	return event_notification->event;
 }
 
-struct bt_private_event *bt_private_notification_event_borrow_event(
+struct bt_event *bt_private_notification_event_borrow_event(
 		struct bt_private_notification *notification)
 {
-	return (void *) bt_notification_event_borrow_event(
-		(void *) notification);
+	return borrow_event((void *) notification);
+}
+
+const struct bt_event *bt_notification_event_borrow_event(
+		struct bt_notification *notification)
+{
+	return borrow_event(notification);
 }

@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_PRIVATE_STREAM_H
-#define BABELTRACE_TRACE_IR_PRIVATE_STREAM_H
+#ifndef BABELTRACE_TRACE_IR_STREAM_CONST_H
+#define BABELTRACE_TRACE_IR_STREAM_CONST_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -35,30 +35,17 @@ extern "C" {
 #endif
 
 struct bt_stream;
-struct bt_private_stream;
-struct bt_private_stream_class;
+struct bt_stream_class;
 
-static inline
-struct bt_stream *bt_private_stream_as_stream(
-		struct bt_private_stream *priv_stream)
-{
-	return (void *) priv_stream;
-}
+extern const struct bt_stream_class *bt_stream_borrow_class_const(
+		const struct bt_stream *stream);
 
-extern struct bt_private_stream *bt_private_stream_create(
-		struct bt_private_stream_class *stream_class);
+extern const char *bt_stream_get_name(const struct bt_stream *stream);
 
-extern struct bt_private_stream *bt_private_stream_create_with_id(
-		struct bt_private_stream_class *stream_class, uint64_t id);
-
-extern struct bt_private_stream_class *bt_private_stream_borrow_class(
-		struct bt_private_stream *stream);
-
-extern int bt_private_stream_set_name(struct bt_private_stream *stream,
-		const char *name);
+extern uint64_t bt_stream_get_id(const struct bt_stream *stream);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PRIVATE_STREAM_H */
+#endif /* BABELTRACE_TRACE_IR_STREAM_CONST_H */

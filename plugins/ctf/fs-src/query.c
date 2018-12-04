@@ -226,12 +226,12 @@ end:
 }
 
 static
-int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
+int add_stream_ids(struct bt_value *info, const struct bt_stream *stream)
 {
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
 	enum bt_value_status status;
-	struct bt_stream_class *stream_class = NULL;
+	const struct bt_stream_class *stream_class = NULL;
 
 	stream_instance_id = bt_stream_get_id(stream);
 	if (stream_instance_id != -1) {
@@ -243,7 +243,7 @@ int add_stream_ids(struct bt_value *info, struct bt_stream *stream)
 		}
 	}
 
-	stream_class = bt_stream_borrow_class(stream);
+	stream_class = bt_stream_borrow_class_const(stream);
 	if (!stream_class) {
 		ret = -1;
 		goto end;
@@ -331,8 +331,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		goto end;
 	}
 
-	ret = add_stream_ids(group_info,
-		bt_private_stream_as_stream(group->stream));
+	ret = add_stream_ids(group_info, group->stream);
 	if (ret) {
 		goto end;
 	}

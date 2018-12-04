@@ -25,7 +25,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/assert-internal.h>
-#include <babeltrace/trace-ir/clock-value.h>
+#include <babeltrace/trace-ir/clock-value-const.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/fields.h>
 #include <babeltrace/trace-ir/stream.h>
@@ -47,7 +47,7 @@ struct bt_packet {
 };
 
 BT_HIDDEN
-void _bt_packet_set_is_frozen(struct bt_packet *packet, bool is_frozen);
+void _bt_packet_set_is_frozen(const struct bt_packet *packet, bool is_frozen);
 
 #ifdef BT_DEV_MODE
 # define bt_packet_set_is_frozen	_bt_packet_set_is_frozen

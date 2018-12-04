@@ -51,7 +51,7 @@ struct timestamp {
 
 static
 int print_field(struct pretty_component *pretty,
-		struct bt_field *field, bool print_names,
+		const struct bt_field *field, bool print_names,
 		GQuark *filters_fields, int filter_array_len);
 
 static
@@ -78,13 +78,13 @@ void print_field_name_equal(struct pretty_component *pretty, const char *name)
 
 static
 void print_timestamp_cycles(struct pretty_component *pretty,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
-	struct bt_clock_value *clock_value;
+	const struct bt_clock_value *clock_value;
 	uint64_t cycles;
 	enum bt_clock_value_status cv_status;
 
-	cv_status = bt_event_borrow_default_clock_value(event, &clock_value);
+	cv_status = bt_event_borrow_default_clock_value_const(event, &clock_value);
 	if (cv_status != BT_CLOCK_VALUE_STATUS_KNOWN || !clock_value) {
 		g_string_append(pretty->string, "????????????????????");
 		return;
@@ -101,7 +101,7 @@ void print_timestamp_cycles(struct pretty_component *pretty,
 
 static
 void print_timestamp_wall(struct pretty_component *pretty,
-		struct bt_clock_value *clock_value)
+		const struct bt_clock_value *clock_value)
 {
 	int ret;
 	int64_t ts_nsec = 0;	/* add configurable offset */
@@ -216,34 +216,35 @@ end:
 
 static
 int print_event_timestamp(struct pretty_component *pretty,
-		struct bt_event *event, bool *start_line)
+		const struct bt_event *event, bool *start_line)
 {
 	bool print_names = pretty->options.print_header_field_names;
 	int ret = 0;
-	struct bt_stream *stream = NULL;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_trace *trace = NULL;
-	struct bt_clock_value *clock_value = NULL;
+	const struct bt_stream *stream = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_trace *trace = NULL;
+	const struct bt_clock_value *clock_value = NULL;
 	enum bt_clock_value_status cv_status;
 
-	stream = bt_event_borrow_stream(event);
+	stream = bt_event_borrow_stream_const(event);
 	if (!stream) {
 		ret = -1;
 		goto end;
 	}
 
-	stream_class = bt_stream_borrow_class(stream);
+	stream_class = bt_stream_borrow_class_const(stream);
 	if (!stream_class) {
 		ret = -1;
 		goto end;
 	}
-	trace = bt_stream_class_borrow_trace(stream_class);
+	trace = bt_stream_class_borrow_trace_const(stream_class);
 	if (!trace) {
 		ret = -1;
 		goto end;
 	}
 
-	cv_status = bt_event_borrow_default_clock_value(event, &clock_value);
+	cv_status = bt_event_borrow_default_clock_value_const(event,
+		&clock_value);
 	if (cv_status != BT_CLOCK_VALUE_STATUS_KNOWN || !clock_value) {
 		/* No default clock value: skip the timestamp without an error */
 		goto end;
@@ -261,7 +262,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 		print_timestamp_cycles(pretty, event);
 	} else {
 		clock_value = NULL;
-		cv_status = bt_event_borrow_default_clock_value(event,
+		cv_status = bt_event_borrow_default_clock_value_const(event,
 			&clock_value);
 		print_timestamp_wall(pretty, clock_value);
 	}
@@ -313,27 +314,27 @@ end:
 
 static
 int print_event_header(struct pretty_component *pretty,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	bool print_names = pretty->options.print_header_field_names;
 	int ret = 0;
-	struct bt_event_class *event_class = NULL;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_trace *trace_class = NULL;
+	const struct bt_event_class *event_class = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_trace *trace_class = NULL;
 	int dom_print = 0;
 	enum bt_property_availability prop_avail;
 
-	event_class = bt_event_borrow_class(event);
+	event_class = bt_event_borrow_class_const(event);
 	if (!event_class) {
 		ret = -1;
 		goto end;
 	}
-	stream_class = bt_event_class_borrow_stream_class(event_class);
+	stream_class = bt_event_class_borrow_stream_class_const(event_class);
 	if (!stream_class) {
 		ret = -1;
 		goto end;
 	}
-	trace_class = bt_stream_class_borrow_trace(stream_class);
+	trace_class = bt_stream_class_borrow_trace_const(stream_class);
 	if (!trace_class) {
 		ret = -1;
 		goto end;
@@ -364,7 +365,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_hostname_field) {
 		const struct bt_value *hostname_str;
 
-		hostname_str = bt_trace_borrow_environment_entry_value_by_name(
+		hostname_str = bt_trace_borrow_environment_entry_value_by_name_const(
 			trace_class, "hostname");
 		if (hostname_str) {
 			const char *str;
@@ -383,7 +384,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_domain_field) {
 		const struct bt_value *domain_str;
 
-		domain_str = bt_trace_borrow_environment_entry_value_by_name(
+		domain_str = bt_trace_borrow_environment_entry_value_by_name_const(
 			trace_class, "domain");
 		if (domain_str) {
 			const char *str;
@@ -404,7 +405,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_procname_field) {
 		const struct bt_value *procname_str;
 
-		procname_str = bt_trace_borrow_environment_entry_value_by_name(
+		procname_str = bt_trace_borrow_environment_entry_value_by_name_const(
 			trace_class, "procname");
 		if (procname_str) {
 			const char *str;
@@ -425,7 +426,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_vpid_field) {
 		const struct bt_value *vpid_value;
 
-		vpid_value = bt_trace_borrow_environment_entry_value_by_name(
+		vpid_value = bt_trace_borrow_environment_entry_value_by_name_const(
 			trace_class, "vpid");
 		if (vpid_value) {
 			int64_t value;
@@ -533,11 +534,11 @@ end:
 
 static
 int print_integer(struct pretty_component *pretty,
-		struct bt_field *field)
+		const struct bt_field *field)
 {
 	int ret = 0;
 	enum bt_field_class_integer_preferred_display_base base;
-	struct bt_field_class *int_fc;
+	const struct bt_field_class *int_fc;
 	union {
 		uint64_t u;
 		int64_t s;
@@ -545,7 +546,7 @@ int print_integer(struct pretty_component *pretty,
 	bool rst_color = false;
 	enum bt_field_class_type ft_type;
 
-	int_fc = bt_field_borrow_class(field);
+	int_fc = bt_field_borrow_class_const(field);
 	BT_ASSERT(int_fc);
 	ft_type = bt_field_get_class_type(field);
 	if (ft_type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER ||
@@ -700,15 +701,15 @@ void print_escape_string(struct pretty_component *pretty, const char *str)
 
 static
 int print_enum(struct pretty_component *pretty,
-		struct bt_field *field)
+		const struct bt_field *field)
 {
 	int ret = 0;
-	struct bt_field_class *enumeration_field_class = NULL;
+	const struct bt_field_class *enumeration_field_class = NULL;
 	bt_field_class_enumeration_mapping_label_array label_array;
 	uint64_t label_count;
 	uint64_t i;
 
-	enumeration_field_class = bt_field_borrow_class(field);
+	enumeration_field_class = bt_field_borrow_class_const(field);
 	if (!enumeration_field_class) {
 		ret = -1;
 		goto end;
@@ -789,23 +790,23 @@ int filter_field_name(struct pretty_component *pretty, const char *field_name,
 
 static
 int print_struct_field(struct pretty_component *pretty,
-		struct bt_field *_struct,
-		struct bt_field_class *struct_class,
+		const struct bt_field *_struct,
+		const struct bt_field_class *struct_class,
 		uint64_t i, bool print_names, uint64_t *nr_printed_fields,
 		GQuark *filter_fields, int filter_array_len)
 {
 	int ret = 0;
 	const char *field_name;
-	struct bt_field *field = NULL;
-	struct bt_field_class *field_class = NULL;;
+	const struct bt_field *field = NULL;
+	const struct bt_field_class *field_class = NULL;;
 
-	field = bt_field_structure_borrow_member_field_by_index(_struct, i);
+	field = bt_field_structure_borrow_member_field_by_index_const(_struct, i);
 	if (!field) {
 		ret = -1;
 		goto end;
 	}
 
-	bt_field_class_structure_borrow_member_by_index(struct_class, i,
+	bt_field_class_structure_borrow_member_by_index_const(struct_class, i,
 		&field_name, &field_class);
 
 	if (filter_fields && !filter_field_name(pretty, field_name,
@@ -831,14 +832,14 @@ end:
 
 static
 int print_struct(struct pretty_component *pretty,
-		struct bt_field *_struct, bool print_names,
+		const struct bt_field *_struct, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
 	int ret = 0;
-	struct bt_field_class *struct_class = NULL;
+	const struct bt_field_class *struct_class = NULL;
 	uint64_t nr_fields, i, nr_printed_fields;
 
-	struct_class = bt_field_borrow_class(_struct);
+	struct_class = bt_field_borrow_class_const(_struct);
 	if (!struct_class) {
 		ret = -1;
 		goto end;
@@ -868,9 +869,9 @@ end:
 
 static
 int print_array_field(struct pretty_component *pretty,
-		struct bt_field *array, uint64_t i, bool print_names)
+		const struct bt_field *array, uint64_t i, bool print_names)
 {
-	struct bt_field *field = NULL;
+	const struct bt_field *field = NULL;
 
 	if (i != 0) {
 		g_string_append(pretty->string, ", ");
@@ -881,21 +882,21 @@ int print_array_field(struct pretty_component *pretty,
 		g_string_append_printf(pretty->string, "[%" PRIu64 "] = ", i);
 	}
 
-	field = bt_field_array_borrow_element_field_by_index(array, i);
+	field = bt_field_array_borrow_element_field_by_index_const(array, i);
 	BT_ASSERT(field);
 	return print_field(pretty, field, print_names, NULL, 0);
 }
 
 static
 int print_array(struct pretty_component *pretty,
-		struct bt_field *array, bool print_names)
+		const struct bt_field *array, bool print_names)
 {
 	int ret = 0;
-	struct bt_field_class *array_class = NULL;
+	const struct bt_field_class *array_class = NULL;
 	uint64_t len;
 	uint64_t i;
 
-	array_class = bt_field_borrow_class(array);
+	array_class = bt_field_borrow_class_const(array);
 	if (!array_class) {
 		ret = -1;
 		goto end;
@@ -918,9 +919,9 @@ end:
 
 static
 int print_sequence_field(struct pretty_component *pretty,
-		struct bt_field *seq, uint64_t i, bool print_names)
+		const struct bt_field *seq, uint64_t i, bool print_names)
 {
-	struct bt_field *field = NULL;
+	const struct bt_field *field = NULL;
 
 	if (i != 0) {
 		g_string_append(pretty->string, ", ");
@@ -931,14 +932,14 @@ int print_sequence_field(struct pretty_component *pretty,
 		g_string_append_printf(pretty->string, "[%" PRIu64 "] = ", i);
 	}
 
-	field = bt_field_array_borrow_element_field_by_index(seq, i);
+	field = bt_field_array_borrow_element_field_by_index_const(seq, i);
 	BT_ASSERT(field);
 	return print_field(pretty, field, print_names, NULL, 0);
 }
 
 static
 int print_sequence(struct pretty_component *pretty,
-		struct bt_field *seq, bool print_names)
+		const struct bt_field *seq, bool print_names)
 {
 	int ret = 0;
 	uint64_t len;
@@ -968,12 +969,12 @@ end:
 
 static
 int print_variant(struct pretty_component *pretty,
-		struct bt_field *variant, bool print_names)
+		const struct bt_field *variant, bool print_names)
 {
 	int ret = 0;
-	struct bt_field *field = NULL;
+	const struct bt_field *field = NULL;
 
-	field = bt_field_variant_borrow_selected_option_field(variant);
+	field = bt_field_variant_borrow_selected_option_field_const(variant);
 	BT_ASSERT(field);
 	g_string_append(pretty->string, "{ ");
 	pretty->depth++;
@@ -994,7 +995,7 @@ end:
 
 static
 int print_field(struct pretty_component *pretty,
-		struct bt_field *field, bool print_names,
+		const struct bt_field *field, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
 	enum bt_field_class_type class_id;
@@ -1057,18 +1058,18 @@ int print_field(struct pretty_component *pretty,
 
 static
 int print_stream_packet_context(struct pretty_component *pretty,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	int ret = 0;
-	struct bt_packet *packet = NULL;
-	struct bt_field *main_field = NULL;
+	const struct bt_packet *packet = NULL;
+	const struct bt_field *main_field = NULL;
 
-	packet = bt_event_borrow_packet(event);
+	packet = bt_event_borrow_packet_const(event);
 	if (!packet) {
 		ret = -1;
 		goto end;
 	}
-	main_field = bt_packet_borrow_context_field(packet);
+	main_field = bt_packet_borrow_context_field_const(packet);
 	if (!main_field) {
 		goto end;
 	}
@@ -1090,12 +1091,12 @@ end:
 
 static
 int print_event_header_raw(struct pretty_component *pretty,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	int ret = 0;
-	struct bt_field *main_field = NULL;
+	const struct bt_field *main_field = NULL;
 
-	main_field = bt_event_borrow_header_field(event);
+	main_field = bt_event_borrow_header_field_const(event);
 	if (!main_field) {
 		goto end;
 	}
@@ -1115,12 +1116,12 @@ end:
 
 static
 int print_stream_event_context(struct pretty_component *pretty,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	int ret = 0;
-	struct bt_field *main_field = NULL;
+	const struct bt_field *main_field = NULL;
 
-	main_field = bt_event_borrow_common_context_field(event);
+	main_field = bt_event_borrow_common_context_field_const(event);
 	if (!main_field) {
 		goto end;
 	}
@@ -1140,12 +1141,12 @@ end:
 
 static
 int print_event_context(struct pretty_component *pretty,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	int ret = 0;
-	struct bt_field *main_field = NULL;
+	const struct bt_field *main_field = NULL;
 
-	main_field = bt_event_borrow_specific_context_field(event);
+	main_field = bt_event_borrow_specific_context_field_const(event);
 	if (!main_field) {
 		goto end;
 	}
@@ -1165,12 +1166,12 @@ end:
 
 static
 int print_event_payload(struct pretty_component *pretty,
-		struct bt_event *event)
+		const struct bt_event *event)
 {
 	int ret = 0;
-	struct bt_field *main_field = NULL;
+	const struct bt_field *main_field = NULL;
 
-	main_field = bt_event_borrow_payload_field(event);
+	main_field = bt_event_borrow_payload_field_const(event);
 	if (!main_field) {
 		goto end;
 	}
@@ -1210,7 +1211,7 @@ int pretty_print_event(struct pretty_component *pretty,
 		struct bt_notification *event_notif)
 {
 	int ret;
-	struct bt_event *event =
+	const struct bt_event *event =
 		bt_notification_event_borrow_event(event_notif);
 
 	BT_ASSERT(event);
@@ -1260,14 +1261,14 @@ end:
 
 static
 int print_discarded_elements_msg(
-		struct pretty_component *pretty, struct bt_packet *packet,
+		struct pretty_component *pretty, const struct bt_packet *packet,
 		uint64_t count, const char *elem_type)
 {
 #if 0
 	int ret = 0;
-	struct bt_stream *stream = NULL;
-	struct bt_stream_class *stream_class = NULL;
-	struct bt_trace *trace = NULL;
+	const struct bt_stream *stream = NULL;
+	const struct bt_stream_class *stream_class = NULL;
+	const struct bt_trace *trace = NULL;
 	const char *stream_name;
 	const char *trace_name;
 	const unsigned char *trace_uuid;
@@ -1278,12 +1279,12 @@ int print_discarded_elements_msg(
 
 	/* Stream name */
 	BT_ASSERT(packet);
-	stream = bt_packet_borrow_stream(packet);
+	stream = bt_packet_borrow_stream_const(packet);
 	BT_ASSERT(stream);
 	stream_name = bt_stream_get_name(stream);
 
 	/* Stream class ID */
-	stream_class = bt_stream_borrow_class(stream);
+	stream_class = bt_stream_borrow_class_const(stream);
 	BT_ASSERT(stream_class);
 	stream_class_id = bt_stream_class_get_id(stream_class);
 
@@ -1291,7 +1292,7 @@ int print_discarded_elements_msg(
 	stream_id = bt_stream_get_id(stream);
 
 	/* Trace name */
-	trace = bt_stream_class_borrow_trace(stream_class);
+	trace = bt_stream_class_borrow_trace_const(stream_class);
 	BT_ASSERT(trace);
 	trace_name = bt_trace_get_name(trace);
 	if (!trace_name) {
@@ -1302,9 +1303,9 @@ int print_discarded_elements_msg(
 	trace_uuid = bt_trace_get_uuid(trace);
 
 	/* Beginning and end times */
-	(void) bt_packet_borrow_previous_packet_default_end_clock_value(
+	(void) bt_packet_borrow_previous_packet_default_end_clock_value_const(
 		packet, &begin_clock_value);
-	(void) bt_packet_borrow_default_end_clock_value(packet,
+	(void) bt_packet_borrow_default_end_clock_value_const(packet,
 		&end_clock_value);
 
 	/* Format message */
@@ -1384,7 +1385,7 @@ int pretty_print_packet(struct pretty_component *pretty,
 		struct bt_notification *packet_beginning_notif)
 {
 #if 0
-	struct bt_packet *packet = bt_notification_packet_begin_borrow_packet(
+	const struct bt_packet *packet = bt_notification_packet_begin_borrow_packet_const(
 		packet_beginning_notif);
 	uint64_t count;
 	int status = 0;

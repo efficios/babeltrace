@@ -39,29 +39,29 @@
 #include <glib.h>
 
 #define BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(_field, _cls_type, _name)	\
-	BT_ASSERT_PRE(((struct bt_field *) (_field))->class->type == (_cls_type), \
+	BT_ASSERT_PRE(((const struct bt_field *) (_field))->class->type == (_cls_type), \
 		_name " has the wrong class type: expected-class-type=%s, " \
 		"%![field-]+f",						\
 		bt_common_field_class_type_string(_cls_type), (_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_UNSIGNED_INT(_field, _name)		\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
-		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, \
 		_name " is not an unsigned integer field: %![field-]+f", \
 		(_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_SIGNED_INT(_field, _name)		\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
-		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_INTEGER || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, \
 		_name " is not a signed integer field: %![field-]+f", \
 		(_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_ARRAY(_field, _name)			\
 	BT_ASSERT_PRE(							\
-		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
-		((struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY || \
+		((const struct bt_field *) (_field))->class->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY, \
 		_name " is not an array field: %![field-]+f", (_field))
 
 #define BT_ASSERT_PRE_FIELD_IS_SET(_field, _name)			\
@@ -69,14 +69,14 @@
 		_name " is not set: %!+f", (_field))
 
 #define BT_ASSERT_PRE_FIELD_HOT(_field, _name)				\
-	BT_ASSERT_PRE_HOT((struct bt_field *) (_field), (_name),	\
+	BT_ASSERT_PRE_HOT((const struct bt_field *) (_field), (_name),	\
 		": %!+f", (_field))
 
 struct bt_field;
 
 typedef struct bt_field *(* bt_field_create_func)(struct bt_field_class *);
 typedef void (*bt_field_method_set_is_frozen)(struct bt_field *, bool);
-typedef bool (*bt_field_method_is_set)(struct bt_field *);
+typedef bool (*bt_field_method_is_set)(const struct bt_field *);
 typedef void (*bt_field_method_reset)(struct bt_field *);
 
 struct bt_field_methods {
@@ -161,14 +161,14 @@ struct bt_field_string {
 #endif
 
 BT_HIDDEN
-void _bt_field_set_is_frozen(struct bt_field *field, bool is_frozen);
+void _bt_field_set_is_frozen(const struct bt_field *field, bool is_frozen);
 
 static inline
-void _bt_field_reset(struct bt_field *field)
+void _bt_field_reset(const struct bt_field *field)
 {
 	BT_ASSERT(field);
 	BT_ASSERT(field->methods->reset);
-	field->methods->reset(field);
+	field->methods->reset((void *) field);
 }
 
 static inline
@@ -179,7 +179,7 @@ void _bt_field_set_single(struct bt_field *field, bool value)
 }
 
 static inline
-bt_bool _bt_field_is_set(struct bt_field *field)
+bt_bool _bt_field_is_set(const struct bt_field *field)
 {
 	bt_bool is_set = BT_FALSE;
 

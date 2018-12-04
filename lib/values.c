@@ -1113,7 +1113,7 @@ enum bt_value_status bt_value_map_insert_empty_map_entry(
 }
 
 enum bt_value_status bt_value_map_foreach_entry(struct bt_value *map_obj,
-		bt_value_map_foreach_entry_cb cb, void *data)
+		bt_value_map_foreach_entry_func func, void *data)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
 	gpointer key, element_obj;
@@ -1121,14 +1121,14 @@ enum bt_value_status bt_value_map_foreach_entry(struct bt_value *map_obj,
 	struct bt_value_map *typed_map_obj = BT_VALUE_TO_MAP(map_obj);
 
 	BT_ASSERT_PRE_NON_NULL(map_obj, "Value object");
-	BT_ASSERT_PRE_NON_NULL(cb, "Callback");
+	BT_ASSERT_PRE_NON_NULL(func, "Callback");
 	BT_ASSERT_PRE_VALUE_IS_TYPE(map_obj, BT_VALUE_TYPE_MAP);
 	g_hash_table_iter_init(&iter, typed_map_obj->ght);
 
 	while (g_hash_table_iter_next(&iter, &key, &element_obj)) {
 		const char *key_str = g_quark_to_string(GPOINTER_TO_UINT(key));
 
-		if (!cb(key_str, element_obj, data)) {
+		if (!func(key_str, element_obj, data)) {
 			BT_LOGV("User canceled the loop: key=\"%s\", "
 				"value-addr=%p, data=%p",
 				key_str, element_obj, data);
@@ -1142,10 +1142,10 @@ enum bt_value_status bt_value_map_foreach_entry(struct bt_value *map_obj,
 
 enum bt_value_status bt_value_map_foreach_entry_const(
 		const struct bt_value *map_obj,
-		bt_value_map_foreach_entry_const_cb cb, void *data)
+		bt_value_map_foreach_entry_const_func func, void *data)
 {
 	return bt_value_map_foreach_entry((void *) map_obj,
-		(bt_value_map_foreach_entry_cb) cb, data);
+		(bt_value_map_foreach_entry_func) func, data);
 }
 
 struct extend_map_element_data {

@@ -86,7 +86,7 @@ struct bt_trace {
 };
 
 BT_HIDDEN
-void _bt_trace_freeze(struct bt_trace *trace);
+void _bt_trace_freeze(const struct bt_trace *trace);
 
 #ifdef BT_DEV_MODE
 # define bt_trace_freeze		_bt_trace_freeze
@@ -98,7 +98,7 @@ BT_HIDDEN
 void bt_trace_add_stream(struct bt_trace *trace, struct bt_stream *stream);
 
 BT_HIDDEN
-uint64_t bt_trace_get_automatic_stream_id(struct bt_trace *trace,
-		struct bt_stream_class *stream_class);
+uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
+		const struct bt_stream_class *stream_class);
 
 #endif /* BABELTRACE_TRACE_IR_TRACE_INTERNAL_H */

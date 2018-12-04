@@ -27,8 +27,8 @@
  */
 
 #include <babeltrace/object-internal.h>
-#include <babeltrace/trace-ir/field-classes.h>
-#include <babeltrace/trace-ir/field-path.h>
+#include <babeltrace/trace-ir/field-classes-const.h>
+#include <babeltrace/trace-ir/field-path-const.h>
 #include <glib.h>
 
 struct bt_resolve_field_path_context {

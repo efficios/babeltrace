@@ -71,7 +71,7 @@ struct bt_stream_class {
 };
 
 BT_HIDDEN
-void _bt_stream_class_freeze(struct bt_stream_class *stream_class);
+void _bt_stream_class_freeze(const struct bt_stream_class *stream_class);
 
 #ifdef BT_DEV_MODE
 # define bt_stream_class_freeze		_bt_stream_class_freeze
@@ -81,7 +81,7 @@ void _bt_stream_class_freeze(struct bt_stream_class *stream_class);
 
 static inline
 struct bt_trace *bt_stream_class_borrow_trace_inline(
-		struct bt_stream_class *stream_class)
+		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT(stream_class);
 	return (void *) bt_object_borrow_parent(&stream_class->base);

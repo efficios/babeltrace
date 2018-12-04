@@ -603,9 +603,9 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		struct bt_notification *notif, int64_t last_returned_ts_ns,
 		int64_t *ts_ns)
 {
-	struct bt_clock_class *clock_class = NULL;
-	struct bt_clock_value *clock_value = NULL;
-	struct bt_event *event = NULL;
+	const struct bt_clock_class *clock_class = NULL;
+	const struct bt_clock_value *clock_value = NULL;
+	const struct bt_event *event = NULL;
 	int ret = 0;
 	const unsigned char *cc_uuid;
 	const char *cc_name;
@@ -623,7 +623,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	case BT_NOTIFICATION_TYPE_EVENT:
 		event = bt_notification_event_borrow_event(notif);
 		BT_ASSERT(event);
-		cv_status = bt_event_borrow_default_clock_value(event,
+		cv_status = bt_event_borrow_default_clock_value_const(event,
 			&clock_value);
 		break;
 
@@ -657,7 +657,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		goto end;
 	}
 
-	clock_class = bt_clock_value_borrow_clock_class(clock_value);
+	clock_class = bt_clock_value_borrow_clock_class_const(clock_value);
 	BT_ASSERT(clock_class);
 	cc_uuid = bt_clock_class_get_uuid(clock_class);
 	cc_name = bt_clock_class_get_name(clock_class);
