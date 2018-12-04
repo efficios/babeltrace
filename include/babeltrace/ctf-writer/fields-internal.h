@@ -33,7 +33,6 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/ctf-writer/field-types-internal.h>
 #include <babeltrace/ctf-writer/fields.h>

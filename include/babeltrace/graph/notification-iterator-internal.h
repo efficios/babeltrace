@@ -26,8 +26,8 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/graph/connection.h>
-#include <babeltrace/graph/notification.h>
+#include <babeltrace/graph/connection-const.h>
+#include <babeltrace/graph/notification-const.h>
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>

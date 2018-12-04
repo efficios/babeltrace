@@ -26,7 +26,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-const.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
@@ -99,10 +99,10 @@ void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph);
 
 BT_HIDDEN
-uint64_t bt_component_get_input_port_count(struct bt_component *comp);
+uint64_t bt_component_get_input_port_count(const struct bt_component *comp);
 
 BT_HIDDEN
-uint64_t bt_component_get_output_port_count(struct bt_component *comp);
+uint64_t bt_component_get_output_port_count(const struct bt_component *comp);
 
 BT_HIDDEN
 struct bt_port_input *bt_component_borrow_input_port_by_index(

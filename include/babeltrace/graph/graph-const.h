@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
-#define BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H
+#ifndef BABELTRACE_GRAPH_GRAPH_CONST_H
+#define BABELTRACE_GRAPH_GRAPH_CONST_H
 
 /*
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +25,30 @@
  * SOFTWARE.
  */
 
+/* For bt_bool */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class_source;
-struct bt_self_component_class_source;
+struct bt_graph;
 
-static inline
-const struct bt_component_class_source *
-bt_self_component_class_source_as_component_class_source(
-		struct bt_self_component_class_source *self_comp_cls_source)
-{
-	return (const void *) self_comp_cls_source;
-}
+enum bt_graph_status {
+	BT_GRAPH_STATUS_OK = 0,
+	BT_GRAPH_STATUS_END = 1,
+	BT_GRAPH_STATUS_AGAIN = 11,
+	BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION = 111,
+	BT_GRAPH_STATUS_CANCELED = 125,
+	BT_GRAPH_STATUS_ERROR = -1,
+	BT_GRAPH_STATUS_NO_SINK = -6,
+	BT_GRAPH_STATUS_NOMEM = -12,
+};
+
+extern bt_bool bt_graph_is_canceled(const struct bt_graph *graph);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_SELF_COMPONENT_CLASS_SOURCE_H */
+#endif /* BABELTRACE_GRAPH_GRAPH_CONST_H */

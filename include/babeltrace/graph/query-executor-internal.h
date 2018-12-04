@@ -26,7 +26,7 @@
 #include <babeltrace/types.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/graph/query-executor.h>
-#include <babeltrace/graph/private-component-class.h>
+#include <babeltrace/graph/component-class.h>
 
 struct bt_query_executor {
 	struct bt_object base;

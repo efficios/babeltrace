@@ -23,15 +23,23 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_notification;
-struct bt_clock_value;
+struct bt_self_notification_iterator;
+struct bt_clock_class;
 
-extern struct bt_clock_value *bt_notification_inactivity_borrow_default_clock_value(
-		struct bt_notification *notif);
+extern
+struct bt_notification *bt_notification_inactivity_create(
+		struct bt_self_notification_iterator *notification_iterator,
+		struct bt_clock_class *default_clock_class);
+
+extern void bt_notification_inactivity_set_default_clock_value(
+		struct bt_notification *notif, uint64_t raw_value);
 
 #ifdef __cplusplus
 }

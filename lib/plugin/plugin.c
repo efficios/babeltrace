@@ -33,7 +33,7 @@
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
 #include <babeltrace/plugin/plugin-const.h>
-#include <babeltrace/graph/component-class.h>
+#include <babeltrace/graph/component-class-const.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
@@ -538,28 +538,27 @@ struct bt_component_class *borrow_component_class_by_index(
 	return g_ptr_array_index(comp_classes, index);
 }
 
-
-struct bt_component_class_source *
+const struct bt_component_class_source *
 bt_plugin_borrow_source_component_class_by_index_const_const(
 		const struct bt_plugin *plugin, uint64_t index)
 {
-	return (void *) borrow_component_class_by_index(plugin,
+	return (const void *) borrow_component_class_by_index(plugin,
 		plugin->src_comp_classes, index);
 }
 
-struct bt_component_class_filter *
+const struct bt_component_class_filter *
 bt_plugin_borrow_filter_component_class_by_index_const(
 		const struct bt_plugin *plugin, uint64_t index)
 {
-	return (void *) borrow_component_class_by_index(plugin,
+	return (const void *) borrow_component_class_by_index(plugin,
 		plugin->flt_comp_classes, index);
 }
 
-struct bt_component_class_sink *
+const struct bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_index_const(
 		const struct bt_plugin *plugin, uint64_t index)
 {
-	return (void *) borrow_component_class_by_index(plugin,
+	return (const void *) borrow_component_class_by_index(plugin,
 		plugin->sink_comp_classes, index);
 }
 
@@ -591,26 +590,26 @@ struct bt_component_class *borrow_component_class_by_name(
 	return comp_class;
 }
 
-struct bt_component_class_source *
+const struct bt_component_class_source *
 bt_plugin_borrow_source_component_class_by_name_const(
 		const struct bt_plugin *plugin, const char *name)
 {
-	return (void *) borrow_component_class_by_name(plugin,
+	return (const void *) borrow_component_class_by_name(plugin,
 		plugin->src_comp_classes, name);
 }
 
-struct bt_component_class_filter *
+const struct bt_component_class_filter *
 bt_plugin_borrow_filter_component_class_by_name_const(
 		const struct bt_plugin *plugin, const char *name)
 {
-	return (void *) borrow_component_class_by_name(plugin,
+	return (const void *) borrow_component_class_by_name(plugin,
 		plugin->flt_comp_classes, name);
 }
 
-struct bt_component_class_sink *
+const struct bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_name_const(
 		const struct bt_plugin *plugin, const char *name)
 {
-	return (void *) borrow_component_class_by_name(plugin,
+	return (const void *) borrow_component_class_by_name(plugin,
 		plugin->sink_comp_classes, name);
 }

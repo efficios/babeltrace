@@ -69,8 +69,8 @@ static const char* log_level_env_var_names[] = {
 };
 
 /* Application's processing graph (weak) */
-static struct bt_private_graph *the_graph;
-static struct bt_private_query_executor *the_query_executor;
+static struct bt_graph *the_graph;
+static struct bt_query_executor *the_query_executor;
 static bool canceled = false;
 
 GPtrArray *loaded_plugins;
@@ -82,7 +82,7 @@ GPtrArray *loaded_plugins;
 static
 BOOL WINAPI signal_handler(DWORD signal) {
 	if (the_graph) {
-		bt_private_graph_cancel(the_graph);
+		bt_graph_cancel(the_graph);
 	}
 
 	canceled = true;
@@ -108,11 +108,11 @@ void signal_handler(int signum)
 	}
 
 	if (the_graph) {
-		bt_private_graph_cancel(the_graph);
+		bt_graph_cancel(the_graph);
 	}
 
 	if (the_query_executor) {
-		bt_private_query_executor_cancel(the_query_executor);
+		bt_query_executor_cancel(the_query_executor);
 	}
 
 	canceled = true;
@@ -153,7 +153,7 @@ int create_the_query_executor(void)
 {
 	int ret = 0;
 
-	the_query_executor = bt_private_query_executor_create();
+	the_query_executor = bt_query_executor_create();
 	if (!the_query_executor) {
 		BT_LOGE_STR("Cannot create a query executor.");
 		ret = -1;
@@ -169,7 +169,7 @@ void destroy_the_query_executor(void)
 }
 
 static
-int query(struct bt_component_class *comp_cls, const char *obj,
+int query(const struct bt_component_class *comp_cls, const char *obj,
 		const struct bt_value *params, const struct bt_value **user_result,
 		const char **fail_reason)
 {
@@ -196,7 +196,7 @@ int query(struct bt_component_class *comp_cls, const char *obj,
 	}
 
 	while (true) {
-		status = bt_private_query_executor_query(the_query_executor,
+		status = bt_query_executor_query(the_query_executor,
 			comp_cls, obj, params, &result);
 		switch (status) {
 		case BT_QUERY_EXECUTOR_STATUS_OK:
@@ -210,8 +210,7 @@ int query(struct bt_component_class *comp_cls, const char *obj,
 				"time-us=%" PRIu64, sleep_time_us);
 
 			if (usleep(sleep_time_us)) {
-				if (bt_query_executor_is_canceled(
-						bt_private_query_executor_as_query_executor(the_query_executor))) {
+				if (bt_query_executor_is_canceled(the_query_executor)) {
 					BT_LOGI("Query was canceled by user: "
 						"comp-cls-addr=%p, comp-cls-name=\"%s\", "
 						"query-obj=\"%s\"", comp_cls,
@@ -292,15 +291,15 @@ const struct bt_plugin *find_plugin(const char *name)
 	return plugin;
 }
 
-typedef void *(*plugin_borrow_comp_cls_func_t)(const struct bt_plugin *,
-	const char *);
+typedef const void *(*plugin_borrow_comp_cls_func_t)(
+		const struct bt_plugin *, const char *);
 
 static
-void *find_component_class_from_plugin(const char *plugin_name,
+const void *find_component_class_from_plugin(const char *plugin_name,
 		const char *comp_class_name,
 		plugin_borrow_comp_cls_func_t plugin_borrow_comp_cls_func)
 {
-	void *comp_class = NULL;
+	const void *comp_class = NULL;
 	const struct bt_plugin *plugin;
 
 	BT_LOGD("Finding component class: plugin-name=\"%s\", "
@@ -329,57 +328,51 @@ end:
 }
 
 static
-struct bt_component_class_source *find_source_component_class(
+const struct bt_component_class_source *find_source_component_class(
 		const char *plugin_name, const char *comp_class_name)
 {
-	return (void *) find_component_class_from_plugin(plugin_name,
-		comp_class_name,
+	return (const void *) find_component_class_from_plugin(
+		plugin_name, comp_class_name,
 		(plugin_borrow_comp_cls_func_t)
 			bt_plugin_borrow_source_component_class_by_name_const);
 }
 
 static
-struct bt_component_class_filter *find_filter_component_class(
+const struct bt_component_class_filter *find_filter_component_class(
 		const char *plugin_name, const char *comp_class_name)
 {
-	return (void *) find_component_class_from_plugin(plugin_name,
-		comp_class_name,
+	return (const void *) find_component_class_from_plugin(
+		plugin_name, comp_class_name,
 		(plugin_borrow_comp_cls_func_t)
 			bt_plugin_borrow_filter_component_class_by_name_const);
 }
 
 static
-struct bt_component_class_sink *find_sink_component_class(
+const struct bt_component_class_sink *find_sink_component_class(
 		const char *plugin_name, const char *comp_class_name)
 {
-	return (void *) find_component_class_from_plugin(plugin_name,
+	return (const void *) find_component_class_from_plugin(plugin_name,
 		comp_class_name,
 		(plugin_borrow_comp_cls_func_t)
 			bt_plugin_borrow_sink_component_class_by_name_const);
 }
 
 static
-struct bt_component_class *find_component_class(const char *plugin_name,
+const struct bt_component_class *find_component_class(const char *plugin_name,
 		const char *comp_class_name,
 		enum bt_component_class_type comp_class_type)
 {
-	struct bt_component_class *comp_cls = NULL;
+	const struct bt_component_class *comp_cls = NULL;
 
 	switch (comp_class_type) {
 	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-		comp_cls = bt_component_class_source_as_component_class(
-			find_source_component_class(plugin_name,
-				comp_class_name));
+		comp_cls = bt_component_class_source_as_component_class_const(find_source_component_class(plugin_name, comp_class_name));
 		break;
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
-		comp_cls = bt_component_class_filter_as_component_class(
-			find_filter_component_class(plugin_name,
-				comp_class_name));
+		comp_cls = bt_component_class_filter_as_component_class_const(find_filter_component_class(plugin_name, comp_class_name));
 		break;
 	case BT_COMPONENT_CLASS_TYPE_SINK:
-		comp_cls = bt_component_class_sink_as_component_class(
-			find_sink_component_class(plugin_name,
-				comp_class_name));
+		comp_cls = bt_component_class_sink_as_component_class_const(find_sink_component_class(plugin_name, comp_class_name));
 		break;
 	default:
 		abort();
@@ -940,7 +933,7 @@ static
 int cmd_query(struct bt_config *cfg)
 {
 	int ret = 0;
-	struct bt_component_class *comp_cls = NULL;
+	const struct bt_component_class *comp_cls = NULL;
 	const struct bt_value *results = NULL;
 	const char *fail_reason = NULL;
 
@@ -1009,7 +1002,7 @@ end:
 
 static
 void print_component_class_help(const char *plugin_name,
-		struct bt_component_class *comp_cls)
+		const struct bt_component_class *comp_cls)
 {
 	const char *comp_class_name =
 		bt_component_class_get_name(comp_cls);
@@ -1036,7 +1029,7 @@ int cmd_help(struct bt_config *cfg)
 {
 	int ret = 0;
 	const struct bt_plugin *plugin = NULL;
-	struct bt_component_class *needed_comp_cls = NULL;
+	const struct bt_component_class *needed_comp_cls = NULL;
 
 	plugin = find_plugin(cfg->cmd_data.help.cfg_component->plugin_name->str);
 	if (!plugin) {
@@ -1106,7 +1099,7 @@ end:
 
 typedef void *(* plugin_borrow_comp_cls_by_index_func_t)(const struct bt_plugin *,
 	uint64_t);
-typedef struct bt_component_class *(* spec_comp_cls_borrow_comp_cls_func_t)(
+typedef const struct bt_component_class *(* spec_comp_cls_borrow_comp_cls_func_t)(
 	void *);
 
 void cmd_list_plugins_print_component_classes(const struct bt_plugin *plugin,
@@ -1128,7 +1121,7 @@ void cmd_list_plugins_print_component_classes(const struct bt_plugin *plugin,
 	}
 
 	for (i = 0; i < count; i++) {
-		struct bt_component_class *comp_class =
+		const struct bt_component_class *comp_class =
 			spec_comp_cls_borrow_comp_cls_func(
 				borrow_comp_cls_by_index_func(plugin, i));
 		const char *comp_class_name =
@@ -1219,7 +1212,7 @@ static
 int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 {
 	int ret = 0;
-	struct bt_component_class *comp_cls = NULL;
+	const struct bt_component_class *comp_cls = NULL;
 	const struct bt_value *results = NULL;
 	struct bt_value *params = NULL;
 	const struct bt_value *map = NULL;
@@ -1371,7 +1364,7 @@ static
 int cmd_print_ctf_metadata(struct bt_config *cfg)
 {
 	int ret = 0;
-	struct bt_component_class *comp_cls = NULL;
+	const struct bt_component_class *comp_cls = NULL;
 	const struct bt_value *results = NULL;
 	struct bt_value *params = NULL;
 	const struct bt_value *metadata_text_value = NULL;
@@ -1537,7 +1530,7 @@ struct cmd_run_ctx {
 	GHashTable *sink_components;
 
 	/* Owned by this */
-	struct bt_private_graph *graph;
+	struct bt_graph *graph;
 
 	/* Weak */
 	struct bt_config *cfg;
@@ -1600,15 +1593,15 @@ char *s_from_ns(int64_t ns)
 static
 int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		struct cmd_run_ctx *ctx,
-		struct bt_component *upstream_comp,
-		struct bt_port_output *out_upstream_port,
+		const struct bt_component *upstream_comp,
+		const struct bt_port_output *out_upstream_port,
 		struct bt_config_connection *cfg_conn)
 {
 	typedef uint64_t (*input_port_count_func_t)(void *);
-	typedef struct bt_port_input *(*borrow_input_port_by_index_func_t)(
-		void *, uint64_t);
-	struct bt_port *upstream_port =
-		bt_port_output_as_port(out_upstream_port);
+	typedef const struct bt_port_input *(*borrow_input_port_by_index_func_t)(
+		const void *, uint64_t);
+	const struct bt_port *upstream_port =
+		bt_port_output_as_port_const(out_upstream_port);
 
 	int ret = 0;
 	GQuark downstreamp_comp_name_quark;
@@ -1622,10 +1615,10 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	struct bt_value *trimmer_params = NULL;
 	char *intersection_begin = NULL;
 	char *intersection_end = NULL;
-	struct bt_component_filter *trimmer = NULL;
-	struct bt_component_class_filter *trimmer_class = NULL;
-	struct bt_port_input *trimmer_input = NULL;
-	struct bt_port_output *trimmer_output = NULL;
+	const struct bt_component_filter *trimmer = NULL;
+	const struct bt_component_class_filter *trimmer_class = NULL;
+	const struct bt_port_input *trimmer_input = NULL;
+	const struct bt_port_output *trimmer_output = NULL;
 
 	if (ctx->intersections &&
 		bt_component_get_class_type(upstream_comp) ==
@@ -1693,7 +1686,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	port_count_fn = (input_port_count_func_t)
 		bt_component_filter_get_input_port_count;
 	port_by_index_fn = (borrow_input_port_by_index_func_t)
-		bt_component_filter_borrow_input_port_by_index;
+		bt_component_filter_borrow_input_port_by_index_const;
 
 	if (!downstream_comp) {
 		downstream_comp = g_hash_table_lookup(ctx->sink_components,
@@ -1701,7 +1694,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		port_count_fn = (input_port_count_func_t)
 			bt_component_sink_get_input_port_count;
 		port_by_index_fn = (borrow_input_port_by_index_func_t)
-			bt_component_sink_borrow_input_port_by_index;
+			bt_component_sink_borrow_input_port_by_index_const;
 	}
 
 	if (!downstream_comp) {
@@ -1717,10 +1710,10 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	BT_ASSERT(downstream_port_count >= 0);
 
 	for (i = 0; i < downstream_port_count; i++) {
-		struct bt_port_input *in_downstream_port =
+		const struct bt_port_input *in_downstream_port =
 			port_by_index_fn(downstream_comp, i);
-		struct bt_port *downstream_port =
-			bt_port_input_as_port(in_downstream_port);
+		const struct bt_port *downstream_port =
+			bt_port_input_as_port_const(in_downstream_port);
 		const char *upstream_port_name;
 		const char *downstream_port_name;
 
@@ -1774,10 +1767,9 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			ret = 0;
 
 			ctx->connect_ports = false;
-			graph_status = bt_private_graph_add_filter_component(
+			graph_status = bt_graph_add_filter_component(
 				ctx->graph, trimmer_class, trimmer_name,
-				trimmer_params,
-				&trimmer);
+				trimmer_params, &trimmer);
 			free(trimmer_name);
 			if (graph_status != BT_GRAPH_STATUS_OK) {
 				goto error;
@@ -1785,13 +1777,13 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			BT_ASSERT(trimmer);
 
 			trimmer_input =
-				bt_component_filter_borrow_input_port_by_index(
+				bt_component_filter_borrow_input_port_by_index_const(
 					trimmer, 0);
 			if (!trimmer_input) {
 				goto error;
 			}
 			trimmer_output =
-				bt_component_filter_borrow_output_port_by_index(
+				bt_component_filter_borrow_output_port_by_index_const(
 					trimmer, 0);
 			if (!trimmer_output) {
 				goto error;
@@ -1803,14 +1795,14 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			 */
 			in_downstream_port = trimmer_input;
 			downstream_port =
-				bt_port_input_as_port(in_downstream_port);
+				bt_port_input_as_port_const(in_downstream_port);
 			downstream_port_name = bt_port_get_name(
 				downstream_port);
 			BT_ASSERT(downstream_port_name);
 		}
 
 		/* We have a winner! */
-		status = bt_private_graph_connect_ports(ctx->graph,
+		status = bt_graph_connect_ports(ctx->graph,
 			out_upstream_port, in_downstream_port, NULL);
 		downstream_port = NULL;
 		switch (status) {
@@ -1878,7 +1870,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			 */
 			ret = cmd_run_ctx_connect_upstream_port_to_downstream_component(
 				ctx,
-				bt_component_filter_as_component(trimmer),
+				bt_component_filter_as_component_const(trimmer),
 				trimmer_output, cfg_conn);
 			if (ret) {
 				goto error;
@@ -1918,21 +1910,21 @@ end:
 
 static
 int cmd_run_ctx_connect_upstream_port(struct cmd_run_ctx *ctx,
-		struct bt_port_output *upstream_port)
+		const struct bt_port_output *upstream_port)
 {
 	int ret = 0;
 	const char *upstream_port_name;
 	const char *upstream_comp_name;
-	struct bt_component *upstream_comp = NULL;
+	const struct bt_component *upstream_comp = NULL;
 	size_t i;
 
 	BT_ASSERT(ctx);
 	BT_ASSERT(upstream_port);
 	upstream_port_name = bt_port_get_name(
-		bt_port_output_as_port(upstream_port));
+		bt_port_output_as_port_const(upstream_port));
 	BT_ASSERT(upstream_port_name);
-	upstream_comp = bt_port_borrow_component(
-		bt_port_output_as_port(upstream_port));
+	upstream_comp = bt_port_borrow_component_const(
+		bt_port_output_as_port_const(upstream_port));
 	if (!upstream_comp) {
 		BT_LOGW("Upstream port to connect is not part of a component: "
 			"port-addr=%p, port-name=\"%s\"",
@@ -1997,12 +1989,12 @@ end:
 
 static
 void graph_output_port_added_listener(struct cmd_run_ctx *ctx,
-		struct bt_port_output *out_port)
+		const struct bt_port_output *out_port)
 {
-	struct bt_component *comp;
-	struct bt_port *port = bt_port_output_as_port(out_port);
+	const struct bt_component *comp;
+	const struct bt_port *port = bt_port_output_as_port_const(out_port);
 
-	comp = bt_port_borrow_component(port);
+	comp = bt_port_borrow_component_const(port);
 	BT_LOGI("Port added to a graph's component: comp-addr=%p, "
 		"comp-name=\"%s\", port-addr=%p, port-name=\"%s\"",
 		comp, comp ? bt_component_get_name(comp) : "",
@@ -2034,16 +2026,16 @@ end:
 
 static
 void graph_source_output_port_added_listener(
-		struct bt_component_source *component,
-		struct bt_port_output *port, void *data)
+		const struct bt_component_source *component,
+		const struct bt_port_output *port, void *data)
 {
 	graph_output_port_added_listener(data, port);
 }
 
 static
 void graph_filter_output_port_added_listener(
-		struct bt_component_filter *component,
-		struct bt_port_output *port, void *data)
+		const struct bt_component_filter *component,
+		const struct bt_port_output *port, void *data)
 {
 	graph_output_port_added_listener(data, port);
 }
@@ -2115,13 +2107,13 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 		}
 	}
 
-	ctx->graph = bt_private_graph_create();
+	ctx->graph = bt_graph_create();
 	if (!ctx->graph) {
 		goto error;
 	}
 
 	the_graph = ctx->graph;
-	status = bt_private_graph_add_source_component_output_port_added_listener(
+	status = bt_graph_add_source_component_output_port_added_listener(
 		ctx->graph, graph_source_output_port_added_listener, NULL, ctx,
 		NULL);
 	if (status != BT_GRAPH_STATUS_OK) {
@@ -2129,7 +2121,7 @@ int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 		goto error;
 	}
 
-	status = bt_private_graph_add_filter_component_output_port_added_listener(
+	status = bt_graph_add_filter_component_output_port_added_listener(
 		ctx->graph, graph_filter_output_port_added_listener, NULL, ctx,
 		NULL);
 	if (status != BT_GRAPH_STATUS_OK) {
@@ -2150,7 +2142,7 @@ end:
 static
 int set_stream_intersections(struct cmd_run_ctx *ctx,
 		struct bt_config_component *cfg_comp,
-		struct bt_component_class_source *src_comp_cls)
+		const struct bt_component_class_source *src_comp_cls)
 {
 	int ret = 0;
 	uint64_t trace_idx;
@@ -2171,8 +2163,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	struct port_id *port_id = NULL;
 	struct trace_range *trace_range = NULL;
 	const char *fail_reason = NULL;
-	struct bt_component_class *comp_cls =
-		bt_component_class_source_as_component_class(src_comp_cls);
+	const struct bt_component_class *comp_cls =
+		bt_component_class_source_as_component_class_const(src_comp_cls);
 
 	component_path_value = bt_value_map_borrow_entry_value(cfg_comp->params,
 							       "path");
@@ -2390,8 +2382,8 @@ int cmd_run_ctx_create_components_from_config_components(
 		struct cmd_run_ctx *ctx, GPtrArray *cfg_components)
 {
 	size_t i;
-	void *comp_cls = NULL;
-	void *comp = NULL;
+	const void *comp_cls = NULL;
+	const void *comp = NULL;
 	int ret = 0;
 
 	for (i = 0; i < cfg_components->len; i++) {
@@ -2439,19 +2431,19 @@ int cmd_run_ctx_create_components_from_config_components(
 
 		switch (cfg_comp->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
-			ret = bt_private_graph_add_source_component(ctx->graph,
+			ret = bt_graph_add_source_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
 				cfg_comp->params,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
-			ret = bt_private_graph_add_filter_component(ctx->graph,
+			ret = bt_graph_add_filter_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
 				cfg_comp->params,
 				(void *) &comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
-			ret = bt_private_graph_add_sink_component(ctx->graph,
+			ret = bt_graph_add_sink_component(ctx->graph,
 				comp_cls, cfg_comp->instance_name->str,
 				cfg_comp->params,
 				(void *) &comp);
@@ -2491,15 +2483,15 @@ int cmd_run_ctx_create_components_from_config_components(
 		switch (cfg_comp->type) {
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			g_hash_table_insert(ctx->src_components,
-				GUINT_TO_POINTER(quark), comp);
+				GUINT_TO_POINTER(quark), (void *) comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			g_hash_table_insert(ctx->flt_components,
-				GUINT_TO_POINTER(quark), comp);
+				GUINT_TO_POINTER(quark), (void *) comp);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			g_hash_table_insert(ctx->sink_components,
-				GUINT_TO_POINTER(quark), comp);
+				GUINT_TO_POINTER(quark), (void *) comp);
 			break;
 		default:
 			abort();
@@ -2558,9 +2550,9 @@ end:
 	return ret;
 }
 
-typedef uint64_t (*output_port_count_func_t)(void *);
-typedef struct bt_port_output *(*borrow_output_port_by_index_func_t)(
-	void *, uint64_t);
+typedef uint64_t (*output_port_count_func_t)(const void *);
+typedef const struct bt_port_output *(*borrow_output_port_by_index_func_t)(
+	const void *, uint64_t);
 
 static
 int cmd_run_ctx_connect_comp_ports(struct cmd_run_ctx *ctx,
@@ -2575,7 +2567,7 @@ int cmd_run_ctx_connect_comp_ports(struct cmd_run_ctx *ctx,
 	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
-		struct bt_port_output *upstream_port = port_by_index_fn(comp, i);
+		const struct bt_port_output *upstream_port = port_by_index_fn(comp, i);
 
 		BT_ASSERT(upstream_port);
 		ret = cmd_run_ctx_connect_upstream_port(ctx, upstream_port);
@@ -2603,7 +2595,7 @@ int cmd_run_ctx_connect_ports(struct cmd_run_ctx *ctx)
 			(output_port_count_func_t)
 				bt_component_source_get_output_port_count,
 			(borrow_output_port_by_index_func_t)
-				bt_component_source_borrow_output_port_by_index);
+				bt_component_source_borrow_output_port_by_index_const);
 		if (ret) {
 			goto end;
 		}
@@ -2616,7 +2608,7 @@ int cmd_run_ctx_connect_ports(struct cmd_run_ctx *ctx)
 			(output_port_count_func_t)
 				bt_component_filter_get_output_port_count,
 			(borrow_output_port_by_index_func_t)
-				bt_component_filter_borrow_output_port_by_index);
+				bt_component_filter_borrow_output_port_by_index_const);
 		if (ret) {
 			goto end;
 		}
@@ -2701,7 +2693,7 @@ int cmd_run(struct bt_config *cfg)
 
 	/* Run the graph */
 	while (true) {
-		enum bt_graph_status graph_status = bt_private_graph_run(ctx.graph);
+		enum bt_graph_status graph_status = bt_graph_run(ctx.graph);
 
 		/*
 		 * Reset console in case something messed with console
@@ -2710,7 +2702,7 @@ int cmd_run(struct bt_config *cfg)
 		printf("%s", bt_common_color_reset());
 		fflush(stdout);
 		fprintf(stderr, "%s", bt_common_color_reset());
-		BT_LOGV("bt_private_graph_run() returned: status=%s",
+		BT_LOGV("bt_graph_run() returned: status=%s",
 			bt_graph_status_str(graph_status));
 
 		switch (graph_status) {
@@ -2720,8 +2712,7 @@ int cmd_run(struct bt_config *cfg)
 			BT_LOGI_STR("Graph was canceled by user.");
 			goto error;
 		case BT_GRAPH_STATUS_AGAIN:
-			if (bt_graph_is_canceled(
-					bt_private_graph_as_graph(ctx.graph))) {
+			if (bt_graph_is_canceled(ctx.graph)) {
 				BT_LOGI_STR("Graph was canceled by user.");
 				goto error;
 			}
@@ -2732,8 +2723,7 @@ int cmd_run(struct bt_config *cfg)
 					cfg->cmd_data.run.retry_duration_us);
 
 				if (usleep(cfg->cmd_data.run.retry_duration_us)) {
-					if (bt_graph_is_canceled(
-							bt_private_graph_as_graph(ctx.graph))) {
+					if (bt_graph_is_canceled(ctx.graph)) {
 						BT_LOGI_STR("Graph was canceled by user.");
 						goto error;
 					}

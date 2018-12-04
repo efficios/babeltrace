@@ -26,11 +26,11 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/graph/component.h>
+#include <babeltrace/graph/component-const.h>
 #include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/private-component-class-source.h>
-#include <babeltrace/graph/private-component-class-filter.h>
-#include <babeltrace/graph/private-component-class-sink.h>
+#include <babeltrace/graph/component-class-source.h>
+#include <babeltrace/graph/component-class-filter.h>
+#include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/list-internal.h>
@@ -65,46 +65,46 @@ struct bt_component_class {
 struct bt_component_class_source {
 	struct bt_component_class parent;
 	struct {
-		bt_private_component_class_source_init_method init;
-		bt_private_component_class_source_finalize_method finalize;
-		bt_private_component_class_source_notification_iterator_init_method notif_iter_init;
-		bt_private_component_class_source_notification_iterator_finalize_method notif_iter_finalize;
-		bt_private_component_class_source_notification_iterator_next_method notif_iter_next;
-		bt_private_component_class_source_query_method query;
-		bt_private_component_class_source_accept_output_port_connection_method accept_output_port_connection;
-		bt_private_component_class_source_output_port_connected_method output_port_connected;
-		bt_private_component_class_source_output_port_disconnected_method output_port_disconnected;
+		bt_component_class_source_init_method init;
+		bt_component_class_source_finalize_method finalize;
+		bt_component_class_source_notification_iterator_init_method notif_iter_init;
+		bt_component_class_source_notification_iterator_finalize_method notif_iter_finalize;
+		bt_component_class_source_notification_iterator_next_method notif_iter_next;
+		bt_component_class_source_query_method query;
+		bt_component_class_source_accept_output_port_connection_method accept_output_port_connection;
+		bt_component_class_source_output_port_connected_method output_port_connected;
+		bt_component_class_source_output_port_disconnected_method output_port_disconnected;
 	} methods;
 };
 
 struct bt_component_class_sink {
 	struct bt_component_class parent;
 	struct {
-		bt_private_component_class_sink_init_method init;
-		bt_private_component_class_sink_finalize_method finalize;
-		bt_private_component_class_sink_query_method query;
-		bt_private_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
-		bt_private_component_class_sink_input_port_connected_method input_port_connected;
-		bt_private_component_class_sink_input_port_disconnected_method input_port_disconnected;
-		bt_private_component_class_sink_consume_method consume;
+		bt_component_class_sink_init_method init;
+		bt_component_class_sink_finalize_method finalize;
+		bt_component_class_sink_query_method query;
+		bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
+		bt_component_class_sink_input_port_connected_method input_port_connected;
+		bt_component_class_sink_input_port_disconnected_method input_port_disconnected;
+		bt_component_class_sink_consume_method consume;
 	} methods;
 };
 
 struct bt_component_class_filter {
 	struct bt_component_class parent;
 	struct {
-		bt_private_component_class_filter_init_method init;
-		bt_private_component_class_filter_finalize_method finalize;
-		bt_private_component_class_filter_notification_iterator_init_method notif_iter_init;
-		bt_private_component_class_filter_notification_iterator_finalize_method notif_iter_finalize;
-		bt_private_component_class_filter_notification_iterator_next_method notif_iter_next;
-		bt_private_component_class_filter_query_method query;
-		bt_private_component_class_filter_accept_input_port_connection_method accept_input_port_connection;
-		bt_private_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
-		bt_private_component_class_filter_input_port_connected_method input_port_connected;
-		bt_private_component_class_filter_output_port_connected_method output_port_connected;
-		bt_private_component_class_filter_input_port_disconnected_method input_port_disconnected;
-		bt_private_component_class_filter_output_port_disconnected_method output_port_disconnected;
+		bt_component_class_filter_init_method init;
+		bt_component_class_filter_finalize_method finalize;
+		bt_component_class_filter_notification_iterator_init_method notif_iter_init;
+		bt_component_class_filter_notification_iterator_finalize_method notif_iter_finalize;
+		bt_component_class_filter_notification_iterator_next_method notif_iter_next;
+		bt_component_class_filter_query_method query;
+		bt_component_class_filter_accept_input_port_connection_method accept_input_port_connection;
+		bt_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
+		bt_component_class_filter_input_port_connected_method input_port_connected;
+		bt_component_class_filter_output_port_connected_method output_port_connected;
+		bt_component_class_filter_input_port_disconnected_method input_port_disconnected;
+		bt_component_class_filter_output_port_disconnected_method output_port_disconnected;
 	} methods;
 };
 
@@ -113,7 +113,8 @@ void bt_component_class_add_destroy_listener(struct bt_component_class *class,
 		bt_component_class_destroy_listener_func func, void *data);
 
 BT_HIDDEN
-void _bt_component_class_freeze(struct bt_component_class *component_class);
+void _bt_component_class_freeze(
+		const struct bt_component_class *component_class);
 
 #ifdef BT_DEV_MODE
 # define bt_component_class_freeze	_bt_component_class_freeze

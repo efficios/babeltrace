@@ -62,7 +62,7 @@ struct muxer_upstream_notif_iter {
 	/* Owned by this, NULL if ended */
 	struct bt_self_component_port_input_notification_iterator *notif_iter;
 
-	/* Contains `struct bt_notification *`, owned by this */
+	/* Contains `const struct bt_notification *`, owned by this */
 	GQueue *notifs;
 };
 
@@ -125,7 +125,7 @@ void destroy_muxer_upstream_notif_iter(
 	bt_object_put_ref(muxer_upstream_notif_iter->notif_iter);
 
 	if (muxer_upstream_notif_iter->notifs) {
-		struct bt_notification *notif;
+		const struct bt_notification *notif;
 
 		while ((notif = g_queue_pop_head(
 				muxer_upstream_notif_iter->notifs))) {
@@ -415,7 +415,7 @@ struct bt_self_component_port_input_notification_iterator *
 create_notif_iter_on_input_port(
 		struct bt_self_component_port_input *self_port, int *ret)
 {
-	struct bt_port *port = bt_self_component_port_as_port(
+	const struct bt_port *port = bt_self_component_port_as_port(
 		bt_self_component_port_input_as_self_component_port(
 			self_port));
 	struct bt_self_component_port_input_notification_iterator *notif_iter =
@@ -452,7 +452,7 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
 {
 	enum bt_notification_iterator_status status;
-	bt_notification_array notifs;
+	bt_notification_array_const notifs;
 	uint64_t i;
 	uint64_t count;
 
@@ -482,7 +482,7 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 			 * from the head first.
 			 */
 			g_queue_push_tail(muxer_upstream_notif_iter->notifs,
-				notifs[i]);
+				(void *) notifs[i]);
 		}
 		break;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
@@ -533,7 +533,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 	while (true) {
 		GList *node = muxer_notif_iter->newly_connected_self_ports;
 		struct bt_self_component_port_input *self_port;
-		struct bt_port *port;
+		const struct bt_port *port;
 		struct bt_self_component_port_input_notification_iterator *
 			upstream_notif_iter = NULL;
 		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter;
@@ -600,7 +600,7 @@ end:
 static
 int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 		struct muxer_notif_iter *muxer_notif_iter,
-		struct bt_notification *notif, int64_t last_returned_ts_ns,
+		const struct bt_notification *notif, int64_t last_returned_ts_ns,
 		int64_t *ts_ns)
 {
 	const struct bt_clock_class *clock_class = NULL;
@@ -621,7 +621,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 
 	switch (bt_notification_get_type(notif)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
-		event = bt_notification_event_borrow_event(notif);
+		event = bt_notification_event_borrow_event_const(notif);
 		BT_ASSERT(event);
 		cv_status = bt_event_borrow_default_clock_value_const(event,
 			&clock_value);
@@ -629,7 +629,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 
 	case BT_NOTIFICATION_TYPE_INACTIVITY:
 		clock_value =
-			bt_notification_inactivity_borrow_default_clock_value(
+			bt_notification_inactivity_borrow_default_clock_value_const(
 				notif);
 		break;
 	default:
@@ -871,7 +871,7 @@ muxer_notif_iter_youngest_upstream_notif_iter(
 	*muxer_upstream_notif_iter = NULL;
 
 	for (i = 0; i < muxer_notif_iter->muxer_upstream_notif_iters->len; i++) {
-		struct bt_notification *notif;
+		const struct bt_notification *notif;
 		struct muxer_upstream_notif_iter *cur_muxer_upstream_notif_iter =
 			g_ptr_array_index(muxer_notif_iter->muxer_upstream_notif_iters, i);
 		int64_t notif_ts_ns;
@@ -1005,7 +1005,7 @@ static inline
 enum bt_notification_iterator_status muxer_notif_iter_do_next_one(
 		struct muxer_comp *muxer_comp,
 		struct muxer_notif_iter *muxer_notif_iter,
-		struct bt_notification **notif)
+		const struct bt_notification **notif)
 {
 	enum bt_notification_iterator_status status =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
@@ -1106,7 +1106,7 @@ static
 enum bt_notification_iterator_status muxer_notif_iter_do_next(
 		struct muxer_comp *muxer_comp,
 		struct muxer_notif_iter *muxer_notif_iter,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
 	enum bt_notification_iterator_status status =
@@ -1188,7 +1188,7 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 		struct bt_self_component_port_input *self_port =
 			bt_self_component_filter_borrow_input_port_by_index(
 				muxer_comp->self_comp, i);
-		struct bt_port *port;
+		const struct bt_port *port;
 
 		BT_ASSERT(self_port);
 		port = bt_self_component_port_as_port(
@@ -1346,7 +1346,7 @@ void muxer_notif_iter_finalize(
 BT_HIDDEN
 enum bt_notification_iterator_status muxer_notif_iter_next(
 		struct bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
 	enum bt_notification_iterator_status status;
@@ -1387,10 +1387,10 @@ BT_HIDDEN
 enum bt_self_component_status muxer_input_port_connected(
 		struct bt_self_component_filter *self_comp,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port)
+		const struct bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
-	struct bt_port *port = bt_self_component_port_as_port(
+	const struct bt_port *port = bt_self_component_port_as_port(
 		bt_self_component_port_input_as_self_component_port(
 			self_port));
 	struct muxer_comp *muxer_comp =
@@ -1408,7 +1408,7 @@ enum bt_self_component_status muxer_input_port_connected(
 		"other-port-addr=%p, other-port-name=\"%s\"",
 		self_comp, muxer_comp, self_port, bt_port_get_name(port),
 		other_port,
-		bt_port_get_name(bt_port_output_as_port(other_port)));
+		bt_port_get_name(bt_port_output_as_port_const(other_port)));
 
 	for (i = 0; i < muxer_comp->muxer_notif_iters->len; i++) {
 		struct muxer_notif_iter *muxer_notif_iter =
@@ -1468,7 +1468,7 @@ void muxer_input_port_disconnected(
 		bt_self_component_get_data(
 			bt_self_component_filter_as_self_component(
 				self_component));
-	struct bt_port *port =
+	const struct bt_port *port =
 		bt_self_component_port_as_port(
 			bt_self_component_port_input_as_self_component_port(
 				self_port));

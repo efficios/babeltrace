@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace/version.h>
 #include <babeltrace/types.h>
 #include <stdlib.h>
 

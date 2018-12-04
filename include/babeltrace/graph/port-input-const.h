@@ -1,8 +1,10 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_QUERY_EXECUTOR_H
-#define BABELTRACE_GRAPH_PRIVATE_QUERY_EXECUTOR_H
+#ifndef BABELTRACE_GRAPH_PORT_INPUT_CONST_H
+#define BABELTRACE_GRAPH_PORT_INPUT_CONST_H
 
 /*
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2017 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ *
+ * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,41 +25,24 @@
  * SOFTWARE.
  */
 
-/* For enum bt_query_executor_status */
-#include <babeltrace/graph/query-executor.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_query_executor;
-struct bt_private_query_executor;
-struct bt_component_class;
-struct bt_value;
+struct bt_port;
+struct bt_port_input;
 
 static inline
-struct bt_query_executor *bt_private_query_executor_as_query_executor(
-		struct bt_private_query_executor *priv_query_executor)
+const struct bt_port *bt_port_input_as_port_const(
+		const struct bt_port_input *port_input)
 {
-	return (void *) priv_query_executor;
+	return (const void *) port_input;
 }
-
-extern
-struct bt_private_query_executor *bt_private_query_executor_create(void);
-
-extern
-enum bt_query_executor_status bt_private_query_executor_query(
-		struct bt_private_query_executor *query_executor,
-		struct bt_component_class *component_class,
-		const char *object, const struct bt_value *params,
-		const struct bt_value **result);
-
-extern
-enum bt_query_executor_status bt_private_query_executor_cancel(
-		struct bt_private_query_executor *query_executor);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_QUERY_EXECUTOR_H */
+#endif /* BABELTRACE_GRAPH_PORT_INPUT_CONST_H */

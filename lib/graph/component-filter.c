@@ -28,12 +28,10 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/values.h>
 #include <babeltrace/graph/self-component-filter.h>
-#include <babeltrace/graph/component-filter.h>
+#include <babeltrace/graph/component-filter-const.h>
 #include <babeltrace/graph/component-filter-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/graph/notification.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
@@ -46,7 +44,7 @@ void bt_component_filter_destroy(struct bt_component *component)
 
 BT_HIDDEN
 struct bt_component *bt_component_filter_create(
-		struct bt_component_class *class)
+		const struct bt_component_class *class)
 {
 	struct bt_component_filter *filter = NULL;
 
@@ -61,13 +59,14 @@ end:
 }
 
 uint64_t bt_component_filter_get_output_port_count(
-		struct bt_component_filter *comp)
+		const struct bt_component_filter *comp)
 {
 	return bt_component_get_output_port_count((void *) comp);
 }
 
-struct bt_port_output *bt_component_filter_borrow_output_port_by_name(
-		struct bt_component_filter *comp, const char *name)
+const struct bt_port_output *
+bt_component_filter_borrow_output_port_by_name_const(
+		const struct bt_component_filter *comp, const char *name)
 {
 	return bt_component_borrow_output_port_by_name(
 		(void *) comp, name);
@@ -81,8 +80,9 @@ bt_self_component_filter_borrow_output_port_by_name(
 		(void *) comp, name);
 }
 
-struct bt_port_output *bt_component_filter_borrow_output_port_by_index(
-		struct bt_component_filter *comp, uint64_t index)
+const struct bt_port_output *
+bt_component_filter_borrow_output_port_by_index_const(
+		const struct bt_component_filter *comp, uint64_t index)
 {
 	return bt_component_borrow_output_port_by_index(
 		(void *) comp, index);
@@ -124,14 +124,14 @@ end:
 }
 
 uint64_t bt_component_filter_get_input_port_count(
-		struct bt_component_filter *component)
+		const struct bt_component_filter *component)
 {
 	/* bt_component_get_input_port_count() logs details/errors */
 	return bt_component_get_input_port_count((void *) component);
 }
 
-struct bt_port_input *bt_component_filter_borrow_input_port_by_name(
-		struct bt_component_filter *component, const char *name)
+const struct bt_port_input *bt_component_filter_borrow_input_port_by_name_const(
+		const struct bt_component_filter *component, const char *name)
 {
 	/* bt_component_borrow_input_port_by_name() logs details/errors */
 	return bt_component_borrow_input_port_by_name(
@@ -147,8 +147,9 @@ bt_self_component_filter_borrow_input_port_by_name(
 		(void *) component, name);
 }
 
-struct bt_port_input *bt_component_filter_borrow_input_port_by_index(
-		struct bt_component_filter *component, uint64_t index)
+const struct bt_port_input *
+bt_component_filter_borrow_input_port_by_index_const(
+		const struct bt_component_filter *component, uint64_t index)
 {
 	/* bt_component_borrow_input_port_by_index() logs details/errors */
 	return bt_component_borrow_input_port_by_index(

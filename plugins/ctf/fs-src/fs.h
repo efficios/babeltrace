@@ -162,7 +162,7 @@ void ctf_fs_finalize(struct bt_self_component_source *component);
 BT_HIDDEN
 enum bt_query_status ctf_fs_query(
 		struct bt_self_component_class_source *comp_class,
-		struct bt_query_executor *query_exec,
+		const struct bt_query_executor *query_exec,
 		const char *object, const struct bt_value *params,
 		const struct bt_value **result);
 
@@ -191,7 +191,7 @@ void ctf_fs_iterator_finalize(struct bt_self_notification_iterator *it);
 BT_HIDDEN
 enum bt_self_notification_iterator_status ctf_fs_iterator_next(
 		struct bt_self_notification_iterator *iterator,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

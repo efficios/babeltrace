@@ -68,7 +68,7 @@ struct debug_info_iterator {
 	GHashTable *trace_map;
 	/* Input iterators associated with this output iterator. */
 	GPtrArray *input_iterator_group;
-	struct bt_notification *current_notification;
+	const struct bt_notification *current_notification;
 	struct bt_notification_iterator *input_iterator;
 	FILE *err;
 };

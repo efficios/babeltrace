@@ -26,10 +26,14 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/graph/private-component-class.h>
-#include <babeltrace/graph/private-component-class-source.h>
-#include <babeltrace/graph/private-component-class-filter.h>
-#include <babeltrace/graph/private-component-class-sink.h>
+#include <babeltrace/graph/component-class.h>
+#include <babeltrace/graph/component-class-const.h>
+#include <babeltrace/graph/component-class-source.h>
+#include <babeltrace/graph/component-class-source-const.h>
+#include <babeltrace/graph/component-class-filter.h>
+#include <babeltrace/graph/component-class-filter-const.h>
+#include <babeltrace/graph/component-class-sink.h>
+#include <babeltrace/graph/component-class-sink-const.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/object.h>
 #include <babeltrace/types.h>
@@ -38,7 +42,7 @@
 #include <glib.h>
 
 #define BT_ASSERT_PRE_COMP_CLS_HOT(_cc) \
-	BT_ASSERT_PRE_HOT(((struct bt_component_class *) (_cc)),	\
+	BT_ASSERT_PRE_HOT(((const struct bt_component_class *) (_cc)),	\
 		"Component class", ": %!+C", (_cc))
 
 static
@@ -130,10 +134,9 @@ end:
 	return ret;
 }
 
-struct bt_private_component_class_source *
-bt_private_component_class_source_create(
+struct bt_component_class_source *bt_component_class_source_create(
 		const char *name,
-		bt_private_component_class_source_notification_iterator_next_method method)
+		bt_component_class_source_notification_iterator_next_method method)
 {
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
@@ -169,9 +172,9 @@ end:
 	return (void *) source_class;
 }
 
-struct bt_private_component_class_filter *
-bt_private_component_class_filter_create(const char *name,
-		bt_private_component_class_filter_notification_iterator_next_method method)
+struct bt_component_class_filter *bt_component_class_filter_create(
+		const char *name,
+		bt_component_class_filter_notification_iterator_next_method method)
 {
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
@@ -207,9 +210,8 @@ end:
 	return (void *) filter_class;
 }
 
-struct bt_private_component_class_sink *bt_private_component_class_sink_create(
-		const char *name,
-		bt_private_component_class_sink_consume_method method)
+struct bt_component_class_sink *bt_component_class_sink_create(
+		const char *name, bt_component_class_sink_consume_method method)
 {
 	struct bt_component_class_sink *sink_class = NULL;
 	int ret;
@@ -245,12 +247,10 @@ end:
 	return (void *) sink_class;
 }
 
-int bt_private_component_class_source_set_init_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_init_method method)
+int bt_component_class_source_set_init_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_init_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -260,12 +260,10 @@ int bt_private_component_class_source_set_init_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_init_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_init_method method)
+int bt_component_class_filter_set_init_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_init_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -275,12 +273,10 @@ int bt_private_component_class_filter_set_init_method(
 	return 0;
 }
 
-int bt_private_component_class_sink_set_init_method(
-		struct bt_private_component_class_sink *priv_comp_cls,
-		bt_private_component_class_sink_init_method method)
+int bt_component_class_sink_set_init_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_init_method method)
 {
-	struct bt_component_class_sink *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -290,12 +286,10 @@ int bt_private_component_class_sink_set_init_method(
 	return 0;
 }
 
-int bt_private_component_class_source_set_finalize_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_finalize_method method)
+int bt_component_class_source_set_finalize_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_finalize_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -305,12 +299,10 @@ int bt_private_component_class_source_set_finalize_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_finalize_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_finalize_method method)
+int bt_component_class_filter_set_finalize_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_finalize_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -320,12 +312,10 @@ int bt_private_component_class_filter_set_finalize_method(
 	return 0;
 }
 
-int bt_private_component_class_sink_set_finalize_method(
-		struct bt_private_component_class_sink *priv_comp_cls,
-		bt_private_component_class_sink_finalize_method method)
+int bt_component_class_sink_set_finalize_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_finalize_method method)
 {
-	struct bt_component_class_sink *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -335,12 +325,10 @@ int bt_private_component_class_sink_set_finalize_method(
 	return 0;
 }
 
-int bt_private_component_class_source_set_query_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_query_method method)
+int bt_component_class_source_set_query_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_query_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -350,12 +338,10 @@ int bt_private_component_class_source_set_query_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_query_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_query_method method)
+int bt_component_class_filter_set_query_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_query_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -365,12 +351,10 @@ int bt_private_component_class_filter_set_query_method(
 	return 0;
 }
 
-int bt_private_component_class_sink_set_query_method(
-		struct bt_private_component_class_sink *priv_comp_cls,
-		bt_private_component_class_sink_query_method method)
+int bt_component_class_sink_set_query_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_query_method method)
 {
-	struct bt_component_class_sink *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -380,12 +364,10 @@ int bt_private_component_class_sink_set_query_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_accept_input_port_connection_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_accept_input_port_connection_method method)
+int bt_component_class_filter_set_accept_input_port_connection_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_accept_input_port_connection_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -395,12 +377,10 @@ int bt_private_component_class_filter_set_accept_input_port_connection_method(
 	return 0;
 }
 
-int bt_private_component_class_sink_set_accept_input_port_connection_method(
-		struct bt_private_component_class_sink *priv_comp_cls,
-		bt_private_component_class_sink_accept_input_port_connection_method method)
+int bt_component_class_sink_set_accept_input_port_connection_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_accept_input_port_connection_method method)
 {
-	struct bt_component_class_sink *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -410,12 +390,10 @@ int bt_private_component_class_sink_set_accept_input_port_connection_method(
 	return 0;
 }
 
-int bt_private_component_class_source_set_accept_output_port_connection_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_accept_output_port_connection_method method)
+int bt_component_class_source_set_accept_output_port_connection_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_accept_output_port_connection_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -425,12 +403,10 @@ int bt_private_component_class_source_set_accept_output_port_connection_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_accept_output_port_connection_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_accept_output_port_connection_method method)
+int bt_component_class_filter_set_accept_output_port_connection_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_accept_output_port_connection_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -440,12 +416,10 @@ int bt_private_component_class_filter_set_accept_output_port_connection_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_input_port_connected_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_input_port_connected_method method)
+int bt_component_class_filter_set_input_port_connected_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_input_port_connected_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -455,12 +429,10 @@ int bt_private_component_class_filter_set_input_port_connected_method(
 	return 0;
 }
 
-int bt_private_component_class_sink_set_input_port_connected_method(
-		struct bt_private_component_class_sink *priv_comp_cls,
-		bt_private_component_class_sink_input_port_connected_method method)
+int bt_component_class_sink_set_input_port_connected_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_input_port_connected_method method)
 {
-	struct bt_component_class_sink *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -470,12 +442,10 @@ int bt_private_component_class_sink_set_input_port_connected_method(
 	return 0;
 }
 
-int bt_private_component_class_source_set_output_port_connected_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_output_port_connected_method method)
+int bt_component_class_source_set_output_port_connected_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_output_port_connected_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -485,12 +455,10 @@ int bt_private_component_class_source_set_output_port_connected_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_output_port_connected_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_output_port_connected_method method)
+int bt_component_class_filter_set_output_port_connected_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_output_port_connected_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -500,12 +468,10 @@ int bt_private_component_class_filter_set_output_port_connected_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_input_port_disconnected_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_input_port_disconnected_method method)
+int bt_component_class_filter_set_input_port_disconnected_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_input_port_disconnected_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -515,12 +481,10 @@ int bt_private_component_class_filter_set_input_port_disconnected_method(
 	return 0;
 }
 
-int bt_private_component_class_sink_set_input_port_disconnected_method(
-		struct bt_private_component_class_sink *priv_comp_cls,
-		bt_private_component_class_sink_input_port_disconnected_method method)
+int bt_component_class_sink_set_input_port_disconnected_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_input_port_disconnected_method method)
 {
-	struct bt_component_class_sink *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -530,12 +494,10 @@ int bt_private_component_class_sink_set_input_port_disconnected_method(
 	return 0;
 }
 
-int bt_private_component_class_source_set_output_port_disconnected_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_output_port_disconnected_method method)
+int bt_component_class_source_set_output_port_disconnected_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_output_port_disconnected_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -545,12 +507,10 @@ int bt_private_component_class_source_set_output_port_disconnected_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_output_port_disconnected_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_output_port_disconnected_method method)
+int bt_component_class_filter_set_output_port_disconnected_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_output_port_disconnected_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -560,12 +520,10 @@ int bt_private_component_class_filter_set_output_port_disconnected_method(
 	return 0;
 }
 
-int bt_private_component_class_source_set_notification_iterator_init_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_notification_iterator_init_method method)
+int bt_component_class_source_set_notification_iterator_init_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_notification_iterator_init_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -575,12 +533,10 @@ int bt_private_component_class_source_set_notification_iterator_init_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_notification_iterator_init_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_notification_iterator_init_method method)
+int bt_component_class_filter_set_notification_iterator_init_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_notification_iterator_init_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -590,12 +546,10 @@ int bt_private_component_class_filter_set_notification_iterator_init_method(
 	return 0;
 }
 
-int bt_private_component_class_source_set_notification_iterator_finalize_method(
-		struct bt_private_component_class_source *priv_comp_cls,
-		bt_private_component_class_source_notification_iterator_finalize_method method)
+int bt_component_class_source_set_notification_iterator_finalize_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_notification_iterator_finalize_method method)
 {
-	struct bt_component_class_source *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -605,12 +559,10 @@ int bt_private_component_class_source_set_notification_iterator_finalize_method(
 	return 0;
 }
 
-int bt_private_component_class_filter_set_notification_iterator_finalize_method(
-		struct bt_private_component_class_filter *priv_comp_cls,
-		bt_private_component_class_filter_notification_iterator_finalize_method method)
+int bt_component_class_filter_set_notification_iterator_finalize_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_notification_iterator_finalize_method method)
 {
-	struct bt_component_class_filter *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -620,12 +572,10 @@ int bt_private_component_class_filter_set_notification_iterator_finalize_method(
 	return 0;
 }
 
-int bt_private_component_class_set_description(
-		struct bt_private_component_class *priv_comp_cls,
+int bt_component_class_set_description(
+		struct bt_component_class *comp_cls,
 		const char *description)
 {
-	struct bt_component_class *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(description, "Description");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -638,12 +588,10 @@ int bt_private_component_class_set_description(
 	return 0;
 }
 
-int bt_private_component_class_set_help(
-		struct bt_private_component_class *priv_comp_cls,
+int bt_component_class_set_help(
+		struct bt_component_class *comp_cls,
 		const char *help)
 {
-	struct bt_component_class *comp_cls = (void *) priv_comp_cls;
-
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(help, "Help");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
@@ -652,21 +600,21 @@ int bt_private_component_class_set_help(
 	return 0;
 }
 
-const char *bt_component_class_get_name(struct bt_component_class *comp_cls)
+const char *bt_component_class_get_name(const struct bt_component_class *comp_cls)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return comp_cls->name->str;
 }
 
 enum bt_component_class_type bt_component_class_get_type(
-		struct bt_component_class *comp_cls)
+		const struct bt_component_class *comp_cls)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return comp_cls->type;
 }
 
 const char *bt_component_class_get_description(
-		struct bt_component_class *comp_cls)
+		const struct bt_component_class *comp_cls)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return comp_cls->description &&
@@ -675,7 +623,7 @@ const char *bt_component_class_get_description(
 }
 
 const char *bt_component_class_get_help(
-		struct bt_component_class *comp_cls)
+		const struct bt_component_class *comp_cls)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	return comp_cls->help &&
@@ -699,9 +647,9 @@ void bt_component_class_add_destroy_listener(
 }
 
 BT_HIDDEN
-void _bt_component_class_freeze(struct bt_component_class *comp_cls)
+void _bt_component_class_freeze(const struct bt_component_class *comp_cls)
 {
 	BT_ASSERT(comp_cls);
 	BT_LIB_LOGD("Freezing component class: %!+C", comp_cls);
-	comp_cls->frozen = true;
+	((struct bt_component_class *) comp_cls)->frozen = true;
 }

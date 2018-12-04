@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_COMPONENT_CLASS_H
-#define BABELTRACE_GRAPH_PRIVATE_COMPONENT_CLASS_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SOURCE_CONST_H
+#define BABELTRACE_GRAPH_COMPONENT_CLASS_SOURCE_CONST_H
 
 /*
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -23,43 +23,23 @@
  * SOFTWARE.
  */
 
-/* For enum bt_query_executor_status */
-#include <babeltrace/graph/query-executor.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component_class;
-struct bt_private_component_class;
-
-enum bt_query_status {
-	BT_QUERY_STATUS_OK = BT_QUERY_EXECUTOR_STATUS_OK,
-	BT_QUERY_STATUS_AGAIN = BT_QUERY_EXECUTOR_STATUS_AGAIN,
-	BT_QUERY_STATUS_ERROR = BT_QUERY_EXECUTOR_STATUS_ERROR,
-	BT_QUERY_STATUS_NOMEM = BT_QUERY_EXECUTOR_STATUS_NOMEM,
-	BT_QUERY_STATUS_INVALID_OBJECT = BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT,
-	BT_QUERY_STATUS_INVALID_PARAMS = BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS,
-};
+struct bt_component_class_source;
 
 static inline
-struct bt_component_class *
-bt_private_component_class_as_component_class(
-		struct bt_private_component_class *priv_comp_cls)
+const struct bt_component_class *
+bt_component_class_source_as_component_class_const(
+		const struct bt_component_class_source *comp_cls_source)
 {
-	return (void *) priv_comp_cls;
+	return (const void *) comp_cls_source;
 }
-
-extern int bt_private_component_class_set_description(
-		struct bt_private_component_class *component_class,
-		const char *description);
-
-extern int bt_private_component_class_set_help(
-		struct bt_private_component_class *component_class,
-		const char *help);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_COMPONENT_CLASS_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SOURCE_CONST_H */

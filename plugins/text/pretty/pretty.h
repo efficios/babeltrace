@@ -117,17 +117,17 @@ BT_HIDDEN
 enum bt_self_component_status pretty_port_connected(
 		struct bt_self_component_sink *component,
 		struct bt_self_component_port_input *self_port,
-		struct bt_port_output *other_port);
+		const struct bt_port_output *other_port);
 
 BT_HIDDEN
 void pretty_finalize(struct bt_self_component_sink *component);
 
 BT_HIDDEN
 int pretty_print_event(struct pretty_component *pretty,
-		struct bt_notification *event_notif);
+		const struct bt_notification *event_notif);
 
 BT_HIDDEN
 int pretty_print_packet(struct pretty_component *pretty,
-		struct bt_notification *packet_beginning_notif);
+		const struct bt_notification *packet_beginning_notif);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

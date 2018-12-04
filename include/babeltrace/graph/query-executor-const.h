@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_GRAPH_COMPONENT_SOURCE_H
-#define BABELTRACE_GRAPH_COMPONENT_SOURCE_H
+#ifndef BABELTRACE_GRAPH_QUERY_EXECUTOR_CONST_H
+#define BABELTRACE_GRAPH_QUERY_EXECUTOR_CONST_H
 
 /*
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,34 +23,32 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
+/* For bt_bool */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_component_source;
-struct bt_port_output;
+struct bt_query_executor;
 
-static inline
-struct bt_component *bt_component_source_as_component(
-		struct bt_component_source *component)
-{
-	return (void *) component;
-}
+enum bt_query_executor_status {
+	BT_QUERY_EXECUTOR_STATUS_OK = 0,
+	BT_QUERY_EXECUTOR_STATUS_AGAIN = 11,
+	BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED = 95,
+	BT_QUERY_EXECUTOR_STATUS_CANCELED = 125,
+	BT_QUERY_EXECUTOR_STATUS_ERROR = -1,
+	BT_QUERY_EXECUTOR_STATUS_NOMEM = -12,
+	BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT = -23,
+	BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS = -24,
+};
 
-extern uint64_t bt_component_source_get_output_port_count(
-		struct bt_component_source *component);
-
-extern struct bt_port_output *bt_component_source_borrow_output_port_by_name(
-		struct bt_component_source *component, const char *name);
-
-extern struct bt_port_output *bt_component_source_borrow_output_port_by_index(
-		struct bt_component_source *component, uint64_t index);
+extern
+bt_bool bt_query_executor_is_canceled(
+		const struct bt_query_executor *query_executor);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_COMPONENT_SOURCE_H */
+#endif /* BABELTRACE_GRAPH_QUERY_EXECUTOR_CONST_H */

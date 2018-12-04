@@ -48,7 +48,7 @@ void dmesg_notif_iter_finalize(
 BT_HIDDEN
 enum bt_self_notification_iterator_status dmesg_notif_iter_next(
 		struct bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array notifs, uint64_t capacity,
+		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H */

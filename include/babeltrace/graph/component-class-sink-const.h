@@ -1,10 +1,8 @@
-#ifndef BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_PACKET_H
-#define BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_PACKET_H
+#ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_CONST_H
+#define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_CONST_H
 
 /*
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,30 +27,19 @@
 extern "C" {
 #endif
 
-struct bt_private_notification;
-struct bt_self_notification_iterator;
-struct bt_packet;
+struct bt_component_class;
+struct bt_component_class_sink;
 
-extern
-struct bt_private_notification *bt_private_notification_packet_begin_create(
-		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_packet *packet);
-
-extern
-struct bt_private_notification *bt_private_notification_packet_end_create(
-		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_packet *packet);
-
-extern struct bt_packet *
-bt_private_notification_packet_begin_borrow_packet(
-		struct bt_private_notification *notification);
-
-extern struct bt_packet *
-bt_private_notification_packet_end_borrow_packet(
-		struct bt_private_notification *notification);
+static inline
+const struct bt_component_class *
+bt_component_class_sink_as_component_class_const(
+		const struct bt_component_class_sink *comp_cls_sink)
+{
+	return (const void *) comp_cls_sink;
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_PRIVATE_NOTIFICATION_PACKET_H */
+#endif /* BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_CONST_H */

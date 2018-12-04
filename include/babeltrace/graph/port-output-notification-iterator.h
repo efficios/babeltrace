@@ -28,8 +28,8 @@
 /* For enum bt_notification_iterator_status */
 #include <babeltrace/graph/notification-iterator.h>
 
-/* For bt_notification_array */
-#include <babeltrace/graph/notification.h>
+/* For bt_notification_array_const */
+#include <babeltrace/graph/notification-const.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +39,7 @@ struct bt_port;
 struct bt_notification;
 struct bt_notification_iterator;
 struct bt_port_output_notification_iterator;
-struct bt_private_graph;
+struct bt_graph;
 struct bt_port_output;
 
 static inline
@@ -50,14 +50,15 @@ bt_port_output_notification_iterator_as_notification_iterator(
 	return (void *) iterator;
 }
 
-extern struct bt_port_output_notification_iterator *bt_port_output_notification_iterator_create(
-		struct bt_private_graph *graph,
-		struct bt_port_output *output_port);
+extern struct bt_port_output_notification_iterator *
+bt_port_output_notification_iterator_create(
+		struct bt_graph *graph,
+		const struct bt_port_output *output_port);
 
 extern enum bt_notification_iterator_status
 bt_port_output_notification_iterator_next(
 		struct bt_port_output_notification_iterator *iterator,
-		bt_notification_array *notifs, uint64_t *count);
+		bt_notification_array_const *notifs, uint64_t *count);
 
 #ifdef __cplusplus
 }
