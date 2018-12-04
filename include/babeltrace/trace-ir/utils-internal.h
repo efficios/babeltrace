@@ -53,8 +53,8 @@ uint64_t bt_util_ns_from_value(uint64_t frequency, uint64_t value_cycles)
 }
 
 static inline
-int bt_util_ns_from_origin(struct bt_clock_class *clock_class, uint64_t value,
-		int64_t *ns_from_origin)
+int bt_util_ns_from_origin(const struct bt_clock_class *clock_class,
+		uint64_t value, int64_t *ns_from_origin)
 {
 	int ret = 0;
 	uint64_t value_ns_unsigned;

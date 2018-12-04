@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_PRIVATE_CLOCK_CLASS_H
-#define BABELTRACE_TRACE_IR_PRIVATE_CLOCK_CLASS_H
+#ifndef BABELTRACE_TRACE_IR_CLOCK_CLASS_CONST_H
+#define BABELTRACE_TRACE_IR_CLOCK_CLASS_CONST_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -39,45 +39,34 @@ extern "C" {
 #endif
 
 struct bt_clock_class;
-struct bt_private_clock_class;
 
-static inline
-struct bt_clock_class *bt_private_clock_class_as_clock_class(
-		struct bt_private_clock_class *priv_clock_class)
-{
-	return (void *) priv_clock_class;
-}
+extern const char *bt_clock_class_get_name(
+		const struct bt_clock_class *clock_class);
 
-extern struct bt_private_clock_class *bt_private_clock_class_create(void);
+extern const char *bt_clock_class_get_description(
+		const struct bt_clock_class *clock_class);
 
-extern int bt_private_clock_class_set_name(
-		struct bt_private_clock_class *clock_class,
-		const char *name);
+extern uint64_t bt_clock_class_get_frequency(
+		const struct bt_clock_class *clock_class);
 
-extern int bt_private_clock_class_set_description(
-		struct bt_private_clock_class *clock_class,
-		const char *description);
+extern uint64_t bt_clock_class_get_precision(
+		const struct bt_clock_class *clock_class);
 
-extern void bt_private_clock_class_set_frequency(
-		struct bt_private_clock_class *clock_class, uint64_t freq);
+extern void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
+		int64_t *seconds, uint64_t *cycles);
 
-extern void bt_private_clock_class_set_precision(
-		struct bt_private_clock_class *clock_class,
-		uint64_t precision);
+extern bt_bool bt_clock_class_is_absolute(
+		const struct bt_clock_class *clock_class);
 
-extern void bt_private_clock_class_set_offset(
-		struct bt_private_clock_class *clock_class,
-		int64_t seconds, uint64_t cycles);
+extern bt_uuid bt_clock_class_get_uuid(
+		const struct bt_clock_class *clock_class);
 
-extern void bt_private_clock_class_set_is_absolute(
-		struct bt_private_clock_class *clock_class,
-		bt_bool is_absolute);
-
-extern void bt_private_clock_class_set_uuid(
-		struct bt_private_clock_class *clock_class, bt_uuid uuid);
+extern int bt_clock_class_cycles_to_ns_from_origin(
+		const struct bt_clock_class *clock_class,
+		uint64_t cycles, int64_t *ns_from_origin);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PRIVATE_CLOCK_CLASS_H */
+#endif /* BABELTRACE_TRACE_IR_CLOCK_CLASS_CONST_H */

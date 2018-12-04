@@ -59,8 +59,8 @@ enum fs_writer_stream_state {
 
 struct fs_writer {
 	struct bt_ctf_writer *writer;
-	struct bt_trace *trace;
-	struct bt_trace *writer_trace;
+	const struct bt_trace *trace;
+	const struct bt_trace *writer_trace;
 	struct writer_component *writer_component;
 	int static_listener_id;
 	int trace_static;
@@ -76,19 +76,19 @@ void writer_close(struct writer_component *writer_component,
 		struct fs_writer *fs_writer);
 BT_HIDDEN
 enum bt_component_status writer_output_event(struct writer_component *writer,
-		struct bt_event *event);
+		const struct bt_event *event);
 BT_HIDDEN
 enum bt_component_status writer_new_packet(struct writer_component *writer,
-		struct bt_packet *packet);
+		const struct bt_packet *packet);
 BT_HIDDEN
 enum bt_component_status writer_close_packet(struct writer_component *writer,
-		struct bt_packet *packet);
+		const struct bt_packet *packet);
 BT_HIDDEN
 enum bt_component_status writer_stream_begin(struct writer_component *writer,
-		struct bt_stream *stream);
+		const struct bt_stream *stream);
 BT_HIDDEN
 enum bt_component_status writer_stream_end(struct writer_component *writer,
-		struct bt_stream *stream);
+		const struct bt_stream *stream);
 
 BT_HIDDEN
 enum bt_component_status writer_component_init(

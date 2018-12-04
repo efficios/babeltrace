@@ -26,8 +26,8 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/private-fields.h>
 #include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/fields-const.h>
 #include <babeltrace/trace-ir/fields-internal.h>
 #include <babeltrace/trace-ir/field-classes-internal.h>
 #include <babeltrace/object-internal.h>
@@ -63,16 +63,16 @@ static
 void set_variant_field_is_frozen(struct bt_field *field, bool is_frozen);
 
 static
-bool single_field_is_set(struct bt_field *field);
+bool single_field_is_set(const struct bt_field *field);
 
 static
-bool array_field_is_set(struct bt_field *field);
+bool array_field_is_set(const struct bt_field *field);
 
 static
-bool structure_field_is_set(struct bt_field *field);
+bool structure_field_is_set(const struct bt_field *field);
 
 static
-bool variant_field_is_set(struct bt_field *field);
+bool variant_field_is_set(const struct bt_field *field);
 
 static
 struct bt_field_methods integer_field_methods = {
@@ -183,19 +183,20 @@ void (* const field_destroy_funcs[])(struct bt_field *) = {
 	[BT_FIELD_CLASS_TYPE_VARIANT]		= destroy_variant_field,
 };
 
-struct bt_field_class *bt_field_borrow_class(struct bt_field *field)
+struct bt_field_class *bt_field_borrow_class(const struct bt_field *field)
 {
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	return field->class;
 }
 
-struct bt_private_field_class *bt_private_field_borrow_class(
-		struct bt_private_field *field)
+const struct bt_field_class *bt_field_borrow_class_const(
+		const struct bt_field *field)
 {
-	return (void *) bt_field_borrow_class((void *) field);
+	BT_ASSERT_PRE_NON_NULL(field, "Field");
+	return field->class;
 }
 
-enum bt_field_class_type bt_field_get_class_type(struct bt_field *field)
+enum bt_field_class_type bt_field_get_class_type(const struct bt_field *field)
 {
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	return field->class->type;
@@ -483,9 +484,9 @@ end:
 	return (void *) array_field;
 }
 
-int64_t bt_field_signed_integer_get_value(struct bt_field *field)
+int64_t bt_field_signed_integer_get_value(const struct bt_field *field)
 {
-	struct bt_field_integer *int_field = (void *) field;
+	const struct bt_field_integer *int_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
@@ -493,10 +494,8 @@ int64_t bt_field_signed_integer_get_value(struct bt_field *field)
 	return int_field->value.i;
 }
 
-void bt_private_field_signed_integer_set_value(
-		struct bt_private_field *priv_field, int64_t value)
+void bt_field_signed_integer_set_value(struct bt_field *field, int64_t value)
 {
-	struct bt_field *field = (void *) priv_field;
 	struct bt_field_integer *int_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -510,9 +509,9 @@ void bt_private_field_signed_integer_set_value(
 	bt_field_set_single(field, true);
 }
 
-uint64_t bt_field_unsigned_integer_get_value(struct bt_field *field)
+uint64_t bt_field_unsigned_integer_get_value(const struct bt_field *field)
 {
-	struct bt_field_integer *int_field = (void *) field;
+	const struct bt_field_integer *int_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
@@ -520,10 +519,8 @@ uint64_t bt_field_unsigned_integer_get_value(struct bt_field *field)
 	return int_field->value.u;
 }
 
-void bt_private_field_unsigned_integer_set_value(
-		struct bt_private_field *priv_field, uint64_t value)
+void bt_field_unsigned_integer_set_value(struct bt_field *field, uint64_t value)
 {
-	struct bt_field *field = (void *) priv_field;
 	struct bt_field_integer *int_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -537,9 +534,9 @@ void bt_private_field_unsigned_integer_set_value(
 	bt_field_set_single(field, true);
 }
 
-double bt_field_real_get_value(struct bt_field *field)
+double bt_field_real_get_value(const struct bt_field *field)
 {
-	struct bt_field_real *real_field = (void *) field;
+	const struct bt_field_real *real_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
@@ -547,10 +544,8 @@ double bt_field_real_get_value(struct bt_field *field)
 	return real_field->value;
 }
 
-void bt_private_field_real_set_value(struct bt_private_field *priv_field,
-		double value)
+void bt_field_real_set_value(struct bt_field *field, double value)
 {
-	struct bt_field *field = (void *) priv_field;
 	struct bt_field_real *real_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -565,11 +560,12 @@ void bt_private_field_real_set_value(struct bt_private_field *priv_field,
 	bt_field_set_single(field, true);
 }
 
-int bt_field_unsigned_enumeration_get_mapping_labels(struct bt_field *field,
+int bt_field_unsigned_enumeration_get_mapping_labels(
+		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
 {
-	struct bt_field_integer *int_field = (void *) field;
+	const struct bt_field_integer *int_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
@@ -581,11 +577,12 @@ int bt_field_unsigned_enumeration_get_mapping_labels(struct bt_field *field,
 		field->class, int_field->value.u, label_array, count);
 }
 
-int bt_field_signed_enumeration_get_mapping_labels(struct bt_field *field,
+int bt_field_signed_enumeration_get_mapping_labels(
+		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
 {
-	struct bt_field_integer *int_field = (void *) field;
+	const struct bt_field_integer *int_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_NON_NULL(label_array, "Label array (output)");
@@ -597,9 +594,9 @@ int bt_field_signed_enumeration_get_mapping_labels(struct bt_field *field,
 		field->class, int_field->value.i, label_array, count);
 }
 
-const char *bt_field_string_get_value(struct bt_field *field)
+const char *bt_field_string_get_value(const struct bt_field *field)
 {
-	struct bt_field_string *string_field = (void *) field;
+	const struct bt_field_string *string_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
@@ -608,9 +605,9 @@ const char *bt_field_string_get_value(struct bt_field *field)
 	return (const char *) string_field->buf->data;
 }
 
-uint64_t bt_field_string_get_length(struct bt_field *field)
+uint64_t bt_field_string_get_length(const struct bt_field *field)
 {
-	struct bt_field_string *string_field = (void *) field;
+	const struct bt_field_string *string_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
@@ -619,33 +616,27 @@ uint64_t bt_field_string_get_length(struct bt_field *field)
 	return string_field->length;
 }
 
-int bt_private_field_string_set_value(struct bt_private_field *priv_field,
-		const char *value)
+int bt_field_string_set_value(struct bt_field *field, const char *value)
 {
-	struct bt_field *field = (void *) priv_field;
-
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
 		"Field");
-	bt_private_field_string_clear(priv_field);
-	return bt_private_field_string_append_with_length(priv_field, value,
+	bt_field_string_clear(field);
+	return bt_field_string_append_with_length(field, value,
 		(uint64_t) strlen(value));
 }
 
-int bt_private_field_string_append(struct bt_private_field *field,
-		const char *value)
+int bt_field_string_append(struct bt_field *field, const char *value)
 {
-	return bt_private_field_string_append_with_length(field,
+	return bt_field_string_append_with_length(field,
 		value, (uint64_t) strlen(value));
 }
 
-int bt_private_field_string_append_with_length(
-		struct bt_private_field *priv_field,
+int bt_field_string_append_with_length(struct bt_field *field,
 		const char *value, uint64_t length)
 {
-	struct bt_field *field = (void *) priv_field;
 	struct bt_field_string *string_field = (void *) field;
 	char *data;
 	uint64_t new_length;
@@ -675,9 +666,8 @@ int bt_private_field_string_append_with_length(
 	return 0;
 }
 
-int bt_private_field_string_clear(struct bt_private_field *priv_field)
+int bt_field_string_clear(struct bt_field *field)
 {
-	struct bt_field *field = (void *) priv_field;
 	struct bt_field_string *string_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -689,20 +679,18 @@ int bt_private_field_string_clear(struct bt_private_field *priv_field)
 	return 0;
 }
 
-uint64_t bt_field_array_get_length(struct bt_field *field)
+uint64_t bt_field_array_get_length(const struct bt_field *field)
 {
-	struct bt_field_array *array_field = (void *) field;
+	const struct bt_field_array *array_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_IS_ARRAY(field, "Field");
 	return array_field->length;
 }
 
-int bt_private_field_dynamic_array_set_length(
-		struct bt_private_field *priv_field, uint64_t length)
+int bt_field_dynamic_array_set_length(struct bt_field *field, uint64_t length)
 {
 	int ret = 0;
-	struct bt_field *field = (void *) priv_field;
 	struct bt_field_array *array_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -743,7 +731,8 @@ end:
 	return ret;
 }
 
-struct bt_field *bt_field_array_borrow_element_field_by_index(
+static inline
+struct bt_field *borrow_array_field_element_field_by_index(
 		struct bt_field *field, uint64_t index)
 {
 	struct bt_field_array *array_field = (void *) field;
@@ -754,15 +743,21 @@ struct bt_field *bt_field_array_borrow_element_field_by_index(
 	return array_field->fields->pdata[index];
 }
 
-struct bt_private_field *
-bt_private_field_array_borrow_element_field_by_index(
-		struct bt_private_field *field, uint64_t index)
+struct bt_field *bt_field_array_borrow_element_field_by_index(
+		struct bt_field *field, uint64_t index)
 {
-	return (void *) bt_field_array_borrow_element_field_by_index(
-		(void *) field, index);
+	return borrow_array_field_element_field_by_index(field, index);
 }
 
-struct bt_field *bt_field_structure_borrow_member_field_by_index(
+const struct bt_field *
+bt_field_array_borrow_element_field_by_index_const(
+		const struct bt_field *field, uint64_t index)
+{
+	return borrow_array_field_element_field_by_index((void *) field, index);
+}
+
+static inline
+struct bt_field *borrow_structure_field_member_field_by_index(
 		struct bt_field *field, uint64_t index)
 {
 	struct bt_field_structure *struct_field = (void *) field;
@@ -774,15 +769,23 @@ struct bt_field *bt_field_structure_borrow_member_field_by_index(
 	return struct_field->fields->pdata[index];
 }
 
-struct bt_private_field *
-bt_private_field_structure_borrow_member_field_by_index(
-		struct bt_private_field *field, uint64_t index)
+struct bt_field *bt_field_structure_borrow_member_field_by_index(
+		struct bt_field *field, uint64_t index)
 {
-	return (void *) bt_field_structure_borrow_member_field_by_index(
+	return borrow_structure_field_member_field_by_index(field,
+		index);
+}
+
+const struct bt_field *
+bt_field_structure_borrow_member_field_by_index_const(
+		const struct bt_field *field, uint64_t index)
+{
+	return borrow_structure_field_member_field_by_index(
 		(void *) field, index);
 }
 
-struct bt_field *bt_field_structure_borrow_member_field_by_name(
+static inline
+struct bt_field *borrow_structure_field_member_field_by_name(
 		struct bt_field *field, const char *name)
 {
 	struct bt_field *ret_field = NULL;
@@ -809,15 +812,21 @@ end:
 	return ret_field;
 }
 
-struct bt_private_field *
-bt_private_field_structure_borrow_member_field_by_name(
-		struct bt_private_field *field, const char *name)
+struct bt_field *bt_field_structure_borrow_member_field_by_name(
+		struct bt_field *field, const char *name)
 {
-	return (void *) bt_field_structure_borrow_member_field_by_name(
+	return borrow_structure_field_member_field_by_name(field, name);
+}
+
+const struct bt_field *bt_field_structure_borrow_member_field_by_name_const(
+		const struct bt_field *field, const char *name)
+{
+	return borrow_structure_field_member_field_by_name(
 		(void *) field, name);
 }
 
-struct bt_field *bt_field_variant_borrow_selected_option_field(
+static inline
+struct bt_field *borrow_variant_field_selected_option_field(
 		struct bt_field *field)
 {
 	struct bt_field_variant *var_field = (void *) field;
@@ -830,18 +839,21 @@ struct bt_field *bt_field_variant_borrow_selected_option_field(
 	return var_field->selected_field;
 }
 
-struct bt_private_field *
-bt_private_field_variant_borrow_selected_option_field(
-		struct bt_private_field *field)
+struct bt_field *bt_field_variant_borrow_selected_option_field(
+		struct bt_field *field)
 {
-	return (void *) bt_field_variant_borrow_selected_option_field(
-		(void *) field);
+	return borrow_variant_field_selected_option_field(field);
 }
 
-int bt_private_field_variant_select_option_field(
-		struct bt_private_field *priv_field, uint64_t index)
+const struct bt_field *bt_field_variant_borrow_selected_option_field_const(
+		const struct bt_field *field)
 {
-	struct bt_field *field = (void *) priv_field;
+	return borrow_variant_field_selected_option_field((void *) field);
+}
+
+int bt_field_variant_select_option_field(
+		struct bt_field *field, uint64_t index)
+{
 	struct bt_field_variant *var_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -855,9 +867,9 @@ int bt_private_field_variant_select_option_field(
 }
 
 uint64_t bt_field_variant_get_selected_option_field_index(
-		struct bt_field *field)
+		const struct bt_field *field)
 {
-	struct bt_field_variant *var_field = (void *) field;
+	const struct bt_field_variant *var_field = (const void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
@@ -1085,29 +1097,29 @@ void set_array_field_is_frozen(struct bt_field *field, bool is_frozen)
 }
 
 BT_HIDDEN
-void _bt_field_set_is_frozen(struct bt_field *field,
+void _bt_field_set_is_frozen(const struct bt_field *field,
 		bool is_frozen)
 {
 	BT_ASSERT(field);
 	BT_LIB_LOGD("Setting field object's frozen state: %!+f, is-frozen=%d",
 		field, is_frozen);
 	BT_ASSERT(field->methods->set_is_frozen);
-	field->methods->set_is_frozen(field, is_frozen);
+	field->methods->set_is_frozen((void *) field, is_frozen);
 }
 
 static
-bool single_field_is_set(struct bt_field *field)
+bool single_field_is_set(const struct bt_field *field)
 {
 	BT_ASSERT(field);
 	return field->is_set;
 }
 
 static
-bool structure_field_is_set(struct bt_field *field)
+bool structure_field_is_set(const struct bt_field *field)
 {
 	bool is_set = true;
 	uint64_t i;
-	struct bt_field_structure *struct_field = (void *) field;
+	const struct bt_field_structure *struct_field = (const void *) field;
 
 	BT_ASSERT(field);
 
@@ -1123,9 +1135,9 @@ end:
 }
 
 static
-bool variant_field_is_set(struct bt_field *field)
+bool variant_field_is_set(const struct bt_field *field)
 {
-	struct bt_field_variant *var_field = (void *) field;
+	const struct bt_field_variant *var_field = (const void *) field;
 	bool is_set = false;
 
 	BT_ASSERT(field);
@@ -1138,11 +1150,11 @@ bool variant_field_is_set(struct bt_field *field)
 }
 
 static
-bool array_field_is_set(struct bt_field *field)
+bool array_field_is_set(const struct bt_field *field)
 {
 	bool is_set = true;
 	uint64_t i;
-	struct bt_field_array *array_field = (void *) field;
+	const struct bt_field_array *array_field = (const void *) field;
 
 	BT_ASSERT(field);
 

@@ -518,7 +518,7 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 static
 struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_private_stream_class *stream_class,
+		struct bt_stream_class *stream_class,
 		uint64_t stream_instance_id)
 {
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -612,7 +612,7 @@ static
 int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		const char *path)
 {
-	struct bt_private_stream_class *stream_class = NULL;
+	struct bt_stream_class *stream_class = NULL;
 	int64_t stream_instance_id = -1;
 	int64_t begin_ns = -1;
 	struct ctf_fs_ds_file_group *ds_file_group = NULL;
@@ -658,8 +658,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	if (props.snapshots.beginning_clock != UINT64_C(-1)) {
 		BT_ASSERT(sc->default_clock_class);
 		ret = bt_clock_class_cycles_to_ns_from_origin(
-			bt_private_clock_class_as_clock_class(
-				sc->default_clock_class),
+			sc->default_clock_class,
 			props.snapshots.beginning_clock, &begin_ns);
 		if (ret) {
 			BT_LOGE("Cannot convert clock cycles to nanoseconds from origin (`%s`).",
@@ -860,13 +859,13 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 
 		if (ds_file_group->stream_id == UINT64_C(-1)) {
 			/* No stream ID: use 0 */
-			ds_file_group->stream = bt_private_stream_create_with_id(
+			ds_file_group->stream = bt_stream_create_with_id(
 				ds_file_group->stream_class,
 				ctf_fs_trace->next_stream_id);
 			ctf_fs_trace->next_stream_id++;
 		} else {
 			/* Specific stream ID */
-			ds_file_group->stream = bt_private_stream_create_with_id(
+			ds_file_group->stream = bt_stream_create_with_id(
 				ds_file_group->stream_class,
 				(uint64_t) ds_file_group->stream_id);
 		}
@@ -879,7 +878,7 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 			goto error;
 		}
 
-		ret = bt_private_stream_set_name(ds_file_group->stream,
+		ret = bt_stream_set_name(ds_file_group->stream,
 			name->str);
 		if (ret) {
 			BT_LOGE("Cannot set stream's name: "
@@ -959,7 +958,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 	 * trace needs. There won't be any more. Therefore it is safe to
 	 * make this trace static.
 	 */
-	(void) bt_private_trace_make_static(ctf_fs_trace->metadata->trace);
+	(void) bt_trace_make_static(ctf_fs_trace->metadata->trace);
 
 	goto end;
 

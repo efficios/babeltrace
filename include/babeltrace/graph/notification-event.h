@@ -32,7 +32,7 @@ extern "C" {
 struct bt_notification;
 struct bt_event;
 
-extern struct bt_event *bt_notification_event_borrow_event(
+extern const struct bt_event *bt_notification_event_borrow_event(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus

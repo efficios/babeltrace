@@ -1,8 +1,8 @@
-#ifndef BABELTRACE_TRACE_IR_PRIVATE_PACKET_CONTEXT_FIELD_H
-#define BABELTRACE_TRACE_IR_PRIVATE_PACKET_CONTEXT_FIELD_H
+#ifndef BABELTRACE_TRACE_IR_FIELD_PATH_CONST_H
+#define BABELTRACE_TRACE_IR_FIELD_PATH_CONST_H
 
 /*
- * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
+ * Copyright 2016-2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,28 +26,34 @@
  * http://www.efficios.com/ctf
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_private_stream_class;
-struct bt_private_packet_context_field;
-struct bt_private_field;
+struct bt_field_path;
 
-extern
-struct bt_private_packet_context_field *bt_private_packet_context_field_create(
-		struct bt_private_stream_class *stream_class);
+enum bt_scope {
+	BT_SCOPE_PACKET_HEADER,
+	BT_SCOPE_PACKET_CONTEXT,
+	BT_SCOPE_EVENT_HEADER,
+	BT_SCOPE_EVENT_COMMON_CONTEXT,
+	BT_SCOPE_EVENT_SPECIFIC_CONTEXT,
+	BT_SCOPE_EVENT_PAYLOAD,
+};
 
-extern
-struct bt_private_field *bt_private_packet_context_field_borrow_field(
-		struct bt_private_packet_context_field *field);
+extern enum bt_scope bt_field_path_get_root_scope(
+		const struct bt_field_path *field_path);
 
-extern
-void bt_private_packet_context_field_release(
-		struct bt_private_packet_context_field *field);
+extern uint64_t bt_field_path_get_index_count(
+		const struct bt_field_path *field_path);
+
+extern uint64_t bt_field_path_get_index_by_index(
+		const struct bt_field_path *field_path, uint64_t index);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_PRIVATE_PACKET_CONTEXT_FIELD_H */
+#endif /* BABELTRACE_TRACE_IR_FIELD_PATH_CONST_H */

@@ -36,14 +36,14 @@
 #include "clock-fields.h"
 
 BT_HIDDEN
-struct bt_clock_class *ctf_copy_clock_class(FILE *err,
-		struct bt_clock_class *clock_class)
+const struct bt_clock_class *ctf_copy_clock_class(FILE *err,
+		const struct bt_clock_class *clock_class)
 {
 	int64_t offset, offset_s;
 	int int_ret;
 	uint64_t u64_ret;
 	const char *name, *description;
-	struct bt_clock_class *writer_clock_class = NULL;
+	const struct bt_clock_class *writer_clock_class = NULL;
 
 	BT_ASSERT(err && clock_class);
 
@@ -95,9 +95,9 @@ end:
 
 BT_HIDDEN
 enum bt_component_status ctf_copy_clock_classes(FILE *err,
-		struct bt_trace *writer_trace,
-		struct bt_stream_class *writer_stream_class,
-		struct bt_trace *trace)
+		const struct bt_trace *writer_trace,
+		const struct bt_stream_class *writer_stream_class,
+		const struct bt_trace *trace)
 {
 	enum bt_component_status ret;
 	int int_ret, clock_class_count, i;
@@ -105,8 +105,8 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 	clock_class_count = bt_trace_get_clock_class_count(trace);
 
 	for (i = 0; i < clock_class_count; i++) {
-		struct bt_clock_class *writer_clock_class;
-		struct bt_clock_class *clock_class =
+		const struct bt_clock_class *writer_clock_class;
+		const struct bt_clock_class *clock_class =
 			bt_trace_get_clock_class_by_index(trace, i);
 
 		BT_ASSERT(clock_class);
@@ -140,7 +140,7 @@ end:
 }
 
 static
-void replace_clock_classes(struct bt_trace *trace_copy,
+void replace_clock_classes(const struct bt_trace *trace_copy,
 		struct bt_field_type *field_type)
 {
 	int ret;
@@ -151,9 +151,9 @@ void replace_clock_classes(struct bt_trace *trace_copy,
 	switch (bt_field_type_get_type_id(field_type)) {
 	case BT_FIELD_TYPE_ID_INTEGER:
 	{
-		struct bt_clock_class *mapped_clock_class =
+		const struct bt_clock_class *mapped_clock_class =
 			bt_field_type_integer_get_mapped_clock_class(field_type);
-		struct bt_clock_class *clock_class_copy = NULL;
+		const struct bt_clock_class *clock_class_copy = NULL;
 		const char *name;
 
 		if (!mapped_clock_class) {
@@ -246,11 +246,11 @@ void replace_clock_classes(struct bt_trace *trace_copy,
 }
 
 BT_HIDDEN
-struct bt_event_class *ctf_copy_event_class(FILE *err,
-		struct bt_trace *trace_copy,
-		struct bt_event_class *event_class)
+const struct bt_event_class *ctf_copy_event_class(FILE *err,
+		const struct bt_trace *trace_copy,
+		const struct bt_event_class *event_class)
 {
-	struct bt_event_class *writer_event_class = NULL;
+	const struct bt_event_class *writer_event_class = NULL;
 	struct bt_field_type *context = NULL, *payload_type = NULL;
 	const char *name;
 	int ret;
@@ -260,7 +260,7 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 
 	name = bt_event_class_get_name(event_class);
 
-	writer_event_class = bt_private_event_class_create(name);
+	writer_event_class = bt_event_class_create(name);
 	BT_ASSERT(writer_event_class);
 
 	id = bt_event_class_get_id(event_class);
@@ -278,7 +278,7 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 		goto error;
 	}
 
-	ret = bt_private_event_class_set_log_level(writer_event_class, log_level);
+	ret = bt_event_class_set_log_level(writer_event_class, log_level);
 	if (ret) {
 		BT_LOGE_STR("Failed to set log_level.");
 		goto error;
@@ -286,7 +286,7 @@ struct bt_event_class *ctf_copy_event_class(FILE *err,
 
 	emf_uri = bt_event_class_get_emf_uri(event_class);
 	if (emf_uri) {
-		ret = bt_private_event_class_set_emf_uri(writer_event_class,
+		ret = bt_event_class_set_emf_uri(writer_event_class,
 			emf_uri);
 		if (ret) {
 			BT_LOGE_STR("Failed to set emf uri.");
@@ -343,13 +343,13 @@ end:
 
 BT_HIDDEN
 enum bt_component_status ctf_copy_event_classes(FILE *err,
-		struct bt_stream_class *stream_class,
-		struct bt_stream_class *writer_stream_class)
+		const struct bt_stream_class *stream_class,
+		const struct bt_stream_class *writer_stream_class)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
+	const struct bt_event_class *event_class = NULL, *writer_event_class = NULL;
 	int count, i;
-	struct bt_trace *writer_trace =
+	const struct bt_trace *writer_trace =
 		bt_stream_class_get_trace(writer_stream_class);
 
 	BT_ASSERT(writer_trace);
@@ -409,14 +409,14 @@ end:
 }
 
 BT_HIDDEN
-struct bt_stream_class *ctf_copy_stream_class(FILE *err,
-		struct bt_stream_class *stream_class,
-		struct bt_trace *writer_trace,
+const struct bt_stream_class *ctf_copy_stream_class(FILE *err,
+		const struct bt_stream_class *stream_class,
+		const struct bt_trace *writer_trace,
 		bool override_ts64)
 {
 	struct bt_field_type *type = NULL;
 	struct bt_field_type *type_copy = NULL;
-	struct bt_stream_class *writer_stream_class = NULL;
+	const struct bt_stream_class *writer_stream_class = NULL;
 	int ret_int;
 	const char *name = bt_stream_class_get_name(stream_class);
 
@@ -510,10 +510,10 @@ end:
 }
 
 BT_HIDDEN
-int ctf_stream_copy_packet_header(FILE *err, struct bt_packet *packet,
-		struct bt_stream *writer_stream)
+int ctf_stream_copy_packet_header(FILE *err, const struct bt_packet *packet,
+		const struct bt_stream *writer_stream)
 {
-	struct bt_field *packet_header = NULL, *writer_packet_header = NULL;
+	const struct bt_field *packet_header = NULL, *writer_packet_header = NULL;
 	int ret = 0;
 
 	packet_header = bt_packet_get_header(packet);
@@ -545,10 +545,10 @@ end:
 }
 
 BT_HIDDEN
-int ctf_packet_copy_header(FILE *err, struct bt_packet *packet,
-		struct bt_packet *writer_packet)
+int ctf_packet_copy_header(FILE *err, const struct bt_packet *packet,
+		const struct bt_packet *writer_packet)
 {
-	struct bt_field *packet_header = NULL, *writer_packet_header = NULL;
+	const struct bt_field *packet_header = NULL, *writer_packet_header = NULL;
 	int ret = 0;
 
 	packet_header = bt_packet_get_header(packet);
@@ -579,10 +579,10 @@ end:
 }
 
 BT_HIDDEN
-int ctf_stream_copy_packet_context(FILE *err, struct bt_packet *packet,
-		struct bt_stream *writer_stream)
+int ctf_stream_copy_packet_context(FILE *err, const struct bt_packet *packet,
+		const struct bt_stream *writer_stream)
 {
-	struct bt_field *packet_context = NULL, *writer_packet_context = NULL;
+	const struct bt_field *packet_context = NULL, *writer_packet_context = NULL;
 	int ret = 0;
 
 	packet_context = bt_packet_get_context(packet);
@@ -614,11 +614,11 @@ end:
 }
 
 BT_HIDDEN
-int ctf_packet_copy_context(FILE *err, struct bt_packet *packet,
-		struct bt_stream *writer_stream,
-		struct bt_packet *writer_packet)
+int ctf_packet_copy_context(FILE *err, const struct bt_packet *packet,
+		const struct bt_stream *writer_stream,
+		const struct bt_packet *writer_packet)
 {
-	struct bt_field *packet_context = NULL, *writer_packet_context = NULL;
+	const struct bt_field *packet_context = NULL, *writer_packet_context = NULL;
 	int ret = 0;
 
 	packet_context = bt_packet_get_context(packet);
@@ -649,16 +649,16 @@ end:
 }
 
 BT_HIDDEN
-int ctf_copy_event_header(FILE *err, struct bt_event *event,
-		struct bt_event_class *writer_event_class,
-		struct bt_event *writer_event,
-		struct bt_field *event_header)
+int ctf_copy_event_header(FILE *err, const struct bt_event *event,
+		const struct bt_event_class *writer_event_class,
+		const struct bt_event *writer_event,
+		const struct bt_field *event_header)
 {
-	struct bt_clock_class *clock_class = NULL, *writer_clock_class = NULL;
+	const struct bt_clock_class *clock_class = NULL, *writer_clock_class = NULL;
 	struct bt_clock_value *clock_value = NULL, *writer_clock_value = NULL;
 
 	int ret;
-	struct bt_field *writer_event_header = NULL;
+	const struct bt_field *writer_event_header = NULL;
 	uint64_t value;
 
 	clock_class = event_get_clock_class(err, event);
@@ -722,11 +722,11 @@ end:
 }
 
 static
-struct bt_trace *event_class_get_trace(FILE *err,
-		struct bt_event_class *event_class)
+const struct bt_trace *event_class_get_trace(FILE *err,
+		const struct bt_event_class *event_class)
 {
-	struct bt_trace *trace = NULL;
-	struct bt_stream_class *stream_class = NULL;
+	const struct bt_trace *trace = NULL;
+	const struct bt_stream_class *stream_class = NULL;
 
 	stream_class = bt_event_class_get_stream_class(event_class);
 	BT_ASSERT(stream_class);
@@ -739,13 +739,13 @@ struct bt_trace *event_class_get_trace(FILE *err,
 }
 
 BT_HIDDEN
-struct bt_event *ctf_copy_event(FILE *err, struct bt_event *event,
-		struct bt_event_class *writer_event_class,
+const struct bt_event *ctf_copy_event(FILE *err, const struct bt_event *event,
+		const struct bt_event_class *writer_event_class,
 		bool override_ts64)
 {
-	struct bt_event *writer_event = NULL;
-	struct bt_field *field = NULL, *copy_field = NULL;
-	struct bt_trace *writer_trace = NULL;
+	const struct bt_event *writer_event = NULL;
+	const struct bt_field *field = NULL, *copy_field = NULL;
+	const struct bt_trace *writer_trace = NULL;
 	int ret;
 
 	writer_event = bt_event_create(writer_event_class);
@@ -855,8 +855,8 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status ctf_copy_trace(FILE *err, struct bt_trace *trace,
-		struct bt_trace *writer_trace)
+enum bt_component_status ctf_copy_trace(FILE *err, const struct bt_trace *trace,
+		const struct bt_trace *writer_trace)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	int field_count, i, int_ret;

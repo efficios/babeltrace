@@ -92,7 +92,7 @@ struct bt_clock_class {
 };
 
 BT_HIDDEN
-void _bt_clock_class_freeze(struct bt_clock_class *clock_class);
+void _bt_clock_class_freeze(const struct bt_clock_class *clock_class);
 
 #ifdef BT_DEV_MODE
 # define bt_clock_class_freeze		_bt_clock_class_freeze

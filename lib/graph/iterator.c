@@ -27,7 +27,9 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/object.h>
 #include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/event-const.h>
 #include <babeltrace/trace-ir/event-internal.h>
+#include <babeltrace/trace-ir/packet-const.h>
 #include <babeltrace/trace-ir/packet-internal.h>
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/graph/connection.h>
@@ -67,8 +69,8 @@
 #define NOTIF_BATCH_SIZE	15
 
 struct stream_state {
-	struct bt_stream *stream; /* owned by this */
-	struct bt_packet *cur_packet; /* owned by this */
+	const struct bt_stream *stream; /* owned by this */
+	const struct bt_packet *cur_packet; /* owned by this */
 	uint64_t expected_notif_seq_num;
 	bt_bool is_ended;
 };
@@ -91,7 +93,7 @@ void destroy_stream_state(struct stream_state *stream_state)
 
 BT_ASSERT_PRE_FUNC
 static
-struct stream_state *create_stream_state(struct bt_stream *stream)
+struct stream_state *create_stream_state(const struct bt_stream *stream)
 {
 	struct stream_state *stream_state = g_new0(struct stream_state, 1);
 
@@ -457,15 +459,16 @@ void bt_self_notification_iterator_set_data(
 BT_ASSERT_PRE_FUNC
 static inline
 void bt_notification_borrow_packet_stream(struct bt_notification *notif,
-		struct bt_stream **stream, struct bt_packet **packet)
+		const struct bt_stream **stream,
+		const struct bt_packet **packet)
 {
 	BT_ASSERT(notif);
 
 	switch (notif->type) {
 	case BT_NOTIFICATION_TYPE_EVENT:
-		*packet = bt_event_borrow_packet(
+		*packet = bt_event_borrow_packet_const(
 			bt_notification_event_borrow_event(notif));
-		*stream = bt_packet_borrow_stream(*packet);
+		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
 		*stream = bt_notification_stream_begin_borrow_stream(notif);
@@ -475,11 +478,11 @@ void bt_notification_borrow_packet_stream(struct bt_notification *notif,
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
 		*packet = bt_notification_packet_begin_borrow_packet(notif);
-		*stream = bt_packet_borrow_stream(*packet);
+		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 		*packet = bt_notification_packet_end_borrow_packet(notif);
-		*stream = bt_packet_borrow_stream(*packet);
+		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
 	default:
 		break;
@@ -494,8 +497,8 @@ bool validate_notification(
 {
 	bool is_valid = true;
 	struct stream_state *stream_state;
-	struct bt_stream *stream = NULL;
-	struct bt_packet *packet = NULL;
+	const struct bt_stream *stream = NULL;
+	const struct bt_packet *packet = NULL;
 
 	BT_ASSERT(notif);
 	bt_notification_borrow_packet_stream(notif, &stream, &packet);
@@ -541,8 +544,8 @@ bool validate_notification(
 			abort();
 		}
 
-		g_hash_table_insert(iterator->stream_states, stream,
-			stream_state);
+		g_hash_table_insert(iterator->stream_states,
+			(void *) stream, stream_state);
 		stream_state->expected_notif_seq_num++;
 		goto end;
 	}

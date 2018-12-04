@@ -32,10 +32,10 @@ extern "C" {
 struct bt_notification;
 struct bt_packet;
 
-extern struct bt_packet *bt_notification_packet_begin_borrow_packet(
+extern const struct bt_packet *bt_notification_packet_begin_borrow_packet(
 		struct bt_notification *notification);
 
-extern struct bt_packet *bt_notification_packet_end_borrow_packet(
+extern const struct bt_packet *bt_notification_packet_end_borrow_packet(
 		struct bt_notification *notification);
 
 #ifdef __cplusplus

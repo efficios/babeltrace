@@ -1,9 +1,8 @@
-#ifndef BABELTRACE_TRACE_IR_CLOCK_VALUE_H
-#define BABELTRACE_TRACE_IR_CLOCK_VALUE_H
+#ifndef BABELTRACE_TRACE_IR_EVENT_CONST_H
+#define BABELTRACE_TRACE_IR_EVENT_CONST_H
 
 /*
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
@@ -29,31 +28,46 @@
  * http://www.efficios.com/ctf
  */
 
-#include <stdint.h>
+/* For enum bt_clock_value_status */
+#include <babeltrace/trace-ir/clock-value-const.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_clock_class;
+struct bt_event;
 struct bt_clock_value;
+struct bt_event_class;
+struct bt_field;
+struct bt_packet;
 
-enum bt_clock_value_status {
-	BT_CLOCK_VALUE_STATUS_KNOWN,
-	BT_CLOCK_VALUE_STATUS_UNKNOWN,
-};
+extern const struct bt_event_class *bt_event_borrow_class_const(
+		const struct bt_event *event);
 
-extern struct bt_clock_class *bt_clock_value_borrow_clock_class(
-		struct bt_clock_value *clock_value);
+extern const struct bt_packet *bt_event_borrow_packet_const(
+		const struct bt_event *event);
 
-extern uint64_t bt_clock_value_get_value(
-		struct bt_clock_value *clock_value);
+extern const struct bt_stream *bt_event_borrow_stream_const(
+		const struct bt_event *event);
 
-extern int bt_clock_value_get_ns_from_origin(
-		struct bt_clock_value *clock_value, int64_t *ns_from_origin);
+extern const struct bt_field *bt_event_borrow_header_field_const(
+		const struct bt_event *event);
+
+extern const struct bt_field *bt_event_borrow_common_context_field_const(
+		const struct bt_event *event);
+
+extern const struct bt_field *bt_event_borrow_specific_context_field_const(
+		const struct bt_event *event);
+
+extern const struct bt_field *bt_event_borrow_payload_field_const(
+		const struct bt_event *event);
+
+extern enum bt_clock_value_status bt_event_borrow_default_clock_value_const(
+		const struct bt_event *event,
+		const struct bt_clock_value **clock_value);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_CLOCK_VALUE_H */
+#endif /* BABELTRACE_TRACE_IR_EVENT_CONST_H */

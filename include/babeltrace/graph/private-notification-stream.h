@@ -33,26 +33,26 @@ extern "C" {
 
 struct bt_private_notification;
 struct bt_self_notification_iterator;
-struct bt_private_stream;
+struct bt_stream;
 
 extern
 struct bt_private_notification *bt_private_notification_stream_begin_create(
 		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_private_stream *stream);
+		struct bt_stream *stream);
 
 extern
 struct bt_private_notification *bt_private_notification_stream_end_create(
 		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_private_stream *stream);
+		struct bt_stream *stream);
 
-extern struct bt_private_stream *
+extern struct bt_stream *
 bt_private_notification_stream_begin_borrow_stream(
 		struct bt_private_notification *notification);
 
 extern void bt_private_notification_stream_begin_set_default_clock_value(
 		struct bt_private_notification *notif, uint64_t value_cycles);
 
-extern struct bt_private_stream *
+extern struct bt_stream *
 bt_private_notification_stream_end_borrow_stream(
 		struct bt_private_notification *notification);
 

@@ -68,34 +68,34 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
-	struct bt_private_trace *trace;
-	struct bt_private_stream_class *stream_class;
-	struct bt_private_event_class *event_class;
-	struct bt_private_stream *stream;
-	struct bt_private_packet *packet;
-	struct bt_private_clock_class *clock_class;
+	struct bt_trace *trace;
+	struct bt_stream_class *stream_class;
+	struct bt_event_class *event_class;
+	struct bt_stream *stream;
+	struct bt_packet *packet;
+	struct bt_clock_class *clock_class;
 };
 
 static
-struct bt_private_field_class *create_event_payload_fc(void)
+struct bt_field_class *create_event_payload_fc(void)
 {
-	struct bt_private_field_class *root_fc = NULL;
-	struct bt_private_field_class *fc = NULL;
+	struct bt_field_class *root_fc = NULL;
+	struct bt_field_class *fc = NULL;
 	int ret;
 
-	root_fc = bt_private_field_class_structure_create();
+	root_fc = bt_field_class_structure_create();
 	if (!root_fc) {
 		BT_LOGE_STR("Cannot create an empty structure field class object.");
 		goto error;
 	}
 
-	fc = bt_private_field_class_string_create();
+	fc = bt_field_class_string_create();
 	if (!fc) {
 		BT_LOGE_STR("Cannot create a string field class object.");
 		goto error;
 	}
 
-	ret = bt_private_field_class_structure_append_member(root_fc,
+	ret = bt_field_class_structure_append_member(root_fc,
 		"str", fc);
 	if (ret) {
 		BT_LOGE("Cannot add `str` member to structure field class: "
@@ -116,12 +116,12 @@ end:
 static
 int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 {
-	struct bt_private_field_class *fc = NULL;
+	struct bt_field_class *fc = NULL;
 	const char *trace_name = NULL;
 	gchar *basename = NULL;
 	int ret = 0;
 
-	dmesg_comp->trace = bt_private_trace_create();
+	dmesg_comp->trace = bt_trace_create();
 	if (!dmesg_comp->trace) {
 		BT_LOGE_STR("Cannot create an empty trace object.");
 		goto error;
@@ -140,14 +140,14 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	}
 
 	if (trace_name) {
-		ret = bt_private_trace_set_name(dmesg_comp->trace, trace_name);
+		ret = bt_trace_set_name(dmesg_comp->trace, trace_name);
 		if (ret) {
 			BT_LOGE("Cannot set trace's name: name=\"%s\"", trace_name);
 			goto error;
 		}
 	}
 
-	dmesg_comp->stream_class = bt_private_stream_class_create(
+	dmesg_comp->stream_class = bt_stream_class_create(
 		dmesg_comp->trace);
 	if (!dmesg_comp->stream_class) {
 		BT_LOGE_STR("Cannot create a stream class object.");
@@ -155,30 +155,28 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	}
 
 	if (has_ts) {
-		dmesg_comp->clock_class = bt_private_clock_class_create();
+		dmesg_comp->clock_class = bt_clock_class_create();
 		if (!dmesg_comp->clock_class) {
 			BT_LOGE_STR("Cannot create clock class.");
 			goto error;
 		}
 
-		ret = bt_private_stream_class_set_default_clock_class(
-			dmesg_comp->stream_class,
-			bt_private_clock_class_as_clock_class(
-				dmesg_comp->clock_class));
+		ret = bt_stream_class_set_default_clock_class(
+			dmesg_comp->stream_class, dmesg_comp->clock_class);
 		if (ret) {
 			BT_LOGE_STR("Cannot set stream class's default clock class.");
 			goto error;
 		}
 	}
 
-	dmesg_comp->event_class = bt_private_event_class_create(
+	dmesg_comp->event_class = bt_event_class_create(
 		dmesg_comp->stream_class);
 	if (!dmesg_comp->event_class) {
 		BT_LOGE_STR("Cannot create an event class object.");
 		goto error;
 	}
 
-	ret = bt_private_event_class_set_name(dmesg_comp->event_class, "string");
+	ret = bt_event_class_set_name(dmesg_comp->event_class, "string");
 	if (ret) {
 		BT_LOGE_STR("Cannot set event class's name.");
 		goto error;
@@ -190,7 +188,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	ret = bt_private_event_class_set_payload_field_class(dmesg_comp->event_class, fc);
+	ret = bt_event_class_set_payload_field_class(dmesg_comp->event_class, fc);
 	if (ret) {
 		BT_LOGE_STR("Cannot set event class's event payload field class.");
 		goto error;
@@ -270,19 +268,19 @@ int create_packet_and_stream(struct dmesg_component *dmesg_comp)
 {
 	int ret = 0;
 
-	dmesg_comp->stream = bt_private_stream_create(dmesg_comp->stream_class);
+	dmesg_comp->stream = bt_stream_create(dmesg_comp->stream_class);
 	if (!dmesg_comp->stream) {
 		BT_LOGE_STR("Cannot create stream object.");
 		goto error;
 	}
 
-	dmesg_comp->packet = bt_private_packet_create(dmesg_comp->stream);
+	dmesg_comp->packet = bt_packet_create(dmesg_comp->stream);
 	if (!dmesg_comp->packet) {
 		BT_LOGE_STR("Cannot create packet object.");
 		goto error;
 	}
 
-	ret = bt_private_trace_make_static(dmesg_comp->trace);
+	ret = bt_trace_make_static(dmesg_comp->trace);
 	if (ret) {
 		BT_LOGE_STR("Cannot make trace static.");
 		goto error;
@@ -430,7 +428,7 @@ struct bt_private_notification *create_init_event_notif_from_line(
 		struct dmesg_notif_iter *notif_iter,
 		const char *line, const char **new_start)
 {
-	struct bt_private_event *event;
+	struct bt_event *event;
 	struct bt_private_notification *notif = NULL;
 	bool has_timestamp = false;
 	unsigned long sec, usec, msec;
@@ -512,7 +510,7 @@ skip_ts:
 	BT_ASSERT(event);
 
 	if (dmesg_comp->clock_class) {
-		bt_private_event_set_default_clock_value(event, ts);
+		bt_event_set_default_clock_value(event, ts);
 	}
 
 	goto end;
@@ -526,16 +524,16 @@ end:
 
 static
 int fill_event_payload_from_line(const char *line,
-		struct bt_private_event *event)
+		struct bt_event *event)
 {
-	struct bt_private_field *ep_field = NULL;
-	struct bt_private_field *str_field = NULL;
+	struct bt_field *ep_field = NULL;
+	struct bt_field *str_field = NULL;
 	size_t len;
 	int ret;
 
-	ep_field = bt_private_event_borrow_payload_field(event);
+	ep_field = bt_event_borrow_payload_field(event);
 	BT_ASSERT(ep_field);
-	str_field = bt_private_field_structure_borrow_member_field_by_index(
+	str_field = bt_field_structure_borrow_member_field_by_index(
 		ep_field, 0);
 	if (!str_field) {
 		BT_LOGE_STR("Cannot borrow `timestamp` field from event payload structure field.");
@@ -548,13 +546,13 @@ int fill_event_payload_from_line(const char *line,
 		len--;
 	}
 
-	ret = bt_private_field_string_clear(str_field);
+	ret = bt_field_string_clear(str_field);
 	if (ret) {
 		BT_LOGE_STR("Cannot clear string field object.");
 		goto error;
 	}
 
-	ret = bt_private_field_string_append_with_length(str_field, line, len);
+	ret = bt_field_string_append_with_length(str_field, line, len);
 	if (ret) {
 		BT_LOGE("Cannot append value to string field object: "
 			"len=%zu", len);
@@ -574,7 +572,7 @@ static
 struct bt_private_notification *create_notif_from_line(
 		struct dmesg_notif_iter *dmesg_notif_iter, const char *line)
 {
-	struct bt_private_event *event = NULL;
+	struct bt_event *event = NULL;
 	struct bt_private_notification *notif = NULL;
 	const char *new_start;
 	int ret;

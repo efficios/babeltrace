@@ -97,7 +97,7 @@ struct ctf_fs_ds_file {
 	struct ctf_fs_file *file;
 
 	/* Owned by this */
-	struct bt_private_stream *stream;
+	struct bt_stream *stream;
 
 	/* Weak */
 	struct bt_notif_iter *notif_iter;
@@ -130,13 +130,13 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		struct bt_self_notification_iterator *pc_notif_iter,
 		struct bt_notif_iter *notif_iter,
-		struct bt_private_stream *stream, const char *path);
+		struct bt_stream *stream, const char *path);
 
 BT_HIDDEN
 int ctf_fs_ds_file_borrow_packet_header_context_fields(
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_private_field **packet_header_field,
-		struct bt_private_field **packet_context_field);
+		struct bt_field **packet_header_field,
+		struct bt_field **packet_context_field);
 
 BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);

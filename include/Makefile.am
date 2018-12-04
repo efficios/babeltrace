@@ -48,28 +48,28 @@ babeltracectfirinclude_HEADERS = \
 # Trace IR API
 babeltracetraceirincludedir = "$(includedir)/babeltrace/trace-ir"
 babeltracetraceirinclude_HEADERS = \
+	babeltrace/trace-ir/clock-class-const.h \
 	babeltrace/trace-ir/clock-class.h \
-	babeltrace/trace-ir/clock-value.h \
+	babeltrace/trace-ir/clock-value-const.h \
+	babeltrace/trace-ir/event-class-const.h \
 	babeltrace/trace-ir/event-class.h \
+	babeltrace/trace-ir/event-const.h \
+	babeltrace/trace-ir/event-header-field.h \
 	babeltrace/trace-ir/event.h \
+	babeltrace/trace-ir/field-classes-const.h \
 	babeltrace/trace-ir/field-classes.h \
-	babeltrace/trace-ir/field-path.h \
+	babeltrace/trace-ir/field-path-const.h \
+	babeltrace/trace-ir/fields-const.h \
 	babeltrace/trace-ir/fields.h \
+	babeltrace/trace-ir/packet-const.h \
+	babeltrace/trace-ir/packet-context-field.h \
+	babeltrace/trace-ir/packet-header-field.h \
 	babeltrace/trace-ir/packet.h \
-	babeltrace/trace-ir/private-clock-class.h \
-	babeltrace/trace-ir/private-event-class.h \
-	babeltrace/trace-ir/private-event.h \
-	babeltrace/trace-ir/private-event-header-field.h \
-	babeltrace/trace-ir/private-field-classes.h \
-	babeltrace/trace-ir/private-fields.h \
-	babeltrace/trace-ir/private-packet-context-field.h \
-	babeltrace/trace-ir/private-packet.h \
-	babeltrace/trace-ir/private-packet-header-field.h \
-	babeltrace/trace-ir/private-stream-class.h \
-	babeltrace/trace-ir/private-stream.h \
-	babeltrace/trace-ir/private-trace.h \
+	babeltrace/trace-ir/stream-class-const.h \
 	babeltrace/trace-ir/stream-class.h \
+	babeltrace/trace-ir/stream-const.h \
 	babeltrace/trace-ir/stream.h \
+	babeltrace/trace-ir/trace-const.h \
 	babeltrace/trace-ir/trace.h
 
 # Plugin and plugin development API
