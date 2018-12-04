@@ -27,7 +27,7 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-const.h>
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
 #include <babeltrace/object-internal.h>

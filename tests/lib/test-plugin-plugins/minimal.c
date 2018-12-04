@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <glib.h>
 
-static enum bt_plugin_status plugin_init(struct bt_plugin *plugin)
+static enum bt_plugin_status plugin_init(const struct bt_plugin *plugin)
 {
 	g_setenv("BT_TEST_PLUGIN_INIT_CALLED", "1", 1);
 	return BT_PLUGIN_STATUS_OK;

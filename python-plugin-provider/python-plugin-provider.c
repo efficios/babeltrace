@@ -30,7 +30,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/object.h>
-#include <babeltrace/plugin/plugin.h>
+#include <babeltrace/plugin/plugin-const.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-internal.h>
@@ -158,9 +158,9 @@ void fini_python(void) {
 }
 
 static
-struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
+const struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 {
-	struct bt_plugin *plugin = NULL;
+	const struct bt_plugin *plugin = NULL;
 	PyObject *py_name = NULL;
 	PyObject *py_author = NULL;
 	PyObject *py_description = NULL;
@@ -391,7 +391,7 @@ G_MODULE_EXPORT
 struct bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 {
 	struct bt_plugin_set *plugin_set = NULL;
-	struct bt_plugin *plugin = NULL;
+	const struct bt_plugin *plugin = NULL;
 	PyObject *py_plugin_info = NULL;
 	gchar *basename = NULL;
 	size_t path_len;
