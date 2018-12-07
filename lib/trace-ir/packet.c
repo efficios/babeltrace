@@ -24,7 +24,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/packet-const.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/packet-internal.h>

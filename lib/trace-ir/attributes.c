@@ -26,9 +26,9 @@
 
 #include <babeltrace/object.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
-#include <babeltrace/values-const.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/value.h>
+#include <babeltrace/value-const.h>
+#include <babeltrace/value-internal.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
 #include <inttypes.h>
 #include <babeltrace/compat/string-internal.h>

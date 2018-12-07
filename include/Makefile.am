@@ -6,8 +6,8 @@ babeltraceinclude_HEADERS = \
 	babeltrace/object.h \
 	babeltrace/property.h \
 	babeltrace/types.h \
-	babeltrace/values-const.h \
-	babeltrace/values.h \
+	babeltrace/value-const.h \
+	babeltrace/value.h \
 	babeltrace/version.h
 
 # Legacy API (for CTF writer)
@@ -56,11 +56,11 @@ babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/event-const.h \
 	babeltrace/trace-ir/event-header-field.h \
 	babeltrace/trace-ir/event.h \
-	babeltrace/trace-ir/field-classes-const.h \
-	babeltrace/trace-ir/field-classes.h \
+	babeltrace/trace-ir/field-class-const.h \
+	babeltrace/trace-ir/field-class.h \
 	babeltrace/trace-ir/field-path-const.h \
-	babeltrace/trace-ir/fields-const.h \
-	babeltrace/trace-ir/fields.h \
+	babeltrace/trace-ir/field-const.h \
+	babeltrace/trace-ir/field.h \
 	babeltrace/trace-ir/packet-const.h \
 	babeltrace/trace-ir/packet-context-field.h \
 	babeltrace/trace-ir/packet-header-field.h \
@@ -149,7 +149,7 @@ noinst_HEADERS = \
 	babeltrace/plugin/plugin-so-internal.h \
 	babeltrace/plugin/python-plugin-provider-internal.h \
 	babeltrace/assert-internal.h \
-	babeltrace/values-internal.h \
+	babeltrace/value-internal.h \
 	babeltrace/ctf-writer/attributes-internal.h \
 	babeltrace/ctf-writer/clock-class-internal.h \
 	babeltrace/ctf-writer/clock-internal.h \
@@ -179,9 +179,9 @@ noinst_HEADERS = \
 	babeltrace/trace-ir/clock-value-set-internal.h \
 	babeltrace/trace-ir/event-class-internal.h \
 	babeltrace/trace-ir/event-internal.h \
-	babeltrace/trace-ir/field-classes-internal.h \
+	babeltrace/trace-ir/field-class-internal.h \
 	babeltrace/trace-ir/field-path-internal.h \
-	babeltrace/trace-ir/fields-internal.h \
+	babeltrace/trace-ir/field-internal.h \
 	babeltrace/trace-ir/field-wrapper-internal.h \
 	babeltrace/trace-ir/packet-internal.h \
 	babeltrace/trace-ir/resolve-field-path-internal.h \

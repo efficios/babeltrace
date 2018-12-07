@@ -33,7 +33,7 @@
 #include <babeltrace/assert-internal.h>
 #include <stdio.h>
 
-#include "clock-fields.h"
+#include "clock-field.h"
 
 static
 int find_update_struct_clock_fields(FILE *err, struct bt_field_type *type,

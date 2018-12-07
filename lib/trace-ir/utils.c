@@ -27,7 +27,7 @@
 
 #include <stdlib.h>
 #include <glib.h>
-#include <babeltrace/trace-ir/field-classes-internal.h>
+#include <babeltrace/trace-ir/field-class-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
 #include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>

@@ -30,8 +30,8 @@
 #include <babeltrace/object.h>
 #include <babeltrace/property.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values-const.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value-const.h>
+#include <babeltrace/value.h>
 #include <babeltrace/version.h>
 
 /* Legacy API (for CTF writer) */
@@ -72,11 +72,11 @@
 #include <babeltrace/trace-ir/event-const.h>
 #include <babeltrace/trace-ir/event-header-field.h>
 #include <babeltrace/trace-ir/event.h>
-#include <babeltrace/trace-ir/field-classes-const.h>
-#include <babeltrace/trace-ir/field-classes.h>
+#include <babeltrace/trace-ir/field-class-const.h>
+#include <babeltrace/trace-ir/field-class.h>
+#include <babeltrace/trace-ir/field-const.h>
 #include <babeltrace/trace-ir/field-path-const.h>
-#include <babeltrace/trace-ir/fields-const.h>
-#include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/packet-const.h>
 #include <babeltrace/trace-ir/packet-context-field.h>
 #include <babeltrace/trace-ir/packet-header-field.h>

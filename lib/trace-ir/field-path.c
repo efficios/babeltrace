@@ -25,8 +25,8 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/field-classes.h>
-#include <babeltrace/trace-ir/field-classes-internal.h>
+#include <babeltrace/trace-ir/field-class.h>
+#include <babeltrace/trace-ir/field-class-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
 #include <babeltrace/trace-ir/field-path-const.h>
 #include <babeltrace/object.h>

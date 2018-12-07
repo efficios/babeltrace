@@ -30,7 +30,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 
 BT_HIDDEN
 struct bt_value *bt_attributes_create(void);
