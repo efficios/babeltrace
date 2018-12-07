@@ -885,8 +885,7 @@ void test_copy(void)
 		string_obj);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 
-	status = bt_value_copy(&map_copy_obj,
-		map_obj);
+	status = bt_value_copy(map_obj, &map_copy_obj);
 	ok(status == BT_VALUE_STATUS_OK && map_copy_obj,
 		"bt_value_copy() succeeds");
 

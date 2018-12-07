@@ -225,7 +225,7 @@ struct bt_value *bt_value_array_copy(const struct bt_value *array_obj)
 		BT_ASSERT(element_obj);
 		BT_LOGD("Copying array value's element: element-addr=%p, "
 			"index=%d", element_obj, i);
-		ret = bt_value_copy(&element_obj_copy, element_obj);
+		ret = bt_value_copy(element_obj, &element_obj_copy);
 		if (ret) {
 			BT_LOGE("Cannot copy array value's element: "
 				"array-addr=%p, index=%d",
@@ -278,7 +278,7 @@ struct bt_value *bt_value_map_copy(const struct bt_value *map_obj)
 		BT_ASSERT(key_str);
 		BT_LOGD("Copying map value's element: element-addr=%p, "
 			"key=\"%s\"", element_obj, key_str);
-		ret = bt_value_copy(&element_obj_copy, element_obj);
+		ret = bt_value_copy(element_obj, &element_obj_copy);
 		if (ret) {
 			BT_LOGE("Cannot copy map value's element: "
 				"map-addr=%p, key=\"%s\"",
@@ -1162,8 +1162,8 @@ bt_bool extend_map_element(const char *key,
 	struct bt_value *extension_obj_elem_copy = NULL;
 
 	/* Copy object which is to replace the current one */
-	extend_data->status = bt_value_copy(&extension_obj_elem_copy,
-		extension_obj_elem);
+	extend_data->status = bt_value_copy(extension_obj_elem,
+					    &extension_obj_elem_copy);
 	if (extend_data->status) {
 		BT_LOGE("Cannot copy map element: addr=%p",
 			extension_obj_elem);
@@ -1216,7 +1216,7 @@ enum bt_value_status bt_value_map_extend(
 	*extended_map_obj = NULL;
 
 	/* Create copy of base map object to start with */
-	extend_data.status = bt_value_copy(extended_map_obj, base_map_obj);
+	extend_data.status = bt_value_copy(base_map_obj, extended_map_obj);
 	if (extend_data.status) {
 		BT_LOGE("Cannot copy base value: base-value-addr=%p",
 			base_map_obj);
@@ -1256,8 +1256,8 @@ end:
 	return extend_data.status;
 }
 
-enum bt_value_status bt_value_copy(struct bt_value **copy_obj,
-		const struct bt_value *object)
+enum bt_value_status bt_value_copy(const struct bt_value *object,
+		struct bt_value **copy_obj)
 {
 	enum bt_value_status status = BT_VALUE_STATUS_OK;
 

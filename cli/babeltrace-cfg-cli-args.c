@@ -1498,8 +1498,8 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	if (initial_plugin_paths) {
 		struct bt_value *initial_plugin_paths_copy;
 
-		(void) bt_value_copy(&initial_plugin_paths_copy,
-			initial_plugin_paths);
+		(void) bt_value_copy(initial_plugin_paths,
+			&initial_plugin_paths_copy);
 		cfg->plugin_paths = initial_plugin_paths_copy;
 	} else {
 		cfg->plugin_paths = bt_value_array_create();
@@ -2499,9 +2499,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 			BT_ASSERT(cur_base_params);
 			bt_object_put_ref(cur_cfg_comp->params);
-			status = bt_value_copy(
-				&cur_cfg_comp->params,
-				cur_base_params);
+			status = bt_value_copy(cur_base_params,
+				&cur_cfg_comp->params);
 			if (status != BT_VALUE_STATUS_OK) {
 				print_err_oom();
 				goto error;
@@ -3538,8 +3537,8 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		 * this is where the unique path goes.
 		 */
 		BT_OBJECT_PUT_REF_AND_RESET(impl_args->extra_params);
-		status = bt_value_copy(&impl_args->extra_params,
-				base_implicit_ctf_input_args->extra_params);
+		status = bt_value_copy(base_implicit_ctf_input_args->extra_params,
+			&impl_args->extra_params);
 		if (status != BT_VALUE_STATUS_OK) {
 			print_err_oom();
 			destroy_implicit_component_args(impl_args);
@@ -3616,7 +3615,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
 	char *output = NULL;
 
-	(void) bt_value_copy(&plugin_paths, initial_plugin_paths);
+	(void) bt_value_copy(initial_plugin_paths, &plugin_paths);
 
 	*retcode = 0;
 

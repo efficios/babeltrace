@@ -114,8 +114,8 @@ bt_bool bt_value_is_map(const struct bt_value *object)
 	return bt_value_get_type(object) == BT_VALUE_TYPE_MAP;
 }
 
-extern enum bt_value_status bt_value_copy(struct bt_value **copy,
-		const struct bt_value *object);
+extern enum bt_value_status bt_value_copy(const struct bt_value *object,
+		struct bt_value **copy);
 
 extern bt_bool bt_value_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b);
