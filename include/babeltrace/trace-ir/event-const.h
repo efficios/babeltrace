@@ -2,9 +2,8 @@
 #define BABELTRACE_TRACE_IR_EVENT_CONST_H
 
 /*
+ * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  * Copyright 2013, 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- *
- * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

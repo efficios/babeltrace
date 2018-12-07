@@ -1,6 +1,6 @@
 /*
+ * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
- * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Author: Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *

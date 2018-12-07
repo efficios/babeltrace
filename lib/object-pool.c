@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2018 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2018 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
