@@ -2,6 +2,7 @@
 #define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_H
 
 /*
+ * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
