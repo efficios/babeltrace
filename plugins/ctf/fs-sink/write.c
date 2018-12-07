@@ -40,13 +40,13 @@
 static
 void unref_stream_class(const struct bt_stream_class *writer_stream_class)
 {
-	bt_object_put_ref(writer_stream_class);
+	bt_stream_class_put_ref(writer_stream_class);
 }
 
 static
 void unref_stream(const struct bt_stream_class *writer_stream)
 {
-	bt_object_put_ref(writer_stream);
+	bt_stream_class_put_ref(writer_stream);
 }
 
 static
@@ -145,10 +145,10 @@ const struct bt_stream_class *insert_new_stream_class(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream_class);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(writer_stream_class);
 end:
-	bt_object_put_ref(writer_trace);
-	bt_object_put_ref(trace);
+	bt_trace_put_ref(writer_trace);
+	bt_trace_put_ref(trace);
 	return writer_stream_class;
 }
 
@@ -328,7 +328,7 @@ struct fs_writer *insert_new_writer(
 	fs_writer->trace = trace;
 	fs_writer->writer_trace = writer_trace;
 	fs_writer->writer_component = writer_component;
-	BT_OBJECT_PUT_REF_AND_RESET(writer_trace);
+	BT_TRACE_PUT_REF_AND_RESET(writer_trace);
 	fs_writer->stream_class_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, (GDestroyNotify) unref_stream_class);
 	fs_writer->stream_map = g_hash_table_new_full(g_direct_hash,
@@ -343,7 +343,7 @@ struct fs_writer *insert_new_writer(
 		BT_ASSERT(stream);
 
 		insert_new_stream_state(writer_component, fs_writer, stream);
-		BT_OBJECT_PUT_REF_AND_RESET(stream);
+		BT_STREAM_PUT_REF_AND_RESET(stream);
 	}
 
 	/* Check if the trace is already static or register a listener. */
@@ -366,8 +366,8 @@ struct fs_writer *insert_new_writer(
 error:
 	g_free(fs_writer);
 	fs_writer = NULL;
-	bt_object_put_ref(writer_trace);
-	bt_object_put_ref(stream);
+	bt_trace_put_ref(writer_trace);
+	bt_stream_put_ref(stream);
 	BT_OBJECT_PUT_REF_AND_RESET(ctf_writer);
 end:
 	return fs_writer;
@@ -388,7 +388,7 @@ struct fs_writer *get_fs_writer(struct writer_component *writer_component,
 	if (!fs_writer) {
 		fs_writer = insert_new_writer(writer_component, trace);
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(trace);
+	BT_TRACE_PUT_REF_AND_RESET(trace);
 
 	return fs_writer;
 }
@@ -406,7 +406,7 @@ struct fs_writer *get_fs_writer_from_stream(
 
 	fs_writer = get_fs_writer(writer_component, stream_class);
 
-	bt_object_put_ref(stream_class);
+	bt_stream_class_put_ref(stream_class);
 	return fs_writer;
 }
 
@@ -454,7 +454,7 @@ const struct bt_stream *insert_new_stream(
 			goto error;
 		}
 	}
-	bt_object_get_ref(writer_stream_class);
+	bt_stream_class_get_ref(writer_stream_class);
 
 	writer_stream = bt_stream_create(writer_stream_class,
 		bt_stream_get_name(stream));
@@ -466,10 +466,10 @@ const struct bt_stream *insert_new_stream(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
+	BT_STREAM_PUT_REF_AND_RESET(writer_stream);
 end:
 	bt_object_put_ref(ctf_writer);
-	bt_object_put_ref(writer_stream_class);
+	bt_stream_class_put_ref(writer_stream_class);
 	return writer_stream;
 }
 
@@ -494,12 +494,12 @@ const struct bt_stream *get_writer_stream(
 		BT_LOGE_STR("Failed to find existing stream.");
 		goto error;
 	}
-	bt_object_get_ref(writer_stream);
+	bt_stream_get_ref(writer_stream);
 
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
+	BT_STREAM_PUT_REF_AND_RESET(writer_stream);
 end:
 	return writer_stream;
 }

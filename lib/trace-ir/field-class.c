@@ -33,11 +33,9 @@
 #include <babeltrace/trace-ir/field-const.h>
 #include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/utils-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/clock-class.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -1195,4 +1193,14 @@ void _bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 	default:
 		break;
 	}
+}
+
+void bt_field_class_get_ref(const struct bt_field_class *field_class)
+{
+	bt_object_get_ref(field_class);
+}
+
+void bt_field_class_put_ref(const struct bt_field_class *field_class)
+{
+	bt_object_put_ref(field_class);
 }

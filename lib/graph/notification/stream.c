@@ -33,7 +33,6 @@
 #include <babeltrace/graph/notification-stream-const.h>
 #include <babeltrace/graph/notification-stream-internal.h>
 #include <babeltrace/assert-internal.h>
-#include <babeltrace/object.h>
 #include <inttypes.h>
 
 static

@@ -164,6 +164,23 @@ extern enum bt_value_status bt_value_map_extend(
 		const struct bt_value *extension_map_obj,
 		struct bt_value **extended_map_obj);
 
+extern void bt_value_get_ref(const struct bt_value *value);
+
+extern void bt_value_put_ref(const struct bt_value *value);
+
+#define BT_VALUE_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_value_put_ref(_var);			\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_VALUE_MOVE_REF(_var_dst, _var_src)		\
+	do {						\
+		bt_value_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

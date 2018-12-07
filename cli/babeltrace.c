@@ -165,7 +165,7 @@ int create_the_query_executor(void)
 static
 void destroy_the_query_executor(void)
 {
-	BT_OBJECT_PUT_REF_AND_RESET(the_query_executor);
+	BT_QUERY_EXECUTOR_PUT_REF_AND_RESET(the_query_executor);
 }
 
 static
@@ -256,7 +256,7 @@ error:
 
 end:
 	destroy_the_query_executor();
-	bt_object_put_ref(result);
+	bt_value_put_ref(result);
 	return ret;
 }
 
@@ -287,7 +287,7 @@ const struct bt_plugin *find_plugin(const char *name)
 		}
 	}
 
-	bt_object_get_ref(plugin);
+	bt_plugin_get_ref(plugin);
 	return plugin;
 }
 
@@ -312,7 +312,7 @@ const void *find_component_class_from_plugin(const char *plugin_name,
 
 	comp_class = plugin_borrow_comp_cls_func(plugin, comp_class_name);
 	bt_object_get_ref(comp_class);
-	BT_OBJECT_PUT_REF_AND_RESET(plugin);
+	BT_PLUGIN_PUT_REF_AND_RESET(plugin);
 
 end:
 	if (BT_LOG_ON_DEBUG) {
@@ -777,12 +777,12 @@ void add_to_loaded_plugins(const struct bt_plugin_set *plugin_set)
 				bt_plugin_get_name(plugin),
 				bt_plugin_get_path(plugin),
 				bt_plugin_get_path(loaded_plugin));
-			bt_object_put_ref(loaded_plugin);
+			bt_plugin_put_ref(loaded_plugin);
 		} else {
 			/* Add to global array. */
 			BT_LOGD("Adding plugin to loaded plugins: plugin-path=\"%s\"",
 				bt_plugin_get_name(plugin));
-			bt_object_get_ref(plugin);
+			bt_plugin_get_ref(plugin);
 			g_ptr_array_add(loaded_plugins, (void *) plugin);
 		}
 	}
@@ -831,7 +831,7 @@ int load_dynamic_plugins(const struct bt_value *plugin_paths)
 		}
 
 		add_to_loaded_plugins(plugin_set);
-		bt_object_put_ref(plugin_set);
+		bt_plugin_set_put_ref(plugin_set);
 	}
 end:
 	return ret;
@@ -852,7 +852,7 @@ int load_static_plugins(void)
 	}
 
 	add_to_loaded_plugins(plugin_set);
-	bt_object_put_ref(plugin_set);
+	bt_plugin_set_put_ref(plugin_set);
 end:
 	return ret;
 }
@@ -995,8 +995,8 @@ failed:
 	ret = -1;
 
 end:
-	bt_object_put_ref(comp_cls);
-	bt_object_put_ref(results);
+	bt_component_class_put_ref(comp_cls);
+	bt_value_put_ref(results);
 	return ret;
 }
 
@@ -1092,8 +1092,8 @@ int cmd_help(struct bt_config *cfg)
 		needed_comp_cls);
 
 end:
-	bt_object_put_ref(needed_comp_cls);
-	bt_object_put_ref(plugin);
+	bt_component_class_put_ref(needed_comp_cls);
+	bt_plugin_put_ref(plugin);
 	return ret;
 }
 
@@ -1343,9 +1343,9 @@ error:
 	ret = -1;
 
 end:
-	bt_object_put_ref(results);
-	bt_object_put_ref(params);
-	bt_object_put_ref(comp_cls);
+	bt_value_put_ref(results);
+	bt_value_put_ref(params);
+	bt_component_class_put_ref(comp_cls);
 
 	if (out_stream && out_stream != stdout) {
 		int fclose_ret = fclose(out_stream);
@@ -1455,9 +1455,9 @@ failed:
 		bt_common_color_reset());
 
 end:
-	bt_object_put_ref(results);
-	bt_object_put_ref(params);
-	bt_object_put_ref(comp_cls);
+	bt_value_put_ref(results);
+	bt_value_put_ref(params);
+	bt_component_class_put_ref(comp_cls);
 
 	if (out_stream && out_stream != stdout) {
 		int fclose_ret = fclose(out_stream);
@@ -1902,9 +1902,9 @@ error:
 end:
 	free(intersection_begin);
 	free(intersection_end);
-	BT_OBJECT_PUT_REF_AND_RESET(trimmer_params);
-	BT_OBJECT_PUT_REF_AND_RESET(trimmer_class);
-	BT_OBJECT_PUT_REF_AND_RESET(trimmer);
+	BT_VALUE_PUT_REF_AND_RESET(trimmer_params);
+	BT_COMPONENT_CLASS_FILTER_PUT_REF_AND_RESET(trimmer_class);
+	BT_COMPONENT_FILTER_PUT_REF_AND_RESET(trimmer);
 	return ret;
 }
 
@@ -2067,7 +2067,7 @@ void cmd_run_ctx_destroy(struct cmd_run_ctx *ctx)
 		ctx->intersections = NULL;
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(ctx->graph);
+	BT_GRAPH_PUT_REF_AND_RESET(ctx->graph);
 	the_graph = NULL;
 	ctx->cfg = NULL;
 }
@@ -2370,8 +2370,8 @@ error:
 		path ? path : "(unknown)",
 		bt_common_color_reset());
 end:
-	bt_object_put_ref(query_params);
-	bt_object_put_ref(query_result);
+	bt_value_put_ref(query_params);
+	bt_value_put_ref(query_result);
 	g_free(port_id);
 	g_free(trace_range);
 	return ret;

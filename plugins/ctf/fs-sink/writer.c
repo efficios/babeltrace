@@ -132,7 +132,7 @@ enum bt_component_status handle_notification(
 		}
 
 		ret = writer_new_packet(writer_component, packet);
-		bt_object_put_ref(packet);
+		bt_packet_put_ref(packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -145,7 +145,7 @@ enum bt_component_status handle_notification(
 			goto end;
 		}
 		ret = writer_close_packet(writer_component, packet);
-		bt_object_put_ref(packet);
+		bt_packet_put_ref(packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -174,7 +174,7 @@ enum bt_component_status handle_notification(
 			goto end;
 		}
 		ret = writer_stream_begin(writer_component, stream);
-		bt_object_put_ref(stream);
+		bt_stream_put_ref(stream);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -187,7 +187,7 @@ enum bt_component_status handle_notification(
 			goto end;
 		}
 		ret = writer_stream_end(writer_component, stream);
-		bt_object_put_ref(stream);
+		bt_stream_put_ref(stream);
 		break;
 	}
 	default:
@@ -285,7 +285,7 @@ enum bt_component_status apply_one_bool(const char *key,
 		*found = true;
 	}
 end:
-	bt_object_put_ref(value);
+	bt_value_put_ref(value);
 	return ret;
 }
 

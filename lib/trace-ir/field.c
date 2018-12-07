@@ -30,7 +30,6 @@
 #include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/field-class-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/compat/fcntl-internal.h>
 #include <babeltrace/align-internal.h>

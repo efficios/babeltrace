@@ -71,7 +71,7 @@ static enum bt_query_status flt_query_method(
 	BT_ASSERT(iret == 0);
 	iret = bt_value_array_append_element(res, val);
 	BT_ASSERT(iret == 0);
-	bt_object_put_ref(val);
+	bt_value_put_ref(val);
 	return BT_QUERY_STATUS_OK;
 }
 

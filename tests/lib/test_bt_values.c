@@ -33,9 +33,9 @@ void test_null(void)
 	ok(bt_value_null, "bt_value_null is not NULL");
 	ok(bt_value_is_null(bt_value_null),
 		"bt_value_null is a null value object");
-	bt_object_get_ref(bt_value_null);
+	bt_value_get_ref(bt_value_null);
 	pass("getting bt_value_null does not cause a crash");
-	bt_object_put_ref(bt_value_null);
+	bt_value_put_ref(bt_value_null);
 	pass("putting bt_value_null does not cause a crash");
 }
 
@@ -58,7 +58,7 @@ void test_bool(void)
 	value = bt_value_bool_get(obj);
 	ok(value, "bt_value_bool_set() works");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	pass("putting an existing boolean value object does not cause a crash")
 
 	value = BT_FALSE;
@@ -69,7 +69,7 @@ void test_bool(void)
 	ok(value,
 		"bt_value_bool_create_init() sets the appropriate initial value");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 }
 
 static
@@ -90,7 +90,7 @@ void test_integer(void)
 	value = bt_value_integer_get(obj);
 	ok(value == -98765, "bt_private_integer_bool_set() works");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	pass("putting an existing integer value object does not cause a crash")
 
 	obj = bt_value_integer_create_init(321456987);
@@ -100,7 +100,7 @@ void test_integer(void)
 	ok(value == 321456987,
 		"bt_value_integer_create_init() sets the appropriate initial value");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 }
 
 static
@@ -122,7 +122,7 @@ void test_real(void)
 	value = bt_value_real_get(obj);
 	ok(value == -3.1416, "bt_value_real_set() works");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	pass("putting an existing real number value object does not cause a crash")
 
 	obj = bt_value_real_create_init(33.1649758);
@@ -132,7 +132,7 @@ void test_real(void)
 	ok(value == 33.1649758,
 		"bt_value_real_create_init() sets the appropriate initial value");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 }
 
 static
@@ -154,7 +154,7 @@ void test_string(void)
 	ok(value && !strcmp(value, "hello worldz"),
 		"bt_value_string_get() works");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	pass("putting an existing string value object does not cause a crash")
 
 	obj = bt_value_string_create_init("initial value");
@@ -164,7 +164,7 @@ void test_string(void)
 	ok(value && !strcmp(value, "initial value"),
 		"bt_value_string_create_init() sets the appropriate initial value");
 
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 }
 
 static
@@ -186,13 +186,13 @@ void test_array(void)
 
 	obj = bt_value_integer_create_init(345);
 	ret = bt_value_array_append_element(array_obj, obj);
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_real_create_init(-17.45);
 	ret |= bt_value_array_append_element(array_obj, obj);
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_bool_create_init(BT_TRUE);
 	ret |= bt_value_array_append_element(array_obj, obj);
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	ret |= bt_value_array_append_element(array_obj,
 		bt_value_null);
 	ok(!ret, "bt_value_array_append_element() succeeds");
@@ -225,7 +225,7 @@ void test_array(void)
 	BT_ASSERT(obj);
 	ok(!bt_value_array_set_element_by_index(array_obj, 2, obj),
 		"bt_value_array_set_element_by_index() succeeds");
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
 	ok(obj && bt_value_is_integer(obj),
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate type");
@@ -291,7 +291,7 @@ void test_array(void)
 	ok(bt_value_map_is_empty(obj),
 		"bt_value_array_append_empty_map_element() an empty map value object");
 
-	BT_OBJECT_PUT_REF_AND_RESET(array_obj);
+	BT_VALUE_PUT_REF_AND_RESET(array_obj);
 	pass("putting an existing array value object does not cause a crash")
 }
 
@@ -487,13 +487,13 @@ void test_map(void)
 
 	obj = bt_value_integer_create_init(19457);
 	ret = bt_value_map_insert_entry(map_obj, "int", obj);
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_real_create_init(5.444);
 	ret |= bt_value_map_insert_entry(map_obj, "real", obj);
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_bool_create();
 	ret |= bt_value_map_insert_entry(map_obj, "bt_bool", obj);
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	ret |= bt_value_map_insert_entry(map_obj, "null",
 		bt_value_null);
 	ok(!ret, "bt_value_map_insert_entry() succeeds");
@@ -502,7 +502,7 @@ void test_map(void)
 
 	obj = bt_value_bool_create_init(BT_TRUE);
 	ret = bt_value_map_insert_entry(map_obj, "bt_bool", obj);
-	BT_OBJECT_PUT_REF_AND_RESET(obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
 	ok(!ret, "bt_value_map_insert_entry() accepts an existing key");
 
 	obj = bt_value_map_borrow_entry_value(map_obj, "life");
@@ -589,7 +589,7 @@ void test_map(void)
 		checklist.array2 && checklist.map2,
 		"bt_value_map_foreach_entry() iterates over all the map value object's elements");
 
-	BT_OBJECT_PUT_REF_AND_RESET(map_obj);
+	BT_VALUE_PUT_REF_AND_RESET(map_obj);
 	pass("putting an existing map value object does not cause a crash")
 }
 
@@ -633,9 +633,9 @@ void test_compare_bool(void)
 			    bool3),
 		"boolean value objects are equivalent (BT_FALSE and BT_FALSE)");
 
-	BT_OBJECT_PUT_REF_AND_RESET(bool1);
-	BT_OBJECT_PUT_REF_AND_RESET(bool2);
-	BT_OBJECT_PUT_REF_AND_RESET(bool3);
+	BT_VALUE_PUT_REF_AND_RESET(bool1);
+	BT_VALUE_PUT_REF_AND_RESET(bool2);
+	BT_VALUE_PUT_REF_AND_RESET(bool3);
 }
 
 static
@@ -659,9 +659,9 @@ void test_compare_integer(void)
 			    int3),
 		"integer value objects are equivalent (10 and 10)");
 
-	BT_OBJECT_PUT_REF_AND_RESET(int1);
-	BT_OBJECT_PUT_REF_AND_RESET(int2);
-	BT_OBJECT_PUT_REF_AND_RESET(int3);
+	BT_VALUE_PUT_REF_AND_RESET(int1);
+	BT_VALUE_PUT_REF_AND_RESET(int2);
+	BT_VALUE_PUT_REF_AND_RESET(int3);
 }
 
 static
@@ -686,9 +686,9 @@ void test_compare_real(void)
 			    real3),
 		"real number value objects are equivalent (17.38 and 17.38)");
 
-	BT_OBJECT_PUT_REF_AND_RESET(real1);
-	BT_OBJECT_PUT_REF_AND_RESET(real2);
-	BT_OBJECT_PUT_REF_AND_RESET(real3);
+	BT_VALUE_PUT_REF_AND_RESET(real1);
+	BT_VALUE_PUT_REF_AND_RESET(real2);
+	BT_VALUE_PUT_REF_AND_RESET(real3);
 }
 
 static
@@ -713,9 +713,9 @@ void test_compare_string(void)
 			    string3),
 		"string value objects are equivalent (\"hello\" and \"hello\")");
 
-	BT_OBJECT_PUT_REF_AND_RESET(string1);
-	BT_OBJECT_PUT_REF_AND_RESET(string2);
-	BT_OBJECT_PUT_REF_AND_RESET(string3);
+	BT_VALUE_PUT_REF_AND_RESET(string1);
+	BT_VALUE_PUT_REF_AND_RESET(string2);
+	BT_VALUE_PUT_REF_AND_RESET(string3);
 }
 
 static
@@ -764,9 +764,9 @@ void test_compare_array(void)
 			    array3),
 		"array value objects are equivalent ([23, 14.2, BT_FALSE] and [23, 14.2, BT_FALSE])");
 
-	BT_OBJECT_PUT_REF_AND_RESET(array1);
-	BT_OBJECT_PUT_REF_AND_RESET(array2);
-	BT_OBJECT_PUT_REF_AND_RESET(array3);
+	BT_VALUE_PUT_REF_AND_RESET(array1);
+	BT_VALUE_PUT_REF_AND_RESET(array2);
+	BT_VALUE_PUT_REF_AND_RESET(array3);
 }
 
 static
@@ -819,9 +819,9 @@ void test_compare_map(void)
 			    map3),
 		"map value objects are equivalent");
 
-	BT_OBJECT_PUT_REF_AND_RESET(map1);
-	BT_OBJECT_PUT_REF_AND_RESET(map2);
-	BT_OBJECT_PUT_REF_AND_RESET(map3);
+	BT_VALUE_PUT_REF_AND_RESET(map1);
+	BT_VALUE_PUT_REF_AND_RESET(map2);
+	BT_VALUE_PUT_REF_AND_RESET(map3);
 }
 
 static
@@ -920,13 +920,13 @@ void test_copy(void)
 			    map_copy_obj),
 		"source and destination value objects have the same content");
 
-	BT_OBJECT_PUT_REF_AND_RESET(map_copy_obj);
-	BT_OBJECT_PUT_REF_AND_RESET(bool_obj);
-	BT_OBJECT_PUT_REF_AND_RESET(integer_obj);
-	BT_OBJECT_PUT_REF_AND_RESET(real_obj);
-	BT_OBJECT_PUT_REF_AND_RESET(string_obj);
-	BT_OBJECT_PUT_REF_AND_RESET(array_obj);
-	BT_OBJECT_PUT_REF_AND_RESET(map_obj);
+	BT_VALUE_PUT_REF_AND_RESET(map_copy_obj);
+	BT_VALUE_PUT_REF_AND_RESET(bool_obj);
+	BT_VALUE_PUT_REF_AND_RESET(integer_obj);
+	BT_VALUE_PUT_REF_AND_RESET(real_obj);
+	BT_VALUE_PUT_REF_AND_RESET(string_obj);
+	BT_VALUE_PUT_REF_AND_RESET(array_obj);
+	BT_VALUE_PUT_REF_AND_RESET(map_obj);
 }
 
 static
@@ -997,10 +997,10 @@ void test_extend(void)
 				extended_map, "project"),
 		"bt_value_map_extend() picks the appropriate element (project)");
 
-	BT_OBJECT_PUT_REF_AND_RESET(array);
-	BT_OBJECT_PUT_REF_AND_RESET(base_map);
-	BT_OBJECT_PUT_REF_AND_RESET(extension_map);
-	BT_OBJECT_PUT_REF_AND_RESET(extended_map);
+	BT_VALUE_PUT_REF_AND_RESET(array);
+	BT_VALUE_PUT_REF_AND_RESET(base_map);
+	BT_VALUE_PUT_REF_AND_RESET(extension_map);
+	BT_VALUE_PUT_REF_AND_RESET(extended_map);
 }
 
 int main(void)

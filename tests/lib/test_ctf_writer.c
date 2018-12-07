@@ -27,7 +27,6 @@
 #include <babeltrace/ctf-writer/event-fields.h>
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/trace.h>
-#include <babeltrace/object.h>
 #include <babeltrace/ctf/events.h>
 #include <babeltrace/value.h>
 #include <glib.h>
@@ -193,7 +192,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(returned_type == int_64_type, "bt_ctf_field_type_enumeration_get_container_field_type returns the right type");
 	ok(!bt_ctf_field_type_enumeration_create(enum_type),
 		"bt_ctf_field_enumeration_type_create rejects non-integer container field types");
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(returned_type);
 
 	bt_ctf_field_type_set_alignment(float_type, 32);
 	ok(bt_ctf_field_type_get_alignment(float_type) == 32,
@@ -316,7 +315,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	returned_type = bt_ctf_event_class_get_context_field_type(simple_event_class);
 	ok(returned_type == event_context_type,
 		"bt_ctf_event_class_get_context_field_type returns the appropriate type");
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(returned_type);
 
 	ok(!bt_ctf_stream_class_add_event_class(stream_class, simple_event_class),
 		"Adding simple event class to stream class");
@@ -326,8 +325,8 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	 * of simple_event_class, so we retrieve the new ones to create
 	 * the appropriate fields.
 	 */
-	BT_OBJECT_PUT_REF_AND_RESET(event_context_type);
-	BT_OBJECT_PUT_REF_AND_RESET(event_payload_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(event_context_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(event_payload_type);
 	event_payload_type = bt_ctf_event_class_get_payload_field_type(
 		simple_event_class);
 	BT_ASSERT(event_payload_type);
@@ -352,14 +351,14 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ret_event_class = bt_ctf_stream_class_get_event_class_by_index(stream_class, 0);
 	ok(ret_event_class == simple_event_class,
 		"bt_ctf_stream_class_get_event_class returns the correct event class");
-	bt_object_put_ref(ret_event_class);
+	bt_ctf_object_put_ref(ret_event_class);
 	ok(!bt_ctf_stream_class_get_event_class_by_id(stream_class, 2),
 		"bt_ctf_stream_class_get_event_class_by_id returns NULL when the requested ID doesn't exist");
 	ret_event_class =
 		bt_ctf_stream_class_get_event_class_by_id(stream_class, 13);
 	ok(ret_event_class == simple_event_class,
 		"bt_ctf_stream_class_get_event_class_by_id returns a correct event class");
-	bt_object_put_ref(ret_event_class);
+	bt_ctf_object_put_ref(ret_event_class);
 
 	simple_event = bt_ctf_event_create(simple_event_class);
 	ok(simple_event,
@@ -386,7 +385,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"Set signed enumeration container value");
 	ret = bt_ctf_event_set_payload(simple_event, "enum_field", enum_field);
 	BT_ASSERT(!ret);
-	BT_OBJECT_PUT_REF_AND_RESET(iter);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(iter);
 
 	enum_field_unsigned = bt_ctf_field_create(ep_enum_field_unsigned_type);
 	BT_ASSERT(enum_field_unsigned);
@@ -434,7 +433,7 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 		"packet_size");
 	ok(packet_context_field,
 		"Packet context contains the default packet_size field.");
-	bt_object_put_ref(packet_context_field);
+	bt_ctf_object_put_ref(packet_context_field);
 	packet_context_field = bt_ctf_field_structure_get_field_by_name(packet_context,
 		"custom_packet_context_field");
 	ok(bt_ctf_field_integer_unsigned_set_value(packet_context_field, 8) == 0,
@@ -446,32 +445,32 @@ void append_simple_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_stream_flush(stream) == 0,
 		"Flush trace stream with one event");
 
-	bt_object_put_ref(simple_event_class);
-	bt_object_put_ref(simple_event);
-	bt_object_put_ref(uint_12_type);
-	bt_object_put_ref(int_64_type);
-	bt_object_put_ref(float_type);
-	bt_object_put_ref(enum_type);
-	bt_object_put_ref(enum_type_unsigned);
-	bt_object_put_ref(returned_type);
-	bt_object_put_ref(event_context_type);
-	bt_object_put_ref(integer_field);
-	bt_object_put_ref(float_field);
-	bt_object_put_ref(enum_field);
-	bt_object_put_ref(enum_field_unsigned);
-	bt_object_put_ref(enum_container_field);
-	bt_object_put_ref(enum_container_field_unsigned);
-	bt_object_put_ref(packet_context);
-	bt_object_put_ref(packet_context_field);
-	bt_object_put_ref(stream_event_context);
-	bt_object_put_ref(stream_event_context_field);
-	bt_object_put_ref(event_context);
-	bt_object_put_ref(event_context_field);
-	bt_object_put_ref(event_payload_type);
-	bt_object_put_ref(ep_integer_field_type);
-	bt_object_put_ref(ep_enum_field_type);
-	bt_object_put_ref(ep_enum_field_unsigned_type);
-	bt_object_put_ref(iter);
+	bt_ctf_object_put_ref(simple_event_class);
+	bt_ctf_object_put_ref(simple_event);
+	bt_ctf_object_put_ref(uint_12_type);
+	bt_ctf_object_put_ref(int_64_type);
+	bt_ctf_object_put_ref(float_type);
+	bt_ctf_object_put_ref(enum_type);
+	bt_ctf_object_put_ref(enum_type_unsigned);
+	bt_ctf_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(event_context_type);
+	bt_ctf_object_put_ref(integer_field);
+	bt_ctf_object_put_ref(float_field);
+	bt_ctf_object_put_ref(enum_field);
+	bt_ctf_object_put_ref(enum_field_unsigned);
+	bt_ctf_object_put_ref(enum_container_field);
+	bt_ctf_object_put_ref(enum_container_field_unsigned);
+	bt_ctf_object_put_ref(packet_context);
+	bt_ctf_object_put_ref(packet_context_field);
+	bt_ctf_object_put_ref(stream_event_context);
+	bt_ctf_object_put_ref(stream_event_context_field);
+	bt_ctf_object_put_ref(event_context);
+	bt_ctf_object_put_ref(event_context_field);
+	bt_ctf_object_put_ref(event_payload_type);
+	bt_ctf_object_put_ref(ep_integer_field_type);
+	bt_ctf_object_put_ref(ep_enum_field_type);
+	bt_ctf_object_put_ref(ep_enum_field_unsigned_type);
+	bt_ctf_object_put_ref(iter);
 }
 
 static
@@ -544,7 +543,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		array_type);
 	ok(ret_field_type == int_16_type,
 		"bt_ctf_field_type_array_get_element_field_type returns the correct type");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	ok(bt_ctf_field_type_array_get_length(array_type) == ARRAY_TEST_LENGTH,
 		"bt_ctf_field_type_array_get_length returns the correct length");
@@ -577,7 +576,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ret_field_type = bt_ctf_field_type_variant_get_tag_field_type(variant_type);
 	ok(ret_field_type == enum_variant_type,
 		"bt_ctf_field_type_variant_get_tag_field_type returns a correct tag type");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	ret_string = bt_ctf_field_type_variant_get_tag_name(variant_type);
 	ok(ret_string ? !strcmp(ret_string, "variant_selector") : 0,
@@ -586,14 +585,14 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		variant_type, "INT16_TYPE");
 	ok(ret_field_type == int_16_type,
 		"bt_ctf_field_type_variant_get_field_type_by_name returns a correct field type");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	ok(bt_ctf_field_type_variant_get_field_count(variant_type) == 3,
 		"bt_ctf_field_type_variant_get_field_count returns the correct count");
 
 	ok(bt_ctf_field_type_variant_get_field_by_index(variant_type, NULL, &ret_field_type, 0) == 0,
 		"bt_ctf_field_type_variant_get_field handles a NULL field name correctly");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 	ok(bt_ctf_field_type_variant_get_field_by_index(variant_type, &ret_string, NULL, 0) == 0,
 		"bt_ctf_field_type_variant_get_field handles a NULL field type correctly");
 	ok(bt_ctf_field_type_variant_get_field_by_index(variant_type, &ret_string, &ret_field_type, 1) == 0,
@@ -602,7 +601,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_type_variant_get_field returns a correct field name");
 	ok(ret_field_type == int_16_type,
 		"bt_ctf_field_type_variant_get_field returns a correct field type");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	ok(!bt_ctf_field_type_structure_add_field(complex_structure_type,
 		enum_variant_type, "variant_selector"),
@@ -679,13 +678,13 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ret_stream_class = bt_ctf_event_class_get_stream_class(event_class);
 	ok(ret_stream_class == stream_class,
 		"bt_ctf_event_class_get_stream_class returns the correct stream class");
-	bt_object_put_ref(ret_stream_class);
+	bt_ctf_object_put_ref(ret_stream_class);
 
 	ok(bt_ctf_event_class_get_field_by_name(event_class, "truie") == NULL,
 		"bt_ctf_event_class_get_field_by_name handles an invalid field name correctly");
 	ret_field_type = bt_ctf_event_class_get_field_by_name(event_class,
 		"complex_structure");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	event = bt_ctf_event_create(event_class);
 	ok(event, "Instanciate a complex event");
@@ -693,7 +692,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ret_event_class = bt_ctf_event_get_class(event);
 	ok(ret_event_class == event_class,
 		"bt_ctf_event_get_class returns the correct event class");
-	bt_object_put_ref(ret_event_class);
+	bt_ctf_object_put_ref(ret_event_class);
 
 	uint_35_field = bt_ctf_event_get_payload(event, "uint_35");
 	ok(uint_35_field, "Use bt_ctf_event_get_payload to get a field instance ");
@@ -703,7 +702,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_integer_unsigned_get_value succeeds after setting a value");
 	ok(ret_unsigned_int == 0x0DDF00D,
 		"bt_ctf_field_integer_unsigned_get_value returns the correct value");
-	bt_object_put_ref(uint_35_field);
+	bt_ctf_object_put_ref(uint_35_field);
 
 	int_16_field = bt_ctf_event_get_payload(event, "int_16");
 	bt_ctf_field_integer_signed_set_value(int_16_field, -12345);
@@ -712,7 +711,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		"bt_ctf_field_integer_signed_get_value succeeds after setting a value");
 	ok(ret_signed_int == -12345,
 		"bt_ctf_field_integer_signed_get_value returns the correct value");
-	bt_object_put_ref(int_16_field);
+	bt_ctf_object_put_ref(int_16_field);
 
 	complex_structure_field = bt_ctf_event_get_payload(event,
 		"complex_structure");
@@ -720,8 +719,8 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	inner_structure_field = bt_ctf_field_structure_get_field_by_index(
 		complex_structure_field, 3);
 	ret_field_type = bt_ctf_field_get_type(inner_structure_field);
-	bt_object_put_ref(inner_structure_field);
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(inner_structure_field);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	inner_structure_field = bt_ctf_field_structure_get_field_by_name(
 		complex_structure_field, "inner_structure");
@@ -744,7 +743,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	int_16_field = bt_ctf_field_variant_get_field(variant_field,
 		enum_variant_field);
 	bt_ctf_field_integer_signed_set_value(int_16_field, -200);
-	bt_object_put_ref(int_16_field);
+	bt_ctf_object_put_ref(int_16_field);
 	bt_ctf_field_string_set_value(a_string_field,
 		test_string_1);
 	ok(!bt_ctf_field_string_append(a_string_field, test_string_2),
@@ -775,23 +774,23 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 		int_16_field = bt_ctf_field_sequence_get_field(
 			a_sequence_field, i);
 		bt_ctf_field_integer_signed_set_value(int_16_field, 4 - i);
-		bt_object_put_ref(int_16_field);
+		bt_ctf_object_put_ref(int_16_field);
 	}
 
 	for (i = 0; i < ARRAY_TEST_LENGTH; i++) {
 		int_16_field = bt_ctf_field_array_get_field(
 			an_array_field, i);
 		bt_ctf_field_integer_signed_set_value(int_16_field, i);
-		bt_object_put_ref(int_16_field);
+		bt_ctf_object_put_ref(int_16_field);
 	}
 
 	stream_event_ctx_field = bt_ctf_event_get_stream_event_context(event);
 	BT_ASSERT(stream_event_ctx_field);
 	stream_event_ctx_int_field = bt_ctf_field_structure_get_field_by_name(
 		stream_event_ctx_field, "common_event_context");
-	BT_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_field);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_field);
 	bt_ctf_field_integer_unsigned_set_value(stream_event_ctx_int_field, 17);
-	BT_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_int_field);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(stream_event_ctx_int_field);
 
 	bt_ctf_clock_set_time(clock, ++current_time);
 	ok(bt_ctf_stream_append_event(stream, event) == 0,
@@ -809,30 +808,30 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	ok(bt_ctf_stream_flush(stream) == 0,
 		"Flush a stream containing a complex event");
 
-	bt_object_put_ref(uint_35_field);
-	bt_object_put_ref(a_string_field);
-	bt_object_put_ref(inner_structure_field);
-	bt_object_put_ref(complex_structure_field);
-	bt_object_put_ref(a_sequence_field);
-	bt_object_put_ref(an_array_field);
-	bt_object_put_ref(enum_variant_field);
-	bt_object_put_ref(enum_container_field);
-	bt_object_put_ref(variant_field);
-	bt_object_put_ref(packet_context_field);
-	bt_object_put_ref(packet_context);
-	bt_object_put_ref(uint_35_type);
-	bt_object_put_ref(int_16_type);
-	bt_object_put_ref(string_type);
-	bt_object_put_ref(sequence_type);
-	bt_object_put_ref(array_type);
-	bt_object_put_ref(inner_structure_type);
-	bt_object_put_ref(complex_structure_type);
-	bt_object_put_ref(uint_3_type);
-	bt_object_put_ref(enum_variant_type);
-	bt_object_put_ref(variant_type);
-	bt_object_put_ref(ret_field_type);
-	bt_object_put_ref(event_class);
-	bt_object_put_ref(event);
+	bt_ctf_object_put_ref(uint_35_field);
+	bt_ctf_object_put_ref(a_string_field);
+	bt_ctf_object_put_ref(inner_structure_field);
+	bt_ctf_object_put_ref(complex_structure_field);
+	bt_ctf_object_put_ref(a_sequence_field);
+	bt_ctf_object_put_ref(an_array_field);
+	bt_ctf_object_put_ref(enum_variant_field);
+	bt_ctf_object_put_ref(enum_container_field);
+	bt_ctf_object_put_ref(variant_field);
+	bt_ctf_object_put_ref(packet_context_field);
+	bt_ctf_object_put_ref(packet_context);
+	bt_ctf_object_put_ref(uint_35_type);
+	bt_ctf_object_put_ref(int_16_type);
+	bt_ctf_object_put_ref(string_type);
+	bt_ctf_object_put_ref(sequence_type);
+	bt_ctf_object_put_ref(array_type);
+	bt_ctf_object_put_ref(inner_structure_type);
+	bt_ctf_object_put_ref(complex_structure_type);
+	bt_ctf_object_put_ref(uint_3_type);
+	bt_ctf_object_put_ref(enum_variant_type);
+	bt_ctf_object_put_ref(variant_type);
+	bt_ctf_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(event_class);
+	bt_ctf_object_put_ref(event);
 }
 
 static
@@ -939,7 +938,7 @@ void type_field_tests()
 		sequence_type);
 	ok(returned_type == int_16_type,
 		"bt_ctf_field_type_sequence_get_element_field_type returns the correct type");
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(returned_type);
 
 	string_type = bt_ctf_field_type_string_create();
 	ok(string_type, "Create a string type");
@@ -975,7 +974,7 @@ void type_field_tests()
 	ok(bt_ctf_field_type_structure_get_field(structure_seq_type,
 		NULL, &returned_type, 1) == 0,
 		"bt_ctf_field_type_structure_get_field handles a NULL name correctly");
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(returned_type);
 	ok(bt_ctf_field_type_structure_get_field(structure_seq_type,
 		&ret_string, NULL, 1) == 0,
 		"bt_ctf_field_type_structure_get_field handles a NULL return type correctly");
@@ -986,13 +985,13 @@ void type_field_tests()
 		"bt_ctf_field_type_structure_get_field returns a correct field name");
 	ok(returned_type == sequence_type,
 		"bt_ctf_field_type_structure_get_field returns a correct field type");
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(returned_type);
 
 	returned_type = bt_ctf_field_type_structure_get_field_type_by_name(
 		structure_seq_type, "a_sequence");
 	ok(returned_type == sequence_type,
 		"bt_ctf_field_type_structure_get_field_type_by_name returns the correct field type");
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(returned_type);
 
 	composite_structure_type = bt_ctf_field_type_structure_create();
 	ok(bt_ctf_field_type_structure_add_field(composite_structure_type,
@@ -1006,7 +1005,7 @@ void type_field_tests()
 		structure_seq_type, "a_sequence");
 	ok(returned_type == sequence_type,
 		"bt_ctf_field_type_structure_get_field_type_by_name returns a correct type");
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(returned_type);
 
 	int_16 = bt_ctf_field_create(int_16_type);
 	ok(int_16, "Instanciate a signed 16-bit integer");
@@ -1045,18 +1044,18 @@ void type_field_tests()
 	ok(enumeration_type,
 		"Create an enumeration type with an unsigned 12-bit integer as container");
 
-	bt_object_put_ref(string);
-	bt_object_put_ref(uint_12);
-	bt_object_put_ref(int_16);
-	bt_object_put_ref(composite_structure_type);
-	bt_object_put_ref(structure_seq_type);
-	bt_object_put_ref(string_type);
-	bt_object_put_ref(sequence_type);
-	bt_object_put_ref(uint_8_type);
-	bt_object_put_ref(int_16_type);
-	bt_object_put_ref(uint_12_type);
-	bt_object_put_ref(enumeration_type);
-	bt_object_put_ref(returned_type);
+	bt_ctf_object_put_ref(string);
+	bt_ctf_object_put_ref(uint_12);
+	bt_ctf_object_put_ref(int_16);
+	bt_ctf_object_put_ref(composite_structure_type);
+	bt_ctf_object_put_ref(structure_seq_type);
+	bt_ctf_object_put_ref(string_type);
+	bt_ctf_object_put_ref(sequence_type);
+	bt_ctf_object_put_ref(uint_8_type);
+	bt_ctf_object_put_ref(int_16_type);
+	bt_ctf_object_put_ref(uint_12_type);
+	bt_ctf_object_put_ref(enumeration_type);
+	bt_ctf_object_put_ref(returned_type);
 }
 
 static
@@ -1114,9 +1113,9 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 	event = bt_ctf_event_create(event_class);
 	ret_field = bt_ctf_event_get_payload(event, 0);
 	ret_field_type = bt_ctf_field_get_type(ret_field);
-	bt_object_put_ref(ret_field_type);
-	bt_object_put_ref(ret_field);
-	bt_object_put_ref(event);
+	bt_ctf_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field);
+	bt_ctf_object_put_ref(event);
 
 	for (i = 0; i < packet_resize_test_length; i++) {
 		event = bt_ctf_event_create(event_class);
@@ -1129,24 +1128,24 @@ void packet_resize_test(struct bt_ctf_stream_class *stream_class,
 		ret |= bt_ctf_field_integer_unsigned_set_value(integer, i);
 		ret |= bt_ctf_event_set_payload(event, "field_1",
 			integer);
-		bt_object_put_ref(integer);
+		bt_ctf_object_put_ref(integer);
 		ret |= bt_ctf_field_string_set_value(string, "This is a test");
 		ret |= bt_ctf_event_set_payload(event, "a_string",
 			string);
-		bt_object_put_ref(string);
+		bt_ctf_object_put_ref(string);
 
 		/* Populate stream event context */
 		stream_event_context =
 			bt_ctf_event_get_stream_event_context(event);
 		integer = bt_ctf_field_structure_get_field_by_name(stream_event_context,
 			"common_event_context");
-		BT_OBJECT_PUT_REF_AND_RESET(stream_event_context);
+		BT_CTF_OBJECT_PUT_REF_AND_RESET(stream_event_context);
 		ret |= bt_ctf_field_integer_unsigned_set_value(integer,
 			i % 42);
-		bt_object_put_ref(integer);
+		bt_ctf_object_put_ref(integer);
 
 		ret |= bt_ctf_stream_append_event(stream, event);
-		bt_object_put_ref(event);
+		bt_ctf_object_put_ref(event);
 
 		if (ret) {
 			break;
@@ -1179,15 +1178,15 @@ end:
 	ret = bt_ctf_stream_get_discarded_events_count(stream, &ret_uint64);
 	ok(ret == 0 && ret_uint64 == 1000,
 		"bt_ctf_stream_get_discarded_events_count returns a correct number of discarded events after a flush");
-	bt_object_put_ref(integer_type);
-	bt_object_put_ref(string_type);
-	bt_object_put_ref(packet_context);
-	bt_object_put_ref(packet_context_field);
-	bt_object_put_ref(stream_event_context);
-	bt_object_put_ref(event_class);
-	bt_object_put_ref(ep_field_1_type);
-	bt_object_put_ref(ep_a_string_type);
-	bt_object_put_ref(ep_type);
+	bt_ctf_object_put_ref(integer_type);
+	bt_ctf_object_put_ref(string_type);
+	bt_ctf_object_put_ref(packet_context);
+	bt_ctf_object_put_ref(packet_context_field);
+	bt_ctf_object_put_ref(stream_event_context);
+	bt_ctf_object_put_ref(event_class);
+	bt_ctf_object_put_ref(ep_field_1_type);
+	bt_ctf_object_put_ref(ep_a_string_type);
+	bt_ctf_object_put_ref(ep_type);
 }
 
 static
@@ -1233,10 +1232,10 @@ void test_empty_stream(struct bt_ctf_writer *writer)
 end:
 	ok(ret == 0,
 		"Created a stream class with default attributes and an empty stream");
-	bt_object_put_ref(trace);
-	bt_object_put_ref(ret_trace);
-	bt_object_put_ref(stream);
-	bt_object_put_ref(stream_class);
+	bt_ctf_object_put_ref(trace);
+	bt_ctf_object_put_ref(ret_trace);
+	bt_ctf_object_put_ref(stream);
+	bt_ctf_object_put_ref(stream_class);
 }
 
 static
@@ -1348,7 +1347,7 @@ void test_custom_event_header_stream(struct bt_ctf_writer *writer,
 		fail("Failed to set custom_trace_packet_header_field value");
 		goto end;
 	}
-	bt_object_put_ref(integer);
+	bt_ctf_object_put_ref(integer);
 
 	event = bt_ctf_event_create(event_class);
 	if (!event) {
@@ -1387,7 +1386,7 @@ void test_custom_event_header_stream(struct bt_ctf_writer *writer,
 		fail("Failed to set sequence length");
 		goto end;
 	}
-	bt_object_put_ref(integer);
+	bt_ctf_object_put_ref(integer);
 
 	for (i = 0; i < 2; i++) {
 		integer = bt_ctf_field_sequence_get_field(sequence, i);
@@ -1402,7 +1401,7 @@ void test_custom_event_header_stream(struct bt_ctf_writer *writer,
 			goto end;
 		}
 
-		bt_object_put_ref(integer);
+		bt_ctf_object_put_ref(integer);
 		integer = NULL;
 	}
 
@@ -1417,17 +1416,17 @@ void test_custom_event_header_stream(struct bt_ctf_writer *writer,
 		fail("Failed to flush custom_event_header stream");
 	}
 end:
-	bt_object_put_ref(stream);
-	bt_object_put_ref(stream_class);
-	bt_object_put_ref(event_class);
-	bt_object_put_ref(event);
-	bt_object_put_ref(integer);
-	bt_object_put_ref(sequence);
-	bt_object_put_ref(event_header);
-	bt_object_put_ref(packet_header);
-	bt_object_put_ref(sequence_type);
-	bt_object_put_ref(integer_type);
-	bt_object_put_ref(event_header_type);
+	bt_ctf_object_put_ref(stream);
+	bt_ctf_object_put_ref(stream_class);
+	bt_ctf_object_put_ref(event_class);
+	bt_ctf_object_put_ref(event);
+	bt_ctf_object_put_ref(integer);
+	bt_ctf_object_put_ref(sequence);
+	bt_ctf_object_put_ref(event_header);
+	bt_ctf_object_put_ref(packet_header);
+	bt_ctf_object_put_ref(sequence_type);
+	bt_ctf_object_put_ref(integer_type);
+	bt_ctf_object_put_ref(event_header_type);
 }
 
 static
@@ -1524,14 +1523,14 @@ void test_instanciate_event_before_stream(struct bt_ctf_writer *writer,
 end:
 	ok(ret == 0,
 		"Create an event before instanciating its associated stream");
-	bt_object_put_ref(stream);
-	bt_object_put_ref(ret_stream);
-	bt_object_put_ref(stream_class);
-	bt_object_put_ref(event_class);
-	bt_object_put_ref(event);
-	bt_object_put_ref(integer_type);
-	bt_object_put_ref(integer);
-	bt_object_put_ref(payload_field);
+	bt_ctf_object_put_ref(stream);
+	bt_ctf_object_put_ref(ret_stream);
+	bt_ctf_object_put_ref(stream_class);
+	bt_ctf_object_put_ref(event_class);
+	bt_ctf_object_put_ref(event);
+	bt_ctf_object_put_ref(integer_type);
+	bt_ctf_object_put_ref(integer);
+	bt_ctf_object_put_ref(payload_field);
 }
 
 static
@@ -1544,7 +1543,7 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 	BT_ASSERT(event_class);
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class) == 0,
 		"two event classes with the same name may cohabit within the same stream class");
-	bt_object_put_ref(event_class);
+	bt_ctf_object_put_ref(event_class);
 
 	event_class = bt_ctf_event_class_create("different name, ok");
 	BT_ASSERT(event_class);
@@ -1552,7 +1551,7 @@ void append_existing_event_class(struct bt_ctf_stream_class *stream_class)
 	BT_ASSERT(ret == 0);
 	ok(bt_ctf_stream_class_add_event_class(stream_class, event_class),
 		"two event classes with the same ID cannot cohabit within the same stream class");
-	bt_object_put_ref(event_class);
+	bt_ctf_object_put_ref(event_class);
 }
 
 static
@@ -1572,7 +1571,7 @@ void test_clock_utils(void)
 	ret = bt_ctf_clock_set_frequency(clock, 1534);
 	BT_ASSERT(!ret);
 
-	BT_OBJECT_PUT_REF_AND_RESET(clock);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(clock);
 }
 
 int main(int argc, char **argv)
@@ -1809,7 +1808,7 @@ int main(int argc, char **argv)
 	ret_clock = bt_ctf_stream_class_get_clock(stream_class);
 	ok(ret_clock == clock,
 		"bt_ctf_stream_class_get_clock returns a correct clock");
-	bt_object_put_ref(ret_clock);
+	bt_ctf_object_put_ref(ret_clock);
 
 	/* Test the event fields and event types APIs */
 	type_field_tests();
@@ -1838,7 +1837,7 @@ int main(int argc, char **argv)
 	ok(bt_ctf_field_type_get_type_id(
 		event_header_field_type) == BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Default event header \"id\" field is an integer");
-	bt_object_put_ref(event_header_field_type);
+	bt_ctf_object_put_ref(event_header_field_type);
 	event_header_field_type =
 		bt_ctf_field_type_structure_get_field_type_by_name(
 		ret_field_type, "timestamp");
@@ -1847,8 +1846,8 @@ int main(int argc, char **argv)
 	ok(bt_ctf_field_type_get_type_id(
 		event_header_field_type) == BT_CTF_FIELD_TYPE_ID_INTEGER,
 		"Default event header \"timestamp\" field is an integer");
-	bt_object_put_ref(event_header_field_type);
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(event_header_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	/* Add a custom trace packet header field */
 	packet_header_type = bt_ctf_trace_get_packet_header_field_type(trace);
@@ -1859,15 +1858,15 @@ int main(int argc, char **argv)
 	ret_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
 		packet_header_type, "magic");
 	ok(ret_field_type, "Default packet header type contains a \"magic\" field");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 	ret_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
 		packet_header_type, "uuid");
 	ok(ret_field_type, "Default packet header type contains a \"uuid\" field");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 	ret_field_type = bt_ctf_field_type_structure_get_field_type_by_name(
 		packet_header_type, "stream_id");
 	ok(ret_field_type, "Default packet header type contains a \"stream_id\" field");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 	packet_header_field_type = bt_ctf_field_type_integer_create(22);
 	ok(!bt_ctf_field_type_structure_add_field(packet_header_type,
@@ -1922,7 +1921,7 @@ int main(int argc, char **argv)
 		stream_class);
 	ok(ret_field_type == stream_event_context_type,
 		"bt_ctf_stream_class_get_event_context_type returns the correct field type.");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 
 
 	/* Instantiate a stream and append events */
@@ -1938,7 +1937,7 @@ int main(int argc, char **argv)
 	stream = bt_ctf_trace_get_stream_by_index(trace, 0);
 	ok(stream == stream1,
 		"bt_ctf_trace_get_stream_by_index() succeeds and returns the correct value");
-	BT_OBJECT_PUT_REF_AND_RESET(stream);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(stream);
 
 	/*
 	 * Creating a stream through a writer adds the given stream
@@ -1957,9 +1956,9 @@ int main(int argc, char **argv)
 	 * event context types were copied for the resolving
 	 * process
 	 */
-	BT_OBJECT_PUT_REF_AND_RESET(packet_header_type);
-	BT_OBJECT_PUT_REF_AND_RESET(packet_context_type);
-	BT_OBJECT_PUT_REF_AND_RESET(stream_event_context_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(packet_header_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(packet_context_type);
+	BT_CTF_OBJECT_PUT_REF_AND_RESET(stream_event_context_type);
 	packet_header_type = bt_ctf_trace_get_packet_header_field_type(trace);
 	BT_ASSERT(packet_header_type);
 	packet_context_type =
@@ -2009,7 +2008,7 @@ int main(int argc, char **argv)
 	ret_field_type = bt_ctf_field_get_type(packet_header);
 	ok(ret_field_type == packet_header_type,
 		"Stream returns a packet header of the appropriate type");
-	bt_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(ret_field_type);
 	packet_header_field = bt_ctf_field_structure_get_field_by_name(packet_header,
 		"custom_trace_packet_header_field");
 	ok(packet_header_field,
@@ -2050,22 +2049,22 @@ int main(int argc, char **argv)
 
 	bt_ctf_writer_flush_metadata(writer);
 
-	bt_object_put_ref(clock);
-	bt_object_put_ref(ret_stream_class);
-	bt_object_put_ref(writer);
-	bt_object_put_ref(stream1);
-	bt_object_put_ref(packet_context_type);
-	bt_object_put_ref(packet_context_field_type);
-	bt_object_put_ref(integer_type);
-	bt_object_put_ref(stream_event_context_type);
-	bt_object_put_ref(ret_field_type);
-	bt_object_put_ref(packet_header_type);
-	bt_object_put_ref(packet_header_field_type);
-	bt_object_put_ref(packet_header);
-	bt_object_put_ref(packet_header_field);
-	bt_object_put_ref(trace);
+	bt_ctf_object_put_ref(clock);
+	bt_ctf_object_put_ref(ret_stream_class);
+	bt_ctf_object_put_ref(writer);
+	bt_ctf_object_put_ref(stream1);
+	bt_ctf_object_put_ref(packet_context_type);
+	bt_ctf_object_put_ref(packet_context_field_type);
+	bt_ctf_object_put_ref(integer_type);
+	bt_ctf_object_put_ref(stream_event_context_type);
+	bt_ctf_object_put_ref(ret_field_type);
+	bt_ctf_object_put_ref(packet_header_type);
+	bt_ctf_object_put_ref(packet_header_field_type);
+	bt_ctf_object_put_ref(packet_header);
+	bt_ctf_object_put_ref(packet_header_field);
+	bt_ctf_object_put_ref(trace);
 	free(metadata_string);
-	bt_object_put_ref(stream_class);
+	bt_ctf_object_put_ref(stream_class);
 
 	validate_trace(argv[1], trace_path);
 

@@ -107,10 +107,10 @@ struct bt_field_class *create_event_payload_fc(void)
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(root_fc);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(root_fc);
 
 end:
-	bt_object_put_ref(fc);
+	bt_field_class_put_ref(fc);
 	return root_fc;
 }
 
@@ -179,7 +179,7 @@ error:
 	ret = -1;
 
 end:
-	bt_object_put_ref(fc);
+	bt_field_class_put_ref(fc);
 	return ret;
 }
 
@@ -348,12 +348,12 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 		g_string_free(dmesg_comp->params.path, TRUE);
 	}
 
-	bt_object_put_ref(dmesg_comp->packet);
-	bt_object_put_ref(dmesg_comp->trace);
-	bt_object_put_ref(dmesg_comp->stream_class);
-	bt_object_put_ref(dmesg_comp->event_class);
-	bt_object_put_ref(dmesg_comp->stream);
-	bt_object_put_ref(dmesg_comp->clock_class);
+	bt_packet_put_ref(dmesg_comp->packet);
+	bt_trace_put_ref(dmesg_comp->trace);
+	bt_stream_class_put_ref(dmesg_comp->stream_class);
+	bt_event_class_put_ref(dmesg_comp->event_class);
+	bt_stream_put_ref(dmesg_comp->stream);
+	bt_clock_class_put_ref(dmesg_comp->clock_class);
 	g_free(dmesg_comp);
 }
 
@@ -524,7 +524,7 @@ skip_ts:
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(notif);
+	BT_NOTIFICATION_PUT_REF_AND_RESET(notif);
 
 end:
 	return notif;
@@ -604,7 +604,7 @@ struct bt_notification *create_notif_from_line(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(notif);
+	BT_NOTIFICATION_PUT_REF_AND_RESET(notif);
 
 end:
 	return notif;
@@ -623,7 +623,7 @@ void destroy_dmesg_notif_iter(struct dmesg_notif_iter *dmesg_notif_iter)
 		}
 	}
 
-	bt_object_put_ref(dmesg_notif_iter->tmp_event_notif);
+	bt_notification_put_ref(dmesg_notif_iter->tmp_event_notif);
 	free(dmesg_notif_iter->linebuf);
 	g_free(dmesg_notif_iter);
 }

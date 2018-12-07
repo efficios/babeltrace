@@ -64,6 +64,25 @@ extern const struct bt_port_output *
 bt_component_filter_borrow_output_port_by_index_const(
 		const struct bt_component_filter *component, uint64_t index);
 
+extern void bt_component_filter_get_ref(
+		const struct bt_component_filter *component_filter);
+
+extern void bt_component_filter_put_ref(
+		const struct bt_component_filter *component_filter);
+
+#define BT_COMPONENT_FILTER_PUT_REF_AND_RESET(_var)		\
+	do {							\
+		bt_component_filter_put_ref(_var);		\
+		(_var) = NULL;					\
+	} while (0)
+
+#define BT_COMPONENT_FILTER_MOVE_REF(_var_dst, _var_src)	\
+	do {							\
+		bt_component_filter_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);			\
+		(_var_src) = NULL;				\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

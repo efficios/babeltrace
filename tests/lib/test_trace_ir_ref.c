@@ -89,9 +89,9 @@ static struct bt_field_class *create_integer_struct(void)
 	ret = bt_field_class_structure_append_member(structure,
 		"payload_32", ui32);
 	BT_ASSERT(ret == 0);
-	BT_OBJECT_PUT_REF_AND_RESET(ui8);
-	BT_OBJECT_PUT_REF_AND_RESET(ui16);
-	BT_OBJECT_PUT_REF_AND_RESET(ui32);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(ui8);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(ui16);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(ui32);
 	return structure;
 }
 
@@ -146,7 +146,7 @@ static struct bt_event_class *create_simple_event(
 	BT_ASSERT(payload);
 	ret = bt_event_class_set_payload_field_class(event, payload);
 	BT_ASSERT(ret == 0);
-	BT_OBJECT_PUT_REF_AND_RESET(payload);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(payload);
 	return event;
 }
 
@@ -182,8 +182,8 @@ static struct bt_event_class *create_complex_event(
 	BT_ASSERT(ret == 0);
 	ret = bt_event_class_set_payload_field_class(event, outer);
 	BT_ASSERT(ret == 0);
-	BT_OBJECT_PUT_REF_AND_RESET(inner);
-	BT_OBJECT_PUT_REF_AND_RESET(outer);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(inner);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(outer);
 	return event;
 }
 
@@ -203,14 +203,14 @@ static void set_stream_class_field_classes(
 	ret = bt_field_class_structure_append_member(packet_context_type,
 		"packet_size", fc);
 	BT_ASSERT(ret == 0);
-	bt_object_put_ref(fc);
+	bt_field_class_put_ref(fc);
 	fc = bt_field_class_unsigned_integer_create();
 	BT_ASSERT(fc);
 	bt_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_field_class_structure_append_member(packet_context_type,
 		"content_size", fc);
 	BT_ASSERT(ret == 0);
-	bt_object_put_ref(fc);
+	bt_field_class_put_ref(fc);
 	event_header_type = bt_field_class_structure_create();
 	BT_ASSERT(event_header_type);
 	fc = bt_field_class_unsigned_integer_create();
@@ -219,15 +219,15 @@ static void set_stream_class_field_classes(
 	ret = bt_field_class_structure_append_member(event_header_type,
 		"id", fc);
 	BT_ASSERT(ret == 0);
-	bt_object_put_ref(fc);
+	bt_field_class_put_ref(fc);
 	ret = bt_stream_class_set_packet_context_field_class(
 		stream_class, packet_context_type);
 	BT_ASSERT(ret == 0);
 	ret = bt_stream_class_set_event_header_field_class(
 		stream_class, event_header_type);
 	BT_ASSERT(ret == 0);
-	bt_object_put_ref(packet_context_type);
-	bt_object_put_ref(event_header_type);
+	bt_field_class_put_ref(packet_context_type);
+	bt_field_class_put_ref(event_header_type);
 }
 
 static void create_sc1(struct bt_trace_class *trace_class)
@@ -249,9 +249,9 @@ static void create_sc1(struct bt_trace_class *trace_class)
 	ok(ret_stream == sc1, "Borrow parent stream SC1 from EC1");
 	ret_stream = bt_event_class_borrow_stream_class(ec2);
 	ok(ret_stream == sc1, "Borrow parent stream SC1 from EC2");
-	BT_OBJECT_PUT_REF_AND_RESET(ec1);
-	BT_OBJECT_PUT_REF_AND_RESET(ec2);
-	BT_OBJECT_PUT_REF_AND_RESET(sc1);
+	BT_EVENT_CLASS_PUT_REF_AND_RESET(ec1);
+	BT_EVENT_CLASS_PUT_REF_AND_RESET(ec2);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(sc1);
 }
 
 static void create_sc2(struct bt_trace_class *trace_class)
@@ -268,8 +268,8 @@ static void create_sc2(struct bt_trace_class *trace_class)
 	ec3 = create_simple_event(sc2, "ec3");
 	ret_stream = bt_event_class_borrow_stream_class(ec3);
 	ok(ret_stream == sc2, "Borrow parent stream SC2 from EC3");
-	BT_OBJECT_PUT_REF_AND_RESET(ec3);
-	BT_OBJECT_PUT_REF_AND_RESET(sc2);
+	BT_EVENT_CLASS_PUT_REF_AND_RESET(ec3);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(sc2);
 }
 
 static void set_trace_packet_header(struct bt_trace_class *trace_class)
@@ -286,12 +286,12 @@ static void set_trace_packet_header(struct bt_trace_class *trace_class)
 	ret = bt_field_class_structure_append_member(packet_header_type,
 		"stream_id", fc);
 	BT_ASSERT(ret == 0);
-	bt_object_put_ref(fc);
+	bt_field_class_put_ref(fc);
 	ret = bt_trace_class_set_packet_header_field_class(trace_class,
 		packet_header_type);
 	BT_ASSERT(ret == 0);
 
-	bt_object_put_ref(packet_header_type);
+	bt_field_class_put_ref(packet_header_type);
 }
 
 static struct bt_trace_class *create_tc1(void)
@@ -362,7 +362,7 @@ static void test_example_scenario(void)
 	/* User A acquires a reference to SC2 from TC1. */
 	user_a.sc = bt_trace_class_borrow_stream_class_by_index(
 			user_a.tc, 1);
-	bt_object_get_ref(user_a.sc);
+	bt_stream_class_get_ref(user_a.sc);
 	ok(user_a.sc, "User A acquires SC2 from TC1");
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -372,7 +372,7 @@ static void test_example_scenario(void)
 	/* User A acquires a reference to EC3 from SC2. */
 	user_a.ec = bt_stream_class_borrow_event_class_by_index(
 			user_a.sc, 0);
-	bt_object_get_ref(user_a.ec);
+	bt_event_class_get_ref(user_a.ec);
 	ok(user_a.ec, "User A acquires EC3 from SC2");
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
@@ -383,7 +383,7 @@ static void test_example_scenario(void)
 
 	/* User A releases its reference to SC2. */
 	diag("User A releases SC2");
-	BT_OBJECT_PUT_REF_AND_RESET(user_a.sc);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(user_a.sc);
 	/*
 	 * We keep the pointer to SC2 around to validate its reference
 	 * count.
@@ -397,7 +397,7 @@ static void test_example_scenario(void)
 
 	/* User A releases its reference to TC1. */
 	diag("User A releases TC1");
-	BT_OBJECT_PUT_REF_AND_RESET(user_a.tc);
+	BT_TRACE_CLASS_PUT_REF_AND_RESET(user_a.tc);
 	/*
 	 * We keep the pointer to TC1 around to validate its reference
 	 * count.
@@ -412,7 +412,7 @@ static void test_example_scenario(void)
 	/* User B acquires a reference to SC1. */
 	diag("User B acquires a reference to SC1");
 	user_b.sc = weak_sc1;
-	bt_object_get_ref(user_b.sc);
+	bt_stream_class_get_ref(user_b.sc);
 	ok(bt_object_get_ref_count((void *) weak_tc1) == 2,
 			"TC1 reference count is 2");
 	ok(bt_object_get_ref_count((void *) weak_sc1) == 1,
@@ -422,7 +422,7 @@ static void test_example_scenario(void)
 	diag("User C acquires a reference to EC1");
 	user_c.ec = bt_stream_class_borrow_event_class_by_index(
 			user_b.sc, 0);
-	bt_object_get_ref(user_c.ec);
+	bt_event_class_get_ref(user_c.ec);
 	ok(bt_object_get_ref_count((void *) weak_ec1) == 1,
 			"EC1 reference count is 1");
 	ok(bt_object_get_ref_count((void *) weak_sc1) == 2,
@@ -430,7 +430,7 @@ static void test_example_scenario(void)
 
 	/* User A releases its reference on EC3. */
 	diag("User A releases its reference on EC3");
-	BT_OBJECT_PUT_REF_AND_RESET(user_a.ec);
+	BT_EVENT_CLASS_PUT_REF_AND_RESET(user_a.ec);
 	ok(bt_object_get_ref_count((void *) weak_ec3) == 0,
 			"EC3 reference count is 1");
 	ok(bt_object_get_ref_count((void *) weak_sc2) == 0,
@@ -440,7 +440,7 @@ static void test_example_scenario(void)
 
 	/* User B releases its reference on SC1. */
 	diag("User B releases its reference on SC1");
-	BT_OBJECT_PUT_REF_AND_RESET(user_b.sc);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(user_b.sc);
 	ok(bt_object_get_ref_count((void *) weak_sc1) == 1,
 			"SC1 reference count is 1");
 
@@ -462,7 +462,7 @@ static void test_example_scenario(void)
 			"EC3 reference count is 0");
 
 	/* Reclaim last reference held by User C. */
-	BT_OBJECT_PUT_REF_AND_RESET(user_c.ec);
+	BT_EVENT_CLASS_PUT_REF_AND_RESET(user_c.ec);
 }
 
 static void create_writer_user_full(struct writer_user *user)

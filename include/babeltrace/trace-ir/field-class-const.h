@@ -158,6 +158,24 @@ bt_field_class_variant_borrow_option_field_class_by_name_const(
 		const struct bt_field_class *field_class,
 		const char *name);
 
+extern void bt_field_class_get_ref(const struct bt_field_class *field_class);
+
+extern void bt_field_class_put_ref(const struct bt_field_class *field_class);
+
+#define BT_FIELD_CLASS_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_field_class_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_FIELD_CLASS_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_field_class_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
+
 #ifdef __cplusplus
 }
 #endif

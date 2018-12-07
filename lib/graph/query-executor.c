@@ -23,6 +23,8 @@
 #define BT_LOG_TAG "QUERY-EXECUTOR"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/graph/query-executor-const.h>
 #include <babeltrace/graph/query-executor.h>
 #include <babeltrace/graph/query-executor-internal.h>
@@ -31,10 +33,7 @@
 #include <babeltrace/value.h>
 #include <babeltrace/value-const.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 
 static
 void bt_query_executor_destroy(struct bt_object *obj)
@@ -156,4 +155,14 @@ bt_bool bt_query_executor_is_canceled(const struct bt_query_executor *query_exec
 {
 	BT_ASSERT_PRE_NON_NULL(query_exec, "Query executor");
 	return query_exec->canceled;
+}
+
+void bt_query_executor_get_ref(const struct bt_query_executor *query_executor)
+{
+	bt_object_get_ref(query_executor);
+}
+
+void bt_query_executor_put_ref(const struct bt_query_executor *query_executor)
+{
+	bt_object_put_ref(query_executor);
 }

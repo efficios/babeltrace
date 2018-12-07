@@ -71,6 +71,23 @@ extern int bt_trace_add_is_static_listener(const struct bt_trace *trace,
 extern int bt_trace_remove_is_static_listener(const struct bt_trace *trace,
 		uint64_t listener_id);
 
+extern void bt_trace_get_ref(const struct bt_trace *trace);
+
+extern void bt_trace_put_ref(const struct bt_trace *trace);
+
+#define BT_TRACE_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_trace_put_ref(_var);			\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_TRACE_MOVE_REF(_var_dst, _var_src)		\
+	do {						\
+		bt_trace_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

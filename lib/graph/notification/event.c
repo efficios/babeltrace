@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "NOTIF-EVENT"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/trace-ir/event.h>
@@ -36,9 +38,6 @@
 #include <babeltrace/graph/notification-event.h>
 #include <babeltrace/graph/notification-event-internal.h>
 #include <babeltrace/types.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object.h>
 #include <stdbool.h>
 #include <inttypes.h>
 

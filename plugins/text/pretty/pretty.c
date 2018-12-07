@@ -65,7 +65,7 @@ const char *plugin_options[] = {
 static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
-	bt_object_put_ref(pretty->iterator);
+	bt_self_component_port_input_notification_iterator_put_ref(pretty->iterator);
 
 	if (pretty->string) {
 		(void) g_string_free(pretty->string, TRUE);
@@ -200,7 +200,8 @@ enum bt_self_component_status pretty_consume(
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		ret = BT_SELF_COMPONENT_STATUS_END;
-		BT_OBJECT_PUT_REF_AND_RESET(pretty->iterator);
+		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(
+			pretty->iterator);
 		goto end;
 	default:
 		ret = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -215,12 +216,12 @@ enum bt_self_component_status pretty_consume(
 			goto end;
 		}
 
-		bt_object_put_ref(notifs[i]);
+		bt_notification_put_ref(notifs[i]);
 	}
 
 end:
 	for (; i < count; i++) {
-		bt_object_put_ref(notifs[i]);
+		bt_notification_put_ref(notifs[i]);
 	}
 
 	return ret;
@@ -592,7 +593,7 @@ int apply_params(struct pretty_component *pretty, const struct bt_value *params)
 	}
 
 end:
-	bt_object_put_ref(pretty->plugin_opt_map);
+	bt_value_put_ref(pretty->plugin_opt_map);
 	pretty->plugin_opt_map = NULL;
 	g_free(str);
 	return ret;

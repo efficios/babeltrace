@@ -45,19 +45,19 @@ const struct bt_stream *insert_new_stream(
 static
 void unref_stream(const struct bt_stream *stream)
 {
-	bt_object_put_ref(stream);
+	bt_stream_put_ref(stream);
 }
 
 static
 void unref_packet(const struct bt_packet *packet)
 {
-	bt_object_put_ref(packet);
+	bt_packet_put_ref(packet);
 }
 
 static
 void unref_stream_class(const struct bt_stream_class *stream_class)
 {
-	bt_object_put_ref(stream_class);
+	bt_stream_class_put_ref(stream_class);
 }
 
 static
@@ -94,7 +94,7 @@ const struct bt_field *get_payload_field(FILE *err,
 	field = bt_field_structure_get_field_by_name(payload, field_name);
 
 end:
-	bt_object_put_ref(payload_class);
+	bt_field_class_put_ref(payload_class);
 	bt_object_put_ref(payload);
 	return field;
 }
@@ -123,7 +123,7 @@ const struct bt_field *get_stream_event_context_field(FILE *err,
 	field = bt_field_structure_get_field_by_name(sec, field_name);
 
 end:
-	bt_object_put_ref(sec_class);
+	bt_field_class_put_ref(sec_class);
 	bt_object_put_ref(sec);
 	return field;
 }
@@ -168,7 +168,7 @@ int get_stream_event_context_unsigned_int_field_value(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	bt_object_put_ref(field);
 	return ret;
 }
@@ -206,7 +206,7 @@ int get_stream_event_context_int_field_value(FILE *err, const struct bt_event *e
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	bt_object_put_ref(field);
 	return ret;
 }
@@ -252,7 +252,7 @@ int get_payload_unsigned_int_field_value(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	bt_object_put_ref(field);
 	return ret;
 }
@@ -296,7 +296,7 @@ int get_payload_int_field_value(FILE *err, const struct bt_event *event,
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	bt_object_put_ref(field);
 	return ret;
 }
@@ -340,7 +340,7 @@ int get_payload_string_field_value(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	bt_object_put_ref(field);
 	return ret;
 }
@@ -371,7 +371,7 @@ int get_payload_build_id_field_value(FILE *err,
 		BT_LOGE("Wrong type, expected sequence: field-name=\"%s\"", field_name);
 		goto error;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(field_class);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(field_class);
 
 	seq_len = bt_field_sequence_get_length(field);
 	BT_ASSERT(seq_len);
@@ -417,7 +417,7 @@ error:
 	g_free(*build_id);
 	ret = -1;
 end:
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	bt_object_put_ref(field);
 	return ret;
 }
@@ -454,7 +454,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	if (strcmp(str_value, "ust") != 0) {
 		goto end;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(field);
+	BT_VALUE_PUT_REF_AND_RESET(field);
 
 	/* No tracer_name, no debug info */
 	field = bt_trace_get_environment_field_value_by_name(writer_trace,
@@ -469,7 +469,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	if (strcmp(str_value, "lttng-ust") != 0) {
 		goto end;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(field);
+	BT_VALUE_PUT_REF_AND_RESET(field);
 
 	debug_info = debug_info_create(debug_it->debug_info_component);
 	if (!debug_info) {
@@ -481,7 +481,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 			debug_info);
 
 end:
-	bt_object_put_ref(field);
+	bt_value_put_ref(field);
 	return debug_info;
 }
 
@@ -613,8 +613,8 @@ int sync_event_classes(struct debug_info_iterator *debug_it,
 error:
 	int_ret = -1;
 end:
-	bt_object_put_ref(stream_class);
-	bt_object_put_ref(writer_stream_class);
+	bt_stream_class_put_ref(stream_class);
+	bt_stream_class_put_ref(writer_stream_class);
 	return int_ret;
 }
 
@@ -644,8 +644,8 @@ void trace_is_static_listener(const struct bt_trace *trace, void *data)
 			BT_LOGE_STR("Failed to synchronize the event classes.");
 			goto error;
 		}
-		BT_OBJECT_PUT_REF_AND_RESET(stream);
-		BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
+		BT_STREAM_PUT_REF_AND_RESET(stream);
+		BT_STREAM_PUT_REF_AND_RESET(writer_stream);
 	}
 
 	bt_trace_set_is_static(di_trace->writer_trace);
@@ -660,8 +660,8 @@ void trace_is_static_listener(const struct bt_trace *trace, void *data)
 	}
 
 error:
-	bt_object_put_ref(writer_stream);
-	bt_object_put_ref(stream);
+	bt_stream_put_ref(writer_stream);
+	bt_stream_put_ref(stream);
 }
 
 static
@@ -726,14 +726,14 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 			BT_LOGE_STR("Failed to insert new stream.");
 			goto error;
 		}
-		bt_object_get_ref(writer_stream);
+		bt_stream_get_ref(writer_stream);
 		ret = sync_event_classes(debug_it, stream, writer_stream);
 		if (ret) {
 			BT_LOGE_STR("Failed to synchronize event classes.");
 			goto error;
 		}
-		BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
-		BT_OBJECT_PUT_REF_AND_RESET(stream);
+		BT_STREAM_PUT_REF_AND_RESET(writer_stream);
+		BT_STREAM_PUT_REF_AND_RESET(stream);
 	}
 
 	/* Check if the trace is already static or register a listener. */
@@ -752,14 +752,14 @@ struct debug_info_trace *insert_new_trace(struct debug_info_iterator *debug_it,
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_trace);
+	BT_TRACE_PUT_REF_AND_RESET(writer_trace);
 	g_free(di_trace);
 	di_trace = NULL;
 end:
-	bt_object_put_ref(stream);
-	bt_object_put_ref(writer_stream);
-	bt_object_put_ref(stream_class);
-	bt_object_put_ref(trace);
+	bt_stream_put_ref(stream);
+	bt_stream_put_ref(writer_stream);
+	bt_stream_class_put_ref(stream_class);
+	bt_trace_put_ref(trace);
 	return di_trace;
 }
 
@@ -799,7 +799,7 @@ const struct bt_packet *insert_new_packet(struct debug_info_iterator *debug_it,
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_packet);
+	BT_PACKET_PUT_REF_AND_RESET(writer_packet);
 end:
 	return writer_packet;
 }
@@ -820,7 +820,7 @@ int add_debug_info_fields(FILE *err,
 	if (!ip_field) {
 		goto end;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(ip_field);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(ip_field);
 
 	debug_field_class = bt_field_class_structure_get_field_class_by_name(
 			writer_event_context_class,
@@ -886,13 +886,13 @@ int add_debug_info_fields(FILE *err,
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(debug_field_class);
+	BT_FIELD_CLASS_PUT_REF_AND_RESET(debug_field_class);
 	ret = -1;
 end:
-	bt_object_put_ref(src_field_class);
-	bt_object_put_ref(func_field_class);
-	bt_object_put_ref(bin_field_class);
-	bt_object_put_ref(debug_field_class);
+	bt_field_class_put_ref(src_field_class);
+	bt_field_class_put_ref(func_field_class);
+	bt_field_class_put_ref(bin_field_class);
+	bt_field_class_put_ref(debug_field_class);
 	return ret;
 }
 
@@ -918,7 +918,7 @@ int create_debug_info_event_context_class(FILE *err,
 
 		ret = bt_field_class_structure_add_field(writer_event_context_class,
 				field_class, field_name);
-		BT_OBJECT_PUT_REF_AND_RESET(field_class);
+		BT_FIELD_CLASS_PUT_REF_AND_RESET(field_class);
 		if (ret) {
 			BT_LOGE("Failed to add a field to the event-context: field-name=\"%s\"",
 					field_name);
@@ -997,15 +997,15 @@ const struct bt_stream_class *copy_stream_class_debug_info(FILE *err,
 			BT_LOGE_STR("Failed to set event_context type.");
 			goto error;
 		}
-		BT_OBJECT_PUT_REF_AND_RESET(writer_event_context_class);
+		BT_FIELD_CLASS_PUT_REF_AND_RESET(writer_event_context_class);
 	}
 
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream_class);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(writer_stream_class);
 end:
-	bt_object_put_ref(writer_event_context_class);
+	bt_field_class_put_ref(writer_event_context_class);
 	bt_object_put_ref(type);
 	return writer_stream_class;
 }
@@ -1033,14 +1033,14 @@ int add_clock_classes(FILE *err, const struct bt_trace *writer_trace,
 
 		existing_clock_class = bt_trace_get_clock_class_by_name(
 			writer_trace, bt_clock_class_get_name(clock_class));
-		bt_object_put_ref(existing_clock_class);
+		bt_clock_class_put_ref(existing_clock_class);
 		if (existing_clock_class) {
-			bt_object_put_ref(clock_class);
+			bt_clock_class_put_ref(clock_class);
 			continue;
 		}
 
 		ret = bt_trace_add_clock_class(writer_trace, clock_class);
-		BT_OBJECT_PUT_REF_AND_RESET(clock_class);
+		BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock_class);
 		if (ret != 0) {
 			BT_LOGE_STR("Failed to add clock_class.");
 			goto error;
@@ -1078,7 +1078,7 @@ const struct bt_stream_class *insert_new_stream_class(
 		goto error;
 	}
 	writer_trace = di_trace->writer_trace;
-	bt_object_get_ref(writer_trace);
+	bt_trace_get_ref(writer_trace);
 
 	writer_stream_class = copy_stream_class_debug_info(debug_it->err, stream_class,
 			writer_trace, debug_it->debug_info_component);
@@ -1106,10 +1106,10 @@ const struct bt_stream_class *insert_new_stream_class(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream_class);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(writer_stream_class);
 end:
-	bt_object_put_ref(trace);
-	bt_object_put_ref(writer_trace);
+	bt_trace_put_ref(trace);
+	bt_trace_put_ref(writer_trace);
 	return writer_stream_class;
 }
 
@@ -1139,7 +1139,7 @@ const struct bt_stream *insert_new_stream(
 			goto error;
 		}
 	}
-	bt_object_get_ref(writer_stream_class);
+	bt_stream_class_get_ref(writer_stream_class);
 
 	id = bt_stream_get_id(stream);
 	if (id < 0) {
@@ -1162,10 +1162,10 @@ const struct bt_stream *insert_new_stream(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
+	BT_STREAM_PUT_REF_AND_RESET(writer_stream);
 end:
-	bt_object_put_ref(stream_class);
-	bt_object_put_ref(writer_stream_class);
+	bt_stream_class_put_ref(stream_class);
+	bt_stream_class_put_ref(writer_stream_class);
 	return writer_stream;
 }
 
@@ -1205,8 +1205,8 @@ struct debug_info_trace *lookup_di_trace_from_stream(
 	di_trace = (struct debug_info_trace *) g_hash_table_lookup(
 			debug_it->trace_map, (gpointer) trace);
 
-	BT_OBJECT_PUT_REF_AND_RESET(stream_class);
-	BT_OBJECT_PUT_REF_AND_RESET(trace);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(stream_class);
+	BT_TRACE_PUT_REF_AND_RESET(trace);
 	return di_trace;
 }
 
@@ -1233,14 +1233,14 @@ const struct bt_stream *get_writer_stream(
 		BT_LOGE_STR("Failed to find existing stream.");
 		goto error;
 	}
-	bt_object_get_ref(writer_stream);
+	bt_stream_get_ref(writer_stream);
 
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
+	BT_STREAM_PUT_REF_AND_RESET(writer_stream);
 end:
-	bt_object_put_ref(stream_class);
+	bt_stream_class_put_ref(stream_class);
 	return writer_stream;
 }
 
@@ -1277,7 +1277,7 @@ const struct bt_packet *debug_info_new_packet(
 	writer_packet = lookup_packet(debug_it, packet, di_trace);
 	if (writer_packet) {
 		g_hash_table_remove(di_trace->packet_map, packet);
-		BT_OBJECT_PUT_REF_AND_RESET(writer_packet);
+		BT_PACKET_PUT_REF_AND_RESET(writer_packet);
 	}
 
 	writer_packet = insert_new_packet(debug_it, packet, writer_stream,
@@ -1298,15 +1298,15 @@ const struct bt_packet *debug_info_new_packet(
 		BT_OBJECT_PUT_REF_AND_RESET(packet_context);
 	}
 
-	bt_object_get_ref(writer_packet);
+	bt_packet_get_ref(writer_packet);
 	goto end;
 
 error:
 
 end:
 	bt_object_put_ref(packet_context);
-	bt_object_put_ref(writer_stream);
-	bt_object_put_ref(stream);
+	bt_stream_put_ref(writer_stream);
+	bt_stream_put_ref(stream);
 	return writer_packet;
 }
 
@@ -1333,11 +1333,11 @@ const struct bt_packet *debug_info_close_packet(
 		BT_LOGE_STR("Failed to find existing packet.");
 		goto end;
 	}
-	bt_object_get_ref(writer_packet);
+	bt_packet_get_ref(writer_packet);
 	g_hash_table_remove(di_trace->packet_map, packet);
 
 end:
-	bt_object_put_ref(stream);
+	bt_stream_put_ref(stream);
 	return writer_packet;
 }
 
@@ -1383,12 +1383,12 @@ const struct bt_stream *debug_info_stream_begin(
 	if (!writer_stream) {
 		writer_stream = insert_new_stream(debug_it, stream, di_trace);
 	}
-	bt_object_get_ref(writer_stream);
+	bt_stream_get_ref(writer_stream);
 
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
+	BT_STREAM_PUT_REF_AND_RESET(writer_stream);
 end:
 	return writer_stream;
 }
@@ -1416,7 +1416,7 @@ const struct bt_stream *debug_info_stream_end(struct debug_info_iterator *debug_
 	 * Take the ref on the stream and keep it until the notification
 	 * is created.
 	 */
-	bt_object_get_ref(writer_stream);
+	bt_stream_get_ref(writer_stream);
 
 	state = g_hash_table_lookup(di_trace->stream_states, stream);
 	if (*state != DEBUG_INFO_ACTIVE_STREAM) {
@@ -1442,7 +1442,7 @@ const struct bt_stream *debug_info_stream_end(struct debug_info_iterator *debug_
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream);
+	BT_STREAM_PUT_REF_AND_RESET(writer_stream);
 
 end:
 	return writer_stream;
@@ -1500,7 +1500,7 @@ int set_debug_info_field(FILE *err, const struct bt_field *debug_field,
 					field_name);
 			goto error;
 		}
-		BT_OBJECT_PUT_REF_AND_RESET(field_class);
+		BT_FIELD_CLASS_PUT_REF_AND_RESET(field_class);
 
 		field = bt_field_structure_get_field_by_index(debug_field, i);
 		if (!strcmp(field_name, "bin")) {
@@ -1560,9 +1560,9 @@ int set_debug_info_field(FILE *err, const struct bt_field *debug_field,
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	bt_object_put_ref(field);
-	bt_object_put_ref(debug_field_class);
+	bt_field_class_put_ref(debug_field_class);
 	return ret;
 }
 
@@ -1654,7 +1654,7 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 			}
 			BT_OBJECT_PUT_REF_AND_RESET(copy_field);
 		}
-		BT_OBJECT_PUT_REF_AND_RESET(field_class);
+		BT_FIELD_CLASS_PUT_REF_AND_RESET(field_class);
 		BT_OBJECT_PUT_REF_AND_RESET(field);
 	}
 
@@ -1664,13 +1664,13 @@ int copy_set_debug_info_stream_event_context(FILE *err,
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(event_context_class);
-	bt_object_put_ref(writer_event_context_class);
+	bt_field_class_put_ref(event_context_class);
+	bt_field_class_put_ref(writer_event_context_class);
 	bt_object_put_ref(writer_event_context);
 	bt_object_put_ref(field);
 	bt_object_put_ref(copy_field);
 	bt_object_put_ref(debug_field);
-	bt_object_put_ref(field_class);
+	bt_field_class_put_ref(field_class);
 	return ret;
 }
 
@@ -1692,7 +1692,7 @@ const struct bt_clock_class *stream_class_get_clock_class(FILE *err,
 	/* FIXME multi-clock? */
 	clock_class = bt_trace_get_clock_class_by_index(trace, 0);
 
-	bt_object_put_ref(trace);
+	bt_trace_put_ref(trace);
 
 end:
 	return clock_class;
@@ -1715,8 +1715,8 @@ const struct bt_clock_class *event_get_clock_class(FILE *err, const struct bt_ev
 	goto end;
 
 end:
-	bt_object_put_ref(stream_class);
-	bt_object_put_ref(event_class);
+	bt_stream_class_put_ref(stream_class);
+	bt_event_class_put_ref(event_class);
 	return clock_class;
 }
 
@@ -1756,7 +1756,7 @@ int set_event_clock_value(FILE *err, const struct bt_event *event,
 error:
 	ret = -1;
 end:
-	bt_object_put_ref(clock_class);
+	bt_clock_class_put_ref(clock_class);
 	bt_object_put_ref(clock_value);
 	return ret;
 }
@@ -1886,7 +1886,7 @@ const struct bt_event *debug_info_output_event(
 		BT_LOGE_STR("Failed to find existing stream_class.");
 		goto error;
 	}
-	bt_object_get_ref(writer_stream_class);
+	bt_stream_class_get_ref(writer_stream_class);
 	writer_trace = bt_stream_class_get_trace(writer_stream_class);
 	BT_ASSERT(writer_trace);
 	writer_event_class = get_event_class(debug_it,
@@ -1928,7 +1928,7 @@ const struct bt_event *debug_info_output_event(
 		BT_LOGE_STR("Failed to find existing packet.");
 		goto error;
 	}
-	bt_object_get_ref(writer_packet);
+	bt_packet_get_ref(writer_packet);
 
 	int_ret = bt_event_set_packet(writer_event, writer_packet);
 	if (int_ret < 0) {
@@ -1944,13 +1944,13 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(writer_event);
 
 end:
-	bt_object_put_ref(stream);
-	bt_object_put_ref(writer_trace);
-	bt_object_put_ref(writer_packet);
-	bt_object_put_ref(packet);
-	bt_object_put_ref(writer_event_class);
-	bt_object_put_ref(writer_stream_class);
-	bt_object_put_ref(stream_class);
-	bt_object_put_ref(event_class);
+	bt_stream_put_ref(stream);
+	bt_trace_put_ref(writer_trace);
+	bt_packet_put_ref(writer_packet);
+	bt_packet_put_ref(packet);
+	bt_event_class_put_ref(writer_event_class);
+	bt_stream_class_put_ref(writer_stream_class);
+	bt_stream_class_put_ref(stream_class);
+	bt_event_class_put_ref(event_class);
 	return writer_event;
 }

@@ -44,10 +44,9 @@
 #include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
-#include <babeltrace/compiler-internal.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/compiler-internal.h>
 #include <inttypes.h>
 
 BT_HIDDEN

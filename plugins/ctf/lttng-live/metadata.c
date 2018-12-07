@@ -78,7 +78,7 @@ enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
 		BT_ASSERT(clock_class);
 		ret = bt_clock_class_priority_map_add_clock_class(
 			trace->cc_prio_map, clock_class, 0);
-		BT_OBJECT_PUT_REF_AND_RESET(clock_class);
+		BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock_class);
 
 		if (ret) {
 			goto error;

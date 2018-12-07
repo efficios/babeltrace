@@ -30,6 +30,8 @@
 #include <stdint.h>
 #include <wchar.h>
 #include <glib.h>
+#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/lib-logging-internal.h>
 #include <babeltrace/value-internal.h>

@@ -25,7 +25,6 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/assert-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/field-class-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
 #include <babeltrace/trace-ir/field-path-const.h>

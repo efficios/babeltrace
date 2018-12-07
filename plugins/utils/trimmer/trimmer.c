@@ -310,7 +310,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 		goto end;
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(value);
+	BT_VALUE_PUT_REF_AND_RESET(value);
         value = bt_value_map_get(params, "begin");
 	if (value) {
 		if (timestamp_from_param("begin", value,
@@ -321,7 +321,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 		}
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(value);
+	BT_VALUE_PUT_REF_AND_RESET(value);
         value = bt_value_map_get(params, "end");
 	if (value) {
 		if (timestamp_from_param("end", value,
@@ -333,7 +333,7 @@ enum bt_component_status init_from_params(struct trimmer *trimmer,
 	}
 
 end:
-	bt_object_put_ref(value);
+	bt_value_put_ref(value);
 
 	if (trimmer->begin.set && trimmer->end.set) {
 		if (trimmer->begin.value > trimmer->end.value) {

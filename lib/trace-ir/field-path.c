@@ -29,7 +29,6 @@
 #include <babeltrace/trace-ir/field-class-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
 #include <babeltrace/trace-ir/field-path-const.h>
-#include <babeltrace/object.h>
 #include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -97,4 +96,14 @@ uint64_t bt_field_path_get_index_by_index(
 	BT_ASSERT_PRE_NON_NULL(field_path, "Field path");
 	BT_ASSERT_PRE_VALID_INDEX(index, field_path->indexes->len);
 	return bt_field_path_get_index_by_index_inline(field_path, index);
+}
+
+void bt_field_path_get_ref(const struct bt_field_path *field_path)
+{
+	bt_object_get_ref(field_path);
+}
+
+void bt_field_path_put_ref(const struct bt_field_path *field_path)
+{
+	bt_object_put_ref(field_path);
 }

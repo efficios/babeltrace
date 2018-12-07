@@ -44,7 +44,7 @@ gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
 {
 	const struct bt_packet *writer_packet = value;
 
-	bt_object_put_ref(writer_packet);
+	bt_packet_put_ref(writer_packet);
 	return TRUE;
 }
 
@@ -254,14 +254,14 @@ const struct bt_notification *evaluate_event_notification(
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(new_notification);
+	BT_NOTIFICATION_PUT_REF_AND_RESET(new_notification);
 end:
 	bt_object_put_ref(event);
 	bt_object_put_ref(writer_event);
-	bt_object_put_ref(clock_class);
-	bt_object_put_ref(trace);
-	bt_object_put_ref(stream);
-	bt_object_put_ref(stream_class);
+	bt_clock_class_put_ref(clock_class);
+	bt_trace_put_ref(trace);
+	bt_stream_put_ref(stream);
+	bt_stream_class_put_ref(stream_class);
 	bt_object_put_ref(clock_value);
 	*_event_in_range = in_range;
 	return new_notification;
@@ -306,8 +306,8 @@ int ns_from_integer_field(const struct bt_field *integer, int64_t *ns)
 
 	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ns);
 end:
-	bt_object_put_ref(integer_class);
-	bt_object_put_ref(clock_class);
+	bt_field_class_put_ref(integer_class);
+	bt_clock_class_put_ref(clock_class);
 	bt_object_put_ref(clock_value);
 	return ret;
 }
@@ -366,10 +366,10 @@ int64_t get_raw_timestamp(const struct bt_packet *writer_packet,
 
 	ns += ns_from_value(freq, cycles_offset);
 
-	bt_object_put_ref(writer_clock_class);
-	bt_object_put_ref(writer_trace);
-	bt_object_put_ref(writer_stream_class);
-	bt_object_put_ref(writer_stream);
+	bt_clock_class_put_ref(writer_clock_class);
+	bt_trace_put_ref(writer_trace);
+	bt_stream_class_put_ref(writer_stream_class);
+	bt_stream_put_ref(writer_stream);
 
 	return timestamp - ns;
 }
@@ -492,8 +492,8 @@ end:
 	}
 end_no_notif:
 	*_packet_in_range = in_range;
-	bt_object_put_ref(packet);
-	bt_object_put_ref(writer_packet);
+	bt_packet_put_ref(packet);
+	bt_packet_put_ref(writer_packet);
 	bt_object_put_ref(packet_context);
 	bt_object_put_ref(timestamp_begin);
 	bt_object_put_ref(timestamp_end);
@@ -545,7 +545,7 @@ enum bt_notification_iterator_status evaluate_notification(
 	default:
 		break;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(*notification);
+	BT_NOTIFICATION_PUT_REF_AND_RESET(*notification);
 	*notification = new_notification;
 
 	if (finished) {

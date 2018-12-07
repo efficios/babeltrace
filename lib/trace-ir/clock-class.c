@@ -29,7 +29,6 @@
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/compat/string-internal.h>
@@ -321,4 +320,14 @@ int bt_clock_class_cycles_to_ns_from_origin(
 	}
 
 	return ret;
+}
+
+void bt_clock_class_get_ref(const struct bt_clock_class *clock_class)
+{
+	bt_object_get_ref(clock_class);
+}
+
+void bt_clock_class_put_ref(const struct bt_clock_class *clock_class)
+{
+	bt_object_put_ref(clock_class);
 }

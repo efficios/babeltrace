@@ -122,14 +122,14 @@ void destroy_muxer_upstream_notif_iter(
 		muxer_upstream_notif_iter,
 		muxer_upstream_notif_iter->notif_iter,
 		muxer_upstream_notif_iter->notifs->length);
-	bt_object_put_ref(muxer_upstream_notif_iter->notif_iter);
+	bt_self_component_port_input_notification_iterator_put_ref(muxer_upstream_notif_iter->notif_iter);
 
 	if (muxer_upstream_notif_iter->notifs) {
 		const struct bt_notification *notif;
 
 		while ((notif = g_queue_pop_head(
 				muxer_upstream_notif_iter->notifs))) {
-			bt_object_put_ref(notif);
+			bt_notification_put_ref(notif);
 		}
 
 		g_queue_free(muxer_upstream_notif_iter->notifs);
@@ -152,7 +152,7 @@ struct muxer_upstream_notif_iter *muxer_notif_iter_add_upstream_notif_iter(
 	}
 
 	muxer_upstream_notif_iter->notif_iter = self_notif_iter;
-	bt_object_get_ref(muxer_upstream_notif_iter->notif_iter);
+	bt_self_component_port_input_notification_iterator_get_ref(muxer_upstream_notif_iter->notif_iter);
 	muxer_upstream_notif_iter->notifs = g_queue_new();
 	if (!muxer_upstream_notif_iter->notifs) {
 		BT_LOGE_STR("Failed to allocate a GQueue.");
@@ -265,7 +265,7 @@ struct bt_value *get_default_params(void)
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(params);
+	BT_VALUE_PUT_REF_AND_RESET(params);
 
 end:
 	return params;
@@ -320,8 +320,8 @@ error:
 	ret = -1;
 
 end:
-	bt_object_put_ref(default_params);
-	bt_object_put_ref(real_params);
+	bt_value_put_ref(default_params);
+	bt_value_put_ref(real_params);
 	return ret;
 }
 
@@ -498,7 +498,7 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 		 * won't be considered again to find the youngest
 		 * notification.
 		 */
-		BT_OBJECT_PUT_REF_AND_RESET(muxer_upstream_notif_iter->notif_iter);
+		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(muxer_upstream_notif_iter->notif_iter);
 		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
 		break;
 	default:
@@ -568,7 +568,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 		muxer_upstream_notif_iter =
 			muxer_notif_iter_add_upstream_notif_iter(
 				muxer_notif_iter, upstream_notif_iter);
-		BT_OBJECT_PUT_REF_AND_RESET(upstream_notif_iter);
+		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(upstream_notif_iter);
 		if (!muxer_upstream_notif_iter) {
 			/*
 			 * muxer_notif_iter_add_upstream_notif_iter()
@@ -578,7 +578,7 @@ int muxer_notif_iter_handle_newly_connected_ports(
 		}
 
 remove_node:
-		bt_object_put_ref(upstream_notif_iter);
+		bt_self_component_port_input_notification_iterator_put_ref(upstream_notif_iter);
 		muxer_notif_iter->newly_connected_self_ports =
 			g_list_delete_link(
 				muxer_notif_iter->newly_connected_self_ports,

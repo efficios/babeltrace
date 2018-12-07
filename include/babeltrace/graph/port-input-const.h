@@ -40,6 +40,23 @@ const struct bt_port *bt_port_input_as_port_const(
 	return (const void *) port_input;
 }
 
+extern void bt_port_input_get_ref(const struct bt_port_input *port_input);
+
+extern void bt_port_input_put_ref(const struct bt_port_input *port_input);
+
+#define BT_PORT_INPUT_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_port_input_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_PORT_INPUT_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_port_input_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

@@ -324,4 +324,51 @@ void bt_object_put_no_null_check(const void *c_obj)
 	}
 }
 
+static inline
+void bt_object_get_ref(const void *ptr)
+{
+	struct bt_object *obj = (void *) ptr;
+
+	if (unlikely(!obj)) {
+		return;
+	}
+
+#ifdef BT_ASSERT_PRE
+	BT_ASSERT_PRE(obj->is_shared, "Object is not shared: %!+O", obj);
+#endif
+
+	bt_object_get_no_null_check(obj);
+}
+
+static inline
+void bt_object_put_ref(const void *ptr)
+{
+	struct bt_object *obj = (void *) ptr;
+
+	if (unlikely(!obj)) {
+		return;
+	}
+
+#ifdef BT_ASSERT_PRE
+	BT_ASSERT_PRE(obj->is_shared, "Object is not shared: %!+O", obj);
+	BT_ASSERT_PRE(bt_object_get_ref_count(obj) > 0,
+		"Decrementing a reference count set to 0: %!+O", ptr);
+#endif
+
+	bt_object_put_no_null_check(obj);
+}
+
+#define BT_OBJECT_PUT_REF_AND_RESET(_var)	\
+	do {					\
+		bt_object_put_ref(_var);	\
+		(_var) = NULL;			\
+	} while (0)
+
+#define BT_OBJECT_MOVE_REF(_var_dst, _var_src)	\
+	do {					\
+		bt_object_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);	\
+		(_var_src) = NULL;		\
+	} while (0)
+
 #endif /* BABELTRACE_OBJECT_INTERNAL_H */

@@ -38,7 +38,6 @@
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/endian-internal.h>
@@ -386,4 +385,14 @@ void _bt_event_class_freeze(const struct bt_event_class *event_class)
 	BT_ASSERT(event_class);
 	BT_LIB_LOGD("Freezing event class: %!+E", event_class);
 	((struct bt_event_class *) event_class)->frozen = true;
+}
+
+void bt_event_class_get_ref(const struct bt_event_class *event_class)
+{
+	bt_object_get_ref(event_class);
+}
+
+void bt_event_class_put_ref(const struct bt_event_class *event_class)
+{
+	bt_object_put_ref(event_class);
 }

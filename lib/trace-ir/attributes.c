@@ -24,9 +24,10 @@
 #define BT_LOG_TAG "ATTRS"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/object.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/value.h>
+#include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/value-const.h>
 #include <babeltrace/value-internal.h>
 #include <babeltrace/trace-ir/attributes-internal.h>

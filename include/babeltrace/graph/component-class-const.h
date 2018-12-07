@@ -75,6 +75,25 @@ bt_bool bt_component_class_is_sink(
 		BT_COMPONENT_CLASS_TYPE_SINK;
 }
 
+extern void bt_component_class_get_ref(
+		const struct bt_component_class *component_class);
+
+extern void bt_component_class_put_ref(
+		const struct bt_component_class *component_class);
+
+#define BT_COMPONENT_CLASS_PUT_REF_AND_RESET(_var)	\
+	do {						\
+		bt_component_class_put_ref(_var);	\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_COMPONENT_CLASS_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_component_class_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

@@ -39,6 +39,23 @@ extern uint64_t bt_plugin_set_get_plugin_count(
 extern const struct bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
 		const struct bt_plugin_set *plugin_set, uint64_t index);
 
+extern void bt_plugin_set_get_ref(const struct bt_plugin_set *plugin_set);
+
+extern void bt_plugin_set_put_ref(const struct bt_plugin_set *plugin_set);
+
+#define BT_PLUGIN_SET_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_plugin_set_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_PLUGIN_SET_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_plugin_set_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

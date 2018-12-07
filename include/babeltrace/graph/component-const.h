@@ -84,6 +84,23 @@ bt_bool bt_component_is_sink(const struct bt_component *component)
 extern bt_bool bt_component_graph_is_canceled(
 		const struct bt_component *component);
 
+extern void bt_component_get_ref(const struct bt_component *component);
+
+extern void bt_component_put_ref(const struct bt_component *component);
+
+#define BT_COMPONENT_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_component_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_COMPONENT_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_component_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

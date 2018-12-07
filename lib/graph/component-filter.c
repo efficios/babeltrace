@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "COMP-FILTER"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/value.h>
 #include <babeltrace/graph/self-component-filter.h>
@@ -32,9 +34,6 @@
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/graph/graph.h>
-#include <babeltrace/object.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 
 BT_HIDDEN
 void bt_component_filter_destroy(struct bt_component *component)
@@ -189,4 +188,16 @@ enum bt_self_component_status bt_self_component_filter_add_input_port(
 end:
 	bt_object_put_ref(port);
 	return status;
+}
+
+void bt_component_filter_get_ref(
+		const struct bt_component_filter *component_filter)
+{
+	bt_object_get_ref(component_filter);
+}
+
+void bt_component_filter_put_ref(
+		const struct bt_component_filter *component_filter)
+{
+	bt_object_put_ref(component_filter);
 }

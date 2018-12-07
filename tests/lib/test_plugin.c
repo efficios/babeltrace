@@ -100,7 +100,7 @@ static void test_minimal(const char *plugin_dir)
 		"bt_plugin_get_filter_component_class_count() returns the expected value");
 	ok(bt_plugin_get_sink_component_class_count(plugin) == 0,
 		"bt_plugin_get_sink_component_class_count() returns the expected value");
-	bt_object_put_ref(plugin_set);
+	bt_plugin_set_put_ref(plugin_set);
 	ok(check_env_var("BT_TEST_PLUGIN_EXIT_CALLED") == 1,
 		"plugin's exit function is called when the plugin is destroyed");
 
@@ -189,23 +189,23 @@ static void test_sfs(const char *plugin_dir)
 	ok(bt_value_compare(res_params, params),
 		"bt_component_class_query() receives the expected parameters");
 
-	bt_object_get_ref(sink_comp_class);
+	bt_component_class_sink_get_ref(sink_comp_class);
 	diag("> putting the plugin set object here");
-	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
+	BT_PLUGIN_SET_PUT_REF_AND_RESET(plugin_set);
 	graph = bt_graph_create();
 	BT_ASSERT(graph);
 	graph_ret = bt_graph_add_sink_component(graph, sink_comp_class,
 		"the-sink", NULL, &sink_component);
 	ok(graph_ret == BT_GRAPH_STATUS_OK && sink_component,
 		"bt_graph_add_sink_component() still works after the plugin object is destroyed");
-	BT_OBJECT_PUT_REF_AND_RESET(sink_component);
-	bt_object_put_ref(graph);
+	BT_COMPONENT_SINK_PUT_REF_AND_RESET(sink_component);
+	bt_graph_put_ref(graph);
 
 	free(sfs_path);
-	bt_object_put_ref(sink_comp_class);
-	bt_object_put_ref(results);
-	bt_object_put_ref(params);
-	bt_object_put_ref(query_exec);
+	bt_component_class_sink_put_ref(sink_comp_class);
+	bt_value_put_ref(results);
+	bt_value_put_ref(params);
+	bt_query_executor_put_ref(query_exec);
 }
 
 static void test_create_all_from_dir(const char *plugin_dir)
@@ -226,7 +226,7 @@ static void test_create_all_from_dir(const char *plugin_dir)
 		bt_plugin_set_get_plugin_count(plugin_set) == 4,
 		"bt_plugin_create_all_from_dir() returns the expected number of plugin objects");
 
-	bt_object_put_ref(plugin_set);
+	bt_plugin_set_put_ref(plugin_set);
 }
 
 static void test_find(const char *plugin_dir)
@@ -251,7 +251,7 @@ static void test_find(const char *plugin_dir)
 		"bt_plugin_find() succeeds with a plugin name it can find");
 	ok(strcmp(bt_plugin_get_author(plugin), "Janine Sutto") == 0,
 		"bt_plugin_find() finds the correct plugin for a given name");
-	BT_OBJECT_PUT_REF_AND_RESET(plugin);
+	BT_PLUGIN_PUT_REF_AND_RESET(plugin);
 	free(plugin_path);
 }
 

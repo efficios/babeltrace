@@ -46,7 +46,6 @@
 #include <babeltrace/value.h>
 #include <babeltrace/value-const.h>
 #include <babeltrace/value-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -415,4 +414,14 @@ const struct bt_trace_class *bt_trace_borrow_class_const(
 		const struct bt_trace *trace)
 {
 	return bt_trace_borrow_class((void *) trace);
+}
+
+void bt_trace_get_ref(const struct bt_trace *trace)
+{
+	bt_object_get_ref(trace);
+}
+
+void bt_trace_put_ref(const struct bt_trace *trace)
+{
+	bt_object_put_ref(trace);
 }

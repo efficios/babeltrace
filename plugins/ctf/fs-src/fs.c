@@ -109,7 +109,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 			 * BT_NOTIFICATION_TYPE_STREAM_BEGINNING
 			 * notification: skip this one, get a new one.
 			 */
-			BT_OBJECT_PUT_REF_AND_RESET(*notif);
+			BT_NOTIFICATION_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
 			*notif = priv_notif;
@@ -144,7 +144,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 			goto end;
 		}
 
-		BT_OBJECT_PUT_REF_AND_RESET(*notif);
+		BT_NOTIFICATION_PUT_REF_AND_RESET(*notif);
 		bt_notif_iter_reset(notif_iter_data->notif_iter);
 
 		/*
@@ -181,7 +181,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 			BT_ASSERT(bt_notification_get_type(*notif) ==
 				BT_NOTIFICATION_TYPE_STREAM_BEGINNING);
-			BT_OBJECT_PUT_REF_AND_RESET(*notif);
+			BT_NOTIFICATION_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);
 			*notif = priv_notif;
@@ -322,7 +322,7 @@ void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 		g_ptr_array_free(ctf_fs_trace->ds_file_groups, TRUE);
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(ctf_fs_trace->trace);
+	BT_TRACE_PUT_REF_AND_RESET(ctf_fs_trace->trace);
 
 	if (ctf_fs_trace->path) {
 		g_string_free(ctf_fs_trace->path, TRUE);
@@ -512,8 +512,8 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 		g_ptr_array_free(ds_file_group->ds_file_infos, TRUE);
 	}
 
-	bt_object_put_ref(ds_file_group->stream);
-	bt_object_put_ref(ds_file_group->stream_class);
+	bt_stream_put_ref(ds_file_group->stream);
+	bt_stream_class_put_ref(ds_file_group->stream_class);
 	g_free(ds_file_group);
 }
 
@@ -539,7 +539,7 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 	ds_file_group->stream_id = stream_instance_id;
 	BT_ASSERT(stream_class);
 	ds_file_group->stream_class = stream_class;
-	bt_object_get_ref(ds_file_group->stream_class);
+	bt_stream_class_get_ref(ds_file_group->stream_class);
 	ds_file_group->ctf_fs_trace = ctf_fs_trace;
 	goto end;
 
