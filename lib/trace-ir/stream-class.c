@@ -70,11 +70,11 @@ void destroy_stream_class(struct bt_object *obj)
 		stream_class->name.value = NULL;
 	}
 
-	BT_LOGD_STR("Putting event header field classe.");
+	BT_LOGD_STR("Putting event header field class.");
 	BT_OBJECT_PUT_REF_AND_RESET(stream_class->event_header_fc);
-	BT_LOGD_STR("Putting packet context field classe.");
+	BT_LOGD_STR("Putting packet context field class.");
 	BT_OBJECT_PUT_REF_AND_RESET(stream_class->packet_context_fc);
-	BT_LOGD_STR("Putting event common context field classe.");
+	BT_LOGD_STR("Putting event common context field class.");
 	BT_OBJECT_PUT_REF_AND_RESET(stream_class->event_common_context_fc);
 	bt_object_pool_finalize(&stream_class->event_header_field_pool);
 	bt_object_pool_finalize(&stream_class->packet_context_field_pool);
@@ -318,7 +318,7 @@ int bt_stream_class_set_packet_context_field_class(
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Packet context field classe is not a structure field classe: %!+F",
+		"Packet context field class is not a structure field class: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
 		bt_stream_class_borrow_trace_class_inline(stream_class)->packet_header_fc;
@@ -332,7 +332,7 @@ int bt_stream_class_set_packet_context_field_class(
 	stream_class->packet_context_fc = field_class;
 	bt_object_get_no_null_check(stream_class->packet_context_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set stream class's packet context field classe: %!+S",
+	BT_LIB_LOGV("Set stream class's packet context field class: %!+S",
 		stream_class);
 
 end:
@@ -365,7 +365,7 @@ int bt_stream_class_set_event_header_field_class(
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Event header field classe is not a structure field classe: %!+F",
+		"Event header field class is not a structure field class: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
 		bt_stream_class_borrow_trace_class_inline(stream_class)->packet_header_fc;
@@ -380,7 +380,7 @@ int bt_stream_class_set_event_header_field_class(
 	stream_class->event_header_fc = field_class;
 	bt_object_get_no_null_check(stream_class->event_header_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set stream class's event header field classe: %!+S",
+	BT_LIB_LOGV("Set stream class's event header field class: %!+S",
 		stream_class);
 
 end:
@@ -414,7 +414,7 @@ int bt_stream_class_set_event_common_context_field_class(
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Event common context field classe is not a structure field classe: %!+F",
+		"Event common context field class is not a structure field class: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
 		bt_stream_class_borrow_trace_class_inline(stream_class)->packet_header_fc;
@@ -430,7 +430,7 @@ int bt_stream_class_set_event_common_context_field_class(
 	stream_class->event_common_context_fc = field_class;
 	bt_object_get_no_null_check(stream_class->event_common_context_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set stream class's event common context field classe: %!+S",
+	BT_LIB_LOGV("Set stream class's event common context field class: %!+S",
 		stream_class);
 
 end:
