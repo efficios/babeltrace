@@ -26,8 +26,9 @@
 #define BT_LOG_TAG "PLUGIN-SO"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
 #include <babeltrace/plugin/plugin-dev.h>
@@ -39,7 +40,6 @@
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/types.h>
 #include <babeltrace/list-internal.h>
-#include <babeltrace/assert-internal.h>
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>

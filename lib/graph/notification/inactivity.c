@@ -23,6 +23,7 @@
 #define BT_LOG_TAG "NOTIF-INACTIVITY"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
@@ -31,8 +32,6 @@
 #include <babeltrace/graph/notification-inactivity-const.h>
 #include <babeltrace/graph/notification-inactivity.h>
 #include <babeltrace/graph/notification-inactivity-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object.h>
 
 static
 void bt_notification_inactivity_destroy(struct bt_object *obj)

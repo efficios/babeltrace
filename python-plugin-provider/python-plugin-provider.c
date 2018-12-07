@@ -29,7 +29,6 @@
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/plugin/plugin-const.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/graph/component-class.h>
@@ -495,7 +494,7 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(plugin_set);
 
 end:
-	bt_object_put_ref(plugin);
+	bt_plugin_put_ref(plugin);
 	Py_XDECREF(py_plugin_info);
 	g_free(basename);
 	return plugin_set;

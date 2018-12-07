@@ -25,7 +25,6 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/event-const.h>
 #include <babeltrace/trace-ir/event-internal.h>
@@ -1040,4 +1039,28 @@ error:
 end:
 	bt_object_put_ref(colander_comp_cls);
 	return (void *) iterator;
+}
+
+void bt_port_output_notification_iterator_get_ref(
+		const struct bt_port_output_notification_iterator *iterator)
+{
+	bt_object_get_ref(iterator);
+}
+
+void bt_port_output_notification_iterator_put_ref(
+		const struct bt_port_output_notification_iterator *iterator)
+{
+	bt_object_put_ref(iterator);
+}
+
+void bt_self_component_port_input_notification_iterator_get_ref(
+		const struct bt_self_component_port_input_notification_iterator *iterator)
+{
+	bt_object_get_ref(iterator);
+}
+
+void bt_self_component_port_input_notification_iterator_put_ref(
+		const struct bt_self_component_port_input_notification_iterator *iterator)
+{
+	bt_object_put_ref(iterator);
 }

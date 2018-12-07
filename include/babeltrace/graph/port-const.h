@@ -66,6 +66,23 @@ bt_bool bt_port_is_output(const struct bt_port *port)
 	return bt_port_get_type(port) == BT_PORT_TYPE_OUTPUT;
 }
 
+extern void bt_port_get_ref(const struct bt_port *port);
+
+extern void bt_port_put_ref(const struct bt_port *port);
+
+#define BT_PORT_PUT_REF_AND_RESET(_var)		\
+	do {					\
+		bt_port_put_ref(_var);		\
+		(_var) = NULL;			\
+	} while (0)
+
+#define BT_PORT_MOVE_REF(_var_dst, _var_src)	\
+	do {					\
+		bt_port_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);	\
+		(_var_src) = NULL;		\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

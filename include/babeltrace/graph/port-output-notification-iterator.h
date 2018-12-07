@@ -60,6 +60,25 @@ bt_port_output_notification_iterator_next(
 		struct bt_port_output_notification_iterator *iterator,
 		bt_notification_array_const *notifs, uint64_t *count);
 
+extern void bt_port_output_notification_iterator_get_ref(
+		const struct bt_port_output_notification_iterator *port_output_notification_iterator);
+
+extern void bt_port_output_notification_iterator_put_ref(
+		const struct bt_port_output_notification_iterator *port_output_notification_iterator);
+
+#define BT_PORT_OUTPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(_var)	\
+	do {								\
+		bt_port_output_notification_iterator_put_ref(_var);	\
+		(_var) = NULL;						\
+	} while (0)
+
+#define BT_PORT_OUTPUT_NOTIFICATION_ITERATOR_MOVE_REF(_var_dst, _var_src) \
+	do {								\
+		bt_port_output_notification_iterator_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);				\
+		(_var_src) = NULL;					\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

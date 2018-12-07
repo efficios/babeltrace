@@ -43,6 +43,23 @@ extern const struct bt_port_output *bt_connection_borrow_upstream_port_const(
 
 extern bt_bool bt_connection_is_ended(const struct bt_connection *connection);
 
+extern void bt_connection_get_ref(const struct bt_connection *connection);
+
+extern void bt_connection_put_ref(const struct bt_connection *connection);
+
+#define BT_CONNECTION_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_connection_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_CONNECTION_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_connection_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

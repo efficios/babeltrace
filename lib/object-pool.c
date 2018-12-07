@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object-pool-internal.h>
 
 int bt_object_pool_initialize(struct bt_object_pool *pool,

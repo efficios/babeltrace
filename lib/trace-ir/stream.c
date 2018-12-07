@@ -33,7 +33,6 @@
 #include <babeltrace/trace-ir/trace.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -232,4 +231,14 @@ void _bt_stream_freeze(const struct bt_stream *stream)
 	BT_ASSERT(stream);
 	BT_LIB_LOGD("Freezing stream: %!+s", stream);
 	((struct bt_stream *) stream)->frozen = true;
+}
+
+void bt_stream_get_ref(const struct bt_stream *stream)
+{
+	bt_object_get_ref(stream);
+}
+
+void bt_stream_put_ref(const struct bt_stream *stream)
+{
+	bt_object_put_ref(stream);
 }

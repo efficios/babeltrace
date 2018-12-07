@@ -26,7 +26,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <babeltrace/value.h>
-#include <babeltrace/object.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/component-class.h>

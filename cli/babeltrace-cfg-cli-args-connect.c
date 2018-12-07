@@ -584,7 +584,7 @@ static int validate_all_components_connected(struct bt_config *cfg,
 	}
 
 end:
-	bt_object_put_ref(connected_components);
+	bt_value_put_ref(connected_components);
 	return ret;
 }
 
@@ -635,7 +635,7 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 	}
 
 end:
-	bt_object_put_ref(flat_connection_names);
+	bt_value_put_ref(flat_connection_names);
 
 	if (flat_connection_name) {
 		g_string_free(flat_connection_name, TRUE);

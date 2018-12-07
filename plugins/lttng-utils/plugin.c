@@ -78,7 +78,7 @@ end:
 static
 void unref_trace(struct debug_info_trace *di_trace)
 {
-	bt_object_put_ref(di_trace->writer_trace);
+	bt_trace_put_ref(di_trace->writer_trace);
 	g_free(di_trace);
 }
 
@@ -98,7 +98,7 @@ void debug_info_iterator_destroy(struct bt_self_notification_iterator *it)
 			empty_trace_map, it_data);
 	g_hash_table_destroy(it_data->trace_map);
 
-	bt_object_put_ref(it_data->current_notification);
+	bt_notification_put_ref(it_data->current_notification);
 	bt_object_put_ref(it_data->input_iterator);
 
 	g_free(it_data);
@@ -127,8 +127,8 @@ const struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_packet_beginning_create(
 				writer_packet);
 		BT_ASSERT(new_notification);
-		bt_object_put_ref(packet);
-		bt_object_put_ref(writer_packet);
+		bt_packet_put_ref(packet);
+		bt_packet_put_ref(writer_packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -146,8 +146,8 @@ const struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_packet_end_create(
 				writer_packet);
 		BT_ASSERT(new_notification);
-		bt_object_put_ref(packet);
-		bt_object_put_ref(writer_packet);
+		bt_packet_put_ref(packet);
+		bt_packet_put_ref(writer_packet);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:
@@ -187,8 +187,8 @@ const struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_stream_beginning_create(
 				writer_stream);
 		BT_ASSERT(new_notification);
-		bt_object_put_ref(stream);
-		bt_object_put_ref(writer_stream);
+		bt_stream_put_ref(stream);
+		bt_stream_put_ref(writer_stream);
 		break;
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -206,12 +206,12 @@ const struct bt_notification *handle_notification(FILE *err,
 		new_notification = bt_notification_stream_end_create(
 				writer_stream);
 		BT_ASSERT(new_notification);
-		bt_object_put_ref(stream);
-		bt_object_put_ref(writer_stream);
+		bt_stream_put_ref(stream);
+		bt_stream_put_ref(writer_stream);
 		break;
 	}
 	default:
-		new_notification = bt_object_get_ref(notification);
+		new_notification = bt_notification_get_ref(notification);
 		break;
 	}
 
@@ -258,7 +258,7 @@ struct bt_notification_iterator_next_method_return debug_info_iterator_next(
 	ret.notification = handle_notification(debug_info->err, debug_it,
 			notification);
 	BT_ASSERT(ret.notification);
-	bt_object_put_ref(notification);
+	bt_notification_put_ref(notification);
 
 end:
 	bt_object_put_ref(component);
@@ -340,7 +340,7 @@ enum bt_component_status init_from_params(
 
 		tmp = bt_value_string_get(value);
 		strcpy(debug_info_component->arg_debug_info_field_name, tmp);
-		bt_object_put_ref(value);
+		bt_value_put_ref(value);
 	} else {
 		debug_info_component->arg_debug_info_field_name =
 			malloc(strlen("debug_info") + 1);
@@ -362,7 +362,7 @@ enum bt_component_status init_from_params(
 
 		debug_info_component->arg_debug_dir = bt_value_string_get(value);
 	}
-	bt_object_put_ref(value);
+	bt_value_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -373,7 +373,7 @@ enum bt_component_status init_from_params(
 
 		debug_info_component->arg_target_prefix = bt_value_string_get(value);
 	}
-	bt_object_put_ref(value);
+	bt_value_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}
@@ -387,7 +387,7 @@ enum bt_component_status init_from_params(
 
 		debug_info_component->arg_full_path = bool_val;
 	}
-	bt_object_put_ref(value);
+	bt_value_put_ref(value);
 	if (ret != BT_COMPONENT_STATUS_OK) {
 		goto end;
 	}

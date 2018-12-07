@@ -29,15 +29,14 @@
 #include <inttypes.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/value-const.h>
 #include <babeltrace/value.h>
 #include <babeltrace/compat/glib-internal.h>
 #include <babeltrace/types.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/value-internal.h>
 #include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 
 #define BT_VALUE_FROM_CONCRETE(_concrete) ((struct bt_value *) (_concrete))
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
@@ -1298,4 +1297,14 @@ bt_bool bt_value_compare(const struct bt_value *object_a,
 
 end:
 	return ret;
+}
+
+void bt_value_get_ref(const struct bt_value *value)
+{
+	bt_object_get_ref(value);
+}
+
+void bt_value_put_ref(const struct bt_value *value)
+{
+	bt_object_put_ref(value);
 }

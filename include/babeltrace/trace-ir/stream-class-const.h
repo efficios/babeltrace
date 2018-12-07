@@ -39,7 +39,7 @@ extern "C" {
 struct bt_trace_class;
 struct bt_stream_class;
 struct bt_event_class;
-struct bt_clock_class;
+struct bt_stream_class;
 struct bt_event_header_field;
 struct bt_packet_context_field;
 
@@ -99,6 +99,23 @@ extern bt_bool bt_stream_class_packets_have_default_beginning_clock_value(
 
 extern bt_bool bt_stream_class_packets_have_default_end_clock_value(
 		const struct bt_stream_class *stream_class);
+
+extern void bt_stream_class_get_ref(const struct bt_stream_class *stream_class);
+
+extern void bt_stream_class_put_ref(const struct bt_stream_class *stream_class);
+
+#define BT_STREAM_CLASS_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_stream_class_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_STREAM_CLASS_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_stream_class_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
 
 #ifdef __cplusplus
 }

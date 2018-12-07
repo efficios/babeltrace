@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "COMP-SINK"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/value.h>
 #include <babeltrace/graph/self-component-sink.h>
@@ -31,9 +33,6 @@
 #include <babeltrace/graph/component-sink-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/graph.h>
-#include <babeltrace/object.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 
 BT_HIDDEN
 void bt_component_sink_destroy(struct bt_component *component)
@@ -122,4 +121,16 @@ enum bt_self_component_status bt_self_component_sink_add_input_port(
 end:
 	bt_object_put_ref(port);
 	return status;
+}
+
+void bt_component_sink_get_ref(
+		const struct bt_component_sink *component_sink)
+{
+	bt_object_get_ref(component_sink);
+}
+
+void bt_component_sink_put_ref(
+		const struct bt_component_sink *component_sink)
+{
+	bt_object_put_ref(component_sink);
 }

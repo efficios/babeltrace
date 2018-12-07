@@ -90,7 +90,7 @@ struct src_iter_user_data {
 };
 
 struct sink_user_data {
-	void *notif_iter;
+	struct bt_self_component_port_input_notification_iterator *notif_iter;
 };
 
 /*
@@ -279,8 +279,8 @@ void init_static_data(void)
 		fprintf(stderr, ":: stream 2, packet 2: %p\n", src_stream2_packet2);
 	}
 
-	bt_object_put_ref(trace);
-	bt_object_put_ref(trace_class);
+	bt_trace_put_ref(trace);
+	bt_trace_class_put_ref(trace_class);
 }
 
 static
@@ -290,14 +290,14 @@ void fini_static_data(void)
 	g_array_free(test_events, TRUE);
 
 	/* Metadata */
-	bt_object_put_ref(src_stream_class);
-	bt_object_put_ref(src_event_class);
-	bt_object_put_ref(src_stream1);
-	bt_object_put_ref(src_stream2);
-	bt_object_put_ref(src_stream1_packet1);
-	bt_object_put_ref(src_stream1_packet2);
-	bt_object_put_ref(src_stream2_packet1);
-	bt_object_put_ref(src_stream2_packet2);
+	bt_stream_class_put_ref(src_stream_class);
+	bt_event_class_put_ref(src_event_class);
+	bt_stream_put_ref(src_stream1);
+	bt_stream_put_ref(src_stream2);
+	bt_packet_put_ref(src_stream1_packet1);
+	bt_packet_put_ref(src_stream1_packet2);
+	bt_packet_put_ref(src_stream2_packet1);
+	bt_packet_put_ref(src_stream2_packet2);
 }
 
 static
@@ -575,7 +575,7 @@ enum bt_notification_iterator_status common_consume(
 
 	for (i = 0; i < count; i++) {
 		append_test_events_from_notification(notifications[i]);
-		bt_object_put_ref(notifications[i]);
+		bt_notification_put_ref(notifications[i]);
 	}
 
 end:
@@ -604,7 +604,8 @@ enum bt_self_component_status sink_consume(
 	switch (it_ret) {
 	case BT_NOTIFICATION_ITERATOR_STATUS_END:
 		ret = BT_SELF_COMPONENT_STATUS_END;
-		BT_OBJECT_PUT_REF_AND_RESET(user_data->notif_iter);
+		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(
+			user_data->notif_iter);
 		goto end;
 	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
 		abort();
@@ -661,7 +662,8 @@ void sink_finalize(struct bt_self_component_sink *self_comp)
 				self_comp));
 
 	if (user_data) {
-		bt_object_put_ref(user_data->notif_iter);
+		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(
+			user_data->notif_iter);
 		g_free(user_data);
 	}
 }
@@ -695,7 +697,7 @@ void create_source_sink(struct bt_graph *graph,
 		ret = bt_graph_add_source_component(graph,
 			src_comp_class, "source", NULL, source);
 		BT_ASSERT(ret == 0);
-		bt_object_put_ref(src_comp_class);
+		bt_component_class_source_put_ref(src_comp_class);
 	}
 
 	/* Create sink component */
@@ -715,7 +717,7 @@ void create_source_sink(struct bt_graph *graph,
 			sink_comp_class,
 			"sink", NULL, sink);
 		BT_ASSERT(ret == 0);
-		bt_object_put_ref(sink_comp_class);
+		bt_component_class_sink_put_ref(sink_comp_class);
 	}
 }
 
@@ -763,9 +765,9 @@ void do_std_test(enum test test, const char *name,
 			"the produced sequence of test events is the expected one");
 	}
 
-	bt_object_put_ref(src_comp);
-	bt_object_put_ref(sink_comp);
-	BT_OBJECT_PUT_REF_AND_RESET(graph);
+	bt_component_source_put_ref(src_comp);
+	bt_component_sink_put_ref(sink_comp);
+	BT_GRAPH_PUT_REF_AND_RESET(graph);
 }
 
 static
@@ -852,9 +854,9 @@ void test_output_port_notification_iterator(void)
 	ok(compare_test_events(expected_test_events),
 		"the produced sequence of test events is the expected one");
 
-	bt_object_put_ref(src_comp);
-	BT_OBJECT_PUT_REF_AND_RESET(graph);
-	bt_object_put_ref(notif_iter);
+	bt_component_source_put_ref(src_comp);
+	BT_GRAPH_PUT_REF_AND_RESET(graph);
+	bt_port_output_notification_iterator_put_ref(notif_iter);
 }
 
 #define DEBUG_ENV_VAR	"TEST_BT_NOTIFICATION_ITERATOR_DEBUG"

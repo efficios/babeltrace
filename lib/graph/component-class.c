@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "COMP-CLASS"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/component-class.h>
 #include <babeltrace/graph/component-class-const.h>
@@ -34,10 +36,7 @@
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/component-class-sink-const.h>
 #include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/types.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 #include <glib.h>
 
 #define BT_ASSERT_PRE_COMP_CLS_HOT(_cc) \
@@ -651,4 +650,52 @@ void _bt_component_class_freeze(const struct bt_component_class *comp_cls)
 	BT_ASSERT(comp_cls);
 	BT_LIB_LOGD("Freezing component class: %!+C", comp_cls);
 	((struct bt_component_class *) comp_cls)->frozen = true;
+}
+
+void bt_component_class_get_ref(
+		const struct bt_component_class *component_class)
+{
+	bt_object_get_ref(component_class);
+}
+
+void bt_component_class_put_ref(
+		const struct bt_component_class *component_class)
+{
+	bt_object_put_ref(component_class);
+}
+
+void bt_component_class_source_get_ref(
+		const struct bt_component_class_source *component_class_source)
+{
+	bt_object_get_ref(component_class_source);
+}
+
+void bt_component_class_source_put_ref(
+		const struct bt_component_class_source *component_class_source)
+{
+	bt_object_put_ref(component_class_source);
+}
+
+void bt_component_class_filter_get_ref(
+		const struct bt_component_class_filter *component_class_filter)
+{
+	bt_object_get_ref(component_class_filter);
+}
+
+void bt_component_class_filter_put_ref(
+		const struct bt_component_class_filter *component_class_filter)
+{
+	bt_object_put_ref(component_class_filter);
+}
+
+void bt_component_class_sink_get_ref(
+		const struct bt_component_class_sink *component_class_sink)
+{
+	bt_object_get_ref(component_class_sink);
+}
+
+void bt_component_class_sink_put_ref(
+		const struct bt_component_class_sink *component_class_sink)
+{
+	bt_object_put_ref(component_class_sink);
 }

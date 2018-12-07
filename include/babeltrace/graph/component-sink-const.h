@@ -52,6 +52,25 @@ extern const struct bt_port_input *
 bt_component_sink_borrow_input_port_by_index_const(
 		const struct bt_component_sink *component, uint64_t index);
 
+extern void bt_component_sink_get_ref(
+		const struct bt_component_sink *component_sink);
+
+extern void bt_component_sink_put_ref(
+		const struct bt_component_sink *component_sink);
+
+#define BT_COMPONENT_SINK_PUT_REF_AND_RESET(_var)		\
+	do {							\
+		bt_component_sink_put_ref(_var);		\
+		(_var) = NULL;					\
+	} while (0)
+
+#define BT_COMPONENT_SINK_MOVE_REF(_var_dst, _var_src)		\
+	do {							\
+		bt_component_sink_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);			\
+		(_var_src) = NULL;				\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

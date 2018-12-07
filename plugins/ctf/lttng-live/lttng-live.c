@@ -76,7 +76,7 @@ void print_stream_state(struct lttng_live_stream_iterator *stream)
 		print_state(stream),
 		stream->last_returned_inactivity_timestamp,
 		stream->current_inactivity_timestamp);
-	bt_object_put_ref(port);
+	bt_port_put_ref(port);
 }
 
 BT_HIDDEN
@@ -93,8 +93,8 @@ bt_bool lttng_live_is_canceled(struct lttng_live_component *lttng_live)
 	component = bt_component_from_private(lttng_live->private_component);
 	graph = bt_component_get_graph(component);
 	ret = bt_graph_is_canceled(graph);
-	bt_object_put_ref(graph);
-	bt_object_put_ref(component);
+	bt_graph_put_ref(graph);
+	bt_component_put_ref(component);
 	return ret;
 }
 
@@ -154,7 +154,7 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 	if (nr_ports < 0) {
 		return -1;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(component);
+	BT_COMPONENT_PUT_REF_AND_RESET(component);
 	if (nr_ports == 1) {
 		enum bt_component_status status;
 
@@ -214,7 +214,7 @@ void lttng_live_destroy_trace(struct bt_object *obj)
 
 		retval = bt_trace_set_is_static(trace->trace);
 		BT_ASSERT(!retval);
-		BT_OBJECT_PUT_REF_AND_RESET(trace->trace);
+		BT_TRACE_PUT_REF_AND_RESET(trace->trace);
 	}
 	lttng_live_metadata_fini(trace);
 	BT_OBJECT_PUT_REF_AND_RESET(trace->cc_prio_map);
@@ -590,12 +590,12 @@ enum bt_lttng_live_iterator_status emit_inactivity_notification(
 	*notification = notif;
 end:
 	bt_object_put_ref(clock_value);
-	bt_object_put_ref(clock_class);
+	bt_clock_class_put_ref(clock_class);
 	return ret;
 
 error:
 	ret = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
-	bt_object_put_ref(notif);
+	bt_notification_put_ref(notif);
 	goto end;
 }
 
@@ -628,7 +628,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent
 			lttng_live_stream->current_inactivity_timestamp;
 end:
 	bt_object_put_ref(clock_value);
-	bt_object_put_ref(clock_class);
+	bt_clock_class_put_ref(clock_class);
 	return ret;
 }
 
@@ -999,7 +999,7 @@ end:
 	if (viewer_connection) {
 		bt_live_viewer_connection_destroy(viewer_connection);
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(url_value);
+	BT_VALUE_PUT_REF_AND_RESET(url_value);
 	return query_ret;
 }
 
@@ -1085,7 +1085,7 @@ struct lttng_live_component *lttng_live_component_create(struct bt_value *params
 	if (!lttng_live->url) {
 		goto error;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(value);
+	BT_VALUE_PUT_REF_AND_RESET(value);
 	lttng_live->viewer_connection =
 		bt_live_viewer_connection_create(lttng_live->url->str, lttng_live);
 	if (!lttng_live->viewer_connection) {
@@ -1164,7 +1164,7 @@ enum bt_component_status lttng_live_accept_port_connection(
 	const struct bt_port *self_port = bt_port_from_private(self_private_port);
 
 	other_component = bt_port_get_component(other_port);
-	bt_object_put_ref(other_component);	/* weak */
+	bt_component_put_ref(other_component);	/* weak */
 
 	if (!lttng_live->downstream_component) {
 		lttng_live->downstream_component = other_component;
@@ -1184,6 +1184,6 @@ enum bt_component_status lttng_live_accept_port_connection(
 		goto end;
 	}
 end:
-	bt_object_put_ref(self_port);
+	bt_port_put_ref(self_port);
 	return status;
 }

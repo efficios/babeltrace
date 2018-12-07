@@ -27,7 +27,6 @@
 
 /* Core API */
 #include <babeltrace/logging.h>
-#include <babeltrace/object.h>
 #include <babeltrace/property.h>
 #include <babeltrace/types.h>
 #include <babeltrace/value-const.h>

@@ -26,9 +26,10 @@
 #define BT_LOG_TAG "PLUGIN"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
@@ -36,8 +37,6 @@
 #include <babeltrace/graph/component-class-const.h>
 #include <babeltrace/graph/component-class-internal.h>
 #include <babeltrace/types.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -612,4 +611,24 @@ bt_plugin_borrow_sink_component_class_by_name_const(
 {
 	return (const void *) borrow_component_class_by_name(plugin,
 		plugin->sink_comp_classes, name);
+}
+
+void bt_plugin_get_ref(const struct bt_plugin *plugin)
+{
+	bt_object_get_ref(plugin);
+}
+
+void bt_plugin_put_ref(const struct bt_plugin *plugin)
+{
+	bt_object_put_ref(plugin);
+}
+
+void bt_plugin_set_get_ref(const struct bt_plugin_set *plugin_set)
+{
+	bt_object_get_ref(plugin_set);
+}
+
+void bt_plugin_set_put_ref(const struct bt_plugin_set *plugin_set)
+{
+	bt_object_put_ref(plugin_set);
 }

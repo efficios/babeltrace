@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "GRAPH"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/graph-const.h>
@@ -42,9 +44,6 @@
 #include <babeltrace/value.h>
 #include <babeltrace/value-const.h>
 #include <babeltrace/value-internal.h>
-#include <babeltrace/object.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 #include <unistd.h>
 #include <glib.h>
 
@@ -1936,4 +1935,14 @@ void bt_graph_add_notification(struct bt_graph *graph,
 	 *   graph, which means the original graph is already destroyed.
 	 */
 	g_ptr_array_add(graph->notifications, notif);
+}
+
+void bt_graph_get_ref(const struct bt_graph *graph)
+{
+	bt_object_get_ref(graph);
+}
+
+void bt_graph_put_ref(const struct bt_graph *graph)
+{
+	bt_object_put_ref(graph);
 }
