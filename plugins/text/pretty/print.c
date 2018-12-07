@@ -1373,7 +1373,7 @@ int pretty_print_packet(struct pretty_component *pretty,
 		const struct bt_notification *packet_beginning_notif)
 {
 #if 0
-	const struct bt_packet *packet = bt_notification_packet_begin_borrow_packet_const(
+	const struct bt_packet *packet = bt_notification_packet_beginning_borrow_packet_const(
 		packet_beginning_notif);
 	uint64_t count;
 	int status = 0;

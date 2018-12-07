@@ -293,7 +293,7 @@ static
 void destroy_notification_packet_begin(struct bt_notification *notif,
 		struct bt_graph *graph)
 {
-	bt_notification_packet_begin_destroy(notif);
+	bt_notification_packet_beginning_destroy(notif);
 }
 
 static
@@ -464,7 +464,7 @@ struct bt_graph *bt_graph_create(void)
 	}
 
 	ret = bt_object_pool_initialize(&graph->packet_begin_notif_pool,
-		(bt_object_pool_new_object_func) bt_notification_packet_begin_new,
+		(bt_object_pool_new_object_func) bt_notification_packet_beginning_new,
 		(bt_object_pool_destroy_object_func) destroy_notification_packet_begin,
 		graph);
 	if (ret) {

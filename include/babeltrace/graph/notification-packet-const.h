@@ -32,7 +32,7 @@ extern "C" {
 struct bt_notification;
 struct bt_packet;
 
-extern const struct bt_packet *bt_notification_packet_begin_borrow_packet_const(
+extern const struct bt_packet *bt_notification_packet_beginning_borrow_packet_const(
 		const struct bt_notification *notification);
 
 extern const struct bt_packet *bt_notification_packet_end_borrow_packet_const(

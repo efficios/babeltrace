@@ -2274,7 +2274,7 @@ void notify_new_stream(struct bt_notif_iter *notit,
 
 	BT_ASSERT(notit->stream);
 	BT_ASSERT(notit->notif_iter);
-	ret = bt_notification_stream_begin_create(notit->notif_iter,
+	ret = bt_notification_stream_beginning_create(notit->notif_iter,
 		notit->stream);
 	if (!ret) {
 		BT_LOGE("Cannot create stream beginning notification: "
@@ -2392,7 +2392,7 @@ void notify_new_packet(struct bt_notif_iter *notit,
 	}
 
 	BT_ASSERT(notit->notif_iter);
-	notif = bt_notification_packet_begin_create(notit->notif_iter,
+	notif = bt_notification_packet_beginning_create(notit->notif_iter,
 		notit->packet);
 	if (!notif) {
 		BT_LOGE("Cannot create packet beginning notification: "

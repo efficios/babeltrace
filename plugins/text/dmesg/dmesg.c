@@ -768,13 +768,13 @@ handle_state:
 	switch (dmesg_notif_iter->state) {
 	case STATE_EMIT_STREAM_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		*notif = bt_notification_stream_begin_create(
+		*notif = bt_notification_stream_beginning_create(
 			dmesg_notif_iter->pc_notif_iter, dmesg_comp->stream);
 		dmesg_notif_iter->state = STATE_EMIT_PACKET_BEGINNING;
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
 		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		*notif = bt_notification_packet_begin_create(
+		*notif = bt_notification_packet_beginning_create(
 			dmesg_notif_iter->pc_notif_iter, dmesg_comp->packet);
 		dmesg_notif_iter->state = STATE_EMIT_EVENT;
 		break;
