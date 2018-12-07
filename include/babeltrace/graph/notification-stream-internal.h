@@ -31,7 +31,7 @@
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/assert-internal.h>
 
-struct bt_notification_stream_begin {
+struct bt_notification_stream_beginning {
 	struct bt_notification parent;
 	struct bt_stream *stream;
 	struct bt_clock_value *default_cv;

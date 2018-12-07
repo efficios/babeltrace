@@ -30,7 +30,7 @@
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/assert-internal.h>
 
-struct bt_notification_packet_begin {
+struct bt_notification_packet_beginning {
 	struct bt_notification parent;
 	struct bt_packet *packet;
 };
@@ -41,13 +41,13 @@ struct bt_notification_packet_end {
 };
 
 BT_HIDDEN
-struct bt_notification *bt_notification_packet_begin_new(
+struct bt_notification *bt_notification_packet_beginning_new(
 		struct bt_graph *graph);
 BT_HIDDEN
-void bt_notification_packet_begin_recycle(struct bt_notification *notif);
+void bt_notification_packet_beginning_recycle(struct bt_notification *notif);
 
 BT_HIDDEN
-void bt_notification_packet_begin_destroy(struct bt_notification *notif);
+void bt_notification_packet_beginning_destroy(struct bt_notification *notif);
 
 BT_HIDDEN
 struct bt_notification *bt_notification_packet_end_new(struct bt_graph *graph);

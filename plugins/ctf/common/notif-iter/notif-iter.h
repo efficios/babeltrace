@@ -352,7 +352,7 @@ off_t bt_notif_iter_get_current_packet_size(
  * Resets the iterator so that the next requested medium bytes are
  * assumed to be the first bytes of a new stream. The first notification
  * which this iterator emits after calling bt_notif_iter_reset() is a
- * BT_NOTIFICATION_TYPE_STREAM_BEGIN one.
+ * BT_NOTIFICATION_TYPE_STREAM_BEGINNING one.
  */
 BT_HIDDEN
 void bt_notif_iter_reset(struct bt_notif_iter *notit);

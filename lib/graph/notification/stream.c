@@ -140,10 +140,10 @@ struct bt_clock_value *bt_notification_stream_end_borrow_default_clock_value(
 }
 
 static
-void bt_notification_stream_begin_destroy(struct bt_object *obj)
+void bt_notification_stream_beginning_destroy(struct bt_object *obj)
 {
-	struct bt_notification_stream_begin *notification =
-			(struct bt_notification_stream_begin *) obj;
+	struct bt_notification_stream_beginning *notification =
+			(struct bt_notification_stream_beginning *) obj;
 
 	BT_LIB_LOGD("Destroying stream beginning notification: %!+n",
 		notification);
@@ -158,11 +158,11 @@ void bt_notification_stream_begin_destroy(struct bt_object *obj)
 	g_free(notification);
 }
 
-struct bt_notification *bt_notification_stream_begin_create(
+struct bt_notification *bt_notification_stream_beginning_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_stream *stream)
 {
-	struct bt_notification_stream_begin *notification;
+	struct bt_notification_stream_beginning *notification;
 	struct bt_stream_class *stream_class;
 
 	BT_ASSERT_PRE_NON_NULL(self_notif_iter, "Notification iterator");
@@ -171,15 +171,15 @@ struct bt_notification *bt_notification_stream_begin_create(
 	BT_ASSERT(stream_class);
 	BT_LIB_LOGD("Creating stream beginning notification object: "
 		"%![stream-]+s, %![sc-]+S", stream, stream_class);
-	notification = g_new0(struct bt_notification_stream_begin, 1);
+	notification = g_new0(struct bt_notification_stream_beginning, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one stream beginning notification.");
 		goto error;
 	}
 
 	bt_notification_init(&notification->parent,
-			BT_NOTIFICATION_TYPE_STREAM_BEGIN,
-			bt_notification_stream_begin_destroy, NULL);
+			BT_NOTIFICATION_TYPE_STREAM_BEGINNING,
+			bt_notification_stream_beginning_destroy, NULL);
 	notification->stream = stream;
 	bt_object_get_no_null_check(notification->stream);
 	BT_LIB_LOGD("Created stream beginning notification object: "
@@ -190,34 +190,34 @@ error:
 	return NULL;
 }
 
-struct bt_stream *bt_notification_stream_begin_borrow_stream(
+struct bt_stream *bt_notification_stream_beginning_borrow_stream(
 		struct bt_notification *notification)
 {
-	struct bt_notification_stream_begin *stream_begin;
+	struct bt_notification_stream_beginning *stream_begin;
 
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
-		BT_NOTIFICATION_TYPE_STREAM_BEGIN);
+		BT_NOTIFICATION_TYPE_STREAM_BEGINNING);
 	stream_begin = (void *) notification;
 	return stream_begin->stream;
 }
 
-const struct bt_stream *bt_notification_stream_begin_borrow_stream_const(
+const struct bt_stream *bt_notification_stream_beginning_borrow_stream_const(
 		const struct bt_notification *notification)
 {
-	return bt_notification_stream_begin_borrow_stream(
+	return bt_notification_stream_beginning_borrow_stream(
 		(void *) notification);
 }
 
-void bt_notification_stream_begin_set_default_clock_value(
+void bt_notification_stream_beginning_set_default_clock_value(
 		struct bt_notification *notif,
 		uint64_t value_cycles)
 {
-	struct bt_notification_stream_begin *sb_notif = (void *) notif;
+	struct bt_notification_stream_beginning *sb_notif = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
 	BT_ASSERT_PRE_HOT(notif, "Notification", ": %!+n", notif);
-	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_STREAM_BEGIN);
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_STREAM_BEGINNING);
 	BT_ASSERT_PRE(sb_notif->stream->class->default_clock_class,
 		"Notification's stream class has no default clock class: "
 		"%![notif-]+n, %![sc-]+S", notif, sb_notif->stream->class);
@@ -231,12 +231,12 @@ void bt_notification_stream_begin_set_default_clock_value(
 		"value=%" PRIu64, value_cycles);
 }
 
-struct bt_clock_value *bt_notification_stream_begin_borrow_default_clock_value(
+struct bt_clock_value *bt_notification_stream_beginning_borrow_default_clock_value(
 		struct bt_notification *notif)
 {
-	struct bt_notification_stream_begin *stream_begin = (void *) notif;
+	struct bt_notification_stream_beginning *stream_begin = (void *) notif;
 
 	BT_ASSERT_PRE_NON_NULL(notif, "Notification");
-	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_STREAM_BEGIN);
+	BT_ASSERT_PRE_NOTIF_IS_TYPE(notif, BT_NOTIFICATION_TYPE_STREAM_BEGINNING);
 	return stream_begin->default_cv;
 }
