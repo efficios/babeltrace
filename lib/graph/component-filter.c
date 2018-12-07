@@ -26,7 +26,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 #include <babeltrace/graph/self-component-filter.h>
 #include <babeltrace/graph/component-filter-const.h>
 #include <babeltrace/graph/component-filter-internal.h>

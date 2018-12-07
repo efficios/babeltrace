@@ -32,11 +32,11 @@
 #include <glib.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/lib-logging-internal.h>
-#include <babeltrace/values-internal.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/value-internal.h>
+#include <babeltrace/value-internal.h>
 #include <babeltrace/object-pool-internal.h>
-#include <babeltrace/trace-ir/field-classes-internal.h>
-#include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/field-class-internal.h>
+#include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
 #include <babeltrace/trace-ir/event-const.h>
 #include <babeltrace/trace-ir/event-internal.h>

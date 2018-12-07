@@ -8,8 +8,8 @@ libtrace_ir_la_SOURCES = \
 	event-class.c \
 	event-header-field.c \
 	field-wrapper.c \
-	fields.c \
-	field-classes.c \
+	field.c \
+	field-class.c \
 	field-path.c \
 	packet.c \
 	packet-context-field.c \

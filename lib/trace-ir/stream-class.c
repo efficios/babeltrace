@@ -28,8 +28,8 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
-#include <babeltrace/trace-ir/field-classes-internal.h>
-#include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/field-class-internal.h>
+#include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/trace-ir/trace-const.h>
 #include <babeltrace/trace-ir/trace-internal.h>

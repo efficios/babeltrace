@@ -32,7 +32,7 @@
 #include <babeltrace/types.h>
 
 /* For enum bt_field_class_integer_preferred_display_base */
-#include <babeltrace/trace-ir/field-classes-const.h>
+#include <babeltrace/trace-ir/field-class-const.h>
 
 #include <stdint.h>
 #include <stddef.h>

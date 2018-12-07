@@ -31,7 +31,7 @@
 #include <stdint.h>
 
 /* For enum bt_field_class_type */
-#include <babeltrace/trace-ir/field-classes.h>
+#include <babeltrace/trace-ir/field-class.h>
 
 #ifdef __cplusplus
 extern "C" {

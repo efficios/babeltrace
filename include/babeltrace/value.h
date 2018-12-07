@@ -31,7 +31,7 @@
 #include <babeltrace/types.h>
 
 /* For enum bt_value_status, enum bt_value_type */
-#include <babeltrace/values-const.h>
+#include <babeltrace/value-const.h>
 
 #ifdef __cplusplus
 extern "C" {

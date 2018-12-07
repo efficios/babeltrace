@@ -24,8 +24,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/values.h>
-#include <babeltrace/values-const.h>
+#include <babeltrace/value.h>
+#include <babeltrace/value-const.h>
 
 BT_HIDDEN
 enum bt_value_status _bt_value_freeze(const struct bt_value *object);

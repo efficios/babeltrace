@@ -137,7 +137,7 @@ int update_lazy_bound(struct trimmer_bound *bound, const char *name,
 		}
 		tm.tm_sec = bound->lazy_values.ss;
 		tm.tm_min = bound->lazy_values.mm;
-		tm.tm_hour = bound->lazy_values.hh;
+		tm.tm_hour = bound->lazy_value.hh;
 		timeval = bt_timegm(&tm);
 		if (timeval < 0) {
 			BT_LOGE("Failure in bt_timegm(), incorrectly formatted %s timestamp",
@@ -152,7 +152,7 @@ int update_lazy_bound(struct trimmer_bound *bound, const char *name,
 		}
 		tm.tm_sec = bound->lazy_values.ss;
 		tm.tm_min = bound->lazy_values.mm;
-		tm.tm_hour = bound->lazy_values.hh;
+		tm.tm_hour = bound->lazy_value.hh;
 		timeval = mktime(&tm);
 		if (timeval < 0) {
 			BT_LOGE("Failure in mktime(), incorrectly formatted %s timestamp",

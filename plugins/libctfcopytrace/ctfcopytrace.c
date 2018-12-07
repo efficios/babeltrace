@@ -33,7 +33,7 @@
 #include <babeltrace/assert-internal.h>
 
 #include "ctfcopytrace.h"
-#include "clock-fields.h"
+#include "clock-field.h"
 
 BT_HIDDEN
 const struct bt_clock_class *ctf_copy_clock_class(FILE *err,

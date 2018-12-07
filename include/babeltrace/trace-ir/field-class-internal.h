@@ -27,7 +27,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/field-classes.h>
+#include <babeltrace/trace-ir/field-class.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>

@@ -26,7 +26,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 #include <babeltrace/graph/self-component-sink.h>
 #include <babeltrace/graph/component-sink-const.h>
 #include <babeltrace/graph/component-sink-internal.h>

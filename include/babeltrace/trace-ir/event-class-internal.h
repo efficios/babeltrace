@@ -26,10 +26,10 @@
  */
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/field-classes.h>
-#include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/field-class.h>
+#include <babeltrace/trace-ir/field.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream.h>

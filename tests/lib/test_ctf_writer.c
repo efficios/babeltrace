@@ -29,7 +29,7 @@
 #include <babeltrace/ctf-writer/trace.h>
 #include <babeltrace/object.h>
 #include <babeltrace/ctf/events.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 #include <glib.h>
 #include <unistd.h>
 #include <babeltrace/compat/stdlib-internal.h>

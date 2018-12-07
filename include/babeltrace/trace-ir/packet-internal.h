@@ -27,7 +27,7 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/trace-ir/clock-value-const.h>
 #include <babeltrace/trace-ir/packet.h>
-#include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <babeltrace/object-internal.h>

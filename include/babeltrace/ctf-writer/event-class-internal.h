@@ -34,7 +34,7 @@
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/trace-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 #include <glib.h>
 
 struct bt_ctf_event_class_common {

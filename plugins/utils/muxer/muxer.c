@@ -26,7 +26,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/value-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/connection-internal.h>

@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/object-internal.h>
-#include <babeltrace/trace-ir/field-classes-const.h>
+#include <babeltrace/trace-ir/field-class-const.h>
 #include <babeltrace/trace-ir/field-path-const.h>
 #include <glib.h>
 

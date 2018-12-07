@@ -32,15 +32,15 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/trace-ir/fields.h>
-#include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/field.h>
+#include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <babeltrace/object-internal.h>

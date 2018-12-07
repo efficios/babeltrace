@@ -24,7 +24,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 
 struct bt_ctf_trace_common;
 struct bt_ctf_stream_class_common;

@@ -135,7 +135,7 @@ int timestamp_from_param(const char *param_name, struct bt_value *param,
 	if (ret == 4) {
 		if (!trimmer->date) {
 			/* We don't know which day until we get an event. */
-			result_bound->lazy_values.hh = hh;
+			result_bound->lazy_value.hh = hh;
 			result_bound->lazy_values.mm = mm;
 			result_bound->lazy_values.ss = ss;
 			result_bound->lazy_values.ns = ns;
@@ -227,7 +227,7 @@ int timestamp_from_param(const char *param_name, struct bt_value *param,
 	if (ret == 3) {
 		if (!trimmer->date) {
 			/* We don't know which day until we get an event. */
-			result_bound->lazy_values.hh = hh;
+			result_bound->lazy_value.hh = hh;
 			result_bound->lazy_values.mm = mm;
 			result_bound->lazy_values.ss = ss;
 			result_bound->lazy_values.ns = 0;

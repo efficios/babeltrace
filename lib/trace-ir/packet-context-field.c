@@ -26,7 +26,7 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/packet-context-field.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <glib.h>
 

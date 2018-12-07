@@ -43,8 +43,8 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/object.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/value.h>
+#include <babeltrace/value-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 #include <stdint.h>
