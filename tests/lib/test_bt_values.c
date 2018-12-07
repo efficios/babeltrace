@@ -977,10 +977,7 @@ void test_extend(void)
 	status = bt_value_map_insert_real_entry(extension_map,
 		"project", -404);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_extend(
-		&extended_map,
-		base_map,
-		extension_map);
+	status = bt_value_map_extend(base_map, extension_map, &extended_map);
 	ok(status == BT_VALUE_STATUS_OK &&
 		extended_map, "bt_value_map_extend() succeeds");
 	ok(bt_value_map_get_size(extended_map) == 5,
