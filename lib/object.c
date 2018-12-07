@@ -1,4 +1,5 @@
 /*
+ * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  * Copyright (c) 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

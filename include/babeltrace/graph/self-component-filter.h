@@ -2,6 +2,7 @@
 #define BABELTRACE_GRAPH_SELF_COMPONENT_FILTER_H
 
 /*
+ * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  * Copyright 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
