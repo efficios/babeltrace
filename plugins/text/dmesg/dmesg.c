@@ -31,7 +31,7 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/babeltrace.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/value-internal.h>
 #include <babeltrace/compat/utc-internal.h>
 #include <babeltrace/compat/stdio-internal.h>
 #include <glib.h>

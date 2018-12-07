@@ -27,9 +27,9 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
-#include <babeltrace/trace-ir/fields-internal.h>
-#include <babeltrace/trace-ir/field-classes.h>
-#include <babeltrace/trace-ir/field-classes-internal.h>
+#include <babeltrace/trace-ir/field-internal.h>
+#include <babeltrace/trace-ir/field-class.h>
+#include <babeltrace/trace-ir/field-class-internal.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event-class-const.h>
 #include <babeltrace/trace-ir/event-class-internal.h>
@@ -44,7 +44,7 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values-internal.h>
+#include <babeltrace/value-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 #include <stdlib.h>

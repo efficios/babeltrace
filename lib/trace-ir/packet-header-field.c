@@ -27,7 +27,7 @@
 #include <babeltrace/trace-ir/packet-header-field.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
-#include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/field-internal.h>
 #include <glib.h>
 
 struct bt_field *bt_packet_header_field_borrow_field(

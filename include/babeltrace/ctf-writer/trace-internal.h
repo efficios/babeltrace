@@ -39,8 +39,8 @@
 #include <babeltrace/ctf-writer/trace.h>
 #include <babeltrace/ctf-writer/validation-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 #include <babeltrace/types.h>
-#include <babeltrace/values-internal.h>
 #include <glib.h>
 #include <sys/types.h>
 

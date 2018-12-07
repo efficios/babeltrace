@@ -42,7 +42,7 @@
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/validation-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/ctf-writer/values-internal.h>
 
 struct bt_ctf_stream_class;
 struct bt_ctf_stream_pos;

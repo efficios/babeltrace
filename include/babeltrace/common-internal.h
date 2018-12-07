@@ -27,10 +27,10 @@
 #include <stdbool.h>
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/trace-ir/field-classes-const.h>
+#include <babeltrace/trace-ir/field-class-const.h>
 #include <babeltrace/trace-ir/field-path-const.h>
 #include <babeltrace/trace-ir/event-class-const.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 #include <stdarg.h>
 #include <inttypes.h>
 #include <stdint.h>

@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/trace-ir/fields-internal.h>
+#include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/object-pool-internal.h>
 #include <babeltrace/object-internal.h>
 

@@ -28,14 +28,14 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/trace-ir/trace-class.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/field-classes.h>
-#include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/field-class.h>
+#include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/attributes-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/object-pool-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/values.h>
+#include <babeltrace/value.h>
 #include <babeltrace/types.h>
 #include <glib.h>
 #include <sys/types.h>

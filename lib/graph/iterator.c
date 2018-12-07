@@ -26,7 +26,7 @@
 
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/object.h>
-#include <babeltrace/trace-ir/fields.h>
+#include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/event-const.h>
 #include <babeltrace/trace-ir/event-internal.h>
 #include <babeltrace/trace-ir/packet-const.h>

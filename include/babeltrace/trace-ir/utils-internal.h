@@ -22,7 +22,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/trace-ir/field-classes.h>
+#include <babeltrace/trace-ir/field-class.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <stdint.h>
 
