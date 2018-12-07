@@ -67,7 +67,7 @@ static enum bt_query_status flt_query_method(
 	BT_ASSERT(*result);
 	iret = bt_value_array_append_string_element(res, object);
 	BT_ASSERT(iret == 0);
-	iret = bt_value_copy(&val, params);
+	iret = bt_value_copy(params, &val);
 	BT_ASSERT(iret == 0);
 	iret = bt_value_array_append_element(res, val);
 	BT_ASSERT(iret == 0);
