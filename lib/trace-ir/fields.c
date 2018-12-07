@@ -211,7 +211,7 @@ struct bt_field *bt_field_create(struct bt_field_class *fc)
 	BT_ASSERT(bt_field_class_has_known_type(fc));
 	field = field_create_funcs[fc->type](fc);
 	if (!field) {
-		BT_LIB_LOGE("Cannot create field object from field classe: "
+		BT_LIB_LOGE("Cannot create field object from field class: "
 			"%![fc-]+F", fc);
 		goto end;
 	}

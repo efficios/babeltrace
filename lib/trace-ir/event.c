@@ -384,7 +384,7 @@ int bt_event_move_header_field(struct bt_event *event,
 	BT_ASSERT_PRE_EVENT_HOT(event);
 	stream_class = bt_event_class_borrow_stream_class_inline(event->class);
 	BT_ASSERT_PRE(stream_class->event_header_fc,
-		"Stream class has no event header field classe: %!+S",
+		"Stream class has no event header field class: %!+S",
 		stream_class);
 
 	/* Recycle current header field: always exists */

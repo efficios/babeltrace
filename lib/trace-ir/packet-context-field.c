@@ -66,7 +66,7 @@ struct bt_packet_context_field *bt_packet_context_field_create(
 		"Stream class is not part of a trace class: %!+S",
 		stream_class);
 	BT_ASSERT_PRE(stream_class->packet_context_fc,
-		"Stream class has no packet context field classe: %!+S",
+		"Stream class has no packet context field class: %!+S",
 		stream_class);
 	field_wrapper = bt_field_wrapper_create(
 		&stream_class->packet_context_field_pool,

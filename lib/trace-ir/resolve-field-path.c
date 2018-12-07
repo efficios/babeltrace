@@ -336,8 +336,8 @@ bool lca_is_structure_field_class(struct bt_field_path *src_field_path,
 			if (!prev_fc) {
 				/*
 				 * This is correct: the LCA is the root
-				 * scope field classe, which must be a
-				 * structure field classe.
+				 * scope field class, which must be a
+				 * structure field class.
 				 */
 				break;
 			}
@@ -452,14 +452,14 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 		tgt_fc, ctx);
 
 	if (!src_field_path) {
-		BT_ASSERT_PRE_MSG("Cannot find requesting field classe in "
+		BT_ASSERT_PRE_MSG("Cannot find requesting field class in "
 			"resolving context: %!+F", src_fc);
 		is_valid = false;
 		goto end;
 	}
 
 	if (!tgt_field_path) {
-		BT_ASSERT_PRE_MSG("Cannot find target field classe in "
+		BT_ASSERT_PRE_MSG("Cannot find target field class in "
 			"resolving context: %!+F", tgt_fc);
 		is_valid = false;
 		goto end;
@@ -467,8 +467,8 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 
 	/* Target must be before source */
 	if (!target_is_before_source(src_field_path, tgt_field_path)) {
-		BT_ASSERT_PRE_MSG("Target field classe is located after "
-			"requesting field classe: %![req-fc-]+F, %![tgt-fc-]+F",
+		BT_ASSERT_PRE_MSG("Target field class is located after "
+			"requesting field class: %![req-fc-]+F, %![tgt-fc-]+F",
 			src_fc, tgt_fc);
 		is_valid = false;
 		goto end;
@@ -480,19 +480,19 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 	 */
 	if (!target_field_path_in_different_scope_has_struct_fc_only(
 			src_field_path, tgt_field_path, ctx)) {
-		BT_ASSERT_PRE_MSG("Target field classe is located in a "
-			"different scope than requesting field classe, "
-			"but within an array or a variant field classe: "
+		BT_ASSERT_PRE_MSG("Target field class is located in a "
+			"different scope than requesting field class, "
+			"but within an array or a variant field class: "
 			"%![req-fc-]+F, %![tgt-fc-]+F",
 			src_fc, tgt_fc);
 		is_valid = false;
 		goto end;
 	}
 
-	/* Same scope: LCA must be a structure field classe */
+	/* Same scope: LCA must be a structure field class */
 	if (!lca_is_structure_field_class(src_field_path, tgt_field_path, ctx)) {
 		BT_ASSERT_PRE_MSG("Lowest common ancestor of target and "
-			"requesting field classes is not a structure field classe: "
+			"requesting field classes is not a structure field class: "
 			"%![req-fc-]+F, %![tgt-fc-]+F",
 			src_fc, tgt_fc);
 		is_valid = false;
@@ -503,8 +503,8 @@ bool field_path_is_valid(struct bt_field_class *src_fc,
 	if (!lca_to_target_has_struct_fc_only(src_field_path, tgt_field_path,
 			ctx)) {
 		BT_ASSERT_PRE_MSG("Path from lowest common ancestor of target "
-			"and requesting field classes to target field classe "
-			"contains an array or a variant field classe: "
+			"and requesting field classes to target field class "
+			"contains an array or a variant field class: "
 			"%![req-fc-]+F, %![tgt-fc-]+F", src_fc, tgt_fc);
 		is_valid = false;
 		goto end;
@@ -522,7 +522,7 @@ struct bt_field_path *resolve_field_path(struct bt_field_class *src_fc,
 		struct bt_resolve_field_path_context *ctx)
 {
 	BT_ASSERT_PRE(field_path_is_valid(src_fc, tgt_fc, ctx),
-		"Invalid target field classe: %![req-fc-]+F, %![tgt-fc-]+F",
+		"Invalid target field class: %![req-fc-]+F, %![tgt-fc-]+F",
 		src_fc, tgt_fc);
 	return find_field_class_in_ctx(tgt_fc, ctx);
 }

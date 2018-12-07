@@ -85,7 +85,7 @@ void destroy_trace_class(struct bt_object *obj)
 		tc->stream_classes = NULL;
 	}
 
-	BT_LOGD_STR("Putting packet header field classe.");
+	BT_LOGD_STR("Putting packet header field class.");
 	bt_object_put_ref(tc->packet_header_fc);
 	tc->packet_header_fc = NULL;
 	g_free(tc);
@@ -378,7 +378,7 @@ int bt_trace_class_set_packet_header_field_class(
 	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
 	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Packet header field classe is not a structure field classe: %!+F",
+		"Packet header field class is not a structure field class: %!+F",
 		field_class);
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
@@ -390,7 +390,7 @@ int bt_trace_class_set_packet_header_field_class(
 	tc->packet_header_fc = field_class;
 	bt_object_get_no_null_check(tc->packet_header_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set trace class's packet header field classe: %!+T", tc);
+	BT_LIB_LOGV("Set trace class's packet header field class: %!+T", tc);
 
 end:
 	return ret;
@@ -399,7 +399,7 @@ end:
 BT_HIDDEN
 void _bt_trace_class_freeze(const struct bt_trace_class *tc)
 {
-	/* The packet header field classe is already frozen */
+	/* The packet header field class is already frozen */
 	BT_ASSERT(tc);
 	BT_LIB_LOGD("Freezing trace class: %!+T", tc);
 	((struct bt_trace_class *) tc)->frozen = true;

@@ -70,9 +70,9 @@ void destroy_event_class(struct bt_object *obj)
 		event_class->emf_uri.str = NULL;
 	}
 
-	BT_LOGD_STR("Putting context field classe.");
+	BT_LOGD_STR("Putting context field class.");
 	BT_OBJECT_PUT_REF_AND_RESET(event_class->specific_context_fc);
-	BT_LOGD_STR("Putting payload field classe.");
+	BT_LOGD_STR("Putting payload field class.");
 	BT_OBJECT_PUT_REF_AND_RESET(event_class->payload_fc);
 	bt_object_pool_finalize(&event_class->event_pool);
 	g_free(obj);
@@ -296,7 +296,7 @@ int bt_event_class_set_specific_context_field_class(
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
 	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Specific context field classe is not a structure field classe: "
+		"Specific context field class is not a structure field class: "
 		"%!+F", field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
@@ -317,7 +317,7 @@ int bt_event_class_set_specific_context_field_class(
 	event_class->specific_context_fc = field_class;
 	bt_object_get_no_null_check(event_class->specific_context_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set event class's specific context field classe: %!+E",
+	BT_LIB_LOGV("Set event class's specific context field class: %!+E",
 		event_class);
 
 end:
@@ -352,7 +352,7 @@ int bt_event_class_set_payload_field_class(
 	BT_ASSERT_PRE_EVENT_CLASS_HOT(event_class);
 	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
 		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Payload field classe is not a structure field classe: %!+F",
+		"Payload field class is not a structure field class: %!+F",
 		field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
@@ -374,7 +374,7 @@ int bt_event_class_set_payload_field_class(
 	event_class->payload_fc = field_class;
 	bt_object_get_no_null_check(event_class->payload_fc);
 	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set event class's payload field classe: %!+E", event_class);
+	BT_LIB_LOGV("Set event class's payload field class: %!+E", event_class);
 
 end:
 	return ret;

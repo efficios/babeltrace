@@ -358,7 +358,7 @@ int bt_packet_move_header_field(struct bt_packet *packet,
 	BT_ASSERT_PRE_PACKET_HOT(packet);
 	tc = bt_stream_class_borrow_trace_class_inline(packet->stream->class);
 	BT_ASSERT_PRE(tc->packet_header_fc,
-		"Trace class has no packet header field classe: %!+T", tc);
+		"Trace class has no packet header field class: %!+T", tc);
 	BT_ASSERT_PRE(field_wrapper->field->class ==
 		tc->packet_header_fc,
 		"Unexpected packet header field's class: "
@@ -385,7 +385,7 @@ int bt_packet_move_context_field(struct bt_packet *packet,
 	BT_ASSERT_PRE_HOT(packet, "Packet", ": %!+a", packet);
 	stream_class = packet->stream->class;
 	BT_ASSERT_PRE(stream_class->packet_context_fc,
-		"Stream class has no packet context field classe: %!+S",
+		"Stream class has no packet context field class: %!+S",
 		stream_class);
 	BT_ASSERT_PRE(field_wrapper->field->class ==
 		stream_class->packet_context_fc,

@@ -83,7 +83,7 @@ struct bt_field_wrapper *bt_field_wrapper_create(
 	if (!field_wrapper->field) {
 		field_wrapper->field = (void *) bt_field_create(fc);
 		if (!field_wrapper->field) {
-			BT_LIB_LOGE("Cannot create field wrapper from field classe: "
+			BT_LIB_LOGE("Cannot create field wrapper from field class: "
 				"%![fc-]+F", fc);
 			goto error;
 		}
