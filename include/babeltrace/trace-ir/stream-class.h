@@ -37,17 +37,18 @@
 extern "C" {
 #endif
 
+struct bt_trace_class;
 struct bt_stream_class;
-struct bt_trace;
 struct bt_event_class;
 struct bt_clock_class;
 
-extern struct bt_stream_class *bt_stream_class_create(struct bt_trace *trace);
+extern struct bt_stream_class *bt_stream_class_create(
+		struct bt_trace_class *trace_class);
 
 extern struct bt_stream_class *bt_stream_class_create_with_id(
-		struct bt_trace *trace, uint64_t id);
+		struct bt_trace_class *trace_class, uint64_t id);
 
-extern struct bt_trace *bt_stream_class_borrow_trace(
+extern struct bt_trace_class *bt_stream_class_borrow_trace_class(
 		struct bt_stream_class *stream_class);
 
 extern int bt_stream_class_set_name(struct bt_stream_class *stream_class,

@@ -90,14 +90,14 @@ void free_field_wrapper(struct bt_field_wrapper *field_wrapper,
 
 BT_ASSERT_PRE_FUNC
 static
-bool stream_class_id_is_unique(const struct bt_trace *trace, uint64_t id)
+bool stream_class_id_is_unique(const struct bt_trace_class *tc, uint64_t id)
 {
 	uint64_t i;
 	bool is_unique = true;
 
-	for (i = 0; i < trace->stream_classes->len; i++) {
+	for (i = 0; i < tc->stream_classes->len; i++) {
 		const struct bt_stream_class *sc =
-			trace->stream_classes->pdata[i];
+			tc->stream_classes->pdata[i];
 
 		if (sc->id == id) {
 			is_unique = false;
@@ -110,18 +110,17 @@ end:
 }
 
 static
-struct bt_stream_class *create_stream_class_with_id(struct bt_trace *trace,
-		uint64_t id)
+struct bt_stream_class *create_stream_class_with_id(
+		struct bt_trace_class *tc, uint64_t id)
 {
 	struct bt_stream_class *stream_class = NULL;
 	int ret;
 
-	BT_ASSERT(trace);
-	BT_ASSERT_PRE(stream_class_id_is_unique(trace, id),
-		"Duplicate stream class ID: %![trace-]+t, id=%" PRIu64,
-		trace, id);
-	BT_LIB_LOGD("Creating stream class object: %![trace-]+t, id=%" PRIu64,
-		trace, id);
+	BT_ASSERT(tc);
+	BT_ASSERT_PRE(stream_class_id_is_unique(tc, id),
+		"Duplicate stream class ID: %![tc-]+T, id=%" PRIu64, tc, id);
+	BT_LIB_LOGD("Creating stream class object: %![tc-]+T, id=%" PRIu64,
+		tc, id);
 	stream_class = g_new0(struct bt_stream_class, 1);
 	if (!stream_class) {
 		BT_LOGE_STR("Failed to allocate one stream class.");
@@ -168,9 +167,9 @@ struct bt_stream_class *create_stream_class_with_id(struct bt_trace *trace,
 		goto error;
 	}
 
-	bt_object_set_parent(&stream_class->base, &trace->base);
-	g_ptr_array_add(trace->stream_classes, stream_class);
-	bt_trace_freeze(trace);
+	bt_object_set_parent(&stream_class->base, &tc->base);
+	g_ptr_array_add(tc->stream_classes, stream_class);
+	bt_trace_class_freeze(tc);
 	BT_LIB_LOGD("Created stream class object: %!+S", stream_class);
 	goto end;
 
@@ -181,37 +180,37 @@ end:
 	return stream_class;
 }
 
-struct bt_stream_class *bt_stream_class_create(struct bt_trace *trace)
+struct bt_stream_class *bt_stream_class_create(struct bt_trace_class *tc)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(trace->assigns_automatic_stream_class_id,
-		"Trace does not automatically assigns stream class IDs: "
-		"%![sc-]+t", trace);
-	return create_stream_class_with_id(trace,
-		(uint64_t) trace->stream_classes->len);
+	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE(tc->assigns_automatic_stream_class_id,
+		"Trace class does not automatically assigns stream class IDs: "
+		"%![sc-]+T", tc);
+	return create_stream_class_with_id(tc,
+		(uint64_t) tc->stream_classes->len);
 }
 
 struct bt_stream_class *bt_stream_class_create_with_id(
-		struct bt_trace *trace, uint64_t id)
+		struct bt_trace_class *tc, uint64_t id)
 {
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(!trace->assigns_automatic_stream_class_id,
-		"Trace automatically assigns stream class IDs: "
-		"%![sc-]+t", trace);
-	return create_stream_class_with_id(trace, id);
+	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE(!tc->assigns_automatic_stream_class_id,
+		"Trace class automatically assigns stream class IDs: "
+		"%![sc-]+T", tc);
+	return create_stream_class_with_id(tc, id);
 }
 
-struct bt_trace *bt_stream_class_borrow_trace(
+struct bt_trace_class *bt_stream_class_borrow_trace_class(
 		struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return bt_stream_class_borrow_trace_inline(stream_class);
+	return bt_stream_class_borrow_trace_class_inline(stream_class);
 }
 
-const struct bt_trace *bt_stream_class_borrow_trace_const(
+const struct bt_trace_class *bt_stream_class_borrow_trace_class_const(
 		const struct bt_stream_class *stream_class)
 {
-	return bt_stream_class_borrow_trace((void *) stream_class);
+	return bt_stream_class_borrow_trace_class((void *) stream_class);
 }
 
 const char *bt_stream_class_get_name(const struct bt_stream_class *stream_class)
@@ -268,7 +267,7 @@ struct bt_event_class *bt_stream_class_borrow_event_class_by_id(
 	struct bt_event_class *event_class = NULL;
 	uint64_t i;
 
-	BT_ASSERT_PRE_NON_NULL(stream_class, "Trace");
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 
 	for (i = 0; i < stream_class->event_classes->len; i++) {
 		struct bt_event_class *event_class_candidate =
@@ -322,13 +321,13 @@ int bt_stream_class_set_packet_context_field_class(
 		"Packet context field classe is not a structure field classe: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
-		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_fc;
+		bt_stream_class_borrow_trace_class_inline(stream_class)->packet_header_fc;
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_class_make_part_of_trace(field_class);
+	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(stream_class->packet_context_fc);
 	stream_class->packet_context_fc = field_class;
 	bt_object_get_no_null_check(stream_class->packet_context_fc);
@@ -369,14 +368,14 @@ int bt_stream_class_set_event_header_field_class(
 		"Event header field classe is not a structure field classe: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
-		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_fc;
+		bt_stream_class_borrow_trace_class_inline(stream_class)->packet_header_fc;
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
 		goto end;
 	}
 
-	bt_field_class_make_part_of_trace(field_class);
+	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(stream_class->event_header_fc);
 	stream_class->event_header_fc = field_class;
 	bt_object_get_no_null_check(stream_class->event_header_fc);
@@ -418,7 +417,7 @@ int bt_stream_class_set_event_common_context_field_class(
 		"Event common context field classe is not a structure field classe: %!+F",
 		field_class);
 	resolve_ctx.packet_header =
-		bt_stream_class_borrow_trace_inline(stream_class)->packet_header_fc;
+		bt_stream_class_borrow_trace_class_inline(stream_class)->packet_header_fc;
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
 	resolve_ctx.event_header = stream_class->event_header_fc;
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
@@ -426,7 +425,7 @@ int bt_stream_class_set_event_common_context_field_class(
 		goto end;
 	}
 
-	bt_field_class_make_part_of_trace(field_class);
+	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(stream_class->event_common_context_fc);
 	stream_class->event_common_context_fc = field_class;
 	bt_object_get_no_null_check(stream_class->event_common_context_fc);

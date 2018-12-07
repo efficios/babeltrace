@@ -1158,14 +1158,14 @@ void _bt_field_class_freeze(const struct bt_field_class *fc)
 }
 
 BT_HIDDEN
-void _bt_field_class_make_part_of_trace(const struct bt_field_class *c_fc)
+void _bt_field_class_make_part_of_trace_class(const struct bt_field_class *c_fc)
 {
 	struct bt_field_class *fc = (void *) c_fc;
 
 	BT_ASSERT(fc);
-	BT_ASSERT_PRE(!fc->part_of_trace,
+	BT_ASSERT_PRE(!fc->part_of_trace_class,
 		"Field class is already part of a trace: %!+F", fc);
-	fc->part_of_trace = true;
+	fc->part_of_trace_class = true;
 
 	switch (fc->type) {
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
@@ -1180,7 +1180,7 @@ void _bt_field_class_make_part_of_trace(const struct bt_field_class *c_fc)
 				BT_FIELD_CLASS_NAMED_FC_AT_INDEX(
 					container_fc, i);
 
-			bt_field_class_make_part_of_trace(named_fc->fc);
+			bt_field_class_make_part_of_trace_class(named_fc->fc);
 		}
 
 		break;
@@ -1190,7 +1190,7 @@ void _bt_field_class_make_part_of_trace(const struct bt_field_class *c_fc)
 	{
 		struct bt_field_class_array *array_fc = (void *) fc;
 
-		bt_field_class_make_part_of_trace(array_fc->element_fc);
+		bt_field_class_make_part_of_trace_class(array_fc->element_fc);
 		break;
 	}
 	default:

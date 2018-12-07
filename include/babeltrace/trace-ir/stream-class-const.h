@@ -37,14 +37,14 @@
 extern "C" {
 #endif
 
-struct bt_trace;
+struct bt_trace_class;
 struct bt_stream_class;
 struct bt_event_class;
 struct bt_clock_class;
 struct bt_event_header_field;
 struct bt_packet_context_field;
 
-extern const struct bt_trace *bt_stream_class_borrow_trace_const(
+extern const struct bt_trace_class *bt_stream_class_borrow_trace_class_const(
 		const struct bt_stream_class *stream_class);
 
 extern const char *bt_stream_class_get_name(

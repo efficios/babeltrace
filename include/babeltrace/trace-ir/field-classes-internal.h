@@ -91,9 +91,9 @@ struct bt_field_class {
 
 	/*
 	 * Only used in developer mode, this flag indicates whether or
-	 * not this field class is part of a trace.
+	 * not this field class is part of a trace class.
 	 */
-	bool part_of_trace;
+	bool part_of_trace_class;
 };
 
 struct bt_field_class_integer {
@@ -242,12 +242,13 @@ void _bt_field_class_freeze(const struct bt_field_class *field_class);
  * shared objects for other purposes.
  */
 BT_HIDDEN
-void _bt_field_class_make_part_of_trace(const struct bt_field_class *field_class);
+void _bt_field_class_make_part_of_trace_class(
+		const struct bt_field_class *field_class);
 
 #ifdef BT_DEV_MODE
-# define bt_field_class_make_part_of_trace	_bt_field_class_make_part_of_trace
+# define bt_field_class_make_part_of_trace_class	_bt_field_class_make_part_of_trace_class
 #else
-# define bt_field_class_make_part_of_trace(_fc)	((void) _fc)
+# define bt_field_class_make_part_of_trace_class(_fc)	((void) _fc)
 #endif
 
 #endif /* BABELTRACE_TRACE_IR_FIELD_CLASSES_INTERNAL_H */

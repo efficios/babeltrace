@@ -85,6 +85,8 @@
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream-const.h>
 #include <babeltrace/trace-ir/stream.h>
+#include <babeltrace/trace-ir/trace-class-const.h>
+#include <babeltrace/trace-ir/trace-class.h>
 #include <babeltrace/trace-ir/trace-const.h>
 #include <babeltrace/trace-ir/trace.h>
 

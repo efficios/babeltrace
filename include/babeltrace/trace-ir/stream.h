@@ -34,13 +34,18 @@
 extern "C" {
 #endif
 
+struct bt_trace;
 struct bt_stream;
 struct bt_stream_class;
 
-extern struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class);
+extern struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
+		struct bt_trace *trace);
 
 extern struct bt_stream *bt_stream_create_with_id(
-		struct bt_stream_class *stream_class, uint64_t id);
+		struct bt_stream_class *stream_class,
+		struct bt_trace *trace, uint64_t id);
+
+extern struct bt_trace *bt_stream_borrow_trace(struct bt_stream *stream);
 
 extern struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream);
 

@@ -222,7 +222,6 @@ int print_event_timestamp(struct pretty_component *pretty,
 	int ret = 0;
 	const struct bt_stream *stream = NULL;
 	const struct bt_stream_class *stream_class = NULL;
-	const struct bt_trace *trace = NULL;
 	const struct bt_clock_value *clock_value = NULL;
 	enum bt_clock_value_status cv_status;
 
@@ -234,11 +233,6 @@ int print_event_timestamp(struct pretty_component *pretty,
 
 	stream_class = bt_stream_borrow_class_const(stream);
 	if (!stream_class) {
-		ret = -1;
-		goto end;
-	}
-	trace = bt_stream_class_borrow_trace_const(stream_class);
-	if (!trace) {
 		ret = -1;
 		goto end;
 	}
@@ -320,25 +314,19 @@ int print_event_header(struct pretty_component *pretty,
 	int ret = 0;
 	const struct bt_event_class *event_class = NULL;
 	const struct bt_stream_class *stream_class = NULL;
-	const struct bt_trace *trace_class = NULL;
+	const struct bt_trace_class *trace_class = NULL;
+	const struct bt_packet *packet = NULL;
+	const struct bt_stream *stream = NULL;
+	const struct bt_trace *trace = NULL;
 	int dom_print = 0;
 	enum bt_property_availability prop_avail;
 
 	event_class = bt_event_borrow_class_const(event);
-	if (!event_class) {
-		ret = -1;
-		goto end;
-	}
 	stream_class = bt_event_class_borrow_stream_class_const(event_class);
-	if (!stream_class) {
-		ret = -1;
-		goto end;
-	}
-	trace_class = bt_stream_class_borrow_trace_const(stream_class);
-	if (!trace_class) {
-		ret = -1;
-		goto end;
-	}
+	trace_class = bt_stream_class_borrow_trace_class_const(stream_class);
+	packet = bt_event_borrow_packet_const(event);
+	stream = bt_packet_borrow_stream_const(packet);
+	trace = bt_stream_borrow_trace_const(stream);
 	ret = print_event_timestamp(pretty, event, &pretty->start_line);
 	if (ret) {
 		goto end;
@@ -346,7 +334,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_field) {
 		const char *name;
 
-		name = bt_trace_get_name(trace_class);
+		name = bt_trace_get_name(trace);
 		if (name) {
 			if (!pretty->start_line) {
 				g_string_append(pretty->string, ", ");
@@ -365,7 +353,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_hostname_field) {
 		const struct bt_value *hostname_str;
 
-		hostname_str = bt_trace_borrow_environment_entry_value_by_name_const(
+		hostname_str = bt_trace_class_borrow_environment_entry_value_by_name_const(
 			trace_class, "hostname");
 		if (hostname_str) {
 			const char *str;
@@ -384,7 +372,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_domain_field) {
 		const struct bt_value *domain_str;
 
-		domain_str = bt_trace_borrow_environment_entry_value_by_name_const(
+		domain_str = bt_trace_class_borrow_environment_entry_value_by_name_const(
 			trace_class, "domain");
 		if (domain_str) {
 			const char *str;
@@ -405,7 +393,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_procname_field) {
 		const struct bt_value *procname_str;
 
-		procname_str = bt_trace_borrow_environment_entry_value_by_name_const(
+		procname_str = bt_trace_class_borrow_environment_entry_value_by_name_const(
 			trace_class, "procname");
 		if (procname_str) {
 			const char *str;
@@ -426,7 +414,7 @@ int print_event_header(struct pretty_component *pretty,
 	if (pretty->options.print_trace_vpid_field) {
 		const struct bt_value *vpid_value;
 
-		vpid_value = bt_trace_borrow_environment_entry_value_by_name_const(
+		vpid_value = bt_trace_class_borrow_environment_entry_value_by_name_const(
 			trace_class, "vpid");
 		if (vpid_value) {
 			int64_t value;

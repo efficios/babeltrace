@@ -28,7 +28,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool, bt_uuid */
+/* For bt_bool */
 #include <babeltrace/types.h>
 
 #include <stdint.h>
@@ -38,36 +38,14 @@ extern "C" {
 #endif
 
 struct bt_trace;
+struct bt_trace_class;
 struct bt_stream;
-struct bt_stream_class;
-struct bt_field_class;
-struct bt_value;
-struct bt_packet_header_field;
 
-extern struct bt_trace *bt_trace_create(void);
+extern struct bt_trace_class *bt_trace_borrow_class(struct bt_trace *trace);
 
-extern void bt_trace_set_assigns_automatic_stream_class_id(
-		struct bt_trace *trace, bt_bool value);
+extern struct bt_trace *bt_trace_create(struct bt_trace_class *trace_class);
 
 extern int bt_trace_set_name(struct bt_trace *trace, const char *name);
-
-extern void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid);
-
-extern int bt_trace_set_environment_entry_integer(struct bt_trace *trace,
-		const char *name, int64_t value);
-
-extern int bt_trace_set_environment_entry_string(struct bt_trace *trace,
-		const char *name, const char *value);
-
-extern int bt_trace_set_packet_header_field_class(
-		struct bt_trace *trace,
-		struct bt_field_class *packet_header_field_class);
-
-extern struct bt_stream_class *bt_trace_borrow_stream_class_by_index(
-		struct bt_trace *trace, uint64_t index);
-
-extern struct bt_stream_class *bt_trace_borrow_stream_class_by_id(
-		struct bt_trace *trace, uint64_t id);
 
 extern struct bt_stream *bt_trace_borrow_stream_by_index(struct bt_trace *trace,
 		uint64_t index);

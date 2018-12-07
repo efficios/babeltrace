@@ -193,8 +193,8 @@ struct ctx_decl_scope {
  * Visitor context (private).
  */
 struct ctx {
-	/* Trace IR trace being filled (owned by this) */
-	struct bt_trace *trace;
+	/* Trace IR trace class being filled (owned by this) */
+	struct bt_trace_class *trace_class;
 
 	/* CTF meta trace being filled (owned by this) */
 	struct ctf_trace_class *ctf_tc;
@@ -207,9 +207,6 @@ struct ctx {
 
 	/* True if this is an LTTng trace */
 	bool is_lttng;
-
-	/* Eventual name suffix of the trace to set (owned by this) */
-	char *trace_class_name_suffix;
 
 	/* Config passed by the user */
 	struct ctf_metadata_decoder_config decoder_config;
@@ -554,14 +551,10 @@ void ctx_destroy(struct ctx *ctx)
 		scope = parent_scope;
 	}
 
-	bt_object_put_ref(ctx->trace);
+	bt_object_put_ref(ctx->trace_class);
 
 	if (ctx->ctf_tc) {
 		ctf_trace_class_destroy(ctx->ctf_tc);
-	}
-
-	if (ctx->trace_class_name_suffix) {
-		free(ctx->trace_class_name_suffix);
 	}
 
 	g_free(ctx);
@@ -577,8 +570,8 @@ end:
  * @returns	New visitor context, or NULL on error
  */
 static
-struct ctx *ctx_create(const struct ctf_metadata_decoder_config *decoder_config,
-		const char *trace_class_name_suffix)
+struct ctx *ctx_create(
+		const struct ctf_metadata_decoder_config *decoder_config)
 {
 	struct ctx *ctx = NULL;
 
@@ -590,9 +583,9 @@ struct ctx *ctx_create(const struct ctf_metadata_decoder_config *decoder_config,
 		goto error;
 	}
 
-	ctx->trace = bt_trace_create();
-	if (!ctx->trace) {
-		BT_LOGE_STR("Cannot create empty trace.");
+	ctx->trace_class = bt_trace_class_create();
+	if (!ctx->trace_class) {
+		BT_LOGE_STR("Cannot create empty trace class.");
 		goto error;
 	}
 
@@ -607,14 +600,6 @@ struct ctx *ctx_create(const struct ctf_metadata_decoder_config *decoder_config,
 	if (!ctx->current_scope) {
 		BT_LOGE_STR("Cannot create declaration scope.");
 		goto error;
-	}
-
-	if (trace_class_name_suffix) {
-		ctx->trace_class_name_suffix = strdup(trace_class_name_suffix);
-		if (!ctx->trace_class_name_suffix) {
-			BT_LOGE_STR("Failed to copy string.");
-			goto error;
-		}
 	}
 
 	ctx->decoder_config = *decoder_config;
@@ -4815,64 +4800,14 @@ end:
 	return ret;
 }
 
-static
-int try_set_trace_class_name(struct ctx *ctx)
-{
-	GString *name = NULL;
-	int ret = 0;
-	struct ctf_trace_class_env_entry *env_entry;
-
-	if (ctx->ctf_tc->name->len > 0) {
-		/* Already set */
-		goto end;
-	}
-
-	name = g_string_new(NULL);
-	if (!name) {
-		BT_LOGE_STR("Failed to allocate a GString.");
-		ret = -1;
-		goto end;
-	}
-
-	/*
-	 * Check if we have a trace environment string value named `hostname`.
-	 * If so, use it as the trace name's prefix.
-	 */
-	env_entry = ctf_trace_class_borrow_env_entry_by_name(ctx->ctf_tc,
-		"hostname");
-	if (env_entry &&
-			env_entry->type == CTF_TRACE_CLASS_ENV_ENTRY_TYPE_STR) {
-		g_string_append(name, env_entry->value.str->str);
-
-		if (ctx->trace_class_name_suffix) {
-			g_string_append_c(name, G_DIR_SEPARATOR);
-		}
-	}
-
-	if (ctx->trace_class_name_suffix) {
-		g_string_append(name, ctx->trace_class_name_suffix);
-	}
-
-	g_string_assign(ctx->ctf_tc->name, name->str);
-	goto end;
-
-end:
-	if (name) {
-		g_string_free(name, TRUE);
-	}
-
-	return ret;
-}
-
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
-		const struct ctf_metadata_decoder_config *decoder_config,
-		const char *name)
+		const struct ctf_metadata_decoder_config *decoder_config)
 {
 	struct ctx *ctx = NULL;
 
 	/* Create visitor's context */
-	ctx = ctx_create(decoder_config, name);
+	ctx = ctx_create(decoder_config);
 	if (!ctx) {
 		BT_LOGE_STR("Cannot create visitor's context.");
 		goto error;
@@ -4895,15 +4830,15 @@ void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
 }
 
 BT_HIDDEN
-struct bt_trace *ctf_visitor_generate_ir_get_ir_trace(
+struct bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 		struct ctf_visitor_generate_ir *visitor)
 {
 	struct ctx *ctx = (void *) visitor;
 
 	BT_ASSERT(ctx);
-	BT_ASSERT(ctx->trace);
-	bt_object_get_ref(ctx->trace);
-	return ctx->trace;
+	BT_ASSERT(ctx->trace_class);
+	bt_object_get_ref(ctx->trace_class);
+	return ctx->trace_class;
 }
 
 BT_HIDDEN
@@ -5086,13 +5021,6 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		goto end;
 	}
 
-	/* Set trace's name, if not already done */
-	ret = try_set_trace_class_name(ctx);
-	if (ret) {
-		ret = -EINVAL;
-		goto end;
-	}
-
 	/* Update trace class meanings */
 	ret = ctf_trace_class_update_meanings(ctx->ctf_tc);
 	if (ret) {
@@ -5136,7 +5064,7 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 	}
 
 	/* Copy new CTF metadata -> new IR metadata */
-	ret = ctf_trace_class_translate(ctx->trace, ctx->ctf_tc);
+	ret = ctf_trace_class_translate(ctx->trace_class, ctx->ctf_tc);
 	if (ret) {
 		ret = -EINVAL;
 		goto end;

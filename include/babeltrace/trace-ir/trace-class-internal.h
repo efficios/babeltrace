@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_TRACE_INTERNAL_H
-#define BABELTRACE_TRACE_IR_TRACE_INTERNAL_H
+#ifndef BABELTRACE_TRACE_IR_TRACE_CLASS_INTERNAL_H
+#define BABELTRACE_TRACE_IR_TRACE_CLASS_INTERNAL_H
 
 /*
  * Copyright 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -26,8 +26,7 @@
  */
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/trace-class-internal.h>
-#include <babeltrace/trace-ir/trace.h>
+#include <babeltrace/trace-ir/trace-class.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/trace-ir/field-classes.h>
 #include <babeltrace/trace-ir/fields.h>
@@ -42,11 +41,8 @@
 #include <sys/types.h>
 #include <babeltrace/compat/uuid-internal.h>
 
-struct bt_trace {
+struct bt_trace_class {
 	struct bt_object base;
-
-	/* Owned by this */
-	struct bt_trace_class *class;
 
 	struct {
 		GString *str;
@@ -55,37 +51,34 @@ struct bt_trace {
 		const char *value;
 	} name;
 
-	/* Array of `struct bt_stream *` */
-	GPtrArray *streams;
+	struct {
+		uint8_t uuid[BABELTRACE_UUID_LEN];
 
-	/*
-	 * Stream class (weak, owned by owned trace class) to number of
-	 * instantiated streams, used to automatically assign stream IDs
-	 * per stream class within this trace.
-	 */
-	GHashTable *stream_classes_stream_count;
+		/* NULL or `uuid` above */
+		bt_uuid value;
+	} uuid;
+
+	struct bt_value *environment;
+
+	/* Array of `struct bt_stream_class *` */
+	GPtrArray *stream_classes;
 
 	struct bt_field_class *packet_header_fc;
-	GArray *is_static_listeners;
-	bool is_static;
-	bool in_remove_listener;
+	bool assigns_automatic_stream_class_id;
+
+	/* Pool of `struct bt_field_wrapper *` */
+	struct bt_object_pool packet_header_field_pool;
+
 	bool frozen;
 };
 
 BT_HIDDEN
-void _bt_trace_freeze(const struct bt_trace *trace);
+void _bt_trace_class_freeze(const struct bt_trace_class *trace_class);
 
 #ifdef BT_DEV_MODE
-# define bt_trace_freeze		_bt_trace_freeze
+# define bt_trace_class_freeze		_bt_trace_class_freeze
 #else
-# define bt_trace_freeze(_trace)
+# define bt_trace_class_freeze(_tc)
 #endif
 
-BT_HIDDEN
-void bt_trace_add_stream(struct bt_trace *trace, struct bt_stream *stream);
-
-BT_HIDDEN
-uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
-		const struct bt_stream_class *stream_class);
-
-#endif /* BABELTRACE_TRACE_IR_TRACE_INTERNAL_H */
+#endif /* BABELTRACE_TRACE_IR_TRACE_CLASS_INTERNAL_H */
