@@ -112,10 +112,10 @@ const struct bt_notification *handle_notification(FILE *err,
 	const struct bt_notification *new_notification = NULL;
 
 	switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 	{
 		const struct bt_packet *packet =
-			bt_notification_packet_begin_get_packet(notification);
+			bt_notification_packet_beginning_get_packet(notification);
 		const struct bt_packet *writer_packet;
 
 		if (!packet) {
@@ -124,7 +124,7 @@ const struct bt_notification *handle_notification(FILE *err,
 
 		writer_packet = debug_info_new_packet(debug_it, packet);
 		BT_ASSERT(writer_packet);
-		new_notification = bt_notification_packet_begin_create(
+		new_notification = bt_notification_packet_beginning_create(
 				writer_packet);
 		BT_ASSERT(new_notification);
 		bt_object_put_ref(packet);
@@ -172,10 +172,10 @@ const struct bt_notification *handle_notification(FILE *err,
 		bt_object_put_ref(writer_event);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
 	{
 		const struct bt_stream *stream =
-			bt_notification_stream_begin_get_stream(notification);
+			bt_notification_stream_beginning_get_stream(notification);
 		const struct bt_stream *writer_stream;
 
 		if (!stream) {
@@ -184,7 +184,7 @@ const struct bt_notification *handle_notification(FILE *err,
 
 		writer_stream = debug_info_stream_begin(debug_it, stream);
 		BT_ASSERT(writer_stream);
-		new_notification = bt_notification_stream_begin_create(
+		new_notification = bt_notification_stream_beginning_create(
 				writer_stream);
 		BT_ASSERT(new_notification);
 		bt_object_put_ref(stream);

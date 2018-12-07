@@ -34,7 +34,7 @@ struct bt_self_notification_iterator;
 struct bt_packet;
 
 extern
-struct bt_notification *bt_notification_packet_begin_create(
+struct bt_notification *bt_notification_packet_beginning_create(
 		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_packet *packet);
 
@@ -43,7 +43,7 @@ struct bt_notification *bt_notification_packet_end_create(
 		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_packet *packet);
 
-extern struct bt_packet *bt_notification_packet_begin_borrow_packet(
+extern struct bt_packet *bt_notification_packet_beginning_borrow_packet(
 		struct bt_notification *notification);
 
 extern struct bt_packet *bt_notification_packet_end_borrow_packet(

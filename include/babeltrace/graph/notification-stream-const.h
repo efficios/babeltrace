@@ -34,11 +34,11 @@ struct bt_self_notification_iterator;
 struct bt_clock_value;
 struct bt_stream;
 
-extern const struct bt_stream *bt_notification_stream_begin_borrow_stream_const(
+extern const struct bt_stream *bt_notification_stream_beginning_borrow_stream_const(
 		const struct bt_notification *notification);
 
 extern const struct bt_clock_value *
-bt_notification_stream_begin_borrow_default_clock_value_const(
+bt_notification_stream_beginning_borrow_default_clock_value_const(
 		const struct bt_notification *notif);
 
 extern const struct bt_stream *bt_notification_stream_end_borrow_stream_const(

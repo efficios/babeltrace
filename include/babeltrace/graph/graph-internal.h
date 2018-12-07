@@ -94,7 +94,7 @@ struct bt_graph {
 	/* Pool of `struct bt_notification_event *` */
 	struct bt_object_pool event_notif_pool;
 
-	/* Pool of `struct bt_notification_packet_begin *` */
+	/* Pool of `struct bt_notification_packet_beginning *` */
 	struct bt_object_pool packet_begin_notif_pool;
 
 	/* Pool of `struct bt_notification_packet_end *` */

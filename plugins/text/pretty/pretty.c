@@ -130,7 +130,7 @@ enum bt_self_component_status handle_notification(
 	BT_ASSERT(pretty);
 
 	switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 		if (pretty_print_packet(pretty, notification)) {
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		}

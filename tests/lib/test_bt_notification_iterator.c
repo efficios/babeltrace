@@ -345,11 +345,11 @@ void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
 
 	switch (user_data->seq[user_data->at]) {
 	case SEQ_STREAM1_BEGIN:
-		*notif = bt_notification_stream_begin_create(notif_iter,
+		*notif = bt_notification_stream_beginning_create(notif_iter,
 								     src_stream1);
 		break;
 	case SEQ_STREAM2_BEGIN:
-		*notif = bt_notification_stream_begin_create(notif_iter,
+		*notif = bt_notification_stream_beginning_create(notif_iter,
 							     src_stream2);
 		break;
 	case SEQ_STREAM1_END:
@@ -361,19 +361,19 @@ void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
 							   src_stream2);
 		break;
 	case SEQ_STREAM1_PACKET1_BEGIN:
-		*notif = bt_notification_packet_begin_create(notif_iter,
+		*notif = bt_notification_packet_beginning_create(notif_iter,
 							     src_stream1_packet1);
 		break;
 	case SEQ_STREAM1_PACKET2_BEGIN:
-		*notif = bt_notification_packet_begin_create(notif_iter,
+		*notif = bt_notification_packet_beginning_create(notif_iter,
 							     src_stream1_packet2);
 		break;
 	case SEQ_STREAM2_PACKET1_BEGIN:
-		*notif = bt_notification_packet_begin_create(notif_iter,
+		*notif = bt_notification_packet_beginning_create(notif_iter,
 							     src_stream2_packet1);
 		break;
 	case SEQ_STREAM2_PACKET2_BEGIN:
-		*notif = bt_notification_packet_begin_create(notif_iter,
+		*notif = bt_notification_packet_beginning_create(notif_iter,
 							     src_stream2_packet2);
 		break;
 	case SEQ_STREAM1_PACKET1_END:
@@ -497,10 +497,10 @@ void append_test_events_from_notification(const struct bt_notification *notifica
 		BT_ASSERT(test_event.packet);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
 		test_event.type = TEST_EV_TYPE_NOTIF_STREAM_BEGIN;
 		test_event.stream =
-			bt_notification_stream_begin_borrow_stream_const(notification);
+			bt_notification_stream_beginning_borrow_stream_const(notification);
 		BT_ASSERT(test_event.stream);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
@@ -509,10 +509,10 @@ void append_test_events_from_notification(const struct bt_notification *notifica
 			bt_notification_stream_end_borrow_stream_const(notification);
 		BT_ASSERT(test_event.stream);
 		break;
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 		test_event.type = TEST_EV_TYPE_NOTIF_PACKET_BEGIN;
 		test_event.packet =
-			bt_notification_packet_begin_borrow_packet_const(notification);
+			bt_notification_packet_beginning_borrow_packet_const(notification);
 		BT_ASSERT(test_event.packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:

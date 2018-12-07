@@ -36,7 +36,7 @@ struct bt_self_notification_iterator;
 struct bt_stream;
 
 extern
-struct bt_notification *bt_notification_stream_begin_create(
+struct bt_notification *bt_notification_stream_beginning_create(
 		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_stream *stream);
 
@@ -45,10 +45,10 @@ struct bt_notification *bt_notification_stream_end_create(
 		struct bt_self_notification_iterator *notification_iterator,
 		struct bt_stream *stream);
 
-extern struct bt_stream *bt_notification_stream_begin_borrow_stream(
+extern struct bt_stream *bt_notification_stream_beginning_borrow_stream(
 		struct bt_notification *notification);
 
-extern void bt_notification_stream_begin_set_default_clock_value(
+extern void bt_notification_stream_beginning_set_default_clock_value(
 		struct bt_notification *notif, uint64_t value_cycles);
 
 extern struct bt_stream *bt_notification_stream_end_borrow_stream(

@@ -245,13 +245,13 @@ enum bt_self_component_status counter_consume(
 			case BT_NOTIFICATION_TYPE_INACTIVITY:
 				counter->count.inactivity++;
 				break;
-			case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+			case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
 				counter->count.stream_begin++;
 				break;
 			case BT_NOTIFICATION_TYPE_STREAM_END:
 				counter->count.stream_end++;
 				break;
-			case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+			case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 				counter->count.packet_begin++;
 				break;
 			case BT_NOTIFICATION_TYPE_PACKET_END:

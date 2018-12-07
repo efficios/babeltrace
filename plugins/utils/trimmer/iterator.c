@@ -392,8 +392,8 @@ const struct bt_notification *evaluate_packet_notification(
 	bool lazy_update = false;
 
         switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-		packet = bt_notification_packet_begin_get_packet(notification);
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
+		packet = bt_notification_packet_beginning_get_packet(notification);
 		BT_ASSERT(packet);
 		writer_packet = trimmer_new_packet(trim_it, packet);
 		BT_ASSERT(writer_packet);
@@ -479,8 +479,8 @@ const struct bt_notification *evaluate_packet_notification(
 
 end:
         switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-		new_notification = bt_notification_packet_begin_create(writer_packet);
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
+		new_notification = bt_notification_packet_beginning_create(writer_packet);
 		BT_ASSERT(new_notification);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -533,7 +533,7 @@ enum bt_notification_iterator_status evaluate_notification(
 	        new_notification = evaluate_event_notification(*notification,
 				trim_it, begin, end, in_range, &finished);
 		break;
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 	        new_notification = evaluate_packet_notification(*notification,
 				trim_it, begin, end, in_range, &finished);

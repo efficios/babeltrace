@@ -102,11 +102,11 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 
 	if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK &&
 			bt_notification_get_type(*notif) ==
-			BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
+			BT_NOTIFICATION_TYPE_STREAM_BEGINNING) {
 		if (notif_iter_data->skip_stream_begin_notifs) {
 			/*
 			 * We already emitted a
-			 * BT_NOTIFICATION_TYPE_STREAM_BEGIN
+			 * BT_NOTIFICATION_TYPE_STREAM_BEGINNING
 			 * notification: skip this one, get a new one.
 			 */
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
@@ -117,7 +117,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 			goto end;
 		} else {
 			/*
-			 * First BT_NOTIFICATION_TYPE_STREAM_BEGIN
+			 * First BT_NOTIFICATION_TYPE_STREAM_BEGINNING
 			 * notification: skip all following.
 			 */
 			notif_iter_data->skip_stream_begin_notifs = true;
@@ -162,15 +162,15 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 
 		/*
 		 * If we get a notification, we expect to get a
-		 * BT_NOTIFICATION_TYPE_STREAM_BEGIN notification
+		 * BT_NOTIFICATION_TYPE_STREAM_BEGINNING notification
 		 * because the iterator's state machine emits one before
 		 * even requesting the first block of data from the
 		 * medium. Skip this notification because we're not
 		 * really starting a new stream here, and try getting a
 		 * new notification (which, if it works, is a
-		 * BT_NOTIFICATION_TYPE_PACKET_BEGIN one). We're sure to
+		 * BT_NOTIFICATION_TYPE_PACKET_BEGINNING one). We're sure to
 		 * get at least one pair of
-		 * BT_NOTIFICATION_TYPE_PACKET_BEGIN and
+		 * BT_NOTIFICATION_TYPE_PACKET_BEGINNING and
 		 * BT_NOTIFICATION_TYPE_PACKET_END notifications in the
 		 * case of a single, empty packet. We know there's at
 		 * least one packet because the stream file group does
@@ -180,7 +180,7 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 
 		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
 			BT_ASSERT(bt_notification_get_type(*notif) ==
-				BT_NOTIFICATION_TYPE_STREAM_BEGIN);
+				BT_NOTIFICATION_TYPE_STREAM_BEGINNING);
 			BT_OBJECT_PUT_REF_AND_RESET(*notif);
 			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
 				&priv_notif);

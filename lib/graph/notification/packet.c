@@ -42,19 +42,19 @@
 #include <inttypes.h>
 
 BT_HIDDEN
-struct bt_notification *bt_notification_packet_begin_new(struct bt_graph *graph)
+struct bt_notification *bt_notification_packet_beginning_new(struct bt_graph *graph)
 {
-	struct bt_notification_packet_begin *notification;
+	struct bt_notification_packet_beginning *notification;
 
-	notification = g_new0(struct bt_notification_packet_begin, 1);
+	notification = g_new0(struct bt_notification_packet_beginning, 1);
 	if (!notification) {
 		BT_LOGE_STR("Failed to allocate one packet beginning notification.");
 		goto error;
 	}
 
 	bt_notification_init(&notification->parent,
-			BT_NOTIFICATION_TYPE_PACKET_BEGIN,
-			(bt_object_release_func) bt_notification_packet_begin_recycle,
+			BT_NOTIFICATION_TYPE_PACKET_BEGINNING,
+			(bt_object_release_func) bt_notification_packet_beginning_recycle,
 			graph);
 	goto end;
 
@@ -65,13 +65,13 @@ end:
 	return (void *) notification;
 }
 
-struct bt_notification *bt_notification_packet_begin_create(
+struct bt_notification *bt_notification_packet_beginning_create(
 		struct bt_self_notification_iterator *self_notif_iter,
 		struct bt_packet *packet)
 {
 	struct bt_self_component_port_input_notification_iterator *notif_iter =
 		(void *) self_notif_iter;
-	struct bt_notification_packet_begin *notification = NULL;
+	struct bt_notification_packet_beginning *notification = NULL;
 	struct bt_stream *stream;
 	struct bt_stream_class *stream_class;
 
@@ -106,9 +106,9 @@ end:
 }
 
 BT_HIDDEN
-void bt_notification_packet_begin_destroy(struct bt_notification *notif)
+void bt_notification_packet_beginning_destroy(struct bt_notification *notif)
 {
-	struct bt_notification_packet_begin *packet_begin_notif = (void *) notif;
+	struct bt_notification_packet_beginning *packet_begin_notif = (void *) notif;
 
 	BT_LIB_LOGD("Destroying packet beginning notification: %!+n", notif);
 	BT_LIB_LOGD("Putting packet: %!+a", packet_begin_notif->packet);
@@ -117,15 +117,15 @@ void bt_notification_packet_begin_destroy(struct bt_notification *notif)
 }
 
 BT_HIDDEN
-void bt_notification_packet_begin_recycle(struct bt_notification *notif)
+void bt_notification_packet_beginning_recycle(struct bt_notification *notif)
 {
-	struct bt_notification_packet_begin *packet_begin_notif = (void *) notif;
+	struct bt_notification_packet_beginning *packet_begin_notif = (void *) notif;
 	struct bt_graph *graph;
 
 	BT_ASSERT(packet_begin_notif);
 
 	if (unlikely(!notif->graph)) {
-		bt_notification_packet_begin_destroy(notif);
+		bt_notification_packet_beginning_destroy(notif);
 		return;
 	}
 
@@ -138,22 +138,22 @@ void bt_notification_packet_begin_recycle(struct bt_notification *notif)
 	bt_object_pool_recycle_object(&graph->packet_begin_notif_pool, notif);
 }
 
-struct bt_packet *bt_notification_packet_begin_borrow_packet(
+struct bt_packet *bt_notification_packet_beginning_borrow_packet(
 		struct bt_notification *notification)
 {
-	struct bt_notification_packet_begin *packet_begin;
+	struct bt_notification_packet_beginning *packet_begin;
 
 	BT_ASSERT_PRE_NON_NULL(notification, "Notification");
 	BT_ASSERT_PRE_NOTIF_IS_TYPE(notification,
-		BT_NOTIFICATION_TYPE_PACKET_BEGIN);
+		BT_NOTIFICATION_TYPE_PACKET_BEGINNING);
 	packet_begin = (void *) notification;
 	return packet_begin->packet;
 }
 
-const struct bt_packet *bt_notification_packet_begin_borrow_packet_const(
+const struct bt_packet *bt_notification_packet_beginning_borrow_packet_const(
 		const struct bt_notification *notification)
 {
-	return bt_notification_packet_begin_borrow_packet(
+	return bt_notification_packet_beginning_borrow_packet(
 		(void *) notification);
 }
 

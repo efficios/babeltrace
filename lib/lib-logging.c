@@ -926,9 +926,9 @@ static inline void format_notification(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
+	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
 	{
-		const struct bt_notification_stream_begin *notif_stream =
+		const struct bt_notification_stream_beginning *notif_stream =
 			(const void *) notif;
 
 		if (notif_stream->stream) {
@@ -950,9 +950,9 @@ static inline void format_notification(char **buf_ch, bool extended,
 
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 	{
-		const struct bt_notification_packet_begin *notif_packet =
+		const struct bt_notification_packet_beginning *notif_packet =
 			(const void *) notif;
 
 		if (notif_packet->packet) {

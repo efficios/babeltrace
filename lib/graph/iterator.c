@@ -471,14 +471,14 @@ void bt_notification_borrow_packet_stream(const struct bt_notification *notif,
 			bt_notification_event_borrow_event_const(notif));
 		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
-	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
-		*stream = bt_notification_stream_begin_borrow_stream_const(notif);
+	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
+		*stream = bt_notification_stream_beginning_borrow_stream_const(notif);
 		break;
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 		*stream = bt_notification_stream_end_borrow_stream_const(notif);
 		break;
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
-		*packet = bt_notification_packet_begin_borrow_packet_const(notif);
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
+		*packet = bt_notification_packet_beginning_borrow_packet_const(notif);
 		*stream = bt_packet_borrow_stream_const(*packet);
 		break;
 	case BT_NOTIFICATION_TYPE_PACKET_END:
@@ -514,12 +514,12 @@ bool validate_notification(
 	if (!stream_state) {
 		/*
 		 * No stream state for this stream: this notification
-		 * MUST be a BT_NOTIFICATION_TYPE_STREAM_BEGIN notification
+		 * MUST be a BT_NOTIFICATION_TYPE_STREAM_BEGINNING notification
 		 * and its sequence number must be 0.
 		 */
-		if (c_notif->type != BT_NOTIFICATION_TYPE_STREAM_BEGIN) {
+		if (c_notif->type != BT_NOTIFICATION_TYPE_STREAM_BEGINNING) {
 			BT_ASSERT_PRE_MSG("Unexpected notification: missing a "
-				"BT_NOTIFICATION_TYPE_STREAM_BEGIN "
+				"BT_NOTIFICATION_TYPE_STREAM_BEGINNING "
 				"notification prior to this notification: "
 				"%![stream-]+s", stream);
 			is_valid = false;
@@ -582,8 +582,8 @@ bool validate_notification(
 	}
 
 	switch (c_notif->type) {
-	case BT_NOTIFICATION_TYPE_STREAM_BEGIN:
-		BT_ASSERT_PRE_MSG("Unexpected BT_NOTIFICATION_TYPE_STREAM_BEGIN "
+	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
+		BT_ASSERT_PRE_MSG("Unexpected BT_NOTIFICATION_TYPE_STREAM_BEGINNING "
 			"notification at this point: notif-seq-num=%" PRIu64 ", "
 			"%![stream-]+s", c_notif->seq_num, stream);
 		is_valid = false;
@@ -602,9 +602,9 @@ bool validate_notification(
 		stream_state->expected_notif_seq_num++;
 		stream_state->is_ended = true;
 		goto end;
-	case BT_NOTIFICATION_TYPE_PACKET_BEGIN:
+	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 		if (stream_state->cur_packet) {
-			BT_ASSERT_PRE_MSG("Unexpected BT_NOTIFICATION_TYPE_PACKET_BEGIN "
+			BT_ASSERT_PRE_MSG("Unexpected BT_NOTIFICATION_TYPE_PACKET_BEGINNING "
 				"notification at this point: missing a "
 				"BT_NOTIFICATION_TYPE_PACKET_END notification "
 				"prior to this notification: "
@@ -622,7 +622,7 @@ bool validate_notification(
 		if (!stream_state->cur_packet) {
 			BT_ASSERT_PRE_MSG("Unexpected BT_NOTIFICATION_TYPE_PACKET_END "
 				"notification at this point: missing a "
-				"BT_NOTIFICATION_TYPE_PACKET_BEGIN notification "
+				"BT_NOTIFICATION_TYPE_PACKET_BEGINNING notification "
 				"prior to this notification: "
 				"notif-seq-num=%" PRIu64 ", %![stream-]+s, "
 				"%![packet-]+a", c_notif->seq_num, stream,
