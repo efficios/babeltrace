@@ -318,13 +318,12 @@ const char *node_type(struct ctf_node *node);
 
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
-		const struct ctf_metadata_decoder_config *config,
-		const char *name);
+		const struct ctf_metadata_decoder_config *config);
 
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 
 BT_HIDDEN
-struct bt_trace *ctf_visitor_generate_ir_get_ir_trace(
+struct bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 		struct ctf_visitor_generate_ir *visitor);
 
 BT_HIDDEN

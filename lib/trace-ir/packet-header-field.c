@@ -57,24 +57,24 @@ void bt_packet_header_field_release(
 }
 
 struct bt_packet_header_field *bt_packet_header_field_create(
-		struct bt_trace *trace)
+		struct bt_trace_class *tc)
 {
 	struct bt_field_wrapper *field_wrapper;
 
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(trace->packet_header_fc,
-		"Trace has no packet header field classe: %!+t", trace);
+	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
+	BT_ASSERT_PRE(tc->packet_header_fc,
+		"Trace class has no packet header field class: %!+T", tc);
 	field_wrapper = bt_field_wrapper_create(
-		&trace->packet_header_field_pool,
-		(void *) trace->packet_header_fc);
+		&tc->packet_header_field_pool,
+		(void *) tc->packet_header_fc);
 	if (!field_wrapper) {
-		BT_LIB_LOGE("Cannot allocate one packet header field from trace: "
-			"%![trace-]+t", trace);
+		BT_LIB_LOGE("Cannot allocate one packet header field from trace class: "
+			"%![tc-]+T", tc);
 		goto error;
 	}
 
 	BT_ASSERT(field_wrapper->field);
-	bt_trace_freeze(trace);
+	bt_trace_class_freeze(tc);
 	goto end;
 
 error:

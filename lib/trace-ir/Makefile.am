@@ -18,6 +18,7 @@ libtrace_ir_la_SOURCES = \
 	stream.c \
 	stream-class.c \
 	trace.c \
+	trace-class.c \
 	utils.c
 
 libtrace_ir_la_LIBADD = $(UUID_LIBS)

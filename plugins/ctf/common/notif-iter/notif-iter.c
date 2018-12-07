@@ -661,7 +661,7 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 		goto end;
 	}
 
-	/* Packet header class is common to the whole trace. */
+	/* Packet header class is common to the whole trace class. */
 	packet_header_fc = notit->meta.tc->packet_header_fc;
 	if (!packet_header_fc) {
 		notit->state = STATE_AFTER_TRACE_PACKET_HEADER;
@@ -672,8 +672,8 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 
 	if (packet_header_fc->in_ir) {
 		/*
-		 * Create free packet header field from trace. This
-		 * field is going to be moved to the packet once we
+		 * Create free packet header field from trace class.
+		 * This field is going to be moved to the packet once we
 		 * create it. We cannot create the packet now because:
 		 *
 		 * 1. A packet is created from a stream.
@@ -685,7 +685,7 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 			bt_packet_header_field_create(
 				notit->meta.tc->ir_tc);
 		if (!notit->packet_header_field) {
-			BT_LOGE_STR("Cannot create packet header field wrapper from trace.");
+			BT_LOGE_STR("Cannot create packet header field wrapper from trace class.");
 			ret = BT_NOTIF_ITER_STATUS_ERROR;
 			goto end;
 		}
@@ -700,20 +700,17 @@ enum bt_notif_iter_status read_packet_header_begin_state(
 	notit->cur_event_class_id = -1;
 	notit->cur_data_stream_id = -1;
 	BT_LOGV("Decoding packet header field:"
-		"notit-addr=%p, trace-addr=%p, trace-name=\"%s\", fc-addr=%p",
-		notit, notit->meta.tc,
-		notit->meta.tc->name->str, packet_header_fc);
+		"notit-addr=%p, trace-class-addr=%p, fc-addr=%p",
+		notit, notit->meta.tc, packet_header_fc);
 	ret = read_dscope_begin_state(notit, packet_header_fc,
 		STATE_AFTER_TRACE_PACKET_HEADER,
 		STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE,
 		notit->dscopes.trace_packet_header);
 	if (ret < 0) {
 		BT_LOGW("Cannot decode packet header field: "
-			"notit-addr=%p, trace-addr=%p, "
-			"trace-name=\"%s\", fc-addr=%p",
-			notit, notit->meta.tc,
-			notit->meta.tc->name->str,
-			packet_header_fc);
+			"notit-addr=%p, trace-class-addr=%p, "
+			"fc-addr=%p",
+			notit, notit->meta.tc, packet_header_fc);
 	}
 
 end:
@@ -742,8 +739,7 @@ enum bt_notif_iter_status set_current_stream_class(struct bt_notif_iter *notit)
 		if (notit->meta.tc->stream_classes->len != 1) {
 			BT_LOGW("Need exactly one stream class since there's "
 				"no stream class ID field: "
-				"notit-addr=%p, trace-name=\"%s\"",
-				notit, notit->meta.tc->name->str);
+				"notit-addr=%p", notit);
 			status = BT_NOTIF_ITER_STATUS_ERROR;
 			goto end;
 		}
@@ -755,11 +751,10 @@ enum bt_notif_iter_status set_current_stream_class(struct bt_notif_iter *notit)
 	new_stream_class = ctf_trace_class_borrow_stream_class_by_id(
 		notit->meta.tc, notit->cur_stream_class_id);
 	if (!new_stream_class) {
-		BT_LOGW("No stream class with ID of stream class ID to use in trace: "
+		BT_LOGW("No stream class with ID of stream class ID to use in trace class: "
 			"notit-addr=%p, stream-class-id=%" PRIu64 ", "
-			"trace-addr=%p, trace-name=\"%s\"",
-			notit, notit->cur_stream_class_id, notit->meta.tc,
-			notit->meta.tc->name->str);
+			"trace-class-addr=%p",
+			notit, notit->cur_stream_class_id, notit->meta.tc);
 		status = BT_NOTIF_ITER_STATUS_ERROR;
 		goto end;
 	}
@@ -771,13 +766,12 @@ enum bt_notif_iter_status set_current_stream_class(struct bt_notif_iter *notit)
 				"prev-stream-class-id=%" PRId64 ", "
 				"next-stream-class-addr=%p, "
 				"next-stream-class-id=%" PRId64 ", "
-				"trace-addr=%p, trace-name=\"%s\"",
+				"trace-addr=%p",
 				notit, notit->meta.sc,
 				notit->meta.sc->id,
 				new_stream_class,
 				new_stream_class->id,
-				notit->meta.tc,
-				notit->meta.tc->name->str);
+				notit->meta.tc);
 			status = BT_NOTIF_ITER_STATUS_ERROR;
 			goto end;
 		}
@@ -1099,7 +1093,7 @@ enum bt_notif_iter_status read_event_header_begin_state(
 			bt_event_header_field_create(
 				notit->meta.sc->ir_sc);
 		if (!notit->event_header_field) {
-			BT_LOGE_STR("Cannot create event header field wrapper from trace.");
+			BT_LOGE_STR("Cannot create event header field wrapper from trace class.");
 			status = BT_NOTIF_ITER_STATUS_ERROR;
 			goto end;
 		}
@@ -1157,8 +1151,7 @@ enum bt_notif_iter_status set_current_event_class(struct bt_notif_iter *notit)
 		if (notit->meta.sc->event_classes->len != 1) {
 			BT_LOGW("Need exactly one event class since there's "
 				"no event class ID field: "
-				"notit-addr=%p, trace-name=\"%s\"",
-				notit, notit->meta.tc->name->str);
+				"notit-addr=%p", notit);
 			status = BT_NOTIF_ITER_STATUS_ERROR;
 			goto end;
 		}
@@ -1173,9 +1166,9 @@ enum bt_notif_iter_status set_current_event_class(struct bt_notif_iter *notit)
 		BT_LOGW("No event class with ID of event class ID to use in stream class: "
 			"notit-addr=%p, stream-class-id=%" PRIu64 ", "
 			"event-class-id=%" PRIu64 ", "
-			"trace-addr=%p, trace-name=\"%s\"",
+			"trace-class-addr=%p",
 			notit, notit->meta.sc->id, notit->cur_event_class_id,
-			notit->meta.tc, notit->meta.tc->name->str);
+			notit->meta.tc);
 		status = BT_NOTIF_ITER_STATUS_ERROR;
 		goto end;
 	}
@@ -2471,8 +2464,8 @@ struct bt_notif_iter *bt_notif_iter_create(struct ctf_trace_class *tc,
 	BT_ASSERT(medops.request_bytes);
 	BT_ASSERT(medops.borrow_stream);
 	BT_LOGD("Creating CTF plugin notification iterator: "
-		"trace-addr=%p, trace-name=\"%s\", max-request-size=%zu, "
-		"data=%p", tc, tc->name->str, max_request_sz, data);
+		"trace-addr=%p, max-request-size=%zu, "
+		"data=%p", tc, max_request_sz, data);
 	notit = g_new0(struct bt_notif_iter, 1);
 	if (!notit) {
 		BT_LOGE_STR("Failed to allocate one CTF plugin notification iterator.");
@@ -2499,10 +2492,9 @@ struct bt_notif_iter *bt_notif_iter_create(struct ctf_trace_class *tc,
 
 	bt_notif_iter_reset(notit);
 	BT_LOGD("Created CTF plugin notification iterator: "
-		"trace-addr=%p, trace-name=\"%s\", max-request-size=%zu, "
+		"trace-addr=%p, max-request-size=%zu, "
 		"data=%p, notit-addr=%p",
-		tc, tc->name->str, max_request_sz, data,
-		notit);
+		tc, max_request_sz, data, notit);
 	notit->cur_packet_offset = 0;
 
 end:

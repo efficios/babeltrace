@@ -45,7 +45,7 @@ BT_HIDDEN
 void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata);
 
 BT_HIDDEN
-int ctf_fs_metadata_set_trace(struct ctf_fs_trace *ctf_fs_trace,
+int ctf_fs_metadata_set_trace_class(struct ctf_fs_trace *ctf_fs_trace,
 		struct ctf_fs_metadata_config *config);
 
 BT_HIDDEN

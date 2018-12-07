@@ -69,6 +69,8 @@ babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/stream-class.h \
 	babeltrace/trace-ir/stream-const.h \
 	babeltrace/trace-ir/stream.h \
+	babeltrace/trace-ir/trace-class-const.h \
+	babeltrace/trace-ir/trace-class.h \
 	babeltrace/trace-ir/trace-const.h \
 	babeltrace/trace-ir/trace.h
 

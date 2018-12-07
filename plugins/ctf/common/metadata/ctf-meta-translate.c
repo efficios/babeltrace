@@ -457,20 +457,19 @@ end:
 
 static inline
 struct bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
-		struct bt_trace *ir_trace, struct ctf_trace_class *tc)
+		struct bt_trace_class *ir_tc, struct ctf_trace_class *tc)
 {
 	int ret;
 	struct bt_stream_class *ir_sc = NULL;
 	struct ctf_field_class_int *int_fc;
 
 	if (sc->is_translated) {
-		ir_sc = bt_trace_borrow_stream_class_by_id(
-			ir_trace, sc->id);
+		ir_sc = bt_trace_class_borrow_stream_class_by_id(ir_tc, sc->id);
 		BT_ASSERT(ir_sc);
 		goto end;
 	}
 
-	ir_sc = bt_stream_class_create_with_id(ir_trace, sc->id);
+	ir_sc = bt_stream_class_create_with_id(ir_tc, sc->id);
 	BT_ASSERT(ir_sc);
 	bt_object_put_ref(ir_sc);
 
@@ -564,7 +563,7 @@ end:
 }
 
 static inline
-int ctf_trace_class_to_ir(struct bt_trace *ir_trace,
+int ctf_trace_class_to_ir(struct bt_trace_class *ir_tc,
 		struct ctf_trace_class *tc)
 {
 	int ret = 0;
@@ -579,22 +578,15 @@ int ctf_trace_class_to_ir(struct bt_trace *ir_trace,
 			tc->packet_header_fc, tc, NULL, NULL);
 
 		if (ir_fc) {
-			ret = bt_trace_set_packet_header_field_class(
-				ir_trace, ir_fc);
+			ret = bt_trace_class_set_packet_header_field_class(
+				ir_tc, ir_fc);
 			BT_ASSERT(ret == 0);
 			bt_object_put_ref(ir_fc);
 		}
 	}
 
-	if (tc->name->len > 0) {
-		ret = bt_trace_set_name(ir_trace, tc->name->str);
-		if (ret) {
-			goto end;
-		}
-	}
-
 	if (tc->is_uuid_set) {
-		bt_trace_set_uuid(ir_trace, tc->uuid);
+		bt_trace_class_set_uuid(ir_tc, tc->uuid);
 	}
 
 	for (i = 0; i < tc->env_entries->len; i++) {
@@ -603,13 +595,13 @@ int ctf_trace_class_to_ir(struct bt_trace *ir_trace,
 
 		switch (env_entry->type) {
 		case CTF_TRACE_CLASS_ENV_ENTRY_TYPE_INT:
-			ret = bt_trace_set_environment_entry_integer(
-				ir_trace, env_entry->name->str,
+			ret = bt_trace_class_set_environment_entry_integer(
+				ir_tc, env_entry->name->str,
 				env_entry->value.i);
 			break;
 		case CTF_TRACE_CLASS_ENV_ENTRY_TYPE_STR:
-			ret = bt_trace_set_environment_entry_string(
-				ir_trace, env_entry->name->str,
+			ret = bt_trace_class_set_environment_entry_string(
+				ir_tc, env_entry->name->str,
 				env_entry->value.str->str);
 			break;
 		default:
@@ -621,23 +613,23 @@ int ctf_trace_class_to_ir(struct bt_trace *ir_trace,
 		}
 	}
 
-	bt_trace_set_assigns_automatic_stream_class_id(ir_trace,
+	bt_trace_class_set_assigns_automatic_stream_class_id(ir_tc,
 		BT_FALSE);
 	tc->is_translated = true;
-	tc->ir_tc = ir_trace;
+	tc->ir_tc = ir_tc;
 
 end:
 	return ret;
 }
 
 BT_HIDDEN
-int ctf_trace_class_translate(struct bt_trace *ir_trace,
+int ctf_trace_class_translate(struct bt_trace_class *ir_tc,
 		struct ctf_trace_class *tc)
 {
 	int ret = 0;
 	uint64_t i;
 
-	ret = ctf_trace_class_to_ir(ir_trace, tc);
+	ret = ctf_trace_class_to_ir(ir_tc, tc);
 	if (ret) {
 		goto end;
 	}
@@ -647,7 +639,7 @@ int ctf_trace_class_translate(struct bt_trace *ir_trace,
 		struct ctf_stream_class *sc = tc->stream_classes->pdata[i];
 		struct bt_stream_class *ir_sc;
 
-		ir_sc = ctf_stream_class_to_ir(sc, ir_trace, tc);
+		ir_sc = ctf_stream_class_to_ir(sc, ir_tc, tc);
 		if (!ir_sc) {
 			ret = -1;
 			goto end;

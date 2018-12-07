@@ -34,10 +34,14 @@
 extern "C" {
 #endif
 
+struct bt_trace;
 struct bt_stream;
 struct bt_stream_class;
 
 extern const struct bt_stream_class *bt_stream_borrow_class_const(
+		const struct bt_stream *stream);
+
+extern const struct bt_trace *bt_stream_borrow_trace_const(
 		const struct bt_stream *stream);
 
 extern const char *bt_stream_get_name(const struct bt_stream *stream);

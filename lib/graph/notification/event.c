@@ -50,7 +50,7 @@ static inline bool event_class_has_trace(struct bt_event_class *event_class)
 
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
-	return bt_stream_class_borrow_trace(stream_class) != NULL;
+	return bt_stream_class_borrow_trace_class(stream_class) != NULL;
 }
 
 BT_HIDDEN

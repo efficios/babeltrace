@@ -246,7 +246,6 @@ struct ctf_trace_class_env_entry {
 };
 
 struct ctf_trace_class {
-	GString *name;
 	unsigned int major;
 	unsigned int minor;
 	uint8_t uuid[16];
@@ -270,7 +269,7 @@ struct ctf_trace_class {
 	bool is_translated;
 
 	/* Weak, set during translation */
-	struct bt_trace *ir_tc;
+	struct bt_trace_class *ir_tc;
 };
 
 static inline
@@ -1450,9 +1449,7 @@ struct ctf_trace_class *ctf_trace_class_create(void)
 	struct ctf_trace_class *tc = g_new0(struct ctf_trace_class, 1);
 
 	BT_ASSERT(tc);
-	tc->name = g_string_new(NULL);
 	tc->default_byte_order = -1;
-	BT_ASSERT(tc->name);
 	tc->clock_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_put_ref);
 	BT_ASSERT(tc->clock_classes);
@@ -1469,10 +1466,6 @@ void ctf_trace_class_destroy(struct ctf_trace_class *tc)
 {
 	if (!tc) {
 		return;
-	}
-
-	if (tc->name) {
-		g_string_free(tc->name, TRUE);
 	}
 
 	ctf_field_class_destroy(tc->packet_header_fc);

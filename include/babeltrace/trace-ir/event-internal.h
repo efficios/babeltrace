@@ -53,8 +53,13 @@
 
 struct bt_event {
 	struct bt_object base;
+
+	/* Owned by this */
 	struct bt_event_class *class;
+
+	/* Owned by this */
 	struct bt_packet *packet;
+
 	struct bt_field_wrapper *header_field;
 	struct bt_field *common_context_field;
 	struct bt_field *specific_context_field;
