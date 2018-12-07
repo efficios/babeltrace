@@ -45,7 +45,6 @@
 #include <babeltrace/value.h>
 #include <babeltrace/value-const.h>
 #include <babeltrace/value-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -418,4 +417,14 @@ void bt_trace_class_set_assigns_automatic_stream_class_id(struct bt_trace_class 
 	tc->assigns_automatic_stream_class_id = (bool) value;
 	BT_LIB_LOGV("Set trace class's automatic stream class ID "
 		"assignment property: %!+T", tc);
+}
+
+void bt_trace_class_get_ref(const struct bt_trace_class *trace_class)
+{
+	bt_object_get_ref(trace_class);
+}
+
+void bt_trace_class_put_ref(const struct bt_trace_class *trace_class)
+{
+	bt_object_put_ref(trace_class);
 }

@@ -551,7 +551,7 @@ void ctx_destroy(struct ctx *ctx)
 		scope = parent_scope;
 	}
 
-	bt_object_put_ref(ctx->trace_class);
+	bt_trace_class_put_ref(ctx->trace_class);
 
 	if (ctx->ctf_tc) {
 		ctf_trace_class_destroy(ctx->ctf_tc);
@@ -2705,7 +2705,7 @@ int visit_integer_decl(struct ctx *ctx,
 	(*integer_decl)->disp_base = base;
 	(*integer_decl)->encoding = encoding;
 	(*integer_decl)->mapped_clock_class = mapped_clock_class;
-	bt_object_get_ref((*integer_decl)->mapped_clock_class);
+	bt_clock_class_get_ref((*integer_decl)->mapped_clock_class);
 	return 0;
 
 error:
@@ -3599,7 +3599,7 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		BT_ASSERT(ret == 0);
 		g_ptr_array_add(ctx->ctf_tc->clock_classes,
 			clock_class_to_map_to);
-		bt_object_get_ref(clock_class_to_map_to);
+		bt_clock_class_get_ref(clock_class_to_map_to);
 		break;
 	case 1:
 		/*
@@ -3607,7 +3607,7 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		 * this one.
 		 */
 		clock_class_to_map_to = ctx->ctf_tc->clock_classes->pdata[0];
-		bt_object_get_ref(clock_class_to_map_to);
+		bt_clock_class_get_ref(clock_class_to_map_to);
 		break;
 	default:
 		/*
@@ -3622,10 +3622,10 @@ int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 
 	BT_ASSERT(clock_class_to_map_to);
 	int_fc->mapped_clock_class = clock_class_to_map_to;
-	bt_object_get_ref(int_fc->mapped_clock_class);
+	bt_clock_class_get_ref(int_fc->mapped_clock_class);
 
 end:
-	bt_object_put_ref(clock_class_to_map_to);
+	bt_clock_class_put_ref(clock_class_to_map_to);
 	return ret;
 }
 
@@ -4729,10 +4729,10 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 	bt_clock_class_set_offset(clock, offset_seconds, offset_cycles);
 	apply_clock_class_offset(ctx, clock);
 	g_ptr_array_add(ctx->ctf_tc->clock_classes, clock);
-	bt_object_get_ref(clock);
+	bt_clock_class_get_ref(clock);
 
 end:
-	BT_OBJECT_PUT_REF_AND_RESET(clock);
+	BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock);
 	return ret;
 }
 
@@ -4837,7 +4837,7 @@ struct bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 
 	BT_ASSERT(ctx);
 	BT_ASSERT(ctx->trace_class);
-	bt_object_get_ref(ctx->trace_class);
+	bt_trace_class_get_ref(ctx->trace_class);
 	return ctx->trace_class;
 }
 

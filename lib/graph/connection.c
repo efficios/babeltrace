@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "CONNECTION"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/connection-internal.h>
@@ -32,9 +34,6 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/object.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 #include <stdlib.h>
 #include <glib.h>
 
@@ -283,4 +282,14 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 bt_bool bt_connection_is_ended(const struct bt_connection *connection)
 {
 	return !connection->downstream_port && !connection->upstream_port;
+}
+
+void bt_connection_get_ref(const struct bt_connection *connection)
+{
+	bt_object_get_ref(connection);
+}
+
+void bt_connection_put_ref(const struct bt_connection *connection)
+{
+	bt_object_put_ref(connection);
 }

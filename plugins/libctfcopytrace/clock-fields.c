@@ -91,7 +91,7 @@ int update_header_clock_int_field_type(FILE *err, struct bt_field_type *type,
 	if (!clock) {
 		return 0;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(clock);
+	BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock);
 
 	ret = bt_field_type_integer_set_size(type, 64);
 	if (ret) {
@@ -322,12 +322,12 @@ struct bt_field_type *override_header_type(FILE *err,
 		BT_LOGE_STR("Failed to find clock fields in struct.");
 		goto error;
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_class);
+	BT_CLOCK_CLASS_PUT_REF_AND_RESET(writer_clock_class);
 
 	goto end;
 
 error:
-	bt_object_put_ref(writer_clock_class);
+	bt_clock_class_put_ref(writer_clock_class);
 	BT_OBJECT_PUT_REF_AND_RESET(new_type);
 end:
 	return new_type;
@@ -732,7 +732,7 @@ const struct bt_clock_class *stream_class_get_clock_class(FILE *err,
 	/* FIXME multi-clock? */
 	clock_class = bt_trace_get_clock_class_by_index(trace, 0);
 
-	bt_object_put_ref(trace);
+	bt_trace_put_ref(trace);
 
 	return clock_class;
 }
@@ -747,11 +747,11 @@ const struct bt_clock_class *event_get_clock_class(FILE *err, const struct bt_ev
 	BT_ASSERT(event_class);
 
 	stream_class = bt_event_class_get_stream_class(event_class);
-	BT_OBJECT_PUT_REF_AND_RESET(event_class);
+	BT_EVENT_CLASS_PUT_REF_AND_RESET(event_class);
 	BT_ASSERT(stream_class);
 
 	clock_class = stream_class_get_clock_class(err, stream_class);
-	bt_object_put_ref(stream_class);
+	bt_stream_class_put_ref(stream_class);
 
 	return clock_class;
 }
@@ -773,7 +773,7 @@ int copy_find_clock_int_field(FILE *err,
 	}
 
 	clock_value = bt_event_get_clock_value(event, clock_class);
-	BT_OBJECT_PUT_REF_AND_RESET(clock_class);
+	BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock_class);
 	BT_ASSERT(clock_value);
 
 	ret = bt_clock_value_get_value(clock_value, &value);
@@ -793,7 +793,7 @@ int copy_find_clock_int_field(FILE *err,
 	BT_ASSERT(writer_clock_class);
 
 	writer_clock_value = bt_clock_value_create(writer_clock_class, value);
-	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_class);
+	BT_CLOCK_CLASS_PUT_REF_AND_RESET(writer_clock_class);
 	if (!writer_clock_value) {
 		BT_LOGE_STR("Failed to create clock value.");
 		goto error;

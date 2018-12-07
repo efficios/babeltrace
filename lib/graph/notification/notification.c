@@ -24,11 +24,11 @@
 #define BT_LOG_TAG "NOTIF"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/graph/notification-const.h>
 #include <babeltrace/graph/notification-internal.h>
 #include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 
 BT_ASSERT_PRE_FUNC
 static inline void _init_seq_num(struct bt_notification *notification)
@@ -72,4 +72,14 @@ void bt_notification_unlink_graph(struct bt_notification *notif)
 {
 	BT_ASSERT(notif);
 	notif->graph = NULL;
+}
+
+void bt_notification_get_ref(const struct bt_notification *notification)
+{
+	bt_object_get_ref(notification);
+}
+
+void bt_notification_put_ref(const struct bt_notification *notification)
+{
+	bt_object_put_ref(notification);
 }

@@ -37,7 +37,6 @@
 #include <babeltrace/trace-ir/clock-value-internal.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/assert-internal.h>
 #include <inttypes.h>
 
@@ -505,4 +504,14 @@ void bt_packet_set_packet_counter_snapshot(struct bt_packet *packet,
 		"Packet's stream's packet counter is not enabled: "
 		"%![packet-]+a", packet);
 	bt_property_uint_set(&packet->packet_counter_snapshot, value);
+}
+
+void bt_packet_get_ref(const struct bt_packet *packet)
+{
+	bt_object_get_ref(packet);
+}
+
+void bt_packet_put_ref(const struct bt_packet *packet)
+{
+	bt_object_put_ref(packet);
 }

@@ -348,7 +348,7 @@ enum bt_value_status list_update_session(struct bt_value *results,
 			if (ret != BT_VALUE_STATUS_OK) {
 				goto end;
 			}
-			BT_OBJECT_PUT_REF_AND_RESET(btval);
+			BT_VALUE_PUT_REF_AND_RESET(btval);
 
 			btval = bt_value_map_get(map, "client-count");
 			if (!btval) {
@@ -362,22 +362,22 @@ enum bt_value_status list_update_session(struct bt_value *results,
 			if (ret != BT_VALUE_STATUS_OK) {
 				goto end;
 			}
-			BT_OBJECT_PUT_REF_AND_RESET(btval);
+			BT_VALUE_PUT_REF_AND_RESET(btval);
 		}
 
-		BT_OBJECT_PUT_REF_AND_RESET(hostname);
-		BT_OBJECT_PUT_REF_AND_RESET(session_name);
-		BT_OBJECT_PUT_REF_AND_RESET(map);
+		BT_VALUE_PUT_REF_AND_RESET(hostname);
+		BT_VALUE_PUT_REF_AND_RESET(session_name);
+		BT_VALUE_PUT_REF_AND_RESET(map);
 
 		if (found) {
 			break;
 		}
 	}
 end:
-	BT_OBJECT_PUT_REF_AND_RESET(btval);
-	BT_OBJECT_PUT_REF_AND_RESET(hostname);
-	BT_OBJECT_PUT_REF_AND_RESET(session_name);
-	BT_OBJECT_PUT_REF_AND_RESET(map);
+	BT_VALUE_PUT_REF_AND_RESET(btval);
+	BT_VALUE_PUT_REF_AND_RESET(hostname);
+	BT_VALUE_PUT_REF_AND_RESET(session_name);
+	BT_VALUE_PUT_REF_AND_RESET(map);
 	*_found = found;
 	return ret;
 }
@@ -494,7 +494,7 @@ end:
 	if (url) {
 		g_string_free(url, TRUE);
 	}
-	BT_OBJECT_PUT_REF_AND_RESET(map);
+	BT_VALUE_PUT_REF_AND_RESET(map);
 	return ret;
 }
 
@@ -600,7 +600,7 @@ struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_c
 	}
 	goto end;
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(results);
+	BT_VALUE_PUT_REF_AND_RESET(results);
 end:
 	return results;
 }

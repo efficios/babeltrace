@@ -23,14 +23,15 @@
 #define BT_LOG_TAG "COLANDER"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/object.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/object-internal.h>
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/self-component-sink.h>
 #include <babeltrace/graph/self-component-port.h>
 #include <babeltrace/graph/self-component-port-input-notification-iterator.h>
 #include <babeltrace/graph/self-component.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
-#include <babeltrace/assert-internal.h>
 #include <glib.h>
 
 static

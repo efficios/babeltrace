@@ -3,7 +3,6 @@ babeltraceincludedir = "$(includedir)/babeltrace"
 babeltraceinclude_HEADERS = \
 	babeltrace/babeltrace.h \
 	babeltrace/logging.h \
-	babeltrace/object.h \
 	babeltrace/property.h \
 	babeltrace/types.h \
 	babeltrace/value-const.h \

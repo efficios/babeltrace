@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "PORT"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/graph/port-const.h>
 #include <babeltrace/graph/port-input-const.h>
 #include <babeltrace/graph/port-output-const.h>
@@ -34,10 +36,7 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 
 static
 void destroy_port(struct bt_object *obj)
@@ -170,4 +169,34 @@ void *bt_self_component_port_get_data(const struct bt_self_component_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
 	return ((struct bt_port *) port)->user_data;
+}
+
+void bt_port_get_ref(const struct bt_port *port)
+{
+	bt_object_get_ref(port);
+}
+
+void bt_port_put_ref(const struct bt_port *port)
+{
+	bt_object_put_ref(port);
+}
+
+void bt_port_input_get_ref(const struct bt_port_input *port_input)
+{
+	bt_object_get_ref(port_input);
+}
+
+void bt_port_input_put_ref(const struct bt_port_input *port_input)
+{
+	bt_object_put_ref(port_input);
+}
+
+void bt_port_output_get_ref(const struct bt_port_output *port_output)
+{
+	bt_object_get_ref(port_output);
+}
+
+void bt_port_output_put_ref(const struct bt_port_output *port_output)
+{
+	bt_object_put_ref(port_output);
 }

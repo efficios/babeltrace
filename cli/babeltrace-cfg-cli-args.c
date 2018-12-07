@@ -416,7 +416,7 @@ success:
 	}
 
 end:
-	BT_OBJECT_PUT_REF_AND_RESET(value);
+	BT_VALUE_PUT_REF_AND_RESET(value);
 	return ret;
 }
 
@@ -534,7 +534,7 @@ struct bt_value *bt_value_from_ini(const char *arg,
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(state.params);
+	BT_VALUE_PUT_REF_AND_RESET(state.params);
 
 end:
 	if (state.scanner) {
@@ -754,7 +754,7 @@ void bt_config_component_destroy(struct bt_object *obj)
 		g_string_free(bt_config_component->instance_name, TRUE);
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(bt_config_component->params);
+	BT_VALUE_PUT_REF_AND_RESET(bt_config_component->params);
 	g_free(bt_config_component);
 
 end:
@@ -870,7 +870,7 @@ void bt_config_destroy(struct bt_object *obj)
 		goto end;
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(cfg->plugin_paths);
+	BT_VALUE_PUT_REF_AND_RESET(cfg->plugin_paths);
 
 	switch (cfg->command) {
 	case BT_CONFIG_COMMAND_RUN:
@@ -1099,7 +1099,7 @@ end:
 	return names;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(names);
+	BT_VALUE_PUT_REF_AND_RESET(names);
 	if (scanner) {
 		g_scanner_destroy(scanner);
 	}
@@ -1172,7 +1172,7 @@ struct bt_value *fields_from_arg(const char *arg)
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(fields);
+	BT_VALUE_PUT_REF_AND_RESET(fields);
 
 end:
 	if (scanner) {
@@ -2031,7 +2031,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 			break;
 		case OPT_PARAMS:
 		{
-			bt_object_put_ref(params);
+			bt_value_put_ref(params);
 			params = bt_value_from_arg(arg);
 			if (!params) {
 				printf_err("Invalid format for --params option's argument:\n    %s\n",
@@ -2122,7 +2122,7 @@ end:
 		poptFreeContext(pc);
 	}
 
-	bt_object_put_ref(params);
+	bt_value_put_ref(params);
 	free(arg);
 	return cfg;
 }
@@ -2498,7 +2498,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			}
 
 			BT_ASSERT(cur_base_params);
-			bt_object_put_ref(cur_cfg_comp->params);
+			bt_value_put_ref(cur_cfg_comp->params);
 			status = bt_value_copy(cur_base_params,
 				&cur_cfg_comp->params);
 			if (status != BT_VALUE_STATUS_OK) {
@@ -2529,7 +2529,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 
 			status = bt_value_map_extend(cur_cfg_comp->params,
 				params, &params_to_set);
-			BT_OBJECT_PUT_REF_AND_RESET(params);
+			BT_VALUE_PUT_REF_AND_RESET(params);
 			if (status != BT_VALUE_STATUS_OK) {
 				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
 					arg);
@@ -2590,7 +2590,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			break;
 		}
 		case OPT_RESET_BASE_PARAMS:
-			BT_OBJECT_PUT_REF_AND_RESET(cur_base_params);
+			BT_VALUE_PUT_REF_AND_RESET(cur_base_params);
 			cur_base_params = bt_value_map_create();
 			if (!cur_base_params) {
 				print_err_oom();
@@ -2691,9 +2691,9 @@ end:
 
 	free(arg);
 	BT_OBJECT_PUT_REF_AND_RESET(cur_cfg_comp);
-	BT_OBJECT_PUT_REF_AND_RESET(cur_base_params);
-	BT_OBJECT_PUT_REF_AND_RESET(instance_names);
-	BT_OBJECT_PUT_REF_AND_RESET(connection_args);
+	BT_VALUE_PUT_REF_AND_RESET(cur_base_params);
+	BT_VALUE_PUT_REF_AND_RESET(instance_names);
+	BT_VALUE_PUT_REF_AND_RESET(connection_args);
 	return cfg;
 }
 
@@ -3087,7 +3087,7 @@ void finalize_implicit_component_args(struct implicit_component_args *args)
 		g_string_free(args->params_arg, TRUE);
 	}
 
-	bt_object_put_ref(args->extra_params);
+	bt_value_put_ref(args->extra_params);
 }
 
 static
@@ -3536,7 +3536,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 		 * We need our own copy of the extra parameters because
 		 * this is where the unique path goes.
 		 */
-		BT_OBJECT_PUT_REF_AND_RESET(impl_args->extra_params);
+		BT_VALUE_PUT_REF_AND_RESET(impl_args->extra_params);
 		status = bt_value_copy(base_implicit_ctf_input_args->extra_params,
 			&impl_args->extra_params);
 		if (status != BT_VALUE_STATUS_OK) {
@@ -4159,7 +4159,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
 				fields, "field");
-			bt_object_put_ref(fields);
+			bt_value_put_ref(fields);
 			if (ret) {
 				goto error;
 			}
@@ -4177,7 +4177,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			ret = insert_flat_params_from_array(
 				implicit_text_args.params_arg,
 				names, "name");
-			bt_object_put_ref(names);
+			bt_value_put_ref(names);
 			if (ret) {
 				goto error;
 			}
@@ -4743,8 +4743,8 @@ end:
 		g_ptr_array_free(implicit_ctf_inputs_args, TRUE);
 	}
 
-	bt_object_put_ref(run_args);
-	bt_object_put_ref(all_names);
+	bt_value_put_ref(run_args);
+	bt_value_put_ref(all_names);
 	destroy_glist_of_gstring(source_names);
 	destroy_glist_of_gstring(filter_names);
 	destroy_glist_of_gstring(sink_names);
@@ -4757,7 +4757,7 @@ end:
 	finalize_implicit_component_args(&implicit_debug_info_args);
 	finalize_implicit_component_args(&implicit_muxer_args);
 	finalize_implicit_component_args(&implicit_trimmer_args);
-	bt_object_put_ref(plugin_paths);
+	bt_value_put_ref(plugin_paths);
 	bt_common_destroy_lttng_live_url_parts(&lttng_live_url_parts);
 	return cfg;
 }
@@ -4852,7 +4852,7 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 			goto end;
 		}
 	} else {
-		bt_object_get_ref(initial_plugin_paths);
+		bt_value_get_ref(initial_plugin_paths);
 	}
 
 	if (argc <= 1) {
@@ -5014,6 +5014,6 @@ struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 	}
 
 end:
-	bt_object_put_ref(initial_plugin_paths);
+	bt_value_put_ref(initial_plugin_paths);
 	return config;
 }

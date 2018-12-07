@@ -47,6 +47,23 @@ extern const char *bt_stream_get_name(const struct bt_stream *stream);
 
 extern uint64_t bt_stream_get_id(const struct bt_stream *stream);
 
+extern void bt_stream_get_ref(const struct bt_stream *stream);
+
+extern void bt_stream_put_ref(const struct bt_stream *stream);
+
+#define BT_STREAM_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_stream_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_STREAM_MOVE_REF(_var_dst, _var_src)		\
+	do {						\
+		bt_stream_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

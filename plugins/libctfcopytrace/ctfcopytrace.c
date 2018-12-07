@@ -112,7 +112,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		BT_ASSERT(clock_class);
 
 		writer_clock_class = ctf_copy_clock_class(err, clock_class);
-		bt_object_put_ref(clock_class);
+		bt_clock_class_put_ref(clock_class);
 		if (!writer_clock_class) {
 			BT_LOGE_STR("Failed to copy clock class.");
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -121,7 +121,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 
 		int_ret = bt_trace_add_clock_class(writer_trace, writer_clock_class);
 		if (int_ret != 0) {
-			BT_OBJECT_PUT_REF_AND_RESET(writer_clock_class);
+			BT_CLOCK_CLASS_PUT_REF_AND_RESET(writer_clock_class);
 			BT_LOGE_STR("Failed to add clock class.");
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto end;
@@ -130,7 +130,7 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
 		/*
 		 * Ownership transferred to the trace.
 		 */
-		bt_object_put_ref(writer_clock_class);
+		bt_clock_class_put_ref(writer_clock_class);
 	}
 
 	ret = BT_COMPONENT_STATUS_OK;
@@ -168,8 +168,8 @@ void replace_clock_classes(const struct bt_trace *trace_copy,
 		ret = bt_field_type_integer_set_mapped_clock_class(
 			field_type, clock_class_copy);
 		BT_ASSERT(ret == 0);
-		bt_object_put_ref(mapped_clock_class);
-		bt_object_put_ref(clock_class_copy);
+		bt_clock_class_put_ref(mapped_clock_class);
+		bt_clock_class_put_ref(clock_class_copy);
 		break;
 	}
 	case BT_FIELD_TYPE_ID_ENUM:
@@ -334,7 +334,7 @@ const struct bt_event_class *ctf_copy_event_class(FILE *err,
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_event_class);
+	BT_EVENT_CLASS_PUT_REF_AND_RESET(writer_event_class);
 end:
 	BT_OBJECT_PUT_REF_AND_RESET(context);
 	BT_OBJECT_PUT_REF_AND_RESET(payload_type);
@@ -373,8 +373,8 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 				 * event_classes after a trace has become
 				 * static.
 				 */
-				BT_OBJECT_PUT_REF_AND_RESET(writer_event_class);
-				BT_OBJECT_PUT_REF_AND_RESET(event_class);
+				BT_EVENT_CLASS_PUT_REF_AND_RESET(writer_event_class);
+				BT_EVENT_CLASS_PUT_REF_AND_RESET(event_class);
 				continue;
 			}
 		}
@@ -394,17 +394,17 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
 			ret = BT_COMPONENT_STATUS_ERROR;
 			goto error;
 		}
-		BT_OBJECT_PUT_REF_AND_RESET(writer_event_class);
-		BT_OBJECT_PUT_REF_AND_RESET(event_class);
+		BT_EVENT_CLASS_PUT_REF_AND_RESET(writer_event_class);
+		BT_EVENT_CLASS_PUT_REF_AND_RESET(event_class);
 	}
 
 	goto end;
 
 error:
-	bt_object_put_ref(event_class);
-	bt_object_put_ref(writer_event_class);
+	bt_event_class_put_ref(event_class);
+	bt_event_class_put_ref(writer_event_class);
 end:
-	bt_object_put_ref(writer_trace);
+	bt_trace_put_ref(writer_trace);
 	return ret;
 }
 
@@ -502,7 +502,7 @@ const struct bt_stream_class *ctf_copy_stream_class(FILE *err,
 	goto end;
 
 error:
-	BT_OBJECT_PUT_REF_AND_RESET(writer_stream_class);
+	BT_STREAM_CLASS_PUT_REF_AND_RESET(writer_stream_class);
 end:
 	bt_object_put_ref(type);
 	bt_object_put_ref(type_copy);
@@ -668,7 +668,7 @@ int ctf_copy_event_header(FILE *err, const struct bt_event *event,
 	}
 
 	clock_value = bt_event_get_clock_value(event, clock_class);
-	BT_OBJECT_PUT_REF_AND_RESET(clock_class);
+	BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock_class);
 	BT_ASSERT(clock_value);
 
 	ret = bt_clock_value_get_value(clock_value, &value);
@@ -685,7 +685,7 @@ int ctf_copy_event_header(FILE *err, const struct bt_event *event,
 	}
 
 	writer_clock_value = bt_clock_value_create(writer_clock_class, value);
-	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_class);
+	BT_CLOCK_CLASS_PUT_REF_AND_RESET(writer_clock_class);
 	if (!writer_clock_value) {
 		BT_LOGE_STR("Failed to create clock value.");
 		goto error;
@@ -734,7 +734,7 @@ const struct bt_trace *event_class_get_trace(FILE *err,
 	trace = bt_stream_class_get_trace(stream_class);
 	BT_ASSERT(trace);
 
-	bt_object_put_ref(stream_class);
+	bt_stream_class_put_ref(stream_class);
 	return trace;
 }
 
@@ -850,7 +850,7 @@ error:
 end:
 	bt_object_put_ref(field);
 	bt_object_put_ref(copy_field);
-	bt_object_put_ref(writer_trace);
+	bt_trace_put_ref(writer_trace);
 	return writer_event;
 }
 
@@ -881,7 +881,7 @@ enum bt_component_status ctf_copy_trace(FILE *err, const struct bt_trace *trace,
 
 		ret_int = bt_trace_set_environment_field(writer_trace,
 				name, value);
-		BT_OBJECT_PUT_REF_AND_RESET(value);
+		BT_VALUE_PUT_REF_AND_RESET(value);
 		if (ret_int < 0) {
 			BT_LOGE("Failed to set environment: field-name=\"%s\"",
 					name);

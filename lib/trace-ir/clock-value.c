@@ -27,7 +27,6 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/clock-value-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/compat/string-internal.h>

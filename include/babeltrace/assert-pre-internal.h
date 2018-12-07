@@ -36,6 +36,7 @@
  * <babeltrace/assert-pre-internal.h>, you also need to use logging
  * explicitly.
  */
+
 #ifndef BABELTRACE_LIB_LOGGING_INTERNAL_H
 # error Include <babeltrace/lib-logging-internal.h> before this header.
 #endif

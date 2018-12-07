@@ -24,7 +24,8 @@
 #define BT_LOG_TAG "COMP-SOURCE"
 #include <babeltrace/lib-logging-internal.h>
 
-#include <babeltrace/object.h>
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/graph/self-component-source.h>
 #include <babeltrace/graph/component-source-const.h>
@@ -34,8 +35,6 @@
 #include <babeltrace/graph/notification-iterator.h>
 #include <babeltrace/graph/notification-iterator-internal.h>
 #include <babeltrace/graph/graph.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 
 BT_HIDDEN
 void bt_component_source_destroy(struct bt_component *component)
@@ -119,4 +118,16 @@ enum bt_self_component_status bt_self_component_source_add_output_port(
 end:
 	bt_object_put_ref(port);
 	return status;
+}
+
+void bt_component_source_get_ref(
+		const struct bt_component_source *component_source)
+{
+	bt_object_get_ref(component_source);
+}
+
+void bt_component_source_put_ref(
+		const struct bt_component_source *component_source)
+{
+	bt_object_put_ref(component_source);
 }

@@ -35,7 +35,6 @@
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/trace-ir/field-wrapper-internal.h>
 #include <babeltrace/trace-ir/resolve-field-path-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/align-internal.h>
 #include <babeltrace/endian-internal.h>
@@ -600,4 +599,14 @@ bt_bool bt_stream_class_default_clock_is_always_known(
 {
 	/* BT_CLOCK_VALUE_STATUS_UNKNOWN is not supported as of 2.0 */
 	return BT_TRUE;
+}
+
+void bt_stream_class_get_ref(const struct bt_stream_class *stream_class)
+{
+	bt_object_get_ref(stream_class);
+}
+
+void bt_stream_class_put_ref(const struct bt_stream_class *stream_class)
+{
+	bt_object_put_ref(stream_class);
 }

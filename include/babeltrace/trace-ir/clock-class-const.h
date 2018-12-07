@@ -63,6 +63,23 @@ extern int bt_clock_class_cycles_to_ns_from_origin(
 		const struct bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns_from_origin);
 
+extern void bt_clock_class_get_ref(const struct bt_clock_class *clock_class);
+
+extern void bt_clock_class_put_ref(const struct bt_clock_class *clock_class);
+
+#define BT_CLOCK_CLASS_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_clock_class_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_CLOCK_CLASS_MOVE_REF(_var_dst, _var_src)	\
+	do {						\
+		bt_clock_class_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

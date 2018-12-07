@@ -121,6 +121,23 @@ extern const struct bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_name_const(
 		const struct bt_plugin *plugin, const char *name);
 
+extern void bt_plugin_get_ref(const struct bt_plugin *plugin);
+
+extern void bt_plugin_put_ref(const struct bt_plugin *plugin);
+
+#define BT_PLUGIN_PUT_REF_AND_RESET(_var)		\
+	do {						\
+		bt_plugin_put_ref(_var);		\
+		(_var) = NULL;				\
+	} while (0)
+
+#define BT_PLUGIN_MOVE_REF(_var_dst, _var_src)		\
+	do {						\
+		bt_plugin_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);		\
+		(_var_src) = NULL;			\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

@@ -145,7 +145,7 @@ void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata)
 	}
 
 	if (metadata->trace_class) {
-		BT_OBJECT_PUT_REF_AND_RESET(metadata->trace_class);
+		BT_TRACE_CLASS_PUT_REF_AND_RESET(metadata->trace_class);
 	}
 
 	if (metadata->decoder) {

@@ -39,6 +39,25 @@ bt_component_class_source_as_component_class_const(
 	return (const void *) comp_cls_source;
 }
 
+extern void bt_component_class_source_get_ref(
+		const struct bt_component_class_source *component_class_source);
+
+extern void bt_component_class_source_put_ref(
+		const struct bt_component_class_source *component_class_source);
+
+#define BT_COMPONENT_CLASS_SOURCE_PUT_REF_AND_RESET(_var)	\
+	do {							\
+		bt_component_class_source_put_ref(_var);	\
+		(_var) = NULL;					\
+	} while (0)
+
+#define BT_COMPONENT_CLASS_SOURCE_MOVE_REF(_var_dst, _var_src)	\
+	do {							\
+		bt_component_class_source_put_ref(_var_dst);	\
+		(_var_dst) = (_var_src);			\
+		(_var_src) = NULL;				\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

@@ -47,6 +47,25 @@ extern
 bt_bool bt_query_executor_is_canceled(
 		const struct bt_query_executor *query_executor);
 
+extern void bt_query_executor_get_ref(
+		const struct bt_query_executor *query_executor);
+
+extern void bt_query_executor_put_ref(
+		const struct bt_query_executor *query_executor);
+
+#define BT_QUERY_EXECUTOR_PUT_REF_AND_RESET(_var)		\
+	do {							\
+		bt_query_executor_put_ref(_var);		\
+		(_var) = NULL;					\
+	} while (0)
+
+#define BT_QUERY_EXECUTOR_MOVE_REF(_var_dst, _var_src)		\
+	do {							\
+		bt_query_executor_put_ref(_var_dst);		\
+		(_var_dst) = (_var_src);			\
+		(_var_src) = NULL;				\
+	} while (0)
+
 #ifdef __cplusplus
 }
 #endif

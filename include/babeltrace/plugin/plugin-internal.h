@@ -30,7 +30,6 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
 #include <babeltrace/object-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
 #include <glib.h>

@@ -24,6 +24,8 @@
 #define BT_LOG_TAG "COMP"
 #include <babeltrace/lib-logging-internal.h>
 
+#include <babeltrace/assert-internal.h>
+#include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/graph/self-component.h>
 #include <babeltrace/graph/component-const.h>
 #include <babeltrace/graph/component-source-const.h>
@@ -40,12 +42,9 @@
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
-#include <babeltrace/object.h>
 #include <babeltrace/types.h>
 #include <babeltrace/value.h>
 #include <babeltrace/value-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
 #include <stdint.h>
 #include <inttypes.h>
 
@@ -821,4 +820,14 @@ void bt_component_remove_destroy_listener(struct bt_component *component,
 				component, func, data);
 		}
 	}
+}
+
+void bt_component_get_ref(const struct bt_component *component)
+{
+	bt_object_get_ref(component);
+}
+
+void bt_component_put_ref(const struct bt_component *component)
+{
+	bt_object_put_ref(component);
 }

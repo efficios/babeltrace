@@ -103,7 +103,7 @@ void try_print_last(struct counter *counter)
 
 void destroy_private_counter_data(struct counter *counter)
 {
-	bt_object_put_ref(counter->notif_iter);
+	bt_self_component_port_input_notification_iterator_put_ref(counter->notif_iter);
 	g_free(counter);
 }
 
@@ -117,7 +117,7 @@ void counter_finalize(struct bt_self_component_sink *comp)
 			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 	try_print_last(counter);
-	bt_object_put_ref(counter->notif_iter);
+	bt_self_component_port_input_notification_iterator_put_ref(counter->notif_iter);
 	g_free(counter);
 }
 
@@ -195,7 +195,8 @@ enum bt_self_component_status counter_port_connected(
 		goto end;
 	}
 
-	BT_OBJECT_MOVE_REF(counter->notif_iter, iterator);
+	BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_MOVE_REF(
+		counter->notif_iter, iterator);
 
 end:
 	return status;
@@ -261,7 +262,7 @@ enum bt_self_component_status counter_consume(
 				counter->count.other++;
 			}
 
-			bt_object_put_ref(notif);
+			bt_notification_put_ref(notif);
 		}
 
 		ret = BT_SELF_COMPONENT_STATUS_OK;

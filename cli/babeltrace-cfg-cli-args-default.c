@@ -61,7 +61,7 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(cfg);
 
 end:
-	bt_object_put_ref(initial_plugin_paths);
+	bt_value_put_ref(initial_plugin_paths);
 	return cfg;
 }
 
