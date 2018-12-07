@@ -288,8 +288,7 @@ int configure_muxer_comp(struct muxer_comp *muxer_comp,
 		goto error;
 	}
 
-	ret = bt_value_map_extend(&real_params,
-		default_params, params);
+	ret = bt_value_map_extend(default_params, params, &real_params);
 	if (ret) {
 		BT_LOGE("Cannot extend default parameters map value: "
 			"muxer-comp-addr=%p, def-params-addr=%p, "

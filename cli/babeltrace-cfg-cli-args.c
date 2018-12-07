@@ -2528,9 +2528,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			status = bt_value_map_extend(&params_to_set,
-				cur_cfg_comp->params,
-				params);
+			status = bt_value_map_extend(cur_cfg_comp->params,
+				params, &params_to_set);
 			BT_OBJECT_PUT_REF_AND_RESET(params);
 			if (status != BT_VALUE_STATUS_OK) {
 				printf_err("Cannot extend current component parameters with --params option's argument:\n    %s\n",
