@@ -144,13 +144,13 @@ void reset_packet(struct bt_packet *packet)
 
 static
 void recycle_header_field(struct bt_field_wrapper *header_field,
-		struct bt_trace *trace)
+		struct bt_trace_class *tc)
 {
 	BT_ASSERT(header_field);
 	BT_LIB_LOGD("Recycling packet header field: "
-		"addr=%p, %![trace-]+t, %![field-]+f", header_field,
-		trace, header_field->field);
-	bt_object_pool_recycle_object(&trace->packet_header_field_pool,
+		"addr=%p, %![tc-]+T, %![field-]+f", header_field,
+		tc, header_field->field);
+	bt_object_pool_recycle_object(&tc->packet_header_field_pool,
 		header_field);
 }
 
@@ -213,7 +213,7 @@ void bt_packet_destroy(struct bt_packet *packet)
 		if (packet->stream) {
 			BT_LOGD_STR("Recycling packet's header field.");
 			recycle_header_field(packet->header_field,
-				bt_stream_class_borrow_trace_inline(
+				bt_stream_class_borrow_trace_class_inline(
 					packet->stream->class));
 		} else {
 			bt_field_wrapper_destroy(packet->header_field);
@@ -255,7 +255,7 @@ BT_HIDDEN
 struct bt_packet *bt_packet_new(struct bt_stream *stream)
 {
 	struct bt_packet *packet = NULL;
-	struct bt_trace *trace = NULL;
+	struct bt_trace_class *trace_class = NULL;
 
 	BT_ASSERT(stream);
 	BT_LIB_LOGD("Creating packet object: %![stream-]+s", stream);
@@ -269,14 +269,14 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 		(bt_object_release_func) bt_packet_recycle);
 	packet->stream = stream;
 	bt_object_get_no_null_check(stream);
-	trace = bt_stream_class_borrow_trace_inline(stream->class);
-	BT_ASSERT(trace);
+	trace_class = bt_stream_class_borrow_trace_class_inline(stream->class);
+	BT_ASSERT(trace_class);
 
-	if (trace->packet_header_fc) {
+	if (trace_class->packet_header_fc) {
 		BT_LOGD_STR("Creating initial packet header field.");
 		packet->header_field = bt_field_wrapper_create(
-			&trace->packet_header_field_pool,
-			trace->packet_header_fc);
+			&trace_class->packet_header_field_pool,
+			trace_class->packet_header_fc);
 		if (!packet->header_field) {
 			BT_LOGE_STR("Cannot create packet header field wrapper.");
 			goto error;
@@ -350,25 +350,24 @@ end:
 int bt_packet_move_header_field(struct bt_packet *packet,
 		struct bt_packet_header_field *header_field)
 {
-	struct bt_trace *trace;
+	struct bt_trace_class *tc;
 	struct bt_field_wrapper *field_wrapper = (void *) header_field;
 
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
 	BT_ASSERT_PRE_PACKET_HOT(packet);
-	trace = bt_stream_class_borrow_trace_inline(packet->stream->class);
-	BT_ASSERT_PRE(trace->packet_header_fc,
-		"Trace has no packet header field classe: %!+t",
-		trace);
+	tc = bt_stream_class_borrow_trace_class_inline(packet->stream->class);
+	BT_ASSERT_PRE(tc->packet_header_fc,
+		"Trace class has no packet header field classe: %!+T", tc);
 	BT_ASSERT_PRE(field_wrapper->field->class ==
-		trace->packet_header_fc,
+		tc->packet_header_fc,
 		"Unexpected packet header field's class: "
 		"%![fc-]+F, %![expected-fc-]+F", field_wrapper->field->class,
-		trace->packet_header_fc);
+		tc->packet_header_fc);
 
 	/* Recycle current header field: always exists */
 	BT_ASSERT(packet->header_field);
-	recycle_header_field(packet->header_field, trace);
+	recycle_header_field(packet->header_field, tc);
 
 	/* Move new field */
 	packet->header_field = field_wrapper;

@@ -80,7 +80,7 @@ void _bt_stream_class_freeze(const struct bt_stream_class *stream_class);
 #endif
 
 static inline
-struct bt_trace *bt_stream_class_borrow_trace_inline(
+struct bt_trace_class *bt_stream_class_borrow_trace_class_inline(
 		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT(stream_class);

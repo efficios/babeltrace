@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_TRACE_CONST_H
-#define BABELTRACE_TRACE_IR_TRACE_CONST_H
+#ifndef BABELTRACE_TRACE_IR_TRACE_CLASS_H
+#define BABELTRACE_TRACE_IR_TRACE_CLASS_H
 
 /*
  * Copyright 2014 Jérémie Galarneau <jeremie.galarneau@efficios.com>
@@ -37,43 +37,41 @@
 extern "C" {
 #endif
 
-struct bt_trace;
-struct bt_stream;
+struct bt_trace_class;
 struct bt_stream_class;
 struct bt_field_class;
-struct bt_value;
 
-typedef void (* bt_trace_is_static_listener_func)(const struct bt_trace *trace,
-		void *data);
+extern struct bt_trace_class *bt_trace_class_create(void);
 
-typedef void (* bt_trace_listener_removed_func)(const struct bt_trace *trace,
-		void *data);
+extern void bt_trace_class_set_assigns_automatic_stream_class_id(
+		struct bt_trace_class *trace_class, bt_bool value);
 
-extern const struct bt_trace_class *bt_trace_borrow_class_const(
-		const struct bt_trace *trace);
+extern int bt_trace_class_set_name(struct bt_trace_class *trace_class,
+		const char *name);
 
-extern const char *bt_trace_get_name(const struct bt_trace *trace);
+extern void bt_trace_class_set_uuid(struct bt_trace_class *trace_class,
+		bt_uuid uuid);
 
-extern uint64_t bt_trace_get_stream_count(const struct bt_trace *trace);
+extern int bt_trace_class_set_environment_entry_integer(
+		struct bt_trace_class *trace_class,
+		const char *name, int64_t value);
 
-extern const struct bt_stream *bt_trace_borrow_stream_by_index_const(
-		const struct bt_trace *trace, uint64_t index);
+extern int bt_trace_class_set_environment_entry_string(
+		struct bt_trace_class *trace_class,
+		const char *name, const char *value);
 
-extern const struct bt_stream *bt_trace_borrow_stream_by_id_const(
-		const struct bt_trace *trace, uint64_t id);
+extern int bt_trace_class_set_packet_header_field_class(
+		struct bt_trace_class *trace_class,
+		struct bt_field_class *packet_header_field_class);
 
-extern bt_bool bt_trace_is_static(const struct bt_trace *trace);
+extern struct bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
+		struct bt_trace_class *trace_class, uint64_t index);
 
-extern int bt_trace_add_is_static_listener(const struct bt_trace *trace,
-		bt_trace_is_static_listener_func listener,
-		bt_trace_listener_removed_func listener_removed, void *data,
-		uint64_t *listener_id);
-
-extern int bt_trace_remove_is_static_listener(const struct bt_trace *trace,
-		uint64_t listener_id);
+extern struct bt_stream_class *bt_trace_class_borrow_stream_class_by_id(
+		struct bt_trace_class *trace_class, uint64_t id);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_TRACE_CONST_H */
+#endif /* BABELTRACE_TRACE_IR_TRACE_CLASS_H */

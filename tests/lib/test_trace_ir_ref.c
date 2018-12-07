@@ -29,7 +29,7 @@
 #define NR_TESTS 37
 
 struct user {
-	struct bt_trace *tc;
+	struct bt_trace_class *tc;
 	struct bt_stream_class *sc;
 	struct bt_event_class *ec;
 	struct bt_stream *stream;
@@ -230,13 +230,13 @@ static void set_stream_class_field_classes(
 	bt_object_put_ref(event_header_type);
 }
 
-static void create_sc1(struct bt_trace *trace)
+static void create_sc1(struct bt_trace_class *trace_class)
 {
 	int ret;
 	struct bt_event_class *ec1 = NULL, *ec2 = NULL;
 	struct bt_stream_class *sc1 = NULL, *ret_stream = NULL;
 
-	sc1 = bt_stream_class_create(trace);
+	sc1 = bt_stream_class_create(trace_class);
 	BT_ASSERT(sc1);
 	ret = bt_stream_class_set_name(sc1, "sc1");
 	BT_ASSERT(ret == 0);
@@ -254,13 +254,13 @@ static void create_sc1(struct bt_trace *trace)
 	BT_OBJECT_PUT_REF_AND_RESET(sc1);
 }
 
-static void create_sc2(struct bt_trace *trace)
+static void create_sc2(struct bt_trace_class *trace_class)
 {
 	int ret;
 	struct bt_event_class *ec3 = NULL;
 	struct bt_stream_class *sc2 = NULL, *ret_stream = NULL;
 
-	sc2 = bt_stream_class_create(trace);
+	sc2 = bt_stream_class_create(trace_class);
 	BT_ASSERT(sc2);
 	ret = bt_stream_class_set_name(sc2, "sc2");
 	BT_ASSERT(ret == 0);
@@ -272,7 +272,7 @@ static void create_sc2(struct bt_trace *trace)
 	BT_OBJECT_PUT_REF_AND_RESET(sc2);
 }
 
-static void set_trace_packet_header(struct bt_trace *trace)
+static void set_trace_packet_header(struct bt_trace_class *trace_class)
 {
 	struct bt_field_class *packet_header_type;
 	struct bt_field_class *fc;
@@ -287,18 +287,18 @@ static void set_trace_packet_header(struct bt_trace *trace)
 		"stream_id", fc);
 	BT_ASSERT(ret == 0);
 	bt_object_put_ref(fc);
-	ret = bt_trace_set_packet_header_field_class(trace,
+	ret = bt_trace_class_set_packet_header_field_class(trace_class,
 		packet_header_type);
 	BT_ASSERT(ret == 0);
 
 	bt_object_put_ref(packet_header_type);
 }
 
-static struct bt_trace *create_tc1(void)
+static struct bt_trace_class *create_tc1(void)
 {
-	struct bt_trace *tc1 = NULL;
+	struct bt_trace_class *tc1 = NULL;
 
-	tc1 = bt_trace_create();
+	tc1 = bt_trace_class_create();
 	BT_ASSERT(tc1);
 	set_trace_packet_header(tc1);
 	create_sc1(tc1);
@@ -306,8 +306,8 @@ static struct bt_trace *create_tc1(void)
 	return tc1;
 }
 
-static void init_weak_refs(struct bt_trace *tc,
-		struct bt_trace **tc1,
+static void init_weak_refs(struct bt_trace_class *tc,
+		struct bt_trace_class **tc1,
 		struct bt_stream_class **sc1,
 		struct bt_stream_class **sc2,
 		struct bt_event_class **ec1,
@@ -315,8 +315,8 @@ static void init_weak_refs(struct bt_trace *tc,
 		struct bt_event_class **ec3)
 {
 	*tc1 = tc;
-	*sc1 = bt_trace_borrow_stream_class_by_index(tc, 0);
-	*sc2 = bt_trace_borrow_stream_class_by_index(tc, 1);
+	*sc1 = bt_trace_class_borrow_stream_class_by_index(tc, 0);
+	*sc2 = bt_trace_class_borrow_stream_class_by_index(tc, 1);
 	*ec1 = bt_stream_class_borrow_event_class_by_index(*sc1, 0);
 	*ec2 = bt_stream_class_borrow_event_class_by_index(*sc1, 1);
 	*ec3 = bt_stream_class_borrow_event_class_by_index(*sc2, 0);
@@ -331,7 +331,7 @@ static void test_example_scenario(void)
 	 * of expected reference counts without affecting them by taking
 	 * "real" references to the objects.
 	 */
-	struct bt_trace *tc1 = NULL, *weak_tc1 = NULL;
+	struct bt_trace_class *tc1 = NULL, *weak_tc1 = NULL;
 	struct bt_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
 	struct bt_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
 			*weak_ec3 = NULL;
@@ -360,7 +360,7 @@ static void test_example_scenario(void)
 			"TC1 reference count is 1");
 
 	/* User A acquires a reference to SC2 from TC1. */
-	user_a.sc = bt_trace_borrow_stream_class_by_index(
+	user_a.sc = bt_trace_class_borrow_stream_class_by_index(
 			user_a.tc, 1);
 	bt_object_get_ref(user_a.sc);
 	ok(user_a.sc, "User A acquires SC2 from TC1");

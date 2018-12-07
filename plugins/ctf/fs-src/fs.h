@@ -53,7 +53,7 @@ struct ctf_fs_metadata {
 	struct ctf_metadata_decoder *decoder;
 
 	/* Owned by this */
-	struct bt_trace *trace;
+	struct bt_trace_class *trace_class;
 
 	/* Weak (owned by `decoder` above) */
 	struct ctf_trace_class *tc;
@@ -84,6 +84,9 @@ struct ctf_fs_component {
 struct ctf_fs_trace {
 	/* Owned by this */
 	struct ctf_fs_metadata *metadata;
+
+	/* Owned by this */
+	struct bt_trace *trace;
 
 	/* Array of struct ctf_fs_ds_file_group *, owned by this */
 	GPtrArray *ds_file_groups;

@@ -281,7 +281,7 @@ int bt_event_class_set_specific_context_field_class(
 {
 	int ret;
 	struct bt_stream_class *stream_class;
-	struct bt_trace *trace;
+	struct bt_trace_class *trace_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
 		.packet_context = NULL,
@@ -300,8 +300,8 @@ int bt_event_class_set_specific_context_field_class(
 		"%!+F", field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
-	trace = bt_stream_class_borrow_trace_inline(stream_class);
-	resolve_ctx.packet_header = trace->packet_header_fc;
+	trace_class = bt_stream_class_borrow_trace_class_inline(stream_class);
+	resolve_ctx.packet_header = trace_class->packet_header_fc;
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
 	resolve_ctx.event_header = stream_class->event_header_fc;
 	resolve_ctx.event_common_context =
@@ -312,7 +312,7 @@ int bt_event_class_set_specific_context_field_class(
 		goto end;
 	}
 
-	bt_field_class_make_part_of_trace(field_class);
+	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(event_class->specific_context_fc);
 	event_class->specific_context_fc = field_class;
 	bt_object_get_no_null_check(event_class->specific_context_fc);
@@ -337,7 +337,7 @@ int bt_event_class_set_payload_field_class(
 {
 	int ret;
 	struct bt_stream_class *stream_class;
-	struct bt_trace *trace;
+	struct bt_trace_class *trace_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
 		.packet_header = NULL,
 		.packet_context = NULL,
@@ -356,8 +356,8 @@ int bt_event_class_set_payload_field_class(
 		field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
-	trace = bt_stream_class_borrow_trace_inline(stream_class);
-	resolve_ctx.packet_header = trace->packet_header_fc;
+	trace_class = bt_stream_class_borrow_trace_class_inline(stream_class);
+	resolve_ctx.packet_header = trace_class->packet_header_fc;
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
 	resolve_ctx.event_header = stream_class->event_header_fc;
 	resolve_ctx.event_common_context =
@@ -369,7 +369,7 @@ int bt_event_class_set_payload_field_class(
 		goto end;
 	}
 
-	bt_field_class_make_part_of_trace(field_class);
+	bt_field_class_make_part_of_trace_class(field_class);
 	bt_object_put_ref(event_class->payload_fc);
 	event_class->payload_fc = field_class;
 	bt_object_get_no_null_check(event_class->payload_fc);

@@ -68,9 +68,10 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
-	struct bt_trace *trace;
+	struct bt_trace_class *trace_class;
 	struct bt_stream_class *stream_class;
 	struct bt_event_class *event_class;
+	struct bt_trace *trace;
 	struct bt_stream *stream;
 	struct bt_packet *packet;
 	struct bt_clock_class *clock_class;
@@ -117,38 +118,16 @@ static
 int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 {
 	struct bt_field_class *fc = NULL;
-	const char *trace_name = NULL;
-	gchar *basename = NULL;
 	int ret = 0;
 
-	dmesg_comp->trace = bt_trace_create();
-	if (!dmesg_comp->trace) {
-		BT_LOGE_STR("Cannot create an empty trace object.");
+	dmesg_comp->trace_class = bt_trace_class_create();
+	if (!dmesg_comp->trace_class) {
+		BT_LOGE_STR("Cannot create an empty trace class object.");
 		goto error;
 	}
 
-	if (dmesg_comp->params.read_from_stdin) {
-		trace_name = "STDIN";
-	} else {
-		basename = g_path_get_basename(dmesg_comp->params.path->str);
-		BT_ASSERT(basename);
-
-		if (strcmp(basename, G_DIR_SEPARATOR_S) != 0 &&
-				strcmp(basename, ".") != 0) {
-			trace_name = basename;
-		}
-	}
-
-	if (trace_name) {
-		ret = bt_trace_set_name(dmesg_comp->trace, trace_name);
-		if (ret) {
-			BT_LOGE("Cannot set trace's name: name=\"%s\"", trace_name);
-			goto error;
-		}
-	}
-
 	dmesg_comp->stream_class = bt_stream_class_create(
-		dmesg_comp->trace);
+		dmesg_comp->trace_class);
 	if (!dmesg_comp->stream_class) {
 		BT_LOGE_STR("Cannot create a stream class object.");
 		goto error;
@@ -201,11 +180,6 @@ error:
 
 end:
 	bt_object_put_ref(fc);
-
-	if (basename) {
-		g_free(basename);
-	}
-
 	return ret;
 }
 
@@ -264,11 +238,41 @@ end:
 }
 
 static
-int create_packet_and_stream(struct dmesg_component *dmesg_comp)
+int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
 {
 	int ret = 0;
+	const char *trace_name;
+	gchar *basename = NULL;
 
-	dmesg_comp->stream = bt_stream_create(dmesg_comp->stream_class);
+	dmesg_comp->trace = bt_trace_create(dmesg_comp->trace_class);
+	if (!dmesg_comp->trace) {
+		BT_LOGE_STR("Cannot create trace object.");
+		goto error;
+	}
+
+	if (dmesg_comp->params.read_from_stdin) {
+		trace_name = "STDIN";
+	} else {
+		basename = g_path_get_basename(dmesg_comp->params.path->str);
+		BT_ASSERT(basename);
+
+		if (strcmp(basename, G_DIR_SEPARATOR_S) != 0 &&
+				strcmp(basename, ".") != 0) {
+			trace_name = basename;
+		}
+	}
+
+	if (trace_name) {
+		ret = bt_trace_set_name(dmesg_comp->trace, trace_name);
+		if (ret) {
+			BT_LOGE("Cannot set trace's name: name=\"%s\"",
+				trace_name);
+			goto error;
+		}
+	}
+
+	dmesg_comp->stream = bt_stream_create(dmesg_comp->stream_class,
+		dmesg_comp->trace);
 	if (!dmesg_comp->stream) {
 		BT_LOGE_STR("Cannot create stream object.");
 		goto error;
@@ -292,6 +296,10 @@ error:
 	ret = -1;
 
 end:
+	if (basename) {
+		g_free(basename);
+	}
+
 	return ret;
 }
 
@@ -313,7 +321,7 @@ int try_create_meta_stream_packet(struct dmesg_component *dmesg_comp,
 		goto error;
 	}
 
-	ret = create_packet_and_stream(dmesg_comp);
+	ret = create_packet_and_stream_and_trace(dmesg_comp);
 	if (ret) {
 		BT_LOGE("Cannot create packet and stream objects: "
 			"dmesg-comp-addr=%p", dmesg_comp);

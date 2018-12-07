@@ -105,6 +105,9 @@ int bt_lib_log_level;
  *   `a`:
  *       Packet. The parameter type is `struct bt_packet *`.
  *
+ *   `T`:
+ *       Trace IR trace class. The parameter type is `struct bt_trace_class *`.
+ *
  *   `t`:
  *       Trace IR trace. The parameter type is `struct bt_trace *`.
  *

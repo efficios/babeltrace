@@ -348,8 +348,7 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf(
 
 BT_HIDDEN
 struct ctf_metadata_decoder *ctf_metadata_decoder_create(
-		const struct ctf_metadata_decoder_config *config,
-		const char *name)
+		const struct ctf_metadata_decoder_config *config)
 {
 	struct ctf_metadata_decoder *mdec =
 		g_new0(struct ctf_metadata_decoder, 1);
@@ -364,9 +363,8 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 
 	BT_LOGD("Creating CTF metadata decoder: "
 		"clock-class-offset-s=%" PRId64 ", "
-		"clock-class-offset-ns=%" PRId64 ", name=\"%s\"",
-		config->clock_class_offset_s, config->clock_class_offset_ns,
-		name);
+		"clock-class-offset-ns=%" PRId64,
+		config->clock_class_offset_s, config->clock_class_offset_ns);
 
 	if (!mdec) {
 		BT_LOGE_STR("Failed to allocate one CTF metadata decoder.");
@@ -374,7 +372,7 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 	}
 
 	mdec->config = *config;
-	mdec->visitor = ctf_visitor_generate_ir_create(config, name);
+	mdec->visitor = ctf_visitor_generate_ir_create(config);
 	if (!mdec->visitor) {
 		BT_LOGE("Failed to create a CTF IR metadata AST visitor: "
 			"mdec-addr=%p", mdec);
@@ -385,10 +383,9 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 
 	BT_LOGD("Creating CTF metadata decoder: "
 		"clock-class-offset-s=%" PRId64 ", "
-		"clock-class-offset-ns=%" PRId64 ", "
-		"name=\"%s\", addr=%p",
+		"clock-class-offset-ns=%" PRId64 ", addr=%p",
 		config->clock_class_offset_s, config->clock_class_offset_ns,
-		name, mdec);
+		mdec);
 
 end:
 	return mdec;
@@ -556,10 +553,10 @@ end:
 }
 
 BT_HIDDEN
-struct bt_trace *ctf_metadata_decoder_get_ir_trace(
+struct bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
 		struct ctf_metadata_decoder *mdec)
 {
-	return ctf_visitor_generate_ir_get_ir_trace(mdec->visitor);
+	return ctf_visitor_generate_ir_get_ir_trace_class(mdec->visitor);
 }
 
 BT_HIDDEN

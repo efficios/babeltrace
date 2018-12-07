@@ -38,7 +38,7 @@ struct bt_stream;
 struct bt_stream {
 	struct bt_object base;
 
-	/* Weak: parent is this class's trace */
+	/* Owned by this */
 	struct bt_stream_class *class;
 
 	struct {
@@ -64,5 +64,12 @@ void _bt_stream_freeze(const struct bt_stream *stream);
 #else
 # define bt_stream_freeze(_stream)
 #endif
+
+static inline
+struct bt_trace *bt_stream_borrow_trace_inline(const struct bt_stream *stream)
+{
+	BT_ASSERT(stream);
+	return (void *) bt_object_borrow_parent(&stream->base);
+}
 
 #endif /* BABELTRACE_TRACE_IR_STREAM_INTERNAL_H */

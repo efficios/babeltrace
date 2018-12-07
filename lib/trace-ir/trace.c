@@ -26,6 +26,8 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
+#include <babeltrace/trace-ir/trace.h>
+#include <babeltrace/trace-ir/trace-class-internal.h>
 #include <babeltrace/trace-ir/trace-const.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
@@ -92,14 +94,6 @@ void destroy_trace(struct bt_object *obj)
 		trace->is_static_listeners = NULL;
 	}
 
-	bt_object_pool_finalize(&trace->packet_header_field_pool);
-
-	if (trace->environment) {
-		BT_LOGD_STR("Destroying environment attributes.");
-		bt_attributes_destroy(trace->environment);
-		trace->environment = NULL;
-	}
-
 	if (trace->name.str) {
 		g_string_free(trace->name.str, TRUE);
 		trace->name.str = NULL;
@@ -112,53 +106,32 @@ void destroy_trace(struct bt_object *obj)
 		trace->streams = NULL;
 	}
 
-	if (trace->stream_classes) {
-		BT_LOGD_STR("Destroying stream classes.");
-		g_ptr_array_free(trace->stream_classes, TRUE);
-		trace->stream_classes = NULL;
-	}
-
 	if (trace->stream_classes_stream_count) {
 		g_hash_table_destroy(trace->stream_classes_stream_count);
 		trace->stream_classes_stream_count = NULL;
 	}
 
-	BT_LOGD_STR("Putting packet header field classe.");
-	bt_object_put_ref(trace->packet_header_fc);
-	trace->packet_header_fc = NULL;
+	BT_LOGD_STR("Putting trace's class.");
+	bt_object_put_ref(trace->class);
+	trace->class = NULL;
 	g_free(trace);
 }
 
-static
-void free_packet_header_field(struct bt_field_wrapper *field_wrapper,
-		struct bt_trace *trace)
-{
-	bt_field_wrapper_destroy(field_wrapper);
-}
-
-struct bt_trace *bt_trace_create(void)
+struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 {
 	struct bt_trace *trace = NULL;
-	int ret;
 
-	BT_LOGD_STR("Creating default trace object.");
+	BT_LIB_LOGD("Creating trace object: %![tc-]+T", tc);
 	trace = g_new0(struct bt_trace, 1);
 	if (!trace) {
 		BT_LOGE_STR("Failed to allocate one trace.");
 		goto error;
 	}
 
-	bt_object_init_shared_with_parent(&trace->base, destroy_trace);
+	bt_object_init_shared(&trace->base, destroy_trace);
 	trace->streams = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) bt_object_try_spec_release);
 	if (!trace->streams) {
-		BT_LOGE_STR("Failed to allocate one GPtrArray.");
-		goto error;
-	}
-
-	trace->stream_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_object_try_spec_release);
-	if (!trace->stream_classes) {
 		BT_LOGE_STR("Failed to allocate one GPtrArray.");
 		goto error;
 	}
@@ -176,12 +149,6 @@ struct bt_trace *bt_trace_create(void)
 		goto error;
 	}
 
-	trace->environment = bt_attributes_create();
-	if (!trace->environment) {
-		BT_LOGE_STR("Cannot create empty attributes object.");
-		goto error;
-	}
-
 	trace->is_static_listeners = g_array_new(FALSE, TRUE,
 		sizeof(struct bt_trace_is_static_listener_elem));
 	if (!trace->is_static_listeners) {
@@ -189,17 +156,8 @@ struct bt_trace *bt_trace_create(void)
 		goto error;
 	}
 
-	trace->assigns_automatic_stream_class_id = true;
-	ret = bt_object_pool_initialize(&trace->packet_header_field_pool,
-		(bt_object_pool_new_object_func) bt_field_wrapper_new,
-		(bt_object_pool_destroy_object_func) free_packet_header_field,
-		trace);
-	if (ret) {
-		BT_LOGE("Failed to initialize packet header field pool: ret=%d",
-			ret);
-		goto error;
-	}
-
+	trace->class = tc;
+	bt_object_get_no_null_check(trace->class);
 	BT_LIB_LOGD("Created trace object: %!+t", trace);
 	goto end;
 
@@ -207,7 +165,7 @@ error:
 	BT_OBJECT_PUT_REF_AND_RESET(trace);
 
 end:
-	return (void *) trace;
+	return trace;
 }
 
 const char *bt_trace_get_name(const struct bt_trace *trace)
@@ -225,139 +183,6 @@ int bt_trace_set_name(struct bt_trace *trace, const char *name)
 	trace->name.value = trace->name.str->str;
 	BT_LIB_LOGV("Set trace's name: %!+t", trace);
 	return 0;
-}
-
-bt_uuid bt_trace_get_uuid(const struct bt_trace *trace)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return trace->uuid.value;
-}
-
-void bt_trace_set_uuid(struct bt_trace *trace, bt_uuid uuid)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(uuid, "UUID");
-	BT_ASSERT_PRE_TRACE_HOT(trace);
-	memcpy(trace->uuid.uuid, uuid, BABELTRACE_UUID_LEN);
-	trace->uuid.value = trace->uuid.uuid;
-	BT_LIB_LOGV("Set trace's UUID: %!+t", trace);
-}
-
-BT_ASSERT_FUNC
-static
-bool trace_has_environment_entry(const struct bt_trace *trace, const char *name)
-{
-	BT_ASSERT(trace);
-
-	return bt_attributes_borrow_field_value_by_name(
-		trace->environment, name) != NULL;
-}
-
-static
-int set_environment_entry(struct bt_trace *trace, const char *name,
-		struct bt_value *value)
-{
-	int ret;
-
-	BT_ASSERT(trace);
-	BT_ASSERT(name);
-	BT_ASSERT(value);
-	BT_ASSERT_PRE(!trace->frozen ||
-		!trace_has_environment_entry(trace, name),
-		"Trace is frozen: cannot replace environment entry: "
-		"%![trace-]+t, entry-name=\"%s\"", trace, name);
-	ret = bt_attributes_set_field_value(trace->environment, name,
-		value);
-	bt_value_freeze(value);
-	if (ret) {
-		BT_LIB_LOGE("Cannot set trace's environment entry: "
-			"%![trace-]+t, entry-name=\"%s\"", trace, name);
-	} else {
-		BT_LIB_LOGV("Set trace's environment entry: "
-			"%![trace-]+t, entry-name=\"%s\"", trace, name);
-	}
-
-	return ret;
-}
-
-int bt_trace_set_environment_entry_string(
-		struct bt_trace *trace,
-		const char *name, const char *value)
-{
-	int ret;
-	struct bt_value *value_obj;
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	value_obj = bt_value_string_create_init(value);
-	if (!value_obj) {
-		BT_LOGE_STR("Cannot create a string value object.");
-		ret = -1;
-		goto end;
-	}
-
-	/* set_environment_entry() logs errors */
-	ret = set_environment_entry(trace, name, value_obj);
-
-end:
-	bt_object_put_ref(value_obj);
-	return ret;
-}
-
-int bt_trace_set_environment_entry_integer(struct bt_trace *trace,
-		const char *name, int64_t value)
-{
-	int ret;
-	struct bt_value *value_obj;
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	value_obj = bt_value_integer_create_init(value);
-	if (!value_obj) {
-		BT_LOGE_STR("Cannot create an integer value object.");
-		ret = -1;
-		goto end;
-	}
-
-	/* set_environment_entry() logs errors */
-	ret = set_environment_entry(trace, name, value_obj);
-
-end:
-	bt_object_put_ref(value_obj);
-	return ret;
-}
-
-uint64_t bt_trace_get_environment_entry_count(const struct bt_trace *trace)
-{
-	int64_t ret;
-
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	ret = bt_attributes_get_count(trace->environment);
-	BT_ASSERT(ret >= 0);
-	return (uint64_t) ret;
-}
-
-void bt_trace_borrow_environment_entry_by_index_const(
-		const struct bt_trace *trace, uint64_t index,
-		const char **name, const struct bt_value **value)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(value, "Value");
-	BT_ASSERT_PRE_VALID_INDEX(index,
-		bt_attributes_get_count(trace->environment));
-	*value = bt_attributes_borrow_field_value(trace->environment, index);
-	BT_ASSERT(*value);
-	*name = bt_attributes_get_field_name(trace->environment, index);
-	BT_ASSERT(*name);
-}
-
-const struct bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
-		const struct bt_trace *trace, const char *name)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	return bt_attributes_borrow_field_value_by_name(trace->environment,
-		name);
 }
 
 uint64_t bt_trace_get_stream_count(const struct bt_trace *trace)
@@ -406,101 +231,6 @@ const struct bt_stream *bt_trace_borrow_stream_by_id_const(
 		const struct bt_trace *trace, uint64_t id)
 {
 	return bt_trace_borrow_stream_by_id((void *) trace, id);
-}
-
-uint64_t bt_trace_get_stream_class_count(const struct bt_trace *trace)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return (uint64_t) trace->stream_classes->len;
-}
-
-struct bt_stream_class *bt_trace_borrow_stream_class_by_index(
-		struct bt_trace *trace, uint64_t index)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_VALID_INDEX(index, trace->stream_classes->len);
-	return g_ptr_array_index(trace->stream_classes, index);
-}
-
-const struct bt_stream_class *
-bt_trace_borrow_stream_class_by_index_const(
-		const struct bt_trace *trace, uint64_t index)
-{
-	return bt_trace_borrow_stream_class_by_index(
-		(void *) trace, index);
-}
-
-struct bt_stream_class *bt_trace_borrow_stream_class_by_id(
-		struct bt_trace *trace, uint64_t id)
-{
-	struct bt_stream_class *stream_class = NULL;
-	uint64_t i;
-
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-
-	for (i = 0; i < trace->stream_classes->len; i++) {
-		struct bt_stream_class *stream_class_candidate =
-			g_ptr_array_index(trace->stream_classes, i);
-
-		if (stream_class_candidate->id == id) {
-			stream_class = stream_class_candidate;
-			goto end;
-		}
-	}
-
-end:
-	return stream_class;
-}
-
-const struct bt_stream_class *
-bt_trace_borrow_stream_class_by_id_const(
-		const struct bt_trace *trace, uint64_t id)
-{
-	return bt_trace_borrow_stream_class_by_id((void *) trace, id);
-}
-
-const struct bt_field_class *bt_trace_borrow_packet_header_field_class_const(
-		const struct bt_trace *trace)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return trace->packet_header_fc;
-}
-
-int bt_trace_set_packet_header_field_class(
-		struct bt_trace *trace,
-		struct bt_field_class *field_class)
-{
-	int ret;
-	struct bt_resolve_field_path_context resolve_ctx = {
-		.packet_header = field_class,
-		.packet_context = NULL,
-		.event_header = NULL,
-		.event_common_context = NULL,
-		.event_specific_context = NULL,
-		.event_payload = NULL,
-	};
-
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
-	BT_ASSERT_PRE_TRACE_HOT(trace);
-	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
-		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Packet header field classe is not a structure field classe: %!+F",
-		field_class);
-	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
-	if (ret) {
-		goto end;
-	}
-
-	bt_field_class_make_part_of_trace(field_class);
-	bt_object_put_ref(trace->packet_header_fc);
-	trace->packet_header_fc = field_class;
-	bt_object_get_no_null_check(trace->packet_header_fc);
-	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set trace's packet header field classe: %!+t", trace);
-
-end:
-	return ret;
 }
 
 bt_bool bt_trace_is_static(const struct bt_trace *trace)
@@ -633,24 +363,10 @@ void _bt_trace_freeze(const struct bt_trace *trace)
 {
 	/* The packet header field classe is already frozen */
 	BT_ASSERT(trace);
+	BT_LIB_LOGD("Freezing trace's class: %!+T", trace->class);
+	bt_trace_class_freeze(trace->class);
 	BT_LIB_LOGD("Freezing trace: %!+t", trace);
 	((struct bt_trace *) trace)->frozen = true;
-}
-
-bt_bool bt_trace_assigns_automatic_stream_class_id(const struct bt_trace *trace)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return (bt_bool) trace->assigns_automatic_stream_class_id;
-}
-
-void bt_trace_set_assigns_automatic_stream_class_id(struct bt_trace *trace,
-		bt_bool value)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE_TRACE_HOT(trace);
-	trace->assigns_automatic_stream_class_id = (bool) value;
-	BT_LIB_LOGV("Set trace's automatic stream class ID "
-		"assignment property: %!+t", trace);
 }
 
 BT_HIDDEN
@@ -688,4 +404,16 @@ uint64_t bt_trace_get_automatic_stream_id(const struct bt_trace *trace,
 	}
 
 	return id;
+}
+
+struct bt_trace_class *bt_trace_borrow_class(struct bt_trace *trace)
+{
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
+	return trace->class;
+}
+
+const struct bt_trace_class *bt_trace_borrow_class_const(
+		const struct bt_trace *trace)
+{
+	return bt_trace_borrow_class((void *) trace);
 }

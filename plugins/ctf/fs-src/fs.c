@@ -322,6 +322,8 @@ void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 		g_ptr_array_free(ctf_fs_trace->ds_file_groups, TRUE);
 	}
 
+	BT_OBJECT_PUT_REF_AND_RESET(ctf_fs_trace->trace);
+
 	if (ctf_fs_trace->path) {
 		g_string_free(ctf_fs_trace->path, TRUE);
 	}
@@ -861,12 +863,14 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 			/* No stream ID: use 0 */
 			ds_file_group->stream = bt_stream_create_with_id(
 				ds_file_group->stream_class,
+				ctf_fs_trace->trace,
 				ctf_fs_trace->next_stream_id);
 			ctf_fs_trace->next_stream_id++;
 		} else {
 			/* Specific stream ID */
 			ds_file_group->stream = bt_stream_create_with_id(
 				ds_file_group->stream_class,
+				ctf_fs_trace->trace,
 				(uint64_t) ds_file_group->stream_id);
 		}
 
@@ -909,6 +913,54 @@ end:
 	return ret;
 }
 
+static
+int set_trace_name(struct bt_trace *trace, const char *name_suffix)
+{
+	int ret = 0;
+	const struct bt_trace_class *tc = bt_trace_borrow_class_const(trace);
+	const struct bt_value *val;
+	GString *name;
+
+	name = g_string_new(NULL);
+	if (!name) {
+		BT_LOGE_STR("Failed to allocate a GString.");
+		ret = -1;
+		goto end;
+	}
+
+	/*
+	 * Check if we have a trace environment string value named `hostname`.
+	 * If so, use it as the trace name's prefix.
+	 */
+	val = bt_trace_class_borrow_environment_entry_value_by_name_const(
+		tc, "hostname");
+	if (val && bt_value_is_string(val)) {
+		g_string_append(name, bt_value_string_get(val));
+
+		if (name_suffix) {
+			g_string_append_c(name, G_DIR_SEPARATOR);
+		}
+	}
+
+	if (name_suffix) {
+		g_string_append(name, name_suffix);
+	}
+
+	ret = bt_trace_set_name(trace, name->str);
+	if (ret) {
+		goto end;
+	}
+
+	goto end;
+
+end:
+	if (name) {
+		g_string_free(name, TRUE);
+	}
+
+	return ret;
+}
+
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		struct ctf_fs_metadata_config *metadata_config)
@@ -943,7 +995,18 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		goto error;
 	}
 
-	ret = ctf_fs_metadata_set_trace(ctf_fs_trace, metadata_config);
+	ret = ctf_fs_metadata_set_trace_class(ctf_fs_trace, metadata_config);
+	if (ret) {
+		goto error;
+	}
+
+	ctf_fs_trace->trace =
+		bt_trace_create(ctf_fs_trace->metadata->trace_class);
+	if (!ctf_fs_trace->trace) {
+		goto error;
+	}
+
+	ret = set_trace_name(ctf_fs_trace->trace, name);
 	if (ret) {
 		goto error;
 	}
@@ -958,7 +1021,7 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 	 * trace needs. There won't be any more. Therefore it is safe to
 	 * make this trace static.
 	 */
-	(void) bt_trace_make_static(ctf_fs_trace->metadata->trace);
+	(void) bt_trace_make_static(ctf_fs_trace->trace);
 
 	goto end;
 

@@ -58,6 +58,8 @@ void destroy_stream(struct bt_object *obj)
 		stream->name.value = NULL;
 	}
 
+	BT_LOGD_STR("Putting stream's class.");
+	bt_object_put_ref(stream->class);
 	bt_object_pool_finalize(&stream->packet_pool);
 	g_free(stream);
 }
@@ -95,14 +97,17 @@ end:
 
 static
 struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
-		  uint64_t id)
+		struct bt_trace *trace, uint64_t id)
 {
 	int ret;
 	struct bt_stream *stream;
-	struct bt_trace *trace;
 
 	BT_ASSERT(stream_class);
-	trace = bt_stream_class_borrow_trace_inline(stream_class);
+	BT_ASSERT(trace);
+	BT_ASSERT_PRE(trace->class ==
+		bt_stream_class_borrow_trace_class_inline(stream_class),
+		"Trace's class is different from stream class's parent trace class: "
+		"%![sc-]+S, %![trace-]+t", stream_class, trace);
 	BT_ASSERT_PRE(stream_id_is_unique(trace, stream_class, id),
 		"Duplicate stream ID: %![trace-]+t, id=%" PRIu64, trace, id);
 	BT_ASSERT_PRE(!trace->is_static,
@@ -133,7 +138,11 @@ struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
 	}
 
 	stream->class = stream_class;
+	bt_object_get_no_null_check(stream_class);
+
+	/* bt_trace_add_stream() sets the parent trace, and freezes the trace */
 	bt_trace_add_stream(trace, stream);
+
 	bt_stream_class_freeze(stream_class);
 	BT_LIB_LOGD("Created stream object: %!+s", stream);
 	goto end;
@@ -145,27 +154,29 @@ end:
 	return stream;
 }
 
-struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class)
+struct bt_stream *bt_stream_create(struct bt_stream_class *stream_class,
+		struct bt_trace *trace)
 {
 	uint64_t id;
 
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(stream_class->assigns_automatic_stream_id,
 		"Stream class does not automatically assigns stream IDs: "
 		"%![sc-]+S", stream_class);
-	id = bt_trace_get_automatic_stream_id(
-			bt_stream_class_borrow_trace_inline(stream_class),
-			stream_class);
-	return create_stream_with_id(stream_class, id);
+	id = bt_trace_get_automatic_stream_id(trace, stream_class);
+	return create_stream_with_id(stream_class, trace, id);
 }
 
 struct bt_stream *bt_stream_create_with_id(struct bt_stream_class *stream_class,
-		uint64_t id)
+		struct bt_trace *trace, uint64_t id)
 {
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE(!stream_class->assigns_automatic_stream_id,
 		"Stream class automatically assigns stream IDs: "
 		"%![sc-]+S", stream_class);
-	return create_stream_with_id(stream_class, id);
+	return create_stream_with_id(stream_class, trace, id);
 }
 
 struct bt_stream_class *bt_stream_borrow_class(struct bt_stream *stream)
@@ -178,6 +189,18 @@ const struct bt_stream_class *bt_stream_borrow_class_const(
 		const struct bt_stream *stream)
 {
 	return bt_stream_borrow_class((void *) stream);
+}
+
+struct bt_trace *bt_stream_borrow_trace(struct bt_stream *stream)
+{
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
+	return bt_stream_borrow_trace_inline(stream);
+}
+
+const struct bt_trace *bt_stream_borrow_trace_const(
+		const struct bt_stream *stream)
+{
+	return bt_stream_borrow_trace((void *) stream);
 }
 
 const char *bt_stream_get_name(const struct bt_stream *stream)
