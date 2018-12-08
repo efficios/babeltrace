@@ -32,6 +32,9 @@
 /* For bt_query_status */
 #include <babeltrace/graph/component-class.h>
 
+/* For bt_component_class_status */
+#include <babeltrace/graph/component-class-const.h>
+
 /*
  * For bt_component_class, bt_component_class_sink, bt_port_output,
  * bt_query_executor, bt_self_component_class_sink,
@@ -89,27 +92,30 @@ bt_component_class_sink *bt_component_class_sink_create(
 		const char *name,
 		bt_component_class_sink_consume_method method);
 
-extern int bt_component_class_sink_set_init_method(
+extern bt_component_class_status bt_component_class_sink_set_init_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_init_method method);
 
-extern int bt_component_class_sink_set_finalize_method(
+extern bt_component_class_status bt_component_class_sink_set_finalize_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_finalize_method method);
 
-extern int bt_component_class_sink_set_accept_input_port_connection_method(
+extern bt_component_class_status
+bt_component_class_sink_set_accept_input_port_connection_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_accept_input_port_connection_method method);
 
-extern int bt_component_class_sink_set_input_port_connected_method(
+extern bt_component_class_status
+bt_component_class_sink_set_input_port_connected_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_input_port_connected_method method);
 
-extern int bt_component_class_sink_set_input_port_disconnected_method(
+extern bt_component_class_status
+bt_component_class_sink_set_input_port_disconnected_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_input_port_disconnected_method method);
 
-extern int bt_component_class_sink_set_query_method(
+extern bt_component_class_status bt_component_class_sink_set_query_method(
 		bt_component_class_sink *comp_class,
 		bt_component_class_sink_query_method method);
 

@@ -255,7 +255,7 @@ int bt_component_class_source_set_init_method(
 	comp_cls->methods.init = method;
 	BT_LIB_LOGV("Set source component class's initialization method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_init_method(
@@ -268,7 +268,7 @@ int bt_component_class_filter_set_init_method(
 	comp_cls->methods.init = method;
 	BT_LIB_LOGV("Set filter component class's initialization method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_sink_set_init_method(
@@ -281,7 +281,7 @@ int bt_component_class_sink_set_init_method(
 	comp_cls->methods.init = method;
 	BT_LIB_LOGV("Set sink component class's initialization method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_source_set_finalize_method(
@@ -294,7 +294,7 @@ int bt_component_class_source_set_finalize_method(
 	comp_cls->methods.finalize = method;
 	BT_LIB_LOGV("Set source component class's finalization method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_finalize_method(
@@ -307,7 +307,7 @@ int bt_component_class_filter_set_finalize_method(
 	comp_cls->methods.finalize = method;
 	BT_LIB_LOGV("Set filter component class's finalization method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_sink_set_finalize_method(
@@ -320,7 +320,7 @@ int bt_component_class_sink_set_finalize_method(
 	comp_cls->methods.finalize = method;
 	BT_LIB_LOGV("Set sink component class's finalization method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_source_set_query_method(
@@ -333,7 +333,7 @@ int bt_component_class_source_set_query_method(
 	comp_cls->methods.query = method;
 	BT_LIB_LOGV("Set source component class's query method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_query_method(
@@ -346,7 +346,7 @@ int bt_component_class_filter_set_query_method(
 	comp_cls->methods.query = method;
 	BT_LIB_LOGV("Set filter component class's query method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_sink_set_query_method(
@@ -359,7 +359,7 @@ int bt_component_class_sink_set_query_method(
 	comp_cls->methods.query = method;
 	BT_LIB_LOGV("Set sink component class's query method: "
 		"%!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_accept_input_port_connection_method(
@@ -372,7 +372,7 @@ int bt_component_class_filter_set_accept_input_port_connection_method(
 	comp_cls->methods.accept_input_port_connection = method;
 	BT_LIB_LOGV("Set filter component class's \"accept input port connection\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_sink_set_accept_input_port_connection_method(
@@ -385,7 +385,7 @@ int bt_component_class_sink_set_accept_input_port_connection_method(
 	comp_cls->methods.accept_input_port_connection = method;
 	BT_LIB_LOGV("Set sink component class's \"accept input port connection\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_source_set_accept_output_port_connection_method(
@@ -398,7 +398,7 @@ int bt_component_class_source_set_accept_output_port_connection_method(
 	comp_cls->methods.accept_output_port_connection = method;
 	BT_LIB_LOGV("Set source component class's \"accept output port connection\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_accept_output_port_connection_method(
@@ -411,7 +411,7 @@ int bt_component_class_filter_set_accept_output_port_connection_method(
 	comp_cls->methods.accept_output_port_connection = method;
 	BT_LIB_LOGV("Set filter component class's \"accept output port connection\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_input_port_connected_method(
@@ -424,7 +424,7 @@ int bt_component_class_filter_set_input_port_connected_method(
 	comp_cls->methods.input_port_connected = method;
 	BT_LIB_LOGV("Set filter component class's \"input port connected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_sink_set_input_port_connected_method(
@@ -437,7 +437,7 @@ int bt_component_class_sink_set_input_port_connected_method(
 	comp_cls->methods.input_port_connected = method;
 	BT_LIB_LOGV("Set sink component class's \"input port connected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_source_set_output_port_connected_method(
@@ -450,7 +450,7 @@ int bt_component_class_source_set_output_port_connected_method(
 	comp_cls->methods.output_port_connected = method;
 	BT_LIB_LOGV("Set source component class's \"output port connected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_output_port_connected_method(
@@ -463,7 +463,7 @@ int bt_component_class_filter_set_output_port_connected_method(
 	comp_cls->methods.output_port_connected = method;
 	BT_LIB_LOGV("Set filter component class's \"output port connected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_input_port_disconnected_method(
@@ -476,7 +476,7 @@ int bt_component_class_filter_set_input_port_disconnected_method(
 	comp_cls->methods.input_port_disconnected = method;
 	BT_LIB_LOGV("Set filter component class's \"input port disconnected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_sink_set_input_port_disconnected_method(
@@ -489,7 +489,7 @@ int bt_component_class_sink_set_input_port_disconnected_method(
 	comp_cls->methods.input_port_disconnected = method;
 	BT_LIB_LOGV("Set sink component class's \"input port disconnected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_source_set_output_port_disconnected_method(
@@ -502,7 +502,7 @@ int bt_component_class_source_set_output_port_disconnected_method(
 	comp_cls->methods.output_port_disconnected = method;
 	BT_LIB_LOGV("Set source component class's \"output port disconnected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_output_port_disconnected_method(
@@ -515,7 +515,7 @@ int bt_component_class_filter_set_output_port_disconnected_method(
 	comp_cls->methods.output_port_disconnected = method;
 	BT_LIB_LOGV("Set filter component class's \"output port disconnected\" method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_source_set_message_iterator_init_method(
@@ -528,7 +528,7 @@ int bt_component_class_source_set_message_iterator_init_method(
 	comp_cls->methods.msg_iter_init = method;
 	BT_LIB_LOGV("Set source component class's message iterator initialization method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_message_iterator_init_method(
@@ -541,7 +541,7 @@ int bt_component_class_filter_set_message_iterator_init_method(
 	comp_cls->methods.msg_iter_init = method;
 	BT_LIB_LOGV("Set filter component class's message iterator initialization method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_source_set_message_iterator_finalize_method(
@@ -554,7 +554,7 @@ int bt_component_class_source_set_message_iterator_finalize_method(
 	comp_cls->methods.msg_iter_finalize = method;
 	BT_LIB_LOGV("Set source component class's message iterator finalization method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 int bt_component_class_filter_set_message_iterator_finalize_method(
@@ -567,10 +567,10 @@ int bt_component_class_filter_set_message_iterator_finalize_method(
 	comp_cls->methods.msg_iter_finalize = method;
 	BT_LIB_LOGV("Set filter component class's message iterator finalization method"
 		": %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_set_description(
+bt_component_class_status bt_component_class_set_description(
 		struct bt_component_class *comp_cls,
 		const char *description)
 {
@@ -583,10 +583,10 @@ int bt_component_class_set_description(
 		comp_cls,
 		bt_component_class_get_name(comp_cls),
 		bt_component_class_type_string(comp_cls->type));
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_set_help(
+bt_component_class_status bt_component_class_set_help(
 		struct bt_component_class *comp_cls,
 		const char *help)
 {
@@ -595,7 +595,7 @@ int bt_component_class_set_help(
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
 	g_string_assign(comp_cls->help, help);
 	BT_LIB_LOGV("Set component class's help text: %!+C", comp_cls);
-	return 0;
+	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
 const char *bt_component_class_get_name(const struct bt_component_class *comp_cls)
