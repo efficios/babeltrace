@@ -40,6 +40,11 @@
 extern "C" {
 #endif
 
+enum bt_event_class_status {
+	BT_EVENT_CLASS_STATUS_OK = 0,
+	BT_EVENT_CLASS_STATUS_NOMEM = -12,
+};
+
 enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
 	BT_EVENT_CLASS_LOG_LEVEL_ALERT,
