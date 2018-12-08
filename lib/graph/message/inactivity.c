@@ -99,13 +99,15 @@ void bt_message_inactivity_set_default_clock_snapshot(
 		"%![msg-]+n, value=%" PRIu64, msg, value_cycles);
 }
 
-const struct bt_clock_snapshot *
+extern enum bt_clock_snapshot_state
 bt_message_inactivity_borrow_default_clock_snapshot_const(
-		const struct bt_message *msg)
+		const bt_message *msg, const bt_clock_snapshot **snapshot)
 {
 	struct bt_message_inactivity *inactivity = (void *) msg;
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_INACTIVITY);
-	return inactivity->default_cs;
+	*snapshot = inactivity->default_cs;
+	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 }

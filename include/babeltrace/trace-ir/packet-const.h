@@ -31,7 +31,7 @@
 /* For enum bt_property_availability */
 #include <babeltrace/property.h>
 
-/* For enum bt_clock_snapshot_status */
+/* For enum bt_clock_snapshot_state */
 #include <babeltrace/trace-ir/clock-snapshot-const.h>
 
 /*
@@ -56,12 +56,13 @@ const bt_field *bt_packet_borrow_context_field_const(
 		const bt_packet *packet);
 
 extern
-enum bt_clock_snapshot_status bt_packet_borrow_default_beginning_clock_snapshot_const(
+enum bt_clock_snapshot_state
+bt_packet_borrow_default_beginning_clock_snapshot_const(
 		const bt_packet *packet,
 		const bt_clock_snapshot **clock_snapshot);
 
 extern
-enum bt_clock_snapshot_status bt_packet_borrow_default_end_clock_valeu_const(
+enum bt_clock_snapshot_state bt_packet_borrow_default_end_clock_snapshot_const(
 		const bt_packet *packet,
 		const bt_clock_snapshot **clock_snapshot);
 

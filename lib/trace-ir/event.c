@@ -349,14 +349,14 @@ void bt_event_set_default_clock_snapshot(struct bt_event *event,
 		"value=%" PRIu64, event, value_cycles);
 }
 
-enum bt_clock_snapshot_status bt_event_borrow_default_clock_snapshot_const(
+enum bt_clock_snapshot_state bt_event_borrow_default_clock_snapshot_const(
 		const struct bt_event *event,
 		const struct bt_clock_snapshot **clock_snapshot)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
 	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot (output)");
 	*clock_snapshot = event->default_cs;
-	return BT_CLOCK_SNAPSHOT_STATUS_KNOWN;
+	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 }
 
 struct bt_packet *bt_event_borrow_packet(struct bt_event *event)

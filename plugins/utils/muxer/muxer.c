@@ -608,7 +608,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	int ret = 0;
 	const unsigned char *cc_uuid;
 	const char *cc_name;
-	enum bt_clock_snapshot_status cv_status = BT_CLOCK_SNAPSHOT_STATUS_KNOWN;
+	enum bt_clock_snapshot_state cs_state = BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
@@ -622,14 +622,14 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	case BT_MESSAGE_TYPE_EVENT:
 		event = bt_message_event_borrow_event_const(msg);
 		BT_ASSERT(event);
-		cv_status = bt_event_borrow_default_clock_snapshot_const(event,
+		cs_state = bt_event_borrow_default_clock_snapshot_const(event,
 			&clock_snapshot);
 		break;
 
 	case BT_MESSAGE_TYPE_INACTIVITY:
-		clock_snapshot =
+		cs_state =
 			bt_message_inactivity_borrow_default_clock_snapshot_const(
-				msg);
+				msg, &clock_snapshot);
 		break;
 	default:
 		/* All the other messages have a higher priority */
@@ -638,7 +638,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		goto end;
 	}
 
-	if (cv_status != BT_CLOCK_SNAPSHOT_STATUS_KNOWN) {
+	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN) {
 		BT_LOGE_STR("Unsupported unknown clock snapshot.");
 		ret = -1;
 		goto end;
