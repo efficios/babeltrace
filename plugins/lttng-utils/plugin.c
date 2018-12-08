@@ -266,14 +266,14 @@ end:
 }
 
 static
-enum bt_message_iterator_status debug_info_iterator_init(
+bt_message_iterator_status debug_info_iterator_init(
 		bt_self_message_iterator *iterator,
 		struct bt_private_port *port)
 {
-	enum bt_message_iterator_status ret =
+	bt_message_iterator_status ret =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
-	enum bt_message_iterator_status it_ret;
-	enum bt_connection_status conn_status;
+	bt_message_iterator_status it_ret;
+	bt_connection_status conn_status;
 	struct bt_private_connection *connection = NULL;
 	bt_self_component *component =
 		bt_self_message_iterator_get_private_component(iterator);
@@ -324,18 +324,18 @@ end:
 }
 
 static
-enum bt_component_status init_from_params(
+bt_component_status init_from_params(
 		struct debug_info_component *debug_info_component,
 		bt_value *params)
 {
 	bt_value *value = NULL;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	BT_ASSERT(params);
 
         value = bt_value_map_get(params, "debug-info-field-name");
 	if (value) {
-		enum bt_value_status value_ret;
+		bt_value_status value_ret;
 		const char *tmp;
 
 		tmp = bt_value_string_get(value);
@@ -358,7 +358,7 @@ enum bt_component_status init_from_params(
 
         value = bt_value_map_get(params, "debug-info-dir");
 	if (value) {
-		enum bt_value_status value_ret;
+		bt_value_status value_ret;
 
 		debug_info_component->arg_debug_dir = bt_value_string_get(value);
 	}
@@ -369,7 +369,7 @@ enum bt_component_status init_from_params(
 
         value = bt_value_map_get(params, "target-prefix");
 	if (value) {
-		enum bt_value_status value_ret;
+		bt_value_status value_ret;
 
 		debug_info_component->arg_target_prefix = bt_value_string_get(value);
 	}
@@ -380,7 +380,7 @@ enum bt_component_status init_from_params(
 
         value = bt_value_map_get(params, "full-path");
 	if (value) {
-		enum bt_value_status value_ret;
+		bt_value_status value_ret;
 		bt_bool bool_val;
 
 		bool_val = bt_value_bool_get(value);
@@ -396,11 +396,11 @@ end:
 	return ret;
 }
 
-enum bt_component_status debug_info_component_init(
+bt_component_status debug_info_component_init(
 	bt_self_component *component, bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
-	enum bt_component_status ret;
+	bt_component_status ret;
 	struct debug_info_component *debug_info = create_debug_info_component_data();
 
 	if (!debug_info) {

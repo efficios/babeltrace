@@ -35,16 +35,16 @@
 extern "C" {
 #endif
 
-enum bt_scope {
+typedef enum bt_scope {
 	BT_SCOPE_PACKET_HEADER,
 	BT_SCOPE_PACKET_CONTEXT,
 	BT_SCOPE_EVENT_HEADER,
 	BT_SCOPE_EVENT_COMMON_CONTEXT,
 	BT_SCOPE_EVENT_SPECIFIC_CONTEXT,
 	BT_SCOPE_EVENT_PAYLOAD,
-};
+} bt_scope;
 
-extern enum bt_scope bt_field_path_get_root_scope(
+extern bt_scope bt_field_path_get_root_scope(
 		const bt_field_path *field_path);
 
 extern uint64_t bt_field_path_get_index_count(

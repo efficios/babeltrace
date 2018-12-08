@@ -64,7 +64,7 @@ struct resolve_context {
 	} scopes;
 
 	/* Root scope being visited */
-	enum bt_scope root_scope;
+	bt_scope root_scope;
 	field_class_stack *field_class_stack;
 	struct ctf_field_class *cur_fc;
 };
@@ -227,7 +227,7 @@ void field_class_stack_pop(field_class_stack *stack)
  */
 static
 struct ctf_field_class *borrow_class_from_ctx(struct resolve_context *ctx,
-		enum bt_scope scope)
+		bt_scope scope)
 {
 	switch (scope) {
 	case BT_SCOPE_PACKET_HEADER:
@@ -254,10 +254,10 @@ struct ctf_field_class *borrow_class_from_ctx(struct resolve_context *ctx,
  * is found to be relative.
  */
 static
-enum bt_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
+bt_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 {
-	enum bt_scope scope;
-	enum bt_scope ret = -1;
+	bt_scope scope;
+	bt_scope ret = -1;
 	const size_t prefixes_count = sizeof(absolute_path_prefixes) /
 		sizeof(*absolute_path_prefixes);
 
@@ -637,7 +637,7 @@ int pathstr_to_field_path(const char *pathstr,
 		struct ctf_field_path *field_path, struct resolve_context *ctx)
 {
 	int ret = 0;
-	enum bt_scope root_scope;
+	bt_scope root_scope;
 	GList *ptokens = NULL;
 
 	/* Convert path string to path tokens */
@@ -1148,7 +1148,7 @@ end:
  * Resolves the root field class corresponding to the scope `root_scope`.
  */
 static
-int resolve_root_class(enum bt_scope root_scope, struct resolve_context *ctx)
+int resolve_root_class(bt_scope root_scope, struct resolve_context *ctx)
 {
 	int ret;
 

@@ -36,10 +36,10 @@
 extern "C" {
 #endif
 
-enum bt_stream_status {
+typedef enum bt_stream_status {
 	BT_STREAM_STATUS_OK = 0,
 	BT_STREAM_STATUS_NOMEM = -12,
-};
+} bt_stream_status;
 
 extern const bt_stream_class *bt_stream_borrow_class_const(
 		const bt_stream *stream);

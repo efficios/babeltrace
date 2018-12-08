@@ -40,7 +40,7 @@ struct trimmer_iterator {
 };
 
 BT_HIDDEN
-enum bt_message_iterator_status trimmer_iterator_init(
+bt_message_iterator_status trimmer_iterator_init(
 		bt_self_message_iterator *iterator,
 		struct bt_private_port *port);
 

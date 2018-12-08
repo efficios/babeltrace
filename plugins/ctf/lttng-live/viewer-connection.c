@@ -288,11 +288,11 @@ static void connection_release(bt_object *obj)
 }
 
 static
-enum bt_value_status list_update_session(bt_value *results,
+bt_value_status list_update_session(bt_value *results,
 		const struct lttng_viewer_session *session,
 		bool *_found)
 {
-	enum bt_value_status ret = BT_VALUE_STATUS_OK;
+	bt_value_status ret = BT_VALUE_STATUS_OK;
 	bt_value *map = NULL;
 	bt_value *hostname = NULL;
 	bt_value *session_name = NULL;
@@ -383,11 +383,11 @@ end:
 }
 
 static
-enum bt_value_status list_append_session(bt_value *results,
+bt_value_status list_append_session(bt_value *results,
 		GString *base_url,
 		const struct lttng_viewer_session *session)
 {
-	enum bt_value_status ret = BT_VALUE_STATUS_OK;
+	bt_value_status ret = BT_VALUE_STATUS_OK;
 	bt_value *map = NULL;
 	GString *url = NULL;
 	bool found = false;
@@ -1066,7 +1066,7 @@ void lttng_index_to_packet_index(struct lttng_viewer_index *lindex,
 }
 
 BT_HIDDEN
-enum bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_component *lttng_live,
+bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream,
 		struct packet_index *index)
 {
@@ -1075,7 +1075,7 @@ enum bt_lttng_live_iterator_status lttng_live_get_next_index(struct lttng_live_c
 	ssize_t ret_len;
 	struct lttng_viewer_index rp;
 	uint32_t flags, status;
-	enum bt_lttng_live_iterator_status retstatus =
+	bt_lttng_live_iterator_status retstatus =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct bt_live_viewer_connection *viewer_connection =
 			lttng_live->viewer_connection;
@@ -1323,10 +1323,10 @@ error:
  * Request new streams for a session.
  */
 BT_HIDDEN
-enum bt_lttng_live_iterator_status lttng_live_get_new_streams(
+bt_lttng_live_iterator_status lttng_live_get_new_streams(
 		struct lttng_live_session *session)
 {
-	enum bt_lttng_live_iterator_status status =
+	bt_lttng_live_iterator_status status =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_new_streams_request rq;

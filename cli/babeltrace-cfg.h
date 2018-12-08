@@ -45,7 +45,7 @@ enum bt_config_command {
 
 struct bt_config_component {
 	bt_object base;
-	enum bt_component_class_type type;
+	bt_component_class_type type;
 	GString *plugin_name;
 	GString *comp_cls_name;
 	bt_value *params;

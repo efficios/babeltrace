@@ -46,12 +46,12 @@ void dummy_finalize(bt_self_component_sink *comp)
 }
 
 BT_HIDDEN
-enum bt_self_component_status dummy_init(
+bt_self_component_status dummy_init(
 		bt_self_component_sink *component,
 		const bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
-	enum bt_self_component_status ret;
+	bt_self_component_status ret;
 	struct dummy *dummy = g_new0(struct dummy, 1);
 
 	if (!dummy) {
@@ -77,12 +77,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_component_status dummy_port_connected(
+bt_self_component_status dummy_port_connected(
 		bt_self_component_sink *comp,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port)
 {
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
 	bt_self_component_port_input_message_iterator *iterator;
 
@@ -104,14 +104,14 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_component_status dummy_consume(
+bt_self_component_status dummy_consume(
 		bt_self_component_sink *component)
 {
-	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	bt_message_array_const msgs;
 	uint64_t count;
 	struct dummy *dummy;
-	enum bt_message_iterator_status it_ret;
+	bt_message_iterator_status it_ret;
 	uint64_t i;
 
 	dummy = bt_self_component_get_data(
