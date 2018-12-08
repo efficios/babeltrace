@@ -30,6 +30,9 @@
 /* For bt_event, bt_event_header_field, bt_event_class, bt_field, bt_packet */
 #include <babeltrace/types.h>
 
+/* For enum bt_event_status */
+#include <babeltrace/trace-ir/event-const.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,7 +45,7 @@ extern bt_stream *bt_event_borrow_stream(bt_event *event);
 
 extern bt_field *bt_event_borrow_header_field(bt_event *event);
 
-extern int bt_event_move_header_field(bt_event *event,
+extern enum bt_event_status bt_event_move_header_field(bt_event *event,
 		bt_event_header_field *header);
 
 extern bt_field *

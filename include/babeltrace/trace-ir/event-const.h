@@ -37,6 +37,11 @@
 extern "C" {
 #endif
 
+enum bt_event_status {
+	BT_EVENT_STATUS_OK = 0,
+	BT_EVENT_STATUS_NOMEM = -12,
+};
+
 extern const bt_event_class *bt_event_borrow_class_const(
 		const bt_event *event);
 
