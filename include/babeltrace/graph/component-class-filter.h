@@ -35,6 +35,9 @@
 /* For bt_query_status */
 #include <babeltrace/graph/component-class.h>
 
+/* For bt_component_class_status */
+#include <babeltrace/graph/component-class-const.h>
+
 /*
  * For bt_component_class, bt_component_class_filter, bt_port_input,
  * bt_port_output, bt_query_executor, bt_self_component_class_filter,
@@ -124,47 +127,58 @@ bt_component_class_filter *bt_component_class_filter_create(
 		const char *name,
 		bt_component_class_filter_message_iterator_next_method method);
 
-extern int bt_component_class_filter_set_init_method(
+extern bt_component_class_status
+bt_component_class_filter_set_init_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_init_method method);
 
-extern int bt_component_class_filter_set_finalize_method(
+extern bt_component_class_status
+bt_component_class_filter_set_finalize_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_finalize_method method);
 
-extern int bt_component_class_filter_set_accept_input_port_connection_method(
+extern bt_component_class_status
+bt_component_class_filter_set_accept_input_port_connection_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_accept_input_port_connection_method method);
 
-extern int bt_component_class_filter_set_accept_output_port_connection_method(
+extern bt_component_class_status
+bt_component_class_filter_set_accept_output_port_connection_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_accept_output_port_connection_method method);
 
-extern int bt_component_class_filter_set_input_port_connected_method(
+extern bt_component_class_status
+bt_component_class_filter_set_input_port_connected_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_input_port_connected_method method);
 
-extern int bt_component_class_filter_set_output_port_connected_method(
+extern bt_component_class_status
+bt_component_class_filter_set_output_port_connected_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_output_port_connected_method method);
 
-extern int bt_component_class_filter_set_input_port_disconnected_method(
+extern bt_component_class_status
+bt_component_class_filter_set_input_port_disconnected_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_input_port_disconnected_method method);
 
-extern int bt_component_class_filter_set_output_port_disconnected_method(
+extern bt_component_class_status
+bt_component_class_filter_set_output_port_disconnected_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_output_port_disconnected_method method);
 
-extern int bt_component_class_filter_set_query_method(
+extern bt_component_class_status
+bt_component_class_filter_set_query_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_query_method method);
 
-extern int bt_component_class_filter_set_message_iterator_init_method(
+extern bt_component_class_status
+bt_component_class_filter_set_message_iterator_init_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_message_iterator_init_method method);
 
-extern int bt_component_class_filter_set_message_iterator_finalize_method(
+extern bt_component_class_status
+bt_component_class_filter_set_message_iterator_finalize_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_message_iterator_finalize_method method);
 
