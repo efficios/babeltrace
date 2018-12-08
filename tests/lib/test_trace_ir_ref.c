@@ -29,11 +29,11 @@
 #define NR_TESTS 37
 
 struct user {
-	struct bt_trace_class *tc;
-	struct bt_stream_class *sc;
-	struct bt_event_class *ec;
-	struct bt_stream *stream;
-	struct bt_event *event;
+	bt_trace_class *tc;
+	bt_stream_class *sc;
+	bt_event_class *ec;
+	bt_stream *stream;
+	bt_event *event;
 };
 
 struct writer_user {
@@ -63,11 +63,11 @@ static const size_t WRITER_USER_NR_ELEMENTS =
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_field_class *create_integer_struct(void)
+static bt_field_class *create_integer_struct(void)
 {
 	int ret;
-	struct bt_field_class *structure = NULL;
-	struct bt_field_class *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
+	bt_field_class *structure = NULL;
+	bt_field_class *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
 
 	structure = bt_field_class_structure_create();
 	BT_ASSERT(structure);
@@ -130,12 +130,12 @@ static struct bt_ctf_field_type *create_writer_integer_struct(void)
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static struct bt_event_class *create_simple_event(
-		struct bt_stream_class *sc, const char *name)
+static bt_event_class *create_simple_event(
+		bt_stream_class *sc, const char *name)
 {
 	int ret;
-	struct bt_event_class *event = NULL;
-	struct bt_field_class *payload = NULL;
+	bt_event_class *event = NULL;
+	bt_field_class *payload = NULL;
 
 	BT_ASSERT(name);
 	event = bt_event_class_create(sc);
@@ -160,13 +160,13 @@ static struct bt_event_class *create_simple_event(
  *           - uint16_t payload_16;
  *           - uint32_t payload_32;
  */
-static struct bt_event_class *create_complex_event(
-		struct bt_stream_class *sc,
+static bt_event_class *create_complex_event(
+		bt_stream_class *sc,
 		const char *name)
 {
 	int ret;
-	struct bt_event_class *event = NULL;
-	struct bt_field_class *inner = NULL, *outer = NULL;
+	bt_event_class *event = NULL;
+	bt_field_class *inner = NULL, *outer = NULL;
 
 	BT_ASSERT(name);
 	event = bt_event_class_create(sc);
@@ -188,11 +188,11 @@ static struct bt_event_class *create_complex_event(
 }
 
 static void set_stream_class_field_classes(
-		struct bt_stream_class *stream_class)
+		bt_stream_class *stream_class)
 {
-	struct bt_field_class *packet_context_type;
-	struct bt_field_class *event_header_type;
-	struct bt_field_class *fc;
+	bt_field_class *packet_context_type;
+	bt_field_class *event_header_type;
+	bt_field_class *fc;
 	int ret;
 
 	packet_context_type = bt_field_class_structure_create();
@@ -230,11 +230,11 @@ static void set_stream_class_field_classes(
 	bt_field_class_put_ref(event_header_type);
 }
 
-static void create_sc1(struct bt_trace_class *trace_class)
+static void create_sc1(bt_trace_class *trace_class)
 {
 	int ret;
-	struct bt_event_class *ec1 = NULL, *ec2 = NULL;
-	struct bt_stream_class *sc1 = NULL, *ret_stream = NULL;
+	bt_event_class *ec1 = NULL, *ec2 = NULL;
+	bt_stream_class *sc1 = NULL, *ret_stream = NULL;
 
 	sc1 = bt_stream_class_create(trace_class);
 	BT_ASSERT(sc1);
@@ -254,11 +254,11 @@ static void create_sc1(struct bt_trace_class *trace_class)
 	BT_STREAM_CLASS_PUT_REF_AND_RESET(sc1);
 }
 
-static void create_sc2(struct bt_trace_class *trace_class)
+static void create_sc2(bt_trace_class *trace_class)
 {
 	int ret;
-	struct bt_event_class *ec3 = NULL;
-	struct bt_stream_class *sc2 = NULL, *ret_stream = NULL;
+	bt_event_class *ec3 = NULL;
+	bt_stream_class *sc2 = NULL, *ret_stream = NULL;
 
 	sc2 = bt_stream_class_create(trace_class);
 	BT_ASSERT(sc2);
@@ -272,10 +272,10 @@ static void create_sc2(struct bt_trace_class *trace_class)
 	BT_STREAM_CLASS_PUT_REF_AND_RESET(sc2);
 }
 
-static void set_trace_packet_header(struct bt_trace_class *trace_class)
+static void set_trace_packet_header(bt_trace_class *trace_class)
 {
-	struct bt_field_class *packet_header_type;
-	struct bt_field_class *fc;
+	bt_field_class *packet_header_type;
+	bt_field_class *fc;
 	int ret;
 
 	packet_header_type = bt_field_class_structure_create();
@@ -294,9 +294,9 @@ static void set_trace_packet_header(struct bt_trace_class *trace_class)
 	bt_field_class_put_ref(packet_header_type);
 }
 
-static struct bt_trace_class *create_tc1(void)
+static bt_trace_class *create_tc1(void)
 {
-	struct bt_trace_class *tc1 = NULL;
+	bt_trace_class *tc1 = NULL;
 
 	tc1 = bt_trace_class_create();
 	BT_ASSERT(tc1);
@@ -306,13 +306,13 @@ static struct bt_trace_class *create_tc1(void)
 	return tc1;
 }
 
-static void init_weak_refs(struct bt_trace_class *tc,
-		struct bt_trace_class **tc1,
-		struct bt_stream_class **sc1,
-		struct bt_stream_class **sc2,
-		struct bt_event_class **ec1,
-		struct bt_event_class **ec2,
-		struct bt_event_class **ec3)
+static void init_weak_refs(bt_trace_class *tc,
+		bt_trace_class **tc1,
+		bt_stream_class **sc1,
+		bt_stream_class **sc2,
+		bt_event_class **ec1,
+		bt_event_class **ec2,
+		bt_event_class **ec3)
 {
 	*tc1 = tc;
 	*sc1 = bt_trace_class_borrow_stream_class_by_index(tc, 0);
@@ -331,9 +331,9 @@ static void test_example_scenario(void)
 	 * of expected reference counts without affecting them by taking
 	 * "real" references to the objects.
 	 */
-	struct bt_trace_class *tc1 = NULL, *weak_tc1 = NULL;
-	struct bt_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
-	struct bt_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
+	bt_trace_class *tc1 = NULL, *weak_tc1 = NULL;
+	bt_stream_class *weak_sc1 = NULL, *weak_sc2 = NULL;
+	bt_event_class *weak_ec1 = NULL, *weak_ec2 = NULL,
 			*weak_ec3 = NULL;
 	struct user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
 

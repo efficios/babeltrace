@@ -24,37 +24,34 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
+/* For bt_notification, bt_self_notification_iterator, bt_stream */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_self_notification_iterator;
-struct bt_stream;
+extern
+bt_notification *bt_notification_stream_beginning_create(
+		bt_self_notification_iterator *notification_iterator,
+		bt_stream *stream);
 
 extern
-struct bt_notification *bt_notification_stream_beginning_create(
-		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_stream *stream);
+bt_notification *bt_notification_stream_end_create(
+		bt_self_notification_iterator *notification_iterator,
+		bt_stream *stream);
 
-extern
-struct bt_notification *bt_notification_stream_end_create(
-		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_stream *stream);
-
-extern struct bt_stream *bt_notification_stream_beginning_borrow_stream(
-		struct bt_notification *notification);
+extern bt_stream *bt_notification_stream_beginning_borrow_stream(
+		bt_notification *notification);
 
 extern void bt_notification_stream_beginning_set_default_clock_value(
-		struct bt_notification *notif, uint64_t value_cycles);
+		bt_notification *notif, uint64_t value_cycles);
 
-extern struct bt_stream *bt_notification_stream_end_borrow_stream(
-		struct bt_notification *notification);
+extern bt_stream *bt_notification_stream_end_borrow_stream(
+		bt_notification *notification);
 
 extern void bt_notification_stream_end_set_default_clock_value(
-		struct bt_notification *notif, uint64_t value_cycles);
+		bt_notification *notif, uint64_t value_cycles);
 
 #ifdef __cplusplus
 }

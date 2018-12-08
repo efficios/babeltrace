@@ -27,7 +27,7 @@
 
 static inline
 int find_mapped_clock_class(struct ctf_field_class *fc,
-		struct bt_clock_class **clock_class)
+		bt_clock_class **clock_class)
 {
 	int ret = 0;
 	uint64_t i;
@@ -120,7 +120,7 @@ int update_stream_class_default_clock_class(
 		struct ctf_stream_class *stream_class)
 {
 	int ret = 0;
-	struct bt_clock_class *clock_class =
+	bt_clock_class *clock_class =
 		stream_class->default_clock_class;
 	uint64_t i;
 
@@ -173,7 +173,7 @@ int ctf_trace_class_update_default_clock_classes(struct ctf_trace_class *ctf_tc)
 {
 	uint64_t i;
 	int ret = 0;
-	struct bt_clock_class *clock_class = NULL;
+	bt_clock_class *clock_class = NULL;
 
 	ret = find_mapped_clock_class(ctf_tc->packet_header_fc,
 		&clock_class);

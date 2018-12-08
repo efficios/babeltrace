@@ -27,7 +27,10 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool, bt_uuid */
+/*
+ * For bt_bool, bt_uuid, bt_trace_class, bt_stream_class,
+ * bt_field_class, bt_value
+ */
 #include <babeltrace/types.h>
 
 #include <stdint.h>
@@ -36,48 +39,43 @@
 extern "C" {
 #endif
 
-struct bt_trace_class;
-struct bt_stream_class;
-struct bt_field_class;
-struct bt_value;
-
 extern bt_bool bt_trace_class_assigns_automatic_stream_class_id(
-		const struct bt_trace_class *trace_class);
+		const bt_trace_class *trace_class);
 
 extern const char *bt_trace_class_get_name(
-		const struct bt_trace_class *trace_class);
+		const bt_trace_class *trace_class);
 
 extern bt_uuid bt_trace_class_get_uuid(
-		const struct bt_trace_class *trace_class);
+		const bt_trace_class *trace_class);
 
 extern uint64_t bt_trace_class_get_environment_entry_count(
-		const struct bt_trace_class *trace_class);
+		const bt_trace_class *trace_class);
 
 extern void bt_trace_class_borrow_environment_entry_by_index_const(
-		const struct bt_trace_class *trace_class, uint64_t index,
-		const char **name, const struct bt_value **value);
+		const bt_trace_class *trace_class, uint64_t index,
+		const char **name, const bt_value **value);
 
-extern const struct bt_value *
+extern const bt_value *
 bt_trace_class_borrow_environment_entry_value_by_name_const(
-		const struct bt_trace_class *trace_class, const char *name);
+		const bt_trace_class *trace_class, const char *name);
 
-extern const struct bt_field_class *
+extern const bt_field_class *
 bt_trace_class_borrow_packet_header_field_class_const(
-		const struct bt_trace_class *trace_class);
+		const bt_trace_class *trace_class);
 
 extern uint64_t bt_trace_class_get_stream_class_count(
-		const struct bt_trace_class *trace_class);
+		const bt_trace_class *trace_class);
 
-extern const struct bt_stream_class *
+extern const bt_stream_class *
 bt_trace_class_borrow_stream_class_by_index_const(
-		const struct bt_trace_class *trace_class, uint64_t index);
+		const bt_trace_class *trace_class, uint64_t index);
 
-extern const struct bt_stream_class *bt_trace_class_borrow_stream_class_by_id_const(
-		const struct bt_trace_class *trace_class, uint64_t id);
+extern const bt_stream_class *bt_trace_class_borrow_stream_class_by_id_const(
+		const bt_trace_class *trace_class, uint64_t id);
 
-extern void bt_trace_class_get_ref(const struct bt_trace_class *trace_class);
+extern void bt_trace_class_get_ref(const bt_trace_class *trace_class);
 
-extern void bt_trace_class_put_ref(const struct bt_trace_class *trace_class);
+extern void bt_trace_class_put_ref(const bt_trace_class *trace_class);
 
 #define BT_TRACE_CLASS_PUT_REF_AND_RESET(_var)		\
 	do {						\

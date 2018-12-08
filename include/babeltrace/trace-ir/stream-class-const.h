@@ -29,80 +29,76 @@
 
 #include <stdint.h>
 
-/* For bt_bool */
+/*
+ * For bt_bool, bt_trace_class, bt_stream_class, bt_event_class,
+ * bt_stream_class, bt_event_header_field, bt_packet_context_field
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_trace_class;
-struct bt_stream_class;
-struct bt_event_class;
-struct bt_stream_class;
-struct bt_event_header_field;
-struct bt_packet_context_field;
-
-extern const struct bt_trace_class *bt_stream_class_borrow_trace_class_const(
-		const struct bt_stream_class *stream_class);
+extern const bt_trace_class *bt_stream_class_borrow_trace_class_const(
+		const bt_stream_class *stream_class);
 
 extern const char *bt_stream_class_get_name(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_assigns_automatic_event_class_id(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_assigns_automatic_stream_id(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern uint64_t bt_stream_class_get_id(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
-extern const struct bt_field_class *
+extern const bt_field_class *
 bt_stream_class_borrow_packet_context_field_class_const(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
-extern const struct bt_field_class *
+extern const bt_field_class *
 bt_stream_class_borrow_event_header_field_class_const(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
-extern const struct bt_field_class *
+extern const bt_field_class *
 bt_stream_class_borrow_event_common_context_field_class_const(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern uint64_t bt_stream_class_get_event_class_count(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
-extern const struct bt_event_class *
+extern const bt_event_class *
 bt_stream_class_borrow_event_class_by_index_const(
-		const struct bt_stream_class *stream_class, uint64_t index);
+		const bt_stream_class *stream_class, uint64_t index);
 
-extern const struct bt_event_class *
+extern const bt_event_class *
 bt_stream_class_borrow_event_class_by_id_const(
-		const struct bt_stream_class *stream_class, uint64_t id);
+		const bt_stream_class *stream_class, uint64_t id);
 
-extern const struct bt_clock_class *
+extern const bt_clock_class *
 bt_stream_class_borrow_default_clock_class_const(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_default_clock_is_always_known(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_packets_have_discarded_event_counter_snapshot(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_packets_have_packet_counter_snapshot(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_packets_have_default_beginning_clock_value(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_packets_have_default_end_clock_value(
-		const struct bt_stream_class *stream_class);
+		const bt_stream_class *stream_class);
 
-extern void bt_stream_class_get_ref(const struct bt_stream_class *stream_class);
+extern void bt_stream_class_get_ref(const bt_stream_class *stream_class);
 
-extern void bt_stream_class_put_ref(const struct bt_stream_class *stream_class);
+extern void bt_stream_class_put_ref(const bt_stream_class *stream_class);
 
 #define BT_STREAM_CLASS_PUT_REF_AND_RESET(_var)		\
 	do {						\

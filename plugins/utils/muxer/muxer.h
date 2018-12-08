@@ -30,37 +30,37 @@
 
 BT_HIDDEN
 enum bt_self_component_status muxer_init(
-		struct bt_self_component_filter *self_comp,
-		const struct bt_value *params, void *init_data);
+		bt_self_component_filter *self_comp,
+		const bt_value *params, void *init_data);
 
 BT_HIDDEN
-void muxer_finalize(struct bt_self_component_filter *self_comp);
+void muxer_finalize(bt_self_component_filter *self_comp);
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status muxer_notif_iter_init(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_filter *self_comp,
-		struct bt_self_component_port_output *self_port);
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_filter *self_comp,
+		bt_self_component_port_output *self_port);
 
 BT_HIDDEN
 void muxer_notif_iter_finalize(
-		struct bt_self_notification_iterator *self_notif_iter);
+		bt_self_notification_iterator *self_notif_iter);
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status muxer_notif_iter_next(
-		struct bt_self_notification_iterator *self_notif_iter,
+		bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count);
 
 BT_HIDDEN
 enum bt_self_component_status muxer_input_port_connected(
-		struct bt_self_component_filter *comp,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port);
+		bt_self_component_filter *comp,
+		bt_self_component_port_input *self_port,
+		const bt_port_output *other_port);
 
 BT_HIDDEN
 void muxer_input_port_disconnected(
-		struct bt_self_component_filter *self_component,
-		struct bt_self_component_port_input *self_port);
+		bt_self_component_filter *self_component,
+		bt_self_component_port_input *self_port);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_MUXER_H */

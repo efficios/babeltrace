@@ -24,28 +24,26 @@
  * SOFTWARE.
  */
 
+/* For bt_notification, bt_clock_value, bt_stream */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_self_notification_iterator;
-struct bt_clock_value;
-struct bt_stream;
+extern const bt_stream *bt_notification_stream_beginning_borrow_stream_const(
+		const bt_notification *notification);
 
-extern const struct bt_stream *bt_notification_stream_beginning_borrow_stream_const(
-		const struct bt_notification *notification);
-
-extern const struct bt_clock_value *
+extern const bt_clock_value *
 bt_notification_stream_beginning_borrow_default_clock_value_const(
-		const struct bt_notification *notif);
+		const bt_notification *notif);
 
-extern const struct bt_stream *bt_notification_stream_end_borrow_stream_const(
-		const struct bt_notification *notification);
+extern const bt_stream *bt_notification_stream_end_borrow_stream_const(
+		const bt_notification *notification);
 
-extern const struct bt_clock_value *
+extern const bt_clock_value *
 bt_notification_stream_end_borrow_default_clock_value_const(
-		const struct bt_notification *notif);
+		const bt_notification *notif);
 
 #ifdef __cplusplus
 }

@@ -64,8 +64,8 @@ static char *get_test_plugin_path(const char *plugin_dir,
 
 static void test_minimal(const char *plugin_dir)
 {
-	const struct bt_plugin_set *plugin_set;
-	const struct bt_plugin *plugin;
+	const bt_plugin_set *plugin_set;
+	const bt_plugin *plugin;
 	char *minimal_path = get_test_plugin_path(plugin_dir, "minimal");
 
 	BT_ASSERT(minimal_path);
@@ -109,23 +109,23 @@ static void test_minimal(const char *plugin_dir)
 
 static void test_sfs(const char *plugin_dir)
 {
-	const struct bt_plugin_set *plugin_set;
-	const struct bt_plugin *plugin;
-	const struct bt_component_class_sink *sink_comp_class;
-	const struct bt_component_class_source *source_comp_class;
-	const struct bt_component_class_filter *filter_comp_class;
-	const struct bt_component_sink *sink_component;
+	const bt_plugin_set *plugin_set;
+	const bt_plugin *plugin;
+	const bt_component_class_sink *sink_comp_class;
+	const bt_component_class_source *source_comp_class;
+	const bt_component_class_filter *filter_comp_class;
+	const bt_component_sink *sink_component;
 	char *sfs_path = get_test_plugin_path(plugin_dir, "sfs");
 	unsigned int major, minor, patch;
 	const char *extra;
-	struct bt_value *params;
-	const struct bt_value *results;
-	const struct bt_value *object;
-	const struct bt_value *res_params;
-	struct bt_graph *graph;
+	bt_value *params;
+	const bt_value *results;
+	const bt_value *object;
+	const bt_value *res_params;
+	bt_graph *graph;
 	const char *object_str;
 	enum bt_graph_status graph_ret;
-	struct bt_query_executor *query_exec = bt_query_executor_create();
+	bt_query_executor *query_exec = bt_query_executor_create();
 	int ret;
 
 	BT_ASSERT(query_exec);
@@ -210,7 +210,7 @@ static void test_sfs(const char *plugin_dir)
 
 static void test_create_all_from_dir(const char *plugin_dir)
 {
-	const struct bt_plugin_set *plugin_set;
+	const bt_plugin_set *plugin_set;
 
 	diag("create from all test below");
 
@@ -232,7 +232,7 @@ static void test_create_all_from_dir(const char *plugin_dir)
 static void test_find(const char *plugin_dir)
 {
 	int ret;
-	const struct bt_plugin *plugin;
+	const bt_plugin *plugin;
 	char *plugin_path;
 
 	ok(!bt_plugin_find(NON_EXISTING_PATH),

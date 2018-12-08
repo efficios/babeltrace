@@ -23,12 +23,12 @@
  * SOFTWARE.
  */
 
+/* For bt_component, bt_self_component */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_component;
-struct bt_self_component;
 
 enum bt_self_component_status {
 	BT_SELF_COMPONENT_STATUS_OK = 0,
@@ -40,17 +40,17 @@ enum bt_self_component_status {
 };
 
 static inline
-const struct bt_component *bt_self_component_as_component(
-		struct bt_self_component *self_component)
+const bt_component *bt_self_component_as_component(
+		bt_self_component *self_component)
 {
 	return (const void *) self_component;
 }
 
 extern void *bt_self_component_get_data(
-		const struct bt_self_component *private_component);
+		const bt_self_component *private_component);
 
 extern void bt_self_component_set_data(
-		struct bt_self_component *private_component, void *data);
+		bt_self_component *private_component, void *data);
 
 #ifdef __cplusplus
 }

@@ -27,29 +27,28 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_trace, bt_stream, bt_stream_class */
+#include <babeltrace/types.h>
+
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_trace;
-struct bt_stream;
-struct bt_stream_class;
+extern const bt_stream_class *bt_stream_borrow_class_const(
+		const bt_stream *stream);
 
-extern const struct bt_stream_class *bt_stream_borrow_class_const(
-		const struct bt_stream *stream);
+extern const bt_trace *bt_stream_borrow_trace_const(
+		const bt_stream *stream);
 
-extern const struct bt_trace *bt_stream_borrow_trace_const(
-		const struct bt_stream *stream);
+extern const char *bt_stream_get_name(const bt_stream *stream);
 
-extern const char *bt_stream_get_name(const struct bt_stream *stream);
+extern uint64_t bt_stream_get_id(const bt_stream *stream);
 
-extern uint64_t bt_stream_get_id(const struct bt_stream *stream);
+extern void bt_stream_get_ref(const bt_stream *stream);
 
-extern void bt_stream_get_ref(const struct bt_stream *stream);
-
-extern void bt_stream_put_ref(const struct bt_stream *stream);
+extern void bt_stream_put_ref(const bt_stream *stream);
 
 #define BT_STREAM_PUT_REF_AND_RESET(_var)		\
 	do {						\

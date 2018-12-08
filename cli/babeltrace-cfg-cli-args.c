@@ -83,7 +83,7 @@ struct ini_parsing_state {
 	GScanner *scanner;
 
 	/* Output map value object being filled (owned by this) */
-	struct bt_value *params;
+	bt_value *params;
 
 	/* Next expected FSM state */
 	enum ini_parsing_fsm_state expecting;
@@ -120,8 +120,8 @@ struct text_legacy_opts {
 	GString *output;
 	GString *dbg_info_dir;
 	GString *dbg_info_target_prefix;
-	const struct bt_value *names;
-	const struct bt_value *fields;
+	const bt_value *names;
+	const bt_value *fields;
 
 	/* Flags */
 	bool no_delta;
@@ -193,7 +193,7 @@ int ini_handle_state(struct ini_parsing_state *state)
 {
 	int ret = 0;
 	GTokenType token_type;
-	struct bt_value *value = NULL;
+	bt_value *value = NULL;
 
 	token_type = g_scanner_get_next_token(state->scanner);
 	if (token_type == G_TOKEN_EOF) {
@@ -427,7 +427,7 @@ end:
  * Return value is owned by the caller.
  */
 static
-struct bt_value *bt_value_from_ini(const char *arg,
+bt_value *bt_value_from_ini(const char *arg,
 		GString *ini_error)
 {
 	/* Lexical scanner configuration */
@@ -553,9 +553,9 @@ end:
  * Return value is owned by the caller.
  */
 static
-struct bt_value *bt_value_from_arg(const char *arg)
+bt_value *bt_value_from_arg(const char *arg)
 {
-	struct bt_value *params = NULL;
+	bt_value *params = NULL;
 	GString *ini_error = NULL;
 
 	ini_error = g_string_new(NULL);
@@ -738,7 +738,7 @@ void print_version(void)
  * Destroys a component configuration.
  */
 static
-void bt_config_component_destroy(struct bt_object *obj)
+void bt_config_component_destroy(bt_object *obj)
 {
 	struct bt_config_component *bt_config_component =
 		container_of(obj, struct bt_config_component, base);
@@ -866,7 +866,7 @@ end:
  * Destroys a configuration.
  */
 static
-void bt_config_destroy(struct bt_object *obj)
+void bt_config_destroy(bt_object *obj)
 {
 	struct bt_config *cfg =
 		container_of(obj, struct bt_config, base);
@@ -1007,10 +1007,10 @@ GScanner *create_csv_identifiers_scanner(void)
  * Return value is owned by the caller.
  */
 static
-struct bt_value *names_from_arg(const char *arg)
+bt_value *names_from_arg(const char *arg)
 {
 	GScanner *scanner = NULL;
-	struct bt_value *names = NULL;
+	bt_value *names = NULL;
 	bool found_all = false, found_none = false, found_item = false;
 
 	names = bt_value_array_create();
@@ -1119,10 +1119,10 @@ error:
  * Return value is owned by the caller.
  */
 static
-struct bt_value *fields_from_arg(const char *arg)
+bt_value *fields_from_arg(const char *arg)
 {
 	GScanner *scanner = NULL;
-	struct bt_value *fields;
+	bt_value *fields;
 
 	fields = bt_value_array_create();
 	if (!fields) {
@@ -1208,7 +1208,7 @@ void append_param_arg(GString *params_arg, const char *key, const char *value)
  */
 static
 int insert_flat_params_from_array(GString *params_arg,
-		const struct bt_value *names_array, const char *prefix)
+		const bt_value *names_array, const char *prefix)
 {
 	int ret = 0;
 	int i;
@@ -1238,7 +1238,7 @@ int insert_flat_params_from_array(GString *params_arg,
 	}
 
 	for (i = 0; i < bt_value_array_get_size(names_array); i++) {
-		const struct bt_value *str_obj =
+		const bt_value *str_obj =
 			bt_value_array_borrow_element_by_index_const(names_array,
 								     i);
 		const char *suffix;
@@ -1379,7 +1379,7 @@ static
 int add_run_cfg_comp_check_name(struct bt_config *cfg,
 		struct bt_config_component *cfg_comp,
 		enum bt_config_component_dest dest,
-		struct bt_value *instance_names)
+		bt_value *instance_names)
 {
 	int ret = 0;
 
@@ -1411,7 +1411,7 @@ end:
 }
 
 static
-int append_env_var_plugin_paths(struct bt_value *plugin_paths)
+int append_env_var_plugin_paths(bt_value *plugin_paths)
 {
 	int ret = 0;
 	const char *envvar;
@@ -1437,7 +1437,7 @@ end:
 }
 
 static
-int append_home_and_system_plugin_paths(struct bt_value *plugin_paths,
+int append_home_and_system_plugin_paths(bt_value *plugin_paths,
 		bool omit_system_plugin_path, bool omit_home_plugin_path)
 {
 	int ret;
@@ -1484,7 +1484,7 @@ int append_home_and_system_plugin_paths_cfg(struct bt_config *cfg)
 
 static
 struct bt_config *bt_config_base_create(enum bt_config_command command,
-		const struct bt_value *initial_plugin_paths,
+		const bt_value *initial_plugin_paths,
 		bool needs_plugins)
 {
 	struct bt_config *cfg;
@@ -1501,7 +1501,7 @@ struct bt_config *bt_config_base_create(enum bt_config_command command,
 	cfg->command_needs_plugins = needs_plugins;
 
 	if (initial_plugin_paths) {
-		struct bt_value *initial_plugin_paths_copy;
+		bt_value *initial_plugin_paths_copy;
 
 		(void) bt_value_copy(initial_plugin_paths,
 			&initial_plugin_paths_copy);
@@ -1525,7 +1525,7 @@ end:
 
 static
 struct bt_config *bt_config_run_create(
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1575,7 +1575,7 @@ end:
 
 static
 struct bt_config *bt_config_list_plugins_create(
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1597,7 +1597,7 @@ end:
 
 static
 struct bt_config *bt_config_help_create(
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1625,7 +1625,7 @@ end:
 
 static
 struct bt_config *bt_config_query_create(
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1653,7 +1653,7 @@ end:
 
 static
 struct bt_config *bt_config_print_ctf_metadata_create(
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1687,7 +1687,7 @@ end:
 
 static
 struct bt_config *bt_config_print_lttng_live_sessions_create(
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg;
 
@@ -1722,7 +1722,7 @@ end:
 
 static
 int bt_config_append_plugin_paths_check_setuid_setgid(
-		struct bt_value *plugin_paths, const char *arg)
+		bt_value *plugin_paths, const char *arg)
 {
 	int ret = 0;
 
@@ -1823,7 +1823,7 @@ static
 struct bt_config *bt_config_help_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -1985,7 +1985,7 @@ static
 struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -1993,7 +1993,7 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	int ret;
 	struct bt_config *cfg = NULL;
 	const char *leftover;
-	struct bt_value *params = bt_value_null;
+	bt_value *params = bt_value_null;
 
 	*retcode = 0;
 	cfg = bt_config_query_create(initial_plugin_paths);
@@ -2174,7 +2174,7 @@ static
 struct bt_config *bt_config_list_plugins_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -2364,18 +2364,18 @@ static
 struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
 	struct bt_config_component *cur_cfg_comp = NULL;
 	enum bt_config_component_dest cur_cfg_comp_dest =
 			BT_CONFIG_COMPONENT_DEST_UNKNOWN;
-	struct bt_value *cur_base_params = NULL;
+	bt_value *cur_base_params = NULL;
 	int opt, ret = 0;
 	struct bt_config *cfg = NULL;
-	struct bt_value *instance_names = NULL;
-	struct bt_value *connection_args = NULL;
+	bt_value *instance_names = NULL;
+	bt_value *connection_args = NULL;
 	GString *cur_param_key = NULL;
 	char error_buf[256] = { 0 };
 	long retry_duration = -1;
@@ -2516,8 +2516,8 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		}
 		case OPT_PARAMS:
 		{
-			struct bt_value *params;
-			struct bt_value *params_to_set;
+			bt_value *params;
+			bt_value *params_to_set;
 
 			if (!cur_cfg_comp) {
 				printf_err("Cannot add parameters to unavailable component:\n    %s\n",
@@ -2582,7 +2582,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			break;
 		case OPT_BASE_PARAMS:
 		{
-			struct bt_value *params =
+			bt_value *params =
 				bt_value_from_arg(arg);
 
 			if (!params) {
@@ -2703,10 +2703,10 @@ end:
 }
 
 static
-struct bt_config *bt_config_run_from_args_array(const struct bt_value *run_args,
+struct bt_config *bt_config_run_from_args_array(const bt_value *run_args,
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *cfg = NULL;
 	const char **argv;
@@ -2727,7 +2727,7 @@ struct bt_config *bt_config_run_from_args_array(const struct bt_value *run_args,
 		goto end;
 	}
 	for (i = 0; i < len; i++) {
-		const struct bt_value *arg_value =
+		const bt_value *arg_value =
 			bt_value_array_borrow_element_by_index_const(run_args,
 								     i);
 		const char *arg;
@@ -2927,7 +2927,7 @@ struct poptOption convert_long_options[] = {
 
 static
 GString *get_component_auto_name(const char *prefix,
-		const struct bt_value *existing_names)
+		const bt_value *existing_names)
 {
 	unsigned int i = 0;
 	GString *auto_name = g_string_new(NULL);
@@ -2956,12 +2956,12 @@ struct implicit_component_args {
 	GString *comp_arg;
 	GString *name_arg;
 	GString *params_arg;
-	struct bt_value *extra_params;
+	bt_value *extra_params;
 };
 
 static
 int assign_name_to_implicit_component(struct implicit_component_args *args,
-		const char *prefix, struct bt_value *existing_names,
+		const char *prefix, bt_value *existing_names,
 		GList **comp_names, bool append_to_comp_names)
 {
 	int ret = 0;
@@ -3004,7 +3004,7 @@ end:
 static
 int append_run_args_for_implicit_component(
 		struct implicit_component_args *impl_args,
-		struct bt_value *run_args)
+		bt_value *run_args)
 {
 	int ret = 0;
 	size_t i;
@@ -3048,7 +3048,7 @@ int append_run_args_for_implicit_component(
 
 	for (i = 0; i < bt_value_array_get_size(impl_args->extra_params);
 			i++) {
-		const struct bt_value *elem;
+		const bt_value *elem;
 		const char *arg;
 
 		elem = bt_value_array_borrow_element_by_index(impl_args->extra_params,
@@ -3181,8 +3181,8 @@ end:
 static
 int convert_append_name_param(enum bt_config_component_dest dest,
 		GString *cur_name, GString *cur_name_prefix,
-		struct bt_value *run_args,
-		struct bt_value *all_names,
+		bt_value *run_args,
+		bt_value *all_names,
 		GList **source_names, GList **filter_names,
 		GList **sink_names)
 {
@@ -3307,7 +3307,7 @@ end:
  * function.
  */
 static
-int append_connect_arg(struct bt_value *run_args,
+int append_connect_arg(bt_value *run_args,
 		const char *upstream_name, const char *downstream_name)
 {
 	int ret = 0;
@@ -3358,7 +3358,7 @@ end:
  * Appends the run command's --connect options for the convert command.
  */
 static
-int convert_auto_connect(struct bt_value *run_args,
+int convert_auto_connect(bt_value *run_args,
 		GList *source_names, GList *filter_names,
 		GList *sink_names)
 {
@@ -3580,7 +3580,7 @@ static
 struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const struct bt_value *initial_plugin_paths, char *log_level)
+		const bt_value *initial_plugin_paths, char *log_level)
 {
 	poptContext pc = NULL;
 	char *arg = NULL;
@@ -3599,8 +3599,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	bool print_run_args = false;
 	bool print_run_args_0 = false;
 	bool print_ctf_metadata = false;
-	struct bt_value *run_args = NULL;
-	struct bt_value *all_names = NULL;
+	bt_value *run_args = NULL;
+	bt_value *all_names = NULL;
 	GList *source_names = NULL;
 	GList *filter_names = NULL;
 	GList *sink_names = NULL;
@@ -3614,7 +3614,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	struct implicit_component_args implicit_debug_info_args = { 0 };
 	struct implicit_component_args implicit_muxer_args = { 0 };
 	struct implicit_component_args implicit_trimmer_args = { 0 };
-	struct bt_value *plugin_paths;
+	bt_value *plugin_paths;
 	char error_buf[256] = { 0 };
 	size_t i;
 	struct bt_common_lttng_live_url_parts lttng_live_url_parts = { 0 };
@@ -4154,7 +4154,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			break;
 		case OPT_FIELDS:
 		{
-			struct bt_value *fields = fields_from_arg(arg);
+			bt_value *fields = fields_from_arg(arg);
 
 			if (!fields) {
 				goto error;
@@ -4172,7 +4172,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 		case OPT_NAMES:
 		{
-			struct bt_value *names = names_from_arg(arg);
+			bt_value *names = names_from_arg(arg);
 
 			if (!names) {
 				goto error;
@@ -4672,7 +4672,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		}
 
 		for (i = 0; i < bt_value_array_get_size(run_args); i++) {
-			const struct bt_value *arg_value =
+			const bt_value *arg_value =
 				bt_value_array_borrow_element_by_index(run_args,
 								       i);
 			const char *arg;
@@ -4830,7 +4830,7 @@ char log_level_from_arg(const char *arg)
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,
 		bool force_omit_home_plugin_path,
-		const struct bt_value *initial_plugin_paths)
+		const bt_value *initial_plugin_paths)
 {
 	struct bt_config *config = NULL;
 	int i;

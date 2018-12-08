@@ -323,7 +323,7 @@ struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
 
 BT_HIDDEN
-struct bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
+bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 		struct ctf_visitor_generate_ir *visitor);
 
 BT_HIDDEN

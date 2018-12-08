@@ -37,7 +37,7 @@
 struct bt_config *bt_config_cli_args_create_with_default(int argc,
 		const char *argv[], int *retcode)
 {
-	struct bt_value *initial_plugin_paths;
+	bt_value *initial_plugin_paths;
 	struct bt_config *cfg = NULL;
 	int ret;
 

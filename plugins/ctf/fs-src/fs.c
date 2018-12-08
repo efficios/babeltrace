@@ -90,10 +90,10 @@ void ctf_fs_notif_iter_data_destroy(
 static
 enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
 		struct ctf_fs_notif_iter_data *notif_iter_data,
-		const struct bt_notification **notif)
+		const bt_notification **notif)
 {
 	enum bt_self_notification_iterator_status status;
-	struct bt_notification *priv_notif;
+	bt_notification *priv_notif;
 	int ret;
 
 	BT_ASSERT(notif_iter_data->ds_file);
@@ -195,7 +195,7 @@ end:
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status ctf_fs_iterator_next(
-		struct bt_self_notification_iterator *iterator,
+		bt_self_notification_iterator *iterator,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
@@ -231,16 +231,16 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next(
 	return status;
 }
 
-void ctf_fs_iterator_finalize(struct bt_self_notification_iterator *it)
+void ctf_fs_iterator_finalize(bt_self_notification_iterator *it)
 {
 	ctf_fs_notif_iter_data_destroy(
 		bt_self_notification_iterator_get_data(it));
 }
 
 enum bt_self_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_port)
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_port)
 {
 	struct ctf_fs_port_data *port_data;
 	struct ctf_fs_notif_iter_data *notif_iter_data = NULL;
@@ -347,7 +347,7 @@ void ctf_fs_trace_destroy_notifier(void *data)
 	ctf_fs_trace_destroy(trace);
 }
 
-void ctf_fs_finalize(struct bt_self_component_source *component)
+void ctf_fs_finalize(bt_self_component_source *component)
 {
 	ctf_fs_destroy(bt_self_component_get_data(
 		bt_self_component_source_as_self_component(component)));
@@ -520,7 +520,7 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 static
 struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_stream_class *stream_class,
+		bt_stream_class *stream_class,
 		uint64_t stream_instance_id)
 {
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -614,7 +614,7 @@ static
 int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		const char *path)
 {
-	struct bt_stream_class *stream_class = NULL;
+	bt_stream_class *stream_class = NULL;
 	int64_t stream_instance_id = -1;
 	int64_t begin_ns = -1;
 	struct ctf_fs_ds_file_group *ds_file_group = NULL;
@@ -914,11 +914,11 @@ end:
 }
 
 static
-int set_trace_name(struct bt_trace *trace, const char *name_suffix)
+int set_trace_name(bt_trace *trace, const char *name_suffix)
 {
 	int ret = 0;
-	const struct bt_trace_class *tc = bt_trace_borrow_class_const(trace);
-	const struct bt_value *val;
+	const bt_trace_class *tc = bt_trace_borrow_class_const(trace);
+	const bt_value *val;
 	GString *name;
 
 	name = g_string_new(NULL);
@@ -1307,11 +1307,11 @@ end:
 
 static
 struct ctf_fs_component *ctf_fs_create(
-		struct bt_self_component_source *self_comp,
-		const struct bt_value *params)
+		bt_self_component_source *self_comp,
+		const bt_value *params)
 {
 	struct ctf_fs_component *ctf_fs;
-	const struct bt_value *value = NULL;
+	const bt_value *value = NULL;
 	const char *path_param;
 
 	ctf_fs = g_new0(struct ctf_fs_component, 1);
@@ -1385,8 +1385,8 @@ end:
 
 BT_HIDDEN
 enum bt_self_component_status ctf_fs_init(
-		struct bt_self_component_source *self_comp,
-		const struct bt_value *params, UNUSED_VAR void *init_method_data)
+		bt_self_component_source *self_comp,
+		const bt_value *params, UNUSED_VAR void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
@@ -1401,10 +1401,10 @@ enum bt_self_component_status ctf_fs_init(
 
 BT_HIDDEN
 enum bt_query_status ctf_fs_query(
-		struct bt_self_component_class_source *comp_class,
-		const struct bt_query_executor *query_exec,
-		const char *object, const struct bt_value *params,
-		const struct bt_value **result)
+		bt_self_component_class_source *comp_class,
+		const bt_query_executor *query_exec,
+		const char *object, const bt_value *params,
+		const bt_value **result)
 {
 	enum bt_query_status status = BT_QUERY_STATUS_OK;
 

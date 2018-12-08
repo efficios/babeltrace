@@ -64,18 +64,18 @@ struct debug_info_component {
 
 struct debug_info_iterator {
 	struct debug_info_component *debug_info_component;
-	/* Map between struct bt_trace and struct bt_writer. */
+	/* Map between bt_trace and struct bt_writer. */
 	GHashTable *trace_map;
 	/* Input iterators associated with this output iterator. */
 	GPtrArray *input_iterator_group;
-	const struct bt_notification *current_notification;
-	struct bt_notification_iterator *input_iterator;
+	const bt_notification *current_notification;
+	bt_notification_iterator *input_iterator;
 	FILE *err;
 };
 
 struct debug_info_trace {
-	const struct bt_trace *trace;
-	const struct bt_trace *writer_trace;
+	const bt_trace *trace;
+	const bt_trace *writer_trace;
 	struct debug_info_component *debug_info_component;
 	struct debug_info_iterator *debug_it;
 	int static_listener_id;
@@ -120,7 +120,7 @@ struct debug_info_source *debug_info_query(struct debug_info *debug_info,
 		int64_t vpid, uint64_t ip);
 
 BT_HIDDEN
-void debug_info_handle_event(FILE *err, const struct bt_event *event,
+void debug_info_handle_event(FILE *err, const bt_event *event,
 		struct debug_info *debug_info);
 
 BT_HIDDEN

@@ -24,15 +24,15 @@
  * SOFTWARE.
  */
 
+/* For bt_notification, bt_event */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_event;
-
-extern const struct bt_event *bt_notification_event_borrow_event_const(
-		const struct bt_notification *notification);
+extern const bt_event *bt_notification_event_borrow_event_const(
+		const bt_notification *notification);
 
 #ifdef __cplusplus
 }

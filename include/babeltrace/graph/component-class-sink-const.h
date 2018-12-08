@@ -24,26 +24,26 @@
  * SOFTWARE.
  */
 
+/* For bt_component_class, bt_component_class_sink */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class;
-struct bt_component_class_sink;
-
 static inline
-const struct bt_component_class *
+const bt_component_class *
 bt_component_class_sink_as_component_class_const(
-		const struct bt_component_class_sink *comp_cls_sink)
+		const bt_component_class_sink *comp_cls_sink)
 {
 	return (const void *) comp_cls_sink;
 }
 
 extern void bt_component_class_sink_get_ref(
-		const struct bt_component_class_sink *component_class_sink);
+		const bt_component_class_sink *component_class_sink);
 
 extern void bt_component_class_sink_put_ref(
-		const struct bt_component_class_sink *component_class_sink);
+		const bt_component_class_sink *component_class_sink);
 
 #define BT_COMPONENT_CLASS_SINK_PUT_REF_AND_RESET(_var)		\
 	do {							\

@@ -27,11 +27,12 @@
 /* For enum bt_query_executor_status */
 #include <babeltrace/graph/query-executor-const.h>
 
+/* For bt_component_class */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_component_class;
 
 enum bt_query_status {
 	BT_QUERY_STATUS_OK = BT_QUERY_EXECUTOR_STATUS_OK,
@@ -43,11 +44,11 @@ enum bt_query_status {
 };
 
 extern int bt_component_class_set_description(
-		struct bt_component_class *component_class,
+		bt_component_class *component_class,
 		const char *description);
 
 extern int bt_component_class_set_help(
-		struct bt_component_class *component_class,
+		bt_component_class *component_class,
 		const char *help);
 
 #ifdef __cplusplus

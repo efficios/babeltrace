@@ -36,20 +36,20 @@
 #include "iterator.h"
 
 static
-const struct bt_packet *lookup_packet(struct trimmer_iterator *trim_it,
-		const struct bt_packet *packet)
+const bt_packet *lookup_packet(struct trimmer_iterator *trim_it,
+		const bt_packet *packet)
 {
-	return (const struct bt_packet *) g_hash_table_lookup(
+	return (const bt_packet *) g_hash_table_lookup(
 			trim_it->packet_map,
 			(gpointer) packet);
 }
 
 static
-const struct bt_packet *insert_new_packet(struct trimmer_iterator *trim_it,
-		const struct bt_packet *packet,
-		const struct bt_stream *stream)
+const bt_packet *insert_new_packet(struct trimmer_iterator *trim_it,
+		const bt_packet *packet,
+		const bt_stream *stream)
 {
-	const struct bt_packet *writer_packet = NULL;
+	const bt_packet *writer_packet = NULL;
 	int ret;
 
 	BT_LOGD_STR("Inserting a new packet.");
@@ -77,13 +77,13 @@ end:
 
 BT_HIDDEN
 enum bt_component_status update_packet_context_field(FILE *err,
-		const struct bt_packet *writer_packet,
+		const bt_packet *writer_packet,
 		const char *name, int64_t value)
 {
 	enum bt_component_status ret;
-	const struct bt_field *packet_context = NULL, *writer_packet_context = NULL;
-	const struct bt_field_class *struct_class = NULL, *field_class = NULL;
-	const struct bt_field *field = NULL, *writer_field = NULL;
+	const bt_field *packet_context = NULL, *writer_packet_context = NULL;
+	const bt_field_class *struct_class = NULL, *field_class = NULL;
+	const bt_field *field = NULL, *writer_field = NULL;
 	int nr_fields, i, int_ret;
 
 	BT_LOGD("Updating packet context field: name=%s", name);
@@ -152,12 +152,12 @@ end:
 }
 
 BT_HIDDEN
-const struct bt_packet *trimmer_new_packet(
+const bt_packet *trimmer_new_packet(
 		struct trimmer_iterator *trim_it,
-		const struct bt_packet *packet)
+		const bt_packet *packet)
 {
-	const struct bt_stream *stream = NULL;
-	const struct bt_packet *writer_packet = NULL;
+	const bt_stream *stream = NULL;
+	const bt_packet *writer_packet = NULL;
 	int int_ret;
 
 	stream = bt_packet_get_stream(packet);
@@ -197,11 +197,11 @@ end:
 }
 
 BT_HIDDEN
-const struct bt_packet *trimmer_close_packet(
+const bt_packet *trimmer_close_packet(
 		struct trimmer_iterator *trim_it,
-		const struct bt_packet *packet)
+		const bt_packet *packet)
 {
-	const struct bt_packet *writer_packet = NULL;
+	const bt_packet *writer_packet = NULL;
 
 	writer_packet = lookup_packet(trim_it, packet);
 	if (!writer_packet) {
@@ -216,13 +216,13 @@ end:
 }
 
 BT_HIDDEN
-const struct bt_event *trimmer_output_event(
+const bt_event *trimmer_output_event(
 		struct trimmer_iterator *trim_it,
-		const struct bt_event *event)
+		const bt_event *event)
 {
-	const struct bt_event_class *event_class = NULL;
-	const struct bt_event *writer_event = NULL;
-	const struct bt_packet *packet = NULL, *writer_packet = NULL;
+	const bt_event_class *event_class = NULL;
+	const bt_event *writer_event = NULL;
+	const bt_packet *packet = NULL, *writer_packet = NULL;
 	const char *event_name;
 	int int_ret;
 

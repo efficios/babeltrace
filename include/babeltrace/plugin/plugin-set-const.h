@@ -26,22 +26,22 @@
 
 #include <stdint.h>
 
+/* For bt_plugin, bt_plugin_set */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_plugin;
-struct bt_plugin_set;
-
 extern uint64_t bt_plugin_set_get_plugin_count(
-		const struct bt_plugin_set *plugin_set);
+		const bt_plugin_set *plugin_set);
 
-extern const struct bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
-		const struct bt_plugin_set *plugin_set, uint64_t index);
+extern const bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
+		const bt_plugin_set *plugin_set, uint64_t index);
 
-extern void bt_plugin_set_get_ref(const struct bt_plugin_set *plugin_set);
+extern void bt_plugin_set_get_ref(const bt_plugin_set *plugin_set);
 
-extern void bt_plugin_set_put_ref(const struct bt_plugin_set *plugin_set);
+extern void bt_plugin_set_put_ref(const bt_plugin_set *plugin_set);
 
 #define BT_PLUGIN_SET_PUT_REF_AND_RESET(_var)		\
 	do {						\

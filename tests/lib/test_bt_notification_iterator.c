@@ -47,22 +47,22 @@ enum test_event_type {
 
 struct test_event {
 	enum test_event_type type;
-	const struct bt_stream *stream;
-	const struct bt_packet *packet;
+	const bt_stream *stream;
+	const bt_packet *packet;
 };
 
 static bool debug = false;
 static enum test current_test;
 static GArray *test_events;
-static struct bt_graph *graph;
-static struct bt_stream_class *src_stream_class;
-static struct bt_event_class *src_event_class;
-static struct bt_stream *src_stream1;
-static struct bt_stream *src_stream2;
-static struct bt_packet *src_stream1_packet1;
-static struct bt_packet *src_stream1_packet2;
-static struct bt_packet *src_stream2_packet1;
-static struct bt_packet *src_stream2_packet2;
+static bt_graph *graph;
+static bt_stream_class *src_stream_class;
+static bt_event_class *src_event_class;
+static bt_stream *src_stream1;
+static bt_stream *src_stream2;
+static bt_packet *src_stream1_packet1;
+static bt_packet *src_stream1_packet2;
+static bt_packet *src_stream2_packet1;
+static bt_packet *src_stream2_packet2;
 
 enum {
 	SEQ_END = -1,
@@ -90,7 +90,7 @@ struct src_iter_user_data {
 };
 
 struct sink_user_data {
-	struct bt_self_component_port_input_notification_iterator *notif_iter;
+	bt_self_component_port_input_notification_iterator *notif_iter;
 };
 
 /*
@@ -241,8 +241,8 @@ bool compare_test_events(const struct test_event *expected_events)
 static
 void init_static_data(void)
 {
-	struct bt_trace_class *trace_class;
-	struct bt_trace *trace;
+	bt_trace_class *trace_class;
+	bt_trace *trace;
 
 	/* Test events */
 	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
@@ -301,7 +301,7 @@ void fini_static_data(void)
 }
 
 static
-void src_iter_finalize(struct bt_self_notification_iterator *self_notif_iter)
+void src_iter_finalize(bt_self_notification_iterator *self_notif_iter)
 {
 	struct src_iter_user_data *user_data =
 		bt_self_notification_iterator_get_data(
@@ -314,9 +314,9 @@ void src_iter_finalize(struct bt_self_notification_iterator *self_notif_iter)
 
 static
 enum bt_self_notification_iterator_status src_iter_init(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_port)
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_port)
 {
 	struct src_iter_user_data *user_data =
 		g_new0(struct src_iter_user_data, 1);
@@ -337,11 +337,11 @@ enum bt_self_notification_iterator_status src_iter_init(
 }
 
 static
-void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
+void src_iter_next_seq_one(bt_self_notification_iterator* notif_iter,
 		struct src_iter_user_data *user_data,
-		const struct bt_notification **notif)
+		const bt_notification **notif)
 {
-	struct bt_packet *event_packet = NULL;
+	bt_packet *event_packet = NULL;
 
 	switch (user_data->seq[user_data->at]) {
 	case SEQ_STREAM1_BEGIN:
@@ -420,7 +420,7 @@ void src_iter_next_seq_one(struct bt_self_notification_iterator* notif_iter,
 
 static
 enum bt_self_notification_iterator_status src_iter_next_seq(
-		struct bt_self_notification_iterator *notif_iter,
+		bt_self_notification_iterator *notif_iter,
 		struct src_iter_user_data *user_data,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
@@ -450,7 +450,7 @@ end:
 
 static
 enum bt_self_notification_iterator_status src_iter_next(
-		struct bt_self_notification_iterator *self_notif_iter,
+		bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
@@ -464,8 +464,8 @@ enum bt_self_notification_iterator_status src_iter_next(
 
 static
 enum bt_self_component_status src_init(
-		struct bt_self_component_source *self_comp,
-		const struct bt_value *params, void *init_method_data)
+		bt_self_component_source *self_comp,
+		const bt_value *params, void *init_method_data)
 {
 	int ret;
 
@@ -476,19 +476,19 @@ enum bt_self_component_status src_init(
 }
 
 static
-void src_finalize(struct bt_self_component_source *self_comp)
+void src_finalize(bt_self_component_source *self_comp)
 {
 }
 
 static
-void append_test_events_from_notification(const struct bt_notification *notification)
+void append_test_events_from_notification(const bt_notification *notification)
 {
 	struct test_event test_event = { 0 };
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
-		const struct bt_event *event;
+		const bt_event *event;
 
 		test_event.type = TEST_EV_TYPE_NOTIF_EVENT;
 		event = bt_notification_event_borrow_event_const(notification);
@@ -584,7 +584,7 @@ end:
 
 static
 enum bt_self_component_status sink_consume(
-		struct bt_self_component_sink *self_comp)
+		bt_self_component_sink *self_comp)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct sink_user_data *user_data =
@@ -619,9 +619,9 @@ end:
 
 static
 enum bt_self_component_status sink_port_connected(
-		struct bt_self_component_sink *self_comp,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port)
+		bt_self_component_sink *self_comp,
+		bt_self_component_port_input *self_port,
+		const bt_port_output *other_port)
 {
 	struct sink_user_data *user_data =
 		bt_self_component_get_data(
@@ -637,8 +637,8 @@ enum bt_self_component_status sink_port_connected(
 
 static
 enum bt_self_component_status sink_init(
-		struct bt_self_component_sink *self_comp,
-		const struct bt_value *params, void *init_method_data)
+		bt_self_component_sink *self_comp,
+		const bt_value *params, void *init_method_data)
 {
 	struct sink_user_data *user_data = g_new0(struct sink_user_data, 1);
 	int ret;
@@ -654,7 +654,7 @@ enum bt_self_component_status sink_init(
 }
 
 static
-void sink_finalize(struct bt_self_component_sink *self_comp)
+void sink_finalize(bt_self_component_sink *self_comp)
 {
 	struct sink_user_data *user_data =
 		bt_self_component_get_data(
@@ -669,12 +669,12 @@ void sink_finalize(struct bt_self_component_sink *self_comp)
 }
 
 static
-void create_source_sink(struct bt_graph *graph,
-		const struct bt_component_source **source,
-		const struct bt_component_sink **sink)
+void create_source_sink(bt_graph *graph,
+		const bt_component_source **source,
+		const bt_component_sink **sink)
 {
-	struct bt_component_class_source *src_comp_class;
-	struct bt_component_class_sink *sink_comp_class;
+	bt_component_class_source *src_comp_class;
+	bt_component_class_sink *sink_comp_class;
 	int ret;
 
 	/* Create source component */
@@ -725,10 +725,10 @@ static
 void do_std_test(enum test test, const char *name,
 		const struct test_event *expected_test_events)
 {
-	const struct bt_component_source *src_comp;
-	const struct bt_component_sink *sink_comp;
-	const struct bt_port_output *upstream_port;
-	const struct bt_port_input *downstream_port;
+	const bt_component_source *src_comp;
+	const bt_component_sink *sink_comp;
+	const bt_port_output *upstream_port;
+	const bt_port_input *downstream_port;
 	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 
 	clear_test_events();
@@ -821,11 +821,11 @@ void test_output_port_notification_iterator(void)
 		{ .type = TEST_EV_TYPE_END, },
 		{ .type = TEST_EV_TYPE_SENTINEL, },
 	};
-	const struct bt_component_source *src_comp;
-	struct bt_port_output_notification_iterator *notif_iter;
+	const bt_component_source *src_comp;
+	bt_port_output_notification_iterator *notif_iter;
 	enum bt_notification_iterator_status iter_status =
 		BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	const struct bt_port_output *upstream_port;
+	const bt_port_output *upstream_port;
 
 	clear_test_events();
 	current_test = TEST_OUTPUT_PORT_NOTIFICATION_ITERATOR;

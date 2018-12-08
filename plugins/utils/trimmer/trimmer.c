@@ -48,7 +48,7 @@ struct trimmer *create_trimmer_data(void)
 	return g_new0(struct trimmer, 1);
 }
 
-void finalize_trimmer(struct bt_self_component *component)
+void finalize_trimmer(bt_self_component *component)
 {
 	void *data = bt_self_component_get_user_data(component);
 
@@ -72,7 +72,7 @@ void finalize_trimmer(struct bt_self_component *component)
  *   ss
  */
 static
-int timestamp_from_param(const char *param_name, struct bt_value *param,
+int timestamp_from_param(const char *param_name, bt_value *param,
 		struct trimmer *trimmer, struct trimmer_bound *result_bound,
 		bt_bool gmt)
 {
@@ -292,9 +292,9 @@ lazy:
 
 static
 enum bt_component_status init_from_params(struct trimmer *trimmer,
-		struct bt_value *params)
+		bt_value *params)
 {
-	struct bt_value *value = NULL;
+	bt_value *value = NULL;
 	bt_bool gmt = BT_FALSE;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
@@ -345,7 +345,7 @@ end:
 }
 
 enum bt_component_status trimmer_component_init(
-	struct bt_self_component *component, struct bt_value *params,
+	bt_self_component *component, bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;

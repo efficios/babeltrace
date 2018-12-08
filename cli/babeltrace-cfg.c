@@ -38,7 +38,7 @@ void destroy_gstring(void *data)
  * and appends them to the array value object plugin_paths.
  */
 int bt_config_append_plugin_paths(
-		struct bt_value *plugin_paths, const char *arg)
+		bt_value *plugin_paths, const char *arg)
 {
 	int ret = 0;
 	GPtrArray *dirs = g_ptr_array_new_with_free_func(destroy_gstring);

@@ -29,25 +29,25 @@
 #include <stdbool.h>
 
 struct dummy {
-	struct bt_self_component_port_input_notification_iterator *notif_iter;
+	bt_self_component_port_input_notification_iterator *notif_iter;
 };
 
 BT_HIDDEN
 enum bt_self_component_status dummy_init(
-		struct bt_self_component_sink *component,
-		const struct bt_value *params, void *init_method_data);
+		bt_self_component_sink *component,
+		const bt_value *params, void *init_method_data);
 
 BT_HIDDEN
-void dummy_finalize(struct bt_self_component_sink *component);
+void dummy_finalize(bt_self_component_sink *component);
 
 BT_HIDDEN
 enum bt_self_component_status dummy_port_connected(
-		struct bt_self_component_sink *comp,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port);
+		bt_self_component_sink *comp,
+		bt_self_component_port_input *self_port,
+		const bt_port_output *other_port);
 
 BT_HIDDEN
 enum bt_self_component_status dummy_consume(
-		struct bt_self_component_sink *component);
+		bt_self_component_sink *component);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */

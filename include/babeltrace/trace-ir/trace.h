@@ -27,7 +27,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool */
+/* For bt_bool, bt_trace, bt_trace_class, bt_stream */
 #include <babeltrace/types.h>
 
 #include <stdint.h>
@@ -36,23 +36,19 @@
 extern "C" {
 #endif
 
-struct bt_trace;
-struct bt_trace_class;
-struct bt_stream;
+extern bt_trace_class *bt_trace_borrow_class(bt_trace *trace);
 
-extern struct bt_trace_class *bt_trace_borrow_class(struct bt_trace *trace);
+extern bt_trace *bt_trace_create(bt_trace_class *trace_class);
 
-extern struct bt_trace *bt_trace_create(struct bt_trace_class *trace_class);
+extern int bt_trace_set_name(bt_trace *trace, const char *name);
 
-extern int bt_trace_set_name(struct bt_trace *trace, const char *name);
-
-extern struct bt_stream *bt_trace_borrow_stream_by_index(struct bt_trace *trace,
+extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
 		uint64_t index);
 
-extern struct bt_stream *bt_trace_borrow_stream_by_id(struct bt_trace *trace,
+extern bt_stream *bt_trace_borrow_stream_by_id(bt_trace *trace,
 		uint64_t id);
 
-extern int bt_trace_make_static(struct bt_trace *trace);
+extern int bt_trace_make_static(bt_trace *trace);
 
 #ifdef __cplusplus
 }

@@ -36,10 +36,10 @@ struct writer_component {
 	GString *trace_name_base;
 	/* For the directory name suffix. */
 	int trace_id;
-	/* Map between struct bt_trace and struct fs_writer. */
+	/* Map between bt_trace and struct fs_writer. */
 	GHashTable *trace_map;
 	FILE *err;
-	struct bt_notification_iterator *input_iterator;
+	bt_notification_iterator *input_iterator;
 	bool error;
 	bool single_trace;
 	unsigned int nr_traces;
@@ -59,8 +59,8 @@ enum fs_writer_stream_state {
 
 struct fs_writer {
 	struct bt_ctf_writer *writer;
-	const struct bt_trace *trace;
-	const struct bt_trace *writer_trace;
+	const bt_trace *trace;
+	const bt_trace *writer_trace;
 	struct writer_component *writer_component;
 	int static_listener_id;
 	int trace_static;
@@ -76,35 +76,35 @@ void writer_close(struct writer_component *writer_component,
 		struct fs_writer *fs_writer);
 BT_HIDDEN
 enum bt_component_status writer_output_event(struct writer_component *writer,
-		const struct bt_event *event);
+		const bt_event *event);
 BT_HIDDEN
 enum bt_component_status writer_new_packet(struct writer_component *writer,
-		const struct bt_packet *packet);
+		const bt_packet *packet);
 BT_HIDDEN
 enum bt_component_status writer_close_packet(struct writer_component *writer,
-		const struct bt_packet *packet);
+		const bt_packet *packet);
 BT_HIDDEN
 enum bt_component_status writer_stream_begin(struct writer_component *writer,
-		const struct bt_stream *stream);
+		const bt_stream *stream);
 BT_HIDDEN
 enum bt_component_status writer_stream_end(struct writer_component *writer,
-		const struct bt_stream *stream);
+		const bt_stream *stream);
 
 BT_HIDDEN
 enum bt_component_status writer_component_init(
-	struct bt_self_component *component, struct bt_value *params,
+	bt_self_component *component, bt_value *params,
 	void *init_method_data);
 
 BT_HIDDEN
-enum bt_component_status writer_run(struct bt_self_component *component);
+enum bt_component_status writer_run(bt_self_component *component);
 
 BT_HIDDEN
 void writer_component_port_connected(
-		struct bt_self_component *component,
+		bt_self_component *component,
 		struct bt_private_port *self_port,
-		const struct bt_port *other_port);
+		const bt_port *other_port);
 
 BT_HIDDEN
-void writer_component_finalize(struct bt_self_component *component);
+void writer_component_finalize(bt_self_component *component);
 
 #endif /* BABELTRACE_PLUGIN_WRITER_H */

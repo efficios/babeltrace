@@ -507,7 +507,7 @@ end:
 }
 
 static int validate_all_components_connected_in_array(GPtrArray *comps,
-		const struct bt_value *connected_components,
+		const bt_value *connected_components,
 		char *error_buf, size_t error_buf_size)
 {
 	int ret = 0;
@@ -535,7 +535,7 @@ static int validate_all_components_connected(struct bt_config *cfg,
 {
 	size_t i;
 	int ret = 0;
-	struct bt_value *connected_components = bt_value_map_create();
+	bt_value *connected_components = bt_value_map_create();
 
 	if (!connected_components) {
 		ret = -1;
@@ -593,7 +593,7 @@ static int validate_no_duplicate_connection(struct bt_config *cfg,
 {
 	size_t i;
 	int ret = 0;
-	struct bt_value *flat_connection_names =
+	bt_value *flat_connection_names =
 		bt_value_map_create();
 	GString *flat_connection_name = NULL;
 
@@ -679,7 +679,7 @@ end:
 }
 
 int bt_config_cli_args_create_connections(struct bt_config *cfg,
-		const struct bt_value *connection_args,
+		const bt_value *connection_args,
 		char *error_buf, size_t error_buf_size)
 {
 	int ret;
@@ -692,7 +692,7 @@ int bt_config_cli_args_create_connections(struct bt_config *cfg,
 	}
 
 	for (i = 0; i < bt_value_array_get_size(connection_args); i++) {
-		const struct bt_value *arg_value =
+		const bt_value *arg_value =
 			bt_value_array_borrow_element_by_index_const(
 				connection_args, i);
 		const char *arg;

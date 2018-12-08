@@ -64,7 +64,7 @@ extern "C" {
 
 /* Plugin initialization function type */
 typedef enum bt_plugin_status (*bt_plugin_init_func)(
-		const struct bt_plugin *plugin);
+		const bt_plugin *plugin);
 
 /* Plugin exit function type */
 typedef enum bt_plugin_status (*bt_plugin_exit_func)(void);

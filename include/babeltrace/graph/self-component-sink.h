@@ -28,44 +28,45 @@
 /* For enum bt_self_component_status */
 #include <babeltrace/graph/self-component.h>
 
+/*
+ * For bt_component_sink, bt_self_component, bt_self_component_sink,
+ * bt_self_component_port_input
+ */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_sink;
-struct bt_self_component;
-struct bt_self_component_sink;
-struct bt_self_component_port_input;
-
 static inline
-struct bt_self_component *bt_self_component_sink_as_self_component(
-		struct bt_self_component_sink *self_comp_sink)
+bt_self_component *bt_self_component_sink_as_self_component(
+		bt_self_component_sink *self_comp_sink)
 {
 	return (void *) self_comp_sink;
 }
 
 static inline
-const struct bt_component_sink *
+const bt_component_sink *
 bt_self_component_sink_as_component_sink(
-		struct bt_self_component_sink *self_comp_sink)
+		bt_self_component_sink *self_comp_sink)
 {
 	return (const void *) self_comp_sink;
 }
 
-extern struct bt_self_component_port_input *
+extern bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_name(
-		struct bt_self_component_sink *self_component,
+		bt_self_component_sink *self_component,
 		const char *name);
 
-extern struct bt_self_component_port_input *
+extern bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_index(
-		struct bt_self_component_sink *self_component, uint64_t index);
+		bt_self_component_sink *self_component, uint64_t index);
 
 extern enum bt_self_component_status
 bt_self_component_sink_add_input_port(
-		struct bt_self_component_sink *self_component,
+		bt_self_component_sink *self_component,
 		const char *name, void *user_data,
-		struct bt_self_component_port_input **self_component_port);
+		bt_self_component_port_input **self_component_port);
 
 #ifdef __cplusplus
 }

@@ -228,8 +228,8 @@ struct bt_notif_iter_medium_ops {
 	 * @returns		Stream instance (weak reference) or
 	 *			\c NULL on error
 	 */
-	struct bt_stream * (* borrow_stream)(
-			struct bt_stream_class *stream_class,
+	bt_stream * (* borrow_stream)(
+			bt_stream_class *stream_class,
 			int64_t stream_id, void *data);
 };
 
@@ -287,8 +287,8 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notif_iter);
 BT_HIDDEN
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
-		struct bt_self_notification_iterator *notif_iter,
-		struct bt_notification **notification);
+		bt_self_notification_iterator *notif_iter,
+		bt_notification **notification);
 
 /**
  * Returns the first packet header and context fields. This function
@@ -305,8 +305,8 @@ enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 BT_HIDDEN
 enum bt_notif_iter_status bt_notif_iter_borrow_packet_header_context_fields(
 		struct bt_notif_iter *notit,
-		struct bt_field **packet_header_field,
-		struct bt_field **packet_context_field);
+		bt_field **packet_header_field,
+		bt_field **packet_context_field);
 
 struct bt_notif_iter_packet_properties {
 	uint64_t exp_packet_total_size;

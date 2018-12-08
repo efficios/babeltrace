@@ -26,49 +26,47 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_packet, bt_packet_header_field, bt_packet_context_field, bt_stream */
+#include <babeltrace/types.h>
+
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_packet;
-struct bt_packet_header_field;
-struct bt_packet_context_field;
-struct bt_stream;
+extern bt_packet *bt_packet_create(bt_stream *stream);
 
-extern struct bt_packet *bt_packet_create(struct bt_stream *stream);
-
-extern struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet);
+extern bt_stream *bt_packet_borrow_stream(bt_packet *packet);
 
 extern
-struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet);
+bt_field *bt_packet_borrow_header_field(bt_packet *packet);
 
 extern
-int bt_packet_move_header_field(struct bt_packet *packet,
-		struct bt_packet_header_field *header);
+int bt_packet_move_header_field(bt_packet *packet,
+		bt_packet_header_field *header);
 
 extern
-struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet);
+bt_field *bt_packet_borrow_context_field(bt_packet *packet);
 
 extern
-int bt_packet_move_context_field(struct bt_packet *packet,
-		struct bt_packet_context_field *context);
+int bt_packet_move_context_field(bt_packet *packet,
+		bt_packet_context_field *context);
 
 extern
-void bt_packet_set_default_beginning_clock_value(struct bt_packet *packet,
+void bt_packet_set_default_beginning_clock_value(bt_packet *packet,
 		uint64_t value_cycles);
 
 extern
-void bt_packet_set_default_end_clock_value(struct bt_packet *packet,
+void bt_packet_set_default_end_clock_value(bt_packet *packet,
 		uint64_t value_cycles);
 
 extern
-void bt_packet_set_discarded_event_counter_snapshot(struct bt_packet *packet,
+void bt_packet_set_discarded_event_counter_snapshot(bt_packet *packet,
 		uint64_t value);
 
 extern
-void bt_packet_set_packet_counter_snapshot(struct bt_packet *packet,
+void bt_packet_set_packet_counter_snapshot(bt_packet *packet,
 		uint64_t value);
 
 #ifdef __cplusplus

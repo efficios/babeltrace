@@ -54,7 +54,7 @@ void destroy_debug_info_data(struct debug_info_component *debug_info)
 }
 
 static
-void destroy_debug_info_component(struct bt_self_component *component)
+void destroy_debug_info_component(bt_self_component *component)
 {
 	void *data = bt_self_component_get_user_data(component);
 	destroy_debug_info_data(data);
@@ -83,7 +83,7 @@ void unref_trace(struct debug_info_trace *di_trace)
 }
 
 static
-void debug_info_iterator_destroy(struct bt_self_notification_iterator *it)
+void debug_info_iterator_destroy(bt_self_notification_iterator *it)
 {
 	struct debug_info_iterator *it_data;
 
@@ -105,18 +105,18 @@ void debug_info_iterator_destroy(struct bt_self_notification_iterator *it)
 }
 
 static
-const struct bt_notification *handle_notification(FILE *err,
+const bt_notification *handle_notification(FILE *err,
 		struct debug_info_iterator *debug_it,
-		const struct bt_notification *notification)
+		const bt_notification *notification)
 {
-	const struct bt_notification *new_notification = NULL;
+	const bt_notification *new_notification = NULL;
 
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 	{
-		const struct bt_packet *packet =
+		const bt_packet *packet =
 			bt_notification_packet_beginning_get_packet(notification);
-		const struct bt_packet *writer_packet;
+		const bt_packet *writer_packet;
 
 		if (!packet) {
 			goto end;
@@ -133,9 +133,9 @@ const struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 	{
-		const struct bt_packet *packet =
+		const bt_packet *packet =
 			bt_notification_packet_end_get_packet(notification);
-		const struct bt_packet *writer_packet;
+		const bt_packet *writer_packet;
 
 		if (!packet) {
 			goto end;
@@ -152,10 +152,10 @@ const struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
-		const struct bt_event *event = bt_notification_event_get_event(
+		const bt_event *event = bt_notification_event_get_event(
 				notification);
-		const struct bt_event *writer_event;
-		struct bt_clock_class_priority_map *cc_prio_map =
+		const bt_event *writer_event;
+		bt_clock_class_priority_map *cc_prio_map =
 			bt_notification_event_get_clock_class_priority_map(
 					notification);
 
@@ -174,9 +174,9 @@ const struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
 	{
-		const struct bt_stream *stream =
+		const bt_stream *stream =
 			bt_notification_stream_beginning_get_stream(notification);
-		const struct bt_stream *writer_stream;
+		const bt_stream *writer_stream;
 
 		if (!stream) {
 			goto end;
@@ -193,9 +193,9 @@ const struct bt_notification *handle_notification(FILE *err,
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 	{
-		const struct bt_stream *stream =
+		const bt_stream *stream =
 			bt_notification_stream_end_get_stream(notification);
-		const struct bt_stream *writer_stream;
+		const bt_stream *writer_stream;
 
 		if (!stream) {
 			goto end;
@@ -220,15 +220,15 @@ end:
 }
 
 static
-struct bt_notification_iterator_next_method_return debug_info_iterator_next(
-		struct bt_self_notification_iterator *iterator)
+bt_notification_iterator_next_method_return debug_info_iterator_next(
+		bt_self_notification_iterator *iterator)
 {
 	struct debug_info_iterator *debug_it = NULL;
-	struct bt_self_component *component = NULL;
+	bt_self_component *component = NULL;
 	struct debug_info_component *debug_info = NULL;
-	struct bt_notification_iterator *source_it = NULL;
-	const struct bt_notification *notification;
-	struct bt_notification_iterator_next_method_return ret = {
+	bt_notification_iterator *source_it = NULL;
+	const bt_notification *notification;
+	bt_notification_iterator_next_method_return ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,
 	};
@@ -267,7 +267,7 @@ end:
 
 static
 enum bt_notification_iterator_status debug_info_iterator_init(
-		struct bt_self_notification_iterator *iterator,
+		bt_self_notification_iterator *iterator,
 		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
@@ -275,7 +275,7 @@ enum bt_notification_iterator_status debug_info_iterator_init(
 	enum bt_notification_iterator_status it_ret;
 	enum bt_connection_status conn_status;
 	struct bt_private_connection *connection = NULL;
-	struct bt_self_component *component =
+	bt_self_component *component =
 		bt_self_notification_iterator_get_private_component(iterator);
 	struct debug_info_iterator *it_data = g_new0(struct debug_info_iterator, 1);
 	struct bt_private_port *input_port;
@@ -326,9 +326,9 @@ end:
 static
 enum bt_component_status init_from_params(
 		struct debug_info_component *debug_info_component,
-		struct bt_value *params)
+		bt_value *params)
 {
-	struct bt_value *value = NULL;
+	bt_value *value = NULL;
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	BT_ASSERT(params);
@@ -397,7 +397,7 @@ end:
 }
 
 enum bt_component_status debug_info_component_init(
-	struct bt_self_component *component, struct bt_value *params,
+	bt_self_component *component, bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;

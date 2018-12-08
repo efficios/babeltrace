@@ -29,43 +29,41 @@
 
 #include <stdint.h>
 
-/* For bt_bool, bt_uuid */
+/* For bt_bool, bt_uuid, bt_clock_class */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_clock_class;
-
 extern const char *bt_clock_class_get_name(
-		const struct bt_clock_class *clock_class);
+		const bt_clock_class *clock_class);
 
 extern const char *bt_clock_class_get_description(
-		const struct bt_clock_class *clock_class);
+		const bt_clock_class *clock_class);
 
 extern uint64_t bt_clock_class_get_frequency(
-		const struct bt_clock_class *clock_class);
+		const bt_clock_class *clock_class);
 
 extern uint64_t bt_clock_class_get_precision(
-		const struct bt_clock_class *clock_class);
+		const bt_clock_class *clock_class);
 
-extern void bt_clock_class_get_offset(const struct bt_clock_class *clock_class,
+extern void bt_clock_class_get_offset(const bt_clock_class *clock_class,
 		int64_t *seconds, uint64_t *cycles);
 
 extern bt_bool bt_clock_class_is_absolute(
-		const struct bt_clock_class *clock_class);
+		const bt_clock_class *clock_class);
 
 extern bt_uuid bt_clock_class_get_uuid(
-		const struct bt_clock_class *clock_class);
+		const bt_clock_class *clock_class);
 
 extern int bt_clock_class_cycles_to_ns_from_origin(
-		const struct bt_clock_class *clock_class,
+		const bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns_from_origin);
 
-extern void bt_clock_class_get_ref(const struct bt_clock_class *clock_class);
+extern void bt_clock_class_get_ref(const bt_clock_class *clock_class);
 
-extern void bt_clock_class_put_ref(const struct bt_clock_class *clock_class);
+extern void bt_clock_class_put_ref(const bt_clock_class *clock_class);
 
 #define BT_CLOCK_CLASS_PUT_REF_AND_RESET(_var)		\
 	do {						\

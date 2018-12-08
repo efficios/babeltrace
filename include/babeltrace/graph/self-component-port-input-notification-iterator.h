@@ -28,44 +28,43 @@
 /* For enum bt_notification_iterator_status */
 #include <babeltrace/graph/notification-iterator.h>
 
-/* For bt_notification_array_const */
-#include <babeltrace/graph/notification-const.h>
+/*
+ * For bt_component, bt_notification_iterator,
+ * bt_self_component_port_input_notification_iterator,
+ * bt_self_component_port_input, bt_notification_array_const
+ */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_notification_iterator;
-struct bt_self_component_port_input_notification_iterator;
-struct bt_self_component_port_input;
-
 static inline
-struct bt_notification_iterator *
+bt_notification_iterator *
 bt_self_component_port_input_notification_iterator_as_notification_iterator(
-		struct bt_self_component_port_input_notification_iterator *iterator)
+		bt_self_component_port_input_notification_iterator *iterator)
 {
 	return (void *) iterator;
 }
 
-extern struct bt_self_component_port_input_notification_iterator *
+extern bt_self_component_port_input_notification_iterator *
 bt_self_component_port_input_notification_iterator_create(
-		struct bt_self_component_port_input *input_port);
+		bt_self_component_port_input *input_port);
 
-extern struct bt_component *
+extern bt_component *
 bt_self_component_port_input_notification_iterator_borrow_component(
-		struct bt_self_component_port_input_notification_iterator *iterator);
+		bt_self_component_port_input_notification_iterator *iterator);
 
 extern enum bt_notification_iterator_status
 bt_self_component_port_input_notification_iterator_next(
-		struct bt_self_component_port_input_notification_iterator *iterator,
+		bt_self_component_port_input_notification_iterator *iterator,
 		bt_notification_array_const *notifs, uint64_t *count);
 
 extern void bt_self_component_port_input_notification_iterator_get_ref(
-		const struct bt_self_component_port_input_notification_iterator *self_component_port_input_notification_iterator);
+		const bt_self_component_port_input_notification_iterator *self_component_port_input_notification_iterator);
 
 extern void bt_self_component_port_input_notification_iterator_put_ref(
-		const struct bt_self_component_port_input_notification_iterator *self_component_port_input_notification_iterator);
+		const bt_self_component_port_input_notification_iterator *self_component_port_input_notification_iterator);
 
 #define BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(_var) \
 	do {								\

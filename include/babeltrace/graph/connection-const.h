@@ -24,28 +24,24 @@
  * SOFTWARE.
  */
 
-/* For bt_bool */
+/* For bt_bool, bt_port_input, bt_port_output, bt_connection */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port_input;
-struct bt_port_output;
-struct bt_connection;
+extern const bt_port_input *bt_connection_borrow_downstream_port_const(
+		const bt_connection *connection);
 
-extern const struct bt_port_input *bt_connection_borrow_downstream_port_const(
-		const struct bt_connection *connection);
+extern const bt_port_output *bt_connection_borrow_upstream_port_const(
+		const bt_connection *connection);
 
-extern const struct bt_port_output *bt_connection_borrow_upstream_port_const(
-		const struct bt_connection *connection);
+extern bt_bool bt_connection_is_ended(const bt_connection *connection);
 
-extern bt_bool bt_connection_is_ended(const struct bt_connection *connection);
+extern void bt_connection_get_ref(const bt_connection *connection);
 
-extern void bt_connection_get_ref(const struct bt_connection *connection);
-
-extern void bt_connection_put_ref(const struct bt_connection *connection);
+extern void bt_connection_put_ref(const bt_connection *connection);
 
 #define BT_CONNECTION_PUT_REF_AND_RESET(_var)		\
 	do {						\

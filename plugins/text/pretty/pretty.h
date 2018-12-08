@@ -72,13 +72,13 @@ struct pretty_options {
 
 struct pretty_component {
 	struct pretty_options options;
-	struct bt_self_component_port_input_notification_iterator *iterator;
+	bt_self_component_port_input_notification_iterator *iterator;
 	FILE *out, *err;
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;
 	GString *string;
 	GString *tmp_string;
-	struct bt_value *plugin_opt_map; /* Temporary parameter map. */
+	bt_value *plugin_opt_map; /* Temporary parameter map. */
 	bool use_colors;
 
 	uint64_t last_cycles_timestamp;
@@ -105,29 +105,29 @@ GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
 
 BT_HIDDEN
 enum bt_self_component_status pretty_init(
-		struct bt_self_component_sink *component,
-		const struct bt_value *params,
+		bt_self_component_sink *component,
+		const bt_value *params,
 		void *init_method_data);
 
 BT_HIDDEN
 enum bt_self_component_status pretty_consume(
-		struct bt_self_component_sink *component);
+		bt_self_component_sink *component);
 
 BT_HIDDEN
 enum bt_self_component_status pretty_port_connected(
-		struct bt_self_component_sink *component,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port);
+		bt_self_component_sink *component,
+		bt_self_component_port_input *self_port,
+		const bt_port_output *other_port);
 
 BT_HIDDEN
-void pretty_finalize(struct bt_self_component_sink *component);
+void pretty_finalize(bt_self_component_sink *component);
 
 BT_HIDDEN
 int pretty_print_event(struct pretty_component *pretty,
-		const struct bt_notification *event_notif);
+		const bt_notification *event_notif);
 
 BT_HIDDEN
 int pretty_print_packet(struct pretty_component *pretty,
-		const struct bt_notification *packet_beginning_notif);
+		const bt_notification *packet_beginning_notif);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

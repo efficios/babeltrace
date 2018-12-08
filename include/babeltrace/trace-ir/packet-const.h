@@ -34,48 +34,48 @@
 /* For enum bt_clock_value_status */
 #include <babeltrace/trace-ir/clock-value-const.h>
 
+/*
+ * For bt_packet, bt_packet_header_field, bt_packet_context_field,
+ * bt_stream, bt_clock_value
+ */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_packet;
-struct bt_packet_header_field;
-struct bt_packet_context_field;
-struct bt_stream;
-struct bt_clock_value;
-
-extern const struct bt_stream *bt_packet_borrow_stream_const(
-		const struct bt_packet *packet);
+extern const bt_stream *bt_packet_borrow_stream_const(
+		const bt_packet *packet);
 
 extern
-const struct bt_field *bt_packet_borrow_header_field_const(
-		const struct bt_packet *packet);
+const bt_field *bt_packet_borrow_header_field_const(
+		const bt_packet *packet);
 
 extern
-const struct bt_field *bt_packet_borrow_context_field_const(
-		const struct bt_packet *packet);
+const bt_field *bt_packet_borrow_context_field_const(
+		const bt_packet *packet);
 
 extern
 enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value_const(
-		const struct bt_packet *packet,
-		const struct bt_clock_value **clock_value);
+		const bt_packet *packet,
+		const bt_clock_value **clock_value);
 
 extern
 enum bt_clock_value_status bt_packet_borrow_default_end_clock_valeu_const(
-		const struct bt_packet *packet,
-		const struct bt_clock_value **clock_value);
+		const bt_packet *packet,
+		const bt_clock_value **clock_value);
 
 extern
 enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
-		const struct bt_packet *packet, uint64_t *value);
+		const bt_packet *packet, uint64_t *value);
 
 extern
 enum bt_property_availability bt_packet_get_packet_counter_snapshot(
-		const struct bt_packet *packet, uint64_t *value);
+		const bt_packet *packet, uint64_t *value);
 
-extern void bt_packet_get_ref(const struct bt_packet *packet);
+extern void bt_packet_get_ref(const bt_packet *packet);
 
-extern void bt_packet_put_ref(const struct bt_packet *packet);
+extern void bt_packet_put_ref(const bt_packet *packet);
 
 #define BT_PACKET_PUT_REF_AND_RESET(_var)		\
 	do {						\

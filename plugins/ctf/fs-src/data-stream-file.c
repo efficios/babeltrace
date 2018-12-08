@@ -173,13 +173,13 @@ end:
 }
 
 static
-struct bt_stream *medop_borrow_stream(
-		struct bt_stream_class *stream_class, int64_t stream_id,
+bt_stream *medop_borrow_stream(
+		bt_stream_class *stream_class, int64_t stream_id,
 		void *data)
 {
 	struct ctf_fs_ds_file *ds_file = data;
-	struct bt_stream_class *ds_file_stream_class;
-	struct bt_stream *stream = NULL;
+	bt_stream_class *ds_file_stream_class;
+	bt_stream *stream = NULL;
 
 	ds_file_stream_class = bt_stream_borrow_class(
 		ds_file->stream);
@@ -293,7 +293,7 @@ struct ctf_fs_ds_index_entry *ctf_fs_ds_index_add_new_entry(
 }
 
 static
-int convert_cycles_to_ns(struct bt_clock_class *clock_class,
+int convert_cycles_to_ns(bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
 	return bt_clock_class_cycles_to_ns_from_origin(clock_class, cycles,
@@ -624,9 +624,9 @@ error:
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_self_notification_iterator *pc_notif_iter,
+		bt_self_notification_iterator *pc_notif_iter,
 		struct bt_notif_iter *notif_iter,
-		struct bt_stream *stream, const char *path)
+		bt_stream *stream, const char *path)
 {
 	int ret;
 	const size_t page_size = bt_common_get_page_size();
@@ -708,7 +708,7 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 BT_HIDDEN
 enum bt_notification_iterator_status ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_notification **notif)
+		bt_notification **notif)
 {
 	enum bt_notif_iter_status notif_iter_status;
 	enum bt_notification_iterator_status status;
@@ -742,8 +742,8 @@ enum bt_notification_iterator_status ctf_fs_ds_file_next(
 BT_HIDDEN
 int ctf_fs_ds_file_borrow_packet_header_context_fields(
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_field **packet_header_field,
-		struct bt_field **packet_context_field)
+		bt_field **packet_header_field,
+		bt_field **packet_context_field)
 {
 	enum bt_notif_iter_status notif_iter_status;
 	int ret = 0;

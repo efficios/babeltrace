@@ -42,14 +42,14 @@
 static
 gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
 {
-	const struct bt_packet *writer_packet = value;
+	const bt_packet *writer_packet = value;
 
 	bt_packet_put_ref(writer_packet);
 	return TRUE;
 }
 
 BT_HIDDEN
-void trimmer_iterator_finalize(struct bt_self_notification_iterator *it)
+void trimmer_iterator_finalize(bt_self_notification_iterator *it)
 {
 	struct trimmer_iterator *trim_it;
 
@@ -65,7 +65,7 @@ void trimmer_iterator_finalize(struct bt_self_notification_iterator *it)
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
-		struct bt_self_notification_iterator *iterator,
+		bt_self_notification_iterator *iterator,
 		struct bt_private_port *port)
 {
 	enum bt_notification_iterator_status ret =
@@ -74,7 +74,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	enum bt_connection_status conn_status;
 	struct bt_private_port *input_port = NULL;
 	struct bt_private_connection *connection = NULL;
-	struct bt_self_component *component =
+	bt_self_component *component =
 		bt_self_notification_iterator_get_private_component(iterator);
 	struct trimmer_iterator *it_data = g_new0(struct trimmer_iterator, 1);
 
@@ -174,24 +174,24 @@ error:
 }
 
 static
-const struct bt_notification *evaluate_event_notification(
-		const struct bt_notification *notification,
+const bt_notification *evaluate_event_notification(
+		const bt_notification *notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_event_in_range, bool *finished)
 {
 	int64_t ts;
 	int clock_ret;
-	const struct bt_event *event = NULL, *writer_event;
+	const bt_event *event = NULL, *writer_event;
 	bool in_range = true;
-	const struct bt_clock_class *clock_class = NULL;
-	const struct bt_trace *trace = NULL;
-	const struct bt_stream *stream = NULL;
-	const struct bt_stream_class *stream_class = NULL;
-	struct bt_clock_value *clock_value = NULL;
+	const bt_clock_class *clock_class = NULL;
+	const bt_trace *trace = NULL;
+	const bt_stream *stream = NULL;
+	const bt_stream_class *stream_class = NULL;
+	bt_clock_value *clock_value = NULL;
 	bool lazy_update = false;
-	const struct bt_notification *new_notification = NULL;
-	struct bt_clock_class_priority_map *cc_prio_map;
+	const bt_notification *new_notification = NULL;
+	bt_clock_class_priority_map *cc_prio_map;
 
 	event = bt_notification_event_get_event(notification);
 	BT_ASSERT(event);
@@ -268,14 +268,14 @@ end:
 }
 
 static
-int ns_from_integer_field(const struct bt_field *integer, int64_t *ns)
+int ns_from_integer_field(const bt_field *integer, int64_t *ns)
 {
 	int ret = 0;
 	int is_signed;
 	uint64_t raw_clock_value;
-	const struct bt_field_class *integer_class = NULL;
-	const struct bt_clock_class *clock_class = NULL;
-	struct bt_clock_value *clock_value = NULL;
+	const bt_field_class *integer_class = NULL;
+	const bt_clock_class *clock_class = NULL;
+	bt_clock_value *clock_value = NULL;
 
 	integer_class = bt_field_get_class(integer);
 	BT_ASSERT(integer_class);
@@ -329,14 +329,14 @@ static uint64_t ns_from_value(uint64_t frequency, uint64_t value)
  * timestamp minus the offset.
  */
 static
-int64_t get_raw_timestamp(const struct bt_packet *writer_packet,
+int64_t get_raw_timestamp(const bt_packet *writer_packet,
 		int64_t timestamp)
 {
-	const struct bt_clock_class *writer_clock_class;
+	const bt_clock_class *writer_clock_class;
 	int64_t sec_offset, cycles_offset, ns;
-	const struct bt_trace *writer_trace;
-	const struct bt_stream *writer_stream;
-	const struct bt_stream_class *writer_stream_class;
+	const bt_trace *writer_trace;
+	const bt_stream *writer_stream;
+	const bt_stream_class *writer_stream_class;
 	int ret;
 	uint64_t freq;
 
@@ -375,19 +375,19 @@ int64_t get_raw_timestamp(const struct bt_packet *writer_packet,
 }
 
 static
-const struct bt_notification *evaluate_packet_notification(
-		const struct bt_notification *notification,
+const bt_notification *evaluate_packet_notification(
+		const bt_notification *notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_packet_in_range, bool *finished)
 {
 	int64_t begin_ns, pkt_begin_ns, end_ns, pkt_end_ns;
 	bool in_range = true;
-	const struct bt_packet *packet = NULL, *writer_packet = NULL;
-	const struct bt_field *packet_context = NULL,
+	const bt_packet *packet = NULL, *writer_packet = NULL;
+	const bt_field *packet_context = NULL,
 			*timestamp_begin = NULL,
 			*timestamp_end = NULL;
-	const struct bt_notification *new_notification = NULL;
+	const bt_notification *new_notification = NULL;
 	enum bt_component_status ret;
 	bool lazy_update = false;
 
@@ -501,11 +501,11 @@ end_no_notif:
 }
 
 static
-const struct bt_notification *evaluate_stream_notification(
-		const struct bt_notification *notification,
+const bt_notification *evaluate_stream_notification(
+		const bt_notification *notification,
 		struct trimmer_iterator *trim_it)
 {
-	const struct bt_stream *stream;
+	const bt_stream *stream;
 
 	stream = bt_notification_stream_end_get_stream(notification);
 	BT_ASSERT(stream);
@@ -517,13 +517,13 @@ const struct bt_notification *evaluate_stream_notification(
 /* Return true if the notification should be forwarded. */
 static
 enum bt_notification_iterator_status evaluate_notification(
-		const struct bt_notification **notification,
+		const bt_notification **notification,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *in_range)
 {
 	enum bt_notification_type type;
-	const struct bt_notification *new_notification = NULL;
+	const bt_notification *new_notification = NULL;
 	bool finished = false;
 
 	*in_range = true;
@@ -556,14 +556,14 @@ enum bt_notification_iterator_status evaluate_notification(
 }
 
 BT_HIDDEN
-struct bt_notification_iterator_next_method_return trimmer_iterator_next(
-		struct bt_self_notification_iterator *iterator)
+bt_notification_iterator_next_method_return trimmer_iterator_next(
+		bt_self_notification_iterator *iterator)
 {
 	struct trimmer_iterator *trim_it = NULL;
-	struct bt_self_component *component = NULL;
+	bt_self_component *component = NULL;
 	struct trimmer *trimmer = NULL;
-	struct bt_notification_iterator *source_it = NULL;
-	struct bt_notification_iterator_next_method_return ret = {
+	bt_notification_iterator *source_it = NULL;
+	bt_notification_iterator_next_method_return ret = {
 		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
 		.notification = NULL,
 	};

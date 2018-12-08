@@ -41,7 +41,7 @@
 struct lttng_live_component;
 
 struct bt_live_viewer_connection {
-	struct bt_object obj;
+	bt_object obj;
 
 	GString *url;
 
@@ -82,6 +82,6 @@ struct bt_live_viewer_connection *
 
 void bt_live_viewer_connection_destroy(struct bt_live_viewer_connection *conn);
 
-struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_connection *viewer_connection);
+bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_connection *viewer_connection);
 
 #endif /* LTTNG_LIVE_VIEWER_CONNECTION_H */

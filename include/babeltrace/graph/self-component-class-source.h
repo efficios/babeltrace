@@ -24,17 +24,17 @@
  * SOFTWARE.
  */
 
+/* For bt_component_class_source, bt_self_component_class_source */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class_source;
-struct bt_self_component_class_source;
-
 static inline
-const struct bt_component_class_source *
+const bt_component_class_source *
 bt_self_component_class_source_as_component_class_source(
-		struct bt_self_component_class_source *self_comp_cls_source)
+		bt_self_component_class_source *self_comp_cls_source)
 {
 	return (const void *) self_comp_cls_source;
 }

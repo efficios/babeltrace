@@ -26,27 +26,26 @@
 /* For enum bt_query_executor_status */
 #include <babeltrace/graph/query-executor.h>
 
+/* For bt_query_executor, bt_component_class, bt_value */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_query_executor;
-struct bt_component_class;
-struct bt_value;
-
 extern
-struct bt_query_executor *bt_query_executor_create(void);
+bt_query_executor *bt_query_executor_create(void);
 
 extern
 enum bt_query_executor_status bt_query_executor_query(
-		struct bt_query_executor *query_executor,
-		const struct bt_component_class *component_class,
-		const char *object, const struct bt_value *params,
-		const struct bt_value **result);
+		bt_query_executor *query_executor,
+		const bt_component_class *component_class,
+		const char *object, const bt_value *params,
+		const bt_value **result);
 
 extern
 enum bt_query_executor_status bt_query_executor_cancel(
-		struct bt_query_executor *query_executor);
+		bt_query_executor *query_executor);
 
 #ifdef __cplusplus
 }

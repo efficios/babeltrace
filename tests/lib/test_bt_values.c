@@ -43,7 +43,7 @@ static
 void test_bool(void)
 {
 	bt_bool value;
-	struct bt_value *obj;
+	bt_value *obj;
 
 	obj = bt_value_bool_create();
 	ok(obj && bt_value_is_bool(obj),
@@ -76,7 +76,7 @@ static
 void test_integer(void)
 {
 	int64_t value;
-	struct bt_value *obj;
+	bt_value *obj;
 
 	obj = bt_value_integer_create();
 	ok(obj && bt_value_is_integer(obj),
@@ -107,7 +107,7 @@ static
 void test_real(void)
 {
 	double value;
-	struct bt_value *obj;
+	bt_value *obj;
 
 	obj = bt_value_real_create();
 	ok(obj && bt_value_is_real(obj),
@@ -139,7 +139,7 @@ static
 void test_string(void)
 {
 	const char *value;
-	struct bt_value *obj;
+	bt_value *obj;
 
 	obj = bt_value_string_create();
 	ok(obj && bt_value_is_string(obj),
@@ -174,9 +174,9 @@ void test_array(void)
 	bt_bool bool_value;
 	int64_t int_value;
 	double real_value;
-	struct bt_value *obj;
+	bt_value *obj;
 	const char *string_value;
-	struct bt_value *array_obj;
+	bt_value *array_obj;
 
 	array_obj = bt_value_array_create();
 	ok(array_obj && bt_value_is_array(array_obj),
@@ -296,7 +296,7 @@ void test_array(void)
 }
 
 static
-bt_bool test_map_foreach_cb_count(const char *key, struct bt_value *object,
+bt_bool test_map_foreach_cb_count(const char *key, bt_value *object,
 	void *data)
 {
 	int *count = data;
@@ -324,7 +324,7 @@ struct map_foreach_checklist {
 };
 
 static
-bt_bool test_map_foreach_cb_check(const char *key, struct bt_value *object,
+bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 	void *data)
 {
 	struct map_foreach_checklist *checklist = data;
@@ -475,8 +475,8 @@ void test_map(void)
 	bt_bool bool_value;
 	int64_t int_value;
 	double real_value;
-	struct bt_value *obj;
-	struct bt_value *map_obj;
+	bt_value *obj;
+	bt_value *map_obj;
 	struct map_foreach_checklist checklist;
 
 	map_obj = bt_value_map_create();
@@ -615,11 +615,11 @@ void test_compare_null(void)
 static
 void test_compare_bool(void)
 {
-	struct bt_value *bool1 =
+	bt_value *bool1 =
 		bt_value_bool_create_init(BT_FALSE);
-	struct bt_value *bool2 =
+	bt_value *bool2 =
 		bt_value_bool_create_init(BT_TRUE);
-	struct bt_value *bool3 =
+	bt_value *bool3 =
 		bt_value_bool_create_init(BT_FALSE);
 
 	BT_ASSERT(bool1 && bool2 && bool3);
@@ -641,11 +641,11 @@ void test_compare_bool(void)
 static
 void test_compare_integer(void)
 {
-	struct bt_value *int1 =
+	bt_value *int1 =
 		bt_value_integer_create_init(10);
-	struct bt_value *int2 =
+	bt_value *int2 =
 		bt_value_integer_create_init(-23);
-	struct bt_value *int3 =
+	bt_value *int3 =
 		bt_value_integer_create_init(10);
 
 	BT_ASSERT(int1 && int2 && int3);
@@ -667,11 +667,11 @@ void test_compare_integer(void)
 static
 void test_compare_real(void)
 {
-	struct bt_value *real1 =
+	bt_value *real1 =
 		bt_value_real_create_init(17.38);
-	struct bt_value *real2 =
+	bt_value *real2 =
 		bt_value_real_create_init(-14.23);
-	struct bt_value *real3 =
+	bt_value *real3 =
 		bt_value_real_create_init(17.38);
 
 	BT_ASSERT(real1 && real2 && real3);
@@ -694,11 +694,11 @@ void test_compare_real(void)
 static
 void test_compare_string(void)
 {
-	struct bt_value *string1 =
+	bt_value *string1 =
 		bt_value_string_create_init("hello");
-	struct bt_value *string2 =
+	bt_value *string2 =
 		bt_value_string_create_init("bt_value");
-	struct bt_value *string3 =
+	bt_value *string3 =
 		bt_value_string_create_init("hello");
 
 	BT_ASSERT(string1 && string2 && string3);
@@ -721,9 +721,9 @@ void test_compare_string(void)
 static
 void test_compare_array(void)
 {
-	struct bt_value *array1 = bt_value_array_create();
-	struct bt_value *array2 = bt_value_array_create();
-	struct bt_value *array3 = bt_value_array_create();
+	bt_value *array1 = bt_value_array_create();
+	bt_value *array2 = bt_value_array_create();
+	bt_value *array3 = bt_value_array_create();
 	enum bt_value_status status;
 
 	BT_ASSERT(array1 && array2 && array3);
@@ -772,9 +772,9 @@ void test_compare_array(void)
 static
 void test_compare_map(void)
 {
-	struct bt_value *map1 = bt_value_map_create();
-	struct bt_value *map2 = bt_value_map_create();
-	struct bt_value *map3 = bt_value_map_create();
+	bt_value *map1 = bt_value_map_create();
+	bt_value *map2 = bt_value_map_create();
+	bt_value *map3 = bt_value_map_create();
 	enum bt_value_status status;
 
 	BT_ASSERT(map1 && map2 && map3);
@@ -847,13 +847,13 @@ void test_copy(void)
 	 * bt_value_compare() elsewhere, then the deep copy is a
 	 * success.
 	 */
-	struct bt_value *null_copy_obj;
-	struct bt_value *bool_obj, *bool_copy_obj;
-	struct bt_value *integer_obj, *integer_copy_obj;
-	struct bt_value *real_obj, *real_copy_obj;
-	struct bt_value *string_obj, *string_copy_obj;
-	struct bt_value *array_obj, *array_copy_obj;
-	struct bt_value *map_obj, *map_copy_obj;
+	bt_value *null_copy_obj;
+	bt_value *bool_obj, *bool_copy_obj;
+	bt_value *integer_obj, *integer_copy_obj;
+	bt_value *real_obj, *real_copy_obj;
+	bt_value *string_obj, *string_copy_obj;
+	bt_value *array_obj, *array_copy_obj;
+	bt_value *map_obj, *map_copy_obj;
 	enum bt_value_status status;
 
 	bool_obj = bt_value_bool_create_init(BT_TRUE);
@@ -930,11 +930,11 @@ void test_copy(void)
 }
 
 static
-bt_bool compare_map_elements(const struct bt_value *map_a, const struct bt_value *map_b,
+bt_bool compare_map_elements(const bt_value *map_a, const bt_value *map_b,
 		const char *key)
 {
-	const struct bt_value *elem_a = NULL;
-	const struct bt_value *elem_b = NULL;
+	const bt_value *elem_a = NULL;
+	const bt_value *elem_b = NULL;
 	bt_bool equal;
 
 	elem_a = bt_value_map_borrow_entry_value_const(map_a, key);
@@ -946,10 +946,10 @@ bt_bool compare_map_elements(const struct bt_value *map_a, const struct bt_value
 static
 void test_extend(void)
 {
-	struct bt_value *base_map = bt_value_map_create();
-	struct bt_value *extension_map = bt_value_map_create();
-	struct bt_value *extended_map = NULL;
-	struct bt_value *array = bt_value_array_create();
+	bt_value *base_map = bt_value_map_create();
+	bt_value *extension_map = bt_value_map_create();
+	bt_value *extended_map = NULL;
+	bt_value *array = bt_value_array_create();
 	enum bt_value_status status;
 
 	BT_ASSERT(base_map);

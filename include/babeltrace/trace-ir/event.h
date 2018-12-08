@@ -27,36 +27,33 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_event, bt_event_header_field, bt_event_class, bt_field, bt_packet */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_event;
-struct bt_event_header_field;
-struct bt_event_class;
-struct bt_field;
-struct bt_packet;
+extern bt_event_class *bt_event_borrow_class(bt_event *event);
 
-extern struct bt_event_class *bt_event_borrow_class(struct bt_event *event);
+extern bt_packet *bt_event_borrow_packet(bt_event *event);
 
-extern struct bt_packet *bt_event_borrow_packet(struct bt_event *event);
+extern bt_stream *bt_event_borrow_stream(bt_event *event);
 
-extern struct bt_stream *bt_event_borrow_stream(struct bt_event *event);
+extern bt_field *bt_event_borrow_header_field(bt_event *event);
 
-extern struct bt_field *bt_event_borrow_header_field(struct bt_event *event);
+extern int bt_event_move_header_field(bt_event *event,
+		bt_event_header_field *header);
 
-extern int bt_event_move_header_field(struct bt_event *event,
-		struct bt_event_header_field *header);
+extern bt_field *
+bt_event_borrow_common_context_field(bt_event *event);
 
-extern struct bt_field *
-bt_event_borrow_common_context_field(struct bt_event *event);
+extern bt_field *
+bt_event_borrow_specific_context_field(bt_event *event);
 
-extern struct bt_field *
-bt_event_borrow_specific_context_field(struct bt_event *event);
+extern bt_field *bt_event_borrow_payload_field(bt_event *event);
 
-extern struct bt_field *bt_event_borrow_payload_field(struct bt_event *event);
-
-extern void bt_event_set_default_clock_value(struct bt_event *event,
+extern void bt_event_set_default_clock_value(bt_event *event,
 		uint64_t value_cycles);
 
 #ifdef __cplusplus

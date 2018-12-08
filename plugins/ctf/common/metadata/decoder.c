@@ -553,7 +553,7 @@ end:
 }
 
 BT_HIDDEN
-struct bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
+bt_trace_class *ctf_metadata_decoder_get_ir_trace_class(
 		struct ctf_metadata_decoder *mdec)
 {
 	return ctf_visitor_generate_ir_get_ir_trace_class(mdec->visitor);

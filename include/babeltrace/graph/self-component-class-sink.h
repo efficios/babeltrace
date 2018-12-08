@@ -24,17 +24,17 @@
  * SOFTWARE.
  */
 
+/* For bt_component_class_sink, bt_self_component_class_sink */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class_sink;
-struct bt_self_component_class_sink;
-
 static inline
-const struct bt_component_class_sink *
+const bt_component_class_sink *
 bt_self_component_class_sink_as_component_class_sink(
-		struct bt_self_component_class_sink *self_comp_cls_sink)
+		bt_self_component_class_sink *self_comp_cls_sink)
 {
 	return (const void *) self_comp_cls_sink;
 }

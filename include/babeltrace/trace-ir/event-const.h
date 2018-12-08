@@ -30,40 +30,37 @@
 /* For enum bt_clock_value_status */
 #include <babeltrace/trace-ir/clock-value-const.h>
 
+/* For bt_event, bt_clock_value, bt_event_class, bt_field, bt_packet */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_event;
-struct bt_clock_value;
-struct bt_event_class;
-struct bt_field;
-struct bt_packet;
+extern const bt_event_class *bt_event_borrow_class_const(
+		const bt_event *event);
 
-extern const struct bt_event_class *bt_event_borrow_class_const(
-		const struct bt_event *event);
+extern const bt_packet *bt_event_borrow_packet_const(
+		const bt_event *event);
 
-extern const struct bt_packet *bt_event_borrow_packet_const(
-		const struct bt_event *event);
+extern const bt_stream *bt_event_borrow_stream_const(
+		const bt_event *event);
 
-extern const struct bt_stream *bt_event_borrow_stream_const(
-		const struct bt_event *event);
+extern const bt_field *bt_event_borrow_header_field_const(
+		const bt_event *event);
 
-extern const struct bt_field *bt_event_borrow_header_field_const(
-		const struct bt_event *event);
+extern const bt_field *bt_event_borrow_common_context_field_const(
+		const bt_event *event);
 
-extern const struct bt_field *bt_event_borrow_common_context_field_const(
-		const struct bt_event *event);
+extern const bt_field *bt_event_borrow_specific_context_field_const(
+		const bt_event *event);
 
-extern const struct bt_field *bt_event_borrow_specific_context_field_const(
-		const struct bt_event *event);
-
-extern const struct bt_field *bt_event_borrow_payload_field_const(
-		const struct bt_event *event);
+extern const bt_field *bt_event_borrow_payload_field_const(
+		const bt_event *event);
 
 extern enum bt_clock_value_status bt_event_borrow_default_clock_value_const(
-		const struct bt_event *event,
-		const struct bt_clock_value **clock_value);
+		const bt_event *event,
+		const bt_clock_value **clock_value);
 
 #ifdef __cplusplus
 }
