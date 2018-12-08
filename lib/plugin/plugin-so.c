@@ -71,7 +71,7 @@ BT_PLUGIN_MODULE();
  *
  * It allows this use-case:
  *
- *        my_plugins = bt_plugin_create_all_from_file("/path/to/my-plugin.so");
+ *        my_plugins = bt_plugin_find_all_from_file("/path/to/my-plugin.so");
  *        // instantiate components from a plugin's component classes
  *        // put plugins and free my_plugins here
  *        // user code of instantiated components still exists
@@ -198,7 +198,7 @@ struct bt_plugin_so_shared_lib_handle *bt_plugin_so_shared_lib_handle_create(
 		 * DEBUG-level logging because we're only _trying_ to
 		 * open this file as a Babeltrace plugin: if it's not,
 		 * it's not an error. And because this can be tried
-		 * during bt_plugin_create_all_from_dir(), it's not even
+		 * during bt_plugin_find_all_from_dir(), it's not even
 		 * a warning.
 		 */
 		BT_LOGD("Cannot open GModule: %s: path=\"%s\"",
@@ -1223,7 +1223,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			 * _trying_ to open this file as a compatible
 			 * Babeltrace plugin: if it's not, it's not an
 			 * error. And because this can be tried during
-			 * bt_plugin_create_all_from_dir(), it's not
+			 * bt_plugin_find_all_from_dir(), it's not
 			 * even a warning.
 			 */
 			BT_LOGD("Unknown ABI major version: abi-major=%d",
@@ -1250,7 +1250,7 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_sections(
 			 * _trying_ to open this file as a compatible
 			 * Babeltrace plugin: if it's not, it's not an
 			 * error. And because this can be tried during
-			 * bt_plugin_create_all_from_dir(), it's not
+			 * bt_plugin_find_all_from_dir(), it's not
 			 * even a warning.
 			 */
 			BT_LOGD_STR("Cannot initialize SO plugin object from sections.");

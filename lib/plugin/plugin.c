@@ -124,13 +124,13 @@ const struct bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
 	return g_ptr_array_index(plugin_set->plugins, index);
 }
 
-const struct bt_plugin_set *bt_plugin_create_all_from_static(void)
+const struct bt_plugin_set *bt_plugin_find_all_from_static(void)
 {
 	/* bt_plugin_so_create_all_from_static() logs errors */
 	return bt_plugin_so_create_all_from_static();
 }
 
-const struct bt_plugin_set *bt_plugin_create_all_from_file(const char *path)
+const struct bt_plugin_set *bt_plugin_find_all_from_file(const char *path)
 {
 	struct bt_plugin_set *plugin_set = NULL;
 
@@ -246,7 +246,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 
 		/*
 		 * Skip this if the directory does not exist because
-		 * bt_plugin_create_all_from_dir() would log a warning.
+		 * bt_plugin_find_all_from_dir() would log a warning.
 		 */
 		if (!g_file_test(dir->str, G_FILE_TEST_IS_DIR)) {
 			BT_LOGV("Skipping nonexistent directory path: "
@@ -254,8 +254,8 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 			continue;
 		}
 
-		/* bt_plugin_create_all_from_dir() logs details/errors */
-		plugin_set = bt_plugin_create_all_from_dir(dir->str, BT_FALSE);
+		/* bt_plugin_find_all_from_dir() logs details/errors */
+		plugin_set = bt_plugin_find_all_from_dir(dir->str, BT_FALSE);
 		if (!plugin_set) {
 			BT_LOGD("No plugins found in directory: path=\"%s\"",
 				dir->str);
@@ -281,7 +281,7 @@ const struct bt_plugin *bt_plugin_find(const char *plugin_name)
 	}
 
 	bt_object_put_ref(plugin_set);
-	plugin_set = bt_plugin_create_all_from_static();
+	plugin_set = bt_plugin_find_all_from_static();
 	if (plugin_set) {
 		for (j = 0; j < plugin_set->plugins->len; j++) {
 			const struct bt_plugin *candidate_plugin =
@@ -348,7 +348,7 @@ int nftw_append_all_from_dir(const char *file, const struct stat *sb, int flag,
 			goto end;
 		}
 
-		plugins_from_file = bt_plugin_create_all_from_file(file);
+		plugins_from_file = bt_plugin_find_all_from_file(file);
 
 		if (plugins_from_file) {
 			size_t j;
@@ -408,7 +408,7 @@ enum bt_plugin_status bt_plugin_create_append_all_from_dir(
 	return ret;
 }
 
-const struct bt_plugin_set *bt_plugin_create_all_from_dir(const char *path,
+const struct bt_plugin_set *bt_plugin_find_all_from_dir(const char *path,
 		bt_bool recurse)
 {
 	struct bt_plugin_set *plugin_set;
