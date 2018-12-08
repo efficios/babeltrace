@@ -156,7 +156,8 @@ const char *bt_trace_class_get_name(const struct bt_trace_class *tc)
 	return tc->name.value;
 }
 
-int bt_trace_class_set_name(struct bt_trace_class *tc, const char *name)
+enum bt_trace_class_status bt_trace_class_set_name(
+		struct bt_trace_class *tc, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -164,7 +165,7 @@ int bt_trace_class_set_name(struct bt_trace_class *tc, const char *name)
 	g_string_assign(tc->name.str, name);
 	tc->name.value = tc->name.str->str;
 	BT_LIB_LOGV("Set trace class's name: %!+T", tc);
-	return 0;
+	return BT_TRACE_CLASS_STATUS_OK;
 }
 
 bt_uuid bt_trace_class_get_uuid(const struct bt_trace_class *tc)
@@ -194,8 +195,8 @@ bool trace_has_environment_entry(const struct bt_trace_class *tc, const char *na
 }
 
 static
-int set_environment_entry(struct bt_trace_class *tc, const char *name,
-		struct bt_value *value)
+enum bt_trace_class_status set_environment_entry(struct bt_trace_class *tc,
+		const char *name, struct bt_value *value)
 {
 	int ret;
 
@@ -208,11 +209,12 @@ int set_environment_entry(struct bt_trace_class *tc, const char *name,
 		"%![tc-]+T, entry-name=\"%s\"", tc, name);
 	ret = bt_attributes_set_field_value(tc->environment, name,
 		value);
-	bt_value_freeze(value);
 	if (ret) {
+		ret = BT_TRACE_CLASS_STATUS_NOMEM;
 		BT_LIB_LOGE("Cannot set trace class's environment entry: "
 			"%![tc-]+T, entry-name=\"%s\"", tc, name);
 	} else {
+		bt_value_freeze(value);
 		BT_LIB_LOGV("Set trace class's environment entry: "
 			"%![tc-]+T, entry-name=\"%s\"", tc, name);
 	}
@@ -220,7 +222,7 @@ int set_environment_entry(struct bt_trace_class *tc, const char *name,
 	return ret;
 }
 
-int bt_trace_class_set_environment_entry_string(
+enum bt_trace_class_status bt_trace_class_set_environment_entry_string(
 		struct bt_trace_class *tc, const char *name, const char *value)
 {
 	int ret;
@@ -243,8 +245,8 @@ end:
 	return ret;
 }
 
-int bt_trace_class_set_environment_entry_integer(struct bt_trace_class *tc,
-		const char *name, int64_t value)
+enum bt_trace_class_status bt_trace_class_set_environment_entry_integer(
+		struct bt_trace_class *tc, const char *name, int64_t value)
 {
 	int ret;
 	struct bt_value *value_obj;
@@ -253,7 +255,7 @@ int bt_trace_class_set_environment_entry_integer(struct bt_trace_class *tc,
 	value_obj = bt_value_integer_create_init(value);
 	if (!value_obj) {
 		BT_LOGE_STR("Cannot create an integer value object.");
-		ret = -1;
+		ret = BT_TRACE_CLASS_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -357,7 +359,7 @@ const struct bt_field_class *bt_trace_class_borrow_packet_header_field_class_con
 	return tc->packet_header_fc;
 }
 
-int bt_trace_class_set_packet_header_field_class(
+enum bt_trace_class_status bt_trace_class_set_packet_header_field_class(
 		struct bt_trace_class *tc,
 		struct bt_field_class *field_class)
 {
@@ -380,6 +382,12 @@ int bt_trace_class_set_packet_header_field_class(
 		field_class);
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
+		/*
+		 * This is the only reason for which
+		 * bt_resolve_field_paths() can fail: anything else
+		 * would be because a precondition is not satisfied.
+		 */
+		ret = BT_TRACE_CLASS_STATUS_NOMEM;
 		goto end;
 	}
 

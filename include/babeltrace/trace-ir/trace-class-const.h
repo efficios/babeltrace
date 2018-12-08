@@ -39,6 +39,11 @@
 extern "C" {
 #endif
 
+enum bt_trace_class_status {
+	BT_TRACE_CLASS_STATUS_OK = 0,
+	BT_TRACE_CLASS_STATUS_NOMEM = -12,
+};
+
 extern bt_bool bt_trace_class_assigns_automatic_stream_class_id(
 		const bt_trace_class *trace_class);
 
