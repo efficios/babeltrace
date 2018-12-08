@@ -30,6 +30,9 @@
 /* For bt_component_class */
 #include <babeltrace/types.h>
 
+/* For bt_component_class_status */
+#include <babeltrace/graph/component-class-const.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,11 +46,11 @@ typedef enum bt_query_status {
 	BT_QUERY_STATUS_INVALID_PARAMS = BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS,
 } bt_query_status;
 
-extern int bt_component_class_set_description(
+extern bt_component_class_status bt_component_class_set_description(
 		bt_component_class *component_class,
 		const char *description);
 
-extern int bt_component_class_set_help(
+extern bt_component_class_status bt_component_class_set_help(
 		bt_component_class *component_class,
 		const char *help);
 

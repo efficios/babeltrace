@@ -31,6 +31,11 @@
 extern "C" {
 #endif
 
+typedef enum bt_component_class_status {
+	BT_COMPONENT_CLASS_STATUS_OK = 0,
+	BT_COMPONENT_CLASS_STATUS_NOMEM = -12,
+} bt_component_class_status;
+
 typedef enum bt_component_class_type {
 	BT_COMPONENT_CLASS_TYPE_SOURCE = 0,
 	BT_COMPONENT_CLASS_TYPE_FILTER = 1,
