@@ -24,13 +24,12 @@
  * SOFTWARE.
  */
 
+/* For bt_notification */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_notification;
-
-typedef const struct bt_notification **bt_notification_array_const;
 
 /**
  * Notification types. Unhandled notification types should be ignored.
@@ -51,11 +50,11 @@ enum bt_notification_type {
  * @returns		One of #bt_notification_type
  */
 extern enum bt_notification_type bt_notification_get_type(
-		const struct bt_notification *notification);
+		const bt_notification *notification);
 
-extern void bt_notification_get_ref(const struct bt_notification *notification);
+extern void bt_notification_get_ref(const bt_notification *notification);
 
-extern void bt_notification_put_ref(const struct bt_notification *notification);
+extern void bt_notification_put_ref(const bt_notification *notification);
 
 #define BT_NOTIFICATION_PUT_REF_AND_RESET(_var)		\
 	do {						\

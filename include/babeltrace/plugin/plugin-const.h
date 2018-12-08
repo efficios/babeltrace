@@ -29,7 +29,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* For bt_bool */
+/*
+ * For bt_bool, bt_plugin, bt_plugin_set, bt_component_class,
+ * bt_component_class_source, bt_component_class_filter,
+ * bt_component_class_sink
+ */
 #include <babeltrace/types.h>
 
 /* For enum bt_component_class_type */
@@ -51,79 +55,72 @@
 extern "C" {
 #endif
 
-struct bt_plugin;
-struct bt_plugin_set;
-struct bt_component_class;
-struct bt_component_class_source;
-struct bt_component_class_filter;
-struct bt_component_class_sink;
-
 enum bt_plugin_status {
 	BT_PLUGIN_STATUS_OK =		0,
 	BT_PLUGIN_STATUS_ERROR =	-1,
 	BT_PLUGIN_STATUS_NOMEM =	-12,
 };
 
-extern const struct bt_plugin *bt_plugin_find(const char *plugin_name);
+extern const bt_plugin *bt_plugin_find(const char *plugin_name);
 
-extern const struct bt_plugin_set *bt_plugin_create_all_from_file(
+extern const bt_plugin_set *bt_plugin_create_all_from_file(
 		const char *path);
 
-extern const struct bt_plugin_set *bt_plugin_create_all_from_dir(
+extern const bt_plugin_set *bt_plugin_create_all_from_dir(
 		const char *path, bt_bool recurse);
 
-extern const struct bt_plugin_set *bt_plugin_create_all_from_static(void);
+extern const bt_plugin_set *bt_plugin_create_all_from_static(void);
 
-extern const char *bt_plugin_get_name(const struct bt_plugin *plugin);
+extern const char *bt_plugin_get_name(const bt_plugin *plugin);
 
-extern const char *bt_plugin_get_author(const struct bt_plugin *plugin);
+extern const char *bt_plugin_get_author(const bt_plugin *plugin);
 
-extern const char *bt_plugin_get_license(const struct bt_plugin *plugin);
+extern const char *bt_plugin_get_license(const bt_plugin *plugin);
 
-extern const char *bt_plugin_get_description(const struct bt_plugin *plugin);
+extern const char *bt_plugin_get_description(const bt_plugin *plugin);
 
-extern const char *bt_plugin_get_path(const struct bt_plugin *plugin);
+extern const char *bt_plugin_get_path(const bt_plugin *plugin);
 
 extern enum bt_property_availability bt_plugin_get_version(
-		const struct bt_plugin *plugin, unsigned int *major,
+		const bt_plugin *plugin, unsigned int *major,
 		unsigned int *minor, unsigned int *patch, const char **extra);
 
 extern uint64_t bt_plugin_get_source_component_class_count(
-		const struct bt_plugin *plugin);
+		const bt_plugin *plugin);
 
 extern uint64_t bt_plugin_get_filter_component_class_count(
-		const struct bt_plugin *plugin);
+		const bt_plugin *plugin);
 
 extern uint64_t bt_plugin_get_sink_component_class_count(
-		const struct bt_plugin *plugin);
+		const bt_plugin *plugin);
 
-extern const struct bt_component_class_source *
+extern const bt_component_class_source *
 bt_plugin_borrow_source_component_class_by_index_const_const(
-		const struct bt_plugin *plugin, uint64_t index);
+		const bt_plugin *plugin, uint64_t index);
 
-extern const struct bt_component_class_filter *
+extern const bt_component_class_filter *
 bt_plugin_borrow_filter_component_class_by_index_const(
-		const struct bt_plugin *plugin, uint64_t index);
+		const bt_plugin *plugin, uint64_t index);
 
-extern const struct bt_component_class_sink *
+extern const bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_index_const(
-		const struct bt_plugin *plugin, uint64_t index);
+		const bt_plugin *plugin, uint64_t index);
 
-extern const struct bt_component_class_source *
+extern const bt_component_class_source *
 bt_plugin_borrow_source_component_class_by_name_const(
-		const struct bt_plugin *plugin, const char *name);
+		const bt_plugin *plugin, const char *name);
 
-extern const struct bt_component_class_filter *
+extern const bt_component_class_filter *
 bt_plugin_borrow_filter_component_class_by_name_const(
-		const struct bt_plugin *plugin, const char *name);
+		const bt_plugin *plugin, const char *name);
 
-extern const struct bt_component_class_sink *
+extern const bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_name_const(
-		const struct bt_plugin *plugin, const char *name);
+		const bt_plugin *plugin, const char *name);
 
-extern void bt_plugin_get_ref(const struct bt_plugin *plugin);
+extern void bt_plugin_get_ref(const bt_plugin *plugin);
 
-extern void bt_plugin_put_ref(const struct bt_plugin *plugin);
+extern void bt_plugin_put_ref(const bt_plugin *plugin);
 
 #define BT_PLUGIN_PUT_REF_AND_RESET(_var)		\
 	do {						\

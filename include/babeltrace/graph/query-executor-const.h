@@ -23,14 +23,12 @@
  * SOFTWARE.
  */
 
-/* For bt_bool */
+/* For bt_bool, bt_query_executor */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_query_executor;
 
 enum bt_query_executor_status {
 	BT_QUERY_EXECUTOR_STATUS_OK = 0,
@@ -45,13 +43,13 @@ enum bt_query_executor_status {
 
 extern
 bt_bool bt_query_executor_is_canceled(
-		const struct bt_query_executor *query_executor);
+		const bt_query_executor *query_executor);
 
 extern void bt_query_executor_get_ref(
-		const struct bt_query_executor *query_executor);
+		const bt_query_executor *query_executor);
 
 extern void bt_query_executor_put_ref(
-		const struct bt_query_executor *query_executor);
+		const bt_query_executor *query_executor);
 
 #define BT_QUERY_EXECUTOR_PUT_REF_AND_RESET(_var)		\
 	do {							\

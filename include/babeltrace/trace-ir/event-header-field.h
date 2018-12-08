@@ -26,24 +26,23 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_stream_class, bt_event_header_field, bt_field */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_stream_class;
-struct bt_event_header_field;
-struct bt_field;
+extern
+bt_event_header_field *bt_event_header_field_create(
+		bt_stream_class *stream_class);
 
 extern
-struct bt_event_header_field *bt_event_header_field_create(
-		struct bt_stream_class *stream_class);
+bt_field *bt_event_header_field_borrow_field(
+		bt_event_header_field *field);
 
 extern
-struct bt_field *bt_event_header_field_borrow_field(
-		struct bt_event_header_field *field);
-
-extern
-void bt_event_header_field_release(struct bt_event_header_field *field);
+void bt_event_header_field_release(bt_event_header_field *field);
 
 #ifdef __cplusplus
 }

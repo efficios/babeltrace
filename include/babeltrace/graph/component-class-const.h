@@ -24,14 +24,12 @@
  * SOFTWARE.
  */
 
-/* For bt_bool */
+/* For bt_bool, bt_component_class */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_component_class;
 
 enum bt_component_class_type {
 	BT_COMPONENT_CLASS_TYPE_SOURCE =	0,
@@ -40,20 +38,20 @@ enum bt_component_class_type {
 };
 
 extern const char *bt_component_class_get_name(
-		const struct bt_component_class *component_class);
+		const bt_component_class *component_class);
 
 extern const char *bt_component_class_get_description(
-		const struct bt_component_class *component_class);
+		const bt_component_class *component_class);
 
 extern const char *bt_component_class_get_help(
-		const struct bt_component_class *component_class);
+		const bt_component_class *component_class);
 
 extern enum bt_component_class_type bt_component_class_get_type(
-		const struct bt_component_class *component_class);
+		const bt_component_class *component_class);
 
 static inline
 bt_bool bt_component_class_is_source(
-		const struct bt_component_class *component_class)
+		const bt_component_class *component_class)
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
@@ -61,7 +59,7 @@ bt_bool bt_component_class_is_source(
 
 static inline
 bt_bool bt_component_class_is_filter(
-		const struct bt_component_class *component_class)
+		const bt_component_class *component_class)
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_FILTER;
@@ -69,17 +67,17 @@ bt_bool bt_component_class_is_filter(
 
 static inline
 bt_bool bt_component_class_is_sink(
-		const struct bt_component_class *component_class)
+		const bt_component_class *component_class)
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_SINK;
 }
 
 extern void bt_component_class_get_ref(
-		const struct bt_component_class *component_class);
+		const bt_component_class *component_class);
 
 extern void bt_component_class_put_ref(
-		const struct bt_component_class *component_class);
+		const bt_component_class *component_class);
 
 #define BT_COMPONENT_CLASS_PUT_REF_AND_RESET(_var)	\
 	do {						\

@@ -24,25 +24,25 @@
  * SOFTWARE.
  */
 
+/* For bt_port, bt_port_input */
+#include <babeltrace/types.h>
+
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_port_input;
-
 static inline
-const struct bt_port *bt_port_input_as_port_const(
-		const struct bt_port_input *port_input)
+const bt_port *bt_port_input_as_port_const(
+		const bt_port_input *port_input)
 {
 	return (const void *) port_input;
 }
 
-extern void bt_port_input_get_ref(const struct bt_port_input *port_input);
+extern void bt_port_input_get_ref(const bt_port_input *port_input);
 
-extern void bt_port_input_put_ref(const struct bt_port_input *port_input);
+extern void bt_port_input_put_ref(const bt_port_input *port_input);
 
 #define BT_PORT_INPUT_PUT_REF_AND_RESET(_var)		\
 	do {						\

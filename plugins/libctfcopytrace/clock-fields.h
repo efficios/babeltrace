@@ -36,22 +36,22 @@ extern "C" {
 #endif
 
 BT_HIDDEN
-struct bt_field_type *override_header_type(FILE *err,
-		struct bt_field_type *type,
-		const struct bt_trace *writer_trace);
+bt_field_type *override_header_type(FILE *err,
+		bt_field_type *type,
+		const bt_trace *writer_trace);
 
 BT_HIDDEN
-int copy_override_field(FILE *err, const struct bt_event *event,
-		const struct bt_event *writer_event, const struct bt_field *field,
-		const struct bt_field *copy_field);
+int copy_override_field(FILE *err, const bt_event *event,
+		const bt_event *writer_event, const bt_field *field,
+		const bt_field *copy_field);
 
 BT_HIDDEN
-const struct bt_clock_class *stream_class_get_clock_class(FILE *err,
-		const struct bt_stream_class *stream_class);
+const bt_clock_class *stream_class_get_clock_class(FILE *err,
+		const bt_stream_class *stream_class);
 
 BT_HIDDEN
-const struct bt_clock_class *event_get_clock_class(FILE *err,
-		const struct bt_event *event);
+const bt_clock_class *event_get_clock_class(FILE *err,
+		const bt_event *event);
 
 #ifdef __cplusplus
 }

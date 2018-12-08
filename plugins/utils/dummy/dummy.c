@@ -34,7 +34,7 @@ void destroy_private_dummy_data(struct dummy *dummy)
 }
 
 BT_HIDDEN
-void dummy_finalize(struct bt_self_component_sink *comp)
+void dummy_finalize(bt_self_component_sink *comp)
 {
 	struct dummy *dummy;
 
@@ -47,8 +47,8 @@ void dummy_finalize(struct bt_self_component_sink *comp)
 
 BT_HIDDEN
 enum bt_self_component_status dummy_init(
-		struct bt_self_component_sink *component,
-		const struct bt_value *params,
+		bt_self_component_sink *component,
+		const bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
 	enum bt_self_component_status ret;
@@ -78,13 +78,13 @@ end:
 
 BT_HIDDEN
 enum bt_self_component_status dummy_port_connected(
-		struct bt_self_component_sink *comp,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port)
+		bt_self_component_sink *comp,
+		bt_self_component_port_input *self_port,
+		const bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
-	struct bt_self_component_port_input_notification_iterator *iterator;
+	bt_self_component_port_input_notification_iterator *iterator;
 
 	dummy = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
@@ -105,7 +105,7 @@ end:
 
 BT_HIDDEN
 enum bt_self_component_status dummy_consume(
-		struct bt_self_component_sink *component)
+		bt_self_component_sink *component)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	bt_notification_array_const notifs;

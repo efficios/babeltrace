@@ -24,29 +24,28 @@
  * SOFTWARE.
  */
 
+/* For bt_notification, bt_self_notification_iterator, bt_packet */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_self_notification_iterator;
-struct bt_packet;
+extern
+bt_notification *bt_notification_packet_beginning_create(
+		bt_self_notification_iterator *notification_iterator,
+		bt_packet *packet);
 
 extern
-struct bt_notification *bt_notification_packet_beginning_create(
-		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_packet *packet);
+bt_notification *bt_notification_packet_end_create(
+		bt_self_notification_iterator *notification_iterator,
+		bt_packet *packet);
 
-extern
-struct bt_notification *bt_notification_packet_end_create(
-		struct bt_self_notification_iterator *notification_iterator,
-		struct bt_packet *packet);
+extern bt_packet *bt_notification_packet_beginning_borrow_packet(
+		bt_notification *notification);
 
-extern struct bt_packet *bt_notification_packet_beginning_borrow_packet(
-		struct bt_notification *notification);
-
-extern struct bt_packet *bt_notification_packet_end_borrow_packet(
-		struct bt_notification *notification);
+extern bt_packet *bt_notification_packet_end_borrow_packet(
+		bt_notification *notification);
 
 #ifdef __cplusplus
 }

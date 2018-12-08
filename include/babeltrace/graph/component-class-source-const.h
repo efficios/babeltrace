@@ -24,26 +24,26 @@
  * SOFTWARE.
  */
 
+/* For bt_component_class, bt_component_class_source */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class;
-struct bt_component_class_source;
-
 static inline
-const struct bt_component_class *
+const bt_component_class *
 bt_component_class_source_as_component_class_const(
-		const struct bt_component_class_source *comp_cls_source)
+		const bt_component_class_source *comp_cls_source)
 {
 	return (const void *) comp_cls_source;
 }
 
 extern void bt_component_class_source_get_ref(
-		const struct bt_component_class_source *component_class_source);
+		const bt_component_class_source *component_class_source);
 
 extern void bt_component_class_source_put_ref(
-		const struct bt_component_class_source *component_class_source);
+		const bt_component_class_source *component_class_source);
 
 #define BT_COMPONENT_CLASS_SOURCE_PUT_REF_AND_RESET(_var)	\
 	do {							\

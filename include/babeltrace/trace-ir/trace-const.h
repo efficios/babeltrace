@@ -27,7 +27,10 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool, bt_uuid */
+/*
+ * For bt_bool, bt_uuid, bt_trace, bt_stream, bt_stream_class,
+ * bt_field_class, bt_value
+ */
 #include <babeltrace/types.h>
 
 #include <stdint.h>
@@ -36,44 +39,38 @@
 extern "C" {
 #endif
 
-struct bt_trace;
-struct bt_stream;
-struct bt_stream_class;
-struct bt_field_class;
-struct bt_value;
-
-typedef void (* bt_trace_is_static_listener_func)(const struct bt_trace *trace,
+typedef void (* bt_trace_is_static_listener_func)(const bt_trace *trace,
 		void *data);
 
-typedef void (* bt_trace_listener_removed_func)(const struct bt_trace *trace,
+typedef void (* bt_trace_listener_removed_func)(const bt_trace *trace,
 		void *data);
 
-extern const struct bt_trace_class *bt_trace_borrow_class_const(
-		const struct bt_trace *trace);
+extern const bt_trace_class *bt_trace_borrow_class_const(
+		const bt_trace *trace);
 
-extern const char *bt_trace_get_name(const struct bt_trace *trace);
+extern const char *bt_trace_get_name(const bt_trace *trace);
 
-extern uint64_t bt_trace_get_stream_count(const struct bt_trace *trace);
+extern uint64_t bt_trace_get_stream_count(const bt_trace *trace);
 
-extern const struct bt_stream *bt_trace_borrow_stream_by_index_const(
-		const struct bt_trace *trace, uint64_t index);
+extern const bt_stream *bt_trace_borrow_stream_by_index_const(
+		const bt_trace *trace, uint64_t index);
 
-extern const struct bt_stream *bt_trace_borrow_stream_by_id_const(
-		const struct bt_trace *trace, uint64_t id);
+extern const bt_stream *bt_trace_borrow_stream_by_id_const(
+		const bt_trace *trace, uint64_t id);
 
-extern bt_bool bt_trace_is_static(const struct bt_trace *trace);
+extern bt_bool bt_trace_is_static(const bt_trace *trace);
 
-extern int bt_trace_add_is_static_listener(const struct bt_trace *trace,
+extern int bt_trace_add_is_static_listener(const bt_trace *trace,
 		bt_trace_is_static_listener_func listener,
 		bt_trace_listener_removed_func listener_removed, void *data,
 		uint64_t *listener_id);
 
-extern int bt_trace_remove_is_static_listener(const struct bt_trace *trace,
+extern int bt_trace_remove_is_static_listener(const bt_trace *trace,
 		uint64_t listener_id);
 
-extern void bt_trace_get_ref(const struct bt_trace *trace);
+extern void bt_trace_get_ref(const bt_trace *trace);
 
-extern void bt_trace_put_ref(const struct bt_trace *trace);
+extern void bt_trace_put_ref(const bt_trace *trace);
 
 #define BT_TRACE_PUT_REF_AND_RESET(_var)		\
 	do {						\

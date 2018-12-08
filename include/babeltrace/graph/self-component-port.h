@@ -23,35 +23,35 @@
  * SOFTWARE.
  */
 
+/*
+ * For bt_port, bt_self_component_port, bt_self_component, bt_connection
+ */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_port;
-struct bt_self_component_port;
-struct bt_self_component;
-struct bt_connection;
 
 enum bt_self_component_port_status {
 	BT_SELF_PORT_STATUS_OK = 0,
 };
 
 static inline
-const struct bt_port *bt_self_component_port_as_port(
-		struct bt_self_component_port *self_port)
+const bt_port *bt_self_component_port_as_port(
+		bt_self_component_port *self_port)
 {
 	return (const void *) self_port;
 }
 
-extern struct bt_self_component *bt_self_component_port_borrow_component(
-		struct bt_self_component_port *self_port);
+extern bt_self_component *bt_self_component_port_borrow_component(
+		bt_self_component_port *self_port);
 
 extern enum bt_self_component_port_status
 bt_self_component_port_remove_from_component(
-		struct bt_self_component_port *self_port);
+		bt_self_component_port *self_port);
 
 extern void *bt_self_component_port_get_data(
-		const struct bt_self_component_port *self_port);
+		const bt_self_component_port *self_port);
 
 #ifdef __cplusplus
 }

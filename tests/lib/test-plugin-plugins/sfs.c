@@ -19,34 +19,34 @@
 #include <babeltrace/assert-internal.h>
 
 static enum bt_self_component_status sink_consume(
-		struct bt_self_component_sink *self_comp)
+		bt_self_component_sink *self_comp)
 {
 	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
 static enum bt_self_notification_iterator_status src_dummy_iterator_init_method(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_port)
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_port)
 {
 	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static enum bt_self_notification_iterator_status flt_dummy_iterator_init_method(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_filter *self_comp,
-		struct bt_self_component_port_output *self_port)
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_filter *self_comp,
+		bt_self_component_port_output *self_port)
 {
 	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
-		struct bt_self_notification_iterator *self_notif_iter)
+		bt_self_notification_iterator *self_notif_iter)
 {
 }
 
 static enum bt_self_notification_iterator_status dummy_iterator_next_method(
-		struct bt_self_notification_iterator *self_notif_iter,
+		bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
@@ -54,13 +54,13 @@ static enum bt_self_notification_iterator_status dummy_iterator_next_method(
 }
 
 static enum bt_query_status flt_query_method(
-		struct bt_self_component_class_filter *component_class,
-		const struct bt_query_executor *query_exec,
-		const char *object, const struct bt_value *params,
-		const struct bt_value **result)
+		bt_self_component_class_filter *component_class,
+		const bt_query_executor *query_exec,
+		const char *object, const bt_value *params,
+		const bt_value **result)
 {
-	struct bt_value *res = bt_value_array_create();
-	struct bt_value *val;
+	bt_value *res = bt_value_array_create();
+	bt_value *val;
 	*result = res;
 	int iret;
 

@@ -47,13 +47,13 @@ struct range {
 
 BT_HIDDEN
 enum bt_query_status metadata_info_query(
-		struct bt_self_component_class_source *comp_class,
-		const struct bt_value *params,
-		const struct bt_value **user_result)
+		bt_self_component_class_source *comp_class,
+		const bt_value *params,
+		const bt_value **user_result)
 {
 	enum bt_query_status status = BT_QUERY_STATUS_OK;
-	struct bt_value *result = NULL;
-	const struct bt_value *path_value = NULL;
+	bt_value *result = NULL;
+	const bt_value *path_value = NULL;
 	char *metadata_text = NULL;
 	FILE *metadata_fp = NULL;
 	GString *g_metadata_text = NULL;
@@ -181,12 +181,12 @@ end:
 }
 
 static
-int add_range(struct bt_value *info, struct range *range,
+int add_range(bt_value *info, struct range *range,
 		const char *range_name)
 {
 	int ret = 0;
 	enum bt_value_status status;
-	struct bt_value *range_map = NULL;
+	bt_value *range_map = NULL;
 
 	if (!range->set) {
 		/* Not an error. */
@@ -226,12 +226,12 @@ end:
 }
 
 static
-int add_stream_ids(struct bt_value *info, const struct bt_stream *stream)
+int add_stream_ids(bt_value *info, const bt_stream *stream)
 {
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
 	enum bt_value_status status;
-	const struct bt_stream_class *stream_class = NULL;
+	const bt_stream_class *stream_class = NULL;
 
 	stream_instance_id = bt_stream_get_id(stream);
 	if (stream_instance_id != -1) {
@@ -267,12 +267,12 @@ end:
 
 static
 int populate_stream_info(struct ctf_fs_ds_file_group *group,
-		struct bt_value *group_info, struct range *stream_range)
+		bt_value *group_info, struct range *stream_range)
 {
 	int ret = 0;
 	size_t file_idx;
 	enum bt_value_status status;
-	struct bt_value *file_paths;
+	bt_value *file_paths;
 
 	stream_range->begin_ns = INT64_MAX;
 	stream_range->end_ns = 0;
@@ -342,13 +342,13 @@ end:
 
 static
 int populate_trace_info(const char *trace_path, const char *trace_name,
-		struct bt_value *trace_info)
+		bt_value *trace_info)
 {
 	int ret = 0;
 	size_t group_idx;
 	struct ctf_fs_trace *trace = NULL;
 	enum bt_value_status status;
-	struct bt_value *file_groups;
+	bt_value *file_groups;
 	struct range trace_range = {
 		.begin_ns = INT64_MAX,
 		.end_ns = 0,
@@ -395,7 +395,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 	/* Find range of all stream groups, and of the trace. */
 	for (group_idx = 0; group_idx < trace->ds_file_groups->len;
 			group_idx++) {
-		struct bt_value *group_info;
+		bt_value *group_info;
 		struct range group_range = { .set = false };
 		struct ctf_fs_ds_file_group *group = g_ptr_array_index(
 				trace->ds_file_groups, group_idx);
@@ -463,13 +463,13 @@ end:
 
 BT_HIDDEN
 enum bt_query_status trace_info_query(
-		struct bt_self_component_class_source *comp_class,
-		const struct bt_value *params,
-		const struct bt_value **user_result)
+		bt_self_component_class_source *comp_class,
+		const bt_value *params,
+		const bt_value **user_result)
 {
 	enum bt_query_status status = BT_QUERY_STATUS_OK;
-	struct bt_value *result = NULL;
-	const struct bt_value *path_value = NULL;
+	bt_value *result = NULL;
+	const bt_value *path_value = NULL;
 	int ret = 0;
 	const char *path = NULL;
 	GList *trace_paths = NULL;
@@ -521,7 +521,7 @@ enum bt_query_status trace_info_query(
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
 		enum bt_value_status status;
-		struct bt_value *trace_info;
+		bt_value *trace_info;
 
 		trace_info = bt_value_map_create();
 		if (!trace_info) {

@@ -53,7 +53,7 @@ struct ctf_fs_metadata {
 	struct ctf_metadata_decoder *decoder;
 
 	/* Owned by this */
-	struct bt_trace_class *trace_class;
+	bt_trace_class *trace_class;
 
 	/* Weak (owned by `decoder` above) */
 	struct ctf_trace_class *tc;
@@ -70,7 +70,7 @@ struct ctf_fs_metadata {
 
 struct ctf_fs_component {
 	/* Weak, guaranteed to exist */
-	struct bt_self_component_source *self_comp;
+	bt_self_component_source *self_comp;
 
 	/* Array of struct ctf_fs_port_data *, owned by this */
 	GPtrArray *port_data;
@@ -86,7 +86,7 @@ struct ctf_fs_trace {
 	struct ctf_fs_metadata *metadata;
 
 	/* Owned by this */
-	struct bt_trace *trace;
+	bt_trace *trace;
 
 	/* Array of struct ctf_fs_ds_file_group *, owned by this */
 	GPtrArray *ds_file_groups;
@@ -114,10 +114,10 @@ struct ctf_fs_ds_file_group {
 	GPtrArray *ds_file_infos;
 
 	/* Owned by this */
-	struct bt_stream_class *stream_class;
+	bt_stream_class *stream_class;
 
 	/* Owned by this */
-	struct bt_stream *stream;
+	bt_stream *stream;
 
 	/* Stream (instance) ID; -1ULL means none */
 	uint64_t stream_id;
@@ -136,7 +136,7 @@ struct ctf_fs_port_data {
 
 struct ctf_fs_notif_iter_data {
 	/* Weak */
-	struct bt_self_notification_iterator *pc_notif_iter;
+	bt_self_notification_iterator *pc_notif_iter;
 
 	/* Weak, belongs to ctf_fs_trace */
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -156,18 +156,18 @@ struct ctf_fs_notif_iter_data {
 
 BT_HIDDEN
 enum bt_self_component_status ctf_fs_init(
-		struct bt_self_component_source *source,
-		const struct bt_value *params, void *init_method_data);
+		bt_self_component_source *source,
+		const bt_value *params, void *init_method_data);
 
 BT_HIDDEN
-void ctf_fs_finalize(struct bt_self_component_source *component);
+void ctf_fs_finalize(bt_self_component_source *component);
 
 BT_HIDDEN
 enum bt_query_status ctf_fs_query(
-		struct bt_self_component_class_source *comp_class,
-		const struct bt_query_executor *query_exec,
-		const char *object, const struct bt_value *params,
-		const struct bt_value **result);
+		bt_self_component_class_source *comp_class,
+		const bt_query_executor *query_exec,
+		const char *object, const bt_value *params,
+		const bt_value **result);
 
 BT_HIDDEN
 struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
@@ -184,16 +184,16 @@ GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path);
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status ctf_fs_iterator_init(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_port);
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_port);
 
 BT_HIDDEN
-void ctf_fs_iterator_finalize(struct bt_self_notification_iterator *it);
+void ctf_fs_iterator_finalize(bt_self_notification_iterator *it);
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status ctf_fs_iterator_next(
-		struct bt_self_notification_iterator *iterator,
+		bt_self_notification_iterator *iterator,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count);
 

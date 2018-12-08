@@ -194,7 +194,7 @@ struct ctx_decl_scope {
  */
 struct ctx {
 	/* Trace IR trace class being filled (owned by this) */
-	struct bt_trace_class *trace_class;
+	bt_trace_class *trace_class;
 
 	/* CTF meta trace being filled (owned by this) */
 	struct ctf_trace_class *ctf_tc;
@@ -2350,7 +2350,7 @@ int visit_integer_decl(struct ctx *ctx,
 	int signedness = 0;
 	struct ctf_node *expression;
 	uint64_t alignment = 0, size = 0;
-	struct bt_clock_class *mapped_clock_class = NULL;
+	bt_clock_class *mapped_clock_class = NULL;
 	enum ctf_encoding encoding = CTF_ENCODING_NONE;
 	enum bt_field_class_integer_preferred_display_base base =
 		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
@@ -3562,7 +3562,7 @@ static
 int auto_map_field_to_trace_clock_class(struct ctx *ctx,
 		struct ctf_field_class *fc)
 {
-	struct bt_clock_class *clock_class_to_map_to = NULL;
+	bt_clock_class *clock_class_to_map_to = NULL;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 	int ret = 0;
 	uint64_t clock_class_count;
@@ -4355,7 +4355,7 @@ error:
 
 static
 int visit_clock_decl_entry(struct ctx *ctx, struct ctf_node *entry_node,
-	struct bt_clock_class *clock, int *set, int64_t *offset_seconds,
+	bt_clock_class *clock, int *set, int64_t *offset_seconds,
 	uint64_t *offset_cycles)
 {
 	int ret = 0;
@@ -4602,7 +4602,7 @@ void calibrate_clock_class_offsets(int64_t *offset_seconds,
 
 static
 void apply_clock_class_offset(struct ctx *ctx,
-		struct bt_clock_class *clock)
+		bt_clock_class *clock)
 {
 	uint64_t freq;
 	int64_t offset_s_to_apply = ctx->decoder_config.clock_class_offset_s;
@@ -4663,7 +4663,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 {
 	int ret = 0;
 	int set = 0;
-	struct bt_clock_class *clock;
+	bt_clock_class *clock;
 	struct ctf_node *entry_node;
 	struct bt_list_head *decl_list = &clock_node->u.clock.declaration_list;
 	const char *clock_class_name;
@@ -4830,7 +4830,7 @@ void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor)
 }
 
 BT_HIDDEN
-struct bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
+bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 		struct ctf_visitor_generate_ir *visitor)
 {
 	struct ctx *ctx = (void *) visitor;

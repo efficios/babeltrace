@@ -69,7 +69,7 @@ struct lttng_live_stream_iterator_generic {
 struct lttng_live_stream_iterator {
 	struct lttng_live_stream_iterator_generic p;
 
-	const struct bt_stream *stream;
+	const bt_stream *stream;
 	struct lttng_live_trace *trace;
 	struct bt_private_port *port;	/* weak ref. */
 
@@ -95,7 +95,7 @@ struct lttng_live_stream_iterator {
 	enum lttng_live_stream_state state;
 
 	uint64_t current_packet_end_timestamp;
-	const struct bt_notification *packet_end_notif_queue;
+	const bt_notification *packet_end_notif_queue;
 
 	uint8_t *buf;
 	size_t buflen;
@@ -128,7 +128,7 @@ struct lttng_live_metadata {
 };
 
 struct lttng_live_trace {
-	struct bt_object obj;
+	bt_object obj;
 
 	/* Node of trace list within the session. */
 	struct bt_list_head node;
@@ -138,10 +138,10 @@ struct lttng_live_trace {
 
 	uint64_t id;	/* ctf trace ID within the session. */
 
-	const struct bt_trace *trace;
+	const bt_trace *trace;
 
 	struct lttng_live_metadata *metadata;
-	struct bt_clock_class_priority_map *cc_prio_map;
+	bt_clock_class_priority_map *cc_prio_map;
 
 	/* List of struct lttng_live_stream_iterator */
 	struct bt_list_head streams;
@@ -173,8 +173,8 @@ struct lttng_live_session {
  * A component instance is an iterator on a single session.
  */
 struct lttng_live_component {
-	struct bt_object obj;
-	struct bt_self_component *private_component;	/* weak */
+	bt_object obj;
+	bt_self_component *private_component;	/* weak */
 	struct bt_live_viewer_connection *viewer_connection;
 
 	/* List of struct lttng_live_session */
@@ -187,7 +187,7 @@ struct lttng_live_component {
 	struct bt_private_port *no_stream_port;	/* weak */
 	struct lttng_live_no_stream_iterator *no_stream_iter;
 
-	struct bt_component *downstream_component;
+	bt_component *downstream_component;
 };
 
 enum bt_lttng_live_iterator_status {
@@ -209,29 +209,29 @@ enum bt_lttng_live_iterator_status {
 	BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED = -4,
 };
 
-enum bt_component_status lttng_live_component_init(struct bt_self_component *source,
-		struct bt_value *params, void *init_method_data);
+enum bt_component_status lttng_live_component_init(bt_self_component *source,
+		bt_value *params, void *init_method_data);
 
-struct bt_component_class_query_method_return lttng_live_query(
-		const struct bt_component_class *comp_class,
-		const struct bt_query_executor *query_exec,
-		const char *object, struct bt_value *params);
+bt_component_class_query_method_return lttng_live_query(
+		const bt_component_class *comp_class,
+		const bt_query_executor *query_exec,
+		const char *object, bt_value *params);
 
-void lttng_live_component_finalize(struct bt_self_component *component);
+void lttng_live_component_finalize(bt_self_component *component);
 
-struct bt_notification_iterator_next_method_return lttng_live_iterator_next(
-        struct bt_self_notification_iterator *iterator);
+bt_notification_iterator_next_method_return lttng_live_iterator_next(
+        bt_self_notification_iterator *iterator);
 
 enum bt_component_status lttng_live_accept_port_connection(
-		struct bt_self_component *private_component,
+		bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
-		const struct bt_port *other_port);
+		const bt_port *other_port);
 
 enum bt_notification_iterator_status lttng_live_iterator_init(
-		struct bt_self_notification_iterator *it,
+		bt_self_notification_iterator *it,
 		struct bt_private_port *port);
 
-void lttng_live_iterator_finalize(struct bt_self_notification_iterator *it);
+void lttng_live_iterator_finalize(bt_self_notification_iterator *it);
 
 int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live);
 int lttng_live_attach_session(struct lttng_live_session *session);

@@ -58,78 +58,78 @@ struct event {
 
 	union {
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *self_port;
-			const struct bt_port *other_port;
+			const bt_component *comp;
+			const bt_port *self_port;
+			const bt_port *other_port;
 		} src_comp_accept_output_port_connection;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *self_port;
-			const struct bt_port *other_port;
+			const bt_component *comp;
+			const bt_port *self_port;
+			const bt_port *other_port;
 		} sink_comp_accept_input_port_connection;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *self_port;
-			const struct bt_port *other_port;
+			const bt_component *comp;
+			const bt_port *self_port;
+			const bt_port *other_port;
 		} src_comp_output_port_connected;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *self_port;
-			const struct bt_port *other_port;
+			const bt_component *comp;
+			const bt_port *self_port;
+			const bt_port *other_port;
 		} sink_comp_input_port_connected;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *self_port;
+			const bt_component *comp;
+			const bt_port *self_port;
 		} src_comp_output_port_disconnected;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *self_port;
+			const bt_component *comp;
+			const bt_port *self_port;
 		} sink_comp_input_port_disconnected;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *port;
+			const bt_component *comp;
+			const bt_port *port;
 		} graph_src_output_port_added;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *port;
+			const bt_component *comp;
+			const bt_port *port;
 		} graph_sink_input_port_added;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *port;
+			const bt_component *comp;
+			const bt_port *port;
 		} graph_src_output_port_removed;
 
 		struct {
-			const struct bt_component *comp;
-			const struct bt_port *port;
+			const bt_component *comp;
+			const bt_port *port;
 		} graph_sink_input_port_removed;
 
 		struct {
-			const struct bt_component *upstream_comp;
-			const struct bt_component *downstream_comp;
-			const struct bt_port *upstream_port;
-			const struct bt_port *downstream_port;
+			const bt_component *upstream_comp;
+			const bt_component *downstream_comp;
+			const bt_port *upstream_port;
+			const bt_port *downstream_port;
 		} graph_src_sink_ports_connected;
 
 		struct {
-			const struct bt_component *upstream_comp;
-			const struct bt_component *downstream_comp;
-			const struct bt_port *upstream_port;
-			const struct bt_port *downstream_port;
+			const bt_component *upstream_comp;
+			const bt_component *downstream_comp;
+			const bt_port *upstream_port;
+			const bt_port *downstream_port;
 		} graph_src_sink_ports_disconnected;
 	} data;
 };
 
 static GArray *events;
-static struct bt_component_class_source *src_comp_class;
-static struct bt_component_class_sink *sink_comp_class;
+static bt_component_class_source *src_comp_class;
+static bt_component_class_sink *sink_comp_class;
 static enum test current_test;
 
 static
@@ -365,7 +365,7 @@ size_t event_pos(struct event *event)
 
 static
 enum bt_self_notification_iterator_status src_iter_next(
-		struct bt_self_notification_iterator *self_iterator,
+		bt_self_notification_iterator *self_iterator,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
@@ -374,9 +374,9 @@ enum bt_self_notification_iterator_status src_iter_next(
 
 static
 enum bt_self_component_status src_accept_output_port_connection(
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_comp_port,
-		const struct bt_port_input *other_port)
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_comp_port,
+		const bt_port_input *other_port)
 {
 	struct event event = {
 		.type = SRC_COMP_ACCEPT_OUTPUT_PORT_CONNECTION,
@@ -397,9 +397,9 @@ enum bt_self_component_status src_accept_output_port_connection(
 
 static
 enum bt_self_component_status sink_accept_input_port_connection(
-		struct bt_self_component_sink *self_comp,
-		struct bt_self_component_port_input *self_comp_port,
-		const struct bt_port_output *other_port)
+		bt_self_component_sink *self_comp,
+		bt_self_component_port_input *self_comp_port,
+		const bt_port_output *other_port)
 {
 	struct event event = {
 		.type = SINK_COMP_ACCEPT_INPUT_PORT_CONNECTION,
@@ -420,9 +420,9 @@ enum bt_self_component_status sink_accept_input_port_connection(
 
 static
 enum bt_self_component_status src_output_port_connected(
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_comp_port,
-		const struct bt_port_input *other_port)
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_comp_port,
+		const bt_port_input *other_port)
 {
 	int ret;
 	struct event event = {
@@ -457,9 +457,9 @@ enum bt_self_component_status src_output_port_connected(
 
 static
 enum bt_self_component_status sink_input_port_connected(
-		struct bt_self_component_sink *self_comp,
-		struct bt_self_component_port_input *self_comp_port,
-		const struct bt_port_output *other_port)
+		bt_self_component_sink *self_comp,
+		bt_self_component_port_input *self_comp_port,
+		const bt_port_output *other_port)
 {
 	struct event event = {
 		.type = SINK_COMP_INPUT_PORT_CONNECTED,
@@ -484,8 +484,8 @@ enum bt_self_component_status sink_input_port_connected(
 }
 
 static
-void src_output_port_disconnected(struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_comp_port)
+void src_output_port_disconnected(bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_comp_port)
 {
 	int ret;
 	struct event event = {
@@ -514,8 +514,8 @@ void src_output_port_disconnected(struct bt_self_component_source *self_comp,
 }
 
 static
-void sink_input_port_disconnected(struct bt_self_component_sink *self_comp,
-		struct bt_self_component_port_input *self_comp_port)
+void sink_input_port_disconnected(bt_self_component_sink *self_comp,
+		bt_self_component_port_input *self_comp_port)
 {
 	struct event event = {
 		.type = SINK_COMP_INPUT_PORT_DISCONNECTED,
@@ -534,8 +534,8 @@ void sink_input_port_disconnected(struct bt_self_component_sink *self_comp,
 
 static
 enum bt_self_component_status src_init(
-	struct bt_self_component_source *self_comp,
-	const struct bt_value *params, void *init_method_data)
+	bt_self_component_source *self_comp,
+	const bt_value *params, void *init_method_data)
 {
 	int ret;
 
@@ -547,8 +547,8 @@ enum bt_self_component_status src_init(
 
 static
 enum bt_self_component_status sink_init(
-	struct bt_self_component_sink *self_comp,
-	const struct bt_value *params, void *init_method_data)
+	bt_self_component_sink *self_comp,
+	const bt_value *params, void *init_method_data)
 {
 	int ret;
 
@@ -560,9 +560,9 @@ enum bt_self_component_status sink_init(
 
 static
 enum bt_self_component_status sink_consume(
-		struct bt_self_component_sink *self_comp)
+		bt_self_component_sink *self_comp)
 {
-	struct bt_self_component_port_input *def_port;
+	bt_self_component_port_input *def_port;
 	int ret;
 
 	switch (current_test) {
@@ -584,8 +584,8 @@ enum bt_self_component_status sink_consume(
 }
 
 static
-void graph_src_output_port_added(const struct bt_component_source *comp,
-		const struct bt_port_output *port, void *data)
+void graph_src_output_port_added(const bt_component_source *comp,
+		const bt_port_output *port, void *data)
 {
 	struct event event = {
 		.type = GRAPH_SRC_OUTPUT_PORT_ADDED,
@@ -599,8 +599,8 @@ void graph_src_output_port_added(const struct bt_component_source *comp,
 }
 
 static
-void graph_sink_input_port_added(const struct bt_component_sink *comp,
-		const struct bt_port_input *port, void *data)
+void graph_sink_input_port_added(const bt_component_sink *comp,
+		const bt_port_input *port, void *data)
 {
 	struct event event = {
 		.type = GRAPH_SINK_INPUT_PORT_ADDED,
@@ -614,8 +614,8 @@ void graph_sink_input_port_added(const struct bt_component_sink *comp,
 }
 
 static
-void graph_src_output_port_removed(const struct bt_component_source *comp,
-		const struct bt_port_output *port, void *data)
+void graph_src_output_port_removed(const bt_component_source *comp,
+		const bt_port_output *port, void *data)
 {
 	struct event event = {
 		.type = GRAPH_SRC_OUTPUT_PORT_REMOVED,
@@ -629,8 +629,8 @@ void graph_src_output_port_removed(const struct bt_component_source *comp,
 }
 
 static
-void graph_sink_input_port_removed(const struct bt_component_sink *comp,
-		const struct bt_port_input *port, void *data)
+void graph_sink_input_port_removed(const bt_component_sink *comp,
+		const bt_port_input *port, void *data)
 {
 	struct event event = {
 		.type = GRAPH_SINK_INPUT_PORT_REMOVED,
@@ -644,10 +644,10 @@ void graph_sink_input_port_removed(const struct bt_component_sink *comp,
 }
 
 static
-void graph_src_sink_ports_connected(const struct bt_component_source *upstream_comp,
-		const struct bt_component_sink *downstream_comp,
-		const struct bt_port_output *upstream_port,
-		const struct bt_port_input *downstream_port, void *data)
+void graph_src_sink_ports_connected(const bt_component_source *upstream_comp,
+		const bt_component_sink *downstream_comp,
+		const bt_port_output *upstream_port,
+		const bt_port_input *downstream_port, void *data)
 {
 	struct event event = {
 		.type = GRAPH_SRC_SINK_PORTS_CONNECTED,
@@ -667,10 +667,10 @@ void graph_src_sink_ports_connected(const struct bt_component_source *upstream_c
 }
 
 static
-void graph_src_sink_ports_disconnected(const struct bt_component_source *upstream_comp,
-		const struct bt_component_sink *downstream_comp,
-		const struct bt_port_output *upstream_port,
-		const struct bt_port_input *downstream_port, void *data)
+void graph_src_sink_ports_disconnected(const bt_component_source *upstream_comp,
+		const bt_component_sink *downstream_comp,
+		const bt_port_output *upstream_port,
+		const bt_port_input *downstream_port, void *data)
 {
 	struct event event = {
 		.type = GRAPH_SRC_SINK_PORTS_DISCONNECTED,
@@ -737,9 +737,9 @@ void fini_test(void)
 }
 
 static
-const struct bt_component_source *create_src(struct bt_graph *graph)
+const bt_component_source *create_src(bt_graph *graph)
 {
-	const struct bt_component_source *comp;
+	const bt_component_source *comp;
 	int ret;
 
 	ret = bt_graph_add_source_component(graph, src_comp_class,
@@ -749,9 +749,9 @@ const struct bt_component_source *create_src(struct bt_graph *graph)
 }
 
 static
-const struct bt_component_sink *create_sink(struct bt_graph *graph)
+const bt_component_sink *create_sink(bt_graph *graph)
 {
-	const struct bt_component_sink *comp;
+	const bt_component_sink *comp;
 	int ret;
 
 	ret = bt_graph_add_sink_component(graph, sink_comp_class,
@@ -761,9 +761,9 @@ const struct bt_component_sink *create_sink(struct bt_graph *graph)
 }
 
 static
-struct bt_graph *create_graph(void)
+bt_graph *create_graph(void)
 {
-	struct bt_graph *graph = bt_graph_create();
+	bt_graph *graph = bt_graph_create();
 	int ret;
 
 	BT_ASSERT(graph);
@@ -800,15 +800,15 @@ static
 void test_sink_removes_port_in_consume_then_src_removes_disconnected_port(void)
 {
 	int ret;
-	const struct bt_component_source *src;
-	const struct bt_component_sink *sink;
-	const struct bt_component *gsrc;
-	const struct bt_component *gsink;
-	struct bt_graph *graph;
-	const struct bt_port_output *src_def_port;
-	const struct bt_port_input *sink_def_port;
-	const struct bt_port *gsrc_def_port;
-	const struct bt_port *gsink_def_port;
+	const bt_component_source *src;
+	const bt_component_sink *sink;
+	const bt_component *gsrc;
+	const bt_component *gsink;
+	bt_graph *graph;
+	const bt_port_output *src_def_port;
+	const bt_port_input *sink_def_port;
+	const bt_port *gsrc_def_port;
+	const bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -982,15 +982,15 @@ static
 void test_sink_removes_port_in_consume(void)
 {
 	int ret;
-	const struct bt_component_source *src;
-	const struct bt_component_sink *sink;
-	const struct bt_component *gsrc;
-	const struct bt_component *gsink;
-	struct bt_graph *graph;
-	const struct bt_port_output *src_def_port;
-	const struct bt_port_input *sink_def_port;
-	const struct bt_port *gsrc_def_port;
-	const struct bt_port *gsink_def_port;
+	const bt_component_source *src;
+	const bt_component_sink *sink;
+	const bt_component *gsrc;
+	const bt_component *gsink;
+	bt_graph *graph;
+	const bt_port_output *src_def_port;
+	const bt_port_input *sink_def_port;
+	const bt_port *gsrc_def_port;
+	const bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -1147,17 +1147,17 @@ void test_sink_removes_port_in_consume(void)
 static
 void test_src_adds_port_in_port_connected(void)
 {
-	const struct bt_component_source *src;
-	const struct bt_component_sink *sink;
-	const struct bt_component *gsrc;
-	const struct bt_component *gsink;
-	struct bt_graph *graph;
-	const struct bt_port_output *src_def_port;
-	const struct bt_port_output *src_hello_port;
-	const struct bt_port_input *sink_def_port;
-	const struct bt_port *gsrc_def_port;
-	const struct bt_port *gsrc_hello_port;
-	const struct bt_port *gsink_def_port;
+	const bt_component_source *src;
+	const bt_component_sink *sink;
+	const bt_component *gsrc;
+	const bt_component *gsink;
+	bt_graph *graph;
+	const bt_port_output *src_def_port;
+	const bt_port_output *src_hello_port;
+	const bt_port_input *sink_def_port;
+	const bt_port *gsrc_def_port;
+	const bt_port *gsrc_hello_port;
+	const bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -1276,15 +1276,15 @@ void test_src_adds_port_in_port_connected(void)
 static
 void test_simple(void)
 {
-	const struct bt_component_source *src;
-	const struct bt_component_sink *sink;
-	const struct bt_component *gsrc;
-	const struct bt_component *gsink;
-	struct bt_graph *graph;
-	const struct bt_port_output *src_def_port;
-	const struct bt_port_input *sink_def_port;
-	const struct bt_port *gsrc_def_port;
-	const struct bt_port *gsink_def_port;
+	const bt_component_source *src;
+	const bt_component_sink *sink;
+	const bt_component *gsrc;
+	const bt_component *gsink;
+	bt_graph *graph;
+	const bt_port_output *src_def_port;
+	const bt_port_input *sink_def_port;
+	const bt_port *gsrc_def_port;
+	const bt_port *gsink_def_port;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -1386,16 +1386,16 @@ void test_simple(void)
 static
 void test_src_port_connected_error(void)
 {
-	const struct bt_component_source *src;
-	const struct bt_component_sink *sink;
-	const struct bt_component *gsrc;
-	const struct bt_component *gsink;
-	struct bt_graph *graph;
-	const struct bt_port_output *src_def_port;
-	const struct bt_port_input *sink_def_port;
-	const struct bt_port *gsrc_def_port;
-	const struct bt_port *gsink_def_port;
-	const struct bt_connection *conn = NULL;
+	const bt_component_source *src;
+	const bt_component_sink *sink;
+	const bt_component *gsrc;
+	const bt_component *gsink;
+	bt_graph *graph;
+	const bt_port_output *src_def_port;
+	const bt_port_input *sink_def_port;
+	const bt_port *gsrc_def_port;
+	const bt_port *gsink_def_port;
+	const bt_connection *conn = NULL;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -1473,16 +1473,16 @@ void test_src_port_connected_error(void)
 static
 void test_sink_port_connected_error(void)
 {
-	const struct bt_component_source *src;
-	const struct bt_component_sink *sink;
-	const struct bt_component *gsrc;
-	const struct bt_component *gsink;
-	struct bt_graph *graph;
-	const struct bt_port_output *src_def_port;
-	const struct bt_port_input *sink_def_port;
-	const struct bt_port *gsrc_def_port;
-	const struct bt_port *gsink_def_port;
-	const struct bt_connection *conn = NULL;
+	const bt_component_source *src;
+	const bt_component_sink *sink;
+	const bt_component *gsrc;
+	const bt_component *gsink;
+	bt_graph *graph;
+	const bt_port_output *src_def_port;
+	const bt_port_input *sink_def_port;
+	const bt_port *gsrc_def_port;
+	const bt_port *gsink_def_port;
+	const bt_connection *conn = NULL;
 	struct event event;
 	enum bt_graph_status status;
 	size_t src_accept_port_connection_pos;
@@ -1583,7 +1583,7 @@ void test_sink_port_connected_error(void)
 static
 void test_empty_graph(void)
 {
-	struct bt_graph *graph;
+	bt_graph *graph;
 
 	prepare_test(TEST_EMPTY_GRAPH, "empty graph");
 	graph = create_graph();
