@@ -31,11 +31,11 @@
 extern "C" {
 #endif
 
-enum bt_component_class_type {
-	BT_COMPONENT_CLASS_TYPE_SOURCE =	0,
-	BT_COMPONENT_CLASS_TYPE_FILTER =	1,
-	BT_COMPONENT_CLASS_TYPE_SINK =		2,
-};
+typedef enum bt_component_class_type {
+	BT_COMPONENT_CLASS_TYPE_SOURCE = 0,
+	BT_COMPONENT_CLASS_TYPE_FILTER = 1,
+	BT_COMPONENT_CLASS_TYPE_SINK = 2,
+} bt_component_class_type;
 
 extern const char *bt_component_class_get_name(
 		const bt_component_class *component_class);
@@ -46,7 +46,7 @@ extern const char *bt_component_class_get_description(
 extern const char *bt_component_class_get_help(
 		const bt_component_class *component_class);
 
-extern enum bt_component_class_type bt_component_class_get_type(
+extern bt_component_class_type bt_component_class_get_type(
 		const bt_component_class *component_class);
 
 static inline

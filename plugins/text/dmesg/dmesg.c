@@ -358,7 +358,7 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 }
 
 static
-enum bt_self_component_status create_port(
+bt_self_component_status create_port(
 		bt_self_component_source *self_comp)
 {
 	return bt_self_component_source_add_output_port(self_comp,
@@ -366,13 +366,13 @@ enum bt_self_component_status create_port(
 }
 
 BT_HIDDEN
-enum bt_self_component_status dmesg_init(
+bt_self_component_status dmesg_init(
 		bt_self_component_source *self_comp,
 		bt_value *params, void *init_method_data)
 {
 	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 
 	if (!dmesg_comp) {
 		BT_LOGE_STR("Failed to allocate one dmesg component structure.");
@@ -629,7 +629,7 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 }
 
 BT_HIDDEN
-enum bt_self_message_iterator_status dmesg_msg_iter_init(
+bt_self_message_iterator_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
@@ -637,7 +637,7 @@ enum bt_self_message_iterator_status dmesg_msg_iter_init(
 	struct dmesg_component *dmesg_comp;
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		g_new0(struct dmesg_msg_iter, 1);
-	enum bt_self_message_iterator_status status =
+	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
 	if (!dmesg_msg_iter) {
@@ -686,13 +686,13 @@ void dmesg_msg_iter_finalize(
 }
 
 static
-enum bt_self_message_iterator_status dmesg_msg_iter_next_one(
+bt_self_message_iterator_status dmesg_msg_iter_next_one(
 		struct dmesg_msg_iter *dmesg_msg_iter,
 		bt_message **msg)
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
-	enum bt_self_message_iterator_status status =
+	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
 	BT_ASSERT(dmesg_msg_iter);
@@ -808,7 +808,7 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_message_iterator_status dmesg_msg_iter_next(
+bt_self_message_iterator_status dmesg_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -816,7 +816,7 @@ enum bt_self_message_iterator_status dmesg_msg_iter_next(
 	struct dmesg_msg_iter *dmesg_msg_iter =
 		bt_self_message_iterator_get_data(
 			self_msg_iter);
-	enum bt_self_message_iterator_status status =
+	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 

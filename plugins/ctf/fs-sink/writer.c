@@ -109,11 +109,11 @@ end:
 }
 
 static
-enum bt_component_status handle_message(
+bt_component_status handle_message(
 		struct writer_component *writer_component,
 		const bt_message *message)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	if (!writer_component) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -205,7 +205,7 @@ void writer_component_port_connected(
 {
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
-	enum bt_connection_status conn_status;
+	bt_connection_status conn_status;
 
 	writer = bt_self_component_get_user_data(component);
 	BT_ASSERT(writer);
@@ -222,14 +222,14 @@ void writer_component_port_connected(
 }
 
 BT_HIDDEN
-enum bt_component_status writer_run(bt_self_component *component)
+bt_component_status writer_run(bt_self_component *component)
 {
-	enum bt_component_status ret;
+	bt_component_status ret;
 	const bt_message *message = NULL;
 	bt_message_iterator *it;
 	struct writer_component *writer_component =
 		bt_self_component_get_user_data(component);
-	enum bt_message_iterator_status it_ret;
+	bt_message_iterator_status it_ret;
 
 	if (unlikely(writer_component->error)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -264,14 +264,14 @@ end:
 }
 
 static
-enum bt_component_status apply_one_bool(const char *key,
+bt_component_status apply_one_bool(const char *key,
 		bt_value *params,
 		bool *option,
 		bool *found)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	bt_value *value = NULL;
-	enum bt_value_status status;
+	bt_value_status status;
 	bt_bool bool_val;
 
 	value = bt_value_map_get(params, key);
@@ -290,12 +290,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status writer_component_init(
+bt_component_status writer_component_init(
 	bt_self_component *component, bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
-	enum bt_component_status ret;
-	enum bt_value_status value_ret;
+	bt_component_status ret;
+	bt_value_status value_ret;
 	struct writer_component *writer_component = create_writer_component();
 	bt_value *value = NULL;
 	const char *path;

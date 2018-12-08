@@ -82,7 +82,7 @@ void print_timestamp_cycles(struct pretty_component *pretty,
 {
 	const bt_clock_snapshot *clock_snapshot;
 	uint64_t cycles;
-	enum bt_clock_snapshot_state cs_state;
+	bt_clock_snapshot_state cs_state;
 
 	cs_state = bt_event_borrow_default_clock_snapshot_const(event, &clock_snapshot);
 	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN || !clock_snapshot) {
@@ -223,7 +223,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 	const bt_stream *stream = NULL;
 	const bt_stream_class *stream_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
-	enum bt_clock_snapshot_state cs_state;
+	bt_clock_snapshot_state cs_state;
 
 	stream = bt_event_borrow_stream_const(event);
 	if (!stream) {
@@ -319,7 +319,7 @@ int print_event_header(struct pretty_component *pretty,
 	const bt_stream *stream = NULL;
 	const bt_trace *trace = NULL;
 	int dom_print = 0;
-	enum bt_property_availability prop_avail;
+	bt_property_availability prop_avail;
 
 	event_class = bt_event_borrow_class_const(event);
 	stream_class = bt_event_class_borrow_stream_class_const(event_class);
@@ -451,7 +451,7 @@ int print_event_header(struct pretty_component *pretty,
 			[ BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE ] = "TRACE_DEBUG_LINE",
 			[ BT_EVENT_CLASS_LOG_LEVEL_DEBUG ] = "TRACE_DEBUG",
 		};
-		enum bt_event_class_log_level log_level;
+		bt_event_class_log_level log_level;
 		const char *log_level_str = NULL;
 
 		prop_avail = bt_event_class_get_log_level(event_class,
@@ -525,14 +525,14 @@ int print_integer(struct pretty_component *pretty,
 		const bt_field *field)
 {
 	int ret = 0;
-	enum bt_field_class_integer_preferred_display_base base;
+	bt_field_class_integer_preferred_display_base base;
 	const bt_field_class *int_fc;
 	union {
 		uint64_t u;
 		int64_t s;
 	} v;
 	bool rst_color = false;
-	enum bt_field_class_type ft_type;
+	bt_field_class_type ft_type;
 
 	int_fc = bt_field_borrow_class_const(field);
 	BT_ASSERT(int_fc);
@@ -986,7 +986,7 @@ int print_field(struct pretty_component *pretty,
 		const bt_field *field, bool print_names,
 		GQuark *filter_fields, int filter_array_len)
 {
-	enum bt_field_class_type class_id;
+	bt_field_class_type class_id;
 
 	class_id = bt_field_get_class_type(field);
 	switch (class_id) {

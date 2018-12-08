@@ -94,12 +94,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status ctf_copy_clock_classes(FILE *err,
+bt_component_status ctf_copy_clock_classes(FILE *err,
 		const bt_trace *writer_trace,
 		const bt_stream_class *writer_stream_class,
 		const bt_trace *trace)
 {
-	enum bt_component_status ret;
+	bt_component_status ret;
 	int int_ret, clock_class_count, i;
 
 	clock_class_count = bt_trace_get_clock_class_count(trace);
@@ -255,7 +255,7 @@ const bt_event_class *ctf_copy_event_class(FILE *err,
 	const char *name;
 	int ret;
 	int64_t id;
-	enum bt_event_class_log_level log_level;
+	bt_event_class_log_level log_level;
 	const char *emf_uri;
 
 	name = bt_event_class_get_name(event_class);
@@ -342,11 +342,11 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status ctf_copy_event_classes(FILE *err,
+bt_component_status ctf_copy_event_classes(FILE *err,
 		const bt_stream_class *stream_class,
 		const bt_stream_class *writer_stream_class)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	const bt_event_class *event_class = NULL, *writer_event_class = NULL;
 	int count, i;
 	const bt_trace *writer_trace =
@@ -855,13 +855,13 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status ctf_copy_trace(FILE *err, const bt_trace *trace,
+bt_component_status ctf_copy_trace(FILE *err, const bt_trace *trace,
 		const bt_trace *writer_trace)
 {
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	int field_count, i, int_ret;
 	bt_field_type *header_type = NULL;
-	enum bt_byte_order order;
+	bt_byte_order order;
 	const char *trace_name;
 	const unsigned char *trace_uuid;
 

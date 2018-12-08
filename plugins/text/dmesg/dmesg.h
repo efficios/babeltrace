@@ -28,7 +28,7 @@
 #include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
-enum bt_self_component_status dmesg_init(
+bt_self_component_status dmesg_init(
 		bt_self_component_source *self_comp,
 		const bt_value *params, void *init_method_data);
 
@@ -36,7 +36,7 @@ BT_HIDDEN
 void dmesg_finalize(bt_self_component_source *self_comp);
 
 BT_HIDDEN
-enum bt_self_message_iterator_status dmesg_msg_iter_init(
+bt_self_message_iterator_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port);
@@ -46,7 +46,7 @@ void dmesg_msg_iter_finalize(
 		bt_self_message_iterator *self_msg_iter);
 
 BT_HIDDEN
-enum bt_self_message_iterator_status dmesg_msg_iter_next(
+bt_self_message_iterator_status dmesg_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);

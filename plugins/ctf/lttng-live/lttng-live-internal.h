@@ -190,7 +190,7 @@ struct lttng_live_component {
 	bt_component *downstream_component;
 };
 
-enum bt_lttng_live_iterator_status {
+bt_lttng_live_iterator_status {
 	/** Iterator state has progressed. Continue iteration immediately. */
 	BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE = 3,
 	/** No message available for now. Try again later. */
@@ -209,7 +209,7 @@ enum bt_lttng_live_iterator_status {
 	BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED = -4,
 };
 
-enum bt_component_status lttng_live_component_init(bt_self_component *source,
+bt_component_status lttng_live_component_init(bt_self_component *source,
 		bt_value *params, void *init_method_data);
 
 bt_component_class_query_method_return lttng_live_query(
@@ -222,12 +222,12 @@ void lttng_live_component_finalize(bt_self_component *component);
 bt_message_iterator_next_method_return lttng_live_iterator_next(
         bt_self_message_iterator *iterator);
 
-enum bt_component_status lttng_live_accept_port_connection(
+bt_component_status lttng_live_accept_port_connection(
 		bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
 		const bt_port *other_port);
 
-enum bt_message_iterator_status lttng_live_iterator_init(
+bt_message_iterator_status lttng_live_iterator_init(
 		bt_self_message_iterator *it,
 		struct bt_private_port *port);
 
@@ -236,7 +236,7 @@ void lttng_live_iterator_finalize(bt_self_message_iterator *it);
 int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live);
 int lttng_live_attach_session(struct lttng_live_session *session);
 int lttng_live_detach_session(struct lttng_live_session *session);
-enum bt_lttng_live_iterator_status lttng_live_get_new_streams(
+bt_lttng_live_iterator_status lttng_live_get_new_streams(
 		struct lttng_live_session *session);
 
 int lttng_live_add_session(struct lttng_live_component *lttng_live,
@@ -246,7 +246,7 @@ int lttng_live_add_session(struct lttng_live_component *lttng_live,
 
 ssize_t lttng_live_get_one_metadata_packet(struct lttng_live_trace *trace,
 		FILE *fp);
-enum bt_lttng_live_iterator_status lttng_live_get_next_index(
+bt_lttng_live_iterator_status lttng_live_get_next_index(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream,
 		struct packet_index *index);

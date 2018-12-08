@@ -104,17 +104,17 @@ extern
 GQuark stream_packet_context_quarks[STREAM_PACKET_CONTEXT_QUARKS_LEN];
 
 BT_HIDDEN
-enum bt_self_component_status pretty_init(
+bt_self_component_status pretty_init(
 		bt_self_component_sink *component,
 		const bt_value *params,
 		void *init_method_data);
 
 BT_HIDDEN
-enum bt_self_component_status pretty_consume(
+bt_self_component_status pretty_consume(
 		bt_self_component_sink *component);
 
 BT_HIDDEN
-enum bt_self_component_status pretty_port_connected(
+bt_self_component_status pretty_port_connected(
 		bt_self_component_sink *component,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port);

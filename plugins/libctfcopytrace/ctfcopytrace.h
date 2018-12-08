@@ -51,7 +51,7 @@ const bt_clock_class *ctf_copy_clock_class(FILE *err,
  * error.
  */
 BT_HIDDEN
-enum bt_component_status ctf_copy_clock_classes(FILE *err,
+bt_component_status ctf_copy_clock_classes(FILE *err,
 		const bt_trace *writer_trace,
 		const bt_stream_class *writer_stream_class,
 		const bt_trace *trace);
@@ -74,7 +74,7 @@ const bt_event_class *ctf_copy_event_class(FILE *err,
  * error.
  */
 BT_HIDDEN
-enum bt_component_status ctf_copy_event_classes(FILE *err,
+bt_component_status ctf_copy_event_classes(FILE *err,
 		const bt_stream_class *stream_class,
 		const bt_stream_class *writer_stream_class);
 
@@ -97,7 +97,7 @@ const bt_stream_class *ctf_copy_stream_class(FILE *err,
  * error.
  */
 BT_HIDDEN
-enum bt_component_status ctf_copy_packet_context_field(FILE *err,
+bt_component_status ctf_copy_packet_context_field(FILE *err,
 		const bt_field *field, const char *field_name,
 		const bt_field *writer_packet_context,
 		bt_field_type *writer_packet_context_type);
@@ -174,7 +174,7 @@ int ctf_copy_event_header(FILE *err, const bt_event *event,
  * error.
  */
 BT_HIDDEN
-enum bt_component_status ctf_copy_trace(FILE *err, const bt_trace *trace,
+bt_component_status ctf_copy_trace(FILE *err, const bt_trace *trace,
 		const bt_trace *writer_trace);
 
 #ifdef __cplusplus

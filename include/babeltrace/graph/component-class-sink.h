@@ -26,10 +26,10 @@
 
 #include <stdint.h>
 
-/* For enum bt_self_component_status */
+/* For bt_self_component_status */
 #include <babeltrace/graph/self-component.h>
 
-/* For enum bt_query_status */
+/* For bt_query_status */
 #include <babeltrace/graph/component-class.h>
 
 /*
@@ -43,28 +43,27 @@
 extern "C" {
 #endif
 
-typedef enum bt_self_component_status
-(*bt_component_class_sink_init_method)(
+typedef bt_self_component_status (*bt_component_class_sink_init_method)(
 		bt_self_component_sink *self_component,
 		const bt_value *params, void *init_method_data);
 
 typedef void (*bt_component_class_sink_finalize_method)(
 		bt_self_component_sink *self_component);
 
-typedef enum bt_query_status
+typedef bt_query_status
 (*bt_component_class_sink_query_method)(
 		bt_self_component_class_sink *comp_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
 		const bt_value **result);
 
-typedef enum bt_self_component_status
+typedef bt_self_component_status
 (*bt_component_class_sink_accept_input_port_connection_method)(
 		bt_self_component_sink *self_component,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port);
 
-typedef enum bt_self_component_status
+typedef bt_self_component_status
 (*bt_component_class_sink_input_port_connected_method)(
 		bt_self_component_sink *self_component,
 		bt_self_component_port_input *self_port,
@@ -75,8 +74,7 @@ typedef void
 		bt_self_component_sink *self_component,
 		bt_self_component_port_input *self_port);
 
-typedef enum bt_self_component_status
-(*bt_component_class_sink_consume_method)(
+typedef bt_self_component_status (*bt_component_class_sink_consume_method)(
 	bt_self_component_sink *self_component);
 
 static inline

@@ -36,19 +36,7 @@
  */
 #include <babeltrace/types.h>
 
-/* For enum bt_component_class_type */
-#include <babeltrace/graph/component-class.h>
-
-/* For enum bt_component_class_source */
-#include <babeltrace/graph/component-class-source.h>
-
-/* For enum bt_component_class_filter */
-#include <babeltrace/graph/component-class-filter.h>
-
-/* For enum bt_component_class_sink */
-#include <babeltrace/graph/component-class-sink.h>
-
-/* For enum bt_property_availability */
+/* For bt_property_availability */
 #include <babeltrace/property.h>
 
 #ifdef __cplusplus
@@ -75,7 +63,7 @@ extern const char *bt_plugin_get_description(const bt_plugin *plugin);
 
 extern const char *bt_plugin_get_path(const bt_plugin *plugin);
 
-extern enum bt_property_availability bt_plugin_get_version(
+extern bt_property_availability bt_plugin_get_version(
 		const bt_plugin *plugin, unsigned int *major,
 		unsigned int *minor, unsigned int *patch, const char **extra);
 

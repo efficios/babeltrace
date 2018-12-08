@@ -27,7 +27,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For enum bt_property_availability */
+/* For bt_property_availability */
 #include <babeltrace/property.h>
 
 /* For bt_event_class, bt_field_class, bt_stream_class */
@@ -40,12 +40,12 @@
 extern "C" {
 #endif
 
-enum bt_event_class_status {
+typedef enum bt_event_class_status {
 	BT_EVENT_CLASS_STATUS_OK = 0,
 	BT_EVENT_CLASS_STATUS_NOMEM = -12,
-};
+} bt_event_class_status;
 
-enum bt_event_class_log_level {
+typedef enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
 	BT_EVENT_CLASS_LOG_LEVEL_ALERT,
 	BT_EVENT_CLASS_LOG_LEVEL_CRITICAL,
@@ -61,7 +61,7 @@ enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
 	BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE,
 	BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
-};
+} bt_event_class_log_level;
 
 extern const bt_stream_class *bt_event_class_borrow_stream_class_const(
 		const bt_event_class *event_class);
@@ -70,9 +70,9 @@ extern const char *bt_event_class_get_name(const bt_event_class *event_class);
 
 extern uint64_t bt_event_class_get_id(const bt_event_class *event_class);
 
-extern enum bt_property_availability bt_event_class_get_log_level(
+extern bt_property_availability bt_event_class_get_log_level(
 		const bt_event_class *event_class,
-		enum bt_event_class_log_level *log_level);
+		bt_event_class_log_level *log_level);
 
 extern const char *bt_event_class_get_emf_uri(
 		const bt_event_class *event_class);

@@ -155,7 +155,7 @@ struct ctf_fs_msg_iter_data {
 };
 
 BT_HIDDEN
-enum bt_self_component_status ctf_fs_init(
+bt_self_component_status ctf_fs_init(
 		bt_self_component_source *source,
 		const bt_value *params, void *init_method_data);
 
@@ -163,7 +163,7 @@ BT_HIDDEN
 void ctf_fs_finalize(bt_self_component_source *component);
 
 BT_HIDDEN
-enum bt_query_status ctf_fs_query(
+bt_query_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
@@ -183,7 +183,7 @@ BT_HIDDEN
 GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path);
 
 BT_HIDDEN
-enum bt_self_message_iterator_status ctf_fs_iterator_init(
+bt_self_message_iterator_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port);
@@ -192,7 +192,7 @@ BT_HIDDEN
 void ctf_fs_iterator_finalize(bt_self_message_iterator *it);
 
 BT_HIDDEN
-enum bt_self_message_iterator_status ctf_fs_iterator_next(
+bt_self_message_iterator_status ctf_fs_iterator_next(
 		bt_self_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);

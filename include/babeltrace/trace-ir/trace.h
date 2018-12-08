@@ -30,7 +30,7 @@
 /* For bt_bool, bt_trace, bt_trace_class, bt_stream */
 #include <babeltrace/types.h>
 
-/* For enum bt_trace_status */
+/* For bt_trace_status */
 #include <babeltrace/trace-ir/trace-const.h>
 
 #include <stdint.h>
@@ -43,7 +43,7 @@ extern bt_trace_class *bt_trace_borrow_class(bt_trace *trace);
 
 extern bt_trace *bt_trace_create(bt_trace_class *trace_class);
 
-extern enum bt_trace_status bt_trace_set_name(bt_trace *trace,
+extern bt_trace_status bt_trace_set_name(bt_trace *trace,
 		const char *name);
 
 extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
@@ -52,7 +52,7 @@ extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
 extern bt_stream *bt_trace_borrow_stream_by_id(bt_trace *trace,
 		uint64_t id);
 
-extern enum bt_trace_status bt_trace_make_static(bt_trace *trace);
+extern bt_trace_status bt_trace_make_static(bt_trace *trace);
 
 #ifdef __cplusplus
 }

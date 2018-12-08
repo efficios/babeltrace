@@ -174,7 +174,7 @@ int query(const bt_component_class *comp_cls, const char *obj,
 		const char **fail_reason)
 {
 	const bt_value *result = NULL;
-	enum bt_query_executor_status status;
+	bt_query_executor_status status;
 	*fail_reason = "unknown error";
 	int ret = 0;
 
@@ -360,7 +360,7 @@ const bt_component_class_sink *find_sink_component_class(
 static
 const bt_component_class *find_component_class(const char *plugin_name,
 		const char *comp_class_name,
-		enum bt_component_class_type comp_class_type)
+		bt_component_class_type comp_class_type)
 {
 	const bt_component_class *comp_cls = NULL;
 
@@ -392,7 +392,7 @@ void print_indent(FILE *fp, size_t indent)
 }
 
 static
-const char *component_type_str(enum bt_component_class_type type)
+const char *component_type_str(bt_component_class_type type)
 {
 	switch (type) {
 	case BT_COMPONENT_CLASS_TYPE_SOURCE:
@@ -408,7 +408,7 @@ const char *component_type_str(enum bt_component_class_type type)
 
 static
 void print_plugin_comp_cls_opt(FILE *fh, const char *plugin_name,
-		const char *comp_cls_name, enum bt_component_class_type type)
+		const char *comp_cls_name, bt_component_class_type type)
 {
 	GString *shell_plugin_name = NULL;
 	GString *shell_comp_cls_name = NULL;
@@ -883,7 +883,7 @@ void print_plugin_info(const bt_plugin *plugin)
 {
 	unsigned int major, minor, patch;
 	const char *extra;
-	enum bt_property_availability version_avail;
+	bt_property_availability version_avail;
 	const char *plugin_name;
 	const char *path;
 	const char *author;
@@ -1010,7 +1010,7 @@ void print_component_class_help(const char *plugin_name,
 		bt_component_class_get_description(comp_cls);
 	const char *comp_class_help =
 		bt_component_class_get_help(comp_cls);
-	enum bt_component_class_type type =
+	bt_component_class_type type =
 		bt_component_class_get_type(comp_cls);
 
 	print_plugin_comp_cls_opt(stdout, plugin_name, comp_class_name, type);
@@ -1128,7 +1128,7 @@ void cmd_list_plugins_print_component_classes(const bt_plugin *plugin,
 			bt_component_class_get_name(comp_class);
 		const char *comp_class_description =
 			bt_component_class_get_description(comp_class);
-		enum bt_component_class_type type =
+		bt_component_class_type type =
 			bt_component_class_get_type(comp_class);
 
 		printf("    ");
@@ -1219,7 +1219,7 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 	const bt_value *v = NULL;
 	static const char * const plugin_name = "ctf";
 	static const char * const comp_cls_name = "lttng-live";
-	static const enum bt_component_class_type comp_cls_type =
+	static const bt_component_class_type comp_cls_type =
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
 	int64_t array_size, i;
 	const char *fail_reason = NULL;
@@ -1371,7 +1371,7 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	const char *metadata_text = NULL;
 	static const char * const plugin_name = "ctf";
 	static const char * const comp_cls_name = "fs";
-	static const enum bt_component_class_type comp_cls_type =
+	static const bt_component_class_type comp_cls_type =
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
 	const char *fail_reason = NULL;
 	FILE *out_stream = stdout;
@@ -1610,7 +1610,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	uint64_t i;
 	input_port_count_func_t port_count_fn;
 	borrow_input_port_by_index_func_t port_by_index_fn;
-	enum bt_graph_status status = BT_GRAPH_STATUS_ERROR;
+	bt_graph_status status = BT_GRAPH_STATUS_ERROR;
 	bool insert_trimmer = false;
 	bt_value *trimmer_params = NULL;
 	char *intersection_begin = NULL;
@@ -1636,7 +1636,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 		range = (struct trace_range *) g_hash_table_lookup(
 			ctx->intersections, &port_id);
 		if (range) {
-			enum bt_value_status status;
+			bt_value_status status;
 
 			intersection_begin = s_from_ns(
 				range->intersection_range_begin_ns);
@@ -1756,7 +1756,7 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 			 * source and the trimmer.
 			 */
 			char *trimmer_name = NULL;
-			enum bt_graph_status graph_status;
+			bt_graph_status graph_status;
 
 			ret = asprintf(&trimmer_name,
 				"stream-intersection-trimmer-%s",
@@ -2076,7 +2076,7 @@ static
 int cmd_run_ctx_init(struct cmd_run_ctx *ctx, struct bt_config *cfg)
 {
 	int ret = 0;
-	enum bt_graph_status status;
+	bt_graph_status status;
 
 	ctx->cfg = cfg;
 	ctx->connect_ports = false;
@@ -2147,7 +2147,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	int ret = 0;
 	uint64_t trace_idx;
 	int64_t trace_count;
-	enum bt_value_status value_status;
+	bt_value_status value_status;
 	const char *path = NULL;
 	const bt_value *component_path_value = NULL;
 	bt_value *query_params = NULL;
@@ -2619,7 +2619,7 @@ end:
 }
 
 static inline
-const char *bt_graph_status_str(enum bt_graph_status status)
+const char *bt_graph_status_str(bt_graph_status status)
 {
 	switch (status) {
 	case BT_GRAPH_STATUS_OK:
@@ -2693,7 +2693,7 @@ int cmd_run(struct bt_config *cfg)
 
 	/* Run the graph */
 	while (true) {
-		enum bt_graph_status graph_status = bt_graph_run(ctx.graph);
+		bt_graph_status graph_status = bt_graph_run(ctx.graph);
 
 		/*
 		 * Reset console in case something messed with console

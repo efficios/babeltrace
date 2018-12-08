@@ -46,12 +46,12 @@ struct range {
 };
 
 BT_HIDDEN
-enum bt_query_status metadata_info_query(
+bt_query_status metadata_info_query(
 		bt_self_component_class_source *comp_class,
 		const bt_value *params,
 		const bt_value **user_result)
 {
-	enum bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_query_status status = BT_QUERY_STATUS_OK;
 	bt_value *result = NULL;
 	const bt_value *path_value = NULL;
 	char *metadata_text = NULL;
@@ -185,7 +185,7 @@ int add_range(bt_value *info, struct range *range,
 		const char *range_name)
 {
 	int ret = 0;
-	enum bt_value_status status;
+	bt_value_status status;
 	bt_value *range_map = NULL;
 
 	if (!range->set) {
@@ -230,7 +230,7 @@ int add_stream_ids(bt_value *info, const bt_stream *stream)
 {
 	int ret = 0;
 	int64_t stream_class_id, stream_instance_id;
-	enum bt_value_status status;
+	bt_value_status status;
 	const bt_stream_class *stream_class = NULL;
 
 	stream_instance_id = bt_stream_get_id(stream);
@@ -271,7 +271,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 {
 	int ret = 0;
 	size_t file_idx;
-	enum bt_value_status status;
+	bt_value_status status;
 	bt_value *file_paths;
 
 	stream_range->begin_ns = INT64_MAX;
@@ -347,7 +347,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 	int ret = 0;
 	size_t group_idx;
 	struct ctf_fs_trace *trace = NULL;
-	enum bt_value_status status;
+	bt_value_status status;
 	bt_value *file_groups;
 	struct range trace_range = {
 		.begin_ns = INT64_MAX,
@@ -462,12 +462,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_query_status trace_info_query(
+bt_query_status trace_info_query(
 		bt_self_component_class_source *comp_class,
 		const bt_value *params,
 		const bt_value **user_result)
 {
-	enum bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_query_status status = BT_QUERY_STATUS_OK;
 	bt_value *result = NULL;
 	const bt_value *path_value = NULL;
 	int ret = 0;
@@ -520,7 +520,7 @@ enum bt_query_status trace_info_query(
 			tn_node = g_list_next(tn_node)) {
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
-		enum bt_value_status status;
+		bt_value_status status;
 		bt_value *trace_info;
 
 		trace_info = bt_value_map_create();

@@ -26,13 +26,13 @@
 
 #include <stdint.h>
 
-/* For enum bt_self_component_status */
+/* For bt_self_component_status */
 #include <babeltrace/graph/self-component.h>
 
-/* For enum bt_self_message_iterator_status */
+/* For bt_self_message_iterator_status */
 #include <babeltrace/graph/self-message-iterator.h>
 
-/* For enum bt_query_status */
+/* For bt_query_status */
 #include <babeltrace/graph/component-class.h>
 
 /*
@@ -47,7 +47,7 @@
 extern "C" {
 #endif
 
-typedef enum bt_self_component_status
+typedef bt_self_component_status
 (*bt_component_class_source_init_method)(
 		bt_self_component_source *self_component,
 		const bt_value *params, void *init_method_data);
@@ -55,7 +55,7 @@ typedef enum bt_self_component_status
 typedef void (*bt_component_class_source_finalize_method)(
 		bt_self_component_source *self_component);
 
-typedef enum bt_self_message_iterator_status
+typedef bt_self_message_iterator_status
 (*bt_component_class_source_message_iterator_init_method)(
 		bt_self_message_iterator *message_iterator,
 		bt_self_component_source *self_component,
@@ -65,33 +65,31 @@ typedef void
 (*bt_component_class_source_message_iterator_finalize_method)(
 		bt_self_message_iterator *message_iterator);
 
-typedef enum bt_self_message_iterator_status
+typedef bt_self_message_iterator_status
 (*bt_component_class_source_message_iterator_next_method)(
 		bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
-typedef enum bt_query_status
-(*bt_component_class_source_query_method)(
+typedef bt_query_status (*bt_component_class_source_query_method)(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_executor,
 		const char *object, const bt_value *params,
 		const bt_value **result);
 
-typedef enum bt_self_component_status
+typedef bt_self_component_status
 (*bt_component_class_source_accept_output_port_connection_method)(
 		bt_self_component_source *self_component,
 		bt_self_component_port_output *self_port,
 		const bt_port_input *other_port);
 
-typedef enum bt_self_component_status
+typedef bt_self_component_status
 (*bt_component_class_source_output_port_connected_method)(
 		bt_self_component_source *self_component,
 		bt_self_component_port_output *self_port,
 		const bt_port_input *other_port);
 
-typedef void
-(*bt_component_class_source_output_port_disconnected_method)(
+typedef void (*bt_component_class_source_output_port_disconnected_method)(
 		bt_self_component_source *self_component,
 		bt_self_component_port_output *self_port);
 

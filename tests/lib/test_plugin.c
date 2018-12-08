@@ -124,7 +124,7 @@ static void test_sfs(const char *plugin_dir)
 	const bt_value *res_params;
 	bt_graph *graph;
 	const char *object_str;
-	enum bt_graph_status graph_ret;
+	bt_graph_status graph_ret;
 	bt_query_executor *query_exec = bt_query_executor_create();
 	int ret;
 

@@ -596,7 +596,7 @@ end:
  */
 static
 void plugin_comp_cls_names(const char *arg, char **name, char **plugin,
-		char **comp_cls, enum bt_component_class_type *comp_cls_type)
+		char **comp_cls, bt_component_class_type *comp_cls_type)
 {
 	const char *at = arg;
 	GString *gs_name = NULL;
@@ -775,7 +775,7 @@ end:
  */
 static
 struct bt_config_component *bt_config_component_create(
-		enum bt_component_class_type type,
+		bt_component_class_type type,
 		const char *plugin_name, const char *comp_cls_name)
 {
 	struct bt_config_component *cfg_component = NULL;
@@ -834,7 +834,7 @@ struct bt_config_component *bt_config_component_from_arg(const char *arg)
 	char *name = NULL;
 	char *plugin_name = NULL;
 	char *comp_cls_name = NULL;
-	enum bt_component_class_type type;
+	bt_component_class_type type;
 
 	plugin_comp_cls_names(arg, &name, &plugin_name, &comp_cls_name, &type);
 	if (!plugin_name || !comp_cls_name) {
@@ -2379,7 +2379,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	GString *cur_param_key = NULL;
 	char error_buf[256] = { 0 };
 	long retry_duration = -1;
-	enum bt_value_status status;
+	bt_value_status status;
 	struct poptOption run_long_options[] = {
 		{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
 		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
@@ -3518,7 +3518,7 @@ int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
 {
 	int ret = 0;
 	GList *leftover;
-	enum bt_value_status status;
+	bt_value_status status;
 
 	for (leftover = leftovers; leftover != NULL;
 			leftover = g_list_next(leftover)) {
@@ -3737,7 +3737,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		switch (opt) {
 		case OPT_COMPONENT:
 		{
-			enum bt_component_class_type type;
+			bt_component_class_type type;
 			const char *type_prefix;
 
 			/* Append current component's name if needed */

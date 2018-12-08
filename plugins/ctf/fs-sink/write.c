@@ -111,7 +111,7 @@ const bt_stream_class *insert_new_stream_class(
 	const bt_stream_class *writer_stream_class = NULL;
 	const bt_trace *trace = NULL, *writer_trace = NULL;
 	struct bt_ctf_writer *ctf_writer = fs_writer->writer;
-	enum bt_component_status ret;
+	bt_component_status ret;
 
 	trace = bt_stream_class_get_trace(stream_class);
 	BT_ASSERT(trace);
@@ -285,7 +285,7 @@ struct fs_writer *insert_new_writer(
 	struct bt_ctf_writer *ctf_writer = NULL;
 	const bt_trace *writer_trace = NULL;
 	char trace_path[PATH_MAX];
-	enum bt_component_status ret;
+	bt_component_status ret;
 	const bt_stream *stream = NULL;
 	struct fs_writer *fs_writer = NULL;
 	int nr_stream, i;
@@ -530,14 +530,14 @@ void writer_close(struct writer_component *writer_component,
 }
 
 BT_HIDDEN
-enum bt_component_status writer_stream_begin(
+bt_component_status writer_stream_begin(
 		struct writer_component *writer_component,
 		const bt_stream *stream)
 {
 	const bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
 	const bt_stream *writer_stream = NULL;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	enum fs_writer_stream_state *state;
 
 	stream_class = bt_stream_get_class(stream);
@@ -582,14 +582,14 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status writer_stream_end(
+bt_component_status writer_stream_end(
 		struct writer_component *writer_component,
 		const bt_stream *stream)
 {
 	const bt_stream_class *stream_class = NULL;
 	struct fs_writer *fs_writer;
 	const bt_trace *trace = NULL;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	enum fs_writer_stream_state *state;
 
 	stream_class = bt_stream_get_class(stream);
@@ -633,12 +633,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status writer_new_packet(
+bt_component_status writer_new_packet(
 		struct writer_component *writer_component,
 		const bt_packet *packet)
 {
 	const bt_stream *stream = NULL, *writer_stream = NULL;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 	int int_ret;
 
 	stream = bt_packet_get_stream(packet);
@@ -676,12 +676,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status writer_close_packet(
+bt_component_status writer_close_packet(
 		struct writer_component *writer_component,
 		const bt_packet *packet)
 {
 	const bt_stream *stream = NULL, *writer_stream = NULL;
-	enum bt_component_status ret;
+	bt_component_status ret;
 
 	stream = bt_packet_get_stream(packet);
 	BT_ASSERT(stream);
@@ -715,11 +715,11 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status writer_output_event(
+bt_component_status writer_output_event(
 		struct writer_component *writer_component,
 		const bt_event *event)
 {
-	enum bt_component_status ret;
+	bt_component_status ret;
 	const bt_event_class *event_class = NULL, *writer_event_class = NULL;
 	const bt_stream *stream = NULL, *writer_stream = NULL;
 	const bt_stream_class *stream_class = NULL, *writer_stream_class = NULL;

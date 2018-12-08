@@ -31,7 +31,7 @@
 #include "lttng-live-internal.h"
 #include "../common/msg-iter/msg-iter.h"
 
-enum bt_lttng_live_iterator_status lttng_live_lazy_msg_init(
+bt_lttng_live_iterator_status lttng_live_lazy_msg_init(
 		struct lttng_live_session *session);
 
 struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(

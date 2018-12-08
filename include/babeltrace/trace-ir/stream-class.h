@@ -35,7 +35,7 @@
  */
 #include <babeltrace/types.h>
 
-/* For enum bt_stream_class_status */
+/* For bt_stream_class_status */
 #include <babeltrace/trace-ir/stream-class-const.h>
 
 #ifdef __cplusplus
@@ -51,7 +51,7 @@ extern bt_stream_class *bt_stream_class_create_with_id(
 extern bt_trace_class *bt_stream_class_borrow_trace_class(
 		bt_stream_class *stream_class);
 
-extern enum bt_stream_class_status bt_stream_class_set_name(
+extern bt_stream_class_status bt_stream_class_set_name(
 		bt_stream_class *stream_class, const char *name);
 
 extern void bt_stream_class_set_assigns_automatic_event_class_id(
@@ -60,17 +60,17 @@ extern void bt_stream_class_set_assigns_automatic_event_class_id(
 extern void bt_stream_class_set_assigns_automatic_stream_id(
 		bt_stream_class *stream_class, bt_bool value);
 
-extern enum bt_stream_class_status
+extern bt_stream_class_status
 bt_stream_class_set_packet_context_field_class(
 		bt_stream_class *stream_class,
 		bt_field_class *field_class);
 
-extern enum bt_stream_class_status
+extern bt_stream_class_status
 bt_stream_class_set_event_header_field_class(
 		bt_stream_class *stream_class,
 		bt_field_class *field_class);
 
-extern enum bt_stream_class_status
+extern bt_stream_class_status
 bt_stream_class_set_event_common_context_field_class(
 		bt_stream_class *stream_class,
 		bt_field_class *field_class);
@@ -86,7 +86,7 @@ bt_stream_class_borrow_event_class_by_id(
 extern bt_clock_class *bt_stream_class_borrow_default_clock_class(
 		bt_stream_class *stream_class);
 
-extern enum bt_stream_class_status bt_stream_class_set_default_clock_class(
+extern bt_stream_class_status bt_stream_class_set_default_clock_class(
 		bt_stream_class *stream_class,
 		bt_clock_class *clock_class);
 

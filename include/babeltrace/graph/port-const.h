@@ -33,14 +33,14 @@
 extern "C" {
 #endif
 
-enum bt_port_type {
+typedef enum bt_port_type {
 	BT_PORT_TYPE_INPUT = 0,
 	BT_PORT_TYPE_OUTPUT = 1,
-};
+} bt_port_type;
 
 extern const char *bt_port_get_name(const bt_port *port);
 
-extern enum bt_port_type bt_port_get_type(const bt_port *port);
+extern bt_port_type bt_port_get_type(const bt_port *port);
 
 extern const bt_connection *bt_port_borrow_connection_const(
 		const bt_port *port);
