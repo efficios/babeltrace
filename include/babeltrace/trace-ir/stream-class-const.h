@@ -39,6 +39,11 @@
 extern "C" {
 #endif
 
+enum bt_stream_class_status {
+	BT_STREAM_CLASS_STATUS_OK = 0,
+	BT_STREAM_CLASS_STATUS_NOMEM = -12,
+};
+
 extern const bt_trace_class *bt_stream_class_borrow_trace_class_const(
 		const bt_stream_class *stream_class);
 
