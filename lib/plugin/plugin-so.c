@@ -103,15 +103,15 @@ void fini_comp_class_list(void)
 }
 
 static inline
-const char *bt_plugin_init_status_string(enum bt_plugin_init_status status)
+const char *bt_self_plugin_status_string(enum bt_self_plugin_status status)
 {
 	switch (status) {
-	case BT_PLUGIN_INIT_STATUS_OK:
-		return "BT_PLUGIN_INIT_STATUS_OK";
-	case BT_PLUGIN_INIT_STATUS_ERROR:
-		return "BT_PLUGIN_INIT_STATUS_ERROR";
-	case BT_PLUGIN_INIT_STATUS_NOMEM:
-		return "BT_PLUGIN_INIT_STATUS_NOMEM";
+	case BT_SELF_PLUGIN_STATUS_OK:
+		return "BT_SELF_PLUGIN_STATUS_OK";
+	case BT_SELF_PLUGIN_STATUS_ERROR:
+		return "BT_SELF_PLUGIN_STATUS_ERROR";
+	case BT_SELF_PLUGIN_STATUS_NOMEM:
+		return "BT_SELF_PLUGIN_STATUS_NOMEM";
 	default:
 		return "(unknown)";
 	}
@@ -680,11 +680,12 @@ enum bt_plugin_status bt_plugin_so_init(
 
 	/* Initialize plugin */
 	if (spec->init) {
-		enum bt_plugin_init_status init_status;
+		enum bt_self_plugin_status init_status;
+
 		BT_LOGD_STR("Calling user's plugin initialization function.");
-		init_status = spec->init(plugin);
+		init_status = spec->init((void *) plugin);
 		BT_LOGD("User function returned: %s",
-			bt_plugin_init_status_string(init_status));
+			bt_self_plugin_status_string(init_status));
 
 		if (init_status < 0) {
 			BT_LOGW_STR("User's plugin initialization function failed.");
