@@ -371,7 +371,7 @@ const struct bt_packet *bt_event_borrow_packet_const(
 	return bt_event_borrow_packet((void *) event);
 }
 
-int bt_event_move_header_field(struct bt_event *event,
+enum bt_event_status bt_event_move_header_field(struct bt_event *event,
 		struct bt_event_header_field *header_field)
 {
 	struct bt_stream_class *stream_class;
@@ -391,5 +391,5 @@ int bt_event_move_header_field(struct bt_event *event,
 
 	/* Move new field */
 	event->header_field = field_wrapper;
-	return 0;
+	return BT_EVENT_STATUS_OK;
 }
