@@ -563,7 +563,7 @@ enum bt_lttng_live_iterator_status emit_inactivity_message(
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct lttng_live_trace *trace;
 	const bt_clock_class *clock_class = NULL;
-	bt_clock_value *clock_value = NULL;
+	bt_clock_snapshot *clock_snapshot = NULL;
 	const bt_message *msg = NULL;
 	int retval;
 
@@ -575,21 +575,21 @@ enum bt_lttng_live_iterator_status emit_inactivity_message(
 	if (!clock_class) {
 		goto error;
 	}
-	clock_value = bt_clock_value_create(clock_class, timestamp);
-	if (!clock_value) {
+	clock_snapshot = bt_clock_snapshot_create(clock_class, timestamp);
+	if (!clock_snapshot) {
 		goto error;
 	}
 	msg = bt_message_inactivity_create(trace->cc_prio_map);
 	if (!msg) {
 		goto error;
 	}
-	retval = bt_message_inactivity_set_clock_value(msg, clock_value);
+	retval = bt_message_inactivity_set_clock_snapshot(msg, clock_snapshot);
 	if (retval) {
 		goto error;
 	}
 	*message = msg;
 end:
-	bt_object_put_ref(clock_value);
+	bt_object_put_ref(clock_snapshot);
 	bt_clock_class_put_ref(clock_class);
 	return ret;
 
@@ -608,7 +608,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent
 	enum bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	const bt_clock_class *clock_class = NULL;
-	bt_clock_value *clock_value = NULL;
+	bt_clock_snapshot *clock_snapshot = NULL;
 
 	if (lttng_live_stream->state != LTTNG_LIVE_STREAM_QUIESCENT) {
 		return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -627,7 +627,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent
 	lttng_live_stream->last_returned_inactivity_timestamp =
 			lttng_live_stream->current_inactivity_timestamp;
 end:
-	bt_object_put_ref(clock_value);
+	bt_object_put_ref(clock_snapshot);
 	bt_clock_class_put_ref(clock_class);
 	return ret;
 }

@@ -27,19 +27,19 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/graph/message-internal.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/assert-internal.h>
 
 struct bt_message_stream_beginning {
 	struct bt_message parent;
 	struct bt_stream *stream;
-	struct bt_clock_value *default_cv;
+	struct bt_clock_snapshot *default_cs;
 };
 
 struct bt_message_stream_end {
 	struct bt_message parent;
 	struct bt_stream *stream;
-	struct bt_clock_value *default_cv;
+	struct bt_clock_snapshot *default_cs;
 };
 
 #endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H */

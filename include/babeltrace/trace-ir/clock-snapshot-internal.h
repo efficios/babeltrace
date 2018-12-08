@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_CLOCK_VALUE_INTERNAL_H
-#define BABELTRACE_TRACE_IR_CLOCK_VALUE_INTERNAL_H
+#ifndef BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_INTERNAL_H
+#define BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_INTERNAL_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -32,7 +32,7 @@
 
 struct bt_clock_class;
 
-struct bt_clock_value {
+struct bt_clock_snapshot {
 	struct bt_object base;
 	struct bt_clock_class *clock_class;
 	uint64_t value_cycles;
@@ -42,61 +42,61 @@ struct bt_clock_value {
 };
 
 static inline
-void bt_clock_value_set(struct bt_clock_value *clock_value)
+void bt_clock_snapshot_set(struct bt_clock_snapshot *clock_snapshot)
 {
-	BT_ASSERT(clock_value);
-	clock_value->is_set = true;
+	BT_ASSERT(clock_snapshot);
+	clock_snapshot->is_set = true;
 }
 
 static inline
-void bt_clock_value_reset(struct bt_clock_value *clock_value)
+void bt_clock_snapshot_reset(struct bt_clock_snapshot *clock_snapshot)
 {
-	BT_ASSERT(clock_value);
-	clock_value->is_set = false;
+	BT_ASSERT(clock_snapshot);
+	clock_snapshot->is_set = false;
 }
 
 static inline
-void set_ns_from_origin(struct bt_clock_value *clock_value)
+void set_ns_from_origin(struct bt_clock_snapshot *clock_snapshot)
 {
-	if (bt_util_ns_from_origin(clock_value->clock_class, clock_value->value_cycles,
-			&clock_value->ns_from_origin)) {
-		clock_value->ns_from_origin_overflows = true;
+	if (bt_util_ns_from_origin(clock_snapshot->clock_class, clock_snapshot->value_cycles,
+			&clock_snapshot->ns_from_origin)) {
+		clock_snapshot->ns_from_origin_overflows = true;
 	}
 
 }
 
 static inline
-void bt_clock_value_set_raw_value(struct bt_clock_value *clock_value,
+void bt_clock_snapshot_set_raw_value(struct bt_clock_snapshot *clock_snapshot,
 		uint64_t cycles)
 {
-	BT_ASSERT(clock_value);
-	clock_value->value_cycles = cycles;
-	set_ns_from_origin(clock_value);
-	bt_clock_value_set(clock_value);
+	BT_ASSERT(clock_snapshot);
+	clock_snapshot->value_cycles = cycles;
+	set_ns_from_origin(clock_snapshot);
+	bt_clock_snapshot_set(clock_snapshot);
 }
 
 static inline
-void bt_clock_value_set_value_inline(struct bt_clock_value *clock_value,
+void bt_clock_snapshot_set_value_inline(struct bt_clock_snapshot *clock_snapshot,
 		uint64_t raw_value)
 {
-	bt_clock_value_set_raw_value(clock_value, raw_value);
+	bt_clock_snapshot_set_raw_value(clock_snapshot, raw_value);
 }
 
 BT_HIDDEN
-void bt_clock_value_destroy(struct bt_clock_value *clock_value);
+void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot);
 
 BT_HIDDEN
-struct bt_clock_value *bt_clock_value_new(struct bt_clock_class *clock_class);
+struct bt_clock_snapshot *bt_clock_snapshot_new(struct bt_clock_class *clock_class);
 
 BT_HIDDEN
-struct bt_clock_value *bt_clock_value_create(
+struct bt_clock_snapshot *bt_clock_snapshot_create(
 		struct bt_clock_class *clock_class);
 
 BT_HIDDEN
-void bt_clock_value_recycle(struct bt_clock_value *clock_value);
+void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot);
 
 BT_HIDDEN
-void bt_clock_value_set_raw_value(struct bt_clock_value *clock_value,
+void bt_clock_snapshot_set_raw_value(struct bt_clock_snapshot *clock_snapshot,
 		uint64_t cycles);
 
-#endif /* BABELTRACE_TRACE_IR_CLOCK_VALUE_INTERNAL_H */
+#endif /* BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_INTERNAL_H */

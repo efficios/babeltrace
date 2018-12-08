@@ -1721,11 +1721,11 @@ end:
 }
 
 static
-int set_event_clock_value(FILE *err, const bt_event *event,
+int set_event_clock_snapshot(FILE *err, const bt_event *event,
 		const bt_event *writer_event)
 {
 	const bt_clock_class *clock_class = NULL;
-	bt_clock_value *clock_value = NULL;
+	bt_clock_snapshot *clock_snapshot = NULL;
 	int ret = 0;
 
 	clock_class = event_get_clock_class(err, event);
@@ -1734,8 +1734,8 @@ int set_event_clock_value(FILE *err, const bt_event *event,
 		goto end;
 	}
 
-	clock_value = bt_event_get_clock_value(event, clock_class);
-	if (!clock_value) {
+	clock_snapshot = bt_event_get_clock_snapshot(event, clock_class);
+	if (!clock_snapshot) {
 		ret = 0;
 		goto end;
 	}
@@ -1744,7 +1744,7 @@ int set_event_clock_value(FILE *err, const bt_event *event,
 	 * We share the same clocks, so we can assign the clock value to the
 	 * writer event.
 	 */
-	ret = bt_event_set_clock_value(writer_event, clock_value);
+	ret = bt_event_set_clock_snapshot(writer_event, clock_snapshot);
 	if (ret) {
 		BT_LOGE_STR("Failed to set clock value.");
 		goto error;
@@ -1757,7 +1757,7 @@ error:
 	ret = -1;
 end:
 	bt_clock_class_put_ref(clock_class);
-	bt_object_put_ref(clock_value);
+	bt_object_put_ref(clock_snapshot);
 	return ret;
 }
 
@@ -1777,7 +1777,7 @@ const bt_event *debug_info_copy_event(FILE *err, const bt_event *event,
 		goto error;
 	}
 
-	ret = set_event_clock_value(err, event, writer_event);
+	ret = set_event_clock_snapshot(err, event, writer_event);
 	if (ret) {
 		BT_LOGE_STR("Failed to set clock value.");
 		goto error;

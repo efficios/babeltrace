@@ -77,7 +77,7 @@ typedef int bt_bool;
 typedef const uint8_t *bt_uuid;
 
 typedef struct bt_clock_class bt_clock_class;
-typedef struct bt_clock_value bt_clock_value;
+typedef struct bt_clock_snapshot bt_clock_snapshot;
 typedef struct bt_component bt_component;
 typedef struct bt_component_class bt_component_class;
 typedef struct bt_component_class_filter bt_component_class_filter;

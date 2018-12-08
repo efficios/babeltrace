@@ -23,15 +23,15 @@
  * SOFTWARE.
  */
 
-/* For bt_message, bt_clock_value */
+/* For bt_message, bt_clock_snapshot */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern const bt_clock_value *
-bt_message_inactivity_borrow_default_clock_value_const(
+extern const bt_clock_snapshot *
+bt_message_inactivity_borrow_default_clock_snapshot_const(
 		const bt_message *msg);
 
 #ifdef __cplusplus

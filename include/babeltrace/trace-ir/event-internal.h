@@ -32,7 +32,7 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/value.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/stream-internal.h>
@@ -63,7 +63,7 @@ struct bt_event {
 	struct bt_field *common_context_field;
 	struct bt_field *specific_context_field;
 	struct bt_field *payload_field;
-	struct bt_clock_value *default_cv;
+	struct bt_clock_snapshot *default_cs;
 	bool frozen;
 };
 
@@ -128,8 +128,8 @@ void bt_event_reset(struct bt_event *event)
 	BT_LIB_LOGD("Resetting event: %!+e", event);
 	bt_event_set_is_frozen(event, false);
 
-	if (event->default_cv) {
-		bt_clock_value_reset(event->default_cv);
+	if (event->default_cs) {
+		bt_clock_snapshot_reset(event->default_cs);
 	}
 
 	bt_object_put_no_null_check(&event->packet->base);

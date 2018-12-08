@@ -50,7 +50,7 @@
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/trace-ir/trace-class-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/trace-ir/field-path-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/graph/component-class-internal.h>
@@ -113,8 +113,8 @@ static inline void format_port(char **buf_ch, bool extended,
 static inline void format_connection(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_connection *connection);
 
-static inline void format_clock_value(char **buf_ch, bool extended,
-		const char *prefix, const struct bt_clock_value *clock_value);
+static inline void format_clock_snapshot(char **buf_ch, bool extended,
+		const char *prefix, const struct bt_clock_snapshot *clock_snapshot);
 
 static inline void format_field_path(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_field_path *field_path);
@@ -533,14 +533,14 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	BUF_APPEND(", %sassigns-auto-ec-id=%d, %sassigns-auto-stream-id=%d, "
 		"%spackets-have-discarded-ev-counter-snapshot=%d, "
 		"%spackets-have-packet-counter-snapshot=%d, "
-		"%spackets-have-default-begin-cv=%d, "
-		"%spackets-have-default-end-cv=%d",
+		"%spackets-have-default-begin-cs=%d, "
+		"%spackets-have-default-end-cs=%d",
 		PRFIELD(stream_class->assigns_automatic_event_class_id),
 		PRFIELD(stream_class->assigns_automatic_stream_id),
 		PRFIELD(stream_class->packets_have_discarded_event_counter_snapshot),
 		PRFIELD(stream_class->packets_have_packet_counter_snapshot),
-		PRFIELD(stream_class->packets_have_default_beginning_cv),
-		PRFIELD(stream_class->packets_have_default_end_cv));
+		PRFIELD(stream_class->packets_have_default_beginning_cs),
+		PRFIELD(stream_class->packets_have_default_end_cs));
 	BUF_APPEND(", %strace-class-addr=%p", PRFIELD(trace_class));
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);
@@ -671,16 +671,16 @@ static inline void format_packet(char **buf_ch, bool extended,
 		return;
 	}
 
-	if (packet->default_beginning_cv) {
-		SET_TMP_PREFIX("default-begin-cv-");
-		format_clock_value(buf_ch, true, tmp_prefix,
-			packet->default_beginning_cv);
+	if (packet->default_beginning_cs) {
+		SET_TMP_PREFIX("default-begin-cs-");
+		format_clock_snapshot(buf_ch, true, tmp_prefix,
+			packet->default_beginning_cs);
 	}
 
-	if (packet->default_end_cv) {
-		SET_TMP_PREFIX("default-end-cv-");
-		format_clock_value(buf_ch, true, tmp_prefix,
-			packet->default_end_cv);
+	if (packet->default_end_cs) {
+		SET_TMP_PREFIX("default-end-cs-");
+		format_clock_snapshot(buf_ch, true, tmp_prefix,
+			packet->default_end_cs);
 	}
 
 	if (packet->discarded_event_counter_snapshot.base.avail) {
@@ -755,10 +755,10 @@ static inline void format_event(char **buf_ch, bool extended,
 		}
 	}
 
-	if (event->default_cv) {
-		SET_TMP_PREFIX("default-cv-");
-		format_clock_value(buf_ch, true, tmp_prefix,
-			event->default_cv);
+	if (event->default_cs) {
+		SET_TMP_PREFIX("default-cs-");
+		format_clock_snapshot(buf_ch, true, tmp_prefix,
+			event->default_cs);
 	}
 
 	packet = bt_event_borrow_packet_const(event);
@@ -813,30 +813,30 @@ static inline void format_clock_class(char **buf_ch, bool extended,
 		PRFIELD(clock_class->is_absolute),
 		PRFIELD(clock_class->base_offset.value_ns));
 
-	SET_TMP_PREFIX("cv-pool-");
-	format_object_pool(buf_ch, extended, prefix, &clock_class->cv_pool);
+	SET_TMP_PREFIX("cs-pool-");
+	format_object_pool(buf_ch, extended, prefix, &clock_class->cs_pool);
 }
 
-static inline void format_clock_value(char **buf_ch, bool extended,
-		const char *prefix, const struct bt_clock_value *clock_value)
+static inline void format_clock_snapshot(char **buf_ch, bool extended,
+		const char *prefix, const struct bt_clock_snapshot *clock_snapshot)
 {
 	char tmp_prefix[64];
 	BUF_APPEND(", %svalue=%" PRIu64 ", %sns-from-origin=%" PRId64,
-		PRFIELD(clock_value->value_cycles),
-		PRFIELD(clock_value->ns_from_origin));
+		PRFIELD(clock_snapshot->value_cycles),
+		PRFIELD(clock_snapshot->ns_from_origin));
 
 	if (!extended) {
 		return;
 	}
 
-	BUF_APPEND(", %sis-set=%d", PRFIELD(clock_value->is_set));
+	BUF_APPEND(", %sis-set=%d", PRFIELD(clock_snapshot->is_set));
 
-	if (clock_value->clock_class) {
+	if (clock_snapshot->clock_class) {
 		BUF_APPEND(", %sclock-class-addr=%p",
-			PRFIELD(clock_value->clock_class));
+			PRFIELD(clock_snapshot->clock_class));
 		SET_TMP_PREFIX("clock-class-");
 		format_clock_class(buf_ch, false, tmp_prefix,
-			clock_value->clock_class);
+			clock_snapshot->clock_class);
 	}
 }
 
@@ -1332,7 +1332,7 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		format_clock_class(buf_ch, extended, prefix, obj);
 		break;
 	case 'k':
-		format_clock_value(buf_ch, extended, prefix, obj);
+		format_clock_snapshot(buf_ch, extended, prefix, obj);
 		break;
 	case 'v':
 		format_value(buf_ch, extended, prefix, obj);

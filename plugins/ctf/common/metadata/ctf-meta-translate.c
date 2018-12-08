@@ -541,7 +541,7 @@ bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
 		"timestamp_begin");
 	if (int_fc) {
 		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_BEGINNING_TIME) {
-			bt_stream_class_set_packets_have_default_beginning_clock_value(
+			bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
 				ir_sc, BT_TRUE);
 		}
 	}
@@ -550,7 +550,7 @@ bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
 		"timestamp_end");
 	if (int_fc) {
 		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_END_TIME) {
-			bt_stream_class_set_packets_have_default_end_clock_value(
+			bt_stream_class_set_packets_have_default_end_clock_snapshot(
 				ir_sc, BT_TRUE);
 		}
 	}

@@ -188,7 +188,7 @@ const bt_message *evaluate_event_message(
 	const bt_trace *trace = NULL;
 	const bt_stream *stream = NULL;
 	const bt_stream_class *stream_class = NULL;
-	bt_clock_value *clock_value = NULL;
+	bt_clock_snapshot *clock_snapshot = NULL;
 	bool lazy_update = false;
 	const bt_message *new_message = NULL;
 	bt_clock_class_priority_map *cc_prio_map;
@@ -219,14 +219,14 @@ const bt_message *evaluate_event_message(
 		goto end;
 	}
 
-	clock_value = bt_event_get_clock_value(event, clock_class);
-	if (!clock_value) {
+	clock_snapshot = bt_event_get_clock_snapshot(event, clock_class);
+	if (!clock_snapshot) {
 		BT_LOGE_STR("Failed to retrieve clock value.");
 		goto error;
 	}
 
-	clock_ret = bt_clock_value_get_value_ns_from_epoch(
-			clock_value, &ts);
+	clock_ret = bt_clock_snapshot_get_value_ns_from_epoch(
+			clock_snapshot, &ts);
 	if (clock_ret) {
 		BT_LOGE_STR("Failed to retrieve clock value timestamp.");
 		goto error;
@@ -262,7 +262,7 @@ end:
 	bt_trace_put_ref(trace);
 	bt_stream_put_ref(stream);
 	bt_stream_class_put_ref(stream_class);
-	bt_object_put_ref(clock_value);
+	bt_object_put_ref(clock_snapshot);
 	*_event_in_range = in_range;
 	return new_message;
 }
@@ -272,10 +272,10 @@ int ns_from_integer_field(const bt_field *integer, int64_t *ns)
 {
 	int ret = 0;
 	int is_signed;
-	uint64_t raw_clock_value;
+	uint64_t raw_clock_snapshot;
 	const bt_field_class *integer_class = NULL;
 	const bt_clock_class *clock_class = NULL;
-	bt_clock_value *clock_value = NULL;
+	bt_clock_snapshot *clock_snapshot = NULL;
 
 	integer_class = bt_field_get_class(integer);
 	BT_ASSERT(integer_class);
@@ -289,7 +289,7 @@ int ns_from_integer_field(const bt_field *integer, int64_t *ns)
 	is_signed = bt_field_class_integer_is_signed(integer_class);
 	if (!is_signed) {
 		ret = bt_field_unsigned_integer_get_value(integer,
-				&raw_clock_value);
+				&raw_clock_snapshot);
 		if (ret) {
 			goto end;
 		}
@@ -299,16 +299,16 @@ int ns_from_integer_field(const bt_field *integer, int64_t *ns)
 		goto end;
 	}
 
-	clock_value = bt_clock_value_create(clock_class, raw_clock_value);
-        if (!clock_value) {
+	clock_snapshot = bt_clock_snapshot_create(clock_class, raw_clock_snapshot);
+        if (!clock_snapshot) {
 		goto end;
 	}
 
-	ret = bt_clock_value_get_value_ns_from_epoch(clock_value, ns);
+	ret = bt_clock_snapshot_get_value_ns_from_epoch(clock_snapshot, ns);
 end:
 	bt_field_class_put_ref(integer_class);
 	bt_clock_class_put_ref(clock_class);
-	bt_object_put_ref(clock_value);
+	bt_object_put_ref(clock_snapshot);
 	return ret;
 }
 
