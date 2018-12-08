@@ -424,14 +424,14 @@ void bt_packet_set_default_beginning_clock_snapshot(struct bt_packet *packet,
 		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
 }
 
-enum bt_clock_snapshot_status bt_packet_borrow_default_beginning_clock_snapshot(
+enum bt_clock_snapshot_state bt_packet_borrow_default_beginning_clock_snapshot(
 		const struct bt_packet *packet,
 		const struct bt_clock_snapshot **clock_snapshot)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot (output)");
 	*clock_snapshot = packet->default_beginning_cs;
-	return BT_CLOCK_SNAPSHOT_STATUS_KNOWN;
+	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 }
 
 void bt_packet_set_default_end_clock_snapshot(struct bt_packet *packet,
@@ -456,14 +456,14 @@ void bt_packet_set_default_end_clock_snapshot(struct bt_packet *packet,
 		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
 }
 
-enum bt_clock_snapshot_status bt_packet_borrow_default_end_clock_snapshot(
+enum bt_clock_snapshot_state bt_packet_borrow_default_end_clock_snapshot(
 		const struct bt_packet *packet,
 		const struct bt_clock_snapshot **clock_snapshot)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
 	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot (output)");
 	*clock_snapshot = packet->default_end_cs;
-	return BT_CLOCK_SNAPSHOT_STATUS_KNOWN;
+	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 }
 
 enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(

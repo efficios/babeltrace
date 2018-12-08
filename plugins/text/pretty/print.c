@@ -82,10 +82,10 @@ void print_timestamp_cycles(struct pretty_component *pretty,
 {
 	const bt_clock_snapshot *clock_snapshot;
 	uint64_t cycles;
-	enum bt_clock_snapshot_status cv_status;
+	enum bt_clock_snapshot_state cs_state;
 
-	cv_status = bt_event_borrow_default_clock_snapshot_const(event, &clock_snapshot);
-	if (cv_status != BT_CLOCK_SNAPSHOT_STATUS_KNOWN || !clock_snapshot) {
+	cs_state = bt_event_borrow_default_clock_snapshot_const(event, &clock_snapshot);
+	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN || !clock_snapshot) {
 		g_string_append(pretty->string, "????????????????????");
 		return;
 	}
@@ -223,7 +223,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 	const bt_stream *stream = NULL;
 	const bt_stream_class *stream_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
-	enum bt_clock_snapshot_status cv_status;
+	enum bt_clock_snapshot_state cs_state;
 
 	stream = bt_event_borrow_stream_const(event);
 	if (!stream) {
@@ -237,9 +237,9 @@ int print_event_timestamp(struct pretty_component *pretty,
 		goto end;
 	}
 
-	cv_status = bt_event_borrow_default_clock_snapshot_const(event,
+	cs_state = bt_event_borrow_default_clock_snapshot_const(event,
 		&clock_snapshot);
-	if (cv_status != BT_CLOCK_SNAPSHOT_STATUS_KNOWN || !clock_snapshot) {
+	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN || !clock_snapshot) {
 		/* No default clock value: skip the timestamp without an error */
 		goto end;
 	}
@@ -256,7 +256,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 		print_timestamp_cycles(pretty, event);
 	} else {
 		clock_snapshot = NULL;
-		cv_status = bt_event_borrow_default_clock_snapshot_const(event,
+		cs_state = bt_event_borrow_default_clock_snapshot_const(event,
 			&clock_snapshot);
 		print_timestamp_wall(pretty, clock_snapshot);
 	}
