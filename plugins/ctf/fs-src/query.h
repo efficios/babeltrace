@@ -29,12 +29,12 @@
 #include <babeltrace/babeltrace.h>
 
 BT_HIDDEN
-enum bt_query_status metadata_info_query(
+bt_query_status metadata_info_query(
 		bt_self_component_class_source *comp_class,
 		const bt_value *params, const bt_value **result);
 
 BT_HIDDEN
-enum bt_query_status trace_info_query(
+bt_query_status trace_info_query(
 		bt_self_component_class_source *comp_class,
 		const bt_value *params, const bt_value **result);
 

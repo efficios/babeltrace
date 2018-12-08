@@ -64,14 +64,14 @@ void trimmer_iterator_finalize(bt_self_message_iterator *it)
 }
 
 BT_HIDDEN
-enum bt_message_iterator_status trimmer_iterator_init(
+bt_message_iterator_status trimmer_iterator_init(
 		bt_self_message_iterator *iterator,
 		struct bt_private_port *port)
 {
-	enum bt_message_iterator_status ret =
+	bt_message_iterator_status ret =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
-	enum bt_message_iterator_status it_ret;
-	enum bt_connection_status conn_status;
+	bt_message_iterator_status it_ret;
+	bt_connection_status conn_status;
 	struct bt_private_port *input_port = NULL;
 	struct bt_private_connection *connection = NULL;
 	bt_self_component *component =
@@ -388,7 +388,7 @@ const bt_message *evaluate_packet_message(
 			*timestamp_begin = NULL,
 			*timestamp_end = NULL;
 	const bt_message *new_message = NULL;
-	enum bt_component_status ret;
+	bt_component_status ret;
 	bool lazy_update = false;
 
         switch (bt_message_get_type(message)) {
@@ -516,13 +516,13 @@ const bt_message *evaluate_stream_message(
 
 /* Return true if the message should be forwarded. */
 static
-enum bt_message_iterator_status evaluate_message(
+bt_message_iterator_status evaluate_message(
 		const bt_message **message,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *in_range)
 {
-	enum bt_message_type type;
+	bt_message_type type;
 	const bt_message *new_message = NULL;
 	bool finished = false;
 

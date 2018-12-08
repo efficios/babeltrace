@@ -105,7 +105,7 @@ int lttng_live_add_port(struct lttng_live_component *lttng_live,
 	int ret;
 	struct bt_private_port *private_port;
 	char name[STREAM_NAME_MAX_LEN];
-	enum bt_component_status status;
+	bt_component_status status;
 
 	ret = sprintf(name, STREAM_NAME_PREFIX "%" PRIu64, stream_iter->viewer_stream_id);
 	BT_ASSERT(ret > 0);
@@ -156,7 +156,7 @@ int lttng_live_remove_port(struct lttng_live_component *lttng_live,
 	}
 	BT_COMPONENT_PUT_REF_AND_RESET(component);
 	if (nr_ports == 1) {
-		enum bt_component_status status;
+		bt_component_status status;
 
 		BT_ASSERT(!lttng_live->no_stream_port);
 
@@ -362,7 +362,7 @@ void lttng_live_iterator_finalize(bt_self_message_iterator *it)
 }
 
 static
-enum bt_lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
+bt_lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream)
 {
@@ -393,11 +393,11 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_check_stream_state(
  *   return EOF.
  */
 static
-enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stream(
+bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_data_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream)
 {
-	enum bt_lttng_live_iterator_status ret =
+	bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct packet_index index;
 	enum lttng_live_stream_state orig_state = lttng_live_stream->state;
@@ -449,11 +449,11 @@ end:
  * per-stream messages.
  */
 static
-enum bt_lttng_live_iterator_status lttng_live_get_session(
+bt_lttng_live_iterator_status lttng_live_get_session(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_session *session)
 {
-	enum bt_lttng_live_iterator_status status;
+	bt_lttng_live_iterator_status status;
 	struct lttng_live_trace *trace, *t;
 
 	if (lttng_live_attach_session(session)) {
@@ -504,10 +504,10 @@ void lttng_live_force_new_streams_and_metadata(struct lttng_live_component *lttn
 }
 
 static
-enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_new_streams_and_metadata(
+bt_lttng_live_iterator_status lttng_live_iterator_next_handle_new_streams_and_metadata(
 		struct lttng_live_component *lttng_live)
 {
-	enum bt_lttng_live_iterator_status ret =
+	bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	unsigned int nr_sessions_opened = 0;
 	struct lttng_live_session *session, *s;
@@ -553,13 +553,13 @@ end:
 }
 
 static
-enum bt_lttng_live_iterator_status emit_inactivity_message(
+bt_lttng_live_iterator_status emit_inactivity_message(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
 		const bt_message **message,
 		uint64_t timestamp)
 {
-	enum bt_lttng_live_iterator_status ret =
+	bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	struct lttng_live_trace *trace;
 	const bt_clock_class *clock_class = NULL;
@@ -600,12 +600,12 @@ error:
 }
 
 static
-enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_stream(
+bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
 		const bt_message **message)
 {
-	enum bt_lttng_live_iterator_status ret =
+	bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	const bt_clock_class *clock_class = NULL;
 	bt_clock_snapshot *clock_snapshot = NULL;
@@ -633,12 +633,12 @@ end:
 }
 
 static
-enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_stream(
+bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
 		const bt_message **message)
 {
-	enum bt_lttng_live_iterator_status ret =
+	bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	enum bt_msg_iter_status status;
 	struct lttng_live_session *session;
@@ -759,7 +759,7 @@ bt_message_iterator_next_method_return lttng_live_iterator_next_stream(
 		bt_self_message_iterator *iterator,
 		struct lttng_live_stream_iterator *stream_iter)
 {
-	enum bt_lttng_live_iterator_status status;
+	bt_lttng_live_iterator_status status;
 	bt_message_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
@@ -830,7 +830,7 @@ bt_message_iterator_next_method_return lttng_live_iterator_next_no_stream(
 		bt_self_message_iterator *iterator,
 		struct lttng_live_no_stream_iterator *no_stream_iter)
 {
-	enum bt_lttng_live_iterator_status status;
+	bt_lttng_live_iterator_status status;
 	bt_message_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
@@ -899,11 +899,11 @@ bt_message_iterator_next_method_return lttng_live_iterator_next(
 }
 
 BT_HIDDEN
-enum bt_message_iterator_status lttng_live_iterator_init(
+bt_message_iterator_status lttng_live_iterator_init(
 		bt_self_message_iterator *it,
 		struct bt_private_port *port)
 {
-	enum bt_message_iterator_status ret =
+	bt_message_iterator_status ret =
 			BT_MESSAGE_ITERATOR_STATUS_OK;
 	struct lttng_live_stream_iterator_generic *s;
 
@@ -1066,7 +1066,7 @@ struct lttng_live_component *lttng_live_component_create(bt_value *params,
 	struct lttng_live_component *lttng_live;
 	bt_value *value = NULL;
 	const char *url;
-	enum bt_value_status ret;
+	bt_value_status ret;
 
 	lttng_live = g_new0(struct lttng_live_component, 1);
 	if (!lttng_live) {
@@ -1106,12 +1106,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status lttng_live_component_init(
+bt_component_status lttng_live_component_init(
 		bt_self_component *private_component,
 		bt_value *params, void *init_method_data)
 {
 	struct lttng_live_component *lttng_live;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	/* Passes ownership of iter ref to lttng_live_component_create. */
 	lttng_live = lttng_live_component_create(params, private_component);
@@ -1152,7 +1152,7 @@ error:
 }
 
 BT_HIDDEN
-enum bt_component_status lttng_live_accept_port_connection(
+bt_component_status lttng_live_accept_port_connection(
 		bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
 		const bt_port *other_port)
@@ -1160,7 +1160,7 @@ enum bt_component_status lttng_live_accept_port_connection(
 	struct lttng_live_component *lttng_live =
 			bt_self_component_get_user_data(private_component);
 	bt_component *other_component;
-	enum bt_component_status status = BT_COMPONENT_STATUS_OK;
+	bt_component_status status = BT_COMPONENT_STATUS_OK;
 	const bt_port *self_port = bt_port_from_private(self_private_port);
 
 	other_component = bt_port_get_component(other_port);

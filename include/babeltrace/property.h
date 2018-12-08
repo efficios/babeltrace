@@ -27,10 +27,10 @@
 extern "C" {
 #endif
 
-enum bt_property_availability {
+typedef enum bt_property_availability {
 	BT_PROPERTY_AVAILABILITY_AVAILABLE,
 	BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE,
-};
+} bt_property_availability;
 
 #ifdef __cplusplus
 }

@@ -32,7 +32,7 @@
 /* For bt_field, bt_field_class */
 #include <babeltrace/types.h>
 
-/* For enum bt_field_status */
+/* For bt_field_status */
 #include <babeltrace/trace-ir/field-const.h>
 
 #ifdef __cplusplus
@@ -47,16 +47,16 @@ extern void bt_field_unsigned_integer_set_value(bt_field *field,
 
 extern void bt_field_real_set_value(bt_field *field, double value);
 
-extern enum bt_field_status bt_field_string_set_value(bt_field *field,
+extern bt_field_status bt_field_string_set_value(bt_field *field,
 		const char *value);
 
-extern enum bt_field_status bt_field_string_append(bt_field *field,
+extern bt_field_status bt_field_string_append(bt_field *field,
 		const char *value);
 
-extern enum bt_field_status bt_field_string_append_with_length(bt_field *field,
+extern bt_field_status bt_field_string_append_with_length(bt_field *field,
 		const char *value, uint64_t length);
 
-extern enum bt_field_status bt_field_string_clear(bt_field *field);
+extern bt_field_status bt_field_string_clear(bt_field *field);
 
 extern bt_field *bt_field_structure_borrow_member_field_by_index(
 		bt_field *field, uint64_t index);
@@ -67,10 +67,10 @@ extern bt_field *bt_field_structure_borrow_member_field_by_name(
 extern bt_field *bt_field_array_borrow_element_field_by_index(
 		bt_field *field, uint64_t index);
 
-extern enum bt_field_status bt_field_dynamic_array_set_length(bt_field *field,
+extern bt_field_status bt_field_dynamic_array_set_length(bt_field *field,
 		uint64_t length);
 
-extern enum bt_field_status bt_field_variant_select_option_field(
+extern bt_field_status bt_field_variant_select_option_field(
 		bt_field *field, uint64_t index);
 
 extern bt_field *bt_field_variant_borrow_selected_option_field(

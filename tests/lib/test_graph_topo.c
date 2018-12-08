@@ -364,7 +364,7 @@ size_t event_pos(struct event *event)
 }
 
 static
-enum bt_self_message_iterator_status src_iter_next(
+bt_self_message_iterator_status src_iter_next(
 		bt_self_message_iterator *self_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -373,7 +373,7 @@ enum bt_self_message_iterator_status src_iter_next(
 }
 
 static
-enum bt_self_component_status src_accept_output_port_connection(
+bt_self_component_status src_accept_output_port_connection(
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_comp_port,
 		const bt_port_input *other_port)
@@ -396,7 +396,7 @@ enum bt_self_component_status src_accept_output_port_connection(
 }
 
 static
-enum bt_self_component_status sink_accept_input_port_connection(
+bt_self_component_status sink_accept_input_port_connection(
 		bt_self_component_sink *self_comp,
 		bt_self_component_port_input *self_comp_port,
 		const bt_port_output *other_port)
@@ -419,7 +419,7 @@ enum bt_self_component_status sink_accept_input_port_connection(
 }
 
 static
-enum bt_self_component_status src_output_port_connected(
+bt_self_component_status src_output_port_connected(
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_comp_port,
 		const bt_port_input *other_port)
@@ -456,7 +456,7 @@ enum bt_self_component_status src_output_port_connected(
 }
 
 static
-enum bt_self_component_status sink_input_port_connected(
+bt_self_component_status sink_input_port_connected(
 		bt_self_component_sink *self_comp,
 		bt_self_component_port_input *self_comp_port,
 		const bt_port_output *other_port)
@@ -533,7 +533,7 @@ void sink_input_port_disconnected(bt_self_component_sink *self_comp,
 }
 
 static
-enum bt_self_component_status src_init(
+bt_self_component_status src_init(
 	bt_self_component_source *self_comp,
 	const bt_value *params, void *init_method_data)
 {
@@ -546,7 +546,7 @@ enum bt_self_component_status src_init(
 }
 
 static
-enum bt_self_component_status sink_init(
+bt_self_component_status sink_init(
 	bt_self_component_sink *self_comp,
 	const bt_value *params, void *init_method_data)
 {
@@ -559,7 +559,7 @@ enum bt_self_component_status sink_init(
 }
 
 static
-enum bt_self_component_status sink_consume(
+bt_self_component_status sink_consume(
 		bt_self_component_sink *self_comp)
 {
 	bt_self_component_port_input *def_port;
@@ -810,7 +810,7 @@ void test_sink_removes_port_in_consume_then_src_removes_disconnected_port(void)
 	const bt_port *gsrc_def_port;
 	const bt_port *gsink_def_port;
 	struct event event;
-	enum bt_graph_status status;
+	bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -992,7 +992,7 @@ void test_sink_removes_port_in_consume(void)
 	const bt_port *gsrc_def_port;
 	const bt_port *gsink_def_port;
 	struct event event;
-	enum bt_graph_status status;
+	bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -1159,7 +1159,7 @@ void test_src_adds_port_in_port_connected(void)
 	const bt_port *gsrc_hello_port;
 	const bt_port *gsink_def_port;
 	struct event event;
-	enum bt_graph_status status;
+	bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -1286,7 +1286,7 @@ void test_simple(void)
 	const bt_port *gsrc_def_port;
 	const bt_port *gsink_def_port;
 	struct event event;
-	enum bt_graph_status status;
+	bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;
@@ -1397,7 +1397,7 @@ void test_src_port_connected_error(void)
 	const bt_port *gsink_def_port;
 	const bt_connection *conn = NULL;
 	struct event event;
-	enum bt_graph_status status;
+	bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t src_port_connected_pos;
 
@@ -1484,7 +1484,7 @@ void test_sink_port_connected_error(void)
 	const bt_port *gsink_def_port;
 	const bt_connection *conn = NULL;
 	struct event event;
-	enum bt_graph_status status;
+	bt_graph_status status;
 	size_t src_accept_port_connection_pos;
 	size_t sink_accept_port_connection_pos;
 	size_t src_port_connected_pos;

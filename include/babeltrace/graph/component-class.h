@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-/* For enum bt_query_executor_status */
+/* For BT_QUERY_EXECUTOR_STATUS_* */
 #include <babeltrace/graph/query-executor-const.h>
 
 /* For bt_component_class */
@@ -34,14 +34,14 @@
 extern "C" {
 #endif
 
-enum bt_query_status {
+typedef enum bt_query_status {
 	BT_QUERY_STATUS_OK = BT_QUERY_EXECUTOR_STATUS_OK,
 	BT_QUERY_STATUS_AGAIN = BT_QUERY_EXECUTOR_STATUS_AGAIN,
 	BT_QUERY_STATUS_ERROR = BT_QUERY_EXECUTOR_STATUS_ERROR,
 	BT_QUERY_STATUS_NOMEM = BT_QUERY_EXECUTOR_STATUS_NOMEM,
 	BT_QUERY_STATUS_INVALID_OBJECT = BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT,
 	BT_QUERY_STATUS_INVALID_PARAMS = BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS,
-};
+} bt_query_status;
 
 extern int bt_component_class_set_description(
 		bt_component_class *component_class,

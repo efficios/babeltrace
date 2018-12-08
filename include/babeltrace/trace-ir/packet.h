@@ -29,7 +29,7 @@
 /* For bt_packet, bt_packet_header_field, bt_packet_context_field, bt_stream */
 #include <babeltrace/types.h>
 
-/* For enum bt_packet_status */
+/* For bt_packet_status */
 #include <babeltrace/trace-ir/packet-const.h>
 
 #include <stdint.h>
@@ -46,14 +46,14 @@ extern
 bt_field *bt_packet_borrow_header_field(bt_packet *packet);
 
 extern
-enum bt_packet_status bt_packet_move_header_field(bt_packet *packet,
+bt_packet_status bt_packet_move_header_field(bt_packet *packet,
 		bt_packet_header_field *header);
 
 extern
 bt_field *bt_packet_borrow_context_field(bt_packet *packet);
 
 extern
-enum bt_packet_status bt_packet_move_context_field(bt_packet *packet,
+bt_packet_status bt_packet_move_context_field(bt_packet *packet,
 		bt_packet_context_field *context);
 
 extern

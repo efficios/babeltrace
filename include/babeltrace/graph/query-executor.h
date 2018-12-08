@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-/* For enum bt_query_executor_status */
+/* For bt_query_executor_status */
 #include <babeltrace/graph/query-executor.h>
 
 /* For bt_query_executor, bt_component_class, bt_value */
@@ -37,14 +37,14 @@ extern
 bt_query_executor *bt_query_executor_create(void);
 
 extern
-enum bt_query_executor_status bt_query_executor_query(
+bt_query_executor_status bt_query_executor_query(
 		bt_query_executor *query_executor,
 		const bt_component_class *component_class,
 		const char *object, const bt_value *params,
 		const bt_value **result);
 
 extern
-enum bt_query_executor_status bt_query_executor_cancel(
+bt_query_executor_status bt_query_executor_cancel(
 		bt_query_executor *query_executor);
 
 #ifdef __cplusplus

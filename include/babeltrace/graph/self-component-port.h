@@ -32,9 +32,9 @@
 extern "C" {
 #endif
 
-enum bt_self_component_port_status {
+typedef enum bt_self_component_port_status {
 	BT_SELF_PORT_STATUS_OK = 0,
-};
+} bt_self_component_port_status;
 
 static inline
 const bt_port *bt_self_component_port_as_port(
@@ -46,7 +46,7 @@ const bt_port *bt_self_component_port_as_port(
 extern bt_self_component *bt_self_component_port_borrow_component(
 		bt_self_component_port *self_port);
 
-extern enum bt_self_component_port_status
+extern bt_self_component_port_status
 bt_self_component_port_remove_from_component(
 		bt_self_component_port *self_port);
 

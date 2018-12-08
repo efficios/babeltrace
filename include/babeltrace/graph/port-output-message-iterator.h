@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 
-/* For enum bt_message_iterator_status */
+/* For bt_message_iterator_status */
 #include <babeltrace/graph/message-iterator.h>
 
 /*
@@ -52,7 +52,7 @@ bt_port_output_message_iterator_create(
 		bt_graph *graph,
 		const bt_port_output *output_port);
 
-extern enum bt_message_iterator_status
+extern bt_message_iterator_status
 bt_port_output_message_iterator_next(
 		bt_port_output_message_iterator *iterator,
 		bt_message_array_const *msgs, uint64_t *count);

@@ -49,7 +49,7 @@ struct trimmer {
 	int year, month, day;
 };
 
-enum bt_component_status trimmer_component_init(
+bt_component_status trimmer_component_init(
 	bt_self_component *component,
 	bt_value *params, void *init_method_data);
 

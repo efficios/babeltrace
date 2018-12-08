@@ -724,7 +724,7 @@ void test_compare_array(void)
 	bt_value *array1 = bt_value_array_create();
 	bt_value *array2 = bt_value_array_create();
 	bt_value *array3 = bt_value_array_create();
-	enum bt_value_status status;
+	bt_value_status status;
 
 	BT_ASSERT(array1 && array2 && array3);
 
@@ -775,7 +775,7 @@ void test_compare_map(void)
 	bt_value *map1 = bt_value_map_create();
 	bt_value *map2 = bt_value_map_create();
 	bt_value *map3 = bt_value_map_create();
-	enum bt_value_status status;
+	bt_value_status status;
 
 	BT_ASSERT(map1 && map2 && map3);
 
@@ -854,7 +854,7 @@ void test_copy(void)
 	bt_value *string_obj, *string_copy_obj;
 	bt_value *array_obj, *array_copy_obj;
 	bt_value *map_obj, *map_copy_obj;
-	enum bt_value_status status;
+	bt_value_status status;
 
 	bool_obj = bt_value_bool_create_init(BT_TRUE);
 	integer_obj = bt_value_integer_create_init(23);
@@ -950,7 +950,7 @@ void test_extend(void)
 	bt_value *extension_map = bt_value_map_create();
 	bt_value *extended_map = NULL;
 	bt_value *array = bt_value_array_create();
-	enum bt_value_status status;
+	bt_value_status status;
 
 	BT_ASSERT(base_map);
 	BT_ASSERT(extension_map);

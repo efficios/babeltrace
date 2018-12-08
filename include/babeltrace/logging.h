@@ -60,7 +60,7 @@ current global log level and the minimal log level are not executed.
 /**
 @brief Log levels.
 */
-enum bt_logging_level {
+typedef enum bt_logging_level {
 	/// Additional, low-level debugging context information.
 	BT_LOGGING_LEVEL_VERBOSE	= 1,
 
@@ -100,7 +100,7 @@ enum bt_logging_level {
 
 	/// Logging is disabled.
 	BT_LOGGING_LEVEL_NONE		= 0xff,
-};
+} bt_logging_level;
 
 /**
 @brief	Returns the minimal log level of the Babeltrace library.
@@ -114,7 +114,7 @@ global log level with bt_logging_set_global_level() below this level.
 
 @sa bt_logging_get_global_level(): Returns the current global log level.
 */
-extern enum bt_logging_level bt_logging_get_minimal_level(void);
+extern bt_logging_level bt_logging_get_minimal_level(void);
 
 /**
 @brief	Returns the current global log level of the Babeltrace library.
@@ -124,7 +124,7 @@ extern enum bt_logging_level bt_logging_get_minimal_level(void);
 @sa bt_logging_set_global_level(): Sets the current global log level.
 @sa bt_logging_get_minimal_level(): Returns the minimal log level.
 */
-extern enum bt_logging_level bt_logging_get_global_level(void);
+extern bt_logging_level bt_logging_get_global_level(void);
 
 /**
 @brief	Sets the current global log level of the Babeltrace library
@@ -138,7 +138,7 @@ log level cannot be executed.
 
 @sa bt_logging_get_global_level(): Returns the global log level.
 */
-extern void bt_logging_set_global_level(enum bt_logging_level log_level);
+extern void bt_logging_set_global_level(bt_logging_level log_level);
 
 /** @} */
 

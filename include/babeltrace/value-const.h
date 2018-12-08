@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-enum bt_value_status {
+typedef enum bt_value_status {
 	/// Operation canceled.
 	BT_VALUE_STATUS_CANCELED	= 125,
 
@@ -42,9 +42,9 @@ enum bt_value_status {
 
 	/// Okay, no error.
 	BT_VALUE_STATUS_OK		= 0,
-};
+} bt_value_status;
 
-enum bt_value_type {
+typedef enum bt_value_type {
 	/// Null value object.
 	BT_VALUE_TYPE_NULL =		0,
 
@@ -65,9 +65,9 @@ enum bt_value_type {
 
 	/// Map value object.
 	BT_VALUE_TYPE_MAP =		6,
-};
+} bt_value_type;
 
-extern enum bt_value_type bt_value_get_type(const bt_value *object);
+extern bt_value_type bt_value_get_type(const bt_value *object);
 
 static inline
 bt_bool bt_value_is_null(const bt_value *object)
@@ -111,7 +111,7 @@ bt_bool bt_value_is_map(const bt_value *object)
 	return bt_value_get_type(object) == BT_VALUE_TYPE_MAP;
 }
 
-extern enum bt_value_status bt_value_copy(const bt_value *object,
+extern bt_value_status bt_value_copy(const bt_value *object,
 		bt_value **copy);
 
 extern bt_bool bt_value_compare(const bt_value *object_a,
@@ -150,14 +150,14 @@ extern const bt_value *bt_value_map_borrow_entry_value_const(
 typedef bt_bool (* bt_value_map_foreach_entry_const_func)(const char *key,
 		const bt_value *object, void *data);
 
-extern enum bt_value_status bt_value_map_foreach_entry_const(
+extern bt_value_status bt_value_map_foreach_entry_const(
 		const bt_value *map_obj,
 		bt_value_map_foreach_entry_const_func func, void *data);
 
 extern bt_bool bt_value_map_has_entry(const bt_value *map_obj,
 		const char *key);
 
-extern enum bt_value_status bt_value_map_extend(
+extern bt_value_status bt_value_map_extend(
 		const bt_value *base_map_obj,
 		const bt_value *extension_map_obj,
 		bt_value **extended_map_obj);

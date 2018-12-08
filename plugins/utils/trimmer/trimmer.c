@@ -291,18 +291,18 @@ lazy:
 }
 
 static
-enum bt_component_status init_from_params(struct trimmer *trimmer,
+bt_component_status init_from_params(struct trimmer *trimmer,
 		bt_value *params)
 {
 	bt_value *value = NULL;
 	bt_bool gmt = BT_FALSE;
-	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
+	bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
 	BT_ASSERT(params);
 
         value = bt_value_map_get(params, "clock-gmt");
 	if (value) {
-		enum bt_value_status value_ret;
+		bt_value_status value_ret;
 
 		gmt = bt_value_bool_get(value);
 	}
@@ -344,11 +344,11 @@ end:
 	return ret;
 }
 
-enum bt_component_status trimmer_component_init(
+bt_component_status trimmer_component_init(
 	bt_self_component *component, bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
-	enum bt_component_status ret;
+	bt_component_status ret;
 	struct trimmer *trimmer = create_trimmer_data();
 
 	if (!trimmer) {

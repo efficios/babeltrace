@@ -33,7 +33,7 @@ struct dummy {
 };
 
 BT_HIDDEN
-enum bt_self_component_status dummy_init(
+bt_self_component_status dummy_init(
 		bt_self_component_sink *component,
 		const bt_value *params, void *init_method_data);
 
@@ -41,13 +41,13 @@ BT_HIDDEN
 void dummy_finalize(bt_self_component_sink *component);
 
 BT_HIDDEN
-enum bt_self_component_status dummy_port_connected(
+bt_self_component_status dummy_port_connected(
 		bt_self_component_sink *comp,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port);
 
 BT_HIDDEN
-enum bt_self_component_status dummy_consume(
+bt_self_component_status dummy_consume(
 		bt_self_component_sink *component);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_DUMMY_H */

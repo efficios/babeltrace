@@ -111,7 +111,7 @@ static struct bt_msg_iter_medium_ops medops = {
 };
 
 BT_HIDDEN
-enum bt_lttng_live_iterator_status lttng_live_lazy_msg_init(
+bt_lttng_live_iterator_status lttng_live_lazy_msg_init(
 		struct lttng_live_session *session)
 {
 	struct lttng_live_component *lttng_live = session->lttng_live;

@@ -34,14 +34,14 @@ extern "C" {
 /**
  * Message types. Unhandled message types should be ignored.
  */
-enum bt_message_type {
+typedef enum bt_message_type {
 	BT_MESSAGE_TYPE_EVENT =			0,
 	BT_MESSAGE_TYPE_INACTIVITY =		1,
 	BT_MESSAGE_TYPE_STREAM_BEGINNING =	2,
 	BT_MESSAGE_TYPE_STREAM_END =		3,
 	BT_MESSAGE_TYPE_PACKET_BEGINNING =	4,
 	BT_MESSAGE_TYPE_PACKET_END =		5,
-};
+} bt_message_type;
 
 /**
  * Get a message's type.
@@ -49,8 +49,7 @@ enum bt_message_type {
  * @param message	Message instance
  * @returns		One of #bt_message_type
  */
-extern enum bt_message_type bt_message_get_type(
-		const bt_message *message);
+extern bt_message_type bt_message_get_type(const bt_message *message);
 
 extern void bt_message_get_ref(const bt_message *message);
 

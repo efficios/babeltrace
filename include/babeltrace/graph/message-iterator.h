@@ -31,14 +31,14 @@
 extern "C" {
 #endif
 
-enum bt_message_iterator_status {
+typedef enum bt_message_iterator_status {
 	BT_MESSAGE_ITERATOR_STATUS_OK = 0,
 	BT_MESSAGE_ITERATOR_STATUS_END = 1,
 	BT_MESSAGE_ITERATOR_STATUS_AGAIN = 11,
 	BT_MESSAGE_ITERATOR_STATUS_CANCELED = 125,
 	BT_MESSAGE_ITERATOR_STATUS_ERROR = -1,
 	BT_MESSAGE_ITERATOR_STATUS_NOMEM = -12,
-};
+} bt_message_iterator_status;
 
 #ifdef __cplusplus
 }

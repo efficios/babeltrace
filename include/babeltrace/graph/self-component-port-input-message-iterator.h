@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 
-/* For enum bt_message_iterator_status */
+/* For bt_message_iterator_status */
 #include <babeltrace/graph/message-iterator.h>
 
 /*
@@ -55,7 +55,7 @@ extern bt_component *
 bt_self_component_port_input_message_iterator_borrow_component(
 		bt_self_component_port_input_message_iterator *iterator);
 
-extern enum bt_message_iterator_status
+extern bt_message_iterator_status
 bt_self_component_port_input_message_iterator_next(
 		bt_self_component_port_input_message_iterator *iterator,
 		bt_message_array_const *msgs, uint64_t *count);

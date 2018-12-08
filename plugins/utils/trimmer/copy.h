@@ -41,7 +41,7 @@ BT_HIDDEN
 const bt_packet *trimmer_close_packet(struct trimmer_iterator *trim_it,
 		const bt_packet *packet);
 BT_HIDDEN
-enum bt_component_status update_packet_context_field(FILE *err,
+bt_component_status update_packet_context_field(FILE *err,
 		const bt_packet *writer_packet,
 		const char *name, int64_t value);
 

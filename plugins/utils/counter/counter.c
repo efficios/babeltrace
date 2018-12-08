@@ -122,12 +122,12 @@ void counter_finalize(bt_self_component_sink *comp)
 }
 
 BT_HIDDEN
-enum bt_self_component_status counter_init(
+bt_self_component_status counter_init(
 		bt_self_component_sink *component,
 		const bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
-	enum bt_self_component_status ret;
+	bt_self_component_status ret;
 	struct counter *counter = g_new0(struct counter, 1);
 	const bt_value *step = NULL;
 	const bt_value *hide_zero = NULL;
@@ -176,12 +176,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_component_status counter_port_connected(
+bt_self_component_status counter_port_connected(
 		bt_self_component_sink *comp,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port)
 {
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
 	bt_self_component_port_input_message_iterator *iterator;
 
@@ -203,12 +203,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_component_status counter_consume(
+bt_self_component_status counter_consume(
 		bt_self_component_sink *comp)
 {
-	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
-	enum bt_message_iterator_status it_ret;
+	bt_message_iterator_status it_ret;
 	uint64_t msg_count;
 	bt_message_array_const msgs;
 

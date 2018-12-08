@@ -18,13 +18,13 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/assert-internal.h>
 
-static enum bt_self_component_status sink_consume(
+static bt_self_component_status sink_consume(
 		bt_self_component_sink *self_comp)
 {
 	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
-static enum bt_self_message_iterator_status src_dummy_iterator_init_method(
+static bt_self_message_iterator_status src_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
@@ -32,7 +32,7 @@ static enum bt_self_message_iterator_status src_dummy_iterator_init_method(
 	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 }
 
-static enum bt_self_message_iterator_status flt_dummy_iterator_init_method(
+static bt_self_message_iterator_status flt_dummy_iterator_init_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *self_port)
@@ -45,7 +45,7 @@ static void dummy_iterator_finalize_method(
 {
 }
 
-static enum bt_self_message_iterator_status dummy_iterator_next_method(
+static bt_self_message_iterator_status dummy_iterator_next_method(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -53,7 +53,7 @@ static enum bt_self_message_iterator_status dummy_iterator_next_method(
 	return BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 }
 
-static enum bt_query_status flt_query_method(
+static bt_query_status flt_query_method(
 		bt_self_component_class_filter *component_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,

@@ -171,12 +171,12 @@ end:
 }
 
 static
-enum bt_self_component_status ensure_available_input_port(
+bt_self_component_status ensure_available_input_port(
 		bt_self_component_filter *self_comp)
 {
 	struct muxer_comp *muxer_comp = bt_self_component_get_data(
 		bt_self_component_filter_as_self_component(self_comp));
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	GString *port_name = NULL;
 
 	BT_ASSERT(muxer_comp);
@@ -217,7 +217,7 @@ end:
 }
 
 static
-enum bt_self_component_status create_output_port(
+bt_self_component_status create_output_port(
 		bt_self_component_filter *self_comp)
 {
 	return bt_self_component_filter_add_output_port(
@@ -326,12 +326,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_component_status muxer_init(
+bt_self_component_status muxer_init(
 		bt_self_component_filter *self_comp,
 		bt_value *params, void *init_data)
 {
 	int ret;
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct muxer_comp *muxer_comp = g_new0(struct muxer_comp, 1);
 
 	BT_LOGD("Initializing muxer component: "
@@ -447,10 +447,10 @@ end:
 }
 
 static
-enum bt_message_iterator_status muxer_upstream_msg_iter_next(
+bt_message_iterator_status muxer_upstream_msg_iter_next(
 		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter)
 {
-	enum bt_message_iterator_status status;
+	bt_message_iterator_status status;
 	bt_message_array_const msgs;
 	uint64_t i;
 	uint64_t count;
@@ -608,7 +608,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	int ret = 0;
 	const unsigned char *cc_uuid;
 	const char *cc_name;
-	enum bt_clock_snapshot_state cs_state = BT_CLOCK_SNAPSHOT_STATE_KNOWN;
+	bt_clock_snapshot_state cs_state = BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
@@ -851,7 +851,7 @@ end:
  * the youngest, and sets *ts_ns to its time.
  */
 static
-enum bt_message_iterator_status
+bt_message_iterator_status
 muxer_msg_iter_youngest_upstream_msg_iter(
 		struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter,
@@ -861,7 +861,7 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 	size_t i;
 	int ret;
 	int64_t youngest_ts_ns = INT64_MAX;
-	enum bt_message_iterator_status status =
+	bt_message_iterator_status status =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
 
 	BT_ASSERT(muxer_comp);
@@ -913,10 +913,10 @@ end:
 }
 
 static
-enum bt_message_iterator_status validate_muxer_upstream_msg_iter(
+bt_message_iterator_status validate_muxer_upstream_msg_iter(
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter)
 {
-	enum bt_message_iterator_status status =
+	bt_message_iterator_status status =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
 
 	BT_LOGV("Validating muxer's upstream message iterator wrapper: "
@@ -940,10 +940,10 @@ end:
 }
 
 static
-enum bt_message_iterator_status validate_muxer_upstream_msg_iters(
+bt_message_iterator_status validate_muxer_upstream_msg_iters(
 		struct muxer_msg_iter *muxer_msg_iter)
 {
-	enum bt_message_iterator_status status =
+	bt_message_iterator_status status =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
 	size_t i;
 
@@ -1001,12 +1001,12 @@ end:
 }
 
 static inline
-enum bt_message_iterator_status muxer_msg_iter_do_next_one(
+bt_message_iterator_status muxer_msg_iter_do_next_one(
 		struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter,
 		const bt_message **msg)
 {
-	enum bt_message_iterator_status status =
+	bt_message_iterator_status status =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter = NULL;
 	int64_t next_return_ts;
@@ -1102,13 +1102,13 @@ end:
 }
 
 static
-enum bt_message_iterator_status muxer_msg_iter_do_next(
+bt_message_iterator_status muxer_msg_iter_do_next(
 		struct muxer_comp *muxer_comp,
 		struct muxer_msg_iter *muxer_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_message_iterator_status status =
+	bt_message_iterator_status status =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 
@@ -1226,14 +1226,14 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_message_iterator_status muxer_msg_iter_init(
+bt_self_message_iterator_status muxer_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *port)
 {
 	struct muxer_comp *muxer_comp = NULL;
 	struct muxer_msg_iter *muxer_msg_iter = NULL;
-	enum bt_self_message_iterator_status status =
+	bt_self_message_iterator_status status =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
 	int ret;
 
@@ -1343,12 +1343,12 @@ void muxer_msg_iter_finalize(
 }
 
 BT_HIDDEN
-enum bt_message_iterator_status muxer_msg_iter_next(
+bt_message_iterator_status muxer_msg_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_message_iterator_status status;
+	bt_message_iterator_status status;
 	struct muxer_msg_iter *muxer_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
 	bt_self_component *self_comp = NULL;
@@ -1383,12 +1383,12 @@ enum bt_message_iterator_status muxer_msg_iter_next(
 }
 
 BT_HIDDEN
-enum bt_self_component_status muxer_input_port_connected(
+bt_self_component_status muxer_input_port_connected(
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port)
 {
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	const bt_port *port = bt_self_component_port_as_port(
 		bt_self_component_port_input_as_self_component_port(
 			self_port));

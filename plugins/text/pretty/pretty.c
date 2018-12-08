@@ -121,11 +121,11 @@ void pretty_finalize(bt_self_component_sink *comp)
 }
 
 static
-enum bt_self_component_status handle_message(
+bt_self_component_status handle_message(
 		struct pretty_component *pretty,
 		const bt_message *message)
 {
-	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 
 	BT_ASSERT(pretty);
 
@@ -151,12 +151,12 @@ enum bt_self_component_status handle_message(
 }
 
 BT_HIDDEN
-enum bt_self_component_status pretty_port_connected(
+bt_self_component_status pretty_port_connected(
 		bt_self_component_sink *comp,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port)
 {
-	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct pretty_component *pretty;
 
 	pretty = bt_self_component_get_data(
@@ -173,15 +173,15 @@ enum bt_self_component_status pretty_port_connected(
 }
 
 BT_HIDDEN
-enum bt_self_component_status pretty_consume(
+bt_self_component_status pretty_consume(
 		bt_self_component_sink *comp)
 {
-	enum bt_self_component_status ret;
+	bt_self_component_status ret;
 	bt_message_array_const msgs;
 	bt_self_component_port_input_message_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
-	enum bt_message_iterator_status it_ret;
+	bt_message_iterator_status it_ret;
 	uint64_t count = 0;
 	uint64_t i = 0;
 
@@ -235,7 +235,7 @@ int add_params_to_map(bt_value *plugin_opt_map)
 
 	for (i = 0; i < BT_ARRAY_SIZE(plugin_options); i++) {
 		const char *key = plugin_options[i];
-		enum bt_value_status status;
+		bt_value_status status;
 
 		status = bt_value_map_insert_entry(plugin_opt_map, key,
 			bt_value_null);
@@ -340,7 +340,7 @@ static
 int apply_params(struct pretty_component *pretty, const bt_value *params)
 {
 	int ret = 0;
-	enum bt_value_status status;
+	bt_value_status status;
 	bool value, found;
 	char *str = NULL;
 
@@ -636,12 +636,12 @@ void init_stream_packet_context_quarks(void)
 }
 
 BT_HIDDEN
-enum bt_self_component_status pretty_init(
+bt_self_component_status pretty_init(
 		bt_self_component_sink *comp,
 		const bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
-	enum bt_self_component_status ret;
+	bt_self_component_status ret;
 	struct pretty_component *pretty = create_pretty();
 
 	if (!pretty) {

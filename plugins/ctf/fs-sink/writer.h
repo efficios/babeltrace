@@ -75,28 +75,28 @@ BT_HIDDEN
 void writer_close(struct writer_component *writer_component,
 		struct fs_writer *fs_writer);
 BT_HIDDEN
-enum bt_component_status writer_output_event(struct writer_component *writer,
+bt_component_status writer_output_event(struct writer_component *writer,
 		const bt_event *event);
 BT_HIDDEN
-enum bt_component_status writer_new_packet(struct writer_component *writer,
+bt_component_status writer_new_packet(struct writer_component *writer,
 		const bt_packet *packet);
 BT_HIDDEN
-enum bt_component_status writer_close_packet(struct writer_component *writer,
+bt_component_status writer_close_packet(struct writer_component *writer,
 		const bt_packet *packet);
 BT_HIDDEN
-enum bt_component_status writer_stream_begin(struct writer_component *writer,
+bt_component_status writer_stream_begin(struct writer_component *writer,
 		const bt_stream *stream);
 BT_HIDDEN
-enum bt_component_status writer_stream_end(struct writer_component *writer,
+bt_component_status writer_stream_end(struct writer_component *writer,
 		const bt_stream *stream);
 
 BT_HIDDEN
-enum bt_component_status writer_component_init(
+bt_component_status writer_component_init(
 	bt_self_component *component, bt_value *params,
 	void *init_method_data);
 
 BT_HIDDEN
-enum bt_component_status writer_run(bt_self_component *component);
+bt_component_status writer_run(bt_self_component *component);
 
 BT_HIDDEN
 void writer_component_port_connected(

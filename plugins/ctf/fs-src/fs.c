@@ -88,11 +88,11 @@ void ctf_fs_msg_iter_data_destroy(
 }
 
 static
-enum bt_self_message_iterator_status ctf_fs_iterator_next_one(
+bt_self_message_iterator_status ctf_fs_iterator_next_one(
 		struct ctf_fs_msg_iter_data *msg_iter_data,
 		const bt_message **msg)
 {
-	enum bt_self_message_iterator_status status;
+	bt_self_message_iterator_status status;
 	bt_message *priv_msg;
 	int ret;
 
@@ -194,12 +194,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_message_iterator_status ctf_fs_iterator_next(
+bt_self_message_iterator_status ctf_fs_iterator_next(
 		bt_self_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_self_message_iterator_status status =
+	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	struct ctf_fs_msg_iter_data *msg_iter_data =
 		bt_self_message_iterator_get_data(iterator);
@@ -237,14 +237,14 @@ void ctf_fs_iterator_finalize(bt_self_message_iterator *it)
 		bt_self_message_iterator_get_data(it));
 }
 
-enum bt_self_message_iterator_status ctf_fs_iterator_init(
+bt_self_message_iterator_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
 {
 	struct ctf_fs_port_data *port_data;
 	struct ctf_fs_msg_iter_data *msg_iter_data = NULL;
-	enum bt_self_message_iterator_status ret =
+	bt_self_message_iterator_status ret =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	int iret;
 
@@ -1384,12 +1384,12 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_component_status ctf_fs_init(
+bt_self_component_status ctf_fs_init(
 		bt_self_component_source *self_comp,
 		const bt_value *params, UNUSED_VAR void *init_method_data)
 {
 	struct ctf_fs_component *ctf_fs;
-	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 
 	ctf_fs = ctf_fs_create(self_comp, params);
 	if (!ctf_fs) {
@@ -1400,13 +1400,13 @@ enum bt_self_component_status ctf_fs_init(
 }
 
 BT_HIDDEN
-enum bt_query_status ctf_fs_query(
+bt_query_status ctf_fs_query(
 		bt_self_component_class_source *comp_class,
 		const bt_query_executor *query_exec,
 		const char *object, const bt_value *params,
 		const bt_value **result)
 {
-	enum bt_query_status status = BT_QUERY_STATUS_OK;
+	bt_query_status status = BT_QUERY_STATUS_OK;
 
 	if (!strcmp(object, "metadata-info")) {
 		status = metadata_info_query(comp_class, params, result);

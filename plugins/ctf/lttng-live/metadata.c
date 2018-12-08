@@ -54,10 +54,10 @@ struct packet_header {
 } __attribute__((__packed__));
 
 static
-enum bt_lttng_live_iterator_status lttng_live_update_clock_map(
+bt_lttng_live_iterator_status lttng_live_update_clock_map(
 		struct lttng_live_trace *trace)
 {
-	enum bt_lttng_live_iterator_status status =
+	bt_lttng_live_iterator_status status =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	size_t i;
 	int count, ret;
@@ -93,7 +93,7 @@ end:
 }
 
 BT_HIDDEN
-enum bt_lttng_live_iterator_status lttng_live_metadata_update(
+bt_lttng_live_iterator_status lttng_live_metadata_update(
 		struct lttng_live_trace *trace)
 {
 	struct lttng_live_session *session = trace->session;
@@ -103,7 +103,7 @@ enum bt_lttng_live_iterator_status lttng_live_metadata_update(
 	char *metadata_buf = NULL;
 	FILE *fp = NULL;
 	enum ctf_metadata_decoder_status decoder_status;
-	enum bt_lttng_live_iterator_status status =
+	bt_lttng_live_iterator_status status =
 		BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 
 	/* No metadata stream yet. */

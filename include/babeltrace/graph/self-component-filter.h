@@ -26,7 +26,7 @@
 
 #include <stdint.h>
 
-/* For enum bt_self_component_status */
+/* For bt_self_component_status */
 #include <babeltrace/graph/self-component.h>
 
 /*
@@ -67,7 +67,7 @@ bt_self_component_filter_borrow_output_port_by_index(
 		bt_self_component_filter *self_component,
 		uint64_t index);
 
-extern enum bt_self_component_status
+extern bt_self_component_status
 bt_self_component_filter_add_output_port(
 		bt_self_component_filter *self_component,
 		const char *name, void *data,
@@ -83,7 +83,7 @@ bt_self_component_filter_borrow_input_port_by_index(
 		bt_self_component_filter *self_component,
 		uint64_t index);
 
-extern enum bt_self_component_status
+extern bt_self_component_status
 bt_self_component_filter_add_input_port(
 		bt_self_component_filter *self_component,
 		const char *name, void *data,

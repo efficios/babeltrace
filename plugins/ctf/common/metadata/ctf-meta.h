@@ -79,7 +79,7 @@ struct ctf_field_class_int {
 	struct ctf_field_class_bit_array base;
 	enum ctf_field_class_meaning meaning;
 	bool is_signed;
-	enum bt_field_class_integer_preferred_display_base disp_base;
+	bt_field_class_integer_preferred_display_base disp_base;
 	enum ctf_encoding encoding;
 	int64_t storing_index;
 
@@ -135,7 +135,7 @@ struct ctf_field_class_struct {
 };
 
 struct ctf_field_path {
-	enum bt_scope root;
+	bt_scope root;
 
 	/* Array of `int64_t` */
 	GArray *path;
@@ -188,7 +188,7 @@ struct ctf_event_class {
 	GString *name;
 	uint64_t id;
 	GString *emf_uri;
-	enum bt_event_class_log_level log_level;
+	bt_event_class_log_level log_level;
 	bool is_translated;
 
 	/* Owned by this */

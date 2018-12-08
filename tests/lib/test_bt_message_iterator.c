@@ -313,7 +313,7 @@ void src_iter_finalize(bt_self_message_iterator *self_msg_iter)
 }
 
 static
-enum bt_self_message_iterator_status src_iter_init(
+bt_self_message_iterator_status src_iter_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
@@ -419,13 +419,13 @@ void src_iter_next_seq_one(bt_self_message_iterator* msg_iter,
 }
 
 static
-enum bt_self_message_iterator_status src_iter_next_seq(
+bt_self_message_iterator_status src_iter_next_seq(
 		bt_self_message_iterator *msg_iter,
 		struct src_iter_user_data *user_data,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_self_message_iterator_status status =
+	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 
@@ -449,7 +449,7 @@ end:
 }
 
 static
-enum bt_self_message_iterator_status src_iter_next(
+bt_self_message_iterator_status src_iter_next(
 		bt_self_message_iterator *self_msg_iter,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
@@ -463,7 +463,7 @@ enum bt_self_message_iterator_status src_iter_next(
 }
 
 static
-enum bt_self_component_status src_init(
+bt_self_component_status src_init(
 		bt_self_component_source *self_comp,
 		const bt_value *params, void *init_method_data)
 {
@@ -536,10 +536,10 @@ void append_test_events_from_message(const bt_message *message)
 }
 
 static
-enum bt_message_iterator_status common_consume(
+bt_message_iterator_status common_consume(
 		void *msg_iter, bool is_output_port_msg_iter)
 {
-	enum bt_message_iterator_status ret;
+	bt_message_iterator_status ret;
 	bt_message_array_const messages = NULL;
 	uint64_t count = 0;
 	struct test_event test_event = { 0 };
@@ -583,15 +583,15 @@ end:
 }
 
 static
-enum bt_self_component_status sink_consume(
+bt_self_component_status sink_consume(
 		bt_self_component_sink *self_comp)
 {
-	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
+	bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct sink_user_data *user_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(
 				self_comp));
-	enum bt_message_iterator_status it_ret;
+	bt_message_iterator_status it_ret;
 
 	BT_ASSERT(user_data && user_data->msg_iter);
 	it_ret = common_consume(user_data->msg_iter, false);
@@ -618,7 +618,7 @@ end:
 }
 
 static
-enum bt_self_component_status sink_port_connected(
+bt_self_component_status sink_port_connected(
 		bt_self_component_sink *self_comp,
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port)
@@ -636,7 +636,7 @@ enum bt_self_component_status sink_port_connected(
 }
 
 static
-enum bt_self_component_status sink_init(
+bt_self_component_status sink_init(
 		bt_self_component_sink *self_comp,
 		const bt_value *params, void *init_method_data)
 {
@@ -729,7 +729,7 @@ void do_std_test(enum test test, const char *name,
 	const bt_component_sink *sink_comp;
 	const bt_port_output *upstream_port;
 	const bt_port_input *downstream_port;
-	enum bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
+	bt_graph_status graph_status = BT_GRAPH_STATUS_OK;
 
 	clear_test_events();
 	current_test = test;
@@ -823,7 +823,7 @@ void test_output_port_message_iterator(void)
 	};
 	const bt_component_source *src_comp;
 	bt_port_output_message_iterator *msg_iter;
-	enum bt_message_iterator_status iter_status =
+	bt_message_iterator_status iter_status =
 		BT_MESSAGE_ITERATOR_STATUS_OK;
 	const bt_port_output *upstream_port;
 

@@ -34,8 +34,7 @@ extern "C" {
 #endif
 
 static inline
-const bt_port *bt_port_output_as_port_const(
-		const bt_port_output *port_output)
+const bt_port *bt_port_output_as_port_const(const bt_port_output *port_output)
 {
 	return (const void *) port_output;
 }

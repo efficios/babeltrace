@@ -36,15 +36,15 @@
 extern "C" {
 #endif
 
-enum bt_clock_snapshot_state {
+typedef enum bt_clock_snapshot_state {
 	BT_CLOCK_SNAPSHOT_STATE_KNOWN,
 	BT_CLOCK_SNAPSHOT_STATE_UNKNOWN,
-};
+} bt_clock_snapshot_state;
 
-enum bt_clock_snapshot_status {
+typedef enum bt_clock_snapshot_status {
 	BT_CLOCK_SNAPSHOT_STATUS_OK = 0,
 	BT_CLOCK_SNAPSHOT_STATUS_OVERFLOW = -75,
-};
+} bt_clock_snapshot_status;
 
 extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
 		const bt_clock_snapshot *clock_snapshot);
@@ -52,7 +52,7 @@ extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
 extern uint64_t bt_clock_snapshot_get_value(
 		const bt_clock_snapshot *clock_snapshot);
 
-extern enum bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
+extern bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
 		const bt_clock_snapshot *clock_snapshot,
 		int64_t *ns_from_origin);
 

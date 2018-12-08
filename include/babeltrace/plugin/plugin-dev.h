@@ -32,13 +32,13 @@
 /* For enum bt_plugin_status */
 #include <babeltrace/plugin/plugin-const.h>
 
-/* For enum bt_component_class_type */
+/* For bt_component_class_type */
 #include <babeltrace/graph/component-class-const.h>
 
 /* For component class method type definitions */
-#include <babeltrace/graph/component-class-source-const.h>
-#include <babeltrace/graph/component-class-filter-const.h>
-#include <babeltrace/graph/component-class-sink-const.h>
+#include <babeltrace/graph/component-class-source.h>
+#include <babeltrace/graph/component-class-filter.h>
+#include <babeltrace/graph/component-class-sink.h>
 
 /*
  * _BT_HIDDEN: set the hidden attribute for internal functions
@@ -63,15 +63,15 @@ extern "C" {
 #define __BT_PLUGIN_VERSION_MINOR	0
 
 /* Plugin initialization function type */
-enum bt_self_plugin_status {
+typedef enum bt_self_plugin_status {
 	BT_SELF_PLUGIN_STATUS_OK = 0,
 	BT_SELF_PLUGIN_STATUS_NOMEM = -12,
 	BT_SELF_PLUGIN_STATUS_ERROR = -1,
-};
+} bt_self_plugin_status;
 
 typedef struct bt_self_plugin bt_self_plugin;
 
-typedef enum bt_self_plugin_status (*bt_plugin_init_func)(
+typedef bt_self_plugin_status (*bt_plugin_init_func)(
 		bt_self_plugin *plugin);
 
 /* Plugin exit function type */
@@ -152,7 +152,7 @@ struct __bt_plugin_component_class_descriptor {
 	const char *name;
 
 	/* Component class type */
-	enum bt_component_class_type type;
+	bt_component_class_type type;
 
 	/* Mandatory methods (depends on component class type) */
 	union {

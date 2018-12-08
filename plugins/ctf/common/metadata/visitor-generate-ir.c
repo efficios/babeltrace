@@ -2352,7 +2352,7 @@ int visit_integer_decl(struct ctx *ctx,
 	uint64_t alignment = 0, size = 0;
 	bt_clock_class *mapped_clock_class = NULL;
 	enum ctf_encoding encoding = CTF_ENCODING_NONE;
-	enum bt_field_class_integer_preferred_display_base base =
+	bt_field_class_integer_preferred_display_base base =
 		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL;
 	enum ctf_byte_order byte_order = ctx->ctf_tc->default_byte_order;
 
@@ -3252,7 +3252,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			_SET(set, _EVENT_FIELDS_SET);
 		} else if (!strcmp(left, "loglevel")) {
 			uint64_t loglevel_value;
-			enum bt_event_class_log_level log_level = -1;
+			bt_event_class_log_level log_level = -1;
 
 			if (_IS_SET(set, _EVENT_LOG_LEVEL_SET)) {
 				_BT_LOGE_DUP_ATTR(node, "loglevel",

@@ -76,11 +76,11 @@ end:
 }
 
 BT_HIDDEN
-enum bt_component_status update_packet_context_field(FILE *err,
+bt_component_status update_packet_context_field(FILE *err,
 		const bt_packet *writer_packet,
 		const char *name, int64_t value)
 {
-	enum bt_component_status ret;
+	bt_component_status ret;
 	const bt_field *packet_context = NULL, *writer_packet_context = NULL;
 	const bt_field_class *struct_class = NULL, *field_class = NULL;
 	const bt_field *field = NULL, *writer_field = NULL;

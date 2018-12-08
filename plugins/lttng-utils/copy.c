@@ -440,7 +440,7 @@ struct debug_info *insert_new_debug_info(struct debug_info_iterator *debug_it,
 	struct debug_info *debug_info = NULL;
 	bt_value *field = NULL;
 	const char *str_value;
-	enum bt_value_status ret;
+	bt_value_status ret;
 
 	field = bt_trace_get_environment_field_value_by_name(writer_trace,
 			"domain");
@@ -592,7 +592,7 @@ int sync_event_classes(struct debug_info_iterator *debug_it,
 	int int_ret;
 	const bt_stream_class *stream_class = NULL,
 				   *writer_stream_class = NULL;
-	enum bt_component_status ret;
+	bt_component_status ret;
 
 	stream_class = bt_stream_get_class(stream);
 	BT_ASSERT(stream_class);
@@ -1065,7 +1065,7 @@ const bt_stream_class *insert_new_stream_class(
 	const bt_stream_class *writer_stream_class = NULL;
 	const bt_trace *trace, *writer_trace = NULL;
 	struct debug_info_trace *di_trace;
-	enum bt_component_status ret;
+	bt_component_status ret;
 	int int_ret;
 
 	trace = bt_stream_class_get_trace(stream_class);

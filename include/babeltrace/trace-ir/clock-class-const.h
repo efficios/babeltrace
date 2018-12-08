@@ -36,11 +36,11 @@
 extern "C" {
 #endif
 
-enum bt_clock_class_status {
+typedef enum bt_clock_class_status {
 	BT_CLOCK_CLASS_STATUS_OK = 0,
 	BT_CLOCK_CLASS_STATUS_NOMEM = -12,
 	BT_CLOCK_CLASS_STATUS_OVERFLOW = -75,
-};
+} bt_clock_class_status;
 
 extern const char *bt_clock_class_get_name(
 		const bt_clock_class *clock_class);
@@ -63,7 +63,7 @@ extern bt_bool bt_clock_class_is_absolute(
 extern bt_uuid bt_clock_class_get_uuid(
 		const bt_clock_class *clock_class);
 
-extern enum bt_clock_class_status bt_clock_class_cycles_to_ns_from_origin(
+extern bt_clock_class_status bt_clock_class_cycles_to_ns_from_origin(
 		const bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns_from_origin);
 

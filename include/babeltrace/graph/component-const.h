@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-/* For enum bt_component_class_type */
+/* For bt_component_class_type */
 #include <babeltrace/graph/component-class-const.h>
 
 /*
@@ -54,7 +54,7 @@ extern const char *bt_component_get_name(const bt_component *component);
 extern const bt_component_class *bt_component_borrow_class_const(
 		const bt_component *component);
 
-extern enum bt_component_class_type bt_component_get_class_type(
+extern bt_component_class_type bt_component_get_class_type(
 		const bt_component *component);
 
 static inline

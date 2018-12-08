@@ -30,14 +30,14 @@
 extern "C" {
 #endif
 
-enum bt_self_component_status {
+typedef enum bt_self_component_status {
 	BT_SELF_COMPONENT_STATUS_OK = 0,
 	BT_SELF_COMPONENT_STATUS_END = 1,
 	BT_SELF_COMPONENT_STATUS_AGAIN = 11,
 	BT_SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION = 111,
 	BT_SELF_COMPONENT_STATUS_ERROR = -1,
 	BT_SELF_COMPONENT_STATUS_NOMEM = -12,
-};
+} bt_self_component_status;
 
 static inline
 const bt_component *bt_self_component_as_component(

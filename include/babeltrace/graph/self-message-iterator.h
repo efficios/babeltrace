@@ -33,13 +33,13 @@
 extern "C" {
 #endif
 
-enum bt_self_message_iterator_status {
+typedef enum bt_self_message_iterator_status {
 	BT_SELF_MESSAGE_ITERATOR_STATUS_OK = BT_MESSAGE_ITERATOR_STATUS_OK,
 	BT_SELF_MESSAGE_ITERATOR_STATUS_END = BT_MESSAGE_ITERATOR_STATUS_END,
 	BT_SELF_MESSAGE_ITERATOR_STATUS_AGAIN = BT_MESSAGE_ITERATOR_STATUS_AGAIN,
 	BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR = BT_MESSAGE_ITERATOR_STATUS_ERROR,
 	BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM = BT_MESSAGE_ITERATOR_STATUS_NOMEM,
-};
+} bt_self_message_iterator_status;
 
 extern bt_self_component *
 bt_self_message_iterator_borrow_component(

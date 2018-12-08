@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-enum bt_graph_status {
+typedef enum bt_graph_status {
 	BT_GRAPH_STATUS_OK = 0,
 	BT_GRAPH_STATUS_END = 1,
 	BT_GRAPH_STATUS_AGAIN = 11,
@@ -40,7 +40,7 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_ERROR = -1,
 	BT_GRAPH_STATUS_NO_SINK = -6,
 	BT_GRAPH_STATUS_NOMEM = -12,
-};
+} bt_graph_status;
 
 extern bt_bool bt_graph_is_canceled(const bt_graph *graph);
 

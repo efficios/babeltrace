@@ -23,9 +23,6 @@
  * SOFTWARE.
  */
 
-/* For enum bt_self_component_port_status */
-#include <babeltrace/graph/self-component-port.h>
-
 /*
  * For bt_port_output, bt_self_component_port,
  * bt_self_component_port_output
