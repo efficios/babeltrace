@@ -814,7 +814,7 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 
 		/*
 		 * Skip this if the directory does not exist because
-		 * bt_plugin_create_all_from_dir() expects an existing
+		 * bt_plugin_find_all_from_dir() expects an existing
 		 * directory.
 		 */
 		if (!g_file_test(plugin_path, G_FILE_TEST_IS_DIR)) {
@@ -823,7 +823,7 @@ int load_dynamic_plugins(const bt_value *plugin_paths)
 			continue;
 		}
 
-		plugin_set = bt_plugin_create_all_from_dir(plugin_path, false);
+		plugin_set = bt_plugin_find_all_from_dir(plugin_path, false);
 		if (!plugin_set) {
 			BT_LOGD("Unable to load dynamic plugins: path=\"%s\"",
 				plugin_path);
@@ -844,7 +844,7 @@ int load_static_plugins(void)
 	const bt_plugin_set *plugin_set;
 
 	BT_LOGI("Loading static plugins.");
-	plugin_set = bt_plugin_create_all_from_static();
+	plugin_set = bt_plugin_find_all_from_static();
 	if (!plugin_set) {
 		BT_LOGE("Unable to load static plugins.");
 		ret = -1;

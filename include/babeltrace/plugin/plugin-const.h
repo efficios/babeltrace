@@ -63,13 +63,13 @@ enum bt_plugin_status {
 
 extern const bt_plugin *bt_plugin_find(const char *plugin_name);
 
-extern const bt_plugin_set *bt_plugin_create_all_from_file(
+extern const bt_plugin_set *bt_plugin_find_all_from_file(
 		const char *path);
 
-extern const bt_plugin_set *bt_plugin_create_all_from_dir(
+extern const bt_plugin_set *bt_plugin_find_all_from_dir(
 		const char *path, bt_bool recurse);
 
-extern const bt_plugin_set *bt_plugin_create_all_from_static(void);
+extern const bt_plugin_set *bt_plugin_find_all_from_static(void);
 
 extern const char *bt_plugin_get_name(const bt_plugin *plugin);
 

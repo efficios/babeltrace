@@ -72,13 +72,13 @@ static void test_minimal(const char *plugin_dir)
 	diag("minimal plugin test below");
 
 	reset_test_plugin_env_vars();
-	plugin_set = bt_plugin_create_all_from_file(minimal_path);
+	plugin_set = bt_plugin_find_all_from_file(minimal_path);
 	ok(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1,
-		"bt_plugin_create_all_from_file() succeeds with a valid file");
+		"bt_plugin_find_all_from_file() succeeds with a valid file");
 	ok(check_env_var("BT_TEST_PLUGIN_INIT_CALLED") == 1,
-		"plugin's initialization function is called during bt_plugin_create_all_from_file()");
+		"plugin's initialization function is called during bt_plugin_find_all_from_file()");
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 1,
-		"bt_plugin_create_all_from_file() returns the expected number of plugins");
+		"bt_plugin_find_all_from_file() returns the expected number of plugins");
 	plugin = bt_plugin_set_borrow_plugin_by_index_const(plugin_set, 0);
 	ok(strcmp(bt_plugin_get_name(plugin), "test_minimal") == 0,
 		"bt_plugin_get_name() returns the expected name");
@@ -132,7 +132,7 @@ static void test_sfs(const char *plugin_dir)
 	BT_ASSERT(sfs_path);
 	diag("sfs plugin test below");
 
-	plugin_set = bt_plugin_create_all_from_file(sfs_path);
+	plugin_set = bt_plugin_find_all_from_file(sfs_path);
 	BT_ASSERT(plugin_set && bt_plugin_set_get_plugin_count(plugin_set) == 1);
 	plugin = bt_plugin_set_borrow_plugin_by_index_const(plugin_set, 0);
 	ok(bt_plugin_get_version(plugin, &major, &minor, &patch, &extra) ==
@@ -214,17 +214,17 @@ static void test_create_all_from_dir(const char *plugin_dir)
 
 	diag("create from all test below");
 
-	plugin_set = bt_plugin_create_all_from_dir(NON_EXISTING_PATH, BT_FALSE);
+	plugin_set = bt_plugin_find_all_from_dir(NON_EXISTING_PATH, BT_FALSE);
 	ok(!plugin_set,
-		"bt_plugin_create_all_from_dir() fails with an invalid path");
+		"bt_plugin_find_all_from_dir() fails with an invalid path");
 
-	plugin_set = bt_plugin_create_all_from_dir(plugin_dir, BT_FALSE);
-	ok(plugin_set, "bt_plugin_create_all_from_dir() succeeds with a valid path");
+	plugin_set = bt_plugin_find_all_from_dir(plugin_dir, BT_FALSE);
+	ok(plugin_set, "bt_plugin_find_all_from_dir() succeeds with a valid path");
 
 	/* 2 or 4, if `.la` files are considered or not */
 	ok(bt_plugin_set_get_plugin_count(plugin_set) == 2 ||
 		bt_plugin_set_get_plugin_count(plugin_set) == 4,
-		"bt_plugin_create_all_from_dir() returns the expected number of plugin objects");
+		"bt_plugin_find_all_from_dir() returns the expected number of plugin objects");
 
 	bt_plugin_set_put_ref(plugin_set);
 }
