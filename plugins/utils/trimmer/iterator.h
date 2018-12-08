@@ -32,23 +32,23 @@
 
 struct trimmer_iterator {
 	/* Input iterator associated with this output iterator. */
-	bt_notification_iterator *input_iterator;
-	const bt_notification *current_notification;
+	bt_message_iterator *input_iterator;
+	const bt_message *current_message;
 	FILE *err;
 	/* Map between reader and writer packets. */
 	GHashTable *packet_map;
 };
 
 BT_HIDDEN
-enum bt_notification_iterator_status trimmer_iterator_init(
-		bt_self_notification_iterator *iterator,
+enum bt_message_iterator_status trimmer_iterator_init(
+		bt_self_message_iterator *iterator,
 		struct bt_private_port *port);
 
 BT_HIDDEN
-void trimmer_iterator_finalize(bt_self_notification_iterator *it);
+void trimmer_iterator_finalize(bt_self_message_iterator *it);
 
 BT_HIDDEN
-bt_notification_iterator_next_method_return trimmer_iterator_next(
-		bt_self_notification_iterator *iterator);
+bt_message_iterator_next_method_return trimmer_iterator_next(
+		bt_self_message_iterator *iterator);
 
 #endif /* BABELTRACE_PLUGIN_TRIMMER_ITERATOR_H */

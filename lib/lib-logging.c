@@ -61,12 +61,12 @@
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/notification-event-internal.h>
-#include <babeltrace/graph/notification-inactivity-internal.h>
-#include <babeltrace/graph/notification-internal.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
-#include <babeltrace/graph/notification-packet-internal.h>
-#include <babeltrace/graph/notification-stream-internal.h>
+#include <babeltrace/graph/message-event-internal.h>
+#include <babeltrace/graph/message-inactivity-internal.h>
+#include <babeltrace/graph/message-internal.h>
+#include <babeltrace/graph/message-iterator-internal.h>
+#include <babeltrace/graph/message-packet-internal.h>
+#include <babeltrace/graph/message-stream-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
@@ -900,78 +900,78 @@ static inline void format_value(char **buf_ch, bool extended,
 	}
 }
 
-static inline void format_notification(char **buf_ch, bool extended,
-		const char *prefix, const struct bt_notification *notif)
+static inline void format_message(char **buf_ch, bool extended,
+		const char *prefix, const struct bt_message *msg)
 {
 	char tmp_prefix[64];
 
 	BUF_APPEND(", %stype=%s",
-		PRFIELD(bt_notification_type_string(notif->type)));
+		PRFIELD(bt_message_type_string(msg->type)));
 
 	if (!extended) {
 		return;
 	}
 
 	BUF_APPEND(", %sis-frozen=%d, %sgraph-addr=%p",
-		PRFIELD(notif->frozen), PRFIELD(notif->graph));
+		PRFIELD(msg->frozen), PRFIELD(msg->graph));
 
-	switch (notif->type) {
-	case BT_NOTIFICATION_TYPE_EVENT:
+	switch (msg->type) {
+	case BT_MESSAGE_TYPE_EVENT:
 	{
-		const struct bt_notification_event *notif_event =
-			(const void *) notif;
+		const struct bt_message_event *msg_event =
+			(const void *) msg;
 
-		if (notif_event->event) {
+		if (msg_event->event) {
 			SET_TMP_PREFIX("event-");
-			format_event(buf_ch, true, tmp_prefix, notif_event->event);
+			format_event(buf_ch, true, tmp_prefix, msg_event->event);
 		}
 
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 	{
-		const struct bt_notification_stream_beginning *notif_stream =
-			(const void *) notif;
+		const struct bt_message_stream_beginning *msg_stream =
+			(const void *) msg;
 
-		if (notif_stream->stream) {
+		if (msg_stream->stream) {
 			SET_TMP_PREFIX("stream-");
-			format_stream(buf_ch, true, tmp_prefix, notif_stream->stream);
+			format_stream(buf_ch, true, tmp_prefix, msg_stream->stream);
 		}
 
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_STREAM_END:
+	case BT_MESSAGE_TYPE_STREAM_END:
 	{
-		const struct bt_notification_stream_end *notif_stream =
-			(const void *) notif;
+		const struct bt_message_stream_end *msg_stream =
+			(const void *) msg;
 
-		if (notif_stream->stream) {
+		if (msg_stream->stream) {
 			SET_TMP_PREFIX("stream-");
-			format_stream(buf_ch, true, tmp_prefix, notif_stream->stream);
+			format_stream(buf_ch, true, tmp_prefix, msg_stream->stream);
 		}
 
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 	{
-		const struct bt_notification_packet_beginning *notif_packet =
-			(const void *) notif;
+		const struct bt_message_packet_beginning *msg_packet =
+			(const void *) msg;
 
-		if (notif_packet->packet) {
+		if (msg_packet->packet) {
 			SET_TMP_PREFIX("packet-");
-			format_packet(buf_ch, true, tmp_prefix, notif_packet->packet);
+			format_packet(buf_ch, true, tmp_prefix, msg_packet->packet);
 		}
 
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_PACKET_END:
+	case BT_MESSAGE_TYPE_PACKET_END:
 	{
-		const struct bt_notification_packet_end *notif_packet =
-			(const void *) notif;
+		const struct bt_message_packet_end *msg_packet =
+			(const void *) msg;
 
-		if (notif_packet->packet) {
+		if (msg_packet->packet) {
 			SET_TMP_PREFIX("packet-");
-			format_packet(buf_ch, true, tmp_prefix, notif_packet->packet);
+			format_packet(buf_ch, true, tmp_prefix, msg_packet->packet);
 		}
 
 		break;
@@ -1113,26 +1113,26 @@ static inline void format_graph(char **buf_ch, bool extended,
 
 	SET_TMP_PREFIX("en-pool-");
 	format_object_pool(buf_ch, extended, prefix,
-		&graph->event_notif_pool);
+		&graph->event_msg_pool);
 	SET_TMP_PREFIX("pbn-pool-");
 	format_object_pool(buf_ch, extended, prefix,
-		&graph->packet_begin_notif_pool);
+		&graph->packet_begin_msg_pool);
 	SET_TMP_PREFIX("pen-pool-");
 	format_object_pool(buf_ch, extended, prefix,
-		&graph->packet_end_notif_pool);
+		&graph->packet_end_msg_pool);
 }
 
-static inline void format_notification_iterator(char **buf_ch,
+static inline void format_message_iterator(char **buf_ch,
 		bool extended, const char *prefix,
-		const struct bt_notification_iterator *iterator)
+		const struct bt_message_iterator *iterator)
 {
 	const char *type;
 	char tmp_prefix[64];
 
-	if (iterator->type == BT_NOTIFICATION_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT) {
-		type = "BT_NOTIFICATION_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT";
-	} else if (iterator->type == BT_NOTIFICATION_ITERATOR_TYPE_PORT_OUTPUT) {
-		type = "BT_NOTIFICATION_ITERATOR_TYPE_PORT_OUTPUT";
+	if (iterator->type == BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT) {
+		type = "BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT";
+	} else if (iterator->type == BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT) {
+		type = "BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT";
 	} else {
 		type = "(unknown)";
 	}
@@ -1140,9 +1140,9 @@ static inline void format_notification_iterator(char **buf_ch,
 	BUF_APPEND(", %stype=%s", PRFIELD(type));
 
 	switch (iterator->type) {
-	case BT_NOTIFICATION_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT:
+	case BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT:
 	{
-		const struct bt_self_component_port_input_notification_iterator *
+		const struct bt_self_component_port_input_message_iterator *
 			port_in_iter = (const void *) iterator;
 
 		if (port_in_iter->upstream_component) {
@@ -1164,9 +1164,9 @@ static inline void format_notification_iterator(char **buf_ch,
 		}
 		break;
 	}
-	case BT_NOTIFICATION_ITERATOR_TYPE_PORT_OUTPUT:
+	case BT_MESSAGE_ITERATOR_TYPE_PORT_OUTPUT:
 	{
-		const struct bt_port_output_notification_iterator *port_out_iter =
+		const struct bt_port_output_message_iterator *port_out_iter =
 			(const void *) iterator;
 
 		if (port_out_iter->graph) {
@@ -1338,10 +1338,10 @@ static inline void handle_conversion_specifier_bt(void *priv_data,
 		format_value(buf_ch, extended, prefix, obj);
 		break;
 	case 'n':
-		format_notification(buf_ch, extended, prefix, obj);
+		format_message(buf_ch, extended, prefix, obj);
 		break;
 	case 'i':
-		format_notification_iterator(buf_ch, extended, prefix, obj);
+		format_message_iterator(buf_ch, extended, prefix, obj);
 		break;
 	case 'C':
 		format_component_class(buf_ch, extended, prefix, obj);

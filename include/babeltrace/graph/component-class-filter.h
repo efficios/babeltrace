@@ -29,8 +29,8 @@
 /* For enum bt_self_component_status */
 #include <babeltrace/graph/self-component.h>
 
-/* For enum bt_self_notification_iterator_status */
-#include <babeltrace/graph/self-notification-iterator.h>
+/* For enum bt_self_message_iterator_status */
+#include <babeltrace/graph/self-message-iterator.h>
 
 /* For enum bt_query_status */
 #include <babeltrace/graph/component-class.h>
@@ -39,7 +39,7 @@
  * For bt_component_class, bt_component_class_filter, bt_port_input,
  * bt_port_output, bt_query_executor, bt_self_component_class_filter,
  * bt_self_component_filter, bt_self_component_port_input,
- * bt_self_component_port_output, bt_value, bt_notification_array_const
+ * bt_self_component_port_output, bt_value, bt_message_array_const
  */
 #include <babeltrace/types.h>
 
@@ -55,20 +55,20 @@ typedef enum bt_self_component_status
 typedef void (*bt_component_class_filter_finalize_method)(
 		bt_self_component_filter *self_component);
 
-typedef enum bt_self_notification_iterator_status
-(*bt_component_class_filter_notification_iterator_init_method)(
-		bt_self_notification_iterator *notification_iterator,
+typedef enum bt_self_message_iterator_status
+(*bt_component_class_filter_message_iterator_init_method)(
+		bt_self_message_iterator *message_iterator,
 		bt_self_component_filter *self_component,
 		bt_self_component_port_output *port);
 
 typedef void
-(*bt_component_class_filter_notification_iterator_finalize_method)(
-		bt_self_notification_iterator *notification_iterator);
+(*bt_component_class_filter_message_iterator_finalize_method)(
+		bt_self_message_iterator *message_iterator);
 
-typedef enum bt_self_notification_iterator_status
-(*bt_component_class_filter_notification_iterator_next_method)(
-		bt_self_notification_iterator *notification_iterator,
-		bt_notification_array_const notifs, uint64_t capacity,
+typedef enum bt_self_message_iterator_status
+(*bt_component_class_filter_message_iterator_next_method)(
+		bt_self_message_iterator *message_iterator,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
 typedef enum bt_query_status
@@ -122,7 +122,7 @@ bt_component_class *bt_component_class_filter_as_component_class(
 extern
 bt_component_class_filter *bt_component_class_filter_create(
 		const char *name,
-		bt_component_class_filter_notification_iterator_next_method method);
+		bt_component_class_filter_message_iterator_next_method method);
 
 extern int bt_component_class_filter_set_init_method(
 		bt_component_class_filter *comp_class,
@@ -160,13 +160,13 @@ extern int bt_component_class_filter_set_query_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_query_method method);
 
-extern int bt_component_class_filter_set_notification_iterator_init_method(
+extern int bt_component_class_filter_set_message_iterator_init_method(
 		bt_component_class_filter *comp_class,
-		bt_component_class_filter_notification_iterator_init_method method);
+		bt_component_class_filter_message_iterator_init_method method);
 
-extern int bt_component_class_filter_set_notification_iterator_finalize_method(
+extern int bt_component_class_filter_set_message_iterator_finalize_method(
 		bt_component_class_filter *comp_class,
-		bt_component_class_filter_notification_iterator_finalize_method method);
+		bt_component_class_filter_message_iterator_finalize_method method);
 
 #ifdef __cplusplus
 }

@@ -29,7 +29,7 @@
 #include <babeltrace/graph/component-class-sink.h>
 #include <babeltrace/graph/self-component-sink.h>
 #include <babeltrace/graph/self-component-port.h>
-#include <babeltrace/graph/self-component-port-input-notification-iterator.h>
+#include <babeltrace/graph/self-component-port-input-message-iterator.h>
 #include <babeltrace/graph/self-component.h>
 #include <babeltrace/graph/component-class-sink-colander-internal.h>
 #include <glib.h>
@@ -38,9 +38,9 @@ static
 struct bt_component_class_sink *colander_comp_cls;
 
 struct colander_data {
-	bt_notification_array_const notifs;
+	bt_message_array_const msgs;
 	uint64_t *count_addr;
-	struct bt_self_component_port_input_notification_iterator *notif_iter;
+	struct bt_self_component_port_input_message_iterator *msg_iter;
 };
 
 static
@@ -66,7 +66,7 @@ enum bt_self_component_status colander_init(
 		goto end;
 	}
 
-	colander_data->notifs = user_provided_data->notifs;
+	colander_data->msgs = user_provided_data->msgs;
 	colander_data->count_addr = user_provided_data->count_addr;
 	status = bt_self_component_sink_add_input_port(self_comp, "in",
 		NULL, NULL);
@@ -94,7 +94,7 @@ void colander_finalize(struct bt_self_component_sink *self_comp)
 		return;
 	}
 
-	BT_OBJECT_PUT_REF_AND_RESET(colander_data->notif_iter);
+	BT_OBJECT_PUT_REF_AND_RESET(colander_data->msg_iter);
 	g_free(colander_data);
 }
 
@@ -110,12 +110,12 @@ enum bt_self_component_status colander_input_port_connected(
 			bt_self_component_sink_as_self_component(self_comp));
 
 	BT_ASSERT(colander_data);
-	BT_OBJECT_PUT_REF_AND_RESET(colander_data->notif_iter);
-	colander_data->notif_iter =
-		bt_self_component_port_input_notification_iterator_create(
+	BT_OBJECT_PUT_REF_AND_RESET(colander_data->msg_iter);
+	colander_data->msg_iter =
+		bt_self_component_port_input_message_iterator_create(
 			self_port);
-	if (!colander_data->notif_iter) {
-		BT_LIB_LOGE("Cannot create notification iterator on "
+	if (!colander_data->msg_iter) {
+		BT_LIB_LOGE("Cannot create message iterator on "
 			"self component input port: %![port-]+p",
 			self_port);
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
@@ -131,39 +131,39 @@ enum bt_self_component_status colander_consume(
 		struct bt_self_component_sink *self_comp)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
-	enum bt_notification_iterator_status notif_iter_status;
+	enum bt_message_iterator_status msg_iter_status;
 	struct colander_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
-	bt_notification_array_const notifs;
+	bt_message_array_const msgs;
 
 	BT_ASSERT(colander_data);
 
-	if (!colander_data->notif_iter) {
+	if (!colander_data->msg_iter) {
 		BT_LIB_LOGW("Trying to consume without an "
-			"upstream notification iterator: %![comp-]+c",
+			"upstream message iterator: %![comp-]+c",
 			self_comp);
 		goto end;
 	}
 
-	notif_iter_status =
-		bt_self_component_port_input_notification_iterator_next(
-			colander_data->notif_iter, &notifs,
+	msg_iter_status =
+		bt_self_component_port_input_message_iterator_next(
+			colander_data->msg_iter, &msgs,
 			colander_data->count_addr);
-	switch (notif_iter_status) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_CANCELED:
+	switch (msg_iter_status) {
+	case BT_MESSAGE_ITERATOR_STATUS_CANCELED:
 		status = BT_SELF_COMPONENT_STATUS_OK;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		status = BT_SELF_COMPONENT_STATUS_AGAIN;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+	case BT_MESSAGE_ITERATOR_STATUS_END:
 		status = BT_SELF_COMPONENT_STATUS_END;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
-		/* Move notifications to user (count already set) */
-		memcpy(colander_data->notifs, notifs,
-			sizeof(*notifs) * *colander_data->count_addr);
+	case BT_MESSAGE_ITERATOR_STATUS_OK:
+		/* Move messages to user (count already set) */
+		memcpy(colander_data->msgs, msgs,
+			sizeof(*msgs) * *colander_data->count_addr);
 		break;
 	default:
 		status = BT_SELF_COMPONENT_STATUS_ERROR;

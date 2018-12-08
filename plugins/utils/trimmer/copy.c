@@ -257,7 +257,7 @@ const bt_event *trimmer_output_event(
 		goto error;
 	}
 
-	/* We keep the reference on the writer_event to create a notification. */
+	/* We keep the reference on the writer_event to create a message. */
 	goto end;
 
 error:

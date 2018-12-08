@@ -29,7 +29,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/babeltrace.h>
 
-#include "../common/notif-iter/notif-iter.h"
+#include "../common/msg-iter/msg-iter.h"
 #include "lttng-index.h"
 
 struct ctf_fs_component;
@@ -91,7 +91,7 @@ struct ctf_fs_ds_file {
 	struct ctf_fs_metadata *metadata;
 
 	/* Weak */
-	bt_self_notification_iterator *pc_notif_iter;
+	bt_self_message_iterator *pc_msg_iter;
 
 	/* Owned by this */
 	struct ctf_fs_file *file;
@@ -100,7 +100,7 @@ struct ctf_fs_ds_file {
 	bt_stream *stream;
 
 	/* Weak */
-	struct bt_notif_iter *notif_iter;
+	struct bt_msg_iter *msg_iter;
 
 	void *mmap_addr;
 
@@ -128,8 +128,8 @@ struct ctf_fs_ds_file {
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		bt_self_notification_iterator *pc_notif_iter,
-		struct bt_notif_iter *notif_iter,
+		bt_self_message_iterator *pc_msg_iter,
+		struct bt_msg_iter *msg_iter,
 		bt_stream *stream, const char *path);
 
 BT_HIDDEN
@@ -142,9 +142,9 @@ BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 
 BT_HIDDEN
-enum bt_notification_iterator_status ctf_fs_ds_file_next(
+enum bt_message_iterator_status ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file,
-		bt_notification **notif);
+		bt_message **msg);
 
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
@@ -153,6 +153,6 @@ struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);
 
-extern struct bt_notif_iter_medium_ops ctf_fs_ds_file_medops;
+extern struct bt_msg_iter_medium_ops ctf_fs_ds_file_medops;
 
 #endif /* CTF_FS_DS_FILE_H */

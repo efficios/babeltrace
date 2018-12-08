@@ -150,12 +150,12 @@ struct __bt_plugin_component_class_descriptor {
 	union {
 		/* BT_COMPONENT_CLASS_TYPE_SOURCE */
 		struct {
-			bt_component_class_source_notification_iterator_next_method notif_iter_next;
+			bt_component_class_source_message_iterator_next_method msg_iter_next;
 		} source;
 
 		/* BT_COMPONENT_CLASS_TYPE_FILTER */
 		struct {
-			bt_component_class_filter_notification_iterator_next_method notif_iter_next;
+			bt_component_class_filter_message_iterator_next_method msg_iter_next;
 		} filter;
 
 		/* BT_COMPONENT_CLASS_TYPE_SINK */
@@ -178,8 +178,8 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 8,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD		= 9,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD		= 10,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD			= 11,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD			= 12,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 11,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 12,
 };
 
 /* Component class attribute (internal use) */
@@ -243,13 +243,13 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		bt_component_class_source_output_port_disconnected_method source_output_port_disconnected_method;
 		bt_component_class_filter_output_port_disconnected_method filter_output_port_disconnected_method;
 
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD */
-		bt_component_class_source_notification_iterator_init_method source_notif_iter_init_method;
-		bt_component_class_filter_notification_iterator_init_method filter_notif_iter_init_method;
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD */
+		bt_component_class_source_message_iterator_init_method source_msg_iter_init_method;
+		bt_component_class_filter_message_iterator_init_method filter_msg_iter_init_method;
 
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD */
-		bt_component_class_source_notification_iterator_finalize_method source_notif_iter_finalize_method;
-		bt_component_class_filter_notification_iterator_finalize_method filter_notif_iter_finalize_method;
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD */
+		bt_component_class_source_message_iterator_finalize_method source_msg_iter_finalize_method;
+		bt_component_class_filter_message_iterator_finalize_method filter_msg_iter_finalize_method;
 	} value;
 } __attribute__((packed));
 
@@ -514,16 +514,16 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:                     ID (any valid C identifier except `auto`).
  * _comp_class_id:          Component class ID (C identifier).
  * _name:                   Component class name (C string).
- * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_component_class_source_notification_iterator_next_method).
+ * _msg_iter_next_method: Component class's iterator next method
+ *                          (bt_component_class_source_message_iterator_next_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_next_method) \
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _msg_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
 		.name = _name,						\
 		.type = BT_COMPONENT_CLASS_TYPE_SOURCE,			\
 		.methods.source = {					\
-			.notif_iter_next = _notif_iter_next_method,	\
+			.msg_iter_next = _msg_iter_next_method,	\
 		},							\
 	};								\
 	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_source_component_class_descriptor_##_id##_##_comp_class_id
@@ -534,16 +534,16 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:                     ID (any valid C identifier except `auto`).
  * _comp_class_id:          Component class ID (C identifier).
  * _name:                   Component class name (C string).
- * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_component_class_filter_notification_iterator_next_method).
+ * _msg_iter_next_method: Component class's iterator next method
+ *                          (bt_component_class_filter_message_iterator_next_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _notif_iter_next_method) \
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_id, _comp_class_id, _name, _msg_iter_next_method) \
 	static struct __bt_plugin_component_class_descriptor __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id = { \
 		.plugin_descriptor = &__bt_plugin_descriptor_##_id,	\
 		.name = _name,						\
 		.type = BT_COMPONENT_CLASS_TYPE_FILTER,			\
 		.methods.filter = {					\
-			.notif_iter_next = _notif_iter_next_method,	\
+			.msg_iter_next = _msg_iter_next_method,	\
 		},							\
 	};								\
 	static struct __bt_plugin_component_class_descriptor const * const __bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id##_ptr __BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRS = &__bt_plugin_filter_component_class_descriptor_##_id##_##_comp_class_id
@@ -905,10 +905,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator initialization method
- *                 (bt_component_class_source_notification_iterator_init_method).
+ *                 (bt_component_class_source_message_iterator_init_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_notif_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD, _id, _comp_class_id, source, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD, _id, _comp_class_id, source, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a specific
@@ -917,10 +917,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator finalize method
- *                 (bt_component_class_source_notification_iterator_finalize_method).
+ *                 (bt_component_class_source_message_iterator_finalize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
 
 /*
  * Defines an iterator initialization method attribute attached to a
@@ -929,10 +929,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator initialization method
- *                 (bt_component_class_filter_notification_iterator_init_method).
+ *                 (bt_component_class_filter_message_iterator_init_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_notif_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD, _id, _comp_class_id, filter, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_init_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a specific
@@ -941,10 +941,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * _id:            Plugin descriptor ID (C identifier).
  * _comp_class_id: Component class descriptor ID (C identifier).
  * _x:             Iterator finalize method
- *                 (bt_component_class_filter_notification_iterator_finalize_method).
+ *                 (bt_component_class_filter_message_iterator_finalize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_notif_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
  * Defines a plugin descriptor with an automatic ID.
@@ -1010,11 +1010,11 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * C identifier in this version.
  *
  * _name:                   Component class name (C identifier).
- * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_component_class_source_notification_iterator_next_method).
+ * _msg_iter_next_method: Component class's iterator next method
+ *                          (bt_component_class_source_message_iterator_next_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _notif_iter_next_method) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_next_method)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _msg_iter_next_method) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _msg_iter_next_method)
 
 /*
  * Defines a filter component class attached to the automatic plugin
@@ -1022,11 +1022,11 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  * C identifier in this version.
  *
  * _name:                   Component class name (C identifier).
- * _notif_iter_next_method: Component class's iterator next method
- *                          (bt_component_class_filter_notification_iterator_next_method).
+ * _msg_iter_next_method: Component class's iterator next method
+ *                          (bt_component_class_filter_message_iterator_next_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS(_name, _notif_iter_next_method) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _notif_iter_next_method)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS(_name, _msg_iter_next_method) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _msg_iter_next_method)
 
 /*
  * Defines a sink component class attached to the automatic plugin
@@ -1341,10 +1341,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator initialization method
- *        (bt_component_class_source_notification_iterator_init_method).
+ *        (bt_component_class_source_message_iterator_init_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a source
@@ -1353,10 +1353,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator finalize method
- *        (bt_component_class_source_notification_iterator_finalize_method).
+ *        (bt_component_class_source_message_iterator_finalize_method).
  */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator initialization method attribute attached to a
@@ -1365,10 +1365,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator initialization method
- *        (bt_component_class_filter_notification_iterator_init_method).
+ *        (bt_component_class_filter_message_iterator_init_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator finalize method attribute attached to a filter
@@ -1377,10 +1377,10 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  *
  * _name: Component class name (C identifier).
  * _x:    Iterator finalize method
- *        (bt_component_class_filter_notification_iterator_finalize_method).
+ *        (bt_component_class_filter_message_iterator_finalize_method).
  */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 #define BT_PLUGIN_MODULE() \
 	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_dummy __BT_PLUGIN_DESCRIPTOR_ATTRS = NULL; \

@@ -78,9 +78,9 @@ struct lttng_live_stream_iterator {
 
 	/*
 	 * Since only a single iterator per viewer connection, we have
-	 * only a single notification iterator per stream.
+	 * only a single message iterator per stream.
 	 */
-	struct bt_notif_iter *notif_iter;
+	struct bt_msg_iter *msg_iter;
 
 	uint64_t viewer_stream_id;
 
@@ -95,7 +95,7 @@ struct lttng_live_stream_iterator {
 	enum lttng_live_stream_state state;
 
 	uint64_t current_packet_end_timestamp;
-	const bt_notification *packet_end_notif_queue;
+	const bt_message *packet_end_msg_queue;
 
 	uint8_t *buf;
 	size_t buflen;
@@ -165,7 +165,7 @@ struct lttng_live_session {
 
 	bool attached;
 	bool new_streams_needed;
-	bool lazy_stream_notif_init;
+	bool lazy_stream_msg_init;
 	bool closed;
 };
 
@@ -193,7 +193,7 @@ struct lttng_live_component {
 enum bt_lttng_live_iterator_status {
 	/** Iterator state has progressed. Continue iteration immediately. */
 	BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE = 3,
-	/** No notification available for now. Try again later. */
+	/** No message available for now. Try again later. */
 	BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN = 2,
 	/** No more CTF_LTTNG_LIVEs to be delivered. */
 	BT_LTTNG_LIVE_ITERATOR_STATUS_END = 1,
@@ -219,19 +219,19 @@ bt_component_class_query_method_return lttng_live_query(
 
 void lttng_live_component_finalize(bt_self_component *component);
 
-bt_notification_iterator_next_method_return lttng_live_iterator_next(
-        bt_self_notification_iterator *iterator);
+bt_message_iterator_next_method_return lttng_live_iterator_next(
+        bt_self_message_iterator *iterator);
 
 enum bt_component_status lttng_live_accept_port_connection(
 		bt_self_component *private_component,
 		struct bt_private_port *self_private_port,
 		const bt_port *other_port);
 
-enum bt_notification_iterator_status lttng_live_iterator_init(
-		bt_self_notification_iterator *it,
+enum bt_message_iterator_status lttng_live_iterator_init(
+		bt_self_message_iterator *it,
 		struct bt_private_port *port);
 
-void lttng_live_iterator_finalize(bt_self_notification_iterator *it);
+void lttng_live_iterator_finalize(bt_self_message_iterator *it);
 
 int lttng_live_create_viewer_session(struct lttng_live_component *lttng_live);
 int lttng_live_attach_session(struct lttng_live_session *session);
@@ -250,7 +250,7 @@ enum bt_lttng_live_iterator_status lttng_live_get_next_index(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream,
 		struct packet_index *index);
-enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(
+enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream, uint8_t *buf, uint64_t offset,
 		uint64_t req_len, uint64_t *recv_len);

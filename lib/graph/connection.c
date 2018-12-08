@@ -26,7 +26,7 @@
 
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/connection-const.h>
@@ -46,13 +46,13 @@ void destroy_connection(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying connection: %!+x", connection);
 
 	/*
-	 * Make sure that each notification iterator which was created
+	 * Make sure that each message iterator which was created
 	 * for this connection is finalized before we destroy it. Once a
-	 * notification iterator is finalized, all its method return
-	 * NULL or the BT_NOTIFICATION_ITERATOR_STATUS_CANCELED status.
+	 * message iterator is finalized, all its method return
+	 * NULL or the BT_MESSAGE_ITERATOR_STATUS_CANCELED status.
 	 *
 	 * Because connections are destroyed before components within a
-	 * graph, this ensures that notification iterators are always
+	 * graph, this ensures that message iterators are always
 	 * finalized before their upstream component.
 	 *
 	 * Ending the connection does exactly this. We pass `false` to
@@ -87,7 +87,7 @@ void try_remove_connection_from_graph(struct bt_connection *connection)
 	 * At this point we know that:
 	 *
 	 * 1. The connection is ended (ports were disconnected).
-	 * 2. All the notification iterators that this connection
+	 * 2. All the message iterators that this connection
 	 *    created, if any, are finalized.
 	 * 3. The connection's reference count is 0, so only the
 	 *    parent (graph) owns this connection after this call.
@@ -168,7 +168,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 		conn, try_remove_from_graph);
 
 	/*
-	 * Any of the following notification callback functions could
+	 * Any of the following message callback functions could
 	 * remove one of the connection's ports from its component. To
 	 * make sure that at least logging in called functions works
 	 * with existing objects, get a local reference on both ports.
@@ -194,29 +194,29 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 		conn->upstream_port = NULL;
 	}
 
-	if (downstream_comp && conn->notified_downstream_port_connected &&
-			!conn->notified_downstream_port_disconnected) {
+	if (downstream_comp && conn->msgied_downstream_port_connected &&
+			!conn->msgied_downstream_port_disconnected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(downstream_comp,
 			downstream_port);
-		conn->notified_downstream_port_disconnected = true;
+		conn->msgied_downstream_port_disconnected = true;
 	}
 
-	if (upstream_comp && conn->notified_upstream_port_connected &&
-			!conn->notified_upstream_port_disconnected) {
+	if (upstream_comp && conn->msgied_upstream_port_connected &&
+			!conn->msgied_upstream_port_disconnected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(upstream_comp, upstream_port);
-		conn->notified_upstream_port_disconnected = true;
+		conn->msgied_upstream_port_disconnected = true;
 	}
 
 	BT_ASSERT(graph);
 
-	if (conn->notified_graph_ports_connected &&
-			!conn->notified_graph_ports_disconnected) {
+	if (conn->msgied_graph_ports_connected &&
+			!conn->msgied_graph_ports_disconnected) {
 		/* bt_graph_notify_ports_disconnected() logs details */
 		bt_graph_notify_ports_disconnected(graph, upstream_comp,
 			downstream_comp, upstream_port, downstream_port);
-		conn->notified_graph_ports_disconnected = true;
+		conn->msgied_graph_ports_disconnected = true;
 	}
 
 	/*
@@ -228,15 +228,15 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 
 	/*
 	 * Because this connection is ended, finalize (cancel) each
-	 * notification iterator created from it.
+	 * message iterator created from it.
 	 */
 	for (i = 0; i < conn->iterators->len; i++) {
-		struct bt_self_component_port_input_notification_iterator *iterator =
+		struct bt_self_component_port_input_message_iterator *iterator =
 			g_ptr_array_index(conn->iterators, i);
 
-		BT_LIB_LOGD("Finalizing notification iterator created by "
+		BT_LIB_LOGD("Finalizing message iterator created by "
 			"this ended connection: %![iter-]+i", iterator);
-		bt_self_component_port_input_notification_iterator_finalize(
+		bt_self_component_port_input_message_iterator_finalize(
 			iterator);
 
 		/*
@@ -244,7 +244,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 		 * from this connection's iterators on destruction
 		 * because this connection won't exist anymore.
 		 */
-		bt_self_component_port_input_notification_iterator_set_connection(
+		bt_self_component_port_input_message_iterator_set_connection(
 			iterator, NULL);
 	}
 
@@ -271,10 +271,10 @@ const struct bt_port_input *bt_connection_borrow_downstream_port_const(
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
-		struct bt_self_component_port_input_notification_iterator *iterator)
+		struct bt_self_component_port_input_message_iterator *iterator)
 {
 	g_ptr_array_remove(conn->iterators, iterator);
-	BT_LIB_LOGV("Removed notification iterator from connection: "
+	BT_LIB_LOGV("Removed message iterator from connection: "
 		"%![conn-]+x, %![iter-]+i", conn, iterator);
 	try_remove_connection_from_graph(conn);
 }

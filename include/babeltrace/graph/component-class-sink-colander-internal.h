@@ -25,14 +25,14 @@
 
 #include <stdint.h>
 #include <babeltrace/types.h>
-#include <babeltrace/graph/notification-const.h>
+#include <babeltrace/graph/message-const.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct bt_component_class_sink_colander_data {
-	bt_notification_array_const notifs;
+	bt_message_array_const msgs;
 	uint64_t *count_addr;
 };
 

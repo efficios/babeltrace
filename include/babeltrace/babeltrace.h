@@ -94,7 +94,7 @@
 #include <babeltrace/plugin/plugin-dev.h>
 #include <babeltrace/plugin/plugin-set-const.h>
 
-/* Graph, component, and notification API */
+/* Graph, component, and message API */
 #include <babeltrace/graph/component-class-const.h>
 #include <babeltrace/graph/component-class-filter-const.h>
 #include <babeltrace/graph/component-class-filter.h>
@@ -110,32 +110,32 @@
 #include <babeltrace/graph/connection-const.h>
 #include <babeltrace/graph/graph-const.h>
 #include <babeltrace/graph/graph.h>
-#include <babeltrace/graph/notification-const.h>
-#include <babeltrace/graph/notification-event-const.h>
-#include <babeltrace/graph/notification-event.h>
-#include <babeltrace/graph/notification-inactivity-const.h>
-#include <babeltrace/graph/notification-inactivity.h>
-#include <babeltrace/graph/notification-packet-const.h>
-#include <babeltrace/graph/notification-packet.h>
-#include <babeltrace/graph/notification-stream-const.h>
-#include <babeltrace/graph/notification-stream.h>
+#include <babeltrace/graph/message-const.h>
+#include <babeltrace/graph/message-event-const.h>
+#include <babeltrace/graph/message-event.h>
+#include <babeltrace/graph/message-inactivity-const.h>
+#include <babeltrace/graph/message-inactivity.h>
+#include <babeltrace/graph/message-packet-const.h>
+#include <babeltrace/graph/message-packet.h>
+#include <babeltrace/graph/message-stream-const.h>
+#include <babeltrace/graph/message-stream.h>
 #include <babeltrace/graph/port-const.h>
 #include <babeltrace/graph/port-input-const.h>
 #include <babeltrace/graph/port-output-const.h>
-#include <babeltrace/graph/port-output-notification-iterator.h>
+#include <babeltrace/graph/port-output-message-iterator.h>
 #include <babeltrace/graph/query-executor-const.h>
 #include <babeltrace/graph/query-executor.h>
 #include <babeltrace/graph/self-component-class-filter.h>
 #include <babeltrace/graph/self-component-class-sink.h>
 #include <babeltrace/graph/self-component-class-source.h>
 #include <babeltrace/graph/self-component-filter.h>
-#include <babeltrace/graph/self-component-port-input-notification-iterator.h>
+#include <babeltrace/graph/self-component-port-input-message-iterator.h>
 #include <babeltrace/graph/self-component-port-input.h>
 #include <babeltrace/graph/self-component-port-output.h>
 #include <babeltrace/graph/self-component-port.h>
 #include <babeltrace/graph/self-component-sink.h>
 #include <babeltrace/graph/self-component-source.h>
 #include <babeltrace/graph/self-component.h>
-#include <babeltrace/graph/self-notification-iterator.h>
+#include <babeltrace/graph/self-message-iterator.h>
 
 #endif /* BABELTRACE_BABELTRACE_H */

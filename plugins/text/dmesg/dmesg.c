@@ -43,13 +43,13 @@
 
 struct dmesg_component;
 
-struct dmesg_notif_iter {
+struct dmesg_msg_iter {
 	struct dmesg_component *dmesg_comp;
-	bt_self_notification_iterator *pc_notif_iter; /* Weak */
+	bt_self_message_iterator *pc_msg_iter; /* Weak */
 	char *linebuf;
 	size_t linebuf_len;
 	FILE *fp;
-	bt_notification *tmp_event_notif;
+	bt_message *tmp_event_msg;
 
 	enum {
 		STATE_EMIT_STREAM_BEGINNING,
@@ -432,18 +432,18 @@ void dmesg_finalize(bt_self_component_source *self_comp)
 }
 
 static
-bt_notification *create_init_event_notif_from_line(
-		struct dmesg_notif_iter *notif_iter,
+bt_message *create_init_event_msg_from_line(
+		struct dmesg_msg_iter *msg_iter,
 		const char *line, const char **new_start)
 {
 	bt_event *event;
-	bt_notification *notif = NULL;
+	bt_message *msg = NULL;
 	bool has_timestamp = false;
 	unsigned long sec, usec, msec;
 	unsigned int year, mon, mday, hour, min;
 	uint64_t ts = 0;
 	int ret = 0;
-	struct dmesg_component *dmesg_comp = notif_iter->dmesg_comp;
+	struct dmesg_component *dmesg_comp = msg_iter->dmesg_comp;
 
 	*new_start = line;
 
@@ -507,14 +507,14 @@ skip_ts:
 		goto error;
 	}
 
-	notif = bt_notification_event_create(notif_iter->pc_notif_iter,
+	msg = bt_message_event_create(msg_iter->pc_msg_iter,
 		dmesg_comp->event_class, dmesg_comp->packet);
-	if (!notif) {
-		BT_LOGE_STR("Cannot create event notification.");
+	if (!msg) {
+		BT_LOGE_STR("Cannot create event message.");
 		goto error;
 	}
 
-	event = bt_notification_event_borrow_event(notif);
+	event = bt_message_event_borrow_event(msg);
 	BT_ASSERT(event);
 
 	if (dmesg_comp->clock_class) {
@@ -524,10 +524,10 @@ skip_ts:
 	goto end;
 
 error:
-	BT_NOTIFICATION_PUT_REF_AND_RESET(notif);
+	BT_MESSAGE_PUT_REF_AND_RESET(msg);
 
 end:
-	return notif;
+	return msg;
 }
 
 static
@@ -577,22 +577,22 @@ end:
 }
 
 static
-bt_notification *create_notif_from_line(
-		struct dmesg_notif_iter *dmesg_notif_iter, const char *line)
+bt_message *create_msg_from_line(
+		struct dmesg_msg_iter *dmesg_msg_iter, const char *line)
 {
 	bt_event *event = NULL;
-	bt_notification *notif = NULL;
+	bt_message *msg = NULL;
 	const char *new_start;
 	int ret;
 
-	notif = create_init_event_notif_from_line(dmesg_notif_iter,
+	msg = create_init_event_msg_from_line(dmesg_msg_iter,
 		line, &new_start);
-	if (!notif) {
-		BT_LOGE_STR("Cannot create and initialize event notification from line.");
+	if (!msg) {
+		BT_LOGE_STR("Cannot create and initialize event message from line.");
 		goto error;
 	}
 
-	event = bt_notification_event_borrow_event(notif);
+	event = bt_message_event_borrow_event(msg);
 	BT_ASSERT(event);
 	ret = fill_event_payload_from_line(new_start, event);
 	if (ret) {
@@ -604,73 +604,73 @@ bt_notification *create_notif_from_line(
 	goto end;
 
 error:
-	BT_NOTIFICATION_PUT_REF_AND_RESET(notif);
+	BT_MESSAGE_PUT_REF_AND_RESET(msg);
 
 end:
-	return notif;
+	return msg;
 }
 
 static
-void destroy_dmesg_notif_iter(struct dmesg_notif_iter *dmesg_notif_iter)
+void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 {
-	if (!dmesg_notif_iter) {
+	if (!dmesg_msg_iter) {
 		return;
 	}
 
-	if (dmesg_notif_iter->fp && dmesg_notif_iter->fp != stdin) {
-		if (fclose(dmesg_notif_iter->fp)) {
+	if (dmesg_msg_iter->fp && dmesg_msg_iter->fp != stdin) {
+		if (fclose(dmesg_msg_iter->fp)) {
 			BT_LOGE_ERRNO("Cannot close input file", ".");
 		}
 	}
 
-	bt_notification_put_ref(dmesg_notif_iter->tmp_event_notif);
-	free(dmesg_notif_iter->linebuf);
-	g_free(dmesg_notif_iter);
+	bt_message_put_ref(dmesg_msg_iter->tmp_event_msg);
+	free(dmesg_msg_iter->linebuf);
+	g_free(dmesg_msg_iter);
 }
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status dmesg_notif_iter_init(
-		bt_self_notification_iterator *self_notif_iter,
+enum bt_self_message_iterator_status dmesg_msg_iter_init(
+		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
 {
 	struct dmesg_component *dmesg_comp;
-	struct dmesg_notif_iter *dmesg_notif_iter =
-		g_new0(struct dmesg_notif_iter, 1);
-	enum bt_self_notification_iterator_status status =
-		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct dmesg_msg_iter *dmesg_msg_iter =
+		g_new0(struct dmesg_msg_iter, 1);
+	enum bt_self_message_iterator_status status =
+		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
-	if (!dmesg_notif_iter) {
-		BT_LOGE_STR("Failed to allocate on dmesg notification iterator structure.");
+	if (!dmesg_msg_iter) {
+		BT_LOGE_STR("Failed to allocate on dmesg message iterator structure.");
 		goto error;
 	}
 
 	dmesg_comp = bt_self_component_get_data(
 		bt_self_component_source_as_self_component(self_comp));
 	BT_ASSERT(dmesg_comp);
-	dmesg_notif_iter->dmesg_comp = dmesg_comp;
-	dmesg_notif_iter->pc_notif_iter = self_notif_iter;
+	dmesg_msg_iter->dmesg_comp = dmesg_comp;
+	dmesg_msg_iter->pc_msg_iter = self_msg_iter;
 
 	if (dmesg_comp->params.read_from_stdin) {
-		dmesg_notif_iter->fp = stdin;
+		dmesg_msg_iter->fp = stdin;
 	} else {
-		dmesg_notif_iter->fp = fopen(dmesg_comp->params.path->str, "r");
-		if (!dmesg_notif_iter->fp) {
+		dmesg_msg_iter->fp = fopen(dmesg_comp->params.path->str, "r");
+		if (!dmesg_msg_iter->fp) {
 			BT_LOGE_ERRNO("Cannot open input file in read mode", ": path=\"%s\"",
 				dmesg_comp->params.path->str);
 			goto error;
 		}
 	}
 
-	bt_self_notification_iterator_set_data(self_notif_iter,
-		dmesg_notif_iter);
+	bt_self_message_iterator_set_data(self_msg_iter,
+		dmesg_msg_iter);
 	goto end;
 
 error:
-	destroy_dmesg_notif_iter(dmesg_notif_iter);
-	bt_self_notification_iterator_set_data(self_notif_iter, NULL);
+	destroy_dmesg_msg_iter(dmesg_msg_iter);
+	bt_self_message_iterator_set_data(self_msg_iter, NULL);
 	if (status >= 0) {
-		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 	}
 
 end:
@@ -678,35 +678,35 @@ end:
 }
 
 BT_HIDDEN
-void dmesg_notif_iter_finalize(
-		bt_self_notification_iterator *priv_notif_iter)
+void dmesg_msg_iter_finalize(
+		bt_self_message_iterator *priv_msg_iter)
 {
-	destroy_dmesg_notif_iter(bt_self_notification_iterator_get_data(
-		priv_notif_iter));
+	destroy_dmesg_msg_iter(bt_self_message_iterator_get_data(
+		priv_msg_iter));
 }
 
 static
-enum bt_self_notification_iterator_status dmesg_notif_iter_next_one(
-		struct dmesg_notif_iter *dmesg_notif_iter,
-		bt_notification **notif)
+enum bt_self_message_iterator_status dmesg_msg_iter_next_one(
+		struct dmesg_msg_iter *dmesg_msg_iter,
+		bt_message **msg)
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
-	enum bt_self_notification_iterator_status status =
-		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_self_message_iterator_status status =
+		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
-	BT_ASSERT(dmesg_notif_iter);
-	dmesg_comp = dmesg_notif_iter->dmesg_comp;
+	BT_ASSERT(dmesg_msg_iter);
+	dmesg_comp = dmesg_msg_iter->dmesg_comp;
 	BT_ASSERT(dmesg_comp);
 
-	if (dmesg_notif_iter->state == STATE_DONE) {
-		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_END;
+	if (dmesg_msg_iter->state == STATE_DONE) {
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
 		goto end;
 	}
 
-	if (dmesg_notif_iter->tmp_event_notif ||
-			dmesg_notif_iter->state == STATE_EMIT_PACKET_END ||
-			dmesg_notif_iter->state == STATE_EMIT_STREAM_END) {
+	if (dmesg_msg_iter->tmp_event_msg ||
+			dmesg_msg_iter->state == STATE_EMIT_PACKET_END ||
+			dmesg_msg_iter->state == STATE_EMIT_STREAM_END) {
 		goto handle_state;
 	}
 
@@ -714,22 +714,22 @@ enum bt_self_notification_iterator_status dmesg_notif_iter_next_one(
 		const char *ch;
 		bool only_spaces = true;
 
-		len = bt_getline(&dmesg_notif_iter->linebuf,
-			&dmesg_notif_iter->linebuf_len, dmesg_notif_iter->fp);
+		len = bt_getline(&dmesg_msg_iter->linebuf,
+			&dmesg_msg_iter->linebuf_len, dmesg_msg_iter->fp);
 		if (len < 0) {
 			if (errno == EINVAL) {
-				status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
+				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 			} else if (errno == ENOMEM) {
 				status =
-					BT_SELF_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+					BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
 			} else {
-				if (dmesg_notif_iter->state == STATE_EMIT_STREAM_BEGINNING) {
+				if (dmesg_msg_iter->state == STATE_EMIT_STREAM_BEGINNING) {
 					/* Stream did not even begin */
-					status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_END;
+					status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
 					goto end;
 				} else {
 					/* End current packet now */
-					dmesg_notif_iter->state =
+					dmesg_msg_iter->state =
 						STATE_EMIT_PACKET_END;
 					goto handle_state;
 				}
@@ -738,10 +738,10 @@ enum bt_self_notification_iterator_status dmesg_notif_iter_next_one(
 			goto end;
 		}
 
-		BT_ASSERT(dmesg_notif_iter->linebuf);
+		BT_ASSERT(dmesg_msg_iter->linebuf);
 
 		/* Ignore empty lines, once trimmed */
-		for (ch = dmesg_notif_iter->linebuf; *ch != '\0'; ch++) {
+		for (ch = dmesg_msg_iter->linebuf; *ch != '\0'; ch++) {
 			if (!isspace(*ch)) {
 				only_spaces = false;
 				break;
@@ -753,54 +753,54 @@ enum bt_self_notification_iterator_status dmesg_notif_iter_next_one(
 		}
 	}
 
-	dmesg_notif_iter->tmp_event_notif = create_notif_from_line(
-		dmesg_notif_iter, dmesg_notif_iter->linebuf);
-	if (!dmesg_notif_iter->tmp_event_notif) {
-		BT_LOGE("Cannot create event notification from line: "
+	dmesg_msg_iter->tmp_event_msg = create_msg_from_line(
+		dmesg_msg_iter, dmesg_msg_iter->linebuf);
+	if (!dmesg_msg_iter->tmp_event_msg) {
+		BT_LOGE("Cannot create event message from line: "
 			"dmesg-comp-addr=%p, line=\"%s\"", dmesg_comp,
-			dmesg_notif_iter->linebuf);
+			dmesg_msg_iter->linebuf);
 		goto end;
 	}
 
 handle_state:
 	BT_ASSERT(dmesg_comp->trace);
 
-	switch (dmesg_notif_iter->state) {
+	switch (dmesg_msg_iter->state) {
 	case STATE_EMIT_STREAM_BEGINNING:
-		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		*notif = bt_notification_stream_beginning_create(
-			dmesg_notif_iter->pc_notif_iter, dmesg_comp->stream);
-		dmesg_notif_iter->state = STATE_EMIT_PACKET_BEGINNING;
+		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
+		*msg = bt_message_stream_beginning_create(
+			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
+		dmesg_msg_iter->state = STATE_EMIT_PACKET_BEGINNING;
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
-		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		*notif = bt_notification_packet_beginning_create(
-			dmesg_notif_iter->pc_notif_iter, dmesg_comp->packet);
-		dmesg_notif_iter->state = STATE_EMIT_EVENT;
+		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
+		*msg = bt_message_packet_beginning_create(
+			dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
+		dmesg_msg_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
-		BT_ASSERT(dmesg_notif_iter->tmp_event_notif);
-		*notif = dmesg_notif_iter->tmp_event_notif;
-		dmesg_notif_iter->tmp_event_notif = NULL;
+		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
+		*msg = dmesg_msg_iter->tmp_event_msg;
+		dmesg_msg_iter->tmp_event_msg = NULL;
 		break;
 	case STATE_EMIT_PACKET_END:
-		*notif = bt_notification_packet_end_create(
-			dmesg_notif_iter->pc_notif_iter, dmesg_comp->packet);
-		dmesg_notif_iter->state = STATE_EMIT_STREAM_END;
+		*msg = bt_message_packet_end_create(
+			dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
+		dmesg_msg_iter->state = STATE_EMIT_STREAM_END;
 		break;
 	case STATE_EMIT_STREAM_END:
-		*notif = bt_notification_stream_end_create(
-			dmesg_notif_iter->pc_notif_iter, dmesg_comp->stream);
-		dmesg_notif_iter->state = STATE_DONE;
+		*msg = bt_message_stream_end_create(
+			dmesg_msg_iter->pc_msg_iter, dmesg_comp->stream);
+		dmesg_msg_iter->state = STATE_DONE;
 		break;
 	default:
 		break;
 	}
 
-	if (!*notif) {
-		BT_LOGE("Cannot create notification: dmesg-comp-addr=%p",
+	if (!*msg) {
+		BT_LOGE("Cannot create message: dmesg-comp-addr=%p",
 			dmesg_comp);
-		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 	}
 
 end:
@@ -808,45 +808,45 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status dmesg_notif_iter_next(
-		bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array_const notifs, uint64_t capacity,
+enum bt_self_message_iterator_status dmesg_msg_iter_next(
+		bt_self_message_iterator *self_msg_iter,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	struct dmesg_notif_iter *dmesg_notif_iter =
-		bt_self_notification_iterator_get_data(
-			self_notif_iter);
-	enum bt_self_notification_iterator_status status =
-		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct dmesg_msg_iter *dmesg_msg_iter =
+		bt_self_message_iterator_get_data(
+			self_msg_iter);
+	enum bt_self_message_iterator_status status =
+		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 
 	while (i < capacity &&
-			status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
-		bt_notification *priv_notif = NULL;
+			status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+		bt_message *priv_msg = NULL;
 
-		status = dmesg_notif_iter_next_one(dmesg_notif_iter,
-			&priv_notif);
-		notifs[i] = priv_notif;
-		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
+		status = dmesg_msg_iter_next_one(dmesg_msg_iter,
+			&priv_msg);
+		msgs[i] = priv_msg;
+		if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
 			i++;
 		}
 	}
 
 	if (i > 0) {
 		/*
-		 * Even if dmesg_notif_iter_next_one() returned
+		 * Even if dmesg_msg_iter_next_one() returned
 		 * something else than
-		 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK, we
-		 * accumulated notification objects in the output
-		 * notification array, so we need to return
-		 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK so that they
+		 * BT_SELF_MESSAGE_ITERATOR_STATUS_OK, we
+		 * accumulated message objects in the output
+		 * message array, so we need to return
+		 * BT_SELF_MESSAGE_ITERATOR_STATUS_OK so that they
 		 * are transfered to downstream. This other status
-		 * occurs again the next time muxer_notif_iter_do_next()
+		 * occurs again the next time muxer_msg_iter_do_next()
 		 * is called, possibly without any accumulated
-		 * notification, in which case we'll return it.
+		 * message, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	}
 
 	return status;

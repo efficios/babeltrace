@@ -109,9 +109,9 @@ end:
 }
 
 static
-enum bt_component_status handle_notification(
+enum bt_component_status handle_message(
 		struct writer_component *writer_component,
-		const bt_notification *notification)
+		const bt_message *message)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
@@ -120,11 +120,11 @@ enum bt_component_status handle_notification(
 		goto end;
 	}
 
-	switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
+	switch (bt_message_get_type(message)) {
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 	{
 		const bt_packet *packet =
-			bt_notification_packet_beginning_get_packet(notification);
+			bt_message_packet_beginning_get_packet(message);
 
 		if (!packet) {
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -135,10 +135,10 @@ enum bt_component_status handle_notification(
 		bt_packet_put_ref(packet);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_PACKET_END:
+	case BT_MESSAGE_TYPE_PACKET_END:
 	{
 		const bt_packet *packet =
-			bt_notification_packet_end_get_packet(notification);
+			bt_message_packet_end_get_packet(message);
 
 		if (!packet) {
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -148,10 +148,10 @@ enum bt_component_status handle_notification(
 		bt_packet_put_ref(packet);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_EVENT:
+	case BT_MESSAGE_TYPE_EVENT:
 	{
-		const bt_event *event = bt_notification_event_get_event(
-				notification);
+		const bt_event *event = bt_message_event_get_event(
+				message);
 
 		if (!event) {
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -164,10 +164,10 @@ enum bt_component_status handle_notification(
 		}
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 	{
 		const bt_stream *stream =
-			bt_notification_stream_beginning_get_stream(notification);
+			bt_message_stream_beginning_get_stream(message);
 
 		if (!stream) {
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -177,10 +177,10 @@ enum bt_component_status handle_notification(
 		bt_stream_put_ref(stream);
 		break;
 	}
-	case BT_NOTIFICATION_TYPE_STREAM_END:
+	case BT_MESSAGE_TYPE_STREAM_END:
 	{
 		const bt_stream *stream =
-			bt_notification_stream_end_get_stream(notification);
+			bt_message_stream_end_get_stream(message);
 
 		if (!stream) {
 			ret = BT_COMPONENT_STATUS_ERROR;
@@ -212,7 +212,7 @@ void writer_component_port_connected(
 	BT_ASSERT(!writer->input_iterator);
 	connection = bt_private_port_get_connection(self_port);
 	BT_ASSERT(connection);
-	conn_status = bt_private_connection_create_notification_iterator(
+	conn_status = bt_private_connection_create_message_iterator(
 		connection, &writer->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
 		writer->error = true;
@@ -225,11 +225,11 @@ BT_HIDDEN
 enum bt_component_status writer_run(bt_self_component *component)
 {
 	enum bt_component_status ret;
-	const bt_notification *notification = NULL;
-	bt_notification_iterator *it;
+	const bt_message *message = NULL;
+	bt_message_iterator *it;
 	struct writer_component *writer_component =
 		bt_self_component_get_user_data(component);
-	enum bt_notification_iterator_status it_ret;
+	enum bt_message_iterator_status it_ret;
 
 	if (unlikely(writer_component->error)) {
 		ret = BT_COMPONENT_STATUS_ERROR;
@@ -238,28 +238,28 @@ enum bt_component_status writer_run(bt_self_component *component)
 
 	it = writer_component->input_iterator;
 	BT_ASSERT(it);
-	it_ret = bt_notification_iterator_next(it);
+	it_ret = bt_message_iterator_next(it);
 
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+	case BT_MESSAGE_ITERATOR_STATUS_END:
 		ret = BT_COMPONENT_STATUS_END;
 		BT_OBJECT_PUT_REF_AND_RESET(writer_component->input_iterator);
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		ret = BT_COMPONENT_STATUS_AGAIN;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+	case BT_MESSAGE_ITERATOR_STATUS_OK:
 		break;
 	default:
 		ret = BT_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
-	notification = bt_notification_iterator_get_notification(it);
-	BT_ASSERT(notification);
-	ret = handle_notification(writer_component, notification);
+	message = bt_message_iterator_get_message(it);
+	BT_ASSERT(message);
+	ret = handle_message(writer_component, message);
 end:
-	bt_object_put_ref(notification);
+	bt_object_put_ref(message);
 	return ret;
 }
 

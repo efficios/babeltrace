@@ -23,17 +23,17 @@ test_trace_ir_ref_LDADD = $(COMMON_TEST_LDADD)
 
 test_graph_topo_LDADD = $(COMMON_TEST_LDADD)
 
-test_bt_notification_iterator_LDADD = $(COMMON_TEST_LDADD)
+test_bt_message_iterator_LDADD = $(COMMON_TEST_LDADD)
 
 noinst_PROGRAMS = test_bitfield test_ctf_writer test_bt_values \
-	test_trace_ir_ref test_graph_topo test_bt_notification_iterator
+	test_trace_ir_ref test_graph_topo test_bt_message_iterator
 
 test_bitfield_SOURCES = test_bitfield.c
 test_ctf_writer_SOURCES = test_ctf_writer.c
 test_bt_values_SOURCES = test_bt_values.c
 test_trace_ir_ref_SOURCES = test_trace_ir_ref.c
 test_graph_topo_SOURCES = test_graph_topo.c
-test_bt_notification_iterator_SOURCES = test_bt_notification_iterator.c
+test_bt_message_iterator_SOURCES = test_bt_message_iterator.c
 
 check_SCRIPTS = test_ctf_writer_complete
 

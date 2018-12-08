@@ -364,12 +364,12 @@ size_t event_pos(struct event *event)
 }
 
 static
-enum bt_self_notification_iterator_status src_iter_next(
-		bt_self_notification_iterator *self_iterator,
-		bt_notification_array_const notifs, uint64_t capacity,
+enum bt_self_message_iterator_status src_iter_next(
+		bt_self_message_iterator *self_iterator,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	return BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 }
 
 static

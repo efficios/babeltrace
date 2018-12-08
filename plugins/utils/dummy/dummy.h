@@ -29,7 +29,7 @@
 #include <stdbool.h>
 
 struct dummy {
-	bt_self_component_port_input_notification_iterator *notif_iter;
+	bt_self_component_port_input_message_iterator *msg_iter;
 };
 
 BT_HIDDEN

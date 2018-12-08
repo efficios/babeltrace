@@ -134,9 +134,9 @@ struct ctf_fs_port_data {
 	struct ctf_fs_component *ctf_fs;
 };
 
-struct ctf_fs_notif_iter_data {
+struct ctf_fs_msg_iter_data {
 	/* Weak */
-	bt_self_notification_iterator *pc_notif_iter;
+	bt_self_message_iterator *pc_msg_iter;
 
 	/* Weak, belongs to ctf_fs_trace */
 	struct ctf_fs_ds_file_group *ds_file_group;
@@ -148,10 +148,10 @@ struct ctf_fs_notif_iter_data {
 	size_t ds_file_info_index;
 
 	/* Owned by this */
-	struct bt_notif_iter *notif_iter;
+	struct bt_msg_iter *msg_iter;
 
-	/* True to skip BT_NOTIFICATION_TYPE_STREAM_BEGINNING notifications */
-	bool skip_stream_begin_notifs;
+	/* True to skip BT_MESSAGE_TYPE_STREAM_BEGINNING messages */
+	bool skip_stream_begin_msgs;
 };
 
 BT_HIDDEN
@@ -183,18 +183,18 @@ BT_HIDDEN
 GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path);
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status ctf_fs_iterator_init(
-		bt_self_notification_iterator *self_notif_iter,
+enum bt_self_message_iterator_status ctf_fs_iterator_init(
+		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port);
 
 BT_HIDDEN
-void ctf_fs_iterator_finalize(bt_self_notification_iterator *it);
+void ctf_fs_iterator_finalize(bt_self_message_iterator *it);
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status ctf_fs_iterator_next(
-		bt_self_notification_iterator *iterator,
-		bt_notification_array_const notifs, uint64_t capacity,
+enum bt_self_message_iterator_status ctf_fs_iterator_next(
+		bt_self_message_iterator *iterator,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

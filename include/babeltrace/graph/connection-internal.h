@@ -25,8 +25,8 @@
  */
 
 #include <babeltrace/graph/connection-const.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/message-iterator.h>
+#include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>
 #include <stdbool.h>
@@ -50,17 +50,17 @@ struct bt_connection {
 	struct bt_port *upstream_port;
 
 	/*
-	 * Weak references to all the notification iterators that were
+	 * Weak references to all the message iterators that were
 	 * created on this connection.
 	 */
 	GPtrArray *iterators;
 
-	bool notified_upstream_port_connected;
-	bool notified_upstream_port_disconnected;
-	bool notified_downstream_port_connected;
-	bool notified_downstream_port_disconnected;
-	bool notified_graph_ports_connected;
-	bool notified_graph_ports_disconnected;
+	bool msgied_upstream_port_connected;
+	bool msgied_upstream_port_disconnected;
+	bool msgied_downstream_port_connected;
+	bool msgied_downstream_port_disconnected;
+	bool msgied_graph_ports_connected;
+	bool msgied_graph_ports_disconnected;
 };
 
 BT_HIDDEN
@@ -73,7 +73,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph);
 
 BT_HIDDEN
 void bt_connection_remove_iterator(struct bt_connection *conn,
-		struct bt_self_component_port_input_notification_iterator *iterator);
+		struct bt_self_component_port_input_message_iterator *iterator);
 
 static inline
 struct bt_graph *bt_connection_borrow_graph(struct bt_connection *conn)

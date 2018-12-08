@@ -36,19 +36,19 @@ BT_HIDDEN
 void dmesg_finalize(bt_self_component_source *self_comp);
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status dmesg_notif_iter_init(
-		bt_self_notification_iterator *self_notif_iter,
+enum bt_self_message_iterator_status dmesg_msg_iter_init(
+		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port);
 
 BT_HIDDEN
-void dmesg_notif_iter_finalize(
-		bt_self_notification_iterator *self_notif_iter);
+void dmesg_msg_iter_finalize(
+		bt_self_message_iterator *self_msg_iter);
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status dmesg_notif_iter_next(
-		bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array_const notifs, uint64_t capacity,
+enum bt_self_message_iterator_status dmesg_msg_iter_next(
+		bt_self_message_iterator *self_msg_iter,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H */

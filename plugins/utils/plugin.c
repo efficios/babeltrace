@@ -41,7 +41,7 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(dummy, dummy_finalize);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(dummy,
 	dummy_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(dummy,
-	"Consume notifications and discard them.");
+	"Consume messages and discard them.");
 
 /* sink.utils.counter */
 BT_PLUGIN_SINK_COMPONENT_CLASS(counter, counter_consume);
@@ -50,32 +50,32 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(counter, counter_finalize);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(counter,
 	counter_port_connected);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(counter,
-	"Count notifications and print the results.");
+	"Count messages and print the results.");
 
 #if 0
 /* flt.utils.trimmer */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
-	"Keep notifications that occur within a specific time range.");
+	"Keep messages that occur within a specific time range.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_component_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(trimmer, finalize_trimmer);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(trimmer,
+BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(trimmer,
 	trimmer_iterator_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(trimmer,
+BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(trimmer,
 	trimmer_iterator_finalize);
 #endif
 
 /* flt.utils.muxer */
-BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_notif_iter_next);
+BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_msg_iter_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(muxer,
-	"Sort notifications from multiple input ports to a single output port by time.");
+	"Sort messages from multiple input ports to a single output port by time.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(muxer, muxer_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(muxer, muxer_finalize);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD(muxer,
 	muxer_input_port_disconnected);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(muxer,
 	muxer_input_port_connected);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(muxer,
-	muxer_notif_iter_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(muxer,
-	muxer_notif_iter_finalize);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(muxer,
+	muxer_msg_iter_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(muxer,
+	muxer_msg_iter_finalize);

@@ -134,15 +134,15 @@ end:
 
 struct bt_component_class_source *bt_component_class_source_create(
 		const char *name,
-		bt_component_class_source_notification_iterator_next_method method)
+		bt_component_class_source_message_iterator_next_method method)
 {
 	struct bt_component_class_source *source_class = NULL;
 	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(method, "Notification iterator next method");
+	BT_ASSERT_PRE_NON_NULL(method, "Message iterator next method");
 	BT_LOGD("Creating source component class: "
-		"name=\"%s\", notif-iter-next-method-addr=%p",
+		"name=\"%s\", msg-iter-next-method-addr=%p",
 		name, method);
 	source_class = g_new0(struct bt_component_class_source, 1);
 	if (!source_class) {
@@ -163,7 +163,7 @@ struct bt_component_class_source *bt_component_class_source_create(
 		goto end;
 	}
 
-	source_class->methods.notif_iter_next = method;
+	source_class->methods.msg_iter_next = method;
 	BT_LIB_LOGD("Created source component class: %!+C", source_class);
 
 end:
@@ -172,15 +172,15 @@ end:
 
 struct bt_component_class_filter *bt_component_class_filter_create(
 		const char *name,
-		bt_component_class_filter_notification_iterator_next_method method)
+		bt_component_class_filter_message_iterator_next_method method)
 {
 	struct bt_component_class_filter *filter_class = NULL;
 	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	BT_ASSERT_PRE_NON_NULL(method, "Notification iterator next method");
+	BT_ASSERT_PRE_NON_NULL(method, "Message iterator next method");
 	BT_LOGD("Creating filter component class: "
-		"name=\"%s\", notif-iter-next-method-addr=%p",
+		"name=\"%s\", msg-iter-next-method-addr=%p",
 		name, method);
 	filter_class = g_new0(struct bt_component_class_filter, 1);
 	if (!filter_class) {
@@ -201,7 +201,7 @@ struct bt_component_class_filter *bt_component_class_filter_create(
 		goto end;
 	}
 
-	filter_class->methods.notif_iter_next = method;
+	filter_class->methods.msg_iter_next = method;
 	BT_LIB_LOGD("Created filter component class: %!+C", filter_class);
 
 end:
@@ -518,54 +518,54 @@ int bt_component_class_filter_set_output_port_disconnected_method(
 	return 0;
 }
 
-int bt_component_class_source_set_notification_iterator_init_method(
+int bt_component_class_source_set_message_iterator_init_method(
 		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_notification_iterator_init_method method)
+		bt_component_class_source_message_iterator_init_method method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.notif_iter_init = method;
-	BT_LIB_LOGV("Set source component class's notification iterator initialization method"
+	comp_cls->methods.msg_iter_init = method;
+	BT_LIB_LOGV("Set source component class's message iterator initialization method"
 		": %!+C", comp_cls);
 	return 0;
 }
 
-int bt_component_class_filter_set_notification_iterator_init_method(
+int bt_component_class_filter_set_message_iterator_init_method(
 		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_notification_iterator_init_method method)
+		bt_component_class_filter_message_iterator_init_method method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.notif_iter_init = method;
-	BT_LIB_LOGV("Set filter component class's notification iterator initialization method"
+	comp_cls->methods.msg_iter_init = method;
+	BT_LIB_LOGV("Set filter component class's message iterator initialization method"
 		": %!+C", comp_cls);
 	return 0;
 }
 
-int bt_component_class_source_set_notification_iterator_finalize_method(
+int bt_component_class_source_set_message_iterator_finalize_method(
 		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_notification_iterator_finalize_method method)
+		bt_component_class_source_message_iterator_finalize_method method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.notif_iter_finalize = method;
-	BT_LIB_LOGV("Set source component class's notification iterator finalization method"
+	comp_cls->methods.msg_iter_finalize = method;
+	BT_LIB_LOGV("Set source component class's message iterator finalization method"
 		": %!+C", comp_cls);
 	return 0;
 }
 
-int bt_component_class_filter_set_notification_iterator_finalize_method(
+int bt_component_class_filter_set_message_iterator_finalize_method(
 		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_notification_iterator_finalize_method method)
+		bt_component_class_filter_message_iterator_finalize_method method)
 {
 	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
 	BT_ASSERT_PRE_NON_NULL(method, "Method");
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.notif_iter_finalize = method;
-	BT_LIB_LOGV("Set filter component class's notification iterator finalization method"
+	comp_cls->methods.msg_iter_finalize = method;
+	BT_LIB_LOGV("Set filter component class's message iterator finalization method"
 		": %!+C", comp_cls);
 	return 0;
 }

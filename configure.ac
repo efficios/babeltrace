@@ -743,7 +743,7 @@ AC_CONFIG_FILES([
 	lib/prio_heap/Makefile
 	lib/plugin/Makefile
 	lib/graph/Makefile
-	lib/graph/notification/Makefile
+	lib/graph/message/Makefile
 	lib/trace-ir/Makefile
 	lib/ctf-writer/Makefile
 	include/Makefile
@@ -772,7 +772,7 @@ AC_CONFIG_FILES([
 	plugins/ctf/common/Makefile
 	plugins/ctf/common/bfcr/Makefile
 	plugins/ctf/common/metadata/Makefile
-	plugins/ctf/common/notif-iter/Makefile
+	plugins/ctf/common/msg-iter/Makefile
 	plugins/ctf/common/utils/Makefile
 	plugins/ctf/fs-src/Makefile
 	plugins/ctf/fs-sink/Makefile

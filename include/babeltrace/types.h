@@ -97,8 +97,8 @@ typedef struct bt_field_class_signed_enumeration_mapping_ranges bt_field_class_s
 typedef struct bt_field_class_unsigned_enumeration_mapping_ranges bt_field_class_unsigned_enumeration_mapping_ranges;
 typedef struct bt_field_path bt_field_path;
 typedef struct bt_graph bt_graph;
-typedef struct bt_notification bt_notification;
-typedef struct bt_notification_iterator bt_notification_iterator;
+typedef struct bt_message bt_message;
+typedef struct bt_message_iterator bt_message_iterator;
 typedef struct bt_object bt_object;
 typedef struct bt_packet bt_packet;
 typedef struct bt_packet_context_field bt_packet_context_field;
@@ -109,7 +109,7 @@ typedef struct bt_plugin_so_shared_lib_handle bt_plugin_so_shared_lib_handle;
 typedef struct bt_port bt_port;
 typedef struct bt_port_input bt_port_input;
 typedef struct bt_port_output bt_port_output;
-typedef struct bt_port_output_notification_iterator bt_port_output_notification_iterator;
+typedef struct bt_port_output_message_iterator bt_port_output_message_iterator;
 typedef struct bt_query_executor bt_query_executor;
 typedef struct bt_self_component bt_self_component;
 typedef struct bt_self_component_class_filter bt_self_component_class_filter;
@@ -118,14 +118,14 @@ typedef struct bt_self_component_class_source bt_self_component_class_source;
 typedef struct bt_self_component_filter bt_self_component_filter;
 typedef struct bt_self_component_port bt_self_component_port;
 typedef struct bt_self_component_port_input bt_self_component_port_input;
-typedef struct bt_self_component_port_input_notification_iterator bt_self_component_port_input_notification_iterator;
+typedef struct bt_self_component_port_input_message_iterator bt_self_component_port_input_message_iterator;
 typedef struct bt_self_component_port_output bt_self_component_port_output;
 typedef struct bt_self_component_sink bt_self_component_sink;
 typedef struct bt_self_component_source bt_self_component_source;
-typedef struct bt_self_notification_iterator bt_self_notification_iterator;
+typedef struct bt_self_message_iterator bt_self_message_iterator;
+typedef struct bt_self_port bt_self_port;
 typedef struct bt_self_port_input bt_self_port_input;
 typedef struct bt_self_port_output bt_self_port_output;
-typedef struct bt_self_port bt_self_port;
 typedef struct bt_stream bt_stream;
 typedef struct bt_stream_class bt_stream_class;
 typedef struct bt_trace bt_trace;
@@ -133,7 +133,7 @@ typedef struct bt_trace_class bt_trace_class;
 typedef struct bt_value bt_value;
 
 typedef const char * const *bt_field_class_enumeration_mapping_label_array;
-typedef const struct bt_notification **bt_notification_array_const;
+typedef const struct bt_message **bt_message_array_const;
 
 /** @} */
 

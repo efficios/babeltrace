@@ -39,7 +39,7 @@ struct writer_component {
 	/* Map between bt_trace and struct fs_writer. */
 	GHashTable *trace_map;
 	FILE *err;
-	bt_notification_iterator *input_iterator;
+	bt_message_iterator *input_iterator;
 	bool error;
 	bool single_trace;
 	unsigned int nr_traces;
@@ -48,7 +48,7 @@ struct writer_component {
 enum fs_writer_stream_state {
 	/*
 	 * We know the stream exists but we have never received a
-	 * stream_begin notification for it.
+	 * stream_begin message for it.
 	 */
 	FS_WRITER_UNKNOWN_STREAM,
 	/* We know this stream is active (between stream_begin and _end). */

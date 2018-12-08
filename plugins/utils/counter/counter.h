@@ -29,7 +29,7 @@
 #include <stdint.h>
 
 struct counter {
-	bt_self_component_port_input_notification_iterator *notif_iter;
+	bt_self_component_port_input_message_iterator *msg_iter;
 	struct {
 		uint64_t event;
 		uint64_t stream_begin;
