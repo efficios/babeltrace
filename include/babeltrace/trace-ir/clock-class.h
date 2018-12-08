@@ -32,17 +32,20 @@
 /* For bt_bool, bt_uuid, bt_clock_class */
 #include <babeltrace/types.h>
 
+/* For enum bt_clock_class_status */
+#include <babeltrace/trace-ir/clock-class-const.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern bt_clock_class *bt_clock_class_create(void);
 
-extern int bt_clock_class_set_name(bt_clock_class *clock_class,
-		const char *name);
+extern enum bt_clock_class_status bt_clock_class_set_name(
+		bt_clock_class *clock_class, const char *name);
 
-extern int bt_clock_class_set_description(bt_clock_class *clock_class,
-		const char *description);
+extern enum bt_clock_class_status bt_clock_class_set_description(
+		bt_clock_class *clock_class, const char *description);
 
 extern void bt_clock_class_set_frequency(bt_clock_class *clock_class,
 		uint64_t freq);
