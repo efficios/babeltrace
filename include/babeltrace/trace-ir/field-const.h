@@ -39,6 +39,11 @@
 extern "C" {
 #endif
 
+enum bt_field_status {
+	BT_FIELD_STATUS_OK = 0,
+	BT_FIELD_STATUS_NOMEM = -12,
+};
+
 extern const bt_field_class *bt_field_borrow_class_const(
 		const bt_field *field);
 
@@ -52,12 +57,12 @@ extern uint64_t bt_field_unsigned_integer_get_value(
 
 extern double bt_field_real_get_value(const bt_field *field);
 
-extern int bt_field_unsigned_enumeration_get_mapping_labels(
+extern enum bt_field_status bt_field_unsigned_enumeration_get_mapping_labels(
 		const bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
-extern int bt_field_signed_enumeration_get_mapping_labels(
+extern enum bt_field_status bt_field_signed_enumeration_get_mapping_labels(
 		const bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
