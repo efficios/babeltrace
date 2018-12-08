@@ -29,65 +29,65 @@
 /* For enum bt_self_component_status */
 #include <babeltrace/graph/self-component.h>
 
+/*
+ * For bt_component_filter, bt_self_component, bt_self_component_filter,
+ * bt_self_component_port_input, bt_self_component_port_output
+ */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_filter;
-struct bt_self_component;
-struct bt_self_component_filter;
-struct bt_self_component_port_input;
-struct bt_self_component_port_output;
-
 static inline
-struct bt_self_component *bt_self_component_filter_as_self_component(
-		struct bt_self_component_filter *self_comp_filter)
+bt_self_component *bt_self_component_filter_as_self_component(
+		bt_self_component_filter *self_comp_filter)
 {
 	return (void *) self_comp_filter;
 }
 
 static inline
-const struct bt_component_filter *
+const bt_component_filter *
 bt_self_component_filter_as_component_filter(
-		struct bt_self_component_filter *self_comp_filter)
+		bt_self_component_filter *self_comp_filter)
 {
 	return (const void *) self_comp_filter;
 }
 
-extern struct bt_component_filter *bt_component_filter_borrow_from_self(
-		struct bt_self_component_filter *self_component);
+extern bt_component_filter *bt_component_filter_borrow_from_self(
+		bt_self_component_filter *self_component);
 
-extern struct bt_self_component_port_output *
+extern bt_self_component_port_output *
 bt_self_component_filter_borrow_output_port_by_name(
-		struct bt_self_component_filter *self_component,
+		bt_self_component_filter *self_component,
 		const char *name);
 
-extern struct bt_self_component_port_output *
+extern bt_self_component_port_output *
 bt_self_component_filter_borrow_output_port_by_index(
-		struct bt_self_component_filter *self_component,
+		bt_self_component_filter *self_component,
 		uint64_t index);
 
 extern enum bt_self_component_status
 bt_self_component_filter_add_output_port(
-		struct bt_self_component_filter *self_component,
+		bt_self_component_filter *self_component,
 		const char *name, void *data,
-		struct bt_self_component_port_output **self_component_port);
+		bt_self_component_port_output **self_component_port);
 
-extern struct bt_self_component_port_input *
+extern bt_self_component_port_input *
 bt_self_component_filter_borrow_input_port_by_name(
-		struct bt_self_component_filter *self_component,
+		bt_self_component_filter *self_component,
 		const char *name);
 
-extern struct bt_self_component_port_input *
+extern bt_self_component_port_input *
 bt_self_component_filter_borrow_input_port_by_index(
-		struct bt_self_component_filter *self_component,
+		bt_self_component_filter *self_component,
 		uint64_t index);
 
 extern enum bt_self_component_status
 bt_self_component_filter_add_input_port(
-		struct bt_self_component_filter *self_component,
+		bt_self_component_filter *self_component,
 		const char *name, void *data,
-		struct bt_self_component_port_input **self_component_port);
+		bt_self_component_port_input **self_component_port);
 
 #ifdef __cplusplus
 }

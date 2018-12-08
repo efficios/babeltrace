@@ -56,7 +56,7 @@ struct stack_entry {
 	 *
 	 * Field is borrowed.
 	 */
-	struct bt_field *base;
+	bt_field *base;
 
 	/* Index of next field to set */
 	size_t index;
@@ -103,7 +103,7 @@ struct bt_notif_iter {
 	struct stack *stack;
 
 	/* Current notification iterator to create notifications (weak) */
-	struct bt_self_notification_iterator *notif_iter;
+	bt_self_notification_iterator *notif_iter;
 
 	/*
 	 * Current dynamic scope field pointer.
@@ -111,7 +111,7 @@ struct bt_notif_iter {
 	 * This is set by read_dscope_begin_state() and contains the
 	 * value of one of the pointers in `dscopes` below.
 	 */
-	struct bt_field *cur_dscope_field;
+	bt_field *cur_dscope_field;
 
 	/*
 	 * True if we're done filling a string field from a text
@@ -127,34 +127,34 @@ struct bt_notif_iter {
 	} meta;
 
 	/* Current packet header field wrapper (NULL if not created yet) */
-	struct bt_packet_header_field *packet_header_field;
+	bt_packet_header_field *packet_header_field;
 
 	/* Current packet header field wrapper (NULL if not created yet) */
-	struct bt_packet_context_field *packet_context_field;
+	bt_packet_context_field *packet_context_field;
 
 	/* Current event header field (NULL if not created yet) */
-	struct bt_event_header_field *event_header_field;
+	bt_event_header_field *event_header_field;
 
 	/* Current packet (NULL if not created yet) */
-	struct bt_packet *packet;
+	bt_packet *packet;
 
 	/* Current stream (NULL if not set yet) */
-	struct bt_stream *stream;
+	bt_stream *stream;
 
 	/* Current event (NULL if not created yet) */
-	struct bt_event *event;
+	bt_event *event;
 
 	/* Current event notification (NULL if not created yet) */
-	struct bt_notification *event_notif;
+	bt_notification *event_notif;
 
 	/* Database of current dynamic scopes */
 	struct {
-		struct bt_field *trace_packet_header;
-		struct bt_field *stream_packet_context;
-		struct bt_field *event_header;
-		struct bt_field *event_common_context;
-		struct bt_field *event_spec_context;
-		struct bt_field *event_payload;
+		bt_field *trace_packet_header;
+		bt_field *stream_packet_context;
+		bt_field *event_header;
+		bt_field *event_common_context;
+		bt_field *event_spec_context;
+		bt_field *event_payload;
 	} dscopes;
 
 	/* Current state */
@@ -325,7 +325,7 @@ void stack_destroy(struct stack *stack)
 }
 
 static
-void stack_push(struct stack *stack, struct bt_field *base)
+void stack_push(struct stack *stack, bt_field *base)
 {
 	struct stack_entry *entry;
 
@@ -520,7 +520,7 @@ enum bt_notif_iter_status read_dscope_begin_state(
 		struct bt_notif_iter *notit,
 		struct ctf_field_class *dscope_fc,
 		enum state done_state, enum state continue_state,
-		struct bt_field *dscope_field)
+		bt_field *dscope_field)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 	enum bt_bfcr_status bfcr_status;
@@ -792,7 +792,7 @@ static inline
 enum bt_notif_iter_status set_current_stream(struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct bt_stream *stream = NULL;
+	bt_stream *stream = NULL;
 
 	BT_LOGV("Calling user function (get stream): notit-addr=%p, "
 		"stream-class-addr=%p, stream-class-id=%" PRId64,
@@ -828,7 +828,7 @@ static inline
 enum bt_notif_iter_status set_current_packet(struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct bt_packet *packet = NULL;
+	bt_packet *packet = NULL;
 
 	BT_LOGV("Creating packet for packet notification: "
 		"notit-addr=%p", notit);
@@ -1190,7 +1190,7 @@ enum bt_notif_iter_status set_current_event_notification(
 		struct bt_notif_iter *notit)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
-	struct bt_notification *notif = NULL;
+	bt_notification *notif = NULL;
 
 	BT_ASSERT(notit->meta.ec);
 	BT_ASSERT(notit->packet);
@@ -1671,11 +1671,11 @@ end:
 }
 
 static
-struct bt_field *borrow_next_field(struct bt_notif_iter *notit)
+bt_field *borrow_next_field(struct bt_notif_iter *notit)
 {
-	struct bt_field *next_field = NULL;
-	struct bt_field *base_field;
-	const struct bt_field_class *base_fc;
+	bt_field *next_field = NULL;
+	bt_field *base_field;
+	const bt_field_class *base_fc;
 	size_t index;
 
 	BT_ASSERT(!stack_empty(notit->stack));
@@ -1764,7 +1764,7 @@ enum bt_bfcr_status bfcr_unsigned_int_cb(uint64_t value,
 {
 	struct bt_notif_iter *notit = data;
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
-	struct bt_field *field = NULL;
+	bt_field *field = NULL;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 
 	BT_LOGV("Unsigned integer function called from BFCR: "
@@ -1852,7 +1852,7 @@ enum bt_bfcr_status bfcr_unsigned_int_char_cb(uint64_t value,
 	int ret;
 	struct bt_notif_iter *notit = data;
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
-	struct bt_field *string_field = NULL;
+	bt_field *string_field = NULL;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 	char str[2] = {'\0', '\0'};
 
@@ -1901,7 +1901,7 @@ enum bt_bfcr_status bfcr_signed_int_cb(int64_t value,
 		struct ctf_field_class *fc, void *data)
 {
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
-	struct bt_field *field = NULL;
+	bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
 	struct ctf_field_class_int *int_fc = (void *) fc;
 
@@ -1939,7 +1939,7 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 		struct ctf_field_class *fc, void *data)
 {
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
-	struct bt_field *field = NULL;
+	bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
 
 	BT_LOGV("Floating point number function called from BFCR: "
@@ -1961,7 +1961,7 @@ static
 enum bt_bfcr_status bfcr_string_begin_cb(
 		struct ctf_field_class *fc, void *data)
 {
-	struct bt_field *field = NULL;
+	bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
 	int ret;
 
@@ -1993,7 +1993,7 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 		size_t len, struct ctf_field_class *fc, void *data)
 {
 	enum bt_bfcr_status status = BT_BFCR_STATUS_OK;
-	struct bt_field *field = NULL;
+	bt_field *field = NULL;
 	struct bt_notif_iter *notit = data;
 	int ret;
 
@@ -2044,7 +2044,7 @@ enum bt_bfcr_status bfcr_compound_begin_cb(
 		struct ctf_field_class *fc, void *data)
 {
 	struct bt_notif_iter *notit = data;
-	struct bt_field *field;
+	bt_field *field;
 
 	BT_LOGV("Compound (beginning) function called from BFCR: "
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
@@ -2144,7 +2144,7 @@ end:
 static
 int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 {
-	struct bt_field *seq_field;
+	bt_field *seq_field;
 	struct bt_notif_iter *notit = data;
 	struct ctf_field_class_sequence *seq_fc = (void *) fc;
 	int64_t length = -1;
@@ -2224,7 +2224,7 @@ struct ctf_field_class *bfcr_borrow_variant_selected_field_class_cb(
 		var_fc, (uint64_t) option_index);
 
 	if (selected_option->fc->in_ir) {
-		struct bt_field *var_field = stack_top(notit->stack)->base;
+		bt_field *var_field = stack_top(notit->stack)->base;
 
 		ret = bt_field_variant_select_option_field(
 			var_field, option_index);
@@ -2246,10 +2246,10 @@ end:
 static
 void set_event_default_clock_value(struct bt_notif_iter *notit)
 {
-	struct bt_event *event =
+	bt_event *event =
 		bt_notification_event_borrow_event(
 			notit->event_notif);
-	struct bt_stream_class *sc = notit->meta.sc->ir_sc;
+	bt_stream_class *sc = notit->meta.sc->ir_sc;
 
 	BT_ASSERT(event);
 
@@ -2261,10 +2261,10 @@ void set_event_default_clock_value(struct bt_notif_iter *notit)
 
 static
 void notify_new_stream(struct bt_notif_iter *notit,
-		struct bt_notification **notification)
+		bt_notification **notification)
 {
 	enum bt_notif_iter_status status;
-	struct bt_notification *ret = NULL;
+	bt_notification *ret = NULL;
 
 	status = set_current_stream(notit);
 	if (status != BT_NOTIF_ITER_STATUS_OK) {
@@ -2289,9 +2289,9 @@ end:
 
 static
 void notify_end_of_stream(struct bt_notif_iter *notit,
-		struct bt_notification **notification)
+		bt_notification **notification)
 {
-	struct bt_notification *ret;
+	bt_notification *ret;
 
 	if (!notit->stream) {
 		BT_LOGE("Cannot create stream for stream notification: "
@@ -2313,12 +2313,12 @@ void notify_end_of_stream(struct bt_notif_iter *notit,
 
 static
 void notify_new_packet(struct bt_notif_iter *notit,
-		struct bt_notification **notification)
+		bt_notification **notification)
 {
 	int ret;
 	enum bt_notif_iter_status status;
-	struct bt_notification *notif = NULL;
-	const struct bt_stream_class *sc;
+	bt_notification *notif = NULL;
+	const bt_stream_class *sc;
 
 	status = set_current_packet(notit);
 	if (status != BT_NOTIF_ITER_STATUS_OK) {
@@ -2409,9 +2409,9 @@ end:
 
 static
 void notify_end_of_packet(struct bt_notif_iter *notit,
-		struct bt_notification **notification)
+		bt_notification **notification)
 {
-	struct bt_notification *notif;
+	bt_notification *notif;
 
 	if (!notit->packet) {
 		return;
@@ -2533,8 +2533,8 @@ void bt_notif_iter_destroy(struct bt_notif_iter *notit)
 
 enum bt_notif_iter_status bt_notif_iter_get_next_notification(
 		struct bt_notif_iter *notit,
-		struct bt_self_notification_iterator *notif_iter,
-		struct bt_notification **notification)
+		bt_self_notification_iterator *notif_iter,
+		bt_notification **notification)
 {
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;
 
@@ -2636,8 +2636,8 @@ end:
 BT_HIDDEN
 enum bt_notif_iter_status bt_notif_iter_borrow_packet_header_context_fields(
 		struct bt_notif_iter *notit,
-		struct bt_field **packet_header_field,
-		struct bt_field **packet_context_field)
+		bt_field **packet_header_field,
+		bt_field **packet_context_field)
 {
 	int ret;
 	enum bt_notif_iter_status status = BT_NOTIF_ITER_STATUS_OK;

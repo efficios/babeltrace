@@ -29,79 +29,77 @@
 
 #include <stdint.h>
 
-/* For bt_bool */
+/*
+ * For bt_bool, bt_trace_class, bt_stream_class, bt_event_class,
+ * bt_clock_class
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_trace_class;
-struct bt_stream_class;
-struct bt_event_class;
-struct bt_clock_class;
+extern bt_stream_class *bt_stream_class_create(
+		bt_trace_class *trace_class);
 
-extern struct bt_stream_class *bt_stream_class_create(
-		struct bt_trace_class *trace_class);
+extern bt_stream_class *bt_stream_class_create_with_id(
+		bt_trace_class *trace_class, uint64_t id);
 
-extern struct bt_stream_class *bt_stream_class_create_with_id(
-		struct bt_trace_class *trace_class, uint64_t id);
+extern bt_trace_class *bt_stream_class_borrow_trace_class(
+		bt_stream_class *stream_class);
 
-extern struct bt_trace_class *bt_stream_class_borrow_trace_class(
-		struct bt_stream_class *stream_class);
-
-extern int bt_stream_class_set_name(struct bt_stream_class *stream_class,
+extern int bt_stream_class_set_name(bt_stream_class *stream_class,
 		const char *name);
 
 extern void bt_stream_class_set_assigns_automatic_event_class_id(
-		struct bt_stream_class *stream_class, bt_bool value);
+		bt_stream_class *stream_class, bt_bool value);
 
 extern void bt_stream_class_set_assigns_automatic_stream_id(
-		struct bt_stream_class *stream_class, bt_bool value);
+		bt_stream_class *stream_class, bt_bool value);
 
 extern int bt_stream_class_set_packet_context_field_class(
-		struct bt_stream_class *stream_class,
-		struct bt_field_class *field_class);
+		bt_stream_class *stream_class,
+		bt_field_class *field_class);
 
 extern int bt_stream_class_set_event_header_field_class(
-		struct bt_stream_class *stream_class,
-		struct bt_field_class *field_class);
+		bt_stream_class *stream_class,
+		bt_field_class *field_class);
 
 extern int
 bt_stream_class_set_event_common_context_field_class(
-		struct bt_stream_class *stream_class,
-		struct bt_field_class *field_class);
+		bt_stream_class *stream_class,
+		bt_field_class *field_class);
 
-extern struct bt_event_class *
+extern bt_event_class *
 bt_stream_class_borrow_event_class_by_index(
-		struct bt_stream_class *stream_class, uint64_t index);
+		bt_stream_class *stream_class, uint64_t index);
 
-extern struct bt_event_class *
+extern bt_event_class *
 bt_stream_class_borrow_event_class_by_id(
-		struct bt_stream_class *stream_class, uint64_t id);
+		bt_stream_class *stream_class, uint64_t id);
 
-extern struct bt_clock_class *bt_stream_class_borrow_default_clock_class(
-		struct bt_stream_class *stream_class);
+extern bt_clock_class *bt_stream_class_borrow_default_clock_class(
+		bt_stream_class *stream_class);
 
 extern int bt_stream_class_set_default_clock_class(
-		struct bt_stream_class *stream_class,
-		struct bt_clock_class *clock_class);
+		bt_stream_class *stream_class,
+		bt_clock_class *clock_class);
 
 extern void
 bt_stream_class_set_packets_have_discarded_event_counter_snapshot(
-		struct bt_stream_class *stream_class, bt_bool value);
+		bt_stream_class *stream_class, bt_bool value);
 
 extern void
 bt_stream_class_set_packets_have_packet_counter_snapshot(
-		struct bt_stream_class *stream_class, bt_bool value);
+		bt_stream_class *stream_class, bt_bool value);
 
 extern void
 bt_stream_class_set_packets_have_default_beginning_clock_value(
-		struct bt_stream_class *stream_class, bt_bool value);
+		bt_stream_class *stream_class, bt_bool value);
 
 extern void
 bt_stream_class_set_packets_have_default_end_clock_value(
-		struct bt_stream_class *stream_class, bt_bool value);
+		bt_stream_class *stream_class, bt_bool value);
 
 #ifdef __cplusplus
 }

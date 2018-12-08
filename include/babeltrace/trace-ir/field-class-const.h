@@ -27,7 +27,12 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool */
+/*
+ * For bt_bool, bt_field_class bt_field_path
+ * bt_field_class_signed_enumeration_mapping_ranges
+ * bt_field_class_unsigned_enumeration_mapping_ranges,
+ * bt_field_class_enumeration_mapping_label_array
+ */
 #include <babeltrace/types.h>
 
 #include <stdint.h>
@@ -36,13 +41,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_field_class;
-struct bt_field_path;
-struct bt_field_class_signed_enumeration_mapping_ranges;
-struct bt_field_class_unsigned_enumeration_mapping_ranges;
-
-typedef const char * const *bt_field_class_enumeration_mapping_label_array;
 
 enum bt_field_class_type {
 	BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER,
@@ -65,102 +63,102 @@ enum bt_field_class_integer_preferred_display_base {
 };
 
 extern enum bt_field_class_type bt_field_class_get_type(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_integer_get_field_value_range(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern enum bt_field_class_integer_preferred_display_base
 bt_field_class_integer_get_preferred_display_base(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern bt_bool bt_field_class_real_is_single_precision(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_enumeration_get_mapping_count(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern void bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
-		const struct bt_field_class *field_class, uint64_t index,
+		const bt_field_class *field_class, uint64_t index,
 		const char **label,
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges **ranges);
+		const bt_field_class_unsigned_enumeration_mapping_ranges **ranges);
 
 extern void bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
-		const struct bt_field_class *field_class, uint64_t index,
+		const bt_field_class *field_class, uint64_t index,
 		const char **label,
-		const struct bt_field_class_signed_enumeration_mapping_ranges **ranges);
+		const bt_field_class_signed_enumeration_mapping_ranges **ranges);
 
 extern uint64_t
 bt_field_class_unsigned_enumeration_mapping_ranges_get_range_count(
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges *ranges);
+		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges);
 
 extern uint64_t
 bt_field_class_signed_enumeration_mapping_ranges_get_range_count(
-		const struct bt_field_class_signed_enumeration_mapping_ranges *ranges);
+		const bt_field_class_signed_enumeration_mapping_ranges *ranges);
 
 extern void
 bt_field_class_unsigned_enumeration_mapping_ranges_get_range_by_index(
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
+		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
 		uint64_t index, uint64_t *lower, uint64_t *upper);
 
 extern void
 bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
+		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
 		uint64_t index, int64_t *lower, int64_t *upper);
 
 extern int bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
-		const struct bt_field_class *field_class, uint64_t value,
+		const bt_field_class *field_class, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
 extern int bt_field_class_signed_enumeration_get_mapping_labels_by_value(
-		const struct bt_field_class *field_class, int64_t value,
+		const bt_field_class *field_class, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
 extern uint64_t bt_field_class_structure_get_member_count(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern void bt_field_class_structure_borrow_member_by_index_const(
-		const struct bt_field_class *struct_field_class, uint64_t index,
-		const char **name, const struct bt_field_class **field_class);
+		const bt_field_class *struct_field_class, uint64_t index,
+		const char **name, const bt_field_class **field_class);
 
 extern
-const struct bt_field_class *
+const bt_field_class *
 bt_field_class_structure_borrow_member_field_class_by_name_const(
-		const struct bt_field_class *field_class, const char *name);
+		const bt_field_class *field_class, const char *name);
 
-extern const struct bt_field_class *
+extern const bt_field_class *
 bt_field_class_array_borrow_element_field_class_const(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_static_array_get_length(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
-extern const struct bt_field_path *
+extern const bt_field_path *
 bt_field_class_dynamic_array_borrow_length_field_path_const(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
-extern const struct bt_field_path *
+extern const bt_field_path *
 bt_field_class_variant_borrow_selector_field_path_const(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern uint64_t bt_field_class_variant_get_option_count(
-		const struct bt_field_class *field_class);
+		const bt_field_class *field_class);
 
 extern void bt_field_class_variant_borrow_option_by_index_const(
-		const struct bt_field_class *variant_field_class, uint64_t index,
-		const char **name, const struct bt_field_class **field_class);
+		const bt_field_class *variant_field_class, uint64_t index,
+		const char **name, const bt_field_class **field_class);
 
 extern
-const struct bt_field_class *
+const bt_field_class *
 bt_field_class_variant_borrow_option_field_class_by_name_const(
-		const struct bt_field_class *field_class,
+		const bt_field_class *field_class,
 		const char *name);
 
-extern void bt_field_class_get_ref(const struct bt_field_class *field_class);
+extern void bt_field_class_get_ref(const bt_field_class *field_class);
 
-extern void bt_field_class_put_ref(const struct bt_field_class *field_class);
+extern void bt_field_class_put_ref(const bt_field_class *field_class);
 
 #define BT_FIELD_CLASS_PUT_REF_AND_RESET(_var)		\
 	do {						\

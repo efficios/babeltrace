@@ -26,49 +26,47 @@
 
 #include <stdint.h>
 
+/* For bt_component, bt_component_filter, bt_port_input, bt_port_output */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_component_filter;
-struct bt_port_input;
-struct bt_port_output;
-
 static inline
-const struct bt_component *bt_component_filter_as_component_const(
-		const struct bt_component_filter *component)
+const bt_component *bt_component_filter_as_component_const(
+		const bt_component_filter *component)
 {
 	return (const void *) component;
 }
 
 extern uint64_t bt_component_filter_get_input_port_count(
-		const struct bt_component_filter *component);
+		const bt_component_filter *component);
 
-extern const struct bt_port_input *
+extern const bt_port_input *
 bt_component_filter_borrow_input_port_by_name_const(
-		const struct bt_component_filter *component, const char *name);
+		const bt_component_filter *component, const char *name);
 
-extern const struct bt_port_input *
+extern const bt_port_input *
 bt_component_filter_borrow_input_port_by_index_const(
-		const struct bt_component_filter *component, uint64_t index);
+		const bt_component_filter *component, uint64_t index);
 
 extern uint64_t bt_component_filter_get_output_port_count(
-		const struct bt_component_filter *component);
+		const bt_component_filter *component);
 
-extern const struct bt_port_output *
+extern const bt_port_output *
 bt_component_filter_borrow_output_port_by_name_const(
-		const struct bt_component_filter *component, const char *name);
+		const bt_component_filter *component, const char *name);
 
-extern const struct bt_port_output *
+extern const bt_port_output *
 bt_component_filter_borrow_output_port_by_index_const(
-		const struct bt_component_filter *component, uint64_t index);
+		const bt_component_filter *component, uint64_t index);
 
 extern void bt_component_filter_get_ref(
-		const struct bt_component_filter *component_filter);
+		const bt_component_filter *component_filter);
 
 extern void bt_component_filter_put_ref(
-		const struct bt_component_filter *component_filter);
+		const bt_component_filter *component_filter);
 
 #define BT_COMPONENT_FILTER_PUT_REF_AND_RESET(_var)		\
 	do {							\

@@ -24,14 +24,12 @@
  * SOFTWARE.
  */
 
-/* For bt_bool */
+/* For bt_bool, bt_graph */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_graph;
 
 enum bt_graph_status {
 	BT_GRAPH_STATUS_OK = 0,
@@ -44,11 +42,11 @@ enum bt_graph_status {
 	BT_GRAPH_STATUS_NOMEM = -12,
 };
 
-extern bt_bool bt_graph_is_canceled(const struct bt_graph *graph);
+extern bt_bool bt_graph_is_canceled(const bt_graph *graph);
 
-extern void bt_graph_get_ref(const struct bt_graph *graph);
+extern void bt_graph_get_ref(const bt_graph *graph);
 
-extern void bt_graph_put_ref(const struct bt_graph *graph);
+extern void bt_graph_put_ref(const bt_graph *graph);
 
 #define BT_GRAPH_PUT_REF_AND_RESET(_var)	\
 	do {					\

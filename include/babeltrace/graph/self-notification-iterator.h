@@ -26,12 +26,12 @@
 /* For BT_NOTIFICATION_ITERATOR_STATUS_* */
 #include <babeltrace/graph/notification-iterator.h>
 
+/* For bt_self_component, bt_self_notification_iterator, bt_self_port_output */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_self_component;
-struct bt_self_notification_iterator;
 
 enum bt_self_notification_iterator_status {
 	BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK = BT_NOTIFICATION_ITERATOR_STATUS_OK,
@@ -41,20 +41,20 @@ enum bt_self_notification_iterator_status {
 	BT_SELF_NOTIFICATION_ITERATOR_STATUS_NOMEM = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM,
 };
 
-extern struct bt_self_component *
+extern bt_self_component *
 bt_self_notification_iterator_borrow_component(
-		struct bt_self_notification_iterator *notification_iterator);
+		bt_self_notification_iterator *notification_iterator);
 
-extern struct bt_self_port_output *
+extern bt_self_port_output *
 bt_self_notification_iterator_borrow_port(
-		struct bt_self_notification_iterator *notification_iterator);
+		bt_self_notification_iterator *notification_iterator);
 
 extern void bt_self_notification_iterator_set_data(
-		struct bt_self_notification_iterator *notification_iterator,
+		bt_self_notification_iterator *notification_iterator,
 		void *user_data);
 
 extern void *bt_self_notification_iterator_get_data(
-		const struct bt_self_notification_iterator *notification_iterator);
+		const bt_self_notification_iterator *notification_iterator);
 
 #ifdef __cplusplus
 }

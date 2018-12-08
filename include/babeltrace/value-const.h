@@ -26,14 +26,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* For bt_bool */
+/* For bt_bool, bt_value */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_value;
 
 enum bt_value_status {
 	/// Operation canceled.
@@ -69,104 +67,104 @@ enum bt_value_type {
 	BT_VALUE_TYPE_MAP =		6,
 };
 
-extern enum bt_value_type bt_value_get_type(const struct bt_value *object);
+extern enum bt_value_type bt_value_get_type(const bt_value *object);
 
 static inline
-bt_bool bt_value_is_null(const struct bt_value *object)
+bt_bool bt_value_is_null(const bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_NULL;
 }
 
 static inline
-bt_bool bt_value_is_bool(const struct bt_value *object)
+bt_bool bt_value_is_bool(const bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_BOOL;
 }
 
 static inline
-bt_bool bt_value_is_integer(const struct bt_value *object)
+bt_bool bt_value_is_integer(const bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_INTEGER;
 }
 
 static inline
-bt_bool bt_value_is_real(const struct bt_value *object)
+bt_bool bt_value_is_real(const bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_REAL;
 }
 
 static inline
-bt_bool bt_value_is_string(const struct bt_value *object)
+bt_bool bt_value_is_string(const bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_STRING;
 }
 
 static inline
-bt_bool bt_value_is_array(const struct bt_value *object)
+bt_bool bt_value_is_array(const bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_ARRAY;
 }
 
 static inline
-bt_bool bt_value_is_map(const struct bt_value *object)
+bt_bool bt_value_is_map(const bt_value *object)
 {
 	return bt_value_get_type(object) == BT_VALUE_TYPE_MAP;
 }
 
-extern enum bt_value_status bt_value_copy(const struct bt_value *object,
-		struct bt_value **copy);
+extern enum bt_value_status bt_value_copy(const bt_value *object,
+		bt_value **copy);
 
-extern bt_bool bt_value_compare(const struct bt_value *object_a,
-		const struct bt_value *object_b);
+extern bt_bool bt_value_compare(const bt_value *object_a,
+		const bt_value *object_b);
 
-extern bt_bool bt_value_bool_get(const struct bt_value *bool_obj);
+extern bt_bool bt_value_bool_get(const bt_value *bool_obj);
 
-extern int64_t bt_value_integer_get(const struct bt_value *integer_obj);
+extern int64_t bt_value_integer_get(const bt_value *integer_obj);
 
-extern double bt_value_real_get(const struct bt_value *real_obj);
+extern double bt_value_real_get(const bt_value *real_obj);
 
-extern const char *bt_value_string_get(const struct bt_value *string_obj);
+extern const char *bt_value_string_get(const bt_value *string_obj);
 
-extern uint64_t bt_value_array_get_size(const struct bt_value *array_obj);
+extern uint64_t bt_value_array_get_size(const bt_value *array_obj);
 
 static inline
-bt_bool bt_value_array_is_empty(const struct bt_value *array_obj)
+bt_bool bt_value_array_is_empty(const bt_value *array_obj)
 {
 	return bt_value_array_get_size(array_obj) == 0;
 }
 
-extern const struct bt_value *bt_value_array_borrow_element_by_index_const(
-		const struct bt_value *array_obj, uint64_t index);
+extern const bt_value *bt_value_array_borrow_element_by_index_const(
+		const bt_value *array_obj, uint64_t index);
 
-extern uint64_t bt_value_map_get_size(const struct bt_value *map_obj);
+extern uint64_t bt_value_map_get_size(const bt_value *map_obj);
 
 static inline
-bt_bool bt_value_map_is_empty(const struct bt_value *map_obj)
+bt_bool bt_value_map_is_empty(const bt_value *map_obj)
 {
 	return bt_value_map_get_size(map_obj) == 0;
 }
 
-extern const struct bt_value *bt_value_map_borrow_entry_value_const(
-		const struct bt_value *map_obj, const char *key);
+extern const bt_value *bt_value_map_borrow_entry_value_const(
+		const bt_value *map_obj, const char *key);
 
 typedef bt_bool (* bt_value_map_foreach_entry_const_func)(const char *key,
-		const struct bt_value *object, void *data);
+		const bt_value *object, void *data);
 
 extern enum bt_value_status bt_value_map_foreach_entry_const(
-		const struct bt_value *map_obj,
+		const bt_value *map_obj,
 		bt_value_map_foreach_entry_const_func func, void *data);
 
-extern bt_bool bt_value_map_has_entry(const struct bt_value *map_obj,
+extern bt_bool bt_value_map_has_entry(const bt_value *map_obj,
 		const char *key);
 
 extern enum bt_value_status bt_value_map_extend(
-		const struct bt_value *base_map_obj,
-		const struct bt_value *extension_map_obj,
-		struct bt_value **extended_map_obj);
+		const bt_value *base_map_obj,
+		const bt_value *extension_map_obj,
+		bt_value **extended_map_obj);
 
-extern void bt_value_get_ref(const struct bt_value *value);
+extern void bt_value_get_ref(const bt_value *value);
 
-extern void bt_value_put_ref(const struct bt_value *value);
+extern void bt_value_put_ref(const bt_value *value);
 
 #define BT_VALUE_PUT_REF_AND_RESET(_var)		\
 	do {						\

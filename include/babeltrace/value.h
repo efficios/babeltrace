@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* For bt_bool */
+/* For bt_bool, bt_value */
 #include <babeltrace/types.h>
 
 /* For enum bt_value_status, enum bt_value_type */
@@ -36,101 +36,99 @@
 extern "C" {
 #endif
 
-struct bt_value;
+extern bt_value *bt_value_null;
 
-extern struct bt_value *bt_value_null;
+extern bt_value *bt_value_bool_create(void);
 
-extern struct bt_value *bt_value_bool_create(void);
+extern bt_value *bt_value_bool_create_init(bt_bool val);
 
-extern struct bt_value *bt_value_bool_create_init(bt_bool val);
+extern void bt_value_bool_set(bt_value *bool_obj, bt_bool val);
 
-extern void bt_value_bool_set(struct bt_value *bool_obj, bt_bool val);
+extern bt_value *bt_value_integer_create(void);
 
-extern struct bt_value *bt_value_integer_create(void);
-
-extern struct bt_value *bt_value_integer_create_init(
+extern bt_value *bt_value_integer_create_init(
 		int64_t val);
 
-extern void bt_value_integer_set(struct bt_value *integer_obj, int64_t val);
+extern void bt_value_integer_set(bt_value *integer_obj, int64_t val);
 
-extern struct bt_value *bt_value_real_create(void);
+extern bt_value *bt_value_real_create(void);
 
-extern struct bt_value *bt_value_real_create_init(double val);
+extern bt_value *bt_value_real_create_init(double val);
 
-extern void bt_value_real_set(struct bt_value *real_obj, double val);
+extern void bt_value_real_set(bt_value *real_obj, double val);
 
-extern struct bt_value *bt_value_string_create(void);
+extern bt_value *bt_value_string_create(void);
 
-extern struct bt_value *bt_value_string_create_init(const char *val);
+extern bt_value *bt_value_string_create_init(const char *val);
 
-extern enum bt_value_status bt_value_string_set(struct bt_value *string_obj,
+extern enum bt_value_status bt_value_string_set(bt_value *string_obj,
 		const char *val);
 
-extern struct bt_value *bt_value_array_create(void);
+extern bt_value *bt_value_array_create(void);
 
-extern struct bt_value *bt_value_array_borrow_element_by_index(
-		struct bt_value *array_obj, uint64_t index);
+extern bt_value *bt_value_array_borrow_element_by_index(
+		bt_value *array_obj, uint64_t index);
 
 extern enum bt_value_status bt_value_array_append_element(
-		struct bt_value *array_obj,
-		struct bt_value *element_obj);
+		bt_value *array_obj,
+		bt_value *element_obj);
 
 extern enum bt_value_status bt_value_array_append_bool_element(
-		struct bt_value *array_obj, bt_bool val);
+		bt_value *array_obj, bt_bool val);
 
 extern enum bt_value_status bt_value_array_append_integer_element(
-		struct bt_value *array_obj, int64_t val);
+		bt_value *array_obj, int64_t val);
 
 extern enum bt_value_status bt_value_array_append_real_element(
-		struct bt_value *array_obj, double val);
+		bt_value *array_obj, double val);
 
 extern enum bt_value_status bt_value_array_append_string_element(
-		struct bt_value *array_obj, const char *val);
+		bt_value *array_obj, const char *val);
 
 extern enum bt_value_status bt_value_array_append_empty_array_element(
-		struct bt_value *array_obj);
+		bt_value *array_obj);
 
 extern enum bt_value_status bt_value_array_append_empty_map_element(
-		struct bt_value *array_obj);
+		bt_value *array_obj);
 
 extern enum bt_value_status bt_value_array_set_element_by_index(
-		struct bt_value *array_obj, uint64_t index,
-		struct bt_value *element_obj);
+		bt_value *array_obj, uint64_t index,
+		bt_value *element_obj);
 
-extern struct bt_value *bt_value_map_create(void);
+extern bt_value *bt_value_map_create(void);
 
-extern struct bt_value *bt_value_map_borrow_entry_value(
-		struct bt_value *map_obj, const char *key);
+extern bt_value *bt_value_map_borrow_entry_value(
+		bt_value *map_obj, const char *key);
 
 typedef bt_bool (* bt_value_map_foreach_entry_func)(const char *key,
-		struct bt_value *object, void *data);
+		bt_value *object, void *data);
 
 extern enum bt_value_status bt_value_map_foreach_entry(
-		struct bt_value *map_obj,
+		bt_value *map_obj,
 		bt_value_map_foreach_entry_func func, void *data);
 
 extern enum bt_value_status bt_value_map_insert_entry(
-		struct bt_value *map_obj, const char *key,
-		struct bt_value *element_obj);
+		bt_value *map_obj, const char *key,
+		bt_value *element_obj);
 
 extern enum bt_value_status bt_value_map_insert_bool_entry(
-		struct bt_value *map_obj, const char *key, bt_bool val);
+		bt_value *map_obj, const char *key, bt_bool val);
 
 extern enum bt_value_status bt_value_map_insert_integer_entry(
-		struct bt_value *map_obj, const char *key, int64_t val);
+		bt_value *map_obj, const char *key, int64_t val);
 
 extern enum bt_value_status bt_value_map_insert_real_entry(
-		struct bt_value *map_obj, const char *key, double val);
+		bt_value *map_obj, const char *key, double val);
 
 extern enum bt_value_status bt_value_map_insert_string_entry(
-		struct bt_value *map_obj, const char *key,
+		bt_value *map_obj, const char *key,
 		const char *val);
 
 extern enum bt_value_status bt_value_map_insert_empty_array_entry(
-		struct bt_value *map_obj, const char *key);
+		bt_value *map_obj, const char *key);
 
 extern enum bt_value_status bt_value_map_insert_empty_map_entry(
-		struct bt_value *map_obj, const char *key);
+		bt_value *map_obj, const char *key);
 
 #ifdef __cplusplus
 }

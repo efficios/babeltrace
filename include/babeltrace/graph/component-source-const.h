@@ -26,37 +26,36 @@
 
 #include <stdint.h>
 
+/* For bt_component, bt_component_filter, bt_port_output */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component;
-struct bt_component_source;
-struct bt_port_output;
-
 static inline
-const struct bt_component *bt_component_source_as_component_const(
-		const struct bt_component_source *component)
+const bt_component *bt_component_source_as_component_const(
+		const bt_component_source *component)
 {
 	return (void *) component;
 }
 
 extern uint64_t bt_component_source_get_output_port_count(
-		const struct bt_component_source *component);
+		const bt_component_source *component);
 
-extern const struct bt_port_output *
+extern const bt_port_output *
 bt_component_source_borrow_output_port_by_name_const(
-		const struct bt_component_source *component, const char *name);
+		const bt_component_source *component, const char *name);
 
-extern const struct bt_port_output *
+extern const bt_port_output *
 bt_component_source_borrow_output_port_by_index_const(
-		const struct bt_component_source *component, uint64_t index);
+		const bt_component_source *component, uint64_t index);
 
 extern void bt_component_source_get_ref(
-		const struct bt_component_source *component_source);
+		const bt_component_source *component_source);
 
 extern void bt_component_source_put_ref(
-		const struct bt_component_source *component_source);
+		const bt_component_source *component_source);
 
 #define BT_COMPONENT_SOURCE_PUT_REF_AND_RESET(_var)		\
 	do {							\

@@ -108,7 +108,7 @@ void destroy_private_counter_data(struct counter *counter)
 }
 
 BT_HIDDEN
-void counter_finalize(struct bt_self_component_sink *comp)
+void counter_finalize(bt_self_component_sink *comp)
 {
 	struct counter *counter;
 
@@ -123,14 +123,14 @@ void counter_finalize(struct bt_self_component_sink *comp)
 
 BT_HIDDEN
 enum bt_self_component_status counter_init(
-		struct bt_self_component_sink *component,
-		const struct bt_value *params,
+		bt_self_component_sink *component,
+		const bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
 	enum bt_self_component_status ret;
 	struct counter *counter = g_new0(struct counter, 1);
-	const struct bt_value *step = NULL;
-	const struct bt_value *hide_zero = NULL;
+	const bt_value *step = NULL;
+	const bt_value *hide_zero = NULL;
 
 	if (!counter) {
 		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
@@ -177,13 +177,13 @@ end:
 
 BT_HIDDEN
 enum bt_self_component_status counter_port_connected(
-		struct bt_self_component_sink *comp,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port)
+		bt_self_component_sink *comp,
+		bt_self_component_port_input *self_port,
+		const bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
-	struct bt_self_component_port_input_notification_iterator *iterator;
+	bt_self_component_port_input_notification_iterator *iterator;
 
 	counter = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
@@ -204,7 +204,7 @@ end:
 
 BT_HIDDEN
 enum bt_self_component_status counter_consume(
-		struct bt_self_component_sink *comp)
+		bt_self_component_sink *comp)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
@@ -236,7 +236,7 @@ enum bt_self_component_status counter_consume(
 		uint64_t i;
 
 		for (i = 0; i < notif_count; i++) {
-			const struct bt_notification *notif = notifs[i];
+			const bt_notification *notif = notifs[i];
 
 			BT_ASSERT(notif);
 			switch (bt_notification_get_type(notif)) {

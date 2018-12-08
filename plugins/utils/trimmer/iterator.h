@@ -32,8 +32,8 @@
 
 struct trimmer_iterator {
 	/* Input iterator associated with this output iterator. */
-	struct bt_notification_iterator *input_iterator;
-	const struct bt_notification *current_notification;
+	bt_notification_iterator *input_iterator;
+	const bt_notification *current_notification;
 	FILE *err;
 	/* Map between reader and writer packets. */
 	GHashTable *packet_map;
@@ -41,14 +41,14 @@ struct trimmer_iterator {
 
 BT_HIDDEN
 enum bt_notification_iterator_status trimmer_iterator_init(
-		struct bt_self_notification_iterator *iterator,
+		bt_self_notification_iterator *iterator,
 		struct bt_private_port *port);
 
 BT_HIDDEN
-void trimmer_iterator_finalize(struct bt_self_notification_iterator *it);
+void trimmer_iterator_finalize(bt_self_notification_iterator *it);
 
 BT_HIDDEN
-struct bt_notification_iterator_next_method_return trimmer_iterator_next(
-		struct bt_self_notification_iterator *iterator);
+bt_notification_iterator_next_method_return trimmer_iterator_next(
+		bt_self_notification_iterator *iterator);
 
 #endif /* BABELTRACE_PLUGIN_TRIMMER_ITERATOR_H */

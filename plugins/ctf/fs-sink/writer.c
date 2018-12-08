@@ -63,7 +63,7 @@ void destroy_writer_component_data(struct writer_component *writer_component)
 }
 
 BT_HIDDEN
-void writer_component_finalize(struct bt_self_component *component)
+void writer_component_finalize(bt_self_component *component)
 {
 	struct writer_component *writer_component = (struct writer_component *)
 		bt_self_component_get_user_data(component);
@@ -111,7 +111,7 @@ end:
 static
 enum bt_component_status handle_notification(
 		struct writer_component *writer_component,
-		const struct bt_notification *notification)
+		const bt_notification *notification)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
 
@@ -123,7 +123,7 @@ enum bt_component_status handle_notification(
 	switch (bt_notification_get_type(notification)) {
 	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
 	{
-		const struct bt_packet *packet =
+		const bt_packet *packet =
 			bt_notification_packet_beginning_get_packet(notification);
 
 		if (!packet) {
@@ -137,7 +137,7 @@ enum bt_component_status handle_notification(
 	}
 	case BT_NOTIFICATION_TYPE_PACKET_END:
 	{
-		const struct bt_packet *packet =
+		const bt_packet *packet =
 			bt_notification_packet_end_get_packet(notification);
 
 		if (!packet) {
@@ -150,7 +150,7 @@ enum bt_component_status handle_notification(
 	}
 	case BT_NOTIFICATION_TYPE_EVENT:
 	{
-		const struct bt_event *event = bt_notification_event_get_event(
+		const bt_event *event = bt_notification_event_get_event(
 				notification);
 
 		if (!event) {
@@ -166,7 +166,7 @@ enum bt_component_status handle_notification(
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
 	{
-		const struct bt_stream *stream =
+		const bt_stream *stream =
 			bt_notification_stream_beginning_get_stream(notification);
 
 		if (!stream) {
@@ -179,7 +179,7 @@ enum bt_component_status handle_notification(
 	}
 	case BT_NOTIFICATION_TYPE_STREAM_END:
 	{
-		const struct bt_stream *stream =
+		const bt_stream *stream =
 			bt_notification_stream_end_get_stream(notification);
 
 		if (!stream) {
@@ -199,9 +199,9 @@ end:
 
 BT_HIDDEN
 void writer_component_port_connected(
-		struct bt_self_component *component,
+		bt_self_component *component,
 		struct bt_private_port *self_port,
-		const struct bt_port *other_port)
+		const bt_port *other_port)
 {
 	struct bt_private_connection *connection;
 	struct writer_component *writer;
@@ -222,11 +222,11 @@ void writer_component_port_connected(
 }
 
 BT_HIDDEN
-enum bt_component_status writer_run(struct bt_self_component *component)
+enum bt_component_status writer_run(bt_self_component *component)
 {
 	enum bt_component_status ret;
-	const struct bt_notification *notification = NULL;
-	struct bt_notification_iterator *it;
+	const bt_notification *notification = NULL;
+	bt_notification_iterator *it;
 	struct writer_component *writer_component =
 		bt_self_component_get_user_data(component);
 	enum bt_notification_iterator_status it_ret;
@@ -265,12 +265,12 @@ end:
 
 static
 enum bt_component_status apply_one_bool(const char *key,
-		struct bt_value *params,
+		bt_value *params,
 		bool *option,
 		bool *found)
 {
 	enum bt_component_status ret = BT_COMPONENT_STATUS_OK;
-	struct bt_value *value = NULL;
+	bt_value *value = NULL;
 	enum bt_value_status status;
 	bt_bool bool_val;
 
@@ -291,13 +291,13 @@ end:
 
 BT_HIDDEN
 enum bt_component_status writer_component_init(
-	struct bt_self_component *component, struct bt_value *params,
+	bt_self_component *component, bt_value *params,
 	UNUSED_VAR void *init_method_data)
 {
 	enum bt_component_status ret;
 	enum bt_value_status value_ret;
 	struct writer_component *writer_component = create_writer_component();
-	struct bt_value *value = NULL;
+	bt_value *value = NULL;
 	const char *path;
 
 	if (!writer_component) {

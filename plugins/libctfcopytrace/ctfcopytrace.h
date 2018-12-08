@@ -40,8 +40,8 @@ extern "C" {
  *
  * Returns NULL on error.
  */
-const struct bt_clock_class *ctf_copy_clock_class(FILE *err,
-		const struct bt_clock_class *clock_class);
+const bt_clock_class *ctf_copy_clock_class(FILE *err,
+		const bt_clock_class *clock_class);
 
 /*
  * Copy all the clock classes from the input trace and add them to the writer
@@ -52,9 +52,9 @@ const struct bt_clock_class *ctf_copy_clock_class(FILE *err,
  */
 BT_HIDDEN
 enum bt_component_status ctf_copy_clock_classes(FILE *err,
-		const struct bt_trace *writer_trace,
-		const struct bt_stream_class *writer_stream_class,
-		const struct bt_trace *trace);
+		const bt_trace *writer_trace,
+		const bt_stream_class *writer_stream_class,
+		const bt_trace *trace);
 
 /*
  * Create a copy of the event class passed in parameter.
@@ -62,9 +62,9 @@ enum bt_component_status ctf_copy_clock_classes(FILE *err,
  * Returns NULL on error.
  */
 BT_HIDDEN
-const struct bt_event_class *ctf_copy_event_class(FILE *err,
-		const struct bt_trace *trace_copy,
-		const struct bt_event_class *event_class);
+const bt_event_class *ctf_copy_event_class(FILE *err,
+		const bt_trace *trace_copy,
+		const bt_event_class *event_class);
 
 /*
  * Copy all the event classes from the input stream class and add them to the
@@ -75,8 +75,8 @@ const struct bt_event_class *ctf_copy_event_class(FILE *err,
  */
 BT_HIDDEN
 enum bt_component_status ctf_copy_event_classes(FILE *err,
-		const struct bt_stream_class *stream_class,
-		const struct bt_stream_class *writer_stream_class);
+		const bt_stream_class *stream_class,
+		const bt_stream_class *writer_stream_class);
 
 /*
  * Create a copy of the stream class passed in parameter.
@@ -84,9 +84,9 @@ enum bt_component_status ctf_copy_event_classes(FILE *err,
  * Returns NULL or error.
  */
 BT_HIDDEN
-const struct bt_stream_class *ctf_copy_stream_class(FILE *err,
-		const struct bt_stream_class *stream_class,
-		const struct bt_trace *writer_trace,
+const bt_stream_class *ctf_copy_stream_class(FILE *err,
+		const bt_stream_class *stream_class,
+		const bt_trace *writer_trace,
 		bool override_ts64);
 
 /*
@@ -98,9 +98,9 @@ const struct bt_stream_class *ctf_copy_stream_class(FILE *err,
  */
 BT_HIDDEN
 enum bt_component_status ctf_copy_packet_context_field(FILE *err,
-		const struct bt_field *field, const char *field_name,
-		const struct bt_field *writer_packet_context,
-		struct bt_field_type *writer_packet_context_type);
+		const bt_field *field, const char *field_name,
+		const bt_field *writer_packet_context,
+		bt_field_type *writer_packet_context_type);
 
 
 /*
@@ -110,8 +110,8 @@ enum bt_component_status ctf_copy_packet_context_field(FILE *err,
  * Returns 0 on success or -1 on error.
  */
 BT_HIDDEN
-int ctf_stream_copy_packet_header(FILE *err, const struct bt_packet *packet,
-		const struct bt_stream *writer_stream);
+int ctf_stream_copy_packet_header(FILE *err, const bt_packet *packet,
+		const bt_stream *writer_stream);
 
 /*
  * Copy the packet_header from the packet passed in parameter and assign it
@@ -120,8 +120,8 @@ int ctf_stream_copy_packet_header(FILE *err, const struct bt_packet *packet,
  * Returns 0 on success or -1 on error.
  */
 BT_HIDDEN
-int ctf_packet_copy_header(FILE *err, const struct bt_packet *packet,
-		const struct bt_packet *writer_packet);
+int ctf_packet_copy_header(FILE *err, const bt_packet *packet,
+		const bt_packet *writer_packet);
 
 /*
  * Copy all the field values of the packet context from the packet passed in
@@ -130,8 +130,8 @@ int ctf_packet_copy_header(FILE *err, const struct bt_packet *packet,
  * Returns 0 on success or -1 on error.
  */
 BT_HIDDEN
-int ctf_stream_copy_packet_context(FILE *err, const struct bt_packet *packet,
-		const struct bt_stream *writer_stream);
+int ctf_stream_copy_packet_context(FILE *err, const bt_packet *packet,
+		const bt_stream *writer_stream);
 
 /*
  * Copy all the field values of the packet context from the packet passed in
@@ -140,9 +140,9 @@ int ctf_stream_copy_packet_context(FILE *err, const struct bt_packet *packet,
  * Returns 0 on success or -1 on error.
  */
 BT_HIDDEN
-int ctf_packet_copy_context(FILE *err, const struct bt_packet *packet,
-		const struct bt_stream *writer_stream,
-		const struct bt_packet *writer_packet);
+int ctf_packet_copy_context(FILE *err, const bt_packet *packet,
+		const bt_stream *writer_stream,
+		const bt_packet *writer_packet);
 
 /*
  * Create and return a copy of the event passed in parameter. The caller has to
@@ -151,8 +151,8 @@ int ctf_packet_copy_context(FILE *err, const struct bt_packet *packet,
  * Returns NULL on error.
  */
 BT_HIDDEN
-const struct bt_event *ctf_copy_event(FILE *err, const struct bt_event *event,
-		const struct bt_event_class *writer_event_class,
+const bt_event *ctf_copy_event(FILE *err, const bt_event *event,
+		const bt_event_class *writer_event_class,
 		bool override_ts64);
 
 /*
@@ -161,10 +161,10 @@ const struct bt_event *ctf_copy_event(FILE *err, const struct bt_event *event,
  * Returns 0 on success, -1 on error.
  */
 BT_HIDDEN
-int ctf_copy_event_header(FILE *err, const struct bt_event *event,
-		const struct bt_event_class *writer_event_class,
-		const struct bt_event *writer_event,
-		const struct bt_field *event_header);
+int ctf_copy_event_header(FILE *err, const bt_event *event,
+		const bt_event_class *writer_event_class,
+		const bt_event *writer_event,
+		const bt_field *event_header);
 
 /*
  * Copy the environment and the packet header from the input trace to the
@@ -174,8 +174,8 @@ int ctf_copy_event_header(FILE *err, const struct bt_event *event,
  * error.
  */
 BT_HIDDEN
-enum bt_component_status ctf_copy_trace(FILE *err, const struct bt_trace *trace,
-		const struct bt_trace *writer_trace);
+enum bt_component_status ctf_copy_trace(FILE *err, const bt_trace *trace,
+		const bt_trace *writer_trace);
 
 #ifdef __cplusplus
 }

@@ -28,43 +28,40 @@
 /* For enum bt_notification_iterator_status */
 #include <babeltrace/graph/notification-iterator.h>
 
-/* For bt_notification_array_const */
-#include <babeltrace/graph/notification-const.h>
+/*
+ * For bt_port, bt_notification, bt_notification_iterator,
+ * bt_port_output_notification_iterator, bt_graph, bt_port_output,
+ * bt_notification_array_const
+ */
+#include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_notification;
-struct bt_notification_iterator;
-struct bt_port_output_notification_iterator;
-struct bt_graph;
-struct bt_port_output;
-
 static inline
-struct bt_notification_iterator *
+bt_notification_iterator *
 bt_port_output_notification_iterator_as_notification_iterator(
-		struct bt_port_output_notification_iterator *iterator)
+		bt_port_output_notification_iterator *iterator)
 {
 	return (void *) iterator;
 }
 
-extern struct bt_port_output_notification_iterator *
+extern bt_port_output_notification_iterator *
 bt_port_output_notification_iterator_create(
-		struct bt_graph *graph,
-		const struct bt_port_output *output_port);
+		bt_graph *graph,
+		const bt_port_output *output_port);
 
 extern enum bt_notification_iterator_status
 bt_port_output_notification_iterator_next(
-		struct bt_port_output_notification_iterator *iterator,
+		bt_port_output_notification_iterator *iterator,
 		bt_notification_array_const *notifs, uint64_t *count);
 
 extern void bt_port_output_notification_iterator_get_ref(
-		const struct bt_port_output_notification_iterator *port_output_notification_iterator);
+		const bt_port_output_notification_iterator *port_output_notification_iterator);
 
 extern void bt_port_output_notification_iterator_put_ref(
-		const struct bt_port_output_notification_iterator *port_output_notification_iterator);
+		const bt_port_output_notification_iterator *port_output_notification_iterator);
 
 #define BT_PORT_OUTPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(_var)	\
 	do {								\

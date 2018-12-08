@@ -30,12 +30,12 @@
 
 BT_HIDDEN
 enum bt_query_status metadata_info_query(
-		struct bt_self_component_class_source *comp_class,
-		const struct bt_value *params, const struct bt_value **result);
+		bt_self_component_class_source *comp_class,
+		const bt_value *params, const bt_value **result);
 
 BT_HIDDEN
 enum bt_query_status trace_info_query(
-		struct bt_self_component_class_source *comp_class,
-		const struct bt_value *params, const struct bt_value **result);
+		bt_self_component_class_source *comp_class,
+		const bt_value *params, const bt_value **result);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_QUERY_H */

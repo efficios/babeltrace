@@ -26,25 +26,27 @@
 /* For enum bt_self_component_port_status */
 #include <babeltrace/graph/self-component-port.h>
 
+/*
+ * For bt_port_input, bt_self_component_port,
+ * bt_self_component_port_input
+ */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port_input;
-struct bt_self_component_port;
-struct bt_self_component_port_input;
-
 static inline
-struct bt_self_component_port *
+bt_self_component_port *
 bt_self_component_port_input_as_self_component_port(
-		struct bt_self_component_port_input *self_component_port)
+		bt_self_component_port_input *self_component_port)
 {
 	return (void *) self_component_port;
 }
 
 static inline
-const struct bt_port_input *bt_self_component_port_input_as_port_input(
-		const struct bt_self_component_port_input *self_component_port)
+const bt_port_input *bt_self_component_port_input_as_port_input(
+		const bt_self_component_port_input *self_component_port)
 {
 	return (const void *) self_component_port;
 }

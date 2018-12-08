@@ -24,12 +24,12 @@
  * SOFTWARE.
  */
 
+/* For bt_notification, bt_notification_iterator */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_notification;
-struct bt_notification_iterator;
 
 enum bt_notification_iterator_status {
 	BT_NOTIFICATION_ITERATOR_STATUS_OK = 0,

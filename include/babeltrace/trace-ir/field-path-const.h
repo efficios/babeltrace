@@ -28,11 +28,12 @@
 
 #include <stdint.h>
 
+/* For bt_field_path */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_field_path;
 
 enum bt_scope {
 	BT_SCOPE_PACKET_HEADER,
@@ -44,17 +45,17 @@ enum bt_scope {
 };
 
 extern enum bt_scope bt_field_path_get_root_scope(
-		const struct bt_field_path *field_path);
+		const bt_field_path *field_path);
 
 extern uint64_t bt_field_path_get_index_count(
-		const struct bt_field_path *field_path);
+		const bt_field_path *field_path);
 
 extern uint64_t bt_field_path_get_index_by_index(
-		const struct bt_field_path *field_path, uint64_t index);
+		const bt_field_path *field_path, uint64_t index);
 
-extern void bt_field_path_get_ref(const struct bt_field_path *field_path);
+extern void bt_field_path_get_ref(const bt_field_path *field_path);
 
-extern void bt_field_path_put_ref(const struct bt_field_path *field_path);
+extern void bt_field_path_put_ref(const bt_field_path *field_path);
 
 #define BT_FIELD_PATH_PUT_REF_AND_RESET(_var)		\
 	do {						\

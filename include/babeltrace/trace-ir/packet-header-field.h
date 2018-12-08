@@ -26,25 +26,24 @@
  * http://www.efficios.com/ctf
  */
 
+/* For bt_trace_class, bt_packet_header_field, bt_field */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_trace_class;
-struct bt_packet_header_field;
-struct bt_field;
+extern
+bt_packet_header_field *bt_packet_header_field_create(
+		bt_trace_class *trace_class);
 
 extern
-struct bt_packet_header_field *bt_packet_header_field_create(
-		struct bt_trace_class *trace_class);
-
-extern
-struct bt_field *bt_packet_header_field_borrow_field(
-		struct bt_packet_header_field *field);
+bt_field *bt_packet_header_field_borrow_field(
+		bt_packet_header_field *field);
 
 extern
 void bt_packet_header_field_release(
-		struct bt_packet_header_field *field);
+		bt_packet_header_field *field);
 
 #ifdef __cplusplus
 }

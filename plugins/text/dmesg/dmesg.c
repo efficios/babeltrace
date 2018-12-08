@@ -45,11 +45,11 @@ struct dmesg_component;
 
 struct dmesg_notif_iter {
 	struct dmesg_component *dmesg_comp;
-	struct bt_self_notification_iterator *pc_notif_iter; /* Weak */
+	bt_self_notification_iterator *pc_notif_iter; /* Weak */
 	char *linebuf;
 	size_t linebuf_len;
 	FILE *fp;
-	struct bt_notification *tmp_event_notif;
+	bt_notification *tmp_event_notif;
 
 	enum {
 		STATE_EMIT_STREAM_BEGINNING,
@@ -68,20 +68,20 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
-	struct bt_trace_class *trace_class;
-	struct bt_stream_class *stream_class;
-	struct bt_event_class *event_class;
-	struct bt_trace *trace;
-	struct bt_stream *stream;
-	struct bt_packet *packet;
-	struct bt_clock_class *clock_class;
+	bt_trace_class *trace_class;
+	bt_stream_class *stream_class;
+	bt_event_class *event_class;
+	bt_trace *trace;
+	bt_stream *stream;
+	bt_packet *packet;
+	bt_clock_class *clock_class;
 };
 
 static
-struct bt_field_class *create_event_payload_fc(void)
+bt_field_class *create_event_payload_fc(void)
 {
-	struct bt_field_class *root_fc = NULL;
-	struct bt_field_class *fc = NULL;
+	bt_field_class *root_fc = NULL;
+	bt_field_class *fc = NULL;
 	int ret;
 
 	root_fc = bt_field_class_structure_create();
@@ -117,7 +117,7 @@ end:
 static
 int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 {
-	struct bt_field_class *fc = NULL;
+	bt_field_class *fc = NULL;
 	int ret = 0;
 
 	dmesg_comp->trace_class = bt_trace_class_create();
@@ -185,10 +185,10 @@ end:
 
 static
 int handle_params(struct dmesg_component *dmesg_comp,
-		const struct bt_value *params)
+		const bt_value *params)
 {
-	const struct bt_value *no_timestamp = NULL;
-	const struct bt_value *path = NULL;
+	const bt_value *no_timestamp = NULL;
+	const bt_value *path = NULL;
 	const char *path_str;
 	int ret = 0;
 
@@ -359,7 +359,7 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 
 static
 enum bt_self_component_status create_port(
-		struct bt_self_component_source *self_comp)
+		bt_self_component_source *self_comp)
 {
 	return bt_self_component_source_add_output_port(self_comp,
 		"out", NULL, NULL);
@@ -367,8 +367,8 @@ enum bt_self_component_status create_port(
 
 BT_HIDDEN
 enum bt_self_component_status dmesg_init(
-		struct bt_self_component_source *self_comp,
-		struct bt_value *params, void *init_method_data)
+		bt_self_component_source *self_comp,
+		bt_value *params, void *init_method_data)
 {
 	int ret = 0;
 	struct dmesg_component *dmesg_comp = g_new0(struct dmesg_component, 1);
@@ -425,19 +425,19 @@ end:
 }
 
 BT_HIDDEN
-void dmesg_finalize(struct bt_self_component_source *self_comp)
+void dmesg_finalize(bt_self_component_source *self_comp)
 {
 	destroy_dmesg_component(bt_self_component_get_data(
 		bt_self_component_source_as_self_component(self_comp)));
 }
 
 static
-struct bt_notification *create_init_event_notif_from_line(
+bt_notification *create_init_event_notif_from_line(
 		struct dmesg_notif_iter *notif_iter,
 		const char *line, const char **new_start)
 {
-	struct bt_event *event;
-	struct bt_notification *notif = NULL;
+	bt_event *event;
+	bt_notification *notif = NULL;
 	bool has_timestamp = false;
 	unsigned long sec, usec, msec;
 	unsigned int year, mon, mday, hour, min;
@@ -532,10 +532,10 @@ end:
 
 static
 int fill_event_payload_from_line(const char *line,
-		struct bt_event *event)
+		bt_event *event)
 {
-	struct bt_field *ep_field = NULL;
-	struct bt_field *str_field = NULL;
+	bt_field *ep_field = NULL;
+	bt_field *str_field = NULL;
 	size_t len;
 	int ret;
 
@@ -577,11 +577,11 @@ end:
 }
 
 static
-struct bt_notification *create_notif_from_line(
+bt_notification *create_notif_from_line(
 		struct dmesg_notif_iter *dmesg_notif_iter, const char *line)
 {
-	struct bt_event *event = NULL;
-	struct bt_notification *notif = NULL;
+	bt_event *event = NULL;
+	bt_notification *notif = NULL;
 	const char *new_start;
 	int ret;
 
@@ -630,9 +630,9 @@ void destroy_dmesg_notif_iter(struct dmesg_notif_iter *dmesg_notif_iter)
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status dmesg_notif_iter_init(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_port)
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_port)
 {
 	struct dmesg_component *dmesg_comp;
 	struct dmesg_notif_iter *dmesg_notif_iter =
@@ -679,7 +679,7 @@ end:
 
 BT_HIDDEN
 void dmesg_notif_iter_finalize(
-		struct bt_self_notification_iterator *priv_notif_iter)
+		bt_self_notification_iterator *priv_notif_iter)
 {
 	destroy_dmesg_notif_iter(bt_self_notification_iterator_get_data(
 		priv_notif_iter));
@@ -688,7 +688,7 @@ void dmesg_notif_iter_finalize(
 static
 enum bt_self_notification_iterator_status dmesg_notif_iter_next_one(
 		struct dmesg_notif_iter *dmesg_notif_iter,
-		struct bt_notification **notif)
+		bt_notification **notif)
 {
 	ssize_t len;
 	struct dmesg_component *dmesg_comp;
@@ -809,7 +809,7 @@ end:
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status dmesg_notif_iter_next(
-		struct bt_self_notification_iterator *self_notif_iter,
+		bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count)
 {
@@ -822,7 +822,7 @@ enum bt_self_notification_iterator_status dmesg_notif_iter_next(
 
 	while (i < capacity &&
 			status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
-		struct bt_notification *priv_notif = NULL;
+		bt_notification *priv_notif = NULL;
 
 		status = dmesg_notif_iter_next_one(dmesg_notif_iter,
 			&priv_notif);

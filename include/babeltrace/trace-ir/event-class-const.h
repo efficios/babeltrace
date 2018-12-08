@@ -30,16 +30,15 @@
 /* For enum bt_property_availability */
 #include <babeltrace/property.h>
 
+/* For bt_event_class, bt_field_class, bt_stream_class */
+#include <babeltrace/types.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_event_class;
-struct bt_field_class;
-struct bt_stream_class;
 
 enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
@@ -59,30 +58,30 @@ enum bt_event_class_log_level {
 	BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
 };
 
-extern const struct bt_stream_class *bt_event_class_borrow_stream_class_const(
-		const struct bt_event_class *event_class);
+extern const bt_stream_class *bt_event_class_borrow_stream_class_const(
+		const bt_event_class *event_class);
 
-extern const char *bt_event_class_get_name(const struct bt_event_class *event_class);
+extern const char *bt_event_class_get_name(const bt_event_class *event_class);
 
-extern uint64_t bt_event_class_get_id(const struct bt_event_class *event_class);
+extern uint64_t bt_event_class_get_id(const bt_event_class *event_class);
 
 extern enum bt_property_availability bt_event_class_get_log_level(
-		const struct bt_event_class *event_class,
+		const bt_event_class *event_class,
 		enum bt_event_class_log_level *log_level);
 
 extern const char *bt_event_class_get_emf_uri(
-		const struct bt_event_class *event_class);
+		const bt_event_class *event_class);
 
-extern const struct bt_field_class *
+extern const bt_field_class *
 bt_event_class_borrow_specific_context_field_class(
-		const struct bt_event_class *event_class);
+		const bt_event_class *event_class);
 
-extern const struct bt_field_class *bt_event_class_borrow_payload_field_class(
-		const struct bt_event_class *event_class);
+extern const bt_field_class *bt_event_class_borrow_payload_field_class(
+		const bt_event_class *event_class);
 
-extern void bt_event_class_get_ref(const struct bt_event_class *event_class);
+extern void bt_event_class_get_ref(const bt_event_class *event_class);
 
-extern void bt_event_class_put_ref(const struct bt_event_class *event_class);
+extern void bt_event_class_put_ref(const bt_event_class *event_class);
 
 #define BT_EVENT_CLASS_PUT_REF_AND_RESET(_var)		\
 	do {						\

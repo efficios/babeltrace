@@ -26,49 +26,45 @@
 
 #include <stdint.h>
 
-/* For bt_bool */
+/* For bt_bool, bt_port, bt_connection, bt_component */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_port;
-struct bt_connection;
-struct bt_component;
-
 enum bt_port_type {
 	BT_PORT_TYPE_INPUT = 0,
 	BT_PORT_TYPE_OUTPUT = 1,
 };
 
-extern const char *bt_port_get_name(const struct bt_port *port);
+extern const char *bt_port_get_name(const bt_port *port);
 
-extern enum bt_port_type bt_port_get_type(const struct bt_port *port);
+extern enum bt_port_type bt_port_get_type(const bt_port *port);
 
-extern const struct bt_connection *bt_port_borrow_connection_const(
-		const struct bt_port *port);
+extern const bt_connection *bt_port_borrow_connection_const(
+		const bt_port *port);
 
-extern const struct bt_component *bt_port_borrow_component_const(
-		const struct bt_port *port);
+extern const bt_component *bt_port_borrow_component_const(
+		const bt_port *port);
 
-extern bt_bool bt_port_is_connected(const struct bt_port *port);
+extern bt_bool bt_port_is_connected(const bt_port *port);
 
 static inline
-bt_bool bt_port_is_input(const struct bt_port *port)
+bt_bool bt_port_is_input(const bt_port *port)
 {
 	return bt_port_get_type(port) == BT_PORT_TYPE_INPUT;
 }
 
 static inline
-bt_bool bt_port_is_output(const struct bt_port *port)
+bt_bool bt_port_is_output(const bt_port *port)
 {
 	return bt_port_get_type(port) == BT_PORT_TYPE_OUTPUT;
 }
 
-extern void bt_port_get_ref(const struct bt_port *port);
+extern void bt_port_get_ref(const bt_port *port);
 
-extern void bt_port_put_ref(const struct bt_port *port);
+extern void bt_port_put_ref(const bt_port *port);
 
 #define BT_PORT_PUT_REF_AND_RESET(_var)		\
 	do {					\

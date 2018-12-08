@@ -24,17 +24,17 @@
  * SOFTWARE.
  */
 
+/* For bt_component_class_filter, bt_self_component_class_filter */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_component_class_filter;
-struct bt_self_component_class_filter;
-
 static inline
-const struct bt_component_class_filter *
+const bt_component_class_filter *
 bt_self_component_class_filter_as_component_class_filter(
-		struct bt_self_component_class_filter *self_comp_cls_filter)
+		bt_self_component_class_filter *self_comp_cls_filter)
 {
 	return (const void *) self_comp_cls_filter;
 }

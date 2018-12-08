@@ -24,18 +24,18 @@
  * SOFTWARE.
  */
 
+/* For bt_notification, bt_packet */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_packet;
+extern const bt_packet *bt_notification_packet_beginning_borrow_packet_const(
+		const bt_notification *notification);
 
-extern const struct bt_packet *bt_notification_packet_beginning_borrow_packet_const(
-		const struct bt_notification *notification);
-
-extern const struct bt_packet *bt_notification_packet_end_borrow_packet_const(
-		const struct bt_notification *notification);
+extern const bt_packet *bt_notification_packet_end_borrow_packet_const(
+		const bt_notification *notification);
 
 #ifdef __cplusplus
 }

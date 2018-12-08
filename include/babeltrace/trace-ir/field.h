@@ -29,47 +29,47 @@
 
 #include <stdint.h>
 
+/* For bt_field, bt_field_class */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_field;
-struct bt_field_class;
-
-extern void bt_field_signed_integer_set_value(struct bt_field *field,
+extern void bt_field_signed_integer_set_value(bt_field *field,
 		int64_t value);
 
-extern void bt_field_unsigned_integer_set_value(struct bt_field *field,
+extern void bt_field_unsigned_integer_set_value(bt_field *field,
 		uint64_t value);
 
-extern void bt_field_real_set_value(struct bt_field *field, double value);
+extern void bt_field_real_set_value(bt_field *field, double value);
 
-extern int bt_field_string_set_value(struct bt_field *field, const char *value);
+extern int bt_field_string_set_value(bt_field *field, const char *value);
 
-extern int bt_field_string_append(struct bt_field *field, const char *value);
+extern int bt_field_string_append(bt_field *field, const char *value);
 
-extern int bt_field_string_append_with_length(struct bt_field *field,
+extern int bt_field_string_append_with_length(bt_field *field,
 		const char *value, uint64_t length);
 
-extern int bt_field_string_clear(struct bt_field *field);
+extern int bt_field_string_clear(bt_field *field);
 
-extern struct bt_field *bt_field_structure_borrow_member_field_by_index(
-		struct bt_field *field, uint64_t index);
+extern bt_field *bt_field_structure_borrow_member_field_by_index(
+		bt_field *field, uint64_t index);
 
-extern struct bt_field *bt_field_structure_borrow_member_field_by_name(
-		struct bt_field *field, const char *name);
+extern bt_field *bt_field_structure_borrow_member_field_by_name(
+		bt_field *field, const char *name);
 
-extern struct bt_field *bt_field_array_borrow_element_field_by_index(
-		struct bt_field *field, uint64_t index);
+extern bt_field *bt_field_array_borrow_element_field_by_index(
+		bt_field *field, uint64_t index);
 
-extern int bt_field_dynamic_array_set_length(struct bt_field *field,
+extern int bt_field_dynamic_array_set_length(bt_field *field,
 		uint64_t length);
 
-extern int bt_field_variant_select_option_field(struct bt_field *field,
+extern int bt_field_variant_select_option_field(bt_field *field,
 		uint64_t index);
 
-extern struct bt_field *bt_field_variant_borrow_selected_option_field(
-		struct bt_field *field);
+extern bt_field *bt_field_variant_borrow_selected_option_field(
+		bt_field *field);
 
 #ifdef __cplusplus
 }

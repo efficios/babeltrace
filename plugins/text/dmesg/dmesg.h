@@ -29,25 +29,25 @@
 
 BT_HIDDEN
 enum bt_self_component_status dmesg_init(
-		struct bt_self_component_source *self_comp,
-		const struct bt_value *params, void *init_method_data);
+		bt_self_component_source *self_comp,
+		const bt_value *params, void *init_method_data);
 
 BT_HIDDEN
-void dmesg_finalize(struct bt_self_component_source *self_comp);
+void dmesg_finalize(bt_self_component_source *self_comp);
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status dmesg_notif_iter_init(
-		struct bt_self_notification_iterator *self_notif_iter,
-		struct bt_self_component_source *self_comp,
-		struct bt_self_component_port_output *self_port);
+		bt_self_notification_iterator *self_notif_iter,
+		bt_self_component_source *self_comp,
+		bt_self_component_port_output *self_port);
 
 BT_HIDDEN
 void dmesg_notif_iter_finalize(
-		struct bt_self_notification_iterator *self_notif_iter);
+		bt_self_notification_iterator *self_notif_iter);
 
 BT_HIDDEN
 enum bt_self_notification_iterator_status dmesg_notif_iter_next(
-		struct bt_self_notification_iterator *self_notif_iter,
+		bt_self_notification_iterator *self_notif_iter,
 		bt_notification_array_const notifs, uint64_t capacity,
 		uint64_t *count);
 

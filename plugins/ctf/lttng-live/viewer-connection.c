@@ -279,7 +279,7 @@ static void lttng_live_disconnect_viewer(struct bt_live_viewer_connection *viewe
 	}
 }
 
-static void connection_release(struct bt_object *obj)
+static void connection_release(bt_object *obj)
 {
 	struct bt_live_viewer_connection *conn =
 		container_of(obj, struct bt_live_viewer_connection, obj);
@@ -288,15 +288,15 @@ static void connection_release(struct bt_object *obj)
 }
 
 static
-enum bt_value_status list_update_session(struct bt_value *results,
+enum bt_value_status list_update_session(bt_value *results,
 		const struct lttng_viewer_session *session,
 		bool *_found)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
-	struct bt_value *map = NULL;
-	struct bt_value *hostname = NULL;
-	struct bt_value *session_name = NULL;
-	struct bt_value *btval = NULL;
+	bt_value *map = NULL;
+	bt_value *hostname = NULL;
+	bt_value *session_name = NULL;
+	bt_value *btval = NULL;
 	int i, len;
 	bool found = false;
 
@@ -383,12 +383,12 @@ end:
 }
 
 static
-enum bt_value_status list_append_session(struct bt_value *results,
+enum bt_value_status list_append_session(bt_value *results,
 		GString *base_url,
 		const struct lttng_viewer_session *session)
 {
 	enum bt_value_status ret = BT_VALUE_STATUS_OK;
-	struct bt_value *map = NULL;
+	bt_value *map = NULL;
 	GString *url = NULL;
 	bool found = false;
 
@@ -535,9 +535,9 @@ end:
  */
 
 BT_HIDDEN
-struct bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_connection *viewer_connection)
+bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_connection *viewer_connection)
 {
-	struct bt_value *results = NULL;
+	bt_value *results = NULL;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_list_sessions list;
 	uint32_t i, sessions_count;

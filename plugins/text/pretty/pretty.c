@@ -113,7 +113,7 @@ error:
 }
 
 BT_HIDDEN
-void pretty_finalize(struct bt_self_component_sink *comp)
+void pretty_finalize(bt_self_component_sink *comp)
 {
 	destroy_pretty_data(
 		bt_self_component_get_data(
@@ -123,7 +123,7 @@ void pretty_finalize(struct bt_self_component_sink *comp)
 static
 enum bt_self_component_status handle_notification(
 		struct pretty_component *pretty,
-		const struct bt_notification *notification)
+		const bt_notification *notification)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 
@@ -152,9 +152,9 @@ enum bt_self_component_status handle_notification(
 
 BT_HIDDEN
 enum bt_self_component_status pretty_port_connected(
-		struct bt_self_component_sink *comp,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port)
+		bt_self_component_sink *comp,
+		bt_self_component_port_input *self_port,
+		const bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct pretty_component *pretty;
@@ -174,11 +174,11 @@ enum bt_self_component_status pretty_port_connected(
 
 BT_HIDDEN
 enum bt_self_component_status pretty_consume(
-		struct bt_self_component_sink *comp)
+		bt_self_component_sink *comp)
 {
 	enum bt_self_component_status ret;
 	bt_notification_array_const notifs;
-	struct bt_self_component_port_input_notification_iterator *it;
+	bt_self_component_port_input_notification_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
 	enum bt_notification_iterator_status it_ret;
@@ -228,7 +228,7 @@ end:
 }
 
 static
-int add_params_to_map(struct bt_value *plugin_opt_map)
+int add_params_to_map(bt_value *plugin_opt_map)
 {
 	int ret = 0;
 	unsigned int i;
@@ -252,7 +252,7 @@ end:
 }
 
 static
-bt_bool check_param_exists(const char *key, const struct bt_value *object,
+bt_bool check_param_exists(const char *key, const bt_value *object,
 		void *data)
 {
 	struct pretty_component *pretty = data;
@@ -266,9 +266,9 @@ bt_bool check_param_exists(const char *key, const struct bt_value *object,
 }
 
 static
-void apply_one_string(const char *key, const struct bt_value *params, char **option)
+void apply_one_string(const char *key, const bt_value *params, char **option)
 {
-	const struct bt_value *value = NULL;
+	const bt_value *value = NULL;
 	const char *str;
 
 	value = bt_value_map_borrow_entry_value_const(params, key);
@@ -286,10 +286,10 @@ end:
 }
 
 static
-void apply_one_bool(const char *key, const struct bt_value *params, bool *option,
+void apply_one_bool(const char *key, const bt_value *params, bool *option,
 		bool *found)
 {
-	const struct bt_value *value = NULL;
+	const bt_value *value = NULL;
 	bt_bool bool_val;
 
 	value = bt_value_map_borrow_entry_value_const(params, key);
@@ -337,7 +337,7 @@ end:
 }
 
 static
-int apply_params(struct pretty_component *pretty, const struct bt_value *params)
+int apply_params(struct pretty_component *pretty, const bt_value *params)
 {
 	int ret = 0;
 	enum bt_value_status status;
@@ -366,7 +366,7 @@ int apply_params(struct pretty_component *pretty, const struct bt_value *params)
 	/* Known parameters. */
 	pretty->options.color = PRETTY_COLOR_OPT_AUTO;
 	if (bt_value_map_has_entry(params, "color")) {
-		const struct bt_value *color_value;
+		const bt_value *color_value;
 		const char *color;
 
 		color_value = bt_value_map_borrow_entry_value_const(params,
@@ -637,8 +637,8 @@ void init_stream_packet_context_quarks(void)
 
 BT_HIDDEN
 enum bt_self_component_status pretty_init(
-		struct bt_self_component_sink *comp,
-		const struct bt_value *params,
+		bt_self_component_sink *comp,
+		const bt_value *params,
 		UNUSED_VAR void *init_method_data)
 {
 	enum bt_self_component_status ret;

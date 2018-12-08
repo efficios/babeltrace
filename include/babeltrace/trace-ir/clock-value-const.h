@@ -29,26 +29,26 @@
 
 #include <stdint.h>
 
+/* For bt_clock_class, bt_clock_value */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bt_clock_class;
-struct bt_clock_value;
 
 enum bt_clock_value_status {
 	BT_CLOCK_VALUE_STATUS_KNOWN,
 	BT_CLOCK_VALUE_STATUS_UNKNOWN,
 };
 
-extern const struct bt_clock_class *bt_clock_value_borrow_clock_class_const(
-		const struct bt_clock_value *clock_value);
+extern const bt_clock_class *bt_clock_value_borrow_clock_class_const(
+		const bt_clock_value *clock_value);
 
 extern uint64_t bt_clock_value_get_value(
-		const struct bt_clock_value *clock_value);
+		const bt_clock_value *clock_value);
 
 extern int bt_clock_value_get_ns_from_origin(
-		const struct bt_clock_value *clock_value,
+		const bt_clock_value *clock_value,
 		int64_t *ns_from_origin);
 
 #ifdef __cplusplus

@@ -30,7 +30,7 @@
 #include "babeltrace-cfg.h"
 
 int bt_config_cli_args_create_connections(struct bt_config *cfg,
-		const struct bt_value *connection_args,
+		const bt_value *connection_args,
 		char *error_buf, size_t error_buf_size);
 
 #endif /* CLI_BABELTRACE_CFG_CLI_ARGS_CONNECT_H */

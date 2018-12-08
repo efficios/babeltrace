@@ -23,16 +23,16 @@
  * SOFTWARE.
  */
 
+/* For bt_notification, bt_clock_value */
+#include <babeltrace/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bt_notification;
-struct bt_clock_value;
-
-extern const struct bt_clock_value *
+extern const bt_clock_value *
 bt_notification_inactivity_borrow_default_clock_value_const(
-		const struct bt_notification *notif);
+		const bt_notification *notif);
 
 #ifdef __cplusplus
 }

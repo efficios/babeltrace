@@ -157,9 +157,9 @@ void fini_python(void) {
 }
 
 static
-const struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
+const bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 {
-	const struct bt_plugin *plugin = NULL;
+	const bt_plugin *plugin = NULL;
 	PyObject *py_name = NULL;
 	PyObject *py_author = NULL;
 	PyObject *py_description = NULL;
@@ -332,14 +332,14 @@ const struct bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 		size_t i;
 
 		for (i = 0; i < PyList_Size(py_comp_class_addrs); i++) {
-			struct bt_component_class *comp_class;
+			bt_component_class *comp_class;
 			PyObject *py_comp_class_addr;
 
 			py_comp_class_addr =
 				PyList_GetItem(py_comp_class_addrs, i);
 			BT_ASSERT(py_comp_class_addr);
 			if (PyLong_Check(py_comp_class_addr)) {
-				comp_class = (struct bt_component_class *)
+				comp_class = (bt_component_class *)
 					PyLong_AsUnsignedLongLong(py_comp_class_addr);
 			} else {
 				BT_LOGW("Component class address is not an integer in Python plugin info object: "
@@ -387,10 +387,10 @@ end:
 }
 
 G_MODULE_EXPORT
-struct bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
+bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 {
-	struct bt_plugin_set *plugin_set = NULL;
-	const struct bt_plugin *plugin = NULL;
+	bt_plugin_set *plugin_set = NULL;
+	const bt_plugin *plugin = NULL;
 	PyObject *py_plugin_info = NULL;
 	gchar *basename = NULL;
 	size_t path_len;

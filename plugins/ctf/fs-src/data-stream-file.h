@@ -91,13 +91,13 @@ struct ctf_fs_ds_file {
 	struct ctf_fs_metadata *metadata;
 
 	/* Weak */
-	struct bt_self_notification_iterator *pc_notif_iter;
+	bt_self_notification_iterator *pc_notif_iter;
 
 	/* Owned by this */
 	struct ctf_fs_file *file;
 
 	/* Owned by this */
-	struct bt_stream *stream;
+	bt_stream *stream;
 
 	/* Weak */
 	struct bt_notif_iter *notif_iter;
@@ -128,15 +128,15 @@ struct ctf_fs_ds_file {
 BT_HIDDEN
 struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		struct ctf_fs_trace *ctf_fs_trace,
-		struct bt_self_notification_iterator *pc_notif_iter,
+		bt_self_notification_iterator *pc_notif_iter,
 		struct bt_notif_iter *notif_iter,
-		struct bt_stream *stream, const char *path);
+		bt_stream *stream, const char *path);
 
 BT_HIDDEN
 int ctf_fs_ds_file_borrow_packet_header_context_fields(
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_field **packet_header_field,
-		struct bt_field **packet_context_field);
+		bt_field **packet_header_field,
+		bt_field **packet_context_field);
 
 BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
@@ -144,7 +144,7 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 BT_HIDDEN
 enum bt_notification_iterator_status ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file,
-		struct bt_notification **notif);
+		bt_notification **notif);
 
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
