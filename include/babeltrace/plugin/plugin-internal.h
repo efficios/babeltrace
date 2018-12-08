@@ -39,6 +39,12 @@ enum bt_plugin_type {
 	BT_PLUGIN_TYPE_PYTHON = 1,
 };
 
+enum bt_plugin_status {
+	BT_PLUGIN_STATUS_OK = 0,
+	BT_PLUGIN_STATUS_ERROR = -1,
+	BT_PLUGIN_STATUS_NOMEM = -12,
+};
+
 struct bt_plugin {
 	struct bt_object base;
 	enum bt_plugin_type type;

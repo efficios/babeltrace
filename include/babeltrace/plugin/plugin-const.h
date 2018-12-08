@@ -55,12 +55,6 @@
 extern "C" {
 #endif
 
-enum bt_plugin_status {
-	BT_PLUGIN_STATUS_OK =		0,
-	BT_PLUGIN_STATUS_ERROR =	-1,
-	BT_PLUGIN_STATUS_NOMEM =	-12,
-};
-
 extern const bt_plugin *bt_plugin_find(const char *plugin_name);
 
 extern const bt_plugin_set *bt_plugin_find_all_from_file(

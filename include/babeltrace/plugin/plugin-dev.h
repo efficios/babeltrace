@@ -63,11 +63,17 @@ extern "C" {
 #define __BT_PLUGIN_VERSION_MINOR	0
 
 /* Plugin initialization function type */
-typedef enum bt_plugin_status (*bt_plugin_init_func)(
+enum bt_plugin_init_status {
+	BT_PLUGIN_INIT_STATUS_OK = 0,
+	BT_PLUGIN_INIT_STATUS_NOMEM = -12,
+	BT_PLUGIN_INIT_STATUS_ERROR = -1,
+};
+
+typedef enum bt_plugin_init_status (*bt_plugin_init_func)(
 		const bt_plugin *plugin);
 
 /* Plugin exit function type */
-typedef enum bt_plugin_status (*bt_plugin_exit_func)(void);
+typedef void (*bt_plugin_exit_func)(void);
 
 /* Plugin descriptor: describes a single plugin (internal use) */
 struct __bt_plugin_descriptor {

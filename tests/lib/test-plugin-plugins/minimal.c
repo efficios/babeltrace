@@ -19,16 +19,15 @@
 #include <stdlib.h>
 #include <glib.h>
 
-static enum bt_plugin_status plugin_init(const bt_plugin *plugin)
+static enum bt_plugin_init_status plugin_init(const bt_plugin *plugin)
 {
 	g_setenv("BT_TEST_PLUGIN_INIT_CALLED", "1", 1);
-	return BT_PLUGIN_STATUS_OK;
+	return BT_PLUGIN_INIT_STATUS_OK;
 }
 
-static enum bt_plugin_status plugin_exit(void)
+static void plugin_exit(void)
 {
 	g_setenv("BT_TEST_PLUGIN_EXIT_CALLED", "1", 1);
-	return BT_PLUGIN_STATUS_OK;
 }
 
 BT_PLUGIN_MODULE();
