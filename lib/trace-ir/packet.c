@@ -346,7 +346,7 @@ end:
 	return (void *) packet;
 }
 
-int bt_packet_move_header_field(struct bt_packet *packet,
+enum bt_packet_status bt_packet_move_header_field(struct bt_packet *packet,
 		struct bt_packet_header_field *header_field)
 {
 	struct bt_trace_class *tc;
@@ -370,10 +370,10 @@ int bt_packet_move_header_field(struct bt_packet *packet,
 
 	/* Move new field */
 	packet->header_field = field_wrapper;
-	return 0;
+	return BT_PACKET_STATUS_OK;
 }
 
-int bt_packet_move_context_field(struct bt_packet *packet,
+enum bt_packet_status bt_packet_move_context_field(struct bt_packet *packet,
 		struct bt_packet_context_field *context_field)
 {
 	struct bt_stream_class *stream_class;
@@ -398,7 +398,7 @@ int bt_packet_move_context_field(struct bt_packet *packet,
 
 	/* Move new field */
 	packet->context_field = field_wrapper;
-	return 0;
+	return BT_PACKET_STATUS_OK;
 }
 
 void bt_packet_set_default_beginning_clock_snapshot(struct bt_packet *packet,
