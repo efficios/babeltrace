@@ -35,9 +35,9 @@
 #include <babeltrace/graph/component-source-const.h>
 #include <babeltrace/graph/component-filter-const.h>
 #include <babeltrace/graph/port-const.h>
-#include <babeltrace/graph/notification-internal.h>
-#include <babeltrace/graph/notification-event-internal.h>
-#include <babeltrace/graph/notification-packet-internal.h>
+#include <babeltrace/graph/message-internal.h>
+#include <babeltrace/graph/message-event-internal.h>
+#include <babeltrace/graph/message-packet-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>
 #include <babeltrace/types.h>
@@ -119,14 +119,14 @@ void destroy_graph(struct bt_object *obj)
 	 *
 	 * 1. We put and destroy a connection.
 	 * 2. This connection's destructor finalizes its active
-	 *    notification iterators.
-	 * 3. A notification iterator's finalization function gets a
+	 *    message iterators.
+	 * 3. A message iterator's finalization function gets a
 	 *    new reference on its component (reference count goes from
 	 *    0 to 1).
 	 * 4. Since this component's reference count goes to 1, it takes
 	 *    a reference on its parent (this graph). This graph's
 	 *    reference count goes from 0 to 1.
-	 * 5. The notification iterator's finalization function puts its
+	 * 5. The message iterator's finalization function puts its
 	 *    component reference (reference count goes from 1 to 0).
 	 * 6. Since this component's reference count goes from 1 to 0,
 	 *    it puts its parent (this graph). This graph's reference
@@ -143,7 +143,7 @@ void destroy_graph(struct bt_object *obj)
 
 	/*
 	 * Cancel the graph to disallow some operations, like creating
-	 * notification iterators and adding ports to components.
+	 * message iterators and adding ports to components.
 	 */
 	(void) bt_graph_cancel((void *) graph);
 
@@ -177,9 +177,9 @@ void destroy_graph(struct bt_object *obj)
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_disconnected,
 		graph->listeners.filter_sink_ports_disconnected);
 
-	if (graph->notifications) {
-		g_ptr_array_free(graph->notifications, TRUE);
-		graph->notifications = NULL;
+	if (graph->messages) {
+		g_ptr_array_free(graph->messages, TRUE);
+		graph->messages = NULL;
 	}
 
 	if (graph->connections) {
@@ -275,37 +275,37 @@ void destroy_graph(struct bt_object *obj)
 		graph->listeners.filter_sink_ports_disconnected = NULL;
 	}
 
-	bt_object_pool_finalize(&graph->event_notif_pool);
-	bt_object_pool_finalize(&graph->packet_begin_notif_pool);
-	bt_object_pool_finalize(&graph->packet_end_notif_pool);
+	bt_object_pool_finalize(&graph->event_msg_pool);
+	bt_object_pool_finalize(&graph->packet_begin_msg_pool);
+	bt_object_pool_finalize(&graph->packet_end_msg_pool);
 	g_free(graph);
 }
 
 static
-void destroy_notification_event(struct bt_notification *notif,
+void destroy_message_event(struct bt_message *msg,
 		struct bt_graph *graph)
 {
-	bt_notification_event_destroy(notif);
+	bt_message_event_destroy(msg);
 }
 
 static
-void destroy_notification_packet_begin(struct bt_notification *notif,
+void destroy_message_packet_begin(struct bt_message *msg,
 		struct bt_graph *graph)
 {
-	bt_notification_packet_beginning_destroy(notif);
+	bt_message_packet_beginning_destroy(msg);
 }
 
 static
-void destroy_notification_packet_end(struct bt_notification *notif,
+void destroy_message_packet_end(struct bt_message *msg,
 		struct bt_graph *graph)
 {
-	bt_notification_packet_end_destroy(notif);
+	bt_message_packet_end_destroy(msg);
 }
 
 static
-void notify_notification_graph_is_destroyed(struct bt_notification *notif)
+void notify_message_graph_is_destroyed(struct bt_message *msg)
 {
-	bt_notification_unlink_graph(notif);
+	bt_message_unlink_graph(msg);
 }
 
 struct bt_graph *bt_graph_create(void)
@@ -452,38 +452,38 @@ struct bt_graph *bt_graph_create(void)
 		goto error;
 	}
 
-	ret = bt_object_pool_initialize(&graph->event_notif_pool,
-		(bt_object_pool_new_object_func) bt_notification_event_new,
-		(bt_object_pool_destroy_object_func) destroy_notification_event,
+	ret = bt_object_pool_initialize(&graph->event_msg_pool,
+		(bt_object_pool_new_object_func) bt_message_event_new,
+		(bt_object_pool_destroy_object_func) destroy_message_event,
 		graph);
 	if (ret) {
-		BT_LOGE("Failed to initialize event notification pool: ret=%d",
+		BT_LOGE("Failed to initialize event message pool: ret=%d",
 			ret);
 		goto error;
 	}
 
-	ret = bt_object_pool_initialize(&graph->packet_begin_notif_pool,
-		(bt_object_pool_new_object_func) bt_notification_packet_beginning_new,
-		(bt_object_pool_destroy_object_func) destroy_notification_packet_begin,
+	ret = bt_object_pool_initialize(&graph->packet_begin_msg_pool,
+		(bt_object_pool_new_object_func) bt_message_packet_beginning_new,
+		(bt_object_pool_destroy_object_func) destroy_message_packet_begin,
 		graph);
 	if (ret) {
-		BT_LOGE("Failed to initialize packet beginning notification pool: ret=%d",
+		BT_LOGE("Failed to initialize packet beginning message pool: ret=%d",
 			ret);
 		goto error;
 	}
 
-	ret = bt_object_pool_initialize(&graph->packet_end_notif_pool,
-		(bt_object_pool_new_object_func) bt_notification_packet_end_new,
-		(bt_object_pool_destroy_object_func) destroy_notification_packet_end,
+	ret = bt_object_pool_initialize(&graph->packet_end_msg_pool,
+		(bt_object_pool_new_object_func) bt_message_packet_end_new,
+		(bt_object_pool_destroy_object_func) destroy_message_packet_end,
 		graph);
 	if (ret) {
-		BT_LOGE("Failed to initialize packet end notification pool: ret=%d",
+		BT_LOGE("Failed to initialize packet end message pool: ret=%d",
 			ret);
 		goto error;
 	}
 
-	graph->notifications = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) notify_notification_graph_is_destroyed);
+	graph->messages = g_ptr_array_new_with_free_func(
+		(GDestroyNotify) notify_message_graph_is_destroyed);
 	BT_LIB_LOGD("Created graph object: %!+g", graph);
 
 end:
@@ -608,7 +608,7 @@ enum bt_graph_status bt_graph_connect_ports(
 		goto end;
 	}
 
-	connection->notified_upstream_port_connected = true;
+	connection->msgied_upstream_port_connected = true;
 	BT_LIB_LOGD("Notifying downstream component that its port is connected: "
 		"%![comp-]+c, %![port-]+p", downstream_component,
 		downstream_port);
@@ -626,14 +626,14 @@ enum bt_graph_status bt_graph_connect_ports(
 		goto end;
 	}
 
-	connection->notified_downstream_port_connected = true;
+	connection->msgied_downstream_port_connected = true;
 
 	/*
 	 * Notify the graph's creator that both ports are connected.
 	 */
 	BT_LOGD_STR("Notifying graph's user that new component ports are connected.");
 	bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
-	connection->notified_graph_ports_connected = true;
+	connection->msgied_graph_ports_connected = true;
 	BT_LIB_LOGD("Connected component ports within graph: "
 		"%![graph-]+g, %![up-comp-]+c, %![down-comp-]+c, "
 		"%![up-port-]+p, %![down-port-]+p",
@@ -1920,21 +1920,21 @@ end:
 }
 
 BT_HIDDEN
-void bt_graph_add_notification(struct bt_graph *graph,
-		struct bt_notification *notif)
+void bt_graph_add_message(struct bt_graph *graph,
+		struct bt_message *msg)
 {
 	BT_ASSERT(graph);
-	BT_ASSERT(notif);
+	BT_ASSERT(msg);
 
 	/*
 	 * It's okay not to take a reference because, when a
-	 * notification's reference count drops to 0, either:
+	 * message's reference count drops to 0, either:
 	 *
 	 * * It is recycled back to one of this graph's pool.
 	 * * It is destroyed because it doesn't have any link to any
 	 *   graph, which means the original graph is already destroyed.
 	 */
-	g_ptr_array_add(graph->notifications, notif);
+	g_ptr_array_add(graph->messages, msg);
 }
 
 void bt_graph_get_ref(const struct bt_graph *graph)

@@ -1413,7 +1413,7 @@ const bt_stream *debug_info_stream_end(struct debug_info_iterator *debug_it,
 		goto error;
 	}
 	/*
-	 * Take the ref on the stream and keep it until the notification
+	 * Take the ref on the stream and keep it until the message
 	 * is created.
 	 */
 	bt_stream_get_ref(writer_stream);

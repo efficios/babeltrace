@@ -64,25 +64,25 @@ void print_count(struct counter *counter)
 	PRINTF_COUNT("inactivity", "inactivities", inactivity);
 
 	if (counter->count.other > 0) {
-		PRINTF_COUNT("  other (unknown) notification",
-			"  other (unknown) notifications", other);
+		PRINTF_COUNT("  other (unknown) message",
+			"  other (unknown) messages", other);
 	}
 
-	printf("%s%15" PRIu64 " notification%s (TOTAL)%s\n",
+	printf("%s%15" PRIu64 " message%s (TOTAL)%s\n",
 		bt_common_color_bold(), total, total == 1 ? "" : "s",
 		bt_common_color_reset());
 	counter->last_printed_total = total;
 }
 
 static
-void try_print_count(struct counter *counter, uint64_t notif_count)
+void try_print_count(struct counter *counter, uint64_t msg_count)
 {
 	if (counter->step == 0) {
 		/* No update */
 		return;
 	}
 
-	counter->at += notif_count;
+	counter->at += msg_count;
 
 	if (counter->at >= counter->step) {
 		counter->at = 0;
@@ -103,7 +103,7 @@ void try_print_last(struct counter *counter)
 
 void destroy_private_counter_data(struct counter *counter)
 {
-	bt_self_component_port_input_notification_iterator_put_ref(counter->notif_iter);
+	bt_self_component_port_input_message_iterator_put_ref(counter->msg_iter);
 	g_free(counter);
 }
 
@@ -117,7 +117,7 @@ void counter_finalize(bt_self_component_sink *comp)
 			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 	try_print_last(counter);
-	bt_self_component_port_input_notification_iterator_put_ref(counter->notif_iter);
+	bt_self_component_port_input_message_iterator_put_ref(counter->msg_iter);
 	g_free(counter);
 }
 
@@ -183,20 +183,20 @@ enum bt_self_component_status counter_port_connected(
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
-	bt_self_component_port_input_notification_iterator *iterator;
+	bt_self_component_port_input_message_iterator *iterator;
 
 	counter = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
-	iterator = bt_self_component_port_input_notification_iterator_create(
+	iterator = bt_self_component_port_input_message_iterator_create(
 		self_port);
 	if (!iterator) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
-	BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_MOVE_REF(
-		counter->notif_iter, iterator);
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_MOVE_REF(
+		counter->msg_iter, iterator);
 
 end:
 	return status;
@@ -208,81 +208,81 @@ enum bt_self_component_status counter_consume(
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
-	enum bt_notification_iterator_status it_ret;
-	uint64_t notif_count;
-	bt_notification_array_const notifs;
+	enum bt_message_iterator_status it_ret;
+	uint64_t msg_count;
+	bt_message_array_const msgs;
 
 	counter = bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 
-	if (unlikely(!counter->notif_iter)) {
+	if (unlikely(!counter->msg_iter)) {
 		try_print_last(counter);
 		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto end;
 	}
 
-	/* Consume notifications */
-	it_ret = bt_self_component_port_input_notification_iterator_next(
-		counter->notif_iter, &notifs, &notif_count);
+	/* Consume messages */
+	it_ret = bt_self_component_port_input_message_iterator_next(
+		counter->msg_iter, &msgs, &msg_count);
 	if (it_ret < 0) {
 		ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
 	}
 
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+	case BT_MESSAGE_ITERATOR_STATUS_OK:
 	{
 		uint64_t i;
 
-		for (i = 0; i < notif_count; i++) {
-			const bt_notification *notif = notifs[i];
+		for (i = 0; i < msg_count; i++) {
+			const bt_message *msg = msgs[i];
 
-			BT_ASSERT(notif);
-			switch (bt_notification_get_type(notif)) {
-			case BT_NOTIFICATION_TYPE_EVENT:
+			BT_ASSERT(msg);
+			switch (bt_message_get_type(msg)) {
+			case BT_MESSAGE_TYPE_EVENT:
 				counter->count.event++;
 				break;
-			case BT_NOTIFICATION_TYPE_INACTIVITY:
+			case BT_MESSAGE_TYPE_INACTIVITY:
 				counter->count.inactivity++;
 				break;
-			case BT_NOTIFICATION_TYPE_STREAM_BEGINNING:
+			case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 				counter->count.stream_begin++;
 				break;
-			case BT_NOTIFICATION_TYPE_STREAM_END:
+			case BT_MESSAGE_TYPE_STREAM_END:
 				counter->count.stream_end++;
 				break;
-			case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
+			case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 				counter->count.packet_begin++;
 				break;
-			case BT_NOTIFICATION_TYPE_PACKET_END:
+			case BT_MESSAGE_TYPE_PACKET_END:
 				counter->count.packet_end++;
 				break;
 			default:
 				counter->count.other++;
 			}
 
-			bt_notification_put_ref(notif);
+			bt_message_put_ref(msg);
 		}
 
 		ret = BT_SELF_COMPONENT_STATUS_OK;
 		break;
 	}
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		ret = BT_SELF_COMPONENT_STATUS_AGAIN;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+	case BT_MESSAGE_ITERATOR_STATUS_END:
 		try_print_last(counter);
 		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_NOMEM:
+	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
 		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
 	default:
 		break;
 	}
 
-	try_print_count(counter, notif_count);
+	try_print_count(counter, msg_count);
 
 end:
 	return ret;

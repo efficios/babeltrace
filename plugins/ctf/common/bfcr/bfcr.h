@@ -112,7 +112,7 @@ struct bt_bfcr_cbs {
 	 *     to class reader's user).
 	 *
 	 * Any member of this structure may be set to \c NULL, should
-	 * a specific notification be not needed.
+	 * a specific message be not needed.
 	 */
 	struct {
 		/**

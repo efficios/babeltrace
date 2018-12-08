@@ -65,7 +65,7 @@ const char *plugin_options[] = {
 static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
-	bt_self_component_port_input_notification_iterator_put_ref(pretty->iterator);
+	bt_self_component_port_input_message_iterator_put_ref(pretty->iterator);
 
 	if (pretty->string) {
 		(void) g_string_free(pretty->string, TRUE);
@@ -121,27 +121,27 @@ void pretty_finalize(bt_self_component_sink *comp)
 }
 
 static
-enum bt_self_component_status handle_notification(
+enum bt_self_component_status handle_message(
 		struct pretty_component *pretty,
-		const bt_notification *notification)
+		const bt_message *message)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
 
 	BT_ASSERT(pretty);
 
-	switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
-		if (pretty_print_packet(pretty, notification)) {
+	switch (bt_message_get_type(message)) {
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+		if (pretty_print_packet(pretty, message)) {
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		}
 		break;
-	case BT_NOTIFICATION_TYPE_EVENT:
-		if (pretty_print_event(pretty, notification)) {
+	case BT_MESSAGE_TYPE_EVENT:
+		if (pretty_print_event(pretty, message)) {
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		}
 		break;
-	case BT_NOTIFICATION_TYPE_INACTIVITY:
-		fprintf(stderr, "Inactivity notification\n");
+	case BT_MESSAGE_TYPE_INACTIVITY:
+		fprintf(stderr, "Inactivity message\n");
 		break;
 	default:
 		break;
@@ -163,7 +163,7 @@ enum bt_self_component_status pretty_port_connected(
 			bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(pretty);
 	BT_ASSERT(!pretty->iterator);
-	pretty->iterator = bt_self_component_port_input_notification_iterator_create(
+	pretty->iterator = bt_self_component_port_input_message_iterator_create(
 		self_port);
 	if (!pretty->iterator) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
@@ -177,30 +177,30 @@ enum bt_self_component_status pretty_consume(
 		bt_self_component_sink *comp)
 {
 	enum bt_self_component_status ret;
-	bt_notification_array_const notifs;
-	bt_self_component_port_input_notification_iterator *it;
+	bt_message_array_const msgs;
+	bt_self_component_port_input_message_iterator *it;
 	struct pretty_component *pretty = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
-	enum bt_notification_iterator_status it_ret;
+	enum bt_message_iterator_status it_ret;
 	uint64_t count = 0;
 	uint64_t i = 0;
 
 	it = pretty->iterator;
-	it_ret = bt_self_component_port_input_notification_iterator_next(it,
-		&notifs, &count);
+	it_ret = bt_self_component_port_input_message_iterator_next(it,
+		&msgs, &count);
 
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+	case BT_MESSAGE_ITERATOR_STATUS_OK:
 		break;
-	case BT_NOTIFICATION_ITERATOR_STATUS_NOMEM:
+	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
 		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		ret = BT_SELF_COMPONENT_STATUS_AGAIN;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+	case BT_MESSAGE_ITERATOR_STATUS_END:
 		ret = BT_SELF_COMPONENT_STATUS_END;
-		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(
 			pretty->iterator);
 		goto end;
 	default:
@@ -208,20 +208,20 @@ enum bt_self_component_status pretty_consume(
 		goto end;
 	}
 
-	BT_ASSERT(it_ret == BT_NOTIFICATION_ITERATOR_STATUS_OK);
+	BT_ASSERT(it_ret == BT_MESSAGE_ITERATOR_STATUS_OK);
 
 	for (i = 0; i < count; i++) {
-		ret = handle_notification(pretty, notifs[i]);
+		ret = handle_message(pretty, msgs[i]);
 		if (ret) {
 			goto end;
 		}
 
-		bt_notification_put_ref(notifs[i]);
+		bt_message_put_ref(msgs[i]);
 	}
 
 end:
 	for (; i < count; i++) {
-		bt_notification_put_ref(notifs[i]);
+		bt_message_put_ref(msgs[i]);
 	}
 
 	return ret;

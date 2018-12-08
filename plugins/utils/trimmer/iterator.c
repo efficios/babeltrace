@@ -49,11 +49,11 @@ gboolean close_packets(gpointer key, gpointer value, gpointer user_data)
 }
 
 BT_HIDDEN
-void trimmer_iterator_finalize(bt_self_notification_iterator *it)
+void trimmer_iterator_finalize(bt_self_message_iterator *it)
 {
 	struct trimmer_iterator *trim_it;
 
-	trim_it = bt_self_notification_iterator_get_user_data(it);
+	trim_it = bt_self_message_iterator_get_user_data(it);
 	BT_ASSERT(trim_it);
 
 	bt_object_put_ref(trim_it->input_iterator);
@@ -64,22 +64,22 @@ void trimmer_iterator_finalize(bt_self_notification_iterator *it)
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status trimmer_iterator_init(
-		bt_self_notification_iterator *iterator,
+enum bt_message_iterator_status trimmer_iterator_init(
+		bt_self_message_iterator *iterator,
 		struct bt_private_port *port)
 {
-	enum bt_notification_iterator_status ret =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	enum bt_notification_iterator_status it_ret;
+	enum bt_message_iterator_status ret =
+		BT_MESSAGE_ITERATOR_STATUS_OK;
+	enum bt_message_iterator_status it_ret;
 	enum bt_connection_status conn_status;
 	struct bt_private_port *input_port = NULL;
 	struct bt_private_connection *connection = NULL;
 	bt_self_component *component =
-		bt_self_notification_iterator_get_private_component(iterator);
+		bt_self_message_iterator_get_private_component(iterator);
 	struct trimmer_iterator *it_data = g_new0(struct trimmer_iterator, 1);
 
 	if (!it_data) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		ret = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -90,10 +90,10 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	connection = bt_private_port_get_connection(input_port);
 	BT_ASSERT(connection);
 
-	conn_status = bt_private_connection_create_notification_iterator(connection,
+	conn_status = bt_private_connection_create_message_iterator(connection,
 			&it_data->input_iterator);
 	if (conn_status != BT_CONNECTION_STATUS_OK) {
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		ret = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
@@ -101,7 +101,7 @@ enum bt_notification_iterator_status trimmer_iterator_init(
 	it_data->packet_map = g_hash_table_new_full(g_direct_hash,
 			g_direct_equal, NULL, NULL);
 
-	it_ret = bt_self_notification_iterator_set_user_data(iterator,
+	it_ret = bt_self_message_iterator_set_user_data(iterator,
 		it_data);
 	if (it_ret) {
 		goto end;
@@ -174,8 +174,8 @@ error:
 }
 
 static
-const bt_notification *evaluate_event_notification(
-		const bt_notification *notification,
+const bt_message *evaluate_event_message(
+		const bt_message *message,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_event_in_range, bool *finished)
@@ -190,18 +190,18 @@ const bt_notification *evaluate_event_notification(
 	const bt_stream_class *stream_class = NULL;
 	bt_clock_value *clock_value = NULL;
 	bool lazy_update = false;
-	const bt_notification *new_notification = NULL;
+	const bt_message *new_message = NULL;
 	bt_clock_class_priority_map *cc_prio_map;
 
-	event = bt_notification_event_get_event(notification);
+	event = bt_message_event_get_event(message);
 	BT_ASSERT(event);
-	cc_prio_map = bt_notification_event_get_clock_class_priority_map(
-			notification);
+	cc_prio_map = bt_message_event_get_clock_class_priority_map(
+			message);
 	BT_ASSERT(cc_prio_map);
 	writer_event = trimmer_output_event(trim_it, event);
 	BT_ASSERT(writer_event);
-	new_notification = bt_notification_event_create(writer_event, cc_prio_map);
-	BT_ASSERT(new_notification);
+	new_message = bt_message_event_create(writer_event, cc_prio_map);
+	BT_ASSERT(new_message);
 	bt_object_put_ref(cc_prio_map);
 
 	stream = bt_event_get_stream(event);
@@ -254,7 +254,7 @@ const bt_notification *evaluate_event_notification(
 	goto end;
 
 error:
-	BT_NOTIFICATION_PUT_REF_AND_RESET(new_notification);
+	BT_MESSAGE_PUT_REF_AND_RESET(new_message);
 end:
 	bt_object_put_ref(event);
 	bt_object_put_ref(writer_event);
@@ -264,7 +264,7 @@ end:
 	bt_stream_class_put_ref(stream_class);
 	bt_object_put_ref(clock_value);
 	*_event_in_range = in_range;
-	return new_notification;
+	return new_message;
 }
 
 static
@@ -375,8 +375,8 @@ int64_t get_raw_timestamp(const bt_packet *writer_packet,
 }
 
 static
-const bt_notification *evaluate_packet_notification(
-		const bt_notification *notification,
+const bt_message *evaluate_packet_message(
+		const bt_message *message,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *_packet_in_range, bool *finished)
@@ -387,19 +387,19 @@ const bt_notification *evaluate_packet_notification(
 	const bt_field *packet_context = NULL,
 			*timestamp_begin = NULL,
 			*timestamp_end = NULL;
-	const bt_notification *new_notification = NULL;
+	const bt_message *new_message = NULL;
 	enum bt_component_status ret;
 	bool lazy_update = false;
 
-        switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
-		packet = bt_notification_packet_beginning_get_packet(notification);
+        switch (bt_message_get_type(message)) {
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+		packet = bt_message_packet_beginning_get_packet(message);
 		BT_ASSERT(packet);
 		writer_packet = trimmer_new_packet(trim_it, packet);
 		BT_ASSERT(writer_packet);
 		break;
-	case BT_NOTIFICATION_TYPE_PACKET_END:
-		packet = bt_notification_packet_end_get_packet(notification);
+	case BT_MESSAGE_TYPE_PACKET_END:
+		packet = bt_message_packet_end_get_packet(message);
 		BT_ASSERT(packet);
 		writer_packet = trimmer_close_packet(trim_it, packet);
 		BT_ASSERT(writer_packet);
@@ -410,41 +410,41 @@ const bt_notification *evaluate_packet_notification(
 
 	packet_context = bt_packet_get_context(writer_packet);
 	if (!packet_context) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 
 	if (!bt_field_is_structure(packet_context)) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 
 	timestamp_begin = bt_field_structure_get_field_by_name(
 			packet_context, "timestamp_begin");
 	if (!timestamp_begin || !bt_field_is_integer(timestamp_begin)) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 	timestamp_end = bt_field_structure_get_field_by_name(
 			packet_context, "timestamp_end");
 	if (!timestamp_end || !bt_field_is_integer(timestamp_end)) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 
 	if (ns_from_integer_field(timestamp_begin, &pkt_begin_ns)) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 	if (ns_from_integer_field(timestamp_end, &pkt_end_ns)) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 
 	if (update_lazy_bound(begin, "begin", pkt_begin_ns, &lazy_update)) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 	if (update_lazy_bound(end, "end", pkt_end_ns, &lazy_update)) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 	if (lazy_update && begin->set && end->set) {
 		if (begin->value > end->value) {
 			BT_LOGE_STR("Unexpected: time range begin value is above end value.");
-			goto end_no_notif;
+			goto end_no_msg;
 		}
 	}
 
@@ -457,7 +457,7 @@ const bt_notification *evaluate_packet_notification(
 	 */
 	in_range = (pkt_end_ns >= begin_ns) && (pkt_begin_ns <= end_ns);
 	if (!in_range) {
-		goto end_no_notif;
+		goto end_no_msg;
 	}
 	if (pkt_begin_ns > end_ns) {
 		*finished = true;
@@ -478,101 +478,101 @@ const bt_notification *evaluate_packet_notification(
 	}
 
 end:
-        switch (bt_notification_get_type(notification)) {
-	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
-		new_notification = bt_notification_packet_beginning_create(writer_packet);
-		BT_ASSERT(new_notification);
+        switch (bt_message_get_type(message)) {
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+		new_message = bt_message_packet_beginning_create(writer_packet);
+		BT_ASSERT(new_message);
 		break;
-	case BT_NOTIFICATION_TYPE_PACKET_END:
-		new_notification = bt_notification_packet_end_create(writer_packet);
-		BT_ASSERT(new_notification);
+	case BT_MESSAGE_TYPE_PACKET_END:
+		new_message = bt_message_packet_end_create(writer_packet);
+		BT_ASSERT(new_message);
 		break;
 	default:
 		break;
 	}
-end_no_notif:
+end_no_msg:
 	*_packet_in_range = in_range;
 	bt_packet_put_ref(packet);
 	bt_packet_put_ref(writer_packet);
 	bt_object_put_ref(packet_context);
 	bt_object_put_ref(timestamp_begin);
 	bt_object_put_ref(timestamp_end);
-	return new_notification;
+	return new_message;
 }
 
 static
-const bt_notification *evaluate_stream_notification(
-		const bt_notification *notification,
+const bt_message *evaluate_stream_message(
+		const bt_message *message,
 		struct trimmer_iterator *trim_it)
 {
 	const bt_stream *stream;
 
-	stream = bt_notification_stream_end_get_stream(notification);
+	stream = bt_message_stream_end_get_stream(message);
 	BT_ASSERT(stream);
 
 	/* FIXME: useless copy */
-	return bt_notification_stream_end_create(stream);
+	return bt_message_stream_end_create(stream);
 }
 
-/* Return true if the notification should be forwarded. */
+/* Return true if the message should be forwarded. */
 static
-enum bt_notification_iterator_status evaluate_notification(
-		const bt_notification **notification,
+enum bt_message_iterator_status evaluate_message(
+		const bt_message **message,
 		struct trimmer_iterator *trim_it,
 		struct trimmer_bound *begin, struct trimmer_bound *end,
 		bool *in_range)
 {
-	enum bt_notification_type type;
-	const bt_notification *new_notification = NULL;
+	enum bt_message_type type;
+	const bt_message *new_message = NULL;
 	bool finished = false;
 
 	*in_range = true;
-	type = bt_notification_get_type(*notification);
+	type = bt_message_get_type(*message);
 	switch (type) {
-	case BT_NOTIFICATION_TYPE_EVENT:
-	        new_notification = evaluate_event_notification(*notification,
+	case BT_MESSAGE_TYPE_EVENT:
+	        new_message = evaluate_event_message(*message,
 				trim_it, begin, end, in_range, &finished);
 		break;
-	case BT_NOTIFICATION_TYPE_PACKET_BEGINNING:
-	case BT_NOTIFICATION_TYPE_PACKET_END:
-	        new_notification = evaluate_packet_notification(*notification,
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+	case BT_MESSAGE_TYPE_PACKET_END:
+	        new_message = evaluate_packet_message(*message,
 				trim_it, begin, end, in_range, &finished);
 		break;
-	case BT_NOTIFICATION_TYPE_STREAM_END:
-		new_notification = evaluate_stream_notification(*notification,
+	case BT_MESSAGE_TYPE_STREAM_END:
+		new_message = evaluate_stream_message(*message,
 				trim_it);
 		break;
 	default:
 		break;
 	}
-	BT_NOTIFICATION_PUT_REF_AND_RESET(*notification);
-	*notification = new_notification;
+	BT_MESSAGE_PUT_REF_AND_RESET(*message);
+	*message = new_message;
 
 	if (finished) {
-		return BT_NOTIFICATION_ITERATOR_STATUS_END;
+		return BT_MESSAGE_ITERATOR_STATUS_END;
 	}
 
-	return BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	return BT_MESSAGE_ITERATOR_STATUS_OK;
 }
 
 BT_HIDDEN
-bt_notification_iterator_next_method_return trimmer_iterator_next(
-		bt_self_notification_iterator *iterator)
+bt_message_iterator_next_method_return trimmer_iterator_next(
+		bt_self_message_iterator *iterator)
 {
 	struct trimmer_iterator *trim_it = NULL;
 	bt_self_component *component = NULL;
 	struct trimmer *trimmer = NULL;
-	bt_notification_iterator *source_it = NULL;
-	bt_notification_iterator_next_method_return ret = {
-		.status = BT_NOTIFICATION_ITERATOR_STATUS_OK,
-		.notification = NULL,
+	bt_message_iterator *source_it = NULL;
+	bt_message_iterator_next_method_return ret = {
+		.status = BT_MESSAGE_ITERATOR_STATUS_OK,
+		.message = NULL,
 	};
-	bool notification_in_range = false;
+	bool message_in_range = false;
 
-	trim_it = bt_self_notification_iterator_get_user_data(iterator);
+	trim_it = bt_self_message_iterator_get_user_data(iterator);
 	BT_ASSERT(trim_it);
 
-	component = bt_self_notification_iterator_get_private_component(
+	component = bt_self_message_iterator_get_private_component(
 		iterator);
 	BT_ASSERT(component);
 	trimmer = bt_self_component_get_user_data(component);
@@ -581,27 +581,27 @@ bt_notification_iterator_next_method_return trimmer_iterator_next(
 	source_it = trim_it->input_iterator;
 	BT_ASSERT(source_it);
 
-	while (!notification_in_range) {
-		ret.status = bt_notification_iterator_next(source_it);
-		if (ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+	while (!message_in_range) {
+		ret.status = bt_message_iterator_next(source_it);
+		if (ret.status != BT_MESSAGE_ITERATOR_STATUS_OK) {
 			goto end;
 		}
 
-		ret.notification = bt_notification_iterator_get_notification(
+		ret.message = bt_message_iterator_get_message(
 			        source_it);
-		if (!ret.notification) {
-			ret.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		if (!ret.message) {
+			ret.status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
-	        ret.status = evaluate_notification(&ret.notification, trim_it,
+	        ret.status = evaluate_message(&ret.message, trim_it,
 				&trimmer->begin, &trimmer->end,
-				&notification_in_range);
-		if (!notification_in_range) {
-			BT_OBJECT_PUT_REF_AND_RESET(ret.notification);
+				&message_in_range);
+		if (!message_in_range) {
+			BT_OBJECT_PUT_REF_AND_RESET(ret.message);
 		}
 
-		if (ret.status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		if (ret.status != BT_MESSAGE_ITERATOR_STATUS_OK) {
 			break;
 		}
 	}

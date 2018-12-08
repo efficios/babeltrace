@@ -26,7 +26,7 @@
 
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/notification-const.h>
+#include <babeltrace/graph/message-const.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/object-pool-internal.h>
@@ -67,7 +67,7 @@ struct bt_graph {
 	 * BT_GRAPH_STATUS_CANNOT_CONSUME. The internal "no check"
 	 * functions always work.
 	 *
-	 * In bt_port_output_notification_iterator_create(), on success,
+	 * In bt_port_output_message_iterator_create(), on success,
 	 * this flag is cleared so that the iterator remains the only
 	 * consumer for the graph's lifetime.
 	 */
@@ -90,30 +90,30 @@ struct bt_graph {
 		GArray *filter_sink_ports_disconnected;
 	} listeners;
 
-	/* Pool of `struct bt_notification_event *` */
-	struct bt_object_pool event_notif_pool;
+	/* Pool of `struct bt_message_event *` */
+	struct bt_object_pool event_msg_pool;
 
-	/* Pool of `struct bt_notification_packet_beginning *` */
-	struct bt_object_pool packet_begin_notif_pool;
+	/* Pool of `struct bt_message_packet_beginning *` */
+	struct bt_object_pool packet_begin_msg_pool;
 
-	/* Pool of `struct bt_notification_packet_end *` */
-	struct bt_object_pool packet_end_notif_pool;
+	/* Pool of `struct bt_message_packet_end *` */
+	struct bt_object_pool packet_end_msg_pool;
 
 	/*
-	 * Array of `struct bt_notification *` (weak).
+	 * Array of `struct bt_message *` (weak).
 	 *
-	 * This is an array of all the notifications ever created from
+	 * This is an array of all the messages ever created from
 	 * this graph. Some of them can be in one of the pools above,
-	 * some of them can be at large. Because each notification has a
+	 * some of them can be at large. Because each message has a
 	 * weak pointer to the graph containing its pool, we need to
-	 * notify each notification that the graph is gone on graph
+	 * notify each message that the graph is gone on graph
 	 * destruction.
 	 *
 	 * TODO: When we support a maximum size for object pools,
-	 * add a way for a notification to remove itself from this
+	 * add a way for a message to remove itself from this
 	 * array (on destruction).
 	 */
-	GPtrArray *notifications;
+	GPtrArray *messages;
 };
 
 static inline
@@ -168,8 +168,8 @@ int bt_graph_remove_unconnected_component(struct bt_graph *graph,
 		struct bt_component *component);
 
 BT_HIDDEN
-void bt_graph_add_notification(struct bt_graph *graph,
-		struct bt_notification *notif);
+void bt_graph_add_message(struct bt_graph *graph,
+		struct bt_message *msg);
 
 static inline
 const char *bt_graph_status_string(enum bt_graph_status status)

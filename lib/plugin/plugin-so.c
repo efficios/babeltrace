@@ -291,8 +291,8 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_source_accept_output_port_connection_method accept_output_port_connection;
 				bt_component_class_source_output_port_connected_method output_port_connected;
 				bt_component_class_source_output_port_disconnected_method output_port_disconnected;
-				bt_component_class_source_notification_iterator_init_method notif_iter_init;
-				bt_component_class_source_notification_iterator_finalize_method notif_iter_finalize;
+				bt_component_class_source_message_iterator_init_method msg_iter_init;
+				bt_component_class_source_message_iterator_finalize_method msg_iter_finalize;
 			} source;
 
 			struct {
@@ -305,8 +305,8 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_filter_output_port_connected_method output_port_connected;
 				bt_component_class_filter_input_port_disconnected_method input_port_disconnected;
 				bt_component_class_filter_output_port_disconnected_method output_port_disconnected;
-				bt_component_class_filter_notification_iterator_init_method notif_iter_init;
-				bt_component_class_filter_notification_iterator_finalize_method notif_iter_finalize;
+				bt_component_class_filter_message_iterator_init_method msg_iter_init;
+				bt_component_class_filter_message_iterator_finalize_method msg_iter_finalize;
 			} filter;
 
 			struct {
@@ -613,29 +613,29 @@ enum bt_plugin_status bt_plugin_so_init(
 					abort();
 				}
 				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_INIT_METHOD:
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD:
 				switch (cc_type) {
 				case BT_COMPONENT_CLASS_TYPE_SOURCE:
-					cc_full_descr->methods.source.notif_iter_init =
-						cur_cc_descr_attr->value.source_notif_iter_init_method;
+					cc_full_descr->methods.source.msg_iter_init =
+						cur_cc_descr_attr->value.source_msg_iter_init_method;
 					break;
 				case BT_COMPONENT_CLASS_TYPE_FILTER:
-					cc_full_descr->methods.filter.notif_iter_init =
-						cur_cc_descr_attr->value.filter_notif_iter_init_method;
+					cc_full_descr->methods.filter.msg_iter_init =
+						cur_cc_descr_attr->value.filter_msg_iter_init_method;
 					break;
 				default:
 					abort();
 				}
 				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_NOTIF_ITER_FINALIZE_METHOD:
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD:
 				switch (cc_type) {
 				case BT_COMPONENT_CLASS_TYPE_SOURCE:
-					cc_full_descr->methods.source.notif_iter_finalize =
-						cur_cc_descr_attr->value.source_notif_iter_finalize_method;
+					cc_full_descr->methods.source.msg_iter_finalize =
+						cur_cc_descr_attr->value.source_msg_iter_finalize_method;
 					break;
 				case BT_COMPONENT_CLASS_TYPE_FILTER:
-					cc_full_descr->methods.filter.notif_iter_finalize =
-						cur_cc_descr_attr->value.filter_notif_iter_finalize_method;
+					cc_full_descr->methods.filter.msg_iter_finalize =
+						cur_cc_descr_attr->value.filter_msg_iter_finalize_method;
 					break;
 				default:
 					abort();
@@ -711,14 +711,14 @@ enum bt_plugin_status bt_plugin_so_init(
 		case BT_COMPONENT_CLASS_TYPE_SOURCE:
 			src_comp_class = bt_component_class_source_create(
 				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->methods.source.notif_iter_next);
+				cc_full_descr->descriptor->methods.source.msg_iter_next);
 			comp_class = bt_component_class_source_as_component_class(
 				src_comp_class);
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			flt_comp_class = bt_component_class_filter_create(
 				cc_full_descr->descriptor->name,
-				cc_full_descr->descriptor->methods.source.notif_iter_next);
+				cc_full_descr->descriptor->methods.source.msg_iter_next);
 			comp_class = bt_component_class_filter_as_component_class(
 				flt_comp_class);
 			break;
@@ -851,24 +851,24 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
-			if (cc_full_descr->methods.source.notif_iter_init) {
-				ret = bt_component_class_source_set_notification_iterator_init_method(
+			if (cc_full_descr->methods.source.msg_iter_init) {
+				ret = bt_component_class_source_set_message_iterator_init_method(
 					src_comp_class,
-					cc_full_descr->methods.source.notif_iter_init);
+					cc_full_descr->methods.source.msg_iter_init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's notification iterator initialization method.");
+					BT_LOGE_STR("Cannot set source component class's message iterator initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
 				}
 			}
 
-			if (cc_full_descr->methods.source.notif_iter_finalize) {
-				ret = bt_component_class_source_set_notification_iterator_finalize_method(
+			if (cc_full_descr->methods.source.msg_iter_finalize) {
+				ret = bt_component_class_source_set_message_iterator_finalize_method(
 					src_comp_class,
-					cc_full_descr->methods.source.notif_iter_finalize);
+					cc_full_descr->methods.source.msg_iter_finalize);
 				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's notification iterator finalization method.");
+					BT_LOGE_STR("Cannot set source component class's message iterator finalization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
 					goto end;
@@ -985,24 +985,24 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
-			if (cc_full_descr->methods.filter.notif_iter_init) {
-				ret = bt_component_class_filter_set_notification_iterator_init_method(
+			if (cc_full_descr->methods.filter.msg_iter_init) {
+				ret = bt_component_class_filter_set_message_iterator_init_method(
 					flt_comp_class,
-					cc_full_descr->methods.filter.notif_iter_init);
+					cc_full_descr->methods.filter.msg_iter_init);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's notification iterator initialization method.");
+					BT_LOGE_STR("Cannot set filter component class's message iterator initialization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;
 				}
 			}
 
-			if (cc_full_descr->methods.filter.notif_iter_finalize) {
-				ret = bt_component_class_filter_set_notification_iterator_finalize_method(
+			if (cc_full_descr->methods.filter.msg_iter_finalize) {
+				ret = bt_component_class_filter_set_message_iterator_finalize_method(
 					flt_comp_class,
-					cc_full_descr->methods.filter.notif_iter_finalize);
+					cc_full_descr->methods.filter.msg_iter_finalize);
 				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's notification iterator finalization method.");
+					BT_LOGE_STR("Cannot set filter component class's message iterator finalization method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;

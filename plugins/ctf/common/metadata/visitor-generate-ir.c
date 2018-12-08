@@ -4713,7 +4713,7 @@ int visit_clock_decl(struct ctx *ctx, struct ctf_node *clock_node)
 		/*
 		 * Old versions of LTTng forgot to set its clock class
 		 * as absolute, even if it is. This is important because
-		 * it's a condition to be able to sort notifications
+		 * it's a condition to be able to sort messages
 		 * from different sources.
 		 */
 		bt_clock_class_set_is_absolute(clock, BT_TRUE);

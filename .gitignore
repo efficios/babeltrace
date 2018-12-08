@@ -15,7 +15,6 @@
 /tests/lib/test_bin_info_complete
 /tests/lib/test_bitfield
 /tests/lib/test_bt_ctf_field_type_validation
-/tests/lib/test_bt_notification_heap
 /tests/lib/test_bt_objects
 /tests/lib/test_bt_values
 /tests/lib/test_trace_ir_ref
@@ -30,7 +29,7 @@
 /tests/lib/writer/bt_python_helper.py
 /tests/lib/writer/test_ctf_writer_empty_packet.py
 /tests/lib/writer/test_ctf_writer_no_packet_context.py
-/tests/lib/test_bt_notification_iterator
+/tests/lib/test_bt_message_iterator
 /tests/lib/test_cc_prio_map
 /tests/lib/test_graph_topo
 /tests/lib/trace-ir/test_trace_ir

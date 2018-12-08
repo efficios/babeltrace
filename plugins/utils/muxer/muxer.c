@@ -28,7 +28,7 @@
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/value-internal.h>
 #include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <plugins-common.h>
 #include <glib.h>
@@ -44,130 +44,130 @@
 struct muxer_comp {
 	/*
 	 * Array of struct
-	 * bt_self_notification_iterator *
+	 * bt_self_message_iterator *
 	 * (weak refs)
 	 */
-	GPtrArray *muxer_notif_iters;
+	GPtrArray *muxer_msg_iters;
 
 	/* Weak ref */
 	bt_self_component_filter *self_comp;
 
 	unsigned int next_port_num;
 	size_t available_input_ports;
-	bool initializing_muxer_notif_iter;
+	bool initializing_muxer_msg_iter;
 	bool assume_absolute_clock_classes;
 };
 
-struct muxer_upstream_notif_iter {
+struct muxer_upstream_msg_iter {
 	/* Owned by this, NULL if ended */
-	bt_self_component_port_input_notification_iterator *notif_iter;
+	bt_self_component_port_input_message_iterator *msg_iter;
 
-	/* Contains `const bt_notification *`, owned by this */
-	GQueue *notifs;
+	/* Contains `const bt_message *`, owned by this */
+	GQueue *msgs;
 };
 
-enum muxer_notif_iter_clock_class_expectation {
-	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ANY = 0,
-	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE,
-	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID,
-	MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID,
+enum muxer_msg_iter_clock_class_expectation {
+	MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ANY = 0,
+	MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE,
+	MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID,
+	MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID,
 };
 
-struct muxer_notif_iter {
+struct muxer_msg_iter {
 	/*
-	 * Array of struct muxer_upstream_notif_iter * (owned by this).
+	 * Array of struct muxer_upstream_msg_iter * (owned by this).
 	 *
 	 * NOTE: This array is searched in linearly to find the youngest
-	 * current notification. Keep this until benchmarks confirm that
+	 * current message. Keep this until benchmarks confirm that
 	 * another data structure is faster than this for our typical
 	 * use cases.
 	 */
-	GPtrArray *muxer_upstream_notif_iters;
+	GPtrArray *muxer_upstream_msg_iters;
 
 	/*
 	 * List of "recently" connected input ports (weak) to
-	 * handle by this muxer notification iterator.
+	 * handle by this muxer message iterator.
 	 * muxer_port_connected() adds entries to this list, and the
-	 * entries are removed when a notification iterator is created
+	 * entries are removed when a message iterator is created
 	 * on the port's connection and put into
-	 * muxer_upstream_notif_iters above by
-	 * muxer_notif_iter_handle_newly_connected_ports().
+	 * muxer_upstream_msg_iters above by
+	 * muxer_msg_iter_handle_newly_connected_ports().
 	 */
 	GList *newly_connected_self_ports;
 
-	/* Last time returned in a notification */
+	/* Last time returned in a message */
 	int64_t last_returned_ts_ns;
 
 	/* Clock class expectation state */
-	enum muxer_notif_iter_clock_class_expectation clock_class_expectation;
+	enum muxer_msg_iter_clock_class_expectation clock_class_expectation;
 
 	/*
 	 * Expected clock class UUID, only valid when
 	 * clock_class_expectation is
-	 * MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID.
+	 * MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID.
 	 */
 	unsigned char expected_clock_class_uuid[BABELTRACE_UUID_LEN];
 };
 
 static
-void destroy_muxer_upstream_notif_iter(
-		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
+void destroy_muxer_upstream_msg_iter(
+		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter)
 {
-	if (!muxer_upstream_notif_iter) {
+	if (!muxer_upstream_msg_iter) {
 		return;
 	}
 
-	BT_LOGD("Destroying muxer's upstream notification iterator wrapper: "
-		"addr=%p, notif-iter-addr=%p, queue-len=%u",
-		muxer_upstream_notif_iter,
-		muxer_upstream_notif_iter->notif_iter,
-		muxer_upstream_notif_iter->notifs->length);
-	bt_self_component_port_input_notification_iterator_put_ref(muxer_upstream_notif_iter->notif_iter);
+	BT_LOGD("Destroying muxer's upstream message iterator wrapper: "
+		"addr=%p, msg-iter-addr=%p, queue-len=%u",
+		muxer_upstream_msg_iter,
+		muxer_upstream_msg_iter->msg_iter,
+		muxer_upstream_msg_iter->msgs->length);
+	bt_self_component_port_input_message_iterator_put_ref(muxer_upstream_msg_iter->msg_iter);
 
-	if (muxer_upstream_notif_iter->notifs) {
-		const bt_notification *notif;
+	if (muxer_upstream_msg_iter->msgs) {
+		const bt_message *msg;
 
-		while ((notif = g_queue_pop_head(
-				muxer_upstream_notif_iter->notifs))) {
-			bt_notification_put_ref(notif);
+		while ((msg = g_queue_pop_head(
+				muxer_upstream_msg_iter->msgs))) {
+			bt_message_put_ref(msg);
 		}
 
-		g_queue_free(muxer_upstream_notif_iter->notifs);
+		g_queue_free(muxer_upstream_msg_iter->msgs);
 	}
 
-	g_free(muxer_upstream_notif_iter);
+	g_free(muxer_upstream_msg_iter);
 }
 
 static
-struct muxer_upstream_notif_iter *muxer_notif_iter_add_upstream_notif_iter(
-		struct muxer_notif_iter *muxer_notif_iter,
-		bt_self_component_port_input_notification_iterator *self_notif_iter)
+struct muxer_upstream_msg_iter *muxer_msg_iter_add_upstream_msg_iter(
+		struct muxer_msg_iter *muxer_msg_iter,
+		bt_self_component_port_input_message_iterator *self_msg_iter)
 {
-	struct muxer_upstream_notif_iter *muxer_upstream_notif_iter =
-		g_new0(struct muxer_upstream_notif_iter, 1);
+	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter =
+		g_new0(struct muxer_upstream_msg_iter, 1);
 
-	if (!muxer_upstream_notif_iter) {
-		BT_LOGE_STR("Failed to allocate one muxer's upstream notification iterator wrapper.");
+	if (!muxer_upstream_msg_iter) {
+		BT_LOGE_STR("Failed to allocate one muxer's upstream message iterator wrapper.");
 		goto end;
 	}
 
-	muxer_upstream_notif_iter->notif_iter = self_notif_iter;
-	bt_self_component_port_input_notification_iterator_get_ref(muxer_upstream_notif_iter->notif_iter);
-	muxer_upstream_notif_iter->notifs = g_queue_new();
-	if (!muxer_upstream_notif_iter->notifs) {
+	muxer_upstream_msg_iter->msg_iter = self_msg_iter;
+	bt_self_component_port_input_message_iterator_get_ref(muxer_upstream_msg_iter->msg_iter);
+	muxer_upstream_msg_iter->msgs = g_queue_new();
+	if (!muxer_upstream_msg_iter->msgs) {
 		BT_LOGE_STR("Failed to allocate a GQueue.");
 		goto end;
 	}
 
-	g_ptr_array_add(muxer_notif_iter->muxer_upstream_notif_iters,
-		muxer_upstream_notif_iter);
-	BT_LOGD("Added muxer's upstream notification iterator wrapper: "
-		"addr=%p, muxer-notif-iter-addr=%p, notif-iter-addr=%p",
-		muxer_upstream_notif_iter, muxer_notif_iter,
-		self_notif_iter);
+	g_ptr_array_add(muxer_msg_iter->muxer_upstream_msg_iters,
+		muxer_upstream_msg_iter);
+	BT_LOGD("Added muxer's upstream message iterator wrapper: "
+		"addr=%p, muxer-msg-iter-addr=%p, msg-iter-addr=%p",
+		muxer_upstream_msg_iter, muxer_msg_iter,
+		self_msg_iter);
 
 end:
-	return muxer_upstream_notif_iter;
+	return muxer_upstream_msg_iter;
 }
 
 static
@@ -232,12 +232,12 @@ void destroy_muxer_comp(struct muxer_comp *muxer_comp)
 	}
 
 	BT_LOGD("Destroying muxer component: muxer-comp-addr=%p, "
-		"muxer-notif-iter-count=%u", muxer_comp,
-		muxer_comp->muxer_notif_iters ?
-			muxer_comp->muxer_notif_iters->len : 0);
+		"muxer-msg-iter-count=%u", muxer_comp,
+		muxer_comp->muxer_msg_iters ?
+			muxer_comp->muxer_msg_iters->len : 0);
 
-	if (muxer_comp->muxer_notif_iters) {
-		g_ptr_array_free(muxer_comp->muxer_notif_iters, TRUE);
+	if (muxer_comp->muxer_msg_iters) {
+		g_ptr_array_free(muxer_comp->muxer_msg_iters, TRUE);
 	}
 
 	g_free(muxer_comp);
@@ -350,8 +350,8 @@ enum bt_self_component_status muxer_init(
 		goto error;
 	}
 
-	muxer_comp->muxer_notif_iters = g_ptr_array_new();
-	if (!muxer_comp->muxer_notif_iters) {
+	muxer_comp->muxer_msg_iters = g_ptr_array_new();
+	if (!muxer_comp->muxer_msg_iters) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		goto error;
 	}
@@ -410,14 +410,14 @@ void muxer_finalize(bt_self_component_filter *self_comp)
 }
 
 static
-bt_self_component_port_input_notification_iterator *
-create_notif_iter_on_input_port(
+bt_self_component_port_input_message_iterator *
+create_msg_iter_on_input_port(
 		bt_self_component_port_input *self_port, int *ret)
 {
 	const bt_port *port = bt_self_component_port_as_port(
 		bt_self_component_port_input_as_self_component_port(
 			self_port));
-	bt_self_component_port_input_notification_iterator *notif_iter =
+	bt_self_component_port_input_message_iterator *msg_iter =
 		NULL;
 
 	BT_ASSERT(ret);
@@ -426,86 +426,86 @@ create_notif_iter_on_input_port(
 	BT_ASSERT(bt_port_is_connected(port));
 
 	// TODO: Advance the iterator to >= the time of the latest
-	//       returned notification by the muxer notification
+	//       returned message by the muxer message
 	//       iterator which creates it.
-	notif_iter = bt_self_component_port_input_notification_iterator_create(
+	msg_iter = bt_self_component_port_input_message_iterator_create(
 		self_port);
-	if (!notif_iter) {
-		BT_LOGE("Cannot create upstream notification iterator on input port: "
+	if (!msg_iter) {
+		BT_LOGE("Cannot create upstream message iterator on input port: "
 			"port-addr=%p, port-name=\"%s\"",
 			port, bt_port_get_name(port));
 		*ret = -1;
 		goto end;
 	}
 
-	BT_LOGD("Created upstream notification iterator on input port: "
-		"port-addr=%p, port-name=\"%s\", notif-iter-addr=%p",
-		port, bt_port_get_name(port), notif_iter);
+	BT_LOGD("Created upstream message iterator on input port: "
+		"port-addr=%p, port-name=\"%s\", msg-iter-addr=%p",
+		port, bt_port_get_name(port), msg_iter);
 
 end:
-	return notif_iter;
+	return msg_iter;
 }
 
 static
-enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
-		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
+enum bt_message_iterator_status muxer_upstream_msg_iter_next(
+		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter)
 {
-	enum bt_notification_iterator_status status;
-	bt_notification_array_const notifs;
+	enum bt_message_iterator_status status;
+	bt_message_array_const msgs;
 	uint64_t i;
 	uint64_t count;
 
-	BT_LOGV("Calling upstream notification iterator's \"next\" method: "
-		"muxer-upstream-notif-iter-wrap-addr=%p, notif-iter-addr=%p",
-		muxer_upstream_notif_iter,
-		muxer_upstream_notif_iter->notif_iter);
-	status = bt_self_component_port_input_notification_iterator_next(
-		muxer_upstream_notif_iter->notif_iter, &notifs, &count);
-	BT_LOGV("Upstream notification iterator's \"next\" method returned: "
-		"status=%s", bt_notification_iterator_status_string(status));
+	BT_LOGV("Calling upstream message iterator's \"next\" method: "
+		"muxer-upstream-msg-iter-wrap-addr=%p, msg-iter-addr=%p",
+		muxer_upstream_msg_iter,
+		muxer_upstream_msg_iter->msg_iter);
+	status = bt_self_component_port_input_message_iterator_next(
+		muxer_upstream_msg_iter->msg_iter, &msgs, &count);
+	BT_LOGV("Upstream message iterator's \"next\" method returned: "
+		"status=%s", bt_message_iterator_status_string(status));
 
 	switch (status) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+	case BT_MESSAGE_ITERATOR_STATUS_OK:
 		/*
-		 * Notification iterator's current notification is
+		 * Message iterator's current message is
 		 * valid: it must be considered for muxing operations.
 		 */
-		BT_LOGV_STR("Validated upstream notification iterator wrapper.");
+		BT_LOGV_STR("Validated upstream message iterator wrapper.");
 		BT_ASSERT(count > 0);
 
-		/* Move notifications to our queue */
+		/* Move messages to our queue */
 		for (i = 0; i < count; i++) {
 			/*
 			 * Push to tail in order; other side
-			 * (muxer_notif_iter_do_next_one()) consumes
+			 * (muxer_msg_iter_do_next_one()) consumes
 			 * from the head first.
 			 */
-			g_queue_push_tail(muxer_upstream_notif_iter->notifs,
-				(void *) notifs[i]);
+			g_queue_push_tail(muxer_upstream_msg_iter->msgs,
+				(void *) msgs[i]);
 		}
 		break;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		/*
-		 * Notification iterator's current notification is not
+		 * Message iterator's current message is not
 		 * valid anymore. Return
-		 * BT_NOTIFICATION_ITERATOR_STATUS_AGAIN immediately.
+		 * BT_MESSAGE_ITERATOR_STATUS_AGAIN immediately.
 		 */
 		break;
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:	/* Fall-through. */
-	case BT_NOTIFICATION_ITERATOR_STATUS_CANCELED:
+	case BT_MESSAGE_ITERATOR_STATUS_END:	/* Fall-through. */
+	case BT_MESSAGE_ITERATOR_STATUS_CANCELED:
 		/*
-		 * Notification iterator reached the end: release it. It
+		 * Message iterator reached the end: release it. It
 		 * won't be considered again to find the youngest
-		 * notification.
+		 * message.
 		 */
-		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(muxer_upstream_notif_iter->notif_iter);
-		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(muxer_upstream_msg_iter->msg_iter);
+		status = BT_MESSAGE_ITERATOR_STATUS_OK;
 		break;
 	default:
 		/* Error or unsupported status code */
 		BT_LOGE("Error or unsupported status code: "
 			"status-code=%d", status);
-		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 		break;
 	}
 
@@ -513,29 +513,29 @@ enum bt_notification_iterator_status muxer_upstream_notif_iter_next(
 }
 
 static
-int muxer_notif_iter_handle_newly_connected_ports(
-		struct muxer_notif_iter *muxer_notif_iter)
+int muxer_msg_iter_handle_newly_connected_ports(
+		struct muxer_msg_iter *muxer_msg_iter)
 {
 	int ret = 0;
 
 	BT_LOGV("Handling newly connected ports: "
-		"muxer-notif-iter-addr=%p", muxer_notif_iter);
+		"muxer-msg-iter-addr=%p", muxer_msg_iter);
 
 	/*
-	 * Here we create one upstream notification iterator for each
+	 * Here we create one upstream message iterator for each
 	 * newly connected port. We do NOT perform an initial "next" on
-	 * those new upstream notification iterators: they are
+	 * those new upstream message iterators: they are
 	 * invalidated, to be validated later. The list of newly
 	 * connected ports to handle here is updated by
 	 * muxer_port_connected().
 	 */
 	while (true) {
-		GList *node = muxer_notif_iter->newly_connected_self_ports;
+		GList *node = muxer_msg_iter->newly_connected_self_ports;
 		bt_self_component_port_input *self_port;
 		const bt_port *port;
-		bt_self_component_port_input_notification_iterator *
-			upstream_notif_iter = NULL;
-		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter;
+		bt_self_component_port_input_message_iterator *
+			upstream_msg_iter = NULL;
+		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter;
 
 		if (!node) {
 			break;
@@ -551,37 +551,37 @@ int muxer_notif_iter_handle_newly_connected_ports(
 			/*
 			 * Looks like this port is not connected
 			 * anymore: we can't create an upstream
-			 * notification iterator on its (non-existing)
+			 * message iterator on its (non-existing)
 			 * connection in this case.
 			 */
 			goto remove_node;
 		}
 
-		upstream_notif_iter = create_notif_iter_on_input_port(
+		upstream_msg_iter = create_msg_iter_on_input_port(
 			self_port, &ret);
 		if (ret) {
-			/* create_notif_iter_on_input_port() logs errors */
-			BT_ASSERT(!upstream_notif_iter);
+			/* create_msg_iter_on_input_port() logs errors */
+			BT_ASSERT(!upstream_msg_iter);
 			goto error;
 		}
 
-		muxer_upstream_notif_iter =
-			muxer_notif_iter_add_upstream_notif_iter(
-				muxer_notif_iter, upstream_notif_iter);
-		BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_PUT_REF_AND_RESET(upstream_notif_iter);
-		if (!muxer_upstream_notif_iter) {
+		muxer_upstream_msg_iter =
+			muxer_msg_iter_add_upstream_msg_iter(
+				muxer_msg_iter, upstream_msg_iter);
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_PUT_REF_AND_RESET(upstream_msg_iter);
+		if (!muxer_upstream_msg_iter) {
 			/*
-			 * muxer_notif_iter_add_upstream_notif_iter()
+			 * muxer_msg_iter_add_upstream_msg_iter()
 			 * logs errors.
 			 */
 			goto error;
 		}
 
 remove_node:
-		bt_self_component_port_input_notification_iterator_put_ref(upstream_notif_iter);
-		muxer_notif_iter->newly_connected_self_ports =
+		bt_self_component_port_input_message_iterator_put_ref(upstream_msg_iter);
+		muxer_msg_iter->newly_connected_self_ports =
 			g_list_delete_link(
-				muxer_notif_iter->newly_connected_self_ports,
+				muxer_msg_iter->newly_connected_self_ports,
 				node);
 	}
 
@@ -597,9 +597,9 @@ end:
 }
 
 static
-int get_notif_ts_ns(struct muxer_comp *muxer_comp,
-		struct muxer_notif_iter *muxer_notif_iter,
-		const bt_notification *notif, int64_t last_returned_ts_ns,
+int get_msg_ts_ns(struct muxer_comp *muxer_comp,
+		struct muxer_msg_iter *muxer_msg_iter,
+		const bt_message *msg, int64_t last_returned_ts_ns,
 		int64_t *ts_ns)
 {
 	const bt_clock_class *clock_class = NULL;
@@ -610,30 +610,30 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	const char *cc_name;
 	enum bt_clock_value_status cv_status = BT_CLOCK_VALUE_STATUS_KNOWN;
 
-	BT_ASSERT(notif);
+	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
 
-	BT_LOGV("Getting notification's timestamp: "
-		"muxer-notif-iter-addr=%p, notif-addr=%p, "
+	BT_LOGV("Getting message's timestamp: "
+		"muxer-msg-iter-addr=%p, msg-addr=%p, "
 		"last-returned-ts=%" PRId64,
-		muxer_notif_iter, notif, last_returned_ts_ns);
+		muxer_msg_iter, msg, last_returned_ts_ns);
 
-	switch (bt_notification_get_type(notif)) {
-	case BT_NOTIFICATION_TYPE_EVENT:
-		event = bt_notification_event_borrow_event_const(notif);
+	switch (bt_message_get_type(msg)) {
+	case BT_MESSAGE_TYPE_EVENT:
+		event = bt_message_event_borrow_event_const(msg);
 		BT_ASSERT(event);
 		cv_status = bt_event_borrow_default_clock_value_const(event,
 			&clock_value);
 		break;
 
-	case BT_NOTIFICATION_TYPE_INACTIVITY:
+	case BT_MESSAGE_TYPE_INACTIVITY:
 		clock_value =
-			bt_notification_inactivity_borrow_default_clock_value_const(
-				notif);
+			bt_message_inactivity_borrow_default_clock_value_const(
+				msg);
 		break;
 	default:
-		/* All the other notifications have a higher priority */
-		BT_LOGV_STR("Notification has no timestamp: using the last returned timestamp.");
+		/* All the other messages have a higher priority */
+		BT_LOGV_STR("Message has no timestamp: using the last returned timestamp.");
 		*ts_ns = last_returned_ts_ns;
 		goto end;
 	}
@@ -646,11 +646,11 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 
 	/*
 	 * If the clock value is missing, then we consider that this
-	 * notification has no time. In this case it's always the
+	 * message has no time. In this case it's always the
 	 * youngest.
 	 */
 	if (!clock_value) {
-		BT_LOGV_STR("Notification's default clock value is missing: "
+		BT_LOGV_STR("Message's default clock value is missing: "
 			"using the last returned timestamp.");
 		*ts_ns = last_returned_ts_ns;
 		goto end;
@@ -661,43 +661,43 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 	cc_uuid = bt_clock_class_get_uuid(clock_class);
 	cc_name = bt_clock_class_get_name(clock_class);
 
-	if (muxer_notif_iter->clock_class_expectation ==
-			MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ANY) {
+	if (muxer_msg_iter->clock_class_expectation ==
+			MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ANY) {
 		/*
 		 * This is the first clock class that this muxer
-		 * notification iterator encounters. Its properties
+		 * message iterator encounters. Its properties
 		 * determine what to expect for the whole lifetime of
 		 * the iterator without a true
 		 * `assume-absolute-clock-classes` parameter.
 		 */
 		if (bt_clock_class_is_absolute(clock_class)) {
 			/* Expect absolute clock classes */
-			muxer_notif_iter->clock_class_expectation =
-				MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE;
+			muxer_msg_iter->clock_class_expectation =
+				MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE;
 		} else {
 			if (cc_uuid) {
 				/*
 				 * Expect non-absolute clock classes
 				 * with a specific UUID.
 				 */
-				muxer_notif_iter->clock_class_expectation =
-					MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID;
-				memcpy(muxer_notif_iter->expected_clock_class_uuid,
+				muxer_msg_iter->clock_class_expectation =
+					MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID;
+				memcpy(muxer_msg_iter->expected_clock_class_uuid,
 					cc_uuid, BABELTRACE_UUID_LEN);
 			} else {
 				/*
 				 * Expect non-absolute clock classes
 				 * with no UUID.
 				 */
-				muxer_notif_iter->clock_class_expectation =
-					MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID;
+				muxer_msg_iter->clock_class_expectation =
+					MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID;
 			}
 		}
 	}
 
 	if (!muxer_comp->assume_absolute_clock_classes) {
-		switch (muxer_notif_iter->clock_class_expectation) {
-		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
+		switch (muxer_msg_iter->clock_class_expectation) {
+		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
 			if (!bt_clock_class_is_absolute(clock_class)) {
 				BT_LOGE("Expecting an absolute clock class, "
 					"but got a non-absolute one: "
@@ -706,7 +706,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 				goto error;
 			}
 			break;
-		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
+		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
 			if (bt_clock_class_is_absolute(clock_class)) {
 				BT_LOGE("Expecting a non-absolute clock class with no UUID, "
 					"but got an absolute one: "
@@ -740,7 +740,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 				goto error;
 			}
 			break;
-		case MUXER_NOTIF_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
+		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
 			if (bt_clock_class_is_absolute(clock_class)) {
 				BT_LOGE("Expecting a non-absolute clock class with a specific UUID, "
 					"but got an absolute one: "
@@ -757,7 +757,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 				goto error;
 			}
 
-			if (memcmp(muxer_notif_iter->expected_clock_class_uuid,
+			if (memcmp(muxer_msg_iter->expected_clock_class_uuid,
 					cc_uuid, BABELTRACE_UUID_LEN) != 0) {
 				BT_LOGE("Expecting a non-absolute clock class with a specific UUID, "
 					"but got one with different UUID: "
@@ -765,22 +765,22 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 					"expected-uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\", "
 					"uuid=\"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\"",
 					clock_class, cc_name,
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[0],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[1],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[2],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[3],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[4],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[5],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[6],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[7],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[8],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[9],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[10],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[11],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[12],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[13],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[14],
-					(unsigned int) muxer_notif_iter->expected_clock_class_uuid[15],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[0],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[1],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[2],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[3],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[4],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[5],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[6],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[7],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[8],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[9],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[10],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[11],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[12],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[13],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[14],
+					(unsigned int) muxer_msg_iter->expected_clock_class_uuid[15],
 					(unsigned int) cc_uuid[0],
 					(unsigned int) cc_uuid[1],
 					(unsigned int) cc_uuid[2],
@@ -804,7 +804,7 @@ int get_notif_ts_ns(struct muxer_comp *muxer_comp,
 			/* Unexpected */
 			BT_LOGF("Unexpected clock class expectation: "
 				"expectation-code=%d",
-				muxer_notif_iter->clock_class_expectation);
+				muxer_msg_iter->clock_class_expectation);
 			abort();
 		}
 	}
@@ -823,10 +823,10 @@ error:
 
 end:
 	if (ret == 0) {
-		BT_LOGV("Found notification's timestamp: "
-			"muxer-notif-iter-addr=%p, notif-addr=%p, "
+		BT_LOGV("Found message's timestamp: "
+			"muxer-msg-iter-addr=%p, msg-addr=%p, "
 			"last-returned-ts=%" PRId64 ", ts=%" PRId64,
-			muxer_notif_iter, notif, last_returned_ts_ns,
+			muxer_msg_iter, msg, last_returned_ts_ns,
 			*ts_ns);
 	}
 
@@ -834,77 +834,77 @@ end:
 }
 
 /*
- * This function finds the youngest available notification amongst the
- * non-ended upstream notification iterators and returns the upstream
- * notification iterator which has it, or
- * BT_NOTIFICATION_ITERATOR_STATUS_END if there's no available
- * notification.
+ * This function finds the youngest available message amongst the
+ * non-ended upstream message iterators and returns the upstream
+ * message iterator which has it, or
+ * BT_MESSAGE_ITERATOR_STATUS_END if there's no available
+ * message.
  *
  * This function does NOT:
  *
- * * Update any upstream notification iterator.
+ * * Update any upstream message iterator.
  * * Check for newly connected ports.
- * * Check the upstream notification iterators to retry.
+ * * Check the upstream message iterators to retry.
  *
- * On sucess, this function sets *muxer_upstream_notif_iter to the
- * upstream notification iterator of which the current notification is
+ * On sucess, this function sets *muxer_upstream_msg_iter to the
+ * upstream message iterator of which the current message is
  * the youngest, and sets *ts_ns to its time.
  */
 static
-enum bt_notification_iterator_status
-muxer_notif_iter_youngest_upstream_notif_iter(
+enum bt_message_iterator_status
+muxer_msg_iter_youngest_upstream_msg_iter(
 		struct muxer_comp *muxer_comp,
-		struct muxer_notif_iter *muxer_notif_iter,
-		struct muxer_upstream_notif_iter **muxer_upstream_notif_iter,
+		struct muxer_msg_iter *muxer_msg_iter,
+		struct muxer_upstream_msg_iter **muxer_upstream_msg_iter,
 		int64_t *ts_ns)
 {
 	size_t i;
 	int ret;
 	int64_t youngest_ts_ns = INT64_MAX;
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_message_iterator_status status =
+		BT_MESSAGE_ITERATOR_STATUS_OK;
 
 	BT_ASSERT(muxer_comp);
-	BT_ASSERT(muxer_notif_iter);
-	BT_ASSERT(muxer_upstream_notif_iter);
-	*muxer_upstream_notif_iter = NULL;
+	BT_ASSERT(muxer_msg_iter);
+	BT_ASSERT(muxer_upstream_msg_iter);
+	*muxer_upstream_msg_iter = NULL;
 
-	for (i = 0; i < muxer_notif_iter->muxer_upstream_notif_iters->len; i++) {
-		const bt_notification *notif;
-		struct muxer_upstream_notif_iter *cur_muxer_upstream_notif_iter =
-			g_ptr_array_index(muxer_notif_iter->muxer_upstream_notif_iters, i);
-		int64_t notif_ts_ns;
+	for (i = 0; i < muxer_msg_iter->muxer_upstream_msg_iters->len; i++) {
+		const bt_message *msg;
+		struct muxer_upstream_msg_iter *cur_muxer_upstream_msg_iter =
+			g_ptr_array_index(muxer_msg_iter->muxer_upstream_msg_iters, i);
+		int64_t msg_ts_ns;
 
-		if (!cur_muxer_upstream_notif_iter->notif_iter) {
-			/* This upstream notification iterator is ended */
-			BT_LOGV("Skipping ended upstream notification iterator: "
-				"muxer-upstream-notif-iter-wrap-addr=%p",
-				cur_muxer_upstream_notif_iter);
+		if (!cur_muxer_upstream_msg_iter->msg_iter) {
+			/* This upstream message iterator is ended */
+			BT_LOGV("Skipping ended upstream message iterator: "
+				"muxer-upstream-msg-iter-wrap-addr=%p",
+				cur_muxer_upstream_msg_iter);
 			continue;
 		}
 
-		BT_ASSERT(cur_muxer_upstream_notif_iter->notifs->length > 0);
-		notif = g_queue_peek_head(cur_muxer_upstream_notif_iter->notifs);
-		BT_ASSERT(notif);
-		ret = get_notif_ts_ns(muxer_comp, muxer_notif_iter, notif,
-			muxer_notif_iter->last_returned_ts_ns, &notif_ts_ns);
+		BT_ASSERT(cur_muxer_upstream_msg_iter->msgs->length > 0);
+		msg = g_queue_peek_head(cur_muxer_upstream_msg_iter->msgs);
+		BT_ASSERT(msg);
+		ret = get_msg_ts_ns(muxer_comp, muxer_msg_iter, msg,
+			muxer_msg_iter->last_returned_ts_ns, &msg_ts_ns);
 		if (ret) {
-			/* get_notif_ts_ns() logs errors */
-			*muxer_upstream_notif_iter = NULL;
-			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			/* get_msg_ts_ns() logs errors */
+			*muxer_upstream_msg_iter = NULL;
+			status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
-		if (notif_ts_ns <= youngest_ts_ns) {
-			*muxer_upstream_notif_iter =
-				cur_muxer_upstream_notif_iter;
-			youngest_ts_ns = notif_ts_ns;
+		if (msg_ts_ns <= youngest_ts_ns) {
+			*muxer_upstream_msg_iter =
+				cur_muxer_upstream_msg_iter;
+			youngest_ts_ns = msg_ts_ns;
 			*ts_ns = youngest_ts_ns;
 		}
 	}
 
-	if (!*muxer_upstream_notif_iter) {
-		status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+	if (!*muxer_upstream_msg_iter) {
+		status = BT_MESSAGE_ITERATOR_STATUS_END;
 		*ts_ns = INT64_MIN;
 	}
 
@@ -913,84 +913,84 @@ end:
 }
 
 static
-enum bt_notification_iterator_status validate_muxer_upstream_notif_iter(
-	struct muxer_upstream_notif_iter *muxer_upstream_notif_iter)
+enum bt_message_iterator_status validate_muxer_upstream_msg_iter(
+	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter)
 {
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_message_iterator_status status =
+		BT_MESSAGE_ITERATOR_STATUS_OK;
 
-	BT_LOGV("Validating muxer's upstream notification iterator wrapper: "
-		"muxer-upstream-notif-iter-wrap-addr=%p",
-		muxer_upstream_notif_iter);
+	BT_LOGV("Validating muxer's upstream message iterator wrapper: "
+		"muxer-upstream-msg-iter-wrap-addr=%p",
+		muxer_upstream_msg_iter);
 
-	if (muxer_upstream_notif_iter->notifs->length > 0 ||
-			!muxer_upstream_notif_iter->notif_iter) {
+	if (muxer_upstream_msg_iter->msgs->length > 0 ||
+			!muxer_upstream_msg_iter->msg_iter) {
 		BT_LOGV("Already valid or not considered: "
-			"queue-len=%u, upstream-notif-iter-addr=%p",
-			muxer_upstream_notif_iter->notifs->length,
-			muxer_upstream_notif_iter->notif_iter);
+			"queue-len=%u, upstream-msg-iter-addr=%p",
+			muxer_upstream_msg_iter->msgs->length,
+			muxer_upstream_msg_iter->msg_iter);
 		goto end;
 	}
 
-	/* muxer_upstream_notif_iter_next() logs details/errors */
-	status = muxer_upstream_notif_iter_next(muxer_upstream_notif_iter);
+	/* muxer_upstream_msg_iter_next() logs details/errors */
+	status = muxer_upstream_msg_iter_next(muxer_upstream_msg_iter);
 
 end:
 	return status;
 }
 
 static
-enum bt_notification_iterator_status validate_muxer_upstream_notif_iters(
-		struct muxer_notif_iter *muxer_notif_iter)
+enum bt_message_iterator_status validate_muxer_upstream_msg_iters(
+		struct muxer_msg_iter *muxer_msg_iter)
 {
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_message_iterator_status status =
+		BT_MESSAGE_ITERATOR_STATUS_OK;
 	size_t i;
 
-	BT_LOGV("Validating muxer's upstream notification iterator wrappers: "
-		"muxer-notif-iter-addr=%p", muxer_notif_iter);
+	BT_LOGV("Validating muxer's upstream message iterator wrappers: "
+		"muxer-msg-iter-addr=%p", muxer_msg_iter);
 
-	for (i = 0; i < muxer_notif_iter->muxer_upstream_notif_iters->len; i++) {
-		struct muxer_upstream_notif_iter *muxer_upstream_notif_iter =
+	for (i = 0; i < muxer_msg_iter->muxer_upstream_msg_iters->len; i++) {
+		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter =
 			g_ptr_array_index(
-				muxer_notif_iter->muxer_upstream_notif_iters,
+				muxer_msg_iter->muxer_upstream_msg_iters,
 				i);
 
-		status = validate_muxer_upstream_notif_iter(
-			muxer_upstream_notif_iter);
-		if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+		status = validate_muxer_upstream_msg_iter(
+			muxer_upstream_msg_iter);
+		if (status != BT_MESSAGE_ITERATOR_STATUS_OK) {
 			if (status < 0) {
-				BT_LOGE("Cannot validate muxer's upstream notification iterator wrapper: "
-					"muxer-notif-iter-addr=%p, "
-					"muxer-upstream-notif-iter-wrap-addr=%p",
-					muxer_notif_iter,
-					muxer_upstream_notif_iter);
+				BT_LOGE("Cannot validate muxer's upstream message iterator wrapper: "
+					"muxer-msg-iter-addr=%p, "
+					"muxer-upstream-msg-iter-wrap-addr=%p",
+					muxer_msg_iter,
+					muxer_upstream_msg_iter);
 			} else {
-				BT_LOGV("Cannot validate muxer's upstream notification iterator wrapper: "
-					"muxer-notif-iter-addr=%p, "
-					"muxer-upstream-notif-iter-wrap-addr=%p",
-					muxer_notif_iter,
-					muxer_upstream_notif_iter);
+				BT_LOGV("Cannot validate muxer's upstream message iterator wrapper: "
+					"muxer-msg-iter-addr=%p, "
+					"muxer-upstream-msg-iter-wrap-addr=%p",
+					muxer_msg_iter,
+					muxer_upstream_msg_iter);
 			}
 
 			goto end;
 		}
 
 		/*
-		 * Remove this muxer upstream notification iterator
+		 * Remove this muxer upstream message iterator
 		 * if it's ended or canceled.
 		 */
-		if (!muxer_upstream_notif_iter->notif_iter) {
+		if (!muxer_upstream_msg_iter->msg_iter) {
 			/*
 			 * Use g_ptr_array_remove_fast() because the
 			 * order of those elements is not important.
 			 */
-			BT_LOGV("Removing muxer's upstream notification iterator wrapper: ended or canceled: "
-				"muxer-notif-iter-addr=%p, "
-				"muxer-upstream-notif-iter-wrap-addr=%p",
-				muxer_notif_iter, muxer_upstream_notif_iter);
+			BT_LOGV("Removing muxer's upstream message iterator wrapper: ended or canceled: "
+				"muxer-msg-iter-addr=%p, "
+				"muxer-upstream-msg-iter-wrap-addr=%p",
+				muxer_msg_iter, muxer_upstream_msg_iter);
 			g_ptr_array_remove_index_fast(
-				muxer_notif_iter->muxer_upstream_notif_iters,
+				muxer_msg_iter->muxer_upstream_msg_iters,
 				i);
 			i--;
 		}
@@ -1001,185 +1001,185 @@ end:
 }
 
 static inline
-enum bt_notification_iterator_status muxer_notif_iter_do_next_one(
+enum bt_message_iterator_status muxer_msg_iter_do_next_one(
 		struct muxer_comp *muxer_comp,
-		struct muxer_notif_iter *muxer_notif_iter,
-		const bt_notification **notif)
+		struct muxer_msg_iter *muxer_msg_iter,
+		const bt_message **msg)
 {
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
-	struct muxer_upstream_notif_iter *muxer_upstream_notif_iter = NULL;
+	enum bt_message_iterator_status status =
+		BT_MESSAGE_ITERATOR_STATUS_OK;
+	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter = NULL;
 	int64_t next_return_ts;
 
 	while (true) {
-		int ret = muxer_notif_iter_handle_newly_connected_ports(
-			muxer_notif_iter);
+		int ret = muxer_msg_iter_handle_newly_connected_ports(
+			muxer_msg_iter);
 
 		if (ret) {
-			BT_LOGE("Cannot handle newly connected input ports for muxer's notification iterator: "
-				"muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
+			BT_LOGE("Cannot handle newly connected input ports for muxer's message iterator: "
+				"muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
 				"ret=%d",
-				muxer_comp, muxer_notif_iter, ret);
-			status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+				muxer_comp, muxer_msg_iter, ret);
+			status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
-		status = validate_muxer_upstream_notif_iters(muxer_notif_iter);
-		if (status != BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-			/* validate_muxer_upstream_notif_iters() logs details */
+		status = validate_muxer_upstream_msg_iters(muxer_msg_iter);
+		if (status != BT_MESSAGE_ITERATOR_STATUS_OK) {
+			/* validate_muxer_upstream_msg_iters() logs details */
 			goto end;
 		}
 
 		/*
 		 * At this point, we know that all the existing upstream
-		 * notification iterators are valid. However the
+		 * message iterators are valid. However the
 		 * operations to validate them (during
-		 * validate_muxer_upstream_notif_iters()) may have
+		 * validate_muxer_upstream_msg_iters()) may have
 		 * connected new ports. If no ports were connected
 		 * during this operation, exit the loop.
 		 */
-		if (!muxer_notif_iter->newly_connected_self_ports) {
-			BT_LOGV("Not breaking this loop: muxer's notification iterator still has newly connected input ports to handle: "
+		if (!muxer_msg_iter->newly_connected_self_ports) {
+			BT_LOGV("Not breaking this loop: muxer's message iterator still has newly connected input ports to handle: "
 				"muxer-comp-addr=%p", muxer_comp);
 			break;
 		}
 	}
 
-	BT_ASSERT(!muxer_notif_iter->newly_connected_self_ports);
+	BT_ASSERT(!muxer_msg_iter->newly_connected_self_ports);
 
 	/*
 	 * At this point we know that all the existing upstream
-	 * notification iterators are valid. We can find the one,
-	 * amongst those, of which the current notification is the
+	 * message iterators are valid. We can find the one,
+	 * amongst those, of which the current message is the
 	 * youngest.
 	 */
-	status = muxer_notif_iter_youngest_upstream_notif_iter(muxer_comp,
-			muxer_notif_iter, &muxer_upstream_notif_iter,
+	status = muxer_msg_iter_youngest_upstream_msg_iter(muxer_comp,
+			muxer_msg_iter, &muxer_upstream_msg_iter,
 			&next_return_ts);
-	if (status < 0 || status == BT_NOTIFICATION_ITERATOR_STATUS_END ||
-			status == BT_NOTIFICATION_ITERATOR_STATUS_CANCELED) {
+	if (status < 0 || status == BT_MESSAGE_ITERATOR_STATUS_END ||
+			status == BT_MESSAGE_ITERATOR_STATUS_CANCELED) {
 		if (status < 0) {
-			BT_LOGE("Cannot find the youngest upstream notification iterator wrapper: "
+			BT_LOGE("Cannot find the youngest upstream message iterator wrapper: "
 				"status=%s",
-				bt_notification_iterator_status_string(status));
+				bt_message_iterator_status_string(status));
 		} else {
-			BT_LOGV("Cannot find the youngest upstream notification iterator wrapper: "
+			BT_LOGV("Cannot find the youngest upstream message iterator wrapper: "
 				"status=%s",
-				bt_notification_iterator_status_string(status));
+				bt_message_iterator_status_string(status));
 		}
 
 		goto end;
 	}
 
-	if (next_return_ts < muxer_notif_iter->last_returned_ts_ns) {
-		BT_LOGE("Youngest upstream notification iterator wrapper's timestamp is less than muxer's notification iterator's last returned timestamp: "
-			"muxer-notif-iter-addr=%p, ts=%" PRId64 ", "
+	if (next_return_ts < muxer_msg_iter->last_returned_ts_ns) {
+		BT_LOGE("Youngest upstream message iterator wrapper's timestamp is less than muxer's message iterator's last returned timestamp: "
+			"muxer-msg-iter-addr=%p, ts=%" PRId64 ", "
 			"last-returned-ts=%" PRId64,
-			muxer_notif_iter, next_return_ts,
-			muxer_notif_iter->last_returned_ts_ns);
-		status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			muxer_msg_iter, next_return_ts,
+			muxer_msg_iter->last_returned_ts_ns);
+		status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
-	BT_LOGV("Found youngest upstream notification iterator wrapper: "
-		"muxer-notif-iter-addr=%p, "
-		"muxer-upstream-notif-iter-wrap-addr=%p, "
+	BT_LOGV("Found youngest upstream message iterator wrapper: "
+		"muxer-msg-iter-addr=%p, "
+		"muxer-upstream-msg-iter-wrap-addr=%p, "
 		"ts=%" PRId64,
-		muxer_notif_iter, muxer_upstream_notif_iter, next_return_ts);
-	BT_ASSERT(status == BT_NOTIFICATION_ITERATOR_STATUS_OK);
-	BT_ASSERT(muxer_upstream_notif_iter);
+		muxer_msg_iter, muxer_upstream_msg_iter, next_return_ts);
+	BT_ASSERT(status == BT_MESSAGE_ITERATOR_STATUS_OK);
+	BT_ASSERT(muxer_upstream_msg_iter);
 
 	/*
 	 * Consume from the queue's head: other side
-	 * (muxer_upstream_notif_iter_next()) writes to the tail.
+	 * (muxer_upstream_msg_iter_next()) writes to the tail.
 	 */
-	*notif = g_queue_pop_head(muxer_upstream_notif_iter->notifs);
-	BT_ASSERT(*notif);
-	muxer_notif_iter->last_returned_ts_ns = next_return_ts;
+	*msg = g_queue_pop_head(muxer_upstream_msg_iter->msgs);
+	BT_ASSERT(*msg);
+	muxer_msg_iter->last_returned_ts_ns = next_return_ts;
 
 end:
 	return status;
 }
 
 static
-enum bt_notification_iterator_status muxer_notif_iter_do_next(
+enum bt_message_iterator_status muxer_msg_iter_do_next(
 		struct muxer_comp *muxer_comp,
-		struct muxer_notif_iter *muxer_notif_iter,
-		bt_notification_array_const notifs, uint64_t capacity,
+		struct muxer_msg_iter *muxer_msg_iter,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_message_iterator_status status =
+		BT_MESSAGE_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 
-	while (i < capacity && status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
-		status = muxer_notif_iter_do_next_one(muxer_comp,
-			muxer_notif_iter, &notifs[i]);
-		if (status == BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+	while (i < capacity && status == BT_MESSAGE_ITERATOR_STATUS_OK) {
+		status = muxer_msg_iter_do_next_one(muxer_comp,
+			muxer_msg_iter, &msgs[i]);
+		if (status == BT_MESSAGE_ITERATOR_STATUS_OK) {
 			i++;
 		}
 	}
 
 	if (i > 0) {
 		/*
-		 * Even if muxer_notif_iter_do_next_one() returned
+		 * Even if muxer_msg_iter_do_next_one() returned
 		 * something else than
-		 * BT_NOTIFICATION_ITERATOR_STATUS_OK, we accumulated
-		 * notification objects in the output notification
+		 * BT_MESSAGE_ITERATOR_STATUS_OK, we accumulated
+		 * message objects in the output message
 		 * array, so we need to return
-		 * BT_NOTIFICATION_ITERATOR_STATUS_OK so that they are
+		 * BT_MESSAGE_ITERATOR_STATUS_OK so that they are
 		 * transfered to downstream. This other status occurs
-		 * again the next time muxer_notif_iter_do_next() is
+		 * again the next time muxer_msg_iter_do_next() is
 		 * called, possibly without any accumulated
-		 * notification, in which case we'll return it.
+		 * message, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		status = BT_MESSAGE_ITERATOR_STATUS_OK;
 	}
 
 	return status;
 }
 
 static
-void destroy_muxer_notif_iter(struct muxer_notif_iter *muxer_notif_iter)
+void destroy_muxer_msg_iter(struct muxer_msg_iter *muxer_msg_iter)
 {
-	if (!muxer_notif_iter) {
+	if (!muxer_msg_iter) {
 		return;
 	}
 
-	BT_LOGD("Destroying muxer component's notification iterator: "
-		"muxer-notif-iter-addr=%p", muxer_notif_iter);
+	BT_LOGD("Destroying muxer component's message iterator: "
+		"muxer-msg-iter-addr=%p", muxer_msg_iter);
 
-	if (muxer_notif_iter->muxer_upstream_notif_iters) {
-		BT_LOGD_STR("Destroying muxer's upstream notification iterator wrappers.");
+	if (muxer_msg_iter->muxer_upstream_msg_iters) {
+		BT_LOGD_STR("Destroying muxer's upstream message iterator wrappers.");
 		g_ptr_array_free(
-			muxer_notif_iter->muxer_upstream_notif_iters, TRUE);
+			muxer_msg_iter->muxer_upstream_msg_iters, TRUE);
 	}
 
-	g_list_free(muxer_notif_iter->newly_connected_self_ports);
-	g_free(muxer_notif_iter);
+	g_list_free(muxer_msg_iter->newly_connected_self_ports);
+	g_free(muxer_msg_iter);
 }
 
 static
-int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
-		struct muxer_notif_iter *muxer_notif_iter)
+int muxer_msg_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
+		struct muxer_msg_iter *muxer_msg_iter)
 {
 	int64_t count;
 	int64_t i;
 	int ret = 0;
 
 	/*
-	 * Add the connected input ports to this muxer notification
+	 * Add the connected input ports to this muxer message
 	 * iterator's list of newly connected ports. They will be
-	 * handled by muxer_notif_iter_handle_newly_connected_ports().
+	 * handled by muxer_msg_iter_handle_newly_connected_ports().
 	 */
 	count = bt_component_filter_get_input_port_count(
 		bt_self_component_filter_as_component_filter(
 			muxer_comp->self_comp));
 	if (count < 0) {
-		BT_LOGD("No input port to initialize for muxer component's notification iterator: "
-			"muxer-comp-addr=%p, muxer-notif-iter-addr=%p",
-			muxer_comp, muxer_notif_iter);
+		BT_LOGD("No input port to initialize for muxer component's message iterator: "
+			"muxer-comp-addr=%p, muxer-msg-iter-addr=%p",
+			muxer_comp, muxer_msg_iter);
 		goto end;
 	}
 
@@ -1202,23 +1202,23 @@ int muxer_notif_iter_init_newly_connected_ports(struct muxer_comp *muxer_comp,
 			continue;
 		}
 
-		muxer_notif_iter->newly_connected_self_ports =
+		muxer_msg_iter->newly_connected_self_ports =
 			g_list_append(
-				muxer_notif_iter->newly_connected_self_ports,
+				muxer_msg_iter->newly_connected_self_ports,
 				self_port);
-		if (!muxer_notif_iter->newly_connected_self_ports) {
-			BT_LOGE("Cannot append port to muxer's notification iterator list of newly connected input ports: "
+		if (!muxer_msg_iter->newly_connected_self_ports) {
+			BT_LOGE("Cannot append port to muxer's message iterator list of newly connected input ports: "
 				"port-addr=%p, port-name=\"%s\", "
-				"muxer-notif-iter-addr=%p", port,
-				bt_port_get_name(port), muxer_notif_iter);
+				"muxer-msg-iter-addr=%p", port,
+				bt_port_get_name(port), muxer_msg_iter);
 			ret = -1;
 			goto end;
 		}
 
-		BT_LOGD("Appended port to muxer's notification iterator list of newly connected input ports: "
+		BT_LOGD("Appended port to muxer's message iterator list of newly connected input ports: "
 			"port-addr=%p, port-name=\"%s\", "
-			"muxer-notif-iter-addr=%p", port,
-			bt_port_get_name(port), muxer_notif_iter);
+			"muxer-msg-iter-addr=%p", port,
+			bt_port_get_name(port), muxer_msg_iter);
 	}
 
 end:
@@ -1226,157 +1226,157 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status muxer_notif_iter_init(
-		bt_self_notification_iterator *self_notif_iter,
+enum bt_self_message_iterator_status muxer_msg_iter_init(
+		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *port)
 {
 	struct muxer_comp *muxer_comp = NULL;
-	struct muxer_notif_iter *muxer_notif_iter = NULL;
-	enum bt_self_notification_iterator_status status =
-		BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct muxer_msg_iter *muxer_msg_iter = NULL;
+	enum bt_self_message_iterator_status status =
+		BT_MESSAGE_ITERATOR_STATUS_OK;
 	int ret;
 
 	muxer_comp = bt_self_component_get_data(
 		bt_self_component_filter_as_self_component(self_comp));
 	BT_ASSERT(muxer_comp);
-	BT_LOGD("Initializing muxer component's notification iterator: "
-		"comp-addr=%p, muxer-comp-addr=%p, notif-iter-addr=%p",
-		self_comp, muxer_comp, self_notif_iter);
+	BT_LOGD("Initializing muxer component's message iterator: "
+		"comp-addr=%p, muxer-comp-addr=%p, msg-iter-addr=%p",
+		self_comp, muxer_comp, self_msg_iter);
 
-	if (muxer_comp->initializing_muxer_notif_iter) {
+	if (muxer_comp->initializing_muxer_msg_iter) {
 		/*
 		 * Weird, unhandled situation detected: downstream
-		 * creates a muxer notification iterator while creating
-		 * another muxer notification iterator (same component).
+		 * creates a muxer message iterator while creating
+		 * another muxer message iterator (same component).
 		 */
-		BT_LOGE("Recursive initialization of muxer component's notification iterator: "
-			"comp-addr=%p, muxer-comp-addr=%p, notif-iter-addr=%p",
-			self_comp, muxer_comp, self_notif_iter);
+		BT_LOGE("Recursive initialization of muxer component's message iterator: "
+			"comp-addr=%p, muxer-comp-addr=%p, msg-iter-addr=%p",
+			self_comp, muxer_comp, self_msg_iter);
 		goto error;
 	}
 
-	muxer_comp->initializing_muxer_notif_iter = true;
-	muxer_notif_iter = g_new0(struct muxer_notif_iter, 1);
-	if (!muxer_notif_iter) {
-		BT_LOGE_STR("Failed to allocate one muxer component's notification iterator.");
+	muxer_comp->initializing_muxer_msg_iter = true;
+	muxer_msg_iter = g_new0(struct muxer_msg_iter, 1);
+	if (!muxer_msg_iter) {
+		BT_LOGE_STR("Failed to allocate one muxer component's message iterator.");
 		goto error;
 	}
 
-	muxer_notif_iter->last_returned_ts_ns = INT64_MIN;
-	muxer_notif_iter->muxer_upstream_notif_iters =
+	muxer_msg_iter->last_returned_ts_ns = INT64_MIN;
+	muxer_msg_iter->muxer_upstream_msg_iters =
 		g_ptr_array_new_with_free_func(
-			(GDestroyNotify) destroy_muxer_upstream_notif_iter);
-	if (!muxer_notif_iter->muxer_upstream_notif_iters) {
+			(GDestroyNotify) destroy_muxer_upstream_msg_iter);
+	if (!muxer_msg_iter->muxer_upstream_msg_iters) {
 		BT_LOGE_STR("Failed to allocate a GPtrArray.");
 		goto error;
 	}
 
 	/*
-	 * Add the muxer notification iterator to the component's array
-	 * of muxer notification iterators here because
-	 * muxer_notif_iter_init_newly_connected_ports() can cause
+	 * Add the muxer message iterator to the component's array
+	 * of muxer message iterators here because
+	 * muxer_msg_iter_init_newly_connected_ports() can cause
 	 * muxer_port_connected() to be called, which adds the newly
-	 * connected port to each muxer notification iterator's list of
+	 * connected port to each muxer message iterator's list of
 	 * newly connected ports.
 	 */
-	g_ptr_array_add(muxer_comp->muxer_notif_iters, muxer_notif_iter);
-	ret = muxer_notif_iter_init_newly_connected_ports(muxer_comp,
-		muxer_notif_iter);
+	g_ptr_array_add(muxer_comp->muxer_msg_iters, muxer_msg_iter);
+	ret = muxer_msg_iter_init_newly_connected_ports(muxer_comp,
+		muxer_msg_iter);
 	if (ret) {
-		BT_LOGE("Cannot initialize newly connected input ports for muxer component's notification iterator: "
+		BT_LOGE("Cannot initialize newly connected input ports for muxer component's message iterator: "
 			"comp-addr=%p, muxer-comp-addr=%p, "
-			"muxer-notif-iter-addr=%p, notif-iter-addr=%p, ret=%d",
-			self_comp, muxer_comp, muxer_notif_iter,
-			self_notif_iter, ret);
+			"muxer-msg-iter-addr=%p, msg-iter-addr=%p, ret=%d",
+			self_comp, muxer_comp, muxer_msg_iter,
+			self_msg_iter, ret);
 		goto error;
 	}
 
-	bt_self_notification_iterator_set_data(self_notif_iter,
-		muxer_notif_iter);
-	BT_LOGD("Initialized muxer component's notification iterator: "
-		"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
-		"notif-iter-addr=%p",
-		self_comp, muxer_comp, muxer_notif_iter, self_notif_iter);
+	bt_self_message_iterator_set_data(self_msg_iter,
+		muxer_msg_iter);
+	BT_LOGD("Initialized muxer component's message iterator: "
+		"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
+		"msg-iter-addr=%p",
+		self_comp, muxer_comp, muxer_msg_iter, self_msg_iter);
 	goto end;
 
 error:
-	if (g_ptr_array_index(muxer_comp->muxer_notif_iters,
-			muxer_comp->muxer_notif_iters->len - 1) == muxer_notif_iter) {
-		g_ptr_array_remove_index(muxer_comp->muxer_notif_iters,
-			muxer_comp->muxer_notif_iters->len - 1);
+	if (g_ptr_array_index(muxer_comp->muxer_msg_iters,
+			muxer_comp->muxer_msg_iters->len - 1) == muxer_msg_iter) {
+		g_ptr_array_remove_index(muxer_comp->muxer_msg_iters,
+			muxer_comp->muxer_msg_iters->len - 1);
 	}
 
-	destroy_muxer_notif_iter(muxer_notif_iter);
-	bt_self_notification_iterator_set_data(self_notif_iter,
+	destroy_muxer_msg_iter(muxer_msg_iter);
+	bt_self_message_iterator_set_data(self_msg_iter,
 		NULL);
-	status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 
 end:
-	muxer_comp->initializing_muxer_notif_iter = false;
+	muxer_comp->initializing_muxer_msg_iter = false;
 	return status;
 }
 
 BT_HIDDEN
-void muxer_notif_iter_finalize(
-		bt_self_notification_iterator *self_notif_iter)
+void muxer_msg_iter_finalize(
+		bt_self_message_iterator *self_msg_iter)
 {
-	struct muxer_notif_iter *muxer_notif_iter =
-		bt_self_notification_iterator_get_data(self_notif_iter);
+	struct muxer_msg_iter *muxer_msg_iter =
+		bt_self_message_iterator_get_data(self_msg_iter);
 	bt_self_component *self_comp = NULL;
 	struct muxer_comp *muxer_comp = NULL;
 
-	self_comp = bt_self_notification_iterator_borrow_component(
-		self_notif_iter);
+	self_comp = bt_self_message_iterator_borrow_component(
+		self_msg_iter);
 	BT_ASSERT(self_comp);
 	muxer_comp = bt_self_component_get_data(self_comp);
-	BT_LOGD("Finalizing muxer component's notification iterator: "
-		"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
-		"notif-iter-addr=%p",
-		self_comp, muxer_comp, muxer_notif_iter, self_notif_iter);
+	BT_LOGD("Finalizing muxer component's message iterator: "
+		"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
+		"msg-iter-addr=%p",
+		self_comp, muxer_comp, muxer_msg_iter, self_msg_iter);
 
 	if (muxer_comp) {
-		(void) g_ptr_array_remove_fast(muxer_comp->muxer_notif_iters,
-			muxer_notif_iter);
-		destroy_muxer_notif_iter(muxer_notif_iter);
+		(void) g_ptr_array_remove_fast(muxer_comp->muxer_msg_iters,
+			muxer_msg_iter);
+		destroy_muxer_msg_iter(muxer_msg_iter);
 	}
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status muxer_notif_iter_next(
-		bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array_const notifs, uint64_t capacity,
+enum bt_message_iterator_status muxer_msg_iter_next(
+		bt_self_message_iterator *self_msg_iter,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_notification_iterator_status status;
-	struct muxer_notif_iter *muxer_notif_iter =
-		bt_self_notification_iterator_get_data(self_notif_iter);
+	enum bt_message_iterator_status status;
+	struct muxer_msg_iter *muxer_msg_iter =
+		bt_self_message_iterator_get_data(self_msg_iter);
 	bt_self_component *self_comp = NULL;
 	struct muxer_comp *muxer_comp = NULL;
 
-	BT_ASSERT(muxer_notif_iter);
-	self_comp = bt_self_notification_iterator_borrow_component(
-		self_notif_iter);
+	BT_ASSERT(muxer_msg_iter);
+	self_comp = bt_self_message_iterator_borrow_component(
+		self_msg_iter);
 	BT_ASSERT(self_comp);
 	muxer_comp = bt_self_component_get_data(self_comp);
 	BT_ASSERT(muxer_comp);
-	BT_LOGV("Muxer component's notification iterator's \"next\" method called: "
-		"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
-		"notif-iter-addr=%p",
-		self_comp, muxer_comp, muxer_notif_iter, self_notif_iter);
+	BT_LOGV("Muxer component's message iterator's \"next\" method called: "
+		"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
+		"msg-iter-addr=%p",
+		self_comp, muxer_comp, muxer_msg_iter, self_msg_iter);
 
-	status = muxer_notif_iter_do_next(muxer_comp, muxer_notif_iter,
-		notifs, capacity, count);
+	status = muxer_msg_iter_do_next(muxer_comp, muxer_msg_iter,
+		msgs, capacity, count);
 	if (status < 0) {
-		BT_LOGE("Cannot get next notification: "
-			"comp-addr=%p, muxer-comp-addr=%p, muxer-notif-iter-addr=%p, "
-			"notif-iter-addr=%p, status=%s",
-			self_comp, muxer_comp, muxer_notif_iter, self_notif_iter,
-			bt_notification_iterator_status_string(status));
+		BT_LOGE("Cannot get next message: "
+			"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
+			"msg-iter-addr=%p, status=%s",
+			self_comp, muxer_comp, muxer_msg_iter, self_msg_iter,
+			bt_message_iterator_status_string(status));
 	} else {
-		BT_LOGV("Returning from muxer component's notification iterator's \"next\" method: "
+		BT_LOGV("Returning from muxer component's message iterator's \"next\" method: "
 			"status=%s",
-			bt_notification_iterator_status_string(status));
+			bt_message_iterator_status_string(status));
 	}
 
 	return status;
@@ -1409,34 +1409,34 @@ enum bt_self_component_status muxer_input_port_connected(
 		other_port,
 		bt_port_get_name(bt_port_output_as_port_const(other_port)));
 
-	for (i = 0; i < muxer_comp->muxer_notif_iters->len; i++) {
-		struct muxer_notif_iter *muxer_notif_iter =
-			g_ptr_array_index(muxer_comp->muxer_notif_iters, i);
+	for (i = 0; i < muxer_comp->muxer_msg_iters->len; i++) {
+		struct muxer_msg_iter *muxer_msg_iter =
+			g_ptr_array_index(muxer_comp->muxer_msg_iters, i);
 
 		/*
 		 * Add this port to the list of newly connected ports
-		 * for this muxer notification iterator. We append at
+		 * for this muxer message iterator. We append at
 		 * the end of this list while
-		 * muxer_notif_iter_handle_newly_connected_ports()
+		 * muxer_msg_iter_handle_newly_connected_ports()
 		 * removes the nodes from the beginning.
 		 */
-		muxer_notif_iter->newly_connected_self_ports =
+		muxer_msg_iter->newly_connected_self_ports =
 			g_list_append(
-				muxer_notif_iter->newly_connected_self_ports,
+				muxer_msg_iter->newly_connected_self_ports,
 				self_port);
-		if (!muxer_notif_iter->newly_connected_self_ports) {
-			BT_LOGE("Cannot append port to muxer's notification iterator list of newly connected input ports: "
+		if (!muxer_msg_iter->newly_connected_self_ports) {
+			BT_LOGE("Cannot append port to muxer's message iterator list of newly connected input ports: "
 				"port-addr=%p, port-name=\"%s\", "
-				"muxer-notif-iter-addr=%p", self_port,
-				bt_port_get_name(port), muxer_notif_iter);
+				"muxer-msg-iter-addr=%p", self_port,
+				bt_port_get_name(port), muxer_msg_iter);
 			status = BT_SELF_COMPONENT_STATUS_ERROR;
 			goto end;
 		}
 
-		BT_LOGD("Appended port to muxer's notification iterator list of newly connected input ports: "
+		BT_LOGD("Appended port to muxer's message iterator list of newly connected input ports: "
 			"port-addr=%p, port-name=\"%s\", "
-			"muxer-notif-iter-addr=%p", self_port,
-			bt_port_get_name(port), muxer_notif_iter);
+			"muxer-msg-iter-addr=%p", self_port,
+			bt_port_get_name(port), muxer_msg_iter);
 	}
 
 	/* One less available input port */

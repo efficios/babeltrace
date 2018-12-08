@@ -33,18 +33,18 @@
 #include <inttypes.h>
 #include <babeltrace/compat/mman-internal.h>
 #include <babeltrace/babeltrace.h>
-#include "../common/notif-iter/notif-iter.h"
+#include "../common/msg-iter/msg-iter.h"
 #include <babeltrace/assert-internal.h>
 
 #include "data-stream.h"
 
 static
-enum bt_notif_iter_medium_status medop_request_bytes(
+enum bt_msg_iter_medium_status medop_request_bytes(
 		size_t request_sz, uint8_t **buffer_addr,
 		size_t *buffer_sz, void *data)
 {
-	enum bt_notif_iter_medium_status status =
-		BT_NOTIF_ITER_MEDIUM_STATUS_OK;
+	enum bt_msg_iter_medium_status status =
+		BT_MSG_ITER_MEDIUM_STATUS_OK;
 	struct lttng_live_stream_iterator *stream = data;
 	struct lttng_live_trace *trace = stream->trace;
 	struct lttng_live_session *session = trace->session;
@@ -57,7 +57,7 @@ enum bt_notif_iter_medium_status medop_request_bytes(
 	len_left = stream->base_offset + stream->len - stream->offset;
 	if (!len_left) {
 		stream->state = LTTNG_LIVE_STREAM_ACTIVE_NO_DATA;
-		status = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+		status = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 		return status;
 	}
 	read_len = MIN(request_sz, stream->buflen);
@@ -105,19 +105,19 @@ const bt_stream *medop_get_stream(
 	return lttng_live_stream->stream;
 }
 
-static struct bt_notif_iter_medium_ops medops = {
+static struct bt_msg_iter_medium_ops medops = {
 	.request_bytes = medop_request_bytes,
 	.get_stream = medop_get_stream,
 };
 
 BT_HIDDEN
-enum bt_lttng_live_iterator_status lttng_live_lazy_notif_init(
+enum bt_lttng_live_iterator_status lttng_live_lazy_msg_init(
 		struct lttng_live_session *session)
 {
 	struct lttng_live_component *lttng_live = session->lttng_live;
 	struct lttng_live_trace *trace;
 
-	if (!session->lazy_stream_notif_init) {
+	if (!session->lazy_stream_msg_init) {
 		return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 	}
 
@@ -125,19 +125,19 @@ enum bt_lttng_live_iterator_status lttng_live_lazy_notif_init(
 		struct lttng_live_stream_iterator *stream;
 
 		bt_list_for_each_entry(stream, &trace->streams, node) {
-			if (stream->notif_iter) {
+			if (stream->msg_iter) {
 				continue;
 			}
-			stream->notif_iter = bt_notif_iter_create(trace->trace,
+			stream->msg_iter = bt_msg_iter_create(trace->trace,
 					lttng_live->max_query_size, medops,
 					stream);
-			if (!stream->notif_iter) {
+			if (!stream->msg_iter) {
 				goto error;
 			}
 		}
 	}
 
-	session->lazy_stream_notif_init = false;
+	session->lazy_stream_msg_init = false;
 
 	return BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 
@@ -170,10 +170,10 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 	stream->last_returned_inactivity_timestamp = INT64_MIN;
 
 	if (trace->trace) {
-		stream->notif_iter = bt_notif_iter_create(trace->trace,
+		stream->msg_iter = bt_msg_iter_create(trace->trace,
 				lttng_live->max_query_size, medops,
 				stream);
-		if (!stream->notif_iter) {
+		if (!stream->msg_iter) {
 			goto error;
 		}
 	}
@@ -212,11 +212,11 @@ void lttng_live_stream_iterator_destroy(struct lttng_live_stream_iterator *strea
 		BT_OBJECT_PUT_REF_AND_RESET(stream->stream);
 	}
 
-	if (stream->notif_iter) {
-		bt_notif_iter_destroy(stream->notif_iter);
+	if (stream->msg_iter) {
+		bt_msg_iter_destroy(stream->msg_iter);
 	}
 	g_free(stream->buf);
-	BT_OBJECT_PUT_REF_AND_RESET(stream->packet_end_notif_queue);
+	BT_OBJECT_PUT_REF_AND_RESET(stream->packet_end_msg_queue);
 	bt_list_del(&stream->node);
 	/*
 	 * Ensure we poke the trace metadata in the future, which is
