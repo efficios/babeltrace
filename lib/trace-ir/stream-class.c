@@ -217,7 +217,7 @@ const char *bt_stream_class_get_name(const struct bt_stream_class *stream_class)
 	return stream_class->name.value;
 }
 
-int bt_stream_class_set_name(
+enum bt_stream_class_status bt_stream_class_set_name(
 		struct bt_stream_class *stream_class,
 		const char *name)
 {
@@ -227,7 +227,7 @@ int bt_stream_class_set_name(
 	g_string_assign(stream_class->name.str, name);
 	stream_class->name.value = stream_class->name.str->str;
 	BT_LIB_LOGV("Set stream class's name: %!+S", stream_class);
-	return 0;
+	return BT_STREAM_CLASS_STATUS_OK;
 }
 
 uint64_t bt_stream_class_get_id(const struct bt_stream_class *stream_class)
@@ -297,7 +297,7 @@ bt_stream_class_borrow_packet_context_field_class_const(
 	return stream_class->packet_context_fc;
 }
 
-int bt_stream_class_set_packet_context_field_class(
+enum bt_stream_class_status bt_stream_class_set_packet_context_field_class(
 		struct bt_stream_class *stream_class,
 		struct bt_field_class *field_class)
 {
@@ -322,6 +322,12 @@ int bt_stream_class_set_packet_context_field_class(
 		bt_stream_class_borrow_trace_class_inline(stream_class)->packet_header_fc;
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
+		/*
+		 * This is the only reason for which
+		 * bt_resolve_field_paths() can fail: anything else
+		 * would be because a precondition is not satisfied.
+		 */
+		ret = BT_STREAM_CLASS_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -344,7 +350,7 @@ const struct bt_field_class *bt_stream_class_borrow_event_header_field_class_con
 	return stream_class->event_header_fc;
 }
 
-int bt_stream_class_set_event_header_field_class(
+enum bt_stream_class_status bt_stream_class_set_event_header_field_class(
 		struct bt_stream_class *stream_class,
 		struct bt_field_class *field_class)
 {
@@ -370,6 +376,12 @@ int bt_stream_class_set_event_header_field_class(
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
+		/*
+		 * This is the only reason for which
+		 * bt_resolve_field_paths() can fail: anything else
+		 * would be because a precondition is not satisfied.
+		 */
+		ret = BT_STREAM_CLASS_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -393,7 +405,8 @@ bt_stream_class_borrow_event_common_context_field_class_const(
 	return stream_class->event_common_context_fc;
 }
 
-int bt_stream_class_set_event_common_context_field_class(
+enum bt_stream_class_status
+bt_stream_class_set_event_common_context_field_class(
 		struct bt_stream_class *stream_class,
 		struct bt_field_class *field_class)
 {
@@ -420,6 +433,12 @@ int bt_stream_class_set_event_common_context_field_class(
 	resolve_ctx.event_header = stream_class->event_header_fc;
 	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
 	if (ret) {
+		/*
+		 * This is the only reason for which
+		 * bt_resolve_field_paths() can fail: anything else
+		 * would be because a precondition is not satisfied.
+		 */
+		ret = BT_STREAM_CLASS_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -444,7 +463,7 @@ void _bt_stream_class_freeze(const struct bt_stream_class *stream_class)
 	((struct bt_stream_class *) stream_class)->frozen = true;
 }
 
-int bt_stream_class_set_default_clock_class(
+enum bt_stream_class_status bt_stream_class_set_default_clock_class(
 		struct bt_stream_class *stream_class,
 		struct bt_clock_class *clock_class)
 {
@@ -457,7 +476,7 @@ int bt_stream_class_set_default_clock_class(
 	bt_clock_class_freeze(clock_class);
 	BT_LIB_LOGV("Set stream class's default clock class: %!+S",
 		stream_class);
-	return 0;
+	return BT_STREAM_CLASS_STATUS_OK;
 }
 
 struct bt_clock_class *bt_stream_class_borrow_default_clock_class(
