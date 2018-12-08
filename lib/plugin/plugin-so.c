@@ -102,6 +102,21 @@ void fini_comp_class_list(void)
 	BT_LOGD_STR("Released references from all component classes to shared library handles.");
 }
 
+static inline
+const char *bt_plugin_init_status_string(enum bt_plugin_init_status status)
+{
+	switch (status) {
+	case BT_PLUGIN_INIT_STATUS_OK:
+		return "BT_PLUGIN_INIT_STATUS_OK";
+	case BT_PLUGIN_INIT_STATUS_ERROR:
+		return "BT_PLUGIN_INIT_STATUS_ERROR";
+	case BT_PLUGIN_INIT_STATUS_NOMEM:
+		return "BT_PLUGIN_INIT_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+}
+
 static
 void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 {
@@ -117,17 +132,9 @@ void bt_plugin_so_shared_lib_handle_destroy(struct bt_object *obj)
 		shared_lib_handle, path);
 
 	if (shared_lib_handle->init_called && shared_lib_handle->exit) {
-		enum bt_plugin_status status;
-
 		BT_LOGD_STR("Calling user's plugin exit function.");
-		status = shared_lib_handle->exit();
-		BT_LOGD("User function returned: %s",
-			bt_plugin_status_string(status));
-
-		if (status < 0) {
-			BT_LOGW("User's plugin exit function failed: "
-				"path=\"%s\"", path);
-		}
+		shared_lib_handle->exit();
+		BT_LOGD_STR("User function returned.");
 	}
 
 	if (shared_lib_handle->module) {
@@ -673,13 +680,15 @@ enum bt_plugin_status bt_plugin_so_init(
 
 	/* Initialize plugin */
 	if (spec->init) {
+		enum bt_plugin_init_status init_status;
 		BT_LOGD_STR("Calling user's plugin initialization function.");
-		status = spec->init(plugin);
+		init_status = spec->init(plugin);
 		BT_LOGD("User function returned: %s",
-			bt_plugin_status_string(status));
+			bt_plugin_init_status_string(init_status));
 
-		if (status < 0) {
+		if (init_status < 0) {
 			BT_LOGW_STR("User's plugin initialization function failed.");
+			status = BT_PLUGIN_STATUS_ERROR;
 			goto end;
 		}
 	}
