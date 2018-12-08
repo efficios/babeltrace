@@ -27,7 +27,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For enum bt_event_class_log_level */
+/* For enum bt_event_class_status, enum bt_event_class_log_level */
 #include <babeltrace/trace-ir/event-class-const.h>
 
 /* For bt_event_class, bt_stream_class */
@@ -48,22 +48,22 @@ extern bt_event_class *bt_event_class_create_with_id(
 extern bt_stream_class *bt_event_class_borrow_stream_class(
 		bt_event_class *event_class);
 
-extern int bt_event_class_set_name(bt_event_class *event_class,
-		const char *name);
+extern enum bt_event_class_status bt_event_class_set_name(
+		bt_event_class *event_class, const char *name);
 
 extern void bt_event_class_set_log_level(
 		bt_event_class *event_class,
 		enum bt_event_class_log_level log_level);
 
-extern int bt_event_class_set_emf_uri(
+extern enum bt_event_class_status bt_event_class_set_emf_uri(
 		bt_event_class *event_class,
 		const char *emf_uri);
 
-extern int bt_event_class_set_specific_context_field_class(
-		bt_event_class *event_class,
+extern enum bt_event_class_status
+bt_event_class_set_specific_context_field_class(bt_event_class *event_class,
 		bt_field_class *field_class);
 
-extern int bt_event_class_set_payload_field_class(
+extern enum bt_event_class_status bt_event_class_set_payload_field_class(
 		bt_event_class *event_class,
 		bt_field_class *field_class);
 
