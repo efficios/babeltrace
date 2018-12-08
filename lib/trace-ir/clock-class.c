@@ -26,6 +26,8 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
+#include <babeltrace/trace-ir/clock-class-const.h>
+#include <babeltrace/trace-ir/clock-class.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
@@ -160,8 +162,8 @@ const char *bt_clock_class_get_name(const struct bt_clock_class *clock_class)
 	return clock_class->name.value;
 }
 
-int bt_clock_class_set_name(struct bt_clock_class *clock_class,
-		const char *name)
+enum bt_clock_class_status bt_clock_class_set_name(
+		struct bt_clock_class *clock_class, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -169,7 +171,7 @@ int bt_clock_class_set_name(struct bt_clock_class *clock_class,
 	g_string_assign(clock_class->name.str, name);
 	clock_class->name.value = clock_class->name.str->str;
 	BT_LIB_LOGV("Set clock class's name: %!+K", clock_class);
-	return 0;
+	return BT_CLOCK_CLASS_STATUS_OK;
 }
 
 const char *bt_clock_class_get_description(
@@ -179,8 +181,8 @@ const char *bt_clock_class_get_description(
 	return clock_class->description.value;
 }
 
-int bt_clock_class_set_description(struct bt_clock_class *clock_class,
-		const char *descr)
+enum bt_clock_class_status bt_clock_class_set_description(
+		struct bt_clock_class *clock_class, const char *descr)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(descr, "Description");
@@ -189,7 +191,7 @@ int bt_clock_class_set_description(struct bt_clock_class *clock_class,
 	clock_class->description.value = clock_class->description.str->str;
 	BT_LIB_LOGV("Set clock class's description: %!+K",
 		clock_class);
-	return 0;
+	return BT_CLOCK_CLASS_STATUS_OK;
 }
 
 uint64_t bt_clock_class_get_frequency(const struct bt_clock_class *clock_class)
@@ -302,7 +304,7 @@ void _bt_clock_class_freeze(const struct bt_clock_class *clock_class)
 	((struct bt_clock_class *) clock_class)->frozen = 1;
 }
 
-int bt_clock_class_cycles_to_ns_from_origin(
+enum bt_clock_class_status bt_clock_class_cycles_to_ns_from_origin(
 		const struct bt_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
@@ -312,6 +314,7 @@ int bt_clock_class_cycles_to_ns_from_origin(
 	BT_ASSERT_PRE_NON_NULL(ns, "Nanoseconds (output)");
 	ret = bt_util_ns_from_origin(clock_class, cycles, ns);
 	if (ret) {
+		ret = BT_CLOCK_CLASS_STATUS_OVERFLOW;
 		BT_LIB_LOGW("Cannot convert cycles to nanoseconds "
 			"from origin for given clock class: "
 			"value overflows the signed 64-bit integer range: "
