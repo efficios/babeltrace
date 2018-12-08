@@ -30,7 +30,10 @@
 /* For bt_bool, bt_field_class */
 #include <babeltrace/types.h>
 
-/* For enum bt_field_class_integer_preferred_display_base */
+/*
+ * For enum bt_field_class_status,
+ * enum bt_field_class_integer_preferred_display_base
+ */
 #include <babeltrace/trace-ir/field-class-const.h>
 
 #include <stdint.h>
@@ -61,11 +64,11 @@ extern bt_field_class *bt_field_class_unsigned_enumeration_create(void);
 
 extern bt_field_class *bt_field_class_signed_enumeration_create(void);
 
-extern int bt_field_class_unsigned_enumeration_map_range(
+extern enum bt_field_class_status bt_field_class_unsigned_enumeration_map_range(
 		bt_field_class *field_class, const char *label,
 		uint64_t range_lower, uint64_t range_upper);
 
-extern int bt_field_class_signed_enumeration_map_range(
+extern enum bt_field_class_status bt_field_class_signed_enumeration_map_range(
 		bt_field_class *field_class, const char *label,
 		int64_t range_lower, int64_t range_upper);
 
@@ -73,7 +76,7 @@ extern bt_field_class *bt_field_class_string_create(void);
 
 extern bt_field_class *bt_field_class_structure_create(void);
 
-extern int bt_field_class_structure_append_member(
+extern enum bt_field_class_status bt_field_class_structure_append_member(
 		bt_field_class *struct_field_class,
 		const char *name, bt_field_class *field_class);
 
@@ -83,17 +86,18 @@ extern bt_field_class *bt_field_class_static_array_create(
 extern bt_field_class *bt_field_class_dynamic_array_create(
 		bt_field_class *elem_field_class);
 
-extern int bt_field_class_dynamic_array_set_length_field_class(
+extern enum bt_field_class_status
+bt_field_class_dynamic_array_set_length_field_class(
 		bt_field_class *field_class,
 		bt_field_class *length_field_class);
 
 extern bt_field_class *bt_field_class_variant_create(void);
 
-extern int bt_field_class_variant_set_selector_field_class(
-		bt_field_class *field_class,
+extern enum bt_field_class_status
+bt_field_class_variant_set_selector_field_class(bt_field_class *field_class,
 		bt_field_class *selector_field_class);
 
-extern int bt_field_class_variant_append_option(
+extern enum bt_field_class_status bt_field_class_variant_append_option(
 		bt_field_class *var_field_class,
 		const char *name, bt_field_class *field_class);
 

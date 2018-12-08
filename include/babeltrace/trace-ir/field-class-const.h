@@ -42,6 +42,11 @@
 extern "C" {
 #endif
 
+enum bt_field_class_status {
+	BT_FIELD_CLASS_STATUS_OK = 0,
+	BT_FIELD_CLASS_STATUS_NOMEM = -12,
+};
+
 enum bt_field_class_type {
 	BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER,
 	BT_FIELD_CLASS_TYPE_SIGNED_INTEGER,
@@ -106,12 +111,14 @@ bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
 		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
 		uint64_t index, int64_t *lower, int64_t *upper);
 
-extern int bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
+extern enum bt_field_class_status
+bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
 		const bt_field_class *field_class, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
 
-extern int bt_field_class_signed_enumeration_get_mapping_labels_by_value(
+extern enum bt_field_class_status
+bt_field_class_signed_enumeration_get_mapping_labels_by_value(
 		const bt_field_class *field_class, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count);
