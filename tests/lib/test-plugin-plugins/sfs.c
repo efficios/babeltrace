@@ -24,33 +24,33 @@ static enum bt_self_component_status sink_consume(
 	return BT_SELF_COMPONENT_STATUS_OK;
 }
 
-static enum bt_self_notification_iterator_status src_dummy_iterator_init_method(
-		bt_self_notification_iterator *self_notif_iter,
+static enum bt_self_message_iterator_status src_dummy_iterator_init_method(
+		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 }
 
-static enum bt_self_notification_iterator_status flt_dummy_iterator_init_method(
-		bt_self_notification_iterator *self_notif_iter,
+static enum bt_self_message_iterator_status flt_dummy_iterator_init_method(
+		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_filter *self_comp,
 		bt_self_component_port_output *self_port)
 {
-	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 }
 
 static void dummy_iterator_finalize_method(
-		bt_self_notification_iterator *self_notif_iter)
+		bt_self_message_iterator *self_msg_iter)
 {
 }
 
-static enum bt_self_notification_iterator_status dummy_iterator_next_method(
-		bt_self_notification_iterator *self_notif_iter,
-		bt_notification_array_const notifs, uint64_t capacity,
+static enum bt_self_message_iterator_status dummy_iterator_next_method(
+		bt_self_message_iterator *self_msg_iter,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	return BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
+	return BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 }
 
 static enum bt_query_status flt_query_method(
@@ -84,9 +84,9 @@ BT_PLUGIN_VERSION(1, 2, 3, "yes");
 
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(source, dummy_iterator_next_method);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION(source, "A source.");
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(source,
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(source,
 	src_dummy_iterator_init_method);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(source,
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(source,
 	dummy_iterator_finalize_method);
 
 BT_PLUGIN_SINK_COMPONENT_CLASS(sink, sink_consume);
@@ -100,8 +100,8 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_HELP(sink,
 
 BT_PLUGIN_FILTER_COMPONENT_CLASS(filter, dummy_iterator_next_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(filter, "A filter.");
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_INIT_METHOD(filter,
+BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(filter,
 	flt_dummy_iterator_init_method);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_NOTIFICATION_ITERATOR_FINALIZE_METHOD(filter,
+BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(filter,
 	dummy_iterator_finalize_method);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_QUERY_METHOD(filter, flt_query_method);

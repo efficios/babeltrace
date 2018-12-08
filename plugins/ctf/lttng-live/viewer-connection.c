@@ -767,7 +767,7 @@ int receive_streams(struct lttng_live_session *session,
 
 				goto error;
 			}
-			session->lazy_stream_notif_init = true;
+			session->lazy_stream_msg_init = true;
 		} else {
 			BT_LOGD("    stream %" PRIu64 " : %s/%s",
 					stream_id, stream.path_name,
@@ -1200,11 +1200,11 @@ error:
 }
 
 BT_HIDDEN
-enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_component *lttng_live,
+enum bt_msg_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *stream, uint8_t *buf, uint64_t offset,
 		uint64_t req_len, uint64_t *recv_len)
 {
-	enum bt_notif_iter_medium_status retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_OK;
+	enum bt_msg_iter_medium_status retstatus = BT_MSG_ITER_MEDIUM_STATUS_OK;
 	struct lttng_viewer_cmd cmd;
 	struct lttng_viewer_get_packet rq;
 	struct lttng_viewer_trace_packet rp;
@@ -1266,7 +1266,7 @@ enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_c
 	case LTTNG_VIEWER_GET_PACKET_RETRY:
 		/* Unimplemented by relay daemon */
 		BT_LOGD("get_data_packet: retry");
-		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+		retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 		goto end;
 	case LTTNG_VIEWER_GET_PACKET_ERR:
 		if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
@@ -1279,13 +1279,13 @@ enum bt_notif_iter_medium_status lttng_live_get_stream_bytes(struct lttng_live_c
 		}
 		if (flags & (LTTNG_VIEWER_FLAG_NEW_METADATA
 				| LTTNG_VIEWER_FLAG_NEW_STREAM)) {
-			retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+			retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 			goto end;
 		}
 		BT_LOGE("get_data_packet: error");
 		goto error;
 	case LTTNG_VIEWER_GET_PACKET_EOF:
-		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_EOF;
+		retstatus = BT_MSG_ITER_MEDIUM_STATUS_EOF;
 		goto end;
 	default:
 		BT_LOGE("get_data_packet: unknown");
@@ -1312,9 +1312,9 @@ end:
 
 error:
 	if (lttng_live_is_canceled(lttng_live)) {
-		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_AGAIN;
+		retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 	} else {
-		retstatus = BT_NOTIF_ITER_MEDIUM_STATUS_ERROR;
+		retstatus = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
 	}
 	return retstatus;
 }

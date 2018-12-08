@@ -1,4 +1,4 @@
-SUBDIRS = notification
+SUBDIRS = message
 
 noinst_LTLIBRARIES = libgraph.la
 
@@ -17,4 +17,4 @@ libgraph_la_SOURCES = \
 	query-executor.c
 
 libgraph_la_LIBADD = \
-	notification/libgraph-notification.la
+	message/libgraph-message.la

@@ -45,7 +45,7 @@
 enum debug_info_stream_state {
 	/*
 	 * We know the stream exists but we have never received a
-	 * stream_begin notification for it.
+	 * stream_begin message for it.
 	 */
 	DEBUG_INFO_UNKNOWN_STREAM,
 	/* We know this stream is active (between stream_begin and _end). */
@@ -68,8 +68,8 @@ struct debug_info_iterator {
 	GHashTable *trace_map;
 	/* Input iterators associated with this output iterator. */
 	GPtrArray *input_iterator_group;
-	const bt_notification *current_notification;
-	bt_notification_iterator *input_iterator;
+	const bt_message *current_message;
+	bt_message_iterator *input_iterator;
 	FILE *err;
 };
 

@@ -80,7 +80,7 @@ babeltraceplugininclude_HEADERS = \
 	babeltrace/plugin/plugin-const.h \
 	babeltrace/plugin/plugin-set-const.h
 
-# Graph, component, and notification API
+# Graph, component, and message API
 babeltracegraphincludedir = "$(includedir)/babeltrace/graph"
 babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/component-class-const.h \
@@ -98,33 +98,33 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/connection-const.h \
 	babeltrace/graph/graph-const.h \
 	babeltrace/graph/graph.h \
-	babeltrace/graph/notification-const.h \
-	babeltrace/graph/notification-event-const.h \
-	babeltrace/graph/notification-event.h \
-	babeltrace/graph/notification-inactivity-const.h \
-	babeltrace/graph/notification-inactivity.h \
-	babeltrace/graph/notification-packet-const.h \
-	babeltrace/graph/notification-packet.h \
-	babeltrace/graph/notification-stream-const.h \
-	babeltrace/graph/notification-stream.h \
+	babeltrace/graph/message-const.h \
+	babeltrace/graph/message-event-const.h \
+	babeltrace/graph/message-event.h \
+	babeltrace/graph/message-inactivity-const.h \
+	babeltrace/graph/message-inactivity.h \
+	babeltrace/graph/message-packet-const.h \
+	babeltrace/graph/message-packet.h \
+	babeltrace/graph/message-stream-const.h \
+	babeltrace/graph/message-stream.h \
 	babeltrace/graph/port-const.h \
 	babeltrace/graph/port-input-const.h \
 	babeltrace/graph/port-output-const.h \
-	babeltrace/graph/port-output-notification-iterator.h \
+	babeltrace/graph/port-output-message-iterator.h \
 	babeltrace/graph/query-executor-const.h \
 	babeltrace/graph/query-executor.h \
 	babeltrace/graph/self-component-class-filter.h \
 	babeltrace/graph/self-component-class-sink.h \
 	babeltrace/graph/self-component-class-source.h \
 	babeltrace/graph/self-component-filter.h \
-	babeltrace/graph/self-component-port-input-notification-iterator.h \
+	babeltrace/graph/self-component-port-input-message-iterator.h \
 	babeltrace/graph/self-component-port-input.h \
 	babeltrace/graph/self-component-port-output.h \
 	babeltrace/graph/self-component-port.h \
 	babeltrace/graph/self-component-sink.h \
 	babeltrace/graph/self-component-source.h \
 	babeltrace/graph/self-component.h \
-	babeltrace/graph/self-notification-iterator.h
+	babeltrace/graph/self-message-iterator.h
 
 noinst_HEADERS = \
 	babeltrace/compat/stdlib-internal.h \
@@ -201,12 +201,12 @@ noinst_HEADERS = \
 	babeltrace/graph/component-source-internal.h \
 	babeltrace/graph/connection-internal.h \
 	babeltrace/graph/graph-internal.h \
-	babeltrace/graph/notification-event-internal.h \
-	babeltrace/graph/notification-inactivity-internal.h \
-	babeltrace/graph/notification-internal.h \
-	babeltrace/graph/notification-iterator-internal.h \
-	babeltrace/graph/notification-packet-internal.h \
-	babeltrace/graph/notification-stream-internal.h \
+	babeltrace/graph/message-event-internal.h \
+	babeltrace/graph/message-inactivity-internal.h \
+	babeltrace/graph/message-internal.h \
+	babeltrace/graph/message-iterator-internal.h \
+	babeltrace/graph/message-packet-internal.h \
+	babeltrace/graph/message-stream-internal.h \
 	babeltrace/graph/port-internal.h \
 	babeltrace/graph/query-executor-internal.h \
 	babeltrace/list-internal.h

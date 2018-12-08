@@ -38,7 +38,7 @@
 #include <babeltrace/graph/component-sink-internal.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -483,7 +483,7 @@ void remove_port_by_index(struct bt_component *component,
 	 * below (in which its component is `NULL` as expected because
 	 * of the bt_object_set_parent() call below).
 	 *
-	 * To avoid a destroyed port during the notification callback,
+	 * To avoid a destroyed port during the message callback,
 	 * get a reference now, and put it (destroying the port if its
 	 * reference count is 0 at this point) after notifying the
 	 * graph's user.

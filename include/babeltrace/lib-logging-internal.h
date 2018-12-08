@@ -121,11 +121,11 @@ int bt_lib_log_level;
  *       Value. The parameter type is `struct bt_value *`.
  *
  *   `n`:
- *       Notification. The parameter type is `struct bt_notification *`.
+ *       Message. The parameter type is `struct bt_message *`.
  *
  *   `i`:
- *       Notification iterator. The parameter type is
- *       `struct bt_notification_iterator *`.
+ *       Message iterator. The parameter type is
+ *       `struct bt_message_iterator *`.
  *
  *   `C`:
  *       Component class. The parameter type is `struct

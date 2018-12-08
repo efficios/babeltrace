@@ -32,8 +32,8 @@
 #include <babeltrace/graph/component-source-internal.h>
 #include <babeltrace/graph/component-internal.h>
 #include <babeltrace/graph/port-internal.h>
-#include <babeltrace/graph/notification-iterator.h>
-#include <babeltrace/graph/notification-iterator-internal.h>
+#include <babeltrace/graph/message-iterator.h>
+#include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/graph/graph.h>
 
 BT_HIDDEN

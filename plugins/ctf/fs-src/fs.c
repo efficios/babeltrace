@@ -37,7 +37,7 @@
 #include "data-stream-file.h"
 #include "file.h"
 #include "../common/metadata/decoder.h"
-#include "../common/notif-iter/notif-iter.h"
+#include "../common/msg-iter/msg-iter.h"
 #include "../common/utils/utils.h"
 #include "query.h"
 
@@ -45,25 +45,25 @@
 #include "logging.h"
 
 static
-int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_iter_data)
+int msg_iter_data_set_current_ds_file(struct ctf_fs_msg_iter_data *msg_iter_data)
 {
 	struct ctf_fs_ds_file_info *ds_file_info;
 	int ret = 0;
 
-	BT_ASSERT(notif_iter_data->ds_file_info_index <
-		notif_iter_data->ds_file_group->ds_file_infos->len);
+	BT_ASSERT(msg_iter_data->ds_file_info_index <
+		msg_iter_data->ds_file_group->ds_file_infos->len);
 	ds_file_info = g_ptr_array_index(
-		notif_iter_data->ds_file_group->ds_file_infos,
-		notif_iter_data->ds_file_info_index);
+		msg_iter_data->ds_file_group->ds_file_infos,
+		msg_iter_data->ds_file_info_index);
 
-	ctf_fs_ds_file_destroy(notif_iter_data->ds_file);
-	notif_iter_data->ds_file = ctf_fs_ds_file_create(
-		notif_iter_data->ds_file_group->ctf_fs_trace,
-		notif_iter_data->pc_notif_iter,
-		notif_iter_data->notif_iter,
-		notif_iter_data->ds_file_group->stream,
+	ctf_fs_ds_file_destroy(msg_iter_data->ds_file);
+	msg_iter_data->ds_file = ctf_fs_ds_file_create(
+		msg_iter_data->ds_file_group->ctf_fs_trace,
+		msg_iter_data->pc_msg_iter,
+		msg_iter_data->msg_iter,
+		msg_iter_data->ds_file_group->stream,
 		ds_file_info->path->str);
-	if (!notif_iter_data->ds_file) {
+	if (!msg_iter_data->ds_file) {
 		ret = -1;
 	}
 
@@ -71,121 +71,121 @@ int notif_iter_data_set_current_ds_file(struct ctf_fs_notif_iter_data *notif_ite
 }
 
 static
-void ctf_fs_notif_iter_data_destroy(
-		struct ctf_fs_notif_iter_data *notif_iter_data)
+void ctf_fs_msg_iter_data_destroy(
+		struct ctf_fs_msg_iter_data *msg_iter_data)
 {
-	if (!notif_iter_data) {
+	if (!msg_iter_data) {
 		return;
 	}
 
-	ctf_fs_ds_file_destroy(notif_iter_data->ds_file);
+	ctf_fs_ds_file_destroy(msg_iter_data->ds_file);
 
-	if (notif_iter_data->notif_iter) {
-		bt_notif_iter_destroy(notif_iter_data->notif_iter);
+	if (msg_iter_data->msg_iter) {
+		bt_msg_iter_destroy(msg_iter_data->msg_iter);
 	}
 
-	g_free(notif_iter_data);
+	g_free(msg_iter_data);
 }
 
 static
-enum bt_self_notification_iterator_status ctf_fs_iterator_next_one(
-		struct ctf_fs_notif_iter_data *notif_iter_data,
-		const bt_notification **notif)
+enum bt_self_message_iterator_status ctf_fs_iterator_next_one(
+		struct ctf_fs_msg_iter_data *msg_iter_data,
+		const bt_message **msg)
 {
-	enum bt_self_notification_iterator_status status;
-	bt_notification *priv_notif;
+	enum bt_self_message_iterator_status status;
+	bt_message *priv_msg;
 	int ret;
 
-	BT_ASSERT(notif_iter_data->ds_file);
-	status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-	*notif = priv_notif;
+	BT_ASSERT(msg_iter_data->ds_file);
+	status = ctf_fs_ds_file_next(msg_iter_data->ds_file, &priv_msg);
+	*msg = priv_msg;
 
-	if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK &&
-			bt_notification_get_type(*notif) ==
-			BT_NOTIFICATION_TYPE_STREAM_BEGINNING) {
-		if (notif_iter_data->skip_stream_begin_notifs) {
+	if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK &&
+			bt_message_get_type(*msg) ==
+			BT_MESSAGE_TYPE_STREAM_BEGINNING) {
+		if (msg_iter_data->skip_stream_begin_msgs) {
 			/*
 			 * We already emitted a
-			 * BT_NOTIFICATION_TYPE_STREAM_BEGINNING
-			 * notification: skip this one, get a new one.
+			 * BT_MESSAGE_TYPE_STREAM_BEGINNING
+			 * message: skip this one, get a new one.
 			 */
-			BT_NOTIFICATION_PUT_REF_AND_RESET(*notif);
-			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
-				&priv_notif);
-			*notif = priv_notif;
-			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
+			BT_MESSAGE_PUT_REF_AND_RESET(*msg);
+			status = ctf_fs_ds_file_next(msg_iter_data->ds_file,
+				&priv_msg);
+			*msg = priv_msg;
+			BT_ASSERT(status != BT_SELF_MESSAGE_ITERATOR_STATUS_END);
 			goto end;
 		} else {
 			/*
-			 * First BT_NOTIFICATION_TYPE_STREAM_BEGINNING
-			 * notification: skip all following.
+			 * First BT_MESSAGE_TYPE_STREAM_BEGINNING
+			 * message: skip all following.
 			 */
-			notif_iter_data->skip_stream_begin_notifs = true;
+			msg_iter_data->skip_stream_begin_msgs = true;
 			goto end;
 		}
 	}
 
-	if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK &&
-			bt_notification_get_type(*notif) ==
-			BT_NOTIFICATION_TYPE_STREAM_END) {
-		notif_iter_data->ds_file_info_index++;
+	if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK &&
+			bt_message_get_type(*msg) ==
+			BT_MESSAGE_TYPE_STREAM_END) {
+		msg_iter_data->ds_file_info_index++;
 
-		if (notif_iter_data->ds_file_info_index ==
-				notif_iter_data->ds_file_group->ds_file_infos->len) {
+		if (msg_iter_data->ds_file_info_index ==
+				msg_iter_data->ds_file_group->ds_file_infos->len) {
 			/*
 			 * No more stream files to read: we reached the
 			 * real end. Emit this
-			 * BT_NOTIFICATION_TYPE_STREAM_END notification.
+			 * BT_MESSAGE_TYPE_STREAM_END message.
 			 * The next time ctf_fs_iterator_next() is
-			 * called for this notification iterator,
+			 * called for this message iterator,
 			 * ctf_fs_ds_file_next() will return
-			 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_END().
+			 * BT_SELF_MESSAGE_ITERATOR_STATUS_END().
 			 */
 			goto end;
 		}
 
-		BT_NOTIFICATION_PUT_REF_AND_RESET(*notif);
-		bt_notif_iter_reset(notif_iter_data->notif_iter);
+		BT_MESSAGE_PUT_REF_AND_RESET(*msg);
+		bt_msg_iter_reset(msg_iter_data->msg_iter);
 
 		/*
 		 * Open and start reading the next stream file within
 		 * our stream file group.
 		 */
-		ret = notif_iter_data_set_current_ds_file(notif_iter_data);
+		ret = msg_iter_data_set_current_ds_file(msg_iter_data);
 		if (ret) {
-			status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
-		status = ctf_fs_ds_file_next(notif_iter_data->ds_file, &priv_notif);
-		*notif = priv_notif;
+		status = ctf_fs_ds_file_next(msg_iter_data->ds_file, &priv_msg);
+		*msg = priv_msg;
 
 		/*
-		 * If we get a notification, we expect to get a
-		 * BT_NOTIFICATION_TYPE_STREAM_BEGINNING notification
+		 * If we get a message, we expect to get a
+		 * BT_MESSAGE_TYPE_STREAM_BEGINNING message
 		 * because the iterator's state machine emits one before
 		 * even requesting the first block of data from the
-		 * medium. Skip this notification because we're not
+		 * medium. Skip this message because we're not
 		 * really starting a new stream here, and try getting a
-		 * new notification (which, if it works, is a
-		 * BT_NOTIFICATION_TYPE_PACKET_BEGINNING one). We're sure to
+		 * new message (which, if it works, is a
+		 * BT_MESSAGE_TYPE_PACKET_BEGINNING one). We're sure to
 		 * get at least one pair of
-		 * BT_NOTIFICATION_TYPE_PACKET_BEGINNING and
-		 * BT_NOTIFICATION_TYPE_PACKET_END notifications in the
+		 * BT_MESSAGE_TYPE_PACKET_BEGINNING and
+		 * BT_MESSAGE_TYPE_PACKET_END messages in the
 		 * case of a single, empty packet. We know there's at
 		 * least one packet because the stream file group does
 		 * not contain empty stream files.
 		 */
-		BT_ASSERT(notif_iter_data->skip_stream_begin_notifs);
+		BT_ASSERT(msg_iter_data->skip_stream_begin_msgs);
 
-		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
-			BT_ASSERT(bt_notification_get_type(*notif) ==
-				BT_NOTIFICATION_TYPE_STREAM_BEGINNING);
-			BT_NOTIFICATION_PUT_REF_AND_RESET(*notif);
-			status = ctf_fs_ds_file_next(notif_iter_data->ds_file,
-				&priv_notif);
-			*notif = priv_notif;
-			BT_ASSERT(status != BT_SELF_NOTIFICATION_ITERATOR_STATUS_END);
+		if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+			BT_ASSERT(bt_message_get_type(*msg) ==
+				BT_MESSAGE_TYPE_STREAM_BEGINNING);
+			BT_MESSAGE_PUT_REF_AND_RESET(*msg);
+			status = ctf_fs_ds_file_next(msg_iter_data->ds_file,
+				&priv_msg);
+			*msg = priv_msg;
+			BT_ASSERT(status != BT_SELF_MESSAGE_ITERATOR_STATUS_END);
 		}
 	}
 
@@ -194,20 +194,20 @@ end:
 }
 
 BT_HIDDEN
-enum bt_self_notification_iterator_status ctf_fs_iterator_next(
-		bt_self_notification_iterator *iterator,
-		bt_notification_array_const notifs, uint64_t capacity,
+enum bt_self_message_iterator_status ctf_fs_iterator_next(
+		bt_self_message_iterator *iterator,
+		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count)
 {
-	enum bt_self_notification_iterator_status status =
-		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
-	struct ctf_fs_notif_iter_data *notif_iter_data =
-		bt_self_notification_iterator_get_data(iterator);
+	enum bt_self_message_iterator_status status =
+		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+	struct ctf_fs_msg_iter_data *msg_iter_data =
+		bt_self_message_iterator_get_data(iterator);
 	uint64_t i = 0;
 
-	while (i < capacity && status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
-		status = ctf_fs_iterator_next_one(notif_iter_data, &notifs[i]);
-		if (status == BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
+	while (i < capacity && status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
+		status = ctf_fs_iterator_next_one(msg_iter_data, &msgs[i]);
+		if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
 			i++;
 		}
 	}
@@ -215,81 +215,81 @@ enum bt_self_notification_iterator_status ctf_fs_iterator_next(
 	if (i > 0) {
 		/*
 		 * Even if ctf_fs_iterator_next_one() returned something
-		 * else than BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK, we
-		 * accumulated notification objects in the output
-		 * notification array, so we need to return
-		 * BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK so that they are
+		 * else than BT_SELF_MESSAGE_ITERATOR_STATUS_OK, we
+		 * accumulated message objects in the output
+		 * message array, so we need to return
+		 * BT_SELF_MESSAGE_ITERATOR_STATUS_OK so that they are
 		 * transfered to downstream. This other status occurs
-		 * again the next time muxer_notif_iter_do_next() is
+		 * again the next time muxer_msg_iter_do_next() is
 		 * called, possibly without any accumulated
-		 * notification, in which case we'll return it.
+		 * message, in which case we'll return it.
 		 */
 		*count = i;
-		status = BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	}
 
 	return status;
 }
 
-void ctf_fs_iterator_finalize(bt_self_notification_iterator *it)
+void ctf_fs_iterator_finalize(bt_self_message_iterator *it)
 {
-	ctf_fs_notif_iter_data_destroy(
-		bt_self_notification_iterator_get_data(it));
+	ctf_fs_msg_iter_data_destroy(
+		bt_self_message_iterator_get_data(it));
 }
 
-enum bt_self_notification_iterator_status ctf_fs_iterator_init(
-		bt_self_notification_iterator *self_notif_iter,
+enum bt_self_message_iterator_status ctf_fs_iterator_init(
+		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
 		bt_self_component_port_output *self_port)
 {
 	struct ctf_fs_port_data *port_data;
-	struct ctf_fs_notif_iter_data *notif_iter_data = NULL;
-	enum bt_self_notification_iterator_status ret =
-		BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK;
+	struct ctf_fs_msg_iter_data *msg_iter_data = NULL;
+	enum bt_self_message_iterator_status ret =
+		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	int iret;
 
 	port_data = bt_self_component_port_get_data(
 		bt_self_component_port_output_as_self_component_port(
 			self_port));
 	BT_ASSERT(port_data);
-	notif_iter_data = g_new0(struct ctf_fs_notif_iter_data, 1);
-	if (!notif_iter_data) {
-		ret = BT_SELF_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+	msg_iter_data = g_new0(struct ctf_fs_msg_iter_data, 1);
+	if (!msg_iter_data) {
+		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
 		goto error;
 	}
 
-	notif_iter_data->pc_notif_iter = self_notif_iter;
-	notif_iter_data->notif_iter = bt_notif_iter_create(
+	msg_iter_data->pc_msg_iter = self_msg_iter;
+	msg_iter_data->msg_iter = bt_msg_iter_create(
 		port_data->ds_file_group->ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size() * 8,
 		ctf_fs_ds_file_medops, NULL);
-	if (!notif_iter_data->notif_iter) {
-		BT_LOGE_STR("Cannot create a CTF notification iterator.");
-		ret = BT_SELF_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+	if (!msg_iter_data->msg_iter) {
+		BT_LOGE_STR("Cannot create a CTF message iterator.");
+		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
 		goto error;
 	}
 
-	notif_iter_data->ds_file_group = port_data->ds_file_group;
-	iret = notif_iter_data_set_current_ds_file(notif_iter_data);
+	msg_iter_data->ds_file_group = port_data->ds_file_group;
+	iret = msg_iter_data_set_current_ds_file(msg_iter_data);
 	if (iret) {
-		ret = BT_SELF_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 		goto error;
 	}
 
-	bt_self_notification_iterator_set_data(self_notif_iter,
-		notif_iter_data);
-	if (ret != BT_SELF_NOTIFICATION_ITERATOR_STATUS_OK) {
+	bt_self_message_iterator_set_data(self_msg_iter,
+		msg_iter_data);
+	if (ret != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
 		goto error;
 	}
 
-	notif_iter_data = NULL;
+	msg_iter_data = NULL;
 	goto end;
 
 error:
-	bt_self_notification_iterator_set_data(self_notif_iter, NULL);
+	bt_self_message_iterator_set_data(self_msg_iter, NULL);
 
 end:
-	ctf_fs_notif_iter_data_destroy(notif_iter_data);
+	ctf_fs_msg_iter_data_destroy(msg_iter_data);
 	return ret;
 }
 
@@ -341,7 +341,7 @@ void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 }
 
 static
-void ctf_fs_trace_destroy_notifier(void *data)
+void ctf_fs_trace_destroy_msgier(void *data)
 {
 	struct ctf_fs_trace *trace = data;
 	ctf_fs_trace_destroy(trace);
@@ -623,18 +623,18 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	size_t i;
 	struct ctf_fs_ds_file *ds_file = NULL;
 	struct ctf_fs_ds_index *index = NULL;
-	struct bt_notif_iter *notif_iter = NULL;
+	struct bt_msg_iter *msg_iter = NULL;
 	struct ctf_stream_class *sc = NULL;
-	struct bt_notif_iter_packet_properties props;
+	struct bt_msg_iter_packet_properties props;
 
-	notif_iter = bt_notif_iter_create(ctf_fs_trace->metadata->tc,
+	msg_iter = bt_msg_iter_create(ctf_fs_trace->metadata->tc,
 		bt_common_get_page_size() * 8, ctf_fs_ds_file_medops, NULL);
-	if (!notif_iter) {
-		BT_LOGE_STR("Cannot create a CTF notification iterator.");
+	if (!msg_iter) {
+		BT_LOGE_STR("Cannot create a CTF message iterator.");
 		goto error;
 	}
 
-	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, notif_iter,
+	ds_file = ctf_fs_ds_file_create(ctf_fs_trace, NULL, msg_iter,
 		NULL, path);
 	if (!ds_file) {
 		goto error;
@@ -648,7 +648,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
-	ret = bt_notif_iter_get_packet_properties(ds_file->notif_iter, &props);
+	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	BT_ASSERT(ret == 0);
 	sc = ctf_trace_class_borrow_stream_class_by_id(ds_file->metadata->tc,
 		props.stream_class_id);
@@ -757,8 +757,8 @@ end:
 
 	ctf_fs_ds_file_destroy(ds_file);
 
-	if (notif_iter) {
-		bt_notif_iter_destroy(notif_iter);
+	if (msg_iter) {
+		bt_msg_iter_destroy(msg_iter);
 	}
 
 	ctf_fs_ds_index_destroy(index);
@@ -1361,7 +1361,7 @@ struct ctf_fs_component *ctf_fs_create(
 	}
 
 	ctf_fs->traces = g_ptr_array_new_with_free_func(
-			ctf_fs_trace_destroy_notifier);
+			ctf_fs_trace_destroy_msgier);
 	if (!ctf_fs->traces) {
 		goto error;
 	}

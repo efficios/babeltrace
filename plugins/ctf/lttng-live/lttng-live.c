@@ -339,10 +339,10 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 }
 
 BT_HIDDEN
-void lttng_live_iterator_finalize(bt_self_notification_iterator *it)
+void lttng_live_iterator_finalize(bt_self_message_iterator *it)
 {
 	struct lttng_live_stream_iterator_generic *s =
-			bt_self_notification_iterator_get_user_data(it);
+			bt_self_message_iterator_get_user_data(it);
 
 	switch (s->type) {
 	case LIVE_STREAM_TYPE_NO_STREAM:
@@ -442,11 +442,11 @@ end:
 }
 
 /*
- * Creation of the notification requires the ctf trace to be created
+ * Creation of the message requires the ctf trace to be created
  * beforehand, but the live protocol gives us all streams (including
  * metadata) at once. So we split it in three steps: getting streams,
  * getting metadata (which creates the ctf trace), and then creating the
- * per-stream notifications.
+ * per-stream messages.
  */
 static
 enum bt_lttng_live_iterator_status lttng_live_get_session(
@@ -475,7 +475,7 @@ enum bt_lttng_live_iterator_status lttng_live_get_session(
 			return status;
 		}
 	}
-	return lttng_live_lazy_notif_init(session);
+	return lttng_live_lazy_msg_init(session);
 }
 
 BT_HIDDEN
@@ -553,10 +553,10 @@ end:
 }
 
 static
-enum bt_lttng_live_iterator_status emit_inactivity_notification(
+enum bt_lttng_live_iterator_status emit_inactivity_message(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
-		const bt_notification **notification,
+		const bt_message **message,
 		uint64_t timestamp)
 {
 	enum bt_lttng_live_iterator_status ret =
@@ -564,7 +564,7 @@ enum bt_lttng_live_iterator_status emit_inactivity_notification(
 	struct lttng_live_trace *trace;
 	const bt_clock_class *clock_class = NULL;
 	bt_clock_value *clock_value = NULL;
-	const bt_notification *notif = NULL;
+	const bt_message *msg = NULL;
 	int retval;
 
 	trace = lttng_live_stream->trace;
@@ -579,15 +579,15 @@ enum bt_lttng_live_iterator_status emit_inactivity_notification(
 	if (!clock_value) {
 		goto error;
 	}
-	notif = bt_notification_inactivity_create(trace->cc_prio_map);
-	if (!notif) {
+	msg = bt_message_inactivity_create(trace->cc_prio_map);
+	if (!msg) {
 		goto error;
 	}
-	retval = bt_notification_inactivity_set_clock_value(notif, clock_value);
+	retval = bt_message_inactivity_set_clock_value(msg, clock_value);
 	if (retval) {
 		goto error;
 	}
-	*notification = notif;
+	*message = msg;
 end:
 	bt_object_put_ref(clock_value);
 	bt_clock_class_put_ref(clock_class);
@@ -595,7 +595,7 @@ end:
 
 error:
 	ret = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
-	bt_notification_put_ref(notif);
+	bt_message_put_ref(msg);
 	goto end;
 }
 
@@ -603,7 +603,7 @@ static
 enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
-		const bt_notification **notification)
+		const bt_message **message)
 {
 	enum bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
@@ -621,7 +621,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_quiescent
 		goto end;
 	}
 
-	ret = emit_inactivity_notification(lttng_live, lttng_live_stream, notification,
+	ret = emit_inactivity_message(lttng_live, lttng_live_stream, message,
 			(uint64_t) lttng_live_stream->current_inactivity_timestamp);
 
 	lttng_live_stream->last_returned_inactivity_timestamp =
@@ -636,11 +636,11 @@ static
 enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_data_stream(
 		struct lttng_live_component *lttng_live,
 		struct lttng_live_stream_iterator *lttng_live_stream,
-		const bt_notification **notification)
+		const bt_message **message)
 {
 	enum bt_lttng_live_iterator_status ret =
 			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
-	enum bt_notif_iter_status status;
+	enum bt_msg_iter_status status;
 	struct lttng_live_session *session;
 
 	bt_list_for_each_entry(session, &lttng_live->sessions, node) {
@@ -659,36 +659,36 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_da
 	if (lttng_live_stream->state != LTTNG_LIVE_STREAM_ACTIVE_DATA) {
 		return BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 	}
-	if (lttng_live_stream->packet_end_notif_queue) {
-		*notification = lttng_live_stream->packet_end_notif_queue;
-		lttng_live_stream->packet_end_notif_queue = NULL;
-		status = BT_NOTIF_ITER_STATUS_OK;
+	if (lttng_live_stream->packet_end_msg_queue) {
+		*message = lttng_live_stream->packet_end_msg_queue;
+		lttng_live_stream->packet_end_msg_queue = NULL;
+		status = BT_MSG_ITER_STATUS_OK;
 	} else {
-		status = bt_notif_iter_get_next_notification(
-				lttng_live_stream->notif_iter,
+		status = bt_msg_iter_get_next_message(
+				lttng_live_stream->msg_iter,
 				lttng_live_stream->trace->cc_prio_map,
-				notification);
-		if (status == BT_NOTIF_ITER_STATUS_OK) {
+				message);
+		if (status == BT_MSG_ITER_STATUS_OK) {
 			/*
 			 * Consider empty packets as inactivity.
 			 */
-			if (bt_notification_get_type(*notification) == BT_NOTIFICATION_TYPE_PACKET_END) {
-				lttng_live_stream->packet_end_notif_queue = *notification;
-				*notification = NULL;
-				return emit_inactivity_notification(lttng_live,
-						lttng_live_stream, notification,
+			if (bt_message_get_type(*message) == BT_MESSAGE_TYPE_PACKET_END) {
+				lttng_live_stream->packet_end_msg_queue = *message;
+				*message = NULL;
+				return emit_inactivity_message(lttng_live,
+						lttng_live_stream, message,
 						lttng_live_stream->current_packet_end_timestamp);
 			}
 		}
 	}
 	switch (status) {
-	case BT_NOTIF_ITER_STATUS_EOF:
+	case BT_MSG_ITER_STATUS_EOF:
 		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_END;
 		break;
-	case BT_NOTIF_ITER_STATUS_OK:
+	case BT_MSG_ITER_STATUS_OK:
 		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
 		break;
-	case BT_NOTIF_ITER_STATUS_AGAIN:
+	case BT_MSG_ITER_STATUS_AGAIN:
 		/*
 		 * Continue immediately (end of packet). The next
 		 * get_index may return AGAIN to delay the following
@@ -696,9 +696,9 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_da
 		 */
 		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		break;
-	case BT_NOTIF_ITER_STATUS_INVAL:
+	case BT_MSG_ITER_STATUS_INVAL:
 		/* No argument provided by the user, so don't return INVAL. */
-	case BT_NOTIF_ITER_STATUS_ERROR:
+	case BT_MSG_ITER_STATUS_ERROR:
 	default:
 		ret = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 		break;
@@ -741,7 +741,7 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_da
  *            handle_active_data_streams()
  *                - if at least one stream is ACTIVE_DATA:
  *                    - get stream event with lowest timestamp from heap
- *                    - make that stream event the current notification.
+ *                    - make that stream event the current message.
  *                    - move this stream heap position to its next event
  *                      - if we need to fetch data from relayd, move
  *                        stream to ACTIVE_NO_DATA.
@@ -755,18 +755,18 @@ enum bt_lttng_live_iterator_status lttng_live_iterator_next_handle_one_active_da
  * When disconnected from relayd: try to re-connect endlessly.
  */
 static
-bt_notification_iterator_next_method_return lttng_live_iterator_next_stream(
-		bt_self_notification_iterator *iterator,
+bt_message_iterator_next_method_return lttng_live_iterator_next_stream(
+		bt_self_message_iterator *iterator,
 		struct lttng_live_stream_iterator *stream_iter)
 {
 	enum bt_lttng_live_iterator_status status;
-	bt_notification_iterator_next_method_return next_return;
+	bt_message_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
 	lttng_live = stream_iter->trace->session->lttng_live;
 retry:
 	print_stream_state(stream_iter);
-	next_return.notification = NULL;
+	next_return.message = NULL;
 	status = lttng_live_iterator_next_handle_new_streams_and_metadata(lttng_live);
 	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
@@ -777,18 +777,18 @@ retry:
 		goto end;
 	}
 	status = lttng_live_iterator_next_handle_one_quiescent_stream(
-			lttng_live, stream_iter, &next_return.notification);
+			lttng_live, stream_iter, &next_return.message);
 	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
-		BT_ASSERT(next_return.notification == NULL);
+		BT_ASSERT(next_return.message == NULL);
 		goto end;
 	}
-	if (next_return.notification) {
+	if (next_return.message) {
 		goto end;
 	}
 	status = lttng_live_iterator_next_handle_one_active_data_stream(lttng_live,
-			stream_iter, &next_return.notification);
+			stream_iter, &next_return.message);
 	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
-		BT_ASSERT(next_return.notification == NULL);
+		BT_ASSERT(next_return.message == NULL);
 	}
 
 end:
@@ -797,47 +797,47 @@ end:
 		print_dbg("continue");
 		goto retry;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_AGAIN;
 		print_dbg("again");
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_END:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_END;
 		print_dbg("end");
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_OK:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_OK;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_OK;
 		print_dbg("ok");
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_INVAL:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_INVALID;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_UNSUPPORTED;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR:
 	default:	/* fall-through */
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 		break;
 	}
 	return next_return;
 }
 
 static
-bt_notification_iterator_next_method_return lttng_live_iterator_next_no_stream(
-		bt_self_notification_iterator *iterator,
+bt_message_iterator_next_method_return lttng_live_iterator_next_no_stream(
+		bt_self_message_iterator *iterator,
 		struct lttng_live_no_stream_iterator *no_stream_iter)
 {
 	enum bt_lttng_live_iterator_status status;
-	bt_notification_iterator_next_method_return next_return;
+	bt_message_iterator_next_method_return next_return;
 	struct lttng_live_component *lttng_live;
 
 	lttng_live = no_stream_iter->lttng_live;
 retry:
 	lttng_live_force_new_streams_and_metadata(lttng_live);
-	next_return.notification = NULL;
+	next_return.message = NULL;
 	status = lttng_live_iterator_next_handle_new_streams_and_metadata(lttng_live);
 	if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
 		goto end;
@@ -852,35 +852,35 @@ end:
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE:
 		goto retry;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_AGAIN;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_AGAIN;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_END:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_END;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_END;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_INVAL:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_INVALID;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_INVALID;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_NOMEM:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_NOMEM;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_NOMEM;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_UNSUPPORTED:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_UNSUPPORTED;
 		break;
 	case BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR:
 	default:	/* fall-through */
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 		break;
 	}
 	return next_return;
 }
 
 BT_HIDDEN
-bt_notification_iterator_next_method_return lttng_live_iterator_next(
-		bt_self_notification_iterator *iterator)
+bt_message_iterator_next_method_return lttng_live_iterator_next(
+		bt_self_message_iterator *iterator)
 {
 	struct lttng_live_stream_iterator_generic *s =
-			bt_self_notification_iterator_get_user_data(iterator);
-	bt_notification_iterator_next_method_return next_return;
+			bt_self_message_iterator_get_user_data(iterator);
+	bt_message_iterator_next_method_return next_return;
 
 	switch (s->type) {
 	case LIVE_STREAM_TYPE_NO_STREAM:
@@ -892,19 +892,19 @@ bt_notification_iterator_next_method_return lttng_live_iterator_next(
 			container_of(s, struct lttng_live_stream_iterator, p));
 		break;
 	default:
-		next_return.status = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		next_return.status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 		break;
 	}
 	return next_return;
 }
 
 BT_HIDDEN
-enum bt_notification_iterator_status lttng_live_iterator_init(
-		bt_self_notification_iterator *it,
+enum bt_message_iterator_status lttng_live_iterator_init(
+		bt_self_message_iterator *it,
 		struct bt_private_port *port)
 {
-	enum bt_notification_iterator_status ret =
-			BT_NOTIFICATION_ITERATOR_STATUS_OK;
+	enum bt_message_iterator_status ret =
+			BT_MESSAGE_ITERATOR_STATUS_OK;
 	struct lttng_live_stream_iterator_generic *s;
 
 	BT_ASSERT(it);
@@ -916,7 +916,7 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_no_stream_iterator *no_stream_iter =
 			container_of(s, struct lttng_live_no_stream_iterator, p);
-		ret = bt_self_notification_iterator_set_user_data(it, no_stream_iter);
+		ret = bt_self_message_iterator_set_user_data(it, no_stream_iter);
 		if (ret) {
 			goto error;
 		}
@@ -926,22 +926,22 @@ enum bt_notification_iterator_status lttng_live_iterator_init(
 	{
 		struct lttng_live_stream_iterator *stream_iter =
 			container_of(s, struct lttng_live_stream_iterator, p);
-		ret = bt_self_notification_iterator_set_user_data(it, stream_iter);
+		ret = bt_self_message_iterator_set_user_data(it, stream_iter);
 		if (ret) {
 			goto error;
 		}
 		break;
 	}
 	default:
-		ret = BT_NOTIFICATION_ITERATOR_STATUS_ERROR;
+		ret = BT_MESSAGE_ITERATOR_STATUS_ERROR;
 		goto end;
 	}
 
 end:
 	return ret;
 error:
-	if (bt_self_notification_iterator_set_user_data(it, NULL)
-			!= BT_NOTIFICATION_ITERATOR_STATUS_OK) {
+	if (bt_self_message_iterator_set_user_data(it, NULL)
+			!= BT_MESSAGE_ITERATOR_STATUS_OK) {
 		BT_LOGE("Error setting private data to NULL");
 	}
 	goto end;

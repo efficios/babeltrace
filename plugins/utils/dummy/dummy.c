@@ -28,7 +28,7 @@
 
 void destroy_private_dummy_data(struct dummy *dummy)
 {
-	bt_self_component_port_input_notification_iterator_put_ref(dummy->notif_iter);
+	bt_self_component_port_input_message_iterator_put_ref(dummy->msg_iter);
 	g_free(dummy);
 
 }
@@ -84,20 +84,20 @@ enum bt_self_component_status dummy_port_connected(
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
-	bt_self_component_port_input_notification_iterator *iterator;
+	bt_self_component_port_input_message_iterator *iterator;
 
 	dummy = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(dummy);
-	iterator = bt_self_component_port_input_notification_iterator_create(
+	iterator = bt_self_component_port_input_message_iterator_create(
 		self_port);
 	if (!iterator) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
 	}
 
-	BT_SELF_COMPONENT_PORT_INPUT_NOTIFICATION_ITERATOR_MOVE_REF(
-		dummy->notif_iter, iterator);
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_MOVE_REF(
+		dummy->msg_iter, iterator);
 
 end:
 	return status;
@@ -108,43 +108,43 @@ enum bt_self_component_status dummy_consume(
 		bt_self_component_sink *component)
 {
 	enum bt_self_component_status ret = BT_SELF_COMPONENT_STATUS_OK;
-	bt_notification_array_const notifs;
+	bt_message_array_const msgs;
 	uint64_t count;
 	struct dummy *dummy;
-	enum bt_notification_iterator_status it_ret;
+	enum bt_message_iterator_status it_ret;
 	uint64_t i;
 
 	dummy = bt_self_component_get_data(
 		bt_self_component_sink_as_self_component(component));
 	BT_ASSERT(dummy);
 
-	if (unlikely(!dummy->notif_iter)) {
+	if (unlikely(!dummy->msg_iter)) {
 		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto end;
 	}
 
-	/* Consume one notification  */
-	it_ret = bt_self_component_port_input_notification_iterator_next(
-		dummy->notif_iter, &notifs, &count);
+	/* Consume one message  */
+	it_ret = bt_self_component_port_input_message_iterator_next(
+		dummy->msg_iter, &msgs, &count);
 	switch (it_ret) {
-	case BT_NOTIFICATION_ITERATOR_STATUS_OK:
+	case BT_MESSAGE_ITERATOR_STATUS_OK:
 		ret = BT_SELF_COMPONENT_STATUS_OK;
 
 		for (i = 0; i < count; i++) {
-			bt_notification_put_ref(notifs[i]);
+			bt_message_put_ref(msgs[i]);
 		}
 
 		break;
-	case BT_NOTIFICATION_ITERATOR_STATUS_AGAIN:
+	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		ret = BT_SELF_COMPONENT_STATUS_AGAIN;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_END:
+	case BT_MESSAGE_ITERATOR_STATUS_END:
 		ret = BT_SELF_COMPONENT_STATUS_END;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_ERROR:
+	case BT_MESSAGE_ITERATOR_STATUS_ERROR:
 		ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto end;
-	case BT_NOTIFICATION_ITERATOR_STATUS_NOMEM:
+	case BT_MESSAGE_ITERATOR_STATUS_NOMEM:
 		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;
 	default:

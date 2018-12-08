@@ -90,7 +90,7 @@ enum lttng_viewer_get_metadata_return_code {
 
 enum lttng_viewer_connection_type {
 	LTTNG_VIEWER_CLIENT_COMMAND		= 1,
-	LTTNG_VIEWER_CLIENT_NOTIFICATION	= 2,
+	LTTNG_VIEWER_CLIENT_MESSAGE	= 2,
 };
 
 enum lttng_viewer_seek {

@@ -72,7 +72,7 @@ struct pretty_options {
 
 struct pretty_component {
 	struct pretty_options options;
-	bt_self_component_port_input_notification_iterator *iterator;
+	bt_self_component_port_input_message_iterator *iterator;
 	FILE *out, *err;
 	int depth;	/* nesting, used for tabulation alignment. */
 	bool start_line;
@@ -124,10 +124,10 @@ void pretty_finalize(bt_self_component_sink *component);
 
 BT_HIDDEN
 int pretty_print_event(struct pretty_component *pretty,
-		const bt_notification *event_notif);
+		const bt_message *event_msg);
 
 BT_HIDDEN
 int pretty_print_packet(struct pretty_component *pretty,
-		const bt_notification *packet_beginning_notif);
+		const bt_message *packet_beginning_msg);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */
