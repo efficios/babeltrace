@@ -883,7 +883,7 @@ void print_plugin_info(const bt_plugin *plugin)
 {
 	unsigned int major, minor, patch;
 	const char *extra;
-	enum bt_plugin_status version_status;
+	enum bt_property_availability version_avail;
 	const char *plugin_name;
 	const char *path;
 	const char *author;
@@ -895,7 +895,7 @@ void print_plugin_info(const bt_plugin *plugin)
 	author = bt_plugin_get_author(plugin);
 	license = bt_plugin_get_license(plugin);
 	plugin_description = bt_plugin_get_description(plugin);
-	version_status = bt_plugin_get_version(plugin, &major, &minor,
+	version_avail = bt_plugin_get_version(plugin, &major, &minor,
 		&patch, &extra);
 	printf("%s%s%s%s:\n", bt_common_color_bold(),
 		bt_common_color_fg_blue(), plugin_name,
@@ -907,7 +907,7 @@ void print_plugin_info(const bt_plugin *plugin)
 		puts("  Built-in");
 	}
 
-	if (version_status == BT_PLUGIN_STATUS_OK) {
+	if (version_avail == BT_PROPERTY_AVAILABILITY_AVAILABLE) {
 		printf("  %sVersion%s: %u.%u.%u",
 			bt_common_color_bold(), bt_common_color_reset(),
 			major, minor, patch);
