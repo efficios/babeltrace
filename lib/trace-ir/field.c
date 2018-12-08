@@ -558,7 +558,7 @@ void bt_field_real_set_value(struct bt_field *field, double value)
 	bt_field_set_single(field, true);
 }
 
-int bt_field_unsigned_enumeration_get_mapping_labels(
+enum bt_field_status bt_field_unsigned_enumeration_get_mapping_labels(
 		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
@@ -571,11 +571,12 @@ int bt_field_unsigned_enumeration_get_mapping_labels(
 	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION, "Field");
-	return bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
-		field->class, int_field->value.u, label_array, count);
+	return (int)
+		bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(
+			field->class, int_field->value.u, label_array, count);
 }
 
-int bt_field_signed_enumeration_get_mapping_labels(
+enum bt_field_status bt_field_signed_enumeration_get_mapping_labels(
 		const struct bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *label_array,
 		uint64_t *count)
@@ -588,8 +589,9 @@ int bt_field_signed_enumeration_get_mapping_labels(
 	BT_ASSERT_PRE_FIELD_IS_SET(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION, "Field");
-	return bt_field_class_signed_enumeration_get_mapping_labels_by_value(
-		field->class, int_field->value.i, label_array, count);
+	return (int)
+		bt_field_class_signed_enumeration_get_mapping_labels_by_value(
+			field->class, int_field->value.i, label_array, count);
 }
 
 const char *bt_field_string_get_value(const struct bt_field *field)
@@ -614,25 +616,36 @@ uint64_t bt_field_string_get_length(const struct bt_field *field)
 	return string_field->length;
 }
 
-int bt_field_string_set_value(struct bt_field *field, const char *value)
+static inline
+void clear_string_field(struct bt_field *field)
+{
+	struct bt_field_string *string_field = (void *) field;
+
+	BT_ASSERT(field);
+	string_field->length = 0;
+	bt_field_set_single(field, true);
+}
+
+enum bt_field_status bt_field_string_set_value(struct bt_field *field,
+		const char *value)
 {
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_NON_NULL(value, "Value");
 	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field, BT_FIELD_CLASS_TYPE_STRING,
 		"Field");
-	bt_field_string_clear(field);
+	clear_string_field(field);
 	return bt_field_string_append_with_length(field, value,
 		(uint64_t) strlen(value));
 }
 
-int bt_field_string_append(struct bt_field *field, const char *value)
+enum bt_field_status bt_field_string_append(struct bt_field *field, const char *value)
 {
 	return bt_field_string_append_with_length(field,
 		value, (uint64_t) strlen(value));
 }
 
-int bt_field_string_append_with_length(struct bt_field *field,
+enum bt_field_status bt_field_string_append_with_length(struct bt_field *field,
 		const char *value, uint64_t length)
 {
 	struct bt_field_string *string_field = (void *) field;
@@ -661,20 +674,17 @@ int bt_field_string_append_with_length(struct bt_field *field,
 	((char *) string_field->buf->data)[new_length] = '\0';
 	string_field->length = new_length;
 	bt_field_set_single(field, true);
-	return 0;
+	return BT_FIELD_STATUS_OK;
 }
 
-int bt_field_string_clear(struct bt_field *field)
+enum bt_field_status bt_field_string_clear(struct bt_field *field)
 {
-	struct bt_field_string *string_field = (void *) field;
-
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT_PRE_FIELD_HOT(field, "Field");
 	BT_ASSERT_PRE_FIELD_HAS_CLASS_TYPE(field,
 		BT_FIELD_CLASS_TYPE_STRING, "Field");
-	string_field->length = 0;
-	bt_field_set_single(field, true);
-	return 0;
+	clear_string_field(field);
+	return BT_FIELD_STATUS_OK;
 }
 
 uint64_t bt_field_array_get_length(const struct bt_field *field)
@@ -686,9 +696,10 @@ uint64_t bt_field_array_get_length(const struct bt_field *field)
 	return array_field->length;
 }
 
-int bt_field_dynamic_array_set_length(struct bt_field *field, uint64_t length)
+enum bt_field_status bt_field_dynamic_array_set_length(struct bt_field *field,
+		uint64_t length)
 {
-	int ret = 0;
+	int ret = BT_FIELD_STATUS_OK;
 	struct bt_field_array *array_field = (void *) field;
 
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
@@ -714,7 +725,7 @@ int bt_field_dynamic_array_set_length(struct bt_field *field, uint64_t length)
 					"dynamic array field: "
 					"index=%" PRIu64 ", "
 					"%![array-field-]+f", i, field);
-				ret = -1;
+				ret = BT_FIELD_STATUS_NOMEM;
 				goto end;
 			}
 
@@ -849,7 +860,7 @@ const struct bt_field *bt_field_variant_borrow_selected_option_field_const(
 	return borrow_variant_field_selected_option_field((void *) field);
 }
 
-int bt_field_variant_select_option_field(
+enum bt_field_status bt_field_variant_select_option_field(
 		struct bt_field *field, uint64_t index)
 {
 	struct bt_field_variant *var_field = (void *) field;
@@ -861,7 +872,7 @@ int bt_field_variant_select_option_field(
 	BT_ASSERT_PRE_VALID_INDEX(index, var_field->fields->len);
 	var_field->selected_field = var_field->fields->pdata[index];
 	var_field->selected_index = index;
-	return 0;
+	return BT_FIELD_STATUS_OK;
 }
 
 uint64_t bt_field_variant_get_selected_option_field_index(
