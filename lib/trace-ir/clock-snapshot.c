@@ -27,6 +27,7 @@
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/compat/string-internal.h>
@@ -142,10 +143,12 @@ uint64_t bt_clock_snapshot_get_value(const struct bt_clock_snapshot *clock_snaps
 	return clock_snapshot->value_cycles;
 }
 
-int bt_clock_snapshot_get_ns_from_origin(const struct bt_clock_snapshot *clock_snapshot,
+enum bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
+		const struct bt_clock_snapshot *clock_snapshot,
 		int64_t *ret_value_ns)
 {
-	int ret = 0;
+	int ret = BT_CLOCK_SNAPSHOT_STATUS_OK;
+
 	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot");
 	BT_ASSERT_PRE_NON_NULL(ret_value_ns, "Value (ns) (output)");
 	BT_ASSERT_PRE(clock_snapshot->is_set,
@@ -155,7 +158,7 @@ int bt_clock_snapshot_get_ns_from_origin(const struct bt_clock_snapshot *clock_s
 		BT_LIB_LOGD("Clock snapshot, once converted to nanoseconds from origin, "
 			"overflows the signed 64-bit integer range: "
 			"%![cs-]+k", clock_snapshot);
-		ret = -1;
+		ret = BT_CLOCK_SNAPSHOT_STATUS_OVERFLOW;
 		goto end;
 	}
 

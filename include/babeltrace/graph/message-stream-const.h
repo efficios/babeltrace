@@ -27,6 +27,9 @@
 /* For bt_message, bt_clock_snapshot, bt_stream */
 #include <babeltrace/types.h>
 
+/* For enum bt_clock_snapshot_state */
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,16 +37,16 @@ extern "C" {
 extern const bt_stream *bt_message_stream_beginning_borrow_stream_const(
 		const bt_message *message);
 
-extern const bt_clock_snapshot *
+extern enum bt_clock_snapshot_state
 bt_message_stream_beginning_borrow_default_clock_snapshot_const(
-		const bt_message *msg);
+		const bt_message *msg, const bt_clock_snapshot **snapshot);
 
 extern const bt_stream *bt_message_stream_end_borrow_stream_const(
 		const bt_message *message);
 
-extern const bt_clock_snapshot *
+extern enum bt_clock_snapshot_state
 bt_message_stream_end_borrow_default_clock_snapshot_const(
-		const bt_message *msg);
+		const bt_message *msg, const bt_clock_snapshot **snapshot);
 
 #ifdef __cplusplus
 }

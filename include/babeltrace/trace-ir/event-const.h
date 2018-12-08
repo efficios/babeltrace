@@ -27,7 +27,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For enum bt_clock_snapshot_status */
+/* For enum bt_clock_snapshot_state */
 #include <babeltrace/trace-ir/clock-snapshot-const.h>
 
 /* For bt_event, bt_clock_snapshot, bt_event_class, bt_field, bt_packet */
@@ -58,7 +58,7 @@ extern const bt_field *bt_event_borrow_specific_context_field_const(
 extern const bt_field *bt_event_borrow_payload_field_const(
 		const bt_event *event);
 
-extern enum bt_clock_snapshot_status bt_event_borrow_default_clock_snapshot_const(
+extern enum bt_clock_snapshot_state bt_event_borrow_default_clock_snapshot_const(
 		const bt_event *event,
 		const bt_clock_snapshot **clock_snapshot);
 

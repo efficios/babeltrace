@@ -26,6 +26,7 @@
 
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compiler-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
 #include <babeltrace/trace-ir/stream-internal.h>
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream-class-internal.h>
@@ -127,14 +128,17 @@ void bt_message_stream_end_set_default_clock_snapshot(
 		"value=%" PRIu64, value_cycles);
 }
 
-struct bt_clock_snapshot *bt_message_stream_end_borrow_default_clock_snapshot(
-		struct bt_message *msg)
+enum bt_clock_snapshot_state
+bt_message_stream_end_borrow_default_clock_snapshot_const(
+		const bt_message *msg, const bt_clock_snapshot **snapshot)
 {
 	struct bt_message_stream_end *stream_end = (void *) msg;
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_END);
-	return stream_end->default_cs;
+	*snapshot = stream_end->default_cs;
+	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 }
 
 static
@@ -229,12 +233,15 @@ void bt_message_stream_beginning_set_default_clock_snapshot(
 		"value=%" PRIu64, value_cycles);
 }
 
-struct bt_clock_snapshot *bt_message_stream_beginning_borrow_default_clock_snapshot(
-		struct bt_message *msg)
+enum bt_clock_snapshot_state
+bt_message_stream_beginning_borrow_default_clock_snapshot_const(
+		const bt_message *msg, const bt_clock_snapshot **snapshot)
 {
-	struct bt_message_stream_beginning *stream_begin = (void *) msg;
+	struct bt_message_stream_beginning *stream_beginning = (void *) msg;
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_BEGINNING);
-	return stream_begin->default_cs;
+	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_END);
+	*snapshot = stream_beginning->default_cs;
+	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 }

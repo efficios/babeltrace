@@ -23,10 +23,10 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 /* For bt_self_message_iterator, bt_message, bt_clock_class */
 #include <babeltrace/types.h>
-
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -597,7 +597,7 @@ void bt_stream_class_set_packets_have_default_end_clock_snapshot(
 bt_bool bt_stream_class_default_clock_is_always_known(
 		const struct bt_stream_class *stream_class)
 {
-	/* BT_CLOCK_SNAPSHOT_STATUS_UNKNOWN is not supported as of 2.0 */
+	/* BT_CLOCK_SNAPSHOT_STATE_UNKNOWN is not supported as of 2.0 */
 	return BT_TRUE;
 }
 
