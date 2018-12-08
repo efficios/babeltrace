@@ -39,6 +39,11 @@
 extern "C" {
 #endif
 
+enum bt_trace_status {
+	BT_TRACE_STATUS_OK = 0,
+	BT_TRACE_STATUS_NOMEM = -12,
+};
+
 typedef void (* bt_trace_is_static_listener_func)(const bt_trace *trace,
 		void *data);
 
@@ -60,13 +65,14 @@ extern const bt_stream *bt_trace_borrow_stream_by_id_const(
 
 extern bt_bool bt_trace_is_static(const bt_trace *trace);
 
-extern int bt_trace_add_is_static_listener(const bt_trace *trace,
+extern enum bt_trace_status bt_trace_add_is_static_listener(
+		const bt_trace *trace,
 		bt_trace_is_static_listener_func listener,
 		bt_trace_listener_removed_func listener_removed, void *data,
 		uint64_t *listener_id);
 
-extern int bt_trace_remove_is_static_listener(const bt_trace *trace,
-		uint64_t listener_id);
+extern enum bt_trace_status bt_trace_remove_is_static_listener(
+		const bt_trace *trace, uint64_t listener_id);
 
 extern void bt_trace_get_ref(const bt_trace *trace);
 

@@ -172,7 +172,7 @@ const char *bt_trace_get_name(const struct bt_trace *trace)
 	return trace->name.value;
 }
 
-int bt_trace_set_name(struct bt_trace *trace, const char *name)
+enum bt_trace_status bt_trace_set_name(struct bt_trace *trace, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -180,7 +180,7 @@ int bt_trace_set_name(struct bt_trace *trace, const char *name)
 	g_string_assign(trace->name.str, name);
 	trace->name.value = trace->name.str->str;
 	BT_LIB_LOGV("Set trace's name: %!+t", trace);
-	return 0;
+	return BT_TRACE_STATUS_OK;
 }
 
 uint64_t bt_trace_get_stream_count(const struct bt_trace *trace)
@@ -237,7 +237,7 @@ bt_bool bt_trace_is_static(const struct bt_trace *trace)
 	return (bt_bool) trace->is_static;
 }
 
-int bt_trace_make_static(struct bt_trace *trace)
+enum bt_trace_status bt_trace_make_static(struct bt_trace *trace)
 {	uint64_t i;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
@@ -256,10 +256,10 @@ int bt_trace_make_static(struct bt_trace *trace)
 		}
 	}
 
-	return 0;
+	return BT_TRACE_STATUS_OK;
 }
 
-int bt_trace_add_is_static_listener(
+enum bt_trace_status bt_trace_add_is_static_listener(
 		const struct bt_trace *c_trace,
 		bt_trace_is_static_listener_func listener,
 		bt_trace_listener_removed_func listener_removed, void *data,
@@ -304,7 +304,7 @@ int bt_trace_add_is_static_listener(
 
 	BT_LIB_LOGV("Added \"trace is static\" listener: "
 		"%![trace-]+t, listener-id=%" PRIu64, trace, i);
-	return 0;
+	return BT_TRACE_STATUS_OK;
 }
 
 BT_ASSERT_PRE_FUNC
@@ -317,8 +317,8 @@ bool has_listener_id(const struct bt_trace *trace, uint64_t listener_id)
 			listener_id))->func != NULL;
 }
 
-int bt_trace_remove_is_static_listener(const struct bt_trace *c_trace,
-		uint64_t listener_id)
+enum bt_trace_status bt_trace_remove_is_static_listener(
+		const struct bt_trace *c_trace, uint64_t listener_id)
 {
 	struct bt_trace *trace = (void *) c_trace;
 	struct bt_trace_is_static_listener_elem *elem;
@@ -353,7 +353,7 @@ int bt_trace_remove_is_static_listener(const struct bt_trace *c_trace,
 	BT_LIB_LOGV("Removed \"trace is static\" listener: "
 		"%![trace-]+t, listener-id=%" PRIu64,
 		trace, listener_id);
-	return 0;
+	return BT_TRACE_STATUS_OK;
 }
 
 BT_HIDDEN
