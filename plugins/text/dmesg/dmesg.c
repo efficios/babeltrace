@@ -518,7 +518,7 @@ skip_ts:
 	BT_ASSERT(event);
 
 	if (dmesg_comp->clock_class) {
-		bt_event_set_default_clock_value(event, ts);
+		bt_event_set_default_clock_snapshot(event, ts);
 	}
 
 	goto end;

@@ -50,8 +50,8 @@ struct bt_stream_class {
 	bool assigns_automatic_stream_id;
 	bool packets_have_discarded_event_counter_snapshot;
 	bool packets_have_packet_counter_snapshot;
-	bool packets_have_default_beginning_cv;
-	bool packets_have_default_end_cv;
+	bool packets_have_default_beginning_cs;
+	bool packets_have_default_end_cs;
 	struct bt_field_class *packet_context_fc;
 	struct bt_field_class *event_header_fc;
 	struct bt_field_class *event_common_context_fc;

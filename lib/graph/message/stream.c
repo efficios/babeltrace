@@ -46,9 +46,9 @@ void bt_message_stream_end_destroy(struct bt_object *obj)
 	BT_LIB_LOGD("Putting stream: %!+s", message->stream);
 	BT_OBJECT_PUT_REF_AND_RESET(message->stream);
 
-	if (message->default_cv) {
-		bt_clock_value_recycle(message->default_cv);
-		message->default_cv = NULL;
+	if (message->default_cs) {
+		bt_clock_snapshot_recycle(message->default_cs);
+		message->default_cs = NULL;
 	}
 
 	g_free(message);
@@ -106,7 +106,7 @@ const struct bt_stream *bt_message_stream_end_borrow_stream_const(
 		(void *) message);
 }
 
-void bt_message_stream_end_set_default_clock_value(
+void bt_message_stream_end_set_default_clock_snapshot(
 		struct bt_message *msg, uint64_t value_cycles)
 {
 	struct bt_message_stream_end *se_msg = (void *) msg;
@@ -119,22 +119,22 @@ void bt_message_stream_end_set_default_clock_value(
 		"%![msg-]+n, %![sc-]+S", msg, se_msg->stream->class);
 
 	/* TODO: have the object already created */
-	se_msg->default_cv = bt_clock_value_create(
+	se_msg->default_cs = bt_clock_snapshot_create(
 		se_msg->stream->class->default_clock_class);
-	BT_ASSERT(se_msg->default_cv);
-	bt_clock_value_set_value_inline(se_msg->default_cv, value_cycles);
-	BT_LIB_LOGV("Set message's default clock value: %![msg-]+n, "
+	BT_ASSERT(se_msg->default_cs);
+	bt_clock_snapshot_set_value_inline(se_msg->default_cs, value_cycles);
+	BT_LIB_LOGV("Set message's default clock snapshot: %![msg-]+n, "
 		"value=%" PRIu64, value_cycles);
 }
 
-struct bt_clock_value *bt_message_stream_end_borrow_default_clock_value(
+struct bt_clock_snapshot *bt_message_stream_end_borrow_default_clock_snapshot(
 		struct bt_message *msg)
 {
 	struct bt_message_stream_end *stream_end = (void *) msg;
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_END);
-	return stream_end->default_cv;
+	return stream_end->default_cs;
 }
 
 static
@@ -148,9 +148,9 @@ void bt_message_stream_beginning_destroy(struct bt_object *obj)
 	BT_LIB_LOGD("Putting stream: %!+s", message->stream);
 	BT_OBJECT_PUT_REF_AND_RESET(message->stream);
 
-	if (message->default_cv) {
-		bt_clock_value_recycle(message->default_cv);
-		message->default_cv = NULL;
+	if (message->default_cs) {
+		bt_clock_snapshot_recycle(message->default_cs);
+		message->default_cs = NULL;
 	}
 
 	g_free(message);
@@ -207,7 +207,7 @@ const struct bt_stream *bt_message_stream_beginning_borrow_stream_const(
 		(void *) message);
 }
 
-void bt_message_stream_beginning_set_default_clock_value(
+void bt_message_stream_beginning_set_default_clock_snapshot(
 		struct bt_message *msg,
 		uint64_t value_cycles)
 {
@@ -221,20 +221,20 @@ void bt_message_stream_beginning_set_default_clock_value(
 		"%![msg-]+n, %![sc-]+S", msg, sb_msg->stream->class);
 
 	/* TODO: have the object already created */
-	sb_msg->default_cv = bt_clock_value_create(
+	sb_msg->default_cs = bt_clock_snapshot_create(
 		sb_msg->stream->class->default_clock_class);
-	BT_ASSERT(sb_msg->default_cv);
-	bt_clock_value_set_value_inline(sb_msg->default_cv, value_cycles);
-	BT_LIB_LOGV("Set message's default clock value: %![msg-]+n, "
+	BT_ASSERT(sb_msg->default_cs);
+	bt_clock_snapshot_set_value_inline(sb_msg->default_cs, value_cycles);
+	BT_LIB_LOGV("Set message's default clock snapshot: %![msg-]+n, "
 		"value=%" PRIu64, value_cycles);
 }
 
-struct bt_clock_value *bt_message_stream_beginning_borrow_default_clock_value(
+struct bt_clock_snapshot *bt_message_stream_beginning_borrow_default_clock_snapshot(
 		struct bt_message *msg)
 {
 	struct bt_message_stream_beginning *stream_begin = (void *) msg;
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_BEGINNING);
-	return stream_begin->default_cv;
+	return stream_begin->default_cs;
 }

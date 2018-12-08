@@ -65,7 +65,7 @@
 /* Trace IR API */
 #include <babeltrace/trace-ir/clock-class-const.h>
 #include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-value-const.h>
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
 #include <babeltrace/trace-ir/event-class-const.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event-const.h>

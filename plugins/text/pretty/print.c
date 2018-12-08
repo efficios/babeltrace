@@ -46,7 +46,7 @@
 
 struct timestamp {
 	int64_t real_timestamp;	/* Relative to UNIX epoch. */
-	uint64_t clock_value;	/* In cycles. */
+	uint64_t clock_snapshot;	/* In cycles. */
 };
 
 static
@@ -80,17 +80,17 @@ static
 void print_timestamp_cycles(struct pretty_component *pretty,
 		const bt_event *event)
 {
-	const bt_clock_value *clock_value;
+	const bt_clock_snapshot *clock_snapshot;
 	uint64_t cycles;
-	enum bt_clock_value_status cv_status;
+	enum bt_clock_snapshot_status cv_status;
 
-	cv_status = bt_event_borrow_default_clock_value_const(event, &clock_value);
-	if (cv_status != BT_CLOCK_VALUE_STATUS_KNOWN || !clock_value) {
+	cv_status = bt_event_borrow_default_clock_snapshot_const(event, &clock_snapshot);
+	if (cv_status != BT_CLOCK_SNAPSHOT_STATUS_KNOWN || !clock_snapshot) {
 		g_string_append(pretty->string, "????????????????????");
 		return;
 	}
 
-	cycles = bt_clock_value_get_value(clock_value);
+	cycles = bt_clock_snapshot_get_value(clock_snapshot);
 	g_string_append_printf(pretty->string, "%020" PRIu64, cycles);
 
 	if (pretty->last_cycles_timestamp != -1ULL) {
@@ -101,7 +101,7 @@ void print_timestamp_cycles(struct pretty_component *pretty,
 
 static
 void print_timestamp_wall(struct pretty_component *pretty,
-		const bt_clock_value *clock_value)
+		const bt_clock_snapshot *clock_snapshot)
 {
 	int ret;
 	int64_t ts_nsec = 0;	/* add configurable offset */
@@ -109,12 +109,12 @@ void print_timestamp_wall(struct pretty_component *pretty,
 	uint64_t ts_sec_abs, ts_nsec_abs;
 	bool is_negative;
 
-	if (!clock_value) {
+	if (!clock_snapshot) {
 		g_string_append(pretty->string, "??:??:??.?????????");
 		return;
 	}
 
-	ret = bt_clock_value_get_ns_from_origin(clock_value, &ts_nsec);
+	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, &ts_nsec);
 	if (ret) {
 		// TODO: log, this is unexpected
 		g_string_append(pretty->string, "Error");
@@ -222,8 +222,8 @@ int print_event_timestamp(struct pretty_component *pretty,
 	int ret = 0;
 	const bt_stream *stream = NULL;
 	const bt_stream_class *stream_class = NULL;
-	const bt_clock_value *clock_value = NULL;
-	enum bt_clock_value_status cv_status;
+	const bt_clock_snapshot *clock_snapshot = NULL;
+	enum bt_clock_snapshot_status cv_status;
 
 	stream = bt_event_borrow_stream_const(event);
 	if (!stream) {
@@ -237,9 +237,9 @@ int print_event_timestamp(struct pretty_component *pretty,
 		goto end;
 	}
 
-	cv_status = bt_event_borrow_default_clock_value_const(event,
-		&clock_value);
-	if (cv_status != BT_CLOCK_VALUE_STATUS_KNOWN || !clock_value) {
+	cv_status = bt_event_borrow_default_clock_snapshot_const(event,
+		&clock_snapshot);
+	if (cv_status != BT_CLOCK_SNAPSHOT_STATUS_KNOWN || !clock_snapshot) {
 		/* No default clock value: skip the timestamp without an error */
 		goto end;
 	}
@@ -255,10 +255,10 @@ int print_event_timestamp(struct pretty_component *pretty,
 	if (pretty->options.print_timestamp_cycles) {
 		print_timestamp_cycles(pretty, event);
 	} else {
-		clock_value = NULL;
-		cv_status = bt_event_borrow_default_clock_value_const(event,
-			&clock_value);
-		print_timestamp_wall(pretty, clock_value);
+		clock_snapshot = NULL;
+		cv_status = bt_event_borrow_default_clock_snapshot_const(event,
+			&clock_snapshot);
+		print_timestamp_wall(pretty, clock_snapshot);
 	}
 	if (pretty->use_colors) {
 		g_string_append(pretty->string, COLOR_RST);
@@ -1262,8 +1262,8 @@ int print_discarded_elements_msg(
 	const unsigned char *trace_uuid;
 	int64_t stream_class_id;
 	int64_t stream_id;
-	bt_clock_value *begin_clock_value = NULL;
-	bt_clock_value *end_clock_value = NULL;
+	bt_clock_snapshot *begin_clock_snapshot = NULL;
+	bt_clock_snapshot *end_clock_snapshot = NULL;
 
 	/* Stream name */
 	BT_ASSERT(packet);
@@ -1291,10 +1291,10 @@ int print_discarded_elements_msg(
 	trace_uuid = bt_trace_get_uuid(trace);
 
 	/* Beginning and end times */
-	(void) bt_packet_borrow_previous_packet_default_end_clock_value_const(
-		packet, &begin_clock_value);
-	(void) bt_packet_borrow_default_end_clock_value_const(packet,
-		&end_clock_value);
+	(void) bt_packet_borrow_previous_packet_default_end_clock_snapshot_const(
+		packet, &begin_clock_snapshot);
+	(void) bt_packet_borrow_default_end_clock_snapshot_const(packet,
+		&end_clock_snapshot);
 
 	/* Format message */
 	g_string_assign(pretty->string, "");
@@ -1306,11 +1306,11 @@ int print_discarded_elements_msg(
 		bt_common_color_fg_yellow(),
 		count, elem_type, count == 1 ? "" : "s");
 
-	if (begin_clock_value && end_clock_value) {
+	if (begin_clock_snapshot && end_clock_snapshot) {
 		g_string_append(pretty->string, "between [");
-		print_timestamp_wall(pretty, begin_clock_value);
+		print_timestamp_wall(pretty, begin_clock_snapshot);
 		g_string_append(pretty->string, "] and [");
-		print_timestamp_wall(pretty, end_clock_value);
+		print_timestamp_wall(pretty, end_clock_snapshot);
 		g_string_append(pretty->string, "]");
 	} else {
 		g_string_append(pretty->string, "(unknown time range)");

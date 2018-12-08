@@ -49,7 +49,7 @@ babeltracetraceirincludedir = "$(includedir)/babeltrace/trace-ir"
 babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/clock-class-const.h \
 	babeltrace/trace-ir/clock-class.h \
-	babeltrace/trace-ir/clock-value-const.h \
+	babeltrace/trace-ir/clock-snapshot-const.h \
 	babeltrace/trace-ir/event-class-const.h \
 	babeltrace/trace-ir/event-class.h \
 	babeltrace/trace-ir/event-const.h \
@@ -174,8 +174,8 @@ noinst_HEADERS = \
 	babeltrace/endian-internal.h \
 	babeltrace/trace-ir/attributes-internal.h \
 	babeltrace/trace-ir/clock-class-internal.h \
-	babeltrace/trace-ir/clock-value-internal.h \
-	babeltrace/trace-ir/clock-value-set-internal.h \
+	babeltrace/trace-ir/clock-snapshot-internal.h \
+	babeltrace/trace-ir/clock-snapshot-set-internal.h \
 	babeltrace/trace-ir/event-class-internal.h \
 	babeltrace/trace-ir/event-internal.h \
 	babeltrace/trace-ir/field-class-internal.h \

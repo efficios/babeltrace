@@ -53,7 +53,7 @@ bt_event_borrow_specific_context_field(bt_event *event);
 
 extern bt_field *bt_event_borrow_payload_field(bt_event *event);
 
-extern void bt_event_set_default_clock_value(bt_event *event,
+extern void bt_event_set_default_clock_snapshot(bt_event *event,
 		uint64_t value_cycles);
 
 #ifdef __cplusplus

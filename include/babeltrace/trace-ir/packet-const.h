@@ -31,12 +31,12 @@
 /* For enum bt_property_availability */
 #include <babeltrace/property.h>
 
-/* For enum bt_clock_value_status */
-#include <babeltrace/trace-ir/clock-value-const.h>
+/* For enum bt_clock_snapshot_status */
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
 
 /*
  * For bt_packet, bt_packet_header_field, bt_packet_context_field,
- * bt_stream, bt_clock_value
+ * bt_stream, bt_clock_snapshot
  */
 #include <babeltrace/types.h>
 
@@ -56,14 +56,14 @@ const bt_field *bt_packet_borrow_context_field_const(
 		const bt_packet *packet);
 
 extern
-enum bt_clock_value_status bt_packet_borrow_default_beginning_clock_value_const(
+enum bt_clock_snapshot_status bt_packet_borrow_default_beginning_clock_snapshot_const(
 		const bt_packet *packet,
-		const bt_clock_value **clock_value);
+		const bt_clock_snapshot **clock_snapshot);
 
 extern
-enum bt_clock_value_status bt_packet_borrow_default_end_clock_valeu_const(
+enum bt_clock_snapshot_status bt_packet_borrow_default_end_clock_valeu_const(
 		const bt_packet *packet,
-		const bt_clock_value **clock_value);
+		const bt_clock_snapshot **clock_snapshot);
 
 extern
 enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(

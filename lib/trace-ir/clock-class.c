@@ -27,7 +27,7 @@
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/trace-ir/utils-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/types.h>
@@ -58,15 +58,15 @@ void destroy_clock_class(struct bt_object *obj)
 		clock_class->description.value = NULL;
 	}
 
-	bt_object_pool_finalize(&clock_class->cv_pool);
+	bt_object_pool_finalize(&clock_class->cs_pool);
 	g_free(clock_class);
 }
 
 static
-void free_clock_value(struct bt_clock_value *clock_value,
+void free_clock_snapshot(struct bt_clock_snapshot *clock_snapshot,
 		struct bt_clock_class *clock_class)
 {
-	bt_clock_value_destroy(clock_value);
+	bt_clock_snapshot_destroy(clock_snapshot);
 }
 
 static inline
@@ -133,13 +133,13 @@ struct bt_clock_class *bt_clock_class_create(void)
 	clock_class->frequency = UINT64_C(1000000000);
 	clock_class->is_absolute = BT_TRUE;
 	set_base_offset(clock_class);
-	ret = bt_object_pool_initialize(&clock_class->cv_pool,
-		(bt_object_pool_new_object_func) bt_clock_value_new,
+	ret = bt_object_pool_initialize(&clock_class->cs_pool,
+		(bt_object_pool_new_object_func) bt_clock_snapshot_new,
 		(bt_object_pool_destroy_object_func)
-			free_clock_value,
+			free_clock_snapshot,
 		clock_class);
 	if (ret) {
-		BT_LOGE("Failed to initialize clock value pool: ret=%d",
+		BT_LOGE("Failed to initialize clock snapshot pool: ret=%d",
 			ret);
 		goto error;
 	}

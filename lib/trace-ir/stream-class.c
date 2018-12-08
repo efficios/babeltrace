@@ -550,14 +550,14 @@ void bt_stream_class_set_packets_have_packet_counter_snapshot(
 		"%!+S", stream_class);
 }
 
-bt_bool bt_stream_class_packets_have_default_beginning_clock_value(
+bt_bool bt_stream_class_packets_have_default_beginning_clock_snapshot(
 		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return (bt_bool) stream_class->packets_have_default_beginning_cv;
+	return (bt_bool) stream_class->packets_have_default_beginning_cs;
 }
 
-void bt_stream_class_set_packets_have_default_beginning_clock_value(
+void bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
 		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
@@ -566,20 +566,20 @@ void bt_stream_class_set_packets_have_default_beginning_clock_value(
 	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
 		"Stream class does not have a default clock class: %!+S",
 		stream_class);
-	stream_class->packets_have_default_beginning_cv = (bool) value;
+	stream_class->packets_have_default_beginning_cs = (bool) value;
 	BT_LIB_LOGV("Set stream class's "
-		"\"packets have default beginning clock value\" property: "
+		"\"packets have default beginning clock snapshot\" property: "
 		"%!+S", stream_class);
 }
 
-bt_bool bt_stream_class_packets_have_default_end_clock_value(
+bt_bool bt_stream_class_packets_have_default_end_clock_snapshot(
 		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return (bt_bool) stream_class->packets_have_default_end_cv;
+	return (bt_bool) stream_class->packets_have_default_end_cs;
 }
 
-void bt_stream_class_set_packets_have_default_end_clock_value(
+void bt_stream_class_set_packets_have_default_end_clock_snapshot(
 		struct bt_stream_class *stream_class,
 		bt_bool value)
 {
@@ -588,16 +588,16 @@ void bt_stream_class_set_packets_have_default_end_clock_value(
 	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
 		"Stream class does not have a default clock class: %!+S",
 		stream_class);
-	stream_class->packets_have_default_end_cv = (bool) value;
+	stream_class->packets_have_default_end_cs = (bool) value;
 	BT_LIB_LOGV("Set stream class's "
-		"\"packets have default end clock value\" property: "
+		"\"packets have default end clock snapshot\" property: "
 		"%!+S", stream_class);
 }
 
 bt_bool bt_stream_class_default_clock_is_always_known(
 		const struct bt_stream_class *stream_class)
 {
-	/* BT_CLOCK_VALUE_STATUS_UNKNOWN is not supported as of 2.0 */
+	/* BT_CLOCK_SNAPSHOT_STATUS_UNKNOWN is not supported as of 2.0 */
 	return BT_TRUE;
 }
 
