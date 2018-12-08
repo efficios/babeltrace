@@ -115,7 +115,7 @@ int bt_lib_log_level;
  *       Clock class. The parameter type is `struct bt_clock_class *`.
  *
  *   `k`:
- *       Clock value. The parameter type is `struct bt_clock_value *`.
+ *       Clock snapshot. The parameter type is `struct bt_clock_snapshot *`.
  *
  *   `v`:
  *       Value. The parameter type is `struct bt_value *`.

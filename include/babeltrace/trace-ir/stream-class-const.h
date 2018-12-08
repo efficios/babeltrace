@@ -90,10 +90,10 @@ extern bt_bool bt_stream_class_packets_have_discarded_event_counter_snapshot(
 extern bt_bool bt_stream_class_packets_have_packet_counter_snapshot(
 		const bt_stream_class *stream_class);
 
-extern bt_bool bt_stream_class_packets_have_default_beginning_clock_value(
+extern bt_bool bt_stream_class_packets_have_default_beginning_clock_snapshot(
 		const bt_stream_class *stream_class);
 
-extern bt_bool bt_stream_class_packets_have_default_end_clock_value(
+extern bt_bool bt_stream_class_packets_have_default_end_clock_snapshot(
 		const bt_stream_class *stream_class);
 
 extern void bt_stream_class_get_ref(const bt_stream_class *stream_class);

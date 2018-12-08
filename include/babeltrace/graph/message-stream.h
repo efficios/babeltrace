@@ -44,13 +44,13 @@ bt_message *bt_message_stream_end_create(
 extern bt_stream *bt_message_stream_beginning_borrow_stream(
 		bt_message *message);
 
-extern void bt_message_stream_beginning_set_default_clock_value(
+extern void bt_message_stream_beginning_set_default_clock_snapshot(
 		bt_message *msg, uint64_t value_cycles);
 
 extern bt_stream *bt_message_stream_end_borrow_stream(
 		bt_message *message);
 
-extern void bt_message_stream_end_set_default_clock_value(
+extern void bt_message_stream_end_set_default_clock_snapshot(
 		bt_message *msg, uint64_t value_cycles);
 
 #ifdef __cplusplus

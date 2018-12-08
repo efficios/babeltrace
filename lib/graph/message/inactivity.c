@@ -27,7 +27,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/graph/message-internal.h>
 #include <babeltrace/graph/message-inactivity-const.h>
 #include <babeltrace/graph/message-inactivity.h>
@@ -41,8 +41,8 @@ void bt_message_inactivity_destroy(struct bt_object *obj)
 
 	BT_LIB_LOGD("Destroying inactivity message: %!+n", message);
 
-	if (message->default_cv) {
-		bt_clock_value_recycle(message->default_cv);
+	if (message->default_cs) {
+		bt_clock_snapshot_recycle(message->default_cs);
 	}
 
 	g_free(message);
@@ -71,8 +71,8 @@ struct bt_message *bt_message_inactivity_create(
 		BT_MESSAGE_TYPE_INACTIVITY,
 		bt_message_inactivity_destroy, NULL);
 	ret_msg = &message->parent;
-	message->default_cv = bt_clock_value_create(default_clock_class);
-	if (!message->default_cv) {
+	message->default_cs = bt_clock_snapshot_create(default_clock_class);
+	if (!message->default_cs) {
 		goto error;
 	}
 
@@ -86,7 +86,7 @@ end:
 	return (void *) ret_msg;
 }
 
-void bt_message_inactivity_set_default_clock_value(
+void bt_message_inactivity_set_default_clock_snapshot(
 		struct bt_message *msg, uint64_t value_cycles)
 {
 	struct bt_message_inactivity *inactivity = (void *) msg;
@@ -94,18 +94,18 @@ void bt_message_inactivity_set_default_clock_value(
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_INACTIVITY);
 	BT_ASSERT_PRE_HOT(msg, "Message", ": %!+n", msg);
-	bt_clock_value_set_value_inline(inactivity->default_cv, value_cycles);
-	BT_LIB_LOGV("Set inactivity message's default clock value: "
+	bt_clock_snapshot_set_value_inline(inactivity->default_cs, value_cycles);
+	BT_LIB_LOGV("Set inactivity message's default clock snapshot: "
 		"%![msg-]+n, value=%" PRIu64, msg, value_cycles);
 }
 
-const struct bt_clock_value *
-bt_message_inactivity_borrow_default_clock_value_const(
+const struct bt_clock_snapshot *
+bt_message_inactivity_borrow_default_clock_snapshot_const(
 		const struct bt_message *msg)
 {
 	struct bt_message_inactivity *inactivity = (void *) msg;
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_INACTIVITY);
-	return inactivity->default_cv;
+	return inactivity->default_cs;
 }

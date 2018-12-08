@@ -25,7 +25,7 @@
 #include <babeltrace/lib-logging-internal.h>
 
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/field-class.h>
 #include <babeltrace/trace-ir/field-class-internal.h>

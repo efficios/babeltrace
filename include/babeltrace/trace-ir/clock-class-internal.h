@@ -73,7 +73,7 @@ struct bt_clock_class {
 	 * base offset in nanoseconds including both `offset_seconds`
 	 * and `offset_cycles` above in the result. It is used to
 	 * accelerate future calls to
-	 * bt_clock_value_get_ns_from_origin() and
+	 * bt_clock_snapshot_get_ns_from_origin() and
 	 * bt_clock_class_cycles_to_ns_from_origin().
 	 *
 	 * `overflows` is true if the base offset cannot be computed
@@ -84,8 +84,8 @@ struct bt_clock_class {
 		bool overflows;
 	} base_offset;
 
-	/* Pool of `struct bt_clock_value *` */
-	struct bt_object_pool cv_pool;
+	/* Pool of `struct bt_clock_snapshot *` */
+	struct bt_object_pool cs_pool;
 
 	bool frozen;
 };

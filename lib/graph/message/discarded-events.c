@@ -25,19 +25,19 @@
 #include <babeltrace/graph/message-discarded-elements-internal.h>
 #include <stdint.h>
 
-struct bt_clock_value *
-bt_message_discarded_events_borrow_begin_clock_value(
+struct bt_clock_snapshot *
+bt_message_discarded_events_borrow_begin_clock_snapshot(
 		struct bt_message *message)
 {
-	return bt_message_discarded_elements_borrow_begin_clock_value(
+	return bt_message_discarded_elements_borrow_begin_clock_snapshot(
 		BT_MESSAGE_TYPE_DISCARDED_EVENTS, message);
 }
 
-struct bt_clock_value *
-bt_message_discarded_events_borrow_end_clock_value(
+struct bt_clock_snapshot *
+bt_message_discarded_events_borrow_end_clock_snapshot(
 		struct bt_message *message)
 {
-	return bt_message_discarded_elements_borrow_end_clock_value(
+	return bt_message_discarded_elements_borrow_end_clock_snapshot(
 		BT_MESSAGE_TYPE_DISCARDED_EVENTS, message);
 }
 

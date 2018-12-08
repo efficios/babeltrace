@@ -603,12 +603,12 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		int64_t *ts_ns)
 {
 	const bt_clock_class *clock_class = NULL;
-	const bt_clock_value *clock_value = NULL;
+	const bt_clock_snapshot *clock_snapshot = NULL;
 	const bt_event *event = NULL;
 	int ret = 0;
 	const unsigned char *cc_uuid;
 	const char *cc_name;
-	enum bt_clock_value_status cv_status = BT_CLOCK_VALUE_STATUS_KNOWN;
+	enum bt_clock_snapshot_status cv_status = BT_CLOCK_SNAPSHOT_STATUS_KNOWN;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
@@ -622,13 +622,13 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	case BT_MESSAGE_TYPE_EVENT:
 		event = bt_message_event_borrow_event_const(msg);
 		BT_ASSERT(event);
-		cv_status = bt_event_borrow_default_clock_value_const(event,
-			&clock_value);
+		cv_status = bt_event_borrow_default_clock_snapshot_const(event,
+			&clock_snapshot);
 		break;
 
 	case BT_MESSAGE_TYPE_INACTIVITY:
-		clock_value =
-			bt_message_inactivity_borrow_default_clock_value_const(
+		clock_snapshot =
+			bt_message_inactivity_borrow_default_clock_snapshot_const(
 				msg);
 		break;
 	default:
@@ -638,25 +638,25 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		goto end;
 	}
 
-	if (cv_status != BT_CLOCK_VALUE_STATUS_KNOWN) {
-		BT_LOGE_STR("Unsupported unknown clock value.");
+	if (cv_status != BT_CLOCK_SNAPSHOT_STATUS_KNOWN) {
+		BT_LOGE_STR("Unsupported unknown clock snapshot.");
 		ret = -1;
 		goto end;
 	}
 
 	/*
-	 * If the clock value is missing, then we consider that this
+	 * If the clock snapshot is missing, then we consider that this
 	 * message has no time. In this case it's always the
 	 * youngest.
 	 */
-	if (!clock_value) {
-		BT_LOGV_STR("Message's default clock value is missing: "
+	if (!clock_snapshot) {
+		BT_LOGV_STR("Message's default clock snapshot is missing: "
 			"using the last returned timestamp.");
 		*ts_ns = last_returned_ts_ns;
 		goto end;
 	}
 
-	clock_class = bt_clock_value_borrow_clock_class_const(clock_value);
+	clock_class = bt_clock_snapshot_borrow_clock_class_const(clock_snapshot);
 	BT_ASSERT(clock_class);
 	cc_uuid = bt_clock_class_get_uuid(clock_class);
 	cc_name = bt_clock_class_get_name(clock_class);
@@ -809,10 +809,10 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		}
 	}
 
-	ret = bt_clock_value_get_ns_from_origin(clock_value, ts_ns);
+	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, ts_ns);
 	if (ret) {
-		BT_LOGE("Cannot get nanoseconds from Epoch of clock value: "
-			"clock-value-addr=%p", clock_value);
+		BT_LOGE("Cannot get nanoseconds from Epoch of clock snapshot: "
+			"clock-snapshot-addr=%p", clock_snapshot);
 		goto error;
 	}
 

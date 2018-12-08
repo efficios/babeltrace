@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libtrace-ir.la
 libtrace_ir_la_SOURCES = \
 	attributes.c \
 	clock-class.c \
-	clock-value.c \
+	clock-snapshot.c \
 	event.c \
 	event-class.c \
 	event-header-field.c \

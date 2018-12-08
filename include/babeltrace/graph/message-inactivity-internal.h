@@ -24,12 +24,12 @@
  */
 
 #include <glib.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/graph/message-const.h>
 
 struct bt_message_inactivity {
 	struct bt_message parent;
-	struct bt_clock_value *default_cv;
+	struct bt_clock_snapshot *default_cs;
 };
 
 #endif /* BABELTRACE_GRAPH_MESSAGE_INACTIVITY_INTERNAL_H */

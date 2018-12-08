@@ -28,8 +28,8 @@
 #include <babeltrace/trace-ir/field-internal.h>
 #include <babeltrace/trace-ir/field-class-internal.h>
 #include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-value-const.h>
-#include <babeltrace/trace-ir/clock-value-internal.h>
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/trace-ir/clock-class-internal.h>
 #include <babeltrace/trace-ir/event-const.h>
 #include <babeltrace/trace-ir/event-internal.h>
@@ -177,10 +177,10 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 	}
 
 	if (stream_class->default_clock_class) {
-		event->default_cv = bt_clock_value_create(
+		event->default_cs = bt_clock_snapshot_create(
 			stream_class->default_clock_class);
-		if (!event->default_cv) {
-			/* bt_clock_value_create() logs errors */
+		if (!event->default_cs) {
+			/* bt_clock_snapshot_create() logs errors */
 			goto error;
 		}
 	}
@@ -321,9 +321,9 @@ void bt_event_destroy(struct bt_event *event)
 	BT_LOGD_STR("Putting event's class.");
 	bt_object_put_ref(event->class);
 
-	if (event->default_cv) {
-		bt_clock_value_recycle(event->default_cv);
-		event->default_cv = NULL;
+	if (event->default_cs) {
+		bt_clock_snapshot_recycle(event->default_cs);
+		event->default_cs = NULL;
 	}
 
 	BT_LOGD_STR("Putting event's packet.");
@@ -331,7 +331,7 @@ void bt_event_destroy(struct bt_event *event)
 	g_free(event);
 }
 
-void bt_event_set_default_clock_value(struct bt_event *event,
+void bt_event_set_default_clock_snapshot(struct bt_event *event,
 		uint64_t value_cycles)
 {
 	struct bt_stream_class *sc;
@@ -343,20 +343,20 @@ void bt_event_set_default_clock_value(struct bt_event *event,
 	BT_ASSERT_PRE(sc->default_clock_class,
 		"Event's stream class has no default clock class: "
 		"%![ev-]+e, %![sc-]+S", event, sc);
-	BT_ASSERT(event->default_cv);
-	bt_clock_value_set_value_inline(event->default_cv, value_cycles);
-	BT_LIB_LOGV("Set event's default clock value: %![event-]+e, "
+	BT_ASSERT(event->default_cs);
+	bt_clock_snapshot_set_value_inline(event->default_cs, value_cycles);
+	BT_LIB_LOGV("Set event's default clock snapshot: %![event-]+e, "
 		"value=%" PRIu64, event, value_cycles);
 }
 
-enum bt_clock_value_status bt_event_borrow_default_clock_value_const(
+enum bt_clock_snapshot_status bt_event_borrow_default_clock_snapshot_const(
 		const struct bt_event *event,
-		const struct bt_clock_value **clock_value)
+		const struct bt_clock_snapshot **clock_snapshot)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_NON_NULL(clock_value, "Clock value (output)");
-	*clock_value = event->default_cv;
-	return BT_CLOCK_VALUE_STATUS_KNOWN;
+	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot (output)");
+	*clock_snapshot = event->default_cs;
+	return BT_CLOCK_SNAPSHOT_STATUS_KNOWN;
 }
 
 struct bt_packet *bt_event_borrow_packet(struct bt_event *event)

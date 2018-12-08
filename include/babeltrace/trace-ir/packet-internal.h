@@ -25,7 +25,7 @@
 
 #include <stdbool.h>
 #include <babeltrace/assert-internal.h>
-#include <babeltrace/trace-ir/clock-value-const.h>
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/stream.h>
@@ -39,8 +39,8 @@ struct bt_packet {
 	struct bt_field_wrapper *header_field;
 	struct bt_field_wrapper *context_field;
 	struct bt_stream *stream;
-	struct bt_clock_value *default_beginning_cv;
-	struct bt_clock_value *default_end_cv;
+	struct bt_clock_snapshot *default_beginning_cs;
+	struct bt_clock_snapshot *default_end_cs;
 	struct bt_property_uint discarded_event_counter_snapshot;
 	struct bt_property_uint packet_counter_snapshot;
 	bool frozen;

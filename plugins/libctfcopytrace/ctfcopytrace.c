@@ -655,7 +655,7 @@ int ctf_copy_event_header(FILE *err, const bt_event *event,
 		const bt_field *event_header)
 {
 	const bt_clock_class *clock_class = NULL, *writer_clock_class = NULL;
-	bt_clock_value *clock_value = NULL, *writer_clock_value = NULL;
+	bt_clock_snapshot *clock_snapshot = NULL, *writer_clock_snapshot = NULL;
 
 	int ret;
 	const bt_field *writer_event_header = NULL;
@@ -667,12 +667,12 @@ int ctf_copy_event_header(FILE *err, const bt_event *event,
 		goto error;
 	}
 
-	clock_value = bt_event_get_clock_value(event, clock_class);
+	clock_snapshot = bt_event_get_clock_snapshot(event, clock_class);
 	BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock_class);
-	BT_ASSERT(clock_value);
+	BT_ASSERT(clock_snapshot);
 
-	ret = bt_clock_value_get_value(clock_value, &value);
-	BT_OBJECT_PUT_REF_AND_RESET(clock_value);
+	ret = bt_clock_snapshot_get_value(clock_snapshot, &value);
+	BT_OBJECT_PUT_REF_AND_RESET(clock_snapshot);
 	if (ret) {
 		BT_LOGE_STR("Failed to get clock value.");
 		goto error;
@@ -684,15 +684,15 @@ int ctf_copy_event_header(FILE *err, const bt_event *event,
 		goto error;
 	}
 
-	writer_clock_value = bt_clock_value_create(writer_clock_class, value);
+	writer_clock_snapshot = bt_clock_snapshot_create(writer_clock_class, value);
 	BT_CLOCK_CLASS_PUT_REF_AND_RESET(writer_clock_class);
-	if (!writer_clock_value) {
+	if (!writer_clock_snapshot) {
 		BT_LOGE_STR("Failed to create clock value.");
 		goto error;
 	}
 
-	ret = bt_event_set_clock_value(writer_event, writer_clock_value);
-	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_value);
+	ret = bt_event_set_clock_snapshot(writer_event, writer_clock_snapshot);
+	BT_OBJECT_PUT_REF_AND_RESET(writer_clock_snapshot);
 	if (ret) {
 		BT_LOGE_STR("Failed to set clock value.");
 		goto error;

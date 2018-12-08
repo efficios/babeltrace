@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_TRACE_IR_CLOCK_VALUE_CONST_H
-#define BABELTRACE_TRACE_IR_CLOCK_VALUE_CONST_H
+#ifndef BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_CONST_H
+#define BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -29,30 +29,30 @@
 
 #include <stdint.h>
 
-/* For bt_clock_class, bt_clock_value */
+/* For bt_clock_class, bt_clock_snapshot */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum bt_clock_value_status {
-	BT_CLOCK_VALUE_STATUS_KNOWN,
-	BT_CLOCK_VALUE_STATUS_UNKNOWN,
+enum bt_clock_snapshot_status {
+	BT_CLOCK_SNAPSHOT_STATUS_KNOWN,
+	BT_CLOCK_SNAPSHOT_STATUS_UNKNOWN,
 };
 
-extern const bt_clock_class *bt_clock_value_borrow_clock_class_const(
-		const bt_clock_value *clock_value);
+extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
+		const bt_clock_snapshot *clock_snapshot);
 
-extern uint64_t bt_clock_value_get_value(
-		const bt_clock_value *clock_value);
+extern uint64_t bt_clock_snapshot_get_value(
+		const bt_clock_snapshot *clock_snapshot);
 
-extern int bt_clock_value_get_ns_from_origin(
-		const bt_clock_value *clock_value,
+extern int bt_clock_snapshot_get_ns_from_origin(
+		const bt_clock_snapshot *clock_snapshot,
 		int64_t *ns_from_origin);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_TRACE_IR_CLOCK_VALUE_CONST_H */
+#endif /* BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_CONST_H */

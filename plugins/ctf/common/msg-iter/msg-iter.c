@@ -213,7 +213,7 @@ struct bt_msg_iter {
 	off_t cur_packet_offset;
 
 	/* Default clock's current value */
-	uint64_t default_clock_val;
+	uint64_t default_clock_snapshot;
 
 	/* End of packet snapshots */
 	struct {
@@ -1731,12 +1731,12 @@ void update_default_clock(struct bt_msg_iter *notit, uint64_t new_val,
 	 * current value directly.
 	 */
 	if (new_val_size == 64) {
-		notit->default_clock_val = new_val;
+		notit->default_clock_snapshot = new_val;
 		goto end;
 	}
 
 	new_val_mask = (1ULL << new_val_size) - 1;
-	cur_value_masked = notit->default_clock_val & new_val_mask;
+	cur_value_masked = notit->default_clock_snapshot & new_val_mask;
 
 	if (new_val < cur_value_masked) {
 		/*
@@ -1744,18 +1744,18 @@ void update_default_clock(struct bt_msg_iter *notit, uint64_t new_val,
 		 * of the requested new value. Assume that the clock
 		 * value wrapped only one time.
 		 */
-		notit->default_clock_val += new_val_mask + 1;
+		notit->default_clock_snapshot += new_val_mask + 1;
 	}
 
 	/* Clear the low bits of the current clock value. */
-	notit->default_clock_val &= ~new_val_mask;
+	notit->default_clock_snapshot &= ~new_val_mask;
 
 	/* Set the low bits of the current clock value. */
-	notit->default_clock_val |= new_val;
+	notit->default_clock_snapshot |= new_val;
 
 end:
 	BT_LOGV("Updated default clock's value from integer field's value: "
-		"value=%" PRIu64, notit->default_clock_val);
+		"value=%" PRIu64, notit->default_clock_snapshot);
 }
 
 static
@@ -2244,7 +2244,7 @@ end:
 }
 
 static
-void set_event_default_clock_value(struct bt_msg_iter *notit)
+void set_event_default_clock_snapshot(struct bt_msg_iter *notit)
 {
 	bt_event *event =
 		bt_message_event_borrow_event(
@@ -2254,8 +2254,8 @@ void set_event_default_clock_value(struct bt_msg_iter *notit)
 	BT_ASSERT(event);
 
 	if (bt_stream_class_borrow_default_clock_class(sc)) {
-		bt_event_set_default_clock_value(event,
-			notit->default_clock_val);
+		bt_event_set_default_clock_snapshot(event,
+			notit->default_clock_snapshot);
 	}
 }
 
@@ -2341,15 +2341,15 @@ void notify_new_packet(struct bt_msg_iter *notit,
 			notit->packet, notit->snapshots.packets);
 	}
 
-	if (bt_stream_class_packets_have_default_beginning_clock_value(sc)) {
+	if (bt_stream_class_packets_have_default_beginning_clock_snapshot(sc)) {
 		BT_ASSERT(notit->snapshots.beginning_clock != UINT64_C(-1));
-		bt_packet_set_default_beginning_clock_value(
+		bt_packet_set_default_beginning_clock_snapshot(
 			notit->packet, notit->snapshots.beginning_clock);
 	}
 
-	if (bt_stream_class_packets_have_default_end_clock_value(sc)) {
+	if (bt_stream_class_packets_have_default_end_clock_snapshot(sc)) {
 		BT_ASSERT(notit->snapshots.end_clock != UINT64_C(-1));
-		bt_packet_set_default_end_clock_value(
+		bt_packet_set_default_end_clock_snapshot(
 			notit->packet, notit->snapshots.end_clock);
 	}
 
@@ -2419,7 +2419,7 @@ void notify_end_of_packet(struct bt_msg_iter *notit,
 
 	/* Update default clock from packet's end time */
 	if (notit->snapshots.end_clock != UINT64_C(-1)) {
-		notit->default_clock_val = notit->snapshots.end_clock;
+		notit->default_clock_snapshot = notit->snapshots.end_clock;
 	}
 
 	BT_ASSERT(notit->msg_iter);
@@ -2610,7 +2610,7 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 			goto end;
 		case STATE_EMIT_MSG_EVENT:
 			BT_ASSERT(notit->event_msg);
-			set_event_default_clock_value(notit);
+			set_event_default_clock_snapshot(notit);
 			*message = notit->event_msg;
 			notit->event_msg = NULL;
 			goto end;

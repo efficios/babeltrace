@@ -37,7 +37,7 @@ bt_message *bt_message_inactivity_create(
 		bt_self_message_iterator *message_iterator,
 		bt_clock_class *default_clock_class);
 
-extern void bt_message_inactivity_set_default_clock_value(
+extern void bt_message_inactivity_set_default_clock_snapshot(
 		bt_message *msg, uint64_t raw_value);
 
 #ifdef __cplusplus
