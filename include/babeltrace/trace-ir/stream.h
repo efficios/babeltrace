@@ -30,6 +30,9 @@
 /* For bt_trace, bt_stream, bt_stream_class */
 #include <babeltrace/types.h>
 
+/* For enum bt_stream_status */
+#include <babeltrace/trace-ir/stream-const.h>
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -47,7 +50,8 @@ extern bt_trace *bt_stream_borrow_trace(bt_stream *stream);
 
 extern bt_stream_class *bt_stream_borrow_class(bt_stream *stream);
 
-extern int bt_stream_set_name(bt_stream *stream, const char *name);
+extern enum bt_stream_status bt_stream_set_name(bt_stream *stream,
+		const char *name);
 
 #ifdef __cplusplus
 }

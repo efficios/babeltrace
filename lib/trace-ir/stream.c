@@ -207,7 +207,8 @@ const char *bt_stream_get_name(const struct bt_stream *stream)
 	return stream->name.value;
 }
 
-int bt_stream_set_name(struct bt_stream *stream, const char *name)
+enum bt_stream_status bt_stream_set_name(struct bt_stream *stream,
+		const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(stream, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -215,7 +216,7 @@ int bt_stream_set_name(struct bt_stream *stream, const char *name)
 	g_string_assign(stream->name.str, name);
 	stream->name.value = stream->name.str->str;
 	BT_LIB_LOGV("Set stream class's name: %!+s", stream);
-	return 0;
+	return BT_STREAM_STATUS_OK;
 }
 
 uint64_t bt_stream_get_id(const struct bt_stream *stream)
