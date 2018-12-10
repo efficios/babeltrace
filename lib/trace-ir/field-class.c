@@ -81,10 +81,12 @@ void destroy_integer_field_class(struct bt_object *obj)
 }
 
 static inline
-struct bt_field_class *create_integer_field_class(enum bt_field_class_type type)
+struct bt_field_class *create_integer_field_class(bt_trace_class *trace_class,
+		enum bt_field_class_type type)
 {
 	struct bt_field_class_integer *int_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD("Creating default integer field class object: type=%s",
 		bt_common_field_class_type_string(type));
 	int_fc = g_new0(struct bt_field_class_integer, 1);
@@ -104,16 +106,17 @@ end:
 	return (void *) int_fc;
 }
 
-struct bt_field_class *
-bt_field_class_unsigned_integer_create(void)
+struct bt_field_class *bt_field_class_unsigned_integer_create(
+		bt_trace_class *trace_class)
 {
-	return create_integer_field_class(
+	return create_integer_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER);
 }
 
-struct bt_field_class *bt_field_class_signed_integer_create(void)
+struct bt_field_class *bt_field_class_signed_integer_create(
+		bt_trace_class *trace_class)
 {
-	return create_integer_field_class(
+	return create_integer_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_SIGNED_INTEGER);
 }
 
@@ -226,10 +229,11 @@ void destroy_enumeration_field_class(struct bt_object *obj)
 
 static
 struct bt_field_class *create_enumeration_field_class(
-		enum bt_field_class_type type)
+		bt_trace_class *trace_class, enum bt_field_class_type type)
 {
 	struct bt_field_class_enumeration *enum_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD("Creating default enumeration field class object: type=%s",
 		bt_common_field_class_type_string(type));
 	enum_fc = g_new0(struct bt_field_class_enumeration, 1);
@@ -263,15 +267,17 @@ end:
 	return (void *) enum_fc;
 }
 
-struct bt_field_class *bt_field_class_unsigned_enumeration_create(void)
+struct bt_field_class *bt_field_class_unsigned_enumeration_create(
+		bt_trace_class *trace_class)
 {
-	return create_enumeration_field_class(
+	return create_enumeration_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION);
 }
 
-struct bt_field_class *bt_field_class_signed_enumeration_create(void)
+struct bt_field_class *bt_field_class_signed_enumeration_create(
+		bt_trace_class *trace_class)
 {
-	return create_enumeration_field_class(
+	return create_enumeration_field_class(trace_class,
 		BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION);
 }
 
@@ -583,10 +589,11 @@ void destroy_real_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
-struct bt_field_class *bt_field_class_real_create(void)
+struct bt_field_class *bt_field_class_real_create(bt_trace_class *trace_class)
 {
 	struct bt_field_class_real *real_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD_STR("Creating default real field class object.");
 	real_fc = g_new0(struct bt_field_class_real, 1);
 	if (!real_fc) {
@@ -705,11 +712,13 @@ void destroy_structure_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
-struct bt_field_class *bt_field_class_structure_create(void)
+struct bt_field_class *bt_field_class_structure_create(
+		bt_trace_class *trace_class)
 {
 	int ret;
 	struct bt_field_class_structure *struct_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD_STR("Creating default structure field class object.");
 	struct_fc = g_new0(struct bt_field_class_structure, 1);
 	if (!struct_fc) {
@@ -871,11 +880,13 @@ void destroy_variant_field_class(struct bt_object *obj)
 	g_free(fc);
 }
 
-struct bt_field_class *bt_field_class_variant_create(void)
+struct bt_field_class *bt_field_class_variant_create(
+		bt_trace_class *trace_class)
 {
 	int ret;
 	struct bt_field_class_variant *var_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD_STR("Creating default variant field class object.");
 	var_fc = g_new0(struct bt_field_class_variant, 1);
 	if (!var_fc) {
@@ -998,11 +1009,12 @@ void destroy_static_array_field_class(struct bt_object *obj)
 }
 
 struct bt_field_class *
-bt_field_class_static_array_create(struct bt_field_class *element_fc,
-		uint64_t length)
+bt_field_class_static_array_create(bt_trace_class *trace_class,
+		struct bt_field_class *element_fc, uint64_t length)
 {
 	struct bt_field_class_static_array *array_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(element_fc, "Element field class");
 	BT_LOGD_STR("Creating default static array field class object.");
 	array_fc = g_new0(struct bt_field_class_static_array, 1);
@@ -1061,10 +1073,12 @@ void destroy_dynamic_array_field_class(struct bt_object *obj)
 }
 
 struct bt_field_class *bt_field_class_dynamic_array_create(
+		bt_trace_class *trace_class,
 		struct bt_field_class *element_fc)
 {
 	struct bt_field_class_dynamic_array *array_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(element_fc, "Element field class");
 	BT_LOGD_STR("Creating default dynamic array field class object.");
 	array_fc = g_new0(struct bt_field_class_dynamic_array, 1);
@@ -1124,10 +1138,11 @@ void destroy_string_field_class(struct bt_object *obj)
 	g_free(obj);
 }
 
-struct bt_field_class *bt_field_class_string_create(void)
+struct bt_field_class *bt_field_class_string_create(bt_trace_class *trace_class)
 {
 	struct bt_field_class_string *string_fc = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD_STR("Creating default string field class object.");
 	string_fc = g_new0(struct bt_field_class_string, 1);
 	if (!string_fc) {

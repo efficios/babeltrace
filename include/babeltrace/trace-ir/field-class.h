@@ -27,7 +27,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool, bt_field_class */
+/* For bt_bool, bt_field_class, bt_trace_class */
 #include <babeltrace/types.h>
 
 /*
@@ -43,9 +43,11 @@
 extern "C" {
 #endif
 
-extern bt_field_class *bt_field_class_unsigned_integer_create(void);
+extern bt_field_class *bt_field_class_unsigned_integer_create(
+		bt_trace_class *trace_class);
 
-extern bt_field_class *bt_field_class_signed_integer_create(void);
+extern bt_field_class *bt_field_class_signed_integer_create(
+		bt_trace_class *trace_class);
 
 extern void bt_field_class_integer_set_field_value_range(
 		bt_field_class *field_class, uint64_t size);
@@ -54,15 +56,17 @@ extern void bt_field_class_integer_set_preferred_display_base(
 		bt_field_class *field_class,
 		bt_field_class_integer_preferred_display_base base);
 
-extern bt_field_class *bt_field_class_real_create(void);
+extern bt_field_class *bt_field_class_real_create(bt_trace_class *trace_class);
 
 extern void bt_field_class_real_set_is_single_precision(
 		bt_field_class *field_class,
 		bt_bool is_single_precision);
 
-extern bt_field_class *bt_field_class_unsigned_enumeration_create(void);
+extern bt_field_class *bt_field_class_unsigned_enumeration_create(
+		bt_trace_class *trace_class);
 
-extern bt_field_class *bt_field_class_signed_enumeration_create(void);
+extern bt_field_class *bt_field_class_signed_enumeration_create(
+		bt_trace_class *trace_class);
 
 extern bt_field_class_status bt_field_class_unsigned_enumeration_map_range(
 		bt_field_class *field_class, const char *label,
@@ -72,18 +76,22 @@ extern bt_field_class_status bt_field_class_signed_enumeration_map_range(
 		bt_field_class *field_class, const char *label,
 		int64_t range_lower, int64_t range_upper);
 
-extern bt_field_class *bt_field_class_string_create(void);
+extern bt_field_class *bt_field_class_string_create(
+		bt_trace_class *trace_class);
 
-extern bt_field_class *bt_field_class_structure_create(void);
+extern bt_field_class *bt_field_class_structure_create(
+		bt_trace_class *trace_class);
 
 extern bt_field_class_status bt_field_class_structure_append_member(
 		bt_field_class *struct_field_class,
 		const char *name, bt_field_class *field_class);
 
 extern bt_field_class *bt_field_class_static_array_create(
+		bt_trace_class *trace_class,
 		bt_field_class *elem_field_class, uint64_t length);
 
 extern bt_field_class *bt_field_class_dynamic_array_create(
+		bt_trace_class *trace_class,
 		bt_field_class *elem_field_class);
 
 extern bt_field_class_status
@@ -91,7 +99,8 @@ bt_field_class_dynamic_array_set_length_field_class(
 		bt_field_class *field_class,
 		bt_field_class *length_field_class);
 
-extern bt_field_class *bt_field_class_variant_create(void);
+extern bt_field_class *bt_field_class_variant_create(
+		bt_trace_class *trace_class);
 
 extern bt_field_class_status
 bt_field_class_variant_set_selector_field_class(bt_field_class *field_class,

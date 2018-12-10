@@ -63,27 +63,27 @@ static const size_t WRITER_USER_NR_ELEMENTS =
  *     - uint16_t payload_16;
  *     - uint32_t payload_32;
  */
-static bt_field_class *create_integer_struct(void)
+static bt_field_class *create_integer_struct(bt_trace_class *trace_class)
 {
 	int ret;
 	bt_field_class *structure = NULL;
 	bt_field_class *ui8 = NULL, *ui16 = NULL, *ui32 = NULL;
 
-	structure = bt_field_class_structure_create();
+	structure = bt_field_class_structure_create(trace_class);
 	BT_ASSERT(structure);
-	ui8 = bt_field_class_unsigned_integer_create();
+	ui8 = bt_field_class_unsigned_integer_create(trace_class);
 	BT_ASSERT(ui8);
 	bt_field_class_integer_set_field_value_range(ui8, 8);
 	ret = bt_field_class_structure_append_member(structure,
 		"payload_8", ui8);
 	BT_ASSERT(ret == 0);
-	ui16 = bt_field_class_unsigned_integer_create();
+	ui16 = bt_field_class_unsigned_integer_create(trace_class);
 	BT_ASSERT(ui16);
 	bt_field_class_integer_set_field_value_range(ui16, 16);
 	ret = bt_field_class_structure_append_member(structure,
 		"payload_16", ui16);
 	BT_ASSERT(ret == 0);
-	ui32 = bt_field_class_unsigned_integer_create();
+	ui32 = bt_field_class_unsigned_integer_create(trace_class);
 	BT_ASSERT(ui32);
 	bt_field_class_integer_set_field_value_range(ui32, 32);
 	ret = bt_field_class_structure_append_member(structure,
@@ -142,7 +142,7 @@ static bt_event_class *create_simple_event(
 	BT_ASSERT(event);
 	ret = bt_event_class_set_name(event, name);
 	BT_ASSERT(ret == 0);
-	payload = create_integer_struct();
+	payload = create_integer_struct(bt_stream_class_borrow_trace_class(sc));
 	BT_ASSERT(payload);
 	ret = bt_event_class_set_payload_field_class(event, payload);
 	BT_ASSERT(ret == 0);
@@ -160,22 +160,22 @@ static bt_event_class *create_simple_event(
  *           - uint16_t payload_16;
  *           - uint32_t payload_32;
  */
-static bt_event_class *create_complex_event(
-		bt_stream_class *sc,
+static bt_event_class *create_complex_event(bt_stream_class *sc,
 		const char *name)
 {
 	int ret;
 	bt_event_class *event = NULL;
 	bt_field_class *inner = NULL, *outer = NULL;
+	bt_trace_class *trace_class = bt_stream_class_borrow_trace_class(sc);
 
 	BT_ASSERT(name);
 	event = bt_event_class_create(sc);
 	BT_ASSERT(event);
 	ret = bt_event_class_set_name(event, name);
 	BT_ASSERT(ret == 0);
-	outer = create_integer_struct();
+	outer = create_integer_struct(trace_class);
 	BT_ASSERT(outer);
-	inner = create_integer_struct();
+	inner = create_integer_struct(trace_class);
 	BT_ASSERT(inner);
 	ret = bt_field_class_structure_append_member(outer,
 		"payload_struct", inner);
@@ -190,30 +190,32 @@ static bt_event_class *create_complex_event(
 static void set_stream_class_field_classes(
 		bt_stream_class *stream_class)
 {
+	bt_trace_class *trace_class =
+		bt_stream_class_borrow_trace_class(stream_class);
 	bt_field_class *packet_context_type;
 	bt_field_class *event_header_type;
 	bt_field_class *fc;
 	int ret;
 
-	packet_context_type = bt_field_class_structure_create();
+	packet_context_type = bt_field_class_structure_create(trace_class);
 	BT_ASSERT(packet_context_type);
-	fc = bt_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create(trace_class);
 	BT_ASSERT(fc);
 	bt_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_field_class_structure_append_member(packet_context_type,
 		"packet_size", fc);
 	BT_ASSERT(ret == 0);
 	bt_field_class_put_ref(fc);
-	fc = bt_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create(trace_class);
 	BT_ASSERT(fc);
 	bt_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_field_class_structure_append_member(packet_context_type,
 		"content_size", fc);
 	BT_ASSERT(ret == 0);
 	bt_field_class_put_ref(fc);
-	event_header_type = bt_field_class_structure_create();
+	event_header_type = bt_field_class_structure_create(trace_class);
 	BT_ASSERT(event_header_type);
-	fc = bt_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create(trace_class);
 	BT_ASSERT(fc);
 	bt_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_field_class_structure_append_member(event_header_type,
@@ -278,9 +280,9 @@ static void set_trace_packet_header(bt_trace_class *trace_class)
 	bt_field_class *fc;
 	int ret;
 
-	packet_header_type = bt_field_class_structure_create();
+	packet_header_type = bt_field_class_structure_create(trace_class);
 	BT_ASSERT(packet_header_type);
-	fc = bt_field_class_unsigned_integer_create();
+	fc = bt_field_class_unsigned_integer_create(trace_class);
 	BT_ASSERT(fc);
 	bt_field_class_integer_set_field_value_range(fc, 32);
 	ret = bt_field_class_structure_append_member(packet_header_type,
