@@ -29,6 +29,7 @@
 #include <babeltrace/logging.h>
 #include <babeltrace/property.h>
 #include <babeltrace/types.h>
+#include <babeltrace/util.h>
 #include <babeltrace/value-const.h>
 #include <babeltrace/value.h>
 #include <babeltrace/version.h>

@@ -58,11 +58,11 @@ void bt_clock_snapshot_reset(struct bt_clock_snapshot *clock_snapshot)
 static inline
 void set_ns_from_origin(struct bt_clock_snapshot *clock_snapshot)
 {
-	if (bt_util_ns_from_origin(clock_snapshot->clock_class, clock_snapshot->value_cycles,
+	if (bt_util_ns_from_origin_clock_class(clock_snapshot->clock_class,
+			clock_snapshot->value_cycles,
 			&clock_snapshot->ns_from_origin)) {
 		clock_snapshot->ns_from_origin_overflows = true;
 	}
-
 }
 
 static inline
