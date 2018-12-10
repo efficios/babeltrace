@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 
-/* For bt_bool, bt_uuid, bt_clock_class */
+/* For bt_bool, bt_uuid, bt_clock_class, bt_trace_class */
 #include <babeltrace/types.h>
 
 /* For bt_clock_class_status */
@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-extern bt_clock_class *bt_clock_class_create(void);
+extern bt_clock_class *bt_clock_class_create(bt_trace_class *trace_class);
 
 extern bt_clock_class_status bt_clock_class_set_name(
 		bt_clock_class *clock_class, const char *name);

@@ -656,9 +656,11 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	if (props.snapshots.beginning_clock != UINT64_C(-1)) {
 		BT_ASSERT(sc->default_clock_class);
-		ret = bt_clock_class_cycles_to_ns_from_origin(
-			sc->default_clock_class,
-			props.snapshots.beginning_clock, &begin_ns);
+		ret = bt_util_clock_cycles_to_ns_from_origin(
+			props.snapshots.beginning_clock,
+			sc->default_clock_class->frequency,
+			sc->default_clock_class->offset_seconds,
+			sc->default_clock_class->offset_cycles, &begin_ns);
 		if (ret) {
 			BT_LOGE("Cannot convert clock cycles to nanoseconds from origin (`%s`).",
 				path);

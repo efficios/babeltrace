@@ -137,7 +137,8 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	}
 
 	if (has_ts) {
-		dmesg_comp->clock_class = bt_clock_class_create();
+		dmesg_comp->clock_class = bt_clock_class_create(
+			dmesg_comp->trace_class);
 		if (!dmesg_comp->clock_class) {
 			BT_LOGE_STR("Cannot create clock class.");
 			goto error;

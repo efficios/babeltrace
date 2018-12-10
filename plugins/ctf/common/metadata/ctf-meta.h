@@ -59,6 +59,21 @@ enum ctf_encoding {
 	CTF_ENCODING_UTF8,
 };
 
+struct ctf_clock_class {
+	GString *name;
+	GString *description;
+	uint64_t frequency;
+	uint64_t precision;
+	int64_t offset_seconds;
+	uint64_t offset_cycles;
+	uint8_t uuid[16];
+	bool has_uuid;
+	bool is_absolute;
+
+	/* Weak, set during translation */
+	bt_clock_class *ir_cc;
+};
+
 struct ctf_field_class {
 	enum ctf_field_class_type type;
 	unsigned int alignment;
@@ -83,8 +98,8 @@ struct ctf_field_class_int {
 	enum ctf_encoding encoding;
 	int64_t storing_index;
 
-	/* Owned by this */
-	bt_clock_class *mapped_clock_class;
+	/* Weak */
+	struct ctf_clock_class *mapped_clock_class;
 };
 
 struct ctf_range {
@@ -223,8 +238,8 @@ struct ctf_stream_class {
 	 */
 	GHashTable *event_classes_by_id;
 
-	/* Owned by this */
-	bt_clock_class *default_clock_class;
+	/* Weak */
+	struct ctf_clock_class *default_clock_class;
 
 	/* Weak, set during translation */
 	bt_stream_class *ir_sc;
@@ -257,7 +272,7 @@ struct ctf_trace_class {
 
 	uint64_t stored_value_count;
 
-	/* Array of `bt_clock_class *` (owned by this) */
+	/* Array of `struct ctf_clock_class *` (owned by this) */
 	GPtrArray *clock_classes;
 
 	/* Array of `struct ctf_stream_class *` */
@@ -471,7 +486,6 @@ static inline
 void _ctf_field_class_int_destroy(struct ctf_field_class_int *fc)
 {
 	BT_ASSERT(fc);
-	bt_clock_class_put_ref(fc->mapped_clock_class);
 	g_free(fc);
 }
 
@@ -479,7 +493,6 @@ static inline
 void _ctf_field_class_enum_destroy(struct ctf_field_class_enum *fc)
 {
 	BT_ASSERT(fc);
-	bt_clock_class_put_ref(fc->base.mapped_clock_class);
 
 	if (fc->mappings) {
 		uint64_t i;
@@ -1108,7 +1121,6 @@ void ctf_field_class_int_copy_content(
 	dst_fc->disp_base = src_fc->disp_base;
 	dst_fc->encoding = src_fc->encoding;
 	dst_fc->mapped_clock_class = src_fc->mapped_clock_class;
-	bt_clock_class_get_ref(dst_fc->mapped_clock_class);
 	dst_fc->storing_index = src_fc->storing_index;
 }
 
@@ -1397,7 +1409,6 @@ void ctf_stream_class_destroy(struct ctf_stream_class *sc)
 	ctf_field_class_destroy(sc->packet_context_fc);
 	ctf_field_class_destroy(sc->event_header_fc);
 	ctf_field_class_destroy(sc->event_common_context_fc);
-	bt_clock_class_put_ref(sc->default_clock_class);
 	g_free(sc);
 }
 
@@ -1444,6 +1455,38 @@ void _ctf_trace_class_env_entry_fini(struct ctf_trace_class_env_entry *entry)
 }
 
 static inline
+struct ctf_clock_class *ctf_clock_class_create(void)
+{
+	struct ctf_clock_class *cc = g_new0(struct ctf_clock_class, 1);
+
+	BT_ASSERT(cc);
+	cc->name = g_string_new(NULL);
+	BT_ASSERT(cc->name);
+	cc->description = g_string_new(NULL);
+	BT_ASSERT(cc->description);
+	return cc;
+}
+
+static inline
+void ctf_clock_class_destroy(struct ctf_clock_class *cc)
+{
+	if (!cc) {
+		return;
+	}
+
+	if (cc->name) {
+		g_string_free(cc->name, TRUE);
+	}
+
+	if (cc->description) {
+		g_string_free(cc->description, TRUE);
+	}
+
+	bt_clock_class_put_ref(cc->ir_cc);
+	g_free(cc);
+}
+
+static inline
 struct ctf_trace_class *ctf_trace_class_create(void)
 {
 	struct ctf_trace_class *tc = g_new0(struct ctf_trace_class, 1);
@@ -1451,7 +1494,7 @@ struct ctf_trace_class *ctf_trace_class_create(void)
 	BT_ASSERT(tc);
 	tc->default_byte_order = -1;
 	tc->clock_classes = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) bt_clock_class_put_ref);
+		(GDestroyNotify) ctf_clock_class_destroy);
 	BT_ASSERT(tc->clock_classes);
 	tc->stream_classes = g_ptr_array_new_with_free_func(
 		(GDestroyNotify) ctf_stream_class_destroy);
@@ -1542,21 +1585,20 @@ end:
 }
 
 static inline
-bt_clock_class *ctf_trace_class_borrow_clock_class_by_name(
+struct ctf_clock_class *ctf_trace_class_borrow_clock_class_by_name(
 		struct ctf_trace_class *tc, const char *name)
 {
 	uint64_t i;
-	bt_clock_class *ret_cc = NULL;
+	struct ctf_clock_class *ret_cc = NULL;
 
 	BT_ASSERT(tc);
 	BT_ASSERT(name);
 
 	for (i = 0; i < tc->clock_classes->len; i++) {
-		bt_clock_class *cc = tc->clock_classes->pdata[i];
-		const char *cc_name = bt_clock_class_get_name(cc);
+		struct ctf_clock_class *cc = tc->clock_classes->pdata[i];
 
-		BT_ASSERT(cc_name);
-		if (strcmp(cc_name, name) == 0) {
+		BT_ASSERT(cc->name);
+		if (strcmp(cc->name->str, name) == 0) {
 			ret_cc = cc;
 			goto end;
 		}
