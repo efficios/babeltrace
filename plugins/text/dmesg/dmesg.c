@@ -68,6 +68,7 @@ struct dmesg_component {
 		bt_bool no_timestamp;
 	} params;
 
+	bt_self_component_source *self_comp;
 	bt_trace_class *trace_class;
 	bt_stream_class *stream_class;
 	bt_event_class *event_class;
@@ -120,7 +121,9 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 	bt_field_class *fc = NULL;
 	int ret = 0;
 
-	dmesg_comp->trace_class = bt_trace_class_create();
+	dmesg_comp->trace_class = bt_trace_class_create(
+		bt_self_component_source_as_self_component(
+			dmesg_comp->self_comp));
 	if (!dmesg_comp->trace_class) {
 		BT_LOGE_STR("Cannot create an empty trace class object.");
 		goto error;
@@ -379,6 +382,7 @@ bt_self_component_status dmesg_init(
 		goto error;
 	}
 
+	dmesg_comp->self_comp = self_comp;
 	dmesg_comp->params.path = g_string_new(NULL);
 	if (!dmesg_comp->params.path) {
 		BT_LOGE_STR("Failed to allocate a GString.");

@@ -170,7 +170,8 @@ bt_query_status ctf_fs_query(
 		const bt_value **result);
 
 BT_HIDDEN
-struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
+struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
+		const char *path, const char *name,
 		struct ctf_fs_metadata_config *config);
 
 BT_HIDDEN

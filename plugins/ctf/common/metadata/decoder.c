@@ -348,6 +348,7 @@ int ctf_metadata_decoder_packetized_file_stream_to_buf(
 
 BT_HIDDEN
 struct ctf_metadata_decoder *ctf_metadata_decoder_create(
+		bt_self_component_source *self_comp,
 		const struct ctf_metadata_decoder_config *config)
 {
 	struct ctf_metadata_decoder *mdec =
@@ -372,7 +373,7 @@ struct ctf_metadata_decoder *ctf_metadata_decoder_create(
 	}
 
 	mdec->config = *config;
-	mdec->visitor = ctf_visitor_generate_ir_create(config);
+	mdec->visitor = ctf_visitor_generate_ir_create(self_comp, config);
 	if (!mdec->visitor) {
 		BT_LOGE("Failed to create a CTF IR metadata AST visitor: "
 			"mdec-addr=%p", mdec);

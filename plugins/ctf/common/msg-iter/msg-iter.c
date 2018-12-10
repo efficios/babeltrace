@@ -120,6 +120,9 @@ struct bt_msg_iter {
 	bool done_filling_string;
 
 	/* Trace and classes */
+	/* True to set IR fields */
+	bool set_ir_fields;
+
 	struct {
 		struct ctf_trace_class *tc;
 		struct ctf_stream_class *sc;
@@ -909,7 +912,7 @@ enum bt_msg_iter_status read_packet_context_begin_state(
 		 * packet is created from a stream, and this API must be
 		 * able to return the packet header and context fields
 		 * without creating a stream
-		 * (bt_msg_iter_borrow_packet_header_context_fields()).
+		 * (read_packet_header_context_fields()).
 		 */
 		notit->packet_context_field =
 			bt_packet_context_field_create(
@@ -1946,7 +1949,11 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d, value=%f",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir, value);
-	BT_ASSERT(fc->in_ir);
+
+	if (unlikely(!fc->in_ir)) {
+		goto end;
+	}
+
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
@@ -1954,6 +1961,8 @@ enum bt_bfcr_status bfcr_floating_point_cb(double value,
 		  BT_FIELD_CLASS_TYPE_REAL);
 	bt_field_real_set_value(field, value);
 	stack_top(notit->stack)->index++;
+
+end:
 	return status;
 }
 
@@ -1970,7 +1979,10 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
 
-	BT_ASSERT(fc->in_ir);
+	if (unlikely(!fc->in_ir)) {
+		goto end;
+	}
+
 	field = borrow_next_field(notit);
 	BT_ASSERT(field);
 	BT_ASSERT(bt_field_borrow_class_const(field) == fc->ir_fc);
@@ -1985,6 +1997,8 @@ enum bt_bfcr_status bfcr_string_begin_cb(
 	 * subsequent call to bfcr_string_end_cb().
 	 */
 	stack_push(notit->stack, field);
+
+end:
 	return BT_BFCR_STATUS_OK;
 }
 
@@ -2002,7 +2016,11 @@ enum bt_bfcr_status bfcr_string_cb(const char *value,
 		"fc-type=%d, fc-in-ir=%d, string-length=%zu",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir,
 		len);
-	BT_ASSERT(fc->in_ir);
+
+	if (unlikely(!fc->in_ir)) {
+		goto end;
+	}
+
 	field = stack_top(notit->stack)->base;
 	BT_ASSERT(field);
 
@@ -2030,13 +2048,18 @@ enum bt_bfcr_status bfcr_string_end_cb(
 		"notit-addr=%p, bfcr-addr=%p, fc-addr=%p, "
 		"fc-type=%d, fc-in-ir=%d",
 		notit, notit->bfcr, fc, fc->type, fc->in_ir);
-	BT_ASSERT(fc->in_ir);
+
+	if (unlikely(!fc->in_ir)) {
+		goto end;
+	}
 
 	/* Pop string field */
 	stack_pop(notit->stack);
 
 	/* Go to next field */
 	stack_top(notit->stack)->index++;
+
+end:
 	return BT_BFCR_STATUS_OK;
 }
 
@@ -2633,11 +2656,9 @@ end:
 	return status;
 }
 
-BT_HIDDEN
-enum bt_msg_iter_status bt_msg_iter_borrow_packet_header_context_fields(
-		struct bt_msg_iter *notit,
-		bt_field **packet_header_field,
-		bt_field **packet_context_field)
+static
+enum bt_msg_iter_status read_packet_header_context_fields(
+		struct bt_msg_iter *notit)
 {
 	int ret;
 	enum bt_msg_iter_status status = BT_MSG_ITER_STATUS_OK;
@@ -2646,7 +2667,7 @@ enum bt_msg_iter_status bt_msg_iter_borrow_packet_header_context_fields(
 
 	if (notit->state == STATE_EMIT_MSG_NEW_PACKET) {
 		/* We're already there */
-		goto set_fields;
+		goto end;
 	}
 
 	while (true) {
@@ -2672,7 +2693,7 @@ enum bt_msg_iter_status bt_msg_iter_borrow_packet_header_context_fields(
 			 * Packet header and context fields are
 			 * potentially decoded (or they don't exist).
 			 */
-			goto set_fields;
+			goto end;
 		case STATE_INIT:
 		case STATE_EMIT_MSG_NEW_STREAM:
 		case STATE_DSCOPE_TRACE_PACKET_HEADER_BEGIN:
@@ -2694,22 +2715,13 @@ enum bt_msg_iter_status bt_msg_iter_borrow_packet_header_context_fields(
 		}
 	}
 
-set_fields:
+end:
 	ret = set_current_packet_content_sizes(notit);
 	if (ret) {
 		status = BT_MSG_ITER_STATUS_ERROR;
 		goto end;
 	}
 
-	if (packet_header_field) {
-		*packet_header_field = notit->dscopes.trace_packet_header;
-	}
-
-	if (packet_context_field) {
-		*packet_context_field = notit->dscopes.stream_packet_context;
-	}
-
-end:
 	return status;
 }
 
@@ -2788,8 +2800,14 @@ enum bt_msg_iter_status bt_msg_iter_get_packet_properties(
 		struct bt_msg_iter *notit,
 		struct bt_msg_iter_packet_properties *props)
 {
+	enum bt_msg_iter_status status;
+
 	BT_ASSERT(notit);
 	BT_ASSERT(props);
+	status = read_packet_header_context_fields(notit);
+	if (status != BT_MSG_ITER_STATUS_OK) {
+		goto end;
+	}
 
 	props->exp_packet_total_size =
 		(uint64_t) notit->cur_exp_packet_total_size;
@@ -2802,5 +2820,7 @@ enum bt_msg_iter_status bt_msg_iter_get_packet_properties(
 	props->snapshots.packets = notit->snapshots.packets;
 	props->snapshots.beginning_clock = notit->snapshots.beginning_clock;
 	props->snapshots.end_clock = notit->snapshots.end_clock;
-	return BT_MSG_ITER_STATUS_OK;
+
+end:
+	return status;
 }

@@ -96,11 +96,12 @@ void free_packet_header_field(struct bt_field_wrapper *field_wrapper,
 	bt_field_wrapper_destroy(field_wrapper);
 }
 
-struct bt_trace_class *bt_trace_class_create(void)
+struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 {
 	struct bt_trace_class *tc = NULL;
 	int ret;
 
+	BT_ASSERT_PRE_NON_NULL(self_comp, "Self component");
 	BT_LOGD_STR("Creating default trace class object.");
 	tc = g_new0(struct bt_trace_class, 1);
 	if (!tc) {

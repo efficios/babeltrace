@@ -133,12 +133,6 @@ struct ctf_fs_ds_file *ctf_fs_ds_file_create(
 		bt_stream *stream, const char *path);
 
 BT_HIDDEN
-int ctf_fs_ds_file_borrow_packet_header_context_fields(
-		struct ctf_fs_ds_file *ds_file,
-		bt_field **packet_header_field,
-		bt_field **packet_context_field);
-
-BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 
 BT_HIDDEN

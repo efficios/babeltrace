@@ -290,24 +290,6 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 		bt_self_message_iterator *msg_iter,
 		bt_message **message);
 
-/**
- * Returns the first packet header and context fields. This function
- * never needs to call the `borrow_stream()` medium operation because
- * it does not create packet or event objects.
- *
- * @param msg_iter		CTF message iterator
- * @param packet_header_field	Packet header field (\c NULL if there's
- *				no packet header field)
- * @param packet_context_field	Packet context field (\c NULL if there's
- *				no packet context field)
- * @returns			One of #bt_msg_iter_status values
- */
-BT_HIDDEN
-enum bt_msg_iter_status bt_msg_iter_borrow_packet_header_context_fields(
-		struct bt_msg_iter *notit,
-		bt_field **packet_header_field,
-		bt_field **packet_context_field);
-
 struct bt_msg_iter_packet_properties {
 	uint64_t exp_packet_total_size;
 	uint64_t exp_packet_content_size;

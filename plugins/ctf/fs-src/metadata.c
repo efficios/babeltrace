@@ -86,7 +86,10 @@ end:
 	return file;
 }
 
-int ctf_fs_metadata_set_trace_class(struct ctf_fs_trace *ctf_fs_trace,
+BT_HIDDEN
+int ctf_fs_metadata_set_trace_class(
+		bt_self_component_source *self_comp,
+		struct ctf_fs_trace *ctf_fs_trace,
 		struct ctf_fs_metadata_config *config)
 {
 	int ret = 0;
@@ -103,7 +106,7 @@ int ctf_fs_metadata_set_trace_class(struct ctf_fs_trace *ctf_fs_trace,
 		goto end;
 	}
 
-	ctf_fs_trace->metadata->decoder = ctf_metadata_decoder_create(
+	ctf_fs_trace->metadata->decoder = ctf_metadata_decoder_create(self_comp,
 		config ? &decoder_config : NULL);
 	if (!ctf_fs_trace->metadata->decoder) {
 		BT_LOGE("Cannot create metadata decoder object");
@@ -121,7 +124,7 @@ int ctf_fs_metadata_set_trace_class(struct ctf_fs_trace *ctf_fs_trace,
 	ctf_fs_trace->metadata->trace_class =
 		ctf_metadata_decoder_get_ir_trace_class(
 			ctf_fs_trace->metadata->decoder);
-	BT_ASSERT(ctf_fs_trace->metadata->trace_class);
+	BT_ASSERT(!self_comp || ctf_fs_trace->metadata->trace_class);
 	ctf_fs_trace->metadata->tc =
 		ctf_metadata_decoder_borrow_ctf_trace_class(
 			ctf_fs_trace->metadata->decoder);
@@ -132,12 +135,14 @@ end:
 	return ret;
 }
 
+BT_HIDDEN
 int ctf_fs_metadata_init(struct ctf_fs_metadata *metadata)
 {
 	/* Nothing to initialize for the moment. */
 	return 0;
 }
 
+BT_HIDDEN
 void ctf_fs_metadata_fini(struct ctf_fs_metadata *metadata)
 {
 	if (metadata->text) {

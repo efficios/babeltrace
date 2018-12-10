@@ -27,7 +27,10 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_bool, bt_uuid, bt_trace_class, bt_stream_class, bt_field_class */
+/*
+ * For bt_bool, bt_uuid, bt_trace_class, bt_stream_class,
+ * bt_field_class, bt_self_component
+ */
 #include <babeltrace/types.h>
 
 /* For bt_trace_class_status */
@@ -39,7 +42,7 @@
 extern "C" {
 #endif
 
-extern bt_trace_class *bt_trace_class_create(void);
+extern bt_trace_class *bt_trace_class_create(bt_self_component *self_comp);
 
 extern void bt_trace_class_set_assigns_automatic_stream_class_id(
 		bt_trace_class *trace_class, bt_bool value);

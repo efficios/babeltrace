@@ -378,7 +378,7 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		goto end;
 	}
 
-	trace = ctf_fs_trace_create(trace_path, trace_name, NULL);
+	trace = ctf_fs_trace_create(NULL, trace_path, trace_name, NULL);
 	if (!trace) {
 		BT_LOGE("Failed to create fs trace at \'%s\'", trace_path);
 		ret = -1;

@@ -324,17 +324,12 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 	BT_LOGD("Building index from .idx file of stream file %s",
 			ds_file->file->path->str);
-
-	ret = bt_msg_iter_borrow_packet_header_context_fields(
-		ds_file->msg_iter, NULL, NULL);
+	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
-		BT_LOGD_STR("Cannot borrow first packet's header and context "
-			"fields.");
+		BT_LOGD_STR("Cannot read first packet's header and context fields.");
 		goto error;
 	}
 
-	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
-	BT_ASSERT(ret == 0);
 	sc = ctf_trace_class_borrow_stream_class_by_id(ds_file->metadata->tc,
 		props.stream_class_id);
 	BT_ASSERT(sc);
@@ -550,18 +545,14 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		struct ctf_fs_ds_index_entry *entry;
 		struct bt_msg_iter_packet_properties props;
 
-		iter_status = bt_msg_iter_borrow_packet_header_context_fields(
-			ds_file->msg_iter, NULL, NULL);
+		iter_status = bt_msg_iter_get_packet_properties(
+			ds_file->msg_iter, &props);
 		if (iter_status != BT_MSG_ITER_STATUS_OK) {
 			if (iter_status == BT_MSG_ITER_STATUS_EOF) {
 				break;
 			}
 			goto error;
 		}
-
-		ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter,
-			&props);
-		BT_ASSERT(ret == 0);
 
 		current_packet_offset =
 			bt_msg_iter_get_current_packet_offset(
@@ -737,40 +728,6 @@ bt_message_iterator_status ctf_fs_ds_file_next(
 		break;
 	}
 	return status;
-}
-
-BT_HIDDEN
-int ctf_fs_ds_file_borrow_packet_header_context_fields(
-		struct ctf_fs_ds_file *ds_file,
-		bt_field **packet_header_field,
-		bt_field **packet_context_field)
-{
-	enum bt_msg_iter_status msg_iter_status;
-	int ret = 0;
-
-	BT_ASSERT(ds_file);
-	msg_iter_status = bt_msg_iter_borrow_packet_header_context_fields(
-		ds_file->msg_iter, packet_header_field, packet_context_field);
-	switch (msg_iter_status) {
-	case BT_MSG_ITER_STATUS_EOF:
-	case BT_MSG_ITER_STATUS_OK:
-		break;
-	case BT_MSG_ITER_STATUS_AGAIN:
-		abort();
-	case BT_MSG_ITER_STATUS_INVAL:
-	case BT_MSG_ITER_STATUS_ERROR:
-	default:
-		goto error;
-		break;
-	}
-
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	return ret;
 }
 
 BT_HIDDEN

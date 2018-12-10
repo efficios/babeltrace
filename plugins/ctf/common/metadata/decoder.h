@@ -45,6 +45,7 @@ struct ctf_metadata_decoder_config {
  */
 BT_HIDDEN
 struct ctf_metadata_decoder *ctf_metadata_decoder_create(
+		bt_self_component_source *self_comp,
 		const struct ctf_metadata_decoder_config *config);
 
 /*

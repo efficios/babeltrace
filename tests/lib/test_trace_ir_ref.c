@@ -294,11 +294,12 @@ static void set_trace_packet_header(bt_trace_class *trace_class)
 	bt_field_class_put_ref(packet_header_type);
 }
 
-static bt_trace_class *create_tc1(void)
+static bt_trace_class *create_tc1(bt_self_component_source *self_comp)
 {
 	bt_trace_class *tc1 = NULL;
 
-	tc1 = bt_trace_class_create();
+	tc1 = bt_trace_class_create(
+		bt_self_component_source_as_self_component(self_comp));
 	BT_ASSERT(tc1);
 	set_trace_packet_header(tc1);
 	create_sc1(tc1);
@@ -322,7 +323,7 @@ static void init_weak_refs(bt_trace_class *tc,
 	*ec3 = bt_stream_class_borrow_event_class_by_index(*sc2, 0);
 }
 
-static void test_example_scenario(void)
+static void test_example_scenario(bt_self_component_source *self_comp)
 {
 	/*
 	 * Weak pointers to trace IR objects are to be used very
@@ -338,7 +339,7 @@ static void test_example_scenario(void)
 	struct user user_a = { 0 }, user_b = { 0 }, user_c = { 0 };
 
 	/* The only reference which exists at this point is on TC1. */
-	tc1 = create_tc1();
+	tc1 = create_tc1(self_comp);
 	ok(tc1, "Initialize trace");
 	BT_ASSERT(tc1);
 	init_weak_refs(tc1, &weak_tc1, &weak_sc1, &weak_sc2, &weak_ec1,
@@ -463,6 +464,42 @@ static void test_example_scenario(void)
 
 	/* Reclaim last reference held by User C. */
 	BT_EVENT_CLASS_PUT_REF_AND_RESET(user_c.ec);
+}
+
+static
+bt_self_component_status src_init(
+	bt_self_component_source *self_comp,
+	const bt_value *params, void *init_method_data)
+{
+	test_example_scenario(self_comp);
+	return BT_SELF_COMPONENT_STATUS_OK;
+}
+
+static
+bt_self_message_iterator_status src_iter_next(
+		bt_self_message_iterator *self_iterator,
+		bt_message_array_const msgs, uint64_t capacity,
+		uint64_t *count)
+{
+	return BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+}
+
+static void test_example_scenario_in_graph(void)
+{
+	bt_component_class_source *comp_cls;
+	bt_graph *graph;
+	int ret;
+
+	comp_cls = bt_component_class_source_create("src", src_iter_next);
+	BT_ASSERT(comp_cls);
+	ret = bt_component_class_source_set_init_method(comp_cls, src_init);
+	BT_ASSERT(ret == 0);
+	graph = bt_graph_create();
+	ret = bt_graph_add_source_component(graph, comp_cls, "src-comp",
+		NULL, NULL);
+	BT_ASSERT(ret == 0);
+	bt_graph_put_ref(graph);
+	bt_component_class_source_put_ref(comp_cls);
 }
 
 static void create_writer_user_full(struct writer_user *user)
@@ -604,7 +641,7 @@ int main(int argc, char **argv)
 	/* Initialize tap harness before any tests */
 	plan_tests(NR_TESTS);
 
-	test_example_scenario();
+	test_example_scenario_in_graph();
 	test_put_order();
 
 	return exit_status();
