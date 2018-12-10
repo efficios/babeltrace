@@ -293,11 +293,12 @@ struct ctf_fs_ds_index_entry *ctf_fs_ds_index_add_new_entry(
 }
 
 static
-int convert_cycles_to_ns(bt_clock_class *clock_class,
+int convert_cycles_to_ns(struct ctf_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
-	return bt_clock_class_cycles_to_ns_from_origin(clock_class, cycles,
-						       ns);
+	return bt_util_clock_cycles_to_ns_from_origin(cycles,
+			clock_class->frequency, clock_class->offset_seconds,
+			clock_class->offset_cycles, ns);
 }
 
 static

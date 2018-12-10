@@ -74,43 +74,17 @@ void free_clock_snapshot(struct bt_clock_snapshot *clock_snapshot,
 static inline
 void set_base_offset(struct bt_clock_class *clock_class)
 {
-	uint64_t offset_cycles_ns;
-
-	/* Initialize nanosecond timestamp to clock's offset in seconds */
-	if (clock_class->offset_seconds <= (INT64_MIN / INT64_C(1000000000) - 1) ||
-			clock_class->offset_seconds >= (INT64_MAX / INT64_C(1000000000)) - 1) {
-		/*
-		 * Overflow: offset in seconds converted to nanoseconds
-		 * is outside the int64_t range. We also subtract 1 here
-		 * to leave "space" for the offset in cycles converted
-		 * to nanoseconds (which is always less than 1 second by
-		 * contract).
-		 */
-		clock_class->base_offset.overflows = true;
-		goto end;
-	}
-
-	/* Offset (seconds) to nanoseconds */
-	clock_class->base_offset.value_ns = clock_class->offset_seconds *
-		INT64_C(1000000000);
-
-	/* Add offset in cycles */
-	BT_ASSERT(clock_class->offset_cycles < clock_class->frequency);
-	offset_cycles_ns = bt_util_ns_from_value(clock_class->frequency,
-		clock_class->offset_cycles);
-	BT_ASSERT(offset_cycles_ns < 1000000000);
-	clock_class->base_offset.value_ns += (int64_t) offset_cycles_ns;
-	clock_class->base_offset.overflows = false;
-
-end:
-	return;
+	clock_class->base_offset.overflows = bt_util_get_base_offset_ns(
+		clock_class->offset_seconds, clock_class->offset_cycles,
+		clock_class->frequency, &clock_class->base_offset.value_ns);
 }
 
-struct bt_clock_class *bt_clock_class_create(void)
+struct bt_clock_class *bt_clock_class_create(bt_trace_class *trace_class)
 {
 	int ret;
 	struct bt_clock_class *clock_class = NULL;
 
+	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
 	BT_LOGD_STR("Creating default clock class object");
 
 	clock_class = g_new0(struct bt_clock_class, 1);
@@ -312,7 +286,7 @@ enum bt_clock_class_status bt_clock_class_cycles_to_ns_from_origin(
 
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_NON_NULL(ns, "Nanoseconds (output)");
-	ret = bt_util_ns_from_origin(clock_class, cycles, ns);
+	ret = bt_util_ns_from_origin_clock_class(clock_class, cycles, ns);
 	if (ret) {
 		ret = BT_CLOCK_CLASS_STATUS_OVERFLOW;
 		BT_LIB_LOGW("Cannot convert cycles to nanoseconds "

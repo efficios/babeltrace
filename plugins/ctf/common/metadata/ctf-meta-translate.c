@@ -514,8 +514,9 @@ bt_stream_class *ctf_stream_class_to_ir(struct ctf_stream_class *sc,
 	bt_stream_class_set_assigns_automatic_stream_id(ir_sc, BT_FALSE);
 
 	if (sc->default_clock_class) {
+		BT_ASSERT(sc->default_clock_class->ir_cc);
 		ret = bt_stream_class_set_default_clock_class(ir_sc,
-			sc->default_clock_class);
+			sc->default_clock_class->ir_cc);
 		BT_ASSERT(ret == 0);
 	}
 
@@ -563,8 +564,33 @@ end:
 }
 
 static inline
-int ctf_trace_class_to_ir(bt_trace_class *ir_tc,
-		struct ctf_trace_class *tc)
+void ctf_clock_class_to_ir(bt_clock_class *ir_cc, struct ctf_clock_class *cc)
+{
+	int ret;
+
+	if (strlen(cc->name->str) > 0) {
+		ret = bt_clock_class_set_name(ir_cc, cc->name->str);
+		BT_ASSERT(ret == 0);
+	}
+
+	if (strlen(cc->description->str) > 0) {
+		ret = bt_clock_class_set_description(ir_cc, cc->description->str);
+		BT_ASSERT(ret == 0);
+	}
+
+	bt_clock_class_set_frequency(ir_cc, cc->frequency);
+	bt_clock_class_set_precision(ir_cc, cc->precision);
+	bt_clock_class_set_offset(ir_cc, cc->offset_seconds, cc->offset_cycles);
+
+	if (cc->has_uuid) {
+		bt_clock_class_set_uuid(ir_cc, cc->uuid);
+	}
+
+	bt_clock_class_set_is_absolute(ir_cc, cc->is_absolute);
+}
+
+static inline
+int ctf_trace_class_to_ir(bt_trace_class *ir_tc, struct ctf_trace_class *tc)
 {
 	int ret = 0;
 	uint64_t i;
@@ -611,6 +637,13 @@ int ctf_trace_class_to_ir(bt_trace_class *ir_tc,
 		if (ret) {
 			goto end;
 		}
+	}
+
+	for (i = 0; i < tc->clock_classes->len; i++) {
+		struct ctf_clock_class *cc = tc->clock_classes->pdata[i];
+
+		cc->ir_cc = bt_clock_class_create(ir_tc);
+		ctf_clock_class_to_ir(cc->ir_cc, cc);
 	}
 
 	bt_trace_class_set_assigns_automatic_stream_class_id(ir_tc,

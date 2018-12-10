@@ -5,6 +5,7 @@ babeltraceinclude_HEADERS = \
 	babeltrace/logging.h \
 	babeltrace/property.h \
 	babeltrace/types.h \
+	babeltrace/util.h \
 	babeltrace/value-const.h \
 	babeltrace/value.h \
 	babeltrace/version.h
