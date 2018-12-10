@@ -79,19 +79,19 @@ struct dmesg_component {
 };
 
 static
-bt_field_class *create_event_payload_fc(void)
+bt_field_class *create_event_payload_fc(bt_trace_class *trace_class)
 {
 	bt_field_class *root_fc = NULL;
 	bt_field_class *fc = NULL;
 	int ret;
 
-	root_fc = bt_field_class_structure_create();
+	root_fc = bt_field_class_structure_create(trace_class);
 	if (!root_fc) {
 		BT_LOGE_STR("Cannot create an empty structure field class object.");
 		goto error;
 	}
 
-	fc = bt_field_class_string_create();
+	fc = bt_field_class_string_create(trace_class);
 	if (!fc) {
 		BT_LOGE_STR("Cannot create a string field class object.");
 		goto error;
@@ -165,7 +165,7 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		goto error;
 	}
 
-	fc = create_event_payload_fc();
+	fc = create_event_payload_fc(dmesg_comp->trace_class);
 	if (!fc) {
 		BT_LOGE_STR("Cannot create event payload field class.");
 		goto error;
