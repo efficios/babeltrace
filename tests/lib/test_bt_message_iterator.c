@@ -239,18 +239,15 @@ bool compare_test_events(const struct test_event *expected_events)
 }
 
 static
-void init_static_data(void)
+void init_static_data(bt_self_component_source *self_comp)
 {
 	bt_trace_class *trace_class;
 	bt_trace *trace;
 
-	/* Test events */
-	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
-	BT_ASSERT(test_events);
-
 	/* Metadata, streams, and packets*/
-	trace_class = bt_trace_class_create();
-	BT_ASSERT(trace);
+	trace_class = bt_trace_class_create(
+		bt_self_component_source_as_self_component(self_comp));
+	BT_ASSERT(trace_class);
 	src_stream_class = bt_stream_class_create(trace_class);
 	BT_ASSERT(src_stream_class);
 	src_event_class = bt_event_class_create(src_stream_class);
@@ -286,9 +283,6 @@ void init_static_data(void)
 static
 void fini_static_data(void)
 {
-	/* Test events */
-	g_array_free(test_events, TRUE);
-
 	/* Metadata */
 	bt_stream_class_put_ref(src_stream_class);
 	bt_event_class_put_ref(src_event_class);
@@ -469,6 +463,7 @@ bt_self_component_status src_init(
 {
 	int ret;
 
+	init_static_data(self_comp);
 	ret = bt_self_component_source_add_output_port(
 		self_comp, "out", NULL, NULL);
 	BT_ASSERT(ret == 0);
@@ -721,9 +716,10 @@ void create_source_sink(bt_graph *graph,
 	}
 }
 
+typedef void (*compare_func_t)(void);
+
 static
-void do_std_test(enum test test, const char *name,
-		const struct test_event *expected_test_events)
+void do_std_test(enum test test, const char *name, compare_func_t compare_func)
 {
 	const bt_component_source *src_comp;
 	const bt_component_sink *sink_comp;
@@ -760,67 +756,54 @@ void do_std_test(enum test test, const char *name,
 		"graph finishes without any error");
 
 	/* Compare the resulting test events */
-	if (expected_test_events) {
-		ok(compare_test_events(expected_test_events),
-			"the produced sequence of test events is the expected one");
+	if (compare_func) {
+		compare_func();
 	}
 
 	bt_component_source_put_ref(src_comp);
 	bt_component_sink_put_ref(sink_comp);
+	fini_static_data();
 	BT_GRAPH_PUT_REF_AND_RESET(graph);
+}
+
+static
+void test_no_auto_msgs_compare(void)
+{
+	const struct test_event expected_test_events[] = {
+		{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream2, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream2, .packet = src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
+		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream2, .packet = src_stream2_packet2, },
+		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream2, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
+		{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream1, .packet = NULL, },
+		{ .type = TEST_EV_TYPE_END, },
+		{ .type = TEST_EV_TYPE_SENTINEL, },
+	};
+
+	ok(compare_test_events(expected_test_events),
+		"the produced sequence of test events is the expected one");
 }
 
 static
 void test_no_auto_msgs(void)
 {
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
-
 	do_std_test(TEST_NO_AUTO_MSGS, "no automatic messages",
-		expected_test_events);
+		test_no_auto_msgs_compare);
 }
 
 static
 void test_output_port_message_iterator(void)
 {
-	const struct test_event expected_test_events[] = {
-		{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream2, .packet = src_stream2_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream2, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
-		{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream1, .packet = NULL, },
-		{ .type = TEST_EV_TYPE_END, },
-		{ .type = TEST_EV_TYPE_SENTINEL, },
-	};
 	const bt_component_source *src_comp;
 	bt_port_output_message_iterator *msg_iter;
 	bt_message_iterator_status iter_status =
@@ -836,10 +819,9 @@ void test_output_port_message_iterator(void)
 	create_source_sink(graph, &src_comp, NULL);
 
 	/* Create message iterator on source's output port */
-	upstream_port = bt_component_source_borrow_output_port_by_name_const(src_comp,
-									     "out");
-	msg_iter = bt_port_output_message_iterator_create(graph,
-		upstream_port);
+	upstream_port = bt_component_source_borrow_output_port_by_name_const(
+		src_comp, "out");
+	msg_iter = bt_port_output_message_iterator_create(graph, upstream_port);
 	ok(msg_iter, "bt_private_output_port_message_iterator_create() succeeds");
 
 	/* Consume the message iterator */
@@ -851,9 +833,33 @@ void test_output_port_message_iterator(void)
 		"output port message iterator finishes without any error");
 
 	/* Compare the resulting test events */
-	ok(compare_test_events(expected_test_events),
-		"the produced sequence of test events is the expected one");
+	{
+		const struct test_event expected_test_events[] = {
+			{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream1, .packet = NULL, },
+			{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet1, },
+			{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+			{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+			{ .type = TEST_EV_TYPE_MSG_STREAM_BEGIN, .stream = src_stream2, .packet = NULL, },
+			{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+			{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream2, .packet = src_stream2_packet2, },
+			{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream2, .packet = src_stream2_packet2, },
+			{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet1, },
+			{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet1, },
+			{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream2, .packet = src_stream2_packet2, },
+			{ .type = TEST_EV_TYPE_MSG_PACKET_BEGIN, .stream = src_stream1, .packet = src_stream1_packet2, },
+			{ .type = TEST_EV_TYPE_MSG_EVENT, .stream = src_stream1, .packet = src_stream1_packet2, },
+			{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream2, .packet = NULL, },
+			{ .type = TEST_EV_TYPE_MSG_PACKET_END, .stream = src_stream1, .packet = src_stream1_packet2, },
+			{ .type = TEST_EV_TYPE_MSG_STREAM_END, .stream = src_stream1, .packet = NULL, },
+			{ .type = TEST_EV_TYPE_END, },
+			{ .type = TEST_EV_TYPE_SENTINEL, },
+		};
 
+		ok(compare_test_events(expected_test_events),
+			"the produced sequence of test events is the expected one");
+	}
+
+	fini_static_data();
 	bt_component_source_put_ref(src_comp);
 	BT_GRAPH_PUT_REF_AND_RESET(graph);
 	bt_port_output_message_iterator_put_ref(msg_iter);
@@ -868,9 +874,10 @@ int main(int argc, char **argv)
 	}
 
 	plan_tests(NR_TESTS);
-	init_static_data();
+	test_events = g_array_new(FALSE, TRUE, sizeof(struct test_event));
+	BT_ASSERT(test_events);
 	test_no_auto_msgs();
 	test_output_port_message_iterator();
-	fini_static_data();
+	g_array_free(test_events, TRUE);
 	return exit_status();
 }

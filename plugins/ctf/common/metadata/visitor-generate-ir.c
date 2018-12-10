@@ -570,7 +570,7 @@ end:
  * @returns	New visitor context, or NULL on error
  */
 static
-struct ctx *ctx_create(
+struct ctx *ctx_create(bt_self_component_source *self_comp,
 		const struct ctf_metadata_decoder_config *decoder_config)
 {
 	struct ctx *ctx = NULL;
@@ -583,10 +583,13 @@ struct ctx *ctx_create(
 		goto error;
 	}
 
-	ctx->trace_class = bt_trace_class_create();
-	if (!ctx->trace_class) {
-		BT_LOGE_STR("Cannot create empty trace class.");
-		goto error;
+	if (self_comp) {
+		ctx->trace_class = bt_trace_class_create(
+			bt_self_component_source_as_self_component(self_comp));
+		if (!ctx->trace_class) {
+			BT_LOGE_STR("Cannot create empty trace class.");
+			goto error;
+		}
 	}
 
 	ctx->ctf_tc = ctf_trace_class_create();
@@ -4802,12 +4805,13 @@ end:
 
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
+		bt_self_component_source *self_comp,
 		const struct ctf_metadata_decoder_config *decoder_config)
 {
 	struct ctx *ctx = NULL;
 
 	/* Create visitor's context */
-	ctx = ctx_create(decoder_config);
+	ctx = ctx_create(self_comp, decoder_config);
 	if (!ctx) {
 		BT_LOGE_STR("Cannot create visitor's context.");
 		goto error;
@@ -4836,8 +4840,11 @@ bt_trace_class *ctf_visitor_generate_ir_get_ir_trace_class(
 	struct ctx *ctx = (void *) visitor;
 
 	BT_ASSERT(ctx);
-	BT_ASSERT(ctx->trace_class);
-	bt_trace_class_get_ref(ctx->trace_class);
+
+	if (ctx->trace_class) {
+		bt_trace_class_get_ref(ctx->trace_class);
+	}
+
 	return ctx->trace_class;
 }
 
@@ -5042,11 +5049,19 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		goto end;
 	}
 
-	/* Update "in IR" for field classes */
-	ret = ctf_trace_class_update_in_ir(ctx->ctf_tc);
-	if (ret) {
-		ret = -EINVAL;
-		goto end;
+	if (ctx->trace_class) {
+		/*
+		 * Update "in IR" for field classes.
+		 *
+		 * If we have no IR trace class, then we'll have no way
+		 * to create IR fields anyway, so we leave all the
+		 * `in_ir` members false.
+		 */
+		ret = ctf_trace_class_update_in_ir(ctx->ctf_tc);
+		if (ret) {
+			ret = -EINVAL;
+			goto end;
+		}
 	}
 
 	/* Update saved value indexes */
@@ -5063,11 +5078,13 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		goto end;
 	}
 
-	/* Copy new CTF metadata -> new IR metadata */
-	ret = ctf_trace_class_translate(ctx->trace_class, ctx->ctf_tc);
-	if (ret) {
-		ret = -EINVAL;
-		goto end;
+	if (ctx->trace_class) {
+		/* Copy new CTF metadata -> new IR metadata */
+		ret = ctf_trace_class_translate(ctx->trace_class, ctx->ctf_tc);
+		if (ret) {
+			ret = -EINVAL;
+			goto end;
+		}
 	}
 
 end:
