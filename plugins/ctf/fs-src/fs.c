@@ -640,16 +640,13 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		goto error;
 	}
 
-	ret = ctf_fs_ds_file_borrow_packet_header_context_fields(ds_file,
-		NULL, NULL);
+	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
 	if (ret) {
 		BT_LOGE("Cannot get stream file's first packet's header and context fields (`%s`).",
 			path);
 		goto error;
 	}
 
-	ret = bt_msg_iter_get_packet_properties(ds_file->msg_iter, &props);
-	BT_ASSERT(ret == 0);
 	sc = ctf_trace_class_borrow_stream_class_by_id(ds_file->metadata->tc,
 		props.stream_class_id);
 	BT_ASSERT(sc);
@@ -843,6 +840,10 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		ctf_fs_file_destroy(file);
 	}
 
+	if (!ctf_fs_trace->trace) {
+		goto end;
+	}
+
 	/*
 	 * At this point, DS file groupes are created, but their
 	 * associated stream objects do not exist yet. This is because
@@ -962,7 +963,8 @@ end:
 }
 
 BT_HIDDEN
-struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
+struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
+		const char *path, const char *name,
 		struct ctf_fs_metadata_config *metadata_config)
 {
 	struct ctf_fs_trace *ctf_fs_trace;
@@ -995,20 +997,25 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 		goto error;
 	}
 
-	ret = ctf_fs_metadata_set_trace_class(ctf_fs_trace, metadata_config);
+	ret = ctf_fs_metadata_set_trace_class(self_comp,
+		ctf_fs_trace, metadata_config);
 	if (ret) {
 		goto error;
 	}
 
-	ctf_fs_trace->trace =
-		bt_trace_create(ctf_fs_trace->metadata->trace_class);
-	if (!ctf_fs_trace->trace) {
-		goto error;
+	if (ctf_fs_trace->metadata->trace_class) {
+		ctf_fs_trace->trace =
+			bt_trace_create(ctf_fs_trace->metadata->trace_class);
+		if (!ctf_fs_trace->trace) {
+			goto error;
+		}
 	}
 
-	ret = set_trace_name(ctf_fs_trace->trace, name);
-	if (ret) {
-		goto error;
+	if (ctf_fs_trace->trace) {
+		ret = set_trace_name(ctf_fs_trace->trace, name);
+		if (ret) {
+			goto error;
+		}
 	}
 
 	ret = create_ds_file_groups(ctf_fs_trace);
@@ -1021,7 +1028,9 @@ struct ctf_fs_trace *ctf_fs_trace_create(const char *path, const char *name,
 	 * trace needs. There won't be any more. Therefore it is safe to
 	 * make this trace static.
 	 */
-	(void) bt_trace_make_static(ctf_fs_trace->trace);
+	if (ctf_fs_trace->trace) {
+		(void) bt_trace_make_static(ctf_fs_trace->trace);
+	}
 
 	goto end;
 
@@ -1213,7 +1222,8 @@ GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
 }
 
 static
-int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
+int create_ctf_fs_traces(bt_self_component_source *self_comp,
+		struct ctf_fs_component *ctf_fs,
 		const char *path_param)
 {
 	struct ctf_fs_trace *ctf_fs_trace = NULL;
@@ -1254,8 +1264,9 @@ int create_ctf_fs_traces(struct ctf_fs_component *ctf_fs,
 		GString *trace_path = tp_node->data;
 		GString *trace_name = tn_node->data;
 
-		ctf_fs_trace = ctf_fs_trace_create(trace_path->str,
-				trace_name->str, &ctf_fs->metadata_config);
+		ctf_fs_trace = ctf_fs_trace_create(self_comp,
+				trace_path->str, trace_name->str,
+				&ctf_fs->metadata_config);
 		if (!ctf_fs_trace) {
 			BT_LOGE("Cannot create trace for `%s`.",
 				trace_path->str);
@@ -1366,7 +1377,7 @@ struct ctf_fs_component *ctf_fs_create(
 		goto error;
 	}
 
-	if (create_ctf_fs_traces(ctf_fs, path_param)) {
+	if (create_ctf_fs_traces(self_comp, ctf_fs, path_param)) {
 		goto error;
 	}
 

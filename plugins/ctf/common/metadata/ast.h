@@ -318,6 +318,7 @@ const char *node_type(struct ctf_node *node);
 
 BT_HIDDEN
 struct ctf_visitor_generate_ir *ctf_visitor_generate_ir_create(
+		bt_self_component_source *self_comp,
 		const struct ctf_metadata_decoder_config *config);
 
 void ctf_visitor_generate_ir_destroy(struct ctf_visitor_generate_ir *visitor);
