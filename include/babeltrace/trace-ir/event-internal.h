@@ -59,7 +59,6 @@ struct bt_event {
 	/* Owned by this */
 	struct bt_packet *packet;
 
-	struct bt_field_wrapper *header_field;
 	struct bt_field *common_context_field;
 	struct bt_field *specific_context_field;
 	struct bt_field *payload_field;
@@ -87,13 +86,6 @@ static inline
 void _bt_event_reset_dev_mode(struct bt_event *event)
 {
 	BT_ASSERT(event);
-
-	if (event->header_field) {
-		bt_field_set_is_frozen(
-			event->header_field->field, false);
-		bt_field_reset(
-			event->header_field->field);
-	}
 
 	if (event->common_context_field) {
 		bt_field_set_is_frozen(

@@ -51,9 +51,6 @@ extern const bt_packet *bt_event_borrow_packet_const(
 extern const bt_stream *bt_event_borrow_stream_const(
 		const bt_event *event);
 
-extern const bt_field *bt_event_borrow_header_field_const(
-		const bt_event *event);
-
 extern const bt_field *bt_event_borrow_common_context_field_const(
 		const bt_event *event);
 

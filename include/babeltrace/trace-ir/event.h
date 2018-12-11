@@ -27,7 +27,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_event, bt_event_header_field, bt_event_class, bt_field, bt_packet */
+/* For bt_event, bt_event_class, bt_field, bt_packet */
 #include <babeltrace/types.h>
 
 /* For bt_event_status */
@@ -42,11 +42,6 @@ extern bt_event_class *bt_event_borrow_class(bt_event *event);
 extern bt_packet *bt_event_borrow_packet(bt_event *event);
 
 extern bt_stream *bt_event_borrow_stream(bt_event *event);
-
-extern bt_field *bt_event_borrow_header_field(bt_event *event);
-
-extern bt_event_status bt_event_move_header_field(bt_event *event,
-		bt_event_header_field *header);
 
 extern bt_field *
 bt_event_borrow_common_context_field(bt_event *event);

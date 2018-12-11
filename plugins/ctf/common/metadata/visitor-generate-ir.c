@@ -5060,6 +5060,13 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		goto end;
 	}
 
+	/*
+	 * If there are fields which are not related to the CTF format
+	 * itself in the packet header and in event header field
+	 * classes, warn about it because they are never translated.
+	 */
+	ctf_trace_class_warn_meaningless_header_fields(ctx->ctf_tc);
+
 	if (ctx->trace_class) {
 		/* Copy new CTF metadata -> new IR metadata */
 		ret = ctf_trace_class_translate(ctx->trace_class, ctx->ctf_tc);

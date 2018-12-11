@@ -1078,31 +1078,6 @@ end:
 }
 
 static
-int print_event_header_raw(struct pretty_component *pretty,
-		const bt_event *event)
-{
-	int ret = 0;
-	const bt_field *main_field = NULL;
-
-	main_field = bt_event_borrow_header_field_const(event);
-	if (!main_field) {
-		goto end;
-	}
-	if (!pretty->start_line) {
-		g_string_append(pretty->string, ", ");
-	}
-	pretty->start_line = false;
-	if (pretty->options.print_scope_field_names) {
-		print_name_equal(pretty, "stream.event.header");
-	}
-	ret = print_field(pretty, main_field,
-			pretty->options.print_header_field_names, NULL, 0);
-
-end:
-	return ret;
-}
-
-static
 int print_stream_event_context(struct pretty_component *pretty,
 		const bt_event *event)
 {
@@ -1213,13 +1188,6 @@ int pretty_print_event(struct pretty_component *pretty,
 	ret = print_stream_packet_context(pretty, event);
 	if (ret != 0) {
 		goto end;
-	}
-
-	if (pretty->options.verbose) {
-		ret = print_event_header_raw(pretty, event);
-		if (ret != 0) {
-			goto end;
-		}
 	}
 
 	ret = print_stream_event_context(pretty, event);

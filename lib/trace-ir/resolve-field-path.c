@@ -124,19 +124,7 @@ struct bt_field_path *find_field_class_in_ctx(struct bt_field_class *fc,
 	struct bt_field_path *field_path = NULL;
 	int ret;
 
-	ret = find_field_class(ctx->packet_header, BT_SCOPE_PACKET_HEADER,
-		fc, &field_path);
-	if (ret || field_path) {
-		goto end;
-	}
-
 	ret = find_field_class(ctx->packet_context, BT_SCOPE_PACKET_CONTEXT,
-		fc, &field_path);
-	if (ret || field_path) {
-		goto end;
-	}
-
-	ret = find_field_class(ctx->event_header, BT_SCOPE_EVENT_HEADER,
 		fc, &field_path);
 	if (ret || field_path) {
 		goto end;
@@ -209,12 +197,8 @@ struct bt_field_class *borrow_root_field_class(
 		struct bt_resolve_field_path_context *ctx, enum bt_scope scope)
 {
 	switch (scope) {
-	case BT_SCOPE_PACKET_HEADER:
-		return ctx->packet_header;
 	case BT_SCOPE_PACKET_CONTEXT:
 		return ctx->packet_context;
-	case BT_SCOPE_EVENT_HEADER:
-		return ctx->event_header;
 	case BT_SCOPE_EVENT_COMMON_CONTEXT:
 		return ctx->event_common_context;
 	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:

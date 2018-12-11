@@ -26,7 +26,7 @@
  * http://www.efficios.com/ctf
  */
 
-/* For bt_packet, bt_packet_header_field, bt_packet_context_field, bt_stream */
+/* For bt_packet, bt_packet_context_field, bt_stream */
 #include <babeltrace/types.h>
 
 /* For bt_packet_status */
@@ -41,13 +41,6 @@ extern "C" {
 extern bt_packet *bt_packet_create(bt_stream *stream);
 
 extern bt_stream *bt_packet_borrow_stream(bt_packet *packet);
-
-extern
-bt_field *bt_packet_borrow_header_field(bt_packet *packet);
-
-extern
-bt_packet_status bt_packet_move_header_field(bt_packet *packet,
-		bt_packet_header_field *header);
 
 extern
 bt_field *bt_packet_borrow_context_field(bt_packet *packet);

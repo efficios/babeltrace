@@ -193,7 +193,6 @@ static void set_stream_class_field_classes(
 	bt_trace_class *trace_class =
 		bt_stream_class_borrow_trace_class(stream_class);
 	bt_field_class *packet_context_type;
-	bt_field_class *event_header_type;
 	bt_field_class *fc;
 	int ret;
 
@@ -213,23 +212,10 @@ static void set_stream_class_field_classes(
 		"content_size", fc);
 	BT_ASSERT(ret == 0);
 	bt_field_class_put_ref(fc);
-	event_header_type = bt_field_class_structure_create(trace_class);
-	BT_ASSERT(event_header_type);
-	fc = bt_field_class_unsigned_integer_create(trace_class);
-	BT_ASSERT(fc);
-	bt_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_field_class_structure_append_member(event_header_type,
-		"id", fc);
-	BT_ASSERT(ret == 0);
-	bt_field_class_put_ref(fc);
 	ret = bt_stream_class_set_packet_context_field_class(
 		stream_class, packet_context_type);
 	BT_ASSERT(ret == 0);
-	ret = bt_stream_class_set_event_header_field_class(
-		stream_class, event_header_type);
-	BT_ASSERT(ret == 0);
 	bt_field_class_put_ref(packet_context_type);
-	bt_field_class_put_ref(event_header_type);
 }
 
 static void create_sc1(bt_trace_class *trace_class)
@@ -274,28 +260,6 @@ static void create_sc2(bt_trace_class *trace_class)
 	BT_STREAM_CLASS_PUT_REF_AND_RESET(sc2);
 }
 
-static void set_trace_packet_header(bt_trace_class *trace_class)
-{
-	bt_field_class *packet_header_type;
-	bt_field_class *fc;
-	int ret;
-
-	packet_header_type = bt_field_class_structure_create(trace_class);
-	BT_ASSERT(packet_header_type);
-	fc = bt_field_class_unsigned_integer_create(trace_class);
-	BT_ASSERT(fc);
-	bt_field_class_integer_set_field_value_range(fc, 32);
-	ret = bt_field_class_structure_append_member(packet_header_type,
-		"stream_id", fc);
-	BT_ASSERT(ret == 0);
-	bt_field_class_put_ref(fc);
-	ret = bt_trace_class_set_packet_header_field_class(trace_class,
-		packet_header_type);
-	BT_ASSERT(ret == 0);
-
-	bt_field_class_put_ref(packet_header_type);
-}
-
 static bt_trace_class *create_tc1(bt_self_component_source *self_comp)
 {
 	bt_trace_class *tc1 = NULL;
@@ -303,7 +267,6 @@ static bt_trace_class *create_tc1(bt_self_component_source *self_comp)
 	tc1 = bt_trace_class_create(
 		bt_self_component_source_as_self_component(self_comp));
 	BT_ASSERT(tc1);
-	set_trace_packet_header(tc1);
 	create_sc1(tc1);
 	create_sc2(tc1);
 	return tc1;

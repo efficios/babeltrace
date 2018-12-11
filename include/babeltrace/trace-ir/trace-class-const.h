@@ -64,10 +64,6 @@ extern const bt_value *
 bt_trace_class_borrow_environment_entry_value_by_name_const(
 		const bt_trace_class *trace_class, const char *name);
 
-extern const bt_field_class *
-bt_trace_class_borrow_packet_header_field_class_const(
-		const bt_trace_class *trace_class);
-
 extern uint64_t bt_trace_class_get_stream_class_count(
 		const bt_trace_class *trace_class);
 
