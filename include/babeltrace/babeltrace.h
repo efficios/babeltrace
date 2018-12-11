@@ -70,7 +70,6 @@
 #include <babeltrace/trace-ir/event-class-const.h>
 #include <babeltrace/trace-ir/event-class.h>
 #include <babeltrace/trace-ir/event-const.h>
-#include <babeltrace/trace-ir/event-header-field.h>
 #include <babeltrace/trace-ir/event.h>
 #include <babeltrace/trace-ir/field-class-const.h>
 #include <babeltrace/trace-ir/field-class.h>
@@ -79,7 +78,6 @@
 #include <babeltrace/trace-ir/field.h>
 #include <babeltrace/trace-ir/packet-const.h>
 #include <babeltrace/trace-ir/packet-context-field.h>
-#include <babeltrace/trace-ir/packet-header-field.h>
 #include <babeltrace/trace-ir/packet.h>
 #include <babeltrace/trace-ir/stream-class-const.h>
 #include <babeltrace/trace-ir/stream-class.h>

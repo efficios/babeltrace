@@ -279,11 +279,8 @@ enum bt_event_class_status bt_event_class_set_specific_context_field_class(
 {
 	int ret;
 	struct bt_stream_class *stream_class;
-	struct bt_trace_class *trace_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
-		.packet_header = NULL,
 		.packet_context = NULL,
-		.event_header = NULL,
 		.event_common_context = NULL,
 		.event_specific_context = field_class,
 		.event_payload = NULL,
@@ -298,10 +295,7 @@ enum bt_event_class_status bt_event_class_set_specific_context_field_class(
 		"%!+F", field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
-	trace_class = bt_stream_class_borrow_trace_class_inline(stream_class);
-	resolve_ctx.packet_header = trace_class->packet_header_fc;
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
-	resolve_ctx.event_header = stream_class->event_header_fc;
 	resolve_ctx.event_common_context =
 		stream_class->event_common_context_fc;
 
@@ -341,11 +335,8 @@ enum bt_event_class_status bt_event_class_set_payload_field_class(
 {
 	int ret;
 	struct bt_stream_class *stream_class;
-	struct bt_trace_class *trace_class;
 	struct bt_resolve_field_path_context resolve_ctx = {
-		.packet_header = NULL,
 		.packet_context = NULL,
-		.event_header = NULL,
 		.event_common_context = NULL,
 		.event_specific_context = NULL,
 		.event_payload = field_class,
@@ -360,10 +351,7 @@ enum bt_event_class_status bt_event_class_set_payload_field_class(
 		field_class);
 	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_class);
-	trace_class = bt_stream_class_borrow_trace_class_inline(stream_class);
-	resolve_ctx.packet_header = trace_class->packet_header_fc;
 	resolve_ctx.packet_context = stream_class->packet_context_fc;
-	resolve_ctx.event_header = stream_class->event_header_fc;
 	resolve_ctx.event_common_context =
 		stream_class->event_common_context_fc;
 	resolve_ctx.event_specific_context = event_class->specific_context_fc;

@@ -56,12 +56,6 @@ void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)
 	BT_LIB_LOGD("Setting event's frozen state: %!+e, is-frozen=%d",
 		event, is_frozen);
 
-	if (event->header_field) {
-		BT_LOGD_STR("Setting event's header field's frozen state.");
-		bt_field_set_is_frozen(
-			event->header_field->field, is_frozen);
-	}
-
 	if (event->common_context_field) {
 		BT_LOGD_STR("Setting event's common context field's frozen state.");
 		bt_field_set_is_frozen(
@@ -85,44 +79,6 @@ void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)
 	bt_packet_set_is_frozen(event->packet, is_frozen);
 }
 
-static
-void recycle_event_header_field(struct bt_field_wrapper *field_wrapper,
-		struct bt_stream_class *stream_class)
-{
-	BT_ASSERT(field_wrapper);
-	BT_LIB_LOGD("Recycling event header field: "
-		"addr=%p, %![sc-]+S, %![field-]+f", field_wrapper,
-		stream_class, field_wrapper->field);
-	bt_object_pool_recycle_object(
-		&stream_class->event_header_field_pool,
-		field_wrapper);
-}
-
-static inline
-struct bt_field_wrapper *create_event_header_field(
-		struct bt_stream_class *stream_class)
-{
-	struct bt_field_wrapper *field_wrapper = NULL;
-
-	field_wrapper = bt_field_wrapper_create(
-		&stream_class->event_header_field_pool,
-		stream_class->event_header_fc);
-	if (!field_wrapper) {
-		goto error;
-	}
-
-	goto end;
-
-error:
-	if (field_wrapper) {
-		recycle_event_header_field(field_wrapper, stream_class);
-		field_wrapper = NULL;
-	}
-
-end:
-	return field_wrapper;
-}
-
 BT_HIDDEN
 struct bt_event *bt_event_new(struct bt_event_class *event_class)
 {
@@ -140,15 +96,6 @@ struct bt_event *bt_event_new(struct bt_event_class *event_class)
 	bt_object_init_unique(&event->base);
 	stream_class = bt_event_class_borrow_stream_class(event_class);
 	BT_ASSERT(stream_class);
-
-	if (stream_class->event_header_fc) {
-		event->header_field = create_event_header_field(stream_class);
-		if (!event->header_field) {
-			BT_LOGE_STR("Cannot create event header field.");
-			goto error;
-		}
-	}
-
 	fc = stream_class->event_common_context_fc;
 	if (fc) {
 		event->common_context_field = bt_field_create(fc);
@@ -221,19 +168,6 @@ const struct bt_stream *bt_event_borrow_stream_const(
 	return bt_event_borrow_stream((void *) event);
 }
 
-struct bt_field *bt_event_borrow_header_field(struct bt_event *event)
-{
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	return event->header_field ? event->header_field->field : NULL;
-}
-
-const struct bt_field *bt_event_borrow_header_field_const(
-		const struct bt_event *event)
-{
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	return event->header_field ? event->header_field->field : NULL;
-}
-
 struct bt_field *bt_event_borrow_common_context_field(struct bt_event *event)
 {
 	BT_ASSERT_PRE_NON_NULL(event, "Event");
@@ -273,32 +207,11 @@ const struct bt_field *bt_event_borrow_payload_field_const(
 	return event->payload_field;
 }
 
-static
-void release_event_header_field(struct bt_field_wrapper *field_wrapper,
-		struct bt_event *event)
-{
-	if (!event->class) {
-		bt_field_wrapper_destroy(field_wrapper);
-	} else {
-		struct bt_stream_class *stream_class =
-			bt_event_class_borrow_stream_class(event->class);
-
-		BT_ASSERT(stream_class);
-		recycle_event_header_field(field_wrapper, stream_class);
-	}
-}
-
 BT_HIDDEN
 void bt_event_destroy(struct bt_event *event)
 {
 	BT_ASSERT(event);
 	BT_LIB_LOGD("Destroying event: %!+e", event);
-
-	if (event->header_field) {
-		BT_LOGD_STR("Releasing event's header field.");
-		release_event_header_field(event->header_field, event);
-		event->header_field = NULL;
-	}
 
 	if (event->common_context_field) {
 		BT_LOGD_STR("Destroying event's stream event context field.");
@@ -369,27 +282,4 @@ const struct bt_packet *bt_event_borrow_packet_const(
 		const struct bt_event *event)
 {
 	return bt_event_borrow_packet((void *) event);
-}
-
-enum bt_event_status bt_event_move_header_field(struct bt_event *event,
-		struct bt_event_header_field *header_field)
-{
-	struct bt_stream_class *stream_class;
-	struct bt_field_wrapper *field_wrapper = (void *) header_field;
-
-	BT_ASSERT_PRE_NON_NULL(event, "Event");
-	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
-	BT_ASSERT_PRE_EVENT_HOT(event);
-	stream_class = bt_event_class_borrow_stream_class_inline(event->class);
-	BT_ASSERT_PRE(stream_class->event_header_fc,
-		"Stream class has no event header field class: %!+S",
-		stream_class);
-
-	/* Recycle current header field: always exists */
-	BT_ASSERT(event->header_field);
-	recycle_event_header_field(event->header_field, stream_class);
-
-	/* Move new field */
-	event->header_field = field_wrapper;
-	return BT_EVENT_STATUS_OK;
 }

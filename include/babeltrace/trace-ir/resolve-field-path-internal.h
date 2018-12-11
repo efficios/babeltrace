@@ -32,9 +32,7 @@
 #include <glib.h>
 
 struct bt_resolve_field_path_context {
-	struct bt_field_class *packet_header;
 	struct bt_field_class *packet_context;
-	struct bt_field_class *event_header;
 	struct bt_field_class *event_common_context;
 	struct bt_field_class *event_specific_context;
 	struct bt_field_class *event_payload;

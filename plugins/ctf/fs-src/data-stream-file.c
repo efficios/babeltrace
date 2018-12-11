@@ -503,21 +503,29 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 	BT_ASSERT(packet_size >= 0);
 	entry->packet_size = packet_size;
 
-	/* Convert the packet's bound to nanoseconds since Epoch. */
-	ret = convert_cycles_to_ns(sc->default_clock_class,
-				   props->snapshots.beginning_clock,
-				   &entry->timestamp_begin_ns);
-	if (ret) {
-		BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
-		goto end;
+	if (props->snapshots.beginning_clock != UINT64_C(-1)) {
+		/* Convert the packet's bound to nanoseconds since Epoch. */
+		ret = convert_cycles_to_ns(sc->default_clock_class,
+					   props->snapshots.beginning_clock,
+					   &entry->timestamp_begin_ns);
+		if (ret) {
+			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+			goto end;
+		}
+	} else {
+		entry->timestamp_begin_ns = UINT64_C(-1);
 	}
 
-	ret = convert_cycles_to_ns(sc->default_clock_class,
-				   props->snapshots.end_clock,
-				   &entry->timestamp_end_ns);
-	if (ret) {
-		BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
-		goto end;
+	if (props->snapshots.end_clock != UINT64_C(-1)) {
+		ret = convert_cycles_to_ns(sc->default_clock_class,
+					   props->snapshots.end_clock,
+					   &entry->timestamp_end_ns);
+		if (ret) {
+			BT_LOGD_STR("Failed to convert raw timestamp to nanoseconds since Epoch.");
+			goto end;
+		}
+	} else {
+		entry->timestamp_end_ns = UINT64_C(-1);
 	}
 
 end:

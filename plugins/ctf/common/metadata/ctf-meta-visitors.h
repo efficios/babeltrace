@@ -46,4 +46,8 @@ int ctf_trace_class_update_value_storing_indexes(struct ctf_trace_class *ctf_tc)
 BT_HIDDEN
 int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc);
 
+BT_HIDDEN
+void ctf_trace_class_warn_meaningless_header_fields(
+		struct ctf_trace_class *ctf_tc);
+
 #endif /* _CTF_META_VISITORS_H */

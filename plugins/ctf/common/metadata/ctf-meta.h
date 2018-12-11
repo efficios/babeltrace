@@ -59,6 +59,15 @@ enum ctf_encoding {
 	CTF_ENCODING_UTF8,
 };
 
+enum ctf_scope {
+	CTF_SCOPE_PACKET_HEADER,
+	CTF_SCOPE_PACKET_CONTEXT,
+	CTF_SCOPE_EVENT_HEADER,
+	CTF_SCOPE_EVENT_COMMON_CONTEXT,
+	CTF_SCOPE_EVENT_SPECIFIC_CONTEXT,
+	CTF_SCOPE_EVENT_PAYLOAD,
+};
+
 struct ctf_clock_class {
 	GString *name;
 	GString *description;
@@ -150,7 +159,7 @@ struct ctf_field_class_struct {
 };
 
 struct ctf_field_path {
-	bt_scope root;
+	enum ctf_scope root;
 
 	/* Array of `int64_t` */
 	GArray *path;
@@ -1022,6 +1031,27 @@ void ctf_field_path_clear(struct ctf_field_path *fp)
 }
 
 static inline
+const char *ctf_scope_string(enum ctf_scope scope)
+{
+	switch (scope) {
+	case CTF_SCOPE_PACKET_HEADER:
+		return "CTF_SCOPE_PACKET_HEADER";
+	case CTF_SCOPE_PACKET_CONTEXT:
+		return "CTF_SCOPE_PACKET_CONTEXT";
+	case CTF_SCOPE_EVENT_HEADER:
+		return "CTF_SCOPE_EVENT_HEADER";
+	case CTF_SCOPE_EVENT_COMMON_CONTEXT:
+		return "CTF_SCOPE_EVENT_COMMON_CONTEXT";
+	case CTF_SCOPE_EVENT_SPECIFIC_CONTEXT:
+		return "CTF_SCOPE_EVENT_SPECIFIC_CONTEXT";
+	case CTF_SCOPE_EVENT_PAYLOAD:
+		return "CTF_SCOPE_EVENT_PAYLOAD";
+	default:
+		abort();
+	}
+}
+
+static inline
 GString *ctf_field_path_string(struct ctf_field_path *path)
 {
 	GString *str = g_string_new(NULL);
@@ -1033,8 +1063,7 @@ GString *ctf_field_path_string(struct ctf_field_path *path)
 		goto end;
 	}
 
-	g_string_append_printf(str, "[%s", bt_common_scope_string(
-		path->root));
+	g_string_append_printf(str, "[%s", ctf_scope_string(path->root));
 
 	for (i = 0; i < path->path->len; i++) {
 		g_string_append_printf(str, ", %" PRId64,
@@ -1058,22 +1087,22 @@ struct ctf_field_class *ctf_field_path_borrow_field_class(
 	struct ctf_field_class *fc;
 
 	switch (field_path->root) {
-	case BT_SCOPE_PACKET_HEADER:
+	case CTF_SCOPE_PACKET_HEADER:
 		fc = tc->packet_header_fc;
 		break;
-	case BT_SCOPE_PACKET_CONTEXT:
+	case CTF_SCOPE_PACKET_CONTEXT:
 		fc = sc->packet_context_fc;
 		break;
-	case BT_SCOPE_EVENT_HEADER:
+	case CTF_SCOPE_EVENT_HEADER:
 		fc = sc->event_header_fc;
 		break;
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case CTF_SCOPE_EVENT_COMMON_CONTEXT:
 		fc = sc->event_common_context_fc;
 		break;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case CTF_SCOPE_EVENT_SPECIFIC_CONTEXT:
 		fc = ec->spec_context_fc;
 		break;
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case CTF_SCOPE_EVENT_PAYLOAD:
 		fc = ec->payload_fc;
 		break;
 	default:

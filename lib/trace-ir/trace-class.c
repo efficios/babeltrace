@@ -63,7 +63,6 @@ void destroy_trace_class(struct bt_object *obj)
 	struct bt_trace_class *tc = (void *) obj;
 
 	BT_LIB_LOGD("Destroying trace class object: %!+T", tc);
-	bt_object_pool_finalize(&tc->packet_header_field_pool);
 
 	if (tc->environment) {
 		BT_LOGD_STR("Destroying environment attributes.");
@@ -83,23 +82,12 @@ void destroy_trace_class(struct bt_object *obj)
 		tc->stream_classes = NULL;
 	}
 
-	BT_LOGD_STR("Putting packet header field class.");
-	bt_object_put_ref(tc->packet_header_fc);
-	tc->packet_header_fc = NULL;
 	g_free(tc);
-}
-
-static
-void free_packet_header_field(struct bt_field_wrapper *field_wrapper,
-		struct bt_trace_class *tc)
-{
-	bt_field_wrapper_destroy(field_wrapper);
 }
 
 struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 {
 	struct bt_trace_class *tc = NULL;
-	int ret;
 
 	BT_ASSERT_PRE_NON_NULL(self_comp, "Self component");
 	BT_LOGD_STR("Creating default trace class object.");
@@ -131,16 +119,6 @@ struct bt_trace_class *bt_trace_class_create(bt_self_component *self_comp)
 	}
 
 	tc->assigns_automatic_stream_class_id = true;
-	ret = bt_object_pool_initialize(&tc->packet_header_field_pool,
-		(bt_object_pool_new_object_func) bt_field_wrapper_new,
-		(bt_object_pool_destroy_object_func) free_packet_header_field,
-		tc);
-	if (ret) {
-		BT_LOGE("Failed to initialize packet header field pool: ret=%d",
-			ret);
-		goto error;
-	}
-
 	BT_LIB_LOGD("Created trace class object: %!+T", tc);
 	goto end;
 
@@ -353,60 +331,9 @@ bt_trace_class_borrow_stream_class_by_id_const(
 	return bt_trace_class_borrow_stream_class_by_id((void *) tc, id);
 }
 
-const struct bt_field_class *bt_trace_class_borrow_packet_header_field_class_const(
-		const struct bt_trace_class *tc)
-{
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	return tc->packet_header_fc;
-}
-
-enum bt_trace_class_status bt_trace_class_set_packet_header_field_class(
-		struct bt_trace_class *tc,
-		struct bt_field_class *field_class)
-{
-	int ret;
-	struct bt_resolve_field_path_context resolve_ctx = {
-		.packet_header = field_class,
-		.packet_context = NULL,
-		.event_header = NULL,
-		.event_common_context = NULL,
-		.event_specific_context = NULL,
-		.event_payload = NULL,
-	};
-
-	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
-	BT_ASSERT_PRE_NON_NULL(field_class, "Field class");
-	BT_ASSERT_PRE_TRACE_CLASS_HOT(tc);
-	BT_ASSERT_PRE(bt_field_class_get_type(field_class) ==
-		BT_FIELD_CLASS_TYPE_STRUCTURE,
-		"Packet header field class is not a structure field class: %!+F",
-		field_class);
-	ret = bt_resolve_field_paths(field_class, &resolve_ctx);
-	if (ret) {
-		/*
-		 * This is the only reason for which
-		 * bt_resolve_field_paths() can fail: anything else
-		 * would be because a precondition is not satisfied.
-		 */
-		ret = BT_TRACE_CLASS_STATUS_NOMEM;
-		goto end;
-	}
-
-	bt_field_class_make_part_of_trace_class(field_class);
-	bt_object_put_ref(tc->packet_header_fc);
-	tc->packet_header_fc = field_class;
-	bt_object_get_no_null_check(tc->packet_header_fc);
-	bt_field_class_freeze(field_class);
-	BT_LIB_LOGV("Set trace class's packet header field class: %!+T", tc);
-
-end:
-	return ret;
-}
-
 BT_HIDDEN
 void _bt_trace_class_freeze(const struct bt_trace_class *tc)
 {
-	/* The packet header field class is already frozen */
 	BT_ASSERT(tc);
 	BT_LIB_LOGD("Freezing trace class: %!+T", tc);
 	((struct bt_trace_class *) tc)->frozen = true;

@@ -31,7 +31,7 @@
 
 /*
  * For bt_bool, bt_trace_class, bt_stream_class, bt_event_class,
- * bt_stream_class, bt_event_header_field, bt_packet_context_field
+ * bt_stream_class
  */
 #include <babeltrace/types.h>
 
@@ -61,10 +61,6 @@ extern uint64_t bt_stream_class_get_id(
 
 extern const bt_field_class *
 bt_stream_class_borrow_packet_context_field_class_const(
-		const bt_stream_class *stream_class);
-
-extern const bt_field_class *
-bt_stream_class_borrow_event_header_field_class_const(
 		const bt_stream_class *stream_class);
 
 extern const bt_field_class *

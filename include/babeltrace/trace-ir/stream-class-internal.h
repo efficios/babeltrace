@@ -53,15 +53,11 @@ struct bt_stream_class {
 	bool packets_have_default_beginning_cs;
 	bool packets_have_default_end_cs;
 	struct bt_field_class *packet_context_fc;
-	struct bt_field_class *event_header_fc;
 	struct bt_field_class *event_common_context_fc;
 	struct bt_clock_class *default_clock_class;
 
 	/* Array of `struct bt_event_class *` */
 	GPtrArray *event_classes;
-
-	/* Pool of `struct bt_field_wrapper *` */
-	struct bt_object_pool event_header_field_pool;
 
 	/* Pool of `struct bt_field_wrapper *` */
 	struct bt_object_pool packet_context_field_pool;

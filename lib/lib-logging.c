@@ -433,8 +433,6 @@ static inline void format_field_path(char **buf_ch, bool extended,
 static inline void format_trace_class(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_trace_class *trace_class)
 {
-	char tmp_prefix[64];
-
 	if (trace_class->name.value) {
 		BUF_APPEND(", %sname=\"%s\"",
 			PRFIELD(trace_class->name.value));
@@ -455,13 +453,8 @@ static inline void format_trace_class(char **buf_ch, bool extended,
 			PRFIELD(trace_class->stream_classes->len));
 	}
 
-	BUF_APPEND(", %spacket-header-fc-addr=%p, "
-		"%sassigns-auto-sc-id=%d",
-		PRFIELD(trace_class->packet_header_fc),
+	BUF_APPEND(", %sassigns-auto-sc-id=%d",
 		PRFIELD(trace_class->assigns_automatic_stream_class_id));
-	SET_TMP_PREFIX("phf-pool-");
-	format_object_pool(buf_ch, extended, prefix,
-		&trace_class->packet_header_field_pool);
 }
 
 static inline void format_trace(char **buf_ch, bool extended,
@@ -521,9 +514,8 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	}
 
 	BUF_APPEND(", %spacket-context-fc-addr=%p, "
-		"%sevent-header-fc-addr=%p, %sevent-common-context-fc-addr=%p",
+		"%sevent-common-context-fc-addr=%p",
 		PRFIELD(stream_class->packet_context_fc),
-		PRFIELD(stream_class->event_header_fc),
 		PRFIELD(stream_class->event_common_context_fc));
 	trace_class = bt_stream_class_borrow_trace_class_inline(stream_class);
 	if (!trace_class) {
@@ -544,9 +536,6 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	BUF_APPEND(", %strace-class-addr=%p", PRFIELD(trace_class));
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);
-	SET_TMP_PREFIX("ehf-pool-");
-	format_object_pool(buf_ch, extended, prefix,
-		&stream_class->event_header_field_pool);
 	SET_TMP_PREFIX("pcf-pool-");
 	format_object_pool(buf_ch, extended, prefix,
 		&stream_class->packet_context_field_pool);
@@ -661,10 +650,8 @@ static inline void format_packet(char **buf_ch, bool extended,
 		return;
 	}
 
-	BUF_APPEND(", %sis-frozen=%d, %sheader-field-addr=%p, "
-		"%scontext-field-addr=%p",
+	BUF_APPEND(", %sis-frozen=%d, %scontext-field-addr=%p",
 		PRFIELD(packet->frozen),
-		PRFIELD(packet->header_field ? packet->header_field->field : NULL),
 		PRFIELD(packet->context_field ? packet->context_field->field : NULL));
 	stream = bt_packet_borrow_stream_const(packet);
 	if (!stream) {
@@ -719,13 +706,11 @@ static inline void format_event(char **buf_ch, bool extended,
 		return;
 	}
 
-	BUF_APPEND(", %sis-frozen=%d, %sheader-field-addr=%p, "
+	BUF_APPEND(", %sis-frozen=%d, "
 		"%scommon-context-field-addr=%p, "
 		"%sspecific-context-field-addr=%p, "
 		"%spayload-field-addr=%p, ",
 		PRFIELD(event->frozen),
-		PRFIELD(event->header_field ?
-			event->header_field->field : NULL),
 		PRFIELD(event->common_context_field),
 		PRFIELD(event->specific_context_field),
 		PRFIELD(event->payload_field));

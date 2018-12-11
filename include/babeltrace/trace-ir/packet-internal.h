@@ -36,7 +36,6 @@
 
 struct bt_packet {
 	struct bt_object base;
-	struct bt_field_wrapper *header_field;
 	struct bt_field_wrapper *context_field;
 	struct bt_stream *stream;
 	struct bt_clock_snapshot *default_beginning_cs;

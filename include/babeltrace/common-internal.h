@@ -354,12 +354,8 @@ static inline
 const char *bt_common_scope_string(enum bt_scope scope)
 {
 	switch (scope) {
-	case BT_SCOPE_PACKET_HEADER:
-		return "BT_SCOPE_PACKET_HEADER";
 	case BT_SCOPE_PACKET_CONTEXT:
 		return "BT_SCOPE_PACKET_CONTEXT";
-	case BT_SCOPE_EVENT_HEADER:
-		return "BT_SCOPE_EVENT_HEADER";
 	case BT_SCOPE_EVENT_COMMON_CONTEXT:
 		return "BT_SCOPE_EVENT_COMMON_CONTEXT";
 	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
