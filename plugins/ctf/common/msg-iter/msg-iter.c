@@ -129,14 +129,8 @@ struct bt_msg_iter {
 		struct ctf_event_class *ec;
 	} meta;
 
-	/* Current packet header field wrapper (NULL if not created yet) */
-	bt_packet_header_field *packet_header_field;
-
-	/* Current packet header field wrapper (NULL if not created yet) */
+	/* Current packet context field wrapper (NULL if not created yet) */
 	bt_packet_context_field *packet_context_field;
-
-	/* Current event header field (NULL if not created yet) */
-	bt_event_header_field *event_header_field;
 
 	/* Current packet (NULL if not created yet) */
 	bt_packet *packet;
@@ -152,9 +146,7 @@ struct bt_msg_iter {
 
 	/* Database of current dynamic scopes */
 	struct {
-		bt_field *trace_packet_header;
 		bt_field *stream_packet_context;
-		bt_field *event_header;
 		bt_field *event_common_context;
 		bt_field *event_spec_context;
 		bt_field *event_payload;
@@ -619,13 +611,6 @@ end:
 static
 void release_event_dscopes(struct bt_msg_iter *notit)
 {
-	notit->dscopes.event_header = NULL;
-
-	if (notit->event_header_field) {
-		bt_event_header_field_release(notit->event_header_field);
-		notit->event_header_field = NULL;
-	}
-
 	notit->dscopes.event_common_context = NULL;
 	notit->dscopes.event_spec_context = NULL;
 	notit->dscopes.event_payload = NULL;
@@ -634,13 +619,6 @@ void release_event_dscopes(struct bt_msg_iter *notit)
 static
 void release_all_dscopes(struct bt_msg_iter *notit)
 {
-	notit->dscopes.trace_packet_header = NULL;
-
-	if (notit->packet_header_field) {
-		bt_packet_header_field_release(notit->packet_header_field);
-		notit->packet_header_field = NULL;
-	}
-
 	notit->dscopes.stream_packet_context = NULL;
 
 	if (notit->packet_context_field) {
@@ -671,34 +649,6 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 		goto end;
 	}
 
-	BT_ASSERT(!notit->packet_header_field);
-
-	if (packet_header_fc->in_ir) {
-		/*
-		 * Create free packet header field from trace class.
-		 * This field is going to be moved to the packet once we
-		 * create it. We cannot create the packet now because:
-		 *
-		 * 1. A packet is created from a stream.
-		 * 2. A stream is created from a stream class.
-		 * 3. We need the packet header field's content to know
-		 *    the ID of the stream class to select.
-		 */
-		notit->packet_header_field =
-			bt_packet_header_field_create(
-				notit->meta.tc->ir_tc);
-		if (!notit->packet_header_field) {
-			BT_LOGE_STR("Cannot create packet header field wrapper from trace class.");
-			ret = BT_MSG_ITER_STATUS_ERROR;
-			goto end;
-		}
-
-		notit->dscopes.trace_packet_header =
-			bt_packet_header_field_borrow_field(
-				notit->packet_header_field);
-		BT_ASSERT(notit->dscopes.trace_packet_header);
-	}
-
 	notit->cur_stream_class_id = -1;
 	notit->cur_event_class_id = -1;
 	notit->cur_data_stream_id = -1;
@@ -707,8 +657,7 @@ enum bt_msg_iter_status read_packet_header_begin_state(
 		notit, notit->meta.tc, packet_header_fc);
 	ret = read_dscope_begin_state(notit, packet_header_fc,
 		STATE_AFTER_TRACE_PACKET_HEADER,
-		STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE,
-		notit->dscopes.trace_packet_header);
+		STATE_DSCOPE_TRACE_PACKET_HEADER_CONTINUE, NULL);
 	if (ret < 0) {
 		BT_LOGW("Cannot decode packet header field: "
 			"notit-addr=%p, trace-class-addr=%p, "
@@ -910,9 +859,9 @@ enum bt_msg_iter_status read_packet_context_begin_state(
 		 * This field is going to be moved to the packet once we
 		 * create it. We cannot create the packet now because a
 		 * packet is created from a stream, and this API must be
-		 * able to return the packet header and context fields
-		 * without creating a stream
-		 * (read_packet_header_context_fields()).
+		 * able to return the packet context properties without
+		 * creating a stream
+		 * (bt_msg_iter_get_packet_properties()).
 		 */
 		notit->packet_context_field =
 			bt_packet_context_field_create(
@@ -1090,23 +1039,6 @@ enum bt_msg_iter_status read_event_header_begin_state(
 		goto end;
 	}
 
-	if (event_header_fc->in_ir) {
-		BT_ASSERT(!notit->event_header_field);
-		notit->event_header_field =
-			bt_event_header_field_create(
-				notit->meta.sc->ir_sc);
-		if (!notit->event_header_field) {
-			BT_LOGE_STR("Cannot create event header field wrapper from trace class.");
-			status = BT_MSG_ITER_STATUS_ERROR;
-			goto end;
-		}
-
-		notit->dscopes.event_header =
-			bt_event_header_field_borrow_field(
-				notit->event_header_field);
-		BT_ASSERT(notit->dscopes.event_header);
-	}
-
 	BT_LOGV("Decoding event header field: "
 		"notit-addr=%p, stream-class-addr=%p, "
 		"stream-class-id=%" PRId64 ", "
@@ -1116,8 +1048,7 @@ enum bt_msg_iter_status read_event_header_begin_state(
 		event_header_fc);
 	status = read_dscope_begin_state(notit, event_header_fc,
 		STATE_AFTER_EVENT_HEADER,
-		STATE_DSCOPE_EVENT_HEADER_CONTINUE,
-		notit->dscopes.event_header);
+		STATE_DSCOPE_EVENT_HEADER_CONTINUE, NULL);
 	if (status < 0) {
 		BT_LOGW("Cannot decode event header field: "
 			"notit-addr=%p, stream-class-addr=%p, "
@@ -1245,29 +1176,6 @@ enum bt_msg_iter_status after_event_header_state(
 	notit->event = bt_message_event_borrow_event(
 		notit->event_msg);
 	BT_ASSERT(notit->event);
-
-	if (notit->event_header_field) {
-		int ret;
-
-		BT_ASSERT(notit->event);
-		ret = bt_event_move_header_field(notit->event,
-			notit->event_header_field);
-		if (ret) {
-			status = BT_MSG_ITER_STATUS_ERROR;
-			goto end;
-		}
-
-		notit->event_header_field = NULL;
-
-		/*
-		 * At this point notit->dscopes.event_header has
-		 * the same value as the event header field within
-		 * notit->event.
-		 */
-		BT_ASSERT(bt_event_borrow_header_field(
-			notit->event) == notit->dscopes.event_header);
-	}
-
 	notit->state = STATE_DSCOPE_EVENT_COMMON_CONTEXT_BEGIN;
 
 end:
@@ -1580,19 +1488,9 @@ void bt_msg_iter_reset(struct bt_msg_iter *notit)
 	release_all_dscopes(notit);
 	notit->cur_dscope_field = NULL;
 
-	if (notit->packet_header_field) {
-		bt_packet_header_field_release(notit->packet_header_field);
-		notit->packet_header_field = NULL;
-	}
-
 	if (notit->packet_context_field) {
 		bt_packet_context_field_release(notit->packet_context_field);
 		notit->packet_context_field = NULL;
-	}
-
-	if (notit->event_header_field) {
-		bt_event_header_field_release(notit->event_header_field);
-		notit->event_header_field = NULL;
 	}
 
 	notit->buf.addr = NULL;
@@ -2376,25 +2274,6 @@ void notify_new_packet(struct bt_msg_iter *notit,
 			notit->packet, notit->snapshots.end_clock);
 	}
 
-	if (notit->packet_header_field) {
-		ret = bt_packet_move_header_field(
-			notit->packet, notit->packet_header_field);
-		if (ret) {
-			goto end;
-		}
-
-		notit->packet_header_field = NULL;
-
-		/*
-		 * At this point notit->dscopes.trace_packet_header has
-		 * the same value as the packet header field within
-		 * notit->packet.
-		 */
-		BT_ASSERT(bt_packet_borrow_header_field(
-			notit->packet) ==
-			notit->dscopes.trace_packet_header);
-	}
-
 	if (notit->packet_context_field) {
 		ret = bt_packet_move_context_field(
 			notit->packet, notit->packet_context_field);
@@ -2405,8 +2284,8 @@ void notify_new_packet(struct bt_msg_iter *notit,
 		notit->packet_context_field = NULL;
 
 		/*
-		 * At this point notit->dscopes.trace_packet_header has
-		 * the same value as the packet header field within
+		 * At this point notit->dscopes.stream_packet_context
+		 * has the same value as the packet context field within
 		 * notit->packet.
 		 */
 		BT_ASSERT(bt_packet_borrow_context_field(

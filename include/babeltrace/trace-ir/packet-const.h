@@ -35,8 +35,7 @@
 #include <babeltrace/trace-ir/clock-snapshot-const.h>
 
 /*
- * For bt_packet, bt_packet_header_field, bt_packet_context_field,
- * bt_stream, bt_clock_snapshot
+ * For bt_packet, bt_packet_context_field, bt_stream, bt_clock_snapshot
  */
 #include <babeltrace/types.h>
 
@@ -50,10 +49,6 @@ typedef enum bt_packet_status {
 } bt_packet_status;
 
 extern const bt_stream *bt_packet_borrow_stream_const(
-		const bt_packet *packet);
-
-extern
-const bt_field *bt_packet_borrow_header_field_const(
 		const bt_packet *packet);
 
 extern

@@ -61,10 +61,6 @@ extern bt_trace_class_status bt_trace_class_set_environment_entry_string(
 		bt_trace_class *trace_class,
 		const char *name, const char *value);
 
-extern bt_trace_class_status bt_trace_class_set_packet_header_field_class(
-		bt_trace_class *trace_class,
-		bt_field_class *packet_header_field_class);
-
 extern bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
 		bt_trace_class *trace_class, uint64_t index);
 

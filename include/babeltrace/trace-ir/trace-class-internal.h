@@ -62,12 +62,7 @@ struct bt_trace_class {
 	/* Array of `struct bt_stream_class *` */
 	GPtrArray *stream_classes;
 
-	struct bt_field_class *packet_header_fc;
 	bool assigns_automatic_stream_class_id;
-
-	/* Pool of `struct bt_field_wrapper *` */
-	struct bt_object_pool packet_header_field_pool;
-
 	bool frozen;
 };
 

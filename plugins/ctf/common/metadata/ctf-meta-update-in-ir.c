@@ -27,6 +27,63 @@
 #include "ctf-meta-visitors.h"
 
 static
+void force_update_field_class_in_ir(struct ctf_field_class *fc, bool in_ir)
+{
+	uint64_t i;
+
+	if (!fc) {
+		goto end;
+	}
+
+	fc->in_ir = in_ir;
+
+	switch (fc->type) {
+	case CTF_FIELD_CLASS_TYPE_STRUCT:
+	{
+		struct ctf_field_class_struct *struct_fc = (void *) fc;
+
+		for (i = 0; i < struct_fc->members->len; i++) {
+			struct ctf_named_field_class *named_fc =
+				ctf_field_class_struct_borrow_member_by_index(
+					struct_fc, i);
+
+			force_update_field_class_in_ir(named_fc->fc, in_ir);
+		}
+
+		break;
+	}
+	case CTF_FIELD_CLASS_TYPE_VARIANT:
+	{
+		struct ctf_named_field_class *named_fc;
+		struct ctf_field_class_variant *var_fc = (void *) fc;
+
+		for (i = 0; i < var_fc->options->len; i++) {
+			named_fc =
+				ctf_field_class_variant_borrow_option_by_index(
+					var_fc, i);
+
+			force_update_field_class_in_ir(named_fc->fc, in_ir);
+		}
+
+		break;
+	}
+	case CTF_FIELD_CLASS_TYPE_ARRAY:
+	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
+	{
+		struct ctf_field_class_array_base *array_fc = (void *) fc;
+
+		force_update_field_class_in_ir(array_fc->elem_fc, in_ir);
+		break;
+	}
+	default:
+		break;
+	}
+
+end:
+	return;
+}
+
+static
 void update_field_class_in_ir(struct ctf_field_class *fc,
 		GHashTable *ft_dependents)
 {
@@ -208,16 +265,16 @@ int ctf_trace_class_update_in_ir(struct ctf_trace_class *ctf_tc)
 		if (!sc->is_translated) {
 			update_field_class_in_ir(sc->event_common_context_fc,
 				ft_dependents);
-			update_field_class_in_ir(sc->event_header_fc,
-				ft_dependents);
+			force_update_field_class_in_ir(sc->event_header_fc,
+				false);
 			update_field_class_in_ir(sc->packet_context_fc,
 				ft_dependents);
 		}
 	}
 
 	if (!ctf_tc->is_translated) {
-		update_field_class_in_ir(ctf_tc->packet_header_fc,
-			ft_dependents);
+		force_update_field_class_in_ir(ctf_tc->packet_header_fc,
+			false);
 	}
 
 	g_hash_table_destroy(ft_dependents);

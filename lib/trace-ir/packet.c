@@ -55,18 +55,6 @@ const struct bt_stream *bt_packet_borrow_stream_const(
 	return bt_packet_borrow_stream((void *) packet);
 }
 
-struct bt_field *bt_packet_borrow_header_field(struct bt_packet *packet)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	return packet->header_field ? packet->header_field->field : NULL;
-}
-
-const struct bt_field *bt_packet_borrow_header_field_const(
-		const struct bt_packet *packet)
-{
-	return bt_packet_borrow_header_field((void *) packet);
-}
-
 struct bt_field *bt_packet_borrow_context_field(struct bt_packet *packet)
 {
 	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
@@ -88,12 +76,6 @@ void _bt_packet_set_is_frozen(const struct bt_packet *packet, bool is_frozen)
 
 	BT_LIB_LOGD("Setting packet's frozen state: %![packet-]+a, "
 		"is-frozen=%d", packet, is_frozen);
-
-	if (packet->header_field) {
-		BT_LOGD_STR("Setting packet's header field's frozen state.");
-		bt_field_set_is_frozen(packet->header_field->field,
-			is_frozen);
-	}
 
 	if (packet->context_field) {
 		BT_LOGD_STR("Setting packet's context field's frozen state.");
@@ -120,11 +102,6 @@ void reset_packet(struct bt_packet *packet)
 	BT_LIB_LOGD("Resetting packet: %!+a", packet);
 	bt_packet_set_is_frozen(packet, false);
 
-	if (packet->header_field) {
-		bt_field_set_is_frozen(packet->header_field->field, false);
-		bt_field_reset(packet->header_field->field);
-	}
-
 	if (packet->context_field) {
 		bt_field_set_is_frozen(packet->context_field->field, false);
 		bt_field_reset(packet->context_field->field);
@@ -139,18 +116,6 @@ void reset_packet(struct bt_packet *packet)
 	}
 
 	reset_counter_snapshots(packet);
-}
-
-static
-void recycle_header_field(struct bt_field_wrapper *header_field,
-		struct bt_trace_class *tc)
-{
-	BT_ASSERT(header_field);
-	BT_LIB_LOGD("Recycling packet header field: "
-		"addr=%p, %![tc-]+T, %![field-]+f", header_field,
-		tc, header_field->field);
-	bt_object_pool_recycle_object(&tc->packet_header_field_pool,
-		header_field);
 }
 
 static
@@ -208,19 +173,6 @@ void bt_packet_destroy(struct bt_packet *packet)
 {
 	BT_LIB_LOGD("Destroying packet: %!+a", packet);
 
-	if (packet->header_field) {
-		if (packet->stream) {
-			BT_LOGD_STR("Recycling packet's header field.");
-			recycle_header_field(packet->header_field,
-				bt_stream_class_borrow_trace_class_inline(
-					packet->stream->class));
-		} else {
-			bt_field_wrapper_destroy(packet->header_field);
-		}
-
-		packet->header_field = NULL;
-	}
-
 	if (packet->context_field) {
 		if (packet->stream) {
 			BT_LOGD_STR("Recycling packet's context field.");
@@ -270,17 +222,6 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 	bt_object_get_no_null_check(stream);
 	trace_class = bt_stream_class_borrow_trace_class_inline(stream->class);
 	BT_ASSERT(trace_class);
-
-	if (trace_class->packet_header_fc) {
-		BT_LOGD_STR("Creating initial packet header field.");
-		packet->header_field = bt_field_wrapper_create(
-			&trace_class->packet_header_field_pool,
-			trace_class->packet_header_fc);
-		if (!packet->header_field) {
-			BT_LOGE_STR("Cannot create packet header field wrapper.");
-			goto error;
-		}
-	}
 
 	if (stream->class->packet_context_fc) {
 		BT_LOGD_STR("Creating initial packet context field.");
@@ -346,33 +287,6 @@ end:
 	return (void *) packet;
 }
 
-enum bt_packet_status bt_packet_move_header_field(struct bt_packet *packet,
-		struct bt_packet_header_field *header_field)
-{
-	struct bt_trace_class *tc;
-	struct bt_field_wrapper *field_wrapper = (void *) header_field;
-
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(field_wrapper, "Header field");
-	BT_ASSERT_PRE_PACKET_HOT(packet);
-	tc = bt_stream_class_borrow_trace_class_inline(packet->stream->class);
-	BT_ASSERT_PRE(tc->packet_header_fc,
-		"Trace class has no packet header field class: %!+T", tc);
-	BT_ASSERT_PRE(field_wrapper->field->class ==
-		tc->packet_header_fc,
-		"Unexpected packet header field's class: "
-		"%![fc-]+F, %![expected-fc-]+F", field_wrapper->field->class,
-		tc->packet_header_fc);
-
-	/* Recycle current header field: always exists */
-	BT_ASSERT(packet->header_field);
-	recycle_header_field(packet->header_field, tc);
-
-	/* Move new field */
-	packet->header_field = field_wrapper;
-	return BT_PACKET_STATUS_OK;
-}
-
 enum bt_packet_status bt_packet_move_context_field(struct bt_packet *packet,
 		struct bt_packet_context_field *context_field)
 {
@@ -388,7 +302,7 @@ enum bt_packet_status bt_packet_move_context_field(struct bt_packet *packet,
 		stream_class);
 	BT_ASSERT_PRE(field_wrapper->field->class ==
 		stream_class->packet_context_fc,
-		"Unexpected packet header field's class: "
+		"Unexpected packet context field's class: "
 		"%![fc-]+F, %![expected-fc-]+F", field_wrapper->field->class,
 		stream_class->packet_context_fc);
 

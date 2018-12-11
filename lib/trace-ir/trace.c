@@ -359,7 +359,6 @@ enum bt_trace_status bt_trace_remove_is_static_listener(
 BT_HIDDEN
 void _bt_trace_freeze(const struct bt_trace *trace)
 {
-	/* The packet header field class is already frozen */
 	BT_ASSERT(trace);
 	BT_LIB_LOGD("Freezing trace's class: %!+T", trace->class);
 	bt_trace_class_freeze(trace->class);

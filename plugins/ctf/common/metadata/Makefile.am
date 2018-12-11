@@ -33,6 +33,7 @@ libctf_ast_la_SOURCES = \
 	ctf-meta-update-default-clock-classes.c \
 	ctf-meta-update-text-array-sequence.c \
 	ctf-meta-update-value-storing-indexes.c \
+	ctf-meta-warn-meaningless-header-fields.c \
 	ctf-meta-translate.c \
 	ctf-meta-resolve.c
 

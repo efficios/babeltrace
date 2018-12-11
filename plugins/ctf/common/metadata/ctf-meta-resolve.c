@@ -64,29 +64,29 @@ struct resolve_context {
 	} scopes;
 
 	/* Root scope being visited */
-	bt_scope root_scope;
+	enum ctf_scope root_scope;
 	field_class_stack *field_class_stack;
 	struct ctf_field_class *cur_fc;
 };
 
 /* TSDL dynamic scope prefixes as defined in CTF Section 7.3.2 */
 static const char * const absolute_path_prefixes[] = {
-	[BT_SCOPE_PACKET_HEADER]		= "trace.packet.header.",
-	[BT_SCOPE_PACKET_CONTEXT]		= "stream.packet.context.",
-	[BT_SCOPE_EVENT_HEADER]			= "stream.event.header.",
-	[BT_SCOPE_EVENT_COMMON_CONTEXT]		= "stream.event.context.",
-	[BT_SCOPE_EVENT_SPECIFIC_CONTEXT]	= "event.context.",
-	[BT_SCOPE_EVENT_PAYLOAD]		= "event.fields.",
+	[CTF_SCOPE_PACKET_HEADER]		= "trace.packet.header.",
+	[CTF_SCOPE_PACKET_CONTEXT]		= "stream.packet.context.",
+	[CTF_SCOPE_EVENT_HEADER]		= "stream.event.header.",
+	[CTF_SCOPE_EVENT_COMMON_CONTEXT]	= "stream.event.context.",
+	[CTF_SCOPE_EVENT_SPECIFIC_CONTEXT]	= "event.context.",
+	[CTF_SCOPE_EVENT_PAYLOAD]		= "event.fields.",
 };
 
 /* Number of path tokens used for the absolute prefixes */
 static const uint64_t absolute_path_prefix_ptoken_counts[] = {
-	[BT_SCOPE_PACKET_HEADER]		= 3,
-	[BT_SCOPE_PACKET_CONTEXT]		= 3,
-	[BT_SCOPE_EVENT_HEADER]			= 3,
-	[BT_SCOPE_EVENT_COMMON_CONTEXT]		= 3,
-	[BT_SCOPE_EVENT_SPECIFIC_CONTEXT]	= 2,
-	[BT_SCOPE_EVENT_PAYLOAD]		= 2,
+	[CTF_SCOPE_PACKET_HEADER]		= 3,
+	[CTF_SCOPE_PACKET_CONTEXT]		= 3,
+	[CTF_SCOPE_EVENT_HEADER]		= 3,
+	[CTF_SCOPE_EVENT_COMMON_CONTEXT]	= 3,
+	[CTF_SCOPE_EVENT_SPECIFIC_CONTEXT]	= 2,
+	[CTF_SCOPE_EVENT_PAYLOAD]		= 2,
 };
 
 static
@@ -227,20 +227,20 @@ void field_class_stack_pop(field_class_stack *stack)
  */
 static
 struct ctf_field_class *borrow_class_from_ctx(struct resolve_context *ctx,
-		bt_scope scope)
+		enum ctf_scope scope)
 {
 	switch (scope) {
-	case BT_SCOPE_PACKET_HEADER:
+	case CTF_SCOPE_PACKET_HEADER:
 		return ctx->scopes.packet_header;
-	case BT_SCOPE_PACKET_CONTEXT:
+	case CTF_SCOPE_PACKET_CONTEXT:
 		return ctx->scopes.packet_context;
-	case BT_SCOPE_EVENT_HEADER:
+	case CTF_SCOPE_EVENT_HEADER:
 		return ctx->scopes.event_header;
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case CTF_SCOPE_EVENT_COMMON_CONTEXT:
 		return ctx->scopes.event_common_context;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case CTF_SCOPE_EVENT_SPECIFIC_CONTEXT:
 		return ctx->scopes.event_spec_context;
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case CTF_SCOPE_EVENT_PAYLOAD:
 		return ctx->scopes.event_payload;
 	default:
 		abort();
@@ -254,14 +254,14 @@ struct ctf_field_class *borrow_class_from_ctx(struct resolve_context *ctx,
  * is found to be relative.
  */
 static
-bt_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
+enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 {
-	bt_scope scope;
-	bt_scope ret = -1;
+	enum ctf_scope scope;
+	enum ctf_scope ret = -1;
 	const size_t prefixes_count = sizeof(absolute_path_prefixes) /
 		sizeof(*absolute_path_prefixes);
 
-	for (scope = BT_SCOPE_PACKET_HEADER; scope < BT_SCOPE_PACKET_HEADER +
+	for (scope = CTF_SCOPE_PACKET_HEADER; scope < CTF_SCOPE_PACKET_HEADER +
 			prefixes_count; scope++) {
 		/*
 		 * Chech if path string starts with a known absolute
@@ -470,7 +470,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 	 * object.
 	 */
 	switch (field_path->root) {
-	case BT_SCOPE_PACKET_HEADER:
+	case CTF_SCOPE_PACKET_HEADER:
 		if (ctx->tc->is_translated) {
 			BT_LOGE("Trace class is already translated: "
 				"root-scope=%s",
@@ -480,9 +480,9 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		}
 
 		break;
-	case BT_SCOPE_PACKET_CONTEXT:
-	case BT_SCOPE_EVENT_HEADER:
-	case BT_SCOPE_EVENT_COMMON_CONTEXT:
+	case CTF_SCOPE_PACKET_CONTEXT:
+	case CTF_SCOPE_EVENT_HEADER:
+	case CTF_SCOPE_EVENT_COMMON_CONTEXT:
 		if (!ctx->sc) {
 			BT_LOGE("No current stream class: "
 				"root-scope=%s",
@@ -500,8 +500,8 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		}
 
 		break;
-	case BT_SCOPE_EVENT_SPECIFIC_CONTEXT:
-	case BT_SCOPE_EVENT_PAYLOAD:
+	case CTF_SCOPE_EVENT_SPECIFIC_CONTEXT:
+	case CTF_SCOPE_EVENT_PAYLOAD:
 		if (!ctx->ec) {
 			BT_LOGE("No current event class: "
 				"root-scope=%s",
@@ -637,7 +637,7 @@ int pathstr_to_field_path(const char *pathstr,
 		struct ctf_field_path *field_path, struct resolve_context *ctx)
 {
 	int ret = 0;
-	bt_scope root_scope;
+	enum ctf_scope root_scope;
 	GList *ptokens = NULL;
 
 	/* Convert path string to path tokens */
@@ -1148,7 +1148,7 @@ end:
  * Resolves the root field class corresponding to the scope `root_scope`.
  */
 static
-int resolve_root_class(bt_scope root_scope, struct resolve_context *ctx)
+int resolve_root_class(enum ctf_scope root_scope, struct resolve_context *ctx)
 {
 	int ret;
 
@@ -1174,7 +1174,7 @@ int resolve_event_class_field_classes(struct resolve_context *ctx,
 
 	ctx->ec = ec;
 	ctx->scopes.event_spec_context = ec->spec_context_fc;
-	ret = resolve_root_class(BT_SCOPE_EVENT_COMMON_CONTEXT, ctx);
+	ret = resolve_root_class(CTF_SCOPE_EVENT_COMMON_CONTEXT, ctx);
 	if (ret) {
 		BT_LOGE("Cannot resolve event specific context field class: "
 			"ret=%d", ret);
@@ -1182,7 +1182,7 @@ int resolve_event_class_field_classes(struct resolve_context *ctx,
 	}
 
 	ctx->scopes.event_payload = ec->payload_fc;
-	ret = resolve_root_class(BT_SCOPE_EVENT_PAYLOAD, ctx);
+	ret = resolve_root_class(CTF_SCOPE_EVENT_PAYLOAD, ctx);
 	if (ret) {
 		BT_LOGE("Cannot resolve event payload field class: "
 			"ret=%d", ret);
@@ -1210,7 +1210,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 
 	if (!sc->is_translated) {
 		ctx->scopes.packet_context = sc->packet_context_fc;
-		ret = resolve_root_class(BT_SCOPE_PACKET_CONTEXT, ctx);
+		ret = resolve_root_class(CTF_SCOPE_PACKET_CONTEXT, ctx);
 		if (ret) {
 			BT_LOGE("Cannot resolve packet context field class: "
 				"ret=%d", ret);
@@ -1218,7 +1218,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 		}
 
 		ctx->scopes.event_header = sc->event_header_fc;
-		ret = resolve_root_class(BT_SCOPE_EVENT_HEADER, ctx);
+		ret = resolve_root_class(CTF_SCOPE_EVENT_HEADER, ctx);
 		if (ret) {
 			BT_LOGE("Cannot resolve event header field class: "
 				"ret=%d", ret);
@@ -1226,7 +1226,7 @@ int resolve_stream_class_field_classes(struct resolve_context *ctx,
 		}
 
 		ctx->scopes.event_common_context = sc->event_common_context_fc;
-		ret = resolve_root_class(BT_SCOPE_EVENT_SPECIFIC_CONTEXT, ctx);
+		ret = resolve_root_class(CTF_SCOPE_EVENT_SPECIFIC_CONTEXT, ctx);
 		if (ret) {
 			BT_LOGE("Cannot resolve event common context field class: "
 				"ret=%d", ret);
@@ -1275,7 +1275,7 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc)
 			.event_spec_context = NULL,
 			.event_payload = NULL,
 		},
-		.root_scope = BT_SCOPE_PACKET_HEADER,
+		.root_scope = CTF_SCOPE_PACKET_HEADER,
 		.cur_fc = NULL,
 	};
 
@@ -1289,7 +1289,7 @@ int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc)
 
 	if (!tc->is_translated) {
 		ctx.scopes.packet_header = tc->packet_header_fc;
-		ret = resolve_root_class(BT_SCOPE_PACKET_HEADER, &ctx);
+		ret = resolve_root_class(CTF_SCOPE_PACKET_HEADER, &ctx);
 		if (ret) {
 			BT_LOGE("Cannot resolve packet header field class: "
 				"ret=%d", ret);

@@ -54,7 +54,6 @@ babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/event-class-const.h \
 	babeltrace/trace-ir/event-class.h \
 	babeltrace/trace-ir/event-const.h \
-	babeltrace/trace-ir/event-header-field.h \
 	babeltrace/trace-ir/event.h \
 	babeltrace/trace-ir/field-class-const.h \
 	babeltrace/trace-ir/field-class.h \
@@ -63,7 +62,6 @@ babeltracetraceirinclude_HEADERS = \
 	babeltrace/trace-ir/field.h \
 	babeltrace/trace-ir/packet-const.h \
 	babeltrace/trace-ir/packet-context-field.h \
-	babeltrace/trace-ir/packet-header-field.h \
 	babeltrace/trace-ir/packet.h \
 	babeltrace/trace-ir/stream-class-const.h \
 	babeltrace/trace-ir/stream-class.h \

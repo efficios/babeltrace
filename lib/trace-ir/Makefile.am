@@ -6,14 +6,12 @@ libtrace_ir_la_SOURCES = \
 	clock-snapshot.c \
 	event.c \
 	event-class.c \
-	event-header-field.c \
 	field-wrapper.c \
 	field.c \
 	field-class.c \
 	field-path.c \
 	packet.c \
 	packet-context-field.c \
-	packet-header-field.c \
 	resolve-field-path.c \
 	stream.c \
 	stream-class.c \
