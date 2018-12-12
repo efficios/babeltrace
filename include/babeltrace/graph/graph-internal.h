@@ -84,9 +84,11 @@ struct bt_graph {
 		GArray *sink_input_port_removed;
 		GArray *source_filter_ports_connected;
 		GArray *source_sink_ports_connected;
+		GArray *filter_filter_ports_connected;
 		GArray *filter_sink_ports_connected;
 		GArray *source_filter_ports_disconnected;
 		GArray *source_sink_ports_disconnected;
+		GArray *filter_filter_ports_disconnected;
 		GArray *filter_sink_ports_disconnected;
 	} listeners;
 
