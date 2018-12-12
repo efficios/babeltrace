@@ -167,11 +167,15 @@ void destroy_graph(struct bt_object *obj)
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
 		graph->listeners.source_filter_ports_connected);
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
+		graph->listeners.filter_filter_ports_connected);
+	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
 		graph->listeners.source_sink_ports_connected);
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_connected,
 		graph->listeners.filter_sink_ports_connected);
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_disconnected,
 		graph->listeners.source_filter_ports_disconnected);
+	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_disconnected,
+		graph->listeners.filter_filter_ports_disconnected);
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_disconnected,
 		graph->listeners.source_sink_ports_disconnected);
 	CALL_REMOVE_LISTENERS(struct bt_graph_listener_ports_disconnected,
@@ -245,6 +249,12 @@ void destroy_graph(struct bt_object *obj)
 		graph->listeners.source_filter_ports_connected = NULL;
 	}
 
+	if (graph->listeners.filter_filter_ports_connected) {
+		g_array_free(graph->listeners.filter_filter_ports_connected,
+			TRUE);
+		graph->listeners.filter_filter_ports_connected = NULL;
+	}
+
 	if (graph->listeners.source_sink_ports_connected) {
 		g_array_free(graph->listeners.source_sink_ports_connected,
 			TRUE);
@@ -267,6 +277,12 @@ void destroy_graph(struct bt_object *obj)
 		g_array_free(graph->listeners.source_sink_ports_disconnected,
 			TRUE);
 		graph->listeners.source_sink_ports_disconnected = NULL;
+	}
+
+	if (graph->listeners.filter_filter_ports_disconnected) {
+		g_array_free(graph->listeners.filter_filter_ports_disconnected,
+			TRUE);
+		graph->listeners.filter_filter_ports_disconnected = NULL;
 	}
 
 	if (graph->listeners.filter_sink_ports_disconnected) {
@@ -421,6 +437,14 @@ struct bt_graph *bt_graph_create(void)
 	}
 
 	INIT_LISTENERS_ARRAY(struct bt_graph_listener_ports_connected,
+		graph->listeners.filter_filter_ports_connected);
+
+	if (!graph->listeners.filter_filter_ports_connected) {
+		ret = -1;
+		goto error;
+	}
+
+	INIT_LISTENERS_ARRAY(struct bt_graph_listener_ports_connected,
 		graph->listeners.filter_sink_ports_connected);
 
 	if (!graph->listeners.filter_sink_ports_connected) {
@@ -440,6 +464,14 @@ struct bt_graph *bt_graph_create(void)
 		graph->listeners.source_sink_ports_disconnected);
 
 	if (!graph->listeners.source_sink_ports_disconnected) {
+		ret = -1;
+		goto error;
+	}
+
+	INIT_LISTENERS_ARRAY(struct bt_graph_listener_ports_disconnected,
+		graph->listeners.filter_filter_ports_disconnected);
+
+	if (!graph->listeners.filter_filter_ports_disconnected) {
 		ret = -1;
 		goto error;
 	}
@@ -1201,6 +1233,42 @@ bt_graph_add_source_sink_component_ports_connected_listener(
 }
 
 enum bt_graph_status
+bt_graph_add_filter_filter_component_ports_connected_listener(
+		struct bt_graph *graph,
+		bt_graph_filter_filter_component_ports_connected_listener_func func,
+		bt_graph_listener_removed_func listener_removed, void *data,
+		int *out_listener_id)
+{
+	struct bt_graph_listener_ports_connected listener = {
+		.base = {
+			.removed = listener_removed,
+			.data = data,
+		},
+		.func = (ports_connected_func_t) func,
+	};
+	int listener_id;
+
+	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_NON_NULL(func, "Listener");
+	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
+	BT_ASSERT_PRE(!graph->in_remove_listener,
+		"Graph currently executing a \"listener removed\" listener: "
+		"%!+g", graph);
+	g_array_append_val(graph->listeners.filter_filter_ports_connected,
+		listener);
+	listener_id = graph->listeners.filter_filter_ports_connected->len - 1;
+	BT_LIB_LOGV("Added \"filter to filter component ports connected\" listener to graph: "
+		"%![graph-]+g, listener-addr=%p, id=%d", graph, listener,
+		listener_id);
+
+	if (listener_id) {
+		*out_listener_id = listener_id;
+	}
+
+	return BT_GRAPH_STATUS_OK;
+}
+
+enum bt_graph_status
 bt_graph_add_filter_sink_component_ports_connected_listener(
 		struct bt_graph *graph,
 		bt_graph_filter_sink_component_ports_connected_listener_func func,
@@ -1298,6 +1366,42 @@ bt_graph_add_source_sink_component_ports_disconnected_listener(
 		listener);
 	listener_id = graph->listeners.source_sink_ports_disconnected->len - 1;
 	BT_LIB_LOGV("Added \"source to sink component ports disconnected\" listener to graph: "
+		"%![graph-]+g, listener-addr=%p, id=%d", graph, listener,
+		listener_id);
+
+	if (listener_id) {
+		*out_listener_id = listener_id;
+	}
+
+	return BT_GRAPH_STATUS_OK;
+}
+
+enum bt_graph_status
+bt_graph_add_filter_filter_component_ports_disconnected_listener(
+		struct bt_graph *graph,
+		bt_graph_filter_filter_component_ports_disconnected_listener_func func,
+		bt_graph_listener_removed_func listener_removed, void *data,
+		int *out_listener_id)
+{
+	struct bt_graph_listener_ports_disconnected listener = {
+		.base = {
+			.removed = listener_removed,
+			.data = data,
+		},
+		.func = (ports_disconnected_func_t) func,
+	};
+	int listener_id;
+
+	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
+	BT_ASSERT_PRE_NON_NULL(func, "Listener");
+	BT_ASSERT_PRE_NON_NULL(func, "\"Listener removed\" listener");
+	BT_ASSERT_PRE(!graph->in_remove_listener,
+		"Graph currently executing a \"listener removed\" listener: "
+		"%!+g", graph);
+	g_array_append_val(graph->listeners.filter_filter_ports_disconnected,
+		listener);
+	listener_id = graph->listeners.filter_filter_ports_disconnected->len - 1;
+	BT_LIB_LOGV("Added \"filter to filter component ports disconnected\" listener to graph: "
 		"%![graph-]+g, listener-addr=%p, id=%d", graph, listener,
 		listener_id);
 
@@ -1519,6 +1623,10 @@ void bt_graph_notify_ports_connected(struct bt_graph *graph,
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
 	{
 		switch (downstream_comp->class->type) {
+		case BT_COMPONENT_CLASS_TYPE_FILTER:
+			listeners =
+				graph->listeners.filter_filter_ports_connected;
+			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			listeners =
 				graph->listeners.filter_sink_ports_connected;
@@ -1586,6 +1694,10 @@ void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
 	case BT_COMPONENT_CLASS_TYPE_FILTER:
 	{
 		switch (downstream_comp->class->type) {
+		case BT_COMPONENT_CLASS_TYPE_FILTER:
+			listeners =
+				graph->listeners.filter_filter_ports_disconnected;
+			break;
 		case BT_COMPONENT_CLASS_TYPE_SINK:
 			listeners =
 				graph->listeners.filter_sink_ports_disconnected;
