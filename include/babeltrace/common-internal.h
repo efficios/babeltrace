@@ -568,4 +568,10 @@ end:
 	return ret;
 }
 
+static inline
+bt_self_message_iterator_status bt_message_iterator_status_to_self(
+		bt_message_iterator_status status)
+{
+	return (bt_self_message_iterator_status) status;
+}
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
