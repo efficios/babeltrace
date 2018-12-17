@@ -39,6 +39,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "muxer.h"
+
 #define ASSUME_ABSOLUTE_CLOCK_CLASSES_PARAM_NAME	"assume-absolute-clock-classes"
 
 struct muxer_comp {
@@ -328,7 +330,9 @@ end:
 BT_HIDDEN
 bt_self_component_status muxer_init(
 		bt_self_component_filter *self_comp,
-		bt_value *params, void *init_data)
+		const bt_value *params, void *init_data)
+
+
 {
 	int ret;
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
