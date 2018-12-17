@@ -30,6 +30,7 @@
 #include <babeltrace/trace-ir/field-class-const.h>
 #include <babeltrace/trace-ir/field-path-const.h>
 #include <babeltrace/trace-ir/event-class-const.h>
+#include <babeltrace/graph/self-message-iterator.h>
 #include <babeltrace/value.h>
 #include <stdarg.h>
 #include <inttypes.h>
@@ -455,5 +456,25 @@ GString *bt_field_path_string(struct bt_field_path *path)
 end:
 	return str;
 }
+
+static inline
+const char *bt_self_message_iterator_status_string(
+		enum bt_self_message_iterator_status status)
+{
+	switch (status) {
+	case BT_SELF_MESSAGE_ITERATOR_STATUS_AGAIN:
+		return "BT_SELF_MESSAGE_ITERATOR_STATUS_AGAIN";
+	case BT_SELF_MESSAGE_ITERATOR_STATUS_END:
+		return "BT_SELF_MESSAGE_ITERATOR_STATUS_END";
+	case BT_SELF_MESSAGE_ITERATOR_STATUS_OK:
+		return "BT_SELF_MESSAGE_ITERATOR_STATUS_OK";
+	case BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR:
+		return "BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR";
+	case BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM:
+		return "BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM";
+	default:
+		return "(unknown)";
+	}
+};
 
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
