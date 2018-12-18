@@ -94,7 +94,7 @@ void bt_message_inactivity_set_default_clock_snapshot(
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_INACTIVITY);
 	BT_ASSERT_PRE_HOT(msg, "Message", ": %!+n", msg);
-	bt_clock_snapshot_set_value_inline(inactivity->default_cs, value_cycles);
+	bt_clock_snapshot_set_raw_value(inactivity->default_cs, value_cycles);
 	BT_LIB_LOGV("Set inactivity message's default clock snapshot: "
 		"%![msg-]+n, value=%" PRIu64, msg, value_cycles);
 }
