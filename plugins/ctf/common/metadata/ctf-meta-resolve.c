@@ -275,7 +275,7 @@ enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 			BT_LOGV("Prefix does not match: trying the next one: "
 				"path=\"%s\", path-prefix=\"%s\", scope=%s",
 				pathstr, absolute_path_prefixes[scope],
-				bt_common_scope_string(scope));
+				ctf_scope_string(scope));
 			continue;
 		}
 
@@ -283,7 +283,7 @@ enum ctf_scope get_root_scope_from_absolute_pathstr(const char *pathstr)
 		ret = scope;
 		BT_LOGV("Found root scope from absolute path: "
 			"path=\"%s\", scope=%s", pathstr,
-			bt_common_scope_string(scope));
+			ctf_scope_string(scope));
 		goto end;
 	}
 
@@ -474,7 +474,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		if (ctx->tc->is_translated) {
 			BT_LOGE("Trace class is already translated: "
 				"root-scope=%s",
-				bt_common_scope_string(field_path->root));
+				ctf_scope_string(field_path->root));
 			ret = -1;
 			goto end;
 		}
@@ -486,7 +486,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		if (!ctx->sc) {
 			BT_LOGE("No current stream class: "
 				"root-scope=%s",
-				bt_common_scope_string(field_path->root));
+				ctf_scope_string(field_path->root));
 			ret = -1;
 			goto end;
 		}
@@ -494,7 +494,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		if (ctx->sc->is_translated) {
 			BT_LOGE("Stream class is already translated: "
 				"root-scope=%s",
-				bt_common_scope_string(field_path->root));
+				ctf_scope_string(field_path->root));
 			ret = -1;
 			goto end;
 		}
@@ -505,7 +505,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		if (!ctx->ec) {
 			BT_LOGE("No current event class: "
 				"root-scope=%s",
-				bt_common_scope_string(field_path->root));
+				ctf_scope_string(field_path->root));
 			ret = -1;
 			goto end;
 		}
@@ -513,7 +513,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		if (ctx->ec->is_translated) {
 			BT_LOGE("Event class is already translated: "
 				"root-scope=%s",
-				bt_common_scope_string(field_path->root));
+				ctf_scope_string(field_path->root));
 			ret = -1;
 			goto end;
 		}
@@ -534,7 +534,7 @@ int absolute_ptokens_to_field_path(GList *ptokens,
 		/* Error: root class is not available */
 		BT_LOGE("Root field class is not available: "
 			"root-scope=%s",
-			bt_common_scope_string(field_path->root));
+			ctf_scope_string(field_path->root));
 		ret = -1;
 		goto end;
 	}
@@ -656,25 +656,25 @@ int pathstr_to_field_path(const char *pathstr,
 		/* Relative path: start with current root scope */
 		field_path->root = ctx->root_scope;
 		BT_LOGV("Detected relative path: starting with current root scope: "
-			"scope=%s", bt_common_scope_string(field_path->root));
+			"scope=%s", ctf_scope_string(field_path->root));
 		ret = relative_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
 			BT_LOGE("Cannot get relative field path of path string: "
 				"path=\"%s\", start-scope=%s, end-scope=%s",
-				pathstr, bt_common_scope_string(ctx->root_scope),
-				bt_common_scope_string(field_path->root));
+				pathstr, ctf_scope_string(ctx->root_scope),
+				ctf_scope_string(field_path->root));
 			goto end;
 		}
 	} else {
 		/* Absolute path: use found root scope */
 		field_path->root = root_scope;
 		BT_LOGV("Detected absolute path: using root scope: "
-			"scope=%s", bt_common_scope_string(field_path->root));
+			"scope=%s", ctf_scope_string(field_path->root));
 		ret = absolute_ptokens_to_field_path(ptokens, field_path, ctx);
 		if (ret) {
 			BT_LOGE("Cannot get absolute field path of path string: "
 				"path=\"%s\", root-scope=%s",
-				pathstr, bt_common_scope_string(root_scope));
+				pathstr, ctf_scope_string(root_scope));
 			goto end;
 		}
 	}
@@ -713,7 +713,7 @@ struct ctf_field_class *field_path_to_field_class(
 	if (!fc) {
 		/* Error: root class is not available */
 		BT_LOGE("Root field class is not available: root-scope=%s",
-			bt_common_scope_string(field_path->root));
+			ctf_scope_string(field_path->root));
 		goto end;
 	}
 
@@ -866,8 +866,8 @@ int validate_target_field_path(struct ctf_field_path *target_field_path,
 	if (target_field_path->root > ctx_field_path.root) {
 		BT_LOGE("Target field class is located after source field class: "
 			"target-root=%s, source-root=%s",
-			bt_common_scope_string(target_field_path->root),
-			bt_common_scope_string(ctx_field_path.root));
+			ctf_scope_string(target_field_path->root),
+			ctf_scope_string(ctx_field_path.root));
 		ret = -1;
 		goto end;
 	}
