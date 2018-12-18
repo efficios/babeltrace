@@ -245,7 +245,7 @@ static
 int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
 {
 	int ret = 0;
-	const char *trace_name;
+	const char *trace_name = NULL;
 	gchar *basename = NULL;
 
 	dmesg_comp->trace = bt_trace_create(dmesg_comp->trace_class);
