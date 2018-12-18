@@ -134,7 +134,7 @@ enum bt_query_executor_status bt_query_executor_query(
 	exec_status = (int) status;
 	if (query_exec->canceled) {
 		BT_OBJECT_PUT_REF_AND_RESET(*user_result);
-		status = BT_QUERY_EXECUTOR_STATUS_CANCELED;
+		exec_status = BT_QUERY_EXECUTOR_STATUS_CANCELED;
 		goto end;
 	}
 
