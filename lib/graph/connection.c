@@ -194,29 +194,29 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 		conn->upstream_port = NULL;
 	}
 
-	if (downstream_comp && conn->msgied_downstream_port_connected &&
-			!conn->msgied_downstream_port_disconnected) {
+	if (downstream_comp && conn->notified_downstream_port_connected &&
+			!conn->notified_downstream_port_disconnected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(downstream_comp,
 			downstream_port);
-		conn->msgied_downstream_port_disconnected = true;
+		conn->notified_downstream_port_disconnected = true;
 	}
 
-	if (upstream_comp && conn->msgied_upstream_port_connected &&
-			!conn->msgied_upstream_port_disconnected) {
+	if (upstream_comp && conn->notified_upstream_port_connected &&
+			!conn->notified_upstream_port_disconnected) {
 		/* bt_component_port_disconnected() logs details */
 		bt_component_port_disconnected(upstream_comp, upstream_port);
-		conn->msgied_upstream_port_disconnected = true;
+		conn->notified_upstream_port_disconnected = true;
 	}
 
 	BT_ASSERT(graph);
 
-	if (conn->msgied_graph_ports_connected &&
-			!conn->msgied_graph_ports_disconnected) {
+	if (conn->notified_graph_ports_connected &&
+			!conn->notified_graph_ports_disconnected) {
 		/* bt_graph_notify_ports_disconnected() logs details */
 		bt_graph_notify_ports_disconnected(graph, upstream_comp,
 			downstream_comp, upstream_port, downstream_port);
-		conn->msgied_graph_ports_disconnected = true;
+		conn->notified_graph_ports_disconnected = true;
 	}
 
 	/*
