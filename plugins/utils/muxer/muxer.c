@@ -492,7 +492,6 @@ bt_message_iterator_status muxer_upstream_msg_iter_next(
 		 */
 		break;
 	case BT_MESSAGE_ITERATOR_STATUS_END:	/* Fall-through. */
-	case BT_MESSAGE_ITERATOR_STATUS_CANCELED:
 		/*
 		 * Message iterator reached the end: release it. It
 		 * won't be considered again to find the youngest
@@ -1056,8 +1055,7 @@ bt_message_iterator_status muxer_msg_iter_do_next_one(
 	status = muxer_msg_iter_youngest_upstream_msg_iter(muxer_comp,
 			muxer_msg_iter, &muxer_upstream_msg_iter,
 			&next_return_ts);
-	if (status < 0 || status == BT_MESSAGE_ITERATOR_STATUS_END ||
-			status == BT_MESSAGE_ITERATOR_STATUS_CANCELED) {
+	if (status < 0 || status == BT_MESSAGE_ITERATOR_STATUS_END) {
 		if (status < 0) {
 			BT_LOGE("Cannot find the youngest upstream message iterator wrapper: "
 				"status=%s",

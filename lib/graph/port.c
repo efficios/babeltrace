@@ -137,6 +137,36 @@ void bt_port_set_connection(struct bt_port *port,
 		connection);
 }
 
+static inline
+bool port_connection_iterators_are_finalized(struct bt_port *port)
+{
+	bool ret = true;
+	struct bt_connection *conn = port->connection;
+	uint64_t i;
+
+	if (!conn) {
+		goto end;
+	}
+
+	for (i = 0; i < conn->iterators->len; i++) {
+		struct bt_self_component_port_input_message_iterator *iterator =
+			conn->iterators->pdata[i];
+
+		BT_ASSERT(iterator);
+
+		if (iterator->state != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING &&
+				iterator->state != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED) {
+			BT_ASSERT_PRE_MSG("Message iterator is not being finalized or finalized: "
+				"%!+i", iterator);
+			ret = false;
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
 enum bt_self_component_port_status bt_self_component_port_remove_from_component(
 		struct bt_self_component_port *self_port)
 {
@@ -144,7 +174,8 @@ enum bt_self_component_port_status bt_self_component_port_remove_from_component(
 	struct bt_component *comp = NULL;
 
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
-
+	BT_ASSERT_PRE(port_connection_iterators_are_finalized(port),
+		"At least one message iterator using this port has the wrong state.");
 	comp = (void *) bt_object_borrow_parent(&port->base);
 	if (!comp) {
 		BT_LIB_LOGV("Port already removed from its component: %!+p",
