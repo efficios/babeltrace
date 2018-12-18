@@ -331,4 +331,27 @@ BT_HIDDEN
 enum bt_ctf_value_status bt_ctf_private_value_map_insert_empty_map_entry(
 		struct bt_ctf_private_value *map_obj, const char *key);
 
+static inline
+const char *bt_ctf_value_type_string(enum bt_ctf_value_type type)
+{
+	switch (type) {
+	case BT_CTF_VALUE_TYPE_NULL:
+		return "BT_CTF_VALUE_TYPE_NULL";
+	case BT_CTF_VALUE_TYPE_BOOL:
+		return "BT_CTF_VALUE_TYPE_BOOL";
+	case BT_CTF_VALUE_TYPE_INTEGER:
+		return "BT_CTF_VALUE_TYPE_INTEGER";
+	case BT_CTF_VALUE_TYPE_REAL:
+		return "BT_CTF_VALUE_TYPE_REAL";
+	case BT_CTF_VALUE_TYPE_STRING:
+		return "BT_CTF_VALUE_TYPE_STRING";
+	case BT_CTF_VALUE_TYPE_ARRAY:
+		return "BT_CTF_VALUE_TYPE_ARRAY";
+	case BT_CTF_VALUE_TYPE_MAP:
+		return "BT_CTF_VALUE_TYPE_MAP";
+	default:
+		return "(unknown)";
+	}
+};
+
 #endif /* BABELTRACE_CTF_WRITER_VALUES_INTERNAL_H */

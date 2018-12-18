@@ -266,7 +266,7 @@ int bt_ctf_trace_common_set_environment_field(struct bt_ctf_trace_common *trace,
 			"trace-addr=%p, trace-name=\"%s\", "
 			"env-name=\"%s\", env-value-type=%s",
 			trace, bt_ctf_trace_common_get_name(trace), name,
-			bt_common_value_type_string(
+			bt_ctf_value_type_string(
 				bt_ctf_value_get_type(
 					bt_ctf_private_value_as_value(value))));
 		ret = -1;
