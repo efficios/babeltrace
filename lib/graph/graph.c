@@ -118,11 +118,11 @@ void destroy_graph(struct bt_object *obj)
 	 * in this situation:
 	 *
 	 * 1. We put and destroy a connection.
-	 * 2. This connection's destructor finalizes its active
-	 *    message iterators.
-	 * 3. A message iterator's finalization function gets a
-	 *    new reference on its component (reference count goes from
-	 *    0 to 1).
+	 * 2. This connection's destructor finalizes its active message
+	 *    iterators.
+	 * 3. A message iterator's finalization function gets a new
+	 *    reference on its component (reference count goes from 0 to
+	 *    1).
 	 * 4. Since this component's reference count goes to 1, it takes
 	 *    a reference on its parent (this graph). This graph's
 	 *    reference count goes from 0 to 1.
@@ -131,8 +131,8 @@ void destroy_graph(struct bt_object *obj)
 	 * 6. Since this component's reference count goes from 1 to 0,
 	 *    it puts its parent (this graph). This graph's reference
 	 *    count goes from 1 to 0.
-	 * 7. Since this graph's reference count goes from 1 to 0,
-	 *    its destructor is called (this function).
+	 * 7. Since this graph's reference count goes from 1 to 0, its
+	 *    destructor is called (this function).
 	 *
 	 * With the incrementation below, the graph's reference count at
 	 * step 4 goes from 1 to 2, and from 2 to 1 at step 6. This

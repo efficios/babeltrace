@@ -115,6 +115,24 @@ end:
 	return stream_state;
 }
 
+static inline
+void _set_self_comp_port_input_msg_iterator_state(
+		struct bt_self_component_port_input_message_iterator *iterator,
+		enum bt_self_component_port_input_message_iterator_state state)
+{
+	BT_ASSERT(iterator);
+	BT_LIB_LOGD("Updating message iterator's state: "
+		"new-state=%s",
+		bt_self_component_port_input_message_iterator_state_string(state));
+	iterator->state = state;
+}
+
+#ifdef BT_DEV_MODE
+# define set_self_comp_port_input_msg_iterator_state _set_self_comp_port_input_msg_iterator_state
+#else
+# define set_self_comp_port_input_msg_iterator_state(_a, _b)
+#endif
+
 static
 void destroy_base_message_iterator(struct bt_object *obj)
 {
@@ -152,7 +170,7 @@ void bt_self_component_port_input_message_iterator_destroy(struct bt_object *obj
 	iterator = (void *) obj;
 	BT_LIB_LOGD("Destroying self component input port message iterator object: "
 		"%!+i", iterator);
-	bt_self_component_port_input_message_iterator_finalize(iterator);
+	bt_self_component_port_input_message_iterator_try_finalize(iterator);
 
 	if (iterator->stream_states) {
 		/*
@@ -179,7 +197,7 @@ void bt_self_component_port_input_message_iterator_destroy(struct bt_object *obj
 }
 
 BT_HIDDEN
-void bt_self_component_port_input_message_iterator_finalize(
+void bt_self_component_port_input_message_iterator_try_finalize(
 		struct bt_self_component_port_input_message_iterator *iterator)
 {
 	typedef void (*method_t)(void *);
@@ -194,29 +212,24 @@ void bt_self_component_port_input_message_iterator_finalize(
 		/* Skip user finalization if user initialization failed */
 		BT_LIB_LOGD("Not finalizing non-initialized message iterator: "
 			"%!+i", iterator);
-		return;
+		goto end;
 	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED:
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED_AND_ENDED:
 		/* Already finalized */
 		BT_LIB_LOGD("Not finalizing message iterator: already finalized: "
 			"%!+i", iterator);
-		return;
+		goto end;
+	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING:
+		/* Already finalized */
+		BT_LIB_LOGF("Message iterator is already being finalized: "
+			"%!+i", iterator);
+		abort();
 	default:
 		break;
 	}
 
 	BT_LIB_LOGD("Finalizing message iterator: %!+i", iterator);
-
-	if (iterator->state == BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED) {
-		BT_LIB_LOGD("Updating message iterator's state: "
-			"new-state=BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED_AND_ENDED");
-		iterator->state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED_AND_ENDED;
-	} else {
-		BT_LIB_LOGD("Updating message iterator's state: "
-			"new-state=BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED");
-		iterator->state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED;
-	}
-
+	set_self_comp_port_input_msg_iterator_state(iterator,
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING);
 	BT_ASSERT(iterator->upstream_component);
 	comp_class = iterator->upstream_component->class;
 
@@ -251,7 +264,12 @@ void bt_self_component_port_input_message_iterator_finalize(
 
 	iterator->upstream_component = NULL;
 	iterator->upstream_port = NULL;
+	set_self_comp_port_input_msg_iterator_state(iterator,
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED);
 	BT_LIB_LOGD("Finalized message iterator: %!+i", iterator);
+
+end:
+	return;
 }
 
 BT_HIDDEN
@@ -334,7 +352,8 @@ bt_self_component_port_input_message_iterator_create_initial(
 	iterator->upstream_port = upstream_port;
 	iterator->connection = iterator->upstream_port->connection;
 	iterator->graph = bt_component_borrow_graph(upstream_comp);
-	iterator->state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED;
+	set_self_comp_port_input_msg_iterator_state(iterator,
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED);
 	BT_LIB_LOGD("Created initial message iterator on self component input port: "
 		"%![up-port-]+p, %![up-comp-]+c, %![iter-]+i",
 		upstream_port, upstream_comp, iterator);
@@ -420,11 +439,13 @@ bt_self_component_port_input_message_iterator_create(
 			bt_message_iterator_status_string(iter_status));
 		if (iter_status != BT_MESSAGE_ITERATOR_STATUS_OK) {
 			BT_LOGW_STR("Initialization method failed.");
+			BT_OBJECT_PUT_REF_AND_RESET(iterator);
 			goto end;
 		}
 	}
 
-	iterator->state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE;
+	set_self_comp_port_input_msg_iterator_state(iterator,
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
 	g_ptr_array_add(port->connection->iterators, iterator);
 	BT_LIB_LOGD("Created message iterator on self component input port: "
 		"%![up-port-]+p, %![up-comp-]+c, %![iter-]+i",
@@ -762,8 +783,7 @@ bt_self_component_port_input_message_iterator_next(
 	 */
 	BT_ASSERT(method);
 	BT_LOGD_STR("Calling user's \"next\" method.");
-	status = method(iterator,
-		(void *) iterator->base.msgs->pdata,
+	status = method(iterator, (void *) iterator->base.msgs->pdata,
 		MSG_BATCH_SIZE, user_count);
 	BT_LOGD("User method returned: status=%s",
 		bt_message_iterator_status_string(status));
@@ -772,33 +792,16 @@ bt_self_component_port_input_message_iterator_next(
 		goto end;
 	}
 
-	if (iterator->state == BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED ||
-			iterator->state == BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED_AND_ENDED) {
-		/*
-		 * The user's "next" method, somehow, cancelled its own
-		 * message iterator. This can happen, for example,
-		 * when the user's method removes the port on which
-		 * there's the connection from which the iterator was
-		 * created. In this case, said connection is ended, and
-		 * all its message iterators are finalized.
-		 *
-		 * Only bt_object_put_ref() the returned message if
-		 * the status is BT_MESSAGE_ITERATOR_STATUS_OK
-		 * because otherwise this field could be garbage.
-		 */
-		if (status == BT_MESSAGE_ITERATOR_STATUS_OK) {
-			uint64_t i;
-			bt_message_array_const msgs =
-				(void *) iterator->base.msgs->pdata;
-
-			for (i = 0; i < *user_count; i++) {
-				bt_object_put_ref(msgs[i]);
-			}
-		}
-
-		status = BT_MESSAGE_ITERATOR_STATUS_CANCELED;
-		goto end;
-	}
+#ifdef BT_DEV_MODE
+	/*
+	 * There is no way that this iterator could have been finalized
+	 * during its "next" method, as the only way to do this is to
+	 * put the last iterator's reference, and this can only be done
+	 * by its downstream owner.
+	 */
+	BT_ASSERT(iterator->state ==
+		BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
+#endif
 
 	switch (status) {
 	case BT_MESSAGE_ITERATOR_STATUS_OK:
@@ -814,11 +817,8 @@ bt_self_component_port_input_message_iterator_next(
 		BT_ASSERT_PRE(self_comp_port_input_msg_iter_can_end(iterator),
 			"Message iterator cannot end at this point: "
 			"%!+i", iterator);
-		BT_ASSERT(iterator->state ==
-			BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE);
-		iterator->state = BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED;
-		BT_LOGD("Set new status: status=%s",
-			bt_message_iterator_status_string(status));
+		set_self_comp_port_input_msg_iterator_state(iterator,
+			BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED);
 		goto end;
 	default:
 		/* Unknown non-error status */
@@ -829,8 +829,7 @@ end:
 	return status;
 }
 
-enum bt_message_iterator_status
-bt_port_output_message_iterator_next(
+enum bt_message_iterator_status bt_port_output_message_iterator_next(
 		struct bt_port_output_message_iterator *iterator,
 		bt_message_array_const *msgs_to_user,
 		uint64_t *count_to_user)

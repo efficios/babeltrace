@@ -55,18 +55,14 @@ enum bt_self_component_port_input_message_iterator_state {
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED,
 
 	/*
-	 * Iterator is finalized, but not at the end yet. This means
-	 * that the "next" method can still return queued messages
-	 * before returning the BT_MESSAGE_ITERATOR_STATUS_CANCELED
-	 * status.
+	 * Iterator is currently being finalized.
 	 */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED,
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING,
 
 	/*
-	 * Iterator is finalized and ended: the "next" method always
-	 * returns BT_MESSAGE_ITERATOR_STATUS_CANCELED.
+	 * Iterator is finalized.
 	 */
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED_AND_ENDED,
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED,
 };
 
 struct bt_message_iterator {
@@ -83,22 +79,15 @@ struct bt_self_component_port_input_message_iterator {
 	struct bt_graph *graph; /* Weak */
 
 	/*
-	 * This hash table keeps the state of a stream as viewed by
-	 * this message iterator. This is used to, in developer
-	 * mode:
+	 * This hash table keeps the state of a stream as viewed by this
+	 * message iterator. This is used, in developer mode, to make
+	 * sure that, once the message iterator has seen a "stream end"
+	 * message for a given stream, no other messages which refer to
+	 * this stream can be delivered by this iterator. It is also
+	 * used to check for a valid sequence of messages.
 	 *
-	 * * Automatically enqueue "stream begin", "packet begin",
-	 *   "packet end", and "stream end" messages depending
-	 *   on the stream's state and on the next message returned
-	 *   by the upstream component.
-	 *
-	 * * Make sure that, once the message iterator has seen a
-	 *   "stream end" message for a given stream, no other
-	 *   messages which refer to this stream can be delivered
-	 *   by this iterator.
-	 *
-	 * The key (struct bt_stream *) is not owned by this. The
-	 * value is an allocated state structure.
+	 * The key (struct bt_stream *) is not owned by this. The value
+	 * is an allocated state structure.
 	 */
 	GHashTable *stream_states;
 
@@ -119,7 +108,7 @@ struct bt_port_output_message_iterator {
 };
 
 BT_HIDDEN
-void bt_self_component_port_input_message_iterator_finalize(
+void bt_self_component_port_input_message_iterator_try_finalize(
 		struct bt_self_component_port_input_message_iterator *iterator);
 
 BT_HIDDEN
@@ -132,8 +121,6 @@ const char *bt_message_iterator_status_string(
 		enum bt_message_iterator_status status)
 {
 	switch (status) {
-	case BT_MESSAGE_ITERATOR_STATUS_CANCELED:
-		return "BT_MESSAGE_ITERATOR_STATUS_CANCELED";
 	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		return "BT_MESSAGE_ITERATOR_STATUS_AGAIN";
 	case BT_MESSAGE_ITERATOR_STATUS_END:
@@ -158,10 +145,10 @@ const char *bt_self_component_port_input_message_iterator_state_string(
 		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE";
 	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED:
 		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED";
+	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING:
+		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING";
 	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED:
 		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED";
-	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED_AND_ENDED:
-		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED_AND_ENDED";
 	default:
 		return "(unknown)";
 	}
