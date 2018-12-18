@@ -250,7 +250,7 @@ opt:-v 'VALUE', opt:--value='VALUE'::
 
 Component connection
 ~~~~~~~~~~~~~~~~~~~~
-opt:-C 'CONN-RULE', opt:--connect='CONN-RULE'::
+opt:-x 'CONN-RULE', opt:--connect='CONN-RULE'::
     Add the connection rule 'CONN-RULE'. See
     <<connect-comps,Connect components>> for the format of 'CONN-RULE'.
 
