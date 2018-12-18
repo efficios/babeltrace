@@ -332,7 +332,7 @@ void bt_packet_set_default_beginning_clock_snapshot(struct bt_packet *packet,
 		"no default beginning clock snapshot: %![packet-]+a, %![sc-]+S",
 		packet, sc);
 	BT_ASSERT(packet->default_beginning_cs);
-	bt_clock_snapshot_set_value_inline(packet->default_beginning_cs,
+	bt_clock_snapshot_set_raw_value(packet->default_beginning_cs,
 		value_cycles);
 	BT_LIB_LOGV("Set packet's default beginning clock snapshot: "
 		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
@@ -365,7 +365,7 @@ void bt_packet_set_default_end_clock_snapshot(struct bt_packet *packet,
 		"no default end clock snapshot: %![packet-]+a, %![sc-]+S",
 		packet, sc);
 	BT_ASSERT(packet->default_end_cs);
-	bt_clock_snapshot_set_value_inline(packet->default_end_cs, value_cycles);
+	bt_clock_snapshot_set_raw_value(packet->default_end_cs, value_cycles);
 	BT_LIB_LOGV("Set packet's default end clock snapshot: "
 		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
 }

@@ -257,7 +257,7 @@ void bt_event_set_default_clock_snapshot(struct bt_event *event,
 		"Event's stream class has no default clock class: "
 		"%![ev-]+e, %![sc-]+S", event, sc);
 	BT_ASSERT(event->default_cs);
-	bt_clock_snapshot_set_value_inline(event->default_cs, value_cycles);
+	bt_clock_snapshot_set_raw_value(event->default_cs, value_cycles);
 	BT_LIB_LOGV("Set event's default clock snapshot: %![event-]+e, "
 		"value=%" PRIu64, event, value_cycles);
 }

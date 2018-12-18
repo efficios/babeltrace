@@ -141,7 +141,7 @@ int bt_clock_snapshot_set_set_clock_snapshot(struct bt_clock_snapshot_set *cs_se
 		g_ptr_array_add(cs_set->clock_snapshots, clock_snapshot);
 	}
 
-	bt_clock_snapshot_set_value_inline(clock_snapshot, raw_value);
+	bt_clock_snapshot_set_raw_value(clock_snapshot, raw_value);
 
 end:
 	return ret;
@@ -153,7 +153,7 @@ void  bt_clock_snapshot_set_set_default_clock_snapshot(
 {
 	BT_ASSERT(cs_set);
 	BT_ASSERT(cs_set->default_cs);
-	bt_clock_snapshot_set_value_inline(cs_set->default_cs, raw_value);
+	bt_clock_snapshot_set_raw_value(cs_set->default_cs, raw_value);
 }
 
 #endif /* BABELTRACE_GRAPH_CLOCK_SNAPSHOT_SET_H */
