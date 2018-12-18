@@ -2284,7 +2284,7 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    in the plugin PLUGIN, add it to the graph,\n");
 	fprintf(fp, "                                    and optionally name it NAME (you can also\n");
 	fprintf(fp, "                                    specify the name with --name)\n");
-	fprintf(fp, "  -C, --connect=CONNECTION          Connect two created components (see the\n");
+	fprintf(fp, "  -x, --connect=CONNECTION          Connect two created components (see the\n");
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
 	fprintf(fp, "      --key=KEY                     Set the current initialization string\n");
 	fprintf(fp, "                                    parameter key to KEY (see --value)\n");
@@ -2378,7 +2378,7 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	struct poptOption run_long_options[] = {
 		{ "base-params", 'b', POPT_ARG_STRING, NULL, OPT_BASE_PARAMS, NULL, NULL },
 		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
-		{ "connect", 'C', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
+		{ "connect", 'x', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
 		{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
 		{ "key", '\0', POPT_ARG_STRING, NULL, OPT_KEY, NULL, NULL },
 		{ "name", 'n', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
