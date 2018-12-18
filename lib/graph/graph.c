@@ -640,7 +640,7 @@ enum bt_graph_status bt_graph_connect_ports(
 		goto end;
 	}
 
-	connection->msgied_upstream_port_connected = true;
+	connection->notified_upstream_port_connected = true;
 	BT_LIB_LOGD("Notifying downstream component that its port is connected: "
 		"%![comp-]+c, %![port-]+p", downstream_component,
 		downstream_port);
@@ -658,14 +658,14 @@ enum bt_graph_status bt_graph_connect_ports(
 		goto end;
 	}
 
-	connection->msgied_downstream_port_connected = true;
+	connection->notified_downstream_port_connected = true;
 
 	/*
 	 * Notify the graph's creator that both ports are connected.
 	 */
 	BT_LOGD_STR("Notifying graph's user that new component ports are connected.");
 	bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
-	connection->msgied_graph_ports_connected = true;
+	connection->notified_graph_ports_connected = true;
 	BT_LIB_LOGD("Connected component ports within graph: "
 		"%![graph-]+g, %![up-comp-]+c, %![down-comp-]+c, "
 		"%![up-port-]+p, %![down-port-]+p",

@@ -55,12 +55,12 @@ struct bt_connection {
 	 */
 	GPtrArray *iterators;
 
-	bool msgied_upstream_port_connected;
-	bool msgied_upstream_port_disconnected;
-	bool msgied_downstream_port_connected;
-	bool msgied_downstream_port_disconnected;
-	bool msgied_graph_ports_connected;
-	bool msgied_graph_ports_disconnected;
+	bool notified_upstream_port_connected;
+	bool notified_upstream_port_disconnected;
+	bool notified_downstream_port_connected;
+	bool notified_downstream_port_disconnected;
+	bool notified_graph_ports_connected;
+	bool notified_graph_ports_disconnected;
 };
 
 BT_HIDDEN
