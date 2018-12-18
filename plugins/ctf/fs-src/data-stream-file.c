@@ -706,22 +706,22 @@ void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 }
 
 BT_HIDDEN
-bt_message_iterator_status ctf_fs_ds_file_next(
+bt_self_message_iterator_status ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file,
 		bt_message **msg)
 {
 	enum bt_msg_iter_status msg_iter_status;
-	bt_message_iterator_status status;
+	bt_self_message_iterator_status status;
 
 	msg_iter_status = bt_msg_iter_get_next_message(
 		ds_file->msg_iter, ds_file->pc_msg_iter, msg);
 
 	switch (msg_iter_status) {
 	case BT_MSG_ITER_STATUS_EOF:
-		status = BT_MESSAGE_ITERATOR_STATUS_END;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
 		break;
 	case BT_MSG_ITER_STATUS_OK:
-		status = BT_MESSAGE_ITERATOR_STATUS_OK;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 		break;
 	case BT_MSG_ITER_STATUS_AGAIN:
 		/*
@@ -733,7 +733,7 @@ bt_message_iterator_status ctf_fs_ds_file_next(
 	case BT_MSG_ITER_STATUS_INVAL:
 	case BT_MSG_ITER_STATUS_ERROR:
 	default:
-		status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 		break;
 	}
 	return status;

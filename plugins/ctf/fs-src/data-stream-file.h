@@ -136,7 +136,7 @@ BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *stream);
 
 BT_HIDDEN
-bt_message_iterator_status ctf_fs_ds_file_next(
+bt_self_message_iterator_status ctf_fs_ds_file_next(
 		struct ctf_fs_ds_file *ds_file,
 		bt_message **msg);
 
