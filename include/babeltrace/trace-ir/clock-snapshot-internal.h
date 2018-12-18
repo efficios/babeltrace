@@ -75,13 +75,6 @@ void bt_clock_snapshot_set_raw_value(struct bt_clock_snapshot *clock_snapshot,
 	bt_clock_snapshot_set(clock_snapshot);
 }
 
-static inline
-void bt_clock_snapshot_set_value_inline(struct bt_clock_snapshot *clock_snapshot,
-		uint64_t raw_value)
-{
-	bt_clock_snapshot_set_raw_value(clock_snapshot, raw_value);
-}
-
 BT_HIDDEN
 void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot);
 

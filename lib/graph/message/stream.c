@@ -123,7 +123,7 @@ void bt_message_stream_end_set_default_clock_snapshot(
 	se_msg->default_cs = bt_clock_snapshot_create(
 		se_msg->stream->class->default_clock_class);
 	BT_ASSERT(se_msg->default_cs);
-	bt_clock_snapshot_set_value_inline(se_msg->default_cs, value_cycles);
+	bt_clock_snapshot_set_raw_value(se_msg->default_cs, value_cycles);
 	BT_LIB_LOGV("Set message's default clock snapshot: %![msg-]+n, "
 		"value=%" PRIu64, value_cycles);
 }
@@ -228,7 +228,7 @@ void bt_message_stream_beginning_set_default_clock_snapshot(
 	sb_msg->default_cs = bt_clock_snapshot_create(
 		sb_msg->stream->class->default_clock_class);
 	BT_ASSERT(sb_msg->default_cs);
-	bt_clock_snapshot_set_value_inline(sb_msg->default_cs, value_cycles);
+	bt_clock_snapshot_set_raw_value(sb_msg->default_cs, value_cycles);
 	BT_LIB_LOGV("Set message's default clock snapshot: %![msg-]+n, "
 		"value=%" PRIu64, value_cycles);
 }
