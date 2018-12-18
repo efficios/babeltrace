@@ -151,9 +151,6 @@ enum bt_self_component_status colander_consume(
 			colander_data->msg_iter, &msgs,
 			colander_data->count_addr);
 	switch (msg_iter_status) {
-	case BT_MESSAGE_ITERATOR_STATUS_CANCELED:
-		status = BT_SELF_COMPONENT_STATUS_OK;
-		goto end;
 	case BT_MESSAGE_ITERATOR_STATUS_AGAIN:
 		status = BT_SELF_COMPONENT_STATUS_AGAIN;
 		goto end;

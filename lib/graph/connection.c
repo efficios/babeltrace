@@ -46,10 +46,10 @@ void destroy_connection(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying connection: %!+x", connection);
 
 	/*
-	 * Make sure that each message iterator which was created
-	 * for this connection is finalized before we destroy it. Once a
-	 * message iterator is finalized, all its method return
-	 * NULL or the BT_MESSAGE_ITERATOR_STATUS_CANCELED status.
+	 * Make sure that each message iterator which was created for
+	 * this connection is finalized before we destroy it. Once a
+	 * message iterator is finalized, all its method return NULL or
+	 * the BT_MESSAGE_ITERATOR_STATUS_CANCELED status.
 	 *
 	 * Because connections are destroyed before components within a
 	 * graph, this ensures that message iterators are always
@@ -227,8 +227,12 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	bt_object_put_ref(upstream_port);
 
 	/*
-	 * Because this connection is ended, finalize (cancel) each
-	 * message iterator created from it.
+	 * Because this connection is ended, finalize each message
+	 * iterator created from it.
+	 *
+	 * In practice, this only happens when the connection is
+	 * destroyed and not all its message iterators were finalized,
+	 * which is on graph destruction.
 	 */
 	for (i = 0; i < conn->iterators->len; i++) {
 		struct bt_self_component_port_input_message_iterator *iterator =
@@ -236,7 +240,7 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 
 		BT_LIB_LOGD("Finalizing message iterator created by "
 			"this ended connection: %![iter-]+i", iterator);
-		bt_self_component_port_input_message_iterator_finalize(
+		bt_self_component_port_input_message_iterator_try_finalize(
 			iterator);
 
 		/*

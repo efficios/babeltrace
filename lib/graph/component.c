@@ -267,7 +267,6 @@ int bt_component_create(struct bt_component_class *component_class,
 	BT_ASSERT(user_component);
 	BT_ASSERT(component_class);
 	BT_ASSERT(name);
-
 	type = bt_component_class_get_type(component_class);
 	BT_LIB_LOGD("Creating empty component from component class: %![cc-]+C, "
 		"comp-name=\"%s\"", component_class, name);
@@ -278,8 +277,7 @@ int bt_component_create(struct bt_component_class *component_class,
 		goto end;
 	}
 
-	bt_object_init_shared_with_parent(&component->base,
-		destroy_component);
+	bt_object_init_shared_with_parent(&component->base, destroy_component);
 	component->class = component_class;
 	bt_object_get_no_null_check(component->class);
 	component->destroy = component_destroy_funcs[type];
@@ -547,8 +545,7 @@ void bt_component_remove_port(struct bt_component *component,
 		struct bt_port *cur_port = g_ptr_array_index(ports, i);
 
 		if (cur_port == port) {
-			remove_port_by_index(component,
-				ports, i);
+			remove_port_by_index(component, ports, i);
 			goto end;
 		}
 	}
