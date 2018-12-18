@@ -3484,7 +3484,6 @@ int visit_event_decl(struct ctx *ctx, struct ctf_node *node)
 			stream_class->id = stream_id;
 			g_ptr_array_add(ctx->ctf_tc->stream_classes,
 				stream_class);
-			stream_class = stream_class;
 			break;
 		case 1:
 			/* Single stream class: get its ID */
