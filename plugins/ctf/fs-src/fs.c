@@ -341,7 +341,7 @@ void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 }
 
 static
-void ctf_fs_trace_destroy_msgier(void *data)
+void ctf_fs_trace_destroy_notifier(void *data)
 {
 	struct ctf_fs_trace *trace = data;
 	ctf_fs_trace_destroy(trace);
@@ -1374,7 +1374,7 @@ struct ctf_fs_component *ctf_fs_create(
 	}
 
 	ctf_fs->traces = g_ptr_array_new_with_free_func(
-			ctf_fs_trace_destroy_msgier);
+			ctf_fs_trace_destroy_notifier);
 	if (!ctf_fs->traces) {
 		goto error;
 	}
