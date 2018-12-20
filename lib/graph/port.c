@@ -167,29 +167,6 @@ end:
 	return ret;
 }
 
-enum bt_self_component_port_status bt_self_component_port_remove_from_component(
-		struct bt_self_component_port *self_port)
-{
-	struct bt_port *port = (void *) self_port;
-	struct bt_component *comp = NULL;
-
-	BT_ASSERT_PRE_NON_NULL(port, "Port");
-	BT_ASSERT_PRE(port_connection_iterators_are_finalized(port),
-		"At least one message iterator using this port has the wrong state.");
-	comp = (void *) bt_object_borrow_parent(&port->base);
-	if (!comp) {
-		BT_LIB_LOGV("Port already removed from its component: %!+p",
-			port);
-		goto end;
-	}
-
-	/* bt_component_remove_port() logs details */
-	bt_component_remove_port(comp, port);
-
-end:
-	return BT_SELF_PORT_STATUS_OK;
-}
-
 bt_bool bt_port_is_connected(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");

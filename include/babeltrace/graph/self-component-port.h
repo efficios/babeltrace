@@ -46,10 +46,6 @@ const bt_port *bt_self_component_port_as_port(
 extern bt_self_component *bt_self_component_port_borrow_component(
 		bt_self_component_port *self_port);
 
-extern bt_self_component_port_status
-bt_self_component_port_remove_from_component(
-		bt_self_component_port *self_port);
-
 extern void *bt_self_component_port_get_data(
 		const bt_self_component_port *self_port);
 

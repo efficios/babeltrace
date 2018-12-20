@@ -184,8 +184,6 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD	= 6,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 7,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD		= 9,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD		= 10,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 11,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 12,
 };
@@ -242,14 +240,6 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD */
 		bt_component_class_source_output_port_connected_method source_output_port_connected_method;
 		bt_component_class_filter_output_port_connected_method filter_output_port_connected_method;
-
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD */
-		bt_component_class_filter_input_port_disconnected_method filter_input_port_disconnected_method;
-		bt_component_class_sink_input_port_disconnected_method sink_input_port_disconnected_method;
-
-		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD */
-		bt_component_class_source_output_port_disconnected_method source_output_port_disconnected_method;
-		bt_component_class_filter_output_port_disconnected_method filter_output_port_disconnected_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD */
 		bt_component_class_source_message_iterator_init_method source_msg_iter_init_method;
@@ -859,54 +849,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_output_port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
- * Defines an input port disconnected method attribute attached to a
- * specific filter component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Port disconnected method
- *                 (bt_component_class_filter_input_port_disconnected_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_input_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, filter, _x)
-
-/*
- * Defines an input port disconnected method attribute attached to a
- * specific sink component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Port disconnected method
- *                 (bt_component_class_sink_input_port_disconnected_method).
- */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_input_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, sink, _x)
-
-/*
- * Defines an output port disconnected method attribute attached to a
- * specific source component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Port disconnected method
- *                 (bt_component_class_source_output_port_disconnected_method).
- */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_output_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, source, _x)
-
-/*
- * Defines an output port disconnected method attribute attached to a
- * specific filter component class descriptor.
- *
- * _id:            Plugin descriptor ID (C identifier).
- * _comp_class_id: Component class descriptor ID (C identifier).
- * _x:             Port disconnected method
- *                 (bt_component_class_filter_output_port_disconnected_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
-	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_output_port_disconnected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD, _id, _comp_class_id, filter, _x)
-
-/*
  * Defines an iterator initialization method attribute attached to a
  * specific source component class descriptor.
  *
@@ -1297,50 +1239,6 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an input port disconnected method attribute attached to a
- * filter component class descriptor which is attached to the automatic
- * plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_component_class_filter_input_port_disconnected_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an input port disconnected method attribute attached to a
- * sink component class descriptor which is attached to the automatic
- * plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_component_class_sink_input_port_disconnected_method).
- */
-#define BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
-	BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an output port disconnected method attribute attached to a
- * source component class descriptor which is attached to the automatic
- * plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_component_class_source_output_port_disconnected_method).
- */
-#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
-	BT_PLUGIN_SOURCE_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
-
-/*
- * Defines an output port disconnected method attribute attached to a
- * filter component class descriptor which is attached to the automatic
- * plugin descriptor.
- *
- * _name: Component class name (C identifier).
- * _x:    Port disconnected (bt_component_class_filter_output_port_disconnected_method).
- */
-#define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD(_name, _x) \
-	BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_DISCONNECTED_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator initialization method attribute attached to a

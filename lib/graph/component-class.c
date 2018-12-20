@@ -466,58 +466,6 @@ int bt_component_class_filter_set_output_port_connected_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_input_port_disconnected_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_input_port_disconnected_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.input_port_disconnected = method;
-	BT_LIB_LOGV("Set filter component class's \"input port disconnected\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
-int bt_component_class_sink_set_input_port_disconnected_method(
-		struct bt_component_class_sink *comp_cls,
-		bt_component_class_sink_input_port_disconnected_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.input_port_disconnected = method;
-	BT_LIB_LOGV("Set sink component class's \"input port disconnected\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
-int bt_component_class_source_set_output_port_disconnected_method(
-		struct bt_component_class_source *comp_cls,
-		bt_component_class_source_output_port_disconnected_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.output_port_disconnected = method;
-	BT_LIB_LOGV("Set source component class's \"output port disconnected\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
-int bt_component_class_filter_set_output_port_disconnected_method(
-		struct bt_component_class_filter *comp_cls,
-		bt_component_class_filter_output_port_disconnected_method method)
-{
-	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
-	BT_ASSERT_PRE_NON_NULL(method, "Method");
-	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
-	comp_cls->methods.output_port_disconnected = method;
-	BT_LIB_LOGV("Set filter component class's \"output port disconnected\" method"
-		": %!+C", comp_cls);
-	return BT_COMPONENT_CLASS_STATUS_OK;
-}
-
 int bt_component_class_source_set_message_iterator_init_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_message_iterator_init_method method)

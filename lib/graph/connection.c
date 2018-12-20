@@ -157,11 +157,8 @@ end:
 BT_HIDDEN
 void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 {
-	struct bt_component *downstream_comp = NULL;
-	struct bt_component *upstream_comp = NULL;
 	struct bt_port *downstream_port = conn->downstream_port;
 	struct bt_port *upstream_port = conn->upstream_port;
-	struct bt_graph *graph = bt_connection_borrow_graph(conn);
 	size_t i;
 
 	BT_LIB_LOGD("Ending connection: %!+x, try-remove-from-graph=%d",
@@ -179,8 +176,6 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	if (downstream_port) {
 		BT_LIB_LOGD("Disconnecting connection's downstream port: %!+p",
 			downstream_port);
-		downstream_comp = bt_port_borrow_component_inline(
-			downstream_port);
 		bt_port_set_connection(downstream_port, NULL);
 		conn->downstream_port = NULL;
 	}
@@ -188,35 +183,8 @@ void bt_connection_end(struct bt_connection *conn, bool try_remove_from_graph)
 	if (upstream_port) {
 		BT_LIB_LOGD("Disconnecting connection's upstream port: %!+p",
 			upstream_port);
-		upstream_comp = bt_port_borrow_component_inline(
-			upstream_port);
 		bt_port_set_connection(upstream_port, NULL);
 		conn->upstream_port = NULL;
-	}
-
-	if (downstream_comp && conn->notified_downstream_port_connected &&
-			!conn->notified_downstream_port_disconnected) {
-		/* bt_component_port_disconnected() logs details */
-		bt_component_port_disconnected(downstream_comp,
-			downstream_port);
-		conn->notified_downstream_port_disconnected = true;
-	}
-
-	if (upstream_comp && conn->notified_upstream_port_connected &&
-			!conn->notified_upstream_port_disconnected) {
-		/* bt_component_port_disconnected() logs details */
-		bt_component_port_disconnected(upstream_comp, upstream_port);
-		conn->notified_upstream_port_disconnected = true;
-	}
-
-	BT_ASSERT(graph);
-
-	if (conn->notified_graph_ports_connected &&
-			!conn->notified_graph_ports_disconnected) {
-		/* bt_graph_notify_ports_disconnected() logs details */
-		bt_graph_notify_ports_disconnected(graph, upstream_comp,
-			downstream_comp, upstream_port, downstream_port);
-		conn->notified_graph_ports_disconnected = true;
 	}
 
 	/*

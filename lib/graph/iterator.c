@@ -751,6 +751,9 @@ bt_self_component_port_input_message_iterator_next(
 		"iterator is in the wrong state: %!+i", iterator);
 	BT_ASSERT(iterator->upstream_component);
 	BT_ASSERT(iterator->upstream_component->class);
+	BT_ASSERT_PRE(bt_component_borrow_graph(iterator->upstream_component)->is_configured,
+		"Graph is not configured: %!+g",
+		bt_component_borrow_graph(iterator->upstream_component));
 	BT_LIB_LOGD("Getting next self component input port "
 		"message iterator's messages: %!+i", iterator);
 	comp_cls = iterator->upstream_component->class;
@@ -842,6 +845,12 @@ enum bt_message_iterator_status bt_port_output_message_iterator_next(
 	BT_ASSERT_PRE_NON_NULL(count_to_user, "Message count (output)");
 	BT_LIB_LOGD("Getting next output port message iterator's messages: "
 		"%!+i", iterator);
+
+	/*
+	 * As soon as the user calls this function, we mark the graph as
+	 * being definitely configured.
+	 */
+	bt_graph_set_is_configured(iterator->graph, true);
 
 	graph_status = bt_graph_consume_sink_no_check(iterator->graph,
 		iterator->colander);

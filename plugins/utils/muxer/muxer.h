@@ -58,9 +58,4 @@ bt_self_component_status muxer_input_port_connected(
 		bt_self_component_port_input *self_port,
 		const bt_port_output *other_port);
 
-BT_HIDDEN
-void muxer_input_port_disconnected(
-		bt_self_component_filter *self_component,
-		bt_self_component_port_input *self_port);
-
 #endif /* BABELTRACE_PLUGINS_UTILS_MUXER_H */
