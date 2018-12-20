@@ -204,6 +204,9 @@ struct bt_port *add_port(
 	BT_ASSERT_PRE(graph && !bt_graph_is_canceled(graph),
 		"Component's graph is canceled: %![comp-]+c, %![graph-]+g",
 		component, graph);
+	BT_ASSERT_PRE(!graph->is_configured,
+		"Component's graph is already configured: "
+		"%![comp-]+c, %![graph-]+g", component, graph);
 
 	// TODO: Validate that the name is not already used.
 
@@ -453,110 +456,6 @@ struct bt_port_output *bt_component_add_output_port(
 			BT_PORT_TYPE_OUTPUT, name, user_data);
 }
 
-static
-void remove_port_by_index(struct bt_component *component,
-		GPtrArray *ports, uint64_t index)
-{
-	struct bt_port *port;
-	struct bt_graph *graph;
-
-	BT_ASSERT(ports);
-	BT_ASSERT(index < ports->len);
-	port = g_ptr_array_index(ports, index);
-	BT_LIB_LOGD("Removing port from component: %![comp-]+c, %![port-]+p",
-		component, port);
-
-	/* Disconnect both ports of this port's connection, if any */
-	if (port->connection) {
-		bt_connection_end(port->connection, true);
-	}
-
-	/*
-	 * The port's current reference count can be 0 at this point,
-	 * which means its parent (component) keeps it alive. We are
-	 * about to remove the port from its parent's container (with
-	 * the g_ptr_array_remove_index() call below), which in this
-	 * case would destroy it. This is not good because we still
-	 * need the port for the bt_graph_notify_port_removed() call
-	 * below (in which its component is `NULL` as expected because
-	 * of the bt_object_set_parent() call below).
-	 *
-	 * To avoid a destroyed port during the message callback,
-	 * get a reference now, and put it (destroying the port if its
-	 * reference count is 0 at this point) after notifying the
-	 * graph's user.
-	 */
-	bt_object_get_no_null_check(&port->base);
-
-	/*
-	 * Remove from parent's array of ports (weak refs). This never
-	 * destroys the port object because its reference count is at
-	 * least 1 thanks to the bt_object_get_no_null_check() call
-	 * above.
-	 */
-	g_ptr_array_remove_index(ports, index);
-
-	/* Detach port from its component parent */
-	bt_object_set_parent(&port->base, NULL);
-
-	/*
-	 * Notify the graph's creator that a port is removed.
-	 */
-	graph = bt_component_borrow_graph(component);
-	if (graph) {
-		bt_graph_notify_port_removed(graph, component, port);
-	}
-
-	BT_LIB_LOGD("Removed port from component: %![comp-]+c, %![port-]+p",
-		component, port);
-
-	/*
-	 * Put the local reference. If this port's reference count was 0
-	 * when entering this function, it is 1 now, so it is destroyed
-	 * immediately.
-	 */
-	bt_object_put_no_null_check(&port->base);
-}
-
-BT_HIDDEN
-void bt_component_remove_port(struct bt_component *component,
-		struct bt_port *port)
-{
-	uint64_t i;
-	GPtrArray *ports = NULL;
-
-	BT_ASSERT(component);
-	BT_ASSERT(port);
-
-	switch (port->type) {
-	case BT_PORT_TYPE_INPUT:
-		ports = component->input_ports;
-		break;
-	case BT_PORT_TYPE_OUTPUT:
-		ports = component->output_ports;
-		break;
-	default:
-		abort();
-	}
-
-	BT_ASSERT(ports);
-
-	for (i = 0; i < ports->len; i++) {
-		struct bt_port *cur_port = g_ptr_array_index(ports, i);
-
-		if (cur_port == port) {
-			remove_port_by_index(component, ports, i);
-			goto end;
-		}
-	}
-
-	BT_LIB_LOGW("Port to remove from component was not found: "
-		"%![comp-]+c, %![port-]+p", component, port);
-
-end:
-	return;
-}
-
 BT_HIDDEN
 enum bt_self_component_status bt_component_accept_port_connection(
 		struct bt_component *comp, struct bt_port *self_port,
@@ -706,77 +605,14 @@ enum bt_self_component_status bt_component_port_connected(
 		status = method(comp, self_port, (void *) other_port);
 		BT_LOGD("User method returned: status=%s",
 			bt_self_component_status_string(status));
+		BT_ASSERT_PRE(status == BT_SELF_COMPONENT_STATUS_OK ||
+			status == BT_SELF_COMPONENT_STATUS_ERROR ||
+			status == BT_SELF_COMPONENT_STATUS_NOMEM,
+			"Unexpected returned component status: status=%s",
+			bt_self_component_status_string(status));
 	}
 
 	return status;
-}
-
-BT_HIDDEN
-void bt_component_port_disconnected(struct bt_component *comp,
-		struct bt_port *port)
-{
-	typedef void (*method_t)(void *, void *);
-
-	method_t method = NULL;
-
-	BT_ASSERT(comp);
-	BT_ASSERT(port);
-
-	switch (comp->class->type) {
-	case BT_COMPONENT_CLASS_TYPE_SOURCE:
-	{
-		struct bt_component_class_source *src_cc = (void *) comp->class;
-
-		switch (port->type) {
-		case BT_PORT_TYPE_OUTPUT:
-			method = (method_t) src_cc->methods.output_port_disconnected;
-			break;
-		default:
-			abort();
-		}
-
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_FILTER:
-	{
-		struct bt_component_class_filter *flt_cc = (void *) comp->class;
-
-		switch (port->type) {
-		case BT_PORT_TYPE_INPUT:
-			method = (method_t) flt_cc->methods.input_port_disconnected;
-			break;
-		case BT_PORT_TYPE_OUTPUT:
-			method = (method_t) flt_cc->methods.output_port_disconnected;
-			break;
-		default:
-			abort();
-		}
-
-		break;
-	}
-	case BT_COMPONENT_CLASS_TYPE_SINK:
-	{
-		struct bt_component_class_sink *sink_cc = (void *) comp->class;
-
-		switch (port->type) {
-		case BT_PORT_TYPE_INPUT:
-			method = (method_t) sink_cc->methods.input_port_disconnected;
-			break;
-		default:
-			abort();
-		}
-
-		break;
-	}
-	default:
-		abort();
-	}
-
-	if (method) {
-		BT_LIB_LOGD("Calling user's \"port disconnected\" method: "
-			"%![comp-]+c, %![port-]+p", comp, port);
-		method(comp, port);
-	}
 }
 
 BT_HIDDEN

@@ -1117,10 +1117,10 @@ bt_self_message_iterator_status muxer_msg_iter_do_next(
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	uint64_t i = 0;
 
-	while (i < capacity && status == BT_MESSAGE_ITERATOR_STATUS_OK) {
+	while (i < capacity && status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
 		status = muxer_msg_iter_do_next_one(muxer_comp,
 			muxer_msg_iter, &msgs[i]);
-		if (status == BT_MESSAGE_ITERATOR_STATUS_OK) {
+		if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
 			i++;
 		}
 	}
@@ -1461,30 +1461,4 @@ bt_self_component_status muxer_input_port_connected(
 
 end:
 	return status;
-}
-
-BT_HIDDEN
-void muxer_input_port_disconnected(
-		bt_self_component_filter *self_component,
-		bt_self_component_port_input *self_port)
-{
-	struct muxer_comp *muxer_comp =
-		bt_self_component_get_data(
-			bt_self_component_filter_as_self_component(
-				self_component));
-	const bt_port *port =
-		bt_self_component_port_as_port(
-			bt_self_component_port_input_as_self_component_port(
-				self_port));
-
-	BT_ASSERT(port);
-	BT_ASSERT(muxer_comp);
-
-	/* One more available input port */
-	muxer_comp->available_input_ports++;
-	BT_LOGD("Leaving disconnected input port available for future connections: "
-		"comp-addr=%p, muxer-comp-addr=%p, port-addr=%p, "
-		"port-name=\"%s\", avail-input-port-count=%zu",
-		self_component, muxer_comp, port, bt_port_get_name(port),
-		muxer_comp->available_input_ports);
 }
