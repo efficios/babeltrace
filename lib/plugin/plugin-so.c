@@ -297,7 +297,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_source_query_method query;
 				bt_component_class_source_accept_output_port_connection_method accept_output_port_connection;
 				bt_component_class_source_output_port_connected_method output_port_connected;
-				bt_component_class_source_output_port_disconnected_method output_port_disconnected;
 				bt_component_class_source_message_iterator_init_method msg_iter_init;
 				bt_component_class_source_message_iterator_finalize_method msg_iter_finalize;
 			} source;
@@ -310,8 +309,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
 				bt_component_class_filter_input_port_connected_method input_port_connected;
 				bt_component_class_filter_output_port_connected_method output_port_connected;
-				bt_component_class_filter_input_port_disconnected_method input_port_disconnected;
-				bt_component_class_filter_output_port_disconnected_method output_port_disconnected;
 				bt_component_class_filter_message_iterator_init_method msg_iter_init;
 				bt_component_class_filter_message_iterator_finalize_method msg_iter_finalize;
 			} filter;
@@ -322,7 +319,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_sink_query_method query;
 				bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
 				bt_component_class_sink_input_port_connected_method input_port_connected;
-				bt_component_class_sink_input_port_disconnected_method input_port_disconnected;
 			} sink;
 		} methods;
 	};
@@ -592,34 +588,6 @@ enum bt_plugin_status bt_plugin_so_init(
 					abort();
 				}
 				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_DISCONNECTED_METHOD:
-				switch (cc_type) {
-				case BT_COMPONENT_CLASS_TYPE_FILTER:
-					cc_full_descr->methods.filter.input_port_disconnected =
-						cur_cc_descr_attr->value.filter_input_port_disconnected_method;
-					break;
-				case BT_COMPONENT_CLASS_TYPE_SINK:
-					cc_full_descr->methods.sink.input_port_disconnected =
-						cur_cc_descr_attr->value.sink_input_port_disconnected_method;
-					break;
-				default:
-					abort();
-				}
-				break;
-			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_DISCONNECTED_METHOD:
-				switch (cc_type) {
-				case BT_COMPONENT_CLASS_TYPE_SOURCE:
-					cc_full_descr->methods.source.output_port_disconnected =
-						cur_cc_descr_attr->value.source_output_port_disconnected_method;
-					break;
-				case BT_COMPONENT_CLASS_TYPE_FILTER:
-					cc_full_descr->methods.filter.output_port_disconnected =
-						cur_cc_descr_attr->value.filter_output_port_disconnected_method;
-					break;
-				default:
-					abort();
-				}
-				break;
 			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD:
 				switch (cc_type) {
 				case BT_COMPONENT_CLASS_TYPE_SOURCE:
@@ -849,18 +817,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
-			if (cc_full_descr->methods.source.output_port_disconnected) {
-				ret = bt_component_class_source_set_output_port_disconnected_method(
-					src_comp_class,
-					cc_full_descr->methods.source.output_port_disconnected);
-				if (ret) {
-					BT_LOGE_STR("Cannot set source component class's \"output port disconnected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
-					goto end;
-				}
-			}
-
 			if (cc_full_descr->methods.source.msg_iter_init) {
 				ret = bt_component_class_source_set_message_iterator_init_method(
 					src_comp_class,
@@ -971,30 +927,6 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
-			if (cc_full_descr->methods.filter.input_port_disconnected) {
-				ret = bt_component_class_filter_set_input_port_disconnected_method(
-					flt_comp_class,
-					cc_full_descr->methods.filter.input_port_disconnected);
-				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's \"input port disconnected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.filter.output_port_disconnected) {
-				ret = bt_component_class_filter_set_output_port_disconnected_method(
-					flt_comp_class,
-					cc_full_descr->methods.filter.output_port_disconnected);
-				if (ret) {
-					BT_LOGE_STR("Cannot set filter component class's \"output port disconnected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
-					goto end;
-				}
-			}
-
 			if (cc_full_descr->methods.filter.msg_iter_init) {
 				ret = bt_component_class_filter_set_message_iterator_init_method(
 					flt_comp_class,
@@ -1075,18 +1007,6 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.input_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's \"input port connected\" method.");
-					status = BT_PLUGIN_STATUS_ERROR;
-					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
-					goto end;
-				}
-			}
-
-			if (cc_full_descr->methods.sink.input_port_disconnected) {
-				ret = bt_component_class_sink_set_input_port_disconnected_method(
-					sink_comp_class,
-					cc_full_descr->methods.sink.input_port_disconnected);
-				if (ret) {
-					BT_LOGE_STR("Cannot set sink component class's \"input port disconnected\" method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;

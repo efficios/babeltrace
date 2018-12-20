@@ -90,10 +90,6 @@ enum bt_self_component_status bt_component_port_connected(
 		struct bt_port *self_port, struct bt_port *other_port);
 
 BT_HIDDEN
-void bt_component_port_disconnected(struct bt_component *comp,
-		struct bt_port *port);
-
-BT_HIDDEN
 void bt_component_set_graph(struct bt_component *component,
 		struct bt_graph *graph);
 

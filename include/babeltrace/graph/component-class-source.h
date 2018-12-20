@@ -92,10 +92,6 @@ typedef bt_self_component_status
 		bt_self_component_port_output *self_port,
 		const bt_port_input *other_port);
 
-typedef void (*bt_component_class_source_output_port_disconnected_method)(
-		bt_self_component_source *self_component,
-		bt_self_component_port_output *self_port);
-
 static inline
 bt_component_class *bt_component_class_source_as_component_class(
 		bt_component_class_source *comp_cls_source)
@@ -127,11 +123,6 @@ extern bt_component_class_status
 bt_component_class_source_set_output_port_connected_method(
 		bt_component_class_source *comp_class,
 		bt_component_class_source_output_port_connected_method method);
-
-extern bt_component_class_status
-bt_component_class_source_set_output_port_disconnected_method(
-		bt_component_class_source *comp_class,
-		bt_component_class_source_output_port_disconnected_method method);
 
 extern bt_component_class_status
 bt_component_class_source_set_query_method(

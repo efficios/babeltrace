@@ -73,7 +73,6 @@ struct bt_component_class_source {
 		bt_component_class_source_query_method query;
 		bt_component_class_source_accept_output_port_connection_method accept_output_port_connection;
 		bt_component_class_source_output_port_connected_method output_port_connected;
-		bt_component_class_source_output_port_disconnected_method output_port_disconnected;
 	} methods;
 };
 
@@ -85,7 +84,6 @@ struct bt_component_class_sink {
 		bt_component_class_sink_query_method query;
 		bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
 		bt_component_class_sink_input_port_connected_method input_port_connected;
-		bt_component_class_sink_input_port_disconnected_method input_port_disconnected;
 		bt_component_class_sink_consume_method consume;
 	} methods;
 };
@@ -103,8 +101,6 @@ struct bt_component_class_filter {
 		bt_component_class_filter_accept_output_port_connection_method accept_output_port_connection;
 		bt_component_class_filter_input_port_connected_method input_port_connected;
 		bt_component_class_filter_output_port_connected_method output_port_connected;
-		bt_component_class_filter_input_port_disconnected_method input_port_disconnected;
-		bt_component_class_filter_output_port_disconnected_method output_port_disconnected;
 	} methods;
 };
 

@@ -73,23 +73,21 @@ struct bt_graph {
 	 */
 	bool can_consume;
 
+	/*
+	 * True if the graph is configured, that is, components are
+	 * added and connected.
+	 */
+	bool is_configured;
+
 	struct {
 		GArray *source_output_port_added;
 		GArray *filter_output_port_added;
 		GArray *filter_input_port_added;
 		GArray *sink_input_port_added;
-		GArray *source_output_port_removed;
-		GArray *filter_output_port_removed;
-		GArray *filter_input_port_removed;
-		GArray *sink_input_port_removed;
 		GArray *source_filter_ports_connected;
 		GArray *source_sink_ports_connected;
 		GArray *filter_filter_ports_connected;
 		GArray *filter_sink_ports_connected;
-		GArray *source_filter_ports_disconnected;
-		GArray *source_sink_ports_disconnected;
-		GArray *filter_filter_ports_disconnected;
-		GArray *filter_sink_ports_disconnected;
 	} listeners;
 
 	/* Pool of `struct bt_message_event *` */
@@ -131,6 +129,19 @@ void _bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
 # define bt_graph_set_can_consume(_graph, _can_consume)
 #endif
 
+static inline
+void _bt_graph_set_is_configured(struct bt_graph *graph, bool is_configured)
+{
+	BT_ASSERT(graph);
+	graph->is_configured = is_configured;
+}
+
+#ifdef BT_DEV_MODE
+# define bt_graph_set_is_configured	_bt_graph_set_is_configured
+#else
+# define bt_graph_set_is_configured(_graph, _is_configured)
+#endif
+
 BT_HIDDEN
 enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
 		struct bt_component_sink *sink);
@@ -139,19 +150,8 @@ BT_HIDDEN
 void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port);
 
 BT_HIDDEN
-void bt_graph_notify_port_removed(struct bt_graph *graph,
-		struct bt_component *comp, struct bt_port *port);
-
-BT_HIDDEN
 void bt_graph_notify_ports_connected(struct bt_graph *graph,
 		struct bt_port *upstream_port, struct bt_port *downstream_port);
-
-BT_HIDDEN
-void bt_graph_notify_ports_disconnected(struct bt_graph *graph,
-		struct bt_component *upstream_comp,
-		struct bt_component *downstream_comp,
-		struct bt_port *upstream_port,
-		struct bt_port *downstream_port);
 
 BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
