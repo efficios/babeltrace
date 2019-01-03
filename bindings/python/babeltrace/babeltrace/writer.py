@@ -1569,7 +1569,7 @@ class Event:
         """
 
         try:
-            return Field._create_field(self._e.context_field)
+            return Field._create_field(self._e.stream_event_context_field)
         except:
             raise ValueError("Invalid Stream.")
 
@@ -1579,7 +1579,7 @@ class Event:
             raise TypeError("Argument field must be of type StructureField")
 
         try:
-            self._e.context_field = field._f
+            self._e.stream_event_context_field = field._f
         except:
             raise ValueError("Invalid stream context field.")
 
