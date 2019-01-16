@@ -245,7 +245,8 @@ end:
 	return (void *) sink_class;
 }
 
-int bt_component_class_source_set_init_method(
+extern enum bt_component_class_status
+bt_component_class_source_set_init_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_init_method method)
 {
@@ -258,7 +259,8 @@ int bt_component_class_source_set_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_init_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_init_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_init_method method)
 {
@@ -271,7 +273,8 @@ int bt_component_class_filter_set_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_sink_set_init_method(
+extern enum bt_component_class_status
+bt_component_class_sink_set_init_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_init_method method)
 {
@@ -284,7 +287,8 @@ int bt_component_class_sink_set_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_source_set_finalize_method(
+extern enum bt_component_class_status
+bt_component_class_source_set_finalize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_finalize_method method)
 {
@@ -297,7 +301,8 @@ int bt_component_class_source_set_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_finalize_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_finalize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_finalize_method method)
 {
@@ -310,7 +315,8 @@ int bt_component_class_filter_set_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_sink_set_finalize_method(
+extern enum bt_component_class_status
+bt_component_class_sink_set_finalize_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_finalize_method method)
 {
@@ -323,7 +329,8 @@ int bt_component_class_sink_set_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_source_set_query_method(
+extern enum bt_component_class_status
+bt_component_class_source_set_query_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_query_method method)
 {
@@ -336,7 +343,8 @@ int bt_component_class_source_set_query_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_query_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_query_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_query_method method)
 {
@@ -349,7 +357,8 @@ int bt_component_class_filter_set_query_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_sink_set_query_method(
+extern enum bt_component_class_status
+bt_component_class_sink_set_query_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_query_method method)
 {
@@ -362,7 +371,8 @@ int bt_component_class_sink_set_query_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_accept_input_port_connection_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_accept_input_port_connection_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_accept_input_port_connection_method method)
 {
@@ -375,7 +385,8 @@ int bt_component_class_filter_set_accept_input_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_sink_set_accept_input_port_connection_method(
+extern enum bt_component_class_status
+bt_component_class_sink_set_accept_input_port_connection_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_accept_input_port_connection_method method)
 {
@@ -388,7 +399,8 @@ int bt_component_class_sink_set_accept_input_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_source_set_accept_output_port_connection_method(
+extern enum bt_component_class_status
+bt_component_class_source_set_accept_output_port_connection_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_accept_output_port_connection_method method)
 {
@@ -401,7 +413,8 @@ int bt_component_class_source_set_accept_output_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_accept_output_port_connection_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_accept_output_port_connection_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_accept_output_port_connection_method method)
 {
@@ -414,7 +427,8 @@ int bt_component_class_filter_set_accept_output_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_input_port_connected_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_input_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_input_port_connected_method method)
 {
@@ -427,7 +441,8 @@ int bt_component_class_filter_set_input_port_connected_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_sink_set_input_port_connected_method(
+extern enum bt_component_class_status
+bt_component_class_sink_set_input_port_connected_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_input_port_connected_method method)
 {
@@ -440,7 +455,8 @@ int bt_component_class_sink_set_input_port_connected_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_source_set_output_port_connected_method(
+extern enum bt_component_class_status
+bt_component_class_source_set_output_port_connected_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_output_port_connected_method method)
 {
@@ -453,7 +469,8 @@ int bt_component_class_source_set_output_port_connected_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_output_port_connected_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_output_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_output_port_connected_method method)
 {
@@ -479,7 +496,8 @@ int bt_component_class_source_set_message_iterator_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_message_iterator_init_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_message_iterator_init_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_message_iterator_init_method method)
 {
@@ -492,7 +510,8 @@ int bt_component_class_filter_set_message_iterator_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_source_set_message_iterator_finalize_method(
+extern enum bt_component_class_status
+bt_component_class_source_set_message_iterator_finalize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_message_iterator_finalize_method method)
 {
@@ -505,7 +524,8 @@ int bt_component_class_source_set_message_iterator_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-int bt_component_class_filter_set_message_iterator_finalize_method(
+extern enum bt_component_class_status
+bt_component_class_filter_set_message_iterator_finalize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_message_iterator_finalize_method method)
 {
@@ -514,6 +534,118 @@ int bt_component_class_filter_set_message_iterator_finalize_method(
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.msg_iter_finalize = method;
 	BT_LIB_LOGV("Set filter component class's message iterator finalization method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_filter_set_message_iterator_seek_ns_from_origin_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_message_iterator_seek_ns_from_origin_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_seek_ns_from_origin = method;
+	BT_LIB_LOGV("Set filter component class's message iterator \"seek nanoseconds from origin\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_source_set_message_iterator_seek_ns_from_origin_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_message_iterator_seek_ns_from_origin_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_seek_ns_from_origin = method;
+	BT_LIB_LOGV("Set source component class's message iterator \"seek nanoseconds from origin\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_filter_set_message_iterator_seek_beginning_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_message_iterator_seek_beginning_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_seek_beginning = method;
+	BT_LIB_LOGV("Set filter component class's message iterator \"seek beginning\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_source_set_message_iterator_seek_beginning_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_message_iterator_seek_beginning_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_seek_beginning = method;
+	BT_LIB_LOGV("Set source component class's message iterator \"seek beginning\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_filter_set_message_iterator_can_seek_beginning_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_message_iterator_can_seek_beginning_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_can_seek_beginning = method;
+	BT_LIB_LOGV("Set filter component class's message iterator \"can seek beginning\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_source_set_message_iterator_can_seek_beginning_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_message_iterator_can_seek_beginning_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_can_seek_beginning = method;
+	BT_LIB_LOGV("Set source component class's message iterator \"can seek beginning\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_filter_set_message_iterator_can_seek_ns_from_origin_method(
+		struct bt_component_class_filter *comp_cls,
+		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_can_seek_ns_from_origin = method;
+	BT_LIB_LOGV("Set filter component class's message iterator \"can seek nanoseconds from origin\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_source_set_message_iterator_can_seek_ns_from_origin_method(
+		struct bt_component_class_source *comp_cls,
+		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.msg_iter_can_seek_ns_from_origin = method;
+	BT_LIB_LOGV("Set source component class's message iterator \"can seek nanoseconds from origin\" method"
 		": %!+C", comp_cls);
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }

@@ -30,28 +30,14 @@
 #include <babeltrace/graph/message-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 
-BT_ASSERT_PRE_FUNC
-static inline void _init_seq_num(struct bt_message *message)
-{
-	message->seq_num = UINT64_C(-1);
-}
-
-#ifdef BT_DEV_MODE
-# define init_seq_num	_init_seq_num
-#else
-# define init_seq_num(_msg)
-#endif /* BT_DEV_MODE */
-
 BT_HIDDEN
 void bt_message_init(struct bt_message *message,
 		enum bt_message_type type,
 		bt_object_release_func release,
 		struct bt_graph *graph)
 {
-	BT_ASSERT(type >= 0 &&
-		type <= BT_MESSAGE_TYPE_PACKET_END);
+	BT_ASSERT(type >= 0 && type <= BT_MESSAGE_TYPE_PACKET_END);
 	message->type = type;
-	init_seq_num(message);
 	bt_object_init_shared(&message->base, release);
 	message->graph = graph;
 
