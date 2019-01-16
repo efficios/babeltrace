@@ -184,8 +184,12 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD	= 6,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 7,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 11,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 12,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 10,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 11,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 12,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD	= 13,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD		= 14,
 };
 
 /* Component class attribute (internal use) */
@@ -248,6 +252,22 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD */
 		bt_component_class_source_message_iterator_finalize_method source_msg_iter_finalize_method;
 		bt_component_class_filter_message_iterator_finalize_method filter_msg_iter_finalize_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD */
+		bt_component_class_source_message_iterator_seek_ns_from_origin_method source_msg_iter_seek_ns_from_origin_method;
+		bt_component_class_filter_message_iterator_seek_ns_from_origin_method filter_msg_iter_seek_ns_from_origin_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD */
+		bt_component_class_source_message_iterator_seek_beginning_method source_msg_iter_seek_beginning_method;
+		bt_component_class_filter_message_iterator_seek_beginning_method filter_msg_iter_seek_beginning_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD */
+		bt_component_class_source_message_iterator_can_seek_ns_from_origin_method source_msg_iter_can_seek_ns_from_origin_method;
+		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method filter_msg_iter_can_seek_ns_from_origin_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD */
+		bt_component_class_source_message_iterator_can_seek_beginning_method source_msg_iter_can_seek_beginning_method;
+		bt_component_class_filter_message_iterator_can_seek_beginning_method filter_msg_iter_can_seek_beginning_method;
 	} value;
 } __attribute__((packed));
 
@@ -873,6 +893,54 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD, _id, _comp_class_id, source, _x)
 
 /*
+ * Defines an iterator "seek nanoseconds from origin" method attribute
+ * attached to a specific source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "seek nanoseconds from origin" method
+ *                 (bt_component_class_source_message_iterator_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_seek_ns_from_origin_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines an iterator "seek beginning" method attribute attached to a
+ * specific source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "seek beginning" method
+ *                 (bt_component_class_source_message_iterator_seek_beginning_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_seek_beginning_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines an iterator "can seek nanoseconds from origin" method
+ * attribute attached to a specific source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "can seek nanoseconds from origin" method
+ *                 (bt_component_class_source_message_iterator_can_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_can_seek_ns_from_origin_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD, _id, _comp_class_id, source, _x)
+
+/*
+ * Defines an iterator "can seek beginning" method attribute attached to a
+ * specific source component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "can seek beginning" method
+ *                 (bt_component_class_source_message_iterator_can_seek_beginning_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(source_msg_iter_can_seek_beginning_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD, _id, _comp_class_id, source, _x)
+
+/*
  * Defines an iterator initialization method attribute attached to a
  * specific filter component class descriptor.
  *
@@ -895,6 +963,54 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(_id, _comp_class_id, _x) \
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_finalize_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines an iterator "seek nanoseconds from origin" method attribute
+ * attached to a specific filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "seek nanoseconds from origin" method
+ *                 (bt_component_class_filter_message_iterator_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_seek_ns_from_origin_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines an iterator "seek beginning" method attribute attached to a
+ * specific filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "seek beginning" method
+ *                 (bt_component_class_filter_message_iterator_seek_beginning_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_seek_beginning_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines an iterator "can seek nanoseconds from origin" method
+ * attribute attached to a specific filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "can seek nanoseconds from origin" method
+ *                 (bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_can_seek_ns_from_origin_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD, _id, _comp_class_id, filter, _x)
+
+/*
+ * Defines an iterator "can seek beginning" method attribute attached to a
+ * specific filter component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             Iterator "can seek beginning" method
+ *                 (bt_component_class_filter_message_iterator_can_seek_beginning_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_msg_iter_can_seek_beginning_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
  * Defines a plugin descriptor with an automatic ID.
@@ -1265,6 +1381,54 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
 
 /*
+ * Defines an iterator "seek nanoseconds from origin" method attribute
+ * attached to a source component class descriptor which is attached to
+ * the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "seek nanoseconds from origin" method
+ *        (bt_component_class_source_message_iterator_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an iterator "seek beginning" method attribute
+ * attached to a source component class descriptor which is attached to
+ * the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "seek beginning" method
+ *        (bt_component_class_source_message_iterator_seek_beginning_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an iterator "can seek nanoseconds from origin" method
+ * attribute attached to a source component class descriptor which is
+ * attached to the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "can seek nanoseconds from origin" method
+ *        (bt_component_class_source_message_iterator_can_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an iterator "can seek beginning" method attribute
+ * attached to a source component class descriptor which is attached to
+ * the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "can seek beginning" method
+ *        (bt_component_class_source_message_iterator_can_seek_beginning_method).
+ */
+#define BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD(_name, _x) \
+	BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_WITH_ID(auto, _name, _x)
+
+/*
  * Defines an iterator initialization method attribute attached to a
  * filter component class descriptor which is attached to the automatic
  * plugin descriptor.
@@ -1287,6 +1451,54 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an iterator "seek nanoseconds from origin" method attribute
+ * attached to a filter component class descriptor which is attached to
+ * the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "seek nanoseconds from origin" method
+ *        (bt_component_class_filter_message_iterator_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an iterator "seek beginning" method attribute
+ * attached to a filter component class descriptor which is attached to
+ * the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "seek beginning" method
+ *        (bt_component_class_filter_message_iterator_seek_beginning_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an iterator "can seek nanoseconds from origin" method
+ * attribute attached to a filter component class descriptor which is
+ * attached to the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "can seek nanoseconds from origin" method
+ *        (bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_NS_FROM_ORIGIN_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines an iterator "can seek beginning" method attribute
+ * attached to a filter component class descriptor which is attached to
+ * the automatic plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    Iterator "can seek beginning" method
+ *        (bt_component_class_filter_message_iterator_can_seek_beginning_method).
+ */
+#define BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD(_name, _x) \
+	BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CAN_SEEK_BEGINNING_METHOD_WITH_ID(auto, _name, _x)
 
 #define BT_PLUGIN_MODULE() \
 	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_dummy __BT_PLUGIN_DESCRIPTOR_ATTRS = NULL; \

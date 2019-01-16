@@ -102,6 +102,7 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/message-event.h \
 	babeltrace/graph/message-inactivity-const.h \
 	babeltrace/graph/message-inactivity.h \
+	babeltrace/graph/message-iterator-const.h \
 	babeltrace/graph/message-packet-const.h \
 	babeltrace/graph/message-packet.h \
 	babeltrace/graph/message-stream-const.h \
