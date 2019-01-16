@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_ITERATOR_H
-#define BABELTRACE_GRAPH_MESSAGE_ITERATOR_H
+#ifndef BABELTRACE_GRAPH_MESSAGE_ITERATOR_CONST_H
+#define BABELTRACE_GRAPH_MESSAGE_ITERATOR_CONST_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -24,9 +24,6 @@
  * SOFTWARE.
  */
 
-/* For bt_message, bt_message_iterator */
-#include <babeltrace/types.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,4 +40,4 @@ typedef enum bt_message_iterator_status {
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_ITERATOR_H */
+#endif /* BABELTRACE_GRAPH_MESSAGE_ITERATOR_CONST_H */

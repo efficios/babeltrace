@@ -42,7 +42,8 @@
  * For bt_component_class, bt_component_class_filter, bt_port_input,
  * bt_port_output, bt_query_executor, bt_self_component_class_filter,
  * bt_self_component_filter, bt_self_component_port_input,
- * bt_self_component_port_output, bt_value, bt_message_array_const
+ * bt_self_component_port_output, bt_value, bt_message_array_const,
+ * bt_bool, bt_self_message_iterator
  */
 #include <babeltrace/types.h>
 
@@ -73,6 +74,24 @@ typedef bt_self_message_iterator_status
 		bt_self_message_iterator *message_iterator,
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
+
+typedef bt_self_message_iterator_status
+(*bt_component_class_filter_message_iterator_seek_ns_from_origin_method)(
+		bt_self_message_iterator *message_iterator,
+		int64_t ns_from_origin);
+
+typedef bt_self_message_iterator_status
+(*bt_component_class_filter_message_iterator_seek_beginning_method)(
+		bt_self_message_iterator *message_iterator);
+
+typedef bt_bool
+(*bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method)(
+		bt_self_message_iterator *message_iterator,
+		int64_t ns_from_origin);
+
+typedef bt_bool
+(*bt_component_class_filter_message_iterator_can_seek_beginning_method)(
+		bt_self_message_iterator *message_iterator);
 
 typedef bt_query_status
 (*bt_component_class_filter_query_method)(
@@ -161,6 +180,26 @@ extern bt_component_class_status
 bt_component_class_filter_set_message_iterator_finalize_method(
 		bt_component_class_filter *comp_class,
 		bt_component_class_filter_message_iterator_finalize_method method);
+
+extern bt_component_class_status
+bt_component_class_filter_set_message_iterator_seek_ns_from_origin_method(
+		bt_component_class_filter *comp_class,
+		bt_component_class_filter_message_iterator_seek_ns_from_origin_method method);
+
+extern bt_component_class_status
+bt_component_class_filter_set_message_iterator_seek_beginning_method(
+		bt_component_class_filter *comp_class,
+		bt_component_class_filter_message_iterator_seek_beginning_method method);
+
+extern bt_bool
+bt_component_class_filter_set_message_iterator_can_seek_ns_from_origin_method(
+		bt_component_class_filter *comp_class,
+		bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method method);
+
+extern bt_bool
+bt_component_class_filter_set_message_iterator_can_seek_beginning_method(
+		bt_component_class_filter *comp_class,
+		bt_component_class_filter_message_iterator_can_seek_beginning_method method);
 
 #ifdef __cplusplus
 }

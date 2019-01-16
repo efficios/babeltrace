@@ -299,6 +299,10 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_source_output_port_connected_method output_port_connected;
 				bt_component_class_source_message_iterator_init_method msg_iter_init;
 				bt_component_class_source_message_iterator_finalize_method msg_iter_finalize;
+				bt_component_class_source_message_iterator_seek_ns_from_origin_method msg_iter_seek_ns_from_origin;
+				bt_component_class_source_message_iterator_seek_beginning_method msg_iter_seek_beginning;
+				bt_component_class_source_message_iterator_can_seek_ns_from_origin_method msg_iter_can_seek_ns_from_origin;
+				bt_component_class_source_message_iterator_can_seek_beginning_method msg_iter_can_seek_beginning;
 			} source;
 
 			struct {
@@ -311,6 +315,10 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_filter_output_port_connected_method output_port_connected;
 				bt_component_class_filter_message_iterator_init_method msg_iter_init;
 				bt_component_class_filter_message_iterator_finalize_method msg_iter_finalize;
+				bt_component_class_filter_message_iterator_seek_ns_from_origin_method msg_iter_seek_ns_from_origin;
+				bt_component_class_filter_message_iterator_seek_beginning_method msg_iter_seek_beginning;
+				bt_component_class_filter_message_iterator_can_seek_ns_from_origin_method msg_iter_can_seek_ns_from_origin;
+				bt_component_class_filter_message_iterator_can_seek_beginning_method msg_iter_can_seek_beginning;
 			} filter;
 
 			struct {
@@ -616,6 +624,62 @@ enum bt_plugin_status bt_plugin_so_init(
 					abort();
 				}
 				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.msg_iter_seek_ns_from_origin =
+						cur_cc_descr_attr->value.source_msg_iter_seek_ns_from_origin_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin =
+						cur_cc_descr_attr->value.filter_msg_iter_seek_ns_from_origin_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.msg_iter_seek_beginning =
+						cur_cc_descr_attr->value.source_msg_iter_seek_beginning_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.msg_iter_seek_beginning =
+						cur_cc_descr_attr->value.filter_msg_iter_seek_beginning_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin =
+						cur_cc_descr_attr->value.source_msg_iter_can_seek_ns_from_origin_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin =
+						cur_cc_descr_attr->value.filter_msg_iter_can_seek_ns_from_origin_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SOURCE:
+					cc_full_descr->methods.source.msg_iter_can_seek_beginning =
+						cur_cc_descr_attr->value.source_msg_iter_can_seek_beginning_method;
+					break;
+				case BT_COMPONENT_CLASS_TYPE_FILTER:
+					cc_full_descr->methods.filter.msg_iter_can_seek_beginning =
+						cur_cc_descr_attr->value.filter_msg_iter_can_seek_beginning_method;
+					break;
+				default:
+					abort();
+				}
+				break;
 			default:
 				/*
 				 * WARN-level logging because this
@@ -841,6 +905,54 @@ enum bt_plugin_status bt_plugin_so_init(
 				}
 			}
 
+			if (cc_full_descr->methods.source.msg_iter_seek_ns_from_origin) {
+				ret = bt_component_class_source_set_message_iterator_seek_ns_from_origin_method(
+					src_comp_class,
+					cc_full_descr->methods.source.msg_iter_seek_ns_from_origin);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's message iterator \"seek nanoseconds from origin\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.msg_iter_seek_beginning) {
+				ret = bt_component_class_source_set_message_iterator_seek_beginning_method(
+					src_comp_class,
+					cc_full_descr->methods.source.msg_iter_seek_beginning);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's message iterator \"seek beginning\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin) {
+				ret = bt_component_class_source_set_message_iterator_can_seek_ns_from_origin_method(
+					src_comp_class,
+					cc_full_descr->methods.source.msg_iter_can_seek_ns_from_origin);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek nanoseconds from origin\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.source.msg_iter_can_seek_beginning) {
+				ret = bt_component_class_source_set_message_iterator_can_seek_beginning_method(
+					src_comp_class,
+					cc_full_descr->methods.source.msg_iter_can_seek_beginning);
+				if (ret) {
+					BT_LOGE_STR("Cannot set source component class's message iterator \"can seek beginning\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(src_comp_class);
+					goto end;
+				}
+			}
+
 			break;
 		case BT_COMPONENT_CLASS_TYPE_FILTER:
 			if (cc_full_descr->methods.filter.init) {
@@ -945,6 +1057,54 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.filter.msg_iter_finalize);
 				if (ret) {
 					BT_LOGE_STR("Cannot set filter component class's message iterator finalization method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin) {
+				ret = bt_component_class_filter_set_message_iterator_seek_ns_from_origin_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.msg_iter_seek_ns_from_origin);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek nanoseconds from origin\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.msg_iter_seek_beginning) {
+				ret = bt_component_class_filter_set_message_iterator_seek_beginning_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.msg_iter_seek_beginning);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's message iterator \"seek beginning\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin) {
+				ret = bt_component_class_filter_set_message_iterator_can_seek_ns_from_origin_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.msg_iter_can_seek_ns_from_origin);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek nanoseconds from origin\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.filter.msg_iter_can_seek_beginning) {
+				ret = bt_component_class_filter_set_message_iterator_can_seek_beginning_method(
+					flt_comp_class,
+					cc_full_descr->methods.filter.msg_iter_can_seek_beginning);
+				if (ret) {
+					BT_LOGE_STR("Cannot set filter component class's message iterator \"can seek beginning\" method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(flt_comp_class);
 					goto end;

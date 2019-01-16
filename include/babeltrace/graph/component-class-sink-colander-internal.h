@@ -31,6 +31,12 @@
 extern "C" {
 #endif
 
+struct bt_component_class_sink_colander_priv_data {
+	bt_message_array_const msgs;
+	uint64_t *count_addr;
+	struct bt_self_component_port_input_message_iterator *msg_iter;
+};
+
 struct bt_component_class_sink_colander_data {
 	bt_message_array_const msgs;
 	uint64_t *count_addr;

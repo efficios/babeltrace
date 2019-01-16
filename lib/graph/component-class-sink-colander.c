@@ -37,19 +37,13 @@
 static
 struct bt_component_class_sink *colander_comp_cls;
 
-struct colander_data {
-	bt_message_array_const msgs;
-	uint64_t *count_addr;
-	struct bt_self_component_port_input_message_iterator *msg_iter;
-};
-
 static
 enum bt_self_component_status colander_init(
 		struct bt_self_component_sink *self_comp,
 		const struct bt_value *params, void *init_method_data)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
-	struct colander_data *colander_data = NULL;
+	struct bt_component_class_sink_colander_priv_data *colander_data = NULL;
 	struct bt_component_class_sink_colander_data *user_provided_data =
 		init_method_data;
 
@@ -59,7 +53,8 @@ enum bt_self_component_status colander_init(
 		goto end;
 	}
 
-	colander_data = g_new0(struct colander_data, 1);
+	colander_data = g_new0(
+		struct bt_component_class_sink_colander_priv_data, 1);
 	if (!colander_data) {
 		BT_LOGE_STR("Failed to allocate colander data.");
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
@@ -86,7 +81,7 @@ end:
 static
 void colander_finalize(struct bt_self_component_sink *self_comp)
 {
-	struct colander_data *colander_data =
+	struct bt_component_class_sink_colander_priv_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
 
@@ -105,7 +100,7 @@ enum bt_self_component_status colander_input_port_connected(
 		const struct bt_port_output *other_port)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
-	struct colander_data *colander_data =
+	struct bt_component_class_sink_colander_priv_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
 
@@ -132,7 +127,7 @@ enum bt_self_component_status colander_consume(
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	enum bt_message_iterator_status msg_iter_status;
-	struct colander_data *colander_data =
+	struct bt_component_class_sink_colander_priv_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
 	bt_message_array_const msgs;

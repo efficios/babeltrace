@@ -28,7 +28,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/graph/connection-const.h>
 #include <babeltrace/graph/message-const.h>
-#include <babeltrace/graph/message-iterator.h>
+#include <babeltrace/graph/message-iterator-const.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
 #include <stdbool.h>
@@ -42,10 +42,10 @@ enum bt_message_iterator_type {
 };
 
 enum bt_self_component_port_input_message_iterator_state {
-	/* Iterator is not initialized. */
+	/* Iterator is not initialized */
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_NON_INITIALIZED,
 
-	/* Iterator is active, not at the end yet, and not finalized. */
+	/* Iterator is active, not at the end yet, and not finalized */
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ACTIVE,
 
 	/*
@@ -54,15 +54,20 @@ enum bt_self_component_port_input_message_iterator_state {
 	 */
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_ENDED,
 
-	/*
-	 * Iterator is currently being finalized.
-	 */
+	/* Iterator is currently being finalized */
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING,
 
-	/*
-	 * Iterator is finalized.
-	 */
+	/* Iterator is finalized */
 	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED,
+
+	/* Iterator is seeking */
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING,
+
+	/* Iterator did seek, but returned `BT_MESSAGE_ITERATOR_STATUS_AGAIN` */
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN,
+
+	/* Iterator did seek, but returned error status */
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR,
 };
 
 struct bt_message_iterator {
@@ -71,6 +76,26 @@ struct bt_message_iterator {
 	GPtrArray *msgs;
 };
 
+typedef enum bt_self_message_iterator_status
+(*bt_self_component_port_input_message_iterator_next_method)(
+		void *, bt_message_array_const, uint64_t, uint64_t *);
+
+typedef enum bt_self_message_iterator_status
+(*bt_self_component_port_input_message_iterator_seek_ns_from_origin_method)(
+		void *, int64_t);
+
+typedef enum bt_self_message_iterator_status
+(*bt_self_component_port_input_message_iterator_seek_beginning_method)(
+		void *);
+
+typedef bt_bool
+(*bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method)(
+		void *, int64_t);
+
+typedef bt_bool
+(*bt_self_component_port_input_message_iterator_can_seek_beginning_method)(
+		void *);
+
 struct bt_self_component_port_input_message_iterator {
 	struct bt_message_iterator base;
 	struct bt_component *upstream_component; /* Weak */
@@ -78,20 +103,17 @@ struct bt_self_component_port_input_message_iterator {
 	struct bt_connection *connection; /* Weak */
 	struct bt_graph *graph; /* Weak */
 
-	/*
-	 * This hash table keeps the state of a stream as viewed by this
-	 * message iterator. This is used, in developer mode, to make
-	 * sure that, once the message iterator has seen a "stream end"
-	 * message for a given stream, no other messages which refer to
-	 * this stream can be delivered by this iterator. It is also
-	 * used to check for a valid sequence of messages.
-	 *
-	 * The key (struct bt_stream *) is not owned by this. The value
-	 * is an allocated state structure.
-	 */
-	GHashTable *stream_states;
+	struct {
+		bt_self_component_port_input_message_iterator_next_method next;
+		bt_self_component_port_input_message_iterator_seek_ns_from_origin_method seek_ns_from_origin;
+		bt_self_component_port_input_message_iterator_seek_beginning_method seek_beginning;
+		bt_self_component_port_input_message_iterator_can_seek_ns_from_origin_method can_seek_ns_from_origin;
+		bt_self_component_port_input_message_iterator_can_seek_beginning_method can_seek_beginning;
+	} methods;
 
 	enum bt_self_component_port_input_message_iterator_state state;
+	uint64_t auto_seek_msg_count;
+	GPtrArray *auto_seek_msgs;
 	void *user_data;
 };
 
@@ -149,6 +171,12 @@ const char *bt_self_component_port_input_message_iterator_state_string(
 		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING";
 	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED:
 		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED";
+	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING:
+		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_SEEKING";
+	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN:
+		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_AGAIN";
+	case BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR:
+		return "BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR";
 	default:
 		return "(unknown)";
 	}

@@ -25,7 +25,7 @@
  */
 
 #include <babeltrace/graph/connection-const.h>
-#include <babeltrace/graph/message-iterator.h>
+#include <babeltrace/graph/message-iterator-const.h>
 #include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>

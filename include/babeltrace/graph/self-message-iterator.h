@@ -24,7 +24,7 @@
  */
 
 /* For BT_MESSAGE_ITERATOR_STATUS_* */
-#include <babeltrace/graph/message-iterator.h>
+#include <babeltrace/graph/message-iterator-const.h>
 
 /* For bt_self_component, bt_self_message_iterator, bt_self_port_output */
 #include <babeltrace/types.h>

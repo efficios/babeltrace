@@ -39,7 +39,6 @@ typedef struct bt_stream *(*get_stream_func)(
 struct bt_message {
 	struct bt_object base;
 	enum bt_message_type type;
-	uint64_t seq_num;
 	bt_bool frozen;
 
 	/* Owned by this; keeps the graph alive while the msg. is alive */
@@ -65,7 +64,6 @@ void bt_message_reset(struct bt_message *message)
 
 #ifdef BT_DEV_MODE
 	message->frozen = BT_FALSE;
-	message->seq_num = UINT64_C(-1);
 #endif
 }
 
