@@ -33,13 +33,11 @@
 struct bt_message_stream_beginning {
 	struct bt_message parent;
 	struct bt_stream *stream;
-	struct bt_clock_snapshot *default_cs;
 };
 
 struct bt_message_stream_end {
 	struct bt_message parent;
 	struct bt_stream *stream;
-	struct bt_clock_snapshot *default_cs;
 };
 
 #endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H */

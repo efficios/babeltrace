@@ -37,16 +37,8 @@ extern "C" {
 extern const bt_stream *bt_message_stream_beginning_borrow_stream_const(
 		const bt_message *message);
 
-extern bt_clock_snapshot_state
-bt_message_stream_beginning_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **snapshot);
-
 extern const bt_stream *bt_message_stream_end_borrow_stream_const(
 		const bt_message *message);
-
-extern bt_clock_snapshot_state
-bt_message_stream_end_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **snapshot);
 
 #ifdef __cplusplus
 }
