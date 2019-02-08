@@ -67,6 +67,7 @@
 #include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/graph/message-packet-internal.h>
 #include <babeltrace/graph/message-stream-internal.h>
+#include <babeltrace/graph/message-stream-activity-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
@@ -908,55 +909,58 @@ static inline void format_message(char **buf_ch, bool extended,
 
 		if (msg_event->event) {
 			SET_TMP_PREFIX("event-");
-			format_event(buf_ch, true, tmp_prefix, msg_event->event);
+			format_event(buf_ch, true, tmp_prefix,
+				msg_event->event);
 		}
 
 		break;
 	}
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_END:
 	{
-		const struct bt_message_stream_beginning *msg_stream =
-			(const void *) msg;
+		const struct bt_message_stream *msg_stream = (const void *) msg;
 
 		if (msg_stream->stream) {
 			SET_TMP_PREFIX("stream-");
-			format_stream(buf_ch, true, tmp_prefix, msg_stream->stream);
+			format_stream(buf_ch, true, tmp_prefix,
+				msg_stream->stream);
 		}
 
 		break;
 	}
-	case BT_MESSAGE_TYPE_STREAM_END:
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
 	{
-		const struct bt_message_stream_end *msg_stream =
+		const struct bt_message_stream_activity *msg_stream_activity =
 			(const void *) msg;
 
-		if (msg_stream->stream) {
+		if (msg_stream_activity->stream) {
 			SET_TMP_PREFIX("stream-");
-			format_stream(buf_ch, true, tmp_prefix, msg_stream->stream);
+			format_stream(buf_ch, true, tmp_prefix,
+				msg_stream_activity->stream);
+		}
+
+		BUF_APPEND(", %sdefault-cs-state=%s",
+			PRFIELD(bt_message_stream_activity_clock_snapshot_state_string(
+				msg_stream_activity->default_cs_state)));
+
+		if (msg_stream_activity->default_cs) {
+			SET_TMP_PREFIX("default-cs-");
+			format_clock_snapshot(buf_ch, true, tmp_prefix,
+				msg_stream_activity->default_cs);
 		}
 
 		break;
 	}
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-	{
-		const struct bt_message_packet_beginning *msg_packet =
-			(const void *) msg;
-
-		if (msg_packet->packet) {
-			SET_TMP_PREFIX("packet-");
-			format_packet(buf_ch, true, tmp_prefix, msg_packet->packet);
-		}
-
-		break;
-	}
 	case BT_MESSAGE_TYPE_PACKET_END:
 	{
-		const struct bt_message_packet_end *msg_packet =
-			(const void *) msg;
+		const struct bt_message_packet *msg_packet = (const void *) msg;
 
 		if (msg_packet->packet) {
 			SET_TMP_PREFIX("packet-");
-			format_packet(buf_ch, true, tmp_prefix, msg_packet->packet);
+			format_packet(buf_ch, true, tmp_prefix,
+				msg_packet->packet);
 		}
 
 		break;

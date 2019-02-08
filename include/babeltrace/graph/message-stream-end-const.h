@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_H
-#define BABELTRACE_GRAPH_MESSAGE_STREAM_H
+#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_END_H
+#define BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_END_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -24,31 +24,21 @@
  * SOFTWARE.
  */
 
-/* For bt_message, bt_self_message_iterator, bt_stream */
+/* For bt_message, bt_clock_snapshot, bt_stream */
 #include <babeltrace/types.h>
+
+/* For bt_clock_snapshot_state */
+#include <babeltrace/trace-ir/clock-snapshot-const.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern
-bt_message *bt_message_stream_beginning_create(
-		bt_self_message_iterator *message_iterator,
-		bt_stream *stream);
-
-extern
-bt_message *bt_message_stream_end_create(
-		bt_self_message_iterator *message_iterator,
-		bt_stream *stream);
-
-extern bt_stream *bt_message_stream_beginning_borrow_stream(
-		bt_message *message);
-
-extern bt_stream *bt_message_stream_end_borrow_stream(
-		bt_message *message);
+extern const bt_stream *bt_message_stream_end_borrow_stream_const(
+		const bt_message *message);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_H */
+#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_BEGINNING_END_H */

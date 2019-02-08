@@ -103,10 +103,17 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/message-inactivity-const.h \
 	babeltrace/graph/message-inactivity.h \
 	babeltrace/graph/message-iterator-const.h \
-	babeltrace/graph/message-packet-const.h \
-	babeltrace/graph/message-packet.h \
-	babeltrace/graph/message-stream-const.h \
-	babeltrace/graph/message-stream.h \
+	babeltrace/graph/message-packet-beginning-const.h \
+	babeltrace/graph/message-packet-beginning.h \
+	babeltrace/graph/message-packet-end-const.h \
+	babeltrace/graph/message-packet-end.h \
+	babeltrace/graph/message-stream-activity-beginning.h \
+	babeltrace/graph/message-stream-activity-const.h \
+	babeltrace/graph/message-stream-activity-end.h \
+	babeltrace/graph/message-stream-beginning-const.h \
+	babeltrace/graph/message-stream-beginning.h \
+	babeltrace/graph/message-stream-end-const.h \
+	babeltrace/graph/message-stream-end.h \
 	babeltrace/graph/port-const.h \
 	babeltrace/graph/port-input-const.h \
 	babeltrace/graph/port-output-const.h \
