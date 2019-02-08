@@ -1,9 +1,8 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H
-#define BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_END_H
+#define BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_END_H
 
 /*
- * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +23,32 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/graph/message-internal.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/assert-internal.h>
+/* For bt_message, bt_self_message_iterator, bt_stream */
+#include <babeltrace/types.h>
 
-struct bt_message_stream {
-	struct bt_message parent;
-	struct bt_stream *stream;
-};
+/* For bt_message_stream_activity_clock_snapshot_state */
+#include <babeltrace/graph/message-stream-activity-const.h>
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern bt_message *bt_message_stream_activity_end_create(
+		bt_self_message_iterator *message_iterator,
+		bt_stream *stream);
+
+extern void bt_message_stream_activity_end_set_default_clock_snapshot_state(
+		bt_message *msg,
+		bt_message_stream_activity_clock_snapshot_state state);
+
+extern void bt_message_stream_activity_end_set_default_clock_snapshot(
+		bt_message *msg, uint64_t raw_value);
+
+extern bt_stream *bt_message_stream_activity_end_borrow_stream(
+		bt_message *message);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_END_H */

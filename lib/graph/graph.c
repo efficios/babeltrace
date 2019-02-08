@@ -233,14 +233,14 @@ static
 void destroy_message_packet_begin(struct bt_message *msg,
 		struct bt_graph *graph)
 {
-	bt_message_packet_beginning_destroy(msg);
+	bt_message_packet_destroy(msg);
 }
 
 static
 void destroy_message_packet_end(struct bt_message *msg,
 		struct bt_graph *graph)
 {
-	bt_message_packet_end_destroy(msg);
+	bt_message_packet_destroy(msg);
 }
 
 static

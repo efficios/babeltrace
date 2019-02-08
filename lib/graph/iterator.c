@@ -48,9 +48,11 @@
 #include <babeltrace/graph/message-internal.h>
 #include <babeltrace/graph/message-event-const.h>
 #include <babeltrace/graph/message-event-internal.h>
-#include <babeltrace/graph/message-packet-const.h>
+#include <babeltrace/graph/message-packet-beginning-const.h>
+#include <babeltrace/graph/message-packet-end-const.h>
 #include <babeltrace/graph/message-packet-internal.h>
-#include <babeltrace/graph/message-stream-const.h>
+#include <babeltrace/graph/message-stream-beginning-const.h>
+#include <babeltrace/graph/message-stream-end-const.h>
 #include <babeltrace/graph/message-stream-internal.h>
 #include <babeltrace/graph/message-inactivity-internal.h>
 #include <babeltrace/graph/port-const.h>
@@ -1002,7 +1004,7 @@ int get_message_ns_from_origin(const struct bt_message *msg,
 		goto end;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 	{
-		const struct bt_message_packet_beginning *pkt_msg =
+		const struct bt_message_packet *pkt_msg =
 			(const void *) msg;
 
 		clk_snapshot = pkt_msg->packet->default_beginning_cs;
@@ -1010,7 +1012,7 @@ int get_message_ns_from_origin(const struct bt_message *msg,
 	}
 	case BT_MESSAGE_TYPE_PACKET_END:
 	{
-		const struct bt_message_packet_end *pkt_msg =
+		const struct bt_message_packet *pkt_msg =
 			(const void *) msg;
 
 		clk_snapshot = pkt_msg->packet->default_end_cs;

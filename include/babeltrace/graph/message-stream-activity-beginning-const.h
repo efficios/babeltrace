@@ -1,9 +1,8 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H
-#define BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_BEGINNING_CONST_H
+#define BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_BEGINNING_CONST_H
 
 /*
- * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +23,26 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/graph/message-internal.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/assert-internal.h>
+/* For bt_message, bt_clock_snapshot, bt_stream */
+#include <babeltrace/types.h>
 
-struct bt_message_stream {
-	struct bt_message parent;
-	struct bt_stream *stream;
-};
+/* For bt_message_stream_activity_clock_snapshot_state */
+#include <babeltrace/graph/message-stream-activity-const.h>
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern bt_message_stream_activity_clock_snapshot_state
+bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
+		const bt_message *msg, const bt_clock_snapshot **snapshot);
+
+extern const bt_stream *
+bt_message_stream_activity_beginning_borrow_stream_const(
+		const bt_message *message);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_BEGINNING_CONST_H */

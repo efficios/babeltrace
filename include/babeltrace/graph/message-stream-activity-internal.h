@@ -1,9 +1,8 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H
-#define BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H
+#ifndef BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_INTERNAL_H
+#define BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_INTERNAL_H
 
 /*
- * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
- * Copyright 2016 Jérémie Galarneau <jeremie.galarneau@efficios.com>
+ * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +23,33 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/graph/message-internal.h>
+#include <glib.h>
 #include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace/trace-ir/stream-internal.h>
+#include <babeltrace/graph/message-const.h>
+#include <babeltrace/graph/message-stream-activity-const.h>
 
-struct bt_message_stream {
+struct bt_message_stream_activity {
 	struct bt_message parent;
 	struct bt_stream *stream;
+	struct bt_clock_snapshot *default_cs;
+	enum bt_message_stream_activity_clock_snapshot_state default_cs_state;
 };
 
-#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_INTERNAL_H */
+static inline
+const char *bt_message_stream_activity_clock_snapshot_state_string(
+		enum bt_message_stream_activity_clock_snapshot_state state)
+{
+	switch (state) {
+	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
+		return "BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN";
+	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN:
+		return "BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN";
+	case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE:
+		return "BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE";
+	default:
+		return "(unknown)";
+	}
+}
+
+#endif /* BABELTRACE_GRAPH_MESSAGE_STREAM_ACTIVITY_INTERNAL_H */

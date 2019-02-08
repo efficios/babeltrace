@@ -124,6 +124,10 @@ const char *bt_message_type_string(enum bt_message_type type)
 		return "BT_MESSAGE_TYPE_PACKET_BEGINNING";
 	case BT_MESSAGE_TYPE_PACKET_END:
 		return "BT_MESSAGE_TYPE_PACKET_END";
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
+		return "BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING";
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
+		return "BT_MESSAGE_TYPE_STREAM_ACTIVITY_END";
 	default:
 		return "(unknown)";
 	}

@@ -29,15 +29,13 @@
 #include <babeltrace/graph/message-internal.h>
 #include <babeltrace/assert-internal.h>
 
-struct bt_message_packet_beginning {
+struct bt_message_packet {
 	struct bt_message parent;
 	struct bt_packet *packet;
 };
 
-struct bt_message_packet_end {
-	struct bt_message parent;
-	struct bt_packet *packet;
-};
+BT_HIDDEN
+void bt_message_packet_destroy(struct bt_message *msg);
 
 BT_HIDDEN
 struct bt_message *bt_message_packet_beginning_new(
@@ -46,15 +44,9 @@ BT_HIDDEN
 void bt_message_packet_beginning_recycle(struct bt_message *msg);
 
 BT_HIDDEN
-void bt_message_packet_beginning_destroy(struct bt_message *msg);
-
-BT_HIDDEN
 struct bt_message *bt_message_packet_end_new(struct bt_graph *graph);
 
 BT_HIDDEN
 void bt_message_packet_end_recycle(struct bt_message *msg);
-
-BT_HIDDEN
-void bt_message_packet_end_destroy(struct bt_message *msg);
 
 #endif /* BABELTRACE_GRAPH_MESSAGE_PACKET_INTERNAL_H */
