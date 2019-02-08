@@ -5,4 +5,5 @@ libgraph_message_la_SOURCES = \
 	packet.c \
 	event.c \
 	stream.c \
-	inactivity.c
+	inactivity.c \
+	stream-activity.c
