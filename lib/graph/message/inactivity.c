@@ -43,6 +43,7 @@ void bt_message_inactivity_destroy(struct bt_object *obj)
 
 	if (message->default_cs) {
 		bt_clock_snapshot_recycle(message->default_cs);
+		message->default_cs = NULL;
 	}
 
 	g_free(message);
