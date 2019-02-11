@@ -967,6 +967,7 @@ static inline void format_message(char **buf_ch, bool extended,
 		break;
 	}
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 	{
 		const struct bt_message_discarded_items *msg_disc_items =
 			(const void *) msg;

@@ -100,6 +100,8 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/message-const.h \
 	babeltrace/graph/message-discarded-events-const.h \
 	babeltrace/graph/message-discarded-events.h \
+	babeltrace/graph/message-discarded-packets-const.h \
+	babeltrace/graph/message-discarded-packets.h \
 	babeltrace/graph/message-event-const.h \
 	babeltrace/graph/message-event.h \
 	babeltrace/graph/message-inactivity-const.h \
