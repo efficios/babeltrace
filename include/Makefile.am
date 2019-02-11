@@ -168,6 +168,8 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/graph-const.h \
 	babeltrace/graph/graph.h \
 	babeltrace/graph/message-const.h \
+	babeltrace/graph/message-discarded-events-const.h \
+	babeltrace/graph/message-discarded-events.h \
 	babeltrace/graph/message-event-const.h \
 	babeltrace/graph/message-event.h \
 	babeltrace/graph/message-inactivity-const.h \
@@ -278,6 +280,7 @@ noinst_HEADERS = \
 	babeltrace/graph/component-source-internal.h \
 	babeltrace/graph/connection-internal.h \
 	babeltrace/graph/graph-internal.h \
+	babeltrace/graph/message-discarded-items-internal.h \
 	babeltrace/graph/message-event-internal.h \
 	babeltrace/graph/message-inactivity-internal.h \
 	babeltrace/graph/message-internal.h \

@@ -6,4 +6,5 @@ libgraph_message_la_SOURCES = \
 	event.c \
 	stream.c \
 	inactivity.c \
-	stream-activity.c
+	stream-activity.c \
+	discarded-items.c
