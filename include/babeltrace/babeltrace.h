@@ -110,6 +110,8 @@
 #include <babeltrace/graph/graph-const.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/message-const.h>
+#include <babeltrace/graph/message-discarded-events-const.h>
+#include <babeltrace/graph/message-discarded-events.h>
 #include <babeltrace/graph/message-event-const.h>
 #include <babeltrace/graph/message-event.h>
 #include <babeltrace/graph/message-inactivity-const.h>
@@ -120,6 +122,7 @@
 #include <babeltrace/graph/message-packet-end-const.h>
 #include <babeltrace/graph/message-packet-end.h>
 #include <babeltrace/graph/message-stream-activity-beginning.h>
+#include <babeltrace/graph/message-stream-activity-const.h>
 #include <babeltrace/graph/message-stream-activity-end.h>
 #include <babeltrace/graph/message-stream-beginning-const.h>
 #include <babeltrace/graph/message-stream-beginning.h>

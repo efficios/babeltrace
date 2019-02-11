@@ -128,6 +128,8 @@ const char *bt_message_type_string(enum bt_message_type type)
 		return "BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING";
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
 		return "BT_MESSAGE_TYPE_STREAM_ACTIVITY_END";
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+		return "BT_MESSAGE_TYPE_DISCARDED_EVENTS";
 	default:
 		return "(unknown)";
 	}
