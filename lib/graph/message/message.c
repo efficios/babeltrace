@@ -36,7 +36,7 @@ void bt_message_init(struct bt_message *message,
 		bt_object_release_func release,
 		struct bt_graph *graph)
 {
-	BT_ASSERT(type >= 0 && type <= BT_MESSAGE_TYPE_DISCARDED_EVENTS);
+	BT_ASSERT(type >= 0 && type <= BT_MESSAGE_TYPE_DISCARDED_PACKETS);
 	message->type = type;
 	bt_object_init_shared(&message->base, release);
 	message->graph = graph;
