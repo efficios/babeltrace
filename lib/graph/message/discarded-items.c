@@ -35,6 +35,8 @@
 #include <babeltrace/graph/message-discarded-items-internal.h>
 #include <babeltrace/graph/message-discarded-events.h>
 #include <babeltrace/graph/message-discarded-events-const.h>
+#include <babeltrace/graph/message-discarded-packets.h>
+#include <babeltrace/graph/message-discarded-packets-const.h>
 
 static
 void destroy_discarded_items_message(struct bt_object *obj)
@@ -258,5 +260,77 @@ enum bt_property_availability bt_message_discarded_events_get_count(
 {
 	BT_ASSERT_PRE_NON_NULL(message, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_DISCARDED_EVENTS);
+	return get_discarded_items_message_count(message, count);
+}
+
+struct bt_message *bt_message_discarded_packets_create(
+		struct bt_self_message_iterator *message_iterator,
+		struct bt_stream *stream)
+{
+	return create_discarded_items_message(message_iterator,
+		BT_MESSAGE_TYPE_DISCARDED_PACKETS, stream,
+		false, 0, 0);
+}
+
+struct bt_message *bt_message_discarded_packets_create_with_default_clock_snapshots(
+		struct bt_self_message_iterator *message_iterator,
+		struct bt_stream *stream, uint64_t beginning_raw_value,
+		uint64_t end_raw_value)
+{
+	return create_discarded_items_message(message_iterator,
+		BT_MESSAGE_TYPE_DISCARDED_PACKETS, stream,
+		true, beginning_raw_value, end_raw_value);
+}
+
+struct bt_stream *bt_message_discarded_packets_borrow_stream(
+		struct bt_message *message)
+{
+	BT_ASSERT_PRE_NON_NULL(message, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_DISCARDED_PACKETS);
+	return borrow_discarded_items_message_stream(message);
+}
+
+void bt_message_discarded_packets_set_count(struct bt_message *message,
+		uint64_t count)
+{
+	BT_ASSERT_PRE_NON_NULL(message, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_DISCARDED_PACKETS);
+	set_discarded_items_message_count(message, count);
+}
+
+enum bt_clock_snapshot_state
+bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+		const struct bt_message *msg,
+		const struct bt_clock_snapshot **snapshot)
+{
+	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_DISCARDED_PACKETS);
+	return borrow_discarded_items_message_default_beginning_clock_snapshot_const(
+		msg, snapshot);
+}
+
+enum bt_clock_snapshot_state
+bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+		const struct bt_message *msg,
+		const struct bt_clock_snapshot **snapshot)
+{
+	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_DISCARDED_PACKETS);
+	return borrow_discarded_items_message_default_end_clock_snapshot_const(
+		msg, snapshot);
+}
+
+const struct bt_stream *
+bt_message_discarded_packets_borrow_stream_const(const struct bt_message *message)
+{
+	return (void *) bt_message_discarded_packets_borrow_stream(
+		(void *) message);
+}
+
+enum bt_property_availability bt_message_discarded_packets_get_count(
+		const struct bt_message *message, uint64_t *count)
+{
+	BT_ASSERT_PRE_NON_NULL(message, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(message, BT_MESSAGE_TYPE_DISCARDED_PACKETS);
 	return get_discarded_items_message_count(message, count);
 }
