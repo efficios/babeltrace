@@ -68,6 +68,7 @@
 #include <babeltrace/graph/message-packet-internal.h>
 #include <babeltrace/graph/message-stream-internal.h>
 #include <babeltrace/graph/message-stream-activity-internal.h>
+#include <babeltrace/graph/message-discarded-items-internal.h>
 #include <babeltrace/graph/port-internal.h>
 #include <babeltrace/plugin/plugin-internal.h>
 #include <babeltrace/plugin/plugin-so-internal.h>
@@ -961,6 +962,36 @@ static inline void format_message(char **buf_ch, bool extended,
 			SET_TMP_PREFIX("packet-");
 			format_packet(buf_ch, true, tmp_prefix,
 				msg_packet->packet);
+		}
+
+		break;
+	}
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	{
+		const struct bt_message_discarded_items *msg_disc_items =
+			(const void *) msg;
+
+		if (msg_disc_items->stream) {
+			SET_TMP_PREFIX("stream-");
+			format_stream(buf_ch, true, tmp_prefix,
+				msg_disc_items->stream);
+		}
+
+		if (msg_disc_items->default_begin_cs) {
+			SET_TMP_PREFIX("default-begin-cs-");
+			format_clock_snapshot(buf_ch, true, tmp_prefix,
+				msg_disc_items->default_begin_cs);
+		}
+
+		if (msg_disc_items->default_end_cs) {
+			SET_TMP_PREFIX("default-end-cs-");
+			format_clock_snapshot(buf_ch, true, tmp_prefix,
+				msg_disc_items->default_end_cs);
+		}
+
+		if (msg_disc_items->count.base.avail) {
+			BUF_APPEND(", %scount=%" PRIu64,
+				PRFIELD(msg_disc_items->count.value));
 		}
 
 		break;
