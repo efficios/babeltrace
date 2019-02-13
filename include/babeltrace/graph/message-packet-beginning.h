@@ -34,7 +34,7 @@ extern "C" {
 extern
 bt_message *bt_message_packet_beginning_create(
 		bt_self_message_iterator *message_iterator,
-		bt_packet *packet);
+		const bt_packet *packet);
 
 extern bt_packet *bt_message_packet_beginning_borrow_packet(
 		bt_message *message);

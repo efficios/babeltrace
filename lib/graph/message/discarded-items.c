@@ -193,20 +193,20 @@ borrow_discarded_items_message_default_end_clock_snapshot_const(
 
 struct bt_message *bt_message_discarded_events_create(
 		struct bt_self_message_iterator *message_iterator,
-		struct bt_stream *stream)
+		const struct bt_stream *stream)
 {
 	return create_discarded_items_message(message_iterator,
-		BT_MESSAGE_TYPE_DISCARDED_EVENTS, stream,
+		BT_MESSAGE_TYPE_DISCARDED_EVENTS, (void *) stream,
 		false, 0, 0);
 }
 
 struct bt_message *bt_message_discarded_events_create_with_default_clock_snapshots(
 		struct bt_self_message_iterator *message_iterator,
-		struct bt_stream *stream, uint64_t beginning_raw_value,
+		const struct bt_stream *stream, uint64_t beginning_raw_value,
 		uint64_t end_raw_value)
 {
 	return create_discarded_items_message(message_iterator,
-		BT_MESSAGE_TYPE_DISCARDED_EVENTS, stream,
+		BT_MESSAGE_TYPE_DISCARDED_EVENTS, (void *) stream,
 		true, beginning_raw_value, end_raw_value);
 }
 
@@ -265,20 +265,20 @@ enum bt_property_availability bt_message_discarded_events_get_count(
 
 struct bt_message *bt_message_discarded_packets_create(
 		struct bt_self_message_iterator *message_iterator,
-		struct bt_stream *stream)
+		const struct bt_stream *stream)
 {
 	return create_discarded_items_message(message_iterator,
-		BT_MESSAGE_TYPE_DISCARDED_PACKETS, stream,
+		BT_MESSAGE_TYPE_DISCARDED_PACKETS, (void *) stream,
 		false, 0, 0);
 }
 
 struct bt_message *bt_message_discarded_packets_create_with_default_clock_snapshots(
 		struct bt_self_message_iterator *message_iterator,
-		struct bt_stream *stream, uint64_t beginning_raw_value,
+		const struct bt_stream *stream, uint64_t beginning_raw_value,
 		uint64_t end_raw_value)
 {
 	return create_discarded_items_message(message_iterator,
-		BT_MESSAGE_TYPE_DISCARDED_PACKETS, stream,
+		BT_MESSAGE_TYPE_DISCARDED_PACKETS, (void *) stream,
 		true, beginning_raw_value, end_raw_value);
 }
 

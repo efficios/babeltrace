@@ -76,12 +76,14 @@ end:
 
 struct bt_message *bt_message_event_create(
 		struct bt_self_message_iterator *self_msg_iter,
-		struct bt_event_class *event_class,
-		struct bt_packet *packet)
+		const struct bt_event_class *c_event_class,
+		const struct bt_packet *c_packet)
 {
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 	struct bt_message_event *message = NULL;
+	struct bt_event_class *event_class = (void *) c_event_class;
+	struct bt_packet *packet = (void *) c_packet;
 	struct bt_event *event;
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");

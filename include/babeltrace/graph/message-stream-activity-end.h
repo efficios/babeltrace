@@ -35,7 +35,7 @@ extern "C" {
 
 extern bt_message *bt_message_stream_activity_end_create(
 		bt_self_message_iterator *message_iterator,
-		bt_stream *stream);
+		const bt_stream *stream);
 
 extern void bt_message_stream_activity_end_set_default_clock_snapshot_state(
 		bt_message *msg,

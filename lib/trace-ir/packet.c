@@ -265,9 +265,10 @@ end:
 	return packet;
 }
 
-struct bt_packet *bt_packet_create(struct bt_stream *stream)
+struct bt_packet *bt_packet_create(const struct bt_stream *c_stream)
 {
 	struct bt_packet *packet = NULL;
+	struct bt_stream *stream = (void *) c_stream;
 
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	packet = bt_object_pool_create_object(&stream->packet_pool);

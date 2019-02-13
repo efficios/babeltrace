@@ -37,8 +37,8 @@ extern "C" {
 extern
 bt_message *bt_message_event_create(
 		bt_self_message_iterator *message_iterator,
-		bt_event_class *event_class,
-		bt_packet *packet);
+		const bt_event_class *event_class,
+		const bt_packet *packet);
 
 extern bt_event *bt_message_event_borrow_event(
 		bt_message *message);
