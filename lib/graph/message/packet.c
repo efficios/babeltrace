@@ -117,25 +117,25 @@ end:
 
 struct bt_message *bt_message_packet_beginning_create(
 		struct bt_self_message_iterator *self_msg_iter,
-		struct bt_packet *packet)
+		const struct bt_packet *packet)
 {
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
-	return bt_message_packet_create(msg_iter, packet,
+	return bt_message_packet_create(msg_iter, (void *) packet,
 		&msg_iter->graph->packet_begin_msg_pool);
 }
 
 struct bt_message *bt_message_packet_end_create(
 		struct bt_self_message_iterator *self_msg_iter,
-		struct bt_packet *packet)
+		const struct bt_packet *packet)
 {
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
-	return bt_message_packet_create(msg_iter, packet,
+	return bt_message_packet_create(msg_iter, (void *) packet,
 		&msg_iter->graph->packet_end_msg_pool);
 }
 

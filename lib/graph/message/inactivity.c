@@ -51,7 +51,7 @@ void bt_message_inactivity_destroy(struct bt_object *obj)
 
 struct bt_message *bt_message_inactivity_create(
 		struct bt_self_message_iterator *self_msg_iter,
-		struct bt_clock_class *default_clock_class)
+		const struct bt_clock_class *default_clock_class)
 {
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
@@ -72,7 +72,8 @@ struct bt_message *bt_message_inactivity_create(
 		BT_MESSAGE_TYPE_INACTIVITY,
 		bt_message_inactivity_destroy, NULL);
 	ret_msg = &message->parent;
-	message->default_cs = bt_clock_snapshot_create(default_clock_class);
+	message->default_cs = bt_clock_snapshot_create(
+		(void *) default_clock_class);
 	if (!message->default_cs) {
 		goto error;
 	}

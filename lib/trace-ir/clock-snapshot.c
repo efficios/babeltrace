@@ -44,7 +44,8 @@ void bt_clock_snapshot_destroy(struct bt_clock_snapshot *clock_snapshot)
 }
 
 BT_HIDDEN
-struct bt_clock_snapshot *bt_clock_snapshot_new(struct bt_clock_class *clock_class)
+struct bt_clock_snapshot *bt_clock_snapshot_new(
+		struct bt_clock_class *clock_class)
 {
 	struct bt_clock_snapshot *ret = NULL;
 
@@ -68,7 +69,8 @@ end:
 }
 
 BT_HIDDEN
-struct bt_clock_snapshot *bt_clock_snapshot_create(struct bt_clock_class *clock_class)
+struct bt_clock_snapshot *bt_clock_snapshot_create(
+		struct bt_clock_class *clock_class)
 {
 	struct bt_clock_snapshot *clock_snapshot = NULL;
 
@@ -135,7 +137,8 @@ void bt_clock_snapshot_recycle(struct bt_clock_snapshot *clock_snapshot)
 	bt_object_put_ref(clock_class);
 }
 
-uint64_t bt_clock_snapshot_get_value(const struct bt_clock_snapshot *clock_snapshot)
+uint64_t bt_clock_snapshot_get_value(
+		const struct bt_clock_snapshot *clock_snapshot)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot");
 	BT_ASSERT_PRE(clock_snapshot->is_set,
