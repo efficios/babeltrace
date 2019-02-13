@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-extern bt_packet *bt_packet_create(bt_stream *stream);
+extern bt_packet *bt_packet_create(const bt_stream *stream);
 
 extern bt_stream *bt_packet_borrow_stream(bt_packet *packet);
 

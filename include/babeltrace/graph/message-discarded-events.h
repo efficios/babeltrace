@@ -34,11 +34,11 @@ extern "C" {
 
 extern bt_message *bt_message_discarded_events_create(
 		bt_self_message_iterator *message_iterator,
-		bt_stream *stream);
+		const bt_stream *stream);
 
 extern bt_message *bt_message_discarded_events_create_with_default_clock_snapshots(
 		bt_self_message_iterator *message_iterator,
-		bt_stream *stream, uint64_t beginning_raw_value,
+		const bt_stream *stream, uint64_t beginning_raw_value,
 		uint64_t end_raw_value);
 
 extern bt_stream *bt_message_discarded_events_borrow_stream(

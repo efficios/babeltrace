@@ -35,7 +35,7 @@ extern "C" {
 
 extern bt_message *bt_message_stream_activity_beginning_create(
 		bt_self_message_iterator *message_iterator,
-		bt_stream *stream);
+		const bt_stream *stream);
 
 extern bt_stream *bt_message_stream_activity_beginning_borrow_stream(
 		bt_message *message);
