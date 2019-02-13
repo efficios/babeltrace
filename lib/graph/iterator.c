@@ -55,6 +55,8 @@
 #include <babeltrace/graph/message-stream-end-const.h>
 #include <babeltrace/graph/message-stream-internal.h>
 #include <babeltrace/graph/message-inactivity-internal.h>
+#include <babeltrace/graph/message-discarded-items-internal.h>
+#include <babeltrace/graph/message-stream-activity-internal.h>
 #include <babeltrace/graph/port-const.h>
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/graph-const.h>
@@ -994,34 +996,88 @@ int get_message_ns_from_origin(const struct bt_message *msg,
 		const struct bt_message_inactivity *inactivity_msg =
 			(const void *) msg;
 
-		BT_ASSERT(inactivity_msg->default_cs);
 		clk_snapshot = inactivity_msg->default_cs;
+		BT_ASSERT(clk_snapshot);
+		break;
+	}
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+	case BT_MESSAGE_TYPE_PACKET_END:
+		/* Ignore */
+		goto end;
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+	{
+		const struct bt_message_discarded_items *disc_items_msg =
+			(const void *) msg;
+
+		clk_snapshot = disc_items_msg->default_begin_cs;
+		BT_ASSERT_PRE(clk_snapshot,
+			"Discarded events/packets message has no default clock snapshot: %!+n",
+			msg);
+		break;
+	}
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
+	{
+		const struct bt_message_stream_activity *stream_act_msg =
+			(const void *) msg;
+
+		switch (stream_act_msg->default_cs_state) {
+		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN:
+		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE:
+			/*
+			 * -inf is always less than any requested time,
+			 * and we can't assume any specific time for an
+			 * unknown clock snapshot, so skip this.
+			 */
+			goto set_ignore;
+		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
+			clk_snapshot = stream_act_msg->default_cs;
+			BT_ASSERT(clk_snapshot);
+			break;
+		default:
+			abort();
+		}
+
+		break;
+	}
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
+	{
+		const struct bt_message_stream_activity *stream_act_msg =
+			(const void *) msg;
+
+		switch (stream_act_msg->default_cs_state) {
+		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_UNKNOWN:
+			/*
+			 * We can't assume any specific time for an
+			 * unknown clock snapshot, so skip this.
+			 */
+			goto set_ignore;
+		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_INFINITE:
+			/*
+			 * +inf is always greater than any requested
+			 * time.
+			 */
+			*ns_from_origin = INT64_MAX;
+			goto end;
+		case BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN:
+			clk_snapshot = stream_act_msg->default_cs;
+			BT_ASSERT(clk_snapshot);
+			break;
+		default:
+			abort();
+		}
+
 		break;
 	}
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 	case BT_MESSAGE_TYPE_STREAM_END:
 		/* Ignore */
-		goto end;
-	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-	{
-		const struct bt_message_packet *pkt_msg =
-			(const void *) msg;
-
-		clk_snapshot = pkt_msg->packet->default_beginning_cs;
 		break;
-	}
-	case BT_MESSAGE_TYPE_PACKET_END:
-	{
-		const struct bt_message_packet *pkt_msg =
-			(const void *) msg;
-
-		clk_snapshot = pkt_msg->packet->default_end_cs;
-		break;
-	}
 	default:
 		abort();
 	}
 
+set_ignore:
 	if (!clk_snapshot) {
 		*ignore = true;
 		goto end;
