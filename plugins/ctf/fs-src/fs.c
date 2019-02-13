@@ -88,104 +88,66 @@ void ctf_fs_msg_iter_data_destroy(
 }
 
 static
+void set_msg_iter_emits_stream_beginning_end_messages(
+		struct ctf_fs_msg_iter_data *msg_iter_data)
+{
+	bt_msg_iter_set_emit_stream_beginning_message(
+		msg_iter_data->ds_file->msg_iter,
+		msg_iter_data->ds_file_info_index == 0);
+	bt_msg_iter_set_emit_stream_end_message(
+		msg_iter_data->ds_file->msg_iter,
+		msg_iter_data->ds_file_info_index ==
+			msg_iter_data->ds_file_group->ds_file_infos->len - 1);
+}
+
+static
 bt_self_message_iterator_status ctf_fs_iterator_next_one(
 		struct ctf_fs_msg_iter_data *msg_iter_data,
-		const bt_message **msg)
+		const bt_message **out_msg)
 {
 	bt_self_message_iterator_status status;
-	bt_message *priv_msg;
-	int ret;
 
 	BT_ASSERT(msg_iter_data->ds_file);
-	status = ctf_fs_ds_file_next(msg_iter_data->ds_file, &priv_msg);
-	*msg = priv_msg;
 
-	if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK &&
-			bt_message_get_type(*msg) ==
-			BT_MESSAGE_TYPE_STREAM_BEGINNING) {
-		if (msg_iter_data->skip_stream_begin_msgs) {
+	while (true) {
+		bt_message *msg;
+
+		status = ctf_fs_ds_file_next(msg_iter_data->ds_file, &msg);
+		switch (status) {
+		case BT_SELF_MESSAGE_ITERATOR_STATUS_OK:
+			*out_msg = msg;
+			msg = NULL;
+			goto end;
+		case BT_SELF_MESSAGE_ITERATOR_STATUS_END:
+		{
+			int ret;
+
+			if (msg_iter_data->ds_file_info_index ==
+					msg_iter_data->ds_file_group->ds_file_infos->len - 1) {
+				/* End of all group's stream files */
+				goto end;
+			}
+
+			msg_iter_data->ds_file_info_index++;
+			bt_msg_iter_reset(msg_iter_data->msg_iter);
+			set_msg_iter_emits_stream_beginning_end_messages(
+				msg_iter_data);
+
 			/*
-			 * We already emitted a
-			 * BT_MESSAGE_TYPE_STREAM_BEGINNING
-			 * message: skip this one, get a new one.
+			 * Open and start reading the next stream file
+			 * within our stream file group.
 			 */
-			BT_MESSAGE_PUT_REF_AND_RESET(*msg);
-			status = ctf_fs_ds_file_next(msg_iter_data->ds_file,
-				&priv_msg);
-			*msg = priv_msg;
-			BT_ASSERT(status != BT_SELF_MESSAGE_ITERATOR_STATUS_END);
-			goto end;
-		} else {
-			/*
-			 * First BT_MESSAGE_TYPE_STREAM_BEGINNING
-			 * message: skip all following.
-			 */
-			msg_iter_data->skip_stream_begin_msgs = true;
-			goto end;
+			ret = msg_iter_data_set_current_ds_file(msg_iter_data);
+			if (ret) {
+				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
+
+			/* Continue the loop to get the next message */
+			break;
 		}
-	}
-
-	if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK &&
-			bt_message_get_type(*msg) ==
-			BT_MESSAGE_TYPE_STREAM_END) {
-		msg_iter_data->ds_file_info_index++;
-
-		if (msg_iter_data->ds_file_info_index ==
-				msg_iter_data->ds_file_group->ds_file_infos->len) {
-			/*
-			 * No more stream files to read: we reached the
-			 * real end. Emit this
-			 * BT_MESSAGE_TYPE_STREAM_END message.
-			 * The next time ctf_fs_iterator_next() is
-			 * called for this message iterator,
-			 * ctf_fs_ds_file_next() will return
-			 * BT_SELF_MESSAGE_ITERATOR_STATUS_END().
-			 */
+		default:
 			goto end;
-		}
-
-		BT_MESSAGE_PUT_REF_AND_RESET(*msg);
-		bt_msg_iter_reset(msg_iter_data->msg_iter);
-
-		/*
-		 * Open and start reading the next stream file within
-		 * our stream file group.
-		 */
-		ret = msg_iter_data_set_current_ds_file(msg_iter_data);
-		if (ret) {
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-			goto end;
-		}
-
-		status = ctf_fs_ds_file_next(msg_iter_data->ds_file, &priv_msg);
-		*msg = priv_msg;
-
-		/*
-		 * If we get a message, we expect to get a
-		 * BT_MESSAGE_TYPE_STREAM_BEGINNING message
-		 * because the iterator's state machine emits one before
-		 * even requesting the first block of data from the
-		 * medium. Skip this message because we're not
-		 * really starting a new stream here, and try getting a
-		 * new message (which, if it works, is a
-		 * BT_MESSAGE_TYPE_PACKET_BEGINNING one). We're sure to
-		 * get at least one pair of
-		 * BT_MESSAGE_TYPE_PACKET_BEGINNING and
-		 * BT_MESSAGE_TYPE_PACKET_END messages in the
-		 * case of a single, empty packet. We know there's at
-		 * least one packet because the stream file group does
-		 * not contain empty stream files.
-		 */
-		BT_ASSERT(msg_iter_data->skip_stream_begin_msgs);
-
-		if (status == BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
-			BT_ASSERT(bt_message_get_type(*msg) ==
-				BT_MESSAGE_TYPE_STREAM_BEGINNING);
-			BT_MESSAGE_PUT_REF_AND_RESET(*msg);
-			status = ctf_fs_ds_file_next(msg_iter_data->ds_file,
-				&priv_msg);
-			*msg = priv_msg;
-			BT_ASSERT(status != BT_SELF_MESSAGE_ITERATOR_STATUS_END);
 		}
 	}
 
@@ -276,6 +238,7 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 		goto error;
 	}
 
+	set_msg_iter_emits_stream_beginning_end_messages(msg_iter_data);
 	bt_self_message_iterator_set_data(self_msg_iter,
 		msg_iter_data);
 	if (ret != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {

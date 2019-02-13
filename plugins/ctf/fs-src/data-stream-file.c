@@ -173,8 +173,7 @@ end:
 }
 
 static
-bt_stream *medop_borrow_stream(
-		bt_stream_class *stream_class, int64_t stream_id,
+bt_stream *medop_borrow_stream(bt_stream_class *stream_class, int64_t stream_id,
 		void *data)
 {
 	struct ctf_fs_ds_file *ds_file = data;
@@ -199,9 +198,8 @@ end:
 }
 
 static
-enum bt_msg_iter_medium_status medop_seek(
-		enum bt_msg_iter_seek_whence whence, off_t offset,
-		void *data)
+enum bt_msg_iter_medium_status medop_seek(enum bt_msg_iter_seek_whence whence,
+		off_t offset, void *data)
 {
 	enum bt_msg_iter_medium_status ret =
 			BT_MSG_ITER_MEDIUM_STATUS_OK;
@@ -539,6 +537,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 	int ret;
 	struct ctf_fs_ds_index *index = NULL;
 	enum bt_msg_iter_status iter_status;
+	off_t current_packet_offset_bytes = 0;
 
 	BT_LOGD("Indexing stream file %s", ds_file->file->path->str);
 
@@ -548,50 +547,57 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 	}
 
 	do {
-		off_t current_packet_offset;
-		off_t next_packet_offset;
 		off_t current_packet_size_bytes;
 		struct ctf_fs_ds_index_entry *entry;
 		struct bt_msg_iter_packet_properties props;
 
+		if (current_packet_offset_bytes < 0) {
+			BT_LOGE_STR("Cannot get the current packet's offset.");
+			goto error;
+		} else if (current_packet_offset_bytes > ds_file->file->size) {
+			BT_LOGE_STR("Unexpected current packet's offset (larger than file).");
+			goto error;
+		} else if (current_packet_offset_bytes == ds_file->file->size) {
+			/* No more data */
+			break;
+		}
+
+		iter_status = bt_msg_iter_seek(ds_file->msg_iter,
+				current_packet_offset_bytes);
+		if (iter_status != BT_MSG_ITER_STATUS_OK) {
+			goto error;
+		}
+
 		iter_status = bt_msg_iter_get_packet_properties(
 			ds_file->msg_iter, &props);
 		if (iter_status != BT_MSG_ITER_STATUS_OK) {
-			if (iter_status == BT_MSG_ITER_STATUS_EOF) {
-				break;
-			}
 			goto error;
 		}
 
-		current_packet_offset =
-			bt_msg_iter_get_current_packet_offset(
-				ds_file->msg_iter);
-		if (current_packet_offset < 0) {
-			BT_LOGE_STR("Cannot get the current packet's offset.");
-			goto error;
+		if (props.exp_packet_total_size >= 0) {
+			current_packet_size_bytes =
+				(uint64_t) props.exp_packet_total_size / 8;
+		} else {
+			current_packet_size_bytes = ds_file->file->size;
 		}
 
-		current_packet_size_bytes =
-			((props.exp_packet_total_size + 7) & ~7) / CHAR_BIT;
-
-		if (current_packet_offset + current_packet_size_bytes >
+		if (current_packet_offset_bytes + current_packet_size_bytes >
 				ds_file->file->size) {
 			BT_LOGW("Invalid packet size reported in file: stream=\"%s\", "
 					"packet-offset=%jd, packet-size-bytes=%jd, "
 					"file-size=%jd",
 					ds_file->file->path->str,
-					current_packet_offset,
+					current_packet_offset_bytes,
 					current_packet_size_bytes,
 					ds_file->file->size);
 			goto error;
 		}
 
-		next_packet_offset = current_packet_offset +
-			current_packet_size_bytes;
+		current_packet_offset_bytes += current_packet_size_bytes;
 		BT_LOGD("Seeking to next packet: current-packet-offset=%jd, "
-			"next-packet-offset=%jd", current_packet_offset,
-			next_packet_offset);
-
+			"next-packet-offset=%jd",
+			current_packet_offset_bytes - current_packet_size_bytes,
+			current_packet_offset_bytes);
 		entry = ctf_fs_ds_index_add_new_entry(index);
 		if (!entry) {
 			BT_LOGE_STR("Failed to allocate a new index entry.");
@@ -599,13 +605,10 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		}
 
 		ret = init_index_entry(entry, ds_file, &props,
-			current_packet_size_bytes, current_packet_offset);
+			current_packet_size_bytes, current_packet_offset_bytes);
 		if (ret) {
 			goto error;
 		}
-
-		iter_status = bt_msg_iter_seek(ds_file->msg_iter,
-				next_packet_offset);
 	} while (iter_status == BT_MSG_ITER_STATUS_OK);
 
 	if (iter_status != BT_MSG_ITER_STATUS_EOF) {

@@ -149,9 +149,6 @@ struct ctf_fs_msg_iter_data {
 
 	/* Owned by this */
 	struct bt_msg_iter *msg_iter;
-
-	/* True to skip BT_MESSAGE_TYPE_STREAM_BEGINNING messages */
-	bool skip_stream_begin_msgs;
 };
 
 BT_HIDDEN
