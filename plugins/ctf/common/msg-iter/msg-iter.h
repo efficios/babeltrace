@@ -3,7 +3,7 @@
 
 /*
  * Babeltrace - CTF message iterator
- *                  ¯¯¯¯¯        ¯¯¯¯
+ *
  * Copyright (c) 2015-2016 EfficiOS Inc. and Linux Foundation
  * Copyright (c) 2015-2016 Philippe Proulx <pproulx@efficios.com>
  *
@@ -38,7 +38,7 @@
  * @file ctf-msg-iter.h
  *
  * CTF message iterator
- *     ¯¯¯¯¯        ¯¯¯¯
+ *
  * This is a common internal API used by CTF source plugins. It allows
  * one to get messages from a user-provided medium.
  */
@@ -193,9 +193,8 @@ struct bt_msg_iter_medium_ops {
 	 * @param data		User data
 	 * @returns		Status code (see description above)
 	 */
-	enum bt_msg_iter_medium_status (* request_bytes)(
-			size_t request_sz, uint8_t **buffer_addr,
-			size_t *buffer_sz, void *data);
+	enum bt_msg_iter_medium_status (* request_bytes)(size_t request_sz,
+			uint8_t **buffer_addr, size_t *buffer_sz, void *data);
 
 	/**
 	 * Repositions the underlying stream's position.
@@ -228,8 +227,7 @@ struct bt_msg_iter_medium_ops {
 	 * @returns		Stream instance (weak reference) or
 	 *			\c NULL on error
 	 */
-	bt_stream * (* borrow_stream)(
-			bt_stream_class *stream_class,
+	bt_stream * (* borrow_stream)(bt_stream_class *stream_class,
 			int64_t stream_id, void *data);
 };
 
@@ -291,8 +289,8 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 		bt_message **message);
 
 struct bt_msg_iter_packet_properties {
-	uint64_t exp_packet_total_size;
-	uint64_t exp_packet_content_size;
+	int64_t exp_packet_total_size;
+	int64_t exp_packet_content_size;
 	uint64_t stream_class_id;
 	int64_t data_stream_id;
 
@@ -318,33 +316,22 @@ enum bt_msg_iter_status bt_msg_iter_seek(
 		struct bt_msg_iter *notit, off_t offset);
 
 /*
- * Get the current packet's offset in bytes relative to the media's initial
- * position.
- */
-BT_HIDDEN
-off_t bt_msg_iter_get_current_packet_offset(
-		struct bt_msg_iter *notit);
-
-/* Get the current packet's size (in bits). */
-BT_HIDDEN
-off_t bt_msg_iter_get_current_packet_size(
-		struct bt_msg_iter *notit);
-
-/*
  * Resets the iterator so that the next requested medium bytes are
- * assumed to be the first bytes of a new stream. The first message
- * which this iterator emits after calling bt_msg_iter_reset() is a
- * BT_MESSAGE_TYPE_STREAM_BEGINNING one.
+ * assumed to be the first bytes of a new stream. Depending on
+ * bt_msg_iter_set_emit_stream_beginning_message(), the first message
+ * which this iterator emits after calling bt_msg_iter_reset() is of
+ * type `BT_MESSAGE_TYPE_STREAM_BEGINNING`.
  */
 BT_HIDDEN
 void bt_msg_iter_reset(struct bt_msg_iter *notit);
 
-/*
- * Notify the iterator that the trace class changed somehow (new
- * stream/event classes).
- */
 BT_HIDDEN
-void bt_msg_trace_class_changed(struct bt_msg_iter *notit);
+void bt_msg_iter_set_emit_stream_beginning_message(struct bt_msg_iter *notit,
+		bool val);
+
+BT_HIDDEN
+void bt_msg_iter_set_emit_stream_end_message(struct bt_msg_iter *notit,
+		bool val);
 
 static inline
 const char *bt_msg_iter_medium_status_string(
