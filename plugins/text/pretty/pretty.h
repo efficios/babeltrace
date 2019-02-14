@@ -127,7 +127,7 @@ int pretty_print_event(struct pretty_component *pretty,
 		const bt_message *event_msg);
 
 BT_HIDDEN
-int pretty_print_packet(struct pretty_component *pretty,
-		const bt_message *packet_beginning_msg);
+int pretty_print_discarded_items(struct pretty_component *pretty,
+		const bt_message *msg);
 
 #endif /* BABELTRACE_PLUGIN_TEXT_PRETTY_PRETTY_H */

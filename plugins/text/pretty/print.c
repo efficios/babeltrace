@@ -1216,28 +1216,26 @@ end:
 }
 
 static
-int print_discarded_elements_msg(
-		struct pretty_component *pretty, const bt_packet *packet,
+int print_discarded_elements_msg(struct pretty_component *pretty,
+		const bt_stream *stream,
+		const bt_clock_snapshot *begin_clock_snapshot,
+		const bt_clock_snapshot *end_clock_snapshot,
 		uint64_t count, const char *elem_type)
 {
-#if 0
 	int ret = 0;
-	const bt_stream *stream = NULL;
 	const bt_stream_class *stream_class = NULL;
 	const bt_trace *trace = NULL;
 	const char *stream_name;
 	const char *trace_name;
-	const unsigned char *trace_uuid;
+	bt_uuid trace_uuid;
 	int64_t stream_class_id;
 	int64_t stream_id;
-	bt_clock_snapshot *begin_clock_snapshot = NULL;
-	bt_clock_snapshot *end_clock_snapshot = NULL;
 
 	/* Stream name */
-	BT_ASSERT(packet);
-	stream = bt_packet_borrow_stream_const(packet);
-	BT_ASSERT(stream);
 	stream_name = bt_stream_get_name(stream);
+	if (!stream_name) {
+		stream_name = "(unknown)";
+	}
 
 	/* Stream class ID */
 	stream_class = bt_stream_borrow_class_const(stream);
@@ -1248,7 +1246,7 @@ int print_discarded_elements_msg(
 	stream_id = bt_stream_get_id(stream);
 
 	/* Trace name */
-	trace = bt_stream_class_borrow_trace_const(stream_class);
+	trace = bt_stream_borrow_trace_const(stream);
 	BT_ASSERT(trace);
 	trace_name = bt_trace_get_name(trace);
 	if (!trace_name) {
@@ -1256,26 +1254,29 @@ int print_discarded_elements_msg(
 	}
 
 	/* Trace UUID */
-	trace_uuid = bt_trace_get_uuid(trace);
-
-	/* Beginning and end times */
-	(void) bt_packet_borrow_previous_packet_default_end_clock_snapshot_const(
-		packet, &begin_clock_snapshot);
-	(void) bt_packet_borrow_default_end_clock_snapshot_const(packet,
-		&end_clock_snapshot);
+	trace_uuid = bt_trace_class_get_uuid(
+		bt_trace_borrow_class_const(trace));
 
 	/* Format message */
 	g_string_assign(pretty->string, "");
 	g_string_append_printf(pretty->string,
-		"%s%sWARNING%s%s: Tracer discarded %" PRId64 " %s%s ",
+		"%s%sWARNING%s%s: Tracer discarded ",
 		bt_common_color_fg_yellow(),
 		bt_common_color_bold(),
 		bt_common_color_reset(),
-		bt_common_color_fg_yellow(),
-		count, elem_type, count == 1 ? "" : "s");
+		bt_common_color_fg_yellow());
+
+	if (count == UINT64_C(-1)) {
+		g_string_append_printf(pretty->string, "a number of %ss",
+			elem_type);
+	} else {
+		g_string_append_printf(pretty->string,
+			"%" PRIu64 " %s%s", count, elem_type,
+			count == 1 ? "" : "s");
+	}
 
 	if (begin_clock_snapshot && end_clock_snapshot) {
-		g_string_append(pretty->string, "between [");
+		g_string_append(pretty->string, " between [");
 		print_timestamp_wall(pretty, begin_clock_snapshot);
 		g_string_append(pretty->string, "] and [");
 		print_timestamp_wall(pretty, end_clock_snapshot);
@@ -1310,12 +1311,12 @@ int print_discarded_elements_msg(
 	}
 
 	g_string_append_printf(pretty->string,
-		"within stream \"%s\" (stream class ID: %" PRId64 ", ",
+		"within stream \"%s\" (stream class ID: %" PRIu64 ", ",
 		stream_name, stream_class_id);
 
 	if (stream_id >= 0) {
 		g_string_append_printf(pretty->string,
-			"stream ID: %" PRId64, stream_id);
+			"stream ID: %" PRIu64, stream_id);
 	} else {
 		g_string_append(pretty->string, "no stream ID");
 	}
@@ -1332,42 +1333,67 @@ int print_discarded_elements_msg(
 	}
 
 	return ret;
-#endif
-	return 0;
 }
 
 BT_HIDDEN
-int pretty_print_packet(struct pretty_component *pretty,
-		const bt_message *packet_beginning_msg)
+int pretty_print_discarded_items(struct pretty_component *pretty,
+		const bt_message *msg)
 {
-#if 0
-	const bt_packet *packet = bt_message_packet_beginning_borrow_packet_const(
-		packet_beginning_msg);
-	uint64_t count;
-	int status = 0;
+	const bt_clock_snapshot *begin = NULL;
+	const bt_clock_snapshot *end = NULL;
+	const bt_stream *stream;
+	const bt_stream_class *stream_class;
+	uint64_t count = UINT64_C(-1);
+	const char *elem_type;
 
-	if (bt_packet_get_discarded_event_count(packet, &count) ==
-			BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE &&
-			count > 0) {
-		status = print_discarded_elements_msg(pretty, packet,
-			count, "event");
-		if (status != 0) {
-			goto end;
+	switch (bt_message_get_type(msg)) {
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+		stream = bt_message_discarded_events_borrow_stream_const(msg);
+
+		if (bt_message_discarded_events_get_count(msg, &count) ==
+				BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE) {
+			count = UINT64_C(-1);
+		}
+
+		elem_type = "event";
+		break;
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+		stream = bt_message_discarded_packets_borrow_stream_const(msg);
+
+		if (bt_message_discarded_packets_get_count(msg, &count) ==
+				BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE) {
+			count = UINT64_C(-1);
+		}
+
+		elem_type = "packet";
+		break;
+	default:
+		abort();
+	}
+
+	BT_ASSERT(stream);
+	stream_class = bt_stream_borrow_class_const(stream);
+
+	if (bt_stream_class_borrow_default_clock_class_const(stream_class)) {
+		switch (bt_message_get_type(msg)) {
+		case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+			bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+				msg, &begin);
+			bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+				msg, &end);
+			break;
+		case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+			bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+				msg, &begin);
+			bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+				msg, &end);
+			break;
+		default:
+			abort();
 		}
 	}
 
-	if (bt_packet_get_discarded_packet_count(packet, &count) ==
-			BT_PACKET_PROPERTY_AVAILABILITY_AVAILABLE &&
-			count > 0) {
-		status = print_discarded_elements_msg(pretty, packet,
-			count, "packet");
-		if (status != 0) {
-			goto end;
-		}
-	}
-
-end:
-	return status;
-#endif
+	print_discarded_elements_msg(pretty, stream, begin, end,
+		count, elem_type);
 	return 0;
 }

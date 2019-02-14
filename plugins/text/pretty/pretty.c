@@ -130,11 +130,6 @@ bt_self_component_status handle_message(
 	BT_ASSERT(pretty);
 
 	switch (bt_message_get_type(message)) {
-	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		if (pretty_print_packet(pretty, message)) {
-			ret = BT_SELF_COMPONENT_STATUS_ERROR;
-		}
-		break;
 	case BT_MESSAGE_TYPE_EVENT:
 		if (pretty_print_event(pretty, message)) {
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -142,6 +137,12 @@ bt_self_component_status handle_message(
 		break;
 	case BT_MESSAGE_TYPE_INACTIVITY:
 		fprintf(stderr, "Inactivity message\n");
+		break;
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+		if (pretty_print_discarded_items(pretty, message)) {
+			ret = BT_SELF_COMPONENT_STATUS_ERROR;
+		}
 		break;
 	default:
 		break;
