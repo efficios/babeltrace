@@ -129,7 +129,8 @@ bt_self_message_iterator_status ctf_fs_iterator_next_one(
 			}
 
 			msg_iter_data->ds_file_info_index++;
-			bt_msg_iter_reset(msg_iter_data->msg_iter);
+			bt_msg_iter_reset_for_next_stream_file(
+				msg_iter_data->msg_iter);
 			set_msg_iter_emits_stream_beginning_end_messages(
 				msg_iter_data);
 

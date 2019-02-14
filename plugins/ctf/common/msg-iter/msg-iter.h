@@ -325,6 +325,12 @@ enum bt_msg_iter_status bt_msg_iter_seek(
 BT_HIDDEN
 void bt_msg_iter_reset(struct bt_msg_iter *notit);
 
+/*
+ * Like bt_msg_iter_reset(), but preserves stream-dependent state.
+ */
+BT_HIDDEN
+void bt_msg_iter_reset_for_next_stream_file(struct bt_msg_iter *notit);
+
 BT_HIDDEN
 void bt_msg_iter_set_emit_stream_beginning_message(struct bt_msg_iter *notit,
 		bool val);
