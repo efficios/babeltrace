@@ -78,10 +78,10 @@ extern const char *bt_event_class_get_emf_uri(
 		const bt_event_class *event_class);
 
 extern const bt_field_class *
-bt_event_class_borrow_specific_context_field_class(
+bt_event_class_borrow_specific_context_field_class_const(
 		const bt_event_class *event_class);
 
-extern const bt_field_class *bt_event_class_borrow_payload_field_class(
+extern const bt_field_class *bt_event_class_borrow_payload_field_class_const(
 		const bt_event_class *event_class);
 
 extern void bt_event_class_get_ref(const bt_event_class *event_class);

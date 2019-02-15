@@ -856,7 +856,7 @@ end:
 }
 
 const struct bt_field_class *
-bt_field_class_structure_borrow_member_field_class_by_name(
+bt_field_class_structure_borrow_member_field_class_by_name_const(
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
