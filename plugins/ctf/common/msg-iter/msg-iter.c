@@ -2491,30 +2491,6 @@ void create_msg_packet_beginning(struct bt_msg_iter *notit,
 	sc = notit->meta.sc->ir_sc;
 	BT_ASSERT(sc);
 
-	if (bt_stream_class_packets_have_discarded_event_counter_snapshot(sc)) {
-		BT_ASSERT(notit->snapshots.discarded_events != UINT64_C(-1));
-		bt_packet_set_discarded_event_counter_snapshot(
-			notit->packet, notit->snapshots.discarded_events);
-	}
-
-	if (bt_stream_class_packets_have_packet_counter_snapshot(sc)) {
-		BT_ASSERT(notit->snapshots.packets != UINT64_C(-1));
-		bt_packet_set_packet_counter_snapshot(
-			notit->packet, notit->snapshots.packets);
-	}
-
-	if (bt_stream_class_packets_have_default_beginning_clock_snapshot(sc)) {
-		BT_ASSERT(notit->snapshots.beginning_clock != UINT64_C(-1));
-		bt_packet_set_default_beginning_clock_snapshot(
-			notit->packet, notit->snapshots.beginning_clock);
-	}
-
-	if (bt_stream_class_packets_have_default_end_clock_snapshot(sc)) {
-		BT_ASSERT(notit->snapshots.end_clock != UINT64_C(-1));
-		bt_packet_set_default_end_clock_snapshot(
-			notit->packet, notit->snapshots.end_clock);
-	}
-
 	if (notit->packet_context_field) {
 		ret = bt_packet_move_context_field(
 			notit->packet, notit->packet_context_field);

@@ -85,18 +85,6 @@ bt_stream_class_borrow_default_clock_class_const(
 extern bt_bool bt_stream_class_default_clock_is_always_known(
 		const bt_stream_class *stream_class);
 
-extern bt_bool bt_stream_class_packets_have_discarded_event_counter_snapshot(
-		const bt_stream_class *stream_class);
-
-extern bt_bool bt_stream_class_packets_have_packet_counter_snapshot(
-		const bt_stream_class *stream_class);
-
-extern bt_bool bt_stream_class_packets_have_default_beginning_clock_snapshot(
-		const bt_stream_class *stream_class);
-
-extern bt_bool bt_stream_class_packets_have_default_end_clock_snapshot(
-		const bt_stream_class *stream_class);
-
 extern void bt_stream_class_get_ref(const bt_stream_class *stream_class);
 
 extern void bt_stream_class_put_ref(const bt_stream_class *stream_class);
