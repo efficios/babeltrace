@@ -24,6 +24,7 @@
 #include "dummy/dummy.h"
 #include "counter/counter.h"
 #include "muxer/muxer.h"
+#include "trimmer/trimmer.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
 BT_PLUGIN_MODULE();
@@ -52,18 +53,16 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(counter,
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(counter,
 	"Count messages and print the results.");
 
-#if 0
 /* flt.utils.trimmer */
-BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_iterator_next);
+BT_PLUGIN_FILTER_COMPONENT_CLASS(trimmer, trimmer_msg_iter_next);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(trimmer,
 	"Keep messages that occur within a specific time range.");
-BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_component_init);
-BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(trimmer, finalize_trimmer);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_INIT_METHOD(trimmer, trimmer_init);
+BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD(trimmer, trimmer_finalize);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD(trimmer,
-	trimmer_iterator_init);
+	trimmer_msg_iter_init);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(trimmer,
-	trimmer_iterator_finalize);
-#endif
+	trimmer_msg_iter_finalize);
 
 /* flt.utils.muxer */
 BT_PLUGIN_FILTER_COMPONENT_CLASS(muxer, muxer_msg_iter_next);

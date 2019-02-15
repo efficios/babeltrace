@@ -31,28 +31,26 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/babeltrace.h>
 
-#define NSEC_PER_SEC	1000000000LL
+BT_HIDDEN
+void trimmer_finalize(bt_self_component_filter *self_comp);
 
-struct trimmer_bound {
-	int64_t value;
-	bool set;
-	bool lazy;
-	struct {
-		int hh, mm, ss, ns;
-		bool gmt;
-	} lazy_values;
-};
+BT_HIDDEN
+bt_self_component_status trimmer_init(bt_self_component_filter *self_comp,
+		const bt_value *params, void *init_data);
 
-struct trimmer {
-	struct trimmer_bound begin, end;
-	bool date;
-	int year, month, day;
-};
+BT_HIDDEN
+bt_self_message_iterator_status trimmer_msg_iter_init(
+		bt_self_message_iterator *self_msg_iter,
+		bt_self_component_filter *self_comp,
+		bt_self_component_port_output *port);
 
-bt_component_status trimmer_component_init(
-	bt_self_component *component,
-	bt_value *params, void *init_method_data);
+BT_HIDDEN
+bt_self_message_iterator_status trimmer_msg_iter_next(
+		bt_self_message_iterator *self_msg_iter,
+		bt_message_array_const msgs, uint64_t capacity,
+		uint64_t *count);
 
-void finalize_trimmer(bt_self_component *component);
+BT_HIDDEN
+void trimmer_msg_iter_finalize(bt_self_message_iterator *self_msg_iter);
 
 #endif /* BABELTRACE_PLUGINS_UTILS_TRIMMER_H */
