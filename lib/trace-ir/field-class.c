@@ -376,7 +376,7 @@ void bt_field_class_unsigned_enumeration_mapping_ranges_get_range_by_index(
 }
 
 void bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
+		const struct bt_field_class_signed_enumeration_mapping_ranges *ranges,
 		uint64_t index, int64_t *lower, int64_t *upper)
 {
 	get_enumeration_field_class_mapping_range_at_index(
@@ -707,7 +707,7 @@ static
 void destroy_structure_field_class(struct bt_object *obj)
 {
 	BT_ASSERT(obj);
-	BT_LIB_LOGD("Destroying string field class object: %!+F", obj);
+	BT_LIB_LOGD("Destroying structure field class object: %!+F", obj);
 	finalize_named_field_classes_container((void *) obj);
 	g_free(obj);
 }
