@@ -477,4 +477,95 @@ const char *bt_self_message_iterator_status_string(
 	}
 };
 
+#define NS_PER_S_I	INT64_C(1000000000)
+#define NS_PER_S_U	UINT64_C(1000000000)
+
+static inline
+int bt_common_clock_value_from_ns_from_origin(
+		int64_t cc_offset_seconds, uint64_t cc_offset_cycles,
+		uint64_t cc_freq, int64_t ns_from_origin,
+		uint64_t *raw_value)
+{
+	int ret = 0;
+	int64_t offset_in_ns;
+	uint64_t value_in_ns;
+	uint64_t rem_value_in_ns;
+	uint64_t value_periods;
+	uint64_t value_period_cycles;
+	int64_t ns_to_add;
+
+	BT_ASSERT(raw_value);
+
+	/* Compute offset part of requested value, in nanoseconds */
+	if (!bt_safe_to_mul_int64(cc_offset_seconds, NS_PER_S_I)) {
+		ret = -1;
+		goto end;
+	}
+
+	offset_in_ns = cc_offset_seconds * NS_PER_S_I;
+
+	if (cc_freq == NS_PER_S_U) {
+		ns_to_add = (int64_t) cc_offset_cycles;
+	} else {
+		if (!bt_safe_to_mul_int64((int64_t) cc_offset_cycles,
+				NS_PER_S_I)) {
+			ret = -1;
+			goto end;
+		}
+
+		ns_to_add = ((int64_t) cc_offset_cycles * NS_PER_S_I) /
+			(int64_t) cc_freq;
+	}
+
+	if (!bt_safe_to_add_int64(offset_in_ns, ns_to_add)) {
+		ret = -1;
+		goto end;
+	}
+
+	offset_in_ns += ns_to_add;
+
+	/* Value part in nanoseconds */
+	if (ns_from_origin < offset_in_ns) {
+		ret = -1;
+		goto end;
+	}
+
+	value_in_ns = (uint64_t) (ns_from_origin - offset_in_ns);
+
+	/* Number of whole clock periods in `value_in_ns` */
+	value_periods = value_in_ns / NS_PER_S_U;
+
+	/* Remaining nanoseconds in cycles + whole clock periods in cycles */
+	rem_value_in_ns = value_in_ns - value_periods * NS_PER_S_U;
+
+	if (value_periods > UINT64_MAX / cc_freq) {
+		ret = -1;
+		goto end;
+	}
+
+	if (!bt_safe_to_mul_uint64(value_periods, cc_freq)) {
+		ret = -1;
+		goto end;
+	}
+
+	value_period_cycles = value_periods * cc_freq;
+
+	if (!bt_safe_to_mul_uint64(cc_freq, rem_value_in_ns)) {
+		ret = -1;
+		goto end;
+	}
+
+	if (!bt_safe_to_add_uint64(cc_freq * rem_value_in_ns / NS_PER_S_U,
+			value_period_cycles)) {
+		ret = -1;
+		goto end;
+	}
+
+	*raw_value = cc_freq * rem_value_in_ns / NS_PER_S_U +
+		value_period_cycles;
+
+end:
+	return ret;
+}
+
 #endif /* BABELTRACE_COMMON_INTERNAL_H */

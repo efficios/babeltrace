@@ -4,10 +4,6 @@ AM_CPPFLAGS += -I$(top_srcdir)/plugins \
 noinst_LTLIBRARIES = libbabeltrace-plugin-trimmer.la
 libbabeltrace_plugin_trimmer_la_SOURCES = \
 	trimmer.c \
-	iterator.c \
-	copy.c \
 	trimmer.h \
-	iterator.h \
-	copy.h \
 	logging.c \
 	logging.h
