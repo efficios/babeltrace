@@ -34,7 +34,6 @@
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/trace-ir/trace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/assert-internal.h>
@@ -87,15 +86,6 @@ void _bt_packet_set_is_frozen(const struct bt_packet *packet, bool is_frozen)
 }
 
 static inline
-void reset_counter_snapshots(struct bt_packet *packet)
-{
-	packet->discarded_event_counter_snapshot.base.avail =
-		BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
-	packet->packet_counter_snapshot.base.avail =
-		BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE;
-}
-
-static inline
 void reset_packet(struct bt_packet *packet)
 {
 	BT_ASSERT(packet);
@@ -106,16 +96,6 @@ void reset_packet(struct bt_packet *packet)
 		bt_field_set_is_frozen(packet->context_field->field, false);
 		bt_field_reset(packet->context_field->field);
 	}
-
-	if (packet->default_beginning_cs) {
-		bt_clock_snapshot_reset(packet->default_beginning_cs);
-	}
-
-	if (packet->default_end_cs) {
-		bt_clock_snapshot_reset(packet->default_end_cs);
-	}
-
-	reset_counter_snapshots(packet);
 }
 
 static
@@ -185,18 +165,6 @@ void bt_packet_destroy(struct bt_packet *packet)
 		packet->context_field = NULL;
 	}
 
-	if (packet->default_beginning_cs) {
-		BT_LOGD_STR("Recycling beginning clock snapshot.");
-		bt_clock_snapshot_recycle(packet->default_beginning_cs);
-		packet->default_beginning_cs = NULL;
-	}
-
-	if (packet->default_end_cs) {
-		BT_LOGD_STR("Recycling end clock snapshot.");
-		bt_clock_snapshot_recycle(packet->default_end_cs);
-		packet->default_end_cs = NULL;
-	}
-
 	BT_LOGD_STR("Putting packet's stream.");
 	BT_OBJECT_PUT_REF_AND_RESET(packet->stream);
 	g_free(packet);
@@ -234,27 +202,6 @@ struct bt_packet *bt_packet_new(struct bt_stream *stream)
 		}
 	}
 
-	if (stream->class->default_clock_class) {
-		if (stream->class->packets_have_default_beginning_cs) {
-			packet->default_beginning_cs = bt_clock_snapshot_create(
-				stream->class->default_clock_class);
-			if (!packet->default_beginning_cs) {
-				/* bt_clock_snapshot_create() logs errors */
-				goto error;
-			}
-		}
-
-		if (stream->class->packets_have_default_end_cs) {
-			packet->default_end_cs = bt_clock_snapshot_create(
-				stream->class->default_clock_class);
-			if (!packet->default_end_cs) {
-				/* bt_clock_snapshot_create() logs errors */
-				goto error;
-			}
-		}
-	}
-
-	reset_counter_snapshots(packet);
 	BT_LIB_LOGD("Created packet object: %!+a", packet);
 	goto end;
 
@@ -314,111 +261,6 @@ enum bt_packet_status bt_packet_move_context_field(struct bt_packet *packet,
 	/* Move new field */
 	packet->context_field = field_wrapper;
 	return BT_PACKET_STATUS_OK;
-}
-
-void bt_packet_set_default_beginning_clock_snapshot(struct bt_packet *packet,
-		uint64_t value_cycles)
-{
-	struct bt_stream_class *sc;
-
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_PACKET_HOT(packet);
-	sc = packet->stream->class;
-	BT_ASSERT(sc);
-	BT_ASSERT_PRE(sc->default_clock_class,
-		"Packet's stream class has no default clock class: "
-		"%![packet-]+a, %![sc-]+S", packet, sc);
-	BT_ASSERT_PRE(sc->packets_have_default_beginning_cs,
-		"Packet's stream class indicates that its packets have "
-		"no default beginning clock snapshot: %![packet-]+a, %![sc-]+S",
-		packet, sc);
-	BT_ASSERT(packet->default_beginning_cs);
-	bt_clock_snapshot_set_raw_value(packet->default_beginning_cs,
-		value_cycles);
-	BT_LIB_LOGV("Set packet's default beginning clock snapshot: "
-		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
-}
-
-enum bt_clock_snapshot_state bt_packet_borrow_default_beginning_clock_snapshot(
-		const struct bt_packet *packet,
-		const struct bt_clock_snapshot **clock_snapshot)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot (output)");
-	*clock_snapshot = packet->default_beginning_cs;
-	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
-}
-
-void bt_packet_set_default_end_clock_snapshot(struct bt_packet *packet,
-		uint64_t value_cycles)
-{
-	struct bt_stream_class *sc;
-
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_PACKET_HOT(packet);
-	sc = packet->stream->class;
-	BT_ASSERT(sc);
-	BT_ASSERT_PRE(sc->default_clock_class,
-		"Packet's stream class has no default clock class: "
-		"%![packet-]+a, %![sc-]+S", packet, sc);
-	BT_ASSERT_PRE(sc->packets_have_default_end_cs,
-		"Packet's stream class indicates that its packets have "
-		"no default end clock snapshot: %![packet-]+a, %![sc-]+S",
-		packet, sc);
-	BT_ASSERT(packet->default_end_cs);
-	bt_clock_snapshot_set_raw_value(packet->default_end_cs, value_cycles);
-	BT_LIB_LOGV("Set packet's default end clock snapshot: "
-		"%![packet-]+a, value=%" PRIu64, packet, value_cycles);
-}
-
-enum bt_clock_snapshot_state bt_packet_borrow_default_end_clock_snapshot(
-		const struct bt_packet *packet,
-		const struct bt_clock_snapshot **clock_snapshot)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(clock_snapshot, "Clock snapshot (output)");
-	*clock_snapshot = packet->default_end_cs;
-	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
-}
-
-enum bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
-		const struct bt_packet *packet, uint64_t *value)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(value, "Value (output)");
-	*value = packet->discarded_event_counter_snapshot.value;
-	return packet->discarded_event_counter_snapshot.base.avail;
-}
-
-void bt_packet_set_discarded_event_counter_snapshot(struct bt_packet *packet,
-		uint64_t value)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_PACKET_HOT(packet);
-	BT_ASSERT_PRE(packet->stream->class->packets_have_discarded_event_counter_snapshot,
-		"Packet's stream's discarded event counter is not enabled: "
-		"%![packet-]+a", packet);
-	bt_property_uint_set(&packet->discarded_event_counter_snapshot, value);
-}
-
-enum bt_property_availability bt_packet_get_packet_counter_snapshot(
-		const struct bt_packet *packet, uint64_t *value)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_NON_NULL(value, "Value (output)");
-	*value = packet->packet_counter_snapshot.value;
-	return packet->packet_counter_snapshot.base.avail;
-}
-
-void bt_packet_set_packet_counter_snapshot(struct bt_packet *packet,
-		uint64_t value)
-{
-	BT_ASSERT_PRE_NON_NULL(packet, "Packet");
-	BT_ASSERT_PRE_PACKET_HOT(packet);
-	BT_ASSERT_PRE(packet->stream->class->packets_have_packet_counter_snapshot,
-		"Packet's stream's packet counter is not enabled: "
-		"%![packet-]+a", packet);
-	bt_property_uint_set(&packet->packet_counter_snapshot, value);
 }
 
 void bt_packet_get_ref(const struct bt_packet *packet)

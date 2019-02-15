@@ -38,10 +38,6 @@ struct bt_packet {
 	struct bt_object base;
 	struct bt_field_wrapper *context_field;
 	struct bt_stream *stream;
-	struct bt_clock_snapshot *default_beginning_cs;
-	struct bt_clock_snapshot *default_end_cs;
-	struct bt_property_uint discarded_event_counter_snapshot;
-	struct bt_property_uint packet_counter_snapshot;
 	bool frozen;
 };
 

@@ -460,7 +460,6 @@ static inline
 void ctf_stream_class_to_ir(struct ctx *ctx)
 {
 	int ret;
-	struct ctf_field_class_int *int_fc;
 	bt_field_class *ir_fc;
 
 	BT_ASSERT(ctx->sc);
@@ -502,42 +501,6 @@ void ctf_stream_class_to_ir(struct ctx *ctx)
 		ret = bt_stream_class_set_default_clock_class(ctx->ir_sc,
 			ctx->sc->default_clock_class->ir_cc);
 		BT_ASSERT(ret == 0);
-	}
-
-	int_fc = borrow_named_int_field_class((void *) ctx->sc->packet_context_fc,
-		"events_discarded");
-	if (int_fc) {
-		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_DISC_EV_REC_COUNTER_SNAPSHOT) {
-			bt_stream_class_set_packets_have_discarded_event_counter_snapshot(
-				ctx->ir_sc, BT_TRUE);
-		}
-	}
-
-	int_fc = borrow_named_int_field_class((void *) ctx->sc->packet_context_fc,
-		"packet_seq_num");
-	if (int_fc) {
-		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_COUNTER_SNAPSHOT) {
-			bt_stream_class_set_packets_have_packet_counter_snapshot(
-				ctx->ir_sc, BT_TRUE);
-		}
-	}
-
-	int_fc = borrow_named_int_field_class((void *) ctx->sc->packet_context_fc,
-		"timestamp_begin");
-	if (int_fc) {
-		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_BEGINNING_TIME) {
-			bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
-				ctx->ir_sc, BT_TRUE);
-		}
-	}
-
-	int_fc = borrow_named_int_field_class((void *) ctx->sc->packet_context_fc,
-		"timestamp_end");
-	if (int_fc) {
-		if (int_fc->meaning == CTF_FIELD_CLASS_MEANING_PACKET_END_TIME) {
-			bt_stream_class_set_packets_have_default_end_clock_snapshot(
-				ctx->ir_sc, BT_TRUE);
-		}
 	}
 
 	ctx->sc->is_translated = true;

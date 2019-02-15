@@ -49,22 +49,6 @@ extern
 bt_packet_status bt_packet_move_context_field(bt_packet *packet,
 		bt_packet_context_field *context);
 
-extern
-void bt_packet_set_default_beginning_clock_snapshot(bt_packet *packet,
-		uint64_t value_cycles);
-
-extern
-void bt_packet_set_default_end_clock_snapshot(bt_packet *packet,
-		uint64_t value_cycles);
-
-extern
-void bt_packet_set_discarded_event_counter_snapshot(bt_packet *packet,
-		uint64_t value);
-
-extern
-void bt_packet_set_packet_counter_snapshot(bt_packet *packet,
-		uint64_t value);
-
 #ifdef __cplusplus
 }
 #endif
