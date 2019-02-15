@@ -360,6 +360,7 @@ void destroy_dmesg_component(struct dmesg_component *dmesg_comp)
 	bt_event_class_put_ref(dmesg_comp->event_class);
 	bt_stream_put_ref(dmesg_comp->stream);
 	bt_clock_class_put_ref(dmesg_comp->clock_class);
+	bt_trace_class_put_ref(dmesg_comp->trace_class);
 	g_free(dmesg_comp);
 }
 
