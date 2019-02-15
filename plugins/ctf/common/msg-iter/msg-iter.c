@@ -2994,8 +2994,8 @@ enum bt_msg_iter_status bt_msg_iter_get_packet_properties(
 
 	props->exp_packet_total_size = notit->cur_exp_packet_total_size;
 	props->exp_packet_content_size = notit->cur_exp_packet_content_size;
-	BT_ASSERT(props->stream_class_id >= 0);
 	props->stream_class_id = (uint64_t) notit->cur_stream_class_id;
+	BT_ASSERT(props->stream_class_id >= 0);
 	props->data_stream_id = notit->cur_data_stream_id;
 	props->snapshots.discarded_events = notit->snapshots.discarded_events;
 	props->snapshots.packets = notit->snapshots.packets;
