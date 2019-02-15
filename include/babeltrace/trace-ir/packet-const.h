@@ -55,24 +55,6 @@ extern
 const bt_field *bt_packet_borrow_context_field_const(
 		const bt_packet *packet);
 
-extern
-bt_clock_snapshot_state bt_packet_borrow_default_beginning_clock_snapshot_const(
-		const bt_packet *packet,
-		const bt_clock_snapshot **clock_snapshot);
-
-extern
-bt_clock_snapshot_state bt_packet_borrow_default_end_clock_snapshot_const(
-		const bt_packet *packet,
-		const bt_clock_snapshot **clock_snapshot);
-
-extern
-bt_property_availability bt_packet_get_discarded_event_counter_snapshot(
-		const bt_packet *packet, uint64_t *value);
-
-extern
-bt_property_availability bt_packet_get_packet_counter_snapshot(
-		const bt_packet *packet, uint64_t *value);
-
 extern void bt_packet_get_ref(const bt_packet *packet);
 
 extern void bt_packet_put_ref(const bt_packet *packet);

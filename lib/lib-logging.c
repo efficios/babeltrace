@@ -524,17 +524,9 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 		return;
 	}
 
-	BUF_APPEND(", %sassigns-auto-ec-id=%d, %sassigns-auto-stream-id=%d, "
-		"%spackets-have-discarded-ev-counter-snapshot=%d, "
-		"%spackets-have-packet-counter-snapshot=%d, "
-		"%spackets-have-default-begin-cs=%d, "
-		"%spackets-have-default-end-cs=%d",
+	BUF_APPEND(", %sassigns-auto-ec-id=%d, %sassigns-auto-stream-id=%d",
 		PRFIELD(stream_class->assigns_automatic_event_class_id),
-		PRFIELD(stream_class->assigns_automatic_stream_id),
-		PRFIELD(stream_class->packets_have_discarded_event_counter_snapshot),
-		PRFIELD(stream_class->packets_have_packet_counter_snapshot),
-		PRFIELD(stream_class->packets_have_default_beginning_cs),
-		PRFIELD(stream_class->packets_have_default_end_cs));
+		PRFIELD(stream_class->assigns_automatic_stream_id));
 	BUF_APPEND(", %strace-class-addr=%p", PRFIELD(trace_class));
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);
@@ -658,28 +650,6 @@ static inline void format_packet(char **buf_ch, bool extended,
 	stream = bt_packet_borrow_stream_const(packet);
 	if (!stream) {
 		return;
-	}
-
-	if (packet->default_beginning_cs) {
-		SET_TMP_PREFIX("default-begin-cs-");
-		format_clock_snapshot(buf_ch, true, tmp_prefix,
-			packet->default_beginning_cs);
-	}
-
-	if (packet->default_end_cs) {
-		SET_TMP_PREFIX("default-end-cs-");
-		format_clock_snapshot(buf_ch, true, tmp_prefix,
-			packet->default_end_cs);
-	}
-
-	if (packet->discarded_event_counter_snapshot.base.avail) {
-		BUF_APPEND(", %sdiscarded-ev-counter-snapshot=%" PRIu64,
-			PRFIELD(packet->discarded_event_counter_snapshot.value));
-	}
-
-	if (packet->packet_counter_snapshot.base.avail) {
-		BUF_APPEND(", %spacket-counter-snapshot=%" PRIu64,
-			PRFIELD(packet->packet_counter_snapshot.value));
 	}
 
 	BUF_APPEND(", %sstream-addr=%p", PRFIELD(stream));

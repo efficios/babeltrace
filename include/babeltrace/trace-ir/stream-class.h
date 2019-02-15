@@ -85,22 +85,6 @@ extern bt_stream_class_status bt_stream_class_set_default_clock_class(
 		bt_stream_class *stream_class,
 		bt_clock_class *clock_class);
 
-extern void
-bt_stream_class_set_packets_have_discarded_event_counter_snapshot(
-		bt_stream_class *stream_class, bt_bool value);
-
-extern void
-bt_stream_class_set_packets_have_packet_counter_snapshot(
-		bt_stream_class *stream_class, bt_bool value);
-
-extern void
-bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
-		bt_stream_class *stream_class, bt_bool value);
-
-extern void
-bt_stream_class_set_packets_have_default_end_clock_snapshot(
-		bt_stream_class *stream_class, bt_bool value);
-
 #ifdef __cplusplus
 }
 #endif
