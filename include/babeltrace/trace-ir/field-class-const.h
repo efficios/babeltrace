@@ -108,7 +108,7 @@ bt_field_class_unsigned_enumeration_mapping_ranges_get_range_by_index(
 
 extern void
 bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
-		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
+		const bt_field_class_signed_enumeration_mapping_ranges *ranges,
 		uint64_t index, int64_t *lower, int64_t *upper);
 
 extern bt_field_class_status
