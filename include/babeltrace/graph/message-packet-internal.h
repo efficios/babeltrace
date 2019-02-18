@@ -26,12 +26,14 @@
 
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/trace-ir/packet.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
 #include <babeltrace/graph/message-internal.h>
 #include <babeltrace/assert-internal.h>
 
 struct bt_message_packet {
 	struct bt_message parent;
 	struct bt_packet *packet;
+	struct bt_clock_snapshot *default_cs;
 };
 
 BT_HIDDEN

@@ -30,6 +30,7 @@
 #include <babeltrace/trace-ir/stream-class.h>
 #include <babeltrace/trace-ir/stream.h>
 #include <babeltrace/trace-ir/stream-internal.h>
+#include <babeltrace/trace-ir/stream-class-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/message-packet-beginning-const.h>
 #include <babeltrace/graph/message-packet-end-const.h>
@@ -78,9 +79,10 @@ struct bt_message *bt_message_packet_end_new(struct bt_graph *graph)
 }
 
 static inline
-struct bt_message *bt_message_packet_create(
+struct bt_message *create_packet_message(
 		struct bt_self_component_port_input_message_iterator *msg_iter,
-		struct bt_packet *packet, struct bt_object_pool *pool)
+		struct bt_packet *packet, struct bt_object_pool *pool,
+		bool with_cs, uint64_t raw_value)
 {
 	struct bt_message_packet *message = NULL;
 	struct bt_stream *stream;
@@ -92,6 +94,14 @@ struct bt_message *bt_message_packet_create(
 	BT_ASSERT(stream);
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
+	BT_ASSERT_PRE((with_cs && stream_class->default_clock_class) ||
+		(!with_cs && !stream_class->default_clock_class),
+		"Creating a packet message with a default clock snapshot, but without "
+		"a default clock class, or without a default clock snapshot, "
+		"but with a default clock class: ",
+		"%![stream-]+s, %![sc-]+S, with-cs=%d, "
+		"cs-val=%" PRIu64,
+		stream, stream_class, with_cs, raw_value);
 	BT_LIB_LOGD("Creating packet message object: "
 		"%![packet-]+a, %![stream-]+s, %![sc-]+S",
 		packet, stream, stream_class);
@@ -99,6 +109,19 @@ struct bt_message *bt_message_packet_create(
 	if (!message) {
 		/* bt_message_create_from_pool() logs errors */
 		goto end;
+	}
+
+	if (with_cs) {
+		BT_ASSERT(stream_class->default_clock_class);
+		message->default_cs = bt_clock_snapshot_create(
+			stream_class->default_clock_class);
+		if (!message->default_cs) {
+			bt_object_put_no_null_check(message);
+			message = NULL;
+			goto end;
+		}
+
+		bt_clock_snapshot_set_raw_value(message->default_cs, raw_value);
 	}
 
 	BT_ASSERT(!message->packet);
@@ -123,8 +146,20 @@ struct bt_message *bt_message_packet_beginning_create(
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
-	return bt_message_packet_create(msg_iter, (void *) packet,
-		&msg_iter->graph->packet_begin_msg_pool);
+	return create_packet_message(msg_iter, (void *) packet,
+		&msg_iter->graph->packet_begin_msg_pool, false, 0);
+}
+
+struct bt_message *bt_message_packet_beginning_create_with_default_clock_snapshot(
+		struct bt_self_message_iterator *self_msg_iter,
+		const struct bt_packet *packet, uint64_t raw_value)
+{
+	struct bt_self_component_port_input_message_iterator *msg_iter =
+		(void *) self_msg_iter;
+
+	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
+	return create_packet_message(msg_iter, (void *) packet,
+		&msg_iter->graph->packet_begin_msg_pool, true, raw_value);
 }
 
 struct bt_message *bt_message_packet_end_create(
@@ -135,8 +170,20 @@ struct bt_message *bt_message_packet_end_create(
 		(void *) self_msg_iter;
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
-	return bt_message_packet_create(msg_iter, (void *) packet,
-		&msg_iter->graph->packet_end_msg_pool);
+	return create_packet_message(msg_iter, (void *) packet,
+		&msg_iter->graph->packet_end_msg_pool, false, 0);
+}
+
+struct bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
+		struct bt_self_message_iterator *self_msg_iter,
+		const struct bt_packet *packet, uint64_t raw_value)
+{
+	struct bt_self_component_port_input_message_iterator *msg_iter =
+		(void *) self_msg_iter;
+
+	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
+	return create_packet_message(msg_iter, (void *) packet,
+		&msg_iter->graph->packet_end_msg_pool, true, raw_value);
 }
 
 BT_HIDDEN
@@ -147,6 +194,12 @@ void bt_message_packet_destroy(struct bt_message *msg)
 	BT_LIB_LOGD("Destroying packet message: %!+n", msg);
 	BT_LIB_LOGD("Putting packet: %!+a", packet_msg->packet);
 	BT_OBJECT_PUT_REF_AND_RESET(packet_msg->packet);
+
+	if (packet_msg->default_cs) {
+		bt_clock_snapshot_recycle(packet_msg->default_cs);
+		packet_msg->default_cs = NULL;
+	}
+
 	g_free(msg);
 }
 
@@ -158,6 +211,12 @@ void recycle_packet_message(struct bt_message *msg, struct bt_object_pool *pool)
 	BT_LIB_LOGD("Recycling packet message: %!+n", msg);
 	bt_message_reset(msg);
 	bt_object_put_no_null_check(&packet_msg->packet->base);
+
+	if (packet_msg->default_cs) {
+		bt_clock_snapshot_recycle(packet_msg->default_cs);
+		packet_msg->default_cs = NULL;
+	}
+
 	packet_msg->packet = NULL;
 	msg->graph = NULL;
 	bt_object_pool_recycle_object(pool, msg);
@@ -223,4 +282,44 @@ const struct bt_packet *bt_message_packet_end_borrow_packet_const(
 {
 	return bt_message_packet_end_borrow_packet(
 		(void *) message);
+}
+
+static inline
+enum bt_clock_snapshot_state
+borrow_packet_message_default_clock_snapshot_const(
+		const struct bt_message *message,
+		const struct bt_clock_snapshot **snapshot)
+{
+	struct bt_message_packet *packet_msg = (void *) message;
+
+	BT_ASSERT(message);
+	BT_ASSERT_PRE(packet_msg->packet->stream->class->default_clock_class,
+		"Message's stream's class has no default clock class: "
+		"%![msg-]+n, %![sc-]+S",
+		message, packet_msg->packet->stream->class);
+	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
+	*snapshot = packet_msg->default_cs;
+	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
+}
+
+enum bt_clock_snapshot_state
+bt_message_packet_beginning_borrow_default_clock_snapshot_const(
+		const struct bt_message *msg,
+		const struct bt_clock_snapshot **snapshot)
+{
+	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_BEGINNING);
+	return borrow_packet_message_default_clock_snapshot_const(
+		msg, snapshot);
+}
+
+enum bt_clock_snapshot_state
+bt_message_packet_end_borrow_default_clock_snapshot_const(
+		const struct bt_message *msg,
+		const struct bt_clock_snapshot **snapshot)
+{
+	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_END);
+	return borrow_packet_message_default_clock_snapshot_const(
+		msg, snapshot);
 }
