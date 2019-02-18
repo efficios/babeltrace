@@ -74,6 +74,15 @@ struct bt_message *create_discarded_items_message(
 	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
+	BT_ASSERT_PRE((with_cs && stream_class->default_clock_class) ||
+		(!with_cs && !stream_class->default_clock_class),
+		"Creating a message with a default clock snapshot, but without "
+		"a default clock class, or without a default clock snapshot, "
+		"but with a default clock class: ",
+		"type=%s, %![stream-]+s, %![sc-]+S, with-cs=%d, "
+		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64,
+		bt_message_type_string(type), stream, stream_class,
+		with_cs, beginning_raw_value, end_raw_value);
 	BT_LIB_LOGD("Creating discarded items message object: "
 		"type=%s, %![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-begin-val=%" PRIu64 ", cs-end-val=%" PRIu64,
@@ -91,6 +100,7 @@ struct bt_message *create_discarded_items_message(
 	bt_object_get_no_null_check(message->stream);
 
 	if (with_cs) {
+		BT_ASSERT(stream_class->default_clock_class);
 		message->default_begin_cs = bt_clock_snapshot_create(
 			stream_class->default_clock_class);
 		if (!message->default_begin_cs) {
