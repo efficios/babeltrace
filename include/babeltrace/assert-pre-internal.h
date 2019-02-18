@@ -58,7 +58,7 @@
 # define BT_ASSERT_PRE(_cond, _fmt, ...)				\
 	do {								\
 		if (!(_cond)) {						\
-			BT_LOGF_STR("Library precondition not satisfied:"); \
+			BT_LOGF_STR("Library precondition not satisfied; error is:"); \
 			BT_LIB_LOGF((_fmt), ##__VA_ARGS__);		\
 			BT_LOGF_STR("Aborting...");			\
 			abort();					\
