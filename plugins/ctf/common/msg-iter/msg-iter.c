@@ -2511,8 +2511,16 @@ void create_msg_packet_beginning(struct bt_msg_iter *notit,
 	}
 
 	BT_ASSERT(notit->msg_iter);
-	msg = bt_message_packet_beginning_create(notit->msg_iter,
-		notit->packet);
+
+	if (notit->snapshots.beginning_clock == UINT64_C(-1)) {
+		msg = bt_message_packet_beginning_create(notit->msg_iter,
+			notit->packet);
+	} else {
+		msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
+			notit->msg_iter, notit->packet,
+			notit->snapshots.beginning_clock);
+	}
+
 	if (!msg) {
 		BT_LOGE("Cannot create packet beginning message: "
 			"notit-addr=%p, packet-addr=%p",
@@ -2541,8 +2549,16 @@ void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 	}
 
 	BT_ASSERT(notit->msg_iter);
-	msg = bt_message_packet_end_create(notit->msg_iter,
-		notit->packet);
+
+	if (notit->snapshots.end_clock == UINT64_C(-1)) {
+		msg = bt_message_packet_end_create(notit->msg_iter,
+			notit->packet);
+	} else {
+		msg = bt_message_packet_end_create_with_default_clock_snapshot(
+			notit->msg_iter, notit->packet,
+			notit->snapshots.end_clock);
+	}
+
 	if (!msg) {
 		BT_LOGE("Cannot create packet end message: "
 			"notit-addr=%p, packet-addr=%p",

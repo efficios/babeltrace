@@ -50,6 +50,7 @@ struct dmesg_msg_iter {
 	size_t linebuf_len;
 	FILE *fp;
 	bt_message *tmp_event_msg;
+	uint64_t last_clock_value;
 
 	enum {
 		STATE_EMIT_STREAM_BEGINNING,
@@ -527,6 +528,7 @@ skip_ts:
 
 	if (dmesg_comp->clock_class) {
 		bt_event_set_default_clock_snapshot(event, ts);
+		msg_iter->last_clock_value = ts;
 	}
 
 	goto end;
@@ -789,8 +791,16 @@ handle_state:
 		break;
 	case STATE_EMIT_PACKET_BEGINNING:
 		BT_ASSERT(dmesg_msg_iter->tmp_event_msg);
-		*msg = bt_message_packet_beginning_create(
-			dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
+
+		if (dmesg_comp->clock_class) {
+			*msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
+				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet,
+				dmesg_msg_iter->last_clock_value);
+		} else {
+			*msg = bt_message_packet_beginning_create(
+				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
+		}
+
 		dmesg_msg_iter->state = STATE_EMIT_EVENT;
 		break;
 	case STATE_EMIT_EVENT:
@@ -799,8 +809,15 @@ handle_state:
 		dmesg_msg_iter->tmp_event_msg = NULL;
 		break;
 	case STATE_EMIT_PACKET_END:
-		*msg = bt_message_packet_end_create(
-			dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
+		if (dmesg_comp->clock_class) {
+			*msg = bt_message_packet_end_create_with_default_clock_snapshot(
+				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet,
+				dmesg_msg_iter->last_clock_value);
+		} else {
+			*msg = bt_message_packet_end_create(
+				dmesg_msg_iter->pc_msg_iter, dmesg_comp->packet);
+		}
+
 		dmesg_msg_iter->state = STATE_EMIT_STREAM_ACTIVITY_END;
 		break;
 	case STATE_EMIT_STREAM_ACTIVITY_END:
