@@ -50,3 +50,61 @@ const char *get_filename_from_path(const char *path)
 end:
 	return path;
 }
+
+BT_HIDDEN
+bt_bool is_event_common_ctx_dbg_info_compatible(const bt_field_class *in_field_class,
+		const char *debug_info_field_class_name)
+{
+	const bt_field_class *ip_fc, *vpid_fc, *debug_info_fc;
+	bt_bool match = BT_FALSE;
+
+	/*
+	 * If the debug info field is already present in the event common
+	 * context. Do not try to add it.
+	 */
+	debug_info_fc =
+		bt_field_class_structure_borrow_member_field_class_by_name_const(
+			in_field_class, debug_info_field_class_name);
+	if (debug_info_fc) {
+		goto end;
+	}
+
+	/*
+	 * Verify that the ip and vpid field are present and of the right field
+	 * class.
+	 */
+	ip_fc = bt_field_class_structure_borrow_member_field_class_by_name_const(
+			in_field_class, IP_FIELD_NAME);
+	if (!ip_fc) {
+		goto end;
+	}
+
+	if (bt_field_class_get_type(ip_fc) !=
+			BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER) {
+		match = BT_FALSE;
+		goto end;
+	}
+
+	if (bt_field_class_integer_get_field_value_range(ip_fc) != 64) {
+		goto end;
+	}
+
+	vpid_fc = bt_field_class_structure_borrow_member_field_class_by_name_const(
+			in_field_class, VPID_FIELD_NAME);
+	if (!vpid_fc) {
+		goto end;
+	}
+
+	if (bt_field_class_get_type(vpid_fc) !=
+			BT_FIELD_CLASS_TYPE_SIGNED_INTEGER) {
+		goto end;
+	}
+
+	if (bt_field_class_integer_get_field_value_range(vpid_fc) != 32) {
+		goto end;
+	}
+
+	match = BT_TRUE;
+end:
+	return match;
+}

@@ -1,12 +1,11 @@
-#ifndef BABELTRACE_CLOCK_FIELDS_H
-#define BABELTRACE_CLOCK_FIELDS_H
+#ifndef BABELTRACE_PLUGIN_DEBUG_INFO_TRACE_DATA_COPY_H
+#define BABELTRACE_PLUGIN_DEBUG_INFO_TRACE_DATA_COPY_H
 
 /*
- * BabelTrace - Update clock fields to write uint64 values
+ * Babeltrace - Trace IR data object copy
  *
- * Copyright 2017 Julien Desfossez <jdesfossez@efficios.com>
- *
- * Author: Julien Desfossez <jdesfossez@efficios.com>
+ * Copyright (c) 2019 EfficiOS Inc. and Linux Foundation
+ * Copyright (c) 2019 Francis Deslauriers <francis.deslauriers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,34 +26,19 @@
  * SOFTWARE.
  */
 
-#include <stdbool.h>
-#include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/babeltrace.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "trace-ir-mapping.h"
 
 BT_HIDDEN
-bt_field_type *override_header_type(FILE *err,
-		bt_field_type *type,
-		const bt_trace *writer_trace);
-
+void copy_trace_content(const bt_trace *in_trace, bt_trace *out_trace);
 BT_HIDDEN
-int copy_override_field(FILE *err, const bt_event *event,
-		const bt_event *writer_event, const bt_field *field,
-		const bt_field *copy_field);
-
+void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream);
 BT_HIDDEN
-const bt_clock_class *stream_class_get_clock_class(FILE *err,
-		const bt_stream_class *stream_class);
-
+void copy_packet_content(const bt_packet *in_packet, bt_packet *out_packet);
 BT_HIDDEN
-const bt_clock_class *event_get_clock_class(FILE *err,
-		const bt_event *event);
+void copy_event_content(const bt_event *in_event, bt_event *out_event);
+BT_HIDDEN
+void copy_field_content(const bt_field *in_field, bt_field *out_field);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_CLOCK_FIELDS_H */
+#endif /* BABELTRACE_PLUGIN_DEBUG_INFO_TRACE_DATA_COPY_H */

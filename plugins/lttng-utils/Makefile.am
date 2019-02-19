@@ -1,5 +1,4 @@
-AM_CPPFLAGS += -I$(top_srcdir)/plugins \
-	    -I$(top_srcdir)/plugins/libctfcopytrace
+AM_CPPFLAGS += -I$(top_srcdir)/plugins
 
 noinst_LTLIBRARIES = libdebug-info.la
 libdebug_info_la_SOURCES = \
@@ -11,6 +10,14 @@ libdebug_info_la_SOURCES = \
 	debug-info.h \
 	dwarf.c \
 	dwarf.h \
+	trace-ir-data-copy.c \
+	trace-ir-data-copy.h \
+	trace-ir-mapping.c \
+	trace-ir-mapping.h \
+	trace-ir-metadata-copy.c \
+	trace-ir-metadata-copy.h \
+	trace-ir-metadata-field-class-copy.c \
+	trace-ir-metadata-field-class-copy.h \
 	logging.c \
 	logging.h
 
@@ -20,9 +27,7 @@ plugin_LTLIBRARIES = babeltrace-plugin-lttng-utils.la
 babeltrace_plugin_lttng_utils_la_SOURCES = \
 	plugin.c \
 	utils.c \
-	copy.c \
 	utils.h \
-	copy.h \
 	logging.h
 
 babeltrace_plugin_lttng_utils_la_LIBADD = \
@@ -37,6 +42,5 @@ if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_lttng_utils_la_LIBADD += \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la \
-	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
+	$(top_builddir)/logging/libbabeltrace-logging.la
 endif

@@ -68,7 +68,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 ##                      ##
 
 MINGW32=no
-DEFAULT_ENABLE_DEBUG_INFO=no
+DEFAULT_ENABLE_DEBUG_INFO=yes
 LT_NO_UNDEFINED=""
 AS_CASE([$host_os],
   [solaris*|darwin*],
@@ -787,7 +787,6 @@ AC_CONFIG_FILES([
 	plugins/utils/trimmer/Makefile
 	plugins/utils/muxer/Makefile
 	python-plugin-provider/Makefile
-	plugins/libctfcopytrace/Makefile
 	plugins/lttng-utils/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc

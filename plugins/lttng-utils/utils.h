@@ -1,6 +1,5 @@
-#ifndef _BABELTRACE_DEBUG_INFO_UTILS_H
-#define _BABELTRACE_DEBUG_INFO_UTILS_H
-
+#ifndef BABELTRACE_PLUGIN_DEBUG_INFO_UTILS_H
+#define BABELTRACE_PLUGIN_DEBUG_INFO_UTILS_H
 /*
  * Babeltrace - Debug Info Utilities
  *
@@ -28,6 +27,7 @@
  */
 
 #include <babeltrace/babeltrace-internal.h>
+#include "trace-ir-mapping.h"
 
 /*
  * Return the location of a path's file (the last element of the path).
@@ -36,4 +36,9 @@
 BT_HIDDEN
 const char *get_filename_from_path(const char *path);
 
-#endif	/* _BABELTRACE_DEBUG_INFO_UTILS_H */
+BT_HIDDEN
+bt_bool is_event_common_ctx_dbg_info_compatible(
+		const bt_field_class *in_field_class,
+		const char *debug_info_field_class_name);
+
+#endif	/* BABELTRACE_PLUGIN_DEBUG_INFO_UTILS_H */
