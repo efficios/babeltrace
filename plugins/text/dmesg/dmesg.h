@@ -51,4 +51,12 @@ bt_self_message_iterator_status dmesg_msg_iter_next(
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
+BT_HIDDEN
+bt_bool dmesg_msg_iter_can_seek_beginning(
+		bt_self_message_iterator *message_iterator);
+
+BT_HIDDEN
+bt_self_message_iterator_status dmesg_msg_iter_seek_beginning(
+		bt_self_message_iterator *message_iterator);
+
 #endif /* BABELTRACE_PLUGIN_TEXT_DMESG_DMESG_H */
