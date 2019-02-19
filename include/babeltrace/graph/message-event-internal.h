@@ -37,6 +37,7 @@ extern "C" {
 struct bt_message_event {
 	struct bt_message parent;
 	struct bt_event *event;
+	struct bt_clock_snapshot *default_cs;
 };
 
 BT_HIDDEN
