@@ -195,4 +195,8 @@ bt_self_message_iterator_status ctf_fs_iterator_next(
 		bt_message_array_const msgs, uint64_t capacity,
 		uint64_t *count);
 
+BT_HIDDEN
+bt_self_message_iterator_status ctf_fs_iterator_seek_beginning(
+		bt_self_message_iterator *message_iterator);
+
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */

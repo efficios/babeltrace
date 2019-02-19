@@ -194,12 +194,49 @@ bt_self_message_iterator_status ctf_fs_iterator_next(
 	return status;
 }
 
+static
+int ctf_fs_iterator_reset(struct ctf_fs_msg_iter_data *msg_iter_data)
+{
+	int ret;
+
+	msg_iter_data->ds_file_info_index = 0;
+	ret = msg_iter_data_set_current_ds_file(msg_iter_data);
+	if (ret) {
+		goto end;
+	}
+
+	bt_msg_iter_reset(msg_iter_data->msg_iter);
+	set_msg_iter_emits_stream_beginning_end_messages(msg_iter_data);
+
+end:
+	return ret;
+}
+
+BT_HIDDEN
+bt_self_message_iterator_status ctf_fs_iterator_seek_beginning(
+		bt_self_message_iterator *it)
+{
+	struct ctf_fs_msg_iter_data *msg_iter_data =
+		bt_self_message_iterator_get_data(it);
+	bt_self_message_iterator_status status =
+		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+
+	BT_ASSERT(msg_iter_data);
+	if (ctf_fs_iterator_reset(msg_iter_data)) {
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+	}
+
+	return status;
+}
+
+BT_HIDDEN
 void ctf_fs_iterator_finalize(bt_self_message_iterator *it)
 {
 	ctf_fs_msg_iter_data_destroy(
 		bt_self_message_iterator_get_data(it));
 }
 
+BT_HIDDEN
 bt_self_message_iterator_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
@@ -209,7 +246,6 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 	struct ctf_fs_msg_iter_data *msg_iter_data = NULL;
 	bt_self_message_iterator_status ret =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
-	int iret;
 
 	port_data = bt_self_component_port_get_data(
 		bt_self_component_port_output_as_self_component_port(
@@ -233,13 +269,11 @@ bt_self_message_iterator_status ctf_fs_iterator_init(
 	}
 
 	msg_iter_data->ds_file_group = port_data->ds_file_group;
-	iret = msg_iter_data_set_current_ds_file(msg_iter_data);
-	if (iret) {
+	if (ctf_fs_iterator_reset(msg_iter_data)) {
 		ret = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 		goto error;
 	}
 
-	set_msg_iter_emits_stream_beginning_end_messages(msg_iter_data);
 	bt_self_message_iterator_set_data(self_msg_iter,
 		msg_iter_data);
 	if (ret != BT_SELF_MESSAGE_ITERATOR_STATUS_OK) {
