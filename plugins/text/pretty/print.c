@@ -213,22 +213,20 @@ int print_event_timestamp(struct pretty_component *pretty,
 {
 	bool print_names = pretty->options.print_header_field_names;
 	int ret = 0;
-	const bt_stream *stream = NULL;
-	const bt_stream_class *stream_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
-	const bt_event *event = bt_message_event_borrow_event_const(event_msg);
 
-	stream = bt_event_borrow_stream_const(event);
-	stream_class = bt_stream_borrow_class_const(stream);
-
-	if (!bt_stream_class_borrow_default_clock_class_const(stream_class)) {
+	if (!bt_message_event_borrow_stream_class_default_clock_class_const(
+			event_msg)) {
 		/* No default clock class: skip the timestamp without an error */
 		goto end;
 	}
 
 	if (bt_message_event_borrow_default_clock_snapshot_const(event_msg,
 			&clock_snapshot) != BT_CLOCK_SNAPSHOT_STATE_KNOWN) {
-		/* No default clock value: skip the timestamp without an error */
+		/*
+		 * No known default clock value: skip the timestamp
+		 * without an error.
+		 */
 		goto end;
 	}
 
