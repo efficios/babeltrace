@@ -610,7 +610,6 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 {
 	const bt_clock_class *clock_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
-	const bt_event *event = NULL;
 	int ret = 0;
 	const unsigned char *cc_uuid;
 	const char *cc_name;
@@ -626,10 +625,8 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 	switch (bt_message_get_type(msg)) {
 	case BT_MESSAGE_TYPE_EVENT:
-		event = bt_message_event_borrow_event_const(msg);
-		BT_ASSERT(event);
-		cs_state = bt_event_borrow_default_clock_snapshot_const(event,
-			&clock_snapshot);
+		cs_state = bt_message_event_borrow_default_clock_snapshot_const(
+			msg, &clock_snapshot);
 		break;
 
 	case BT_MESSAGE_TYPE_INACTIVITY:

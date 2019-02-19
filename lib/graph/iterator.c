@@ -985,7 +985,7 @@ int get_message_ns_from_origin(const struct bt_message *msg,
 		const struct bt_message_event *event_msg =
 			(const void *) msg;
 
-		clk_snapshot = event_msg->event->default_cs;
+		clk_snapshot = event_msg->default_cs;
 		BT_ASSERT_PRE(clk_snapshot,
 			"Event has no default clock snapshot: %!+e",
 			event_msg->event);

@@ -712,12 +712,6 @@ static inline void format_event(char **buf_ch, bool extended,
 		}
 	}
 
-	if (event->default_cs) {
-		SET_TMP_PREFIX("default-cs-");
-		format_clock_snapshot(buf_ch, true, tmp_prefix,
-			event->default_cs);
-	}
-
 	packet = bt_event_borrow_packet_const(event);
 	if (!packet) {
 		return;

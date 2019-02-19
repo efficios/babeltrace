@@ -1183,8 +1183,17 @@ enum bt_msg_iter_status set_current_event_message(
 		notit->meta.ec->name->str,
 		notit->packet);
 	BT_ASSERT(notit->msg_iter);
-	msg = bt_message_event_create(notit->msg_iter,
-		notit->meta.ec->ir_ec, notit->packet);
+	BT_ASSERT(notit->meta.sc);
+
+	if (bt_stream_class_borrow_default_clock_class(notit->meta.sc->ir_sc)) {
+		msg = bt_message_event_create_with_default_clock_snapshot(
+			notit->msg_iter, notit->meta.ec->ir_ec,
+			notit->packet, notit->default_clock_snapshot);
+	} else {
+		msg = bt_message_event_create(notit->msg_iter,
+			notit->meta.ec->ir_ec, notit->packet);
+	}
+
 	if (!msg) {
 		BT_LOGE("Cannot create event message: "
 			"notit-addr=%p, ec-addr=%p, ec-name=\"%s\", "
@@ -2370,20 +2379,6 @@ end:
 }
 
 static
-void set_event_default_clock_snapshot(struct bt_msg_iter *notit)
-{
-	bt_event *event = bt_message_event_borrow_event(notit->event_msg);
-	bt_stream_class *sc = notit->meta.sc->ir_sc;
-
-	BT_ASSERT(event);
-
-	if (bt_stream_class_borrow_default_clock_class(sc)) {
-		bt_event_set_default_clock_snapshot(event,
-			notit->default_clock_snapshot);
-	}
-}
-
-static
 void create_msg_stream_beginning(struct bt_msg_iter *notit,
 		bt_message **message)
 {
@@ -2778,7 +2773,6 @@ enum bt_msg_iter_status bt_msg_iter_get_next_message(
 		switch (notit->state) {
 		case STATE_EMIT_MSG_EVENT:
 			BT_ASSERT(notit->event_msg);
-			set_event_default_clock_snapshot(notit);
 			*message = notit->event_msg;
 			notit->event_msg = NULL;
 			goto end;
