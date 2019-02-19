@@ -50,7 +50,7 @@ uint64_t get_total_count(struct counter *counter)
 		counter->count.stream_end +
 		counter->count.packet_begin +
 		counter->count.packet_end +
-		counter->count.inactivity +
+		counter->count.msg_iter_inactivity +
 		counter->count.other;
 }
 
@@ -64,7 +64,8 @@ void print_count(struct counter *counter)
 	PRINTF_COUNT("stream end", "stream ends", stream_end);
 	PRINTF_COUNT("packet beginning", "packet beginnings", packet_begin);
 	PRINTF_COUNT("packet end", "packet ends", packet_end);
-	PRINTF_COUNT("inactivity", "inactivities", inactivity);
+	PRINTF_COUNT("message iterator inactivity",
+			"message iterator inactivities", msg_iter_inactivity);
 
 	if (counter->count.other > 0) {
 		PRINTF_COUNT("  other (unknown) message",
@@ -245,8 +246,8 @@ bt_self_component_status counter_consume(
 			case BT_MESSAGE_TYPE_EVENT:
 				counter->count.event++;
 				break;
-			case BT_MESSAGE_TYPE_INACTIVITY:
-				counter->count.inactivity++;
+			case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
+				counter->count.msg_iter_inactivity++;
 				break;
 			case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 				counter->count.stream_begin++;
