@@ -626,42 +626,81 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 	switch (bt_message_get_type(msg)) {
 	case BT_MESSAGE_TYPE_EVENT:
+		clock_class =
+			bt_message_event_borrow_stream_class_default_clock_class_const(
+				msg);
+		if (!clock_class) {
+			goto no_clock_snapshot;
+		}
+
 		cs_state = bt_message_event_borrow_default_clock_snapshot_const(
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+		bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
+			msg);
+		if (!clock_class) {
+			goto no_clock_snapshot;
+		}
+
 		cs_state = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
+		bt_message_packet_end_borrow_stream_class_default_clock_class_const(
+			msg);
+		if (!clock_class) {
+			goto no_clock_snapshot;
+		}
+
 		cs_state = bt_message_packet_end_borrow_default_clock_snapshot_const(
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+		bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
+			msg);
+		if (!clock_class) {
+			goto no_clock_snapshot;
+		}
+
 		cs_state = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+		bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
+			msg);
+		if (!clock_class) {
+			goto no_clock_snapshot;
+		}
+
 		cs_state = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
+		bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
+			msg);
+		if (!clock_class) {
+			goto no_clock_snapshot;
+		}
+
 		sa_cs_state = bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
 			msg, &clock_snapshot);
 		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
-			/* No timestamp: high priority */
-			*ts_ns = last_returned_ts_ns;
-			goto end;
+			goto no_clock_snapshot;
 		}
 
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
+		bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
+			msg);
+		if (!clock_class) {
+			goto no_clock_snapshot;
+		}
+
 		sa_cs_state = bt_message_stream_activity_end_borrow_default_clock_snapshot_const(
 			msg, &clock_snapshot);
 		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
-			/* No timestamp: high priority */
-			*ts_ns = last_returned_ts_ns;
-			goto end;
+			goto no_clock_snapshot;
 		}
 
 		break;
@@ -680,18 +719,6 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN) {
 		BT_LOGE_STR("Unsupported unknown clock snapshot.");
 		ret = -1;
-		goto end;
-	}
-
-	/*
-	 * If the clock snapshot is missing, then we consider that this
-	 * message has no time. In this case it's always the
-	 * youngest.
-	 */
-	if (!clock_snapshot) {
-		BT_LOGV_STR("Message's default clock snapshot is missing: "
-			"using the last returned timestamp.");
-		*ts_ns = last_returned_ts_ns;
 		goto end;
 	}
 
@@ -855,6 +882,12 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		goto error;
 	}
 
+	goto end;
+
+no_clock_snapshot:
+	BT_LOGV_STR("Message's default clock snapshot is missing: "
+		"using the last returned timestamp.");
+	*ts_ns = last_returned_ts_ns;
 	goto end;
 
 error:
