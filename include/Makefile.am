@@ -111,8 +111,10 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/message-packet-beginning.h \
 	babeltrace/graph/message-packet-end-const.h \
 	babeltrace/graph/message-packet-end.h \
+	babeltrace/graph/message-stream-activity-beginning-const.h \
 	babeltrace/graph/message-stream-activity-beginning.h \
 	babeltrace/graph/message-stream-activity-const.h \
+	babeltrace/graph/message-stream-activity-end-const.h \
 	babeltrace/graph/message-stream-activity-end.h \
 	babeltrace/graph/message-stream-beginning-const.h \
 	babeltrace/graph/message-stream-beginning.h \
