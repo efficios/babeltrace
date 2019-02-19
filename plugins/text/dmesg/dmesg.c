@@ -516,8 +516,16 @@ skip_ts:
 		goto error;
 	}
 
-	msg = bt_message_event_create(msg_iter->pc_msg_iter,
-		dmesg_comp->event_class, dmesg_comp->packet);
+	if (dmesg_comp->clock_class) {
+		msg = bt_message_event_create_with_default_clock_snapshot(
+			msg_iter->pc_msg_iter,
+			dmesg_comp->event_class, dmesg_comp->packet, ts);
+		msg_iter->last_clock_value = ts;
+	} else {
+		msg = bt_message_event_create(msg_iter->pc_msg_iter,
+			dmesg_comp->event_class, dmesg_comp->packet);
+	}
+
 	if (!msg) {
 		BT_LOGE_STR("Cannot create event message.");
 		goto error;
@@ -525,12 +533,6 @@ skip_ts:
 
 	event = bt_message_event_borrow_event(msg);
 	BT_ASSERT(event);
-
-	if (dmesg_comp->clock_class) {
-		bt_event_set_default_clock_snapshot(event, ts);
-		msg_iter->last_clock_value = ts;
-	}
-
 	goto end;
 
 error:

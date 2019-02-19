@@ -78,17 +78,9 @@ void print_field_name_equal(struct pretty_component *pretty, const char *name)
 
 static
 void print_timestamp_cycles(struct pretty_component *pretty,
-		const bt_event *event)
+		const bt_clock_snapshot *clock_snapshot)
 {
-	const bt_clock_snapshot *clock_snapshot;
 	uint64_t cycles;
-	bt_clock_snapshot_state cs_state;
-
-	cs_state = bt_event_borrow_default_clock_snapshot_const(event, &clock_snapshot);
-	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN || !clock_snapshot) {
-		g_string_append(pretty->string, "????????????????????");
-		return;
-	}
 
 	cycles = bt_clock_snapshot_get_value(clock_snapshot);
 	g_string_append_printf(pretty->string, "%020" PRIu64, cycles);
@@ -96,6 +88,7 @@ void print_timestamp_cycles(struct pretty_component *pretty,
 	if (pretty->last_cycles_timestamp != -1ULL) {
 		pretty->delta_cycles = cycles - pretty->last_cycles_timestamp;
 	}
+
 	pretty->last_cycles_timestamp = cycles;
 }
 
@@ -216,30 +209,25 @@ end:
 
 static
 int print_event_timestamp(struct pretty_component *pretty,
-		const bt_event *event, bool *start_line)
+		const bt_message *event_msg, bool *start_line)
 {
 	bool print_names = pretty->options.print_header_field_names;
 	int ret = 0;
 	const bt_stream *stream = NULL;
 	const bt_stream_class *stream_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
-	bt_clock_snapshot_state cs_state;
+	const bt_event *event = bt_message_event_borrow_event_const(event_msg);
 
 	stream = bt_event_borrow_stream_const(event);
-	if (!stream) {
-		ret = -1;
-		goto end;
-	}
-
 	stream_class = bt_stream_borrow_class_const(stream);
-	if (!stream_class) {
-		ret = -1;
+
+	if (!bt_stream_class_borrow_default_clock_class_const(stream_class)) {
+		/* No default clock class: skip the timestamp without an error */
 		goto end;
 	}
 
-	cs_state = bt_event_borrow_default_clock_snapshot_const(event,
-		&clock_snapshot);
-	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN || !clock_snapshot) {
+	if (bt_message_event_borrow_default_clock_snapshot_const(event_msg,
+			&clock_snapshot) != BT_CLOCK_SNAPSHOT_STATE_KNOWN) {
 		/* No default clock value: skip the timestamp without an error */
 		goto end;
 	}
@@ -253,11 +241,8 @@ int print_event_timestamp(struct pretty_component *pretty,
 		g_string_append(pretty->string, COLOR_TIMESTAMP);
 	}
 	if (pretty->options.print_timestamp_cycles) {
-		print_timestamp_cycles(pretty, event);
+		print_timestamp_cycles(pretty, clock_snapshot);
 	} else {
-		clock_snapshot = NULL;
-		cs_state = bt_event_borrow_default_clock_snapshot_const(event,
-			&clock_snapshot);
 		print_timestamp_wall(pretty, clock_snapshot);
 	}
 	if (pretty->use_colors) {
@@ -308,7 +293,7 @@ end:
 
 static
 int print_event_header(struct pretty_component *pretty,
-		const bt_event *event)
+		const bt_message *event_msg)
 {
 	bool print_names = pretty->options.print_header_field_names;
 	int ret = 0;
@@ -318,6 +303,7 @@ int print_event_header(struct pretty_component *pretty,
 	const bt_packet *packet = NULL;
 	const bt_stream *stream = NULL;
 	const bt_trace *trace = NULL;
+	const bt_event *event = bt_message_event_borrow_event_const(event_msg);
 	int dom_print = 0;
 	bt_property_availability prop_avail;
 
@@ -327,7 +313,7 @@ int print_event_header(struct pretty_component *pretty,
 	packet = bt_event_borrow_packet_const(event);
 	stream = bt_packet_borrow_stream_const(packet);
 	trace = bt_stream_borrow_trace_const(stream);
-	ret = print_event_timestamp(pretty, event, &pretty->start_line);
+	ret = print_event_timestamp(pretty, event_msg, &pretty->start_line);
 	if (ret) {
 		goto end;
 	}
@@ -1180,7 +1166,7 @@ int pretty_print_event(struct pretty_component *pretty,
 	BT_ASSERT(event);
 	pretty->start_line = true;
 	g_string_assign(pretty->string, "");
-	ret = print_event_header(pretty, event);
+	ret = print_event_header(pretty, event_msg);
 	if (ret != 0) {
 		goto end;
 	}
