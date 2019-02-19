@@ -47,7 +47,7 @@ static inline bool event_class_has_trace(struct bt_event_class *event_class)
 {
 	struct bt_stream_class *stream_class;
 
-	stream_class = bt_event_class_borrow_stream_class(event_class);
+	stream_class = bt_event_class_borrow_stream_class_inline(event_class);
 	BT_ASSERT(stream_class);
 	return bt_stream_class_borrow_trace_class(stream_class) != NULL;
 }
@@ -265,8 +265,7 @@ bt_message_event_borrow_default_clock_snapshot_const(
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
-	BT_ASSERT(msg);
-	stream_class = bt_event_class_borrow_stream_class(
+	stream_class = bt_event_class_borrow_stream_class_inline(
 		event_msg->event->class);
 	BT_ASSERT(stream_class);
 	BT_ASSERT_PRE(stream_class->default_clock_class,
@@ -275,4 +274,19 @@ bt_message_event_borrow_default_clock_snapshot_const(
 	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
 	*snapshot = event_msg->default_cs;
 	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
+}
+
+const bt_clock_class *
+bt_message_event_borrow_stream_class_default_clock_class_const(
+		const bt_message *msg)
+{
+	struct bt_message_event *event_msg = (void *) msg;
+	struct bt_stream_class *stream_class;
+
+	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_EVENT);
+	stream_class = bt_event_class_borrow_stream_class_inline(
+		event_msg->event->class);
+	BT_ASSERT(stream_class);
+	return stream_class->default_clock_class;
 }

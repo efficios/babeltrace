@@ -269,3 +269,35 @@ void bt_message_stream_activity_end_set_default_clock_snapshot_state(
 		BT_MESSAGE_TYPE_STREAM_ACTIVITY_END);
 	set_stream_activity_message_default_clock_snapshot_state(msg, state);
 }
+
+static inline
+const struct bt_clock_class *
+borrow_stream_activity_message_stream_class_default_clock_class(
+		const struct bt_message *msg)
+{
+	struct bt_message_stream_activity *stream_act_msg = (void *) msg;
+
+	BT_ASSERT(msg);
+	return stream_act_msg->stream->class->default_clock_class;
+}
+
+const struct bt_clock_class *
+bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
+		const struct bt_message *msg)
+{
+	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg,
+		BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING);
+	return borrow_stream_activity_message_stream_class_default_clock_class(
+		msg);
+}
+
+const struct bt_clock_class *
+bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
+		const struct bt_message *msg)
+{
+	BT_ASSERT_PRE_NON_NULL(msg, "Message");
+	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_STREAM_ACTIVITY_END);
+	return borrow_stream_activity_message_stream_class_default_clock_class(
+		msg);
+}

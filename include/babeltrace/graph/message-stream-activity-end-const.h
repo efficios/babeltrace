@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-/* For bt_message, bt_clock_snapshot, bt_stream */
+/* For bt_message, bt_clock_snapshot, bt_stream, bt_clock_class */
 #include <babeltrace/types.h>
 
 /* For bt_message_stream_activity_clock_snapshot_state */
@@ -36,6 +36,10 @@ extern "C" {
 extern bt_message_stream_activity_clock_snapshot_state
 bt_message_stream_activity_end_borrow_default_clock_snapshot_const(
 		const bt_message *msg, const bt_clock_snapshot **snapshot);
+
+extern const bt_clock_class *
+bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
+		const bt_message *msg);
 
 extern const bt_stream *
 bt_message_stream_activity_end_borrow_stream_const(
