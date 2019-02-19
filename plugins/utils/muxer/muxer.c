@@ -1495,3 +1495,53 @@ bt_self_component_status muxer_input_port_connected(
 end:
 	return status;
 }
+
+BT_HIDDEN
+bt_bool muxer_msg_iter_can_seek_beginning(
+		bt_self_message_iterator *self_msg_iter)
+{
+	struct muxer_msg_iter *muxer_msg_iter =
+		bt_self_message_iterator_get_data(self_msg_iter);
+	uint64_t i;
+	bt_bool ret = BT_TRUE;
+
+	for (i = 0; i < muxer_msg_iter->muxer_upstream_msg_iters->len; i++) {
+		struct muxer_upstream_msg_iter *upstream_msg_iter =
+			muxer_msg_iter->muxer_upstream_msg_iters->pdata[i];
+
+		if (!bt_self_component_port_input_message_iterator_can_seek_beginning(
+				upstream_msg_iter->msg_iter)) {
+			ret = BT_FALSE;
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
+BT_HIDDEN
+bt_self_message_iterator_status muxer_msg_iter_seek_beginning(
+		bt_self_message_iterator *self_msg_iter)
+{
+	struct muxer_msg_iter *muxer_msg_iter =
+		bt_self_message_iterator_get_data(self_msg_iter);
+	int status;
+	uint64_t i;
+
+	for (i = 0; i < muxer_msg_iter->muxer_upstream_msg_iters->len; i++) {
+		struct muxer_upstream_msg_iter *upstream_msg_iter =
+			muxer_msg_iter->muxer_upstream_msg_iters->pdata[i];
+
+		status = bt_self_component_port_input_message_iterator_seek_beginning(
+			upstream_msg_iter->msg_iter);
+		if (status != BT_MESSAGE_ITERATOR_STATUS_OK) {
+			goto end;
+		}
+	}
+
+	muxer_msg_iter->last_returned_ts_ns = INT64_MIN;
+
+end:
+	return status;
+}
