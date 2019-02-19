@@ -135,7 +135,6 @@ void bin_info_destroy(struct bin_info *bin)
 	g_free(bin);
 }
 
-
 BT_HIDDEN
 int bin_info_set_build_id(struct bin_info *bin, uint8_t *build_id,
 		size_t build_id_len)
@@ -385,13 +384,13 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 
 	dbg_dir = bin->debug_info_dir ? : DEFAULT_DEBUG_DIR;
 
-	dir_name = dirname(bin->elf_path);
+	dir_name = g_path_get_dirname(bin->elf_path);
 	if (!dir_name) {
 		goto error;
 	}
 
 	/* bin_dir is just dir_name with a trailing slash */
-	bin_dir = malloc(strlen(dir_name) + 2);
+	bin_dir = g_new0(char, strlen(dir_name) + 2);
 	if (!bin_dir) {
 		goto error;
 	}
@@ -402,7 +401,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 	max_path_len = strlen(dbg_dir) + strlen(bin_dir) +
 			strlen(DEBUG_SUBDIR) + strlen(bin->dbg_link_filename)
 			+ 1;
-	path = malloc(max_path_len);
+	path = g_new0(char, max_path_len);
 	if (!path) {
 		goto error;
 	}
@@ -436,8 +435,9 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 error:
 	ret = -1;
 end:
-	free(path);
-	free(bin_dir);
+	g_free(dir_name);
+	g_free(path);
+	g_free(bin_dir);
 
 	return ret;
 
