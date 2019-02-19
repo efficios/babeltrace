@@ -647,6 +647,8 @@ void destroy_dmesg_msg_iter(struct dmesg_msg_iter *dmesg_msg_iter)
 	g_free(dmesg_msg_iter);
 }
 
+
+
 BT_HIDDEN
 bt_self_message_iterator_status dmesg_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
@@ -896,4 +898,30 @@ bt_self_message_iterator_status dmesg_msg_iter_next(
 	}
 
 	return status;
+}
+
+BT_HIDDEN
+bt_bool dmesg_msg_iter_can_seek_beginning(
+		bt_self_message_iterator *self_msg_iter)
+{
+	struct dmesg_msg_iter *dmesg_msg_iter =
+		bt_self_message_iterator_get_data(self_msg_iter);
+
+	/* Can't seek the beginning of the standard input stream */
+	return !dmesg_msg_iter->dmesg_comp->params.read_from_stdin;
+}
+
+BT_HIDDEN
+bt_self_message_iterator_status dmesg_msg_iter_seek_beginning(
+		bt_self_message_iterator *self_msg_iter)
+{
+	struct dmesg_msg_iter *dmesg_msg_iter =
+		bt_self_message_iterator_get_data(self_msg_iter);
+
+	BT_ASSERT(!dmesg_msg_iter->dmesg_comp->params.read_from_stdin);
+
+	BT_MESSAGE_PUT_REF_AND_RESET(dmesg_msg_iter->tmp_event_msg);
+	dmesg_msg_iter->last_clock_value = 0;
+	dmesg_msg_iter->state = STATE_EMIT_STREAM_BEGINNING;
+	return BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 }
