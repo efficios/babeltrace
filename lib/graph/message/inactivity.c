@@ -51,7 +51,8 @@ void bt_message_inactivity_destroy(struct bt_object *obj)
 
 struct bt_message *bt_message_inactivity_create(
 		struct bt_self_message_iterator *self_msg_iter,
-		const struct bt_clock_class *default_clock_class)
+		const struct bt_clock_class *default_clock_class,
+		uint64_t value_cycles)
 {
 	struct bt_self_component_port_input_message_iterator *msg_iter =
 		(void *) self_msg_iter;
@@ -61,8 +62,8 @@ struct bt_message *bt_message_inactivity_create(
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	BT_ASSERT_PRE_NON_NULL(default_clock_class, "Default clock class");
 	BT_LIB_LOGD("Creating inactivity message object: "
-		"%![iter-]+i, %![default-cc-]+K", msg_iter,
-		default_clock_class);
+		"%![iter-]+i, %![default-cc-]+K, value=%" PRIu64, msg_iter,
+		default_clock_class, value_cycles);
 	message = g_new0(struct bt_message_inactivity, 1);
 	if (!message) {
 		BT_LOGE_STR("Failed to allocate one inactivity message.");
@@ -77,6 +78,7 @@ struct bt_message *bt_message_inactivity_create(
 	if (!message->default_cs) {
 		goto error;
 	}
+	bt_clock_snapshot_set_raw_value(message->default_cs, value_cycles);
 
 	BT_LIB_LOGD("Created inactivity message object: %!+n", ret_msg);
 	goto end;
@@ -86,19 +88,6 @@ error:
 
 end:
 	return (void *) ret_msg;
-}
-
-void bt_message_inactivity_set_default_clock_snapshot(
-		struct bt_message *msg, uint64_t value_cycles)
-{
-	struct bt_message_inactivity *inactivity = (void *) msg;
-
-	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_INACTIVITY);
-	BT_ASSERT_PRE_HOT(msg, "Message", ": %!+n", msg);
-	bt_clock_snapshot_set_raw_value(inactivity->default_cs, value_cycles);
-	BT_LIB_LOGV("Set inactivity message's default clock snapshot: "
-		"%![msg-]+n, value=%" PRIu64, msg, value_cycles);
 }
 
 extern enum bt_clock_snapshot_state
