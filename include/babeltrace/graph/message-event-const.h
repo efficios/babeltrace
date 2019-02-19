@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-/* For bt_message, bt_event */
+/* For bt_bool, bt_message, bt_event. bt_clock_class, bt_clock_snapshot */
 #include <babeltrace/types.h>
 
 /* For bt_clock_snapshot_state */
@@ -40,6 +40,10 @@ extern const bt_event *bt_message_event_borrow_event_const(
 extern bt_clock_snapshot_state
 bt_message_event_borrow_default_clock_snapshot_const(
 		const bt_message *msg, const bt_clock_snapshot **snapshot);
+
+extern const bt_clock_class *
+bt_message_event_borrow_stream_class_default_clock_class_const(
+		const bt_message *msg);
 
 #ifdef __cplusplus
 }
