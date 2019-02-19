@@ -1,5 +1,5 @@
-#ifndef BABELTRACE_GRAPH_MESSAGE_INACTIVITY_H
-#define BABELTRACE_GRAPH_MESSAGE_INACTIVITY_H
+#ifndef BABELTRACE_GRAPH_MESSAGE_MESSAGE_ITERATOR_INACTIVITY_INTERNAL_H
+#define BABELTRACE_GRAPH_MESSAGE_MESSAGE_ITERATOR_INACTIVITY_INTERNAL_H
 
 /*
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
@@ -23,22 +23,13 @@
  * SOFTWARE.
  */
 
-#include <stdint.h>
+#include <glib.h>
+#include <babeltrace/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace/graph/message-const.h>
 
-/* For bt_self_message_iterator, bt_message, bt_clock_class */
-#include <babeltrace/types.h>
+struct bt_message_message_iterator_inactivity {
+	struct bt_message parent;
+	struct bt_clock_snapshot *default_cs;
+};
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern
-bt_message *bt_message_inactivity_create(
-		bt_self_message_iterator *message_iterator,
-		const bt_clock_class *default_clock_class, uint64_t raw_value);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* BABELTRACE_GRAPH_MESSAGE_INACTIVITY_H */
+#endif /* BABELTRACE_GRAPH_MESSAGE_MESSAGE_ITERATOR_INACTIVITY_INTERNAL_H */

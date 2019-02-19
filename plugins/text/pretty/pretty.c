@@ -138,8 +138,8 @@ bt_self_component_status handle_message(
 			ret = BT_SELF_COMPONENT_STATUS_ERROR;
 		}
 		break;
-	case BT_MESSAGE_TYPE_INACTIVITY:
-		fprintf(stderr, "Inactivity message\n");
+	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
+		fprintf(stderr, "Message iterator inactivity message\n");
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:

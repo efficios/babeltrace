@@ -104,8 +104,8 @@ babeltracegraphinclude_HEADERS = \
 	babeltrace/graph/message-discarded-packets.h \
 	babeltrace/graph/message-event-const.h \
 	babeltrace/graph/message-event.h \
-	babeltrace/graph/message-inactivity-const.h \
-	babeltrace/graph/message-inactivity.h \
+	babeltrace/graph/message-message-iterator-inactivity-const.h \
+	babeltrace/graph/message-message-iterator-inactivity.h \
 	babeltrace/graph/message-iterator-const.h \
 	babeltrace/graph/message-packet-beginning-const.h \
 	babeltrace/graph/message-packet-beginning.h \
@@ -216,7 +216,7 @@ noinst_HEADERS = \
 	babeltrace/graph/graph-internal.h \
 	babeltrace/graph/message-discarded-items-internal.h \
 	babeltrace/graph/message-event-internal.h \
-	babeltrace/graph/message-inactivity-internal.h \
+	babeltrace/graph/message-message-iterator-inactivity-internal.h \
 	babeltrace/graph/message-internal.h \
 	babeltrace/graph/message-iterator-internal.h \
 	babeltrace/graph/message-packet-internal.h \

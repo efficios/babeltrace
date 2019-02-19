@@ -116,9 +116,9 @@
 #include <babeltrace/graph/message-discarded-packets.h>
 #include <babeltrace/graph/message-event-const.h>
 #include <babeltrace/graph/message-event.h>
-#include <babeltrace/graph/message-inactivity-const.h>
-#include <babeltrace/graph/message-inactivity.h>
 #include <babeltrace/graph/message-iterator-const.h>
+#include <babeltrace/graph/message-message-iterator-inactivity-const.h>
+#include <babeltrace/graph/message-message-iterator-inactivity.h>
 #include <babeltrace/graph/message-packet-beginning-const.h>
 #include <babeltrace/graph/message-packet-beginning.h>
 #include <babeltrace/graph/message-packet-end-const.h>
