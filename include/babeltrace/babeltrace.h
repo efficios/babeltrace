@@ -123,8 +123,10 @@
 #include <babeltrace/graph/message-packet-beginning.h>
 #include <babeltrace/graph/message-packet-end-const.h>
 #include <babeltrace/graph/message-packet-end.h>
+#include <babeltrace/graph/message-stream-activity-beginning-const.h>
 #include <babeltrace/graph/message-stream-activity-beginning.h>
 #include <babeltrace/graph/message-stream-activity-const.h>
+#include <babeltrace/graph/message-stream-activity-end-const.h>
 #include <babeltrace/graph/message-stream-activity-end.h>
 #include <babeltrace/graph/message-stream-beginning-const.h>
 #include <babeltrace/graph/message-stream-beginning.h>
