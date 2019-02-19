@@ -878,6 +878,12 @@ static inline void format_message(char **buf_ch, bool extended,
 				msg_event->event);
 		}
 
+		if (msg_event->default_cs) {
+			SET_TMP_PREFIX("default-cs-");
+			format_clock_snapshot(buf_ch, true, tmp_prefix,
+				msg_event->default_cs);
+		}
+
 		break;
 	}
 	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
@@ -926,6 +932,12 @@ static inline void format_message(char **buf_ch, bool extended,
 			SET_TMP_PREFIX("packet-");
 			format_packet(buf_ch, true, tmp_prefix,
 				msg_packet->packet);
+		}
+
+		if (msg_packet->default_cs) {
+			SET_TMP_PREFIX("default-cs-");
+			format_clock_snapshot(buf_ch, true, tmp_prefix,
+				msg_packet->default_cs);
 		}
 
 		break;
