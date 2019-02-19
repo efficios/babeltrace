@@ -987,8 +987,8 @@ int get_message_ns_from_origin(const struct bt_message *msg,
 
 		clk_snapshot = event_msg->default_cs;
 		BT_ASSERT_PRE(clk_snapshot,
-			"Event has no default clock snapshot: %!+e",
-			event_msg->event);
+			"Event message has no default clock snapshot: %!+n",
+			event_msg);
 		break;
 	}
 	case BT_MESSAGE_TYPE_INACTIVITY:
@@ -1002,8 +1002,16 @@ int get_message_ns_from_origin(const struct bt_message *msg,
 	}
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 	case BT_MESSAGE_TYPE_PACKET_END:
-		/* Ignore */
-		goto end;
+	{
+		const struct bt_message_packet *packet_msg =
+			(const void *) msg;
+
+		clk_snapshot = packet_msg->default_cs;
+		BT_ASSERT_PRE(clk_snapshot,
+			"Packet message has no default clock snapshot: %!+n",
+			packet_msg);
+		break;
+	}
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 	{
