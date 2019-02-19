@@ -147,6 +147,13 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			goto error;
 		}
 
+		/*
+		 * The `dmesg` timestamp is not absolute, it's relative
+		 * to the boot time.
+		 */
+		bt_clock_class_set_is_absolute(dmesg_comp->clock_class,
+			BT_FALSE);
+
 		ret = bt_stream_class_set_default_clock_class(
 			dmesg_comp->stream_class, dmesg_comp->clock_class);
 		if (ret) {
