@@ -614,6 +614,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	const unsigned char *cc_uuid;
 	const char *cc_name;
 	bt_clock_snapshot_state cs_state = BT_CLOCK_SNAPSHOT_STATE_KNOWN;
+	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
@@ -628,7 +629,42 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		cs_state = bt_message_event_borrow_default_clock_snapshot_const(
 			msg, &clock_snapshot);
 		break;
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+		cs_state = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
+			msg, &clock_snapshot);
+		break;
+	case BT_MESSAGE_TYPE_PACKET_END:
+		cs_state = bt_message_packet_end_borrow_default_clock_snapshot_const(
+			msg, &clock_snapshot);
+		break;
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+		cs_state = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+			msg, &clock_snapshot);
+		break;
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+		cs_state = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+			msg, &clock_snapshot);
+		break;
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
+		sa_cs_state = bt_message_stream_activity_beginning_borrow_default_clock_snapshot_const(
+			msg, &clock_snapshot);
+		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			/* No timestamp: high priority */
+			*ts_ns = last_returned_ts_ns;
+			goto end;
+		}
 
+		break;
+	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
+		sa_cs_state = bt_message_stream_activity_end_borrow_default_clock_snapshot_const(
+			msg, &clock_snapshot);
+		if (sa_cs_state != BT_MESSAGE_STREAM_ACTIVITY_CLOCK_SNAPSHOT_STATE_KNOWN) {
+			/* No timestamp: high priority */
+			*ts_ns = last_returned_ts_ns;
+			goto end;
+		}
+
+		break;
 	case BT_MESSAGE_TYPE_INACTIVITY:
 		cs_state =
 			bt_message_inactivity_borrow_default_clock_snapshot_const(
