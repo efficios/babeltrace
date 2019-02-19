@@ -54,6 +54,7 @@ struct bin_info {
 	/* Optional build ID info. */
 	uint8_t *build_id;
 	size_t build_id_len;
+
 	/* Optional debug link info. */
 	char *dbg_link_filename;
 	uint32_t dbg_link_crc;
@@ -64,6 +65,8 @@ struct bin_info {
 	char *debug_info_dir;
 	/* Denotes whether the executable is position independent code. */
 	bool is_pic:1;
+	/* denotes whether the build id in the trace matches to one on disk. */
+	bool file_build_id_matches:1;
 	/*
 	 * Denotes whether the executable only has ELF symbols and no
 	 * DWARF info.
