@@ -577,9 +577,9 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		}
 
 		break;
-	case BT_MESSAGE_TYPE_INACTIVITY:
+	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 		cs_state =
-			bt_message_inactivity_borrow_default_clock_snapshot_const(
+			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
 				msg, &clock_snapshot);
 		break;
 	default:

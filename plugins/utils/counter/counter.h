@@ -36,7 +36,7 @@ struct counter {
 		uint64_t stream_end;
 		uint64_t packet_begin;
 		uint64_t packet_end;
-		uint64_t inactivity;
+		uint64_t msg_iter_inactivity;
 		uint64_t other;
 	} count;
 	uint64_t last_printed_total;

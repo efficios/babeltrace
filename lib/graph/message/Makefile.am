@@ -5,6 +5,6 @@ libgraph_message_la_SOURCES = \
 	packet.c \
 	event.c \
 	stream.c \
-	inactivity.c \
+	message-iterator-inactivity.c \
 	stream-activity.c \
 	discarded-items.c

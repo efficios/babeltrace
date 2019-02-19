@@ -54,7 +54,7 @@
 #include <babeltrace/graph/message-stream-beginning-const.h>
 #include <babeltrace/graph/message-stream-end-const.h>
 #include <babeltrace/graph/message-stream-internal.h>
-#include <babeltrace/graph/message-inactivity-internal.h>
+#include <babeltrace/graph/message-message-iterator-inactivity-internal.h>
 #include <babeltrace/graph/message-discarded-items-internal.h>
 #include <babeltrace/graph/message-stream-activity-internal.h>
 #include <babeltrace/graph/port-const.h>
@@ -1003,9 +1003,9 @@ int get_message_ns_from_origin(const struct bt_message *msg,
 			event_msg);
 		break;
 	}
-	case BT_MESSAGE_TYPE_INACTIVITY:
+	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 	{
-		const struct bt_message_inactivity *inactivity_msg =
+		const struct bt_message_message_iterator_inactivity *inactivity_msg =
 			(const void *) msg;
 
 		clk_snapshot = inactivity_msg->default_cs;
@@ -1174,7 +1174,7 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 		 * Find first message which has a default clock snapshot
 		 * that is greater than or equal to the requested value.
 		 *
-		 * For event and inactivity messages, compare with the
+		 * For event and message iterator inactivity messages, compare with the
 		 * default clock snapshot.
 		 *
 		 * For packet beginning messages, compare with the

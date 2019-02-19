@@ -62,7 +62,7 @@
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/graph-internal.h>
 #include <babeltrace/graph/message-event-internal.h>
-#include <babeltrace/graph/message-inactivity-internal.h>
+#include <babeltrace/graph/message-message-iterator-inactivity-internal.h>
 #include <babeltrace/graph/message-internal.h>
 #include <babeltrace/graph/message-iterator-internal.h>
 #include <babeltrace/graph/message-packet-internal.h>
