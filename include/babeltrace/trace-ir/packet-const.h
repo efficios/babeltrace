@@ -31,11 +31,8 @@
 /* For bt_property_availability */
 #include <babeltrace/property.h>
 
-/* For bt_clock_snapshot_state */
-#include <babeltrace/trace-ir/clock-snapshot-const.h>
-
 /*
- * For bt_packet, bt_packet_context_field, bt_stream, bt_clock_snapshot
+ * For bt_packet, bt_packet_context_field, bt_stream
  */
 #include <babeltrace/types.h>
 

@@ -24,6 +24,8 @@
  * SOFTWARE.
  */
 
+#include <stdint.h>
+
 /* For bt_message, bt_self_message_iterator, bt_packet */
 #include <babeltrace/types.h>
 
