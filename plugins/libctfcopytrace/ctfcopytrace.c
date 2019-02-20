@@ -83,10 +83,10 @@ const bt_clock_class *ctf_copy_clock_class(FILE *err,
 	int_ret = bt_clock_class_set_offset_cycles(writer_clock_class, offset);
 	BT_ASSERT(!int_ret);
 
-	int_ret = bt_clock_class_is_absolute(clock_class);
+	int_ret = bt_clock_class_origin_is_unix_epoch(clock_class);
 	BT_ASSERT(int_ret >= 0);
 
-	int_ret = bt_clock_class_set_is_absolute(writer_clock_class, int_ret);
+	int_ret = bt_clock_class_set_origin_is_unix_epoch(writer_clock_class, int_ret);
 	BT_ASSERT(!int_ret);
 
 end:

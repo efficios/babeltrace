@@ -533,7 +533,7 @@ void ctf_clock_class_to_ir(bt_clock_class *ir_cc, struct ctf_clock_class *cc)
 		bt_clock_class_set_uuid(ir_cc, cc->uuid);
 	}
 
-	bt_clock_class_set_is_absolute(ir_cc, cc->is_absolute);
+	bt_clock_class_set_origin_is_unix_epoch(ir_cc, cc->is_absolute);
 }
 
 static inline

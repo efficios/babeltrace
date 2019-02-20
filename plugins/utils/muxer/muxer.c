@@ -736,7 +736,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		 * the iterator without a true
 		 * `assume-absolute-clock-classes` parameter.
 		 */
-		if (bt_clock_class_is_absolute(clock_class)) {
+		if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
 			/* Expect absolute clock classes */
 			muxer_msg_iter->clock_class_expectation =
 				MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE;
@@ -764,7 +764,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	if (!muxer_comp->assume_absolute_clock_classes) {
 		switch (muxer_msg_iter->clock_class_expectation) {
 		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ABSOLUTE:
-			if (!bt_clock_class_is_absolute(clock_class)) {
+			if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
 				BT_LOGE("Expecting an absolute clock class, "
 					"but got a non-absolute one: "
 					"clock-class-addr=%p, clock-class-name=\"%s\"",
@@ -773,7 +773,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			}
 			break;
 		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_NO_UUID:
-			if (bt_clock_class_is_absolute(clock_class)) {
+			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
 				BT_LOGE("Expecting a non-absolute clock class with no UUID, "
 					"but got an absolute one: "
 					"clock-class-addr=%p, clock-class-name=\"%s\"",
@@ -807,7 +807,7 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			}
 			break;
 		case MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_NOT_ABS_SPEC_UUID:
-			if (bt_clock_class_is_absolute(clock_class)) {
+			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
 				BT_LOGE("Expecting a non-absolute clock class with a specific UUID, "
 					"but got an absolute one: "
 					"clock-class-addr=%p, clock-class-name=\"%s\"",
