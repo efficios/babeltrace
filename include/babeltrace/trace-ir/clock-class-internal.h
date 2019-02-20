@@ -64,7 +64,7 @@ struct bt_clock_class {
 		bt_uuid value;
 	} uuid;
 
-	bool is_absolute;
+	bool origin_is_unix_epoch;
 
 	/*
 	 * This is computed every time you call

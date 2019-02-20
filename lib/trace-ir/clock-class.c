@@ -107,7 +107,7 @@ struct bt_clock_class *bt_clock_class_create(bt_trace_class *trace_class)
 	}
 
 	clock_class->frequency = UINT64_C(1000000000);
-	clock_class->is_absolute = BT_TRUE;
+	clock_class->origin_is_unix_epoch = BT_TRUE;
 	set_base_offset(clock_class);
 	ret = bt_object_pool_initialize(&clock_class->cs_pool,
 		(bt_object_pool_new_object_func) bt_clock_snapshot_new,
@@ -232,19 +232,19 @@ void bt_clock_class_set_offset(struct bt_clock_class *clock_class,
 	BT_LIB_LOGV("Set clock class's offset: %!+K", clock_class);
 }
 
-bt_bool bt_clock_class_is_absolute(const struct bt_clock_class *clock_class)
+bt_bool bt_clock_class_origin_is_unix_epoch(const struct bt_clock_class *clock_class)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
-	return (bool) clock_class->is_absolute;
+	return (bool) clock_class->origin_is_unix_epoch;
 }
 
-void bt_clock_class_set_is_absolute(struct bt_clock_class *clock_class,
-		bt_bool is_absolute)
+void bt_clock_class_set_origin_is_unix_epoch(struct bt_clock_class *clock_class,
+		bt_bool origin_is_unix_epoch)
 {
 	BT_ASSERT_PRE_NON_NULL(clock_class, "Clock class");
 	BT_ASSERT_PRE_CLOCK_CLASS_HOT(clock_class);
-	clock_class->is_absolute = (bool) is_absolute;
-	BT_LIB_LOGV("Set clock class's absolute property: %!+K",
+	clock_class->origin_is_unix_epoch = (bool) origin_is_unix_epoch;
+	BT_LIB_LOGV("Set clock class's origin is Unix epoch property: %!+K",
 		clock_class);
 }
 
