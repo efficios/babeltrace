@@ -56,8 +56,8 @@ extern void bt_clock_class_set_precision(bt_clock_class *clock_class,
 extern void bt_clock_class_set_offset(bt_clock_class *clock_class,
 		int64_t seconds, uint64_t cycles);
 
-extern void bt_clock_class_set_is_absolute(bt_clock_class *clock_class,
-		bt_bool is_absolute);
+extern void bt_clock_class_set_origin_is_unix_epoch(bt_clock_class *clock_class,
+		bt_bool origin_is_unix_epoch);
 
 extern void bt_clock_class_set_uuid(bt_clock_class *clock_class,
 		bt_uuid uuid);

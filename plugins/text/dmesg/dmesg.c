@@ -148,10 +148,10 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 		}
 
 		/*
-		 * The `dmesg` timestamp is not absolute, it's relative
-		 * to the boot time.
+		 * The `dmesg` timestamp's origin is not the Unix epoch,
+		 * it's the boot time.
 		 */
-		bt_clock_class_set_is_absolute(dmesg_comp->clock_class,
+		bt_clock_class_set_origin_is_unix_epoch(dmesg_comp->clock_class,
 			BT_FALSE);
 
 		ret = bt_stream_class_set_default_clock_class(
