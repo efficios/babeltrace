@@ -531,7 +531,7 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);
 	SET_TMP_PREFIX("pcf-pool-");
-	format_object_pool(buf_ch, extended, prefix,
+	format_object_pool(buf_ch, extended, tmp_prefix,
 		&stream_class->packet_context_field_pool);
 }
 
@@ -587,7 +587,8 @@ static inline void format_event_class(char **buf_ch, bool extended,
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);
 	SET_TMP_PREFIX("event-pool-");
-	format_object_pool(buf_ch, extended, prefix, &event_class->event_pool);
+	format_object_pool(buf_ch, extended, tmp_prefix,
+		&event_class->event_pool);
 }
 
 static inline void format_stream(char **buf_ch, bool extended,
@@ -630,7 +631,7 @@ static inline void format_stream(char **buf_ch, bool extended,
 	}
 
 	SET_TMP_PREFIX("packet-pool-");
-	format_object_pool(buf_ch, extended, prefix, &stream->packet_pool);
+	format_object_pool(buf_ch, extended, tmp_prefix, &stream->packet_pool);
 }
 
 static inline void format_packet(char **buf_ch, bool extended,
@@ -765,7 +766,8 @@ static inline void format_clock_class(char **buf_ch, bool extended,
 		PRFIELD(clock_class->base_offset.value_ns));
 
 	SET_TMP_PREFIX("cs-pool-");
-	format_object_pool(buf_ch, extended, prefix, &clock_class->cs_pool);
+	format_object_pool(buf_ch, extended, tmp_prefix,
+		&clock_class->cs_pool);
 }
 
 static inline void format_clock_snapshot(char **buf_ch, bool extended,
@@ -1109,13 +1111,13 @@ static inline void format_graph(char **buf_ch, bool extended,
 	}
 
 	SET_TMP_PREFIX("en-pool-");
-	format_object_pool(buf_ch, extended, prefix,
+	format_object_pool(buf_ch, extended, tmp_prefix,
 		&graph->event_msg_pool);
 	SET_TMP_PREFIX("pbn-pool-");
-	format_object_pool(buf_ch, extended, prefix,
+	format_object_pool(buf_ch, extended, tmp_prefix,
 		&graph->packet_begin_msg_pool);
 	SET_TMP_PREFIX("pen-pool-");
-	format_object_pool(buf_ch, extended, prefix,
+	format_object_pool(buf_ch, extended, tmp_prefix,
 		&graph->packet_end_msg_pool);
 }
 
