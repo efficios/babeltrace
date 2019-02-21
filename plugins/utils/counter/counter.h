@@ -54,10 +54,8 @@ BT_HIDDEN
 void counter_finalize(bt_self_component_sink *component);
 
 BT_HIDDEN
-bt_self_component_status counter_port_connected(
-		bt_self_component_sink *component,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port);
+bt_self_component_status counter_graph_is_configured(
+		bt_self_component_sink *component);
 
 BT_HIDDEN
 bt_self_component_status counter_consume(bt_self_component_sink *component);

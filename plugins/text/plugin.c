@@ -37,8 +37,8 @@ BT_PLUGIN_LICENSE("MIT");
 BT_PLUGIN_SINK_COMPONENT_CLASS(pretty, pretty_consume);
 BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(pretty, pretty_init);
 BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(pretty, pretty_finalize);
-BT_PLUGIN_SINK_COMPONENT_CLASS_INPUT_PORT_CONNECTED_METHOD(pretty,
-	pretty_port_connected);
+BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(pretty,
+	pretty_graph_is_configured);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(pretty,
 	"Pretty-print messages (`text` format of Babeltrace 1).");
 

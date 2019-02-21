@@ -1094,7 +1094,11 @@ static inline void format_graph(char **buf_ch, bool extended,
 {
 	char tmp_prefix[64];
 
-	BUF_APPEND(", %sis-canceled=%d", PRFIELD(graph->canceled));
+	BUF_APPEND(", %sis-canceled=%d, %scan-consume=%d, "
+		"%sconfig-state=%s",
+		PRFIELD(graph->canceled),
+		PRFIELD(graph->can_consume),
+		PRFIELD(bt_graph_configuration_state_string(graph->config_state)));
 
 	if (!extended) {
 		return;

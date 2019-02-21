@@ -440,6 +440,11 @@ bt_self_component_port_input_message_iterator_create(
 	BT_ASSERT(upstream_port);
 	upstream_comp = bt_port_borrow_component_inline(upstream_port);
 	BT_ASSERT(upstream_comp);
+	BT_ASSERT_PRE(
+		bt_component_borrow_graph(upstream_comp)->config_state !=
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
+		"Graph is not configured: %!+g",
+		bt_component_borrow_graph(upstream_comp));
 	upstream_comp_cls = upstream_comp->class;
 	BT_ASSERT(upstream_comp->class->type ==
 		BT_COMPONENT_CLASS_TYPE_SOURCE ||
@@ -574,7 +579,9 @@ bt_self_component_port_input_message_iterator_next(
 		"message iterator is in the wrong state: %!+i", iterator);
 	BT_ASSERT(iterator->upstream_component);
 	BT_ASSERT(iterator->upstream_component->class);
-	BT_ASSERT_PRE(bt_component_borrow_graph(iterator->upstream_component)->is_configured,
+	BT_ASSERT_PRE(
+		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 	BT_LIB_LOGD("Getting next self component input port "
@@ -646,13 +653,6 @@ enum bt_message_iterator_status bt_port_output_message_iterator_next(
 	BT_ASSERT_PRE_NON_NULL(count_to_user, "Message count (output)");
 	BT_LIB_LOGD("Getting next output port message iterator's messages: "
 		"%!+i", iterator);
-
-	/*
-	 * As soon as the user calls this function, we mark the graph as
-	 * being definitely configured.
-	 */
-	bt_graph_set_is_configured(iterator->graph, true);
-
 	graph_status = bt_graph_consume_sink_no_check(iterator->graph,
 		iterator->colander);
 	switch (graph_status) {
@@ -825,6 +825,12 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	 * member.
 	 */
 	bt_graph_set_can_consume(iterator->graph, false);
+
+	/*
+	 * Also set the graph as being configured: it has no active sink
+	 * anyway, so we don't need to call bt_graph_configure().
+	 */
+	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_CONFIGURED;
 	goto end;
 
 error:
@@ -866,7 +872,9 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_ns_from_origin(
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(bt_component_borrow_graph(iterator->upstream_component)->is_configured,
+	BT_ASSERT_PRE(
+		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 
@@ -895,7 +903,9 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_beginning(
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(bt_component_borrow_graph(iterator->upstream_component)->is_configured,
+	BT_ASSERT_PRE(
+		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 
@@ -949,7 +959,9 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(bt_component_borrow_graph(iterator->upstream_component)->is_configured,
+	BT_ASSERT_PRE(
+		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 	BT_ASSERT_PRE(
@@ -1284,7 +1296,9 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 
 	BT_ASSERT_PRE_NON_NULL(iterator, "Message iterator");
 	BT_ASSERT_PRE_ITER_HAS_STATE_TO_SEEK(iterator);
-	BT_ASSERT_PRE(bt_component_borrow_graph(iterator->upstream_component)->is_configured,
+	BT_ASSERT_PRE(
+		bt_component_borrow_graph(iterator->upstream_component)->config_state !=
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is not configured: %!+g",
 		bt_component_borrow_graph(iterator->upstream_component));
 	BT_ASSERT_PRE(

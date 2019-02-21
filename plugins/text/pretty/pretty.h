@@ -114,10 +114,8 @@ bt_self_component_status pretty_consume(
 		bt_self_component_sink *component);
 
 BT_HIDDEN
-bt_self_component_status pretty_port_connected(
-		bt_self_component_sink *component,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port);
+bt_self_component_status pretty_graph_is_configured(
+		bt_self_component_sink *component);
 
 BT_HIDDEN
 void pretty_finalize(bt_self_component_sink *component);
