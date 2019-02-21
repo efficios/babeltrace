@@ -27,6 +27,8 @@
 #include <babeltrace/graph/graph.h>
 #include <babeltrace/graph/connection-internal.h>
 #include <babeltrace/graph/message-const.h>
+#include <babeltrace/graph/component-internal.h>
+#include <babeltrace/graph/component-sink-internal.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/object-internal.h>
 #include <babeltrace/object-pool-internal.h>
@@ -36,6 +38,12 @@
 
 struct bt_component;
 struct bt_port;
+
+enum bt_graph_configuration_state {
+	BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
+	BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED,
+	BT_GRAPH_CONFIGURATION_STATE_CONFIGURED,
+};
 
 struct bt_graph {
 	/**
@@ -73,11 +81,7 @@ struct bt_graph {
 	 */
 	bool can_consume;
 
-	/*
-	 * True if the graph is configured, that is, components are
-	 * added and connected.
-	 */
-	bool is_configured;
+	enum bt_graph_configuration_state config_state;
 
 	struct {
 		GArray *source_output_port_added;
@@ -127,19 +131,6 @@ void _bt_graph_set_can_consume(struct bt_graph *graph, bool can_consume)
 # define bt_graph_set_can_consume	_bt_graph_set_can_consume
 #else
 # define bt_graph_set_can_consume(_graph, _can_consume)
-#endif
-
-static inline
-void _bt_graph_set_is_configured(struct bt_graph *graph, bool is_configured)
-{
-	BT_ASSERT(graph);
-	graph->is_configured = is_configured;
-}
-
-#ifdef BT_DEV_MODE
-# define bt_graph_set_is_configured	_bt_graph_set_is_configured
-#else
-# define bt_graph_set_is_configured(_graph, _is_configured)
 #endif
 
 BT_HIDDEN
@@ -196,6 +187,96 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 	default:
 		return "(unknown)";
 	}
+}
+
+static inline
+const char *bt_graph_configuration_state_string(
+		enum bt_graph_configuration_state state)
+{
+	switch (state) {
+	case BT_GRAPH_CONFIGURATION_STATE_CONFIGURING:
+		return "BT_GRAPH_CONFIGURATION_STATE_CONFIGURING";
+	case BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED:
+		return "BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED";
+	case BT_GRAPH_CONFIGURATION_STATE_CONFIGURED:
+		return "BT_GRAPH_CONFIGURATION_STATE_CONFIGURED";
+	default:
+		return "(unknown)";
+	}
+}
+
+static inline
+enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
+{
+	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	uint64_t i;
+
+	if (likely(graph->config_state ==
+			BT_GRAPH_CONFIGURATION_STATE_CONFIGURED)) {
+		goto end;
+	}
+
+	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED;
+
+	for (i = 0; i < graph->components->len; i++) {
+		struct bt_component *comp = graph->components->pdata[i];
+		struct bt_component_sink *comp_sink = (void *) comp;
+		struct bt_component_class_sink *comp_cls_sink =
+			(void *) comp->class;
+
+		if (comp->class->type != BT_COMPONENT_CLASS_TYPE_SINK) {
+			continue;
+		}
+
+		if (comp_sink->graph_is_configured_method_called) {
+			continue;
+		}
+
+		if (comp_cls_sink->methods.graph_is_configured) {
+			enum bt_self_component_status comp_status;
+
+#ifdef BT_LIB_LOGD
+			BT_LIB_LOGD("Calling user's \"graph is configured\" method: "
+				"%![graph-]+g, %![comp-]+c",
+				graph, comp);
+#endif
+
+			comp_status = comp_cls_sink->methods.graph_is_configured(
+				(void *) comp_sink);
+
+#ifdef BT_LIB_LOGD
+			BT_LIB_LOGD("User method returned: status=%s",
+				bt_self_component_status_string(comp_status));
+#endif
+
+#ifdef BT_ASSERT_PRE
+			BT_ASSERT_PRE(comp_status == BT_SELF_COMPONENT_STATUS_OK ||
+				comp_status == BT_SELF_COMPONENT_STATUS_ERROR ||
+				comp_status == BT_SELF_COMPONENT_STATUS_NOMEM,
+				"Unexpected returned status: status=%s",
+				bt_self_component_status_string(comp_status));
+#endif
+
+			if (comp_status != BT_SELF_COMPONENT_STATUS_OK) {
+#ifdef BT_LIB_LOGW
+				BT_LIB_LOGW("User's \"graph is configured\" method failed: "
+					"%![comp-]+c, status=%s",
+					comp,
+					bt_self_component_status_string(
+						comp_status));
+#endif
+
+				goto end;
+			}
+		}
+
+		comp_sink->graph_is_configured_method_called = true;
+	}
+
+	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_CONFIGURED;
+
+end:
+	return status;
 }
 
 #endif /* BABELTRACE_GRAPH_GRAPH_INTERNAL_H */

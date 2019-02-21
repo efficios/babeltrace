@@ -184,12 +184,13 @@ enum __bt_plugin_component_class_descriptor_attribute_type {
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_ACCEPT_OUTPUT_PORT_CONNECTION_METHOD	= 6,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_INPUT_PORT_CONNECTED_METHOD			= 7,
 	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD		= 8,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 9,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 10,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 11,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 12,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD	= 13,
-	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD		= 14,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD			= 9,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD			= 10,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_FINALIZE_METHOD			= 11,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_NS_FROM_ORIGIN_METHOD		= 12,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_SEEK_BEGINNING_METHOD		= 13,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_NS_FROM_ORIGIN_METHOD	= 14,
+	BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_CAN_SEEK_BEGINNING_METHOD		= 15,
 };
 
 /* Component class attribute (internal use) */
@@ -244,6 +245,9 @@ struct __bt_plugin_component_class_descriptor_attribute {
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD */
 		bt_component_class_source_output_port_connected_method source_output_port_connected_method;
 		bt_component_class_filter_output_port_connected_method filter_output_port_connected_method;
+
+		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD */
+		bt_component_class_sink_graph_is_configured_method sink_graph_is_configured_method;
 
 		/* BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_MSG_ITER_INIT_METHOD */
 		bt_component_class_source_message_iterator_init_method source_msg_iter_init_method;
@@ -869,6 +873,18 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
 	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(filter_output_port_connected_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_OUTPUT_PORT_CONNECTED_METHOD, _id, _comp_class_id, filter, _x)
 
 /*
+ * Defines a "graph is configured" method attribute attached to a
+ * specific sink component class descriptor.
+ *
+ * _id:            Plugin descriptor ID (C identifier).
+ * _comp_class_id: Component class descriptor ID (C identifier).
+ * _x:             "Graph is configured" method
+ *                 (bt_component_class_sink_graph_is_configured_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD_WITH_ID(_id, _comp_class_id, _x) \
+	__BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE(sink_graph_is_configured_method, BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD, _id, _comp_class_id, sink, _x)
+
+/*
  * Defines an iterator initialization method attribute attached to a
  * specific source component class descriptor.
  *
@@ -1355,6 +1371,18 @@ struct __bt_plugin_component_class_descriptor_attribute const * const *__bt_get_
  */
 #define BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD(_name, _x) \
 	BT_PLUGIN_FILTER_COMPONENT_CLASS_OUTPUT_PORT_CONNECTED_METHOD_WITH_ID(auto, _name, _x)
+
+/*
+ * Defines a "graph is configured" method attribute attached to
+ * a sink component class descriptor which is attached to the automatic
+ * plugin descriptor.
+ *
+ * _name: Component class name (C identifier).
+ * _x:    "Graph is configured" method
+ *        (bt_component_class_sink_graph_is_configured_method).
+ */
+#define BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(_name, _x) \
+	BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD_WITH_ID(auto, _name, _x)
 
 /*
  * Defines an iterator initialization method attribute attached to a

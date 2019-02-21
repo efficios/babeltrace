@@ -406,7 +406,8 @@ enum bt_graph_status bt_graph_connect_ports(
 	BT_ASSERT_PRE_NON_NULL(upstream_port, "Upstream port");
 	BT_ASSERT_PRE_NON_NULL(downstream_port, "Downstream port port");
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
-	BT_ASSERT_PRE(!graph->is_configured,
+	BT_ASSERT_PRE(
+		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is already configured: %!+g", graph);
 	BT_ASSERT_PRE(!bt_port_is_connected(upstream_port),
 		"Upstream port is already connected: %!+p", upstream_port);
@@ -680,22 +681,34 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
-	bt_graph_set_is_configured(graph, true);
+	status = bt_graph_configure(graph);
+	if (status) {
+		/* bt_graph_configure() logs errors */
+		goto end;
+	}
+
 	status = consume_no_check(graph);
 	bt_graph_set_can_consume(graph, true);
+
+end:
 	return status;
 }
 
 enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 {
-	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	enum bt_graph_status status;
 
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
-	bt_graph_set_is_configured(graph, true);
+	status = bt_graph_configure(graph);
+	if (status) {
+		/* bt_graph_configure() logs errors */
+		goto end;
+	}
+
 	BT_LIB_LOGV("Running graph: %!+g", graph);
 
 	do {
@@ -1234,7 +1247,8 @@ enum bt_graph_status add_component_with_init_method_data(
 	BT_ASSERT_PRE_NON_NULL(graph, "Graph");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
-	BT_ASSERT_PRE(!graph->is_configured,
+	BT_ASSERT_PRE(
+		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Graph is already configured: %!+g", graph);
 	BT_ASSERT_PRE(!component_name_exists(graph, name),
 		"Duplicate component name: %!+g, name=\"%s\"", graph, name);

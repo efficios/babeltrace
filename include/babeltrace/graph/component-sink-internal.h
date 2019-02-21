@@ -32,6 +32,7 @@
 
 struct bt_component_sink {
 	struct bt_component parent;
+	bool graph_is_configured_method_called;
 };
 
 BT_HIDDEN

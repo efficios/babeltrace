@@ -40,6 +40,9 @@
 	} while (0)
 
 static
+const char * const in_port_name = "in";
+
+static
 uint64_t get_total_count(struct counter *counter)
 {
 	return counter->count.event +
@@ -176,10 +179,8 @@ end:
 }
 
 BT_HIDDEN
-bt_self_component_status counter_port_connected(
-		bt_self_component_sink *comp,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port)
+bt_self_component_status counter_graph_is_configured(
+		bt_self_component_sink *comp)
 {
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct counter *counter;
@@ -189,7 +190,8 @@ bt_self_component_status counter_port_connected(
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(counter);
 	iterator = bt_self_component_port_input_message_iterator_create(
-		self_port);
+		bt_self_component_sink_borrow_input_port_by_name(comp,
+			in_port_name));
 	if (!iterator) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;

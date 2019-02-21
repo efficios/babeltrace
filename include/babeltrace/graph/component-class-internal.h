@@ -88,6 +88,7 @@ struct bt_component_class_sink {
 		bt_component_class_sink_query_method query;
 		bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
 		bt_component_class_sink_input_port_connected_method input_port_connected;
+		bt_component_class_sink_graph_is_configured_method graph_is_configured;
 		bt_component_class_sink_consume_method consume;
 	} methods;
 };
