@@ -26,6 +26,9 @@
 #include <babeltrace/assert-internal.h>
 #include "dummy.h"
 
+static
+const char * const in_port_name = "in";
+
 void destroy_private_dummy_data(struct dummy *dummy)
 {
 	bt_self_component_port_input_message_iterator_put_ref(dummy->msg_iter);
@@ -77,10 +80,8 @@ end:
 }
 
 BT_HIDDEN
-bt_self_component_status dummy_port_connected(
-		bt_self_component_sink *comp,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port)
+bt_self_component_status dummy_graph_is_configured(
+		bt_self_component_sink *comp)
 {
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct dummy *dummy;
@@ -90,7 +91,8 @@ bt_self_component_status dummy_port_connected(
 		bt_self_component_sink_as_self_component(comp));
 	BT_ASSERT(dummy);
 	iterator = bt_self_component_port_input_message_iterator_create(
-		self_port);
+		bt_self_component_sink_borrow_input_port_by_name(comp,
+			in_port_name));
 	if (!iterator) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto end;

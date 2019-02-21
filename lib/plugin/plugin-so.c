@@ -327,6 +327,7 @@ enum bt_plugin_status bt_plugin_so_init(
 				bt_component_class_sink_query_method query;
 				bt_component_class_sink_accept_input_port_connection_method accept_input_port_connection;
 				bt_component_class_sink_input_port_connected_method input_port_connected;
+				bt_component_class_sink_graph_is_configured_method graph_is_configured;
 			} sink;
 		} methods;
 	};
@@ -591,6 +592,16 @@ enum bt_plugin_status bt_plugin_so_init(
 				case BT_COMPONENT_CLASS_TYPE_FILTER:
 					cc_full_descr->methods.filter.output_port_connected =
 						cur_cc_descr_attr->value.filter_output_port_connected_method;
+					break;
+				default:
+					abort();
+				}
+				break;
+			case BT_PLUGIN_COMPONENT_CLASS_DESCRIPTOR_ATTRIBUTE_TYPE_GRAPH_IS_CONFIGURED_METHOD:
+				switch (cc_type) {
+				case BT_COMPONENT_CLASS_TYPE_SINK:
+					cc_full_descr->methods.sink.graph_is_configured =
+						cur_cc_descr_attr->value.sink_graph_is_configured_method;
 					break;
 				default:
 					abort();
@@ -1167,6 +1178,18 @@ enum bt_plugin_status bt_plugin_so_init(
 					cc_full_descr->methods.sink.input_port_connected);
 				if (ret) {
 					BT_LOGE_STR("Cannot set sink component class's \"input port connected\" method.");
+					status = BT_PLUGIN_STATUS_ERROR;
+					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
+					goto end;
+				}
+			}
+
+			if (cc_full_descr->methods.sink.graph_is_configured) {
+				ret = bt_component_class_sink_set_graph_is_configured_method(
+					sink_comp_class,
+					cc_full_descr->methods.sink.graph_is_configured);
+				if (ret) {
+					BT_LOGE_STR("Cannot set sink component class's \"graph is configured\" method.");
 					status = BT_PLUGIN_STATUS_ERROR;
 					BT_OBJECT_PUT_REF_AND_RESET(sink_comp_class);
 					goto end;

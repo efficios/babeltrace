@@ -63,6 +63,9 @@ const char *plugin_options[] = {
 };
 
 static
+const char * const in_port_name = "in";
+
+static
 void destroy_pretty_data(struct pretty_component *pretty)
 {
 	bt_self_component_port_input_message_iterator_put_ref(pretty->iterator);
@@ -152,10 +155,8 @@ bt_self_component_status handle_message(
 }
 
 BT_HIDDEN
-bt_self_component_status pretty_port_connected(
-		bt_self_component_sink *comp,
-		bt_self_component_port_input *self_port,
-		const bt_port_output *other_port)
+bt_self_component_status pretty_graph_is_configured(
+		bt_self_component_sink *comp)
 {
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct pretty_component *pretty;
@@ -165,7 +166,8 @@ bt_self_component_status pretty_port_connected(
 	BT_ASSERT(pretty);
 	BT_ASSERT(!pretty->iterator);
 	pretty->iterator = bt_self_component_port_input_message_iterator_create(
-		self_port);
+		bt_self_component_sink_borrow_input_port_by_name(comp,
+			in_port_name));
 	if (!pretty->iterator) {
 		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 	}
@@ -650,7 +652,8 @@ bt_self_component_status pretty_init(
 		goto end;
 	}
 
-	ret = bt_self_component_sink_add_input_port(comp, "in", NULL, NULL);
+	ret = bt_self_component_sink_add_input_port(comp, in_port_name,
+		NULL, NULL);
 	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
 		goto end;
 	}

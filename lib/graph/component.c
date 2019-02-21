@@ -204,7 +204,8 @@ struct bt_port *add_port(
 	BT_ASSERT_PRE(graph && !bt_graph_is_canceled(graph),
 		"Component's graph is canceled: %![comp-]+c, %![graph-]+g",
 		component, graph);
-	BT_ASSERT_PRE(!graph->is_configured,
+	BT_ASSERT_PRE(
+		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 		"Component's graph is already configured: "
 		"%![comp-]+c, %![graph-]+g", component, graph);
 

@@ -245,7 +245,7 @@ end:
 	return (void *) sink_class;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_source_set_init_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_init_method method)
@@ -259,7 +259,7 @@ bt_component_class_source_set_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_init_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_init_method method)
@@ -273,7 +273,7 @@ bt_component_class_filter_set_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_sink_set_init_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_init_method method)
@@ -287,7 +287,7 @@ bt_component_class_sink_set_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_source_set_finalize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_finalize_method method)
@@ -301,7 +301,7 @@ bt_component_class_source_set_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_finalize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_finalize_method method)
@@ -315,7 +315,7 @@ bt_component_class_filter_set_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_sink_set_finalize_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_finalize_method method)
@@ -329,7 +329,7 @@ bt_component_class_sink_set_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_source_set_query_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_query_method method)
@@ -343,7 +343,7 @@ bt_component_class_source_set_query_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_query_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_query_method method)
@@ -357,7 +357,7 @@ bt_component_class_filter_set_query_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_sink_set_query_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_query_method method)
@@ -371,7 +371,7 @@ bt_component_class_sink_set_query_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_accept_input_port_connection_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_accept_input_port_connection_method method)
@@ -385,7 +385,7 @@ bt_component_class_filter_set_accept_input_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_sink_set_accept_input_port_connection_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_accept_input_port_connection_method method)
@@ -399,7 +399,7 @@ bt_component_class_sink_set_accept_input_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_source_set_accept_output_port_connection_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_accept_output_port_connection_method method)
@@ -413,7 +413,7 @@ bt_component_class_source_set_accept_output_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_accept_output_port_connection_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_accept_output_port_connection_method method)
@@ -427,7 +427,7 @@ bt_component_class_filter_set_accept_output_port_connection_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_input_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_input_port_connected_method method)
@@ -441,7 +441,7 @@ bt_component_class_filter_set_input_port_connected_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_sink_set_input_port_connected_method(
 		struct bt_component_class_sink *comp_cls,
 		bt_component_class_sink_input_port_connected_method method)
@@ -455,7 +455,7 @@ bt_component_class_sink_set_input_port_connected_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_source_set_output_port_connected_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_output_port_connected_method method)
@@ -469,7 +469,7 @@ bt_component_class_source_set_output_port_connected_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_output_port_connected_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_output_port_connected_method method)
@@ -479,6 +479,20 @@ bt_component_class_filter_set_output_port_connected_method(
 	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
 	comp_cls->methods.output_port_connected = method;
 	BT_LIB_LOGV("Set filter component class's \"output port connected\" method"
+		": %!+C", comp_cls);
+	return BT_COMPONENT_CLASS_STATUS_OK;
+}
+
+enum bt_component_class_status
+bt_component_class_sink_set_graph_is_configured_method(
+		struct bt_component_class_sink *comp_cls,
+		bt_component_class_sink_graph_is_configured_method method)
+{
+	BT_ASSERT_PRE_NON_NULL(comp_cls, "Component class");
+	BT_ASSERT_PRE_NON_NULL(method, "Method");
+	BT_ASSERT_PRE_COMP_CLS_HOT(comp_cls);
+	comp_cls->methods.graph_is_configured = method;
+	BT_LIB_LOGV("Set sink component class's \"graph is configured\" method"
 		": %!+C", comp_cls);
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
@@ -496,7 +510,7 @@ int bt_component_class_source_set_message_iterator_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_message_iterator_init_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_message_iterator_init_method method)
@@ -510,7 +524,7 @@ bt_component_class_filter_set_message_iterator_init_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_source_set_message_iterator_finalize_method(
 		struct bt_component_class_source *comp_cls,
 		bt_component_class_source_message_iterator_finalize_method method)
@@ -524,7 +538,7 @@ bt_component_class_source_set_message_iterator_finalize_method(
 	return BT_COMPONENT_CLASS_STATUS_OK;
 }
 
-extern enum bt_component_class_status
+enum bt_component_class_status
 bt_component_class_filter_set_message_iterator_finalize_method(
 		struct bt_component_class_filter *comp_cls,
 		bt_component_class_filter_message_iterator_finalize_method method)
