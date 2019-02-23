@@ -79,12 +79,12 @@ void set_base_offset(struct bt_clock_class *clock_class)
 		clock_class->frequency, &clock_class->base_offset.value_ns);
 }
 
-struct bt_clock_class *bt_clock_class_create(bt_trace_class *trace_class)
+struct bt_clock_class *bt_clock_class_create(bt_self_component *self_comp)
 {
 	int ret;
 	struct bt_clock_class *clock_class = NULL;
 
-	BT_ASSERT_PRE_NON_NULL(trace_class, "Trace class");
+	BT_ASSERT_PRE_NON_NULL(self_comp, "Self component");
 	BT_LOGD_STR("Creating default clock class object");
 
 	clock_class = g_new0(struct bt_clock_class, 1);
