@@ -193,6 +193,7 @@ struct ctx_decl_scope {
  * Visitor context (private).
  */
 struct ctx {
+	bt_self_component_source *self_comp;
 	/* Trace IR trace class being filled (owned by this) */
 	bt_trace_class *trace_class;
 
@@ -590,6 +591,7 @@ struct ctx *ctx_create(bt_self_component_source *self_comp,
 			BT_LOGE_STR("Cannot create empty trace class.");
 			goto error;
 		}
+		ctx->self_comp = self_comp;
 	}
 
 	ctx->ctf_tc = ctf_trace_class_create();
@@ -5068,7 +5070,8 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 
 	if (ctx->trace_class) {
 		/* Copy new CTF metadata -> new IR metadata */
-		ret = ctf_trace_class_translate(ctx->trace_class, ctx->ctf_tc);
+		ret = ctf_trace_class_translate(ctx->self_comp,
+				ctx->trace_class, ctx->ctf_tc);
 		if (ret) {
 			ret = -EINVAL;
 			goto end;

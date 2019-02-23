@@ -24,8 +24,8 @@ BT_HIDDEN
 int ctf_trace_class_resolve_field_classes(struct ctf_trace_class *tc);
 
 BT_HIDDEN
-int ctf_trace_class_translate(bt_trace_class *ir_tc,
-		struct ctf_trace_class *tc);
+int ctf_trace_class_translate(bt_self_component_source *self_comp,
+		bt_trace_class *ir_tc, struct ctf_trace_class *tc);
 
 BT_HIDDEN
 int ctf_trace_class_update_default_clock_classes(

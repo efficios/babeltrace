@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-extern bt_clock_class *bt_clock_class_create(bt_trace_class *trace_class);
+extern bt_clock_class *bt_clock_class_create(bt_self_component *self_comp);
 
 extern bt_clock_class_status bt_clock_class_set_name(
 		bt_clock_class *clock_class, const char *name);
