@@ -299,12 +299,6 @@ int create_packet_and_stream_and_trace(struct dmesg_component *dmesg_comp)
 		goto error;
 	}
 
-	ret = bt_trace_make_static(dmesg_comp->trace);
-	if (ret) {
-		BT_LOGE_STR("Cannot make trace static.");
-		goto error;
-	}
-
 	goto end;
 
 error:

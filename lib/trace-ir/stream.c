@@ -108,8 +108,6 @@ struct bt_stream *create_stream_with_id(struct bt_stream_class *stream_class,
 		"%![sc-]+S, %![trace-]+t", stream_class, trace);
 	BT_ASSERT_PRE(stream_id_is_unique(trace, stream_class, id),
 		"Duplicate stream ID: %![trace-]+t, id=%" PRIu64, trace, id);
-	BT_ASSERT_PRE(!trace->is_static,
-		"Trace is static: %![trace-]+t", trace);
 	BT_LIB_LOGD("Creating stream object: %![trace-]+t, id=%" PRIu64,
 		trace, id);
 	stream = g_new0(struct bt_stream, 1);

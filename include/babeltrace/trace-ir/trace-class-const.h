@@ -44,6 +44,9 @@ typedef enum bt_trace_class_status {
 	BT_TRACE_CLASS_STATUS_NOMEM = -12,
 } bt_trace_class_status;
 
+typedef void (* bt_trace_class_destruction_listener_func)(
+		const bt_trace_class *trace_class, void *data);
+
 extern bt_bool bt_trace_class_assigns_automatic_stream_class_id(
 		const bt_trace_class *trace_class);
 
@@ -73,6 +76,14 @@ bt_trace_class_borrow_stream_class_by_index_const(
 
 extern const bt_stream_class *bt_trace_class_borrow_stream_class_by_id_const(
 		const bt_trace_class *trace_class, uint64_t id);
+
+extern bt_trace_class_status bt_trace_class_add_destruction_listener(
+        const bt_trace_class *trace_class,
+        bt_trace_class_destruction_listener_func listener,
+        void *data, uint64_t *listener_id);
+
+extern bt_trace_class_status bt_trace_class_remove_destruction_listener(
+        const bt_trace_class *trace_class, uint64_t listener_id);
 
 extern void bt_trace_class_get_ref(const bt_trace_class *trace_class);
 

@@ -52,8 +52,6 @@ extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
 extern bt_stream *bt_trace_borrow_stream_by_id(bt_trace *trace,
 		uint64_t id);
 
-extern bt_trace_status bt_trace_make_static(bt_trace *trace);
-
 #ifdef __cplusplus
 }
 #endif
