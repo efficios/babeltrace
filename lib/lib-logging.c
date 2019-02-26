@@ -479,8 +479,6 @@ static inline void format_trace(char **buf_ch, bool extended,
 			PRFIELD(trace->streams->len));
 	}
 
-	BUF_APPEND(", %sis-static=%d", PRFIELD(trace->is_static));
-
 	if (!trace->class) {
 		return;
 	}

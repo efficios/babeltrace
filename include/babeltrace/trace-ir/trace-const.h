@@ -44,11 +44,8 @@ typedef enum bt_trace_status {
 	BT_TRACE_STATUS_NOMEM = -12,
 } bt_trace_status;
 
-typedef void (* bt_trace_is_static_listener_func)(const bt_trace *trace,
-		void *data);
-
-typedef void (* bt_trace_listener_removed_func)(const bt_trace *trace,
-		void *data);
+typedef void (* bt_trace_destruction_listener_func)(
+		const bt_trace *trace, void *data);
 
 extern const bt_trace_class *bt_trace_borrow_class_const(
 		const bt_trace *trace);
@@ -63,15 +60,12 @@ extern const bt_stream *bt_trace_borrow_stream_by_index_const(
 extern const bt_stream *bt_trace_borrow_stream_by_id_const(
 		const bt_trace *trace, uint64_t id);
 
-extern bt_bool bt_trace_is_static(const bt_trace *trace);
-
-extern bt_trace_status bt_trace_add_is_static_listener(
+extern bt_trace_status bt_trace_add_destruction_listener(
 		const bt_trace *trace,
-		bt_trace_is_static_listener_func listener,
-		bt_trace_listener_removed_func listener_removed, void *data,
-		uint64_t *listener_id);
+		bt_trace_destruction_listener_func listener,
+		void *data, uint64_t *listener_id);
 
-extern bt_trace_status bt_trace_remove_is_static_listener(
+extern bt_trace_status bt_trace_remove_destruction_listener(
 		const bt_trace *trace, uint64_t listener_id);
 
 extern void bt_trace_get_ref(const bt_trace *trace);

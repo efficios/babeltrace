@@ -64,9 +64,7 @@ struct bt_trace {
 	 */
 	GHashTable *stream_classes_stream_count;
 
-	GArray *is_static_listeners;
-	bool is_static;
-	bool in_remove_listener;
+	GArray *destruction_listeners;
 	bool frozen;
 };
 

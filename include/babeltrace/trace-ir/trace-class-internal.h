@@ -63,6 +63,7 @@ struct bt_trace_class {
 	GPtrArray *stream_classes;
 
 	bool assigns_automatic_stream_class_id;
+	GArray *destruction_listeners;
 	bool frozen;
 };
 

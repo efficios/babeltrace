@@ -55,9 +55,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct bt_trace_is_static_listener_elem {
-	bt_trace_is_static_listener_func func;
-	bt_trace_listener_removed_func removed;
+struct bt_trace_destruction_listener_elem {
+	bt_trace_destruction_listener_func func;
 	void *data;
 };
 
@@ -72,24 +71,24 @@ void destroy_trace(struct bt_object *obj)
 	BT_LIB_LOGD("Destroying trace object: %!+t", trace);
 
 	/*
-	 * Call remove listeners first so that everything else still
-	 * exists in the trace.
+	 * Call destruction listener functions so that everything else
+	 * still exists in the trace.
 	 */
-	if (trace->is_static_listeners) {
-		size_t i;
+	if (trace->destruction_listeners) {
+		uint64_t i;
+		BT_LIB_LOGV("Calling trace destruction listener(s): %!+t", trace);
+		/* Call all the trace destruction listeners */
+		for (i = 0; i < trace->destruction_listeners->len; i++) {
+			struct bt_trace_destruction_listener_elem elem =
+				g_array_index(trace->destruction_listeners,
+						struct bt_trace_destruction_listener_elem, i);
 
-		for (i = 0; i < trace->is_static_listeners->len; i++) {
-			struct bt_trace_is_static_listener_elem elem =
-				g_array_index(trace->is_static_listeners,
-					struct bt_trace_is_static_listener_elem, i);
-
-			if (elem.removed) {
-				elem.removed((void *) trace, elem.data);
+			if (elem.func) {
+				elem.func(trace, elem.data);
 			}
 		}
-
-		g_array_free(trace->is_static_listeners, TRUE);
-		trace->is_static_listeners = NULL;
+		g_array_free(trace->destruction_listeners, TRUE);
+		trace->destruction_listeners = NULL;
 	}
 
 	if (trace->name.str) {
@@ -147,9 +146,9 @@ struct bt_trace *bt_trace_create(struct bt_trace_class *tc)
 		goto error;
 	}
 
-	trace->is_static_listeners = g_array_new(FALSE, TRUE,
-		sizeof(struct bt_trace_is_static_listener_elem));
-	if (!trace->is_static_listeners) {
+	trace->destruction_listeners = g_array_new(FALSE, TRUE,
+		sizeof(struct bt_trace_destruction_listener_elem));
+	if (!trace->destruction_listeners) {
 		BT_LOGE_STR("Failed to allocate one GArray.");
 		goto error;
 	}
@@ -231,79 +230,44 @@ const struct bt_stream *bt_trace_borrow_stream_by_id_const(
 	return bt_trace_borrow_stream_by_id((void *) trace, id);
 }
 
-bt_bool bt_trace_is_static(const struct bt_trace *trace)
-{
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	return (bt_bool) trace->is_static;
-}
-
-enum bt_trace_status bt_trace_make_static(struct bt_trace *trace)
-{	uint64_t i;
-
-	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	trace->is_static = true;
-	bt_trace_freeze(trace);
-	BT_LIB_LOGV("Trace is now static: %!+t", trace);
-
-	/* Call all the "trace is static" listeners */
-	for (i = 0; i < trace->is_static_listeners->len; i++) {
-		struct bt_trace_is_static_listener_elem elem =
-			g_array_index(trace->is_static_listeners,
-				struct bt_trace_is_static_listener_elem, i);
-
-		if (elem.func) {
-			elem.func((void *) trace, elem.data);
-		}
-	}
-
-	return BT_TRACE_STATUS_OK;
-}
-
-enum bt_trace_status bt_trace_add_is_static_listener(
+enum bt_trace_status bt_trace_add_destruction_listener(
 		const struct bt_trace *c_trace,
-		bt_trace_is_static_listener_func listener,
-		bt_trace_listener_removed_func listener_removed, void *data,
-		uint64_t *listener_id)
+		bt_trace_destruction_listener_func listener,
+		void *data, uint64_t *listener_id)
 {
 	struct bt_trace *trace = (void *) c_trace;
 	uint64_t i;
-	struct bt_trace_is_static_listener_elem new_elem = {
+	struct bt_trace_destruction_listener_elem new_elem = {
 		.func = listener,
-		.removed = listener_removed,
 		.data = data,
 	};
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
 	BT_ASSERT_PRE_NON_NULL(listener, "Listener");
-	BT_ASSERT_PRE(!trace->is_static,
-		"Trace is already static: %!+t", trace);
-	BT_ASSERT_PRE(trace->in_remove_listener,
-		"Cannot call this function while executing a "
-		"remove listener: %!+t", trace);
 
 	/* Find the next available spot */
-	for (i = 0; i < trace->is_static_listeners->len; i++) {
-		struct bt_trace_is_static_listener_elem elem =
-			g_array_index(trace->is_static_listeners,
-				struct bt_trace_is_static_listener_elem, i);
+	for (i = 0; i < trace->destruction_listeners->len; i++) {
+		struct bt_trace_destruction_listener_elem elem =
+			g_array_index(trace->destruction_listeners,
+				struct bt_trace_destruction_listener_elem, i);
 
 		if (!elem.func) {
 			break;
 		}
 	}
 
-	if (i == trace->is_static_listeners->len) {
-		g_array_append_val(trace->is_static_listeners, new_elem);
+	if (i == trace->destruction_listeners->len) {
+		g_array_append_val(trace->destruction_listeners, new_elem);
 	} else {
-		g_array_insert_val(trace->is_static_listeners, i, new_elem);
+		g_array_insert_val(trace->destruction_listeners, i, new_elem);
 	}
 
 	if (listener_id) {
 		*listener_id = i;
 	}
 
-	BT_LIB_LOGV("Added \"trace is static\" listener: "
-		"%![trace-]+t, listener-id=%" PRIu64, trace, i);
+	BT_LIB_LOGV("Added destruction listener: " "%![trace-]+t, "
+			"listener-id=%" PRIu64, trace, i);
 	return BT_TRACE_STATUS_OK;
 }
 
@@ -311,46 +275,30 @@ BT_ASSERT_PRE_FUNC
 static
 bool has_listener_id(const struct bt_trace *trace, uint64_t listener_id)
 {
-	BT_ASSERT(listener_id < trace->is_static_listeners->len);
-	return (&g_array_index(trace->is_static_listeners,
-			struct bt_trace_is_static_listener_elem,
+	BT_ASSERT(listener_id < trace->destruction_listeners->len);
+	return (&g_array_index(trace->destruction_listeners,
+			struct bt_trace_destruction_listener_elem,
 			listener_id))->func != NULL;
 }
 
-enum bt_trace_status bt_trace_remove_is_static_listener(
+enum bt_trace_status bt_trace_remove_destruction_listener(
 		const struct bt_trace *c_trace, uint64_t listener_id)
 {
 	struct bt_trace *trace = (void *) c_trace;
-	struct bt_trace_is_static_listener_elem *elem;
+	struct bt_trace_destruction_listener_elem *elem;
 
 	BT_ASSERT_PRE_NON_NULL(trace, "Trace");
-	BT_ASSERT_PRE(!trace->is_static,
-		"Trace is already static: %!+t", trace);
-	BT_ASSERT_PRE(trace->in_remove_listener,
-		"Cannot call this function while executing a "
-		"remove listener: %!+t", trace);
 	BT_ASSERT_PRE(has_listener_id(trace, listener_id),
-		"Trace has no such \"trace is static\" listener ID: "
+		"Trace has no such trace destruction listener ID: "
 		"%![trace-]+t, %" PRIu64, trace, listener_id);
-	elem = &g_array_index(trace->is_static_listeners,
-			struct bt_trace_is_static_listener_elem,
+	elem = &g_array_index(trace->destruction_listeners,
+			struct bt_trace_destruction_listener_elem,
 			listener_id);
 	BT_ASSERT(elem->func);
 
-	if (elem->removed) {
-		/* Call remove listener */
-		BT_LIB_LOGV("Calling remove listener: "
-			"%![trace-]+t, listener-id=%" PRIu64,
-			trace, listener_id);
-		trace->in_remove_listener = true;
-		elem->removed((void *) trace, elem->data);
-		trace->in_remove_listener = false;
-	}
-
 	elem->func = NULL;
-	elem->removed = NULL;
 	elem->data = NULL;
-	BT_LIB_LOGV("Removed \"trace is static\" listener: "
+	BT_LIB_LOGV("Removed \"trace destruction listener: "
 		"%![trace-]+t, listener-id=%" PRIu64,
 		trace, listener_id);
 	return BT_TRACE_STATUS_OK;
