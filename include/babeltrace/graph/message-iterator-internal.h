@@ -112,8 +112,7 @@ struct bt_self_component_port_input_message_iterator {
 	} methods;
 
 	enum bt_self_component_port_input_message_iterator_state state;
-	uint64_t auto_seek_msg_count;
-	GPtrArray *auto_seek_msgs;
+	GQueue *auto_seek_msgs;
 	void *user_data;
 };
 
