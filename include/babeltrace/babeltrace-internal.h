@@ -26,6 +26,7 @@
 #include <glib.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <babeltrace/compat/string-internal.h>
 #include <babeltrace/types.h>
@@ -60,6 +61,38 @@
 #define max_t(type, a, b)	\
 	((type) (a) > (type) (b) ? (type) (a) : (type) (b))
 #endif
+
+static inline
+bool bt_safe_to_mul_int64(int64_t a, int64_t b)
+{
+	if (a == 0 || b == 0) {
+		return true;
+	}
+
+	return a < INT64_MAX / b;
+}
+
+static inline
+bool bt_safe_to_mul_uint64(uint64_t a, uint64_t b)
+{
+	if (a == 0 || b == 0) {
+		return true;
+	}
+
+	return a < UINT64_MAX / b;
+}
+
+static inline
+bool bt_safe_to_add_int64(int64_t a, int64_t b)
+{
+	return a <= INT64_MAX - b;
+}
+
+static inline
+bool bt_safe_to_add_uint64(uint64_t a, uint64_t b)
+{
+	return a <= UINT64_MAX - b;
+}
 
 /*
  * Memory allocation zeroed
