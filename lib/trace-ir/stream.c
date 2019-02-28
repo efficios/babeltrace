@@ -203,19 +203,19 @@ const struct bt_trace *bt_stream_borrow_trace_const(
 
 const char *bt_stream_get_name(const struct bt_stream *stream)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Stream class");
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	return stream->name.value;
 }
 
 enum bt_stream_status bt_stream_set_name(struct bt_stream *stream,
 		const char *name)
 {
-	BT_ASSERT_PRE_NON_NULL(stream, "Clock class");
+	BT_ASSERT_PRE_NON_NULL(stream, "Stream");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
 	BT_ASSERT_PRE_STREAM_HOT(stream);
 	g_string_assign(stream->name.str, name);
 	stream->name.value = stream->name.str->str;
-	BT_LIB_LOGV("Set stream class's name: %!+s", stream);
+	BT_LIB_LOGV("Set stream's name: %!+s", stream);
 	return BT_STREAM_STATUS_OK;
 }
 
@@ -228,7 +228,6 @@ uint64_t bt_stream_get_id(const struct bt_stream *stream)
 BT_HIDDEN
 void _bt_stream_freeze(const struct bt_stream *stream)
 {
-	/* The field classes and default clock class are already frozen */
 	BT_ASSERT(stream);
 	BT_LIB_LOGD("Freezing stream: %!+s", stream);
 	((struct bt_stream *) stream)->frozen = true;
