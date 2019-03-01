@@ -260,7 +260,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 		if (pretty->options.print_timestamp_cycles) {
 			if (pretty->delta_cycles == -1ULL) {
 				g_string_append(pretty->string,
-					"+??????????\?\?) "); /* Not a trigraph. */
+					"+??????????\?\?"); /* Not a trigraph. */
 			} else {
 				g_string_append_printf(pretty->string,
 					"+%012" PRIu64, pretty->delta_cycles);
