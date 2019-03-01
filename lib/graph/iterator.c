@@ -1206,7 +1206,7 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 
 	BT_ASSERT(iterator->methods.next);
 
-	while (true) {
+	while (!got_first) {
 		/*
 		 * Call the user's "next" method to get the next
 		 * messages and status.
@@ -1253,7 +1253,7 @@ enum bt_message_iterator_status find_message_ge_ns_from_origin(
 			status = auto_seek_handle_message(iterator,
 				ns_from_origin, messages[i], &got_first);
 			if (status == BT_MESSAGE_ITERATOR_STATUS_OK) {
-				/* Message was either put or moved */
+				/* Message was either pushed or moved */
 				messages[i] = NULL;
 			} else {
 				goto end;
