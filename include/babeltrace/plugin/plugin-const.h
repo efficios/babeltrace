@@ -77,7 +77,7 @@ extern uint64_t bt_plugin_get_sink_component_class_count(
 		const bt_plugin *plugin);
 
 extern const bt_component_class_source *
-bt_plugin_borrow_source_component_class_by_index_const_const(
+bt_plugin_borrow_source_component_class_by_index_const(
 		const bt_plugin *plugin, uint64_t index);
 
 extern const bt_component_class_filter *
