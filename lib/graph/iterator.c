@@ -1169,6 +1169,7 @@ enum bt_message_iterator_status auto_seek_handle_message(
 
 skip_msg:
 	bt_object_put_no_null_check(msg);
+	msg = NULL;
 	goto end;
 
 push_msg:
