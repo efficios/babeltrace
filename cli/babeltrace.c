@@ -1110,13 +1110,15 @@ void cmd_list_plugins_print_component_classes(const bt_plugin *plugin,
 	uint64_t i;
 
 	if (count == 0) {
-		printf("  %s%s component classes%s: (none)\n", cc_type_name,
+		printf("  %s%s component classes%s: (none)\n",
 			bt_common_color_bold(),
+			cc_type_name,
 			bt_common_color_reset());
 		goto end;
 	} else {
-		printf("  %s%s component classes%s:\n", cc_type_name,
+		printf("  %s%s component classes%s:\n",
 			bt_common_color_bold(),
+			cc_type_name,
 			bt_common_color_reset());
 	}
 
