@@ -1214,6 +1214,7 @@ int print_discarded_elements_msg(struct pretty_component *pretty,
 	bt_uuid trace_uuid;
 	int64_t stream_class_id;
 	int64_t stream_id;
+	const char *init_msg;
 
 	/* Stream name */
 	stream_name = bt_stream_get_name(stream);
@@ -1243,16 +1244,22 @@ int print_discarded_elements_msg(struct pretty_component *pretty,
 
 	/* Format message */
 	g_string_assign(pretty->string, "");
+
+	if (count == UINT64_C(-1)) {
+		init_msg = "Tracer may have discarded";
+	} else {
+		init_msg = "Tracer discarded";
+	}
+
 	g_string_append_printf(pretty->string,
-		"%s%sWARNING%s%s: Tracer discarded ",
+		"%s%sWARNING%s%s: %s ",
 		bt_common_color_fg_yellow(),
 		bt_common_color_bold(),
 		bt_common_color_reset(),
-		bt_common_color_fg_yellow());
+		bt_common_color_fg_yellow(), init_msg);
 
 	if (count == UINT64_C(-1)) {
-		g_string_append_printf(pretty->string, "a number of %ss",
-			elem_type);
+		g_string_append_printf(pretty->string, "%ss", elem_type);
 	} else {
 		g_string_append_printf(pretty->string,
 			"%" PRIu64 " %s%s", count, elem_type,
