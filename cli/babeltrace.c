@@ -1187,19 +1187,19 @@ int cmd_list_plugins(struct bt_config *cfg)
 		cmd_list_plugins_print_component_classes(plugin, "Source",
 			bt_plugin_get_source_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
-				bt_plugin_borrow_source_component_class_by_name_const,
+				bt_plugin_borrow_source_component_class_by_index_const,
 			(spec_comp_cls_borrow_comp_cls_func_t)
 				bt_component_class_source_as_component_class);
 		cmd_list_plugins_print_component_classes(plugin, "Filter",
 			bt_plugin_get_filter_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
-				bt_plugin_borrow_filter_component_class_by_name_const,
+				bt_plugin_borrow_filter_component_class_by_index_const,
 			(spec_comp_cls_borrow_comp_cls_func_t)
 				bt_component_class_filter_as_component_class);
 		cmd_list_plugins_print_component_classes(plugin, "Sink",
 			bt_plugin_get_sink_component_class_count(plugin),
 			(plugin_borrow_comp_cls_by_index_func_t)
-				bt_plugin_borrow_sink_component_class_by_name_const,
+				bt_plugin_borrow_sink_component_class_by_index_const,
 			(spec_comp_cls_borrow_comp_cls_func_t)
 				bt_component_class_sink_as_component_class);
 	}
