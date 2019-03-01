@@ -538,7 +538,7 @@ struct bt_component_class *borrow_component_class_by_index(
 }
 
 const struct bt_component_class_source *
-bt_plugin_borrow_source_component_class_by_index_const_const(
+bt_plugin_borrow_source_component_class_by_index_const(
 		const struct bt_plugin *plugin, uint64_t index)
 {
 	return (const void *) borrow_component_class_by_index(plugin,
