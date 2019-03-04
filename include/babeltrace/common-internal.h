@@ -432,7 +432,7 @@ const char *bt_common_value_type_string(enum bt_value_type type)
 };
 
 static inline
-GString *bt_field_path_string(struct bt_field_path *path)
+GString *bt_common_field_path_string(struct bt_field_path *path)
 {
 	GString *str = g_string_new(NULL);
 	uint64_t i;
@@ -458,7 +458,7 @@ end:
 }
 
 static inline
-const char *bt_self_message_iterator_status_string(
+const char *bt_common_self_message_iterator_status_string(
 		enum bt_self_message_iterator_status status)
 {
 	switch (status) {
