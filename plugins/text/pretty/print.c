@@ -78,23 +78,25 @@ void print_field_name_equal(struct pretty_component *pretty, const char *name)
 
 static
 void print_timestamp_cycles(struct pretty_component *pretty,
-		const bt_clock_snapshot *clock_snapshot)
+		const bt_clock_snapshot *clock_snapshot, bool update_last)
 {
 	uint64_t cycles;
 
 	cycles = bt_clock_snapshot_get_value(clock_snapshot);
 	g_string_append_printf(pretty->string, "%020" PRIu64, cycles);
 
-	if (pretty->last_cycles_timestamp != -1ULL) {
-		pretty->delta_cycles = cycles - pretty->last_cycles_timestamp;
-	}
+	if (update_last) {
+		if (pretty->last_cycles_timestamp != -1ULL) {
+			pretty->delta_cycles = cycles - pretty->last_cycles_timestamp;
+		}
 
-	pretty->last_cycles_timestamp = cycles;
+		pretty->last_cycles_timestamp = cycles;
+	}
 }
 
 static
 void print_timestamp_wall(struct pretty_component *pretty,
-		const bt_clock_snapshot *clock_snapshot)
+		const bt_clock_snapshot *clock_snapshot, bool update_last)
 {
 	int ret;
 	int64_t ts_nsec = 0;	/* add configurable offset */
@@ -114,11 +116,14 @@ void print_timestamp_wall(struct pretty_component *pretty,
 		return;
 	}
 
-	if (pretty->last_real_timestamp != -1ULL) {
-		pretty->delta_real_timestamp = ts_nsec - pretty->last_real_timestamp;
+	if (update_last) {
+		if (pretty->last_real_timestamp != -1ULL) {
+			pretty->delta_real_timestamp = ts_nsec - pretty->last_real_timestamp;
+		}
+
+		pretty->last_real_timestamp = ts_nsec;
 	}
 
-	pretty->last_real_timestamp = ts_nsec;
 	ts_sec += ts_nsec / NSEC_PER_SEC;
 	ts_nsec = ts_nsec % NSEC_PER_SEC;
 
@@ -239,9 +244,9 @@ int print_event_timestamp(struct pretty_component *pretty,
 		g_string_append(pretty->string, COLOR_TIMESTAMP);
 	}
 	if (pretty->options.print_timestamp_cycles) {
-		print_timestamp_cycles(pretty, clock_snapshot);
+		print_timestamp_cycles(pretty, clock_snapshot, true);
 	} else {
-		print_timestamp_wall(pretty, clock_snapshot);
+		print_timestamp_wall(pretty, clock_snapshot, true);
 	}
 	if (pretty->use_colors) {
 		g_string_append(pretty->string, COLOR_RST);
@@ -1268,9 +1273,9 @@ int print_discarded_elements_msg(struct pretty_component *pretty,
 
 	if (begin_clock_snapshot && end_clock_snapshot) {
 		g_string_append(pretty->string, " between [");
-		print_timestamp_wall(pretty, begin_clock_snapshot);
+		print_timestamp_wall(pretty, begin_clock_snapshot, false);
 		g_string_append(pretty->string, "] and [");
-		print_timestamp_wall(pretty, end_clock_snapshot);
+		print_timestamp_wall(pretty, end_clock_snapshot, false);
 		g_string_append(pretty->string, "]");
 	} else {
 		g_string_append(pretty->string, "(unknown time range)");
