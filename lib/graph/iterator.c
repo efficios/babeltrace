@@ -975,7 +975,7 @@ bt_self_component_port_input_message_iterator_seek_beginning(
 		status == BT_MESSAGE_ITERATOR_STATUS_NOMEM ||
 		status == BT_MESSAGE_ITERATOR_STATUS_AGAIN,
 		"Unexpected status: %![iter-]+i, status=%s",
-		iterator, bt_self_message_iterator_status_string(status));
+		iterator, bt_common_self_message_iterator_status_string(status));
 	set_iterator_state_after_seeking(iterator, status);
 	return status;
 }
@@ -1359,7 +1359,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			status == BT_MESSAGE_ITERATOR_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
 			iterator,
-			bt_self_message_iterator_status_string(status));
+			bt_common_self_message_iterator_status_string(status));
 	} else {
 		/* Start automatic seeking: seek beginning first */
 		BT_ASSERT(iterator->methods.can_seek_beginning(iterator));
@@ -1375,7 +1375,7 @@ bt_self_component_port_input_message_iterator_seek_ns_from_origin(
 			status == BT_MESSAGE_ITERATOR_STATUS_AGAIN,
 			"Unexpected status: %![iter-]+i, status=%s",
 			iterator,
-			bt_self_message_iterator_status_string(status));
+			bt_common_self_message_iterator_status_string(status));
 		switch (status) {
 		case BT_MESSAGE_ITERATOR_STATUS_OK:
 			break;
