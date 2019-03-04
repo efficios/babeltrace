@@ -1000,11 +1000,11 @@ bt_self_message_iterator_status muxer_msg_iter_do_next_one(
 		if (status < 0) {
 			BT_LOGE("Cannot find the youngest upstream message iterator wrapper: "
 				"status=%s",
-				bt_self_message_iterator_status_string(status));
+				bt_common_self_message_iterator_status_string(status));
 		} else {
 			BT_LOGV("Cannot find the youngest upstream message iterator wrapper: "
 				"status=%s",
-				bt_self_message_iterator_status_string(status));
+				bt_common_self_message_iterator_status_string(status));
 		}
 
 		goto end;
@@ -1300,11 +1300,11 @@ bt_self_message_iterator_status muxer_msg_iter_next(
 			"comp-addr=%p, muxer-comp-addr=%p, muxer-msg-iter-addr=%p, "
 			"msg-iter-addr=%p, status=%s",
 			self_comp, muxer_comp, muxer_msg_iter, self_msg_iter,
-			bt_self_message_iterator_status_string(status));
+			bt_common_self_message_iterator_status_string(status));
 	} else {
 		BT_LOGV("Returning from muxer component's message iterator's \"next\" method: "
 			"status=%s",
-			bt_self_message_iterator_status_string(status));
+			bt_common_self_message_iterator_status_string(status));
 	}
 
 	return status;
