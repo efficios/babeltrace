@@ -30,6 +30,7 @@
 
 #include "fs-src/fs.h"
 #include "fs-sink/fs-sink.h"
+#include "lttng-live/lttng-live.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
 BT_PLUGIN_MODULE();
@@ -63,22 +64,18 @@ BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(fs,
 	ctf_fs_sink_graph_is_configured);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(fs, "Write CTF traces to the file system.");
 
-#if 0
 /* ctf.lttng-live source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, lttng_live, "lttng-live",
-	lttng_live_iterator_next);
+	lttng_live_msg_iter_next);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_DESCRIPTION_WITH_ID(auto, lttng_live,
-        "Connect to an LTTng relay daemon and receive CTF streams.");
+	"Connect to an LTTng relay daemon and receive CTF streams.");
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_INIT_METHOD_WITH_ID(auto, lttng_live,
 	lttng_live_component_init);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_QUERY_METHOD_WITH_ID(auto, lttng_live,
 	lttng_live_query);
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(auto, lttng_live,
 	lttng_live_component_finalize);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_ACCEPT_PORT_CONNECTION_METHOD_WITH_ID(auto,
-	lttng_live, lttng_live_accept_port_connection);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(
-	auto, lttng_live, lttng_live_iterator_init);
-BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(
-	auto, lttng_live, lttng_live_iterator_finalize);
-#endif
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_INIT_METHOD_WITH_ID(auto,
+	lttng_live, lttng_live_msg_iter_init);
+BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD_WITH_ID(auto,
+	lttng_live, lttng_live_msg_iter_finalize);

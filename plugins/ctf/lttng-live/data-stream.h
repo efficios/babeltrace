@@ -28,10 +28,10 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/babeltrace.h>
 
-#include "lttng-live-internal.h"
+#include "lttng-live.h"
 #include "../common/msg-iter/msg-iter.h"
 
-bt_lttng_live_iterator_status lttng_live_lazy_msg_init(
+enum lttng_live_iterator_status lttng_live_lazy_msg_init(
 		struct lttng_live_session *session);
 
 struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
@@ -39,6 +39,7 @@ struct lttng_live_stream_iterator *lttng_live_stream_iterator_create(
 		uint64_t ctf_trace_id,
 		uint64_t stream_id);
 
-void lttng_live_stream_iterator_destroy(struct lttng_live_stream_iterator *stream);
+void lttng_live_stream_iterator_destroy(
+		struct lttng_live_stream_iterator *stream);
 
 #endif /* LTTNG_LIVE_DATA_STREAM_H */

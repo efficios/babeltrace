@@ -40,7 +40,7 @@
 
 struct lttng_live_component;
 
-struct bt_live_viewer_connection {
+struct live_viewer_connection {
 	bt_object obj;
 
 	GString *url;
@@ -55,12 +55,13 @@ struct bt_live_viewer_connection {
 	int32_t major;
 	int32_t minor;
 
-	struct lttng_live_component *lttng_live;
+	bool in_query;
+	struct lttng_live_msg_iter *lttng_live_msg_iter;
 };
 
 struct packet_index_time {
-	int64_t timestamp_begin;
-	int64_t timestamp_end;
+	uint64_t timestamp_begin;
+	uint64_t timestamp_end;
 };
 
 struct packet_index {
@@ -77,11 +78,15 @@ struct packet_index {
 	uint64_t packet_seq_num;	/* packet sequence number */
 };
 
-struct bt_live_viewer_connection *
-	bt_live_viewer_connection_create(const char *url, struct lttng_live_component *lttng_live);
+struct live_viewer_connection * live_viewer_connection_create(
+		const char *url, bool in_query,
+		struct lttng_live_msg_iter *lttng_live_msg_iter);
 
-void bt_live_viewer_connection_destroy(struct bt_live_viewer_connection *conn);
+void live_viewer_connection_destroy(
+		struct live_viewer_connection *conn);
 
-bt_value *bt_live_viewer_connection_list_sessions(struct bt_live_viewer_connection *viewer_connection);
+bt_query_status live_viewer_connection_list_sessions(
+		struct live_viewer_connection *viewer_connection,
+		const bt_value **user_result);
 
 #endif /* LTTNG_LIVE_VIEWER_CONNECTION_H */
