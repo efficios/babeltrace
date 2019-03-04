@@ -1,4 +1,5 @@
 /*
+ * Copyright 2019 - Francis Deslauriers <francis.deslauriers@efficios.com>
  * Copyright 2016 - Philippe Proulx <pproulx@efficios.com>
  * Copyright 2010-2011 - EfficiOS Inc. and Linux Foundation
  *
@@ -31,7 +32,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <glib.h>
-#include <babeltrace/compat/uuid-internal.h>
 #include <babeltrace/compat/memstream-internal.h>
 #include <babeltrace/babeltrace.h>
 
@@ -53,66 +53,85 @@ struct packet_header {
 	uint8_t  minor;
 } __attribute__((__packed__));
 
+
 static
-bt_lttng_live_iterator_status lttng_live_update_clock_map(
-		struct lttng_live_trace *trace)
+bool stream_classes_all_have_default_clock_class(bt_trace_class *tc)
 {
-	bt_lttng_live_iterator_status status =
-			BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
-	size_t i;
-	int count, ret;
+	uint64_t i, sc_count;
+	const bt_clock_class *cc = NULL;
+	const bt_stream_class *sc;
+	bool ret = true;
 
-	BT_OBJECT_PUT_REF_AND_RESET(trace->cc_prio_map);
-	trace->cc_prio_map = bt_clock_class_priority_map_create();
-	if (!trace->cc_prio_map) {
-		goto error;
-	}
+	sc_count = bt_trace_class_get_stream_class_count(tc);
+	for (i = 0; i < sc_count; i++) {
+		sc = bt_trace_class_borrow_stream_class_by_index_const(tc, i);
 
-	count = bt_trace_get_clock_class_count(trace->trace);
-	BT_ASSERT(count >= 0);
+		BT_ASSERT(sc);
 
-	for (i = 0; i < count; i++) {
-		const bt_clock_class *clock_class =
-			bt_trace_get_clock_class_by_index(trace->trace, i);
-
-		BT_ASSERT(clock_class);
-		ret = bt_clock_class_priority_map_add_clock_class(
-			trace->cc_prio_map, clock_class, 0);
-		BT_CLOCK_CLASS_PUT_REF_AND_RESET(clock_class);
-
-		if (ret) {
-			goto error;
+		cc = bt_stream_class_borrow_default_clock_class_const(sc);
+		if (!cc) {
+			ret = false;
+			BT_LOGE("Stream class doesn't have a default clock class: "
+				"sc-id=%" PRIu64 ", sc-name=\"%s\"",
+				bt_stream_class_get_id(sc),
+				bt_stream_class_get_name(sc));
+			goto end;
 		}
 	}
 
-	goto end;
-error:
-	status = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 end:
-	return status;
+	return ret;
+}
+/*
+ * Iterate over the stream classes and returns the first clock class
+ * encountered. This is useful to create message iterator inactivity message as
+ * we don't need a particular clock class.
+ */
+static
+const bt_clock_class *borrow_any_clock_class(bt_trace_class *tc)
+{
+	uint64_t i, sc_count;
+	const bt_clock_class *cc = NULL;
+	const bt_stream_class *sc;
+
+	sc_count = bt_trace_class_get_stream_class_count(tc);
+	for (i = 0; i < sc_count; i++) {
+		sc = bt_trace_class_borrow_stream_class_by_index_const(tc, i);
+		BT_ASSERT(sc);
+
+		cc = bt_stream_class_borrow_default_clock_class_const(sc);
+		if (cc) {
+			goto end;
+		}
+	}
+end:
+	BT_ASSERT(cc);
+	return cc;
 }
 
 BT_HIDDEN
-bt_lttng_live_iterator_status lttng_live_metadata_update(
+enum lttng_live_iterator_status lttng_live_metadata_update(
 		struct lttng_live_trace *trace)
 {
 	struct lttng_live_session *session = trace->session;
 	struct lttng_live_metadata *metadata = trace->metadata;
+	struct lttng_live_component *lttng_live =
+		session->lttng_live_msg_iter->lttng_live_comp;
 	ssize_t ret = 0;
 	size_t size, len_read = 0;
 	char *metadata_buf = NULL;
 	FILE *fp = NULL;
 	enum ctf_metadata_decoder_status decoder_status;
-	bt_lttng_live_iterator_status status =
-		BT_LTTNG_LIVE_ITERATOR_STATUS_OK;
+	enum lttng_live_iterator_status status =
+		LTTNG_LIVE_ITERATOR_STATUS_OK;
 
 	/* No metadata stream yet. */
 	if (!metadata) {
 		if (session->new_streams_needed) {
-			status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		} else {
 			session->new_streams_needed = true;
-			status = BT_LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
+			status = LTTNG_LIVE_ITERATOR_STATUS_CONTINUE;
 		}
 		goto end;
 	}
@@ -159,12 +178,11 @@ bt_lttng_live_iterator_status lttng_live_metadata_update(
 			 * metadata objects immediately, but only when
 			 * the data streams are done.
 			 */
-			lttng_live_unref_trace(metadata->trace);
 			metadata->trace = NULL;
 		}
 		if (errno == EINTR) {
-			if (lttng_live_is_canceled(session->lttng_live)) {
-				status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+			if (lttng_live_is_canceled(lttng_live)) {
+				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 				goto end;
 			}
 		}
@@ -178,7 +196,7 @@ bt_lttng_live_iterator_status lttng_live_metadata_update(
 
 	if (len_read == 0) {
 		if (!trace->trace) {
-			status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+			status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			goto end;
 		}
 		trace->new_metadata_needed = false;
@@ -192,19 +210,31 @@ bt_lttng_live_iterator_status lttng_live_metadata_update(
 		goto error;
 	}
 
+	/*
+	 * The call to ctf_metadata_decoder_decode will append new metadata to
+	 * our current trace class.
+	 */
 	decoder_status = ctf_metadata_decoder_decode(metadata->decoder, fp);
 	switch (decoder_status) {
 	case CTF_METADATA_DECODER_STATUS_OK:
-		BT_OBJECT_PUT_REF_AND_RESET(trace->trace);
-		trace->trace = ctf_metadata_decoder_get_trace(metadata->decoder);
-		trace->new_metadata_needed = false;
-		status = lttng_live_update_clock_map(trace);
-		if (status != BT_LTTNG_LIVE_ITERATOR_STATUS_OK) {
-			goto end;
+		if (!trace->trace_class) {
+			trace->trace_class =
+				ctf_metadata_decoder_get_ir_trace_class(
+						metadata->decoder);
+			trace->trace = bt_trace_create(trace->trace_class);
+			if (!stream_classes_all_have_default_clock_class(
+					trace->trace_class)) {
+				/* Error logged in function. */
+				goto error;
+			}
+			trace->clock_class =
+				borrow_any_clock_class(trace->trace_class);
 		}
+		trace->new_metadata_needed = false;
+
 		break;
 	case CTF_METADATA_DECODER_STATUS_INCOMPLETE:
-		status = BT_LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
+		status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 		break;
 	case CTF_METADATA_DECODER_STATUS_ERROR:
 	case CTF_METADATA_DECODER_STATUS_INVAL_VERSION:
@@ -214,7 +244,7 @@ bt_lttng_live_iterator_status lttng_live_metadata_update(
 
 	goto end;
 error:
-	status = BT_LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+	status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
 end:
 	if (fp) {
 		int closeret;
@@ -234,6 +264,8 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 		uint64_t stream_id,
 		const char *trace_name)
 {
+	struct lttng_live_component *lttng_live =
+		session->lttng_live_msg_iter->lttng_live_comp;
 	struct lttng_live_metadata *metadata = NULL;
 	struct lttng_live_trace *trace;
 	const char *match;
@@ -243,17 +275,18 @@ int lttng_live_metadata_create_stream(struct lttng_live_session *session,
 		return -1;
 	}
 	metadata->stream_id = stream_id;
-	//TODO: add clock offset option
+
 	match = strstr(trace_name, session->session_name->str);
 	if (!match) {
 		goto error;
 	}
-	metadata->decoder = ctf_metadata_decoder_create(NULL,
-		match);
+
+	metadata->decoder = ctf_metadata_decoder_create(
+				lttng_live->self_comp, NULL);
 	if (!metadata->decoder) {
 		goto error;
 	}
-	trace = lttng_live_ref_trace(session, ctf_trace_id);
+	trace = lttng_live_borrow_trace(session, ctf_trace_id);
 	if (!trace) {
 		goto error;
 	}
@@ -275,13 +308,7 @@ void lttng_live_metadata_fini(struct lttng_live_trace *trace)
 	if (!metadata) {
 		return;
 	}
-	if (metadata->text) {
-		free(metadata->text);
-	}
 	ctf_metadata_decoder_destroy(metadata->decoder);
 	trace->metadata = NULL;
-	if (!metadata->closed) {
-		lttng_live_unref_trace(metadata->trace);
-	}
 	g_free(metadata);
 }
