@@ -373,7 +373,11 @@ int bt_ctf_writer_set_byte_order(struct bt_ctf_writer *writer,
 	}
 
 	if (byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
-		byte_order = BT_CTF_MY_BYTE_ORDER;
+		if (BYTE_ORDER == LITTLE_ENDIAN) {
+			byte_order = BT_CTF_BYTE_ORDER_LITTLE_ENDIAN;
+		} else {
+			byte_order = BT_CTF_BYTE_ORDER_BIG_ENDIAN;
+		}
 	}
 
 	ret = bt_ctf_trace_set_native_byte_order(writer->trace,

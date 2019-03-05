@@ -31,11 +31,11 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/assert-pre-internal.h>
 #include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/ctf-writer/stream-internal.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/utils-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
+#include <babeltrace/ctfser-internal.h>
 #include <stdint.h>
 
 struct bt_ctf_stream_common;
@@ -93,15 +93,11 @@ struct bt_ctf_stream {
 
 	/* Array of pointers to bt_ctf_event for the current packet */
 	GPtrArray *events;
-	struct bt_ctf_stream_pos pos;
+	struct bt_ctfser ctfser;
 	unsigned int flushed_packet_count;
 	uint64_t discarded_events;
-	uint64_t size;
 	uint64_t last_ts_end;
 };
-
-BT_HIDDEN
-int bt_ctf_stream_set_fd(struct bt_ctf_stream *stream, int fd);
 
 BT_HIDDEN
 struct bt_ctf_stream *bt_ctf_stream_create_with_id(

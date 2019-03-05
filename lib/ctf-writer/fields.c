@@ -32,10 +32,10 @@
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/ctf-writer/field-types-internal.h>
 #include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/endian-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/ctf-writer/object.h>
+#include <babeltrace/ctfser-internal.h>
 #include <float.h>
 #include <inttypes.h>
 #include <inttypes.h>
@@ -778,7 +778,7 @@ struct bt_ctf_field *(* const field_create_funcs[])(struct bt_ctf_field_type *) 
 };
 
 typedef int (*bt_ctf_field_serialize_recursive_func)(
-		struct bt_ctf_field_common *, struct bt_ctf_stream_pos *,
+		struct bt_ctf_field_common *, struct bt_ctfser *,
 		enum bt_ctf_byte_order);
 
 static
@@ -857,91 +857,51 @@ void bt_ctf_field_string_destroy(struct bt_ctf_field *field)
 
 BT_HIDDEN
 int bt_ctf_field_serialize_recursive(struct bt_ctf_field *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
 	struct bt_ctf_field_common *field_common = (void *) field;
 	bt_ctf_field_serialize_recursive_func serialize_func;
 
-	BT_ASSERT(pos);
+	BT_ASSERT(ctfser);
 	BT_ASSERT_PRE_NON_NULL(field, "Field");
 	BT_ASSERT(field_common->spec.writer.serialize_func);
 	serialize_func = field_common->spec.writer.serialize_func;
-	return serialize_func(field_common, pos,
+	return serialize_func(field_common, ctfser,
 		native_byte_order);
-}
-
-static
-int increase_packet_size(struct bt_ctf_stream_pos *pos)
-{
-	int ret;
-
-	BT_ASSERT(pos);
-	BT_LOGV("Increasing packet size: pos-offset=%" PRId64 ", "
-		"cur-packet-size=%" PRIu64,
-		pos->offset, pos->packet_size);
-	ret = munmap_align(pos->base_mma);
-	if (ret) {
-		BT_LOGE_ERRNO("Failed to perform an aligned memory unmapping",
-			": ret=%d", ret);
-		goto end;
-	}
-
-	pos->packet_size += PACKET_LEN_INCREMENT;
-	do {
-		ret = bt_posix_fallocate(pos->fd, pos->mmap_offset,
-			pos->packet_size / CHAR_BIT);
-	} while (ret == EINTR);
-	if (ret) {
-		BT_LOGE_ERRNO("Failed to preallocate memory space",
-			": ret=%d", ret);
-		errno = EINTR;
-		ret = -1;
-		goto end;
-	}
-
-	pos->base_mma = mmap_align(pos->packet_size / CHAR_BIT, pos->prot,
-		pos->flags, pos->fd, pos->mmap_offset);
-	if (pos->base_mma == MAP_FAILED) {
-		BT_LOGE_ERRNO("Failed to perform an aligned memory mapping",
-			": ret=%d", ret);
-		ret = -1;
-	}
-
-	BT_LOGV("Increased packet size: pos-offset=%" PRId64 ", "
-		"new-packet-size=%" PRIu64,
-		pos->offset, pos->packet_size);
-	BT_ASSERT(pos->packet_size % 8 == 0);
-
-end:
-	return ret;
 }
 
 static
 int bt_ctf_field_integer_serialize(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	int ret = 0;
+	int ret;
+	struct bt_ctf_field_type_common_integer *int_type =
+		BT_CTF_FROM_COMMON(field->type);
+	struct bt_ctf_field_common_integer *int_field =
+		BT_CTF_FROM_COMMON(field);
+	enum bt_ctf_byte_order byte_order;
+	union bt_ctfser_int_val value;
 
 	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Integer field");
-	BT_LOGV("Serializing CTF writer integer field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
+	BT_LOGV("Serializing CTF writer integer field: addr=%p, native-bo=%s",
+		field,
+		bt_ctf_byte_order_string(native_byte_order));
+	byte_order = int_type->user_byte_order;
+	if (byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+		byte_order = native_byte_order;
+	}
 
-retry:
-	ret = bt_ctf_field_integer_write(field, pos, native_byte_order);
-	if (ret == -EFAULT) {
-		/*
-		 * The field is too large to fit in the current packet's
-		 * remaining space. Bump the packet size and retry.
-		 */
-		ret = increase_packet_size(pos);
-		if (ret) {
-			BT_LOGE("Cannot increase packet size: ret=%d", ret);
-			goto end;
-		}
-		goto retry;
+	value.i = int_field->payload.signd;
+	value.u = int_field->payload.unsignd;
+	ret = bt_ctfser_write_int(ctfser, value, int_type->common.alignment,
+		int_type->size, int_type->is_signed,
+		byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ?
+			LITTLE_ENDIAN : BIG_ENDIAN);
+	if (unlikely(ret)) {
+		BT_LOGE("Cannot serialize integer field: ret=%d", ret);
+		goto end;
 	}
 
 end:
@@ -949,46 +909,58 @@ end:
 }
 
 static
-int bt_ctf_field_enumeration_serialize_recursive(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+int bt_ctf_field_enumeration_serialize_recursive(
+		struct bt_ctf_field_common *field, struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
 	struct bt_ctf_field_enumeration *enumeration = (void *) field;
 
-	BT_LOGV("Serializing enumeration field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
+	BT_LOGV("Serializing enumeration field: addr=%p, native-bo=%s",
+		field, bt_ctf_byte_order_string(native_byte_order));
 	BT_LOGV_STR("Serializing enumeration field's payload field.");
 	return bt_ctf_field_serialize_recursive(
-		(void *) enumeration->container, pos, native_byte_order);
+		(void *) enumeration->container, ctfser, native_byte_order);
 }
 
 static
 int bt_ctf_field_floating_point_serialize(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	int ret = 0;
+	int ret = -1;
+	struct bt_ctf_field_type_common_floating_point *flt_type =
+		BT_CTF_FROM_COMMON(field->type);
+	struct bt_ctf_field_common_floating_point *flt_field = BT_CTF_FROM_COMMON(field);
+	enum bt_ctf_byte_order byte_order;
 
 	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Floating point number field");
-	BT_LOGV("Serializing floating point number field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
+	BT_LOGV("Serializing floating point number field: "
+		"addr=%p, native-bo=%s", field,
+		bt_ctf_byte_order_string(native_byte_order));
 
-retry:
-	ret = bt_ctf_field_floating_point_write(field, pos,
-		native_byte_order);
-	if (ret == -EFAULT) {
-		/*
-		 * The field is too large to fit in the current packet's
-		 * remaining space. Bump the packet size and retry.
-		 */
-		ret = increase_packet_size(pos);
-		if (ret) {
-			BT_LOGE("Cannot increase packet size: ret=%d", ret);
-			goto end;
-		}
-		goto retry;
+	byte_order = flt_type->user_byte_order;
+	if (byte_order == BT_CTF_BYTE_ORDER_NATIVE) {
+		byte_order = native_byte_order;
+	}
+
+	if (flt_type->mant_dig == FLT_MANT_DIG) {
+		ret = bt_ctfser_write_float32(ctfser, flt_field->payload,
+			flt_type->common.alignment,
+			byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ?
+				LITTLE_ENDIAN : BIG_ENDIAN);
+	} else if (flt_type->mant_dig == DBL_MANT_DIG) {
+		ret = bt_ctfser_write_float64(ctfser, flt_field->payload,
+			flt_type->common.alignment,
+			byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ?
+				LITTLE_ENDIAN : BIG_ENDIAN);
+	} else {
+		abort();
+	}
+
+	if (unlikely(ret)) {
+		BT_LOGE("Cannot serialize floating point number field: "
+			"ret=%d", ret);
+		goto end;
 	}
 
 end:
@@ -997,30 +969,20 @@ end:
 
 static
 int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
 	int64_t i;
-	int ret = 0;
+	int ret;
 	struct bt_ctf_field_common_structure *structure = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing structure field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
-
-	while (!bt_ctf_stream_pos_access_ok(pos,
-		offset_align(pos->offset, field->type->alignment))) {
-		ret = increase_packet_size(pos);
-		if (ret) {
-			BT_LOGE("Cannot increase packet size: ret=%d", ret);
-			goto end;
-		}
-	}
-
-	if (!bt_ctf_stream_pos_align(pos, field->type->alignment)) {
-		BT_LOGE("Cannot align packet's position: pos-offset=%" PRId64 ", "
-			"align=%u", pos->offset, field->type->alignment);
-		ret = -1;
+	BT_LOGV("Serializing structure field: addr=%p, native-bo=%s",
+		field, bt_ctf_byte_order_string(native_byte_order));
+	ret = bt_ctfser_align_offset_in_current_packet(ctfser,
+		field->type->alignment);
+	if (unlikely(ret)) {
+		BT_LOGE("Cannot align offset before serializing structure field: "
+			"ret=%d", ret);
 		goto end;
 	}
 
@@ -1029,11 +991,12 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 			structure->fields, i);
 		const char *field_name = NULL;
 
-		BT_LOGV("Serializing structure field's field: pos-offset=%" PRId64 ", "
-			"field-addr=%p, index=%" PRId64,
-			pos->offset, member, i);
+		BT_LOGV("Serializing structure field's field: ser-offset=%" PRIu64 ", "
+			"field-addr=%p, index=%" PRIu64,
+			bt_ctfser_get_offset_in_current_packet_bits(ctfser),
+			member, i);
 
-		if (!member) {
+		if (unlikely(!member)) {
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
 			BT_ASSERT(ret == 0);
@@ -1045,9 +1008,9 @@ int bt_ctf_field_structure_serialize_recursive(struct bt_ctf_field_common *field
 			goto end;
 		}
 
-		ret = bt_ctf_field_serialize_recursive((void *) member, pos,
+		ret = bt_ctf_field_serialize_recursive((void *) member, ctfser,
 			native_byte_order);
-		if (ret) {
+		if (unlikely(ret)) {
 			ret = bt_ctf_field_type_common_structure_borrow_field_by_index(
 				field->type, &field_name, NULL, i);
 			BT_ASSERT(ret == 0);
@@ -1065,42 +1028,41 @@ end:
 
 static
 int bt_ctf_field_variant_serialize_recursive(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
 	struct bt_ctf_field_common_variant *variant = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing variant field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
+	BT_LOGV("Serializing variant field: addr=%p, native-bo=%s",
+		field, bt_ctf_byte_order_string(native_byte_order));
 	BT_LOGV_STR("Serializing variant field's payload field.");
 	return bt_ctf_field_serialize_recursive(
-		(void *) variant->current_field, pos, native_byte_order);
+		(void *) variant->current_field, ctfser, native_byte_order);
 }
 
 static
 int bt_ctf_field_array_serialize_recursive(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
 	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_common_array *array = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing array field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
+	BT_LOGV("Serializing array field: addr=%p, native-bo=%s",
+		field, bt_ctf_byte_order_string(native_byte_order));
 
 	for (i = 0; i < array->elements->len; i++) {
 		struct bt_ctf_field_common *elem_field =
 			g_ptr_array_index(array->elements, i);
 
 		BT_LOGV("Serializing array field's element field: "
-			"pos-offset=%" PRId64 ", field-addr=%p, index=%" PRId64,
-			pos->offset, elem_field, i);
+			"ser-offset=%" PRIu64 ", field-addr=%p, index=%" PRId64,
+			bt_ctfser_get_offset_in_current_packet_bits(ctfser),
+			elem_field, i);
 		ret = bt_ctf_field_serialize_recursive(
-			(void *) elem_field, pos, native_byte_order);
-		if (ret) {
+			(void *) elem_field, ctfser, native_byte_order);
+		if (unlikely(ret)) {
 			BT_LOGW("Cannot serialize array field's element field: "
 				"array-field-addr=%p, field-addr=%p, "
 				"index=%" PRId64, field, elem_field, i);
@@ -1114,27 +1076,27 @@ end:
 
 static
 int bt_ctf_field_sequence_serialize_recursive(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
 	int64_t i;
 	int ret = 0;
 	struct bt_ctf_field_common_sequence *sequence = BT_CTF_FROM_COMMON(field);
 
-	BT_LOGV("Serializing sequence field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
+	BT_LOGV("Serializing sequence field: addr=%p, native-bo=%s",
+		field, bt_ctf_byte_order_string(native_byte_order));
 
 	for (i = 0; i < sequence->elements->len; i++) {
 		struct bt_ctf_field_common *elem_field =
 			g_ptr_array_index(sequence->elements, i);
 
 		BT_LOGV("Serializing sequence field's element field: "
-			"pos-offset=%" PRId64 ", field-addr=%p, index=%" PRId64,
-			pos->offset, elem_field, i);
+			"ser-offset=%" PRIu64 ", field-addr=%p, index=%" PRId64,
+			bt_ctfser_get_offset_in_current_packet_bits(ctfser),
+			elem_field, i);
 		ret = bt_ctf_field_serialize_recursive(
-			(void *) elem_field, pos, native_byte_order);
-		if (ret) {
+			(void *) elem_field, ctfser, native_byte_order);
+		if (unlikely(ret)) {
 			BT_LOGW("Cannot serialize sequence field's element field: "
 				"sequence-field-addr=%p, field-addr=%p, "
 				"index=%" PRId64, field, elem_field, i);
@@ -1148,44 +1110,22 @@ end:
 
 static
 int bt_ctf_field_string_serialize(struct bt_ctf_field_common *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
-	int64_t i;
-	int ret = 0;
+	int ret;
 	struct bt_ctf_field_common_string *string = BT_CTF_FROM_COMMON(field);
-	struct bt_ctf_field_type *character_type =
-		get_field_type(FIELD_TYPE_ALIAS_UINT8_T);
-	struct bt_ctf_field *character;
 
 	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "String field");
-	BT_LOGV("Serializing string field: addr=%p, pos-offset=%" PRId64 ", "
-		"native-bo=%s", field, pos->offset,
-		bt_ctf_byte_order_string((int) native_byte_order));
-
-	BT_LOGV_STR("Creating character field from string field's character field type.");
-	character = bt_ctf_field_create(character_type);
-
-	for (i = 0; i < string->size + 1; i++) {
-		const uint64_t chr = (uint64_t) ((char *) string->buf->data)[i];
-
-		ret = bt_ctf_field_integer_unsigned_set_value(character, chr);
-		BT_ASSERT(ret == 0);
-		BT_LOGV("Serializing string field's character field: "
-			"pos-offset=%" PRId64 ", field-addr=%p, "
-			"index=%" PRId64 ", char-int=%" PRIu64,
-			pos->offset, character, i, chr);
-		ret = bt_ctf_field_integer_serialize(
-			(void *) character, pos, native_byte_order);
-		if (ret) {
-			BT_LOGW_STR("Cannot serialize character field.");
-			goto end;
-		}
+	BT_LOGV("Serializing string field: addr=%p, native-bo=%s",
+		field, bt_ctf_byte_order_string((int) native_byte_order));
+	ret = bt_ctfser_write_string(ctfser, (const char *) string->buf->data);
+	if (unlikely(ret)) {
+		BT_LOGE("Cannot serialize string field: ret=%d", ret);
+		goto end;
 	}
 
 end:
-	bt_ctf_object_put_ref(character);
-	bt_ctf_object_put_ref(character_type);
 	return ret;
 }
 

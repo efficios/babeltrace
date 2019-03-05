@@ -729,6 +729,7 @@ AC_CONFIG_FILES([
 	bindings/python/bt2/setup.py
 	bindings/python/bt2/bt2/__init__.py
 	common/Makefile
+	ctfser/Makefile
 	compat/Makefile
 	cli/Makefile
 	doc/Makefile

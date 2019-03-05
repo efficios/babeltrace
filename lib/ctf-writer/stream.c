@@ -40,6 +40,7 @@
 #include <babeltrace/ctf-writer/trace.h>
 #include <babeltrace/ctf-writer/writer-internal.h>
 #include <babeltrace/ctf-writer/object.h>
+#include <babeltrace/ctfser-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -359,43 +360,33 @@ end:
 }
 
 static
-int set_packet_context_packet_size(struct bt_ctf_stream *stream)
+int set_packet_context_packet_size(struct bt_ctf_stream *stream,
+		uint64_t packet_size_bits)
 {
 	int ret = 0;
 	struct bt_ctf_field *field = bt_ctf_field_structure_get_field_by_name(
 		stream->packet_context, "packet_size");
 
-	BT_ASSERT(stream);
-
-	if (!field) {
-		/* No packet size field found. Not an error, skip. */
-		BT_LOGV("No field named `packet_size` in packet context: skipping: "
-			"stream-addr=%p, stream-name=\"%s\"",
-			stream, bt_ctf_stream_get_name(stream));
-		goto end;
-	}
-
-	ret = bt_ctf_field_integer_unsigned_set_value(field,
-		stream->pos.packet_size);
+	ret = bt_ctf_field_integer_unsigned_set_value(field, packet_size_bits);
 	if (ret) {
 		BT_LOGW("Cannot set packet context field's `packet_size` integer field's value: "
 			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
-			field, stream->pos.packet_size);
+			field, packet_size_bits);
 	} else {
 		BT_LOGV("Set packet context field's `packet_size` field's value: "
 			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
-			field, stream->pos.packet_size);
+			field, packet_size_bits);
 	}
 
-end:
 	bt_ctf_object_put_ref(field);
 	return ret;
 }
 
 static
-int set_packet_context_content_size(struct bt_ctf_stream *stream)
+int set_packet_context_content_size(struct bt_ctf_stream *stream,
+		uint64_t content_size_bits)
 {
 	int ret = 0;
 	struct bt_ctf_field *field = bt_ctf_field_structure_get_field_by_name(
@@ -411,18 +402,17 @@ int set_packet_context_content_size(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	ret = bt_ctf_field_integer_unsigned_set_value(field,
-		stream->pos.offset);
+	ret = bt_ctf_field_integer_unsigned_set_value(field, content_size_bits);
 	if (ret) {
 		BT_LOGW("Cannot set packet context field's `content_size` integer field's value: "
-			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRId64,
+			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
-			field, stream->pos.offset);
+			field, content_size_bits);
 	} else {
 		BT_LOGV("Set packet context field's `content_size` field's value: "
-			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRId64,
+			"stream-addr=%p, stream-name=\"%s\", field-addr=%p, value=%" PRIu64,
 			stream, bt_ctf_stream_get_name(stream),
-			field, stream->pos.offset);
+			field, content_size_bits);
 	}
 
 end:
@@ -900,7 +890,8 @@ end:
 }
 
 static
-int auto_populate_packet_context(struct bt_ctf_stream *stream, bool set_ts)
+int auto_populate_packet_context(struct bt_ctf_stream *stream, bool set_ts,
+		uint64_t packet_size_bits, uint64_t content_size_bits)
 {
 	int ret = 0;
 
@@ -908,7 +899,7 @@ int auto_populate_packet_context(struct bt_ctf_stream *stream, bool set_ts)
 		goto end;
 	}
 
-	ret = set_packet_context_packet_size(stream);
+	ret = set_packet_context_packet_size(stream, packet_size_bits);
 	if (ret) {
 		BT_LOGW("Cannot set packet context's packet size field: "
 			"stream-addr=%p, stream-name=\"%s\"",
@@ -916,7 +907,7 @@ int auto_populate_packet_context(struct bt_ctf_stream *stream, bool set_ts)
 		goto end;
 	}
 
-	ret = set_packet_context_content_size(stream);
+	ret = set_packet_context_content_size(stream, content_size_bits);
 	if (ret) {
 		BT_LOGW("Cannot set packet context's content size field: "
 			"stream-addr=%p, stream-name=\"%s\"",
@@ -970,7 +961,7 @@ static
 int create_stream_file(struct bt_ctf_writer *writer,
 		struct bt_ctf_stream *stream)
 {
-	int fd;
+	int ret = 0;
 	GString *filename = g_string_new(NULL);
 	int64_t stream_class_id;
 	char *file_path = NULL;
@@ -1028,36 +1019,25 @@ append_ids:
 
 	file_path = g_build_filename(writer->path->str, filename->str, NULL);
 	if (file_path == NULL) {
-		fd = -1;
+		ret = -1;
 		goto end;
 	}
 
-	fd = open(file_path,
-		O_RDWR | O_CREAT | O_TRUNC,
-		S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+	ret = bt_ctfser_init(&stream->ctfser, file_path);
 	g_free(file_path);
-	if (fd < 0) {
-		BT_LOGW_ERRNO("Failed to open stream file for writing",
-			": file_path=\"%s\", filename=\"%s\", ret=%d",
-			file_path, filename->str, fd);
+	if (ret) {
+		/* bt_ctfser_init() logs errors */
 		goto end;
 	}
 
 	BT_LOGD("Created stream file for writing: "
 		"stream-addr=%p, stream-name=\"%s\", "
-		"filename=\"%s\", fd=%d", stream, bt_ctf_stream_get_name(stream),
-		filename->str, fd);
+		"filename=\"%s\"", stream, bt_ctf_stream_get_name(stream),
+		filename->str);
 
 end:
 	g_string_free(filename, TRUE);
-	return fd;
-}
-
-static
-void set_stream_fd(struct bt_ctf_stream *stream, int fd)
-{
-	(void) bt_ctf_stream_pos_init(&stream->pos, fd, O_RDWR);
-	stream->pos.fd = fd;
+	return ret;
 }
 
 BT_HIDDEN
@@ -1104,7 +1084,6 @@ struct bt_ctf_stream *bt_ctf_stream_create_with_id(
 		goto error;
 	}
 
-	stream->pos.fd = -1;
 	writer = (struct bt_ctf_writer *)
 		bt_ctf_object_get_parent(&trace->common.base);
 	stream->last_ts_end = -1ULL;
@@ -1174,8 +1153,6 @@ struct bt_ctf_stream *bt_ctf_stream_create_with_id(
 		goto error;
 	}
 
-	set_stream_fd(stream, fd);
-
 	/* Freeze the writer */
 	BT_LOGD_STR("Freezing stream's CTF writer.");
 	bt_ctf_writer_freeze(writer);
@@ -1215,14 +1192,6 @@ int bt_ctf_stream_get_discarded_events_count(
 
 	if (!count) {
 		BT_LOGW_STR("Invalid parameter: count is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (stream->pos.fd < 0) {
-		BT_LOGW("Invalid parameter: stream is not a CTF writer stream: "
-			"stream-addr=%p, stream-name=\"%s\"",
-			stream, bt_ctf_stream_get_name(stream));
 		ret = -1;
 		goto end;
 	}
@@ -1282,11 +1251,6 @@ void bt_ctf_stream_append_discarded_events(struct bt_ctf_stream *stream,
 
 	if (!stream->packet_context) {
 		BT_LOGW_STR("Invalid parameter: stream has no packet context field.");
-		goto end;
-	}
-
-	if (stream->pos.fd < 0) {
-		BT_LOGW_STR("Invalid parameter: stream is not a CTF writer stream.");
 		goto end;
 	}
 
@@ -1427,12 +1391,6 @@ int bt_ctf_stream_append_event(struct bt_ctf_stream *stream,
 		goto end;
 	}
 
-	if (stream->pos.fd < 0) {
-		BT_LOGW_STR("Invalid parameter: stream is not a CTF writer stream.");
-		ret = -1;
-		goto end;
-	}
-
 	BT_LOGV("Appending event to stream: "
 		"stream-addr=%p, stream-name=\"%s\", event-addr=%p, "
 		"event-class-name=\"%s\", event-class-id=%" PRId64,
@@ -1511,13 +1469,6 @@ struct bt_ctf_field *bt_ctf_stream_get_packet_context(struct bt_ctf_stream *stre
 		goto end;
 	}
 
-	if (stream->pos.fd < 0) {
-		BT_LOGW("Invalid parameter: stream is not a CTF writer stream: "
-			"stream-addr=%p, stream-name=\"%s\"", stream,
-			bt_ctf_stream_get_name(stream));
-		goto end;
-	}
-
 	packet_context = stream->packet_context;
 	if (packet_context) {
 		bt_ctf_object_get_ref(packet_context);
@@ -1534,12 +1485,6 @@ int bt_ctf_stream_set_packet_context(struct bt_ctf_stream *stream,
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (stream->pos.fd < 0) {
-		BT_LOGW_STR("Invalid parameter: stream is not a CTF writer stream.");
 		ret = -1;
 		goto end;
 	}
@@ -1577,13 +1522,6 @@ struct bt_ctf_field *bt_ctf_stream_get_packet_header(struct bt_ctf_stream *strea
 		goto end;
 	}
 
-	if (stream->pos.fd < 0) {
-		BT_LOGW("Invalid parameter: stream is not a CTF writer stream: "
-			"stream-addr=%p, stream-name=\"%s\"", stream,
-			bt_ctf_stream_get_name(stream));
-		goto end;
-	}
-
 	packet_header = stream->packet_header;
 	if (packet_header) {
 		bt_ctf_object_get_ref(packet_header);
@@ -1601,12 +1539,6 @@ int bt_ctf_stream_set_packet_header(struct bt_ctf_stream *stream,
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
-		ret = -1;
-		goto end;
-	}
-
-	if (stream->pos.fd < 0) {
-		BT_LOGW_STR("Invalid parameter: stream is not a CTF writer stream.");
 		ret = -1;
 		goto end;
 	}
@@ -1673,21 +1605,17 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 {
 	int ret = 0;
 	size_t i;
-	struct bt_ctf_stream_pos packet_context_pos;
+	uint64_t packet_context_offset_bits;
 	struct bt_ctf_trace *trace;
 	enum bt_ctf_byte_order native_byte_order;
 	bool has_packet_size = false;
+	uint64_t packet_size_bits = 0;
+	uint64_t content_size_bits = 0;
 
 	if (!stream) {
 		BT_LOGW_STR("Invalid parameter: stream is NULL.");
 		ret = -1;
 		goto end_no_stream;
-	}
-
-	if (stream->pos.fd < 0) {
-		BT_LOGW_STR("Invalid parameter: stream is not a CTF writer stream.");
-		ret = -1;
-		goto end;
 	}
 
 	if (stream->packet_context) {
@@ -1728,23 +1656,25 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		goto end;
 	}
 
-	ret = auto_populate_packet_context(stream, true);
+	/* Initialize packet/content sizes to `0`; we will overwrite later */
+	ret = auto_populate_packet_context(stream, true, 0, 0);
 	if (ret) {
 		BT_LOGW_STR("Cannot automatically populate the stream's packet context field.");
 		ret = -1;
 		goto end;
 	}
 
-	/* mmap the next packet */
-	BT_LOGV("Seeking to the next packet: pos-offset=%" PRId64,
-		stream->pos.offset);
-	bt_ctf_stream_pos_packet_seek(&stream->pos, 0, SEEK_CUR);
-	BT_ASSERT(stream->pos.packet_size % 8 == 0);
+	ret = bt_ctfser_open_packet(&stream->ctfser);
+	if (ret) {
+		/* bt_ctfser_open_packet() logs errors */
+		ret = -1;
+		goto end;
+	}
 
 	if (stream->packet_header) {
-		BT_LOGV_STR("Serializing packet header field.");
+		BT_LOGV_STR("Serializing packet header field (initial).");
 		ret = bt_ctf_field_serialize_recursive(stream->packet_header,
-			&stream->pos, native_byte_order);
+			&stream->ctfser, native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize stream's packet header field: "
 				"field-addr=%p", stream->packet_header);
@@ -1753,12 +1683,15 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 	}
 
 	if (stream->packet_context) {
+		/* Save packet context's position to overwrite it later */
+		packet_context_offset_bits =
+			bt_ctfser_get_offset_in_current_packet_bits(
+				&stream->ctfser);
+
 		/* Write packet context */
-		memcpy(&packet_context_pos, &stream->pos,
-			sizeof(packet_context_pos));
-		BT_LOGV_STR("Serializing packet context field.");
+		BT_LOGV_STR("Serializing packet context field (initial).");
 		ret = bt_ctf_field_serialize_recursive(stream->packet_context,
-			&stream->pos, native_byte_order);
+			&stream->ctfser, native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize stream's packet context field: "
 				"field-addr=%p", stream->packet_context);
@@ -1777,17 +1710,18 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 		BT_LOGV("Serializing event: index=%zu, event-addr=%p, "
 			"event-class-name=\"%s\", event-class-id=%" PRId64 ", "
-			"pos-offset=%" PRId64 ", packet-size=%" PRIu64,
+			"ser-offset=%" PRIu64,
 			i, event, bt_ctf_event_class_get_name(event_class),
 			bt_ctf_event_class_get_id(event_class),
-			stream->pos.offset, stream->pos.packet_size);
+			bt_ctfser_get_offset_in_current_packet_bits(
+				&stream->ctfser));
 
 		/* Write event header */
 		if (event->common.header_field) {
 			BT_LOGV_STR("Serializing event's header field.");
 			ret = bt_ctf_field_serialize_recursive(
 				(void *) event->common.header_field->field,
-				&stream->pos, native_byte_order);
+				&stream->ctfser, native_byte_order);
 			if (ret) {
 				BT_LOGW("Cannot serialize event's header field: "
 					"field-addr=%p",
@@ -1801,7 +1735,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 			BT_LOGV_STR("Serializing event's stream event context field.");
 			ret = bt_ctf_field_serialize_recursive(
 				(void *) event->common.stream_event_context_field,
-				&stream->pos, native_byte_order);
+				&stream->ctfser, native_byte_order);
 			if (ret) {
 				BT_LOGW("Cannot serialize event's stream event context field: "
 					"field-addr=%p",
@@ -1811,50 +1745,50 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		}
 
 		/* Write event content */
-		ret = bt_ctf_event_serialize(event,
-			&stream->pos, native_byte_order);
+		ret = bt_ctf_event_serialize(event, &stream->ctfser,
+			native_byte_order);
 		if (ret) {
 			/* bt_ctf_event_serialize() logs errors */
 			goto end;
 		}
 	}
 
-	if (!has_packet_size && stream->pos.offset % 8 != 0) {
+	content_size_bits = bt_ctfser_get_offset_in_current_packet_bits(
+		&stream->ctfser);
+
+	if (!has_packet_size && content_size_bits % 8 != 0) {
 		BT_LOGW("Stream's packet context field type has no `packet_size` field, "
 			"but current content size is not a multiple of 8 bits: "
-			"content-size=%" PRId64 ", "
+			"content-size=%" PRIu64 ", "
 			"packet-size=%" PRIu64,
-			stream->pos.offset,
-			stream->pos.packet_size);
+			content_size_bits,
+			packet_size_bits);
 		ret = -1;
 		goto end;
 	}
 
-	BT_ASSERT(stream->pos.packet_size % 8 == 0);
-
-	/*
-	 * Remove extra padding bytes.
-	 */
-	stream->pos.packet_size = (stream->pos.offset + 7) & ~7;
+	/* Set packet size; make it a multiple of 8 */
+	packet_size_bits = (content_size_bits + 7) & ~UINT64_C(7);
 
 	if (stream->packet_context) {
 		/*
-		 * The whole packet is serialized at this point. Make sure that,
-		 * if `packet_size` is missing, the current content size is
-		 * equal to the current packet size.
+		 * The whole packet is serialized at this point. Make
+		 * sure that, if `packet_size` is missing, the current
+		 * content size is equal to the current packet size.
 		 */
-		struct bt_ctf_field *field = bt_ctf_field_structure_get_field_by_name(
-			stream->packet_context, "content_size");
+		struct bt_ctf_field *field =
+			bt_ctf_field_structure_get_field_by_name(
+				stream->packet_context, "content_size");
 
 		bt_ctf_object_put_ref(field);
 		if (!field) {
-			if (stream->pos.offset != stream->pos.packet_size) {
+			if (content_size_bits != packet_size_bits) {
 				BT_LOGW("Stream's packet context's `content_size` field is missing, "
 					"but current packet's content size is not equal to its packet size: "
-					"content-size=%" PRId64 ", "
+					"content-size=%" PRIu64 ", "
 					"packet-size=%" PRIu64,
-					stream->pos.offset,
-					stream->pos.packet_size);
+					bt_ctfser_get_offset_in_current_packet_bits(&stream->ctfser),
+					packet_size_bits);
 				ret = -1;
 				goto end;
 			}
@@ -1864,12 +1798,11 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 		 * Overwrite the packet context now that the stream
 		 * position's packet and content sizes have the correct
 		 * values.
-		 *
-		 * Copy base_mma as the packet may have been remapped
-		 * (e.g. when a packet is resized).
 		 */
-		packet_context_pos.base_mma = stream->pos.base_mma;
-		ret = auto_populate_packet_context(stream, false);
+		bt_ctfser_set_offset_in_current_packet_bits(&stream->ctfser,
+			packet_context_offset_bits);
+		ret = auto_populate_packet_context(stream, false,
+			packet_size_bits, content_size_bits);
 		if (ret) {
 			BT_LOGW_STR("Cannot automatically populate the stream's packet context field.");
 			ret = -1;
@@ -1878,7 +1811,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 		BT_LOGV("Rewriting (serializing) packet context field.");
 		ret = bt_ctf_field_serialize_recursive(stream->packet_context,
-			&packet_context_pos, native_byte_order);
+			&stream->ctfser, native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize stream's packet context field: "
 				"field-addr=%p", stream->packet_context);
@@ -1888,7 +1821,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 
 	g_ptr_array_set_size(stream->events, 0);
 	stream->flushed_packet_count++;
-	stream->size += stream->pos.packet_size / CHAR_BIT;
+	bt_ctfser_close_current_packet(&stream->ctfser, packet_size_bits / 8);
 
 end:
 	/* Reset automatically-set fields. */
@@ -1900,18 +1833,10 @@ end:
 		reset_structure_field(stream->packet_context, "events_discarded");
 	}
 
-	if (ret < 0) {
-		/*
-		 * We failed to write the packet. Its size is therefore set to 0
-		 * to ensure the next mapping is done in the same place rather
-		 * than advancing by "stream->pos.packet_size", which would
-		 * leave a corrupted packet in the trace.
-		 */
-		stream->pos.packet_size = 0;
-	} else {
-		BT_LOGV("Flushed stream's current packet: content-size=%" PRId64 ", "
-			"packet-size=%" PRIu64,
-			stream->pos.offset, stream->pos.packet_size);
+	if (ret == 0) {
+		BT_LOGV("Flushed stream's current packet: "
+			"content-size=%" PRIu64 ", packet-size=%" PRIu64,
+			content_size_bits, packet_size_bits);
 	}
 
 end_no_stream:
@@ -1927,30 +1852,7 @@ void bt_ctf_stream_destroy(struct bt_ctf_object *obj)
 		stream, bt_ctf_stream_get_name(stream));
 
 	bt_ctf_stream_common_finalize(BT_CTF_TO_COMMON(stream));
-	(void) bt_ctf_stream_pos_fini(&stream->pos);
-
-	if (stream->pos.fd >= 0) {
-		int ret;
-
-		/*
-		 * Truncate the file's size to the minimum required to fit the
-		 * last packet as we might have grown it too much on the last
-		 * mmap.
-		 */
-		do {
-			ret = ftruncate(stream->pos.fd, stream->size);
-		} while (ret == -1 && errno == EINTR);
-		if (ret) {
-			BT_LOGE_ERRNO("Failed to truncate stream file",
-				": ret=%d, size=%" PRIu64,
-				ret, (uint64_t) stream->size);
-		}
-
-		if (close(stream->pos.fd)) {
-			BT_LOGE_ERRNO("Failed to close stream file",
-				": ret=%d", ret);
-		}
-	}
+	bt_ctfser_fini(&stream->ctfser);
 
 	if (stream->events) {
 		BT_LOGD_STR("Putting events.");

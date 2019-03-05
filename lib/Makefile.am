@@ -20,6 +20,7 @@ libbabeltrace_la_LIBADD = \
 	ctf-writer/libctf-writer.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/ctfser/libbabeltrace-ctfser.la \
 	$(top_builddir)/compat/libcompat.la
 
 if ENABLE_BUILT_IN_PYTHON_PLUGIN_SUPPORT
@@ -40,4 +41,5 @@ libbabeltrace_ctf_la_LIBADD = \
 	ctf-writer/libctf-writer.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/ctfser/libbabeltrace-ctfser.la \
 	$(top_builddir)/compat/libcompat.la
