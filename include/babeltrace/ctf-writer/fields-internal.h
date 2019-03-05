@@ -36,9 +36,9 @@
 #include <babeltrace/common-internal.h>
 #include <babeltrace/ctf-writer/field-types-internal.h>
 #include <babeltrace/ctf-writer/fields.h>
-#include <babeltrace/ctf-writer/serialize-internal.h>
 #include <babeltrace/ctf-writer/utils-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
+#include <babeltrace/ctfser-internal.h>
 #include <babeltrace/types.h>
 #include <glib.h>
 #include <inttypes.h>
@@ -831,7 +831,7 @@ struct bt_ctf_field_variant {
 
 BT_HIDDEN
 int bt_ctf_field_serialize_recursive(struct bt_ctf_field *field,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order);
 
 BT_HIDDEN

@@ -708,18 +708,18 @@ struct bt_ctf_field *bt_ctf_event_get_stream_event_context(
 
 BT_HIDDEN
 int bt_ctf_event_serialize(struct bt_ctf_event *event,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *ctfser,
 		enum bt_ctf_byte_order native_byte_order)
 {
 	int ret = 0;
 
 	BT_ASSERT(event);
-	BT_ASSERT(pos);
+	BT_ASSERT(ctfser);
 
 	BT_LOGV_STR("Serializing event's context field.");
 	if (event->common.context_field) {
 		ret = bt_ctf_field_serialize_recursive(
-			(void *) event->common.context_field, pos,
+			(void *) event->common.context_field, ctfser,
 			native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize event's context field: "
@@ -735,7 +735,7 @@ int bt_ctf_event_serialize(struct bt_ctf_event *event,
 	BT_LOGV_STR("Serializing event's payload field.");
 	if (event->common.payload_field) {
 		ret = bt_ctf_field_serialize_recursive(
-			(void *) event->common.payload_field, pos,
+			(void *) event->common.payload_field, ctfser,
 			native_byte_order);
 		if (ret) {
 			BT_LOGW("Cannot serialize event's payload field: "

@@ -43,6 +43,7 @@
 #include <babeltrace/ctf-writer/validation-internal.h>
 #include <babeltrace/ctf-writer/object-internal.h>
 #include <babeltrace/ctf-writer/values-internal.h>
+#include <babeltrace/ctfser-internal.h>
 
 struct bt_ctf_stream_class;
 struct bt_ctf_stream_pos;
@@ -254,7 +255,7 @@ int bt_ctf_event_class_serialize(struct bt_ctf_event_class *event_class,
 
 BT_HIDDEN
 int bt_ctf_event_serialize(struct bt_ctf_event *event,
-		struct bt_ctf_stream_pos *pos,
+		struct bt_ctfser *pos,
 		enum bt_ctf_byte_order native_byte_order);
 
 static inline
