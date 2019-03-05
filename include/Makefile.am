@@ -154,6 +154,7 @@ noinst_HEADERS = \
 	babeltrace/compat/mman-internal.h \
 	babeltrace/compat/socket-internal.h \
 	babeltrace/common-internal.h \
+	babeltrace/ctfser-internal.h \
 	babeltrace/bitfield-internal.h \
 	babeltrace/object-internal.h \
 	babeltrace/object-pool-internal.h \
@@ -173,7 +174,6 @@ noinst_HEADERS = \
 	babeltrace/ctf-writer/field-wrapper-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
 	babeltrace/ctf-writer/resolve-internal.h \
-	babeltrace/ctf-writer/serialize-internal.h \
 	babeltrace/ctf-writer/stream-class-internal.h \
 	babeltrace/ctf-writer/stream-internal.h \
 	babeltrace/ctf-writer/trace-internal.h \

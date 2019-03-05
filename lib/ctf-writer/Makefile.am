@@ -14,7 +14,6 @@ libctf_writer_la_SOURCES = \
 	object.c \
 	object-pool.c \
 	resolve.c \
-	serialize.c \
 	stream.c \
 	stream-class.c \
 	trace.c \

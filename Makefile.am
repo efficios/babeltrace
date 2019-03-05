@@ -2,6 +2,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include		\
 	common			\
+	ctfser			\
 	compat			\
 	logging			\
 	lib
