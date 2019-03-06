@@ -155,7 +155,7 @@ bt_self_component_status counter_init(
 	}
 
 	counter->last_printed_total = -1ULL;
-	counter->step = 1000;
+	counter->step = 10000;
 	step = bt_value_map_borrow_entry_value_const(params, "step");
 	if (step && bt_value_is_integer(step)) {
 		int64_t val;
