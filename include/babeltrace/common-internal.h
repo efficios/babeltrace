@@ -569,9 +569,9 @@ end:
 }
 
 static inline
-bt_self_message_iterator_status bt_message_iterator_status_to_self(
-		bt_message_iterator_status status)
+enum bt_self_message_iterator_status bt_common_message_iterator_status_to_self(
+		enum bt_message_iterator_status status)
 {
-	return (bt_self_message_iterator_status) status;
+	return (int) status;
 }
 #endif /* BABELTRACE_COMMON_INTERNAL_H */
