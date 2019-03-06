@@ -30,12 +30,13 @@
 
 #include "counter.h"
 
-#define PRINTF_COUNT(_what_sing, _what_plur, _var, args...)		\
+#define PRINTF_COUNT(_what, _var, args...)				\
 	do {								\
 		if (counter->count._var != 0 || !counter->hide_zero) {	\
-			printf("%15" PRIu64 " %s\n",			\
+			printf("%15" PRIu64 " %s message%s\n",		\
 				counter->count._var,			\
-				counter->count._var == 1 ? _what_sing : _what_plur); \
+				(_what),				\
+				counter->count._var == 1 ? "" : "s");	\
 		}							\
 	} while (0)
 
@@ -48,8 +49,12 @@ uint64_t get_total_count(struct counter *counter)
 	return counter->count.event +
 		counter->count.stream_begin +
 		counter->count.stream_end +
+		counter->count.stream_activity_begin +
+		counter->count.stream_activity_end +
 		counter->count.packet_begin +
 		counter->count.packet_end +
+		counter->count.disc_events +
+		counter->count.disc_packets +
 		counter->count.msg_iter_inactivity +
 		counter->count.other;
 }
@@ -59,17 +64,19 @@ void print_count(struct counter *counter)
 {
 	uint64_t total = get_total_count(counter);
 
-	PRINTF_COUNT("event", "events", event);
-	PRINTF_COUNT("stream beginning", "stream beginnings", stream_begin);
-	PRINTF_COUNT("stream end", "stream ends", stream_end);
-	PRINTF_COUNT("packet beginning", "packet beginnings", packet_begin);
-	PRINTF_COUNT("packet end", "packet ends", packet_end);
-	PRINTF_COUNT("message iterator inactivity",
-			"message iterator inactivities", msg_iter_inactivity);
+	PRINTF_COUNT("Event", event);
+	PRINTF_COUNT("Stream beginning", stream_begin);
+	PRINTF_COUNT("Stream end", stream_end);
+	PRINTF_COUNT("Stream activity beginning", stream_activity_begin);
+	PRINTF_COUNT("Stream activity end", stream_activity_end);
+	PRINTF_COUNT("Packet beginning", packet_begin);
+	PRINTF_COUNT("Packet end", packet_end);
+	PRINTF_COUNT("Discarded event", disc_events);
+	PRINTF_COUNT("Discarded packet", disc_packets);
+	PRINTF_COUNT("Message iterator inactivity", msg_iter_inactivity);
 
 	if (counter->count.other > 0) {
-		PRINTF_COUNT("  other (unknown) message",
-			"  other (unknown) messages", other);
+		PRINTF_COUNT("Other (unknown)", other);
 	}
 
 	printf("%s%15" PRIu64 " message%s (TOTAL)%s\n",
@@ -246,6 +253,12 @@ bt_self_component_status counter_consume(
 			case BT_MESSAGE_TYPE_EVENT:
 				counter->count.event++;
 				break;
+			case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+				counter->count.packet_begin++;
+				break;
+			case BT_MESSAGE_TYPE_PACKET_END:
+				counter->count.packet_end++;
+				break;
 			case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 				counter->count.msg_iter_inactivity++;
 				break;
@@ -255,11 +268,17 @@ bt_self_component_status counter_consume(
 			case BT_MESSAGE_TYPE_STREAM_END:
 				counter->count.stream_end++;
 				break;
-			case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-				counter->count.packet_begin++;
+			case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
+				counter->count.stream_activity_begin++;
 				break;
-			case BT_MESSAGE_TYPE_PACKET_END:
-				counter->count.packet_end++;
+			case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
+				counter->count.stream_activity_end++;
+				break;
+			case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+				counter->count.disc_events++;
+				break;
+			case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+				counter->count.disc_packets++;
 				break;
 			default:
 				counter->count.other++;
