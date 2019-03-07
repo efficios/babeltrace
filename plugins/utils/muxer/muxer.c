@@ -910,13 +910,13 @@ bt_self_message_iterator_status validate_muxer_upstream_msg_iters(
 	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	size_t i;
-	bool is_ended = false;
 
 	BT_LOGV("Validating muxer's upstream message iterator wrappers: "
 		"muxer-msg-iter-addr=%p", muxer_msg_iter);
 
 	for (i = 0; i < muxer_msg_iter->active_muxer_upstream_msg_iters->len;
 			i++) {
+		bool is_ended = false;
 		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter =
 			g_ptr_array_index(
 				muxer_msg_iter->active_muxer_upstream_msg_iters,
