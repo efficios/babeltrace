@@ -27,7 +27,9 @@
  */
 
 #include <babeltrace/babeltrace.h>
+
 #include "fs-src/fs.h"
+#include "fs-sink/fs-sink.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
 BT_PLUGIN_MODULE();
@@ -53,15 +55,15 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_FINALIZE_METHOD(fs,
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_SEEK_BEGINNING_METHOD(fs,
 	ctf_fs_iterator_seek_beginning);
 
-#if 0
 /* ctf.fs sink */
-BT_PLUGIN_SINK_COMPONENT_CLASS(fs, writer_run);
-BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(fs, writer_component_init);
-BT_PLUGIN_SINK_COMPONENT_CLASS_PORT_CONNECTED_METHOD(fs,
-		writer_component_port_connected);
-BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(fs, writer_component_finalize);
+BT_PLUGIN_SINK_COMPONENT_CLASS(fs, ctf_fs_sink_consume);
+BT_PLUGIN_SINK_COMPONENT_CLASS_INIT_METHOD(fs, ctf_fs_sink_init);
+BT_PLUGIN_SINK_COMPONENT_CLASS_FINALIZE_METHOD(fs, ctf_fs_sink_finalize);
+BT_PLUGIN_SINK_COMPONENT_CLASS_GRAPH_IS_CONFIGURED_METHOD(fs,
+	ctf_fs_sink_graph_is_configured);
 BT_PLUGIN_SINK_COMPONENT_CLASS_DESCRIPTION(fs, "Write CTF traces to the file system.");
 
+#if 0
 /* ctf.lttng-live source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, lttng_live, "lttng-live",
 	lttng_live_iterator_next);

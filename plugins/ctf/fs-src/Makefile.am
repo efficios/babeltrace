@@ -1,8 +1,8 @@
 AM_CPPFLAGS += -I$(top_srcdir)/plugins
 
-noinst_LTLIBRARIES = libbabeltrace-plugin-ctf-fs.la
+noinst_LTLIBRARIES = libbabeltrace-plugin-ctf-fs-src.la
 
-libbabeltrace_plugin_ctf_fs_la_SOURCES = \
+libbabeltrace_plugin_ctf_fs_src_la_SOURCES = \
 	data-stream-file.c \
 	data-stream-file.h \
 	file.c \

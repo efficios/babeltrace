@@ -568,4 +568,10 @@ void bt_ctfser_set_offset_in_current_packet_bits(struct bt_ctfser *ctfser,
 	ctfser->offset_in_cur_packet_bits = offset_bits;
 }
 
+static inline
+const char *bt_ctfser_get_file_path(struct bt_ctfser *ctfser)
+{
+	return ctfser->path->str;
+}
+
 #endif /* BABELTRACE_CTFSER_INTERNAL_H */
