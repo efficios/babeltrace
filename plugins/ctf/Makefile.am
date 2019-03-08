@@ -1,5 +1,5 @@
-SUBDIRS = common fs-src
-# fs-sink lttng-live
+SUBDIRS = common fs-src fs-sink
+# lttng-live
 
 noinst_HEADERS = print.h
 
@@ -14,15 +14,14 @@ babeltrace_plugin_ctf_la_LDFLAGS = \
 	-avoid-version -module
 
 babeltrace_plugin_ctf_la_LIBADD = \
-	fs-src/libbabeltrace-plugin-ctf-fs.la \
-	common/libbabeltrace-plugin-ctf-common.la
-
-#	lttng-live/libbabeltrace-plugin-ctf-lttng-live.la \
-#	fs-sink/libbabeltrace-plugin-ctf-writer.la
+	fs-src/libbabeltrace-plugin-ctf-fs-src.la \
+	common/libbabeltrace-plugin-ctf-common.la \
+	fs-sink/libbabeltrace-plugin-ctf-fs-sink.la
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_ctf_la_LIBADD += \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
-	$(top_builddir)/common/libbabeltrace-common.la
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/ctfser/libbabeltrace-ctfser.la
 endif

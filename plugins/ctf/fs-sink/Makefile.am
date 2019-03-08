@@ -1,13 +1,13 @@
-AM_CPPFLAGS += -I$(top_srcdir)/plugins \
-	-I$(top_srcdir)/plugins/libctfcopytrace
+noinst_LTLIBRARIES = libbabeltrace-plugin-ctf-fs-sink.la
 
-noinst_LTLIBRARIES = libbabeltrace-plugin-ctf-writer.la
-
-libbabeltrace_plugin_ctf_writer_la_LIBADD =
-libbabeltrace_plugin_ctf_writer_la_SOURCES = writer.c writer.h write.c \
-					     logging.c logging.h
-
-if !ENABLE_BUILT_IN_PLUGINS
-libbabeltrace_plugin_ctf_writer_la_LIBADD += \
-	$(top_builddir)/plugins/libctfcopytrace/libctfcopytrace.la
-endif
+libbabeltrace_plugin_ctf_fs_sink_la_LIBADD =
+libbabeltrace_plugin_ctf_fs_sink_la_SOURCES = \
+	fs-sink.c \
+	fs-sink.h \
+	logging.c \
+	logging.h \
+	fs-sink-ctf-meta.h \
+	translate-trace-ir-to-ctf-ir.c \
+	translate-ctf-ir-to-tsdl.c \
+	fs-sink-stream.c \
+	fs-sink-trace.c
