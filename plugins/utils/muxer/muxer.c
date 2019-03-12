@@ -525,8 +525,9 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
-			msg);
+		clock_class =
+			bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
+				msg);
 		if (!clock_class) {
 			goto no_clock_snapshot;
 		}
@@ -535,8 +536,9 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
-		bt_message_packet_end_borrow_stream_class_default_clock_class_const(
-			msg);
+		clock_class =
+			bt_message_packet_end_borrow_stream_class_default_clock_class_const(
+				msg);
 		if (!clock_class) {
 			goto no_clock_snapshot;
 		}
@@ -545,8 +547,9 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-		bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
-			msg);
+		clock_class =
+			bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
+				msg);
 		if (!clock_class) {
 			goto no_clock_snapshot;
 		}
@@ -555,8 +558,9 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-		bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
-			msg);
+		clock_class =
+			bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
+				msg);
 		if (!clock_class) {
 			goto no_clock_snapshot;
 		}
@@ -565,8 +569,9 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			msg, &clock_snapshot);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
-		bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
-			msg);
+		clock_class =
+			bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
+				msg);
 		if (!clock_class) {
 			goto no_clock_snapshot;
 		}
@@ -579,8 +584,9 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_END:
-		bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
-			msg);
+		clock_class =
+			bt_message_stream_activity_end_borrow_stream_class_default_clock_class_const(
+				msg);
 		if (!clock_class) {
 			goto no_clock_snapshot;
 		}
