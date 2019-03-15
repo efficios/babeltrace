@@ -86,6 +86,14 @@ extern bt_field_class_status bt_field_class_structure_append_member(
 		bt_field_class *struct_field_class,
 		const char *name, bt_field_class *field_class);
 
+extern void bt_field_class_structure_borrow_member_by_index(
+		bt_field_class *struct_field_class, uint64_t index,
+		const char **name, bt_field_class **field_class);
+
+extern
+bt_field_class *bt_field_class_structure_borrow_member_field_class_by_name(
+		bt_field_class *field_class, const char *name);
+
 extern bt_field_class *bt_field_class_static_array_create(
 		bt_trace_class *trace_class,
 		bt_field_class *elem_field_class, uint64_t length);
@@ -93,6 +101,9 @@ extern bt_field_class *bt_field_class_static_array_create(
 extern bt_field_class *bt_field_class_dynamic_array_create(
 		bt_trace_class *trace_class,
 		bt_field_class *elem_field_class);
+
+extern bt_field_class *bt_field_class_array_borrow_element_field_class(
+		bt_field_class *field_class);
 
 extern bt_field_class_status
 bt_field_class_dynamic_array_set_length_field_class(
@@ -109,6 +120,14 @@ bt_field_class_variant_set_selector_field_class(bt_field_class *field_class,
 extern bt_field_class_status bt_field_class_variant_append_option(
 		bt_field_class *var_field_class,
 		const char *name, bt_field_class *field_class);
+
+extern void bt_field_class_variant_borrow_option_by_index(
+		bt_field_class *variant_field_class, uint64_t index,
+		const char **name, bt_field_class **field_class);
+
+extern
+bt_field_class *bt_field_class_variant_borrow_option_field_class_by_name(
+		bt_field_class *field_class, const char *name);
 
 #ifdef __cplusplus
 }

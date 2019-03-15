@@ -273,6 +273,14 @@ bt_event_class_borrow_specific_context_field_class_const(
 	return event_class->specific_context_fc;
 }
 
+struct bt_field_class *
+bt_event_class_borrow_specific_context_field_class(
+		struct bt_event_class *event_class)
+{
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	return event_class->specific_context_fc;
+}
+
 enum bt_event_class_status bt_event_class_set_specific_context_field_class(
 		struct bt_event_class *event_class,
 		struct bt_field_class *field_class)
@@ -324,6 +332,13 @@ end:
 
 const struct bt_field_class *bt_event_class_borrow_payload_field_class_const(
 		const struct bt_event_class *event_class)
+{
+	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
+	return event_class->payload_fc;
+}
+
+struct bt_field_class *bt_event_class_borrow_payload_field_class(
+		struct bt_event_class *event_class)
 {
 	BT_ASSERT_PRE_NON_NULL(event_class, "Event class");
 	return event_class->payload_fc;

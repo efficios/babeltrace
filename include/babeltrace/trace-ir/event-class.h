@@ -61,9 +61,15 @@ extern bt_event_class_status
 bt_event_class_set_specific_context_field_class(bt_event_class *event_class,
 		bt_field_class *field_class);
 
+extern bt_field_class *
+bt_event_class_borrow_specific_context_field_class(bt_event_class *event_class);
+
 extern bt_event_class_status bt_event_class_set_payload_field_class(
 		bt_event_class *event_class,
 		bt_field_class *field_class);
+
+extern bt_field_class *bt_event_class_borrow_payload_field_class(
+		bt_event_class *event_class);
 
 #ifdef __cplusplus
 }
