@@ -284,6 +284,14 @@ bt_stream_class_borrow_packet_context_field_class_const(
 	return stream_class->packet_context_fc;
 }
 
+struct bt_field_class *
+bt_stream_class_borrow_packet_context_field_class(
+		struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return stream_class->packet_context_fc;
+}
+
 enum bt_stream_class_status bt_stream_class_set_packet_context_field_class(
 		struct bt_stream_class *stream_class,
 		struct bt_field_class *field_class)
@@ -329,6 +337,14 @@ end:
 const struct bt_field_class *
 bt_stream_class_borrow_event_common_context_field_class_const(
 		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return stream_class->event_common_context_fc;
+}
+
+struct bt_field_class *
+bt_stream_class_borrow_event_common_context_field_class(
+		struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	return stream_class->event_common_context_fc;

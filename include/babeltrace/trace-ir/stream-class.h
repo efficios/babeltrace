@@ -65,10 +65,18 @@ bt_stream_class_set_packet_context_field_class(
 		bt_stream_class *stream_class,
 		bt_field_class *field_class);
 
+extern bt_field_class *
+bt_stream_class_borrow_packet_context_field_class(
+		bt_stream_class *stream_class);
+
 extern bt_stream_class_status
 bt_stream_class_set_event_common_context_field_class(
 		bt_stream_class *stream_class,
 		bt_field_class *field_class);
+
+extern bt_field_class *
+bt_stream_class_borrow_event_common_context_field_class(
+		bt_stream_class *stream_class);
 
 extern bt_event_class *
 bt_stream_class_borrow_event_class_by_index(

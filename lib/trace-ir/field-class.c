@@ -787,7 +787,8 @@ enum bt_field_class_status bt_field_class_structure_append_member(
 {
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field class");
 	return append_named_field_class_to_container_field_class((void *) fc,
 		name, member_fc);
 }
@@ -798,17 +799,18 @@ uint64_t bt_field_class_structure_get_member_count(
 	struct bt_field_class_structure *struct_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field class");
 	return (uint64_t) struct_fc->common.named_fcs->len;
 }
 
 static
-void borrow_named_field_class_from_container_field_class_at_index_const(
-		const struct bt_field_class_named_field_class_container *fc,
+void borrow_named_field_class_from_container_field_class_at_index(
+		struct bt_field_class_named_field_class_container *fc,
 		uint64_t index, const char **name,
-		const struct bt_field_class **out_fc)
+		struct bt_field_class **out_fc)
 {
-	const struct bt_named_field_class *named_fc;
+	struct bt_named_field_class *named_fc;
 
 	BT_ASSERT(fc);
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -824,19 +826,31 @@ void bt_field_class_structure_borrow_member_by_index_const(
 		const char **name, const struct bt_field_class **out_fc)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
-	borrow_named_field_class_from_container_field_class_at_index_const(
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field class");
+	borrow_named_field_class_from_container_field_class_at_index(
+		(void *) fc, index, name, (void *) out_fc);
+}
+
+void bt_field_class_structure_borrow_member_by_index(
+		struct bt_field_class *fc, uint64_t index,
+		const char **name, struct bt_field_class **out_fc)
+{
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field class");
+	borrow_named_field_class_from_container_field_class_at_index(
 		(void *) fc, index, name, out_fc);
 }
 
 static
-const struct bt_field_class *
-borrow_field_class_from_container_field_class_by_name_const(
-		const struct bt_field_class_named_field_class_container *fc,
+struct bt_field_class *
+borrow_field_class_from_container_field_class_by_name(
+		struct bt_field_class_named_field_class_container *fc,
 		const char *name)
 {
-	const struct bt_field_class *ret_fc = NULL;
-	const struct bt_named_field_class *named_fc;
+	struct bt_field_class *ret_fc = NULL;
+	struct bt_named_field_class *named_fc;
 	gpointer orig_key;
 	gpointer value;
 
@@ -860,8 +874,20 @@ bt_field_class_structure_borrow_member_field_class_by_name_const(
 		const struct bt_field_class *fc, const char *name)
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE, "Field class");
-	return borrow_field_class_from_container_field_class_by_name_const(
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field class");
+	return borrow_field_class_from_container_field_class_by_name(
+			(void *) fc, name);
+}
+
+struct bt_field_class *
+bt_field_class_structure_borrow_member_field_class_by_name(
+		struct bt_field_class *fc, const char *name)
+{
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_STRUCTURE,
+		"Field class");
+	return borrow_field_class_from_container_field_class_by_name(
 			(void *) fc, name);
 }
 
@@ -944,7 +970,17 @@ bt_field_class_variant_borrow_option_field_class_by_name_const(
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
-	return borrow_field_class_from_container_field_class_by_name_const(
+	return borrow_field_class_from_container_field_class_by_name(
+		(void *) fc, name);
+}
+
+struct bt_field_class *
+bt_field_class_variant_borrow_option_field_class_by_name(
+		struct bt_field_class *fc, const char *name)
+{
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
+	return borrow_field_class_from_container_field_class_by_name(
 		(void *) fc, name);
 }
 
@@ -963,7 +999,17 @@ void bt_field_class_variant_borrow_option_by_index_const(
 {
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
-	borrow_named_field_class_from_container_field_class_at_index_const(
+	borrow_named_field_class_from_container_field_class_at_index(
+		(void *) fc, index, name, (void *) out_fc);
+}
+
+void bt_field_class_variant_borrow_option_by_index(
+		struct bt_field_class *fc, uint64_t index,
+		const char **name, struct bt_field_class **out_fc)
+{
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_VARIANT, "Field class");
+	borrow_named_field_class_from_container_field_class_at_index(
 		(void *) fc, index, name, out_fc);
 }
 
@@ -1041,6 +1087,16 @@ bt_field_class_array_borrow_element_field_class_const(
 		const struct bt_field_class *fc)
 {
 	const struct bt_field_class_array *array_fc = (const void *) fc;
+
+	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
+	BT_ASSERT_PRE_FC_IS_ARRAY(fc, "Field class");
+	return array_fc->element_fc;
+}
+
+struct bt_field_class *
+bt_field_class_array_borrow_element_field_class(struct bt_field_class *fc)
+{
+	struct bt_field_class_array *array_fc = (void *) fc;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
 	BT_ASSERT_PRE_FC_IS_ARRAY(fc, "Field class");
