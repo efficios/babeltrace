@@ -750,6 +750,8 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 		(void *) graph,
 		"Output port is not part of graph: %![graph-]+g, %![port-]+p",
 		graph, output_port);
+	BT_ASSERT_PRE(!graph->has_sink,
+		"Graph already has a sink component: %![graph-]+g");
 
 	/* Create message iterator */
 	BT_LIB_LOGD("Creating message iterator on output port: "
