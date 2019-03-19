@@ -43,6 +43,7 @@ enum bt_graph_configuration_state {
 	BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
 	BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED,
 	BT_GRAPH_CONFIGURATION_STATE_CONFIGURED,
+	BT_GRAPH_CONFIGURATION_STATE_FAULTY,
 };
 
 struct bt_graph {
@@ -210,6 +211,8 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 {
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
 	uint64_t i;
+
+	BT_ASSERT(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY);
 
 	if (likely(graph->config_state ==
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURED)) {
