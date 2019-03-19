@@ -251,11 +251,6 @@ void bt_connection_remove_iterator(struct bt_connection *conn,
 	try_remove_connection_from_graph(conn);
 }
 
-bt_bool bt_connection_is_ended(const struct bt_connection *connection)
-{
-	return !connection->downstream_port && !connection->upstream_port;
-}
-
 void bt_connection_get_ref(const struct bt_connection *connection)
 {
 	bt_object_get_ref(connection);
