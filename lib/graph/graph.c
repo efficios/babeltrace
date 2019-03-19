@@ -408,7 +408,7 @@ enum bt_graph_status bt_graph_connect_ports(
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
-		"Graph is already configured: %!+g", graph);
+		"Graph is not in the \"configuring\" state: %!+g", graph);
 	BT_ASSERT_PRE(!bt_port_is_connected(upstream_port),
 		"Upstream port is already connected: %!+p", upstream_port);
 	BT_ASSERT_PRE(!bt_port_is_connected(downstream_port),
@@ -543,6 +543,10 @@ enum bt_graph_status bt_graph_connect_ports(
 	}
 
 end:
+	if (status != BT_GRAPH_STATUS_OK) {
+		graph->config_state = BT_GRAPH_CONFIGURATION_STATE_FAULTY;
+	}
+
 	bt_object_put_ref(connection);
 	(void) init_can_consume;
 	bt_graph_set_can_consume(graph, init_can_consume);
@@ -680,6 +684,8 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
+	BT_ASSERT_PRE(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
+		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
 	status = bt_graph_configure(graph);
 	if (status) {
@@ -702,6 +708,8 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(graph->can_consume,
 		"Cannot consume graph in its current state: %!+g", graph);
+	BT_ASSERT_PRE(graph->config_state != BT_GRAPH_CONFIGURATION_STATE_FAULTY,
+		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
 	status = bt_graph_configure(graph);
 	if (status) {
@@ -1249,7 +1257,7 @@ enum bt_graph_status add_component_with_init_method_data(
 	BT_ASSERT_PRE(!graph->canceled, "Graph is canceled: %!+g", graph);
 	BT_ASSERT_PRE(
 		graph->config_state == BT_GRAPH_CONFIGURATION_STATE_CONFIGURING,
-		"Graph is already configured: %!+g", graph);
+		"Graph is not in the \"configuring\" state: %!+g", graph);
 	BT_ASSERT_PRE(!component_name_exists(graph, name),
 		"Duplicate component name: %!+g, name=\"%s\"", graph, name);
 	BT_ASSERT_PRE(!params || bt_value_is_map(params),
@@ -1335,6 +1343,10 @@ enum bt_graph_status add_component_with_init_method_data(
 	}
 
 end:
+	if (graph_status != BT_GRAPH_STATUS_OK) {
+		graph->config_state = BT_GRAPH_CONFIGURATION_STATE_FAULTY;
+	}
+
 	bt_object_put_ref(component);
 	bt_object_put_ref(new_params);
 	(void) init_can_consume;
