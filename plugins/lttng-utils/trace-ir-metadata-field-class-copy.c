@@ -470,7 +470,7 @@ int field_class_dynamic_array_copy(
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	const bt_field_class *element_fc, *len_fc;
+	const bt_field_class *len_fc;
 	const bt_field_path *len_fp;
 	bt_field_class_status status;
 	bt_field_class *out_len_field_class;
@@ -480,8 +480,6 @@ int field_class_dynamic_array_copy(
 			"in-fc-addr=%p, out-fc-addr=%p",
 			in_field_class, out_field_class);
 
-	element_fc = bt_field_class_array_borrow_element_field_class_const(
-			in_field_class);
 	len_fp = bt_field_class_dynamic_array_borrow_length_field_path_const(
 			in_field_class);
 
