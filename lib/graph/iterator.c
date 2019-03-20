@@ -526,39 +526,6 @@ void bt_self_message_iterator_set_data(
 		"%!+i, user-data-addr=%p", iterator, data);
 }
 
-BT_ASSERT_PRE_FUNC
-static inline
-void bt_message_borrow_packet_stream(const struct bt_message *msg,
-		const struct bt_stream **stream,
-		const struct bt_packet **packet)
-{
-	BT_ASSERT(msg);
-
-	switch (msg->type) {
-	case BT_MESSAGE_TYPE_EVENT:
-		*packet = bt_event_borrow_packet_const(
-			bt_message_event_borrow_event_const(msg));
-		*stream = bt_packet_borrow_stream_const(*packet);
-		break;
-	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
-		*stream = bt_message_stream_beginning_borrow_stream_const(msg);
-		break;
-	case BT_MESSAGE_TYPE_STREAM_END:
-		*stream = bt_message_stream_end_borrow_stream_const(msg);
-		break;
-	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		*packet = bt_message_packet_beginning_borrow_packet_const(msg);
-		*stream = bt_packet_borrow_stream_const(*packet);
-		break;
-	case BT_MESSAGE_TYPE_PACKET_END:
-		*packet = bt_message_packet_end_borrow_packet_const(msg);
-		*stream = bt_packet_borrow_stream_const(*packet);
-		break;
-	default:
-		break;
-	}
-}
-
 enum bt_message_iterator_status
 bt_self_component_port_input_message_iterator_next(
 		struct bt_self_component_port_input_message_iterator *iterator,
