@@ -137,36 +137,6 @@ void bt_port_set_connection(struct bt_port *port,
 		connection);
 }
 
-static inline
-bool port_connection_iterators_are_finalized(struct bt_port *port)
-{
-	bool ret = true;
-	struct bt_connection *conn = port->connection;
-	uint64_t i;
-
-	if (!conn) {
-		goto end;
-	}
-
-	for (i = 0; i < conn->iterators->len; i++) {
-		struct bt_self_component_port_input_message_iterator *iterator =
-			conn->iterators->pdata[i];
-
-		BT_ASSERT(iterator);
-
-		if (iterator->state != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZING &&
-				iterator->state != BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_FINALIZED) {
-			BT_ASSERT_PRE_MSG("Message iterator is not being finalized or finalized: "
-				"%!+i", iterator);
-			ret = false;
-			goto end;
-		}
-	}
-
-end:
-	return ret;
-}
-
 bt_bool bt_port_is_connected(const struct bt_port *port)
 {
 	BT_ASSERT_PRE_NON_NULL(port, "Port");
