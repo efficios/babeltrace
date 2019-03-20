@@ -1295,6 +1295,7 @@ enum bt_graph_status add_component_with_init_method_data(
 	 */
 	g_ptr_array_add(graph->components, component);
 	bt_component_set_graph(component, graph);
+	bt_value_freeze(params);
 
 	if (init_method) {
 		BT_LOGD_STR("Calling user's initialization method.");
