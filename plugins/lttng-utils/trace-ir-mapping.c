@@ -569,6 +569,9 @@ void trace_ir_data_maps_destroy(struct trace_ir_data_maps *maps)
 
 	status = bt_trace_remove_destruction_listener(maps->input_trace,
 			maps->destruction_listener_id);
+	if (status != BT_TRACE_STATUS_OK) {
+		BT_LOGD("Trace destruction listener removal failed.");
+	}
 
 	g_free(maps);
 }
@@ -607,6 +610,9 @@ void trace_ir_metadata_maps_destroy(struct trace_ir_metadata_maps *maps)
 
 	status = bt_trace_class_remove_destruction_listener(maps->input_trace_class,
 			maps->destruction_listener_id);
+	if (status != BT_TRACE_CLASS_STATUS_OK) {
+		BT_LOGD("Trace destruction listener removal failed.");
+	}
 
 	g_free(maps);
 }
