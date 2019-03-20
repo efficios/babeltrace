@@ -372,33 +372,6 @@ bt_field_class *scope_ctf_field_class_to_ir(struct ctx *ctx)
 }
 
 static inline
-struct ctf_field_class_int *borrow_named_int_field_class(
-		struct ctf_field_class_struct *struct_fc, const char *name)
-{
-	struct ctf_named_field_class *named_fc = NULL;
-	struct ctf_field_class_int *int_fc = NULL;
-
-	if (!struct_fc) {
-		goto end;
-	}
-
-	named_fc = ctf_field_class_struct_borrow_member_by_name(struct_fc, name);
-	if (!named_fc) {
-		goto end;
-	}
-
-	if (named_fc->fc->type != CTF_FIELD_CLASS_TYPE_INT &&
-			named_fc->fc->type != CTF_FIELD_CLASS_TYPE_ENUM) {
-		goto end;
-	}
-
-	int_fc = (void *) named_fc->fc;
-
-end:
-	return int_fc;
-}
-
-static inline
 void ctf_event_class_to_ir(struct ctx *ctx)
 {
 	int ret;
