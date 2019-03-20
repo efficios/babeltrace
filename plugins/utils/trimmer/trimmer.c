@@ -479,7 +479,7 @@ bt_self_component_status trimmer_init(bt_self_component_filter *self_comp,
 	struct trimmer_comp *trimmer_comp = create_trimmer_comp();
 
 	if (!trimmer_comp) {
-		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
+		status = BT_SELF_COMPONENT_STATUS_NOMEM;
 		goto error;
 	}
 
@@ -497,6 +497,7 @@ bt_self_component_status trimmer_init(bt_self_component_filter *self_comp,
 
 	ret = init_trimmer_comp_from_params(trimmer_comp, params);
 	if (ret) {
+		status = BT_SELF_COMPONENT_STATUS_ERROR;
 		goto error;
 	}
 
@@ -515,7 +516,7 @@ error:
 	}
 
 end:
-	return ret;
+	return status;
 }
 
 static
@@ -1778,6 +1779,7 @@ bt_self_message_iterator_status handle_message(
 			*reached_end = true;
 		} else {
 			push_message(trimmer_it, msg);
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 			msg = NULL;
 		}
 	}
