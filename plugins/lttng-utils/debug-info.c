@@ -557,6 +557,9 @@ void debug_info_destroy(struct debug_info *debug_info)
 
 	status = bt_trace_remove_destruction_listener(debug_info->input_trace,
 			debug_info->destruction_listener_id);
+	if (status != BT_TRACE_STATUS_OK) {
+		BT_LOGD("Trace destruction listener removal failed.");
+	}
 
 	g_free(debug_info);
 end:

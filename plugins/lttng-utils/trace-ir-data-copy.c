@@ -62,16 +62,11 @@ end:
 BT_HIDDEN
 void copy_stream_content(const bt_stream *in_stream, bt_stream *out_stream)
 {
-	const bt_trace *in_trace;
-	const bt_stream_class *in_stream_class;
 	const char *stream_name;
 	bt_stream_status status;
 
 	BT_LOGD("Copying content of stream: in-s-addr=%p, out-s-addr=%p",
 			in_stream, out_stream);
-
-	in_stream_class = bt_stream_borrow_class_const(in_stream);
-	in_trace = bt_stream_borrow_trace_const(in_stream);
 
 	stream_name = bt_stream_get_name(in_stream);
 	if (stream_name) {
