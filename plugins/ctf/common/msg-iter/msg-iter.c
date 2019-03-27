@@ -969,14 +969,8 @@ enum bt_msg_iter_status set_current_packet_content_sizes(
 
 	if (notit->cur_exp_packet_total_size == -1) {
 		if (notit->cur_exp_packet_content_size != -1) {
-			BT_LOGW("Content size is set, but packet size is not: "
-				"notit-addr=%p, packet-context-field-addr=%p, "
-				"packet-size=%" PRId64 ", content-size=%" PRId64,
-				notit, notit->dscopes.stream_packet_context,
-				notit->cur_exp_packet_total_size,
-				notit->cur_exp_packet_content_size);
-			status = BT_MSG_ITER_STATUS_ERROR;
-			goto end;
+			notit->cur_exp_packet_total_size =
+				notit->cur_exp_packet_content_size;
 		}
 	} else {
 		if (notit->cur_exp_packet_content_size == -1) {
@@ -984,6 +978,9 @@ enum bt_msg_iter_status set_current_packet_content_sizes(
 				notit->cur_exp_packet_total_size;
 		}
 	}
+
+	BT_ASSERT(notit->cur_exp_packet_total_size != -1);
+	BT_ASSERT(notit->cur_exp_packet_content_size != -1);
 
 	if (notit->cur_exp_packet_content_size >
 			notit->cur_exp_packet_total_size) {
@@ -2942,7 +2939,6 @@ end:
 	ret = set_current_packet_content_sizes(notit);
 	if (ret) {
 		status = BT_MSG_ITER_STATUS_ERROR;
-		goto end;
 	}
 
 	return status;

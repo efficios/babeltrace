@@ -31,8 +31,6 @@ int validate_stream_class(struct ctf_stream_class *sc)
 	int ret = 0;
 	struct ctf_field_class_int *int_fc;
 	struct ctf_field_class *fc;
-	bool has_total_size = false;
-	bool has_content_size = false;
 
 	if (sc->is_translated) {
 		goto end;
@@ -131,8 +129,6 @@ int validate_stream_class(struct ctf_stream_class *sc)
 				"`packet_size` member is signed.");
 			goto invalid;
 		}
-
-		has_total_size = true;
 	}
 
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
@@ -152,15 +148,6 @@ int validate_stream_class(struct ctf_stream_class *sc)
 				"`content_size` member is signed.");
 			goto invalid;
 		}
-
-		has_content_size = true;
-	}
-
-	if (has_content_size && !has_total_size) {
-			BT_LOGE_STR("Invalid packet context field class: "
-				"`content_size` member exists without "
-				"`packet_size` member.");
-			goto invalid;
 	}
 
 	fc = ctf_field_class_struct_borrow_member_field_class_by_name(
