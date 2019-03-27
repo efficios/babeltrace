@@ -46,8 +46,8 @@ struct bin_info {
 	/* Size of exec address space. */
 	uint64_t memsz;
 	/* Paths to ELF and DWARF files. */
-	char *elf_path;
-	char *dwarf_path;
+	gchar *elf_path;
+	gchar *dwarf_path;
 	/* libelf and libdw objects representing the files. */
 	Elf *elf_file;
 	Dwarf *dwarf_info;
@@ -56,13 +56,13 @@ struct bin_info {
 	size_t build_id_len;
 
 	/* Optional debug link info. */
-	char *dbg_link_filename;
+	gchar *dbg_link_filename;
 	uint32_t dbg_link_crc;
 	/* FDs to ELF and DWARF files. */
 	int elf_fd;
 	int dwarf_fd;
 	/* Configuration. */
-	char *debug_info_dir;
+	gchar *debug_info_dir;
 	/* Denotes whether the executable is position independent code. */
 	bool is_pic:1;
 	/* denotes whether the build id in the trace matches to one on disk. */
@@ -76,7 +76,7 @@ struct bin_info {
 
 struct source_location {
 	uint64_t line_no;
-	char *filename;
+	gchar *filename;
 };
 
 /**
