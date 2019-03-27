@@ -611,7 +611,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 		}
 	} while (iter_status == BT_MSG_ITER_STATUS_OK);
 
-	if (iter_status != BT_MSG_ITER_STATUS_EOF) {
+	if (iter_status != BT_MSG_ITER_STATUS_OK) {
 		goto error;
 	}
 
