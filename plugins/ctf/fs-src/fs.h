@@ -114,7 +114,7 @@ struct ctf_fs_ds_file_group {
 	GPtrArray *ds_file_infos;
 
 	/* Owned by this */
-	bt_stream_class *stream_class;
+	struct ctf_stream_class *sc;
 
 	/* Owned by this */
 	bt_stream *stream;
