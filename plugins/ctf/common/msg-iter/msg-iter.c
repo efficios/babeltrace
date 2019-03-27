@@ -2507,13 +2507,23 @@ void create_msg_packet_beginning(struct bt_msg_iter *notit,
 
 	BT_ASSERT(notit->msg_iter);
 
-	if (notit->snapshots.beginning_clock == UINT64_C(-1)) {
+	if (bt_stream_class_borrow_default_clock_class(notit->meta.sc->ir_sc)) {
+		uint64_t value = 0;
+
+		if (notit->snapshots.beginning_clock == UINT64_C(-1)) {
+			if (notit->prev_packet_snapshots.end_clock != UINT64_C(-1)) {
+				value = notit->prev_packet_snapshots.end_clock;
+			}
+		} else {
+			value = notit->snapshots.beginning_clock;
+		}
+
+
+		msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
+			notit->msg_iter, notit->packet, value);
+	} else {
 		msg = bt_message_packet_beginning_create(notit->msg_iter,
 			notit->packet);
-	} else {
-		msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
-			notit->msg_iter, notit->packet,
-			notit->snapshots.beginning_clock);
 	}
 
 	if (!msg) {
@@ -2545,13 +2555,19 @@ void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 
 	BT_ASSERT(notit->msg_iter);
 
-	if (notit->snapshots.end_clock == UINT64_C(-1)) {
-		msg = bt_message_packet_end_create(notit->msg_iter,
-			notit->packet);
-	} else {
+	if (bt_stream_class_borrow_default_clock_class(notit->meta.sc->ir_sc)) {
+		if (notit->snapshots.end_clock == UINT64_C(-1)) {
+			notit->snapshots.end_clock =
+				notit->default_clock_snapshot;
+		}
+
+		BT_ASSERT(notit->snapshots.end_clock != UINT64_C(-1));
 		msg = bt_message_packet_end_create_with_default_clock_snapshot(
 			notit->msg_iter, notit->packet,
 			notit->snapshots.end_clock);
+	} else {
+		msg = bt_message_packet_end_create(notit->msg_iter,
+			notit->packet);
 	}
 
 	if (!msg) {
