@@ -512,10 +512,6 @@ enum ctf_metadata_decoder_status ctf_metadata_decoder_decode(
 
 	ret = ctf_visitor_generate_ir_visit_node(mdec->visitor,
 		&scanner->ast->root);
-	// TODO
-	ret = -1;
-	goto end;
-
 	switch (ret) {
 	case 0:
 		/* Success */
