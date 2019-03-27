@@ -242,7 +242,7 @@ int bt_dwarf_die_get_name(struct bt_dwarf_die *die, char **name)
 		goto error;
 	}
 
-	*name = strdup(_name);
+	*name = g_strdup(_name);
 	if (!*name) {
 		goto error;
 	}
@@ -297,7 +297,7 @@ int bt_dwarf_die_get_call_file(struct bt_dwarf_die *die, char **filename)
 		goto error;
 	}
 
-	*filename = strdup(_filename);
+	*filename = g_strdup(_filename);
 
 	bt_dwarf_die_destroy(cu_die);
 	g_free(file_attr);

@@ -95,7 +95,7 @@ struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
 	}
 
 	if (debug_info_dir) {
-		bin->debug_info_dir = strdup(debug_info_dir);
+		bin->debug_info_dir = g_strdup(debug_info_dir);
 		if (!bin->debug_info_dir) {
 			goto error;
 		}
@@ -125,11 +125,11 @@ void bin_info_destroy(struct bin_info *bin)
 
 	dwarf_end(bin->dwarf_info);
 
-	free(bin->debug_info_dir);
-	free(bin->elf_path);
-	free(bin->dwarf_path);
+	g_free(bin->debug_info_dir);
+	g_free(bin->elf_path);
+	g_free(bin->dwarf_path);
 	g_free(bin->build_id);
-	free(bin->dbg_link_filename);
+	g_free(bin->dbg_link_filename);
 
 	elf_end(bin->elf_file);
 
@@ -409,7 +409,7 @@ int bin_info_set_debug_link(struct bin_info *bin, const char *filename,
 		goto error;
 	}
 
-	bin->dbg_link_filename = strdup(filename);
+	bin->dbg_link_filename = g_strdup(filename);
 	if (!bin->dbg_link_filename) {
 		goto error;
 	}
@@ -475,7 +475,7 @@ int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 	}
 
 	bin->dwarf_fd = fd;
-	bin->dwarf_path = strdup(path);
+	bin->dwarf_path = g_strdup(path);
 	if (!bin->dwarf_path) {
 		goto error;
 	}
@@ -516,23 +516,23 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 		goto error;
 	}
 
-	dbg_dir = bin->debug_info_dir ? : DEFAULT_DEBUG_DIR;
+	dbg_dir = bin->debug_info_dir ? bin->debug_info_dir : DEFAULT_DEBUG_DIR;
 
 	/* 2 characters per byte printed in hex, +1 for '/' and +1 for '\0' */
 	build_id_file_len = (2 * bin->build_id_len) + 1 +
 			strlen(BUILD_ID_SUFFIX) + 1;
-	build_id_file = malloc(build_id_file_len);
+	build_id_file = g_new0(gchar, build_id_file_len);
 	if (!build_id_file) {
 		goto error;
 	}
 
-	snprintf(build_id_file, 4, "%02x/", bin->build_id[0]);
+	g_snprintf(build_id_file, 4, "%02x/", bin->build_id[0]);
 	for (i = 1; i < bin->build_id_len; ++i) {
 		int path_idx = 3 + 2 * (i - 1);
 
-		snprintf(&build_id_file[path_idx], 3, "%02x", bin->build_id[i]);
+		g_snprintf(&build_id_file[path_idx], 3, "%02x", bin->build_id[i]);
 	}
-	strcat(build_id_file, BUILD_ID_SUFFIX);
+	g_strconcat(build_id_file, BUILD_ID_SUFFIX, NULL);
 
 	path = g_build_path("/", dbg_dir, BUILD_ID_SUBDIR, build_id_file, NULL);
 	if (!path) {
@@ -610,60 +610,40 @@ static
 int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 {
 	int ret = 0;
-	const char *dbg_dir = NULL;
-	char *dir_name = NULL, *bin_dir = NULL, *path = NULL;
-	size_t max_path_len = 0;
+	const gchar *dbg_dir = NULL;
+	gchar *bin_dir = NULL, *dir_name = NULL, *path = NULL;
 
 	if (!bin || !bin->dbg_link_filename) {
 		goto error;
 	}
 
-	dbg_dir = bin->debug_info_dir ? : DEFAULT_DEBUG_DIR;
-
+	dbg_dir = bin->debug_info_dir ? bin->debug_info_dir : DEFAULT_DEBUG_DIR;
 	dir_name = g_path_get_dirname(bin->elf_path);
 	if (!dir_name) {
 		goto error;
 	}
 
-	/* bin_dir is just dir_name with a trailing slash */
-	bin_dir = g_new0(char, strlen(dir_name) + 2);
-	if (!bin_dir) {
-		goto error;
-	}
-
-	strcpy(bin_dir, dir_name);
-	strcat(bin_dir, "/");
-
-	max_path_len = strlen(dbg_dir) + strlen(bin_dir) +
-			strlen(DEBUG_SUBDIR) + strlen(bin->dbg_link_filename)
-			+ 1;
-	path = g_new0(char, max_path_len);
-	if (!path) {
-		goto error;
-	}
+	bin_dir = g_strconcat(dir_name, "/", NULL);
 
 	/* First look in the executable's dir */
-	strcpy(path, bin_dir);
-	strcat(path, bin->dbg_link_filename);
+	path = g_strconcat(bin_dir, bin->dbg_link_filename, NULL);
 
 	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
 	/* If not found, look in .debug subdir */
-	strcpy(path, bin_dir);
-	strcat(path, DEBUG_SUBDIR);
-	strcat(path, bin->dbg_link_filename);
+	g_free(path);
+	path = g_strconcat(bin_dir, DEBUG_SUBDIR, bin->dbg_link_filename, NULL);
 
 	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
 	/* Lastly, look under the global debug directory */
-	strcpy(path, dbg_dir);
-	strcat(path, bin_dir);
-	strcat(path, bin->dbg_link_filename);
+	g_free(path);
 
+	path = g_strconcat(dbg_dir, bin_dir, bin->dbg_link_filename, NULL);
 	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
 		goto found;
 	}
@@ -673,7 +653,6 @@ error:
 end:
 	g_free(dir_name);
 	g_free(path);
-	g_free(bin_dir);
 
 	return ret;
 
@@ -757,10 +736,9 @@ static
 int bin_info_append_offset_str(const char *base_str, uint64_t low_addr,
 				uint64_t high_addr, char **result)
 {
-	int ret;
 	uint64_t offset;
 	char *_result = NULL;
-	char offset_str[ADDR_STR_LEN];
+
 
 	if (!base_str || !result) {
 		goto error;
@@ -768,17 +746,10 @@ int bin_info_append_offset_str(const char *base_str, uint64_t low_addr,
 
 	offset = high_addr - low_addr;
 
-	_result = malloc(strlen(base_str) + ADDR_STR_LEN);
+	_result = g_strdup_printf("%s+%#0" PRIx64, base_str, offset);
 	if (!_result) {
 		goto error;
 	}
-
-	ret = snprintf(offset_str, ADDR_STR_LEN, "+%#0" PRIx64, offset);
-	if (ret < 0) {
-		goto error;
-	}
-	strcpy(_result, base_str);
-	strcat(_result, offset_str);
 	*result = _result;
 
 	return 0;
@@ -1166,8 +1137,7 @@ error:
 BT_HIDDEN
 int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc)
 {
-	int ret = 0;
-	char *_bin_loc = NULL;
+	gchar *_bin_loc = NULL;
 
 	if (!bin || !bin_loc) {
 		goto error;
@@ -1183,12 +1153,12 @@ int bin_info_get_bin_loc(struct bin_info *bin, uint64_t addr, char **bin_loc)
 
 	if (bin->is_pic) {
 		addr -= bin->low_addr;
-		ret = asprintf(&_bin_loc, "+%#0" PRIx64, addr);
+		_bin_loc = g_strdup_printf("+%#0" PRIx64, addr);
 	} else {
-		ret = asprintf(&_bin_loc, "@%#0" PRIx64, addr);
+		_bin_loc = g_strdup_printf("@%#0" PRIx64, addr);
 	}
 
-	if (ret == -1 || !_bin_loc) {
+	if (!_bin_loc) {
 		goto error;
 	}
 
@@ -1424,7 +1394,7 @@ int bin_info_lookup_cu_src_loc_no_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 		}
 
 		_src_loc->line_no = line_no;
-		_src_loc->filename = strdup(filename);
+		_src_loc->filename = g_strdup(filename);
 	}
 
 	bt_dwarf_die_destroy(die);
