@@ -226,36 +226,22 @@ end:
 }
 
 static
-int add_stream_ids(bt_value *info, const bt_stream *stream)
+int add_stream_ids(bt_value *info, struct ctf_fs_ds_file_group *ds_file_group)
 {
 	int ret = 0;
-	int64_t stream_class_id, stream_instance_id;
 	bt_value_status status;
-	const bt_stream_class *stream_class = NULL;
 
-	stream_instance_id = bt_stream_get_id(stream);
-	if (stream_instance_id != -1) {
+	if (ds_file_group->stream_id != UINT64_C(-1)) {
 		status = bt_value_map_insert_integer_entry(info, "id",
-				stream_instance_id);
+			(int64_t) ds_file_group->stream_id);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
 			goto end;
 		}
 	}
 
-	stream_class = bt_stream_borrow_class_const(stream);
-	if (!stream_class) {
-		ret = -1;
-		goto end;
-	}
-
-	stream_class_id = bt_stream_class_get_id(stream_class);
-	if (stream_class_id == -1) {
-		ret = -1;
-		goto end;
-	}
-
-	status = bt_value_map_insert_integer_entry(info, "class-id", stream_class_id);
+	status = bt_value_map_insert_integer_entry(info, "class-id",
+		(int64_t) ds_file_group->sc->id);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
@@ -286,8 +272,8 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	for (file_idx = 0; file_idx < group->ds_file_infos->len; file_idx++) {
 		int64_t file_begin_epoch, file_end_epoch;
 		struct ctf_fs_ds_file_info *info =
-				g_ptr_array_index(group->ds_file_infos,
-					file_idx);
+			g_ptr_array_index(group->ds_file_infos,
+				file_idx);
 
 		if (!info->index || info->index->entries->len == 0) {
 			BT_LOGW("Cannot determine range of unindexed stream file \'%s\'",
@@ -331,7 +317,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 		goto end;
 	}
 
-	ret = add_stream_ids(group_info, group->stream);
+	ret = add_stream_ids(group_info, group);
 	if (ret) {
 		goto end;
 	}
