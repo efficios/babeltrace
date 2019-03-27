@@ -55,10 +55,10 @@
 #define PATH_FIELD_NAME			"path"
 
 struct debug_info_component {
-	char *arg_debug_info_field_name;
-	const char *arg_debug_dir;
-	bool arg_full_path;
-	const char *arg_target_prefix;
+	gchar *arg_debug_dir;
+	gchar *arg_debug_info_field_name;
+	gchar *arg_target_prefix;
+	bt_bool arg_full_path;
 };
 
 struct debug_info_msg_iter {
@@ -74,23 +74,23 @@ struct debug_info_msg_iter {
 
 struct debug_info_source {
 	/* Strings are owned by debug_info_source. */
-	char *func;
+	gchar *func;
 	/*
 	 * Store the line number as a string so that the allocation and
 	 * conversion to string is only done once.
 	 */
-	char *line_no;
-	char *src_path;
+	gchar *line_no;
+	gchar *src_path;
 	/* short_src_path points inside src_path, no need to free. */
-	const char *short_src_path;
-	char *bin_path;
+	const gchar *short_src_path;
+	gchar *bin_path;
 	/* short_bin_path points inside bin_path, no need to free. */
-	const char *short_bin_path;
+	const gchar *short_bin_path;
 	/*
 	 * Location within the binary. Either absolute (@0x1234) or
 	 * relative (+0x4321).
 	 */
-	char *bin_loc;
+	gchar *bin_loc;
 };
 
 struct proc_debug_info_sources {
@@ -151,11 +151,11 @@ void debug_info_source_destroy(struct debug_info_source *debug_info_src)
 		return;
 	}
 
-	free(debug_info_src->func);
-	free(debug_info_src->line_no);
-	free(debug_info_src->src_path);
-	free(debug_info_src->bin_path);
-	free(debug_info_src->bin_loc);
+	g_free(debug_info_src->func);
+	g_free(debug_info_src->line_no);
+	g_free(debug_info_src->src_path);
+	g_free(debug_info_src->bin_path);
+	g_free(debug_info_src->bin_loc);
 	g_free(debug_info_src);
 }
 
@@ -189,14 +189,15 @@ struct debug_info_source *debug_info_source_create_from_bin(
 	}
 
 	if (src_loc) {
-		ret = asprintf(&debug_info_src->line_no, "%"PRId64, src_loc->line_no);
-		if (ret == -1) {
+		debug_info_src->line_no =
+			g_strdup_printf("%"PRId64, src_loc->line_no);
+		if (!debug_info_src->line_no) {
 			BT_LOGD("Error occured when setting line_no field.");
 			goto error;
 		}
 
 		if (src_loc->filename) {
-			debug_info_src->src_path = strdup(src_loc->filename);
+			debug_info_src->src_path = g_strdup(src_loc->filename);
 			if (!debug_info_src->src_path) {
 				goto error;
 			}
@@ -208,7 +209,7 @@ struct debug_info_source *debug_info_source_create_from_bin(
 	}
 
 	if (bin->elf_path) {
-		debug_info_src->bin_path = strdup(bin->elf_path);
+		debug_info_src->bin_path = g_strdup(bin->elf_path);
 		if (!debug_info_src->bin_path) {
 			goto error;
 		}
@@ -907,7 +908,13 @@ void handle_event_statedump(struct debug_info_msg_iter *debug_it,
 static
 void destroy_debug_info_comp(struct debug_info_component *debug_info)
 {
-	free(debug_info->arg_debug_info_field_name);
+	if (!debug_info) {
+		return;
+	}
+
+	g_free(debug_info->arg_debug_dir);
+	g_free(debug_info->arg_debug_info_field_name);
+	g_free(debug_info->arg_target_prefix);
 	g_free(debug_info);
 }
 
@@ -1098,7 +1105,7 @@ void fill_debug_info_event_if_needed(struct debug_info_msg_iter *debug_it,
 	struct debug_info *debug_info;
 	uint64_t vpid;
 	int64_t ip;
-	char *debug_info_field_name =
+	gchar *debug_info_field_name =
 		debug_it->debug_info_component->arg_debug_info_field_name;
 
 	in_common_ctx_field = bt_event_borrow_common_context_field_const(
@@ -1734,43 +1741,37 @@ int init_from_params(struct debug_info_component *debug_info_component,
 	value = bt_value_map_borrow_entry_value_const(params,
 			"debug-info-field-name");
 	if (value) {
-		const char *debug_info_field_name;
-
-		debug_info_field_name = bt_value_string_get(value);
 		debug_info_component->arg_debug_info_field_name =
-			strdup(debug_info_field_name);
+			g_strdup(bt_value_string_get(value));
 	} else {
 		debug_info_component->arg_debug_info_field_name =
-			malloc(strlen(DEFAULT_DEBUG_INFO_FIELD_NAME) + 1);
-		if (!debug_info_component->arg_debug_info_field_name) {
-			ret = BT_SELF_COMPONENT_STATUS_NOMEM;
-			BT_LOGE_STR("Missing field name.");
-			goto end;
-		}
-		sprintf(debug_info_component->arg_debug_info_field_name,
-				DEFAULT_DEBUG_INFO_FIELD_NAME);
-	}
-	if (ret) {
-		goto end;
+			g_strdup(DEFAULT_DEBUG_INFO_FIELD_NAME);
 	}
 
 	value = bt_value_map_borrow_entry_value_const(params, "debug-info-dir");
 	if (value) {
-		debug_info_component->arg_debug_dir = bt_value_string_get(value);
+		debug_info_component->arg_debug_dir =
+			g_strdup(bt_value_string_get(value));
+	} else {
+		debug_info_component->arg_debug_dir = NULL;
 	}
+
 
 	value = bt_value_map_borrow_entry_value_const(params, "target-prefix");
 	if (value) {
 		debug_info_component->arg_target_prefix =
-			bt_value_string_get(value);
+			g_strdup(bt_value_string_get(value));
+	} else {
+		debug_info_component->arg_target_prefix = NULL;
 	}
 
 	value = bt_value_map_borrow_entry_value_const(params, "full-path");
 	if (value) {
 		debug_info_component->arg_full_path = bt_value_bool_get(value);
+	} else {
+		debug_info_component->arg_full_path = BT_FALSE;
 	}
 
-end:
 	return ret;
 }
 
@@ -1934,6 +1935,7 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 	struct bt_self_component_port_input *input_port;
 	bt_self_component_port_input_message_iterator *upstream_iterator;
 	struct debug_info_msg_iter *debug_info_msg_iter;
+	gchar *debug_info_field_name;
 
 	/* Borrow the upstream input port. */
 	input_port = bt_self_component_filter_borrow_input_port_by_name(
@@ -1957,6 +1959,7 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 		goto end;
 	}
 
+	/* Create hashtable to will contain debug info mapping. */
 	debug_info_msg_iter->debug_info_map = g_hash_table_new_full(
 			g_direct_hash, g_direct_equal,
 			(GDestroyNotify) NULL,
@@ -1977,9 +1980,12 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 				bt_self_component_filter_as_self_component(
 					self_comp));
 
+	debug_info_field_name =
+		debug_info_msg_iter->debug_info_component->arg_debug_info_field_name;
+
 	debug_info_msg_iter->ir_maps = trace_ir_maps_create(
 			bt_self_component_filter_as_self_component(self_comp),
-			debug_info_msg_iter->debug_info_component->arg_debug_info_field_name);
+			debug_info_field_name);
 	if (!debug_info_msg_iter->ir_maps) {
 		g_hash_table_destroy(debug_info_msg_iter->debug_info_map);
 		g_free(debug_info_msg_iter);
