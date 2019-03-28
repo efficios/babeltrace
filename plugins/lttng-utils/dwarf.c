@@ -132,6 +132,12 @@ void bt_dwarf_die_destroy(struct bt_dwarf_die *die)
 }
 
 BT_HIDDEN
+int bt_dwarf_die_has_children(struct bt_dwarf_die *die)
+{
+	return dwarf_haschildren(die->dwarf_die);
+}
+
+BT_HIDDEN
 int bt_dwarf_die_child(struct bt_dwarf_die *die)
 {
 	int ret;

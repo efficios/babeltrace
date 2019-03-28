@@ -120,6 +120,15 @@ BT_HIDDEN
 void bt_dwarf_die_destroy(struct bt_dwarf_die *die);
 
 /**
+ * Indicates if the debug information entry `die` has children DIEs.
+ *
+ * @param die	bt_dwarf_die instance
+ * @returns	0 if the die no child, 1 otherwise
+ */
+BT_HIDDEN
+int bt_dwarf_die_has_children(struct bt_dwarf_die *die);
+
+/**
  * Advance the debug information entry `die` to its first child, if
  * any.
  *

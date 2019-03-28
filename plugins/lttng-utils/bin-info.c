@@ -1218,21 +1218,36 @@ int bin_info_child_die_has_address(struct bt_dwarf_die *die, uint64_t addr, bool
 	}
 
 	do {
-		int tag;
-
-		ret = bt_dwarf_die_get_tag(die, &tag);
+		ret = bt_dwarf_die_contains_addr(die, addr, &_contains);
 		if (ret) {
 			goto error;
 		}
 
-		if (tag == DW_TAG_inlined_subroutine) {
-			ret = bt_dwarf_die_contains_addr(die, addr, &_contains);
+		if (_contains) {
+			/*
+			 * The address is within the range of the current DIE
+			 * or its children.
+			 */
+			int tag;
+
+			ret = bt_dwarf_die_get_tag(die, &tag);
 			if (ret) {
 				goto error;
 			}
 
-			if (_contains) {
+			if (tag == DW_TAG_inlined_subroutine) {
+				/* Found the tracepoint. */
 				goto end;
+			}
+
+			if (bt_dwarf_die_has_children(die)) {
+				/*
+				 * Look for the address in the children DIEs.
+				 */
+				ret = bt_dwarf_die_child(die);
+				if (ret) {
+					goto error;
+				}
 			}
 		}
 	} while (bt_dwarf_die_next(die) == 0);
