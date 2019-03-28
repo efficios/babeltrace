@@ -80,7 +80,7 @@ int bt_lib_log_level;
  *
  *   `F`:
  *       Trace IR field class. The parameter type is
- *	 `structbt_field_class *`.
+ *	 `struct bt_field_class *`.
  *
  *   `f`:
  *       Trace IR field. The parameter type is `struct bt_field *`.
@@ -128,8 +128,8 @@ int bt_lib_log_level;
  *       `struct bt_message_iterator *`.
  *
  *   `C`:
- *       Component class. The parameter type is `struct
- *       bt_component_class *`.
+ *       Component class. The parameter type is
+ *	 `struct bt_component_class *`.
  *
  *   `c`:
  *       Component. The parameter type is `struct bt_component *`.
@@ -161,7 +161,7 @@ int bt_lib_log_level;
  *
  * The string `, ` is printed between individual fields, but not after
  * the last one. Therefore you must put this separator in the format
- * string between two Babeltrace objects, e.g.:
+ * string between two conversion specifiers, e.g.:
  *
  *     BT_LIB_LOGW("Message: count=%u, %!E, %!+K", count, event_class,
  *                 clock_class);
