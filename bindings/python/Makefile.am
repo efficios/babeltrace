@@ -1,1 +1,1 @@
-SUBDIRS = bt2 babeltrace
+SUBDIRS = bt2
