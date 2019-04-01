@@ -261,6 +261,7 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 #endif
 
 			if (comp_status != BT_SELF_COMPONENT_STATUS_OK) {
+				status = BT_GRAPH_STATUS_ERROR;
 #ifdef BT_LIB_LOGW
 				BT_LIB_LOGW("User's \"graph is configured\" method failed: "
 					"%![comp-]+c, status=%s",
