@@ -47,10 +47,10 @@ const bt_component *bt_self_component_as_component(
 }
 
 extern void *bt_self_component_get_data(
-		const bt_self_component *private_component);
+		const bt_self_component *self_component);
 
 extern void bt_self_component_set_data(
-		bt_self_component *private_component, void *data);
+		bt_self_component *self_component, void *data);
 
 #ifdef __cplusplus
 }

@@ -54,9 +54,6 @@ bt_self_component_filter_as_component_filter(
 	return (const void *) self_comp_filter;
 }
 
-extern bt_component_filter *bt_component_filter_borrow_from_self(
-		bt_self_component_filter *self_component);
-
 extern bt_self_component_port_output *
 bt_self_component_filter_borrow_output_port_by_name(
 		bt_self_component_filter *self_component,
