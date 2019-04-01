@@ -28,12 +28,22 @@
 #include <babeltrace/babeltrace-internal.h>
 
 #ifdef BT_DEBUG_MODE
+
+extern void bt_common_assert_failed(const char *file, int line,
+	const char *func, const char *assertion) __attribute__((noreturn));
+
 /*
  * Internal assertion (to detect logic errors on which the library user
  * has no influence). Use BT_ASSERT_PRE() to check a precondition which
  * must be directly or indirectly satisfied by the library user.
  */
-# define BT_ASSERT(_cond)	do { assert(_cond); } while (0)
+#define BT_ASSERT(_cond)                                                       \
+	do {                                                                   \
+		if (!(_cond)) {                                                \
+			bt_common_assert_failed(__FILE__, __LINE__, __func__,  \
+				TOSTRING(_cond));                              \
+		}                                                              \
+	} while (0)
 
 /*
  * Marks a function as being only used within a BT_ASSERT() context.

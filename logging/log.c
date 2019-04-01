@@ -7,6 +7,7 @@
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
 #include <pthread.h>
+#include <assert.h>
 
 #ifdef __CYGWIN__
 extern unsigned long pthread_getsequence_np(pthread_t *);

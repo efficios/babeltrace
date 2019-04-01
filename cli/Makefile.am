@@ -89,6 +89,8 @@ babeltrace_CFLAGS =	$(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
 babeltrace_log_bin_SOURCES = babeltrace-log.c
 babeltrace_log_bin_LDADD = \
 	$(top_builddir)/compat/libcompat.la \
+	$(top_builddir)/common/libbabeltrace-common.la \
+	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(POPT_LIBS)
 babeltrace_log_bin_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(abs_top_builddir)/cli/babeltrace$(EXEEXT)"'
 

@@ -29,9 +29,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <babeltrace/assert-internal.h>
 #include <string.h>
 #include <limits.h>
+#include <assert.h>
 
 #include "tap.h"
 
@@ -304,7 +304,7 @@ diag_multiline(const char *val)
 {
 	size_t len, i, line_start_idx = 0;
 
-	BT_ASSERT(val);
+	assert(val);
 	len = strlen(val);
 
 	for (i = 0; i < len; i++) {
@@ -314,7 +314,7 @@ diag_multiline(const char *val)
 			continue;
 		}
 
-		BT_ASSERT((i - line_start_idx + 1) <= INT_MAX);
+		assert((i - line_start_idx + 1) <= INT_MAX);
 		line_length = i - line_start_idx + 1;
 		fprintf(stderr, "# %.*s", line_length, &val[line_start_idx]);
 		line_start_idx = i + 1;
