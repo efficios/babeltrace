@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <inttypes.h>
+#include <assert.h>
 
 #include "ctf-meta-visitors.h"
 
