@@ -84,7 +84,6 @@ typedef struct bt_component_class_filter bt_component_class_filter;
 typedef struct bt_component_class_sink bt_component_class_sink;
 typedef struct bt_component_class_source bt_component_class_source;
 typedef struct bt_component_filter bt_component_filter;
-typedef struct bt_component_graph bt_component_graph;
 typedef struct bt_component_sink bt_component_sink;
 typedef struct bt_component_source bt_component_source;
 typedef struct bt_connection bt_connection;
