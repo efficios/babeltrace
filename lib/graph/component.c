@@ -331,7 +331,7 @@ const char *bt_component_get_name(const struct bt_component *component)
 	return component->name->str;
 }
 
-struct bt_component_class *bt_component_borrow_class(
+const struct bt_component_class *bt_component_borrow_class_const(
 		const struct bt_component *component)
 {
 	BT_ASSERT_PRE_NON_NULL(component, "Component");
