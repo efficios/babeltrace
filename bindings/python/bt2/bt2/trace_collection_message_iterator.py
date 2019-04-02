@@ -23,7 +23,7 @@
 from bt2 import utils
 import bt2
 import itertools
-import bt2.notification_iterator
+import bt2.message_iterator
 import datetime
 import collections.abc
 from collections import namedtuple
@@ -81,15 +81,15 @@ class _CompClsType:
     FILTER = 1
 
 
-class TraceCollectionNotificationIterator(bt2.notification_iterator._NotificationIterator):
+class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
     def __init__(self, source_component_specs, filter_component_specs=None,
-                 notification_types=None, stream_intersection_mode=False,
+                 message_types=None, stream_intersection_mode=False,
                  begin=None, end=None):
         utils._check_bool(stream_intersection_mode)
         self._stream_intersection_mode = stream_intersection_mode
         self._begin_ns = _get_ns(begin)
         self._end_ns = _get_ns(end)
-        self._notification_types = notification_types
+        self._message_types = message_types
 
         if type(source_component_specs) is ComponentSpec:
             source_component_specs = [source_component_specs]
@@ -118,7 +118,7 @@ class TraceCollectionNotificationIterator(bt2.notification_iterator._Notificatio
                 raise TypeError('"{}" object is not a ComponentSpec'.format(type(comp_spec)))
 
     def __next__(self):
-        return next(self._notif_iter)
+        return next(self._msg_iter)
 
     def _create_stream_intersection_trimmer(self, port):
         # find the original parameters specified by the user to create
@@ -274,9 +274,9 @@ class TraceCollectionNotificationIterator(bt2.notification_iterator._Notificatio
                                                 self._end_ns, 'trimmer')
             self._graph.connect_ports(self._muxer_comp.output_ports['out'],
                                       trimmer_comp.input_ports['in'])
-            notif_iter_port = trimmer_comp.output_ports['out']
+            msg_iter_port = trimmer_comp.output_ports['out']
         else:
-            notif_iter_port = self._muxer_comp.output_ports['out']
+            msg_iter_port = self._muxer_comp.output_ports['out']
 
         # create extra filter components (chained)
         for comp_spec in self._flt_comp_specs:
@@ -287,8 +287,8 @@ class TraceCollectionNotificationIterator(bt2.notification_iterator._Notificatio
         for comp_and_spec in self._flt_comps_and_specs:
             in_port = list(comp_and_spec.comp.input_ports.values())[0]
             out_port = list(comp_and_spec.comp.output_ports.values())[0]
-            self._graph.connect_ports(notif_iter_port, in_port)
-            notif_iter_port = out_port
+            self._graph.connect_ports(msg_iter_port, in_port)
+            msg_iter_port = out_port
 
         # Here we create the components, self._graph_port_added() is
         # called when they add ports, but the callback returns early
@@ -317,5 +317,5 @@ class TraceCollectionNotificationIterator(bt2.notification_iterator._Notificatio
 
                 self._connect_src_comp_port(out_port)
 
-        # create this trace collection iterator's notification iterator
-        self._notif_iter = notif_iter_port.create_notification_iterator(self._notification_types)
+        # create this trace collection iterator's message iterator
+        self._msg_iter = msg_iter_port.create_message_iterator(self._message_types)

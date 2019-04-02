@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.notification_iterator
+import bt2.message_iterator
 import collections.abc
 import bt2.values
 import traceback
@@ -329,24 +329,24 @@ def _trim_docstring(docstring):
 # finalized.
 #
 # User-defined source and filter component classes must use the
-# `notification_iterator_class` class parameter to specify the
-# notification iterator class to use for this component class:
+# `message_iterator_class` class parameter to specify the
+# message iterator class to use for this component class:
 #
-#     class MyNotificationIterator(bt2._UserNotificationIterator):
+#     class MyMessageIterator(bt2._UserMessageIterator):
 #         ...
 #
 #     class MySource(bt2._UserSourceComponent,
-#                    notification_iterator_class=MyNotificationIterator):
+#                    message_iterator_class=MyMessageIterator):
 #         ...
 #
-# This notification iterator class must inherit
-# bt2._UserNotificationIterator, and it must define the _get() and
-# _next() methods. The notification iterator class can also define an
+# This message iterator class must inherit
+# bt2._UserMessageIterator, and it must define the _get() and
+# _next() methods. The message iterator class can also define an
 # __init__() method: this method has access to the original Python
 # component object which was used to create it as the `component`
-# property. The notification iterator class can also define a
+# property. The message iterator class can also define a
 # _finalize() method (again, do NOT use __del__()): this is called when
-# the notification iterator is (really) destroyed.
+# the message iterator is (really) destroyed.
 #
 # When the user-defined class is destroyed, this metaclass's __del__()
 # method is called: the native BT component class pointer is put (not
@@ -388,7 +388,7 @@ class _UserComponentType(type):
             if len(lines) >= 3:
                 comp_cls_help = '\n'.join(lines[2:])
 
-        iter_cls = kwargs.get('notification_iterator_class')
+        iter_cls = kwargs.get('message_iterator_class')
 
         if _UserSourceComponent in bases:
             _UserComponentType._set_iterator_class(cls, iter_cls)
@@ -441,13 +441,13 @@ class _UserComponentType(type):
     @staticmethod
     def _set_iterator_class(cls, iter_cls):
         if iter_cls is None:
-            raise bt2.IncompleteUserClass("cannot create component class '{}': missing notification iterator class".format(cls.__name__))
+            raise bt2.IncompleteUserClass("cannot create component class '{}': missing message iterator class".format(cls.__name__))
 
-        if not issubclass(iter_cls, bt2.notification_iterator._UserNotificationIterator):
-            raise bt2.IncompleteUserClass("cannot create component class '{}': notification iterator class does not inherit bt2._UserNotificationIterator".format(cls.__name__))
+        if not issubclass(iter_cls, bt2.message_iterator._UserMessageIterator):
+            raise bt2.IncompleteUserClass("cannot create component class '{}': message iterator class does not inherit bt2._UserMessageIterator".format(cls.__name__))
 
         if not hasattr(iter_cls, '__next__'):
-            raise bt2.IncompleteUserClass("cannot create component class '{}': notification iterator class is missing a __next__() method".format(cls.__name__))
+            raise bt2.IncompleteUserClass("cannot create component class '{}': message iterator class is missing a __next__() method".format(cls.__name__))
 
         cls._iter_cls = iter_cls
 

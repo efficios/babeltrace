@@ -5,7 +5,7 @@ import copy
 import bt2
 
 
-class _NotificationTestCase(unittest.TestCase):
+class _MessageTestCase(unittest.TestCase):
     def setUp(self):
         self._trace = bt2.Trace()
         self._sc = bt2.StreamClass()
@@ -46,196 +46,196 @@ class _NotificationTestCase(unittest.TestCase):
 
 
 @unittest.skip("this is broken")
-class EventNotificationTestCase(_NotificationTestCase):
+class EventMessageTestCase(_MessageTestCase):
     def test_create_no_cc_prio_map(self):
-        notif = bt2.EventNotification(self._event)
-        self.assertEqual(notif.event.addr, self._event.addr)
-        self.assertEqual(len(notif.clock_class_priority_map), 0)
+        msg = bt2.EventMessage(self._event)
+        self.assertEqual(msg.event.addr, self._event.addr)
+        self.assertEqual(len(msg.clock_class_priority_map), 0)
 
     def test_create_with_cc_prio_map(self):
-        notif = bt2.EventNotification(self._event, self._cc_prio_map)
-        self.assertEqual(notif.event.addr, self._event.addr)
-        self.assertEqual(len(notif.clock_class_priority_map), 1)
-        self.assertEqual(notif.clock_class_priority_map.highest_priority_clock_class.addr,
+        msg = bt2.EventMessage(self._event, self._cc_prio_map)
+        self.assertEqual(msg.event.addr, self._event.addr)
+        self.assertEqual(len(msg.clock_class_priority_map), 1)
+        self.assertEqual(msg.clock_class_priority_map.highest_priority_clock_class.addr,
                          self._clock_class.addr)
-        self.assertEqual(notif.clock_class_priority_map[self._clock_class], 231)
+        self.assertEqual(msg.clock_class_priority_map[self._clock_class], 231)
 
     def test_eq(self):
-        notif = bt2.EventNotification(self._event, self._cc_prio_map)
+        msg = bt2.EventMessage(self._event, self._cc_prio_map)
         event_copy = copy.copy(self._event)
         event_copy.packet = self._packet
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
-        notif2 = bt2.EventNotification(event_copy, cc_prio_map_copy)
-        self.assertEqual(notif, notif2)
+        msg2 = bt2.EventMessage(event_copy, cc_prio_map_copy)
+        self.assertEqual(msg, msg2)
 
     def test_ne_event(self):
-        notif = bt2.EventNotification(self._event, self._cc_prio_map)
+        msg = bt2.EventMessage(self._event, self._cc_prio_map)
         event_copy = copy.copy(self._event)
         event_copy.payload_field['my_int'] = 17
         event_copy.packet = self._packet
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
-        notif2 = bt2.EventNotification(event_copy, cc_prio_map_copy)
-        self.assertNotEqual(notif, notif2)
+        msg2 = bt2.EventMessage(event_copy, cc_prio_map_copy)
+        self.assertNotEqual(msg, msg2)
 
     def test_ne_cc_prio_map(self):
-        notif = bt2.EventNotification(self._event)
+        msg = bt2.EventMessage(self._event)
         event_copy = copy.copy(self._event)
         event_copy.packet = self._packet
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
-        notif2 = bt2.EventNotification(event_copy, cc_prio_map_copy)
-        self.assertNotEqual(notif, notif2)
+        msg2 = bt2.EventMessage(event_copy, cc_prio_map_copy)
+        self.assertNotEqual(msg, msg2)
 
     def test_eq_invalid(self):
-        notif = bt2.EventNotification(self._event)
-        self.assertNotEqual(notif, 23)
+        msg = bt2.EventMessage(self._event)
+        self.assertNotEqual(msg, 23)
 
     def test_copy(self):
-        notif = bt2.EventNotification(self._event, self._cc_prio_map)
-        notif2 = copy.copy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.EventMessage(self._event, self._cc_prio_map)
+        msg2 = copy.copy(msg)
+        self.assertEqual(msg, msg2)
 
     def test_deepcopy(self):
-        notif = bt2.EventNotification(self._event, self._cc_prio_map)
-        notif2 = copy.deepcopy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.EventMessage(self._event, self._cc_prio_map)
+        msg2 = copy.deepcopy(msg)
+        self.assertEqual(msg, msg2)
 
 
 @unittest.skip("this is broken")
-class PacketBeginningNotificationTestCase(_NotificationTestCase):
+class PacketBeginningMessageTestCase(_MessageTestCase):
     def test_create(self):
-        notif = bt2.PacketBeginningNotification(self._packet)
-        self.assertEqual(notif.packet.addr, self._packet.addr)
+        msg = bt2.PacketBeginningMessage(self._packet)
+        self.assertEqual(msg.packet.addr, self._packet.addr)
 
     def test_eq(self):
-        notif = bt2.PacketBeginningNotification(self._packet)
+        msg = bt2.PacketBeginningMessage(self._packet)
         packet_copy = copy.copy(self._packet)
-        notif2 = bt2.PacketBeginningNotification(packet_copy)
-        self.assertEqual(notif, notif2)
+        msg2 = bt2.PacketBeginningMessage(packet_copy)
+        self.assertEqual(msg, msg2)
 
     def test_ne_packet(self):
-        notif = bt2.PacketBeginningNotification(self._packet)
+        msg = bt2.PacketBeginningMessage(self._packet)
         packet_copy = copy.copy(self._packet)
         packet_copy.header_field['hello'] = 1847
-        notif2 = bt2.PacketBeginningNotification(packet_copy)
-        self.assertNotEqual(notif, notif2)
+        msg2 = bt2.PacketBeginningMessage(packet_copy)
+        self.assertNotEqual(msg, msg2)
 
     def test_eq_invalid(self):
-        notif = bt2.PacketBeginningNotification(self._packet)
-        self.assertNotEqual(notif, 23)
+        msg = bt2.PacketBeginningMessage(self._packet)
+        self.assertNotEqual(msg, 23)
 
     def test_copy(self):
-        notif = bt2.PacketBeginningNotification(self._packet)
-        notif2 = copy.copy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.PacketBeginningMessage(self._packet)
+        msg2 = copy.copy(msg)
+        self.assertEqual(msg, msg2)
 
     def test_deepcopy(self):
-        notif = bt2.PacketBeginningNotification(self._packet)
-        notif2 = copy.deepcopy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.PacketBeginningMessage(self._packet)
+        msg2 = copy.deepcopy(msg)
+        self.assertEqual(msg, msg2)
 
 
 @unittest.skip("this is broken")
-class PacketEndNotificationTestCase(_NotificationTestCase):
+class PacketEndMessageTestCase(_MessageTestCase):
     def test_create(self):
-        notif = bt2.PacketEndNotification(self._packet)
-        self.assertEqual(notif.packet.addr, self._packet.addr)
+        msg = bt2.PacketEndMessage(self._packet)
+        self.assertEqual(msg.packet.addr, self._packet.addr)
 
     def test_eq(self):
-        notif = bt2.PacketEndNotification(self._packet)
+        msg = bt2.PacketEndMessage(self._packet)
         packet_copy = copy.copy(self._packet)
-        notif2 = bt2.PacketEndNotification(packet_copy)
-        self.assertEqual(notif, notif2)
+        msg2 = bt2.PacketEndMessage(packet_copy)
+        self.assertEqual(msg, msg2)
 
     def test_ne_packet(self):
-        notif = bt2.PacketEndNotification(self._packet)
+        msg = bt2.PacketEndMessage(self._packet)
         packet_copy = copy.copy(self._packet)
         packet_copy.header_field['hello'] = 1847
-        notif2 = bt2.PacketEndNotification(packet_copy)
-        self.assertNotEqual(notif, notif2)
+        msg2 = bt2.PacketEndMessage(packet_copy)
+        self.assertNotEqual(msg, msg2)
 
     def test_eq_invalid(self):
-        notif = bt2.PacketEndNotification(self._packet)
-        self.assertNotEqual(notif, 23)
+        msg = bt2.PacketEndMessage(self._packet)
+        self.assertNotEqual(msg, 23)
 
     def test_copy(self):
-        notif = bt2.PacketEndNotification(self._packet)
-        notif2 = copy.copy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.PacketEndMessage(self._packet)
+        msg2 = copy.copy(msg)
+        self.assertEqual(msg, msg2)
 
     def test_deepcopy(self):
-        notif = bt2.PacketEndNotification(self._packet)
-        notif2 = copy.deepcopy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.PacketEndMessage(self._packet)
+        msg2 = copy.deepcopy(msg)
+        self.assertEqual(msg, msg2)
 
 
 @unittest.skip("this is broken")
-class StreamBeginningNotificationTestCase(_NotificationTestCase):
+class StreamBeginningMessageTestCase(_MessageTestCase):
     def test_create(self):
-        notif = bt2.StreamBeginningNotification(self._stream)
-        self.assertEqual(notif.stream.addr, self._stream.addr)
+        msg = bt2.StreamBeginningMessage(self._stream)
+        self.assertEqual(msg.stream.addr, self._stream.addr)
 
     def test_eq(self):
-        notif = bt2.StreamBeginningNotification(self._stream)
+        msg = bt2.StreamBeginningMessage(self._stream)
         stream_copy = copy.copy(self._stream)
-        notif2 = bt2.StreamBeginningNotification(stream_copy)
-        self.assertEqual(notif, notif2)
+        msg2 = bt2.StreamBeginningMessage(stream_copy)
+        self.assertEqual(msg, msg2)
 
     def test_ne_stream(self):
-        notif = bt2.StreamBeginningNotification(self._stream)
+        msg = bt2.StreamBeginningMessage(self._stream)
         stream_copy = self._sc(name='salut')
-        notif2 = bt2.StreamBeginningNotification(stream_copy)
-        self.assertNotEqual(notif, notif2)
+        msg2 = bt2.StreamBeginningMessage(stream_copy)
+        self.assertNotEqual(msg, msg2)
 
     def test_eq_invalid(self):
-        notif = bt2.StreamBeginningNotification(self._stream)
-        self.assertNotEqual(notif, 23)
+        msg = bt2.StreamBeginningMessage(self._stream)
+        self.assertNotEqual(msg, 23)
 
     def test_copy(self):
-        notif = bt2.StreamBeginningNotification(self._stream)
-        notif2 = copy.copy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.StreamBeginningMessage(self._stream)
+        msg2 = copy.copy(msg)
+        self.assertEqual(msg, msg2)
 
     def test_deepcopy(self):
-        notif = bt2.StreamBeginningNotification(self._stream)
-        notif2 = copy.deepcopy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.StreamBeginningMessage(self._stream)
+        msg2 = copy.deepcopy(msg)
+        self.assertEqual(msg, msg2)
 
 
 @unittest.skip("this is broken")
-class StreamEndNotificationTestCase(_NotificationTestCase):
+class StreamEndMessageTestCase(_MessageTestCase):
     def test_create(self):
-        notif = bt2.StreamEndNotification(self._stream)
-        self.assertEqual(notif.stream.addr, self._stream.addr)
+        msg = bt2.StreamEndMessage(self._stream)
+        self.assertEqual(msg.stream.addr, self._stream.addr)
 
     def test_eq(self):
-        notif = bt2.StreamEndNotification(self._stream)
+        msg = bt2.StreamEndMessage(self._stream)
         stream_copy = copy.copy(self._stream)
-        notif2 = bt2.StreamEndNotification(stream_copy)
-        self.assertEqual(notif, notif2)
+        msg2 = bt2.StreamEndMessage(stream_copy)
+        self.assertEqual(msg, msg2)
 
     def test_ne_stream(self):
-        notif = bt2.StreamEndNotification(self._stream)
+        msg = bt2.StreamEndMessage(self._stream)
         stream_copy = self._sc(name='salut')
-        notif2 = bt2.StreamEndNotification(stream_copy)
-        self.assertNotEqual(notif, notif2)
+        msg2 = bt2.StreamEndMessage(stream_copy)
+        self.assertNotEqual(msg, msg2)
 
     def test_eq_invalid(self):
-        notif = bt2.StreamEndNotification(self._stream)
-        self.assertNotEqual(notif, 23)
+        msg = bt2.StreamEndMessage(self._stream)
+        self.assertNotEqual(msg, 23)
 
     def test_copy(self):
-        notif = bt2.StreamEndNotification(self._stream)
-        notif2 = copy.copy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.StreamEndMessage(self._stream)
+        msg2 = copy.copy(msg)
+        self.assertEqual(msg, msg2)
 
     def test_deepcopy(self):
-        notif = bt2.StreamEndNotification(self._stream)
-        notif2 = copy.deepcopy(notif)
-        self.assertEqual(notif, notif2)
+        msg = bt2.StreamEndMessage(self._stream)
+        msg2 = copy.deepcopy(msg)
+        self.assertEqual(msg, msg2)
 
 
 @unittest.skip("this is broken")
-class InactivityNotificationTestCase(unittest.TestCase):
+class InactivityMessageTestCase(unittest.TestCase):
     def setUp(self):
         self._cc1 = bt2.ClockClass('cc1', 1000)
         self._cc2 = bt2.ClockClass('cc2', 2000)
@@ -249,83 +249,83 @@ class InactivityNotificationTestCase(unittest.TestCase):
         del self._cc_prio_map
 
     def test_create_no_cc_prio_map(self):
-        notif = bt2.InactivityNotification()
-        self.assertEqual(len(notif.clock_class_priority_map), 0)
+        msg = bt2.InactivityMessage()
+        self.assertEqual(len(msg.clock_class_priority_map), 0)
 
     def test_create_with_cc_prio_map(self):
-        notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.clock_values.add(self._cc1(123))
-        notif.clock_values.add(self._cc2(19487))
-        self.assertEqual(len(notif.clock_class_priority_map), 2)
-        self.assertEqual(notif.clock_class_priority_map, self._cc_prio_map)
-        self.assertEqual(notif.clock_values[self._cc1], 123)
-        self.assertEqual(notif.clock_values[self._cc2], 19487)
+        msg = bt2.InactivityMessage(self._cc_prio_map)
+        msg.clock_values.add(self._cc1(123))
+        msg.clock_values.add(self._cc2(19487))
+        self.assertEqual(len(msg.clock_class_priority_map), 2)
+        self.assertEqual(msg.clock_class_priority_map, self._cc_prio_map)
+        self.assertEqual(msg.clock_values[self._cc1], 123)
+        self.assertEqual(msg.clock_values[self._cc2], 19487)
 
     def test_eq(self):
-        notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.clock_values.add(self._cc1(123))
-        notif.clock_values.add(self._cc2(19487))
+        msg = bt2.InactivityMessage(self._cc_prio_map)
+        msg.clock_values.add(self._cc1(123))
+        msg.clock_values.add(self._cc2(19487))
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
-        notif2 = bt2.InactivityNotification(cc_prio_map_copy)
-        notif2.clock_values.add(self._cc1(123))
-        notif2.clock_values.add(self._cc2(19487))
-        self.assertEqual(notif, notif2)
+        msg2 = bt2.InactivityMessage(cc_prio_map_copy)
+        msg2.clock_values.add(self._cc1(123))
+        msg2.clock_values.add(self._cc2(19487))
+        self.assertEqual(msg, msg2)
 
     def test_ne_cc_prio_map(self):
-        notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.clock_values.add(self._cc1(123))
-        notif.clock_values.add(self._cc2(19487))
+        msg = bt2.InactivityMessage(self._cc_prio_map)
+        msg.clock_values.add(self._cc1(123))
+        msg.clock_values.add(self._cc2(19487))
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
         cc_prio_map_copy[self._cc2] = 23
-        notif2 = bt2.InactivityNotification(cc_prio_map_copy)
-        self.assertNotEqual(notif, notif2)
+        msg2 = bt2.InactivityMessage(cc_prio_map_copy)
+        self.assertNotEqual(msg, msg2)
 
     def test_ne_clock_value(self):
-        notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.clock_values.add(self._cc1(123))
-        notif.clock_values.add(self._cc2(19487))
-        notif2 = bt2.InactivityNotification(self._cc_prio_map)
-        notif.clock_values.add(self._cc1(123))
-        notif.clock_values.add(self._cc2(1847))
-        self.assertNotEqual(notif, notif2)
+        msg = bt2.InactivityMessage(self._cc_prio_map)
+        msg.clock_values.add(self._cc1(123))
+        msg.clock_values.add(self._cc2(19487))
+        msg2 = bt2.InactivityMessage(self._cc_prio_map)
+        msg.clock_values.add(self._cc1(123))
+        msg.clock_values.add(self._cc2(1847))
+        self.assertNotEqual(msg, msg2)
 
     def test_eq_invalid(self):
-        notif = bt2.InactivityNotification(self._cc_prio_map)
-        self.assertNotEqual(notif, 23)
+        msg = bt2.InactivityMessage(self._cc_prio_map)
+        self.assertNotEqual(msg, 23)
 
     def test_copy(self):
-        notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.clock_values.add(self._cc1(123))
-        notif.clock_values.add(self._cc2(19487))
-        notif_copy = copy.copy(notif)
-        self.assertEqual(notif, notif_copy)
-        self.assertNotEqual(notif.addr, notif_copy.addr)
-        self.assertEqual(notif.clock_class_priority_map.addr,
-                         notif_copy.clock_class_priority_map.addr)
-        self.assertEqual(notif_copy.clock_values[self._cc1], 123)
-        self.assertEqual(notif_copy.clock_values[self._cc2], 19487)
+        msg = bt2.InactivityMessage(self._cc_prio_map)
+        msg.clock_values.add(self._cc1(123))
+        msg.clock_values.add(self._cc2(19487))
+        msg_copy = copy.copy(msg)
+        self.assertEqual(msg, msg_copy)
+        self.assertNotEqual(msg.addr, msg_copy.addr)
+        self.assertEqual(msg.clock_class_priority_map.addr,
+                         msg_copy.clock_class_priority_map.addr)
+        self.assertEqual(msg_copy.clock_values[self._cc1], 123)
+        self.assertEqual(msg_copy.clock_values[self._cc2], 19487)
 
     def test_deepcopy(self):
-        notif = bt2.InactivityNotification(self._cc_prio_map)
-        notif.clock_values.add(self._cc1(123))
-        notif.clock_values.add(self._cc2(19487))
-        notif_copy = copy.deepcopy(notif)
-        self.assertEqual(notif, notif_copy)
-        self.assertNotEqual(notif.addr, notif_copy.addr)
-        self.assertNotEqual(notif.clock_class_priority_map.addr,
-                            notif_copy.clock_class_priority_map.addr)
-        self.assertEqual(notif.clock_class_priority_map,
-                         notif_copy.clock_class_priority_map)
-        self.assertNotEqual(list(notif.clock_class_priority_map)[0].addr,
-                            list(notif_copy.clock_class_priority_map)[0].addr)
-        self.assertIsNone(notif_copy.clock_values[self._cc1])
-        self.assertIsNone(notif_copy.clock_values[self._cc2])
-        self.assertEqual(notif_copy.clock_values[list(notif_copy.clock_class_priority_map)[0]], 123)
-        self.assertEqual(notif_copy.clock_values[list(notif_copy.clock_class_priority_map)[1]], 19487)
+        msg = bt2.InactivityMessage(self._cc_prio_map)
+        msg.clock_values.add(self._cc1(123))
+        msg.clock_values.add(self._cc2(19487))
+        msg_copy = copy.deepcopy(msg)
+        self.assertEqual(msg, msg_copy)
+        self.assertNotEqual(msg.addr, msg_copy.addr)
+        self.assertNotEqual(msg.clock_class_priority_map.addr,
+                            msg_copy.clock_class_priority_map.addr)
+        self.assertEqual(msg.clock_class_priority_map,
+                         msg_copy.clock_class_priority_map)
+        self.assertNotEqual(list(msg.clock_class_priority_map)[0].addr,
+                            list(msg_copy.clock_class_priority_map)[0].addr)
+        self.assertIsNone(msg_copy.clock_values[self._cc1])
+        self.assertIsNone(msg_copy.clock_values[self._cc2])
+        self.assertEqual(msg_copy.clock_values[list(msg_copy.clock_class_priority_map)[0]], 123)
+        self.assertEqual(msg_copy.clock_values[list(msg_copy.clock_class_priority_map)[1]], 19487)
 
 
 @unittest.skip("this is broken")
-class DiscardedPacketsNotificationTestCase(unittest.TestCase):
+class DiscardedPacketsMessageTestCase(unittest.TestCase):
     def setUp(self):
         self._trace = bt2.Trace()
         self._sc = bt2.StreamClass()
@@ -363,8 +363,8 @@ class DiscardedPacketsNotificationTestCase(unittest.TestCase):
         event.packet = packet
         return event
 
-    def _get_notif(self):
-        class MyIter(bt2._UserNotificationIterator):
+    def _get_msg(self):
+        class MyIter(bt2._UserMessageIterator):
             def __init__(iter_self):
                 packet1 = self._stream.create_packet()
                 packet1.context_field['packet_seq_num'] = 0
@@ -380,17 +380,17 @@ class DiscardedPacketsNotificationTestCase(unittest.TestCase):
 
             def __next__(self):
                 if self._at == 0:
-                    notif = bt2.EventNotification(self._ev1)
+                    msg = bt2.EventMessage(self._ev1)
                 elif self._at == 1:
-                    notif = bt2.EventNotification(self._ev2)
+                    msg = bt2.EventMessage(self._ev2)
                 else:
                     raise bt2.Stop
 
                 self._at += 1
-                return notif
+                return msg
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -399,58 +399,58 @@ class DiscardedPacketsNotificationTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _consume(comp_self):
-                nonlocal the_notif
-                notif = next(comp_self._notif_iter)
+                nonlocal the_msg
+                msg = next(comp_self._msg_iter)
 
-                if type(notif) is bt2._DiscardedPacketsNotification:
-                    the_notif = notif
+                if type(msg) is bt2._DiscardedPacketsMessage:
+                    the_msg = msg
                     raise bt2.Stop
 
             def _port_connected(self, port, other_port):
-                self._notif_iter = port.connection.create_notification_iterator()
+                self._msg_iter = port.connection.create_message_iterator()
 
-        the_notif = None
+        the_msg = None
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
         sink = graph.add_component(MySink, 'sink')
         conn = graph.connect_ports(src.output_ports['out'],
                                    sink.input_ports['in'])
         graph.run()
-        return the_notif
+        return the_msg
 
     def test_create(self):
-        self.assertIsInstance(self._get_notif(), bt2._DiscardedPacketsNotification)
+        self.assertIsInstance(self._get_msg(), bt2._DiscardedPacketsMessage)
 
     def test_count(self):
-        self.assertEqual(self._get_notif().count, 4)
+        self.assertEqual(self._get_msg().count, 4)
 
     def test_stream(self):
-        self.assertEqual(self._get_notif().stream.addr, self._stream.addr)
+        self.assertEqual(self._get_msg().stream.addr, self._stream.addr)
 
     def test_beginning_clock_value(self):
-        notif = self._get_notif()
-        beginning_clock_value = notif.beginning_clock_value
+        msg = self._get_msg()
+        beginning_clock_value = msg.beginning_clock_value
         self.assertEqual(beginning_clock_value.clock_class, self._clock_class)
         self.assertEqual(beginning_clock_value, 6)
 
     def test_end_clock_value(self):
-        notif = self._get_notif()
-        end_clock_value = notif.end_clock_value
+        msg = self._get_msg()
+        end_clock_value = msg.end_clock_value
         self.assertEqual(end_clock_value.clock_class, self._clock_class)
         self.assertEqual(end_clock_value, 7)
 
     def test_eq(self):
-        notif1 = self._get_notif()
-        notif2 = self._get_notif()
-        self.assertEqual(notif1, notif2)
+        msg1 = self._get_msg()
+        msg2 = self._get_msg()
+        self.assertEqual(msg1, msg2)
 
     def test_eq_invalid(self):
-        notif1 = self._get_notif()
-        self.assertNotEqual(notif1, 23)
+        msg1 = self._get_msg()
+        self.assertNotEqual(msg1, 23)
 
 
 @unittest.skip("this is broken")
-class DiscardedEventsNotificationTestCase(unittest.TestCase):
+class DiscardedEventsMessageTestCase(unittest.TestCase):
     def setUp(self):
         self._trace = bt2.Trace()
         self._sc = bt2.StreamClass()
@@ -488,8 +488,8 @@ class DiscardedEventsNotificationTestCase(unittest.TestCase):
         event.packet = packet
         return event
 
-    def _get_notif(self):
-        class MyIter(bt2._UserNotificationIterator):
+    def _get_msg(self):
+        class MyIter(bt2._UserMessageIterator):
             def __init__(iter_self):
                 packet1 = self._stream.create_packet()
                 packet1.context_field['events_discarded'] = 0
@@ -505,17 +505,17 @@ class DiscardedEventsNotificationTestCase(unittest.TestCase):
 
             def __next__(self):
                 if self._at == 0:
-                    notif = bt2.EventNotification(self._ev1)
+                    msg = bt2.EventMessage(self._ev1)
                 elif self._at == 1:
-                    notif = bt2.EventNotification(self._ev2)
+                    msg = bt2.EventMessage(self._ev2)
                 else:
                     raise bt2.Stop
 
                 self._at += 1
-                return notif
+                return msg
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -524,51 +524,51 @@ class DiscardedEventsNotificationTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _consume(comp_self):
-                nonlocal the_notif
-                notif = next(comp_self._notif_iter)
+                nonlocal the_msg
+                msg = next(comp_self._msg_iter)
 
-                if type(notif) is bt2._DiscardedEventsNotification:
-                    the_notif = notif
+                if type(msg) is bt2._DiscardedEventsMessage:
+                    the_msg = msg
                     raise bt2.Stop
 
             def _port_connected(self, port, other_port):
-                self._notif_iter = port.connection.create_notification_iterator()
+                self._msg_iter = port.connection.create_message_iterator()
 
-        the_notif = None
+        the_msg = None
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
         sink = graph.add_component(MySink, 'sink')
         conn = graph.connect_ports(src.output_ports['out'],
                                    sink.input_ports['in'])
         graph.run()
-        return the_notif
+        return the_msg
 
     def test_create(self):
-        self.assertIsInstance(self._get_notif(), bt2._DiscardedEventsNotification)
+        self.assertIsInstance(self._get_msg(), bt2._DiscardedEventsMessage)
 
     def test_count(self):
-        self.assertEqual(self._get_notif().count, 10)
+        self.assertEqual(self._get_msg().count, 10)
 
     def test_stream(self):
-        self.assertEqual(self._get_notif().stream.addr, self._stream.addr)
+        self.assertEqual(self._get_msg().stream.addr, self._stream.addr)
 
     def test_beginning_clock_value(self):
-        notif = self._get_notif()
-        beginning_clock_value = notif.beginning_clock_value
+        msg = self._get_msg()
+        beginning_clock_value = msg.beginning_clock_value
         self.assertEqual(beginning_clock_value.clock_class, self._clock_class)
         self.assertEqual(beginning_clock_value, 6)
 
     def test_end_clock_value(self):
-        notif = self._get_notif()
-        end_clock_value = notif.end_clock_value
+        msg = self._get_msg()
+        end_clock_value = msg.end_clock_value
         self.assertEqual(end_clock_value.clock_class, self._clock_class)
         self.assertEqual(end_clock_value, 10)
 
     def test_eq(self):
-        notif1 = self._get_notif()
-        notif2 = self._get_notif()
-        self.assertEqual(notif1, notif2)
+        msg1 = self._get_msg()
+        msg2 = self._get_msg()
+        self.assertEqual(msg1, msg2)
 
     def test_eq_invalid(self):
-        notif1 = self._get_notif()
-        self.assertNotEqual(notif1, 23)
+        msg1 = self._get_msg()
+        self.assertNotEqual(msg1, 23)

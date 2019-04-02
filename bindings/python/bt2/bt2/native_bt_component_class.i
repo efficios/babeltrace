@@ -520,7 +520,7 @@ static PyObject *py_mod_bt2_exc_error_type = NULL;
 static PyObject *py_mod_bt2_exc_try_again_type = NULL;
 static PyObject *py_mod_bt2_exc_stop_type = NULL;
 static PyObject *py_mod_bt2_exc_port_connection_refused_type = NULL;
-static PyObject *py_mod_bt2_exc_notif_iter_canceled_type = NULL;
+static PyObject *py_mod_bt2_exc_msg_iter_canceled_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_query_object_type = NULL;
 static PyObject *py_mod_bt2_exc_invalid_query_params_type = NULL;
 
@@ -576,7 +576,7 @@ static void bt_py3_cc_exit_handler(void)
 	Py_XDECREF(py_mod_bt2_exc_try_again_type);
 	Py_XDECREF(py_mod_bt2_exc_stop_type);
 	Py_XDECREF(py_mod_bt2_exc_port_connection_refused_type);
-	Py_XDECREF(py_mod_bt2_exc_notif_iter_canceled_type);
+	Py_XDECREF(py_mod_bt2_exc_msg_iter_canceled_type);
 	Py_XDECREF(py_mod_bt2_exc_invalid_query_object_type);
 	Py_XDECREF(py_mod_bt2_exc_invalid_query_params_type);
 }
@@ -1346,7 +1346,7 @@ bt_py3_component_class_message_iterator_init(
 
 	py_comp = bt_self_component_get_data(self_component);
 
-	/* Find user's Python notification iterator class */
+	/* Find user's Python message iterator class */
 	py_comp_cls = PyObject_GetAttrString(py_comp, "__class__");
 	if (!py_comp_cls) {
 		BT_LOGE_STR("Cannot get Python object's `__class__` attribute.");
@@ -1367,7 +1367,7 @@ bt_py3_component_class_message_iterator_init(
 	}
 
 	/*
-	 * Create object with borrowed native notification iterator
+	 * Create object with borrowed native message iterator
 	 * reference:
 	 *
 	 *     py_iter = py_iter_cls.__new__(py_iter_cls, py_iter_ptr)
@@ -1400,20 +1400,20 @@ bt_py3_component_class_message_iterator_init(
 
 	/*
 	 * Since the Python code can never instantiate a user-defined
-	 * notification iterator class, the native notification iterator
-	 * object does NOT belong to a user Python notification iterator
+	 * message iterator class, the native message iterator
+	 * object does NOT belong to a user Python message iterator
 	 * object (borrowed reference). However this Python object is
-	 * owned by this native notification iterator object.
+	 * owned by this native message iterator object.
 	 *
-	 * In the Python world, the lifetime of the native notification
-	 * iterator is managed by a _GenericNotificationIterator
+	 * In the Python world, the lifetime of the native message
+	 * iterator is managed by a _GenericMessageIterator
 	 * instance:
 	 *
-	 *     _GenericNotificationIterator instance:
-	 *         owns a native bt_notification_iterator object (iter)
+	 *     _GenericMessageIterator instance:
+	 *         owns a native bt_message_iterator object (iter)
 	 *             owns a _UserMessageIterator instance (py_iter)
 	 *                 self._ptr is a borrowed reference to the
-	 *                 native bt_private_connection_private_notification_iterator
+	 *                 native bt_private_connection_private_message_iterator
 	 *                 object (iter)
 	 */
 	bt_self_message_iterator_set_data(self_message_iterator, py_iter);
@@ -1516,7 +1516,7 @@ bt_py3_component_class_message_iterator_next(
 
 	/*
 	 * The returned object, on success, is an integer object
-	 * (PyLong) containing the address of a native notification
+	 * (PyLong) containing the address of a native message
 	 * object (which is now ours).
 	 */
 	msgs[0] =

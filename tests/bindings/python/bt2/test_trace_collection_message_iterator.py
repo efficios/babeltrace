@@ -39,107 +39,107 @@ class ComponentSpecTestCase(unittest.TestCase):
 
 
 @unittest.skip("this is broken")
-class TraceCollectionNotificationIteratorTestCase(unittest.TestCase):
+class TraceCollectionMessageIteratorTestCase(unittest.TestCase):
     def test_create_wrong_stream_intersection_mode_type(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
 
         with self.assertRaises(TypeError):
-            notif_iter = bt2.TraceCollectionNotificationIterator(specs, stream_intersection_mode=23)
+            msg_iter = bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=23)
 
     def test_create_wrong_begin_type(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
 
         with self.assertRaises(TypeError):
-            notif_iter = bt2.TraceCollectionNotificationIterator(specs, begin='hi')
+            msg_iter = bt2.TraceCollectionMessageIterator(specs, begin='hi')
 
     def test_create_wrong_end_type(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
 
         with self.assertRaises(TypeError):
-            notif_iter = bt2.TraceCollectionNotificationIterator(specs, begin='lel')
+            msg_iter = bt2.TraceCollectionMessageIterator(specs, begin='lel')
 
     def test_create_no_such_plugin(self):
         specs = [bt2.ComponentSpec('77', '101', _3EVENTS_INTERSECT_TRACE_PATH)]
 
         with self.assertRaises(bt2.Error):
-            notif_iter = bt2.TraceCollectionNotificationIterator(specs)
+            msg_iter = bt2.TraceCollectionMessageIterator(specs)
 
     def test_create_begin_s(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs, begin=19457.918232)
+        msg_iter = bt2.TraceCollectionMessageIterator(specs, begin=19457.918232)
 
     def test_create_end_s(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs, end=123.12312)
+        msg_iter = bt2.TraceCollectionMessageIterator(specs, end=123.12312)
 
     def test_create_begin_datetime(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs, begin=datetime.datetime.now())
+        msg_iter = bt2.TraceCollectionMessageIterator(specs, begin=datetime.datetime.now())
 
     def test_create_end_datetime(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs, end=datetime.datetime.now())
+        msg_iter = bt2.TraceCollectionMessageIterator(specs, end=datetime.datetime.now())
 
     def test_iter_no_intersection(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs)
-        self.assertEqual(len(list(notif_iter)), 28)
+        msg_iter = bt2.TraceCollectionMessageIterator(specs)
+        self.assertEqual(len(list(msg_iter)), 28)
 
     def test_iter_no_intersection_subscribe(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs,
-                                                             notification_types=[bt2.EventNotification])
-        self.assertEqual(len(list(notif_iter)), 8)
+        msg_iter = bt2.TraceCollectionMessageIterator(specs,
+                                                             message_types=[bt2.EventMessage])
+        self.assertEqual(len(list(msg_iter)), 8)
 
     def test_iter_specs_not_list(self):
         spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
-        notif_iter = bt2.TraceCollectionNotificationIterator(spec,
-                                                             notification_types=[bt2.EventNotification])
-        self.assertEqual(len(list(notif_iter)), 8)
+        msg_iter = bt2.TraceCollectionMessageIterator(spec,
+                                                             message_types=[bt2.EventMessage])
+        self.assertEqual(len(list(msg_iter)), 8)
 
     def test_iter_custom_filter(self):
         src_spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
         flt_spec = bt2.ComponentSpec('utils', 'trimmer', {
             'end': 13515309000000075,
         })
-        notif_iter = bt2.TraceCollectionNotificationIterator(src_spec, flt_spec,
-                                                             notification_types=[bt2.EventNotification])
-        self.assertEqual(len(list(notif_iter)), 5)
+        msg_iter = bt2.TraceCollectionMessageIterator(src_spec, flt_spec,
+                                                             message_types=[bt2.EventMessage])
+        self.assertEqual(len(list(msg_iter)), 5)
 
     def test_iter_intersection(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs, stream_intersection_mode=True)
-        self.assertEqual(len(list(notif_iter)), 15)
+        msg_iter = bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=True)
+        self.assertEqual(len(list(msg_iter)), 15)
 
     def test_iter_intersection_subscribe(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs, stream_intersection_mode=True,
-                                                             notification_types=[bt2.EventNotification])
-        self.assertEqual(len(list(notif_iter)), 3)
+        msg_iter = bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=True,
+                                                             message_types=[bt2.EventMessage])
+        self.assertEqual(len(list(msg_iter)), 3)
 
     def test_iter_intersection_no_path_param(self):
         specs = [bt2.ComponentSpec('text', 'dmesg', {'read-from-stdin': True})]
 
         with self.assertRaises(bt2.Error):
-            notif_iter = bt2.TraceCollectionNotificationIterator(specs, stream_intersection_mode=True,
-                                                                 notification_types=[bt2.EventNotification])
+            msg_iter = bt2.TraceCollectionMessageIterator(specs, stream_intersection_mode=True,
+                                                                 message_types=[bt2.EventMessage])
 
     def test_iter_no_intersection_two_traces(self):
         spec = bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)
         specs = [spec, spec]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs)
-        self.assertEqual(len(list(notif_iter)), 56)
+        msg_iter = bt2.TraceCollectionMessageIterator(specs)
+        self.assertEqual(len(list(msg_iter)), 56)
 
     def test_iter_no_intersection_begin(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs,
-                                                             notification_types=[bt2.EventNotification],
+        msg_iter = bt2.TraceCollectionMessageIterator(specs,
+                                                             message_types=[bt2.EventMessage],
                                                              begin=13515309.000000023)
-        self.assertEqual(len(list(notif_iter)), 6)
+        self.assertEqual(len(list(msg_iter)), 6)
 
     def test_iter_no_intersection_end(self):
         specs = [bt2.ComponentSpec('ctf', 'fs', _3EVENTS_INTERSECT_TRACE_PATH)]
-        notif_iter = bt2.TraceCollectionNotificationIterator(specs,
-                                                             notification_types=[bt2.EventNotification],
+        msg_iter = bt2.TraceCollectionMessageIterator(specs,
+                                                             message_types=[bt2.EventMessage],
                                                              end=13515309.000000075)
-        self.assertEqual(len(list(notif_iter)), 5)
+        self.assertEqual(len(list(msg_iter)), 5)

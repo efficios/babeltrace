@@ -57,11 +57,11 @@ from bt2.fields import _StructureField
 from bt2.fields import _VariantField
 from bt2.graph import *
 from bt2.logging import *
-from bt2.notification import *
-from bt2.notification import _DiscardedEventsNotification
-from bt2.notification import _DiscardedPacketsNotification
-from bt2.notification_iterator import *
-from bt2.notification_iterator import _UserNotificationIterator
+from bt2.message import *
+from bt2.message import _DiscardedEventsMessage
+from bt2.message import _DiscardedPacketsMessage
+from bt2.message_iterator import *
+from bt2.message_iterator import _UserMessageIterator
 from bt2.packet import _Packet
 from bt2.plugin import *
 from bt2.port import *
@@ -76,7 +76,7 @@ from bt2.query_executor import *
 from bt2.stream import _Stream
 from bt2.stream_class import *
 from bt2.trace import *
-from bt2.trace_collection_notification_iterator import *
+from bt2.trace_collection_message_iterator import *
 from bt2.values import *
 from bt2.values import _Value
 
@@ -137,7 +137,7 @@ class QueryExecutorCanceled(Exception):
     pass
 
 
-class NotificationIteratorCanceled(Exception):
+class MessageIteratorCanceled(Exception):
     pass
 
 

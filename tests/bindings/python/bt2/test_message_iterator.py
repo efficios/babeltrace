@@ -6,7 +6,7 @@ import bt2
 
 
 @unittest.skip("this is broken")
-class UserNotificationIteratorTestCase(unittest.TestCase):
+class UserMessageIteratorTestCase(unittest.TestCase):
     @staticmethod
     def _create_graph(src_comp_cls):
         class MySink(bt2._UserSinkComponent):
@@ -14,10 +14,10 @@ class UserNotificationIteratorTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _consume(self):
-                next(self._notif_iter)
+                next(self._msg_iter)
 
             def _port_connected(self, port, other_port):
-                self._notif_iter = port.connection.create_notification_iterator()
+                self._msg_iter = port.connection.create_message_iterator()
 
         graph = bt2.Graph()
         src_comp = graph.add_component(src_comp_cls, 'src')
@@ -27,13 +27,13 @@ class UserNotificationIteratorTestCase(unittest.TestCase):
         return graph
 
     def test_init(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __init__(self):
                 nonlocal initialized
                 initialized = True
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -42,13 +42,13 @@ class UserNotificationIteratorTestCase(unittest.TestCase):
         self.assertTrue(initialized)
 
     def test_finalize(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def _finalize(self):
                 nonlocal finalized
                 finalized = True
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -58,13 +58,13 @@ class UserNotificationIteratorTestCase(unittest.TestCase):
         self.assertTrue(finalized)
 
     def test_component(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __init__(self):
                 nonlocal salut
                 salut = self._component._salut
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
                 self._salut = 23
@@ -74,13 +74,13 @@ class UserNotificationIteratorTestCase(unittest.TestCase):
         self.assertEqual(salut, 23)
 
     def test_addr(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __init__(self):
                 nonlocal addr
                 addr = self.addr
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -91,13 +91,13 @@ class UserNotificationIteratorTestCase(unittest.TestCase):
 
 
 @unittest.skip("this is broken")
-class PrivateConnectionNotificationIteratorTestCase(unittest.TestCase):
+class PrivateConnectionMessageIteratorTestCase(unittest.TestCase):
     def test_component(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             pass
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -106,12 +106,12 @@ class PrivateConnectionNotificationIteratorTestCase(unittest.TestCase):
                 self._add_input_port('in')
 
             def _consume(self):
-                next(self._notif_iter)
+                next(self._msg_iter)
 
             def _port_connected(self, port, other_port):
                 nonlocal upstream_comp
-                self._notif_iter = port.connection.create_notification_iterator()
-                upstream_comp = self._notif_iter.component
+                self._msg_iter = port.connection.create_message_iterator()
+                upstream_comp = self._msg_iter.component
 
         upstream_comp = None
         graph = bt2.Graph()
@@ -124,9 +124,9 @@ class PrivateConnectionNotificationIteratorTestCase(unittest.TestCase):
 
 
 @unittest.skip("this is broken")
-class OutputPortNotificationIteratorTestCase(unittest.TestCase):
+class OutputPortMessageIteratorTestCase(unittest.TestCase):
     def test_component(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __init__(self):
                 self._build_meta()
                 self._at = 0
@@ -155,22 +155,22 @@ class OutputPortNotificationIteratorTestCase(unittest.TestCase):
                 if self._at == 5:
                     raise bt2.Stop
 
-                notif = bt2.EventNotification(self._create_event(self._at * 3))
+                msg = bt2.EventMessage(self._create_event(self._at * 3))
                 self._at += 1
-                return notif
+                return msg
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
         graph = bt2.Graph()
         src = graph.add_component(MySource, 'src')
-        types = [bt2.EventNotification]
-        notif_iter = src.output_ports['out'].create_notification_iterator(types)
+        types = [bt2.EventMessage]
+        msg_iter = src.output_ports['out'].create_message_iterator(types)
 
-        for at, notif in enumerate(notif_iter):
-            self.assertIsInstance(notif, bt2.EventNotification)
-            self.assertEqual(notif.event.event_class.name, 'salut')
-            field = notif.event.payload_field['my_int']
+        for at, msg in enumerate(msg_iter):
+            self.assertIsInstance(msg, bt2.EventMessage)
+            self.assertEqual(msg.event.event_class.name, 'salut')
+            field = msg.event.payload_field['my_int']
             self.assertEqual(field, at * 3)

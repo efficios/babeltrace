@@ -21,21 +21,21 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.notification
+import bt2.message
 import collections.abc
 import bt2.component
 import bt2
 
 
-class _NotificationIterator(collections.abc.Iterator):
+class _MessageIterator(collections.abc.Iterator):
     def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.NOTIFICATION_ITERATOR_STATUS_CANCELED:
-            raise bt2.NotificationIteratorCanceled
-        elif status == native_bt.NOTIFICATION_ITERATOR_STATUS_AGAIN:
+        if status == native_bt.MESSAGE_ITERATOR_STATUS_CANCELED:
+            raise bt2.MessageIteratorCanceled
+        elif status == native_bt.MESSAGE_ITERATOR_STATUS_AGAIN:
             raise bt2.TryAgain
-        elif status == native_bt.NOTIFICATION_ITERATOR_STATUS_END:
+        elif status == native_bt.MESSAGE_ITERATOR_STATUS_END:
             raise bt2.Stop
-        elif status == native_bt.NOTIFICATION_ITERATOR_STATUS_UNSUPPORTED:
+        elif status == native_bt.MESSAGE_ITERATOR_STATUS_UNSUPPORTED:
             raise bt2.UnsupportedFeature
         elif status < 0:
             raise bt2.Error(gen_error_msg)
@@ -44,35 +44,35 @@ class _NotificationIterator(collections.abc.Iterator):
         raise NotImplementedError
 
 
-class _GenericNotificationIterator(object._Object, _NotificationIterator):
-    def _get_notif(self):
-        notif_ptr = native_bt.notification_iterator_get_notification(self._ptr)
-        utils._handle_ptr(notif_ptr, "cannot get notification iterator object's current notification object")
-        return bt2.notification._create_from_ptr(notif_ptr)
+class _GenericMessageIterator(object._Object, _MessageIterator):
+    def _get_msg(self):
+        msg_ptr = native_bt.message_iterator_get_message(self._ptr)
+        utils._handle_ptr(msg_ptr, "cannot get message iterator object's current message object")
+        return bt2.message._create_from_ptr(msg_ptr)
 
     def _next(self):
-        status = native_bt.notification_iterator_next(self._ptr)
+        status = native_bt.message_iterator_next(self._ptr)
         self._handle_status(status,
-                            'unexpected error: cannot advance the notification iterator')
+                            'unexpected error: cannot advance the message iterator')
 
     def __next__(self):
         self._next()
-        return self._get_notif()
+        return self._get_msg()
 
 
-class _PrivateConnectionNotificationIterator(_GenericNotificationIterator):
+class _PrivateConnectionMessageIterator(_GenericMessageIterator):
     @property
     def component(self):
-        comp_ptr = native_bt.private_connection_notification_iterator_get_component(self._ptr)
+        comp_ptr = native_bt.private_connection_message_iterator_get_component(self._ptr)
         assert(comp_ptr)
         return bt2.component._create_generic_component_from_ptr(comp_ptr)
 
 
-class _OutputPortNotificationIterator(_GenericNotificationIterator):
+class _OutputPortMessageIterator(_GenericMessageIterator):
     pass
 
 
-class _UserNotificationIterator(_NotificationIterator):
+class _UserMessageIterator(_MessageIterator):
     def __new__(cls, ptr):
         # User iterator objects are always created by the native side,
         # that is, never instantiated directly by Python code.
@@ -93,7 +93,7 @@ class _UserNotificationIterator(_NotificationIterator):
 
     @property
     def _component(self):
-        return native_bt.py3_get_user_component_from_user_notif_iter(self._ptr)
+        return native_bt.py3_get_user_component_from_user_msg_iter(self._ptr)
 
     @property
     def addr(self):
@@ -108,14 +108,14 @@ class _UserNotificationIterator(_NotificationIterator):
     def _next_from_native(self):
         # this can raise anything: it's catched by the native part
         try:
-            notif = next(self)
+            msg = next(self)
         except StopIteration:
             raise bt2.Stop
         except:
             raise
 
-        utils._check_type(notif, bt2.notification._Notification)
+        utils._check_type(msg, bt2.message._Message)
 
         # take a new reference for the native part
-        notif._get()
-        return int(notif._ptr)
+        msg._get()
+        return int(msg._ptr)

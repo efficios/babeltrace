@@ -10,14 +10,14 @@ EXTRA_DIST = 						\
 	test_field_types.py				\
 	test_fields.py					\
 	test_graph.py					\
-	test_notification.py				\
-	test_notification_iterator.py			\
+	test_message.py					\
+	test_message_iterator.py			\
 	test_packet.py					\
 	test_plugin.py					\
 	test_port.py					\
 	test_stream.py					\
 	test_stream_class.py				\
 	test_trace.py					\
-	test_trace_collection_notification_iterator.py	\
+	test_trace_collection_message_iterator.py	\
 	test_values.py					\
 	.coveragerc
