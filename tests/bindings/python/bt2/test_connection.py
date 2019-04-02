@@ -7,12 +7,12 @@ import bt2
 @unittest.skip("this is broken")
 class ConnectionTestCase(unittest.TestCase):
     def test_create(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -32,12 +32,12 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertNotIsInstance(conn, bt2._PrivateConnection)
 
     def test_is_ended_false(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -56,12 +56,12 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertFalse(conn.is_ended)
 
     def test_is_ended_true(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -81,12 +81,12 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertTrue(conn.is_ended)
 
     def test_downstream_port(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -105,12 +105,12 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertEqual(conn.downstream_port.addr, sink.input_ports['in'].addr)
 
     def test_upstream_port(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -129,12 +129,12 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertEqual(conn.upstream_port.addr, src.output_ports['out'].addr)
 
     def test_eq(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -153,12 +153,12 @@ class ConnectionTestCase(unittest.TestCase):
         self.assertEqual(conn, conn)
 
     def test_eq_invalid(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -180,12 +180,12 @@ class ConnectionTestCase(unittest.TestCase):
 @unittest.skip("this is broken")
 class PrivateConnectionTestCase(unittest.TestCase):
     def test_create(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -211,12 +211,12 @@ class PrivateConnectionTestCase(unittest.TestCase):
         del priv_conn
 
     def test_is_ended_false(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -241,12 +241,12 @@ class PrivateConnectionTestCase(unittest.TestCase):
         del priv_conn
 
     def test_is_ended_true(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -272,12 +272,12 @@ class PrivateConnectionTestCase(unittest.TestCase):
         del priv_conn
 
     def test_downstream_port(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -303,12 +303,12 @@ class PrivateConnectionTestCase(unittest.TestCase):
         del priv_port
 
     def test_upstream_port(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -334,12 +334,12 @@ class PrivateConnectionTestCase(unittest.TestCase):
         del priv_port
 
     def test_eq(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 
@@ -364,12 +364,12 @@ class PrivateConnectionTestCase(unittest.TestCase):
         del priv_conn
 
     def test_eq_invalid(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(self, params):
                 self._add_output_port('out')
 

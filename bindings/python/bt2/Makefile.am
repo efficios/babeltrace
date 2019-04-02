@@ -45,8 +45,8 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/field_types.py				\
 	bt2/graph.py					\
 	bt2/logging.py					\
-	bt2/notification_iterator.py			\
-	bt2/notification.py				\
+	bt2/message_iterator.py				\
+	bt2/message.py					\
 	bt2/object.py					\
 	bt2/packet.py					\
 	bt2/plugin.py					\
@@ -56,7 +56,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/stream_class.py				\
 	bt2/stream.py					\
 	bt2/trace.py					\
-	bt2/trace_collection_notification_iterator.py	\
+	bt2/trace_collection_message_iterator.py	\
 	bt2/utils.py					\
 	bt2/values.py
 

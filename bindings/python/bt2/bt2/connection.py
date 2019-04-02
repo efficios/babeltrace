@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.notification_iterator
+import bt2.message_iterator
 import collections.abc
 import bt2.port
 import copy
@@ -81,13 +81,13 @@ class _Connection(object._Object):
 
 
 class _PrivateConnection(object._PrivateObject, _Connection):
-    def create_notification_iterator(self, notification_types=None):
-        notif_types = bt2.notification._notif_types_from_notif_classes(notification_types)
-        status, notif_iter_ptr = native_bt.py3_create_priv_conn_notif_iter(int(self._ptr),
-                                                                           notif_types)
-        _handle_status(status, 'cannot create notification iterator object')
-        assert(notif_iter_ptr)
-        return bt2.notification_iterator._PrivateConnectionNotificationIterator._create_from_ptr(notif_iter_ptr)
+    def create_message_iterator(self, message_types=None):
+        msg_types = bt2.message._msg_types_from_msg_classes(message_types)
+        status, msg_iter_ptr = native_bt.py3_create_priv_conn_msg_iter(int(self._ptr),
+                                                                           msg_types)
+        _handle_status(status, 'cannot create message iterator object')
+        assert(msg_iter_ptr)
+        return bt2.message_iterator._PrivateConnectionMessageIterator._create_from_ptr(msg_iter_ptr)
 
     @property
     def is_ended(self):

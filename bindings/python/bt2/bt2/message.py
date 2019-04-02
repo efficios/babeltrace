@@ -32,33 +32,33 @@ import bt2
 
 
 def _create_from_ptr(ptr):
-    notif_type = native_bt.notification_get_type(ptr)
+    msg_type = native_bt.message_get_type(ptr)
     cls = None
 
-    if notif_type not in _NOTIF_TYPE_TO_CLS:
-        raise bt2.Error('unknown notification type: {}'.format(notif_type))
+    if msg_type not in _MESSAGE_TYPE_TO_CLS:
+        raise bt2.Error('unknown message type: {}'.format(msg_type))
 
-    return _NOTIF_TYPE_TO_CLS[notif_type]._create_from_ptr(ptr)
+    return _MESSAGE_TYPE_TO_CLS[msg_type]._create_from_ptr(ptr)
 
 
-def _notif_types_from_notif_classes(notification_types):
-    if notification_types is None:
-        notif_types = None
+def _msg_types_from_msg_classes(message_types):
+    if message_types is None:
+        msg_types = None
     else:
-        for notif_cls in notification_types:
-            if notif_cls not in _NOTIF_TYPE_TO_CLS.values():
-                raise ValueError("'{}' is not a notification class".format(notif_cls))
+        for msg_cls in message_types:
+            if msg_cls not in _MESSAGE_TYPE_TO_CLS.values():
+                raise ValueError("'{}' is not a message class".format(msg_cls))
 
-        notif_types = [notif_cls._TYPE for notif_cls in notification_types]
+        msg_types = [msg_cls._TYPE for msg_cls in message_types]
 
-    return notif_types
+    return msg_types
 
 
-class _Notification(object._Object):
+class _Message(object._Object):
     pass
 
 
-class _CopyableNotification(_Notification):
+class _CopyableMessage(_Message):
     def __copy__(self):
         return self._copy(lambda obj: obj)
 
@@ -68,7 +68,7 @@ class _CopyableNotification(_Notification):
         return cpy
 
 
-class EventNotification(_CopyableNotification):
+class EventMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_EVENT
 
     def __init__(self, event, cc_prio_map=None):
@@ -80,22 +80,22 @@ class EventNotification(_CopyableNotification):
         else:
             cc_prio_map_ptr = None
 
-        ptr = native_bt.notification_event_create(event._ptr, cc_prio_map_ptr)
+        ptr = native_bt.message_event_create(event._ptr, cc_prio_map_ptr)
 
         if ptr is None:
-            raise bt2.CreationError('cannot create event notification object')
+            raise bt2.CreationError('cannot create event message object')
 
         super().__init__(ptr)
 
     @property
     def event(self):
-        event_ptr = native_bt.notification_event_get_event(self._ptr)
+        event_ptr = native_bt.message_event_get_event(self._ptr)
         assert(event_ptr)
         return bt2.event._create_from_ptr(event_ptr)
 
     @property
     def clock_class_priority_map(self):
-        cc_prio_map_ptr = native_bt.notification_event_get_clock_class_priority_map(self._ptr)
+        cc_prio_map_ptr = native_bt.message_event_get_clock_class_priority_map(self._ptr)
         assert(cc_prio_map_ptr)
         return bt2.clock_class_priority_map.ClockClassPriorityMap._create_from_ptr(cc_prio_map_ptr)
 
@@ -118,27 +118,27 @@ class EventNotification(_CopyableNotification):
 
     def _copy(self, copy_func):
         # We can always use references here because those properties are
-        # frozen anyway if they are part of a notification. Since the
-        # user cannot modify them after copying the notification, it's
+        # frozen anyway if they are part of a message. Since the
+        # user cannot modify them after copying the message, it's
         # useless to copy/deep-copy them.
-        return EventNotification(self.event, self.clock_class_priority_map)
+        return EventMessage(self.event, self.clock_class_priority_map)
 
 
-class PacketBeginningNotification(_CopyableNotification):
+class PacketBeginningMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_PACKET_BEGINNING
 
     def __init__(self, packet):
         utils._check_type(packet, bt2.packet._Packet)
-        ptr = native_bt.notification_packet_begin_create(packet._ptr)
+        ptr = native_bt.message_packet_begin_create(packet._ptr)
 
         if ptr is None:
-            raise bt2.CreationError('cannot create packet beginning notification object')
+            raise bt2.CreationError('cannot create packet beginning message object')
 
         super().__init__(ptr)
 
     @property
     def packet(self):
-        packet_ptr = native_bt.notification_packet_begin_get_packet(self._ptr)
+        packet_ptr = native_bt.message_packet_begin_get_packet(self._ptr)
         assert(packet_ptr)
         return bt2.packet._Packet._create_from_ptr(packet_ptr)
 
@@ -153,27 +153,27 @@ class PacketBeginningNotification(_CopyableNotification):
 
     def _copy(self, copy_func):
         # We can always use references here because those properties are
-        # frozen anyway if they are part of a notification. Since the
-        # user cannot modify them after copying the notification, it's
+        # frozen anyway if they are part of a message. Since the
+        # user cannot modify them after copying the message, it's
         # useless to copy/deep-copy them.
-        return PacketBeginningNotification(self.packet)
+        return PacketBeginningMessage(self.packet)
 
 
-class PacketEndNotification(_CopyableNotification):
+class PacketEndMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_PACKET_END
 
     def __init__(self, packet):
         utils._check_type(packet, bt2.packet._Packet)
-        ptr = native_bt.notification_packet_end_create(packet._ptr)
+        ptr = native_bt.message_packet_end_create(packet._ptr)
 
         if ptr is None:
-            raise bt2.CreationError('cannot create packet end notification object')
+            raise bt2.CreationError('cannot create packet end message object')
 
         super().__init__(ptr)
 
     @property
     def packet(self):
-        packet_ptr = native_bt.notification_packet_end_get_packet(self._ptr)
+        packet_ptr = native_bt.message_packet_end_get_packet(self._ptr)
         assert(packet_ptr)
         return bt2.packet._Packet._create_from_ptr(packet_ptr)
 
@@ -188,27 +188,27 @@ class PacketEndNotification(_CopyableNotification):
 
     def _copy(self, copy_func):
         # We can always use references here because those properties are
-        # frozen anyway if they are part of a notification. Since the
-        # user cannot modify them after copying the notification, it's
+        # frozen anyway if they are part of a message. Since the
+        # user cannot modify them after copying the message, it's
         # useless to copy/deep-copy them.
-        return PacketEndNotification(self.packet)
+        return PacketEndMessage(self.packet)
 
 
-class StreamBeginningNotification(_CopyableNotification):
+class StreamBeginningMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_STREAM_BEGINNING
 
     def __init__(self, stream):
         utils._check_type(stream, bt2.stream._Stream)
-        ptr = native_bt.notification_stream_begin_create(stream._ptr)
+        ptr = native_bt.message_stream_begin_create(stream._ptr)
 
         if ptr is None:
-            raise bt2.CreationError('cannot create stream beginning notification object')
+            raise bt2.CreationError('cannot create stream beginning message object')
 
         super().__init__(ptr)
 
     @property
     def stream(self):
-        stream_ptr = native_bt.notification_stream_begin_get_stream(self._ptr)
+        stream_ptr = native_bt.message_stream_begin_get_stream(self._ptr)
         assert(stream_ptr)
         return bt2.stream._create_from_ptr(stream_ptr)
 
@@ -223,27 +223,27 @@ class StreamBeginningNotification(_CopyableNotification):
 
     def _copy(self, copy_func):
         # We can always use references here because those properties are
-        # frozen anyway if they are part of a notification. Since the
-        # user cannot modify them after copying the notification, it's
+        # frozen anyway if they are part of a message. Since the
+        # user cannot modify them after copying the message, it's
         # useless to copy/deep-copy them.
-        return StreamBeginningNotification(self.stream)
+        return StreamBeginningMessage(self.stream)
 
 
-class StreamEndNotification(_CopyableNotification):
+class StreamEndMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_STREAM_END
 
     def __init__(self, stream):
         utils._check_type(stream, bt2.stream._Stream)
-        ptr = native_bt.notification_stream_end_create(stream._ptr)
+        ptr = native_bt.message_stream_end_create(stream._ptr)
 
         if ptr is None:
-            raise bt2.CreationError('cannot create stream end notification object')
+            raise bt2.CreationError('cannot create stream end message object')
 
         super().__init__(ptr)
 
     @property
     def stream(self):
-        stream_ptr = native_bt.notification_stream_end_get_stream(self._ptr)
+        stream_ptr = native_bt.message_stream_end_get_stream(self._ptr)
         assert(stream_ptr)
         return bt2.stream._create_from_ptr(stream_ptr)
 
@@ -258,16 +258,16 @@ class StreamEndNotification(_CopyableNotification):
 
     def _copy(self, copy_func):
         # We can always use references here because those properties are
-        # frozen anyway if they are part of a notification. Since the
-        # user cannot modify them after copying the notification, it's
+        # frozen anyway if they are part of a message. Since the
+        # user cannot modify them after copying the message, it's
         # useless to copy/deep-copy them.
-        return StreamEndNotification(self.stream)
+        return StreamEndMessage(self.stream)
 
 
-class _InactivityNotificationClockValuesIterator(collections.abc.Iterator):
-    def __init__(self, notif_clock_values):
-        self._notif_clock_values = notif_clock_values
-        self._clock_classes = list(notif_clock_values._notif.clock_class_priority_map)
+class _InactivityMessageClockValuesIterator(collections.abc.Iterator):
+    def __init__(self, msg_clock_values):
+        self._msg_clock_values = msg_clock_values
+        self._clock_classes = list(msg_clock_values._msg.clock_class_priority_map)
         self._at = 0
 
     def __next__(self):
@@ -278,13 +278,13 @@ class _InactivityNotificationClockValuesIterator(collections.abc.Iterator):
         return self._clock_classes[at]
 
 
-class _InactivityNotificationClockValues(collections.abc.Mapping):
-    def __init__(self, notif):
-        self._notif = notif
+class _InactivityMessageClockValues(collections.abc.Mapping):
+    def __init__(self, msg):
+        self._msg = msg
 
     def __getitem__(self, clock_class):
         utils._check_type(clock_class, bt2.ClockClass)
-        clock_value_ptr = native_bt.notification_inactivity_get_clock_value(self._notif._ptr,
+        clock_value_ptr = native_bt.message_inactivity_get_clock_value(self._msg._ptr,
                                                                             clock_class._ptr)
 
         if clock_value_ptr is None:
@@ -295,18 +295,18 @@ class _InactivityNotificationClockValues(collections.abc.Mapping):
 
     def add(self, clock_value):
         utils._check_type(clock_value, bt2.clock_value._ClockValue)
-        ret = native_bt.notification_inactivity_set_clock_value(self._notif._ptr,
+        ret = native_bt.message_inactivity_set_clock_value(self._msg._ptr,
                                                                 clock_value._ptr)
-        utils._handle_ret(ret, "cannot set inactivity notification object's clock value")
+        utils._handle_ret(ret, "cannot set inactivity message object's clock value")
 
     def __len__(self):
-        return len(self._notif.clock_class_priority_map)
+        return len(self._msg.clock_class_priority_map)
 
     def __iter__(self):
-        return _InactivityNotificationClockValuesIterator(self)
+        return _InactivityMessageClockValuesIterator(self)
 
 
-class InactivityNotification(_CopyableNotification):
+class InactivityMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY
 
     def __init__(self, cc_prio_map=None):
@@ -316,22 +316,22 @@ class InactivityNotification(_CopyableNotification):
         else:
             cc_prio_map_ptr = None
 
-        ptr = native_bt.notification_inactivity_create(cc_prio_map_ptr)
+        ptr = native_bt.message_inactivity_create(cc_prio_map_ptr)
 
         if ptr is None:
-            raise bt2.CreationError('cannot create inactivity notification object')
+            raise bt2.CreationError('cannot create inactivity message object')
 
         super().__init__(ptr)
 
     @property
     def clock_class_priority_map(self):
-        cc_prio_map_ptr = native_bt.notification_inactivity_get_clock_class_priority_map(self._ptr)
+        cc_prio_map_ptr = native_bt.message_inactivity_get_clock_class_priority_map(self._ptr)
         assert(cc_prio_map_ptr)
         return bt2.clock_class_priority_map.ClockClassPriorityMap._create_from_ptr(cc_prio_map_ptr)
 
     @property
     def clock_values(self):
-        return _InactivityNotificationClockValues(self)
+        return _InactivityMessageClockValues(self)
 
     def _get_clock_values(self):
         clock_values = {}
@@ -362,7 +362,7 @@ class InactivityNotification(_CopyableNotification):
         return self_props == other_props
 
     def __copy__(self):
-        cpy = InactivityNotification(self.clock_class_priority_map)
+        cpy = InactivityMessage(self.clock_class_priority_map)
 
         for clock_class, clock_value in self.clock_values.items():
             if clock_value is None:
@@ -374,7 +374,7 @@ class InactivityNotification(_CopyableNotification):
 
     def __deepcopy__(self, memo):
         cc_prio_map_cpy = copy.deepcopy(self.clock_class_priority_map)
-        cpy = InactivityNotification(cc_prio_map_cpy)
+        cpy = InactivityMessage(cc_prio_map_cpy)
 
         # copy clock values
         for orig_clock_class in self.clock_class_priority_map:
@@ -391,14 +391,14 @@ class InactivityNotification(_CopyableNotification):
             # create copy of clock value from copied clock class
             clock_value_cpy = cpy_clock_class(orig_clock_value.cycles)
 
-            # set copied clock value in notification copy
+            # set copied clock value in message copy
             cpy.clock_values.add(clock_value_cpy)
 
         memo[id(self)] = cpy
         return cpy
 
 
-class _DiscardedElementsNotification(_Notification):
+class _DiscardedElementsMessage(_Message):
     def __eq__(self, other):
         if type(other) is not type(self):
             return False
@@ -421,24 +421,24 @@ class _DiscardedElementsNotification(_Notification):
         return self_props == other_props
 
 
-class _DiscardedPacketsNotification(_DiscardedElementsNotification):
+class _DiscardedPacketsMessage(_DiscardedElementsMessage):
     _TYPE = native_bt.MESSAGE_TYPE_DISCARDED_PACKETS
 
     @property
     def count(self):
-        count = native_bt.notification_discarded_packets_get_count(self._ptr)
+        count = native_bt.message_discarded_packets_get_count(self._ptr)
         assert(count >= 0)
         return count
 
     @property
     def stream(self):
-        stream_ptr = native_bt.notification_discarded_packets_get_stream(self._ptr)
+        stream_ptr = native_bt.message_discarded_packets_get_stream(self._ptr)
         assert(stream_ptr)
         return bt2.stream._create_from_ptr(stream_ptr)
 
     @property
     def beginning_clock_value(self):
-        clock_value_ptr = native_bt.notification_discarded_packets_get_begin_clock_value(self._ptr)
+        clock_value_ptr = native_bt.message_discarded_packets_get_begin_clock_value(self._ptr)
 
         if clock_value_ptr is None:
             return
@@ -448,7 +448,7 @@ class _DiscardedPacketsNotification(_DiscardedElementsNotification):
 
     @property
     def end_clock_value(self):
-        clock_value_ptr = native_bt.notification_discarded_packets_get_end_clock_value(self._ptr)
+        clock_value_ptr = native_bt.message_discarded_packets_get_end_clock_value(self._ptr)
 
         if clock_value_ptr is None:
             return
@@ -457,24 +457,24 @@ class _DiscardedPacketsNotification(_DiscardedElementsNotification):
         return clock_value
 
 
-class _DiscardedEventsNotification(_DiscardedElementsNotification):
+class _DiscardedEventsMessage(_DiscardedElementsMessage):
     _TYPE = native_bt.MESSAGE_TYPE_DISCARDED_EVENTS
 
     @property
     def count(self):
-        count = native_bt.notification_discarded_events_get_count(self._ptr)
+        count = native_bt.message_discarded_events_get_count(self._ptr)
         assert(count >= 0)
         return count
 
     @property
     def stream(self):
-        stream_ptr = native_bt.notification_discarded_events_get_stream(self._ptr)
+        stream_ptr = native_bt.message_discarded_events_get_stream(self._ptr)
         assert(stream_ptr)
         return bt2.stream._create_from_ptr(stream_ptr)
 
     @property
     def beginning_clock_value(self):
-        clock_value_ptr = native_bt.notification_discarded_events_get_begin_clock_value(self._ptr)
+        clock_value_ptr = native_bt.message_discarded_events_get_begin_clock_value(self._ptr)
 
         if clock_value_ptr is None:
             return
@@ -484,7 +484,7 @@ class _DiscardedEventsNotification(_DiscardedElementsNotification):
 
     @property
     def end_clock_value(self):
-        clock_value_ptr = native_bt.notification_discarded_events_get_end_clock_value(self._ptr)
+        clock_value_ptr = native_bt.message_discarded_events_get_end_clock_value(self._ptr)
 
         if clock_value_ptr is None:
             return
@@ -493,13 +493,13 @@ class _DiscardedEventsNotification(_DiscardedElementsNotification):
         return clock_value
 
 
-_NOTIF_TYPE_TO_CLS = {
-    native_bt.MESSAGE_TYPE_EVENT: EventNotification,
-    native_bt.MESSAGE_TYPE_PACKET_BEGINNING: PacketBeginningNotification,
-    native_bt.MESSAGE_TYPE_PACKET_END: PacketEndNotification,
-    native_bt.MESSAGE_TYPE_STREAM_BEGINNING: StreamBeginningNotification,
-    native_bt.MESSAGE_TYPE_STREAM_END: StreamEndNotification,
-    native_bt.MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY: InactivityNotification,
-    native_bt.MESSAGE_TYPE_DISCARDED_PACKETS: _DiscardedPacketsNotification,
-    native_bt.MESSAGE_TYPE_DISCARDED_EVENTS: _DiscardedEventsNotification,
+_MESSAGE_TYPE_TO_CLS = {
+    native_bt.MESSAGE_TYPE_EVENT: EventMessage,
+    native_bt.MESSAGE_TYPE_PACKET_BEGINNING: PacketBeginningMessage,
+    native_bt.MESSAGE_TYPE_PACKET_END: PacketEndMessage,
+    native_bt.MESSAGE_TYPE_STREAM_BEGINNING: StreamBeginningMessage,
+    native_bt.MESSAGE_TYPE_STREAM_END: StreamEndMessage,
+    native_bt.MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY: InactivityMessage,
+    native_bt.MESSAGE_TYPE_DISCARDED_PACKETS: _DiscardedPacketsMessage,
+    native_bt.MESSAGE_TYPE_DISCARDED_EVENTS: _DiscardedEventsMessage,
 }

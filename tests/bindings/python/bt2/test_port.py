@@ -16,12 +16,12 @@ class PortTestCase(unittest.TestCase):
         return graph.add_component(comp_cls, name)
 
     def test_src_add_output_port(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port = comp_self._add_output_port('out')
                 self.assertEqual(port.name, 'out')
@@ -31,12 +31,12 @@ class PortTestCase(unittest.TestCase):
 
 
     def test_flt_add_output_port(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port = comp_self._add_output_port('out')
                 self.assertEqual(port.name, 'out')
@@ -45,12 +45,12 @@ class PortTestCase(unittest.TestCase):
         self.assertEqual(len(comp.output_ports), 1)
 
     def test_flt_add_input_port(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port = comp_self._add_input_port('in')
                 self.assertEqual(port.name, 'in')
@@ -71,12 +71,12 @@ class PortTestCase(unittest.TestCase):
         self.assertEqual(len(comp.input_ports), 1)
 
     def test_user_src_output_ports_getitem(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -88,12 +88,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySource)
 
     def test_user_flt_output_ports_getitem(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -105,12 +105,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_getitem(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
@@ -137,12 +137,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySink)
 
     def test_user_src_output_ports_getitem_invalid_key(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -154,12 +154,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySource)
 
     def test_user_flt_output_ports_getitem_invalid_key(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -171,12 +171,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_getitem_invalid_key(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
@@ -203,12 +203,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySink)
 
     def test_user_src_output_ports_len(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -218,12 +218,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySource)
 
     def test_user_flt_output_ports_len(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -233,12 +233,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_len(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
@@ -261,12 +261,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySink)
 
     def test_user_src_output_ports_iter(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -286,12 +286,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySource)
 
     def test_user_flt_output_ports_iter(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port1 = comp_self._add_output_port('clear')
                 port2 = comp_self._add_output_port('print')
@@ -311,12 +311,12 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_iter(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 port1 = comp_self._add_input_port('clear')
                 port2 = comp_self._add_input_port('print')
@@ -359,7 +359,7 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySink)
 
     def test_gen_src_output_ports_getitem(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
@@ -368,7 +368,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
@@ -384,7 +384,7 @@ class PortTestCase(unittest.TestCase):
         del port3
 
     def test_gen_flt_output_ports_getitem(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
@@ -393,7 +393,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
@@ -409,7 +409,7 @@ class PortTestCase(unittest.TestCase):
         del port3
 
     def test_gen_flt_input_ports_getitem(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
@@ -418,7 +418,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_input_port('clear')
@@ -457,12 +457,12 @@ class PortTestCase(unittest.TestCase):
         del port3
 
     def test_gen_src_output_ports_getitem_invalid_key(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -474,12 +474,12 @@ class PortTestCase(unittest.TestCase):
             comp.output_ports['hello']
 
     def test_gen_flt_output_ports_getitem_invalid_key(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -491,12 +491,12 @@ class PortTestCase(unittest.TestCase):
             comp.output_ports['hello']
 
     def test_gen_flt_input_ports_getitem_invalid_key(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
@@ -526,12 +526,12 @@ class PortTestCase(unittest.TestCase):
             comp.input_ports['hello']
 
     def test_gen_src_output_ports_len(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -541,12 +541,12 @@ class PortTestCase(unittest.TestCase):
         self.assertEqual(len(comp.output_ports), 3)
 
     def test_gen_flt_output_ports_len(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_output_port('clear')
                 comp_self._add_output_port('print')
@@ -556,12 +556,12 @@ class PortTestCase(unittest.TestCase):
         self.assertEqual(len(comp.output_ports), 3)
 
     def test_gen_flt_input_ports_len(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 comp_self._add_input_port('clear')
                 comp_self._add_input_port('print')
@@ -584,7 +584,7 @@ class PortTestCase(unittest.TestCase):
         self.assertEqual(len(comp.input_ports), 3)
 
     def test_gen_src_output_ports_iter(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
@@ -593,7 +593,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MySource(bt2._UserSourceComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
@@ -617,7 +617,7 @@ class PortTestCase(unittest.TestCase):
         del port3
 
     def test_gen_flt_output_ports_iter(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
@@ -626,7 +626,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_output_port('clear')
@@ -650,7 +650,7 @@ class PortTestCase(unittest.TestCase):
         del port3
 
     def test_gen_flt_input_ports_iter(self):
-        class MyIter(bt2._UserNotificationIterator):
+        class MyIter(bt2._UserMessageIterator):
             def __next__(self):
                 raise bt2.Stop
 
@@ -659,7 +659,7 @@ class PortTestCase(unittest.TestCase):
         port3 = None
 
         class MyFilter(bt2._UserFilterComponent,
-                       notification_iterator_class=MyIter):
+                       message_iterator_class=MyIter):
             def __init__(comp_self, params):
                 nonlocal port1, port2, port3
                 port1 = comp_self._add_input_port('clear')
