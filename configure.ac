@@ -784,6 +784,7 @@ AC_CONFIG_FILES([
 	plugins/utils/muxer/Makefile
 	python-plugin-provider/Makefile
 	plugins/lttng-utils/Makefile
+	plugins/lttng-utils/debug-info/Makefile
 	babeltrace.pc
 	babeltrace-ctf.pc
 ])

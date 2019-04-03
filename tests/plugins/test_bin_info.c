@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <lttng-utils/bin-info.h>
+#include <lttng-utils/debug-info/bin-info.h>
 #include "tap/tap.h"
 
 #define NR_TESTS 36
