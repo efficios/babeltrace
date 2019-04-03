@@ -1,37 +1,18 @@
-AM_CPPFLAGS += -I$(top_srcdir)/plugins
+SUBDIRS =
+if ENABLE_DEBUG_INFO
+SUBDIRS += debug-info
+endif
 
-noinst_LTLIBRARIES = libdebug-info.la
-libdebug_info_la_SOURCES = \
-	bin-info.c \
-	bin-info.h \
-	crc32.c \
-	crc32.h \
-	debug-info.c \
-	debug-info.h \
-	dwarf.c \
-	dwarf.h \
-	trace-ir-data-copy.c \
-	trace-ir-data-copy.h \
-	trace-ir-mapping.c \
-	trace-ir-mapping.h \
-	trace-ir-metadata-copy.c \
-	trace-ir-metadata-copy.h \
-	trace-ir-metadata-field-class-copy.c \
-	trace-ir-metadata-field-class-copy.h \
-	logging.c \
-	logging.h
+AM_CPPFLAGS += -I$(top_srcdir)/plugins
 
 plugindir = "$(PLUGINSDIR)"
 plugin_LTLIBRARIES = babeltrace-plugin-lttng-utils.la
 
 babeltrace_plugin_lttng_utils_la_SOURCES = \
-	plugin.c \
-	utils.c \
-	utils.h \
-	logging.h
+	plugin.c
 
 babeltrace_plugin_lttng_utils_la_LIBADD = \
-	libdebug-info.la
+	debug-info/libdebug-info.la
 
 babeltrace_plugin_lttng_utils_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
