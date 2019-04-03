@@ -737,6 +737,7 @@ AC_CONFIG_FILES([
 	doc/contributing-images/Makefile
   doc/man/Makefile
   doc/man/asciidoc-attrs.conf
+	fd-cache/Makefile
 	lib/Makefile
 	lib/prio_heap/Makefile
 	lib/plugin/Makefile

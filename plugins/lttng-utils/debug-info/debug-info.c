@@ -34,6 +34,7 @@
 
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/common-internal.h>
+#include <babeltrace/fd-cache-internal.h>
 
 #include "bin-info.h"
 #include "debug-info.h"
@@ -70,6 +71,8 @@ struct debug_info_msg_iter {
 	struct trace_ir_maps *ir_maps;
 	/* in_trace -> debug_info_mapping. */
 	GHashTable *debug_info_map;
+
+	struct bt_fd_cache fd_cache;
 };
 
 struct debug_info_source {
@@ -124,6 +127,7 @@ struct debug_info {
 	GQuark q_dl_open;
 	GQuark q_lib_load;
 	GQuark q_lib_unload;
+	struct bt_fd_cache *fd_cache; /* Weak ref. Owned by the iterator. */
 };
 
 static
@@ -491,7 +495,7 @@ end:
 	return debug_info_src;
 }
 
-BT_HIDDEN
+static
 struct debug_info_source *debug_info_query(struct debug_info *debug_info,
 		int64_t vpid, uint64_t ip)
 {
@@ -510,12 +514,16 @@ end:
 	return dbg_info_src;
 }
 
-BT_HIDDEN
+static
 struct debug_info *debug_info_create(struct debug_info_component *comp,
-		const bt_trace *trace)
+		const bt_trace *trace, struct bt_fd_cache *fdc)
 {
 	int ret;
 	struct debug_info *debug_info;
+
+	BT_ASSERT(comp);
+	BT_ASSERT(trace);
+	BT_ASSERT(fdc);
 
 	debug_info = g_new0(struct debug_info, 1);
 	if (!debug_info) {
@@ -536,6 +544,7 @@ struct debug_info *debug_info_create(struct debug_info_component *comp,
 	}
 
 	debug_info->input_trace = trace;
+	debug_info->fd_cache = fdc;
 
 end:
 	return debug_info;
@@ -544,7 +553,7 @@ error:
 	return NULL;
 }
 
-BT_HIDDEN
+static
 void debug_info_destroy(struct debug_info *debug_info)
 {
 	bt_trace_status status;
@@ -712,7 +721,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 		uint64_t is_pic_field_value;
 
 		event_get_payload_unsigned_integer_field_value(event,
-				IS_PIC_FIELD_NAME, &is_pic_field_value);
+			IS_PIC_FIELD_NAME, &is_pic_field_value);
 		is_pic = is_pic_field_value == 1;
 	} else {
 		/*
@@ -726,7 +735,7 @@ void handle_bin_info_event(struct debug_info *debug_info,
 		VPID_FIELD_NAME, &vpid);
 
 	proc_dbg_info_src = proc_debug_info_sources_ht_get_entry(
-			debug_info->vpid_to_proc_dbg_info_src, vpid);
+		debug_info->vpid_to_proc_dbg_info_src, vpid);
 	if (!proc_dbg_info_src) {
 		goto end;
 	}
@@ -738,21 +747,19 @@ void handle_bin_info_event(struct debug_info *debug_info,
 
 	*((uint64_t *) key) = baddr;
 
-	bin = g_hash_table_lookup(proc_dbg_info_src->baddr_to_bin_info,
-			key);
+	bin = g_hash_table_lookup(proc_dbg_info_src->baddr_to_bin_info, key);
 	if (bin) {
 		goto end;
 	}
 
-	bin = bin_info_create(path, baddr, memsz, is_pic,
+	bin = bin_info_create(debug_info->fd_cache, path, baddr, memsz, is_pic,
 		debug_info->comp->arg_debug_dir,
 		debug_info->comp->arg_target_prefix);
 	if (!bin) {
 		goto end;
 	}
 
-	g_hash_table_insert(proc_dbg_info_src->baddr_to_bin_info,
-			key, bin);
+	g_hash_table_insert(proc_dbg_info_src->baddr_to_bin_info, key, bin);
 	/* Ownership passed to ht. */
 	key = NULL;
 
@@ -864,7 +871,7 @@ void handle_event_statedump(struct debug_info_msg_iter *debug_it,
 	debug_info = g_hash_table_lookup(debug_it->debug_info_map, trace);
 	if (!debug_info) {
 		debug_info = debug_info_create(debug_it->debug_info_component,
-				trace);
+				trace, &debug_it->fd_cache);
 		g_hash_table_insert(debug_it->debug_info_map, (gpointer) trace,
 				debug_info);
 		bt_trace_add_destruction_listener(trace,
@@ -1936,6 +1943,7 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 	bt_self_component_port_input_message_iterator *upstream_iterator;
 	struct debug_info_msg_iter *debug_info_msg_iter;
 	gchar *debug_info_field_name;
+	int ret;
 
 	/* Borrow the upstream input port. */
 	input_port = bt_self_component_filter_borrow_input_port_by_name(
@@ -1992,6 +2000,16 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
+
+	ret = bt_fd_cache_init(&debug_info_msg_iter->fd_cache);
+	if (ret) {
+		trace_ir_maps_destroy(debug_info_msg_iter->ir_maps);
+		g_hash_table_destroy(debug_info_msg_iter->debug_info_map);
+		g_free(debug_info_msg_iter);
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		goto end;
+	}
+
 
 	bt_self_message_iterator_set_data(self_msg_iter, debug_info_msg_iter);
 
@@ -2050,6 +2068,8 @@ void debug_info_msg_iter_finalize(bt_self_message_iterator *it)
 
 	trace_ir_maps_destroy(debug_info_msg_iter->ir_maps);
 	g_hash_table_destroy(debug_info_msg_iter->debug_info_map);
+
+	bt_fd_cache_fini(&debug_info_msg_iter->fd_cache);
 
 	g_free(debug_info_msg_iter);
 }

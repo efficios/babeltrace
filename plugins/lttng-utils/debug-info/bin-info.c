@@ -29,20 +29,22 @@
 #define BT_LOG_TAG "PLUGIN-CTF-LTTNG-UTILS-DEBUG-INFO-FLT-BIN-INFO"
 #include "logging.h"
 
+#include <dwarf.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <math.h>
-#include <libgen.h>
-#include <stdio.h>
 #include <inttypes.h>
+#include <libgen.h>
+#include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <dwarf.h>
+
 #include <glib.h>
-#include <errno.h>
-#include "dwarf.h"
+
 #include "bin-info.h"
 #include "crc32.h"
+#include "dwarf.h"
 #include "utils.h"
 
 /*
@@ -68,11 +70,13 @@ int bin_info_init(void)
 }
 
 BT_HIDDEN
-struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz, bool is_pic, const char *debug_info_dir,
-		const char *target_prefix)
+struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
+		uint64_t low_addr, uint64_t memsz, bool is_pic,
+		const char *debug_info_dir, const char *target_prefix)
 {
 	struct bin_info *bin = NULL;
+
+	BT_ASSERT(fdc);
 
 	if (!path) {
 		goto error;
@@ -108,6 +112,7 @@ struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
 	bin->build_id = NULL;
 	bin->build_id_len = 0;
 	bin->file_build_id_matches = false;
+	bin->fd_cache = fdc;
 
 	return bin;
 
@@ -133,8 +138,8 @@ void bin_info_destroy(struct bin_info *bin)
 
 	elf_end(bin->elf_file);
 
-	close(bin->elf_fd);
-	close(bin->dwarf_fd);
+	bt_fd_cache_put_handle(bin->fd_cache, bin->elf_handle);
+	bt_fd_cache_put_handle(bin->fd_cache, bin->dwarf_handle);
 
 	g_free(bin);
 }
@@ -148,43 +153,39 @@ void bin_info_destroy(struct bin_info *bin)
 static
 int bin_info_set_elf_file(struct bin_info *bin)
 {
-	int elf_fd = -1;
+	struct bt_fd_cache_handle *elf_handle = NULL;
 	Elf *elf_file = NULL;
 
 	if (!bin) {
 		goto error;
 	}
 
-	elf_fd = open(bin->elf_path, O_RDONLY);
-	if (elf_fd < 0) {
-		elf_fd = -errno;
-		BT_LOGE("Failed to open %s\n", bin->elf_path);
+	elf_handle = bt_fd_cache_get_handle(bin->fd_cache, bin->elf_path);
+	if (!elf_handle) {
+		BT_LOGD("Failed to open %s", bin->elf_path);
 		goto error;
 	}
 
-	elf_file = elf_begin(elf_fd, ELF_C_READ, NULL);
+	elf_file = elf_begin(bt_fd_cache_handle_get_fd(elf_handle),
+		ELF_C_READ, NULL);
 	if (!elf_file) {
-		BT_LOGE("elf_begin failed: %s\n", elf_errmsg(-1));
+		BT_LOGE("elf_begin failed: %s", elf_errmsg(-1));
 		goto error;
 	}
 
 	if (elf_kind(elf_file) != ELF_K_ELF) {
-		BT_LOGE("Error: %s is not an ELF object\n",
-				bin->elf_path);
+		BT_LOGE("Error: %s is not an ELF object", bin->elf_path);
 		goto error;
 	}
 
-	bin->elf_fd = elf_fd;
+	bin->elf_handle = elf_handle;
 	bin->elf_file = elf_file;
 	return 0;
 
 error:
-	if (elf_fd >= 0) {
-		close(elf_fd);
-		elf_fd = -1;
-	}
+	bt_fd_cache_put_handle(bin->fd_cache, elf_handle);
 	elf_end(elf_file);
-	return elf_fd;
+	return -1;
 }
 
 /**
@@ -441,7 +442,8 @@ error:
 static
 int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 {
-	int fd = -1, ret = 0;
+	int ret = 0;
+	struct bt_fd_cache_handle *dwarf_handle = NULL;
 	struct bt_dwarf_cu *cu = NULL;
 	Dwarf *dwarf_info = NULL;
 
@@ -449,13 +451,13 @@ int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 		goto error;
 	}
 
-	fd = open(path, O_RDONLY);
-	if (fd < 0) {
-		fd = -errno;
+	dwarf_handle = bt_fd_cache_get_handle(bin->fd_cache, path);
+	if (!dwarf_handle) {
 		goto error;
 	}
 
-	dwarf_info = dwarf_begin(fd, DWARF_C_READ);
+	dwarf_info = dwarf_begin(bt_fd_cache_handle_get_fd(dwarf_handle),
+		DWARF_C_READ);
 	if (!dwarf_info) {
 		goto error;
 	}
@@ -474,7 +476,7 @@ int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 		goto error;
 	}
 
-	bin->dwarf_fd = fd;
+	bin->dwarf_handle = dwarf_handle;
 	bin->dwarf_path = g_strdup(path);
 	if (!bin->dwarf_path) {
 		goto error;
@@ -485,15 +487,12 @@ int bin_info_set_dwarf_info_from_path(struct bin_info *bin, char *path)
 	return 0;
 
 error:
-	if (fd >= 0) {
-		close(fd);
-		fd = -1;
-	}
+	bt_fd_cache_put_handle(bin->fd_cache, dwarf_handle);
 	dwarf_end(dwarf_info);
 	g_free(dwarf_info);
 	free(cu);
 
-	return fd;
+	return -1;
 }
 
 /**
@@ -570,21 +569,22 @@ end:
  *		0 otherwise
  */
 static
-int is_valid_debug_file(char *path, uint32_t crc)
+int is_valid_debug_file(struct bin_info *bin, char *path, uint32_t crc)
 {
-	int ret = 0, fd = -1;
+	int ret = 0;
+	struct bt_fd_cache_handle *debug_handle = NULL;
 	uint32_t _crc = 0;
 
 	if (!path) {
-		goto end_noclose;
+		goto end;
 	}
 
-	fd = open(path, O_RDONLY);
-	if (fd < 0) {
-		goto end_noclose;
+	debug_handle = bt_fd_cache_get_handle(bin->fd_cache, path);
+	if (!debug_handle) {
+		goto end;
 	}
 
-	ret = crc32(fd, &_crc);
+	ret = crc32(bt_fd_cache_handle_get_fd(debug_handle), &_crc);
 	if (ret) {
 		ret = 0;
 		goto end;
@@ -593,8 +593,7 @@ int is_valid_debug_file(char *path, uint32_t crc)
 	ret = (crc == _crc);
 
 end:
-	close(fd);
-end_noclose:
+	bt_fd_cache_put_handle(bin->fd_cache, debug_handle);
 	return ret;
 }
 
@@ -628,7 +627,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 	/* First look in the executable's dir */
 	path = g_strconcat(bin_dir, bin->dbg_link_filename, NULL);
 
-	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
+	if (is_valid_debug_file(bin, path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
@@ -636,7 +635,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 	g_free(path);
 	path = g_strconcat(bin_dir, DEBUG_SUBDIR, bin->dbg_link_filename, NULL);
 
-	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
+	if (is_valid_debug_file(bin, path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
@@ -644,7 +643,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 	g_free(path);
 
 	path = g_strconcat(dbg_dir, bin_dir, bin->dbg_link_filename, NULL);
-	if (is_valid_debug_file(path, bin->dbg_link_crc)) {
+	if (is_valid_debug_file(bin, path, bin->dbg_link_crc)) {
 		goto found;
 	}
 
@@ -1101,7 +1100,8 @@ int bin_info_lookup_function_name(struct bin_info *bin,
 	if (!bin->dwarf_info && !bin->is_elf_only) {
 		ret = bin_info_set_dwarf_info(bin);
 		if (ret) {
-			BT_LOGD_STR("Failed to set bin dwarf info, falling back to ELF lookup.");
+			BT_LOGD_STR("Failed to set bin dwarf info, falling "
+					"back to ELF lookup.");
 			/* Failed to set DWARF info, fallback to ELF. */
 			bin->is_elf_only = true;
 		}
