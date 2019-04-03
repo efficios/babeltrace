@@ -10,17 +10,17 @@ class _MessageTestCase(unittest.TestCase):
         self._trace = bt2.Trace()
         self._sc = bt2.StreamClass()
         self._ec = bt2.EventClass('salut')
-        self._my_int_ft = bt2.IntegerFieldType(32)
-        self._ec.payload_field_type = bt2.StructureFieldType()
-        self._ec.payload_field_type += collections.OrderedDict([
-            ('my_int', self._my_int_ft),
+        self._my_int_fc = bt2.IntegerFieldClass(32)
+        self._ec.payload_field_class = bt2.StructureFieldClass()
+        self._ec.payload_field_class += collections.OrderedDict([
+            ('my_int', self._my_int_fc),
         ])
         self._sc.add_event_class(self._ec)
         self._clock_class = bt2.ClockClass('allo', 1000)
         self._trace.add_clock_class(self._clock_class)
-        self._trace.packet_header_field_type = bt2.StructureFieldType()
-        self._trace.packet_header_field_type += collections.OrderedDict([
-            ('hello', self._my_int_ft),
+        self._trace.packet_header_field_class = bt2.StructureFieldClass()
+        self._trace.packet_header_field_class += collections.OrderedDict([
+            ('hello', self._my_int_fc),
         ])
         self._trace.add_stream_class(self._sc)
         self._cc_prio_map = bt2.ClockClassPriorityMap()
@@ -37,7 +37,7 @@ class _MessageTestCase(unittest.TestCase):
         del self._trace
         del self._sc
         del self._ec
-        del self._my_int_ft
+        del self._my_int_fc
         del self._clock_class
         del self._cc_prio_map
         del self._stream
@@ -331,18 +331,18 @@ class DiscardedPacketsMessageTestCase(unittest.TestCase):
         self._sc = bt2.StreamClass()
         self._ec = bt2.EventClass('salut')
         self._clock_class = bt2.ClockClass('yo', 1000)
-        self._uint64_int_ft = bt2.IntegerFieldType(64, mapped_clock_class=self._clock_class)
-        self._my_int_ft = bt2.IntegerFieldType(32)
-        self._ec.payload_field_type = bt2.StructureFieldType()
-        self._ec.payload_field_type += collections.OrderedDict([
-            ('my_int', self._my_int_ft),
+        self._uint64_int_fc = bt2.IntegerFieldClass(64, mapped_clock_class=self._clock_class)
+        self._my_int_fc = bt2.IntegerFieldClass(32)
+        self._ec.payload_field_class = bt2.StructureFieldClass()
+        self._ec.payload_field_class += collections.OrderedDict([
+            ('my_int', self._my_int_fc),
         ])
         self._sc.add_event_class(self._ec)
-        self._sc.packet_context_field_type = bt2.StructureFieldType()
-        self._sc.packet_context_field_type += collections.OrderedDict([
-            ('packet_seq_num', self._my_int_ft),
-            ('timestamp_begin', self._uint64_int_ft),
-            ('timestamp_end', self._uint64_int_ft),
+        self._sc.packet_context_field_class = bt2.StructureFieldClass()
+        self._sc.packet_context_field_class += collections.OrderedDict([
+            ('packet_seq_num', self._my_int_fc),
+            ('timestamp_begin', self._uint64_int_fc),
+            ('timestamp_end', self._uint64_int_fc),
         ])
         self._trace.add_clock_class(self._clock_class)
         self._trace.add_stream_class(self._sc)
@@ -353,8 +353,8 @@ class DiscardedPacketsMessageTestCase(unittest.TestCase):
         del self._sc
         del self._ec
         del self._clock_class
-        del self._uint64_int_ft
-        del self._my_int_ft
+        del self._uint64_int_fc
+        del self._my_int_fc
         del self._stream
 
     def _create_event(self, packet):
@@ -456,18 +456,18 @@ class DiscardedEventsMessageTestCase(unittest.TestCase):
         self._sc = bt2.StreamClass()
         self._ec = bt2.EventClass('salut')
         self._clock_class = bt2.ClockClass('yo', 1000)
-        self._uint64_int_ft = bt2.IntegerFieldType(64, mapped_clock_class=self._clock_class)
-        self._my_int_ft = bt2.IntegerFieldType(32)
-        self._ec.payload_field_type = bt2.StructureFieldType()
-        self._ec.payload_field_type += collections.OrderedDict([
-            ('my_int', self._my_int_ft),
+        self._uint64_int_fc = bt2.IntegerFieldClass(64, mapped_clock_class=self._clock_class)
+        self._my_int_fc = bt2.IntegerFieldClass(32)
+        self._ec.payload_field_class = bt2.StructureFieldClass()
+        self._ec.payload_field_class += collections.OrderedDict([
+            ('my_int', self._my_int_fc),
         ])
         self._sc.add_event_class(self._ec)
-        self._sc.packet_context_field_type = bt2.StructureFieldType()
-        self._sc.packet_context_field_type += collections.OrderedDict([
-            ('events_discarded', self._my_int_ft),
-            ('timestamp_begin', self._uint64_int_ft),
-            ('timestamp_end', self._uint64_int_ft),
+        self._sc.packet_context_field_class = bt2.StructureFieldClass()
+        self._sc.packet_context_field_class += collections.OrderedDict([
+            ('events_discarded', self._my_int_fc),
+            ('timestamp_begin', self._uint64_int_fc),
+            ('timestamp_end', self._uint64_int_fc),
         ])
         self._trace.add_clock_class(self._clock_class)
         self._trace.add_stream_class(self._sc)
@@ -478,8 +478,8 @@ class DiscardedEventsMessageTestCase(unittest.TestCase):
         del self._sc
         del self._ec
         del self._clock_class
-        del self._uint64_int_ft
-        del self._my_int_ft
+        del self._uint64_int_fc
+        del self._my_int_fc
         del self._stream
 
     def _create_event(self, packet):

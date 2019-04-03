@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.field_types
+import bt2.field_class
 import collections.abc
 import functools
 import numbers
@@ -38,15 +38,15 @@ def _get_leaf_field(obj):
 
 
 def _create_from_ptr(ptr):
-    # recreate the field type wrapper of this field's type (the identity
+    # recreate the field class wrapper of this field's type (the identity
     # could be different, but the underlying address should be the
     # same)
-    field_type_ptr = native_bt.field_get_type(ptr)
-    utils._handle_ptr(field_type_ptr, "cannot get field object's type")
-    field_type = bt2.field_types._create_from_ptr(field_type_ptr)
-    typeid = native_bt.field_type_get_type_id(field_type._ptr)
+    field_class_ptr = native_bt.field_get_type(ptr)
+    utils._handle_ptr(field_class_ptr, "cannot get field object's type")
+    field_class = bt2.field_class._create_from_ptr(field_class_ptr)
+    typeid = native_bt.field_class_get_type_id(field_class._ptr)
     field = _TYPE_ID_TO_OBJ[typeid]._create_from_ptr(ptr)
-    field._field_type = field_type
+    field._field_class = field_class
     return field
 
 
@@ -62,10 +62,10 @@ class _Field(object._Object, metaclass=abc.ABCMeta):
         return cpy
 
     def __eq__(self, other):
-        # special case: two unset fields with the same field type are equal
+        # special case: two unset fields with the same field class are equal
         if isinstance(other, _Field):
             if not self.is_set or not other.is_set:
-                if not self.is_set and not other.is_set and self.field_type == other.field_type:
+                if not self.is_set and not other.is_set and self.field_class == other.field_class:
                     return True
                 return False
 
@@ -73,8 +73,8 @@ class _Field(object._Object, metaclass=abc.ABCMeta):
         return self._spec_eq(other)
 
     @property
-    def field_type(self):
-        return self._field_type
+    def field_class(self):
+        return self._field_class
 
     @property
     def is_set(self):
@@ -296,7 +296,7 @@ class _IntegerField(_IntegralField):
 
         value = int(value)
 
-        if self.field_type.is_signed:
+        if self.field_class.is_signed:
             utils._check_int64(value)
         else:
             utils._check_uint64(value)
@@ -305,7 +305,7 @@ class _IntegerField(_IntegralField):
 
     @property
     def _value(self):
-        if self.field_type.is_signed:
+        if self.field_class.is_signed:
             ret, value = native_bt.field_signed_integer_get_value(self._ptr)
         else:
             ret, value = native_bt.field_unsigned_integer_get_value(self._ptr)
@@ -321,7 +321,7 @@ class _IntegerField(_IntegralField):
     def _set_value(self, value):
         value = self._value_to_int(value)
 
-        if self.field_type.is_signed:
+        if self.field_class.is_signed:
             ret = native_bt.field_signed_integer_set_value(self._ptr, value)
         else:
             ret = native_bt.field_unsigned_integer_set_value(self._ptr, value)
@@ -386,8 +386,8 @@ class _EnumerationField(_IntegerField):
     def mappings(self):
         iter_ptr = native_bt.field_enumeration_get_mappings(self._ptr)
         assert(iter_ptr)
-        return bt2.field_types._EnumerationFieldTypeMappingIterator(iter_ptr,
-                                                                    self.field_type.is_signed)
+        return bt2.field_class._EnumerationFieldClassMappingIterator(iter_ptr,
+                                                                    self.field_class.is_signed)
 
 
 @functools.total_ordering
@@ -468,7 +468,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
     _NAME = 'Structure'
 
     def _count(self):
-        return len(self.field_type)
+        return len(self.field_class)
 
     def __getitem__(self, key):
         utils._check_str(key)
@@ -499,7 +499,7 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     def __iter__(self):
         # same name iterator
-        return iter(self.field_type)
+        return iter(self.field_class)
 
     def _spec_eq(self, other):
         try:
@@ -649,7 +649,7 @@ class _ArrayField(_ArraySequenceField):
     _NAME = 'Array'
 
     def _count(self):
-        return self.field_type.length
+        return self.field_class.length
 
     def _get_field_ptr_at_index(self, index):
         return native_bt.field_array_get_field(self._ptr, index)
@@ -702,10 +702,10 @@ class _SequenceField(_ArraySequenceField):
 
         if len(values) != self.length_field:
             if self.length_field is not None:
-                length_ft = self.length_field.field_type
+                length_fc = self.length_field.field_class
             else:
-                length_ft = bt2.IntegerFieldType(size=64, is_signed=False)
-            self.length_field = length_ft(len(values))
+                length_fc = bt2.IntegerFieldClass(size=64, is_signed=False)
+            self.length_field = length_fc(len(values))
 
         try:
             for index, value in enumerate(values):

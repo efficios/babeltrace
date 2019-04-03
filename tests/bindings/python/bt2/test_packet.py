@@ -15,69 +15,69 @@ class PacketTestCase(unittest.TestCase):
 
     def _create_packet(self, with_ph=True, with_pc=True):
         # event header
-        eh = bt2.StructureFieldType()
+        eh = bt2.StructureFieldClass()
         eh += OrderedDict((
-            ('id', bt2.IntegerFieldType(8)),
-            ('ts', bt2.IntegerFieldType(32)),
+            ('id', bt2.IntegerFieldClass(8)),
+            ('ts', bt2.IntegerFieldClass(32)),
         ))
 
         # stream event context
-        sec = bt2.StructureFieldType()
+        sec = bt2.StructureFieldClass()
         sec += OrderedDict((
-            ('cpu_id', bt2.IntegerFieldType(8)),
-            ('stuff', bt2.FloatingPointNumberFieldType()),
+            ('cpu_id', bt2.IntegerFieldClass(8)),
+            ('stuff', bt2.FloatingPointNumberFieldClass()),
         ))
 
         # packet context
         if with_pc:
-            pc = bt2.StructureFieldType()
+            pc = bt2.StructureFieldClass()
             pc += OrderedDict((
-                ('something', bt2.IntegerFieldType(8)),
-                ('something_else', bt2.FloatingPointNumberFieldType()),
+                ('something', bt2.IntegerFieldClass(8)),
+                ('something_else', bt2.FloatingPointNumberFieldClass()),
             ))
         else:
             pc = None
 
         # stream class
         sc = bt2.StreamClass()
-        sc.packet_context_field_type = pc
-        sc.event_header_field_type = eh
-        sc.event_context_field_type = sec
+        sc.packet_context_field_class = pc
+        sc.event_header_field_class = eh
+        sc.event_context_field_class = sec
 
         # event context
-        ec = bt2.StructureFieldType()
+        ec = bt2.StructureFieldClass()
         ec += OrderedDict((
-            ('ant', bt2.IntegerFieldType(16, is_signed=True)),
-            ('msg', bt2.StringFieldType()),
+            ('ant', bt2.IntegerFieldClass(16, is_signed=True)),
+            ('msg', bt2.StringFieldClass()),
         ))
 
         # event payload
-        ep = bt2.StructureFieldType()
+        ep = bt2.StructureFieldClass()
         ep += OrderedDict((
-            ('giraffe', bt2.IntegerFieldType(32)),
-            ('gnu', bt2.IntegerFieldType(8)),
-            ('mosquito', bt2.IntegerFieldType(8)),
+            ('giraffe', bt2.IntegerFieldClass(32)),
+            ('gnu', bt2.IntegerFieldClass(8)),
+            ('mosquito', bt2.IntegerFieldClass(8)),
         ))
 
         # event class
         event_class = bt2.EventClass('ec')
-        event_class.context_field_type = ec
-        event_class.payload_field_type = ep
+        event_class.context_field_class = ec
+        event_class.payload_field_class = ep
         sc.add_event_class(event_class)
 
         # packet header
         if with_ph:
-            ph = bt2.StructureFieldType()
+            ph = bt2.StructureFieldClass()
             ph += OrderedDict((
-                ('magic', bt2.IntegerFieldType(32)),
-                ('stream_id', bt2.IntegerFieldType(16)),
+                ('magic', bt2.IntegerFieldClass(32)),
+                ('stream_id', bt2.IntegerFieldClass(16)),
             ))
         else:
             ph = None
 
         # trace c;ass
         tc = bt2.Trace()
-        tc.packet_header_field_type = ph
+        tc.packet_header_field_class = ph
         tc.add_stream_class(sc)
 
         # stream

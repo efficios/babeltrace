@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.field_types
+import bt2.field_class
 import collections.abc
 import bt2.values
 import bt2.event
@@ -49,7 +49,7 @@ class EventClassLogLevel:
 
 class EventClass(object._Object):
     def __init__(self, name, id=None, log_level=None, emf_uri=None,
-                 context_field_type=None, payload_field_type=None):
+                 context_field_class=None, payload_field_class=None):
         utils._check_str(name)
         ptr = native_bt.event_class_create(name)
 
@@ -67,11 +67,11 @@ class EventClass(object._Object):
         if emf_uri is not None:
             self.emf_uri = emf_uri
 
-        if context_field_type is not None:
-            self.context_field_type = context_field_type
+        if context_field_class is not None:
+            self.context_field_class = context_field_class
 
-        if payload_field_type is not None:
-            self.payload_field_type = payload_field_type
+        if payload_field_class is not None:
+            self.payload_field_class = payload_field_class
 
     @property
     def stream_class(self):
@@ -138,44 +138,44 @@ class EventClass(object._Object):
         utils._handle_ret(ret, "cannot set event class object's EMF URI")
 
     @property
-    def context_field_type(self):
-        ft_ptr = native_bt.event_class_get_context_type(self._ptr)
+    def context_field_class(self):
+        fc_ptr = native_bt.event_class_get_context_type(self._ptr)
 
-        if ft_ptr is None:
+        if fc_ptr is None:
             return
 
-        return bt2.field_types._create_from_ptr(ft_ptr)
+        return bt2.field_class._create_from_ptr(fc_ptr)
 
-    @context_field_type.setter
-    def context_field_type(self, context_field_type):
-        context_field_type_ptr = None
+    @context_field_class.setter
+    def context_field_class(self, context_field_class):
+        context_field_class_ptr = None
 
-        if context_field_type is not None:
-            utils._check_type(context_field_type, bt2.field_types._FieldType)
-            context_field_type_ptr = context_field_type._ptr
+        if context_field_class is not None:
+            utils._check_type(context_field_class, bt2.field_class._FieldClass)
+            context_field_class_ptr = context_field_class._ptr
 
-        ret = native_bt.event_class_set_context_type(self._ptr, context_field_type_ptr)
-        utils._handle_ret(ret, "cannot set event class object's context field type")
+        ret = native_bt.event_class_set_context_type(self._ptr, context_field_class_ptr)
+        utils._handle_ret(ret, "cannot set event class object's context field class")
 
     @property
-    def payload_field_type(self):
-        ft_ptr = native_bt.event_class_get_payload_type(self._ptr)
+    def payload_field_class(self):
+        fc_ptr = native_bt.event_class_get_payload_type(self._ptr)
 
-        if ft_ptr is None:
+        if fc_ptr is None:
             return
 
-        return bt2.field_types._create_from_ptr(ft_ptr)
+        return bt2.field_class._create_from_ptr(fc_ptr)
 
-    @payload_field_type.setter
-    def payload_field_type(self, payload_field_type):
-        payload_field_type_ptr = None
+    @payload_field_class.setter
+    def payload_field_class(self, payload_field_class):
+        payload_field_class_ptr = None
 
-        if payload_field_type is not None:
-            utils._check_type(payload_field_type, bt2.field_types._FieldType)
-            payload_field_type_ptr = payload_field_type._ptr
+        if payload_field_class is not None:
+            utils._check_type(payload_field_class, bt2.field_class._FieldClass)
+            payload_field_class_ptr = payload_field_class._ptr
 
-        ret = native_bt.event_class_set_payload_type(self._ptr, payload_field_type_ptr)
-        utils._handle_ret(ret, "cannot set event class object's payload field type")
+        ret = native_bt.event_class_set_payload_type(self._ptr, payload_field_class_ptr)
+        utils._handle_ret(ret, "cannot set event class object's payload field class")
 
     def __call__(self):
         event_ptr = native_bt.event_create(self._ptr)
@@ -197,20 +197,20 @@ class EventClass(object._Object):
             self.id,
             self.log_level,
             self.emf_uri,
-            self.context_field_type,
-            self.payload_field_type
+            self.context_field_class,
+            self.payload_field_class
         )
         other_props = (
             other.name,
             other.id,
             other.log_level,
             other.emf_uri,
-            other.context_field_type,
-            other.payload_field_type
+            other.context_field_class,
+            other.payload_field_class
         )
         return self_props == other_props
 
-    def _copy(self, ft_copy_func):
+    def _copy(self, fc_copy_func):
         cpy = EventClass(self.name)
         cpy.id = self.id
 
@@ -220,12 +220,12 @@ class EventClass(object._Object):
         if self.emf_uri is not None:
             cpy.emf_uri = self.emf_uri
 
-        cpy.context_field_type = ft_copy_func(self.context_field_type)
-        cpy.payload_field_type = ft_copy_func(self.payload_field_type)
+        cpy.context_field_class = fc_copy_func(self.context_field_class)
+        cpy.payload_field_class = fc_copy_func(self.payload_field_class)
         return cpy
 
     def __copy__(self):
-        return self._copy(lambda ft: ft)
+        return self._copy(lambda fc: fc)
 
     def __deepcopy__(self, memo):
         cpy = self._copy(copy.deepcopy)

@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.field_types
+import bt2.field_class
 import collections.abc
 import bt2.values
 import bt2.stream
@@ -162,7 +162,7 @@ class _TraceEnv(collections.abc.MutableMapping):
 
 class Trace(object._Object, collections.abc.Mapping):
     def __init__(self, name=None, native_byte_order=None, env=None,
-                 packet_header_field_type=None, clock_classes=None,
+                 packet_header_field_class=None, clock_classes=None,
                  stream_classes=None):
         ptr = native_bt.trace_create()
 
@@ -177,8 +177,8 @@ class Trace(object._Object, collections.abc.Mapping):
         if native_byte_order is not None:
             self.native_byte_order = native_byte_order
 
-        if packet_header_field_type is not None:
-            self.packet_header_field_type = packet_header_field_type
+        if packet_header_field_class is not None:
+            self.packet_header_field_class = packet_header_field_class
 
         if env is not None:
             for key, value in env.items():
@@ -263,25 +263,25 @@ class Trace(object._Object, collections.abc.Mapping):
         return _TraceStreams(self)
 
     @property
-    def packet_header_field_type(self):
-        ft_ptr = native_bt.trace_get_packet_header_type(self._ptr)
+    def packet_header_field_class(self):
+        fc_ptr = native_bt.trace_get_packet_header_type(self._ptr)
 
-        if ft_ptr is None:
+        if fc_ptr is None:
             return
 
-        return bt2.field_types._create_from_ptr(ft_ptr)
+        return bt2.field_class._create_from_ptr(fc_ptr)
 
-    @packet_header_field_type.setter
-    def packet_header_field_type(self, packet_header_field_type):
-        packet_header_field_type_ptr = None
+    @packet_header_field_class.setter
+    def packet_header_field_class(self, packet_header_field_class):
+        packet_header_field_class_ptr = None
 
-        if packet_header_field_type is not None:
-            utils._check_type(packet_header_field_type, bt2.field_types._FieldType)
-            packet_header_field_type_ptr = packet_header_field_type._ptr
+        if packet_header_field_class is not None:
+            utils._check_type(packet_header_field_class, bt2.field_class._FieldClass)
+            packet_header_field_class_ptr = packet_header_field_class._ptr
 
         ret = native_bt.trace_set_packet_header_type(self._ptr,
-                                                     packet_header_field_type_ptr)
-        utils._handle_ret(ret, "cannot set trace class object's packet header field type")
+                                                     packet_header_field_class_ptr)
+        utils._handle_ret(ret, "cannot set trace class object's packet header field class")
 
     def __eq__(self, other):
         if type(other) is not type(self):
@@ -303,7 +303,7 @@ class Trace(object._Object, collections.abc.Mapping):
             self_env,
             self.name,
             self.native_byte_order,
-            self.packet_header_field_type,
+            self.packet_header_field_class,
         )
         other_props = (
             other_stream_classes,
@@ -311,7 +311,7 @@ class Trace(object._Object, collections.abc.Mapping):
             other_env,
             other.name,
             other.native_byte_order,
-            other.packet_header_field_type,
+            other.packet_header_field_class,
         )
         return self_props == other_props
 
@@ -321,7 +321,7 @@ class Trace(object._Object, collections.abc.Mapping):
         if self.name is not None:
             cpy.name = self.name
 
-        cpy.packet_header_field_type = gen_copy_func(self.packet_header_field_type)
+        cpy.packet_header_field_class = gen_copy_func(self.packet_header_field_class)
 
         for key, val in self.env.items():
             cpy.env[key] = gen_copy_func(val)
