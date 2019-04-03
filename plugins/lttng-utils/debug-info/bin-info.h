@@ -32,6 +32,7 @@
 #include <gelf.h>
 #include <elfutils/libdw.h>
 #include <babeltrace/babeltrace-internal.h>
+#include <babeltrace/fd-cache-internal.h>
 
 #define DEFAULT_DEBUG_DIR "/usr/lib/debug"
 #define DEBUG_SUBDIR ".debug/"
@@ -58,9 +59,9 @@ struct bin_info {
 	/* Optional debug link info. */
 	gchar *dbg_link_filename;
 	uint32_t dbg_link_crc;
-	/* FDs to ELF and DWARF files. */
-	int elf_fd;
-	int dwarf_fd;
+	/* fd cache handles to ELF and DWARF files. */
+	struct bt_fd_cache_handle *elf_handle;
+	struct bt_fd_cache_handle *dwarf_handle;
 	/* Configuration. */
 	gchar *debug_info_dir;
 	/* Denotes whether the executable is position independent code. */
@@ -72,6 +73,8 @@ struct bin_info {
 	 * DWARF info.
 	 */
 	bool is_elf_only:1;
+	/* Weak ref. Owned by the iterator. */
+	struct bt_fd_cache *fd_cache;
 };
 
 struct source_location {
@@ -104,9 +107,9 @@ int bin_info_init(void);
  *			NULL on failure.
  */
 BT_HIDDEN
-struct bin_info *bin_info_create(const char *path, uint64_t low_addr,
-		uint64_t memsz, bool is_pic, const char *debug_info_dir,
-		const char *target_prefix);
+struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
+		uint64_t low_addr, uint64_t memsz, bool is_pic,
+		const char *debug_info_dir, const char *target_prefix);
 
 /**
  * Destroy the given bin_info instance
