@@ -27,7 +27,7 @@
  */
 
 #include <babeltrace/babeltrace.h>
-#include "debug-info.h"
+#include "debug-info/debug-info.h"
 
 #ifndef BT_BUILT_IN_PLUGINS
 BT_PLUGIN_MODULE();
