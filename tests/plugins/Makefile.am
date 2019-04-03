@@ -17,6 +17,7 @@ endif # !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_DEBUG_INFO
 test_dwarf_LDADD = \
 	$(top_builddir)/plugins/lttng-utils/debug-info/libdebug-info.la \
+	$(top_builddir)/fd-cache/libbabeltrace-fd-cache.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
 	$(ELFUTILS_LIBS) \
@@ -25,6 +26,7 @@ test_dwarf_SOURCES = test_dwarf.c
 
 test_bin_info_LDADD = \
 	$(top_builddir)/plugins/lttng-utils/debug-info/libdebug-info.la \
+	$(top_builddir)/fd-cache/libbabeltrace-fd-cache.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
 	$(ELFUTILS_LIBS) \
