@@ -42,7 +42,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/event_class.py				\
 	bt2/event.py					\
 	bt2/fields.py					\
-	bt2/field_types.py				\
+	bt2/field_class.py				\
 	bt2/graph.py					\
 	bt2/logging.py					\
 	bt2/message_iterator.py				\

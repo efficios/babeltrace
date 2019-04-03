@@ -16,62 +16,62 @@ class EventTestCase(unittest.TestCase):
     def _create_ec(self, with_eh=True, with_sec=True, with_ec=True, with_ep=True):
         # event header
         if with_eh:
-            eh = bt2.StructureFieldType()
+            eh = bt2.StructureFieldClass()
             eh += OrderedDict((
-                ('id', bt2.IntegerFieldType(8)),
-                ('ts', bt2.IntegerFieldType(32)),
+                ('id', bt2.IntegerFieldClass(8)),
+                ('ts', bt2.IntegerFieldClass(32)),
             ))
         else:
             eh = None
 
         # stream event context
         if with_sec:
-            sec = bt2.StructureFieldType()
+            sec = bt2.StructureFieldClass()
             sec += OrderedDict((
-                ('cpu_id', bt2.IntegerFieldType(8)),
-                ('stuff', bt2.FloatingPointNumberFieldType()),
+                ('cpu_id', bt2.IntegerFieldClass(8)),
+                ('stuff', bt2.FloatingPointNumberFieldClass()),
             ))
         else:
             sec = None
 
         # packet context
-        pc = bt2.StructureFieldType()
+        pc = bt2.StructureFieldClass()
         pc += OrderedDict((
-            ('something', bt2.IntegerFieldType(8)),
-            ('something_else', bt2.FloatingPointNumberFieldType()),
+            ('something', bt2.IntegerFieldClass(8)),
+            ('something_else', bt2.FloatingPointNumberFieldClass()),
         ))
 
         # stream class
         sc = bt2.StreamClass()
-        sc.packet_context_field_type = pc
-        sc.event_header_field_type = eh
-        sc.event_context_field_type = sec
+        sc.packet_context_field_class = pc
+        sc.event_header_field_class = eh
+        sc.event_context_field_class = sec
 
         # event context
         if with_ec:
-            ec = bt2.StructureFieldType()
+            ec = bt2.StructureFieldClass()
             ec += OrderedDict((
-                ('ant', bt2.IntegerFieldType(16, is_signed=True)),
-                ('msg', bt2.StringFieldType()),
+                ('ant', bt2.IntegerFieldClass(16, is_signed=True)),
+                ('msg', bt2.StringFieldClass()),
             ))
         else:
             ec = None
 
         # event payload
         if with_ep:
-            ep = bt2.StructureFieldType()
+            ep = bt2.StructureFieldClass()
             ep += OrderedDict((
-                ('giraffe', bt2.IntegerFieldType(32)),
-                ('gnu', bt2.IntegerFieldType(8)),
-                ('mosquito', bt2.IntegerFieldType(8)),
+                ('giraffe', bt2.IntegerFieldClass(32)),
+                ('gnu', bt2.IntegerFieldClass(8)),
+                ('mosquito', bt2.IntegerFieldClass(8)),
             ))
         else:
             ep = None
 
         # event class
         event_class = bt2.EventClass('ec')
-        event_class.context_field_type = ec
-        event_class.payload_field_type = ep
+        event_class.context_field_class = ec
+        event_class.payload_field_class = ep
         sc.add_event_class(event_class)
         return event_class
 
@@ -95,7 +95,7 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(ev.header_field['ts'], 1234)
 
     def test_set_event_header_field(self):
-        eh = self._ec.stream_class.event_header_field_type()
+        eh = self._ec.stream_class.event_header_field_class()
         eh['id'] = 17
         eh['ts'] = 188
         ev = self._ec()
@@ -111,7 +111,7 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(ev.stream_event_context_field['stuff'], 13.194)
 
     def test_set_stream_event_context_field(self):
-        sec = self._ec.stream_class.event_context_field_type()
+        sec = self._ec.stream_class.event_context_field_class()
         sec['cpu_id'] = 2
         sec['stuff'] = 19.19
         ev = self._ec()
@@ -132,7 +132,7 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(ev.context_field['msg'], 'hellooo')
 
     def test_set_event_context_field(self):
-        ec = self._ec.context_field_type()
+        ec = self._ec.context_field_class()
         ec['ant'] = 2
         ec['msg'] = 'hi there'
         ev = self._ec()
@@ -155,7 +155,7 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(ev.payload_field['mosquito'], 42)
 
     def test_set_event_payload_field(self):
-        ep = self._ec.payload_field_type()
+        ep = self._ec.payload_field_class()
         ep['giraffe'] = 2
         ep['gnu'] = 124
         ep['mosquito'] = 17
@@ -188,9 +188,9 @@ class EventTestCase(unittest.TestCase):
 
     def test_packet(self):
         tc = bt2.Trace()
-        tc.packet_header_field_type = bt2.StructureFieldType()
-        tc.packet_header_field_type.append_field('magic', bt2.IntegerFieldType(32))
-        tc.packet_header_field_type.append_field('stream_id', bt2.IntegerFieldType(16))
+        tc.packet_header_field_class = bt2.StructureFieldClass()
+        tc.packet_header_field_class.append_field('magic', bt2.IntegerFieldClass(32))
+        tc.packet_header_field_class.append_field('stream_id', bt2.IntegerFieldClass(16))
         tc.add_stream_class(self._ec.stream_class)
         ev = self._ec()
         self._fill_ev(ev)
@@ -209,9 +209,9 @@ class EventTestCase(unittest.TestCase):
 
     def test_stream(self):
         tc = bt2.Trace()
-        tc.packet_header_field_type = bt2.StructureFieldType()
-        tc.packet_header_field_type.append_field('magic', bt2.IntegerFieldType(32))
-        tc.packet_header_field_type.append_field('stream_id', bt2.IntegerFieldType(16))
+        tc.packet_header_field_class = bt2.StructureFieldClass()
+        tc.packet_header_field_class.append_field('magic', bt2.IntegerFieldClass(32))
+        tc.packet_header_field_class.append_field('stream_id', bt2.IntegerFieldClass(16))
         tc.add_stream_class(self._ec.stream_class)
         ev = self._ec()
         self._fill_ev(ev)
@@ -247,9 +247,9 @@ class EventTestCase(unittest.TestCase):
 
     def test_getitem(self):
         tc = bt2.Trace()
-        tc.packet_header_field_type = bt2.StructureFieldType()
-        tc.packet_header_field_type.append_field('magic', bt2.IntegerFieldType(32))
-        tc.packet_header_field_type.append_field('stream_id', bt2.IntegerFieldType(16))
+        tc.packet_header_field_class = bt2.StructureFieldClass()
+        tc.packet_header_field_class.append_field('magic', bt2.IntegerFieldClass(32))
+        tc.packet_header_field_class.append_field('stream_id', bt2.IntegerFieldClass(16))
         tc.add_stream_class(self._ec.stream_class)
         ev = self._ec()
         self._fill_ev(ev)

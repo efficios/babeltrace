@@ -519,19 +519,19 @@ class _TestNumericField(_TestCopySimple):
 
     def test_is_set(self):
         raw = self._def_value
-        field = self._ft()
+        field = self._fc()
         self.assertFalse(field.is_set)
         field.value = raw
         self.assertTrue(field.is_set)
 
     def test_reset(self):
         raw = self._def_value
-        field = self._ft()
+        field = self._fc()
         field.value = raw
         self.assertTrue(field.is_set)
         field.reset()
         self.assertFalse(field.is_set)
-        other = self._ft()
+        other = self._fc()
         self.assertEqual(other, field)
 
 
@@ -736,7 +736,7 @@ class _TestIntegerFieldCommon(_TestNumericField):
 
     def test_assign_int_field(self):
         raw = 999
-        field = self._ft()
+        field = self._fc()
         field.value = raw
         self._def.value = field
         self.assertEqual(self._def, raw)
@@ -751,15 +751,15 @@ class _TestIntegerFieldCommon(_TestNumericField):
             self._def.value = 'yes'
 
     def test_assign_uint(self):
-        ft = bt2.IntegerFieldType(size=32, is_signed=False)
-        field = ft()
+        fc = bt2.IntegerFieldClass(size=32, is_signed=False)
+        field = fc()
         raw = 1777
         field.value = 1777
         self.assertEqual(field, raw)
 
     def test_assign_uint_invalid_neg(self):
-        ft = bt2.IntegerFieldType(size=32, is_signed=False)
-        field = ft()
+        fc = bt2.IntegerFieldClass(size=32, is_signed=False)
+        field = fc()
 
         with self.assertRaises(ValueError):
             field.value = -23
@@ -768,7 +768,7 @@ class _TestIntegerFieldCommon(_TestNumericField):
         self.assertEqual(str(self._def), str(self._def_value))
 
     def test_str_op_unset(self):
-        self.assertEqual(str(self._ft()), 'Unset')
+        self.assertEqual(str(self._fc()), 'Unset')
 
 
 _inject_numeric_testing_methods(_TestIntegerFieldCommon)
@@ -777,15 +777,15 @@ _inject_numeric_testing_methods(_TestIntegerFieldCommon)
 @unittest.skip("this is broken")
 class IntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
     def setUp(self):
-        self._ft = bt2.IntegerFieldType(25, is_signed=True)
-        self._field = self._ft()
-        self._def = self._ft()
+        self._fc = bt2.IntegerFieldClass(25, is_signed=True)
+        self._field = self._fc()
+        self._def = self._fc()
         self._def.value = 17
         self._def_value = 17
         self._def_new_value = -101
 
     def tearDown(self):
-        del self._ft
+        del self._fc
         del self._field
         del self._def
 
@@ -793,19 +793,19 @@ class IntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
 @unittest.skip("this is broken")
 class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
     def setUp(self):
-        self._ft = bt2.EnumerationFieldType(size=32, is_signed=True)
-        self._ft.add_mapping('whole range', -(2 ** 31), (2 ** 31) - 1)
-        self._ft.add_mapping('something', 17)
-        self._ft.add_mapping('speaker', 12, 16)
-        self._ft.add_mapping('can', 18, 2540)
-        self._ft.add_mapping('zip', -45, 1001)
-        self._def = self._ft()
+        self._fc = bt2.EnumerationFieldClass(size=32, is_signed=True)
+        self._fc.add_mapping('whole range', -(2 ** 31), (2 ** 31) - 1)
+        self._fc.add_mapping('something', 17)
+        self._fc.add_mapping('speaker', 12, 16)
+        self._fc.add_mapping('can', 18, 2540)
+        self._fc.add_mapping('zip', -45, 1001)
+        self._def = self._fc()
         self._def.value = 17
         self._def_value = 17
         self._def_new_value = -101
 
     def tearDown(self):
-        del self._ft
+        del self._fc
         del self._def
 
     def test_mappings(self):
@@ -844,21 +844,21 @@ class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
         self.assertTrue(expected_string_found)
 
     def test_str_op_unset(self):
-        self.assertEqual(str(self._ft()), 'Unset')
+        self.assertEqual(str(self._fc()), 'Unset')
 
 
 @unittest.skip("this is broken")
 class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
     def setUp(self):
-        self._ft = bt2.FloatingPointNumberFieldType()
-        self._field = self._ft()
-        self._def = self._ft()
+        self._fc = bt2.FloatingPointNumberFieldClass()
+        self._field = self._fc()
+        self._def = self._fc()
         self._def.value = 52.7
         self._def_value = 52.7
         self._def_new_value = -17.164857
 
     def tearDown(self):
-        del self._ft
+        del self._fc
         del self._field
         del self._def
 
@@ -885,8 +885,8 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         self.assertEqual(self._def, float(raw))
 
     def test_assign_int_field(self):
-        ft = bt2.IntegerFieldType(32)
-        field = ft()
+        fc = bt2.IntegerFieldClass(32)
+        field = fc()
         raw = 999
         field.value = raw
         self._def.value = field
@@ -898,8 +898,8 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         self.assertEqual(self._def, raw)
 
     def test_assign_float_field(self):
-        ft = bt2.FloatingPointNumberFieldType(32)
-        field = ft()
+        fc = bt2.FloatingPointNumberFieldClass(32)
+        field = fc()
         raw = 101.32
         field.value = raw
         self._def.value = field
@@ -931,7 +931,7 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         self.assertEqual(str(self._def), str(self._def_value))
 
     def test_str_op_unset(self):
-        self.assertEqual(str(self._ft()), 'Unset')
+        self.assertEqual(str(self._fc()), 'Unset')
 
 _inject_numeric_testing_methods(FloatingPointNumberFieldTestCase)
 
@@ -939,14 +939,14 @@ _inject_numeric_testing_methods(FloatingPointNumberFieldTestCase)
 @unittest.skip("this is broken")
 class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
-        self._ft = bt2.StringFieldType()
+        self._fc = bt2.StringFieldClass()
         self._def_value = 'Hello, World!'
-        self._def = self._ft()
+        self._def = self._fc()
         self._def.value = self._def_value
         self._def_new_value = 'Yes!'
 
     def tearDown(self):
-        del self._ft
+        del self._fc
         del self._def
 
     def test_assign_int(self):
@@ -954,8 +954,8 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
             self._def.value = 283
 
     def test_assign_string_field(self):
-        ft = bt2.StringFieldType()
-        field = ft()
+        fc = bt2.StringFieldClass()
+        field = fc()
         raw = 'zorg'
         field.value = raw
         self.assertEqual(field, raw)
@@ -967,50 +967,50 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertNotEqual(self._def, 23)
 
     def test_lt_vstring(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
-        s2 = self._ft()
+        s2 = self._fc()
         s2.value = 'bateau'
         self.assertLess(s1, s2)
 
     def test_lt_string(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
         self.assertLess(s1, 'bateau')
 
     def test_le_vstring(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
-        s2 = self._ft()
+        s2 = self._fc()
         s2.value = 'bateau'
         self.assertLessEqual(s1, s2)
 
     def test_le_string(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
         self.assertLessEqual(s1, 'bateau')
 
     def test_gt_vstring(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
-        s2 = self._ft()
+        s2 = self._fc()
         s2.value = 'bateau'
         self.assertGreater(s2, s1)
 
     def test_gt_string(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
         self.assertGreater('bateau', s1)
 
     def test_ge_vstring(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
-        s2 = self._ft()
+        s2 = self._fc()
         s2.value = 'bateau'
         self.assertGreaterEqual(s2, s1)
 
     def test_ge_string(self):
-        s1 = self._ft()
+        s1 = self._fc()
         s1.value = 'allo'
         self.assertGreaterEqual('bateau', s1)
 
@@ -1021,7 +1021,7 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(str(self._def), str(self._def_value))
 
     def test_str_op_unset(self):
-        self.assertEqual(str(self._ft()), 'Unset')
+        self.assertEqual(str(self._fc()), 'Unset')
 
     def test_len(self):
         self.assertEqual(len(self._def), len(self._def_value))
@@ -1036,8 +1036,8 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(self._def, self._def_value)
 
     def test_append_string_field(self):
-        ft = bt2.StringFieldType()
-        field = ft()
+        fc = bt2.StringFieldClass()
+        field = fc()
         to_append = 'meow meow meow'
         field.value = to_append
         self._def += field
@@ -1046,19 +1046,19 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_is_set(self):
         raw = self._def_value
-        field = self._ft()
+        field = self._fc()
         self.assertFalse(field.is_set)
         field.value = raw
         self.assertTrue(field.is_set)
 
     def test_reset(self):
         raw = self._def_value
-        field = self._ft()
+        field = self._fc()
         field.value = raw
         self.assertTrue(field.is_set)
         field.reset()
         self.assertFalse(field.is_set)
-        other = self._ft()
+        other = self._fc()
         self.assertEqual(other, field)
 
 
@@ -1078,8 +1078,8 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         self.assertEqual(field, 1847)
 
     def test_eq(self):
-        ft = bt2.ArrayFieldType(self._elem_ft, 3)
-        field = ft()
+        fc = bt2.ArrayFieldClass(self._elem_fc, 3)
+        field = fc()
         field[0] = 45
         field[1] = 1847
         field[2] = 1948754
@@ -1089,15 +1089,15 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         self.assertNotEqual(self._def, 23)
 
     def test_eq_diff_len(self):
-        ft = bt2.ArrayFieldType(self._elem_ft, 2)
-        field = ft()
+        fc = bt2.ArrayFieldClass(self._elem_fc, 2)
+        field = fc()
         field[0] = 45
         field[1] = 1847
         self.assertNotEqual(self._def, field)
 
     def test_eq_diff_content_same_len(self):
-        ft = bt2.ArrayFieldType(self._elem_ft, 3)
-        field = ft()
+        fc = bt2.ArrayFieldClass(self._elem_fc, 3)
+        field = fc()
         field[0] = 45
         field[1] = 1846
         field[2] = 1948754
@@ -1108,16 +1108,16 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         self.assertEqual(self._def[2], 24)
 
     def test_setitem_int_field(self):
-        int_field = self._elem_ft()
+        int_field = self._elem_fc()
         int_field.value = 19487
         self._def[1] = int_field
         self.assertEqual(self._def[1], 19487)
 
     def test_setitem_non_basic_field(self):
-        elem_ft = bt2.StructureFieldType()
-        array_ft = bt2.ArrayFieldType(elem_ft, 3)
-        elem_field = elem_ft()
-        array_field = array_ft()
+        elem_fc = bt2.StructureFieldClass()
+        array_fc = bt2.ArrayFieldClass(elem_fc, 3)
+        elem_field = elem_fc()
+        array_field = array_fc()
 
         with self.assertRaises(TypeError):
             array_field[1] = 23
@@ -1170,13 +1170,13 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
             self._def.value = values
 
     def test_value_complex_type(self):
-        struct_ft = bt2.StructureFieldType()
-        int_ft = bt2.IntegerFieldType(32)
-        str_ft = bt2.StringFieldType()
-        struct_ft.append_field(field_type=int_ft, name='an_int')
-        struct_ft.append_field(field_type=str_ft, name='a_string')
-        struct_ft.append_field(field_type=int_ft, name='another_int')
-        array_ft = bt2.ArrayFieldType(struct_ft, 3)
+        struct_fc = bt2.StructureFieldClass()
+        int_fc = bt2.IntegerFieldClass(32)
+        str_fc = bt2.StringFieldClass()
+        struct_fc.append_field(field_class=int_fc, name='an_int')
+        struct_fc.append_field(field_class=str_fc, name='a_string')
+        struct_fc.append_field(field_class=int_fc, name='another_int')
+        array_fc = bt2.ArrayFieldClass(struct_fc, 3)
         values = [
             {
                 'an_int': 42,
@@ -1195,7 +1195,7 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
             },
         ]
 
-        array = array_ft()
+        array = array_fc()
         array.value = values
         self.assertEqual(values, array)
         values[0]['an_int'] = 'a string'
@@ -1204,19 +1204,19 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
 
     def test_is_set(self):
         raw = self._def_value
-        field = self._ft()
+        field = self._fc()
         self.assertFalse(field.is_set)
         field.value = raw
         self.assertTrue(field.is_set)
 
     def test_reset(self):
         raw = self._def_value
-        field = self._ft()
+        field = self._fc()
         field.value = raw
         self.assertTrue(field.is_set)
         field.reset()
         self.assertFalse(field.is_set)
-        other = self._ft()
+        other = self._fc()
         self.assertEqual(other, field)
 
     def test_str_op(self):
@@ -1226,23 +1226,23 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         self.assertEqual(expected_string, s)
 
     def test_str_op_unset(self):
-        self.assertEqual(str(self._ft()), 'Unset')
+        self.assertEqual(str(self._fc()), 'Unset')
 
 
 @unittest.skip("this is broken")
 class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
     def setUp(self):
-        self._elem_ft = bt2.IntegerFieldType(32)
-        self._ft = bt2.ArrayFieldType(self._elem_ft, 3)
-        self._def = self._ft()
+        self._elem_fc = bt2.IntegerFieldClass(32)
+        self._fc = bt2.ArrayFieldClass(self._elem_fc, 3)
+        self._def = self._fc()
         self._def[0] = 45
         self._def[1] = 1847
         self._def[2] = 1948754
         self._def_value = [45, 1847, 1948754]
 
     def tearDown(self):
-        del self._elem_ft
-        del self._ft
+        del self._elem_fc
+        del self._fc
         del self._def
 
     def test_value_wrong_len(self):
@@ -1254,10 +1254,10 @@ class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
 @unittest.skip("this is broken")
 class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
     def setUp(self):
-        self._elem_ft = bt2.IntegerFieldType(32)
-        self._ft = bt2.SequenceFieldType(self._elem_ft, 'the.length')
-        self._def = self._ft()
-        self._length_field = self._elem_ft(3)
+        self._elem_fc = bt2.IntegerFieldClass(32)
+        self._fc = bt2.SequenceFieldClass(self._elem_fc, 'the.length')
+        self._def = self._fc()
+        self._length_field = self._elem_fc(3)
         self._def.length_field = self._length_field
         self._def[0] = 45
         self._def[1] = 1847
@@ -1265,8 +1265,8 @@ class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
         self._def_value = [45, 1847, 1948754]
 
     def tearDown(self):
-        del self._elem_ft
-        del self._ft
+        del self._elem_fc
+        del self._fc
         del self._def
         del self._length_field
 
@@ -1289,16 +1289,16 @@ class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
 @unittest.skip("this is broken")
 class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
-        self._ft0 = bt2.IntegerFieldType(32, is_signed=True)
-        self._ft1 = bt2.StringFieldType()
-        self._ft2 = bt2.FloatingPointNumberFieldType()
-        self._ft3 = bt2.IntegerFieldType(17)
-        self._ft = bt2.StructureFieldType()
-        self._ft.append_field('A', self._ft0)
-        self._ft.append_field('B', self._ft1)
-        self._ft.append_field('C', self._ft2)
-        self._ft.append_field('D', self._ft3)
-        self._def = self._ft()
+        self._fc0 = bt2.IntegerFieldClass(32, is_signed=True)
+        self._fc1 = bt2.StringFieldClass()
+        self._fc2 = bt2.FloatingPointNumberFieldClass()
+        self._fc3 = bt2.IntegerFieldClass(17)
+        self._fc = bt2.StructureFieldClass()
+        self._fc.append_field('A', self._fc0)
+        self._fc.append_field('B', self._fc1)
+        self._fc.append_field('C', self._fc2)
+        self._fc.append_field('D', self._fc3)
+        self._def = self._fc()
         self._def['A'] = -1872
         self._def['B'] = 'salut'
         self._def['C'] = 17.5
@@ -1311,11 +1311,11 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         }
 
     def tearDown(self):
-        del self._ft0
-        del self._ft1
-        del self._ft2
-        del self._ft3
-        del self._ft
+        del self._fc0
+        del self._fc1
+        del self._fc2
+        del self._fc3
+        del self._fc
         del self._def
 
     def _modify_def(self):
@@ -1325,8 +1325,8 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertTrue(self._def)
 
     def test_bool_op_false(self):
-        ft = bt2.StructureFieldType()
-        field = ft()
+        fc = bt2.StructureFieldClass()
+        field = fc()
         self.assertFalse(field)
 
     def test_len(self):
@@ -1339,15 +1339,15 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_at_index_out_of_bounds_after(self):
         with self.assertRaises(IndexError):
-            self._def.at_index(len(self._ft))
+            self._def.at_index(len(self._fc))
 
     def test_eq(self):
-        ft = bt2.StructureFieldType()
-        ft.append_field('A', self._ft0)
-        ft.append_field('B', self._ft1)
-        ft.append_field('C', self._ft2)
-        ft.append_field('D', self._ft3)
-        field = ft()
+        fc = bt2.StructureFieldClass()
+        fc.append_field('A', self._fc0)
+        fc.append_field('B', self._fc1)
+        fc.append_field('C', self._fc2)
+        fc.append_field('D', self._fc3)
+        field = fc()
         field['A'] = -1872
         field['B'] = 'salut'
         field['C'] = 17.5
@@ -1358,23 +1358,23 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertNotEqual(self._def, 23)
 
     def test_eq_diff_len(self):
-        ft = bt2.StructureFieldType()
-        ft.append_field('A', self._ft0)
-        ft.append_field('B', self._ft1)
-        ft.append_field('C', self._ft2)
-        field = ft()
+        fc = bt2.StructureFieldClass()
+        fc.append_field('A', self._fc0)
+        fc.append_field('B', self._fc1)
+        fc.append_field('C', self._fc2)
+        field = fc()
         field['A'] = -1872
         field['B'] = 'salut'
         field['C'] = 17.5
         self.assertNotEqual(self._def, field)
 
     def test_eq_diff_content_same_len(self):
-        ft = bt2.StructureFieldType()
-        ft.append_field('A', self._ft0)
-        ft.append_field('B', self._ft1)
-        ft.append_field('C', self._ft2)
-        ft.append_field('D', self._ft3)
-        field = ft()
+        fc = bt2.StructureFieldClass()
+        fc.append_field('A', self._fc0)
+        fc.append_field('B', self._fc1)
+        fc.append_field('C', self._fc2)
+        fc.append_field('D', self._fc3)
+        field = fc()
         field['A'] = -1872
         field['B'] = 'salut'
         field['C'] = 17.4
@@ -1382,12 +1382,12 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertNotEqual(self._def, field)
 
     def test_eq_same_content_diff_keys(self):
-        ft = bt2.StructureFieldType()
-        ft.append_field('A', self._ft0)
-        ft.append_field('B', self._ft1)
-        ft.append_field('E', self._ft2)
-        ft.append_field('D', self._ft3)
-        field = ft()
+        fc = bt2.StructureFieldClass()
+        fc.append_field('A', self._fc0)
+        fc.append_field('B', self._fc1)
+        fc.append_field('E', self._fc2)
+        fc.append_field('D', self._fc3)
+        field = fc()
         field['A'] = -1872
         field['B'] = 'salut'
         field['E'] = 17.4
@@ -1399,18 +1399,18 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(self._def['C'], -18.47)
 
     def test_setitem_int_field(self):
-        int_ft = bt2.IntegerFieldType(16)
-        int_field = int_ft()
+        int_fc = bt2.IntegerFieldClass(16)
+        int_field = int_fc()
         int_field.value = 19487
         self._def['D'] = int_field
         self.assertEqual(self._def['D'], 19487)
 
     def test_setitem_non_basic_field(self):
-        elem_ft = bt2.StructureFieldType()
-        elem_field = elem_ft()
-        struct_ft = bt2.StructureFieldType()
-        struct_ft.append_field('A', elem_ft)
-        struct_field = struct_ft()
+        elem_fc = bt2.StructureFieldClass()
+        elem_field = elem_fc()
+        struct_fc = bt2.StructureFieldClass()
+        struct_fc.append_field('A', elem_fc)
+        struct_field = struct_fc()
 
         # Will fail on access to .items() of the value
         with self.assertRaises(AttributeError):
@@ -1453,19 +1453,19 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(self._def, orig_values)
 
     def test_set_value(self):
-        int_ft = bt2.IntegerFieldType(32)
-        str_ft = bt2.StringFieldType()
-        struct_ft = bt2.StructureFieldType()
-        struct_ft.append_field(field_type=int_ft, name='an_int')
-        struct_ft.append_field(field_type=str_ft, name='a_string')
-        struct_ft.append_field(field_type=int_ft, name='another_int')
+        int_fc = bt2.IntegerFieldClass(32)
+        str_fc = bt2.StringFieldClass()
+        struct_fc = bt2.StructureFieldClass()
+        struct_fc.append_field(field_class=int_fc, name='an_int')
+        struct_fc.append_field(field_class=str_fc, name='a_string')
+        struct_fc.append_field(field_class=int_fc, name='another_int')
         values = {
             'an_int': 42,
             'a_string': 'hello',
             'another_int': 66
         }
 
-        struct = struct_ft()
+        struct = struct_fc()
         struct.value = values
         self.assertEqual(values, struct)
 
@@ -1480,12 +1480,12 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
             struct.value = unknown_key_values
 
     def test_value_rollback(self):
-        int_ft = bt2.IntegerFieldType(32)
-        str_ft = bt2.StringFieldType()
-        struct_ft = bt2.StructureFieldType()
-        struct_ft.append_field(field_type=int_ft, name='an_int')
-        struct_ft.append_field(field_type=str_ft, name='a_string')
-        struct_ft.append_field(field_type=int_ft, name='another_int')
+        int_fc = bt2.IntegerFieldClass(32)
+        str_fc = bt2.StringFieldClass()
+        struct_fc = bt2.StructureFieldClass()
+        struct_fc.append_field(field_class=int_fc, name='an_int')
+        struct_fc.append_field(field_class=str_fc, name='a_string')
+        struct_fc.append_field(field_class=int_fc, name='another_int')
         values = {
             'an_int': 42,
             'a_string': 'hello',
@@ -1499,19 +1499,19 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
             'another_int': 66
         }
 
-        int_ft = bt2.IntegerFieldType(32)
-        str_ft = bt2.StringFieldType()
-        struct_ft = bt2.StructureFieldType()
-        struct_ft.append_field(field_type=int_ft, name='an_int')
-        struct_ft.append_field(field_type=str_ft, name='a_string')
-        struct_ft.append_field(field_type=int_ft, name='another_int')
+        int_fc = bt2.IntegerFieldClass(32)
+        str_fc = bt2.StringFieldClass()
+        struct_fc = bt2.StructureFieldClass()
+        struct_fc.append_field(field_class=int_fc, name='an_int')
+        struct_fc.append_field(field_class=str_fc, name='a_string')
+        struct_fc.append_field(field_class=int_fc, name='another_int')
 
-        struct = struct_ft()
+        struct = struct_fc()
         self.assertFalse(struct.is_set)
         struct.value = values
         self.assertTrue(struct.is_set)
 
-        struct = struct_ft()
+        struct = struct_fc()
         struct['an_int'].value = 42
         self.assertFalse(struct.is_set)
 
@@ -1522,18 +1522,18 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
             'another_int': 66
         }
 
-        int_ft = bt2.IntegerFieldType(32)
-        str_ft = bt2.StringFieldType()
-        struct_ft = bt2.StructureFieldType()
-        struct_ft.append_field(field_type=int_ft, name='an_int')
-        struct_ft.append_field(field_type=str_ft, name='a_string')
-        struct_ft.append_field(field_type=int_ft, name='another_int')
+        int_fc = bt2.IntegerFieldClass(32)
+        str_fc = bt2.StringFieldClass()
+        struct_fc = bt2.StructureFieldClass()
+        struct_fc.append_field(field_class=int_fc, name='an_int')
+        struct_fc.append_field(field_class=str_fc, name='a_string')
+        struct_fc.append_field(field_class=int_fc, name='another_int')
 
-        struct = struct_ft()
+        struct = struct_fc()
         struct.value = values
         self.assertTrue(struct.is_set)
         struct.reset()
-        self.assertEqual(struct_ft(), struct)
+        self.assertEqual(struct_fc(), struct)
 
     def test_str_op(self):
         expected_string_found = False
@@ -1551,39 +1551,39 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertTrue(expected_string_found)
 
     def test_str_op_unset(self):
-        self.assertEqual(str(self._ft()), 'Unset')
+        self.assertEqual(str(self._fc()), 'Unset')
 
 
 @unittest.skip("this is broken")
 class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
-        self._tag_ft = bt2.EnumerationFieldType(size=32)
-        self._tag_ft.add_mapping('corner', 23)
-        self._tag_ft.add_mapping('zoom', 17, 20)
-        self._tag_ft.add_mapping('mellotron', 1001)
-        self._tag_ft.add_mapping('giorgio', 2000, 3000)
-        self._ft0 = bt2.IntegerFieldType(32, is_signed=True)
-        self._ft1 = bt2.StringFieldType()
-        self._ft2 = bt2.FloatingPointNumberFieldType()
-        self._ft3 = bt2.IntegerFieldType(17)
-        self._ft = bt2.VariantFieldType('salut', self._tag_ft)
-        self._ft.append_field('corner', self._ft0)
-        self._ft.append_field('zoom', self._ft1)
-        self._ft.append_field('mellotron', self._ft2)
-        self._ft.append_field('giorgio', self._ft3)
-        self._def = self._ft()
+        self._tag_fc = bt2.EnumerationFieldClass(size=32)
+        self._tag_fc.add_mapping('corner', 23)
+        self._tag_fc.add_mapping('zoom', 17, 20)
+        self._tag_fc.add_mapping('mellotron', 1001)
+        self._tag_fc.add_mapping('giorgio', 2000, 3000)
+        self._fc0 = bt2.IntegerFieldClass(32, is_signed=True)
+        self._fc1 = bt2.StringFieldClass()
+        self._fc2 = bt2.FloatingPointNumberFieldClass()
+        self._fc3 = bt2.IntegerFieldClass(17)
+        self._fc = bt2.VariantFieldClass('salut', self._tag_fc)
+        self._fc.append_field('corner', self._fc0)
+        self._fc.append_field('zoom', self._fc1)
+        self._fc.append_field('mellotron', self._fc2)
+        self._fc.append_field('giorgio', self._fc3)
+        self._def = self._fc()
 
     def tearDown(self):
-        del self._tag_ft
-        del self._ft0
-        del self._ft1
-        del self._ft2
-        del self._ft3
-        del self._ft
+        del self._tag_fc
+        del self._fc0
+        del self._fc1
+        del self._fc2
+        del self._fc3
+        del self._fc
         del self._def
 
     def test_bool_op_true(self):
-        tag_field = self._tag_ft(1001)
+        tag_field = self._tag_fc(1001)
         self._def.field(tag_field).value = -17.34
         self.assertTrue(self._def)
 
@@ -1594,7 +1594,7 @@ class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertIsNone(self._def.tag_field)
 
     def test_tag_field(self):
-        tag_field = self._tag_ft(2800)
+        tag_field = self._tag_fc(2800)
         self._def.field(tag_field).value = 1847
         self.assertEqual(self._def.tag_field, tag_field)
         self.assertEqual(self._def.tag_field.addr, tag_field.addr)
@@ -1603,35 +1603,35 @@ class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertIsNone(self._def.selected_field)
 
     def test_selected_field(self):
-        var_field1 = self._ft()
-        tag_field1 = self._tag_ft(1001)
+        var_field1 = self._fc()
+        tag_field1 = self._tag_fc(1001)
         var_field1.field(tag_field1).value = -17.34
         self.assertEqual(var_field1.field(), -17.34)
         self.assertEqual(var_field1.selected_field, -17.34)
-        var_field2 = self._ft()
-        tag_field2 = self._tag_ft(2500)
+        var_field2 = self._fc()
+        tag_field2 = self._tag_fc(2500)
         var_field2.field(tag_field2).value = 1921
         self.assertEqual(var_field2.field(), 1921)
         self.assertEqual(var_field2.selected_field, 1921)
 
     def test_eq(self):
-        tag_ft = bt2.EnumerationFieldType(size=32)
-        tag_ft.add_mapping('corner', 23)
-        tag_ft.add_mapping('zoom', 17, 20)
-        tag_ft.add_mapping('mellotron', 1001)
-        tag_ft.add_mapping('giorgio', 2000, 3000)
-        ft0 = bt2.IntegerFieldType(32, is_signed=True)
-        ft1 = bt2.StringFieldType()
-        ft2 = bt2.FloatingPointNumberFieldType()
-        ft3 = bt2.IntegerFieldType(17)
-        ft = bt2.VariantFieldType('salut', tag_ft)
-        ft.append_field('corner', ft0)
-        ft.append_field('zoom', ft1)
-        ft.append_field('mellotron', ft2)
-        ft.append_field('giorgio', ft3)
-        field = ft()
-        field_tag = tag_ft(23)
-        def_tag = self._tag_ft(23)
+        tag_fc = bt2.EnumerationFieldClass(size=32)
+        tag_fc.add_mapping('corner', 23)
+        tag_fc.add_mapping('zoom', 17, 20)
+        tag_fc.add_mapping('mellotron', 1001)
+        tag_fc.add_mapping('giorgio', 2000, 3000)
+        fc0 = bt2.IntegerFieldClass(32, is_signed=True)
+        fc1 = bt2.StringFieldClass()
+        fc2 = bt2.FloatingPointNumberFieldClass()
+        fc3 = bt2.IntegerFieldClass(17)
+        fc = bt2.VariantFieldClass('salut', tag_fc)
+        fc.append_field('corner', fc0)
+        fc.append_field('zoom', fc1)
+        fc.append_field('mellotron', fc2)
+        fc.append_field('giorgio', fc3)
+        field = fc()
+        field_tag = tag_fc(23)
+        def_tag = self._tag_fc(23)
         field.field(field_tag).value = 1774
         self._def.field(def_tag).value = 1774
         self.assertEqual(self._def, field)
@@ -1641,12 +1641,12 @@ class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_is_set(self):
         self.assertFalse(self._def.is_set)
-        tag_field = self._tag_ft(2800)
+        tag_field = self._tag_fc(2800)
         self._def.field(tag_field).value = 684
         self.assertTrue(self._def.is_set)
 
     def test_reset(self):
-        tag_field = self._tag_ft(2800)
+        tag_field = self._tag_fc(2800)
         self._def.field(tag_field).value = 684
         self._def.reset()
         self.assertFalse(self._def.is_set)
@@ -1654,22 +1654,22 @@ class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertIsNone(self._def.tag_field)
 
     def test_str_op_int(self):
-        v = self._ft()
-        v.field(self._tag_ft(23)).value = 42
-        f = self._ft0(42)
+        v = self._fc()
+        v.field(self._tag_fc(23)).value = 42
+        f = self._fc0(42)
         self.assertEqual(str(f), str(v))
 
     def test_str_op_str(self):
-        v = self._ft()
-        v.field(self._tag_ft(18)).value = 'some test string'
-        f = self._ft1('some test string')
+        v = self._fc()
+        v.field(self._tag_fc(18)).value = 'some test string'
+        f = self._fc1('some test string')
         self.assertEqual(str(f), str(v))
 
     def test_str_op_flt(self):
-        v = self._ft()
-        v.field(self._tag_ft(1001)).value = 14.4245
-        f = self._ft2(14.4245)
+        v = self._fc()
+        v.field(self._tag_fc(1001)).value = 14.4245
+        f = self._fc2(14.4245)
         self.assertEqual(str(f), str(v))
 
     def test_str_op_unset(self):
-        self.assertEqual(str(self._ft()), 'Unset')
+        self.assertEqual(str(self._fc()), 'Unset')

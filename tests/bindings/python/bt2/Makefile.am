@@ -7,7 +7,7 @@ EXTRA_DIST = 						\
 	test_ctf_writer_clock.py			\
 	test_event.py					\
 	test_event_class.py				\
-	test_field_types.py				\
+	test_field_class.py				\
 	test_fields.py					\
 	test_graph.py					\
 	test_message.py					\

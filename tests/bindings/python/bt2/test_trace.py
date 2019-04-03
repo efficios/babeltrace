@@ -17,39 +17,39 @@ class TraceTestCase(unittest.TestCase):
 
     def _create_stream_class(self, name, id):
         ec1, ec2 = self._create_event_classes()
-        packet_context_ft = bt2.StructureFieldType()
-        packet_context_ft.append_field('menu', bt2.FloatingPointNumberFieldType())
-        packet_context_ft.append_field('sticker', bt2.StringFieldType())
-        event_header_ft = bt2.StructureFieldType()
-        event_header_ft.append_field('id', bt2.IntegerFieldType(19))
-        event_context_ft = bt2.StructureFieldType()
-        event_context_ft.append_field('msg', bt2.StringFieldType())
+        packet_context_fc = bt2.StructureFieldClass()
+        packet_context_fc.append_field('menu', bt2.FloatingPointNumberFieldClass())
+        packet_context_fc.append_field('sticker', bt2.StringFieldClass())
+        event_header_fc = bt2.StructureFieldClass()
+        event_header_fc.append_field('id', bt2.IntegerFieldClass(19))
+        event_context_fc = bt2.StructureFieldClass()
+        event_context_fc.append_field('msg', bt2.StringFieldClass())
         return bt2.StreamClass(name=name, id=id,
-                               packet_context_field_type=packet_context_ft,
-                               event_header_field_type=event_header_ft,
-                               event_context_field_type=event_context_ft,
+                               packet_context_field_class=packet_context_fc,
+                               event_header_field_class=event_header_fc,
+                               event_context_field_class=event_context_fc,
                                event_classes=(ec1, ec2))
 
     def _create_event_classes(self):
-        context_ft = bt2.StructureFieldType()
-        context_ft.append_field('allo', bt2.StringFieldType())
-        context_ft.append_field('zola', bt2.IntegerFieldType(18))
-        payload_ft = bt2.StructureFieldType()
-        payload_ft.append_field('zoom', bt2.StringFieldType())
-        ec1 = bt2.EventClass('event23', id=23, context_field_type=context_ft,
-                             payload_field_type=payload_ft)
-        ec2 = bt2.EventClass('event17', id=17, context_field_type=payload_ft,
-                             payload_field_type=context_ft)
+        context_fc = bt2.StructureFieldClass()
+        context_fc.append_field('allo', bt2.StringFieldClass())
+        context_fc.append_field('zola', bt2.IntegerFieldClass(18))
+        payload_fc = bt2.StructureFieldClass()
+        payload_fc.append_field('zoom', bt2.StringFieldClass())
+        ec1 = bt2.EventClass('event23', id=23, context_field_class=context_fc,
+                             payload_field_class=payload_fc)
+        ec2 = bt2.EventClass('event17', id=17, context_field_class=payload_fc,
+                             payload_field_class=context_fc)
         return ec1, ec2
 
     def test_create_default(self):
         self.assertEqual(len(self._tc), 0)
 
     def _get_std_header(self):
-        header_ft = bt2.StructureFieldType()
-        header_ft.append_field('magic', bt2.IntegerFieldType(32))
-        header_ft.append_field('stream_id', bt2.IntegerFieldType(32))
-        return header_ft
+        header_fc = bt2.StructureFieldClass()
+        header_fc.append_field('magic', bt2.IntegerFieldClass(32))
+        header_fc.append_field('stream_id', bt2.IntegerFieldClass(32))
+        return header_fc
 
     def test_create_full(self):
         clock_classes = bt2.ClockClass('cc1', 1000), bt2.ClockClass('cc2', 30)
@@ -57,14 +57,14 @@ class TraceTestCase(unittest.TestCase):
         tc = bt2.Trace(name='my name',
                        native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                        env={'the_string': 'value', 'the_int': 23},
-                       packet_header_field_type=self._get_std_header(),
+                       packet_header_field_class=self._get_std_header(),
                        clock_classes=clock_classes,
                        stream_classes=(sc,))
         self.assertEqual(tc.name, 'my name')
         self.assertEqual(tc.native_byte_order, bt2.ByteOrder.LITTLE_ENDIAN)
         self.assertEqual(tc.env['the_string'], 'value')
         self.assertEqual(tc.env['the_int'], 23)
-        self.assertEqual(tc.packet_header_field_type, self._get_std_header())
+        self.assertEqual(tc.packet_header_field_class, self._get_std_header())
         self.assertEqual(tc.clock_classes['cc1'], clock_classes[0])
         self.assertEqual(tc.clock_classes['cc2'], clock_classes[1])
         self.assertEqual(tc[3], sc)
@@ -89,15 +89,15 @@ class TraceTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             self._tc.native_byte_order = 'lel'
 
-    def test_assign_packet_header_field_type(self):
-        header_ft = bt2.StructureFieldType()
-        header_ft.append_field('magic', bt2.IntegerFieldType(32))
-        self._tc.packet_header_field_type = header_ft
-        self.assertEqual(self._tc.packet_header_field_type, header_ft)
+    def test_assign_packet_header_field_class(self):
+        header_fc = bt2.StructureFieldClass()
+        header_fc.append_field('magic', bt2.IntegerFieldClass(32))
+        self._tc.packet_header_field_class = header_fc
+        self.assertEqual(self._tc.packet_header_field_class, header_fc)
 
-    def test_assign_no_packet_header_field_type(self):
-        self._tc.packet_header_field_type = None
-        self.assertIsNone(self._tc.packet_header_field_type)
+    def test_assign_no_packet_header_field_class(self):
+        self._tc.packet_header_field_class = None
+        self.assertIsNone(self._tc.packet_header_field_class)
 
     def _test_copy(self, cpy):
         self.assertIsNot(cpy, self._tc)
@@ -106,7 +106,7 @@ class TraceTestCase(unittest.TestCase):
         self.assertEqual(len(self._tc), len(cpy))
 
     def _pre_copy(self):
-        self._tc.packet_header_field_type = self._get_std_header()
+        self._tc.packet_header_field_class = self._get_std_header()
         self._tc.name = 'the trace class'
         sc1 = self._create_stream_class('sc1', 3)
         sc2 = self._create_stream_class('sc2', 9)
@@ -123,7 +123,7 @@ class TraceTestCase(unittest.TestCase):
         self._pre_copy()
         cpy = copy.copy(self._tc)
         self._test_copy(cpy)
-        self.assertEqual(self._tc.packet_header_field_type.addr, cpy.packet_header_field_type.addr)
+        self.assertEqual(self._tc.packet_header_field_class.addr, cpy.packet_header_field_class.addr)
         self.assertEqual(self._tc.clock_classes['cc1'].addr, cpy.clock_classes['cc1'].addr)
         self.assertEqual(self._tc.clock_classes['cc2'].addr, cpy.clock_classes['cc2'].addr)
         self.assertEqual(self._tc.env['allo'].addr, cpy.env['allo'].addr)
@@ -133,7 +133,7 @@ class TraceTestCase(unittest.TestCase):
         self._pre_copy()
         cpy = copy.deepcopy(self._tc)
         self._test_copy(cpy)
-        self.assertNotEqual(self._tc.packet_header_field_type.addr, cpy.packet_header_field_type.addr)
+        self.assertNotEqual(self._tc.packet_header_field_class.addr, cpy.packet_header_field_class.addr)
         self.assertNotEqual(self._tc.clock_classes['cc1'].addr, cpy.clock_classes['cc1'].addr)
         self.assertNotEqual(self._tc.clock_classes['cc2'].addr, cpy.clock_classes['cc2'].addr)
         self.assertNotEqual(self._tc.env['allo'].addr, cpy.env['allo'].addr)
@@ -159,7 +159,7 @@ class TraceTestCase(unittest.TestCase):
         self.assertEqual(len(self._tc), 1)
 
     def test_iter(self):
-        self._tc.packet_header_field_type = self._get_std_header()
+        self._tc.packet_header_field_class = self._get_std_header()
         sc1 = self._create_stream_class('sc1', 3)
         sc2 = self._create_stream_class('sc2', 9)
         sc3 = self._create_stream_class('sc3', 17)
@@ -218,123 +218,123 @@ class TraceTestCase(unittest.TestCase):
         return cc1, cc2, sc1, sc2, self._get_std_header()
 
     def test_eq(self):
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc1 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc2 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
         self.assertEqual(tc1, tc2)
 
     def test_ne_name(self):
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc1 = bt2.Trace(name='my name2',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc2 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
         self.assertNotEqual(tc1, tc2)
 
-    def test_ne_packet_header_field_type(self):
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+    def test_ne_packet_header_field_class(self):
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc1 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
-        header_ft.append_field('yes', bt2.StringFieldType())
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
+        header_fc.append_field('yes', bt2.StringFieldClass())
         tc2 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
         self.assertNotEqual(tc1, tc2)
 
     def test_ne_native_byte_order(self):
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc1 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc2 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.BIG_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
         self.assertNotEqual(tc1, tc2)
 
     def test_ne_env(self):
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc1 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int2': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc2 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
         self.assertNotEqual(tc1, tc2)
 
     def test_ne_clock_classes(self):
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc1 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         cc2.frequency = 1234
         tc2 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
         self.assertNotEqual(tc1, tc2)
 
     def test_ne_stream_classes(self):
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         tc1 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
-        cc1, cc2, sc1, sc2, header_ft = self._test_eq_create_objects()
+        cc1, cc2, sc1, sc2, header_fc = self._test_eq_create_objects()
         sc2.id = 72632
         tc2 = bt2.Trace(name='my name',
                         native_byte_order=bt2.ByteOrder.LITTLE_ENDIAN,
                         env={'the_string': 'value', 'the_int': 23},
-                        packet_header_field_type=header_ft,
+                        packet_header_field_class=header_fc,
                         clock_classes=(cc1, cc2),
                         stream_classes=(sc1, sc2))
         self.assertNotEqual(tc1, tc2)

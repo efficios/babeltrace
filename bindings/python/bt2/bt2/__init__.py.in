@@ -43,8 +43,8 @@ from bt2.ctf_writer import *
 from bt2.ctf_writer import _CtfWriterStream
 from bt2.event import _Event
 from bt2.event_class import *
-from bt2.field_types import *
-from bt2.field_types import _FieldType
+from bt2.field_class import *
+from bt2.field_class import _FieldClass
 from bt2.fields import *
 from bt2.fields import _ArrayField
 from bt2.fields import _EnumerationField
