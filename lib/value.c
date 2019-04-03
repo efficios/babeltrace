@@ -87,7 +87,7 @@ struct bt_value bt_value_null_instance = {
 	.frozen = BT_TRUE,
 };
 
-struct bt_value *bt_value_null = &bt_value_null_instance;
+struct bt_value *const bt_value_null = &bt_value_null_instance;
 
 struct bt_value_bool {
 	struct bt_value base;

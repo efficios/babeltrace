@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-extern bt_value *bt_value_null;
+extern bt_value *const bt_value_null;
 
 extern bt_value *bt_value_bool_create(void);
 
