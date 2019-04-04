@@ -171,20 +171,9 @@ struct bt_definition *_sequence_definition_new(struct bt_declaration *declaratio
 	sequence->string = NULL;
 	sequence->elems = NULL;
 
-	if (sequence_declaration->elem->id == CTF_TYPE_INTEGER) {
-		struct declaration_integer *integer_declaration =
-			container_of(sequence_declaration->elem, struct declaration_integer, p);
-
-		if (integer_declaration->encoding == CTF_STRING_UTF8
-		      || integer_declaration->encoding == CTF_STRING_ASCII) {
-
-			sequence->string = g_string_new("");
-
-			if (integer_declaration->len == CHAR_BIT
-			    && integer_declaration->p.alignment == CHAR_BIT) {
-				return &sequence->p;
-			}
-		}
+	if (sequence_declaration->elem->id == CTF_TYPE_INTEGER &&
+			bt_int_is_char(sequence_declaration->elem)) {
+		sequence->string = g_string_new("");
 	}
 
 	sequence->elems = g_ptr_array_new();

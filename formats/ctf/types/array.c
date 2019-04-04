@@ -42,27 +42,21 @@ int ctf_array_read(struct bt_stream_pos *ppos, struct bt_definition *definition)
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 
-		if (integer_declaration->encoding == CTF_STRING_UTF8
-		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+		if (bt_int_is_char(elem)) {
+			if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+				return -EFAULT;
+			if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
+				return -EFAULT;
 
-			if (integer_declaration->len == CHAR_BIT
-			    && integer_declaration->p.alignment == CHAR_BIT) {
-
-				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
-					return -EFAULT;
-				if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
-					return -EFAULT;
-
-				g_string_assign(array_definition->string, "");
-				g_string_insert_len(array_definition->string,
-					0, (char *) ctf_get_pos_addr(pos),
-					array_declaration->len);
-				/*
-				 * We want to populate both the string
-				 * and the underlying values, so carry
-				 * on calling bt_array_rw().
-				 */
-			}
+			g_string_assign(array_definition->string, "");
+			g_string_insert_len(array_definition->string,
+				0, (char *) ctf_get_pos_addr(pos),
+				array_declaration->len);
+			/*
+			 * We want to populate both the string
+			 * and the underlying values, so carry
+			 * on calling bt_array_rw().
+			 */
 		}
 	}
 	return bt_array_rw(ppos, definition);
@@ -82,24 +76,18 @@ int ctf_array_write(struct bt_stream_pos *ppos, struct bt_definition *definition
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 
-		if (integer_declaration->encoding == CTF_STRING_UTF8
-		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+		if (bt_int_is_char(elem)) {
+			if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+				return -EFAULT;
+			if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
+				return -EFAULT;
 
-			if (integer_declaration->len == CHAR_BIT
-			    && integer_declaration->p.alignment == CHAR_BIT) {
-
-				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
-					return -EFAULT;
-				if (!ctf_pos_access_ok(pos, array_declaration->len * CHAR_BIT))
-					return -EFAULT;
-
-				memcpy((char *) ctf_get_pos_addr(pos),
-					array_definition->string->str,
-					array_declaration->len);
-				if (!ctf_move_pos(pos, array_declaration->len * CHAR_BIT))
-					return -EFAULT;
-				return 0;
-			}
+			memcpy((char *) ctf_get_pos_addr(pos),
+				array_definition->string->str,
+				array_declaration->len);
+			if (!ctf_move_pos(pos, array_declaration->len * CHAR_BIT))
+				return -EFAULT;
+			return 0;
 		}
 	}
 	return bt_array_rw(ppos, definition);

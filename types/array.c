@@ -123,15 +123,9 @@ struct bt_definition *
 	array->string = NULL;
 	array->elems = NULL;
 
-	if (array_declaration->elem->id == CTF_TYPE_INTEGER) {
-		struct declaration_integer *integer_declaration =
-			container_of(array_declaration->elem, struct declaration_integer, p);
-
-		if (integer_declaration->encoding == CTF_STRING_UTF8
-		      || integer_declaration->encoding == CTF_STRING_ASCII) {
-
-			array->string = g_string_new("");
-		}
+	if (array_declaration->elem->id == CTF_TYPE_INTEGER &&
+			bt_int_is_char(array_declaration->elem)) {
+		array->string = g_string_new("");
 	}
 
 	array->elems = g_ptr_array_sized_new(array_declaration->len);
@@ -229,19 +223,8 @@ GString *bt_get_char_array(const struct bt_definition *field)
 	array_definition = container_of(field, struct definition_array, p);
 	array_declaration = array_definition->declaration;
 	elem = array_declaration->elem;
-	if (elem->id == CTF_TYPE_INTEGER) {
-		struct declaration_integer *integer_declaration =
-			container_of(elem, struct declaration_integer, p);
-
-		if (integer_declaration->encoding == CTF_STRING_UTF8
-				|| integer_declaration->encoding == CTF_STRING_ASCII) {
-
-			if (integer_declaration->len == CHAR_BIT
-					&& integer_declaration->p.alignment == CHAR_BIT) {
-
-				return array_definition->string;
-			}
-		}
+	if (elem->id == CTF_TYPE_INTEGER && bt_int_is_char(elem)) {
+		return array_definition->string;
 	}
 	fprintf(stderr, "[warning] Extracting string\n");
 	return NULL;

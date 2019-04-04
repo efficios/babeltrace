@@ -400,6 +400,7 @@ int bt_get_int_signedness(const struct bt_definition *field);
 int bt_get_int_byte_order(const struct bt_definition *field);
 int bt_get_int_base(const struct bt_definition *field);
 size_t bt_get_int_len(const struct bt_definition *field);	/* in bits */
+bool bt_int_is_char(const struct bt_declaration *field);
 enum ctf_string_encoding bt_get_int_encoding(const struct bt_definition *field);
 
 /*

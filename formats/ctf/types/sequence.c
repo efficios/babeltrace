@@ -41,25 +41,17 @@ int ctf_sequence_read(struct bt_stream_pos *ppos, struct bt_definition *definiti
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 
-		if (integer_declaration->encoding == CTF_STRING_UTF8
-		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+		if (bt_int_is_char(elem)) {
+			uint64_t len = bt_sequence_len(sequence_definition);
 
-			if (integer_declaration->len == CHAR_BIT
-			    && integer_declaration->p.alignment == CHAR_BIT) {
-				uint64_t len = bt_sequence_len(sequence_definition);
+			if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+				return -EFAULT;
+			if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
+				return -EFAULT;
 
-				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
-					return -EFAULT;
-				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
-					return -EFAULT;
-
-				g_string_assign(sequence_definition->string, "");
-				g_string_insert_len(sequence_definition->string,
-					0, (char *) ctf_get_pos_addr(pos), len);
-				if (!ctf_move_pos(pos, len * CHAR_BIT))
-					return -EFAULT;
-				return 0;
-			}
+			g_string_assign(sequence_definition->string, "");
+			g_string_insert_len(sequence_definition->string,
+				0, (char *) ctf_get_pos_addr(pos), len);
 		}
 	}
 	return bt_sequence_rw(ppos, definition);
@@ -78,24 +70,19 @@ int ctf_sequence_write(struct bt_stream_pos *ppos, struct bt_definition *definit
 		struct declaration_integer *integer_declaration =
 			container_of(elem, struct declaration_integer, p);
 
-		if (integer_declaration->encoding == CTF_STRING_UTF8
-		      || integer_declaration->encoding == CTF_STRING_ASCII) {
+		if (bt_int_is_char(elem)) {
+			uint64_t len = bt_sequence_len(sequence_definition);
 
-			if (integer_declaration->len == CHAR_BIT
-			    && integer_declaration->p.alignment == CHAR_BIT) {
-				uint64_t len = bt_sequence_len(sequence_definition);
+			if (!ctf_align_pos(pos, integer_declaration->p.alignment))
+				return -EFAULT;
+			if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
+				return -EFAULT;
 
-				if (!ctf_align_pos(pos, integer_declaration->p.alignment))
-					return -EFAULT;
-				if (!ctf_pos_access_ok(pos, len * CHAR_BIT))
-					return -EFAULT;
-
-				memcpy((char *) ctf_get_pos_addr(pos),
-					sequence_definition->string->str, len);
-				if (!ctf_move_pos(pos, len * CHAR_BIT))
-					return -EFAULT;
-				return 0;
-			}
+			memcpy((char *) ctf_get_pos_addr(pos),
+				sequence_definition->string->str, len);
+			if (!ctf_move_pos(pos, len * CHAR_BIT))
+				return -EFAULT;
+			return 0;
 		}
 	}
 	return bt_sequence_rw(ppos, definition);

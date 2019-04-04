@@ -201,3 +201,19 @@ int64_t bt_get_signed_int(const struct bt_definition *field)
 		g_quark_to_string(field->name));
 	return (int64_t)integer_definition->value._unsigned;
 }
+
+bool bt_int_is_char(const struct bt_declaration *field)
+{
+	bool ret;
+	struct declaration_integer *integer_declaration =
+		container_of(field, struct declaration_integer, p);
+
+	/* Integer must be ASCII or encoded as UTF-8. */
+	ret = integer_declaration->encoding == CTF_STRING_UTF8 ||
+			integer_declaration->encoding == CTF_STRING_ASCII;
+	/* Integer must be aligned on a byte boundary and be byte-sized. */
+	ret &= integer_declaration->len == CHAR_BIT &&
+			integer_declaration->p.alignment == CHAR_BIT;
+
+	return ret;
+}
