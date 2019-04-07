@@ -979,8 +979,10 @@ enum bt_msg_iter_status set_current_packet_content_sizes(
 		}
 	}
 
-	BT_ASSERT(notit->cur_exp_packet_total_size != -1);
-	BT_ASSERT(notit->cur_exp_packet_content_size != -1);
+	BT_ASSERT((notit->cur_exp_packet_total_size >= 0 &&
+		notit->cur_exp_packet_content_size >= 0) ||
+		(notit->cur_exp_packet_total_size < 0 &&
+		notit->cur_exp_packet_content_size < 0));
 
 	if (notit->cur_exp_packet_content_size >
 			notit->cur_exp_packet_total_size) {
