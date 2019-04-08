@@ -3,7 +3,7 @@ AM_CPPFLAGS += $(PYTHON_INCLUDE)
 lib_LTLIBRARIES = libbabeltrace-python-plugin-provider.la
 
 libbabeltrace_python_plugin_provider_la_SOURCES = \
-	python-plugin-provider.c logging.c logging.h
+	python-plugin-provider.c
 libbabeltrace_python_plugin_provider_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
 	-version-info $(BABELTRACE_LIBRARY_VERSION) \

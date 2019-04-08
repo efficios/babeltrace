@@ -25,7 +25,6 @@
  */
 
 #define BT_LOG_TAG "PLUGIN-PY"
-#include "logging.h"
 
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/compiler-internal.h>
@@ -157,9 +156,9 @@ void fini_python(void) {
 }
 
 static
-const bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
+bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 {
-	const bt_plugin *plugin = NULL;
+	bt_plugin *plugin = NULL;
 	PyObject *py_name = NULL;
 	PyObject *py_author = NULL;
 	PyObject *py_description = NULL;
@@ -367,8 +366,6 @@ const bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 		}
 	}
 
-	bt_plugin_freeze(plugin);
-
 	goto end;
 
 error:
@@ -390,7 +387,7 @@ G_MODULE_EXPORT
 bt_plugin_set *bt_plugin_python_create_all_from_file(const char *path)
 {
 	bt_plugin_set *plugin_set = NULL;
-	const bt_plugin *plugin = NULL;
+	bt_plugin *plugin = NULL;
 	PyObject *py_plugin_info = NULL;
 	gchar *basename = NULL;
 	size_t path_len;

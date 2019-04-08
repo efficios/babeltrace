@@ -1387,7 +1387,6 @@ update_fmt:
 	*out_fmt_ch = fmt_ch;
 }
 
-BT_HIDDEN
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...)
 {

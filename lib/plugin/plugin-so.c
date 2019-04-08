@@ -1602,7 +1602,6 @@ void plugin_comp_class_destroy_listener(struct bt_component_class *comp_class,
 		"comp-cls-addr=%p", comp_class);
 }
 
-BT_HIDDEN
 void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		struct bt_component_class *comp_class)
 {
