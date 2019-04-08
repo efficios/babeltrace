@@ -186,7 +186,7 @@ int bt_lib_log_level;
  * Use one of the BT_LIB_LOGF*() macros above instead of calling this
  * function directly.
  */
-BT_HIDDEN
+
 void bt_lib_log(const char *func, const char *file, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...);
 

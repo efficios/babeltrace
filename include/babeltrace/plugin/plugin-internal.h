@@ -32,6 +32,7 @@
 #include <babeltrace/object-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-internal.h>
+#include <babeltrace/lib-logging-internal.h>
 #include <glib.h>
 
 enum bt_plugin_type {

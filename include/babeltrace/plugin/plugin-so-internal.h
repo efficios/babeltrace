@@ -57,7 +57,6 @@ struct bt_plugin_set *bt_plugin_so_create_all_from_file(const char *path);
 BT_HIDDEN
 struct bt_plugin_set *bt_plugin_so_create_all_from_static(void);
 
-BT_HIDDEN
 void bt_plugin_so_on_add_component_class(struct bt_plugin *plugin,
 		struct bt_component_class *comp_class);
 
