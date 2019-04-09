@@ -1396,7 +1396,6 @@ enum {
 	OPT_FIELDS,
 	OPT_HELP,
 	OPT_INPUT_FORMAT,
-	OPT_KEY,
 	OPT_LIST,
 	OPT_NAME,
 	OPT_NAMES,
@@ -1415,7 +1414,6 @@ enum {
 	OPT_STREAM_INTERSECTION,
 	OPT_TIMERANGE,
 	OPT_URL,
-	OPT_VALUE,
 	OPT_VERBOSE,
 };
 
@@ -2374,8 +2372,6 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    specify the name with --name)\n");
 	fprintf(fp, "  -x, --connect=CONNECTION          Connect two created components (see the\n");
 	fprintf(fp, "                                    expected format of CONNECTION below)\n");
-	fprintf(fp, "      --key=KEY                     Set the current initialization string\n");
-	fprintf(fp, "                                    parameter key to KEY (see --value)\n");
 	fprintf(fp, "  -n, --name=NAME                   Set the name of the current component\n");
 	fprintf(fp, "                                    to NAME (must be unique amongst all the\n");
 	fprintf(fp, "                                    names of the created components)\n");
@@ -2392,10 +2388,6 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "      --retry-duration=DUR          When babeltrace(1) needs to retry to run\n");
 	fprintf(fp, "                                    the graph later, retry in DUR µs\n");
 	fprintf(fp, "                                    (default: 100000)\n");
-	fprintf(fp, "      --value=VAL                   Add a string initialization parameter to\n");
-	fprintf(fp, "                                    the current component with a name given by\n");
-	fprintf(fp, "                                    the last argument of the --key option and a\n");
-	fprintf(fp, "                                    value set to VAL\n");
 	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
@@ -2459,7 +2451,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 	struct bt_config *cfg = NULL;
 	bt_value *instance_names = NULL;
 	bt_value *connection_args = NULL;
-	GString *cur_param_key = NULL;
 	char error_buf[256] = { 0 };
 	long retry_duration = -1;
 	bt_value_status status;
@@ -2468,7 +2459,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ "component", 'c', POPT_ARG_STRING, NULL, OPT_COMPONENT, NULL, NULL },
 		{ "connect", 'x', POPT_ARG_STRING, NULL, OPT_CONNECT, NULL, NULL },
 		{ "help", 'h', POPT_ARG_NONE, NULL, OPT_HELP, NULL, NULL },
-		{ "key", '\0', POPT_ARG_STRING, NULL, OPT_KEY, NULL, NULL },
 		{ "name", 'n', POPT_ARG_STRING, NULL, OPT_NAME, NULL, NULL },
 		{ "omit-home-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_HOME_PLUGIN_PATH, NULL, NULL },
 		{ "omit-system-plugin-path", '\0', POPT_ARG_NONE, NULL, OPT_OMIT_SYSTEM_PLUGIN_PATH, NULL, NULL },
@@ -2476,16 +2466,10 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 		{ "plugin-path", '\0', POPT_ARG_STRING, NULL, OPT_PLUGIN_PATH, NULL, NULL },
 		{ "reset-base-params", 'r', POPT_ARG_NONE, NULL, OPT_RESET_BASE_PARAMS, NULL, NULL },
 		{ "retry-duration", '\0', POPT_ARG_LONG, &retry_duration, OPT_RETRY_DURATION, NULL, NULL },
-		{ "value", '\0', POPT_ARG_STRING, NULL, OPT_VALUE, NULL, NULL },
 		{ NULL, 0, '\0', NULL, 0, NULL, NULL },
 	};
 
 	*retcode = 0;
-	cur_param_key = g_string_new(NULL);
-	if (!cur_param_key) {
-		print_err_oom();
-		goto error;
-	}
 
 	if (argc <= 1) {
 		print_run_usage(stdout);
@@ -2627,33 +2611,6 @@ struct bt_config *bt_config_run_from_args(int argc, const char *argv[],
 			BT_OBJECT_MOVE_REF(cur_cfg_comp->params, params_to_set);
 			break;
 		}
-		case OPT_KEY:
-			if (strlen(arg) == 0) {
-				printf_err("Cannot set an empty string as the current parameter key\n");
-				goto error;
-			}
-
-			g_string_assign(cur_param_key, arg);
-			break;
-		case OPT_VALUE:
-			if (!cur_cfg_comp) {
-				printf_err("Cannot set a parameter's value of unavailable component:\n    %s\n",
-					arg);
-				goto error;
-			}
-
-			if (cur_param_key->len == 0) {
-				printf_err("--value option specified without preceding --key option:\n    %s\n",
-					arg);
-				goto error;
-			}
-
-			if (bt_value_map_insert_string_entry(cur_cfg_comp->params,
-					cur_param_key->str, arg)) {
-				print_err_oom();
-				goto error;
-			}
-			break;
 		case OPT_NAME:
 			if (!cur_cfg_comp) {
 				printf_err("Cannot set the name of unavailable component:\n    %s\n",
@@ -2771,10 +2728,6 @@ error:
 end:
 	if (pc) {
 		poptFreeContext(pc);
-	}
-
-	if (cur_param_key) {
-		g_string_free(cur_param_key, TRUE);
 	}
 
 	free(arg);
@@ -3223,42 +3176,95 @@ void append_implicit_component_param(struct implicit_component_args *args,
 	append_param_arg(args->params_arg, key, value);
 }
 
+/* Escape value to make it suitable to use as a string parameter value. */
 static
-int append_implicit_component_extra_param(struct implicit_component_args *args,
-		const char *key, const char *value)
+gchar *escape_string_value(const char *value)
 {
-	int ret = 0;
+	GString *ret;
+	const char *in;
 
+	ret = g_string_new(NULL);
+	if (!ret) {
+		print_err_oom();
+		goto end;
+	}
+
+	in = value;
+	while (*in) {
+		switch (*in) {
+		case '"':
+		case '\\':
+			g_string_append_c(ret, '\\');
+			break;
+		}
+
+		g_string_append_c(ret, *in);
+
+		in++;
+	}
+
+end:
+	return g_string_free(ret, FALSE);
+}
+
+static
+int append_parameter_to_args(bt_value *args, const char *key, const char *value)
+{
 	BT_ASSERT(args);
+	BT_ASSERT(bt_value_get_type(args) == BT_VALUE_TYPE_ARRAY);
 	BT_ASSERT(key);
 	BT_ASSERT(value);
 
-	if (bt_value_array_append_string_element(args->extra_params, "--key")) {
+	int ret = 0;
+	gchar *escaped_value;
+	GString *parameter = NULL;
+
+	if (bt_value_array_append_string_element(args, "--params")) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_value_array_append_string_element(args->extra_params, key)) {
+	escaped_value = escape_string_value(value);
+	if (!escaped_value) {
+		ret = -1;
+		goto end;
+	}
+
+	parameter = g_string_new(NULL);
+	if (!parameter) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
-	if (bt_value_array_append_string_element(args->extra_params, "--value")) {
-		print_err_oom();
-		ret = -1;
-		goto end;
-	}
+	g_string_printf(parameter, "%s=\"%s\"", key, escaped_value);
 
-	if (bt_value_array_append_string_element(args->extra_params, value)) {
+	if (bt_value_array_append_string_element(args, parameter->str)) {
 		print_err_oom();
 		ret = -1;
 		goto end;
 	}
 
 end:
+	if (escaped_value) {
+		g_free(escaped_value);
+		escaped_value = NULL;
+	}
+
+	if (parameter) {
+		g_string_free(parameter, TRUE);
+		parameter = NULL;
+	}
+
 	return ret;
+}
+
+static
+int append_implicit_component_extra_param(struct implicit_component_args *args,
+		const char *key, const char *value)
+{
+	return append_parameter_to_args(args->extra_params, key, value);
 }
 
 static
@@ -3795,8 +3801,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * arguments if needed to automatically name unnamed component
 	 * instances. Also it does the following transformations:
 	 *
-	 *     --path=PATH -> --key path --value PATH
-	 *     --url=URL   -> --key url --value URL
+	 *     --path=PATH -> --params=path="PATH"
+	 *     --url=URL   -> --params=url="URL"
 	 *
 	 * Also it appends the plugin paths of --plugin-path to
 	 * `plugin_paths`.
@@ -3910,23 +3916,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_value_array_append_string_element(run_args, "--key")) {
-				print_err_oom();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, "path")) {
-				print_err_oom();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, "--value")) {
-				print_err_oom();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+			if (append_parameter_to_args(run_args, "path", arg)) {
 				goto error;
 			}
 			break;
@@ -3937,23 +3927,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (bt_value_array_append_string_element(run_args, "--key")) {
-				print_err_oom();
-				goto error;
-			}
 
-			if (bt_value_array_append_string_element(run_args, "url")) {
-				print_err_oom();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, "--value")) {
-				print_err_oom();
-				goto error;
-			}
-
-			if (bt_value_array_append_string_element(run_args, arg)) {
-				print_err_oom();
+			if (append_parameter_to_args(run_args, "url", arg)) {
 				goto error;
 			}
 			break;

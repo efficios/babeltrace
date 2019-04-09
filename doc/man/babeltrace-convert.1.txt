@@ -133,7 +133,7 @@ It is equivalent to the following command:
 [role="term"]
 ----
 $ babeltrace run --component=ctf-fs:src.ctf.fs \
-                 --key=path --value=/path/to/trace \
+                 --params=path=/path/to/trace \
                  --component=pretty:sink.text.pretty \
                  --component=muxer:filter.utils.muxer \
                  --connect=ctf-fs:muxer --connect=muxer:pretty
@@ -397,13 +397,13 @@ is:
 [role="term"]
 ----
 $ babeltrace run --component=src-ctf-fs:src.ctf.fs \
-                 --key=path --value=/path/to/input/trace \
+                 --params=path=/path/to/input/trace \
                  --component=sink-ctf-fs:sink.ctf.fs \
-                 --key=path --value=out-dir \
+                 --params=path=out-dir \
                  --component=muxer:flt.utils.muxer \
                  --component=trimmer:flt.utils.trimmer \
-                 --key=begin --value=22:14:38 \
-                 --key=end --value=22:15:07 \
+                 '--params=begin="22:14:38"' \
+                 '--params=end="22:15:07"' \
                  --component=dbginfo:flt.lttng-utils.debug-info \
                  --connect=src-ctf-fs:muxer --connect=muxer:trimmer \
                  --connect=trimmer:dbg-info \
