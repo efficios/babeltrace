@@ -93,11 +93,6 @@ opt:--params='PARAMS'::
 +
 See <<params-fmt,Parameters format>> for the format of 'PARAMS'.
 
-opt:--key='KEY' followed with opt:--value='VALUE'::
-    Set the current component's initialization parameter named 'KEY' to
-    the string value 'VALUE'. If 'KEY' exists in the current component's
-    initialization parameters, the parameter is replaced.
-
 
 [[connect-comps]]
 Connect components
@@ -222,10 +217,6 @@ The initial initialization parameters of this component are copied from
 the current base initialization parameters (see the opt:--base-params
 option).
 
-opt:--key='KEY'::
-    Set the current parameter key to 'KEY'. The next opt:--value option
-    uses this key to add a parameter to the current component.
-
 opt:--name='NAME'::
     Set the name of the current component to 'NAME'. The names of all
     the components in the processing graph must be unique.
@@ -239,13 +230,6 @@ opt:-p 'PARAMS', opt:--params='PARAMS'::
 opt:-r, opt:--reset-base-params::
     Reset the current base parameters. You can set the current base
     parameters with the opt:--base-params option.
-
-opt:-v 'VALUE', opt:--value='VALUE'::
-    Add a parameter to the current component's initialization parameters
-    of which the key is the argument of the last opt:--key option and
-    the string value is 'VALUE'. If the current component's
-    initialization parameters already contain a key named 'KEY', replace
-    the parameter.
 
 
 Component connection
@@ -313,17 +297,6 @@ In this example, the opt:--params option only applies to component
 ----
 $ babeltrace run --component=the-source:src.my-plugin.my-src \
                  --params='offset=123, flag=true' \
-                 --component=the-sink:sink.my-plugin.my-sink \
-                 --connect=the-source:the-sink
-----
-====
-
-.Use the opt:--key and opt:--value options to set a current component's initialization parameter.
-====
-[role="term"]
-----
-$ babeltrace run --component=the-source:src.my-plugin.my-src \
-                 --key=path --value ~/my-traces/the-trace
                  --component=the-sink:sink.my-plugin.my-sink \
                  --connect=the-source:the-sink
 ----
