@@ -99,14 +99,16 @@ void update_field_class_in_ir(struct ctf_field_class *fc,
 	{
 		struct ctf_field_class_int *int_fc = (void *) fc;
 
-		if (int_fc->mapped_clock_class ||
-				int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE ||
+		/*
+		 * Conditions to be in trace IR; one of:
+		 *
+		 * 1. Does NOT have a mapped clock class AND does not
+		 *    have a special meaning.
+		 * 2. Another field class depends on it.
+		 */
+		if ((!int_fc->mapped_clock_class &&
+				int_fc->meaning == CTF_FIELD_CLASS_MEANING_NONE) ||
 				bt_g_hash_table_contains(ft_dependents, fc)) {
-			/*
-			 * Field class does not update a clock, has no
-			 * special meaning, and no sequence/variant
-			 * field class which is part of IR depends on it.
-			 */
 			fc->in_ir = true;
 		}
 
