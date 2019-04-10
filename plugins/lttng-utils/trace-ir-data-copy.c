@@ -190,7 +190,7 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field)
 		uint64_t i, nb_member_struct;
 		const bt_field *in_member_field;
 		bt_field *out_member_field;
-		const bt_field_class *in_field_class, *in_member_field_class;
+		const bt_field_class *in_field_class;
 		const char *in_member_name;
 
 		in_field_class = bt_field_borrow_class_const(in_field);
@@ -203,10 +203,13 @@ void copy_field_content(const bt_field *in_field, bt_field *out_field)
 		 * the debug-info was added.
 		 */
 		for (i = 0; i < nb_member_struct; i++) {
-			bt_field_class_structure_borrow_member_by_index_const(
-					in_field_class, i, &in_member_name,
-					&in_member_field_class);
+			const bt_field_class_structure_member *member =
+				bt_field_class_structure_borrow_member_by_index_const(
+					in_field_class, i);
 
+			in_member_name =
+				bt_field_class_structure_member_get_name(
+					member);
 			in_member_field =
 				bt_field_structure_borrow_member_field_by_name_const(
 						in_field, in_member_name);
