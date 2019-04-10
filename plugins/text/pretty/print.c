@@ -775,7 +775,7 @@ int print_struct_field(struct pretty_component *pretty,
 	int ret = 0;
 	const char *field_name;
 	const bt_field *field = NULL;
-	const bt_field_class *field_class = NULL;;
+	const bt_field_class_structure_member *member;
 
 	field = bt_field_structure_borrow_member_field_by_index_const(_struct, i);
 	if (!field) {
@@ -783,8 +783,9 @@ int print_struct_field(struct pretty_component *pretty,
 		goto end;
 	}
 
-	bt_field_class_structure_borrow_member_by_index_const(struct_class, i,
-		&field_name, &field_class);
+	member = bt_field_class_structure_borrow_member_by_index_const(
+		struct_class, i);
+	field_name = bt_field_class_structure_member_get_name(member);
 
 	if (filter_fields && !filter_field_name(pretty, field_name,
 				filter_fields, filter_array_len)) {

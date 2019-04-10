@@ -54,19 +54,28 @@ const bt_field_class *walk_field_path(const bt_field_path *fp,
 	fp_index_count = bt_field_path_get_index_count(fp);
 	curr_fc = fc;
 	for (i = 0; i < fp_index_count; i++) {
-		const char *fc_name;
 		bt_field_class_type fc_type = bt_field_class_get_type(curr_fc);
 		uint64_t curr_index = bt_field_path_get_index_by_index(fp, i);
 
 		switch (fc_type) {
 		case BT_FIELD_CLASS_TYPE_STRUCTURE:
-			bt_field_class_structure_borrow_member_by_index_const(
-					curr_fc, curr_index, &fc_name, &curr_fc);
+		{
+			const bt_field_class_structure_member *member =
+				bt_field_class_structure_borrow_member_by_index_const(
+					curr_fc, curr_index);
+			curr_fc = bt_field_class_structure_member_borrow_field_class_const(
+				member);
 			break;
+		}
 		case BT_FIELD_CLASS_TYPE_VARIANT:
-			bt_field_class_variant_borrow_option_by_index_const(
-					curr_fc, curr_index, &fc_name, &curr_fc);
+		{
+			const bt_field_class_variant_option *option =
+				bt_field_class_variant_borrow_option_by_index_const(
+					curr_fc, curr_index);
+			curr_fc = bt_field_class_variant_option_borrow_field_class_const(
+				option);
 			break;
+		}
 		default:
 			abort();
 		}
@@ -322,12 +331,16 @@ int field_class_structure_copy(
 
 	/* Iterate over all the members of the struct. */
 	for (i = 0; i < struct_member_count; i++) {
+		const bt_field_class_structure_member *member;
 		const char *member_name;
 		const bt_field_class *member_fc;
 		bt_field_class *out_member_field_class;
 
-		bt_field_class_structure_borrow_member_by_index_const(
-				in_field_class, i, &member_name, &member_fc);
+		member = bt_field_class_structure_borrow_member_by_index_const(
+			in_field_class, i);
+		member_fc = bt_field_class_structure_member_borrow_field_class_const(
+			member);
+		member_name = bt_field_class_structure_member_get_name(member);
 		BT_LOGD("Copying structure field class's field: "
 			"index=%" PRId64 ", "
 			"member-fc-addr=%p, field-name=\"%s\"",
@@ -405,22 +418,25 @@ int field_class_variant_copy(
 	variant_option_count =
 		bt_field_class_variant_get_option_count(in_field_class);
 	for (i = 0; i < variant_option_count; i++) {
-		const bt_field_class *option;
+		const bt_field_class *option_fc;
 		const char *option_name;
 		bt_field_class *out_option_field_class;
 		bt_field_class_status status;
+		const bt_field_class_variant_option *option;
 
-		bt_field_class_variant_borrow_option_by_index_const(in_field_class,
-				i, &option_name, &option);
-
+		option = bt_field_class_variant_borrow_option_by_index_const(
+			in_field_class, i);
+		option_fc = bt_field_class_variant_option_borrow_field_class_const(
+			option);
+		option_name = bt_field_class_variant_option_get_name(option);
 		out_option_field_class = create_field_class_copy_internal(
-				md_maps, option);
+				md_maps, option_fc);
 		if (!out_option_field_class) {
 			BT_LOGE_STR("Cannot copy field class.");
 			ret = -1;
 			goto error;
 		}
-		ret = copy_field_class_content_internal(md_maps, option,
+		ret = copy_field_class_content_internal(md_maps, option_fc,
 				out_option_field_class);
 		if (ret) {
 			BT_LOGE_STR("Error copying content of option variant "

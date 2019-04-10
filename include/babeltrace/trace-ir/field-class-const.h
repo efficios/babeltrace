@@ -126,14 +126,20 @@ bt_field_class_signed_enumeration_get_mapping_labels_by_value(
 extern uint64_t bt_field_class_structure_get_member_count(
 		const bt_field_class *field_class);
 
-extern void bt_field_class_structure_borrow_member_by_index_const(
-		const bt_field_class *struct_field_class, uint64_t index,
-		const char **name, const bt_field_class **field_class);
+extern const bt_field_class_structure_member *
+bt_field_class_structure_borrow_member_by_index_const(
+		const bt_field_class *field_class, uint64_t index);
 
-extern
-const bt_field_class *
-bt_field_class_structure_borrow_member_field_class_by_name_const(
+extern const bt_field_class_structure_member *
+bt_field_class_structure_borrow_member_by_name_const(
 		const bt_field_class *field_class, const char *name);
+
+extern const char *bt_field_class_structure_member_get_name(
+		const bt_field_class_structure_member *member);
+
+extern const bt_field_class *
+bt_field_class_structure_member_borrow_field_class_const(
+		const bt_field_class_structure_member *member);
 
 extern const bt_field_class *
 bt_field_class_array_borrow_element_field_class_const(
@@ -153,15 +159,20 @@ bt_field_class_variant_borrow_selector_field_path_const(
 extern uint64_t bt_field_class_variant_get_option_count(
 		const bt_field_class *field_class);
 
-extern void bt_field_class_variant_borrow_option_by_index_const(
-		const bt_field_class *variant_field_class, uint64_t index,
-		const char **name, const bt_field_class **field_class);
+extern const bt_field_class_variant_option *
+bt_field_class_variant_borrow_option_by_index_const(
+		const bt_field_class *field_class, uint64_t index);
 
-extern
-const bt_field_class *
-bt_field_class_variant_borrow_option_field_class_by_name_const(
-		const bt_field_class *field_class,
-		const char *name);
+extern const bt_field_class_variant_option *
+bt_field_class_variant_borrow_option_by_name_const(
+		const bt_field_class *field_class, const char *name);
+
+extern const char *bt_field_class_variant_option_get_name(
+		const bt_field_class_variant_option *option);
+
+extern const bt_field_class *
+bt_field_class_variant_option_borrow_field_class_const(
+		const bt_field_class_variant_option *option);
 
 extern void bt_field_class_get_ref(const bt_field_class *field_class);
 

@@ -163,7 +163,12 @@ struct bt_named_field_class {
 
 	/* Owned by this */
 	struct bt_field_class *fc;
+
+	bool frozen;
 };
+
+struct bt_field_class_structure_member;
+struct bt_field_class_variant_option;
 
 /*
  * This is the base field class for a container of named field classes.
@@ -232,6 +237,15 @@ void _bt_field_class_freeze(const struct bt_field_class *field_class);
 # define bt_field_class_freeze		_bt_field_class_freeze
 #else
 # define bt_field_class_freeze(_fc)
+#endif
+
+BT_HIDDEN
+void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc);
+
+#ifdef BT_DEV_MODE
+# define bt_named_field_class_freeze		_bt_named_field_class_freeze
+#else
+# define bt_named_field_class_freeze(_named_fc)
 #endif
 
 /*

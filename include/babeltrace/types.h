@@ -95,6 +95,8 @@ typedef struct bt_field bt_field;
 typedef struct bt_field_class bt_field_class;
 typedef struct bt_field_class_signed_enumeration_mapping_ranges bt_field_class_signed_enumeration_mapping_ranges;
 typedef struct bt_field_class_unsigned_enumeration_mapping_ranges bt_field_class_unsigned_enumeration_mapping_ranges;
+typedef struct bt_field_class_structure_member bt_field_class_structure_member;
+typedef struct bt_field_class_variant_option bt_field_class_variant_option;
 typedef struct bt_field_path bt_field_path;
 typedef struct bt_graph bt_graph;
 typedef struct bt_message bt_message;
