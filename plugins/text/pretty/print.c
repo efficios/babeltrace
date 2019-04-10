@@ -334,8 +334,8 @@ int print_event_header(struct pretty_component *pretty,
 
 			g_string_append(pretty->string, name);
 
-			if (!print_names) {
-				g_string_append(pretty->string, " ");
+			if (print_names) {
+				g_string_append(pretty->string, ", ");
 			}
 		}
 	}
