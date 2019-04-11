@@ -177,8 +177,6 @@ const char *bt_graph_status_string(enum bt_graph_status status)
 		return "BT_GRAPH_STATUS_END";
 	case BT_GRAPH_STATUS_OK:
 		return "BT_GRAPH_STATUS_OK";
-	case BT_GRAPH_STATUS_NO_SINK:
-		return "BT_GRAPH_STATUS_NO_SINK";
 	case BT_GRAPH_STATUS_ERROR:
 		return "BT_GRAPH_STATUS_ERROR";
 	case BT_GRAPH_STATUS_COMPONENT_REFUSES_PORT_CONNECTION:
@@ -218,6 +216,10 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 			BT_GRAPH_CONFIGURATION_STATE_CONFIGURED)) {
 		goto end;
 	}
+
+#ifdef BT_ASSERT_PRE
+	BT_ASSERT_PRE(graph->has_sink, "Graph has no sink component: %!+g", graph);
+#endif
 
 	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_PARTIALLY_CONFIGURED;
 

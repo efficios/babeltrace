@@ -99,10 +99,6 @@ class UnsupportedFeature(Exception):
     pass
 
 
-class NoSinkComponent(Exception):
-    pass
-
-
 class TryAgain(Exception):
     pass
 

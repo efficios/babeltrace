@@ -752,8 +752,6 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 			if (graph->sinks_to_consume->length > 1) {
 				status = BT_GRAPH_STATUS_OK;
 			}
-		} else if (status == BT_GRAPH_STATUS_NO_SINK) {
-			goto end;
 		}
 	} while (status == BT_GRAPH_STATUS_OK);
 
