@@ -63,8 +63,6 @@ struct ctf_fs_metadata {
 	/* Owned by this */
 	char *text;
 
-	uint8_t uuid[16];
-	bool is_uuid_set;
 	int bo;
 };
 
