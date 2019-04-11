@@ -2614,8 +2614,6 @@ const char *bt_graph_status_str(bt_graph_status status)
 		return "BT_GRAPH_STATUS_CANCELED";
 	case BT_GRAPH_STATUS_ERROR:
 		return "BT_GRAPH_STATUS_ERROR";
-	case BT_GRAPH_STATUS_NO_SINK:
-		return "BT_GRAPH_STATUS_NO_SINK";
 	case BT_GRAPH_STATUS_NOMEM:
 		return "BT_GRAPH_STATUS_NOMEM";
 	default:
