@@ -118,6 +118,14 @@ void update_field_class_in_ir(struct ctf_field_class *fc,
 	{
 		struct ctf_field_class_struct *struct_fc = (void *) fc;
 
+		/*
+		 * Make it part of IR if it's empty because it was
+		 * originally empty.
+		 */
+		if (struct_fc->members->len == 0) {
+			fc->in_ir = true;
+		}
+
 		/* Reverse order */
 		for (i = (int64_t) struct_fc->members->len - 1; i >= 0; i--) {
 			struct ctf_named_field_class *named_fc =

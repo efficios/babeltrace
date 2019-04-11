@@ -326,6 +326,16 @@ bool ctf_field_class_struct_has_immediate_member_in_ir(
 	uint64_t i;
 	bool has_immediate_member_in_ir = false;
 
+	/*
+	 * If the structure field class has no members at all, then it
+	 * was an empty structure in the beginning, so leave it existing
+	 * and empty.
+	 */
+	if (fc->members->len == 0) {
+		has_immediate_member_in_ir = true;
+		goto end;
+	}
+
 	for (i = 0; i < fc->members->len; i++) {
 		struct ctf_named_field_class *named_fc =
 			ctf_field_class_struct_borrow_member_by_index(fc, i);
