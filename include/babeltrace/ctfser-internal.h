@@ -73,11 +73,6 @@ struct bt_ctfser {
 	GString *path;
 };
 
-union bt_ctfser_int_val {
-	int64_t i;
-	uint64_t u;
-};
-
 /*
  * Initializes a CTF serializer.
  *
@@ -197,9 +192,9 @@ end:
 }
 
 static inline
-int _bt_ctfser_write_byte_aligned_int_no_align(struct bt_ctfser *ctfser,
-		union bt_ctfser_int_val value,
-		unsigned int size_bits, bool is_signed, int byte_order)
+int _bt_ctfser_write_byte_aligned_unsigned_int_no_align(
+		struct bt_ctfser *ctfser, uint64_t value,
+		unsigned int size_bits, int byte_order)
 {
 	int ret = 0;
 
@@ -209,96 +204,111 @@ int _bt_ctfser_write_byte_aligned_int_no_align(struct bt_ctfser *ctfser,
 	BT_ASSERT(size_bits % 8 == 0);
 	BT_ASSERT(_bt_ctfser_has_space_left(ctfser, size_bits));
 
-	if (!is_signed) {
-		switch (size_bits) {
-		case 8:
-		{
-			uint8_t v = (uint8_t) value.u;
+	switch (size_bits) {
+	case 8:
+	{
+		uint8_t v = (uint8_t) value;
 
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	case 16:
+	{
+		uint16_t v = (uint16_t) value;
+
+		if (rbo) {
+			v = GUINT16_SWAP_LE_BE(v);
 		}
-		case 16:
-		{
-			uint16_t v = (uint16_t) value.u;
 
-			if (rbo) {
-				v = GUINT16_SWAP_LE_BE(v);
-			}
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	case 32:
+	{
+		uint32_t v = (uint32_t) value;
 
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
+		if (rbo) {
+			v = GUINT32_SWAP_LE_BE(v);
 		}
-		case 32:
-		{
-			uint32_t v = (uint32_t) value.u;
 
-			if (rbo) {
-				v = GUINT32_SWAP_LE_BE(v);
-			}
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	case 64:
+	{
+		uint64_t v = (uint64_t) value;
 
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
+		if (rbo) {
+			v = GUINT64_SWAP_LE_BE(v);
 		}
-		case 64:
-		{
-			uint64_t v = (uint64_t) value.u;
 
-			if (rbo) {
-				v = GUINT64_SWAP_LE_BE(v);
-			}
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	default:
+		abort();
+	}
 
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
+	_bt_ctfser_incr_offset(ctfser, size_bits);
+	return ret;
+}
+
+static inline
+int _bt_ctfser_write_byte_aligned_signed_int_no_align(
+		struct bt_ctfser *ctfser, int64_t value,
+		unsigned int size_bits, int byte_order)
+{
+	int ret = 0;
+
+	/* Reverse byte order? */
+	bool rbo = byte_order != BYTE_ORDER;
+
+	BT_ASSERT(size_bits % 8 == 0);
+	BT_ASSERT(_bt_ctfser_has_space_left(ctfser, size_bits));
+
+	switch (size_bits) {
+	case 8:
+	{
+		int8_t v = (int8_t) value;
+
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	case 16:
+	{
+		int16_t v = (int16_t) value;
+
+		if (rbo) {
+			v = GUINT16_SWAP_LE_BE(v);
 		}
-		default:
-			abort();
+
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	case 32:
+	{
+		int32_t v = (int32_t) value;
+
+		if (rbo) {
+			v = GUINT32_SWAP_LE_BE(v);
 		}
-	} else {
-		switch (size_bits) {
-		case 8:
-		{
-			int8_t v = (int8_t) value.i;
 
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	case 64:
+	{
+		int64_t v = (int64_t) value;
+
+		if (rbo) {
+			v = GUINT64_SWAP_LE_BE(v);
 		}
-		case 16:
-		{
-			int16_t v = (int16_t) value.i;
 
-			if (rbo) {
-				v = GUINT16_SWAP_LE_BE(v);
-			}
-
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
-		}
-		case 32:
-		{
-			int32_t v = (int32_t) value.i;
-
-			if (rbo) {
-				v = GUINT32_SWAP_LE_BE(v);
-			}
-
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
-		}
-		case 64:
-		{
-			int64_t v = (int64_t) value.i;
-
-			if (rbo) {
-				v = GUINT64_SWAP_LE_BE(v);
-			}
-
-			memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
-			break;
-		}
-		default:
-			abort();
-		}
+		memcpy(_bt_ctfser_get_addr(ctfser), &v, sizeof(v));
+		break;
+	}
+	default:
+		abort();
 	}
 
 	_bt_ctfser_incr_offset(ctfser, size_bits);
@@ -306,13 +316,14 @@ int _bt_ctfser_write_byte_aligned_int_no_align(struct bt_ctfser *ctfser,
 }
 
 /*
- * Writes an integer known to have an alignment that is >= 8 at the
- * current offset within the current packet.
+ * Writes an unsigned integer known to have a size that is a multiple of
+ * 8 and an alignment that is >= 8 at the current offset within the
+ * current packet.
  */
 static inline
-int bt_ctfser_write_byte_aligned_int(struct bt_ctfser *ctfser,
-	union bt_ctfser_int_val value, unsigned int alignment_bits,
-	unsigned int size_bits, bool is_signed, int byte_order)
+int bt_ctfser_write_byte_aligned_unsigned_int(struct bt_ctfser *ctfser,
+	uint64_t value, unsigned int alignment_bits,
+	unsigned int size_bits, int byte_order)
 {
 	int ret;
 
@@ -329,8 +340,8 @@ int bt_ctfser_write_byte_aligned_int(struct bt_ctfser *ctfser,
 		}
 	}
 
-	ret = _bt_ctfser_write_byte_aligned_int_no_align(ctfser, value,
-		size_bits, is_signed, byte_order);
+	ret = _bt_ctfser_write_byte_aligned_unsigned_int_no_align(ctfser, value,
+		size_bits, byte_order);
 	if (unlikely(ret)) {
 		goto end;
 	}
@@ -340,11 +351,47 @@ end:
 }
 
 /*
- * Writes an integer at the current offset within the current packet.
+ * Writes a signed integer known to have a size that is a multiple of 8
+ * and an alignment that is >= 8 at the current offset within the
+ * current packet.
  */
 static inline
-int bt_ctfser_write_int(struct bt_ctfser *ctfser, union bt_ctfser_int_val value,
-	unsigned int alignment_bits, unsigned int size_bits, bool is_signed,
+int bt_ctfser_write_byte_aligned_signed_int(struct bt_ctfser *ctfser,
+	int64_t value, unsigned int alignment_bits,
+	unsigned int size_bits, int byte_order)
+{
+	int ret;
+
+	BT_ASSERT(alignment_bits % 8 == 0);
+	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
+	if (unlikely(ret)) {
+		goto end;
+	}
+
+	if (unlikely(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
+		ret = _bt_ctfser_increase_cur_packet_size(ctfser);
+		if (unlikely(ret)) {
+			goto end;
+		}
+	}
+
+	ret = _bt_ctfser_write_byte_aligned_signed_int_no_align(ctfser, value,
+		size_bits, byte_order);
+	if (unlikely(ret)) {
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
+/*
+ * Writes an unsigned integer at the current offset within the current
+ * packet.
+ */
+static inline
+int bt_ctfser_write_unsigned_int(struct bt_ctfser *ctfser, uint64_t value,
+	unsigned int alignment_bits, unsigned int size_bits,
 	int byte_order)
 {
 	int ret = 0;
@@ -362,35 +409,64 @@ int bt_ctfser_write_int(struct bt_ctfser *ctfser, union bt_ctfser_int_val value,
 	}
 
 	if (alignment_bits % 8 == 0 && size_bits % 8 == 0) {
-		ret = _bt_ctfser_write_byte_aligned_int_no_align(ctfser, value,
-			size_bits, is_signed, byte_order);
+		ret = _bt_ctfser_write_byte_aligned_unsigned_int_no_align(
+			ctfser, value, size_bits, byte_order);
 		goto end;
 	}
 
-	if (!is_signed) {
-		if (byte_order == LITTLE_ENDIAN) {
-			bt_bitfield_write_le(mmap_align_addr(ctfser->base_mma) +
-				ctfser->mmap_base_offset, uint8_t,
-				ctfser->offset_in_cur_packet_bits, size_bits,
-				value.u);
-		} else {
-			bt_bitfield_write_be(mmap_align_addr(ctfser->base_mma) +
-				ctfser->mmap_base_offset, uint8_t,
-				ctfser->offset_in_cur_packet_bits, size_bits,
-				value.u);
-		}
+	if (byte_order == LITTLE_ENDIAN) {
+		bt_bitfield_write_le(mmap_align_addr(ctfser->base_mma) +
+			ctfser->mmap_base_offset, uint8_t,
+			ctfser->offset_in_cur_packet_bits, size_bits, value);
 	} else {
-		if (byte_order == LITTLE_ENDIAN) {
-			bt_bitfield_write_le(mmap_align_addr(ctfser->base_mma) +
-				ctfser->mmap_base_offset, uint8_t,
-				ctfser->offset_in_cur_packet_bits, size_bits,
-				value.i);
-		} else {
-			bt_bitfield_write_be(mmap_align_addr(ctfser->base_mma) +
-				ctfser->mmap_base_offset, uint8_t,
-				ctfser->offset_in_cur_packet_bits, size_bits,
-				value.i);
+		bt_bitfield_write_be(mmap_align_addr(ctfser->base_mma) +
+			ctfser->mmap_base_offset, uint8_t,
+			ctfser->offset_in_cur_packet_bits, size_bits, value);
+	}
+
+	_bt_ctfser_incr_offset(ctfser, size_bits);
+
+end:
+	return ret;
+}
+
+/*
+ * Writes a signed integer at the current offset within the current
+ * packet.
+ */
+static inline
+int bt_ctfser_write_signed_int(struct bt_ctfser *ctfser, int64_t value,
+	unsigned int alignment_bits, unsigned int size_bits,
+	int byte_order)
+{
+	int ret = 0;
+
+	ret = bt_ctfser_align_offset_in_current_packet(ctfser, alignment_bits);
+	if (unlikely(ret)) {
+		goto end;
+	}
+
+	if (unlikely(!_bt_ctfser_has_space_left(ctfser, size_bits))) {
+		ret = _bt_ctfser_increase_cur_packet_size(ctfser);
+		if (unlikely(ret)) {
+			goto end;
 		}
+	}
+
+	if (alignment_bits % 8 == 0 && size_bits % 8 == 0) {
+		ret = _bt_ctfser_write_byte_aligned_signed_int_no_align(
+			ctfser, value, size_bits, byte_order);
+		goto end;
+	}
+
+	if (byte_order == LITTLE_ENDIAN) {
+		bt_bitfield_write_le(mmap_align_addr(ctfser->base_mma) +
+			ctfser->mmap_base_offset, uint8_t,
+			ctfser->offset_in_cur_packet_bits, size_bits, value);
+	} else {
+		bt_bitfield_write_be(mmap_align_addr(ctfser->base_mma) +
+			ctfser->mmap_base_offset, uint8_t,
+			ctfser->offset_in_cur_packet_bits, size_bits, value);
 	}
 
 	_bt_ctfser_incr_offset(ctfser, size_bits);
@@ -407,16 +483,14 @@ static inline
 int bt_ctfser_write_float32(struct bt_ctfser *ctfser, double value,
 	unsigned int alignment_bits, int byte_order)
 {
-	union bt_ctfser_int_val int_value;
 	union u32f {
 		uint32_t u;
 		float f;
 	} u32f;
 
 	u32f.f = (float) value;
-	int_value.u = u32f.u;
-	return bt_ctfser_write_int(ctfser, int_value, alignment_bits,
-		32, false, byte_order);
+	return bt_ctfser_write_unsigned_int(ctfser, (uint64_t) u32f.u,
+		alignment_bits, 32, byte_order);
 }
 
 /*
@@ -427,16 +501,14 @@ static inline
 int bt_ctfser_write_float64(struct bt_ctfser *ctfser, double value,
 	unsigned int alignment_bits, int byte_order)
 {
-	union bt_ctfser_int_val int_value;
 	union u64f {
 		uint64_t u;
 		float f;
 	} u64f;
 
 	u64f.f = value;
-	int_value.u = u64f.u;
-	return bt_ctfser_write_int(ctfser, int_value, alignment_bits,
-		64, false, byte_order);
+	return bt_ctfser_write_unsigned_int(ctfser, u64f.u, alignment_bits,
+		64, byte_order);
 }
 
 /*
