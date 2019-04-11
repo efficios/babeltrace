@@ -882,7 +882,6 @@ int bt_ctf_field_integer_serialize(struct bt_ctf_field_common *field,
 	struct bt_ctf_field_common_integer *int_field =
 		BT_CTF_FROM_COMMON(field);
 	enum bt_ctf_byte_order byte_order;
-	union bt_ctfser_int_val value;
 
 	BT_ASSERT_PRE_CTF_FIELD_COMMON_IS_SET(field, "Integer field");
 	BT_LOGV("Serializing CTF writer integer field: addr=%p, native-bo=%s",
@@ -893,12 +892,20 @@ int bt_ctf_field_integer_serialize(struct bt_ctf_field_common *field,
 		byte_order = native_byte_order;
 	}
 
-	value.i = int_field->payload.signd;
-	value.u = int_field->payload.unsignd;
-	ret = bt_ctfser_write_int(ctfser, value, int_type->common.alignment,
-		int_type->size, int_type->is_signed,
-		byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ?
-			LITTLE_ENDIAN : BIG_ENDIAN);
+	if (int_type->is_signed) {
+		ret = bt_ctfser_write_signed_int(ctfser,
+			int_field->payload.signd, int_type->common.alignment,
+			int_type->size,
+			byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ?
+				LITTLE_ENDIAN : BIG_ENDIAN);
+	} else {
+		ret = bt_ctfser_write_unsigned_int(ctfser,
+			int_field->payload.unsignd, int_type->common.alignment,
+			int_type->size,
+			byte_order == BT_CTF_BYTE_ORDER_LITTLE_ENDIAN ?
+				LITTLE_ENDIAN : BIG_ENDIAN);
+	}
+
 	if (unlikely(ret)) {
 		BT_LOGE("Cannot serialize integer field: ret=%d", ret);
 		goto end;
