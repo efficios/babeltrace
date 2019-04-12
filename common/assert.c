@@ -28,9 +28,28 @@ void bt_common_assert_failed(
 	bt_common_color_bold();
 	bt_common_color_fg_red();
 	fprintf(stderr,
-		"%s%s:%d: %s: Assertion %s`%s`%s failed. （╯ ͡°  □ ͡°）╯︵ ┻━┻%s\n",
-		bt_common_color_bold(), file, line, func,
-		bt_common_color_fg_red(), assertion,
-		bt_common_color_fg_default(), bt_common_color_reset());
+		"%s\n%s%s%s (╯°□°)╯︵ ┻━┻ %s %s%s%s%s:%s%d%s: %s%s()%s: "
+		"%sAssertion %s`%s`%s%s failed.%s\n",
+		bt_common_color_reset(),
+		bt_common_color_bold(),
+		bt_common_color_bg_yellow(),
+		bt_common_color_fg_red(),
+		bt_common_color_reset(),
+		bt_common_color_bold(),
+		bt_common_color_fg_magenta(),
+		file,
+		bt_common_color_reset(),
+		bt_common_color_fg_green(),
+		line,
+		bt_common_color_reset(),
+		bt_common_color_fg_cyan(),
+		func,
+		bt_common_color_reset(),
+		bt_common_color_fg_red(),
+		bt_common_color_bold(),
+		assertion,
+		bt_common_color_reset(),
+		bt_common_color_fg_red(),
+		bt_common_color_reset());
 	abort();
 }
