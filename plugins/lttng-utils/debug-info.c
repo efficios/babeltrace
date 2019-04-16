@@ -114,7 +114,7 @@ struct debug_info {
 
 	/*
 	 * Hash table of VPIDs (pointer to int64_t) to
-	 * (struct ctf_proc_debug_infos*); owned by debug_info.
+	 * (struct proc_debug_info_sources*); owned by debug_info.
 	 */
 	GHashTable *vpid_to_proc_dbg_info_src;
 	GQuark q_statedump_bin_info;
