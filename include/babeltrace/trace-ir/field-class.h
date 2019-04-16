@@ -127,7 +127,7 @@ bt_field_class_variant_borrow_option_by_index(
 
 extern bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name(
-		bt_field_class *field_class, char *name);
+		bt_field_class *field_class, const char *name);
 
 extern bt_field_class *bt_field_class_variant_option_borrow_field_class(
 		bt_field_class_variant_option *option);
