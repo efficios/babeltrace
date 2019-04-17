@@ -1514,7 +1514,8 @@ bt_message *handle_stream_act_end_message(struct debug_info_msg_iter *debug_it,
 			in_message);
 	BT_ASSERT(in_stream);
 
-	out_stream = trace_ir_mapping_borrow_mapped_stream(debug_it->ir_maps, in_stream);
+	out_stream = trace_ir_mapping_borrow_mapped_stream(debug_it->ir_maps,
+		in_stream);
 	BT_ASSERT(out_stream);
 
 	out_message = bt_message_stream_activity_end_create(
@@ -1932,6 +1933,33 @@ end:
 	return status;
 }
 
+static
+void debug_info_msg_iter_destroy(struct debug_info_msg_iter *debug_info_msg_iter)
+{
+	if (!debug_info_msg_iter) {
+		goto end;
+	}
+
+	if (debug_info_msg_iter->msg_iter) {
+		bt_self_component_port_input_message_iterator_put_ref(
+				debug_info_msg_iter->msg_iter);
+	}
+
+	if (debug_info_msg_iter->ir_maps) {
+		trace_ir_maps_destroy(debug_info_msg_iter->ir_maps);
+	}
+
+	if (debug_info_msg_iter->debug_info_map) {
+		g_hash_table_destroy(debug_info_msg_iter->debug_info_map);
+	}
+
+	bt_fd_cache_fini(&debug_info_msg_iter->fd_cache);
+	g_free(debug_info_msg_iter);
+
+end:
+	return;
+}
+
 BT_HIDDEN
 bt_self_message_iterator_status debug_info_msg_iter_init(
 		bt_self_message_iterator *self_msg_iter,
@@ -1939,18 +1967,24 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 		bt_self_component_port_output *self_port)
 {
 	bt_self_message_iterator_status status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
-	struct bt_self_component_port_input *input_port;
-	bt_self_component_port_input_message_iterator *upstream_iterator;
-	struct debug_info_msg_iter *debug_info_msg_iter;
+	struct bt_self_component_port_input *input_port = NULL;
+	bt_self_component_port_input_message_iterator *upstream_iterator = NULL;
+	struct debug_info_msg_iter *debug_info_msg_iter = NULL;
 	gchar *debug_info_field_name;
 	int ret;
 
 	/* Borrow the upstream input port. */
 	input_port = bt_self_component_filter_borrow_input_port_by_name(
-			self_comp, "in");
+		self_comp, "in");
 	if (!input_port) {
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-		goto end;
+		goto error;
+	}
+
+	debug_info_msg_iter = g_new0(struct debug_info_msg_iter, 1);
+	if (!debug_info_msg_iter) {
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
+		goto error;
 	}
 
 	/* Create an iterator on the upstream component. */
@@ -1958,63 +1992,52 @@ bt_self_message_iterator_status debug_info_msg_iter_init(
 		input_port);
 	if (!upstream_iterator) {
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
-		goto end;
+		goto error;
 	}
 
-	debug_info_msg_iter = g_new0(struct debug_info_msg_iter, 1);
-	if (!debug_info_msg_iter) {
-		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
-		goto end;
-	}
+	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_MOVE_REF(
+		debug_info_msg_iter->msg_iter, upstream_iterator);
 
-	/* Create hashtable to will contain debug info mapping. */
+	/* Create hashtable that will contain debug info mapping. */
 	debug_info_msg_iter->debug_info_map = g_hash_table_new_full(
-			g_direct_hash, g_direct_equal,
-			(GDestroyNotify) NULL,
-			(GDestroyNotify) debug_info_destroy);
+		g_direct_hash, g_direct_equal, (GDestroyNotify) NULL,
+		(GDestroyNotify) debug_info_destroy);
 	if (!debug_info_msg_iter->debug_info_map) {
-		g_free(debug_info_msg_iter);
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
-		goto end;
+		goto error;
 	}
 
 	debug_info_msg_iter->self_comp =
 		bt_self_component_filter_as_self_component(self_comp);
 
-	BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_MOVE_REF(
-		debug_info_msg_iter->msg_iter, upstream_iterator);
-
 	debug_info_msg_iter->debug_info_component = bt_self_component_get_data(
-				bt_self_component_filter_as_self_component(
-					self_comp));
+		bt_self_component_filter_as_self_component(
+			self_comp));
 
 	debug_info_field_name =
 		debug_info_msg_iter->debug_info_component->arg_debug_info_field_name;
 
 	debug_info_msg_iter->ir_maps = trace_ir_maps_create(
-			bt_self_component_filter_as_self_component(self_comp),
-			debug_info_field_name);
+		bt_self_component_filter_as_self_component(self_comp),
+		debug_info_field_name);
 	if (!debug_info_msg_iter->ir_maps) {
-		g_hash_table_destroy(debug_info_msg_iter->debug_info_map);
-		g_free(debug_info_msg_iter);
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
-		goto end;
+		goto error;
 	}
 
 	ret = bt_fd_cache_init(&debug_info_msg_iter->fd_cache);
 	if (ret) {
-		trace_ir_maps_destroy(debug_info_msg_iter->ir_maps);
-		g_hash_table_destroy(debug_info_msg_iter->debug_info_map);
-		g_free(debug_info_msg_iter);
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
-		goto end;
+		goto error;
 	}
 
-
 	bt_self_message_iterator_set_data(self_msg_iter, debug_info_msg_iter);
-
 	debug_info_msg_iter->input_iterator = self_msg_iter;
 
+	goto end;
+
+error:
+	debug_info_msg_iter_destroy(debug_info_msg_iter);
 end:
 	return status;
 }
@@ -2063,13 +2086,5 @@ void debug_info_msg_iter_finalize(bt_self_message_iterator *it)
 	debug_info_msg_iter = bt_self_message_iterator_get_data(it);
 	BT_ASSERT(debug_info_msg_iter);
 
-	bt_self_component_port_input_message_iterator_put_ref(
-			debug_info_msg_iter->msg_iter);
-
-	trace_ir_maps_destroy(debug_info_msg_iter->ir_maps);
-	g_hash_table_destroy(debug_info_msg_iter->debug_info_map);
-
-	bt_fd_cache_fini(&debug_info_msg_iter->fd_cache);
-
-	g_free(debug_info_msg_iter);
+	debug_info_msg_iter_destroy(debug_info_msg_iter);
 }
