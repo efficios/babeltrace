@@ -43,7 +43,6 @@ int copy_trace_class_content(const bt_trace_class *in_trace_class,
 	int ret = 0;
 	uint64_t i, env_field_count;
 	const char *in_trace_class_name;
-	bt_uuid in_uuid;
 
 	BT_LOGD("Copying content of trace class: in-tc-addr=%p, out-tc-addr=%p",
 			in_trace_class, out_trace_class);
@@ -57,10 +56,10 @@ int copy_trace_class_content(const bt_trace_class *in_trace_class,
 		bt_trace_class_set_name(out_trace_class, in_trace_class_name);
 	}
 
-	in_uuid = bt_trace_class_get_uuid(in_trace_class);
-	if (in_uuid) {
-		bt_trace_class_set_uuid(out_trace_class, in_uuid);
-	}
+	/*
+	 * Do not copy the trace class UUID as it may be modified and should no
+	 * longer have the same UUID.
+	 */
 
 	/*
 	 * Go over all the entries in the environment section of the trace class
