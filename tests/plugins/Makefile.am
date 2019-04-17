@@ -1,11 +1,6 @@
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/plugins
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
-COMMON_TEST_LDADD = $(LIBTAP) \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la \
-	$(top_builddir)/compat/libcompat.la
 
 check_SCRIPTS =
 noinst_PROGRAMS =
