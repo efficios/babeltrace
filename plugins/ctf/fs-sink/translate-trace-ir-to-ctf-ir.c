@@ -154,15 +154,6 @@ void cur_path_stack_pop(struct ctx *ctx)
 	g_array_set_size(ctx->cur_path, ctx->cur_path->len - 1);
 }
 
-static inline
-struct field_path_elem *get_field_path_elem(
-		GArray *full_field_path, uint64_t i)
-{
-	return &g_array_index(full_field_path, struct field_path_elem,
-		i);
-}
-
-
 /*
  * Creates a relative field ref (a single name) from IR field path
  * `tgt_ir_field_path`.
