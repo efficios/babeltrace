@@ -1988,7 +1988,10 @@ struct bt_config *bt_config_query_from_args(int argc, const char *argv[],
 	int ret;
 	struct bt_config *cfg = NULL;
 	const char *leftover;
-	bt_value *params = bt_value_null;
+	bt_value *params;
+
+	params = bt_value_null;
+	bt_value_get_ref(bt_value_null);
 
 	*retcode = 0;
 	cfg = bt_config_query_create(initial_plugin_paths);
