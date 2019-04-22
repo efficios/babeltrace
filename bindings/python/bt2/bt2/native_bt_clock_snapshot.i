@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2016-2017 Philippe Proulx <pproulx@efficios.com>
+ * Copyright (c) 2018 Francis Deslauriers <francis.deslauriers@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,24 @@
  * THE SOFTWARE.
  */
 
-/* Type */
-struct bt_packet;
+/* From clock-snapshot-const.h */
 
-/* Functions */
-struct bt_packet *bt_packet_create(
-		struct bt_stream *stream);
-struct bt_stream *bt_packet_get_stream(
-		struct bt_packet *packet);
-struct bt_field *bt_packet_get_header(
-		struct bt_packet *packet);
-int bt_packet_set_header(
-		struct bt_packet *packet, struct bt_field *header);
-struct bt_field *bt_packet_get_context(
-		struct bt_packet *packet);
-int bt_packet_set_context(
-		struct bt_packet *packet, struct bt_field *context);
+typedef enum bt_clock_snapshot_state {
+	BT_CLOCK_SNAPSHOT_STATE_KNOWN,
+	BT_CLOCK_SNAPSHOT_STATE_UNKNOWN,
+} bt_clock_snapshot_state;
+
+typedef enum bt_clock_snapshot_status {
+	BT_CLOCK_SNAPSHOT_STATUS_OK = 0,
+	BT_CLOCK_SNAPSHOT_STATUS_OVERFLOW = -75,
+} bt_clock_snapshot_status;
+
+extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
+		const bt_clock_snapshot *clock_snapshot);
+
+extern uint64_t bt_clock_snapshot_get_value(
+		const bt_clock_snapshot *clock_snapshot);
+
+extern bt_clock_snapshot_status bt_clock_snapshot_get_ns_from_origin(
+		const bt_clock_snapshot *clock_snapshot,
+		int64_t *OUT);

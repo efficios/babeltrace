@@ -22,28 +22,41 @@
  * THE SOFTWARE.
  */
 
-/* Types */
-struct bt_query_executor;
+/* From query-executor-const.h */
 
-/* Query status */
-enum bt_query_status {
-	BT_QUERY_STATUS_OK = 0,
-	BT_QUERY_STATUS_AGAIN = 11,
-	BT_QUERY_STATUS_EXECUTOR_CANCELED = 125,
-	BT_QUERY_STATUS_ERROR = -1,
-	BT_QUERY_STATUS_INVALID = -22,
-	BT_QUERY_STATUS_INVALID_OBJECT = -23,
-	BT_QUERY_STATUS_INVALID_PARAMS = -24,
-	BT_QUERY_STATUS_NOMEM = -12,
-};
+typedef enum bt_query_executor_status {
+	BT_QUERY_EXECUTOR_STATUS_OK = 0,
+	BT_QUERY_EXECUTOR_STATUS_AGAIN = 11,
+	BT_QUERY_EXECUTOR_STATUS_UNSUPPORTED = 95,
+	BT_QUERY_EXECUTOR_STATUS_CANCELED = 125,
+	BT_QUERY_EXECUTOR_STATUS_ERROR = -1,
+	BT_QUERY_EXECUTOR_STATUS_NOMEM = -12,
+	BT_QUERY_EXECUTOR_STATUS_INVALID_OBJECT = -23,
+	BT_QUERY_EXECUTOR_STATUS_INVALID_PARAMS = -24,
+} bt_query_executor_status;
 
-/* Functions */
-struct bt_query_executor *bt_query_executor_create(void);
-enum bt_query_status bt_query_executor_query(
-		struct bt_query_executor *query_executor,
-		struct bt_component_class *component_class,
-		const char *object, struct bt_value *params,
-		struct bt_value **BTOUTVALUE);
-enum bt_query_status bt_query_executor_cancel(
-		struct bt_query_executor *query_executor);
-int bt_query_executor_is_canceled(struct bt_query_executor *query_executor);
+extern
+bt_bool bt_query_executor_is_canceled(
+		const bt_query_executor *query_executor);
+
+extern void bt_query_executor_get_ref(
+		const bt_query_executor *query_executor);
+
+extern void bt_query_executor_put_ref(
+		const bt_query_executor *query_executor);
+
+/* From query-executor.h */
+
+extern
+bt_query_executor *bt_query_executor_create(void);
+
+extern
+bt_query_executor_status bt_query_executor_query(
+		bt_query_executor *query_executor,
+		const bt_component_class *component_class,
+		const char *object, const bt_value *params,
+		const bt_value **OUT_VALUE);
+
+extern
+bt_query_executor_status bt_query_executor_cancel(
+		bt_query_executor *query_executor);

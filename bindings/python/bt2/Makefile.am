@@ -8,31 +8,31 @@ INSTALLED_FILES=$(builddir)/installed_files.txt
 STATIC_BINDINGS_DEPS =					\
 	bt2/logging.c					\
 	bt2/logging.h					\
-	bt2/native_btccpriomap.i			\
-	bt2/native_btclockclass.i			\
-	bt2/native_btcomponentclass.i			\
-	bt2/native_btcomponent.i			\
-	bt2/native_btconnection.i			\
-	bt2/native_btctfwriter.i			\
-	bt2/native_bteventclass.i			\
-	bt2/native_btevent.i				\
-	bt2/native_btfields.i				\
-	bt2/native_btft.i				\
-	bt2/native_btgraph.i				\
+	bt2/native_bt_clock_class.i			\
+	bt2/native_bt_clock_snapshot.i			\
+	bt2/native_bt_component_class.i			\
+	bt2/native_bt_component.i			\
+	bt2/native_bt_connection.i			\
+	bt2/native_bt_event_class.i			\
+	bt2/native_bt_event.i				\
+	bt2/native_bt_field_class.i			\
+	bt2/native_bt_field_path.i			\
+	bt2/native_bt_field.i				\
+	bt2/native_bt_graph.i				\
 	bt2/native_bt.i					\
-	bt2/native_btlogging.i				\
-	bt2/native_btnotification.i			\
-	bt2/native_btnotifiter.i			\
-	bt2/native_btpacket.i				\
-	bt2/native_btplugin.i				\
-	bt2/native_btport.i				\
-	bt2/native_btqueryexec.i			\
-	bt2/native_btref.i				\
-	bt2/native_btstreamclass.i			\
-	bt2/native_btstream.i				\
-	bt2/native_bttrace.i				\
-	bt2/native_btvalues.i				\
-	bt2/native_btversion.i				\
+	bt2/native_bt_logging.i				\
+	bt2/native_bt_message.i				\
+	bt2/native_bt_notifier.i			\
+	bt2/native_bt_packet.i				\
+	bt2/native_bt_plugin.i				\
+	bt2/native_bt_port.i				\
+	bt2/native_bt_query_exec.i			\
+	bt2/native_bt_stream_class.i			\
+	bt2/native_bt_stream.i				\
+	bt2/native_bt_trace_class.i			\
+	bt2/native_bt_trace.i				\
+	bt2/native_bt_value.i				\
+	bt2/native_bt_version.i				\
 	bt2/clock_class_priority_map.py			\
 	bt2/clock_class.py				\
 	bt2/clock_value.py				\
