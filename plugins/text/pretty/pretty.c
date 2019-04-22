@@ -23,6 +23,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-TEXT-PRETTY-SINK"
+#include "logging.h"
+
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/compiler-internal.h>
 #include <babeltrace/common-internal.h>
@@ -139,7 +142,7 @@ bt_self_component_status handle_message(
 		}
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		fprintf(stderr, "Message iterator inactivity message\n");
+		BT_LOGD_STR("Message iterator inactivity message.");
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
