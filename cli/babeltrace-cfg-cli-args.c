@@ -70,9 +70,6 @@ enum ini_parsing_fsm_state {
 	/* Expect a value */
 	INI_EXPECT_VALUE,
 
-	/* Expect a negative number value */
-	INI_EXPECT_VALUE_NUMBER_NEG,
-
 	/* Expect a comma character (',') */
 	INI_EXPECT_COMMA,
 };
@@ -188,6 +185,41 @@ void ini_append_error_expecting(struct ini_parsing_state *state,
 	g_string_append_printf(state->ini_error, "^\n\n");
 }
 
+/* Parse the next token as a number and return its negation. */
+static
+bt_value *ini_parse_neg_number(struct ini_parsing_state *state)
+{
+	bt_value *value = NULL;
+	GTokenType token_type = g_scanner_get_next_token(state->scanner);
+
+	switch (token_type) {
+	case G_TOKEN_INT:
+	{
+		/* Negative integer */
+		uint64_t int_val = state->scanner->value.v_int64;
+
+		if (int_val > (1ULL << 63) - 1) {
+			g_string_append_printf(state->ini_error,
+				"Integer value -%" PRIu64 " is outside the range of a 64-bit signed integer\n",
+				int_val);
+		} else {
+			value = bt_value_integer_create_init(-((int64_t) int_val));
+		}
+
+		break;
+	}
+	case G_TOKEN_FLOAT:
+		/* Negative floating point number */
+		value = bt_value_real_create_init(-state->scanner->value.v_float);
+		break;
+	default:
+		ini_append_error_expecting(state, state->scanner, "value");
+		break;
+	}
+
+	return value;
+}
+
 static
 int ini_handle_state(struct ini_parsing_state *state)
 {
@@ -204,7 +236,6 @@ int ini_handle_state(struct ini_parsing_state *state)
 					state->scanner, "'='");
 				break;
 			case INI_EXPECT_VALUE:
-			case INI_EXPECT_VALUE_NUMBER_NEG:
 				ini_append_error_expecting(state,
 					state->scanner, "value");
 				break;
@@ -271,8 +302,12 @@ int ini_handle_state(struct ini_parsing_state *state)
 		case G_TOKEN_CHAR:
 			if (state->scanner->value.v_char == '-') {
 				/* Negative number */
-				state->expecting =
-					INI_EXPECT_VALUE_NUMBER_NEG;
+				value = ini_parse_neg_number(state);
+				if (!value) {
+					goto error;
+				}
+
+				state->expecting = INI_EXPECT_COMMA;
 				goto success;
 			} else {
 				ini_append_error_expecting(state,
@@ -334,42 +369,6 @@ int ini_handle_state(struct ini_parsing_state *state)
 			}
 			break;
 		}
-		default:
-			/* Unset value variable will trigger the error */
-			break;
-		}
-
-		if (!value) {
-			ini_append_error_expecting(state,
-				state->scanner, "value");
-			goto error;
-		}
-
-		state->expecting = INI_EXPECT_COMMA;
-		goto success;
-	}
-	case INI_EXPECT_VALUE_NUMBER_NEG:
-	{
-		switch (token_type) {
-		case G_TOKEN_INT:
-		{
-			/* Negative integer */
-			uint64_t int_val = state->scanner->value.v_int64;
-
-			if (int_val > (1ULL << 63) - 1) {
-				g_string_append_printf(state->ini_error,
-					"Integer value -%" PRIu64 " is outside the range of a 64-bit signed integer\n",
-					int_val);
-				goto error;
-			}
-
-			value = bt_value_integer_create_init(-((int64_t)int_val));
-			break;
-		}
-		case G_TOKEN_FLOAT:
-			/* Negative floating point number */
-			value = bt_value_real_create_init(-state->scanner->value.v_float);
-			break;
 		default:
 			/* Unset value variable will trigger the error */
 			break;
