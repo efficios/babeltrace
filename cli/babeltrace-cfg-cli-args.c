@@ -3207,8 +3207,59 @@ end:
 	return g_string_free(ret, FALSE);
 }
 
+/*
+ * Convert `value` to its equivalent representation as a command line parameter
+ * value.
+ */
+
 static
-int append_parameter_to_args(bt_value *args, const char *key, const char *value)
+gchar *bt_value_to_cli_param_value(bt_value *value)
+{
+	GString *buf;
+	gchar *result = NULL;
+
+	buf = g_string_new(NULL);
+	if (!buf) {
+		print_err_oom();
+		goto error;
+	}
+
+	switch (bt_value_get_type(value)) {
+	case BT_VALUE_TYPE_STRING:
+	{
+		const char *str_value = bt_value_string_get(value);
+		gchar *escaped_str_value;
+
+		escaped_str_value = escape_string_value(str_value);
+		if (!escaped_str_value) {
+			goto error;
+		}
+
+		g_string_printf(buf, "\"%s\"", escaped_str_value);
+
+		g_free(escaped_str_value);
+		break;
+	}
+	default:
+		abort();
+	}
+
+	result = g_string_free(buf, FALSE);
+	buf = NULL;
+
+	goto end;
+
+error:
+	if (buf) {
+		g_string_free(buf, TRUE);
+	}
+
+end:
+	return result;
+}
+
+static
+int append_parameter_to_args(bt_value *args, const char *key, bt_value *value)
 {
 	BT_ASSERT(args);
 	BT_ASSERT(bt_value_get_type(args) == BT_VALUE_TYPE_ARRAY);
@@ -3216,7 +3267,7 @@ int append_parameter_to_args(bt_value *args, const char *key, const char *value)
 	BT_ASSERT(value);
 
 	int ret = 0;
-	gchar *escaped_value;
+	gchar *str_value = NULL;
 	GString *parameter = NULL;
 
 	if (bt_value_array_append_string_element(args, "--params")) {
@@ -3225,8 +3276,8 @@ int append_parameter_to_args(bt_value *args, const char *key, const char *value)
 		goto end;
 	}
 
-	escaped_value = escape_string_value(value);
-	if (!escaped_value) {
+	str_value = bt_value_to_cli_param_value(value);
+	if (!str_value) {
 		ret = -1;
 		goto end;
 	}
@@ -3238,7 +3289,7 @@ int append_parameter_to_args(bt_value *args, const char *key, const char *value)
 		goto end;
 	}
 
-	g_string_printf(parameter, "%s=\"%s\"", key, escaped_value);
+	g_string_printf(parameter, "%s=%s", key, str_value);
 
 	if (bt_value_array_append_string_element(args, parameter->str)) {
 		print_err_oom();
@@ -3247,16 +3298,37 @@ int append_parameter_to_args(bt_value *args, const char *key, const char *value)
 	}
 
 end:
-	if (escaped_value) {
-		g_free(escaped_value);
-		escaped_value = NULL;
-	}
-
 	if (parameter) {
 		g_string_free(parameter, TRUE);
 		parameter = NULL;
 	}
 
+	if (str_value) {
+		g_free(str_value);
+		str_value = NULL;
+	}
+
+	return ret;
+}
+
+static
+int append_string_parameter_to_args(bt_value *args, const char *key, const char *value)
+{
+	bt_value *str_value;
+	int ret;
+
+	str_value = bt_value_string_create_init(value);
+
+	if (!str_value) {
+		print_err_oom();
+		ret = -1;
+		goto end;
+	}
+
+	ret = append_parameter_to_args(args, key, str_value);
+
+end:
+	BT_VALUE_PUT_REF_AND_RESET(str_value);
 	return ret;
 }
 
@@ -3264,7 +3336,7 @@ static
 int append_implicit_component_extra_param(struct implicit_component_args *args,
 		const char *key, const char *value)
 {
-	return append_parameter_to_args(args->extra_params, key, value);
+	return append_string_parameter_to_args(args->extra_params, key, value);
 }
 
 static
@@ -3916,7 +3988,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				goto error;
 			}
 
-			if (append_parameter_to_args(run_args, "path", arg)) {
+			if (append_string_parameter_to_args(run_args, "path", arg)) {
 				goto error;
 			}
 			break;
@@ -3928,7 +4000,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			}
 
 
-			if (append_parameter_to_args(run_args, "url", arg)) {
+			if (append_string_parameter_to_args(run_args, "url", arg)) {
 				goto error;
 			}
 			break;
