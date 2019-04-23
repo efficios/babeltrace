@@ -2288,11 +2288,23 @@ int64_t bfcr_get_sequence_length_cb(struct ctf_field_class *fc, void *data)
 		seq_fc->stored_length_index);
 	seq_field = stack_top(notit->stack)->base;
 	BT_ASSERT(seq_field);
-	ret = bt_field_dynamic_array_set_length(seq_field, (uint64_t) length);
-	if (ret) {
-		BT_LOGE("Cannot set dynamic array field's length field: "
-			"notit-addr=%p, field-addr=%p, "
-			"length=%" PRIu64, notit, seq_field, length);
+
+	/*
+	 * bfcr_get_sequence_length_cb() also gets called back for a
+	 * text sequence, but the destination field is a string field.
+	 * Only set the field's sequence length if the destination field
+	 * is a sequence field.
+	 */
+	if (!seq_fc->base.is_text) {
+		BT_ASSERT(bt_field_get_class_type(seq_field) ==
+			BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY);
+		ret = bt_field_dynamic_array_set_length(seq_field,
+			(uint64_t) length);
+		if (ret) {
+			BT_LOGE("Cannot set dynamic array field's length field: "
+				"notit-addr=%p, field-addr=%p, "
+				"length=%" PRIu64, notit, seq_field, length);
+		}
 	}
 
 	return length;
