@@ -220,6 +220,87 @@ bt_value *ini_parse_neg_number(struct ini_parsing_state *state)
 	return value;
 }
 
+/*
+ * Parse the current token (and the following ones if needed) as a value, return
+ * it as a bt_value.
+ */
+static
+bt_value *ini_parse_value(struct ini_parsing_state *state)
+{
+	bt_value *value = NULL;
+	GTokenType token_type = state->scanner->token;
+
+	switch (token_type) {
+	case G_TOKEN_CHAR:
+		if (state->scanner->value.v_char == '-') {
+			/* Negative number */
+			value = ini_parse_neg_number(state);
+		} else {
+			ini_append_error_expecting(state, state->scanner, "value");
+		}
+		break;
+	case G_TOKEN_INT:
+	{
+		/* Positive integer */
+		uint64_t int_val = state->scanner->value.v_int64;
+
+		if (int_val > (1ULL << 63) - 1) {
+			g_string_append_printf(state->ini_error,
+				"Integer value %" PRIu64 " is outside the range of a 64-bit signed integer\n",
+				int_val);
+		} else {
+			value = bt_value_integer_create_init((int64_t)int_val);
+		}
+		break;
+	}
+	case G_TOKEN_FLOAT:
+		/* Positive floating point number */
+		value = bt_value_real_create_init(state->scanner->value.v_float);
+		break;
+	case G_TOKEN_STRING:
+		/* Quoted string */
+		value = bt_value_string_create_init(state->scanner->value.v_string);
+		break;
+	case G_TOKEN_IDENTIFIER:
+	{
+		/*
+		 * Using symbols would be appropriate here,
+		 * but said symbols are allowed as map key,
+		 * so it's easier to consider everything an
+		 * identifier.
+		 *
+		 * If one of the known symbols is not
+		 * recognized here, then fall back to creating
+		 * a string value.
+		 */
+		const char *id = state->scanner->value.v_identifier;
+
+		if (!strcmp(id, "null") || !strcmp(id, "NULL") ||
+				!strcmp(id, "nul")) {
+			value = bt_value_null;
+		} else if (!strcmp(id, "true") || !strcmp(id, "TRUE") ||
+				!strcmp(id, "yes") ||
+				!strcmp(id, "YES")) {
+			value = bt_value_bool_create_init(true);
+		} else if (!strcmp(id, "false") ||
+				!strcmp(id, "FALSE") ||
+				!strcmp(id, "no") ||
+				!strcmp(id, "NO")) {
+			value = bt_value_bool_create_init(false);
+		} else {
+			value = bt_value_string_create_init(id);
+		}
+		break;
+	}
+	default:
+		/* Unset value variable will trigger the error */
+		ini_append_error_expecting(state, state->scanner, "value");
+		break;
+	}
+
+	return value;
+}
+
 static
 int ini_handle_state(struct ini_parsing_state *state)
 {
@@ -298,85 +379,8 @@ int ini_handle_state(struct ini_parsing_state *state)
 		goto success;
 	case INI_EXPECT_VALUE:
 	{
-		switch (token_type) {
-		case G_TOKEN_CHAR:
-			if (state->scanner->value.v_char == '-') {
-				/* Negative number */
-				value = ini_parse_neg_number(state);
-				if (!value) {
-					goto error;
-				}
-
-				state->expecting = INI_EXPECT_COMMA;
-				goto success;
-			} else {
-				ini_append_error_expecting(state,
-					state->scanner, "value");
-				goto error;
-			}
-			break;
-		case G_TOKEN_INT:
-		{
-			/* Positive integer */
-			uint64_t int_val = state->scanner->value.v_int64;
-
-			if (int_val > (1ULL << 63) - 1) {
-				g_string_append_printf(state->ini_error,
-					"Integer value %" PRIu64 " is outside the range of a 64-bit signed integer\n",
-					int_val);
-				goto error;
-			}
-
-			value = bt_value_integer_create_init((int64_t)int_val);
-			break;
-		}
-		case G_TOKEN_FLOAT:
-			/* Positive floating point number */
-			value = bt_value_real_create_init(state->scanner->value.v_float);
-			break;
-		case G_TOKEN_STRING:
-			/* Quoted string */
-			value = bt_value_string_create_init(state->scanner->value.v_string);
-			break;
-		case G_TOKEN_IDENTIFIER:
-		{
-			/*
-			 * Using symbols would be appropriate here,
-			 * but said symbols are allowed as map key,
-			 * so it's easier to consider everything an
-			 * identifier.
-			 *
-			 * If one of the known symbols is not
-			 * recognized here, then fall back to creating
-			 * a string value.
-			 */
-			const char *id = state->scanner->value.v_identifier;
-
-			if (!strcmp(id, "null") || !strcmp(id, "NULL") ||
-					!strcmp(id, "nul")) {
-				value = bt_value_null;
-			} else if (!strcmp(id, "true") || !strcmp(id, "TRUE") ||
-					!strcmp(id, "yes") ||
-					!strcmp(id, "YES")) {
-				value = bt_value_bool_create_init(true);
-			} else if (!strcmp(id, "false") ||
-					!strcmp(id, "FALSE") ||
-					!strcmp(id, "no") ||
-					!strcmp(id, "NO")) {
-				value = bt_value_bool_create_init(false);
-			} else {
-				value = bt_value_string_create_init(id);
-			}
-			break;
-		}
-		default:
-			/* Unset value variable will trigger the error */
-			break;
-		}
-
+		value = ini_parse_value(state);
 		if (!value) {
-			ini_append_error_expecting(state,
-				state->scanner, "value");
 			goto error;
 		}
 
