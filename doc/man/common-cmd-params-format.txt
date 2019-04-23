@@ -31,6 +31,9 @@ list of `NAME=VALUE` assignments:
 
 * Double-quoted string (accepts escape characters).
 
+* Array, formatted as an opening `[`, a list of comma-separated values
+  (as described by the current list) and a closing `]`.
+
 You may put whitespaces around the individual `=` (assignment) and `,`
 (separator) characters.
 --
@@ -41,7 +44,8 @@ Example:
 babeltrace ... --params='many=null, fresh=yes, condition=false,
                          squirrel=-782329, observe=3.14,
                          simple=beef, needs-quotes="some string",
-                         escape.chars-are:allowed="a \" quote"'
+                         escape.chars-are:allowed="a \" quote",
+                         things=[1, "2", 3]'
 ----
 
 IMPORTANT: Like in the example above, make sure to single-quote the
