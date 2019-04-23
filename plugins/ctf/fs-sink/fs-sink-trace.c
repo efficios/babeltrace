@@ -110,34 +110,363 @@ GString *sanitize_trace_path(const char *path)
 	return san_path;
 }
 
+/*
+ * Find a path based on `path` that doesn't exist yet.  First, try `path`
+ * itself, then try with incrementing suffixes.
+ */
+
 static
-GString *make_unique_trace_path(struct fs_sink_comp *fs_sink,
-		const char *output_dir_path, const char *base)
+GString *make_unique_trace_path(const char *path)
 {
-	GString *path = g_string_new(output_dir_path);
-	GString *san_base = NULL;
+	GString *unique_path;
 	unsigned int suffix = 0;
 
-	if (fs_sink->assume_single_trace) {
-		/* Use output directory directly */
-		goto end;
-	}
+	unique_path = g_string_new(path);
 
-	san_base = sanitize_trace_path(base);
-	g_string_append_printf(path, "/%s", san_base->str);
-
-	while (g_file_test(path->str, G_FILE_TEST_IS_DIR)) {
-		g_string_assign(path, output_dir_path);
-		g_string_append_printf(path, "/%s%u", san_base->str, suffix);
+	while (g_file_test(unique_path->str, G_FILE_TEST_EXISTS)) {
+		g_string_printf(unique_path, "%s-%u", path, suffix);
 		suffix++;
 	}
 
-end:
-	if (san_base) {
-		g_string_free(san_base, TRUE);
+	return unique_path;
+}
+
+/*
+ * Validate that the input string `datetime` is an ISO8601-compliant string (the
+ * format used by LTTng in the metadata).
+ */
+
+static
+int lttng_validate_datetime(const char *datetime)
+{
+	GTimeZone *default_tz;
+	GDateTime *gdatetime = NULL;
+	int ret = -1;
+
+	default_tz = g_time_zone_new_utc();
+	if (!default_tz) {
+		BT_LOGD("Failed to allocate timezone");
+		goto end;
 	}
 
+	gdatetime = g_date_time_new_from_iso8601(datetime, default_tz);
+	if (!gdatetime) {
+		BT_LOGD("Couldn't parse datetime as iso8601: date=\"%s\"", datetime);
+		goto end;
+	}
+
+	ret = 0;
+
+end:
+	if (default_tz) {
+		g_time_zone_unref(default_tz);
+		default_tz = NULL;
+	}
+
+	if (gdatetime) {
+		g_date_time_unref(gdatetime);
+		gdatetime = NULL;
+	}
+
+	return ret;
+}
+
+static
+int append_lttng_trace_path_ust_uid(GString *path, const bt_trace_class *tc)
+{
+	const bt_value *v;
+	int ret;
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_buffering_id");
+	if (!v || !bt_value_is_integer(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_buffering_id\"");
+		goto error;
+	}
+
+	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRId64, bt_value_integer_get(v));
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "isa_length");
+	if (!v || !bt_value_is_integer(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"isa_length\"");
+		goto error;
+	}
+
+	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRIu64 "-bit", bt_value_integer_get(v));
+
+	ret = 0;
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	return ret;
+}
+
+static
+int append_lttng_trace_path_ust_pid(GString *path, const bt_trace_class *tc)
+{
+	const bt_value *v;
+	const char *datetime;
+	int ret;
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "procname");
+	if (!v || !bt_value_is_string(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"procname\"");
+		goto error;
+	}
+
+	g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", bt_value_string_get(v));
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "vpid");
+	if (!v || !bt_value_is_integer(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"vpid\"");
+		goto error;
+	}
+
+	g_string_append_printf(path, "-%" PRId64, bt_value_integer_get(v));
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "vpid_datetime");
+	if (!v || !bt_value_is_string(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"vpid_datetime\"");
+		goto error;
+	}
+
+	datetime = bt_value_string_get(v);
+
+	if (lttng_validate_datetime(datetime)) {
+		goto error;
+	}
+
+	g_string_append_printf(path, "-%s", datetime);
+
+	ret = 0;
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+	return ret;
+}
+
+/*
+ * Try to build a trace path based on environment values put in the trace
+ * environment by the LTTng tracer, starting with version 2.11.
+ */
+static
+GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
+{
+	const bt_trace_class *tc;
+	const bt_value *v;
+	const char *tracer_name, *domain, *datetime;
+	int64_t tracer_major, tracer_minor;
+	GString *path;
+
+	path = g_string_new(NULL);
+	if (!path) {
+		goto error;
+	}
+
+	tc = bt_trace_borrow_class_const(trace->ir_trace);
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_name");
+	if (!v || !bt_value_is_string(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_name\"");
+		goto error;
+	}
+
+	tracer_name = bt_value_string_get(v);
+
+	if (!g_str_equal(tracer_name, "lttng-ust")
+			&& !g_str_equal(tracer_name, "lttng-modules")) {
+		BT_LOGD("Unrecognized tracer name: name=\"%s\"", tracer_name);
+		goto error;
+	}
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_major");
+	if (!v || !bt_value_is_integer(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_major\"");
+		goto error;
+	}
+
+	tracer_major = bt_value_integer_get(v);
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_minor");
+	if (!v || !bt_value_is_integer(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_minor\"");
+		goto error;
+	}
+
+	tracer_minor = bt_value_integer_get(v);
+
+	if (!(tracer_major >= 3 || (tracer_major == 2 && tracer_minor >= 11))) {
+		BT_LOGD("Unsupported LTTng version for automatic trace path: major=%" PRId64 ", minor=%" PRId64,
+			tracer_major, tracer_minor);
+		goto error;
+	}
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "hostname");
+	if (!v || !bt_value_is_string(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_hostname\"");
+		goto error;
+	}
+
+	g_string_assign(path, bt_value_string_get(v));
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "trace_name");
+	if (!v || !bt_value_is_string(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"trace_name\"");
+		goto error;
+	}
+
+	g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", bt_value_string_get(v));
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "trace_creation_datetime");
+	if (!v || !bt_value_is_string(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"trace_creation_datetime\"");
+		goto error;
+	}
+
+	datetime = bt_value_string_get(v);
+
+	if (lttng_validate_datetime(datetime)) {
+		goto error;
+	}
+
+	g_string_append_printf(path, "-%s", datetime);
+
+	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "domain");
+	if (!v || !bt_value_is_string(v)) {
+		BT_LOGD_STR("Couldn't get environment value: name=\"domain\"");
+		goto error;
+	}
+
+	domain = bt_value_string_get(v);
+	g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", domain);
+
+	if (g_str_equal(domain, "ust")) {
+		const char *tracer_buffering_scheme;
+
+		v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_buffering_scheme");
+		if (!v || !bt_value_is_string(v)) {
+			BT_LOGD_STR("Couldn't get environment value: name=\"tracer_buffering_scheme\"");
+			goto error;
+		}
+
+		tracer_buffering_scheme = bt_value_string_get(v);
+		g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", tracer_buffering_scheme);
+
+		if (g_str_equal(tracer_buffering_scheme, "uid")) {
+			if (append_lttng_trace_path_ust_uid(path, tc)) {
+				goto error;
+			}
+		} else if (g_str_equal(tracer_buffering_scheme, "pid")){
+			if (append_lttng_trace_path_ust_pid(path, tc)) {
+				goto error;
+			}
+		} else {
+			/* Unknown buffering scheme. */
+			BT_LOGD("Unknown buffering scheme: tracer_buffering_scheme=\"%s\"", tracer_buffering_scheme);
+			goto error;
+		}
+	} else if (!g_str_equal(domain, "kernel")) {
+		/* Unknown domain. */
+		BT_LOGD("Unknown domain: domain=\"%s\"", domain);
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (path) {
+		g_string_free(path, TRUE);
+		path = NULL;
+	}
+
+end:
 	return path;
+}
+
+/* Build the relative output path for `trace`. */
+
+static
+GString *make_trace_path_rel(const struct fs_sink_trace *trace)
+{
+	GString *path = NULL;
+
+	if (trace->fs_sink->assume_single_trace) {
+		/* Use output directory directly */
+		path = g_string_new("");
+		goto end;
+	}
+
+	/* First, try to build a path using environment fields written by LTTng. */
+	path = make_lttng_trace_path_rel(trace);
+	if (path) {
+		goto end;
+	}
+
+	/* Otherwise, use the trace name, if available. */
+	const char *trace_name = bt_trace_get_name(trace->ir_trace);
+	if (trace_name) {
+		path = g_string_new(trace_name);
+		goto end;
+	}
+
+	/* Otherwise, use "trace". */
+	path = g_string_new("trace");
+
+end:
+	return path;
+}
+
+/*
+ * Compute the trace output path for `trace`, rooted at `output_base_directory`.
+ */
+
+static
+GString *make_trace_path(const struct fs_sink_trace *trace, const char *output_base_directory)
+{
+	GString *rel_path = NULL;
+	GString *rel_path_san = NULL;
+	GString *full_path = NULL;
+	GString *unique_full_path = NULL;
+
+	rel_path = make_trace_path_rel(trace);
+	if (!rel_path) {
+		goto end;
+	}
+
+	rel_path_san = sanitize_trace_path(rel_path->str);
+	if (!rel_path_san) {
+		goto end;
+	}
+
+	full_path = g_string_new(NULL);
+	if (!full_path) {
+		goto end;
+	}
+
+	g_string_printf(full_path, "%s" G_DIR_SEPARATOR_S "%s",
+		output_base_directory, rel_path_san->str);
+
+	unique_full_path = make_unique_trace_path(full_path->str);
+
+end:
+	if (rel_path) {
+		g_string_free(rel_path, TRUE);
+	}
+
+	if (rel_path_san) {
+		g_string_free(rel_path_san, TRUE);
+	}
+
+	if (full_path) {
+		g_string_free(full_path, TRUE);
+	}
+
+	return unique_full_path;
 }
 
 BT_HIDDEN
@@ -242,15 +571,10 @@ struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink,
 {
 	int ret;
 	struct fs_sink_trace *trace = g_new0(struct fs_sink_trace, 1);
-	const char *trace_name = bt_trace_get_name(ir_trace);
 	bt_trace_status trace_status;
 
 	if (!trace) {
 		goto end;
-	}
-
-	if (!trace_name) {
-		trace_name = "trace";
 	}
 
 	trace->fs_sink = fs_sink;
@@ -262,8 +586,7 @@ struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink,
 		goto error;
 	}
 
-	trace->path = make_unique_trace_path(fs_sink,
-		fs_sink->output_dir_path->str, trace_name);
+	trace->path = make_trace_path(trace, fs_sink->output_dir_path->str);
 	BT_ASSERT(trace->path);
 	ret = g_mkdir_with_parents(trace->path->str, 0755);
 	if (ret) {
