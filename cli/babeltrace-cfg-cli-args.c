@@ -198,7 +198,7 @@ bt_value *ini_parse_neg_number(struct ini_parsing_state *state)
 		/* Negative integer */
 		uint64_t int_val = state->scanner->value.v_int64;
 
-		if (int_val > (1ULL << 63) - 1) {
+		if (int_val > (((uint64_t) INT64_MAX) + 1)) {
 			g_string_append_printf(state->ini_error,
 				"Integer value -%" PRIu64 " is outside the range of a 64-bit signed integer\n",
 				int_val);
@@ -244,7 +244,7 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 		/* Positive integer */
 		uint64_t int_val = state->scanner->value.v_int64;
 
-		if (int_val > (1ULL << 63) - 1) {
+		if (int_val > INT64_MAX) {
 			g_string_append_printf(state->ini_error,
 				"Integer value %" PRIu64 " is outside the range of a 64-bit signed integer\n",
 				int_val);
