@@ -2149,10 +2149,7 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	int ret = 0;
 	uint64_t trace_idx;
 	int64_t trace_count;
-	bt_value_status value_status;
 	const char *path = NULL;
-	const bt_value *component_path_value = NULL;
-	bt_value *query_params = NULL;
 	const bt_value *query_result = NULL;
 	const bt_value *trace_info = NULL;
 	const bt_value *intersection_range = NULL;
@@ -2168,33 +2165,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	const bt_component_class *comp_cls =
 		bt_component_class_source_as_component_class_const(src_comp_cls);
 
-	component_path_value = bt_value_map_borrow_entry_value(cfg_comp->params,
-							       "path");
-	if (component_path_value && !bt_value_is_string(component_path_value)) {
-		BT_LOGD("Cannot get path parameter: component-name=%s",
-			cfg_comp->instance_name->str);
-		ret = -1;
-		goto error;
-	}
-
-	path = bt_value_string_get(component_path_value);
-	query_params = bt_value_map_create();
-	if (!query_params) {
-		BT_LOGE_STR("Cannot create query parameters.");
-		ret = -1;
-		goto error;
-	}
-
-	value_status = bt_value_map_insert_string_entry(query_params, "path",
-		path);
-	if (value_status != BT_VALUE_STATUS_OK) {
-		BT_LOGE_STR("Cannot insert path parameter in query parameter map.");
-		ret = -1;
-		goto error;
-	}
-
 	ret = query(comp_cls, "trace-info",
-		query_params, &query_result,
+		cfg_comp->params, &query_result,
 		&fail_reason);
 	if (ret) {
 		BT_LOGD("Component class does not support the `trace-info` query: %s: "
@@ -2372,7 +2344,6 @@ error:
 		path ? path : "(unknown)",
 		bt_common_color_reset());
 end:
-	bt_value_put_ref(query_params);
 	bt_value_put_ref(query_result);
 	g_free(port_id);
 	g_free(trace_range);

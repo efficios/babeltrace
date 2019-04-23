@@ -327,14 +327,12 @@ end:
 }
 
 static
-int populate_trace_info(const char *trace_path, const char *trace_name,
-		bt_value *trace_info)
+int populate_trace_info(const struct ctf_fs_trace *trace, bt_value *trace_info)
 {
 	int ret = 0;
 	size_t group_idx;
-	struct ctf_fs_trace *trace = NULL;
 	bt_value_status status;
-	bt_value *file_groups;
+	bt_value *file_groups = NULL;
 	struct range trace_range = {
 		.begin_ns = INT64_MAX,
 		.end_ns = 0,
@@ -346,34 +344,27 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 		.set = false,
 	};
 
+	BT_ASSERT(trace->ds_file_groups);
+	/* Add trace range info only if it contains streams. */
+	if (trace->ds_file_groups->len == 0) {
+		ret = -1;
+		goto end;
+	}
+
 	file_groups = bt_value_array_create();
 	if (!file_groups) {
 		goto end;
 	}
 
 	status = bt_value_map_insert_string_entry(trace_info, "name",
-		trace_name);
+		trace->name->str);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 	status = bt_value_map_insert_string_entry(trace_info, "path",
-			trace_path);
+		trace->path->str);
 	if (status != BT_VALUE_STATUS_OK) {
-		ret = -1;
-		goto end;
-	}
-
-	trace = ctf_fs_trace_create(NULL, trace_path, trace_name, NULL);
-	if (!trace) {
-		BT_LOGE("Failed to create fs trace at \'%s\'", trace_path);
-		ret = -1;
-		goto end;
-	}
-
-	BT_ASSERT(trace->ds_file_groups);
-	/* Add trace range info only if it contains streams. */
-	if (trace->ds_file_groups->len == 0) {
 		ret = -1;
 		goto end;
 	}
@@ -443,7 +434,6 @@ int populate_trace_info(const char *trace_path, const char *trace_name,
 
 end:
 	bt_value_put_ref(file_groups);
-	ctf_fs_trace_destroy(trace);
 	return ret;
 }
 
@@ -453,16 +443,12 @@ bt_query_status trace_info_query(
 		const bt_value *params,
 		const bt_value **user_result)
 {
+	struct ctf_fs_component *ctf_fs = NULL;
 	bt_query_status status = BT_QUERY_STATUS_OK;
 	bt_value *result = NULL;
-	const bt_value *path_value = NULL;
+	const bt_value *paths_value = NULL;
 	int ret = 0;
-	const char *path = NULL;
-	GList *trace_paths = NULL;
-	GList *trace_names = NULL;
-	GList *tp_node = NULL;
-	GList *tn_node = NULL;
-	GString *normalized_path = NULL;
+	guint i;
 
 	BT_ASSERT(params);
 
@@ -472,25 +458,17 @@ bt_query_status trace_info_query(
 		goto error;
 	}
 
-	path_value = bt_value_map_borrow_entry_value_const(params, "path");
-	path = bt_value_string_get(path_value);
-
-	normalized_path = bt_common_normalize_path(path, NULL);
-	if (!normalized_path) {
-		BT_LOGE("Failed to normalize path: `%s`.", path);
-		goto error;
-	}
-	BT_ASSERT(path);
-
-	ret = ctf_fs_find_traces(&trace_paths, normalized_path->str);
-	if (ret) {
+	paths_value = bt_value_map_borrow_entry_value_const(params, "paths");
+	if (!validate_paths_parameter(paths_value)) {
 		goto error;
 	}
 
-	trace_names = ctf_fs_create_trace_names(trace_paths,
-		normalized_path->str);
-	if (!trace_names) {
-		BT_LOGE("Cannot create trace names from trace paths.");
+	ctf_fs = ctf_fs_component_create();
+	if (!ctf_fs) {
+		goto error;
+	}
+
+	if (ctf_fs_component_create_ctf_fs_traces(NULL, ctf_fs, paths_value)) {
 		goto error;
 	}
 
@@ -500,14 +478,13 @@ bt_query_status trace_info_query(
 		goto error;
 	}
 
-	/* Iterates over both trace paths and names simultaneously. */
-	for (tp_node = trace_paths, tn_node = trace_names; tp_node;
-			tp_node = g_list_next(tp_node),
-			tn_node = g_list_next(tn_node)) {
-		GString *trace_path = tp_node->data;
-		GString *trace_name = tn_node->data;
-		bt_value_status status;
+	for (i = 0; i < ctf_fs->traces->len; i++) {
+		struct ctf_fs_trace *trace;
 		bt_value *trace_info;
+		bt_value_status status;
+
+		trace = g_ptr_array_index(ctf_fs->traces, i);
+		BT_ASSERT(trace);
 
 		trace_info = bt_value_map_create();
 		if (!trace_info) {
@@ -515,8 +492,7 @@ bt_query_status trace_info_query(
 			goto error;
 		}
 
-		ret = populate_trace_info(trace_path->str, trace_name->str,
-			trace_info);
+		ret = populate_trace_info(trace, trace_info);
 		if (ret) {
 			bt_value_put_ref(trace_info);
 			goto error;
@@ -540,24 +516,9 @@ error:
 	}
 
 end:
-	if (normalized_path) {
-		g_string_free(normalized_path, TRUE);
-	}
-	if (trace_paths) {
-		for (tp_node = trace_paths; tp_node; tp_node = g_list_next(tp_node)) {
-			if (tp_node->data) {
-				g_string_free(tp_node->data, TRUE);
-			}
-		}
-		g_list_free(trace_paths);
-	}
-	if (trace_names) {
-		for (tn_node = trace_names; tn_node; tn_node = g_list_next(tn_node)) {
-			if (tn_node->data) {
-				g_string_free(tn_node->data, TRUE);
-			}
-		}
-		g_list_free(trace_names);
+	if (ctf_fs) {
+		ctf_fs_destroy(ctf_fs);
+		ctf_fs = NULL;
 	}
 
 	*user_result = result;
