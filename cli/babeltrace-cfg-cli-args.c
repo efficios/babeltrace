@@ -3132,17 +3132,6 @@ void finalize_implicit_component_args(struct implicit_component_args *args)
 }
 
 static
-void destroy_implicit_component_args(void *args)
-{
-	if (!args) {
-		return;
-	}
-
-	finalize_implicit_component_args(args);
-	g_free(args);
-}
-
-static
 int init_implicit_component_args(struct implicit_component_args *args,
 		const char *comp_arg, bool exists)
 {
@@ -3207,6 +3196,55 @@ end:
 	return g_string_free(ret, FALSE);
 }
 
+static
+int bt_value_to_cli_param_value_append(const bt_value *value, GString *buf)
+{
+	BT_ASSERT(buf);
+
+	int ret = -1;
+
+	switch (bt_value_get_type(value)) {
+	case BT_VALUE_TYPE_STRING:
+	{
+		const char *str_value = bt_value_string_get(value);
+		gchar *escaped_str_value;
+
+		escaped_str_value = escape_string_value(str_value);
+		if (!escaped_str_value) {
+			goto end;
+		}
+
+		g_string_append_printf(buf, "\"%s\"", escaped_str_value);
+
+		g_free(escaped_str_value);
+		break;
+	}
+	case BT_VALUE_TYPE_ARRAY: {
+		g_string_append_c(buf, '[');
+		uint64_t sz = bt_value_array_get_size(value);
+		for (uint64_t i = 0; i < sz; i++) {
+			if (i > 0) {
+				g_string_append_c(buf, ',');
+			}
+			const bt_value *item = bt_value_array_borrow_element_by_index_const(value, i);
+			int ret = bt_value_to_cli_param_value_append(item, buf);
+			if (ret) {
+				goto end;
+			}
+		}
+		g_string_append_c(buf, ']');
+		break;
+	}
+	default:
+		abort();
+	}
+
+	ret = 0;
+
+end:
+	return ret;
+}
+
 /*
  * Convert `value` to its equivalent representation as a command line parameter
  * value.
@@ -3224,24 +3262,8 @@ gchar *bt_value_to_cli_param_value(bt_value *value)
 		goto error;
 	}
 
-	switch (bt_value_get_type(value)) {
-	case BT_VALUE_TYPE_STRING:
-	{
-		const char *str_value = bt_value_string_get(value);
-		gchar *escaped_str_value;
-
-		escaped_str_value = escape_string_value(str_value);
-		if (!escaped_str_value) {
-			goto error;
-		}
-
-		g_string_printf(buf, "\"%s\"", escaped_str_value);
-
-		g_free(escaped_str_value);
-		break;
-	}
-	default:
-		abort();
+	if (bt_value_to_cli_param_value_append(value, buf)) {
+		goto error;
 	}
 
 	result = g_string_free(buf, FALSE);
@@ -3652,85 +3674,6 @@ end:
 	return ret;
 }
 
-static
-struct implicit_component_args *create_implicit_component_args(void)
-{
-	struct implicit_component_args *impl_args =
-		g_new0(struct implicit_component_args, 1);
-
-	if (!impl_args) {
-		goto end;
-	}
-
-	if (init_implicit_component_args(impl_args, NULL, true)) {
-		destroy_implicit_component_args(impl_args);
-		impl_args = NULL;
-		goto end;
-	}
-
-end:
-	return impl_args;
-}
-
-static
-int fill_implicit_ctf_inputs_args(GPtrArray *implicit_ctf_inputs_args,
-		struct implicit_component_args *base_implicit_ctf_input_args,
-		GList *leftovers)
-{
-	int ret = 0;
-	GList *leftover;
-	bt_value_status status;
-
-	for (leftover = leftovers; leftover != NULL;
-			leftover = g_list_next(leftover)) {
-		GString *gs_leftover = leftover->data;
-		struct implicit_component_args *impl_args =
-			create_implicit_component_args();
-
-		if (!impl_args) {
-			print_err_oom();
-			goto error;
-		}
-
-		impl_args->exists = true;
-		g_string_assign(impl_args->comp_arg,
-			base_implicit_ctf_input_args->comp_arg->str);
-		g_string_assign(impl_args->params_arg,
-			base_implicit_ctf_input_args->params_arg->str);
-
-		/*
-		 * We need our own copy of the extra parameters because
-		 * this is where the unique path goes.
-		 */
-		BT_VALUE_PUT_REF_AND_RESET(impl_args->extra_params);
-		status = bt_value_copy(base_implicit_ctf_input_args->extra_params,
-			&impl_args->extra_params);
-		if (status != BT_VALUE_STATUS_OK) {
-			print_err_oom();
-			destroy_implicit_component_args(impl_args);
-			goto error;
-		}
-
-		/* Append unique path parameter */
-		ret = append_implicit_component_extra_param(impl_args,
-			"path", gs_leftover->str);
-		if (ret) {
-			destroy_implicit_component_args(impl_args);
-			goto error;
-		}
-
-		g_ptr_array_add(implicit_ctf_inputs_args, impl_args);
-	}
-
-	goto end;
-
-error:
-	ret = -1;
-
-end:
-	return ret;
-}
-
 /*
  * Creates a Babeltrace config object from the arguments of a convert
  * command.
@@ -3765,9 +3708,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	GList *source_names = NULL;
 	GList *filter_names = NULL;
 	GList *sink_names = NULL;
-	GList *leftovers = NULL;
-	GPtrArray *implicit_ctf_inputs_args = NULL;
-	struct implicit_component_args base_implicit_ctf_input_args = { 0 };
+	bt_value *leftovers = NULL;
+	struct implicit_component_args implicit_ctf_input_args = { 0 };
 	struct implicit_component_args implicit_ctf_output_args = { 0 };
 	struct implicit_component_args implicit_lttng_live_args = { 0 };
 	struct implicit_component_args implicit_dummy_args = { 0 };
@@ -3791,7 +3733,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto end;
 	}
 
-	if (init_implicit_component_args(&base_implicit_ctf_input_args,
+	if (init_implicit_component_args(&implicit_ctf_input_args,
 			"source.ctf.fs", false)) {
 		goto error;
 	}
@@ -3831,13 +3773,6 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		goto error;
 	}
 
-	implicit_ctf_inputs_args = g_ptr_array_new_with_free_func(
-		(GDestroyNotify) destroy_implicit_component_args);
-	if (!implicit_ctf_inputs_args) {
-		print_err_oom();
-		goto error;
-	}
-
 	all_names = bt_value_map_create();
 	if (!all_names) {
 		print_err_oom();
@@ -3864,6 +3799,12 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	ret = append_env_var_plugin_paths(plugin_paths);
 	if (ret) {
+		goto error;
+	}
+
+	leftovers = bt_value_array_create();
+	if (!leftovers) {
+		print_err_oom();
 		goto error;
 	}
 
@@ -4233,15 +4174,15 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			implicit_text_args.exists = true;
 			break;
 		case OPT_CLOCK_OFFSET:
-			base_implicit_ctf_input_args.exists = true;
+			implicit_ctf_input_args.exists = true;
 			append_implicit_component_param(
-					&base_implicit_ctf_input_args,
+					&implicit_ctf_input_args,
 					"clock-class-offset-s", arg);
 			break;
 		case OPT_CLOCK_OFFSET_NS:
-			base_implicit_ctf_input_args.exists = true;
+			implicit_ctf_input_args.exists = true;
 			append_implicit_component_param(
-					&base_implicit_ctf_input_args,
+					&implicit_ctf_input_args,
 					"clock-class-offset-ns", arg);
 			break;
 		case OPT_CLOCK_SECONDS:
@@ -4332,7 +4273,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			got_input_format_opt = true;
 
 			if (strcmp(arg, "ctf") == 0) {
-				base_implicit_ctf_input_args.exists = true;
+				implicit_ctf_input_args.exists = true;
 			} else if (strcmp(arg, "lttng-live") == 0) {
 				implicit_lttng_live_args.exists = true;
 			} else {
@@ -4441,16 +4382,8 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Consume and keep leftover arguments */
 	while ((leftover = poptGetArg(pc))) {
-		GString *gs_leftover = g_string_new(leftover);
-
-		if (!gs_leftover) {
-			print_err_oom();
-			goto error;
-		}
-
-		leftovers = g_list_append(leftovers, gs_leftover);
-		if (!leftovers) {
-			g_string_free(gs_leftover, TRUE);
+		bt_value_status status = bt_value_array_append_string_element(leftovers, leftover);
+		if (status != BT_VALUE_STATUS_OK) {
 			print_err_oom();
 			goto error;
 		}
@@ -4458,14 +4391,14 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 	/* Print CTF metadata or print LTTng live sessions */
 	if (print_ctf_metadata) {
-		GString *gs_leftover;
+		const bt_value *bt_val_leftover;
 
-		if (g_list_length(leftovers) == 0) {
+		if (bt_value_array_is_empty(leftovers)) {
 			printf_err("--output-format=ctf-metadata specified without a path\n");
 			goto error;
 		}
 
-		if (g_list_length(leftovers) > 1) {
+		if (bt_value_array_get_size(leftovers) > 1) {
 			printf_err("Too many paths specified for --output-format=ctf-metadata\n");
 			goto error;
 		}
@@ -4475,9 +4408,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			goto error;
 		}
 
-		gs_leftover = leftovers->data;
+		bt_val_leftover = bt_value_array_borrow_element_by_index_const(leftovers, 0);
 		g_string_assign(cfg->cmd_data.print_ctf_metadata.path,
-			gs_leftover->str);
+				bt_value_string_get(bt_val_leftover));
 
 		if (output) {
 			g_string_assign(
@@ -4543,18 +4476,18 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	}
 
 	/* Decide where the leftover argument(s) go */
-	if (g_list_length(leftovers) > 0) {
+	if (bt_value_array_get_size(leftovers) > 0) {
 		if (implicit_lttng_live_args.exists) {
-			GString *gs_leftover;
+			const bt_value *bt_val_leftover;
 
-			if (g_list_length(leftovers) > 1) {
+			if (bt_value_array_get_size(leftovers) > 1) {
 				printf_err("Too many URLs specified for --output-format=lttng-live\n");
 				goto error;
 			}
 
-			gs_leftover = leftovers->data;
+			bt_val_leftover = bt_value_array_borrow_element_by_index_const(leftovers, 0);
 			lttng_live_url_parts =
-				bt_common_parse_lttng_live_url(gs_leftover->str,
+				bt_common_parse_lttng_live_url(bt_value_string_get(bt_val_leftover),
 					error_buf, sizeof(error_buf));
 			if (!lttng_live_url_parts.proto) {
 				printf_err("Invalid LTTng live URL format: %s\n",
@@ -4571,7 +4504,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 				}
 
 				g_string_assign(cfg->cmd_data.print_lttng_live_sessions.url,
-					gs_leftover->str);
+					bt_value_string_get(bt_val_leftover));
 
 				if (output) {
 					g_string_assign(
@@ -4584,20 +4517,19 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 
 			ret = append_implicit_component_extra_param(
 				&implicit_lttng_live_args, "url",
-				gs_leftover->str);
+				bt_value_string_get(bt_val_leftover));
 			if (ret) {
 				goto error;
 			}
 		} else {
 			/*
-			 * Append one implicit component argument set
-			 * for each leftover (souce.ctf.fs paths). Copy
-			 * the base implicit component arguments.
-			 * Note that they still have to be named later.
+			 * Create one source.ctf.fs component, pass it an array
+			 * with the leftovers.
+			 * Note that it still has to be named later.
 			 */
-			ret = fill_implicit_ctf_inputs_args(
-				implicit_ctf_inputs_args,
-				&base_implicit_ctf_input_args, leftovers);
+			implicit_ctf_input_args.exists = true;
+			ret = append_parameter_to_args(implicit_ctf_input_args.extra_params,
+					"paths", leftovers);
 			if (ret) {
 				goto error;
 			}
@@ -4608,10 +4540,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * Ensure mutual exclusion between implicit `source.ctf.fs` and
 	 * `source.ctf.lttng-live` components.
 	 */
-	if (base_implicit_ctf_input_args.exists &&
-			implicit_lttng_live_args.exists) {
+	if (implicit_ctf_input_args.exists && implicit_lttng_live_args.exists) {
 		printf_err("Cannot create both implicit `%s` and `%s` components\n",
-			base_implicit_ctf_input_args.comp_arg->str,
+			implicit_ctf_input_args.comp_arg->str,
 			implicit_lttng_live_args.comp_arg->str);
 		goto error;
 	}
@@ -4621,29 +4552,23 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * components exists, make sure there's at least one leftover
 	 * (which is the path or URL).
 	 */
-	if (base_implicit_ctf_input_args.exists &&
-			g_list_length(leftovers) == 0) {
+	if (implicit_ctf_input_args.exists && bt_value_array_is_empty(leftovers)) {
 		printf_err("Missing path for implicit `%s` component\n",
-			base_implicit_ctf_input_args.comp_arg->str);
+			implicit_ctf_input_args.comp_arg->str);
 		goto error;
 	}
 
-	if (implicit_lttng_live_args.exists && g_list_length(leftovers) == 0) {
+	if (implicit_lttng_live_args.exists && bt_value_array_is_empty(leftovers)) {
 		printf_err("Missing URL for implicit `%s` component\n",
 			implicit_lttng_live_args.comp_arg->str);
 		goto error;
 	}
 
 	/* Assign names to implicit components */
-	for (i = 0; i < implicit_ctf_inputs_args->len; i++) {
-		struct implicit_component_args *impl_args =
-			g_ptr_array_index(implicit_ctf_inputs_args, i);
-
-		ret = assign_name_to_implicit_component(impl_args,
-			"source-ctf-fs", all_names, &source_names, true);
-		if (ret) {
-			goto error;
-		}
+	ret = assign_name_to_implicit_component(&implicit_ctf_input_args,
+		"source-ctf-fs", all_names, &source_names, true);
+	if (ret) {
+		goto error;
 	}
 
 	ret = assign_name_to_implicit_component(&implicit_lttng_live_args,
@@ -4729,15 +4654,9 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 	 * Append the equivalent run arguments for the implicit
 	 * components.
 	 */
-	for (i = 0; i < implicit_ctf_inputs_args->len; i++) {
-		struct implicit_component_args *impl_args =
-			g_ptr_array_index(implicit_ctf_inputs_args, i);
-
-		ret = append_run_args_for_implicit_component(impl_args,
-			run_args);
-		if (ret) {
-			goto error;
-		}
+	ret = append_run_args_for_implicit_component(&implicit_ctf_input_args, run_args);
+	if (ret) {
+		goto error;
 	}
 
 	ret = append_run_args_for_implicit_component(&implicit_lttng_live_args,
@@ -4874,17 +4793,13 @@ end:
 		g_string_free(cur_name_prefix, TRUE);
 	}
 
-	if (implicit_ctf_inputs_args) {
-		g_ptr_array_free(implicit_ctf_inputs_args, TRUE);
-	}
-
 	bt_value_put_ref(run_args);
 	bt_value_put_ref(all_names);
 	destroy_glist_of_gstring(source_names);
 	destroy_glist_of_gstring(filter_names);
 	destroy_glist_of_gstring(sink_names);
-	destroy_glist_of_gstring(leftovers);
-	finalize_implicit_component_args(&base_implicit_ctf_input_args);
+	bt_value_put_ref(leftovers);
+	finalize_implicit_component_args(&implicit_ctf_input_args);
 	finalize_implicit_component_args(&implicit_ctf_output_args);
 	finalize_implicit_component_args(&implicit_lttng_live_args);
 	finalize_implicit_component_args(&implicit_dummy_args);

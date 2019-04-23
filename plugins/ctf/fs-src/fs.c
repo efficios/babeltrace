@@ -291,7 +291,7 @@ end:
 	return ret;
 }
 
-static
+BT_HIDDEN
 void ctf_fs_destroy(struct ctf_fs_component *ctf_fs)
 {
 	if (!ctf_fs) {
@@ -309,7 +309,22 @@ void ctf_fs_destroy(struct ctf_fs_component *ctf_fs)
 	g_free(ctf_fs);
 }
 
-BT_HIDDEN
+static
+void port_data_destroy(struct ctf_fs_port_data *port_data)
+{
+	if (!port_data) {
+		return;
+	}
+
+	g_free(port_data);
+}
+
+static
+void port_data_destroy_notifier(void *data) {
+	port_data_destroy(data);
+}
+
+static
 void ctf_fs_trace_destroy(struct ctf_fs_trace *ctf_fs_trace)
 {
 	if (!ctf_fs_trace) {
@@ -345,21 +360,42 @@ void ctf_fs_trace_destroy_notifier(void *data)
 	ctf_fs_trace_destroy(trace);
 }
 
+struct ctf_fs_component *ctf_fs_component_create(void)
+{
+	struct ctf_fs_component *ctf_fs;
+
+	ctf_fs = g_new0(struct ctf_fs_component, 1);
+	if (!ctf_fs) {
+		goto error;
+	}
+
+	ctf_fs->port_data =
+		g_ptr_array_new_with_free_func(port_data_destroy_notifier);
+	if (!ctf_fs->port_data) {
+		goto error;
+	}
+
+	ctf_fs->traces =
+		g_ptr_array_new_with_free_func(ctf_fs_trace_destroy_notifier);
+	if (!ctf_fs->traces) {
+		goto error;
+	}
+
+	goto end;
+
+error:
+	if (ctf_fs) {
+		ctf_fs_destroy(ctf_fs);
+	}
+
+end:
+	return ctf_fs;
+}
+
 void ctf_fs_finalize(bt_self_component_source *component)
 {
 	ctf_fs_destroy(bt_self_component_get_data(
 		bt_self_component_source_as_self_component(component)));
-}
-
-static
-void port_data_destroy(void *data) {
-	struct ctf_fs_port_data *port_data = data;
-
-	if (!port_data) {
-		return;
-	}
-
-	g_free(port_data);
 }
 
 static
@@ -764,7 +800,6 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 	const char *basename;
 	GError *error = NULL;
 	GDir *dir = NULL;
-	size_t i;
 
 	/* Check each file in the path directory, except specific ones */
 	dir = g_dir_open(ctf_fs_trace->path->str, 0, &error);
@@ -835,68 +870,6 @@ int create_ds_file_groups(struct ctf_fs_trace *ctf_fs_trace)
 		ctf_fs_file_destroy(file);
 	}
 
-	if (!ctf_fs_trace->trace) {
-		goto end;
-	}
-
-	/*
-	 * At this point, DS file groupes are created, but their
-	 * associated stream objects do not exist yet. This is because
-	 * we need to name the created stream object with the data
-	 * stream file's path. We have everything we need here to do
-	 * this.
-	 */
-	for (i = 0; i < ctf_fs_trace->ds_file_groups->len; i++) {
-		struct ctf_fs_ds_file_group *ds_file_group =
-			g_ptr_array_index(ctf_fs_trace->ds_file_groups, i);
-		GString *name = get_stream_instance_unique_name(ds_file_group);
-
-		if (!name) {
-			goto error;
-		}
-
-		if (ds_file_group->sc->ir_sc) {
-			BT_ASSERT(ctf_fs_trace->trace);
-
-			if (ds_file_group->stream_id == UINT64_C(-1)) {
-				/* No stream ID: use 0 */
-				ds_file_group->stream = bt_stream_create_with_id(
-					ds_file_group->sc->ir_sc,
-					ctf_fs_trace->trace,
-					ctf_fs_trace->next_stream_id);
-				ctf_fs_trace->next_stream_id++;
-			} else {
-				/* Specific stream ID */
-				ds_file_group->stream = bt_stream_create_with_id(
-					ds_file_group->sc->ir_sc,
-					ctf_fs_trace->trace,
-					(uint64_t) ds_file_group->stream_id);
-			}
-		} else {
-			ds_file_group->stream = NULL;
-		}
-
-		if (!ds_file_group->stream) {
-			BT_LOGE("Cannot create stream for DS file group: "
-				"addr=%p, stream-name=\"%s\"",
-				ds_file_group, name->str);
-			g_string_free(name, TRUE);
-			goto error;
-		}
-
-		ret = bt_stream_set_name(ds_file_group->stream,
-			name->str);
-		if (ret) {
-			BT_LOGE("Cannot set stream's name: "
-				"addr=%p, stream-name=\"%s\"",
-				ds_file_group->stream, name->str);
-			g_string_free(name, TRUE);
-			goto error;
-		}
-
-		g_string_free(name, TRUE);
-	}
-
 	goto end;
 
 error:
@@ -963,7 +936,7 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
+static
 struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
 		const char *path, const char *name,
 		struct ctf_fs_metadata_config *metadata_config)
@@ -1089,7 +1062,7 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
+static
 int ctf_fs_find_traces(GList **trace_paths, const char *start_path)
 {
 	int ret;
@@ -1160,7 +1133,7 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
+static
 GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
 	GList *trace_names = NULL;
 	GList *node;
@@ -1213,8 +1186,10 @@ GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path) {
 	return trace_names;
 }
 
+/* Helper for ctf_fs_component_create_ctf_fs_traces, to handle a single path/root. */
+
 static
-int create_ctf_fs_traces(bt_self_component_source *self_comp,
+int ctf_fs_component_create_ctf_fs_traces_one_root(bt_self_component_source *self_comp,
 		struct ctf_fs_component *ctf_fs,
 		const char *path_param)
 {
@@ -1265,11 +1240,6 @@ int create_ctf_fs_traces(bt_self_component_source *self_comp,
 			goto error;
 		}
 
-		ret = create_ports_for_trace(ctf_fs, ctf_fs_trace);
-		if (ret) {
-			goto error;
-		}
-
 		g_ptr_array_add(ctf_fs->traces, ctf_fs_trace);
 		ctf_fs_trace = NULL;
 	}
@@ -1308,18 +1278,158 @@ end:
 	return ret;
 }
 
+int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
+		struct ctf_fs_component *ctf_fs,
+		const bt_value *paths_value)
+{
+	int ret = 0;
+	uint64_t i;
+
+	for (i = 0; i < bt_value_array_get_size(paths_value); i++) {
+		const bt_value *path_value = bt_value_array_borrow_element_by_index_const(paths_value, i);
+		const char *path = bt_value_string_get(path_value);
+
+		ret = ctf_fs_component_create_ctf_fs_traces_one_root(self_comp, ctf_fs, path);
+		if (ret) {
+			goto end;
+		}
+	}
+
+end:
+	return ret;
+}
+
+/* Create the IR stream objects for ctf_fs_trace. */
+
+static
+int create_streams_for_trace(struct ctf_fs_trace *ctf_fs_trace)
+{
+	int ret;
+	GString *name = NULL;
+	guint i;
+
+	for (i = 0; i < ctf_fs_trace->ds_file_groups->len; i++) {
+		struct ctf_fs_ds_file_group *ds_file_group =
+			g_ptr_array_index(ctf_fs_trace->ds_file_groups, i);
+		name = get_stream_instance_unique_name(ds_file_group);
+
+		if (!name) {
+			goto error;
+		}
+
+		if (ds_file_group->sc->ir_sc) {
+			BT_ASSERT(ctf_fs_trace->trace);
+
+			if (ds_file_group->stream_id == UINT64_C(-1)) {
+				/* No stream ID: use 0 */
+				ds_file_group->stream = bt_stream_create_with_id(
+					ds_file_group->sc->ir_sc,
+					ctf_fs_trace->trace,
+					ctf_fs_trace->next_stream_id);
+				ctf_fs_trace->next_stream_id++;
+			} else {
+				/* Specific stream ID */
+				ds_file_group->stream = bt_stream_create_with_id(
+					ds_file_group->sc->ir_sc,
+					ctf_fs_trace->trace,
+					(uint64_t) ds_file_group->stream_id);
+			}
+		} else {
+			ds_file_group->stream = NULL;
+		}
+
+		if (!ds_file_group->stream) {
+			BT_LOGE("Cannot create stream for DS file group: "
+				"addr=%p, stream-name=\"%s\"",
+				ds_file_group, name->str);
+			goto error;
+		}
+
+		ret = bt_stream_set_name(ds_file_group->stream,
+			name->str);
+		if (ret) {
+			BT_LOGE("Cannot set stream's name: "
+				"addr=%p, stream-name=\"%s\"",
+				ds_file_group->stream, name->str);
+			goto error;
+		}
+
+		g_string_free(name, TRUE);
+		name = NULL;
+	}
+
+	ret = 0;
+	goto end;
+
+error:
+	ret = -1;
+
+end:
+
+	if (name) {
+		g_string_free(name, TRUE);
+	}
+	return ret;
+}
+
+bool validate_paths_parameter(const bt_value *paths)
+{
+	bool ret;
+	bt_value_type type;
+	uint64_t i;
+
+	if (!paths) {
+		BT_LOGE("missing \"paths\" parameter");
+		goto error;
+	}
+
+	type = bt_value_get_type(paths);
+	if (type != BT_VALUE_TYPE_ARRAY) {
+		BT_LOGE("`paths` parameter: expecting array value: type=%s",
+			bt_common_value_type_string(type));
+		goto error;
+	}
+
+	for (i = 0; i < bt_value_array_get_size(paths); i++) {
+		const bt_value *elem;
+
+		elem = bt_value_array_borrow_element_by_index_const(paths, i);
+		type = bt_value_get_type(elem);
+		if (type != BT_VALUE_TYPE_STRING) {
+			BT_LOGE("`paths` parameter: expecting string value: index=%" PRIu64 ", type=%s",
+				i, bt_common_value_type_string(type));
+			goto error;
+		}
+	}
+
+	ret = true;
+	goto end;
+
+error:
+	ret = false;
+
+end:
+	return ret;
+}
+
 static
 struct ctf_fs_component *ctf_fs_create(
 		bt_self_component_source *self_comp,
 		const bt_value *params)
 {
-	struct ctf_fs_component *ctf_fs;
+	struct ctf_fs_component *ctf_fs = NULL;
 	const bt_value *value = NULL;
-	const char *path_param;
+	guint i;
+	const bt_value *paths_value;
 
-	ctf_fs = g_new0(struct ctf_fs_component, 1);
+	paths_value = bt_value_map_borrow_entry_value_const(params, "paths");
+	if (!validate_paths_parameter(paths_value)) {
+		goto error;
+	}
+
+	ctf_fs = ctf_fs_component_create();
 	if (!ctf_fs) {
-		goto end;
+		goto error;
 	}
 
 	bt_self_component_set_data(
@@ -1332,12 +1442,7 @@ struct ctf_fs_component *ctf_fs_create(
 	 * private component should also exist.
 	 */
 	ctf_fs->self_comp = self_comp;
-	value = bt_value_map_borrow_entry_value_const(params, "path");
-	if (value && !bt_value_is_string(value)) {
-		goto error;
-	}
 
-	path_param = bt_value_string_get(value);
 	value = bt_value_map_borrow_entry_value_const(params,
 		"clock-class-offset-s");
 	if (value) {
@@ -1358,19 +1463,20 @@ struct ctf_fs_component *ctf_fs_create(
 		ctf_fs->metadata_config.clock_class_offset_ns = bt_value_integer_get(value);
 	}
 
-	ctf_fs->port_data = g_ptr_array_new_with_free_func(port_data_destroy);
-	if (!ctf_fs->port_data) {
+	if (ctf_fs_component_create_ctf_fs_traces(self_comp, ctf_fs, paths_value)) {
 		goto error;
 	}
 
-	ctf_fs->traces = g_ptr_array_new_with_free_func(
-			ctf_fs_trace_destroy_notifier);
-	if (!ctf_fs->traces) {
-		goto error;
-	}
+	for (i = 0; i < ctf_fs->traces->len; i++) {
+		struct ctf_fs_trace *trace = g_ptr_array_index(ctf_fs->traces, i);
 
-	if (create_ctf_fs_traces(self_comp, ctf_fs, path_param)) {
-		goto error;
+		if (create_streams_for_trace(trace)) {
+			goto error;
+		}
+
+		if (create_ports_for_trace(ctf_fs, trace)) {
+			goto error;
+		}
 	}
 
 	goto end;

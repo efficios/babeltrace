@@ -165,20 +165,6 @@ bt_query_status ctf_fs_query(
 		const bt_value **result);
 
 BT_HIDDEN
-struct ctf_fs_trace *ctf_fs_trace_create(bt_self_component_source *self_comp,
-		const char *path, const char *name,
-		struct ctf_fs_metadata_config *config);
-
-BT_HIDDEN
-void ctf_fs_trace_destroy(struct ctf_fs_trace *trace);
-
-BT_HIDDEN
-int ctf_fs_find_traces(GList **trace_paths, const char *start_path);
-
-BT_HIDDEN
-GList *ctf_fs_create_trace_names(GList *trace_paths, const char *base_path);
-
-BT_HIDDEN
 bt_self_message_iterator_status ctf_fs_iterator_init(
 		bt_self_message_iterator *self_msg_iter,
 		bt_self_component_source *self_comp,
@@ -196,5 +182,32 @@ bt_self_message_iterator_status ctf_fs_iterator_next(
 BT_HIDDEN
 bt_self_message_iterator_status ctf_fs_iterator_seek_beginning(
 		bt_self_message_iterator *message_iterator);
+
+/* Create and initialize a new, empty ctf_fs_component. */
+
+BT_HIDDEN
+struct ctf_fs_component *ctf_fs_component_create(void);
+
+/*
+ * Search recursively under all paths in `paths_value` (an array of strings),
+ * for CTF traces. For each CTF trace found, create a ctf_fs_trace in
+ * `ctf_fs` representing that trace.
+ */
+
+BT_HIDDEN
+int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
+		struct ctf_fs_component *ctf_fs,
+		const bt_value *paths_value);
+
+/* Free `ctf_fs` and everything it owns. */
+
+BT_HIDDEN
+void ctf_fs_destroy(struct ctf_fs_component *ctf_fs);
+
+/* Validate the "paths" parameter passed to this component.  It must be
+   present, and it must be an array of strings. */
+
+BT_HIDDEN
+bool validate_paths_parameter(const bt_value *paths);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */
