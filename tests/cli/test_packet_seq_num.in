@@ -67,4 +67,4 @@ diag "2 streams, packets lost in one of them"
 test_lost "${BT_CTF_TRACES}/packet_seq_num/2_streams_lost_in_1" "2"
 
 diag "2 streams, packets lost in both"
-test_lost "${BT_CTF_TRACES}/packet_seq_num/2_streams_lost_in_2" "3,2,1"
+test_lost "${BT_CTF_TRACES}/packet_seq_num/2_streams_lost_in_2" "2,3,1"
