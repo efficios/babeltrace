@@ -1024,7 +1024,19 @@ bt_self_message_iterator_status end_stream(struct trimmer_iterator *trimmer_it,
 		clock_class = bt_stream_class_borrow_default_clock_class_const(
 			bt_stream_borrow_class_const(sstate->stream));
 		BT_ASSERT(clock_class);
-		BT_ASSERT(sstate->stream_act_end_ns_from_origin != INT64_MIN);
+
+		if (sstate->stream_act_end_ns_from_origin == INT64_MIN) {
+			/*
+			 * We received at least what is necessary to
+			 * have a stream state (stream beginning and
+			 * stream activity beginning messages), but
+			 * nothing else: use the trimmer range's end
+			 * time.
+			 */
+			sstate->stream_act_end_ns_from_origin =
+				trimmer_it->end.ns_from_origin;
+		}
+
 		ret = clock_raw_value_from_ns_from_origin(clock_class,
 			sstate->stream_act_end_ns_from_origin, &raw_value);
 		if (ret) {
