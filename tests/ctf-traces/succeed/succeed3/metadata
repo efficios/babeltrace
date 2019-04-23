@@ -3,8 +3,8 @@ typealias integer { size = 8; align = 8; signed = false; base = 10; } := uint8_t
 typealias integer { size = 32; align = 32; signed = false; base = hex; } := uint32_t;
 
 trace {
-	major = 0;
-	minor = 1;
+	major = 1;
+	minor = 8;
 	test = "\"";
 	test2 = "?\x20\040?";
 	test3 = '\n';
