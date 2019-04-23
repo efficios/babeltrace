@@ -27,11 +27,7 @@ TESTS_LIB = \
 	lib/test_ctf_writer_complete \
 	lib/test_bt_values \
 	lib/test_trace_ir_ref \
-	lib/test_bt_ctf_field_type_validation \
-	lib/test_ir_visit \
-	lib/test_graph_topo \
-	lib/test_cc_prio_map \
-	lib/test_bt_notification_iterator
+	lib/test_graph_topo
 
 if !ENABLE_BUILT_IN_PLUGINS
 TESTS_LIB += lib/test_plugin_complete
