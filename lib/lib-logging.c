@@ -409,24 +409,34 @@ static inline void format_field_path(char **buf_ch, bool extended,
 {
 	uint64_t i;
 
-	if (field_path->indexes) {
-		BT_ASSERT(field_path->indexes);
-		BUF_APPEND(", %sindex-count=%u",
-			PRFIELD(field_path->indexes->len));
+	if (field_path->items) {
+		BT_ASSERT(field_path->items);
+		BUF_APPEND(", %sitem-count=%u",
+			PRFIELD(field_path->items->len));
 	}
 
-	if (!extended || !field_path->indexes) {
+	if (!extended || !field_path->items) {
 		return;
 	}
 
 	BUF_APPEND(", %spath=[%s",
 		PRFIELD(bt_common_scope_string(field_path->root)));
 
-	for (i = 0; i < field_path->indexes->len; i++) {
-		uint64_t index = bt_field_path_get_index_by_index_inline(
-			field_path, i);
+	for (i = 0; i < bt_field_path_get_item_count(field_path); i++) {
+		const struct bt_field_path_item *fp_item =
+			bt_field_path_borrow_item_by_index_const(field_path, i);
 
-		BUF_APPEND(", %" PRIu64, index);
+		switch (bt_field_path_item_get_type(fp_item)) {
+		case BT_FIELD_PATH_ITEM_TYPE_INDEX:
+			BUF_APPEND(", %" PRIu64,
+				bt_field_path_item_index_get_index(fp_item));
+			break;
+		case BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
+			BUF_APPEND("%s", ", <CUR>");
+			break;
+		default:
+			abort();
+		}
 	}
 
 	BUF_APPEND("%s", "]");

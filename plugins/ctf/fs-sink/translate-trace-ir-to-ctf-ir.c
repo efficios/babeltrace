@@ -201,21 +201,29 @@ int create_relative_field_ref(struct ctx *ctx,
 
 	i = 0;
 
-	while (i < bt_field_path_get_index_count(tgt_ir_field_path)) {
-		uint64_t index = bt_field_path_get_index_by_index(
-			tgt_ir_field_path, i);
+	while (i < bt_field_path_get_item_count(tgt_ir_field_path)) {
+		const bt_field_path_item *fp_item =
+			bt_field_path_borrow_item_by_index_const(
+				tgt_ir_field_path, i);
 		struct fs_sink_ctf_named_field_class *named_fc = NULL;
 
 		BT_ASSERT(tgt_fc);
+		BT_ASSERT(fp_item);
 
 		switch (tgt_fc->type) {
 		case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_INDEX);
 			named_fc = fs_sink_ctf_field_class_struct_borrow_member_by_index(
-				(void *) tgt_fc, index);
+				(void *) tgt_fc,
+				bt_field_path_item_index_get_index(fp_item));
 			break;
 		case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_INDEX);
 			named_fc = fs_sink_ctf_field_class_variant_borrow_option_by_index(
-				(void *) tgt_fc, index);
+				(void *) tgt_fc,
+				bt_field_path_item_index_get_index(fp_item));
 			break;
 		case FS_SINK_CTF_FIELD_CLASS_TYPE_ARRAY:
 		case FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE:
@@ -223,6 +231,8 @@ int create_relative_field_ref(struct ctx *ctx,
 			struct fs_sink_ctf_field_class_array_base *array_base_fc =
 				(void *) tgt_fc;
 
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT);
 			tgt_fc = array_base_fc->elem_fc;
 			break;
 		}
@@ -351,25 +361,34 @@ int create_absolute_field_ref(struct ctx *ctx,
 
 	BT_ASSERT(fc);
 
-	for (i = 0; i < bt_field_path_get_index_count(tgt_ir_field_path); i++) {
-		uint64_t index = bt_field_path_get_index_by_index(
-			tgt_ir_field_path, i);
+	for (i = 0; i < bt_field_path_get_item_count(tgt_ir_field_path); i++) {
+		const bt_field_path_item *fp_item =
+			bt_field_path_borrow_item_by_index_const(
+				tgt_ir_field_path, i);
 		struct fs_sink_ctf_named_field_class *named_fc = NULL;
 
-		switch (fc->type) {
-		case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
-			named_fc = fs_sink_ctf_field_class_struct_borrow_member_by_index(
-				(void *) fc, index);
-			break;
-		case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
-			named_fc = fs_sink_ctf_field_class_variant_borrow_option_by_index(
-				(void *) fc, index);
-			break;
-		case FS_SINK_CTF_FIELD_CLASS_TYPE_ARRAY:
-		case FS_SINK_CTF_FIELD_CLASS_TYPE_SEQUENCE:
+		if (bt_field_path_item_get_type(fp_item) !=
+				BT_FIELD_PATH_ITEM_TYPE_INDEX) {
 			/* Not supported by TSDL 1.8 */
 			ret = -1;
 			goto end;
+		}
+
+		switch (fc->type) {
+		case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_INDEX);
+			named_fc = fs_sink_ctf_field_class_struct_borrow_member_by_index(
+				(void *) fc,
+				bt_field_path_item_index_get_index(fp_item));
+			break;
+		case FS_SINK_CTF_FIELD_CLASS_TYPE_VARIANT:
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_INDEX);
+			named_fc = fs_sink_ctf_field_class_variant_borrow_option_by_index(
+				(void *) fc,
+				bt_field_path_item_index_get_index(fp_item));
+			break;
 		default:
 			abort();
 		}
