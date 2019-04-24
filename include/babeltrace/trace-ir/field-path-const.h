@@ -28,12 +28,17 @@
 
 #include <stdint.h>
 
-/* For bt_field_path */
+/* For bt_field_path, bt_field_path_item */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum bt_field_path_item_type {
+	BT_FIELD_PATH_ITEM_TYPE_INDEX,
+	BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT,
+} bt_field_path_item_type;
 
 typedef enum bt_scope {
 	BT_SCOPE_PACKET_CONTEXT,
@@ -45,11 +50,17 @@ typedef enum bt_scope {
 extern bt_scope bt_field_path_get_root_scope(
 		const bt_field_path *field_path);
 
-extern uint64_t bt_field_path_get_index_count(
+extern uint64_t bt_field_path_get_item_count(
 		const bt_field_path *field_path);
 
-extern uint64_t bt_field_path_get_index_by_index(
+extern const bt_field_path_item *bt_field_path_borrow_item_by_index_const(
 		const bt_field_path *field_path, uint64_t index);
+
+extern bt_field_path_item_type bt_field_path_item_get_type(
+		const bt_field_path_item *field_path_item);
+
+extern uint64_t bt_field_path_item_index_get_index(
+		const bt_field_path_item *field_path_item);
 
 extern void bt_field_path_get_ref(const bt_field_path *field_path);
 

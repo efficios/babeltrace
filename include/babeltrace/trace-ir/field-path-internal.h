@@ -31,24 +31,60 @@
 #include <babeltrace/assert-internal.h>
 #include <glib.h>
 
+struct bt_field_path_item {
+	enum bt_field_path_item_type type;
+	uint64_t index;
+};
+
 struct bt_field_path {
 	struct bt_object base;
 	enum bt_scope root;
 
-	/* Array of `uint64_t` (indexes) */
-	GArray *indexes;
+	/* Array of `struct bt_field_path_item` (items) */
+	GArray *items;
 };
 
 BT_HIDDEN
 struct bt_field_path *bt_field_path_create(void);
 
 static inline
-uint64_t bt_field_path_get_index_by_index_inline(
+struct bt_field_path_item *bt_field_path_borrow_item_by_index_inline(
 		const struct bt_field_path *field_path, uint64_t index)
 {
 	BT_ASSERT(field_path);
-	BT_ASSERT(index < field_path->indexes->len);
-	return g_array_index(field_path->indexes, uint64_t, index);
+	BT_ASSERT(index < field_path->items->len);
+	return &g_array_index(field_path->items, struct bt_field_path_item,
+		index);
 }
+
+static inline
+void bt_field_path_append_item(struct bt_field_path *field_path,
+		struct bt_field_path_item *item)
+{
+	BT_ASSERT(field_path);
+	BT_ASSERT(item);
+	g_array_append_val(field_path->items, *item);
+}
+
+static inline
+void bt_field_path_remove_last_item(struct bt_field_path *field_path)
+{
+	BT_ASSERT(field_path);
+	BT_ASSERT(field_path->items->len > 0);
+	g_array_set_size(field_path->items, field_path->items->len - 1);
+}
+
+static inline
+const char *bt_field_path_item_type_string(enum bt_field_path_item_type type)
+{
+	switch (type) {
+	case BT_FIELD_PATH_ITEM_TYPE_INDEX:
+		return "BT_FIELD_PATH_ITEM_TYPE_INDEX";
+	case BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
+		return "BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT";
+	default:
+		return "(unknown)";
+	}
+};
 
 #endif /* BABELTRACE_TRACE_IR_FIELD_PATH_INTERNAL */

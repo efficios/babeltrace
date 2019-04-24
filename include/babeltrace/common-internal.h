@@ -446,9 +446,21 @@ GString *bt_common_field_path_string(struct bt_field_path *path)
 	g_string_append_printf(str, "[%s", bt_common_scope_string(
 		bt_field_path_get_root_scope(path)));
 
-	for (i = 0; i < bt_field_path_get_index_count(path); i++) {
-		g_string_append_printf(str, ", %" PRIu64,
-			bt_field_path_get_index_by_index(path, i));
+	for (i = 0; i < bt_field_path_get_item_count(path); i++) {
+		const struct bt_field_path_item *fp_item =
+			bt_field_path_borrow_item_by_index_const(path, i);
+
+		switch (bt_field_path_item_get_type(fp_item)) {
+		case BT_FIELD_PATH_ITEM_TYPE_INDEX:
+			g_string_append_printf(str, ", %" PRIu64,
+				bt_field_path_item_index_get_index(fp_item));
+			break;
+		case BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
+			g_string_append(str, ", <CUR>");
+			break;
+		default:
+			abort();
+		}
 	}
 
 	g_string_append(str, "]");
