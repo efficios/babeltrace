@@ -4521,6 +4521,13 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 			if (ret) {
 				goto error;
 			}
+
+			ret = append_implicit_component_extra_param(
+				&implicit_lttng_live_args,
+				"session-not-found-action", "end");
+			if (ret) {
+				goto error;
+			}
 		} else {
 			/*
 			 * Create one source.ctf.fs component, pass it an array
