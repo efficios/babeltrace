@@ -44,36 +44,54 @@ static
 const bt_field_class *walk_field_path(const bt_field_path *fp,
 		const bt_field_class *fc)
 {
-	uint64_t i, fp_index_count;
+	uint64_t i, fp_item_count;
 	const bt_field_class *curr_fc;
 
 	BT_ASSERT(bt_field_class_get_type(fc) == BT_FIELD_CLASS_TYPE_STRUCTURE);
 	BT_LOGD("Walking field path on field class: fp-addr=%p, fc-addr=%p",
 			fp, fc);
 
-	fp_index_count = bt_field_path_get_index_count(fp);
+	fp_item_count = bt_field_path_get_item_count(fp);
 	curr_fc = fc;
-	for (i = 0; i < fp_index_count; i++) {
+	for (i = 0; i < fp_item_count; i++) {
 		bt_field_class_type fc_type = bt_field_class_get_type(curr_fc);
-		uint64_t curr_index = bt_field_path_get_index_by_index(fp, i);
+		const bt_field_path_item *fp_item =
+			bt_field_path_borrow_item_by_index_const(fp, i);
 
 		switch (fc_type) {
 		case BT_FIELD_CLASS_TYPE_STRUCTURE:
 		{
-			const bt_field_class_structure_member *member =
-				bt_field_class_structure_borrow_member_by_index_const(
-					curr_fc, curr_index);
+			const bt_field_class_structure_member *member;
+
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_INDEX);
+			member = bt_field_class_structure_borrow_member_by_index_const(
+				curr_fc,
+				bt_field_path_item_index_get_index(fp_item));
 			curr_fc = bt_field_class_structure_member_borrow_field_class_const(
 				member);
 			break;
 		}
 		case BT_FIELD_CLASS_TYPE_VARIANT:
 		{
-			const bt_field_class_variant_option *option =
-				bt_field_class_variant_borrow_option_by_index_const(
-					curr_fc, curr_index);
+			const bt_field_class_variant_option *option;
+
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_INDEX);
+			option = bt_field_class_variant_borrow_option_by_index_const(
+				curr_fc,
+				bt_field_path_item_index_get_index(fp_item));
 			curr_fc = bt_field_class_variant_option_borrow_field_class_const(
 				option);
+			break;
+		}
+		case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
+		case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
+		{
+			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
+				BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT);
+			curr_fc = bt_field_class_array_borrow_element_field_class_const(
+				curr_fc);
 			break;
 		}
 		default:

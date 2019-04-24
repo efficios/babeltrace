@@ -57,16 +57,19 @@ bool find_field_class_recursive(struct bt_field_class *fc,
 			struct bt_named_field_class *named_fc =
 				BT_FIELD_CLASS_NAMED_FC_AT_INDEX(
 					container_fc, i);
+			struct bt_field_path_item item = {
+				.type = BT_FIELD_PATH_ITEM_TYPE_INDEX,
+				.index = i,
+			};
 
-			g_array_append_val(field_path->indexes, i);
+			bt_field_path_append_item(field_path, &item);
 			found = find_field_class_recursive(named_fc->fc,
 				tgt_fc, field_path);
 			if (found) {
 				goto end;
 			}
 
-			g_array_set_size(field_path->indexes,
-				field_path->indexes->len - 1);
+			bt_field_path_remove_last_item(field_path);
 		}
 
 		break;
@@ -75,9 +78,19 @@ bool find_field_class_recursive(struct bt_field_class *fc,
 	case BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY:
 	{
 		struct bt_field_class_array *array_fc = (void *) fc;
+		struct bt_field_path_item item = {
+			.type = BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT,
+			.index = UINT64_C(-1),
+		};
 
+		bt_field_path_append_item(field_path, &item);
 		found = find_field_class_recursive(array_fc->element_fc,
 			tgt_fc, field_path);
+		if (found) {
+			goto end;
+		}
+
+		bt_field_path_remove_last_item(field_path);
 		break;
 	}
 	default:
@@ -171,16 +184,21 @@ bool target_is_before_source(struct bt_field_path *src_field_path,
 
 	BT_ASSERT(tgt_field_path->root == src_field_path->root);
 
-	while (src_i < src_field_path->indexes->len &&
-			tgt_i < tgt_field_path->indexes->len) {
-		uint64_t src_index = bt_field_path_get_index_by_index_inline(
-			src_field_path, src_i);
-		uint64_t tgt_index = bt_field_path_get_index_by_index_inline(
-			tgt_field_path, tgt_i);
+	for (src_i = 0, tgt_i = 0; src_i < src_field_path->items->len &&
+			tgt_i < tgt_field_path->items->len; src_i++, tgt_i++) {
+		struct bt_field_path_item *src_fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				src_field_path, src_i);
+		struct bt_field_path_item *tgt_fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				tgt_field_path, tgt_i);
 
-		if (tgt_index > src_index) {
-			is_valid = false;
-			goto end;
+		if (src_fp_item->type == BT_FIELD_PATH_ITEM_TYPE_INDEX &&
+				tgt_fp_item->type == BT_FIELD_PATH_ITEM_TYPE_INDEX) {
+			if (tgt_fp_item->index > src_fp_item->index) {
+				is_valid = false;
+				goto end;
+			}
 		}
 
 		src_i++;
@@ -214,8 +232,9 @@ struct bt_field_class *borrow_root_field_class(
 
 BT_ASSERT_PRE_FUNC
 static inline
-struct bt_field_class *borrow_child_field_class(struct bt_field_class *parent_fc,
-		uint64_t index, bool *advance)
+struct bt_field_class *borrow_child_field_class(
+		struct bt_field_class *parent_fc,
+		struct bt_field_path_item *fp_item)
 {
 	struct bt_field_class *child_fc = NULL;
 
@@ -223,11 +242,12 @@ struct bt_field_class *borrow_child_field_class(struct bt_field_class *parent_fc
 	case BT_FIELD_CLASS_TYPE_STRUCTURE:
 	case BT_FIELD_CLASS_TYPE_VARIANT:
 	{
-		struct bt_named_field_class *named_fc =
-			BT_FIELD_CLASS_NAMED_FC_AT_INDEX(parent_fc, index);
+		struct bt_named_field_class *named_fc;
 
+		BT_ASSERT(fp_item->type == BT_FIELD_PATH_ITEM_TYPE_INDEX);
+		named_fc = BT_FIELD_CLASS_NAMED_FC_AT_INDEX(parent_fc,
+			fp_item->index);
 		child_fc = named_fc->fc;
-		*advance = true;
 		break;
 	}
 	case BT_FIELD_CLASS_TYPE_STATIC_ARRAY:
@@ -235,8 +255,9 @@ struct bt_field_class *borrow_child_field_class(struct bt_field_class *parent_fc
 	{
 		struct bt_field_class_array *array_fc = (void *) parent_fc;
 
+		BT_ASSERT(fp_item->type ==
+			BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT);
 		child_fc = array_fc->element_fc;
-		*advance = false;
 		break;
 	}
 	default:
@@ -263,10 +284,10 @@ bool target_field_path_in_different_scope_has_struct_fc_only(
 
 	fc = borrow_root_field_class(ctx, tgt_field_path->root);
 
-	while (i < tgt_field_path->indexes->len) {
-		uint64_t index = bt_field_path_get_index_by_index_inline(
-			tgt_field_path, i);
-		bool advance;
+	for (i = 0; i < tgt_field_path->items->len; i++) {
+		struct bt_field_path_item *fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				tgt_field_path, i);
 
 		if (fc->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY ||
 				fc->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY ||
@@ -275,11 +296,8 @@ bool target_field_path_in_different_scope_has_struct_fc_only(
 			goto end;
 		}
 
-		fc = borrow_child_field_class(fc, index, &advance);
-
-		if (advance) {
-			i++;
-		}
+		BT_ASSERT(fp_item->type == BT_FIELD_PATH_ITEM_TYPE_INDEX);
+		fc = borrow_child_field_class(fc, fp_item);
 	}
 
 end:
@@ -307,13 +325,14 @@ bool lca_is_structure_field_class(struct bt_field_path *src_field_path,
 	BT_ASSERT(src_fc);
 	BT_ASSERT(tgt_fc);
 
-	while (src_i < src_field_path->indexes->len &&
-			tgt_i < tgt_field_path->indexes->len) {
-		bool advance;
-		uint64_t src_index = bt_field_path_get_index_by_index_inline(
-			src_field_path, src_i);
-		uint64_t tgt_index = bt_field_path_get_index_by_index_inline(
-			tgt_field_path, tgt_i);
+	for (src_i = 0, tgt_i = 0; src_i < src_field_path->items->len &&
+			tgt_i < tgt_field_path->items->len; src_i++, tgt_i++) {
+		struct bt_field_path_item *src_fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				src_field_path, src_i);
+		struct bt_field_path_item *tgt_fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				tgt_field_path, tgt_i);
 
 		if (src_fc != tgt_fc) {
 			if (!prev_fc) {
@@ -333,17 +352,8 @@ bool lca_is_structure_field_class(struct bt_field_path *src_field_path,
 		}
 
 		prev_fc = src_fc;
-		src_fc = borrow_child_field_class(src_fc, src_index, &advance);
-
-		if (advance) {
-			src_i++;
-		}
-
-		tgt_fc = borrow_child_field_class(tgt_fc, tgt_index, &advance);
-
-		if (advance) {
-			tgt_i++;
-		}
+		src_fc = borrow_child_field_class(src_fc, src_fp_item);
+		tgt_fc = borrow_child_field_class(tgt_fc, tgt_fp_item);
 	}
 
 end:
@@ -372,37 +382,29 @@ bool lca_to_target_has_struct_fc_only(struct bt_field_path *src_field_path,
 	BT_ASSERT(src_fc == tgt_fc);
 
 	/* Find LCA */
-	while (src_i < src_field_path->indexes->len &&
-			tgt_i < tgt_field_path->indexes->len) {
-		bool advance;
-		uint64_t src_index = bt_field_path_get_index_by_index_inline(
-			src_field_path, src_i);
-		uint64_t tgt_index = bt_field_path_get_index_by_index_inline(
-			tgt_field_path, tgt_i);
+	for (src_i = 0, tgt_i = 0; src_i < src_field_path->items->len &&
+			tgt_i < tgt_field_path->items->len; src_i++, tgt_i++) {
+		struct bt_field_path_item *src_fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				src_field_path, src_i);
+		struct bt_field_path_item *tgt_fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				tgt_field_path, tgt_i);
 
 		if (src_i != tgt_i) {
 			/* Next field class is different: LCA is `tgt_fc` */
 			break;
 		}
 
-		src_fc = borrow_child_field_class(src_fc, src_index, &advance);
-
-		if (advance) {
-			src_i++;
-		}
-
-		tgt_fc = borrow_child_field_class(tgt_fc, tgt_index, &advance);
-
-		if (advance) {
-			tgt_i++;
-		}
+		src_fc = borrow_child_field_class(src_fc, src_fp_item);
+		tgt_fc = borrow_child_field_class(tgt_fc, tgt_fp_item);
 	}
 
 	/* Only structure field classes to the target */
-	while (tgt_i < tgt_field_path->indexes->len) {
-		bool advance;
-		uint64_t tgt_index = bt_field_path_get_index_by_index_inline(
-			tgt_field_path, tgt_i);
+	for (; tgt_i < tgt_field_path->items->len; tgt_i++) {
+		struct bt_field_path_item *tgt_fp_item =
+			bt_field_path_borrow_item_by_index_inline(
+				tgt_field_path, tgt_i);
 
 		if (tgt_fc->type == BT_FIELD_CLASS_TYPE_STATIC_ARRAY ||
 				tgt_fc->type == BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY ||
@@ -411,11 +413,7 @@ bool lca_to_target_has_struct_fc_only(struct bt_field_path *src_field_path,
 			goto end;
 		}
 
-		tgt_fc = borrow_child_field_class(tgt_fc, tgt_index, &advance);
-
-		if (advance) {
-			tgt_i++;
-		}
+		tgt_fc = borrow_child_field_class(tgt_fc, tgt_fp_item);
 	}
 
 end:

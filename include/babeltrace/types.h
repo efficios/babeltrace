@@ -97,6 +97,7 @@ typedef struct bt_field_class_unsigned_enumeration_mapping_ranges bt_field_class
 typedef struct bt_field_class_structure_member bt_field_class_structure_member;
 typedef struct bt_field_class_variant_option bt_field_class_variant_option;
 typedef struct bt_field_path bt_field_path;
+typedef struct bt_field_path_item bt_field_path_item;
 typedef struct bt_graph bt_graph;
 typedef struct bt_message bt_message;
 typedef struct bt_message_iterator bt_message_iterator;
