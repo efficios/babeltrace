@@ -41,8 +41,6 @@ endif
 TESTS_PLUGINS =
 
 if !ENABLE_BUILT_IN_PLUGINS
-TESTS_PLUGINS += plugins/test-utils-muxer-complete
-
 if ENABLE_DEBUG_INFO
 if ENABLE_PYTHON_BINDINGS
 TESTS_PLUGINS += plugins/test_lttng_utils_debug_info
