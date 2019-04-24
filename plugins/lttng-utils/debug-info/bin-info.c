@@ -509,7 +509,7 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 	int i = 0, ret = 0;
 	char *path = NULL, *build_id_file = NULL;
 	const char *dbg_dir = NULL;
-	size_t build_id_file_len;
+	size_t build_id_char_len, build_id_suffix_char_len, build_id_file_len;
 
 	if (!bin || !bin->build_id) {
 		goto error;
@@ -518,8 +518,9 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 	dbg_dir = bin->debug_info_dir ? bin->debug_info_dir : DEFAULT_DEBUG_DIR;
 
 	/* 2 characters per byte printed in hex, +1 for '/' and +1 for '\0' */
-	build_id_file_len = (2 * bin->build_id_len) + 1 +
-			strlen(BUILD_ID_SUFFIX) + 1;
+	build_id_char_len = (2 * bin->build_id_len) + 1;
+	build_id_suffix_char_len = strlen(BUILD_ID_SUFFIX) + 1;
+	build_id_file_len =  build_id_char_len + build_id_suffix_char_len;
 	build_id_file = g_new0(gchar, build_id_file_len);
 	if (!build_id_file) {
 		goto error;
@@ -531,7 +532,8 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 
 		g_snprintf(&build_id_file[path_idx], 3, "%02x", bin->build_id[i]);
 	}
-	g_strconcat(build_id_file, BUILD_ID_SUFFIX, NULL);
+	g_snprintf(&build_id_file[build_id_char_len], build_id_suffix_char_len,
+		BUILD_ID_SUFFIX);
 
 	path = g_build_path("/", dbg_dir, BUILD_ID_SUBDIR, build_id_file, NULL);
 	if (!path) {
