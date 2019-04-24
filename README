@@ -1,10 +1,3 @@
-BabelTrace - Trace Format Babel Tower
-
-This project provides trace read and write libraries, as well as a trace
-converter. A plugin can be created for any trace format to allow its conversion
-to/from another trace format.
-
-The main format expected to be converted to/from is the Common Trace
 Format (CTF). The latest version of the CTF specification can be found at:
 
   git tree:   git://git.efficios.com/ctf.git
