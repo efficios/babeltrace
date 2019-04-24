@@ -652,6 +652,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 error:
 	ret = -1;
 end:
+	g_free(bin_dir);
 	g_free(dir_name);
 	g_free(path);
 
