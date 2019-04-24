@@ -130,6 +130,9 @@ struct bt_field_class_enumeration_mapping {
 	GArray *ranges;
 };
 
+struct bt_field_class_unsigned_enumeration_mapping;
+struct bt_field_class_signed_enumeration_mapping;
+
 struct bt_field_class_enumeration {
 	struct bt_field_class_integer common;
 

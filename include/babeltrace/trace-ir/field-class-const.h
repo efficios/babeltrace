@@ -28,9 +28,10 @@
  */
 
 /*
- * For bt_bool, bt_field_class bt_field_path
- * bt_field_class_signed_enumeration_mapping_ranges
- * bt_field_class_unsigned_enumeration_mapping_ranges,
+ * For bt_bool, bt_field_class, bt_field_path,
+ * bt_field_class_enumeration_mapping,
+ * bt_field_class_unsigned_enumeration_mapping,
+ * bt_field_class_signed_enumeration_mapping,
  * bt_field_class_enumeration_mapping_label_array
  */
 #include <babeltrace/types.h>
@@ -83,32 +84,44 @@ extern bt_bool bt_field_class_real_is_single_precision(
 extern uint64_t bt_field_class_enumeration_get_mapping_count(
 		const bt_field_class *field_class);
 
-extern void bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
-		const bt_field_class *field_class, uint64_t index,
-		const char **label,
-		const bt_field_class_unsigned_enumeration_mapping_ranges **ranges);
+extern const bt_field_class_unsigned_enumeration_mapping *
+bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+		const bt_field_class *field_class, uint64_t index);
 
-extern void bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
-		const bt_field_class *field_class, uint64_t index,
-		const char **label,
-		const bt_field_class_signed_enumeration_mapping_ranges **ranges);
+extern const bt_field_class_signed_enumeration_mapping *
+bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+		const bt_field_class *field_class, uint64_t index);
 
-extern uint64_t
-bt_field_class_unsigned_enumeration_mapping_ranges_get_range_count(
-		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges);
+static inline
+const bt_field_class_enumeration_mapping *
+bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+		const bt_field_class_unsigned_enumeration_mapping *mapping)
+{
+	return (const void *) mapping;
+}
 
-extern uint64_t
-bt_field_class_signed_enumeration_mapping_ranges_get_range_count(
-		const bt_field_class_signed_enumeration_mapping_ranges *ranges);
+static inline
+const bt_field_class_enumeration_mapping *
+bt_field_class_signed_enumeration_mapping_as_mapping_const(
+		const bt_field_class_signed_enumeration_mapping *mapping)
+{
+	return (const void *) mapping;
+}
+
+extern const char *bt_field_class_enumeration_mapping_get_label(
+		const bt_field_class_enumeration_mapping *mapping);
+
+extern uint64_t bt_field_class_enumeration_mapping_get_range_count(
+		const bt_field_class_enumeration_mapping *mapping);
 
 extern void
-bt_field_class_unsigned_enumeration_mapping_ranges_get_range_by_index(
-		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
+bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
+		const bt_field_class_unsigned_enumeration_mapping *mapping,
 		uint64_t index, uint64_t *lower, uint64_t *upper);
 
 extern void
-bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
-		const bt_field_class_signed_enumeration_mapping_ranges *ranges,
+bt_field_class_signed_enumeration_mapping_get_range_by_index(
+		const bt_field_class_signed_enumeration_mapping *mapping,
 		uint64_t index, int64_t *lower, int64_t *upper);
 
 extern bt_field_class_status

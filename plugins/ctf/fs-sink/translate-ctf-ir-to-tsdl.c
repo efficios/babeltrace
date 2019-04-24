@@ -227,22 +227,29 @@ void append_integer_field_class(struct ctx *ctx,
 
 		for (i = 0; i < bt_field_class_enumeration_get_mapping_count(ir_fc); i++) {
 			const char *label;
-			const bt_field_class_unsigned_enumeration_mapping_ranges *u_ranges;
-			const bt_field_class_signed_enumeration_mapping_ranges *i_ranges;
+			const bt_field_class_enumeration_mapping *mapping;
+			const bt_field_class_unsigned_enumeration_mapping *u_mapping;
+			const bt_field_class_signed_enumeration_mapping *i_mapping;
 			uint64_t range_count;
 			uint64_t range_i;
 
 			if (is_signed) {
-				bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
-					ir_fc, i, &label, &i_ranges);
-				range_count = bt_field_class_signed_enumeration_mapping_ranges_get_range_count(
-					i_ranges);
+				i_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+					ir_fc, i);
+				mapping = bt_field_class_signed_enumeration_mapping_as_mapping_const(
+					i_mapping);
 			} else {
-				bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
-					ir_fc, i, &label, &u_ranges);
-				range_count = bt_field_class_unsigned_enumeration_mapping_ranges_get_range_count(
-					u_ranges);
+				u_mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+					ir_fc, i);
+				mapping = bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+					u_mapping);
 			}
+
+			label = bt_field_class_enumeration_mapping_get_label(
+				mapping);
+			range_count =
+				bt_field_class_enumeration_mapping_get_range_count(
+					mapping);
 
 			for (range_i = 0; range_i < range_count; range_i++) {
 				append_indent(ctx);
@@ -271,8 +278,8 @@ void append_integer_field_class(struct ctx *ctx,
 				if (is_signed) {
 					int64_t lower, upper;
 
-					bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
-						i_ranges, range_i,
+					bt_field_class_signed_enumeration_mapping_get_range_by_index(
+						i_mapping, range_i,
 						&lower, &upper);
 
 					if (lower == upper) {
@@ -287,8 +294,8 @@ void append_integer_field_class(struct ctx *ctx,
 				} else {
 					uint64_t lower, upper;
 
-					bt_field_class_unsigned_enumeration_mapping_ranges_get_range_by_index(
-						u_ranges, range_i,
+					bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
+						u_mapping, range_i,
 						&lower, &upper);
 
 					if (lower == upper) {

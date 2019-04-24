@@ -291,64 +291,44 @@ uint64_t bt_field_class_enumeration_get_mapping_count(
 	return (uint64_t) enum_fc->mappings->len;
 }
 
-void bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
-		const struct bt_field_class *fc, uint64_t index,
-		const char **name,
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges **ranges)
+const struct bt_field_class_unsigned_enumeration_mapping *
+bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+		const struct bt_field_class *fc, uint64_t index)
 {
 	const struct bt_field_class_enumeration *enum_fc = (const void *) fc;
-	const struct bt_field_class_enumeration_mapping *mapping;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name (output)");
-	BT_ASSERT_PRE_NON_NULL(ranges, "Ranges (output)");
 	BT_ASSERT_PRE_VALID_INDEX(index, enum_fc->mappings->len);
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
 		"Field class");
-	mapping = BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
-	*name = mapping->label->str;
-	*ranges = (void *) mapping;
+	return (const void *) BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
 }
 
-void bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
-		const struct bt_field_class *fc, uint64_t index,
-		const char **name,
-		const struct bt_field_class_signed_enumeration_mapping_ranges **ranges)
+const struct bt_field_class_signed_enumeration_mapping *
+bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+		const struct bt_field_class *fc, uint64_t index)
 {
 	const struct bt_field_class_enumeration *enum_fc = (const void *) fc;
-	const struct bt_field_class_enumeration_mapping *mapping;
 
 	BT_ASSERT_PRE_NON_NULL(fc, "Field class");
-	BT_ASSERT_PRE_NON_NULL(name, "Name (output)");
-	BT_ASSERT_PRE_NON_NULL(ranges, "Ranges (output)");
 	BT_ASSERT_PRE_VALID_INDEX(index, enum_fc->mappings->len);
 	BT_ASSERT_PRE_FC_HAS_ID(fc, BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
 		"Field class");
-	mapping = BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
-	*name = mapping->label->str;
-	*ranges = (void *) mapping;
+	return (const void *) BT_FIELD_CLASS_ENUM_MAPPING_AT_INDEX(fc, index);
 }
 
-static inline
-uint64_t get_enumeration_field_class_mapping_range_count(
+const char *bt_field_class_enumeration_mapping_get_label(
 		const struct bt_field_class_enumeration_mapping *mapping)
 {
-	BT_ASSERT_PRE_NON_NULL(mapping, "Ranges");
+	BT_ASSERT_PRE_NON_NULL(mapping, "Enumeration field class mapping");
+	return mapping->label->str;
+}
+
+uint64_t bt_field_class_enumeration_mapping_get_range_count(
+		const struct bt_field_class_enumeration_mapping *mapping)
+{
+	BT_ASSERT_PRE_NON_NULL(mapping, "Enumeration field class mapping");
 	return (uint64_t) mapping->ranges->len;
-}
-
-uint64_t bt_field_class_unsigned_enumeration_mapping_ranges_get_range_count(
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges *ranges)
-{
-	return get_enumeration_field_class_mapping_range_count(
-		(const void *) ranges);
-}
-
-uint64_t bt_field_class_signed_enumeration_mapping_ranges_get_range_count(
-		const struct bt_field_class_signed_enumeration_mapping_ranges *ranges)
-{
-	return get_enumeration_field_class_mapping_range_count(
-		(const void *) ranges);
 }
 
 static inline
@@ -367,24 +347,22 @@ void get_enumeration_field_class_mapping_range_at_index(
 	*upper = range->upper.u;
 }
 
-void bt_field_class_unsigned_enumeration_mapping_ranges_get_range_by_index(
-		const struct bt_field_class_unsigned_enumeration_mapping_ranges *ranges,
+void bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
+		const struct bt_field_class_unsigned_enumeration_mapping *ranges,
 		uint64_t index, uint64_t *lower, uint64_t *upper)
 {
 	get_enumeration_field_class_mapping_range_at_index(
 		(const void *) ranges, index, lower, upper);
 }
 
-void bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
-		const struct bt_field_class_signed_enumeration_mapping_ranges *ranges,
+void bt_field_class_signed_enumeration_mapping_get_range_by_index(
+		const struct bt_field_class_signed_enumeration_mapping *ranges,
 		uint64_t index, int64_t *lower, int64_t *upper)
 {
 	get_enumeration_field_class_mapping_range_at_index(
 		(const void *) ranges, index,
 		(uint64_t *) lower, (uint64_t *) upper);
 }
-
-
 
 enum bt_field_class_status
 bt_field_class_unsigned_enumeration_get_mapping_labels_by_value(

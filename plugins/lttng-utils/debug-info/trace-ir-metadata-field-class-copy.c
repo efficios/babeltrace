@@ -201,15 +201,21 @@ int field_class_unsigned_enumeration_copy(
 	enum_mapping_count = bt_field_class_enumeration_get_mapping_count(in_field_class);
 	for (i = 0; i < enum_mapping_count; i++) {
 		const char *label;
-		const bt_field_class_unsigned_enumeration_mapping_ranges *ranges;
+		const bt_field_class_unsigned_enumeration_mapping *u_mapping;
+		const bt_field_class_enumeration_mapping *mapping;
 		uint64_t range_index, range_count;
 
 		/* Get the ranges and the range count. */
-		bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
-				in_field_class, i, &label, &ranges);
+		u_mapping = bt_field_class_unsigned_enumeration_borrow_mapping_by_index_const(
+				in_field_class, i);
+		mapping = bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
+			u_mapping);
 		range_count =
-			bt_field_class_unsigned_enumeration_mapping_ranges_get_range_count(
-					ranges);
+			bt_field_class_enumeration_mapping_get_range_count(
+				mapping);
+		label = bt_field_class_enumeration_mapping_get_label(
+			mapping);
+
 		/*
 		 * Iterate over all the ranges to add them to copied field
 		 * class.
@@ -217,8 +223,8 @@ int field_class_unsigned_enumeration_copy(
 		for (range_index = 0; range_index < range_count; range_index++) {
 			uint64_t lower, upper;
 			bt_field_class_status status;
-			bt_field_class_unsigned_enumeration_mapping_ranges_get_range_by_index(
-					ranges, range_index, &lower, &upper);
+			bt_field_class_unsigned_enumeration_mapping_get_range_by_index(
+					u_mapping, range_index, &lower, &upper);
 
 			BT_LOGD("Copying range in enumeration field class: "
 					"label=%s, lower=%"PRId64", upper=%"PRId64,
@@ -267,15 +273,21 @@ int field_class_signed_enumeration_copy(
 		bt_field_class_enumeration_get_mapping_count(in_field_class);
 	for (i = 0; i < enum_mapping_count; i++) {
 		const char *label;
-		const bt_field_class_signed_enumeration_mapping_ranges *ranges;
+		const bt_field_class_signed_enumeration_mapping *i_mapping;
+		const bt_field_class_enumeration_mapping *mapping;
 		uint64_t range_index, range_count;
 
 		/* Get the ranges and the range count. */
-		bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
-				in_field_class, i, &label, &ranges);
+		i_mapping = bt_field_class_signed_enumeration_borrow_mapping_by_index_const(
+				in_field_class, i);
+		mapping = bt_field_class_signed_enumeration_mapping_as_mapping_const(
+			i_mapping);
 		range_count =
-			bt_field_class_signed_enumeration_mapping_ranges_get_range_count(
-					ranges);
+			bt_field_class_enumeration_mapping_get_range_count(
+				mapping);
+		label = bt_field_class_enumeration_mapping_get_label(
+			mapping);
+
 		/*
 		 * Iterate over all the ranges to add them to copied field
 		 * class.
@@ -283,8 +295,8 @@ int field_class_signed_enumeration_copy(
 		for (range_index = 0; range_index < range_count; range_index++) {
 			int64_t lower, upper;
 			bt_field_class_status status;
-			bt_field_class_signed_enumeration_mapping_ranges_get_range_by_index(
-					ranges, range_index, &lower, &upper);
+			bt_field_class_signed_enumeration_mapping_get_range_by_index(
+					i_mapping, range_index, &lower, &upper);
 
 			BT_LOGD("Copying range in enumeration field class: "
 					"label=%s, lower=%ld, upper=%ld",
