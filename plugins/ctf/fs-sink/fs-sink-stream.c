@@ -119,8 +119,7 @@ GString *make_unique_stream_file_name(struct fs_sink_trace *trace,
 
 	while (stream_file_name_exists(trace, name->str) &&
 			strcmp(name->str, "metadata") == 0) {
-		g_string_assign(name, san_base->str);
-		g_string_append_printf(name, "%u", suffix);
+		g_string_printf(name, "%s-%u", san_base->str, suffix);
 		suffix++;
 	}
 
