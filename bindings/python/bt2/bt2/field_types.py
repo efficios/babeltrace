@@ -79,26 +79,6 @@ class _FieldType(object._Object, metaclass=abc.ABCMeta):
         return field
 
 
-class ByteOrder:
-    NATIVE = native_bt.BYTE_ORDER_NATIVE
-    LITTLE_ENDIAN = native_bt.BYTE_ORDER_LITTLE_ENDIAN
-    BIG_ENDIAN = native_bt.BYTE_ORDER_BIG_ENDIAN
-    NETWORK = native_bt.BYTE_ORDER_NETWORK
-
-
-class Encoding:
-    NONE = native_bt.STRING_ENCODING_NONE
-    UTF8 = native_bt.STRING_ENCODING_UTF8
-    ASCII = native_bt.STRING_ENCODING_ASCII
-
-
-class Base:
-    BINARY = native_bt.INTEGER_BASE_BINARY
-    OCTAL = native_bt.INTEGER_BASE_OCTAL
-    DECIMAL = native_bt.INTEGER_BASE_DECIMAL
-    HEXADECIMAL = native_bt.INTEGER_BASE_HEXADECIMAL
-
-
 class _AlignmentProp:
     @property
     def alignment(self):
@@ -691,12 +671,4 @@ class SequenceFieldType(_FieldType):
 
 
 _TYPE_ID_TO_OBJ = {
-    native_bt.FIELD_TYPE_ID_INTEGER: IntegerFieldType,
-    native_bt.FIELD_TYPE_ID_FLOAT: FloatingPointNumberFieldType,
-    native_bt.FIELD_TYPE_ID_ENUM: EnumerationFieldType,
-    native_bt.FIELD_TYPE_ID_STRING: StringFieldType,
-    native_bt.FIELD_TYPE_ID_STRUCT: StructureFieldType,
-    native_bt.FIELD_TYPE_ID_ARRAY: ArrayFieldType,
-    native_bt.FIELD_TYPE_ID_SEQUENCE: SequenceFieldType,
-    native_bt.FIELD_TYPE_ID_VARIANT: VariantFieldType,
 }

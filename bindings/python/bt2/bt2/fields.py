@@ -725,12 +725,4 @@ class _SequenceField(_ArraySequenceField):
 
 
 _TYPE_ID_TO_OBJ = {
-    native_bt.FIELD_TYPE_ID_INTEGER: _IntegerField,
-    native_bt.FIELD_TYPE_ID_FLOAT: _FloatingPointNumberField,
-    native_bt.FIELD_TYPE_ID_ENUM: _EnumerationField,
-    native_bt.FIELD_TYPE_ID_STRING: _StringField,
-    native_bt.FIELD_TYPE_ID_STRUCT: _StructureField,
-    native_bt.FIELD_TYPE_ID_ARRAY: _ArrayField,
-    native_bt.FIELD_TYPE_ID_SEQUENCE: _SequenceField,
-    native_bt.FIELD_TYPE_ID_VARIANT: _VariantField,
 }

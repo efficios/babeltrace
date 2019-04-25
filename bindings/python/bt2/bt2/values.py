@@ -729,7 +729,7 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
 _TYPE_TO_OBJ = {
     native_bt.VALUE_TYPE_BOOL: BoolValue,
     native_bt.VALUE_TYPE_INTEGER: IntegerValue,
-    native_bt.VALUE_TYPE_FLOAT: FloatValue,
+    native_bt.VALUE_TYPE_REAL: FloatValue,
     native_bt.VALUE_TYPE_STRING: StringValue,
     native_bt.VALUE_TYPE_ARRAY: ArrayValue,
     native_bt.VALUE_TYPE_MAP: MapValue,
