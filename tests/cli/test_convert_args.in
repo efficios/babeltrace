@@ -71,9 +71,10 @@ comment() {
 @BABELTRACE_BUILD_WITH_MINGW_TRUE@output_path="C://output/path"
 @BABELTRACE_BUILD_WITH_MINGW_FALSE@output_path="/output/path"
 
-plan_tests 75
+plan_tests 76
 
 test_bt_convert_run_args 'path leftover' "$path_to_trace" "--component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.text.pretty --name pretty --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect muxer:pretty"
+test_bt_convert_run_args 'path leftovers' "$path_to_trace ${path_to_trace}2 ${path_to_trace}3" "--component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\",\"${path_to_trace}2\",\"${path_to_trace}3\"]' --component sink.text.pretty --name pretty --component filter.utils.muxer --name muxer --connect source-ctf-fs:muxer --connect muxer:pretty"
 test_bt_convert_run_args 'path leftover + named user source with --params' "$path_to_trace --component ZZ:source.another.source --params salut=yes" "--component ZZ:source.another.source --params salut=yes --component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.text.pretty --name pretty --component filter.utils.muxer --name muxer --connect ZZ:muxer --connect source-ctf-fs:muxer --connect muxer:pretty"
 test_bt_convert_run_args 'path leftover + named user source with --name --params' "$path_to_trace --component source.another.source --name HELLO --params salut=yes" "--component source.another.source --name HELLO --params salut=yes --component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.text.pretty --name pretty --component filter.utils.muxer --name muxer --connect HELLO:muxer --connect source-ctf-fs:muxer --connect muxer:pretty"
 test_bt_convert_run_args 'path leftover + user source with --path --params' "$path_to_trace --component source.another.source --path some-path --params salut=yes" "--component source.another.source --params 'path=\"some-path\"' --params salut=yes --name source.another.source --component source.ctf.fs --name source-ctf-fs --params 'paths=[\"$path_to_trace\"]' --component sink.text.pretty --name pretty --component filter.utils.muxer --name muxer --connect 'source\\.another\\.source:muxer' --connect source-ctf-fs:muxer --connect muxer:pretty"
