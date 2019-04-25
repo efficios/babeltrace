@@ -69,7 +69,7 @@ class _CopyableNotification(_Notification):
 
 
 class EventNotification(_CopyableNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_EVENT
+    _TYPE = native_bt.MESSAGE_TYPE_EVENT
 
     def __init__(self, event, cc_prio_map=None):
         utils._check_type(event, bt2.event._Event)
@@ -125,7 +125,7 @@ class EventNotification(_CopyableNotification):
 
 
 class PacketBeginningNotification(_CopyableNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_PACKET_BEGIN
+    _TYPE = native_bt.MESSAGE_TYPE_PACKET_BEGINNING
 
     def __init__(self, packet):
         utils._check_type(packet, bt2.packet._Packet)
@@ -160,7 +160,7 @@ class PacketBeginningNotification(_CopyableNotification):
 
 
 class PacketEndNotification(_CopyableNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_PACKET_END
+    _TYPE = native_bt.MESSAGE_TYPE_PACKET_END
 
     def __init__(self, packet):
         utils._check_type(packet, bt2.packet._Packet)
@@ -195,7 +195,7 @@ class PacketEndNotification(_CopyableNotification):
 
 
 class StreamBeginningNotification(_CopyableNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_STREAM_BEGIN
+    _TYPE = native_bt.MESSAGE_TYPE_STREAM_BEGINNING
 
     def __init__(self, stream):
         utils._check_type(stream, bt2.stream._Stream)
@@ -230,7 +230,7 @@ class StreamBeginningNotification(_CopyableNotification):
 
 
 class StreamEndNotification(_CopyableNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_STREAM_END
+    _TYPE = native_bt.MESSAGE_TYPE_STREAM_END
 
     def __init__(self, stream):
         utils._check_type(stream, bt2.stream._Stream)
@@ -307,7 +307,7 @@ class _InactivityNotificationClockValues(collections.abc.Mapping):
 
 
 class InactivityNotification(_CopyableNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_INACTIVITY
+    _TYPE = native_bt.MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY
 
     def __init__(self, cc_prio_map=None):
         if cc_prio_map is not None:
@@ -422,7 +422,7 @@ class _DiscardedElementsNotification(_Notification):
 
 
 class _DiscardedPacketsNotification(_DiscardedElementsNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_DISCARDED_PACKETS
+    _TYPE = native_bt.MESSAGE_TYPE_DISCARDED_PACKETS
 
     @property
     def count(self):
@@ -458,7 +458,7 @@ class _DiscardedPacketsNotification(_DiscardedElementsNotification):
 
 
 class _DiscardedEventsNotification(_DiscardedElementsNotification):
-    _TYPE = native_bt.NOTIFICATION_TYPE_DISCARDED_EVENTS
+    _TYPE = native_bt.MESSAGE_TYPE_DISCARDED_EVENTS
 
     @property
     def count(self):
@@ -494,12 +494,12 @@ class _DiscardedEventsNotification(_DiscardedElementsNotification):
 
 
 _NOTIF_TYPE_TO_CLS = {
-    native_bt.NOTIFICATION_TYPE_EVENT: EventNotification,
-    native_bt.NOTIFICATION_TYPE_PACKET_BEGIN: PacketBeginningNotification,
-    native_bt.NOTIFICATION_TYPE_PACKET_END: PacketEndNotification,
-    native_bt.NOTIFICATION_TYPE_STREAM_BEGIN: StreamBeginningNotification,
-    native_bt.NOTIFICATION_TYPE_STREAM_END: StreamEndNotification,
-    native_bt.NOTIFICATION_TYPE_INACTIVITY: InactivityNotification,
-    native_bt.NOTIFICATION_TYPE_DISCARDED_PACKETS: _DiscardedPacketsNotification,
-    native_bt.NOTIFICATION_TYPE_DISCARDED_EVENTS: _DiscardedEventsNotification,
+    native_bt.MESSAGE_TYPE_EVENT: EventNotification,
+    native_bt.MESSAGE_TYPE_PACKET_BEGINNING: PacketBeginningNotification,
+    native_bt.MESSAGE_TYPE_PACKET_END: PacketEndNotification,
+    native_bt.MESSAGE_TYPE_STREAM_BEGINNING: StreamBeginningNotification,
+    native_bt.MESSAGE_TYPE_STREAM_END: StreamEndNotification,
+    native_bt.MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY: InactivityNotification,
+    native_bt.MESSAGE_TYPE_DISCARDED_PACKETS: _DiscardedPacketsNotification,
+    native_bt.MESSAGE_TYPE_DISCARDED_EVENTS: _DiscardedEventsNotification,
 }
