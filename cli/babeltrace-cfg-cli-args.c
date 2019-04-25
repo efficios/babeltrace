@@ -3223,11 +3223,17 @@ int bt_value_to_cli_param_value_append(const bt_value *value, GString *buf)
 		g_string_append_c(buf, '[');
 		uint64_t sz = bt_value_array_get_size(value);
 		for (uint64_t i = 0; i < sz; i++) {
+			const bt_value *item;
+			int ret;
+
 			if (i > 0) {
-				g_string_append_c(buf, ',');
+				g_string_append(buf, ", ");
 			}
-			const bt_value *item = bt_value_array_borrow_element_by_index_const(value, i);
-			int ret = bt_value_to_cli_param_value_append(item, buf);
+
+			item = bt_value_array_borrow_element_by_index_const(
+				value, i);
+			ret = bt_value_to_cli_param_value_append(item, buf);
+
 			if (ret) {
 				goto end;
 			}
