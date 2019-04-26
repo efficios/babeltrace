@@ -23,7 +23,7 @@
 from bt2 import native_bt, object, utils
 import bt2.field_class
 import collections.abc
-import bt2.values
+import bt2.value
 import bt2.event
 import copy
 import bt2

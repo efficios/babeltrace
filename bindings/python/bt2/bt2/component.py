@@ -23,7 +23,7 @@
 from bt2 import native_bt, object, utils
 import bt2.message_iterator
 import collections.abc
-import bt2.values
+import bt2.value
 import traceback
 import bt2.port
 import sys
@@ -428,7 +428,7 @@ class _UserComponentType(type):
         # call user's __init__() method
         if params_ptr is not None:
             native_bt.get(params_ptr)
-            params = bt2.values._create_from_ptr(params_ptr)
+            params = bt2.value._create_from_ptr(params_ptr)
         else:
             params = None
 
@@ -472,7 +472,7 @@ class _UserComponentType(type):
         # bt_component_class_query() returns NULL
         if params_ptr is not None:
             native_bt.get(params_ptr)
-            params = bt2.values._create_from_ptr(params_ptr)
+            params = bt2.value._create_from_ptr(params_ptr)
         else:
             params = None
 

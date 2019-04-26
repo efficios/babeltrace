@@ -34,7 +34,7 @@ class _TestNumericField(_TestCopySimple):
         rvexc = None
         comp_value = rhs
 
-        if isinstance(rhs, (bt2.fields._IntegerField, bt2.fields._FloatingPointNumberField)):
+        if isinstance(rhs, (bt2.field._IntegerField, bt2.field._FloatingPointNumberField)):
             comp_value = copy.copy(rhs)
 
         try:
@@ -178,7 +178,7 @@ class _TestNumericField(_TestCopySimple):
         # the current value of `int_value_obj`, so after this the value
         # of the object is 5. This does not compare to 5.3, which is
         # why we also use the `int()` type here.
-        if isinstance(self._def, bt2.fields._IntegerField):
+        if isinstance(self._def, bt2.field._IntegerField):
             rv = int(rv)
 
         self.assertEqual(r, rv)
@@ -1074,7 +1074,7 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
 
     def test_getitem(self):
         field = self._def[1]
-        self.assertIs(type(field), bt2.fields._IntegerField)
+        self.assertIs(type(field), bt2.field._IntegerField)
         self.assertEqual(field, 1847)
 
     def test_eq(self):
@@ -1334,7 +1334,7 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_getitem(self):
         field = self._def['A']
-        self.assertIs(type(field), bt2.fields._IntegerField)
+        self.assertIs(type(field), bt2.field._IntegerField)
         self.assertEqual(field, -1872)
 
     def test_at_index_out_of_bounds_after(self):

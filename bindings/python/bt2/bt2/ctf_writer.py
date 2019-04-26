@@ -23,7 +23,7 @@
 from bt2 import native_bt, object, stream, utils
 import uuid as uuidp
 import bt2.event
-import bt2.fields
+import bt2.field
 import abc
 import bt2
 
@@ -211,14 +211,14 @@ class _CtfWriterStream(stream._StreamBase):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @packet_header_field.setter
     def packet_header_field(self, packet_header_field):
         packet_header_field_ptr = None
 
         if packet_header_field is not None:
-            utils._check_type(packet_header_field, bt2.fields._Field)
+            utils._check_type(packet_header_field, bt2.field._Field)
             packet_header_field_ptr = packet_header_field._ptr
 
         ret = native_bt.stream_set_packet_header(self._ptr,
@@ -232,14 +232,14 @@ class _CtfWriterStream(stream._StreamBase):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @packet_context_field.setter
     def packet_context_field(self, packet_context_field):
         packet_context_field_ptr = None
 
         if packet_context_field is not None:
-            utils._check_type(packet_context_field, bt2.fields._Field)
+            utils._check_type(packet_context_field, bt2.field._Field)
             packet_context_field_ptr = packet_context_field._ptr
 
         ret = native_bt.stream_set_packet_context(self._ptr,

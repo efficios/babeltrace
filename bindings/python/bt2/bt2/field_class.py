@@ -22,7 +22,7 @@
 
 from bt2 import native_bt, object, utils
 import collections.abc
-import bt2.fields
+import bt2.field
 import abc
 import bt2
 
@@ -68,10 +68,10 @@ class _FieldClass(object._Object, metaclass=abc.ABCMeta):
         if field_ptr is None:
             raise bt2.CreationError('cannot create {} field object'.format(self._NAME.lower()))
 
-        field = bt2.fields._create_from_ptr(field_ptr)
+        field = bt2.field._create_from_ptr(field_ptr)
 
         if value is not None:
-            if not isinstance(field, (bt2.fields._IntegerField, bt2.fields._FloatingPointNumberField, bt2.fields._StringField)):
+            if not isinstance(field, (bt2.field._IntegerField, bt2.field._FloatingPointNumberField, bt2.field._StringField)):
                 raise bt2.Error('cannot assign an initial value to a {} field object'.format(field._NAME))
 
             field.value = value

@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.fields
+import bt2.field
 import bt2.stream
 import copy
 import abc
@@ -42,14 +42,14 @@ class _Packet(object._Object):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @header_field.setter
     def header_field(self, header_field):
         header_field_ptr = None
 
         if header_field is not None:
-            utils._check_type(header_field, bt2.fields._Field)
+            utils._check_type(header_field, bt2.field._Field)
             header_field_ptr = header_field._ptr
 
         ret = native_bt.packet_set_header(self._ptr, header_field_ptr)
@@ -62,14 +62,14 @@ class _Packet(object._Object):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @context_field.setter
     def context_field(self, context_field):
         context_field_ptr = None
 
         if context_field is not None:
-            utils._check_type(context_field, bt2.fields._Field)
+            utils._check_type(context_field, bt2.field._Field)
             context_field_ptr = context_field._ptr
 
         ret = native_bt.packet_set_context(self._ptr, context_field_ptr)

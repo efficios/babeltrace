@@ -1,4 +1,4 @@
-from bt2 import values
+from bt2 import value
 import collections
 import unittest
 import copy
