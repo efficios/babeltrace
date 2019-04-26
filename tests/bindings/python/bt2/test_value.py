@@ -7,45 +7,14 @@ import copy
 import bt2
 
 
-class _TestFrozen:
-    def test_is_frozen(self):
-        self._def.freeze()
-        self.assertTrue(self._def.is_frozen)
-
-    def test_frozen(self):
-        self._def.freeze()
-        self.assertTrue(self._def.frozen)
-
-    def test_frozen_exc(self):
-        self._def.freeze()
-
-        with self.assertRaisesRegex(bt2.Frozen, r'.* value object is frozen$') as cm:
-            self._modify_def()
-
-        self.assertEqual(self._def, self._def_value)
-
-    def test_get_value_when_frozen(self):
-        self._def.freeze()
-        self.assertEqual(self._def, self._def_value)
-
-
-class _TestFrozenSimple(_TestFrozen):
-    def _modify_def(self):
-        self._def.value = self._def_new_value
-
-
 class _TestCopySimple:
     def test_copy(self):
-        cpy = copy.copy(self._def)
-        self.assertIsNot(cpy, self._def)
-        self.assertNotEqual(cpy.addr, self._def.addr)
-        self.assertEqual(cpy, self._def)
+        with self.assertRaises(NotImplementedError):
+            copy.copy(self._def)
 
     def test_deepcopy(self):
-        cpy = copy.deepcopy(self._def)
-        self.assertIsNot(cpy, self._def)
-        self.assertNotEqual(cpy.addr, self._def.addr)
-        self.assertEqual(cpy, self._def)
+        with self.assertRaises(NotImplementedError):
+            copy.deepcopy(self._def)
 
 
 _COMP_BINOPS = (
@@ -54,7 +23,7 @@ _COMP_BINOPS = (
 )
 
 
-class _TestNumericValue(_TestFrozenSimple, _TestCopySimple):
+class _TestNumericValue(_TestCopySimple):
     def _binop(self, op, rhs):
         rexc = None
         rvexc = None
@@ -126,7 +95,7 @@ class _TestNumericValue(_TestFrozenSimple, _TestCopySimple):
         self.assertEqual(self._def.addr, addr_before)
 
     def _test_unaryop_value_same(self, op):
-        value_before = copy.copy(self._def)
+        value_before = self._def.__class__(self._def)
         self._unaryop(op)
         self.assertEqual(self._def, value_before)
 
@@ -156,7 +125,7 @@ class _TestNumericValue(_TestFrozenSimple, _TestCopySimple):
         self.assertEqual(self._def.addr, addr_before)
 
     def _test_binop_lhs_value_same(self, op, rhs):
-        value_before = copy.copy(self._def)
+        value_before = self._def.__class__(self._def)
         r, rv = self._binop(op, rhs)
         self.assertEqual(self._def, value_before)
 
@@ -720,7 +689,6 @@ def _inject_numeric_testing_methods(cls):
         setattr(cls, test_ibinop_name('value_zero_vfloat'), partialmethod(_TestNumericValue._test_ibinop_value_zero_vfloat, op=ibinop))
 
 
-@unittest.skip("this is broken")
 class CreateValueFuncTestCase(unittest.TestCase):
     def test_create_none(self):
         v = bt2.create_value(None)
@@ -751,13 +719,13 @@ class CreateValueFuncTestCase(unittest.TestCase):
     def test_create_float_pos(self):
         raw = 17.5
         v = bt2.create_value(raw)
-        self.assertIsInstance(v, bt2.FloatValue)
+        self.assertIsInstance(v, bt2.RealValue)
         self.assertEqual(v, raw)
 
     def test_create_float_neg(self):
         raw = -17.5
         v = bt2.create_value(raw)
-        self.assertIsInstance(v, bt2.FloatValue)
+        self.assertIsInstance(v, bt2.RealValue)
         self.assertEqual(v, raw)
 
     def test_create_string(self):
@@ -823,8 +791,7 @@ class CreateValueFuncTestCase(unittest.TestCase):
             v = bt2.create_value(a)
 
 
-@unittest.skip("this is broken")
-class BoolValueTestCase(_TestFrozenSimple, _TestCopySimple, unittest.TestCase):
+class BoolValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._f = bt2.BoolValue(False)
         self._t = bt2.BoolValue(True)
@@ -916,7 +883,6 @@ class BoolValueTestCase(_TestFrozenSimple, _TestCopySimple, unittest.TestCase):
         self.assertNotEqual(self._t, False)
 
 
-@unittest.skip("this is broken")
 class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
     def setUp(self):
         self._pv = 23
@@ -1026,13 +992,12 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
 _inject_numeric_testing_methods(IntegerValueTestCase)
 
 
-@unittest.skip("this is broken")
-class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
+class RealValueTestCase(_TestNumericValue, unittest.TestCase):
     def setUp(self):
         self._pv = 23.4
         self._nv = -52.7
-        self._fp = bt2.FloatValue(self._pv)
-        self._fn = bt2.FloatValue(self._nv)
+        self._fp = bt2.RealValue(self._pv)
+        self._fn = bt2.RealValue(self._nv)
         self._def = self._fp
         self._def_value = self._pv
         self._def_new_value = -101.88
@@ -1051,7 +1016,7 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
             cb()
 
     def test_create_default(self):
-        f = bt2.FloatValue()
+        f = bt2.RealValue()
         self.assertEqual(f, 0.0)
 
     def test_create_pos(self):
@@ -1061,30 +1026,30 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
         self.assertEqual(self._fn, self._nv)
 
     def test_create_from_vint(self):
-        f = bt2.FloatValue(self._fp)
+        f = bt2.RealValue(self._fp)
         self.assertEqual(f, self._pv)
 
     def test_create_from_false(self):
-        f = bt2.FloatValue(False)
+        f = bt2.RealValue(False)
         self.assertFalse(f)
 
     def test_create_from_true(self):
-        f = bt2.FloatValue(True)
+        f = bt2.RealValue(True)
         self.assertTrue(f)
 
     def test_create_from_int(self):
         raw = 17
-        f = bt2.FloatValue(raw)
+        f = bt2.RealValue(raw)
         self.assertEqual(f, float(raw))
 
     def test_create_from_vint(self):
         raw = 17
-        f = bt2.FloatValue(bt2.create_value(raw))
+        f = bt2.RealValue(bt2.create_value(raw))
         self.assertEqual(f, float(raw))
 
     def test_create_from_vfloat(self):
         raw = 17.17
-        f = bt2.FloatValue(bt2.create_value(raw))
+        f = bt2.RealValue(bt2.create_value(raw))
         self.assertEqual(f, raw)
 
     def test_create_from_unknown(self):
@@ -1092,11 +1057,11 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
             pass
 
         with self._assert_expecting_float():
-            f = bt2.FloatValue(A())
+            f = bt2.RealValue(A())
 
     def test_create_from_varray(self):
         with self._assert_expecting_float():
-            f = bt2.FloatValue(bt2.ArrayValue())
+            f = bt2.RealValue(bt2.ArrayValue())
 
     def test_assign_true(self):
         self._def.value = True
@@ -1150,11 +1115,10 @@ class FloatValueTestCase(_TestNumericValue, unittest.TestCase):
         self._test_invalid_op(lambda: ~self._def)
 
 
-_inject_numeric_testing_methods(FloatValueTestCase)
+_inject_numeric_testing_methods(RealValueTestCase)
 
 
-@unittest.skip("this is broken")
-class StringValueTestCase(_TestCopySimple, _TestFrozenSimple, unittest.TestCase):
+class StringValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._def_value = 'Hello, World!'
         self._def = bt2.StringValue(self._def_value)
@@ -1272,8 +1236,7 @@ class StringValueTestCase(_TestCopySimple, _TestFrozenSimple, unittest.TestCase)
         self.assertEqual(self._def, self._def_value)
 
 
-@unittest.skip("this is broken")
-class ArrayValueTestCase(_TestFrozen, unittest.TestCase):
+class ArrayValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._def_value = [None, False, True, -23, 0, 42, -42.4, 23.17, 'yes']
         self._def = bt2.ArrayValue(copy.deepcopy(self._def_value))
@@ -1319,22 +1282,6 @@ class ArrayValueTestCase(_TestFrozen, unittest.TestCase):
 
     def test_len(self):
         self.assertEqual(len(self._def), len(self._def_value))
-
-    def test_copy(self):
-        to_copy = (1, 2, 'hello', (4, 5.2))
-        a = bt2.ArrayValue(to_copy)
-        cpy = copy.copy(a)
-        self.assertEqual(a, cpy)
-        self.assertNotEqual(a.addr, cpy.addr)
-        self.assertEqual(a[3].addr, cpy[3].addr)
-
-    def test_deepcopy(self):
-        to_copy = (1, 2, 'hello', (4, 5.2))
-        a = bt2.ArrayValue(to_copy)
-        cpy = copy.deepcopy(a)
-        self.assertEqual(a, cpy)
-        self.assertNotEqual(a.addr, cpy.addr)
-        self.assertNotEqual(a[3].addr, cpy[3].addr)
 
     def test_eq_int(self):
         self.assertNotEqual(self._def, 23)
@@ -1428,8 +1375,7 @@ class ArrayValueTestCase(_TestFrozen, unittest.TestCase):
             self.assertEqual(velem, elem)
 
 
-@unittest.skip("this is broken")
-class MapValueTestCase(_TestFrozen, unittest.TestCase):
+class MapValueTestCase(_TestCopySimple, unittest.TestCase):
     def setUp(self):
         self._def_value = {
             'none': None,
@@ -1477,32 +1423,6 @@ class MapValueTestCase(_TestFrozen, unittest.TestCase):
 
     def test_len(self):
         self.assertEqual(len(self._def), len(self._def_value))
-
-    def test_copy(self):
-        to_copy = {
-            'yes': 1,
-            'no': 2,
-            's': 'hello',
-            'inner': (4, 5.2)
-        }
-        m = bt2.MapValue(to_copy)
-        cpy = copy.copy(m)
-        self.assertEqual(m, cpy)
-        self.assertNotEqual(m.addr, cpy.addr)
-        self.assertEqual(m['inner'].addr, cpy['inner'].addr)
-
-    def test_deepcopy(self):
-        to_copy = {
-            'yes': 1,
-            'no': 2,
-            's': 'hello',
-            'inner': (4, 5.2)
-        }
-        m = bt2.MapValue(to_copy)
-        cpy = copy.deepcopy(m)
-        self.assertEqual(m, cpy)
-        self.assertNotEqual(m.addr, cpy.addr)
-        self.assertNotEqual(m['inner'].addr, cpy['inner'].addr)
 
     def test_eq_int(self):
         self.assertNotEqual(self._def, 23)
