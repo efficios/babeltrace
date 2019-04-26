@@ -25,7 +25,7 @@ __version__ = '@PACKAGE_VERSION@'
 
 from bt2.clock_class import *
 from bt2.clock_class_priority_map import *
-from bt2.clock_value import *
+from bt2.clock_snapshot import *
 from bt2.component import *
 from bt2.component import _FilterComponent
 from bt2.component import _GenericFilterComponentClass

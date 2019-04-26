@@ -25,7 +25,7 @@ import bt2.clock_class
 import bt2.packet
 import bt2.stream
 import bt2.fields
-import bt2.clock_value
+import bt2.clock_snapshot
 import collections
 import numbers
 import copy
@@ -45,10 +45,10 @@ def _create_from_ptr(ptr):
     return event
 
 
-class _EventClockValuesIterator(collections.abc.Iterator):
-    def __init__(self, event_clock_values):
-        self._event_clock_values = event_clock_values
-        self._clock_classes = event_clock_values._event._clock_classes
+class _EventClockSnapshotsIterator(collections.abc.Iterator):
+    def __init__(self, event_clock_snapshots):
+        self._event_clock_snapshots = event_clock_snapshots
+        self._clock_classes = event_clock_snapshots._event._clock_classes
         self._at = 0
 
     def __next__(self):
@@ -59,25 +59,25 @@ class _EventClockValuesIterator(collections.abc.Iterator):
         return self._clock_classes[at]
 
 
-class _EventClockValues(collections.abc.Mapping):
+class _EventClockSnapshots(collections.abc.Mapping):
     def __init__(self, event):
         self._event = event
 
     def __getitem__(self, clock_class):
         utils._check_type(clock_class, bt2.ClockClass)
-        clock_value_ptr = native_bt.event_get_clock_value(self._event._ptr,
+        clock_snapshot_ptr = native_bt.event_get_clock_snapshot(self._event._ptr,
                                                           clock_class._ptr)
 
-        if clock_value_ptr is None:
+        if clock_snapshot_ptr is None:
             return
 
-        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
-        return clock_value
+        clock_snapshot = bt2.clock_snapshot._create_clock_snapshot_from_ptr(clock_snapshot_ptr)
+        return clock_snapshot
 
-    def add(self, clock_value):
-        utils._check_type(clock_value, bt2.clock_value._ClockValue)
-        ret = native_bt.event_set_clock_value(self._ptr,
-                                              clock_value._ptr)
+    def add(self, clock_snapshot):
+        utils._check_type(clock_snapshot, bt2.clock_snapshot._ClockSnapshot)
+        ret = native_bt.event_set_clock_snapshot(self._ptr,
+                                              clock_snapshot._ptr)
         utils._handle_ret(ret, "cannot set event object's clock value")
 
     def __len__(self):
@@ -86,7 +86,7 @@ class _EventClockValues(collections.abc.Mapping):
         return count
 
     def __iter__(self):
-        return _EventClockValuesIterator(self)
+        return _EventClockSnapshotsIterator(self)
 
 
 class _Event(object._Object):
@@ -207,21 +207,21 @@ class _Event(object._Object):
         ret = native_bt.event_set_event_payload(self._ptr, payload_ptr)
         utils._handle_ret(ret, "cannot set event object's payload field")
 
-    def _get_clock_value_cycles(self, clock_class_ptr):
-        clock_value_ptr = native_bt.event_get_clock_value(self._ptr,
+    def _get_clock_snapshot_cycles(self, clock_class_ptr):
+        clock_snapshot_ptr = native_bt.event_get_clock_snapshot(self._ptr,
                                                           clock_class_ptr)
 
-        if clock_value_ptr is None:
+        if clock_snapshot_ptr is None:
             return
 
-        ret, cycles = native_bt.clock_value_get_value(clock_value_ptr)
-        native_bt.put(clock_value_ptr)
+        ret, cycles = native_bt.clock_snapshot_get_value(clock_snapshot_ptr)
+        native_bt.put(clock_snapshot_ptr)
         utils._handle_ret(ret, "cannot get clock value object's cycles")
         return cycles
 
     @property
-    def clock_values(self):
-        return _EventClockValues(self)
+    def clock_snapshots(self):
+        return _EventClockSnapshots(self)
 
     def __getitem__(self, key):
         utils._check_str(key)
@@ -292,28 +292,28 @@ class _Event(object._Object):
         if self.addr == other.addr:
             return True
 
-        self_clock_values = {}
-        other_clock_values = {}
+        self_clock_snapshots = {}
+        other_clock_snapshots = {}
 
         for clock_class_ptr in self._clock_class_ptrs:
-            self_clock_values[int(clock_class_ptr)] = self._get_clock_value_cycles(clock_class_ptr)
+            self_clock_snapshots[int(clock_class_ptr)] = self._get_clock_snapshot_cycles(clock_class_ptr)
 
         for clock_class_ptr in other._clock_class_ptrs:
-            other_clock_values[int(clock_class_ptr)] = self._get_clock_value_cycles(clock_class_ptr)
+            other_clock_snapshots[int(clock_class_ptr)] = self._get_clock_snapshot_cycles(clock_class_ptr)
 
         self_props = (
             self.header_field,
             self.stream_event_context_field,
             self.context_field,
             self.payload_field,
-            self_clock_values,
+            self_clock_snapshots,
         )
         other_props = (
             other.header_field,
             other.stream_event_context_field,
             other.context_field,
             other.payload_field,
-            other_clock_values,
+            other_clock_snapshots,
         )
         return self_props == other_props
 
@@ -332,10 +332,10 @@ class _Event(object._Object):
         # Thus even if we copy the clock class, the user cannot modify
         # it, therefore it's useless to copy it.
         for clock_class in self._clock_classes:
-            clock_value = self.clock_values[clock_class]
+            clock_snapshot = self.clock_snapshots[clock_class]
 
-            if clock_value is not None:
-                cpy.clock_values.add(clock_value)
+            if clock_snapshot is not None:
+                cpy.clock_snapshots.add(clock_snapshot)
 
         return cpy
 

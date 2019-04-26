@@ -26,15 +26,15 @@ import numbers
 import bt2
 
 
-def _create_clock_value_from_ptr(ptr):
-    clock_value = _ClockValue._create_from_ptr(ptr)
-    return clock_value
+def _create_clock_snapshot_from_ptr(ptr):
+    clock_snapshot = _ClockSnapshot._create_from_ptr(ptr)
+    return clock_snapshot
 
 
-class _ClockValue(object._Object):
+class _ClockSnapshot(object._Object):
     def __init__(self, clock_class_ptr, cycles):
         utils._check_uint64(cycles)
-        ptr = native_bt.clock_value_create(clock_class_ptr, cycles)
+        ptr = native_bt.clock_snapshot_create(clock_class_ptr, cycles)
 
         if ptr is None:
             raise bt2.CreationError('cannot create clock value object')
@@ -43,19 +43,19 @@ class _ClockValue(object._Object):
 
     @property
     def clock_class(self):
-        ptr = native_bt.clock_value_get_class(self._ptr)
+        ptr = native_bt.clock_snapshot_get_class(self._ptr)
         assert(ptr)
         return bt2.ClockClass._create_from_ptr(ptr)
 
     @property
     def cycles(self):
-        ret, cycles = native_bt.clock_value_get_value(self._ptr)
+        ret, cycles = native_bt.clock_snapshot_get_value(self._ptr)
         assert(ret == 0)
         return cycles
 
     @property
     def ns_from_epoch(self):
-        ret, ns = native_bt.clock_value_get_value_ns_from_epoch(self._ptr)
+        ret, ns = native_bt.clock_snapshot_get_value_ns_from_epoch(self._ptr)
         utils._handle_ret(ret, "cannot get clock value object's nanoseconds from Epoch")
         return ns
 
