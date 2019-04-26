@@ -24,7 +24,7 @@ from bt2 import native_bt, object, utils
 import uuid as uuidp
 import numbers
 import bt2
-import bt2.clock_value as clock_value
+import bt2.clock_snapshot as clock_snapshot
 
 
 class ClockClassOffset:
@@ -220,4 +220,4 @@ class ClockClass(object._Object):
         utils._handle_ret(ret, "cannot set clock class object's UUID")
 
     def __call__(self, cycles):
-        return clock_value._ClockValue(self._ptr, cycles)
+        return clock_snapshot._ClockSnapshot(self._ptr, cycles)

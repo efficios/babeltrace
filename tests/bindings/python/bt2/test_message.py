@@ -29,7 +29,7 @@ class _MessageTestCase(unittest.TestCase):
         self._packet = self._stream.create_packet()
         self._packet.header_field['hello'] = 19487
         self._event = self._ec()
-        self._event.clock_values.add(self._clock_class(1772))
+        self._event.clock_snapshots.add(self._clock_class(1772))
         self._event.payload_field['my_int'] = 23
         self._event.packet = self._packet
 
@@ -254,39 +254,39 @@ class InactivityMessageTestCase(unittest.TestCase):
 
     def test_create_with_cc_prio_map(self):
         msg = bt2.InactivityMessage(self._cc_prio_map)
-        msg.clock_values.add(self._cc1(123))
-        msg.clock_values.add(self._cc2(19487))
+        msg.clock_snapshots.add(self._cc1(123))
+        msg.clock_snapshots.add(self._cc2(19487))
         self.assertEqual(len(msg.clock_class_priority_map), 2)
         self.assertEqual(msg.clock_class_priority_map, self._cc_prio_map)
-        self.assertEqual(msg.clock_values[self._cc1], 123)
-        self.assertEqual(msg.clock_values[self._cc2], 19487)
+        self.assertEqual(msg.clock_snapshots[self._cc1], 123)
+        self.assertEqual(msg.clock_snapshots[self._cc2], 19487)
 
     def test_eq(self):
         msg = bt2.InactivityMessage(self._cc_prio_map)
-        msg.clock_values.add(self._cc1(123))
-        msg.clock_values.add(self._cc2(19487))
+        msg.clock_snapshots.add(self._cc1(123))
+        msg.clock_snapshots.add(self._cc2(19487))
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
         msg2 = bt2.InactivityMessage(cc_prio_map_copy)
-        msg2.clock_values.add(self._cc1(123))
-        msg2.clock_values.add(self._cc2(19487))
+        msg2.clock_snapshots.add(self._cc1(123))
+        msg2.clock_snapshots.add(self._cc2(19487))
         self.assertEqual(msg, msg2)
 
     def test_ne_cc_prio_map(self):
         msg = bt2.InactivityMessage(self._cc_prio_map)
-        msg.clock_values.add(self._cc1(123))
-        msg.clock_values.add(self._cc2(19487))
+        msg.clock_snapshots.add(self._cc1(123))
+        msg.clock_snapshots.add(self._cc2(19487))
         cc_prio_map_copy = copy.copy(self._cc_prio_map)
         cc_prio_map_copy[self._cc2] = 23
         msg2 = bt2.InactivityMessage(cc_prio_map_copy)
         self.assertNotEqual(msg, msg2)
 
-    def test_ne_clock_value(self):
+    def test_ne_clock_snapshot(self):
         msg = bt2.InactivityMessage(self._cc_prio_map)
-        msg.clock_values.add(self._cc1(123))
-        msg.clock_values.add(self._cc2(19487))
+        msg.clock_snapshots.add(self._cc1(123))
+        msg.clock_snapshots.add(self._cc2(19487))
         msg2 = bt2.InactivityMessage(self._cc_prio_map)
-        msg.clock_values.add(self._cc1(123))
-        msg.clock_values.add(self._cc2(1847))
+        msg.clock_snapshots.add(self._cc1(123))
+        msg.clock_snapshots.add(self._cc2(1847))
         self.assertNotEqual(msg, msg2)
 
     def test_eq_invalid(self):
@@ -295,20 +295,20 @@ class InactivityMessageTestCase(unittest.TestCase):
 
     def test_copy(self):
         msg = bt2.InactivityMessage(self._cc_prio_map)
-        msg.clock_values.add(self._cc1(123))
-        msg.clock_values.add(self._cc2(19487))
+        msg.clock_snapshots.add(self._cc1(123))
+        msg.clock_snapshots.add(self._cc2(19487))
         msg_copy = copy.copy(msg)
         self.assertEqual(msg, msg_copy)
         self.assertNotEqual(msg.addr, msg_copy.addr)
         self.assertEqual(msg.clock_class_priority_map.addr,
                          msg_copy.clock_class_priority_map.addr)
-        self.assertEqual(msg_copy.clock_values[self._cc1], 123)
-        self.assertEqual(msg_copy.clock_values[self._cc2], 19487)
+        self.assertEqual(msg_copy.clock_snapshots[self._cc1], 123)
+        self.assertEqual(msg_copy.clock_snapshots[self._cc2], 19487)
 
     def test_deepcopy(self):
         msg = bt2.InactivityMessage(self._cc_prio_map)
-        msg.clock_values.add(self._cc1(123))
-        msg.clock_values.add(self._cc2(19487))
+        msg.clock_snapshots.add(self._cc1(123))
+        msg.clock_snapshots.add(self._cc2(19487))
         msg_copy = copy.deepcopy(msg)
         self.assertEqual(msg, msg_copy)
         self.assertNotEqual(msg.addr, msg_copy.addr)
@@ -318,10 +318,10 @@ class InactivityMessageTestCase(unittest.TestCase):
                          msg_copy.clock_class_priority_map)
         self.assertNotEqual(list(msg.clock_class_priority_map)[0].addr,
                             list(msg_copy.clock_class_priority_map)[0].addr)
-        self.assertIsNone(msg_copy.clock_values[self._cc1])
-        self.assertIsNone(msg_copy.clock_values[self._cc2])
-        self.assertEqual(msg_copy.clock_values[list(msg_copy.clock_class_priority_map)[0]], 123)
-        self.assertEqual(msg_copy.clock_values[list(msg_copy.clock_class_priority_map)[1]], 19487)
+        self.assertIsNone(msg_copy.clock_snapshots[self._cc1])
+        self.assertIsNone(msg_copy.clock_snapshots[self._cc2])
+        self.assertEqual(msg_copy.clock_snapshots[list(msg_copy.clock_class_priority_map)[0]], 123)
+        self.assertEqual(msg_copy.clock_snapshots[list(msg_copy.clock_class_priority_map)[1]], 19487)
 
 
 @unittest.skip("this is broken")
@@ -427,17 +427,17 @@ class DiscardedPacketsMessageTestCase(unittest.TestCase):
     def test_stream(self):
         self.assertEqual(self._get_msg().stream.addr, self._stream.addr)
 
-    def test_beginning_clock_value(self):
+    def test_beginning_clock_snapshot(self):
         msg = self._get_msg()
-        beginning_clock_value = msg.beginning_clock_value
-        self.assertEqual(beginning_clock_value.clock_class, self._clock_class)
-        self.assertEqual(beginning_clock_value, 6)
+        beginning_clock_snapshot = msg.beginning_clock_snapshot
+        self.assertEqual(beginning_clock_snapshot.clock_class, self._clock_class)
+        self.assertEqual(beginning_clock_snapshot, 6)
 
-    def test_end_clock_value(self):
+    def test_end_clock_snapshot(self):
         msg = self._get_msg()
-        end_clock_value = msg.end_clock_value
-        self.assertEqual(end_clock_value.clock_class, self._clock_class)
-        self.assertEqual(end_clock_value, 7)
+        end_clock_snapshot = msg.end_clock_snapshot
+        self.assertEqual(end_clock_snapshot.clock_class, self._clock_class)
+        self.assertEqual(end_clock_snapshot, 7)
 
     def test_eq(self):
         msg1 = self._get_msg()
@@ -552,17 +552,17 @@ class DiscardedEventsMessageTestCase(unittest.TestCase):
     def test_stream(self):
         self.assertEqual(self._get_msg().stream.addr, self._stream.addr)
 
-    def test_beginning_clock_value(self):
+    def test_beginning_clock_snapshot(self):
         msg = self._get_msg()
-        beginning_clock_value = msg.beginning_clock_value
-        self.assertEqual(beginning_clock_value.clock_class, self._clock_class)
-        self.assertEqual(beginning_clock_value, 6)
+        beginning_clock_snapshot = msg.beginning_clock_snapshot
+        self.assertEqual(beginning_clock_snapshot.clock_class, self._clock_class)
+        self.assertEqual(beginning_clock_snapshot, 6)
 
-    def test_end_clock_value(self):
+    def test_end_clock_snapshot(self):
         msg = self._get_msg()
-        end_clock_value = msg.end_clock_value
-        self.assertEqual(end_clock_value.clock_class, self._clock_class)
-        self.assertEqual(end_clock_value, 10)
+        end_clock_snapshot = msg.end_clock_snapshot
+        self.assertEqual(end_clock_snapshot.clock_class, self._clock_class)
+        self.assertEqual(end_clock_snapshot, 10)
 
     def test_eq(self):
         msg1 = self._get_msg()

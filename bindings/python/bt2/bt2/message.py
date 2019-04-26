@@ -22,7 +22,7 @@
 
 from bt2 import native_bt, object, utils
 import bt2.clock_class_priority_map
-import bt2.clock_value
+import bt2.clock_snapshot
 import collections
 import bt2.packet
 import bt2.stream
@@ -264,10 +264,10 @@ class StreamEndMessage(_CopyableMessage):
         return StreamEndMessage(self.stream)
 
 
-class _InactivityMessageClockValuesIterator(collections.abc.Iterator):
-    def __init__(self, msg_clock_values):
-        self._msg_clock_values = msg_clock_values
-        self._clock_classes = list(msg_clock_values._msg.clock_class_priority_map)
+class _InactivityMessageClockSnapshotsIterator(collections.abc.Iterator):
+    def __init__(self, msg_clock_snapshots):
+        self._msg_clock_snapshots = msg_clock_snapshots
+        self._clock_classes = list(msg_clock_snapshots._msg.clock_class_priority_map)
         self._at = 0
 
     def __next__(self):
@@ -278,32 +278,32 @@ class _InactivityMessageClockValuesIterator(collections.abc.Iterator):
         return self._clock_classes[at]
 
 
-class _InactivityMessageClockValues(collections.abc.Mapping):
+class _InactivityMessageClockSnapshots(collections.abc.Mapping):
     def __init__(self, msg):
         self._msg = msg
 
     def __getitem__(self, clock_class):
         utils._check_type(clock_class, bt2.ClockClass)
-        clock_value_ptr = native_bt.message_inactivity_get_clock_value(self._msg._ptr,
+        clock_snapshot_ptr = native_bt.message_inactivity_get_clock_snapshot(self._msg._ptr,
                                                                             clock_class._ptr)
 
-        if clock_value_ptr is None:
+        if clock_snapshot_ptr is None:
             return
 
-        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
-        return clock_value
+        clock_snapshot = bt2.clock_snapshot._create_clock_snapshot_from_ptr(clock_snapshot_ptr)
+        return clock_snapshot
 
-    def add(self, clock_value):
-        utils._check_type(clock_value, bt2.clock_value._ClockValue)
-        ret = native_bt.message_inactivity_set_clock_value(self._msg._ptr,
-                                                                clock_value._ptr)
+    def add(self, clock_snapshot):
+        utils._check_type(clock_snapshot, bt2.clock_snapshot._ClockSnapshot)
+        ret = native_bt.message_inactivity_set_clock_snapshot(self._msg._ptr,
+                                                                clock_snapshot._ptr)
         utils._handle_ret(ret, "cannot set inactivity message object's clock value")
 
     def __len__(self):
         return len(self._msg.clock_class_priority_map)
 
     def __iter__(self):
-        return _InactivityMessageClockValuesIterator(self)
+        return _InactivityMessageClockSnapshotsIterator(self)
 
 
 class InactivityMessage(_CopyableMessage):
@@ -330,19 +330,19 @@ class InactivityMessage(_CopyableMessage):
         return bt2.clock_class_priority_map.ClockClassPriorityMap._create_from_ptr(cc_prio_map_ptr)
 
     @property
-    def clock_values(self):
-        return _InactivityMessageClockValues(self)
+    def clock_snapshots(self):
+        return _InactivityMessageClockSnapshots(self)
 
-    def _get_clock_values(self):
-        clock_values = {}
+    def _get_clock_snapshots(self):
+        clock_snapshots = {}
 
-        for clock_class, clock_value in self.clock_values.items():
-            if clock_value is None:
+        for clock_class, clock_snapshot in self.clock_snapshots.items():
+            if clock_snapshot is None:
                 continue
 
-            clock_values[clock_class] = clock_value
+            clock_snapshots[clock_class] = clock_snapshot
 
-        return clock_values
+        return clock_snapshots
 
     def __eq__(self, other):
         if type(other) is not type(self):
@@ -353,22 +353,22 @@ class InactivityMessage(_CopyableMessage):
 
         self_props = (
             self.clock_class_priority_map,
-            self._get_clock_values(),
+            self._get_clock_snapshots(),
         )
         other_props = (
             other.clock_class_priority_map,
-            other._get_clock_values(),
+            other._get_clock_snapshots(),
         )
         return self_props == other_props
 
     def __copy__(self):
         cpy = InactivityMessage(self.clock_class_priority_map)
 
-        for clock_class, clock_value in self.clock_values.items():
-            if clock_value is None:
+        for clock_class, clock_snapshot in self.clock_snapshots.items():
+            if clock_snapshot is None:
                 continue
 
-            cpy.clock_values.add(clock_value)
+            cpy.clock_snapshots.add(clock_snapshot)
 
         return cpy
 
@@ -378,9 +378,9 @@ class InactivityMessage(_CopyableMessage):
 
         # copy clock values
         for orig_clock_class in self.clock_class_priority_map:
-            orig_clock_value = self.clock_value(orig_clock_class)
+            orig_clock_snapshot = self.clock_snapshot(orig_clock_class)
 
-            if orig_clock_value is None:
+            if orig_clock_snapshot is None:
                 continue
 
             # find equivalent, copied clock class in CC priority map copy
@@ -389,10 +389,10 @@ class InactivityMessage(_CopyableMessage):
                     break
 
             # create copy of clock value from copied clock class
-            clock_value_cpy = cpy_clock_class(orig_clock_value.cycles)
+            clock_snapshot_cpy = cpy_clock_class(orig_clock_snapshot.cycles)
 
             # set copied clock value in message copy
-            cpy.clock_values.add(clock_value_cpy)
+            cpy.clock_snapshots.add(clock_snapshot_cpy)
 
         memo[id(self)] = cpy
         return cpy
@@ -409,14 +409,14 @@ class _DiscardedElementsMessage(_Message):
         self_props = (
             self.count,
             self.stream,
-            self.beginning_clock_value,
-            self.end_clock_value,
+            self.beginning_clock_snapshot,
+            self.end_clock_snapshot,
         )
         other_props = (
             other.count,
             other.stream,
-            other.beginning_clock_value,
-            other.end_clock_value,
+            other.beginning_clock_snapshot,
+            other.end_clock_snapshot,
         )
         return self_props == other_props
 
@@ -437,24 +437,24 @@ class _DiscardedPacketsMessage(_DiscardedElementsMessage):
         return bt2.stream._create_from_ptr(stream_ptr)
 
     @property
-    def beginning_clock_value(self):
-        clock_value_ptr = native_bt.message_discarded_packets_get_begin_clock_value(self._ptr)
+    def beginning_clock_snapshot(self):
+        clock_snapshot_ptr = native_bt.message_discarded_packets_get_begin_clock_snapshot(self._ptr)
 
-        if clock_value_ptr is None:
+        if clock_snapshot_ptr is None:
             return
 
-        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
-        return clock_value
+        clock_snapshot = bt2.clock_snapshot._create_clock_snapshot_from_ptr(clock_snapshot_ptr)
+        return clock_snapshot
 
     @property
-    def end_clock_value(self):
-        clock_value_ptr = native_bt.message_discarded_packets_get_end_clock_value(self._ptr)
+    def end_clock_snapshot(self):
+        clock_snapshot_ptr = native_bt.message_discarded_packets_get_end_clock_snapshot(self._ptr)
 
-        if clock_value_ptr is None:
+        if clock_snapshot_ptr is None:
             return
 
-        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
-        return clock_value
+        clock_snapshot = bt2.clock_snapshot._create_clock_snapshot_from_ptr(clock_snapshot_ptr)
+        return clock_snapshot
 
 
 class _DiscardedEventsMessage(_DiscardedElementsMessage):
@@ -473,24 +473,24 @@ class _DiscardedEventsMessage(_DiscardedElementsMessage):
         return bt2.stream._create_from_ptr(stream_ptr)
 
     @property
-    def beginning_clock_value(self):
-        clock_value_ptr = native_bt.message_discarded_events_get_begin_clock_value(self._ptr)
+    def beginning_clock_snapshot(self):
+        clock_snapshot_ptr = native_bt.message_discarded_events_get_begin_clock_snapshot(self._ptr)
 
-        if clock_value_ptr is None:
+        if clock_snapshot_ptr is None:
             return
 
-        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
-        return clock_value
+        clock_snapshot = bt2.clock_snapshot._create_clock_snapshot_from_ptr(clock_snapshot_ptr)
+        return clock_snapshot
 
     @property
-    def end_clock_value(self):
-        clock_value_ptr = native_bt.message_discarded_events_get_end_clock_value(self._ptr)
+    def end_clock_snapshot(self):
+        clock_snapshot_ptr = native_bt.message_discarded_events_get_end_clock_snapshot(self._ptr)
 
-        if clock_value_ptr is None:
+        if clock_snapshot_ptr is None:
             return
 
-        clock_value = bt2.clock_value._create_clock_value_from_ptr(clock_value_ptr)
-        return clock_value
+        clock_snapshot = bt2.clock_snapshot._create_clock_snapshot_from_ptr(clock_snapshot_ptr)
+        return clock_snapshot
 
 
 _MESSAGE_TYPE_TO_CLS = {
