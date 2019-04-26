@@ -45,16 +45,16 @@ from bt2.event import _Event
 from bt2.event_class import *
 from bt2.field_class import *
 from bt2.field_class import _FieldClass
-from bt2.fields import *
-from bt2.fields import _ArrayField
-from bt2.fields import _EnumerationField
-from bt2.fields import _Field
-from bt2.fields import _FloatingPointNumberField
-from bt2.fields import _IntegerField
-from bt2.fields import _SequenceField
-from bt2.fields import _StringField
-from bt2.fields import _StructureField
-from bt2.fields import _VariantField
+from bt2.field import *
+from bt2.field import _ArrayField
+from bt2.field import _EnumerationField
+from bt2.field import _Field
+from bt2.field import _FloatingPointNumberField
+from bt2.field import _IntegerField
+from bt2.field import _SequenceField
+from bt2.field import _StringField
+from bt2.field import _StructureField
+from bt2.field import _VariantField
 from bt2.graph import *
 from bt2.logging import *
 from bt2.message import *
@@ -77,8 +77,8 @@ from bt2.stream import _Stream
 from bt2.stream_class import *
 from bt2.trace import *
 from bt2.trace_collection_message_iterator import *
-from bt2.values import *
-from bt2.values import _Value
+from bt2.value import *
+from bt2.value import _Value
 
 
 class Error(Exception):

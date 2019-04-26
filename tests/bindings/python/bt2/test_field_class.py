@@ -1,4 +1,4 @@
-import bt2.fields
+import bt2.field
 import unittest
 import copy
 import bt2
@@ -125,7 +125,7 @@ class IntegerFieldClassTestCase(_TestIntegerFieldClassProps, _TestCopySimple,
 
     def test_create_field(self):
         field = self._fc()
-        self.assertIsInstance(field, bt2.fields._IntegerField)
+        self.assertIsInstance(field, bt2.field._IntegerField)
 
     def test_create_field_init(self):
         field = self._fc(23)
@@ -173,7 +173,7 @@ class FloatingPointNumberFieldClassTestCase(_TestCopySimple, _TestAlignmentProp,
 
     def test_create_field(self):
         field = self._fc()
-        self.assertIsInstance(field, bt2.fields._FloatingPointNumberField)
+        self.assertIsInstance(field, bt2.field._FloatingPointNumberField)
 
     def test_create_field_init(self):
         field = self._fc(17.5)
@@ -421,7 +421,7 @@ class EnumerationFieldClassTestCase(_TestIntegerFieldClassProps, _TestInvalidEq,
     def test_create_field(self):
         self._fc.add_mapping('c', 4, 5)
         field = self._fc()
-        self.assertIsInstance(field, bt2.fields._EnumerationField)
+        self.assertIsInstance(field, bt2.field._EnumerationField)
 
     def test_create_field_init(self):
         self._fc.add_mapping('c', 4, 5)
@@ -455,7 +455,7 @@ class StringFieldClassTestCase(_TestCopySimple, _TestInvalidEq,
 
     def test_create_field(self):
         field = self._fc()
-        self.assertIsInstance(field, bt2.fields._StringField)
+        self.assertIsInstance(field, bt2.field._StringField)
 
     def test_create_field_init(self):
         field = self._fc('hola')
@@ -608,7 +608,7 @@ class StructureFieldClassTestCase(_TestFieldContainer, unittest.TestCase):
 
     def test_create_field(self):
         field = self._fc()
-        self.assertIsInstance(field, bt2.fields._StructureField)
+        self.assertIsInstance(field, bt2.field._StructureField)
 
     def test_create_field_init_invalid(self):
         with self.assertRaises(bt2.Error):
@@ -668,7 +668,7 @@ class ArrayFieldClassTestCase(_TestInvalidEq, _TestCopySimple,
 
     def test_create_field(self):
         field = self._fc()
-        self.assertIsInstance(field, bt2.fields._ArrayField)
+        self.assertIsInstance(field, bt2.field._ArrayField)
 
     def test_create_field_init_invalid(self):
         with self.assertRaises(bt2.Error):
@@ -700,7 +700,7 @@ class SequenceFieldClassTestCase(_TestInvalidEq, _TestCopySimple,
 
     def test_create_field(self):
         field = self._fc()
-        self.assertIsInstance(field, bt2.fields._SequenceField)
+        self.assertIsInstance(field, bt2.field._SequenceField)
 
     def test_create_field_init_invalid(self):
         with self.assertRaises(bt2.Error):

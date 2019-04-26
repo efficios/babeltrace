@@ -23,7 +23,7 @@
 from bt2 import native_bt, object, utils
 import bt2.field_class
 import collections.abc
-import bt2.values
+import bt2.value
 import bt2.stream
 import copy
 import bt2
@@ -139,7 +139,7 @@ class _TraceEnv(collections.abc.MutableMapping):
         if value_ptr is None:
             raise KeyError(key)
 
-        return bt2.values._create_from_ptr(value_ptr)
+        return bt2.value._create_from_ptr(value_ptr)
 
     def __setitem__(self, key, value):
         utils._check_str(key)

@@ -24,7 +24,7 @@ from bt2 import native_bt, object, utils
 import bt2.clock_class
 import bt2.packet
 import bt2.stream
-import bt2.fields
+import bt2.field
 import bt2.clock_snapshot
 import collections
 import numbers
@@ -133,14 +133,14 @@ class _Event(object._Object):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @header_field.setter
     def header_field(self, header_field):
         header_field_ptr = None
 
         if header_field is not None:
-            utils._check_type(header_field, bt2.fields._Field)
+            utils._check_type(header_field, bt2.field._Field)
             header_field_ptr = header_field._ptr
 
         ret = native_bt.event_set_header(self._ptr, header_field_ptr)
@@ -153,14 +153,14 @@ class _Event(object._Object):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @stream_event_context_field.setter
     def stream_event_context_field(self, stream_event_context):
         stream_event_context_ptr = None
 
         if stream_event_context is not None:
-            utils._check_type(stream_event_context, bt2.fields._Field)
+            utils._check_type(stream_event_context, bt2.field._Field)
             stream_event_context_ptr = stream_event_context._ptr
 
         ret = native_bt.event_set_stream_event_context(self._ptr,
@@ -174,14 +174,14 @@ class _Event(object._Object):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @context_field.setter
     def context_field(self, context):
         context_ptr = None
 
         if context is not None:
-            utils._check_type(context, bt2.fields._Field)
+            utils._check_type(context, bt2.field._Field)
             context_ptr = context._ptr
 
         ret = native_bt.event_set_event_context(self._ptr, context_ptr)
@@ -194,14 +194,14 @@ class _Event(object._Object):
         if field_ptr is None:
             return
 
-        return bt2.fields._create_from_ptr(field_ptr)
+        return bt2.field._create_from_ptr(field_ptr)
 
     @payload_field.setter
     def payload_field(self, payload):
         payload_ptr = None
 
         if payload is not None:
-            utils._check_type(payload, bt2.fields._Field)
+            utils._check_type(payload, bt2.field._Field)
             payload_ptr = payload._ptr
 
         ret = native_bt.event_set_event_payload(self._ptr, payload_ptr)

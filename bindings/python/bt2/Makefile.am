@@ -41,7 +41,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/ctf_writer.py				\
 	bt2/event_class.py				\
 	bt2/event.py					\
-	bt2/fields.py					\
+	bt2/field.py					\
 	bt2/field_class.py				\
 	bt2/graph.py					\
 	bt2/logging.py					\
@@ -58,7 +58,7 @@ STATIC_BINDINGS_DEPS =					\
 	bt2/trace.py					\
 	bt2/trace_collection_message_iterator.py	\
 	bt2/utils.py					\
-	bt2/values.py
+	bt2/value.py
 
 GENERATED_BINDINGS_DEPS =	\
 	bt2/__init__.py		\
