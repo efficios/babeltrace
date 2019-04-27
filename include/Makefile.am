@@ -90,10 +90,11 @@ babeltracectfwriterincludedir = "$(includedir)/babeltrace/ctf-writer"
 babeltracectfwriterinclude_HEADERS = \
 	babeltrace/ctf-writer/clock.h \
 	babeltrace/ctf-writer/event-fields.h \
-	babeltrace/ctf-writer/event.h \
 	babeltrace/ctf-writer/event-types.h \
-	babeltrace/ctf-writer/fields.h \
+	babeltrace/ctf-writer/event.h \
 	babeltrace/ctf-writer/field-types.h \
+	babeltrace/ctf-writer/fields.h \
+	babeltrace/ctf-writer/object.h \
 	babeltrace/ctf-writer/stream-class.h \
 	babeltrace/ctf-writer/stream.h \
 	babeltrace/ctf-writer/trace.h \
