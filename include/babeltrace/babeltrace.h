@@ -44,6 +44,7 @@
 #include <babeltrace/ctf-writer/event.h>
 #include <babeltrace/ctf-writer/field-types.h>
 #include <babeltrace/ctf-writer/fields.h>
+#include <babeltrace/ctf-writer/object.h>
 #include <babeltrace/ctf-writer/stream-class.h>
 #include <babeltrace/ctf-writer/stream.h>
 #include <babeltrace/ctf-writer/trace.h>
