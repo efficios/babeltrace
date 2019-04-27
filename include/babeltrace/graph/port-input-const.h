@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-/* For bt_port, bt_port_input */
+/* For bt_port, bt_port_input, __BT_UPCAST_CONST */
 #include <babeltrace/types.h>
 
 #include <stdint.h>
@@ -36,7 +36,7 @@ extern "C" {
 static inline
 const bt_port *bt_port_input_as_port_const(const bt_port_input *port_input)
 {
-	return (const void *) port_input;
+	return __BT_UPCAST_CONST(bt_port, port_input);
 }
 
 extern void bt_port_input_get_ref(const bt_port_input *port_input);

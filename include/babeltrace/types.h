@@ -25,6 +25,15 @@
 
 #include <stdint.h>
 
+/* Internal use */
+#ifdef __cplusplus
+# define __BT_UPCAST(_type, _p)		static_cast<_type *>(static_cast<void *>(_p))
+# define __BT_UPCAST_CONST(_type, _p)	static_cast<const _type *>(static_cast<const void *>(_p))
+#else
+# define __BT_UPCAST(_type, _p)		((_type *) (_p))
+# define __BT_UPCAST_CONST(_type, _p)	((const _type *) (_p))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

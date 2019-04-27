@@ -24,7 +24,10 @@
  * SOFTWARE.
  */
 
-/* For bt_component_class_source, bt_self_component_class_source */
+/*
+ * For bt_component_class_source, bt_self_component_class_source,
+ * __BT_UPCAST_CONST
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -36,7 +39,8 @@ const bt_component_class_source *
 bt_self_component_class_source_as_component_class_source(
 		bt_self_component_class_source *self_comp_cls_source)
 {
-	return (const void *) self_comp_cls_source;
+	return __BT_UPCAST_CONST(bt_component_class_source,
+		self_comp_cls_source);
 }
 
 #ifdef __cplusplus

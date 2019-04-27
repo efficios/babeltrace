@@ -38,7 +38,8 @@
 /*
  * For bt_component_class, bt_component_class_sink, bt_port_output,
  * bt_query_executor, bt_self_component_class_sink,
- * bt_self_component_sink, bt_self_component_port_input, bt_value
+ * bt_self_component_sink, bt_self_component_port_input, bt_value,
+ * __BT_UPCAST
  */
 #include <babeltrace/types.h>
 
@@ -83,7 +84,7 @@ static inline
 bt_component_class *bt_component_class_sink_as_component_class(
 		bt_component_class_sink *comp_cls_sink)
 {
-	return (void *) comp_cls_sink;
+	return __BT_UPCAST(bt_component_class, comp_cls_sink);
 }
 
 extern

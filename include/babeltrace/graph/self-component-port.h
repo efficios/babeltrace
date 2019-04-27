@@ -24,7 +24,8 @@
  */
 
 /*
- * For bt_port, bt_self_component_port, bt_self_component, bt_connection
+ * For bt_port, bt_self_component_port, bt_self_component,
+ * bt_connection, __BT_UPCAST_CONST
  */
 #include <babeltrace/types.h>
 
@@ -40,7 +41,7 @@ static inline
 const bt_port *bt_self_component_port_as_port(
 		bt_self_component_port *self_port)
 {
-	return (const void *) self_port;
+	return __BT_UPCAST_CONST(bt_port, self_port);
 }
 
 extern bt_self_component *bt_self_component_port_borrow_component(

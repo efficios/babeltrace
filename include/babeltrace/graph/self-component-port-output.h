@@ -25,7 +25,7 @@
 
 /*
  * For bt_port_output, bt_self_component_port,
- * bt_self_component_port_output
+ * bt_self_component_port_output, __BT_UPCAST, __BT_UPCAST_CONST
  */
 #include <babeltrace/types.h>
 
@@ -38,14 +38,14 @@ bt_self_component_port *
 bt_self_component_port_output_as_self_component_port(
 		bt_self_component_port_output *self_component_port)
 {
-	return (void *) self_component_port;
+	return __BT_UPCAST(bt_self_component_port, self_component_port);
 }
 
 static inline
 const bt_port_output *bt_self_component_port_output_as_port_output(
 		bt_self_component_port_output *self_component_port)
 {
-	return (const void *) self_component_port;
+	return __BT_UPCAST_CONST(bt_port_output, self_component_port);
 }
 
 #ifdef __cplusplus

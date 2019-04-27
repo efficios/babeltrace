@@ -26,7 +26,10 @@
 
 #include <stdint.h>
 
-/* For bt_component, bt_component_filter, bt_port_input */
+/*
+ * For bt_component, bt_component_filter, bt_port_input,
+ * __BT_UPCAST_CONST
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -37,7 +40,7 @@ static inline
 const bt_component *bt_component_sink_as_component_const(
 		const bt_component_sink *component)
 {
-	return (const void *) component;
+	return __BT_UPCAST_CONST(bt_component, component);
 }
 
 extern uint64_t bt_component_sink_get_input_port_count(

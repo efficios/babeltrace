@@ -24,7 +24,10 @@
  * SOFTWARE.
  */
 
-/* For bt_component_class, bt_component_class_source */
+/*
+ * For bt_component_class, bt_component_class_source,
+ * __BT_UPCAST_CONST
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -36,7 +39,7 @@ const bt_component_class *
 bt_component_class_source_as_component_class_const(
 		const bt_component_class_source *comp_cls_source)
 {
-	return (const void *) comp_cls_source;
+	return __BT_UPCAST_CONST(bt_component_class, comp_cls_source);
 }
 
 extern void bt_component_class_source_get_ref(

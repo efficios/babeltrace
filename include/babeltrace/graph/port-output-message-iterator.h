@@ -31,7 +31,7 @@
 /*
  * For bt_port, bt_message, bt_message_iterator,
  * bt_port_output_message_iterator, bt_graph, bt_port_output,
- * bt_message_array_const, bt_bool
+ * bt_message_array_const, bt_bool, __BT_UPCAST
  */
 #include <babeltrace/types.h>
 
@@ -44,7 +44,7 @@ bt_message_iterator *
 bt_port_output_message_iterator_as_message_iterator(
 		bt_port_output_message_iterator *iterator)
 {
-	return (void *) iterator;
+	return __BT_UPCAST(bt_message_iterator, iterator);
 }
 
 extern bt_port_output_message_iterator *

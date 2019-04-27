@@ -42,7 +42,8 @@
  * For bt_component_class, bt_component_class_source, bt_port_input,
  * bt_query_executor, bt_self_component_class_source,
  * bt_self_component_source, bt_self_component_port_output, bt_value,
- * bt_message_array_const, bt_bool, bt_self_message_iterator
+ * bt_message_array_const, bt_bool, bt_self_message_iterator,
+ * __BT_UPCAST
  */
 #include <babeltrace/types.h>
 
@@ -114,7 +115,7 @@ static inline
 bt_component_class *bt_component_class_source_as_component_class(
 		bt_component_class_source *comp_cls_source)
 {
-	return (void *) comp_cls_source;
+	return __BT_UPCAST(bt_component_class, comp_cls_source);
 }
 
 extern

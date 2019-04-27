@@ -31,7 +31,8 @@
 
 /*
  * For bt_component_filter, bt_self_component, bt_self_component_filter,
- * bt_self_component_port_input, bt_self_component_port_output
+ * bt_self_component_port_input, bt_self_component_port_output,
+ * __BT_UPCAST, __BT_UPCAST_CONST
  */
 #include <babeltrace/types.h>
 
@@ -43,7 +44,7 @@ static inline
 bt_self_component *bt_self_component_filter_as_self_component(
 		bt_self_component_filter *self_comp_filter)
 {
-	return (void *) self_comp_filter;
+	return __BT_UPCAST(bt_self_component, self_comp_filter);
 }
 
 static inline
@@ -51,7 +52,7 @@ const bt_component_filter *
 bt_self_component_filter_as_component_filter(
 		bt_self_component_filter *self_comp_filter)
 {
-	return (const void *) self_comp_filter;
+	return __BT_UPCAST_CONST(bt_component_filter, self_comp_filter);
 }
 
 extern bt_self_component_port_output *

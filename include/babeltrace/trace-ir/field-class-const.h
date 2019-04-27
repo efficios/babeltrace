@@ -32,7 +32,7 @@
  * bt_field_class_enumeration_mapping,
  * bt_field_class_unsigned_enumeration_mapping,
  * bt_field_class_signed_enumeration_mapping,
- * bt_field_class_enumeration_mapping_label_array
+ * bt_field_class_enumeration_mapping_label_array, __BT_UPCAST_CONST
  */
 #include <babeltrace/types.h>
 
@@ -97,7 +97,7 @@ const bt_field_class_enumeration_mapping *
 bt_field_class_unsigned_enumeration_mapping_as_mapping_const(
 		const bt_field_class_unsigned_enumeration_mapping *mapping)
 {
-	return (const void *) mapping;
+	return __BT_UPCAST_CONST(bt_field_class_enumeration_mapping, mapping);
 }
 
 static inline
@@ -105,7 +105,7 @@ const bt_field_class_enumeration_mapping *
 bt_field_class_signed_enumeration_mapping_as_mapping_const(
 		const bt_field_class_signed_enumeration_mapping *mapping)
 {
-	return (const void *) mapping;
+	return __BT_UPCAST_CONST(bt_field_class_enumeration_mapping, mapping);
 }
 
 extern const char *bt_field_class_enumeration_mapping_get_label(
