@@ -43,4 +43,8 @@ int bt_ctf_validate_identifier(const char *identifier)
 	return bt_ctf_identifier_is_valid(identifier) ? 1 : 0;
 }
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* BABELTRACE_CTF_WRITER_UTILS_H */

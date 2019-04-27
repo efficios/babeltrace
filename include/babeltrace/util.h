@@ -38,4 +38,8 @@ bt_util_status bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		uint64_t frequency, int64_t offset_seconds,
 		uint64_t offset_cycles, int64_t *ns);
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* BABELTRACE_UTIL_H */
