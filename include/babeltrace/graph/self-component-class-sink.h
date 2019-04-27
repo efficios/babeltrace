@@ -24,7 +24,10 @@
  * SOFTWARE.
  */
 
-/* For bt_component_class_sink, bt_self_component_class_sink */
+/*
+ * For bt_component_class_sink, bt_self_component_class_sink,
+ * __BT_UPCAST_CONST
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -36,7 +39,7 @@ const bt_component_class_sink *
 bt_self_component_class_sink_as_component_class_sink(
 		bt_self_component_class_sink *self_comp_cls_sink)
 {
-	return (const void *) self_comp_cls_sink;
+	return __BT_UPCAST_CONST(bt_component_class_sink, self_comp_cls_sink);
 }
 
 #ifdef __cplusplus

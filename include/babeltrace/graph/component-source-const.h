@@ -26,7 +26,10 @@
 
 #include <stdint.h>
 
-/* For bt_component, bt_component_filter, bt_port_output */
+/*
+ * For bt_component, bt_component_filter, bt_port_output,
+ * __BT_UPCAST_CONST
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -37,7 +40,7 @@ static inline
 const bt_component *bt_component_source_as_component_const(
 		const bt_component_source *component)
 {
-	return (void *) component;
+	return __BT_UPCAST_CONST(bt_component, component);
 }
 
 extern uint64_t bt_component_source_get_output_port_count(

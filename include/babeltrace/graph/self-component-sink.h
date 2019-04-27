@@ -30,7 +30,7 @@
 
 /*
  * For bt_component_sink, bt_self_component, bt_self_component_sink,
- * bt_self_component_port_input
+ * bt_self_component_port_input, __BT_UPCAST, __BT_UPCAST_CONST
  */
 #include <babeltrace/types.h>
 
@@ -42,7 +42,7 @@ static inline
 bt_self_component *bt_self_component_sink_as_self_component(
 		bt_self_component_sink *self_comp_sink)
 {
-	return (void *) self_comp_sink;
+	return __BT_UPCAST(bt_self_component, self_comp_sink);
 }
 
 static inline
@@ -50,7 +50,7 @@ const bt_component_sink *
 bt_self_component_sink_as_component_sink(
 		bt_self_component_sink *self_comp_sink)
 {
-	return (const void *) self_comp_sink;
+	return __BT_UPCAST_CONST(bt_component_sink, self_comp_sink);
 }
 
 extern bt_self_component_port_input *

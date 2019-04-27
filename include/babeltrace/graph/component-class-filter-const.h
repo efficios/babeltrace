@@ -24,7 +24,10 @@
  * SOFTWARE.
  */
 
-/* For bt_component_class, bt_component_class_filter */
+/*
+ * For bt_component_class, bt_component_class_filter,
+ * __BT_UPCAST_CONST
+ */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -36,7 +39,7 @@ const bt_component_class *
 bt_component_class_filter_as_component_class_const(
 		const bt_component_class_filter *comp_cls_filter)
 {
-	return (const void *) comp_cls_filter;
+	return __BT_UPCAST_CONST(bt_component_class, comp_cls_filter);
 }
 
 extern void bt_component_class_filter_get_ref(

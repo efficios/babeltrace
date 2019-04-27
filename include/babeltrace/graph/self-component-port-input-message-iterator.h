@@ -31,7 +31,8 @@
 /*
  * For bt_component, bt_message_iterator,
  * bt_self_component_port_input_message_iterator,
- * bt_self_component_port_input, bt_message_array_const, bt_bool
+ * bt_self_component_port_input, bt_message_array_const, bt_bool,
+ * __BT_UPCAST
  */
 #include <babeltrace/types.h>
 
@@ -44,7 +45,7 @@ bt_message_iterator *
 bt_self_component_port_input_message_iterator_as_message_iterator(
 		bt_self_component_port_input_message_iterator *iterator)
 {
-	return (void *) iterator;
+	return __BT_UPCAST(bt_message_iterator, iterator);
 }
 
 extern bt_self_component_port_input_message_iterator *

@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-/* For bt_component, bt_self_component */
+/* For bt_component, bt_self_component, __BT_UPCAST */
 #include <babeltrace/types.h>
 
 #ifdef __cplusplus
@@ -43,7 +43,7 @@ static inline
 const bt_component *bt_self_component_as_component(
 		bt_self_component *self_component)
 {
-	return (const void *) self_component;
+	return __BT_UPCAST(bt_component, self_component);
 }
 
 extern void *bt_self_component_get_data(
