@@ -31,7 +31,7 @@ def _create_clock_snapshot_from_ptr(ptr):
     return clock_snapshot
 
 
-class _ClockSnapshot(object._Object):
+class _ClockSnapshot(object._UniqueObject):
     def __init__(self, clock_class_ptr, cycles):
         utils._check_uint64(cycles)
         ptr = native_bt.clock_snapshot_create(clock_class_ptr, cycles)

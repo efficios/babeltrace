@@ -44,7 +44,7 @@ class _MessageIterator(collections.abc.Iterator):
         raise NotImplementedError
 
 
-class _GenericMessageIterator(object._Object, _MessageIterator):
+class _GenericMessageIterator(object._SharedObject, _MessageIterator):
     def _get_msg(self):
         msg_ptr = native_bt.message_iterator_get_message(self._ptr)
         utils._handle_ptr(msg_ptr, "cannot get message iterator object's current message object")

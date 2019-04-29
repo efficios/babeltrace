@@ -59,7 +59,7 @@ def _create_private_from_ptr(ptr):
     return obj
 
 
-class _Port(object._Object):
+class _Port(object._SharedObject):
     @staticmethod
     def _name(ptr):
         name = native_bt.port_get_name(ptr)
@@ -131,7 +131,7 @@ class _OutputPort(_Port):
         return bt2.message_iterator._OutputPortMessageIterator._create_from_ptr(msg_iter_ptr)
 
 
-class _PrivatePort(object._PrivateObject, _Port):
+class _PrivatePort(_Port):
     @property
     def name(self):
         return self._name(self._pub_ptr)

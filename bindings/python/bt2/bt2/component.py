@@ -39,7 +39,7 @@ _NO_PRINT_TRACEBACK = _env_var == '1'
 # have been created by Python code, but since we only have the pointer,
 # we can only wrap it in a generic way and lose the original Python
 # class.
-class _GenericComponentClass(object._Object):
+class _GenericComponentClass(object._SharedObject):
     @property
     def name(self):
         name = native_bt.component_class_get_name(self._ptr)
@@ -200,7 +200,7 @@ class _SinkComponent(_Component):
 
 # This is analogous to _GenericSourceComponentClass, but for source
 # component objects.
-class _GenericSourceComponent(object._Object, _SourceComponent):
+class _GenericSourceComponent(object._SharedObject, _SourceComponent):
     @property
     def output_ports(self):
         return _ComponentPorts(False, self,
@@ -211,7 +211,7 @@ class _GenericSourceComponent(object._Object, _SourceComponent):
 
 # This is analogous to _GenericFilterComponentClass, but for filter
 # component objects.
-class _GenericFilterComponent(object._Object, _FilterComponent):
+class _GenericFilterComponent(object._SharedObject, _FilterComponent):
     @property
     def output_ports(self):
         return _ComponentPorts(False, self,
@@ -229,7 +229,7 @@ class _GenericFilterComponent(object._Object, _FilterComponent):
 
 # This is analogous to _GenericSinkComponentClass, but for sink
 # component objects.
-class _GenericSinkComponent(object._Object, _SinkComponent):
+class _GenericSinkComponent(object._SharedObject, _SinkComponent):
     @property
     def input_ports(self):
         return _ComponentPorts(False, self,

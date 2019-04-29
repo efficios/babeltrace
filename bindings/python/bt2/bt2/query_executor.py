@@ -25,7 +25,7 @@ import bt2.component
 import bt2
 
 
-class QueryExecutor(object._Object):
+class QueryExecutor(object._SharedObject):
     def _handle_status(self, status, gen_error_msg):
         if status == native_bt.QUERY_STATUS_AGAIN:
             raise bt2.TryAgain

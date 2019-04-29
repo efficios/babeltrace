@@ -32,7 +32,7 @@ def _create_from_ptr(ptr):
     return _TYPE_ID_TO_OBJ[typeid]._create_from_ptr(ptr)
 
 
-class _FieldClass(object._Object, metaclass=abc.ABCMeta):
+class _FieldClass(object._SharedObject, metaclass=abc.ABCMeta):
     def __init__(self, ptr):
         super().__init__(ptr)
 
@@ -268,8 +268,8 @@ class _EnumerationFieldClassMapping:
         return (self.name, self.lower, self.upper) == (other.name, other.lower, other.upper)
 
 
-class _EnumerationFieldClassMappingIterator(object._Object,
-                                           collections.abc.Iterator):
+class _EnumerationFieldClassMappingIterator(object._SharedObject,
+                                            collections.abc.Iterator):
     def __init__(self, iter_ptr, is_signed):
         super().__init__(iter_ptr)
         self._is_signed = is_signed
