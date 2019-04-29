@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import bt2.clock_class_priority_map
 import bt2.clock_snapshot
 import collections
 import bt2.packet

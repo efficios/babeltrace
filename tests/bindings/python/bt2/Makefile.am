@@ -1,6 +1,5 @@
 EXTRA_DIST = 						\
 	test_clock_class.py				\
-	test_clock_class_priority_map.py		\
 	test_component.py				\
 	test_component_class.py				\
 	test_connection.py				\
