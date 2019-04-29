@@ -53,7 +53,7 @@ def _msg_types_from_msg_classes(message_types):
     return msg_types
 
 
-class _Message(object._Object):
+class _Message(object._SharedObject):
     pass
 
 

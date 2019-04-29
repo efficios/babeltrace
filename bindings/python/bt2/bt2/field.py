@@ -50,7 +50,7 @@ def _create_from_ptr(ptr):
     return field
 
 
-class _Field(object._Object, metaclass=abc.ABCMeta):
+class _Field(object._UniqueObject, metaclass=abc.ABCMeta):
     def __copy__(self):
         ptr = native_bt.field_copy(self._ptr)
         utils._handle_ptr(ptr, 'cannot copy {} field object'.format(self._NAME.lower()))

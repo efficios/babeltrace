@@ -48,7 +48,7 @@ class _EventClassIterator(collections.abc.Iterator):
         return ev_id
 
 
-class StreamClass(object._Object, collections.abc.Mapping):
+class StreamClass(object._SharedObject, collections.abc.Mapping):
     def __init__(self, name=None, id=None, packet_context_field_class=None,
                  event_header_field_class=None, event_context_field_class=None,
                  event_classes=None):

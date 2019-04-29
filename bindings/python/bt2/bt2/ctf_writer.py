@@ -28,7 +28,7 @@ import abc
 import bt2
 
 
-class CtfWriterClock(object._Object):
+class CtfWriterClock(bt2.object._SharedObject):
     def __init__(self, name, description=None, frequency=None, precision=None,
                  offset=None, is_absolute=None, uuid=None):
         utils._check_str(name)
@@ -284,7 +284,7 @@ class _CtfWriterStream(stream._StreamBase):
         return cpy
 
 
-class CtfWriter(object._Object):
+class CtfWriter(bt2.object._SharedObject):
     def __init__(self, path):
         utils._check_str(path)
         ptr = native_bt.ctf_writer_create(path)

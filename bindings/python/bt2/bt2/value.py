@@ -88,7 +88,7 @@ def create_value(value):
     raise TypeError("cannot create value object from '{}' object".format(value.__class__.__name__))
 
 
-class _Value(object._Object, object._Freezable, metaclass=abc.ABCMeta):
+class _Value(object._SharedObject, metaclass=abc.ABCMeta):
     def __eq__(self, other):
         if other is None:
             # self is never the null value object

@@ -38,7 +38,7 @@ def _create_from_ptr(stream_ptr):
     return cls._create_from_ptr(stream_ptr)
 
 
-class _StreamBase(object._Object):
+class _StreamBase(object._SharedObject):
     @property
     def stream_class(self):
         stream_class_ptr = native_bt.stream_get_class(self._ptr)

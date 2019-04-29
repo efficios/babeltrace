@@ -47,7 +47,7 @@ class EventClassLogLevel:
     DEBUG = native_bt.EVENT_CLASS_LOG_LEVEL_DEBUG
 
 
-class EventClass(object._Object):
+class EventClass(object._SharedObject):
     def __init__(self, name, id=None, log_level=None, emf_uri=None,
                  context_field_class=None, payload_field_class=None):
         utils._check_str(name)

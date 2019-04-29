@@ -28,7 +28,7 @@ import abc
 import bt2
 
 
-class _Packet(object._Object):
+class _Packet(object._SharedObject):
     @property
     def stream(self):
         stream_ptr = native_bt.packet_get_stream(self._ptr)

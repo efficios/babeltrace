@@ -53,7 +53,7 @@ class ClockClassOffset:
         return (self.seconds, self.cycles) == (other.seconds, other.cycles)
 
 
-class ClockClass(object._Object):
+class ClockClass(object._SharedObject):
     def __init__(self, name, frequency, description=None, precision=None,
                  offset=None, is_absolute=None, uuid=None):
         utils._check_str(name)

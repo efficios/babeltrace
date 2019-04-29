@@ -89,7 +89,7 @@ class _EventClockSnapshots(collections.abc.Mapping):
         return _EventClockSnapshotsIterator(self)
 
 
-class _Event(object._Object):
+class _Event(object._UniqueObject):
     @property
     def event_class(self):
         return self._event_class

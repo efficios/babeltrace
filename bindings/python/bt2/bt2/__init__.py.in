@@ -37,7 +37,6 @@ from bt2.component import _UserSinkComponent
 from bt2.component import _UserSourceComponent
 from bt2.connection import *
 from bt2.connection import _Connection
-from bt2.connection import _PrivateConnection
 from bt2.ctf_writer import *
 from bt2.ctf_writer import _CtfWriterStream
 from bt2.event import _Event

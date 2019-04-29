@@ -160,7 +160,7 @@ class _TraceEnv(collections.abc.MutableMapping):
         return _TraceEnvIterator(self)
 
 
-class Trace(object._Object, collections.abc.Mapping):
+class Trace(object._SharedObject, collections.abc.Mapping):
     def __init__(self, name=None, native_byte_order=None, env=None,
                  packet_header_field_class=None, clock_classes=None,
                  stream_classes=None):
