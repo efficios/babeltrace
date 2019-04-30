@@ -239,7 +239,7 @@ void _bt_field_class_freeze(const struct bt_field_class *field_class);
 #ifdef BT_DEV_MODE
 # define bt_field_class_freeze		_bt_field_class_freeze
 #else
-# define bt_field_class_freeze(_fc)
+# define bt_field_class_freeze(_fc)	((void) _fc)
 #endif
 
 BT_HIDDEN
@@ -248,7 +248,7 @@ void _bt_named_field_class_freeze(const struct bt_named_field_class *named_fc);
 #ifdef BT_DEV_MODE
 # define bt_named_field_class_freeze		_bt_named_field_class_freeze
 #else
-# define bt_named_field_class_freeze(_named_fc)
+# define bt_named_field_class_freeze(_named_fc)	((void) _named_fc)
 #endif
 
 /*
