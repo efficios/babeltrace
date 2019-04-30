@@ -418,7 +418,7 @@ int field_class_variant_copy(
 		const bt_field_class *in_field_class,
 		bt_field_class *out_field_class)
 {
-	bt_field_class *out_tag_field_class;
+	bt_field_class *out_tag_field_class = NULL;
 	uint64_t i, variant_option_count;
 	const bt_field_path *tag_fp;
 	const bt_field_class *tag_fc;
