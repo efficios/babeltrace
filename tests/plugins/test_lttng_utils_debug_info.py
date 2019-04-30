@@ -4,6 +4,7 @@ import bt2
 import os
 
 
+@unittest.skip('depends on Python bindings, which are broken')
 class LttngUtilsDebugInfoTestCase(unittest.TestCase):
     def test_debug_info(self):
         debug_info_data_dir = os.environ['DEBUG_INFO_DATA_DIR']
