@@ -1,6 +1,4 @@
-from bt2 import value
 import unittest
-import copy
 import bt2
 import bt2.plugin
 import os
@@ -9,7 +7,6 @@ import os
 _TEST_PLUGIN_PLUGINS_PATH = os.environ['TEST_PLUGIN_PLUGINS_PATH']
 
 
-@unittest.skip("this is broken")
 class PluginSetTestCase(unittest.TestCase):
     def test_create(self):
         pset = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH)
@@ -31,7 +28,6 @@ class PluginSetTestCase(unittest.TestCase):
         self.assertTrue('text' in names)
 
 
-@unittest.skip("this is broken")
 class FindPluginsTestCase(unittest.TestCase):
     def test_find_none(self):
         pset = bt2.find_plugins('/this/does/not/exist/246703df-cb85-46d5-8406-5e8dc4a88b41')
@@ -41,8 +37,12 @@ class FindPluginsTestCase(unittest.TestCase):
         pset = bt2.find_plugins(_TEST_PLUGIN_PLUGINS_PATH)
         self.assertTrue(len(pset) >= 3)
 
+    def test_find_file(self):
+        path = os.path.join(_TEST_PLUGIN_PLUGINS_PATH, 'utils', '.libs', 'babeltrace-plugin-utils.so')
+        pset = bt2.find_plugins(path)
+        self.assertTrue(len(pset) == 1)
 
-@unittest.skip("this is broken")
+
 class FindPluginTestCase(unittest.TestCase):
     def test_find_none(self):
         plugin = bt2.find_plugin('this-does-not-exist-246703df-cb85-46d5-8406-5e8dc4a88b41')
@@ -53,7 +53,6 @@ class FindPluginTestCase(unittest.TestCase):
         self.assertIsInstance(plugin, bt2.plugin._Plugin)
 
 
-@unittest.skip("this is broken")
 class PluginTestCase(unittest.TestCase):
     def setUp(self):
         self._plugin = bt2.find_plugin('ctf')
