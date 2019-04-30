@@ -174,7 +174,7 @@ int create_relative_field_ref(struct ctx *ctx,
 	struct fs_sink_ctf_field_class *tgt_fc = NULL;
 	uint64_t i;
 	int64_t si;
-	const char *tgt_fc_name;
+	const char *tgt_fc_name = NULL;
 	struct field_path_elem *field_path_elem;
 
 	/* Get target field class's name */
