@@ -97,7 +97,7 @@ void _set_self_comp_port_input_msg_iterator_state(
 #ifdef BT_DEV_MODE
 # define set_self_comp_port_input_msg_iterator_state _set_self_comp_port_input_msg_iterator_state
 #else
-# define set_self_comp_port_input_msg_iterator_state(_a, _b)
+# define set_self_comp_port_input_msg_iterator_state(_a, _b) ((void) _a); ((void) _b);
 #endif
 
 static
@@ -913,7 +913,7 @@ void _set_iterator_state_after_seeking(
 #ifdef BT_DEV_MODE
 # define set_iterator_state_after_seeking	_set_iterator_state_after_seeking
 #else
-# define set_iterator_state_after_seeking(_iter, _status)
+# define set_iterator_state_after_seeking(_iter, _status) ((void) _iter); ((void) _status);
 #endif
 
 enum bt_message_iterator_status
