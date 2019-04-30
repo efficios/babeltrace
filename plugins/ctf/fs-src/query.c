@@ -77,6 +77,18 @@ bt_query_status metadata_info_query(
 	}
 
 	path_value = bt_value_map_borrow_entry_value_const(params, "path");
+	if (!path_value) {
+		BT_LOGE_STR("Mandatory `path` parameter missing");
+		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		goto error;
+	}
+
+	if (!bt_value_is_string(path_value)) {
+		BT_LOGE_STR("`path` parameter is required to be a string value");
+		status = BT_QUERY_STATUS_INVALID_PARAMS;
+		goto error;
+	}
+
 	path = bt_value_string_get(path_value);
 
 	BT_ASSERT(path);
