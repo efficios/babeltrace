@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import babeltrace
+import bt2
 import os
 
 
@@ -15,8 +15,8 @@ source_suffix = '.rst'
 source_encoding = 'utf-8-sig'
 master_doc = 'index'
 project = 'Babeltrace legacy Python bindings'
-copyright = '2017, EfficiOS Inc.'
-version = babeltrace.__version__
+copyright = '2019, EfficiOS Inc.'
+version = bt2.__version__
 release = version
 language = None
 today = ''
