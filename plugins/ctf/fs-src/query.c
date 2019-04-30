@@ -271,9 +271,8 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	size_t file_idx;
 	bt_value_status status;
 	bt_value *file_paths;
-
-	stream_range->begin_ns = INT64_MAX;
-	stream_range->end_ns = 0;
+	struct ctf_fs_ds_file_info *first_file_info, *last_file_info;
+	struct ctf_fs_ds_index_entry *first_ds_index_entry, *last_ds_index_entry;
 
 	file_paths = bt_value_array_create();
 	if (!file_paths) {
@@ -282,7 +281,6 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	}
 
 	for (file_idx = 0; file_idx < group->ds_file_infos->len; file_idx++) {
-		int64_t file_begin_epoch, file_end_epoch;
 		struct ctf_fs_ds_file_info *info =
 			g_ptr_array_index(group->ds_file_infos,
 				file_idx);
@@ -300,20 +298,36 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 			ret = -1;
 			goto end;
 		}
-
-		/*
-		 * file range is from timestamp_begin of the first entry to the
-		 * timestamp_end of the last entry.
-		 */
-		file_begin_epoch = ((struct ctf_fs_ds_index_entry *) &g_array_index(info->index->entries,
-				struct ctf_fs_ds_index_entry, 0))->timestamp_begin_ns;
-		file_end_epoch = ((struct ctf_fs_ds_index_entry *) &g_array_index(info->index->entries,
-				struct ctf_fs_ds_index_entry, info->index->entries->len - 1))->timestamp_end_ns;
-
-		stream_range->begin_ns = min(stream_range->begin_ns, file_begin_epoch);
-		stream_range->end_ns = max(stream_range->end_ns, file_end_epoch);
-		stream_range->set = true;
 	}
+
+	/*
+	 * Since `struct ctf_fs_ds_file_info` elements are sorted by value of
+	 * `begin_ns` within the `ds_file_groups` array and `struct
+	 * ctf_fs_ds_index_entry` elements are sorted by time within their
+	 * respective `struct ctf_fs_ds_file_info`, we can compute the stream
+	 * range from timestamp_begin of the first index entry of the first
+	 * file to the timestamp_end of the last index entry of the last file.
+	 */
+	BT_ASSERT(group->ds_file_infos->len > 0);
+
+	first_file_info = g_ptr_array_index(group->ds_file_infos, 0);
+	last_file_info = g_ptr_array_index(group->ds_file_infos,
+		group->ds_file_infos->len - 1);
+
+	BT_ASSERT(first_file_info->index->entries->len > 0);
+
+	first_ds_index_entry = (struct ctf_fs_ds_index_entry *) &g_array_index(
+		first_file_info->index->entries, struct ctf_fs_ds_index_entry, 0);
+
+	BT_ASSERT(last_file_info->index->entries->len > 0);
+
+	last_ds_index_entry = (struct ctf_fs_ds_index_entry *) &g_array_index(
+		last_file_info->index->entries, struct ctf_fs_ds_index_entry,
+		last_file_info->index->entries->len - 1);
+
+	stream_range->begin_ns = first_ds_index_entry->timestamp_begin_ns;
+	stream_range->end_ns = last_ds_index_entry->timestamp_end_ns;
+	stream_range->set = true;
 
 	if (stream_range->set) {
 		ret = add_range(group_info, stream_range, "range-ns");
