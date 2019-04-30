@@ -83,6 +83,7 @@
 		(_iter)->state == BT_SELF_COMPONENT_PORT_INPUT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR, \
 		"Message iterator is in the wrong state: %!+i", _iter)
 
+BT_ASSERT_PRE_FUNC
 static inline
 void _set_self_comp_port_input_msg_iterator_state(
 		struct bt_self_component_port_input_message_iterator *iterator,
@@ -881,6 +882,7 @@ bt_bool bt_self_component_port_input_message_iterator_can_seek_beginning(
 	return can;
 }
 
+BT_ASSERT_PRE_FUNC
 static inline
 void _set_iterator_state_after_seeking(
 		struct bt_self_component_port_input_message_iterator *iterator,
