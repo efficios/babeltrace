@@ -1605,7 +1605,7 @@ int bt_ctf_stream_flush(struct bt_ctf_stream *stream)
 {
 	int ret = 0;
 	size_t i;
-	uint64_t packet_context_offset_bits;
+	uint64_t packet_context_offset_bits = 0;
 	struct bt_ctf_trace *trace;
 	enum bt_ctf_byte_order native_byte_order;
 	bool has_packet_size = false;
