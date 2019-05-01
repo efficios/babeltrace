@@ -688,7 +688,7 @@ enum bt_graph_status bt_graph_consume(struct bt_graph *graph)
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
 	status = bt_graph_configure(graph);
-	if (status) {
+	if (unlikely(status)) {
 		/* bt_graph_configure() logs errors */
 		goto end;
 	}
@@ -712,7 +712,7 @@ enum bt_graph_status bt_graph_run(struct bt_graph *graph)
 		"Graph is in a faulty state: %!+g", graph);
 	bt_graph_set_can_consume(graph, false);
 	status = bt_graph_configure(graph);
-	if (status) {
+	if (unlikely(status)) {
 		/* bt_graph_configure() logs errors */
 		goto end;
 	}
