@@ -299,7 +299,7 @@ int field_class_signed_enumeration_copy(
 					i_mapping, range_index, &lower, &upper);
 
 			BT_LOGD("Copying range in enumeration field class: "
-					"label=%s, lower=%ld, upper=%ld",
+					"label=%s, lower=%"PRId64", upper=%"PRId64,
 					label, lower, upper);
 
 			/* Add the label and its range to the copy field class. */
