@@ -172,7 +172,6 @@ int create_relative_field_ref(struct ctx *ctx,
 {
 	int ret = 0;
 	struct fs_sink_ctf_field_class *tgt_fc = NULL;
-	enum fs_sink_ctf_field_class_type tgt_fc_type;
 	uint64_t i;
 	int64_t si;
 	const char *tgt_fc_name = NULL;
@@ -201,7 +200,6 @@ int create_relative_field_ref(struct ctx *ctx,
 	}
 
 	i = 0;
-	tgt_fc_type = tgt_fc->type;
 
 	while (i < bt_field_path_get_item_count(tgt_ir_field_path)) {
 		const bt_field_path_item *fp_item =
@@ -212,7 +210,7 @@ int create_relative_field_ref(struct ctx *ctx,
 		BT_ASSERT(tgt_fc);
 		BT_ASSERT(fp_item);
 
-		switch (tgt_fc_type) {
+		switch (tgt_fc->type) {
 		case FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT:
 			BT_ASSERT(bt_field_path_item_get_type(fp_item) ==
 				BT_FIELD_PATH_ITEM_TYPE_INDEX);
@@ -250,7 +248,7 @@ int create_relative_field_ref(struct ctx *ctx,
 	}
 
 	BT_ASSERT(tgt_fc);
-	BT_ASSERT(tgt_fc_type == FS_SINK_CTF_FIELD_CLASS_TYPE_INT);
+	BT_ASSERT(tgt_fc->type == FS_SINK_CTF_FIELD_CLASS_TYPE_INT);
 	BT_ASSERT(tgt_fc_name);
 
 	/* Find target field class having this name in current context */
