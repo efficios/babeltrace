@@ -28,7 +28,7 @@
 
 /*
  * For bt_component, bt_component_filter, bt_port_input,
- * __BT_UPCAST_CONST
+ * __BT_UPCAST_CONST, bt_component_class_sink
  */
 #include <babeltrace/types.h>
 
@@ -42,6 +42,10 @@ const bt_component *bt_component_sink_as_component_const(
 {
 	return __BT_UPCAST_CONST(bt_component, component);
 }
+
+extern const bt_component_class_sink *
+bt_component_sink_borrow_class_const(
+		const bt_component_sink *component);
 
 extern uint64_t bt_component_sink_get_input_port_count(
 		const bt_component_sink *component);
