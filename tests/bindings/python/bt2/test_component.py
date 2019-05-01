@@ -4,7 +4,6 @@ import copy
 import bt2
 
 
-@unittest.skip("this is broken")
 class UserComponentTestCase(unittest.TestCase):
     @staticmethod
     def _create_comp(comp_cls, name=None):
@@ -13,7 +12,7 @@ class UserComponentTestCase(unittest.TestCase):
         if name is None:
             name = 'comp'
 
-        return graph.add_component(comp_cls, name)
+        return graph.add_sink_component(comp_cls, name)
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
@@ -24,19 +23,6 @@ class UserComponentTestCase(unittest.TestCase):
                 pass
 
         comp = self._create_comp(MySink, 'yaes')
-
-    def test_graph(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                nonlocal graph
-                self.assertEqual(comp_self.graph, graph)
-
-            def _consume(self):
-                pass
-
-        graph = bt2.Graph()
-        comp = graph.add_component(MySink, 'lel')
-        del graph
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
@@ -71,13 +57,13 @@ class UserComponentTestCase(unittest.TestCase):
                 finalized = True
 
         graph = bt2.Graph()
-        comp = graph.add_component(MySink, 'lel')
+        comp = graph.add_sink_component(MySink, 'lel')
+
         del graph
         del comp
         self.assertTrue(finalized)
 
 
-@unittest.skip("this is broken")
 class GenericComponentTestCase(unittest.TestCase):
     @staticmethod
     def _create_comp(comp_cls, name=None):
@@ -86,7 +72,7 @@ class GenericComponentTestCase(unittest.TestCase):
         if name is None:
             name = 'comp'
 
-        return graph.add_component(comp_cls, name)
+        return graph.add_sink_component(comp_cls, name)
 
     def test_name(self):
         class MySink(bt2._UserSinkComponent):
@@ -95,15 +81,6 @@ class GenericComponentTestCase(unittest.TestCase):
 
         comp = self._create_comp(MySink, 'yaes')
         self.assertEqual(comp.name, 'yaes')
-
-    def test_graph(self):
-        class MySink(bt2._UserSinkComponent):
-            def _consume(self):
-                pass
-
-        graph = bt2.Graph()
-        comp = graph.add_component(MySink, 'lel')
-        self.assertEqual(comp.graph, graph)
 
     def test_class(self):
         class MySink(bt2._UserSinkComponent):
