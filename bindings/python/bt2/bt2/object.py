@@ -123,5 +123,12 @@ class _SharedObject(_BaseObject):
         cls._get_ref(obj._ptr)
         return obj
 
+    def _release(self):
+        """Return the wrapped pointer, transfer its ownership to the
+        caller."""
+        ptr = self._ptr
+        self._ptr = None
+        return ptr
+
     def __del__(self):
         self._put_ref(self._ptr)

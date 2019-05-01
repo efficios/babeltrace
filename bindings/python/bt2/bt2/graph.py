@@ -87,6 +87,9 @@ def _graph_ports_disconnected_listener_from_native(user_listener,
 
 
 class Graph(object._SharedObject):
+    _get_ref = native_bt.graph_get_ref
+    _put_ref = native_bt.graph_put_ref
+
     def __init__(self):
         ptr = native_bt.graph_create()
 
@@ -104,34 +107,26 @@ class Graph(object._SharedObject):
             raise bt2.Stop
         elif status == native_bt.GRAPH_STATUS_AGAIN:
             raise bt2.TryAgain
-        elif status == native_bt.GRAPH_STATUS_NO_SINK:
-            raise bt2.NoSinkComponent
-        elif status == native_bt.GRAPH_STATUS_CANNOT_CONSUME:
-            raise bt2.CannotConsumeGraph
         elif status < 0:
             raise bt2.Error(gen_error_msg)
 
-    def add_component(self, component_class, name, params=None):
-        if isinstance(component_class, bt2.component._GenericComponentClass):
-            cc_ptr = component_class._ptr
-        elif issubclass(component_class, bt2.component._UserComponent):
+    def add_sink_component(self, component_class, name, params=None):
+        if issubclass(component_class, bt2.component._UserSinkComponent):
             cc_ptr = component_class._cc_ptr
         else:
-            raise TypeError("'{}' is not a component class".format(component_class.__class__.__name__))
+            raise TypeError("'{}' is not a sink component class".format(
+                component_class.__class__.__name__))
 
         utils._check_str(name)
         params = bt2.create_value(params)
 
-        if params is None:
-            params_ptr = None
-        else:
-            params_ptr = params._ptr
+        params_ptr = params._ptr if params is not None else None
 
-        status, comp_ptr = native_bt.graph_add_component(self._ptr, cc_ptr,
-                                                         name, params_ptr)
-        self._handle_status(status, 'cannot add component to graph')
+        status, comp_ptr = native_bt.graph_add_sink_component(self._ptr, cc_ptr,
+                                                              name, params_ptr)
+        self._handle_status(status, 'cannot add sink component to graph')
         assert(comp_ptr)
-        return bt2.component._create_generic_component_from_ptr(comp_ptr)
+        return bt2.component._create_component_from_ptr(comp_ptr, native_bt.COMPONENT_CLASS_TYPE_SINK)
 
     def connect_ports(self, upstream_port, downstream_port):
         utils._check_type(upstream_port, bt2.port._OutputPort)
