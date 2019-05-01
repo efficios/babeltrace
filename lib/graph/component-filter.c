@@ -56,6 +56,22 @@ end:
 	return (void *) filter;
 }
 
+const bt_component_class_filter *
+bt_component_filter_borrow_class_const(
+		const bt_component_filter *component)
+{
+	struct bt_component_class *cls;
+
+	BT_ASSERT_PRE_NON_NULL(component, "Component");
+
+	cls = component->parent.class;
+
+	BT_ASSERT(cls);
+	BT_ASSERT(cls->type == BT_COMPONENT_CLASS_TYPE_FILTER);
+
+	return (bt_component_class_filter *) cls;
+}
+
 uint64_t bt_component_filter_get_output_port_count(
 		const struct bt_component_filter *comp)
 {
