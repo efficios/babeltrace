@@ -39,20 +39,32 @@ _NO_PRINT_TRACEBACK = _env_var == '1'
 # have been created by Python code, but since we only have the pointer,
 # we can only wrap it in a generic way and lose the original Python
 # class.
+#
+# Subclasses must implement some methods that this base class uses:
+#
+#   - _as_component_class_ptr: static method, convert the passed component class
+#     pointer to a 'bt_component_class *'.
+
 class _GenericComponentClass(object._SharedObject):
     @property
     def name(self):
-        name = native_bt.component_class_get_name(self._ptr)
-        assert(name is not None)
+        ptr = self._as_component_class_ptr(self._ptr)
+        name = native_bt.component_class_get_name(ptr)
+        assert name is not None
         return name
 
     @property
     def description(self):
-        return native_bt.component_class_get_description(self._ptr)
+        ptr = self._as_component_class_ptr(self._ptr)
+        return native_bt.component_class_get_description(ptr)
 
     @property
     def help(self):
-        return native_bt.component_class_get_help(self._ptr)
+        ptr = self._as_component_class_ptr(self._ptr)
+        return native_bt.component_class_get_help(ptr)
+
+    def _component_class_ptr(self):
+        return self._as_component_class_ptr(self._ptr)
 
     def __eq__(self, other):
         if not isinstance(other, _GenericComponentClass):
@@ -66,15 +78,21 @@ class _GenericComponentClass(object._SharedObject):
 
 
 class _GenericSourceComponentClass(_GenericComponentClass):
-    pass
+    _get_ref = native_bt.component_class_source_get_ref
+    _put_ref = native_bt.component_class_source_put_ref
+    _as_component_class_ptr = native_bt.component_class_source_as_component_class
 
 
 class _GenericFilterComponentClass(_GenericComponentClass):
-    pass
+    _get_ref = native_bt.component_class_filter_get_ref
+    _put_ref = native_bt.component_class_filter_put_ref
+    _as_component_class_ptr = native_bt.component_class_filter_as_component_class
 
 
 class _GenericSinkComponentClass(_GenericComponentClass):
-    pass
+    _get_ref = native_bt.component_class_sink_get_ref
+    _put_ref = native_bt.component_class_sink_put_ref
+    _as_component_class_ptr = native_bt.component_class_sink_as_component_class
 
 
 def _handle_component_status(status, gen_error_msg):
@@ -157,9 +175,16 @@ class _ComponentPorts(collections.abc.Mapping):
 
 
 # This class holds the methods which are common to both generic
-# component objects and Python user component objects. They use the
-# internal native _ptr, however it was set, to call native API
-# functions.
+# component objects and Python user component objects.
+#
+# Subclasses must provide these methods or property:
+#
+#   - _borrow_component_class_ptr: static method, must return a pointer to the
+#     specialized component class (e.g. 'bt_component_class_sink *') of the
+#     passed specialized component pointer (e.g. 'bt_component_sink *').
+#   - _comp_cls_type: property, one of the native_bt.COMPONENT_CLASS_TYPE_*
+#     constants.
+
 class _Component:
     @property
     def name(self):
@@ -175,9 +200,9 @@ class _Component:
 
     @property
     def component_class(self):
-        cc_ptr = native_bt.component_get_class(self._ptr)
-        assert(cc_ptr)
-        return _create_generic_component_class_from_ptr(cc_ptr)
+        cc_ptr = self._borrow_component_class_ptr(self._ptr)
+        assert cc_ptr is not None
+        return _create_component_class_from_ptr_and_get_ref(cc_ptr, self._comp_cls_type)
 
     def __eq__(self, other):
         if not hasattr(other, 'addr'):
@@ -187,15 +212,21 @@ class _Component:
 
 
 class _SourceComponent(_Component):
-    pass
+    _borrow_component_class_ptr = native_bt.component_source_borrow_class_const
+    _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
+    _as_component_class_ptr = native_bt.component_class_source_as_component_class
 
 
 class _FilterComponent(_Component):
-    pass
+    _borrow_component_class_ptr = native_bt.component_filter_borrow_class_const
+    _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
+    _as_component_class_ptr = native_bt.component_class_filter_as_component_class
 
 
 class _SinkComponent(_Component):
-    pass
+    _borrow_component_class_ptr = native_bt.component_sink_borrow_class_const
+    _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SINK
+    _as_component_class_ptr = native_bt.component_class_sink_as_component_class
 
 
 # This is analogous to _GenericSourceComponentClass, but for source
@@ -230,6 +261,9 @@ class _GenericFilterComponent(object._SharedObject, _FilterComponent):
 # This is analogous to _GenericSinkComponentClass, but for sink
 # component objects.
 class _GenericSinkComponent(object._SharedObject, _SinkComponent):
+    _get_ref = native_bt.component_sink_get_ref
+    _put_ref = native_bt.component_sink_put_ref
+
     @property
     def input_ports(self):
         return _ComponentPorts(False, self,
@@ -252,14 +286,23 @@ _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS = {
 }
 
 
-def _create_generic_component_from_ptr(ptr):
-    comp_cls_type = native_bt.component_get_class_type(ptr)
+# Create a component Python object of type _GenericSourceComponent,
+# _GenericFilterComponent or _GenericSinkComponent, depending on
+# comp_cls_type.
+#
+#    Steals the reference to ptr from the caller.
+
+def _create_component_from_ptr(ptr, comp_cls_type):
     return _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS[comp_cls_type]._create_from_ptr(ptr)
 
+# Create a component class Python object of type
+# _GenericSourceComponentClass, _GenericFilterComponentClass or
+# _GenericSinkComponentClass, depending on comp_cls_type.
+#
+# Acquires a new reference to ptr.
 
-def _create_generic_component_class_from_ptr(ptr):
-    comp_cls_type = native_bt.component_class_get_type(ptr)
-    return _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[comp_cls_type]._create_from_ptr(ptr)
+def _create_component_class_from_ptr_and_get_ref(ptr, comp_cls_type):
+    return _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS[comp_cls_type]._create_from_ptr_and_get_ref(ptr)
 
 
 def _trim_docstring(docstring):
@@ -422,13 +465,12 @@ class _UserComponentType(type):
         # create instance, not user-initialized yet
         self = cls.__new__(cls)
 
-        # pointer to native private component object (weak/borrowed)
+        # pointer to native self component object (weak/borrowed)
         self._ptr = comp_ptr
 
         # call user's __init__() method
         if params_ptr is not None:
-            native_bt.get(params_ptr)
-            params = bt2.value._create_from_ptr(params_ptr)
+            params = bt2.value._create_from_ptr_and_get_ref(params_ptr)
         else:
             params = None
 
@@ -453,15 +495,18 @@ class _UserComponentType(type):
 
     @property
     def name(cls):
-        return native_bt.component_class_get_name(cls._cc_ptr)
+        ptr = cls._as_component_class_ptr(cls._cc_ptr)
+        return native_bt.component_class_get_name(ptr)
 
     @property
     def description(cls):
-        return native_bt.component_class_get_description(cls._cc_ptr)
+        ptr = cls._as_component_class_ptr(cls._cc_ptr)
+        return native_bt.component_class_get_description(ptr)
 
     @property
     def help(cls):
-        return native_bt.component_class_get_help(cls._cc_ptr)
+        ptr = cls._as_component_class_ptr(cls._cc_ptr)
+        return native_bt.component_class_get_help(ptr)
 
     @property
     def addr(cls):
@@ -471,19 +516,15 @@ class _UserComponentType(type):
         # this can raise, in which case the native call to
         # bt_component_class_query() returns NULL
         if params_ptr is not None:
-            native_bt.get(params_ptr)
-            params = bt2.value._create_from_ptr(params_ptr)
+            params = bt2.value._create_from_ptr_and_get_ref(params_ptr)
         else:
             params = None
 
-        native_bt.get(query_exec_ptr)
-        query_exec = bt2.QueryExecutor._create_from_ptr(query_exec_ptr)
+        query_exec = bt2.QueryExecutor._create_from_ptr_and_get_ref(
+            query_exec_ptr)
 
         # this can raise, but the native side checks the exception
         results = cls._query(query_exec, obj, params)
-
-        if results is NotImplemented:
-            return results
 
         # this can raise, but the native side checks the exception
         results = bt2.create_value(results)
@@ -492,24 +533,20 @@ class _UserComponentType(type):
             results_addr = int(native_bt.value_null)
         else:
             # return new reference
-            results._get()
-            results_addr = int(results._ptr)
+            results_addr = int(results._release())
 
         return results_addr
 
     def _query(cls, query_executor, obj, params):
-        # BT catches this and returns NULL to the user
-        return NotImplemented
+        raise NotImplementedError
 
-    def __eq__(self, other):
-        if not hasattr(other, 'addr'):
-            return False
-
-        return self.addr == other.addr
+    def _component_class_ptr(self):
+        return self._as_component_class_ptr(self._cc_ptr)
 
     def __del__(cls):
         if hasattr(cls, '_cc_ptr'):
-            native_bt.put(cls._cc_ptr)
+            cc_ptr = cls._as_component_class_ptr(cls._cc_ptr)
+            native_bt.component_class_put_ref(cc_ptr)
 
 
 class _UserComponent(metaclass=_UserComponentType):
