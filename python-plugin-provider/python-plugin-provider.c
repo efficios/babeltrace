@@ -338,8 +338,7 @@ bt_plugin *bt_plugin_from_python_plugin_info(PyObject *plugin_info)
 				PyList_GetItem(py_comp_class_addrs, i);
 			BT_ASSERT(py_comp_class_addr);
 			if (PyLong_Check(py_comp_class_addr)) {
-				comp_class = (bt_component_class *)
-					PyLong_AsUnsignedLongLong(py_comp_class_addr);
+				comp_class = PyLong_AsVoidPtr(py_comp_class_addr);
 			} else {
 				BT_LOGW("Component class address is not an integer in Python plugin info object: "
 					"py-plugin-info-addr=%p, index=%zu",

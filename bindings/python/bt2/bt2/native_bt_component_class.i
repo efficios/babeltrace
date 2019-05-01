@@ -1276,7 +1276,7 @@ bt_py3_component_class_query(
 	 * (PyLong) containing the address of a BT value object (new
 	 * reference).
 	 */
-	*result = (void *) PyLong_AsUnsignedLongLong(py_results_addr);
+	*result = PyLong_AsVoidPtr(py_results_addr);
 	BT_ASSERT(!PyErr_Occurred());
 	BT_ASSERT(*result);
 	goto end;
@@ -1519,9 +1519,7 @@ bt_py3_component_class_message_iterator_next(
 	 * (PyLong) containing the address of a native message
 	 * object (which is now ours).
 	 */
-	msgs[0] =
-		(const bt_message *) PyLong_AsUnsignedLongLong(
-			py_method_result);
+	msgs[0] = PyLong_AsVoidPtr(py_method_result);
 	*count = 1;
 
 	/* Clear potential overflow error; should never happen */
