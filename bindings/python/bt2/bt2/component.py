@@ -184,19 +184,16 @@ class _ComponentPorts(collections.abc.Mapping):
 #     passed specialized component pointer (e.g. 'bt_component_sink *').
 #   - _comp_cls_type: property, one of the native_bt.COMPONENT_CLASS_TYPE_*
 #     constants.
+#   - _as_component_ptr: static method, must return the passed specialized
+#     component pointer (e.g. 'bt_component_sink *') as a 'bt_component *'.
 
 class _Component:
     @property
     def name(self):
-        name = native_bt.component_get_name(self._ptr)
-        assert(name is not None)
+        ptr = self._as_component_ptr(self._ptr)
+        name = native_bt.component_get_name(ptr)
+        assert name is not None
         return name
-
-    @property
-    def graph(self):
-        ptr = native_bt.component_get_graph(self._ptr)
-        assert(ptr)
-        return bt2.Graph._create_from_ptr(ptr)
 
     @property
     def component_class(self):
@@ -215,18 +212,21 @@ class _SourceComponent(_Component):
     _borrow_component_class_ptr = native_bt.component_source_borrow_class_const
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
     _as_component_class_ptr = native_bt.component_class_source_as_component_class
+    _as_component_ptr = native_bt.component_source_as_component_const
 
 
 class _FilterComponent(_Component):
     _borrow_component_class_ptr = native_bt.component_filter_borrow_class_const
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
     _as_component_class_ptr = native_bt.component_class_filter_as_component_class
+    _as_component_ptr = native_bt.component_filter_as_component_const
 
 
 class _SinkComponent(_Component):
     _borrow_component_class_ptr = native_bt.component_sink_borrow_class_const
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SINK
     _as_component_class_ptr = native_bt.component_class_sink_as_component_class
+    _as_component_ptr = native_bt.component_sink_as_component_const
 
 
 # This is analogous to _GenericSourceComponentClass, but for source
@@ -548,31 +548,31 @@ class _UserComponentType(type):
             cc_ptr = cls._as_component_class_ptr(cls._cc_ptr)
             native_bt.component_class_put_ref(cc_ptr)
 
+# Subclasses must provide these methods or property:
+#
+#   - _as_not_self_specific_component_ptr: static method, must return the passed
+#     specialized self component pointer (e.g. 'bt_self_component_sink *') as a
+#     specialized non-self pointer (e.g. 'bt_component_sink *').
+#   - _borrow_component_class_ptr: static method, must return a pointer to the
+#     specialized component class (e.g. 'bt_component_class_sink *') of the
+#     passed specialized component pointer (e.g. 'bt_component_sink *').
+#   - _comp_cls_type: property, one of the native_bt.COMPONENT_CLASS_TYPE_*
+#     constants.
 
 class _UserComponent(metaclass=_UserComponentType):
     @property
     def name(self):
-        pub_ptr = native_bt.component_from_private(self._ptr)
-        name = native_bt.component_get_name(pub_ptr)
-        native_bt.put(pub_ptr)
-        assert(name is not None)
+        ptr = self._as_not_self_specific_component_ptr(self._ptr)
+        ptr = self._as_component_ptr(ptr)
+        name = native_bt.component_get_name(ptr)
+        assert name is not None
         return name
 
     @property
-    def graph(self):
-        pub_ptr = native_bt.component_from_private(self._ptr)
-        ptr = native_bt.component_get_graph(pub_ptr)
-        native_bt.put(pub_ptr)
-        assert(ptr)
-        return bt2.Graph._create_from_ptr(ptr)
-
-    @property
     def component_class(self):
-        pub_ptr = native_bt.component_from_private(self._ptr)
-        cc_ptr = native_bt.component_get_class(pub_ptr)
-        native_bt.put(pub_ptr)
-        assert(cc_ptr)
-        return _create_generic_component_class_from_ptr(cc_ptr)
+        comp_ptr = self._as_not_self_specific_component_ptr(self._ptr)
+        cc_ptr = self._borrow_component_class_ptr(comp_ptr)
+        return _create_component_class_from_ptr_and_get_ref(cc_ptr, self._comp_cls_type)
 
     @property
     def addr(self):
@@ -629,6 +629,8 @@ class _UserComponent(metaclass=_UserComponentType):
 
 
 class _UserSourceComponent(_UserComponent, _SourceComponent):
+    _as_not_self_specific_component_ptr = native_bt.self_component_source_as_component_source
+
     @property
     def _output_ports(self):
         return _ComponentPorts(True, self,
@@ -647,6 +649,8 @@ class _UserSourceComponent(_UserComponent, _SourceComponent):
 
 
 class _UserFilterComponent(_UserComponent, _FilterComponent):
+    _as_not_self_specific_component_ptr = native_bt.self_component_filter_as_component_filter
+
     @property
     def _output_ports(self):
         return _ComponentPorts(True, self,
@@ -681,6 +685,8 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
 
 
 class _UserSinkComponent(_UserComponent, _SinkComponent):
+    _as_not_self_specific_component_ptr = native_bt.self_component_sink_as_component_sink
+
     @property
     def _input_ports(self):
         return _ComponentPorts(True, self,
