@@ -948,13 +948,6 @@ void fill_debug_info_bin_field(struct debug_info_source *dbg_info_src,
 				curr_field);
 		}
 
-		status = bt_field_string_append(curr_field, ":");
-		if (status != BT_FIELD_STATUS_OK) {
-			BT_LOGE("Cannot set colon component of \"bin\" "
-				"curr_field field's value: str-fc-addr=%p",
-				curr_field);
-		}
-
 		status = bt_field_string_append(curr_field, dbg_info_src->bin_loc);
 		if (status != BT_FIELD_STATUS_OK) {
 			BT_LOGE("Cannot set bin location component of \"bin\" "
