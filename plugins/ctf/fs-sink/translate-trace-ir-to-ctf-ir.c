@@ -896,8 +896,8 @@ end:
  * sequence field class.
  */
 static
-int set_field_refs(struct fs_sink_ctf_field_class *fc, const char *fc_name,
-		struct fs_sink_ctf_field_class *parent_fc)
+int set_field_refs(struct fs_sink_ctf_field_class * const fc,
+		const char *fc_name, struct fs_sink_ctf_field_class *parent_fc)
 {
 	int ret = 0;
 	enum fs_sink_ctf_field_class_type fc_type;
