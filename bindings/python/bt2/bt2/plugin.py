@@ -198,7 +198,7 @@ class _Plugin(object._SharedObject):
 
     @property
     def version(self):
-        status, major, minor, patch, extra = native_bt.plugin_get_version(self._ptr)
+        status, major, minor, patch, extra = native_bt.plugin_get_version_wrapper(self._ptr)
 
         if status == native_bt.PROPERTY_AVAILABILITY_NOT_AVAILABLE:
             return

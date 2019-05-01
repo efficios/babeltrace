@@ -96,3 +96,36 @@ extern const bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
 extern void bt_plugin_set_get_ref(const bt_plugin_set *plugin_set);
 
 extern void bt_plugin_set_put_ref(const bt_plugin_set *plugin_set);
+
+/* Helpers */
+
+bt_property_availability bt_plugin_get_version_wrapper(
+		const bt_plugin *plugin, unsigned int *OUT,
+		unsigned int *OUT, unsigned int *OUT, const char **OUT);
+
+%{
+
+/*
+ * This wrapper ensures that when the API function fails, the `*extra` output
+ * parameter is set to NULL.  This is necessary because the epilogue of the
+ * "char **OUT" typemap will use that value to make a Python str object.  We
+ * can't rely on the initial value of `*extra`, it could point to unreadable
+ * memory.
+ */
+
+bt_property_availability bt_plugin_get_version_wrapper(
+		const bt_plugin *plugin, unsigned int *major,
+		unsigned int *minor, unsigned int *patch, const char **extra)
+{
+	bt_property_availability ret;
+
+	ret = bt_plugin_get_version(plugin, major, minor, patch, extra);
+
+	if (ret == BT_PROPERTY_AVAILABILITY_NOT_AVAILABLE) {
+		*extra = NULL;
+	}
+
+	return ret;
+}
+
+%}

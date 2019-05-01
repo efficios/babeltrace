@@ -52,8 +52,16 @@ typedef int bt_bool;
 %rename("%(strip:[bt_])s", %$isvariable) "";
 %rename("%(strip:[BT_])s", %$isenumitem) "";
 
-/* Output argument typemap for string output (always appends) */
-%typemap(in, numinputs=0) (const char **OUT) (char *temp_value) {
+/*
+ * Output argument typemap for string output (always appends)
+ *
+ * We initialize the output parameter `temp_value` to an invalid but non-zero
+ * pointer value.  This is to make sure we don't rely on its initial value in
+ * the epilogue (where we call SWIG_Python_str_FromChar).  When they fail,
+ * functions on which we apply this typemap don't guarantee that the value of
+ * `temp_value` will be unchanged or valid.
+ */
+%typemap(in, numinputs=0) (const char **OUT) (char *temp_value = (void *) 1) {
 	$1 = &temp_value;
 }
 
