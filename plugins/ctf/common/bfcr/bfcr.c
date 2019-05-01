@@ -672,7 +672,7 @@ enum bt_bfcr_status read_bit_array_class_and_call_continue(struct bt_bfcr *bfcr,
 	available = available_bits(bfcr);
 	needed_bits = fc->size - bfcr->stitch.at;
 	BT_LOGV("Continuing basic field decoding: "
-		"bfcr-addr=%p, field-size=%u, needed-size=%" PRId64 ", "
+		"bfcr-addr=%p, field-size=%u, needed-size=%zu, "
 		"available-size=%zu",
 		bfcr, fc->size, needed_bits, available);
 	if (needed_bits <= available) {
