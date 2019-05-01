@@ -719,12 +719,12 @@ bt_py3_exc_to_self_message_iterator_status(void)
 	}
 
 	if (PyErr_GivenExceptionMatches(exc, py_mod_bt2_exc_stop_type)) {
-		status = BT_MESSAGE_ITERATOR_STATUS_END;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_END;
 	} else if (PyErr_GivenExceptionMatches(exc, py_mod_bt2_exc_try_again_type)) {
-		status = BT_MESSAGE_ITERATOR_STATUS_AGAIN;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_AGAIN;
 	} else {
 		bt2_py_loge_exception();
-		status = BT_MESSAGE_ITERATOR_STATUS_ERROR;
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 	}
 
 end:
@@ -1336,7 +1336,7 @@ bt_py3_component_class_message_iterator_init(
 		bt_self_component *self_component,
 		bt_self_component_port_output *self_component_port_output)
 {
-	bt_self_message_iterator_status status = BT_MESSAGE_ITERATOR_STATUS_OK;
+	bt_self_message_iterator_status status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	PyObject *py_comp_cls = NULL;
 	PyObject *py_iter_cls = NULL;
 	PyObject *py_iter_ptr = NULL;
@@ -1501,7 +1501,7 @@ bt_py3_component_class_message_iterator_next(
 			bt_message_array_const msgs, uint64_t capacity,
 			uint64_t *count)
 {
-	bt_self_message_iterator_status status = BT_MESSAGE_ITERATOR_STATUS_OK;
+	bt_self_message_iterator_status status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 	PyObject *py_message_iter = bt_self_message_iterator_get_data(message_iterator);
 	PyObject *py_method_result = NULL;
 
