@@ -204,10 +204,18 @@ int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
 BT_HIDDEN
 void ctf_fs_destroy(struct ctf_fs_component *ctf_fs);
 
-/* Validate the "paths" parameter passed to this component.  It must be
-   present, and it must be an array of strings. */
+/*
+ * Read and validate parameters taken by the src.ctf.fs plugin.
+ *
+ *  - The mandatory `paths` parameter is returned in `*paths`.
+ *  - The optional `clock-class-offset-s` and `clock-class-offset-ns`, if
+ *    present, are recorded in the `ctf_fs` structure.
+ *
+ * Return true on success, false if any parameter didn't pass validation.
+ */
 
 BT_HIDDEN
-bool validate_paths_parameter(const bt_value *paths);
+bool read_src_fs_parameters(const bt_value *params,
+		const bt_value **paths, struct ctf_fs_component *ctf_fs);
 
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */
