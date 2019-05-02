@@ -1,4 +1,5 @@
 EXTRA_DIST = 						\
+	test_clock_class_priority_map.py		\
 	test_clock_class.py				\
 	test_component.py				\
 	test_component_class.py				\
@@ -7,16 +8,17 @@ EXTRA_DIST = 						\
 	test_event.py					\
 	test_event_class.py				\
 	test_field_class.py				\
-	test_fields.py					\
+	test_field.py					\
 	test_graph.py					\
 	test_message.py					\
 	test_message_iterator.py			\
 	test_packet.py					\
 	test_plugin.py					\
 	test_port.py					\
+	test_query_executor.py				\
 	test_stream.py					\
 	test_stream_class.py				\
 	test_trace.py					\
 	test_trace_collection_message_iterator.py	\
-	test_values.py					\
+	test_value.py					\
 	.coveragerc
