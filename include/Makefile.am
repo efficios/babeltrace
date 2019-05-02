@@ -88,6 +88,7 @@ babeltracectfinclude_HEADERS = \
 # CTF writer API
 babeltracectfwriterincludedir = "$(includedir)/babeltrace/ctf-writer"
 babeltracectfwriterinclude_HEADERS = \
+	babeltrace/ctf-writer/clock-class.h \
 	babeltrace/ctf-writer/clock.h \
 	babeltrace/ctf-writer/event-fields.h \
 	babeltrace/ctf-writer/event-types.h \
@@ -244,12 +245,15 @@ noinst_HEADERS = \
 	babeltrace/ctf-writer/field-types-internal.h \
 	babeltrace/ctf-writer/field-wrapper-internal.h \
 	babeltrace/ctf-writer/functor-internal.h \
+	babeltrace/ctf-writer/object-internal.h \
+	babeltrace/ctf-writer/object-pool-internal.h \
 	babeltrace/ctf-writer/resolve-internal.h \
 	babeltrace/ctf-writer/stream-class-internal.h \
 	babeltrace/ctf-writer/stream-internal.h \
 	babeltrace/ctf-writer/trace-internal.h \
 	babeltrace/ctf-writer/utils-internal.h \
 	babeltrace/ctf-writer/validation-internal.h \
+	babeltrace/ctf-writer/values-internal.h \
 	babeltrace/ctf-writer/visitor-internal.h \
 	babeltrace/ctf-writer/writer-internal.h \
 	babeltrace/mmap-align-internal.h \
@@ -270,6 +274,7 @@ noinst_HEADERS = \
 	babeltrace/trace-ir/resolve-field-path-internal.h \
 	babeltrace/trace-ir/stream-class-internal.h \
 	babeltrace/trace-ir/stream-internal.h \
+	babeltrace/trace-ir/trace-class-internal.h \
 	babeltrace/trace-ir/trace-internal.h \
 	babeltrace/trace-ir/utils-internal.h \
 	babeltrace/prio-heap-internal.h \
@@ -291,9 +296,12 @@ noinst_HEADERS = \
 	babeltrace/graph/message-internal.h \
 	babeltrace/graph/message-iterator-internal.h \
 	babeltrace/graph/message-packet-internal.h \
+	babeltrace/graph/message-stream-activity-internal.h \
 	babeltrace/graph/message-stream-internal.h \
 	babeltrace/graph/port-internal.h \
 	babeltrace/graph/query-executor-internal.h \
 	babeltrace/list-internal.h \
+	babeltrace/fd-cache-internal.h \
+	babeltrace/property-internal.h \
 	version.h \
 	version.i
