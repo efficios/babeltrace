@@ -139,18 +139,16 @@ GString *make_unique_trace_path(const char *path)
 static
 int lttng_validate_datetime(const char *datetime)
 {
-	GTimeZone *default_tz;
-	GDateTime *gdatetime = NULL;
+	GTimeVal tv;
 	int ret = -1;
 
-	default_tz = g_time_zone_new_utc();
-	if (!default_tz) {
-		BT_LOGD("Failed to allocate timezone");
-		goto end;
-	}
-
-	gdatetime = g_date_time_new_from_iso8601(datetime, default_tz);
-	if (!gdatetime) {
+	/*
+	 * We are using g_time_val_from_iso8601, as the safer/more modern
+	 * alternative, g_date_time_new_from_iso8601, is only available in
+	 * glib >= 2.56, and this is sufficient for our use case of validating
+	 * the format.
+	 */
+	if (!g_time_val_from_iso8601(datetime, &tv)) {
 		BT_LOGD("Couldn't parse datetime as iso8601: date=\"%s\"", datetime);
 		goto end;
 	}
@@ -158,16 +156,6 @@ int lttng_validate_datetime(const char *datetime)
 	ret = 0;
 
 end:
-	if (default_tz) {
-		g_time_zone_unref(default_tz);
-		default_tz = NULL;
-	}
-
-	if (gdatetime) {
-		g_date_time_unref(gdatetime);
-		gdatetime = NULL;
-	}
-
 	return ret;
 }
 
