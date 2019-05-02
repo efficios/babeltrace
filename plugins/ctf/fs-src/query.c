@@ -484,13 +484,13 @@ bt_query_status trace_info_query(
 		goto error;
 	}
 
-	paths_value = bt_value_map_borrow_entry_value_const(params, "paths");
-	if (!validate_paths_parameter(paths_value)) {
+	ctf_fs = ctf_fs_component_create();
+	if (!ctf_fs) {
 		goto error;
 	}
 
-	ctf_fs = ctf_fs_component_create();
-	if (!ctf_fs) {
+	if (!read_src_fs_parameters(params, &paths_value, ctf_fs)) {
+		status = BT_QUERY_STATUS_INVALID_PARAMS;
 		goto error;
 	}
 

@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; only version 2
+# of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+NO_SH_TAP=1
+. "@abs_top_builddir@/tests/utils/common.sh"
+
+TESTRUNNER_PY="$BT_SRC_PATH/tests/utils/python/testrunner.py"
+THIS_DIR="$BT_SRC_PATH/tests/plugins/ctf"
+
+exec "$BT_BUILD_PATH/tests/utils/test_python_bt2_env" python3 "$TESTRUNNER_PY" "$THIS_DIR"

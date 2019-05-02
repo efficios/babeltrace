@@ -1,3 +1,5 @@
+SUBDIRS = ctf
+
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/plugins
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la

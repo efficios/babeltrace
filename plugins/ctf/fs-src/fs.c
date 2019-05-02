@@ -1659,6 +1659,12 @@ end:
 	return ret;
 }
 
+/*
+ * Validate the "paths" parameter passed to this component.  It must be
+ * present, and it must be an array of strings.
+ */
+
+static
 bool validate_paths_parameter(const bt_value *paths)
 {
 	bool ret;
@@ -1699,23 +1705,67 @@ end:
 	return ret;
 }
 
+bool read_src_fs_parameters(const bt_value *params,
+		const bt_value **paths, struct ctf_fs_component *ctf_fs) {
+	bool ret;
+	const bt_value *value;
+
+	/* paths parameter */
+	*paths = bt_value_map_borrow_entry_value_const(params, "paths");
+	if (!validate_paths_parameter(*paths)) {
+		goto error;
+	}
+
+	/* clock-class-offset-s parameter */
+	value = bt_value_map_borrow_entry_value_const(params,
+		"clock-class-offset-s");
+	if (value) {
+		if (!bt_value_is_integer(value)) {
+			BT_LOGE("clock-class-offset-s must be an integer");
+			goto error;
+		}
+		ctf_fs->metadata_config.clock_class_offset_s =
+			bt_value_integer_get(value);
+	}
+
+	/* clock-class-offset-ns parameter */
+	value = bt_value_map_borrow_entry_value_const(params,
+		"clock-class-offset-ns");
+	if (value) {
+		if (!bt_value_is_integer(value)) {
+			BT_LOGE("clock-class-offset-ns must be an integer");
+			goto error;
+		}
+		ctf_fs->metadata_config.clock_class_offset_ns =
+			bt_value_integer_get(value);
+	}
+
+
+	ret = true;
+	goto end;
+
+error:
+	ret = false;
+
+end:
+	return ret;
+}
+
 static
 struct ctf_fs_component *ctf_fs_create(
 		bt_self_component_source *self_comp,
 		const bt_value *params)
 {
 	struct ctf_fs_component *ctf_fs = NULL;
-	const bt_value *value = NULL;
 	guint i;
 	const bt_value *paths_value;
 
-	paths_value = bt_value_map_borrow_entry_value_const(params, "paths");
-	if (!validate_paths_parameter(paths_value)) {
+	ctf_fs = ctf_fs_component_create();
+	if (!ctf_fs) {
 		goto error;
 	}
 
-	ctf_fs = ctf_fs_component_create();
-	if (!ctf_fs) {
+	if (!read_src_fs_parameters(params, &paths_value, ctf_fs)) {
 		goto error;
 	}
 
@@ -1729,26 +1779,6 @@ struct ctf_fs_component *ctf_fs_create(
 	 * private component should also exist.
 	 */
 	ctf_fs->self_comp = self_comp;
-
-	value = bt_value_map_borrow_entry_value_const(params,
-		"clock-class-offset-s");
-	if (value) {
-		if (!bt_value_is_integer(value)) {
-			BT_LOGE("clock-class-offset-s should be an integer");
-			goto error;
-		}
-		ctf_fs->metadata_config.clock_class_offset_s = bt_value_integer_get(value);
-	}
-
-	value = bt_value_map_borrow_entry_value_const(params,
-		"clock-class-offset-ns");
-	if (value) {
-		if (!bt_value_is_integer(value)) {
-			BT_LOGE("clock-class-offset-ns should be an integer");
-			goto error;
-		}
-		ctf_fs->metadata_config.clock_class_offset_ns = bt_value_integer_get(value);
-	}
 
 	if (ctf_fs_component_create_ctf_fs_traces(self_comp, ctf_fs, paths_value)) {
 		goto error;
