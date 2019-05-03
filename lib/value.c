@@ -37,7 +37,6 @@
 #include <babeltrace/value-internal.h>
 #include <babeltrace/assert-internal.h>
 
-#define BT_VALUE_FROM_CONCRETE(_concrete) ((struct bt_value *) (_concrete))
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
 #define BT_VALUE_TO_INTEGER(_base) ((struct bt_value_integer *) (_base))
 #define BT_VALUE_TO_REAL(_base) ((struct bt_value_real *) (_base))
@@ -575,7 +574,7 @@ struct bt_value *bt_value_bool_create_init(bt_bool val)
 	BT_LOGD("Created boolean value object: addr=%p", bool_obj);
 
 end:
-	return (void *) BT_VALUE_FROM_CONCRETE(bool_obj);
+	return (void *) bool_obj;
 }
 
 struct bt_value *bt_value_bool_create(void)
@@ -600,7 +599,7 @@ struct bt_value *bt_value_integer_create_init(int64_t val)
 		integer_obj);
 
 end:
-	return (void *) BT_VALUE_FROM_CONCRETE(integer_obj);
+	return (void *) integer_obj;
 }
 
 struct bt_value *bt_value_integer_create(void)
@@ -625,7 +624,7 @@ struct bt_value *bt_value_real_create_init(double val)
 		real_obj);
 
 end:
-	return (void *) BT_VALUE_FROM_CONCRETE(real_obj);
+	return (void *) real_obj;
 }
 
 struct bt_value *bt_value_real_create(void)
@@ -662,7 +661,7 @@ struct bt_value *bt_value_string_create_init(const char *val)
 		string_obj);
 
 end:
-	return (void *) BT_VALUE_FROM_CONCRETE(string_obj);
+	return (void *) string_obj;
 }
 
 struct bt_value *bt_value_string_create(void)
@@ -695,7 +694,7 @@ struct bt_value *bt_value_array_create(void)
 		array_obj);
 
 end:
-	return (void *) BT_VALUE_FROM_CONCRETE(array_obj);
+	return (void *) array_obj;
 }
 
 struct bt_value *bt_value_map_create(void)
@@ -723,7 +722,7 @@ struct bt_value *bt_value_map_create(void)
 		map_obj);
 
 end:
-	return (void *) BT_VALUE_FROM_CONCRETE(map_obj);
+	return (void *) map_obj;
 }
 
 bt_bool bt_value_bool_get(const struct bt_value *bool_obj)
