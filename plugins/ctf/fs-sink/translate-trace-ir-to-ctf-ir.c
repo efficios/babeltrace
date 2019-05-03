@@ -912,7 +912,7 @@ int set_field_refs(struct fs_sink_ctf_field_class * const fc,
 		uint64_t i;
 		uint64_t len;
 		struct fs_sink_ctf_field_class_struct *struct_fc;
-		struct fs_sink_ctf_field_class_variant *var_fc;
+		struct fs_sink_ctf_field_class_variant *var_fc = NULL;
 		struct fs_sink_ctf_named_field_class *named_fc;
 
 		if (fc_type == FS_SINK_CTF_FIELD_CLASS_TYPE_STRUCT) {
