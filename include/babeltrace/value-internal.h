@@ -23,8 +23,47 @@
  * SOFTWARE.
  */
 
+#include <babeltrace/object-internal.h>
 #include <babeltrace/value.h>
 #include <babeltrace/value-const.h>
+#include <babeltrace/types.h>
+#include <glib.h>
+
+struct bt_value {
+	struct bt_object base;
+	enum bt_value_type type;
+	bt_bool frozen;
+};
+
+struct bt_value_bool {
+	struct bt_value base;
+	bt_bool value;
+};
+
+struct bt_value_integer {
+	struct bt_value base;
+	int64_t value;
+};
+
+struct bt_value_real {
+	struct bt_value base;
+	double value;
+};
+
+struct bt_value_string {
+	struct bt_value base;
+	GString *gstr;
+};
+
+struct bt_value_array {
+	struct bt_value base;
+	GPtrArray *garray;
+};
+
+struct bt_value_map {
+	struct bt_value base;
+	GHashTable *ght;
+};
 
 BT_HIDDEN
 enum bt_value_status _bt_value_freeze(const struct bt_value *object);

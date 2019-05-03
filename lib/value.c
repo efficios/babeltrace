@@ -34,7 +34,6 @@
 #include <babeltrace/compat/glib-internal.h>
 #include <babeltrace/types.h>
 #include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object-internal.h>
 #include <babeltrace/value-internal.h>
 #include <babeltrace/assert-internal.h>
 
@@ -61,12 +60,6 @@
 		"Index is out of bound: "				\
 		"index=%" PRIu64 ", count=%u", (_index), (_count));
 
-struct bt_value {
-	struct bt_object base;
-	enum bt_value_type type;
-	bt_bool frozen;
-};
-
 static
 void bt_value_null_instance_release_func(struct bt_object *obj)
 {
@@ -88,36 +81,6 @@ struct bt_value bt_value_null_instance = {
 };
 
 struct bt_value *const bt_value_null = &bt_value_null_instance;
-
-struct bt_value_bool {
-	struct bt_value base;
-	bt_bool value;
-};
-
-struct bt_value_integer {
-	struct bt_value base;
-	int64_t value;
-};
-
-struct bt_value_real {
-	struct bt_value base;
-	double value;
-};
-
-struct bt_value_string {
-	struct bt_value base;
-	GString *gstr;
-};
-
-struct bt_value_array {
-	struct bt_value base;
-	GPtrArray *garray;
-};
-
-struct bt_value_map {
-	struct bt_value base;
-	GHashTable *ght;
-};
 
 static
 void bt_value_destroy(struct bt_object *obj);
