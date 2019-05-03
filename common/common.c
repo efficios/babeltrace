@@ -1521,7 +1521,6 @@ void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 
 	BT_ASSERT(buf);
 	BT_ASSERT(fmt);
-	BT_ASSERT(*args);
 
 	while (*fmt_ch != '\0') {
 		switch (*fmt_ch) {
