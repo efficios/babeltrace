@@ -32,9 +32,10 @@
 #include <babeltrace/trace-ir/event-class-const.h>
 #include <babeltrace/graph/self-message-iterator.h>
 #include <babeltrace/value.h>
-#include <stdarg.h>
 #include <inttypes.h>
+#include <stdarg.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <glib.h>
 
 #define BT_COMMON_COLOR_RESET              "\033[0m"
@@ -304,6 +305,55 @@ void bt_common_custom_snprintf(char *buf, size_t buf_size,
  */
 BT_HIDDEN
 size_t bt_common_get_page_size(void);
+
+/*
+ * Wraps read() function to handle EINTR and partial reads.
+ * On success, it returns `count` received as parameter. On error, it returns a
+ * value smaller than the requested `count`.
+ */
+static inline
+ssize_t bt_common_read(int fd, void *buf, size_t count)
+{
+	size_t i = 0;
+	ssize_t ret;
+
+	BT_ASSERT(buf);
+
+	/* Never return an overflow value. */
+	BT_ASSERT(count <= SSIZE_MAX);
+
+	do {
+		ret = read(fd, buf + i, count - i);
+		if (ret < 0) {
+			if (errno == EINTR) {
+#ifdef BT_LOGD_STR
+				BT_LOGD_STR("read() call interrupted. Retrying...");
+#endif
+				/* retry operation */
+				continue;
+			} else {
+#ifdef BT_LOGE_ERRNO
+				BT_LOGE_ERRNO("Error while reading", ": fd=%d",
+					fd);
+#endif
+				goto end;
+			}
+		}
+		i += ret;
+		BT_ASSERT(i <= count);
+	} while (count - i > 0 && ret > 0);
+
+end:
+	if (ret >= 0) {
+		if (i == 0) {
+			ret = -1;
+		} else {
+			ret = i;
+		}
+	}
+
+	return ret;
+}
 
 static inline
 const char *bt_common_field_class_type_string(enum bt_field_class_type class_type)
