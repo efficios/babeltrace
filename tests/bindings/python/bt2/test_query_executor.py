@@ -4,7 +4,6 @@ import copy
 import bt2
 
 
-@unittest.skip("this is broken")
 class QueryExecutorTestCase(unittest.TestCase):
     def test_query(self):
         class MySink(bt2._UserSinkComponent):
@@ -122,11 +121,3 @@ class QueryExecutorTestCase(unittest.TestCase):
 
         with self.assertRaises(bt2.QueryExecutorCanceled):
             res = query_exec.query(MySink, 'obj', [17, 23])
-
-    def test_eq(self):
-        query_exec = bt2.QueryExecutor()
-        self.assertEqual(query_exec, query_exec)
-
-    def test_eq_invalid(self):
-        query_exec = bt2.QueryExecutor()
-        self.assertNotEqual(query_exec, 23)
