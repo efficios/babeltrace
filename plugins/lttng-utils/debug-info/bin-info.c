@@ -42,6 +42,8 @@
 
 #include <glib.h>
 
+#include <babeltrace/common-internal.h>
+
 #include "bin-info.h"
 #include "crc32.h"
 #include "dwarf.h"
@@ -144,6 +146,41 @@ void bin_info_destroy(struct bin_info *bin)
 	g_free(bin);
 }
 
+static
+int bin_info_set_endianness(struct bin_info *bin)
+{
+	int ret, fd;
+	uint8_t e_ident[EI_NIDENT];
+
+	fd = bt_fd_cache_handle_get_fd(bin->elf_handle);
+
+	/*
+	 * Read the identification fields of the elf file.
+	 */
+	if (lseek(fd, 0, SEEK_SET) < 0) {
+		BT_LOGE("Error seeking the beginning of ELF file: %s",
+			strerror(errno));
+		ret = -1;
+		goto error;
+	}
+
+	ret = bt_common_read(fd, e_ident, EI_NIDENT);
+	if (ret < EI_NIDENT) {
+		BT_LOGE_STR("Error reading the ELF identification fields");
+		ret = -1;
+		goto error;
+	}
+
+	/*
+	 * Set the endianness.
+	 */
+	 bin->endianness = e_ident[EI_DATA];
+	 ret = 0;
+
+error:
+	return ret;
+}
+
 /**
  * Initialize the ELF file for a given executable.
  *
@@ -155,6 +192,7 @@ int bin_info_set_elf_file(struct bin_info *bin)
 {
 	struct bt_fd_cache_handle *elf_handle = NULL;
 	Elf *elf_file = NULL;
+	int ret;
 
 	if (!bin) {
 		goto error;
@@ -165,21 +203,27 @@ int bin_info_set_elf_file(struct bin_info *bin)
 		BT_LOGD("Failed to open %s", bin->elf_path);
 		goto error;
 	}
+	bin->elf_handle = elf_handle;
 
-	elf_file = elf_begin(bt_fd_cache_handle_get_fd(elf_handle),
+	ret = bin_info_set_endianness(bin);
+	if (ret) {
+		goto error;
+	}
+
+	elf_file = elf_begin(bt_fd_cache_handle_get_fd(bin->elf_handle),
 		ELF_C_READ, NULL);
 	if (!elf_file) {
 		BT_LOGE("elf_begin failed: %s", elf_errmsg(-1));
 		goto error;
 	}
 
+	bin->elf_file = elf_file;
+
 	if (elf_kind(elf_file) != ELF_K_ELF) {
 		BT_LOGE("Error: %s is not an ELF object", bin->elf_path);
 		goto error;
 	}
 
-	bin->elf_handle = elf_handle;
-	bin->elf_file = elf_file;
 	return 0;
 
 error:
@@ -295,7 +339,6 @@ int is_build_id_matching(struct bin_info *bin)
 {
 	int ret, is_build_id, is_matching = 0;
 	Elf_Scn *curr_section = NULL, *next_section = NULL;
-	Elf_Data *note_data = NULL;
 	GElf_Shdr *curr_section_hdr = NULL;
 
 	if (!bin->build_id) {
@@ -322,6 +365,9 @@ int is_build_id_matching(struct bin_info *bin)
 	}
 
 	while (next_section) {
+		Elf_Data *file_note_data = NULL;
+		Elf_Data native_note_data;
+
 		curr_section = next_section;
 		next_section = elf_nextscn(bin->elf_file, curr_section);
 
@@ -335,14 +381,31 @@ int is_build_id_matching(struct bin_info *bin)
 			continue;
 		}
 
-		note_data = elf_getdata(curr_section, NULL);
-		if (!note_data) {
+		file_note_data = elf_getdata(curr_section, NULL);
+		if (!file_note_data) {
 			goto error;
 		}
 
+		/*
+		 * Prepare the destination buffer to receive the natively
+		 * ordered note. The `d_buf`, `d_size`, and `d_version` fields
+		 * of the destination structure must be set before invoking the
+		 * `gelf_xlatetom()` function.
+		 */
+		native_note_data.d_buf = g_new0(uint8_t, file_note_data->d_size);
+		BT_ASSERT(native_note_data.d_buf);
+
+		native_note_data.d_size = file_note_data->d_size;
+		native_note_data.d_version = file_note_data->d_version;
+
+		/* Translate the note data buffer to the host endianness. */
+		gelf_xlatetom(bin->elf_file, &native_note_data, file_note_data,
+			bin->endianness);
+
 		/* Check if the note is of the build-id type. */
-		is_build_id = is_build_id_note_section(note_data->d_buf);
+		is_build_id = is_build_id_note_section(native_note_data.d_buf);
 		if (!is_build_id) {
+			g_free(native_note_data.d_buf);
 			continue;
 		}
 
@@ -350,8 +413,10 @@ int is_build_id_matching(struct bin_info *bin)
 		 * Compare the build id of the on-disk file and
 		 * the build id recorded in the trace.
 		 */
-		is_matching = is_build_id_note_section_matching(note_data->d_buf,
-				bin->build_id, bin->build_id_len);
+		is_matching = is_build_id_note_section_matching(
+			native_note_data.d_buf, bin->build_id,
+			bin->build_id_len);
+		g_free(native_note_data.d_buf);
 		if (!is_matching) {
 			break;
 		}
@@ -740,7 +805,6 @@ int bin_info_append_offset_str(const char *base_str, uint64_t low_addr,
 {
 	uint64_t offset;
 	char *_result = NULL;
-
 
 	if (!base_str || !result) {
 		goto error;
