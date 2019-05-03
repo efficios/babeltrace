@@ -244,10 +244,7 @@ void *bt_mmap(void *addr, size_t length, int prot, int flags, int fd,
 	}
 
 	/* Add the new mapping to the hashtable. */
-	if (!g_hash_table_insert(mmap_mappings, mapping_addr, mapping)) {
-		BT_LOGF_STR("Failed to insert mapping in the hashtable.");
-		abort();
-	}
+	g_hash_table_insert(mmap_mappings, mapping_addr, mapping);
 
 	mmap_unlock();
 

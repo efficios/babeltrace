@@ -154,7 +154,6 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 
 	fd_internal = g_hash_table_lookup(fdc->cache, &fk);
 	if (!fd_internal) {
-		gboolean ret;
 		struct file_key *file_key;
 
 		int fd = open(path, O_RDONLY);
@@ -182,9 +181,7 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 		fd_internal->key = file_key;
 
 		/* Insert the newly created fd handle. */
-		ret = g_hash_table_insert(fdc->cache, fd_internal->key,
-				fd_internal);
-		BT_ASSERT(ret);
+		g_hash_table_insert(fdc->cache, fd_internal->key, fd_internal);
 	}
 
 	BT_ASSERT(fd_internal->ref_count >= 0);
