@@ -185,6 +185,26 @@ void ini_append_error_expecting(struct ini_parsing_state *state,
 	g_string_append_printf(state->ini_error, "^\n\n");
 }
 
+/* Parse the next token as an unsigned integer. */
+static
+bt_value *ini_parse_uint(struct ini_parsing_state *state)
+{
+	bt_value *value = NULL;
+	GTokenType token_type = g_scanner_get_next_token(state->scanner);
+
+	if (token_type != G_TOKEN_INT) {
+		ini_append_error_expecting(state, state->scanner,
+			"integer value");
+		goto end;
+	}
+
+	value = bt_value_unsigned_integer_create_init(
+		state->scanner->value.v_int64);
+
+end:
+	return value;
+}
+
 /* Parse the next token as a number and return its negation. */
 static
 bt_value *ini_parse_neg_number(struct ini_parsing_state *state)
@@ -203,7 +223,8 @@ bt_value *ini_parse_neg_number(struct ini_parsing_state *state)
 				"Integer value -%" PRIu64 " is outside the range of a 64-bit signed integer\n",
 				int_val);
 		} else {
-			value = bt_value_integer_create_init(-((int64_t) int_val));
+			value = bt_value_signed_integer_create_init(
+				-((int64_t) int_val));
 		}
 
 		break;
@@ -306,6 +327,9 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 		if (state->scanner->value.v_char == '-') {
 			/* Negative number */
 			value = ini_parse_neg_number(state);
+		} else if (state->scanner->value.v_char == '+') {
+			/* Unsigned integer */
+			value = ini_parse_uint(state);
 		} else if (state->scanner->value.v_char == '[') {
 			/* Array */
 			value = ini_parse_array(state);
@@ -315,7 +339,7 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 		break;
 	case G_TOKEN_INT:
 	{
-		/* Positive integer */
+		/* Positive, signed integer */
 		uint64_t int_val = state->scanner->value.v_int64;
 
 		if (int_val > INT64_MAX) {
@@ -323,7 +347,8 @@ bt_value *ini_parse_value(struct ini_parsing_state *state)
 				"Integer value %" PRIu64 " is outside the range of a 64-bit signed integer\n",
 				int_val);
 		} else {
-			value = bt_value_integer_create_init((int64_t)int_val);
+			value = bt_value_signed_integer_create_init(
+				(int64_t) int_val);
 		}
 		break;
 	}
@@ -1836,7 +1861,7 @@ void print_expected_params_format(FILE *fp)
 	fprintf(fp, "* `true`, `TRUE`, `yes`, `YES`: true boolean value (no backticks).\n");
 	fprintf(fp, "* `false`, `FALSE`, `no`, `NO`: false boolean value (no backticks).\n");
 	fprintf(fp, "* Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal\n");
-	fprintf(fp, "  (`0x` prefix) signed 64-bit integer.\n");
+	fprintf(fp, "  (`0x` prefix) unsigned (with `+` prefix) or signed 64-bit integer.\n");
 	fprintf(fp, "* Double precision floating point number (scientific notation is accepted).\n");
 	fprintf(fp, "* Unquoted string with no special characters, and not matching any of\n");
 	fprintf(fp, "  the null and boolean value symbols above.\n");
@@ -1849,7 +1874,7 @@ void print_expected_params_format(FILE *fp)
 	fprintf(fp, "Example:\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "    many=null, fresh=yes, condition=false, squirrel=-782329,\n");
-	fprintf(fp, "    observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
+	fprintf(fp, "    play=+23, observe=3.14, simple=beef, needs-quotes=\"some string\",\n");
 	fprintf(fp, "    escape.chars-are:allowed=\"this is a \\\" double quote\",\n");
 	fprintf(fp, "    things=[1, \"2\", 3]\n");
 	fprintf(fp, "\n");

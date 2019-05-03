@@ -64,7 +64,7 @@ def create_value(value):
         return BoolValue(value)
 
     if isinstance(value, int):
-        return IntegerValue(value)
+        return SignedIntegerValue(value)
 
     if isinstance(value, float):
         return RealValue(value)
@@ -366,14 +366,12 @@ class BoolValue(_Value):
     value = property(fset=_set_value)
 
 
-class IntegerValue(_IntegralValue):
-    _NAME = 'Integer'
-
+class _IntegerValue(_IntegralValue):
     def __init__(self, value=None):
         if value is None:
-            ptr = native_bt.value_integer_create()
+            ptr = self._create_default_value()
         else:
-            ptr = native_bt.value_integer_create_init(self._value_to_int(value))
+            ptr = self._create_value(self._value_to_int(value))
 
         self._check_create_status(ptr)
         super().__init__(ptr)
@@ -383,17 +381,33 @@ class IntegerValue(_IntegralValue):
             raise TypeError('expecting a number object')
 
         value = int(value)
-        utils._check_int64(value)
+        self._check_int_range(value)
         return value
 
     @property
     def _value(self):
-        return native_bt.value_integer_get(self._ptr)
+        return self._get_value(self._ptr)
 
-    def _set_value(self, value):
-        native_bt.value_integer_set(self._ptr, self._value_to_int(value))
+    def _prop_set_value(self, value):
+        self._set_value(self._ptr, self._value_to_int(value))
 
-    value = property(fset=_set_value)
+    value = property(fset=_prop_set_value)
+
+
+class UnsignedIntegerValue(_IntegerValue):
+    _check_int_range = staticmethod(utils._check_uint64)
+    _create_default_value = native_bt.value_unsigned_integer_create
+    _create_value = native_bt.value_unsigned_integer_create_init
+    _set_value = native_bt.value_unsigned_integer_set
+    _get_value = native_bt.value_unsigned_integer_get
+
+
+class SignedIntegerValue(_IntegerValue):
+    _check_int_range = staticmethod(utils._check_int64)
+    _create_default_value = native_bt.value_signed_integer_create
+    _create_value = native_bt.value_signed_integer_create_init
+    _set_value = native_bt.value_signed_integer_set
+    _get_value = native_bt.value_signed_integer_get
 
 
 class RealValue(_RealValue):
@@ -689,7 +703,8 @@ class MapValue(_Container, collections.abc.MutableMapping, _Value):
 
 _TYPE_TO_OBJ = {
     native_bt.VALUE_TYPE_BOOL: BoolValue,
-    native_bt.VALUE_TYPE_INTEGER: IntegerValue,
+    native_bt.VALUE_TYPE_UNSIGNED_INTEGER: UnsignedIntegerValue,
+    native_bt.VALUE_TYPE_SIGNED_INTEGER: SignedIntegerValue,
     native_bt.VALUE_TYPE_REAL: RealValue,
     native_bt.VALUE_TYPE_STRING: StringValue,
     native_bt.VALUE_TYPE_ARRAY: ArrayValue,

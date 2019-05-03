@@ -1,8 +1,5 @@
-#ifndef BABELTRACE_VALUES_INTERNAL_H
-#define BABELTRACE_VALUES_INTERNAL_H
-
 /*
- * Copyright (c) 2015-2018 Philippe Proulx <pproulx@efficios.com>
+ * Copyright (c) 2017 Philippe Proulx <pproulx@efficios.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,58 +20,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/object-internal.h>
-#include <babeltrace/value.h>
-#include <babeltrace/value-const.h>
-#include <babeltrace/types.h>
-#include <glib.h>
+#define BT_LOG_OUTPUT_LEVEL bt_plugin_utils_counter_log_level
+#include <babeltrace/logging-internal.h>
 
-struct bt_value {
-	struct bt_object base;
-	enum bt_value_type type;
-	bt_bool frozen;
-};
-
-struct bt_value_bool {
-	struct bt_value base;
-	bt_bool value;
-};
-
-struct bt_value_integer {
-	struct bt_value base;
-	union {
-		uint64_t i;
-		int64_t u;
-	} value;
-};
-
-struct bt_value_real {
-	struct bt_value base;
-	double value;
-};
-
-struct bt_value_string {
-	struct bt_value base;
-	GString *gstr;
-};
-
-struct bt_value_array {
-	struct bt_value base;
-	GPtrArray *garray;
-};
-
-struct bt_value_map {
-	struct bt_value base;
-	GHashTable *ght;
-};
-
-BT_HIDDEN
-enum bt_value_status _bt_value_freeze(const struct bt_value *object);
-
-#ifdef BT_DEV_MODE
-# define bt_value_freeze	_bt_value_freeze
-#else
-# define bt_value_freeze(_value)
-#endif /* BT_DEV_MODE */
-
-#endif /* BABELTRACE_VALUES_INTERNAL_H */
+BT_LOG_INIT_LOG_LEVEL(bt_plugin_utils_counter_log_level,
+	"BABELTRACE_FLT_UTILS_COUNTER_LOG_LEVEL");

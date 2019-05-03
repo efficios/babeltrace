@@ -170,7 +170,7 @@ class _TestNumericValue(_TestCopySimple):
         # the current value of `int_value_obj`, so after this the value
         # of the object is 5. This does not compare to 5.3, which is
         # why we also use the `int()` type here.
-        if type(self._def) is bt2.IntegerValue:
+        if isinstance(self._def, bt2._IntegerValue):
             rv = int(rv)
 
         self.assertEqual(r, rv)
@@ -576,7 +576,7 @@ _UNARYOPS = (
 )
 
 
-def _inject_numeric_testing_methods(cls):
+def _inject_numeric_testing_methods(cls, has_neg=True):
     def test_binop_name(suffix):
         return 'test_binop_{}_{}'.format(name, suffix)
 
@@ -588,7 +588,6 @@ def _inject_numeric_testing_methods(cls):
 
     # inject testing methods for each binary operation
     for name, binop in _BINOPS:
-
         setattr(cls, test_binop_name('invalid_unknown'), partialmethod(_TestNumericValue._test_binop_invalid_unknown, op=binop))
         setattr(cls, test_binop_name('invalid_none'), partialmethod(_TestNumericValue._test_binop_invalid_none, op=binop))
         setattr(cls, test_binop_name('type_true'), partialmethod(_TestNumericValue._test_binop_type_true, op=binop))
@@ -603,14 +602,17 @@ def _inject_numeric_testing_methods(cls):
         setattr(cls, test_binop_name('lhs_value_same_true'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_true, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_pos_int'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_int, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_pos_vint'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_vint, op=binop))
-        setattr(cls, test_binop_name('type_neg_int'), partialmethod(_TestNumericValue._test_binop_type_neg_int, op=binop))
-        setattr(cls, test_binop_name('type_neg_vint'), partialmethod(_TestNumericValue._test_binop_type_neg_vint, op=binop))
-        setattr(cls, test_binop_name('value_neg_int'), partialmethod(_TestNumericValue._test_binop_value_neg_int, op=binop))
-        setattr(cls, test_binop_name('value_neg_vint'), partialmethod(_TestNumericValue._test_binop_value_neg_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_int'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_int, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_vint'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_vint, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_int'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_int, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_vint'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_vint, op=binop))
+
+        if has_neg:
+            setattr(cls, test_binop_name('type_neg_int'), partialmethod(_TestNumericValue._test_binop_type_neg_int, op=binop))
+            setattr(cls, test_binop_name('type_neg_vint'), partialmethod(_TestNumericValue._test_binop_type_neg_vint, op=binop))
+            setattr(cls, test_binop_name('value_neg_int'), partialmethod(_TestNumericValue._test_binop_value_neg_int, op=binop))
+            setattr(cls, test_binop_name('value_neg_vint'), partialmethod(_TestNumericValue._test_binop_value_neg_vint, op=binop))
+            setattr(cls, test_binop_name('lhs_addr_same_neg_int'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_int, op=binop))
+            setattr(cls, test_binop_name('lhs_addr_same_neg_vint'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_vint, op=binop))
+            setattr(cls, test_binop_name('lhs_value_same_neg_int'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_int, op=binop))
+            setattr(cls, test_binop_name('lhs_value_same_neg_vint'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_vint, op=binop))
+
         setattr(cls, test_binop_name('type_false'), partialmethod(_TestNumericValue._test_binop_type_false, op=binop))
         setattr(cls, test_binop_name('type_zero_int'), partialmethod(_TestNumericValue._test_binop_type_zero_int, op=binop))
         setattr(cls, test_binop_name('type_zero_vint'), partialmethod(_TestNumericValue._test_binop_type_zero_vint, op=binop))
@@ -623,22 +625,25 @@ def _inject_numeric_testing_methods(cls):
         setattr(cls, test_binop_name('lhs_value_same_false'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_false, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_zero_int'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_zero_int, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_zero_vint'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_zero_vint, op=binop))
+
+        if has_neg:
+            setattr(cls, test_binop_name('type_neg_float'), partialmethod(_TestNumericValue._test_binop_type_neg_float, op=binop))
+            setattr(cls, test_binop_name('type_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_type_neg_vfloat, op=binop))
+            setattr(cls, test_binop_name('value_neg_float'), partialmethod(_TestNumericValue._test_binop_value_neg_float, op=binop))
+            setattr(cls, test_binop_name('value_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_value_neg_vfloat, op=binop))
+            setattr(cls, test_binop_name('lhs_addr_same_neg_float'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_float, op=binop))
+            setattr(cls, test_binop_name('lhs_addr_same_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_vfloat, op=binop))
+            setattr(cls, test_binop_name('lhs_value_same_neg_float'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_float, op=binop))
+            setattr(cls, test_binop_name('lhs_value_same_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_vfloat, op=binop))
+
         setattr(cls, test_binop_name('type_pos_float'), partialmethod(_TestNumericValue._test_binop_type_pos_float, op=binop))
-        setattr(cls, test_binop_name('type_neg_float'), partialmethod(_TestNumericValue._test_binop_type_neg_float, op=binop))
         setattr(cls, test_binop_name('type_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_type_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('type_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_type_neg_vfloat, op=binop))
         setattr(cls, test_binop_name('value_pos_float'), partialmethod(_TestNumericValue._test_binop_value_pos_float, op=binop))
-        setattr(cls, test_binop_name('value_neg_float'), partialmethod(_TestNumericValue._test_binop_value_neg_float, op=binop))
         setattr(cls, test_binop_name('value_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_value_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('value_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_value_neg_vfloat, op=binop))
         setattr(cls, test_binop_name('lhs_addr_same_pos_float'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_pos_float, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_float'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_float, op=binop))
         setattr(cls, test_binop_name('lhs_addr_same_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_addr_same_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_addr_same_neg_vfloat, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_pos_float'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_float, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_float'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_float, op=binop))
         setattr(cls, test_binop_name('lhs_value_same_pos_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_pos_vfloat, op=binop))
-        setattr(cls, test_binop_name('lhs_value_same_neg_vfloat'), partialmethod(_TestNumericValue._test_binop_lhs_value_same_neg_vfloat, op=binop))
         setattr(cls, test_binop_name('type_zero_float'), partialmethod(_TestNumericValue._test_binop_type_zero_float, op=binop))
         setattr(cls, test_binop_name('type_zero_vfloat'), partialmethod(_TestNumericValue._test_binop_type_zero_vfloat, op=binop))
         setattr(cls, test_binop_name('value_zero_float'), partialmethod(_TestNumericValue._test_binop_value_zero_float, op=binop))
@@ -665,10 +670,13 @@ def _inject_numeric_testing_methods(cls):
         setattr(cls, test_ibinop_name('type_pos_vint'), partialmethod(_TestNumericValue._test_ibinop_type_pos_vint, op=ibinop))
         setattr(cls, test_ibinop_name('value_pos_int'), partialmethod(_TestNumericValue._test_ibinop_value_pos_int, op=ibinop))
         setattr(cls, test_ibinop_name('value_pos_vint'), partialmethod(_TestNumericValue._test_ibinop_value_pos_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_int'), partialmethod(_TestNumericValue._test_ibinop_type_neg_int, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_vint'), partialmethod(_TestNumericValue._test_ibinop_type_neg_vint, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_int'), partialmethod(_TestNumericValue._test_ibinop_value_neg_int, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_vint'), partialmethod(_TestNumericValue._test_ibinop_value_neg_vint, op=ibinop))
+
+        if has_neg:
+            setattr(cls, test_ibinop_name('type_neg_int'), partialmethod(_TestNumericValue._test_ibinop_type_neg_int, op=ibinop))
+            setattr(cls, test_ibinop_name('type_neg_vint'), partialmethod(_TestNumericValue._test_ibinop_type_neg_vint, op=ibinop))
+            setattr(cls, test_ibinop_name('value_neg_int'), partialmethod(_TestNumericValue._test_ibinop_value_neg_int, op=ibinop))
+            setattr(cls, test_ibinop_name('value_neg_vint'), partialmethod(_TestNumericValue._test_ibinop_value_neg_vint, op=ibinop))
+
         setattr(cls, test_ibinop_name('type_false'), partialmethod(_TestNumericValue._test_ibinop_type_false, op=ibinop))
         setattr(cls, test_ibinop_name('value_false'), partialmethod(_TestNumericValue._test_ibinop_value_false, op=ibinop))
         setattr(cls, test_ibinop_name('type_zero_int'), partialmethod(_TestNumericValue._test_ibinop_type_zero_int, op=ibinop))
@@ -676,13 +684,16 @@ def _inject_numeric_testing_methods(cls):
         setattr(cls, test_ibinop_name('value_zero_int'), partialmethod(_TestNumericValue._test_ibinop_value_zero_int, op=ibinop))
         setattr(cls, test_ibinop_name('value_zero_vint'), partialmethod(_TestNumericValue._test_ibinop_value_zero_vint, op=ibinop))
         setattr(cls, test_ibinop_name('type_pos_float'), partialmethod(_TestNumericValue._test_ibinop_type_pos_float, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_float'), partialmethod(_TestNumericValue._test_ibinop_type_neg_float, op=ibinop))
+
+        if has_neg:
+            setattr(cls, test_ibinop_name('type_neg_float'), partialmethod(_TestNumericValue._test_ibinop_type_neg_float, op=ibinop))
+            setattr(cls, test_ibinop_name('type_neg_vfloat'), partialmethod(_TestNumericValue._test_ibinop_type_neg_vfloat, op=ibinop))
+            setattr(cls, test_ibinop_name('value_neg_float'), partialmethod(_TestNumericValue._test_ibinop_value_neg_float, op=ibinop))
+            setattr(cls, test_ibinop_name('value_neg_vfloat'), partialmethod(_TestNumericValue._test_ibinop_value_neg_vfloat, op=ibinop))
+
         setattr(cls, test_ibinop_name('type_pos_vfloat'), partialmethod(_TestNumericValue._test_ibinop_type_pos_vfloat, op=ibinop))
-        setattr(cls, test_ibinop_name('type_neg_vfloat'), partialmethod(_TestNumericValue._test_ibinop_type_neg_vfloat, op=ibinop))
         setattr(cls, test_ibinop_name('value_pos_float'), partialmethod(_TestNumericValue._test_ibinop_value_pos_float, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_float'), partialmethod(_TestNumericValue._test_ibinop_value_neg_float, op=ibinop))
         setattr(cls, test_ibinop_name('value_pos_vfloat'), partialmethod(_TestNumericValue._test_ibinop_value_pos_vfloat, op=ibinop))
-        setattr(cls, test_ibinop_name('value_neg_vfloat'), partialmethod(_TestNumericValue._test_ibinop_value_neg_vfloat, op=ibinop))
         setattr(cls, test_ibinop_name('type_zero_float'), partialmethod(_TestNumericValue._test_ibinop_type_zero_float, op=ibinop))
         setattr(cls, test_ibinop_name('type_zero_vfloat'), partialmethod(_TestNumericValue._test_ibinop_type_zero_vfloat, op=ibinop))
         setattr(cls, test_ibinop_name('value_zero_float'), partialmethod(_TestNumericValue._test_ibinop_value_zero_float, op=ibinop))
@@ -707,13 +718,13 @@ class CreateValueFuncTestCase(unittest.TestCase):
     def test_create_int_pos(self):
         raw = 23
         v = bt2.create_value(raw)
-        self.assertIsInstance(v, bt2.IntegerValue)
+        self.assertIsInstance(v, bt2.SignedIntegerValue)
         self.assertEqual(v, raw)
 
     def test_create_int_neg(self):
         raw = -23
         v = bt2.create_value(raw)
-        self.assertIsInstance(v, bt2.IntegerValue)
+        self.assertIsInstance(v, bt2.SignedIntegerValue)
         self.assertEqual(v, raw)
 
     def test_create_float_pos(self):
@@ -883,19 +894,16 @@ class BoolValueTestCase(_TestCopySimple, unittest.TestCase):
         self.assertNotEqual(self._t, False)
 
 
-class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
+class _TestIntegerValue(_TestNumericValue):
     def setUp(self):
         self._pv = 23
-        self._nv = -52
-        self._ip = bt2.IntegerValue(self._pv)
-        self._in = bt2.IntegerValue(self._nv)
+        self._ip = self._CLS(self._pv)
         self._def = self._ip
         self._def_value = self._pv
-        self._def_new_value = -101
+        self._def_new_value = 101
 
     def tearDown(self):
         del self._ip
-        del self._in
         del self._def
         del self._def_value
 
@@ -909,7 +917,7 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
         return self.assertRaisesRegex(ValueError, r"expecting an unsigned 64-bit integral value")
 
     def test_create_default(self):
-        i = bt2.IntegerValue()
+        i = self._CLS()
         self.assertEqual(i, 0)
 
     def test_create_pos(self):
@@ -918,33 +926,25 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
     def test_create_neg(self):
         self.assertEqual(self._in, self._nv)
 
-    def test_create_pos_too_big(self):
-        with self._assert_expecting_int64():
-            i = bt2.IntegerValue(2 ** 63)
-
-    def test_create_neg_too_big(self):
-        with self._assert_expecting_int64():
-            i = bt2.IntegerValue(-(2 ** 63) - 1)
-
     def test_create_from_vint(self):
-        i = bt2.IntegerValue(self._ip)
+        i = self._CLS(self._ip)
         self.assertEqual(i, self._pv)
 
     def test_create_from_false(self):
-        i = bt2.IntegerValue(False)
+        i = self._CLS(False)
         self.assertFalse(i)
 
     def test_create_from_true(self):
-        i = bt2.IntegerValue(True)
+        i = self._CLS(True)
         self.assertTrue(i)
 
     def test_create_from_float(self):
-        i = bt2.IntegerValue(99.6)
+        i = self._CLS(99.6)
         self.assertEqual(i, 99)
 
     def test_create_from_vfloat(self):
         f = bt2.create_value(17.5)
-        i = bt2.IntegerValue(f)
+        i = self._CLS(f)
         self.assertEqual(i, 17)
 
     def test_create_from_unknown(self):
@@ -952,11 +952,11 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
             pass
 
         with self._assert_expecting_int():
-            i = bt2.IntegerValue(A())
+            i = self._CLS(A())
 
     def test_create_from_varray(self):
         with self._assert_expecting_int():
-            i = bt2.IntegerValue(bt2.ArrayValue())
+            i = self._CLS(bt2.ArrayValue())
 
     def test_assign_true(self):
         raw = True
@@ -973,11 +973,6 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
         self._def.value = raw
         self.assertEqual(self._def, raw)
 
-    def test_assign_neg_int(self):
-        raw = -13
-        self._def.value = raw
-        self.assertEqual(self._def, raw)
-
     def test_assign_vint(self):
         raw = 999
         self._def.value = bt2.create_value(raw)
@@ -989,7 +984,52 @@ class IntegerValueTestCase(_TestNumericValue, unittest.TestCase):
         self.assertEqual(self._def, int(raw))
 
 
-_inject_numeric_testing_methods(IntegerValueTestCase)
+class SignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
+    _CLS = bt2.SignedIntegerValue
+
+    def setUp(self):
+        super().setUp()
+        self._nv = -52
+        self._in = self._CLS(self._nv)
+        self._def_new_value = -101
+
+    def tearDown(self):
+        super().tearDown()
+        del self._in
+
+    def test_create_neg(self):
+        self.assertEqual(self._in, self._nv)
+
+    def test_create_pos_too_big(self):
+        with self._assert_expecting_int64():
+            i = self._CLS(2 ** 63)
+
+    def test_create_neg_too_big(self):
+        with self._assert_expecting_int64():
+            i = self._CLS(-(2 ** 63) - 1)
+
+    def test_assign_neg_int(self):
+        raw = -13
+        self._def.value = raw
+        self.assertEqual(self._def, raw)
+
+
+_inject_numeric_testing_methods(SignedIntegerValueTestCase)
+
+
+class UnsignedIntegerValueTestCase(_TestIntegerValue, unittest.TestCase):
+    _CLS = bt2.UnsignedIntegerValue
+
+    def test_create_pos_too_big(self):
+        with self._assert_expecting_uint64():
+            i = self._CLS(2 ** 64)
+
+    def test_create_neg(self):
+        with self._assert_expecting_uint64():
+            i = self._CLS(-1)
+
+
+_inject_numeric_testing_methods(UnsignedIntegerValueTestCase, False)
 
 
 class RealValueTestCase(_TestNumericValue, unittest.TestCase):

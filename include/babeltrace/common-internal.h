@@ -466,8 +466,10 @@ const char *bt_common_value_type_string(enum bt_value_type type)
 		return "BT_VALUE_TYPE_NULL";
 	case BT_VALUE_TYPE_BOOL:
 		return "BT_VALUE_TYPE_BOOL";
-	case BT_VALUE_TYPE_INTEGER:
-		return "BT_VALUE_TYPE_INTEGER";
+	case BT_VALUE_TYPE_UNSIGNED_INTEGER:
+		return "BT_VALUE_TYPE_UNSIGNED_INTEGER";
+	case BT_VALUE_TYPE_SIGNED_INTEGER:
+		return "BT_VALUE_TYPE_SIGNED_INTEGER";
 	case BT_VALUE_TYPE_REAL:
 		return "BT_VALUE_TYPE_REAL";
 	case BT_VALUE_TYPE_STRING:

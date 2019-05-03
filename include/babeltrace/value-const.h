@@ -46,25 +46,28 @@ typedef enum bt_value_status {
 
 typedef enum bt_value_type {
 	/// Null value object.
-	BT_VALUE_TYPE_NULL =		0,
+	BT_VALUE_TYPE_NULL		= 0,
 
 	/// Boolean value object (holds #BT_TRUE or #BT_FALSE).
-	BT_VALUE_TYPE_BOOL =		1,
+	BT_VALUE_TYPE_BOOL		= 1,
 
-	/// Integer value object (holds a signed 64-bit integer raw value).
-	BT_VALUE_TYPE_INTEGER =		2,
+	/// Unsigned integer value object (holds an unsigned 64-bit integer raw value).
+	BT_VALUE_TYPE_UNSIGNED_INTEGER	= 2,
+
+	/// Signed integer value object (holds a signed 64-bit integer raw value).
+	BT_VALUE_TYPE_SIGNED_INTEGER	= 3,
 
 	/// Floating point number value object (holds a \c double raw value).
-	BT_VALUE_TYPE_REAL =		3,
+	BT_VALUE_TYPE_REAL		= 4,
 
 	/// String value object.
-	BT_VALUE_TYPE_STRING =		4,
+	BT_VALUE_TYPE_STRING		= 5,
 
 	/// Array value object.
-	BT_VALUE_TYPE_ARRAY =		5,
+	BT_VALUE_TYPE_ARRAY		= 6,
 
 	/// Map value object.
-	BT_VALUE_TYPE_MAP =		6,
+	BT_VALUE_TYPE_MAP		= 7,
 } bt_value_type;
 
 extern bt_value_type bt_value_get_type(const bt_value *object);
@@ -82,9 +85,15 @@ bt_bool bt_value_is_bool(const bt_value *object)
 }
 
 static inline
-bt_bool bt_value_is_integer(const bt_value *object)
+bt_bool bt_value_is_unsigned_integer(const bt_value *object)
 {
-	return bt_value_get_type(object) == BT_VALUE_TYPE_INTEGER;
+	return bt_value_get_type(object) == BT_VALUE_TYPE_UNSIGNED_INTEGER;
+}
+
+static inline
+bt_bool bt_value_is_signed_integer(const bt_value *object)
+{
+	return bt_value_get_type(object) == BT_VALUE_TYPE_SIGNED_INTEGER;
 }
 
 static inline
@@ -119,7 +128,9 @@ extern bt_bool bt_value_compare(const bt_value *object_a,
 
 extern bt_bool bt_value_bool_get(const bt_value *bool_obj);
 
-extern int64_t bt_value_integer_get(const bt_value *integer_obj);
+extern uint64_t bt_value_unsigned_integer_get(const bt_value *integer_obj);
+
+extern int64_t bt_value_signed_integer_get(const bt_value *integer_obj);
 
 extern double bt_value_real_get(const bt_value *real_obj);
 

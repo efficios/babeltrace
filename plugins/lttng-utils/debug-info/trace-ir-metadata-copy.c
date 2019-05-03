@@ -81,11 +81,12 @@ int copy_trace_class_content(const bt_trace_class *in_trace_class,
 		BT_ASSERT(value_name);
 		BT_ASSERT(value);
 
-		if (bt_value_is_integer(value)) {
+		if (bt_value_is_signed_integer(value)) {
 			trace_class_status =
 				bt_trace_class_set_environment_entry_integer(
 						out_trace_class, value_name,
-						bt_value_integer_get(value));
+						bt_value_signed_integer_get(
+							value));
 		} else if (bt_value_is_string(value)) {
 			trace_class_status =
 				bt_trace_class_set_environment_entry_string(

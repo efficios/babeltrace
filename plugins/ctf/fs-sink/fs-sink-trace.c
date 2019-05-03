@@ -166,20 +166,22 @@ int append_lttng_trace_path_ust_uid(GString *path, const bt_trace_class *tc)
 	int ret;
 
 	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_buffering_id");
-	if (!v || !bt_value_is_integer(v)) {
+	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_buffering_id\"");
 		goto error;
 	}
 
-	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRId64, bt_value_integer_get(v));
+	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRId64,
+		bt_value_signed_integer_get(v));
 
 	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "isa_length");
-	if (!v || !bt_value_is_integer(v)) {
+	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_LOGD_STR("Couldn't get environment value: name=\"isa_length\"");
 		goto error;
 	}
 
-	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRIu64 "-bit", bt_value_integer_get(v));
+	g_string_append_printf(path, G_DIR_SEPARATOR_S "%" PRIu64 "-bit",
+		bt_value_signed_integer_get(v));
 
 	ret = 0;
 	goto end;
@@ -207,12 +209,12 @@ int append_lttng_trace_path_ust_pid(GString *path, const bt_trace_class *tc)
 	g_string_append_printf(path, G_DIR_SEPARATOR_S "%s", bt_value_string_get(v));
 
 	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "vpid");
-	if (!v || !bt_value_is_integer(v)) {
+	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_LOGD_STR("Couldn't get environment value: name=\"vpid\"");
 		goto error;
 	}
 
-	g_string_append_printf(path, "-%" PRId64, bt_value_integer_get(v));
+	g_string_append_printf(path, "-%" PRId64, bt_value_signed_integer_get(v));
 
 	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "vpid_datetime");
 	if (!v || !bt_value_is_string(v)) {
@@ -273,20 +275,20 @@ GString *make_lttng_trace_path_rel(const struct fs_sink_trace *trace)
 	}
 
 	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_major");
-	if (!v || !bt_value_is_integer(v)) {
+	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_major\"");
 		goto error;
 	}
 
-	tracer_major = bt_value_integer_get(v);
+	tracer_major = bt_value_signed_integer_get(v);
 
 	v = bt_trace_class_borrow_environment_entry_value_by_name_const(tc, "tracer_minor");
-	if (!v || !bt_value_is_integer(v)) {
+	if (!v || !bt_value_is_signed_integer(v)) {
 		BT_LOGD_STR("Couldn't get environment value: name=\"tracer_minor\"");
 		goto error;
 	}
 
-	tracer_minor = bt_value_integer_get(v);
+	tracer_minor = bt_value_signed_integer_get(v);
 
 	if (!(tracer_major >= 3 || (tracer_major == 2 && tracer_minor >= 11))) {
 		BT_LOGD("Unsupported LTTng version for automatic trace path: major=%" PRId64 ", minor=%" PRId64,

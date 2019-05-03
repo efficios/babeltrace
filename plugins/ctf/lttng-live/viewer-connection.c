@@ -360,10 +360,10 @@ int list_update_session(bt_value *results,
 				ret = -1;
 				goto end;
 			}
-			val = bt_value_integer_get(btval);
+			val = bt_value_signed_integer_get(btval);
 			/* sum */
 			val += streams;
-			bt_value_integer_set(btval, val);
+			bt_value_signed_integer_set(btval, val);
 
 			btval = bt_value_map_borrow_entry_value(map, "client-count");
 			if (!btval) {
@@ -371,10 +371,10 @@ int list_update_session(bt_value *results,
 				ret = -1;
 				goto end;
 			}
-			val = bt_value_integer_get(btval);
+			val = bt_value_signed_integer_get(btval);
 			/* max */
 			val = max_t(int64_t, clients, val);
-			bt_value_integer_set(btval, val);
+			bt_value_signed_integer_set(btval, val);
 		}
 
 		if (found) {
@@ -466,8 +466,8 @@ int list_append_session(bt_value *results,
 	{
 		uint32_t live_timer = be32toh(session->live_timer);
 
-		ret_status = bt_value_map_insert_integer_entry(map, "timer-us",
-			live_timer);
+		ret_status = bt_value_map_insert_signed_integer_entry(
+			map, "timer-us", live_timer);
 		if (ret_status != BT_VALUE_STATUS_OK) {
 			BT_LOGE_STR("Error inserting \"timer-us\" entry.");
 			ret = -1;
@@ -482,8 +482,8 @@ int list_append_session(bt_value *results,
 	{
 		uint32_t streams = be32toh(session->streams);
 
-		ret_status = bt_value_map_insert_integer_entry(map, "stream-count",
-			streams);
+		ret_status = bt_value_map_insert_signed_integer_entry(map,
+			"stream-count", streams);
 		if (ret_status != BT_VALUE_STATUS_OK) {
 			BT_LOGE_STR("Error inserting \"stream-count\" entry.");
 			ret = -1;
@@ -498,8 +498,8 @@ int list_append_session(bt_value *results,
 	{
 		uint32_t clients = be32toh(session->clients);
 
-		ret_status = bt_value_map_insert_integer_entry(map, "client-count",
-			clients);
+		ret_status = bt_value_map_insert_signed_integer_entry(map,
+			"client-count", clients);
 		if (ret_status != BT_VALUE_STATUS_OK) {
 			BT_LOGE_STR("Error inserting \"client-count\" entry.");
 			ret = -1;

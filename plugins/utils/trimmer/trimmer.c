@@ -358,8 +358,8 @@ int set_bound_from_param(const char *param_name, const bt_value *param,
 	const char *arg;
 	char tmp_arg[64];
 
-	if (bt_value_is_integer(param)) {
-		int64_t value = bt_value_integer_get(param);
+	if (bt_value_is_signed_integer(param)) {
+		int64_t value = bt_value_signed_integer_get(param);
 
 		/*
 		 * Just convert it to a temporary string to handle
