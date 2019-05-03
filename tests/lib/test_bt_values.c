@@ -25,7 +25,7 @@
 #include <string.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 147
+#define NR_TESTS 166
 
 static
 void test_null(void)
@@ -73,32 +73,63 @@ void test_bool(void)
 }
 
 static
-void test_integer(void)
+void test_unsigned_integer(void)
+{
+	uint64_t value;
+	bt_value *obj;
+
+	obj = bt_value_unsigned_integer_create();
+	ok(obj && bt_value_is_unsigned_integer(obj),
+		"bt_value_unsigned_integer_create() returns an unsigned integer value object");
+
+	value = 1961;
+	value = bt_value_unsigned_integer_get(obj);
+	ok(value == 0, "default unsigned integer value object value is 0");
+
+	bt_value_unsigned_integer_set(obj, 98765);
+	value = bt_value_unsigned_integer_get(obj);
+	ok(value == 98765, "bt_value_unsigned_integer_bool_set() works");
+
+	BT_VALUE_PUT_REF_AND_RESET(obj);
+	pass("putting an existing unsigned integer value object does not cause a crash")
+
+	obj = bt_value_unsigned_integer_create_init(321456987);
+	ok(obj && bt_value_is_unsigned_integer(obj),
+		"bt_value_unsigned_integer_create_init() returns an unsigned integer value object");
+	value = bt_value_unsigned_integer_get(obj);
+	ok(value == 321456987,
+		"bt_value_unsigned_integer_create_init() sets the appropriate initial value");
+
+	BT_VALUE_PUT_REF_AND_RESET(obj);
+}
+
+static
+void test_signed_integer(void)
 {
 	int64_t value;
 	bt_value *obj;
 
-	obj = bt_value_integer_create();
-	ok(obj && bt_value_is_integer(obj),
-		"bt_value_integer_create() returns an integer value object");
+	obj = bt_value_signed_integer_create();
+	ok(obj && bt_value_is_signed_integer(obj),
+		"bt_value_signed_integer_create() returns a signed integer value object");
 
 	value = 1961;
-	value = bt_value_integer_get(obj);
-	ok(value == 0, "default integer value object value is 0");
+	value = bt_value_signed_integer_get(obj);
+	ok(value == 0, "default signed integer value object value is 0");
 
-	bt_value_integer_set(obj, -98765);
-	value = bt_value_integer_get(obj);
-	ok(value == -98765, "bt_private_integer_bool_set() works");
+	bt_value_signed_integer_set(obj, 98765);
+	value = bt_value_signed_integer_get(obj);
+	ok(value == 98765, "bt_value_signed_integer_bool_set() works");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
-	pass("putting an existing integer value object does not cause a crash")
+	pass("putting an existing signed integer value object does not cause a crash")
 
-	obj = bt_value_integer_create_init(321456987);
-	ok(obj && bt_value_is_integer(obj),
-		"bt_value_integer_create_init() returns an integer value object");
-	value = bt_value_integer_get(obj);
-	ok(value == 321456987,
-		"bt_value_integer_create_init() sets the appropriate initial value");
+	obj = bt_value_signed_integer_create_init(-321456987);
+	ok(obj && bt_value_is_signed_integer(obj),
+		"bt_value_signed_integer_create_init() returns a signed integer value object");
+	value = bt_value_signed_integer_get(obj);
+	ok(value == -321456987,
+		"bt_value_signed_integer_create_init() sets the appropriate initial value");
 
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 }
@@ -184,8 +215,11 @@ void test_array(void)
 	ok(bt_value_array_is_empty(array_obj),
 		"initial array value object size is 0");
 
-	obj = bt_value_integer_create_init(345);
+	obj = bt_value_unsigned_integer_create_init(345);
 	ret = bt_value_array_append_element(array_obj, obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
+	obj = bt_value_signed_integer_create_init(-507);
+	ret |= bt_value_array_append_element(array_obj, obj);
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_real_create_init(-17.45);
 	ret |= bt_value_array_append_element(array_obj, obj);
@@ -196,40 +230,46 @@ void test_array(void)
 	ret |= bt_value_array_append_element(array_obj,
 		bt_value_null);
 	ok(!ret, "bt_value_array_append_element() succeeds");
-	ok(bt_value_array_get_size(array_obj) == 4,
+	ok(bt_value_array_get_size(array_obj) == 5,
 		"appending an element to an array value object increment its size");
 
 	obj = bt_value_array_borrow_element_by_index(array_obj, 0);
-	ok(obj && bt_value_is_integer(obj),
-		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (integer)");
-	int_value = bt_value_integer_get(obj);
+	ok(obj && bt_value_is_unsigned_integer(obj),
+		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (unsigned integer)");
+	int_value = bt_value_unsigned_integer_get(obj);
 	ok(int_value == 345,
-		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (integer)");
+		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (unsigned integer)");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 1);
+	ok(obj && bt_value_is_signed_integer(obj),
+		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (signed integer)");
+	int_value = bt_value_signed_integer_get(obj);
+	ok(int_value == -507,
+		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (signed integer)");
+	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
 	ok(obj && bt_value_is_real(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (real number)");
 	real_value = bt_value_real_get(obj);
 	ok(real_value == -17.45,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (real number)");
-	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
+	obj = bt_value_array_borrow_element_by_index(array_obj, 3);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (boolean)");
 	bool_value = bt_value_bool_get(obj);
 	ok(bool_value,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate value (boolean)");
-	obj = bt_value_array_borrow_element_by_index(array_obj, 3);
+	obj = bt_value_array_borrow_element_by_index(array_obj, 4);
 	ok(obj == bt_value_null,
 		"bt_value_array_borrow_element_by_index() returns an value object with the appropriate type (null)");
 
-	obj = bt_value_integer_create_init(1001);
+	obj = bt_value_signed_integer_create_init(1001);
 	BT_ASSERT(obj);
 	ok(!bt_value_array_set_element_by_index(array_obj, 2, obj),
 		"bt_value_array_set_element_by_index() succeeds");
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_array_borrow_element_by_index(array_obj, 2);
-	ok(obj && bt_value_is_integer(obj),
+	ok(obj && bt_value_is_signed_integer(obj),
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate type");
-	int_value = bt_value_integer_get(obj);
+	int_value = bt_value_signed_integer_get(obj);
 	BT_ASSERT(!ret);
 	ok(int_value == 1001,
 		"bt_value_array_set_element_by_index() inserts an value object with the appropriate value");
@@ -237,9 +277,12 @@ void test_array(void)
 	ret = bt_value_array_append_bool_element(array_obj,
 		BT_FALSE);
 	ok(!ret, "bt_value_array_append_bool_element() succeeds");
-	ret = bt_value_array_append_integer_element(array_obj,
+	ret = bt_value_array_append_unsigned_integer_element(array_obj,
 		98765);
-	ok(!ret, "bt_value_array_append_integer_element() succeeds");
+	ok(!ret, "bt_value_array_append_unsigned_integer_element() succeeds");
+	ret = bt_value_array_append_signed_integer_element(array_obj,
+		-10101);
+	ok(!ret, "bt_value_array_append_signed_integer_element() succeeds");
 	ret = bt_value_array_append_real_element(array_obj,
 		2.49578);
 	ok(!ret, "bt_value_array_append_real_element() succeeds");
@@ -251,41 +294,47 @@ void test_array(void)
 	ret = bt_value_array_append_empty_map_element(array_obj);
 	ok(!ret, "bt_value_array_append_empty_map_element() succeeds");
 
-	ok(bt_value_array_get_size(array_obj) == 10,
+	ok(bt_value_array_get_size(array_obj) == 12,
 		"the bt_value_array_append_element_*() functions increment the array value object's size");
 	ok(!bt_value_array_is_empty(array_obj),
 		"map value object is not empty");
 
-	obj = bt_value_array_borrow_element_by_index(array_obj, 4);
+	obj = bt_value_array_borrow_element_by_index(array_obj, 5);
 	ok(obj && bt_value_is_bool(obj),
 		"bt_value_array_append_bool_element() appends a boolean value object");
 	bool_value = bt_value_bool_get(obj);
 	ok(!bool_value,
 		"bt_value_array_append_bool_element() appends the appropriate value");
-	obj = bt_value_array_borrow_element_by_index(array_obj, 5);
-	ok(obj && bt_value_is_integer(obj),
-		"bt_value_array_append_integer_element() appends an integer value object");
-	int_value = bt_value_integer_get(obj);
-	ok(int_value == 98765,
-		"bt_value_array_append_integer_element() appends the appropriate value");
 	obj = bt_value_array_borrow_element_by_index(array_obj, 6);
+	ok(obj && bt_value_is_unsigned_integer(obj),
+		"bt_value_array_append_unsigned_integer_element() appends an unsigned integer value object");
+	int_value = bt_value_unsigned_integer_get(obj);
+	ok(int_value == 98765,
+		"bt_value_array_append_unsigned_integer_element() appends the appropriate value");
+	obj = bt_value_array_borrow_element_by_index(array_obj, 7);
+	ok(obj && bt_value_is_signed_integer(obj),
+		"bt_value_array_append_signed_integer_element() appends a signed integer value object");
+	int_value = bt_value_signed_integer_get(obj);
+	ok(int_value == -10101,
+		"bt_value_array_append_signed_integer_element() appends the appropriate value");
+	obj = bt_value_array_borrow_element_by_index(array_obj, 8);
 	ok(obj && bt_value_is_real(obj),
 		"bt_value_array_append_real_element() appends a real number value object");
 	real_value = bt_value_real_get(obj);
 	ok(real_value == 2.49578,
 		"bt_value_array_append_real_element() appends the appropriate value");
-	obj = bt_value_array_borrow_element_by_index(array_obj, 7);
+	obj = bt_value_array_borrow_element_by_index(array_obj, 9);
 	ok(obj && bt_value_is_string(obj),
 		"bt_value_array_append_string_element() appends a string value object");
 	string_value = bt_value_string_get(obj);
 	ok(!ret && string_value && !strcmp(string_value, "bt_value"),
 		"bt_value_array_append_string_element() appends the appropriate value");
-	obj = bt_value_array_borrow_element_by_index(array_obj, 8);
+	obj = bt_value_array_borrow_element_by_index(array_obj, 10);
 	ok(obj && bt_value_is_array(obj),
 		"bt_value_array_append_empty_array_element() appends an array value object");
 	ok(bt_value_array_is_empty(obj),
 		"bt_value_array_append_empty_array_element() an empty array value object");
-	obj = bt_value_array_borrow_element_by_index(array_obj, 9);
+	obj = bt_value_array_borrow_element_by_index(array_obj, 11);
 	ok(obj && bt_value_is_map(obj),
 		"bt_value_array_append_empty_map_element() appends a map value object");
 	ok(bt_value_map_is_empty(obj),
@@ -312,6 +361,7 @@ bt_bool test_map_foreach_cb_count(const char *key, bt_value *object,
 
 struct map_foreach_checklist {
 	bt_bool bool1;
+	bt_bool uint;
 	bt_bool int1;
 	bt_bool real1;
 	bt_bool null1;
@@ -344,15 +394,30 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 				fail("test_map_foreach_cb_check(): \"bt_bool\" value object has the wrong value");
 			}
 		}
+	} else if (!strcmp(key, "uint")) {
+		if (checklist->uint) {
+			fail("test_map_foreach_cb_check(): duplicate key \"uint\"");
+		} else {
+			uint64_t val = 0;
+
+			val = bt_value_unsigned_integer_get(object);
+
+			if (val == 19457) {
+				pass("test_map_foreach_cb_check(): \"uint\" value object has the right value");
+				checklist->uint = BT_TRUE;
+			} else {
+				fail("test_map_foreach_cb_check(): \"uint\" value object has the wrong value");
+			}
+		}
 	} else if (!strcmp(key, "int")) {
 		if (checklist->int1) {
 			fail("test_map_foreach_cb_check(): duplicate key \"int\"");
 		} else {
 			int64_t val = 0;
 
-			val = bt_value_integer_get(object);
+			val = bt_value_signed_integer_get(object);
 
-			if (val == 19457) {
+			if (val == -12345) {
 				pass("test_map_foreach_cb_check(): \"int\" value object has the right value");
 				checklist->int1 = BT_TRUE;
 			} else {
@@ -402,7 +467,7 @@ bt_bool test_map_foreach_cb_check(const char *key, bt_value *object,
 		} else {
 			int64_t val = 0;
 
-			val = bt_value_integer_get(object);
+			val = bt_value_signed_integer_get(object);
 
 			if (val == 98765) {
 				pass("test_map_foreach_cb_check(): \"int2\" value object has the right value");
@@ -485,8 +550,11 @@ void test_map(void)
 	ok(bt_value_map_get_size(map_obj) == 0,
 		"initial map value object size is 0");
 
-	obj = bt_value_integer_create_init(19457);
-	ret = bt_value_map_insert_entry(map_obj, "int", obj);
+	obj = bt_value_unsigned_integer_create_init(19457);
+	ret = bt_value_map_insert_entry(map_obj, "uint", obj);
+	BT_VALUE_PUT_REF_AND_RESET(obj);
+	obj = bt_value_signed_integer_create_init(-12345);
+	ret |= bt_value_map_insert_entry(map_obj, "int", obj);
 	BT_VALUE_PUT_REF_AND_RESET(obj);
 	obj = bt_value_real_create_init(5.444);
 	ret |= bt_value_map_insert_entry(map_obj, "real", obj);
@@ -497,7 +565,7 @@ void test_map(void)
 	ret |= bt_value_map_insert_entry(map_obj, "null",
 		bt_value_null);
 	ok(!ret, "bt_value_map_insert_entry() succeeds");
-	ok(bt_value_map_get_size(map_obj) == 4,
+	ok(bt_value_map_get_size(map_obj) == 5,
 		"inserting an element into a map value object increment its size");
 
 	obj = bt_value_bool_create_init(BT_TRUE);
@@ -513,12 +581,18 @@ void test_map(void)
 	real_value = bt_value_real_get(obj);
 	ok(real_value == 5.444,
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (real)");
-	obj = bt_value_map_borrow_entry_value(map_obj, "int");
-	ok(obj && bt_value_is_integer(obj),
-		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (integer)");
-	int_value = bt_value_integer_get(obj);
+	obj = bt_value_map_borrow_entry_value(map_obj, "uint");
+	ok(obj && bt_value_is_unsigned_integer(obj),
+		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (unsigned integer)");
+	int_value = bt_value_unsigned_integer_get(obj);
 	ok(int_value == 19457,
-		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (integer)");
+		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (unsigned integer)");
+	obj = bt_value_map_borrow_entry_value(map_obj, "int");
+	ok(obj && bt_value_is_signed_integer(obj),
+		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (signed integer)");
+	int_value = bt_value_signed_integer_get(obj);
+	ok(int_value == -12345,
+		"bt_value_map_borrow_entry_value() returns an value object with the appropriate value (signed integer)");
 	obj = bt_value_map_borrow_entry_value(map_obj, "null");
 	ok(obj && bt_value_is_null(obj),
 		"bt_value_map_borrow_entry_value() returns an value object with the appropriate type (null)");
@@ -532,9 +606,9 @@ void test_map(void)
 	ret = bt_value_map_insert_bool_entry(map_obj, "bool2",
 		BT_TRUE);
 	ok(!ret, "bt_value_map_insert_bool_entry() succeeds");
-	ret = bt_value_map_insert_integer_entry(map_obj, "int2",
+	ret = bt_value_map_insert_signed_integer_entry(map_obj, "int2",
 		98765);
-	ok(!ret, "bt_value_map_insert_integer_entry() succeeds");
+	ok(!ret, "bt_value_map_insert_signed_integer_entry() succeeds");
 	ret = bt_value_map_insert_real_entry(map_obj, "real2",
 		-49.0001);
 	ok(!ret, "bt_value_map_insert_real_entry() succeeds");
@@ -547,13 +621,15 @@ void test_map(void)
 	ret = bt_value_map_insert_empty_map_entry(map_obj, "map2");
 	ok(!ret, "bt_value_map_insert_empty_map_entry() succeeds");
 
-	ok(bt_value_map_get_size(map_obj) == 10,
+	ok(bt_value_map_get_size(map_obj) == 11,
 		"the bt_value_map_insert*() functions increment the map value object's size");
 
 	ok(!bt_value_map_has_entry(map_obj, "hello"),
 		"map value object does not have key \"hello\"");
 	ok(bt_value_map_has_entry(map_obj, "bt_bool"),
 		"map value object has key \"bt_bool\"");
+	ok(bt_value_map_has_entry(map_obj, "uint"),
+		"map value object has key \"uint\"");
 	ok(bt_value_map_has_entry(map_obj, "int"),
 		"map value object has key \"int\"");
 	ok(bt_value_map_has_entry(map_obj, "real"),
@@ -583,9 +659,9 @@ void test_map(void)
 		&checklist);
 	ok(ret == BT_VALUE_STATUS_OK,
 		"bt_value_map_foreach_entry() succeeds with test_map_foreach_cb_check()");
-	ok(checklist.bool1 && checklist.int1 && checklist.real1 &&
-		checklist.null1 && checklist.bool2 && checklist.int2 &&
-		checklist.real2 && checklist.string2 &&
+	ok(checklist.bool1 && checklist.uint && checklist.int1 &&
+		checklist.real1 && checklist.null1 && checklist.bool2 &&
+		checklist.int2 && checklist.real2 && checklist.string2 &&
 		checklist.array2 && checklist.map2,
 		"bt_value_map_foreach_entry() iterates over all the map value object's elements");
 
@@ -598,7 +674,8 @@ void test_types(void)
 {
 	test_null();
 	test_bool();
-	test_integer();
+	test_unsigned_integer();
+	test_signed_integer();
 	test_real();
 	test_string();
 	test_array();
@@ -639,25 +716,46 @@ void test_compare_bool(void)
 }
 
 static
-void test_compare_integer(void)
+void test_compare_unsigned_integer(void)
 {
 	bt_value *int1 =
-		bt_value_integer_create_init(10);
+		bt_value_unsigned_integer_create_init(10);
 	bt_value *int2 =
-		bt_value_integer_create_init(-23);
+		bt_value_unsigned_integer_create_init(23);
 	bt_value *int3 =
-		bt_value_integer_create_init(10);
+		bt_value_unsigned_integer_create_init(10);
 
 	BT_ASSERT(int1 && int2 && int3);
 	ok(!bt_value_compare(bt_value_null,
 		int1),
-		"cannot compare null value object and integer value object");
-	ok(!bt_value_compare(int1,
-			     int2),
-		"integer value objects are not equivalent (10 and -23)");
-	ok(bt_value_compare(int1,
-			    int3),
-		"integer value objects are equivalent (10 and 10)");
+		"cannot compare null value object and unsigned integer value object");
+	ok(!bt_value_compare(int1, int2),
+		"unsigned integer value objects are not equivalent (10 and 23)");
+	ok(bt_value_compare(int1, int3),
+		"unsigned integer value objects are equivalent (10 and 10)");
+
+	BT_VALUE_PUT_REF_AND_RESET(int1);
+	BT_VALUE_PUT_REF_AND_RESET(int2);
+	BT_VALUE_PUT_REF_AND_RESET(int3);
+}
+
+void test_compare_signed_integer(void)
+{
+	bt_value *int1 =
+		bt_value_signed_integer_create_init(10);
+	bt_value *int2 =
+		bt_value_signed_integer_create_init(-23);
+	bt_value *int3 =
+		bt_value_signed_integer_create_init(10);
+
+	BT_ASSERT(int1 && int2 && int3);
+	ok(!bt_value_compare(bt_value_null,
+		int1),
+		"cannot compare null value object and signed integer value object");
+	ok(!bt_value_compare(int1, int2),
+		"signed integer value objects are not equivalent (10 and -23)");
+	ok(bt_value_compare(int1, int3),
+		"signed integer value objects are equivalent (10 and 10)");
 
 	BT_VALUE_PUT_REF_AND_RESET(int1);
 	BT_VALUE_PUT_REF_AND_RESET(int2);
@@ -728,11 +826,10 @@ void test_compare_array(void)
 
 	BT_ASSERT(array1 && array2 && array3);
 
-	ok(bt_value_compare(array1,
-			    array2),
+	ok(bt_value_compare(array1, array2),
 		"empty array value objects are equivalent");
 
-	status = bt_value_array_append_integer_element(array1, 23);
+	status = bt_value_array_append_signed_integer_element(array1, 23);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_array_append_real_element(array1, 14.2);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
@@ -740,11 +837,11 @@ void test_compare_array(void)
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_array_append_real_element(array2, 14.2);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_array_append_integer_element(array2, 23);
+	status = bt_value_array_append_signed_integer_element(array2, 23);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_array_append_bool_element(array2, BT_FALSE);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_array_append_integer_element(array3, 23);
+	status = bt_value_array_append_signed_integer_element(array3, 23);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_array_append_real_element(array3, 14.2);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
@@ -784,7 +881,7 @@ void test_compare_map(void)
 		"empty map value objects are equivalent");
 
 
-	status = bt_value_map_insert_integer_entry(map1, "one", 23);
+	status = bt_value_map_insert_signed_integer_entry(map1, "one", 23);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_real_entry(map1, "two", 14.2);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
@@ -793,7 +890,7 @@ void test_compare_map(void)
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_real_entry(map2, "one", 14.2);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_integer_entry(map2, "two", 23);
+	status = bt_value_map_insert_signed_integer_entry(map2, "two", 23);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_bool_entry(map2, "three",
 		BT_FALSE);
@@ -801,7 +898,7 @@ void test_compare_map(void)
 	status = bt_value_map_insert_bool_entry(map3, "three",
 		BT_FALSE);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_integer_entry(map3, "one", 23);
+	status = bt_value_map_insert_signed_integer_entry(map3, "one", 23);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_real_entry(map3, "two", 14.2);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
@@ -829,7 +926,8 @@ void test_compare(void)
 {
 	test_compare_null();
 	test_compare_bool();
-	test_compare_integer();
+	test_compare_unsigned_integer();
+	test_compare_signed_integer();
 	test_compare_real();
 	test_compare_string();
 	test_compare_array();
@@ -841,15 +939,16 @@ void test_copy(void)
 {
 	/*
 	 * Here's the deal here. If we make sure that each value object
-	 * of our deep copy has a different address than its source,
-	 * and that bt_value_compare() returns BT_TRUE for the top-level
-	 * value object, taking into account that we test the correctness of
-	 * bt_value_compare() elsewhere, then the deep copy is a
-	 * success.
+	 * of our deep copy has a different address than its source, and
+	 * that bt_value_compare() returns BT_TRUE for the top-level
+	 * value object, taking into account that we test the
+	 * correctness of bt_value_compare() elsewhere, then the deep
+	 * copy is a success.
 	 */
 	bt_value *null_copy_obj;
 	bt_value *bool_obj, *bool_copy_obj;
-	bt_value *integer_obj, *integer_copy_obj;
+	bt_value *unsigned_integer_obj, *unsigned_integer_copy_obj;
+	bt_value *signed_integer_obj, *signed_integer_copy_obj;
 	bt_value *real_obj, *real_copy_obj;
 	bt_value *string_obj, *string_copy_obj;
 	bt_value *array_obj, *array_copy_obj;
@@ -857,32 +956,29 @@ void test_copy(void)
 	bt_value_status status;
 
 	bool_obj = bt_value_bool_create_init(BT_TRUE);
-	integer_obj = bt_value_integer_create_init(23);
+	unsigned_integer_obj = bt_value_unsigned_integer_create_init(23);
+	signed_integer_obj = bt_value_signed_integer_create_init(-47);
 	real_obj = bt_value_real_create_init(-3.1416);
 	string_obj = bt_value_string_create_init("test");
 	array_obj = bt_value_array_create();
 	map_obj = bt_value_map_create();
 
-	BT_ASSERT(bool_obj && integer_obj && real_obj && string_obj &&
-		array_obj && map_obj);
+	BT_ASSERT(bool_obj && unsigned_integer_obj && signed_integer_obj &&
+		real_obj && string_obj && array_obj && map_obj);
 
-	status = bt_value_array_append_element(array_obj,
-		bool_obj);
+	status = bt_value_array_append_element(array_obj, bool_obj);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_array_append_element(array_obj,
-		integer_obj);
+	status = bt_value_array_append_element(array_obj, unsigned_integer_obj);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_array_append_element(array_obj,
-		real_obj);
+	status = bt_value_array_append_element(array_obj, signed_integer_obj);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_array_append_element(array_obj,
-		bt_value_null);
+	status = bt_value_array_append_element(array_obj, real_obj);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_entry(map_obj, "array",
-		array_obj);
+	status = bt_value_array_append_element(array_obj, bt_value_null);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_entry(map_obj, "string",
-		string_obj);
+	status = bt_value_map_insert_entry(map_obj, "array", array_obj);
+	BT_ASSERT(status == BT_VALUE_STATUS_OK);
+	status = bt_value_map_insert_entry(map_obj, "string", string_obj);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 
 	status = bt_value_copy(map_obj, &map_copy_obj);
@@ -902,27 +998,31 @@ void test_copy(void)
 	bool_copy_obj = bt_value_array_borrow_element_by_index(
 		array_copy_obj, 0);
 	ok(bool_copy_obj != bool_obj,
-		"bt_value_copy() returns a different pointer (bt_bool)");
-	integer_copy_obj = bt_value_array_borrow_element_by_index(
+		"bt_value_copy() returns a different pointer (bool)");
+	unsigned_integer_copy_obj = bt_value_array_borrow_element_by_index(
 		array_copy_obj, 1);
-	ok(integer_copy_obj != integer_obj,
-		"bt_value_copy() returns a different pointer (integer)");
-	real_copy_obj = bt_value_array_borrow_element_by_index(
+	ok(unsigned_integer_copy_obj != unsigned_integer_obj,
+		"bt_value_copy() returns a different pointer (unsigned integer)");
+	signed_integer_copy_obj = bt_value_array_borrow_element_by_index(
 		array_copy_obj, 2);
+	ok(signed_integer_copy_obj != signed_integer_obj,
+		"bt_value_copy() returns a different pointer (signed integer)");
+	real_copy_obj = bt_value_array_borrow_element_by_index(
+		array_copy_obj, 3);
 	ok(real_copy_obj != real_obj,
 		"bt_value_copy() returns a different pointer (real)");
 	null_copy_obj = bt_value_array_borrow_element_by_index(
-		array_copy_obj, 3);
+		array_copy_obj, 4);
 	ok(null_copy_obj == bt_value_null,
 		"bt_value_copy() returns the same pointer (null)");
 
-	ok(bt_value_compare(map_obj,
-			    map_copy_obj),
+	ok(bt_value_compare(map_obj, map_copy_obj),
 		"source and destination value objects have the same content");
 
 	BT_VALUE_PUT_REF_AND_RESET(map_copy_obj);
 	BT_VALUE_PUT_REF_AND_RESET(bool_obj);
-	BT_VALUE_PUT_REF_AND_RESET(integer_obj);
+	BT_VALUE_PUT_REF_AND_RESET(unsigned_integer_obj);
+	BT_VALUE_PUT_REF_AND_RESET(signed_integer_obj);
 	BT_VALUE_PUT_REF_AND_RESET(real_obj);
 	BT_VALUE_PUT_REF_AND_RESET(string_obj);
 	BT_VALUE_PUT_REF_AND_RESET(array_obj);
@@ -961,16 +1061,16 @@ void test_extend(void)
 	status = bt_value_map_insert_bool_entry(base_map, "edit",
 		BT_FALSE);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_integer_entry(base_map,
+	status = bt_value_map_insert_signed_integer_entry(base_map,
 		"selection", 17);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_integer_entry(base_map, "find",
+	status = bt_value_map_insert_signed_integer_entry(base_map, "find",
 		-34);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_bool_entry(extension_map, "edit",
 		BT_TRUE);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
-	status = bt_value_map_insert_integer_entry(extension_map,
+	status = bt_value_map_insert_signed_integer_entry(extension_map,
 		"find", 101);
 	BT_ASSERT(status == BT_VALUE_STATUS_OK);
 	status = bt_value_map_insert_real_entry(extension_map,

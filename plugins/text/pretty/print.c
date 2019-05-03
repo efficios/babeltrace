@@ -416,7 +416,7 @@ int print_event_header(struct pretty_component *pretty,
 			} else if (dom_print) {
 				g_string_append(pretty->string, ":");
 			}
-			value = bt_value_integer_get(vpid_value);
+			value = bt_value_signed_integer_get(vpid_value);
 			g_string_append_printf(pretty->string,
 				"(%" PRId64 ")", value);
 			dom_print = 1;

@@ -116,13 +116,14 @@ void bt_value_map_destroy(struct bt_value *object)
 
 static
 void (* const destroy_funcs[])(struct bt_value *) = {
-	[BT_VALUE_TYPE_NULL] =		NULL,
-	[BT_VALUE_TYPE_BOOL] =		NULL,
-	[BT_VALUE_TYPE_INTEGER] =	NULL,
-	[BT_VALUE_TYPE_REAL] =		NULL,
-	[BT_VALUE_TYPE_STRING] =	bt_value_string_destroy,
-	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_destroy,
-	[BT_VALUE_TYPE_MAP] =		bt_value_map_destroy,
+	[BT_VALUE_TYPE_NULL] =			NULL,
+	[BT_VALUE_TYPE_BOOL] =			NULL,
+	[BT_VALUE_TYPE_UNSIGNED_INTEGER] =	NULL,
+	[BT_VALUE_TYPE_SIGNED_INTEGER] =	NULL,
+	[BT_VALUE_TYPE_REAL] =			NULL,
+	[BT_VALUE_TYPE_STRING] =		bt_value_string_destroy,
+	[BT_VALUE_TYPE_ARRAY] =			bt_value_array_destroy,
+	[BT_VALUE_TYPE_MAP] =			bt_value_map_destroy,
 };
 
 static
@@ -138,12 +139,16 @@ struct bt_value *bt_value_bool_copy(const struct bt_value *bool_obj)
 		BT_VALUE_TO_BOOL(bool_obj)->value);
 }
 
+static inline
+struct bt_value *bt_value_integer_create_init(enum bt_value_type type,
+		uint64_t uval);
+
 static
 struct bt_value *bt_value_integer_copy(
 		const struct bt_value *integer_obj)
 {
-	return bt_value_integer_create_init(
-		BT_VALUE_TO_INTEGER(integer_obj)->value);
+	return bt_value_integer_create_init(integer_obj->type,
+		BT_VALUE_TO_INTEGER(integer_obj)->value.u);
 }
 
 static
@@ -267,13 +272,14 @@ end:
 
 static
 struct bt_value *(* const copy_funcs[])(const struct bt_value *) = {
-	[BT_VALUE_TYPE_NULL] =		bt_value_null_copy,
-	[BT_VALUE_TYPE_BOOL] =		bt_value_bool_copy,
-	[BT_VALUE_TYPE_INTEGER] =	bt_value_integer_copy,
-	[BT_VALUE_TYPE_REAL] =		bt_value_real_copy,
-	[BT_VALUE_TYPE_STRING] =	bt_value_string_copy,
-	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_copy,
-	[BT_VALUE_TYPE_MAP] =		bt_value_map_copy,
+	[BT_VALUE_TYPE_NULL] =			bt_value_null_copy,
+	[BT_VALUE_TYPE_BOOL] =			bt_value_bool_copy,
+	[BT_VALUE_TYPE_UNSIGNED_INTEGER] =	bt_value_integer_copy,
+	[BT_VALUE_TYPE_SIGNED_INTEGER] =	bt_value_integer_copy,
+	[BT_VALUE_TYPE_REAL] =			bt_value_real_copy,
+	[BT_VALUE_TYPE_STRING] =		bt_value_string_copy,
+	[BT_VALUE_TYPE_ARRAY] =			bt_value_array_copy,
+	[BT_VALUE_TYPE_MAP] =			bt_value_map_copy,
 };
 
 static
@@ -308,12 +314,20 @@ static
 bt_bool bt_value_integer_compare(const struct bt_value *object_a,
 		const struct bt_value *object_b)
 {
-	if (BT_VALUE_TO_INTEGER(object_a)->value !=
-			BT_VALUE_TO_INTEGER(object_b)->value) {
-		BT_LOGV("Integer value objects are different: "
-			"int-a-val=%" PRId64 ", int-b-val=%" PRId64,
-			BT_VALUE_TO_INTEGER(object_a)->value,
-			BT_VALUE_TO_INTEGER(object_b)->value);
+	if (BT_VALUE_TO_INTEGER(object_a)->value.u !=
+			BT_VALUE_TO_INTEGER(object_b)->value.u) {
+		if (object_a->type == BT_VALUE_TYPE_UNSIGNED_INTEGER) {
+			BT_LOGV("Unsigned integer value objects are different: "
+				"int-a-val=%" PRIu64 ", int-b-val=%" PRIu64,
+				BT_VALUE_TO_INTEGER(object_a)->value.u,
+				BT_VALUE_TO_INTEGER(object_b)->value.u);
+		} else {
+			BT_LOGV("Signed integer value objects are different: "
+				"int-a-val=%" PRId64 ", int-b-val=%" PRId64,
+				BT_VALUE_TO_INTEGER(object_a)->value.i,
+				BT_VALUE_TO_INTEGER(object_b)->value.i);
+		}
+
 		return BT_FALSE;
 	}
 
@@ -441,13 +455,14 @@ end:
 static
 bt_bool (* const compare_funcs[])(const struct bt_value *,
 		const struct bt_value *) = {
-	[BT_VALUE_TYPE_NULL] =		bt_value_null_compare,
-	[BT_VALUE_TYPE_BOOL] =		bt_value_bool_compare,
-	[BT_VALUE_TYPE_INTEGER] =	bt_value_integer_compare,
-	[BT_VALUE_TYPE_REAL] =		bt_value_real_compare,
-	[BT_VALUE_TYPE_STRING] =	bt_value_string_compare,
-	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_compare,
-	[BT_VALUE_TYPE_MAP] =		bt_value_map_compare,
+	[BT_VALUE_TYPE_NULL] =			bt_value_null_compare,
+	[BT_VALUE_TYPE_BOOL] =			bt_value_bool_compare,
+	[BT_VALUE_TYPE_UNSIGNED_INTEGER] =	bt_value_integer_compare,
+	[BT_VALUE_TYPE_SIGNED_INTEGER] =	bt_value_integer_compare,
+	[BT_VALUE_TYPE_REAL] =			bt_value_real_compare,
+	[BT_VALUE_TYPE_STRING] =		bt_value_string_compare,
+	[BT_VALUE_TYPE_ARRAY] =			bt_value_array_compare,
+	[BT_VALUE_TYPE_MAP] =			bt_value_map_compare,
 };
 
 static
@@ -493,13 +508,14 @@ void bt_value_map_freeze(struct bt_value *object)
 
 static
 void (* const freeze_funcs[])(struct bt_value *) = {
-	[BT_VALUE_TYPE_NULL] =		bt_value_null_freeze,
-	[BT_VALUE_TYPE_BOOL] =		bt_value_generic_freeze,
-	[BT_VALUE_TYPE_INTEGER] =	bt_value_generic_freeze,
-	[BT_VALUE_TYPE_REAL] =		bt_value_generic_freeze,
-	[BT_VALUE_TYPE_STRING] =	bt_value_generic_freeze,
-	[BT_VALUE_TYPE_ARRAY] =		bt_value_array_freeze,
-	[BT_VALUE_TYPE_MAP] =		bt_value_map_freeze,
+	[BT_VALUE_TYPE_NULL] =			bt_value_null_freeze,
+	[BT_VALUE_TYPE_BOOL] =			bt_value_generic_freeze,
+	[BT_VALUE_TYPE_UNSIGNED_INTEGER] =	bt_value_generic_freeze,
+	[BT_VALUE_TYPE_SIGNED_INTEGER] =	bt_value_generic_freeze,
+	[BT_VALUE_TYPE_REAL] =			bt_value_generic_freeze,
+	[BT_VALUE_TYPE_STRING] =		bt_value_generic_freeze,
+	[BT_VALUE_TYPE_ARRAY] =			bt_value_array_freeze,
+	[BT_VALUE_TYPE_MAP] =			bt_value_map_freeze,
 };
 
 static
@@ -582,29 +598,59 @@ struct bt_value *bt_value_bool_create(void)
 	return bt_value_bool_create_init(BT_FALSE);
 }
 
-struct bt_value *bt_value_integer_create_init(int64_t val)
+static inline
+struct bt_value *bt_value_integer_create_init(enum bt_value_type type,
+		uint64_t uval)
 {
 	struct bt_value_integer *integer_obj;
 
-	BT_LOGD("Creating integer value object: val=%" PRId64, val);
+	BT_ASSERT(type == BT_VALUE_TYPE_UNSIGNED_INTEGER ||
+		type == BT_VALUE_TYPE_SIGNED_INTEGER);
+
+	if (type == BT_VALUE_TYPE_UNSIGNED_INTEGER) {
+		BT_LOGD("Creating unsigned integer value object: val=%" PRIu64,
+			uval);
+	} else {
+		BT_LOGD("Creating signed integer value object: val=%" PRId64,
+			(int64_t) uval);
+	}
+
 	integer_obj = g_new0(struct bt_value_integer, 1);
 	if (!integer_obj) {
 		BT_LOGE_STR("Failed to allocate one integer value object.");
 		goto end;
 	}
 
-	integer_obj->base = bt_value_create_base(BT_VALUE_TYPE_INTEGER);
-	integer_obj->value = val;
-	BT_LOGD("Created integer value object: addr=%p",
+	integer_obj->base = bt_value_create_base(type);
+	integer_obj->value.u = uval;
+	BT_LOGD("Created %ssigned integer value object: addr=%p",
+		type == BT_VALUE_TYPE_UNSIGNED_INTEGER ? "un" : "",
 		integer_obj);
 
 end:
 	return (void *) integer_obj;
 }
 
-struct bt_value *bt_value_integer_create(void)
+struct bt_value *bt_value_unsigned_integer_create_init(uint64_t val)
 {
-	return bt_value_integer_create_init(0);
+	return bt_value_integer_create_init(BT_VALUE_TYPE_UNSIGNED_INTEGER,
+		val);
+}
+
+struct bt_value *bt_value_unsigned_integer_create(void)
+{
+	return bt_value_unsigned_integer_create_init(0);
+}
+
+struct bt_value *bt_value_signed_integer_create_init(int64_t val)
+{
+	return bt_value_integer_create_init(BT_VALUE_TYPE_SIGNED_INTEGER,
+		(uint64_t) val);
+}
+
+struct bt_value *bt_value_signed_integer_create(void)
+{
+	return bt_value_signed_integer_create_init(0);
 }
 
 struct bt_value *bt_value_real_create_init(double val)
@@ -742,22 +788,47 @@ void bt_value_bool_set(struct bt_value *bool_obj, bt_bool val)
 		bool_obj, val);
 }
 
-int64_t bt_value_integer_get(const struct bt_value *integer_obj)
+uint64_t bt_value_unsigned_integer_get(const struct bt_value *integer_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_VALUE_TYPE_INTEGER);
-	return BT_VALUE_TO_INTEGER(integer_obj)->value;
+	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj,
+		BT_VALUE_TYPE_UNSIGNED_INTEGER);
+	return BT_VALUE_TO_INTEGER(integer_obj)->value.u;
 }
 
-void bt_value_integer_set(struct bt_value *integer_obj,
-		int64_t val)
+int64_t bt_value_signed_integer_get(const struct bt_value *integer_obj)
 {
 	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
-	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, BT_VALUE_TYPE_INTEGER);
+	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj,
+		BT_VALUE_TYPE_SIGNED_INTEGER);
+	return BT_VALUE_TO_INTEGER(integer_obj)->value.i;
+}
+
+static inline
+void bt_value_integer_set(struct bt_value *integer_obj,
+		enum bt_value_type expected_type, uint64_t uval)
+{
+	BT_ASSERT_PRE_NON_NULL(integer_obj, "Value object");
+	BT_ASSERT_PRE_VALUE_IS_TYPE(integer_obj, expected_type);
 	BT_ASSERT_PRE_VALUE_HOT(integer_obj, "Value object");
-	BT_VALUE_TO_INTEGER(integer_obj)->value = val;
-	BT_LOGV("Set integer value's raw value: value-addr=%p, value=%" PRId64,
-		integer_obj, val);
+	BT_VALUE_TO_INTEGER(integer_obj)->value.u = uval;
+}
+
+void bt_value_unsigned_integer_set(struct bt_value *integer_obj,
+		uint64_t val)
+{
+	bt_value_integer_set(integer_obj, BT_VALUE_TYPE_UNSIGNED_INTEGER, val);
+	BT_LOGV("Set unsigned integer value's raw value: "
+		"value-addr=%p, value=%" PRIu64, integer_obj, val);
+}
+
+void bt_value_signed_integer_set(struct bt_value *integer_obj,
+		int64_t val)
+{
+	bt_value_integer_set(integer_obj, BT_VALUE_TYPE_SIGNED_INTEGER,
+		(uint64_t) val);
+	BT_LOGV("Set signed integer value's raw value: "
+		"value-addr=%p, value=%" PRId64, integer_obj, val);
 }
 
 double bt_value_real_get(const struct bt_value *real_obj)
@@ -856,13 +927,26 @@ enum bt_value_status bt_value_array_append_bool_element(
 	return ret;
 }
 
-enum bt_value_status bt_value_array_append_integer_element(
+enum bt_value_status bt_value_array_append_unsigned_integer_element(
+		struct bt_value *array_obj, uint64_t val)
+{
+	enum bt_value_status ret;
+	struct bt_value *integer_obj = NULL;
+
+	integer_obj = bt_value_unsigned_integer_create_init(val);
+	ret = bt_value_array_append_element(array_obj,
+		(void *) integer_obj);
+	bt_object_put_ref(integer_obj);
+	return ret;
+}
+
+enum bt_value_status bt_value_array_append_signed_integer_element(
 		struct bt_value *array_obj, int64_t val)
 {
 	enum bt_value_status ret;
 	struct bt_value *integer_obj = NULL;
 
-	integer_obj = bt_value_integer_create_init(val);
+	integer_obj = bt_value_signed_integer_create_init(val);
 	ret = bt_value_array_append_element(array_obj,
 		(void *) integer_obj);
 	bt_object_put_ref(integer_obj);
@@ -1006,13 +1090,26 @@ enum bt_value_status bt_value_map_insert_bool_entry(
 	return ret;
 }
 
-enum bt_value_status bt_value_map_insert_integer_entry(
+enum bt_value_status bt_value_map_insert_unsigned_integer_entry(
+		struct bt_value *map_obj, const char *key, uint64_t val)
+{
+	enum bt_value_status ret;
+	struct bt_value *integer_obj = NULL;
+
+	integer_obj = bt_value_unsigned_integer_create_init(val);
+	ret = bt_value_map_insert_entry(map_obj, key,
+		(void *) integer_obj);
+	bt_object_put_ref(integer_obj);
+	return ret;
+}
+
+enum bt_value_status bt_value_map_insert_signed_integer_entry(
 		struct bt_value *map_obj, const char *key, int64_t val)
 {
 	enum bt_value_status ret;
 	struct bt_value *integer_obj = NULL;
 
-	integer_obj = bt_value_integer_create_init(val);
+	integer_obj = bt_value_signed_integer_create_init(val);
 	ret = bt_value_map_insert_entry(map_obj, key,
 		(void *) integer_obj);
 	bt_object_put_ref(integer_obj);

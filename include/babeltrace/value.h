@@ -44,12 +44,17 @@ extern bt_value *bt_value_bool_create_init(bt_bool val);
 
 extern void bt_value_bool_set(bt_value *bool_obj, bt_bool val);
 
-extern bt_value *bt_value_integer_create(void);
+extern bt_value *bt_value_unsigned_integer_create(void);
 
-extern bt_value *bt_value_integer_create_init(
-		int64_t val);
+extern bt_value *bt_value_unsigned_integer_create_init(uint64_t val);
 
-extern void bt_value_integer_set(bt_value *integer_obj, int64_t val);
+extern void bt_value_unsigned_integer_set(bt_value *integer_obj, uint64_t val);
+
+extern bt_value *bt_value_signed_integer_create(void);
+
+extern bt_value *bt_value_signed_integer_create_init(int64_t val);
+
+extern void bt_value_signed_integer_set(bt_value *integer_obj, int64_t val);
 
 extern bt_value *bt_value_real_create(void);
 
@@ -76,7 +81,10 @@ extern bt_value_status bt_value_array_append_element(
 extern bt_value_status bt_value_array_append_bool_element(
 		bt_value *array_obj, bt_bool val);
 
-extern bt_value_status bt_value_array_append_integer_element(
+extern bt_value_status bt_value_array_append_unsigned_integer_element(
+		bt_value *array_obj, uint64_t val);
+
+extern bt_value_status bt_value_array_append_signed_integer_element(
 		bt_value *array_obj, int64_t val);
 
 extern bt_value_status bt_value_array_append_real_element(
@@ -114,7 +122,10 @@ extern bt_value_status bt_value_map_insert_entry(
 extern bt_value_status bt_value_map_insert_bool_entry(
 		bt_value *map_obj, const char *key, bt_bool val);
 
-extern bt_value_status bt_value_map_insert_integer_entry(
+extern bt_value_status bt_value_map_insert_unsigned_integer_entry(
+		bt_value *map_obj, const char *key, uint64_t val);
+
+extern bt_value_status bt_value_map_insert_signed_integer_entry(
 		bt_value *map_obj, const char *key, int64_t val);
 
 extern bt_value_status bt_value_map_insert_real_entry(

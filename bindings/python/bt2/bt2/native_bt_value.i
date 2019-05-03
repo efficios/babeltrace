@@ -37,52 +37,43 @@ typedef enum bt_value_status {
 
 typedef enum bt_value_type {
 	/// Null value object.
-	BT_VALUE_TYPE_NULL =		0,
+	BT_VALUE_TYPE_NULL		= 0,
 
 	/// Boolean value object (holds #BT_TRUE or #BT_FALSE).
-	BT_VALUE_TYPE_BOOL =		1,
+	BT_VALUE_TYPE_BOOL		= 1,
 
-	/// Integer value object (holds a signed 64-bit integer raw value).
-	BT_VALUE_TYPE_INTEGER =		2,
+	/// Unsigned integer value object (holds an unsigned 64-bit integer raw value).
+	BT_VALUE_TYPE_UNSIGNED_INTEGER	= 2,
+
+	/// Signed integer value object (holds a signed 64-bit integer raw value).
+	BT_VALUE_TYPE_SIGNED_INTEGER	= 3,
 
 	/// Floating point number value object (holds a \c double raw value).
-	BT_VALUE_TYPE_REAL =		3,
+	BT_VALUE_TYPE_REAL		= 4,
 
 	/// String value object.
-	BT_VALUE_TYPE_STRING =		4,
+	BT_VALUE_TYPE_STRING		= 5,
 
 	/// Array value object.
-	BT_VALUE_TYPE_ARRAY =		5,
+	BT_VALUE_TYPE_ARRAY		= 6,
 
 	/// Map value object.
-	BT_VALUE_TYPE_MAP =		6,
+	BT_VALUE_TYPE_MAP		= 7,
 } bt_value_type;
 
 extern bt_value_type bt_value_get_type(const bt_value *object);
 
-bt_bool bt_value_is_null(const bt_value *object);
-
-bt_bool bt_value_is_bool(const bt_value *object);
-
-bt_bool bt_value_is_integer(const bt_value *object);
-
-bt_bool bt_value_is_real(const bt_value *object);
-
-bt_bool bt_value_is_string(const bt_value *object);
-
-bt_bool bt_value_is_array(const bt_value *object);
-
-bt_bool bt_value_is_map(const bt_value *object);
-
 extern bt_value_status bt_value_copy(const bt_value *object,
-		bt_value **OUT);
+		bt_value **copy);
 
 extern bt_bool bt_value_compare(const bt_value *object_a,
 		const bt_value *object_b);
 
 extern bt_bool bt_value_bool_get(const bt_value *bool_obj);
 
-extern int64_t bt_value_integer_get(const bt_value *integer_obj);
+extern uint64_t bt_value_unsigned_integer_get(const bt_value *integer_obj);
+
+extern int64_t bt_value_signed_integer_get(const bt_value *integer_obj);
 
 extern double bt_value_real_get(const bt_value *real_obj);
 
@@ -90,14 +81,10 @@ extern const char *bt_value_string_get(const bt_value *string_obj);
 
 extern uint64_t bt_value_array_get_size(const bt_value *array_obj);
 
-bt_bool bt_value_array_is_empty(const bt_value *array_obj);
-
 extern const bt_value *bt_value_array_borrow_element_by_index_const(
 		const bt_value *array_obj, uint64_t index);
 
 extern uint64_t bt_value_map_get_size(const bt_value *map_obj);
-
-bt_bool bt_value_map_is_empty(const bt_value *map_obj);
 
 extern const bt_value *bt_value_map_borrow_entry_value_const(
 		const bt_value *map_obj, const char *key);
@@ -131,12 +118,17 @@ extern bt_value *bt_value_bool_create_init(bt_bool val);
 
 extern void bt_value_bool_set(bt_value *bool_obj, bt_bool val);
 
-extern bt_value *bt_value_integer_create(void);
+extern bt_value *bt_value_unsigned_integer_create(void);
 
-extern bt_value *bt_value_integer_create_init(
-		int64_t val);
+extern bt_value *bt_value_unsigned_integer_create_init(uint64_t val);
 
-extern void bt_value_integer_set(bt_value *integer_obj, int64_t val);
+extern void bt_value_unsigned_integer_set(bt_value *integer_obj, uint64_t val);
+
+extern bt_value *bt_value_signed_integer_create(void);
+
+extern bt_value *bt_value_signed_integer_create_init(int64_t val);
+
+extern void bt_value_signed_integer_set(bt_value *integer_obj, int64_t val);
 
 extern bt_value *bt_value_real_create(void);
 
@@ -163,7 +155,10 @@ extern bt_value_status bt_value_array_append_element(
 extern bt_value_status bt_value_array_append_bool_element(
 		bt_value *array_obj, bt_bool val);
 
-extern bt_value_status bt_value_array_append_integer_element(
+extern bt_value_status bt_value_array_append_unsigned_integer_element(
+		bt_value *array_obj, uint64_t val);
+
+extern bt_value_status bt_value_array_append_signed_integer_element(
 		bt_value *array_obj, int64_t val);
 
 extern bt_value_status bt_value_array_append_real_element(
@@ -201,7 +196,10 @@ extern bt_value_status bt_value_map_insert_entry(
 extern bt_value_status bt_value_map_insert_bool_entry(
 		bt_value *map_obj, const char *key, bt_bool val);
 
-extern bt_value_status bt_value_map_insert_integer_entry(
+extern bt_value_status bt_value_map_insert_unsigned_integer_entry(
+		bt_value *map_obj, const char *key, uint64_t val);
+
+extern bt_value_status bt_value_map_insert_signed_integer_entry(
 		bt_value *map_obj, const char *key, int64_t val);
 
 extern bt_value_status bt_value_map_insert_real_entry(

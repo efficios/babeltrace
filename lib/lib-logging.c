@@ -819,11 +819,16 @@ static inline void format_value(char **buf_ch, bool extended,
 		BUF_APPEND(", %svalue=%d", PRFIELD(val));
 		break;
 	}
-	case BT_VALUE_TYPE_INTEGER:
+	case BT_VALUE_TYPE_UNSIGNED_INTEGER:
 	{
-		int64_t val = bt_value_integer_get(value);
-
-		BUF_APPEND(", %svalue=%" PRId64, PRFIELD(val));
+		BUF_APPEND(", %svalue=%" PRIu64,
+			PRFIELD(bt_value_unsigned_integer_get(value)));
+		break;
+	}
+	case BT_VALUE_TYPE_SIGNED_INTEGER:
+	{
+		BUF_APPEND(", %svalue=%" PRId64,
+			PRFIELD(bt_value_signed_integer_get(value)));
 		break;
 	}
 	case BT_VALUE_TYPE_REAL:

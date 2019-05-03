@@ -211,14 +211,14 @@ int add_range(bt_value *info, struct range *range,
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer_entry(range_map, "begin",
+	status = bt_value_map_insert_signed_integer_entry(range_map, "begin",
 			range->begin_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;
 	}
 
-	status = bt_value_map_insert_integer_entry(range_map, "end",
+	status = bt_value_map_insert_signed_integer_entry(range_map, "end",
 			range->end_ns);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
@@ -244,16 +244,16 @@ int add_stream_ids(bt_value *info, struct ctf_fs_ds_file_group *ds_file_group)
 	bt_value_status status;
 
 	if (ds_file_group->stream_id != UINT64_C(-1)) {
-		status = bt_value_map_insert_integer_entry(info, "id",
-			(int64_t) ds_file_group->stream_id);
+		status = bt_value_map_insert_unsigned_integer_entry(info, "id",
+			ds_file_group->stream_id);
 		if (status != BT_VALUE_STATUS_OK) {
 			ret = -1;
 			goto end;
 		}
 	}
 
-	status = bt_value_map_insert_integer_entry(info, "class-id",
-		(int64_t) ds_file_group->sc->id);
+	status = bt_value_map_insert_unsigned_integer_entry(info, "class-id",
+		ds_file_group->sc->id);
 	if (status != BT_VALUE_STATUS_OK) {
 		ret = -1;
 		goto end;

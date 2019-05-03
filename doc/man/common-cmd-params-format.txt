@@ -21,7 +21,7 @@ list of `NAME=VALUE` assignments:
 * `false`, `FALSE`, `no`, `NO`: false boolean value.
 
 * Binary (`0b` prefix), octal (`0` prefix), decimal, or hexadecimal
-  (`0x` prefix) signed 64-bit integer.
+  (`0x` prefix) unsigned (with `+` prefix) or signed 64-bit integer.
 
 * Double precision floating point number (scientific notation is
   accepted).
@@ -42,7 +42,7 @@ Example:
 
 ----
 babeltrace ... --params='many=null, fresh=yes, condition=false,
-                         squirrel=-782329, observe=3.14,
+                         squirrel=-782329, play=+23, observe=3.14,
                          simple=beef, needs-quotes="some string",
                          escape.chars-are:allowed="a \" quote",
                          things=[1, "2", 3]'

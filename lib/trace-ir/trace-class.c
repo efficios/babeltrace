@@ -337,7 +337,7 @@ enum bt_trace_class_status bt_trace_class_set_environment_entry_integer(
 	struct bt_value *value_obj;
 	BT_ASSERT_PRE_NON_NULL(tc, "Trace class");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
-	value_obj = bt_value_integer_create_init(value);
+	value_obj = bt_value_signed_integer_create_init(value);
 	if (!value_obj) {
 		BT_LOGE_STR("Cannot create an integer value object.");
 		ret = BT_TRACE_CLASS_STATUS_NOMEM;

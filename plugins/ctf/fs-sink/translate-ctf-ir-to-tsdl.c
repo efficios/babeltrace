@@ -867,9 +867,9 @@ void translate_trace_class_ctf_ir_to_tsdl(struct fs_sink_ctf_trace_class *tc,
 			g_string_append_printf(tsdl, "%s = ", name);
 
 			switch (bt_value_get_type(val)) {
-			case BT_VALUE_TYPE_INTEGER:
+			case BT_VALUE_TYPE_SIGNED_INTEGER:
 				g_string_append_printf(tsdl, "%" PRId64,
-					bt_value_integer_get(val));
+					bt_value_signed_integer_get(val));
 				break;
 			case BT_VALUE_TYPE_STRING:
 				append_quoted_string(&ctx, bt_value_string_get(val));

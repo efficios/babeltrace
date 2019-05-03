@@ -1277,7 +1277,7 @@ struct fs_sink_ctf_trace_class *translate_trace_class_trace_ir_to_ctf_ir(
 		}
 
 		switch (bt_value_get_type(val)) {
-		case BT_VALUE_TYPE_INTEGER:
+		case BT_VALUE_TYPE_SIGNED_INTEGER:
 		case BT_VALUE_TYPE_STRING:
 			break;
 		default:

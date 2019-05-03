@@ -1720,24 +1720,24 @@ bool read_src_fs_parameters(const bt_value *params,
 	value = bt_value_map_borrow_entry_value_const(params,
 		"clock-class-offset-s");
 	if (value) {
-		if (!bt_value_is_integer(value)) {
+		if (!bt_value_is_signed_integer(value)) {
 			BT_LOGE("clock-class-offset-s must be an integer");
 			goto error;
 		}
 		ctf_fs->metadata_config.clock_class_offset_s =
-			bt_value_integer_get(value);
+			bt_value_signed_integer_get(value);
 	}
 
 	/* clock-class-offset-ns parameter */
 	value = bt_value_map_borrow_entry_value_const(params,
 		"clock-class-offset-ns");
 	if (value) {
-		if (!bt_value_is_integer(value)) {
+		if (!bt_value_is_signed_integer(value)) {
 			BT_LOGE("clock-class-offset-ns must be an integer");
 			goto error;
 		}
 		ctf_fs->metadata_config.clock_class_offset_ns =
-			bt_value_integer_get(value);
+			bt_value_signed_integer_get(value);
 	}
 
 

@@ -20,6 +20,9 @@
  * SOFTWARE.
  */
 
+#define BT_LOG_TAG "PLUGIN-UTILS-COUNTER-FLT"
+#include "logging.h"
+
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/babeltrace-internal.h>
 #include <babeltrace/common-internal.h>
@@ -157,21 +160,27 @@ bt_self_component_status counter_init(
 	counter->last_printed_total = -1ULL;
 	counter->step = 10000;
 	step = bt_value_map_borrow_entry_value_const(params, "step");
-	if (step && bt_value_is_integer(step)) {
-		int64_t val;
-
-		val = bt_value_integer_get(step);
-		if (val >= 0) {
-			counter->step = (uint64_t) val;
+	if (step) {
+		if (!bt_value_is_unsigned_integer(step)) {
+			BT_LOGE("`step` parameter: expecting an unsigned integer value: "
+				"type=%s", bt_common_value_type_string(
+					bt_value_get_type(step)));
+			goto error;
 		}
+
+		counter->step = bt_value_unsigned_integer_get(step);
 	}
 
 	hide_zero = bt_value_map_borrow_entry_value_const(params, "hide-zero");
-	if (hide_zero && bt_value_is_bool(hide_zero)) {
-		bt_bool val;
+	if (hide_zero) {
+		if (!bt_value_is_bool(hide_zero)) {
+			BT_LOGE("`hide-zero` parameter: expecting a boolean value: "
+				"type=%s", bt_common_value_type_string(
+					bt_value_get_type(hide_zero)));
+			goto error;
+		}
 
-		val = bt_value_bool_get(hide_zero);
-		counter->hide_zero = (bool) val;
+		counter->hide_zero = (bool) bt_value_bool_get(hide_zero);
 	}
 
 	bt_self_component_set_data(
@@ -181,6 +190,7 @@ bt_self_component_status counter_init(
 
 error:
 	destroy_private_counter_data(counter);
+	ret = BT_SELF_COMPONENT_STATUS_ERROR;
 
 end:
 	return ret;

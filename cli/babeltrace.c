@@ -493,6 +493,7 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 {
 	bt_bool bool_val;
 	int64_t int_val;
+	uint64_t uint_val;
 	double dbl_val;
 	const char *str_val;
 	int size;
@@ -513,8 +514,14 @@ void print_value_rec(FILE *fp, const bt_value *value, size_t indent)
 			bt_common_color_fg_cyan(), bool_val ? "yes" : "no",
 			bt_common_color_reset());
 		break;
-	case BT_VALUE_TYPE_INTEGER:
-		int_val = bt_value_integer_get(value);
+	case BT_VALUE_TYPE_UNSIGNED_INTEGER:
+		uint_val = bt_value_unsigned_integer_get(value);
+		fprintf(fp, "%s%s%" PRIu64 "%s\n", bt_common_color_bold(),
+			bt_common_color_fg_red(), uint_val,
+			bt_common_color_reset());
+		break;
+	case BT_VALUE_TYPE_SIGNED_INTEGER:
+		int_val = bt_value_signed_integer_get(value);
 		fprintf(fp, "%s%s%" PRId64 "%s\n", bt_common_color_bold(),
 			bt_common_color_fg_red(), int_val,
 			bt_common_color_reset());
@@ -1313,21 +1320,21 @@ int cmd_print_lttng_live_sessions(struct bt_config *cfg)
 			BT_LOGE_STR("Unexpected empty array \"timer-us\" entry.");
 			goto error;
 		}
-		timer_us = bt_value_integer_get(v);
+		timer_us = bt_value_signed_integer_get(v);
 		fprintf(out_stream, " (timer = %" PRIu64 ", ", timer_us);
 		v = bt_value_map_borrow_entry_value_const(map, "stream-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"stream-count\" entry.");
 			goto error;
 		}
-		streams = bt_value_integer_get(v);
+		streams = bt_value_signed_integer_get(v);
 		fprintf(out_stream, "%" PRIu64 " stream(s), ", streams);
 		v = bt_value_map_borrow_entry_value_const(map, "client-count");
 		if (!v) {
 			BT_LOGE_STR("Unexpected empty array \"client-count\" entry.");
 			goto error;
 		}
-		clients = bt_value_integer_get(v);
+		clients = bt_value_signed_integer_get(v);
 		fprintf(out_stream, "%" PRIu64 " client(s) connected)\n", clients);
 	}
 
@@ -2229,8 +2236,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		begin = bt_value_integer_get(intersection_begin);
-		end = bt_value_integer_get(intersection_end);
+		begin = bt_value_signed_integer_get(intersection_begin);
+		end = bt_value_signed_integer_get(intersection_end);
 
 		if (begin < 0 || end < 0 || end < begin) {
 			BT_LOGW("Invalid trace stream intersection values: "
