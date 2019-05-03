@@ -60,6 +60,9 @@ class QueryExecutor(object._SharedObject):
         return is_canceled > 0
 
     def query(self, component_class, object, params=None):
+        if self.is_canceled:
+            raise bt2.QueryExecutorCanceled
+
         if not isinstance(component_class, bt2.component._GenericComponentClass):
             err = False
 
@@ -88,9 +91,3 @@ class QueryExecutor(object._SharedObject):
         self._handle_status(status, 'cannot query component class')
         assert(result_ptr)
         return bt2.value._create_from_ptr(result_ptr)
-
-    def __eq__(self, other):
-        if type(other) is not type(self):
-            return False
-
-        return self.addr == other.addr
