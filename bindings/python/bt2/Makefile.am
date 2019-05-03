@@ -70,7 +70,7 @@ BUILD_FLAGS=CC="$(CC)" \
 
 all-local: build-python-bindings.stamp
 
-copy-static-deps.stamp: $(STATIC_BINDINGS_DEPS)
+copy-static-deps.stamp: $(addprefix $(srcdir)/, $(STATIC_BINDINGS_DEPS))
 	@if [ x"$(srcdir)" != x"$(builddir)" ]; then \
 		for file in $(STATIC_BINDINGS_DEPS); do \
 			cp -f $(srcdir)/$$file $(builddir)/$$file; \
