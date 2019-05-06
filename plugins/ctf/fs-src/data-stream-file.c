@@ -536,7 +536,7 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 {
 	int ret;
 	struct ctf_fs_ds_index *index = NULL;
-	enum bt_msg_iter_status iter_status;
+	enum bt_msg_iter_status iter_status = BT_MSG_ITER_STATUS_OK;
 	off_t current_packet_offset_bytes = 0;
 
 	BT_LOGD("Indexing stream file %s", ds_file->file->path->str);
