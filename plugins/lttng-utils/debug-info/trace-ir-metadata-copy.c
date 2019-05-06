@@ -412,7 +412,7 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 		out_specific_context_fc = create_field_class_copy(md_maps,
 				in_event_specific_context);
 
-		copy_field_class_content(md_maps,
+		ret = copy_field_class_content(md_maps,
 				in_event_specific_context, out_specific_context_fc);
 		if (ret) {
 			goto error;
@@ -445,7 +445,7 @@ int copy_event_class_content(struct trace_ir_maps *ir_maps,
 	/* Copy the payload of this event class. */
 		out_payload_fc = create_field_class_copy(md_maps,
 				in_event_payload);
-		copy_field_class_content(md_maps,
+		ret = copy_field_class_content(md_maps,
 				in_event_payload, out_payload_fc);
 		if (ret) {
 			goto error;
