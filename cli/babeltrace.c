@@ -1368,7 +1368,7 @@ end:
 		}
 	}
 
-	return 0;
+	return ret;
 }
 
 static
@@ -1480,7 +1480,7 @@ end:
 		}
 	}
 
-	return 0;
+	return ret;
 }
 
 struct port_id {
