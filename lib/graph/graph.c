@@ -82,6 +82,9 @@ struct bt_graph_listener_ports_connected {
 	do {								\
 		size_t i;						\
 									\
+		if (!_listeners) {					\
+			break;						\
+		}							\
 		for (i = 0; i < (_listeners)->len; i++) {		\
 			_type *listener =				\
 				&g_array_index((_listeners), _type, i);	\
