@@ -490,7 +490,7 @@ int init_index_entry(struct ctf_fs_ds_index_entry *entry,
 		struct bt_msg_iter_packet_properties *props,
 		off_t packet_size, off_t packet_offset)
 {
-	int ret;
+	int ret = 0;
 	struct ctf_stream_class *sc;
 
 	sc = ctf_trace_class_borrow_stream_class_by_id(ds_file->metadata->tc,
