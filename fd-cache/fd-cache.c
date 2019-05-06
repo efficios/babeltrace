@@ -135,7 +135,7 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 	struct fd_handle_internal *fd_internal = NULL;
 	struct stat statbuf;
 	struct file_key fk;
-	int ret;
+	int ret, fd = -1;
 
 	ret = stat(path, &statbuf);
 	if (ret < 0) {
@@ -156,7 +156,7 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 	if (!fd_internal) {
 		struct file_key *file_key;
 
-		int fd = open(path, O_RDONLY);
+		fd = open(path, O_RDONLY);
 		if (fd < 0) {
 			BT_LOGE_ERRNO("Failed to open file", "path=%s", path);
 			goto error;
@@ -190,6 +190,18 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 	goto end;
 
 error:
+	/*
+	 * Close file descriptor if it was open() and we are currently on error
+	 * path.
+	 */
+	if (fd != -1) {
+		ret = close(fd);
+		if (ret) {
+			BT_LOGE_ERRNO("Failed to close file descriptor",
+				": fd=%i, path=%s", fd, path);
+		}
+	}
+
 	fd_cache_handle_internal_destroy(fd_internal);
 	fd_internal = NULL;
 end:
