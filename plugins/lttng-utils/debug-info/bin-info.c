@@ -339,7 +339,7 @@ int is_build_id_matching(struct bin_info *bin)
 {
 	int ret, is_build_id, is_matching = 0;
 	Elf_Scn *curr_section = NULL, *next_section = NULL;
-	GElf_Shdr *curr_section_hdr = NULL;
+	GElf_Shdr curr_section_hdr;
 
 	if (!bin->build_id) {
 		goto error;
@@ -354,11 +354,6 @@ int is_build_id_matching(struct bin_info *bin)
 		}
 	}
 
-	curr_section_hdr = g_new0(GElf_Shdr, 1);
-	if (!curr_section_hdr) {
-		goto error;
-	}
-
 	next_section = elf_nextscn(bin->elf_file, curr_section);
 	if (!next_section) {
 		goto error;
@@ -371,13 +366,11 @@ int is_build_id_matching(struct bin_info *bin)
 		curr_section = next_section;
 		next_section = elf_nextscn(bin->elf_file, curr_section);
 
-		curr_section_hdr = gelf_getshdr(curr_section, curr_section_hdr);
-
-		if (!curr_section_hdr) {
+		if (!gelf_getshdr(curr_section, &curr_section_hdr)) {
 			goto error;
 		}
 
-		if (curr_section_hdr->sh_type != SHT_NOTE) {
+		if (curr_section_hdr.sh_type != SHT_NOTE) {
 			continue;
 		}
 
@@ -422,7 +415,6 @@ int is_build_id_matching(struct bin_info *bin)
 		}
 	}
 error:
-	g_free(curr_section_hdr);
 	return is_matching;
 }
 
