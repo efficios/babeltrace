@@ -822,11 +822,9 @@ int print_struct(struct pretty_component *pretty,
 		ret = -1;
 		goto end;
 	}
+
 	nr_fields = bt_field_class_structure_get_member_count(struct_class);
-	if (nr_fields < 0) {
-		ret = -1;
-		goto end;
-	}
+
 	g_string_append(pretty->string, "{");
 	pretty->depth++;
 	nr_printed_fields = 0;
