@@ -52,7 +52,7 @@ enum bt_ctf_value_status _bt_ctf_value_freeze(struct bt_ctf_value *object);
 # define bt_ctf_value_freeze(_value)
 #endif /* BT_DEV_MODE */
 
-struct bt_ctf_value *bt_ctf_value_null;
+extern struct bt_ctf_value *const bt_ctf_value_null;
 
 enum bt_ctf_value_type {
 	/// Null value object.
@@ -190,7 +190,7 @@ enum bt_ctf_value_status bt_ctf_value_map_extend(
 struct bt_ctf_value;
 struct bt_ctf_private_value;
 
-struct bt_ctf_private_value *bt_ctf_private_value_null;
+extern struct bt_ctf_private_value *const bt_ctf_private_value_null;
 
 static inline
 struct bt_ctf_value *bt_ctf_private_value_as_value(
