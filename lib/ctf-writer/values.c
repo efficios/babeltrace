@@ -88,8 +88,8 @@ struct bt_ctf_value bt_ctf_value_null_instance = {
 	.frozen = BT_TRUE,
 };
 
-struct bt_ctf_value *bt_ctf_value_null = &bt_ctf_value_null_instance;
-struct bt_ctf_private_value *bt_ctf_private_value_null =
+struct bt_ctf_value *const bt_ctf_value_null = &bt_ctf_value_null_instance;
+struct bt_ctf_private_value *const bt_ctf_private_value_null =
 	(void *) &bt_ctf_value_null_instance;
 
 struct bt_ctf_value_bool {
