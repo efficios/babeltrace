@@ -88,10 +88,6 @@ bt_bool is_event_common_ctx_dbg_info_compatible(const bt_field_class *in_field_c
 		goto end;
 	}
 
-	if (bt_field_class_integer_get_field_value_range(ip_fc) != 64) {
-		goto end;
-	}
-
 	member = bt_field_class_structure_borrow_member_by_name_const(
 			in_field_class, VPID_FIELD_NAME);
 	if (!member) {
