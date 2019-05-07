@@ -222,7 +222,7 @@ int write_float_field(struct fs_sink_stream *stream,
 		ret = bt_ctfser_write_float32(&stream->ctfser, val,
 			fc->base.base.alignment, BYTE_ORDER);
 	} else {
-		ret = bt_ctfser_write_float32(&stream->ctfser, val,
+		ret = bt_ctfser_write_float64(&stream->ctfser, val,
 			fc->base.base.alignment, BYTE_ORDER);
 	}
 
