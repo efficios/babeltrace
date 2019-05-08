@@ -620,9 +620,31 @@ class _UserComponent(metaclass=_UserComponentType):
             other_port_ptr, other_port_type)
         self._port_connected(port, other_port)
 
+    def _create_trace_class(self, env=None, uuid=None,
+                            assigns_automatic_stream_class_id=True):
+        ptr = self._as_self_component_ptr(self._ptr)
+        tc_ptr = native_bt.trace_class_create(ptr)
+
+        if tc_ptr is None:
+            raise bt2.CreationError('could not create trace class')
+
+        tc = bt2.TraceClass._create_from_ptr(tc_ptr)
+
+        if env is not None:
+            for key, value in env.items():
+                tc.env[key] = value
+
+        if uuid is not None:
+            tc._uuid = uuid
+
+        tc._assigns_automatic_stream_class_id = assigns_automatic_stream_class_id
+
+        return tc
+
 
 class _UserSourceComponent(_UserComponent, _SourceComponent):
     _as_not_self_specific_component_ptr = staticmethod(native_bt.self_component_source_as_component_source)
+    _as_self_component_ptr = staticmethod(native_bt.self_component_source_as_self_component)
 
     @property
     def _output_ports(self):
@@ -648,6 +670,7 @@ class _UserSourceComponent(_UserComponent, _SourceComponent):
 
 class _UserFilterComponent(_UserComponent, _FilterComponent):
     _as_not_self_specific_component_ptr = staticmethod(native_bt.self_component_filter_as_component_filter)
+    _as_self_component_ptr = staticmethod(native_bt.self_component_filter_as_self_component)
 
     @property
     def _output_ports(self):
@@ -694,6 +717,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
 
 class _UserSinkComponent(_UserComponent, _SinkComponent):
     _as_not_self_specific_component_ptr = staticmethod(native_bt.self_component_sink_as_component_sink)
+    _as_self_component_ptr = staticmethod(native_bt.self_component_sink_as_self_component)
 
     @property
     def _input_ports(self):

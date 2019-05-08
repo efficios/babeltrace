@@ -46,7 +46,7 @@ extern uint64_t bt_trace_class_get_environment_entry_count(
 
 extern void bt_trace_class_borrow_environment_entry_by_index_const(
 		const bt_trace_class *trace_class, uint64_t index,
-		const char **OUT, const bt_value **OUT_VALUE);
+		const char **OUT, const bt_value **OUT);
 
 extern const bt_value *
 bt_trace_class_borrow_environment_entry_value_by_name_const(
