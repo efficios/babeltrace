@@ -33,8 +33,10 @@
 /tests/plugins/test-utils-muxer
 /tests/plugins/test_utils_muxer_complete
 /tests/plugins/test_lttng_utils_debug_info
+/tests/plugins/test_bin_info_i386-linux-gnu
 /tests/plugins/test_bin_info_x86_64-linux-gnu
 /tests/plugins/test_bin_info
+/tests/plugins/test_dwarf_i386-linux-gnu
 /tests/plugins/test_dwarf_x86_64-linux-gnu
 /tests/plugins/test_dwarf
 /tests/plugins/ctf/test_ctf_plugin
