@@ -1,10 +1,7 @@
-from bt2 import value
 import unittest
-import copy
 import bt2
 
 
-@unittest.skip("this is broken")
 class PortTestCase(unittest.TestCase):
     @staticmethod
     def _create_comp(comp_cls, name=None):
@@ -28,7 +25,6 @@ class PortTestCase(unittest.TestCase):
 
         comp = self._create_comp(MySource)
         self.assertEqual(len(comp.output_ports), 1)
-
 
     def test_flt_add_output_port(self):
         class MyIter(bt2._UserMessageIterator):
@@ -85,7 +81,7 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(port2.addr, comp_self._output_ports['print'].addr)
                 self.assertEqual(port1.addr, comp_self._output_ports['clear'].addr)
 
-        comp = self._create_comp(MySource)
+        self._create_comp(MySource)
 
     def test_user_flt_output_ports_getitem(self):
         class MyIter(bt2._UserMessageIterator):
@@ -102,7 +98,7 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(port2.addr, comp_self._output_ports['print'].addr)
                 self.assertEqual(port1.addr, comp_self._output_ports['clear'].addr)
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_getitem(self):
         class MyIter(bt2._UserMessageIterator):
@@ -119,7 +115,7 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(port2.addr, comp_self._input_ports['print'].addr)
                 self.assertEqual(port1.addr, comp_self._input_ports['clear'].addr)
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_sink_input_ports_getitem(self):
         class MySink(bt2._UserSinkComponent):
@@ -134,7 +130,7 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
 
     def test_user_src_output_ports_getitem_invalid_key(self):
         class MyIter(bt2._UserMessageIterator):
@@ -151,7 +147,7 @@ class PortTestCase(unittest.TestCase):
                 with self.assertRaises(KeyError):
                     comp_self._output_ports['hello']
 
-        comp = self._create_comp(MySource)
+        self._create_comp(MySource)
 
     def test_user_flt_output_ports_getitem_invalid_key(self):
         class MyIter(bt2._UserMessageIterator):
@@ -168,7 +164,7 @@ class PortTestCase(unittest.TestCase):
                 with self.assertRaises(KeyError):
                     comp_self._output_ports['hello']
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_getitem_invalid_key(self):
         class MyIter(bt2._UserMessageIterator):
@@ -185,7 +181,7 @@ class PortTestCase(unittest.TestCase):
                 with self.assertRaises(KeyError):
                     comp_self._input_ports['hello']
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_sink_input_ports_getitem_invalid_key(self):
         class MySink(bt2._UserSinkComponent):
@@ -200,7 +196,7 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
 
     def test_user_src_output_ports_len(self):
         class MyIter(bt2._UserMessageIterator):
@@ -215,7 +211,7 @@ class PortTestCase(unittest.TestCase):
                 comp_self._add_output_port('insert')
                 self.assertEqual(len(comp_self._output_ports), 3)
 
-        comp = self._create_comp(MySource)
+        self._create_comp(MySource)
 
     def test_user_flt_output_ports_len(self):
         class MyIter(bt2._UserMessageIterator):
@@ -230,7 +226,7 @@ class PortTestCase(unittest.TestCase):
                 comp_self._add_output_port('insert')
                 self.assertEqual(len(comp_self._output_ports), 3)
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_len(self):
         class MyIter(bt2._UserMessageIterator):
@@ -245,7 +241,7 @@ class PortTestCase(unittest.TestCase):
                 comp_self._add_input_port('insert')
                 self.assertEqual(len(comp_self._input_ports), 3)
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_sink_input_ports_len(self):
         class MySink(bt2._UserSinkComponent):
@@ -258,7 +254,7 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
 
     def test_user_src_output_ports_iter(self):
         class MyIter(bt2._UserMessageIterator):
@@ -283,7 +279,7 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(ports[2][0], 'insert')
                 self.assertEqual(ports[2][1].addr, port3.addr)
 
-        comp = self._create_comp(MySource)
+        self._create_comp(MySource)
 
     def test_user_flt_output_ports_iter(self):
         class MyIter(bt2._UserMessageIterator):
@@ -308,7 +304,7 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(ports[2][0], 'insert')
                 self.assertEqual(ports[2][1].addr, port3.addr)
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_flt_input_ports_iter(self):
         class MyIter(bt2._UserMessageIterator):
@@ -333,7 +329,7 @@ class PortTestCase(unittest.TestCase):
                 self.assertEqual(ports[2][0], 'insert')
                 self.assertEqual(ports[2][1].addr, port3.addr)
 
-        comp = self._create_comp(MyFilter)
+        self._create_comp(MyFilter)
 
     def test_user_sink_input_ports_iter(self):
         class MySink(bt2._UserSinkComponent):
@@ -356,7 +352,7 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
 
     def test_gen_src_output_ports_getitem(self):
         class MyIter(bt2._UserMessageIterator):
@@ -724,17 +720,6 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySink)
         self.assertEqual(comp.input_ports['clear'].name, 'clear')
 
-    def test_component(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                comp_self._add_input_port('clear')
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-        self.assertEqual(comp.input_ports['clear'].component.addr, comp.addr)
-
     def test_connection_none(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, params):
@@ -757,41 +742,7 @@ class PortTestCase(unittest.TestCase):
         comp = self._create_comp(MySink)
         self.assertFalse(comp.input_ports['clear'].is_connected)
 
-    def test_eq(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                comp_self._add_input_port('clear')
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-        self.assertEqual(comp.input_ports['clear'],
-                         comp.input_ports['clear'])
-
-    def test_eq_invalid(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                comp_self._add_input_port('clear')
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-        self.assertNotEqual(comp.input_ports['clear'], 23)
-
-    def test_disconnect_no_connection(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                port = comp_self._add_input_port('clear')
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-        comp.input_ports['clear'].disconnect()
-
-    def test_priv_name(self):
+    def test_self_name(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, params):
                 port = comp_self._add_input_port('clear')
@@ -800,20 +751,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
 
-    def test_priv_component(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                port = comp_self._add_input_port('clear')
-                self.assertEqual(port.component, comp_self)
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-
-    def test_priv_connection_none(self):
+    def test_self_connection_none(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, params):
                 port = comp_self._add_input_port('clear')
@@ -822,9 +762,9 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
 
-    def test_priv_is_connected_false(self):
+    def test_self_is_connected_false(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, params):
                 port = comp_self._add_input_port('clear')
@@ -833,57 +773,4 @@ class PortTestCase(unittest.TestCase):
             def _consume(self):
                 pass
 
-        comp = self._create_comp(MySink)
-
-    def test_priv_eq(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                port = comp_self._add_input_port('clear')
-                self.assertEqual(port, port)
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-
-    def test_priv_eq_invalid(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                port = comp_self._add_input_port('clear')
-                self.assertNotEqual(port, 23)
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-
-    def test_priv_disconnect_no_connection(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                port = comp_self._add_input_port('clear')
-                port.disconnect()
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
-
-    def test_priv_remove_from_component(self):
-        class MySink(bt2._UserSinkComponent):
-            def __init__(comp_self, params):
-                port = comp_self._add_input_port('clear')
-                self.assertEqual(len(comp_self._input_ports), 1)
-
-                try:
-                    port.remove_from_component()
-                except:
-                    import traceback
-                    traceback.print_exc()
-
-                self.assertEqual(len(comp_self._input_ports), 0)
-                self.assertIsNone(port.component)
-
-            def _consume(self):
-                pass
-
-        comp = self._create_comp(MySink)
+        self._create_comp(MySink)
