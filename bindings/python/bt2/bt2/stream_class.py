@@ -49,6 +49,9 @@ class _EventClassIterator(collections.abc.Iterator):
 
 
 class StreamClass(object._SharedObject, collections.abc.Mapping):
+    _get_ref = staticmethod(native_bt.stream_class_get_ref)
+    _put_ref = staticmethod(native_bt.stream_class_put_ref)
+
     def __init__(self, name=None, id=None, packet_context_field_class=None,
                  event_header_field_class=None, event_context_field_class=None,
                  event_classes=None):
