@@ -24,10 +24,11 @@ TESTS_CLI = \
 	cli/test_trimmer
 
 TESTS_LIB = \
-	lib/test_ctf_writer_complete \
+	lib/test_bitfield \
 	lib/test_bt_values \
-	lib/test_trace_ir_ref \
-	lib/test_graph_topo
+	lib/test_ctf_writer_complete \
+	lib/test_graph_topo \
+	lib/test_trace_ir_ref
 
 if !ENABLE_BUILT_IN_PLUGINS
 TESTS_LIB += lib/test_plugin_complete
