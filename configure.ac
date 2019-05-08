@@ -675,7 +675,7 @@ AC_SUBST(LIBDIR)
 
 
 # Set global CFLAGS in AM_CFLAGS
-AM_CFLAGS="-Wall -Wformat $PTHREAD_CFLAGS $GLIB_CFLAGS"
+AM_CFLAGS="-Wall -Wformat -Werror=implicit-function-declaration $PTHREAD_CFLAGS $GLIB_CFLAGS"
 AC_SUBST(AM_CFLAGS)
 
 # Set global CPPFLAGS in AM_CPPFLAGS
