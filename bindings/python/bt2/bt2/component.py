@@ -96,16 +96,12 @@ class _GenericSinkComponentClass(_GenericComponentClass):
 
 
 def _handle_component_status(status, gen_error_msg):
-    if status == native_bt.COMPONENT_STATUS_END:
+    if status == native_bt.SELF_COMPONENT_STATUS_END:
         raise bt2.Stop
-    elif status == native_bt.COMPONENT_STATUS_AGAIN:
+    elif status == native_bt.SELF_COMPONENT_STATUS_AGAIN:
         raise bt2.TryAgain
-    elif status == native_bt.COMPONENT_STATUS_UNSUPPORTED:
-        raise bt2.UnsupportedFeature
-    elif status == native_bt.COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
+    elif status == native_bt.SELF_COMPONENT_STATUS_REFUSE_PORT_CONNECTION:
         raise bt2.PortConnectionRefused
-    elif status == native_bt.COMPONENT_STATUS_GRAPH_IS_CANCELED:
-        raise bt2.GraphCanceled
     elif status < 0:
         raise bt2.Error(gen_error_msg)
 
@@ -120,54 +116,47 @@ class _PortIterator(collections.abc.Iterator):
             raise StopIteration
 
         comp_ports = self._comp_ports
-        comp_ptr = comp_ports._component._ptr
-        port_ptr = comp_ports._get_port_at_index_fn(comp_ptr, self._at)
-        assert(port_ptr)
+        comp_ptr = comp_ports._component_ptr
 
-        if comp_ports._is_private:
-            port_pub_ptr = native_bt.port_from_private(port_ptr)
-            name = native_bt.port_get_name(port_pub_ptr)
-            native_bt.put(port_pub_ptr)
-        else:
-            name = native_bt.port_get_name(port_ptr)
+        port_ptr = comp_ports._borrow_port_ptr_at_index(comp_ptr, self._at)
+        assert port_ptr is not None
 
-        assert(name is not None)
-        native_bt.put(port_ptr)
+        name = native_bt.port_get_name(comp_ports._port_pycls._as_port_ptr(port_ptr))
+        assert name is not None
+
         self._at += 1
         return name
 
 
 class _ComponentPorts(collections.abc.Mapping):
-    def __init__(self, is_private, component,
-                 get_port_by_name_fn, get_port_at_index_fn,
-                 get_port_count_fn):
-        self._is_private = is_private
-        self._component = component
-        self._get_port_by_name_fn = get_port_by_name_fn
-        self._get_port_at_index_fn = get_port_at_index_fn
-        self._get_port_count_fn = get_port_count_fn
+
+    # component_ptr is a bt_component_source *, bt_component_filter * or
+    # bt_component_sink *.  Its type must match the type expected by the
+    # functions passed as arguments.
+
+    def __init__(self, component_ptr,
+                 borrow_port_ptr_by_name,
+                 borrow_port_ptr_at_index,
+                 get_port_count,
+                 port_pycls):
+        self._component_ptr = component_ptr
+        self._borrow_port_ptr_by_name = borrow_port_ptr_by_name
+        self._borrow_port_ptr_at_index = borrow_port_ptr_at_index
+        self._get_port_count = get_port_count
+        self._port_pycls = port_pycls
 
     def __getitem__(self, key):
         utils._check_str(key)
-        port_ptr = self._get_port_by_name_fn(self._component._ptr, key)
+        port_ptr = self._borrow_port_ptr_by_name(self._component_ptr, key)
 
         if port_ptr is None:
             raise KeyError(key)
 
-        if self._is_private:
-            return bt2.port._create_private_from_ptr(port_ptr)
-        else:
-            return bt2.port._create_from_ptr(port_ptr)
+        return self._port_pycls._create_from_ptr_and_get_ref(port_ptr)
 
     def __len__(self):
-        if self._is_private:
-            pub_ptr = native_bt.component_from_private(self._component._ptr)
-            count = self._get_port_count_fn(pub_ptr)
-            native_bt.put(pub_ptr)
-        else:
-            count = self._get_port_count_fn(self._component._ptr)
-
-        assert(count >= 0)
+        count = self._get_port_count(self._component_ptr)
+        assert count >= 0
         return count
 
     def __iter__(self):
@@ -232,30 +221,39 @@ class _SinkComponent(_Component):
 # This is analogous to _GenericSourceComponentClass, but for source
 # component objects.
 class _GenericSourceComponent(object._SharedObject, _SourceComponent):
+    _get_ref = staticmethod(native_bt.component_source_get_ref)
+    _put_ref = staticmethod(native_bt.component_source_put_ref)
+
     @property
     def output_ports(self):
-        return _ComponentPorts(False, self,
-                               native_bt.component_source_get_output_port_by_name,
-                               native_bt.component_source_get_output_port_by_index,
-                               native_bt.component_source_get_output_port_count)
+        return _ComponentPorts(self._ptr,
+                               native_bt.component_source_borrow_output_port_by_name_const,
+                               native_bt.component_source_borrow_output_port_by_index_const,
+                               native_bt.component_source_get_output_port_count,
+                               bt2.port._OutputPort)
 
 
 # This is analogous to _GenericFilterComponentClass, but for filter
 # component objects.
 class _GenericFilterComponent(object._SharedObject, _FilterComponent):
+    _get_ref = staticmethod(native_bt.component_filter_get_ref)
+    _put_ref = staticmethod(native_bt.component_filter_put_ref)
+
     @property
     def output_ports(self):
-        return _ComponentPorts(False, self,
-                               native_bt.component_filter_get_output_port_by_name,
-                               native_bt.component_filter_get_output_port_by_index,
-                               native_bt.component_filter_get_output_port_count)
+        return _ComponentPorts(self._ptr,
+                               native_bt.component_filter_borrow_output_port_by_name_const,
+                               native_bt.component_filter_borrow_output_port_by_index_const,
+                               native_bt.component_filter_get_output_port_count,
+                               bt2.port._OutputPort)
 
     @property
     def input_ports(self):
-        return _ComponentPorts(False, self,
-                               native_bt.component_filter_get_input_port_by_name,
-                               native_bt.component_filter_get_input_port_by_index,
-                               native_bt.component_filter_get_input_port_count)
+        return _ComponentPorts(self._ptr,
+                               native_bt.component_filter_borrow_input_port_by_name_const,
+                               native_bt.component_filter_borrow_input_port_by_index_const,
+                               native_bt.component_filter_get_input_port_count,
+                               bt2.port._InputPort)
 
 
 # This is analogous to _GenericSinkComponentClass, but for sink
@@ -266,10 +264,11 @@ class _GenericSinkComponent(object._SharedObject, _SinkComponent):
 
     @property
     def input_ports(self):
-        return _ComponentPorts(False, self,
-                               native_bt.component_sink_get_input_port_by_name,
-                               native_bt.component_sink_get_input_port_by_index,
-                               native_bt.component_sink_get_input_port_count)
+        return _ComponentPorts(self._ptr,
+                               native_bt.component_sink_borrow_input_port_by_name_const,
+                               native_bt.component_sink_borrow_input_port_by_index_const,
+                               native_bt.component_sink_get_input_port_count,
+                               bt2.port._InputPort)
 
 
 _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS = {
@@ -587,11 +586,12 @@ class _UserComponent(metaclass=_UserComponentType):
     def _accept_port_connection(self, port, other_port):
         return True
 
-    def _accept_port_connection_from_native(self, port_ptr, other_port_ptr):
-        native_bt.get(port_ptr)
-        native_bt.get(other_port_ptr)
-        port = bt2.port._create_private_from_ptr(port_ptr)
-        other_port = bt2.port._create_from_ptr(other_port_ptr)
+    def _accept_port_connection_from_native(self, self_port_ptr, self_port_type, other_port_ptr):
+        port = bt2.port._create_self_from_ptr_and_get_ref(
+            self_port_ptr, self_port_type)
+        other_port_type = native_bt.PORT_TYPE_INPUT if self_port_type == native_bt.PORT_TYPE_OUTPUT else native_bt.PORT_TYPE_OUTPUT
+        other_port = bt2.port._create_from_ptr_and_get_ref(
+            other_port_ptr, other_port_type)
         res = self._accept_port_connection(port, other_port_ptr)
 
         if type(res) is not bool:
@@ -602,30 +602,13 @@ class _UserComponent(metaclass=_UserComponentType):
     def _port_connected(self, port, other_port):
         pass
 
-    def _port_connected_from_native(self, port_ptr, other_port_ptr):
-        native_bt.get(port_ptr)
-        native_bt.get(other_port_ptr)
-        port = bt2.port._create_private_from_ptr(port_ptr)
-        other_port = bt2.port._create_from_ptr(other_port_ptr)
-
-        try:
-            self._port_connected(port, other_port)
-        except:
-            if not _NO_PRINT_TRACEBACK:
-                traceback.print_exc()
-
-    def _port_disconnected(self, port):
-        pass
-
-    def _port_disconnected_from_native(self, port_ptr):
-        native_bt.get(port_ptr)
-        port = bt2.port._create_private_from_ptr(port_ptr)
-
-        try:
-            self._port_disconnected(port)
-        except:
-            if not _NO_PRINT_TRACEBACK:
-                traceback.print_exc()
+    def _port_connected_from_native(self, self_port_ptr, self_port_type, other_port_ptr):
+        port = bt2.port._create_self_from_ptr_and_get_ref(
+            self_port_ptr, self_port_type)
+        other_port_type = native_bt.PORT_TYPE_INPUT if self_port_type == native_bt.PORT_TYPE_OUTPUT else native_bt.PORT_TYPE_OUTPUT
+        other_port = bt2.port._create_from_ptr_and_get_ref(
+            other_port_ptr, other_port_type)
+        self._port_connected(port, other_port)
 
 
 class _UserSourceComponent(_UserComponent, _SourceComponent):
@@ -633,19 +616,24 @@ class _UserSourceComponent(_UserComponent, _SourceComponent):
 
     @property
     def _output_ports(self):
-        return _ComponentPorts(True, self,
-                               native_bt.private_component_source_get_output_private_port_by_name,
-                               native_bt.private_component_source_get_output_private_port_by_index,
-                               native_bt.component_source_get_output_port_count)
+        def get_output_port_count(self_ptr):
+            ptr = self._as_not_self_specific_component_ptr(self_ptr)
+            return native_bt.component_source_get_output_port_count(ptr)
+
+        return _ComponentPorts(self._ptr,
+                               native_bt.self_component_source_borrow_output_port_by_name,
+                               native_bt.self_component_source_borrow_output_port_by_index,
+                               get_output_port_count,
+                               bt2.port._UserComponentOutputPort)
 
     def _add_output_port(self, name):
         utils._check_str(name)
-        fn = native_bt.private_component_source_add_output_private_port
-        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        fn = native_bt.self_component_source_add_output_port
+        comp_status, self_port_ptr = fn(self._ptr, name, None)
         _handle_component_status(comp_status,
                                  'cannot add output port to source component object')
-        assert(priv_port_ptr)
-        return bt2.port._create_private_from_ptr(priv_port_ptr)
+        assert self_port_ptr is not None
+        return bt2.port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
 
 
 class _UserFilterComponent(_UserComponent, _FilterComponent):
@@ -653,35 +641,45 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
 
     @property
     def _output_ports(self):
-        return _ComponentPorts(True, self,
-                               native_bt.private_component_filter_get_output_private_port_by_name,
-                               native_bt.private_component_filter_get_output_private_port_by_index,
-                               native_bt.component_filter_get_output_port_count)
+        def get_output_port_count(self_ptr):
+            ptr = self._as_not_self_specific_component_ptr(self_ptr)
+            return native_bt.component_filter_get_output_port_count(ptr)
+
+        return _ComponentPorts(self._ptr,
+                               native_bt.self_component_filter_borrow_output_port_by_name,
+                               native_bt.self_component_filter_borrow_output_port_by_index,
+                               get_output_port_count,
+                               bt2.port._UserComponentOutputPort)
 
     @property
     def _input_ports(self):
-        return _ComponentPorts(True, self,
-                               native_bt.private_component_filter_get_input_private_port_by_name,
-                               native_bt.private_component_filter_get_input_private_port_by_index,
-                               native_bt.component_filter_get_input_port_count)
+        def get_input_port_count(self_ptr):
+            ptr = self._as_not_self_specific_component_ptr(self_ptr)
+            return native_bt.component_filter_get_input_port_count(ptr)
+
+        return _ComponentPorts(self._ptr,
+                               native_bt.self_component_filter_borrow_input_port_by_name,
+                               native_bt.self_component_filter_borrow_input_port_by_index,
+                               get_input_port_count,
+                               bt2.port._UserComponentInputPort)
 
     def _add_output_port(self, name):
         utils._check_str(name)
-        fn = native_bt.private_component_filter_add_output_private_port
-        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        fn = native_bt.self_component_filter_add_output_port
+        comp_status, self_port_ptr = fn(self._ptr, name, None)
         _handle_component_status(comp_status,
                                  'cannot add output port to filter component object')
-        assert(priv_port_ptr)
-        return bt2.port._create_private_from_ptr(priv_port_ptr)
+        assert self_port_ptr
+        return bt2.port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
 
     def _add_input_port(self, name):
         utils._check_str(name)
-        fn = native_bt.private_component_filter_add_input_private_port
-        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        fn = native_bt.self_component_filter_add_input_port
+        comp_status, self_port_ptr = fn(self._ptr, name, None)
         _handle_component_status(comp_status,
                                  'cannot add input port to filter component object')
-        assert(priv_port_ptr)
-        return bt2.port._create_private_from_ptr(priv_port_ptr)
+        assert self_port_ptr
+        return bt2.port._UserComponentInputPort._create_from_ptr(self_port_ptr)
 
 
 class _UserSinkComponent(_UserComponent, _SinkComponent):
@@ -689,16 +687,21 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
 
     @property
     def _input_ports(self):
-        return _ComponentPorts(True, self,
-                               native_bt.private_component_sink_get_input_private_port_by_name,
-                               native_bt.private_component_sink_get_input_private_port_by_index,
-                               native_bt.component_sink_get_input_port_count)
+        def get_input_port_count(self_ptr):
+            ptr = self._as_not_self_specific_component_ptr(self_ptr)
+            return native_bt.component_sink_get_input_port_count(ptr)
+
+        return _ComponentPorts(self._ptr,
+                               native_bt.self_component_sink_borrow_input_port_by_name,
+                               native_bt.self_component_sink_borrow_input_port_by_index,
+                               get_input_port_count,
+                               bt2.port._UserComponentInputPort)
 
     def _add_input_port(self, name):
         utils._check_str(name)
-        fn = native_bt.private_component_sink_add_input_private_port
+        fn = native_bt.self_component_sink_add_input_port
         comp_status, priv_port_ptr = fn(self._ptr, name, None)
         _handle_component_status(comp_status,
                                  'cannot add input port to sink component object')
-        assert(priv_port_ptr)
-        return bt2.port._create_private_from_ptr(priv_port_ptr)
+        assert priv_port_ptr
+        return bt2.port._UserComponentInputPort._create_from_ptr(priv_port_ptr)

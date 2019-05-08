@@ -63,12 +63,6 @@ from bt2.message_iterator import _UserMessageIterator
 from bt2.packet import _Packet
 from bt2.plugin import *
 from bt2.port import *
-from bt2.port import _InputPort
-from bt2.port import _OutputPort
-from bt2.port import _Port
-from bt2.port import _PrivateInputPort
-from bt2.port import _PrivateOutputPort
-from bt2.port import _PrivatePort
 from bt2.py_plugin import *
 from bt2.query_executor import *
 from bt2.stream import _Stream

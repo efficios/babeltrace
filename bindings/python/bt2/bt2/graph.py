@@ -110,11 +110,21 @@ class Graph(object._SharedObject):
         elif status < 0:
             raise bt2.Error(gen_error_msg)
 
-    def add_sink_component(self, component_class, name, params=None):
-        if issubclass(component_class, bt2.component._UserSinkComponent):
+    def add_component(self, component_class, name, params=None):
+        if issubclass(component_class, bt2.component._UserSourceComponent):
             cc_ptr = component_class._cc_ptr
+            add_fn = native_bt.graph_add_source_component
+            cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
+        elif issubclass(component_class, bt2.component._UserFilterComponent):
+            cc_ptr = component_class._cc_ptr
+            add_fn = native_bt.graph_add_filter_component
+            cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
+        elif issubclass(component_class, bt2.component._UserSinkComponent):
+            cc_ptr = component_class._cc_ptr
+            add_fn = native_bt.graph_add_sink_component
+            cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
         else:
-            raise TypeError("'{}' is not a sink component class".format(
+            raise TypeError("'{}' is not a component class".format(
                 component_class.__class__.__name__))
 
         utils._check_str(name)
@@ -122,11 +132,10 @@ class Graph(object._SharedObject):
 
         params_ptr = params._ptr if params is not None else None
 
-        status, comp_ptr = native_bt.graph_add_sink_component(self._ptr, cc_ptr,
-                                                              name, params_ptr)
-        self._handle_status(status, 'cannot add sink component to graph')
-        assert(comp_ptr)
-        return bt2.component._create_component_from_ptr(comp_ptr, native_bt.COMPONENT_CLASS_TYPE_SINK)
+        status, comp_ptr = add_fn(self._ptr, cc_ptr, name, params_ptr)
+        self._handle_status(status, 'cannot add component to graph')
+        assert comp_ptr
+        return bt2.component._create_component_from_ptr(comp_ptr, cc_type)
 
     def connect_ports(self, upstream_port, downstream_port):
         utils._check_type(upstream_port, bt2.port._OutputPort)
