@@ -139,13 +139,18 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 
 	ret = stat(path, &statbuf);
 	if (ret < 0) {
-		BT_LOGE_ERRNO("Failed to stat file", ": path=%s", path);
+		/*
+		 * This is not necessarily an error as we sometimes try to open
+		 * files to see if they exist. Log the error as DEBUG severity
+		 * level.
+		 */
+		BT_LOGD_ERRNO("Failed to stat file", ": path=%s", path);
 		goto end;
 	}
 
 	/*
 	 * Use the device number and inode number to uniquely identify a file.
-	 * Even if the file as the same path, it may have been replaced so we
+	 * Even if the file has the same path, it may have been replaced so we
 	 * must open a new FD for it. This replacement of file is more likely
 	 * to happen with a lttng-live source component.
 	 */
