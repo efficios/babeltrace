@@ -75,6 +75,19 @@ void destroy_trace_class(struct bt_object *obj)
 	if (tc->destruction_listeners) {
 		uint64_t i;
 		BT_LIB_LOGV("Calling trace class destruction listener(s): %!+T", tc);
+
+		/*
+		* The trace class' reference count is 0 if we're here. Increment
+		* it to avoid a double-destroy (possibly infinitely recursive).
+		* This could happen for example if a destruction listener did
+		* bt_object_get_ref() (or anything that causes
+		* bt_object_get_ref() to be called) on the trace class (ref.
+		* count goes from 0 to 1), and then bt_object_put_ref(): the
+		* reference count would go from 1 to 0 again and this function
+		* would be called again.
+		*/
+		tc->base.ref_count++;
+
 		/* Call all the trace class destruction listeners */
 		for (i = 0; i < tc->destruction_listeners->len; i++) {
 			struct bt_trace_class_destruction_listener_elem elem =
@@ -84,6 +97,12 @@ void destroy_trace_class(struct bt_object *obj)
 			if (elem.func) {
 				elem.func(tc, elem.data);
 			}
+
+			/*
+			 * The destruction listener should not have kept a
+			 * reference to the trace class.
+			 */
+			BT_ASSERT_PRE(tc->base.ref_count == 1, "Destruction listener kept a reference to the trace class being destroyed: %![tc-]+T", tc);
 		}
 		g_array_free(tc->destruction_listeners, TRUE);
 		tc->destruction_listeners = NULL;
