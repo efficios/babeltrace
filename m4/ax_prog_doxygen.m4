@@ -97,7 +97,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 23
+#serial 24
 
 ## ----------##
 ## Defaults. ##
@@ -164,7 +164,7 @@ AC_DEFUN([DX_TEST_FEATURE], [test "$DX_FLAG_$1" = 1])
 AC_DEFUN([DX_CHECK_DEPEND], [
 test "$DX_FLAG_$1" = "$2" \
 || AC_MSG_ERROR([doxygen-DX_CURRENT_FEATURE ifelse([$2], 1,
-                            requires, contradicts) doxygen-DX_CURRENT_FEATURE])
+                            requires, contradicts) doxygen-$1])
 ])
 
 # DX_CLEAR_DEPEND(FEATURE, REQUIRED_FEATURE, REQUIRED_STATE)
