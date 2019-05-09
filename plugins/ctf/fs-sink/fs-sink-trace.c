@@ -489,6 +489,8 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 	tsdl = g_string_new(NULL);
 	BT_ASSERT(tsdl);
 	translate_trace_class_ctf_ir_to_tsdl(trace->tc, tsdl);
+
+	BT_ASSERT(trace->metadata_path);
 	fh = fopen(trace->metadata_path->str, "wb");
 	if (!fh) {
 		BT_LOGF_ERRNO("In trace destruction listener: "
@@ -514,10 +516,8 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
 		trace->path = NULL;
 	}
 
-	if (trace->metadata_path) {
-		g_string_free(trace->metadata_path, TRUE);
-		trace->metadata_path = NULL;
-	}
+	g_string_free(trace->metadata_path, TRUE);
+	trace->metadata_path = NULL;
 
 	fs_sink_ctf_trace_class_destroy(trace->tc);
 	trace->tc = NULL;
