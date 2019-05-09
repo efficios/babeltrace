@@ -548,22 +548,46 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream,
 	}
 
 	/* Packet header: magic */
-	bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
+	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 		UINT64_C(0xc1fc1fc1), 8, 32, BYTE_ORDER);
+	if (ret) {
+		BT_LOGE("Error writing packet header magic: stream-file-name=%s",
+			stream->file_name->str);
+		goto end;
+	}
 
 	/* Packet header: UUID */
 	for (i = 0; i < BABELTRACE_UUID_LEN; i++) {
-		bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
+		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 			(uint64_t) stream->sc->tc->uuid[i], 8, 8, BYTE_ORDER);
+		if (ret) {
+			BT_LOGE("Error writing packet header UUID: stream-file-name=%s",
+				stream->file_name->str);
+			goto end;
+		}
 	}
 
 	/* Packet header: stream class ID */
-	bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
+	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 		bt_stream_class_get_id(stream->sc->ir_sc), 8, 64, BYTE_ORDER);
+	if (ret) {
+		BT_LOGE("Error writing packet header stream class id: "
+			"stream-file-name=%s, stream-class-id=%"PRIu64,
+			stream->file_name->str,
+			bt_stream_class_get_id(stream->sc->ir_sc));
+		goto end;
+	}
 
 	/* Packet header: stream ID */
-	bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
+	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 		bt_stream_get_id(stream->ir_stream), 8, 64, BYTE_ORDER);
+	if (ret) {
+		BT_LOGE("Error writing packet header stream id: "
+			"stream-file-name=%s, stream-id=%"PRIu64,
+			stream->file_name->str,
+			bt_stream_get_id(stream->ir_stream));
+		goto end;
+	}
 
 	/* Save packet context's offset to rewrite it later */
 	stream->packet_state.context_offset_bits =
