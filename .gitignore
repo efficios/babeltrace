@@ -11,8 +11,6 @@
 /tests/bin/intersection/test_intersection
 /tests/bin/test_packet_seq_num
 /tests/bin/test_trace_read
-/tests/lib/test_bin_info
-/tests/lib/test_bin_info_complete
 /tests/lib/test_bitfield
 /tests/lib/test_bt_ctf_field_type_validation
 /tests/lib/test_bt_objects
@@ -20,8 +18,6 @@
 /tests/lib/test_trace_ir_ref
 /tests/lib/test_ctf_writer
 /tests/lib/test_ctf_writer_complete
-/tests/lib/test_dwarf
-/tests/lib/test_dwarf_complete
 /tests/lib/test_ir_visit
 /tests/lib/test_trace_listener
 /tests/lib/test_plugin
@@ -37,9 +33,9 @@
 /tests/plugins/test-utils-muxer
 /tests/plugins/test_utils_muxer_complete
 /tests/plugins/test_lttng_utils_debug_info
-/tests/plugins/test_bin_info_complete
+/tests/plugins/test_bin_info_x86_64-linux-gnu
 /tests/plugins/test_bin_info
-/tests/plugins/test_dwarf_complete
+/tests/plugins/test_dwarf_x86_64-linux-gnu
 /tests/plugins/test_dwarf
 /tests/plugins/ctf/test_ctf_plugin
 /tests/utils/common.sh

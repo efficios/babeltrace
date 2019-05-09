@@ -805,8 +805,8 @@ AC_CONFIG_FILES([tests/lib/ctf-writer/test_ctf_writer], [chmod +x tests/lib/ctf-
 AC_CONFIG_FILES([tests/plugins/ctf/test_ctf_plugin], [chmod +x tests/plugins/ctf/test_ctf_plugin])
 AC_CONFIG_FILES([tests/plugins/test_utils_muxer_complete], [chmod +x tests/plugins/test_utils_muxer_complete])
 AC_CONFIG_FILES([tests/plugins/test_lttng_utils_debug_info], [chmod +x tests/plugins/test_lttng_utils_debug_info])
-AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/test_dwarf_complete])
-AC_CONFIG_FILES([tests/plugins/test_bin_info_complete], [chmod +x tests/plugins/test_bin_info_complete])
+AC_CONFIG_FILES([tests/plugins/test_dwarf_x86_64-linux-gnu], [chmod +x tests/plugins/test_dwarf_x86_64-linux-gnu])
+AC_CONFIG_FILES([tests/plugins/test_bin_info_x86_64-linux-gnu], [chmod +x tests/plugins/test_bin_info_x86_64-linux-gnu])
 
 AS_IF([test "x$enable_python_bindings" = xyes],
   [

@@ -31,7 +31,6 @@ test_bin_info_LDADD = \
 test_bin_info_SOURCES = test_bin_info.c
 
 noinst_PROGRAMS += test_dwarf test_bin_info
-check_SCRIPTS += test_dwarf_complete test_bin_info_complete
 
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS
