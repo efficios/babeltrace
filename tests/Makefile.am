@@ -1,8 +1,8 @@
 SUBDIRS = utils cli lib bindings plugins
 
-EXTRA_DIST = $(srcdir)/ctf-traces/** \
-	     $(srcdir)/debug-info-data/** \
-	     $(srcdir)/debug-info-data/.build-id/cd/**
+# Directories added to EXTRA_DIST will be recursively copied to the distribution.
+EXTRA_DIST = $(srcdir)/ctf-traces \
+	     $(srcdir)/debug-info-data
 
 TESTS_BINDINGS =
 
@@ -53,8 +53,8 @@ endif
 
 if ENABLE_DEBUG_INFO
 TESTS_PLUGINS += \
-	plugins/test_dwarf_complete \
-	plugins/test_bin_info_complete
+	plugins/test_dwarf_x86_64-linux-gnu \
+	plugins/test_bin_info_x86_64-linux-gnu
 endif
 
 TESTS_PYTHON_PLUGIN_PROVIDER =

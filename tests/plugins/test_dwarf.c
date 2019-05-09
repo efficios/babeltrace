@@ -30,17 +30,23 @@
 
 #define NR_TESTS 15
 
+#define SO_NAME "libhello_so"
+#define DWARF_DIR_NAME "dwarf_full"
+
 static
 void test_bt_dwarf(const char *data_dir)
 {
 	int fd, ret, tag;
-	char path[PATH_MAX];
+	char *path;
 	char *die_name = NULL;
 	struct bt_dwarf_cu *cu = NULL;
 	struct bt_dwarf_die *die = NULL;
 	Dwarf *dwarf_info = NULL;
 
-	snprintf(path, PATH_MAX, "%s/libhello_so", data_dir);
+	path = g_build_filename(data_dir, DWARF_DIR_NAME, SO_NAME, NULL);
+	if (path == NULL) {
+		exit(EXIT_FAILURE);
+	}
 
 	fd = open(path, O_RDONLY);
 	ok(fd >= 0, "Open DWARF file %s", path);
@@ -97,6 +103,7 @@ void test_bt_dwarf(const char *data_dir)
 	dwarf_end(dwarf_info);
 	free(die_name);
 	close(fd);
+	g_free(path);
 }
 
 int main(int argc, char **argv)
