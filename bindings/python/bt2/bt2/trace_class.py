@@ -117,6 +117,21 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
 
     _uuid = property(fset=_uuid)
 
+    # Instantiate a trace of this class.
+
+    def __call__(self, name=None):
+        trace_ptr = native_bt.trace_create(self._ptr)
+
+        if trace_ptr is None:
+            raise bt2.CreationError('cannot create trace class object')
+
+        trace = bt2.trace.Trace._create_from_ptr(trace_ptr)
+
+        if name is not None:
+            trace._name = name
+
+        return trace
+
     # Number of stream classes in this trace class.
 
     def __len__(self):
@@ -149,7 +164,8 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
     def env(self):
         return _TraceClassEnv(self)
 
-    def create_stream_class(self, id=None):
+    def create_stream_class(self, id=None,
+                            assigns_automatic_stream_id=True):
 
         if self.assigns_automatic_stream_class_id:
             if id is not None:
@@ -163,7 +179,11 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
             utils._check_uint64(id)
             sc_ptr = native_bt.stream_class_create_with_id(self._ptr, id)
 
-        return bt2.StreamClass._create_from_ptr(sc_ptr)
+        sc = bt2.stream_class.StreamClass._create_from_ptr(sc_ptr)
+
+        sc._assigns_automatic_stream_id = assigns_automatic_stream_id
+
+        return sc
 
     @property
     def assigns_automatic_stream_class_id(self):

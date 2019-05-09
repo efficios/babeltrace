@@ -62,6 +62,9 @@ class _StreamBase(object._SharedObject):
 
 
 class _Stream(_StreamBase):
+    _get_ref = staticmethod(native_bt.stream_get_ref)
+    _put_ref = staticmethod(native_bt.stream_put_ref)
+
     def create_packet(self):
         packet_ptr = native_bt.packet_create(self._ptr)
 
