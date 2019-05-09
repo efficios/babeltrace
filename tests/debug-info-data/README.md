@@ -8,12 +8,12 @@ files used to generate them.
 
 The generated files are:
 
-* `libhello_so` (ELF and DWARF)
-* `libhello_elf_so` (ELF only)
-* `libhello_build_id_so` (ELF with separate DWARF via build ID)
-* `libhello_debug_link_so` (ELF with separate DWARF via debug link)
-* `libhello_debug_link_so.debug` (DWARF for debug link)
-* `.build-id/cd/d98cdd87f7fe64c13b6daad553987eafd40cbb.debug` (DWARF for build ID)
+* `ARCH/dwarf_full/libhello_so` (ELF and DWARF)
+* `ARCH/elf_only/libhello_so` (ELF only)
+* `ARCH/build_id/libhello_so` (ELF with separate DWARF via build ID)
+* `ARCH/build_id/.build-id/cd/d98cdd87f7fe64c13b6daad553987eafd40cbb.debug` (DWARF for build ID)
+* `ARCH/debug_link/libhello_so` (ELF with separate DWARF via debug link)
+* `ARCH/debug_link/libhello_so.debug` (DWARF for debug link)
 
 We use a suffix of "_so" instead of ".so" since some distributions
 build systems will consider ".so" files as artifacts from a previous
@@ -26,42 +26,42 @@ All files are generated from the four (4) following source files:
 * tp.c
 * tp.h
 
-The generated executables were built using a GNU toolchain on an
-x86_64 machine.
+The generated executables were built using a native GNU toolchain on either
+Ubuntu 16.04 or 18.04 depending on the architecture.
 
-To regenerate them, you can use follow these steps:
+To regenerate them, you can use the included Makefile or follow these steps:
 
-## ELF and DWARF
+## Generate the object files
 
-    $ gcc -g -fPIC -c -I. tp.c libhello.c
-    $ gcc -shared -g -llttng-ust -ldl -Wl,-soname,libhello.so -o libhello_so tp.o libhello.o
+    $ gcc -gdwarf -fdebug-prefix-map=$(pwd)=. -fPIC -c -I. tp.c libhello.c
+
+## Combined ELF and DWARF
+
+    $ build_id_prefix=cd
+    $ build_id_suffix=d98cdd87f7fe64c13b6daad553987eafd40cbb
+    $ build_id="$build_id_prefix$build_id_suffix"
+    $ mkdir dwarf_full
+    $ gcc -shared -g -llttng-ust -ldl -Wl,-soname,libhello.so -Wl,--build-id=0x$build_id -o dwarf_full/libhello_so tp.o libhello.o
 
 ## ELF only
 
-    $ gcc -fPIC -c -I. tp.c libhello.c
-    $ gcc -shared -llttng-ust -ldl -Wl,-soname,libhello_elf.so -o libhello_elf_so tp.o libhello.o
+    $ mkdir elf_only
+    $ objcopy -g dwarf_full/libhello_so elf_only/libhello_so
+    $ objcopy --remove-section=.note.gnu.build-id elf_only/libhello_so
 
 ## ELF and DWARF with Build ID
 
-    $ gcc -g -fPIC -c -I. tp.c libhello.c
-    $ gcc -shared -g -llttng-ust -ldl -Wl,-soname,libhello_build_id.so -Wl,--build-id=sha1 -o libhello_build_id_so tp.o libhello.o
-    $ mkdir -p .build-id/cd/
-    $ objcopy --only-keep-debug libhello_build_id_so .build-id/cd/d98cdd87f7fe64c13b6daad553987eafd40cbb.debug
-    $ strip -g libhello_build_id_so
-
-The build ID might not be the same once the executable is regenerated
-on your system, so adjust the values in the directory and file names
-accordingly. Refer to the GDB documentation for more information:
-https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
+    $ mkdir -p build_id/.build-id/$build_id_prefix
+    $ objcopy --only-keep-debug dwarf_full/libhello_so build_id/.build-id/$build_id_prefix/$build_id_suffix.debug
+    $ objcopy -g dwarf_full/libhello_so build_id/libhello_so
 
 ##  ELF and DWARF with Debug Link
 
-    $ gcc -g -fPIC -c -I. tp.c libhello.c
-    $ gcc -shared -g -llttng-ust -ldl -Wl,-soname,libhello_debug_link.so -o libhello_debug_link_so tp.o libhello.o
-
-    $ objcopy --only-keep-debug libhello_debug_link_so libhello_debug_link_so.debug
-    $ strip -g libhello_debug_link_so
-    $ objcopy --add-gnu-debuglink=libhello_debug_link_so.debug libhello_debug_link_so
+    $ mkdir debug_link
+    $ objcopy --remove-section=.note.gnu.build-id dwarf_full/libhello_so debug_link/libhello_so
+    $ objcopy --only-keep-debug debug_link/libhello_so debug_link/libhello_so.debug
+    $ objcopy -g debug_link/libhello_so
+    $ cd debug_link && objcopy --add-gnu-debuglink=libhello_so.debug libhello_so && cd ..
 
 
 Test program
