@@ -21,4 +21,5 @@ EXTRA_DIST = 						\
 	test_trace.py					\
 	test_trace_collection_message_iterator.py	\
 	test_value.py					\
+	utils.py					\
 	.coveragerc

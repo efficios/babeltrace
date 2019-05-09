@@ -122,6 +122,16 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
         utils._handle_ret(ret, "cannot set stream class object's name")
 
     @property
+    def assigns_automatic_stream_id(self):
+        return native_bt.stream_class_assigns_automatic_stream_id(self._ptr)
+
+    def _assigns_automatic_stream_id(self, auto_id):
+        utils._check_bool(auto_id)
+        return native_bt.stream_class_set_assigns_automatic_stream_id(self._ptr, auto_id)
+
+    _assigns_automatic_stream_id = property(fset=_assigns_automatic_stream_id)
+
+    @property
     def id(self):
         id = native_bt.stream_class_get_id(self._ptr)
 
