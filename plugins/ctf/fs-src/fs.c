@@ -600,7 +600,7 @@ void array_insert(GPtrArray *array, gpointer element, size_t pos)
 			(original_array_len - pos) * sizeof(gpointer));
 	}
 
-	/* Insert the value and bump the array len */
+	/* Insert the value. */
 	array->pdata[pos] = element;
 }
 
