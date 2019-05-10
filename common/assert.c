@@ -23,10 +23,9 @@
 #include <babeltrace/assert-internal.h>
 #include <babeltrace/common-internal.h>
 
-void bt_common_assert_failed(
-	const char *file, int line, const char *func, const char *assertion) {
-	bt_common_color_bold();
-	bt_common_color_fg_red();
+void bt_common_assert_failed(const char *file, int line, const char *func,
+		const char *assertion)
+{
 	fprintf(stderr,
 		"%s\n%s%s%s (╯°□°)╯︵ ┻━┻ %s %s%s%s%s:%s%d%s: %s%s()%s: "
 		"%sAssertion %s`%s`%s%s failed.%s\n",
