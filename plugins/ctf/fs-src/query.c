@@ -285,13 +285,6 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 			g_ptr_array_index(group->ds_file_infos,
 				file_idx);
 
-		if (!info->index || info->index->entries->len == 0) {
-			BT_LOGW("Cannot determine range of unindexed stream file \'%s\'",
-				info->path->str);
-			ret = -1;
-			goto end;
-		}
-
 		status = bt_value_array_append_string_element(file_paths,
 				info->path->str);
 		if (status != BT_VALUE_STATUS_OK) {
@@ -314,11 +307,15 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	last_file_info = g_ptr_array_index(group->ds_file_infos,
 		group->ds_file_infos->len - 1);
 
+	BT_ASSERT(first_file_info->index);
+	BT_ASSERT(first_file_info->index->entries);
 	BT_ASSERT(first_file_info->index->entries->len > 0);
 
 	first_ds_index_entry = (struct ctf_fs_ds_index_entry *) &g_array_index(
 		first_file_info->index->entries, struct ctf_fs_ds_index_entry, 0);
 
+	BT_ASSERT(last_file_info->index);
+	BT_ASSERT(last_file_info->index->entries);
 	BT_ASSERT(last_file_info->index->entries->len > 0);
 
 	last_ds_index_entry = (struct ctf_fs_ds_index_entry *) &g_array_index(
