@@ -29,14 +29,10 @@ import bt2
 
 class _MessageIterator(collections.abc.Iterator):
     def _handle_status(self, status, gen_error_msg):
-        if status == native_bt.MESSAGE_ITERATOR_STATUS_CANCELED:
-            raise bt2.MessageIteratorCanceled
-        elif status == native_bt.MESSAGE_ITERATOR_STATUS_AGAIN:
+        if status == native_bt.MESSAGE_ITERATOR_STATUS_AGAIN:
             raise bt2.TryAgain
         elif status == native_bt.MESSAGE_ITERATOR_STATUS_END:
             raise bt2.Stop
-        elif status == native_bt.MESSAGE_ITERATOR_STATUS_UNSUPPORTED:
-            raise bt2.UnsupportedFeature
         elif status < 0:
             raise bt2.Error(gen_error_msg)
 
@@ -45,19 +41,23 @@ class _MessageIterator(collections.abc.Iterator):
 
 
 class _GenericMessageIterator(object._SharedObject, _MessageIterator):
-    def _get_msg(self):
-        msg_ptr = native_bt.message_iterator_get_message(self._ptr)
-        utils._handle_ptr(msg_ptr, "cannot get message iterator object's current message object")
-        return bt2.message._create_from_ptr(msg_ptr)
-
-    def _next(self):
-        status = native_bt.message_iterator_next(self._ptr)
-        self._handle_status(status,
-                            'unexpected error: cannot advance the message iterator')
+    def __init__(self, ptr):
+            self._current_msgs = []
+            self._at = 0
+            super().__init__(ptr)
 
     def __next__(self):
-        self._next()
-        return self._get_msg()
+        if len(self._current_msgs) == self._at:
+            status, msgs = self._get_msg_range(self._ptr)
+            self._handle_status(status,
+                                'unexpected error: cannot advance the message iterator')
+            self._current_msgs = msgs
+            self._at = 0
+
+        msg_ptr = self._current_msgs[self._at]
+        self._at += 1
+
+        return bt2.message._create_from_ptr(msg_ptr)
 
 
 class _PrivateConnectionMessageIterator(_GenericMessageIterator):
@@ -69,7 +69,9 @@ class _PrivateConnectionMessageIterator(_GenericMessageIterator):
 
 
 class _OutputPortMessageIterator(_GenericMessageIterator):
-    pass
+    _get_msg_range = staticmethod(native_bt.py3_port_output_get_msg_range)
+    _get_ref = staticmethod(native_bt.port_output_message_iterator_get_ref)
+    _put_ref = staticmethod(native_bt.port_output_message_iterator_put_ref)
 
 
 class _UserMessageIterator(_MessageIterator):
@@ -116,6 +118,68 @@ class _UserMessageIterator(_MessageIterator):
 
         utils._check_type(msg, bt2.message._Message)
 
-        # take a new reference for the native part
-        msg._get()
-        return int(msg._ptr)
+        # Release the reference to the native part.
+        ptr = msg._release()
+        return int(ptr)
+
+    # Validate that the presence or lack of presence of a
+    # `default_clock_snapshot` value is valid in the context of `stream_class`.
+    @staticmethod
+    def _validate_default_clock_snapshot(stream_class, default_clock_snapshot):
+        stream_class_has_default_clock_class = stream_class.default_clock_class is not None
+
+        if stream_class_has_default_clock_class and default_clock_snapshot is None:
+            raise bt2.Error(
+                'stream class has a default clock class, default_clock_snapshot should not be None')
+
+        if not stream_class_has_default_clock_class and default_clock_snapshot is not None:
+            raise bt2.Error(
+                'stream class has no default clock class, default_clock_snapshot should be None')
+
+    def _create_event_message(self, event_class, packet, default_clock_snapshot=None):
+        utils._check_type(event_class, bt2.event_class.EventClass)
+        utils._check_type(packet, bt2.packet._Packet)
+        self._validate_default_clock_snapshot(packet.stream.stream_class, default_clock_snapshot)
+
+        if default_clock_snapshot is not None:
+            utils._check_uint64(default_clock_snapshot)
+            ptr = native_bt.message_event_create_with_default_clock_snapshot(
+                self._ptr, event_class._ptr, packet._ptr, default_clock_snapshot)
+        else:
+            ptr = native_bt.message_event_create(
+                self._ptr, event_class._ptr, packet._ptr)
+
+        if ptr is None:
+            raise bt2.CreationError('cannot create event message object')
+
+        return bt2.message._EventMessage(ptr)
+
+    def _create_stream_beginning_message(self, stream):
+        utils._check_type(stream, bt2.stream._Stream)
+
+        ptr = native_bt.message_stream_beginning_create(self._ptr, stream._ptr)
+        if ptr is None:
+            raise bt2.CreationError('cannot create stream beginning message object')
+
+        return bt2.message._StreamBeginningMessage(ptr)
+
+    def _create_packet_beginning_message(self, packet, default_clock_snapshot=None):
+        utils._check_type(packet, bt2.packet._Packet)
+
+        if packet.stream.stream_class.packets_have_default_beginning_clock_snapshot:
+            if default_clock_snapshot is None:
+                raise bt2.CreationError("packet beginning messages in this stream must have a default clock snapshots")
+
+            utils._check_uint64(default_clock_snapshot)
+            ptr = native_bt.message_packet_beginning_create_with_default_clock_snapshot(
+                self._ptr, packet._ptr, default_clock_snapshot)
+        else:
+            if default_clock_snapshot is not None:
+                raise bt2.CreationError("packet beginning messages in this stream must not have a default clock snapshots")
+
+            ptr = native_bt.message_packet_beginning_create(self._ptr, packet._ptr)
+
+        if ptr is None:
+            raise bt2.CreationError('cannot create packet beginning message object')
+
+        return bt2.message._PacketBeginningMessage(ptr)

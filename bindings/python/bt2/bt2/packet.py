@@ -29,11 +29,14 @@ import bt2
 
 
 class _Packet(object._SharedObject):
+    _get_ref = staticmethod(native_bt.packet_get_ref)
+    _put_ref = staticmethod(native_bt.packet_put_ref)
+
     @property
     def stream(self):
-        stream_ptr = native_bt.packet_get_stream(self._ptr)
-        assert(stream_ptr)
-        return bt2.stream._Stream._create_from_ptr(stream_ptr)
+        stream_ptr = native_bt.packet_borrow_stream(self._ptr)
+        assert stream_ptr is not None
+        return bt2.stream._Stream._create_from_ptr_and_get_ref(stream_ptr)
 
     @property
     def header_field(self):
@@ -57,12 +60,15 @@ class _Packet(object._SharedObject):
 
     @property
     def context_field(self):
-        field_ptr = native_bt.packet_get_context(self._ptr)
+        field_ptr = native_bt.packet_borrow_context_field(self._ptr)
 
         if field_ptr is None:
             return
 
-        return bt2.field._create_from_ptr(field_ptr)
+        return bt2.field._create_field_from_ptr(field_ptr, self._ptr,
+                                                self._get_ref,
+                                                self._put_ref)
+
 
     @context_field.setter
     def context_field(self, context_field):

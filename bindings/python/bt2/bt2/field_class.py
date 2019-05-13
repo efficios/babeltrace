@@ -199,14 +199,24 @@ class _IntegerFieldClass(_FieldClass):
         utils._handle_ret(ret, "cannot set integer field class object's mapped clock class")
 
 
+class _UnsignedIntegerFieldClass(_IntegerFieldClass):
+    pass
+
+
 class _SignedIntegerFieldClass(_IntegerFieldClass):
     pass
+
+
+class UnsignedIntegerFieldClass(_UnsignedIntegerFieldClass):
+    _NAME = 'UnsignedInteger'
+
 
 class SignedIntegerFieldClass(_SignedIntegerFieldClass):
     _NAME = 'SignedInteger'
 
-class FloatingPointNumberFieldClass(_FieldClass, _AlignmentProp, _ByteOrderProp):
-    _NAME = 'Floating point number'
+
+class RealFieldClass(_FieldClass):
+    _NAME = 'Real'
 
     def __init__(self, alignment=None, byte_order=None, exponent_size=None,
                  mantissa_size=None):

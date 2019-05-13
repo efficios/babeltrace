@@ -243,6 +243,21 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
                                                 bt2.field_class.SignedIntegerFieldClass,
                                                 'signed integer', range, display_base)
 
+    def create_unsigned_integer_field_class(self, range=None, display_base=None):
+        return self._create_integer_field_class(native_bt.field_class_unsigned_integer_create,
+                                                bt2.field_class.UnsignedIntegerFieldClass,
+                                                'unsigned integer', range, display_base)
+
+    def create_real_field_class(self, is_single_precision=False):
+        field_class_ptr = native_bt.field_class_real_create(self._ptr)
+        self._check_create_status(field_class_ptr, 'real')
+
+        field_class = bt2.field_class.RealFieldClass._create_from_ptr(field_class_ptr)
+
+        field_class._single_precision = is_single_precision
+
+        return field_class
+
     def create_structure_field_class(self):
         field_class_ptr = native_bt.field_class_structure_create(self._ptr)
         self._check_create_status(field_class_ptr, 'structure')

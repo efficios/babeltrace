@@ -48,10 +48,8 @@ class _ClockSnapshot(object._UniqueObject):
         return bt2.ClockClass._create_from_ptr(ptr)
 
     @property
-    def cycles(self):
-        ret, cycles = native_bt.clock_snapshot_get_value(self._ptr)
-        assert(ret == 0)
-        return cycles
+    def value(self):
+        return native_bt.clock_snapshot_get_value(self._ptr)
 
     @property
     def ns_from_epoch(self):

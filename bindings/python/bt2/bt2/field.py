@@ -37,16 +37,12 @@ def _get_leaf_field(obj):
     return _get_leaf_field(obj.selected_field)
 
 
-def _create_from_ptr(ptr):
-    # recreate the field class wrapper of this field's type (the identity
-    # could be different, but the underlying address should be the
-    # same)
-    field_class_ptr = native_bt.field_get_type(ptr)
-    utils._handle_ptr(field_class_ptr, "cannot get field object's type")
-    field_class = bt2.field_class._create_from_ptr(field_class_ptr)
-    typeid = native_bt.field_class_get_type_id(field_class._ptr)
-    field = _TYPE_ID_TO_OBJ[typeid]._create_from_ptr(ptr)
-    field._field_class = field_class
+def _create_field_from_ptr(ptr, owner_ptr, owner_get_ref, owner_put_ref):
+    field_class_ptr = native_bt.field_borrow_class_const(ptr)
+    utils._handle_ptr(field_class_ptr, "cannot get field object's class")
+    typeid = native_bt.field_class_get_type(field_class_ptr)
+    field = _TYPE_ID_TO_OBJ[typeid]._create_from_ptr_and_get_ref(
+        ptr, owner_ptr, owner_get_ref, owner_put_ref)
     return field
 
 
@@ -283,56 +279,56 @@ class _IntegralField(_NumericField, numbers.Integral):
         return self
 
 
-class _RealField(_NumericField, numbers.Real):
+class _IntegerField(_IntegralField, _Field):
     pass
 
 
-class _IntegerField(_IntegralField):
-    _NAME = 'Integer'
-
+class _UnsignedIntegerField(_IntegerField, _Field):
+    _NAME = 'Unsigned integer'
     def _value_to_int(self, value):
         if not isinstance(value, numbers.Real):
             raise TypeError('expecting a real number object')
 
         value = int(value)
-
-        if self.field_class.is_signed:
-            utils._check_int64(value)
-        else:
-            utils._check_uint64(value)
+        utils._check_uint64(value)
 
         return value
 
     @property
     def _value(self):
-        if self.field_class.is_signed:
-            ret, value = native_bt.field_signed_integer_get_value(self._ptr)
-        else:
-            ret, value = native_bt.field_unsigned_integer_get_value(self._ptr)
-
-        if ret < 0:
-            if not self.is_set:
-                return
-
-            utils._handle_ret(ret, "cannot get integer field's value")
-
-        return value
+        return native_bt.field_unsigned_integer_get_value(self._ptr)
 
     def _set_value(self, value):
         value = self._value_to_int(value)
-
-        if self.field_class.is_signed:
-            ret = native_bt.field_signed_integer_set_value(self._ptr, value)
-        else:
-            ret = native_bt.field_unsigned_integer_set_value(self._ptr, value)
-
-        utils._handle_ret(ret, "cannot set integer field object's value")
+        native_bt.field_unsigned_integer_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
 
 
-class _FloatingPointNumberField(_RealField):
-    _NAME = 'Floating point number'
+class _SignedIntegerField(_IntegerField, _Field):
+    _NAME = 'Signed integer'
+    def _value_to_int(self, value):
+        if not isinstance(value, numbers.Real):
+            raise TypeError('expecting a real number object')
+
+        value = int(value)
+        utils._check_int64(value)
+
+        return value
+
+    @property
+    def _value(self):
+        return native_bt.field_signed_integer_get_value(self._ptr)
+
+    def _set_value(self, value):
+        value = self._value_to_int(value)
+        native_bt.field_signed_integer_set_value(self._ptr, value)
+
+    value = property(fset=_set_value)
+
+
+class _RealField(_NumericField, numbers.Real):
+    _NAME = 'Real'
 
     def _value_to_float(self, value):
         if not isinstance(value, numbers.Real):
@@ -342,20 +338,11 @@ class _FloatingPointNumberField(_RealField):
 
     @property
     def _value(self):
-        ret, value = native_bt.field_floating_point_get_value(self._ptr)
-
-        if ret < 0:
-            if not self.is_set:
-                return
-
-            utils._handle_ret(ret, "cannot get floating point number field's value")
-
-        return value
+        return native_bt.field_real_get_value(self._ptr)
 
     def _set_value(self, value):
         value = self._value_to_float(value)
-        ret = native_bt.field_floating_point_set_value(self._ptr, value)
-        utils._handle_ret(ret, "cannot set floating point number field object's value")
+        native_bt.field_real_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
 
@@ -472,12 +459,14 @@ class _StructureField(_ContainerField, collections.abc.MutableMapping):
 
     def __getitem__(self, key):
         utils._check_str(key)
-        ptr = native_bt.field_structure_get_field_by_name(self._ptr, key)
+        field_ptr = native_bt.field_structure_borrow_member_field_by_name(self._ptr, key)
 
-        if ptr is None:
+        if field_ptr is None:
             raise KeyError(key)
 
-        return _create_from_ptr(ptr)
+        return _create_field_from_ptr(field_ptr, self._owner_ptr,
+                                      self._owner_get_ref,
+                                      self._owner_put_ref)
 
     def __setitem__(self, key, value):
         # raises if key is somehow invalid
@@ -725,4 +714,9 @@ class _SequenceField(_ArraySequenceField):
 
 
 _TYPE_ID_TO_OBJ = {
+    native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerField,
+    native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerField,
+    native_bt.FIELD_CLASS_TYPE_REAL: _RealField,
+    native_bt.FIELD_CLASS_TYPE_STRING: _StringField,
+    native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureField,
 }

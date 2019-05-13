@@ -192,6 +192,15 @@ class Graph(object._SharedObject):
         assert(is_canceled >= 0)
         return is_canceled > 0
 
+    def create_output_port_message_iterator(self, output_port):
+        utils._check_type(output_port, bt2.port._OutputPort)
+        msg_iter_ptr = native_bt.port_output_message_iterator_create(self._ptr, output_port._ptr)
+
+        if msg_iter_ptr is None:
+            raise bt2.CreationError('cannot create output port message iterator')
+
+        return bt2.message_iterator._OutputPortMessageIterator(msg_iter_ptr)
+
     def __eq__(self, other):
         if type(other) is not type(self):
             return False

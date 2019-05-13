@@ -47,7 +47,7 @@ from bt2.field import *
 from bt2.field import _ArrayField
 from bt2.field import _EnumerationField
 from bt2.field import _Field
-from bt2.field import _FloatingPointNumberField
+from bt2.field import _RealField
 from bt2.field import _IntegerField
 from bt2.field import _SequenceField
 from bt2.field import _StringField
