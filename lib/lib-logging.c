@@ -75,7 +75,7 @@
 
 #define LIB_LOGGING_BUF_SIZE	(4096 * 4)
 
-static char __thread lib_logging_buf[LIB_LOGGING_BUF_SIZE];
+static __thread char lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 
 #define BUF_APPEND(_fmt, ...)						\
 	do {								\

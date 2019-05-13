@@ -539,7 +539,7 @@ STATIC_ASSERT(eol_sz_greater_than_zero, 0 < BT_LOG_EOL_SZ);
 STATIC_ASSERT(eol_sz_less_than_buf_sz, BT_LOG_EOL_SZ < BT_LOG_BUF_SZ);
 static const char c_hex[] = "0123456789abcdef";
 
-static char __thread logging_buf[4 * 4096];
+static __thread char logging_buf[4 * 4096];
 
 static INSTRUMENTED_CONST unsigned g_buf_sz = BT_LOG_BUF_SZ - BT_LOG_EOL_SZ;
 static INSTRUMENTED_CONST time_cb g_time_cb = time_callback;
