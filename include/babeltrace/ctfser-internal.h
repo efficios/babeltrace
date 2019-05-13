@@ -146,8 +146,7 @@ bool _bt_ctfser_has_space_left(struct bt_ctfser *ctfser, uint64_t size_bits)
 		goto end;
 	}
 
-	if (unlikely(ctfser->offset_in_cur_packet_bits < 0 || size_bits >
-			UINT64_MAX - ctfser->offset_in_cur_packet_bits)) {
+	if (unlikely(size_bits > UINT64_MAX - ctfser->offset_in_cur_packet_bits)) {
 		has_space_left = false;
 		goto end;
 	}

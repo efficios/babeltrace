@@ -922,11 +922,6 @@ int print_sequence(struct pretty_component *pretty,
 	uint64_t i;
 
 	len = bt_field_array_get_length(seq);
-	if (len < 0) {
-		ret = -1;
-		goto end;
-	}
-
 	g_string_append(pretty->string, "[");
 
 	pretty->depth++;

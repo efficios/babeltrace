@@ -3204,7 +3204,7 @@ int visit_event_decl_entry(struct ctx *ctx, struct ctf_node *node,
 			 * Only read "stream_id" if get_unary_unsigned()
 			 * succeeded.
 			 */
-			if (ret || (!ret && *stream_id < 0)) {
+			if (ret) {
 				_BT_LOGE_NODE(node,
 					"Unexpected unary expression for event class's `stream_id` attribute.");
 				ret = -EINVAL;
