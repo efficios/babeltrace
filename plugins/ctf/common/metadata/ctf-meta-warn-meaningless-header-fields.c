@@ -97,8 +97,8 @@ void warn_meaningless_fields(struct ctf_field_class *fc, const char *name,
 			goto end;
 		}
 
-		/* Fallthrough */
 	}
+	/* fall-through */
 	case CTF_FIELD_CLASS_TYPE_SEQUENCE:
 	{
 		struct ctf_field_class_array_base *array_fc = (void *) fc;

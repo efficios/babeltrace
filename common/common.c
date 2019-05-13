@@ -822,7 +822,7 @@ void bt_common_normalize_star_glob_pattern(char *pattern)
 				goto end;
 			}
 
-			/* Fall through default case. */
+			/* fall-through */
 		default:
 			got_star = false;
 			break;
@@ -1042,6 +1042,7 @@ retry:
 			 * Fall through the default case which compares
 			 * the escaped character now.
 			 */
+			/* fall-through */
 		default:
 			if (at_end_of_pattern(p, pattern, pattern_len) ||
 					*c != *p) {
