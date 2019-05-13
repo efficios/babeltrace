@@ -883,11 +883,13 @@ static int set_parent_node(struct ctf_node *node,
 			parent->u.field_class_alias.target = node;
 		else
 			return -EINVAL;
+		/* fall-through */
 	case NODE_TYPEALIAS_ALIAS:
 		if (parent->type == NODE_TYPEALIAS)
 			parent->u.field_class_alias.alias = node;
 		else
 			return -EINVAL;
+		/* fall-through */
 	case NODE_TYPEALIAS:
 		return reparent_field_class_alias(node, parent);
 
