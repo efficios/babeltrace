@@ -1718,7 +1718,6 @@ int cmd_run_ctx_connect_upstream_port_to_downstream_component(
 	}
 
 	downstream_port_count = port_count_fn(downstream_comp);
-	BT_ASSERT(downstream_port_count >= 0);
 
 	for (i = 0; i < downstream_port_count; i++) {
 		const bt_port_input *in_downstream_port =
@@ -2546,7 +2545,6 @@ int cmd_run_ctx_connect_comp_ports(struct cmd_run_ctx *ctx,
 	uint64_t i;
 
 	count = port_count_fn(comp);
-	BT_ASSERT(count >= 0);
 
 	for (i = 0; i < count; i++) {
 		const bt_port_output *upstream_port = port_by_index_fn(comp, i);

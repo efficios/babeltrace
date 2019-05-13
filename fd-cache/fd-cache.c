@@ -189,8 +189,6 @@ struct bt_fd_cache_handle *bt_fd_cache_get_handle(struct bt_fd_cache *fdc,
 		g_hash_table_insert(fdc->cache, fd_internal->key, fd_internal);
 	}
 
-	BT_ASSERT(fd_internal->ref_count >= 0);
-
 	fd_internal->ref_count++;
 	goto end;
 
