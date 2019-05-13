@@ -54,7 +54,8 @@ def _msg_types_from_msg_classes(message_types):
 
 
 class _Message(object._SharedObject):
-    pass
+    _get_ref = staticmethod(native_bt.message_get_ref)
+    _put_ref = staticmethod(native_bt.message_put_ref)
 
 
 class _CopyableMessage(_Message):
@@ -67,30 +68,25 @@ class _CopyableMessage(_Message):
         return cpy
 
 
-class EventMessage(_CopyableMessage):
+class _EventMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_EVENT
-
-    def __init__(self, event, cc_prio_map=None):
-        utils._check_type(event, bt2.event._Event)
-
-        if cc_prio_map is not None:
-            utils._check_type(cc_prio_map, bt2.clock_class_priority_map.ClockClassPriorityMap)
-            cc_prio_map_ptr = cc_prio_map._ptr
-        else:
-            cc_prio_map_ptr = None
-
-        ptr = native_bt.message_event_create(event._ptr, cc_prio_map_ptr)
-
-        if ptr is None:
-            raise bt2.CreationError('cannot create event message object')
-
-        super().__init__(ptr)
 
     @property
     def event(self):
-        event_ptr = native_bt.message_event_get_event(self._ptr)
-        assert(event_ptr)
-        return bt2.event._create_from_ptr(event_ptr)
+        event_ptr = native_bt.message_event_borrow_event(self._ptr)
+        assert event_ptr is not None
+        return bt2.event._Event._create_from_ptr_and_get_ref(
+            event_ptr, self._ptr, self._get_ref, self._put_ref)
+
+    @property
+    def default_clock_snapshot(self):
+        if self.event.event_class.stream_class.default_clock_class is None:
+            return None
+
+        snapshot_ptr = native_bt.message_event_borrow_default_clock_snapshot_const(self._ptr)
+
+        return bt2.clock_snapshot._ClockSnapshot._create_from_ptr_and_get_ref(
+            snapshot_ptr, self._ptr, self._get_ref, self._put_ref)
 
     @property
     def clock_class_priority_map(self):
@@ -123,17 +119,8 @@ class EventMessage(_CopyableMessage):
         return EventMessage(self.event, self.clock_class_priority_map)
 
 
-class PacketBeginningMessage(_CopyableMessage):
+class _PacketBeginningMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_PACKET_BEGINNING
-
-    def __init__(self, packet):
-        utils._check_type(packet, bt2.packet._Packet)
-        ptr = native_bt.message_packet_begin_create(packet._ptr)
-
-        if ptr is None:
-            raise bt2.CreationError('cannot create packet beginning message object')
-
-        super().__init__(ptr)
 
     @property
     def packet(self):
@@ -193,17 +180,8 @@ class PacketEndMessage(_CopyableMessage):
         return PacketEndMessage(self.packet)
 
 
-class StreamBeginningMessage(_CopyableMessage):
+class _StreamBeginningMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_STREAM_BEGINNING
-
-    def __init__(self, stream):
-        utils._check_type(stream, bt2.stream._Stream)
-        ptr = native_bt.message_stream_begin_create(stream._ptr)
-
-        if ptr is None:
-            raise bt2.CreationError('cannot create stream beginning message object')
-
-        super().__init__(ptr)
 
     @property
     def stream(self):
@@ -493,10 +471,10 @@ class _DiscardedEventsMessage(_DiscardedElementsMessage):
 
 
 _MESSAGE_TYPE_TO_CLS = {
-    native_bt.MESSAGE_TYPE_EVENT: EventMessage,
-    native_bt.MESSAGE_TYPE_PACKET_BEGINNING: PacketBeginningMessage,
+    native_bt.MESSAGE_TYPE_EVENT: _EventMessage,
+    native_bt.MESSAGE_TYPE_PACKET_BEGINNING: _PacketBeginningMessage,
     native_bt.MESSAGE_TYPE_PACKET_END: PacketEndMessage,
-    native_bt.MESSAGE_TYPE_STREAM_BEGINNING: StreamBeginningMessage,
+    native_bt.MESSAGE_TYPE_STREAM_BEGINNING: _StreamBeginningMessage,
     native_bt.MESSAGE_TYPE_STREAM_END: StreamEndMessage,
     native_bt.MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY: InactivityMessage,
     native_bt.MESSAGE_TYPE_DISCARDED_PACKETS: _DiscardedPacketsMessage,

@@ -72,10 +72,14 @@ class _UniqueObject(_BaseObject):
     def _create_from_ptr_and_get_ref(cls, ptr, owner_ptr,
                                      owner_get_ref, owner_put_ref):
         obj = cls.__new__(cls)
+
         obj._ptr = ptr
         obj._owner_ptr = owner_ptr
+        obj._owner_get_ref = owner_get_ref
         obj._owner_put_ref = owner_put_ref
-        owner_get_ref(obj._owner_ptr)
+
+        obj._owner_get_ref(obj._owner_ptr)
+
         return obj
 
     def __del__(self):
