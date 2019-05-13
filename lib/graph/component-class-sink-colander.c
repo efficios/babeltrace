@@ -94,15 +94,17 @@ void colander_finalize(struct bt_self_component_sink *self_comp)
 }
 
 static
-enum bt_self_component_status colander_input_port_connected(
-		struct bt_self_component_sink *self_comp,
-		struct bt_self_component_port_input *self_port,
-		const struct bt_port_output *other_port)
+enum bt_self_component_status colander_graph_is_configured(
+	bt_self_component_sink *self_comp)
 {
 	enum bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	struct bt_component_class_sink_colander_priv_data *colander_data =
 		bt_self_component_get_data(
 			bt_self_component_sink_as_self_component(self_comp));
+
+	struct bt_self_component_port_input *self_port =
+		bt_self_component_sink_borrow_input_port_by_name(self_comp, "in");
+	BT_ASSERT(self_port);
 
 	BT_ASSERT(colander_data);
 	BT_OBJECT_PUT_REF_AND_RESET(colander_data->msg_iter);
@@ -183,8 +185,8 @@ struct bt_component_class_sink *bt_component_class_sink_colander_get(void)
 		colander_comp_cls, colander_init);
 	(void) bt_component_class_sink_set_finalize_method(
 		colander_comp_cls, colander_finalize);
-	(void) bt_component_class_sink_set_input_port_connected_method(
-		colander_comp_cls, colander_input_port_connected);
+	(void) bt_component_class_sink_set_graph_is_configured_method(
+		colander_comp_cls, colander_graph_is_configured);
 
 end:
 	bt_object_get_ref(colander_comp_cls);

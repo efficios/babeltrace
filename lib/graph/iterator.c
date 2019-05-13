@@ -792,11 +792,14 @@ bt_port_output_message_iterator_create(struct bt_graph *graph,
 	 */
 	bt_graph_set_can_consume(iterator->graph, false);
 
-	/*
-	 * Also set the graph as being configured: it has no active sink
-	 * anyway, so we don't need to call bt_graph_configure().
-	 */
-	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_CONFIGURED;
+	/* Also set the graph as being configured. */
+	graph_status = bt_graph_configure(graph);
+	if (graph_status != BT_GRAPH_STATUS_OK) {
+		BT_LIB_LOGW("Cannot configure graph after having added colander: "
+			"%![graph-]+g, status=%s", graph,
+			bt_graph_status_string(graph_status));
+		goto error;
+	}
 	goto end;
 
 error:
