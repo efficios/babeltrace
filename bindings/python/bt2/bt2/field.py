@@ -70,7 +70,9 @@ class _Field(object._UniqueObject, metaclass=abc.ABCMeta):
 
     @property
     def field_class(self):
-        return self._field_class
+        field_class_ptr = native_bt.field_borrow_class_const(self._ptr)
+        assert field_class_ptr is not None
+        return bt2.field_class._create_field_class_from_ptr_and_get_ref(field_class_ptr)
 
     @property
     def is_set(self):
