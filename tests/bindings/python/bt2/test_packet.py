@@ -1,150 +1,77 @@
 from collections import OrderedDict
-from bt2 import value
 import unittest
-import copy
-import bt2
+from utils import run_in_component_init
 
 
-@unittest.skip("this is broken")
 class PacketTestCase(unittest.TestCase):
-    def setUp(self):
-        self._packet = self._create_packet()
+    @staticmethod
+    def _create_packet(with_pc):
+        def create_tc_cc(comp_self):
+            cc = comp_self._create_clock_class(frequency=1000, name='my_cc')
+            tc = comp_self._create_trace_class()
+            return cc, tc
 
-    def tearDown(self):
-        del self._packet
-
-    def _create_packet(self, with_ph=True, with_pc=True):
-        # event header
-        eh = bt2.StructureFieldClass()
-        eh += OrderedDict((
-            ('id', bt2.IntegerFieldClass(8)),
-            ('ts', bt2.IntegerFieldClass(32)),
-        ))
+        clock_class, tc = run_in_component_init(create_tc_cc)
 
         # stream event context
-        sec = bt2.StructureFieldClass()
+        sec = tc.create_structure_field_class()
         sec += OrderedDict((
-            ('cpu_id', bt2.IntegerFieldClass(8)),
-            ('stuff', bt2.FloatingPointNumberFieldClass()),
+            ('cpu_id', tc.create_signed_integer_field_class(8)),
+            ('stuff', tc.create_real_field_class()),
         ))
 
         # packet context
+        pc = None
         if with_pc:
-            pc = bt2.StructureFieldClass()
+            pc = tc.create_structure_field_class()
             pc += OrderedDict((
-                ('something', bt2.IntegerFieldClass(8)),
-                ('something_else', bt2.FloatingPointNumberFieldClass()),
+                ('something', tc.create_signed_integer_field_class(8)),
+                ('something_else', tc.create_real_field_class()),
+                ('events_discarded', tc.create_unsigned_integer_field_class(64)),
+                ('packet_seq_num', tc.create_unsigned_integer_field_class(64)),
             ))
-        else:
-            pc = None
 
         # stream class
-        sc = bt2.StreamClass()
-        sc.packet_context_field_class = pc
-        sc.event_header_field_class = eh
-        sc.event_context_field_class = sec
+        sc = tc.create_stream_class(default_clock_class=clock_class,
+                                    event_common_context_field_class=sec,
+                                    packet_context_field_class=pc)
 
         # event context
-        ec = bt2.StructureFieldClass()
+        ec = tc.create_structure_field_class()
         ec += OrderedDict((
-            ('ant', bt2.IntegerFieldClass(16, is_signed=True)),
-            ('msg', bt2.StringFieldClass()),
+            ('ant', tc.create_signed_integer_field_class(16)),
+            ('msg', tc.create_string_field_class()),
         ))
 
         # event payload
-        ep = bt2.StructureFieldClass()
+        ep = tc.create_structure_field_class()
         ep += OrderedDict((
-            ('giraffe', bt2.IntegerFieldClass(32)),
-            ('gnu', bt2.IntegerFieldClass(8)),
-            ('mosquito', bt2.IntegerFieldClass(8)),
+            ('giraffe', tc.create_signed_integer_field_class(32)),
+            ('gnu', tc.create_signed_integer_field_class(8)),
+            ('mosquito', tc.create_signed_integer_field_class(8)),
         ))
 
         # event class
-        event_class = bt2.EventClass('ec')
-        event_class.context_field_class = ec
-        event_class.payload_field_class = ep
-        sc.add_event_class(event_class)
+        event_class = sc.create_event_class(name='ec', payload_field_class=ep)
+        event_class.common_context_field_class = ec
 
-        # packet header
-        if with_ph:
-            ph = bt2.StructureFieldClass()
-            ph += OrderedDict((
-                ('magic', bt2.IntegerFieldClass(32)),
-                ('stream_id', bt2.IntegerFieldClass(16)),
-            ))
-        else:
-            ph = None
-
-        # trace c;ass
-        tc = bt2.Trace()
-        tc.packet_header_field_class = ph
-        tc.add_stream_class(sc)
+        # trace
+        trace = tc()
 
         # stream
-        stream = sc()
+        stream = trace.create_stream(sc)
 
         # packet
-        return stream.create_packet()
+        return stream.create_packet(), stream, pc
 
     def test_attr_stream(self):
-        self.assertIsNotNone(self._packet.stream)
+        packet, stream, _ = self._create_packet(with_pc=True)
+        self.assertEqual(packet.stream.addr, stream.addr)
 
-    def test_get_header_field(self):
-        self.assertIsNotNone(self._packet.header_field)
-
-    def test_no_header_field(self):
-        packet = self._create_packet(with_ph=False)
-        self.assertIsNone(packet.header_field)
-
-    def test_get_context_field(self):
-        self.assertIsNotNone(self._packet.context_field)
+    def test_context_field(self):
+        packet, stream, pc_fc = self._create_packet(with_pc=True)
+        self.assertEqual(packet.context_field.field_class.addr, pc_fc.addr)
 
     def test_no_context_field(self):
-        packet = self._create_packet(with_pc=False)
+        packet, _, _ = self._create_packet(with_pc=False)
         self.assertIsNone(packet.context_field)
-
-    def _fill_packet(self, packet):
-        packet.header_field['magic'] = 0xc1fc1fc1
-        packet.header_field['stream_id'] = 23
-        packet.context_field['something'] = 17
-        packet.context_field['something_else'] = 188.88
-
-    def test_eq(self):
-        packet1 = self._create_packet()
-        self._fill_packet(packet1)
-        packet2 = self._create_packet()
-        self._fill_packet(packet2)
-        self.assertEqual(packet1, packet2)
-
-    def test_ne_header_field(self):
-        packet1 = self._create_packet()
-        self._fill_packet(packet1)
-        packet2 = self._create_packet()
-        self._fill_packet(packet2)
-        packet2.header_field['stream_id'] = 18
-        self.assertNotEqual(packet1, packet2)
-
-    def test_ne_context_field(self):
-        packet1 = self._create_packet()
-        self._fill_packet(packet1)
-        packet2 = self._create_packet()
-        self._fill_packet(packet2)
-        packet2.context_field['something_else'] = 1948.11
-        self.assertNotEqual(packet1, packet2)
-
-    def test_eq_invalid(self):
-        self.assertFalse(self._packet == 23)
-
-    def _test_copy(self, func):
-        packet = self._create_packet()
-        self._fill_packet(packet)
-        cpy = func(packet)
-        self.assertIsNot(packet, cpy)
-        self.assertNotEqual(packet.addr, cpy.addr)
-        self.assertEqual(packet, cpy)
-
-    def test_copy(self):
-        self._test_copy(copy.copy)
-
-    def test_deepcopy(self):
-        self._test_copy(copy.deepcopy)
