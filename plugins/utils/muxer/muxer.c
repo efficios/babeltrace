@@ -147,7 +147,7 @@ struct muxer_upstream_msg_iter *muxer_msg_iter_add_upstream_msg_iter(
 
 	if (!muxer_upstream_msg_iter) {
 		BT_LOGE_STR("Failed to allocate one muxer's upstream message iterator wrapper.");
-		goto end;
+		goto error;
 	}
 
 	muxer_upstream_msg_iter->msg_iter = self_msg_iter;
@@ -155,7 +155,7 @@ struct muxer_upstream_msg_iter *muxer_msg_iter_add_upstream_msg_iter(
 	muxer_upstream_msg_iter->msgs = g_queue_new();
 	if (!muxer_upstream_msg_iter->msgs) {
 		BT_LOGE_STR("Failed to allocate a GQueue.");
-		goto end;
+		goto error;
 	}
 
 	g_ptr_array_add(muxer_msg_iter->active_muxer_upstream_msg_iters,
@@ -164,6 +164,12 @@ struct muxer_upstream_msg_iter *muxer_msg_iter_add_upstream_msg_iter(
 		"addr=%p, muxer-msg-iter-addr=%p, msg-iter-addr=%p",
 		muxer_upstream_msg_iter, muxer_msg_iter,
 		self_msg_iter);
+
+	goto end;
+
+error:
+	g_free(muxer_upstream_msg_iter);
+	muxer_upstream_msg_iter = NULL;
 
 end:
 	return muxer_upstream_msg_iter;
