@@ -1462,7 +1462,7 @@ bt_self_message_iterator_status muxer_msg_iter_seek_beginning(
 {
 	struct muxer_msg_iter *muxer_msg_iter =
 		bt_self_message_iterator_get_data(self_msg_iter);
-	int status;
+	bt_message_iterator_status status = BT_MESSAGE_ITERATOR_STATUS_OK;
 	uint64_t i;
 
 	/* Seek all ended upstream iterators first */
@@ -1513,5 +1513,5 @@ bt_self_message_iterator_status muxer_msg_iter_seek_beginning(
 		MUXER_MSG_ITER_CLOCK_CLASS_EXPECTATION_ANY;
 
 end:
-	return status;
+	return (bt_self_message_iterator_status) status;
 }
