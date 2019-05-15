@@ -271,7 +271,6 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	size_t file_idx;
 	bt_value_status status;
 	bt_value *file_paths;
-	struct ctf_fs_ds_file_info *first_file_info, *last_file_info;
 	struct ctf_fs_ds_index_entry *first_ds_index_entry, *last_ds_index_entry;
 	gchar *port_name = NULL;
 
@@ -295,33 +294,22 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	}
 
 	/*
-	 * Since `struct ctf_fs_ds_file_info` elements are sorted by value of
-	 * `begin_ns` within the `ds_file_groups` array and `struct
-	 * ctf_fs_ds_index_entry` elements are sorted by time within their
-	 * respective `struct ctf_fs_ds_file_info`, we can compute the stream
-	 * range from timestamp_begin of the first index entry of the first
-	 * file to the timestamp_end of the last index entry of the last file.
+	 * Since each `struct ctf_fs_ds_file_group` has a sorted array of
+	 * `struct ctf_fs_ds_index_entry`, we can compute the stream range from
+	 * the timestamp_begin of the first index entry and the timestamp_end
+	 * of the last index entry.
 	 */
-	BT_ASSERT(group->ds_file_infos->len > 0);
+	BT_ASSERT(group->index);
+	BT_ASSERT(group->index->entries);
+	BT_ASSERT(group->index->entries->len > 0);
 
-	first_file_info = g_ptr_array_index(group->ds_file_infos, 0);
-	last_file_info = g_ptr_array_index(group->ds_file_infos,
-		group->ds_file_infos->len - 1);
+	/* First entry. */
+	first_ds_index_entry = (struct ctf_fs_ds_index_entry *) g_ptr_array_index(
+		group->index->entries, 0);
 
-	BT_ASSERT(first_file_info->index);
-	BT_ASSERT(first_file_info->index->entries);
-	BT_ASSERT(first_file_info->index->entries->len > 0);
-
-	first_ds_index_entry = (struct ctf_fs_ds_index_entry *) &g_array_index(
-		first_file_info->index->entries, struct ctf_fs_ds_index_entry, 0);
-
-	BT_ASSERT(last_file_info->index);
-	BT_ASSERT(last_file_info->index->entries);
-	BT_ASSERT(last_file_info->index->entries->len > 0);
-
-	last_ds_index_entry = (struct ctf_fs_ds_index_entry *) &g_array_index(
-		last_file_info->index->entries, struct ctf_fs_ds_index_entry,
-		last_file_info->index->entries->len - 1);
+	/* Last entry. */
+	last_ds_index_entry = (struct ctf_fs_ds_index_entry *) g_ptr_array_index(
+		group->index->entries, group->index->entries->len - 1);
 
 	stream_range->begin_ns = first_ds_index_entry->timestamp_begin_ns;
 	stream_range->end_ns = last_ds_index_entry->timestamp_end_ns;

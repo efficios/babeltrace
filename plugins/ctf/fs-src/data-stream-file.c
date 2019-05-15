@@ -257,40 +257,6 @@ struct bt_msg_iter_medium_ops ctf_fs_ds_file_medops = {
 };
 
 static
-struct ctf_fs_ds_index *ctf_fs_ds_index_create(size_t length)
-{
-	struct ctf_fs_ds_index *index = g_new0(struct ctf_fs_ds_index, 1);
-
-	if (!index) {
-		BT_LOGE_STR("Failed to allocate index");
-		goto error;
-	}
-
-	index->entries = g_array_sized_new(FALSE, TRUE,
-			sizeof(struct ctf_fs_ds_index_entry), length);
-	if (!index->entries) {
-		BT_LOGE("Failed to allocate %zu index entries.", length);
-		goto error;
-	}
-	g_array_set_size(index->entries, length);
-end:
-	return index;
-error:
-	ctf_fs_ds_index_destroy(index);
-	goto end;
-}
-
-/* Returns a new, zeroed, index entry. */
-static
-struct ctf_fs_ds_index_entry *ctf_fs_ds_index_add_new_entry(
-		struct ctf_fs_ds_index *index)
-{
-	g_array_set_size(index->entries, index->entries->len + 1);
-	return &g_array_index(index->entries, struct ctf_fs_ds_index_entry,
-			index->entries->len - 1);
-}
-
-static
 int convert_cycles_to_ns(struct ctf_clock_class *clock_class,
 		uint64_t cycles, int64_t *ns)
 {
@@ -400,13 +366,11 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 		goto error;
 	}
 
-	index = ctf_fs_ds_index_create(file_entry_count);
+	index = ctf_fs_ds_index_create();
 	if (!index) {
 		goto error;
 	}
 
-	index_entry = (struct ctf_fs_ds_index_entry *) &g_array_index(
-			index->entries, struct ctf_fs_ds_index_entry, 0);
 	for (i = 0; i < file_entry_count; i++) {
 		struct ctf_packet_index *file_index =
 				(struct ctf_packet_index *) file_pos;
@@ -414,6 +378,11 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 		if (packet_size % CHAR_BIT) {
 			BT_LOGW("Invalid packet size encountered in LTTng trace index file");
+			goto error;
+		}
+
+		index_entry = g_new0(struct ctf_fs_ds_index_entry, 1);
+		if (!index_entry) {
 			goto error;
 		}
 
@@ -457,7 +426,8 @@ struct ctf_fs_ds_index *build_index_from_idx_file(
 
 		total_packets_size += packet_size;
 		file_pos += file_index_entry_size;
-		index_entry++;
+
+		g_ptr_array_add(index->entries, index_entry);
 	}
 
 	/* Validate that the index addresses the complete stream. */
@@ -480,6 +450,7 @@ end:
 	return index;
 error:
 	ctf_fs_ds_index_destroy(index);
+	g_free(index_entry);
 	index = NULL;
 	goto end;
 }
@@ -541,14 +512,14 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 
 	BT_LOGD("Indexing stream file %s", ds_file->file->path->str);
 
-	index = ctf_fs_ds_index_create(0);
+	index = ctf_fs_ds_index_create();
 	if (!index) {
 		goto error;
 	}
 
 	do {
 		off_t current_packet_size_bytes;
-		struct ctf_fs_ds_index_entry *entry;
+		struct ctf_fs_ds_index_entry *index_entry;
 		struct bt_msg_iter_packet_properties props;
 
 		if (current_packet_offset_bytes < 0) {
@@ -598,17 +569,22 @@ struct ctf_fs_ds_index *build_index_from_stream_file(
 			"next-packet-offset=%jd",
 			current_packet_offset_bytes - current_packet_size_bytes,
 			current_packet_offset_bytes);
-		entry = ctf_fs_ds_index_add_new_entry(index);
-		if (!entry) {
+
+		index_entry = g_new0(struct ctf_fs_ds_index_entry, 1);
+		if (!index_entry) {
 			BT_LOGE_STR("Failed to allocate a new index entry.");
 			goto error;
 		}
 
-		ret = init_index_entry(entry, ds_file, &props,
+		ret = init_index_entry(index_entry, ds_file, &props,
 			current_packet_size_bytes, current_packet_offset_bytes);
 		if (ret) {
+			g_free(index_entry);
 			goto error;
 		}
+
+		g_ptr_array_add(index->entries, index_entry);
+
 	} while (iter_status == BT_MSG_ITER_STATUS_OK);
 
 	if (iter_status != BT_MSG_ITER_STATUS_OK) {
@@ -692,6 +668,31 @@ end:
 }
 
 BT_HIDDEN
+struct ctf_fs_ds_index *ctf_fs_ds_index_create()
+{
+	struct ctf_fs_ds_index *index = g_new0(struct ctf_fs_ds_index, 1);
+
+	if (!index) {
+		BT_LOGE_STR("Failed to allocate index");
+		goto error;
+	}
+
+	index->entries = g_ptr_array_new_with_free_func((GDestroyNotify) g_free);
+	if (!index->entries) {
+		BT_LOGE("Failed to allocate index entries.");
+		goto error;
+	}
+
+	goto end;
+
+error:
+	ctf_fs_ds_index_destroy(index);
+	index = NULL;
+end:
+	return index;
+}
+
+BT_HIDDEN
 void ctf_fs_ds_file_destroy(struct ctf_fs_ds_file *ds_file)
 {
 	if (!ds_file) {
@@ -750,7 +751,7 @@ void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index)
 	}
 
 	if (index->entries) {
-		g_array_free(index->entries, TRUE);
+		g_ptr_array_free(index->entries, TRUE);
 	}
 	g_free(index);
 }

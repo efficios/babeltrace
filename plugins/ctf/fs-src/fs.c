@@ -524,13 +524,12 @@ void ctf_fs_ds_file_info_destroy(struct ctf_fs_ds_file_info *ds_file_info)
 		g_string_free(ds_file_info->path, TRUE);
 	}
 
-	ctf_fs_ds_index_destroy(ds_file_info->index);
 	g_free(ds_file_info);
 }
 
 static
 struct ctf_fs_ds_file_info *ctf_fs_ds_file_info_create(const char *path,
-		int64_t begin_ns, struct ctf_fs_ds_index *index)
+		int64_t begin_ns)
 {
 	struct ctf_fs_ds_file_info *ds_file_info;
 
@@ -547,11 +546,8 @@ struct ctf_fs_ds_file_info *ctf_fs_ds_file_info_create(const char *path,
 	}
 
 	ds_file_info->begin_ns = begin_ns;
-	ds_file_info->index = index;
-	index = NULL;
 
 end:
-	ctf_fs_ds_index_destroy(index);
 	return ds_file_info;
 }
 
@@ -566,6 +562,13 @@ void ctf_fs_ds_file_group_destroy(struct ctf_fs_ds_file_group *ds_file_group)
 		g_ptr_array_free(ds_file_group->ds_file_infos, TRUE);
 	}
 
+	if (ds_file_group->index) {
+		if (ds_file_group->index->entries) {
+			g_ptr_array_free(ds_file_group->index->entries, TRUE);
+		}
+		g_free(ds_file_group->index);
+	}
+
 	bt_stream_put_ref(ds_file_group->stream);
 	g_free(ds_file_group);
 }
@@ -574,7 +577,8 @@ static
 struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		struct ctf_fs_trace *ctf_fs_trace,
 		struct ctf_stream_class *sc,
-		uint64_t stream_instance_id)
+		uint64_t stream_instance_id,
+		struct ctf_fs_ds_index *index)
 {
 	struct ctf_fs_ds_file_group *ds_file_group;
 
@@ -589,6 +593,8 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 		goto error;
 	}
 
+	ds_file_group->index = index;
+
 	ds_file_group->stream_id = stream_instance_id;
 	BT_ASSERT(sc);
 	ds_file_group->sc = sc;
@@ -597,6 +603,7 @@ struct ctf_fs_ds_file_group *ctf_fs_ds_file_group_create(
 
 error:
 	ctf_fs_ds_file_group_destroy(ds_file_group);
+	ctf_fs_ds_index_destroy(index);
 	ds_file_group = NULL;
 
 end:
@@ -648,6 +655,26 @@ void ds_file_group_insert_ds_file_info_sorted(
 	array_insert(ds_file_group->ds_file_infos, ds_file_info, i);
 }
 
+static
+void ds_file_group_insert_ds_index_entry_sorted(
+	struct ctf_fs_ds_file_group *ds_file_group,
+	struct ctf_fs_ds_index_entry *entry)
+{
+	guint i;
+
+	/* Find the spot where to insert this index entry. */
+	for (i = 0; i < ds_file_group->index->entries->len; i++) {
+		struct ctf_fs_ds_index_entry *other_entry = g_ptr_array_index(
+			ds_file_group->index->entries, i);
+
+		if (entry->timestamp_begin_ns < other_entry->timestamp_begin_ns) {
+			break;
+		}
+	}
+
+	array_insert(ds_file_group->index->entries, entry, i);
+}
+
 /*
  * Create a new ds_file_info using the provided path, begin_ns and index, then
  * add it to ds_file_group's list of ds_file_infos.
@@ -656,15 +683,12 @@ void ds_file_group_insert_ds_file_info_sorted(
 static
 int ctf_fs_ds_file_group_add_ds_file_info(
 		struct ctf_fs_ds_file_group *ds_file_group,
-		const char *path, int64_t begin_ns,
-		struct ctf_fs_ds_index *index)
+		const char *path, int64_t begin_ns)
 {
 	struct ctf_fs_ds_file_info *ds_file_info;
 	int ret = 0;
 
-	/* Onwership of index is transferred. */
-	ds_file_info = ctf_fs_ds_file_info_create(path, begin_ns, index);
-	index = NULL;
+	ds_file_info = ctf_fs_ds_file_info_create(path, begin_ns);
 	if (!ds_file_info) {
 		goto error;
 	}
@@ -676,7 +700,6 @@ int ctf_fs_ds_file_group_add_ds_file_info(
 
 error:
 	ctf_fs_ds_file_info_destroy(ds_file_info);
-	ctf_fs_ds_index_destroy(index);
 	ret = -1;
 end:
 	return ret;
@@ -761,15 +784,16 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 		 * group.
 		 */
 		ds_file_group = ctf_fs_ds_file_group_create(ctf_fs_trace,
-			sc, UINT64_C(-1));
+			sc, UINT64_C(-1), index);
+		/* Ownership of index is transferred. */
+		index = NULL;
+
 		if (!ds_file_group) {
 			goto error;
 		}
 
 		ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group,
-			path, begin_ns, index);
-		/* Ownership of index is transferred. */
-		index = NULL;
+			path, begin_ns);
 		if (ret) {
 			goto error;
 		}
@@ -797,7 +821,9 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 	if (!ds_file_group) {
 		ds_file_group = ctf_fs_ds_file_group_create(ctf_fs_trace,
-			sc, stream_instance_id);
+			sc, stream_instance_id, index);
+		/* Ownership of index is transferred. */
+		index = NULL;
 		if (!ds_file_group) {
 			goto error;
 		}
@@ -806,8 +832,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 	}
 
 	ret = ctf_fs_ds_file_group_add_ds_file_info(ds_file_group, path,
-		begin_ns, index);
-	index = NULL;
+		begin_ns);
 	if (ret) {
 		goto error;
 	}
@@ -1387,8 +1412,21 @@ void merge_ctf_fs_ds_file_groups(struct ctf_fs_ds_file_group *dest, struct ctf_f
 
 		ds_file_group_insert_ds_file_info_sorted(dest, ds_file_info);
 	}
-}
 
+	/* Merge both indexes. */
+	for (i = 0; i < src->index->entries->len; i++) {
+		struct ctf_fs_ds_index_entry *entry = g_ptr_array_index(
+			src->index->entries, i);
+
+		/*
+		 * Ownership of the ctf_fs_ds_index_entry is transferred to
+		 * dest.
+		 */
+		g_ptr_array_index(src->index->entries, i) = NULL;
+
+		ds_file_group_insert_ds_index_entry_sorted(dest, entry);
+	}
+}
 /* Merge src_trace's data stream file groups into dest_trace's. */
 
 static
@@ -1443,17 +1481,28 @@ int merge_matching_ctf_fs_ds_file_groups(
 
 		/*
 		 * Didn't find a friend in dest to merge our src_group into?
-		 * Create a new empty one.
+		 * Create a new empty one. This can happen if a stream was
+		 * active in the source trace chunk but not in the destination
+		 * trace chunk.
 		 */
 		if (!dest_group) {
 			struct ctf_stream_class *sc;
+			struct ctf_fs_ds_index *index;
 
 			sc = ctf_trace_class_borrow_stream_class_by_id(
 				dest_trace->metadata->tc, src_group->sc->id);
 			BT_ASSERT(sc);
 
+			index = ctf_fs_ds_index_create();
+			if (!index) {
+				ret = -1;
+				goto end;
+			}
+
 			dest_group = ctf_fs_ds_file_group_create(dest_trace, sc,
-				src_group->stream_id);
+				src_group->stream_id, index);
+			/* Ownership of index is transferred. */
+			index = NULL;
 			if (!dest_group) {
 				ret = -1;
 				goto end;

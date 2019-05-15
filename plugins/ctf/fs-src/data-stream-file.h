@@ -37,46 +37,7 @@ struct ctf_fs_file;
 struct ctf_fs_trace;
 struct ctf_fs_ds_file;
 
-struct ctf_fs_ds_index_entry {
-	/* Position, in bytes, of the packet from the beginning of the file. */
-	uint64_t offset;
-
-	/* Size of the packet, in bytes. */
-	uint64_t packet_size;
-
-	/*
-	 * Extracted from the packet context, relative to the respective fields'
-	 * mapped clock classes (in cycles).
-	 */
-	uint64_t timestamp_begin, timestamp_end;
-
-	/*
-	 * Converted from the packet context, relative to the trace's EPOCH
-	 * (in ns since EPOCH).
-	 */
-	int64_t timestamp_begin_ns, timestamp_end_ns;
-};
-
-struct ctf_fs_ds_index {
-	/* Array of struct ctf_fs_fd_index_entry. */
-	GArray *entries;
-};
-
 struct ctf_fs_ds_file_info {
-	/*
-	 * Owned by this. May be NULL.
-	 *
-	 * A stream cannot be assumed to be indexed as the indexing might have
-	 * been skipped. Moreover, the index's fields may not all be available
-	 * depending on the producer (e.g. timestamp_begin/end are not
-	 * mandatory).
-	 *
-	 * FIXME In such cases (missing fields), the indexing is aborted as
-	 * no the index entries don't have a concept of fields being present
-	 * or not.
-	 */
-	struct ctf_fs_ds_index *index;
-
 	/* Owned by this. */
 	GString *path;
 
@@ -143,6 +104,9 @@ bt_self_message_iterator_status ctf_fs_ds_file_next(
 BT_HIDDEN
 struct ctf_fs_ds_index *ctf_fs_ds_file_build_index(
 		struct ctf_fs_ds_file *ds_file);
+
+BT_HIDDEN
+struct ctf_fs_ds_index *ctf_fs_ds_index_create();
 
 BT_HIDDEN
 void ctf_fs_ds_index_destroy(struct ctf_fs_ds_index *index);

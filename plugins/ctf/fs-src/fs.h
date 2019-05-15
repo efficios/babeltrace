@@ -99,6 +99,31 @@ struct ctf_fs_trace {
 	uint64_t next_stream_id;
 };
 
+struct ctf_fs_ds_index_entry {
+	/* Position, in bytes, of the packet from the beginning of the file. */
+	uint64_t offset;
+
+	/* Size of the packet, in bytes. */
+	uint64_t packet_size;
+
+	/*
+	 * Extracted from the packet context, relative to the respective fields'
+	 * mapped clock classes (in cycles).
+	 */
+	uint64_t timestamp_begin, timestamp_end;
+
+	/*
+	 * Converted from the packet context, relative to the trace's EPOCH
+	 * (in ns since EPOCH).
+	 */
+	int64_t timestamp_begin_ns, timestamp_end_ns;
+};
+
+struct ctf_fs_ds_index {
+	/* Array of pointer to struct ctf_fs_fd_index_entry. */
+	GPtrArray *entries;
+};
+
 struct ctf_fs_ds_file_group {
 	/*
 	 * Array of struct ctf_fs_ds_file_info, owned by this.
@@ -122,6 +147,20 @@ struct ctf_fs_ds_file_group {
 
 	/* Weak, belongs to component */
 	struct ctf_fs_trace *ctf_fs_trace;
+
+	/*
+	 * Owned by this. May be NULL.
+	 *
+	 * A stream cannot be assumed to be indexed as the indexing might have
+	 * been skipped. Moreover, the index's fields may not all be available
+	 * depending on the producer (e.g. timestamp_begin/end are not
+	 * mandatory).
+	 *
+	 * FIXME In such cases (missing fields), the indexing is aborted as
+	 * no the index entries don't have a concept of fields being present
+	 * or not.
+	 */
+	struct ctf_fs_ds_index *index;
 };
 
 struct ctf_fs_port_data {
