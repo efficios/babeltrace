@@ -1471,6 +1471,9 @@ end:
 static
 void lttng_live_component_destroy_data(struct lttng_live_component *lttng_live)
 {
+	if (!lttng_live) {
+		return;
+	}
 	if (lttng_live->params.url) {
 		g_string_free(lttng_live->params.url, TRUE);
 	}
@@ -1576,25 +1579,30 @@ bt_self_component_status lttng_live_component_init(
 	lttng_live = lttng_live_component_create(params);
 	if (!lttng_live) {
 		ret = BT_SELF_COMPONENT_STATUS_NOMEM;
-		goto end;
+		goto error;
 	}
 	lttng_live->self_comp = self_comp;
 
 	if (lttng_live_graph_is_canceled(lttng_live)) {
-		goto end;
+		ret = BT_SELF_COMPONENT_STATUS_END;
+		goto error;
 	}
 
 	ret = bt_self_component_source_add_output_port(
 				lttng_live->self_comp, "out",
 				NULL, NULL);
 	if (ret != BT_SELF_COMPONENT_STATUS_OK) {
-		goto end;
+		goto error;
 	}
 
 	bt_self_component_set_data(
 			bt_self_component_source_as_self_component(self_comp),
 			lttng_live);
+	goto end;
 
+error:
+	lttng_live_component_destroy_data(lttng_live);
+	lttng_live = NULL;
 end:
 	return ret;
 }
