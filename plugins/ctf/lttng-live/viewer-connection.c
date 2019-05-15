@@ -65,7 +65,7 @@ ssize_t lttng_live_recv(struct live_viewer_connection *viewer_connection,
 		}
 		if (ret == BT_SOCKET_ERROR && bt_socket_interrupted()) {
 			if (!viewer_connection->in_query &&
-					lttng_live_is_canceled(lttng_live_msg_iter->lttng_live_comp)) {
+					lttng_live_graph_is_canceled(lttng_live_msg_iter->lttng_live_comp)) {
 				break;
 			} else {
 				continue;
@@ -91,7 +91,7 @@ ssize_t lttng_live_send(struct live_viewer_connection *viewer_connection,
 		ret = bt_socket_send_nosigpipe(sock, buf, len);
 		if (ret == BT_SOCKET_ERROR && bt_socket_interrupted()) {
 			if (!viewer_connection->in_query &&
-					lttng_live_is_canceled(lttng_live_msg_iter->lttng_live_comp)) {
+					lttng_live_graph_is_canceled(lttng_live_msg_iter->lttng_live_comp)) {
 				break;
 			} else {
 				continue;
@@ -1235,7 +1235,7 @@ end:
 	return retstatus;
 
 error:
-	if (lttng_live_is_canceled(lttng_live)) {
+	if (lttng_live_graph_is_canceled(lttng_live)) {
 		retstatus = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
 		retstatus = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
@@ -1360,7 +1360,7 @@ end:
 	return retstatus;
 
 error:
-	if (lttng_live_is_canceled(lttng_live)) {
+	if (lttng_live_graph_is_canceled(lttng_live)) {
 		retstatus = BT_MSG_ITER_MEDIUM_STATUS_AGAIN;
 	} else {
 		retstatus = BT_MSG_ITER_MEDIUM_STATUS_ERROR;
@@ -1457,7 +1457,7 @@ end:
 	return status;
 
 error:
-	if (lttng_live_is_canceled(lttng_live)) {
+	if (lttng_live_graph_is_canceled(lttng_live)) {
 		status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 	} else {
 		status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;

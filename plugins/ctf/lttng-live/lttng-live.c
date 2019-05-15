@@ -108,7 +108,7 @@ const char *print_state(struct lttng_live_stream_iterator *s)
 	} while (0);
 
 BT_HIDDEN
-bool lttng_live_is_canceled(struct lttng_live_component *lttng_live)
+bool lttng_live_graph_is_canceled(struct lttng_live_component *lttng_live)
 {
 	const bt_component *component;
 	bool ret;
@@ -261,7 +261,7 @@ void lttng_live_destroy_session(struct lttng_live_session *session)
 		if (lttng_live_detach_session(session)) {
 			live_comp = session->lttng_live_msg_iter->lttng_live_comp;
 			if (session->lttng_live_msg_iter &&
-					!lttng_live_is_canceled(live_comp)) {
+					!lttng_live_graph_is_canceled(live_comp)) {
 				/* Old relayd cannot detach sessions. */
 				BT_LOGD("Unable to detach lttng live session %" PRIu64,
 					session->id);
@@ -423,7 +423,7 @@ enum lttng_live_iterator_status lttng_live_get_session(
 	if (!session->attached) {
 		ret = lttng_live_attach_session(session);
 		if (ret) {
-			if (lttng_live_msg_iter && lttng_live_is_canceled(
+			if (lttng_live_msg_iter && lttng_live_graph_is_canceled(
 						lttng_live_msg_iter->lttng_live_comp)) {
 				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 			} else {
@@ -1580,7 +1580,7 @@ bt_self_component_status lttng_live_component_init(
 	}
 	lttng_live->self_comp = self_comp;
 
-	if (lttng_live_is_canceled(lttng_live)) {
+	if (lttng_live_graph_is_canceled(lttng_live)) {
 		goto end;
 	}
 
