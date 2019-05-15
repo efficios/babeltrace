@@ -52,7 +52,8 @@ uint64_t get_packet_size_increment_bytes(void)
 static inline
 void mmap_align_ctfser(struct bt_ctfser *ctfser)
 {
-	ctfser->base_mma = mmap_align(ctfser->cur_packet_size_bytes, PROT_WRITE,
+	ctfser->base_mma = mmap_align(ctfser->cur_packet_size_bytes,
+		PROT_READ | PROT_WRITE,
 		MAP_SHARED, ctfser->fd, ctfser->mmap_offset);
 }
 
