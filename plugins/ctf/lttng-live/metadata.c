@@ -181,7 +181,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(
 			metadata->trace = NULL;
 		}
 		if (errno == EINTR) {
-			if (lttng_live_is_canceled(lttng_live)) {
+			if (lttng_live_graph_is_canceled(lttng_live)) {
 				status = LTTNG_LIVE_ITERATOR_STATUS_AGAIN;
 				goto end;
 			}
