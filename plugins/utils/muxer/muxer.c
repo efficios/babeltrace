@@ -138,10 +138,10 @@ void destroy_muxer_upstream_msg_iter(
 }
 
 static
-struct muxer_upstream_msg_iter *muxer_msg_iter_add_upstream_msg_iter(
-		struct muxer_msg_iter *muxer_msg_iter,
+int muxer_msg_iter_add_upstream_msg_iter(struct muxer_msg_iter *muxer_msg_iter,
 		bt_self_component_port_input_message_iterator *self_msg_iter)
 {
+	int ret = 0;
 	struct muxer_upstream_msg_iter *muxer_upstream_msg_iter =
 		g_new0(struct muxer_upstream_msg_iter, 1);
 
@@ -169,10 +169,10 @@ struct muxer_upstream_msg_iter *muxer_msg_iter_add_upstream_msg_iter(
 
 error:
 	g_free(muxer_upstream_msg_iter);
-	muxer_upstream_msg_iter = NULL;
+	ret = -1;
 
 end:
-	return muxer_upstream_msg_iter;
+	return ret;
 }
 
 static
@@ -1206,7 +1206,6 @@ int muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 
 	for (i = 0; i < count; i++) {
 		bt_self_component_port_input_message_iterator *upstream_msg_iter;
-		struct muxer_upstream_msg_iter *muxer_upstream_msg_iter;
 		bt_self_component_port_input *self_port =
 			bt_self_component_filter_borrow_input_port_by_index(
 				muxer_comp->self_comp, i);
@@ -1231,14 +1230,12 @@ int muxer_msg_iter_init_upstream_iterators(struct muxer_comp *muxer_comp,
 			goto end;
 		}
 
-		muxer_upstream_msg_iter =
-			muxer_msg_iter_add_upstream_msg_iter(
-				muxer_msg_iter, upstream_msg_iter);
+		ret = muxer_msg_iter_add_upstream_msg_iter(muxer_msg_iter,
+			upstream_msg_iter);
 		bt_self_component_port_input_message_iterator_put_ref(
 			upstream_msg_iter);
-		if (!muxer_upstream_msg_iter) {
+		if (ret) {
 			/* muxer_msg_iter_add_upstream_msg_iter() logs errors */
-			ret = -1;
 			goto end;
 		}
 	}
