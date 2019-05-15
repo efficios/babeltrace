@@ -797,6 +797,7 @@ int add_ds_file_to_ds_file_group(struct ctf_fs_trace *ctf_fs_trace,
 
 error:
 	ctf_fs_ds_file_group_destroy(ds_file_group);
+	ds_file_group = NULL;
 	ret = -1;
 
 end:
