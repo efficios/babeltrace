@@ -190,12 +190,14 @@ enum bt_component_class_type bt_component_get_class_type(
 }
 
 static
-struct bt_port *add_port(
+enum bt_self_component_status add_port(
 		struct bt_component *component, GPtrArray *ports,
-		enum bt_port_type port_type, const char *name, void *user_data)
+		enum bt_port_type port_type, const char *name, void *user_data,
+		struct bt_port **port)
 {
 	struct bt_port *new_port = NULL;
 	struct bt_graph *graph = NULL;
+	enum bt_self_component_status status;
 
 	BT_ASSERT_PRE_NON_NULL(component, "Component");
 	BT_ASSERT_PRE_NON_NULL(name, "Name");
@@ -218,7 +220,8 @@ struct bt_port *add_port(
 	new_port = bt_port_create(component, port_type, name, user_data);
 	if (!new_port) {
 		BT_LOGE_STR("Cannot create port object.");
-		goto end;
+		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+		goto error;
 	}
 
 	/*
@@ -232,18 +235,34 @@ struct bt_port *add_port(
 	/*
 	 * Notify the graph's creator that a new port was added.
 	 */
-	bt_object_get_ref(bt_component_borrow_graph(component));
 	graph = bt_component_borrow_graph(component);
 	if (graph) {
-		bt_graph_notify_port_added(graph, new_port);
-		BT_OBJECT_PUT_REF_AND_RESET(graph);
+		enum bt_graph_listener_status listener_status;
+
+		listener_status = bt_graph_notify_port_added(graph, new_port);
+		if (listener_status != BT_GRAPH_LISTENER_STATUS_OK) {
+			bt_graph_make_faulty(graph);
+			status = listener_status;
+			goto error;
+		}
 	}
 
 	BT_LIB_LOGD("Created and added port to component: "
 		"%![comp-]+c, %![port-]+p", component, new_port);
 
+	*port = new_port;
+	status = BT_SELF_COMPONENT_STATUS_OK;
+
+	goto end;
+error:
+	/*
+	 * We need to release the reference that we would otherwise have
+	 * returned to the caller.
+	 */
+	BT_PORT_PUT_REF_AND_RESET(new_port);
+
 end:
-	return new_port;
+	return status;
 }
 
 BT_HIDDEN
@@ -436,25 +455,23 @@ struct bt_port_output *bt_component_borrow_output_port_by_index(
 }
 
 BT_HIDDEN
-struct bt_port_input *bt_component_add_input_port(
+enum bt_self_component_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
-		void *user_data)
+		void *user_data, struct bt_port **port)
 {
 	/* add_port() logs details */
-	return (void *)
-		add_port(component, component->input_ports,
-			BT_PORT_TYPE_INPUT, name, user_data);
+	return add_port(component, component->input_ports,
+		BT_PORT_TYPE_INPUT, name, user_data, port);
 }
 
 BT_HIDDEN
-struct bt_port_output *bt_component_add_output_port(
+enum bt_self_component_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
-		void *user_data)
+		void *user_data, struct bt_port **port)
 {
 	/* add_port() logs details */
-	return (void *)
-		add_port(component, component->output_ports,
-			BT_PORT_TYPE_OUTPUT, name, user_data);
+	return add_port(component, component->output_ports,
+		BT_PORT_TYPE_OUTPUT, name, user_data, port);
 }
 
 BT_HIDDEN

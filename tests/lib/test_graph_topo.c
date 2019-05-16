@@ -418,8 +418,9 @@ bt_self_component_status sink_consume(
 }
 
 static
-void graph_src_output_port_added(const bt_component_source *comp,
-		const bt_port_output *port, void *data)
+bt_graph_listener_status graph_src_output_port_added(
+		const bt_component_source *comp, const bt_port_output *port,
+		void *data)
 {
 	struct event event = {
 		.type = GRAPH_SRC_OUTPUT_PORT_ADDED,
@@ -430,11 +431,14 @@ void graph_src_output_port_added(const bt_component_source *comp,
 	};
 
 	append_event(&event);
+
+	return BT_GRAPH_LISTENER_STATUS_OK;
 }
 
 static
-void graph_sink_input_port_added(const bt_component_sink *comp,
-		const bt_port_input *port, void *data)
+bt_graph_listener_status graph_sink_input_port_added(
+		const bt_component_sink *comp, const bt_port_input *port,
+		void *data)
 {
 	struct event event = {
 		.type = GRAPH_SINK_INPUT_PORT_ADDED,
@@ -445,10 +449,13 @@ void graph_sink_input_port_added(const bt_component_sink *comp,
 	};
 
 	append_event(&event);
+
+	return BT_GRAPH_LISTENER_STATUS_OK;
 }
 
 static
-void graph_src_sink_ports_connected(const bt_component_source *upstream_comp,
+bt_graph_listener_status graph_src_sink_ports_connected(
+		const bt_component_source *upstream_comp,
 		const bt_component_sink *downstream_comp,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data)
@@ -468,6 +475,8 @@ void graph_src_sink_ports_connected(const bt_component_source *upstream_comp,
 	};
 
 	append_event(&event);
+
+	return BT_GRAPH_LISTENER_STATUS_OK;
 }
 
 static

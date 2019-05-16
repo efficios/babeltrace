@@ -116,13 +116,12 @@ enum bt_self_component_status bt_self_component_filter_add_output_port(
 		struct bt_self_component_port_output **self_port)
 {
 	struct bt_component *comp = (void *) self_comp;
-	int status = BT_SELF_COMPONENT_STATUS_OK;
+	enum bt_self_component_status status;
 	struct bt_port *port = NULL;
 
 	/* bt_component_add_output_port() logs details and errors */
-	port = (void *) bt_component_add_output_port(comp, name, user_data);
-	if (!port) {
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+	status = bt_component_add_output_port(comp, name, user_data, &port);
+	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 
@@ -184,14 +183,13 @@ enum bt_self_component_status bt_self_component_filter_add_input_port(
 		const char *name, void *user_data,
 		struct bt_self_component_port_input **self_port)
 {
-	int status = BT_SELF_COMPONENT_STATUS_OK;
+	enum bt_self_component_status status;
 	struct bt_port *port = NULL;
 	struct bt_component *comp = (void *) self_comp;
 
 	/* bt_component_add_input_port() logs details/errors */
-	port = (void *) bt_component_add_input_port(comp, name, user_data);
-	if (!port) {
-		status = BT_SELF_COMPONENT_STATUS_NOMEM;
+	status = bt_component_add_input_port(comp, name, user_data, &port);
+	if (status != BT_SELF_COMPONENT_STATUS_OK) {
 		goto end;
 	}
 

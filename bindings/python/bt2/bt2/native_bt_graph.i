@@ -121,42 +121,57 @@ extern void bt_graph_put_ref(const bt_graph *graph);
 
 /* From graph.h */
 
-typedef void (*bt_graph_filter_component_input_port_added_listener_func)(
+typedef enum bt_graph_listener_status {
+	BT_GRAPH_LISTENER_STATUS_OK = 0,
+	BT_GRAPH_LISTENER_STATUS_ERROR = -1,
+	BT_GRAPH_LISTENER_STATUS_NOMEM = -12,
+} bt_graph_listener_status;
+
+
+typedef bt_graph_listener_status
+(*bt_graph_filter_component_input_port_added_listener_func)(
 		const bt_component_filter *component,
 		const bt_port_input *port, void *data);
 
-typedef void (*bt_graph_sink_component_input_port_added_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_sink_component_input_port_added_listener_func)(
 		const bt_component_sink *component,
 		const bt_port_input *port, void *data);
 
-typedef void (*bt_graph_source_component_output_port_added_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_source_component_output_port_added_listener_func)(
 		const bt_component_source *component,
 		const bt_port_output *port, void *data);
 
-typedef void (*bt_graph_filter_component_output_port_added_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_filter_component_output_port_added_listener_func)(
 		const bt_component_filter *component,
 		const bt_port_output *port, void *data);
 
-typedef void (*bt_graph_source_filter_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_source_filter_component_ports_connected_listener_func)(
 		const bt_component_source *source_component,
 		const bt_component_filter *filter_component,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data);
 
-typedef void (*bt_graph_source_sink_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_source_sink_component_ports_connected_listener_func)(
 		const bt_component_source *source_component,
 		const bt_component_sink *sink_component,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data);
 
-typedef void (*bt_graph_filter_filter_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_filter_filter_component_ports_connected_listener_func)(
 		const bt_component_filter *filter_component_upstream,
 		const bt_component_filter *filter_component_downstream,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port,
 		void *data);
 
-typedef void (*bt_graph_filter_sink_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_filter_sink_component_ports_connected_listener_func)(
 		const bt_component_filter *filter_component,
 		const bt_component_sink *sink_component,
 		const bt_port_output *upstream_port,
@@ -274,11 +289,11 @@ static void graph_listener_removed(void *py_callable)
 	Py_DECREF(py_callable);
 }
 
-static void
+static bt_graph_listener_status
 port_added_listener(
 	const void *component,
 	swig_type_info *component_swig_type,
-	bt_component_class_type component_class_type,	
+	bt_component_class_type component_class_type,
 	const void *port,
 	swig_type_info *port_swig_type,
 	bt_port_type port_type,
@@ -287,6 +302,7 @@ port_added_listener(
 	PyObject *py_component_ptr = NULL;
 	PyObject *py_port_ptr = NULL;
 	PyObject *py_res = NULL;
+	bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
 
 	py_component_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(component), component_swig_type, 0);
 	if (!py_component_ptr) {
@@ -313,40 +329,42 @@ end:
 	Py_XDECREF(py_res);
 	Py_XDECREF(py_port_ptr);
 	Py_XDECREF(py_component_ptr);
+
+	return status;
 }
 
-static void
+static bt_graph_listener_status
 source_component_output_port_added_listener(const bt_component_source *component_source,
 					    const bt_port_output *port_output, void *py_callable)
 {
-	port_added_listener(
+	return port_added_listener(
 		component_source, SWIGTYPE_p_bt_component_source, BT_COMPONENT_CLASS_TYPE_SOURCE,
 		port_output, SWIGTYPE_p_bt_port_output, BT_PORT_TYPE_OUTPUT, py_callable);
 }
 
-static void
+static bt_graph_listener_status
 filter_component_input_port_added_listener(const bt_component_filter *component_filter,
 					   const bt_port_input *port_input, void *py_callable)
 {
-	port_added_listener(
+	return port_added_listener(
 		component_filter, SWIGTYPE_p_bt_component_filter, BT_COMPONENT_CLASS_TYPE_FILTER,
 		port_input, SWIGTYPE_p_bt_port_input, BT_PORT_TYPE_INPUT, py_callable);
 }
 
-static void
+static bt_graph_listener_status
 filter_component_output_port_added_listener(const bt_component_filter *component_filter,
 					    const bt_port_output *port_output, void *py_callable)
 {
-	port_added_listener(
+	return port_added_listener(
 		component_filter, SWIGTYPE_p_bt_component_filter, BT_COMPONENT_CLASS_TYPE_FILTER,
 		port_output, SWIGTYPE_p_bt_port_output, BT_PORT_TYPE_OUTPUT, py_callable);
 }
 
-static void
+static bt_graph_listener_status
 sink_component_input_port_added_listener(const bt_component_sink *component_sink,
 					 const bt_port_input *port_input, void *py_callable)
 {
-	port_added_listener(
+	return port_added_listener(
 		component_sink, SWIGTYPE_p_bt_component_sink, BT_COMPONENT_CLASS_TYPE_SINK,
 		port_input, SWIGTYPE_p_bt_port_input, BT_PORT_TYPE_INPUT, py_callable);
 }
@@ -455,7 +473,7 @@ end:
 	return py_listener_ids;
 }
 
-static void
+static bt_graph_listener_status
 ports_connected_listener(const bt_port_output *upstream_port,
 			 const bt_port_input *downstream_port,
 			 void *py_callable)
@@ -463,6 +481,7 @@ ports_connected_listener(const bt_port_output *upstream_port,
 	PyObject *py_upstream_port_ptr = NULL;
 	PyObject *py_downstream_port_ptr = NULL;
 	PyObject *py_res = NULL;
+	bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
 
 	py_upstream_port_ptr = SWIG_NewPointerObj(
 		SWIG_as_voidptr(upstream_port), SWIGTYPE_p_bt_port_output, 0);
@@ -490,46 +509,52 @@ ports_connected_listener(const bt_port_output *upstream_port,
 	Py_DECREF(py_upstream_port_ptr);
 	Py_DECREF(py_downstream_port_ptr);
 	Py_XDECREF(py_res);
+
+	return status;
 }
 
-static void
+static bt_graph_listener_status
 source_filter_component_ports_connected_listener(
 	const bt_component_source *source_component,
 	const bt_component_filter *filter_component,
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	ports_connected_listener(upstream_port, downstream_port, py_callable);
+	return ports_connected_listener(upstream_port, downstream_port,
+			py_callable);
 }
 
-static void
+static bt_graph_listener_status
 source_sink_component_ports_connected_listener(
 	const bt_component_source *source_component,
 	const bt_component_sink *sink_component,
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	ports_connected_listener(upstream_port, downstream_port, py_callable);
+	return ports_connected_listener(upstream_port, downstream_port,
+			py_callable);
 }
 
-static void
+static bt_graph_listener_status
 filter_filter_component_ports_connected_listener(
 	const bt_component_filter *filter_component_left,
 	const bt_component_filter *filter_component_right,
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	ports_connected_listener(upstream_port, downstream_port, py_callable);
+	return ports_connected_listener(upstream_port, downstream_port,
+			py_callable);
 }
 
-static void
+static bt_graph_listener_status
 filter_sink_component_ports_connected_listener(
 	const bt_component_filter *filter_component,
 	const bt_component_sink *sink_component,
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	ports_connected_listener(upstream_port, downstream_port, py_callable);
+	return ports_connected_listener(upstream_port, downstream_port,
+			py_callable);
 }
 
 

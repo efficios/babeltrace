@@ -40,42 +40,56 @@
 extern "C" {
 #endif
 
-typedef void (*bt_graph_filter_component_input_port_added_listener_func)(
+typedef enum bt_graph_listener_status {
+	BT_GRAPH_LISTENER_STATUS_OK = 0,
+	BT_GRAPH_LISTENER_STATUS_ERROR = -1,
+	BT_GRAPH_LISTENER_STATUS_NOMEM = -12,
+} bt_graph_listener_status;
+
+typedef bt_graph_listener_status
+(*bt_graph_filter_component_input_port_added_listener_func)(
 		const bt_component_filter *component,
 		const bt_port_input *port, void *data);
 
-typedef void (*bt_graph_sink_component_input_port_added_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_sink_component_input_port_added_listener_func)(
 		const bt_component_sink *component,
 		const bt_port_input *port, void *data);
 
-typedef void (*bt_graph_source_component_output_port_added_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_source_component_output_port_added_listener_func)(
 		const bt_component_source *component,
 		const bt_port_output *port, void *data);
 
-typedef void (*bt_graph_filter_component_output_port_added_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_filter_component_output_port_added_listener_func)(
 		const bt_component_filter *component,
 		const bt_port_output *port, void *data);
 
-typedef void (*bt_graph_source_filter_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_source_filter_component_ports_connected_listener_func)(
 		const bt_component_source *source_component,
 		const bt_component_filter *filter_component,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data);
 
-typedef void (*bt_graph_source_sink_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_source_sink_component_ports_connected_listener_func)(
 		const bt_component_source *source_component,
 		const bt_component_sink *sink_component,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port, void *data);
 
-typedef void (*bt_graph_filter_filter_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_filter_filter_component_ports_connected_listener_func)(
 		const bt_component_filter *filter_component_upstream,
 		const bt_component_filter *filter_component_downstream,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port,
 		void *data);
 
-typedef void (*bt_graph_filter_sink_component_ports_connected_listener_func)(
+typedef bt_graph_listener_status
+(*bt_graph_filter_sink_component_ports_connected_listener_func)(
 		const bt_component_filter *filter_component,
 		const bt_component_sink *sink_component,
 		const bt_port_output *upstream_port,
