@@ -139,11 +139,13 @@ enum bt_graph_status bt_graph_consume_sink_no_check(struct bt_graph *graph,
 		struct bt_component_sink *sink);
 
 BT_HIDDEN
-void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port);
+enum bt_graph_listener_status bt_graph_notify_port_added(struct bt_graph *graph,
+		struct bt_port *port);
 
 BT_HIDDEN
-void bt_graph_notify_ports_connected(struct bt_graph *graph,
-		struct bt_port *upstream_port, struct bt_port *downstream_port);
+enum bt_graph_listener_status bt_graph_notify_ports_connected(
+		struct bt_graph *graph, struct bt_port *upstream_port,
+		struct bt_port *downstream_port);
 
 BT_HIDDEN
 void bt_graph_remove_connection(struct bt_graph *graph,
@@ -283,6 +285,15 @@ enum bt_graph_status bt_graph_configure(struct bt_graph *graph)
 
 end:
 	return status;
+}
+
+static inline
+void bt_graph_make_faulty(struct bt_graph *graph)
+{
+	graph->config_state = BT_GRAPH_CONFIGURATION_STATE_FAULTY;
+#ifdef BT_LIB_LOGD
+	BT_LIB_LOGD("Set graph's state to faulty: %![graph-]+g", graph);
+#endif
 }
 
 #endif /* BABELTRACE_GRAPH_GRAPH_INTERNAL_H */

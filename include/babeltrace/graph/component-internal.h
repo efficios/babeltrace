@@ -116,14 +116,14 @@ struct bt_port_output *bt_component_borrow_output_port_by_name(
 		struct bt_component *comp, const char *name);
 
 BT_HIDDEN
-struct bt_port_input *bt_component_add_input_port(
+enum bt_self_component_status bt_component_add_input_port(
 		struct bt_component *component, const char *name,
-		void *user_data);
+		void *user_data, struct bt_port **port);
 
 BT_HIDDEN
-struct bt_port_output *bt_component_add_output_port(
+enum bt_self_component_status bt_component_add_output_port(
 		struct bt_component *component, const char *name,
-		void *user_data);
+		void *user_data, struct bt_port **port);
 
 BT_HIDDEN
 void bt_component_remove_port(struct bt_component *component,

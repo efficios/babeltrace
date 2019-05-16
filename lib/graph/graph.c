@@ -47,10 +47,11 @@
 #include <unistd.h>
 #include <glib.h>
 
-typedef void (*port_added_func_t)(const void *, const void *, void *);
+typedef enum bt_graph_listener_status (*port_added_func_t)(
+		const void *, const void *, void *);
 
-typedef void (*ports_connected_func_t)(const void *, const void *, const void *,
-		const void *, void *);
+typedef enum bt_graph_listener_status (*ports_connected_func_t)(
+		const void *, const void *, const void *, const void *, void *);
 
 typedef enum bt_self_component_status (*comp_init_method_t)(const void *,
 		const void *, void *);
@@ -397,6 +398,7 @@ enum bt_graph_status bt_graph_connect_ports(
 		const struct bt_connection **user_connection)
 {
 	enum bt_graph_status status = BT_GRAPH_STATUS_OK;
+	enum bt_graph_listener_status listener_status;
 	struct bt_connection *connection = NULL;
 	struct bt_port *upstream_port = (void *) upstream_port_out;
 	struct bt_port *downstream_port = (void *) downstream_port_in;
@@ -531,7 +533,12 @@ enum bt_graph_status bt_graph_connect_ports(
 	 * Notify the graph's creator that both ports are connected.
 	 */
 	BT_LOGD_STR("Notifying graph's user that new component ports are connected.");
-	bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
+	listener_status = bt_graph_notify_ports_connected(graph, upstream_port, downstream_port);
+	if (listener_status != BT_GRAPH_LISTENER_STATUS_OK) {
+		status = (int) listener_status;
+		goto end;
+	}
+
 	connection->notified_graph_ports_connected = true;
 	BT_LIB_LOGD("Connected component ports within graph: "
 		"%![graph-]+g, %![up-comp-]+c, %![down-comp-]+c, "
@@ -547,7 +554,7 @@ enum bt_graph_status bt_graph_connect_ports(
 
 end:
 	if (status != BT_GRAPH_STATUS_OK) {
-		graph->config_state = BT_GRAPH_CONFIGURATION_STATE_FAULTY;
+		bt_graph_make_faulty(graph);
 	}
 
 	bt_object_put_ref(connection);
@@ -1051,11 +1058,13 @@ bt_graph_add_filter_sink_component_ports_connected_listener(
 }
 
 BT_HIDDEN
-void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port)
+enum bt_graph_listener_status bt_graph_notify_port_added(
+		struct bt_graph *graph, struct bt_port *port)
 {
 	uint64_t i;
 	GArray *listeners;
 	struct bt_component *comp;
+	enum bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
 
 	BT_ASSERT(graph);
 	BT_ASSERT(port);
@@ -1113,19 +1122,28 @@ void bt_graph_notify_port_added(struct bt_graph *graph, struct bt_port *port)
 			&g_array_index(listeners,
 				struct bt_graph_listener_port_added, i);
 
+
 		BT_ASSERT(listener->func);
-		listener->func(comp, port, listener->base.data);
+		status = listener->func(comp, port, listener->base.data);
+		if (status != BT_GRAPH_LISTENER_STATUS_OK) {
+			goto end;
+		}
 	}
+
+end:
+	return status;
 }
 
 BT_HIDDEN
-void bt_graph_notify_ports_connected(struct bt_graph *graph,
-		struct bt_port *upstream_port, struct bt_port *downstream_port)
+enum bt_graph_listener_status bt_graph_notify_ports_connected(
+		struct bt_graph *graph, struct bt_port *upstream_port,
+		struct bt_port *downstream_port)
 {
 	uint64_t i;
 	GArray *listeners;
 	struct bt_component *upstream_comp;
 	struct bt_component *downstream_comp;
+	enum bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
 
 	BT_ASSERT(graph);
 	BT_ASSERT(upstream_port);
@@ -1183,9 +1201,15 @@ void bt_graph_notify_ports_connected(struct bt_graph *graph,
 				struct bt_graph_listener_ports_connected, i);
 
 		BT_ASSERT(listener->func);
-		listener->func(upstream_comp, downstream_comp,
+		status = listener->func(upstream_comp, downstream_comp,
 			upstream_port, downstream_port, listener->base.data);
+		if (status != BT_GRAPH_LISTENER_STATUS_OK) {
+			goto end;
+		}
 	}
+
+end:
+	return status;
 }
 
 enum bt_graph_status bt_graph_cancel(struct bt_graph *graph)
@@ -1346,7 +1370,7 @@ enum bt_graph_status add_component_with_init_method_data(
 
 end:
 	if (graph_status != BT_GRAPH_STATUS_OK) {
-		graph->config_state = BT_GRAPH_CONFIGURATION_STATE_FAULTY;
+		bt_graph_make_faulty(graph);
 	}
 
 	bt_object_put_ref(component);

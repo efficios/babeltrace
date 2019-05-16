@@ -1998,11 +1998,13 @@ end:
 }
 
 static
-void graph_output_port_added_listener(struct cmd_run_ctx *ctx,
+bt_graph_listener_status
+graph_output_port_added_listener(struct cmd_run_ctx *ctx,
 		const bt_port_output *out_port)
 {
 	const bt_component *comp;
 	const bt_port *port = bt_port_output_as_port_const(out_port);
+	bt_graph_listener_status ret = BT_GRAPH_LISTENER_STATUS_OK;
 
 	comp = bt_port_borrow_component_const(port);
 	BT_LOGI("Port added to a graph's component: comp-addr=%p, "
@@ -2027,27 +2029,28 @@ void graph_output_port_added_listener(struct cmd_run_ctx *ctx,
 	if (cmd_run_ctx_connect_upstream_port(ctx, out_port)) {
 		BT_LOGF_STR("Cannot connect upstream port.");
 		fprintf(stderr, "Added port could not be connected: aborting\n");
-		abort();
+		ret = BT_GRAPH_LISTENER_STATUS_ERROR;
+		goto end;
 	}
 
 end:
-	return;
+	return ret;
 }
 
 static
-void graph_source_output_port_added_listener(
+bt_graph_listener_status graph_source_output_port_added_listener(
 		const bt_component_source *component,
 		const bt_port_output *port, void *data)
 {
-	graph_output_port_added_listener(data, port);
+	return graph_output_port_added_listener(data, port);
 }
 
 static
-void graph_filter_output_port_added_listener(
+bt_graph_listener_status graph_filter_output_port_added_listener(
 		const bt_component_filter *component,
 		const bt_port_output *port, void *data)
 {
-	graph_output_port_added_listener(data, port);
+	return graph_output_port_added_listener(data, port);
 }
 
 static
