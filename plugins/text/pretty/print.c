@@ -546,10 +546,10 @@ int print_integer(struct pretty_component *pretty,
 
 		len = bt_field_class_integer_get_field_value_range(int_fc);
 		g_string_append(pretty->string, "0b");
-		v.u = _bt_piecewise_lshift(v.u, 64 - len);
+		_bt_safe_lshift(v.u, 64 - len);
 		for (bitnr = 0; bitnr < len; bitnr++) {
 			g_string_append_printf(pretty->string, "%u", (v.u & (1ULL << 63)) ? 1 : 0);
-			v.u = _bt_piecewise_lshift(v.u, 1);
+			_bt_safe_lshift(v.u, 1);
 		}
 		break;
 	}
