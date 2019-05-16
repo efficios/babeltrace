@@ -1116,15 +1116,16 @@ bt_self_message_iterator_status create_stream_beginning_activity_message(
 		const bt_stream *stream,
 		const bt_clock_class *clock_class, bt_message **msg)
 {
+	bt_message *local_msg;
 	bt_self_message_iterator_status status =
 		BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(!trimmer_it->begin.is_infinite);
 
-	*msg = bt_message_stream_activity_beginning_create(
+	local_msg = bt_message_stream_activity_beginning_create(
 		trimmer_it->self_msg_iter, stream);
-	if (!*msg) {
+	if (!local_msg) {
 		status = BT_SELF_MESSAGE_ITERATOR_STATUS_NOMEM;
 		goto end;
 	}
@@ -1137,13 +1138,15 @@ bt_self_message_iterator_status create_stream_beginning_activity_message(
 			trimmer_it->begin.ns_from_origin, &raw_value);
 		if (ret) {
 			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-			bt_message_put_ref(*msg);
+			bt_message_put_ref(local_msg);
 			goto end;
 		}
 
 		bt_message_stream_activity_beginning_set_default_clock_snapshot(
-			*msg, raw_value);
+			local_msg, raw_value);
 	}
+
+	BT_MESSAGE_MOVE_REF(*msg, local_msg);
 
 end:
 	return status;
