@@ -742,7 +742,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
 		struct bt_ctf_field_type *type)
 {

@@ -272,20 +272,6 @@ BT_HIDDEN
 int bt_ctf_field_type_integer_get_size(struct bt_ctf_field_type *integer);
 
 /*
- * bt_ctf_field_type_integer_get_base: get an integer type's base.
- *
- * Get an integer type's base used to pretty-print the resulting trace.
- *
- * @param integer Integer type.
- *
- * Returns the integer type's base on success, BT_CTF_INTEGER_BASE_UNKNOWN on
- *	error.
- */
-BT_HIDDEN
-enum bt_ctf_integer_base bt_ctf_field_type_integer_get_base(
-		struct bt_ctf_field_type *integer);
-
-/*
  * bt_ctf_field_type_integer_get_encoding: get an integer type's encoding.
  *
  * @param integer Integer type.
