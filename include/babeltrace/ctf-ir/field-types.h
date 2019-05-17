@@ -136,6 +136,19 @@ extern int bt_ctf_field_type_integer_set_base(struct bt_ctf_field_type *integer,
 		enum bt_ctf_integer_base base);
 
 /*
+ * bt_ctf_field_type_string_get_encoding: get a string type's encoding.
+ *
+ * Get the string type's encoding.
+ *
+ * @param string_type String type.
+ *
+ * Returns the string's encoding on success, a BT_CTF_STRING_ENCODING_UNKNOWN
+ * on error.
+ */
+enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
+		struct bt_ctf_field_type *string_type);
+
+/*
  * bt_ctf_field_type_integer_set_encoding: set an integer type's encoding.
  *
  * An integer encoding may be set to signal that the integer must be printed as

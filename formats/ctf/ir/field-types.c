@@ -787,7 +787,6 @@ end:
 	return ret;
 }
 
-BT_HIDDEN
 enum bt_ctf_string_encoding bt_ctf_field_type_integer_get_encoding(
 		struct bt_ctf_field_type *type)
 {

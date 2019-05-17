@@ -608,20 +608,6 @@ const char *bt_ctf_field_type_sequence_get_length_field_name(
 		struct bt_ctf_field_type *sequence);
 
 /*
- * bt_ctf_field_type_string_get_encoding: get a string type's encoding.
- *
- * Get the string type's encoding.
- *
- * @param string_type String type.
- *
- * Returns the string's encoding on success, a BT_CTF_STRING_ENCODING_UNKNOWN
- * on error.
- */
-BT_HIDDEN
-enum bt_ctf_string_encoding bt_ctf_field_type_string_get_encoding(
-		struct bt_ctf_field_type *string_type);
-
-/*
  * bt_ctf_field_type_get_alignment: get a field type's alignment.
  *
  * Get the field type's alignment.
