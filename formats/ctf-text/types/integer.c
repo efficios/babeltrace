@@ -90,10 +90,10 @@ int ctf_text_integer_write(struct bt_stream_pos *ppos, struct bt_definition *def
 			v = (uint64_t) integer_definition->value._signed;
 
 		fprintf(pos->fp, "0b");
-		v = _bt_piecewise_lshift(v, 64 - integer_declaration->len);
+		_bt_safe_lshift(v, 64 - integer_declaration->len);
 		for (bitnr = 0; bitnr < integer_declaration->len; bitnr++) {
 			fprintf(pos->fp, "%u", (v & (1ULL << 63)) ? 1 : 0);
-			v = _bt_piecewise_lshift(v, 1);
+			_bt_safe_lshift(v, 1);
 		}
 		break;
 	}
