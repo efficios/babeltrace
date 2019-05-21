@@ -802,7 +802,7 @@ AC_CONFIG_FILES([tests/lib/test_plugin_complete], [chmod +x tests/lib/test_plugi
 AC_CONFIG_FILES([tests/lib/trace-ir/test_trace_ir], [chmod +x tests/lib/trace-ir/test_trace_ir])
 AC_CONFIG_FILES([tests/lib/ctf-writer/test_ctf_writer], [chmod +x tests/lib/ctf-writer/test_ctf_writer])
 AC_CONFIG_FILES([tests/plugins/ctf/test_ctf_plugin], [chmod +x tests/plugins/ctf/test_ctf_plugin])
-AC_CONFIG_FILES([tests/plugins/test-utils-muxer-complete], [chmod +x tests/plugins/test-utils-muxer-complete])
+AC_CONFIG_FILES([tests/plugins/test_utils_muxer_complete], [chmod +x tests/plugins/test_utils_muxer_complete])
 AC_CONFIG_FILES([tests/plugins/test_lttng_utils_debug_info], [chmod +x tests/plugins/test_lttng_utils_debug_info])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_complete], [chmod +x tests/plugins/test_dwarf_complete])
 AC_CONFIG_FILES([tests/plugins/test_bin_info_complete], [chmod +x tests/plugins/test_bin_info_complete])
