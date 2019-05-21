@@ -1,25 +1,11 @@
 from functools import partial, partialmethod
 import operator
 import unittest
-import numbers
 import math
 import copy
 import itertools
 import bt2
-
-
-class _TestCopySimple:
-    def test_copy(self):
-        cpy = copy.copy(self._def)
-        self.assertIsNot(cpy, self._def)
-        self.assertNotEqual(cpy.addr, self._def.addr)
-        self.assertEqual(cpy, self._def)
-
-    def test_deepcopy(self):
-        cpy = copy.deepcopy(self._def)
-        self.assertIsNot(cpy, self._def)
-        self.assertNotEqual(cpy.addr, self._def.addr)
-        self.assertEqual(cpy, self._def)
+from utils import get_default_trace_class
 
 
 _COMP_BINOPS = (
@@ -28,14 +14,99 @@ _COMP_BINOPS = (
 )
 
 
-class _TestNumericField(_TestCopySimple):
+# Create and return a stream with the field classes part of its stream packet
+# context.
+#
+# The stream is part of a dummy trace created from trace class `tc`.
+
+def _create_stream(tc, ctx_field_classes):
+    packet_context_fc = tc.create_structure_field_class()
+    for name, fc in ctx_field_classes:
+        packet_context_fc.append_member(name, fc)
+
+    trace = tc()
+    stream_class = tc.create_stream_class(packet_context_field_class=packet_context_fc)
+
+    stream = trace.create_stream(stream_class)
+    return stream
+
+
+# Create a field of the given field class.
+#
+# The field is part of a dummy stream, itself part of a dummy trace created
+# from trace class `tc`.
+
+def _create_field(tc, field_class):
+    field_name = 'field'
+    stream = _create_stream(tc, [(field_name, field_class)])
+    packet = stream.create_packet()
+    return packet.context_field[field_name]
+
+
+# Create a field of type string.
+#
+# The field is part of a dummy stream, itself part of a dummy trace created
+# from trace class `tc`.  It is made out of a dummy string field class.
+
+def _create_string_field(tc):
+    field_name = 'string_field'
+    stream = _create_stream(tc, [(field_name, tc.create_string_field_class())])
+    packet = stream.create_packet()
+    return packet.context_field[field_name]
+
+
+# Create a field of type static array of ints.
+#
+# The field is part of a dummy stream, itself part of a dummy trace created
+# from trace class `tc`.  It is made out of a dummy static array field class,
+# with a dummy integer field class as element class.
+
+def _create_int_array_field(tc, length):
+    elem_fc = tc.create_signed_integer_field_class(32)
+    fc = tc.create_static_array_field_class(elem_fc, length)
+    field_name = 'int_array'
+    stream = _create_stream(tc, [(field_name, fc)])
+    packet = stream.create_packet()
+    return packet.context_field[field_name]
+
+
+# Create a field of type dynamic array of ints.
+#
+# The field is part of a dummy stream, itself part of a dummy trace created
+# from trace class `tc`.  It is made out of a dummy static array field class,
+# with a dummy integer field class as element and length classes.
+
+def _create_dynamic_array(tc):
+    elem_fc = tc.create_signed_integer_field_class(32)
+    len_fc = tc.create_signed_integer_field_class(32)
+    fc = tc.create_dynamic_array_field_class(elem_fc)
+    field_name = 'int_dyn_array'
+    stream = _create_stream(tc, [('thelength', len_fc), (field_name, fc)])
+    packet = stream.create_packet()
+    packet.context_field[field_name].length = 3
+    return packet.context_field[field_name]
+
+
+# Create a field of type array of (empty) structures.
+#
+# The field is part of a dummy stream, itself part of a dummy trace created
+# from trace class `tc`.  It is made out of a dummy static array field class,
+# with a dummy struct field class as element class.
+
+def _create_struct_array_field(tc, length):
+    elem_fc = tc.create_structure_field_class()
+    fc = tc.create_static_array_field_class(elem_fc, length)
+    field_name = 'struct_array'
+    stream = _create_stream(tc, [(field_name, fc)])
+    packet = stream.create_packet()
+    return packet.context_field[field_name]
+
+
+class _TestNumericField:
     def _binop(self, op, rhs):
         rexc = None
         rvexc = None
         comp_value = rhs
-
-        if isinstance(rhs, (bt2.field._IntegerField, bt2.field._FloatingPointNumberField)):
-            comp_value = copy.copy(rhs)
 
         try:
             r = op(self._def, rhs)
@@ -132,6 +203,7 @@ class _TestNumericField(_TestCopySimple):
         r, rv = self._binop(op, rhs)
         self.assertEqual(self._def.addr, addr_before)
 
+    @unittest.skip('copy is not implemented')
     def _test_binop_lhs_value_same(self, op, rhs):
         value_before = copy.copy(self._def)
         r, rv = self._binop(op, rhs)
@@ -512,27 +584,16 @@ class _TestNumericField(_TestCopySimple):
         self.assertEqual(str(self._def), str(self._def_value))
 
     def test_eq_none(self):
-        self.assertFalse(self._def == None)
+        # Ignore this lint error:
+        #   E711 comparison to None should be 'if cond is None:'
+        # since this is what we want to test (even though not good practice).
+        self.assertFalse(self._def == None) # noqa: E711
 
     def test_ne_none(self):
-        self.assertTrue(self._def != None)
-
-    def test_is_set(self):
-        raw = self._def_value
-        field = self._fc()
-        self.assertFalse(field.is_set)
-        field.value = raw
-        self.assertTrue(field.is_set)
-
-    def test_reset(self):
-        raw = self._def_value
-        field = self._fc()
-        field.value = raw
-        self.assertTrue(field.is_set)
-        field.reset()
-        self.assertFalse(field.is_set)
-        other = self._fc()
-        self.assertEqual(other, field)
+        # Ignore this lint error:
+        #   E711 comparison to None should be 'if cond is not None:'
+        # since this is what we want to test (even though not good practice).
+        self.assertTrue(self._def != None) # noqa: E711
 
 
 _BINOPS = (
@@ -736,7 +797,7 @@ class _TestIntegerFieldCommon(_TestNumericField):
 
     def test_assign_int_field(self):
         raw = 999
-        field = self._fc()
+        field = _create_field(self._tc, self._create_fc(self._tc))
         field.value = raw
         self._def.value = field
         self.assertEqual(self._def, raw)
@@ -751,15 +812,15 @@ class _TestIntegerFieldCommon(_TestNumericField):
             self._def.value = 'yes'
 
     def test_assign_uint(self):
-        fc = bt2.IntegerFieldClass(size=32, is_signed=False)
-        field = fc()
+        uint_fc = self._tc.create_unsigned_integer_field_class(32)
+        field = _create_field(self._tc, uint_fc)
         raw = 1777
         field.value = 1777
         self.assertEqual(field, raw)
 
     def test_assign_uint_invalid_neg(self):
-        fc = bt2.IntegerFieldClass(size=32, is_signed=False)
-        field = fc()
+        uint_fc = self._tc.create_unsigned_integer_field_class(32)
+        field = _create_field(self._tc, uint_fc)
 
         with self.assertRaises(ValueError):
             field.value = -23
@@ -767,65 +828,41 @@ class _TestIntegerFieldCommon(_TestNumericField):
     def test_str_op(self):
         self.assertEqual(str(self._def), str(self._def_value))
 
-    def test_str_op_unset(self):
-        self.assertEqual(str(self._fc()), 'Unset')
-
 
 _inject_numeric_testing_methods(_TestIntegerFieldCommon)
 
 
-@unittest.skip("this is broken")
-class IntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
+class SignedIntegerFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
+    def _create_fc(self, tc):
+        return tc.create_signed_integer_field_class(25)
+
     def setUp(self):
-        self._fc = bt2.IntegerFieldClass(25, is_signed=True)
-        self._field = self._fc()
-        self._def = self._fc()
+        self._tc = get_default_trace_class()
+        self._field = _create_field(self._tc, self._create_fc(self._tc))
+        self._field.value = 17
+        self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = 17
         self._def_value = 17
         self._def_new_value = -101
 
-    def tearDown(self):
-        del self._fc
-        del self._field
-        del self._def
 
+class SignedEnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
+    def _create_fc(self, tc):
+        fc = tc.create_signed_enumeration_field_class(32)
+        fc.map_range('something', 17)
+        fc.map_range('speaker', 12, 16)
+        fc.map_range('can', 18, 2540)
+        fc.map_range('whole range', -(2 ** 31), (2 ** 31) - 1)
+        fc.map_range('zip', -45, 1001)
+        return fc
 
-@unittest.skip("this is broken")
-class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
     def setUp(self):
-        self._fc = bt2.EnumerationFieldClass(size=32, is_signed=True)
-        self._fc.add_mapping('whole range', -(2 ** 31), (2 ** 31) - 1)
-        self._fc.add_mapping('something', 17)
-        self._fc.add_mapping('speaker', 12, 16)
-        self._fc.add_mapping('can', 18, 2540)
-        self._fc.add_mapping('zip', -45, 1001)
-        self._def = self._fc()
+        self._tc = get_default_trace_class()
+        self._field = _create_field(self._tc, self._create_fc(self._tc))
+        self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = 17
         self._def_value = 17
         self._def_new_value = -101
-
-    def tearDown(self):
-        del self._fc
-        del self._def
-
-    def test_mappings(self):
-        mappings = (
-            ('whole range', -(2 ** 31), (2 ** 31) - 1),
-            ('something', 17, 17),
-            ('zip', -45, 1001),
-        )
-
-        total = 0
-        index_set = set()
-
-        for fm in self._def.mappings:
-            total += 1
-            for index, mapping in enumerate(mappings):
-                if fm.name == mapping[0] and fm.lower == mapping[1] and fm.upper == mapping[2]:
-                    index_set.add(index)
-
-        self.assertEqual(total, 3)
-        self.assertTrue(0 in index_set and 1 in index_set and 2 in index_set)
 
     def test_str_op(self):
         expected_string_found = False
@@ -834,8 +871,8 @@ class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
         # Establish all permutations of the three expected matches since
         # the order in which mappings are enumerated is not explicitly part of
         # the API.
-        for p in itertools.permutations(["'whole range'", "'something'",
-                                         "'zip'"]):
+        for p in itertools.permutations(['whole range', 'something',
+                                         'zip']):
             candidate = '{} ({})'.format(self._def_value, ', '.join(p))
             if candidate == s:
                 expected_string_found = True
@@ -843,24 +880,23 @@ class EnumerationFieldTestCase(_TestIntegerFieldCommon, unittest.TestCase):
 
         self.assertTrue(expected_string_found)
 
-    def test_str_op_unset(self):
-        self.assertEqual(str(self._fc()), 'Unset')
+    def test_labels(self):
+        self._field.value = 17
+        labels = sorted(self._field.labels)
+        self.assertEqual(labels, ['something', 'whole range', 'zip'])
 
 
-@unittest.skip("this is broken")
-class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
+class RealFieldTestCase(_TestNumericField, unittest.TestCase):
+    def _create_fc(self, tc):
+        return tc.create_real_field_class()
+
     def setUp(self):
-        self._fc = bt2.FloatingPointNumberFieldClass()
-        self._field = self._fc()
-        self._def = self._fc()
+        self._tc = get_default_trace_class()
+        self._field = _create_field(self._tc, self._create_fc(self._tc))
+        self._def = _create_field(self._tc, self._create_fc(self._tc))
         self._def.value = 52.7
         self._def_value = 52.7
         self._def_new_value = -17.164857
-
-    def tearDown(self):
-        del self._fc
-        del self._field
-        del self._def
 
     def _test_invalid_op(self, cb):
         with self.assertRaises(TypeError):
@@ -885,11 +921,11 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         self.assertEqual(self._def, float(raw))
 
     def test_assign_int_field(self):
-        fc = bt2.IntegerFieldClass(32)
-        field = fc()
+        int_fc = self._tc.create_signed_integer_field_class(32)
+        int_field = _create_field(self._tc, int_fc)
         raw = 999
-        field.value = raw
-        self._def.value = field
+        int_field.value = raw
+        self._def.value = int_field
         self.assertEqual(self._def, float(raw))
 
     def test_assign_float(self):
@@ -898,8 +934,7 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
         self.assertEqual(self._def, raw)
 
     def test_assign_float_field(self):
-        fc = bt2.FloatingPointNumberFieldClass(32)
-        field = fc()
+        field = _create_field(self._tc, self._create_fc(self._tc))
         raw = 101.32
         field.value = raw
         self._def.value = field
@@ -930,32 +965,24 @@ class FloatingPointNumberFieldTestCase(_TestNumericField, unittest.TestCase):
     def test_str_op(self):
         self.assertEqual(str(self._def), str(self._def_value))
 
-    def test_str_op_unset(self):
-        self.assertEqual(str(self._fc()), 'Unset')
 
-_inject_numeric_testing_methods(FloatingPointNumberFieldTestCase)
+_inject_numeric_testing_methods(RealFieldTestCase)
 
 
-@unittest.skip("this is broken")
-class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
+class StringFieldTestCase(unittest.TestCase):
     def setUp(self):
-        self._fc = bt2.StringFieldClass()
+        self._tc = get_default_trace_class()
         self._def_value = 'Hello, World!'
-        self._def = self._fc()
+        self._def = _create_string_field(self._tc)
         self._def.value = self._def_value
         self._def_new_value = 'Yes!'
-
-    def tearDown(self):
-        del self._fc
-        del self._def
 
     def test_assign_int(self):
         with self.assertRaises(TypeError):
             self._def.value = 283
 
     def test_assign_string_field(self):
-        fc = bt2.StringFieldClass()
-        field = fc()
+        field = _create_string_field(self._tc)
         raw = 'zorg'
         field.value = raw
         self.assertEqual(field, raw)
@@ -963,54 +990,54 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
     def test_eq(self):
         self.assertEqual(self._def, self._def_value)
 
-    def test_eq(self):
+    def test_not_eq(self):
         self.assertNotEqual(self._def, 23)
 
     def test_lt_vstring(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
-        s2 = self._fc()
+        s2 = _create_string_field(self._tc)
         s2.value = 'bateau'
         self.assertLess(s1, s2)
 
     def test_lt_string(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
         self.assertLess(s1, 'bateau')
 
     def test_le_vstring(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
-        s2 = self._fc()
+        s2 = _create_string_field(self._tc)
         s2.value = 'bateau'
         self.assertLessEqual(s1, s2)
 
     def test_le_string(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
         self.assertLessEqual(s1, 'bateau')
 
     def test_gt_vstring(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
-        s2 = self._fc()
+        s2 = _create_string_field(self._tc)
         s2.value = 'bateau'
         self.assertGreater(s2, s1)
 
     def test_gt_string(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
         self.assertGreater('bateau', s1)
 
     def test_ge_vstring(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
-        s2 = self._fc()
+        s2 = _create_string_field(self._tc)
         s2.value = 'bateau'
         self.assertGreaterEqual(s2, s1)
 
     def test_ge_string(self):
-        s1 = self._fc()
+        s1 = _create_string_field(self._tc)
         s1.value = 'allo'
         self.assertGreaterEqual('bateau', s1)
 
@@ -1019,9 +1046,6 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
 
     def test_str_op(self):
         self.assertEqual(str(self._def), str(self._def_value))
-
-    def test_str_op_unset(self):
-        self.assertEqual(str(self._fc()), 'Unset')
 
     def test_len(self):
         self.assertEqual(len(self._def), len(self._def_value))
@@ -1036,33 +1060,15 @@ class StringFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(self._def, self._def_value)
 
     def test_append_string_field(self):
-        fc = bt2.StringFieldClass()
-        field = fc()
+        field = _create_string_field(self._tc)
         to_append = 'meow meow meow'
         field.value = to_append
         self._def += field
         self._def_value += to_append
         self.assertEqual(self._def, self._def_value)
 
-    def test_is_set(self):
-        raw = self._def_value
-        field = self._fc()
-        self.assertFalse(field.is_set)
-        field.value = raw
-        self.assertTrue(field.is_set)
 
-    def test_reset(self):
-        raw = self._def_value
-        field = self._fc()
-        field.value = raw
-        self.assertTrue(field.is_set)
-        field.reset()
-        self.assertFalse(field.is_set)
-        other = self._fc()
-        self.assertEqual(other, field)
-
-
-class _TestArraySequenceFieldCommon(_TestCopySimple):
+class _TestArrayFieldCommon:
     def _modify_def(self):
         self._def[2] = 23
 
@@ -1072,14 +1078,16 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
     def test_len(self):
         self.assertEqual(len(self._def), 3)
 
+    def test_length(self):
+        self.assertEqual(self._def.length, 3)
+
     def test_getitem(self):
         field = self._def[1]
-        self.assertIs(type(field), bt2.field._IntegerField)
+        self.assertIs(type(field), bt2.field._SignedIntegerField)
         self.assertEqual(field, 1847)
 
     def test_eq(self):
-        fc = bt2.ArrayFieldClass(self._elem_fc, 3)
-        field = fc()
+        field = _create_int_array_field(self._tc, 3)
         field[0] = 45
         field[1] = 1847
         field[2] = 1948754
@@ -1089,15 +1097,13 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         self.assertNotEqual(self._def, 23)
 
     def test_eq_diff_len(self):
-        fc = bt2.ArrayFieldClass(self._elem_fc, 2)
-        field = fc()
+        field = _create_int_array_field(self._tc, 2)
         field[0] = 45
         field[1] = 1847
         self.assertNotEqual(self._def, field)
 
     def test_eq_diff_content_same_len(self):
-        fc = bt2.ArrayFieldClass(self._elem_fc, 3)
-        field = fc()
+        field = _create_int_array_field(self._tc, 3)
         field[0] = 45
         field[1] = 1846
         field[2] = 1948754
@@ -1108,17 +1114,14 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         self.assertEqual(self._def[2], 24)
 
     def test_setitem_int_field(self):
-        int_field = self._elem_fc()
+        int_fc = self._tc.create_signed_integer_field_class(32)
+        int_field = _create_field(self._tc, int_fc)
         int_field.value = 19487
         self._def[1] = int_field
         self.assertEqual(self._def[1], 19487)
 
     def test_setitem_non_basic_field(self):
-        elem_fc = bt2.StructureFieldClass()
-        array_fc = bt2.ArrayFieldClass(elem_fc, 3)
-        elem_field = elem_fc()
-        array_field = array_fc()
-
+        array_field = _create_struct_array_field(self._tc, 2)
         with self.assertRaises(TypeError):
             array_field[1] = 23
 
@@ -1147,18 +1150,6 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
         self._def.value = values
         self.assertEqual(values, self._def)
 
-    def test_value_unset(self):
-        values = [45646, None, 12145]
-        self._def.value = values
-        self.assertFalse(self._def[1].is_set)
-
-    def test_value_rollback(self):
-        values = [45, 1847, 1948754]
-        # value is out of range, should not affect those we set previously
-        with self.assertRaises(bt2.Error):
-            self._def[2].value = 2**60
-        self.assertEqual(values, self._def)
-
     def test_value_check_sequence(self):
         values = 42
         with self.assertRaises(TypeError):
@@ -1170,13 +1161,15 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
             self._def.value = values
 
     def test_value_complex_type(self):
-        struct_fc = bt2.StructureFieldClass()
-        int_fc = bt2.IntegerFieldClass(32)
-        str_fc = bt2.StringFieldClass()
-        struct_fc.append_field(field_class=int_fc, name='an_int')
-        struct_fc.append_field(field_class=str_fc, name='a_string')
-        struct_fc.append_field(field_class=int_fc, name='another_int')
-        array_fc = bt2.ArrayFieldClass(struct_fc, 3)
+        struct_fc = self._tc.create_structure_field_class()
+        int_fc = self._tc.create_signed_integer_field_class(32)
+        another_int_fc = self._tc.create_signed_integer_field_class(32)
+        str_fc = self._tc.create_string_field_class()
+        struct_fc.append_member(field_class=int_fc, name='an_int')
+        struct_fc.append_member(field_class=str_fc, name='a_string')
+        struct_fc.append_member(field_class=another_int_fc, name='another_int')
+        array_fc = self._tc.create_static_array_field_class(struct_fc, 3)
+        stream = _create_stream(self._tc, [('array_field', array_fc)])
         values = [
             {
                 'an_int': 42,
@@ -1195,29 +1188,12 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
             },
         ]
 
-        array = array_fc()
+        array = stream.create_packet().context_field['array_field']
         array.value = values
         self.assertEqual(values, array)
         values[0]['an_int'] = 'a string'
         with self.assertRaises(TypeError):
             array.value = values
-
-    def test_is_set(self):
-        raw = self._def_value
-        field = self._fc()
-        self.assertFalse(field.is_set)
-        field.value = raw
-        self.assertTrue(field.is_set)
-
-    def test_reset(self):
-        raw = self._def_value
-        field = self._fc()
-        field.value = raw
-        self.assertTrue(field.is_set)
-        field.reset()
-        self.assertFalse(field.is_set)
-        other = self._fc()
-        self.assertEqual(other, field)
 
     def test_str_op(self):
         s = str(self._def)
@@ -1225,25 +1201,15 @@ class _TestArraySequenceFieldCommon(_TestCopySimple):
             [repr(v) for v in self._def_value]))
         self.assertEqual(expected_string, s)
 
-    def test_str_op_unset(self):
-        self.assertEqual(str(self._fc()), 'Unset')
 
-
-@unittest.skip("this is broken")
-class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
+class StaticArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
     def setUp(self):
-        self._elem_fc = bt2.IntegerFieldClass(32)
-        self._fc = bt2.ArrayFieldClass(self._elem_fc, 3)
-        self._def = self._fc()
+        self._tc = get_default_trace_class()
+        self._def = _create_int_array_field(self._tc, 3)
         self._def[0] = 45
         self._def[1] = 1847
         self._def[2] = 1948754
         self._def_value = [45, 1847, 1948754]
-
-    def tearDown(self):
-        del self._elem_fc
-        del self._fc
-        del self._def
 
     def test_value_wrong_len(self):
         values = [45, 1847]
@@ -1251,72 +1217,69 @@ class ArrayFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
             self._def.value = values
 
 
-@unittest.skip("this is broken")
-class SequenceFieldTestCase(_TestArraySequenceFieldCommon, unittest.TestCase):
+class DynamicArrayFieldTestCase(_TestArrayFieldCommon, unittest.TestCase):
     def setUp(self):
-        self._elem_fc = bt2.IntegerFieldClass(32)
-        self._fc = bt2.SequenceFieldClass(self._elem_fc, 'the.length')
-        self._def = self._fc()
-        self._length_field = self._elem_fc(3)
-        self._def.length_field = self._length_field
+        self._tc = get_default_trace_class()
+        self._def = _create_dynamic_array(self._tc)
         self._def[0] = 45
         self._def[1] = 1847
         self._def[2] = 1948754
         self._def_value = [45, 1847, 1948754]
-
-    def tearDown(self):
-        del self._elem_fc
-        del self._fc
-        del self._def
-        del self._length_field
 
     def test_value_resize(self):
         new_values = [1, 2, 3, 4]
         self._def.value = new_values
         self.assertCountEqual(self._def, new_values)
 
-    def test_value_resize_rollback(self):
+    def test_set_length(self):
+        self._def.length = 4
+        self._def[3] = 0
+        self.assertEqual(len(self._def), 4)
+
+    def test_set_invalid_length(self):
         with self.assertRaises(TypeError):
-            self._def.value = [1, 2, 3, 'unexpected string']
-        self.assertEqual(self._def, self._def_value)
-
-        self._def.reset()
-        with self.assertRaises(TypeError):
-            self._def.value = [1, 2, 3, 'unexpected string']
-        self.assertFalse(self._def.is_set)
+            self._def.length = 'cheval'
 
 
-@unittest.skip("this is broken")
-class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
+class StructureFieldTestCase(unittest.TestCase):
+    def _create_fc(self, tc):
+        fc = tc.create_structure_field_class()
+        fc.append_member('A', self._fc0_fn())
+        fc.append_member('B', self._fc1_fn())
+        fc.append_member('C', self._fc2_fn())
+        fc.append_member('D', self._fc3_fn())
+        fc.append_member('E', self._fc4_fn())
+        fc5 = self._fc5_fn()
+        fc5.append_member('F_1', self._fc5_inner_fn())
+        fc.append_member('F', fc5)
+        return fc
+
     def setUp(self):
-        self._fc0 = bt2.IntegerFieldClass(32, is_signed=True)
-        self._fc1 = bt2.StringFieldClass()
-        self._fc2 = bt2.FloatingPointNumberFieldClass()
-        self._fc3 = bt2.IntegerFieldClass(17)
-        self._fc = bt2.StructureFieldClass()
-        self._fc.append_field('A', self._fc0)
-        self._fc.append_field('B', self._fc1)
-        self._fc.append_field('C', self._fc2)
-        self._fc.append_field('D', self._fc3)
-        self._def = self._fc()
+        self._tc = get_default_trace_class()
+        self._fc0_fn = self._tc.create_signed_integer_field_class
+        self._fc1_fn = self._tc.create_string_field_class
+        self._fc2_fn = self._tc.create_real_field_class
+        self._fc3_fn = self._tc.create_signed_integer_field_class
+        self._fc4_fn = self._tc.create_structure_field_class
+        self._fc5_fn = self._tc.create_structure_field_class
+        self._fc5_inner_fn = self._tc.create_signed_integer_field_class
+
+        self._fc = self._create_fc(self._tc)
+        self._def = _create_field(self._tc, self._fc)
         self._def['A'] = -1872
         self._def['B'] = 'salut'
         self._def['C'] = 17.5
         self._def['D'] = 16497
+        self._def['E'] = {}
+        self._def['F'] = {'F_1': 52}
         self._def_value = {
             'A': -1872,
             'B': 'salut',
             'C': 17.5,
-            'D': 16497
+            'D': 16497,
+            'E': {},
+            'F': {'F_1': 52}
         }
-
-    def tearDown(self):
-        del self._fc0
-        del self._fc1
-        del self._fc2
-        del self._fc3
-        del self._fc
-        del self._def
 
     def _modify_def(self):
         self._def['B'] = 'hola'
@@ -1325,73 +1288,88 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertTrue(self._def)
 
     def test_bool_op_false(self):
-        fc = bt2.StructureFieldClass()
-        field = fc()
+        field = self._def['E']
         self.assertFalse(field)
 
     def test_len(self):
-        self.assertEqual(len(self._def), 4)
+        self.assertEqual(len(self._def), len(self._def_value))
 
     def test_getitem(self):
         field = self._def['A']
-        self.assertIs(type(field), bt2.field._IntegerField)
+        self.assertIs(type(field), bt2.field._SignedIntegerField)
         self.assertEqual(field, -1872)
 
-    def test_at_index_out_of_bounds_after(self):
+    def test_member_at_index_out_of_bounds_after(self):
         with self.assertRaises(IndexError):
-            self._def.at_index(len(self._fc))
+            self._def.member_at_index(len(self._def_value))
 
     def test_eq(self):
-        fc = bt2.StructureFieldClass()
-        fc.append_field('A', self._fc0)
-        fc.append_field('B', self._fc1)
-        fc.append_field('C', self._fc2)
-        fc.append_field('D', self._fc3)
-        field = fc()
+        field = _create_field(self._tc, self._create_fc(self._tc, ))
         field['A'] = -1872
         field['B'] = 'salut'
         field['C'] = 17.5
         field['D'] = 16497
+        field['E'] = {}
+        field['F'] = {'F_1': 52}
         self.assertEqual(self._def, field)
 
     def test_eq_invalid_type(self):
         self.assertNotEqual(self._def, 23)
 
     def test_eq_diff_len(self):
-        fc = bt2.StructureFieldClass()
-        fc.append_field('A', self._fc0)
-        fc.append_field('B', self._fc1)
-        fc.append_field('C', self._fc2)
-        field = fc()
+        fc = self._tc.create_structure_field_class()
+        fc.append_member('A', self._fc0_fn())
+        fc.append_member('B', self._fc1_fn())
+        fc.append_member('C', self._fc2_fn())
+
+        field = _create_field(self._tc, fc)
         field['A'] = -1872
         field['B'] = 'salut'
         field['C'] = 17.5
         self.assertNotEqual(self._def, field)
 
+    def test_eq_diff_keys(self):
+        fc = self._tc.create_structure_field_class()
+        fc.append_member('U', self._fc0_fn())
+        fc.append_member('V', self._fc1_fn())
+        fc.append_member('W', self._fc2_fn())
+        fc.append_member('X', self._fc3_fn())
+        fc.append_member('Y', self._fc4_fn())
+        fc.append_member('Z', self._fc5_fn())
+        field = _create_field(self._tc, fc)
+        field['U'] = -1871
+        field['V'] = "gerry"
+        field['W'] = 18.19
+        field['X'] = 16497
+        field['Y'] = {}
+        field['Z'] = {}
+        self.assertNotEqual(self._def, field)
+
     def test_eq_diff_content_same_len(self):
-        fc = bt2.StructureFieldClass()
-        fc.append_field('A', self._fc0)
-        fc.append_field('B', self._fc1)
-        fc.append_field('C', self._fc2)
-        fc.append_field('D', self._fc3)
-        field = fc()
+        field = _create_field(self._tc, self._create_fc(self._tc))
         field['A'] = -1872
         field['B'] = 'salut'
         field['C'] = 17.4
         field['D'] = 16497
+        field['E'] = {}
+        field['F'] = {'F_1': 0}
         self.assertNotEqual(self._def, field)
 
     def test_eq_same_content_diff_keys(self):
-        fc = bt2.StructureFieldClass()
-        fc.append_field('A', self._fc0)
-        fc.append_field('B', self._fc1)
-        fc.append_field('E', self._fc2)
-        fc.append_field('D', self._fc3)
-        field = fc()
+        fc = self._tc.create_structure_field_class()
+        fc.append_member('A', self._fc0_fn())
+        fc.append_member('B', self._fc1_fn())
+        fc.append_member('E', self._fc2_fn())
+        fc.append_member('D', self._fc3_fn())
+        fc.append_member('C', self._fc4_fn())
+        fc.append_member('F', self._fc5_fn())
+        field = _create_field(self._tc, fc)
         field['A'] = -1872
         field['B'] = 'salut'
-        field['E'] = 17.4
+        field['E'] = 17.5
         field['D'] = 16497
+        field['C'] = {}
+        field['F'] = {}
         self.assertNotEqual(self._def, field)
 
     def test_setitem(self):
@@ -1399,18 +1377,17 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         self.assertEqual(self._def['C'], -18.47)
 
     def test_setitem_int_field(self):
-        int_fc = bt2.IntegerFieldClass(16)
-        int_field = int_fc()
+        int_fc = self._tc.create_signed_integer_field_class(32)
+        int_field = _create_field(self._tc, int_fc)
         int_field.value = 19487
         self._def['D'] = int_field
         self.assertEqual(self._def['D'], 19487)
 
     def test_setitem_non_basic_field(self):
-        elem_fc = bt2.StructureFieldClass()
-        elem_field = elem_fc()
-        struct_fc = bt2.StructureFieldClass()
-        struct_fc.append_field('A', elem_fc)
-        struct_field = struct_fc()
+        elem_fc = self._tc.create_structure_field_class()
+        struct_fc = self._tc.create_structure_field_class()
+        struct_fc.append_member('A', elem_fc)
+        struct_field = _create_field(self._tc, struct_fc)
 
         # Will fail on access to .items() of the value
         with self.assertRaises(AttributeError):
@@ -1428,8 +1405,8 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         with self.assertRaises(KeyError):
             self._def['hi'] = 134679
 
-    def test_at_index(self):
-        self.assertEqual(self._def.at_index(1), 'salut')
+    def test_member_at_index(self):
+        self.assertEqual(self._def.member_at_index(1), 'salut')
 
     def test_iter(self):
         orig_values = {
@@ -1437,6 +1414,8 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
             'B': 'salut',
             'C': 17.5,
             'D': 16497,
+            'E': {},
+            'F': {'F_1': 52}
         }
 
         for vkey, vval in self._def.items():
@@ -1449,23 +1428,26 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
             'B': 'salut',
             'C': 17.5,
             'D': 16497,
+            'E': {},
+            'F': {'F_1': 52}
         }
         self.assertEqual(self._def, orig_values)
 
     def test_set_value(self):
-        int_fc = bt2.IntegerFieldClass(32)
-        str_fc = bt2.StringFieldClass()
-        struct_fc = bt2.StructureFieldClass()
-        struct_fc.append_field(field_class=int_fc, name='an_int')
-        struct_fc.append_field(field_class=str_fc, name='a_string')
-        struct_fc.append_field(field_class=int_fc, name='another_int')
+        int_fc = self._tc.create_signed_integer_field_class(32)
+        another_int_fc = self._tc.create_signed_integer_field_class(32)
+        str_fc = self._tc.create_string_field_class()
+        struct_fc = self._tc.create_structure_field_class()
+        struct_fc.append_member(field_class=int_fc, name='an_int')
+        struct_fc.append_member(field_class=str_fc, name='a_string')
+        struct_fc.append_member(field_class=another_int_fc, name='another_int')
         values = {
             'an_int': 42,
             'a_string': 'hello',
             'another_int': 66
         }
 
-        struct = struct_fc()
+        struct = _create_field(self._tc, struct_fc)
         struct.value = values
         self.assertEqual(values, struct)
 
@@ -1478,62 +1460,6 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
         unknown_key_values['unknown_key'] = 16546
         with self.assertRaises(KeyError):
             struct.value = unknown_key_values
-
-    def test_value_rollback(self):
-        int_fc = bt2.IntegerFieldClass(32)
-        str_fc = bt2.StringFieldClass()
-        struct_fc = bt2.StructureFieldClass()
-        struct_fc.append_field(field_class=int_fc, name='an_int')
-        struct_fc.append_field(field_class=str_fc, name='a_string')
-        struct_fc.append_field(field_class=int_fc, name='another_int')
-        values = {
-            'an_int': 42,
-            'a_string': 'hello',
-            'another_int': 66
-        }
-
-    def test_is_set(self):
-        values = {
-            'an_int': 42,
-            'a_string': 'hello',
-            'another_int': 66
-        }
-
-        int_fc = bt2.IntegerFieldClass(32)
-        str_fc = bt2.StringFieldClass()
-        struct_fc = bt2.StructureFieldClass()
-        struct_fc.append_field(field_class=int_fc, name='an_int')
-        struct_fc.append_field(field_class=str_fc, name='a_string')
-        struct_fc.append_field(field_class=int_fc, name='another_int')
-
-        struct = struct_fc()
-        self.assertFalse(struct.is_set)
-        struct.value = values
-        self.assertTrue(struct.is_set)
-
-        struct = struct_fc()
-        struct['an_int'].value = 42
-        self.assertFalse(struct.is_set)
-
-    def test_reset(self):
-        values = {
-            'an_int': 42,
-            'a_string': 'hello',
-            'another_int': 66
-        }
-
-        int_fc = bt2.IntegerFieldClass(32)
-        str_fc = bt2.StringFieldClass()
-        struct_fc = bt2.StructureFieldClass()
-        struct_fc.append_field(field_class=int_fc, name='an_int')
-        struct_fc.append_field(field_class=str_fc, name='a_string')
-        struct_fc.append_field(field_class=int_fc, name='another_int')
-
-        struct = struct_fc()
-        struct.value = values
-        self.assertTrue(struct.is_set)
-        struct.reset()
-        self.assertEqual(struct_fc(), struct)
 
     def test_str_op(self):
         expected_string_found = False
@@ -1550,126 +1476,99 @@ class StructureFieldTestCase(_TestCopySimple, unittest.TestCase):
 
         self.assertTrue(expected_string_found)
 
-    def test_str_op_unset(self):
-        self.assertEqual(str(self._fc()), 'Unset')
 
+class VariantFieldTestCase(unittest.TestCase):
+    def _create_fc(self, tc):
+        selector_fc = tc.create_signed_enumeration_field_class(field_value_range=32)
+        selector_fc.map_range('corner', 23)
+        selector_fc.map_range('zoom', 17, 20)
+        selector_fc.map_range('mellotron', 1001)
+        selector_fc.map_range('giorgio', 2000, 3000)
 
-@unittest.skip("this is broken")
-class VariantFieldTestCase(_TestCopySimple, unittest.TestCase):
+        ft0 = tc.create_signed_integer_field_class(32)
+        ft1 = tc.create_string_field_class()
+        ft2 = tc.create_real_field_class()
+        ft3 = tc.create_signed_integer_field_class(17)
+
+        fc = tc.create_variant_field_class()
+        fc.append_option('corner', ft0)
+        fc.append_option('zoom', ft1)
+        fc.append_option('mellotron', ft2)
+        fc.append_option('giorgio', ft3)
+        fc.selector_field_class = selector_fc
+
+        top_fc = tc.create_structure_field_class()
+        top_fc.append_member('selector_field', selector_fc)
+        top_fc.append_member('variant_field', fc)
+        return top_fc
+
     def setUp(self):
-        self._tag_fc = bt2.EnumerationFieldClass(size=32)
-        self._tag_fc.add_mapping('corner', 23)
-        self._tag_fc.add_mapping('zoom', 17, 20)
-        self._tag_fc.add_mapping('mellotron', 1001)
-        self._tag_fc.add_mapping('giorgio', 2000, 3000)
-        self._fc0 = bt2.IntegerFieldClass(32, is_signed=True)
-        self._fc1 = bt2.StringFieldClass()
-        self._fc2 = bt2.FloatingPointNumberFieldClass()
-        self._fc3 = bt2.IntegerFieldClass(17)
-        self._fc = bt2.VariantFieldClass('salut', self._tag_fc)
-        self._fc.append_field('corner', self._fc0)
-        self._fc.append_field('zoom', self._fc1)
-        self._fc.append_field('mellotron', self._fc2)
-        self._fc.append_field('giorgio', self._fc3)
-        self._def = self._fc()
+        self._tc = get_default_trace_class()
+        fld = _create_field(self._tc, self._create_fc(self._tc))
+        self._def = fld['variant_field']
 
-    def tearDown(self):
-        del self._tag_fc
-        del self._fc0
-        del self._fc1
-        del self._fc2
-        del self._fc3
-        del self._fc
-        del self._def
+    def test_bool_op(self):
+        self._def.selected_option_index = 2
+        self._def.value = -17.34
+        with self.assertRaises(NotImplementedError):
+            bool(self._def)
 
-    def test_bool_op_true(self):
-        tag_field = self._tag_fc(1001)
-        self._def.field(tag_field).value = -17.34
-        self.assertTrue(self._def)
+    def test_selected_option_index(self):
+        self._def.selected_option_index = 2
+        self.assertEqual(self._def.selected_option_index, 2)
 
-    def test_bool_op_false(self):
-        self.assertFalse(self._def)
+    def test_selected_option(self):
+        self._def.selected_option_index = 2
+        self._def.value = -17.34
+        self.assertEqual(self._def.selected_option, -17.34)
 
-    def test_tag_field_none(self):
-        self.assertIsNone(self._def.tag_field)
-
-    def test_tag_field(self):
-        tag_field = self._tag_fc(2800)
-        self._def.field(tag_field).value = 1847
-        self.assertEqual(self._def.tag_field, tag_field)
-        self.assertEqual(self._def.tag_field.addr, tag_field.addr)
-
-    def test_selected_field_none(self):
-        self.assertIsNone(self._def.selected_field)
-
-    def test_selected_field(self):
-        var_field1 = self._fc()
-        tag_field1 = self._tag_fc(1001)
-        var_field1.field(tag_field1).value = -17.34
-        self.assertEqual(var_field1.field(), -17.34)
-        self.assertEqual(var_field1.selected_field, -17.34)
-        var_field2 = self._fc()
-        tag_field2 = self._tag_fc(2500)
-        var_field2.field(tag_field2).value = 1921
-        self.assertEqual(var_field2.field(), 1921)
-        self.assertEqual(var_field2.selected_field, 1921)
+        self._def.selected_option_index = 3
+        self._def.value = 1921
+        self.assertEqual(self._def.selected_option, 1921)
 
     def test_eq(self):
-        tag_fc = bt2.EnumerationFieldClass(size=32)
-        tag_fc.add_mapping('corner', 23)
-        tag_fc.add_mapping('zoom', 17, 20)
-        tag_fc.add_mapping('mellotron', 1001)
-        tag_fc.add_mapping('giorgio', 2000, 3000)
-        fc0 = bt2.IntegerFieldClass(32, is_signed=True)
-        fc1 = bt2.StringFieldClass()
-        fc2 = bt2.FloatingPointNumberFieldClass()
-        fc3 = bt2.IntegerFieldClass(17)
-        fc = bt2.VariantFieldClass('salut', tag_fc)
-        fc.append_field('corner', fc0)
-        fc.append_field('zoom', fc1)
-        fc.append_field('mellotron', fc2)
-        fc.append_field('giorgio', fc3)
-        field = fc()
-        field_tag = tag_fc(23)
-        def_tag = self._tag_fc(23)
-        field.field(field_tag).value = 1774
-        self._def.field(def_tag).value = 1774
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field = field['variant_field']
+        field.selected_option_index = 0
+        field.value = 1774
+        self._def.selected_option_index = 0
+        self._def.value = 1774
         self.assertEqual(self._def, field)
 
     def test_eq_invalid_type(self):
+        self._def.selected_option_index = 1
+        self._def.value = 'gerry'
         self.assertNotEqual(self._def, 23)
 
-    def test_is_set(self):
-        self.assertFalse(self._def.is_set)
-        tag_field = self._tag_fc(2800)
-        self._def.field(tag_field).value = 684
-        self.assertTrue(self._def.is_set)
-
-    def test_reset(self):
-        tag_field = self._tag_fc(2800)
-        self._def.field(tag_field).value = 684
-        self._def.reset()
-        self.assertFalse(self._def.is_set)
-        self.assertIsNone(self._def.selected_field)
-        self.assertIsNone(self._def.tag_field)
-
     def test_str_op_int(self):
-        v = self._fc()
-        v.field(self._tag_fc(23)).value = 42
-        f = self._fc0(42)
-        self.assertEqual(str(f), str(v))
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field = field['variant_field']
+        field.selected_option_index = 0
+        field.value = 1774
+        other_field = _create_field(self._tc, self._create_fc(self._tc))
+        other_field = other_field['variant_field']
+        other_field.selected_option_index = 0
+        other_field.value = 1774
+        self.assertEqual(str(field), str(other_field))
 
     def test_str_op_str(self):
-        v = self._fc()
-        v.field(self._tag_fc(18)).value = 'some test string'
-        f = self._fc1('some test string')
-        self.assertEqual(str(f), str(v))
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field = field['variant_field']
+        field.selected_option_index = 1
+        field.value = 'un beau grand bateau'
+        other_field = _create_field(self._tc, self._create_fc(self._tc))
+        other_field = other_field['variant_field']
+        other_field.selected_option_index = 1
+        other_field.value = 'un beau grand bateau'
+        self.assertEqual(str(field), str(other_field))
 
-    def test_str_op_flt(self):
-        v = self._fc()
-        v.field(self._tag_fc(1001)).value = 14.4245
-        f = self._fc2(14.4245)
-        self.assertEqual(str(f), str(v))
-
-    def test_str_op_unset(self):
-        self.assertEqual(str(self._fc()), 'Unset')
+    def test_str_op_float(self):
+        field = _create_field(self._tc, self._create_fc(self._tc))
+        field = field['variant_field']
+        field.selected_option_index = 2
+        field.value = 14.4245
+        other_field = _create_field(self._tc, self._create_fc(self._tc))
+        other_field = other_field['variant_field']
+        other_field.selected_option_index = 2
+        other_field.value = 14.4245
+        self.assertEqual(str(field), str(other_field))
