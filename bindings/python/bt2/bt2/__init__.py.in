@@ -44,15 +44,6 @@ from bt2.event_class import *
 from bt2.field_class import *
 from bt2.field_path import *
 from bt2.field import *
-from bt2.field import _ArrayField
-from bt2.field import _EnumerationField
-from bt2.field import _Field
-from bt2.field import _RealField
-from bt2.field import _IntegerField
-from bt2.field import _SequenceField
-from bt2.field import _StringField
-from bt2.field import _StructureField
-from bt2.field import _VariantField
 from bt2.graph import *
 from bt2.logging import *
 from bt2.message import *

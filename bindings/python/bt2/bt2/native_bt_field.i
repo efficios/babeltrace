@@ -22,6 +22,9 @@
  * THE SOFTWARE.
  */
 
+/* For label type mappings. */
+%include "native_bt_field_class.i"
+
 /* From field-const.h */
 
 typedef enum bt_field_status {
@@ -44,13 +47,13 @@ extern double bt_field_real_get_value(const bt_field *field);
 
 extern bt_field_status bt_field_unsigned_enumeration_get_mapping_labels(
 		const bt_field *field,
-		bt_field_class_enumeration_mapping_label_array *label_array,
-		uint64_t *count);
+		bt_field_class_enumeration_mapping_label_array *LABELARRAY,
+		uint64_t *LABELCOUNT);
 
 extern bt_field_status bt_field_signed_enumeration_get_mapping_labels(
 		const bt_field *field,
-		bt_field_class_enumeration_mapping_label_array *label_array,
-		uint64_t *count);
+		bt_field_class_enumeration_mapping_label_array *LABELARRAY,
+		uint64_t *LABELCOUNT);
 
 extern const char *bt_field_string_get_value(const bt_field *field);
 
