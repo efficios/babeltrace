@@ -251,8 +251,18 @@ int is_build_id_note_section(uint8_t *buf)
 	 * - Note type
 	 */
 	name_sz = (uint32_t) *buf;
+
+	/*
+	 * Check the note name length. The name_sz field includes the
+	 * terminating null byte.
+	 */
+	if (name_sz != sizeof(BUILD_ID_NOTE_NAME)) {
+		goto invalid;
+	}
+
 	buf += sizeof(name_sz);
 
+	/* Ignore the note description size. */
 	buf += sizeof(desc_sz);
 
 	note_type = (uint32_t) *buf;
