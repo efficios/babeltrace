@@ -896,7 +896,7 @@ bt_self_message_iterator_status state_seek_initially(
 		if (!bt_self_component_port_input_message_iterator_can_seek_beginning(
 				trimmer_it->upstream_iter)) {
 			BT_LOGE_STR("Cannot make upstream message iterator initially seek its beginning.");
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
@@ -909,7 +909,7 @@ bt_self_message_iterator_status state_seek_initially(
 			BT_LOGE("Cannot make upstream message iterator initially seek: "
 				"seek-ns-from-origin=%" PRId64,
 				trimmer_it->begin.ns_from_origin);
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_OK;
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
 
