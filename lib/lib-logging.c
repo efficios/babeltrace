@@ -100,10 +100,11 @@ static __thread char lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 
 #define PRFIELD_GSTRING(_expr)	PRFIELD((_expr) ? (_expr)->str : NULL)
 
+#define TMP_PREFIX_LEN 64
 #define SET_TMP_PREFIX(_prefix2)					\
 	do {								\
-		strcpy(tmp_prefix, prefix);				\
-		strcat(tmp_prefix, (_prefix2));				\
+		strncpy(tmp_prefix, prefix, TMP_PREFIX_LEN);		\
+		strncat(tmp_prefix, (_prefix2), TMP_PREFIX_LEN);	\
 	} while (0)
 
 static inline void format_component(char **buf_ch, bool extended,
@@ -185,7 +186,7 @@ static inline void format_array_field_class(char **buf_ch,
 static inline void format_field_class(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_field_class *field_class)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %stype=%s",
 		PRFIELD(bt_common_field_class_type_string(field_class->type)));
@@ -472,7 +473,7 @@ static inline void format_trace_class(char **buf_ch, bool extended,
 static inline void format_trace(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_trace *trace)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	if (trace->name.value) {
 		BUF_APPEND(", %sname=\"%s\"", PRFIELD(trace->name.value));
@@ -503,7 +504,7 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 		const struct bt_stream_class *stream_class)
 {
 	const struct bt_trace_class *trace_class;
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %sid=%" PRIu64, PRFIELD(stream_class->id));
 
@@ -548,7 +549,7 @@ static inline void format_event_class(char **buf_ch, bool extended,
 {
 	const struct bt_stream_class *stream_class;
 	const struct bt_trace_class *trace_class;
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %sid=%" PRIu64, PRFIELD(event_class->id));
 
@@ -605,7 +606,7 @@ static inline void format_stream(char **buf_ch, bool extended,
 	const struct bt_stream_class *stream_class;
 	const struct bt_trace_class *trace_class = NULL;
 	const struct bt_trace *trace = NULL;
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %sid=%" PRIu64, PRFIELD(stream->id));
 
@@ -647,7 +648,7 @@ static inline void format_packet(char **buf_ch, bool extended,
 {
 	const struct bt_stream *stream;
 	const struct bt_trace_class *trace_class;
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	if (!extended) {
 		return;
@@ -681,7 +682,7 @@ static inline void format_event(char **buf_ch, bool extended,
 	const struct bt_stream *stream;
 	const struct bt_trace_class *trace_class;
 	const struct bt_stream_class *stream_class;
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	if (!extended) {
 		return;
@@ -742,7 +743,7 @@ static inline void format_event(char **buf_ch, bool extended,
 static inline void format_clock_class(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_clock_class *clock_class)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	if (clock_class->name.value) {
 		BUF_APPEND(", %sname=\"%s\"", PRFIELD(clock_class->name.value));
@@ -781,7 +782,7 @@ static inline void format_clock_class(char **buf_ch, bool extended,
 static inline void format_clock_snapshot(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_clock_snapshot *clock_snapshot)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 	BUF_APPEND(", %svalue=%" PRIu64 ", %sns-from-origin=%" PRId64,
 		PRFIELD(clock_snapshot->value_cycles),
 		PRFIELD(clock_snapshot->ns_from_origin));
@@ -869,7 +870,7 @@ static inline void format_value(char **buf_ch, bool extended,
 static inline void format_message(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_message *msg)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %stype=%s",
 		PRFIELD(bt_message_type_string(msg->type)));
@@ -1008,7 +1009,7 @@ static inline void format_component_class(char **buf_ch, bool extended,
 		const char *prefix,
 		const struct bt_component_class *comp_class)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %stype=%s, %sname=\"%s\"",
 		PRFIELD(bt_component_class_type_string(comp_class->type)),
@@ -1035,7 +1036,7 @@ static inline void format_component_class(char **buf_ch, bool extended,
 static inline void format_component(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_component *component)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %sname=\"%s\"",
 		PRFIELD_GSTRING(component->name));
@@ -1064,7 +1065,7 @@ static inline void format_component(char **buf_ch, bool extended,
 static inline void format_port(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_port *port)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %stype=%s, %sname=\"%s\"",
 		PRFIELD(bt_port_type_string(port->type)),
@@ -1083,7 +1084,7 @@ static inline void format_port(char **buf_ch, bool extended,
 static inline void format_connection(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_connection *connection)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	if (!extended) {
 		return;
@@ -1105,7 +1106,7 @@ static inline void format_connection(char **buf_ch, bool extended,
 static inline void format_graph(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_graph *graph)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %sis-canceled=%d, %scan-consume=%d, "
 		"%sconfig-state=%s",
@@ -1143,7 +1144,7 @@ static inline void format_message_iterator(char **buf_ch,
 		const struct bt_message_iterator *iterator)
 {
 	const char *type;
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	if (iterator->type == BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT) {
 		type = "BT_MESSAGE_ITERATOR_TYPE_SELF_COMPONENT_PORT_INPUT";
@@ -1207,7 +1208,7 @@ static inline void format_message_iterator(char **buf_ch,
 static inline void format_plugin(char **buf_ch, bool extended,
 		const char *prefix, const struct bt_plugin *plugin)
 {
-	char tmp_prefix[64];
+	char tmp_prefix[TMP_PREFIX_LEN];
 
 	BUF_APPEND(", %stype=%s", PRFIELD(bt_plugin_type_string(plugin->type)));
 
