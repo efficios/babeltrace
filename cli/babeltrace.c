@@ -1452,7 +1452,10 @@ int cmd_print_ctf_metadata(struct bt_config *cfg)
 	if (ret < 0) {
 		BT_LOGE("Cannot write whole metadata text to output stream: "
 			"ret=%d", ret);
+		goto end;
 	}
+
+	ret = 0;
 
 	goto end;
 
