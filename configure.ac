@@ -793,6 +793,7 @@ AC_CONFIG_FILES([
 
 AC_CONFIG_FILES([tests/cli/intersection/test_intersection], [chmod +x tests/cli/intersection/test_intersection])
 AC_CONFIG_FILES([tests/cli/test_convert_args], [chmod +x tests/cli/test_convert_args])
+AC_CONFIG_FILES([tests/cli/test_output_ctf_metadata], [chmod +x tests/cli/test_output_ctf_metadata])
 AC_CONFIG_FILES([tests/cli/test_packet_seq_num], [chmod +x tests/cli/test_packet_seq_num])
 AC_CONFIG_FILES([tests/cli/test_trace_copy], [chmod +x tests/cli/test_trace_copy])
 AC_CONFIG_FILES([tests/cli/test_trace_read], [chmod +x tests/cli/test_trace_read])
