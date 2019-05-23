@@ -90,8 +90,7 @@ struct bin_info *bin_info_create(struct bt_fd_cache *fdc, const char *path,
 	}
 
 	if (target_prefix) {
-		bin->elf_path = g_build_path("/", target_prefix,
-						path, NULL);
+		bin->elf_path = g_build_filename(target_prefix,	path, NULL);
 	} else {
 		bin->elf_path = g_strdup(path);
 	}
@@ -592,7 +591,7 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 	g_snprintf(&build_id_file[build_id_char_len], build_id_suffix_char_len,
 		BUILD_ID_SUFFIX);
 
-	path = g_build_path("/", dbg_dir, BUILD_ID_SUBDIR, build_id_file, NULL);
+	path = g_build_filename(dbg_dir, BUILD_ID_SUBDIR, build_id_file, NULL);
 	if (!path) {
 		goto error;
 	}
