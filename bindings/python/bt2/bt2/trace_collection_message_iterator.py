@@ -25,7 +25,6 @@ import bt2
 import itertools
 import bt2.message_iterator
 import datetime
-import collections.abc
 from collections import namedtuple
 import numbers
 
@@ -42,7 +41,7 @@ class ComponentSpec:
         self._component_class_name = component_class_name
 
         if type(params) is str:
-            self._params = bt2.create_value({'path': params})
+            self._params = bt2.create_value({'paths': [params]})
         else:
             self._params = bt2.create_value(params)
 
@@ -83,13 +82,11 @@ class _CompClsType:
 
 class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
     def __init__(self, source_component_specs, filter_component_specs=None,
-                 message_types=None, stream_intersection_mode=False,
-                 begin=None, end=None):
+                 stream_intersection_mode=False, begin=None, end=None):
         utils._check_bool(stream_intersection_mode)
         self._stream_intersection_mode = stream_intersection_mode
         self._begin_ns = _get_ns(begin)
         self._end_ns = _get_ns(end)
-        self._message_types = message_types
 
         if type(source_component_specs) is ComponentSpec:
             source_component_specs = [source_component_specs]
@@ -120,26 +117,25 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
     def __next__(self):
         return next(self._msg_iter)
 
-    def _create_stream_intersection_trimmer(self, port):
+    def _create_stream_intersection_trimmer(self, component, port):
         # find the original parameters specified by the user to create
         # this port's component to get the `path` parameter
         for src_comp_and_spec in self._src_comps_and_specs:
-            if port.component == src_comp_and_spec.comp:
-                params = src_comp_and_spec.spec.params
+            if component == src_comp_and_spec.comp:
                 break
 
         try:
-            path = params['path']
-        except:
-            raise bt2.Error('all source components must be created with a "path" parameter in stream intersection mode')
+            paths = src_comp_and_spec.spec.params['paths']
+        except Exception as e:
+            raise bt2.Error('all source components must be created with a "paths" parameter in stream intersection mode') from e
 
-        params = {'path': str(path)}
+        params = {'paths': paths}
 
         # query the port's component for the `trace-info` object which
         # contains the stream intersection range for each exposed
         # trace
         query_exec = bt2.QueryExecutor()
-        trace_info_res = query_exec.query(port.component.component_class,
+        trace_info_res = query_exec.query(src_comp_and_spec.comp.component_class,
                                           'trace-info', params)
         begin = None
         end = None
@@ -152,13 +148,13 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
                     begin = range_ns['begin']
                     end = range_ns['end']
                     break
-        except:
+        except Exception:
             pass
 
         if begin is None or end is None:
             raise bt2.Error('cannot find stream intersection range for port "{}"'.format(port.name))
 
-        name = 'trimmer-{}-{}'.format(port.component.name, port.name)
+        name = 'trimmer-{}-{}'.format(src_comp_and_spec.comp.name, port.name)
         return self._create_trimmer(begin, end, name)
 
     def _create_muxer(self):
@@ -173,7 +169,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         comp_cls = plugin.filter_component_classes['muxer']
         return self._graph.add_component(comp_cls, 'muxer')
 
-    def _create_trimmer(self, begin, end, name):
+    def _create_trimmer(self, begin_ns, end_ns, name):
         plugin = bt2.find_plugin('utils')
 
         if plugin is None:
@@ -184,11 +180,16 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
 
         params = {}
 
-        if begin is not None:
-            params['begin'] = begin
+        def ns_to_string(ns):
+            s_part = ns // 1000000000
+            ns_part = ns % 1000000000
+            return '{}.{:09d}'.format(s_part, ns_part)
 
-        if end is not None:
-            params['end'] = end
+        if begin_ns is not None:
+            params['begin'] = ns_to_string(begin_ns)
+
+        if end_ns is not None:
+            params['end'] = ns_to_string(end_ns)
 
         comp_cls = plugin.filter_component_classes['trimmer']
         return self._graph.add_component(comp_cls, name, params)
@@ -232,7 +233,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
             if not port.is_connected:
                 return port
 
-    def _connect_src_comp_port(self, port):
+    def _connect_src_comp_port(self, component, port):
         # if this trace collection iterator is in stream intersection
         # mode, we need this connection:
         #
@@ -242,7 +243,7 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         #
         #     port -> muxer
         if self._stream_intersection_mode:
-            trimmer_comp = self._create_stream_intersection_trimmer(port)
+            trimmer_comp = self._create_stream_intersection_trimmer(component, port)
             self._graph.connect_ports(port, trimmer_comp.input_ports['in'])
             port_to_muxer = trimmer_comp.output_ports['out']
         else:
@@ -250,23 +251,22 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
 
         self._graph.connect_ports(port_to_muxer, self._get_free_muxer_input_port())
 
-    def _graph_port_added(self, port):
+    def _graph_port_added(self, component, port):
         if not self._connect_ports:
             return
 
-        if type(port) is bt2._InputPort:
+        if type(port) is bt2.port._InputPort:
             return
 
-        if port.component not in [comp.comp for comp in self._src_comps_and_specs]:
+        if component not in [comp.comp for comp in self._src_comps_and_specs]:
             # do not care about non-source components (muxer, trimmer, etc.)
             return
 
-        self._connect_src_comp_port(port)
+        self._connect_src_comp_port(component, port)
 
     def _build_graph(self):
         self._graph = bt2.Graph()
-        self._graph.add_listener(bt2.GraphListenerType.PORT_ADDED,
-                                 self._graph_port_added)
+        self._graph.add_port_added_listener(self._graph_port_added)
         self._muxer_comp = self._create_muxer()
 
         if self._begin_ns is not None or self._end_ns is not None:
@@ -312,10 +312,10 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
             out_ports = [port for port in comp_and_spec.comp.output_ports.values()]
 
             for out_port in out_ports:
-                if not out_port.component or out_port.is_connected:
+                if out_port.is_connected:
                     continue
 
-                self._connect_src_comp_port(out_port)
+                self._connect_src_comp_port(comp_and_spec.comp, out_port)
 
         # create this trace collection iterator's message iterator
-        self._msg_iter = msg_iter_port.create_message_iterator(self._message_types)
+        self._msg_iter = self._graph.create_output_port_message_iterator(msg_iter_port)
