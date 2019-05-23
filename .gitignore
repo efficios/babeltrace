@@ -95,3 +95,4 @@ doc/api/Doxyfile
 *.gcov
 *.html
 *.stamp
+*.swp
