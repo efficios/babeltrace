@@ -103,8 +103,9 @@ static __thread char lib_logging_buf[LIB_LOGGING_BUF_SIZE];
 #define TMP_PREFIX_LEN 64
 #define SET_TMP_PREFIX(_prefix2)					\
 	do {								\
-		strncpy(tmp_prefix, prefix, TMP_PREFIX_LEN);		\
-		strncat(tmp_prefix, (_prefix2), TMP_PREFIX_LEN);	\
+		snprintf(tmp_prefix, TMP_PREFIX_LEN - 1, "%s%s",	\
+			prefix, (_prefix2));				\
+		tmp_prefix[TMP_PREFIX_LEN - 1] = '\0';			\
 	} while (0)
 
 static inline void format_component(char **buf_ch, bool extended,
