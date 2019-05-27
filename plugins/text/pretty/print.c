@@ -717,7 +717,7 @@ int print_enum(struct pretty_component *pretty,
 	for (i = 0; i < label_count; i++) {
 		const char *mapping_name = label_array[i];
 
-		if (i == 0) {
+		if (i != 0) {
 			g_string_append(pretty->string, ", ");
 		}
 		if (pretty->use_colors) {
