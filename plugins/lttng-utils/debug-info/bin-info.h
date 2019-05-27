@@ -35,9 +35,10 @@
 #include <babeltrace/fd-cache-internal.h>
 
 #define DEFAULT_DEBUG_DIR "/usr/lib/debug"
-#define DEBUG_SUBDIR ".debug/"
-#define BUILD_ID_SUBDIR ".build-id/"
+#define DEBUG_SUBDIR ".debug"
+#define BUILD_ID_SUBDIR ".build-id"
 #define BUILD_ID_SUFFIX ".debug"
+#define BUILD_ID_PREFIX_DIR_LEN 2
 
 struct bin_info {
 	/* Base virtual memory address. */
