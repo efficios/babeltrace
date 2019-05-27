@@ -501,7 +501,7 @@ static
 int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 {
 	int i = 0, ret = 0;
-	char *path = NULL, *build_id_file = NULL;
+	char *path = NULL, *build_id_prefix_dir = NULL, *build_id_file = NULL;
 	const char *dbg_dir = NULL;
 	size_t build_id_char_len, build_id_suffix_char_len, build_id_file_len;
 
@@ -511,25 +511,49 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 
 	dbg_dir = bin->debug_info_dir ? bin->debug_info_dir : DEFAULT_DEBUG_DIR;
 
-	/* 2 characters per byte printed in hex, +1 for '/' and +1 for '\0' */
-	build_id_char_len = (2 * bin->build_id_len) + 1;
+	/*
+	 * The prefix dir is the first byte of the build id, represented in
+	 * lowercase hex as two characters per byte, +1 for '\0'.
+	 */
+	build_id_prefix_dir = g_new0(gchar, BUILD_ID_PREFIX_DIR_LEN + 1);
+	if (!build_id_prefix_dir) {
+		goto error;
+	}
+	g_snprintf(build_id_prefix_dir, BUILD_ID_PREFIX_DIR_LEN + 1, "%02x", bin->build_id[0]);
+
+	/*
+	 * The build id file is the remaining bytes of the build id,
+	 * represented in lowercase hex, as two characters per byte.
+	 */
+	build_id_char_len = (2 * (bin->build_id_len - 1));
+
+	/* To which the build id suffix is added, +1 for '\0'. */
 	build_id_suffix_char_len = strlen(BUILD_ID_SUFFIX) + 1;
+
+	/*
+	 * The resulting filename string is the concatenation of the
+	 * hex build id and the suffix.
+	 */
 	build_id_file_len =  build_id_char_len + build_id_suffix_char_len;
 	build_id_file = g_new0(gchar, build_id_file_len);
 	if (!build_id_file) {
 		goto error;
 	}
 
-	g_snprintf(build_id_file, 4, "%02x/", bin->build_id[0]);
+	/*
+	 * For each byte, starting at offset 1, append two characters
+	 * in lowercase hex.
+	 */
 	for (i = 1; i < bin->build_id_len; ++i) {
-		int path_idx = 3 + 2 * (i - 1);
+		int path_idx = 2 * (i - 1);
 
 		g_snprintf(&build_id_file[path_idx], 3, "%02x", bin->build_id[i]);
 	}
+	/* Append the suffix to the generated string, including the '\0'. */
 	g_snprintf(&build_id_file[build_id_char_len], build_id_suffix_char_len,
 		BUILD_ID_SUFFIX);
 
-	path = g_build_filename(dbg_dir, BUILD_ID_SUBDIR, build_id_file, NULL);
+	path = g_build_filename(dbg_dir, BUILD_ID_SUBDIR, build_id_prefix_dir, build_id_file, NULL);
 	if (!path) {
 		goto error;
 	}
@@ -544,8 +568,9 @@ int bin_info_set_dwarf_info_build_id(struct bin_info *bin)
 error:
 	ret = -1;
 end:
-	free(build_id_file);
-	free(path);
+	g_free(build_id_prefix_dir);
+	g_free(build_id_file);
+	g_free(path);
 
 	return ret;
 }
@@ -606,22 +631,17 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 {
 	int ret = 0;
 	const gchar *dbg_dir = NULL;
-	gchar *bin_dir = NULL, *dir_name = NULL, *path = NULL;
+	gchar *bin_dir = NULL, *path = NULL;
 
 	if (!bin || !bin->dbg_link_filename) {
 		goto error;
 	}
 
 	dbg_dir = bin->debug_info_dir ? bin->debug_info_dir : DEFAULT_DEBUG_DIR;
-	dir_name = g_path_get_dirname(bin->elf_path);
-	if (!dir_name) {
-		goto error;
-	}
-
-	bin_dir = g_strconcat(dir_name, "/", NULL);
+	bin_dir = g_path_get_dirname(bin->elf_path);
 
 	/* First look in the executable's dir */
-	path = g_strconcat(bin_dir, bin->dbg_link_filename, NULL);
+	path = g_build_filename(bin_dir, bin->dbg_link_filename, NULL);
 
 	if (is_valid_debug_file(bin, path, bin->dbg_link_crc)) {
 		goto found;
@@ -629,7 +649,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 
 	/* If not found, look in .debug subdir */
 	g_free(path);
-	path = g_strconcat(bin_dir, DEBUG_SUBDIR, bin->dbg_link_filename, NULL);
+	path = g_build_filename(bin_dir, DEBUG_SUBDIR, bin->dbg_link_filename, NULL);
 
 	if (is_valid_debug_file(bin, path, bin->dbg_link_crc)) {
 		goto found;
@@ -638,7 +658,7 @@ int bin_info_set_dwarf_info_debug_link(struct bin_info *bin)
 	/* Lastly, look under the global debug directory */
 	g_free(path);
 
-	path = g_strconcat(dbg_dir, bin_dir, bin->dbg_link_filename, NULL);
+	path = g_build_filename(dbg_dir, bin_dir, bin->dbg_link_filename, NULL);
 	if (is_valid_debug_file(bin, path, bin->dbg_link_crc)) {
 		goto found;
 	}
@@ -647,7 +667,6 @@ error:
 	ret = -1;
 end:
 	g_free(bin_dir);
-	g_free(dir_name);
 	g_free(path);
 
 	return ret;
