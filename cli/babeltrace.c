@@ -2169,8 +2169,6 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 	const bt_value *intersection_range = NULL;
 	const bt_value *intersection_begin = NULL;
 	const bt_value *intersection_end = NULL;
-	const bt_value *stream_path_value = NULL;
-	const bt_value *stream_paths = NULL;
 	const bt_value *stream_infos = NULL;
 	const bt_value *stream_info = NULL;
 	struct port_id *port_id = NULL;
@@ -2269,20 +2267,8 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 			goto error;
 		}
 
-		/*
-		 * FIXME
-		 *
-		 * The first path of a stream's "paths" is currently used to
-		 * associate streams/ports to a given trace intersection.
-		 *
-		 * This is a fragile hack as it relies on the port names
-		 * being set to the various streams path.
-		 *
-		 * A stream name should be introduced as part of the trace-info
-		 * query result.
-		 */
 		for (stream_idx = 0; stream_idx < stream_count; stream_idx++) {
-			const char *stream_path;
+			const bt_value *port_name;
 
 			port_id = g_new0(struct port_id, 1);
 			if (!port_id) {
@@ -2314,26 +2300,14 @@ int set_stream_intersections(struct cmd_run_ctx *ctx,
 				goto error;
 			}
 
-			stream_paths = bt_value_map_borrow_entry_value_const(stream_info,
-									     "paths");
-			if (!stream_paths || !bt_value_is_array(stream_paths)) {
+			port_name = bt_value_map_borrow_entry_value_const(stream_info, "port-name");
+			if (!port_name || !bt_value_is_string(port_name)) {
 				ret = -1;
-				BT_LOGD_STR("Cannot retrieve stream paths from trace in query result.");
+				BT_LOGD_STR("Cannot retrieve port name in query result.");
 				goto error;
 			}
 
-			stream_path_value =
-				bt_value_array_borrow_element_by_index_const(
-					stream_paths, 0);
-			if (!stream_path_value ||
-				!bt_value_is_string(stream_path_value)) {
-				ret = -1;
-				BT_LOGD_STR("Cannot retrieve stream path value from trace in query result.");
-				goto error;
-			}
-
-			stream_path = bt_value_string_get(stream_path_value);
-			port_id->port_name = strdup(stream_path);
+			port_id->port_name = g_strdup(bt_value_string_get(port_name));
 			if (!port_id->port_name) {
 				ret = -1;
 				BT_LOGE_STR("Cannot allocate memory for port_id port_name.");

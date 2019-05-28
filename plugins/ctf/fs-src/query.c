@@ -273,6 +273,7 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	bt_value *file_paths;
 	struct ctf_fs_ds_file_info *first_file_info, *last_file_info;
 	struct ctf_fs_ds_index_entry *first_ds_index_entry, *last_ds_index_entry;
+	gchar *port_name = NULL;
 
 	file_paths = bt_value_array_create();
 	if (!file_paths) {
@@ -344,6 +345,20 @@ int populate_stream_info(struct ctf_fs_ds_file_group *group,
 	if (ret) {
 		goto end;
 	}
+
+	port_name = ctf_fs_make_port_name(group);
+	if (!port_name) {
+		ret = -1;
+		goto end;
+	}
+
+	status = bt_value_map_insert_string_entry(group_info, "port-name",
+		port_name);
+	if (status != BT_VALUE_STATUS_OK) {
+		ret = -1;
+		goto end;
+	}
+
 end:
 	bt_value_put_ref(file_paths);
 	return ret;
