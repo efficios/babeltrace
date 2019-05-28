@@ -1435,7 +1435,9 @@ error:
  * @param cu		bt_dwarf_cu instance in which to look for the address
  * @param addr		The address for which to look for
  * @param src_loc	Out parameter, the source location (filename and
- *			line number) for the address
+ *			line number) for the address. Set only if the address
+ *			is found and resolved successfully
+ *
  * @returns		0 on success, -1 on failure
  */
 static
@@ -1460,7 +1462,8 @@ int bin_info_lookup_cu_src_loc_no_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 
 	line = dwarf_getsrc_die(die->dwarf_die, addr);
 	if (!line) {
-		goto error;
+		/* This is not an error. The caller needs to keep looking. */
+		goto end;
 	}
 
 	ret = dwarf_lineaddr(line, &line_addr);
@@ -1494,6 +1497,7 @@ int bin_info_lookup_cu_src_loc_no_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 		*src_loc = _src_loc;
 	}
 
+end:
 	return 0;
 
 error:
