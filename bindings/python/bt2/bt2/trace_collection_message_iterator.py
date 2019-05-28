@@ -140,14 +140,15 @@ class TraceCollectionMessageIterator(bt2.message_iterator._MessageIterator):
         begin = None
         end = None
 
-        # find the trace info for this port's trace by name's prefix
+        # find the trace info for this port's trace
         try:
             for trace_info in trace_info_res:
-                if port.name.startswith(str(trace_info['path'])):
-                    range_ns = trace_info['intersection-range-ns']
-                    begin = range_ns['begin']
-                    end = range_ns['end']
-                    break
+                for stream in trace_info['streams']:
+                    if stream['port-name'] == port.name:
+                        range_ns = trace_info['intersection-range-ns']
+                        begin = range_ns['begin']
+                        end = range_ns['end']
+                        break
         except Exception:
             pass
 

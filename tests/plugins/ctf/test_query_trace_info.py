@@ -17,6 +17,7 @@
 import unittest
 import bt2
 import os
+import re
 
 
 test_ctf_traces_path = os.environ['TEST_CTF_TRACES_PATH']
@@ -120,6 +121,55 @@ class QueryTraceInfoClockOffsetTestCase(unittest.TestCase):
                 'paths': self._paths,
                 'clock-class-offset-ns': None,
             })
+
+
+class QueryTraceInfoPortNameTestCase(unittest.TestCase):
+    def setUp(self):
+        ctf = bt2.find_plugin("ctf")
+        self._fs = ctf.source_component_classes["fs"]
+
+        self._executor = bt2.QueryExecutor()
+
+    def test_trace_uuid_stream_class_id_no_stream_id(self):
+        res = self._executor.query(
+            self._fs,
+            "trace-info",
+            {
+                "paths": [
+                    os.path.join(
+                        test_ctf_traces_path, "intersection", "3eventsintersect"
+                    )
+                ]
+            },
+        )
+        self.assertEqual(len(res), 1)
+        trace = res[0]
+        streams = sorted(trace["streams"], key=sort_by_begin)
+        self.assertEqual(len(streams), 2)
+        self.assertRegexpMatches(
+            str(streams[0]["port-name"]),
+            r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*/tests/ctf-traces/intersection/3eventsintersect/test_stream_0$",
+        )
+        self.assertRegexpMatches(
+            str(streams[1]["port-name"]),
+            r"^7afe8fbe-79b8-4f6a-bbc7-d0c782e7ddaf \| 0 \| .*/tests/ctf-traces/intersection/3eventsintersect/test_stream_1$",
+        )
+
+    def test_trace_uuid_no_stream_class_id_no_stream_id(self):
+        res = self._executor.query(
+            self._fs,
+            "trace-info",
+            {"paths": [os.path.join(test_ctf_traces_path, "succeed", "succeed1")]},
+        )
+        self.assertEqual(len(res), 1)
+        trace = res[0]
+        streams = sorted(trace["streams"], key=sort_by_begin)
+        self.assertEqual(len(streams), 1)
+        self.assertRegexpMatches(
+            str(streams[0]["port-name"]),
+            r"^2a6422d0-6cee-11e0-8c08-cb07d7b3a564 \| .*/tests/ctf-traces/succeed/succeed1/dummystream$",
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

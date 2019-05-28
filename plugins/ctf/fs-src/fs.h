@@ -218,4 +218,13 @@ BT_HIDDEN
 bool read_src_fs_parameters(const bt_value *params,
 		const bt_value **paths, struct ctf_fs_component *ctf_fs);
 
+/*
+ * Generate the port name to be used for a given data stream file group.
+ *
+ * The result must be freed using g_free by the caller.
+ */
+
+BT_HIDDEN
+gchar *ctf_fs_make_port_name(struct ctf_fs_ds_file_group *ds_file_group);
+
 #endif /* BABELTRACE_PLUGIN_CTF_FS_H */
