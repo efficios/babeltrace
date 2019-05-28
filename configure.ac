@@ -807,9 +807,11 @@ AC_CONFIG_FILES([tests/plugins/test_utils_muxer_complete], [chmod +x tests/plugi
 AC_CONFIG_FILES([tests/plugins/test_lttng_utils_debug_info], [chmod +x tests/plugins/test_lttng_utils_debug_info])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_i386-linux-gnu], [chmod +x tests/plugins/test_dwarf_i386-linux-gnu])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_powerpc-linux-gnu], [chmod +x tests/plugins/test_dwarf_powerpc-linux-gnu])
+AC_CONFIG_FILES([tests/plugins/test_dwarf_powerpc64le-linux-gnu], [chmod +x tests/plugins/test_dwarf_powerpc64le-linux-gnu])
 AC_CONFIG_FILES([tests/plugins/test_dwarf_x86_64-linux-gnu], [chmod +x tests/plugins/test_dwarf_x86_64-linux-gnu])
 AC_CONFIG_FILES([tests/plugins/test_bin_info_i386-linux-gnu], [chmod +x tests/plugins/test_bin_info_i386-linux-gnu])
 AC_CONFIG_FILES([tests/plugins/test_bin_info_powerpc-linux-gnu], [chmod +x tests/plugins/test_bin_info_powerpc-linux-gnu])
+AC_CONFIG_FILES([tests/plugins/test_bin_info_powerpc64le-linux-gnu], [chmod +x tests/plugins/test_bin_info_powerpc64le-linux-gnu])
 AC_CONFIG_FILES([tests/plugins/test_bin_info_x86_64-linux-gnu], [chmod +x tests/plugins/test_bin_info_x86_64-linux-gnu])
 
 AS_IF([test "x$enable_python_bindings" = xyes],
