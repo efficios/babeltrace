@@ -55,9 +55,11 @@ if ENABLE_DEBUG_INFO
 TESTS_PLUGINS += \
 	plugins/test_dwarf_i386-linux-gnu \
 	plugins/test_dwarf_powerpc-linux-gnu \
+	plugins/test_dwarf_powerpc64le-linux-gnu \
 	plugins/test_dwarf_x86_64-linux-gnu \
 	plugins/test_bin_info_i386-linux-gnu \
 	plugins/test_bin_info_powerpc-linux-gnu \
+	plugins/test_bin_info_powerpc64le-linux-gnu \
 	plugins/test_bin_info_x86_64-linux-gnu
 endif
 
