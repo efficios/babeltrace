@@ -145,41 +145,6 @@ void bin_info_destroy(struct bin_info *bin)
 	g_free(bin);
 }
 
-static
-int bin_info_set_endianness(struct bin_info *bin)
-{
-	int ret, fd;
-	uint8_t e_ident[EI_NIDENT];
-
-	fd = bt_fd_cache_handle_get_fd(bin->elf_handle);
-
-	/*
-	 * Read the identification fields of the elf file.
-	 */
-	if (lseek(fd, 0, SEEK_SET) < 0) {
-		BT_LOGE("Error seeking the beginning of ELF file: %s",
-			strerror(errno));
-		ret = -1;
-		goto error;
-	}
-
-	ret = bt_common_read(fd, e_ident, EI_NIDENT);
-	if (ret < EI_NIDENT) {
-		BT_LOGE_STR("Error reading the ELF identification fields");
-		ret = -1;
-		goto error;
-	}
-
-	/*
-	 * Set the endianness.
-	 */
-	 bin->endianness = e_ident[EI_DATA];
-	 ret = 0;
-
-error:
-	return ret;
-}
-
 /**
  * Initialize the ELF file for a given executable.
  *
@@ -191,7 +156,6 @@ int bin_info_set_elf_file(struct bin_info *bin)
 {
 	struct bt_fd_cache_handle *elf_handle = NULL;
 	Elf *elf_file = NULL;
-	int ret;
 
 	if (!bin) {
 		goto error;
@@ -203,11 +167,6 @@ int bin_info_set_elf_file(struct bin_info *bin)
 		goto error;
 	}
 	bin->elf_handle = elf_handle;
-
-	ret = bin_info_set_endianness(bin);
-	if (ret) {
-		goto error;
-	}
 
 	elf_file = elf_begin(bt_fd_cache_handle_get_fd(bin->elf_handle),
 		ELF_C_READ, NULL);
@@ -232,49 +191,43 @@ error:
 }
 
 /**
- * From a note section data buffer, check if it is a build id note.
+ * From a note section data struct, check if it is a build id note.
  *
- * @param buf			Pointer to a note section
+ * @param note_data		Pointer to a note section
  *
  * @returns			1 on match, 0 if `buf` does not contain a
  *				valid build id note
  */
 static
-int is_build_id_note_section(uint8_t *buf)
+int is_build_id_note_section(Elf_Data *note_data)
 {
+	size_t name_offset, desc_offset;
+	GElf_Nhdr note_header;
 	int ret = 0;
-	uint32_t name_sz, desc_sz, note_type;
 
-	/* The note section header has 3 32bit integer for the following:
-	 * - Section name size
-	 * - Description size
-	 * - Note type
+	/*
+	 * Discard the return value as it contains the size of the note section
+	 * and we don't need it.
 	 */
-	name_sz = (uint32_t) *buf;
+	(void) gelf_getnote(note_data, 0, &note_header, &name_offset,
+		&desc_offset);
 
 	/*
 	 * Check the note name length. The name_sz field includes the
 	 * terminating null byte.
 	 */
-	if (name_sz != sizeof(BUILD_ID_NOTE_NAME)) {
+	if (note_header.n_namesz != sizeof(BUILD_ID_NOTE_NAME)) {
 		goto invalid;
 	}
 
-	buf += sizeof(name_sz);
-
-	/* Ignore the note description size. */
-	buf += sizeof(desc_sz);
-
-	note_type = (uint32_t) *buf;
-	buf += sizeof(note_type);
-
 	/* Check the note type. */
-	if (note_type != NT_GNU_BUILD_ID) {
+	if (note_header.n_type != NT_GNU_BUILD_ID) {
 		goto invalid;
 	}
 
 	/* Check the note name. */
-	if (memcmp(buf, BUILD_ID_NOTE_NAME, name_sz) != 0) {
+	if (memcmp(note_data->d_buf + name_offset, BUILD_ID_NOTE_NAME,
+			note_header.n_namesz) != 0) {
 		goto invalid;
 	}
 
@@ -285,46 +238,38 @@ invalid:
 }
 
 /**
- *  From a build id note section data buffer, check if the build id it contains
+ *  From a build id note section data struct, check if the build id it contains
  *  is identical to the build id passed as parameter.
  *
- * @param file_build_id_note	Pointer to the file build id note section.
+ * @param note_data		Pointer to the file build id note section.
  * @param build_id		Pointer to a build id to compare to.
  * @param build_id_len		length of the build id.
  *
  * @returns			1 on match, 0 otherwise.
  */
 static
-int is_build_id_note_section_matching(uint8_t *file_build_id_note,
+int is_build_id_note_section_matching(Elf_Data *note_data,
 		uint8_t *build_id, size_t build_id_len)
 {
-	uint32_t name_sz, desc_sz, note_type;
+	size_t name_offset, desc_offset;
+	GElf_Nhdr note_header;
 
 	if (build_id_len <= 0) {
 		goto end;
 	}
 
-	/* The note section header has 3 32bit integer for the following:
-	 * - Section name size
-	 * - Description size
-	 * - Note type
-	 */
-	name_sz = (uint32_t) *file_build_id_note;
-	file_build_id_note += sizeof(name_sz);
-	file_build_id_note += sizeof(desc_sz);
-	file_build_id_note += sizeof(note_type);
-
 	/*
-	 * Move the pointer pass the name char array. This corresponds to the
-	 * beginning of the description section. The description is the build
-	 * id in the case of a build id note.
+	 * Discard the return value as it contains the size of the note section
+	 * and we don't need it.
 	 */
-	file_build_id_note += name_sz;
+	(void) gelf_getnote(note_data, 0, &note_header, &name_offset,
+		&desc_offset);
 
 	/*
 	 * Compare the binary build id with the supplied build id.
 	 */
-	if (memcmp(build_id, file_build_id_note, build_id_len) == 0) {
+	if (memcmp(build_id, note_data->d_buf + desc_offset,
+			build_id_len) == 0) {
 		return 1;
 	}
 end:
@@ -369,8 +314,7 @@ int is_build_id_matching(struct bin_info *bin)
 	}
 
 	while (next_section) {
-		Elf_Data *file_note_data = NULL;
-		Elf_Data native_note_data;
+		Elf_Data *note_data = NULL;
 
 		curr_section = next_section;
 		next_section = elf_nextscn(bin->elf_file, curr_section);
@@ -383,31 +327,17 @@ int is_build_id_matching(struct bin_info *bin)
 			continue;
 		}
 
-		file_note_data = elf_getdata(curr_section, NULL);
-		if (!file_note_data) {
+		/*
+		 * elf_getdata() translates the data to native byte order.
+		 */
+		note_data = elf_getdata(curr_section, NULL);
+		if (!note_data) {
 			goto error;
 		}
 
-		/*
-		 * Prepare the destination buffer to receive the natively
-		 * ordered note. The `d_buf`, `d_size`, and `d_version` fields
-		 * of the destination structure must be set before invoking the
-		 * `gelf_xlatetom()` function.
-		 */
-		native_note_data.d_buf = g_new0(uint8_t, file_note_data->d_size);
-		BT_ASSERT(native_note_data.d_buf);
-
-		native_note_data.d_size = file_note_data->d_size;
-		native_note_data.d_version = file_note_data->d_version;
-
-		/* Translate the note data buffer to the host endianness. */
-		gelf_xlatetom(bin->elf_file, &native_note_data, file_note_data,
-			bin->endianness);
-
 		/* Check if the note is of the build-id type. */
-		is_build_id = is_build_id_note_section(native_note_data.d_buf);
+		is_build_id = is_build_id_note_section(note_data);
 		if (!is_build_id) {
-			g_free(native_note_data.d_buf);
 			continue;
 		}
 
@@ -416,9 +346,7 @@ int is_build_id_matching(struct bin_info *bin)
 		 * the build id recorded in the trace.
 		 */
 		is_matching = is_build_id_note_section_matching(
-			native_note_data.d_buf, bin->build_id,
-			bin->build_id_len);
-		g_free(native_note_data.d_buf);
+			note_data, bin->build_id, bin->build_id_len);
 		if (!is_matching) {
 			break;
 		}

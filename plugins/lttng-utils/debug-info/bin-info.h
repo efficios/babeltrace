@@ -66,11 +66,6 @@ struct bin_info {
 	gchar *debug_info_dir;
 	/* Denotes whether the executable is position independent code. */
 	bool is_pic:1;
-	/*
-	 * Endianness of the binary file. (may differ from system endianness).
-	 * Two possible values are ELFDATA2MSB and ELFDATA2LSB.
-	 */
-	uint8_t endianness;
 	/* Denotes whether the build id in the trace matches to one on disk. */
 	bool file_build_id_matches:1;
 	/*
