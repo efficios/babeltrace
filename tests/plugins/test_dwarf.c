@@ -28,11 +28,47 @@
 #include <lttng-utils/debug-info/dwarf.h>
 #include "tap/tap.h"
 
-#define NR_TESTS 15
+#define NR_TESTS 17
 
 #define SO_NAME "libhello_so"
 #define DWARF_DIR_NAME "dwarf_full"
+#define ELF_DIR_NAME "elf_only"
 
+/*
+ * Test that we fail on an ELF file without DWARF.
+ */
+static
+void test_bt_no_dwarf(const char *data_dir)
+{
+	int fd;
+	char *path;
+	Dwarf *dwarf_info = NULL;
+
+	path = g_build_filename(data_dir, ELF_DIR_NAME, SO_NAME, NULL);
+	if (path == NULL) {
+		diag("Failed to allocate memory for path");
+		exit(EXIT_FAILURE);
+	}
+
+	fd = open(path, O_RDONLY);
+	ok(fd >= 0, "Open ELF file %s", path);
+	if (fd < 0) {
+		skip(1, "dwarf_begin failed as expected");
+	} else {
+		dwarf_info = dwarf_begin(fd, DWARF_C_READ);
+		ok(dwarf_info == NULL, "dwarf_begin failed as expected");
+	}
+
+	if (dwarf_info != NULL) {
+		dwarf_end(dwarf_info);
+	}
+	close(fd);
+	g_free(path);
+}
+
+/*
+ * Test with a proper ELF file with DWARF.
+ */
 static
 void test_bt_dwarf(const char *data_dir)
 {
@@ -45,6 +81,7 @@ void test_bt_dwarf(const char *data_dir)
 
 	path = g_build_filename(data_dir, DWARF_DIR_NAME, SO_NAME, NULL);
 	if (path == NULL) {
+		diag("Failed to allocate memory for path");
 		exit(EXIT_FAILURE);
 	}
 
@@ -118,6 +155,7 @@ int main(int argc, char **argv)
 		data_dir = argv[1];
 	}
 
+	test_bt_no_dwarf(data_dir);
 	test_bt_dwarf(data_dir);
 
 	return EXIT_SUCCESS;
