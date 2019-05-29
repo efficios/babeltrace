@@ -749,21 +749,12 @@ AC_CONFIG_FILES([
 	logging/Makefile
 	bindings/Makefile
 	tests/Makefile
-	tests/cli/Makefile
-	tests/cli/intersection/Makefile
 	tests/lib/Makefile
 	tests/lib/test-plugin-plugins/Makefile
-	tests/lib/trace-ir/Makefile
-	tests/lib/ctf-writer/Makefile
 	tests/utils/common.sh
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
-	tests/bindings/Makefile
-	tests/bindings/python/Makefile
-	tests/bindings/python/bt2/Makefile
 	tests/plugins/Makefile
-	tests/plugins/ctf/Makefile
-	tests/python-plugin-provider/Makefile
 	extras/Makefile
 	extras/valgrind/Makefile
 	plugins/Makefile
@@ -791,7 +782,7 @@ AC_CONFIG_FILES([
 	babeltrace-ctf.pc
 ])
 
-AC_CONFIG_FILES([tests/cli/intersection/test_intersection], [chmod +x tests/cli/intersection/test_intersection])
+AC_CONFIG_FILES([tests/cli/test_intersection], [chmod +x tests/cli/test_intersection])
 AC_CONFIG_FILES([tests/cli/test_convert_args], [chmod +x tests/cli/test_convert_args])
 AC_CONFIG_FILES([tests/cli/test_output_ctf_metadata], [chmod +x tests/cli/test_output_ctf_metadata])
 AC_CONFIG_FILES([tests/cli/test_packet_seq_num], [chmod +x tests/cli/test_packet_seq_num])

@@ -1,10 +1,11 @@
-SUBDIRS = ctf
-
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils -I$(top_srcdir)/plugins
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
 
-check_SCRIPTS =
+dist_check_SCRIPTS = \
+	test_lttng_utils_debug_info.py\
+	ctf/test_query_trace_info.py
+
 noinst_PROGRAMS =
 
 if !ENABLE_BUILT_IN_PLUGINS
@@ -12,6 +13,8 @@ if !ENABLE_BUILT_IN_PLUGINS
 endif # !ENABLE_BUILT_IN_PLUGINS
 
 if ENABLE_DEBUG_INFO
+noinst_PROGRAMS += test_dwarf test_bin_info
+
 test_dwarf_LDADD = \
 	$(top_builddir)/plugins/lttng-utils/debug-info/libdebug-info.la \
 	$(top_builddir)/fd-cache/libbabeltrace-fd-cache.la \
@@ -29,14 +32,4 @@ test_bin_info_LDADD = \
 	$(ELFUTILS_LIBS) \
 	$(LIBTAP)
 test_bin_info_SOURCES = test_bin_info.c
-
-noinst_PROGRAMS += test_dwarf test_bin_info
-
-if !ENABLE_BUILT_IN_PLUGINS
-if ENABLE_PYTHON_BINDINGS
-check_SCRIPTS += test_lttng_utils_debug_info
-endif # !ENABLE_BUILT_IN_PLUGINS
-endif # ENABLE_PYTHON_BINDINGS
 endif # ENABLE_DEBUG_INFO
-
-EXTRA_DIST = test_lttng_utils_debug_info.py
