@@ -165,7 +165,14 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
         return _TraceClassEnv(self)
 
     def create_stream_class(self, id=None,
-                            assigns_automatic_stream_id=True):
+                            name=None,
+                            packet_context_field_class=None,
+                            event_common_context_field_class=None,
+                            default_clock_class=None,
+                            assigns_automatic_event_class_id=True,
+                            assigns_automatic_stream_id=True,
+                            packets_have_default_beginning_clock_snapshot=False,
+                            packets_have_default_end_clock_snapshot=False):
 
         if self.assigns_automatic_stream_class_id:
             if id is not None:
@@ -181,7 +188,22 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
 
         sc = bt2.stream_class.StreamClass._create_from_ptr(sc_ptr)
 
+        if name is not None:
+            sc._name = name
+
+        if packet_context_field_class is not None:
+            sc._packet_context_field_class = packet_context_field_class
+
+        if event_common_context_field_class is not None:
+            sc._event_common_context_field_class = event_common_context_field_class
+
+        if default_clock_class is not None:
+            sc._default_clock_class = default_clock_class
+
+        sc._assigns_automatic_event_class_id = assigns_automatic_event_class_id
         sc._assigns_automatic_stream_id = assigns_automatic_stream_id
+        sc._packets_have_default_beginning_clock_snapshot = packets_have_default_beginning_clock_snapshot
+        sc._packets_have_default_end_clock_snapshot = packets_have_default_end_clock_snapshot
 
         return sc
 
@@ -194,6 +216,25 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
         return native_bt.trace_class_set_assigns_automatic_stream_class_id(self._ptr, auto_id)
 
     _assigns_automatic_stream_class_id = property(fset=_assigns_automatic_stream_class_id)
+
+    # Field class creation methods.
+
+    def _check_create_status(self, ptr, type_name):
+        if ptr is None:
+            raise bt2.CreationError(
+                'cannot create {} field class'.format(type_name))
+
+    def create_structure_field_class(self):
+        field_class_ptr = native_bt.field_class_structure_create(self._ptr)
+        self._check_create_status(field_class_ptr, 'structure')
+
+        return bt2.field_class._StructureFieldClass._create_from_ptr(field_class_ptr)
+
+    def create_string_field_class(self):
+        field_class_ptr = native_bt.field_class_string_create(self._ptr)
+        self._check_create_status(field_class_ptr, 'string')
+
+        return bt2.field_class.StringFieldClass._create_from_ptr(field_class_ptr)
 
     # Add a listener to be called when the trace class is destroyed.
 
