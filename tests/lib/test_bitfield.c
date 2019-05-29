@@ -161,11 +161,12 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 	unsigned long long readval;
 	unsigned int s, l;
 
+	/* The number of bits needed to represent 0 is 0. */
 	nrbits_ui = fls_u32(src_ui);
 
 	/* Write from unsigned integer src input. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_ui; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_ui; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
@@ -209,11 +210,12 @@ void run_test_unsigned_write(unsigned int src_ui, unsigned long long src_ull)
 	}
 	pass(UNSIGNED_INT_WRITE_TEST_DESC_FMT_STR, src_ui);
 
+	/* The number of bits needed to represent 0 is 0. */
 	nrbits_ull = fls_u64(src_ull);
 
 	/* Write from unsigned long long src input. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_ull; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_ull; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval);
@@ -271,11 +273,12 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 	unsigned long long readval_ull;
 	unsigned int s, l;
 
+	/* The number of bits needed to represent 0 is 0. */
 	nrbits_ui = fls_u32(src_ui);
 
 	/* Read to unsigned integer readval output. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_ui; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_ui; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ui);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval_ui);
@@ -319,11 +322,12 @@ void run_test_unsigned_read(unsigned int src_ui, unsigned long long src_ull)
 	}
 	pass(UNSIGNED_INT_READ_TEST_DESC_FMT_STR, src_ui);
 
+	/* The number of bits needed to represent 0 is 0. */
 	nrbits_ull = fls_u64(src_ull);
 
 	/* Read to unsigned long long readval output. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_ull; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_ull; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.c, unsigned char, s, l, src_ull);
 			bt_bitfield_read(target.c, unsigned char, s, l, &readval_ull);
@@ -396,7 +400,7 @@ void run_test_signed_write(int src_i, long long src_ll)
 
 	/* Write from signed integer src input. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_i; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_i; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
@@ -449,7 +453,7 @@ void run_test_signed_write(int src_i, long long src_ll)
 
 	/* Write from signed long long src input. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_ll; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_ll; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0x0);
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval);
@@ -516,7 +520,7 @@ void run_test_signed_read(int src_i, long long src_ll)
 
 	/* Read to signed integer readval output. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_i; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_i; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.c, signed char, s, l, src_i);
 			bt_bitfield_read(target.c, signed char, s, l, &readval_i);
@@ -569,7 +573,7 @@ void run_test_signed_read(int src_i, long long src_ll)
 
 	/* Read to signed long long readval output. */
 	for (s = 0; s < CHAR_BIT * TEST_LEN; s++) {
-		for (l = nrbits_ll; l < (CHAR_BIT * TEST_LEN) - s; l++) {
+		for (l = nrbits_ll; l <= (CHAR_BIT * TEST_LEN) - s; l++) {
 			init_byte_array(target.c, TEST_LEN, 0xFF);
 			bt_bitfield_write(target.c, signed char, s, l, src_ll);
 			bt_bitfield_read(target.c, signed char, s, l, &readval_ll);
