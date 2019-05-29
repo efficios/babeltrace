@@ -1,8 +1,10 @@
-SUBDIRS = trace-ir ctf-writer
+SUBDIRS =
 
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
 LIBTAP=$(top_builddir)/tests/utils/tap/libtap.la
+
+dist_check_SCRIPTS = ctf-writer/test_auto_populate.py
 
 libtestcommon_la_SOURCES = common.c common.h
 noinst_LTLIBRARIES = libtestcommon.la
@@ -32,12 +34,9 @@ test_bt_values_SOURCES = test_bt_values.c
 test_trace_ir_ref_SOURCES = test_trace_ir_ref.c
 test_graph_topo_SOURCES = test_graph_topo.c
 
-check_SCRIPTS = test_ctf_writer_complete
-
 if !ENABLE_BUILT_IN_PLUGINS
 noinst_PROGRAMS += test_plugin
 test_plugin_LDADD = $(COMMON_TEST_LDADD)
 test_plugin_SOURCES = test_plugin.c
-check_SCRIPTS += test_plugin_complete
 SUBDIRS += test-plugin-plugins
 endif
