@@ -641,6 +641,15 @@ class _UserComponent(metaclass=_UserComponentType):
 
         return tc
 
+    def _create_clock_class(self):
+        ptr = self._as_self_component_ptr(self._ptr)
+        cc_ptr = native_bt.clock_class_create(ptr)
+
+        if cc_ptr is None:
+            raise bt2.CreationError('could not create clock class')
+
+        return bt2.ClockClass._create_from_ptr(cc_ptr)
+
 
 class _UserSourceComponent(_UserComponent, _SourceComponent):
     _as_not_self_specific_component_ptr = staticmethod(native_bt.self_component_source_as_component_source)

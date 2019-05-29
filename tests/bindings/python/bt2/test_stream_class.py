@@ -1,265 +1,171 @@
-from bt2 import value
 import unittest
-import copy
 import bt2
+from utils import run_in_component_init
 
 
-@unittest.skip("this is broken")
 class StreamClassTestCase(unittest.TestCase):
     def setUp(self):
-        self._packet_context_fc = bt2.StructureFieldClass()
-        self._packet_context_fc.append_field('menu', bt2.FloatingPointNumberFieldClass())
-        self._packet_context_fc.append_field('sticker', bt2.StringFieldClass())
-        self._event_header_fc = bt2.StructureFieldClass()
-        self._event_header_fc.append_field('id', bt2.IntegerFieldClass(19))
-        self._event_context_fc = bt2.StructureFieldClass()
-        self._event_context_fc.append_field('msg', bt2.StringFieldClass())
-        self._ec1, self._ec2 = self._create_event_classes()
-        self._sc = bt2.StreamClass(name='my_stream_class', id=12,
-                                   packet_context_field_class=self._packet_context_fc,
-                                   event_header_field_class=self._event_header_fc,
-                                   event_context_field_class=self._event_context_fc,
-                                   event_classes=(self._ec1, self._ec2))
+        def f(comp_self):
+            tc = comp_self._create_trace_class(assigns_automatic_stream_class_id=True)
+            cc = comp_self._create_clock_class()
+            return tc, cc
 
-    def tearDown(self):
-        del self._packet_context_fc
-        del self._event_header_fc
-        del self._event_context_fc
-        del self._ec1
-        del self._sc
+        self._tc, self._cc = run_in_component_init(f)
+        self._trace = self._tc()
 
-    def _create_event_classes(self):
-        context_fc = bt2.StructureFieldClass()
-        context_fc.append_field('allo', bt2.StringFieldClass())
-        context_fc.append_field('zola', bt2.IntegerFieldClass(18))
-        payload_fc = bt2.StructureFieldClass()
-        payload_fc.append_field('zoom', bt2.StringFieldClass())
-        ec1 = bt2.EventClass('event23', id=23, context_field_class=context_fc,
-                             payload_field_class=payload_fc)
-        ec2 = bt2.EventClass('event17', id=17, context_field_class=payload_fc,
-                             payload_field_class=context_fc)
-        return ec1, ec2
+    def test_create_default(self):
+        sc = self._tc.create_stream_class()
 
-    def test_create(self):
-        self.assertEqual(self._sc.name, 'my_stream_class')
-        self.assertEqual(self._sc.id, 12)
-        self.assertEqual(self._sc.packet_context_field_class, self._packet_context_fc)
-        self.assertEqual(self._sc.event_header_field_class, self._event_header_fc)
-        self.assertEqual(self._sc.event_context_field_class, self._event_context_fc)
-        self.assertEqual(self._sc[23], self._ec1)
-        self.assertEqual(self._sc[17], self._ec2)
-        self.assertEqual(len(self._sc), 2)
+        self.assertIsNone(sc.name)
+        self.assertIsNone(sc.packet_context_field_class)
+        self.assertIsNone(sc.event_common_context_field_class)
+        self.assertIsNone(sc.default_clock_class)
+        self.assertTrue(sc.assigns_automatic_event_class_id)
+        self.assertTrue(sc.assigns_automatic_stream_id)
+        self.assertFalse(sc.packets_have_default_beginning_clock_snapshot)
+        self.assertFalse(sc.packets_have_default_end_clock_snapshot)
 
-    def test_assign_name(self):
-        self._sc.name = 'lel'
-        self.assertEqual(self._sc.name, 'lel')
+    def test_create_name(self):
+        sc = self._tc.create_stream_class(name='bozo')
+        self.assertEqual(sc.name, 'bozo')
 
-    def test_assign_invalid_name(self):
+    def test_create_invalid_name(self):
         with self.assertRaises(TypeError):
-            self._sc.name = 17
+            self._tc.create_stream_class(name=17)
 
-    def test_assign_id(self):
-        self._sc.id = 1717
-        self.assertEqual(self._sc.id, 1717)
+    def test_create_packet_context_field_class(self):
+        fc = self._tc.create_structure_field_class()
+        sc = self._tc.create_stream_class(packet_context_field_class=fc)
+        self.assertEqual(sc.packet_context_field_class, fc)
 
-    def test_assign_invalid_id(self):
+    def test_create_invalid_packet_context_field_class(self):
         with self.assertRaises(TypeError):
-            self._sc.id = 'lel'
+            self._tc.create_stream_class(packet_context_field_class=22)
 
-    def test_no_id(self):
-        sc = bt2.StreamClass()
-        self.assertIsNone(sc.id)
+    def test_create_event_common_context_field_class(self):
+        fc = self._tc.create_structure_field_class()
+        sc = self._tc.create_stream_class(event_common_context_field_class=fc)
+        self.assertEqual(sc.event_common_context_field_class, fc)
 
-    def test_assign_packet_context_field_class(self):
-        self._sc.packet_context_field_class = self._event_context_fc
-        self.assertEqual(self._sc.packet_context_field_class, self._event_context_fc)
-
-    def test_assign_no_packet_context_field_class(self):
-        self._sc.packet_context_field_class = None
-        self.assertIsNone(self._sc.packet_context_field_class)
-
-    def test_assign_invalid_packet_context_field_class(self):
+    def test_create_invalid_event_common_context_field_class(self):
         with self.assertRaises(TypeError):
-            self._sc.packet_context_field_class = 'lel'
+            self._tc.create_stream_class(event_common_context_field_class=22)
 
-    def test_assign_event_header_field_class(self):
-        self._sc.event_header_field_class = self._event_header_fc
-        self.assertEqual(self._sc.event_header_field_class, self._event_header_fc)
+    def test_create_default_clock_class(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc)
+        self.assertEqual(sc.default_clock_class.addr, self._cc.addr)
 
-    def test_assign_no_event_header_field_class(self):
-        self._sc.event_header_field_class = None
-        self.assertIsNone(self._sc.event_header_field_class)
-
-    def test_assign_invalid_event_header_field_class(self):
+    def test_create_invalid_default_clock_class(self):
         with self.assertRaises(TypeError):
-            self._sc.event_header_field_class = 'lel'
+            self._tc.create_stream_class(default_clock_class=12)
 
-    def test_assign_event_context_field_class(self):
-        self._sc.event_context_field_class = self._packet_context_fc
-        self.assertEqual(self._sc.event_context_field_class, self._packet_context_fc)
+    def test_automatic_stream_ids(self):
+        sc = self._tc.create_stream_class(assigns_automatic_stream_id=True)
+        self.assertTrue(sc.assigns_automatic_stream_id)
 
-    def test_assign_no_event_context_field_class(self):
-        self._sc.event_context_field_class = None
-        self.assertIsNone(self._sc.event_context_field_class)
+        stream = self._trace.create_stream(sc)
+        self.assertIsNotNone(stream.id)
 
-    def test_assign_invalid_event_context_field_class(self):
+    def test_automatic_stream_ids_raises(self):
+        sc = self._tc.create_stream_class(assigns_automatic_stream_id=True)
+        self.assertTrue(sc.assigns_automatic_stream_id)
+
+        with self.assertRaises(bt2.CreationError):
+            self._trace.create_stream(sc, id=123)
+
+    def test_no_automatic_stream_ids(self):
+        sc = self._tc.create_stream_class(assigns_automatic_stream_id=False)
+        self.assertFalse(sc.assigns_automatic_stream_id)
+
+        stream = self._trace.create_stream(sc, id=333)
+        self.assertEqual(stream.id, 333)
+
+    def test_no_automatic_stream_ids_raises(self):
+        sc = self._tc.create_stream_class(assigns_automatic_stream_id=False)
+        self.assertFalse(sc.assigns_automatic_stream_id)
+
+        with self.assertRaises(bt2.CreationError):
+            self._trace.create_stream(sc)
+
+    def test_automatic_event_class_ids(self):
+        sc = self._tc.create_stream_class(assigns_automatic_event_class_id=True)
+        self.assertTrue(sc.assigns_automatic_event_class_id)
+
+        ec = sc.create_event_class()
+        self.assertIsNotNone(ec.id)
+
+    def test_automatic_event_class_ids_raises(self):
+        sc = self._tc.create_stream_class(assigns_automatic_event_class_id=True)
+        self.assertTrue(sc.assigns_automatic_event_class_id)
+
+        with self.assertRaises(bt2.CreationError):
+            sc.create_event_class(id=123)
+
+    def test_no_automatic_event_class_ids(self):
+        sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
+        self.assertFalse(sc.assigns_automatic_event_class_id)
+
+        ec = sc.create_event_class(id=333)
+        self.assertEqual(ec.id, 333)
+
+    def test_no_automatic_event_class_ids_raises(self):
+        sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
+        self.assertFalse(sc.assigns_automatic_event_class_id)
+
+        with self.assertRaises(bt2.CreationError):
+            sc.create_event_class()
+
+    def test_packets_have_default_beginning_clock_snapshot(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc, packets_have_default_beginning_clock_snapshot=True)
+        self.assertTrue(sc.packets_have_default_beginning_clock_snapshot)
+
+    def test_packets_have_default_beginning_clock_snapshot_raises(self):
         with self.assertRaises(TypeError):
-            self._sc.event_context_field_class = 'lel'
+            sc = self._tc.create_stream_class(packets_have_default_beginning_clock_snapshot="something")
 
-    def test_trace_prop_no_tc(self):
-        self.assertIsNone(self._sc.trace)
+    def test_packets_have_default_end_clock_snapshot(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc, packets_have_default_end_clock_snapshot=True)
+        self.assertTrue(sc.packets_have_default_end_clock_snapshot)
 
-    def test_trace_prop(self):
-        tc = bt2.Trace()
-        tc.add_stream_class(self._sc)
-        self.assertEqual(self._sc.trace.addr, tc.addr)
+    def test_packets_have_default_end_clock_snapshot_raises(self):
+        with self.assertRaises(TypeError):
+            sc = self._tc.create_stream_class(packets_have_default_end_clock_snapshot="something")
 
-    def _test_copy(self, cpy):
-        self.assertIsNot(cpy, self._sc)
-        self.assertNotEqual(cpy.addr, self._sc.addr)
-        self.assertEqual(cpy, self._sc)
+    def test_trace_class(self):
+        sc = self._tc.create_stream_class()
+        self.assertEqual(sc.trace_class.addr, self._tc.addr)
 
-    def test_copy(self):
-        cpy = copy.copy(self._sc)
-        self._test_copy(cpy)
-        self.assertEqual(self._sc.packet_context_field_class.addr, cpy.packet_context_field_class.addr)
-        self.assertEqual(self._sc.event_header_field_class.addr, cpy.event_header_field_class.addr)
-        self.assertEqual(self._sc.event_context_field_class.addr, cpy.event_context_field_class.addr)
-
-    def test_deepcopy(self):
-        cpy = copy.deepcopy(self._sc)
-        self._test_copy(cpy)
-        self.assertNotEqual(self._sc.packet_context_field_class.addr, cpy.packet_context_field_class.addr)
-        self.assertNotEqual(self._sc.event_header_field_class.addr, cpy.event_header_field_class.addr)
-        self.assertNotEqual(self._sc.event_context_field_class.addr, cpy.event_context_field_class.addr)
+    def _create_stream_class_with_event_classes(self):
+        sc = self._tc.create_stream_class(assigns_automatic_event_class_id=False)
+        ec1 = sc.create_event_class(id=23)
+        ec2 = sc.create_event_class(id=17)
+        return sc, ec1, ec2
 
     def test_getitem(self):
-        self.assertEqual(self._sc[23], self._ec1)
-        self.assertEqual(self._sc[17], self._ec2)
+        sc, ec1, ec2 = self._create_stream_class_with_event_classes()
+
+        self.assertEqual(sc[23].addr, ec1.addr)
+        self.assertEqual(sc[17].addr, ec2.addr)
 
     def test_getitem_wrong_key_type(self):
+        sc, _, _ = self._create_stream_class_with_event_classes()
+
         with self.assertRaises(TypeError):
-            self._sc['event23']
+            sc['event23']
 
     def test_getitem_wrong_key(self):
+        sc, _, _ = self._create_stream_class_with_event_classes()
+
         with self.assertRaises(KeyError):
-            self._sc[19]
+            sc[19]
 
     def test_len(self):
-        self.assertEqual(len(self._sc), 2)
+        sc, _, _ = self._create_stream_class_with_event_classes()
+
+        self.assertEqual(len(sc), 2)
 
     def test_iter(self):
-        for ec_id, event_class in self._sc.items():
-            self.assertIsInstance(event_class, bt2.EventClass)
+        sc, _, _ = self._create_stream_class_with_event_classes()
 
-            if ec_id == 23:
-                self.assertEqual(event_class, self._ec1)
-            elif ec_id == 17:
-                self.assertEqual(event_class, self._ec2)
-
-    def test_eq(self):
-        ec1, ec2 = self._create_event_classes()
-        sc1 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        ec1, ec2 = self._create_event_classes()
-        sc2 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        self.assertEqual(sc1, sc2)
-
-    def test_ne_name(self):
-        ec1, ec2 = self._create_event_classes()
-        sc1 = bt2.StreamClass(name='my_stream_class1', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        ec1, ec2 = self._create_event_classes()
-        sc2 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        self.assertNotEqual(sc1, sc2)
-
-    def test_ne_id(self):
-        ec1, ec2 = self._create_event_classes()
-        sc1 = bt2.StreamClass(name='my_stream_class', id=13,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        ec1, ec2 = self._create_event_classes()
-        sc2 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        self.assertNotEqual(sc1, sc2)
-
-    def test_ne_packet_context_field_class(self):
-        ec1, ec2 = self._create_event_classes()
-        sc1 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._event_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        ec1, ec2 = self._create_event_classes()
-        sc2 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        self.assertNotEqual(sc1, sc2)
-
-    def test_ne_event_header_field_class(self):
-        ec1, ec2 = self._create_event_classes()
-        sc1 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        ec1, ec2 = self._create_event_classes()
-        sc2 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        self.assertNotEqual(sc1, sc2)
-
-    def test_ne_event_context_field_class(self):
-        ec1, ec2 = self._create_event_classes()
-        sc1 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._packet_context_fc,
-                              event_classes=(ec1, ec2))
-        ec1, ec2 = self._create_event_classes()
-        sc2 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        self.assertNotEqual(sc1, sc2)
-
-    def test_ne_event_class(self):
-        ec1, ec2 = self._create_event_classes()
-        sc1 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1,))
-        ec1, ec2 = self._create_event_classes()
-        sc2 = bt2.StreamClass(name='my_stream_class', id=12,
-                              packet_context_field_class=self._packet_context_fc,
-                              event_header_field_class=self._event_header_fc,
-                              event_context_field_class=self._event_context_fc,
-                              event_classes=(ec1, ec2))
-        self.assertNotEqual(sc1, sc2)
-
-    def test_eq_invalid(self):
-        self.assertFalse(self._sc == 23)
+        ec_ids = sorted(sc)
+        self.assertEqual(ec_ids, [17, 23])

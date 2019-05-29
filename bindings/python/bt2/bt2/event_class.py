@@ -48,6 +48,9 @@ class EventClassLogLevel:
 
 
 class EventClass(object._SharedObject):
+    _get_ref = staticmethod(native_bt.event_class_get_ref)
+    _put_ref = staticmethod(native_bt.event_class_put_ref)
+
     def __init__(self, name, id=None, log_level=None, emf_uri=None,
                  context_field_class=None, payload_field_class=None):
         utils._check_str(name)

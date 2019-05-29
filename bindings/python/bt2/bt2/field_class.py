@@ -27,12 +27,15 @@ import abc
 import bt2
 
 
-def _create_from_ptr(ptr):
-    typeid = native_bt.field_class_get_type_id(ptr)
-    return _TYPE_ID_TO_OBJ[typeid]._create_from_ptr(ptr)
+def _create_field_class_from_ptr_and_get_ref(ptr):
+    typeid = native_bt.field_class_get_type(ptr)
+    return _FIELD_CLASS_TYPE_TO_OBJ[typeid]._create_from_ptr_and_get_ref(ptr)
 
 
 class _FieldClass(object._SharedObject, metaclass=abc.ABCMeta):
+    _get_ref = staticmethod(native_bt.field_class_get_ref)
+    _put_ref = staticmethod(native_bt.field_class_put_ref)
+
     def __init__(self, ptr):
         super().__init__(ptr)
 
@@ -514,7 +517,7 @@ class _StructureFieldClassFieldIterator(collections.abc.Iterator):
         return name
 
 
-class StructureFieldClass(_FieldClass, _FieldContainer, _AlignmentProp):
+class _StructureFieldClass(_FieldClass, _FieldContainer, _AlignmentProp):
     _NAME = 'Structure'
     _ITER_CLS = _StructureFieldClassFieldIterator
 
@@ -545,8 +548,8 @@ class StructureFieldClass(_FieldClass, _FieldContainer, _AlignmentProp):
         return _create_from_ptr(field_class_ptr)
 
 
-StructureFieldClass.min_alignment = property(fset=StructureFieldClass.alignment.fset)
-StructureFieldClass.alignment = property(fget=StructureFieldClass.alignment.fget)
+_StructureFieldClass.min_alignment = property(fset=_StructureFieldClass.alignment.fset)
+_StructureFieldClass.alignment = property(fget=_StructureFieldClass.alignment.fget)
 
 
 class _VariantFieldClassFieldIterator(collections.abc.Iterator):
@@ -670,5 +673,6 @@ class SequenceFieldClass(_FieldClass):
         return _create_from_ptr(ptr)
 
 
-_TYPE_ID_TO_OBJ = {
+_FIELD_CLASS_TYPE_TO_OBJ = {
+    native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldClass,
 }

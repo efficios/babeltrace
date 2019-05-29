@@ -54,6 +54,9 @@ class ClockClassOffset:
 
 
 class ClockClass(object._SharedObject):
+    _get_ref = staticmethod(native_bt.clock_class_get_ref)
+    _put_ref = staticmethod(native_bt.clock_class_put_ref)
+
     def __init__(self, name, frequency, description=None, precision=None,
                  offset=None, is_absolute=None, uuid=None):
         utils._check_str(name)
