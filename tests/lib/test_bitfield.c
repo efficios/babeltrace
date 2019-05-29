@@ -387,7 +387,9 @@ void run_test_signed_write(int src_i, long long src_ll)
 	long long readval;
 	unsigned int s, l;
 
-	if (src_i & 0x80000000U)
+	if (!src_i)
+		nrbits_i = 0;			/* The number of bits needed to represent 0 is 0. */
+	else if (src_i & 0x80000000U)
 		nrbits_i = fls_u32(~src_i) + 1;	/* Find least significant bit conveying sign */
 	else
 		nrbits_i = fls_u32(src_i) + 1;	/* Keep sign at 0 */
@@ -438,7 +440,9 @@ void run_test_signed_write(int src_i, long long src_ll)
 	}
 	pass(SIGNED_INT_WRITE_TEST_DESC_FMT_STR, src_i);
 
-	if (src_ll & 0x8000000000000000ULL)
+	if (!src_ll)
+		nrbits_ll = 0;				/* The number of bits needed to represent 0 is 0. */
+	else if (src_ll & 0x8000000000000000ULL)
 		nrbits_ll = fls_u64(~src_ll) + 1;	/* Find least significant bit conveying sign */
 	else
 		nrbits_ll = fls_u64(src_ll) + 1;	/* Keep sign at 0 */
@@ -503,7 +507,9 @@ void run_test_signed_read(int src_i, long long src_ll)
 	long long readval_ll;
 	unsigned int s, l;
 
-	if (src_i & 0x80000000U)
+	if (!src_i)
+		nrbits_i = 0;			/* The number of bits needed to represent 0 is 0. */
+	else if (src_i & 0x80000000U)
 		nrbits_i = fls_u32(~src_i) + 1;	/* Find least significant bit conveying sign */
 	else
 		nrbits_i = fls_u32(src_i) + 1;	/* Keep sign at 0 */
@@ -554,6 +560,8 @@ void run_test_signed_read(int src_i, long long src_ll)
 	}
 	pass(SIGNED_INT_READ_TEST_DESC_FMT_STR, src_i);
 
+	if (!src_ll)
+		nrbits_ll = 0;				/* The number of bits needed to represent 0 is 0. */
 	if (src_ll & 0x8000000000000000ULL)
 		nrbits_ll = fls_u64(~src_ll) + 1;	/* Find least significant bit conveying sign */
 	else
