@@ -23,7 +23,7 @@
 from bt2 import native_bt, object, utils
 import collections.abc
 import bt2.field
-import abc
+import bt2.field_path
 import bt2
 
 
@@ -32,244 +32,85 @@ def _create_field_class_from_ptr_and_get_ref(ptr):
     return _FIELD_CLASS_TYPE_TO_OBJ[typeid]._create_from_ptr_and_get_ref(ptr)
 
 
-class _FieldClass(object._SharedObject, metaclass=abc.ABCMeta):
+class IntegerDisplayBase:
+    BINARY = native_bt.FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY
+    OCTAL = native_bt.FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL
+    DECIMAL = native_bt.FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL
+    HEXADECIMAL = native_bt.FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL
+
+
+class _FieldClass(object._SharedObject):
     _get_ref = staticmethod(native_bt.field_class_get_ref)
     _put_ref = staticmethod(native_bt.field_class_put_ref)
-
-    def __init__(self, ptr):
-        super().__init__(ptr)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            # not comparing apples to apples
-            return False
-
-        if self.addr == other.addr:
-            return True
-
-        ret = native_bt.field_class_compare(self._ptr, other._ptr)
-        utils._handle_ret(ret, "cannot compare field classes")
-        return ret == 0
 
     def _check_create_status(self, ptr):
         if ptr is None:
             raise bt2.CreationError('cannot create {} field class object'.format(self._NAME.lower()))
 
-    def __copy__(self):
-        ptr = native_bt.field_class_copy(self._ptr)
-        utils._handle_ptr(ptr, 'cannot copy {} field class object'.format(self._NAME.lower()))
-        return _create_from_ptr(ptr)
-
-    def __deepcopy__(self, memo):
-        cpy = self.__copy__()
-        memo[id(self)] = cpy
-        return cpy
-
-    def __call__(self, value=None):
-        field_ptr = native_bt.field_create(self._ptr)
-
-        if field_ptr is None:
-            raise bt2.CreationError('cannot create {} field object'.format(self._NAME.lower()))
-
-        field = bt2.field._create_from_ptr(field_ptr)
-
-        if value is not None:
-            if not isinstance(field, (bt2.field._IntegerField, bt2.field._FloatingPointNumberField, bt2.field._StringField)):
-                raise bt2.Error('cannot assign an initial value to a {} field object'.format(field._NAME))
-
-            field.value = value
-
-        return field
-
-
-class _AlignmentProp:
-    @property
-    def alignment(self):
-        alignment = native_bt.field_class_get_alignment(self._ptr)
-        assert(alignment >= 0)
-        return alignment
-
-    @alignment.setter
-    def alignment(self, alignment):
-        utils._check_alignment(alignment)
-        ret = native_bt.field_class_set_alignment(self._ptr, alignment)
-        utils._handle_ret(ret, "cannot set field class object's alignment")
-
-
-class _ByteOrderProp:
-    @property
-    def byte_order(self):
-        bo = native_bt.field_class_get_byte_order(self._ptr)
-        assert(bo >= 0)
-        return bo
-
-    @byte_order.setter
-    def byte_order(self, byte_order):
-        utils._check_int(byte_order)
-        ret = native_bt.field_class_set_byte_order(self._ptr, byte_order)
-        utils._handle_ret(ret, "cannot set field class object's byte order")
-
 
 class _IntegerFieldClass(_FieldClass):
-
-    def __init__(self, size, alignment=None, byte_order=None, is_signed=None,
-                 base=None, encoding=None, mapped_clock_class=None):
-        utils._check_uint64(size)
-
-        if size == 0:
-            raise ValueError('size is 0 bits')
-
-        ptr = native_bt.field_class_integer_create(size)
-        self._check_create_status(ptr)
-        super().__init__(ptr)
-
-        if alignment is not None:
-            self.alignment = alignment
-
-        if byte_order is not None:
-            self.byte_order = byte_order
-
-        if is_signed is not None:
-            self.is_signed = is_signed
-
-        if base is not None:
-            self.base = base
-
-        if encoding is not None:
-            self.encoding = encoding
-
-        if mapped_clock_class is not None:
-            self.mapped_clock_class = mapped_clock_class
-
     @property
-    def size(self):
-        size = native_bt.field_class_integer_get_size(self._ptr)
+    def field_value_range(self):
+        size = native_bt.field_class_integer_get_field_value_range(self._ptr)
         assert(size >= 1)
         return size
 
-    @property
-    def is_signed(self):
-        is_signed = native_bt.field_class_integer_is_signed(self._ptr)
-        assert(is_signed >= 0)
-        return is_signed > 0
+    def _field_value_range(self, size):
+        if size < 1 or size > 64:
+            raise ValueError("Value is outside valid range [1, 64] ({})".format(size))
+        native_bt.field_class_integer_set_field_value_range(self._ptr, size)
 
-    @is_signed.setter
-    def is_signed(self, is_signed):
-        utils._check_bool(is_signed)
-        ret = native_bt.field_class_integer_set_is_signed(self._ptr, int(is_signed))
-        utils._handle_ret(ret, "cannot set integer field class object's signedness")
+    _field_value_range = property(fset=_field_value_range)
 
     @property
-    def base(self):
-        base = native_bt.field_class_integer_get_base(self._ptr)
+    def preferred_display_base(self):
+        base = native_bt.field_class_integer_get_preferred_display_base(
+            self._ptr)
         assert(base >= 0)
         return base
 
-    @base.setter
-    def base(self, base):
-        utils._check_int(base)
-        ret = native_bt.field_class_integer_set_base(self._ptr, base)
-        utils._handle_ret(ret, "cannot set integer field class object's base")
+    def _preferred_display_base(self, base):
+        utils._check_uint64(base)
 
-    @property
-    def encoding(self):
-        encoding = native_bt.field_class_integer_get_encoding(self._ptr)
-        assert(encoding >= 0)
-        return encoding
+        if base not in (IntegerDisplayBase.BINARY,
+                        IntegerDisplayBase.OCTAL,
+                        IntegerDisplayBase.DECIMAL,
+                        IntegerDisplayBase.HEXADECIMAL):
+            raise ValueError("Display base is not a valid IntegerDisplayBase value")
 
-    @encoding.setter
-    def encoding(self, encoding):
-        utils._check_int(encoding)
-        ret = native_bt.field_class_integer_set_encoding(self._ptr, encoding)
-        utils._handle_ret(ret, "cannot set integer field class object's encoding")
+        native_bt.field_class_integer_set_preferred_display_base(
+            self._ptr, base)
 
-    @property
-    def mapped_clock_class(self):
-        ptr = native_bt.field_class_integer_get_mapped_clock_class(self._ptr)
-
-        if ptr is None:
-            return
-
-        return bt2.ClockClass._create_from_ptr(ptr)
-
-    @mapped_clock_class.setter
-    def mapped_clock_class(self, clock_class):
-        utils._check_type(clock_class, bt2.ClockClass)
-        ret = native_bt.field_class_integer_set_mapped_clock_class(self._ptr, clock_class._ptr)
-        utils._handle_ret(ret, "cannot set integer field class object's mapped clock class")
+    _preferred_display_base = property(fset=_preferred_display_base)
 
 
 class _UnsignedIntegerFieldClass(_IntegerFieldClass):
-    pass
+    _NAME = 'Unsigned integer'
 
 
 class _SignedIntegerFieldClass(_IntegerFieldClass):
-    pass
+    _NAME = 'Signed integer'
 
 
-class UnsignedIntegerFieldClass(_UnsignedIntegerFieldClass):
-    _NAME = 'UnsignedInteger'
-
-
-class SignedIntegerFieldClass(_SignedIntegerFieldClass):
-    _NAME = 'SignedInteger'
-
-
-class RealFieldClass(_FieldClass):
+class _RealFieldClass(_FieldClass):
     _NAME = 'Real'
 
-    def __init__(self, alignment=None, byte_order=None, exponent_size=None,
-                 mantissa_size=None):
-        ptr = native_bt.field_class_floating_point_create()
-        self._check_create_status(ptr)
-        super().__init__(ptr)
-
-        if alignment is not None:
-            self.alignment = alignment
-
-        if byte_order is not None:
-            self.byte_order = byte_order
-
-        if exponent_size is not None:
-            self.exponent_size = exponent_size
-
-        if mantissa_size is not None:
-            self.mantissa_size = mantissa_size
-
     @property
-    def exponent_size(self):
-        exp_size = native_bt.field_class_floating_point_get_exponent_digits(self._ptr)
-        assert(exp_size >= 0)
-        return exp_size
+    def is_single_precision(self):
+        return native_bt.field_class_real_is_single_precision(self._ptr)
 
-    @exponent_size.setter
-    def exponent_size(self, exponent_size):
-        utils._check_uint64(exponent_size)
-        ret = native_bt.field_class_floating_point_set_exponent_digits(self._ptr, exponent_size)
-        utils._handle_ret(ret, "cannot set floating point number field class object's exponent size")
+    def _is_single_precision(self, is_single_precision):
+        utils._check_bool(is_single_precision)
+        native_bt.field_class_real_set_is_single_precision(
+            self._ptr, is_single_precision)
 
-    @property
-    def mantissa_size(self):
-        mant_size = native_bt.field_class_floating_point_get_mantissa_digits(self._ptr)
-        assert(mant_size >= 0)
-        return mant_size
-
-    @mantissa_size.setter
-    def mantissa_size(self, mantissa_size):
-        utils._check_uint64(mantissa_size)
-        ret = native_bt.field_class_floating_point_set_mantissa_digits(self._ptr, mantissa_size)
-        utils._handle_ret(ret, "cannot set floating point number field class object's mantissa size")
+    _is_single_precision = property(fset=_is_single_precision)
 
 
-class _EnumerationFieldClassMapping:
-    def __init__(self, name, lower, upper):
-        self._name = name
+class _EnumerationFieldClassMappingRange:
+    def __init__(self, lower, upper):
         self._lower = lower
         self._upper = upper
-
-    @property
-    def name(self):
-        return self._name
 
     @property
     def lower(self):
@@ -280,413 +121,277 @@ class _EnumerationFieldClassMapping:
         return self._upper
 
     def __eq__(self, other):
-        if type(other) is not self.__class__:
-            return False
-
-        return (self.name, self.lower, self.upper) == (other.name, other.lower, other.upper)
+        return self.lower == other.lower and self.upper == other.upper
 
 
-class _EnumerationFieldClassMappingIterator(object._SharedObject,
-                                            collections.abc.Iterator):
-    def __init__(self, iter_ptr, is_signed):
-        super().__init__(iter_ptr)
-        self._is_signed = is_signed
-        self._done = (iter_ptr is None)
-
-    def __next__(self):
-        if self._done:
-            raise StopIteration
-
-        ret = native_bt.field_class_enumeration_mapping_iterator_next(self._ptr)
-        if ret < 0:
-            self._done = True
-            raise StopIteration
-
-        if self._is_signed:
-            ret, name, lower, upper = native_bt.field_class_enumeration_mapping_iterator_get_signed(self._ptr)
-        else:
-            ret, name, lower, upper = native_bt.field_class_enumeration_mapping_iterator_get_unsigned(self._ptr)
-
-        assert(ret == 0)
-        mapping = _EnumerationFieldClassMapping(name, lower, upper)
-
-        return mapping
-
-
-class EnumerationFieldClass(_IntegerFieldClass, collections.abc.Sequence):
-    _NAME = 'Enumeration'
-
-    def __init__(self, int_field_class=None, size=None, alignment=None,
-                 byte_order=None, is_signed=None, base=None, encoding=None,
-                 mapped_clock_class=None):
-        if int_field_class is None:
-            int_field_class = IntegerFieldClass(size=size, alignment=alignment,
-                                              byte_order=byte_order,
-                                              is_signed=is_signed, base=base,
-                                              encoding=encoding,
-                                              mapped_clock_class=mapped_clock_class)
-
-        utils._check_type(int_field_class, IntegerFieldClass)
-        ptr = native_bt.field_class_enumeration_create(int_field_class._ptr)
-        self._check_create_status(ptr)
-        _FieldClass.__init__(self, ptr)
+class _EnumerationFieldClassMapping(collections.abc.Set):
+    def __init__(self, mapping_ptr):
+        self._mapping_ptr = mapping_ptr
 
     @property
-    def integer_field_class(self):
-        ptr = native_bt.field_class_enumeration_get_container_type(self._ptr)
-        assert(ptr)
-        return _create_from_ptr(ptr)
+    def label(self):
+        mapping_ptr = self._as_enumeration_field_class_mapping_ptr(self._mapping_ptr)
+        label = native_bt.field_class_enumeration_mapping_get_label(mapping_ptr)
+        assert label is not None
+        return label
 
-    @property
-    def size(self):
-        return self.integer_field_class.size
+    def __len__(self):
+        mapping_ptr = self._as_enumeration_field_class_mapping_ptr(self._mapping_ptr)
+        return native_bt.field_class_enumeration_mapping_get_range_count(mapping_ptr)
 
-    @property
-    def alignment(self):
-        return self.integer_field_class.alignment
+    def __contains__(self, other_range):
+        for curr_range in self:
+            if curr_range == other_range:
+                return True
+        return False
 
-    @alignment.setter
-    def alignment(self, alignment):
-        self.integer_field_class.alignment = alignment
+    def __iter__(self):
+        for idx in range(len(self)):
+            lower, upper = self._get_range_by_index(self._mapping_ptr, idx)
+            yield _EnumerationFieldClassMappingRange(lower, upper)
 
-    @property
-    def byte_order(self):
-        return self.integer_field_class.byte_order
 
-    @byte_order.setter
-    def byte_order(self, byte_order):
-        self.integer_field_class.byte_order = byte_order
+class _UnsignedEnumerationFieldClassMapping(_EnumerationFieldClassMapping):
+    _as_enumeration_field_class_mapping_ptr = staticmethod(native_bt.field_class_unsigned_enumeration_mapping_as_mapping_const)
+    _get_range_by_index = staticmethod(native_bt.field_class_unsigned_enumeration_mapping_get_range_by_index)
 
-    @property
-    def is_signed(self):
-        return self.integer_field_class.is_signed
 
-    @is_signed.setter
-    def is_signed(self, is_signed):
-        self.integer_field_class.is_signed = is_signed
+class _SignedEnumerationFieldClassMapping(_EnumerationFieldClassMapping):
+    _as_enumeration_field_class_mapping_ptr = staticmethod(native_bt.field_class_signed_enumeration_mapping_as_mapping_const)
+    _get_range_by_index = staticmethod(native_bt.field_class_signed_enumeration_mapping_get_range_by_index)
 
-    @property
-    def base(self):
-        return self.integer_field_class.base
 
-    @base.setter
-    def base(self, base):
-        self.integer_field_class.base = base
-
-    @property
-    def encoding(self):
-        return self.integer_field_class.encoding
-
-    @encoding.setter
-    def encoding(self, encoding):
-        self.integer_field_class.encoding = encoding
-
-    @property
-    def mapped_clock_class(self):
-        return self.integer_field_class.mapped_clock_class
-
-    @mapped_clock_class.setter
-    def mapped_clock_class(self, mapped_clock_class):
-        self.integer_field_class.mapped_clock_class = mapped_clock_class
-
+class _EnumerationFieldClass(_IntegerFieldClass, collections.abc.Mapping):
     def __len__(self):
         count = native_bt.field_class_enumeration_get_mapping_count(self._ptr)
         assert(count >= 0)
         return count
 
-    def __getitem__(self, index):
-        utils._check_uint64(index)
-
-        if index >= len(self):
-            raise IndexError
-
-        if self.is_signed:
-            get_fn = native_bt.field_class_enumeration_get_mapping_signed
-        else:
-            get_fn = native_bt.field_class_enumeration_get_mapping_unsigned
-
-        ret, name, lower, upper = get_fn(self._ptr, index)
-        assert(ret == 0)
-        return _EnumerationFieldClassMapping(name, lower, upper)
-
-    def _get_mapping_iter(self, iter_ptr):
-        return _EnumerationFieldClassMappingIterator(iter_ptr, self.is_signed)
-
-    def mappings_by_name(self, name):
-        utils._check_str(name)
-        iter_ptr = native_bt.field_class_enumeration_find_mappings_by_name(self._ptr, name)
-        print('iter_ptr', iter_ptr)
-        return self._get_mapping_iter(iter_ptr)
-
-    def mappings_by_value(self, value):
-        if self.is_signed:
-            utils._check_int64(value)
-            iter_ptr = native_bt.field_class_enumeration_find_mappings_by_signed_value(self._ptr, value)
-        else:
-            utils._check_uint64(value)
-            iter_ptr = native_bt.field_class_enumeration_find_mappings_by_unsigned_value(self._ptr, value)
-
-        return self._get_mapping_iter(iter_ptr)
-
-    def add_mapping(self, name, lower, upper=None):
-        utils._check_str(name)
+    def map_range(self, label, lower, upper=None):
+        utils._check_str(label)
 
         if upper is None:
             upper = lower
 
-        if self.is_signed:
-            add_fn = native_bt.field_class_enumeration_add_mapping_signed
-            utils._check_int64(lower)
-            utils._check_int64(upper)
-        else:
-            add_fn = native_bt.field_class_enumeration_add_mapping_unsigned
-            utils._check_uint64(lower)
-            utils._check_uint64(upper)
-
-        ret = add_fn(self._ptr, name, lower, upper)
+        ret = self._map_range(self._ptr, label, lower, upper)
         utils._handle_ret(ret, "cannot add mapping to enumeration field class object")
 
+    def labels_by_value(self, value):
+        ret, labels = self._get_mapping_labels_by_value(self._ptr, value)
+        utils._handle_ret(ret, "cannot get mapping labels")
+        return labels
+
+    def __iter__(self):
+        for idx in range(len(self)):
+            mapping = self._get_mapping_by_index(self._ptr, idx)
+            yield mapping.label
+
+    def __getitem__(self, key):
+        utils._check_str(key)
+        for idx in range(len(self)):
+            mapping = self._get_mapping_by_index(self._ptr, idx)
+            if mapping.label == key:
+                return mapping
+
+        raise KeyError(key)
+
     def __iadd__(self, mappings):
-        for mapping in mappings:
-            self.add_mapping(mapping.name, mapping.lower, mapping.upper)
+        for mapping in mappings.values():
+            for range in mapping:
+                self.map_range(mapping.label, range.lower, range.upper)
 
         return self
 
 
-class StringFieldClass(_FieldClass):
+class _UnsignedEnumerationFieldClass(_EnumerationFieldClass, _UnsignedIntegerFieldClass):
+    _NAME = 'Unsigned enumeration'
+
+    @staticmethod
+    def _get_mapping_by_index(enum_ptr, index):
+        mapping_ptr = native_bt.field_class_unsigned_enumeration_borrow_mapping_by_index_const(enum_ptr, index)
+        assert mapping_ptr is not None
+        return _UnsignedEnumerationFieldClassMapping(mapping_ptr)
+
+    @staticmethod
+    def _map_range(enum_ptr, label, lower, upper):
+        utils._check_uint64(lower)
+        utils._check_uint64(upper)
+        return native_bt.field_class_unsigned_enumeration_map_range(enum_ptr, label, lower, upper)
+
+    @staticmethod
+    def _get_mapping_labels_by_value(enum_ptr, value):
+        utils._check_uint64(value)
+        return native_bt.field_class_unsigned_enumeration_get_mapping_labels_by_value(enum_ptr, value)
+
+
+class _SignedEnumerationFieldClass(_EnumerationFieldClass, _SignedIntegerFieldClass):
+    _NAME = 'Signed enumeration'
+
+    @staticmethod
+    def _get_mapping_by_index(enum_ptr, index):
+        mapping_ptr = native_bt.field_class_signed_enumeration_borrow_mapping_by_index_const(enum_ptr, index)
+        assert mapping_ptr is not None
+        return _SignedEnumerationFieldClassMapping(mapping_ptr)
+
+    @staticmethod
+    def _map_range(enum_ptr, label, lower, upper):
+        utils._check_int64(lower)
+        utils._check_int64(upper)
+        return native_bt.field_class_signed_enumeration_map_range(enum_ptr, label, lower, upper)
+
+    @staticmethod
+    def _get_mapping_labels_by_value(enum_ptr, value):
+        utils._check_int64(value)
+        return native_bt.field_class_signed_enumeration_get_mapping_labels_by_value(enum_ptr, value)
+
+
+class _StringFieldClass(_FieldClass):
     _NAME = 'String'
-
-    def __init__(self, encoding=None):
-        ptr = native_bt.field_class_string_create()
-        self._check_create_status(ptr)
-        super().__init__(ptr)
-
-        if encoding is not None:
-            self.encoding = encoding
-
-    @property
-    def encoding(self):
-        encoding = native_bt.field_class_string_get_encoding(self._ptr)
-        assert(encoding >= 0)
-        return encoding
-
-    @encoding.setter
-    def encoding(self, encoding):
-        utils._check_int(encoding)
-        ret = native_bt.field_class_string_set_encoding(self._ptr, encoding)
-        utils._handle_ret(ret, "cannot set string field class object's encoding")
 
 
 class _FieldContainer(collections.abc.Mapping):
     def __len__(self):
-        count = self._count()
-        assert(count >= 0)
+        count = self._get_element_count(self._ptr)
+        assert count >= 0
         return count
 
     def __getitem__(self, key):
         if not isinstance(key, str):
-            raise TypeError("'{}' is not a 'str' object".format(key.__class__.__name__))
+            raise TypeError("key should be a 'str' object, got {}".format(key.__class__.__name__))
 
-        ptr = self._get_field_by_name(key)
+        ptr = self._borrow_field_class_ptr_by_name(key)
 
         if ptr is None:
             raise KeyError(key)
 
-        return _create_from_ptr(ptr)
+        return _create_field_class_from_ptr_and_get_ref(ptr)
+
+    def _borrow_field_class_ptr_by_name(self, key):
+        element_ptr = self._borrow_element_by_name(self._ptr, key)
+        if element_ptr is None:
+            return
+
+        return self._element_borrow_field_class(element_ptr)
 
     def __iter__(self):
-        return self._ITER_CLS(self)
+        for idx in range(len(self)):
+            element_ptr = self._borrow_element_by_index(self._ptr, idx)
+            assert element_ptr is not None
 
-    def append_field(self, name, field_class):
+            yield self._element_get_name(element_ptr)
+
+    def _append_element_common(self, name, field_class):
         utils._check_str(name)
         utils._check_type(field_class, _FieldClass)
-        ret = self._add_field(name, field_class._ptr)
+        ret = self._append_element(self._ptr, name, field_class._ptr)
         utils._handle_ret(ret, "cannot add field to {} field class object".format(self._NAME.lower()))
 
     def __iadd__(self, fields):
         for name, field_class in fields.items():
-            self.append_field(name, field_class)
+            self._append_element_common(name, field_class)
 
         return self
 
-    def at_index(self, index):
+    def _at_index(self, index):
         utils._check_uint64(index)
-        return self._at(index)
 
-
-class _StructureFieldClassFieldIterator(collections.abc.Iterator):
-    def __init__(self, struct_field_class):
-        self._struct_field_class = struct_field_class
-        self._at = 0
-
-    def __next__(self):
-        if self._at == len(self._struct_field_class):
-            raise StopIteration
-
-        get_fc_by_index = native_bt.field_class_structure_get_field_by_index
-        ret, name, field_class_ptr = get_fc_by_index(self._struct_field_class._ptr,
-                                                    self._at)
-        assert(ret == 0)
-        native_bt.put(field_class_ptr)
-        self._at += 1
-        return name
-
-
-class _StructureFieldClass(_FieldClass, _FieldContainer, _AlignmentProp):
-    _NAME = 'Structure'
-    _ITER_CLS = _StructureFieldClassFieldIterator
-
-    def __init__(self, min_alignment=None):
-        ptr = native_bt.field_class_structure_create()
-        self._check_create_status(ptr)
-        super().__init__(ptr)
-
-        if min_alignment is not None:
-            self.min_alignment = min_alignment
-
-    def _count(self):
-        return native_bt.field_class_structure_get_field_count(self._ptr)
-
-    def _get_field_by_name(self, key):
-        return native_bt.field_class_structure_get_field_class_by_name(self._ptr, key)
-
-    def _add_field(self, name, ptr):
-        return native_bt.field_class_structure_append_member(self._ptr, name, ptr)
-
-    def _at(self, index):
         if index < 0 or index >= len(self):
             raise IndexError
 
-        ret, name, field_class_ptr = native_bt.field_class_structure_get_field_by_index(self._ptr, index)
-        assert(ret == 0)
-        return _create_from_ptr(field_class_ptr)
+        element_ptr = self._borrow_element_by_index(self._ptr, index)
+        assert element_ptr is not None
+
+        field_class_ptr = self._element_borrow_field_class(element_ptr)
+
+        return _create_field_class_from_ptr_and_get_ref(field_class_ptr)
 
 
-_StructureFieldClass.min_alignment = property(fset=_StructureFieldClass.alignment.fset)
-_StructureFieldClass.alignment = property(fget=_StructureFieldClass.alignment.fget)
+class _StructureFieldClass(_FieldClass, _FieldContainer):
+    _NAME = 'Structure'
+    _borrow_element_by_index = staticmethod(native_bt.field_class_structure_borrow_member_by_index_const)
+    _borrow_element_by_name = staticmethod(native_bt.field_class_structure_borrow_member_by_name_const)
+    _element_get_name = staticmethod(native_bt.field_class_structure_member_get_name)
+    _element_borrow_field_class = staticmethod(native_bt.field_class_structure_member_borrow_field_class_const)
+    _get_element_count = staticmethod(native_bt.field_class_structure_get_member_count)
+    _append_element = staticmethod(native_bt.field_class_structure_append_member)
+
+    def append_member(self, name, field_class):
+        return self._append_element_common(name, field_class)
+
+    def member_at_index(self, index):
+        return self._at_index(index)
 
 
-class _VariantFieldClassFieldIterator(collections.abc.Iterator):
-    def __init__(self, variant_field_class):
-        self._variant_field_class = variant_field_class
-        self._at = 0
-
-    def __next__(self):
-        if self._at == len(self._variant_field_class):
-            raise StopIteration
-
-        ret, name, field_class_ptr = native_bt.field_class_variant_get_field_by_index(self._variant_field_class._ptr,
-                                                                                    self._at)
-        assert(ret == 0)
-        native_bt.put(field_class_ptr)
-        self._at += 1
-        return name
-
-
-class VariantFieldClass(_FieldClass, _FieldContainer, _AlignmentProp):
+class _VariantFieldClass(_FieldClass, _FieldContainer):
     _NAME = 'Variant'
-    _ITER_CLS = _VariantFieldClassFieldIterator
+    _borrow_element_by_index = staticmethod(native_bt.field_class_variant_borrow_option_by_index_const)
+    _borrow_element_by_name = staticmethod(native_bt.field_class_variant_borrow_option_by_name_const)
+    _element_get_name = staticmethod(native_bt.field_class_variant_option_get_name)
+    _element_borrow_field_class = staticmethod(native_bt.field_class_variant_option_borrow_field_class_const)
+    _get_element_count = staticmethod(native_bt.field_class_variant_get_option_count)
+    _append_element = staticmethod(native_bt.field_class_variant_append_option)
 
-    def __init__(self, tag_name, tag_field_class=None):
-        utils._check_str(tag_name)
+    def append_option(self, name, field_class):
+        return self._append_element_common(name, field_class)
 
-        if tag_field_class is None:
-            tag_fc_ptr = None
-        else:
-            utils._check_type(tag_field_class, EnumerationFieldClass)
-            tag_fc_ptr = tag_field_class._ptr
-
-        ptr = native_bt.field_class_variant_create(tag_fc_ptr,
-                                                  tag_name)
-        self._check_create_status(ptr)
-        super().__init__(ptr)
+    def option_at_index(self, index):
+        return self._at_index(index)
 
     @property
-    def tag_name(self):
-        tag_name = native_bt.field_class_variant_get_tag_name(self._ptr)
-        assert(tag_name is not None)
-        return tag_name
-
-    @tag_name.setter
-    def tag_name(self, tag_name):
-        utils._check_str(tag_name)
-        ret = native_bt.field_class_variant_set_tag_name(self._ptr, tag_name)
-        utils._handle_ret(ret, "cannot set variant field class object's tag name")
-
-    @property
-    def tag_field_class(self):
-        fc_ptr = native_bt.field_class_variant_get_tag_type(self._ptr)
-
-        if fc_ptr is None:
+    def selector_field_path(self):
+        ptr = native_bt.field_class_variant_borrow_selector_field_path_const(self._ptr)
+        if ptr is None:
             return
 
-        return _create_from_ptr(fc_ptr)
+        return bt2.field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
 
-    def _count(self):
-        return native_bt.field_class_variant_get_field_count(self._ptr)
+    def _set_selector_field_class(self, selector_fc):
+        utils._check_type(selector_fc, bt2.field_class._EnumerationFieldClass)
+        ret = native_bt.field_class_variant_set_selector_field_class(self._ptr, selector_fc._ptr)
+        utils._handle_ret(ret, "cannot set variant selector field type")
 
-    def _get_field_by_name(self, key):
-        return native_bt.field_class_variant_get_field_class_by_name(self._ptr, key)
-
-    def _add_field(self, ptr, name):
-        return native_bt.field_class_variant_add_field(self._ptr, ptr, name)
-
-    def _at(self, index):
-        if index < 0 or index >= len(self):
-            raise IndexError
-
-        ret, name, field_class_ptr = native_bt.field_class_variant_get_field_by_index(self._ptr, index)
-        assert(ret == 0)
-        return _create_from_ptr(field_class_ptr)
+    _selector_field_class = property(fset=_set_selector_field_class)
 
 
-class ArrayFieldClass(_FieldClass):
-    _NAME = 'Array'
+class _ArrayFieldClass(_FieldClass):
+    @property
+    def element_field_class(self):
+        elem_fc_ptr = native_bt.field_class_array_borrow_element_field_class_const(self._ptr)
+        return _create_field_class_from_ptr_and_get_ref(elem_fc_ptr)
 
-    def __init__(self, element_field_class, length):
-        utils._check_type(element_field_class, _FieldClass)
-        utils._check_uint64(length)
-        ptr = native_bt.field_class_array_create(element_field_class._ptr, length)
-        self._check_create_status(ptr)
-        super().__init__(ptr)
 
+class _StaticArrayFieldClass(_ArrayFieldClass):
     @property
     def length(self):
-        length = native_bt.field_class_array_get_length(self._ptr)
-        assert(length >= 0)
-        return length
+        return native_bt.field_class_static_array_get_length(self._ptr)
 
+
+class _DynamicArrayFieldClass(_ArrayFieldClass):
     @property
-    def element_field_class(self):
-        ptr = native_bt.field_class_array_get_element_type(self._ptr)
-        assert(ptr)
-        return _create_from_ptr(ptr)
+    def length_field_path(self):
+        ptr = native_bt.field_class_dynamic_array_borrow_length_field_path_const(self._ptr)
+        if ptr is None:
+            return
 
+        return bt2.field_path._FieldPath._create_from_ptr_and_get_ref(ptr)
 
-class SequenceFieldClass(_FieldClass):
-    _NAME = 'Sequence'
+    def _set_length_field_class(self, length_fc):
+        utils._check_type(length_fc, _UnsignedIntegerFieldClass)
+        ret = native_bt.field_class_dynamic_array_set_length_field_class(self._ptr, length_fc._ptr)
+        utils._handle_ret(ret, "cannot set dynamic array length field type")
 
-    def __init__(self, element_field_class, length_name):
-        utils._check_type(element_field_class, _FieldClass)
-        utils._check_str(length_name)
-        ptr = native_bt.field_class_sequence_create(element_field_class._ptr,
-                                                   length_name)
-        self._check_create_status(ptr)
-        super().__init__(ptr)
-
-    @property
-    def length_name(self):
-        length_name = native_bt.field_class_sequence_get_length_field_name(self._ptr)
-        assert(length_name is not None)
-        return length_name
-
-    @property
-    def element_field_class(self):
-        ptr = native_bt.field_class_sequence_get_element_type(self._ptr)
-        assert(ptr)
-        return _create_from_ptr(ptr)
+    _length_field_class = property(fset=_set_length_field_class)
 
 
 _FIELD_CLASS_TYPE_TO_OBJ = {
+    native_bt.FIELD_CLASS_TYPE_UNSIGNED_INTEGER: _UnsignedIntegerFieldClass,
+    native_bt.FIELD_CLASS_TYPE_SIGNED_INTEGER: _SignedIntegerFieldClass,
+    native_bt.FIELD_CLASS_TYPE_REAL: _RealFieldClass,
+    native_bt.FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION: _UnsignedEnumerationFieldClass,
+    native_bt.FIELD_CLASS_TYPE_SIGNED_ENUMERATION: _SignedEnumerationFieldClass,
+    native_bt.FIELD_CLASS_TYPE_STRING: _StringFieldClass,
     native_bt.FIELD_CLASS_TYPE_STRUCTURE: _StructureFieldClass,
+    native_bt.FIELD_CLASS_TYPE_STATIC_ARRAY: _StaticArrayFieldClass,
+    native_bt.FIELD_CLASS_TYPE_DYNAMIC_ARRAY: _DynamicArrayFieldClass,
+    native_bt.FIELD_CLASS_TYPE_VARIANT: _VariantFieldClass,
 }
