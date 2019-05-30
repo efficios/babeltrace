@@ -760,8 +760,6 @@ AC_CONFIG_FILES([
 	tests/utils/Makefile
 	tests/utils/tap/Makefile
 	tests/plugins/Makefile
-	extras/Makefile
-	extras/valgrind/Makefile
 	plugins/Makefile
 	plugins/ctf/Makefile
 	plugins/ctf/common/Makefile
