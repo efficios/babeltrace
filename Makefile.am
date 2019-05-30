@@ -30,7 +30,8 @@ dist_noinst_DATA = CodingStyle
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = babeltrace.pc babeltrace-ctf.pc
 
-CONTRIBUTING.html: $(srcdir)/CONTRIBUTING.adoc
-	asciidoc --verbose -a source-highlighter=pygments $<
+# This is a convenience target, it's not part of the build process.
+CONTRIBUTING.html: CONTRIBUTING.adoc
+	$(ASCIIDOC) --verbose -a source-highlighter=pygments $<
 
 CLEANFILES = CONTRIBUTING.html
