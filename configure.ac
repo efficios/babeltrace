@@ -627,10 +627,10 @@ AS_IF([test "x$enable_api_doc" = "xyes"],
 have_asciidoc_xmlto=no
 warn_prebuilt_man_pages=no
 
-AS_IF([test "x$enable_man_pages" = "xyes"], [
-  AC_PATH_PROG([ASCIIDOC], [asciidoc], [no])
-  AC_PATH_PROG([XMLTO], [xmlto], [no])
+AC_PATH_PROG([ASCIIDOC], [asciidoc], [no])
+AC_PATH_PROG([XMLTO], [xmlto], [no])
 
+AS_IF([test "x$enable_man_pages" = "xyes"], [
   AS_IF([test "x$ASCIIDOC" = "xno" || test "x$XMLTO" = "xno"], [
     AS_IF([test "x$in_git_repo" = "xyes"], [
       # this is an error because we're in the Git repo, which
