@@ -6,15 +6,8 @@ SUBDIRS = include		\
 	fd-cache		\
 	compat			\
 	logging			\
-	lib
-
-if ENABLE_PYTHON_PLUGINS
-# Only build the Python plugin provider shared object if the
-# configuration doesn't ask to make it built-in.
-SUBDIRS += python-plugin-provider
-endif
-
-SUBDIRS +=			\
+	lib			\
+	python-plugin-provider	\
 	plugins			\
 	cli			\
 	bindings		\
