@@ -1396,7 +1396,7 @@ int bin_info_lookup_cu_src_loc_no_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 	const char *filename = NULL;
 	Dwarf_Line *line = NULL;
 	Dwarf_Addr line_addr;
-	int ret, line_no;
+	int ret = 0, line_no;
 
 	if (!cu || !src_loc) {
 		goto error;
@@ -1438,19 +1438,18 @@ int bin_info_lookup_cu_src_loc_no_inl(struct bt_dwarf_cu *cu, uint64_t addr,
 		_src_loc->filename = g_strdup(filename);
 	}
 
-	bt_dwarf_die_destroy(die);
-
 	if (_src_loc) {
 		*src_loc = _src_loc;
 	}
 
-end:
-	return 0;
+	goto end;
 
 error:
 	source_location_destroy(_src_loc);
+	ret = -1;
+end:
 	bt_dwarf_die_destroy(die);
-	return -1;
+	return ret;
 }
 
 /**
