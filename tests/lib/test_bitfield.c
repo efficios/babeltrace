@@ -380,7 +380,7 @@ void run_test_unsigned(unsigned int src_ui, unsigned long long src_ull)
 
 void run_test_signed_write(int src_i, long long src_ll)
 {
-	int nrbits_i, nrbits_ll;
+	unsigned int nrbits_i, nrbits_ll;
 	union {
 		signed char c[TEST_LEN];
 		short s[TEST_LEN/sizeof(short)];
@@ -500,7 +500,8 @@ void run_test_signed_write(int src_i, long long src_ll)
 
 void run_test_signed_read(int src_i, long long src_ll)
 {
-	int nrbits_i, nrbits_ll, readval_i;
+	unsigned int nrbits_i, nrbits_ll;
+	int readval_i;
 	union {
 		unsigned char c[TEST_LEN];
 		unsigned short s[TEST_LEN/sizeof(unsigned short)];
