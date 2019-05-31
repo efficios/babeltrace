@@ -60,6 +60,12 @@ extern void bt_stream_class_set_assigns_automatic_event_class_id(
 extern void bt_stream_class_set_assigns_automatic_stream_id(
 		bt_stream_class *stream_class, bt_bool value);
 
+extern void bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+		bt_stream_class *stream_class, bt_bool value);
+
+extern void bt_stream_class_set_packets_have_default_end_clock_snapshot(
+		bt_stream_class *stream_class, bt_bool value);
+
 extern bt_stream_class_status
 bt_stream_class_set_packet_context_field_class(
 		bt_stream_class *stream_class,

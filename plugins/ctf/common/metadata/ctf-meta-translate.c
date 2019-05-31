@@ -485,6 +485,10 @@ void ctf_stream_class_to_ir(struct ctx *ctx)
 		ret = bt_stream_class_set_default_clock_class(ctx->ir_sc,
 			ctx->sc->default_clock_class->ir_cc);
 		BT_ASSERT(ret == 0);
+		bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+			ctx->ir_sc, BT_TRUE);
+		bt_stream_class_set_packets_have_default_end_clock_snapshot(
+			ctx->ir_sc, BT_TRUE);
 	}
 
 	ctx->sc->is_translated = true;

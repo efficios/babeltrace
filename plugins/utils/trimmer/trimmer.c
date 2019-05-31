@@ -1733,6 +1733,38 @@ bt_self_message_iterator_status handle_message(
 				goto end;
 			}
 
+			/*
+			 * Temporary: make sure packet beginning and end
+			 * messages have default clock snapshots until
+			 * the support for not having them is
+			 * implemented.
+			 */
+			if (!bt_stream_class_packets_have_default_beginning_clock_snapshot(
+					sc)) {
+				BT_LOGE("Unsupported stream: packets have "
+					"no beginning clock snapshot: "
+					"stream-addr=%p, "
+					"stream-id=%" PRIu64 ", "
+					"stream-name=\"%s\"",
+					stream, bt_stream_get_id(stream),
+					bt_stream_get_name(stream));
+				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
+
+			if (!bt_stream_class_packets_have_default_end_clock_snapshot(
+					sc)) {
+				BT_LOGE("Unsupported stream: packets have "
+					"no end clock snapshot: "
+					"stream-addr=%p, "
+					"stream-id=%" PRIu64 ", "
+					"stream-name=\"%s\"",
+					stream, bt_stream_get_id(stream),
+					bt_stream_get_name(stream));
+				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
+
 			sstate = g_new0(struct trimmer_iterator_stream_state,
 				1);
 			if (!sstate) {

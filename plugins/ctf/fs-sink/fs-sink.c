@@ -516,7 +516,43 @@ bt_self_component_status handle_stream_beginning_msg(
 	bt_self_component_status status = BT_SELF_COMPONENT_STATUS_OK;
 	const bt_stream *ir_stream =
 		bt_message_stream_beginning_borrow_stream_const(msg);
+	const bt_stream_class *ir_sc =
+		bt_stream_borrow_class_const(ir_stream);
 	struct fs_sink_stream *stream;
+
+	/*
+	 * Temporary: if the stream's class has a default clock class,
+	 * make sure packet beginning and end messages have default
+	 * clock snapshots until the support for not having them is
+	 * implemented.
+	 */
+	if (bt_stream_class_borrow_default_clock_class_const(ir_sc)) {
+		if (!bt_stream_class_packets_have_default_beginning_clock_snapshot(
+				ir_sc)) {
+			BT_LOGE("Unsupported stream: packets have "
+				"no beginning clock snapshot: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				ir_stream, bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream));
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			goto end;
+		}
+
+		if (!bt_stream_class_packets_have_default_end_clock_snapshot(
+				ir_sc)) {
+			BT_LOGE("Unsupported stream: packets have "
+				"no end clock snapshot: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				ir_stream, bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream));
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			goto end;
+		}
+	}
 
 	stream = borrow_stream(fs_sink, ir_stream);
 	if (!stream) {

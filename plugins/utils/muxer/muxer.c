@@ -506,6 +506,8 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	const bt_clock_snapshot *clock_snapshot = NULL;
 	int ret = 0;
 	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
+	const bt_stream_class *stream_class = NULL;
+	bt_message_type msg_type;
 
 	BT_ASSERT(msg);
 	BT_ASSERT(ts_ns);
@@ -520,7 +522,21 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		goto end;
 	}
 
-	switch (bt_message_get_type(msg)) {
+	msg_type = bt_message_get_type(msg);
+
+	if (unlikely(msg_type == BT_MESSAGE_TYPE_PACKET_BEGINNING)) {
+		stream_class = bt_stream_borrow_class_const(
+			bt_packet_borrow_stream_const(
+				bt_message_packet_beginning_borrow_packet_const(
+					msg)));
+	} else if (unlikely(msg_type == BT_MESSAGE_TYPE_PACKET_END)) {
+		stream_class = bt_stream_borrow_class_const(
+			bt_packet_borrow_stream_const(
+				bt_message_packet_end_borrow_packet_const(
+					msg)));
+	}
+
+	switch (msg_type) {
 	case BT_MESSAGE_TYPE_EVENT:
 		BT_ASSERT(bt_message_event_borrow_stream_class_default_clock_class_const(
 				msg));
@@ -528,16 +544,24 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-		BT_ASSERT(bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
-				msg));
-		clock_snapshot = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-			msg);
+		if (bt_stream_class_packets_have_default_beginning_clock_snapshot(
+				stream_class)) {
+			clock_snapshot = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
+				msg);
+		} else {
+			goto no_clock_snapshot;
+		}
+
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
-		BT_ASSERT(bt_message_packet_end_borrow_stream_class_default_clock_class_const(
-				msg));
-		clock_snapshot = bt_message_packet_end_borrow_default_clock_snapshot_const(
-			msg);
+		if (bt_stream_class_packets_have_default_end_clock_snapshot(
+				stream_class)) {
+			clock_snapshot = bt_message_packet_end_borrow_default_clock_snapshot_const(
+				msg);
+		} else {
+			goto no_clock_snapshot;
+		}
+
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		BT_ASSERT(bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
