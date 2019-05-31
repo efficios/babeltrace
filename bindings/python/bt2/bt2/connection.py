@@ -20,61 +20,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt, utils
 import bt2.message_iterator
-import collections.abc
 import bt2.port
-import copy
 import bt2
 
 
-def _handle_status(status, gen_error_msg):
-    if status == native_bt.CONNECTION_STATUS_GRAPH_IS_CANCELED:
-        raise bt2.GraphCanceled
-    elif status == native_bt.CONNECTION_STATUS_IS_ENDED:
-        raise bt2.ConnectionEnded
-    elif status < 0:
-        raise bt2.Error(gen_error_msg)
-
-
-def _create_private_from_ptr(ptr):
-    obj = _PrivateConnection._create_from_ptr(ptr)
-    obj._pub_ptr = native_bt.connection_from_private(ptr)
-    assert(obj._pub_ptr)
-    return obj
-
-
-class _Connection(object._SharedObject):
-    @staticmethod
-    def _downstream_port(ptr):
-        port_ptr = native_bt.connection_get_downstream_port(ptr)
-        utils._handle_ptr(port_ptr, "cannot get connection object's downstream port object")
-        return bt2.port._create_from_ptr(port_ptr)
-
-    @staticmethod
-    def _upstream_port(ptr):
-        port_ptr = native_bt.connection_get_upstream_port(ptr)
-        utils._handle_ptr(port_ptr, "cannot get connection object's upstream port object")
-        return bt2.port._create_from_ptr(port_ptr)
+class _Connection(bt2.object._SharedObject):
+    _get_ref = staticmethod(native_bt.connection_get_ref)
+    _put_ref = staticmethod(native_bt.connection_put_ref)
 
     @property
     def downstream_port(self):
-        return self._downstream_port(self._ptr)
+        port_ptr = native_bt.connection_borrow_downstream_port_const(self._ptr)
+        utils._handle_ptr(port_ptr, "cannot get connection object's downstream port object")
+        return bt2.port._create_from_ptr_and_get_ref(port_ptr, native_bt.PORT_TYPE_INPUT)
 
     @property
     def upstream_port(self):
-        return self._upstream_port(self._ptr)
-
-    @staticmethod
-    def _is_ended(ptr):
-        return native_bt.connection_is_ended(ptr) == 1
-
-    @property
-    def is_ended(self):
-        return self._is_ended(self._ptr)
-
-    def __eq__(self, other):
-        if type(other) not in (_Connection, _PrivateConnection):
-            return False
-
-        return self.addr == other.addr
+        port_ptr = native_bt.connection_borrow_upstream_port_const(self._ptr)
+        utils._handle_ptr(port_ptr, "cannot get connection object's upstream port object")
+        return bt2.port._create_from_ptr_and_get_ref(port_ptr, native_bt.PORT_TYPE_OUTPUT)

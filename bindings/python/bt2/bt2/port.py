@@ -28,6 +28,24 @@ import bt2.message
 import bt2
 
 
+def _create_from_ptr_and_get_ref(ptr, port_type):
+    cls = _PORT_TYPE_TO_PYCLS.get(port_type, None)
+
+    if cls is None:
+        raise bt2.Error('unknown port type: {}'.format(port_type))
+
+    return cls._create_from_ptr_and_get_ref(ptr)
+
+
+def _create_self_from_ptr_and_get_ref(ptr, port_type):
+    cls = _PORT_TYPE_TO_USER_PYCLS.get(port_type, None)
+
+    if cls is None:
+        raise bt2.Error('unknown port type: {}'.format(port_type))
+
+    return cls._create_from_ptr_and_get_ref(ptr)
+
+
 class _Port(object._SharedObject):
     @classmethod
     def _get_ref(cls, ptr):
@@ -92,3 +110,15 @@ class _UserComponentInputPort(_UserComponentPort, _InputPort):
 
 class _UserComponentOutputPort(_UserComponentPort, _OutputPort):
     _as_self_port_ptr = staticmethod(native_bt.self_component_port_output_as_self_component_port)
+
+
+_PORT_TYPE_TO_PYCLS = {
+    native_bt.PORT_TYPE_INPUT: _InputPort,
+    native_bt.PORT_TYPE_OUTPUT: _OutputPort,
+}
+
+
+_PORT_TYPE_TO_USER_PYCLS = {
+    native_bt.PORT_TYPE_INPUT: _UserComponentInputPort,
+    native_bt.PORT_TYPE_OUTPUT: _UserComponentOutputPort,
+}
