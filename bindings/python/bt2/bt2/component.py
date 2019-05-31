@@ -702,10 +702,10 @@ class _UserSourceComponent(_UserComponent, _SourceComponent):
                                get_output_port_count,
                                bt2.port._UserComponentOutputPort)
 
-    def _add_output_port(self, name):
+    def _add_output_port(self, name, user_data=None):
         utils._check_str(name)
         fn = native_bt.self_component_source_add_output_port
-        comp_status, self_port_ptr = fn(self._ptr, name, None)
+        comp_status, self_port_ptr = fn(self._ptr, name, user_data)
         _handle_component_status(comp_status,
                                  'cannot add output port to source component object')
         assert self_port_ptr is not None
@@ -740,19 +740,19 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
                                get_input_port_count,
                                bt2.port._UserComponentInputPort)
 
-    def _add_output_port(self, name):
+    def _add_output_port(self, name, user_data=None):
         utils._check_str(name)
         fn = native_bt.self_component_filter_add_output_port
-        comp_status, self_port_ptr = fn(self._ptr, name, None)
+        comp_status, self_port_ptr = fn(self._ptr, name, user_data)
         _handle_component_status(comp_status,
                                  'cannot add output port to filter component object')
         assert self_port_ptr
         return bt2.port._UserComponentOutputPort._create_from_ptr(self_port_ptr)
 
-    def _add_input_port(self, name):
+    def _add_input_port(self, name, user_data=None):
         utils._check_str(name)
         fn = native_bt.self_component_filter_add_input_port
-        comp_status, self_port_ptr = fn(self._ptr, name, None)
+        comp_status, self_port_ptr = fn(self._ptr, name, user_data)
         _handle_component_status(comp_status,
                                  'cannot add input port to filter component object')
         assert self_port_ptr
@@ -775,10 +775,10 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
                                get_input_port_count,
                                bt2.port._UserComponentInputPort)
 
-    def _add_input_port(self, name):
+    def _add_input_port(self, name, user_data=None):
         utils._check_str(name)
         fn = native_bt.self_component_sink_add_input_port
-        comp_status, self_port_ptr = fn(self._ptr, name, None)
+        comp_status, self_port_ptr = fn(self._ptr, name, user_data)
         _handle_component_status(comp_status,
                                  'cannot add input port to sink component object')
         assert self_port_ptr

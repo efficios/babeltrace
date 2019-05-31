@@ -22,6 +22,23 @@
  * THE SOFTWARE.
  */
 
+/*
+ * Typemap for the user data attached to (and owned by) a self component port.
+ * The pointer saved as the port's user data is directly the PyObject *.
+ *
+ * As per the CPython calling convention, we need to return a new reference to
+ * the returned object, which will be transferred to the caller.  The following
+ * typedef allows us to apply the typemap.
+ */
+%{
+typedef void *PY_SELF_PORT_USER_DATA;
+%}
+
+%typemap(out) PY_SELF_PORT_USER_DATA {
+	Py_INCREF($1);
+	$result = $1;
+}
+
 /* From port-const.h */
 
 typedef enum bt_port_type {
@@ -77,7 +94,7 @@ const bt_port *bt_self_component_port_as_port(
 extern bt_self_component *bt_self_component_port_borrow_component(
 		bt_self_component_port *self_port);
 
-extern void *bt_self_component_port_get_data(
+extern PY_SELF_PORT_USER_DATA bt_self_component_port_get_data(
 		const bt_self_component_port *self_port);
 
 /* From self-component-port-output.h */

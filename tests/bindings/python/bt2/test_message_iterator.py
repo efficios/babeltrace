@@ -40,13 +40,14 @@ class UserMessageIteratorTestCase(unittest.TestCase):
                        message_iterator_class=MyIter):
             def __init__(self, params):
                 nonlocal the_output_port_from_source
-                the_output_port_from_source = self._add_output_port('out')
+                the_output_port_from_source = self._add_output_port('out', 'user data')
 
         initialized = False
         graph = self._create_graph(MySource)
         graph.run()
         self.assertTrue(initialized)
         self.assertEqual(the_output_port_from_source.addr, the_output_port_from_iter.addr)
+        self.assertEqual(the_output_port_from_iter.user_data, 'user data')
 
     def test_finalize(self):
         class MyIter(bt2._UserMessageIterator):
