@@ -589,7 +589,12 @@ class _UserComponent(metaclass=_UserComponentType):
     def _accept_port_connection_from_native(self, self_port_ptr, self_port_type, other_port_ptr):
         port = bt2.port._create_self_from_ptr_and_get_ref(
             self_port_ptr, self_port_type)
-        other_port_type = native_bt.PORT_TYPE_INPUT if self_port_type == native_bt.PORT_TYPE_OUTPUT else native_bt.PORT_TYPE_OUTPUT
+
+        if self_port_type == native_bt.PORT_TYPE_OUTPUT:
+            other_port_type = native_bt.PORT_TYPE_INPUT
+        else:
+            other_port_type = native_bt.PORT_TYPE_OUTPUT
+
         other_port = bt2.port._create_from_ptr_and_get_ref(
             other_port_ptr, other_port_type)
         res = self._accept_port_connection(port, other_port_ptr)
@@ -605,7 +610,12 @@ class _UserComponent(metaclass=_UserComponentType):
     def _port_connected_from_native(self, self_port_ptr, self_port_type, other_port_ptr):
         port = bt2.port._create_self_from_ptr_and_get_ref(
             self_port_ptr, self_port_type)
-        other_port_type = native_bt.PORT_TYPE_INPUT if self_port_type == native_bt.PORT_TYPE_OUTPUT else native_bt.PORT_TYPE_OUTPUT
+
+        if self_port_type == native_bt.PORT_TYPE_OUTPUT:
+            other_port_type = native_bt.PORT_TYPE_INPUT
+        else:
+            other_port_type = native_bt.PORT_TYPE_OUTPUT
+
         other_port = bt2.port._create_from_ptr_and_get_ref(
             other_port_ptr, other_port_type)
         self._port_connected(port, other_port)
