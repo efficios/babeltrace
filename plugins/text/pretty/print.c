@@ -226,14 +226,7 @@ int print_event_timestamp(struct pretty_component *pretty,
 		goto end;
 	}
 
-	if (bt_message_event_borrow_default_clock_snapshot_const(event_msg,
-			&clock_snapshot) != BT_CLOCK_SNAPSHOT_STATE_KNOWN) {
-		/*
-		 * No known default clock value: skip the timestamp
-		 * without an error.
-		 */
-		goto end;
-	}
+	clock_snapshot = bt_message_event_borrow_default_clock_snapshot_const(event_msg);
 
 	if (print_names) {
 		print_name_equal(pretty, "timestamp");
@@ -1367,16 +1360,16 @@ int pretty_print_discarded_items(struct pretty_component *pretty,
 	if (bt_stream_class_borrow_default_clock_class_const(stream_class)) {
 		switch (bt_message_get_type(msg)) {
 		case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-			bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-				msg, &begin);
-			bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
-				msg, &end);
+			begin = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+				msg);
+			end = bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+				msg);
 			break;
 		case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-			bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-				msg, &begin);
-			bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
-				msg, &end);
+			begin = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+				msg);
+			end = bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+				msg);
 			break;
 		default:
 			abort();

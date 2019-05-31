@@ -255,10 +255,9 @@ const struct bt_event *bt_message_event_borrow_event_const(
 	return borrow_event((void *) message);
 }
 
-enum bt_clock_snapshot_state
+const struct bt_clock_snapshot *
 bt_message_event_borrow_default_clock_snapshot_const(
-		const struct bt_message *msg,
-		const struct bt_clock_snapshot **snapshot)
+		const struct bt_message *msg)
 {
 	struct bt_message_event *event_msg = (void *) msg;
 	struct bt_stream_class *stream_class;
@@ -271,9 +270,7 @@ bt_message_event_borrow_default_clock_snapshot_const(
 	BT_ASSERT_PRE(stream_class->default_clock_class,
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S", msg, stream_class);
-	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
-	*snapshot = event_msg->default_cs;
-	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
+	return event_msg->default_cs;
 }
 
 const bt_clock_class *

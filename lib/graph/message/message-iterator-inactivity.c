@@ -93,15 +93,13 @@ end:
 	return (void *) ret_msg;
 }
 
-extern enum bt_clock_snapshot_state
+extern const struct bt_clock_snapshot *
 bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **snapshot)
+		const bt_message *msg)
 {
 	struct bt_message_message_iterator_inactivity *inactivity = (void *) msg;
 
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
-	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY);
-	*snapshot = inactivity->default_cs;
-	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
+	return inactivity->default_cs;
 }

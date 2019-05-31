@@ -1207,7 +1207,6 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 	const bt_clock_snapshot *cs;
 	const bt_clock_class *default_cc;
 	const bt_packet *in_packet;
-	bt_clock_snapshot_state cs_state;
 	bt_event_class *out_event_class;
 	bt_packet *out_packet;
 	bt_event *out_event;
@@ -1239,12 +1238,10 @@ bt_message *handle_event_message(struct debug_info_msg_iter *debug_it,
 			bt_event_class_borrow_stream_class_const(in_event_class));
 	if (default_cc) {
 		/* Borrow event clock snapshot. */
-		cs_state =
-			bt_message_event_borrow_default_clock_snapshot_const(
-				in_message, &cs);
+		cs = bt_message_event_borrow_default_clock_snapshot_const(
+				in_message);
 
 		/* Create an output event message. */
-		BT_ASSERT (cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN);
 		out_message = bt_message_event_create_with_default_clock_snapshot(
 					debug_it->input_iterator,
 					out_event_class, out_packet,
@@ -1338,7 +1335,6 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 		const bt_message *in_message)
 {
 	const bt_clock_class *default_cc;
-	bt_clock_snapshot_state cs_state;
 	const bt_clock_snapshot *cs;
 	bt_message *out_message = NULL;
 	bt_packet *out_packet;
@@ -1361,12 +1357,10 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 				bt_packet_borrow_stream_const(in_packet)));
 	if (default_cc) {
 		/* Borrow clock snapshot. */
-		cs_state =
-			bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-					in_message, &cs);
+		cs = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
+					in_message);
 
 		/* Create an output packet beginning message. */
-		BT_ASSERT(cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN);
 		out_message = bt_message_packet_beginning_create_with_default_clock_snapshot(
 				debug_it->input_iterator, out_packet,
 				bt_clock_snapshot_get_value(cs));
@@ -1389,7 +1383,6 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	const bt_clock_snapshot *cs;
 	const bt_packet *in_packet;
 	const bt_clock_class *default_cc;
-	bt_clock_snapshot_state cs_state;
 	bt_message *out_message = NULL;
 	bt_packet *out_packet;
 
@@ -1404,12 +1397,10 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 				bt_packet_borrow_stream_const(in_packet)));
 	if (default_cc) {
 		/* Borrow clock snapshot. */
-		cs_state =
-			bt_message_packet_end_borrow_default_clock_snapshot_const(
-					in_message, &cs);
+		cs = bt_message_packet_end_borrow_default_clock_snapshot_const(
+					in_message);
 
 		/* Create an outpute packet end message. */
-		BT_ASSERT(cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN);
 		out_message = bt_message_packet_end_create_with_default_clock_snapshot(
 				debug_it->input_iterator, out_packet,
 				bt_clock_snapshot_get_value(cs));
@@ -1549,7 +1540,6 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 	const bt_stream *in_stream;
 	const bt_clock_class *default_cc;
 	uint64_t discarded_events, begin_cs_value, end_cs_value;
-	bt_clock_snapshot_state begin_cs_state, end_cs_state;
 	bt_property_availability prop_avail;
 	bt_message *out_message = NULL;
 	bt_stream *out_stream;
@@ -1565,19 +1555,12 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 	default_cc = bt_stream_class_borrow_default_clock_class_const(
 			bt_stream_borrow_class_const(in_stream));
 	if (default_cc) {
-		begin_cs_state =
+		begin_cs =
 			bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-					in_message, &begin_cs);
-		end_cs_state =
+				in_message);
+		end_cs =
 			bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
-					in_message, &end_cs);
-		/*
-		 * Both clock snapshots should be known as we check that the
-		 * all input stream classes have an always known clock. Unknown
-		 * clock is not yet supported.
-		 */
-		BT_ASSERT(begin_cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN &&
-				end_cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN);
+				in_message);
 
 		begin_cs_value = bt_clock_snapshot_get_value(begin_cs);
 		end_cs_value = bt_clock_snapshot_get_value(end_cs);
@@ -1616,7 +1599,6 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 	const bt_clock_class *default_cc;
 	const bt_stream *in_stream;
 	uint64_t discarded_packets, begin_cs_value, end_cs_value;
-	bt_clock_snapshot_state begin_cs_state, end_cs_state;
 	bt_property_availability prop_avail;
 	bt_message *out_message = NULL;
 	bt_stream *out_stream;
@@ -1632,21 +1614,13 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 	default_cc = bt_stream_class_borrow_default_clock_class_const(
 			bt_stream_borrow_class_const(in_stream));
 	if (default_cc) {
-		begin_cs_state =
+		begin_cs =
 			bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-					in_message, &begin_cs);
+				in_message);
 
-		end_cs_state =
+		end_cs =
 			bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
-					in_message, &end_cs);
-
-		/*
-		 * Both clock snapshots should be known as we check that the
-		 * all input stream classes have an always known clock. Unknown
-		 * clock is not yet supported.
-		 */
-		BT_ASSERT(begin_cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN &&
-				end_cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN);
+				in_message);
 
 		begin_cs_value = bt_clock_snapshot_get_value(begin_cs);
 		end_cs_value = bt_clock_snapshot_get_value(end_cs);

@@ -24,11 +24,6 @@
 
 /* From clock-snapshot-const.h */
 
-typedef enum bt_clock_snapshot_state {
-	BT_CLOCK_SNAPSHOT_STATE_KNOWN,
-	BT_CLOCK_SNAPSHOT_STATE_UNKNOWN,
-} bt_clock_snapshot_state;
-
 typedef enum bt_clock_snapshot_status {
 	BT_CLOCK_SNAPSHOT_STATUS_OK = 0,
 	BT_CLOCK_SNAPSHOT_STATUS_OVERFLOW = -75,

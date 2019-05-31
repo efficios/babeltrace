@@ -22,28 +22,6 @@
  * THE SOFTWARE.
  */
 
-
-/* Output argument typemap for clock value output (always appends) */
-%typemap(in, numinputs=0)
-	(const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT)
-	(bt_clock_snapshot *temp_clock_snapshot = NULL) {
-	$1 = &temp_clock_snapshot;
-}
-
-%typemap(argout)
-	(const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT) {
-	if (*$1) {
-		/* SWIG_Python_AppendOutput() steals the created object */
-		$result = SWIG_Python_AppendOutput($result,
-				SWIG_NewPointerObj(SWIG_as_voidptr(*$1),
-					SWIGTYPE_p_bt_clock_snapshot, 0));
-	} else {
-		/* SWIG_Python_AppendOutput() steals Py_None */
-		Py_INCREF(Py_None);
-		$result = SWIG_Python_AppendOutput($result, Py_None);
-	}
-}
-
 /* From message-const.h */
 
 typedef enum bt_message_type {
@@ -70,9 +48,9 @@ extern void bt_message_put_ref(const bt_message *message);
 extern const bt_event *bt_message_event_borrow_event_const(
 		const bt_message *message);
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_event_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
 extern const bt_clock_class *
 bt_message_event_borrow_stream_class_default_clock_class_const(
@@ -97,9 +75,9 @@ extern bt_event *bt_message_event_borrow_event(
 
 /* From message-message-iterator-inactivity-const.h */
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
 /* From message-message-iterator-inactivity.h */
 
@@ -143,9 +121,9 @@ extern bt_stream *bt_message_stream_end_borrow_stream(
 extern const bt_packet *bt_message_packet_beginning_borrow_packet_const(
 		const bt_message *message);
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
 extern const bt_clock_class *
 bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
@@ -171,9 +149,9 @@ extern bt_packet *bt_message_packet_beginning_borrow_packet(
 extern const bt_packet *bt_message_packet_end_borrow_packet_const(
 		const bt_message *message);
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_packet_end_borrow_default_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
 extern const bt_clock_class *
 bt_message_packet_end_borrow_stream_class_default_clock_class_const(
@@ -264,13 +242,13 @@ extern bt_stream *bt_message_stream_activity_end_borrow_stream(
 
 /* From message-discarded-events-const.h */
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
 extern const bt_clock_class *
 bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
@@ -301,13 +279,13 @@ extern void bt_message_discarded_events_set_count(bt_message *message,
 
 /* From message-discarded-packets-const.h */
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
-extern bt_clock_snapshot_state
+extern const bt_clock_snapshot *
 bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
-		const bt_message *msg, const bt_clock_snapshot **BTOUTCLOCKSNAPSHOT);
+		const bt_message *msg);
 
 extern const bt_clock_class *
 bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
