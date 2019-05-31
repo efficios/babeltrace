@@ -161,6 +161,11 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			BT_LOGE_STR("Cannot set stream class's default clock class.");
 			goto error;
 		}
+
+		bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+			dmesg_comp->stream_class, BT_TRUE);
+		bt_stream_class_set_packets_have_default_end_clock_snapshot(
+			dmesg_comp->stream_class, BT_TRUE);
 	}
 
 	dmesg_comp->event_class = bt_event_class_create(

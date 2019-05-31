@@ -1334,7 +1334,7 @@ static
 bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 		const bt_message *in_message)
 {
-	const bt_clock_class *default_cc;
+	bool has_default_clock_snapshot;
 	const bt_clock_snapshot *cs;
 	bt_message *out_message = NULL;
 	bt_packet *out_packet;
@@ -1352,10 +1352,11 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 
 	BT_ASSERT(out_packet);
 
-	default_cc = bt_stream_class_borrow_default_clock_class_const(
+	has_default_clock_snapshot =
+		bt_stream_class_packets_have_default_beginning_clock_snapshot(
 			bt_stream_borrow_class_const(
 				bt_packet_borrow_stream_const(in_packet)));
-	if (default_cc) {
+	if (has_default_clock_snapshot) {
 		/* Borrow clock snapshot. */
 		cs = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 					in_message);
@@ -1380,9 +1381,9 @@ static
 bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 		const bt_message *in_message)
 {
+	bool has_default_clock_snapshot;
 	const bt_clock_snapshot *cs;
 	const bt_packet *in_packet;
-	const bt_clock_class *default_cc;
 	bt_message *out_message = NULL;
 	bt_packet *out_packet;
 
@@ -1392,10 +1393,11 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	out_packet = trace_ir_mapping_borrow_mapped_packet(debug_it->ir_maps, in_packet);
 	BT_ASSERT(out_packet);
 
-	default_cc = bt_stream_class_borrow_default_clock_class_const(
+	has_default_clock_snapshot =
+		bt_stream_class_packets_have_default_end_clock_snapshot(
 			bt_stream_borrow_class_const(
 				bt_packet_borrow_stream_const(in_packet)));
-	if (default_cc) {
+	if (has_default_clock_snapshot) {
 		/* Borrow clock snapshot. */
 		cs = bt_message_packet_end_borrow_default_clock_snapshot_const(
 					in_message);
