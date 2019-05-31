@@ -56,7 +56,9 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
 
             yield id
 
-    def create_event_class(self, id=None):
+    def create_event_class(self, id=None, name=None, log_level=None, emf_uri=None,
+                           specific_context_field_class=None,
+                           payload_field_class=None):
         if self.assigns_automatic_event_class_id:
             if id is not None:
                 raise bt2.CreationError('id provided, but stream class assigns automatic event class ids')
@@ -69,7 +71,24 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
             utils._check_uint64(id)
             ec_ptr = native_bt.event_class_create_with_id(self._ptr, id)
 
-        return bt2.event_class.EventClass._create_from_ptr(ec_ptr)
+        event_class = bt2.event_class.EventClass._create_from_ptr(ec_ptr)
+
+        if name is not None:
+            event_class._name = name
+
+        if log_level is not None:
+            event_class._log_level = log_level
+
+        if emf_uri is not None:
+            event_class._emf_uri = emf_uri
+
+        if specific_context_field_class is not None:
+            event_class._specific_context_field_class = specific_context_field_class
+
+        if payload_field_class is not None:
+            event_class._payload_field_class = payload_field_class
+
+        return event_class
 
     @property
     def trace_class(self):

@@ -110,8 +110,7 @@ class _ByteOrderProp:
         utils._handle_ret(ret, "cannot set field class object's byte order")
 
 
-class IntegerFieldClass(_FieldClass, _AlignmentProp, _ByteOrderProp):
-    _NAME = 'Integer'
+class _IntegerFieldClass(_FieldClass):
 
     def __init__(self, size, alignment=None, byte_order=None, is_signed=None,
                  base=None, encoding=None, mapped_clock_class=None):
@@ -199,6 +198,12 @@ class IntegerFieldClass(_FieldClass, _AlignmentProp, _ByteOrderProp):
         ret = native_bt.field_class_integer_set_mapped_clock_class(self._ptr, clock_class._ptr)
         utils._handle_ret(ret, "cannot set integer field class object's mapped clock class")
 
+
+class _SignedIntegerFieldClass(_IntegerFieldClass):
+    pass
+
+class SignedIntegerFieldClass(_SignedIntegerFieldClass):
+    _NAME = 'SignedInteger'
 
 class FloatingPointNumberFieldClass(_FieldClass, _AlignmentProp, _ByteOrderProp):
     _NAME = 'Floating point number'
@@ -298,7 +303,7 @@ class _EnumerationFieldClassMappingIterator(object._SharedObject,
         return mapping
 
 
-class EnumerationFieldClass(IntegerFieldClass, collections.abc.Sequence):
+class EnumerationFieldClass(_IntegerFieldClass, collections.abc.Sequence):
     _NAME = 'Enumeration'
 
     def __init__(self, int_field_class=None, size=None, alignment=None,
@@ -485,7 +490,7 @@ class _FieldContainer(collections.abc.Mapping):
     def append_field(self, name, field_class):
         utils._check_str(name)
         utils._check_type(field_class, _FieldClass)
-        ret = self._add_field(field_class._ptr, name)
+        ret = self._add_field(name, field_class._ptr)
         utils._handle_ret(ret, "cannot add field to {} field class object".format(self._NAME.lower()))
 
     def __iadd__(self, fields):
@@ -535,9 +540,8 @@ class _StructureFieldClass(_FieldClass, _FieldContainer, _AlignmentProp):
     def _get_field_by_name(self, key):
         return native_bt.field_class_structure_get_field_class_by_name(self._ptr, key)
 
-    def _add_field(self, ptr, name):
-        return native_bt.field_class_structure_add_field(self._ptr, ptr,
-                                                        name)
+    def _add_field(self, name, ptr):
+        return native_bt.field_class_structure_append_member(self._ptr, name, ptr)
 
     def _at(self, index):
         if index < 0 or index >= len(self):

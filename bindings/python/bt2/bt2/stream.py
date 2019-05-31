@@ -20,50 +20,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from bt2 import native_bt, object, utils
+from bt2 import native_bt, utils
 import bt2.packet
 import bt2.event
-import abc
 import bt2
 
 
-def _create_from_ptr(stream_ptr):
-    import bt2.ctf_writer
+class _Stream(bt2.object._SharedObject):
+    _get_ref = staticmethod(native_bt.stream_get_ref)
+    _put_ref = staticmethod(native_bt.stream_put_ref)
 
-    if native_bt.stream_is_writer(stream_ptr):
-        cls = bt2.ctf_writer._CtfWriterStream
-    else:
-        cls = _Stream
-
-    return cls._create_from_ptr(stream_ptr)
-
-
-class _StreamBase(object._SharedObject):
     @property
     def stream_class(self):
-        stream_class_ptr = native_bt.stream_get_class(self._ptr)
-        assert(stream_class_ptr)
-        return bt2.StreamClass._create_from_ptr(stream_class_ptr)
+        stream_class_ptr = native_bt.stream_borrow_class(self._ptr)
+        assert stream_class_ptr is not None
+        return bt2.stream_class.StreamClass._create_from_ptr_and_get_ref(stream_class_ptr)
 
     @property
     def name(self):
         return native_bt.stream_get_name(self._ptr)
 
+    def _name(self, name):
+        utils._check_str(name)
+        native_bt.stream_set_name(self._ptr, name)
+
+    _name = property(fset=_name)
+
     @property
     def id(self):
         id = native_bt.stream_get_id(self._ptr)
         return id if id >= 0 else None
-
-    def __eq__(self, other):
-        if self.addr == other.addr:
-            return True
-
-        return (self.name, self.id) == (other.name, other.id)
-
-
-class _Stream(_StreamBase):
-    _get_ref = staticmethod(native_bt.stream_get_ref)
-    _put_ref = staticmethod(native_bt.stream_put_ref)
 
     def create_packet(self):
         packet_ptr = native_bt.packet_create(self._ptr)
@@ -72,20 +58,3 @@ class _Stream(_StreamBase):
             raise bt2.CreationError('cannot create packet object')
 
         return bt2.packet._Packet._create_from_ptr(packet_ptr)
-
-    def __eq__(self, other):
-        if type(other) is not type(self):
-            return False
-
-        return _StreamBase.__eq__(self, other)
-
-    def _copy(self):
-        return self.stream_class(self.name, self.id)
-
-    def __copy__(self):
-        return self._copy()
-
-    def __deepcopy__(self, memo):
-        cpy = self._copy()
-        memo[id(self)] = cpy
-        return cpy

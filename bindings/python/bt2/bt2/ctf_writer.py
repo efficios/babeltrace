@@ -184,7 +184,7 @@ class CtfWriterClock(bt2.object._SharedObject):
     time = property(fset=_time)
 
 
-class _CtfWriterStream(stream._StreamBase):
+class _CtfWriterStream:
     @property
     def discarded_events_count(self):
         ret, count = native_bt.stream_get_discarded_events_count(self._ptr)
