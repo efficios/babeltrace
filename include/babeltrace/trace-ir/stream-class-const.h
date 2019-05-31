@@ -82,9 +82,6 @@ extern const bt_clock_class *
 bt_stream_class_borrow_default_clock_class_const(
 		const bt_stream_class *stream_class);
 
-extern bt_bool bt_stream_class_default_clock_is_always_known(
-		const bt_stream_class *stream_class);
-
 extern void bt_stream_class_get_ref(const bt_stream_class *stream_class);
 
 extern void bt_stream_class_put_ref(const bt_stream_class *stream_class);

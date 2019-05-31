@@ -620,7 +620,6 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 {
 	const bt_clock_class *clock_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
-	bt_clock_snapshot_state cs_state = BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
 	int ret = 0;
 
@@ -637,8 +636,8 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			goto error;
 		}
 
-		cs_state = bt_message_event_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_event_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 		clock_class =
@@ -648,8 +647,8 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			goto error;
 		}
 
-		cs_state = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
 		clock_class =
@@ -659,8 +658,8 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			goto error;
 		}
 
-		cs_state = bt_message_packet_end_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_packet_end_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		clock_class =
@@ -670,8 +669,8 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			goto error;
 		}
 
-		cs_state = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		clock_class =
@@ -681,8 +680,8 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			goto error;
 		}
 
-		cs_state = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
 		clock_class =
@@ -724,18 +723,12 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		cs_state =
+		clock_snapshot =
 			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
-				msg, &clock_snapshot);
+				msg);
 		break;
 	default:
 		goto no_clock_snapshot;
-	}
-
-	if (unlikely(cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN)) {
-		BT_LOGE_STR("Unsupported unknown clock snapshot.");
-		ret = -1;
-		goto end;
 	}
 
 	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot,
@@ -1431,16 +1424,16 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			 * know there's a default clock and it's always
 			 * known.
 			 */
-			(void) bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
-				msg, &end_cs);
+			end_cs = bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+				msg);
 		} else {
 			/*
 			 * Safe to ignore the return value because we
 			 * know there's a default clock and it's always
 			 * known.
 			 */
-			(void) bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
-				msg, &end_cs);
+			end_cs = bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+				msg);
 		}
 
 		if (bt_clock_snapshot_get_ns_from_origin(end_cs,
@@ -1482,16 +1475,16 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			}
 
 			if (msg_type == BT_MESSAGE_TYPE_DISCARDED_EVENTS) {
-				(void) bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-					msg, &begin_cs);
+				begin_cs = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+					msg);
 				new_msg = bt_message_discarded_events_create_with_default_clock_snapshots(
 					trimmer_it->self_msg_iter,
 					sstate->stream,
 					bt_clock_snapshot_get_value(begin_cs),
 					end_raw_value);
 			} else {
-				(void) bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-					msg, &begin_cs);
+				begin_cs = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+					msg);
 				new_msg = bt_message_discarded_packets_create_with_default_clock_snapshots(
 					trimmer_it->self_msg_iter,
 					sstate->stream,
@@ -1731,18 +1724,6 @@ bt_self_message_iterator_status handle_message(
 			if (!bt_stream_class_borrow_default_clock_class_const(sc)) {
 				BT_LOGE("Unsupported stream: stream class does "
 					"not have a default clock class: "
-					"stream-addr=%p, "
-					"stream-id=%" PRIu64 ", "
-					"stream-name=\"%s\"",
-					stream, bt_stream_get_id(stream),
-					bt_stream_get_name(stream));
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-				goto end;
-			}
-
-			if (!bt_stream_class_default_clock_is_always_known(sc)) {
-				BT_LOGE("Unsupported stream: clock does not "
-					"always have a known value: "
 					"stream-addr=%p, "
 					"stream-id=%" PRIu64 ", "
 					"stream-name=\"%s\"",

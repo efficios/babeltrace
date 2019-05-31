@@ -469,13 +469,6 @@ void bt_stream_class_set_assigns_automatic_stream_id(
 		"assignment property: %!+S", stream_class);
 }
 
-bt_bool bt_stream_class_default_clock_is_always_known(
-		const struct bt_stream_class *stream_class)
-{
-	/* BT_CLOCK_SNAPSHOT_STATE_UNKNOWN is not supported as of 2.0 */
-	return BT_TRUE;
-}
-
 void bt_stream_class_get_ref(const struct bt_stream_class *stream_class)
 {
 	bt_object_get_ref(stream_class);

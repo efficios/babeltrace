@@ -615,7 +615,6 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 	const bt_clock_class *clock_class = NULL;
 	const bt_clock_snapshot *clock_snapshot = NULL;
 	int ret = 0;
-	bt_clock_snapshot_state cs_state = BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
 
 	BT_ASSERT(msg);
@@ -632,8 +631,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 				msg);
 		BT_ASSERT(clock_class);
 
-		cs_state = bt_message_event_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_event_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 		clock_class =
@@ -641,8 +640,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		BT_ASSERT(clock_class);
 
-		cs_state = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
 		clock_class =
@@ -650,8 +649,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		BT_ASSERT(clock_class);
 
-		cs_state = bt_message_packet_end_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_packet_end_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		clock_class =
@@ -659,8 +658,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		BT_ASSERT(clock_class);
 
-		cs_state = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		clock_class =
@@ -668,8 +667,8 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		BT_ASSERT(clock_class);
 
-		cs_state = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
 		clock_class =
@@ -698,20 +697,14 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		cs_state =
+		clock_snapshot =
 			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
-				msg, &clock_snapshot);
+				msg);
 		break;
 	default:
 		/* All the other messages have a higher priority */
 		BT_LOGV_STR("Message has no timestamp: using the last message timestamp.");
 		*ts_ns = last_msg_ts_ns;
-		goto end;
-	}
-
-	if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN) {
-		BT_LOGE_STR("Unsupported unknown clock snapshot.");
-		ret = -1;
 		goto end;
 	}
 

@@ -212,13 +212,6 @@ bt_stream *trace_ir_mapping_create_new_mapped_stream(
 	BT_ASSERT(!borrow_mapped_stream(d_maps, in_stream));
 
 	in_stream_class = bt_stream_borrow_class_const(in_stream);
-	if (bt_stream_class_default_clock_is_always_known(in_stream_class)
-			== BT_FALSE) {
-		BT_LOGE("Stream class default clock class is not always "
-			"known: in-sc-addr=%p", in_stream_class);
-		goto end;
-	}
-
 	md_maps = borrow_metadata_maps_from_input_stream_class(ir_maps, in_stream_class);
 	out_stream_class = borrow_mapped_stream_class(md_maps, in_stream_class);
 	if (!out_stream_class) {

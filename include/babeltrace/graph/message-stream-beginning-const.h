@@ -27,9 +27,6 @@
 /* For bt_message, bt_clock_snapshot, bt_stream */
 #include <babeltrace/types.h>
 
-/* For bt_clock_snapshot_state */
-#include <babeltrace/trace-ir/clock-snapshot-const.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

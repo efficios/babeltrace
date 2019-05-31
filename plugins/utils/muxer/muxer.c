@@ -505,7 +505,6 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 {
 	const bt_clock_snapshot *clock_snapshot = NULL;
 	int ret = 0;
-	bt_clock_snapshot_state cs_state = BT_CLOCK_SNAPSHOT_STATE_KNOWN;
 	bt_message_stream_activity_clock_snapshot_state sa_cs_state;
 
 	BT_ASSERT(msg);
@@ -525,32 +524,32 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 	case BT_MESSAGE_TYPE_EVENT:
 		BT_ASSERT(bt_message_event_borrow_stream_class_default_clock_class_const(
 				msg));
-		cs_state = bt_message_event_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_event_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 		BT_ASSERT(bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
 				msg));
-		cs_state = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_PACKET_END:
 		BT_ASSERT(bt_message_packet_end_borrow_stream_class_default_clock_class_const(
 				msg));
-		cs_state = bt_message_packet_end_borrow_default_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_packet_end_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		BT_ASSERT(bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
 				msg));
-		cs_state = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		BT_ASSERT(bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
 				msg));
-		cs_state = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-			msg, &clock_snapshot);
+		clock_snapshot = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+			msg);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
 		BT_ASSERT(bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
@@ -573,9 +572,8 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 		break;
 	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
-		cs_state =
-			bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
-				msg, &clock_snapshot);
+		clock_snapshot = bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+			msg);
 		break;
 	default:
 		/* All the other messages have a higher priority */
@@ -584,7 +582,6 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 		goto end;
 	}
 
-	BT_ASSERT(cs_state == BT_CLOCK_SNAPSHOT_STATE_KNOWN);
 	ret = bt_clock_snapshot_get_ns_from_origin(clock_snapshot, ts_ns);
 	if (ret) {
 		BT_LOGE("Cannot get nanoseconds from Epoch of clock snapshot: "
@@ -818,16 +815,6 @@ int validate_new_stream_clock_class(struct muxer_msg_iter *muxer_msg_iter,
 		goto end;
 	}
 
-	if (!bt_stream_class_default_clock_is_always_known(stream_class)) {
-		BT_LOGE("Stream's default clock is not always known: "
-			"stream-class-addr=%p, stream-class-name=\"%s\", "
-			"stream-class-id=%" PRIu64,
-			stream_class, bt_stream_class_get_name(stream_class),
-			bt_stream_class_get_id(stream_class));
-		ret = -1;
-		goto end;
-	}
-
 	ret = validate_clock_class(muxer_msg_iter, muxer_comp, clock_class);
 
 end:
@@ -907,20 +894,9 @@ muxer_msg_iter_youngest_upstream_msg_iter(
 		} else if (unlikely(bt_message_get_type(msg) ==
 				BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY)) {
 			const bt_clock_snapshot *cs;
-			bt_clock_snapshot_state cs_state;
 
-			cs_state = bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
-				msg, &cs);
-
-			if (cs_state != BT_CLOCK_SNAPSHOT_STATE_KNOWN) {
-				BT_LOGE("Message iterator inactivity message's "
-					"default clock snapshot is unknown: "
-					"msg-addr=%p",
-					msg);
-				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-				goto end;
-			}
-
+			cs = bt_message_message_iterator_inactivity_borrow_default_clock_snapshot_const(
+				msg);
 			ret = validate_clock_class(muxer_msg_iter, muxer_comp,
 				bt_clock_snapshot_borrow_clock_class_const(cs));
 			if (ret) {

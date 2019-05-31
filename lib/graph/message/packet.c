@@ -285,10 +285,9 @@ const struct bt_packet *bt_message_packet_end_borrow_packet_const(
 }
 
 static inline
-enum bt_clock_snapshot_state
+const struct bt_clock_snapshot *
 borrow_packet_message_default_clock_snapshot_const(
-		const struct bt_message *message,
-		const struct bt_clock_snapshot **snapshot)
+		const struct bt_message *message)
 {
 	struct bt_message_packet *packet_msg = (void *) message;
 
@@ -297,31 +296,25 @@ borrow_packet_message_default_clock_snapshot_const(
 		"Message's stream's class has no default clock class: "
 		"%![msg-]+n, %![sc-]+S",
 		message, packet_msg->packet->stream->class);
-	BT_ASSERT_PRE_NON_NULL(snapshot, "Clock snapshot (output)");
-	*snapshot = packet_msg->default_cs;
-	return BT_CLOCK_SNAPSHOT_STATE_KNOWN;
+	return packet_msg->default_cs;
 }
 
-enum bt_clock_snapshot_state
+const struct bt_clock_snapshot *
 bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-		const struct bt_message *msg,
-		const struct bt_clock_snapshot **snapshot)
+		const struct bt_message *msg)
 {
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_BEGINNING);
-	return borrow_packet_message_default_clock_snapshot_const(
-		msg, snapshot);
+	return borrow_packet_message_default_clock_snapshot_const(msg);
 }
 
-enum bt_clock_snapshot_state
+const struct bt_clock_snapshot *
 bt_message_packet_end_borrow_default_clock_snapshot_const(
-		const struct bt_message *msg,
-		const struct bt_clock_snapshot **snapshot)
+		const struct bt_message *msg)
 {
 	BT_ASSERT_PRE_NON_NULL(msg, "Message");
 	BT_ASSERT_PRE_MSG_IS_TYPE(msg, BT_MESSAGE_TYPE_PACKET_END);
-	return borrow_packet_message_default_clock_snapshot_const(
-		msg, snapshot);
+	return borrow_packet_message_default_clock_snapshot_const(msg);
 }
 
 static inline

@@ -1166,13 +1166,6 @@ int translate_stream_class(struct fs_sink_ctf_trace_class *tc,
 		const char *name = bt_clock_class_get_name(
 			(*out_sc)->default_clock_class);
 
-		if (!bt_stream_class_default_clock_is_always_known(ir_sc)) {
-			BT_LOGE("Unsupported stream clock which can have an unknown value: "
-				"sc-name=\"%s\"",
-				bt_stream_class_get_name(ir_sc));
-			goto error;
-		}
-
 		if (name) {
 			/* Try original name, protected */
 			g_string_assign((*out_sc)->default_clock_class_name,
