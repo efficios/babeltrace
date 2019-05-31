@@ -224,6 +224,25 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
             raise bt2.CreationError(
                 'cannot create {} field class'.format(type_name))
 
+    def _create_integer_field_class(self, create_func, py_cls, type_name, range, display_base):
+        field_class_ptr = create_func(self._ptr)
+        self._check_create_status(field_class_ptr, type_name)
+
+        field_class = py_cls._create_from_ptr(field_class_ptr)
+
+        if range is not None:
+            field_class._range = range
+
+        if display_base is not None:
+            field_class._display_base = display_base
+
+        return field_class
+
+    def create_signed_integer_field_class(self, range=None, display_base=None):
+        return self._create_integer_field_class(native_bt.field_class_signed_integer_create,
+                                                bt2.field_class.SignedIntegerFieldClass,
+                                                'signed integer', range, display_base)
+
     def create_structure_field_class(self):
         field_class_ptr = native_bt.field_class_structure_create(self._ptr)
         self._check_create_status(field_class_ptr, 'structure')
