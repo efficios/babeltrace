@@ -774,3 +774,69 @@ class PortTestCase(unittest.TestCase):
                 pass
 
         self._create_comp(MySink)
+
+    def test_source_self_port_user_data(self):
+        class MyIter(bt2._UserMessageIterator):
+            def __next__(self):
+                raise bt2.Stop
+
+        class MySource(bt2._UserFilterComponent,
+                       message_iterator_class=MyIter):
+            def __init__(comp_self, params):
+                nonlocal user_datas
+
+                p = comp_self._add_output_port('port1')
+                user_datas.append(p.user_data)
+                p = comp_self._add_output_port('port2', 2)
+                user_datas.append(p.user_data)
+
+        user_datas = []
+
+        comp = self._create_comp(MySource)
+        self.assertEqual(user_datas, [None, 2])
+
+    def test_filter_self_port_user_data(self):
+        class MyIter(bt2._UserMessageIterator):
+            def __next__(self):
+                raise bt2.Stop
+
+        class MyFilter(bt2._UserFilterComponent,
+                       message_iterator_class=MyIter):
+            def __init__(comp_self, params):
+                nonlocal user_datas
+
+                p = comp_self._add_output_port('port1')
+                user_datas.append(p.user_data)
+                p = comp_self._add_output_port('port2', 'user data string')
+                user_datas.append(p.user_data)
+
+                p = comp_self._add_input_port('port3')
+                user_datas.append(p.user_data)
+                p = comp_self._add_input_port('port4', user_data={'user data': 'dict'})
+                user_datas.append(p.user_data)
+
+        user_datas = []
+
+        comp = self._create_comp(MyFilter)
+        self.assertEqual(user_datas,
+                         [None, 'user data string', None, {'user data': 'dict'}])
+
+    def test_sink_self_port_user_data(self):
+        class MyIter(bt2._UserMessageIterator):
+            def __next__(self):
+                raise bt2.Stop
+
+        class MySink(bt2._UserFilterComponent,
+                     message_iterator_class=MyIter):
+            def __init__(comp_self, params):
+                nonlocal user_datas
+
+                p = comp_self._add_input_port('port1')
+                user_datas.append(p.user_data)
+                p = comp_self._add_input_port('port2', set())
+                user_datas.append(p.user_data)
+
+        user_datas = []
+
+        comp = self._create_comp(MySink)
+        self.assertEqual(user_datas, [None, set()])

@@ -62,6 +62,26 @@
 	}
 }
 
+/* Typemaps used for user data attached to self component ports. */
+
+/*
+ * The user data Python object is kept as the user data of the port, we pass
+ * the PyObject pointer directly to the port creation function.
+ */
+%typemap(in) void *PY_SELF_PORT_USER_DATA {
+	$1 = $input;
+}
+
+/*
+ * The port, if created successfully, now owns a reference to the Python object,
+ * we reflect that here.
+ */
+%typemap(argout) void *PY_SELF_PORT_USER_DATA {
+	if (PyLong_AsLong($result) == BT_SELF_COMPONENT_STATUS_OK) {
+		Py_INCREF($1);
+	}
+}
+
 /* From component-const.h */
 
 extern const char *bt_component_get_name(const bt_component *component);
@@ -216,7 +236,7 @@ bt_self_component_source_borrow_output_port_by_index(
 extern bt_self_component_status
 bt_self_component_source_add_output_port(
 		bt_self_component_source *self_component,
-		const char *name, void *user_data,
+		const char *name, void *PY_SELF_PORT_USER_DATA,
 		bt_self_component_port_output **OUT);
 
 /* From self-component-filter.h */
@@ -241,7 +261,7 @@ bt_self_component_filter_borrow_output_port_by_index(
 extern bt_self_component_status
 bt_self_component_filter_add_output_port(
 		bt_self_component_filter *self_component,
-		const char *name, void *data,
+		const char *name, void *PY_SELF_PORT_USER_DATA,
 		bt_self_component_port_output **OUT);
 
 extern bt_self_component_port_input *
@@ -257,7 +277,7 @@ bt_self_component_filter_borrow_input_port_by_index(
 extern bt_self_component_status
 bt_self_component_filter_add_input_port(
 		bt_self_component_filter *self_component,
-		const char *name, void *data,
+		const char *name, void *PY_SELF_PORT_USER_DATA,
 		bt_self_component_port_input **OUT);
 
 /* From self-component-sink.h */
@@ -281,5 +301,5 @@ bt_self_component_sink_borrow_input_port_by_index(
 extern bt_self_component_status
 bt_self_component_sink_add_input_port(
 		bt_self_component_sink *self_component,
-		const char *name, void *user_data,
+		const char *name, void *PY_SELF_PORT_USER_DATA,
 		bt_self_component_port_input **OUT);

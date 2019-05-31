@@ -103,6 +103,11 @@ class _UserComponentPort(_Port):
 
         return bt2.connection._Connection._create_from_ptr_and_get_ref(conn_ptr)
 
+    @property
+    def user_data(self):
+        ptr = self._as_self_port_ptr(self._ptr)
+        return native_bt.self_component_port_get_data(ptr)
+
 
 class _UserComponentInputPort(_UserComponentPort, _InputPort):
     _as_self_port_ptr = staticmethod(native_bt.self_component_port_input_as_self_component_port)
