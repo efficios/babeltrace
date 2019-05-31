@@ -54,8 +54,8 @@ def find_plugin(name):
 
 
 class _PluginSet(object._SharedObject, collections.abc.Sequence):
-    _put_ref = native_bt.plugin_set_put_ref
-    _get_ref = native_bt.plugin_set_get_ref
+    _put_ref = staticmethod(native_bt.plugin_set_put_ref)
+    _get_ref = staticmethod(native_bt.plugin_set_get_ref)
 
     def __len__(self):
         count = native_bt.plugin_set_get_plugin_count(self._ptr)
@@ -150,29 +150,29 @@ class _PluginComponentClasses(collections.abc.Mapping):
 
 
 class _PluginSourceComponentClasses(_PluginComponentClasses):
-    _component_class_count = native_bt.plugin_get_source_component_class_count
-    _borrow_component_class_by_name = native_bt.plugin_borrow_source_component_class_by_name_const
-    _borrow_component_class_by_index = native_bt.plugin_borrow_source_component_class_by_index_const
+    _component_class_count = staticmethod(native_bt.plugin_get_source_component_class_count)
+    _borrow_component_class_by_name = staticmethod(native_bt.plugin_borrow_source_component_class_by_name_const)
+    _borrow_component_class_by_index = staticmethod(native_bt.plugin_borrow_source_component_class_by_index_const)
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
 
 
 class _PluginFilterComponentClasses(_PluginComponentClasses):
-    _component_class_count = native_bt.plugin_get_filter_component_class_count
-    _borrow_component_class_by_name = native_bt.plugin_borrow_filter_component_class_by_name_const
-    _borrow_component_class_by_index = native_bt.plugin_borrow_filter_component_class_by_index_const
+    _component_class_count = staticmethod(native_bt.plugin_get_filter_component_class_count)
+    _borrow_component_class_by_name = staticmethod(native_bt.plugin_borrow_filter_component_class_by_name_const)
+    _borrow_component_class_by_index = staticmethod(native_bt.plugin_borrow_filter_component_class_by_index_const)
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
 
 
 class _PluginSinkComponentClasses(_PluginComponentClasses):
-    _component_class_count = native_bt.plugin_get_sink_component_class_count
-    _borrow_component_class_by_name = native_bt.plugin_borrow_sink_component_class_by_name_const
-    _borrow_component_class_by_index = native_bt.plugin_borrow_sink_component_class_by_index_const
+    _component_class_count = staticmethod(native_bt.plugin_get_sink_component_class_count)
+    _borrow_component_class_by_name = staticmethod(native_bt.plugin_borrow_sink_component_class_by_name_const)
+    _borrow_component_class_by_index = staticmethod(native_bt.plugin_borrow_sink_component_class_by_index_const)
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SINK
 
 
 class _Plugin(object._SharedObject):
-    _put_ref = native_bt.plugin_put_ref
-    _get_ref = native_bt.plugin_get_ref
+    _put_ref = staticmethod(native_bt.plugin_put_ref)
+    _get_ref = staticmethod(native_bt.plugin_get_ref)
 
     @property
     def name(self):

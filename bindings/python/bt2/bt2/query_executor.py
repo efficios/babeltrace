@@ -26,8 +26,8 @@ import bt2
 
 
 class QueryExecutor(object._SharedObject):
-    _get_ref = native_bt.query_executor_get_ref
-    _put_ref = native_bt.query_executor_put_ref
+    _get_ref = staticmethod(native_bt.query_executor_get_ref)
+    _put_ref = staticmethod(native_bt.query_executor_put_ref)
 
     def _handle_status(self, status, gen_error_msg):
         if status == native_bt.QUERY_EXECUTOR_STATUS_AGAIN:

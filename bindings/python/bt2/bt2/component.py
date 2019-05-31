@@ -78,21 +78,21 @@ class _GenericComponentClass(object._SharedObject):
 
 
 class _GenericSourceComponentClass(_GenericComponentClass):
-    _get_ref = native_bt.component_class_source_get_ref
-    _put_ref = native_bt.component_class_source_put_ref
-    _as_component_class_ptr = native_bt.component_class_source_as_component_class
+    _get_ref = staticmethod(native_bt.component_class_source_get_ref)
+    _put_ref = staticmethod(native_bt.component_class_source_put_ref)
+    _as_component_class_ptr = staticmethod(native_bt.component_class_source_as_component_class)
 
 
 class _GenericFilterComponentClass(_GenericComponentClass):
-    _get_ref = native_bt.component_class_filter_get_ref
-    _put_ref = native_bt.component_class_filter_put_ref
-    _as_component_class_ptr = native_bt.component_class_filter_as_component_class
+    _get_ref = staticmethod(native_bt.component_class_filter_get_ref)
+    _put_ref = staticmethod(native_bt.component_class_filter_put_ref)
+    _as_component_class_ptr = staticmethod(native_bt.component_class_filter_as_component_class)
 
 
 class _GenericSinkComponentClass(_GenericComponentClass):
-    _get_ref = native_bt.component_class_sink_get_ref
-    _put_ref = native_bt.component_class_sink_put_ref
-    _as_component_class_ptr = native_bt.component_class_sink_as_component_class
+    _get_ref = staticmethod(native_bt.component_class_sink_get_ref)
+    _put_ref = staticmethod(native_bt.component_class_sink_put_ref)
+    _as_component_class_ptr = staticmethod(native_bt.component_class_sink_as_component_class)
 
 
 def _handle_component_status(status, gen_error_msg):
@@ -209,24 +209,24 @@ class _Component:
 
 
 class _SourceComponent(_Component):
-    _borrow_component_class_ptr = native_bt.component_source_borrow_class_const
+    _borrow_component_class_ptr = staticmethod(native_bt.component_source_borrow_class_const)
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
-    _as_component_class_ptr = native_bt.component_class_source_as_component_class
-    _as_component_ptr = native_bt.component_source_as_component_const
+    _as_component_class_ptr = staticmethod(native_bt.component_class_source_as_component_class)
+    _as_component_ptr = staticmethod(native_bt.component_source_as_component_const)
 
 
 class _FilterComponent(_Component):
-    _borrow_component_class_ptr = native_bt.component_filter_borrow_class_const
+    _borrow_component_class_ptr = staticmethod(native_bt.component_filter_borrow_class_const)
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
-    _as_component_class_ptr = native_bt.component_class_filter_as_component_class
-    _as_component_ptr = native_bt.component_filter_as_component_const
+    _as_component_class_ptr = staticmethod(native_bt.component_class_filter_as_component_class)
+    _as_component_ptr = staticmethod(native_bt.component_filter_as_component_const)
 
 
 class _SinkComponent(_Component):
-    _borrow_component_class_ptr = native_bt.component_sink_borrow_class_const
+    _borrow_component_class_ptr = staticmethod(native_bt.component_sink_borrow_class_const)
     _comp_cls_type = native_bt.COMPONENT_CLASS_TYPE_SINK
-    _as_component_class_ptr = native_bt.component_class_sink_as_component_class
-    _as_component_ptr = native_bt.component_sink_as_component_const
+    _as_component_class_ptr = staticmethod(native_bt.component_class_sink_as_component_class)
+    _as_component_ptr = staticmethod(native_bt.component_sink_as_component_const)
 
 
 # This is analogous to _GenericSourceComponentClass, but for source
@@ -261,8 +261,8 @@ class _GenericFilterComponent(object._SharedObject, _FilterComponent):
 # This is analogous to _GenericSinkComponentClass, but for sink
 # component objects.
 class _GenericSinkComponent(object._SharedObject, _SinkComponent):
-    _get_ref = native_bt.component_sink_get_ref
-    _put_ref = native_bt.component_sink_put_ref
+    _get_ref = staticmethod(native_bt.component_sink_get_ref)
+    _put_ref = staticmethod(native_bt.component_sink_put_ref)
 
     @property
     def input_ports(self):
@@ -629,7 +629,7 @@ class _UserComponent(metaclass=_UserComponentType):
 
 
 class _UserSourceComponent(_UserComponent, _SourceComponent):
-    _as_not_self_specific_component_ptr = native_bt.self_component_source_as_component_source
+    _as_not_self_specific_component_ptr = staticmethod(native_bt.self_component_source_as_component_source)
 
     @property
     def _output_ports(self):
@@ -649,7 +649,7 @@ class _UserSourceComponent(_UserComponent, _SourceComponent):
 
 
 class _UserFilterComponent(_UserComponent, _FilterComponent):
-    _as_not_self_specific_component_ptr = native_bt.self_component_filter_as_component_filter
+    _as_not_self_specific_component_ptr = staticmethod(native_bt.self_component_filter_as_component_filter)
 
     @property
     def _output_ports(self):
@@ -685,7 +685,7 @@ class _UserFilterComponent(_UserComponent, _FilterComponent):
 
 
 class _UserSinkComponent(_UserComponent, _SinkComponent):
-    _as_not_self_specific_component_ptr = native_bt.self_component_sink_as_component_sink
+    _as_not_self_specific_component_ptr = staticmethod(native_bt.self_component_sink_as_component_sink)
 
     @property
     def _input_ports(self):
