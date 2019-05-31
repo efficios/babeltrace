@@ -86,8 +86,8 @@ def create_value(value):
 
 
 class _Value(object._SharedObject, metaclass=abc.ABCMeta):
-    _get_ref = native_bt.value_get_ref
-    _put_ref = native_bt.value_put_ref
+    _get_ref = staticmethod(native_bt.value_get_ref)
+    _put_ref = staticmethod(native_bt.value_put_ref)
 
     def __eq__(self, other):
         if other is None:
@@ -396,18 +396,18 @@ class _IntegerValue(_IntegralValue):
 
 class UnsignedIntegerValue(_IntegerValue):
     _check_int_range = staticmethod(utils._check_uint64)
-    _create_default_value = native_bt.value_unsigned_integer_create
-    _create_value = native_bt.value_unsigned_integer_create_init
-    _set_value = native_bt.value_unsigned_integer_set
-    _get_value = native_bt.value_unsigned_integer_get
+    _create_default_value = staticmethod(native_bt.value_unsigned_integer_create)
+    _create_value = staticmethod(native_bt.value_unsigned_integer_create_init)
+    _set_value = staticmethod(native_bt.value_unsigned_integer_set)
+    _get_value = staticmethod(native_bt.value_unsigned_integer_get)
 
 
 class SignedIntegerValue(_IntegerValue):
     _check_int_range = staticmethod(utils._check_int64)
-    _create_default_value = native_bt.value_signed_integer_create
-    _create_value = native_bt.value_signed_integer_create_init
-    _set_value = native_bt.value_signed_integer_set
-    _get_value = native_bt.value_signed_integer_get
+    _create_default_value = staticmethod(native_bt.value_signed_integer_create)
+    _create_value = staticmethod(native_bt.value_signed_integer_create_init)
+    _set_value = staticmethod(native_bt.value_signed_integer_set)
+    _get_value = staticmethod(native_bt.value_signed_integer_get)
 
 
 class RealValue(_RealValue):
