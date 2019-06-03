@@ -1363,9 +1363,9 @@ int pretty_print_discarded_items(struct pretty_component *pretty,
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		if (bt_stream_class_discarded_events_have_default_clock_snapshots(
 				stream_class)) {
-			begin = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+			begin = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 				msg);
-			end = bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+			end = bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 				msg);
 		}
 
@@ -1373,9 +1373,9 @@ int pretty_print_discarded_items(struct pretty_component *pretty,
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		if (bt_stream_class_discarded_packets_have_default_clock_snapshots(
 				stream_class)) {
-			begin = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+			begin = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 				msg);
-			end = bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+			end = bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
 				msg);
 		}
 

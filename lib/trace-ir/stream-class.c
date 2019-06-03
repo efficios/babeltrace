@@ -451,41 +451,41 @@ void bt_stream_class_set_assigns_automatic_event_class_id(
 		"assignment property: %!+S", stream_class);
 }
 
-bt_bool bt_stream_class_packets_have_default_beginning_clock_snapshot(
+bt_bool bt_stream_class_packets_have_beginning_default_clock_snapshot(
 		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return (bt_bool) stream_class->packets_have_default_beginning_clock_snapshot;
+	return (bt_bool) stream_class->packets_have_beginning_default_clock_snapshot;
 }
 
-void bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+void bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
 		struct bt_stream_class *stream_class, bt_bool value)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
 		"Stream class has no default clock class: %!+S", stream_class);
-	stream_class->packets_have_default_beginning_clock_snapshot =
+	stream_class->packets_have_beginning_default_clock_snapshot =
 		(bool) value;
 	BT_LIB_LOGV("Set stream class's \"packets have default beginning "
 		"clock snapshot\" property: %!+S", stream_class);
 }
 
-bt_bool bt_stream_class_packets_have_default_end_clock_snapshot(
+bt_bool bt_stream_class_packets_have_end_default_clock_snapshot(
 		const struct bt_stream_class *stream_class)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
-	return (bt_bool) stream_class->packets_have_default_end_clock_snapshot;
+	return (bt_bool) stream_class->packets_have_end_default_clock_snapshot;
 }
 
-void bt_stream_class_set_packets_have_default_end_clock_snapshot(
+void bt_stream_class_set_packets_have_end_default_clock_snapshot(
 		struct bt_stream_class *stream_class, bt_bool value)
 {
 	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
 	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
 	BT_ASSERT_PRE(!value || stream_class->default_clock_class,
 		"Stream class has no default clock class: %!+S", stream_class);
-	stream_class->packets_have_default_end_clock_snapshot =
+	stream_class->packets_have_end_default_clock_snapshot =
 		(bool) value;
 	BT_LIB_LOGV("Set stream class's \"packets have default end "
 		"clock snapshot\" property: %!+S", stream_class);

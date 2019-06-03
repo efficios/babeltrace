@@ -265,11 +265,11 @@ extern bt_stream *bt_message_stream_activity_end_borrow_stream(
 /* From message-discarded-events-const.h */
 
 extern const bt_clock_snapshot *
-bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 		const bt_message *msg);
 
 extern const bt_clock_snapshot *
-bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 		const bt_message *msg);
 
 extern const bt_clock_class *
@@ -302,11 +302,11 @@ extern void bt_message_discarded_events_set_count(bt_message *message,
 /* From message-discarded-packets-const.h */
 
 extern const bt_clock_snapshot *
-bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 		const bt_message *msg);
 
 extern const bt_clock_snapshot *
-bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
 		const bt_message *msg);
 
 extern const bt_clock_class *

@@ -1353,7 +1353,7 @@ bt_message *handle_packet_begin_message(struct debug_info_msg_iter *debug_it,
 	BT_ASSERT(out_packet);
 
 	has_default_clock_snapshot =
-		bt_stream_class_packets_have_default_beginning_clock_snapshot(
+		bt_stream_class_packets_have_beginning_default_clock_snapshot(
 			bt_stream_borrow_class_const(
 				bt_packet_borrow_stream_const(in_packet)));
 	if (has_default_clock_snapshot) {
@@ -1394,7 +1394,7 @@ bt_message *handle_packet_end_message(struct debug_info_msg_iter *debug_it,
 	BT_ASSERT(out_packet);
 
 	has_default_clock_snapshot =
-		bt_stream_class_packets_have_default_end_clock_snapshot(
+		bt_stream_class_packets_have_end_default_clock_snapshot(
 			bt_stream_borrow_class_const(
 				bt_packet_borrow_stream_const(in_packet)));
 	if (has_default_clock_snapshot) {
@@ -1559,10 +1559,10 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 			bt_stream_borrow_class_const(in_stream));
 	if (has_default_clock_snapshots) {
 		begin_cs =
-			bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+			bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 				in_message);
 		end_cs =
-			bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+			bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 				in_message);
 
 		begin_cs_value = bt_clock_snapshot_get_value(begin_cs);
@@ -1619,11 +1619,11 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 			bt_stream_borrow_class_const(in_stream));
 	if (has_default_clock_snapshots) {
 		begin_cs =
-			bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+			bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 				in_message);
 
 		end_cs =
-			bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+			bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
 				in_message);
 
 		begin_cs_value = bt_clock_snapshot_get_value(begin_cs);

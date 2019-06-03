@@ -22,8 +22,8 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertIsNone(sc.default_clock_class)
         self.assertTrue(sc.assigns_automatic_event_class_id)
         self.assertTrue(sc.assigns_automatic_stream_id)
-        self.assertFalse(sc.packets_have_default_beginning_clock_snapshot)
-        self.assertFalse(sc.packets_have_default_end_clock_snapshot)
+        self.assertFalse(sc.packets_have_beginning_default_clock_snapshot)
+        self.assertFalse(sc.packets_have_end_default_clock_snapshot)
         self.assertFalse(sc.supports_discarded_events)
         self.assertFalse(sc.discarded_events_have_default_clock_snapshots)
         self.assertFalse(sc.supports_discarded_packets)
@@ -119,21 +119,21 @@ class StreamClassTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             sc.create_event_class()
 
-    def test_packets_have_default_beginning_clock_snapshot(self):
-        sc = self._tc.create_stream_class(default_clock_class=self._cc, packets_have_default_beginning_clock_snapshot=True)
-        self.assertTrue(sc.packets_have_default_beginning_clock_snapshot)
+    def test_packets_have_beginning_default_clock_snapshot(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc, packets_have_beginning_default_clock_snapshot=True)
+        self.assertTrue(sc.packets_have_beginning_default_clock_snapshot)
 
-    def test_packets_have_default_beginning_clock_snapshot_raises(self):
+    def test_packets_have_beginning_default_clock_snapshot_raises(self):
         with self.assertRaises(TypeError):
-            sc = self._tc.create_stream_class(packets_have_default_beginning_clock_snapshot="something")
+            sc = self._tc.create_stream_class(packets_have_beginning_default_clock_snapshot="something")
 
-    def test_packets_have_default_end_clock_snapshot(self):
-        sc = self._tc.create_stream_class(default_clock_class=self._cc, packets_have_default_end_clock_snapshot=True)
-        self.assertTrue(sc.packets_have_default_end_clock_snapshot)
+    def test_packets_have_end_default_clock_snapshot(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc, packets_have_end_default_clock_snapshot=True)
+        self.assertTrue(sc.packets_have_end_default_clock_snapshot)
 
-    def test_packets_have_default_end_clock_snapshot_raises(self):
+    def test_packets_have_end_default_clock_snapshot_raises(self):
         with self.assertRaises(TypeError):
-            sc = self._tc.create_stream_class(packets_have_default_end_clock_snapshot="something")
+            sc = self._tc.create_stream_class(packets_have_end_default_clock_snapshot="something")
 
     def test_supports_discarded_events_without_cs(self):
         sc = self._tc.create_stream_class(default_clock_class=self._cc,

@@ -171,8 +171,8 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
                             default_clock_class=None,
                             assigns_automatic_event_class_id=True,
                             assigns_automatic_stream_id=True,
-                            packets_have_default_beginning_clock_snapshot=False,
-                            packets_have_default_end_clock_snapshot=False,
+                            packets_have_beginning_default_clock_snapshot=False,
+                            packets_have_end_default_clock_snapshot=False,
                             supports_discarded_events=False,
                             discarded_events_have_default_clock_snapshots=False,
                             supports_discarded_packets=False,
@@ -206,8 +206,8 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
 
         sc._assigns_automatic_event_class_id = assigns_automatic_event_class_id
         sc._assigns_automatic_stream_id = assigns_automatic_stream_id
-        sc._packets_have_default_beginning_clock_snapshot = packets_have_default_beginning_clock_snapshot
-        sc._packets_have_default_end_clock_snapshot = packets_have_default_end_clock_snapshot
+        sc._packets_have_beginning_default_clock_snapshot = packets_have_beginning_default_clock_snapshot
+        sc._packets_have_end_default_clock_snapshot = packets_have_end_default_clock_snapshot
         sc._set_supports_discarded_events(supports_discarded_events,
                                           discarded_events_have_default_clock_snapshots)
         sc._set_supports_discarded_packets(supports_discarded_packets,

@@ -190,8 +190,8 @@ class ClockSnapshotTestCase(unittest.TestCase):
         _cc, _tc = run_in_component_init(f)
         _trace = _tc()
         _sc = _tc.create_stream_class(default_clock_class=_cc,
-                                      packets_have_default_beginning_clock_snapshot=True,
-                                      packets_have_default_end_clock_snapshot=True)
+                                      packets_have_beginning_default_clock_snapshot=True,
+                                      packets_have_end_default_clock_snapshot=True)
         _ec = _sc.create_event_class(name='salut')
         _stream = _trace.create_stream(_sc)
         _packet = _stream.create_packet()

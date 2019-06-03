@@ -255,13 +255,13 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 
 	}
 
-	bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+	bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
 		out_stream_class,
-		bt_stream_class_packets_have_default_beginning_clock_snapshot(
+		bt_stream_class_packets_have_beginning_default_clock_snapshot(
 			in_stream_class));
-	bt_stream_class_set_packets_have_default_end_clock_snapshot(
+	bt_stream_class_set_packets_have_end_default_clock_snapshot(
 		out_stream_class,
-		bt_stream_class_packets_have_default_end_clock_snapshot(
+		bt_stream_class_packets_have_end_default_clock_snapshot(
 			in_stream_class));
 	bt_stream_class_set_supports_discarded_events(
 		out_stream_class,

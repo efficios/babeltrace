@@ -48,8 +48,8 @@ struct bt_stream_class {
 	uint64_t id;
 	bool assigns_automatic_event_class_id;
 	bool assigns_automatic_stream_id;
-	bool packets_have_default_beginning_clock_snapshot;
-	bool packets_have_default_end_clock_snapshot;
+	bool packets_have_beginning_default_clock_snapshot;
+	bool packets_have_end_default_clock_snapshot;
 	bool supports_discarded_events;
 	bool supports_discarded_packets;
 	bool discarded_events_have_default_clock_snapshots;

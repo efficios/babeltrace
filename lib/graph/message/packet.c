@@ -98,10 +98,10 @@ struct bt_message *create_packet_message(
 
 	if (pool == &msg_iter->graph->packet_begin_msg_pool) {
 		packet_has_default_clock_snapshot =
-			stream_class->packets_have_default_beginning_clock_snapshot;
+			stream_class->packets_have_beginning_default_clock_snapshot;
 	} else {
 		packet_has_default_clock_snapshot =
-			stream_class->packets_have_default_end_clock_snapshot;
+			stream_class->packets_have_end_default_clock_snapshot;
 	}
 
 	/*

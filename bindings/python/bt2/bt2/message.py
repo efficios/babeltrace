@@ -202,8 +202,8 @@ class _DiscardedEventsMessage(_DiscardedMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_discarded_events_borrow_stream_const)
     _get_count = staticmethod(native_bt.message_discarded_events_get_count)
     _set_count = staticmethod(native_bt.message_discarded_events_set_count)
-    _borrow_beginning_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_events_borrow_default_beginning_clock_snapshot_const)
-    _borrow_end_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_events_borrow_default_end_clock_snapshot_const)
+    _borrow_beginning_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_events_borrow_beginning_default_clock_snapshot_const)
+    _borrow_end_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_events_borrow_end_default_clock_snapshot_const)
 
     @property
     def _has_default_clock_snapshots(self):
@@ -214,8 +214,8 @@ class _DiscardedPacketsMessage(_DiscardedMessage):
     _borrow_stream_ptr = staticmethod(native_bt.message_discarded_packets_borrow_stream_const)
     _get_count = staticmethod(native_bt.message_discarded_packets_get_count)
     _set_count = staticmethod(native_bt.message_discarded_packets_set_count)
-    _borrow_beginning_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_packets_borrow_default_beginning_clock_snapshot_const)
-    _borrow_end_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_packets_borrow_default_end_clock_snapshot_const)
+    _borrow_beginning_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_packets_borrow_beginning_default_clock_snapshot_const)
+    _borrow_end_clock_snapshot_ptr = staticmethod(native_bt.message_discarded_packets_borrow_end_default_clock_snapshot_const)
 
     @property
     def _has_default_clock_snapshots(self):

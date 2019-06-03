@@ -232,7 +232,7 @@ class _UserMessageIterator(_MessageIterator):
     def _create_packet_beginning_message(self, packet, default_clock_snapshot=None):
         utils._check_type(packet, bt2.packet._Packet)
 
-        if packet.stream.stream_class.packets_have_default_beginning_clock_snapshot:
+        if packet.stream.stream_class.packets_have_beginning_default_clock_snapshot:
             if default_clock_snapshot is None:
                 raise ValueError("packet beginning messages in this stream must have a default clock snapshots")
 
@@ -253,7 +253,7 @@ class _UserMessageIterator(_MessageIterator):
     def _create_packet_end_message(self, packet, default_clock_snapshot=None):
         utils._check_type(packet, bt2.packet._Packet)
 
-        if packet.stream.stream_class.packets_have_default_end_clock_snapshot:
+        if packet.stream.stream_class.packets_have_end_default_clock_snapshot:
             if default_clock_snapshot is None:
                 raise ValueError("packet end messages in this stream must have a default clock snapshots")
 
