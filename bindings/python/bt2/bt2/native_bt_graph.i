@@ -302,17 +302,19 @@ port_added_listener(
 	PyObject *py_component_ptr = NULL;
 	PyObject *py_port_ptr = NULL;
 	PyObject *py_res = NULL;
-	bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
+	bt_graph_listener_status status;
 
 	py_component_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(component), component_swig_type, 0);
 	if (!py_component_ptr) {
 		BT_LOGF_STR("Failed to create component SWIG pointer object.");
+		status = BT_GRAPH_LISTENER_STATUS_NOMEM;
 		goto end;
 	}
 
 	py_port_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(port), port_swig_type, 0);
 	if (!py_port_ptr) {
 		BT_LOGF_STR("Failed to create port SWIG pointer object.");
+		status = BT_GRAPH_LISTENER_STATUS_NOMEM;
 		goto end;
 	}
 
@@ -321,9 +323,12 @@ port_added_listener(
 	if (!py_res) {
 		bt2_py_loge_exception();
 		PyErr_Clear();
-	} else {
-		BT_ASSERT(py_res == Py_None);
+		status = BT_GRAPH_LISTENER_STATUS_ERROR;
+		goto end;
 	}
+	
+	BT_ASSERT(py_res == Py_None);
+	status = BT_GRAPH_LISTENER_STATUS_OK;
 
 end:
 	Py_XDECREF(py_res);
@@ -474,40 +479,76 @@ end:
 }
 
 static bt_graph_listener_status
-ports_connected_listener(const bt_port_output *upstream_port,
-			 const bt_port_input *downstream_port,
-			 void *py_callable)
+ports_connected_listener(
+		const void *upstream_component,
+		swig_type_info *upstream_component_swig_type,
+		bt_component_class_type upstream_component_class_type,
+		const bt_port_output *upstream_port,
+		const void *downstream_component,
+		swig_type_info *downstream_component_swig_type,
+		bt_component_class_type downstream_component_class_type,
+		const bt_port_input *downstream_port,
+		void *py_callable)
 {
+	PyObject *py_upstream_component_ptr = NULL;
 	PyObject *py_upstream_port_ptr = NULL;
+	PyObject *py_downstream_component_ptr = NULL;
 	PyObject *py_downstream_port_ptr = NULL;
 	PyObject *py_res = NULL;
-	bt_graph_listener_status status = BT_GRAPH_LISTENER_STATUS_OK;
+	bt_graph_listener_status status;
+
+	py_upstream_component_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(upstream_component),
+		upstream_component_swig_type, 0);
+	if (!py_upstream_component_ptr) {
+		BT_LOGF_STR("Failed to create upstream component SWIG pointer object.");
+		status = BT_GRAPH_LISTENER_STATUS_NOMEM;
+		goto end;
+	}
 
 	py_upstream_port_ptr = SWIG_NewPointerObj(
 		SWIG_as_voidptr(upstream_port), SWIGTYPE_p_bt_port_output, 0);
 	if (!py_upstream_port_ptr) {
-		BT_LOGF_STR("Failed to create a SWIG pointer object.");
-		abort();
+		BT_LOGF_STR("Failed to create upstream port SWIG pointer object.");
+		status = BT_GRAPH_LISTENER_STATUS_NOMEM;
+		goto end;
+	}
+	
+	py_downstream_component_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(downstream_component),
+		downstream_component_swig_type, 0);
+	if (!py_downstream_component_ptr) {
+		BT_LOGF_STR("Failed to create downstream component SWIG pointer object.");
+		status = BT_GRAPH_LISTENER_STATUS_NOMEM;
+		goto end;
 	}
 
 	py_downstream_port_ptr = SWIG_NewPointerObj(
 		SWIG_as_voidptr(downstream_port), SWIGTYPE_p_bt_port_input, 0);
 	if (!py_downstream_port_ptr) {
-		BT_LOGF_STR("Failed to create a SWIG pointer object.");
-		abort();
+		BT_LOGF_STR("Failed to create downstream port SWIG pointer object.");
+		status = BT_GRAPH_LISTENER_STATUS_NOMEM;
+		goto end;
 	}
 
-	py_res = PyObject_CallFunction(py_callable, "(OO)",
-		py_upstream_port_ptr, py_downstream_port_ptr);
+	py_res = PyObject_CallFunction(py_callable, "(OiOOiO)",
+		py_upstream_component_ptr, upstream_component_class_type,
+		py_upstream_port_ptr,
+		py_downstream_component_ptr, downstream_component_class_type,
+		py_downstream_port_ptr);
 	if (!py_res) {
 		bt2_py_loge_exception();
 		PyErr_Clear();
-	} else {
-		BT_ASSERT(py_res == Py_None);
+		status = BT_GRAPH_LISTENER_STATUS_ERROR;
+		goto end;
 	}
+	
+	BT_ASSERT(py_res == Py_None);
+	status = BT_GRAPH_LISTENER_STATUS_OK;
 
-	Py_DECREF(py_upstream_port_ptr);
-	Py_DECREF(py_downstream_port_ptr);
+end:
+	Py_XDECREF(py_upstream_component_ptr);
+	Py_XDECREF(py_upstream_port_ptr);
+	Py_XDECREF(py_downstream_component_ptr);
+	Py_XDECREF(py_downstream_port_ptr);
 	Py_XDECREF(py_res);
 
 	return status;
@@ -520,8 +561,12 @@ source_filter_component_ports_connected_listener(
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	return ports_connected_listener(upstream_port, downstream_port,
-			py_callable);
+	return ports_connected_listener(
+		source_component, SWIGTYPE_p_bt_component_source, BT_COMPONENT_CLASS_TYPE_SOURCE,
+		upstream_port,
+		filter_component, SWIGTYPE_p_bt_component_filter, BT_COMPONENT_CLASS_TYPE_FILTER,
+		downstream_port,
+		py_callable);
 }
 
 static bt_graph_listener_status
@@ -531,8 +576,12 @@ source_sink_component_ports_connected_listener(
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	return ports_connected_listener(upstream_port, downstream_port,
-			py_callable);
+	return ports_connected_listener(
+		source_component, SWIGTYPE_p_bt_component_source, BT_COMPONENT_CLASS_TYPE_SOURCE,
+		upstream_port,
+		sink_component, SWIGTYPE_p_bt_component_sink, BT_COMPONENT_CLASS_TYPE_SINK,
+		downstream_port,
+		py_callable);
 }
 
 static bt_graph_listener_status
@@ -542,8 +591,12 @@ filter_filter_component_ports_connected_listener(
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	return ports_connected_listener(upstream_port, downstream_port,
-			py_callable);
+	return ports_connected_listener(
+		filter_component_left, SWIGTYPE_p_bt_component_filter, BT_COMPONENT_CLASS_TYPE_FILTER,
+		upstream_port,
+		filter_component_right, SWIGTYPE_p_bt_component_filter, BT_COMPONENT_CLASS_TYPE_FILTER,
+		downstream_port,
+		py_callable);
 }
 
 static bt_graph_listener_status
@@ -553,10 +606,13 @@ filter_sink_component_ports_connected_listener(
 	const bt_port_output *upstream_port,
 	const bt_port_input *downstream_port, void *py_callable)
 {
-	return ports_connected_listener(upstream_port, downstream_port,
-			py_callable);
+	return ports_connected_listener(
+		filter_component, SWIGTYPE_p_bt_component_filter, BT_COMPONENT_CLASS_TYPE_FILTER,
+		upstream_port,
+		sink_component, SWIGTYPE_p_bt_component_sink, BT_COMPONENT_CLASS_TYPE_SINK,
+		downstream_port,
+		py_callable);
 }
-
 
 static PyObject*
 bt_py3_graph_add_ports_connected_listener(struct bt_graph *graph,

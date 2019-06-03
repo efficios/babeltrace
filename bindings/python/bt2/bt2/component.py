@@ -294,6 +294,14 @@ _COMP_CLS_TYPE_TO_GENERIC_COMP_CLS_PYCLS = {
 def _create_component_from_ptr(ptr, comp_cls_type):
     return _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS[comp_cls_type]._create_from_ptr(ptr)
 
+
+# Same as the above, but acquire a new reference instead of stealing the
+# reference from the caller.
+
+def _create_component_from_ptr_and_get_ref(ptr, comp_cls_type):
+    return _COMP_CLS_TYPE_TO_GENERIC_COMP_PYCLS[comp_cls_type]._create_from_ptr_and_get_ref(ptr)
+
+
 # Create a component class Python object of type
 # _GenericSourceComponentClass, _GenericFilterComponentClass or
 # _GenericSinkComponentClass, depending on comp_cls_type.
@@ -620,6 +628,9 @@ class _UserComponent(metaclass=_UserComponentType):
             other_port_ptr, other_port_type)
         self._port_connected(port, other_port)
 
+    def _graph_is_configured_from_native(self):
+        self._graph_is_configured()
+
     def _create_trace_class(self, env=None, uuid=None,
                             assigns_automatic_stream_class_id=True):
         ptr = self._as_self_component_ptr(self._ptr)
@@ -767,8 +778,8 @@ class _UserSinkComponent(_UserComponent, _SinkComponent):
     def _add_input_port(self, name):
         utils._check_str(name)
         fn = native_bt.self_component_sink_add_input_port
-        comp_status, priv_port_ptr = fn(self._ptr, name, None)
+        comp_status, self_port_ptr = fn(self._ptr, name, None)
         _handle_component_status(comp_status,
                                  'cannot add input port to sink component object')
-        assert priv_port_ptr
-        return bt2.port._UserComponentInputPort._create_from_ptr(priv_port_ptr)
+        assert self_port_ptr
+        return bt2.port._UserComponentInputPort._create_from_ptr(self_port_ptr)
