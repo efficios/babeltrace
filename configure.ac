@@ -36,17 +36,22 @@ AC_INIT([babeltrace], bt_version, [jeremie dot galarneau at efficios dot com], [
 
 # Following the numbering scheme proposed by libtool for the library version
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_version_major[:]bt_version_minor[:]bt_version_patch)
+m4_define([bt_lib_version_current], [0])
+m4_define([bt_lib_version_revision], [0])
+m4_define([bt_lib_version_age], [0])
+m4_define([bt_lib_version], bt_lib_version_current[:]bt_lib_version_revision[:]bt_lib_version_age)
+
+AC_SUBST([BABELTRACE_LIBRARY_VERSION], bt_lib_version)
 
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_REQUIRE_AUX_FILE([tap-driver.sh])
 
-AC_DEFINE([BT_VERSION_MAJOR], bt_version_major, [Babeltrace library major version])
-AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace library minor version])
-AC_DEFINE([BT_VERSION_PATCH], bt_version_patch, [Babeltrace library patch version])
-AC_DEFINE([BT_VERSION_EXTRA], ["]bt_version_extra["], [Babeltrace library extra version])
+AC_DEFINE([BT_VERSION_MAJOR], bt_version_major, [Babeltrace major version])
+AC_DEFINE([BT_VERSION_MINOR], bt_version_minor, [Babeltrace minor version])
+AC_DEFINE([BT_VERSION_PATCH], bt_version_patch, [Babeltrace patch version])
+AC_DEFINE([BT_VERSION_EXTRA], ["]bt_version_extra["], [Babeltrace extra version])
 
 AC_CANONICAL_TARGET
 AC_CANONICAL_HOST
