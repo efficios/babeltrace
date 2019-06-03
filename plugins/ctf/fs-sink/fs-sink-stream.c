@@ -474,14 +474,16 @@ int write_packet_context(struct fs_sink_stream *stream)
 		goto end;
 	}
 
-	if (stream->sc->default_clock_class) {
+	if (stream->sc->packets_have_ts_begin) {
 		/* Beginning time */
 		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 			stream->packet_state.beginning_cs, 8, 64, BYTE_ORDER);
 		if (ret) {
 			goto end;
 		}
+	}
 
+	if (stream->sc->packets_have_ts_end) {
 		/* End time */
 		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
 			stream->packet_state.end_cs, 8, 64, BYTE_ORDER);
@@ -490,12 +492,14 @@ int write_packet_context(struct fs_sink_stream *stream)
 		}
 	}
 
-	/* Discarded event counter */
-	ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
-		stream->packet_state.discarded_events_counter, 8, 64,
-		BYTE_ORDER);
-	if (ret) {
-		goto end;
+	if (stream->sc->has_discarded_events) {
+		/* Discarded event counter */
+		ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser,
+			stream->packet_state.discarded_events_counter, 8, 64,
+			BYTE_ORDER);
+		if (ret) {
+			goto end;
+		}
 	}
 
 	/* Sequence number */
