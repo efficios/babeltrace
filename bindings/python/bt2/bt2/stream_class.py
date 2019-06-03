@@ -149,6 +149,40 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
     _packets_have_default_end_clock_snapshot = property(fset=_packets_have_default_end_clock_snapshot)
 
     @property
+    def supports_discarded_events(self):
+        return native_bt.stream_class_supports_discarded_events(self._ptr)
+
+    def _set_supports_discarded_events(self, supports, with_cs=False):
+        utils._check_bool(supports)
+        utils._check_bool(with_cs)
+
+        if not supports and with_cs:
+            raise ValueError('cannot not support discarded events, but have default clock snapshots')
+
+        native_bt.stream_class_set_supports_discarded_events(self._ptr, supports, with_cs)
+
+    @property
+    def discarded_events_have_default_clock_snapshots(self):
+        return native_bt.stream_class_discarded_events_have_default_clock_snapshots(self._ptr)
+
+    @property
+    def supports_discarded_packets(self):
+        return native_bt.stream_class_supports_discarded_packets(self._ptr)
+
+    def _set_supports_discarded_packets(self, supports, with_cs):
+        utils._check_bool(supports)
+        utils._check_bool(with_cs)
+
+        if not supports and with_cs:
+            raise ValueError('cannot not support discarded packets, but have default clock snapshots')
+
+        native_bt.stream_class_set_supports_discarded_packets(self._ptr, supports, with_cs)
+
+    @property
+    def discarded_packets_have_default_clock_snapshots(self):
+        return native_bt.stream_class_discarded_packets_have_default_clock_snapshots(self._ptr)
+
+    @property
     def id(self):
         id = native_bt.stream_class_get_id(self._ptr)
 

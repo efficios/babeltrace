@@ -552,6 +552,34 @@ bt_self_component_status handle_stream_beginning_msg(
 			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
 			goto end;
 		}
+
+		if (!fs_sink->ignore_discarded_events &&
+				bt_stream_class_supports_discarded_events(ir_sc) &&
+				!bt_stream_class_discarded_events_have_default_clock_snapshots(ir_sc)) {
+			BT_LOGE("Unsupported stream: discarded events "
+				"have no clock snapshots: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				ir_stream, bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream));
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			goto end;
+		}
+
+		if (!fs_sink->ignore_discarded_packets &&
+				bt_stream_class_supports_discarded_packets(ir_sc) &&
+				!bt_stream_class_discarded_packets_have_default_clock_snapshots(ir_sc)) {
+			BT_LOGE("Unsupported stream: discarded packets "
+				"have no clock snapshots: "
+				"stream-addr=%p, "
+				"stream-id=%" PRIu64 ", "
+				"stream-name=\"%s\"",
+				ir_stream, bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream));
+			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+			goto end;
+		}
 	}
 
 	stream = borrow_stream(fs_sink, ir_stream);

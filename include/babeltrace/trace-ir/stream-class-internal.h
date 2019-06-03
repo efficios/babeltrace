@@ -50,6 +50,10 @@ struct bt_stream_class {
 	bool assigns_automatic_stream_id;
 	bool packets_have_default_beginning_clock_snapshot;
 	bool packets_have_default_end_clock_snapshot;
+	bool supports_discarded_events;
+	bool supports_discarded_packets;
+	bool discarded_events_have_default_clock_snapshots;
+	bool discarded_packets_have_default_clock_snapshots;
 	struct bt_field_class *packet_context_fc;
 	struct bt_field_class *event_common_context_fc;
 	struct bt_clock_class *default_clock_class;

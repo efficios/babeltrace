@@ -172,7 +172,11 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
                             assigns_automatic_event_class_id=True,
                             assigns_automatic_stream_id=True,
                             packets_have_default_beginning_clock_snapshot=False,
-                            packets_have_default_end_clock_snapshot=False):
+                            packets_have_default_end_clock_snapshot=False,
+                            supports_discarded_events=False,
+                            discarded_events_have_default_clock_snapshots=False,
+                            supports_discarded_packets=False,
+                            discarded_packets_have_default_clock_snapshots=False):
 
         if self.assigns_automatic_stream_class_id:
             if id is not None:
@@ -204,7 +208,10 @@ class TraceClass(object._SharedObject, collections.abc.Mapping):
         sc._assigns_automatic_stream_id = assigns_automatic_stream_id
         sc._packets_have_default_beginning_clock_snapshot = packets_have_default_beginning_clock_snapshot
         sc._packets_have_default_end_clock_snapshot = packets_have_default_end_clock_snapshot
-
+        sc._set_supports_discarded_events(supports_discarded_events,
+                                          discarded_events_have_default_clock_snapshots)
+        sc._set_supports_discarded_packets(supports_discarded_packets,
+                                           discarded_packets_have_default_clock_snapshots)
         return sc
 
     @property

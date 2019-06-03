@@ -491,6 +491,10 @@ void ctf_stream_class_to_ir(struct ctx *ctx)
 			ctx->ir_sc, BT_TRUE);
 	}
 
+	bt_stream_class_set_supports_discarded_events(ctx->ir_sc, BT_TRUE,
+		ctx->sc->default_clock_class != NULL);
+	bt_stream_class_set_supports_discarded_packets(ctx->ir_sc, BT_TRUE,
+		ctx->sc->default_clock_class != NULL);
 	ctx->sc->is_translated = true;
 	ctx->sc->ir_sc = ctx->ir_sc;
 

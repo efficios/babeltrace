@@ -263,6 +263,16 @@ int copy_stream_class_content(struct trace_ir_maps *ir_maps,
 		out_stream_class,
 		bt_stream_class_packets_have_default_end_clock_snapshot(
 			in_stream_class));
+	bt_stream_class_set_supports_discarded_events(
+		out_stream_class,
+		bt_stream_class_supports_discarded_events(in_stream_class),
+		bt_stream_class_discarded_events_have_default_clock_snapshots(
+			in_stream_class));
+	bt_stream_class_set_supports_discarded_packets(
+		out_stream_class,
+		bt_stream_class_supports_discarded_packets(in_stream_class),
+		bt_stream_class_discarded_packets_have_default_clock_snapshots(
+			in_stream_class));
 
 	in_name = bt_stream_class_get_name(in_stream_class);
 	if (in_name) {

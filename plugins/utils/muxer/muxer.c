@@ -534,6 +534,12 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 			bt_packet_borrow_stream_const(
 				bt_message_packet_end_borrow_packet_const(
 					msg)));
+	} else if (unlikely(msg_type == BT_MESSAGE_TYPE_DISCARDED_EVENTS)) {
+		stream_class = bt_stream_borrow_class_const(
+			bt_message_discarded_events_borrow_stream_const(msg));
+	} else if (unlikely(msg_type == BT_MESSAGE_TYPE_DISCARDED_PACKETS)) {
+		stream_class = bt_stream_borrow_class_const(
+			bt_message_discarded_packets_borrow_stream_const(msg));
 	}
 
 	switch (msg_type) {
@@ -564,16 +570,24 @@ int get_msg_ts_ns(struct muxer_comp *muxer_comp,
 
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-		BT_ASSERT(bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
-				msg));
-		clock_snapshot = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
-			msg);
+		if (bt_stream_class_discarded_events_have_default_clock_snapshots(
+				stream_class)) {
+			clock_snapshot = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+				msg);
+		} else {
+			goto no_clock_snapshot;
+		}
+
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
-		BT_ASSERT(bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
-				msg));
-		clock_snapshot = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
-			msg);
+		if (bt_stream_class_discarded_packets_have_default_clock_snapshots(
+				stream_class)) {
+			clock_snapshot = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+				msg);
+		} else {
+			goto no_clock_snapshot;
+		}
+
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
 		BT_ASSERT(bt_message_stream_activity_beginning_borrow_stream_class_default_clock_class_const(
