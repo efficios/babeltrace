@@ -170,7 +170,8 @@ class EventTestCase(unittest.TestCase):
 
     def test_no_clock_value(self):
         msg = self._create_test_event_message(with_clockclass=False)
-        self.assertIsNone(msg.default_clock_snapshot)
+        with self.assertRaises(bt2.NoDefaultClockClass):
+            msg.default_clock_snapshot
 
     def test_stream(self):
         msg = self._create_test_event_message()

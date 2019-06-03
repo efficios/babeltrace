@@ -71,7 +71,7 @@ class Error(Exception):
 
 
 class CreationError(Error):
-    pass
+    '''Raised when object creation fails due to memory issues.'''
 
 
 class Frozen(Error):
@@ -123,6 +123,10 @@ class MessageIteratorCanceled(Exception):
 
 
 class ConnectionEnded(Exception):
+    pass
+
+
+class NoDefaultClockClass(Error):
     pass
 
 

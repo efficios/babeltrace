@@ -26,14 +26,16 @@ import bt2
 import functools
 
 
-@functools.total_ordering
-class _ClockSnapshot(object._UniqueObject):
+class _BaseClockSnapshot(object._UniqueObject):
     @property
     def clock_class(self):
         cc_ptr = native_bt.clock_snapshot_borrow_clock_class_const(self._ptr)
         assert cc_ptr is not None
         return bt2.clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
 
+
+@functools.total_ordering
+class _ClockSnapshot(_BaseClockSnapshot):
     @property
     def value(self):
         return native_bt.clock_snapshot_get_value(self._ptr)
@@ -58,3 +60,11 @@ class _ClockSnapshot(object._UniqueObject):
             return NotImplemented
 
         return self.value < int(other)
+
+
+class _UnknownClockSnapshot(_BaseClockSnapshot):
+    pass
+
+
+class _InfiniteClockSnapshot(_BaseClockSnapshot):
+    pass
