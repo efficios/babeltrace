@@ -1340,6 +1340,7 @@ bt_py3_component_class_message_iterator_init(
 	PyObject *py_comp_cls = NULL;
 	PyObject *py_iter_cls = NULL;
 	PyObject *py_iter_ptr = NULL;
+	PyObject *py_component_port_output_ptr = NULL;
 	PyObject *py_init_method_result = NULL;
 	PyObject *py_iter = NULL;
 	PyObject *py_comp;
@@ -1384,14 +1385,23 @@ bt_py3_component_class_message_iterator_init(
 	/*
 	 * Initialize object:
 	 *
-	 *     py_iter.__init__()
+	 *     py_iter.__init__(self_output_port)
+	 *
+         * through the _init_for_native helper static method.
 	 *
 	 * At this point, py_iter._ptr is set, so this initialization
 	 * function has access to self._component (which gives it the
 	 * user Python component object from which the iterator was
 	 * created).
 	 */
-	py_init_method_result = PyObject_CallMethod(py_iter, "__init__", NULL);
+        py_component_port_output_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(self_component_port_output),
+		SWIGTYPE_p_bt_self_component_port_output, 0);
+	if (!py_component_port_output_ptr) {
+		BT_LOGE_STR("Failed to create a SWIG pointer object.");
+		goto error;
+	}
+
+	py_init_method_result = PyObject_CallMethod(py_iter, "_init_from_native", "O", py_component_port_output_ptr);
 	if (!py_init_method_result) {
 		BT_LOGE_STR("User's __init__() method failed.");
 		bt2_py_loge_exception();
@@ -1441,6 +1451,7 @@ end:
 	Py_XDECREF(py_comp_cls);
 	Py_XDECREF(py_iter_cls);
 	Py_XDECREF(py_iter_ptr);
+	Py_XDECREF(py_component_port_output_ptr);
 	Py_XDECREF(py_init_method_result);
 	Py_XDECREF(py_iter);
 	return status;

@@ -60,22 +60,28 @@ class _GenericMessageIterator(object._SharedObject, _MessageIterator):
         return bt2.message._create_from_ptr(msg_ptr)
 
 
+# This is created when a component wants to iterate on one of its input ports.
 class _UserComponentInputPortMessageIterator(_GenericMessageIterator):
     _get_msg_range = staticmethod(native_bt.py3_self_component_port_input_get_msg_range)
-
-    @property
-    def component(self):
-        comp_ptr = native_bt.private_connection_message_iterator_get_component(self._ptr)
-        assert(comp_ptr)
-        return bt2.component._create_generic_component_from_ptr(comp_ptr)
+    _get_ref = staticmethod(native_bt.self_component_port_input_message_iterator_get_ref)
+    _put_ref = staticmethod(native_bt.self_component_port_input_message_iterator_put_ref)
 
 
+# This is created when the user wants to iterate on a component's output port,
+# from outside the graph.
 class _OutputPortMessageIterator(_GenericMessageIterator):
     _get_msg_range = staticmethod(native_bt.py3_port_output_get_msg_range)
     _get_ref = staticmethod(native_bt.port_output_message_iterator_get_ref)
     _put_ref = staticmethod(native_bt.port_output_message_iterator_put_ref)
 
 
+# This is extended by the user to implement component classes in Python.  It
+# is created for a given output port when an input port message iterator is
+# created on the input port on the other side of the connection.  It is also
+# created when an output port message iterator is created on this output port.
+#
+# Its purpose is to feed the messages that should go out through this output
+# port.
 class _UserMessageIterator(_MessageIterator):
     def __new__(cls, ptr):
         # User iterator objects are always created by the native side,
@@ -92,7 +98,12 @@ class _UserMessageIterator(_MessageIterator):
         self._ptr = ptr
         return self
 
-    def __init__(self):
+    def _init_from_native(self, self_output_port_ptr):
+        self_output_port = bt2.port._create_self_from_ptr_and_get_ref(
+            self_output_port_ptr, native_bt.PORT_TYPE_OUTPUT)
+        self.__init__(self_output_port)
+
+    def __init__(self, output_port):
         pass
 
     @property
