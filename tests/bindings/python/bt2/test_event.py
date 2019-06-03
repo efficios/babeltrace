@@ -11,7 +11,7 @@ class EventTestCase(unittest.TestCase):
                                    with_ep=False):
 
         class MyIter(bt2._UserMessageIterator):
-            def __init__(self):
+            def __init__(self, self_output_port):
                 self._at = 0
 
             def __next__(self):

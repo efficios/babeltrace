@@ -6,7 +6,7 @@ import bt2
 
 
 class _MyIter(bt2._UserMessageIterator):
-    def __init__(self):
+    def __init__(self, self_output_port):
         self._build_meta()
         self._at = 0
 
@@ -496,7 +496,8 @@ class GraphTestCase(unittest.TestCase):
             def _consume(self):
                 raise bt2.Stop
 
-        def ports_connected_listener(upstream_port, downstream_port):
+        def ports_connected_listener(upstream_component, upstream_port,
+                                     downstream_component, downstream_port):
             raise ValueError('oh noes!')
 
         graph = bt2.Graph()

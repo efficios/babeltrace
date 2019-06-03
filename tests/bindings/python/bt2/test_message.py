@@ -7,7 +7,7 @@ class AllMessagesTestCase(unittest.TestCase):
     def setUp(self):
 
         class MyIter(bt2._UserMessageIterator):
-            def __init__(self):
+            def __init__(self, self_port_output):
                 self._at = 0
 
             def __next__(self):
