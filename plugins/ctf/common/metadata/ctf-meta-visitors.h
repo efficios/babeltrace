@@ -44,6 +44,9 @@ BT_HIDDEN
 int ctf_trace_class_update_value_storing_indexes(struct ctf_trace_class *ctf_tc);
 
 BT_HIDDEN
+int ctf_trace_class_update_stream_class_config(struct ctf_trace_class *ctf_tc);
+
+BT_HIDDEN
 int ctf_trace_class_validate(struct ctf_trace_class *ctf_tc);
 
 BT_HIDDEN

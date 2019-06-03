@@ -228,6 +228,12 @@ struct ctf_event_class {
 struct ctf_stream_class {
 	uint64_t id;
 	bool is_translated;
+	bool packets_have_ts_begin;
+	bool packets_have_ts_end;
+	bool has_discarded_events;
+	bool has_discarded_packets;
+	bool discarded_events_have_default_cs;
+	bool discarded_packets_have_default_cs;
 
 	/* Owned by this */
 	struct ctf_field_class *packet_context_fc;

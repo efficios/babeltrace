@@ -1470,6 +1470,11 @@ enum bt_msg_iter_status check_emit_msg_discarded_events(
 {
 	notit->state = STATE_EMIT_MSG_DISCARDED_EVENTS;
 
+	if (!notit->meta.sc->has_discarded_events) {
+		notit->state = STATE_CHECK_EMIT_MSG_DISCARDED_PACKETS;
+		goto end;
+	}
+
 	if (notit->prev_packet_snapshots.discarded_events == UINT64_C(-1)) {
 		if (notit->snapshots.discarded_events == 0 ||
 				notit->snapshots.discarded_events == UINT64_C(-1)) {
@@ -1497,6 +1502,7 @@ enum bt_msg_iter_status check_emit_msg_discarded_events(
 		}
 	}
 
+end:
 	return BT_MSG_ITER_STATUS_OK;
 }
 
@@ -1505,6 +1511,11 @@ enum bt_msg_iter_status check_emit_msg_discarded_packets(
 		struct bt_msg_iter *notit)
 {
 	notit->state = STATE_EMIT_MSG_DISCARDED_PACKETS;
+
+	if (!notit->meta.sc->has_discarded_packets) {
+		notit->state = STATE_EMIT_MSG_PACKET_BEGINNING;
+		goto end;
+	}
 
 	if (notit->prev_packet_snapshots.packets == UINT64_C(-1)) {
 		/*
@@ -1533,6 +1544,7 @@ enum bt_msg_iter_status check_emit_msg_discarded_packets(
 		}
 	}
 
+end:
 	return BT_MSG_ITER_STATUS_OK;
 }
 
@@ -2518,20 +2530,11 @@ void create_msg_packet_beginning(struct bt_msg_iter *notit,
 
 	BT_ASSERT(notit->msg_iter);
 
-	if (bt_stream_class_borrow_default_clock_class(notit->meta.sc->ir_sc)) {
-		uint64_t value = 0;
-
-		if (notit->snapshots.beginning_clock == UINT64_C(-1)) {
-			if (notit->prev_packet_snapshots.end_clock != UINT64_C(-1)) {
-				value = notit->prev_packet_snapshots.end_clock;
-			}
-		} else {
-			value = notit->snapshots.beginning_clock;
-		}
-
-
+	if (notit->meta.sc->packets_have_ts_begin) {
+		BT_ASSERT(notit->snapshots.beginning_clock != UINT64_C(-1));
 		msg = bt_message_packet_beginning_create_with_default_clock_snapshot(
-			notit->msg_iter, notit->packet, value);
+			notit->msg_iter, notit->packet,
+			notit->snapshots.beginning_clock);
 	} else {
 		msg = bt_message_packet_beginning_create(notit->msg_iter,
 			notit->packet);
@@ -2566,12 +2569,7 @@ void create_msg_packet_end(struct bt_msg_iter *notit, bt_message **message)
 
 	BT_ASSERT(notit->msg_iter);
 
-	if (bt_stream_class_borrow_default_clock_class(notit->meta.sc->ir_sc)) {
-		if (notit->snapshots.end_clock == UINT64_C(-1)) {
-			notit->snapshots.end_clock =
-				notit->default_clock_snapshot;
-		}
-
+	if (notit->meta.sc->packets_have_ts_end) {
 		BT_ASSERT(notit->snapshots.end_clock != UINT64_C(-1));
 		msg = bt_message_packet_end_create_with_default_clock_snapshot(
 			notit->msg_iter, notit->packet,
@@ -2600,29 +2598,27 @@ void create_msg_discarded_events(struct bt_msg_iter *notit,
 	bt_message *msg;
 	uint64_t beginning_raw_value = UINT64_C(-1);
 	uint64_t end_raw_value = UINT64_C(-1);
-	uint64_t count = UINT64_C(-1);
 
 	BT_ASSERT(notit->msg_iter);
 	BT_ASSERT(notit->stream);
+	BT_ASSERT(notit->meta.sc->has_discarded_events);
 
-	if (notit->prev_packet_snapshots.discarded_events == UINT64_C(-1)) {
-		/*
-		 * We discarded events, but before (and possibly
-		 * including) the current packet: use this packet's time
-		 * range, and do not have a specific count.
-		 */
-		beginning_raw_value = notit->snapshots.beginning_clock;
-		end_raw_value = notit->snapshots.end_clock;
-	} else {
-		count = notit->snapshots.discarded_events -
-			notit->prev_packet_snapshots.discarded_events;
-		BT_ASSERT(count > 0);
-		beginning_raw_value = notit->prev_packet_snapshots.end_clock;
-		end_raw_value = notit->snapshots.end_clock;
-	}
+	if (notit->meta.sc->discarded_events_have_default_cs) {
+		if (notit->prev_packet_snapshots.discarded_events == UINT64_C(-1)) {
+			/*
+			 * We discarded events, but before (and possibly
+			 * including) the current packet: use this packet's time
+			 * range, and do not have a specific count.
+			 */
+			beginning_raw_value = notit->snapshots.beginning_clock;
+			end_raw_value = notit->snapshots.end_clock;
+		} else {
+			beginning_raw_value = notit->prev_packet_snapshots.end_clock;
+			end_raw_value = notit->snapshots.end_clock;
+		}
 
-	if (beginning_raw_value != UINT64_C(-1) &&
-			end_raw_value != UINT64_C(-1)) {
+		BT_ASSERT(beginning_raw_value != UINT64_C(-1));
+		BT_ASSERT(end_raw_value != UINT64_C(-1));
 		msg = bt_message_discarded_events_create_with_default_clock_snapshots(
 			notit->msg_iter, notit->stream, beginning_raw_value,
 			end_raw_value);
@@ -2638,8 +2634,10 @@ void create_msg_discarded_events(struct bt_msg_iter *notit,
 		return;
 	}
 
-	if (count != UINT64_C(-1)) {
-		bt_message_discarded_events_set_count(msg, count);
+	if (notit->prev_packet_snapshots.discarded_events != UINT64_C(-1)) {
+		bt_message_discarded_events_set_count(msg,
+			notit->snapshots.discarded_events -
+			notit->prev_packet_snapshots.discarded_events);
 	}
 
 	*message = msg;
@@ -2653,11 +2651,13 @@ void create_msg_discarded_packets(struct bt_msg_iter *notit,
 
 	BT_ASSERT(notit->msg_iter);
 	BT_ASSERT(notit->stream);
+	BT_ASSERT(notit->meta.sc->has_discarded_packets);
 	BT_ASSERT(notit->prev_packet_snapshots.packets !=
 		UINT64_C(-1));
 
-	if (notit->prev_packet_snapshots.end_clock != UINT64_C(-1) &&
-			notit->snapshots.beginning_clock != UINT64_C(-1)) {
+	if (notit->meta.sc->discarded_packets_have_default_cs) {
+		BT_ASSERT(notit->prev_packet_snapshots.end_clock != UINT64_C(-1));
+		BT_ASSERT(notit->snapshots.beginning_clock != UINT64_C(-1));
 		msg = bt_message_discarded_packets_create_with_default_clock_snapshots(
 			notit->msg_iter, notit->stream,
 			notit->prev_packet_snapshots.end_clock,
