@@ -5018,6 +5018,13 @@ int ctf_visitor_generate_ir_visit_node(struct ctf_visitor_generate_ir *visitor,
 		goto end;
 	}
 
+	/* Update stream class configuration */
+	ret = ctf_trace_class_update_stream_class_config(ctx->ctf_tc);
+	if (ret) {
+		ret = -EINVAL;
+		goto end;
+	}
+
 	/* Update text arrays and sequences */
 	ret = ctf_trace_class_update_text_array_sequence(ctx->ctf_tc);
 	if (ret) {
