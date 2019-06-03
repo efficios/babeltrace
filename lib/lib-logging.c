@@ -534,9 +534,13 @@ static inline void format_stream_class(char **buf_ch, bool extended,
 		return;
 	}
 
-	BUF_APPEND(", %sassigns-auto-ec-id=%d, %sassigns-auto-stream-id=%d",
+	BUF_APPEND(", %sassigns-auto-ec-id=%d, %sassigns-auto-stream-id=%d, "
+		"%spackets-have-default-beginning-cs=%d, "
+		"%spackets-have-default-end-cs=%d, ",
 		PRFIELD(stream_class->assigns_automatic_event_class_id),
-		PRFIELD(stream_class->assigns_automatic_stream_id));
+		PRFIELD(stream_class->assigns_automatic_stream_id),
+		PRFIELD(stream_class->packets_have_default_beginning_clock_snapshot),
+		PRFIELD(stream_class->packets_have_default_end_clock_snapshot));
 	BUF_APPEND(", %strace-class-addr=%p", PRFIELD(trace_class));
 	SET_TMP_PREFIX("trace-class-");
 	format_trace_class(buf_ch, false, tmp_prefix, trace_class);

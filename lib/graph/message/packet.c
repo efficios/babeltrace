@@ -110,9 +110,8 @@ struct bt_message *create_packet_message(
 	 */
 	BT_ASSERT_PRE((with_cs && packet_has_default_clock_snapshot) ||
 		(!with_cs && !packet_has_default_clock_snapshot),
-		"Creating a packet message with a default clock snapshot, but without "
-		"a default clock class, or without a default clock snapshot, "
-		"but with a default clock class: ",
+		"Unexpected stream class configuration when creating "
+		"a packet beginning or end message: ",
 		"%![stream-]+s, %![sc-]+S, with-cs=%d, "
 		"cs-val=%" PRIu64,
 		stream, stream_class, with_cs, raw_value);
