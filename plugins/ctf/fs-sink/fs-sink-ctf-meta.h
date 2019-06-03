@@ -133,6 +133,11 @@ struct fs_sink_ctf_stream_class {
 	const bt_clock_class *default_clock_class;
 
 	GString *default_clock_class_name;
+	bool packets_have_ts_begin;
+	bool packets_have_ts_end;
+	bool has_discarded_events;
+	bool discarded_events_has_ts;
+	bool discarded_packets_has_ts;
 
 	/* Owned by this */
 	struct fs_sink_ctf_field_class *packet_context_fc;
@@ -731,6 +736,26 @@ struct fs_sink_ctf_stream_class *fs_sink_ctf_stream_class_create(
 	sc->event_classes_from_ir = g_hash_table_new(g_direct_hash,
 		g_direct_equal);
 	BT_ASSERT(sc->event_classes_from_ir);
+	sc->packets_have_ts_begin =
+		bt_stream_class_packets_have_default_beginning_clock_snapshot(
+			ir_sc);
+	sc->packets_have_ts_end =
+		bt_stream_class_packets_have_default_end_clock_snapshot(ir_sc);
+	sc->has_discarded_events =
+		bt_stream_class_supports_discarded_events(ir_sc);
+
+	if (sc->has_discarded_events) {
+		sc->discarded_events_has_ts =
+			bt_stream_class_discarded_events_have_default_clock_snapshots(
+				ir_sc);
+	}
+
+	if (bt_stream_class_supports_discarded_packets(ir_sc)) {
+		sc->discarded_packets_has_ts =
+			bt_stream_class_discarded_packets_have_default_clock_snapshots(
+				ir_sc);
+	}
+
 	g_ptr_array_add(tc->stream_classes, sc);
 	return sc;
 }

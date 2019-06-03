@@ -320,50 +320,62 @@ bt_self_component_status handle_packet_beginning_msg(
 		goto end;
 	}
 
-	if (stream->sc->default_clock_class) {
+	if (stream->sc->packets_have_ts_begin) {
 		cs = bt_message_packet_beginning_borrow_default_clock_snapshot_const(
 			msg);
 		BT_ASSERT(cs);
 	}
 
 	if (stream->discarded_events_state.in_range) {
+		uint64_t expected_cs;
+
+		BT_ASSERT(stream->sc->discarded_events_has_ts);
+		BT_ASSERT(stream->sc->packets_have_ts_begin);
+		BT_ASSERT(stream->sc->packets_have_ts_end);
+
 		/*
 		 * Make sure that the current discarded events range's
 		 * beginning time matches what's expected for CTF 1.8.
 		 */
-		if (stream->sc->default_clock_class) {
-			uint64_t expected_cs;
+		if (stream->prev_packet_state.end_cs == UINT64_C(-1)) {
+			/* We're opening the first packet */
+			expected_cs = bt_clock_snapshot_get_value(cs);
+		} else {
+			expected_cs = stream->prev_packet_state.end_cs;
+		}
 
-			if (stream->prev_packet_state.end_cs == UINT64_C(-1)) {
-				/* We're opening the first packet */
-				expected_cs = bt_clock_snapshot_get_value(cs);
-			} else {
-				expected_cs = stream->prev_packet_state.end_cs;
-			}
-
-			if (stream->discarded_events_state.beginning_cs !=
-					expected_cs) {
-				BT_LOGE("Incompatible discarded events message: "
-					"unexpected beginning time: "
-					"beginning-cs-val=%" PRIu64 ", "
-					"expected-beginning-cs-val=%" PRIu64 ", "
-					"stream-id=%" PRIu64 ", stream-name=\"%s\", "
-					"trace-name=\"%s\", path=\"%s/%s\"",
-					stream->discarded_events_state.beginning_cs,
-					expected_cs,
-					bt_stream_get_id(ir_stream),
-					bt_stream_get_name(ir_stream),
-					bt_trace_get_name(
-						bt_stream_borrow_trace_const(ir_stream)),
-					stream->trace->path->str, stream->file_name->str);
-				status = BT_SELF_COMPONENT_STATUS_ERROR;
-				goto end;
-			}
+		if (stream->discarded_events_state.beginning_cs !=
+				expected_cs) {
+			BT_LOGE("Incompatible discarded events message: "
+				"unexpected beginning time: "
+				"beginning-cs-val=%" PRIu64 ", "
+				"expected-beginning-cs-val=%" PRIu64 ", "
+				"stream-id=%" PRIu64 ", stream-name=\"%s\", "
+				"trace-name=\"%s\", path=\"%s/%s\"",
+				stream->discarded_events_state.beginning_cs,
+				expected_cs,
+				bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream),
+				bt_trace_get_name(
+					bt_stream_borrow_trace_const(ir_stream)),
+				stream->trace->path->str, stream->file_name->str);
+			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			goto end;
 		}
 	}
 
-
 	if (stream->discarded_packets_state.in_range) {
+		uint64_t expected_end_cs;
+
+		BT_ASSERT(stream->sc->discarded_packets_has_ts);
+		BT_ASSERT(stream->sc->packets_have_ts_begin);
+		BT_ASSERT(stream->sc->packets_have_ts_end);
+
+		/*
+		 * Make sure that the current discarded packets range's
+		 * beginning and end times match what's expected for CTF
+		 * 1.8.
+		 */
 		if (stream->prev_packet_state.end_cs == UINT64_C(-1)) {
 			BT_LOGE("Incompatible discarded packets message "
 				"occuring before the stream's first packet: "
@@ -378,56 +390,51 @@ bt_self_component_status handle_packet_beginning_msg(
 			goto end;
 		}
 
-		/*
-		 * Make sure that the current discarded packets range's
-		 * beginning and end times match what's expected for CTF
-		 * 1.8.
-		 */
-		if (stream->sc->default_clock_class) {
-			uint64_t expected_end_cs =
-				bt_clock_snapshot_get_value(cs);
+		if (stream->discarded_packets_state.beginning_cs !=
+				stream->prev_packet_state.end_cs) {
+			BT_LOGE("Incompatible discarded packets message: "
+				"unexpected beginning time: "
+				"beginning-cs-val=%" PRIu64 ", "
+				"expected-beginning-cs-val=%" PRIu64 ", "
+				"stream-id=%" PRIu64 ", stream-name=\"%s\", "
+				"trace-name=\"%s\", path=\"%s/%s\"",
+				stream->discarded_packets_state.beginning_cs,
+				stream->prev_packet_state.end_cs,
+				bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream),
+				bt_trace_get_name(
+					bt_stream_borrow_trace_const(ir_stream)),
+				stream->trace->path->str, stream->file_name->str);
+			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			goto end;
+		}
 
-			if (stream->discarded_packets_state.beginning_cs !=
-					stream->prev_packet_state.end_cs) {
-				BT_LOGE("Incompatible discarded packets message: "
-					"unexpected beginning time: "
-					"beginning-cs-val=%" PRIu64 ", "
-					"expected-beginning-cs-val=%" PRIu64 ", "
-					"stream-id=%" PRIu64 ", stream-name=\"%s\", "
-					"trace-name=\"%s\", path=\"%s/%s\"",
-					stream->discarded_packets_state.beginning_cs,
-					stream->prev_packet_state.end_cs,
-					bt_stream_get_id(ir_stream),
-					bt_stream_get_name(ir_stream),
-					bt_trace_get_name(
-						bt_stream_borrow_trace_const(ir_stream)),
-					stream->trace->path->str, stream->file_name->str);
-				status = BT_SELF_COMPONENT_STATUS_ERROR;
-				goto end;
-			}
+		expected_end_cs = bt_clock_snapshot_get_value(cs);
 
-			if (stream->discarded_packets_state.end_cs !=
-					expected_end_cs) {
-				BT_LOGE("Incompatible discarded packets message: "
-					"unexpected end time: "
-					"end-cs-val=%" PRIu64 ", "
-					"expected-end-cs-val=%" PRIu64 ", "
-					"stream-id=%" PRIu64 ", stream-name=\"%s\", "
-					"trace-name=\"%s\", path=\"%s/%s\"",
-					stream->discarded_packets_state.beginning_cs,
-					expected_end_cs,
-					bt_stream_get_id(ir_stream),
-					bt_stream_get_name(ir_stream),
-					bt_trace_get_name(
-						bt_stream_borrow_trace_const(ir_stream)),
-					stream->trace->path->str, stream->file_name->str);
-				status = BT_SELF_COMPONENT_STATUS_ERROR;
-				goto end;
-			}
+		if (stream->discarded_packets_state.end_cs !=
+				expected_end_cs) {
+			BT_LOGE("Incompatible discarded packets message: "
+				"unexpected end time: "
+				"end-cs-val=%" PRIu64 ", "
+				"expected-end-cs-val=%" PRIu64 ", "
+				"stream-id=%" PRIu64 ", stream-name=\"%s\", "
+				"trace-name=\"%s\", path=\"%s/%s\"",
+				stream->discarded_packets_state.end_cs,
+				expected_end_cs,
+				bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream),
+				bt_trace_get_name(
+					bt_stream_borrow_trace_const(ir_stream)),
+				stream->trace->path->str, stream->file_name->str);
+			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			goto end;
 		}
 	}
 
-	stream->discarded_packets_state.in_range = false;
+	if (stream->sc->discarded_packets_has_ts) {
+		stream->discarded_packets_state.in_range = false;
+	}
+
 	ret = fs_sink_stream_open_packet(stream, cs, ir_packet);
 	if (ret) {
 		status = BT_SELF_COMPONENT_STATUS_ERROR;
@@ -456,44 +463,41 @@ bt_self_component_status handle_packet_end_msg(
 		goto end;
 	}
 
-	if (stream->sc->default_clock_class) {
-		cs = bt_message_packet_end_borrow_default_clock_snapshot_const(
-			msg);
-		BT_ASSERT(cs);
-	}
-
-	if (stream->sc->default_clock_class) {
+	if (stream->sc->packets_have_ts_end) {
 		cs = bt_message_packet_end_borrow_default_clock_snapshot_const(
 			msg);
 		BT_ASSERT(cs);
 	}
 
 	if (stream->discarded_events_state.in_range) {
+		uint64_t expected_cs;
+
+		BT_ASSERT(stream->sc->discarded_events_has_ts);
+		BT_ASSERT(stream->sc->packets_have_ts_begin);
+		BT_ASSERT(stream->sc->packets_have_ts_end);
+
 		/*
 		 * Make sure that the current discarded events range's
 		 * end time matches what's expected for CTF 1.8.
 		 */
-		if (stream->sc->default_clock_class) {
-			uint64_t expected_cs = bt_clock_snapshot_get_value(cs);
+		expected_cs = bt_clock_snapshot_get_value(cs);
 
-			if (stream->discarded_events_state.end_cs !=
-					expected_cs) {
-				BT_LOGE("Incompatible discarded events message: "
-					"unexpected end time: "
-					"end-cs-val=%" PRIu64 ", "
-					"expected-end-cs-val=%" PRIu64 ", "
-					"stream-id=%" PRIu64 ", stream-name=\"%s\", "
-					"trace-name=\"%s\", path=\"%s/%s\"",
-					stream->discarded_events_state.end_cs,
-					expected_cs,
-					bt_stream_get_id(ir_stream),
-					bt_stream_get_name(ir_stream),
-					bt_trace_get_name(
-						bt_stream_borrow_trace_const(ir_stream)),
-					stream->trace->path->str, stream->file_name->str);
-				status = BT_SELF_COMPONENT_STATUS_ERROR;
-				goto end;
-			}
+		if (stream->discarded_events_state.end_cs != expected_cs) {
+			BT_LOGE("Incompatible discarded events message: "
+				"unexpected end time: "
+				"end-cs-val=%" PRIu64 ", "
+				"expected-end-cs-val=%" PRIu64 ", "
+				"stream-id=%" PRIu64 ", stream-name=\"%s\", "
+				"trace-name=\"%s\", path=\"%s/%s\"",
+				stream->discarded_events_state.end_cs,
+				expected_cs,
+				bt_stream_get_id(ir_stream),
+				bt_stream_get_name(ir_stream),
+				bt_trace_get_name(
+					bt_stream_borrow_trace_const(ir_stream)),
+				stream->trace->path->str, stream->file_name->str);
+			status = BT_SELF_COMPONENT_STATUS_ERROR;
+			goto end;
 		}
 	}
 
@@ -503,7 +507,9 @@ bt_self_component_status handle_packet_end_msg(
 		goto end;
 	}
 
-	stream->discarded_events_state.in_range = false;
+	if (stream->sc->discarded_events_has_ts) {
+		stream->discarded_events_state.in_range = false;
+	}
 
 end:
 	return status;
@@ -519,67 +525,47 @@ bt_self_component_status handle_stream_beginning_msg(
 	const bt_stream_class *ir_sc =
 		bt_stream_borrow_class_const(ir_stream);
 	struct fs_sink_stream *stream;
+	bool packets_have_beginning_end_cs =
+		bt_stream_class_packets_have_default_beginning_clock_snapshot(ir_sc) &&
+		bt_stream_class_packets_have_default_end_clock_snapshot(ir_sc);
 
 	/*
-	 * Temporary: if the stream's class has a default clock class,
-	 * make sure packet beginning and end messages have default
-	 * clock snapshots until the support for not having them is
-	 * implemented.
+	 * Not supported: discarded events with default clock snapshots,
+	 * but packet beginning/end without default clock snapshot.
 	 */
-	if (bt_stream_class_borrow_default_clock_class_const(ir_sc)) {
-		if (!bt_stream_class_packets_have_default_beginning_clock_snapshot(
-				ir_sc)) {
-			BT_LOGE("Unsupported stream: packets have "
-				"no beginning clock snapshot: "
-				"stream-addr=%p, "
-				"stream-id=%" PRIu64 ", "
-				"stream-name=\"%s\"",
-				ir_stream, bt_stream_get_id(ir_stream),
-				bt_stream_get_name(ir_stream));
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-			goto end;
-		}
+	if (!fs_sink->ignore_discarded_events &&
+			bt_stream_class_discarded_events_have_default_clock_snapshots(ir_sc) &&
+			!packets_have_beginning_end_cs) {
+		BT_LOGE("Unsupported stream: discarded events have "
+			"default clock snapshots, but packets have no "
+			"beginning and/or end default clock snapshots: "
+			"stream-addr=%p, "
+			"stream-id=%" PRIu64 ", "
+			"stream-name=\"%s\"",
+			ir_stream, bt_stream_get_id(ir_stream),
+			bt_stream_get_name(ir_stream));
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		goto end;
+	}
 
-		if (!bt_stream_class_packets_have_default_end_clock_snapshot(
-				ir_sc)) {
-			BT_LOGE("Unsupported stream: packets have "
-				"no end clock snapshot: "
-				"stream-addr=%p, "
-				"stream-id=%" PRIu64 ", "
-				"stream-name=\"%s\"",
-				ir_stream, bt_stream_get_id(ir_stream),
-				bt_stream_get_name(ir_stream));
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-			goto end;
-		}
-
-		if (!fs_sink->ignore_discarded_events &&
-				bt_stream_class_supports_discarded_events(ir_sc) &&
-				!bt_stream_class_discarded_events_have_default_clock_snapshots(ir_sc)) {
-			BT_LOGE("Unsupported stream: discarded events "
-				"have no clock snapshots: "
-				"stream-addr=%p, "
-				"stream-id=%" PRIu64 ", "
-				"stream-name=\"%s\"",
-				ir_stream, bt_stream_get_id(ir_stream),
-				bt_stream_get_name(ir_stream));
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-			goto end;
-		}
-
-		if (!fs_sink->ignore_discarded_packets &&
-				bt_stream_class_supports_discarded_packets(ir_sc) &&
-				!bt_stream_class_discarded_packets_have_default_clock_snapshots(ir_sc)) {
-			BT_LOGE("Unsupported stream: discarded packets "
-				"have no clock snapshots: "
-				"stream-addr=%p, "
-				"stream-id=%" PRIu64 ", "
-				"stream-name=\"%s\"",
-				ir_stream, bt_stream_get_id(ir_stream),
-				bt_stream_get_name(ir_stream));
-			status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
-			goto end;
-		}
+	/*
+	 * Not supported: discarded packets with default clock
+	 * snapshots, but packet beginning/end without default clock
+	 * snapshot.
+	 */
+	if (!fs_sink->ignore_discarded_packets &&
+			bt_stream_class_discarded_packets_have_default_clock_snapshots(ir_sc) &&
+			!packets_have_beginning_end_cs) {
+		BT_LOGE("Unsupported stream: discarded packets have "
+			"default clock snapshots, but packets have no "
+			"beginning and/or end default clock snapshots: "
+			"stream-addr=%p, "
+			"stream-id=%" PRIu64 ", "
+			"stream-name=\"%s\"",
+			ir_stream, bt_stream_get_id(ir_stream),
+			bt_stream_get_name(ir_stream));
+		status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+		goto end;
 	}
 
 	stream = borrow_stream(fs_sink, ir_stream);
@@ -674,9 +660,10 @@ bt_self_component_status handle_discarded_events_msg(
 		goto end;
 	}
 
-	if (stream->packet_state.is_open) {
-		BT_LOGE("Unsupported discarded events message occuring "
-			"within a packet: "
+	if (stream->packet_state.is_open &&
+			stream->sc->discarded_events_has_ts) {
+		BT_LOGE("Unsupported discarded events message with "
+			"default clock snapshots occuring within a packet: "
 			"stream-id=%" PRIu64 ", stream-name=\"%s\", "
 			"trace-name=\"%s\", path=\"%s/%s\"",
 			bt_stream_get_id(ir_stream),
@@ -688,9 +675,9 @@ bt_self_component_status handle_discarded_events_msg(
 		goto end;
 	}
 
-	stream->discarded_events_state.in_range = true;
+	if (stream->sc->discarded_events_has_ts) {
+		stream->discarded_events_state.in_range = true;
 
-	if (stream->sc->default_clock_class) {
 		/*
 		 * The clock snapshot values will be validated when
 		 * handling the next "packet beginning" message.
@@ -703,11 +690,7 @@ bt_self_component_status handle_discarded_events_msg(
 		cs = bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
 			msg);
 		BT_ASSERT(cs);
-		stream->discarded_events_state.end_cs =
-			bt_clock_snapshot_get_value(cs);
-	} else {
-		stream->discarded_events_state.beginning_cs = UINT64_C(-1);
-		stream->discarded_events_state.end_cs = UINT64_C(-1);
+		stream->discarded_events_state.end_cs = bt_clock_snapshot_get_value(cs);
 	}
 
 	avail = bt_message_discarded_events_get_count(msg, &count);
@@ -764,23 +747,11 @@ bt_self_component_status handle_discarded_packets_msg(
 		goto end;
 	}
 
-	if (stream->packet_state.is_open) {
-		BT_LOGE("Unsupported discarded packets message occuring "
-			"within a packet: "
-			"stream-id=%" PRIu64 ", stream-name=\"%s\", "
-			"trace-name=\"%s\", path=\"%s/%s\"",
-			bt_stream_get_id(ir_stream),
-			bt_stream_get_name(ir_stream),
-			bt_trace_get_name(
-				bt_stream_borrow_trace_const(ir_stream)),
-			stream->trace->path->str, stream->file_name->str);
-		status = BT_SELF_COMPONENT_STATUS_ERROR;
-		goto end;
-	}
+	BT_ASSERT(!stream->packet_state.is_open);
 
-	stream->discarded_packets_state.in_range = true;
+	if (stream->sc->discarded_packets_has_ts) {
+		stream->discarded_packets_state.in_range = true;
 
-	if (stream->sc->default_clock_class) {
 		/*
 		 * The clock snapshot values will be validated when
 		 * handling the next "packet beginning" message.
@@ -795,9 +766,6 @@ bt_self_component_status handle_discarded_packets_msg(
 		BT_ASSERT(cs);
 		stream->discarded_packets_state.end_cs =
 			bt_clock_snapshot_get_value(cs);
-	} else {
-		stream->discarded_packets_state.beginning_cs = UINT64_C(-1);
-		stream->discarded_packets_state.end_cs = UINT64_C(-1);
 	}
 
 	avail = bt_message_discarded_packets_get_count(msg, &count);

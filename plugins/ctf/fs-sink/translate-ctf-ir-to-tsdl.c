@@ -710,12 +710,15 @@ void append_stream_class(struct ctx *ctx,
 		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
 		NULL, "content_size", true);
 
-	if (sc->default_clock_class) {
+	if (sc->packets_have_ts_begin) {
 		append_indent(ctx);
 		append_integer_field_class_from_props(ctx, 64, 8, false,
 			BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
 			sc->default_clock_class_name->str,
 			"timestamp_begin", true);
+	}
+
+	if (sc->packets_have_ts_end) {
 		append_indent(ctx);
 		append_integer_field_class_from_props(ctx, 64, 8, false,
 			BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
@@ -723,10 +726,18 @@ void append_stream_class(struct ctx *ctx,
 			"timestamp_end", true);
 	}
 
-	append_indent(ctx);
-	append_integer_field_class_from_props(ctx, 64, 8, false,
-		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
-		NULL, "events_discarded", true);
+	if (sc->has_discarded_events) {
+		append_indent(ctx);
+		append_integer_field_class_from_props(ctx, 64, 8, false,
+			BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
+			NULL, "events_discarded", true);
+	}
+
+	/*
+	 * Unconditionnally write the packet sequence number as, even if
+	 * there's no possible discarded packets message, it's still
+	 * useful information to have.
+	 */
 	append_indent(ctx);
 	append_integer_field_class_from_props(ctx, 64, 8, false,
 		BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
