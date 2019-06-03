@@ -1258,8 +1258,10 @@ int print_discarded_elements_msg(struct pretty_component *pretty,
 			count == 1 ? "" : "s");
 	}
 
+	g_string_append_c(pretty->string, ' ');
+
 	if (begin_clock_snapshot && end_clock_snapshot) {
-		g_string_append(pretty->string, " between [");
+		g_string_append(pretty->string, "between [");
 		print_timestamp_wall(pretty, begin_clock_snapshot, false);
 		g_string_append(pretty->string, "] and [");
 		print_timestamp_wall(pretty, end_clock_snapshot, false);
