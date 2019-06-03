@@ -641,17 +641,36 @@ class _UserComponent(metaclass=_UserComponentType):
 
         return tc
 
-    def _create_clock_class(self, frequency=None):
+    def _create_clock_class(self, frequency=None, name=None, description=None,
+                            precision=None, offset=None, origin_is_unix_epoch=True,
+                            uuid=None):
         ptr = self._as_self_component_ptr(self._ptr)
         cc_ptr = native_bt.clock_class_create(ptr)
 
         if cc_ptr is None:
             raise bt2.CreationError('could not create clock class')
 
-        cc = bt2.ClockClass._create_from_ptr(cc_ptr)
+        cc = bt2.clock_class._ClockClass._create_from_ptr(cc_ptr)
 
         if frequency is not None:
             cc._frequency = frequency
+
+        if name is not None:
+            cc._name = name
+
+        if description is not None:
+            cc._description = description
+
+        if precision is not None:
+            cc._precision = precision
+
+        if offset is not None:
+            cc._offset = offset
+
+        cc._origin_is_unix_epoch = origin_is_unix_epoch
+
+        if uuid is not None:
+            cc._uuid = uuid
 
         return cc
 

@@ -21,61 +21,40 @@
 # THE SOFTWARE.
 
 from bt2 import native_bt, object, utils
-import uuid as uuidp
 import numbers
 import bt2
+import functools
 
 
-def _create_clock_snapshot_from_ptr(ptr):
-    clock_snapshot = _ClockSnapshot._create_from_ptr(ptr)
-    return clock_snapshot
-
-
+@functools.total_ordering
 class _ClockSnapshot(object._UniqueObject):
-    def __init__(self, clock_class_ptr, cycles):
-        utils._check_uint64(cycles)
-        ptr = native_bt.clock_snapshot_create(clock_class_ptr, cycles)
-
-        if ptr is None:
-            raise bt2.CreationError('cannot create clock value object')
-
-        super().__init__(ptr)
-
     @property
     def clock_class(self):
-        ptr = native_bt.clock_snapshot_get_class(self._ptr)
-        assert(ptr)
-        return bt2.ClockClass._create_from_ptr(ptr)
+        cc_ptr = native_bt.clock_snapshot_borrow_clock_class_const(self._ptr)
+        assert cc_ptr is not None
+        return bt2.clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
 
     @property
     def value(self):
         return native_bt.clock_snapshot_get_value(self._ptr)
 
     @property
-    def ns_from_epoch(self):
-        ret, ns = native_bt.clock_snapshot_get_value_ns_from_epoch(self._ptr)
-        utils._handle_ret(ret, "cannot get clock value object's nanoseconds from Epoch")
+    def ns_from_origin(self):
+        ret, ns = native_bt.clock_snapshot_get_ns_from_origin(self._ptr)
+
+        if ret == native_bt.CLOCK_SNAPSHOT_STATUS_OVERFLOW:
+            raise OverflowError("cannot get clock snapshot's nanoseconds from origin")
+
         return ns
 
     def __eq__(self, other):
-        if isinstance(other, numbers.Integral):
-            return int(other) == self.cycles
+        if not isinstance(other, numbers.Integral):
+            return NotImplemented
 
-        if not isinstance(other, self.__class__):
-            # not comparing apples to apples
-            return False
+        return self.value == int(other)
 
-        if self.addr == other.addr:
-            return True
+    def __lt__(self, other):
+        if not isinstance(other, numbers.Integral):
+            return NotImplemented
 
-        self_props = self.clock_class, self.cycles
-        other_props = other.clock_class, other.cycles
-        return self_props == other_props
-
-    def __copy__(self):
-        return self.clock_class(self.cycles)
-
-    def __deepcopy__(self, memo):
-        cpy = self.__copy__()
-        memo[id(self)] = cpy
-        return cpy
+        return self.value < int(other)
