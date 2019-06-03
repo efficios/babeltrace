@@ -2,9 +2,9 @@ import unittest
 import uuid
 import copy
 import bt2
+from utils import run_in_component_init
 
 
-@unittest.skip("this is broken")
 class ClockClassOffsetTestCase(unittest.TestCase):
     def test_create_default(self):
         cco = bt2.ClockClassOffset()
@@ -48,265 +48,235 @@ class ClockClassOffsetTestCase(unittest.TestCase):
         self.assertFalse(bt2.ClockClassOffset() == 23)
 
 
-@unittest.skip("this is broken")
 class ClockClassTestCase(unittest.TestCase):
-    def setUp(self):
-        self._cc = bt2.ClockClass('salut', 1000000)
+    def assertRaisesInComponentInit(self, expected_exc_type, user_code):
+        def f(comp_self):
+            try:
+                user_code(comp_self)
+            except Exception as exc:
+                return type(exc)
 
-    def tearDown(self):
-        del self._cc
+        exc_type = run_in_component_init(f)
+        self.assertIsNotNone(exc_type)
+        self.assertEqual(exc_type, expected_exc_type)
 
     def test_create_default(self):
-        self.assertEqual(self._cc.name, 'salut')
+        cc = run_in_component_init(lambda comp_self: comp_self._create_clock_class())
 
-    def test_create_invalid_no_name(self):
-        with self.assertRaises(TypeError):
-            bt2.ClockClass()
+        self.assertIsNone(cc.name)
+        self.assertEqual(cc.frequency, 1000000000)
+        self.assertIsNone(cc.description)
+        self.assertEqual(cc.precision, 0)
+        self.assertEqual(cc.offset, bt2.ClockClassOffset())
+        self.assertTrue(cc.origin_is_unix_epoch)
+        self.assertIsNone(cc.uuid)
 
-    def test_create_full(self):
-        my_uuid = uuid.uuid1()
-        cc = bt2.ClockClass(name='name', description='some description',
-                            frequency=1001, precision=176,
-                            offset=bt2.ClockClassOffset(45, 3003),
-                            is_absolute=True, uuid=my_uuid)
-        self.assertEqual(cc.name, 'name')
-        self.assertEqual(cc.description, 'some description')
-        self.assertEqual(cc.frequency, 1001)
-        self.assertEqual(cc.precision, 176)
-        self.assertEqual(cc.offset, bt2.ClockClassOffset(45, 3003))
-        self.assertEqual(cc.is_absolute, True)
-        self.assertEqual(cc.uuid, copy.deepcopy(my_uuid))
+    def test_create_name(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(name='the_clock')
 
-    def test_assign_name(self):
-        self._cc.name = 'the_clock'
-        self.assertEqual(self._cc.name, 'the_clock')
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.name, 'the_clock')
 
-    def test_assign_invalid_name(self):
-        with self.assertRaises(TypeError):
-            self._cc.name = 23
+    def test_create_invalid_name(self):
+        def f(comp_self):
+            comp_self._create_clock_class(name=23)
 
-    def test_assign_description(self):
-        self._cc.description = 'hi people'
-        self.assertEqual(self._cc.description, 'hi people')
+        self.assertRaisesInComponentInit(TypeError, f)
 
-    def test_assign_invalid_description(self):
-        with self.assertRaises(TypeError):
-            self._cc.description = 23
+    def test_create_description(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(description='hi people')
 
-    def test_assign_frequency(self):
-        self._cc.frequency = 987654321
-        self.assertEqual(self._cc.frequency, 987654321)
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.description, 'hi people')
 
-    def test_assign_invalid_frequency(self):
-        with self.assertRaises(TypeError):
-            self._cc.frequency = 'lel'
+    def test_create_invalid_description(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(description=23)
 
-    def test_assign_precision(self):
-        self._cc.precision = 12
-        self.assertEqual(self._cc.precision, 12)
+        self.assertRaisesInComponentInit(TypeError, f)
 
-    def test_assign_invalid_precision(self):
-        with self.assertRaises(TypeError):
-            self._cc.precision = 'lel'
+    def test_create_frequency(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(frequency=987654321)
 
-    def test_assign_offset(self):
-        self._cc.offset = bt2.ClockClassOffset(12, 56)
-        self.assertEqual(self._cc.offset, bt2.ClockClassOffset(12, 56))
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.frequency, 987654321)
 
-    def test_assign_invalid_offset(self):
-        with self.assertRaises(TypeError):
-            self._cc.offset = object()
+    def test_create_invalid_frequency(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(frequency='lel')
 
-    def test_assign_absolute(self):
-        self._cc.is_absolute = True
-        self.assertTrue(self._cc.is_absolute)
+        self.assertRaisesInComponentInit(TypeError, f)
 
-    def test_assign_invalid_absolute(self):
-        with self.assertRaises(TypeError):
-            self._cc.is_absolute = 23
+    def test_create_precision(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(precision=12)
 
-    def test_assign_uuid(self):
-        the_uuid = uuid.uuid1()
-        self._cc.uuid = the_uuid
-        self.assertEqual(self._cc.uuid, the_uuid)
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.precision, 12)
 
-    def test_assign_invalid_uuid(self):
-        with self.assertRaises(TypeError):
-            self._cc.uuid = object()
+    def test_create_invalid_precision(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(precision='lel')
 
-    def test_create_clock_snapshot(self):
-        cs = self._cc(756)
-        self.assertEqual(cs.clock_class.addr, self._cc.addr)
+        self.assertRaisesInComponentInit(TypeError, f)
 
-    def _test_copy(self, cpy):
-        self.assertIsNot(cpy, self._cc)
-        self.assertNotEqual(cpy.addr, self._cc.addr)
-        self.assertEqual(cpy, self._cc)
+    def test_create_offset(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(offset=bt2.ClockClassOffset(12, 56))
 
-    def test_copy(self):
-        cpy = copy.copy(self._cc)
-        self._test_copy(cpy)
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.offset, bt2.ClockClassOffset(12, 56))
 
-    def test_deepcopy(self):
-        cpy = copy.deepcopy(self._cc)
-        self._test_copy(cpy)
+    def test_create_invalid_offset(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(offset=object())
 
-    def test_eq(self):
-        my_uuid = uuid.uuid1()
-        cc1 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        self.assertEqual(cc1, cc2)
+        self.assertRaisesInComponentInit(TypeError, f)
 
-    def test_ne_name(self):
-        my_uuid = uuid.uuid1()
-        cc1 = bt2.ClockClass(name='mane', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        self.assertNotEqual(cc1, cc2)
+    def test_create_origin_is_unix_epoch(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(origin_is_unix_epoch=False)
 
-    def test_ne_description(self):
-        my_uuid = uuid.uuid1()
-        cc1 = bt2.ClockClass(name='name', description='some descripti2',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        self.assertNotEqual(cc1, cc2)
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.origin_is_unix_epoch, False)
 
-    def test_ne_frequency(self):
-        my_uuid = uuid.uuid1()
-        cc1 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1003, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        self.assertNotEqual(cc1, cc2)
+    def test_create_invalid_origin_is_unix_epoch(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(origin_is_unix_epoch=23)
 
-    def test_ne_precision(self):
-        my_uuid = uuid.uuid1()
-        cc1 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=171,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        self.assertNotEqual(cc1, cc2)
+        self.assertRaisesInComponentInit(TypeError, f)
 
-    def test_ne_offset(self):
-        my_uuid = uuid.uuid1()
-        cc1 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3001),
-                             is_absolute=True, uuid=my_uuid)
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        self.assertNotEqual(cc1, cc2)
+    def test_cycles_to_ns_from_origin(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(frequency=10**8, origin_is_unix_epoch=True)
 
-    def test_ne_absolute(self):
-        my_uuid = uuid.uuid1()
-        cc1 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=my_uuid)
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=False, uuid=my_uuid)
-        self.assertNotEqual(cc1, cc2)
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.cycles_to_ns_from_origin(112), 1120)
 
-    def test_ne_uuid(self):
-        cc1 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=uuid.uuid1())
-        cc2 = bt2.ClockClass(name='name', description='some description',
-                             frequency=1001, precision=176,
-                             offset=bt2.ClockClassOffset(45, 3003),
-                             is_absolute=True, uuid=uuid.uuid1())
-        self.assertNotEqual(cc1, cc2)
+    def test_cycles_to_ns_from_origin_overflow(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(frequency=1000)
 
-    def test_eq_invalid(self):
-        self.assertFalse(self._cc == 23)
+        cc = run_in_component_init(f)
+        with self.assertRaises(OverflowError):
+            cc.cycles_to_ns_from_origin(2**63)
+
+    def test_create_uuid(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(uuid=uuid.UUID('b43372c32ef0be28444dfc1c5cdafd33'))
+
+        cc = run_in_component_init(f)
+        self.assertEqual(cc.uuid, uuid.UUID('b43372c32ef0be28444dfc1c5cdafd33'))
+
+    def test_create_invalid_uuid(self):
+        def f(comp_self):
+            return comp_self._create_clock_class(uuid=23)
+
+        self.assertRaisesInComponentInit(TypeError, f)
 
 
-@unittest.skip("this is broken")
 class ClockSnapshotTestCase(unittest.TestCase):
     def setUp(self):
-        self._cc = bt2.ClockClass('salut', 1000,
-                                  offset=bt2.ClockClassOffset(45, 354))
-        self._cs = self._cc(123)
+        def f(comp_self):
+            cc = comp_self._create_clock_class(1000, 'my_cc',
+                                               offset=bt2.ClockClassOffset(45, 354))
+            tc = comp_self._create_trace_class()
+
+            return (cc, tc)
+
+        _cc, _tc = run_in_component_init(f)
+        _trace = _tc()
+        _sc = _tc.create_stream_class(default_clock_class=_cc,
+                                      packets_have_default_beginning_clock_snapshot=True,
+                                      packets_have_default_end_clock_snapshot=True)
+        _ec = _sc.create_event_class(name='salut')
+        _stream = _trace.create_stream(_sc)
+        _packet = _stream.create_packet()
+        self._packet = _packet
+        self._stream = _stream
+        self._ec = _ec
+        self._cc = _cc
+
+        class MyIter(bt2._UserMessageIterator):
+            def __init__(self):
+                self._at = 0
+
+            def __next__(self):
+                if self._at == 0:
+                    notif = self._create_stream_beginning_message(_stream)
+                elif self._at == 1:
+                    notif = self._create_packet_beginning_message(_packet, 100)
+                elif self._at == 2:
+                    notif = self._create_event_message(_ec, _packet, 123)
+                elif self._at == 3:
+                    notif = self._create_event_message(_ec, _packet, 2**63)
+                elif self._at == 4:
+                    notif = self._create_packet_end_message(_packet)
+                elif self._at == 5:
+                    notif = self._create_stream_end_message(_stream)
+                else:
+                    raise bt2.Stop
+
+                self._at += 1
+                return notif
+
+        class MySrc(bt2._UserSourceComponent, message_iterator_class=MyIter):
+            def __init__(self, params):
+                self._add_output_port('out')
+
+        self._graph = bt2.Graph()
+        self._src_comp = self._graph.add_component(MySrc, 'my_source')
+        self._msg_iter = self._graph.create_output_port_message_iterator(
+            self._src_comp.output_ports['out'])
+
+        for i, msg in enumerate(self._msg_iter):
+            if i == 2:
+                self._msg = msg
+            elif i == 3:
+                self._msg_clock_overflow = msg
+                break
 
     def tearDown(self):
         del self._cc
-        del self._cs
+        del self._msg
 
     def test_create_default(self):
-        self.assertEqual(self._cs.clock_class.addr, self._cc.addr)
-        self.assertEqual(self._cs.cycles, 123)
+        self.assertEqual(
+            self._msg.default_clock_snapshot.clock_class.addr, self._cc.addr)
+        self.assertEqual(self._msg.default_clock_snapshot.value, 123)
 
-    def test_create_invalid_cycles_type(self):
-        with self.assertRaises(TypeError):
-            self._cc('yes')
+    def test_clock_class(self):
+        self.assertEqual(
+            self._msg.default_clock_snapshot.clock_class.addr, self._cc.addr)
 
-    def test_ns_from_epoch(self):
-        s_from_epoch = 45 + ((354 + 123) / 1000)
-        ns_from_epoch = int(s_from_epoch * 1e9)
-        self.assertEqual(self._cs.ns_from_epoch, ns_from_epoch)
+    def test_ns_from_origin(self):
+        s_from_origin = 45 + ((354 + 123) / 1000)
+        ns_from_origin = int(s_from_origin * 1e9)
+        self.assertEqual(
+            self._msg.default_clock_snapshot.ns_from_origin, ns_from_origin)
 
-    def test_eq(self):
-        cs1 = self._cc(123)
-        cs2 = self._cc(123)
-        self.assertEqual(cs1, cs2)
+    def test_ns_from_origin_overflow(self):
+        with self.assertRaises(OverflowError):
+            self._msg_clock_overflow.default_clock_snapshot.ns_from_origin
 
     def test_eq_int(self):
-        cs1 = self._cc(123)
-        self.assertEqual(cs1, 123)
-
-    def test_ne_clock_class(self):
-        cc1 = bt2.ClockClass('yes', 1500)
-        cc2 = bt2.ClockClass('yes', 1501)
-        cs1 = cc1(123)
-        cs2 = cc2(123)
-        self.assertNotEqual(cs1, cs2)
-
-    def test_ne_cycles(self):
-        cs1 = self._cc(123)
-        cs2 = self._cc(125)
-        self.assertNotEqual(cs1, cs2)
+        self.assertEqual(self._msg.default_clock_snapshot, 123)
 
     def test_eq_invalid(self):
-        self.assertFalse(self._cs == 23)
+        self.assertFalse(self._msg.default_clock_snapshot == 23)
 
-    def _test_copy(self, cpy):
-        self.assertIsNot(cpy, self._cs)
-        self.assertNotEqual(cpy.addr, self._cs.addr)
-        self.assertEqual(cpy, self._cs)
+    def test_comparison(self):
+        self.assertTrue(self._msg.default_clock_snapshot > 100)
+        self.assertFalse(self._msg.default_clock_snapshot > 200)
 
-    def test_copy(self):
-        cpy = copy.copy(self._cs)
-        self._test_copy(cpy)
+        self.assertTrue(self._msg.default_clock_snapshot >= 123)
+        self.assertFalse(self._msg.default_clock_snapshot >= 200)
 
-    def test_deepcopy(self):
-        cpy = copy.deepcopy(self._cs)
-        self._test_copy(cpy)
+        self.assertTrue(self._msg.default_clock_snapshot < 200)
+        self.assertFalse(self._msg.default_clock_snapshot < 100)
+
+        self.assertTrue(self._msg.default_clock_snapshot <= 123)
+        self.assertFalse(self._msg.default_clock_snapshot <= 100)

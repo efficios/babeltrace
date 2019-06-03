@@ -224,10 +224,10 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
         if cc_ptr is None:
             return
 
-        return bt2.clock_class.ClockClass._create_from_ptr_and_get_ref(cc_ptr)
+        return bt2.clock_class._ClockClass._create_from_ptr_and_get_ref(cc_ptr)
 
     def _default_clock_class(self, clock_class):
-        utils._check_type(clock_class, bt2.clock_class.ClockClass)
+        utils._check_type(clock_class, bt2.clock_class._ClockClass)
         native_bt.stream_class_set_default_clock_class(
             self._ptr, clock_class._ptr)
 
