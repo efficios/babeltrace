@@ -106,7 +106,7 @@ class QueryExecutorCanceled(Exception):
     pass
 
 
-class NoDefaultClockClass(Error):
+class NonexistentClockSnapshot(Error):
     pass
 
 

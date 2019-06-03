@@ -66,6 +66,16 @@ extern void bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
 extern void bt_stream_class_set_packets_have_default_end_clock_snapshot(
 		bt_stream_class *stream_class, bt_bool value);
 
+extern void bt_stream_class_set_supports_discarded_events(
+		bt_stream_class *stream_class,
+		bt_bool supports_discarded_events,
+		bt_bool with_default_clock_snapshots);
+
+extern void bt_stream_class_set_supports_discarded_packets(
+		bt_stream_class *stream_class,
+		bt_bool supports_discarded_packets,
+		bt_bool with_default_clock_snapshots);
+
 extern bt_stream_class_status
 bt_stream_class_set_packet_context_field_class(
 		bt_stream_class *stream_class,

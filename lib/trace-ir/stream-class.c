@@ -498,6 +498,78 @@ bt_bool bt_stream_class_assigns_automatic_stream_id(
 	return (bt_bool) stream_class->assigns_automatic_stream_id;
 }
 
+void bt_stream_class_set_supports_discarded_events(
+		struct bt_stream_class *stream_class,
+		bt_bool supports_discarded_events,
+		bt_bool with_default_clock_snapshots)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
+	BT_ASSERT_PRE(supports_discarded_events ||
+		!with_default_clock_snapshots,
+		"Discarded events cannot have default clock snapshots when "
+		"not supported: %!+S", stream_class);
+	BT_ASSERT_PRE(!with_default_clock_snapshots ||
+		stream_class->default_clock_class,
+		"Stream class has no default clock class: %!+S", stream_class);
+	stream_class->supports_discarded_events =
+		(bool) supports_discarded_events;
+	stream_class->discarded_events_have_default_clock_snapshots =
+		(bool) with_default_clock_snapshots;
+	BT_LIB_LOGV("Set stream class's discarded events support property: "
+		"%!+S", stream_class);
+}
+
+bt_bool bt_stream_class_supports_discarded_events(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return (bt_bool) stream_class->supports_discarded_events;
+}
+
+bt_bool bt_stream_class_discarded_events_have_default_clock_snapshots(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return (bt_bool) stream_class->discarded_events_have_default_clock_snapshots;
+}
+
+void bt_stream_class_set_supports_discarded_packets(
+		struct bt_stream_class *stream_class,
+		bt_bool supports_discarded_packets,
+		bt_bool with_default_clock_snapshots)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	BT_ASSERT_PRE_STREAM_CLASS_HOT(stream_class);
+	BT_ASSERT_PRE(supports_discarded_packets ||
+		!with_default_clock_snapshots,
+		"Discarded packets cannot have default clock snapshots when "
+		"not supported: %!+S", stream_class);
+	BT_ASSERT_PRE(!with_default_clock_snapshots ||
+		stream_class->default_clock_class,
+		"Stream class has no default clock class: %!+S", stream_class);
+	stream_class->supports_discarded_packets =
+		(bool) supports_discarded_packets;
+	stream_class->discarded_packets_have_default_clock_snapshots =
+		(bool) with_default_clock_snapshots;
+	BT_LIB_LOGV("Set stream class's discarded packets support property: "
+		"%!+S", stream_class);
+}
+
+bt_bool bt_stream_class_supports_discarded_packets(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return (bt_bool) stream_class->supports_discarded_packets;
+}
+
+bt_bool bt_stream_class_discarded_packets_have_default_clock_snapshots(
+		const struct bt_stream_class *stream_class)
+{
+	BT_ASSERT_PRE_NON_NULL(stream_class, "Stream class");
+	return (bt_bool) stream_class->discarded_packets_have_default_clock_snapshots;
+}
+
 void bt_stream_class_set_assigns_automatic_stream_id(
 		struct bt_stream_class *stream_class,
 		bt_bool value)

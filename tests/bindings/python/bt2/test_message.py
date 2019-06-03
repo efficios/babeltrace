@@ -63,18 +63,20 @@ class AllMessagesTestCase(unittest.TestCase):
             def __init__(self, params):
                 self._add_output_port('out')
 
-                with_cc = params['with_cc']
+                with_cc = bool(params['with_cc'])
                 tc = self._create_trace_class()
                 if with_cc:
                     cc = self._create_clock_class()
-                    packets_have_clock_snapshots = True
                 else:
                     cc = None
-                    packets_have_clock_snapshots = False
 
                 sc = tc.create_stream_class(default_clock_class=cc,
-                                            packets_have_default_beginning_clock_snapshot=packets_have_clock_snapshots,
-                                            packets_have_default_end_clock_snapshot=packets_have_clock_snapshots)
+                                            packets_have_default_beginning_clock_snapshot=with_cc,
+                                            packets_have_default_end_clock_snapshot=with_cc,
+                                            supports_discarded_events=True,
+                                            discarded_events_have_default_clock_snapshots=with_cc,
+                                            supports_discarded_packets=True,
+                                            discarded_packets_have_default_clock_snapshots=with_cc)
 
                 # Create payload field class
                 my_int_fc = tc.create_signed_integer_field_class(32)
@@ -127,7 +129,7 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIsInstance(msg, bt2.message._DiscardedEventsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 890)
-                self.assertEqual(msg.default_clock_class.addr, self._clock_class.addr)
+                self.assertEqual(msg.stream.stream_class.default_clock_class.addr, self._clock_class.addr)
                 self.assertEqual(msg.beginning_default_clock_snapshot.value, i)
                 self.assertEqual(msg.end_default_clock_snapshot.value, i)
             elif i == 6:
@@ -138,7 +140,7 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIsInstance(msg, bt2.message._DiscardedPacketsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 678)
-                self.assertEqual(msg.default_clock_class.addr, self._clock_class.addr)
+                self.assertEqual(msg.stream.stream_class.default_clock_class.addr, self._clock_class.addr)
                 self.assertEqual(msg.beginning_default_clock_snapshot.value, i)
                 self.assertEqual(msg.end_default_clock_snapshot.value, i)
             elif i == 8:
@@ -162,7 +164,7 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertEqual(msg.stream.addr, self._stream.addr)
             elif i == 1:
                 self.assertIsInstance(msg, bt2.message._StreamActivityBeginningMessage)
-                with self.assertRaises(bt2.NoDefaultClockClass):
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.default_clock_snapshot
             elif i == 2:
                 self.assertIsInstance(msg, bt2.message._PacketBeginningMessage)
@@ -170,16 +172,16 @@ class AllMessagesTestCase(unittest.TestCase):
             elif i == 3:
                 self.assertIsInstance(msg, bt2.message._EventMessage)
                 self.assertEqual(msg.event.event_class.addr, self._event_class.addr)
-                with self.assertRaises(bt2.NoDefaultClockClass):
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.default_clock_snapshot
             elif i == 4:
                 self.assertIsInstance(msg, bt2.message._DiscardedEventsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 890)
-                self.assertIsNone(msg.default_clock_class)
-                with self.assertRaises(bt2.NoDefaultClockClass):
+                self.assertIsNone(msg.stream.stream_class.default_clock_class)
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.beginning_default_clock_snapshot
-                with self.assertRaises(bt2.NoDefaultClockClass):
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.end_default_clock_snapshot
             elif i == 5:
                 self.assertIsInstance(msg, bt2.message._PacketEndMessage)
@@ -188,15 +190,15 @@ class AllMessagesTestCase(unittest.TestCase):
                 self.assertIsInstance(msg, bt2.message._DiscardedPacketsMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
                 self.assertEqual(msg.count, 678)
-                self.assertIsNone(msg.default_clock_class)
-                with self.assertRaises(bt2.NoDefaultClockClass):
+                self.assertIsNone(msg.stream.stream_class.default_clock_class)
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.beginning_default_clock_snapshot
-                with self.assertRaises(bt2.NoDefaultClockClass):
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.end_default_clock_snapshot
             elif i == 7:
                 self.assertIsInstance(msg, bt2.message._StreamActivityEndMessage)
                 self.assertEqual(msg.stream.addr, self._stream.addr)
-                with self.assertRaises(bt2.NoDefaultClockClass):
+                with self.assertRaises(bt2.NonexistentClockSnapshot):
                     msg.default_clock_snapshot
             elif i == 8:
                 self.assertIsInstance(msg, bt2.message._StreamEndMessage)

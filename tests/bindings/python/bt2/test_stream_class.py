@@ -24,6 +24,10 @@ class StreamClassTestCase(unittest.TestCase):
         self.assertTrue(sc.assigns_automatic_stream_id)
         self.assertFalse(sc.packets_have_default_beginning_clock_snapshot)
         self.assertFalse(sc.packets_have_default_end_clock_snapshot)
+        self.assertFalse(sc.supports_discarded_events)
+        self.assertFalse(sc.discarded_events_have_default_clock_snapshots)
+        self.assertFalse(sc.supports_discarded_packets)
+        self.assertFalse(sc.discarded_packets_have_default_clock_snapshots)
 
     def test_create_name(self):
         sc = self._tc.create_stream_class(name='bozo')
@@ -130,6 +134,62 @@ class StreamClassTestCase(unittest.TestCase):
     def test_packets_have_default_end_clock_snapshot_raises(self):
         with self.assertRaises(TypeError):
             sc = self._tc.create_stream_class(packets_have_default_end_clock_snapshot="something")
+
+    def test_supports_discarded_events_without_cs(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                          supports_discarded_events=True)
+        self.assertTrue(sc.supports_discarded_events)
+        self.assertFalse(sc.discarded_events_have_default_clock_snapshots)
+
+    def test_supports_discarded_events_with_cs(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                          supports_discarded_events=True,
+                                          discarded_events_have_default_clock_snapshots=True)
+        self.assertTrue(sc.supports_discarded_events)
+        self.assertTrue(sc.discarded_events_have_default_clock_snapshots)
+
+    def test_supports_discarded_events_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                              supports_discarded_events=23)
+
+    def test_discarded_events_have_default_cs_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                              discarded_events_have_default_clock_snapshots=23)
+
+    def test_does_not_support_discarded_events_raises_with_cs(self):
+        with self.assertRaises(ValueError):
+            sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                              discarded_events_have_default_clock_snapshots=True)
+
+    def test_supports_discarded_packets_without_cs(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                          supports_discarded_packets=True)
+        self.assertTrue(sc.supports_discarded_packets)
+        self.assertFalse(sc.discarded_packets_have_default_clock_snapshots)
+
+    def test_supports_discarded_packets_with_cs(self):
+        sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                          supports_discarded_packets=True,
+                                          discarded_packets_have_default_clock_snapshots=True)
+        self.assertTrue(sc.supports_discarded_packets)
+        self.assertTrue(sc.discarded_packets_have_default_clock_snapshots)
+
+    def test_supports_discarded_packets_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                              supports_discarded_packets=23)
+
+    def test_discarded_packets_have_default_cs_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                              discarded_packets_have_default_clock_snapshots=23)
+
+    def test_does_not_support_discarded_packets_raises_with_cs(self):
+        with self.assertRaises(ValueError):
+            sc = self._tc.create_stream_class(default_clock_class=self._cc,
+                                              discarded_packets_have_default_clock_snapshots=True)
 
     def test_trace_class(self):
         sc = self._tc.create_stream_class()

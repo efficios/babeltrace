@@ -1734,7 +1734,8 @@ bt_self_message_iterator_status handle_message(
 			}
 
 			/*
-			 * Temporary: make sure packet beginning and end
+			 * Temporary: make sure packet beginning, packet
+			 * end, discarded events, and discarded packets
 			 * messages have default clock snapshots until
 			 * the support for not having them is
 			 * implemented.
@@ -1756,6 +1757,32 @@ bt_self_message_iterator_status handle_message(
 					sc)) {
 				BT_LOGE("Unsupported stream: packets have "
 					"no end clock snapshot: "
+					"stream-addr=%p, "
+					"stream-id=%" PRIu64 ", "
+					"stream-name=\"%s\"",
+					stream, bt_stream_get_id(stream),
+					bt_stream_get_name(stream));
+				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
+
+			if (bt_stream_class_supports_discarded_events(sc) &&
+					!bt_stream_class_discarded_events_have_default_clock_snapshots(sc)) {
+				BT_LOGE("Unsupported stream: discarded events "
+					"have no clock snapshots: "
+					"stream-addr=%p, "
+					"stream-id=%" PRIu64 ", "
+					"stream-name=\"%s\"",
+					stream, bt_stream_get_id(stream),
+					bt_stream_get_name(stream));
+				status = BT_SELF_MESSAGE_ITERATOR_STATUS_ERROR;
+				goto end;
+			}
+
+			if (bt_stream_class_supports_discarded_packets(sc) &&
+					!bt_stream_class_discarded_packets_have_default_clock_snapshots(sc)) {
+				BT_LOGE("Unsupported stream: discarded packets "
+					"have no clock snapshots: "
 					"stream-addr=%p, "
 					"stream-id=%" PRIu64 ", "
 					"stream-name=\"%s\"",

@@ -62,6 +62,18 @@ extern bt_bool bt_stream_class_packets_have_default_beginning_clock_snapshot(
 extern bt_bool bt_stream_class_packets_have_default_end_clock_snapshot(
 		const bt_stream_class *stream_class);
 
+extern bt_bool bt_stream_class_supports_discarded_events(
+		const bt_stream_class *stream_class);
+
+extern bt_bool bt_stream_class_supports_discarded_packets(
+		const bt_stream_class *stream_class);
+
+extern bt_bool bt_stream_class_discarded_events_have_default_clock_snapshots(
+		const bt_stream_class *stream_class);
+
+extern bt_bool bt_stream_class_discarded_packets_have_default_clock_snapshots(
+		const bt_stream_class *stream_class);
+
 extern uint64_t bt_stream_class_get_id(
 		const bt_stream_class *stream_class);
 

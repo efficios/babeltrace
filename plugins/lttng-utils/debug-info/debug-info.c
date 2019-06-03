@@ -1540,7 +1540,7 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 {
 	const bt_clock_snapshot *begin_cs, *end_cs;
 	const bt_stream *in_stream;
-	const bt_clock_class *default_cc;
+	bool has_default_clock_snapshots;
 	uint64_t discarded_events, begin_cs_value, end_cs_value;
 	bt_property_availability prop_avail;
 	bt_message *out_message = NULL;
@@ -1554,9 +1554,10 @@ bt_message *handle_discarded_events_message(struct debug_info_msg_iter *debug_it
 				debug_it->ir_maps, in_stream);
 	BT_ASSERT(out_stream);
 
-	default_cc = bt_stream_class_borrow_default_clock_class_const(
+	has_default_clock_snapshots =
+		bt_stream_class_discarded_events_have_default_clock_snapshots(
 			bt_stream_borrow_class_const(in_stream));
-	if (default_cc) {
+	if (has_default_clock_snapshots) {
 		begin_cs =
 			bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
 				in_message);
@@ -1598,7 +1599,7 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 		const bt_message *in_message)
 {
 	const bt_clock_snapshot *begin_cs, *end_cs;
-	const bt_clock_class *default_cc;
+	bool has_default_clock_snapshots;
 	const bt_stream *in_stream;
 	uint64_t discarded_packets, begin_cs_value, end_cs_value;
 	bt_property_availability prop_avail;
@@ -1613,9 +1614,10 @@ bt_message *handle_discarded_packets_message(struct debug_info_msg_iter *debug_i
 			debug_it->ir_maps, in_stream);
 	BT_ASSERT(out_stream);
 
-	default_cc = bt_stream_class_borrow_default_clock_class_const(
+	has_default_clock_snapshots =
+		bt_stream_class_discarded_packets_have_default_clock_snapshots(
 			bt_stream_borrow_class_const(in_stream));
-	if (default_cc) {
+	if (has_default_clock_snapshots) {
 		begin_cs =
 			bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
 				in_message);
