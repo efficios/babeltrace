@@ -82,7 +82,7 @@ static inline
 struct bt_message *create_packet_message(
 		struct bt_self_component_port_input_message_iterator *msg_iter,
 		struct bt_packet *packet, struct bt_object_pool *pool,
-		bool with_cs, bool is_beginning, uint64_t raw_value)
+		bool with_cs, uint64_t raw_value)
 {
 	struct bt_message_packet *message = NULL;
 	struct bt_stream *stream;
@@ -96,7 +96,7 @@ struct bt_message *create_packet_message(
 	stream_class = bt_stream_borrow_class(stream);
 	BT_ASSERT(stream_class);
 
-	if (is_beginning) {
+	if (pool == &msg_iter->graph->packet_begin_msg_pool) {
 		packet_has_default_clock_snapshot =
 			stream_class->packets_have_default_beginning_clock_snapshot;
 	} else {
@@ -161,7 +161,7 @@ struct bt_message *bt_message_packet_beginning_create(
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
-		&msg_iter->graph->packet_begin_msg_pool, false, true, 0);
+		&msg_iter->graph->packet_begin_msg_pool, false, 0);
 }
 
 struct bt_message *bt_message_packet_beginning_create_with_default_clock_snapshot(
@@ -173,7 +173,7 @@ struct bt_message *bt_message_packet_beginning_create_with_default_clock_snapsho
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
-		&msg_iter->graph->packet_begin_msg_pool, true, true, raw_value);
+		&msg_iter->graph->packet_begin_msg_pool, true, raw_value);
 }
 
 struct bt_message *bt_message_packet_end_create(
@@ -185,7 +185,7 @@ struct bt_message *bt_message_packet_end_create(
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
-		&msg_iter->graph->packet_end_msg_pool, false, false, 0);
+		&msg_iter->graph->packet_end_msg_pool, false, 0);
 }
 
 struct bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
@@ -197,7 +197,7 @@ struct bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
 
 	BT_ASSERT_PRE_NON_NULL(msg_iter, "Message iterator");
 	return create_packet_message(msg_iter, (void *) packet,
-		&msg_iter->graph->packet_end_msg_pool, true, false, raw_value);
+		&msg_iter->graph->packet_end_msg_pool, true, raw_value);
 }
 
 BT_HIDDEN
