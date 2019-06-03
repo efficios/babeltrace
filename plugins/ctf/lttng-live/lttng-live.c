@@ -658,7 +658,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		BT_ASSERT(clock_class);
 
-		clock_snapshot = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+		clock_snapshot = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
@@ -667,7 +667,7 @@ int live_get_msg_ts_ns(struct lttng_live_stream_iterator *stream_iter,
 			msg);
 		BT_ASSERT(clock_class);
 
-		clock_snapshot = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+		clock_snapshot = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:

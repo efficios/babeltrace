@@ -737,10 +737,10 @@ struct fs_sink_ctf_stream_class *fs_sink_ctf_stream_class_create(
 		g_direct_equal);
 	BT_ASSERT(sc->event_classes_from_ir);
 	sc->packets_have_ts_begin =
-		bt_stream_class_packets_have_default_beginning_clock_snapshot(
+		bt_stream_class_packets_have_beginning_default_clock_snapshot(
 			ir_sc);
 	sc->packets_have_ts_end =
-		bt_stream_class_packets_have_default_end_clock_snapshot(ir_sc);
+		bt_stream_class_packets_have_end_default_clock_snapshot(ir_sc);
 	sc->has_discarded_events =
 		bt_stream_class_supports_discarded_events(ir_sc);
 

@@ -129,24 +129,24 @@ class StreamClass(object._SharedObject, collections.abc.Mapping):
     _assigns_automatic_stream_id = property(fset=_assigns_automatic_stream_id)
 
     @property
-    def packets_have_default_beginning_clock_snapshot(self):
-        return native_bt.stream_class_packets_have_default_beginning_clock_snapshot(self._ptr)
+    def packets_have_beginning_default_clock_snapshot(self):
+        return native_bt.stream_class_packets_have_beginning_default_clock_snapshot(self._ptr)
 
-    def _packets_have_default_beginning_clock_snapshot(self, value):
+    def _packets_have_beginning_default_clock_snapshot(self, value):
         utils._check_bool(value)
-        native_bt.stream_class_set_packets_have_default_beginning_clock_snapshot(self._ptr, value)
+        native_bt.stream_class_set_packets_have_beginning_default_clock_snapshot(self._ptr, value)
 
-    _packets_have_default_beginning_clock_snapshot = property(fset=_packets_have_default_beginning_clock_snapshot)
+    _packets_have_beginning_default_clock_snapshot = property(fset=_packets_have_beginning_default_clock_snapshot)
 
     @property
-    def packets_have_default_end_clock_snapshot(self):
-        return native_bt.stream_class_packets_have_default_end_clock_snapshot(self._ptr)
+    def packets_have_end_default_clock_snapshot(self):
+        return native_bt.stream_class_packets_have_end_default_clock_snapshot(self._ptr)
 
-    def _packets_have_default_end_clock_snapshot(self, value):
+    def _packets_have_end_default_clock_snapshot(self, value):
         utils._check_bool(value)
-        native_bt.stream_class_set_packets_have_default_end_clock_snapshot(self._ptr, value)
+        native_bt.stream_class_set_packets_have_end_default_clock_snapshot(self._ptr, value)
 
-    _packets_have_default_end_clock_snapshot = property(fset=_packets_have_default_end_clock_snapshot)
+    _packets_have_end_default_clock_snapshot = property(fset=_packets_have_end_default_clock_snapshot)
 
     @property
     def supports_discarded_events(self):

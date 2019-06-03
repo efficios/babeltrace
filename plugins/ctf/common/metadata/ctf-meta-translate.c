@@ -487,9 +487,9 @@ void ctf_stream_class_to_ir(struct ctx *ctx)
 		BT_ASSERT(ret == 0);
 	}
 
-	bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+	bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
 		ctx->ir_sc, ctx->sc->packets_have_ts_begin);
-	bt_stream_class_set_packets_have_default_end_clock_snapshot(
+	bt_stream_class_set_packets_have_end_default_clock_snapshot(
 		ctx->ir_sc, ctx->sc->packets_have_ts_end);
 	bt_stream_class_set_supports_discarded_events(ctx->ir_sc,
 		ctx->sc->has_discarded_events,

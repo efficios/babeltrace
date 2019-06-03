@@ -526,8 +526,8 @@ bt_self_component_status handle_stream_beginning_msg(
 		bt_stream_borrow_class_const(ir_stream);
 	struct fs_sink_stream *stream;
 	bool packets_have_beginning_end_cs =
-		bt_stream_class_packets_have_default_beginning_clock_snapshot(ir_sc) &&
-		bt_stream_class_packets_have_default_end_clock_snapshot(ir_sc);
+		bt_stream_class_packets_have_beginning_default_clock_snapshot(ir_sc) &&
+		bt_stream_class_packets_have_end_default_clock_snapshot(ir_sc);
 
 	/*
 	 * Not supported: discarded events with default clock snapshots,
@@ -682,12 +682,12 @@ bt_self_component_status handle_discarded_events_msg(
 		 * The clock snapshot values will be validated when
 		 * handling the next "packet beginning" message.
 		 */
-		cs = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+		cs = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		BT_ASSERT(cs);
 		stream->discarded_events_state.beginning_cs =
 			bt_clock_snapshot_get_value(cs);
-		cs = bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+		cs = bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 			msg);
 		BT_ASSERT(cs);
 		stream->discarded_events_state.end_cs = bt_clock_snapshot_get_value(cs);
@@ -756,12 +756,12 @@ bt_self_component_status handle_discarded_packets_msg(
 		 * The clock snapshot values will be validated when
 		 * handling the next "packet beginning" message.
 		 */
-		cs = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+		cs = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		BT_ASSERT(cs);
 		stream->discarded_packets_state.beginning_cs =
 			bt_clock_snapshot_get_value(cs);
-		cs = bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+		cs = bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
 			msg);
 		BT_ASSERT(cs);
 		stream->discarded_packets_state.end_cs =

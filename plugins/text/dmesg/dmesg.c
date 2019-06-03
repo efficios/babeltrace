@@ -162,9 +162,9 @@ int create_meta(struct dmesg_component *dmesg_comp, bool has_ts)
 			goto error;
 		}
 
-		bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+		bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
 			dmesg_comp->stream_class, BT_TRUE);
-		bt_stream_class_set_packets_have_default_end_clock_snapshot(
+		bt_stream_class_set_packets_have_end_default_clock_snapshot(
 			dmesg_comp->stream_class, BT_TRUE);
 	}
 

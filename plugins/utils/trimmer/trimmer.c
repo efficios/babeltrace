@@ -669,7 +669,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			goto error;
 		}
 
-		clock_snapshot = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+		clock_snapshot = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
@@ -680,7 +680,7 @@ int get_msg_ns_from_origin(const bt_message *msg, int64_t *ns_from_origin,
 			goto error;
 		}
 
-		clock_snapshot = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+		clock_snapshot = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 			msg);
 		break;
 	case BT_MESSAGE_TYPE_STREAM_ACTIVITY_BEGINNING:
@@ -1424,7 +1424,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			 * know there's a default clock and it's always
 			 * known.
 			 */
-			end_cs = bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+			end_cs = bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 				msg);
 		} else {
 			/*
@@ -1432,7 +1432,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			 * know there's a default clock and it's always
 			 * known.
 			 */
-			end_cs = bt_message_discarded_packets_borrow_default_end_clock_snapshot_const(
+			end_cs = bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
 				msg);
 		}
 
@@ -1475,7 +1475,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 			}
 
 			if (msg_type == BT_MESSAGE_TYPE_DISCARDED_EVENTS) {
-				begin_cs = bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+				begin_cs = bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 					msg);
 				new_msg = bt_message_discarded_events_create_with_default_clock_snapshots(
 					trimmer_it->self_msg_iter,
@@ -1483,7 +1483,7 @@ bt_self_message_iterator_status handle_message_with_stream_state(
 					bt_clock_snapshot_get_value(begin_cs),
 					end_raw_value);
 			} else {
-				begin_cs = bt_message_discarded_packets_borrow_default_beginning_clock_snapshot_const(
+				begin_cs = bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
 					msg);
 				new_msg = bt_message_discarded_packets_create_with_default_clock_snapshots(
 					trimmer_it->self_msg_iter,
@@ -1740,7 +1740,7 @@ bt_self_message_iterator_status handle_message(
 			 * the support for not having them is
 			 * implemented.
 			 */
-			if (!bt_stream_class_packets_have_default_beginning_clock_snapshot(
+			if (!bt_stream_class_packets_have_beginning_default_clock_snapshot(
 					sc)) {
 				BT_LOGE("Unsupported stream: packets have "
 					"no beginning clock snapshot: "
@@ -1753,7 +1753,7 @@ bt_self_message_iterator_status handle_message(
 				goto end;
 			}
 
-			if (!bt_stream_class_packets_have_default_end_clock_snapshot(
+			if (!bt_stream_class_packets_have_end_default_clock_snapshot(
 					sc)) {
 				BT_LOGE("Unsupported stream: packets have "
 					"no end clock snapshot: "

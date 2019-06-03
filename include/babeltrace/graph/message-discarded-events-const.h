@@ -31,11 +31,11 @@ extern "C" {
 #endif
 
 extern const bt_clock_snapshot *
-bt_message_discarded_events_borrow_default_beginning_clock_snapshot_const(
+bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
 		const bt_message *msg);
 
 extern const bt_clock_snapshot *
-bt_message_discarded_events_borrow_default_end_clock_snapshot_const(
+bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
 		const bt_message *msg);
 
 extern const bt_clock_class *

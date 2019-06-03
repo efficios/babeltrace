@@ -41,10 +41,10 @@ extern bt_bool bt_stream_class_assigns_automatic_event_class_id(
 extern bt_bool bt_stream_class_assigns_automatic_stream_id(
 		const bt_stream_class *stream_class);
 
-extern bt_bool bt_stream_class_packets_have_default_beginning_clock_snapshot(
+extern bt_bool bt_stream_class_packets_have_beginning_default_clock_snapshot(
 		const bt_stream_class *stream_class);
 
-extern bt_bool bt_stream_class_packets_have_default_end_clock_snapshot(
+extern bt_bool bt_stream_class_packets_have_end_default_clock_snapshot(
 		const bt_stream_class *stream_class);
 
 extern bt_bool bt_stream_class_supports_discarded_events(
@@ -109,10 +109,10 @@ extern void bt_stream_class_set_assigns_automatic_event_class_id(
 extern void bt_stream_class_set_assigns_automatic_stream_id(
 		bt_stream_class *stream_class, bt_bool value);
 
-extern void bt_stream_class_set_packets_have_default_beginning_clock_snapshot(
+extern void bt_stream_class_set_packets_have_beginning_default_clock_snapshot(
 		bt_stream_class *stream_class, bt_bool value);
 
-extern void bt_stream_class_set_packets_have_default_end_clock_snapshot(
+extern void bt_stream_class_set_packets_have_end_default_clock_snapshot(
 		bt_stream_class *stream_class, bt_bool value);
 
 extern void bt_stream_class_set_supports_discarded_events(
