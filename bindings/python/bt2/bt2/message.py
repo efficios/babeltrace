@@ -145,17 +145,8 @@ class _PacketBeginningMessage(_CopyableMessage):
         return PacketBeginningMessage(self.packet)
 
 
-class PacketEndMessage(_CopyableMessage):
+class _PacketEndMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_PACKET_END
-
-    def __init__(self, packet):
-        utils._check_type(packet, bt2.packet._Packet)
-        ptr = native_bt.message_packet_end_create(packet._ptr)
-
-        if ptr is None:
-            raise bt2.CreationError('cannot create packet end message object')
-
-        super().__init__(ptr)
 
     @property
     def packet(self):
@@ -206,17 +197,8 @@ class _StreamBeginningMessage(_CopyableMessage):
         return StreamBeginningMessage(self.stream)
 
 
-class StreamEndMessage(_CopyableMessage):
+class _StreamEndMessage(_CopyableMessage):
     _TYPE = native_bt.MESSAGE_TYPE_STREAM_END
-
-    def __init__(self, stream):
-        utils._check_type(stream, bt2.stream._Stream)
-        ptr = native_bt.message_stream_end_create(stream._ptr)
-
-        if ptr is None:
-            raise bt2.CreationError('cannot create stream end message object')
-
-        super().__init__(ptr)
 
     @property
     def stream(self):
@@ -473,9 +455,9 @@ class _DiscardedEventsMessage(_DiscardedElementsMessage):
 _MESSAGE_TYPE_TO_CLS = {
     native_bt.MESSAGE_TYPE_EVENT: _EventMessage,
     native_bt.MESSAGE_TYPE_PACKET_BEGINNING: _PacketBeginningMessage,
-    native_bt.MESSAGE_TYPE_PACKET_END: PacketEndMessage,
+    native_bt.MESSAGE_TYPE_PACKET_END: _PacketEndMessage,
     native_bt.MESSAGE_TYPE_STREAM_BEGINNING: _StreamBeginningMessage,
-    native_bt.MESSAGE_TYPE_STREAM_END: StreamEndMessage,
+    native_bt.MESSAGE_TYPE_STREAM_END: _StreamEndMessage,
     native_bt.MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY: InactivityMessage,
     native_bt.MESSAGE_TYPE_DISCARDED_PACKETS: _DiscardedPacketsMessage,
     native_bt.MESSAGE_TYPE_DISCARDED_EVENTS: _DiscardedEventsMessage,
