@@ -16,7 +16,7 @@ You can also use the "master" include file which provides everything,
 but which necessarily makes the compilation slower:
 
 @code
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 @endcode
 
 @section howtobuild How to build

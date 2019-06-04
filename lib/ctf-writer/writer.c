@@ -27,21 +27,21 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-writer/clock-internal.h>
-#include <babeltrace/ctf-writer/field-types-internal.h>
-#include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/ctf-writer/functor-internal.h>
-#include <babeltrace/ctf-writer/stream-class-internal.h>
-#include <babeltrace/ctf-writer/stream-internal.h>
-#include <babeltrace/ctf-writer/trace-internal.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/ctf-writer/object.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/compat/uuid-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/ctf-writer/clock-internal.h>
+#include <babeltrace2/ctf-writer/field-types-internal.h>
+#include <babeltrace2/ctf-writer/fields-internal.h>
+#include <babeltrace2/ctf-writer/functor-internal.h>
+#include <babeltrace2/ctf-writer/stream-class-internal.h>
+#include <babeltrace2/ctf-writer/stream-internal.h>
+#include <babeltrace2/ctf-writer/trace-internal.h>
+#include <babeltrace2/ctf-writer/writer-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>

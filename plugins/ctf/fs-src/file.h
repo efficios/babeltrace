@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
 #include "fs.h"
 
 BT_HIDDEN

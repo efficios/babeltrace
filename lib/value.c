@@ -21,21 +21,21 @@
  */
 
 #define BT_LOG_TAG "VALUES"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
 #include <stdlib.h>
 #include <string.h>
 #include <string.h>
 #include <inttypes.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/value-const.h>
-#include <babeltrace/value.h>
-#include <babeltrace/compat/glib-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/value-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/value-const.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/compat/glib-internal.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/value-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 #define BT_VALUE_TO_BOOL(_base) ((struct bt_value_bool *) (_base))
 #define BT_VALUE_TO_INTEGER(_base) ((struct bt_value_integer *) (_base))

@@ -21,17 +21,17 @@
  */
 
 #define BT_LOG_TAG "MSG-MESSAGE-ITERATOR-INACTIVITY"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/graph/message-internal.h>
-#include <babeltrace/graph/message-message-iterator-inactivity-const.h>
-#include <babeltrace/graph/message-message-iterator-inactivity.h>
-#include <babeltrace/graph/message-message-iterator-inactivity-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/trace-ir/clock-class.h>
+#include <babeltrace2/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace2/graph/message-internal.h>
+#include <babeltrace2/graph/message-message-iterator-inactivity-const.h>
+#include <babeltrace2/graph/message-message-iterator-inactivity.h>
+#include <babeltrace2/graph/message-message-iterator-inactivity-internal.h>
 
 static
 void bt_message_message_iterator_inactivity_destroy(struct bt_object *obj)

@@ -34,11 +34,11 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-#include <babeltrace/compat/socket-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/compat/socket-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "lttng-live.h"
 #include "viewer-connection.h"

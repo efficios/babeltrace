@@ -23,11 +23,11 @@
 #define BT_LOG_TAG "PLUGIN-UTILS-COUNTER-FLT"
 #include "logging.h"
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/common-internal.h>
 #include <plugins-common.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 

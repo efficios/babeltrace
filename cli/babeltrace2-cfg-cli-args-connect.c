@@ -21,8 +21,8 @@
  */
 
 #include <stdlib.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/common-internal.h>
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args-connect.h"
 

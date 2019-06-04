@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 #include "babeltrace2-cfg.h"
 #include "babeltrace2-cfg-cli-args.h"
 #include "babeltrace2-cfg-cli-args-default.h"

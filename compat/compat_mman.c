@@ -45,7 +45,7 @@ int bt_mman_dummy_symbol;
 #include <pthread.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <babeltrace/compat/mman-internal.h>
+#include <babeltrace2/compat/mman-internal.h>
 
 struct mmap_mapping {
 	/* The duplicated handle. */

@@ -26,12 +26,12 @@
 
 #include "query.h"
 #include <stdbool.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include "metadata.h"
 #include "../common/metadata/decoder.h"
-#include <babeltrace/common-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
 #include "fs.h"
 
 #define BT_LOG_TAG "PLUGIN-CTF-FS-QUERY-SRC"

@@ -24,7 +24,7 @@
 #define CTF_FS_SRC_LOGGING_H
 
 #define BT_LOG_OUTPUT_LEVEL ctf_fs_src_log_level
-#include <babeltrace/logging-internal.h>
+#include <babeltrace2/logging-internal.h>
 
 BT_LOG_LEVEL_EXTERN_SYMBOL(ctf_fs_src_log_level);
 

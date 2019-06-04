@@ -31,8 +31,8 @@
 
 #include <stdbool.h>
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "../common/metadata/decoder.h"
 #include "../common/msg-iter/msg-iter.h"

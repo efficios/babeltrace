@@ -27,19 +27,19 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-CLOCK-CLASS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/ctf-writer/clock-class-internal.h>
-#include <babeltrace/ctf-writer/utils.h>
-#include <babeltrace/ctf-writer/object.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/compat/string-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compat/uuid-internal.h>
+#include <babeltrace2/ctf-writer/clock-class-internal.h>
+#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/compat/string-internal.h>
 #include <inttypes.h>
-#include <babeltrace/ctf-writer/object-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/ctf-writer/object-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 static
 void bt_ctf_clock_class_destroy(struct bt_ctf_object *obj);

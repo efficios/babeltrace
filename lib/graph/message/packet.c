@@ -22,24 +22,24 @@
  */
 
 #define BT_LOG_TAG "MSG-PACKET"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/trace-ir/packet.h>
-#include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/trace-ir/stream-class.h>
-#include <babeltrace/trace-ir/stream.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/message-packet-beginning-const.h>
-#include <babeltrace/graph/message-packet-end-const.h>
-#include <babeltrace/graph/message-packet-beginning.h>
-#include <babeltrace/graph/message-packet-end.h>
-#include <babeltrace/graph/message-packet-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/trace-ir/packet.h>
+#include <babeltrace2/trace-ir/packet-internal.h>
+#include <babeltrace2/trace-ir/stream-class.h>
+#include <babeltrace2/trace-ir/stream.h>
+#include <babeltrace2/trace-ir/stream-internal.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/graph/graph-internal.h>
+#include <babeltrace2/graph/message-packet-beginning-const.h>
+#include <babeltrace2/graph/message-packet-end-const.h>
+#include <babeltrace2/graph/message-packet-beginning.h>
+#include <babeltrace2/graph/message-packet-end.h>
+#include <babeltrace2/graph/message-packet-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/object-internal.h>
 #include <inttypes.h>
 
 static inline

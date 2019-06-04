@@ -22,24 +22,24 @@
  */
 
 #define BT_LOG_TAG "STREAM-CLASS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/clock-class-internal.h>
-#include <babeltrace/trace-ir/event-class-internal.h>
-#include <babeltrace/trace-ir/field-class-internal.h>
-#include <babeltrace/trace-ir/field-internal.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/trace-const.h>
-#include <babeltrace/trace-ir/trace-internal.h>
-#include <babeltrace/trace-ir/utils-internal.h>
-#include <babeltrace/trace-ir/field-wrapper-internal.h>
-#include <babeltrace/trace-ir/resolve-field-path-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/align-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/property-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/trace-ir/clock-class-internal.h>
+#include <babeltrace2/trace-ir/event-class-internal.h>
+#include <babeltrace2/trace-ir/field-class-internal.h>
+#include <babeltrace2/trace-ir/field-internal.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/trace-const.h>
+#include <babeltrace2/trace-ir/trace-internal.h>
+#include <babeltrace2/trace-ir/utils-internal.h>
+#include <babeltrace2/trace-ir/field-wrapper-internal.h>
+#include <babeltrace2/trace-ir/resolve-field-path-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/align-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/property-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>

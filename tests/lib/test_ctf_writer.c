@@ -19,25 +19,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <babeltrace/ctf-writer/writer.h>
-#include <babeltrace/ctf-writer/clock.h>
-#include <babeltrace/ctf-writer/clock-class.h>
-#include <babeltrace/ctf-writer/stream.h>
-#include <babeltrace/ctf-writer/event.h>
-#include <babeltrace/ctf-writer/event-types.h>
-#include <babeltrace/ctf-writer/event-fields.h>
-#include <babeltrace/ctf-writer/stream-class.h>
-#include <babeltrace/ctf-writer/trace.h>
-#include <babeltrace/ctf/events.h>
-#include <babeltrace/value.h>
+#include <babeltrace2/ctf-writer/writer.h>
+#include <babeltrace2/ctf-writer/clock.h>
+#include <babeltrace2/ctf-writer/clock-class.h>
+#include <babeltrace2/ctf-writer/stream.h>
+#include <babeltrace2/ctf-writer/event.h>
+#include <babeltrace2/ctf-writer/event-types.h>
+#include <babeltrace2/ctf-writer/event-fields.h>
+#include <babeltrace2/ctf-writer/stream-class.h>
+#include <babeltrace2/ctf-writer/trace.h>
+#include <babeltrace2/ctf/events.h>
+#include <babeltrace2/value.h>
 #include <glib.h>
 #include <unistd.h>
-#include <babeltrace/compat/stdlib-internal.h>
+#include <babeltrace2/compat/stdlib-internal.h>
 #include <stdio.h>
-#include <babeltrace/compat/limits-internal.h>
-#include <babeltrace/compat/stdio-internal.h>
+#include <babeltrace2/compat/limits-internal.h>
+#include <babeltrace2/compat/stdio-internal.h>
 #include <string.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <fcntl.h>
 #include "tap/tap.h"
 #include <math.h>

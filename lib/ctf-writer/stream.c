@@ -22,25 +22,25 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-STREAM"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/align-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-writer/event-class-internal.h>
-#include <babeltrace/ctf-writer/event-internal.h>
-#include <babeltrace/ctf-writer/field-types.h>
-#include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/ctf-writer/stream-class-internal.h>
-#include <babeltrace/ctf-writer/stream-class.h>
-#include <babeltrace/ctf-writer/stream-internal.h>
-#include <babeltrace/ctf-writer/stream.h>
-#include <babeltrace/ctf-writer/trace-internal.h>
-#include <babeltrace/ctf-writer/trace.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/ctf-writer/object.h>
-#include <babeltrace/ctfser-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/align-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/ctf-writer/event-class-internal.h>
+#include <babeltrace2/ctf-writer/event-internal.h>
+#include <babeltrace2/ctf-writer/field-types.h>
+#include <babeltrace2/ctf-writer/fields-internal.h>
+#include <babeltrace2/ctf-writer/stream-class-internal.h>
+#include <babeltrace2/ctf-writer/stream-class.h>
+#include <babeltrace2/ctf-writer/stream-internal.h>
+#include <babeltrace2/ctf-writer/stream.h>
+#include <babeltrace2/ctf-writer/trace-internal.h>
+#include <babeltrace2/ctf-writer/trace.h>
+#include <babeltrace2/ctf-writer/writer-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2/ctfser-internal.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <unistd.h>

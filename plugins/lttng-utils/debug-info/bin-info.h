@@ -31,8 +31,8 @@
 #include <stdbool.h>
 #include <gelf.h>
 #include <elfutils/libdw.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/fd-cache-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/fd-cache-internal.h>
 
 #define DEFAULT_DEBUG_DIR "/usr/lib/debug"
 #define DEBUG_SUBDIR ".debug"

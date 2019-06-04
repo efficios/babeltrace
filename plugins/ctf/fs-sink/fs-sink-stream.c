@@ -23,13 +23,13 @@
 #define BT_LOG_TAG "PLUGIN-CTF-FS-SINK-STREAM"
 #include "logging.h"
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <glib.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/ctfser-internal.h>
-#include <babeltrace/endian-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/ctfser-internal.h>
+#include <babeltrace2/endian-internal.h>
 
 #include "fs-sink-trace.h"
 #include "fs-sink-stream.h"

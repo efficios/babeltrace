@@ -26,7 +26,7 @@
  */
 
 #include <stdio.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
 
 #define PERR(fmt, ...)							\
 	do {								\

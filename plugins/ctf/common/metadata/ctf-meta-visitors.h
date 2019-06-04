@@ -15,8 +15,8 @@
  * all copies or substantial portions of the Software.
  */
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
 
 #include "ctf-meta.h"
 

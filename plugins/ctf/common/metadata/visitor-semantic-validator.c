@@ -31,11 +31,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <errno.h>
-#include <babeltrace/list-internal.h>
+#include <babeltrace2/list-internal.h>
 #include "scanner.h"
 #include "parser.h"
 #include "ast.h"

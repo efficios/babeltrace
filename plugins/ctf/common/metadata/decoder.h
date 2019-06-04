@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 
 /* A CTF metadata decoder object */
 struct ctf_metadata_decoder;

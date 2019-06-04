@@ -25,8 +25,8 @@
 
 #include <stdio.h>
 #include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
 #include "lttng-live.h"
 
 int lttng_live_metadata_create_stream(struct lttng_live_session *session,

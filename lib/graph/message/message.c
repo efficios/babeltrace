@@ -22,13 +22,13 @@
  */
 
 #define BT_LOG_TAG "MSG"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/graph/message-const.h>
-#include <babeltrace/graph/message-internal.h>
-#include <babeltrace/graph/graph-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/graph/message-const.h>
+#include <babeltrace2/graph/message-internal.h>
+#include <babeltrace2/graph/graph-internal.h>
 
 BT_HIDDEN
 void bt_message_init(struct bt_message *message,

@@ -22,29 +22,29 @@
  */
 
 #define BT_LOG_TAG "COMP"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/graph/self-component.h>
-#include <babeltrace/graph/component-const.h>
-#include <babeltrace/graph/component-source-const.h>
-#include <babeltrace/graph/component-filter-const.h>
-#include <babeltrace/graph/component-sink-const.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/graph/component-source-internal.h>
-#include <babeltrace/graph/component-filter-internal.h>
-#include <babeltrace/graph/component-sink-internal.h>
-#include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/graph/graph-internal.h>
-#include <babeltrace/graph/message-iterator-internal.h>
-#include <babeltrace/graph/port-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/types.h>
-#include <babeltrace/value.h>
-#include <babeltrace/value-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/graph/self-component.h>
+#include <babeltrace2/graph/component-const.h>
+#include <babeltrace2/graph/component-source-const.h>
+#include <babeltrace2/graph/component-filter-const.h>
+#include <babeltrace2/graph/component-sink-const.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/component-class-internal.h>
+#include <babeltrace2/graph/component-source-internal.h>
+#include <babeltrace2/graph/component-filter-internal.h>
+#include <babeltrace2/graph/component-sink-internal.h>
+#include <babeltrace2/graph/connection-internal.h>
+#include <babeltrace2/graph/graph-internal.h>
+#include <babeltrace2/graph/message-iterator-internal.h>
+#include <babeltrace2/graph/port-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/value.h>
+#include <babeltrace2/value-internal.h>
 #include <stdint.h>
 #include <inttypes.h>
 

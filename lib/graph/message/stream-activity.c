@@ -21,21 +21,21 @@
  */
 
 #define BT_LOG_TAG "MSG-STREAM-ACTIVITY"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/trace-ir/clock-class.h>
-#include <babeltrace/trace-ir/clock-snapshot-internal.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/graph/message-internal.h>
-#include <babeltrace/graph/message-stream-activity-beginning-const.h>
-#include <babeltrace/graph/message-stream-activity-end-const.h>
-#include <babeltrace/graph/message-stream-activity-beginning.h>
-#include <babeltrace/graph/message-stream-activity-end.h>
-#include <babeltrace/graph/message-stream-activity-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/trace-ir/clock-class.h>
+#include <babeltrace2/trace-ir/clock-snapshot-internal.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/stream-internal.h>
+#include <babeltrace2/graph/message-internal.h>
+#include <babeltrace2/graph/message-stream-activity-beginning-const.h>
+#include <babeltrace2/graph/message-stream-activity-end-const.h>
+#include <babeltrace2/graph/message-stream-activity-beginning.h>
+#include <babeltrace2/graph/message-stream-activity-end.h>
+#include <babeltrace2/graph/message-stream-activity-internal.h>
 
 static
 void destroy_stream_activity_message(struct bt_object *obj)

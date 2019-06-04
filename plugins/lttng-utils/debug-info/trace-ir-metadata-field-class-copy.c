@@ -27,10 +27,10 @@
 #define BT_LOG_TAG "PLUGIN-LTTNG-UTILS-DEBUG-INFO-TRACE-IR-METADATA-FC-COPY"
 #include "logging.h"
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "trace-ir-metadata-copy.h"
 #include "trace-ir-metadata-field-class-copy.h"

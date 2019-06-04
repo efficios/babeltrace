@@ -30,7 +30,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 #include "trace-ir-metadata-copy.h"
 #include "trace-ir-metadata-field-class-copy.h"

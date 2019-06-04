@@ -22,29 +22,29 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-EVENT-CLASS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-writer/attributes-internal.h>
-#include <babeltrace/ctf-writer/event-class-internal.h>
-#include <babeltrace/ctf-writer/event-internal.h>
-#include <babeltrace/ctf-writer/event.h>
-#include <babeltrace/ctf-writer/field-types-internal.h>
-#include <babeltrace/ctf-writer/field-types.h>
-#include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/ctf-writer/stream-class-internal.h>
-#include <babeltrace/ctf-writer/stream-class.h>
-#include <babeltrace/ctf-writer/trace-internal.h>
-#include <babeltrace/ctf-writer/utils-internal.h>
-#include <babeltrace/ctf-writer/utils.h>
-#include <babeltrace/ctf-writer/validation-internal.h>
-#include <babeltrace/ctf-writer/writer-internal.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/ctf-writer/object.h>
-#include <babeltrace/types.h>
-#include <babeltrace/ctf-writer/values-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/ctf-writer/attributes-internal.h>
+#include <babeltrace2/ctf-writer/event-class-internal.h>
+#include <babeltrace2/ctf-writer/event-internal.h>
+#include <babeltrace2/ctf-writer/event.h>
+#include <babeltrace2/ctf-writer/field-types-internal.h>
+#include <babeltrace2/ctf-writer/field-types.h>
+#include <babeltrace2/ctf-writer/fields-internal.h>
+#include <babeltrace2/ctf-writer/stream-class-internal.h>
+#include <babeltrace2/ctf-writer/stream-class.h>
+#include <babeltrace2/ctf-writer/trace-internal.h>
+#include <babeltrace2/ctf-writer/utils-internal.h>
+#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2/ctf-writer/validation-internal.h>
+#include <babeltrace2/ctf-writer/writer-internal.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
+#include <babeltrace2/types.h>
+#include <babeltrace2/ctf-writer/values-internal.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <inttypes.h>

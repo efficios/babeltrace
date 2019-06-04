@@ -32,9 +32,9 @@
 #define BT_LOG_TAG "PY-NATIVE"
 #include "logging.h"
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/property.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/property.h>
+#include <babeltrace2/assert-internal.h>
 
 typedef const uint8_t *bt_uuid;
 %}

@@ -24,10 +24,10 @@ def _get_sections(file):
             cur_title = m.group(1)
             continue
 
-        m = re.match(r'^\s+(babeltrace/.+\.h).*$', line)
+        m = re.match(r'^\s+(babeltrace2/.+\.h).*$', line)
 
         if m:
-            if m.group(1) != 'babeltrace/babeltrace.h':
+            if m.group(1) != 'babeltrace2/babeltrace.h':
                 cur_filenames.append(m.group(1))
 
             continue

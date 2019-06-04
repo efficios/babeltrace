@@ -24,19 +24,19 @@
  */
 
 #define BT_LOG_TAG "PLUGIN"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/plugin/plugin-internal.h>
-#include <babeltrace/plugin/plugin-so-internal.h>
-#include <babeltrace/plugin/plugin-const.h>
-#include <babeltrace/graph/component-class-const.h>
-#include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/types.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/plugin/plugin-internal.h>
+#include <babeltrace2/plugin/plugin-so-internal.h>
+#include <babeltrace2/plugin/plugin-const.h>
+#include <babeltrace2/graph/component-class-const.h>
+#include <babeltrace2/graph/component-class-internal.h>
+#include <babeltrace2/types.h>
 #include <glib.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -53,7 +53,7 @@
 #define APPEND_ALL_FROM_DIR_NFDOPEN_MAX	8
 
 #ifdef BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT
-#include <babeltrace/plugin/python-plugin-provider-internal.h>
+#include <babeltrace2/plugin/python-plugin-provider-internal.h>
 
 static
 struct bt_plugin_set *(*bt_plugin_python_create_all_from_file_sym)(const char *path) =

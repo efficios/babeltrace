@@ -26,8 +26,8 @@
  */
 
 #include <stdbool.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 enum pretty_default {
 	PRETTY_DEFAULT_UNSET,

@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/version.h>
-#include <babeltrace/types.h>
+#include <babeltrace2/version.h>
+#include <babeltrace2/types.h>
 #include <stdlib.h>
 
 int bt_version_get_major(void)

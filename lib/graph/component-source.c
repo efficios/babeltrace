@@ -22,19 +22,19 @@
  */
 
 #define BT_LOG_TAG "COMP-SOURCE"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/graph/self-component-source.h>
-#include <babeltrace/graph/component-source-const.h>
-#include <babeltrace/graph/component-source-internal.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/port-internal.h>
-#include <babeltrace/graph/message-iterator-const.h>
-#include <babeltrace/graph/message-iterator-internal.h>
-#include <babeltrace/graph/graph.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/graph/self-component-source.h>
+#include <babeltrace2/graph/component-source-const.h>
+#include <babeltrace2/graph/component-source-internal.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/port-internal.h>
+#include <babeltrace2/graph/message-iterator-const.h>
+#include <babeltrace2/graph/message-iterator-internal.h>
+#include <babeltrace2/graph/graph.h>
 
 BT_HIDDEN
 void bt_component_source_destroy(struct bt_component *component)

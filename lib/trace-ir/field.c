@@ -22,18 +22,18 @@
  */
 
 #define BT_LOG_TAG "FIELDS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/field.h>
-#include <babeltrace/trace-ir/field-const.h>
-#include <babeltrace/trace-ir/field-internal.h>
-#include <babeltrace/trace-ir/field-class-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/compat/fcntl-internal.h>
-#include <babeltrace/align-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/trace-ir/field.h>
+#include <babeltrace2/trace-ir/field-const.h>
+#include <babeltrace2/trace-ir/field-internal.h>
+#include <babeltrace2/trace-ir/field-class-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/compat/fcntl-internal.h>
+#include <babeltrace2/align-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <inttypes.h>
 
 static

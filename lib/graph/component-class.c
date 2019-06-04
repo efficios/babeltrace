@@ -22,21 +22,21 @@
  */
 
 #define BT_LOG_TAG "COMP-CLASS"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/graph/component-class.h>
-#include <babeltrace/graph/component-class-const.h>
-#include <babeltrace/graph/component-class-source.h>
-#include <babeltrace/graph/component-class-source-const.h>
-#include <babeltrace/graph/component-class-filter.h>
-#include <babeltrace/graph/component-class-filter-const.h>
-#include <babeltrace/graph/component-class-sink.h>
-#include <babeltrace/graph/component-class-sink-const.h>
-#include <babeltrace/graph/component-class-internal.h>
-#include <babeltrace/types.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/graph/component-class.h>
+#include <babeltrace2/graph/component-class-const.h>
+#include <babeltrace2/graph/component-class-source.h>
+#include <babeltrace2/graph/component-class-source-const.h>
+#include <babeltrace2/graph/component-class-filter.h>
+#include <babeltrace2/graph/component-class-filter-const.h>
+#include <babeltrace2/graph/component-class-sink.h>
+#include <babeltrace2/graph/component-class-sink-const.h>
+#include <babeltrace2/graph/component-class-internal.h>
+#include <babeltrace2/types.h>
 #include <glib.h>
 
 #define BT_ASSERT_PRE_COMP_CLS_HOT(_cc) \

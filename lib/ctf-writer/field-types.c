@@ -23,23 +23,23 @@
  */
 
 #define BT_LOG_TAG "CTF-WRITER-FIELD-TYPES"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/ctf-writer/clock-class-internal.h>
-#include <babeltrace/ctf-writer/clock-internal.h>
-#include <babeltrace/ctf-writer/field-path-internal.h>
-#include <babeltrace/ctf-writer/field-types-internal.h>
-#include <babeltrace/ctf-writer/field-types.h>
-#include <babeltrace/ctf-writer/fields-internal.h>
-#include <babeltrace/ctf-writer/fields.h>
-#include <babeltrace/ctf-writer/utils-internal.h>
-#include <babeltrace/ctf-writer/utils.h>
-#include <babeltrace/endian-internal.h>
-#include <babeltrace/ctf-writer/object-internal.h>
-#include <babeltrace/ctf-writer/object.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/ctf-writer/clock-class-internal.h>
+#include <babeltrace2/ctf-writer/clock-internal.h>
+#include <babeltrace2/ctf-writer/field-path-internal.h>
+#include <babeltrace2/ctf-writer/field-types-internal.h>
+#include <babeltrace2/ctf-writer/field-types.h>
+#include <babeltrace2/ctf-writer/fields-internal.h>
+#include <babeltrace2/ctf-writer/fields.h>
+#include <babeltrace2/ctf-writer/utils-internal.h>
+#include <babeltrace2/ctf-writer/utils.h>
+#include <babeltrace2/endian-internal.h>
+#include <babeltrace2/ctf-writer/object-internal.h>
+#include <babeltrace2/ctf-writer/object.h>
 #include <float.h>
 #include <inttypes.h>
 #include <stdlib.h>

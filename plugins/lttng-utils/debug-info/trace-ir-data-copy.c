@@ -29,7 +29,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 
 #include "trace-ir-data-copy.h"
 

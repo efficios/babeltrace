@@ -22,21 +22,21 @@
  */
 
 #define BT_LOG_TAG "STREAM"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/stream-const.h>
-#include <babeltrace/trace-ir/stream.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/trace-ir/stream-class.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/trace.h>
-#include <babeltrace/trace-ir/trace-internal.h>
-#include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/compiler-internal.h>
-#include <babeltrace/align-internal.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/property-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/trace-ir/stream-const.h>
+#include <babeltrace2/trace-ir/stream.h>
+#include <babeltrace2/trace-ir/stream-internal.h>
+#include <babeltrace2/trace-ir/stream-class.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/trace.h>
+#include <babeltrace2/trace-ir/trace-internal.h>
+#include <babeltrace2/trace-ir/packet-internal.h>
+#include <babeltrace2/compiler-internal.h>
+#include <babeltrace2/align-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/property-internal.h>
 #include <inttypes.h>
 #include <unistd.h>
 

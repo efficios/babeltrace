@@ -21,7 +21,7 @@
  */
 
 #define BT_LOG_OUTPUT_LEVEL bt_plugin_lttng_utils_debug_info_log_level
-#include <babeltrace/logging-internal.h>
+#include <babeltrace2/logging-internal.h>
 
 BT_LOG_INIT_LOG_LEVEL(bt_plugin_lttng_utils_debug_info_log_level,
 	"BABELTRACE_FLT_LTTNG_UTILS_DEBUG_INFO_LOG_LEVEL");

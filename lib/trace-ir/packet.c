@@ -21,22 +21,22 @@
  */
 
 #define BT_LOG_TAG "PACKET"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/trace-ir/field-internal.h>
-#include <babeltrace/trace-ir/packet-const.h>
-#include <babeltrace/trace-ir/packet.h>
-#include <babeltrace/trace-ir/packet-internal.h>
-#include <babeltrace/trace-ir/field-wrapper-internal.h>
-#include <babeltrace/trace-ir/trace.h>
-#include <babeltrace/trace-ir/stream-class-internal.h>
-#include <babeltrace/trace-ir/stream-class.h>
-#include <babeltrace/trace-ir/stream.h>
-#include <babeltrace/trace-ir/stream-internal.h>
-#include <babeltrace/trace-ir/trace-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/trace-ir/field-internal.h>
+#include <babeltrace2/trace-ir/packet-const.h>
+#include <babeltrace2/trace-ir/packet.h>
+#include <babeltrace2/trace-ir/packet-internal.h>
+#include <babeltrace2/trace-ir/field-wrapper-internal.h>
+#include <babeltrace2/trace-ir/trace.h>
+#include <babeltrace2/trace-ir/stream-class-internal.h>
+#include <babeltrace2/trace-ir/stream-class.h>
+#include <babeltrace2/trace-ir/stream.h>
+#include <babeltrace2/trace-ir/stream-internal.h>
+#include <babeltrace2/trace-ir/trace-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <inttypes.h>
 
 #define BT_ASSERT_PRE_PACKET_HOT(_packet) \

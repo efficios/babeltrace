@@ -22,21 +22,21 @@
  */
 
 #define BT_LOG_TAG "PORT"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/graph/port-const.h>
-#include <babeltrace/graph/port-input-const.h>
-#include <babeltrace/graph/port-output-const.h>
-#include <babeltrace/graph/self-component-port.h>
-#include <babeltrace/graph/self-component-port-input.h>
-#include <babeltrace/graph/self-component-port-output.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/port-internal.h>
-#include <babeltrace/graph/connection-internal.h>
-#include <babeltrace/object-internal.h>
-#include <babeltrace/compiler-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/graph/port-const.h>
+#include <babeltrace2/graph/port-input-const.h>
+#include <babeltrace2/graph/port-output-const.h>
+#include <babeltrace2/graph/self-component-port.h>
+#include <babeltrace2/graph/self-component-port-input.h>
+#include <babeltrace2/graph/self-component-port-output.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/port-internal.h>
+#include <babeltrace2/graph/connection-internal.h>
+#include <babeltrace2/object-internal.h>
+#include <babeltrace2/compiler-internal.h>
 
 static
 void destroy_port(struct bt_object *obj)

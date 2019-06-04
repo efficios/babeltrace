@@ -23,19 +23,19 @@
 #define BT_LOG_TAG "PLUGIN-UTILS-MUXER-FLT"
 #include "logging.h"
 
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/compat/uuid-internal.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/value-internal.h>
-#include <babeltrace/graph/component-internal.h>
-#include <babeltrace/graph/message-iterator-internal.h>
-#include <babeltrace/graph/connection-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/compat/uuid-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/value-internal.h>
+#include <babeltrace2/graph/component-internal.h>
+#include <babeltrace2/graph/message-iterator-internal.h>
+#include <babeltrace2/graph/connection-internal.h>
 #include <plugins-common.h>
 #include <glib.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/common-internal.h>
 #include <stdlib.h>
 #include <string.h>
 

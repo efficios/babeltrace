@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 #include "trace-ir-mapping.h"
 
 BT_HIDDEN

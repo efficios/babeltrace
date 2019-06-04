@@ -25,8 +25,8 @@
 
 #include <stdio.h>
 #include <glib.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "lttng-live.h"
 #include "../common/msg-iter/msg-iter.h"

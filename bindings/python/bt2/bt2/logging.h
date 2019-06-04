@@ -24,7 +24,7 @@
  */
 
 #define BT_LOG_OUTPUT_LEVEL bt_python_bindings_bt2_log_level
-#include <babeltrace/logging-internal.h>
+#include <babeltrace2/logging-internal.h>
 
 BT_LOG_LEVEL_EXTERN_SYMBOL(bt_python_bindings_bt2_log_level);
 

@@ -21,12 +21,12 @@
  */
 
 #define BT_LOG_TAG "OBJECT-POOL"
-#include <babeltrace/lib-logging-internal.h>
+#include <babeltrace2/lib-logging-internal.h>
 
 #include <stdint.h>
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/assert-pre-internal.h>
-#include <babeltrace/object-pool-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/assert-pre-internal.h>
+#include <babeltrace2/object-pool-internal.h>
 
 int bt_object_pool_initialize(struct bt_object_pool *pool,
 		bt_object_pool_new_object_func new_object_func,

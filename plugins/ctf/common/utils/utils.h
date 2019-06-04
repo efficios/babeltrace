@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
 
 #endif /* CTF_UTILS_H */

@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/assert-internal.h>
-#include <babeltrace/common-internal.h>
+#include <babeltrace2/assert-internal.h>
+#include <babeltrace2/common-internal.h>
 
 void bt_common_assert_failed(const char *file, int line, const char *func,
 		const char *assertion)

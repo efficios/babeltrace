@@ -20,9 +20,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <glib.h>
-#include <babeltrace/list-internal.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/list-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
 
 #include "decoder.h"
 #include "ctf-meta.h"

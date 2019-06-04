@@ -25,8 +25,8 @@
  */
 
 #include <stdint.h>
-#include <babeltrace/babeltrace.h>
-#include <babeltrace/babeltrace-internal.h>
+#include <babeltrace2/babeltrace.h>
+#include <babeltrace2/babeltrace-internal.h>
 
 BT_HIDDEN
 bt_self_component_status muxer_init(

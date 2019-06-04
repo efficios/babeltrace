@@ -29,7 +29,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <babeltrace/assert-internal.h>
+#include <babeltrace2/assert-internal.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <glib.h>
@@ -37,11 +37,11 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <stdbool.h>
-#include <babeltrace/babeltrace-internal.h>
-#include <babeltrace/common-internal.h>
-#include <babeltrace/ctfser-internal.h>
-#include <babeltrace/compat/unistd-internal.h>
-#include <babeltrace/compat/fcntl-internal.h>
+#include <babeltrace2/babeltrace-internal.h>
+#include <babeltrace2/common-internal.h>
+#include <babeltrace2/ctfser-internal.h>
+#include <babeltrace2/compat/unistd-internal.h>
+#include <babeltrace2/compat/fcntl-internal.h>
 
 static inline
 uint64_t get_packet_size_increment_bytes(void)

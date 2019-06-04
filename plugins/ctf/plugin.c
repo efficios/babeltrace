@@ -26,7 +26,7 @@
  * SOFTWARE.
  */
 
-#include <babeltrace/babeltrace.h>
+#include <babeltrace2/babeltrace.h>
 
 #include "fs-src/fs.h"
 #include "fs-sink/fs-sink.h"
