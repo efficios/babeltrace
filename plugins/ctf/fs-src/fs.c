@@ -1392,7 +1392,7 @@ void merge_ctf_fs_ds_file_groups(struct ctf_fs_ds_file_group *dest, struct ctf_f
 /* Merge src_trace's data stream file groups into dest_trace's. */
 
 static
-void merge_matching_ctf_fs_ds_file_groups(
+int merge_matching_ctf_fs_ds_file_groups(
 		struct ctf_fs_trace *dest_trace,
 		struct ctf_fs_trace *src_trace)
 {
@@ -1400,6 +1400,7 @@ void merge_matching_ctf_fs_ds_file_groups(
 	GPtrArray *dest = dest_trace->ds_file_groups;
 	GPtrArray *src = src_trace->ds_file_groups;
 	guint s_i;
+	int ret = 0;
 
 	/*
 	 * Save the initial length of dest: we only want to check against the
@@ -1453,6 +1454,10 @@ void merge_matching_ctf_fs_ds_file_groups(
 
 			dest_group = ctf_fs_ds_file_group_create(dest_trace, sc,
 				src_group->stream_id);
+			if (!dest_group) {
+				ret = -1;
+				goto end;
+			}
 
 			g_ptr_array_add(dest_trace->ds_file_groups, dest_group);
 		}
@@ -1460,6 +1465,9 @@ void merge_matching_ctf_fs_ds_file_groups(
 		BT_ASSERT(dest_group);
 		merge_ctf_fs_ds_file_groups(dest_group, src_group);
 	}
+
+end:
+	return ret;
 }
 
 /*
@@ -1473,11 +1481,12 @@ void merge_matching_ctf_fs_ds_file_groups(
  */
 
 static
-void merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
+int merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
 {
 	unsigned int winner_count;
 	struct ctf_fs_trace *winner;
 	guint i;
+	int ret = 0;
 	char uuid_str[BABELTRACE_UUID_STR_LEN];
 
 	BT_ASSERT(num_traces >= 2);
@@ -1513,7 +1522,10 @@ void merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
 		}
 
 		/* Merge trace's data stream file groups into winner's. */
-		merge_matching_ctf_fs_ds_file_groups(winner, trace);
+		ret = merge_matching_ctf_fs_ds_file_groups(winner, trace);
+		if (ret) {
+			goto end;
+		}
 
 		/* Free the trace that got merged into winner, clear the slot in the array. */
 		ctf_fs_trace_destroy(trace);
@@ -1523,6 +1535,9 @@ void merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
 	/* Use the string representation of the UUID as the trace name. */
 	bt_uuid_unparse(winner->metadata->tc->uuid, uuid_str);
 	g_string_printf(winner->name, "%s", uuid_str);
+
+end:
+	return ret;
 }
 
 /*
@@ -1531,12 +1546,13 @@ void merge_ctf_fs_traces(struct ctf_fs_trace **traces, unsigned int num_traces)
  */
 
 static
-void merge_traces_with_same_uuid(struct ctf_fs_component *ctf_fs)
+int merge_traces_with_same_uuid(struct ctf_fs_component *ctf_fs)
 {
 	GPtrArray *traces = ctf_fs->traces;
 	guint range_start_idx = 0;
 	unsigned int num_traces = 0;
 	guint i;
+	int ret = 0;
 
 	/* Sort the traces by uuid, then collapse traces with the same uuid in a single one. */
 	g_ptr_array_sort(traces, sort_traces_by_uuid);
@@ -1564,7 +1580,10 @@ void merge_traces_with_same_uuid(struct ctf_fs_component *ctf_fs)
 		range_len = range_end_exc_idx - range_start_idx;
 		if (range_len > 1) {
 			struct ctf_fs_trace **range_start = (struct ctf_fs_trace **) &traces->pdata[range_start_idx];
-			merge_ctf_fs_traces(range_start, range_len);
+			ret = merge_ctf_fs_traces(range_start, range_len);
+			if (ret) {
+				goto end;
+			}
 		}
 
 		num_traces++;
@@ -1581,6 +1600,9 @@ void merge_traces_with_same_uuid(struct ctf_fs_component *ctf_fs)
 	}
 
 	BT_ASSERT(num_traces == traces->len);
+
+end:
+	return ret;
 }
 
 int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
@@ -1600,7 +1622,7 @@ int ctf_fs_component_create_ctf_fs_traces(bt_self_component_source *self_comp,
 		}
 	}
 
-	merge_traces_with_same_uuid(ctf_fs);
+	ret = merge_traces_with_same_uuid(ctf_fs);
 
 end:
 	return ret;
