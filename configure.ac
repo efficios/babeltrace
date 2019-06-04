@@ -457,7 +457,7 @@ AC_ARG_ENABLE([api-doc],
 # Built-in plugins
 # Disabled by default
 AC_ARG_ENABLE([built-in-plugins],
-  [AC_HELP_STRING([--enable-built-in-plugins], [Statically-link in-tree plug-ins into the babeltrace binary])],
+  [AC_HELP_STRING([--enable-built-in-plugins], [Statically-link in-tree plug-ins into the babeltrace2 executable])],
   [], dnl AC_ARG_ENABLE will fill enable_built_in_plugins with the user choice
   [enable_built_in_plugins=no]
 )
@@ -528,17 +528,17 @@ AS_IF([test "x$enable_python_bindings" = xno],
 AS_IF([test "x$enable_built_in_plugins" = xyes],
   [
     # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-    AS_IF([test "x$enable_static" != xyes], [AC_MSG_ERROR(--enable-static must be used to bundle plug-ins in the babeltrace executable)])
-    AS_IF([test "x$enable_shared" = xyes], [AC_MSG_ERROR(--disable-shared must be used to bundle plug-ins in the babeltrace executable)])
+    AS_IF([test "x$enable_static" != xyes], [AC_MSG_ERROR(--enable-static must be used to bundle plug-ins in the babeltrace2 executable)])
+    AS_IF([test "x$enable_shared" = xyes], [AC_MSG_ERROR(--disable-shared must be used to bundle plug-ins in the babeltrace2 executable)])
   ]
 )
 
 AS_IF([test "x$enable_built_in_python_plugin_support" = xyes],
   [
-    AS_IF([test "x$enable_python_plugins" = xno], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace executable])])
+    AS_IF([test "x$enable_python_plugins" = xno], [AC_MSG_ERROR([--enable-python-plugins must be used to bundle Python plugin support in the babeltrace2 executable])])
     # Built-in plug-ins are only available when the --disable-shared --enable-static options are used.
-    AS_IF([test "x$enable_static" != xyes], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace executable)])
-    AS_IF([test "x$enable_shared" = xyes], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace executable)])
+    AS_IF([test "x$enable_static" != xyes], [AC_MSG_ERROR(--enable-static must be used to bundle Python plugin support in the babeltrace2 executable)])
+    AS_IF([test "x$enable_shared" = xyes], [AC_MSG_ERROR(--disable-shared must be used to bundle Python plugin support in the babeltrace2 executable)])
   ]
 )
 
@@ -715,8 +715,8 @@ target.
 CFLAGS=${save_CFLAGS}
 
 # Abuse autoconf's AC_ARG_PROGRAM output variable 'program_transform_name'
-# to rename babeltrace.bin to babeltrace at install time.
-program_transform_name="s&babeltrace\.bin&babeltrace&;s&babeltrace-log\.bin&babeltrace-log&;$program_transform_name"
+# to rename babeltrace2.bin to babeltrace2 at install time.
+program_transform_name="s&babeltrace2\.bin&babeltrace2&;s&babeltrace2-log\.bin&babeltrace2-log&;$program_transform_name"
 AC_SUBST(program_transform_name)
 
 AC_CONFIG_FILES([

@@ -13,25 +13,25 @@ endif
 
 AM_CPPFLAGS += '-DCONFIG_IN_TREE_PLUGIN_PATH="$(IN_TREE_PLUGIN_PATH)"'
 
-bin_PROGRAMS = babeltrace.bin babeltrace-log.bin
-noinst_PROGRAMS = babeltrace babeltrace-log
+bin_PROGRAMS = babeltrace2.bin babeltrace2-log.bin
+noinst_PROGRAMS = babeltrace2 babeltrace2-log
 
-babeltrace_bin_SOURCES = \
-	babeltrace.c \
-	babeltrace-cfg.c \
-	babeltrace-cfg.h \
-	babeltrace-cfg-cli-args.c \
-	babeltrace-cfg-cli-args.h \
-	babeltrace-cfg-cli-args-connect.c \
-	babeltrace-cfg-cli-args-connect.h \
-	babeltrace-cfg-cli-args-default.h \
-	babeltrace-cfg-cli-args-default.c \
+babeltrace2_bin_SOURCES = \
+	babeltrace2.c \
+	babeltrace2-cfg.c \
+	babeltrace2-cfg.h \
+	babeltrace2-cfg-cli-args.c \
+	babeltrace2-cfg-cli-args.h \
+	babeltrace2-cfg-cli-args-connect.c \
+	babeltrace2-cfg-cli-args-connect.h \
+	babeltrace2-cfg-cli-args-default.h \
+	babeltrace2-cfg-cli-args-default.c \
 	logging.c logging.h
 
 # -Wl,--no-as-needed is needed for recent gold linker who seems to think
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
-babeltrace_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
+babeltrace2_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
 
 # Add all the convenience libraries used by Babeltrace plugins and the
 # library. They will be used when embedding plugins (--enable-built-in-plugins),
@@ -40,7 +40,7 @@ babeltrace_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
 # we're using --whole-archive below (needed to make sure the linker does
 # not discard the plugins since the CLI does not use their symbols
 # directly).
-babeltrace_bin_LDADD = \
+babeltrace2_bin_LDADD = \
 	$(top_builddir)/lib/libbabeltrace.la \
 	$(top_builddir)/compat/libcompat.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
@@ -65,36 +65,36 @@ if ENABLE_BUILT_IN_PLUGINS
 pluginarchive = $(LD_WHOLE_ARCHIVE)$(PLUGINS_PATH)/$(1)/.libs/babeltrace-plugin-$(1).a$(LD_NO_WHOLE_ARCHIVE)
 
 # Built-in plugins
-babeltrace_bin_LDFLAGS += $(call pluginarchive,ctf)
-babeltrace_bin_LDFLAGS += $(call pluginarchive,text)
-babeltrace_bin_LDFLAGS += $(call pluginarchive,utils)
+babeltrace2_bin_LDFLAGS += $(call pluginarchive,ctf)
+babeltrace2_bin_LDFLAGS += $(call pluginarchive,text)
+babeltrace2_bin_LDFLAGS += $(call pluginarchive,utils)
 
 if ENABLE_DEBUG_INFO
-babeltrace_bin_LDFLAGS += $(call pluginarchive,lttng-utils)
-babeltrace_bin_LDADD += $(ELFUTILS_LIBS)
+babeltrace2_bin_LDFLAGS += $(call pluginarchive,lttng-utils)
+babeltrace2_bin_LDADD += $(ELFUTILS_LIBS)
 endif
 endif
 
 if BABELTRACE_BUILD_WITH_MINGW
-babeltrace_bin_LDADD += -lws2_32 -lrpcrt4 -lintl -liconv -lole32 -lpthread
+babeltrace2_bin_LDADD += -lws2_32 -lrpcrt4 -lintl -liconv -lole32 -lpthread
 endif
 
 # Only used for in-tree execution and tests
-babeltrace_SOURCES = $(babeltrace_bin_SOURCES)
-babeltrace_LDFLAGS = $(babeltrace_bin_LDFLAGS)
-babeltrace_LDADD = 	$(babeltrace_bin_LDADD)
-babeltrace_CFLAGS =	$(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
+babeltrace2_SOURCES = $(babeltrace2_bin_SOURCES)
+babeltrace2_LDFLAGS = $(babeltrace2_bin_LDFLAGS)
+babeltrace2_LDADD = $(babeltrace2_bin_LDADD)
+babeltrace2_CFLAGS = $(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
 
-# babeltrace-log rules and config below
-babeltrace_log_bin_SOURCES = babeltrace-log.c
-babeltrace_log_bin_LDADD = \
+# babeltrace2-log rules and config below
+babeltrace2_log_bin_SOURCES = babeltrace2-log.c
+babeltrace2_log_bin_LDADD = \
 	$(top_builddir)/compat/libcompat.la \
 	$(top_builddir)/common/libbabeltrace-common.la \
 	$(top_builddir)/logging/libbabeltrace-logging.la \
 	$(POPT_LIBS)
-babeltrace_log_bin_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(abs_top_builddir)/cli/babeltrace$(EXEEXT)"'
+babeltrace2_log_bin_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(abs_top_builddir)/cli/babeltrace2$(EXEEXT)"'
 
 # Only used for in-tree execution and tests
-babeltrace_log_SOURCES = $(babeltrace_log_bin_SOURCES)
-babeltrace_log_LDADD = 	$(babeltrace_log_bin_LDADD)
-babeltrace_log_CFLAGS =	$(AM_CFLAGS) '-DBT_CLI_PATH="$(bindir)/babeltrace$(EXEEXT)"'
+babeltrace2_log_SOURCES = $(babeltrace2_log_bin_SOURCES)
+babeltrace2_log_LDADD = $(babeltrace2_log_bin_LDADD)
+babeltrace2_log_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(bindir)/babeltrace2$(EXEEXT)"'

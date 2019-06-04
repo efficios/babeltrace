@@ -37,9 +37,9 @@
 #include <popt.h>
 #include <glib.h>
 #include <sys/types.h>
-#include "babeltrace-cfg.h"
-#include "babeltrace-cfg-cli-args.h"
-#include "babeltrace-cfg-cli-args-connect.h"
+#include "babeltrace2-cfg.h"
+#include "babeltrace2-cfg-cli-args.h"
+#include "babeltrace2-cfg-cli-args-connect.h"
 #include "version.h"
 
 /*
@@ -1879,7 +1879,7 @@ void print_expected_params_format(FILE *fp)
 	fprintf(fp, "    things=[1, \"2\", 3]\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "IMPORTANT: Make sure to single-quote the whole argument when you run\n");
-	fprintf(fp, "babeltrace from a shell.\n");
+	fprintf(fp, "babeltrace2 from a shell.\n");
 }
 
 
@@ -1889,8 +1889,8 @@ void print_expected_params_format(FILE *fp)
 static
 void print_help_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] help [OPTIONS] PLUGIN\n");
-	fprintf(fp, "       babeltrace [GENERAL OPTIONS] help [OPTIONS] TYPE.PLUGIN.CLS\n");
+	fprintf(fp, "Usage: babeltrace2 [GENERAL OPTIONS] help [OPTIONS] PLUGIN\n");
+	fprintf(fp, "       babeltrace2 [GENERAL OPTIONS] help [OPTIONS] TYPE.PLUGIN.CLS\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
@@ -1901,9 +1901,9 @@ void print_help_usage(FILE *fp)
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "See `babeltrace2 --help` for the list of general options.\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Use `babeltrace list-plugins` to show the list of available plugins.\n");
+	fprintf(fp, "Use `babeltrace2 list-plugins` to show the list of available plugins.\n");
 }
 
 static
@@ -2051,7 +2051,7 @@ end:
 static
 void print_query_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GEN OPTS] query [OPTS] TYPE.PLUGIN.CLS OBJECT\n");
+	fprintf(fp, "Usage: babeltrace2 [GEN OPTS] query [OPTS] TYPE.PLUGIN.CLS OBJECT\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
@@ -2244,7 +2244,7 @@ end:
 static
 void print_list_plugins_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] list-plugins [OPTIONS]\n");
+	fprintf(fp, "Usage: babeltrace2 [GENERAL OPTIONS] list-plugins [OPTIONS]\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
@@ -2255,9 +2255,9 @@ void print_list_plugins_usage(FILE *fp)
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "See `babeltrace2 --help` for the list of general options.\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Use `babeltrace help` to get help for a specific plugin or component class.\n");
+	fprintf(fp, "Use `babeltrace2 help` to get help for a specific plugin or component class.\n");
 }
 
 static
@@ -2381,7 +2381,7 @@ end:
 static
 void print_run_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] run [OPTIONS]\n");
+	fprintf(fp, "Usage: babeltrace2 [GENERAL OPTIONS] run [OPTIONS]\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
@@ -2410,12 +2410,12 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
 	fprintf(fp, "  -r, --reset-base-params           Reset the current base parameters to an\n");
 	fprintf(fp, "                                    empty map\n");
-	fprintf(fp, "      --retry-duration=DUR          When babeltrace(1) needs to retry to run\n");
+	fprintf(fp, "      --retry-duration=DUR          When babeltrace2(1) needs to retry to run\n");
 	fprintf(fp, "                                    the graph later, retry in DUR µs\n");
 	fprintf(fp, "                                    (default: 100000)\n");
 	fprintf(fp, "  -h, --help                        Show this help and quit\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "See `babeltrace2 --help` for the list of general options.\n");
 	fprintf(fp, "\n\n");
 	fprintf(fp, "Expected format of CONNECTION\n");
 	fprintf(fp, "-----------------------------\n");
@@ -2449,7 +2449,7 @@ void print_run_usage(FILE *fp)
 	fprintf(fp, "    ctf-fs.*stream*:utils-muxer:*\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "IMPORTANT: Make sure to single-quote the whole argument when you run\n");
-	fprintf(fp, "babeltrace from a shell.\n");
+	fprintf(fp, "babeltrace2 from a shell.\n");
 	fprintf(fp, "\n\n");
 	print_expected_params_format(fp);
 }
@@ -2814,7 +2814,7 @@ end:
 static
 void print_convert_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] [convert] [OPTIONS] [PATH/URL]\n");
+	fprintf(fp, "Usage: babeltrace2 [GENERAL OPTIONS] [convert] [OPTIONS] [PATH/URL]\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "Options:\n");
 	fprintf(fp, "\n");
@@ -2837,7 +2837,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "  -P, --path=PATH                   Set the `path` string parameter of the\n");
 	fprintf(fp, "                                    current component to PATH\n");
 	fprintf(fp, "      --plugin-path=PATH[:PATH]...  Add PATH to the list of paths from which\n");
-	fprintf(fp, "      --retry-duration=DUR          When babeltrace(1) needs to retry to run\n");
+	fprintf(fp, "      --retry-duration=DUR          When babeltrace2(1) needs to retry to run\n");
 	fprintf(fp, "                                    the graph later, retry in DUR µs\n");
 	fprintf(fp, "                                    (default: 100000)\n");
 	fprintf(fp, "                                    dynamic plugins can be loaded\n");
@@ -2934,7 +2934,7 @@ void print_convert_usage(FILE *fp)
 	fprintf(fp, "                                      Query the `source.ctf.fs` component class\n");
 	fprintf(fp, "                                      for metadata text and quit\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "See `babeltrace --help` for the list of general options.\n");
+	fprintf(fp, "See `babeltrace2 --help` for the list of general options.\n");
 	fprintf(fp, "\n\n");
 	fprintf(fp, "Format of BEGIN and END\n");
 	fprintf(fp, "-----------------------\n");
@@ -4470,7 +4470,7 @@ struct bt_config *bt_config_convert_from_args(int argc, const char *argv[],
 		 * which would imply -o text because --output would be
 		 * ambiguous in this case. For example, this is wrong:
 		 *
-		 *     babeltrace --names=all -o ctf --output=/tmp/path my-trace
+		 *     babeltrace2 --names=all -o ctf --output=/tmp/path my-trace
 		 *
 		 * because --names=all implies -o text, and --output
 		 * could apply to both the sink.text.pretty and
@@ -4856,7 +4856,7 @@ end:
 static
 void print_gen_usage(FILE *fp)
 {
-	fprintf(fp, "Usage: babeltrace [GENERAL OPTIONS] [COMMAND] [COMMAND ARGUMENTS]\n");
+	fprintf(fp, "Usage: babeltrace2 [GENERAL OPTIONS] [COMMAND] [COMMAND ARGUMENTS]\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "General options:\n");
 	fprintf(fp, "\n");
@@ -4875,7 +4875,7 @@ void print_gen_usage(FILE *fp)
 	fprintf(fp, "    query         Query objects from a component class\n");
 	fprintf(fp, "    run           Build a processing graph and run it\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "Use `babeltrace COMMAND --help` to show the help of COMMAND.\n");
+	fprintf(fp, "Use `babeltrace2 COMMAND --help` to show the help of COMMAND.\n");
 }
 
 static

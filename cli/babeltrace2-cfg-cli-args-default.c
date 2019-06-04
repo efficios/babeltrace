@@ -22,9 +22,9 @@
  */
 
 #include <babeltrace/babeltrace.h>
-#include "babeltrace-cfg.h"
-#include "babeltrace-cfg-cli-args.h"
-#include "babeltrace-cfg-cli-args-default.h"
+#include "babeltrace2-cfg.h"
+#include "babeltrace2-cfg-cli-args.h"
+#include "babeltrace2-cfg-cli-args-default.h"
 
 #ifdef ENABLE_DEBUG_INFO
 # define BT_ENABLE_DEBUG_INFO	1

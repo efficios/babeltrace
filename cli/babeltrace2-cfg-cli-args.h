@@ -31,7 +31,7 @@
 #include <babeltrace/graph/component-class.h>
 #include <glib.h>
 
-#include "babeltrace-cfg.h"
+#include "babeltrace2-cfg.h"
 
 struct bt_config *bt_config_cli_args_create(int argc, const char *argv[],
 		int *retcode, bool force_omit_system_plugin_path,

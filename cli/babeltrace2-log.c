@@ -32,7 +32,7 @@
 static
 void print_usage(FILE *fp)
 {
-	fprintf(stderr, "Usage: babeltrace-log [OPTIONS] OUTPUT-PATH\n");
+	fprintf(stderr, "Usage: babeltrace2-log [OPTIONS] OUTPUT-PATH\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "\n");

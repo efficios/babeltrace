@@ -25,7 +25,7 @@
 #include <babeltrace/common-internal.h>
 #include <babeltrace/babeltrace.h>
 #include <glib.h>
-#include "babeltrace-cfg.h"
+#include "babeltrace2-cfg.h"
 
 static
 void destroy_gstring(void *data)
