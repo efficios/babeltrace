@@ -25,7 +25,7 @@
  * SOFTWARE.
  */
 
-#include "babeltrace-cfg.h"
+#include "babeltrace2-cfg.h"
 
 struct bt_config *bt_config_cli_args_create_with_default(int argc,
 		const char *argv[], int *retcode);

@@ -36,9 +36,9 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <signal.h>
-#include "babeltrace-cfg.h"
-#include "babeltrace-cfg-cli-args.h"
-#include "babeltrace-cfg-cli-args-default.h"
+#include "babeltrace2-cfg.h"
+#include "babeltrace2-cfg-cli-args.h"
+#include "babeltrace2-cfg-cli-args-default.h"
 
 #define ENV_BABELTRACE_WARN_COMMAND_NAME_DIRECTORY_CLASH "BABELTRACE_CLI_WARN_COMMAND_NAME_DIRECTORY_CLASH"
 #define ENV_BABELTRACE_CLI_LOG_LEVEL "BABELTRACE_CLI_LOG_LEVEL"
@@ -2730,7 +2730,7 @@ void warn_command_name_and_directory_clash(struct bt_config *cfg)
 		fprintf(stderr, "trace located in the local `%s` directory, please use:\n",
 			cfg->command_name);
 		fprintf(stderr, "\n");
-		fprintf(stderr, "    babeltrace convert %s [OPTIONS]\n",
+		fprintf(stderr, "    babeltrace2 convert %s [OPTIONS]\n",
 			cfg->command_name);
 	}
 }

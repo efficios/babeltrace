@@ -62,10 +62,10 @@ plugins/ctf/common/metadata/lexer.c
 plugins/ctf/common/metadata/parser.c
 plugins/ctf/common/metadata/parser.h
 plugins/ctf/common/metadata/parser.output
-/cli/babeltrace
-/cli/babeltrace.bin
-/cli/babeltrace-log
-/cli/babeltrace-log.bin
+/cli/babeltrace2
+/cli/babeltrace2.bin
+/cli/babeltrace2-log
+/cli/babeltrace2-log.bin
 /include/config.h
 /include/config.h.in
 /include/version.i

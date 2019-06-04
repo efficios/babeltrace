@@ -23,8 +23,8 @@
 #include <stdlib.h>
 #include <babeltrace/babeltrace.h>
 #include <babeltrace/common-internal.h>
-#include "babeltrace-cfg.h"
-#include "babeltrace-cfg-cli-args-connect.h"
+#include "babeltrace2-cfg.h"
+#include "babeltrace2-cfg-cli-args-connect.h"
 
 static bool all_named_and_printable_in_array(GPtrArray *comps)
 {

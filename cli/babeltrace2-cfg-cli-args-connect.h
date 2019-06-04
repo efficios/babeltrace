@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <babeltrace/value.h>
 #include <glib.h>
-#include "babeltrace-cfg.h"
+#include "babeltrace2-cfg.h"
 
 int bt_config_cli_args_create_connections(struct bt_config *cfg,
 		const bt_value *connection_args,
