@@ -13,7 +13,7 @@ noinst_LTLIBRARIES = libtestcommon.la
 # it knows better and considers libraries with constructors having
 # side-effects as dead code.
 COMMON_TEST_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/lib/libbabeltrace2.la
 
 test_bitfield_LDADD = $(LIBTAP) $(builddir)/libtestcommon.la
 

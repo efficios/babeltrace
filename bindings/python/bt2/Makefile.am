@@ -1,5 +1,5 @@
 # Since the shared object used by the python bindings is not built with
-# libtool, we need to add the directory containing libbabeltrace to the
+# libtool, we need to add the directory containing libbabeltrace2 to the
 # linker path.
 AM_LDFLAGS=-L$(top_builddir)/lib/.libs
 

@@ -1,5 +1,5 @@
 AM_CPPFLAGS += -DINSTALL_LIBDIR=\"$(libdir)\"
 
-noinst_LTLIBRARIES = libbabeltrace-ctfser.la
+noinst_LTLIBRARIES = libbabeltrace2-ctfser.la
 
-libbabeltrace_ctfser_la_SOURCES = ctfser.c logging.c logging.h
+libbabeltrace2_ctfser_la_SOURCES = ctfser.c logging.c logging.h

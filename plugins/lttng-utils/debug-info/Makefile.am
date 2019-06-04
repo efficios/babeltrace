@@ -3,7 +3,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/plugins
 noinst_LTLIBRARIES = libdebug-info.la
 
 libdebug_info_la_LIBADD = \
-	$(top_builddir)/fd-cache/libbabeltrace-fd-cache.la
+	$(top_builddir)/fd-cache/libbabeltrace2-fd-cache.la
 
 libdebug_info_la_SOURCES = \
 	bin-info.c \

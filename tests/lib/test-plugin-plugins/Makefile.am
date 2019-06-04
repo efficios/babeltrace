@@ -6,7 +6,7 @@ plugin_minimal_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
 	-rpath / -avoid-version -module
 plugin_minimal_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/lib/libbabeltrace2.la
 
 # source/filter/sink plugin
 plugin_sfs_la_SOURCES = sfs.c
@@ -14,4 +14,4 @@ plugin_sfs_la_LDFLAGS = \
 	$(LT_NO_UNDEFINED) \
 	-rpath / -avoid-version -module
 plugin_sfs_la_LIBADD = \
-	$(top_builddir)/lib/libbabeltrace.la
+	$(top_builddir)/lib/libbabeltrace2.la

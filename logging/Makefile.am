@@ -1,3 +1,3 @@
-noinst_LTLIBRARIES = libbabeltrace-logging.la
+noinst_LTLIBRARIES = libbabeltrace2-logging.la
 
-libbabeltrace_logging_la_SOURCES = log.c
+libbabeltrace2_logging_la_SOURCES = log.c

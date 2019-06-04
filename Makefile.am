@@ -28,7 +28,7 @@ dist_doc_DATA = ChangeLog LICENSE mit-license.txt gpl-2.0.txt \
 dist_noinst_DATA = CodingStyle
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = babeltrace.pc babeltrace-ctf.pc
+pkgconfig_DATA = babeltrace2.pc babeltrace2-ctf.pc
 
 # This is a convenience target, it's not part of the build process.
 CONTRIBUTING.html: CONTRIBUTING.adoc

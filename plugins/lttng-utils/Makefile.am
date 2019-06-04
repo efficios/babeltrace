@@ -23,7 +23,7 @@ babeltrace_plugin_lttng_utils_la_LDFLAGS = \
 
 if !ENABLE_BUILT_IN_PLUGINS
 babeltrace_plugin_lttng_utils_la_LIBADD += \
-	$(top_builddir)/lib/libbabeltrace.la \
-	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la
+	$(top_builddir)/lib/libbabeltrace2.la \
+	$(top_builddir)/common/libbabeltrace2-common.la \
+	$(top_builddir)/logging/libbabeltrace2-logging.la
 endif

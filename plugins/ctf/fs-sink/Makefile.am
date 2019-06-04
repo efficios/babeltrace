@@ -1,7 +1,7 @@
-noinst_LTLIBRARIES = libbabeltrace-plugin-ctf-fs-sink.la
+noinst_LTLIBRARIES = libbabeltrace2-plugin-ctf-fs-sink.la
 
-libbabeltrace_plugin_ctf_fs_sink_la_LIBADD =
-libbabeltrace_plugin_ctf_fs_sink_la_SOURCES = \
+libbabeltrace2_plugin_ctf_fs_sink_la_LIBADD =
+libbabeltrace2_plugin_ctf_fs_sink_la_SOURCES = \
 	fs-sink.c \
 	fs-sink.h \
 	logging.c \

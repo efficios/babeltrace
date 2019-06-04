@@ -41,10 +41,10 @@ babeltrace2_bin_LDFLAGS = $(LD_NO_AS_NEEDED)
 # not discard the plugins since the CLI does not use their symbols
 # directly).
 babeltrace2_bin_LDADD = \
-	$(top_builddir)/lib/libbabeltrace.la \
+	$(top_builddir)/lib/libbabeltrace2.la \
 	$(top_builddir)/compat/libcompat.la \
-	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/common/libbabeltrace2-common.la \
+	$(top_builddir)/logging/libbabeltrace2-logging.la \
 	$(POPT_LIBS)
 
 if ENABLE_BUILT_IN_PLUGINS
@@ -89,8 +89,8 @@ babeltrace2_CFLAGS = $(AM_CFLAGS) -DBT_SET_DEFAULT_IN_TREE_CONFIGURATION
 babeltrace2_log_bin_SOURCES = babeltrace2-log.c
 babeltrace2_log_bin_LDADD = \
 	$(top_builddir)/compat/libcompat.la \
-	$(top_builddir)/common/libbabeltrace-common.la \
-	$(top_builddir)/logging/libbabeltrace-logging.la \
+	$(top_builddir)/common/libbabeltrace2-common.la \
+	$(top_builddir)/logging/libbabeltrace2-logging.la \
 	$(POPT_LIBS)
 babeltrace2_log_bin_CFLAGS = $(AM_CFLAGS) '-DBT_CLI_PATH="$(abs_top_builddir)/cli/babeltrace2$(EXEEXT)"'
 
