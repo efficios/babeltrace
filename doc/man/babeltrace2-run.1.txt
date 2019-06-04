@@ -1,4 +1,4 @@
-babeltrace-run(1)
+babeltrace2-run(1)
 =================
 :manpagetype: command
 :revdate: 5 October 2017
@@ -6,13 +6,13 @@ babeltrace-run(1)
 
 NAME
 ----
-babeltrace-run - Create a trace processing graph and run it
+babeltrace2-run - Create a trace processing graph and run it
 
 
 SYNOPSIS
 --------
 [verse]
-*babeltrace run* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+*babeltrace2 run* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                [opt:--omit-system-plugin-path]
                [opt:--plugin-path='PATH'[:__PATH__]...]
                [opt:--retry-duration='DURUS']
@@ -23,15 +23,15 @@ DESCRIPTION
 -----------
 The `run` command creates a trace processing graph and runs it.
 
-See man:babeltrace-intro(7) to learn more about the Babeltrace
+See man:babeltrace2-intro(7) to learn more about the Babeltrace
 project and its core concepts.
 
-The `run` command uses libbabeltrace to dynamically load plugins which
+The `run` command uses libbabeltrace2 to dynamically load plugins which
 supply component classes. With the `run` command, you specify which
 component classes to instantiate as components and how they must be
 connected.
 
-The steps to write a `babeltrace run` command line are:
+The steps to write a `babeltrace2 run` command line are:
 
 . Specify which component classes to instantiate as components and
   how. This is the 'COMPONENTS' part of the synopsis. See
@@ -41,11 +41,11 @@ The steps to write a `babeltrace run` command line are:
   opt:--connect options. See <<connect-comps,Connect components>> to
   learn more.
 
-NOTE: The man:babeltrace-convert(1) command is a specialization of the
+NOTE: The man:babeltrace2-convert(1) command is a specialization of the
 `run` command for the very common case of converting one or more traces:
 it generates a `run` command line and executes it. You can use its
-manopt:babeltrace-convert(1):--run-args or
-manopt:babeltrace-convert(1):--run-args-0 option to make it print the
+manopt:babeltrace2-convert(1):--run-args or
+manopt:babeltrace2-convert(1):--run-args-0 option to make it print the
 equivalent `run` command line instead.
 
 
@@ -261,7 +261,7 @@ EXAMPLES
 ====
 [role="term"]
 ----
-$ babeltrace run --component=A:src.plug.my-src \
+$ babeltrace2 run --component=A:src.plug.my-src \
                  --component=B:sink.plug.my-sink \
                  --connect=A:B
 ----
@@ -282,7 +282,7 @@ Possible resulting graph:
 ====
 [role="term"]
 ----
-$ babeltrace run --component=src.plug.my-src --name=the-source \
+$ babeltrace2 run --component=src.plug.my-src --name=the-source \
                  --component=the-sink:sink.plug.my-sink \
                  --connect=the-source:the-sink
 ----
@@ -295,7 +295,7 @@ In this example, the opt:--params option only applies to component
 
 [role="term"]
 ----
-$ babeltrace run --component=the-source:src.my-plugin.my-src \
+$ babeltrace2 run --component=the-source:src.my-plugin.my-src \
                  --params='offset=123, flag=true' \
                  --component=the-sink:sink.my-plugin.my-sink \
                  --connect=the-source:the-sink
@@ -313,7 +313,7 @@ created components are:
 
 [role="term"]
 ----
-$ babeltrace run --base-params='offset=1203, flag=false' \
+$ babeltrace2 run --base-params='offset=1203, flag=false' \
                  --component=A:src.plugin.compcls \
                  --component=B:flt.plugin.compcls \
                  --params='flag=true, type=event' \
@@ -338,7 +338,7 @@ and _any_ `A` output port, whatever its name, would be connected to a
 
 [role="term"]
 ----
-$ babeltrace run --component=A:src.plug.my-src \
+$ babeltrace2 run --component=A:src.plug.my-src \
                  --component=B:sink.plug.my-sink \
                  --connect='A.foo*:B:nin*' --connect='A:B.oth*'
 ----
@@ -368,6 +368,6 @@ include::common-cmd-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace(1),
-man:babeltrace-convert(1),
-man:babeltrace-intro(7)
+man:babeltrace2(1),
+man:babeltrace2-convert(1),
+man:babeltrace2-intro(7)

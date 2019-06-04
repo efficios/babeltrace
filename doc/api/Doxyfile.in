@@ -141,13 +141,13 @@ WARN_AS_ERROR          = NO
 WARN_FORMAT            = "$file:$line: $text"
 WARN_LOGFILE           =
 
-INPUT                  = "@top_srcdir@/include/babeltrace/ctf-ir" \
-                         "@top_srcdir@/include/babeltrace/component" \
-                         "@top_srcdir@/include/babeltrace/plugin" \
-                         "@top_srcdir@/include/babeltrace/ref.h" \
-                         "@top_srcdir@/include/babeltrace/values.h" \
-                         "@top_srcdir@/include/babeltrace/logging.h" \
-                         "@top_srcdir@/include/babeltrace/types.h" \
+INPUT                  = "@top_srcdir@/include/babeltrace2/ctf-ir" \
+                         "@top_srcdir@/include/babeltrace2/component" \
+                         "@top_srcdir@/include/babeltrace2/plugin" \
+                         "@top_srcdir@/include/babeltrace2/ref.h" \
+                         "@top_srcdir@/include/babeltrace2/values.h" \
+                         "@top_srcdir@/include/babeltrace2/logging.h" \
+                         "@top_srcdir@/include/babeltrace2/types.h" \
                          "@srcdir@/dox/main-page.dox" \
                          "@srcdir@/dox/includes-build.dox" \
                          "@srcdir@/dox/write-plugin.dox" \

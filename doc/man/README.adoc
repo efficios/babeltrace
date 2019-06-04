@@ -15,17 +15,17 @@ the appropriate DocBook XSL stylesheet (using the `xmlto` command).
 Main program::
     +__program__.1.txt+
 
-`babeltrace(1)` command::
-    +babeltrace-__command__.1.txt+
+`babeltrace2(1)` command::
+    +babeltrace2-__command__.1.txt+
 
 Babeltrace introduction::
-    `babeltrace-intro.7.txt`
+    `babeltrace2-intro.7.txt`
 
 Babeltrace plugin::
-    +babeltrace-plugin-__plugin__.7.txt+
+    +babeltrace2-plugin-__plugin__.7.txt+
 
 Babeltrace plugin's component class::
-    +babeltrace-__type__.__plugin__.__compcls__.7.txt+
+    +babeltrace2-__type__.__plugin__.__compcls__.7.txt+
 
 
 == Macros
@@ -38,7 +38,7 @@ macro definitions used everywhere in the man page sources:
     +__page__+ in section +__section__+. In troff, the man page's name
     is rendered in bold.
 +
-Example: `man:babeltrace-convert(1)`
+Example: `man:babeltrace2-convert(1)`
 
 +opt:__name__+::
     Use this macro to insert a link to the command-line option
@@ -51,8 +51,8 @@ Example: `opt:--verbose`, `opt:--color='WHEN'`
     +__name__+ described in the _OPTIONS_ section of another Babeltrace
     or LTTng man page named +__page__+ in section +__section__+.
 +
-Example: `manopt:babeltrace(1):--log-level`,
-+manopt:babeltrace-convert(1):--component=\`source.ctf.fs`+
+Example: `manopt:babeltrace2(1):--log-level`,
++manopt:babeltrace2-convert(1):--component=\`source.ctf.fs`+
 
 +nlopt:__name__+::
     Use this macro to write a command-line option named +__name__+

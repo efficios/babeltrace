@@ -1,4 +1,4 @@
-babeltrace-sink.utils.counter(7)
+babeltrace2-sink.utils.counter(7)
 ================================
 :manpagetype: component class
 :revdate: 5 October 2017
@@ -6,14 +6,14 @@ babeltrace-sink.utils.counter(7)
 
 NAME
 ----
-babeltrace-sink.utils.counter - Babeltrace's notification counter sink
+babeltrace2-sink.utils.counter - Babeltrace's notification counter sink
 component class
 
 
 DESCRIPTION
 -----------
 The Babeltrace compcls:sink.utils.counter component class, provided by
-the man:babeltrace-plugin-utils(7) plugin, once instantiated, prints to
+the man:babeltrace2-plugin-utils(7) plugin, once instantiated, prints to
 the standard output the number of notifications it receives on its input
 port, with a count for each type.
 
@@ -83,5 +83,5 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-plugin-utils(7),
-man:babeltrace-intro(7)
+man:babeltrace2-plugin-utils(7),
+man:babeltrace2-intro(7)

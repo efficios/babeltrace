@@ -1,4 +1,4 @@
-babeltrace-filter.lttng-utils.debug-info(7)
+babeltrace2-filter.lttng-utils.debug-info(7)
 ===========================================
 :manpagetype: component class
 :revdate: 5 October 2017
@@ -8,14 +8,14 @@ babeltrace-filter.lttng-utils.debug-info(7)
 
 NAME
 ----
-babeltrace-filter.lttng-utils.debug-info - Babeltrace's debugging
+babeltrace2-filter.lttng-utils.debug-info - Babeltrace's debugging
 information filter component class for LTTng traces
 
 
 DESCRIPTION
 -----------
 The Babeltrace {comp} component class, provided by the the
-man:babeltrace-plugin-lttng-utils(7) plugin, once instantiated, receives
+man:babeltrace2-plugin-lttng-utils(7) plugin, once instantiated, receives
 events from http://lttng.org/[LTTng] traces and creates new ones
 which are copies of the original ones with extra debugging information
 when it's available and possible.
@@ -252,8 +252,8 @@ include::common-common-compat-env.txt[]
 
 `BABELTRACE_FLT_LTTNG_UTILS_DEBUG_INFO_LOG_LEVEL`::
     Component class's log level. The available values are the
-    same as for the manopt:babeltrace(1):--log-level option of
-    man:babeltrace(1).
+    same as for the manopt:babeltrace2(1):--log-level option of
+    man:babeltrace2(1).
 
 
 include::common-footer.txt[]
@@ -261,7 +261,7 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-plugin-lttng-utils(7),
+man:babeltrace2-plugin-lttng-utils(7),
 man:lttng(1),
 man:lttng-add-context(1),
-man:babeltrace-intro(7)
+man:babeltrace2-intro(7)

@@ -1,7 +1,7 @@
 Plugin path
 ~~~~~~~~~~~
 opt:--omit-home-plugin-path::
-    Do not search for plugins in `$HOME/.local/lib/babeltrace/plugins`.
+    Do not search for plugins in `$HOME/.local/lib/babeltrace2/plugins`.
 
 opt:--omit-system-plugin-path::
     Do not search for plugins in +{system_plugin_path}+.

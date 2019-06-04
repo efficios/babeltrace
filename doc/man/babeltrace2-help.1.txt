@@ -1,4 +1,4 @@
-babeltrace-help(1)
+babeltrace2-help(1)
 ==================
 :manpagetype: command
 :revdate: 5 October 2017
@@ -6,13 +6,13 @@ babeltrace-help(1)
 
 NAME
 ----
-babeltrace-help - Get help for a Babeltrace plugin or component class
+babeltrace2-help - Get help for a Babeltrace plugin or component class
 
 
 SYNOPSIS
 --------
 [verse]
-*babeltrace help* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+*babeltrace2 help* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                 [opt:--omit-system-plugin-path]
                 [opt:--plugin-path='PATH'[:__PATH__]...]
                 ('PLUGIN' | 'TYPE.PLUGIN.COMPCLS')
@@ -23,7 +23,7 @@ DESCRIPTION
 The `help` command prints the details and help text of either the plugin
 'PLUGIN' or the specific component class 'TYPE.PLUGIN.COMPCLS'.
 
-See man:babeltrace-intro(7) to learn more about the Babeltrace
+See man:babeltrace2-intro(7) to learn more about the Babeltrace
 project and its core concepts.
 
 The available values for 'TYPE' are:
@@ -59,7 +59,7 @@ EXAMPLES
 ====
 [role="term"]
 ----
-$ babeltrace help my-plugin
+$ babeltrace2 help my-plugin
 ----
 ====
 
@@ -67,7 +67,7 @@ $ babeltrace help my-plugin
 ====
 [role="term"]
 ----
-$ babeltrace help src.my-plugin.my-source
+$ babeltrace2 help src.my-plugin.my-source
 ----
 ====
 
@@ -75,7 +75,7 @@ $ babeltrace help src.my-plugin.my-source
 ====
 [role="term"]
 ----
-$ babeltrace help sink.my-plugin.my-sink
+$ babeltrace2 help sink.my-plugin.my-sink
 ----
 ====
 
@@ -89,6 +89,6 @@ include::common-cmd-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace(1),
-man:babeltrace-list-plugins(1)
-man:babeltrace-intro(7)
+man:babeltrace2(1),
+man:babeltrace2-list-plugins(1)
+man:babeltrace2-intro(7)

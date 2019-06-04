@@ -4,7 +4,7 @@
 @section includefiles Include files
 
 You can find all the Babeltrace library include files (C headers) in the
-\c babeltrace directory under the include files directory chosen when
+\c babeltrace2 directory under the include files directory chosen when
 installing Babeltrace. By default, this is <code>/usr/include</code>.
 If you build Babeltrace from source without specifying an installation
 prefix, this is <code>/usr/local/include</code>.
@@ -23,14 +23,14 @@ but which necessarily makes the compilation slower:
 
 Multiple types of applications can use the Babeltrace library:
 
-- A user plugin (shared object) to be loaded by the \c babeltrace
+- A user plugin (shared object) to be loaded by the \c babeltrace2
   converter program or by another application.
 - A user application or library which loads plugins to manually connect
   existing components in a specific way.
 - A user application or library which creates its own component classes
   and manually connects them.
 
-In any way, the only library to link to is `libbabeltrace`.
+In any way, the only library to link to is `libbabeltrace2`.
 
 @subsection howtobuildplugin Build a plugin
 
@@ -47,7 +47,7 @@ cc -c -fpic my-plugin.c
     <li>Create the plugin shared object:
 
 @verbatim
-cc -shared my-plugin.o -lbabeltrace -o my-plugin.so
+cc -shared my-plugin.o -lbabeltrace2 -o my-plugin.so
 @endverbatim
     </li>
 </ol>
@@ -67,7 +67,7 @@ cc -c my-app.c
     <li>Create the executable application:
 
 @verbatim
-cc my-app.o -lbabeltrace -o my-app
+cc my-app.o -lbabeltrace2 -o my-app
 @endverbatim
     </li>
 </ol>

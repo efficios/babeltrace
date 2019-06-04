@@ -1,4 +1,4 @@
-babeltrace-source.ctf.lttng-live(7)
+babeltrace2-source.ctf.lttng-live(7)
 ===================================
 :manpagetype: component class
 :revdate: 5 October 2017
@@ -6,14 +6,14 @@ babeltrace-source.ctf.lttng-live(7)
 
 NAME
 ----
-babeltrace-source.ctf.lttng-live - Babeltrace's LTTng live source
+babeltrace2-source.ctf.lttng-live - Babeltrace's LTTng live source
 component class
 
 
 DESCRIPTION
 -----------
 The Babeltrace compcls:source.ctf.lttng-live source component class,
-provided by the man:babeltrace-plugin-ctf(7) plugin, once instantiated,
+provided by the man:babeltrace2-plugin-ctf(7) plugin, once instantiated,
 connects to a local or remote http://lttng.org/[LTTng] relay daemon and
 emits the received notifications on its output ports. More information
 about LTTng live is available in the
@@ -172,8 +172,8 @@ include::common-common-compat-env.txt[]
 
 `BABELTRACE_SRC_CTF_LTTNG_LIVE_LOG_LEVEL`::
     Component class's log level. The available values are the
-    same as for the manopt:babeltrace(1):--log-level option of
-    man:babeltrace(1).
+    same as for the manopt:babeltrace2(1):--log-level option of
+    man:babeltrace2(1).
 
 
 include::common-footer.txt[]
@@ -181,7 +181,7 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-plugin-ctf(7),
-man:babeltrace-intro(7),
+man:babeltrace2-plugin-ctf(7),
+man:babeltrace2-intro(7),
 man:lttng-relayd(8),
 man:lttng-create(1)

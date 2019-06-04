@@ -1,4 +1,4 @@
-babeltrace-intro(7)
+babeltrace2-intro(7)
 ===================
 :manpagetype: man page
 :revdate: 5 October 2017
@@ -6,7 +6,7 @@ babeltrace-intro(7)
 
 NAME
 ----
-babeltrace-intro - Introduction to Babeltrace
+babeltrace2-intro - Introduction to Babeltrace
 
 
 DESCRIPTION
@@ -32,37 +32,37 @@ https://en.wikipedia.org/wiki/Tracing_(software)[traces].
 
 The Babeltrace project includes the following parts:
 
-[[libbabeltrace]]Babeltrace library (libbabeltrace)::
+[[libbabeltrace2]]Babeltrace library (libbabeltrace2)::
     A shared library with a C API.
 +
-With libbabeltrace, you can programmatically create <<plugin,plugins>>
+With libbabeltrace2, you can programmatically create <<plugin,plugins>>
 and <<comp-cls,component classes>>, build and run <<graph,processing
 graphs>>, and more (see the <<concepts,BABELTRACE CONCEPTS>> section for
 more details about those concepts). All the other Babeltrace parts rely
 on this library.
 
-[[babeltrace-1]]`babeltrace` command::
-    A command-line interface which uses libbabeltrace to load plugins,
+[[babeltrace2-1]]`babeltrace2` command::
+    A command-line interface which uses libbabeltrace2 to load plugins,
     create a trace processing graph, create components, and run the
     graph.
 +
-You can also use `babeltrace` to list the available plugins or to query
+You can also use `babeltrace2` to list the available plugins or to query
 an object from a component class.
 +
-See man:babeltrace(1).
+See man:babeltrace2(1).
 
 [[python-bindings]]Babeltrace Python bindings::
     A Python{nbsp}3 package which offers a Pythonic interface of
-    libbabeltrace.
+    libbabeltrace2.
 +
-You can perform the same operations which are available in libbabeltrace
+You can perform the same operations which are available in libbabeltrace2
 with the Python bindings, but in a really easier way and with less code.
 
 Babeltrace project's plugins::
     The Babeltrace <<plugin,plugins>> shipped with the project.
 +
-Those plugins are not special, in that they only rely on libbabeltrace
-and you don't need them to use libbabeltrace, man:babeltrace(1), or the
+Those plugins are not special, in that they only rely on libbabeltrace2
+and you don't need them to use libbabeltrace2, man:babeltrace2(1), or the
 Python bindings.
 +
 The Babeltrace project's plugins are:
@@ -71,26 +71,26 @@ The Babeltrace project's plugins are:
 `ctf`::
   Common Trace Format input/output, including the LTTng live source.
 +
-See man:babeltrace-plugin-ctf(7).
+See man:babeltrace2-plugin-ctf(7).
 
 `lttng-utils`::
   Graph utilities specific to http://lttng.org/[LTTng] traces.
 +
-See man:babeltrace-plugin-lttng-utils(7).
+See man:babeltrace2-plugin-lttng-utils(7).
 
 `text`::
   Text input/output.
 +
-See man:babeltrace-plugin-text(7).
+See man:babeltrace2-plugin-text(7).
 
 `utils`::
   Graph utilities (muxer, trimmer, counter, dummy sink).
 +
-See man:babeltrace-plugin-utils(7).
+See man:babeltrace2-plugin-utils(7).
 --
 
 Python plugin provider::
-    A shared library which libbabeltrace tries to load to add support
+    A shared library which libbabeltrace2 tries to load to add support
     for Babeltrace plugins written in Python.
 +
 The package you use to write a Python Babeltrace plugin is the one
@@ -106,15 +106,15 @@ Babeltrace{nbsp}1 exists since 2010. The major improvements brought by
 Babeltrace{nbsp}2 are:
 
 * Full plugin support: any user can distribute a Babeltrace plugin and,
-  as long as <<libbabeltrace,libbabeltrace>> finds it, any application
-  linked to libbabeltrace can load it and use it.
+  as long as <<libbabeltrace2,libbabeltrace2>> finds it, any application
+  linked to libbabeltrace2 can load it and use it.
 +
 Plugins are not just input and output formats: they provide source,
 filter, and sink <<comp-cls,component classes>> so that you can connect
 specialized, reusable components together in a graph to create a
 customized trace conversion or analysis device.
 
-* In order to support user components, all the objects of libbabeltrace
+* In order to support user components, all the objects of libbabeltrace2
   have a reference count. The possible reference cycles are handled
   internally so that the library's API is clean and predictable. The two
   reference counting functions, `bt_get()` and `bt_put()`, are all you
@@ -129,9 +129,9 @@ BABELTRACE CONCEPTS
 -------------------
 This section defines the main concepts of the Babeltrace project. These
 concepts translate into types and functions in
-<<libbabeltrace,libbabeltrace>> and its <<python-bindings,Python
+<<libbabeltrace2,libbabeltrace2>> and its <<python-bindings,Python
 bindings>>, but also as command-line actions and options in the
-<<babeltrace-1,`babeltrace` command>>. The other Babeltrace man pages
+<<babeltrace2-1,`babeltrace2` command>>. The other Babeltrace man pages
 assume that you are familiar with the following definitions.
 
 Some Babeltrace concepts are interdependent: it is normal to jump from
@@ -269,9 +269,9 @@ Discarded packets::
     output <<port,ports>> to input ports.
 +
 You can build a trace processing graph with
-<<libbabeltrace,libbabeltrace>>, with the <<python-bindings,Babeltrace
-Python bindings>>, or with the man:babeltrace-run(1) and
-man:babeltrace-convert(1) commands.
+<<libbabeltrace2,libbabeltrace2>>, with the <<python-bindings,Babeltrace
+Python bindings>>, or with the man:babeltrace2-run(1) and
+man:babeltrace2-convert(1) commands.
 +
 When you _run_ a trace processing graph, the sink components consume
 notifications from their input ports, making all the graph's components
@@ -285,18 +285,18 @@ Each component class within a plugin has a type (source, filter, or
 sink) and a name. The type and name pair is unique within a given
 plugin.
 +
-<<libbabeltrace,libbabeltrace>> can load a plugin (`.so` or `.dll` file)
+<<libbabeltrace2,libbabeltrace2>> can load a plugin (`.so` or `.dll` file)
 at run time: the result is a plugin object in which you can find a
 specific component class and instantiate it within a <<graph,trace
 processing graph>> as a <<comp,component>>.
 +
-The <<babeltrace-1,`babeltrace` command>> uses the
+The <<babeltrace2-1,`babeltrace2` command>> uses the
 'TYPE.PLUGIN.COMPCLS' format to identify a specific component
 class within a specific plugin. 'TYPE' is either `source`, `filter`,
 or `sink`.
 +
 You can list the available Babeltrace plugins with the
-man:babeltrace-list-plugins(1) command.
+man:babeltrace2-list-plugins(1) command.
 
 [[query]]Query::
     An operation with which you can get a named object from a
@@ -306,7 +306,7 @@ man:babeltrace-list-plugins(1) command.
 The plain text metadata stream of a CTF trace and the available LTTng
 live sessions of a given LTTng relay daemon are examples of queries.
 +
-You can use the man:babeltrace-query(1) command to query a component
+You can use the man:babeltrace2-query(1) command to query a component
 class's object.
 
 
@@ -412,4 +412,4 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace(1)
+man:babeltrace2(1)

@@ -7,33 +7,33 @@ manaddsuffix = $(addsuffix $(1),$(addprefix $(srcdir)/,$(2)))
 
 # List only the names without the .*.txt extension here:
 MAN1_NAMES = \
-	babeltrace \
-	babeltrace-convert \
-	babeltrace-help \
-	babeltrace-list-plugins \
-	babeltrace-log \
-	babeltrace-query \
-	babeltrace-run
-MAN7_NAMES = babeltrace-filter.utils.muxer \
-	babeltrace-filter.utils.trimmer \
-	babeltrace-intro \
-	babeltrace-plugin-ctf \
-	babeltrace-plugin-text \
-	babeltrace-plugin-utils \
-	babeltrace-sink.ctf.fs \
-	babeltrace-sink.text.pretty \
-	babeltrace-sink.utils.counter \
-	babeltrace-sink.utils.dummy \
-	babeltrace-source.ctf.fs \
-	babeltrace-source.ctf.lttng-live \
-	babeltrace-source.text.dmesg
+	babeltrace2 \
+	babeltrace2-convert \
+	babeltrace2-help \
+	babeltrace2-list-plugins \
+	babeltrace2-log \
+	babeltrace2-query \
+	babeltrace2-run
+MAN7_NAMES = babeltrace2-filter.utils.muxer \
+	babeltrace2-filter.utils.trimmer \
+	babeltrace2-intro \
+	babeltrace2-plugin-ctf \
+	babeltrace2-plugin-text \
+	babeltrace2-plugin-utils \
+	babeltrace2-sink.ctf.fs \
+	babeltrace2-sink.text.pretty \
+	babeltrace2-sink.utils.counter \
+	babeltrace2-sink.utils.dummy \
+	babeltrace2-source.ctf.fs \
+	babeltrace2-source.ctf.lttng-live \
+	babeltrace2-source.text.dmesg
 MAN1_NO_ASCIIDOC_NAMES =
 MAN7_NO_ASCIIDOC_NAMES =
 
 if ENABLE_DEBUG_INFO
 MAN7_NAMES += \
-	babeltrace-plugin-lttng-utils \
-	babeltrace-filter.lttng-utils.debug-info
+	babeltrace2-plugin-lttng-utils \
+	babeltrace2-filter.lttng-utils.debug-info
 endif
 
 # AsciiDoc sources and outputs

@@ -1,4 +1,4 @@
-babeltrace-source.text.dmesg(7)
+babeltrace2-source.text.dmesg(7)
 ===============================
 :manpagetype: component class
 :revdate: 5 October 2017
@@ -6,14 +6,14 @@ babeltrace-source.text.dmesg(7)
 
 NAME
 ----
-babeltrace-source.text.dmesg - Babeltrace's Linux kernel ring buffer
+babeltrace2-source.text.dmesg - Babeltrace's Linux kernel ring buffer
 source component class
 
 
 DESCRIPTION
 -----------
 The Babeltrace compcls:source.text.dmesg component class, provided by
-the man:babeltrace-plugin-text(7) plugin, once instantiated, reads the
+the man:babeltrace2-plugin-text(7) plugin, once instantiated, reads the
 lines of a Linux kernel ring buffer, as printed by the man:dmesg(1)
 tool, and emits corresponding event notifications on its output port.
 
@@ -76,5 +76,5 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-plugin-text(7),
-man:babeltrace-intro(7)
+man:babeltrace2-plugin-text(7),
+man:babeltrace2-intro(7)

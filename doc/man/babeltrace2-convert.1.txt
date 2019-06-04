@@ -1,4 +1,4 @@
-babeltrace-convert(1)
+babeltrace2-convert(1)
 =====================
 :manpagetype: command
 :revdate: 5 October 2017
@@ -6,7 +6,7 @@ babeltrace-convert(1)
 
 NAME
 ----
-babeltrace-convert - Convert one or more traces
+babeltrace2-convert - Convert one or more traces
 
 
 SYNOPSIS
@@ -14,7 +14,7 @@ SYNOPSIS
 Convert one or more traces:
 
 [verse]
-*babeltrace convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+*babeltrace2 convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                    [opt:--omit-system-plugin-path]
                    [opt:--plugin-path='PATH'[:__PATH__]...]
                    [opt:--run-args | opt:--run-args-0] [opt:--retry-duration='DURUS']
@@ -23,7 +23,7 @@ Convert one or more traces:
 Print the metadata text of a CTF trace:
 
 [verse]
-*babeltrace convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+*babeltrace2 convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                    [opt:--omit-system-plugin-path]
                    [opt:--plugin-path='PATH'[:__PATH__]...]
                    [opt:--output='OUTPATH']
@@ -33,7 +33,7 @@ Print the available http://lttng.org/docs/#doc-lttng-live[LTTng live]
 sessions:
 
 [verse]
-*babeltrace convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
+*babeltrace2 convert* ['GENERAL OPTIONS'] [opt:--omit-home-plugin-path]
                    [opt:--omit-system-plugin-path]
                    [opt:--plugin-path='PATH'[:__PATH__]...]
                    [opt:--output='OUTPATH'] opt:--input-format=`lttng-live` 'URL'
@@ -43,24 +43,24 @@ DESCRIPTION
 -----------
 The `convert` command creates a trace conversion graph and runs it.
 
-See man:babeltrace-intro(7) to learn more about the Babeltrace
+See man:babeltrace2-intro(7) to learn more about the Babeltrace
 project and its core concepts.
 
 [NOTE]
 ====
-`convert` is the default man:babeltrace(1) command: you usually don't
+`convert` is the default man:babeltrace2(1) command: you usually don't
 need to specify its name. The following commands are equivalent
-if the `...` part does not start with another man:babeltrace(1)
+if the `...` part does not start with another man:babeltrace2(1)
 command's name, like `run` or `list-plugins`:
 
 [role="term"]
 ----
-$ babeltrace convert ...
-$ babeltrace ...
+$ babeltrace2 convert ...
+$ babeltrace2 ...
 ----
 
 If you need to make sure that you are executing the `convert` command,
-use `babeltrace convert` explicitly.
+use `babeltrace2 convert` explicitly.
 ====
 
 A conversion graph is a specialized trace processing graph focused on
@@ -89,9 +89,9 @@ optional. See <<comp-create-impl,Create implicit components>> to learn
 how to enable them.
 
 If you need another processing graph layout, use the more flexible
-man:babeltrace-run(1) command.
+man:babeltrace2-run(1) command.
 
-Like with the man:babeltrace-run(1) command, you can create components
+Like with the man:babeltrace2-run(1) command, you can create components
 explicitly with the opt:--component option (see
 <<comp-create-expl,Create explicit components>>). You can also use one
 of the many specific `convert` command options and arguments to create
@@ -102,7 +102,7 @@ on the console:
 
 [role="term"]
 ----
-$ babeltrace /path/to/trace
+$ babeltrace2 /path/to/trace
 ----
 
 This is the equivalent of creating and connecting together:
@@ -132,7 +132,7 @@ It is equivalent to the following command:
 
 [role="term"]
 ----
-$ babeltrace run --component=ctf-fs:src.ctf.fs \
+$ babeltrace2 run --component=ctf-fs:src.ctf.fs \
                  --params=path=/path/to/trace \
                  --component=pretty:sink.text.pretty \
                  --component=muxer:filter.utils.muxer \
@@ -140,14 +140,14 @@ $ babeltrace run --component=ctf-fs:src.ctf.fs \
 ----
 
 You can use the opt:--run-args option to make the `convert` command
-print its equivalent man:babeltrace-run(1) arguments instead of
+print its equivalent man:babeltrace2-run(1) arguments instead of
 creating and running the conversion graph. The printed arguments are
 escaped for shells, which means you can use them as is on the command
 line and possibly add more options to the `run` command:
 
 [role="term"]
 ----
-$ babeltrace run $(babeltrace --run-args /path/to/trace) ...
+$ babeltrace2 run $(babeltrace2 --run-args /path/to/trace) ...
 ----
 
 The opt:--run-args-0 option is like the opt:--run-args option, but the
@@ -221,7 +221,7 @@ conversion graph without an explicit instantiation through the
 opt:--component option. An implicit component is easier to create than
 an explicit component: this is why the `convert` command exists, as you
 can also create and run a conversion graph with the generic
-man:babeltrace-run(1) command.
+man:babeltrace2-run(1) command.
 
 There are many ways to create implicit components with the `convert`
 command:
@@ -235,7 +235,7 @@ Example:
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace /path/to/other/trace
+$ babeltrace2 /path/to/trace /path/to/other/trace
 ----
 +
 The opt:--clock-offset and opt:--clock-offset-ns options apply to _all_
@@ -243,7 +243,7 @@ the implicit compcls:src.ctf.fs components. For example:
 +
 [role="term"]
 ----
-$ babeltrace --clock-offset=3 trace1 trace2
+$ babeltrace2 --clock-offset=3 trace1 trace2
 ----
 +
 With the command line above, two implicit compcls:src.ctf.fs components
@@ -263,7 +263,7 @@ Example:
 +
 [role="term"]
 ----
-$ babeltrace --input-format=lttng-live \
+$ babeltrace2 --input-format=lttng-live \
              net://localhost/host/abeille/my-session
 ----
 +
@@ -278,17 +278,17 @@ Examples:
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --begin=22:14:38 --end=22:15:07
+$ babeltrace2 /path/to/trace --begin=22:14:38 --end=22:15:07
 ----
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --timerange=22:14:38,22:15:07
+$ babeltrace2 /path/to/trace --timerange=22:14:38,22:15:07
 ----
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --end=12:31:04.882928015
+$ babeltrace2 /path/to/trace --end=12:31:04.882928015
 ----
 
 * To create an implicit compcls:filter.lttng-utils.debug-info (add
@@ -300,18 +300,18 @@ Examples:
 +
 [role="term"]
 ----
-$ babeltrace --debug-info /path/to/trace
+$ babeltrace2 --debug-info /path/to/trace
 ----
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace \
+$ babeltrace2 /path/to/trace \
              --debug-info-target-prefix=/tmp/tgt-root
 ----
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --debug-info-full-path
+$ babeltrace2 /path/to/trace --debug-info-full-path
 ----
 
 * To create an implicit compcls:sink.text.pretty component
@@ -338,22 +338,22 @@ Examples:
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace
+$ babeltrace2 /path/to/trace
 ----
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --no-delta
+$ babeltrace2 /path/to/trace --no-delta
 ----
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --output-format=text
+$ babeltrace2 /path/to/trace --output-format=text
 ----
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --output=/tmp/pretty-out
+$ babeltrace2 /path/to/trace --output=/tmp/pretty-out
 ----
 
 * To create an implicit compcls:sink.utils.dummy component (dummy
@@ -364,7 +364,7 @@ Example:
 +
 [role="term"]
 ----
-$ babeltrace /path/to/trace --output-format=dummy
+$ babeltrace2 /path/to/trace --output-format=dummy
 ----
 
 * To create an implicit compcls:sink.ctf.fs component (CTF traces
@@ -377,7 +377,7 @@ Example:
 +
 [role="term"]
 ----
-$ babeltrace /path/to/input/trace --output-format=ctf \
+$ babeltrace2 /path/to/input/trace --output-format=ctf \
              --output=my-traces
 ----
 
@@ -387,16 +387,16 @@ it, and write it as another CTF trace:
 
 [role="term"]
 ----
-$ babeltrace /path/to/input/trace --timerange=22:14:38,22:15:07 \
+$ babeltrace2 /path/to/input/trace --timerange=22:14:38,22:15:07 \
              --debug-info --output-format=ctf --output=out-dir
 ----
 
-The equivalent man:babeltrace-run(1) command of this `convert` command
+The equivalent man:babeltrace2-run(1) command of this `convert` command
 is:
 
 [role="term"]
 ----
-$ babeltrace run --component=src-ctf-fs:src.ctf.fs \
+$ babeltrace2 run --component=src-ctf-fs:src.ctf.fs \
                  --params=path=/path/to/input/trace \
                  --component=sink-ctf-fs:sink.ctf.fs \
                  --params=path=out-dir \
@@ -514,7 +514,7 @@ opt:-i 'FORMAT', opt:--input-format='FORMAT'::
     individual component. See <<impl-opts-ctf,Implicit
     compcls:src.ctf.fs component>>.
 +
-See man:babeltrace-source.ctf.fs(7) to learn more about this
+See man:babeltrace2-source.ctf.fs(7) to learn more about this
 component class.
 
 `lttng-live`::
@@ -532,7 +532,7 @@ component class.
 +
 Any other format for the positional argument is invalid.
 +
-See man:babeltrace-source.ctf.lttng-live(7) to learn more about
+See man:babeltrace2-source.ctf.lttng-live(7) to learn more about
 this component class.
 --
 --
@@ -548,20 +548,20 @@ opt:-o 'FORMAT', opt:--output-format='FORMAT'::
     Create an implicit compcls:sink.text.pretty component.
     See <<impl-opts-text,Implicit compcls:sink.text.pretty component>>.
 +
-See man:babeltrace-sink.text.pretty(7) to learn more about
+See man:babeltrace2-sink.text.pretty(7) to learn more about
 this component class.
 
 `ctf`::
     Create an implicit compcls:sink.ctf.fs component. Specify the output
     path with the opt:--output option.
 +
-See man:babeltrace-sink.ctf.fs(7) to learn more about
+See man:babeltrace2-sink.ctf.fs(7) to learn more about
 this component class.
 
 `dummy`::
     Create an implicit compcls:sink.utils.dummy component.
 +
-See man:babeltrace-sink.utils.dummy(7) to learn more about
+See man:babeltrace2-sink.utils.dummy(7) to learn more about
 this component class.
 
 `ctf-metadata`::
@@ -579,7 +579,7 @@ There is one implicit compcls:src.ctf.fs component per positional
 argument (which are trace paths), unless you specify
 opt:--input-format=`lttng-live`.
 
-See man:babeltrace-source.ctf.fs(7) to learn more about this
+See man:babeltrace2-source.ctf.fs(7) to learn more about this
 component class.
 
 opt:--clock-offset='SEC'::
@@ -610,7 +610,7 @@ Implicit compcls:filter.utils.trimmer component
 If you specify at least one of the following options, you create an
 implicit compcls:filter.utils.trimmer component.
 
-See man:babeltrace-filter.utils.trimmer(7) to learn more about
+See man:babeltrace2-filter.utils.trimmer(7) to learn more about
 this component class.
 
 See <<time-fmt,Time option format>> for the format of 'BEGIN' and 'END'.
@@ -637,7 +637,7 @@ If you specify at least one of the following options, you create an
 implicit compcls:filter.lttng-utils.debug-info component. This component
 only alters compatible LTTng events.
 
-See man:babeltrace-filter.lttng-utils.debug-info(7) to learn more
+See man:babeltrace2-filter.lttng-utils.debug-info(7) to learn more
 about this component class.
 
 opt:--debug-info::
@@ -681,7 +681,7 @@ implicit compcls:sink.text.pretty component. The `convert` command also
 creates a default implicit compcls:sink.text.pretty component if no
 other sink component exists.
 
-See man:babeltrace-sink.text.pretty(7) to learn more about this
+See man:babeltrace2-sink.text.pretty(7) to learn more about this
 component class.
 
 opt:--clock-cycles::
@@ -791,15 +791,15 @@ compcls:sink.ctf.fs component to 'PATH'. Otherwise, create an implicit
 compcls:sink.text.pretty component and set its
 manparam:sink.text.pretty:path initialization parameter to 'PATH'.
 +
-See man:babeltrace-sink.ctf.fs(7) and
-man:babeltrace-sink.text.pretty(7) to learn more about those
+See man:babeltrace2-sink.ctf.fs(7) and
+man:babeltrace2-sink.text.pretty(7) to learn more about those
 component classes.
 
 
-Equivalent `babeltrace run` arguments
+Equivalent `babeltrace2 run` arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 opt:--run-args::
-    Print the equivalent man:babeltrace-run(1) arguments instead of
+    Print the equivalent man:babeltrace2-run(1) arguments instead of
     creating and running the conversion graph. The printed arguments are
     space-separated and individually escaped for safe shell input.
 +
@@ -807,7 +807,7 @@ You cannot use this option with the opt:--run-args-0 or
 opt:--stream-intersection option.
 
 opt:--run-args-0::
-    Print the equivalent man:babeltrace-run(1) arguments instead of
+    Print the equivalent man:babeltrace2-run(1) arguments instead of
     creating and running the conversion graph. The printed arguments are
     separated with a null character and :not: escaped for safe shell
     input.
@@ -838,7 +838,7 @@ project's component class which supports this query object is
 compcls:source.ctf.fs.
 +
 Because it is not possible to replicate with a single
-man:babeltrace-run(1) command line what the `convert` method does with
+man:babeltrace2-run(1) command line what the `convert` method does with
 the opt:--stream-intersection option, you cannot use this option with
 the opt:--run-args or opt:--run-args-0 option.
 
@@ -846,7 +846,7 @@ the opt:--run-args or opt:--run-args-0 option.
 Plugin path
 ~~~~~~~~~~~
 opt:--omit-home-plugin-path::
-    Do not search for plugins in `$HOME/.local/lib/babeltrace/plugins`.
+    Do not search for plugins in `$HOME/.local/lib/babeltrace2/plugins`.
 
 opt:--omit-system-plugin-path::
     Do not search for plugins in +{system_plugin_path}+.
@@ -869,17 +869,17 @@ EXAMPLES
 ====
 [role="term"]
 ----
-$ babeltrace my-trace
+$ babeltrace2 my-trace
 ----
 
 [role="term"]
 ----
-$ babeltrace my-traces
+$ babeltrace2 my-traces
 ----
 
 [role="term"]
 ----
-$ babeltrace my-trace-1 my-trace-2 my-trace-3
+$ babeltrace2 my-trace-1 my-trace-2 my-trace-3
 ----
 ====
 
@@ -887,23 +887,23 @@ $ babeltrace my-trace-1 my-trace-2 my-trace-3
 ====
 [role="term"]
 ----
-$ babeltrace my-trace --begin=22:55:43.658582931 \
+$ babeltrace2 my-trace --begin=22:55:43.658582931 \
              --end=22:55:46.967687564
 ----
 
 [role="term"]
 ----
-$ babeltrace my-trace --begin=22:55:43.658582931
+$ babeltrace2 my-trace --begin=22:55:43.658582931
 ----
 
 [role="term"]
 ----
-$ babeltrace my-trace --end=22:55:46.967687564
+$ babeltrace2 my-trace --end=22:55:46.967687564
 ----
 
 [role="term"]
 ----
-$ babeltrace my-trace --timerange=22:55:43,22:55:46.967687564
+$ babeltrace2 my-trace --timerange=22:55:43,22:55:46.967687564
 ----
 ====
 
@@ -911,7 +911,7 @@ $ babeltrace my-trace --timerange=22:55:43,22:55:46.967687564
 ====
 [role="term"]
 ----
-$ babeltrace my-trace --stream-intersection \
+$ babeltrace2 my-trace --stream-intersection \
              --timerange=22:55:43,22:55:46.967687564 \
              --output-format=ctf --output=out-trace
 ----
@@ -921,7 +921,7 @@ $ babeltrace my-trace --stream-intersection \
 ====
 [role="term"]
 ----
-$ babeltrace --input-format=lttng-live \
+$ babeltrace2 --input-format=lttng-live \
              net://localhost/host/myhostname/auto-20170411-134512 \
              --output-format=ctf --output=/path/to/generated/traces
 ----
@@ -931,7 +931,7 @@ $ babeltrace --input-format=lttng-live \
 ====
 [role="term"]
 ----
-$ babeltrace my-trace --output-format=dummy
+$ babeltrace2 my-trace --output-format=dummy
 ----
 ====
 
@@ -939,7 +939,7 @@ $ babeltrace my-trace --output-format=dummy
 ====
 [role="term"]
 ----
-$ babeltrace trace1 trace2 trace3 --stream-intersection \
+$ babeltrace2 trace1 trace2 trace3 --stream-intersection \
              --debug-info --output=pretty-out
 ----
 ====
@@ -948,7 +948,7 @@ $ babeltrace trace1 trace2 trace3 --stream-intersection \
 ====
 [role="term"]
 ----
-$ babeltrace ctf-trace --component=src.my-plugin.my-src \
+$ babeltrace2 ctf-trace --component=src.my-plugin.my-src \
              --params=output-some-event-type=yes --clock-seconds
 ----
 ====
@@ -957,7 +957,7 @@ $ babeltrace ctf-trace --component=src.my-plugin.my-src \
 ====
 [role="term"]
 ----
-$ babeltrace --input-format=lttng-live \
+$ babeltrace2 --input-format=lttng-live \
              net://localhost/host/myhostname/mysession \
              --component=sink.my-plugin.my-sink
 ----
@@ -967,7 +967,7 @@ $ babeltrace --input-format=lttng-live \
 ====
 [role="term"]
 ----
-$ babeltrace /path/to/trace --timerange=22:14:38,22:15:07 \
+$ babeltrace2 /path/to/trace --timerange=22:14:38,22:15:07 \
              --debug-info --component=filter.my-plugin.my-filter \
              --params=criteria=xyz,ignore-abc=yes \
              --output-format=ctf --output=out-trace
@@ -978,7 +978,7 @@ $ babeltrace /path/to/trace --timerange=22:14:38,22:15:07 \
 ====
 [role="term"]
 ----
-$ babeltrace /path/to/trace --output-format=ctf-metadata
+$ babeltrace2 /path/to/trace --output-format=ctf-metadata
 ----
 ====
 
@@ -986,7 +986,7 @@ $ babeltrace /path/to/trace --output-format=ctf-metadata
 ====
 [role="term"]
 ----
-$ babeltrace --input-format=lttng-live net://localhost
+$ babeltrace2 --input-format=lttng-live net://localhost
 ----
 ====
 
@@ -1000,6 +1000,6 @@ include::common-cmd-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace(1),
-man:babeltrace-run(1),
-man:babeltrace-intro(7)
+man:babeltrace2(1),
+man:babeltrace2-run(1),
+man:babeltrace2-intro(7)

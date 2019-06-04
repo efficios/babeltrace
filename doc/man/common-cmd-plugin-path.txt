@@ -10,10 +10,10 @@ search path for Babeltrace plugins is, in this order:
   option.
 
 . *If the opt:--omit-home-plugin-path option is absent*:
-  `$HOME/.local/lib/babeltrace/plugins`
+  `$HOME/.local/lib/babeltrace2/plugins`
 
 . *If the opt:--omit-system-plugin-path option is absent*:
   +{system_plugin_path}+
 
-You can use the man:babeltrace-list-plugins(1) command to dynamically
+You can use the man:babeltrace2-list-plugins(1) command to dynamically
 list the available plugins.

@@ -1,4 +1,4 @@
-babeltrace-filter.utils.muxer(7)
+babeltrace2-filter.utils.muxer(7)
 ================================
 :manpagetype: component class
 :revdate: 5 October 2017
@@ -6,14 +6,14 @@ babeltrace-filter.utils.muxer(7)
 
 NAME
 ----
-babeltrace-filter.utils.muxer - Babeltrace's notification multiplexer
+babeltrace2-filter.utils.muxer - Babeltrace's notification multiplexer
 filter component class
 
 
 DESCRIPTION
 -----------
 The Babeltrace compcls:filter.utils.muxer component class, provided by
-the man:babeltrace-plugin-utils(7) plugin, once instantiated,
+the man:babeltrace2-plugin-utils(7) plugin, once instantiated,
 multiplexes the notifications that it receives from one or more input
 ports into a linear sequence of events ordered by time on its output
 port.
@@ -73,8 +73,8 @@ include::common-common-compat-env.txt[]
 
 `BABELTRACE_FLT_UTILS_MUXER_LOG_LEVEL`::
     Component class's log level. The available values are the
-    same as for the manopt:babeltrace(1):--log-level option of
-    man:babeltrace(1).
+    same as for the manopt:babeltrace2(1):--log-level option of
+    man:babeltrace2(1).
 
 
 include::common-footer.txt[]
@@ -82,5 +82,5 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-plugin-utils(7),
-man:babeltrace-intro(7)
+man:babeltrace2-plugin-utils(7),
+man:babeltrace2-intro(7)

@@ -1,4 +1,4 @@
-babeltrace-sink.text.pretty(7)
+babeltrace2-sink.text.pretty(7)
 ==============================
 :manpagetype: component class
 :revdate: 5 October 2017
@@ -6,14 +6,14 @@ babeltrace-sink.text.pretty(7)
 
 NAME
 ----
-babeltrace-sink.text.pretty - Babeltrace's pretty-printing sink
+babeltrace2-sink.text.pretty - Babeltrace's pretty-printing sink
 component class
 
 
 DESCRIPTION
 -----------
 The Babeltrace compcls:sink.text.pretty component class, provided by the
-man:babeltrace-plugin-text(7) plugin, once instantiated, pretty-prints
+man:babeltrace2-plugin-text(7) plugin, once instantiated, pretty-prints
 the events it receives from its input port to the console or to a file.
 
 By default, a compcls:sink.text.pretty component pretty-prints to
@@ -143,5 +143,5 @@ include::common-footer.txt[]
 
 SEE ALSO
 --------
-man:babeltrace-plugin-text(7),
-man:babeltrace-intro(7)
+man:babeltrace2-plugin-text(7),
+man:babeltrace2-intro(7)
